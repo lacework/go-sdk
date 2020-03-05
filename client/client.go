@@ -14,7 +14,7 @@ import (
 const (
 	path = "/api/v1/external/integrations"
 	tokenPath = "/api/v1/access/tokens"
-	defaultTimeout = 10 * time.Second
+	defaultTimeout = 60 * time.Second
 	expiryTime = 3600
 )
 
@@ -121,7 +121,7 @@ func (client *Client) GetIntegrationOfType(integrationType string, v interface{}
 	return client.GetIntegrations(path + "/type/" + integrationType, v)
 }
 
-func (client *Client) CreateIntegration(body string, v interface{}) (string, *http.Response, error) {
+func (client *Client) CreateIntegration(body interface{}, v interface{}) (string, *http.Response, error) {
 	headers := make(map[string]string)
 	headers["Accept"] = "application/json"
 	headers["Authorization"] = client.AuthToken
