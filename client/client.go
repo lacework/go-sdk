@@ -11,185 +11,169 @@ import (
 	"time"
 )
 
-const (
-	path = "/api/v1/external/integrations"
-	tokenPath = "/api/v1/access/tokens"
-	defaultTimeout = 60 * time.Second
-	expiryTime = 3600
-)
+const defaultTimeout = 10 * time.Second
 
-type GenerateTokenResponse struct {
-	Data    []TokenData `json:"data"`
-	Ok      bool   `json:"ok"`
-	Message string `json:"message"`
+type client struct {
+	account    string
+	apiVersion string
+	baseURL    *url.URL
+	auth       *authConfig
+	c          *http.Client
 }
 
-type TokenData struct {
-	ExpiresAt string `json:"expiresAt"`
-	Token string `json:"token"`
+type Option interface {
+	apply(c *client)
 }
 
-type TokenBody struct {
-	KeyId      string `json:"keyId"`
-	ExpiryTime int    `json:"expiryTime"`
+type clientFunc func(c *client)
+
+func (fn clientFunc) apply(c *client) {
+	fn(c)
 }
 
-type Client struct {
-	BaseURL *url.URL
-	account, AuthToken string
-	httpClient *http.Client
-	//GcpService, AwsService, AzureService Service
-}
+type clientOption func(*client)
 
-func NewClient(account string, keyId, secretKey, authToken string) (*Client, error) {
-	baseUrl, err := url.Parse("https://" + account + ".lacework.net")
+// New generates a new Lacework API client
+//
+// Example of basic usage
+//
+//   lacework, err := client.New("demo")
+//   if err == nil {
+//       lacework.GetIntegrations()
+//   }
+func New(account string, opts ...Option) (*client, error) {
+	baseUrl, err := url.Parse(fmt.Sprintf("https://%s.lacework.net", account))
 	if err != nil {
 		return nil, err
 	}
-	httpClient := &http.Client{Timeout: defaultTimeout}
 
-	client := &Client{
-		httpClient: httpClient,
-		account: account,
-		BaseURL: baseUrl,
+	c := &client{
+		account:    account,
+		baseURL:    baseUrl,
+		apiVersion: "v1",
+		auth: &authConfig{
+			expiration: defaultTokenExpiryTime,
+		},
+		c: &http.Client{Timeout: defaultTimeout},
 	}
 
-	if authToken == "" {
-		if keyId != "" && secretKey != "" {
-			v := &GenerateTokenResponse{}
+	for _, opt := range opts {
+		opt.apply(c)
+	}
 
-			_, response, err := client.GenerateToken(keyId, secretKey, v)
-			if err != nil {
-				fmt.Printf("%s\n", err)
-				return nil, err
-			} else {
-				fmt.Println(response.Status)
-				fmt.Printf("Auth token generated: %s\n", v.Data[0].Token)
-				client.AuthToken = v.Data[0].Token
-			}
-		}
+	return c, nil
+}
+
+// NewRequest generates a new http request
+func (c *client) NewRequest(method string, apiURL string, body io.Reader) (*http.Request, error) {
+	apiPath, err := url.Parse(c.apiPath(apiURL))
+	if err != nil {
+		return nil, err
+	}
+
+	u := c.baseURL.ResolveReference(apiPath)
+	request, err := http.NewRequest(method, u.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	// set all necessary headers
+	headers := map[string]string{
+		"Method": request.Method,
+		"Accept": "application/json",
+	}
+
+	// handle the special case that we are requesting an access token
+	if apiURL == apiTokens {
+		headers["X-LW-UAKS"] = c.auth.secret
 	} else {
-		client.AuthToken = authToken
-	}
-
-	return client, nil
-}
-
-func (client *Client) GenerateToken(keyId, secretKey string, v interface{}) (string, *http.Response, error) {
-	body := &TokenBody{
-		KeyId:      keyId,
-		ExpiryTime: expiryTime,
-	}
-
-	headers := make(map[string]string)
-	headers["X-LW-UAKS"] = secretKey
-
-	request, err := client.newRequest("POST", tokenPath, headers, body)
-	if err != nil {
-		return "", nil, err
-	}
-
-	data, response, err := client.do(request, v)
-	if err != nil {
-		return "", nil, err
-	}
-	return data, response, err
-}
-
-func (client *Client) GetIntegrations(requestPath string, v interface{}) (string, *http.Response, error) {
-	headers := make(map[string]string)
-	headers["Accept"] = "application/json"
-	headers["Authorization"] = client.AuthToken
-
-	if requestPath == "" {
-		requestPath = path
-	}
-
-	request, err := client.newRequest("GET", requestPath, headers, nil)
-	if err != nil {
-		return "", nil, err
-	}
-
-	data, response, err := client.do(request, v)
-	if err != nil {
-		return "", nil, err
-	}
-	return data, response, err
-}
-
-func (client *Client) GetIntegrationOfType(integrationType string, v interface{}) (string, *http.Response, error) {
-	return client.GetIntegrations(path + "/type/" + integrationType, v)
-}
-
-func (client *Client) CreateIntegration(body interface{}, v interface{}) (string, *http.Response, error) {
-	headers := make(map[string]string)
-	headers["Accept"] = "application/json"
-	headers["Authorization"] = client.AuthToken
-
-	request, err := client.newRequest("POST", path, headers, body)
-	if err != nil {
-		return "", nil, err
-	}
-
-	data, response, err := client.do(request, v)
-	if err != nil {
-		return "", nil, err
-	}
-	return data, response, err
-}
-
-func (client *Client) newRequest(method, path string, headers map[string]string, body interface{}) (*http.Request, error) {
-	relativeUrl := &url.URL{Path: path}
-	resolvedUrl := client.BaseURL.ResolveReference(relativeUrl)
-	var buffer io.ReadWriter
-	if body != nil {
-		buffer = new(bytes.Buffer)
-		err := json.NewEncoder(buffer).Encode(body)
-		if err != nil {
-			return nil, err
-		}
-	}
-	request, err := http.NewRequest(method, resolvedUrl.String(), buffer)
-	if err != nil {
-		return nil, err
-	}
-	if body != nil {
-		request.Header.Set("Content-Type", "application/json")
+		headers["Authorization"] = c.auth.token
 	}
 
 	for k, v := range headers {
 		request.Header.Set(k, v)
 	}
 
+	if body != nil {
+		// @afiune we should detect the content-type from the body
+		// instead of hard-coding it here
+		request.Header.Set("Content-Type", "application/json")
+	}
+
+	// parse and encode query string values
+	values := request.URL.Query()
+	request.URL.RawQuery = values.Encode()
+
 	return request, nil
 }
 
-func (client *Client) do(req *http.Request, v interface{}) (string, *http.Response, error) {
-	response, err := client.httpClient.Do(req)
-	if err != nil {
-		return "", nil, err
-	}
-
-	if err := checkErrorInResponse(response); err != nil {
-		return "", response, err
-	}
-
-	defer func() {
-		if responseErr := response.Body.Close(); err == nil {
-			err = responseErr
-		}
-	}()
-
-	if v != nil {
-		if err := decodeJSON(response, v); err != nil {
-			return "", response, err
-		}
-	}
-
-	data, _ := ioutil.ReadAll(response.Body)
-	return string(data), response, err
+// Do calls request.Do() directly
+func (c *client) Do(req *http.Request) (*http.Response, error) {
+	return c.c.Do(req)
 }
 
-func decodeJSON(res *http.Response, v interface{}) error {
-	return json.NewDecoder(res.Body).Decode(v)
+// DoDecoder is used to Do() the request and decode it into the provided interface, all at once
+func (c *client) DoDecoder(req *http.Request, v interface{}) (*http.Response, error) {
+	res, err := c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CheckResponse(res)
+	if err != nil {
+		return res, err
+	}
+
+	var resBuf bytes.Buffer
+	resTee := io.TeeReader(res.Body, &resBuf)
+	if v != nil {
+		if w, ok := v.(io.Writer); ok {
+			io.Copy(w, resTee)
+		} else {
+			err = json.NewDecoder(resTee).Decode(v)
+			if err != nil {
+				return res, err
+			}
+		}
+	}
+	return res, nil
+}
+
+// requestDecoder performs a request on an endpoint, and decodes the response into the passed in Type
+func (c *client) requestDecoder(method, path string, body io.Reader, v interface{}) error {
+	request, err := c.NewRequest(method, path, body)
+	if err != nil {
+		return err
+	}
+
+	res, err := c.DoDecoder(request, v)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	return err
+}
+
+type ErrorResponse struct {
+	Response *http.Response // HTTP response that caused this error
+}
+
+func (r *ErrorResponse) Error() string {
+	return fmt.Sprintf("%v %v: %d",
+		r.Response.Request.Method, r.Response.Request.URL,
+		r.Response.StatusCode)
+}
+
+// CheckResponse checks the provided response and generates an Error
+func CheckResponse(r *http.Response) error {
+	if c := r.StatusCode; c >= 200 && c <= 299 {
+		return nil
+	}
+	errorResponse := &ErrorResponse{Response: r}
+	data, err := ioutil.ReadAll(r.Body)
+	if err == nil && len(data) > 0 {
+		json.Unmarshal(data, errorResponse)
+	}
+	return errorResponse
 }
