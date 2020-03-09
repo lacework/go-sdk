@@ -50,7 +50,10 @@ func (c *client) GenerateToken(keyID, secretKey string) (response tokenResponse,
 		return
 	}
 
-	c.auth.token = response.Data[0].Token
+	if len(response.Data) > 0 {
+		// @afiune how do we handle cases where there is more than one token
+		c.auth.token = response.Data[0].Token
+	}
 
 	return
 }
