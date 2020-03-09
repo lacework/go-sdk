@@ -1,7 +1,7 @@
 language: go
 
 go:
-  - 1.13
+  - 1.14
 
 branches:
   only:
@@ -13,5 +13,4 @@ env:
 
 build:
     ci:
-        - export GOPATH=$SHIPPABLE_GOPATH
-        - go test ./... -v
+        - make
