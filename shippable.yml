@@ -13,4 +13,5 @@ env:
 
 build:
     ci:
-        - make
+        - make prepare
+        - make ci
