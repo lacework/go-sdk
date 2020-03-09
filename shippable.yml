@@ -1,0 +1,16 @@
+language: go
+
+go:
+  - 1.14
+
+branches:
+  only:
+    - master
+
+env:
+  global:
+    - AWS_REGION=us-west-2
+
+build:
+    ci:
+        - make
