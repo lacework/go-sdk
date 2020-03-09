@@ -1,5 +1,7 @@
 package client
 
+import "fmt"
+
 const defaultTokenExpiryTime = 3600
 
 // authConfig representing information like key_id, secret and token
@@ -37,10 +39,13 @@ func WithExpirationTime(t int) Option {
 }
 
 // GenerateToken generates a new access token
-func (c *client) GenerateToken(keyID, secretKey string) (response tokenResponse, err error) {
-	c.auth.keyID = keyID
-	c.auth.secret = secretKey
-	body, err := jsonReader(tokenRequest{keyID, c.auth.expiration})
+func (c *client) GenerateToken() (response tokenResponse, err error) {
+	if c.auth.keyID == "" || c.auth.secret == "" {
+		err = fmt.Errorf("unable to generate access token: auth keys missing")
+		return
+	}
+
+	body, err := jsonReader(tokenRequest{c.auth.keyID, c.auth.expiration})
 	if err != nil {
 		return
 	}
@@ -56,6 +61,13 @@ func (c *client) GenerateToken(keyID, secretKey string) (response tokenResponse,
 	}
 
 	return
+}
+
+// GenerateTokenWithKeys generates a new access token with the provided keys
+func (c *client) GenerateTokenWithKeys(keyID, secretKey string) (tokenResponse, error) {
+	c.auth.keyID = keyID
+	c.auth.secret = secretKey
+	return c.GenerateToken()
 }
 
 type tokenResponse struct {

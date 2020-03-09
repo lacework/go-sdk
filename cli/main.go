@@ -36,7 +36,7 @@ func main() {
 	json.Unmarshal(content, &keys)
 
 	fmt.Printf("Generation API token: ")
-	token, err := lacework.GenerateToken(keys.KeyId, keys.Secret)
+	token, err := lacework.GenerateTokenWithKeys(keys.KeyId, keys.Secret)
 	if err != nil {
 		exitWithError("unable to generate token", err)
 	}
