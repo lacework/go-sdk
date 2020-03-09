@@ -33,7 +33,11 @@ func main() {
 	if err != nil {
 		exitWithError("unable to generate api client", err)
 	}
-	json.Unmarshal(content, &keys)
+
+	err = json.Unmarshal(content, &keys)
+	if err != nil {
+		exitWithError("unable to parse keys file", err)
+	}
 
 	fmt.Printf("Generation API token: ")
 	token, err := lacework.GenerateTokenWithKeys(keys.KeyId, keys.Secret)

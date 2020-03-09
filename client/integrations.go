@@ -65,9 +65,9 @@ type azureIntegrationsResponse struct {
 }
 
 type gcpIntegrationsResponse struct {
-	//Data    []gcpIntegrationData `json:"data"`
-	Ok      bool   `json:"ok"`
-	Message string `json:"message"`
+	Data    []gcpIntegrationData `json:"data"`
+	Ok      bool                 `json:"ok"`
+	Message string               `json:"message"`
 }
 
 type gcpIntegrationData struct {
