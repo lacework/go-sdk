@@ -10,8 +10,9 @@ const (
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
 func WithApiV2() Option {
-	return clientFunc(func(c *client) {
+	return clientFunc(func(c *client) error {
 		c.apiVersion = "v2"
+		return nil
 	})
 }
 

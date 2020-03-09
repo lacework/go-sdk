@@ -15,26 +15,29 @@ type authConfig struct {
 
 // WithApiKeys sets the key_id and secret used to generate API access tokens
 func WithApiKeys(id, secret string) Option {
-	return clientFunc(func(c *client) {
+	return clientFunc(func(c *client) error {
 		if c.auth == nil {
 			c.auth = &authConfig{}
 		}
 		c.auth.keyID = id
 		c.auth.secret = secret
+		return nil
 	})
 }
 
 // WithToken sets the token used to authenticate the API requests
 func WithToken(token string) Option {
-	return clientFunc(func(c *client) {
+	return clientFunc(func(c *client) error {
 		c.auth.token = token
+		return nil
 	})
 }
 
 // WithExpirationTime configures the token expiration time
 func WithExpirationTime(t int) Option {
-	return clientFunc(func(c *client) {
+	return clientFunc(func(c *client) error {
 		c.auth.expiration = t
+		return nil
 	})
 }
 

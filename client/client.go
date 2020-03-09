@@ -18,13 +18,13 @@ type client struct {
 }
 
 type Option interface {
-	apply(c *client)
+	apply(c *client) error
 }
 
-type clientFunc func(c *client)
+type clientFunc func(c *client) error
 
-func (fn clientFunc) apply(c *client) {
-	fn(c)
+func (fn clientFunc) apply(c *client) error {
+	return fn(c)
 }
 
 // New generates a new Lacework API client
@@ -52,7 +52,9 @@ func New(account string, opts ...Option) (*client, error) {
 	}
 
 	for _, opt := range opts {
-		opt.apply(c)
+		if err := opt.apply(c); err != nil {
+			return c, err
+		}
 	}
 
 	return c, nil
