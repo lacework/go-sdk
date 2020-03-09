@@ -20,6 +20,11 @@ coverage: test
 coverage-html: test
 	go tool cover -html=$(COVERAGEOUT)
 
+go-vendor:
+	go mod tidy
+	go mod vendor
+	go mod verify
+
 lint:
 	golangci-lint run
 
