@@ -36,14 +36,14 @@ func (fn clientFunc) apply(c *client) error {
 //       lacework.GetIntegrations()
 //   }
 func New(account string, opts ...Option) (*client, error) {
-	baseUrl, err := url.Parse(fmt.Sprintf("https://%s.lacework.net", account))
+	baseURL, err := url.Parse(fmt.Sprintf("https://%s.lacework.net", account))
 	if err != nil {
 		return nil, err
 	}
 
 	c := &client{
 		account:    account,
-		baseURL:    baseUrl,
+		baseURL:    baseURL,
 		apiVersion: "v1",
 		auth: &authConfig{
 			expiration: defaultTokenExpiryTime,
@@ -58,4 +58,17 @@ func New(account string, opts ...Option) (*client, error) {
 	}
 
 	return c, nil
+}
+
+// WithURL sets the base URL, this options is only available for test purposes
+func WithURL(baseURL string) Option {
+	return clientFunc(func(c *client) error {
+		u, err := url.Parse(baseURL)
+		if err != nil {
+			return err
+		}
+
+		c.baseURL = u
+		return nil
+	})
 }

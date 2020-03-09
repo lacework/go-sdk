@@ -25,6 +25,19 @@ func WithApiKeys(id, secret string) Option {
 	})
 }
 
+// WithTokenFromKeys sets the API access keys and triggers a new token generation
+// NOTE: Order matters when using this option, use it at the end of the New() func
+func WithTokenFromKeys(id, secret string) Option {
+	return clientFunc(func(c *client) error {
+		if c.auth == nil {
+			c.auth = &authConfig{}
+		}
+
+		_, err := c.GenerateTokenWithKeys(id, secret)
+		return err
+	})
+}
+
 // WithToken sets the token used to authenticate the API requests
 func WithToken(token string) Option {
 	return clientFunc(func(c *client) error {
@@ -77,6 +90,15 @@ type tokenResponse struct {
 	Data    []tokenData `json:"data"`
 	Ok      bool        `json:"ok"`
 	Message string      `json:"message"`
+}
+
+func (tr tokenResponse) Token() string {
+	if len(tr.Data) > 0 {
+		// @afiune how do we handle cases where there is more than one token
+		return tr.Data[0].Token
+	}
+
+	return ""
 }
 
 type tokenData struct {
