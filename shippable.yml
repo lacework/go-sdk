@@ -1,0 +1,18 @@
+language: go
+
+go:
+  - 1.13
+
+branches:
+  only:
+    - master
+
+env:
+  global:
+    - AWS_REGION=us-west-2
+
+build:
+    ci:
+        - export GOPATH=$SHIPPABLE_GOPATH
+        - go env
+        - go version
