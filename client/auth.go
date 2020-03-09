@@ -1,5 +1,7 @@
 package client
 
+import "fmt"
+
 const defaultTokenExpiryTime = 3600
 
 // authConfig representing information like key_id, secret and token
@@ -13,34 +15,53 @@ type authConfig struct {
 
 // WithApiKeys sets the key_id and secret used to generate API access tokens
 func WithApiKeys(id, secret string) Option {
-	return clientFunc(func(c *client) {
+	return clientFunc(func(c *client) error {
 		if c.auth == nil {
 			c.auth = &authConfig{}
 		}
 		c.auth.keyID = id
 		c.auth.secret = secret
+		return nil
+	})
+}
+
+// WithTokenFromKeys sets the API access keys and triggers a new token generation
+// NOTE: Order matters when using this option, use it at the end of the New() func
+func WithTokenFromKeys(id, secret string) Option {
+	return clientFunc(func(c *client) error {
+		if c.auth == nil {
+			c.auth = &authConfig{}
+		}
+
+		_, err := c.GenerateTokenWithKeys(id, secret)
+		return err
 	})
 }
 
 // WithToken sets the token used to authenticate the API requests
 func WithToken(token string) Option {
-	return clientFunc(func(c *client) {
+	return clientFunc(func(c *client) error {
 		c.auth.token = token
+		return nil
 	})
 }
 
 // WithExpirationTime configures the token expiration time
 func WithExpirationTime(t int) Option {
-	return clientFunc(func(c *client) {
+	return clientFunc(func(c *client) error {
 		c.auth.expiration = t
+		return nil
 	})
 }
 
 // GenerateToken generates a new access token
-func (c *client) GenerateToken(keyID, secretKey string) (response tokenResponse, err error) {
-	c.auth.keyID = keyID
-	c.auth.secret = secretKey
-	body, err := jsonReader(tokenRequest{keyID, c.auth.expiration})
+func (c *client) GenerateToken() (response tokenResponse, err error) {
+	if c.auth.keyID == "" || c.auth.secret == "" {
+		err = fmt.Errorf("unable to generate access token: auth keys missing")
+		return
+	}
+
+	body, err := jsonReader(tokenRequest{c.auth.keyID, c.auth.expiration})
 	if err != nil {
 		return
 	}
@@ -50,15 +71,34 @@ func (c *client) GenerateToken(keyID, secretKey string) (response tokenResponse,
 		return
 	}
 
-	c.auth.token = response.Data[0].Token
+	if len(response.Data) > 0 {
+		// @afiune how do we handle cases where there is more than one token
+		c.auth.token = response.Data[0].Token
+	}
 
 	return
+}
+
+// GenerateTokenWithKeys generates a new access token with the provided keys
+func (c *client) GenerateTokenWithKeys(keyID, secretKey string) (tokenResponse, error) {
+	c.auth.keyID = keyID
+	c.auth.secret = secretKey
+	return c.GenerateToken()
 }
 
 type tokenResponse struct {
 	Data    []tokenData `json:"data"`
 	Ok      bool        `json:"ok"`
 	Message string      `json:"message"`
+}
+
+func (tr tokenResponse) Token() string {
+	if len(tr.Data) > 0 {
+		// @afiune how do we handle cases where there is more than one token
+		return tr.Data[0].Token
+	}
+
+	return ""
 }
 
 type tokenData struct {

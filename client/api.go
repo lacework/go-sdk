@@ -3,15 +3,16 @@ package client
 import "fmt"
 
 const (
-	apiIntegrations    = "external/integrations"
-	apiIntegrationType = "external/integrations/type/%s/"
-	apiTokens          = "access/tokens"
+	//apiIntegrationType = "external/integrations/type/%s/"
+	apiIntegrations = "external/integrations"
+	apiTokens       = "access/tokens"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
 func WithApiV2() Option {
-	return clientFunc(func(c *client) {
+	return clientFunc(func(c *client) error {
 		c.apiVersion = "v2"
+		return nil
 	})
 }
 

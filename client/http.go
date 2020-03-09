@@ -31,6 +31,12 @@ func (c *client) NewRequest(method string, apiURL string, body io.Reader) (*http
 	if apiURL == apiTokens {
 		headers["X-LW-UAKS"] = c.auth.secret
 	} else {
+		// verify that the client has a token, if not, try to generate one
+		if c.auth.token == "" {
+			if _, err = c.GenerateToken(); err != nil {
+				return nil, err
+			}
+		}
 		headers["Authorization"] = c.auth.token
 	}
 
@@ -73,15 +79,13 @@ func (c *client) DoDecoder(req *http.Request, v interface{}) (*http.Response, er
 	)
 	if v != nil {
 		if w, ok := v.(io.Writer); ok {
-			io.Copy(w, resTee)
-		} else {
-			err = json.NewDecoder(resTee).Decode(v)
-			if err != nil {
-				return res, err
-			}
+			_, err = io.Copy(w, resTee)
+			return res, err
 		}
+		err = json.NewDecoder(resTee).Decode(v)
 	}
-	return res, nil
+
+	return res, err
 }
 
 // requestDecoder performs an http request on an endpoint, and
