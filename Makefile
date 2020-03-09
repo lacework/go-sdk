@@ -1,6 +1,6 @@
 default: ci
 
-ci: lint test fmt-check
+ci: lint test fmt-check imports-check
 
 export GOFLAGS=-mod=vendor
 
@@ -31,8 +31,10 @@ fmt:
 	@goimports -w -l ./
 
 fmt-check:
-	@test -z $(shell gofmt -l ./)
-	@test -z $(shell goimports -l ./)
+	@test -z $(shell gofmt -l $(shell go list -f {{.Dir}} ./...))
+
+imports-check:
+	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./...))
 
 cli:
 	go run cli/main.go
