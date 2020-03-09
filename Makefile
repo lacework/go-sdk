@@ -7,9 +7,7 @@ export GOFLAGS=-mod=vendor
 GOLANGCILINTVERSION?=1.23.8
 COVERAGEOUT?=coverage.out
 
-prepare:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v$(GOLANGCILINTVERSION)
-	go get golang.org/x/tools/cmd/goimports
+prepare: install-tools go-vendor
 
 test:
 	go test -v -cover -coverprofile=$(COVERAGEOUT) ./...
@@ -38,3 +36,11 @@ fmt-check:
 
 cli:
 	go run cli/main.go
+
+install-tools:
+ifeq (, $(shell which golangci-lint))
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v$(GOLANGCILINTVERSION)
+endif
+ifeq (, $(shell which goimports))
+	go get golang.org/x/tools/cmd/goimports
+endif
