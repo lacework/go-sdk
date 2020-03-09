@@ -2,3 +2,6 @@
 
 # vim
 *.swp
+
+# Go test coverage
+coverage.out
