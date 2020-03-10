@@ -9,7 +9,7 @@ import (
 )
 
 // NewRequest generates a new http request
-func (c *client) NewRequest(method string, apiURL string, body io.Reader) (*http.Request, error) {
+func (c *Client) NewRequest(method string, apiURL string, body io.Reader) (*http.Request, error) {
 	apiPath, err := url.Parse(c.apiPath(apiURL))
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (c *client) NewRequest(method string, apiURL string, body io.Reader) (*http
 
 // DoDecoder is used to execute (aka Do) the http request and
 // decode it into the provided interface, all at once
-func (c *client) DoDecoder(req *http.Request, v interface{}) (*http.Response, error) {
+func (c *Client) DoDecoder(req *http.Request, v interface{}) (*http.Response, error) {
 	res, err := c.Do(req)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (c *client) DoDecoder(req *http.Request, v interface{}) (*http.Response, er
 
 // requestDecoder performs an http request on an endpoint, and
 // decodes the response into the provided interface, all at once
-func (c *client) RequestDecoder(method, path string, body io.Reader, v interface{}) error {
+func (c *Client) RequestDecoder(method, path string, body io.Reader, v interface{}) error {
 	request, err := c.NewRequest(method, path, body)
 	if err != nil {
 		return err
@@ -106,6 +106,6 @@ func (c *client) RequestDecoder(method, path string, body io.Reader, v interface
 }
 
 // Do calls request.Do() directly
-func (c *client) Do(req *http.Request) (*http.Response, error) {
+func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	return c.c.Do(req)
 }
