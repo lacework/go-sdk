@@ -9,7 +9,7 @@ import (
 
 const defaultTimeout = 10 * time.Second
 
-type client struct {
+type Client struct {
 	account    string
 	apiVersion string
 	baseURL    *url.URL
@@ -18,12 +18,12 @@ type client struct {
 }
 
 type Option interface {
-	apply(c *client) error
+	apply(c *Client) error
 }
 
-type clientFunc func(c *client) error
+type clientFunc func(c *Client) error
 
-func (fn clientFunc) apply(c *client) error {
+func (fn clientFunc) apply(c *Client) error {
 	return fn(c)
 }
 
@@ -35,13 +35,13 @@ func (fn clientFunc) apply(c *client) error {
 //   if err == nil {
 //       lacework.GetIntegrations()
 //   }
-func New(account string, opts ...Option) (*client, error) {
+func New(account string, opts ...Option) (*Client, error) {
 	baseURL, err := url.Parse(fmt.Sprintf("https://%s.lacework.net", account))
 	if err != nil {
 		return nil, err
 	}
 
-	c := &client{
+	c := &Client{
 		account:    account,
 		baseURL:    baseURL,
 		apiVersion: "v1",
@@ -62,7 +62,7 @@ func New(account string, opts ...Option) (*client, error) {
 
 // WithURL sets the base URL, this options is only available for test purposes
 func WithURL(baseURL string) Option {
-	return clientFunc(func(c *client) error {
+	return clientFunc(func(c *Client) error {
 		u, err := url.Parse(baseURL)
 		if err != nil {
 			return err

@@ -6,18 +6,18 @@ import (
 )
 
 // GetIntegrations lists the external integrations available on the server
-func (c *client) GetIntegrations() (response integrationsResponse, err error) {
+func (c *Client) GetIntegrations() (response integrationsResponse, err error) {
 	err = c.RequestDecoder("GET", apiIntegrations, nil, &response)
 	return
 }
 
-func (c *client) GetGCPIntegrations() (response gcpIntegrationsResponse, err error) {
+func (c *Client) GetGCPIntegrations() (response gcpIntegrationsResponse, err error) {
 	return
 }
-func (c *client) GetAzureIntegrations() (response azureIntegrationsResponse, err error) {
+func (c *Client) GetAzureIntegrations() (response azureIntegrationsResponse, err error) {
 	return
 }
-func (c *client) GetAwsIntegrations() (response awsIntegrationsResponse, err error) {
+func (c *Client) GetAWSIntegrations() (response awsIntegrationsResponse, err error) {
 	return
 }
 

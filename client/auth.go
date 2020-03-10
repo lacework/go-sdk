@@ -15,7 +15,7 @@ type authConfig struct {
 
 // WithApiKeys sets the key_id and secret used to generate API access tokens
 func WithApiKeys(id, secret string) Option {
-	return clientFunc(func(c *client) error {
+	return clientFunc(func(c *Client) error {
 		if c.auth == nil {
 			c.auth = &authConfig{}
 		}
@@ -28,7 +28,7 @@ func WithApiKeys(id, secret string) Option {
 // WithTokenFromKeys sets the API access keys and triggers a new token generation
 // NOTE: Order matters when using this option, use it at the end of the New() func
 func WithTokenFromKeys(id, secret string) Option {
-	return clientFunc(func(c *client) error {
+	return clientFunc(func(c *Client) error {
 		if c.auth == nil {
 			c.auth = &authConfig{}
 		}
@@ -40,7 +40,7 @@ func WithTokenFromKeys(id, secret string) Option {
 
 // WithToken sets the token used to authenticate the API requests
 func WithToken(token string) Option {
-	return clientFunc(func(c *client) error {
+	return clientFunc(func(c *Client) error {
 		c.auth.token = token
 		return nil
 	})
@@ -48,14 +48,14 @@ func WithToken(token string) Option {
 
 // WithExpirationTime configures the token expiration time
 func WithExpirationTime(t int) Option {
-	return clientFunc(func(c *client) error {
+	return clientFunc(func(c *Client) error {
 		c.auth.expiration = t
 		return nil
 	})
 }
 
 // GenerateToken generates a new access token
-func (c *client) GenerateToken() (response tokenResponse, err error) {
+func (c *Client) GenerateToken() (response tokenResponse, err error) {
 	if c.auth.keyID == "" || c.auth.secret == "" {
 		err = fmt.Errorf("unable to generate access token: auth keys missing")
 		return
@@ -80,7 +80,7 @@ func (c *client) GenerateToken() (response tokenResponse, err error) {
 }
 
 // GenerateTokenWithKeys generates a new access token with the provided keys
-func (c *client) GenerateTokenWithKeys(keyID, secretKey string) (tokenResponse, error) {
+func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (tokenResponse, error) {
 	c.auth.keyID = keyID
 	c.auth.secret = secretKey
 	return c.GenerateToken()
