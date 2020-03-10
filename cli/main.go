@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/lacework/go-sdk/client"
+	"github.com/lacework/go-sdk/api"
 )
 
 // (@afiune) This will become the Lacework CLI at some point in time:
@@ -17,7 +17,7 @@ func main() {
 	keysFile := flag.String("api-keys", "", "JSON file containing a set of Lacework API keys")
 	flag.Parse()
 
-	lacework, err := client.New("customerdemo")
+	lacework, err := api.NewClient("customerdemo")
 	if err != nil {
 		exitWithError("unable to generate api client", err)
 	}
@@ -31,7 +31,7 @@ func main() {
 	var keys apiKeys
 	content, err := ioutil.ReadFile(*keysFile)
 	if err != nil {
-		exitWithError("unable to generate api client", err)
+		exitWithError("unable to read keys file", err)
 	}
 
 	err = json.Unmarshal(content, &keys)
@@ -64,7 +64,7 @@ func exitWithError(msg string, err error) {
 	os.Exit(1)
 }
 
-// TODO: @afiune should we backport this apiKeys struct to the client package
+// TODO: @afiune should we backport this apiKeys struct to the api package
 type apiKeys struct {
 	KeyId  string
 	Secret string

@@ -1,4 +1,4 @@
-package client_test
+package api_test
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ import (
 //         defer fakeAPI.Close()
 //
 //         // Make sure to pass the fake API server URL
-//         c, err := client.New("test", client.WithURL(fakeAPI.URL()))
+//         c, err := api.NewClient("test", api.WithURL(fakeAPI.URL()))
 //         if assert.Nil(t, err) {
 //         	// The client c is ready to be used
 //         }
