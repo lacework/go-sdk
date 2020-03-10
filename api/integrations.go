@@ -22,15 +22,15 @@ func (c *Client) GetAWSIntegrations() (response awsIntegrationsResponse, err err
 }
 
 type commonIntegrationData struct {
-	IntgGuid             string `json:"INTG_GUID"`
+	IntgGuid             string `json:"INTG_GUID,omitempty"`
 	Name                 string `json:"NAME"`
-	CreatedOrUpdatedTime string `json:"CREATED_OR_UPDATED_TIME"`
-	CreatedOrUpdatedBy   string `json:"CREATED_OR_UPDATED_BY"`
+	CreatedOrUpdatedTime string `json:"CREATED_OR_UPDATED_TIME,omitempty"`
+	CreatedOrUpdatedBy   string `json:"CREATED_OR_UPDATED_BY,omitempty"`
 	Type                 string `json:"TYPE"`
 	Enabled              int    `json:"ENABLED"`
-	State                state  `json:"STATE"`
-	IsOrg                int    `json:"IS_ORG"`
-	TypeName             string `json:"TYPE_NAME"`
+	State                state  `json:"STATE,omitempty"`
+	IsOrg                int    `json:"IS_ORG,omitempty"`
+	TypeName             string `json:"TYPE_NAME,omitempty"`
 }
 
 type integrationsResponse struct {
@@ -76,10 +76,11 @@ type gcpIntegrationData struct {
 }
 
 type gcpCfg struct {
-	ID            string         `json:"ID"`
-	IdType        string         `json:"ID_TYPE"`
-	IssueGrouping string         `json:"ISSUE_GROUPING"`
-	Credentials   gcpCredentials `json:"CREDENTIALS"`
+	ID               string         `json:"ID"`
+	IdType           string         `json:"ID_TYPE"`
+	IssueGrouping    string         `json:"ISSUE_GROUPING,omitempty"`
+	Credentials      gcpCredentials `json:"CREDENTIALS"`
+	SubscriptionName string         `json:"SUBSCRIPTION_NAME,omitempty"`
 }
 
 type gcpCredentials struct {
