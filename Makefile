@@ -6,6 +6,7 @@ export GOFLAGS=-mod=vendor
 
 GOLANGCILINTVERSION?=1.23.8
 COVERAGEOUT?=coverage.out
+CLINAME?=lacework-cli
 
 prepare: install-tools go-vendor
 
@@ -36,8 +37,11 @@ fmt-check:
 imports-check:
 	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./...))
 
-cli:
-	go run cli/main.go
+build-cli:
+	go build -o bin/$(CLINAME) cli/main.go
+	@echo
+	@echo To execute the generated binary run:
+	@echo "    ./bin/$(CLINAME)"
 
 install-tools:
 ifeq (, $(shell which golangci-lint))

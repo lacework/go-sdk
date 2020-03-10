@@ -5,3 +5,6 @@
 
 # Go test coverage
 coverage.out
+
+# for building binary files
+bin/

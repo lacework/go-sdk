@@ -29,3 +29,12 @@ Look at the [api/](api/) folder for more documentation.
 ## Lacework CLI ([`cli`](cli/))
 
 _(work-in-progress)_ The Lacework Command Line Interface.
+
+### Basic Usage
+
+Today, you have to first build the CLI by running `make build-cli`, then you will be
+able to execute it directly:
+```
+$ make build-cli
+$ ./bin/lacework-cli
+```
