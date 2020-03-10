@@ -1,4 +1,4 @@
-package client
+package api
 
 import (
 	"fmt"
@@ -31,11 +31,11 @@ func (fn clientFunc) apply(c *Client) error {
 //
 // Example of basic usage
 //
-//   lacework, err := client.New("demo")
+//   lacework, err := api.NewClient("demo")
 //   if err == nil {
 //       lacework.GetIntegrations()
 //   }
-func New(account string, opts ...Option) (*Client, error) {
+func NewClient(account string, opts ...Option) (*Client, error) {
 	baseURL, err := url.Parse(fmt.Sprintf("https://%s.lacework.net", account))
 	if err != nil {
 		return nil, err

@@ -1,36 +1,36 @@
-package client_test
+package api_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/client"
+	"github.com/lacework/go-sdk/api"
 )
 
 func TestWithApiV2(t *testing.T) {
-	c, err := client.New("test", client.WithApiV2())
+	c, err := api.NewClient("test", api.WithApiV2())
 	if assert.Nil(t, err) {
 		assert.Equal(t, "v2", c.ApiVersion(), "API version should be v2")
 	}
 }
 
 func TestWithToken(t *testing.T) {
-	c, err := client.New("test", client.WithToken("TOKEN"))
+	c, err := api.NewClient("test", api.WithToken("TOKEN"))
 	if assert.Nil(t, err) {
 		assert.Equal(t, "v1", c.ApiVersion(), "API version should be v2")
 	}
 }
 
 func TestApiVersion(t *testing.T) {
-	c, err := client.New("foo")
+	c, err := api.NewClient("foo")
 	if assert.Nil(t, err) {
 		assert.Equal(t, "v1", c.ApiVersion(), "wrong default API version")
 	}
 }
 
 func TestWithApiKeys(t *testing.T) {
-	c, err := client.New("foo", client.WithApiKeys("KEY", "SECRET"))
+	c, err := api.NewClient("foo", api.WithApiKeys("KEY", "SECRET"))
 	if assert.Nil(t, err) {
 		assert.Equal(t, "v1", c.ApiVersion(), "wrong default API version")
 	}
@@ -41,9 +41,9 @@ func TestWithTokenFromKeys(t *testing.T) {
 	fakeAPI.MockToken("TOKEN")
 	defer fakeAPI.Close()
 
-	c, err := client.New("foo",
-		client.WithURL(fakeAPI.URL()),
-		client.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
+	c, err := api.NewClient("foo",
+		api.WithURL(fakeAPI.URL()),
+		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
 	)
 	if assert.Nil(t, err) {
 		assert.Equal(t, "v1", c.ApiVersion(), "wrong default API version")
@@ -55,9 +55,9 @@ func TestGenerateToken(t *testing.T) {
 	fakeAPI.MockToken("TOKEN")
 	defer fakeAPI.Close()
 
-	c, err := client.New("foo",
-		client.WithURL(fakeAPI.URL()),
-		client.WithApiKeys("KEY", "SECRET"),
+	c, err := api.NewClient("foo",
+		api.WithURL(fakeAPI.URL()),
+		api.WithApiKeys("KEY", "SECRET"),
 	)
 	if assert.Nil(t, err) {
 		response, err := c.GenerateToken()
@@ -71,7 +71,7 @@ func TestGenerateTokenWithKeys(t *testing.T) {
 	fakeAPI.MockToken("TOKEN")
 	defer fakeAPI.Close()
 
-	c, err := client.New("foo", client.WithURL(fakeAPI.URL()))
+	c, err := api.NewClient("foo", api.WithURL(fakeAPI.URL()))
 	if assert.Nil(t, err) {
 		response, err := c.GenerateTokenWithKeys("KEY", "SECRET")
 		assert.Nil(t, err)
@@ -80,7 +80,7 @@ func TestGenerateTokenWithKeys(t *testing.T) {
 }
 
 func TestGenerateTokenErrorKeysMissing(t *testing.T) {
-	c, err := client.New("where-are-my-keys")
+	c, err := api.NewClient("where-are-my-keys")
 	if assert.Nil(t, err) {
 		response, err := c.GenerateToken()
 		if assert.NotNil(t, err) {

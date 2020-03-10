@@ -1,4 +1,4 @@
-package client
+package api
 
 import "fmt"
 
@@ -26,7 +26,7 @@ func WithApiKeys(id, secret string) Option {
 }
 
 // WithTokenFromKeys sets the API access keys and triggers a new token generation
-// NOTE: Order matters when using this option, use it at the end of the New() func
+// NOTE: Order matters when using this option, use it at the end of a NewClient() func
 func WithTokenFromKeys(id, secret string) Option {
 	return clientFunc(func(c *Client) error {
 		if c.auth == nil {
