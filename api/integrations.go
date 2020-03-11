@@ -5,6 +5,61 @@ import (
 	"strings"
 )
 
+type integrationType int
+
+const (
+	// awsCFG - AWS Config integration type
+	// awsCFG integrationType = iota
+
+	// awsCT - AWS CloudTrail integration type
+	// awsCT
+
+	// gcpCFG - GCP Config integration type
+	gcpCFG integrationType = iota
+
+	// gcpAT - GCP Audit Log integration type
+	// gcpAT
+
+	// azureCFG - Azure Config integration type
+	// azureCFG
+
+	// azureAL - Azure Activity Log integration type
+	// azureAL
+)
+
+var integrationTypes = []string{
+	"AWS_CFG",
+	"AWS_CT_SQS",
+	"GCP_CFG",
+	"GCP_AT_SES",
+	"AZURE_CFG",
+	"AZURE_AL_SEQ",
+}
+
+func (i integrationType) String() string {
+	return integrationTypes[i]
+}
+
+// gcpResourceLevel determines Project or Organization level integration
+type gcpResourceLevel int
+
+const (
+	// GcpProject level integration with GCP
+	GcpProject gcpResourceLevel = iota
+
+	// GcpOrganization level integration with GCP
+	GcpOrganization
+)
+
+var gcpResourceLevels = []string{
+	"PROJECT",
+	"ORGANIZATION",
+}
+
+func (g gcpResourceLevel) String() string {
+	return gcpResourceLevels[g]
+}
+
 // GetIntegrations lists the external integrations available on the server
 func (c *Client) GetIntegrations() (response integrationsResponse, err error) {
 	err = c.RequestDecoder("GET", apiIntegrations, nil, &response)
@@ -19,6 +74,47 @@ func (c *Client) GetAzureIntegrations() (response azureIntegrationsResponse, err
 }
 func (c *Client) GetAWSIntegrations() (response awsIntegrationsResponse, err error) {
 	return
+}
+
+// NewGCPIntegrationData returns an instance of gcpIntegrationData
+func NewGCPIntegrationData(name string, idType gcpResourceLevel) gcpIntegrationData {
+	return gcpIntegrationData{
+		commonIntegrationData: commonIntegrationData{
+			Name:    name,
+			Type:    gcpCFG.String(),
+			Enabled: 1,
+		},
+		Data: gcpCfg{
+			IdType: idType.String(),
+		},
+	}
+}
+
+// CreateGCPConfigIntegration creates a single integration on the server
+func (c *Client) CreateGCPConfigIntegration(data gcpIntegrationData) (response gcpIntegrationsResponse, err error) {
+	err = c.createIntegration(data, &response)
+	return
+}
+
+func (c *Client) createIntegration(data interface{}, response interface{}) error {
+	body, err := jsonReader(data)
+	if err != nil {
+		return err
+	}
+
+	err = c.RequestDecoder("POST", apiIntegrations, body, response)
+	return err
+}
+
+// GetOneGCPConfigIntegration gets a single integration matching the integration guid available on the server
+func (c *Client) GetGCPConfigIntegration(intgGuid string) (response gcpIntegrationsResponse, err error) {
+	err = c.getIntegration(intgGuid, &response)
+	return
+}
+
+func (c *Client) getIntegration(intgGuid string, response interface{}) error {
+	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
+	return c.RequestDecoder("GET", apiPath, nil, response)
 }
 
 type commonIntegrationData struct {
@@ -76,10 +172,9 @@ type gcpIntegrationData struct {
 }
 
 type gcpCfg struct {
-	ID            string         `json:"ID"`
-	IdType        string         `json:"ID_TYPE"`
-	IssueGrouping string         `json:"ISSUE_GROUPING"`
-	Credentials   gcpCredentials `json:"CREDENTIALS"`
+	ID          string         `json:"ID"`
+	IdType      string         `json:"ID_TYPE"`
+	Credentials gcpCredentials `json:"CREDENTIALS"`
 }
 
 type gcpCredentials struct {

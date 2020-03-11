@@ -4,8 +4,9 @@ import "fmt"
 
 const (
 	//apiIntegrationType = "external/integrations/type/%s/"
-	apiIntegrations = "external/integrations"
-	apiTokens       = "access/tokens"
+	apiIntegrations      = "external/integrations"
+	apiIntegrationByGUID = "external/integrations/%s"
+	apiTokens            = "access/tokens"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
