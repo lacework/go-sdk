@@ -106,7 +106,7 @@ func (c *Client) createIntegration(data interface{}, response interface{}) error
 	return err
 }
 
-// GetOneGCPConfigIntegration gets a single integration matching the integration guid available on the server
+// GetGCPConfigIntegration gets a single integration matching the integration guid available on the server
 func (c *Client) GetGCPConfigIntegration(intgGuid string) (response gcpIntegrationsResponse, err error) {
 	err = c.getIntegration(intgGuid, &response)
 	return
