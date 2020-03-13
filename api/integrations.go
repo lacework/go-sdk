@@ -9,31 +9,31 @@ type integrationType int
 
 const (
 	// awsCFG - AWS Config integration type
-	// awsCFG integrationType = iota
+	awsCFG integrationType = iota
 
 	// awsCT - AWS CloudTrail integration type
-	// awsCT
+	awsCT
 
 	// gcpCFG - GCP Config integration type
-	gcpCFG integrationType = iota
+	gcpCFG
 
 	// gcpAT - GCP Audit Log integration type
-	// gcpAT
+	gcpAT
 
 	// azureCFG - Azure Config integration type
-	// azureCFG
+	azureCFG
 
 	// azureAL - Azure Activity Log integration type
-	// azureAL
+	azureAL
 )
 
-var integrationTypes = []string{
-	"AWS_CFG",
-	"AWS_CT_SQS",
-	"GCP_CFG",
-	"GCP_AT_SES",
-	"AZURE_CFG",
-	"AZURE_AL_SEQ",
+var integrationTypes = map[integrationType]string{
+	awsCFG:   "AWS_CFG",
+	awsCT:    "AWS_CT_SQS",
+	gcpCFG:   "GCP_CFG",
+	gcpAT:    "GCP_AT_SES",
+	azureCFG: "AZURE_CFG",
+	azureAL:  "AZURE_AL_SEQ",
 }
 
 func (i integrationType) String() string {
@@ -51,9 +51,9 @@ const (
 	GcpOrganization
 )
 
-var gcpResourceLevels = []string{
-	"PROJECT",
-	"ORGANIZATION",
+var gcpResourceLevels = map[gcpResourceLevel]string{
+	GcpProject:      "PROJECT",
+	GcpOrganization: "ORGANIZATION",
 }
 
 func (g gcpResourceLevel) String() string {
