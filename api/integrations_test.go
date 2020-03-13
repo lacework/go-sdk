@@ -57,6 +57,7 @@ func TestCreateGCPConfigIntegration(t *testing.T) {
 	assert.Nil(t, err)
 
 	data := api.NewGCPIntegrationData("integration_name", api.GcpProject)
+	assert.Equal(t, "GCP_CFG", data.Type, "a new GCP integration should match its type")
 	data.Data.ID = "xxxxxxxxxx"
 	data.Data.Credentials.ClientId = "xxxxxxxxx"
 	data.Data.Credentials.ClientEmail = "xxxxxx@xxxxx.iam.gserviceaccount.com"
