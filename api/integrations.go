@@ -135,6 +135,33 @@ func (c *Client) getIntegration(intgGuid string, response interface{}) error {
 	return c.RequestDecoder("GET", apiPath, nil, response)
 }
 
+// UpdateGCPConfigIntegration updates a single integration on the server
+func (c *Client) UpdateGCPConfigIntegration(data gcpIntegrationData) (response gcpIntegrationsResponse, err error) {
+	err = c.updateIntegration(data, &response)
+	return
+}
+
+func (c *Client) updateIntegration(data interface{}, response interface{}) error {
+	body, err := jsonReader(data)
+	if err != nil {
+		return err
+	}
+
+	err = c.RequestDecoder("PATCH", apiIntegrations, body, response)
+	return err
+}
+
+// DeleteGCPConfigIntegration gets a single integration matching the integration guid available on the server
+func (c *Client) DeleteGCPConfigIntegration(intgGuid string) (response gcpIntegrationsResponse, err error) {
+	err = c.deleteIntegration(intgGuid, &response)
+	return
+}
+
+func (c *Client) deleteIntegration(intgGuid string, response interface{}) error {
+	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
+	return c.RequestDecoder("DELETE", apiPath, nil, response)
+}
+
 type commonIntegrationData struct {
 	IntgGuid             string `json:"INTG_GUID"`
 	Name                 string `json:"NAME"`
