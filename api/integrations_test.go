@@ -81,9 +81,10 @@ func TestGetGCPConfigIntegration(t *testing.T) {
 
 func TestUpdateGCPConfigIntegration(t *testing.T) {
 	intgGUID := "12345"
+	apiPath := fmt.Sprintf("external/integrations/%s", intgGUID)
 
 	fakeAPI := NewLaceworkServer()
-	fakeAPI.MockAPI("external/integrations", func(w http.ResponseWriter, r *http.Request) {
+	fakeAPI.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, createGCPCFGJson(intgGUID))
 	})
 	defer fakeAPI.Close()
@@ -93,6 +94,7 @@ func TestUpdateGCPConfigIntegration(t *testing.T) {
 
 	data := api.NewGCPIntegrationData("integration_name", api.GcpProject)
 	assert.Equal(t, "GCP_CFG", data.Type, "a new GCP integration should match its type")
+	data.IntgGuid = intgGUID
 	data.Data.ID = "xxxxxxxxxx"
 	data.Data.Credentials.ClientId = "xxxxxxxxx"
 	data.Data.Credentials.ClientEmail = "xxxxxx@xxxxx.iam.gserviceaccount.com"

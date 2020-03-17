@@ -137,17 +137,18 @@ func (c *Client) getIntegration(intgGuid string, response interface{}) error {
 
 // UpdateGCPConfigIntegration updates a single integration on the server
 func (c *Client) UpdateGCPConfigIntegration(data gcpIntegrationData) (response gcpIntegrationsResponse, err error) {
-	err = c.updateIntegration(data, &response)
+	err = c.updateIntegration(data.IntgGuid, data, &response)
 	return
 }
 
-func (c *Client) updateIntegration(data interface{}, response interface{}) error {
+func (c *Client) updateIntegration(intgGuid string, data interface{}, response interface{}) error {
 	body, err := jsonReader(data)
 	if err != nil {
 		return err
 	}
 
-	err = c.RequestDecoder("PATCH", apiIntegrations, body, response)
+	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
+	err = c.RequestDecoder("PATCH", apiPath, body, response)
 	return err
 }
 
