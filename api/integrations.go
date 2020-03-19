@@ -26,91 +26,41 @@ import (
 type integrationType int
 
 const (
-	// awsCFG - AWS Config integration type
-	awsCFG integrationType = iota
+	// AWS Config integration type
+	AwsCfgIntegration integrationType = iota
 
-	// awsCT - AWS CloudTrail integration type
-	awsCT
+	// AWS CloudTrail integration type
+	AwsCloudTrailIntegration
 
-	// gcpCFG - GCP Config integration type
-	gcpCFG
+	// GCP Config integration type
+	GcpCfgIntegration
 
-	// gcpAT - GCP Audit Log integration type
-	gcpAT
+	// GCP Audit Log integration type
+	GcpAuditLogIntegration
 
-	// azureCFG - Azure Config integration type
-	azureCFG
+	// Azure Config integration type
+	AzureCfgIntegration
 
-	// azureAL - Azure Activity Log integration type
-	azureAL
+	// Azure Activity Log integration type
+	AzureActivityLogIntegration
 )
 
 var integrationTypes = map[integrationType]string{
-	awsCFG:   "AWS_CFG",
-	awsCT:    "AWS_CT_SQS",
-	gcpCFG:   "GCP_CFG",
-	gcpAT:    "GCP_AT_SES",
-	azureCFG: "AZURE_CFG",
-	azureAL:  "AZURE_AL_SEQ",
+	AwsCfgIntegration:           "AWS_CFG",
+	AwsCloudTrailIntegration:    "AWS_CT_SQS",
+	GcpCfgIntegration:           "GCP_CFG",
+	GcpAuditLogIntegration:      "GCP_AT_SES",
+	AzureCfgIntegration:         "AZURE_CFG",
+	AzureActivityLogIntegration: "AZURE_AL_SEQ",
 }
 
 func (i integrationType) String() string {
 	return integrationTypes[i]
 }
 
-// gcpResourceLevel determines Project or Organization level integration
-type gcpResourceLevel int
-
-const (
-	// GcpProject level integration with GCP
-	GcpProject gcpResourceLevel = iota
-
-	// GcpOrganization level integration with GCP
-	GcpOrganization
-)
-
-var gcpResourceLevels = map[gcpResourceLevel]string{
-	GcpProject:      "PROJECT",
-	GcpOrganization: "ORGANIZATION",
-}
-
-func (g gcpResourceLevel) String() string {
-	return gcpResourceLevels[g]
-}
-
 // GetIntegrations lists the external integrations available on the server
 func (c *Client) GetIntegrations() (response integrationsResponse, err error) {
 	err = c.RequestDecoder("GET", apiIntegrations, nil, &response)
-	return
-}
-
-func (c *Client) GetGCPIntegrations() (response gcpIntegrationsResponse, err error) {
-	return
-}
-func (c *Client) GetAzureIntegrations() (response azureIntegrationsResponse, err error) {
-	return
-}
-func (c *Client) GetAWSIntegrations() (response awsIntegrationsResponse, err error) {
-	return
-}
-
-// NewGCPIntegrationData returns an instance of gcpIntegrationData
-func NewGCPIntegrationData(name string, idType gcpResourceLevel) gcpIntegrationData {
-	return gcpIntegrationData{
-		commonIntegrationData: commonIntegrationData{
-			Name:    name,
-			Type:    gcpCFG.String(),
-			Enabled: 1,
-		},
-		Data: gcpCfg{
-			IdType: idType.String(),
-		},
-	}
-}
-
-// CreateGCPConfigIntegration creates a single integration on the server
-func (c *Client) CreateGCPConfigIntegration(data gcpIntegrationData) (response gcpIntegrationsResponse, err error) {
-	err = c.createIntegration(data, &response)
 	return
 }
 
@@ -124,21 +74,9 @@ func (c *Client) createIntegration(data interface{}, response interface{}) error
 	return err
 }
 
-// GetGCPConfigIntegration gets a single integration matching the integration guid available on the server
-func (c *Client) GetGCPConfigIntegration(intgGuid string) (response gcpIntegrationsResponse, err error) {
-	err = c.getIntegration(intgGuid, &response)
-	return
-}
-
 func (c *Client) getIntegration(intgGuid string, response interface{}) error {
 	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
 	return c.RequestDecoder("GET", apiPath, nil, response)
-}
-
-// UpdateGCPConfigIntegration updates a single integration on the server
-func (c *Client) UpdateGCPConfigIntegration(data gcpIntegrationData) (response gcpIntegrationsResponse, err error) {
-	err = c.updateIntegration(data.IntgGuid, data, &response)
-	return
 }
 
 func (c *Client) updateIntegration(intgGuid string, data interface{}, response interface{}) error {
@@ -150,12 +88,6 @@ func (c *Client) updateIntegration(intgGuid string, data interface{}, response i
 	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
 	err = c.RequestDecoder("PATCH", apiPath, body, response)
 	return err
-}
-
-// DeleteGCPConfigIntegration gets a single integration matching the integration guid available on the server
-func (c *Client) DeleteGCPConfigIntegration(intgGuid string) (response gcpIntegrationsResponse, err error) {
-	err = c.deleteIntegration(intgGuid, &response)
-	return
 }
 
 func (c *Client) deleteIntegration(intgGuid string, response interface{}) error {
@@ -175,6 +107,12 @@ type commonIntegrationData struct {
 	TypeName             string `json:"TYPE_NAME,omitempty"`
 }
 
+type state struct {
+	Ok                 bool   `json:"ok"`
+	LastUpdatedTime    string `json:"lastUpdatedTime"`
+	LastSuccessfulTime string `json:"lastSuccessfulTime"`
+}
+
 type integrationsResponse struct {
 	Data    []commonIntegrationData `json:"data"`
 	Ok      bool                    `json:"ok"`
@@ -187,47 +125,4 @@ func (integrations *integrationsResponse) List() string {
 		out = append(out, fmt.Sprintf("%s %s", integration.IntgGuid, integration.Type))
 	}
 	return strings.Join(out, "\n")
-}
-
-type state struct {
-	Ok                 bool   `json:"ok"`
-	LastUpdatedTime    string `json:"lastUpdatedTime"`
-	LastSuccessfulTime string `json:"lastSuccessfulTime"`
-}
-
-type awsIntegrationsResponse struct {
-	//Data    []gcpIntegrationData `json:"data"`
-	Ok      bool   `json:"ok"`
-	Message string `json:"message"`
-}
-type azureIntegrationsResponse struct {
-	//Data    []gcpIntegrationData `json:"data"`
-	Ok      bool   `json:"ok"`
-	Message string `json:"message"`
-}
-
-type gcpIntegrationsResponse struct {
-	Data    []gcpIntegrationData `json:"data"`
-	Ok      bool                 `json:"ok"`
-	Message string               `json:"message"`
-}
-
-type gcpIntegrationData struct {
-	commonIntegrationData
-	Data gcpCfg `json:"DATA"`
-}
-
-type gcpCfg struct {
-	ID               string         `json:"ID"`
-	IdType           string         `json:"ID_TYPE"`
-	IssueGrouping    string         `json:"ISSUE_GROUPING,omitempty"`
-	Credentials      gcpCredentials `json:"CREDENTIALS"`
-	SubscriptionName string         `json:"SUBSCRIPTION_NAME,omitempty"`
-}
-
-type gcpCredentials struct {
-	ClientId     string `json:"CLIENT_ID"`
-	ClientEmail  string `json:"CLIENT_EMAIL"`
-	PrivateKeyId string `json:"PRIVATE_KEY_ID"`
-	PrivateKey   string `json:"PRIVATE_KEY"`
 }
