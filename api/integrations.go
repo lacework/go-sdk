@@ -64,6 +64,13 @@ func (c *Client) GetIntegrations() (response integrationsResponse, err error) {
 	return
 }
 
+// GetIntegrationSchema get the integration schema for the provided integration type
+func (c *Client) GetIntegrationSchema(iType integrationType) (response map[string]interface{}, err error) {
+	apiPath := fmt.Sprintf(apiIntegrationSchema, iType.String())
+	err = c.RequestDecoder("GET", apiPath, nil, &response)
+	return
+}
+
 func (c *Client) createIntegration(data interface{}, response interface{}) error {
 	body, err := jsonReader(data)
 	if err != nil {

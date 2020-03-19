@@ -21,9 +21,10 @@ package api
 import "fmt"
 
 const (
-	//apiIntegrationType = "external/integrations/type/%s/"
+	//apiIntegrationsByType = "external/integrations/type/%s"
 	apiIntegrations      = "external/integrations"
 	apiIntegrationByGUID = "external/integrations/%s"
+	apiIntegrationSchema = "external/integrations/schema/%s"
 	apiTokens            = "access/tokens"
 )
 
