@@ -21,11 +21,11 @@ package api
 import "fmt"
 
 const (
-	//apiIntegrationsByType = "external/integrations/type/%s"
-	apiIntegrations      = "external/integrations"
-	apiIntegrationByGUID = "external/integrations/%s"
-	apiIntegrationSchema = "external/integrations/schema/%s"
-	apiTokens            = "access/tokens"
+	apiIntegrations       = "external/integrations"
+	apiIntegrationsByType = "external/integrations/type/%s"
+	apiIntegrationByGUID  = "external/integrations/%s"
+	apiIntegrationSchema  = "external/integrations/schema/%s"
+	apiTokens             = "access/tokens"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

@@ -18,6 +18,8 @@
 
 package api
 
+import "fmt"
+
 // NewAwsConfigIntegration returns an instance of awsConfigIntegration
 //
 // Basic usage: Initialize a new awsConfigIntegration struct, then
@@ -88,6 +90,13 @@ func (svc *IntegrationsService) DeleteAwsConfig(guid string) (
 	err error,
 ) {
 	err = svc.delete(guid, &response)
+	return
+}
+
+// ListAwsConfig lists the AWS_CFG external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListAwsConfig() (response awsIntegrationsResponse, err error) {
+	apiPath := fmt.Sprintf(apiIntegrationsByType, AwsCfgIntegration.String())
+	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
 

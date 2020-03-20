@@ -18,6 +18,8 @@
 
 package api
 
+import "fmt"
+
 // gcpResourceLevel determines Project or Organization level integration
 type gcpResourceLevel int
 
@@ -111,6 +113,13 @@ func (svc *IntegrationsService) DeleteGcpConfig(guid string) (
 	err error,
 ) {
 	err = svc.delete(guid, &response)
+	return
+}
+
+// ListGcpConfig lists the CFG_CFG external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListGcpConfig() (response gcpIntegrationsResponse, err error) {
+	apiPath := fmt.Sprintf(apiIntegrationsByType, GcpCfgIntegration.String())
+	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
 

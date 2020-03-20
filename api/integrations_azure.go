@@ -18,6 +18,8 @@
 
 package api
 
+import "fmt"
+
 // NewAzureConfigIntegration returns an instance of azureConfigIntegration
 //
 // Basic usage: Initialize a new azureConfigIntegration struct, then
@@ -83,6 +85,14 @@ func (svc *IntegrationsService) DeleteAzureConfig(guid string) (
 	err error,
 ) {
 	err = svc.delete(guid, &response)
+	return
+
+}
+
+// ListAzureConfig lists the AZURE_CFG external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListAzureConfig() (response azureIntegrationsResponse, err error) {
+	apiPath := fmt.Sprintf(apiIntegrationsByType, AzureCfgIntegration.String())
+	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
 
