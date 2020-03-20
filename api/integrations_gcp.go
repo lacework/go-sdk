@@ -43,6 +43,11 @@ func (g gcpResourceLevel) String() string {
 // Basic usage: Initialize a new gcpConfigIntegration struct, then
 //              use the new instance to do CRUD operations
 //
+//   client, err := api.NewClient("account")
+//   if err != nil {
+//     return err
+//   }
+//
 //   gcp, err := api.NewGcpConfigIntegration("abc",
 //     api.GcpIntegrationData{
 //       ID: "1234",
@@ -58,10 +63,7 @@ func (g gcpResourceLevel) String() string {
 //     return err
 //   }
 //
-//   integrationResponse, err := api.CreateGcpConfigIntegration(gcp)
-//   if err != nil {
-//     return err
-//   }
+//   client.Integrations.CreateGcpConfig(gcp)
 //
 func NewGcpConfigIntegration(name string, data GcpIntegrationData) gcpConfigIntegration {
 	return gcpConfigIntegration{
@@ -74,31 +76,41 @@ func NewGcpConfigIntegration(name string, data GcpIntegrationData) gcpConfigInte
 	}
 }
 
-// CreateGcpConfigIntegration creates a single GCP_CFG integration on the Lacework Server
-func (c *Client) CreateGcpConfigIntegration(data gcpConfigIntegration) (response gcpIntegrationsResponse, err error) {
-	err = c.createIntegration(data, &response)
+// CreateGcpConfig creates a single GCP_CFG integration on the Lacework Server
+func (svc *IntegrationsService) CreateGcpConfig(data gcpConfigIntegration) (
+	response gcpIntegrationsResponse,
+	err error,
+) {
+	err = svc.create(data, &response)
 	return
 }
 
-// GetGcpConfigIntegration gets a single integration matching the integration guid available on the server
-func (c *Client) GetGcpConfigIntegration(intgGuid string) (response gcpIntegrationsResponse, err error) {
-	err = c.getIntegration(intgGuid, &response)
+// GetGcpConfig gets a single GCP_CFG integration matching the integration guid
+// on the Lacework Server
+func (svc *IntegrationsService) GetGcpConfig(guid string) (
+	response gcpIntegrationsResponse,
+	err error,
+) {
+	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateGcpConfigIntegration updates a single integration on the server
-func (c *Client) UpdateGcpConfigIntegration(data gcpConfigIntegration) (response gcpIntegrationsResponse, err error) {
-	err = c.updateIntegration(data.IntgGuid, data, &response)
+// UpdateGcpConfig updates a single GCP_CFG integration on the Lacework Server
+func (svc *IntegrationsService) UpdateGcpConfig(data gcpConfigIntegration) (
+	response gcpIntegrationsResponse,
+	err error,
+) {
+	err = svc.update(data.IntgGuid, data, &response)
 	return
 }
 
-// DeleteGcpConfigIntegration gets a single integration matching the integration guid available on the server
-func (c *Client) DeleteGcpConfigIntegration(intgGuid string) (response gcpIntegrationsResponse, err error) {
-	err = c.deleteIntegration(intgGuid, &response)
-	return
-}
-
-func (c *Client) GetGcpIntegrations() (response gcpIntegrationsResponse, err error) {
+// DeleteGcpConfig deletes a single GCP_CFG integration matching the integration guid
+// on the Lacework Server
+func (svc *IntegrationsService) DeleteGcpConfig(guid string) (
+	response gcpIntegrationsResponse,
+	err error,
+) {
+	err = svc.delete(guid, &response)
 	return
 }
 

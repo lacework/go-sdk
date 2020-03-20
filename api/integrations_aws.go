@@ -23,6 +23,11 @@ package api
 // Basic usage: Initialize a new awsConfigIntegration struct, then
 //              use the new instance to do CRUD operations
 //
+//   client, err := api.NewClient("account")
+//   if err != nil {
+//     return err
+//   }
+//
 //   aws, err := api.NewAwsConfigIntegration("foo",
 //     api.AwsIntegrationData{
 //       Credentials: api.AwsIntegrationCreds {
@@ -35,10 +40,7 @@ package api
 //     return err
 //   }
 //
-//   integrationResponse, err := api.CreateAwsConfigIntegration(aws)
-//   if err != nil {
-//     return err
-//   }
+//   client.Integrations.CreateAwsConfig(aws)
 //
 func NewAwsConfigIntegration(name string, data AwsIntegrationData) awsConfigIntegration {
 	return awsConfigIntegration{
@@ -51,31 +53,41 @@ func NewAwsConfigIntegration(name string, data AwsIntegrationData) awsConfigInte
 	}
 }
 
-// CreateAwsConfigIntegration creates a single AWS_CFG integration on the Lacework Server
-func (c *Client) CreateAwsConfigIntegration(integration awsConfigIntegration) (response awsIntegrationsResponse, err error) {
-	err = c.createIntegration(integration, &response)
+// CreateAwsConfig creates a single AWS_CFG integration on the Lacework Server
+func (svc *IntegrationsService) CreateAwsConfig(integration awsConfigIntegration) (
+	response awsIntegrationsResponse,
+	err error,
+) {
+	err = svc.create(integration, &response)
 	return
 }
 
-// GetAwsConfigIntegration gets a single AWS_CFG integration matching the integration guid available on the server
-func (c *Client) GetAwsConfigIntegration(intgGuid string) (response awsIntegrationsResponse, err error) {
-	err = c.getIntegration(intgGuid, &response)
+// GetAwsConfig gets a single AWS_CFG integration matching the integration guid
+// on the Lacwork Server
+func (svc *IntegrationsService) GetAwsConfig(guid string) (
+	response awsIntegrationsResponse,
+	err error,
+) {
+	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateAwsConfigIntegration updates a single AWS_CFG integration on the Lacework Server
-func (c *Client) UpdateAwsConfigIntegration(data awsConfigIntegration) (response awsIntegrationsResponse, err error) {
-	err = c.updateIntegration(data.IntgGuid, data, &response)
+// UpdateAwsConfig updates a single AWS_CFG integration on the Lacework Server
+func (svc *IntegrationsService) UpdateAwsConfig(data awsConfigIntegration) (
+	response awsIntegrationsResponse,
+	err error,
+) {
+	err = svc.update(data.IntgGuid, data, &response)
 	return
 }
 
-// DeleteAwsConfigIntegration deletes a single integration matching the integration guid on the Lacework Server
-func (c *Client) DeleteAwsConfigIntegration(intgGuid string) (response awsIntegrationsResponse, err error) {
-	err = c.deleteIntegration(intgGuid, &response)
-	return
-}
-
-func (c *Client) GetAwsIntegrations() (response awsIntegrationsResponse, err error) {
+// DeleteAwsConfig deletes a single AWS_CFG integration matching the integration guid
+// on the Lacework Server
+func (svc *IntegrationsService) DeleteAwsConfig(guid string) (
+	response awsIntegrationsResponse,
+	err error,
+) {
+	err = svc.delete(guid, &response)
 	return
 }
 
@@ -91,8 +103,7 @@ type awsConfigIntegration struct {
 }
 
 type AwsIntegrationData struct {
-	Credentials  AwsIntegrationCreds `json:"CROSS_ACCOUNT_CREDENTIALS"`
-	AwsAccountId string              `json:"AWS_ACCOUNT_ID"`
+	Credentials AwsIntegrationCreds `json:"CROSS_ACCOUNT_CREDENTIALS"`
 }
 
 type AwsIntegrationCreds struct {

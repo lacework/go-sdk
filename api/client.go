@@ -33,6 +33,8 @@ type Client struct {
 	baseURL    *url.URL
 	auth       *authConfig
 	c          *http.Client
+
+	Integrations *IntegrationsService
 }
 
 type Option interface {
@@ -51,7 +53,7 @@ func (fn clientFunc) apply(c *Client) error {
 //
 //   lacework, err := api.NewClient("demo")
 //   if err == nil {
-//       lacework.GetIntegrations()
+//       lacework.Integrations.List()
 //   }
 func NewClient(account string, opts ...Option) (*Client, error) {
 	baseURL, err := url.Parse(fmt.Sprintf("https://%s.lacework.net", account))
@@ -68,6 +70,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		},
 		c: &http.Client{Timeout: defaultTimeout},
 	}
+	c.Integrations = &IntegrationsService{c}
 
 	for _, opt := range opts {
 		if err := opt.apply(c); err != nil {

@@ -23,6 +23,12 @@ import (
 	"strings"
 )
 
+// IntegrationsService is a service that interacts with the integrations endpoints
+// from the Lacework Server
+type IntegrationsService struct {
+	client *Client
+}
+
 type integrationType int
 
 const (
@@ -58,48 +64,72 @@ func (i integrationType) String() string {
 	return integrationTypes[i]
 }
 
-// GetIntegrations lists the external integrations available on the server
-func (c *Client) GetIntegrations() (response integrationsResponse, err error) {
-	err = c.RequestDecoder("GET", apiIntegrations, nil, &response)
+// Get gets a single integration matching the integration guid on the Lacework Server,
+// the returned integration contains the 'Data' field raw (map of interfaces)
+func (svc *IntegrationsService) Get(guid string) (
+	response rawIntegrationsResponse,
+	err error,
+) {
+	err = svc.get(guid, &response)
 	return
 }
 
-// GetIntegrationSchema get the integration schema for the provided integration type
-func (c *Client) GetIntegrationSchema(iType integrationType) (response map[string]interface{}, err error) {
+// Delete deletes a single integration matching the integration guid on the Lacework Server
+// the returned integration contains the 'Data' field raw (map of interfaces)
+func (svc *IntegrationsService) Delete(guid string) (
+	response rawIntegrationsResponse,
+	err error,
+) {
+	err = svc.delete(guid, &response)
+	return
+}
+
+// List lists the external integrations available on the Lacework Server
+func (svc *IntegrationsService) List() (response integrationsResponse, err error) {
+	err = svc.client.RequestDecoder("GET", apiIntegrations, nil, &response)
+	return
+}
+
+// GetSchema get the integration schema for the provided integration type
+func (svc *IntegrationsService) GetSchema(iType integrationType) (
+	response map[string]interface{},
+	err error,
+) {
 	apiPath := fmt.Sprintf(apiIntegrationSchema, iType.String())
-	err = c.RequestDecoder("GET", apiPath, nil, &response)
+	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
 
-func (c *Client) createIntegration(data interface{}, response interface{}) error {
+func (svc *IntegrationsService) get(guid string, response interface{}) error {
+	apiPath := fmt.Sprintf(apiIntegrationByGUID, guid)
+	return svc.client.RequestDecoder("GET", apiPath, nil, response)
+}
+
+func (svc *IntegrationsService) create(data interface{}, response interface{}) error {
 	body, err := jsonReader(data)
 	if err != nil {
 		return err
 	}
 
-	err = c.RequestDecoder("POST", apiIntegrations, body, response)
+	err = svc.client.RequestDecoder("POST", apiIntegrations, body, response)
 	return err
 }
 
-func (c *Client) getIntegration(intgGuid string, response interface{}) error {
-	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
-	return c.RequestDecoder("GET", apiPath, nil, response)
-}
-
-func (c *Client) updateIntegration(intgGuid string, data interface{}, response interface{}) error {
-	body, err := jsonReader(data)
+func (svc *IntegrationsService) update(guid string, data interface{}, response interface{}) error {
+	var (
+		apiPath   = fmt.Sprintf(apiIntegrationByGUID, guid)
+		body, err = jsonReader(data)
+	)
 	if err != nil {
 		return err
 	}
 
-	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
-	err = c.RequestDecoder("PATCH", apiPath, body, response)
-	return err
+	return svc.client.RequestDecoder("PATCH", apiPath, body, response)
 }
 
-func (c *Client) deleteIntegration(intgGuid string, response interface{}) error {
-	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
-	return c.RequestDecoder("DELETE", apiPath, nil, response)
+func (svc *IntegrationsService) delete(guid string, response interface{}) error {
+	apiPath := fmt.Sprintf(apiIntegrationByGUID, guid)
+	return svc.client.RequestDecoder("DELETE", apiPath, nil, response)
 }
 
 type commonIntegrationData struct {
@@ -132,4 +162,15 @@ func (integrations *integrationsResponse) List() string {
 		out = append(out, fmt.Sprintf("%s %s", integration.IntgGuid, integration.Type))
 	}
 	return strings.Join(out, "\n")
+}
+
+type RawIntegration struct {
+	commonIntegrationData
+	Data map[string]interface{} `json:"DATA"`
+}
+
+type rawIntegrationsResponse struct {
+	Data    []RawIntegration `json:"data"`
+	Ok      bool             `json:"ok"`
+	Message string           `json:"message"`
 }
