@@ -18,12 +18,12 @@
 
 package api
 
-// NewAwsIntegration returns an instance of awsIntegration
+// NewAwsConfigIntegration returns an instance of awsConfigIntegration
 //
-// Basic usage: Initialize a new awsIntegration struct, then
+// Basic usage: Initialize a new awsConfigIntegration struct, then
 //              use the new instance to do CRUD operations
 //
-//   aws, err := api.NewAwsIntegration("foo",
+//   aws, err := api.NewAwsConfigIntegration("foo",
 //     api.AwsIntegrationData{
 //       Credentials: api.AwsIntegrationCreds {
 //         RoleArn: "arn:aws:XYZ",
@@ -40,8 +40,8 @@ package api
 //     return err
 //   }
 //
-func NewAwsIntegration(name string, data AwsIntegrationData) awsIntegration {
-	return awsIntegration{
+func NewAwsConfigIntegration(name string, data AwsIntegrationData) awsConfigIntegration {
+	return awsConfigIntegration{
 		commonIntegrationData: commonIntegrationData{
 			Name:    name,
 			Type:    AwsCfgIntegration.String(),
@@ -52,7 +52,7 @@ func NewAwsIntegration(name string, data AwsIntegrationData) awsIntegration {
 }
 
 // CreateAwsConfigIntegration creates a single AWS_CFG integration on the Lacework Server
-func (c *Client) CreateAwsConfigIntegration(integration awsIntegration) (response awsIntegrationsResponse, err error) {
+func (c *Client) CreateAwsConfigIntegration(integration awsConfigIntegration) (response awsIntegrationsResponse, err error) {
 	err = c.createIntegration(integration, &response)
 	return
 }
@@ -64,7 +64,7 @@ func (c *Client) GetAwsConfigIntegration(intgGuid string) (response awsIntegrati
 }
 
 // UpdateAwsConfigIntegration updates a single AWS_CFG integration on the Lacework Server
-func (c *Client) UpdateAwsConfigIntegration(data awsIntegration) (response awsIntegrationsResponse, err error) {
+func (c *Client) UpdateAwsConfigIntegration(data awsConfigIntegration) (response awsIntegrationsResponse, err error) {
 	err = c.updateIntegration(data.IntgGuid, data, &response)
 	return
 }
@@ -80,12 +80,12 @@ func (c *Client) GetAwsIntegrations() (response awsIntegrationsResponse, err err
 }
 
 type awsIntegrationsResponse struct {
-	Data    []awsIntegration `json:"data"`
-	Ok      bool             `json:"ok"`
-	Message string           `json:"message"`
+	Data    []awsConfigIntegration `json:"data"`
+	Ok      bool                   `json:"ok"`
+	Message string                 `json:"message"`
 }
 
-type awsIntegration struct {
+type awsConfigIntegration struct {
 	commonIntegrationData
 	Data AwsIntegrationData `json:"DATA"`
 }

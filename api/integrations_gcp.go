@@ -38,12 +38,12 @@ func (g gcpResourceLevel) String() string {
 	return gcpResourceLevels[g]
 }
 
-// NewGcpIntegration returns an instance of gcpIntegration
+// NewGcpConfigIntegration returns an instance of gcpConfigIntegration
 //
-// Basic usage: Initialize a new gcpIntegration struct, then
+// Basic usage: Initialize a new gcpConfigIntegration struct, then
 //              use the new instance to do CRUD operations
 //
-//   gcp, err := api.NewGcpIntegration("abc",
+//   gcp, err := api.NewGcpConfigIntegration("abc",
 //     api.GcpIntegrationData{
 //       ID: "1234",
 //       Credentials: api.GcpCredentials{
@@ -63,8 +63,8 @@ func (g gcpResourceLevel) String() string {
 //     return err
 //   }
 //
-func NewGcpIntegration(name string, data GcpIntegrationData) gcpIntegration {
-	return gcpIntegration{
+func NewGcpConfigIntegration(name string, data GcpIntegrationData) gcpConfigIntegration {
+	return gcpConfigIntegration{
 		commonIntegrationData: commonIntegrationData{
 			Name:    name,
 			Type:    GcpCfgIntegration.String(),
@@ -75,7 +75,7 @@ func NewGcpIntegration(name string, data GcpIntegrationData) gcpIntegration {
 }
 
 // CreateGcpConfigIntegration creates a single GCP_CFG integration on the Lacework Server
-func (c *Client) CreateGcpConfigIntegration(data gcpIntegration) (response gcpIntegrationsResponse, err error) {
+func (c *Client) CreateGcpConfigIntegration(data gcpConfigIntegration) (response gcpIntegrationsResponse, err error) {
 	err = c.createIntegration(data, &response)
 	return
 }
@@ -87,7 +87,7 @@ func (c *Client) GetGcpConfigIntegration(intgGuid string) (response gcpIntegrati
 }
 
 // UpdateGcpConfigIntegration updates a single integration on the server
-func (c *Client) UpdateGcpConfigIntegration(data gcpIntegration) (response gcpIntegrationsResponse, err error) {
+func (c *Client) UpdateGcpConfigIntegration(data gcpConfigIntegration) (response gcpIntegrationsResponse, err error) {
 	err = c.updateIntegration(data.IntgGuid, data, &response)
 	return
 }
@@ -103,12 +103,12 @@ func (c *Client) GetGcpIntegrations() (response gcpIntegrationsResponse, err err
 }
 
 type gcpIntegrationsResponse struct {
-	Data    []gcpIntegration `json:"data"`
-	Ok      bool             `json:"ok"`
-	Message string           `json:"message"`
+	Data    []gcpConfigIntegration `json:"data"`
+	Ok      bool                   `json:"ok"`
+	Message string                 `json:"message"`
 }
 
-type gcpIntegration struct {
+type gcpConfigIntegration struct {
 	commonIntegrationData
 	Data GcpIntegrationData `json:"DATA"`
 }
@@ -116,7 +116,6 @@ type gcpIntegration struct {
 type GcpIntegrationData struct {
 	ID               string         `json:"ID"`
 	IdType           string         `json:"ID_TYPE"`
-	IssueGrouping    string         `json:"ISSUE_GROUPING,omitempty"`
 	Credentials      GcpCredentials `json:"CREDENTIALS"`
 	SubscriptionName string         `json:"SUBSCRIPTION_NAME,omitempty"`
 }

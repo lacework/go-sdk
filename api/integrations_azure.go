@@ -18,12 +18,12 @@
 
 package api
 
-// NewAzureIntegration returns an instance of azureIntegration
+// NewAzureConfigIntegration returns an instance of azureConfigIntegration
 //
-// Basic usage: Initialize a new azureIntegration struct, then
+// Basic usage: Initialize a new azureConfigIntegration struct, then
 //              use the new instance to do CRUD operations
 //
-//   azure, err := api.NewAzureIntegration("bar",
+//   azure, err := api.NewAzureConfigIntegration("bar",
 //     api.AzureIntegrationData{},
 //   )
 //   if err != nil {
@@ -35,8 +35,8 @@ package api
 //     return err
 //   }
 //
-func NewAzureIntegration(name string, data AzureIntegrationData) azureIntegration {
-	return azureIntegration{
+func NewAzureConfigIntegration(name string, data AzureIntegrationData) azureConfigIntegration {
+	return azureConfigIntegration{
 		commonIntegrationData: commonIntegrationData{
 			Name:    name,
 			Type:    AzureCfgIntegration.String(),
@@ -51,12 +51,12 @@ func (c *Client) GetAzureIntegrations() (response azureIntegrationsResponse, err
 }
 
 type azureIntegrationsResponse struct {
-	Data    []azureIntegration `json:"data"`
-	Ok      bool               `json:"ok"`
-	Message string             `json:"message"`
+	Data    []azureConfigIntegration `json:"data"`
+	Ok      bool                     `json:"ok"`
+	Message string                   `json:"message"`
 }
 
-type azureIntegration struct {
+type azureConfigIntegration struct {
 	commonIntegrationData
 	Data AzureIntegrationData `json:"DATA"`
 }
