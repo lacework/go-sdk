@@ -118,7 +118,59 @@ func TestIntegrationsGetSchema(t *testing.T) {
 }
 
 func TestIntegrationsGet(t *testing.T) {
-	// TODO @afiune implement a mocked Lacework API server
+	var (
+		intgGUID    = intgguid.New()
+		vanillaType = "VANILLA"
+		apiPath     = fmt.Sprintf("external/integrations/%s", intgGUID)
+		vanillaInt  = singleVanillaIntegration(intgGUID, vanillaType, "")
+		fakeServer  = lacework.MockServer()
+	)
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath,
+		func(w http.ResponseWriter, r *http.Request) {
+			if assert.Equal(t, "GET", r.Method, "Get() should be a GET method") {
+				fmt.Fprintf(w, generateIntegrationsResponse(vanillaInt))
+			}
+		},
+	)
+
+	fakeServer.MockAPI("external/integrations/UNKNOWN_INTG_GUID",
+		func(w http.ResponseWriter, r *http.Request) {
+			if assert.Equal(t, "GET", r.Method, "Get() should be a GET method") {
+				http.Error(w, "Not Found", 404)
+			}
+		},
+	)
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	t.Run("when integration exists", func(t *testing.T) {
+		response, err := c.Integrations.Get(intgGUID)
+		assert.Nil(t, err)
+		if assert.NotNil(t, response) {
+			if assert.Equal(t, 1, len(response.Data)) {
+				resData := response.Data[0]
+				assert.Equal(t, intgGUID, resData.IntgGuid)
+				assert.Equal(t, "integration_name", resData.Name)
+				assert.Equal(t, "VANILLA", resData.Type)
+				assert.Equal(t, "Vanilla Integration", resData.TypeName)
+			}
+		}
+	})
+
+	t.Run("when integration does NOT exist", func(t *testing.T) {
+		response, err := c.Integrations.Get("UNKNOWN_INTG_GUID")
+		assert.Empty(t, response)
+		if assert.NotNil(t, err) {
+			assert.Contains(t, err.Error(), "api/v1/external/integrations/UNKNOWN_INTG_GUID")
+			assert.Contains(t, err.Error(), "404 Not Found")
+		}
+	})
 }
 
 func TestIntegrationsDelete(t *testing.T) {
@@ -145,7 +197,7 @@ func TestIntegrationsList(t *testing.T) {
 				generateIntegrations(azureIntgGUIDs, "AZURE_CFG"),
 			}
 			fmt.Fprintf(w,
-				generaetMultiIntegrationResponse(
+				generateIntegrationsResponse(
 					strings.Join(integrations, ", "),
 				),
 			)
@@ -184,12 +236,35 @@ func generateIntegrations(guids []string, iType string) string {
 	return strings.Join(integrations, ", ")
 }
 
-func generaetMultiIntegrationResponse(data string) string {
+func generateIntegrationsResponse(data string) string {
 	return `
 		{
 			"data": [` + data + `],
 			"ok": true,
 			"message": "SUCCESS"
+		}
+	`
+}
+
+func singleVanillaIntegration(id string, iType string, data string) string {
+	if data == "" {
+		data = "{}"
+	}
+	return `
+		{
+			"INTG_GUID": "` + id + `",
+			"NAME": "integration_name",
+			"CREATED_OR_UPDATED_TIME": "2020-Mar-10 01:00:00 UTC",
+			"CREATED_OR_UPDATED_BY": "user@email.com",
+			"TYPE": "` + iType + `",
+			"STATE": {
+				"ok": true,
+				"lastUpdatedTime": "2020-Mar-10 01:00:00 UTC",
+				"lastSuccessfulTime": "2020-Mar-10 01:00:00 UTC"
+			},
+			"IS_ORG": 0,
+			"TYPE_NAME": "Vanilla Integration",
+			"DATA": ` + data + `
 		}
 	`
 }
