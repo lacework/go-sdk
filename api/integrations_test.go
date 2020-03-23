@@ -174,7 +174,82 @@ func TestIntegrationsGet(t *testing.T) {
 }
 
 func TestIntegrationsDelete(t *testing.T) {
-	// TODO @afiune implement a mocked Lacework API server
+	var (
+		intgGUID    = intgguid.New()
+		vanillaType = "VANILLA"
+		apiPath     = fmt.Sprintf("external/integrations/%s", intgGUID)
+		vanillaInt  = singleVanillaIntegration(intgGUID, vanillaType, "")
+		// this will change when the test hits DELETE
+		getResponse = generateIntegrationsResponse(vanillaInt)
+		fakeServer  = lacework.MockServer()
+	)
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath,
+		func(w http.ResponseWriter, r *http.Request) {
+			if getResponse != "" {
+				switch r.Method {
+				case "GET":
+					fmt.Fprintf(w, getResponse)
+				case "DELETE":
+					fmt.Fprintf(w, getResponse)
+					// once deleted, empty the getResponse so that
+					// further GET requests return 404s
+					getResponse = ""
+				}
+			} else {
+				http.Error(w, "Not Found", 404)
+			}
+		},
+	)
+
+	fakeServer.MockAPI("external/integrations/UNKNOWN_INTG_GUID",
+		func(w http.ResponseWriter, r *http.Request) {
+			if assert.Equal(t, "GET", r.Method, "Get() should be a GET method") {
+				http.Error(w, "Not Found", 404)
+			}
+		},
+	)
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	t.Run("verify integration exists", func(t *testing.T) {
+		response, err := c.Integrations.Get(intgGUID)
+		assert.Nil(t, err)
+		if assert.NotNil(t, response) {
+			if assert.Equal(t, 1, len(response.Data)) {
+				resData := response.Data[0]
+				assert.Equal(t, intgGUID, resData.IntgGuid)
+				assert.Equal(t, "integration_name", resData.Name)
+				assert.Equal(t, "VANILLA", resData.Type)
+				assert.Equal(t, "Vanilla Integration", resData.TypeName)
+			}
+		}
+	})
+
+	t.Run("when integration has been deleted", func(t *testing.T) {
+		response, err := c.Integrations.Delete(intgGUID)
+		assert.Nil(t, err)
+		if assert.NotNil(t, response) {
+			if assert.Equal(t, 1, len(response.Data)) {
+				resData := response.Data[0]
+				assert.Equal(t, intgGUID, resData.IntgGuid)
+				assert.Equal(t, "integration_name", resData.Name)
+				assert.Equal(t, "VANILLA", resData.Type)
+				assert.Equal(t, "Vanilla Integration", resData.TypeName)
+			}
+		}
+		response, err = c.Integrations.Get(intgGUID)
+		assert.Empty(t, response)
+		if assert.NotNil(t, err) {
+			assert.Contains(t, err.Error(), "api/v1/external/integrations/MOCK_")
+			assert.Contains(t, err.Error(), "404 Not Found")
+		}
+	})
 }
 
 func TestIntegrationsList(t *testing.T) {
