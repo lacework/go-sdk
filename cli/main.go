@@ -32,17 +32,20 @@ import (
 //
 //   $ lacework-cli api get integrations
 func main() {
-	keysFile := flag.String("api-keys", "", "JSON file containing a set of Lacework API keys")
+	var (
+		account  = flag.String("account", "", "Lacework account subdomain of URL (i.e. <ACCOUNT>.lacework.net)")
+		keysFile = flag.String("api-keys", "", "JSON file containing a set of Lacework API keys")
+	)
 	flag.Parse()
 
-	lacework, err := api.NewClient("customerdemo")
+	lacework, err := api.NewClient(*account)
 	if err != nil {
 		exitWithError("unable to generate api client", err)
 	}
 	fmt.Printf("Api version: %s\n", lacework.ApiVersion())
 
 	if len(*keysFile) == 0 {
-		fmt.Println("\nTry passing '-api-keys [file.json]'")
+		fmt.Println("\nTry passing '-account NAME -api-keys JSON_FILE'")
 		os.Exit(0)
 	}
 
@@ -66,14 +69,14 @@ func main() {
 	fmt.Println(token.Message)
 
 	fmt.Printf("List all integrations: ")
-	integrations, err := lacework.GetIntegrations()
+	integrations, err := lacework.Integrations.List()
 	if err != nil {
 		exitWithError("unable to generate integrations", err)
 	}
-	fmt.Println(token.Message)
+	fmt.Println(integrations.Message)
 	fmt.Println("---------------------------------")
 
-	fmt.Println(integrations.List())
+	fmt.Println(integrations.String())
 }
 
 func exitWithError(msg string, err error) {

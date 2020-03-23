@@ -23,8 +23,8 @@ import (
 	"strings"
 )
 
-// IntegrationsService is a service that interacts with the integrations endpoints
-// from the Lacework Server
+// IntegrationsService is a service that interacts with the integrations
+// endpoints from the Lacework Server
 type IntegrationsService struct {
 	client *Client
 }
@@ -32,8 +32,11 @@ type IntegrationsService struct {
 type integrationType int
 
 const (
+	// type that defines a non-existing integration
+	NoneIntegration integrationType = iota
+
 	// AWS Config integration type
-	AwsCfgIntegration integrationType = iota
+	AwsCfgIntegration
 
 	// AWS CloudTrail integration type
 	AwsCloudTrailIntegration
@@ -51,7 +54,9 @@ const (
 	AzureActivityLogIntegration
 )
 
-var integrationTypes = map[integrationType]string{
+// IntegrationTypes is the list of available integration types
+var IntegrationTypes = map[integrationType]string{
+	NoneIntegration:             "NONE",
 	AwsCfgIntegration:           "AWS_CFG",
 	AwsCloudTrailIntegration:    "AWS_CT_SQS",
 	GcpCfgIntegration:           "GCP_CFG",
@@ -60,8 +65,20 @@ var integrationTypes = map[integrationType]string{
 	AzureActivityLogIntegration: "AZURE_AL_SEQ",
 }
 
+// String returns the string representation of an integration type
 func (i integrationType) String() string {
-	return integrationTypes[i]
+	return IntegrationTypes[i]
+}
+
+// FindIntegrationType looks up inside the list of available integration types
+// the matching type from the provided string, if none, returns NoneIntegration
+func FindIntegrationType(t string) (integrationType, bool) {
+	for iType, str := range IntegrationTypes {
+		if str == t {
+			return iType, true
+		}
+	}
+	return NoneIntegration, false
 }
 
 // Get gets a single integration matching the integration guid on the Lacework Server,
@@ -156,7 +173,7 @@ type integrationsResponse struct {
 	Message string                  `json:"message"`
 }
 
-func (integrations *integrationsResponse) List() string {
+func (integrations *integrationsResponse) String() string {
 	out := []string{}
 	for _, integration := range integrations.Data {
 		out = append(out, fmt.Sprintf("%s %s", integration.IntgGuid, integration.Type))

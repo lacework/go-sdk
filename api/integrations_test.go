@@ -21,143 +21,173 @@ package api_test
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/intgguid"
+	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestGetIntegrations(t *testing.T) {
+func TestIntegrationTypeAwsCfgIntegration(t *testing.T) {
+	assert.Equal(t,
+		"AWS_CFG", api.AwsCfgIntegration.String(),
+		"wrong integration type",
+	)
+}
+
+func TestIntegrationTypeAwsCloudTrailIntegration(t *testing.T) {
+	assert.Equal(t,
+		"AWS_CT_SQS", api.AwsCloudTrailIntegration.String(),
+		"wrong integration type",
+	)
+}
+
+func TestIntegrationTypeGcpCfgIntegration(t *testing.T) {
+	assert.Equal(t,
+		"GCP_CFG", api.GcpCfgIntegration.String(),
+		"wrong integration type",
+	)
+}
+
+func TestIntegrationTypeGcpAuditLogIntegration(t *testing.T) {
+	assert.Equal(t,
+		"GCP_AT_SES", api.GcpAuditLogIntegration.String(),
+		"wrong integration type",
+	)
+}
+
+func TestIntegrationTypeAzureCfgIntegration(t *testing.T) {
+	assert.Equal(t,
+		"AZURE_CFG", api.AzureCfgIntegration.String(),
+		"wrong integration type",
+	)
+}
+
+func TestIntegrationTypeAzureActivityLogIntegration(t *testing.T) {
+	assert.Equal(t,
+		"AZURE_AL_SEQ", api.AzureActivityLogIntegration.String(),
+		"wrong integration type",
+	)
+}
+
+func TestFindIntegrationType(t *testing.T) {
+	typeFound, found := api.FindIntegrationType("SOME_NON_EXISTING_INTEGRATION")
+	assert.False(t, found, "integration type should not be found")
+	assert.Equal(t, 0, int(typeFound), "wrong integration type")
+	assert.Equal(t, "NONE", typeFound.String(), "wrong integration type")
+
+	typeFound, found = api.FindIntegrationType("AZURE_AL_SEQ")
+	assert.True(t, found, "integration type should exist")
+	assert.Equal(t, "AZURE_AL_SEQ", typeFound.String(), "wrong integration type")
+
+	typeFound, found = api.FindIntegrationType("GCP_CFG")
+	assert.True(t, found, "integration type should exist")
+	assert.Equal(t, "GCP_CFG", typeFound.String(), "wrong integration type")
+}
+
+func TestIntegrationsGetSchema(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI("external/integrations/schema/AWS_CFG",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "GetSchema should be a GET method")
+			fmt.Fprintf(w, "{\"any\":\"data\"}")
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	response, err := c.Integrations.GetSchema(api.AwsCfgIntegration)
+	assert.Nil(t, err)
+	if assert.NotNil(t, response) {
+		assert.Equal(t, "data", response["any"])
+	}
+
+	response, err = c.Integrations.GetSchema(api.NoneIntegration)
+	assert.Nil(t, response)
+	if assert.NotNil(t, err) {
+		assert.Contains(t, err.Error(), "404 page not found")
+	}
+}
+
+func TestIntegrationsGet(t *testing.T) {
 	// TODO @afiune implement a mocked Lacework API server
 }
 
-func TestCreateGCPConfigIntegration(t *testing.T) {
-	intgGUID := "12345"
+func TestIntegrationsDelete(t *testing.T) {
+	// TODO @afiune implement a mocked Lacework API server
+}
 
-	fakeAPI := NewLaceworkServer()
-	fakeAPI.MockAPI("external/integrations", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, createGCPCFGJson(intgGUID))
-	})
-	defer fakeAPI.Close()
+func TestIntegrationsList(t *testing.T) {
+	var (
+		awsIntgGUIDs   = []string{intgguid.New(), intgguid.New(), intgguid.New()}
+		azureIntgGUIDs = []string{intgguid.New(), intgguid.New()}
+		gcpIntgGUIDs   = []string{
+			intgguid.New(), intgguid.New(), intgguid.New(), intgguid.New(),
+		}
+		allGUIDs    = append(azureIntgGUIDs, append(gcpIntgGUIDs, awsIntgGUIDs...)...)
+		expectedLen = len(allGUIDs)
+		fakeServer  = lacework.MockServer()
+	)
+	fakeServer.MockAPI("external/integrations",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "List() should be a GET method")
+			integrations := []string{
+				generateIntegrations(awsIntgGUIDs, "AWS_CFG"),
+				generateIntegrations(gcpIntgGUIDs, "GCP_CFG"),
+				generateIntegrations(azureIntgGUIDs, "AZURE_CFG"),
+			}
+			fmt.Fprintf(w,
+				generaetMultiIntegrationResponse(
+					strings.Join(integrations, ", "),
+				),
+			)
+		},
+	)
+	defer fakeServer.Close()
 
-	c, err := api.NewClient("test", api.WithToken("xxxxxx"), api.WithURL(fakeAPI.URL()))
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
 	assert.Nil(t, err)
 
-	data := api.NewGCPIntegrationData("integration_name", api.GcpProject)
-	assert.Equal(t, "GCP_CFG", data.Type, "a new GCP integration should match its type")
-	data.Data.ID = "xxxxxxxxxx"
-	data.Data.Credentials.ClientId = "xxxxxxxxx"
-	data.Data.Credentials.ClientEmail = "xxxxxx@xxxxx.iam.gserviceaccount.com"
-	data.Data.Credentials.PrivateKeyId = "xxxxxxxxxxxxxxxx"
-
-	response, err := c.CreateGCPConfigIntegration(data)
+	response, err := c.Integrations.List()
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
-	assert.Equal(t, 1, len(response.Data))
-	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
+	assert.Equal(t, expectedLen, len(response.Data))
+	for _, d := range response.Data {
+		assert.Contains(t, allGUIDs, d.IntgGuid)
+	}
 }
 
-func TestGetGCPConfigIntegration(t *testing.T) {
-	intgGUID := "12345"
-	apiPath := fmt.Sprintf("external/integrations/%s", intgGUID)
-
-	fakeAPI := NewLaceworkServer()
-	fakeAPI.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, createGCPCFGJson(intgGUID))
-	})
-	defer fakeAPI.Close()
-
-	c, err := api.NewClient("test", api.WithToken("xxxxxx"), api.WithURL(fakeAPI.URL()))
-	assert.Nil(t, err)
-
-	response, err := c.GetGCPConfigIntegration(intgGUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, response)
-	assert.True(t, response.Ok)
-	assert.Equal(t, 1, len(response.Data))
-	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
+func generateIntegrations(guids []string, iType string) string {
+	integrations := make([]string, len(guids))
+	for i, guid := range guids {
+		switch iType {
+		case api.AwsCfgIntegration.String():
+			integrations[i] = singleAwsIntegration(guid)
+		case api.AzureCfgIntegration.String():
+			integrations[i] = singleAzureIntegration(guid)
+		case api.GcpCfgIntegration.String():
+			integrations[i] = singleGcpIntegration(guid)
+		}
+	}
+	return strings.Join(integrations, ", ")
 }
 
-func TestUpdateGCPConfigIntegration(t *testing.T) {
-	intgGUID := "12345"
-	apiPath := fmt.Sprintf("external/integrations/%s", intgGUID)
-
-	fakeAPI := NewLaceworkServer()
-	fakeAPI.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, createGCPCFGJson(intgGUID))
-	})
-	defer fakeAPI.Close()
-
-	c, err := api.NewClient("test", api.WithToken("xxxxxx"), api.WithURL(fakeAPI.URL()))
-	assert.Nil(t, err)
-
-	data := api.NewGCPIntegrationData("integration_name", api.GcpProject)
-	assert.Equal(t, "GCP_CFG", data.Type, "a new GCP integration should match its type")
-	data.IntgGuid = intgGUID
-	data.Data.ID = "xxxxxxxxxx"
-	data.Data.Credentials.ClientId = "xxxxxxxxx"
-	data.Data.Credentials.ClientEmail = "xxxxxx@xxxxx.iam.gserviceaccount.com"
-	data.Data.Credentials.PrivateKeyId = "xxxxxxxxxxxxxxxx"
-
-	response, err := c.UpdateGCPConfigIntegration(data)
-	assert.Nil(t, err)
-	assert.NotNil(t, response)
-	assert.True(t, response.Ok)
-	assert.Equal(t, 1, len(response.Data))
-	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
-}
-
-func TestDeleteGCPConfigIntegration(t *testing.T) {
-	intgGUID := "12345"
-	apiPath := fmt.Sprintf("external/integrations/%s", intgGUID)
-
-	fakeAPI := NewLaceworkServer()
-	fakeAPI.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, createGCPCFGJson(intgGUID))
-	})
-	defer fakeAPI.Close()
-
-	c, err := api.NewClient("test", api.WithToken("xxxxxx"), api.WithURL(fakeAPI.URL()))
-	assert.Nil(t, err)
-
-	response, err := c.DeleteGCPConfigIntegration(intgGUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, response)
-	assert.True(t, response.Ok)
-	assert.Equal(t, 1, len(response.Data))
-	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
-}
-
-func createGCPCFGJson(intgGUID string) string {
+func generaetMultiIntegrationResponse(data string) string {
 	return `
 		{
-			"data": [
-				{
-					"INTG_GUID": "` + intgGUID + `",
-					"NAME": "integration_name",
-					"CREATED_OR_UPDATED_TIME": "2020-Mar-10 01:00:00 UTC",
-					"CREATED_OR_UPDATED_BY": "user@email.com",
-					"TYPE": "GCP_CFG",
-					"ENABLED": 1,
-					"STATE": {
-						"ok": true,
-						"lastUpdatedTime": "2020-Mar-10 01:00:00 UTC",
-						"lastSuccessfulTime": "2020-Mar-10 01:00:00 UTC"
-					},
-					"IS_ORG": 0,
-					"DATA": {
-						"CREDENTIALS": {
-							"CLIENT_ID": "xxxxxxxxx",
-							"CLIENT_EMAIL": "xxxxxx@xxxxx.iam.gserviceaccount.com",
-							"PRIVATE_KEY_ID": "xxxxxxxxxxxxxxxx"
-						},
-						"ID_TYPE": "PROJECT",
-						"ID": "xxxxxxxxxx"
-					},
-					"TYPE_NAME": "GCP Compliance"
-				}
-			],
+			"data": [` + data + `],
 			"ok": true,
 			"message": "SUCCESS"
 		}

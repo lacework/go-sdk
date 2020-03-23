@@ -51,8 +51,8 @@ func NewAzureConfigIntegration(name string, data AzureIntegrationData) azureConf
 }
 
 // CreateAzureConfig creates a single AZURE_CFG integration on the Lacework Server
-func (svc *IntegrationsService) CreateAzureConfig(integration awsConfigIntegration) (
-	response awsIntegrationsResponse,
+func (svc *IntegrationsService) CreateAzureConfig(integration azureConfigIntegration) (
+	response azureIntegrationsResponse,
 	err error,
 ) {
 	err = svc.create(integration, &response)
@@ -62,7 +62,7 @@ func (svc *IntegrationsService) CreateAzureConfig(integration awsConfigIntegrati
 // GetAzureConfig gets a single AZURE_CFG integration matching the integration guid
 // on the Lacework Server
 func (svc *IntegrationsService) GetAzureConfig(guid string) (
-	response awsIntegrationsResponse,
+	response azureIntegrationsResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
@@ -70,8 +70,8 @@ func (svc *IntegrationsService) GetAzureConfig(guid string) (
 }
 
 // UpdateAzureConfig updates a single AZURE_CFG integration on the Lacework Server
-func (svc *IntegrationsService) UpdateAzureConfig(data awsConfigIntegration) (
-	response awsIntegrationsResponse,
+func (svc *IntegrationsService) UpdateAzureConfig(data azureConfigIntegration) (
+	response azureIntegrationsResponse,
 	err error,
 ) {
 	err = svc.update(data.IntgGuid, data, &response)
@@ -81,7 +81,7 @@ func (svc *IntegrationsService) UpdateAzureConfig(data awsConfigIntegration) (
 // DeleteAzureConfig deletes a single AZURE_CFG integration matching the integration
 // guid on the Lacework Server
 func (svc *IntegrationsService) DeleteAzureConfig(guid string) (
-	response awsIntegrationsResponse,
+	response azureIntegrationsResponse,
 	err error,
 ) {
 	err = svc.delete(guid, &response)
@@ -107,4 +107,12 @@ type azureConfigIntegration struct {
 	Data AzureIntegrationData `json:"DATA"`
 }
 
-type AzureIntegrationData struct{}
+type AzureIntegrationData struct {
+	Credentials AzureIntegrationCreds `json:"CREDENTIALS"`
+	TenantID    string                `json:"TENANT_ID"`
+}
+
+type AzureIntegrationCreds struct {
+	ClientID     string `json:"CLIENT_ID"`
+	ClientSecret string `json:"CLIENT_SECRET"`
+}

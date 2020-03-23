@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-package api_test
+package lacework
 
 import (
 	"fmt"
@@ -24,32 +24,32 @@ import (
 	"net/http/httptest"
 )
 
-// LaceworkServer is a quick HTTP server that can be used to mock a Lacework API
+// Mock is a quick HTTP server that can be used to mock a Lacework API
 // server, you can use it to avoid using a real server in our unit tests
 //
 // A simple usage:
 //
 //     func TestSomethingNew(t *testing.T) {
-//         fakeAPI := NewLaceworkServer()
-//         fakeAPI.MockToken("TOKEN")
-//         defer fakeAPI.Close()
+//         fakeServer := lacework.NewServer()
+//         fakeServer.MockToken("TOKEN")
+//         defer fakeServer.Close()
 //
 //         // Make sure to pass the fake API server URL
-//         c, err := api.NewClient("test", api.WithURL(fakeAPI.URL()))
+//         c, err := api.NewClient("test", api.WithURL(fakeServer.URL()))
 //         if assert.Nil(t, err) {
 //         	// The client c is ready to be used
 //         }
 //     }
-type LaceworkServer struct {
+type Mock struct {
 	Mux        *http.ServeMux
 	Server     *httptest.Server
 	ApiVersion string
 }
 
-// NewLaceworkServer returns a new mocked htp server with a mutex
-func NewLaceworkServer() *LaceworkServer {
+// MockServer returns a new mocked http server with a mutex
+func MockServer() *Mock {
 	mux := http.NewServeMux()
-	return &LaceworkServer{
+	return &Mock{
 		Mux:        mux,
 		Server:     httptest.NewServer(mux),
 		ApiVersion: "v1",
@@ -57,12 +57,12 @@ func NewLaceworkServer() *LaceworkServer {
 }
 
 // MockAPI will mock the api path inside the server mutex with the provided handler function
-func (api *LaceworkServer) MockAPI(p string, handler func(http.ResponseWriter, *http.Request)) {
-	api.Mux.HandleFunc(fmt.Sprintf("/api/%s/%s", api.ApiVersion, p), handler)
+func (m *Mock) MockAPI(p string, handler func(http.ResponseWriter, *http.Request)) {
+	m.Mux.HandleFunc(fmt.Sprintf("/api/%s/%s", m.ApiVersion, p), handler)
 }
 
-func (api *LaceworkServer) MockToken(token string) {
-	api.MockAPI("access/tokens", func(w http.ResponseWriter, r *http.Request) {
+func (s *Mock) MockToken(token string) {
+	s.MockAPI("access/tokens", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, `
       {
         "data": [{
@@ -76,15 +76,15 @@ func (api *LaceworkServer) MockToken(token string) {
 	})
 }
 
-func (api LaceworkServer) URL() string {
-	if api.Server != nil {
-		return api.Server.URL
+func (m Mock) URL() string {
+	if m.Server != nil {
+		return m.Server.URL
 	}
 	return ""
 }
 
-func (api LaceworkServer) Close() {
-	if api.Server != nil {
-		api.Server.Close()
+func (m Mock) Close() {
+	if m.Server != nil {
+		m.Server.Close()
 	}
 }
