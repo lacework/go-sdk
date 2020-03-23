@@ -20,9 +20,10 @@ package api
 
 import "fmt"
 
-// NewAwsConfigIntegration returns an instance of awsConfigIntegration
+// NewAwsIntegration returns an instance of awsIntegration with the provided
+// integration type, name and data
 //
-// Basic usage: Initialize a new awsConfigIntegration struct, then
+// Basic usage: Initialize a new awsIntegration struct, then
 //              use the new instance to do CRUD operations
 //
 //   client, err := api.NewClient("account")
@@ -30,7 +31,8 @@ import "fmt"
 //     return err
 //   }
 //
-//   aws, err := api.NewAwsConfigIntegration("foo",
+//   aws, err := api.NewAwsIntegration("foo",
+//     api.AwsCfgIntegration,
 //     api.AwsIntegrationData{
 //       Credentials: api.AwsIntegrationCreds {
 //         RoleArn: "arn:aws:XYZ",
@@ -42,21 +44,31 @@ import "fmt"
 //     return err
 //   }
 //
-//   client.Integrations.CreateAwsConfig(aws)
+//   client.Integrations.CreateAws(aws)
 //
-func NewAwsConfigIntegration(name string, data AwsIntegrationData) awsConfigIntegration {
-	return awsConfigIntegration{
+func NewAwsIntegration(name string, iType integrationType, data AwsIntegrationData) awsIntegration {
+	return awsIntegration{
 		commonIntegrationData: commonIntegrationData{
 			Name:    name,
-			Type:    AwsCfgIntegration.String(),
+			Type:    iType.String(),
 			Enabled: 1,
 		},
 		Data: data,
 	}
 }
 
-// CreateAwsConfig creates a single AWS_CFG integration on the Lacework Server
-func (svc *IntegrationsService) CreateAwsConfig(integration awsConfigIntegration) (
+// NewAwsCfgIntegration returns an instance of awsIntegration of type AWS_CFG
+func NewAwsCfgIntegration(name string, data AwsIntegrationData) awsIntegration {
+	return NewAwsIntegration(name, AwsCfgIntegration, data)
+}
+
+// NewAwsCloudTrailIntegration returns an instance of awsIntegration of type AWS_CT_SQS
+func NewAwsCloudTrailIntegration(name string, data AwsIntegrationData) awsIntegration {
+	return NewAwsIntegration(name, AwsCloudTrailIntegration, data)
+}
+
+// CreateAws creates a single AWS integration on the Lacework Server
+func (svc *IntegrationsService) CreateAws(integration awsIntegration) (
 	response awsIntegrationsResponse,
 	err error,
 ) {
@@ -64,9 +76,9 @@ func (svc *IntegrationsService) CreateAwsConfig(integration awsConfigIntegration
 	return
 }
 
-// GetAwsConfig gets a single AWS_CFG integration matching the integration guid
-// on the Lacwork Server
-func (svc *IntegrationsService) GetAwsConfig(guid string) (
+// GetAws gets a single AWS integration matching the integration guid on
+// the Lacework Server
+func (svc *IntegrationsService) GetAws(guid string) (
 	response awsIntegrationsResponse,
 	err error,
 ) {
@@ -74,8 +86,8 @@ func (svc *IntegrationsService) GetAwsConfig(guid string) (
 	return
 }
 
-// UpdateAwsConfig updates a single AWS_CFG integration on the Lacework Server
-func (svc *IntegrationsService) UpdateAwsConfig(data awsConfigIntegration) (
+// UpdateAws updates a single AWS integration on the Lacework Server
+func (svc *IntegrationsService) UpdateAws(data awsIntegration) (
 	response awsIntegrationsResponse,
 	err error,
 ) {
@@ -83,9 +95,9 @@ func (svc *IntegrationsService) UpdateAwsConfig(data awsConfigIntegration) (
 	return
 }
 
-// DeleteAwsConfig deletes a single AWS_CFG integration matching the integration guid
-// on the Lacework Server
-func (svc *IntegrationsService) DeleteAwsConfig(guid string) (
+// DeleteAws deletes a single AWS integration matching the integration guid on
+// the Lacework Server
+func (svc *IntegrationsService) DeleteAws(guid string) (
 	response awsIntegrationsResponse,
 	err error,
 ) {
@@ -93,26 +105,30 @@ func (svc *IntegrationsService) DeleteAwsConfig(guid string) (
 	return
 }
 
-// ListAwsConfig lists the AWS_CFG external integrations available on the Lacework Server
-func (svc *IntegrationsService) ListAwsConfig() (response awsIntegrationsResponse, err error) {
+// ListAws lists the AWS external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListAws() (response awsIntegrationsResponse, err error) {
 	apiPath := fmt.Sprintf(apiIntegrationsByType, AwsCfgIntegration.String())
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
 
 type awsIntegrationsResponse struct {
-	Data    []awsConfigIntegration `json:"data"`
-	Ok      bool                   `json:"ok"`
-	Message string                 `json:"message"`
+	Data    []awsIntegration `json:"data"`
+	Ok      bool             `json:"ok"`
+	Message string           `json:"message"`
 }
 
-type awsConfigIntegration struct {
+type awsIntegration struct {
 	commonIntegrationData
 	Data AwsIntegrationData `json:"DATA"`
 }
 
 type AwsIntegrationData struct {
 	Credentials AwsIntegrationCreds `json:"CROSS_ACCOUNT_CREDENTIALS"`
+
+	// QueueUrl is a field that exists and is required for the AWS_CT_SQS integration,
+	// though, it doesn't exist for AWS_CFG integrations, that's why we omit it if empty
+	QueueUrl string `json:"QUEUE_URL,omitempty"`
 }
 
 type AwsIntegrationCreds struct {

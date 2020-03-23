@@ -31,13 +31,25 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestIntegrationsCreateAwsConfig(t *testing.T) {
+func TestIntegrationsNewAwsCfgIntegration(t *testing.T) {
+	subject := api.NewAwsCfgIntegration("integration_name",
+		api.AwsIntegrationData{
+			Credentials: api.AwsIntegrationCreds{
+				RoleArn:    "arn:foo:bar",
+				ExternalId: "0123456789",
+			},
+		},
+	)
+	assert.Equal(t, api.AwsCfgIntegration.String(), subject.Type)
+}
+
+func TestIntegrationsCreateAws(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "POST", r.Method, "CreateAwsConfig should be a POST method")
+		assert.Equal(t, "POST", r.Method, "CreateAws should be a POST method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
@@ -58,7 +70,8 @@ func TestIntegrationsCreateAwsConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	data := api.NewAwsConfigIntegration("integration_name",
+	data := api.NewAwsIntegration("integration_name",
+		api.AwsCfgIntegration,
 		api.AwsIntegrationData{
 			Credentials: api.AwsIntegrationCreds{
 				RoleArn:    "arn:foo:bar",
@@ -70,7 +83,7 @@ func TestIntegrationsCreateAwsConfig(t *testing.T) {
 	assert.Equal(t, "AWS_CFG", data.Type, "a new GCP integration should match its type")
 	assert.Equal(t, 1, data.Enabled, "a new GCP integration should be enabled")
 
-	response, err := c.Integrations.CreateAwsConfig(data)
+	response, err := c.Integrations.CreateAws(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -84,14 +97,14 @@ func TestIntegrationsCreateAwsConfig(t *testing.T) {
 	}
 }
 
-func TestIntegrationsGetAwsConfig(t *testing.T) {
+func TestIntegrationsGetAws(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method, "GetAwsConfig should be a GET method")
+		assert.Equal(t, "GET", r.Method, "GetAws should be a GET method")
 		fmt.Fprintf(w, awsIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
@@ -102,7 +115,7 @@ func TestIntegrationsGetAwsConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.GetAwsConfig(intgGUID)
+	response, err := c.Integrations.GetAws(intgGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -116,20 +129,20 @@ func TestIntegrationsGetAwsConfig(t *testing.T) {
 	}
 }
 
-func TestIntegrationsUpdateAwsConfig(t *testing.T) {
+func TestIntegrationsUpdateAws(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method, "UpdateAwsConfig should be a PATCH method")
+		assert.Equal(t, "PATCH", r.Method, "UpdateAws should be a PATCH method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
 			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
 			assert.Contains(t, body, "integration_name", "integration name is missing")
-			assert.Contains(t, body, "AWS_CFG", "wrong integration type")
+			assert.Contains(t, body, "AWS_CT_SQS", "wrong integration type")
 			assert.Contains(t, body, "arn:foo:bar", "wrong role arn")
 			assert.Contains(t, body, "0123456789", "wrong external id")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
@@ -145,7 +158,8 @@ func TestIntegrationsUpdateAwsConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	data := api.NewAwsConfigIntegration("integration_name",
+	data := api.NewAwsIntegration("integration_name",
+		api.AwsCloudTrailIntegration,
 		api.AwsIntegrationData{
 			Credentials: api.AwsIntegrationCreds{
 				RoleArn:    "arn:foo:bar",
@@ -154,11 +168,11 @@ func TestIntegrationsUpdateAwsConfig(t *testing.T) {
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "GCP integration name mismatch")
-	assert.Equal(t, "AWS_CFG", data.Type, "a new GCP integration should match its type")
+	assert.Equal(t, "AWS_CT_SQS", data.Type, "a new GCP integration should match its type")
 	assert.Equal(t, 1, data.Enabled, "a new GCP integration should be enabled")
 	data.IntgGuid = intgGUID
 
-	response, err := c.Integrations.UpdateAwsConfig(data)
+	response, err := c.Integrations.UpdateAws(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, "SUCCESS", response.Message)
@@ -166,14 +180,14 @@ func TestIntegrationsUpdateAwsConfig(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
 }
 
-func TestIntegrationsDeleteAwsConfig(t *testing.T) {
+func TestIntegrationsDeleteAws(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "DELETE", r.Method, "DeleteAwsConfig should be a DELETE method")
+		assert.Equal(t, "DELETE", r.Method, "DeleteAws should be a DELETE method")
 		fmt.Fprintf(w, awsIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
@@ -184,7 +198,7 @@ func TestIntegrationsDeleteAwsConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.DeleteAwsConfig(intgGUID)
+	response, err := c.Integrations.DeleteAws(intgGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -192,14 +206,14 @@ func TestIntegrationsDeleteAwsConfig(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
 }
 
-func TestIntegrationsListAwsConfig(t *testing.T) {
+func TestIntegrationsListAws(t *testing.T) {
 	var (
 		intgGUIDs  = []string{intgguid.New(), intgguid.New(), intgguid.New()}
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations/type/AWS_CFG",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "ListAwsConfig should be a GET method")
+			assert.Equal(t, "GET", r.Method, "ListAws should be a GET method")
 			fmt.Fprintf(w, awsMultiIntegrationJsonResponse(intgGUIDs))
 		},
 	)
@@ -211,7 +225,7 @@ func TestIntegrationsListAwsConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.ListAwsConfig()
+	response, err := c.Integrations.ListAws()
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
