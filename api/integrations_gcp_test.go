@@ -31,20 +31,22 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestIntegrationsCreateGCPConfig(t *testing.T) {
+func TestIntegrationsCreateGcp(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "POST", r.Method, "CreateGcpConfig should be a POST method")
+		assert.Equal(t, "POST", r.Method, "CreateGcp should be a POST method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
 			assert.Contains(t, body, "integration_name", "integration name is missing")
-			assert.Contains(t, body, "GCP_CFG", "wrong integration type")
+			assert.Contains(t, body, "GCP_AT_SES", "wrong integration type")
 			assert.Contains(t, body, "data_id", "missing data id")
 			assert.Contains(t, body, "client_id", "missing client id")
+			assert.Contains(t, body, "id_type", "missing id type")
+			assert.Contains(t, body, "subscription_name", "missing subscription name")
 			assert.Contains(t, body,
 				"foo@example.iam.gserviceaccount.com", "missing client email",
 			)
@@ -63,9 +65,11 @@ func TestIntegrationsCreateGCPConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	data := api.NewGcpConfigIntegration("integration_name",
+	data := api.NewGcpAuditLogIntegration("integration_name",
 		api.GcpIntegrationData{
-			ID: "data_id",
+			ID:               "data_id",
+			IdType:           "id_type",
+			SubscriptionName: "subscription_name",
 			Credentials: api.GcpCredentials{
 				ClientId:     "client_id",
 				ClientEmail:  "foo@example.iam.gserviceaccount.com",
@@ -75,10 +79,10 @@ func TestIntegrationsCreateGCPConfig(t *testing.T) {
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "GCP integration name mismatch")
-	assert.Equal(t, "GCP_CFG", data.Type, "a new GCP integration should match its type")
+	assert.Equal(t, "GCP_AT_SES", data.Type, "a new GCP integration should match its type")
 	assert.Equal(t, 1, data.Enabled, "a new GCP integration should be enabled")
 
-	response, err := c.Integrations.CreateGcpConfig(data)
+	response, err := c.Integrations.CreateGcp(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -96,14 +100,14 @@ func TestIntegrationsCreateGCPConfig(t *testing.T) {
 	}
 }
 
-func TestIntegrationsGetGcpConfig(t *testing.T) {
+func TestIntegrationsGetGcp(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method, "GetGcpConfig should be a GET method")
+		assert.Equal(t, "GET", r.Method, "GetGcp should be a GET method")
 		fmt.Fprintf(w, gcpIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
@@ -114,7 +118,7 @@ func TestIntegrationsGetGcpConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.GetGcpConfig(intgGUID)
+	response, err := c.Integrations.GetGcp(intgGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -132,14 +136,14 @@ func TestIntegrationsGetGcpConfig(t *testing.T) {
 	}
 }
 
-func TestIntegrationsUpdateGcpConfig(t *testing.T) {
+func TestIntegrationsUpdateGcp(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method, "UpdateGcpConfig should be a PATCH method")
+		assert.Equal(t, "PATCH", r.Method, "UpdateGcp should be a PATCH method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
@@ -148,6 +152,8 @@ func TestIntegrationsUpdateGcpConfig(t *testing.T) {
 			assert.Contains(t, body, "GCP_CFG", "wrong integration type")
 			assert.Contains(t, body, "data_id", "missing data id")
 			assert.Contains(t, body, "client_id", "missing client id")
+			assert.Contains(t, body, "id_type", "missing id type")
+			assert.NotContains(t, body, "subscription_name", "sholuld not have subscription_name")
 			assert.Contains(t, body,
 				"foo@example.iam.gserviceaccount.com", "missing client email",
 			)
@@ -166,9 +172,11 @@ func TestIntegrationsUpdateGcpConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	data := api.NewGcpConfigIntegration("integration_name",
+	data := api.NewGcpIntegration("integration_name",
+		api.GcpCfgIntegration,
 		api.GcpIntegrationData{
-			ID: "data_id",
+			ID:     "data_id",
+			IdType: "id_type",
 			Credentials: api.GcpCredentials{
 				ClientId:     "client_id",
 				ClientEmail:  "foo@example.iam.gserviceaccount.com",
@@ -182,7 +190,7 @@ func TestIntegrationsUpdateGcpConfig(t *testing.T) {
 	assert.Equal(t, 1, data.Enabled, "a new GCP integration should be enabled")
 	data.IntgGuid = intgGUID
 
-	response, err := c.Integrations.UpdateGcpConfig(data)
+	response, err := c.Integrations.UpdateGcp(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, "SUCCESS", response.Message)
@@ -190,14 +198,14 @@ func TestIntegrationsUpdateGcpConfig(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
 }
 
-func TestIntegrationsDeleteGcpConfig(t *testing.T) {
+func TestIntegrationsDeleteGcp(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "DELETE", r.Method, "DeleteGcpConfig should be a DELETE method")
+		assert.Equal(t, "DELETE", r.Method, "DeleteGcp should be a DELETE method")
 		fmt.Fprintf(w, gcpIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
@@ -208,7 +216,7 @@ func TestIntegrationsDeleteGcpConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.DeleteGcpConfig(intgGUID)
+	response, err := c.Integrations.DeleteGcp(intgGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -216,14 +224,14 @@ func TestIntegrationsDeleteGcpConfig(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
 }
 
-func TestIntegrationsListGcpConfig(t *testing.T) {
+func TestIntegrationsListGcpCfg(t *testing.T) {
 	var (
 		intgGUIDs  = []string{intgguid.New(), intgguid.New(), intgguid.New()}
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations/type/GCP_CFG",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "ListGcpConfig should be a GET method")
+			assert.Equal(t, "GET", r.Method, "ListGcpCfg should be a GET method")
 			fmt.Fprintf(w, gcpMultiIntegrationJsonResponse(intgGUIDs))
 		},
 	)
@@ -235,7 +243,7 @@ func TestIntegrationsListGcpConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.ListGcpConfig()
+	response, err := c.Integrations.ListGcpCfg()
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)

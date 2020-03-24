@@ -18,8 +18,6 @@
 
 package api
 
-import "fmt"
-
 // gcpResourceLevel determines Project or Organization level integration
 type gcpResourceLevel int
 
@@ -40,9 +38,12 @@ func (g gcpResourceLevel) String() string {
 	return gcpResourceLevels[g]
 }
 
-// NewGcpConfigIntegration returns an instance of gcpConfigIntegration
+// NewGcpIntegration returns an instance of gcpIntegration with the provided
+// integration type, name and data. The type can only be GcpCfgIntegration or
+// GcpAuditLogIntegration
 //
-// Basic usage: Initialize a new gcpConfigIntegration struct, then
+//
+// Basic usage: Initialize a new gcpIntegration struct, then
 //              use the new instance to do CRUD operations
 //
 //   client, err := api.NewClient("account")
@@ -50,7 +51,8 @@ func (g gcpResourceLevel) String() string {
 //     return err
 //   }
 //
-//   gcp, err := api.NewGcpConfigIntegration("abc",
+//   gcp, err := api.NewGcpIntegration("abc",
+//     api.GcpCfgIntegration,
 //     api.GcpIntegrationData{
 //       ID: "1234",
 //       IdType: "id_type",
@@ -66,21 +68,31 @@ func (g gcpResourceLevel) String() string {
 //     return err
 //   }
 //
-//   client.Integrations.CreateGcpConfig(gcp)
+//   client.Integrations.CreateGcp(gcp)
 //
-func NewGcpConfigIntegration(name string, data GcpIntegrationData) gcpConfigIntegration {
-	return gcpConfigIntegration{
+func NewGcpIntegration(name string, iType integrationType, data GcpIntegrationData) gcpIntegration {
+	return gcpIntegration{
 		commonIntegrationData: commonIntegrationData{
 			Name:    name,
-			Type:    GcpCfgIntegration.String(),
+			Type:    iType.String(),
 			Enabled: 1,
 		},
 		Data: data,
 	}
 }
 
-// CreateGcpConfig creates a single GCP_CFG integration on the Lacework Server
-func (svc *IntegrationsService) CreateGcpConfig(data gcpConfigIntegration) (
+// NewGcpCfgIntegration returns an instance of gcpIntegration of type GCP_CFG
+func NewGcpCfgIntegration(name string, data GcpIntegrationData) gcpIntegration {
+	return NewGcpIntegration(name, GcpCfgIntegration, data)
+}
+
+// NewGcpAuditLogIntegration returns an instance of gcpIntegration of type GCP_AT_SES
+func NewGcpAuditLogIntegration(name string, data GcpIntegrationData) gcpIntegration {
+	return NewGcpIntegration(name, GcpAuditLogIntegration, data)
+}
+
+// CreateGcp creates a single Gcp integration on the Lacework Server
+func (svc *IntegrationsService) CreateGcp(data gcpIntegration) (
 	response gcpIntegrationsResponse,
 	err error,
 ) {
@@ -88,9 +100,9 @@ func (svc *IntegrationsService) CreateGcpConfig(data gcpConfigIntegration) (
 	return
 }
 
-// GetGcpConfig gets a single GCP_CFG integration matching the integration guid
+// GetGcp gets a single Gcp integration matching the integration guid
 // on the Lacework Server
-func (svc *IntegrationsService) GetGcpConfig(guid string) (
+func (svc *IntegrationsService) GetGcp(guid string) (
 	response gcpIntegrationsResponse,
 	err error,
 ) {
@@ -98,8 +110,8 @@ func (svc *IntegrationsService) GetGcpConfig(guid string) (
 	return
 }
 
-// UpdateGcpConfig updates a single GCP_CFG integration on the Lacework Server
-func (svc *IntegrationsService) UpdateGcpConfig(data gcpConfigIntegration) (
+// UpdateGcp updates a single Gcp integration on the Lacework Server
+func (svc *IntegrationsService) UpdateGcp(data gcpIntegration) (
 	response gcpIntegrationsResponse,
 	err error,
 ) {
@@ -107,9 +119,9 @@ func (svc *IntegrationsService) UpdateGcpConfig(data gcpConfigIntegration) (
 	return
 }
 
-// DeleteGcpConfig deletes a single GCP_CFG integration matching the integration guid
+// DeleteGcp deletes a single Gcp integration matching the integration guid
 // on the Lacework Server
-func (svc *IntegrationsService) DeleteGcpConfig(guid string) (
+func (svc *IntegrationsService) DeleteGcp(guid string) (
 	response gcpIntegrationsResponse,
 	err error,
 ) {
@@ -117,29 +129,38 @@ func (svc *IntegrationsService) DeleteGcpConfig(guid string) (
 	return
 }
 
-// ListGcpConfig lists the CFG_CFG external integrations available on the Lacework Server
-func (svc *IntegrationsService) ListGcpConfig() (response gcpIntegrationsResponse, err error) {
-	apiPath := fmt.Sprintf(apiIntegrationsByType, GcpCfgIntegration.String())
-	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
+// ListGcpCfg lists the GCP_CFG external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListGcpCfg() (response gcpIntegrationsResponse, err error) {
+	err = svc.listByType(GcpCfgIntegration, &response)
+	return
+}
+
+// ListGcpAuditLog lists the GCP_AT_SES external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListGcpAuditLog() (response gcpIntegrationsResponse, err error) {
+	err = svc.listByType(GcpAuditLogIntegration, &response)
 	return
 }
 
 type gcpIntegrationsResponse struct {
-	Data    []gcpConfigIntegration `json:"data"`
-	Ok      bool                   `json:"ok"`
-	Message string                 `json:"message"`
+	Data    []gcpIntegration `json:"data"`
+	Ok      bool             `json:"ok"`
+	Message string           `json:"message"`
 }
 
-type gcpConfigIntegration struct {
+type gcpIntegration struct {
 	commonIntegrationData
 	Data GcpIntegrationData `json:"DATA"`
 }
 
 type GcpIntegrationData struct {
-	ID               string         `json:"ID"`
-	IdType           string         `json:"ID_TYPE"`
-	Credentials      GcpCredentials `json:"CREDENTIALS"`
-	SubscriptionName string         `json:"SUBSCRIPTION_NAME,omitempty"`
+	ID          string         `json:"ID"`
+	IdType      string         `json:"ID_TYPE"`
+	Credentials GcpCredentials `json:"CREDENTIALS"`
+
+	// SubscriptionName is a field that exists and is required for the GCP_AT_SES
+	// integration, though, it doesn't exist for GCP_CFG integrations, that's why
+	// we omit it if empty
+	SubscriptionName string `json:"SUBSCRIPTION_NAME,omitempty"`
 }
 
 type GcpCredentials struct {

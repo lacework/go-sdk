@@ -18,8 +18,6 @@
 
 package api
 
-import "fmt"
-
 // NewAzureIntegration returns an instance of azureIntegration with the provided
 // integration type, name and data. The type can only be AzureCfgIntegration or
 // AzureActivityLogIntegration
@@ -111,22 +109,18 @@ func (svc *IntegrationsService) DeleteAzure(guid string) (
 
 // ListAzureCfg lists the AZURE_CFG external integrations available on the Lacework Server
 func (svc *IntegrationsService) ListAzureCfg() (
-	response azureIntegrationsResponse,
-	err error,
+	response azureIntegrationsResponse, err error,
 ) {
-	apiPath := fmt.Sprintf(apiIntegrationsByType, AzureCfgIntegration.String())
-	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
+	err = svc.listByType(AzureCfgIntegration, &response)
 	return
 }
 
 // ListAzureActivityLog lists the AZURE_AL_SEQ external integrations available
 // on the Lacework Server
 func (svc *IntegrationsService) ListAzureActivityLog() (
-	response azureIntegrationsResponse,
-	err error,
+	response azureIntegrationsResponse, err error,
 ) {
-	apiPath := fmt.Sprintf(apiIntegrationsByType, AzureActivityLogIntegration.String())
-	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
+	err = svc.listByType(AzureActivityLogIntegration, &response)
 	return
 }
 

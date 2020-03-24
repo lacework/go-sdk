@@ -18,8 +18,6 @@
 
 package api
 
-import "fmt"
-
 // NewAwsIntegration returns an instance of awsIntegration with the provided
 // integration type, name and data. The type can only be AwsCfgIntegration or
 // AwsCloudTrailIntegration
@@ -108,8 +106,7 @@ func (svc *IntegrationsService) DeleteAws(guid string) (
 
 // ListAwsCfg lists the AWS_CFG external integrations available on the Lacework Server
 func (svc *IntegrationsService) ListAwsCfg() (response awsIntegrationsResponse, err error) {
-	apiPath := fmt.Sprintf(apiIntegrationsByType, AwsCfgIntegration.String())
-	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
+	err = svc.listByType(AwsCfgIntegration, &response)
 	return
 }
 
