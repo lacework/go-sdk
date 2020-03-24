@@ -107,6 +107,13 @@ func (svc *IntegrationsService) List() (response integrationsResponse, err error
 	return
 }
 
+// ListByType lists the external integrations from the provided type that are available
+// on the Lacework Server
+func (svc *IntegrationsService) ListByType(iType integrationType) (response integrationsResponse, err error) {
+	err = svc.listByType(iType, &response)
+	return
+}
+
 // GetSchema get the integration schema for the provided integration type
 func (svc *IntegrationsService) GetSchema(iType integrationType) (
 	response map[string]interface{},
@@ -147,6 +154,11 @@ func (svc *IntegrationsService) update(guid string, data interface{}, response i
 func (svc *IntegrationsService) delete(guid string, response interface{}) error {
 	apiPath := fmt.Sprintf(apiIntegrationByGUID, guid)
 	return svc.client.RequestDecoder("DELETE", apiPath, nil, response)
+}
+
+func (svc *IntegrationsService) listByType(iType integrationType, response interface{}) error {
+	apiPath := fmt.Sprintf(apiIntegrationsByType, iType.String())
+	return svc.client.RequestDecoder("GET", apiPath, nil, &response)
 }
 
 type commonIntegrationData struct {

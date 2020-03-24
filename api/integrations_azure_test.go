@@ -31,13 +31,13 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestIntegrationsCreateAzureConfig(t *testing.T) {
+func TestIntegrationsCreateAzure(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "POST", r.Method, "CreateAzureConfig should be a POST method")
+		assert.Equal(t, "POST", r.Method, "CreateAzure should be a POST method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
@@ -59,7 +59,8 @@ func TestIntegrationsCreateAzureConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	data := api.NewAzureConfigIntegration("integration_name",
+	data := api.NewAzureIntegration("integration_name",
+		api.AzureCfgIntegration,
 		api.AzureIntegrationData{
 			Credentials: api.AzureIntegrationCreds{
 				ClientID:     "client_id",
@@ -72,7 +73,7 @@ func TestIntegrationsCreateAzureConfig(t *testing.T) {
 	assert.Equal(t, "AZURE_CFG", data.Type, "a new GCP integration should match its type")
 	assert.Equal(t, 1, data.Enabled, "a new GCP integration should be enabled")
 
-	response, err := c.Integrations.CreateAzureConfig(data)
+	response, err := c.Integrations.CreateAzure(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -86,14 +87,14 @@ func TestIntegrationsCreateAzureConfig(t *testing.T) {
 	}
 }
 
-func TestIntegrationsGetAzureConfig(t *testing.T) {
+func TestIntegrationsGetAzure(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method, "GetAzureConfig should be a GET method")
+		assert.Equal(t, "GET", r.Method, "GetAzure should be a GET method")
 		fmt.Fprintf(w, azureIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
@@ -104,7 +105,7 @@ func TestIntegrationsGetAzureConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.GetAzureConfig(intgGUID)
+	response, err := c.Integrations.GetAzure(intgGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -118,23 +119,24 @@ func TestIntegrationsGetAzureConfig(t *testing.T) {
 	}
 }
 
-func TestIntegrationsUpdateAzureConfig(t *testing.T) {
+func TestIntegrationsUpdateAzure(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method, "UpdateAzureConfig should be a PATCH method")
+		assert.Equal(t, "PATCH", r.Method, "UpdateAzure should be a PATCH method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
 			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
 			assert.Contains(t, body, "integration_name", "integration name is missing")
-			assert.Contains(t, body, "AZURE_CFG", "wrong integration type")
+			assert.Contains(t, body, "AZURE_AL_SEQ", "wrong integration type")
 			assert.Contains(t, body, "client_id", "wrong role arn")
 			assert.Contains(t, body, "client_secret", "wrong external id")
 			assert.Contains(t, body, "0123456789", "wrong tenant id")
+			assert.Contains(t, body, "https://abc.queue.core.windows.net/123", "wrong queue url")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
 
@@ -148,21 +150,22 @@ func TestIntegrationsUpdateAzureConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	data := api.NewAzureConfigIntegration("integration_name",
+	data := api.NewAzureActivityLogIntegration("integration_name",
 		api.AzureIntegrationData{
 			Credentials: api.AzureIntegrationCreds{
 				ClientID:     "client_id",
 				ClientSecret: "client_secret",
 			},
 			TenantID: "0123456789",
+			QueueUrl: "https://abc.queue.core.windows.net/123",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "GCP integration name mismatch")
-	assert.Equal(t, "AZURE_CFG", data.Type, "a new GCP integration should match its type")
+	assert.Equal(t, "AZURE_AL_SEQ", data.Type, "a new GCP integration should match its type")
 	assert.Equal(t, 1, data.Enabled, "a new GCP integration should be enabled")
 	data.IntgGuid = intgGUID
 
-	response, err := c.Integrations.UpdateAzureConfig(data)
+	response, err := c.Integrations.UpdateAzure(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, "SUCCESS", response.Message)
@@ -170,14 +173,14 @@ func TestIntegrationsUpdateAzureConfig(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
 }
 
-func TestIntegrationsDeleteAzureConfig(t *testing.T) {
+func TestIntegrationsDeleteAzure(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "DELETE", r.Method, "DeleteAzureConfig should be a DELETE method")
+		assert.Equal(t, "DELETE", r.Method, "DeleteAzure should be a DELETE method")
 		fmt.Fprintf(w, azureIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
@@ -188,7 +191,7 @@ func TestIntegrationsDeleteAzureConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.DeleteAzureConfig(intgGUID)
+	response, err := c.Integrations.DeleteAzure(intgGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -196,14 +199,14 @@ func TestIntegrationsDeleteAzureConfig(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
 }
 
-func TestIntegrationsListAzureConfig(t *testing.T) {
+func TestIntegrationsListAzureCfg(t *testing.T) {
 	var (
 		intgGUIDs  = []string{intgguid.New(), intgguid.New(), intgguid.New()}
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations/type/AZURE_CFG",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "ListAzureConfig should be a GET method")
+			assert.Equal(t, "GET", r.Method, "ListAzureCfg should be a GET method")
 			fmt.Fprintf(w, azureMultiIntegrationJsonResponse(intgGUIDs))
 		},
 	)
@@ -215,7 +218,7 @@ func TestIntegrationsListAzureConfig(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.ListAzureConfig()
+	response, err := c.Integrations.ListAzureCfg()
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)

@@ -53,6 +53,7 @@ func (g gcpResourceLevel) String() string {
 //   gcp, err := api.NewGcpConfigIntegration("abc",
 //     api.GcpIntegrationData{
 //       ID: "1234",
+//       IdType: "id_type",
 //       Credentials: api.GcpCredentials{
 //         ClientId: "id",
 //         ClientEmail: "email",

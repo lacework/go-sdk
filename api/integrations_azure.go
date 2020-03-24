@@ -20,9 +20,11 @@ package api
 
 import "fmt"
 
-// NewAzureConfigIntegration returns an instance of azureConfigIntegration
+// NewAzureIntegration returns an instance of azureIntegration with the provided
+// integration type, name and data. The type can only be AzureCfgIntegration or
+// AzureActivityLogIntegration
 //
-// Basic usage: Initialize a new azureConfigIntegration struct, then
+// Basic usage: Initialize a new azureIntegration struct, then
 //              use the new instance to do CRUD operations
 //
 //   client, err := api.NewClient("account")
@@ -30,28 +32,46 @@ import "fmt"
 //     return err
 //   }
 //
-//   azure, err := api.NewAzureConfigIntegration("bar",
-//     api.AzureIntegrationData{},
+//   azure, err := api.NewAzureIntegration("bar",
+//     api.AzureActivityLogIntegration,
+//     api.AzureIntegrationData{
+//       TenantID: "tenant_id",
+//       QueueUrl: "https://abc.queue.core.windows.net/123",
+//       Credentials: api.AzureIntegrationCreds{
+//         ClientID: "client_id",
+//         ClientSecret: "secret",
+//       },
+//     },
 //   )
 //   if err != nil {
 //     return err
 //   }
 //
-//   client.Integrations.CreateAzureConfig(azure)
+//   client.Integrations.CreateAzure(azure)
 //
-func NewAzureConfigIntegration(name string, data AzureIntegrationData) azureConfigIntegration {
-	return azureConfigIntegration{
+func NewAzureIntegration(name string, iType integrationType, data AzureIntegrationData) azureIntegration {
+	return azureIntegration{
 		commonIntegrationData: commonIntegrationData{
 			Name:    name,
-			Type:    AzureCfgIntegration.String(),
+			Type:    iType.String(),
 			Enabled: 1,
 		},
 		Data: data,
 	}
 }
 
-// CreateAzureConfig creates a single AZURE_CFG integration on the Lacework Server
-func (svc *IntegrationsService) CreateAzureConfig(integration azureConfigIntegration) (
+// NewAzureCfgIntegration returns an instance of azureIntegration of type AZURE_CFG
+func NewAzureCfgIntegration(name string, data AzureIntegrationData) azureIntegration {
+	return NewAzureIntegration(name, AzureCfgIntegration, data)
+}
+
+// NewAzureActivityLogIntegration returns an instance of azureIntegration of type AZURE_AL_SEQ
+func NewAzureActivityLogIntegration(name string, data AzureIntegrationData) azureIntegration {
+	return NewAzureIntegration(name, AzureActivityLogIntegration, data)
+}
+
+// CreateAzure creates a single Azure integration on the Lacework Server
+func (svc *IntegrationsService) CreateAzure(integration azureIntegration) (
 	response azureIntegrationsResponse,
 	err error,
 ) {
@@ -59,9 +79,9 @@ func (svc *IntegrationsService) CreateAzureConfig(integration azureConfigIntegra
 	return
 }
 
-// GetAzureConfig gets a single AZURE_CFG integration matching the integration guid
-// on the Lacework Server
-func (svc *IntegrationsService) GetAzureConfig(guid string) (
+// GetAzure gets a single Azure integration matching the integration guid on
+// the Lacework Server
+func (svc *IntegrationsService) GetAzure(guid string) (
 	response azureIntegrationsResponse,
 	err error,
 ) {
@@ -69,8 +89,8 @@ func (svc *IntegrationsService) GetAzureConfig(guid string) (
 	return
 }
 
-// UpdateAzureConfig updates a single AZURE_CFG integration on the Lacework Server
-func (svc *IntegrationsService) UpdateAzureConfig(data azureConfigIntegration) (
+// UpdateAzure updates a single Azure integration on the Lacework Server
+func (svc *IntegrationsService) UpdateAzure(data azureIntegration) (
 	response azureIntegrationsResponse,
 	err error,
 ) {
@@ -78,9 +98,9 @@ func (svc *IntegrationsService) UpdateAzureConfig(data azureConfigIntegration) (
 	return
 }
 
-// DeleteAzureConfig deletes a single AZURE_CFG integration matching the integration
-// guid on the Lacework Server
-func (svc *IntegrationsService) DeleteAzureConfig(guid string) (
+// DeleteAzure deletes a single Azure integration matching the integration on
+// the Lacework Server
+func (svc *IntegrationsService) DeleteAzure(guid string) (
 	response azureIntegrationsResponse,
 	err error,
 ) {
@@ -89,20 +109,34 @@ func (svc *IntegrationsService) DeleteAzureConfig(guid string) (
 
 }
 
-// ListAzureConfig lists the AZURE_CFG external integrations available on the Lacework Server
-func (svc *IntegrationsService) ListAzureConfig() (response azureIntegrationsResponse, err error) {
+// ListAzureCfg lists the AZURE_CFG external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListAzureCfg() (
+	response azureIntegrationsResponse,
+	err error,
+) {
 	apiPath := fmt.Sprintf(apiIntegrationsByType, AzureCfgIntegration.String())
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
 
-type azureIntegrationsResponse struct {
-	Data    []azureConfigIntegration `json:"data"`
-	Ok      bool                     `json:"ok"`
-	Message string                   `json:"message"`
+// ListAzureActivityLog lists the AZURE_AL_SEQ external integrations available
+// on the Lacework Server
+func (svc *IntegrationsService) ListAzureActivityLog() (
+	response azureIntegrationsResponse,
+	err error,
+) {
+	apiPath := fmt.Sprintf(apiIntegrationsByType, AzureActivityLogIntegration.String())
+	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
+	return
 }
 
-type azureConfigIntegration struct {
+type azureIntegrationsResponse struct {
+	Data    []azureIntegration `json:"data"`
+	Ok      bool               `json:"ok"`
+	Message string             `json:"message"`
+}
+
+type azureIntegration struct {
 	commonIntegrationData
 	Data AzureIntegrationData `json:"DATA"`
 }
@@ -110,6 +144,10 @@ type azureConfigIntegration struct {
 type AzureIntegrationData struct {
 	Credentials AzureIntegrationCreds `json:"CREDENTIALS"`
 	TenantID    string                `json:"TENANT_ID"`
+
+	// QueueUrl is a field that exists and is required for the AWS_CT_SQS integration,
+	// though, it doesn't exist for AZURE_CFG integrations, that's why we omit it if empty
+	QueueUrl string `json:"QUEUE_URL,omitempty"`
 }
 
 type AzureIntegrationCreds struct {

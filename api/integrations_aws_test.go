@@ -206,14 +206,14 @@ func TestIntegrationsDeleteAws(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
 }
 
-func TestIntegrationsListAws(t *testing.T) {
+func TestIntegrationsListAwsCfg(t *testing.T) {
 	var (
 		intgGUIDs  = []string{intgguid.New(), intgguid.New(), intgguid.New()}
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations/type/AWS_CFG",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "ListAws should be a GET method")
+			assert.Equal(t, "GET", r.Method, "ListAwsCfg should be a GET method")
 			fmt.Fprintf(w, awsMultiIntegrationJsonResponse(intgGUIDs))
 		},
 	)
@@ -225,7 +225,7 @@ func TestIntegrationsListAws(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.ListAws()
+	response, err := c.Integrations.ListAwsCfg()
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
