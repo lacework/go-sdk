@@ -16,39 +16,38 @@
 // limitations under the License.
 //
 
-package api_test
+package intgguid
+
+// This package generates Globally Unique Identifiers (GUID)
+// matching Lacework INTD_GUID that is used for integrations
 
 import (
-	"bytes"
-	"io/ioutil"
-	"net/http"
-	"testing"
+	"fmt"
+	"math/rand"
+	"time"
 )
 
-func TestNewRequest(t *testing.T) {
-	// TODO @afiune to-be-implemented!
+var (
+	charset               = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	randomSeed *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+)
+
+func New() string {
+	return NewPrefix("MOCK")
 }
 
-func TestDoDecoder(t *testing.T) {
-	// TODO @afiune to-be-implemented!
+func NewPrefix(prefix string) string {
+	return fmt.Sprintf("%s_%s", prefix, randomString(47))
 }
 
-func TestRequestDecoder(t *testing.T) {
-	// TODO @afiune to-be-implemented!
-}
-
-func TestDo(t *testing.T) {
-	// TODO @afiune to-be-implemented!
-}
-
-// httpBodySniffer is like a request sniffer, it reads the body
-// from the provided request without closing it
-func httpBodySniffer(r *http.Request) string {
-	bodyBytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return ""
+func stringFromCharset(length int, charset string) string {
+	bytes := make([]byte, length)
+	for i := range bytes {
+		bytes[i] = charset[randomSeed.Intn(len(charset))]
 	}
+	return string(bytes)
+}
 
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-	return string(bodyBytes)
+func randomString(length int) string {
+	return stringFromCharset(length, charset)
 }

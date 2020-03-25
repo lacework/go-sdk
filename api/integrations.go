@@ -23,144 +23,142 @@ import (
 	"strings"
 )
 
+// IntegrationsService is a service that interacts with the integrations
+// endpoints from the Lacework Server
+type IntegrationsService struct {
+	client *Client
+}
+
 type integrationType int
 
 const (
-	// awsCFG - AWS Config integration type
-	awsCFG integrationType = iota
+	// type that defines a non-existing integration
+	NoneIntegration integrationType = iota
 
-	// awsCT - AWS CloudTrail integration type
-	awsCT
+	// AWS Config integration type
+	AwsCfgIntegration
 
-	// gcpCFG - GCP Config integration type
-	gcpCFG
+	// AWS CloudTrail integration type
+	AwsCloudTrailIntegration
 
-	// gcpAT - GCP Audit Log integration type
-	gcpAT
+	// GCP Config integration type
+	GcpCfgIntegration
 
-	// azureCFG - Azure Config integration type
-	azureCFG
+	// GCP Audit Log integration type
+	GcpAuditLogIntegration
 
-	// azureAL - Azure Activity Log integration type
-	azureAL
+	// Azure Config integration type
+	AzureCfgIntegration
+
+	// Azure Activity Log integration type
+	AzureActivityLogIntegration
 )
 
-var integrationTypes = map[integrationType]string{
-	awsCFG:   "AWS_CFG",
-	awsCT:    "AWS_CT_SQS",
-	gcpCFG:   "GCP_CFG",
-	gcpAT:    "GCP_AT_SES",
-	azureCFG: "AZURE_CFG",
-	azureAL:  "AZURE_AL_SEQ",
+// IntegrationTypes is the list of available integration types
+var IntegrationTypes = map[integrationType]string{
+	NoneIntegration:             "NONE",
+	AwsCfgIntegration:           "AWS_CFG",
+	AwsCloudTrailIntegration:    "AWS_CT_SQS",
+	GcpCfgIntegration:           "GCP_CFG",
+	GcpAuditLogIntegration:      "GCP_AT_SES",
+	AzureCfgIntegration:         "AZURE_CFG",
+	AzureActivityLogIntegration: "AZURE_AL_SEQ",
 }
 
+// String returns the string representation of an integration type
 func (i integrationType) String() string {
-	return integrationTypes[i]
+	return IntegrationTypes[i]
 }
 
-// gcpResourceLevel determines Project or Organization level integration
-type gcpResourceLevel int
-
-const (
-	// GcpProject level integration with GCP
-	GcpProject gcpResourceLevel = iota
-
-	// GcpOrganization level integration with GCP
-	GcpOrganization
-)
-
-var gcpResourceLevels = map[gcpResourceLevel]string{
-	GcpProject:      "PROJECT",
-	GcpOrganization: "ORGANIZATION",
-}
-
-func (g gcpResourceLevel) String() string {
-	return gcpResourceLevels[g]
-}
-
-// GetIntegrations lists the external integrations available on the server
-func (c *Client) GetIntegrations() (response integrationsResponse, err error) {
-	err = c.RequestDecoder("GET", apiIntegrations, nil, &response)
-	return
-}
-
-func (c *Client) GetGCPIntegrations() (response gcpIntegrationsResponse, err error) {
-	return
-}
-func (c *Client) GetAzureIntegrations() (response azureIntegrationsResponse, err error) {
-	return
-}
-func (c *Client) GetAWSIntegrations() (response awsIntegrationsResponse, err error) {
-	return
-}
-
-// NewGCPIntegrationData returns an instance of gcpIntegrationData
-func NewGCPIntegrationData(name string, idType gcpResourceLevel) gcpIntegrationData {
-	return gcpIntegrationData{
-		commonIntegrationData: commonIntegrationData{
-			Name:    name,
-			Type:    gcpCFG.String(),
-			Enabled: 1,
-		},
-		Data: gcpCfg{
-			IdType: idType.String(),
-		},
+// FindIntegrationType looks up inside the list of available integration types
+// the matching type from the provided string, if none, returns NoneIntegration
+func FindIntegrationType(t string) (integrationType, bool) {
+	for iType, str := range IntegrationTypes {
+		if str == t {
+			return iType, true
+		}
 	}
+	return NoneIntegration, false
 }
 
-// CreateGCPConfigIntegration creates a single integration on the server
-func (c *Client) CreateGCPConfigIntegration(data gcpIntegrationData) (response gcpIntegrationsResponse, err error) {
-	err = c.createIntegration(data, &response)
+// Get gets a single integration matching the integration guid on the Lacework Server,
+// the returned integration contains the 'Data' field raw (map of interfaces)
+func (svc *IntegrationsService) Get(guid string) (
+	response rawIntegrationsResponse,
+	err error,
+) {
+	err = svc.get(guid, &response)
 	return
 }
 
-func (c *Client) createIntegration(data interface{}, response interface{}) error {
+// Delete deletes a single integration matching the integration guid on the Lacework Server
+// the returned integration contains the 'Data' field raw (map of interfaces)
+func (svc *IntegrationsService) Delete(guid string) (
+	response rawIntegrationsResponse,
+	err error,
+) {
+	err = svc.delete(guid, &response)
+	return
+}
+
+// List lists the external integrations available on the Lacework Server
+func (svc *IntegrationsService) List() (response integrationsResponse, err error) {
+	err = svc.client.RequestDecoder("GET", apiIntegrations, nil, &response)
+	return
+}
+
+// ListByType lists the external integrations from the provided type that are available
+// on the Lacework Server
+func (svc *IntegrationsService) ListByType(iType integrationType) (response integrationsResponse, err error) {
+	err = svc.listByType(iType, &response)
+	return
+}
+
+// GetSchema get the integration schema for the provided integration type
+func (svc *IntegrationsService) GetSchema(iType integrationType) (
+	response map[string]interface{},
+	err error,
+) {
+	apiPath := fmt.Sprintf(apiIntegrationSchema, iType.String())
+	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
+	return
+}
+
+func (svc *IntegrationsService) get(guid string, response interface{}) error {
+	apiPath := fmt.Sprintf(apiIntegrationByGUID, guid)
+	return svc.client.RequestDecoder("GET", apiPath, nil, response)
+}
+
+func (svc *IntegrationsService) create(data interface{}, response interface{}) error {
 	body, err := jsonReader(data)
 	if err != nil {
 		return err
 	}
 
-	err = c.RequestDecoder("POST", apiIntegrations, body, response)
+	err = svc.client.RequestDecoder("POST", apiIntegrations, body, response)
 	return err
 }
 
-// GetGCPConfigIntegration gets a single integration matching the integration guid available on the server
-func (c *Client) GetGCPConfigIntegration(intgGuid string) (response gcpIntegrationsResponse, err error) {
-	err = c.getIntegration(intgGuid, &response)
-	return
-}
-
-func (c *Client) getIntegration(intgGuid string, response interface{}) error {
-	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
-	return c.RequestDecoder("GET", apiPath, nil, response)
-}
-
-// UpdateGCPConfigIntegration updates a single integration on the server
-func (c *Client) UpdateGCPConfigIntegration(data gcpIntegrationData) (response gcpIntegrationsResponse, err error) {
-	err = c.updateIntegration(data.IntgGuid, data, &response)
-	return
-}
-
-func (c *Client) updateIntegration(intgGuid string, data interface{}, response interface{}) error {
-	body, err := jsonReader(data)
+func (svc *IntegrationsService) update(guid string, data interface{}, response interface{}) error {
+	var (
+		apiPath   = fmt.Sprintf(apiIntegrationByGUID, guid)
+		body, err = jsonReader(data)
+	)
 	if err != nil {
 		return err
 	}
 
-	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
-	err = c.RequestDecoder("PATCH", apiPath, body, response)
-	return err
+	return svc.client.RequestDecoder("PATCH", apiPath, body, response)
 }
 
-// DeleteGCPConfigIntegration gets a single integration matching the integration guid available on the server
-func (c *Client) DeleteGCPConfigIntegration(intgGuid string) (response gcpIntegrationsResponse, err error) {
-	err = c.deleteIntegration(intgGuid, &response)
-	return
+func (svc *IntegrationsService) delete(guid string, response interface{}) error {
+	apiPath := fmt.Sprintf(apiIntegrationByGUID, guid)
+	return svc.client.RequestDecoder("DELETE", apiPath, nil, response)
 }
 
-func (c *Client) deleteIntegration(intgGuid string, response interface{}) error {
-	apiPath := fmt.Sprintf(apiIntegrationByGUID, intgGuid)
-	return c.RequestDecoder("DELETE", apiPath, nil, response)
+func (svc *IntegrationsService) listByType(iType integrationType, response interface{}) error {
+	apiPath := fmt.Sprintf(apiIntegrationsByType, iType.String())
+	return svc.client.RequestDecoder("GET", apiPath, nil, &response)
 }
 
 type commonIntegrationData struct {
@@ -175,13 +173,19 @@ type commonIntegrationData struct {
 	TypeName             string `json:"TYPE_NAME,omitempty"`
 }
 
+type state struct {
+	Ok                 bool   `json:"ok"`
+	LastUpdatedTime    string `json:"lastUpdatedTime"`
+	LastSuccessfulTime string `json:"lastSuccessfulTime"`
+}
+
 type integrationsResponse struct {
 	Data    []commonIntegrationData `json:"data"`
 	Ok      bool                    `json:"ok"`
 	Message string                  `json:"message"`
 }
 
-func (integrations *integrationsResponse) List() string {
+func (integrations *integrationsResponse) String() string {
 	out := []string{}
 	for _, integration := range integrations.Data {
 		out = append(out, fmt.Sprintf("%s %s", integration.IntgGuid, integration.Type))
@@ -189,45 +193,13 @@ func (integrations *integrationsResponse) List() string {
 	return strings.Join(out, "\n")
 }
 
-type state struct {
-	Ok                 bool   `json:"ok"`
-	LastUpdatedTime    string `json:"lastUpdatedTime"`
-	LastSuccessfulTime string `json:"lastSuccessfulTime"`
-}
-
-type awsIntegrationsResponse struct {
-	//Data    []gcpIntegrationData `json:"data"`
-	Ok      bool   `json:"ok"`
-	Message string `json:"message"`
-}
-type azureIntegrationsResponse struct {
-	//Data    []gcpIntegrationData `json:"data"`
-	Ok      bool   `json:"ok"`
-	Message string `json:"message"`
-}
-
-type gcpIntegrationsResponse struct {
-	Data    []gcpIntegrationData `json:"data"`
-	Ok      bool                 `json:"ok"`
-	Message string               `json:"message"`
-}
-
-type gcpIntegrationData struct {
+type RawIntegration struct {
 	commonIntegrationData
-	Data gcpCfg `json:"DATA"`
+	Data map[string]interface{} `json:"DATA"`
 }
 
-type gcpCfg struct {
-	ID               string         `json:"ID"`
-	IdType           string         `json:"ID_TYPE"`
-	IssueGrouping    string         `json:"ISSUE_GROUPING,omitempty"`
-	Credentials      gcpCredentials `json:"CREDENTIALS"`
-	SubscriptionName string         `json:"SUBSCRIPTION_NAME,omitempty"`
-}
-
-type gcpCredentials struct {
-	ClientId     string `json:"CLIENT_ID"`
-	ClientEmail  string `json:"CLIENT_EMAIL"`
-	PrivateKeyId string `json:"PRIVATE_KEY_ID"`
-	PrivateKey   string `json:"PRIVATE_KEY"`
+type rawIntegrationsResponse struct {
+	Data    []RawIntegration `json:"data"`
+	Ok      bool             `json:"ok"`
+	Message string           `json:"message"`
 }

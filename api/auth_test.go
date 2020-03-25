@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/lacework"
 )
 
 func TestWithApiV2(t *testing.T) {
@@ -55,12 +56,12 @@ func TestWithApiKeys(t *testing.T) {
 }
 
 func TestWithTokenFromKeys(t *testing.T) {
-	fakeAPI := NewLaceworkServer()
-	fakeAPI.MockToken("TOKEN")
-	defer fakeAPI.Close()
+	fakeServer := lacework.MockServer()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
 
 	c, err := api.NewClient("foo",
-		api.WithURL(fakeAPI.URL()),
+		api.WithURL(fakeServer.URL()),
 		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
 	)
 	if assert.Nil(t, err) {
@@ -69,12 +70,12 @@ func TestWithTokenFromKeys(t *testing.T) {
 }
 
 func TestGenerateToken(t *testing.T) {
-	fakeAPI := NewLaceworkServer()
-	fakeAPI.MockToken("TOKEN")
-	defer fakeAPI.Close()
+	fakeServer := lacework.MockServer()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
 
 	c, err := api.NewClient("foo",
-		api.WithURL(fakeAPI.URL()),
+		api.WithURL(fakeServer.URL()),
 		api.WithApiKeys("KEY", "SECRET"),
 	)
 	if assert.Nil(t, err) {
@@ -85,11 +86,11 @@ func TestGenerateToken(t *testing.T) {
 }
 
 func TestGenerateTokenWithKeys(t *testing.T) {
-	fakeAPI := NewLaceworkServer()
-	fakeAPI.MockToken("TOKEN")
-	defer fakeAPI.Close()
+	fakeServer := lacework.MockServer()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
 
-	c, err := api.NewClient("foo", api.WithURL(fakeAPI.URL()))
+	c, err := api.NewClient("foo", api.WithURL(fakeServer.URL()))
 	if assert.Nil(t, err) {
 		response, err := c.GenerateTokenWithKeys("KEY", "SECRET")
 		assert.Nil(t, err)

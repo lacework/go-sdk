@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/lacework"
 )
 
 func TestNewClient(t *testing.T) {
@@ -34,13 +35,13 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestNewClientWithOptions(t *testing.T) {
-	fakeAPI := NewLaceworkServer()
-	fakeAPI.ApiVersion = "v2"
-	fakeAPI.MockToken("TOKEN")
-	defer fakeAPI.Close()
+	fakeServer := lacework.MockServer()
+	fakeServer.ApiVersion = "v2"
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithURL(fakeAPI.URL()),
+		api.WithURL(fakeServer.URL()),
 		api.WithExpirationTime(1800),
 		api.WithApiV2(),
 		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
