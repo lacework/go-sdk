@@ -38,12 +38,12 @@ func (g gcpResourceLevel) String() string {
 	return gcpResourceLevels[g]
 }
 
-// NewGcpIntegration returns an instance of gcpIntegration with the provided
+// NewGcpIntegration returns an instance of GcpIntegration with the provided
 // integration type, name and data. The type can only be GcpCfgIntegration or
 // GcpAuditLogIntegration
 //
 //
-// Basic usage: Initialize a new gcpIntegration struct, then
+// Basic usage: Initialize a new GcpIntegration struct, then
 //              use the new instance to do CRUD operations
 //
 //   client, err := api.NewClient("account")
@@ -70,8 +70,8 @@ func (g gcpResourceLevel) String() string {
 //
 //   client.Integrations.CreateGcp(gcp)
 //
-func NewGcpIntegration(name string, iType integrationType, data GcpIntegrationData) gcpIntegration {
-	return gcpIntegration{
+func NewGcpIntegration(name string, iType integrationType, data GcpIntegrationData) GcpIntegration {
+	return GcpIntegration{
 		commonIntegrationData: commonIntegrationData{
 			Name:    name,
 			Type:    iType.String(),
@@ -81,19 +81,19 @@ func NewGcpIntegration(name string, iType integrationType, data GcpIntegrationDa
 	}
 }
 
-// NewGcpCfgIntegration returns an instance of gcpIntegration of type GCP_CFG
-func NewGcpCfgIntegration(name string, data GcpIntegrationData) gcpIntegration {
+// NewGcpCfgIntegration returns an instance of GcpIntegration of type GCP_CFG
+func NewGcpCfgIntegration(name string, data GcpIntegrationData) GcpIntegration {
 	return NewGcpIntegration(name, GcpCfgIntegration, data)
 }
 
-// NewGcpAuditLogIntegration returns an instance of gcpIntegration of type GCP_AT_SES
-func NewGcpAuditLogIntegration(name string, data GcpIntegrationData) gcpIntegration {
+// NewGcpAuditLogIntegration returns an instance of GcpIntegration of type GCP_AT_SES
+func NewGcpAuditLogIntegration(name string, data GcpIntegrationData) GcpIntegration {
 	return NewGcpIntegration(name, GcpAuditLogIntegration, data)
 }
 
 // CreateGcp creates a single Gcp integration on the Lacework Server
-func (svc *IntegrationsService) CreateGcp(data gcpIntegration) (
-	response gcpIntegrationsResponse,
+func (svc *IntegrationsService) CreateGcp(data GcpIntegration) (
+	response GcpIntegrationsResponse,
 	err error,
 ) {
 	err = svc.create(data, &response)
@@ -103,7 +103,7 @@ func (svc *IntegrationsService) CreateGcp(data gcpIntegration) (
 // GetGcp gets a single Gcp integration matching the integration guid
 // on the Lacework Server
 func (svc *IntegrationsService) GetGcp(guid string) (
-	response gcpIntegrationsResponse,
+	response GcpIntegrationsResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
@@ -111,8 +111,8 @@ func (svc *IntegrationsService) GetGcp(guid string) (
 }
 
 // UpdateGcp updates a single Gcp integration on the Lacework Server
-func (svc *IntegrationsService) UpdateGcp(data gcpIntegration) (
-	response gcpIntegrationsResponse,
+func (svc *IntegrationsService) UpdateGcp(data GcpIntegration) (
+	response GcpIntegrationsResponse,
 	err error,
 ) {
 	err = svc.update(data.IntgGuid, data, &response)
@@ -122,7 +122,7 @@ func (svc *IntegrationsService) UpdateGcp(data gcpIntegration) (
 // DeleteGcp deletes a single Gcp integration matching the integration guid
 // on the Lacework Server
 func (svc *IntegrationsService) DeleteGcp(guid string) (
-	response gcpIntegrationsResponse,
+	response GcpIntegrationsResponse,
 	err error,
 ) {
 	err = svc.delete(guid, &response)
@@ -130,24 +130,24 @@ func (svc *IntegrationsService) DeleteGcp(guid string) (
 }
 
 // ListGcpCfg lists the GCP_CFG external integrations available on the Lacework Server
-func (svc *IntegrationsService) ListGcpCfg() (response gcpIntegrationsResponse, err error) {
+func (svc *IntegrationsService) ListGcpCfg() (response GcpIntegrationsResponse, err error) {
 	err = svc.listByType(GcpCfgIntegration, &response)
 	return
 }
 
 // ListGcpAuditLog lists the GCP_AT_SES external integrations available on the Lacework Server
-func (svc *IntegrationsService) ListGcpAuditLog() (response gcpIntegrationsResponse, err error) {
+func (svc *IntegrationsService) ListGcpAuditLog() (response GcpIntegrationsResponse, err error) {
 	err = svc.listByType(GcpAuditLogIntegration, &response)
 	return
 }
 
-type gcpIntegrationsResponse struct {
-	Data    []gcpIntegration `json:"data"`
+type GcpIntegrationsResponse struct {
+	Data    []GcpIntegration `json:"data"`
 	Ok      bool             `json:"ok"`
 	Message string           `json:"message"`
 }
 
-type gcpIntegration struct {
+type GcpIntegration struct {
 	commonIntegrationData
 	Data GcpIntegrationData `json:"DATA"`
 }
