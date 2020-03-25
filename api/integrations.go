@@ -84,7 +84,7 @@ func FindIntegrationType(t string) (integrationType, bool) {
 // Get gets a single integration matching the integration guid on the Lacework Server,
 // the returned integration contains the 'Data' field raw (map of interfaces)
 func (svc *IntegrationsService) Get(guid string) (
-	response rawIntegrationsResponse,
+	response RawIntegrationsResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
@@ -94,7 +94,7 @@ func (svc *IntegrationsService) Get(guid string) (
 // Delete deletes a single integration matching the integration guid on the Lacework Server
 // the returned integration contains the 'Data' field raw (map of interfaces)
 func (svc *IntegrationsService) Delete(guid string) (
-	response rawIntegrationsResponse,
+	response RawIntegrationsResponse,
 	err error,
 ) {
 	err = svc.delete(guid, &response)
@@ -102,14 +102,14 @@ func (svc *IntegrationsService) Delete(guid string) (
 }
 
 // List lists the external integrations available on the Lacework Server
-func (svc *IntegrationsService) List() (response integrationsResponse, err error) {
+func (svc *IntegrationsService) List() (response IntegrationsResponse, err error) {
 	err = svc.client.RequestDecoder("GET", apiIntegrations, nil, &response)
 	return
 }
 
 // ListByType lists the external integrations from the provided type that are available
 // on the Lacework Server
-func (svc *IntegrationsService) ListByType(iType integrationType) (response integrationsResponse, err error) {
+func (svc *IntegrationsService) ListByType(iType integrationType) (response IntegrationsResponse, err error) {
 	err = svc.listByType(iType, &response)
 	return
 }
@@ -179,13 +179,13 @@ type state struct {
 	LastSuccessfulTime string `json:"lastSuccessfulTime"`
 }
 
-type integrationsResponse struct {
+type IntegrationsResponse struct {
 	Data    []commonIntegrationData `json:"data"`
 	Ok      bool                    `json:"ok"`
 	Message string                  `json:"message"`
 }
 
-func (integrations *integrationsResponse) String() string {
+func (integrations *IntegrationsResponse) String() string {
 	out := []string{}
 	for _, integration := range integrations.Data {
 		out = append(out, fmt.Sprintf("%s %s", integration.IntgGuid, integration.Type))
@@ -198,7 +198,7 @@ type RawIntegration struct {
 	Data map[string]interface{} `json:"DATA"`
 }
 
-type rawIntegrationsResponse struct {
+type RawIntegrationsResponse struct {
 	Data    []RawIntegration `json:"data"`
 	Ok      bool             `json:"ok"`
 	Message string           `json:"message"`

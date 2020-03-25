@@ -18,11 +18,11 @@
 
 package api
 
-// NewAzureIntegration returns an instance of azureIntegration with the provided
+// NewAzureIntegration returns an instance of AzureIntegration with the provided
 // integration type, name and data. The type can only be AzureCfgIntegration or
 // AzureActivityLogIntegration
 //
-// Basic usage: Initialize a new azureIntegration struct, then
+// Basic usage: Initialize a new AzureIntegration struct, then
 //              use the new instance to do CRUD operations
 //
 //   client, err := api.NewClient("account")
@@ -47,8 +47,8 @@ package api
 //
 //   client.Integrations.CreateAzure(azure)
 //
-func NewAzureIntegration(name string, iType integrationType, data AzureIntegrationData) azureIntegration {
-	return azureIntegration{
+func NewAzureIntegration(name string, iType integrationType, data AzureIntegrationData) AzureIntegration {
+	return AzureIntegration{
 		commonIntegrationData: commonIntegrationData{
 			Name:    name,
 			Type:    iType.String(),
@@ -58,19 +58,19 @@ func NewAzureIntegration(name string, iType integrationType, data AzureIntegrati
 	}
 }
 
-// NewAzureCfgIntegration returns an instance of azureIntegration of type AZURE_CFG
-func NewAzureCfgIntegration(name string, data AzureIntegrationData) azureIntegration {
+// NewAzureCfgIntegration returns an instance of AzureIntegration of type AZURE_CFG
+func NewAzureCfgIntegration(name string, data AzureIntegrationData) AzureIntegration {
 	return NewAzureIntegration(name, AzureCfgIntegration, data)
 }
 
-// NewAzureActivityLogIntegration returns an instance of azureIntegration of type AZURE_AL_SEQ
-func NewAzureActivityLogIntegration(name string, data AzureIntegrationData) azureIntegration {
+// NewAzureActivityLogIntegration returns an instance of AzureIntegration of type AZURE_AL_SEQ
+func NewAzureActivityLogIntegration(name string, data AzureIntegrationData) AzureIntegration {
 	return NewAzureIntegration(name, AzureActivityLogIntegration, data)
 }
 
 // CreateAzure creates a single Azure integration on the Lacework Server
-func (svc *IntegrationsService) CreateAzure(integration azureIntegration) (
-	response azureIntegrationsResponse,
+func (svc *IntegrationsService) CreateAzure(integration AzureIntegration) (
+	response AzureIntegrationsResponse,
 	err error,
 ) {
 	err = svc.create(integration, &response)
@@ -80,7 +80,7 @@ func (svc *IntegrationsService) CreateAzure(integration azureIntegration) (
 // GetAzure gets a single Azure integration matching the integration guid on
 // the Lacework Server
 func (svc *IntegrationsService) GetAzure(guid string) (
-	response azureIntegrationsResponse,
+	response AzureIntegrationsResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
@@ -88,8 +88,8 @@ func (svc *IntegrationsService) GetAzure(guid string) (
 }
 
 // UpdateAzure updates a single Azure integration on the Lacework Server
-func (svc *IntegrationsService) UpdateAzure(data azureIntegration) (
-	response azureIntegrationsResponse,
+func (svc *IntegrationsService) UpdateAzure(data AzureIntegration) (
+	response AzureIntegrationsResponse,
 	err error,
 ) {
 	err = svc.update(data.IntgGuid, data, &response)
@@ -99,7 +99,7 @@ func (svc *IntegrationsService) UpdateAzure(data azureIntegration) (
 // DeleteAzure deletes a single Azure integration matching the integration on
 // the Lacework Server
 func (svc *IntegrationsService) DeleteAzure(guid string) (
-	response azureIntegrationsResponse,
+	response AzureIntegrationsResponse,
 	err error,
 ) {
 	err = svc.delete(guid, &response)
@@ -109,7 +109,7 @@ func (svc *IntegrationsService) DeleteAzure(guid string) (
 
 // ListAzureCfg lists the AZURE_CFG external integrations available on the Lacework Server
 func (svc *IntegrationsService) ListAzureCfg() (
-	response azureIntegrationsResponse, err error,
+	response AzureIntegrationsResponse, err error,
 ) {
 	err = svc.listByType(AzureCfgIntegration, &response)
 	return
@@ -118,19 +118,19 @@ func (svc *IntegrationsService) ListAzureCfg() (
 // ListAzureActivityLog lists the AZURE_AL_SEQ external integrations available
 // on the Lacework Server
 func (svc *IntegrationsService) ListAzureActivityLog() (
-	response azureIntegrationsResponse, err error,
+	response AzureIntegrationsResponse, err error,
 ) {
 	err = svc.listByType(AzureActivityLogIntegration, &response)
 	return
 }
 
-type azureIntegrationsResponse struct {
-	Data    []azureIntegration `json:"data"`
+type AzureIntegrationsResponse struct {
+	Data    []AzureIntegration `json:"data"`
 	Ok      bool               `json:"ok"`
 	Message string             `json:"message"`
 }
 
-type azureIntegration struct {
+type AzureIntegration struct {
 	commonIntegrationData
 	Data AzureIntegrationData `json:"DATA"`
 }
