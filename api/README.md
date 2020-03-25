@@ -31,7 +31,7 @@ if err != nil {
 	log.Fatal(err)
 }
 
-integrations, err := lacework.GetIntegrations()
+integrations, err := lacework.Integrations.List()
 if err != nil {
 	log.Fatal(err)
 }
@@ -40,5 +40,5 @@ if err != nil {
 // CUSTOMER_123456B DATADOG
 // CUSTOMER_123456A CONT_VULN_CFG
 // CUSTOMER_123456C PAGER_DUTY_API
-fmt.Println(integrations.List())
+fmt.Println(integrations.String())
 ```

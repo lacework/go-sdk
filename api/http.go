@@ -106,7 +106,7 @@ func (c *Client) DoDecoder(req *http.Request, v interface{}) (*http.Response, er
 	return res, err
 }
 
-// requestDecoder performs an http request on an endpoint, and
+// RequestDecoder performs an http request on an endpoint, and
 // decodes the response into the provided interface, all at once
 func (c *Client) RequestDecoder(method, path string, body io.Reader, v interface{}) error {
 	request, err := c.NewRequest(method, path, body)

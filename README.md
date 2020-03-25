@@ -9,7 +9,12 @@ A Golang API client for interacting with the [Lacework API](https://support.lace
 
 ### Basic Usage
 ```go
-import "github.com/lacework/go-sdk/api"
+import (
+	"fmt"
+	"log"
+
+	"github.com/lacework/go-sdk/api"
+)
 
 lacework, err := api.NewClient("account")
 if err == nil {
@@ -22,7 +27,7 @@ if err != nil {
 }
 
 // Output: YOUR-ACCESS-TOKEN
-fmt.Printf("%s\n", tokenRes.Token())
+fmt.Println(tokenRes.Token())
 ```
 Look at the [api/](api/) folder for more documentation.
 
