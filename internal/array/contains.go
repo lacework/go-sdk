@@ -16,12 +16,33 @@
 // limitations under the License.
 //
 
-package main
+package array
 
-import (
-	"github.com/lacework/go-sdk/cli/cmd"
-)
+import "strings"
 
-func main() {
-	cmd.Execute()
+func ContainsStr(array []string, expected string) bool {
+	for _, value := range array {
+		if expected == value {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsPartialStr(array []string, expected string) bool {
+	for _, value := range array {
+		if strings.Contains(value, expected) {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsInt(array []int, expected int) bool {
+	for _, value := range array {
+		if expected == value {
+			return true
+		}
+	}
+	return false
 }

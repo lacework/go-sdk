@@ -93,3 +93,8 @@ func WithURL(baseURL string) Option {
 		return nil
 	})
 }
+
+// URL returns the base url configured
+func (c *Client) URL() string {
+	return c.baseURL.String()
+}
