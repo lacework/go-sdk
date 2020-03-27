@@ -1,3 +1,5 @@
+<img src="https://techally-content.s3-us-west-1.amazonaws.com/public-content/lacework_logo_full.png" width="600">
+
 # Lacework Go SDK
 
 This repository provides a Go API client, tools, libraries, relevant documentation, code
