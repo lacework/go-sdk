@@ -6,6 +6,7 @@ set -eou pipefail
 if [ -n "${LW_DEBUG:-}" ]; then set -x; fi
 
 readonly github_releases="https://github.com/lacework/go-sdk/releases"
+readonly installation_dir="/usr/local/bin"
 
 usage() {
   local _cmd
@@ -164,15 +165,15 @@ extract_archive() {
 }
 
 install_cli() {
-  log "Installing lacework-cli into /usr/local/bin"
-  mkdir -pv /usr/local/bin
+  log "Installing lacework-cli into $installation_dir"
+  mkdir -pv "$installation_dir"
   binary="lacework-cli-${target}"
-  install -v "${archive_dir}/lacework-cli-"* /usr/local/bin/lacework-cli
+  install -v "${archive_dir}/lacework-cli-"* "${installation_dir}/lacework-cli"
 }
 
 print_cli_version() {
   info "Verifying installed lacework-cli version"
-  lacework-cli version
+  "${installation_dir}/lacework-cli" version
 }
 
 download_file() {
