@@ -33,16 +33,21 @@ Look at the [api/](api/) folder for more documentation.
 
 ## Lacework CLI ([`cli`](cli/))
 
-_(work-in-progress)_ The Lacework Command Line Interface.
+The Lacework Command Line Interface.
 
 ### Basic Usage
 
-Today, you have to first build the CLI by running `make build-cli`, then you will be
-able to execute it directly:
+Build and install the CLI by running `make install-cli`, the automation will
+ask you to update your `PATH` environment variable to execute the compiled
+`lacework-cli` binary.
 ```
-$ make build-cli
-$ ./bin/lacework-cli
+$ make install-cli
+
+# Make sure to update your PATH with the command provided from the above command
+
+$ lacework-cli help
 ```
+Look at the [cli/](cli/) folder for more documentation.
 
 ## License and Copyright
 Copyright 2020, Lacework Inc.
