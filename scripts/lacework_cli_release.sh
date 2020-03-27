@@ -54,11 +54,13 @@ prerequisites() {
 }
 
 clean_cache() {
+  log "Cleaning cache bin/ directory"
   rm -rf bin/*
 }
 
 build_cli_cross_platform() {
   clean_cache
+  log "Building cross-platform binaries"
   make build-cli-cross-platform
 }
 
@@ -68,7 +70,7 @@ generate_shasums() {
     log "Generating sha256sum Hashes"
     for target in ${TARGETS[*]}; do
 
-      if [[ "$target" =~ /linux/ ]]; then
+      if [[ "$target" =~ linux ]]; then
 	_compressed="$target.tar.gz"
       else
 	_compressed="$target.zip"
@@ -86,11 +88,16 @@ generate_shasums() {
 # need the raw binaries anymore.
 compress_targets() {
   log "Compressing target binaries"
+  local _target_with_ext
   for target in ${TARGETS[*]}; do
-    if [[ "$target" =~ /linux/ ]]; then
-      tar -czvf "bin/${target}.tar.gz" "bin/${target}"
+    if [[ "$target" =~ linux ]]; then
+      _target_with_ext="bin/${target}.tar.gz"
+      log $_target_with_ext
+      tar -czvf "${_target_with_ext}" "bin/${target}" 2>/dev/null
     else
-      zip "bin/${target}.zip" "bin/${target}"
+      _target_with_ext="bin/${target}.zip"
+      log $_target_with_ext
+      zip "${_target_with_ext}" "bin/${target}" >/dev/null
     fi
     rm -f "bin/${target}"
   done
