@@ -45,7 +45,7 @@ you are ready to use the Lacework cli, a few basic commands are:
 ```bash
 $ lacework-cli integration list
 ```
-1) Use the `api` command to access Lacework's ResfulAPI, for example,
+1) Use the `api` command to access Lacework's RestfulAPI, for example,
 to get details about and specific event:
 ```bash
 $ lacework-cli api get '/external/events/GetEventDetails?EVENT_ID=16700'
