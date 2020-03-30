@@ -22,8 +22,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"go.uber.org/zap"
 )
 
 // NewRequest generates a new http request
@@ -58,19 +61,27 @@ func (c *Client) NewRequest(method string, apiURL string, body io.Reader) (*http
 		headers["Authorization"] = c.auth.token
 	}
 
-	for k, v := range headers {
-		request.Header.Set(k, v)
-	}
-
 	if body != nil {
 		// @afiune we should detect the content-type from the body
 		// instead of hard-coding it here
-		request.Header.Set("Content-Type", "application/json")
+		headers["Content-Type"] = "application/json"
+	}
+
+	for k, v := range headers {
+		request.Header.Set(k, v)
 	}
 
 	// parse and encode query string values
 	values := request.URL.Query()
 	request.URL.RawQuery = values.Encode()
+
+	c.log.Debug("new request",
+		zap.String("method", request.Method),
+		zap.String("host", c.baseURL.String()),
+		zap.String("endpoint", apiPath.String()),
+		zap.Reflect("headers", headers),
+		zap.String("body", c.httpRequestBodySniffer(request)),
+	)
 
 	return request, nil
 }
@@ -88,14 +99,14 @@ func (c *Client) DoDecoder(req *http.Request, v interface{}) (*http.Response, er
 		return res, err
 	}
 
-	var (
-		resBuf bytes.Buffer
-
-		// by using a TeeReader for capturing the reader’s data we avoid
-		// interfering with the consumer of the reader
-		resTee = io.TeeReader(res.Body, &resBuf)
-	)
 	if v != nil {
+		var (
+			resBuf bytes.Buffer
+
+			// by using a TeeReader for capturing the reader’s data we avoid
+			// interfering with the consumer of the reader
+			resTee = io.TeeReader(res.Body, &resBuf)
+		)
 		if w, ok := v.(io.Writer); ok {
 			_, err = io.Copy(w, resTee)
 			return res, err
@@ -125,5 +136,66 @@ func (c *Client) RequestDecoder(method, path string, body io.Reader, v interface
 
 // Do calls request.Do() directly
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
-	return c.c.Do(req)
+	response, err := c.c.Do(req)
+	if err == nil {
+		c.log.Debug("new response",
+			zap.Int("code", response.StatusCode),
+			zap.String("proto", response.Proto),
+			zap.Reflect("headers", response.Header),
+			zap.String("body", c.httpResponseBodySniffer(response)),
+		)
+	}
+	return response, err
+}
+
+// httpRequestBodySniffer a request sniffer, it reads the body from the
+// provided request without closing it (use only for debugging purposes)
+func (c *Client) httpRequestBodySniffer(r *http.Request) string {
+	if !c.debugMode() {
+		// prevents sniffing the request if we are not in debug mode
+		return ""
+	}
+
+	if r.Body == nil || r.Body == http.NoBody {
+		// No need to sniff
+		return ""
+	}
+
+	var stringBody string
+	r.Body, stringBody = sniffBody(r.Body)
+
+	return stringBody
+}
+
+// httpResponseBodySniffer a response sniffer, it reads the body from the
+// provided response without closing it (use only for debugging purposes)
+func (c *Client) httpResponseBodySniffer(r *http.Response) string {
+	if !c.debugMode() {
+		// prevents sniffing the response if we are not in debug mode
+		return ""
+	}
+
+	if r.Body == nil || r.ContentLength == 0 {
+		// No need to sniff
+		return ""
+	}
+
+	var stringBody string
+	r.Body, stringBody = sniffBody(r.Body)
+
+	return stringBody
+}
+
+// a very simple body sniffer (use only for debugging purposes)
+func sniffBody(body io.ReadCloser) (io.ReadCloser, string) {
+	bodyBytes, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, ""
+	}
+
+	if err := body.Close(); err != nil {
+		return nil, ""
+	}
+
+	return ioutil.NopCloser(bytes.NewBuffer(bodyBytes)), string(bodyBytes)
 }

@@ -49,11 +49,11 @@ func (c *Client) initializeLogger() {
 	var err error
 	if c.logLevel == "debug" {
 		c.log, err = zap.NewDevelopment(
-			zap.Fields(c.defaultFields()...),
+			zap.Fields(c.defaultLoggingFields()...),
 		)
 	} else {
 		c.log, err = zap.NewProduction(
-			zap.Fields(c.defaultFields()...),
+			zap.Fields(c.defaultLoggingFields()...),
 		)
 	}
 
@@ -61,9 +61,14 @@ func (c *Client) initializeLogger() {
 	if err != nil {
 		fmt.Printf("Error: unable to initialize logger: %v\n", err)
 		c.log = zap.NewExample(
-			zap.Fields(c.defaultFields()...),
+			zap.Fields(c.defaultLoggingFields()...),
 		)
 	}
+}
+
+// debugMode returns true if the client is configured to display debug level logs
+func (c *Client) debugMode() bool {
+	return c.logLevel == "debug"
 }
 
 // loadLogLevelFromEnvironment checks the environment variable 'LW_DEBUG'
@@ -77,9 +82,10 @@ func (c *Client) loadLogLevelFromEnvironment() {
 	}
 }
 
-// defaultFields returns the default fields to inject to every single log message
-func (c *Client) defaultFields() []zap.Field {
+// defaultLoggingFields returns the default fields to inject to every single log message
+func (c *Client) defaultLoggingFields() []zap.Field {
 	return []zap.Field{
 		zap.Field(zap.String("id", c.id)),
+		zap.Field(zap.String("account", c.account)),
 	}
 }
