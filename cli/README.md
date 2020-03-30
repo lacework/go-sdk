@@ -45,7 +45,7 @@ overriden by setting environment variables prefixed with `LW_`.
 To override the `account`, `api_key`, and `api_secret`  configurations:
 ```
 $ export LW_ACCOUNT='<MY_ACCOUNT>'
-$ export LW_API_KEY='<MY_API_KEY>`
+$ export LW_API_KEY='<MY_API_KEY>'
 $ export LW_API_SECRET='<MY_API_SECRET>'
 ```
 
