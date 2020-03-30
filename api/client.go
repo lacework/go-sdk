@@ -23,6 +23,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 const defaultTimeout = 10 * time.Second
@@ -30,9 +32,11 @@ const defaultTimeout = 10 * time.Second
 type Client struct {
 	account    string
 	apiVersion string
+	logLevel   string
 	baseURL    *url.URL
 	auth       *authConfig
 	c          *http.Client
+	log        *zap.Logger
 
 	Integrations *IntegrationsService
 }
@@ -65,6 +69,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		account:    account,
 		baseURL:    baseURL,
 		apiVersion: "v1",
+		logLevel:   "info",
 		auth: &authConfig{
 			expiration: defaultTokenExpiryTime,
 		},
@@ -78,6 +83,17 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		}
 	}
 
+	// if after applying all the custom options we don't have
+	// a registered logger, initialize one
+	if c.log == nil {
+		c.initializeLogger()
+	}
+
+	c.log.Debug("api client created",
+		zap.String("url", c.baseURL.String()),
+		zap.String("log_level", c.logLevel),
+		zap.Int("timeout", c.auth.expiration),
+	)
 	return c, nil
 }
 
