@@ -43,24 +43,43 @@ func WithLogLevel(level string) Option {
 // initializeLogger initializes the logger, by default we assume production,
 // but if debug mode is turned on, we switch to development
 func (c *Client) initializeLogger() {
-	// give priority to the environment variable: LW_DEBUG
-	debug := os.Getenv("LW_DEBUG")
-	if debug == "true" {
-		c.logLevel = "debug"
-	} else if debug == "false" {
-		c.logLevel = "info"
-	}
+	// give priority to the environment variable
+	c.loadLogLevelFromEnvironment()
 
 	var err error
 	if c.logLevel == "debug" {
-		c.log, err = zap.NewDevelopment()
+		c.log, err = zap.NewDevelopment(
+			zap.Fields(c.defaultFields()...),
+		)
 	} else {
-		c.log, err = zap.NewProduction()
+		c.log, err = zap.NewProduction(
+			zap.Fields(c.defaultFields()...),
+		)
 	}
 
 	// if we find any error initializing zap, default to a standard logger
 	if err != nil {
-		fmt.Printf("Error: unable to initialize zap logger: %v\n", err)
-		c.log = zap.NewExample()
+		fmt.Printf("Error: unable to initialize logger: %v\n", err)
+		c.log = zap.NewExample(
+			zap.Fields(c.defaultFields()...),
+		)
+	}
+}
+
+// loadLogLevelFromEnvironment checks the environment variable 'LW_DEBUG'
+// that controls the log level of the api client
+func (c *Client) loadLogLevelFromEnvironment() {
+	switch os.Getenv("LW_DEBUG") {
+	case "true":
+		c.logLevel = "debug"
+	case "false":
+		c.logLevel = "info"
+	}
+}
+
+// defaultFields returns the default fields to inject to every single log message
+func (c *Client) defaultFields() []zap.Field {
+	return []zap.Field{
+		zap.Field(zap.String("id", c.id)),
 	}
 }
