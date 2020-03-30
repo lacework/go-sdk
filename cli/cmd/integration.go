@@ -35,7 +35,7 @@ var (
 	}
 
 	// integrationListCmd represents the list sub-command inside the integration command
-	instegrationListCmd = &cobra.Command{
+	integrationListCmd = &cobra.Command{
 		Use:   "list",
 		Short: "List all available external integrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -62,18 +62,30 @@ var (
 	}
 
 	// integrationCreateCmd represents the create sub-command inside the integration command
-	instegrationCreateCmd = &cobra.Command{
-		Use:   "create",
-		Short: "Create an external integrations",
+	integrationCreateCmd = &cobra.Command{
+		Use:    "create",
+		Hidden: true,
+		Short:  "Create an external integrations",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+	}
+
+	// integrationUpdateCmd represents the update sub-command inside the integration command
+	integrationUpdateCmd = &cobra.Command{
+		Use:    "update",
+		Hidden: true,
+		Short:  "Update an external integrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
 	}
 
 	// integrationDeleteCmd represents the delete sub-command inside the integration command
-	instegrationDeleteCmd = &cobra.Command{
-		Use:   "delete",
-		Short: "Delete an external integrations",
+	integrationDeleteCmd = &cobra.Command{
+		Use:    "delete",
+		Hidden: true,
+		Short:  "Delete an external integrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
@@ -85,7 +97,8 @@ func init() {
 	rootCmd.AddCommand(integrationCmd)
 
 	// add sub-commands to the integration command
-	integrationCmd.AddCommand(instegrationListCmd)
-	integrationCmd.AddCommand(instegrationCreateCmd)
-	integrationCmd.AddCommand(instegrationDeleteCmd)
+	integrationCmd.AddCommand(integrationListCmd)
+	integrationCmd.AddCommand(integrationCreateCmd)
+	integrationCmd.AddCommand(integrationUpdateCmd)
+	integrationCmd.AddCommand(integrationDeleteCmd)
 }
