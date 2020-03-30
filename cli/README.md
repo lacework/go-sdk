@@ -37,6 +37,18 @@ api_secret = "_super_secret_key"
 
 You can provide a different configuration file with the option `--config`.
 
+### Environment Variables
+Default configuration parameters found in the `.lacework.toml` may also be 
+overriden by setting environment variables prefixed with `LW_`. 
+
+#### Example
+To override the `account`, `api_key`, and `api_secret`  configurations:
+```
+$ export LW_ACCOUNT='<MY_ACCOUNT>'
+$ export LW_API_KEY='<MY_API_KEY>'
+$ export LW_API_SECRET='<MY_API_SECRET>'
+```
+
 ## Basic Usage
 Once you have created your configuration file `$HOME/.lacework.toml`,
 you are ready to use the Lacework cli, a few basic commands are:

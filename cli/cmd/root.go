@@ -112,9 +112,9 @@ func initConfig() {
 		viper.SetConfigName(".lacework")
 	}
 
-	viper.SetConfigType("toml")    // set TOML as the config format
-	viper.SetEnvPrefix("LACEWORK") // set prefix for all env variables LW_ABC
-	viper.AutomaticEnv()           // read in environment variables that match
+	viper.SetConfigType("toml") // set TOML as the config format
+	viper.SetEnvPrefix("LW")    // set prefix for all env variables LW_ABC
+	viper.AutomaticEnv()        // read in environment variables that match
 
 	// Initialize zap logger
 	initializeCliLogger()
