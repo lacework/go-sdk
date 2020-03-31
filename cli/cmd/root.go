@@ -143,7 +143,7 @@ func initializeCliLogger() {
 
 	// if we find any error initializing zap, default to a standard logger
 	if err != nil {
-		fmt.Printf("Error: unable to initialize zap logger: %v\n", err)
+		fmt.Printf("WARN unable to initialize cli logger: %v\n", err)
 		cli.Log = zap.NewExample().Sugar()
 	} else {
 		cli.Log = log.Sugar()
@@ -152,7 +152,9 @@ func initializeCliLogger() {
 
 func checkBindError(err error) {
 	if err != nil {
-		cli.Log.Debugw("unable to bind parameter", "error", err.Error())
+		// this check happens before we have initialized the logger,
+		// so we need to use native fmt prints
+		fmt.Printf("WARN unable to bind parameter: %v\n", err)
 	}
 }
 
@@ -160,9 +162,16 @@ func loadStateFromViper(_ *cobra.Command, _ []string) {
 	cli.KeyID = viper.GetString("api_key")
 	cli.Secret = viper.GetString("api_secret")
 	cli.Account = viper.GetString("account")
+
 	if viper.GetBool("debug") {
-		cli.LogLevel = "info"
-	} else {
 		cli.LogLevel = "debug"
+	} else {
+		cli.LogLevel = "info"
 	}
+
+	cli.Log.Debugw("state loaded",
+		"account", cli.Account,
+		"api_key", cli.KeyID,
+		"api_secret", cli.Secret,
+	)
 }

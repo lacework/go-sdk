@@ -28,6 +28,12 @@ import (
 // WithLogLevel sets the log level of the client, available: info or debug
 func WithLogLevel(level string) Option {
 	return clientFunc(func(c *Client) error {
+		// do not re initialize our logger if the log level
+		// is the same as the desired one
+		if level == c.logLevel {
+			return nil
+		}
+
 		switch level {
 		case "info", "debug":
 			c.logLevel = level

@@ -92,6 +92,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 
 	c.log.Debug("api client created",
 		zap.String("url", c.baseURL.String()),
+		zap.String("version", c.apiVersion),
 		zap.String("log_level", c.logLevel),
 		zap.Int("timeout", c.auth.expiration),
 	)

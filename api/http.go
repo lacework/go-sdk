@@ -75,7 +75,7 @@ func (c *Client) NewRequest(method string, apiURL string, body io.Reader) (*http
 	values := request.URL.Query()
 	request.URL.RawQuery = values.Encode()
 
-	c.log.Debug("new request",
+	c.log.Debug("request",
 		zap.String("method", request.Method),
 		zap.String("host", c.baseURL.String()),
 		zap.String("endpoint", apiPath.String()),
@@ -138,7 +138,8 @@ func (c *Client) RequestDecoder(method, path string, body io.Reader, v interface
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	response, err := c.c.Do(req)
 	if err == nil {
-		c.log.Debug("new response",
+		c.log.Debug("response",
+			zap.String("from_req_url", req.URL.String()),
 			zap.Int("code", response.StatusCode),
 			zap.String("proto", response.Proto),
 			zap.Reflect("headers", response.Header),
