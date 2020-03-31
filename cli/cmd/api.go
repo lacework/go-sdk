@@ -77,16 +77,12 @@ func runApiCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	lacework, err := api.NewClient(cli.Account,
+		api.WithLogLevel(cli.LogLevel),
 		api.WithApiKeys(cli.KeyID, cli.Secret),
 	)
 	if err != nil {
-		return errors.Wrap(err, "unable to generate Lacework API client")
+		return errors.Wrap(err, "unable to generate Lacework api client")
 	}
-
-	cli.Log.Debugw("api client generated",
-		"version", lacework.ApiVersion(),
-		"base_url", lacework.URL(),
-	)
 
 	response := new(map[string]interface{})
 	err = lacework.RequestDecoder(
@@ -101,7 +97,7 @@ func runApiCommand(cmd *cobra.Command, args []string) error {
 
 	pretty, err := cli.JsonF.Marshal(*response)
 	if err != nil {
-		cli.Log.Debugw("api response", "raw", response)
+		cli.Log.Debugw("unable to pretty print JSON response", "raw", response)
 		return errors.Wrap(err, "unable to format json response")
 	}
 

@@ -20,19 +20,27 @@ package api
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
+
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 const defaultTimeout = 10 * time.Second
 
 type Client struct {
+	id         string
 	account    string
 	apiVersion string
+	logLevel   string
 	baseURL    *url.URL
 	auth       *authConfig
 	c          *http.Client
+	log        *zap.Logger
 
 	Integrations *IntegrationsService
 }
@@ -56,15 +64,21 @@ func (fn clientFunc) apply(c *Client) error {
 //       lacework.Integrations.List()
 //   }
 func NewClient(account string, opts ...Option) (*Client, error) {
+	if account == "" {
+		return nil, errors.New("account cannot be empty")
+	}
+
 	baseURL, err := url.Parse(fmt.Sprintf("https://%s.lacework.net", account))
 	if err != nil {
 		return nil, err
 	}
 
 	c := &Client{
+		id:         newID(),
 		account:    account,
 		baseURL:    baseURL,
 		apiVersion: "v1",
+		logLevel:   "info",
 		auth: &authConfig{
 			expiration: defaultTokenExpiryTime,
 		},
@@ -72,12 +86,21 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	}
 	c.Integrations = &IntegrationsService{c}
 
+	// init logger, this could change if a user calls api.WithLogLevel()
+	c.initializeLogger()
+
 	for _, opt := range opts {
 		if err := opt.apply(c); err != nil {
 			return c, err
 		}
 	}
 
+	c.log.Debug("api client created",
+		zap.String("url", c.baseURL.String()),
+		zap.String("version", c.apiVersion),
+		zap.String("log_level", c.logLevel),
+		zap.Int("timeout", c.auth.expiration),
+	)
 	return c, nil
 }
 
@@ -97,4 +120,12 @@ func WithURL(baseURL string) Option {
 // URL returns the base url configured
 func (c *Client) URL() string {
 	return c.baseURL.String()
+}
+
+// newID generates a new client ID, this id is useful for logging purposes
+// when there are more than one client running on the same machine
+func newID() string {
+	now := time.Now().UTC().UnixNano()
+	seed := rand.New(rand.NewSource(now))
+	return strconv.FormatInt(seed.Int63(), 16)
 }

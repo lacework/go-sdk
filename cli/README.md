@@ -22,10 +22,10 @@ C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubus
 ## Configuration File
 
 The `lacework-cli` looks for a file named `.lacework.toml` inside your home
-directory (`$HOME/.lacework.toml`) to access the following parameters:
+directory (`$HOME/.lacework.toml`) to access the following settings:
 * `account`: Account subdomain of URL (i.e. `<ACCOUNT>.lacework.net`)
-* `api_key`: API Access Key ID
-* `api_secret`: API Access Secret Key
+* `api_key`: API Access Key
+* `api_secret`: API Access Secret
 
 
 An example of a Lacework configuration file:

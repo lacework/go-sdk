@@ -40,16 +40,12 @@ var (
 		Short: "List all available external integrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			lacework, err := api.NewClient(cli.Account,
+				api.WithLogLevel(cli.LogLevel),
 				api.WithApiKeys(cli.KeyID, cli.Secret),
 			)
 			if err != nil {
-				return errors.Wrap(err, "unable to generate Lacework API client")
+				return errors.Wrap(err, "unable to generate Lacework api client")
 			}
-
-			cli.Log.Debugw("api client generated",
-				"version", lacework.ApiVersion(),
-				"base_url", lacework.URL(),
-			)
 
 			integrations, err := lacework.Integrations.List()
 			if err != nil {
