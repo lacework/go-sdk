@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -63,6 +64,10 @@ func (fn clientFunc) apply(c *Client) error {
 //       lacework.Integrations.List()
 //   }
 func NewClient(account string, opts ...Option) (*Client, error) {
+	if account == "" {
+		return nil, errors.New("account cannot be empty")
+	}
+
 	baseURL, err := url.Parse(fmt.Sprintf("https://%s.lacework.net", account))
 	if err != nil {
 		return nil, err

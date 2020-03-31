@@ -34,6 +34,15 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
+func TestNewClientAccountEmptyError(t *testing.T) {
+	c, err := api.NewClient("")
+	assert.Nil(t, c)
+	if assert.NotNil(t, err) {
+		assert.Equal(t, "account cannot be empty", err.Error(),
+			"we cannot create an api client without a Lacework account")
+	}
+}
+
 func TestNewClientWithOptions(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.ApiVersion = "v2"
