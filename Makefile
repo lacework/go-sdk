@@ -5,7 +5,7 @@ ci: lint test fmt-check imports-check build-cli-cross-platform
 GOLANGCILINTVERSION?=1.23.8
 COVERAGEOUT?=coverage.out
 CLINAME?=lacework-cli
-GO_LDFLAGS="-X github.com/lacework/go-sdk/cli/cmd.Version=$(shell cat cli/VERSION) \
+GO_LDFLAGS="-X github.com/lacework/go-sdk/cli/cmd.Version=$(shell cat VERSION) \
             -X github.com/lacework/go-sdk/cli/cmd.GitSHA=$(shell git rev-parse HEAD) \
             -X github.com/lacework/go-sdk/cli/cmd.BuildTime=$(shell date +%Y%m%d%H%M%S)"
 GOFLAGS=-mod=vendor
