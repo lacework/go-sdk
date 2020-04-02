@@ -67,6 +67,7 @@ prepare_release() {
 do_release() {
   log "releasing v$VERSION"
   prerequisites
+  release_checks
   clean_cache
   build_cli_cross_platform
   compress_targets
@@ -133,6 +134,19 @@ tag_release() {
   log "go to https://github.com/lacework/go-sdk/releases and upload all files from 'bin/'"
 }
 
+release_check() {
+  if git ls-remote --tags 2>/dev/null | grep "tags/v$VERSION" >/dev/null; then
+    warn "The git tag 'v$VERSION' already exists at github.com"
+    warn "This is usually the case where a release wasn't finished properly"
+    warn "Remove the tag from the remote and try to release again"
+    warn ""
+    warn "To remove the tag run the following commands:"
+    warn "  git tag -d v$VERSION"
+    warn "  git push --delete origin v$VERSION"
+    exit 127
+  fi
+}
+
 prerequisites() {
   # gox is the tool we use to generate cross-platform binaries
   if ! command -v "gox" > /dev/null 2>&1; then
@@ -153,17 +167,6 @@ prerequisites() {
     warn "You have unsaved changes in the master branch. Are you resuming a release?"
     warn "To resume a release you have to start over, to remove all unsaved changes run the command:"
     warn "  git reset --hard origin/master"
-    exit 127
-  fi
-
-  if git ls-remote --tags 2>/dev/null | grep "tags/v$VERSION" >/dev/null; then
-    warn "The git tag 'v$VERSION' already exists at github.com"
-    warn "This is usually the case where a release wasn't finished properly"
-    warn "Remove the tag from the remote and try to release again"
-    warn ""
-    warn "To remove the tag run the following commands:"
-    warn "  git tag -d v$VERSION"
-    warn "  git push --delete origin v$VERSION"
     exit 127
   fi
 }
