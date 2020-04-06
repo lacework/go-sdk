@@ -22,12 +22,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
-
 	prettyjson "github.com/hokaccha/go-prettyjson"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+
+	"github.com/lacework/go-sdk/lwlogger"
 )
 
 type cliState struct {
@@ -116,37 +117,24 @@ func initConfig() {
 	viper.SetEnvPrefix("LW")    // set prefix for all env variables LW_ABC
 	viper.AutomaticEnv()        // read in environment variables that match
 
-	// Initialize zap logger
-	initializeCliLogger()
+	if viper.GetBool("debug") {
+		cli.LogLevel = "DEBUG"
+	}
+
+	// by default the cli logs are going to be visualized in
+	// a console format unless the user wants the opposite
+	if os.Getenv("LW_LOG_FORMAT") == "" {
+		os.Setenv("LW_LOG_FORMAT", "CONSOLE")
+	}
+
+	// initialize a Lacework logger
+	cli.Log = lwlogger.New(cli.LogLevel).Sugar()
 
 	// If a config file is found, read it in
 	if err := viper.ReadInConfig(); err == nil {
 		cli.Log.Debugw("using config file",
 			"path", viper.ConfigFileUsed(),
 		)
-	}
-}
-
-// initializeCliLogger initializes the cli logger, by default we assume production,
-// but if debug mode is turned on, we switch to development
-func initializeCliLogger() {
-	var (
-		log *zap.Logger
-		err error
-	)
-
-	if viper.GetBool("debug") {
-		log, err = zap.NewDevelopment()
-	} else {
-		log, err = zap.NewProduction()
-	}
-
-	// if we find any error initializing zap, default to a standard logger
-	if err != nil {
-		fmt.Printf("WARN unable to initialize cli logger: %v\n", err)
-		cli.Log = zap.NewExample().Sugar()
-	} else {
-		cli.Log = log.Sugar()
 	}
 }
 
@@ -162,12 +150,6 @@ func loadStateFromViper(_ *cobra.Command, _ []string) {
 	cli.KeyID = viper.GetString("api_key")
 	cli.Secret = viper.GetString("api_secret")
 	cli.Account = viper.GetString("account")
-
-	if viper.GetBool("debug") {
-		cli.LogLevel = "debug"
-	} else {
-		cli.LogLevel = "info"
-	}
 
 	cli.Log.Debugw("state loaded",
 		"account", cli.Account,

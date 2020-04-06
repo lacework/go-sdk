@@ -51,6 +51,20 @@ $ lacework-cli help
 ```
 Look at the [cli/](cli/) folder for more documentation.
 
+## Lacework Logger ([`lwlogger`](lwlogger/))
+
+A Logger wrapper for Lacework based of zap logger Go package.
+
+### Basic Usage
+```go
+import "github.com/lacework/go-sdk/lwlogger"
+
+func main() {
+	lwL := lwlogger.New("INFO")
+	lwL.Info("interesting info")
+}
+```
+
 ## License and Copyright
 Copyright 2020, Lacework Inc.
 ```

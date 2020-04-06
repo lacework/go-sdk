@@ -20,9 +20,14 @@ package api
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"syscall"
 
 	"go.uber.org/zap"
+
+	"github.com/lacework/go-sdk/lwlogger"
+	"github.com/pkg/errors"
 )
 
 // WithLogLevel sets the log level of the client, available: info or debug
@@ -34,64 +39,99 @@ func WithLogLevel(level string) Option {
 			return nil
 		}
 
-		switch level {
-		case "info", "debug":
-			c.logLevel = level
-		default:
-			c.logLevel = "info"
+		if !lwlogger.ValidLevel(level) {
+			return fmt.Errorf("invalid log level '%s'", level)
 		}
 
-		c.initializeLogger()
+		c.logLevel = level
+		c.initLogger()
 		return nil
 	})
 }
 
-// initializeLogger initializes the logger, by default we assume production,
-// but if debug mode is turned on, we switch to development
-func (c *Client) initializeLogger() {
-	// give priority to the environment variable
-	c.loadLogLevelFromEnvironment()
+// WithLogLevelAndWriter sets the log level of the client
+// and writes the log messages to the provided io.Writer
+func WithLogLevelAndWriter(level string, w io.Writer) Option {
+	return clientFunc(func(c *Client) error {
+		if !lwlogger.ValidLevel(level) {
+			return fmt.Errorf("invalid log level '%s'", level)
+		}
 
-	var err error
-	if c.logLevel == "debug" {
-		c.log, err = zap.NewDevelopment(
-			zap.Fields(c.defaultLoggingFields()...),
-		)
-	} else {
-		c.log, err = zap.NewProduction(
-			zap.Fields(c.defaultLoggingFields()...),
-		)
-	}
+		c.logLevel = level
+		c.initLoggerWithWriter(w)
+		return nil
+	})
+}
 
-	// if we find any error initializing zap, default to a standard logger
-	if err != nil {
-		fmt.Printf("Error: unable to initialize logger: %v\n", err)
-		c.log = zap.NewExample(
-			zap.Fields(c.defaultLoggingFields()...),
-		)
+// WithLogWriter configures the client to log messages to the provided io.Writer
+func WithLogWriter(w io.Writer) Option {
+	return clientFunc(func(c *Client) error {
+		c.initLoggerWithWriter(w)
+		return nil
+	})
+}
+
+// WithLogLevelAndFile sets the log level of the client
+// and writes the log messages to the provided file
+func WithLogLevelAndFile(level, filename string) Option {
+	return clientFunc(func(c *Client) error {
+		if !lwlogger.ValidLevel(level) {
+			return fmt.Errorf("invalid log level '%s'", level)
+		}
+
+		c.logLevel = level
+
+		logWriter, err := os.OpenFile(filename, syscall.O_CREAT|syscall.O_RDWR|syscall.O_APPEND, 0666)
+		if err != nil {
+			return errors.Wrap(err, "unable to open file to initialize api logger ")
+		}
+
+		c.initLoggerWithWriter(logWriter)
+		return nil
+	})
+}
+
+// WithLogFile configures the client to write messages to the provided file
+func WithLogFile(filename string) Option {
+	return clientFunc(func(c *Client) error {
+		logWriter, err := os.OpenFile(filename, syscall.O_CREAT|syscall.O_RDWR|syscall.O_APPEND, 0666)
+		if err != nil {
+			return errors.Wrap(err, "unable to open file to initialize api logger ")
+		}
+
+		c.initLoggerWithWriter(logWriter)
+		return nil
+	})
+}
+
+// initLogger initializes the logger with a set of default fields
+func (c *Client) initLogger() {
+	if c.log != nil {
+		_ = c.log.Sync()
 	}
+	c.log = lwlogger.New(c.logLevel,
+		zap.Fields(
+			zap.Field(zap.String("id", c.id)),
+			zap.Field(zap.String("account", c.account)),
+		),
+	)
+}
+
+// initLoggerWithWriter initializes a new logger with a set
+// of default fields and configues the provided io.Writer
+func (c *Client) initLoggerWithWriter(w io.Writer) {
+	if c.log != nil {
+		_ = c.log.Sync()
+	}
+	c.log = lwlogger.NewWithWriter(c.logLevel, w,
+		zap.Fields(
+			zap.Field(zap.String("id", c.id)),
+			zap.Field(zap.String("account", c.account)),
+		),
+	)
 }
 
 // debugMode returns true if the client is configured to display debug level logs
 func (c *Client) debugMode() bool {
 	return c.logLevel == "debug"
-}
-
-// loadLogLevelFromEnvironment checks the environment variable 'LW_DEBUG'
-// that controls the log level of the api client
-func (c *Client) loadLogLevelFromEnvironment() {
-	switch os.Getenv("LW_DEBUG") {
-	case "true":
-		c.logLevel = "debug"
-	case "false":
-		c.logLevel = "info"
-	}
-}
-
-// defaultLoggingFields returns the default fields to inject to every single log message
-func (c *Client) defaultLoggingFields() []zap.Field {
-	return []zap.Field{
-		zap.Field(zap.String("id", c.id)),
-		zap.Field(zap.String("account", c.account)),
-	}
 }
