@@ -10,16 +10,18 @@
 #
 set -eou pipefail
 
-PROJECT=go-sdk
-CLINAME=lacework-cli
+readonly project_name=go-sdk
+readonly package_name=lacework-cli
+readonly binary_name=lacework
+
 VERSION=$(cat VERSION)
 TARGETS=(
-  ${CLINAME}-darwin-386
-  ${CLINAME}-darwin-amd64
-  ${CLINAME}-windows-386.exe
-  ${CLINAME}-windows-amd64.exe
-  ${CLINAME}-linux-386
-  ${CLINAME}-linux-amd64
+  ${package_name}-darwin-386
+  ${package_name}-darwin-amd64
+  ${package_name}-windows-386.exe
+  ${package_name}-windows-amd64.exe
+  ${package_name}-linux-386
+  ${package_name}-linux-amd64
 )
 
 usage() {
@@ -88,7 +90,7 @@ update_changelog() {
 }
 
 load_list_of_changes() {
-  local _list_of_changes=$(git log --no-merges --pretty="* %s (%an)([%h](https://github.com/lacework/${PROJECT}/commit/%H))" ${latest_version}..master)
+  local _list_of_changes=$(git log --no-merges --pretty="* %s (%an)([%h](https://github.com/lacework/${project_name}/commit/%H))" ${latest_version}..master)
   echo "## Features" > CHANGES.md
   echo "$_list_of_changes" | grep "\* feat[:(]" >> CHANGES.md
   echo "## Refactor" >> CHANGES.md
@@ -131,7 +133,7 @@ tag_release() {
   log "creating github tag: $_tag"
   git tag "$_tag"
   git push origin "$_tag"
-  log "go to https://github.com/lacework/go-sdk/releases and upload all files from 'bin/'"
+  log "go to https://github.com/lacework/${project_name}/releases and upload all files from 'bin/'"
 }
 
 release_check() {
@@ -225,26 +227,36 @@ generate_shasums() {
 compress_targets() {
   log "compressing target binaries"
   local _target_with_ext
+  local _cli_name
+
   for target in ${TARGETS[*]}; do
+    if [[ "$target" =~ exe ]]; then
+      _cli_name="bin/${binary_name}.exe"
+    else
+      _cli_name="bin/${binary_name}"
+    fi
+
+    mv "bin/${target}" "$_cli_name"
+
     if [[ "$target" =~ linux ]]; then
       _target_with_ext="bin/${target}.tar.gz"
-      log $_target_with_ext
-      tar -czvf "${_target_with_ext}" "bin/${target}" 2>/dev/null
+      tar -czvf "$_target_with_ext" "$_cli_name" 2>/dev/null
     else
       _target_with_ext="bin/${target}.zip"
-      log $_target_with_ext
-      zip "${_target_with_ext}" "bin/${target}" >/dev/null
+      zip "$_target_with_ext" "$_cli_name" >/dev/null
     fi
-    rm -f "bin/${target}"
+
+    log $_target_with_ext
+    rm -f "$_cli_name"
   done
 }
 
 log() {
-  echo "--> ${PROJECT}: $1"
+  echo "--> ${project_name}: $1"
 }
 
 warn() {
-  echo "xxx ${PROJECT}: $1" >&2
+  echo "xxx ${project_name}: $1" >&2
 }
 
 main "$@" || exit 99

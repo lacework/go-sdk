@@ -39,9 +39,9 @@ var (
 	// versionCmd represents the version command
 	versionCmd = &cobra.Command{
 		Use:   "version",
-		Short: "Print the lacework-cli version",
+		Short: "Print the Lacework cli version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("lacework-cli v%s (sha:%s) (time:%s)\n", Version, GitSHA, BuildTime)
+			fmt.Printf("lacework v%s (sha:%s) (time:%s)\n", Version, GitSHA, BuildTime)
 		},
 	}
 )

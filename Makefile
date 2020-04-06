@@ -4,7 +4,8 @@ ci: lint test fmt-check imports-check build-cli-cross-platform
 
 GOLANGCILINTVERSION?=1.23.8
 COVERAGEOUT?=coverage.out
-CLINAME?=lacework-cli
+PACKAGENAME?=lacework-cli
+CLINAME?=lacework
 GO_LDFLAGS="-X github.com/lacework/go-sdk/cli/cmd.Version=$(shell cat VERSION) \
             -X github.com/lacework/go-sdk/cli/cmd.GitSHA=$(shell git rev-parse HEAD) \
             -X github.com/lacework/go-sdk/cli/cmd.BuildTime=$(shell date +%Y%m%d%H%M%S)"
@@ -41,7 +42,7 @@ imports-check:
 	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./...))
 
 build-cli-cross-platform:
-	gox -output="bin/$(CLINAME)-{{.OS}}-{{.Arch}}" \
+	gox -output="bin/$(PACKAGENAME)-{{.OS}}-{{.Arch}}" \
             -os="darwin linux windows" \
             -arch="amd64 386" \
             -ldflags=$(GO_LDFLAGS) \
@@ -49,15 +50,17 @@ build-cli-cross-platform:
 
 install-cli: build-cli-cross-platform
 ifeq (x86_64, $(shell uname -m))
-	ln -sf bin/$(CLINAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-amd64 bin/$(CLINAME)
+	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-amd64 /usr/local/bin/$(CLINAME)
 else
-	ln -sf bin/$(CLINAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-386 bin/$(CLINAME)
+	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-386 /usr/local/bin/$(CLINAME)
 endif
-	@echo "\nUpdate your PATH environment variable to execute the compiled lacework-cli:"
-	@echo "\n  $$ export PATH=\"$(PWD)/bin:$$PATH\"\n"
+	@echo "\nThe lacework cli has been installed at /usr/local/bin"
 
-release-cli: lint fmt-check imports-check test
-	scripts/lacework_cli_release.sh
+prepare-release: lint fmt-check imports-check test
+	scripts/release.sh prepare
+
+do-release: lint fmt-check imports-check test
+	scripts/release.sh release
 
 install-tools:
 ifeq (, $(shell which golangci-lint))

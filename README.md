@@ -35,24 +35,25 @@ Look at the [api/](api/) folder for more documentation.
 
 ## Lacework CLI ([`cli`](cli/))
 
-The Lacework Command Line Interface.
+The Lacework Command Line Interface is a tool that helps you manage the
+Lacework cloud security platform. You can use it to manage compliance
+reports, external integrations, vulnerability scans, and other operations.
 
 ### Basic Usage
 
 Build and install the CLI by running `make install-cli`, the automation will
-ask you to update your `PATH` environment variable to execute the compiled
-`lacework-cli` binary.
+install the tool at `/usr/local/bin/lacework`:
 ```
 $ make install-cli
-
-# Make sure to update your PATH with the command provided from the above command
-
-$ lacework-cli help
+$ lacework version
+lacework v0.1.1 (sha:ca9f95d17f4f2092f89dba7b64eaed6db7493a5a) (time:20200406091143)
 ```
 Look at the [cli/](cli/) folder for more documentation.
 
 ## License and Copyright
+
 Copyright 2020, Lacework Inc.
+
 ```
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

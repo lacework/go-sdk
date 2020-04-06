@@ -1,8 +1,8 @@
 <img src="https://techally-content.s3-us-west-1.amazonaws.com/public-content/lacework_logo_full.png" width="600">
 
-# `lacework-cli`
+# Lacework cli
 
-The Lacework Command Line Interface is a tool that helps you manage your
+The Lacework Command Line Interface is a tool that helps you manage the
 Lacework cloud security platform. You can use it to manage compliance
 reports, external integrations, vulnerability scans, and other operations.
 
@@ -21,7 +21,7 @@ C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubus
 
 ## Configuration File
 
-The `lacework-cli` looks for a file named `.lacework.toml` inside your home
+The Lacework cli looks for a file named `.lacework.toml` inside your home
 directory (`$HOME/.lacework.toml`) to access the following settings:
 * `account`: Account subdomain of URL (i.e. `<ACCOUNT>.lacework.net`)
 * `api_key`: API Access Key
@@ -55,24 +55,24 @@ you are ready to use the Lacework cli, a few basic commands are:
 
 1) List all integration in your account:
 ```bash
-$ lacework-cli integration list
+$ lacework integration list
 ```
 1) Use the `api` command to access Lacework's RestfulAPI, for example,
 to get details about and specific event:
 ```bash
-$ lacework-cli api get '/external/events/GetEventDetails?EVENT_ID=16700'
+$ lacework api get '/external/events/GetEventDetails?EVENT_ID=16700'
 ```
 
 ## Development
 To build and install the CLI from source, use the `make install-cli` directive,
 this command will ask you to update your `PATH` environment variable to point
-to the compiled `lacework-cli` binary.
+to the compiled `lacework` binary.
 ```
 $ make install-cli
 
 # Make sure to update your PATH with the command provided from the above command
 
-$ lacework-cli help
+$ lacework help
 ```
 
 ## License and Copyright

@@ -48,12 +48,12 @@ var (
 		JsonF: prettyjson.NewFormatter(),
 	}
 	rootCmd = &cobra.Command{
-		Use:              "lacework-cli",
-		Short:            "A tool to manage your Lacework cloud security platform.",
+		Use:              "lacework",
+		Short:            "A tool to manage the Lacework cloud security platform.",
 		PersistentPreRun: loadStateFromViper,
 		SilenceErrors:    true,
 		Long: `
-The Lacework Command Line Interface is a tool that helps you manage your
+The Lacework Command Line Interface is a tool that helps you manage the
 Lacework cloud security platform. You can use it to manage compliance
 reports, external integrations, vulnerability scans, and other operations.`,
 	}

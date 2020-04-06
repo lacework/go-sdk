@@ -6,13 +6,15 @@ set -eou pipefail
 if [ -n "${LW_DEBUG:-}" ]; then set -x; fi
 
 readonly github_releases="https://github.com/lacework/go-sdk/releases"
-readonly installation_dir="/usr/local/bin"
+readonly installation_dir=/usr/local/bin
+readonly package_name=lacework-cli
+readonly binary_name=lacework
 
 usage() {
   local _cmd
   _cmd="$(basename "${0}")"
   cat <<USAGE
-${_cmd}: Installs the 'lacework-cli' tool.
+${_cmd}: Installs the Lacework cli tool.
 
 USAGE:
     ${_cmd} [FLAGS]
@@ -48,7 +50,7 @@ main() {
     esac
   done
 
-  log "Installing the 'lacewor-cli' tool"
+  log "Installing the Lacework cli tool"
   create_workdir
   check_platform
   download_archive "$version" "$target"
@@ -56,7 +58,7 @@ main() {
   extract_archive
   install_cli
   print_cli_version
-  log "The 'lacework-cli' tool has been successfully installed."
+  log "The Lacework cli tool has been successfully installed."
 }
 
 create_workdir() {
@@ -125,19 +127,19 @@ download_archive() {
   local url
 
   if [ "$_version" == "latest" ]; then
-    url="${github_releases}/latest/download/lacework-cli-${_target}.${ext}"
+    url="${github_releases}/latest/download/${package_name}-${_target}.${ext}"
   else
-    url="${github_releases}/download/${_version}/lacework-cli-${_target}.${ext}"
+    url="${github_releases}/download/${_version}/${package_name}-${_target}.${ext}"
   fi
 
-  download_file "${url}" "${workdir}/lacework-cli-${_version}.${ext}"
-  download_file "${url}.sha256sum" "${workdir}/lacework-cli-${_version}.${ext}.sha256sum"
+  download_file "${url}" "${workdir}/${package_name}-${_version}.${ext}"
+  download_file "${url}.sha256sum" "${workdir}/${package_name}-${_version}.${ext}.sha256sum"
 
-  archive="lacework-cli-${_target}.${ext}"
-  sha_file="lacework-cli-${_target}.${ext}.sha256sum"
+  archive="${package_name}-${_target}.${ext}"
+  sha_file="${package_name}-${_target}.${ext}.sha256sum"
 
-  mv -v "${workdir}/lacework-cli-${_version}.${ext}" "${archive}"
-  mv -v "${workdir}/lacework-cli-${_version}.${ext}.sha256sum" "${sha_file}"
+  mv -v "${workdir}/${package_name}-${_version}.${ext}" "${archive}"
+  mv -v "${workdir}/${package_name}-${_version}.${ext}.sha256sum" "${sha_file}"
 }
 
 verify_archive() {
@@ -165,15 +167,14 @@ extract_archive() {
 }
 
 install_cli() {
-  log "Installing lacework-cli into $installation_dir"
+  log "Installing Lacework cli into $installation_dir"
   mkdir -pv "$installation_dir"
-  binary="lacework-cli-${target}"
-  install -v "${archive_dir}/lacework-cli-"* "${installation_dir}/lacework-cli"
+  install -v "${archive_dir}/${cli_name}" "${installation_dir}/${cli_name}"
 }
 
 print_cli_version() {
-  info "Verifying installed lacework-cli version"
-  "${installation_dir}/lacework-cli" version
+  info "Verifying installed lacework cli version"
+  "${installation_dir}/lacework" version
 }
 
 download_file() {
