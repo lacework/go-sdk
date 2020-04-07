@@ -78,7 +78,6 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		account:    account,
 		baseURL:    baseURL,
 		apiVersion: "v1",
-		logLevel:   "info",
 		auth: &authConfig{
 			expiration: defaultTokenExpiryTime,
 		},
@@ -87,7 +86,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	c.Integrations = &IntegrationsService{c}
 
 	// init logger, this could change if a user calls api.WithLogLevel()
-	c.initializeLogger()
+	c.initLogger()
 
 	for _, opt := range opts {
 		if err := opt.apply(c); err != nil {
@@ -95,7 +94,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		}
 	}
 
-	c.log.Debug("api client created",
+	c.log.Info("api client created",
 		zap.String("url", c.baseURL.String()),
 		zap.String("version", c.apiVersion),
 		zap.String("log_level", c.logLevel),

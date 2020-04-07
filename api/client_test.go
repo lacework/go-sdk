@@ -53,7 +53,7 @@ func TestNewClientWithOptions(t *testing.T) {
 		api.WithURL(fakeServer.URL()),
 		api.WithExpirationTime(1800),
 		api.WithApiV2(),
-		api.WithLogLevel("debug"),
+		api.WithLogLevel("DEBUG"),
 		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
 	)
 	if assert.Nil(t, err) {

@@ -77,7 +77,7 @@ func (c *Client) NewRequest(method string, apiURL string, body io.Reader) (*http
 
 	c.log.Debug("request",
 		zap.String("method", request.Method),
-		zap.String("host", c.baseURL.String()),
+		zap.String("url", c.baseURL.String()),
 		zap.String("endpoint", apiPath.String()),
 		zap.Reflect("headers", headers),
 		zap.String("body", c.httpRequestBodySniffer(request)),
