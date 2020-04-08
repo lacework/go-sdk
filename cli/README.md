@@ -57,21 +57,17 @@ you are ready to use the Lacework cli, a few basic commands are:
 ```bash
 $ lacework integration list
 ```
-1) Use the `api` command to access Lacework's RestfulAPI, for example,
-to get details about and specific event:
+2) Use the `api` command to access Lacework's RestfulAPI, for example,
+to get details about a specific event:
 ```bash
 $ lacework api get '/external/events/GetEventDetails?EVENT_ID=16700'
 ```
 
 ## Development
-To build and install the CLI from source, use the `make install-cli` directive,
-this command will ask you to update your `PATH` environment variable to point
-to the compiled `lacework` binary.
+To build and install the CLI from source, use the `make install-cli` directive
+defined at the top level of this repository:
 ```
 $ make install-cli
-
-# Make sure to update your PATH with the command provided from the above command
-
 $ lacework help
 ```
 
