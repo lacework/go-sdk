@@ -83,7 +83,7 @@ func init() {
 		"access key id",
 	)
 	rootCmd.PersistentFlags().StringP("api_secret", "s", "",
-		"access secret key",
+		"secret access key",
 	)
 	rootCmd.PersistentFlags().StringP("account", "a", "",
 		"account subdomain of URL (i.e. <ACCOUNT>.lacework.net)",

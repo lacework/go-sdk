@@ -3,9 +3,11 @@ module github.com/lacework/go-sdk
 go 1.14
 
 require (
+	github.com/BurntSushi/toml v0.3.1
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
+	github.com/manifoldco/promptui v0.7.0
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.2.2 // indirect
