@@ -44,7 +44,8 @@ var (
 	configureCmd = &cobra.Command{
 		Use:   "configure",
 		Short: "Set up your Lacework cli",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Args:  cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
 			var (
 				promptAccount = promptui.Prompt{
 					Label:   "Account",

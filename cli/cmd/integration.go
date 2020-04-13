@@ -38,7 +38,8 @@ var (
 	integrationListCmd = &cobra.Command{
 		Use:   "list",
 		Short: "List all available external integrations",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Args:  cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
 			lacework, err := api.NewClient(cli.Account,
 				api.WithLogLevel(cli.LogLevel),
 				api.WithApiKeys(cli.KeyID, cli.Secret),
@@ -62,7 +63,8 @@ var (
 		Use:    "create",
 		Hidden: true,
 		Short:  "Create an external integrations",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Args:   cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return nil
 		},
 	}
@@ -72,7 +74,8 @@ var (
 		Use:    "update",
 		Hidden: true,
 		Short:  "Update an external integrations",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Args:   cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return nil
 		},
 	}
@@ -82,7 +85,8 @@ var (
 		Use:    "delete",
 		Hidden: true,
 		Short:  "Delete an external integrations",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Args:   cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return nil
 		},
 	}
