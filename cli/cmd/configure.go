@@ -32,20 +32,47 @@ import (
 	"github.com/spf13/viper"
 )
 
-// the representation of the ~/.lacework.toml
-type config struct {
-	Account   string `toml:"account"`
-	ApiKey    string `toml:"api_key"`
-	ApiSecret string `toml:"api_secret"`
+// Profiles is the representation of the ~/.lacework.toml
+//
+// Example:
+//
+// [default]
+// account = "example"
+// api_key = "EXAMPLE_0123456789"
+// api_secret = "_0123456789"
+//
+// [dev]
+// account = "dev"
+// api_key = "DEV_0123456789"
+// api_secret = "_0123456789"
+type Profiles map[string]credsDetails
+
+type credsDetails struct {
+	Account   string `toml:"account" json:"account"`
+	ApiKey    string `toml:"api_key" json:"api_key"`
+	ApiSecret string `toml:"api_secret" json:"api_secret"`
 }
 
 var (
 	// configureCmd represents the configure command
 	configureCmd = &cobra.Command{
 		Use:   "configure",
-		Short: "Set up your Lacework cli",
+		Short: "Configure the Lacework CLI",
 		Args:  cobra.NoArgs,
+		Long: `
+Configure settings that the Lacework CLI uses to interact with the Lacework
+platform. These include your Lacework account, API access key and secret.
+
+If this command is run with no arguments, the Lacework CLI will store all
+settings under the default profile. The information in the default profile
+is used any time you run a Lacework CLI command that doesn't explicitly
+specify a profile to use.
+
+You can configure multiple profiles by using the --profile argument. If a
+config file does not exist (the default location is ~/.lacework.toml), the
+Lacework CLI will create it for you.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			cli.Log.Debugw("configuring cli", "profile", cli.Profile)
 			var (
 				promptAccount = promptui.Prompt{
 					Label:   "Account",
@@ -95,14 +122,10 @@ var (
 			}
 
 			var (
-				c        = config{account, apiKey, apiSecret}
+				profiles = Profiles{}
 				buf      = new(bytes.Buffer)
 				confPath = viper.ConfigFileUsed()
 			)
-
-			if err := toml.NewEncoder(buf).Encode(c); err != nil {
-				return err
-			}
 
 			if confPath == "" {
 				home, err := homedir.Dir()
@@ -110,6 +133,36 @@ var (
 					return err
 				}
 				confPath = path.Join(home, ".lacework.toml")
+				cli.Log.Debugw("generating new config file",
+					"path", confPath,
+				)
+			} else {
+				if _, err := toml.DecodeFile(confPath, &profiles); err != nil {
+					cli.Log.Debugw("unable to decode profiles from config, trying previous config",
+						"path", confPath, "error", err,
+					)
+
+					var oldcreds credsDetails
+					if _, err2 := toml.DecodeFile(confPath, &oldcreds); err2 != nil {
+						cli.Log.Debugw("unable to decode old config, no more options, exit",
+							"error", err2,
+						)
+						return err
+					}
+					profiles["default"] = oldcreds
+				}
+				cli.Log.Debugw("profiles loaded from config, updating", "profiles", profiles)
+			}
+
+			profiles[cli.Profile] = credsDetails{
+				Account:   account,
+				ApiKey:    apiKey,
+				ApiSecret: apiSecret,
+			}
+
+			cli.Log.Debugw("storing updated profiles", "profiles", profiles)
+			if err := toml.NewEncoder(buf).Encode(profiles); err != nil {
+				return err
 			}
 
 			err = ioutil.WriteFile(confPath, buf.Bytes(), 0600)

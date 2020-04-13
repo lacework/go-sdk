@@ -22,62 +22,59 @@ import (
 	"fmt"
 	"os"
 
-	prettyjson "github.com/hokaccha/go-prettyjson"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 
 	"github.com/lacework/go-sdk/lwlogger"
 )
 
-type cliState struct {
-	Account  string
-	KeyID    string
-	Secret   string
-	Token    string
-	LogLevel string
-
-	JsonF *prettyjson.Formatter
-	Log   *zap.SugaredLogger
-}
-
-// rootCmd represents the base command when called without any subcommands
 var (
-	cfgFile string
-	cli     = cliState{
-		JsonF: prettyjson.NewFormatter(),
-	}
+	// the global cli state with defaults
+	cli = NewDefaultState()
+
+	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
-		Use:              "lacework",
-		Short:            "A tool to manage the Lacework cloud security platform.",
-		PersistentPreRun: loadStateFromViper,
-		SilenceErrors:    true,
+		Use:           "lacework",
+		Short:         "A tool to manage the Lacework cloud security platform.",
+		SilenceErrors: true,
 		Long: `
 The Lacework Command Line Interface is a tool that helps you manage the
 Lacework cloud security platform. You can use it to manage compliance
 reports, external integrations, vulnerability scans, and other operations.`,
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			switch cmd.Use {
+			case "configure", "version":
+				return nil
+			default:
+				return cli.VerifySettings()
+			}
+		},
 	}
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Printf("Error: %s\n", err)
-		os.Exit(1)
+	// first, verify if the user provided a command to execute,
+	// if no command was provided, only print out the usage message
+	if noCommandProvided() {
+		errcheckWARN(rootCmd.Usage())
+		os.Exit(127)
 	}
+
+	errcheckEXIT(rootCmd.Execute())
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVarP(&cfgFile,
-		"config", "c", "",
-		"config file (default is $HOME/.lacework.toml)",
-	)
 	rootCmd.PersistentFlags().Bool("debug", false,
 		"turn on debug logging",
+	)
+	rootCmd.PersistentFlags().StringP("profile", "p", "",
+		"switch between profiles configured at ~/.lacework.toml",
 	)
 	rootCmd.PersistentFlags().StringP("api_key", "k", "",
 		"access key id",
@@ -89,29 +86,22 @@ func init() {
 		"account subdomain of URL (i.e. <ACCOUNT>.lacework.net)",
 	)
 
-	checkBindError(viper.BindPFlag("account", rootCmd.PersistentFlags().Lookup("account")))
-	checkBindError(viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api_key")))
-	checkBindError(viper.BindPFlag("api_secret", rootCmd.PersistentFlags().Lookup("api_secret")))
-	checkBindError(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
+	errcheckWARN(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
+	errcheckWARN(viper.BindPFlag("profile", rootCmd.PersistentFlags().Lookup("profile")))
+	errcheckWARN(viper.BindPFlag("account", rootCmd.PersistentFlags().Lookup("account")))
+	errcheckWARN(viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api_key")))
+	errcheckWARN(viper.BindPFlag("api_secret", rootCmd.PersistentFlags().Lookup("api_secret")))
 }
 
 // initConfig reads in config file and ENV variables if set
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from flag
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+	// Find home directory
+	home, err := homedir.Dir()
+	errcheckEXIT(err)
 
-		// Search config in home directory with name ".lacework" (without extension)
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".lacework")
-	}
+	// Search config in home directory with name ".lacework" (without extension)
+	viper.AddConfigPath(home)
+	viper.SetConfigName(".lacework")
 
 	viper.SetConfigType("toml") // set TOML as the config format
 	viper.SetEnvPrefix("LW")    // set prefix for all env variables LW_ABC
@@ -130,30 +120,88 @@ func initConfig() {
 	// initialize a Lacework logger
 	cli.Log = lwlogger.New(cli.LogLevel).Sugar()
 
-	// If a config file is found, read it in
-	if err := viper.ReadInConfig(); err == nil {
-		cli.Log.Debugw("using config file",
+	// try to read config file
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// the config file was not found; ignore error
+			cli.Log.Debugw("configuration file not found")
+		} else {
+			// the config file was found but another error was produced
+			exitwith(errors.Wrap(err, "Error: unable to read in config"))
+		}
+	} else {
+		cli.Log.Debugw("using configuration file",
 			"path", viper.ConfigFileUsed(),
 		)
 	}
-}
 
-func checkBindError(err error) {
+	// get the profile passed as a parameter or environment variable
+	// if any, set it into the CLI state, that will trigger to load the
+	// state, if no profile was specified just load the default state
+	if p := viper.GetString("profile"); len(p) != 0 {
+		err = cli.SetProfile(p)
+	} else {
+		err = cli.LoadState()
+	}
+
 	if err != nil {
-		// this check happens before we have initialized the logger,
-		// so we need to use native fmt prints
-		fmt.Printf("WARN unable to bind parameter: %v\n", err)
+		if isCommand("configure") {
+			cli.Log.Debugw(
+				"error ignored",
+				"reason", "running configure cmd",
+				"error", err,
+			)
+		} else {
+			exitwith(err)
+		}
 	}
 }
 
-func loadStateFromViper(_ *cobra.Command, _ []string) {
-	cli.KeyID = viper.GetString("api_key")
-	cli.Secret = viper.GetString("api_secret")
-	cli.Account = viper.GetString("account")
+// isCommand checks the overall arguments passed to the lacework cli
+// and returns true if the provided command name is the one running
+func isCommand(cmd string) bool {
+	if len(os.Args) <= 1 {
+		return false
+	}
 
-	cli.Log.Debugw("state loaded",
-		"account", cli.Account,
-		"api_key", cli.KeyID,
-		"api_secret", cli.Secret,
-	)
+	if os.Args[1] == cmd {
+		return true
+	}
+
+	return false
+}
+
+// noCommandProvided checks if a command or argument was provided
+func noCommandProvided() bool {
+	return len(os.Args) <= 1
+}
+
+// errcheckEXIT is a simple macro to check Golang errors, if the provided
+// error is nil, it doesn't do anything, but if the error has something,
+// it exits the program
+func errcheckEXIT(err error) {
+	if err != nil {
+		exitwith(err)
+	}
+}
+
+// errcheckWARN is similar to errcheckEXIT but it doesn't exit the program,
+// it only prints a WARNING message to the user, useful for those cases where
+// we know there won't be aproblem but the linter still asks to check all errors
+func errcheckWARN(err error) {
+	if err != nil {
+		fmt.Printf("WARN %s\n", err)
+	}
+}
+
+// exitwith prints out an error message and exits the program with exit code 1
+func exitwith(err error) {
+	exitwithCode(err, 1)
+}
+
+// exitwithCode prints out an error message and exits the program with
+// the provided exit code
+func exitwithCode(err error, code int) {
+	fmt.Printf("ERROR %s\n", err)
+	os.Exit(code)
 }
