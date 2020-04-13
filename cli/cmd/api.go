@@ -81,7 +81,7 @@ func runApiCommand(_ *cobra.Command, args []string) error {
 		api.WithApiKeys(cli.KeyID, cli.Secret),
 	)
 	if err != nil {
-		return errors.Wrap(err, "unable to generate Lacework api client")
+		return errors.Wrap(err, "unable to generate api client")
 	}
 
 	response := new(map[string]interface{})
