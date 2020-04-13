@@ -64,7 +64,7 @@ func init() {
 	)
 }
 
-func runApiCommand(cmd *cobra.Command, args []string) error {
+func runApiCommand(_ *cobra.Command, args []string) error {
 	switch args[0] {
 	case "post", "patch":
 		if apiData == "" {
