@@ -19,8 +19,9 @@
 package cmd
 
 import (
-	"fmt"
+	"os"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -30,8 +31,10 @@ import (
 var (
 	// integrationCmd represents the integration command
 	integrationCmd = &cobra.Command{
-		Use:   "integration",
-		Short: "Manage external integrations",
+		Use:     "integration",
+		Aliases: []string{"int"},
+		Short:   "Manage external integrations",
+		Long:    ``,
 	}
 
 	// integrationListCmd represents the list sub-command inside the integration command
@@ -53,7 +56,11 @@ var (
 				return errors.Wrap(err, "unable to get integrations")
 			}
 
-			fmt.Println(integrations.String())
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader([]string{"Integration GUID", "Name", "Type", "Status", "State"})
+			table.SetBorder(false)
+			table.AppendBulk(integrations.Table())
+			table.Render()
 			return nil
 		},
 	}
