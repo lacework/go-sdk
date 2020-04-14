@@ -20,7 +20,6 @@ package api
 
 import (
 	"fmt"
-	"strings"
 )
 
 // IntegrationsService is a service that interacts with the integrations
@@ -173,10 +172,25 @@ type commonIntegrationData struct {
 	TypeName             string `json:"TYPE_NAME,omitempty"`
 }
 
+func (iData commonIntegrationData) Status() string {
+	if iData.Enabled == 1 {
+		return "Enabled"
+	}
+	return "Disabled"
+}
+
 type state struct {
 	Ok                 bool   `json:"ok"`
 	LastUpdatedTime    string `json:"lastUpdatedTime"`
 	LastSuccessfulTime string `json:"lastSuccessfulTime"`
+}
+
+func (s state) String() string {
+	if s.Ok {
+		return "Ok"
+	}
+	return "Check"
+
 }
 
 type IntegrationsResponse struct {
@@ -185,12 +199,18 @@ type IntegrationsResponse struct {
 	Message string                  `json:"message"`
 }
 
-func (integrations *IntegrationsResponse) String() string {
-	out := []string{}
-	for _, integration := range integrations.Data {
-		out = append(out, fmt.Sprintf("%s %s", integration.IntgGuid, integration.Type))
+func (integrations *IntegrationsResponse) Table() [][]string {
+	out := [][]string{}
+	for _, idata := range integrations.Data {
+		out = append(out, []string{
+			idata.IntgGuid,
+			idata.Name,
+			idata.Type,
+			idata.Status(),
+			idata.State.String(),
+		})
 	}
-	return strings.Join(out, "\n")
+	return out
 }
 
 type RawIntegration struct {

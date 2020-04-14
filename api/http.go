@@ -134,6 +134,16 @@ func (c *Client) RequestDecoder(method, path string, body io.Reader, v interface
 	return err
 }
 
+// RequestEncoderDecoder leverages RequestDecoder and performs an http request that first
+// encodes the provider 'data' as a JSON Reader and passes it as the body to the request
+func (c *Client) RequestEncoderDecoder(method, path string, data, v interface{}) error {
+	body, err := jsonReader(data)
+	if err != nil {
+		return err
+	}
+	return c.RequestDecoder(method, path, body, v)
+}
+
 // Do calls request.Do() directly
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	response, err := c.c.Do(req)

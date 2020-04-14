@@ -42,7 +42,8 @@ type Client struct {
 	c          *http.Client
 	log        *zap.Logger
 
-	Integrations *IntegrationsService
+	Integrations    *IntegrationsService
+	Vulnerabilities *VulnerabilitiesService
 }
 
 type Option interface {
@@ -84,6 +85,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		c: &http.Client{Timeout: defaultTimeout},
 	}
 	c.Integrations = &IntegrationsService{c}
+	c.Vulnerabilities = &VulnerabilitiesService{c}
 
 	// init logger, this could change if a user calls api.WithLogLevel()
 	c.initLogger()
