@@ -41,8 +41,14 @@ var (
 		SilenceErrors: true,
 		Long: `
 The Lacework Command Line Interface is a tool that helps you manage the
-Lacework cloud security platform. You can use it to manage compliance
-reports, external integrations, vulnerability scans, and other operations.`,
+Lacework cloud security platform. Use it to manage compliance reports,
+external integrations, vulnerability scans, and other operations.
+
+Start by configuring the Lacework CLI with the command:
+
+    $ lacework configure
+
+This will prompt you for your Lacework account and a set of API access keys.`,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			switch cmd.Use {
 			case "configure", "version":
@@ -60,7 +66,7 @@ func Execute() {
 	// first, verify if the user provided a command to execute,
 	// if no command was provided, only print out the usage message
 	if noCommandProvided() {
-		errcheckWARN(rootCmd.Usage())
+		errcheckWARN(rootCmd.Help())
 		os.Exit(127)
 	}
 

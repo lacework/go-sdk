@@ -133,5 +133,5 @@ func (c *Client) initLoggerWithWriter(w io.Writer) {
 
 // debugMode returns true if the client is configured to display debug level logs
 func (c *Client) debugMode() bool {
-	return c.logLevel == "debug"
+	return c.logLevel == "DEBUG"
 }
