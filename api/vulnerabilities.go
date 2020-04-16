@@ -164,14 +164,38 @@ type VulContainerReport struct {
 
 func (report *VulContainerReport) VulCountsTable() [][]string {
 	return [][]string{
-		[]string{"Critical", fmt.Sprint(report.CriticalVulnerabilities)},
-		[]string{"Fixable", fmt.Sprint(report.FixableVulnerabilities)},
-		[]string{"High", fmt.Sprint(report.HighVulnerabilities)},
-		[]string{"Medium", fmt.Sprint(report.MediumVulnerabilities)},
-		[]string{"Low", fmt.Sprint(report.LowVulnerabilities)},
-		[]string{"Info", fmt.Sprint(report.InfoVulnerabilities)},
-		[]string{"Total", fmt.Sprint(report.TotalVulnerabilities)},
+		[]string{"Critical", fmt.Sprint(report.CriticalVulnerabilities),
+			fmt.Sprint(report.VulFixableCount("critical"))},
+		[]string{"High", fmt.Sprint(report.HighVulnerabilities),
+			fmt.Sprint(report.VulFixableCount("high"))},
+		[]string{"Medium", fmt.Sprint(report.MediumVulnerabilities),
+			fmt.Sprint(report.VulFixableCount("medium"))},
+		[]string{"Low", fmt.Sprint(report.LowVulnerabilities),
+			fmt.Sprint(report.VulFixableCount("low"))},
+		[]string{"Info", fmt.Sprint(report.InfoVulnerabilities),
+			fmt.Sprint(report.VulFixableCount("info"))},
 	}
+}
+
+func (report *VulContainerReport) VulFixableCount(severity string) int32 {
+	// @afiune check valid severity
+	severity = strings.ToLower(severity)
+
+	if len(report.Image.ImageLayers) == 0 {
+		return 0
+	}
+
+	var fixable int32 = 0
+	for _, layer := range report.Image.ImageLayers {
+		for _, pkg := range layer.Packages {
+			for _, vul := range pkg.Vulnerabilities {
+				if vul.Severity == severity && vul.FixVersion != "" {
+					fixable++
+				}
+			}
+		}
+	}
+	return fixable
 }
 
 type vulContainerImage struct {
