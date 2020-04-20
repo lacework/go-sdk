@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	prettyjson "github.com/hokaccha/go-prettyjson"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -46,7 +47,15 @@ type cliState struct {
 func NewDefaultState() cliState {
 	return cliState{
 		Profile: "default",
-		JsonF:   prettyjson.NewFormatter(),
+		JsonF: &prettyjson.Formatter{
+			KeyColor:    color.New(color.FgCyan, color.Bold),
+			StringColor: color.New(color.FgGreen, color.Bold),
+			BoolColor:   color.New(color.FgYellow, color.Bold),
+			NumberColor: color.New(color.FgRed, color.Bold),
+			NullColor:   color.New(color.FgWhite, color.Bold),
+			Indent:      2,
+			Newline:     "\n",
+		},
 	}
 }
 
