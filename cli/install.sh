@@ -169,7 +169,7 @@ extract_archive() {
 install_cli() {
   log "Installing Lacework cli into $installation_dir"
   mkdir -pv "$installation_dir"
-  install -v "${archive_dir}/${cli_name}" "${installation_dir}/${cli_name}"
+  install -v "${archive_dir}/${binary_name}" "${installation_dir}/${binary_name}"
 }
 
 print_cli_version() {
