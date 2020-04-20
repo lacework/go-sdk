@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -101,7 +102,7 @@ func runApiCommand(_ *cobra.Command, args []string) error {
 		return errors.Wrap(err, "unable to format json response")
 	}
 
-	fmt.Println(string(pretty))
+	fmt.Fprintln(color.Output, string(pretty))
 	return nil
 }
 

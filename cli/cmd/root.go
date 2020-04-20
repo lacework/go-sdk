@@ -79,6 +79,9 @@ func init() {
 	rootCmd.PersistentFlags().Bool("debug", false,
 		"turn on debug logging",
 	)
+	rootCmd.PersistentFlags().Bool("nocolor", false,
+		"turn off colors",
+	)
 	rootCmd.PersistentFlags().StringP("profile", "p", "",
 		"switch between profiles configured at ~/.lacework.toml",
 	)
@@ -93,6 +96,7 @@ func init() {
 	)
 
 	errcheckWARN(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
+	errcheckWARN(viper.BindPFlag("nocolor", rootCmd.PersistentFlags().Lookup("nocolor")))
 	errcheckWARN(viper.BindPFlag("profile", rootCmd.PersistentFlags().Lookup("profile")))
 	errcheckWARN(viper.BindPFlag("account", rootCmd.PersistentFlags().Lookup("account")))
 	errcheckWARN(viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api_key")))
@@ -115,6 +119,10 @@ func initConfig() {
 
 	if viper.GetBool("debug") {
 		cli.LogLevel = "DEBUG"
+	}
+
+	if viper.GetBool("nocolor") {
+		cli.JsonF.DisabledColor = true
 	}
 
 	// by default the cli logs are going to be visualized in
