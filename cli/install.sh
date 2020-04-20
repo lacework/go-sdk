@@ -14,7 +14,7 @@ usage() {
   local _cmd
   _cmd="$(basename "${0}")"
   cat <<USAGE
-${_cmd}: Installs the Lacework cli tool.
+${_cmd}: Installs the Lacework Command Line Interface.
 
 USAGE:
     ${_cmd} [FLAGS]
@@ -50,7 +50,7 @@ main() {
     esac
   done
 
-  log "Installing the Lacework cli tool"
+  log "Installing the Lacework CLI"
   create_workdir
   check_platform
   download_archive "$version" "$target"
@@ -58,7 +58,7 @@ main() {
   extract_archive
   install_cli
   print_cli_version
-  log "The Lacework cli tool has been successfully installed."
+  log "The Lacework CLI has been successfully installed."
 }
 
 create_workdir() {
@@ -167,14 +167,14 @@ extract_archive() {
 }
 
 install_cli() {
-  log "Installing Lacework cli into $installation_dir"
+  log "Installing Lacework CLI into $installation_dir"
   mkdir -pv "$installation_dir"
   install -v "${archive_dir}/${binary_name}" "${installation_dir}/${binary_name}"
 }
 
 print_cli_version() {
-  info "Verifying installed lacework cli version"
-  "${installation_dir}/lacework" version
+  info "Verifying installed Lacework CLI version"
+  "${installation_dir}/${binary_name}" version
 }
 
 download_file() {
