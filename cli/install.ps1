@@ -10,4 +10,4 @@ $ErrorActionPreference="stop"
 
 Set-Variable GithubReleasesRootUrl -Option ReadOnly -value "https://github.com/lacework/go-sdk/releases"
 
-Write-Host "Comming soon! (Installatiohn of the Lacework cli tool)"
+Write-Host "Installation of the Lacework cli tool is comming soon!"
