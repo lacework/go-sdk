@@ -16,6 +16,8 @@ usage() {
   cat <<USAGE
 ${_cmd}: Installs the Lacework Command Line Interface.
 
+Authors: Technology Alliances <tech-ally@lacework.net>
+
 USAGE:
     ${_cmd} [FLAGS]
 
