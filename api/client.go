@@ -30,7 +30,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const defaultTimeout = 10 * time.Second
+const defaultTimeout = 60 * time.Second
 
 type Client struct {
 	id         string
