@@ -96,8 +96,8 @@ Function Install-Lacework-CLI {
     $laceworkPath = Join-Path $env:ProgramData Lacework
     if (Test-Path $laceworkPath) { Remove-Item $laceworkPath -Recurse -Force }
     New-Item $laceworkPath -ItemType Directory | Out-Null
-    $folder = (Get-ChildItem (Join-Path ($workdir) "bin"))
-    Copy-Item "$($folder.FullName)\*" $laceworkPath
+    $exe = (Get-ChildItem (Join-Path ($workdir) "bin"))
+    Copy-Item "$($exe.FullName)" $laceworkPath
     $env:PATH = New-PathString -StartingPath $env:PATH -Path $laceworkPath
     $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
     $machinePath = New-PathString -StartingPath $machinePath -Path $laceworkPath
