@@ -56,6 +56,10 @@ var (
 				return errors.Wrap(err, "unable to get integrations")
 			}
 
+			if cli.JSONOutput() {
+				return cli.OutputJSON(integrations.Data)
+			}
+
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"Integration GUID", "Name", "Type", "Status", "State"})
 			table.SetBorder(false)

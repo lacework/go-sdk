@@ -82,6 +82,9 @@ func init() {
 	rootCmd.PersistentFlags().Bool("nocolor", false,
 		"turn off colors",
 	)
+	rootCmd.PersistentFlags().Bool("json", false,
+		"switch commands output from human readable to json format",
+	)
 	rootCmd.PersistentFlags().StringP("profile", "p", "",
 		"switch between profiles configured at ~/.lacework.toml",
 	)
@@ -97,6 +100,7 @@ func init() {
 
 	errcheckWARN(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
 	errcheckWARN(viper.BindPFlag("nocolor", rootCmd.PersistentFlags().Lookup("nocolor")))
+	errcheckWARN(viper.BindPFlag("json", rootCmd.PersistentFlags().Lookup("json")))
 	errcheckWARN(viper.BindPFlag("profile", rootCmd.PersistentFlags().Lookup("profile")))
 	errcheckWARN(viper.BindPFlag("account", rootCmd.PersistentFlags().Lookup("account")))
 	errcheckWARN(viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api_key")))
@@ -121,18 +125,27 @@ func initConfig() {
 		cli.LogLevel = "DEBUG"
 	}
 
+	// initialize a Lacework logger
+	cli.Log = lwlogger.New(cli.LogLevel).Sugar()
+
 	if viper.GetBool("nocolor") {
+		cli.Log.Info("turning off colors")
 		cli.JsonF.DisabledColor = true
+	}
+
+	if viper.GetBool("json") {
+		cli.EnableJSONOutput()
 	}
 
 	// by default the cli logs are going to be visualized in
 	// a console format unless the user wants the opposite
 	if os.Getenv("LW_LOG_FORMAT") == "" {
-		os.Setenv("LW_LOG_FORMAT", "CONSOLE")
+		if cli.JSONOutput() {
+			os.Setenv("LW_LOG_FORMAT", "JSON")
+		} else {
+			os.Setenv("LW_LOG_FORMAT", "CONSOLE")
+		}
 	}
-
-	// initialize a Lacework logger
-	cli.Log = lwlogger.New(cli.LogLevel).Sugar()
 
 	// try to read config file
 	if err := viper.ReadInConfig(); err != nil {

@@ -40,6 +40,7 @@ type cliState struct {
 	JsonF *prettyjson.Formatter
 	Log   *zap.SugaredLogger
 
+	jsonOutput     bool
 	profileDetails map[string]interface{}
 }
 
@@ -121,6 +122,24 @@ func (c *cliState) VerifySettings() error {
 	}
 
 	return nil
+}
+
+func (c *cliState) EnableJSONOutput() {
+	cli.Log.Info("switch output to json format")
+	cli.jsonOutput = true
+}
+
+func (c *cliState) EnableHumanOutput() {
+	cli.Log.Info("switch output to human format")
+	cli.jsonOutput = false
+}
+
+func (c *cliState) JSONOutput() bool {
+	return cli.jsonOutput
+}
+
+func (c *cliState) HumanOutput() bool {
+	return !cli.jsonOutput
 }
 
 // loadStateFromViper loads parameters and environment variables
