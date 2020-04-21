@@ -2,8 +2,9 @@
 
 # Lacework Go SDK
 
-This repository provides a Go API client, tools, libraries, relevant documentation, code
-samples, processes, and/or guides that allow developers to interact with Lacework.
+This repository provides a set of tools, libraries, relevant documentation, code
+samples, processes, and/or guides that allow users and developers to interact with
+the Lacework platform.
 
 ## API Client ([`api`](api/))
 
@@ -11,6 +12,8 @@ A Golang API client for interacting with the [Lacework API](https://support.lace
 
 ### Basic Usage
 ```go
+package main
+
 import (
 	"fmt"
 	"log"
@@ -18,18 +21,20 @@ import (
 	"github.com/lacework/go-sdk/api"
 )
 
-lacework, err := api.NewClient("account")
-if err == nil {
-	log.Fatal(err)
-}
+func main() {
+	lacework, err := api.NewClient("account")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-tokenRes, err := lacework.GenerateTokenWithKeys("KEY", "SECRET")
-if err != nil {
-	log.Fatal(err)
-}
+	tokenRes, err := lacework.GenerateTokenWithKeys("KEY", "SECRET")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// Output: YOUR-ACCESS-TOKEN
-fmt.Println(tokenRes.Token())
+	// Output: YOUR-ACCESS-TOKEN
+	fmt.Println(tokenRes.Token())
+}
 ```
 Look at the [api/](api/) folder for more documentation.
 
@@ -39,15 +44,19 @@ The Lacework Command Line Interface is a tool that helps you manage the
 Lacework cloud security platform. You can use it to manage compliance
 reports, external integrations, vulnerability scans, and other operations.
 
-### Basic Usage
+### Install
 
-Build and install the CLI by running `make install-cli`, the automation will
-install the tool at `/usr/local/bin/lacework`:
+#### Bash:
 ```
-$ make install-cli
-$ lacework version
-lacework v0.1.1 (sha:ca9f95d17f4f2092f89dba7b64eaed6db7493a5a) (time:20200406091143)
+$ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | sudo bash
 ```
+
+#### Powershell:
+```
+C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
+C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.ps1'))
+```
+
 Look at the [cli/](cli/) folder for more documentation.
 
 ## Lacework Logger ([`lwlogger`](lwlogger/))
