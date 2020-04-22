@@ -156,7 +156,7 @@ type VulContainerReport struct {
 
 	// ScanStatus is a property that will appear when the vulnerability scan finished
 	// running, this status indicates whether the scan finished successfully or not
-	ScanStatus string `json:"scan_status"`
+	ScanStatus string `json:"scan_status,omitempty"`
 
 	// @afiune why we can't parse the time?
 	//LastEvaluationTime      time.Time         `json:"last_evaluation_time"`
@@ -252,16 +252,16 @@ type vulContainerPackage struct {
 	Vulnerabilities []containerVulnerability `json:"vulnerabilities"`
 
 	// @afiune maybe these fields are host related information and not container
-	FixAvailable  string `json:"fix_available"`
-	FixedVersion  string `json:"fixed_version"`
-	HostCount     string `json:"host_count"`
-	Severity      string `json:"severity"`
-	Status        string `json:"status"`
-	CveLink       string `json:"cve_link"`
-	CveScore      string `json:"cve_score"`
-	CvssV3Score   string `json:"cvss_v3_score"`
-	CvssV2Score   string `json:"cvss_v2_score"`
-	FirstSeenTime string `json:"first_seen_time"`
+	FixAvailable  string `json:"fix_available,omitempty"`
+	FixedVersion  string `json:"fixed_version,omitempty"`
+	HostCount     string `json:"host_count,omitempty"`
+	Severity      string `json:"severity,omitempty"`
+	Status        string `json:"status,omitempty"`
+	CveLink       string `json:"cve_link,omitempty"`
+	CveScore      string `json:"cve_score,omitempty"`
+	CvssV3Score   string `json:"cvss_v3_score,omitempty"`
+	CvssV2Score   string `json:"cvss_v2_score,omitempty"`
+	FirstSeenTime string `json:"first_seen_time,omitempty"`
 }
 
 type containerVulnerability struct {

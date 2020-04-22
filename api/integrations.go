@@ -161,31 +161,31 @@ func (svc *IntegrationsService) listByType(iType integrationType, response inter
 }
 
 type commonIntegrationData struct {
-	IntgGuid             string `json:"INTG_GUID,omitempty"`
-	Name                 string `json:"NAME"`
-	CreatedOrUpdatedTime string `json:"CREATED_OR_UPDATED_TIME,omitempty"`
-	CreatedOrUpdatedBy   string `json:"CREATED_OR_UPDATED_BY,omitempty"`
-	Type                 string `json:"TYPE"`
-	Enabled              int    `json:"ENABLED"`
-	State                state  `json:"STATE,omitempty"`
-	IsOrg                int    `json:"IS_ORG,omitempty"`
-	TypeName             string `json:"TYPE_NAME,omitempty"`
+	IntgGuid             string            `json:"INTG_GUID,omitempty"`
+	Name                 string            `json:"NAME"`
+	CreatedOrUpdatedTime string            `json:"CREATED_OR_UPDATED_TIME,omitempty"`
+	CreatedOrUpdatedBy   string            `json:"CREATED_OR_UPDATED_BY,omitempty"`
+	Type                 string            `json:"TYPE"`
+	Enabled              int               `json:"ENABLED"`
+	State                *IntegrationState `json:"STATE,omitempty"`
+	IsOrg                int               `json:"IS_ORG,omitempty"`
+	TypeName             string            `json:"TYPE_NAME,omitempty"`
 }
 
-func (iData commonIntegrationData) Status() string {
-	if iData.Enabled == 1 {
+func (c commonIntegrationData) Status() string {
+	if c.Enabled == 1 {
 		return "Enabled"
 	}
 	return "Disabled"
 }
 
-type state struct {
+type IntegrationState struct {
 	Ok                 bool   `json:"ok"`
 	LastUpdatedTime    string `json:"lastUpdatedTime"`
 	LastSuccessfulTime string `json:"lastSuccessfulTime"`
 }
 
-func (s state) String() string {
+func (s IntegrationState) String() string {
 	if s.Ok {
 		return "Ok"
 	}

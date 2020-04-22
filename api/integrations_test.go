@@ -19,6 +19,7 @@
 package api_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -297,6 +298,48 @@ func TestIntegrationsList(t *testing.T) {
 	}
 }
 
+func TestIntegrationsGetWithNoState(t *testing.T) {
+	var (
+		intgGUID   = "MY_MOCKED_ID"
+		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
+		fakeServer = lacework.MockServer()
+	)
+	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "GET", r.Method, "Get should be a GET method")
+		fmt.Fprintf(w, generateIntegrationsResponse(minimalIntegration(intgGUID)))
+	})
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	response, err := c.Integrations.Get(intgGUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, response)
+	assert.True(t, response.Ok)
+	if assert.Equal(t, 1, len(response.Data)) {
+		resData := response.Data[0]
+		assert.Equal(t, intgGUID, resData.IntgGuid)
+		assert.Equal(t, "minimal_integration", resData.Name)
+		// @afiune the only rist here is that if the caller tries to access the state
+		// directly before checking that there is actually an state, the go program
+		// will panic
+		assert.Nil(t, resData.State)
+
+		// verify the generate json blob from the response
+		jsonBlob, err := json.Marshal(resData)
+		if assert.Nil(t, err) {
+			assert.Equal(t,
+				"{\"INTG_GUID\":\"MY_MOCKED_ID\",\"NAME\":\"minimal_integration\",\"TYPE\":\"MINIMAL\",\"ENABLED\":0,\"DATA\":{}}",
+				string(jsonBlob),
+				"unexpected json blob")
+		}
+	}
+}
+
 func generateIntegrations(guids []string, iType string) string {
 	integrations := make([]string, len(guids))
 	for i, guid := range guids {
@@ -341,6 +384,17 @@ func singleVanillaIntegration(id string, iType string, data string) string {
 			"IS_ORG": 0,
 			"TYPE_NAME": "Vanilla Integration",
 			"DATA": ` + data + `
+		}
+	`
+}
+
+func minimalIntegration(id string) string {
+	return `
+		{
+			"INTG_GUID": "` + id + `",
+			"NAME": "minimal_integration",
+			"TYPE": "MINIMAL",
+			"DATA": {}
 		}
 	`
 }
