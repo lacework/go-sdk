@@ -114,7 +114,7 @@ generate_release_notes() {
   log "generating release notes at RELEASE_NOTES.md"
   load_list_of_changes
   echo "# Release Notes" > RELEASE_NOTES.md
-  echo "Another day, another release. These are the release notes for the version 'v$VERSION'." >> RELEASE_NOTES.md
+  echo "Another day, another release. These are the release notes for the version \`v$VERSION\`." >> RELEASE_NOTES.md
   echo "" >> RELEASE_NOTES.md
   echo "$(cat CHANGES.md)" >> RELEASE_NOTES.md
 }
@@ -122,7 +122,7 @@ generate_release_notes() {
 push_release() {
   log "commiting and pushing the release to github"
   git checkout -B release
-  git commit -am "release v$VERSION"
+  git commit -am "Release v$VERSION"
   git push origin release
   log ""
   log "Follow the above url and open a pull request"
