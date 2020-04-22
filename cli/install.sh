@@ -23,7 +23,7 @@ USAGE:
 
 FLAGS:
     -h    Prints help information
-    -v    Specifies a version (ex: 0.1.0)
+    -v    Specifies a version (ex: v0.1.0)
     -t    Specifies the target of the program to download (default: linux-amd64)
 USAGE
 }

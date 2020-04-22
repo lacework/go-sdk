@@ -8,7 +8,7 @@ Authors: Technology Alliances <tech-ally@lacework.net>
 This script installs the Lacework Command Line Interface.
 
 .Parameter Version
-Specifies a version (ex: 0.1.0)
+Specifies a version (ex: v0.1.0)
 #>
 
 param (
