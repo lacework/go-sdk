@@ -31,6 +31,8 @@ const (
 	apiVulnerabilitiesScanStatus       = "external/vulnerabilities/container/reqId/%s"
 	apiVulnerabilitiesReportFromID     = "external/vulnerabilities/container/imageId/%s"
 	apiVulnerabilitiesReportFromDigest = "external/vulnerabilities/container/imageDigest/%s"
+
+	apiEventsDateRange = "external/events/GetEventsForDateRange"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
