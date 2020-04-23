@@ -129,6 +129,63 @@ func TestEventsList(t *testing.T) {
 	}
 }
 
+func TestEventsDetailsErrorEmptyID(t *testing.T) {
+	c, err := api.NewClient("test", api.WithToken("TOKEN"))
+	assert.Nil(t, err)
+
+	// a tipical user input error could be that they provide an empty event_id
+	response, err := c.Events.Details("")
+	assert.Empty(t, response)
+	if assert.NotNil(t, err) {
+		assert.Equal(t,
+			"event_id cannot be empty",
+			err.Error(), "error message mismatch",
+		)
+	}
+}
+
+func TestEventsDetails(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		"external/events/GetEventDetails",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Details should be a GET method")
+
+			eventID, ok := r.URL.Query()["EVENT_ID"]
+			if assert.True(t, ok,
+				"EVENT_ID parameter missing") {
+
+				fmt.Fprintf(w, eventDetailsResponse(eventID[0]))
+			}
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	response, err := c.Events.Details("123")
+	assert.Nil(t, err)
+	if assert.NotNil(t, response) {
+		if assert.Equal(t, 1, len(response.Events)) {
+			eventDetails := response.Events[0]
+			assert.Equal(t, "123", eventDetails.EventID)
+			assert.Equal(t, "User", eventDetails.EventActor)
+			assert.Equal(t, "UserTracking", eventDetails.EventModel)
+			assert.Equal(t, "NewExternalServerDNSConn", eventDetails.EventType)
+
+			// TODO @afiune assert EntityMap
+			assert.Equal(t,
+				"ruby chef-client",
+				eventDetails.EntityMap.Application[0].Application,
+			)
+		}
+	}
+}
+
 func arrayOfEventsResponse(t string) string {
 	return `
 {
@@ -153,6 +210,103 @@ func arrayOfEventsResponse(t string) string {
       "event_type": "EventTypeGoesHere",
       "severity": "2",
       "start_time": "` + t + `"
+    }
+  ]
+}
+`
+}
+
+// @afiune real response from a demo environment
+func eventDetailsResponse(id string) string {
+	return `
+{
+  "data": [
+    {
+      "END_TIME": "2020-04-20T20:00:00Z",
+      "ENTITY_MAP": {
+        "Application": [
+          {
+            "APPLICATION": "ruby chef-client",
+            "EARLIEST_KNOWN_TIME": "2020-04-20T19:00:00Z",
+            "HAS_EXTERNAL_CONNS": 1,
+            "IS_CLIENT": 0,
+            "IS_SERVER": 1
+          }
+        ],
+        "FileExePath": [
+          { "EXE_PATH": "/opt/chef/embedded/bin/ruby" },
+          { "EXE_PATH": "/opt/chef/embedded/bin/ruby" },
+          { "EXE_PATH": "/opt/chef/embedded/bin/ruby" }
+        ],
+        "Machine": [
+          {
+            "CPU_PERCENTAGE": 0.39,
+            "EXTERNAL_IP": "10.0.2.15",
+            "HOSTNAME": "default-centos-8.vagrantup.com",
+            "INSTANCE_ID": "",
+            "INTERNAL_IP_ADDR": "10.0.2.15",
+            "IS_EXTERNAL": 1
+          },
+          {
+            "CPU_PERCENTAGE": 0.31,
+            "EXTERNAL_IP": "10.0.2.15",
+            "HOSTNAME": "default-centos-8.vagrantup.com",
+            "INSTANCE_ID": "",
+            "INTERNAL_IP_ADDR": "10.0.2.15",
+            "IS_EXTERNAL": 1
+          },
+          {
+            "CPU_PERCENTAGE": 0.42,
+            "EXTERNAL_IP": "10.0.2.15",
+            "HOSTNAME": "default-centos-8.vagrantup.com",
+            "INSTANCE_ID": "",
+            "INTERNAL_IP_ADDR": "10.0.2.15",
+            "IS_EXTERNAL": 1
+          }
+        ],
+        "Process": [
+          {
+            "CMDLINE": "chef-client worker: ppid=3803;start=19:47:41;",
+            "CPU_PERCENTAGE": 0,
+            "HOSTNAME": "default-centos-8.vagrantup.com",
+            "PROCESS_ID": 3810,
+            "PROCESS_START_TIME": "2020-04-20T19:47:40Z"
+          },
+          {
+            "CMDLINE": "chef-client worker: ppid=5328;start=19:54:08;",
+            "CPU_PERCENTAGE": 0,
+            "HOSTNAME": "default-centos-8.vagrantup.com",
+            "PROCESS_ID": 5346,
+            "PROCESS_START_TIME": "2020-04-20T19:54:08Z"
+          },
+          {
+            "CMDLINE": "chef-client worker: ppid=12057;start=19:47:54;",
+            "CPU_PERCENTAGE": 0,
+            "HOSTNAME": "default-centos-8.vagrantup.com",
+            "PROCESS_ID": 12062,
+            "PROCESS_START_TIME": "2020-04-20T19:47:54Z"
+          }
+        ],
+        "User": [
+          {
+            "MACHINE_HOSTNAME": "default-centos-8.vagrantup.com",
+            "USERNAME": "root"
+          },
+          {
+            "MACHINE_HOSTNAME": "default-centos-8.vagrantup.com",
+            "USERNAME": "root"
+          },
+          {
+            "MACHINE_HOSTNAME": "default-centos-8.vagrantup.com",
+            "USERNAME": "root"
+          }
+        ]
+      },
+      "EVENT_ACTOR": "User",
+      "EVENT_ID": "` + id + `",
+      "EVENT_MODEL": "UserTracking",
+      "EVENT_TYPE": "NewExternalServerDNSConn",
+      "START_TIME": "2020-04-20T19:00:00Z"
     }
   ]
 }
