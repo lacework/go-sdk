@@ -57,7 +57,7 @@ var (
 	// configureCmd represents the configure command
 	configureCmd = &cobra.Command{
 		Use:   "configure",
-		Short: "Configure the Lacework CLI",
+		Short: "configure the Lacework CLI",
 		Args:  cobra.NoArgs,
 		Long: `
 Configure settings that the Lacework CLI uses to interact with the Lacework
