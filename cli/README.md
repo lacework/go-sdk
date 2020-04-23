@@ -88,7 +88,7 @@ To override the profile to use:
 $ export LW_PROFILE=prod
 ```
 
-This is a list of all environment variables that can be user to modify the
+This is a list of all environment variables that can be used to modify the
 operation of the Lacework CLI.
 
 | Environment Variable | Description |
