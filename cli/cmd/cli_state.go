@@ -20,7 +20,9 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	prettyjson "github.com/hokaccha/go-prettyjson"
 	"github.com/pkg/errors"
@@ -40,7 +42,9 @@ type cliState struct {
 	JsonF *prettyjson.Formatter
 	Log   *zap.SugaredLogger
 
+	spinner        *spinner.Spinner
 	jsonOutput     bool
+	nonInteractive bool
 	profileDetails map[string]interface{}
 }
 
@@ -122,6 +126,55 @@ func (c *cliState) VerifySettings() error {
 	}
 
 	return nil
+}
+
+// NonInteractive turns off interactive mode, that is, no progress bars and spinners
+func (c *cliState) NonInteractive() {
+	cli.Log.Info("turning off interactive mode")
+	c.nonInteractive = true
+}
+
+// StartProgress starts a new progress spinner with the provider suffix and stores it
+// into the cli state, make sure to run StopSpinner when you are done processing
+func (c *cliState) StartProgress(suffix string) {
+	if c.nonInteractive {
+		cli.Log.Debugw("skipping spinner",
+			"noninteractive", c.nonInteractive,
+			"action", "start_progress",
+		)
+		return
+	}
+
+	// humans like spinners (^.^)
+	if cli.HumanOutput() {
+		// make sure there is not a spinner already running
+		cli.StopProgress()
+
+		cli.Log.Debug("starting spinner")
+		cli.spinner = spinner.New(spinner.CharSets[9], 100*time.Millisecond)
+		cli.spinner.Suffix = suffix
+		cli.spinner.Start()
+	}
+}
+
+// StopProgress stops the running progress spinner, if any
+func (c *cliState) StopProgress() {
+	if c.nonInteractive {
+		cli.Log.Debugw("skipping spinner",
+			"noninteractive", c.nonInteractive,
+			"action", "stop_progress",
+		)
+		return
+	}
+
+	// humans like spinners (^.^)
+	if cli.HumanOutput() {
+		if cli.spinner != nil {
+			cli.Log.Debug("stopping spinner")
+			cli.spinner.Stop()
+			cli.spinner = nil
+		}
+	}
 }
 
 func (c *cliState) EnableJSONOutput() {

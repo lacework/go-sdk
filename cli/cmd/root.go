@@ -82,6 +82,9 @@ func init() {
 	rootCmd.PersistentFlags().Bool("nocolor", false,
 		"turn off colors",
 	)
+	rootCmd.PersistentFlags().Bool("noninteractive", false,
+		"disable interactive progress bars (i.e. 'spinners')",
+	)
 	rootCmd.PersistentFlags().Bool("json", false,
 		"switch commands output from human readable to json format",
 	)
@@ -100,6 +103,7 @@ func init() {
 
 	errcheckWARN(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
 	errcheckWARN(viper.BindPFlag("nocolor", rootCmd.PersistentFlags().Lookup("nocolor")))
+	errcheckWARN(viper.BindPFlag("noninteractive", rootCmd.PersistentFlags().Lookup("noninteractive")))
 	errcheckWARN(viper.BindPFlag("json", rootCmd.PersistentFlags().Lookup("json")))
 	errcheckWARN(viper.BindPFlag("profile", rootCmd.PersistentFlags().Lookup("profile")))
 	errcheckWARN(viper.BindPFlag("account", rootCmd.PersistentFlags().Lookup("account")))
@@ -131,6 +135,10 @@ func initConfig() {
 	if viper.GetBool("nocolor") {
 		cli.Log.Info("turning off colors")
 		cli.JsonF.DisabledColor = true
+	}
+
+	if viper.GetBool("noninteractive") {
+		cli.NonInteractive()
 	}
 
 	if viper.GetBool("json") {
