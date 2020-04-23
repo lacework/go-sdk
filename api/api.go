@@ -32,6 +32,7 @@ const (
 	apiVulnerabilitiesReportFromID     = "external/vulnerabilities/container/imageId/%s"
 	apiVulnerabilitiesReportFromDigest = "external/vulnerabilities/container/imageDigest/%s"
 
+	apiEventsDetails   = "external/events/GetEventDetails"
 	apiEventsDateRange = "external/events/GetEventsForDateRange"
 )
 
