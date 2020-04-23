@@ -86,7 +86,7 @@ func init() {
 		"disable interactive progress bars (i.e. 'spinners')",
 	)
 	rootCmd.PersistentFlags().Bool("json", false,
-		"switch commands output from human readable to json format",
+		"switch commands output from human-readable to json format",
 	)
 	rootCmd.PersistentFlags().StringP("profile", "p", "",
 		"switch between profiles configured at ~/.lacework.toml",
