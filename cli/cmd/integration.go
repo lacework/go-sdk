@@ -33,14 +33,14 @@ var (
 	integrationCmd = &cobra.Command{
 		Use:     "integration",
 		Aliases: []string{"int"},
-		Short:   "Manage external integrations",
-		Long:    ``,
+		Short:   "manage external integrations",
+		Long:    `Manage external integrations with the Lacework platform`,
 	}
 
 	// integrationListCmd represents the list sub-command inside the integration command
 	integrationListCmd = &cobra.Command{
 		Use:   "list",
-		Short: "List all available external integrations",
+		Short: "list all available external integrations",
 		Args:  cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			lacework, err := api.NewClient(cli.Account,
@@ -73,7 +73,7 @@ var (
 	integrationCreateCmd = &cobra.Command{
 		Use:    "create",
 		Hidden: true,
-		Short:  "Create an external integrations",
+		Short:  "create an external integrations",
 		Args:   cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return nil
@@ -84,7 +84,7 @@ var (
 	integrationUpdateCmd = &cobra.Command{
 		Use:    "update",
 		Hidden: true,
-		Short:  "Update an external integrations",
+		Short:  "update an external integrations",
 		Args:   cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return nil
@@ -95,7 +95,7 @@ var (
 	integrationDeleteCmd = &cobra.Command{
 		Use:    "delete",
 		Hidden: true,
-		Short:  "Delete an external integrations",
+		Short:  "delete an external integrations",
 		Args:   cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return nil

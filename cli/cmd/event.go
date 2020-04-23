@@ -33,13 +33,14 @@ var (
 	// eventCmd represents the event command
 	eventCmd = &cobra.Command{
 		Use:   "event",
-		Short: "Inspect Lacework events",
+		Short: "inspect Lacework events",
+		Long:  `Inspect events reported by the Lacework platform`,
 	}
 
 	// eventListCmd represents the list sub-command inside the event command
 	eventListCmd = &cobra.Command{
 		Use:   "list",
-		Short: "List all events from a date range (default last 7 days)",
+		Short: "list all events from a date range (default last 7 days)",
 		Long: `List all events from a data range, by default it displays the last
 7 days, but you can specify a different time range.`,
 		Args: cobra.NoArgs,

@@ -78,15 +78,29 @@ overriden by setting environment variables prefixed with `LW_`.
 
 To override the `account`, `api_key`, and `api_secret`  configurations:
 ```
-$ export LW_ACCOUNT='<MY_ACCOUNT>'
-$ export LW_API_KEY='<MY_API_KEY>'
-$ export LW_API_SECRET='<MY_API_SECRET>'
+$ export LW_ACCOUNT="<YOUR_ACCOUNT>"
+$ export LW_API_KEY="<YOUR_API_KEY>"
+$ export LW_API_SECRET="<YOUR_API_SECRET>"
 ```
 
 To override the profile to use:
 ```
 $ export LW_PROFILE=prod
 ```
+
+This is a list of all environment variables that can be used to modify the
+operation of the Lacework CLI.
+
+| Environment Variable | Description |
+|----------------------|-------------|
+|`LW_NOCOLOR=1`|turn off colors|
+|`LW_DEBUG=1`|turn on debug logging|
+|`LW_JSON=1`|switch commands output from human-readable to JSON format|
+|`LW_NONINTERACTIVE=1`|disable interactive progress bars (i.e. spinners)|
+|`LW_PROFILE="<name>"`|switch between profiles configured at `~/.lacework.toml`|
+|`LW_ACCOUNT="<account>"`|account subdomain of URL (i.e. `<ACCOUNT>.lacework.net`)|
+|`LW_API_KEY="<key>"`|access key id|
+|`LW_API_SECRET="<secret>"`|secret access key|
 
 ## Basic Usage
 A few basic commands are:

@@ -39,7 +39,7 @@ var (
 	// apiCmd represents the api command
 	apiCmd = &cobra.Command{
 		Use:   "api <method> <path>",
-		Short: "Helper to call Lacework's RestfulAPI",
+		Short: "helper to call Lacework's RestfulAPI",
 		Long: `Use this command as a helper to call any available Lacework API endpoint.
 
 For example, to list all integrations configured in your account run:
