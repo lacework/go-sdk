@@ -179,18 +179,17 @@ func (c commonIntegrationData) Status() string {
 	return "Disabled"
 }
 
+func (c commonIntegrationData) StateString() string {
+	if c.State != nil && c.State.Ok {
+		return "Ok"
+	}
+	return "Check"
+}
+
 type IntegrationState struct {
 	Ok                 bool   `json:"ok"`
 	LastUpdatedTime    string `json:"lastUpdatedTime"`
 	LastSuccessfulTime string `json:"lastSuccessfulTime"`
-}
-
-func (s IntegrationState) String() string {
-	if s.Ok {
-		return "Ok"
-	}
-	return "Check"
-
 }
 
 type IntegrationsResponse struct {
@@ -207,7 +206,7 @@ func (integrations *IntegrationsResponse) Table() [][]string {
 			idata.Name,
 			idata.Type,
 			idata.Status(),
-			idata.State.String(),
+			idata.StateString(),
 		})
 	}
 	return out
