@@ -52,11 +52,13 @@ var (
 				return errors.Wrap(err, "unable to generate api client")
 			}
 
+			cli.Log.Info("requesting list of events")
 			response, err := lacework.Events.List()
 			if err != nil {
 				return errors.Wrap(err, "unable to get events")
 			}
 
+			cli.Log.Debugw("events", "raw", response)
 			// Sort the events from the response by severity
 			sort.Slice(response.Events, func(i, j int) bool {
 				return response.Events[i].Severity < response.Events[j].Severity
@@ -74,19 +76,48 @@ var (
 	// eventShowCmd represents the show sub-command inside the event command
 	eventShowCmd = &cobra.Command{
 		Use:   "show <event_id>",
-		Short: "Create an external integrations",
+		Short: "Show details about an specific event",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, _ []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
+			lacework, err := api.NewClient(cli.Account,
+				api.WithLogLevel(cli.LogLevel),
+				api.WithApiKeys(cli.KeyID, cli.Secret),
+			)
+			if err != nil {
+				return errors.Wrap(err, "unable to generate api client")
+			}
+
+			cli.Log.Infow("requesting event details", "event_id", args[0])
+			response, err := lacework.Events.Details(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unable to get event details")
+			}
+
+			cli.Log.Debugw("event details",
+				"event_id", args[0],
+				"raw", response,
+			)
+			if len(response.Events) == 0 {
+				return errors.Errorf("there are no details about the event '%s'", args[0])
+			}
+
+			// @afiune why do we have an array of events when we ask for details
+			// about a single event? Let us use the first one for now
+			if cli.JSONOutput() {
+				return cli.OutputJSON(response.Events[0])
+			}
+
+			cli.OutputHuman(eventDetailsToTableReport(response.Events[0]))
 			return nil
 		},
 	}
 )
 
 func init() {
-	// add the integration command
+	// add the event command
 	rootCmd.AddCommand(eventCmd)
 
-	// add sub-commands to the integration command
+	// add sub-commands to the event command
 	eventCmd.AddCommand(eventListCmd)
 	eventCmd.AddCommand(eventShowCmd)
 }
@@ -123,4 +154,33 @@ func eventsToTable(events []api.Event) [][]string {
 		})
 	}
 	return out
+}
+
+func eventDetailsToTableReport(details api.EventDetails) string {
+	var (
+		eventDetailsReport = &strings.Builder{}
+		table              = tablewriter.NewWriter(eventDetailsReport)
+	)
+
+	table.SetHeader([]string{
+		"Event ID",
+		"Type",
+		"Actor",
+		"Model",
+		"Start Time",
+		"End Time",
+	})
+	table.SetBorder(false)
+	// TODO @afiune how do we add/display the EntityMap field
+	table.Append([]string{
+		details.EventID,
+		details.EventType,
+		details.EventActor,
+		details.EventModel,
+		details.StartTime.UTC().Format(time.RFC3339),
+		details.EndTime.UTC().Format(time.RFC3339),
+	})
+	table.Render()
+
+	return eventDetailsReport.String()
 }
