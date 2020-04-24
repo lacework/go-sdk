@@ -223,8 +223,8 @@ func TestLoggerNewWithOptions(t *testing.T) {
 func TestValidLevel(t *testing.T) {
 	assert.True(t, lwlogger.ValidLevel("INFO"))
 	assert.True(t, lwlogger.ValidLevel("DEBUG"))
+	assert.True(t, lwlogger.ValidLevel(""))
 	assert.False(t, lwlogger.ValidLevel("FOO"))
-	assert.False(t, lwlogger.ValidLevel(""))
 }
 
 // captureOutput executes a function and captures the STDOUT and STDERR,

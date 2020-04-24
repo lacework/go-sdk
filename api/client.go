@@ -115,6 +115,7 @@ func WithURL(baseURL string) Option {
 			return err
 		}
 
+		c.log.Debug("setting up client", zap.String("url", baseURL))
 		c.baseURL = u
 		return nil
 	})

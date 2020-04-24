@@ -33,7 +33,7 @@ import (
 var (
 	// LogLevelEnv represents the level that the logger is configured
 	LogLevelEnv        = "LW_LOG"
-	SupportedLogLevels = [2]string{"INFO", "DEBUG"}
+	SupportedLogLevels = [3]string{"", "INFO", "DEBUG"}
 
 	// LogFormatEnv controls the format of the logger
 	LogFormatEnv        = "LW_LOG_FORMAT"

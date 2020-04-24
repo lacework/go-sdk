@@ -43,6 +43,7 @@ func WithLogLevel(level string) Option {
 			return fmt.Errorf("invalid log level '%s'", level)
 		}
 
+		c.log.Debug("setting up client", zap.String("log_level", level))
 		c.logLevel = level
 		c.initLogger()
 		return nil
@@ -57,6 +58,7 @@ func WithLogLevelAndWriter(level string, w io.Writer) Option {
 			return fmt.Errorf("invalid log level '%s'", level)
 		}
 
+		c.log.Debug("setting up client", zap.String("log_level", level))
 		c.logLevel = level
 		c.initLoggerWithWriter(w)
 		return nil
@@ -99,6 +101,7 @@ func WithLogFile(filename string) Option {
 			return errors.Wrap(err, "unable to open file to initialize api logger ")
 		}
 
+		c.log.Debug("setting up client redirect logger", zap.String("file", filename))
 		c.initLoggerWithWriter(logWriter)
 		return nil
 	})
@@ -115,6 +118,15 @@ func (c *Client) initLogger() {
 			zap.Field(zap.String("account", c.account)),
 		),
 	)
+
+	// verify if the log level has been configure through environment variable
+	if envLevel := lwlogger.LogLevelFromEnvironment(); envLevel != "" {
+		c.log.Debug("setting up client, override log level",
+			zap.String("before", c.logLevel),
+			zap.String("after", envLevel),
+		)
+		c.logLevel = envLevel
+	}
 }
 
 // initLoggerWithWriter initializes a new logger with a set
@@ -129,6 +141,15 @@ func (c *Client) initLoggerWithWriter(w io.Writer) {
 			zap.Field(zap.String("account", c.account)),
 		),
 	)
+
+	// verify if the log level has been configure through environment variable
+	if envLevel := lwlogger.LogLevelFromEnvironment(); envLevel != "" {
+		c.log.Debug("setting up client, override log level",
+			zap.String("before", c.logLevel),
+			zap.String("after", envLevel),
+		)
+		c.logLevel = envLevel
+	}
 }
 
 // debugMode returns true if the client is configured to display debug level logs

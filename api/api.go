@@ -18,7 +18,11 @@
 
 package api
 
-import "fmt"
+import (
+	"fmt"
+
+	"go.uber.org/zap"
+)
 
 const (
 	apiIntegrations       = "external/integrations"
@@ -39,6 +43,7 @@ const (
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
 func WithApiV2() Option {
 	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up client", zap.String("api_version", "v2"))
 		c.apiVersion = "v2"
 		return nil
 	})

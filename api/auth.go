@@ -18,7 +18,11 @@
 
 package api
 
-import "fmt"
+import (
+	"fmt"
+
+	"go.uber.org/zap"
+)
 
 const defaultTokenExpiryTime = 3600
 
@@ -37,6 +41,11 @@ func WithApiKeys(id, secret string) Option {
 		if c.auth == nil {
 			c.auth = &authConfig{}
 		}
+
+		c.log.Debug("setting up auth",
+			zap.String("key", id),
+			zap.String("secret", secret),
+		)
 		c.auth.keyID = id
 		c.auth.secret = secret
 		return nil
@@ -59,6 +68,7 @@ func WithTokenFromKeys(id, secret string) Option {
 // WithToken sets the token used to authenticate the API requests
 func WithToken(token string) Option {
 	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up auth", zap.String("token", token))
 		c.auth.token = token
 		return nil
 	})
@@ -67,6 +77,8 @@ func WithToken(token string) Option {
 // WithExpirationTime configures the token expiration time
 func WithExpirationTime(t int) Option {
 	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up auth", zap.Int("expiration", t))
+
 		c.auth.expiration = t
 		return nil
 	})
@@ -91,14 +103,21 @@ func (c *Client) GenerateToken() (response tokenResponse, err error) {
 
 	if len(response.Data) > 0 {
 		// @afiune how do we handle cases where there is more than one token
+		c.log.Debug("storing token", zap.Reflect("data", response.Data))
 		c.auth.token = response.Data[0].Token
+		return
 	}
 
+	c.log.Debug("empty token response data", zap.Reflect("response", response))
 	return
 }
 
 // GenerateTokenWithKeys generates a new access token with the provided keys
 func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (tokenResponse, error) {
+	c.log.Debug("setting up auth",
+		zap.String("key", keyID),
+		zap.String("secret", secretKey),
+	)
 	c.auth.keyID = keyID
 	c.auth.secret = secretKey
 	return c.GenerateToken()
