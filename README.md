@@ -6,6 +6,27 @@ This repository provides a set of tools, libraries, relevant documentation, code
 samples, processes, and/or guides that allow users and developers to interact with
 the Lacework platform.
 
+## Lacework CLI ([`cli`](cli/))
+
+The Lacework Command Line Interface is a tool that helps you manage the
+Lacework cloud security platform. You can use it to manage compliance
+reports, external integrations, vulnerability scans, and other operations.
+
+### Install
+
+#### Bash:
+```
+$ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | sudo bash
+```
+
+#### Powershell:
+```
+C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
+C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.ps1'))
+```
+
+Look at the [cli/](cli/) folder for more documentation.
+
 ## API Client ([`api`](api/))
 
 A Golang API client for interacting with the [Lacework API](https://support.lacework.com/hc/en-us/categories/360002496114-Lacework-API-).
@@ -38,40 +59,56 @@ func main() {
 ```
 Look at the [api/](api/) folder for more documentation.
 
-## Lacework CLI ([`cli`](cli/))
-
-The Lacework Command Line Interface is a tool that helps you manage the
-Lacework cloud security platform. You can use it to manage compliance
-reports, external integrations, vulnerability scans, and other operations.
-
-### Install
-
-#### Bash:
-```
-$ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | sudo bash
-```
-
-#### Powershell:
-```
-C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
-C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.ps1'))
-```
-
-Look at the [cli/](cli/) folder for more documentation.
-
 ## Lacework Logger ([`lwlogger`](lwlogger/))
 
 A Logger wrapper for Lacework based of zap logger Go package.
 
 ### Basic Usage
 ```go
+package main
+
 import "github.com/lacework/go-sdk/lwlogger"
 
 func main() {
 	lwL := lwlogger.New("INFO")
+
+	// Output: {"level":"info","ts":"[timestamp]","caller":"main.go:9","msg":"interesting info"}
 	lwL.Info("interesting info")
 }
 ```
+
+## Lacework Updater ([`lwupdater`](lwupdater/))
+
+A Go library to check for available updates of Lacework projects.
+
+### Basic Usage
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lacework/go-sdk/lwupdater"
+)
+
+func main() {
+	var (
+		project  = "go-sdk"
+		sdk, err = lwupdater.Check(project, "v0.1.0")
+	)
+
+	if err != nil {
+		fmt.Println("Unable to check for updates: %s", err)
+	} else {
+		// Output: The latest release of the go-sdk project is v0.1.7
+		fmt.Printf("The latest release of the %s project is %s\n",
+			project, sdk.Latest,
+		)
+	}
+}
+```
+
+Set the environment variable `LW_UPDATES_DISABLE=1` to avoid checking for updates.
 
 ## License and Copyright
 
