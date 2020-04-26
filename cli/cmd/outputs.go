@@ -29,7 +29,7 @@ import (
 func (c *cliState) OutputJSON(v interface{}) error {
 	pretty, err := c.JsonF.Marshal(v)
 	if err != nil {
-		cli.Log.Debugw("unable to pretty print JSON object", "raw", v)
+		c.Log.Debugw("unable to pretty print JSON object", "raw", v)
 		return err
 	}
 	fmt.Fprintln(color.Output, string(pretty))
@@ -42,4 +42,15 @@ func (c *cliState) OutputHuman(format string, a ...interface{}) {
 	if c.HumanOutput() {
 		fmt.Fprintf(os.Stdout, format, a...)
 	}
+}
+
+// OutputJSONString just like OutputJSON but passing a JSON string
+func (c *cliState) OutputJSONString(s string) error {
+	pretty, err := c.JsonF.Format([]byte(s))
+	if err != nil {
+		c.Log.Debugw("unable to pretty print JSON string", "raw", s)
+		return err
+	}
+	fmt.Fprintln(color.Output, string(pretty))
+	return nil
 }

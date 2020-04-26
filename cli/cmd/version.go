@@ -21,7 +21,10 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/lwupdater"
 )
 
 var (
@@ -40,10 +43,37 @@ var (
 	// versionCmd represents the version command
 	versionCmd = &cobra.Command{
 		Use:   "version",
-		Short: "Print the Lacework CLI version",
-		Args:  cobra.NoArgs,
+		Short: "print the Lacework CLI version",
+		Long: `Prints out the installed version of the Lacework CLI and checks for newer
+versions available for update.`,
+		Args: cobra.NoArgs,
 		Run: func(_ *cobra.Command, _ []string) {
-			fmt.Printf("lacework v%s (sha:%s) (time:%s)\n", Version, GitSHA, BuildTime)
+			if cli.JSONOutput() {
+				errcheckEXIT(
+					cli.OutputJSONString(
+						fmt.Sprintf(
+							`{"version":"v%s","git_sha":"%s","build_time":"%s"}`,
+							Version, GitSHA, BuildTime,
+						),
+					),
+				)
+				return
+			}
+			cli.OutputHuman("lacework v%s (sha:%s) (time:%s)\n", Version, GitSHA, BuildTime)
+
+			// check the latest version of the cli
+			cli.StartProgress(" Checking available updates...")
+			sdk, err := lwupdater.Check("go-sdk", fmt.Sprintf("v%s", Version))
+			cli.StopProgress()
+			if err != nil {
+				exitwithCode(errors.Wrap(err, "unable to check for updates"), 4)
+			}
+			if sdk.Outdated {
+				cli.OutputHuman(fmt.Sprintf(
+					"\nA newer version of the Lacework CLI is available! The latest version is %s,\n"+
+						"to update execute the following command:\n%s\n",
+					sdk.Latest, cli.UpdateCommand()))
+			}
 		},
 	}
 )
