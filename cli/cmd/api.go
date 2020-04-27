@@ -56,6 +56,7 @@ For a complete list of available API endpoints visit:
 )
 
 func init() {
+	// add the api command
 	rootCmd.AddCommand(apiCmd)
 
 	apiCmd.Flags().StringVarP(&apiData,

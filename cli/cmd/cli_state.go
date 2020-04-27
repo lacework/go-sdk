@@ -130,7 +130,7 @@ func (c *cliState) VerifySettings() error {
 
 // NonInteractive turns off interactive mode, that is, no progress bars and spinners
 func (c *cliState) NonInteractive() {
-	cli.Log.Info("turning off interactive mode")
+	c.Log.Info("turning off interactive mode")
 	c.nonInteractive = true
 }
 
@@ -138,7 +138,7 @@ func (c *cliState) NonInteractive() {
 // into the cli state, make sure to run StopSpinner when you are done processing
 func (c *cliState) StartProgress(suffix string) {
 	if c.nonInteractive {
-		cli.Log.Debugw("skipping spinner",
+		c.Log.Debugw("skipping spinner",
 			"noninteractive", c.nonInteractive,
 			"action", "start_progress",
 		)
@@ -146,21 +146,21 @@ func (c *cliState) StartProgress(suffix string) {
 	}
 
 	// humans like spinners (^.^)
-	if cli.HumanOutput() {
+	if c.HumanOutput() {
 		// make sure there is not a spinner already running
-		cli.StopProgress()
+		c.StopProgress()
 
-		cli.Log.Debug("starting spinner")
-		cli.spinner = spinner.New(spinner.CharSets[9], 100*time.Millisecond)
-		cli.spinner.Suffix = suffix
-		cli.spinner.Start()
+		c.Log.Debug("starting spinner")
+		c.spinner = spinner.New(spinner.CharSets[9], 100*time.Millisecond)
+		c.spinner.Suffix = suffix
+		c.spinner.Start()
 	}
 }
 
 // StopProgress stops the running progress spinner, if any
 func (c *cliState) StopProgress() {
 	if c.nonInteractive {
-		cli.Log.Debugw("skipping spinner",
+		c.Log.Debugw("skipping spinner",
 			"noninteractive", c.nonInteractive,
 			"action", "stop_progress",
 		)
@@ -168,31 +168,35 @@ func (c *cliState) StopProgress() {
 	}
 
 	// humans like spinners (^.^)
-	if cli.HumanOutput() {
-		if cli.spinner != nil {
-			cli.Log.Debug("stopping spinner")
-			cli.spinner.Stop()
-			cli.spinner = nil
+	if c.HumanOutput() {
+		if c.spinner != nil {
+			c.Log.Debug("stopping spinner")
+			c.spinner.Stop()
+			c.spinner = nil
 		}
 	}
 }
 
+// EnableJSONOutput enables the cli to display JSON output
 func (c *cliState) EnableJSONOutput() {
-	cli.Log.Info("switch output to json format")
-	cli.jsonOutput = true
+	c.Log.Info("switch output to json format")
+	c.jsonOutput = true
 }
 
+// EnableJSONOutput enables the cli to display human readable output
 func (c *cliState) EnableHumanOutput() {
-	cli.Log.Info("switch output to human format")
-	cli.jsonOutput = false
+	c.Log.Info("switch output to human format")
+	c.jsonOutput = false
 }
 
+// JSONOutput returns true if the cli is configured to display JSON output
 func (c *cliState) JSONOutput() bool {
-	return cli.jsonOutput
+	return c.jsonOutput
 }
 
+// HumanOutput returns true if the cli is configured to siplay human readable output
 func (c *cliState) HumanOutput() bool {
-	return !cli.jsonOutput
+	return !c.jsonOutput
 }
 
 // loadStateFromViper loads parameters and environment variables

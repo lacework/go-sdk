@@ -44,8 +44,11 @@ var (
 	versionCmd = &cobra.Command{
 		Use:   "version",
 		Short: "print the Lacework CLI version",
-		Long: `Prints out the installed version of the Lacework CLI and checks for newer
-versions available for update.`,
+		Long: `
+Prints out the installed version of the Lacework CLI and checks for newer
+versions available for update.
+
+Set the environment variable 'LW_UPDATES_DISABLE=1' to avoid checking for updates.`,
 		Args: cobra.NoArgs,
 		Run: func(_ *cobra.Command, _ []string) {
 			if cli.JSONOutput() {

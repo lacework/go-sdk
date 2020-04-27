@@ -41,8 +41,10 @@ var (
 	eventListCmd = &cobra.Command{
 		Use:   "list",
 		Short: "list all events from a date range (default last 7 days)",
-		Long: `List all events from a data range, by default it displays the last
-7 days, but you can specify a different time range.`,
+		Long: `
+List all events from a time range, by default this command displays the
+events from the last 7 days, but it is possible to specify a different
+time range.`,
 		Args: cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			lacework, err := api.NewClient(cli.Account,

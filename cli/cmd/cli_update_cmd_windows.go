@@ -18,6 +18,8 @@
 
 package cmd
 
+// UpdateCommand returns the command that a user should run to update the cli
+// to the latest available version (windows specific command)
 func (c *cliState) UpdateCommand() string {
 	return `
   C:\> Set-ExecutionPolicy Bypass -Scope Process -Force

@@ -19,6 +19,8 @@
 
 package cmd
 
+// UpdateCommand returns the command that a user should run to update the cli
+// to the latest available version (unix specific command)
 func (c *cliState) UpdateCommand() string {
 	return `
   $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | sudo bash

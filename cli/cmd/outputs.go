@@ -44,7 +44,7 @@ func (c *cliState) OutputHuman(format string, a ...interface{}) {
 	}
 }
 
-// OutputJSONString just like OutputJSON but passing a JSON string
+// OutputJSONString is just like OutputJSON but from a JSON string
 func (c *cliState) OutputJSONString(s string) error {
 	pretty, err := c.JsonF.Format([]byte(s))
 	if err != nil {
