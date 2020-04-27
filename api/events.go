@@ -41,7 +41,7 @@ func (svc *EventsService) List() (EventsResponse, error) {
 	return svc.ListRange(from, now)
 }
 
-// ListRange returns a list of Lacework events during the specified date range.
+// ListRange returns a list of Lacework events during the specified date range
 //
 // Requirements and specifications:
 // * The dates format should be: yyyy-MM-ddTHH:mm:ssZ (example 2019-07-11T21:11:00Z)
