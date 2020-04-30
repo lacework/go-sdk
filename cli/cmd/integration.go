@@ -167,13 +167,15 @@ func promptCreateIntegration(lacework *api.Client) error {
 				"Docker Hub",
 				"AWS Config",
 				"AWS CloudTrail",
+				"GCP Config",
+				"GCP Audit Log",
+				"Azure Config",
+				"Azure Activity Log",
 				//"Docker V2 Registry",
 				//"Amazon Container Registry",
 				//"Google Container Registry",
 				//"Azure Config",
 				//"Azure Activity Log",
-				//"GCP Config",
-				//"GCP Audit Trail",
 				//"Snowflake Data Share",
 			},
 		}
@@ -190,14 +192,20 @@ func promptCreateIntegration(lacework *api.Client) error {
 		return createAwsConfigIntegration(lacework)
 	case "AWS CloudTrail":
 		return createAwsCloudTrailIntegration(lacework)
-		//case "Docker V2 Registry":
-		//case "Amazon Container Registry":
-		//case "Google Container Registry":
-		//case "Azure Config":
-		//case "Azure Activity Log":
-		//case "GCP Config":
-		//case "GCP Audit Trail":
-		//case "Snowflake Data Share":
+	case "GCP Config":
+		return createGcpConfigIntegration(lacework)
+	case "GCP Audit Log":
+		return createGcpAuditLogIntegration(lacework)
+	case "Azure Config":
+		return createAzureConfigIntegration(lacework)
+	case "Azure Activity Log":
+		return createAzureActivityLogIntegration(lacework)
+	//case "Docker V2 Registry":
+	//case "Amazon Container Registry":
+	//case "Google Container Registry":
+	//case "Azure Config":
+	//case "Azure Activity Log":
+	//case "Snowflake Data Share":
 	default:
 		return errors.New("unknown integration type")
 	}

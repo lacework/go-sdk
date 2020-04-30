@@ -51,11 +51,11 @@ func (g gcpResourceLevel) String() string {
 //     return err
 //   }
 //
-//   gcp, err := api.NewGcpIntegration("abc",
+//   gcp := api.NewGcpIntegration("abc",
 //     api.GcpCfgIntegration,
 //     api.GcpIntegrationData{
 //       ID: "1234",
-//       IdType: "id_type",
+//       IdType: api.GcpProjectIntegration.String(),
 //       Credentials: api.GcpCredentials{
 //         ClientId: "id",
 //         ClientEmail: "email",
@@ -64,9 +64,6 @@ func (g gcpResourceLevel) String() string {
 //       },
 //     },
 //   )
-//   if err != nil {
-//     return err
-//   }
 //
 //   client.Integrations.CreateGcp(gcp)
 //
