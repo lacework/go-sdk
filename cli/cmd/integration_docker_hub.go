@@ -81,9 +81,7 @@ func createDockerHubIntegration(lacework *api.Client) error {
 	}{}
 
 	err := survey.Ask(questions, &answers,
-		survey.WithIcons(func(icons *survey.IconSet) {
-			icons.Question.Text = "▸"
-		}),
+		survey.WithIcons(promptIconsFunc),
 	)
 	if err != nil {
 		return err

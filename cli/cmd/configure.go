@@ -26,7 +26,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/BurntSushi/toml"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -89,13 +88,9 @@ func promptConfigureSetup() error {
 				Message: "Account: ",
 				Default: cli.Account,
 			},
-			Validate: func(input interface{}) error {
-				if str, ok := input.(string); !ok || len(str) == 0 {
-					return errors.New(
-						"The account subdomain of URL is required. (i.e. <ACCOUNT>.lacework.net)")
-				}
-				return nil
-			},
+			Validate: promptRequiredStringLen(0,
+				"The account subdomain of URL is required. (i.e. <ACCOUNT>.lacework.net)",
+			),
 		},
 		{
 			Name: "api_key",
@@ -103,13 +98,9 @@ func promptConfigureSetup() error {
 				Message: "Access Key ID: ",
 				Default: cli.KeyID,
 			},
-			Validate: func(input interface{}) error {
-				if str, ok := input.(string); !ok || len(str) < 55 {
-					return errors.New(
-						"The API access key id must have more than 55 characters.")
-				}
-				return nil
-			},
+			Validate: promptRequiredStringLen(55,
+				"The API access key id must have more than 55 characters.",
+			),
 		},
 		{
 			Name: "api_secret",
@@ -117,21 +108,15 @@ func promptConfigureSetup() error {
 				Message: "Secret Access Key: ",
 				Default: cli.Secret,
 			},
-			Validate: func(input interface{}) error {
-				if str, ok := input.(string); !ok || len(str) < 30 {
-					return errors.New(
-						"The API secret access key must have more than 30 characters.")
-				}
-				return nil
-			},
+			Validate: promptRequiredStringLen(30,
+				"The API secret access key must have more than 30 characters.",
+			),
 		},
 	}
 
 	newCreds := credsDetails{}
 	err := survey.Ask(questions, &newCreds,
-		survey.WithIcons(func(icons *survey.IconSet) {
-			icons.Question.Text = "▸"
-		}),
+		survey.WithIcons(promptIconsFunc),
 	)
 	if err != nil {
 		return err

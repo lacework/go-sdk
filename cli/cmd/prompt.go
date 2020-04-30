@@ -18,11 +18,13 @@
 
 package cmd
 
-// UpdateCommand returns the command that a user should run to update the cli
-// to the latest available version (windows specific command)
-func (c *cliState) UpdateCommand() string {
-	return `
-  C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
-  C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.ps1'))
-`
+import "github.com/pkg/errors"
+
+func promptRequiredStringLen(size int, err string) func(interface{}) error {
+	return func(input interface{}) error {
+		if str, ok := input.(string); !ok || len(str) == 0 {
+			return errors.New(err)
+		}
+		return nil
+	}
 }

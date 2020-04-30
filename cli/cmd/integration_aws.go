@@ -49,16 +49,13 @@ func createAwsConfigIntegration(lacework *api.Client) error {
 	}{}
 
 	err := survey.Ask(questions, &answers,
-		survey.WithIcons(func(icons *survey.IconSet) {
-			icons.Question.Text = "▸"
-		}),
+		survey.WithIcons(promptIconsFunc),
 	)
 	if err != nil {
 		return err
 	}
 
-	aws := api.NewAwsIntegration(answers.Name,
-		api.AwsCfgIntegration,
+	aws := api.NewAwsCfgIntegration(answers.Name,
 		api.AwsIntegrationData{
 			Credentials: api.AwsIntegrationCreds{
 				RoleArn:    answers.RoleArn,

@@ -19,6 +19,13 @@
 
 package cmd
 
+import "github.com/AlecAivazis/survey/v2"
+
+// promptIconsFuncs configures the prompt icons for Unix systems
+var promptIconsFunc = func(icons *survey.IconSet) {
+	icons.Question.Text = "▸"
+}
+
 // UpdateCommand returns the command that a user should run to update the cli
 // to the latest available version (unix specific command)
 func (c *cliState) UpdateCommand() string {
