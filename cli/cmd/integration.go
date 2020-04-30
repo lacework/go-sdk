@@ -166,10 +166,10 @@ func promptCreateIntegration(lacework *api.Client) error {
 			Options: []string{
 				"Docker Hub",
 				"AWS Config",
+				"AWS CloudTrail",
 				//"Docker V2 Registry",
 				//"Amazon Container Registry",
 				//"Google Container Registry",
-				//"AWS CloudTrail",
 				//"Azure Config",
 				//"Azure Activity Log",
 				//"GCP Config",
@@ -188,10 +188,11 @@ func promptCreateIntegration(lacework *api.Client) error {
 		return createDockerHubIntegration(lacework)
 	case "AWS Config":
 		return createAwsConfigIntegration(lacework)
+	case "AWS CloudTrail":
+		return createAwsCloudTrailIntegration(lacework)
 		//case "Docker V2 Registry":
 		//case "Amazon Container Registry":
 		//case "Google Container Registry":
-		//case "AWS CloudTrail":
 		//case "Azure Config":
 		//case "Azure Activity Log":
 		//case "GCP Config":
