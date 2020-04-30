@@ -1,11 +1,14 @@
+# github.com/AlecAivazis/survey/v2 v2.0.7
+## explicit
+github.com/AlecAivazis/survey/v2
+github.com/AlecAivazis/survey/v2/core
+github.com/AlecAivazis/survey/v2/terminal
 # github.com/BurntSushi/toml v0.3.1
 ## explicit
 github.com/BurntSushi/toml
 # github.com/briandowns/spinner v1.10.0
 ## explicit
 github.com/briandowns/spinner
-# github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
-github.com/chzyer/readline
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/fatih/color v1.9.0
@@ -30,18 +33,10 @@ github.com/hashicorp/hcl/json/token
 github.com/hokaccha/go-prettyjson
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a
-github.com/juju/ansiterm
-github.com/juju/ansiterm/tabwriter
-# github.com/lunixbochs/vtclean v0.0.0-20180621232353-2d01aacdc34a
-github.com/lunixbochs/vtclean
+# github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
+github.com/kballard/go-shellquote
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
-# github.com/manifoldco/promptui v0.7.0
-## explicit
-github.com/manifoldco/promptui
-github.com/manifoldco/promptui/list
-github.com/manifoldco/promptui/screenbuf
 # github.com/mattn/go-colorable v0.1.6
 ## explicit
 github.com/mattn/go-colorable
@@ -50,6 +45,8 @@ github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.9
 ## explicit
 github.com/mattn/go-runewidth
+# github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
+github.com/mgutz/ansi
 # github.com/mitchellh/go-homedir v1.1.0
 ## explicit
 github.com/mitchellh/go-homedir
@@ -103,13 +100,14 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/sys v0.0.0-20200413165638-669c56c373c4
+# golang.org/x/sys v0.0.0-20200428200454-593003d681fa
 ## explicit
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
 ## explicit
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
+golang.org/x/text/width
 # golang.org/x/tools v0.0.0-20200327183106-8f81e2e6d478
 ## explicit
 # gopkg.in/ini.v1 v1.55.0
