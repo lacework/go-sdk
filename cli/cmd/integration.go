@@ -93,11 +93,35 @@ var (
 
 	// integrationDeleteCmd represents the delete sub-command inside the integration command
 	integrationDeleteCmd = &cobra.Command{
-		Use:    "delete",
-		Hidden: true,
-		Short:  "delete an external integrations",
-		Args:   cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
+		Use:   "delete <int_guid>",
+		Short: "delete an external integrations",
+		Long: `Delete an external integration by providing its integration GUID, to find the
+list of integration configured on your Lacework account use the command:
+
+  $ lacework int list`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			lacework, err := api.NewClient(cli.Account,
+				api.WithLogLevel(cli.LogLevel),
+				api.WithApiKeys(cli.KeyID, cli.Secret),
+			)
+			if err != nil {
+				return errors.Wrap(err, "unable to generate api client")
+			}
+
+			cli.Log.Info("deleting integration", "int_guid", args[0])
+			cli.StartProgress(" Deleting integration...")
+			response, err := lacework.Integrations.Delete(args[0])
+			cli.StopProgress()
+			if err != nil {
+				return errors.Wrap(err, "unable to delete integration")
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(response.Data)
+			}
+
+			cli.OutputHuman("The integration %s was deleted.\n", args[0])
 			return nil
 		},
 	}
