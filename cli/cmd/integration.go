@@ -75,9 +75,7 @@ var (
 		Use:   "create",
 		Short: "create an external integrations",
 		Args:  cobra.NoArgs,
-		Long: `This command will prompt an interactive session that will help you create
-a new Lacework external integration. If the flag '--noninteractive' is provided,
-this command will be disabled.`,
+		Long:  `Creates an external integration in your account through an interactive session.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			if !cli.InteractiveMode() {
 				return errors.New("interactive mode is disabled")
@@ -115,10 +113,8 @@ this command will be disabled.`,
 	integrationDeleteCmd = &cobra.Command{
 		Use:   "delete <int_guid>",
 		Short: "delete an external integrations",
-		Long: `Delete an external integration by providing its integration GUID, to find the
-list of integration configured on your Lacework account use the command:
-
-  $ lacework int list`,
+		Long: `Delete an external integration by providing its integration GUID. Integration
+GUIDs can be found by using the 'lacework integration list' command.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			lacework, err := api.NewClient(cli.Account,
