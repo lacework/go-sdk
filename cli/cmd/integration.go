@@ -174,8 +174,6 @@ func promptCreateIntegration(lacework *api.Client) error {
 				//"Docker V2 Registry",
 				//"Amazon Container Registry",
 				//"Google Container Registry",
-				//"Azure Config",
-				//"Azure Activity Log",
 				//"Snowflake Data Share",
 			},
 		}
@@ -203,8 +201,6 @@ func promptCreateIntegration(lacework *api.Client) error {
 	//case "Docker V2 Registry":
 	//case "Amazon Container Registry":
 	//case "Google Container Registry":
-	//case "Azure Config":
-	//case "Azure Activity Log":
 	//case "Snowflake Data Share":
 	default:
 		return errors.New("unknown integration type")
