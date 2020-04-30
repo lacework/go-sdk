@@ -30,7 +30,7 @@ package api
 //     return err
 //   }
 //
-//   aws, err := api.NewAwsIntegration("foo",
+//   aws := api.NewAwsIntegration("foo",
 //     api.AwsCfgIntegration,
 //     api.AwsIntegrationData{
 //       Credentials: api.AwsIntegrationCreds {
@@ -39,9 +39,6 @@ package api
 //       },
 //     },
 //   )
-//   if err != nil {
-//     return err
-//   }
 //
 //   client.Integrations.CreateAws(aws)
 //

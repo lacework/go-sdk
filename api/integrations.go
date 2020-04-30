@@ -51,17 +51,21 @@ const (
 
 	// Azure Activity Log integration type
 	AzureActivityLogIntegration
+
+	// Container registry integration type
+	ContainerRegistryIntegration
 )
 
 // IntegrationTypes is the list of available integration types
 var IntegrationTypes = map[integrationType]string{
-	NoneIntegration:             "NONE",
-	AwsCfgIntegration:           "AWS_CFG",
-	AwsCloudTrailIntegration:    "AWS_CT_SQS",
-	GcpCfgIntegration:           "GCP_CFG",
-	GcpAuditLogIntegration:      "GCP_AT_SES",
-	AzureCfgIntegration:         "AZURE_CFG",
-	AzureActivityLogIntegration: "AZURE_AL_SEQ",
+	NoneIntegration:              "NONE",
+	AwsCfgIntegration:            "AWS_CFG",
+	AwsCloudTrailIntegration:     "AWS_CT_SQS",
+	GcpCfgIntegration:            "GCP_CFG",
+	GcpAuditLogIntegration:       "GCP_AT_SES",
+	AzureCfgIntegration:          "AZURE_CFG",
+	AzureActivityLogIntegration:  "AZURE_AL_SEQ",
+	ContainerRegistryIntegration: "CONT_VULN_CFG",
 }
 
 // String returns the string representation of an integration type
