@@ -21,6 +21,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -71,11 +72,30 @@ var (
 
 	// integrationCreateCmd represents the create sub-command inside the integration command
 	integrationCreateCmd = &cobra.Command{
-		Use:    "create",
-		Hidden: true,
-		Short:  "create an external integrations",
-		Args:   cobra.NoArgs,
+		Use:   "create",
+		Short: "create an external integrations",
+		Args:  cobra.NoArgs,
+		Long: `This command will prompt an interactive session that will help you create
+a new Lacework external integration. If the flag '--noninteractive' is provided,
+this command will be disabled.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			if !cli.InteractiveMode() {
+				return errors.New("interactive mode is disabled")
+			}
+			lacework, err := api.NewClient(cli.Account,
+				api.WithLogLevel(cli.LogLevel),
+				api.WithApiKeys(cli.KeyID, cli.Secret),
+			)
+			if err != nil {
+				return errors.Wrap(err, "unable to generate api client")
+			}
+
+			err = promptCreateIntegration(lacework)
+			if err != nil {
+				return errors.Wrap(err, "unable to create integration")
+			}
+
+			cli.OutputHuman("The integration was created.\n")
 			return nil
 		},
 	}
@@ -136,4 +156,48 @@ func init() {
 	integrationCmd.AddCommand(integrationCreateCmd)
 	integrationCmd.AddCommand(integrationUpdateCmd)
 	integrationCmd.AddCommand(integrationDeleteCmd)
+}
+
+func promptCreateIntegration(lacework *api.Client) error {
+	var (
+		integration = ""
+		prompt      = &survey.Select{
+			Message: "Choose an integration type to create: ",
+			Options: []string{
+				"Docker Hub",
+				"AWS Config",
+				//"Docker V2 Registry",
+				//"Amazon Container Registry",
+				//"Google Container Registry",
+				//"AWS CloudTrail",
+				//"Azure Config",
+				//"Azure Activity Log",
+				//"GCP Config",
+				//"GCP Audit Trail",
+				//"Snowflake Data Share",
+			},
+		}
+		err = survey.AskOne(prompt, &integration)
+	)
+	if err != nil {
+		return err
+	}
+
+	switch integration {
+	case "Docker Hub":
+		return createDockerHubIntegration(lacework)
+	case "AWS Config":
+		return createAwsConfigIntegration(lacework)
+		//case "Docker V2 Registry":
+		//case "Amazon Container Registry":
+		//case "Google Container Registry":
+		//case "AWS CloudTrail":
+		//case "Azure Config":
+		//case "Azure Activity Log":
+		//case "GCP Config":
+		//case "GCP Audit Trail":
+		//case "Snowflake Data Share":
+	default:
+		return errors.New("unknown integration type")
+	}
 }
