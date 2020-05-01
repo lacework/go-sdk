@@ -101,14 +101,14 @@ func (svc *IntegrationsService) Delete(guid string) (
 }
 
 // List lists the external integrations available on the Lacework Server
-func (svc *IntegrationsService) List() (response IntegrationsResponse, err error) {
+func (svc *IntegrationsService) List() (response RawIntegrationsResponse, err error) {
 	err = svc.client.RequestDecoder("GET", apiIntegrations, nil, &response)
 	return
 }
 
 // ListByType lists the external integrations from the provided type that are available
 // on the Lacework Server
-func (svc *IntegrationsService) ListByType(iType integrationType) (response IntegrationsResponse, err error) {
+func (svc *IntegrationsService) ListByType(iType integrationType) (response RawIntegrationsResponse, err error) {
 	err = svc.listByType(iType, &response)
 	return
 }
@@ -190,26 +190,6 @@ type IntegrationState struct {
 	Ok                 bool   `json:"ok"`
 	LastUpdatedTime    string `json:"lastUpdatedTime"`
 	LastSuccessfulTime string `json:"lastSuccessfulTime"`
-}
-
-type IntegrationsResponse struct {
-	Data    []commonIntegrationData `json:"data"`
-	Ok      bool                    `json:"ok"`
-	Message string                  `json:"message"`
-}
-
-func (integrations *IntegrationsResponse) Table() [][]string {
-	out := [][]string{}
-	for _, idata := range integrations.Data {
-		out = append(out, []string{
-			idata.IntgGuid,
-			idata.Name,
-			idata.Type,
-			idata.Status(),
-			idata.StateString(),
-		})
-	}
-	return out
 }
 
 type RawIntegration struct {
