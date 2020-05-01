@@ -56,11 +56,14 @@ else
 endif
 	@echo "\nThe lacework cli has been installed at /usr/local/bin"
 
-prepare-release: lint fmt-check imports-check test
+release-prepare: lint fmt-check imports-check test
 	scripts/release.sh prepare
 
-do-release: lint fmt-check imports-check test
+release-do: lint fmt-check imports-check test
 	scripts/release.sh release
+
+release-containers:
+	scripts/release_containers.sh
 
 install-tools:
 ifeq (, $(shell which golangci-lint))
