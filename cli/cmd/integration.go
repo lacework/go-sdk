@@ -21,6 +21,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -71,11 +72,28 @@ var (
 
 	// integrationCreateCmd represents the create sub-command inside the integration command
 	integrationCreateCmd = &cobra.Command{
-		Use:    "create",
-		Hidden: true,
-		Short:  "create an external integrations",
-		Args:   cobra.NoArgs,
+		Use:   "create",
+		Short: "create an external integrations",
+		Args:  cobra.NoArgs,
+		Long:  `Creates an external integration in your account through an interactive session.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			if !cli.InteractiveMode() {
+				return errors.New("interactive mode is disabled")
+			}
+			lacework, err := api.NewClient(cli.Account,
+				api.WithLogLevel(cli.LogLevel),
+				api.WithApiKeys(cli.KeyID, cli.Secret),
+			)
+			if err != nil {
+				return errors.Wrap(err, "unable to generate api client")
+			}
+
+			err = promptCreateIntegration(lacework)
+			if err != nil {
+				return errors.Wrap(err, "unable to create integration")
+			}
+
+			cli.OutputHuman("The integration was created.\n")
 			return nil
 		},
 	}
@@ -93,11 +111,33 @@ var (
 
 	// integrationDeleteCmd represents the delete sub-command inside the integration command
 	integrationDeleteCmd = &cobra.Command{
-		Use:    "delete",
-		Hidden: true,
-		Short:  "delete an external integrations",
-		Args:   cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
+		Use:   "delete <int_guid>",
+		Short: "delete an external integrations",
+		Long: `Delete an external integration by providing its integration GUID. Integration
+GUIDs can be found by using the 'lacework integration list' command.`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			lacework, err := api.NewClient(cli.Account,
+				api.WithLogLevel(cli.LogLevel),
+				api.WithApiKeys(cli.KeyID, cli.Secret),
+			)
+			if err != nil {
+				return errors.Wrap(err, "unable to generate api client")
+			}
+
+			cli.Log.Info("deleting integration", "int_guid", args[0])
+			cli.StartProgress(" Deleting integration...")
+			response, err := lacework.Integrations.Delete(args[0])
+			cli.StopProgress()
+			if err != nil {
+				return errors.Wrap(err, "unable to delete integration")
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(response.Data)
+			}
+
+			cli.OutputHuman("The integration %s was deleted.\n", args[0])
 			return nil
 		},
 	}
@@ -112,6 +152,55 @@ func init() {
 	integrationCmd.AddCommand(integrationCreateCmd)
 	integrationCmd.AddCommand(integrationUpdateCmd)
 	integrationCmd.AddCommand(integrationDeleteCmd)
+}
+
+func promptCreateIntegration(lacework *api.Client) error {
+	var (
+		integration = ""
+		prompt      = &survey.Select{
+			Message: "Choose an integration type to create: ",
+			Options: []string{
+				"Docker Hub",
+				"AWS Config",
+				"AWS CloudTrail",
+				"GCP Config",
+				"GCP Audit Log",
+				"Azure Config",
+				"Azure Activity Log",
+				//"Docker V2 Registry",
+				//"Amazon Container Registry",
+				//"Google Container Registry",
+				//"Snowflake Data Share",
+			},
+		}
+		err = survey.AskOne(prompt, &integration)
+	)
+	if err != nil {
+		return err
+	}
+
+	switch integration {
+	case "Docker Hub":
+		return createDockerHubIntegration(lacework)
+	case "AWS Config":
+		return createAwsConfigIntegration(lacework)
+	case "AWS CloudTrail":
+		return createAwsCloudTrailIntegration(lacework)
+	case "GCP Config":
+		return createGcpConfigIntegration(lacework)
+	case "GCP Audit Log":
+		return createGcpAuditLogIntegration(lacework)
+	case "Azure Config":
+		return createAzureConfigIntegration(lacework)
+	case "Azure Activity Log":
+		return createAzureActivityLogIntegration(lacework)
+	//case "Docker V2 Registry":
+	//case "Amazon Container Registry":
+	//case "Google Container Registry":
+	//case "Snowflake Data Share":
+	default:
+		return errors.New("unknown integration type")
+	}
 }
 
 func integrationsTable(integrations []api.RawIntegration) [][]string {

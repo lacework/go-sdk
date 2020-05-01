@@ -30,7 +30,7 @@ package api
 //     return err
 //   }
 //
-//   azure, err := api.NewAzureIntegration("bar",
+//   azure := api.NewAzureIntegration("bar",
 //     api.AzureActivityLogIntegration,
 //     api.AzureIntegrationData{
 //       TenantID: "tenant_id",

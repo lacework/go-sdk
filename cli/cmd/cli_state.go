@@ -128,6 +128,11 @@ func (c *cliState) VerifySettings() error {
 	return nil
 }
 
+// InteractiveMode returns true if the cli is running in interactive mode
+func (c *cliState) InteractiveMode() bool {
+	return !c.nonInteractive
+}
+
 // NonInteractive turns off interactive mode, that is, no progress bars and spinners
 func (c *cliState) NonInteractive() {
 	c.Log.Info("turning off interactive mode")
