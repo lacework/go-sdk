@@ -64,7 +64,7 @@ var (
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"Integration GUID", "Name", "Type", "Status", "State"})
 			table.SetBorder(false)
-			table.AppendBulk(integrations.Table())
+			table.AppendBulk(integrationsTable(integrations.Data))
 			table.Render()
 			return nil
 		},
@@ -201,4 +201,18 @@ func promptCreateIntegration(lacework *api.Client) error {
 	default:
 		return errors.New("unknown integration type")
 	}
+}
+
+func integrationsTable(integrations []api.RawIntegration) [][]string {
+	out := [][]string{}
+	for _, idata := range integrations {
+		out = append(out, []string{
+			idata.IntgGuid,
+			idata.Name,
+			idata.Type,
+			idata.Status(),
+			idata.StateString(),
+		})
+	}
+	return out
 }
