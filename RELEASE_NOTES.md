@@ -1,40 +1,60 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.1.8`.
+Another day, another release. These are the release notes for the version `v0.1.9`.
 
-# Keep Users Up-To-Date
-We have introduced the new **Lacework Updater** mechanism into the Lacework
-CLI, we are aiming to keep our users up-to-date with our release cadence, this new
-feature will check for any available update and will suggest executing the update
-command.
+## 🐳 Ship it Small & Fast!
+From this release on, we are shipping the Lacework CLI in a **7MB** Docker container!
 
-This feature is only enabled inside the `lacework version` command:
+Snip it:
 ```
-$ lacework version
-lacework v0.1.7 (sha:861ce9e227a3f1cd95c78011d95f0f54e6b72ec2) (time:20200427020330)
+$ docker run techallylw/lacework-cli
 
-A newer version of the Lacework CLI is available! The latest version is v0.1.8,
-to update execute the following command:
+The Lacework Command Line Interface is a tool that helps you manage the
+Lacework cloud security platform. Use it to manage compliance reports,
+external integrations, vulnerability scans, and other operations.
 
-  $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | sudo bash
+Start by configuring the Lacework CLI with the command:
+
+    $ lacework configure
+
+This will prompt you for your Lacework account and a set of API access keys.
+
+Usage:
+  lacework [command]
+
+Available Commands:
+  api           helper to call Lacework's RestfulAPI
+  configure     configure the Lacework CLI
+  event         inspect Lacework events
+  integration   manage external integrations
+  version       print the Lacework CLI version
+  vulnerability view vulnerability reports and run on-demand scans
+
+Flags:
+  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+  -k, --api_key string      access key id
+  -s, --api_secret string   secret access key
+      --debug               turn on debug logging
+      --json                switch commands output from human-readable to json format
+      --nocolor             turn off colors
+      --noninteractive      disable interactive progress bars (i.e. 'spinners')
+  -p, --profile string      switch between profiles configured at ~/.lacework.toml
+
+Use "lacework [command] --help" for more information about a command.
+
 ```
-
-# 📦 Happy Updates!
 
 ## Features
-* feat(cli/vul): show layer content instead of hash (Salim Afiune Maya)([a15e767](https://github.com/lacework/go-sdk/commit/a15e767ca4c5d05ff3fa888ce9f1333de7b545ac))
-* feat(cli): add --details flag to vulnerability cmd (Salim Afiune Maya)([227a7b2](https://github.com/lacework/go-sdk/commit/227a7b2dbceab31c8cd982f802373a83a08c7e1b))
-* feat(cli): check for available updates 👓 ✨ (Salim Afiune Maya)([9318952](https://github.com/lacework/go-sdk/commit/93189526b2cc518b75c0de524e748d08b27247b5))
-* feat: new go library lwupdater 🆕 ⭐ (Salim Afiune Maya)([0f7637e](https://github.com/lacework/go-sdk/commit/0f7637e31b01ee05b0b2ced2f740c3836bcddbe2))
+* feat: Add lacework-cli containers (Salim Afiune Maya)([73cdda0](https://github.com/lacework/go-sdk/commit/73cdda0413c56401e349162c04da261fe4e32bc7))
+* feat(cli): create Azure integrations (Salim Afiune Maya)([29105e7](https://github.com/lacework/go-sdk/commit/29105e7fc85315b8c718906454af74245889f2a9))
+* feat(cli): create GCP integrations (Salim Afiune Maya)([b2154a1](https://github.com/lacework/go-sdk/commit/b2154a16aa6d647514353c2a2d67c14cef9b608f))
+* feat(cli): create AWS CloudTrail integrations (Salim Afiune Maya)([7e80795](https://github.com/lacework/go-sdk/commit/7e8079589f3f0d36c90f3e33c08ae7f168e13774))
+* feat(cli): create integration sub-command (Salim Afiune Maya)([9842a0d](https://github.com/lacework/go-sdk/commit/9842a0db14cc059de9dd950408d2efc97de4b02a))
+* feat(api): create container registry integrations (Salim Afiune Maya)([e33613d](https://github.com/lacework/go-sdk/commit/e33613ddcd10176464dfbcc02f09e986a5c5de01))
+* feat(cli): delete external integrations (Salim Afiune Maya)([fe802b4](https://github.com/lacework/go-sdk/commit/fe802b45a05b70034d28bce8949362ba592aec2b))
 ## Refactor
-* refactor(cli): consistency between image ID & Digest (Salim Afiune Maya)([4f59376](https://github.com/lacework/go-sdk/commit/4f5937672218427128501bc20637485a40692f81))
-* refactor(api): request and response log messages (Salim Afiune Maya)([e4a3b3c](https://github.com/lacework/go-sdk/commit/e4a3b3ca8e4a2db9b6ef841ff33e8feab4d9bb6e))
-## Bug Fixes
-* fix(cli): sort vulnerabilities by severity (Salim Afiune Maya)([1e0de4c](https://github.com/lacework/go-sdk/commit/1e0de4c3a6c2107d4bffd47a9f188e07c9e3ca79))
-## Documentation Updates
-* docs(cli): func comments and cmd style updates (Salim Afiune Maya)([b50f987](https://github.com/lacework/go-sdk/commit/b50f987c37946dcee4579f5c6ce67e496734c12f))
-* docs(lwlogger): add basic usage example (Salim Afiune Maya)([c994534](https://github.com/lacework/go-sdk/commit/c99453485c61f179c3495df03291a50ecc689947))
+* refactor(cli): new configure command using survey (Salim Afiune Maya)([d311ed4](https://github.com/lacework/go-sdk/commit/d311ed48ad758a48fc687db96b1ad5b2815cfeb6))
 ## Other Changes
-* style(cli): align vulnerability summary report (Salim Afiune Maya)([0b37cf6](https://github.com/lacework/go-sdk/commit/0b37cf6dd480800966a271ac86f486f1d790675a))
-* style(cli): remove dup vul report summary footer (Salim Afiune Maya)([6e36455](https://github.com/lacework/go-sdk/commit/6e36455dfd0f7755d3727bd9ab22dd17b25c1b86))
-* style: avoid mixing duties between api/ and cli/ (Salim Afiune Maya)([fb7b7c2](https://github.com/lacework/go-sdk/commit/fb7b7c254498bb504b16c7b42580ca0c274efeda))
-
+* style: avoid mixing duties between api and cli (Salim Afiune Maya)([b245d9f](https://github.com/lacework/go-sdk/commit/b245d9f63765fdf7fb131bf933a762f9220969c8))
+* style(cli): use appropriate icons per platform (Salim Afiune Maya)([c3e051e](https://github.com/lacework/go-sdk/commit/c3e051ed0124386796bf49d6addbad31c4d26ba4))
+* chore(cli): update int create usage message (Salim Afiune Maya)([0959618](https://github.com/lacework/go-sdk/commit/095961838afce65a43ebf34b3405bb5b0fa09f80))
+* chore(deps): remove promptui in favor of survey (Salim Afiune Maya)([0c663aa](https://github.com/lacework/go-sdk/commit/0c663aa23e1773aeec4162d8bf78aaadcf8f19b8))
