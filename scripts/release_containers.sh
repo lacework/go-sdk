@@ -30,7 +30,7 @@ distros=(
 )
 for dist in "${distros[@]}"; do
   log "releasing container for ${dist}"
-  docker build -f "cli/images/${dist}/Dockerfile" --no-cache -t "${repository}:ubi-8" .
+  docker build -f "cli/images/${dist}/Dockerfile" --no-cache -t "${repository}:${dist}" .
   docker push "${repository}:${dist}"
 done
 
