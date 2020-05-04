@@ -171,7 +171,7 @@ type eventProcessEntity struct {
 	ProcessId        int32     `json:"process_id"`
 	ProcessStartTime time.Time `json:"process_start_time"`
 	Cmdline          string    `json:"cmdline"`
-	CpuPercentage    int32     `json:"cpu_percentage"`
+	CpuPercentage    float32   `json:"cpu_percentage"`
 }
 
 type eventFileDataHashEntity struct {
