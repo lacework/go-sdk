@@ -12,8 +12,12 @@ log() {
   echo "--> ${project_name}: $1"
 }
 
+
+log "building Lacework CLI cross-platform"
+make build-cli-cross-platform
+
 log "releasing container from SCRATCH"
-docker build -t "${repository}:scratch" .
+docker build -t "${repository}:scratch" --no-cache .
 docker push "${repository}:scratch"
 
 distros=(
@@ -26,7 +30,7 @@ distros=(
 )
 for dist in "${distros[@]}"; do
   log "releasing container for ${dist}"
-  docker build -f "cli/images/${dist}/Dockerfile" -t "${repository}:ubi-8" .
+  docker build -f "cli/images/${dist}/Dockerfile" --no-cache -t "${repository}:ubi-8" .
   docker push "${repository}:${dist}"
 done
 

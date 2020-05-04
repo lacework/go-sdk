@@ -136,15 +136,15 @@ type AzureIntegration struct {
 }
 
 type AzureIntegrationData struct {
-	Credentials AzureIntegrationCreds `json:"CREDENTIALS"`
-	TenantID    string                `json:"TENANT_ID"`
+	Credentials AzureIntegrationCreds `json:"CREDENTIALS" mapstructure:"CREDENTIALS"`
+	TenantID    string                `json:"TENANT_ID" mapstructure:"TENANT_ID"`
 
 	// QueueUrl is a field that exists and is required for the AWS_CT_SQS integration,
 	// though, it doesn't exist for AZURE_CFG integrations, that's why we omit it if empty
-	QueueUrl string `json:"QUEUE_URL,omitempty"`
+	QueueUrl string `json:"QUEUE_URL,omitempty" mapstructure:"QUEUE_URL"`
 }
 
 type AzureIntegrationCreds struct {
-	ClientID     string `json:"CLIENT_ID"`
-	ClientSecret string `json:"CLIENT_SECRET"`
+	ClientID     string `json:"CLIENT_ID" mapstructure:"CLIENT_ID"`
+	ClientSecret string `json:"CLIENT_SECRET" mapstructure:"CLIENT_SECRET"`
 }
