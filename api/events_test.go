@@ -274,14 +274,14 @@ func eventDetailsResponse(id string) string {
           },
           {
             "CMDLINE": "chef-client worker: ppid=5328;start=19:54:08;",
-            "CPU_PERCENTAGE": 0,
+            "CPU_PERCENTAGE": 0.1,
             "HOSTNAME": "default-centos-8.vagrantup.com",
             "PROCESS_ID": 5346,
             "PROCESS_START_TIME": "2020-04-20T19:54:08Z"
           },
           {
             "CMDLINE": "chef-client worker: ppid=12057;start=19:47:54;",
-            "CPU_PERCENTAGE": 0,
+            "CPU_PERCENTAGE": 0.87,
             "HOSTNAME": "default-centos-8.vagrantup.com",
             "PROCESS_ID": 12062,
             "PROCESS_START_TIME": "2020-04-20T19:47:54Z"
