@@ -79,7 +79,7 @@ time range.`,
 	// eventShowCmd represents the show sub-command inside the event command
 	eventShowCmd = &cobra.Command{
 		Use:   "show <event_id>",
-		Short: "Show details about an specific event",
+		Short: "Show details about a specific event",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			lacework, err := api.NewClient(cli.Account,

@@ -125,14 +125,14 @@ type AwsIntegration struct {
 }
 
 type AwsIntegrationData struct {
-	Credentials AwsIntegrationCreds `json:"CROSS_ACCOUNT_CREDENTIALS"`
+	Credentials AwsIntegrationCreds `json:"CROSS_ACCOUNT_CREDENTIALS" mapstructure:"CROSS_ACCOUNT_CREDENTIALS"`
 
 	// QueueUrl is a field that exists and is required for the AWS_CT_SQS integration,
 	// though, it doesn't exist for AWS_CFG integrations, that's why we omit it if empty
-	QueueUrl string `json:"QUEUE_URL,omitempty"`
+	QueueUrl string `json:"QUEUE_URL,omitempty" mapstructure:"QUEUE_URL"`
 }
 
 type AwsIntegrationCreds struct {
-	RoleArn    string `json:"ROLE_ARN"`
-	ExternalId string `json:"EXTERNAL_ID"`
+	RoleArn    string `json:"ROLE_ARN" mapstructure:"ROLE_ARN"`
+	ExternalId string `json:"EXTERNAL_ID" mapstructure:"EXTERNAL_ID"`
 }

@@ -92,20 +92,20 @@ type ContainerRegIntegration struct {
 }
 
 type ContainerRegData struct {
-	Credentials    ContainerRegCreds `json:"CREDENTIALS"`
-	RegistryType   string            `json:"REGISTRY_TYPE"`
-	RegistryDomain string            `json:"REGISTRY_DOMAIN"`
-	LimitByTag     string            `json:"LIMIT_BY_TAG"`
-	LimitByLabel   string            `json:"LIMIT_BY_LABEL"`
-	LimitByRep     string            `json:"LIMIT_BY_REP,omitempty"`
-	LimitNumImg    int               `json:"LIMIT_NUM_IMG"`
+	Credentials    ContainerRegCreds `json:"CREDENTIALS" mapstructure:"CREDENTIALS"`
+	RegistryType   string            `json:"REGISTRY_TYPE" mapstructure:"REGISTRY_TYPE"`
+	RegistryDomain string            `json:"REGISTRY_DOMAIN" mapstructure:"REGISTRY_DOMAIN"`
+	LimitByTag     string            `json:"LIMIT_BY_TAG" mapstructure:"LIMIT_BY_TAG"`
+	LimitByLabel   string            `json:"LIMIT_BY_LABEL" mapstructure:"LIMIT_BY_LABEL"`
+	LimitByRep     string            `json:"LIMIT_BY_REP,omitempty" mapstructure:"LIMIT_BY_REP"`
+	LimitNumImg    int               `json:"LIMIT_NUM_IMG"` // @afiune we can't parse this field
 }
 
 type ContainerRegCreds struct {
-	Username string `json:"USERNAME"`
-	Password string `json:"PASSWORD"`
+	Username string `json:"USERNAME" mapstructure:"USERNAME"`
+	Password string `json:"PASSWORD" mapstructure:"PASSWORD"`
 	// @afiune this is for docker V2 registry
-	SSL bool `json:"SSL,omitempty"`
+	SSL bool `json:"SSL,omitempty" mapstructure:"SSL"`
 }
 
 // @afiune we can't use this response since the request sent to the

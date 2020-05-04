@@ -151,18 +151,18 @@ type GcpIntegration struct {
 
 type GcpIntegrationData struct {
 	ID          string         `json:"ID"`
-	IdType      string         `json:"ID_TYPE"`
-	Credentials GcpCredentials `json:"CREDENTIALS"`
+	IdType      string         `json:"ID_TYPE" mapstructure:"ID_TYPE"`
+	Credentials GcpCredentials `json:"CREDENTIALS" mapstructure:"CREDENTIALS"`
 
 	// SubscriptionName is a field that exists and is required for the GCP_AT_SES
 	// integration, though, it doesn't exist for GCP_CFG integrations, that's why
 	// we omit it if empty
-	SubscriptionName string `json:"SUBSCRIPTION_NAME,omitempty"`
+	SubscriptionName string `json:"SUBSCRIPTION_NAME,omitempty" mapstructure:"SUBSCRIPTION_NAME"`
 }
 
 type GcpCredentials struct {
-	ClientId     string `json:"CLIENT_ID"`
-	ClientEmail  string `json:"CLIENT_EMAIL"`
-	PrivateKeyId string `json:"PRIVATE_KEY_ID"`
-	PrivateKey   string `json:"PRIVATE_KEY"`
+	ClientId     string `json:"CLIENT_ID" mapstructure:"CLIENT_ID"`
+	ClientEmail  string `json:"CLIENT_EMAIL" mapstructure:"CLIENT_EMAIL"`
+	PrivateKeyId string `json:"PRIVATE_KEY_ID" mapstructure:"PRIVATE_KEY_ID"`
+	PrivateKey   string `json:"PRIVATE_KEY" mapstructure:"PRIVATE_KEY"`
 }
