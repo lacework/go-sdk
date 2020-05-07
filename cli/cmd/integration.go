@@ -34,7 +34,7 @@ var (
 	// integrationCmd represents the integration command
 	integrationCmd = &cobra.Command{
 		Use:     "integration",
-		Aliases: []string{"int"},
+		Aliases: []string{"integrations", "int"},
 		Short:   "manage external integrations",
 		Long:    `Manage external integrations with the Lacework platform`,
 	}

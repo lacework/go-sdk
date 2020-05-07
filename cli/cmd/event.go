@@ -32,9 +32,10 @@ import (
 var (
 	// eventCmd represents the event command
 	eventCmd = &cobra.Command{
-		Use:   "event",
-		Short: "inspect Lacework events",
-		Long:  `Inspect events reported by the Lacework platform`,
+		Use:     "event",
+		Aliases: []string{"events"},
+		Short:   "inspect Lacework events",
+		Long:    `Inspect events reported by the Lacework platform`,
 	}
 
 	// eventListCmd represents the list sub-command inside the event command
