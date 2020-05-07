@@ -150,20 +150,20 @@ type eventContainerEntity struct {
 type eventDnsNameEntity struct {
 	Hostname      string  `json:"hostname"`
 	PortList      []int32 `json:"port_list"`
-	TotalInBytes  int32   `json:"total_in_bytes"`
-	TotalOutBytes int32   `json:"total_out_bytes"`
+	TotalInBytes  float32 `json:"total_in_bytes"`
+	TotalOutBytes float32 `json:"total_out_bytes"`
 }
 
 type eventIpAddressEntity struct {
-	IpAddress     string                 `json:"ip_address"`
-	TotalInBytes  int32                  `json:"total_in_bytes"`
-	TotalOutBytes int32                  `json:"total_out_bytes"`
-	ThreatTags    []string               `json:"threat_tags"`
-	ThreatSource  map[string]interface{} `json:"threat_source"`
-	Country       string                 `json:"country"`
-	Region        string                 `json:"region"`
-	PortList      []int32                `json:"port_list"`
-	FirstSeenTime time.Time              `json:"first_seen_time"`
+	IpAddress     string        `json:"ip_address"`
+	TotalInBytes  float32       `json:"total_in_bytes"`
+	TotalOutBytes float32       `json:"total_out_bytes"`
+	ThreatTags    string        `json:"threat_tags"`
+	ThreatSource  []interface{} `json:"threat_source"` // @afiune this field could be anything...
+	Country       string        `json:"country"`
+	Region        string        `json:"region"`
+	PortList      []int32       `json:"port_list"`
+	FirstSeenTime time.Time     `json:"first_seen_time"`
 }
 
 type eventProcessEntity struct {
@@ -217,8 +217,10 @@ type eventCTUserEntity struct {
 }
 
 type eventResourceEntity struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name string `json:"name"`
+	// @afiune the API documentation says this field is a string, but there are
+	// many events that has this field as a number, boolean, etc.  :sadpanda:
+	Value interface{} `json:"value"`
 }
 
 type eventRecIDEntity struct {
