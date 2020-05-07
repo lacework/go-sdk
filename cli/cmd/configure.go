@@ -20,12 +20,14 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"path"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/BurntSushi/toml"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -51,7 +53,17 @@ type credsDetails struct {
 	ApiSecret string `toml:"api_secret" json:"api_secret" survey:"api_secret"`
 }
 
+// apiKeyDetails represents the details of an API key, we use this struct
+// internally to unmarshal the JSON file provided by the Lacework WebUI
+type apiKeyDetails struct {
+	KeyID  string `json:"keyId"`
+	Secret string `json:"secret"`
+}
+
 var (
+	// configureJsonFile is the API key file downloaded form the Lacework WebUI
+	configureJsonFile string
+
 	// configureCmd represents the configure command
 	configureCmd = &cobra.Command{
 		Use:   "configure",
@@ -60,6 +72,13 @@ var (
 		Long: `
 Configure settings that the Lacework CLI uses to interact with the Lacework
 platform. These include your Lacework account, API access key and secret.
+
+To create a set of API keys, log in to your Lacework account via WebUI and
+navigate to Settings > API Keys and click + Create New. Enter a name for
+the key and an optional description, then click Save. To get the secret key,
+download the generated API key file.
+
+Use the argument --json_file to preload the downloaded API key file.
 
 If this command is run with no arguments, the Lacework CLI will store all
 settings under the default profile. The information in the default profile
@@ -77,10 +96,24 @@ Lacework CLI will create it for you.`,
 
 func init() {
 	rootCmd.AddCommand(configureCmd)
+
+	configureCmd.PersistentFlags().StringVarP(&configureJsonFile,
+		"json_file", "j", "", "loads the generated API key JSON file from the WebUI",
+	)
 }
 
 func promptConfigureSetup() error {
 	cli.Log.Debugw("configuring cli", "profile", cli.Profile)
+
+	if len(configureJsonFile) != 0 {
+		auth, err := loadKeysFromJsonFile(configureJsonFile)
+		if err != nil {
+			return errors.Wrap(err, "unable to load keys from the provided json file")
+		}
+		cli.KeyID = auth.KeyID
+		cli.Secret = auth.Secret
+	}
+
 	questions := []*survey.Question{
 		{
 			Name: "account",
@@ -168,4 +201,17 @@ func promptConfigureSetup() error {
 
 	cli.OutputHuman("\nYou are all set!\n")
 	return nil
+}
+
+func loadKeysFromJsonFile(file string) (*apiKeyDetails, error) {
+	cli.Log.Debugw("loading API key JSON file", "path", file)
+	jsonData, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+
+	cli.Log.Debugw("keys from file", "raw", string(jsonData))
+	var auth apiKeyDetails
+	err = json.Unmarshal(jsonData, &auth)
+	return &auth, err
 }
