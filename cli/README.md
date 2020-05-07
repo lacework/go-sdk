@@ -30,10 +30,12 @@ CLI installation. The command prompts you for three things:
 * `api_key`: API Access Key
 * `api_secret`: API Access Secret
 
->To create a set of API keys, log in to your Lacework account and navigate to
->Settings -> API Keys, then click + Create New. Enter a name for the key and
->an optional description and click Save. To get the secret key, download the
->generated API key file and open it in an editor.
+>To create a set of API keys, log in to your Lacework account via WebUI and
+>navigate to Settings > API Keys and click + Create New. Enter a name for
+>the key and an optional description, then click Save. To get the secret key,
+>download the generated API key file.
+
+_**NOTE:** Use the argument `--json_file` to preload the downloaded API key file._
 
 The following example shows sample values. Replace them with your own.
 
