@@ -129,7 +129,7 @@ type gitReleaseResponse struct {
 	UploadUrl       string    `json:"upload_url"`
 	TarballUrl      string    `json:"tarball_url"`
 	ZipballUrl      string    `json:"zipball_url"`
-	NodeId          string    `json:"node_id"`
+	NodeID          string    `json:"node_id"`
 	TagName         string    `json:"tag_name"`
 	TargetCommitish string    `json:"target_commitish"`
 	Name            string    `json:"name"`

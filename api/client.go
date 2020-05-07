@@ -126,7 +126,7 @@ func (c *Client) URL() string {
 	return c.baseURL.String()
 }
 
-// newID generates a new client ID, this id is useful for logging purposes
+// newID generates a new client id, this id is useful for logging purposes
 // when there are more than one client running on the same machine
 func newID() string {
 	now := time.Now().UTC().UnixNano()

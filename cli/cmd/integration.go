@@ -319,11 +319,11 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"LEVEL", iData.IdType},
+			[]string{"LEVEL", iData.IDType},
 			[]string{"ORG/PROJECT ID", iData.ID},
-			[]string{"CLIENT ID", iData.Credentials.ClientId},
+			[]string{"CLIENT ID", iData.Credentials.ClientID},
 			[]string{"CLIENT EMAIL", iData.Credentials.ClientEmail},
-			[]string{"PRIVATE KEY ID", iData.Credentials.PrivateKeyId},
+			[]string{"PRIVATE KEY ID", iData.Credentials.PrivateKeyID},
 		}
 		if iData.SubscriptionName != "" {
 			return append(out, []string{"SUBSCRIPTION NAME", iData.SubscriptionName})
@@ -345,7 +345,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		out := [][]string{
 			[]string{"ROLE ARN", iData.Credentials.RoleArn},
-			[]string{"EXTERNAL ID", iData.Credentials.ExternalId},
+			[]string{"EXTERNAL ID", iData.Credentials.ExternalID},
 		}
 		if iData.QueueUrl != "" {
 			return append(out, []string{"QUEUE URL", iData.QueueUrl})
