@@ -35,7 +35,7 @@ package api
 //     api.AwsIntegrationData{
 //       Credentials: api.AwsIntegrationCreds {
 //         RoleArn: "arn:aws:XYZ",
-//         ExternalId: "1",
+//         ExternalID: "1",
 //       },
 //     },
 //   )
@@ -134,5 +134,5 @@ type AwsIntegrationData struct {
 
 type AwsIntegrationCreds struct {
 	RoleArn    string `json:"ROLE_ARN" mapstructure:"ROLE_ARN"`
-	ExternalId string `json:"EXTERNAL_ID" mapstructure:"EXTERNAL_ID"`
+	ExternalID string `json:"EXTERNAL_ID" mapstructure:"EXTERNAL_ID"`
 }

@@ -68,13 +68,13 @@ func TestIntegrationsCreateGcp(t *testing.T) {
 	data := api.NewGcpAuditLogIntegration("integration_name",
 		api.GcpIntegrationData{
 			ID:               "data_id",
-			IdType:           "id_type",
+			IDType:           "id_type",
 			SubscriptionName: "subscription_name",
 			Credentials: api.GcpCredentials{
-				ClientId:     "client_id",
+				ClientID:     "client_id",
 				ClientEmail:  "foo@example.iam.gserviceaccount.com",
 				PrivateKey:   "priv_key",
-				PrivateKeyId: "p_key_id",
+				PrivateKeyID: "p_key_id",
 			},
 		},
 	)
@@ -92,7 +92,7 @@ func TestIntegrationsCreateGcp(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "data_id", resData.Data.ID)
-		assert.Equal(t, "PROJECT", resData.Data.IdType)
+		assert.Equal(t, "PROJECT", resData.Data.IDType)
 		assert.Equal(t,
 			"foo@example.iam.gserviceaccount.com",
 			resData.Data.Credentials.ClientEmail,
@@ -128,7 +128,7 @@ func TestIntegrationsGetGcp(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "data_id", resData.Data.ID)
-		assert.Equal(t, "PROJECT", resData.Data.IdType)
+		assert.Equal(t, "PROJECT", resData.Data.IDType)
 		assert.Equal(t,
 			"foo@example.iam.gserviceaccount.com",
 			resData.Data.Credentials.ClientEmail,
@@ -176,12 +176,12 @@ func TestIntegrationsUpdateGcp(t *testing.T) {
 		api.GcpCfgIntegration,
 		api.GcpIntegrationData{
 			ID:     "data_id",
-			IdType: "id_type",
+			IDType: "id_type",
 			Credentials: api.GcpCredentials{
-				ClientId:     "client_id",
+				ClientID:     "client_id",
 				ClientEmail:  "foo@example.iam.gserviceaccount.com",
 				PrivateKey:   "priv_key",
-				PrivateKeyId: "p_key_id",
+				PrivateKeyID: "p_key_id",
 			},
 		},
 	)

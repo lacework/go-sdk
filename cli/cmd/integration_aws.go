@@ -59,7 +59,7 @@ func createAwsConfigIntegration(lacework *api.Client) error {
 		api.AwsIntegrationData{
 			Credentials: api.AwsIntegrationCreds{
 				RoleArn:    answers.RoleArn,
-				ExternalId: answers.ExternalID,
+				ExternalID: answers.ExternalID,
 			},
 		},
 	)
@@ -113,7 +113,7 @@ func createAwsCloudTrailIntegration(lacework *api.Client) error {
 			QueueUrl: answers.QueueUrl,
 			Credentials: api.AwsIntegrationCreds{
 				RoleArn:    answers.RoleArn,
-				ExternalId: answers.ExternalID,
+				ExternalID: answers.ExternalID,
 			},
 		},
 	)

@@ -144,6 +144,6 @@ type tokenData struct {
 }
 
 type tokenRequest struct {
-	KeyId      string `json:"keyId"`
+	KeyID      string `json:"keyId"`
 	ExpiryTime int    `json:"expiryTime"`
 }

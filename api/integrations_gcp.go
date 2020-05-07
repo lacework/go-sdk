@@ -55,11 +55,11 @@ func (g gcpResourceLevel) String() string {
 //     api.GcpCfgIntegration,
 //     api.GcpIntegrationData{
 //       ID: "1234",
-//       IdType: api.GcpProjectIntegration.String(),
+//       IDType: api.GcpProjectIntegration.String(),
 //       Credentials: api.GcpCredentials{
-//         ClientId: "id",
+//         ClientID: "id",
 //         ClientEmail: "email",
-//         PrivateKeyId: "key_id",
+//         PrivateKeyID: "key_id",
 //         PrivateKey: "key",
 //       },
 //     },
@@ -151,7 +151,7 @@ type GcpIntegration struct {
 
 type GcpIntegrationData struct {
 	ID          string         `json:"ID"`
-	IdType      string         `json:"ID_TYPE" mapstructure:"ID_TYPE"`
+	IDType      string         `json:"ID_TYPE" mapstructure:"ID_TYPE"`
 	Credentials GcpCredentials `json:"CREDENTIALS" mapstructure:"CREDENTIALS"`
 
 	// SubscriptionName is a field that exists and is required for the GCP_AT_SES
@@ -161,8 +161,8 @@ type GcpIntegrationData struct {
 }
 
 type GcpCredentials struct {
-	ClientId     string `json:"CLIENT_ID" mapstructure:"CLIENT_ID"`
+	ClientID     string `json:"CLIENT_ID" mapstructure:"CLIENT_ID"`
 	ClientEmail  string `json:"CLIENT_EMAIL" mapstructure:"CLIENT_EMAIL"`
-	PrivateKeyId string `json:"PRIVATE_KEY_ID" mapstructure:"PRIVATE_KEY_ID"`
+	PrivateKeyID string `json:"PRIVATE_KEY_ID" mapstructure:"PRIVATE_KEY_ID"`
 	PrivateKey   string `json:"PRIVATE_KEY" mapstructure:"PRIVATE_KEY"`
 }

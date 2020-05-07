@@ -88,11 +88,11 @@ func createGcpConfigIntegration(lacework *api.Client) error {
 	gcp := api.NewGcpCfgIntegration(answers.Name,
 		api.GcpIntegrationData{
 			ID:     answers.OrgProjectID,
-			IdType: answers.IntegrationLevel,
+			IDType: answers.IntegrationLevel,
 			Credentials: api.GcpCredentials{
-				ClientId:     answers.ClientID,
+				ClientID:     answers.ClientID,
 				ClientEmail:  answers.ClientEmail,
-				PrivateKeyId: answers.PrivateKeyID,
+				PrivateKeyID: answers.PrivateKeyID,
 				PrivateKey:   answers.PrivateKey,
 			},
 		},
@@ -175,12 +175,12 @@ func createGcpAuditLogIntegration(lacework *api.Client) error {
 	gcp := api.NewGcpAuditLogIntegration(answers.Name,
 		api.GcpIntegrationData{
 			ID:               answers.OrgProjectID,
-			IdType:           answers.IntegrationLevel,
+			IDType:           answers.IntegrationLevel,
 			SubscriptionName: answers.SubscriptionName,
 			Credentials: api.GcpCredentials{
-				ClientId:     answers.ClientID,
+				ClientID:     answers.ClientID,
 				ClientEmail:  answers.ClientEmail,
-				PrivateKeyId: answers.PrivateKeyID,
+				PrivateKeyID: answers.PrivateKeyID,
 				PrivateKey:   answers.PrivateKey,
 			},
 		},

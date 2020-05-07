@@ -36,7 +36,7 @@ func TestIntegrationsNewAwsCfgIntegration(t *testing.T) {
 		api.AwsIntegrationData{
 			Credentials: api.AwsIntegrationCreds{
 				RoleArn:    "arn:foo:bar",
-				ExternalId: "0123456789",
+				ExternalID: "0123456789",
 			},
 		},
 	)
@@ -75,7 +75,7 @@ func TestIntegrationsCreateAws(t *testing.T) {
 		api.AwsIntegrationData{
 			Credentials: api.AwsIntegrationCreds{
 				RoleArn:    "arn:foo:bar",
-				ExternalId: "0123456789",
+				ExternalID: "0123456789",
 			},
 		},
 	)
@@ -93,7 +93,7 @@ func TestIntegrationsCreateAws(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "arn:foo:bar", resData.Data.Credentials.RoleArn)
-		assert.Equal(t, "0123456789", resData.Data.Credentials.ExternalId)
+		assert.Equal(t, "0123456789", resData.Data.Credentials.ExternalID)
 	}
 }
 
@@ -125,7 +125,7 @@ func TestIntegrationsGetAws(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "arn:foo:bar", resData.Data.Credentials.RoleArn)
-		assert.Equal(t, "0123456789", resData.Data.Credentials.ExternalId)
+		assert.Equal(t, "0123456789", resData.Data.Credentials.ExternalID)
 	}
 }
 
@@ -144,7 +144,7 @@ func TestIntegrationsUpdateAws(t *testing.T) {
 			assert.Contains(t, body, "integration_name", "integration name is missing")
 			assert.Contains(t, body, "AWS_CT_SQS", "wrong integration type")
 			assert.Contains(t, body, "arn:foo:bar", "wrong role arn")
-			assert.Contains(t, body, "0123456789", "wrong external id")
+			assert.Contains(t, body, "0123456789", "wrong external ID")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
 
@@ -163,7 +163,7 @@ func TestIntegrationsUpdateAws(t *testing.T) {
 		api.AwsIntegrationData{
 			Credentials: api.AwsIntegrationCreds{
 				RoleArn:    "arn:foo:bar",
-				ExternalId: "0123456789",
+				ExternalID: "0123456789",
 			},
 		},
 	)

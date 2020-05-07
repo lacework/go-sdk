@@ -168,7 +168,7 @@ type eventIpAddressEntity struct {
 
 type eventProcessEntity struct {
 	Hostname         string    `json:"hostname"`
-	ProcessId        int32     `json:"process_id"`
+	ProcessID        int32     `json:"process_id"`
 	ProcessStartTime time.Time `json:"process_start_time"`
 	Cmdline          string    `json:"cmdline"`
 	CpuPercentage    float32   `json:"cpu_percentage"`
@@ -209,11 +209,11 @@ type eventRegionEntity struct {
 
 type eventCTUserEntity struct {
 	Username    string   `json:"username"`
-	AccoutId    string   `json:"accout_id"`
+	AccoutID    string   `json:"accout_id"`
 	Mfa         int32    `json:"mfa"`
 	ApiList     []string `json:"api_list"`
 	RegionList  []string `json:"region_list"`
-	PrincipalId string   `json:"principal_id"`
+	PrincipalID string   `json:"principal_id"`
 }
 
 type eventResourceEntity struct {
@@ -222,8 +222,8 @@ type eventResourceEntity struct {
 }
 
 type eventRecIDEntity struct {
-	RecId        string `json:"rec_id"`
-	AccountId    string `json:"account_id"`
+	RecID        string `json:"rec_id"`
+	AccountID    string `json:"account_id"`
 	AccountAlias string `json:"account_alias"`
 	Title        string `json:"title"`
 	Status       string `json:"status"`
@@ -239,13 +239,13 @@ type eventCustomRuleEntity struct {
 }
 
 type eventNewViolationEntity struct {
-	RecId    string `json:"rec_id"`
+	RecID    string `json:"rec_id"`
 	Reason   string `json:"reason"`
 	Resource string `json:"resource"`
 }
 
 type eventViolationReasonEntity struct {
-	RecId  string `json:"rec_id"`
+	RecID  string `json:"rec_id"`
 	Reason string `json:"reason"`
 }
 
