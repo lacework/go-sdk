@@ -51,7 +51,7 @@ Start by configuring the Lacework CLI with the command:
 This will prompt you for your Lacework account and a set of API access keys.`,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			switch cmd.Use {
-			case "configure", "version":
+			case "help [command]", "configure", "version":
 				return nil
 			default:
 				return cli.VerifySettings()
