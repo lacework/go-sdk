@@ -7,10 +7,7 @@ branches:
   only:
     - master
 
-env:
-  - secure: ltwWrcwLiW6HvrnX0SJGS5yktmJBVd8chypLDN3LQoj/T3KptIbXu7O5nnZ6R+O2qV30IG4NkKe4VcHIsZE2KP5CC+K7WLpmp+lTH5Qz9VwM9e1Zlz14V0oP8qENuA8q6B5FeKLf8ReUDUHqqpAyE2pwzkgQ8ZdFcG+QlvrlL7GoR5b0xTQH5LAAIjGbmsonNVC8C6Ep5tf7BYEUgOrB8qLGWd48fw9CIt9YrCbJlvupo0bE0RdDvdvZFwgrHFl3riq1IaM9+5jmlLJPH099+b03ICh8QYWJhoqUB37QOXEjQYQpck8o4Sih6/XZtikeunjBewg7f3txfiQqod8S1w==
-
 build:
-    ci:
-        - make prepare
-        - make ci
+  ci:
+    - make prepare
+    - make ci

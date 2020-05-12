@@ -22,8 +22,10 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 )
 
@@ -58,7 +60,7 @@ func LaceworkCLI(args ...string) (bytes.Buffer, bytes.Buffer, int) {
 }
 
 func LaceworkCLIWithTOMLConfig(args ...string) (bytes.Buffer, bytes.Buffer, int) {
-	dir := createTOMLConfig()
+	dir := createTOMLConfigFromCIvars()
 	defer os.RemoveAll(dir)
 
 	return runLaceworkCLI(dir, args...)
@@ -112,4 +114,42 @@ func findLaceworkCLIBinary() string {
 	}
 
 	return "lacework"
+}
+
+func createTOMLConfigFromCIvars() string {
+	if os.Getenv("CI_ACCOUNT") == "" ||
+		os.Getenv("CI_API_KEY") == "" ||
+		os.Getenv("CI_API_SECRET") == "" {
+		// @afiune add instructions
+		log.Fatal(missingCIEnvironmentVariables())
+	}
+
+	dir, err := ioutil.TempDir("", "lacework-toml")
+	if err != nil {
+		panic(err)
+	}
+
+	configFile := filepath.Join(dir, ".lacework.toml")
+	c := []byte(`[default]
+account = '` + os.Getenv("CI_ACCOUNT") + `'
+api_key = '` + os.Getenv("CI_API_KEY") + `'
+api_secret = '` + os.Getenv("CI_API_SECRET") + `'
+`)
+	err = ioutil.WriteFile(configFile, c, 0644)
+	if err != nil {
+		panic(err)
+	}
+	return dir
+}
+
+func missingCIEnvironmentVariables() string {
+	return `
+ERROR
+  Missing CI environment variables.
+
+  To run the integration tests you need to setup a few environment variables, look
+  at https://github.com/lacework/go-sdk/tree/master/cli#integration-tests for
+  more information.
+
+`
 }
