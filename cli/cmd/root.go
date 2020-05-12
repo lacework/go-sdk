@@ -225,7 +225,7 @@ func errcheckEXIT(err error) {
 // we know there won't be aproblem but the linter still asks to check all errors
 func errcheckWARN(err error) {
 	if err != nil {
-		fmt.Printf("WARN %s\n", err)
+		fmt.Fprintf(os.Stderr, "WARN %s\n", err)
 	}
 }
 
@@ -237,6 +237,6 @@ func exitwith(err error) {
 // exitwithCode prints out an error message and exits the program with
 // the provided exit code
 func exitwithCode(err error, code int) {
-	fmt.Printf("ERROR %s\n", err)
+	fmt.Fprintf(os.Stderr, "ERROR %s\n", err)
 	os.Exit(code)
 }
