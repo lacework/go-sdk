@@ -6,9 +6,15 @@ github.com/AlecAivazis/survey/v2/terminal
 # github.com/BurntSushi/toml v0.3.1
 ## explicit
 github.com/BurntSushi/toml
+# github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
+## explicit
+github.com/Netflix/go-expect
 # github.com/briandowns/spinner v1.10.0
 ## explicit
 github.com/briandowns/spinner
+# github.com/creack/pty v1.1.10
+## explicit
+github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/fatih/color v1.9.0
@@ -28,6 +34,9 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
+# github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
+## explicit
+github.com/hinshun/vt10x
 # github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 ## explicit
 github.com/hokaccha/go-prettyjson
@@ -35,6 +44,9 @@ github.com/hokaccha/go-prettyjson
 github.com/inconshreveable/mousetrap
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 github.com/kballard/go-shellquote
+# github.com/kr/pty v1.1.8
+## explicit
+github.com/kr/pty
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
 # github.com/mattn/go-colorable v0.1.6
@@ -100,8 +112,9 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/sys v0.0.0-20200428200454-593003d681fa
+# golang.org/x/sys v0.0.0-20200509044756-6aff5f38e54f
 ## explicit
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
 ## explicit

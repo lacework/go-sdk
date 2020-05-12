@@ -1,6 +1,6 @@
 default: ci
 
-ci: lint test fmt-check imports-check build-cli-cross-platform
+ci: lint test fmt-check imports-check integration
 
 GOLANGCILINTVERSION?=1.23.8
 COVERAGEOUT?=coverage.out
@@ -15,7 +15,10 @@ export GOFLAGS GO_LDFLAGS
 prepare: install-tools go-vendor
 
 test:
-	go test -v -cover -coverprofile=$(COVERAGEOUT) ./...
+	go test -v -cover -coverprofile=$(COVERAGEOUT) $(shell go list ./... | grep -v integration)
+
+integration: build-cli-cross-platform
+	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration
 
 coverage: test
 	go tool cover -func=$(COVERAGEOUT)

@@ -132,6 +132,20 @@ $ lacework version
 lacework v.dev (sha:ca9f95d17f4f2092f89dba7b64eaed6db7493a5a) (time:20200406091143)
 ```
 
+### Unit Tests
+
+Running unit tests should be as simple as executing the `make test` directive.
+
+### Integration Tests
+
+The integration tests are end-to-end tests that are run against a real Lacework API
+Server, for that reason it requires a set of Lacework API keys, to run these tests
+locally you need to setup the following environment variables and use the directive
+`make integration`, an example of the command you can use is:
+```
+$ CI_ACCOUNT="<YOUR_ACCOUNT>" CI_API_KEY="<YOUR_API_KEY>" CI_API_SECRET="<YOUR_API_SECRET>" make integration
+```
+
 ## License and Copyright
 Copyright 2020, Lacework Inc.
 ```
