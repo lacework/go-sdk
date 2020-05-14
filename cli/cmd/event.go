@@ -19,17 +19,22 @@
 package cmd
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 var (
+	// easily add or remove borders to all event details tables
+	eventDetailsBorder = true
+
 	// eventCmd represents the event command
 	eventCmd = &cobra.Command{
 		Use:     "event",
@@ -111,7 +116,11 @@ time range.`,
 				return cli.OutputJSON(response.Events[0])
 			}
 
-			cli.OutputHuman(eventDetailsToTableReport(response.Events[0]))
+			cli.OutputHuman(eventDetailsSummaryReport(response.Events[0]))
+			for _, entityTable := range eventEntityMapTables(response.Events[0].EntityMap) {
+				cli.OutputHuman("\n")
+				cli.OutputHuman(entityTable)
+			}
 			return nil
 		},
 	}
@@ -129,19 +138,19 @@ func init() {
 func eventsToTableReport(events []api.Event) string {
 	var (
 		eventsReport = &strings.Builder{}
-		table        = tablewriter.NewWriter(eventsReport)
+		t            = tablewriter.NewWriter(eventsReport)
 	)
 
-	table.SetHeader([]string{
+	t.SetHeader([]string{
 		"Event ID",
 		"Type",
 		"Severity",
 		"Start Time",
 		"End Time",
 	})
-	table.SetBorder(false)
-	table.AppendBulk(eventsToTable(events))
-	table.Render()
+	t.SetBorder(false)
+	t.AppendBulk(eventsToTable(events))
+	t.Render()
 
 	return eventsReport.String()
 }
@@ -160,13 +169,13 @@ func eventsToTable(events []api.Event) [][]string {
 	return out
 }
 
-func eventDetailsToTableReport(details api.EventDetails) string {
+func eventDetailsSummaryReport(details api.EventDetails) string {
 	var (
-		eventDetailsReport = &strings.Builder{}
-		table              = tablewriter.NewWriter(eventDetailsReport)
+		report = &strings.Builder{}
+		t      = tablewriter.NewWriter(report)
 	)
 
-	table.SetHeader([]string{
+	t.SetHeader([]string{
 		"Event ID",
 		"Type",
 		"Actor",
@@ -174,9 +183,8 @@ func eventDetailsToTableReport(details api.EventDetails) string {
 		"Start Time",
 		"End Time",
 	})
-	table.SetBorder(false)
-	// TODO @afiune how do we add/display the EntityMap field
-	table.Append([]string{
+	t.SetBorder(eventDetailsBorder)
+	t.Append([]string{
 		details.EventID,
 		details.EventType,
 		details.EventActor,
@@ -184,7 +192,689 @@ func eventDetailsToTableReport(details api.EventDetails) string {
 		details.StartTime.UTC().Format(time.RFC3339),
 		details.EndTime.UTC().Format(time.RFC3339),
 	})
-	table.Render()
+	t.Render()
 
-	return eventDetailsReport.String()
+	return report.String()
+}
+
+func eventEntityMapTables(eventEntities api.EventEntityMap) []string {
+	tables := []string{}
+
+	if machineTable := eventMachineEntitiesTable(eventEntities.Machine); machineTable != "" {
+		tables = append(tables, machineTable)
+	}
+	if containerTable := eventContainerEntitiesTable(eventEntities.Container); containerTable != "" {
+		tables = append(tables, containerTable)
+	}
+	if appTable := eventApplicationEntitiesTable(eventEntities.Application); appTable != "" {
+		tables = append(tables, appTable)
+	}
+	if userTable := eventUserEntitiesTable(eventEntities.User); userTable != "" {
+		tables = append(tables, userTable)
+	}
+	if ipaddressTable := eventIpAddressEntitiesTable(eventEntities.IpAddress); ipaddressTable != "" {
+		tables = append(tables, ipaddressTable)
+	}
+	if sourceIpAddrTable := eventSourceIpAddressEntitiesTable(eventEntities.SourceIpAddress); sourceIpAddrTable != "" {
+		tables = append(tables, sourceIpAddrTable)
+	}
+	if dnsTable := eventDnsNameEntitiesTable(eventEntities.DnsName); dnsTable != "" {
+		tables = append(tables, dnsTable)
+	}
+	if apiTable := eventAPIEntitiesTable(eventEntities.API); apiTable != "" {
+		tables = append(tables, apiTable)
+	}
+	if ctUserTable := eventCTUserEntitiesTable(eventEntities.CTUser); ctUserTable != "" {
+		tables = append(tables, ctUserTable)
+	}
+	if regionTable := eventRegionEntitiesTable(eventEntities.Region); regionTable != "" {
+		tables = append(tables, regionTable)
+	}
+	if processTable := eventProcessEntitiesTable(eventEntities.Process); processTable != "" {
+		tables = append(tables, processTable)
+	}
+	if exePathTable := eventFileExePathEntitiesTable(eventEntities.FileExePath); exePathTable != "" {
+		tables = append(tables, exePathTable)
+	}
+	if dataHashTable := eventFileDataHashEntitiesTable(eventEntities.FileDataHash); dataHashTable != "" {
+		tables = append(tables, dataHashTable)
+	}
+	if cRuleTable := eventCustomRuleEntitiesTable(eventEntities.CustomRule); cRuleTable != "" {
+		tables = append(tables, cRuleTable)
+	}
+	if violationTable := eventNewViolationEntitiesTable(eventEntities.NewViolation); violationTable != "" {
+		tables = append(tables, violationTable)
+	}
+	if recordsTable := eventRecIDEntitiesTable(eventEntities.RecID); recordsTable != "" {
+		tables = append(tables, recordsTable)
+	}
+	if vReasonTable := eventViolationReasonEntitiesTable(eventEntities.ViolationReason); vReasonTable != "" {
+		tables = append(tables, vReasonTable)
+	}
+	if resourceTable := eventResourceEntitiesTable(eventEntities.Resource); resourceTable != "" {
+		tables = append(tables, resourceTable)
+	}
+
+	return tables
+}
+
+func eventRegionEntitiesTable(regions []api.EventRegionEntity) string {
+	if len(regions) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Region",
+		"Acounts",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, user := range regions {
+		t.Append([]string{
+			user.Region,
+			strings.Join(user.AccountList, ", "),
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventCTUserEntitiesTable(users []api.EventCTUserEntity) string {
+	if len(users) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Username",
+		"Account ID",
+		"Pincipal ID",
+		"MFA",
+		"List of APIs",
+		"Regions",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, user := range users {
+		mfa := "Disabled"
+		if user.Mfa != 0 {
+			mfa = "Enabled"
+		}
+		t.Append([]string{
+			user.Username,
+			user.AccoutID,
+			user.PrincipalID,
+			mfa,
+			strings.Join(user.ApiList, ", "),
+			strings.Join(user.RegionList, ", "),
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventDnsNameEntitiesTable(dnss []api.EventDnsNameEntity) string {
+	if len(dnss) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"DNS Hostname",
+		"List of Ports",
+		"Inbound Bytes",
+		"Outboud Bytes",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, d := range dnss {
+		t.Append([]string{
+			d.Hostname,
+			array.JoinInt32(d.PortList, ", "),
+			fmt.Sprintf("%.3f", d.TotalInBytes),
+			fmt.Sprintf("%.3f", d.TotalOutBytes),
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventAPIEntitiesTable(apis []api.EventAPIEntity) string {
+	if len(apis) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Service",
+		"API",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, a := range apis {
+		t.Append([]string{
+			a.Service,
+			a.Api,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventSourceIpAddressEntitiesTable(ips []api.EventSourceIpAddressEntity) string {
+	if len(ips) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Source IP Address",
+		"Country",
+		"Region",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, ip := range ips {
+		t.Append([]string{
+			ip.IpAddress,
+			ip.Country,
+			ip.Region,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventIpAddressEntitiesTable(ips []api.EventIpAddressEntity) string {
+	if len(ips) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"IP Address",
+		"Inbound Bytes",
+		"Outboud Bytes",
+		"List of Ports",
+		"First Time Seen",
+		"Threat Tags",
+		"Threat Source",
+		"Country",
+		"Region",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, ip := range ips {
+		t.Append([]string{
+			ip.IpAddress,
+			fmt.Sprintf("%.3f", ip.TotalInBytes),
+			fmt.Sprintf("%.3f", ip.TotalOutBytes),
+			array.JoinInt32(ip.PortList, ", "),
+			ip.FirstSeenTime.UTC().Format(time.RFC3339),
+			ip.ThreatTags,
+			fmt.Sprintf("%v", ip.ThreatSource),
+			ip.Country,
+			ip.Region,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventFileDataHashEntitiesTable(dataHashes []api.EventFileDataHashEntity) string {
+	if len(dataHashes) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Executable Paths",
+		"File Hash",
+		"Number of Machines",
+		"First Time Seen",
+		"Known Bad",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, dHash := range dataHashes {
+		knownBad := "No"
+		if dHash.IsKnownBad != 0 {
+			knownBad = "Yes"
+		}
+		t.Append([]string{
+			strings.Join(dHash.ExePathList, ", "),
+			dHash.FiledataHash,
+			fmt.Sprintf("%d", dHash.MachineCount),
+			dHash.FirstSeenTime.UTC().Format(time.RFC3339),
+			knownBad,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventFileExePathEntitiesTable(exePaths []api.EventFileExePathEntity) string {
+	if len(exePaths) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Executable Path",
+		"First Time Seen",
+		"Last File Hash",
+		"Last Package Name",
+		"Last Version",
+		"Last File Owner",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, exe := range exePaths {
+		t.Append([]string{
+			exe.ExePath,
+			exe.FirstSeenTime.UTC().Format(time.RFC3339),
+			exe.LastFiledataHash,
+			exe.LastPackageName,
+			exe.LastVersion,
+			exe.LastFileOwner,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventProcessEntitiesTable(processes []api.EventProcessEntity) string {
+	if len(processes) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Process ID",
+		"Hostname",
+		"Start Time",
+		"CPU Percentage",
+		"Command",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, proc := range processes {
+		t.Append([]string{
+			fmt.Sprintf("%d", proc.ProcessID),
+			proc.Hostname,
+			proc.ProcessStartTime.UTC().Format(time.RFC3339),
+			fmt.Sprintf("%.3f", proc.CpuPercentage),
+			proc.Cmdline,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventContainerEntitiesTable(containers []api.EventContainerEntity) string {
+	if len(containers) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Image Repo",
+		"Image Tag",
+		"External Connections",
+		"Type",
+		"First Time Seen",
+		"Pod Namespace",
+		"Pod Ipaddress",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, container := range containers {
+		containerType := ""
+		if container.IsClient != 0 {
+			containerType = "Client"
+		}
+		if container.IsServer != 0 {
+			if containerType != "" {
+				containerType = "Server/Client"
+			} else {
+				containerType = "Server"
+			}
+		}
+		t.Append([]string{
+			container.ImageRepo,
+			container.ImageTag,
+			fmt.Sprintf("%d", container.HasExternalConns),
+			containerType,
+			container.FirstSeenTime.UTC().Format(time.RFC3339),
+			container.PodNamespace,
+			container.PodIpAddr,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventUserEntitiesTable(users []api.EventUserEntity) string {
+	if len(users) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Username",
+		"Hostname",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, user := range users {
+		t.Append([]string{
+			user.Username,
+			user.MachineHostname,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventApplicationEntitiesTable(applications []api.EventApplicationEntity) string {
+	if len(applications) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Application",
+		"External Connections",
+		"Type",
+		"Earliest Known Time",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, app := range applications {
+		appType := ""
+		if app.IsClient != 0 {
+			appType = "Client"
+		}
+		if app.IsServer != 0 {
+			if appType != "" {
+				appType = "Server/Client"
+			} else {
+				appType = "Server"
+			}
+		}
+		t.Append([]string{
+			app.Application,
+			fmt.Sprintf("%d", app.HasExternalConns),
+			appType,
+			app.EarliestKnownTime.UTC().Format(time.RFC3339),
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventCustomRuleEntitiesTable(rules []api.EventCustomRuleEntity) string {
+	if len(rules) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+	t.SetBorder(false)
+	t.SetAutoWrapText(false)
+
+	for _, rule := range rules {
+		t.Append([]string{eventCustomRuleEntityTable(rule)})
+		t.Append([]string{eventCustomRuleDisplayFilerTable(rule)})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventCustomRuleEntityTable(rule api.EventCustomRuleEntity) string {
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+	t.SetHeader([]string{
+		"Rule GUID",
+		"Last Updated User",
+		"Last Updated Time",
+	})
+	t.SetBorder(eventDetailsBorder)
+	t.SetAutoWrapText(false)
+	t.Append([]string{
+		rule.RuleGuid,
+		rule.LastUpdatedUser,
+		rule.LastUpdatedTime.UTC().Format(time.RFC3339),
+	})
+	t.Render()
+	return r.String()
+}
+
+func eventCustomRuleDisplayFilerTable(rule api.EventCustomRuleEntity) string {
+	filter, err := cli.FormatJSONString(rule.DisplayFilter)
+	if err != nil {
+		filter = rule.DisplayFilter
+	}
+
+	return oneLineTable("Display Filter", filter)
+}
+
+func oneLineTable(title, content string) string {
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{title})
+	t.SetBorder(eventDetailsBorder)
+	t.SetAutoWrapText(false)
+	t.SetAlignment(tablewriter.ALIGN_LEFT)
+	t.Append([]string{content})
+	t.Render()
+
+	return r.String()
+}
+
+func eventRecIDEntitiesTable(records []api.EventRecIDEntity) string {
+	if len(records) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Record ID",
+		"Account ID",
+		"Account Alias",
+		"Description",
+		"Status",
+		"Evaluation Type",
+		"Evaluation GUID",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, rec := range records {
+		t.Append([]string{
+			rec.RecID,
+			rec.AccountID,
+			rec.AccountAlias,
+			rec.Title,
+			rec.Status,
+			rec.EvalType,
+			rec.EvalGuid,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventViolationReasonEntitiesTable(reasons []api.EventViolationReasonEntity) string {
+	if len(reasons) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Violation ID",
+		"Reason",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, reason := range reasons {
+		t.Append([]string{
+			reason.RecID,
+			reason.Reason,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventResourceEntitiesTable(resources []api.EventResourceEntity) string {
+	if len(resources) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Name",
+		"Value",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, res := range resources {
+		t.Append([]string{
+			res.Name,
+			fmt.Sprintf("%v", res.Value),
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventNewViolationEntitiesTable(violations []api.EventNewViolationEntity) string {
+	if len(violations) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Violation ID",
+		"Reason",
+		"Resource",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, v := range violations {
+		t.Append([]string{
+			v.RecID,
+			v.Reason,
+			v.Resource,
+		})
+	}
+	t.Render()
+
+	return r.String()
+}
+
+func eventMachineEntitiesTable(machines []api.EventMachineEntity) string {
+	if len(machines) == 0 {
+		return ""
+	}
+
+	var (
+		r = &strings.Builder{}
+		t = tablewriter.NewWriter(r)
+	)
+
+	t.SetHeader([]string{
+		"Hostname",
+		"External IP",
+		"Instance ID",
+		"Instance Name",
+		"CPU Percentage",
+		"Internal Ipaddress",
+	})
+	t.SetBorder(eventDetailsBorder)
+	for _, m := range machines {
+		t.Append([]string{
+			m.Hostname,
+			m.ExternalIp,
+			m.InstanceID,
+			m.InstanceName,
+			fmt.Sprintf("%.3f", m.CpuPercentage),
+			m.InternalIpAddress,
+		})
+	}
+	t.Render()
+
+	return r.String()
 }

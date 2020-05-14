@@ -95,31 +95,31 @@ type EventDetails struct {
 }
 
 type EventEntityMap struct {
-	User            []eventUserEntity            `json:"user,omitempty"`
-	Application     []eventApplicationEntity     `json:"application,omitempty"`
-	Machine         []eventMachineEntity         `json:"machine,omitempty"`
-	Container       []eventContainerEntity       `json:"container,omitempty"`
-	DnsName         []eventDnsNameEntity         `json:"DnsName,omitempty"`   // @afiune not in standard
-	IpAddress       []eventIpAddressEntity       `json:"IpAddress,omitempty"` // @afiune not in standard
-	Process         []eventProcessEntity         `json:"process,omitempty"`
-	FileDataHash    []eventFileDataHashEntity    `json:"FileDataHash,omitempty"`    // @afiune not in standard
-	FileExePath     []eventFileExePathEntity     `json:"FileExePath,omitempty"`     // @afiune not in standard
-	SourceIpAddress []eventSourceIpAddressEntity `json:"SourceIpAddress,omitempty"` // @afiune not in standard
-	API             []eventAPIEntity             `json:"api,omitempty"`
-	Region          []eventRegionEntity          `json:"region,omitempty"`
-	CTUser          []eventCTUserEntity          `json:"ct_user,omitempty"`
-	Resource        []eventResourceEntity        `json:"resource,omitempty"`
-	RecID           []eventRecIDEntity           `json:"RecId,omitempty"`           // @afiune not in standard
-	CustomRule      []eventCustomRuleEntity      `json:"CustomRule,omitempty"`      // @afiune not in standard
-	NewViolation    []eventNewViolationEntity    `json:"NewViolation,omitempty"`    // @afiune not in standard
-	ViolationReason []eventViolationReasonEntity `json:"ViolationReason,omitempty"` // @afiune not in standard
+	User            []EventUserEntity            `json:"user,omitempty"`
+	Application     []EventApplicationEntity     `json:"application,omitempty"`
+	Machine         []EventMachineEntity         `json:"machine,omitempty"`
+	Container       []EventContainerEntity       `json:"container,omitempty"`
+	DnsName         []EventDnsNameEntity         `json:"DnsName,omitempty"`   // @afiune not in standard
+	IpAddress       []EventIpAddressEntity       `json:"IpAddress,omitempty"` // @afiune not in standard
+	Process         []EventProcessEntity         `json:"process,omitempty"`
+	FileDataHash    []EventFileDataHashEntity    `json:"FileDataHash,omitempty"`    // @afiune not in standard
+	FileExePath     []EventFileExePathEntity     `json:"FileExePath,omitempty"`     // @afiune not in standard
+	SourceIpAddress []EventSourceIpAddressEntity `json:"SourceIpAddress,omitempty"` // @afiune not in standard
+	API             []EventAPIEntity             `json:"api,omitempty"`
+	Region          []EventRegionEntity          `json:"region,omitempty"`
+	CTUser          []EventCTUserEntity          `json:"ct_user,omitempty"`
+	Resource        []EventResourceEntity        `json:"resource,omitempty"`
+	RecID           []EventRecIDEntity           `json:"RecId,omitempty"`           // @afiune not in standard
+	CustomRule      []EventCustomRuleEntity      `json:"CustomRule,omitempty"`      // @afiune not in standard
+	NewViolation    []EventNewViolationEntity    `json:"NewViolation,omitempty"`    // @afiune not in standard
+	ViolationReason []EventViolationReasonEntity `json:"ViolationReason,omitempty"` // @afiune not in standard
 }
-type eventUserEntity struct {
+type EventUserEntity struct {
 	MachineHostname string `json:"machine_hostname"`
 	Username        string `json:"username"`
 }
 
-type eventApplicationEntity struct {
+type EventApplicationEntity struct {
 	Application       string    `json:"application"`
 	HasExternalConns  int32     `json:"has_external_conns"`
 	IsClient          int32     `json:"is_client"`
@@ -127,7 +127,7 @@ type eventApplicationEntity struct {
 	EarliestKnownTime time.Time `json:"earliest_known_time"`
 }
 
-type eventMachineEntity struct {
+type EventMachineEntity struct {
 	Hostname          string  `json:"hostname"`
 	ExternalIp        string  `json:"external_ip"`
 	InstanceID        string  `json:"instance_id"`
@@ -136,7 +136,7 @@ type eventMachineEntity struct {
 	InternalIpAddress string  `json:"internal_ip_address"`
 }
 
-type eventContainerEntity struct {
+type EventContainerEntity struct {
 	ImageRepo        string    `json:"image_repo"`
 	ImageTag         string    `json:"image_tag"`
 	HasExternalConns int32     `json:"has_external_conns"`
@@ -147,14 +147,14 @@ type eventContainerEntity struct {
 	PodIpAddr        string    `json:"pod_ip_addr"`
 }
 
-type eventDnsNameEntity struct {
+type EventDnsNameEntity struct {
 	Hostname      string  `json:"hostname"`
 	PortList      []int32 `json:"port_list"`
 	TotalInBytes  float32 `json:"total_in_bytes"`
 	TotalOutBytes float32 `json:"total_out_bytes"`
 }
 
-type eventIpAddressEntity struct {
+type EventIpAddressEntity struct {
 	IpAddress     string        `json:"ip_address"`
 	TotalInBytes  float32       `json:"total_in_bytes"`
 	TotalOutBytes float32       `json:"total_out_bytes"`
@@ -166,7 +166,7 @@ type eventIpAddressEntity struct {
 	FirstSeenTime time.Time     `json:"first_seen_time"`
 }
 
-type eventProcessEntity struct {
+type EventProcessEntity struct {
 	Hostname         string    `json:"hostname"`
 	ProcessID        int32     `json:"process_id"`
 	ProcessStartTime time.Time `json:"process_start_time"`
@@ -174,7 +174,7 @@ type eventProcessEntity struct {
 	CpuPercentage    float32   `json:"cpu_percentage"`
 }
 
-type eventFileDataHashEntity struct {
+type EventFileDataHashEntity struct {
 	FiledataHash  string    `json:"filedata_hash"`
 	MachineCount  int32     `json:"machine_count"`
 	ExePathList   []string  `json:"exe_path_list"`
@@ -182,7 +182,7 @@ type eventFileDataHashEntity struct {
 	IsKnownBad    int32     `json:"is_known_bad"`
 }
 
-type eventFileExePathEntity struct {
+type EventFileExePathEntity struct {
 	ExePath          string    `json:"exe_path"`
 	FirstSeenTime    time.Time `json:"first_seen_time"`
 	LastFiledataHash string    `json:"last_filedata_hash"`
@@ -191,23 +191,23 @@ type eventFileExePathEntity struct {
 	LastFileOwner    string    `json:"last_file_owner"`
 }
 
-type eventSourceIpAddressEntity struct {
+type EventSourceIpAddressEntity struct {
 	IpAddress string `json:"ip_address"`
 	Region    string `json:"region"`
 	Country   string `json:"country"`
 }
 
-type eventAPIEntity struct {
+type EventAPIEntity struct {
 	Service string `json:"service"`
 	Api     string `json:"api"`
 }
 
-type eventRegionEntity struct {
+type EventRegionEntity struct {
 	Region      string   `json:"region"`
 	AccountList []string `json:"account_list"`
 }
 
-type eventCTUserEntity struct {
+type EventCTUserEntity struct {
 	Username    string   `json:"username"`
 	AccoutID    string   `json:"accout_id"`
 	Mfa         int32    `json:"mfa"`
@@ -216,14 +216,14 @@ type eventCTUserEntity struct {
 	PrincipalID string   `json:"principal_id"`
 }
 
-type eventResourceEntity struct {
+type EventResourceEntity struct {
 	Name string `json:"name"`
 	// @afiune the API documentation says this field is a string, but there are
 	// many events that has this field as a number, boolean, etc.  :sadpanda:
 	Value interface{} `json:"value"`
 }
 
-type eventRecIDEntity struct {
+type EventRecIDEntity struct {
 	RecID        string `json:"rec_id"`
 	AccountID    string `json:"account_id"`
 	AccountAlias string `json:"account_alias"`
@@ -233,20 +233,20 @@ type eventRecIDEntity struct {
 	EvalGuid     string `json:"eval_guid"`
 }
 
-type eventCustomRuleEntity struct {
+type EventCustomRuleEntity struct {
 	LastUpdatedTime time.Time `json:"last_updated_time"`
 	LastUpdatedUser string    `json:"last_updated_user"`
 	DisplayFilter   string    `json:"display_filter"`
 	RuleGuid        string    `json:"rule_guid"`
 }
 
-type eventNewViolationEntity struct {
+type EventNewViolationEntity struct {
 	RecID    string `json:"rec_id"`
 	Reason   string `json:"reason"`
 	Resource string `json:"resource"`
 }
 
-type eventViolationReasonEntity struct {
+type EventViolationReasonEntity struct {
 	RecID  string `json:"rec_id"`
 	Reason string `json:"reason"`
 }

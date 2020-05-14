@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -46,11 +47,20 @@ func (c *cliState) OutputHuman(format string, a ...interface{}) {
 
 // OutputJSONString is just like OutputJSON but from a JSON string
 func (c *cliState) OutputJSONString(s string) error {
-	pretty, err := c.JsonF.Format([]byte(s))
+	pretty, err := c.FormatJSONString(s)
 	if err != nil {
-		c.Log.Debugw("unable to pretty print JSON string", "raw", s)
 		return err
 	}
 	fmt.Fprintln(color.Output, string(pretty))
 	return nil
+}
+
+// FormatJSONString formats a JSON string into a pretty JSON format
+func (c *cliState) FormatJSONString(s string) (string, error) {
+	pretty, err := c.JsonF.Format([]byte(strings.Trim(s, "'")))
+	if err != nil {
+		c.Log.Debugw("unable to pretty print JSON string", "raw", s)
+		return "", err
+	}
+	return string(pretty), nil
 }
