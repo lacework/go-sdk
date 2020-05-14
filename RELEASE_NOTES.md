@@ -1,12 +1,12 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.1.10`.
+Another day, another release. These are the release notes for the version `v0.1.11`.
 
 ## Features
-* feat(cli): add aliases to integration and event cmds (Salim Afiune Maya)([9e8cd5c](https://github.com/lacework/go-sdk/commit/9e8cd5c4d2eb0d9cbed715a89985978e62eab9c0))
-* feat(cli): preconfigure using key JSON file (WebUI) (Salim Afiune Maya)([80c48e7](https://github.com/lacework/go-sdk/commit/80c48e7bbaf95c888b9422249c8e09818c0a83b2))
-* feat(cli): new 'integration show' cmd  (#91) (Salim Afiune Maya)([5bedf53](https://github.com/lacework/go-sdk/commit/5bedf5348c9fcc1748bc66534d8ac2e6475e6c64))
+* feat: incident analysis, visualize event details (Salim Afiune Maya)([532f11d](https://github.com/lacework/go-sdk/commit/532f11d461759c9214730a1ec5b92d9ad39afbaf))
 ## Bug Fixes
-* fix(docker): fix build/release of CLI containers (Salim Afiune Maya)([2146ecb](https://github.com/lacework/go-sdk/commit/2146ecbd6c0d4d0a9f8f608a902aeffebdce3cf9))
-* fix(api): parsing event details 'cpu_percentage' (Salim Afiune Maya)([5f978ea](https://github.com/lacework/go-sdk/commit/5f978ead44bd6700f520ccb0742d5355464cfece))
+* fix(api): use correct types on events response (Salim Afiune Maya)([86d8b7b](https://github.com/lacework/go-sdk/commit/86d8b7b533ef77f4b9bcf63fc839ae88be12000b))
 ## Other Changes
-* chore: consistency with ID fields in Go structs (Salim Afiune Maya)([79b874e](https://github.com/lacework/go-sdk/commit/79b874ed3410b033b52a59c4fa98acb719aacfcf))
+* style(cli): show help without errors (Salim Afiune Maya)([a72ba55](https://github.com/lacework/go-sdk/commit/a72ba55a1a35e9c0e9626d8af4c9e1ea102c6e7c))
+* ci: add badge to README and encrypted keys (Salim Afiune Maya)([c03a416](https://github.com/lacework/go-sdk/commit/c03a41664771d6a0fcfc858223e99a347b506a20))
+* test(integration): adds end-to-end tests (Salim Afiune Maya)([e2eb449](https://github.com/lacework/go-sdk/commit/e2eb4493bfaf73f575a3e0c1297ba4186ace34ec))
+* test(integration): new framework to write CLI tests (Salim Afiune Maya)([402b2a2](https://github.com/lacework/go-sdk/commit/402b2a28d05a5f5bf8bfd198145d091feb2461fe))
