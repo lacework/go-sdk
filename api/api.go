@@ -36,6 +36,16 @@ const (
 	apiVulnerabilitiesReportFromID     = "external/vulnerabilities/container/imageId/%s"
 	apiVulnerabilitiesReportFromDigest = "external/vulnerabilities/container/imageDigest/%s"
 
+	apiComplianceAwsLatestReport        = "external/compliance/aws/GetLatestComplianceReport?AWS_ACCOUNT_ID=%s"
+	apiComplianceGcpLatestReport        = "external/compliance/gcp/GetLatestComplianceReport?GCP_ORG_ID=%s&GCP_PROJ_ID=%s"
+	apiComplianceGcpListProjects        = "external/compliance/gcp/ListProjectsForOrganization?GCP_ORG_ID=%s"
+	apiComplianceAzureLatestReport      = "external/compliance/azure/GetLatestComplianceReport?AZURE_TENANT_ID=%s&AZURE_SUBS_ID=%s"
+	apiComplianceAzureListSubscriptions = "external/compliance/azure/ListSubscriptionsForTenant?AZURE_TENANT_ID=%s"
+
+	apiRunReportGcp   = "external/runReport/gcp/%s"
+	apiRunReportAws   = "external/runReport/aws/%s"
+	apiRunReportAzure = "external/runReport/azure/%s"
+
 	apiEventsDetails   = "external/events/GetEventDetails"
 	apiEventsDateRange = "external/events/GetEventsForDateRange"
 )
