@@ -31,6 +31,9 @@ import (
 )
 
 var (
+	// used by integration list to list only a single type of integration
+	integrationType string
+
 	// integrationCmd represents the integration command
 	integrationCmd = &cobra.Command{
 		Use:     "integration",
@@ -45,6 +48,10 @@ var (
 		Short: "list all available external integrations",
 		Args:  cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			var (
+				integrations api.RawIntegrationsResponse
+				err          error
+			)
 			lacework, err := api.NewClient(cli.Account,
 				api.WithLogLevel(cli.LogLevel),
 				api.WithApiKeys(cli.KeyID, cli.Secret),
@@ -53,13 +60,26 @@ var (
 				return errors.Wrap(err, "unable to generate api client")
 			}
 
-			integrations, err := lacework.Integrations.List()
+			if integrationType != "" {
+				intType, found := api.FindIntegrationType(integrationType)
+				if !found {
+					return errors.Errorf("unknown integration type '%s'", integrationType)
+				}
+				integrations, err = lacework.Integrations.ListByType(intType)
+			} else {
+				integrations, err = lacework.Integrations.List()
+			}
 			if err != nil {
 				return errors.Wrap(err, "unable to get integrations")
 			}
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(integrations.Data)
+			}
+
+			if len(integrations.Data) == 0 {
+				cli.OutputHuman("There was no integration found.\n")
+				return nil
 			}
 
 			cli.OutputHuman(buildIntegrationsTable(integrations.Data))
@@ -180,6 +200,11 @@ func init() {
 	integrationCmd.AddCommand(integrationCreateCmd)
 	integrationCmd.AddCommand(integrationUpdateCmd)
 	integrationCmd.AddCommand(integrationDeleteCmd)
+
+	// add type flag to integration list command
+	integrationListCmd.Flags().StringVarP(&integrationType,
+		"type", "t", "", "list all integrations of a specific type",
+	)
 }
 
 func promptCreateIntegration(lacework *api.Client) error {
