@@ -18,7 +18,7 @@ reports, external integrations, vulnerability scans, and other operations.
 
 #### Bash:
 ```
-$ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | sudo bash
+$ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash
 ```
 
 #### Powershell:
