@@ -66,3 +66,40 @@ func TestIntegrationCommandList(t *testing.T) {
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
 }
+
+func TestIntegrationCommandListWithTypeFlag(t *testing.T) {
+	// @afiune shippable doesn't allow us to have encrypted variables inside our build jobs,
+	// and because of that, we are disabling a few tests when running inside our "CI" pipeline
+	if os.Getenv("CI") == "true" {
+		return
+	}
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("integration", "list", "--type", "AWS_CFG")
+	assert.Contains(t, out.String(), "INTEGRATION GUID",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "NAME",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "TYPE",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "STATUS",
+		"STDOUT table headers changed, please check")
+
+	// TODO @afiune lets try to create an environment where we can be 100% sure that
+	// integrations will exist and assert against it
+
+	assert.Empty(t,
+		err.String(),
+		"STDERR should be empty")
+	assert.Equal(t, 0, exitcode,
+		"EXITCODE is not the expected one")
+}
+
+func TestIntegrationCommandListWithTypeFlagErrorUnknownType(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithDummyConfig("integration", "list", "--type", "FOO_BAR")
+	assert.Emptyf(t, out.String(),
+		"STDOUT should be empty")
+	assert.Contains(t, err.String(),
+		"ERROR unknown integration type 'FOO_BAR'",
+		"STDERR should contain the unknown type")
+	assert.Equal(t, 1, exitcode,
+		"EXITCODE is not the expected one")
+}

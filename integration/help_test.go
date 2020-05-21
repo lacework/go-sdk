@@ -136,6 +136,7 @@ Usage:
 
 Available Commands:
   api           helper to call Lacework's RestfulAPI
+  compliance    manage compliance reports
   configure     configure the Lacework CLI
   event         inspect Lacework events
   integration   manage external integrations
