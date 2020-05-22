@@ -131,7 +131,7 @@ generate_release_notes() {
 
   # Add Docker Images Footer
   echo "" >> RELEASE_NOTES.md
-  echo "## Docker Images" > RELEASE_NOTES.md
+  echo "## Docker Images" >> RELEASE_NOTES.md
   for tag in "${docker_tags[@]}"; do
     echo "* \`docker pull ${docker_org}/${package_name}:${tag}\`" >> RELEASE_NOTES.md
   done
