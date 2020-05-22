@@ -43,6 +43,7 @@ type Client struct {
 	log        *zap.Logger
 
 	Events          *EventsService
+	Compliance      *ComplianceService
 	Integrations    *IntegrationsService
 	Vulnerabilities *VulnerabilitiesService
 }
@@ -86,6 +87,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		c: &http.Client{Timeout: defaultTimeout},
 	}
 	c.Events = &EventsService{c}
+	c.Compliance = &ComplianceService{c}
 	c.Integrations = &IntegrationsService{c}
 	c.Vulnerabilities = &VulnerabilitiesService{c}
 

@@ -66,6 +66,13 @@ func LaceworkCLIWithTOMLConfig(args ...string) (bytes.Buffer, bytes.Buffer, int)
 	return runLaceworkCLI(dir, args...)
 }
 
+func LaceworkCLIWithDummyConfig(args ...string) (bytes.Buffer, bytes.Buffer, int) {
+	dir := createDummyTOMLConfig()
+	defer os.RemoveAll(dir)
+
+	return runLaceworkCLI(dir, args...)
+}
+
 func LaceworkCLIWithHome(dir string, args ...string) (bytes.Buffer, bytes.Buffer, int) {
 	return runLaceworkCLI(dir, args...)
 }
@@ -152,4 +159,23 @@ ERROR
   more information.
 
 `
+}
+
+func createDummyTOMLConfig() string {
+	dir, err := ioutil.TempDir("", "lacework-toml")
+	if err != nil {
+		panic(err)
+	}
+
+	configFile := filepath.Join(dir, ".lacework.toml")
+	c := []byte(`[default]
+account = 'dummy'
+api_key = 'DUMMY_1234567890abcdefg'
+api_secret = '_superdummysecret'
+`)
+	err = ioutil.WriteFile(configFile, c, 0644)
+	if err != nil {
+		panic(err)
+	}
+	return dir
 }

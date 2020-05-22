@@ -97,7 +97,7 @@ Lacework CLI will create it for you.`,
 func init() {
 	rootCmd.AddCommand(configureCmd)
 
-	configureCmd.PersistentFlags().StringVarP(&configureJsonFile,
+	configureCmd.Flags().StringVarP(&configureJsonFile,
 		"json_file", "j", "", "loads the generated API key JSON file from the WebUI",
 	)
 }
