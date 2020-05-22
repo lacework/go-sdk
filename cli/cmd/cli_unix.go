@@ -30,6 +30,6 @@ var promptIconsFunc = func(icons *survey.IconSet) {
 // to the latest available version (unix specific command)
 func (c *cliState) UpdateCommand() string {
 	return `
-  $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | sudo bash
+  $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash
 `
 }
