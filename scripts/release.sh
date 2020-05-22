@@ -13,6 +13,17 @@ set -eou pipefail
 readonly project_name=go-sdk
 readonly package_name=lacework-cli
 readonly binary_name=lacework
+readonly docker_org=techallylw
+readonly docker_tags=(
+  latest
+  scratch
+  ubi-8
+  centos-8
+  debian-10
+  ubuntu-1804
+  amazonlinux-2
+#  windows-nanoserver
+)
 
 VERSION=$(cat VERSION)
 TARGETS=(
@@ -69,7 +80,7 @@ prepare_release() {
 do_release() {
   log "releasing v$VERSION"
   prerequisites
-  release_checks
+  release_check
   clean_cache
   build_cli_cross_platform
   compress_targets
@@ -117,6 +128,13 @@ generate_release_notes() {
   echo "Another day, another release. These are the release notes for the version \`v$VERSION\`." >> RELEASE_NOTES.md
   echo "" >> RELEASE_NOTES.md
   echo "$(cat CHANGES.md)" >> RELEASE_NOTES.md
+
+  # Add Docker Images Footer
+  echo "" >> RELEASE_NOTES.md
+  echo "## Docker Images" > RELEASE_NOTES.md
+  for tag in "${docker_tags[@]}"; do
+    echo "* \`docker pull ${docker_org}/${package_name}:${tag}\`" >> RELEASE_NOTES.md
+  done
 }
 
 push_release() {

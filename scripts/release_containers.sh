@@ -20,6 +20,8 @@ log "releasing container from SCRATCH"
 docker build -t "${repository}:scratch" --no-cache .
 docker push "${repository}:scratch"
 
+# when updating the distributions below, please make sure to update
+# the script 'release.sh' inside the 'script/' folder
 distros=(
   ubi-8
   centos-8
