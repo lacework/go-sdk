@@ -36,18 +36,16 @@ for dist in "${distros[@]}"; do
   docker push "${repository}:${dist}"
 done
 
-if ! docker manifest inspect "$repository"; then
-  log "creating docker manifest"
-  docker manifest create "${repository}:latest"      \
+log "creating docker manifest"
+docker manifest create   "${repository}:latest"      \
                          "${repository}:scratch"     \
                          "${repository}:ubi-8"       \
                          "${repository}:centos-8"    \
                          "${repository}:debian-10"   \
                          "${repository}:ubuntu-1804" \
-                         "${repository}:amazonlinux-2"
-fi
+                         "${repository}:amazonlinux-2" --amend
 
 log "pushing docker manifest"
-docker manifest push "${repository}:latest"
+docker manifest push "${repository}:latest" --purge
 
 log "All docker containers have been released! (https://hub.docker.com/repository/docker/${repository})"
