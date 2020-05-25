@@ -62,8 +62,15 @@ endif
 release-prepare: lint fmt-check imports-check test
 	scripts/release.sh prepare
 
-release-do: lint fmt-check imports-check test
-	scripts/release.sh release
+release-publish: lint fmt-check imports-check test
+	scripts/release.sh publish
+
+release-patch-version:
+	scripts/release.sh version patch
+release-minor-version:
+	scripts/release.sh version minor
+release-major-version:
+	scripts/release.sh version major
 
 release-containers:
 	scripts/release_containers.sh

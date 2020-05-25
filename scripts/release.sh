@@ -49,8 +49,12 @@ USAGE:
     ${_cmd} [command]
 
 COMMANDS:
-    prepare    Generates release notes, bumps the version and updates the CHANGELOG.md
-    release    Builds binaries, shasums and creates a Github tag like 'v0.1.0'
+    prepare    Generates release notes, updates version and CHANGELOG.md
+    publish    Builds binaries, shasums and creates a Github tag like 'v0.1.0'
+
+Update version after release:
+    version [kind] Prepare the version after release, it adds the '-dev' tag
+                   Kinds of version bumps: [patch, minor, major]
 USAGE
 }
 
@@ -59,8 +63,11 @@ main() {
     prepare)
       prepare_release
       ;;
-    release)
-      do_release
+    publish)
+      publish_release
+      ;;
+    version)
+      bump_version $2
       ;;
     *)
       usage
@@ -71,13 +78,13 @@ main() {
 prepare_release() {
   log "preparing new release"
   prerequisites
-  version_bump
+  remove_dev_version
   generate_release_notes
   update_changelog
   push_release
 }
 
-do_release() {
+publish_release() {
   log "releasing v$VERSION"
   prerequisites
   release_check
@@ -86,6 +93,7 @@ do_release() {
   compress_targets
   generate_shasums
   tag_release
+  version_bump
 }
 
 update_changelog() {
@@ -198,16 +206,43 @@ find_latest_version() {
   echo "$_versions" | tr '.' ' ' | sort -nr -k 1 -k 2 -k 3 | tr ' ' '.' | head -1
 }
 
-version_bump() {
+remove_dev_version() {
+  if [[ "$VERSION" =~ "dev" ]]; then
+    echo $VERSION | cut -d- -f1 > VERSION
+    VERSION=$(cat VERSION)
+    log "updated version for release v$VERSION"
+  fi
+}
+
+bump_version() {
+  log "updating version after release"
+  prerequisites
   latest_version=$(find_latest_version)
 
   if [[ "v$VERSION" == "$latest_version" ]]; then
-    echo $VERSION | awk -F. '{printf("%d.%d.%d", $1, $2, $3+1)}' > VERSION
+    case "${1:-}" in
+      major)
+        echo $VERSION | awk -F. '{printf("%d.%d.%d-dev", $1+1, $2, $3)}' > VERSION
+        ;;
+      minor)
+        echo $VERSION | awk -F. '{printf("%d.%d.%d-dev", $1, $2+1, $3)}' > VERSION
+        ;;
+      *)
+        echo $VERSION | awk -F. '{printf("%d.%d.%d-dev", $1, $2, $3+1)}' > VERSION
+        ;;
+    esac
     VERSION=$(cat VERSION)
-    log "update version from $latest_version to v$VERSION"
+    log "version bumped from $latest_version to v$VERSION"
   else
     log "skipping version bump. Already bumped to v$VERSION"
+    return
   fi
+
+  log "pushing version bump to 'master'. [Press Enter to continue]"
+  read
+  git add VERSION
+  git commit -m "chore: bump version to v$VERSION"
+  git push origin master
 }
 
 clean_cache() {
