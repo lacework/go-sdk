@@ -22,9 +22,23 @@ import "github.com/pkg/errors"
 
 func promptRequiredStringLen(size int, err string) func(interface{}) error {
 	return func(input interface{}) error {
-		if str, ok := input.(string); !ok || len(str) == 0 {
+		if str, ok := input.(string); !ok || len(str) < size {
 			return errors.New(err)
 		}
 		return nil
 	}
+}
+
+// @afiune add unit tests
+func formatSecret(nToShow int, secret string) string {
+	secretSize := len(secret)
+	if secretSize <= nToShow {
+		return secret
+	}
+
+	var chars = []byte(secret)
+	for i := 0; i < (secretSize - nToShow); i++ {
+		chars[i] = '*'
+	}
+	return string(chars)
 }

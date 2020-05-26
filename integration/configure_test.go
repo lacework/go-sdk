@@ -36,7 +36,7 @@ func TestConfigureCommand(t *testing.T) {
 			c.ExpectString("Account:")
 			c.SendLine("test-account")
 			c.ExpectString("Access Key ID:")
-			c.SendLine("TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
+			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
 			c.ExpectString("Secret Access Key:")
 			c.SendLine("_00000000000000000000000000000000")
 			c.ExpectString("You are all set!")
@@ -46,7 +46,7 @@ func TestConfigureCommand(t *testing.T) {
 
 	assert.Equal(t, `[default]
   account = "test-account"
-  api_key = "TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
 `, laceworkTOML, "there is a problem with the generated config")
 }
@@ -57,7 +57,7 @@ func TestConfigureCommandWithProfileFlag(t *testing.T) {
 			c.ExpectString("Account:")
 			c.SendLine("test-account")
 			c.ExpectString("Access Key ID:")
-			c.SendLine("TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
+			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
 			c.ExpectString("Secret Access Key:")
 			c.SendLine("_00000000000000000000000000000000")
 			c.ExpectString("You are all set!")
@@ -67,14 +67,14 @@ func TestConfigureCommandWithProfileFlag(t *testing.T) {
 
 	assert.Equal(t, `[my-profile]
   account = "test-account"
-  api_key = "TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
 func TestConfigureCommandWithJSONFileFlag(t *testing.T) {
 	// create a JSON file similar to what the Lacework Web UI would provide
-	s := createJSONFileLikeWebUI(`{"keyId": "TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00","secret": "_cccccccccccccccccccccccccccccccc"}`)
+	s := createJSONFileLikeWebUI(`{"keyId": "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00","secret": "_cccccccccccccccccccccccccccccccc"}`)
 	defer os.Remove(s)
 
 	_, laceworkTOML := runConfigureTest(t,
@@ -92,7 +92,7 @@ func TestConfigureCommandWithJSONFileFlag(t *testing.T) {
 
 	assert.Equal(t, `[default]
   account = "web-ui-test"
-  api_key = "TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
 `, laceworkTOML, "there is a problem with the generated config")
 }
@@ -112,7 +112,7 @@ func TestConfigureCommandWithJSONFileFlagError(t *testing.T) {
 
 func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
 	os.Setenv("LW_ACCOUNT", "env-vars")
-	os.Setenv("LW_API_KEY", "TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
+	os.Setenv("LW_API_KEY", "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
 	os.Setenv("LW_API_SECRET", "_cccccccccccccccccccccccccccccccc")
 	defer os.Setenv("LW_ACCOUNT", "")
 	defer os.Setenv("LW_API_KEY", "")
@@ -133,7 +133,7 @@ func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
 
 	assert.Equal(t, `[default]
   account = "env-vars"
-  api_key = "TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
 `, laceworkTOML, "there is a problem with the generated config")
 }
@@ -151,13 +151,13 @@ func TestConfigureCommandWithAPIkeysFromFlags(t *testing.T) {
 		},
 		"configure",
 		"--account", "from-flags",
-		"--api_key", "TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00",
+		"--api_key", "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00",
 		"--api_secret", "_cccccccccccccccccccccccccccccccc",
 	)
 
 	assert.Equal(t, `[default]
   account = "from-flags"
-  api_key = "TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
 `, laceworkTOML, "there is a problem with the generated config")
 }
@@ -171,7 +171,7 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
 			c.ExpectString("Account:")
 			c.SendLine("super-cool-profile")
 			c.ExpectString("Access Key ID:")
-			c.SendLine("TEST_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
+			c.SendLine("TEST_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
 			c.ExpectString("Secret Access Key:")
 			c.SendLine("_uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
 			c.ExpectString("You are all set!")
@@ -181,12 +181,12 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
 
 	assert.Equal(t, `[default]
   account = "test.account"
-  api_key = "TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
 
 [dev]
   account = "dev.example"
-  api_key = "DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_key = "DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC000"
   api_secret = "_11111111111111111111111111111111"
 
 [integration]
@@ -196,8 +196,35 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
 
 [new-profile]
   account = "super-cool-profile"
-  api_key = "TEST_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
+  api_key = "TEST_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
   api_secret = "_uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"
+`, laceworkTOML, "there is a problem with the generated config")
+}
+
+func TestConfigureCommandErrors(t *testing.T) {
+	_, laceworkTOML := runConfigureTest(t,
+		func(c *expect.Console) {
+			c.ExpectString("Account:")
+			c.SendLine("")
+			c.ExpectString("The account subdomain of URL is required")
+			c.SendLine("my-account")
+			c.ExpectString("Access Key ID:")
+			c.SendLine("")
+			c.ExpectString("The API access key id must have more than 55 characters")
+			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
+			c.ExpectString("Secret Access Key:")
+			c.SendLine("")
+			c.ExpectString("The API secret access key must have more than 30 characters")
+			c.SendLine("_00000000000000000000000000000000")
+			c.ExpectString("You are all set!")
+		},
+		"configure",
+	)
+
+	assert.Equal(t, `[default]
+  account = "my-account"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_secret = "_00000000000000000000000000000000"
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -269,7 +296,7 @@ func createTOMLConfig() string {
 	configFile := filepath.Join(dir, ".lacework.toml")
 	c := []byte(`[default]
 account = 'test.account'
-api_key = 'TEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00'
+api_key = 'INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00'
 api_secret = '_00000000000000000000000000000000'
 
 [integration]
@@ -279,7 +306,7 @@ api_secret = '_1234abdc00ff11vv22zz33xyz1234abc'
 
 [dev]
 account = 'dev.example'
-api_key = 'DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00'
+api_key = 'DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC000'
 api_secret = '_11111111111111111111111111111111'
 `)
 	err = ioutil.WriteFile(configFile, c, 0644)

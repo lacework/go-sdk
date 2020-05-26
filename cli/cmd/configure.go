@@ -21,6 +21,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"path"
 
@@ -118,41 +119,57 @@ func promptConfigureSetup() error {
 		{
 			Name: "account",
 			Prompt: &survey.Input{
-				Message: "Account: ",
+				Message: "Account:",
 				Default: cli.Account,
 			},
-			Validate: promptRequiredStringLen(0,
+			Validate: promptRequiredStringLen(1,
 				"The account subdomain of URL is required. (i.e. <ACCOUNT>.lacework.net)",
 			),
 		},
 		{
 			Name: "api_key",
 			Prompt: &survey.Input{
-				Message: "Access Key ID: ",
+				Message: "Access Key ID:",
 				Default: cli.KeyID,
 			},
 			Validate: promptRequiredStringLen(55,
 				"The API access key id must have more than 55 characters.",
 			),
 		},
-		{
-			Name: "api_secret",
-			Prompt: &survey.Input{
-				Message: "Secret Access Key: ",
-				Default: cli.Secret,
-			},
-			Validate: promptRequiredStringLen(30,
-				"The API secret access key must have more than 30 characters.",
-			),
+	}
+
+	secretQuest := &survey.Question{
+		Name: "api_secret",
+		Validate: func(input interface{}) error {
+			str, ok := input.(string)
+			if !ok || len(str) < 30 {
+				if len(str) == 0 && len(cli.Secret) != 0 {
+					return nil
+				}
+				return errors.New("The API secret access key must have more than 30 characters.")
+			}
+			return nil
 		},
 	}
 
+	secretMessage := "Secret Access Key:"
+	if len(cli.Secret) != 0 {
+		secretMessage = fmt.Sprintf("Secret Access Key: (%s)", formatSecret(4, cli.Secret))
+	}
+	secretQuest.Prompt = &survey.Password{
+		Message: secretMessage,
+	}
+
 	newCreds := credsDetails{}
-	err := survey.Ask(questions, &newCreds,
+	err := survey.Ask(append(questions, secretQuest), &newCreds,
 		survey.WithIcons(promptIconsFunc),
 	)
 	if err != nil {
 		return err
+	}
+
+	if len(newCreds.ApiSecret) == 0 {
+		newCreds.ApiSecret = cli.Secret
 	}
 
 	var (
