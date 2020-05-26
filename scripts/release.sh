@@ -109,6 +109,7 @@ update_changelog() {
 }
 
 load_list_of_changes() {
+  latest_version=$(find_latest_version)
   local _list_of_changes=$(git log --no-merges --pretty="* %s (%an)([%h](https://github.com/lacework/${project_name}/commit/%H))" ${latest_version}..master)
   echo "## Features" > CHANGES.md
   echo "$_list_of_changes" | grep "\* feat[:(]" >> CHANGES.md
