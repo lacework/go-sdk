@@ -93,7 +93,6 @@ publish_release() {
   compress_targets
   generate_shasums
   tag_release
-  version_bump
 }
 
 update_changelog() {
@@ -160,7 +159,7 @@ tag_release() {
   log "creating github tag: $_tag"
   git tag "$_tag"
   git push origin "$_tag"
-  log "go to https://github.com/lacework/${project_name}/releases and upload all files from 'bin/'"
+  log "go to https://github.com/lacework/${project_name}/releases/tag/${_tag} and upload all files from 'bin/'"
 }
 
 release_check() {
@@ -242,7 +241,7 @@ bump_version() {
   log "pushing version bump to 'master'. [Press Enter to continue]"
   read
   git add VERSION
-  git commit -m "chore: bump version to v$VERSION"
+  git commit -m "version bump to v$VERSION"
   git push origin master
 }
 
