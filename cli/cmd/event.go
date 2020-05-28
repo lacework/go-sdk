@@ -297,7 +297,7 @@ func eventCTUserEntitiesTable(users []api.EventCTUserEntity) string {
 	t.SetHeader([]string{
 		"Username",
 		"Account ID",
-		"Pincipal ID",
+		"Principal ID",
 		"MFA",
 		"List of APIs",
 		"Regions",
