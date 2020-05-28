@@ -106,6 +106,12 @@ func init() {
 func promptConfigureSetup() error {
 	cli.Log.Debugw("configuring cli", "profile", cli.Profile)
 
+	// if the Lacework account is empty, and the profile that is being configured is
+	// not the 'default' profile, auto-populate the account with the provided profile
+	if cli.Account == "" && cli.Profile != "default" {
+		cli.Account = cli.Profile
+	}
+
 	if len(configureJsonFile) != 0 {
 		auth, err := loadKeysFromJsonFile(configureJsonFile)
 		if err != nil {
