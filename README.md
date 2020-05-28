@@ -2,7 +2,7 @@
 
 # Lacework Go SDK
 
-[![Run Status](https://api.shippable.com/projects/5e50594f36b9d00007618148/badge?branch=master)]()
+[![lacework](https://circleci.com/gh/lacework/go-sdk.svg?style=shield)](https://circleci.com/gh/lacework/go-sdk)
 
 This repository provides a set of tools, libraries, relevant documentation, code
 samples, processes, and/or guides that allow users and developers to interact with
