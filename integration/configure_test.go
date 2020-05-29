@@ -80,17 +80,17 @@ func TestConfigureCommandWithJSONFileFlag(t *testing.T) {
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Account:")
-			c.SendLine("web-ui-test")
+			c.SendLine("") // using the default, which should be auto-populated from the provided --profile flag
 			c.ExpectString("Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
 			c.ExpectString("Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
 			c.ExpectString("You are all set!")
 		},
-		"configure", "--json_file", s,
+		"configure", "--json_file", s, "--profile", "web-ui-test",
 	)
 
-	assert.Equal(t, `[default]
+	assert.Equal(t, `[web-ui-test]
   account = "web-ui-test"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
