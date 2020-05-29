@@ -144,15 +144,15 @@ func (res *VulContainerReportResponse) CheckStatus() string {
 }
 
 type VulContainerReport struct {
-	TotalVulnerabilities    int32             `json:"total_vulnerabilities"`
-	CriticalVulnerabilities int32             `json:"critical_vulnerabilities"`
-	HighVulnerabilities     int32             `json:"high_vulnerabilities"`
-	MediumVulnerabilities   int32             `json:"medium_vulnerabilities"`
-	LowVulnerabilities      int32             `json:"low_vulnerabilities"`
-	InfoVulnerabilities     int32             `json:"info_vulnerabilities"`
-	FixableVulnerabilities  int32             `json:"fixable_vulnerabilities"`
-	LastEvaluationTime      string            `json:"last_evaluation_time"`
-	Image                   VulContainerImage `json:"image"`
+	TotalVulnerabilities    int32              `json:"total_vulnerabilities"`
+	CriticalVulnerabilities int32              `json:"critical_vulnerabilities"`
+	HighVulnerabilities     int32              `json:"high_vulnerabilities"`
+	MediumVulnerabilities   int32              `json:"medium_vulnerabilities"`
+	LowVulnerabilities      int32              `json:"low_vulnerabilities"`
+	InfoVulnerabilities     int32              `json:"info_vulnerabilities"`
+	FixableVulnerabilities  int32              `json:"fixable_vulnerabilities"`
+	LastEvaluationTime      string             `json:"last_evaluation_time,omitempty"`
+	Image                   *VulContainerImage `json:"image,omitempty"`
 
 	// @afiune these two parameters, Status and Message will appear when
 	// the vulnerability scan is still running. ugh. why?
@@ -191,8 +191,8 @@ func (report *VulContainerReport) VulFixableCount(severity string) int32 {
 }
 
 type VulContainerImage struct {
-	ImageInfo   vulContainerImageInfo    `json:"image_info"`
-	ImageLayers []vulContainerImageLayer `json:"image_layers"`
+	ImageInfo   *vulContainerImageInfo   `json:"image_info,omitempty"`
+	ImageLayers []vulContainerImageLayer `json:"image_layers,omitempty"`
 }
 
 type vulContainerImageInfo struct {
