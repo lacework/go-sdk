@@ -43,7 +43,7 @@ The following example shows sample values. Replace them with your own.
 $ lacework configure
 Account: example
 Access Key ID: EXAMPLE_1234567890ABCDE1EXAMPLE1EXAMPLE123456789EXAMPLE
-Secret Access Key: _d12345dcbde000d1232bbbe51234a609
+Secret Access Key: **********************************
 
 You are all set!
 ```
@@ -60,7 +60,7 @@ the `--profile` option. The following example creates a profile named `prod`.
 $ lacework configure --profile prod
 Account: prod.example
 Access Key ID: PROD_1234567890ABCDE1EXAMPLE1EXAMPLE123456789EXAMPLE
-Secret Access Key: _12345prode11111232bbbe51234a609
+Secret Access Key: **********************************
 
 You are all set!
 ```
@@ -109,17 +109,24 @@ A few basic commands are:
 
 1) List all integration in your account:
 ```bash
-$ lacework integration list
+$ lacework integrations list
 ```
-2) Request an on-demand vulnerability scan:
+2) List all events from the last 7 days in your account:
+```bash
+$ lacework events list
+```
+3) Request an on-demand vulnerability scan:
 ```bash
 $ lacework vulnerability scan run index.docker.io techallylw/lacework-cli latest
 ```
-3) Use the `api` command to access Lacework's RestfulAPI, for example,
-to get details about a specific event:
+4) Use the `api` command to access Lacework's RestfulAPI, for example,
+to list the common vulnerabilities found in the hosts of your Lacework environment:
 ```bash
-$ lacework api get '/external/events/GetEventDetails?EVENT_ID=16700'
+$ lacework api get /external/vulnerabilities/host
 ```
+
+## CLI Documentation
+For more CLI documentation, see https://github.com/lacework/go-sdk/wiki/CLI-Documentation.
 
 ## Development
 
@@ -129,7 +136,7 @@ tool at `/usr/local/bin/lacework`:
 ```
 $ make install-cli
 $ lacework version
-lacework v.dev (sha:ca9f95d17f4f2092f89dba7b64eaed6db7493a5a) (time:20200406091143)
+lacework 0.1.1-dev (sha:ca9f95d17f4f2092f89dba7b64eaed6db7493a5a) (time:20200406091143)
 ```
 
 ### Unit Tests
