@@ -270,7 +270,7 @@ func eventRegionEntitiesTable(regions []api.EventRegionEntity) string {
 
 	t.SetHeader([]string{
 		"Region",
-		"Acounts",
+		"Accounts",
 	})
 	t.SetBorder(eventDetailsBorder)
 	for _, user := range regions {
@@ -310,7 +310,7 @@ func eventCTUserEntitiesTable(users []api.EventCTUserEntity) string {
 		}
 		t.Append([]string{
 			user.Username,
-			user.AccoutID,
+			user.AccountID,
 			user.PrincipalID,
 			mfa,
 			strings.Join(user.ApiList, ", "),

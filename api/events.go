@@ -209,7 +209,7 @@ type EventRegionEntity struct {
 
 type EventCTUserEntity struct {
 	Username    string   `json:"username"`
-	AccoutID    string   `json:"accout_id"`
+	AccountID   string   `json:"account_id"`
 	Mfa         int32    `json:"mfa"`
 	ApiList     []string `json:"api_list"`
 	RegionList  []string `json:"region_list"`
