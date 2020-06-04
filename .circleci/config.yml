@@ -1,11 +1,16 @@
-version: 2
+version: 2.1
+
 jobs:
   build:
     docker:
       - image: circleci/golang:1.14
-
     working_directory: /go/src/github.com/lacework/go-sdk
     steps:
       - checkout
       - run: make prepare
       - run: make ci
+
+workflows:
+  build-and-test:
+    jobs:
+      - build
