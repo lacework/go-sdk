@@ -1,16 +1,42 @@
 version: 2.1
 
-jobs:
-  build:
+executors:
+  go-executor:
     docker:
       - image: circleci/golang:1.14
     working_directory: /go/src/github.com/lacework/go-sdk
+
+
+jobs:
+  unit-test:
+    executor: go-executor
     steps:
       - checkout
       - run: make prepare
-      - run: make ci
+      - run: make test
+  build-cli:
+    executor: go-executor
+    steps:
+      - checkout
+      - run: make prepare
+      - run: make build-cli-cross-platform
+  integration-test:
+    executor: go-executor
+    steps:
+      - checkout
+      - run: make prepare
+      - run: make integration
 
 workflows:
   build-and-test:
     jobs:
-      - build
+      - unit-test
+      - build-cli
+      - hold:
+          type: approval
+          requires:
+           - unit-test
+           - build-cli
+      - integration-test:
+          requires:
+           - hold
