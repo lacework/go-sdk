@@ -19,7 +19,6 @@
 package integration
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,11 +45,6 @@ func TestIntegrationCommandAliases(t *testing.T) {
 }
 
 func TestIntegrationCommandList(t *testing.T) {
-	// @afiune shippable doesn't allow us to have encrypted variables inside our build jobs,
-	// and because of that, we are disabling a few tests when running inside our "CI" pipeline
-	if os.Getenv("CI") == "true" {
-		return
-	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("integration", "list")
 	assert.Contains(t, out.String(), "INTEGRATION GUID",
 		"STDOUT table headers changed, please check")
@@ -68,11 +62,6 @@ func TestIntegrationCommandList(t *testing.T) {
 }
 
 func TestIntegrationCommandListWithTypeFlag(t *testing.T) {
-	// @afiune shippable doesn't allow us to have encrypted variables inside our build jobs,
-	// and because of that, we are disabling a few tests when running inside our "CI" pipeline
-	if os.Getenv("CI") == "true" {
-		return
-	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("integration", "list", "--type", "AWS_CFG")
 	assert.Contains(t, out.String(), "INTEGRATION GUID",
 		"STDOUT table headers changed, please check")

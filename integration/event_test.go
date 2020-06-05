@@ -19,7 +19,6 @@
 package integration
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,12 +39,6 @@ func TestEventCommandAliases(t *testing.T) {
 }
 
 func TestEventCommandList(t *testing.T) {
-	// @afiune shippable doesn't allow us to have encrypted variables inside our build jobs,
-	// and because of that, we are disabling a few tests when running inside our "CI" pipeline
-	if os.Getenv("CI") == "true" {
-		return
-	}
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list")
 	assert.Contains(t, out.String(), "EVENT ID",
 		"STDOUT table headers changed, please check")
