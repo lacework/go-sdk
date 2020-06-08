@@ -53,10 +53,6 @@ COMMANDS:
     verify     Check if the release is ready to be applied
     trigger    Trigger a release by creating a git tag
     publish    Builds binaries, shasums and creates a Github tag like 'v0.1.0'
-
-Update version after release:
-    version [kind] Prepare the version after release, it adds the '-dev' tag
-                   Kinds of version bumps: [patch, minor, major]
 USAGE
 }
 
@@ -73,9 +69,6 @@ main() {
       ;;
     trigger)
       trigger_release
-      ;;
-    version)
-      bump_version $2
       ;;
     *)
       usage

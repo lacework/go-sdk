@@ -17,7 +17,7 @@ prepare: install-tools go-vendor
 test:
 	go test -v -cover -coverprofile=$(COVERAGEOUT) $(shell go list ./... | grep -v integration)
 
-integration: build-cli-cross-platform integratoin-only
+integration: build-cli-cross-platform integration-only
 
 integration-only:
 	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration
@@ -61,15 +61,8 @@ else
 endif
 	@echo "\nThe lacework cli has been installed at /usr/local/bin"
 
-release-prepare: ci
+release-prepare: lint test fmt-check imports-check build-cli-cross-platform
 	scripts/release.sh prepare
-
-release-patch-version:
-	scripts/release.sh version patch
-release-minor-version:
-	scripts/release.sh version minor
-release-major-version:
-	scripts/release.sh version major
 
 release-containers:
 	scripts/release_containers.sh
