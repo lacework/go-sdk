@@ -100,11 +100,11 @@ verify_release() {
   log "verifying new release"
   _changed_file=$(git diff-tree --name-only -r HEAD..master)
   _required_files_for_release=(
-    "RELEASE_NOTES.md"
-    "CHANGELOG.md"
-    "VERSION"
+    RELEASE_NOTES.md
+    CHANGELOG.md
+    VERSION
   )
-  for f in "${required_files_for_release[@]}"; do
+  for f in "${_required_files_for_release[@]}"; do
     if [[ "$_changed_file" =~ "$f" ]]; then
       log "(required) '$f' has been modified. Great!"
     else
