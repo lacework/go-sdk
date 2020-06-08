@@ -67,6 +67,7 @@ workflows:
           filters:
             branches:
               only: master
+
   verify-release:
     jobs:
       - verify-release:
