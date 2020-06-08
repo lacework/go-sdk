@@ -6,37 +6,93 @@ executors:
       - image: circleci/golang:1.14
     working_directory: /go/src/github.com/lacework/go-sdk
 
-
 jobs:
   unit-test:
     executor: go-executor
     steps:
       - checkout
       - run: make prepare
+      - run: make lint
       - run: make test
+      - run: make fmt-check
+      - run: make imports-check
   build-cli:
     executor: go-executor
     steps:
       - checkout
       - run: make prepare
       - run: make build-cli-cross-platform
+      - persist_to_workspace:
+          root: bin
+          paths:
+            - lacework-cli-*
   integration-test:
     executor: go-executor
     steps:
       - checkout
+      - attach_workspace:
+          at: bin
+      - run: make integration-only
+  verify-release:
+    executor: go-executor
+    steps:
+      - checkout
+      - run: scripts/release.sh verify
+  trigger-release:
+    executor: go-executor
+    steps:
+      - checkout
+      - run: scripts/release.sh trigger
+  release:
+    executor: go-executor
+    steps:
+      - checkout
       - run: make prepare
-      - run: make integration
+      - run: scripts/release.sh publish
+      #- run: scripts/release_containers.sh
 
 workflows:
-  build-and-test:
+  version: 2
+  build_test_trigger-release:
     jobs:
       - unit-test
       - build-cli
-      - hold:
-          type: approval
-          requires:
-           - unit-test
-           - build-cli
       - integration-test:
           requires:
-           - hold
+            - build-cli
+      - trigger-release:
+          requires:
+            - unit-test
+            - integration-test
+          filters:
+            branches:
+              only: master
+  verify-release:
+    jobs:
+      - verify-release:
+          filters:
+             branches:
+               only: release
+
+  release-from-tag:
+    jobs:
+      - release:
+          filters:
+            tags:
+               only: /^v.*/
+            branches:
+              ignore: /.*/
+
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 12 * * *"
+          filters:
+            branches:
+              only: master
+    jobs:
+      - unit-test
+      - build-cli
+      - integration-test:
+          requires:
+            - build-cli

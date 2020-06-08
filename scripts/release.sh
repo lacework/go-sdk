@@ -50,6 +50,8 @@ USAGE:
 
 COMMANDS:
     prepare    Generates release notes, updates version and CHANGELOG.md
+    verify     Check if the release is ready to be applied
+    trigger    Trigger a release by creating a git tag
     publish    Builds binaries, shasums and creates a Github tag like 'v0.1.0'
 
 Update version after release:
@@ -66,6 +68,12 @@ main() {
     publish)
       publish_release
       ;;
+    verify)
+      verify_release
+      ;;
+    trigger)
+      trigger_release
+      ;;
     version)
       bump_version $2
       ;;
@@ -75,24 +83,74 @@ main() {
   esac
 }
 
+trigger_release() {
+  if [[ "$VERSION" =~ "-release" ]]; then
+      log "VERSION has 'x.y.z-release' tag. Triggering a release!"
+      log ""
+      log "removing release tag from version '${VERSION}'"
+      remove_tag_version
+      log "commiting and pushing the vertion bump to github"
+      git add VERSION
+      git commit -m "trigger release v$VERSION"
+      git push origin master
+      tag_release
+      bump_version
+    else
+      log "No release needed. (VERSION=${VERSION})"
+      log ""
+      log "Read more about the release process at:"
+      log "  - https://github.com/lacework/go-sdk/wiki/Release-Process"
+  fi
+}
+
+verify_release() {
+  log "verifying new release"
+  _changed_file=$(git diff-tree --name-only -r HEAD..master)
+  _required_files_for_release=(
+    "RELEASE_NOTES.md"
+    "CHANGELOG.md"
+    "VERSION"
+  )
+  for f in "${required_files_for_release[@]}"; do
+    if [[ "$_changed_file" =~ "$f" ]]; then
+      log "(required) '$f' has been modified. Great!"
+    else
+      warn "$f needs to be updated"
+      warn ""
+      warn "Read more about the release process at:"
+      warn "  - https://github.com/lacework/go-sdk/wiki/Release-Process"
+      exit 123
+    fi
+  done
+
+  if [[ "$VERSION" =~ "-release" ]]; then
+      log "(required) VERSION has 'x.y.z-release' tag. Great!"
+    else
+      warn "the 'VERSION' needs to be updated to have the 'x.y.z-release' tag"
+      warn ""
+      warn "Read more about the release process at:"
+      warn "  - https://github.com/lacework/go-sdk/wiki/Release-Process"
+      exit 123
+  fi
+}
+
 prepare_release() {
   log "preparing new release"
   prerequisites
-  remove_dev_version
+  remove_tag_version
   generate_release_notes
   update_changelog
+  add_tag_version "release"
   push_release
 }
 
 publish_release() {
   log "releasing v$VERSION"
-  prerequisites
-  release_check
   clean_cache
   build_cli_cross_platform
   compress_targets
   generate_shasums
-  tag_release
+  upload_artifacts
 }
 
 update_changelog() {
@@ -159,20 +217,6 @@ tag_release() {
   log "creating github tag: $_tag"
   git tag "$_tag"
   git push origin "$_tag"
-  log "go to https://github.com/lacework/${project_name}/releases/tag/${_tag} and upload all files from 'bin/'"
-}
-
-release_check() {
-  if git ls-remote --tags 2>/dev/null | grep "tags/v$VERSION" >/dev/null; then
-    warn "The git tag 'v$VERSION' already exists at github.com"
-    warn "This is usually the case where a release wasn't finished properly"
-    warn "Remove the tag from the remote and try to release again"
-    warn ""
-    warn "To remove the tag run the following commands:"
-    warn "  git tag -d v$VERSION"
-    warn "  git push --delete origin v$VERSION"
-    exit 127
-  fi
 }
 
 prerequisites() {
@@ -206,17 +250,21 @@ find_latest_version() {
   echo "$_versions" | tr '.' ' ' | sort -nr -k 1 -k 2 -k 3 | tr ' ' '.' | head -1
 }
 
-remove_dev_version() {
-  if [[ "$VERSION" =~ "dev" ]]; then
-    echo $VERSION | cut -d- -f1 > VERSION
-    VERSION=$(cat VERSION)
-    log "updated version for release v$VERSION"
-  fi
+add_tag_version() {
+  _tag=${1:-dev}
+  echo $VERSION | awk -F. '{printf("%d.%d.%d-'$_tag'", $1, $2, $3)}' > VERSION
+  VERSION=$(cat VERSION)
+  log "updated version to v$VERSION"
+}
+
+remove_tag_version() {
+  echo $VERSION | awk -F. '{printf("%d.%d.%d", $1, $2, $3)}' > VERSION
+  VERSION=$(cat VERSION)
+  log "updated version to v$VERSION"
 }
 
 bump_version() {
-  log "updating version after release"
-  prerequisites
+  log "updating version after tagging release"
   latest_version=$(find_latest_version)
 
   if [[ "v$VERSION" == "$latest_version" ]]; then
@@ -238,8 +286,7 @@ bump_version() {
     return
   fi
 
-  log "pushing version bump to 'master'. [Press Enter to continue]"
-  read
+  log "commiting and pushing the vertion bump to github"
   git add VERSION
   git commit -m "version bump to v$VERSION"
   git push origin master
@@ -302,6 +349,12 @@ compress_targets() {
     log $_target_with_ext
     rm -f "$_cli_name"
   done
+}
+
+upload_artifacts() {
+  log "uploading artifacts to GH release"
+  git branch
+  git log
 }
 
 log() {
