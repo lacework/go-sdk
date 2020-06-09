@@ -92,7 +92,7 @@ trigger_release() {
       log "No release needed. (VERSION=${VERSION})"
       log ""
       log "Read more about the release process at:"
-      log "  - https://github.com/lacework/go-sdk/wiki/Release-Process"
+      log "  - https://github.com/lacework/${project_name}/wiki/Release-Process"
   fi
 }
 
@@ -111,7 +111,7 @@ verify_release() {
       warn "$f needs to be updated"
       warn ""
       warn "Read more about the release process at:"
-      warn "  - https://github.com/lacework/go-sdk/wiki/Release-Process"
+      warn "  - https://github.com/lacework/${project_name}/wiki/Release-Process"
       exit 123
     fi
   done
@@ -122,7 +122,7 @@ verify_release() {
       warn "the 'VERSION' needs to be updated to have the 'x.y.z-release' tag"
       warn ""
       warn "Read more about the release process at:"
-      warn "  - https://github.com/lacework/go-sdk/wiki/Release-Process"
+      warn "  - https://github.com/lacework/${project_name}/wiki/Release-Process"
       exit 123
   fi
 }
@@ -143,7 +143,7 @@ publish_release() {
   build_cli_cross_platform
   compress_targets
   generate_shasums
-  upload_artifacts
+  create_release
 }
 
 update_changelog() {
@@ -344,10 +344,64 @@ compress_targets() {
   done
 }
 
-upload_artifacts() {
-  log "uploading artifacts to GH release"
-  git branch
-  git log
+create_release() {
+  local _tag
+  _tag=$(git describe --tags)
+  local _body="/tmp/release.json"
+  local _release="/tmp/release.out"
+
+  log "generating GH release $_tag"
+  generate_release_body "$_body"
+  curl -XPOST -H "Authorization: token $GITHUB_TOKEN" --data  "@$_body" \
+        https://api.github.com/repos/lacework/${project_name}/releases > $_release
+
+  local _content_type
+  local _artifact
+  local _upload_url
+  _upload_url=$(jq .upload_url $_release)
+  log "uploading artifacts to GH release at ($_upload_url)"
+  for target in ${TARGETS[*]}; do
+
+    if [[ "$target" =~ linux ]]; then
+      _artifact="$target.tar.gz"
+      _content_type="application/gzip"
+    else
+      _artifact="$target.zip"
+      _content_type="application/gzip"
+    fi
+
+    log "uploading bin/$_artifact.sha256sum"
+    curl -s -H "Authorization: token $GITHUB_TOKEN"  \
+        -H "Content-Type: $_content_type" \
+        --data-binary "@bin/${_artifact}.sha256sum"  \
+        "${upload_url}?name=${_artifact}.sha256sum"
+
+    log "uploading bin/$_artifact"
+    curl -s -H "Authorization: token $GITHUB_TOKEN"  \
+        -H "Content-Type: $_content_type" \
+        --data-binary "@bin/$_artifact"  \
+        "${upload_url}?name=${_artifact}"
+
+  done
+
+  log "the release has been completed!"
+  log ""
+  log " -> https://github.com/lacework/${project_name}/releases/tag/${_tag}"
+}
+
+generate_release_body() {
+  _file=${1:-release.json}
+  _tag=$(git describe --tags)
+  _release_notes=$(jq -aRs .  <<< cat RELEASE_NOTES.md)
+  cat <<EOF > $_file
+{
+  "tag_name": "$_tag",
+  "name": "$_tag",
+  "draft": false,
+  "prerelease": false,
+  "body": $_release_notes
+}
+EOF
 }
 
 log() {

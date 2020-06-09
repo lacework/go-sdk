@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  jq: circleci/jq@2.1.0
+
 executors:
   go-executor:
     docker:
@@ -47,6 +50,7 @@ jobs:
     executor: go-executor
     steps:
       - checkout
+      - jq/install
       - run: make prepare
       - run: scripts/release.sh publish
       #- run: scripts/release_containers.sh
