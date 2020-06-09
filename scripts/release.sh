@@ -83,6 +83,8 @@ trigger_release() {
       log "removing release tag from version '${VERSION}'"
       remove_tag_version
       log "commiting and pushing the vertion bump to github"
+      git config --global user.email "afiune@lacework.net"
+      git config --global user.name "Salim Afiune Maya"
       git add VERSION
       git commit -m "trigger release v$VERSION"
       git push origin master

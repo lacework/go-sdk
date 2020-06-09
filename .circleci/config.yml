@@ -55,6 +55,9 @@ jobs:
     executor: alpine
     steps:
       - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "ac:42:17:fc:47:cb:cb:2a:e4:c3:c1:76:6c:73:b1:87"
       - run: scripts/release.sh trigger
   release:
     executor: go-executor
