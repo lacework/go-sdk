@@ -1,5 +1,10 @@
 version: 2.1
 
+parameters:
+  slack-mentions:
+    type: string
+    default: 'afiune,scottford'
+
 orbs:
   slack: circleci/slack@3.4.2
   jq: circleci/jq@2.1.0
@@ -42,12 +47,12 @@ jobs:
           at: bin
       - run: make integration-only
   verify-release:
-    executor: go-executor
+    executor: alpine
     steps:
       - checkout
       - run: scripts/release.sh verify
   trigger-release:
-    executor: go-executor
+    executor: alpine
     steps:
       - checkout
       - run: scripts/release.sh trigger
@@ -57,21 +62,19 @@ jobs:
       - checkout
       - jq/install
       - slack/notify:
-          mentions: 'afiune,scottford'
+          mentions: << pipeline.parameters.slack-mentions >>
           message: Releasing a new version of the go-sdk repository
       - run: make prepare
       - run: scripts/release.sh publish
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
       #- run: scripts/release_containers.sh
-  notify-slack:
+  notify-slack-status:
     executor: alpine
-    parameters:
-      message:
-        default: "Something happened in the go-sdk pipeline that might need your attention"
-        type: string
     steps:
-      - slack/notify:
-          mentions: 'afiune,scottford'
-          message: << parameters.message >>
+      - slack/status:
+          mentions: << pipeline.parameters.slack-mentions >>
 
 workflows:
   version: 2
@@ -119,7 +122,7 @@ workflows:
       - integration-test:
           requires:
             - build-cli
-      - notify-slack:
+      - notify-slack-status:
           requires:
+            - unit-test
             - integration-test
-          message: Nightly build ran successfully

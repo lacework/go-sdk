@@ -98,7 +98,7 @@ trigger_release() {
 
 verify_release() {
   log "verifying new release"
-  _changed_file=$(git diff-tree --name-only -r HEAD..master)
+  _changed_file=$(git whatchanged --name-only --pretty="" origin..HEAD)
   _required_files_for_release=(
     RELEASE_NOTES.md
     CHANGELOG.md
