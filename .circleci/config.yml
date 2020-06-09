@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+  slack: circleci/slack@3.4.2
   jq: circleci/jq@2.1.0
 
 executors:
@@ -8,6 +9,10 @@ executors:
     docker:
       - image: circleci/golang:1.14
     working_directory: /go/src/github.com/lacework/go-sdk
+  alpine:
+    docker:
+      - image: cibuilds/base:latest
+    resource_class: small
 
 jobs:
   unit-test:
@@ -51,9 +56,22 @@ jobs:
     steps:
       - checkout
       - jq/install
+      - slack/notify:
+          mentions: 'afiune,Scott Ford'
+          message: Releasing a new version of the go-sdk repository
       - run: make prepare
       - run: scripts/release.sh publish
       #- run: scripts/release_containers.sh
+  notify-slack:
+    executor: alpine
+    parameters:
+      message:
+        default: "Something happened in the go-sdk pipeline that might need your attention"
+        type: string
+    steps:
+      - slack/notify:
+          mentions: 'afiune,Scott Ford'
+          message: << parameters.message >>
 
 workflows:
   version: 2
@@ -101,3 +119,7 @@ workflows:
       - integration-test:
           requires:
             - build-cli
+      - notify-slack:
+          requires:
+            - integration-test
+          message: Nightly build ran successfully
