@@ -69,10 +69,11 @@ jobs:
           message: Releasing a new version of the go-sdk repository
       - run: make prepare
       - run: scripts/release.sh publish
+      - setup_remote_docker
+      - run: scripts/release_containers.sh
       - slack/status:
-          fail_only: true
+          fail_only: false
           mentions: << pipeline.parameters.slack-mentions >>
-      #- run: scripts/release_containers.sh
   notify-slack-status:
     executor: alpine
     steps:

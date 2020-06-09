@@ -12,9 +12,19 @@ log() {
   echo "--> ${project_name}: $1"
 }
 
+# Make sure we have the binary needed for the SCRATCH container
+if [ ! -f "bin/lacework-cli-linux-amd64" ]; then
+  log "building Lacework CLI cross-platform"
+  make build-cli-cross-platform
+fi
 
-log "building Lacework CLI cross-platform"
-make build-cli-cross-platform
+# Enable docker experimental mode
+log "enabling experimental mode to use/upload docker manifest"
+mkdir -p ~/.docker
+echo '{"experimental": "enabled"}' > ~/.docker/config.json
+
+# Authenticate to dockerhub
+echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
 log "releasing container from SCRATCH"
 docker build -t "${repository}:scratch" --no-cache .
@@ -30,6 +40,7 @@ distros=(
   amazonlinux-2
 #  windows-nanoserver
 )
+
 for dist in "${distros[@]}"; do
   log "releasing container for ${dist}"
   docker build -f "cli/images/${dist}/Dockerfile" --no-cache -t "${repository}:${dist}" .
