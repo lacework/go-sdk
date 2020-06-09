@@ -6,6 +6,7 @@ parameters:
     default: 'afiune,scottford'
 
 orbs:
+  lacework: lacework/lacework@1.0.0
   slack: circleci/slack@3.4.2
   jq: circleci/jq@2.1.0
 
@@ -79,6 +80,19 @@ jobs:
     steps:
       - slack/status:
           mentions: << pipeline.parameters.slack-mentions >>
+  vuln-scan-cli:
+    executor: lacework/default
+    parameters:
+      tag:
+        type: string
+    steps:
+      - lacework/vuln-scan-run:
+          account: CI_ACCOUNT
+          api-key: CI_API_KEY
+          api-secret: CI_API_SECRET
+          registry: index.docker.io
+          repository: techallylw/lacework-cli
+          tag: << parameters.tag >>
 
 workflows:
   version: 2
@@ -112,6 +126,12 @@ workflows:
                only: /^v.*/
             branches:
               ignore: /.*/
+      - vuln-scan-cli:
+          requires:
+            - release
+          matrix:
+            parameters:
+              tag: ["ubi-8", "centos-8", "debian-10", "ubuntu-1804", "amazonlinux-2"]
 
   nightly:
     triggers:
