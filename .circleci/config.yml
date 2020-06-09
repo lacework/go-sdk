@@ -57,7 +57,7 @@ jobs:
       - checkout
       - jq/install
       - slack/notify:
-          mentions: 'afiune,Scott Ford'
+          mentions: 'afiune,scottford'
           message: Releasing a new version of the go-sdk repository
       - run: make prepare
       - run: scripts/release.sh publish
@@ -70,7 +70,7 @@ jobs:
         type: string
     steps:
       - slack/notify:
-          mentions: 'afiune,Scott Ford'
+          mentions: 'afiune,scottford'
           message: << parameters.message >>
 
 workflows:

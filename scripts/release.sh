@@ -374,13 +374,13 @@ create_release() {
     curl -s -H "Authorization: token $GITHUB_TOKEN"  \
         -H "Content-Type: $_content_type" \
         --data-binary "@bin/${_artifact}.sha256sum"  \
-        "${upload_url}?name=${_artifact}.sha256sum"
+        "${_upload_url}?name=${_artifact}.sha256sum"
 
     log "uploading bin/$_artifact"
     curl -s -H "Authorization: token $GITHUB_TOKEN"  \
         -H "Content-Type: $_content_type" \
         --data-binary "@bin/$_artifact"  \
-        "${upload_url}?name=${_artifact}"
+        "${_upload_url}?name=${_artifact}"
 
   done
 
