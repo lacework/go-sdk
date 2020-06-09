@@ -358,7 +358,7 @@ create_release() {
   local _content_type
   local _artifact
   local _upload_url
-  _upload_url=$(jq .upload_url $_release)
+  _upload_url=$(jq .upload_url $_release | sed 's/"//g' | cut -d{ -f1)
   log "uploading artifacts to GH release at ($_upload_url)"
   for target in ${TARGETS[*]}; do
 
@@ -367,19 +367,19 @@ create_release() {
       _content_type="application/gzip"
     else
       _artifact="$target.zip"
-      _content_type="application/gzip"
+      _content_type="application/zip"
     fi
 
     log "uploading bin/$_artifact.sha256sum"
     curl -s -H "Authorization: token $GITHUB_TOKEN"  \
-        -H "Content-Type: $_content_type" \
+        -H "Content-Type: $_content_type"            \
         --data-binary "@bin/${_artifact}.sha256sum"  \
         "${_upload_url}?name=${_artifact}.sha256sum"
 
     log "uploading bin/$_artifact"
     curl -s -H "Authorization: token $GITHUB_TOKEN"  \
-        -H "Content-Type: $_content_type" \
-        --data-binary "@bin/$_artifact"  \
+        -H "Content-Type: $_content_type"            \
+        --data-binary "@bin/$_artifact"              \
         "${_upload_url}?name=${_artifact}"
 
   done
