@@ -11,4 +11,7 @@ COPY ./LICENSE /
 ADD cli/images/centos-8/centos-8-stream.repo /etc/yum.repos.d/
 RUN yum update -y
 
+# Fix CVE-2019-6477
+RUN yum remove bind-export-libs -y
+
 RUN curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash
