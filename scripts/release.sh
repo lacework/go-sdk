@@ -331,7 +331,7 @@ compress_targets() {
       _cli_name="bin/${binary_name}"
     fi
 
-    mv "bin/${target}" "$_cli_name"
+    cp "bin/${target}" "$_cli_name"
 
     if [[ "$target" =~ linux ]]; then
       _target_with_ext="bin/${target}.tar.gz"
