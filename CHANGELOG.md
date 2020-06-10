@@ -1,3 +1,9 @@
+# v0.1.17
+
+## Other Changes
+* ci: fix vuln scan cli matrix (#143) (Salim Afiune)([646faac](https://github.com/lacework/go-sdk/commit/646faacc762b1f361de3bc61d2e543db9b674c3c))
+* ci: fix release commit message (#144) (Salim Afiune)([6c6f357](https://github.com/lacework/go-sdk/commit/6c6f357d4cd1e6dae08cf55e637cea4ca56aebaa))
+---
 # v0.1.16
 
 ## Other Changes

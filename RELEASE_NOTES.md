@@ -1,9 +1,9 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.1.16`.
+Another day, another release. These are the release notes for the version `v0.1.17`.
 
 ## Other Changes
-* ci: dogfooding lacework vulnerability scans (orb) (Salim Afiune Maya)([e74a188](https://github.com/lacework/go-sdk/commit/e74a18814127127395f496de908ec8bb4cb22072))
-* ci: build/release docker containers automatically (Salim Afiune Maya)([897b05a](https://github.com/lacework/go-sdk/commit/897b05ae9dba9eb12e44d9a09bf48092f2af3764))
+* ci: fix vuln scan cli matrix (#143) (Salim Afiune)([646faac](https://github.com/lacework/go-sdk/commit/646faacc762b1f361de3bc61d2e543db9b674c3c))
+* ci: fix release commit message (#144) (Salim Afiune)([6c6f357](https://github.com/lacework/go-sdk/commit/6c6f357d4cd1e6dae08cf55e637cea4ca56aebaa))
 
 ## Docker Images
 * `docker pull techallylw/lacework-cli:latest`
