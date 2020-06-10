@@ -1,0 +1,6 @@
+[centos-8-stream]
+name=Extras packages for CentOS-8-stream
+baseurl=http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os
+gpgcheck=1
+enabled=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
