@@ -127,6 +127,11 @@ workflows:
             branches:
               ignore: /.*/
       - vuln-scan-cli:
+          filters:
+            tags:
+               only: /^v.*/
+            branches:
+              ignore: /.*/
           requires:
             - release
           matrix:
