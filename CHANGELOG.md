@@ -1,3 +1,13 @@
+# v0.1.18
+
+## Features
+* feat(cli): add --fixable flag to vulnerability cmd (#148) (Salim Afiune)([d649e2a](https://github.com/lacework/go-sdk/commit/d649e2a754be958e8504347c68ea1286dc16a58e))
+## Refactor
+## Performance Improvements
+## Bug Fixes
+## Documentation Updates
+## Other Changes
+---
 # v0.1.17
 
 ## Other Changes
