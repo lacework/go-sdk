@@ -1,9 +1,13 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.1.17`.
+Another day, another release. These are the release notes for the version `v0.1.18`.
 
+## Features
+* feat(cli): add --fixable flag to vulnerability cmd (#148) (Salim Afiune)([d649e2a](https://github.com/lacework/go-sdk/commit/d649e2a754be958e8504347c68ea1286dc16a58e))
+## Refactor
+## Performance Improvements
+## Bug Fixes
+## Documentation Updates
 ## Other Changes
-* ci: fix vuln scan cli matrix (#143) (Salim Afiune)([646faac](https://github.com/lacework/go-sdk/commit/646faacc762b1f361de3bc61d2e543db9b674c3c))
-* ci: fix release commit message (#144) (Salim Afiune)([6c6f357](https://github.com/lacework/go-sdk/commit/6c6f357d4cd1e6dae08cf55e637cea4ca56aebaa))
 
 ## Docker Images
 * `docker pull techallylw/lacework-cli:latest`
