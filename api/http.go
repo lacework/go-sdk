@@ -71,6 +71,12 @@ func (c *Client) NewRequest(method string, apiURL string, body io.Reader) (*http
 		request.Header.Set(k, v)
 	}
 
+	// add all global headers that the client has configured,
+	// by default we set only the User-Agent header
+	for k, v := range c.headers {
+		request.Header.Set(k, v)
+	}
+
 	// parse and encode query string values
 	values := request.URL.Query()
 	request.URL.RawQuery = values.Encode()
@@ -79,7 +85,7 @@ func (c *Client) NewRequest(method string, apiURL string, body io.Reader) (*http
 		zap.String("method", request.Method),
 		zap.String("url", c.baseURL.String()),
 		zap.String("endpoint", apiPath.String()),
-		zap.Reflect("headers", c.httpHeadersSniffer(headers)),
+		zap.Reflect("headers", c.httpHeadersSniffer(request.Header)),
 		zap.String("body", c.httpRequestBodySniffer(request)),
 	)
 
