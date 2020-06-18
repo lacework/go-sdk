@@ -20,10 +20,11 @@ package cmd
 
 import (
 	"github.com/AlecAivazis/survey/v2"
+
 	"github.com/lacework/go-sdk/api"
 )
 
-func createGcpConfigIntegration(lacework *api.Client) error {
+func createGcpConfigIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -99,12 +100,12 @@ func createGcpConfigIntegration(lacework *api.Client) error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = lacework.Integrations.CreateGcp(gcp)
+	_, err = cli.LwApi.Integrations.CreateGcp(gcp)
 	cli.StopProgress()
 	return err
 }
 
-func createGcpAuditLogIntegration(lacework *api.Client) error {
+func createGcpAuditLogIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -187,7 +188,7 @@ func createGcpAuditLogIntegration(lacework *api.Client) error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = lacework.Integrations.CreateGcp(gcp)
+	_, err = cli.LwApi.Integrations.CreateGcp(gcp)
 	cli.StopProgress()
 	return err
 }

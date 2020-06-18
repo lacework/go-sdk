@@ -54,7 +54,7 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 			case "help [command]", "configure", "version":
 				return nil
 			default:
-				return cli.VerifySettings()
+				return cli.NewClient()
 			}
 		},
 	}

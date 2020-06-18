@@ -54,6 +54,7 @@ func TestNewClientWithOptions(t *testing.T) {
 		api.WithExpirationTime(1800),
 		api.WithApiV2(),
 		api.WithLogLevel("DEBUG"),
+		api.WithHeader("User-Agent", "test-agent"),
 		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
 	)
 	if assert.Nil(t, err) {

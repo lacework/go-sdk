@@ -24,11 +24,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
@@ -53,16 +54,8 @@ events from the last 7 days, but it is possible to specify a different
 time range.`,
 		Args: cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
-
 			cli.Log.Info("requesting list of events")
-			response, err := lacework.Events.List()
+			response, err := cli.LwApi.Events.List()
 			if err != nil {
 				return errors.Wrap(err, "unable to get events")
 			}
@@ -88,16 +81,8 @@ time range.`,
 		Short: "Show details about a specific event",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
-
 			cli.Log.Infow("requesting event details", "event_id", args[0])
-			response, err := lacework.Events.Details(args[0])
+			response, err := cli.LwApi.Events.Details(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to get event details")
 			}

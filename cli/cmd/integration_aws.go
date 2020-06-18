@@ -20,10 +20,11 @@ package cmd
 
 import (
 	"github.com/AlecAivazis/survey/v2"
+
 	"github.com/lacework/go-sdk/api"
 )
 
-func createAwsConfigIntegration(lacework *api.Client) error {
+func createAwsConfigIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -65,12 +66,12 @@ func createAwsConfigIntegration(lacework *api.Client) error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = lacework.Integrations.CreateAws(aws)
+	_, err = cli.LwApi.Integrations.CreateAws(aws)
 	cli.StopProgress()
 	return err
 }
 
-func createAwsCloudTrailIntegration(lacework *api.Client) error {
+func createAwsCloudTrailIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -119,7 +120,7 @@ func createAwsCloudTrailIntegration(lacework *api.Client) error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = lacework.Integrations.CreateAws(aws)
+	_, err = cli.LwApi.Integrations.CreateAws(aws)
 	cli.StopProgress()
 	return err
 }

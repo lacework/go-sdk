@@ -25,7 +25,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
 )
 
@@ -77,16 +76,8 @@ func runApiCommand(_ *cobra.Command, args []string) error {
 		}
 	}
 
-	lacework, err := api.NewClient(cli.Account,
-		api.WithLogLevel(cli.LogLevel),
-		api.WithApiKeys(cli.KeyID, cli.Secret),
-	)
-	if err != nil {
-		return errors.Wrap(err, "unable to generate api client")
-	}
-
 	response := new(map[string]interface{})
-	err = lacework.RequestDecoder(
+	err := cli.LwApi.RequestDecoder(
 		strings.ToUpper(args[0]),
 		strings.TrimPrefix(args[1], "/"),
 		strings.NewReader(apiData),

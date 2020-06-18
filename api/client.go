@@ -41,6 +41,7 @@ type Client struct {
 	auth       *authConfig
 	c          *http.Client
 	log        *zap.Logger
+	headers    map[string]string
 
 	Events          *EventsService
 	Compliance      *ComplianceService
@@ -81,6 +82,9 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		account:    account,
 		baseURL:    baseURL,
 		apiVersion: "v1",
+		headers: map[string]string{
+			"User-Agent": fmt.Sprintf("Go Client/%s", Version),
+		},
 		auth: &authConfig{
 			expiration: defaultTokenExpiryTime,
 		},
@@ -119,6 +123,17 @@ func WithURL(baseURL string) Option {
 
 		c.log.Debug("setting up client", zap.String("url", baseURL))
 		c.baseURL = u
+		return nil
+	})
+}
+
+// WithHeader configures a HTTP Header to pass to every request
+func WithHeader(header, value string) Option {
+	return clientFunc(func(c *Client) error {
+		if header != "" && value != "" {
+			c.log.Debug("setting up header", zap.String(header, value))
+			c.headers[header] = value
+		}
 		return nil
 	})
 }
