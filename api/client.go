@@ -83,7 +83,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		baseURL:    baseURL,
 		apiVersion: "v1",
 		headers: map[string]string{
-			"User-Agent": "go-client",
+			"User-Agent": fmt.Sprintf("Go Client/%s", Version),
 		},
 		auth: &authConfig{
 			expiration: defaultTokenExpiryTime,

@@ -86,6 +86,7 @@ trigger_release() {
       git config --global user.email "afiune@lacework.net"
       git config --global user.name "Salim Afiune Maya"
       git add VERSION
+      git add api/version.go # file genereted by scripts/version_updater.sh
       git commit -m "trigger release v$VERSION"
       git push origin master
       tag_release
@@ -105,6 +106,7 @@ verify_release() {
     RELEASE_NOTES.md
     CHANGELOG.md
     VERSION
+    api/version.go
   )
   for f in "${_required_files_for_release[@]}"; do
     if [[ "$_changed_file" =~ "$f" ]]; then
@@ -250,12 +252,14 @@ add_tag_version() {
   _tag=${1:-dev}
   echo $VERSION | awk -F. '{printf("%d.%d.%d-'$_tag'", $1, $2, $3)}' > VERSION
   VERSION=$(cat VERSION)
+  scripts/version_updater.sh
   log "updated version to v$VERSION"
 }
 
 remove_tag_version() {
   echo $VERSION | awk -F. '{printf("%d.%d.%d", $1, $2, $3)}' > VERSION
   VERSION=$(cat VERSION)
+  scripts/version_updater.sh
   log "updated version to v$VERSION"
 }
 
@@ -276,6 +280,7 @@ bump_version() {
         ;;
     esac
     VERSION=$(cat VERSION)
+    scripts/version_updater.sh
     log "version bumped from $latest_version to v$VERSION"
   else
     log "skipping version bump. Already bumped to v$VERSION"
@@ -284,6 +289,7 @@ bump_version() {
 
   log "commiting and pushing the vertion bump to github"
   git add VERSION
+  git add api/version.go # file genereted by scripts/version_updater.sh
   git commit -m "version bump to v$VERSION"
   git push origin master
 }
