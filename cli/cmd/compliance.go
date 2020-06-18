@@ -23,9 +23,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (

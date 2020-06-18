@@ -23,10 +23,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
@@ -63,14 +64,6 @@ To run an ad-hoc compliance assessment use the command:
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
-
 			config := api.ComplianceAwsReportConfig{
 				AccountID: args[0],
 				Type:      compCmdState.Type,
@@ -78,7 +71,7 @@ To run an ad-hoc compliance assessment use the command:
 
 			if compCmdState.PdfName != "" {
 				cli.StartProgress(" Downloading compliance report...")
-				err := lacework.Compliance.DownloadAwsReportPDF(compCmdState.PdfName, config)
+				err := cli.LwApi.Compliance.DownloadAwsReportPDF(compCmdState.PdfName, config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get aws pdf compliance report")
@@ -89,7 +82,7 @@ To run an ad-hoc compliance assessment use the command:
 			}
 
 			cli.StartProgress(" Getting compliance report...")
-			response, err := lacework.Compliance.GetAwsReport(config)
+			response, err := cli.LwApi.Compliance.GetAwsReport(config)
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get aws compliance report")
@@ -124,15 +117,7 @@ To run an ad-hoc compliance assessment use the command:
 		Long:    `Run a compliance assessment for the provided AWS account.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
-
-			response, err := lacework.Compliance.RunAwsReport(args[0])
+			response, err := cli.LwApi.Compliance.RunAwsReport(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to run aws compliance report")
 			}

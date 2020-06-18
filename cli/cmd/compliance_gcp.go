@@ -48,15 +48,7 @@ Then, select one GUID from an integration and visialize its details using the co
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
-
-			response, err := lacework.Compliance.ListGcpProjects(args[0])
+			response, err := cli.LwApi.Compliance.ListGcpProjects(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to list gcp projects")
 			}
@@ -95,14 +87,6 @@ To run an ad-hoc compliance assessment use the command:
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(_ *cobra.Command, args []string) error {
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
-
 			config := api.ComplianceGcpReportConfig{
 				OrganizationID: args[0],
 				ProjectID:      args[1],
@@ -111,7 +95,7 @@ To run an ad-hoc compliance assessment use the command:
 
 			if compCmdState.PdfName != "" {
 				cli.StartProgress(" Downloading compliance report...")
-				err := lacework.Compliance.DownloadGcpReportPDF(compCmdState.PdfName, config)
+				err := cli.LwApi.Compliance.DownloadGcpReportPDF(compCmdState.PdfName, config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get gcp pdf compliance report")
@@ -122,7 +106,7 @@ To run an ad-hoc compliance assessment use the command:
 			}
 
 			cli.StartProgress(" Getting compliance report...")
-			response, err := lacework.Compliance.GetGcpReport(config)
+			response, err := cli.LwApi.Compliance.GetGcpReport(config)
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get gcp compliance report")
@@ -157,15 +141,7 @@ To run an ad-hoc compliance assessment use the command:
 		Long:    `Run a compliance assessment for the provided GCP organization or project.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
-
-			response, err := lacework.Compliance.RunGcpReport(args[0])
+			response, err := cli.LwApi.Compliance.RunGcpReport(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to run gcp compliance assessment")
 			}

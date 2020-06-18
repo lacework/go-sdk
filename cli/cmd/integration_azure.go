@@ -20,10 +20,11 @@ package cmd
 
 import (
 	"github.com/AlecAivazis/survey/v2"
+
 	"github.com/lacework/go-sdk/api"
 )
 
-func createAzureConfigIntegration(lacework *api.Client) error {
+func createAzureConfigIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -72,12 +73,12 @@ func createAzureConfigIntegration(lacework *api.Client) error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = lacework.Integrations.CreateAzure(azure)
+	_, err = cli.LwApi.Integrations.CreateAzure(azure)
 	cli.StopProgress()
 	return err
 }
 
-func createAzureActivityLogIntegration(lacework *api.Client) error {
+func createAzureActivityLogIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -133,7 +134,7 @@ func createAzureActivityLogIntegration(lacework *api.Client) error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = lacework.Integrations.CreateAzure(azure)
+	_, err = cli.LwApi.Integrations.CreateAzure(azure)
 	cli.StopProgress()
 	return err
 }

@@ -52,22 +52,15 @@ var (
 				integrations api.RawIntegrationsResponse
 				err          error
 			)
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
 
 			if integrationType != "" {
 				intType, found := api.FindIntegrationType(integrationType)
 				if !found {
 					return errors.Errorf("unknown integration type '%s'", integrationType)
 				}
-				integrations, err = lacework.Integrations.ListByType(intType)
+				integrations, err = cli.LwApi.Integrations.ListByType(intType)
 			} else {
-				integrations, err = lacework.Integrations.List()
+				integrations, err = cli.LwApi.Integrations.List()
 			}
 			if err != nil {
 				return errors.Wrap(err, "unable to get integrations")
@@ -93,15 +86,7 @@ var (
 		Short: "Show details about a specific external integration",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
-
-			integration, err := lacework.Integrations.Get(args[0])
+			integration, err := cli.LwApi.Integrations.Get(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to get integration")
 			}
@@ -127,15 +112,8 @@ var (
 			if !cli.InteractiveMode() {
 				return errors.New("interactive mode is disabled")
 			}
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
 
-			err = promptCreateIntegration(lacework)
+			err := promptCreateIntegration()
 			if err != nil {
 				return errors.Wrap(err, "unable to create integration")
 			}
@@ -164,17 +142,9 @@ var (
 GUIDs can be found by using the 'lacework integration list' command.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			lacework, err := api.NewClient(cli.Account,
-				api.WithLogLevel(cli.LogLevel),
-				api.WithApiKeys(cli.KeyID, cli.Secret),
-			)
-			if err != nil {
-				return errors.Wrap(err, "unable to generate api client")
-			}
-
 			cli.Log.Info("deleting integration", "int_guid", args[0])
 			cli.StartProgress(" Deleting integration...")
-			response, err := lacework.Integrations.Delete(args[0])
+			response, err := cli.LwApi.Integrations.Delete(args[0])
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to delete integration")
@@ -207,7 +177,7 @@ func init() {
 	)
 }
 
-func promptCreateIntegration(lacework *api.Client) error {
+func promptCreateIntegration() error {
 	var (
 		integration = ""
 		prompt      = &survey.Select{
@@ -234,19 +204,19 @@ func promptCreateIntegration(lacework *api.Client) error {
 
 	switch integration {
 	case "Docker Hub":
-		return createDockerHubIntegration(lacework)
+		return createDockerHubIntegration()
 	case "AWS Config":
-		return createAwsConfigIntegration(lacework)
+		return createAwsConfigIntegration()
 	case "AWS CloudTrail":
-		return createAwsCloudTrailIntegration(lacework)
+		return createAwsCloudTrailIntegration()
 	case "GCP Config":
-		return createGcpConfigIntegration(lacework)
+		return createGcpConfigIntegration()
 	case "GCP Audit Log":
-		return createGcpAuditLogIntegration(lacework)
+		return createGcpAuditLogIntegration()
 	case "Azure Config":
-		return createAzureConfigIntegration(lacework)
+		return createAzureConfigIntegration()
 	case "Azure Activity Log":
-		return createAzureActivityLogIntegration(lacework)
+		return createAzureActivityLogIntegration()
 	//case "Docker V2 Registry":
 	//case "Amazon Container Registry":
 	//case "Google Container Registry":

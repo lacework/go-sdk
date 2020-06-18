@@ -22,10 +22,11 @@ import (
 	"strconv"
 
 	"github.com/AlecAivazis/survey/v2"
+
 	"github.com/lacework/go-sdk/api"
 )
 
-func createDockerHubIntegration(lacework *api.Client) error {
+func createDockerHubIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -116,7 +117,7 @@ func createDockerHubIntegration(lacework *api.Client) error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = lacework.Integrations.CreateContainerRegistry(docker)
+	_, err = cli.LwApi.Integrations.CreateContainerRegistry(docker)
 	cli.StopProgress()
 	return err
 }

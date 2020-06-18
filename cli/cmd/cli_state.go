@@ -28,6 +28,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 // cliState holds the state of the entire Lacework CLI
@@ -39,6 +41,7 @@ type cliState struct {
 	Token    string
 	LogLevel string
 
+	LwApi *api.Client
 	JsonF *prettyjson.Formatter
 	Log   *zap.SugaredLogger
 
@@ -125,6 +128,26 @@ func (c *cliState) VerifySettings() error {
 		)
 	}
 
+	return nil
+}
+
+// NewClient creates and stores a new Lacework API client to be used by the CLI
+func (c *cliState) NewClient() error {
+	err := c.VerifySettings()
+	if err != nil {
+		return err
+	}
+
+	client, err := api.NewClient(c.Account,
+		api.WithLogLevel(c.LogLevel),
+		api.WithApiKeys(c.KeyID, c.Secret),
+		api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
+	)
+	if err != nil {
+		return errors.Wrap(err, "unable to generate api client")
+	}
+
+	c.LwApi = client
 	return nil
 }
 
