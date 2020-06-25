@@ -33,6 +33,14 @@ import (
 )
 
 var (
+	eventsCmdState = struct {
+		// start time for listing events
+		Start string
+
+		// end time for listing events
+		End string
+	}{}
+
 	// easily add or remove borders to all event details tables
 	eventDetailsBorder = true
 
@@ -54,8 +62,26 @@ events from the last 7 days, but it is possible to specify a different
 time range.`,
 		Args: cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			cli.Log.Info("requesting list of events")
-			response, err := cli.LwApi.Events.List()
+
+			var (
+				response api.EventsResponse
+				err      error
+			)
+			if eventsCmdState.Start != "" || eventsCmdState.End != "" {
+				start, end, errT := parseStartAndEndTime()
+				if errT != nil {
+					return errors.Wrap(errT, "unable to parse time range")
+				}
+
+				cli.Log.Infow("requesting list of events from custom time range",
+					"start_time", start, "end_time", end,
+				)
+				response, err = cli.LwApi.Events.ListRange(start, end)
+			} else {
+				cli.Log.Info("requesting list of events from the last 7 days")
+				response, err = cli.LwApi.Events.List()
+			}
+
 			if err != nil {
 				return errors.Wrap(err, "unable to get events")
 			}
@@ -117,6 +143,16 @@ func init() {
 
 	// add sub-commands to the event command
 	eventCmd.AddCommand(eventListCmd)
+
+	// add start flag to events list command
+	eventListCmd.Flags().StringVar(&eventsCmdState.Start,
+		"start", "", "start of the time range in UTC (format: yyyy-MM-ddTHH:mm:ssZ)",
+	)
+	// add end flag to events list command
+	eventListCmd.Flags().StringVar(&eventsCmdState.End,
+		"end", "", "end of the time range in UTC (format: yyyy-MM-ddTHH:mm:ssZ)",
+	)
+
 	eventCmd.AddCommand(eventShowCmd)
 }
 
@@ -862,4 +898,29 @@ func eventMachineEntitiesTable(machines []api.EventMachineEntity) string {
 	t.Render()
 
 	return r.String()
+}
+
+// parse the start and end time provided by the user
+func parseStartAndEndTime() (start time.Time, end time.Time, err error) {
+	if eventsCmdState.Start == "" {
+		err = errors.New("when providing an end time, start time should be provided (--start)")
+		return
+	}
+	start, err = time.Parse(time.RFC3339, eventsCmdState.Start)
+	if err != nil {
+		err = errors.Wrap(err, "unable to parse start time")
+		return
+	}
+
+	if eventsCmdState.End == "" {
+		err = errors.New("when providing a start time, end time should be provided (--end)")
+		return
+	}
+	end, err = time.Parse(time.RFC3339, eventsCmdState.End)
+	if err != nil {
+		err = errors.Wrap(err, "unable to parse end time")
+		return
+	}
+
+	return
 }
