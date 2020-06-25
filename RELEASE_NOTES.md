@@ -1,10 +1,8 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.1.19`.
+Another day, another release. These are the release notes for the version `v0.1.20`.
 
 ## Features
-* feat(cli): set User-Agent header (backend metrics) (Salim Afiune Maya)([bb4cfc8](https://github.com/lacework/go-sdk/commit/bb4cfc81d0176bda39bb67e4bcdb3ebb422f8110))
-* feat: inject client version into User-Agent header (Salim Afiune Maya)([87261d2](https://github.com/lacework/go-sdk/commit/87261d2a356b3e92dc0979c6ae6070d6558d1bf4))
-* feat(api): set User-Agent header (backend metrics) (Salim Afiune Maya)([5c5001b](https://github.com/lacework/go-sdk/commit/5c5001b340f3c8e19a9ff131dab939d36f263bdd))
+* feat(cli): add time range flags to events list cmd (#154) (Salim Afiune)([e055bc0](https://github.com/lacework/go-sdk/commit/e055bc045509620239600d4f35087817ee5d7fdc))
 
 ## Docker Images
 * `docker pull techallylw/lacework-cli:latest`
