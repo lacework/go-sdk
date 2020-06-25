@@ -1,3 +1,8 @@
+# v0.1.20
+
+## Features
+* feat(cli): add time range flags to events list cmd (#154) (Salim Afiune)([e055bc0](https://github.com/lacework/go-sdk/commit/e055bc045509620239600d4f35087817ee5d7fdc))
+---
 # v0.1.19
 
 ## Features
