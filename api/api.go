@@ -35,6 +35,7 @@ const (
 	apiVulnerabilitiesScanStatus       = "external/vulnerabilities/container/reqId/%s"
 	apiVulnerabilitiesReportFromID     = "external/vulnerabilities/container/imageId/%s"
 	apiVulnerabilitiesReportFromDigest = "external/vulnerabilities/container/imageDigest/%s"
+	apiVulEvaluationsForDateRange      = "external/vulnerabilities/container/GetEvaluationsForDateRange"
 
 	apiComplianceAwsLatestReport        = "external/compliance/aws/GetLatestComplianceReport?AWS_ACCOUNT_ID=%s"
 	apiComplianceGcpLatestReport        = "external/compliance/gcp/GetLatestComplianceReport?GCP_ORG_ID=%s&GCP_PROJ_ID=%s"

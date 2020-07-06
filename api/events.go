@@ -31,17 +31,23 @@ type EventsService struct {
 	client *Client
 }
 
-// List leverages ListRange and returns a list of events from the last 7 days
+// List leverages ListDateRange and returns a list of events from the last 7 days
 func (svc *EventsService) List() (EventsResponse, error) {
 	var (
 		now  = time.Now().UTC()
 		from = now.AddDate(0, 0, -7) // 7 days from now
 	)
 
-	return svc.ListRange(from, now)
+	return svc.ListDateRange(from, now)
 }
 
-// ListRange returns a list of Lacework events during the specified date range
+// TODO @afiune (to-be-deprecated) https://github.com/lacework/go-sdk/issues/161
+func (svc *EventsService) ListRange(start, end time.Time) (EventsResponse, error) {
+	svc.client.log.Warn("ListRange() is DEPRECATED: use ListDateRange() instead")
+	return svc.ListDateRange(start, end)
+}
+
+// ListDateRange returns a list of Lacework events during the specified date range
 //
 // Requirements and specifications:
 // * The dates format should be: yyyy-MM-ddTHH:mm:ssZ (example 2019-07-11T21:11:00Z)
@@ -49,7 +55,7 @@ func (svc *EventsService) List() (EventsResponse, error) {
 // * The difference between the START_TIME and END_TIME must not be greater than 7 days
 // * The START_TIME must be less than or equal to three months from current date
 // * The number of records produced is limited to 5000
-func (svc *EventsService) ListRange(start, end time.Time) (
+func (svc *EventsService) ListDateRange(start, end time.Time) (
 	response EventsResponse,
 	err error,
 ) {

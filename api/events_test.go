@@ -58,7 +58,7 @@ func TestEventsListRangeError(t *testing.T) {
 	// a tipical user input error could be that they provide the
 	// date range the other way around, from should be the start
 	// time, and now should be the end time
-	response, err := c.Events.ListRange(now, from)
+	response, err := c.Events.ListDateRange(now, from)
 	assert.Empty(t, response)
 	if assert.NotNil(t, err) {
 		assert.Equal(t,
@@ -73,7 +73,7 @@ func TestEventsList(t *testing.T) {
 	fakeServer.MockAPI(
 		"external/events/GetEventsForDateRange",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "List or ListRange should be a GET method")
+			assert.Equal(t, "GET", r.Method, "List or ListDateRange should be a GET method")
 
 			start, ok := r.URL.Query()["START_TIME"]
 			if assert.True(t, ok,

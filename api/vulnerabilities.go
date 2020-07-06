@@ -19,10 +19,14 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/pkg/errors"
 )
 
 // VulnerabilitiesService is a service that interacts with the vulnerabilities
@@ -237,4 +241,91 @@ type containerVulnerability struct {
 	Link        string                 `json:"link"`
 	FixVersion  string                 `json:"fix_version"`
 	Metadata    map[string]interface{} `json:"metadata"`
+}
+
+// ListEvaluations leverages ListEvaluationsDateRange and returns a list of evaluations from the last 7 days
+func (svc *VulnerabilitiesService) ListEvaluations() (VulContainerEvaluationsResponse, error) {
+	var (
+		now  = time.Now().UTC()
+		from = now.AddDate(0, 0, -7) // 7 days from now
+	)
+
+	return svc.ListEvaluationsDateRange(from, now)
+}
+
+// ListEvaluationsDateRange returns a list of container evaluations during the specified date range
+func (svc *VulnerabilitiesService) ListEvaluationsDateRange(start, end time.Time) (
+	response VulContainerEvaluationsResponse,
+	err error,
+) {
+	if start.After(end) {
+		err = errors.New("data range should have a start time before the end time")
+		return
+	}
+
+	apiPath := fmt.Sprintf(
+		"%s?START_TIME=%s&END_TIME=%s",
+		apiVulEvaluationsForDateRange,
+		start.UTC().Format(time.RFC3339),
+		end.UTC().Format(time.RFC3339),
+	)
+	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
+	return
+}
+
+type VulContainerEvaluationsResponse struct {
+	Data    []VulContainerEvaluation `json:"data"`
+	Ok      bool                     `json:"ok"`
+	Message string                   `json:"message"`
+}
+
+// time type to parse the returned 16 digit time in milliseconds
+type Json16DigitTime time.Time
+
+// imeplement Marshal and Unmarshal interfaces
+func (j *Json16DigitTime) UnmarshalJSON(b []byte) error {
+	ms, _ := strconv.Atoi(string(b))
+	t := time.Unix(0, int64(ms)*int64(time.Millisecond))
+	*j = Json16DigitTime(t)
+	return nil
+}
+
+func (j Json16DigitTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(j)
+}
+
+// A few format functions for printing and manipulating the custom date
+func (j Json16DigitTime) ToTime() time.Time {
+	return time.Time(j)
+}
+func (j Json16DigitTime) Format(s string) string {
+	return j.ToTime().Format(s)
+}
+func (j Json16DigitTime) UTC() time.Time {
+	return j.ToTime().UTC()
+}
+
+type VulContainerEvaluation struct {
+	EvalGuid                    string          `json:"eval_guid"`
+	EvalStatus                  string          `json:"eval_status"`
+	EvalType                    string          `json:"eval_type"`
+	ImageCreatedTime            Json16DigitTime `json:"image_created_time"`
+	ImageDigest                 string          `json:"image_digest"`
+	ImageID                     string          `json:"image_id"`
+	ImageNamespace              string          `json:"image_namespace"`
+	ImageRegistry               string          `json:"image_registry"`
+	ImageRepo                   string          `json:"image_repo"`
+	ImageScanErrorMsg           string          `json:"image_scan_error_msg"`
+	ImageScanStatus             string          `json:"image_scan_status"`
+	ImageScanTime               Json16DigitTime `json:"image_scan_time"`
+	ImageSize                   string          `json:"image_size"`
+	ImageTags                   []string        `json:"image_tags"`
+	NdvContainers               string          `json:"ndv_containers"`
+	NumFixes                    string          `json:"num_fixes"`
+	NumVulnerabilitiesSeverity1 string          `json:"num_vulnerabilities_severity_1"`
+	NumVulnerabilitiesSeverity2 string          `json:"num_vulnerabilities_severity_2"`
+	NumVulnerabilitiesSeverity3 string          `json:"num_vulnerabilities_severity_3"`
+	NumVulnerabilitiesSeverity4 string          `json:"num_vulnerabilities_severity_4"`
+	NumVulnerabilitiesSeverity5 string          `json:"num_vulnerabilities_severity_5"`
+	StartTime                   Json16DigitTime `json:"start_time"`
 }
