@@ -76,7 +76,7 @@ time range.`,
 				cli.Log.Infow("requesting list of events from custom time range",
 					"start_time", start, "end_time", end,
 				)
-				response, err = cli.LwApi.Events.ListRange(start, end)
+				response, err = cli.LwApi.Events.ListDateRange(start, end)
 			} else {
 				cli.Log.Info("requesting list of events from the last 7 days")
 				response, err = cli.LwApi.Events.List()
