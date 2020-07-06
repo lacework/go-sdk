@@ -68,7 +68,7 @@ time range.`,
 				err      error
 			)
 			if eventsCmdState.Start != "" || eventsCmdState.End != "" {
-				start, end, errT := parseStartAndEndTime()
+				start, end, errT := parseStartAndEndTime(eventsCmdState.Start, eventsCmdState.End)
 				if errT != nil {
 					return errors.Wrap(errT, "unable to parse time range")
 				}
@@ -898,29 +898,4 @@ func eventMachineEntitiesTable(machines []api.EventMachineEntity) string {
 	t.Render()
 
 	return r.String()
-}
-
-// parse the start and end time provided by the user
-func parseStartAndEndTime() (start time.Time, end time.Time, err error) {
-	if eventsCmdState.Start == "" {
-		err = errors.New("when providing an end time, start time should be provided (--start)")
-		return
-	}
-	start, err = time.Parse(time.RFC3339, eventsCmdState.Start)
-	if err != nil {
-		err = errors.Wrap(err, "unable to parse start time")
-		return
-	}
-
-	if eventsCmdState.End == "" {
-		err = errors.New("when providing a start time, end time should be provided (--end)")
-		return
-	}
-	end, err = time.Parse(time.RFC3339, eventsCmdState.End)
-	if err != nil {
-		err = errors.Wrap(err, "unable to parse end time")
-		return
-	}
-
-	return
 }
