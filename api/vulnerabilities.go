@@ -271,7 +271,6 @@ func (svc *VulnerabilitiesService) ListEvaluationsDateRange(start, end time.Time
 		start.UTC().Format(time.RFC3339),
 		end.UTC().Format(time.RFC3339),
 	)
-	fmt.Println(apiPath)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
