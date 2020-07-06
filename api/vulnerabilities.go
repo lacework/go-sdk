@@ -19,7 +19,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -246,8 +245,11 @@ type containerVulnerability struct {
 // ListEvaluations leverages ListEvaluationsDateRange and returns a list of evaluations from the last 7 days
 func (svc *VulnerabilitiesService) ListEvaluations() (VulContainerEvaluationsResponse, error) {
 	var (
-		now  = time.Now().UTC()
-		from = now.AddDate(0, 0, -7) // 7 days from now
+		now = time.Now().UTC()
+
+		// 7 days from now plus 2 minutes, why?
+		// because our API has a limit of exactly 7 days
+		from = now.AddDate(0, 0, -7).Add(time.Minute * time.Duration(2))
 	)
 
 	return svc.ListEvaluationsDateRange(from, now)
@@ -269,14 +271,15 @@ func (svc *VulnerabilitiesService) ListEvaluationsDateRange(start, end time.Time
 		start.UTC().Format(time.RFC3339),
 		end.UTC().Format(time.RFC3339),
 	)
+	fmt.Println(apiPath)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
 
 type VulContainerEvaluationsResponse struct {
-	Data    []VulContainerEvaluation `json:"data"`
-	Ok      bool                     `json:"ok"`
-	Message string                   `json:"message"`
+	Evaluations []VulContainerEvaluation `json:"data"`
+	Ok          bool                     `json:"ok"`
+	Message     string                   `json:"message"`
 }
 
 // time type to parse the returned 16 digit time in milliseconds
@@ -291,7 +294,8 @@ func (j *Json16DigitTime) UnmarshalJSON(b []byte) error {
 }
 
 func (j Json16DigitTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(j)
+	// @afiune we might have problems changing the location :(
+	return j.ToTime().UTC().MarshalJSON()
 }
 
 // A few format functions for printing and manipulating the custom date

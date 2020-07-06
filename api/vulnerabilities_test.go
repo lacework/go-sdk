@@ -308,7 +308,7 @@ func TestVulnerabilitiesListEvaluations(t *testing.T) {
 						"the start time should not be after the end time",
 					)
 					assert.True(t,
-						startTime.AddDate(0, 0, 7).Equal(endTime),
+						startTime.AddDate(0, 0, 7).Add(-(time.Minute * time.Duration(2))).Equal(endTime),
 						"the data range is not 7 days apart",
 					)
 					fmt.Fprintf(w, vulContainerEvaluationsResponse(startTime.UnixNano()))
@@ -327,8 +327,8 @@ func TestVulnerabilitiesListEvaluations(t *testing.T) {
 	response, err := c.Vulnerabilities.ListEvaluations()
 	assert.Nil(t, err)
 	if assert.NotNil(t, response) {
-		if assert.Equal(t, 2, len(response.Data)) {
-			eval := response.Data[0]
+		if assert.Equal(t, 2, len(response.Evaluations)) {
+			eval := response.Evaluations[0]
 			assert.Equal(t, "PASSED", eval.EvalStatus)
 			assert.Equal(t, "EvalBySQL", eval.EvalType)
 			assert.Equal(t, "492c2f55cf3073e3978138e599bd2074", eval.EvalGuid)
@@ -352,7 +352,7 @@ func TestVulnerabilitiesListEvaluations(t *testing.T) {
 			assert.Equal(t, "0", eval.NumVulnerabilitiesSeverity4)
 			assert.Equal(t, "0", eval.NumVulnerabilitiesSeverity5)
 
-			eval = response.Data[1]
+			eval = response.Evaluations[1]
 			assert.Equal(t, "2020-04-17T23:13:43Z", eval.ImageCreatedTime.UTC().Format(time.RFC3339))
 			assert.Equal(t, "2020-04-17T23:14:07Z", eval.ImageScanTime.ToTime().UTC().Format(time.RFC3339))
 			assert.Equal(t, "2020-07-02T02:19:06Z", eval.StartTime.UTC().Format(time.RFC3339))
