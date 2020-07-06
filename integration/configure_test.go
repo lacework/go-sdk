@@ -51,6 +51,41 @@ func TestConfigureCommand(t *testing.T) {
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
+func TestConfigureCommandNonInteractive(t *testing.T) {
+	// create a temporal directory where we will check that the
+	// configuration file is deployed (.lacework.toml)
+	home, err := ioutil.TempDir("", "lacework-cli")
+	if err != nil {
+		panic(err)
+	}
+
+	defer os.RemoveAll(home)
+	out, errB, exitcode := LaceworkCLIWithHome(home, "configure",
+		"--noninteractive",
+		"-a", "my-account",
+		"-k", "my-key",
+		"-s", "my-secret",
+	)
+
+	assert.Empty(t, errB.String())
+	assert.Equal(t, 0, exitcode)
+	assert.Equal(t, "You are all set!\n", out.String(),
+		"you are not all set, check configure cmd")
+
+	configPath := path.Join(home, ".lacework.toml")
+	assert.FileExists(t, configPath, "the configuration file is missing")
+	laceworkTOML, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		panic(err)
+	}
+
+	assert.Equal(t, `[default]
+  account = "my-account"
+  api_key = "my-key"
+  api_secret = "my-secret"
+`, string(laceworkTOML), "there is a problem with the generated config")
+}
+
 func TestConfigureCommandWithProfileFlag(t *testing.T) {
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {

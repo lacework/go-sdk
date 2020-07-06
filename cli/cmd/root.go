@@ -83,7 +83,7 @@ func init() {
 		"turn off colors",
 	)
 	rootCmd.PersistentFlags().Bool("noninteractive", false,
-		"disable interactive progress bars (i.e. 'spinners')",
+		"turn off interactive mode (disable spinners, prompts, etc.)",
 	)
 	rootCmd.PersistentFlags().Bool("json", false,
 		"switch commands output from human-readable to json format",

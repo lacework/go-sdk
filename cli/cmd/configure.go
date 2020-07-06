@@ -54,6 +54,19 @@ type credsDetails struct {
 	ApiSecret string `toml:"api_secret" json:"api_secret" survey:"api_secret"`
 }
 
+func (c *credsDetails) Verify() error {
+	if c.Account == "" {
+		return errors.New("account missing")
+	}
+	if c.ApiKey == "" {
+		return errors.New("api_key missing")
+	}
+	if c.ApiSecret == "" {
+		return errors.New("api_secret missing")
+	}
+	return nil
+}
+
 // apiKeyDetails represents the details of an API key, we use this struct
 // internally to unmarshal the JSON file provided by the Lacework WebUI
 type apiKeyDetails struct {
@@ -105,6 +118,9 @@ func init() {
 
 func promptConfigureSetup() error {
 	cli.Log.Debugw("configuring cli", "profile", cli.Profile)
+
+	// make sure that the state is loaded to use during configuration
+	cli.loadStateFromViper()
 
 	// if the Lacework account is empty, and the profile that is being configured is
 	// not the 'default' profile, auto-populate the account with the provided profile
@@ -167,15 +183,26 @@ func promptConfigureSetup() error {
 	}
 
 	newCreds := credsDetails{}
-	err := survey.Ask(append(questions, secretQuest), &newCreds,
-		survey.WithIcons(promptIconsFunc),
-	)
-	if err != nil {
-		return err
+	if cli.InteractiveMode() {
+		err := survey.Ask(append(questions, secretQuest), &newCreds,
+			survey.WithIcons(promptIconsFunc),
+		)
+		if err != nil {
+			return err
+		}
+
+		if len(newCreds.ApiSecret) == 0 {
+			newCreds.ApiSecret = cli.Secret
+		}
+		cli.OutputHuman("\n")
+	} else {
+		newCreds.Account = cli.Account
+		newCreds.ApiKey = cli.KeyID
+		newCreds.ApiSecret = cli.Secret
 	}
 
-	if len(newCreds.ApiSecret) == 0 {
-		newCreds.ApiSecret = cli.Secret
+	if err := newCreds.Verify(); err != nil {
+		return errors.Wrap(err, "unable to configure the command-line")
 	}
 
 	var (
@@ -207,12 +234,12 @@ func promptConfigureSetup() error {
 		return err
 	}
 
-	err = ioutil.WriteFile(confPath, buf.Bytes(), 0600)
+	err := ioutil.WriteFile(confPath, buf.Bytes(), 0600)
 	if err != nil {
 		return err
 	}
 
-	cli.OutputHuman("\nYou are all set!\n")
+	cli.OutputHuman("You are all set!\n")
 	return nil
 }
 
