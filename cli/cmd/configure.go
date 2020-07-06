@@ -194,19 +194,9 @@ func promptConfigureSetup() error {
 			"path", confPath,
 		)
 	} else {
+		cli.Log.Debugw("decoding config", "path", confPath)
 		if _, err := toml.DecodeFile(confPath, &profiles); err != nil {
-			cli.Log.Debugw("unable to decode profiles from config, trying previous config",
-				"path", confPath, "error", err,
-			)
-
-			var oldcreds credsDetails
-			if _, err2 := toml.DecodeFile(confPath, &oldcreds); err2 != nil {
-				cli.Log.Debugw("unable to decode old config, no more options, exit",
-					"error", err2,
-				)
-				return err
-			}
-			profiles["default"] = oldcreds
+			return errors.Wrap(err, "unable to decode profiles from config")
 		}
 		cli.Log.Debugw("profiles loaded from config, updating", "profiles", profiles)
 	}
