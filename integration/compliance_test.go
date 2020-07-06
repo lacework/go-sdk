@@ -65,7 +65,7 @@ Global Flags:
       --debug               turn on debug logging
       --json                switch commands output from human-readable to json format
       --nocolor             turn off colors
-      --noninteractive      disable interactive progress bars (i.e. 'spinners')
+      --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
 
 Use "lacework compliance [command] --help" for more information about a command.
