@@ -77,6 +77,12 @@ func (svc *IntegrationsService) UpdateSlackChannel(data SlackChanIntegration) (
 	return
 }
 
+// ListSlackChannel lists the SLACK_CHANNEL external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListSlackChannel() (response SlackChanIntResponse, err error) {
+	err = svc.listByType(SlackChannelIntegration, &response)
+	return
+}
+
 type SlackChanIntResponse struct {
 	Data    []SlackChanIntegration `json:"data"`
 	Ok      bool                   `json:"ok"`
