@@ -49,6 +49,35 @@ func NewSlackChannelIntegration(name string, data SlackChannelData) SlackChanInt
 	}
 }
 
+type SlackAlertLevel int
+
+const (
+	CriticalSlackAlertLevel SlackAlertLevel = 1
+	HighSlackAlertLevel     SlackAlertLevel = 2
+	MediumSlackAlertLevel   SlackAlertLevel = 3
+	LowSlackAlertLevel      SlackAlertLevel = 4
+	AllSlackAlertLevel      SlackAlertLevel = 5
+)
+
+// SlackAlertLevels is the list of available slack alert levels
+var SlackAlertLevels = map[SlackAlertLevel]string{
+	CriticalSlackAlertLevel: "Critical",
+	HighSlackAlertLevel:     "High",
+	MediumSlackAlertLevel:   "Medium",
+	LowSlackAlertLevel:      "Low",
+	AllSlackAlertLevel:      "All",
+}
+
+// String returns the string representation of a slack alert level
+func (i SlackAlertLevel) String() string {
+	return SlackAlertLevels[i]
+}
+
+// Int returns the int representation of a slack alert level
+func (i SlackAlertLevel) Int() int {
+	return int(i)
+}
+
 // CreateSlackChannel creates a slack channel alert integration on the Lacework Server
 func (svc *IntegrationsService) CreateSlackChannel(integration SlackChanIntegration) (
 	response SlackChanIntResponse,
@@ -95,8 +124,7 @@ type SlackChanIntegration struct {
 }
 
 type SlackChannelData struct {
-	IssueGrouping string `json:"ISSUE_GROUPING,omitempty"`
-	SlackUrl      string `json:"SLACK_URL"`
-	// TODO: @afiune to convert to an actual ENUM
-	MinAlertSeverity int `json:"MIN_ALERT_SEVERITY"`
+	IssueGrouping    string          `json:"ISSUE_GROUPING,omitempty"`
+	SlackUrl         string          `json:"SLACK_URL"`
+	MinAlertSeverity SlackAlertLevel `json:"MIN_ALERT_SEVERITY"`
 }
