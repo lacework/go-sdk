@@ -183,6 +183,7 @@ func promptCreateIntegration() error {
 		prompt      = &survey.Select{
 			Message: "Choose an integration type to create: ",
 			Options: []string{
+				"Slack Channel Alert",
 				"Docker Hub",
 				"AWS Config",
 				"AWS CloudTrail",
@@ -203,6 +204,8 @@ func promptCreateIntegration() error {
 	}
 
 	switch integration {
+	case "Slack Channel Alert":
+		return createSlackChannelIntegration()
 	case "Docker Hub":
 		return createDockerHubIntegration()
 	case "AWS Config":

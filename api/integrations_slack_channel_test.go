@@ -88,7 +88,7 @@ func TestIntegrationsCreateSlackChannel(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "https://hooks.slack.com/services/ABCD/12345/abcd1234", resData.Data.SlackUrl)
-		assert.Equal(t, 3, resData.Data.MinAlertSeverity)
+		assert.Equal(t, api.SlackAlertLevel(3), resData.Data.MinAlertSeverity)
 	}
 }
 
@@ -120,7 +120,7 @@ func TestIntegrationsGetSlackChannel(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "https://hooks.slack.com/services/ABCD/12345/abcd1234", resData.Data.SlackUrl)
-		assert.Equal(t, 3, resData.Data.MinAlertSeverity)
+		assert.Equal(t, api.SlackAlertLevel(3), resData.Data.MinAlertSeverity)
 	}
 }
 
