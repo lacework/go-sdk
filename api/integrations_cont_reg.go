@@ -86,6 +86,27 @@ func (svc *IntegrationsService) CreateContainerRegistry(integration ContainerReg
 	return
 }
 
+// GetContainerRegistry gets a container registry integration that matches with
+// the provided integration guid on the Lacework Server
+func (svc *IntegrationsService) GetContainerRegistry(guid string) (
+	response map[string]interface{},
+	//response ContainerRegIntResponse, // @afiune we can't use this :(
+	err error,
+) {
+	err = svc.get(guid, &response)
+	return
+}
+
+// UpdateContainerRegistry updates a single container registry integration
+func (svc *IntegrationsService) UpdateContainerRegistry(integration ContainerRegIntegration) (
+	response map[string]interface{},
+	//response ContainerRegIntResponse, // @afiune we can't use this :(
+	err error,
+) {
+	err = svc.update(integration.IntgGuid, integration, &response)
+	return
+}
+
 type ContainerRegIntegration struct {
 	commonIntegrationData
 	Data ContainerRegData `json:"DATA"`
