@@ -373,6 +373,26 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		return out
 
+	case api.SlackChannelIntegration.String():
+
+		var iData api.SlackChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"SLACK URL", iData.SlackUrl},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
+		}
+
+		return out
+
 	default:
 		out := [][]string{}
 		for key, value := range deepKeyValueExtract(raw.Data) {
