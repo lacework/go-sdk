@@ -32,7 +32,7 @@ package api
 //   slackChannel := api.NewSlackChannelIntegration("foo",
 //     api.SlackChannelData{
 //       SlackUrl: "https://hooks.slack.com/services/ABCD/12345/abcd1234",
-//       MinAlertSeverity: 3,
+//       MinAlertSeverity: api.CriticalAlertLevel,
 //     },
 //   )
 //
@@ -47,35 +47,6 @@ func NewSlackChannelIntegration(name string, data SlackChannelData) SlackChanInt
 		},
 		Data: data,
 	}
-}
-
-type SlackAlertLevel int
-
-const (
-	CriticalSlackAlertLevel SlackAlertLevel = 1
-	HighSlackAlertLevel     SlackAlertLevel = 2
-	MediumSlackAlertLevel   SlackAlertLevel = 3
-	LowSlackAlertLevel      SlackAlertLevel = 4
-	AllSlackAlertLevel      SlackAlertLevel = 5
-)
-
-// SlackAlertLevels is the list of available slack alert levels
-var SlackAlertLevels = map[SlackAlertLevel]string{
-	CriticalSlackAlertLevel: "Critical",
-	HighSlackAlertLevel:     "High",
-	MediumSlackAlertLevel:   "Medium",
-	LowSlackAlertLevel:      "Low",
-	AllSlackAlertLevel:      "All",
-}
-
-// String returns the string representation of a slack alert level
-func (i SlackAlertLevel) String() string {
-	return SlackAlertLevels[i]
-}
-
-// Int returns the int representation of a slack alert level
-func (i SlackAlertLevel) Int() int {
-	return int(i)
 }
 
 // CreateSlackChannel creates a slack channel alert integration on the Lacework Server
@@ -124,7 +95,7 @@ type SlackChanIntegration struct {
 }
 
 type SlackChannelData struct {
-	IssueGrouping    string          `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
-	SlackUrl         string          `json:"SLACK_URL" mapstructure:"SLACK_URL"`
-	MinAlertSeverity SlackAlertLevel `json:"MIN_ALERT_SEVERITY" mapstructure:"MIN_ALERT_SEVERITY"`
+	IssueGrouping    string     `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
+	SlackUrl         string     `json:"SLACK_URL" mapstructure:"SLACK_URL"`
+	MinAlertSeverity AlertLevel `json:"MIN_ALERT_SEVERITY,omitempty" mapstructure:"MIN_ALERT_SEVERITY"`
 }

@@ -78,19 +78,19 @@ func createSlackChannelIntegration() error {
 	return err
 }
 
-func alertSeverityToEnum(level string) api.SlackAlertLevel {
+func alertSeverityToEnum(level string) api.AlertLevel {
 	switch level {
 	case "Critical":
-		return api.CriticalSlackAlertLevel
+		return api.CriticalAlertLevel
 	case "High and above":
-		return api.HighSlackAlertLevel
+		return api.HighAlertLevel
 	case "Medium and above":
-		return api.MediumSlackAlertLevel
+		return api.MediumAlertLevel
 	case "Low and above":
-		return api.LowSlackAlertLevel
+		return api.LowAlertLevel
 	case "All":
-		return api.AllSlackAlertLevel
+		return api.AllAlertLevel
 	default:
-		return api.MediumSlackAlertLevel
+		return api.MediumAlertLevel
 	}
 }
