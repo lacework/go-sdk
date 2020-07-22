@@ -18,10 +18,10 @@
 
 package api
 
-// NewAwsCloudWatchIntegration returns an instance of AwsCloudWatchInt
+// NewAwsCloudWatchAlertChannel returns an instance of AwsCloudWatchAlertChannel
 // with the provided name and data.
 //
-// Basic usage: Initialize a new AwsCloudWatchInt struct, then
+// Basic usage: Initialize a new AwsCloudWatchAlertChannel struct, then
 //              use the new instance to do CRUD operations
 //
 //   client, err := api.NewClient("account")
@@ -29,17 +29,17 @@ package api
 //     return err
 //   }
 //
-//   awsCloudWatch := api.NewAwsCloudWatchIntegration("foo",
+//   awsCloudWatch := api.NewAwsCloudWatchAlertChannel("foo",
 //     api.AwsCloudWatchData{
 //       EventBusArn: "arn:aws:events:us-west-2:1234567890:event-bus/default",
 //       MinAlertSeverity: api.MediumAlertLevel,
 //     },
 //   )
 //
-//   client.Integrations.CreateAwsCloudWatch(awsCloudWatch)
+//   client.Integrations.CreateAwsCloudWatchAlertChannel(awsCloudWatch)
 //
-func NewAwsCloudWatchIntegration(name string, data AwsCloudWatchData) AwsCloudWatchInt {
-	return AwsCloudWatchInt{
+func NewAwsCloudWatchAlertChannel(name string, data AwsCloudWatchData) AwsCloudWatchAlertChannel {
+	return AwsCloudWatchAlertChannel{
 		commonIntegrationData: commonIntegrationData{
 			Name:    name,
 			Type:    AwsCloudWatchIntegration.String(),
@@ -49,47 +49,47 @@ func NewAwsCloudWatchIntegration(name string, data AwsCloudWatchData) AwsCloudWa
 	}
 }
 
-// CreateAwsCloudWatch creates a AWS CloudWatch alert integration on the Lacework Server
-func (svc *IntegrationsService) CreateAwsCloudWatch(integration AwsCloudWatchInt) (
-	response AwsCloudWatchIntResponse,
+// CreateAwsCloudWatchAlertChannel creates a AWS CloudWatch alert channel on the Lacework Server
+func (svc *IntegrationsService) CreateAwsCloudWatchAlertChannel(integration AwsCloudWatchAlertChannel) (
+	response AwsCloudWatchResponse,
 	err error,
 ) {
 	err = svc.create(integration, &response)
 	return
 }
 
-// GetAwsCloudWatch gets a AWS CloudWatch alert integration that matches with
+// GetAwsCloudWatchAlertChannel gets a AWS CloudWatch alert channel that matches with
 // the provided integration guid on the Lacework Server
-func (svc *IntegrationsService) GetAwsCloudWatch(guid string) (
-	response AwsCloudWatchIntResponse,
+func (svc *IntegrationsService) GetAwsCloudWatchAlertChannel(guid string) (
+	response AwsCloudWatchResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateAwsCloudWatch updates a single AWS CloudWatch alert integration
-func (svc *IntegrationsService) UpdateAwsCloudWatch(data AwsCloudWatchInt) (
-	response AwsCloudWatchIntResponse,
+// UpdateAwsCloudWatchAlertChannel updates a single AWS CloudWatch alert channel
+func (svc *IntegrationsService) UpdateAwsCloudWatchAlertChannel(data AwsCloudWatchAlertChannel) (
+	response AwsCloudWatchResponse,
 	err error,
 ) {
 	err = svc.update(data.IntgGuid, data, &response)
 	return
 }
 
-// ListAwsCloudWatch lists the CLOUDWATCH_EB external integrations available on the Lacework Server
-func (svc *IntegrationsService) ListAwsCloudWatch() (response AwsCloudWatchIntResponse, err error) {
+// ListAwsCloudWatchAlertChannel lists the CLOUDWATCH_EB external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListAwsCloudWatchAlertChannel() (response AwsCloudWatchResponse, err error) {
 	err = svc.listByType(AwsCloudWatchIntegration, &response)
 	return
 }
 
-type AwsCloudWatchIntResponse struct {
-	Data    []AwsCloudWatchInt `json:"data"`
-	Ok      bool               `json:"ok"`
-	Message string             `json:"message"`
+type AwsCloudWatchResponse struct {
+	Data    []AwsCloudWatchAlertChannel `json:"data"`
+	Ok      bool                        `json:"ok"`
+	Message string                      `json:"message"`
 }
 
-type AwsCloudWatchInt struct {
+type AwsCloudWatchAlertChannel struct {
 	commonIntegrationData
 	Data AwsCloudWatchData `json:"DATA"`
 }

@@ -18,10 +18,10 @@
 
 package api
 
-// NewSlackChannelIntegration returns an instance of SlackChanIntegration
+// NewSlackAlertChannel returns an instance of SlackAlertChannel
 // with the provided name and data.
 //
-// Basic usage: Initialize a new SlackChanIntegration struct, then
+// Basic usage: Initialize a new SlackAlertChannel struct, then
 //              use the new instance to do CRUD operations
 //
 //   client, err := api.NewClient("account")
@@ -29,17 +29,17 @@ package api
 //     return err
 //   }
 //
-//   slackChannel := api.NewSlackChannelIntegration("foo",
+//   slackChannel := api.NewSlackAlertChannel("foo",
 //     api.SlackChannelData{
 //       SlackUrl: "https://hooks.slack.com/services/ABCD/12345/abcd1234",
 //       MinAlertSeverity: api.CriticalAlertLevel,
 //     },
 //   )
 //
-//   client.Integrations.CreateSlackChannel(slackChannel)
+//   client.Integrations.CreateSlackAlertChannel(slackChannel)
 //
-func NewSlackChannelIntegration(name string, data SlackChannelData) SlackChanIntegration {
-	return SlackChanIntegration{
+func NewSlackAlertChannel(name string, data SlackChannelData) SlackAlertChannel {
+	return SlackAlertChannel{
 		commonIntegrationData: commonIntegrationData{
 			Name:    name,
 			Type:    SlackChannelIntegration.String(),
@@ -49,47 +49,47 @@ func NewSlackChannelIntegration(name string, data SlackChannelData) SlackChanInt
 	}
 }
 
-// CreateSlackChannel creates a slack channel alert integration on the Lacework Server
-func (svc *IntegrationsService) CreateSlackChannel(integration SlackChanIntegration) (
-	response SlackChanIntResponse,
+// CreateSlackAlertChannel creates a slack alert channel integration on the Lacework Server
+func (svc *IntegrationsService) CreateSlackAlertChannel(integration SlackAlertChannel) (
+	response SlackAlertChannelResponse,
 	err error,
 ) {
 	err = svc.create(integration, &response)
 	return
 }
 
-// GetSlackChannel gets a slack channel alert integration that matches with
+// GetSlackAlertChannel gets a slack alert channel integration that matches with
 // the provided integration guid on the Lacework Server
-func (svc *IntegrationsService) GetSlackChannel(guid string) (
-	response SlackChanIntResponse,
+func (svc *IntegrationsService) GetSlackAlertChannel(guid string) (
+	response SlackAlertChannelResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateSlackChannel updates a single slack channel alert integration
-func (svc *IntegrationsService) UpdateSlackChannel(data SlackChanIntegration) (
-	response SlackChanIntResponse,
+// UpdateSlackAlertChannel updates a single slack alert channel integration
+func (svc *IntegrationsService) UpdateSlackAlertChannel(data SlackAlertChannel) (
+	response SlackAlertChannelResponse,
 	err error,
 ) {
 	err = svc.update(data.IntgGuid, data, &response)
 	return
 }
 
-// ListSlackChannel lists the SLACK_CHANNEL external integrations available on the Lacework Server
-func (svc *IntegrationsService) ListSlackChannel() (response SlackChanIntResponse, err error) {
+// ListSlackAlertChannel lists the SLACK_CHANNEL external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListSlackAlertChannel() (response SlackAlertChannelResponse, err error) {
 	err = svc.listByType(SlackChannelIntegration, &response)
 	return
 }
 
-type SlackChanIntResponse struct {
-	Data    []SlackChanIntegration `json:"data"`
-	Ok      bool                   `json:"ok"`
-	Message string                 `json:"message"`
+type SlackAlertChannelResponse struct {
+	Data    []SlackAlertChannel `json:"data"`
+	Ok      bool                `json:"ok"`
+	Message string              `json:"message"`
 }
 
-type SlackChanIntegration struct {
+type SlackAlertChannel struct {
 	commonIntegrationData
 	Data SlackChannelData `json:"DATA"`
 }

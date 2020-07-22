@@ -65,7 +65,7 @@ func createSlackChannelIntegration() error {
 		return err
 	}
 
-	slack := api.NewSlackChannelIntegration(answers.Name,
+	slack := api.NewSlackAlertChannel(answers.Name,
 		api.SlackChannelData{
 			SlackUrl:         answers.Url,
 			MinAlertSeverity: alertSeverityToEnum(answers.AlertSeverity),
@@ -73,7 +73,7 @@ func createSlackChannelIntegration() error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateSlackChannel(slack)
+	_, err = cli.LwApi.Integrations.CreateSlackAlertChannel(slack)
 	cli.StopProgress()
 	return err
 }

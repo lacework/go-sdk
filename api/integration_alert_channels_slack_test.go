@@ -31,8 +31,8 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestIntegrationsNewSlackChannelIntegration(t *testing.T) {
-	subject := api.NewSlackChannelIntegration("integration_name",
+func TestIntegrationsNewSlackAlertChannel(t *testing.T) {
+	subject := api.NewSlackAlertChannel("integration_name",
 		api.SlackChannelData{
 			SlackUrl:         "https://hooks.slack.com/services/ABCD/12345/abcd1234",
 			MinAlertSeverity: 3,
@@ -42,13 +42,13 @@ func TestIntegrationsNewSlackChannelIntegration(t *testing.T) {
 	assert.Equal(t, api.MediumAlertLevel, subject.Data.MinAlertSeverity)
 }
 
-func TestIntegrationsCreateSlackChannel(t *testing.T) {
+func TestIntegrationsCreateSlackAlertChannel(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "POST", r.Method, "CreateSlackChannel should be a POST method")
+		assert.Equal(t, "POST", r.Method, "CreateSlackAlertChannel should be a POST method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
@@ -69,7 +69,7 @@ func TestIntegrationsCreateSlackChannel(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	data := api.NewSlackChannelIntegration("integration_name",
+	data := api.NewSlackAlertChannel("integration_name",
 		api.SlackChannelData{
 			SlackUrl:         "https://hooks.slack.com/services/ABCD/12345/abcd1234",
 			MinAlertSeverity: 3,
@@ -79,7 +79,7 @@ func TestIntegrationsCreateSlackChannel(t *testing.T) {
 	assert.Equal(t, "SLACK_CHANNEL", data.Type, "a new SlackChannel integration should match its type")
 	assert.Equal(t, 1, data.Enabled, "a new SlackChannel integration should be enabled")
 
-	response, err := c.Integrations.CreateSlackChannel(data)
+	response, err := c.Integrations.CreateSlackAlertChannel(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -93,14 +93,14 @@ func TestIntegrationsCreateSlackChannel(t *testing.T) {
 	}
 }
 
-func TestIntegrationsGetSlackChannel(t *testing.T) {
+func TestIntegrationsGetSlackAlertChannel(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method, "GetSlackChannel should be a GET method")
+		assert.Equal(t, "GET", r.Method, "GetSlackAlertChannel should be a GET method")
 		fmt.Fprintf(w, slackChannelIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
@@ -111,7 +111,7 @@ func TestIntegrationsGetSlackChannel(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.GetSlackChannel(intgGUID)
+	response, err := c.Integrations.GetSlackAlertChannel(intgGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -125,14 +125,14 @@ func TestIntegrationsGetSlackChannel(t *testing.T) {
 	}
 }
 
-func TestIntegrationsUpdateSlackChannel(t *testing.T) {
+func TestIntegrationsUpdateSlackAlertChannel(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method, "UpdateSlackChannel should be a PATCH method")
+		assert.Equal(t, "PATCH", r.Method, "UpdateSlackAlertChannel should be a PATCH method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
@@ -154,7 +154,7 @@ func TestIntegrationsUpdateSlackChannel(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	data := api.NewSlackChannelIntegration("integration_name",
+	data := api.NewSlackAlertChannel("integration_name",
 		api.SlackChannelData{
 			SlackUrl:         "https://hooks.slack.com/services/ABCD/12345/abcd1234",
 			MinAlertSeverity: 3,
@@ -165,7 +165,7 @@ func TestIntegrationsUpdateSlackChannel(t *testing.T) {
 	assert.Equal(t, 1, data.Enabled, "a new SlackChannel integration should be enabled")
 	data.IntgGuid = intgGUID
 
-	response, err := c.Integrations.UpdateSlackChannel(data)
+	response, err := c.Integrations.UpdateSlackAlertChannel(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, "SUCCESS", response.Message)
@@ -173,14 +173,14 @@ func TestIntegrationsUpdateSlackChannel(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
 }
 
-func TestIntegrationsListSlackChannel(t *testing.T) {
+func TestIntegrationsListSlackAlertChannel(t *testing.T) {
 	var (
 		intgGUIDs  = []string{intgguid.New(), intgguid.New(), intgguid.New()}
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations/type/SLACK_CHANNEL",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "ListSlackChannel should be a GET method")
+			assert.Equal(t, "GET", r.Method, "ListSlackAlertChannel should be a GET method")
 			fmt.Fprintf(w, slackChanMultiIntegrationJsonResponse(intgGUIDs))
 		},
 	)
@@ -192,7 +192,7 @@ func TestIntegrationsListSlackChannel(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.ListSlackChannel()
+	response, err := c.Integrations.ListSlackAlertChannel()
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)

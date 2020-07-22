@@ -31,8 +31,8 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestIntegrationsNewAwsCloudWatchIntegration(t *testing.T) {
-	subject := api.NewAwsCloudWatchIntegration("integration_name",
+func TestIntegrationsNewAwsCloudWatchAlertChannel(t *testing.T) {
+	subject := api.NewAwsCloudWatchAlertChannel("integration_name",
 		api.AwsCloudWatchData{
 			EventBusArn:      "arn:aws:events:us-west-2:1234567890:event-bus/default",
 			MinAlertSeverity: 1,
@@ -42,13 +42,13 @@ func TestIntegrationsNewAwsCloudWatchIntegration(t *testing.T) {
 	assert.Equal(t, api.CriticalAlertLevel, subject.Data.MinAlertSeverity)
 }
 
-func TestIntegrationsCreateAwsCloudWatch(t *testing.T) {
+func TestIntegrationsCreateAwsCloudWatchAlertChannel(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "POST", r.Method, "CreateAwsCloudWatch should be a POST method")
+		assert.Equal(t, "POST", r.Method, "CreateAwsCloudWatchAlertChannel should be a POST method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
@@ -69,7 +69,7 @@ func TestIntegrationsCreateAwsCloudWatch(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	data := api.NewAwsCloudWatchIntegration("integration_name",
+	data := api.NewAwsCloudWatchAlertChannel("integration_name",
 		api.AwsCloudWatchData{
 			EventBusArn:      "arn:aws:events:us-west-2:1234567890:event-bus/default",
 			MinAlertSeverity: 3,
@@ -79,7 +79,7 @@ func TestIntegrationsCreateAwsCloudWatch(t *testing.T) {
 	assert.Equal(t, "CLOUDWATCH_EB", data.Type, "a new AwsCloudWatch integration should match its type")
 	assert.Equal(t, 1, data.Enabled, "a new AwsCloudWatch integration should be enabled")
 
-	response, err := c.Integrations.CreateAwsCloudWatch(data)
+	response, err := c.Integrations.CreateAwsCloudWatchAlertChannel(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -93,14 +93,14 @@ func TestIntegrationsCreateAwsCloudWatch(t *testing.T) {
 	}
 }
 
-func TestIntegrationsGetAwsCloudWatch(t *testing.T) {
+func TestIntegrationsGetAwsCloudWatchAlertChannel(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method, "GetAwsCloudWatch should be a GET method")
+		assert.Equal(t, "GET", r.Method, "GetAwsCloudWatchAlertChannel should be a GET method")
 		fmt.Fprintf(w, awsCloudWatchIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
@@ -111,7 +111,7 @@ func TestIntegrationsGetAwsCloudWatch(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.GetAwsCloudWatch(intgGUID)
+	response, err := c.Integrations.GetAwsCloudWatchAlertChannel(intgGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
@@ -125,14 +125,14 @@ func TestIntegrationsGetAwsCloudWatch(t *testing.T) {
 	}
 }
 
-func TestIntegrationsUpdateAwsCloudWatch(t *testing.T) {
+func TestIntegrationsUpdateAwsCloudWatchAlertChannel(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("external/integrations/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method, "UpdateAwsCloudWatch should be a PATCH method")
+		assert.Equal(t, "PATCH", r.Method, "UpdateAwsCloudWatchAlertChannel should be a PATCH method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
@@ -154,7 +154,7 @@ func TestIntegrationsUpdateAwsCloudWatch(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	data := api.NewAwsCloudWatchIntegration("integration_name",
+	data := api.NewAwsCloudWatchAlertChannel("integration_name",
 		api.AwsCloudWatchData{
 			EventBusArn:      "arn:aws:events:us-west-2:1234567890:event-bus/default",
 			MinAlertSeverity: 3,
@@ -165,7 +165,7 @@ func TestIntegrationsUpdateAwsCloudWatch(t *testing.T) {
 	assert.Equal(t, 1, data.Enabled, "a new AwsCloudWatch integration should be enabled")
 	data.IntgGuid = intgGUID
 
-	response, err := c.Integrations.UpdateAwsCloudWatch(data)
+	response, err := c.Integrations.UpdateAwsCloudWatchAlertChannel(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, "SUCCESS", response.Message)
@@ -173,14 +173,14 @@ func TestIntegrationsUpdateAwsCloudWatch(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data[0].IntgGuid)
 }
 
-func TestIntegrationsListAwsCloudWatch(t *testing.T) {
+func TestIntegrationsListAwsCloudWatchAlertChannel(t *testing.T) {
 	var (
 		intgGUIDs  = []string{intgguid.New(), intgguid.New(), intgguid.New()}
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.MockAPI("external/integrations/type/CLOUDWATCH_EB",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "ListAwsCloudWatch should be a GET method")
+			assert.Equal(t, "GET", r.Method, "ListAwsCloudWatchAlertChannel should be a GET method")
 			fmt.Fprintf(w, awsCloudWatchMultiIntegrationJsonResponse(intgGUIDs))
 		},
 	)
@@ -192,7 +192,7 @@ func TestIntegrationsListAwsCloudWatch(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Integrations.ListAwsCloudWatch()
+	response, err := c.Integrations.ListAwsCloudWatchAlertChannel()
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.True(t, response.Ok)
