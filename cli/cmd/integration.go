@@ -183,7 +183,8 @@ func promptCreateIntegration() error {
 		prompt      = &survey.Select{
 			Message: "Choose an integration type to create: ",
 			Options: []string{
-				"Slack Channel Alert",
+				"Slack Alert Channel",
+				"AWS CloudWatch Alert Channel",
 				"Docker Hub",
 				"AWS Config",
 				"AWS CloudTrail",
@@ -204,8 +205,10 @@ func promptCreateIntegration() error {
 	}
 
 	switch integration {
-	case "Slack Channel Alert":
-		return createSlackChannelIntegration()
+	case "Slack Alert Channel":
+		return createSlackAlertChannelIntegration()
+	case "AWS CloudWatch Alert Channel":
+		return createAwsCloudWatchAlertChannelIntegration()
 	case "Docker Hub":
 		return createDockerHubIntegration()
 	case "AWS Config":
@@ -387,6 +390,26 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		out := [][]string{
 			[]string{"SLACK URL", iData.SlackUrl},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
+		}
+
+		return out
+
+	case api.AwsCloudWatchIntegration.String():
+
+		var iData api.AwsCloudWatchData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"EVENT BUS ARN", iData.EventBusArn},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
 			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
 		}
