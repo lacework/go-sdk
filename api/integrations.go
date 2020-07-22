@@ -55,8 +55,11 @@ const (
 	// Container registry integration type
 	ContainerRegistryIntegration
 
-	//Slack channel integration type
+	// Slack channel integration type
 	SlackChannelIntegration
+
+	// AWS CloudWatch integration type
+	AwsCloudWatchIntegration
 )
 
 // IntegrationTypes is the list of available integration types
@@ -70,6 +73,7 @@ var IntegrationTypes = map[integrationType]string{
 	AzureActivityLogIntegration:  "AZURE_AL_SEQ",
 	ContainerRegistryIntegration: "CONT_VULN_CFG",
 	SlackChannelIntegration:      "SLACK_CHANNEL",
+	AwsCloudWatchIntegration:     "CLOUDWATCH_EB",
 }
 
 // String returns the string representation of an integration type

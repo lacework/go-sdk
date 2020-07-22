@@ -24,7 +24,7 @@ import (
 	"github.com/lacework/go-sdk/api"
 )
 
-func createSlackAlertChannelIntegration() error {
+func createAwsCloudWatchAlertChannelIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -32,8 +32,8 @@ func createSlackAlertChannelIntegration() error {
 			Validate: survey.Required,
 		},
 		{
-			Name:     "url",
-			Prompt:   &survey.Input{Message: "Slack URL: "},
+			Name:     "arn",
+			Prompt:   &survey.Input{Message: "Event Bus ARN: "},
 			Validate: survey.Required,
 		},
 		{
@@ -54,7 +54,7 @@ func createSlackAlertChannelIntegration() error {
 
 	answers := struct {
 		Name          string
-		Url           string
+		Arn           string
 		AlertSeverity string `survey:"alert_severity_level"`
 	}{}
 
@@ -65,32 +65,15 @@ func createSlackAlertChannelIntegration() error {
 		return err
 	}
 
-	slack := api.NewSlackAlertChannel(answers.Name,
-		api.SlackChannelData{
-			SlackUrl:         answers.Url,
+	slack := api.NewAwsCloudWatchAlertChannel(answers.Name,
+		api.AwsCloudWatchData{
+			EventBusArn:      answers.Arn,
 			MinAlertSeverity: alertSeverityToEnum(answers.AlertSeverity),
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateSlackAlertChannel(slack)
+	_, err = cli.LwApi.Integrations.CreateAwsCloudWatchAlertChannel(slack)
 	cli.StopProgress()
 	return err
-}
-
-func alertSeverityToEnum(level string) api.AlertLevel {
-	switch level {
-	case "Critical":
-		return api.CriticalAlertLevel
-	case "High and above":
-		return api.HighAlertLevel
-	case "Medium and above":
-		return api.MediumAlertLevel
-	case "Low and above":
-		return api.LowAlertLevel
-	case "All":
-		return api.AllAlertLevel
-	default:
-		return api.MediumAlertLevel
-	}
 }

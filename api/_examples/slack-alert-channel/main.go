@@ -13,18 +13,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mySlackChannel := api.NewSlackChannelIntegration("slack-alert-from-golang",
+	mySlackChannel := api.NewSlackAlertChannel("slack-alert-from-golang",
 		api.SlackChannelData{
 			SlackUrl:         "https://hooks.slack.com/services/ABCD/12345/abcd1234",
 			MinAlertSeverity: 3,
 		},
 	)
 
-	response, err := lacework.Integrations.CreateSlackChannel(mySlackChannel)
+	response, err := lacework.Integrations.CreateSlackAlertChannel(mySlackChannel)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Output: Slack Channel alert created: THE-INTEGRATION-GUID
-	fmt.Printf("Slack Channel alert created: %s", response.Data[0].IntgGuid)
+	// Output: Slack alert channel created: THE-INTEGRATION-GUID
+	fmt.Printf("Slack alert channel created: %s", response.Data[0].IntgGuid)
 }
