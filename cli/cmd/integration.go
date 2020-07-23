@@ -184,6 +184,7 @@ func promptCreateIntegration() error {
 			Message: "Choose an integration type to create: ",
 			Options: []string{
 				"Slack Alert Channel",
+				"PagerDuty Alert Channel",
 				"AWS CloudWatch Alert Channel",
 				"Docker Hub",
 				"AWS Config",
@@ -207,6 +208,8 @@ func promptCreateIntegration() error {
 	switch integration {
 	case "Slack Alert Channel":
 		return createSlackAlertChannelIntegration()
+	case "PagerDuty Alert Channel":
+		return createPagerDutyAlertChannelIntegration()
 	case "AWS CloudWatch Alert Channel":
 		return createAwsCloudWatchAlertChannelIntegration()
 	case "Docker Hub":
@@ -416,6 +419,25 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 
 		return out
 
+	case api.PagerDutyIntegration.String():
+
+		var iData api.PagerDutyData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"INTEGRATION KEY", iData.IntegrationKey},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
+		}
+
+		return out
 	default:
 		out := [][]string{}
 		for key, value := range deepKeyValueExtract(raw.Data) {
