@@ -60,6 +60,9 @@ const (
 
 	// AWS CloudWatch integration type
 	AwsCloudWatchIntegration
+
+	// Pager Duty integration type
+	PagerDutyIntegration
 )
 
 // IntegrationTypes is the list of available integration types
@@ -74,6 +77,7 @@ var IntegrationTypes = map[integrationType]string{
 	ContainerRegistryIntegration: "CONT_VULN_CFG",
 	SlackChannelIntegration:      "SLACK_CHANNEL",
 	AwsCloudWatchIntegration:     "CLOUDWATCH_EB",
+	PagerDutyIntegration:         "PAGER_DUTY_API",
 }
 
 // String returns the string representation of an integration type
