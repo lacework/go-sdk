@@ -178,8 +178,8 @@ func init() {
 	integrationCmd.AddCommand(integrationDeleteCmd)
 
 	// add type flag to integration list command
-	integrationListCmd.Flags().StringVarP(&integrationType,
-		"type", "t", "", "list all integrations of a specific type",
+	integrationListCmd.Flags().StringVar(&integrationType,
+		"type", "", "list all integrations of a specific type",
 	)
 }
 

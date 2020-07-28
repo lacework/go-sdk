@@ -52,6 +52,7 @@ type credsDetails struct {
 	Account   string `toml:"account" json:"account"`
 	ApiKey    string `toml:"api_key" json:"api_key" survey:"api_key"`
 	ApiSecret string `toml:"api_secret" json:"api_secret" survey:"api_secret"`
+	Tenant    string `toml:"tenant,omitempty" json:"tenant,omitempty"`
 }
 
 func (c *credsDetails) Verify() error {

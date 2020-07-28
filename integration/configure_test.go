@@ -149,9 +149,11 @@ func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
 	os.Setenv("LW_ACCOUNT", "env-vars")
 	os.Setenv("LW_API_KEY", "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
 	os.Setenv("LW_API_SECRET", "_cccccccccccccccccccccccccccccccc")
+	os.Setenv("LW_TENANT", "sub-acc")
 	defer os.Setenv("LW_ACCOUNT", "")
 	defer os.Setenv("LW_API_KEY", "")
 	defer os.Setenv("LW_API_SECRET", "")
+	defer os.Setenv("LW_TENANT", "")
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
@@ -170,6 +172,7 @@ func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
   account = "env-vars"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  tenant = "sub-acc"
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -228,6 +231,7 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
   account = "integration"
   api_key = "INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70001"
   api_secret = "_1234abdc00ff11vv22zz33xyz1234abc"
+  tenant = "sub-acc"
 
 [new-profile]
   account = "super-cool-profile"
@@ -338,6 +342,7 @@ api_secret = '_00000000000000000000000000000000'
 account = 'integration'
 api_key = 'INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70001'
 api_secret = '_1234abdc00ff11vv22zz33xyz1234abc'
+tenant = 'sub-acc'
 
 [dev]
 account = 'dev.example'

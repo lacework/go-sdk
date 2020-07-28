@@ -81,3 +81,8 @@ func TestEventCommandListTimeRange(t *testing.T) {
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
 }
+
+// @afiune this endpoints needs to be fixed
+func TestEventCommandListWithTenant(t *testing.T) {
+	//out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "-t", "customerdemo")
+}

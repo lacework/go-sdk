@@ -100,6 +100,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("account", "a", "",
 		"account subdomain of URL (i.e. <ACCOUNT>.lacework.net)",
 	)
+	rootCmd.PersistentFlags().StringP("tenant", "t", "", "tenant name (org admin only)")
 
 	errcheckWARN(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
 	errcheckWARN(viper.BindPFlag("nocolor", rootCmd.PersistentFlags().Lookup("nocolor")))
@@ -109,6 +110,7 @@ func init() {
 	errcheckWARN(viper.BindPFlag("account", rootCmd.PersistentFlags().Lookup("account")))
 	errcheckWARN(viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api_key")))
 	errcheckWARN(viper.BindPFlag("api_secret", rootCmd.PersistentFlags().Lookup("api_secret")))
+	errcheckWARN(viper.BindPFlag("tenant", rootCmd.PersistentFlags().Lookup("tenant")))
 }
 
 // initConfig reads in config file and ENV variables if set

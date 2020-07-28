@@ -67,6 +67,7 @@ Global Flags:
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
+  -t, --tenant string       tenant name (org admin only)
 
 Use "lacework compliance [command] --help" for more information about a command.
 `,

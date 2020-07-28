@@ -39,6 +39,7 @@ type cliState struct {
 	KeyID    string
 	Secret   string
 	Token    string
+	Tenant   string
 	LogLevel string
 
 	LwApi *api.Client
@@ -104,6 +105,7 @@ func (c *cliState) LoadState() error {
 	c.KeyID = c.extractValueString("api_key")
 	c.Secret = c.extractValueString("api_secret")
 	c.Account = c.extractValueString("account")
+	c.Tenant = c.extractValueString("tenant")
 
 	c.Log.Debugw("state loaded",
 		"profile", c.Profile,
@@ -138,11 +140,17 @@ func (c *cliState) NewClient() error {
 		return err
 	}
 
-	client, err := api.NewClient(c.Account,
+	apiOpts := []api.Option{
 		api.WithLogLevel(c.LogLevel),
 		api.WithApiKeys(c.KeyID, c.Secret),
 		api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
-	)
+	}
+
+	if c.Tenant != "" {
+		apiOpts = append(apiOpts, api.WithHeader("Accountname", c.Tenant))
+	}
+
+	client, err := api.NewClient(c.Account, apiOpts...)
 	if err != nil {
 		return errors.Wrap(err, "unable to generate api client")
 	}
@@ -243,6 +251,11 @@ func (c *cliState) loadStateFromViper() {
 	if v := viper.GetString("account"); v != "" {
 		c.Account = v
 		c.Log.Debugw("state updated", "account", c.Account)
+	}
+
+	if v := viper.GetString("tenant"); v != "" {
+		c.Tenant = v
+		c.Log.Debugw("state updated", "tenant", c.Tenant)
 	}
 }
 

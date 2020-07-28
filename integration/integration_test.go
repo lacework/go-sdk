@@ -62,7 +62,7 @@ func TestIntegrationCommandList(t *testing.T) {
 }
 
 func TestIntegrationCommandListWithTypeFlag(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("integration", "list", "--type", "AWS_CFG")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("integration", "list", "--type", "SLACK_CHANNEL")
 	assert.Contains(t, out.String(), "INTEGRATION GUID",
 		"STDOUT table headers changed, please check")
 	assert.Contains(t, out.String(), "NAME",
@@ -72,8 +72,12 @@ func TestIntegrationCommandListWithTypeFlag(t *testing.T) {
 	assert.Contains(t, out.String(), "STATUS",
 		"STDOUT table headers changed, please check")
 
-	// TODO @afiune lets try to create an environment where we can be 100% sure that
-	// integrations will exist and assert against it
+	assert.Contains(t, out.String(), "#tech-ally-notify",
+		"Slack integration name changed, please check")
+	assert.Contains(t, out.String(), "Enabled",
+		"Slack integration state changed, please check")
+	assert.Contains(t, out.String(), "Ok",
+		"Slack integration state changed, please check")
 
 	assert.Empty(t,
 		err.String(),
@@ -105,4 +109,29 @@ func TestIntegrationCommandShowNonExistingError(t *testing.T) {
 	assert.Contains(t, err.String(),
 		"To list the available integrations in your account run 'lacework integrations list'",
 		"STDERR should contain a helpful message")
+}
+
+func TestIntegrationCommandListWithTenantFlag(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("integration", "list", "--type", "AWS_CFG", "--tenant", "customerdemo")
+	assert.Contains(t, out.String(), "INTEGRATION GUID",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "NAME",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "TYPE",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "STATUS",
+		"STDOUT table headers changed, please check")
+
+	assert.Contains(t, out.String(), "customerdemo",
+		"AWS integration name changed, please check")
+	assert.Contains(t, out.String(), "Enabled",
+		"AWS integration state changed, please check")
+	assert.Contains(t, out.String(), "Ok",
+		"AWS integration state changed, please check")
+
+	assert.Empty(t,
+		err.String(),
+		"STDERR should be empty")
+	assert.Equal(t, 0, exitcode,
+		"EXITCODE is not the expected one")
 }
