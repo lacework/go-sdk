@@ -93,15 +93,27 @@ To run an ad-hoc compliance assessment use the command:
 				Type:           compCmdState.Type,
 			}
 
-			if compCmdState.PdfName != "" {
+			if compCmdState.Pdf || compCmdState.PdfName != "" {
+				pdfName := fmt.Sprintf(
+					"%s_Report_%s_%s_%s_%s.pdf",
+					config.Type,
+					config.OrganizationID,
+					config.ProjectID,
+					cli.Account, time.Now().Format("20060102150405"),
+				)
+				if compCmdState.PdfName != "" {
+					cli.OutputHuman("(DEPRECATED) This flag has been replaced by '--pdf'\n\n")
+					pdfName = compCmdState.PdfName
+				}
+
 				cli.StartProgress(" Downloading compliance report...")
-				err := cli.LwApi.Compliance.DownloadGcpReportPDF(compCmdState.PdfName, config)
+				err := cli.LwApi.Compliance.DownloadGcpReportPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get gcp pdf compliance report")
 				}
 
-				cli.OutputHuman("The GCP compliance report was downloaded at '%s'.\n", compCmdState.PdfName)
+				cli.OutputHuman("The GCP compliance report was downloaded at '%s'\n", pdfName)
 				return nil
 			}
 
@@ -168,7 +180,10 @@ func init() {
 		"increase details about the compliance report",
 	)
 	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.PdfName, "pdf-file", "",
-		"download the report as PDF format with the provided filename",
+		"(DEPRECATED) use --pdf",
+	)
+	complianceGcpGetReportCmd.Flags().BoolVar(&compCmdState.Pdf, "pdf", false,
+		"download report in PDF format",
 	)
 
 	// GCP report types: GCP_CIS, GCP_SOC, or GCP_PCI.
