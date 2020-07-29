@@ -95,6 +95,12 @@ var (
 				return cli.OutputJSON(integration.Data)
 			}
 
+			if len(integration.Data) == 0 {
+				msg := "the provided integration GUID was not found\n\n"
+				msg += "To list the available integrations in your account run 'lacework integrations list'"
+				return errors.New(msg)
+			}
+
 			cli.OutputHuman(buildIntegrationsTable(integration.Data))
 			cli.OutputHuman("\n")
 			cli.OutputHuman(buildIntDetailsTable(integration.Data))
