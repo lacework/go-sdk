@@ -1,20 +1,14 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.1.22`.
+Another day, another release. These are the release notes for the version `v0.1.23`.
 
-## Features
-* feat(cli): Create PagerDuty Alert Channels 🚨 (#174) (Salim Afiune)([5cc424e](https://github.com/lacework/go-sdk/commit/5cc424e21598482f817288037c8f8e54397c13bd))
-* feat(api): add PagerDuty alert channel integrations (#173) (Salim Afiune)([f46316c](https://github.com/lacework/go-sdk/commit/f46316c7f4150ccf99646640a12d801cb407134b))
-* feat(cli): Create AWS CloudWatch Alert Channels 🚨 (Salim Afiune Maya)([201b59b](https://github.com/lacework/go-sdk/commit/201b59be0a97d661916ff401da0be903fee06f2f))
-* feat(api): add AWS CloudWatch Alert Channels Int (Salim Afiune Maya)([d9a11ec](https://github.com/lacework/go-sdk/commit/d9a11ec5c242b09e19338c6b8a5a39ddf6ad368d))
-* feat(api): enum AlertLevel for alert severity levels (Salim Afiune Maya)([d3bf436](https://github.com/lacework/go-sdk/commit/d3bf436933a794b6bbcc733da724159a9dc79a95))
-* feat(api): get/update container registry integrations (#168) (Salim Afiune)([a072c46](https://github.com/lacework/go-sdk/commit/a072c46aff03e619fbef03488ba5b65730264b91))
 ## Refactor
-* refactor(api): AlertChannel prefix in funcs/structs (Salim Afiune Maya)([b0429ef](https://github.com/lacework/go-sdk/commit/b0429efd0efa56ec9ccbe338a37a6e6ae2dc3bc5))
-* refactor(api): use AlertLevel enum for Slack Alerts (Salim Afiune Maya)([4b5acf9](https://github.com/lacework/go-sdk/commit/4b5acf989fda4c052c3dc6b0206db866aa57f243))
+* refactor(cli): replace '--pdf-file' for '--pdf' (#180) (Salim Afiune)([80bbce6](https://github.com/lacework/go-sdk/commit/80bbce636cac49fe315118add45252bd8ee4bf6a))
 ## Bug Fixes
-* fix(cli): missing fields for Slack integrations (#170) (Salim Afiune)([a8ce9a9](https://github.com/lacework/go-sdk/commit/a8ce9a90f52dd81281fca78b077435229bdbafaf))
+* fix(cli): missing integration details (#181) (Salim Afiune)([40355d3](https://github.com/lacework/go-sdk/commit/40355d3877c2674268c38bb5cc81a698dd115166))
+* fix(cli): error showing non-existing integration (#178) (Salim Afiune)([252072f](https://github.com/lacework/go-sdk/commit/252072faa60aaac06fb7bbf2dd7ca82fa71d2b09))
 ## Other Changes
-* chore(api): adds alert channel \_examples/ (Salim Afiune Maya)([f967206](https://github.com/lacework/go-sdk/commit/f967206db3dd209f94e694b5f4db98dd8b11f113))
+* ci: build statically linked binaries (Salim Afiune Maya)([43f6f80](https://github.com/lacework/go-sdk/commit/43f6f804ffac3f8e326dc31f4196808f39bc035d))
+* ci(integration): add windows support (Salim Afiune Maya)([46632e7](https://github.com/lacework/go-sdk/commit/46632e72e0ab9ee45d690605e4c52efb1a8cf391))
 
 ## Docker Images
 * `docker pull techallylw/lacework-cli:latest`
