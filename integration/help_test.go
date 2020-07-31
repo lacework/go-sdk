@@ -60,12 +60,16 @@ You can configure multiple profiles by using the --profile argument. If a
 config file does not exist (the default location is ~/.lacework.toml), the
 Lacework CLI will create it for you.
 
+For organization administrators, use the argument --tenant to configure a
+sub-account. To remove this configuration pass the --remove_tenant flag.
+
 Usage:
   lacework configure [flags]
 
 Flags:
   -h, --help               help for configure
   -j, --json_file string   loads the generated API key JSON file from the WebUI
+      --remove_tenant      removes the configured tenant of the profile being modified
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

@@ -79,6 +79,10 @@ var (
 	// configureJsonFile is the API key file downloaded form the Lacework WebUI
 	configureJsonFile string
 
+	// removeTenant tells the configure command to remove the configured tenant
+	// from the profile that is being configured
+	removeTenant bool
+
 	// configureCmd represents the configure command
 	configureCmd = &cobra.Command{
 		Use:   "configure",
@@ -102,7 +106,10 @@ specify a profile to use.
 
 You can configure multiple profiles by using the --profile argument. If a
 config file does not exist (the default location is ~/.lacework.toml), the
-Lacework CLI will create it for you.`,
+Lacework CLI will create it for you.
+
+For organization administrators, use the argument --tenant to configure a
+sub-account. To remove this configuration pass the --remove_tenant flag.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return promptConfigureSetup()
 		},
@@ -114,6 +121,10 @@ func init() {
 
 	configureCmd.Flags().StringVarP(&configureJsonFile,
 		"json_file", "j", "", "loads the generated API key JSON file from the WebUI",
+	)
+
+	configureCmd.Flags().BoolVar(&removeTenant,
+		"remove_tenant", false, "removes the configured tenant of the profile being modified",
 	)
 }
 
@@ -202,6 +213,17 @@ func promptConfigureSetup() error {
 		newCreds.ApiSecret = cli.Secret
 	}
 
+	tenantMsg := ""
+	if len(cli.Tenant) != 0 {
+		newCreds.Tenant = cli.Tenant
+		tenantMsg = fmt.Sprintf("Tenant '%s' configured. ", cli.Tenant)
+	}
+
+	if removeTenant && newCreds.Tenant != "" {
+		tenantMsg = fmt.Sprintf("Tenant '%s' removed. ", newCreds.Tenant)
+		newCreds.Tenant = ""
+	}
+
 	if err := newCreds.Verify(); err != nil {
 		return errors.Wrap(err, "unable to configure the command-line")
 	}
@@ -240,7 +262,7 @@ func promptConfigureSetup() error {
 		return err
 	}
 
-	cli.OutputHuman("You are all set!\n")
+	cli.OutputHuman("%sYou are all set!\n", tenantMsg)
 	return nil
 }
 
