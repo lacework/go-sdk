@@ -69,15 +69,26 @@ To run an ad-hoc compliance assessment use the command:
 				Type:      compCmdState.Type,
 			}
 
-			if compCmdState.PdfName != "" {
+			if compCmdState.Pdf || compCmdState.PdfName != "" {
+				pdfName := fmt.Sprintf(
+					"%s_Report_%s_%s_%s.pdf",
+					config.Type,
+					config.AccountID,
+					cli.Account, time.Now().Format("20060102150405"),
+				)
+				if compCmdState.PdfName != "" {
+					cli.OutputHuman("(DEPRECATED) This flag has been replaced by '--pdf'\n\n")
+					pdfName = compCmdState.PdfName
+				}
+
 				cli.StartProgress(" Downloading compliance report...")
-				err := cli.LwApi.Compliance.DownloadAwsReportPDF(compCmdState.PdfName, config)
+				err := cli.LwApi.Compliance.DownloadAwsReportPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get aws pdf compliance report")
 				}
 
-				cli.OutputHuman("The AWS compliance report was downloaded at '%s'.\n", compCmdState.PdfName)
+				cli.OutputHuman("The AWS compliance report was downloaded at '%s'\n", pdfName)
 				return nil
 			}
 
@@ -146,7 +157,10 @@ func init() {
 		"increase details about the compliance report",
 	)
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.PdfName, "pdf-file", "",
-		"download the report as PDF format with the provided filename",
+		"(DEPRECATED) use --pdf",
+	)
+	complianceAwsGetReportCmd.Flags().BoolVar(&compCmdState.Pdf, "pdf", false,
+		"download report in PDF format",
 	)
 
 	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI

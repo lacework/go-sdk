@@ -36,7 +36,11 @@ var (
 		Type string
 
 		// download the report as PDF format with the provided filename
+		// (DEPRECATED)
 		PdfName string
+
+		// download report in PDF format
+		Pdf bool
 
 		// display extended details about a compliance report
 		Details bool
@@ -275,7 +279,7 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 		mainReport.WriteString(buildComplianceReportRecommandations(recommendationsTable))
 		mainReport.WriteString("\n")
 		mainReport.WriteString(
-			"Try using '--pdf-file <filename>' to download the report in PDF format.",
+			"Try using '--pdf' to download the report in PDF format.",
 		)
 		mainReport.WriteString("\n")
 	} else {
