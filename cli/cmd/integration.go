@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -444,6 +445,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 
 		return out
+
 	default:
 		out := [][]string{}
 		for key, value := range deepKeyValueExtract(raw.Data) {
@@ -460,12 +462,27 @@ func deepKeyValueExtract(v interface{}) map[string]string {
 
 	m, ok := v.(map[string]interface{})
 	if !ok {
+		cli.Log.Warnw("unable to parse raw data field", "type", fmt.Sprintf("%T", v))
 		return out
 	}
 
 	for key, value := range m {
 		if s, ok := value.(string); ok {
 			out[key] = s
+		} else if i, ok := value.(int); ok {
+			out[key] = fmt.Sprintf("%d", i)
+		} else if i, ok := value.(int32); ok {
+			out[key] = fmt.Sprintf("%d", i)
+		} else if i, ok := value.(float32); ok {
+			out[key] = fmt.Sprintf("%.0f", i)
+		} else if i, ok := value.(float64); ok {
+			out[key] = fmt.Sprintf("%.0f", i)
+		} else if b, ok := value.(bool); ok {
+			if b {
+				out[key] = "ENABLE"
+			} else {
+				out[key] = "DISABLE"
+			}
 		} else {
 			deepMap := deepKeyValueExtract(value)
 			for deepK, deepV := range deepMap {
