@@ -63,6 +63,9 @@ const (
 
 	// Pager Duty integration type
 	PagerDutyIntegration
+
+	// Jira integration type
+	JiraIntegration
 )
 
 // IntegrationTypes is the list of available integration types
@@ -78,6 +81,7 @@ var IntegrationTypes = map[integrationType]string{
 	SlackChannelIntegration:      "SLACK_CHANNEL",
 	AwsCloudWatchIntegration:     "CLOUDWATCH_EB",
 	PagerDutyIntegration:         "PAGER_DUTY_API",
+	JiraIntegration:              "JIRA",
 }
 
 // String returns the string representation of an integration type
