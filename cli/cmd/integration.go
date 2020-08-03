@@ -193,6 +193,8 @@ func promptCreateIntegration() error {
 				"Slack Alert Channel",
 				"PagerDuty Alert Channel",
 				"AWS CloudWatch Alert Channel",
+				"Jira Cloud Alert Channel",
+				"Jira Server Alert Channel",
 				"Docker Hub",
 				"AWS Config",
 				"AWS CloudTrail",
@@ -219,6 +221,10 @@ func promptCreateIntegration() error {
 		return createPagerDutyAlertChannelIntegration()
 	case "AWS CloudWatch Alert Channel":
 		return createAwsCloudWatchAlertChannelIntegration()
+	case "Jira Cloud Alert Channel":
+		return createJiraCloudAlertChannelIntegration()
+	case "Jira Server Alert Channel":
+		return createJiraServerAlertChannelIntegration()
 	case "Docker Hub":
 		return createDockerHubIntegration()
 	case "AWS Config":
@@ -440,6 +446,30 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		out := [][]string{
 			[]string{"INTEGRATION KEY", iData.IntegrationKey},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
+		}
+
+		return out
+
+	case api.JiraIntegration.String():
+
+		var iData api.JiraAlertChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"JIRA INTEGRATION TYPE", iData.JiraType},
+			[]string{"JIRA URL", iData.JiraUrl},
+			[]string{"PROJECT KEY", iData.ProjectID},
+			[]string{"USERNAME", iData.Username},
+			[]string{"ISSUE TYPE", iData.IssueType},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
 			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
 		}
