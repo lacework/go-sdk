@@ -34,13 +34,13 @@ import (
 
 // cliState holds the state of the entire Lacework CLI
 type cliState struct {
-	Profile  string
-	Account  string
-	KeyID    string
-	Secret   string
-	Token    string
-	Tenant   string
-	LogLevel string
+	Profile    string
+	Account    string
+	KeyID      string
+	Secret     string
+	Token      string
+	Subaccount string
+	LogLevel   string
 
 	LwApi *api.Client
 	JsonF *prettyjson.Formatter
@@ -105,7 +105,7 @@ func (c *cliState) LoadState() error {
 	c.KeyID = c.extractValueString("api_key")
 	c.Secret = c.extractValueString("api_secret")
 	c.Account = c.extractValueString("account")
-	c.Tenant = c.extractValueString("tenant")
+	c.Subaccount = c.extractValueString("subaccount")
 
 	c.Log.Debugw("state loaded",
 		"profile", c.Profile,
@@ -146,8 +146,8 @@ func (c *cliState) NewClient() error {
 		api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
 	}
 
-	if c.Tenant != "" {
-		apiOpts = append(apiOpts, api.WithHeader("Accountname", c.Tenant))
+	if c.Subaccount != "" {
+		apiOpts = append(apiOpts, api.WithHeader("Accountname", c.Subaccount))
 	}
 
 	client, err := api.NewClient(c.Account, apiOpts...)
@@ -253,9 +253,9 @@ func (c *cliState) loadStateFromViper() {
 		c.Log.Debugw("state updated", "account", c.Account)
 	}
 
-	if v := viper.GetString("tenant"); v != "" {
-		c.Tenant = v
-		c.Log.Debugw("state updated", "tenant", c.Tenant)
+	if v := viper.GetString("subaccount"); v != "" {
+		c.Subaccount = v
+		c.Log.Debugw("state updated", "subaccount", c.Subaccount)
 	}
 }
 

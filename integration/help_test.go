@@ -60,16 +60,16 @@ You can configure multiple profiles by using the --profile argument. If a
 config file does not exist (the default location is ~/.lacework.toml), the
 Lacework CLI will create it for you.
 
-For organization administrators, use the argument --tenant to configure a
-sub-account. To remove this configuration pass the --remove_tenant flag.
+For organization administrators, use the argument --subaccount to configure a
+sub-account. To remove this configuration pass the --remove_subaccount flag.
 
 Usage:
   lacework configure [flags]
 
 Flags:
-  -h, --help               help for configure
-  -j, --json_file string   loads the generated API key JSON file from the WebUI
-      --remove_tenant      removes the configured tenant of the profile being modified
+  -h, --help                help for configure
+  -j, --json_file string    loads the generated API key JSON file from the WebUI
+      --remove_subaccount   removes the configured sub-account from the profile being modified
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
@@ -80,7 +80,7 @@ Global Flags:
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
-  -t, --tenant string       tenant name (org admin only)
+  -u, --subaccount string   sub-account name inside your organization (org admin only)
 `,
 		out.String(),
 		"the configure help message changed, please update")
@@ -157,7 +157,7 @@ Flags:
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
-  -t, --tenant string       tenant name (org admin only)
+  -u, --subaccount string   sub-account name inside your organization (org admin only)
 
 Use "lacework [command] --help" for more information about a command.
 `,

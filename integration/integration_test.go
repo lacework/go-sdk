@@ -111,8 +111,8 @@ func TestIntegrationCommandShowNonExistingError(t *testing.T) {
 		"STDERR should contain a helpful message")
 }
 
-func TestIntegrationCommandListWithTenantFlag(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("integration", "list", "--type", "AWS_CFG", "--tenant", "customerdemo")
+func TestIntegrationCommandListWithSubaccountFlag(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("integration", "list", "--type", "AWS_CFG", "--subaccount", "customerdemo")
 	assert.Contains(t, out.String(), "INTEGRATION GUID",
 		"STDOUT table headers changed, please check")
 	assert.Contains(t, out.String(), "NAME",

@@ -83,6 +83,6 @@ func TestEventCommandListTimeRange(t *testing.T) {
 }
 
 // @afiune this endpoints needs to be fixed
-func TestEventCommandListWithTenant(t *testing.T) {
-	//out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "-t", "customerdemo")
+func TestEventCommandListWithSubaccount(t *testing.T) {
+	//out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "-u", "customerdemo")
 }

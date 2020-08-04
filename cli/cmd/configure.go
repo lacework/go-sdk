@@ -49,10 +49,10 @@ import (
 type Profiles map[string]credsDetails
 
 type credsDetails struct {
-	Account   string `toml:"account" json:"account"`
-	ApiKey    string `toml:"api_key" json:"api_key" survey:"api_key"`
-	ApiSecret string `toml:"api_secret" json:"api_secret" survey:"api_secret"`
-	Tenant    string `toml:"tenant,omitempty" json:"tenant,omitempty"`
+	Account    string `toml:"account" json:"account"`
+	ApiKey     string `toml:"api_key" json:"api_key" survey:"api_key"`
+	ApiSecret  string `toml:"api_secret" json:"api_secret" survey:"api_secret"`
+	Subaccount string `toml:"subaccount,omitempty" json:"subaccount,omitempty"`
 }
 
 func (c *credsDetails) Verify() error {
@@ -79,9 +79,9 @@ var (
 	// configureJsonFile is the API key file downloaded form the Lacework WebUI
 	configureJsonFile string
 
-	// removeTenant tells the configure command to remove the configured tenant
-	// from the profile that is being configured
-	removeTenant bool
+	// removeSubaccount tells the configure command to remove the configured
+	// sub-account from the profile that is being configured
+	removeSubaccount bool
 
 	// configureCmd represents the configure command
 	configureCmd = &cobra.Command{
@@ -108,8 +108,8 @@ You can configure multiple profiles by using the --profile argument. If a
 config file does not exist (the default location is ~/.lacework.toml), the
 Lacework CLI will create it for you.
 
-For organization administrators, use the argument --tenant to configure a
-sub-account. To remove this configuration pass the --remove_tenant flag.`,
+For organization administrators, use the argument --subaccount to configure a
+sub-account. To remove this configuration pass the --remove_subaccount flag.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return promptConfigureSetup()
 		},
@@ -123,8 +123,8 @@ func init() {
 		"json_file", "j", "", "loads the generated API key JSON file from the WebUI",
 	)
 
-	configureCmd.Flags().BoolVar(&removeTenant,
-		"remove_tenant", false, "removes the configured tenant of the profile being modified",
+	configureCmd.Flags().BoolVar(&removeSubaccount,
+		"remove_subaccount", false, "removes the configured sub-account from the profile being modified",
 	)
 }
 
@@ -213,15 +213,15 @@ func promptConfigureSetup() error {
 		newCreds.ApiSecret = cli.Secret
 	}
 
-	tenantMsg := ""
-	if len(cli.Tenant) != 0 {
-		newCreds.Tenant = cli.Tenant
-		tenantMsg = fmt.Sprintf("Tenant '%s' configured. ", cli.Tenant)
+	subaccountMsg := ""
+	if len(cli.Subaccount) != 0 {
+		newCreds.Subaccount = cli.Subaccount
+		subaccountMsg = fmt.Sprintf("Sub-account '%s' configured. ", cli.Subaccount)
 	}
 
-	if removeTenant && newCreds.Tenant != "" {
-		tenantMsg = fmt.Sprintf("Tenant '%s' removed. ", newCreds.Tenant)
-		newCreds.Tenant = ""
+	if removeSubaccount && newCreds.Subaccount != "" {
+		subaccountMsg = fmt.Sprintf("Sub-account '%s' removed. ", newCreds.Subaccount)
+		newCreds.Subaccount = ""
 	}
 
 	if err := newCreds.Verify(); err != nil {
@@ -262,7 +262,7 @@ func promptConfigureSetup() error {
 		return err
 	}
 
-	cli.OutputHuman("%sYou are all set!\n", tenantMsg)
+	cli.OutputHuman("%sYou are all set!\n", subaccountMsg)
 	return nil
 }
 

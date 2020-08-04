@@ -149,11 +149,11 @@ func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
 	os.Setenv("LW_ACCOUNT", "env-vars")
 	os.Setenv("LW_API_KEY", "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
 	os.Setenv("LW_API_SECRET", "_cccccccccccccccccccccccccccccccc")
-	os.Setenv("LW_TENANT", "sub-acc")
+	os.Setenv("LW_SUBACCOUNT", "sub-acc")
 	defer os.Setenv("LW_ACCOUNT", "")
 	defer os.Setenv("LW_API_KEY", "")
 	defer os.Setenv("LW_API_SECRET", "")
-	defer os.Setenv("LW_TENANT", "")
+	defer os.Setenv("LW_SUBACCOUNT", "")
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
@@ -172,7 +172,7 @@ func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
   account = "env-vars"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
-  tenant = "sub-acc"
+  subaccount = "sub-acc"
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -231,7 +231,7 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
   account = "integration"
   api_key = "INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70001"
   api_secret = "_1234abdc00ff11vv22zz33xyz1234abc"
-  tenant = "sub-acc"
+  subaccount = "sub-acc"
 
 [new-profile]
   account = "super-cool-profile"
@@ -240,7 +240,7 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
-func TestConfigureCommandWithTenant(t *testing.T) {
+func TestConfigureCommandWithSubaccount(t *testing.T) {
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Account:")
@@ -251,18 +251,18 @@ func TestConfigureCommandWithTenant(t *testing.T) {
 			c.SendLine("_00000000000000000000000000000000")
 			c.ExpectString("You are all set!")
 		},
-		"configure", "--tenant", "sub-account",
+		"configure", "--subaccount", "sub-account",
 	)
 
 	assert.Equal(t, `[default]
   account = "test-account"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
-  tenant = "sub-account"
+  subaccount = "sub-account"
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
-func TestConfigureCommandWithExistingConfigAndMultiProfileWithRemoveTenantFlag(t *testing.T) {
+func TestConfigureCommandWithExistingConfigAndMultiProfileWithRemoveSubaccountFlag(t *testing.T) {
 	dir := createTOMLConfig()
 	defer os.RemoveAll(dir)
 
@@ -274,9 +274,9 @@ func TestConfigureCommandWithExistingConfigAndMultiProfileWithRemoveTenantFlag(t
 			c.SendLine("") // using the default, which should be auto-populated from the provided --profile flag
 			c.ExpectString("Secret Access Key:")
 			c.SendLine("") // using the default, which should be auto-populated from the provided --profile flag
-			c.ExpectString("Tenant 'sub-acc' removed. You are all set!")
+			c.ExpectString("Sub-account 'sub-acc' removed. You are all set!")
 		},
-		"configure", "--profile", "integration", "--remove_tenant",
+		"configure", "--profile", "integration", "--remove_subaccount",
 	)
 
 	assert.Equal(t, `[default]
@@ -293,10 +293,10 @@ func TestConfigureCommandWithExistingConfigAndMultiProfileWithRemoveTenantFlag(t
   account = "integration"
   api_key = "INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70001"
   api_secret = "_1234abdc00ff11vv22zz33xyz1234abc"
-`, laceworkTOML, "there is a problem with the generated config") // NOTE: there is no tenant
+`, laceworkTOML, "there is a problem with the generated config") // NOTE: there is no subaccount
 }
 
-func TestConfigureCommandNonInteractiveWithTenantPlusRemoval(t *testing.T) {
+func TestConfigureCommandNonInteractiveWithSubaccountPlusRemoval(t *testing.T) {
 	home, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
 		panic(err)
@@ -308,12 +308,12 @@ func TestConfigureCommandNonInteractiveWithTenantPlusRemoval(t *testing.T) {
 		"-a", "my-account",
 		"-k", "my-key",
 		"-s", "my-secret",
-		"-t", "sub-account",
+		"-u", "sub-account",
 	)
 
 	assert.Empty(t, errB.String())
 	assert.Equal(t, 0, exitcode)
-	assert.Equal(t, "Tenant 'sub-account' configured. You are all set!\n", out.String(),
+	assert.Equal(t, "Sub-account 'sub-account' configured. You are all set!\n", out.String(),
 		"you are not all set, check configure cmd")
 
 	configPath := path.Join(home, ".lacework.toml")
@@ -327,14 +327,14 @@ func TestConfigureCommandNonInteractiveWithTenantPlusRemoval(t *testing.T) {
   account = "my-account"
   api_key = "my-key"
   api_secret = "my-secret"
-  tenant = "sub-account"
+  subaccount = "sub-account"
 `, string(laceworkTOML), "there is a problem with the generated config")
 
-	// removing the tenant configuration
-	out, errB, exitcode = LaceworkCLIWithHome(home, "configure", "--noninteractive", "--remove_tenant")
+	// removing the sub-account configuration
+	out, errB, exitcode = LaceworkCLIWithHome(home, "configure", "--noninteractive", "--remove_subaccount")
 	assert.Empty(t, errB.String())
 	assert.Equal(t, 0, exitcode)
-	assert.Equal(t, "Tenant 'sub-account' removed. You are all set!\n", out.String(),
+	assert.Equal(t, "Sub-account 'sub-account' removed. You are all set!\n", out.String(),
 		"you are not all set, check configure cmd")
 	laceworkTOML, err = ioutil.ReadFile(configPath)
 	if err != nil {
@@ -345,7 +345,7 @@ func TestConfigureCommandNonInteractiveWithTenantPlusRemoval(t *testing.T) {
   account = "my-account"
   api_key = "my-key"
   api_secret = "my-secret"
-`, string(laceworkTOML), "there is a problem with the generated config") // NOTE: no tenant anymore
+`, string(laceworkTOML), "there is a problem with the generated config") // NOTE: no sub-account anymore
 }
 
 func TestConfigureCommandErrors(t *testing.T) {
@@ -450,7 +450,7 @@ api_secret = '_00000000000000000000000000000000'
 account = 'integration'
 api_key = 'INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70001'
 api_secret = '_1234abdc00ff11vv22zz33xyz1234abc'
-tenant = 'sub-acc'
+subaccount = 'sub-acc'
 
 [dev]
 account = 'dev.example'
