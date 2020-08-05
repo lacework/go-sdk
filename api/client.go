@@ -86,7 +86,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 			"User-Agent": fmt.Sprintf("Go Client/%s", Version),
 		},
 		auth: &authConfig{
-			expiration: defaultTokenExpiryTime,
+			expiration: DefaultTokenExpiryTime,
 		},
 		c: &http.Client{Timeout: defaultTimeout},
 	}
