@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"regexp"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/BurntSushi/toml"
@@ -147,6 +149,23 @@ func promptConfigureSetup() error {
 			Validate: promptRequiredStringLen(1,
 				"The account subdomain of URL is required. (i.e. <ACCOUNT>.lacework.net)",
 			),
+			Transform: func(ans interface{}) interface{} {
+				answer, ok := ans.(string)
+				if ok && strings.Contains(answer, ".lacework.net") {
+					// if the provided account is the full URL ACCOUNT.lacework.net
+					// subtract the account name and inform the user
+					rx, err := regexp.Compile(`\.lacework\.net.*`)
+					if err == nil {
+						accountSplit := rx.Split(answer, -1)
+						if len(accountSplit) != 0 {
+							cli.OutputHuman("Passing '.lacework.net' domain not required. Using '%s'\n", accountSplit[0])
+							return accountSplit[0]
+						}
+					}
+				}
+
+				return ans
+			},
 		},
 		{
 			Name: "api_key",
