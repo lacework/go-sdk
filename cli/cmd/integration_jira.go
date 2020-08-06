@@ -25,14 +25,13 @@ import (
 )
 
 type jiraAlertChannelIntegrationSurvey struct {
-	Name          string
-	Url           string
-	Issue         string
-	Project       string
-	Username      string
-	Token         string
-	Password      string
-	AlertSeverity string `survey:"alert_severity_level"`
+	Name     string
+	Url      string
+	Issue    string
+	Project  string
+	Username string
+	Token    string
+	Password string
 }
 
 func createJiraCloudAlertChannelIntegration() error {
@@ -67,20 +66,6 @@ func createJiraCloudAlertChannelIntegration() error {
 			Prompt:   &survey.Password{Message: "API Token: "},
 			Validate: survey.Required,
 		},
-		{
-			Name: "alert_severity_level",
-			Prompt: &survey.Select{
-				Message: "Alert Severity Level: ",
-				Options: []string{
-					"Critical",
-					"High and above",
-					"Medium and above",
-					"Low and above",
-					"All",
-				},
-			},
-			Validate: survey.Required,
-		},
 	}
 
 	var answers jiraAlertChannelIntegrationSurvey
@@ -93,12 +78,11 @@ func createJiraCloudAlertChannelIntegration() error {
 
 	jira := api.NewJiraCloudAlertChannel(answers.Name,
 		api.JiraAlertChannelData{
-			JiraUrl:          answers.Url,
-			IssueType:        answers.Issue,
-			ProjectID:        answers.Project,
-			Username:         answers.Username,
-			ApiToken:         answers.Token,
-			MinAlertSeverity: alertSeverityToEnum(answers.AlertSeverity),
+			JiraUrl:   answers.Url,
+			IssueType: answers.Issue,
+			ProjectID: answers.Project,
+			Username:  answers.Username,
+			ApiToken:  answers.Token,
 		},
 	)
 
@@ -137,20 +121,6 @@ func createJiraServerAlertChannelIntegration() error {
 			Prompt:   &survey.Password{Message: "Password: "},
 			Validate: survey.Required,
 		},
-		{
-			Name: "alert_severity_level",
-			Prompt: &survey.Select{
-				Message: "Alert Severity Level: ",
-				Options: []string{
-					"Critical",
-					"High and above",
-					"Medium and above",
-					"Low and above",
-					"All",
-				},
-			},
-			Validate: survey.Required,
-		},
 	}
 
 	var answers jiraAlertChannelIntegrationSurvey
@@ -163,12 +133,11 @@ func createJiraServerAlertChannelIntegration() error {
 
 	jira := api.NewJiraServerAlertChannel(answers.Name,
 		api.JiraAlertChannelData{
-			JiraUrl:          answers.Url,
-			IssueType:        answers.Issue,
-			ProjectID:        answers.Project,
-			Username:         answers.Username,
-			Password:         answers.Password,
-			MinAlertSeverity: alertSeverityToEnum(answers.AlertSeverity),
+			JiraUrl:   answers.Url,
+			IssueType: answers.Issue,
+			ProjectID: answers.Project,
+			Username:  answers.Username,
+			Password:  answers.Password,
 		},
 	)
 	return createJiraAlertChannelIntegration(jira)

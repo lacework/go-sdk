@@ -39,18 +39,16 @@ func TestIntegrationsJiraAlertChannelTypes(t *testing.T) {
 func TestIntegrationsNewJiraAlertChannel(t *testing.T) {
 	subject := api.NewJiraAlertChannel("integration_name",
 		api.JiraAlertChannelData{
-			MinAlertSeverity: 1,
-			JiraType:         api.JiraCloudAlertType,
-			JiraUrl:          "mycompany.atlassian.net",
-			IssueType:        "Bug",
-			ProjectID:        "TEST",
-			Username:         "my@username.com",
-			ApiToken:         "my-api-token",
-			IssueGrouping:    "Resources",
+			JiraType:      api.JiraCloudAlertType,
+			JiraUrl:       "mycompany.atlassian.net",
+			IssueType:     "Bug",
+			ProjectID:     "TEST",
+			Username:      "my@username.com",
+			ApiToken:      "my-api-token",
+			IssueGrouping: "Resources",
 		},
 	)
 	assert.Equal(t, api.JiraIntegration.String(), subject.Type)
-	assert.Equal(t, api.CriticalAlertLevel, subject.Data.MinAlertSeverity)
 	assert.Equal(t, api.JiraCloudAlertType, subject.Data.JiraType)
 }
 
@@ -103,7 +101,6 @@ func TestIntegrationsCreateJiraAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "my@username.com", "wrong username")
 			assert.Contains(t, body, "my-api-token", "wrong api token")
 			assert.Contains(t, body, "Resources", "wrong issue grouping")
-			assert.Contains(t, body, "MIN_ALERT_SEVERITY\":1", "wrong alert severity")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
 
@@ -119,14 +116,13 @@ func TestIntegrationsCreateJiraAlertChannel(t *testing.T) {
 
 	data := api.NewJiraAlertChannel("integration_name",
 		api.JiraAlertChannelData{
-			MinAlertSeverity: 1,
-			JiraType:         api.JiraCloudAlertType,
-			JiraUrl:          "mycompany.atlassian.net",
-			IssueType:        "Bug",
-			ProjectID:        "TEST",
-			Username:         "my@username.com",
-			ApiToken:         "my-api-token",
-			IssueGrouping:    "Resources",
+			JiraType:      api.JiraCloudAlertType,
+			JiraUrl:       "mycompany.atlassian.net",
+			IssueType:     "Bug",
+			ProjectID:     "TEST",
+			Username:      "my@username.com",
+			ApiToken:      "my-api-token",
+			IssueGrouping: "Resources",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "JIRA integration name mismatch")
@@ -148,7 +144,6 @@ func TestIntegrationsCreateJiraAlertChannel(t *testing.T) {
 		assert.Equal(t, "TEST", resData.Data.ProjectID)
 		assert.Equal(t, "my@username.com", resData.Data.Username)
 		assert.Equal(t, "Resources", resData.Data.IssueGrouping)
-		assert.Equal(t, api.AlertLevel(1), resData.Data.MinAlertSeverity)
 	}
 }
 
@@ -185,7 +180,6 @@ func TestIntegrationsGetJiraAlertChannel(t *testing.T) {
 		assert.Equal(t, "TEST", resData.Data.ProjectID)
 		assert.Equal(t, "my@username.com", resData.Data.Username)
 		assert.Equal(t, "Resources", resData.Data.IssueGrouping)
-		assert.Equal(t, api.AlertLevel(1), resData.Data.MinAlertSeverity)
 	}
 }
 
@@ -210,7 +204,6 @@ func TestIntegrationsUpdateJiraAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "my@username.com", "wrong username")
 			assert.Contains(t, body, "my-api-token", "wrong api token")
 			assert.Contains(t, body, "Resources", "wrong issue grouping")
-			assert.Contains(t, body, "MIN_ALERT_SEVERITY\":1", "wrong alert severity")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
 
@@ -226,13 +219,12 @@ func TestIntegrationsUpdateJiraAlertChannel(t *testing.T) {
 
 	data := api.NewJiraCloudAlertChannel("integration_name",
 		api.JiraAlertChannelData{
-			MinAlertSeverity: 1,
-			JiraUrl:          "mycompany.atlassian.net",
-			IssueType:        "Bug",
-			ProjectID:        "TEST",
-			Username:         "my@username.com",
-			ApiToken:         "my-api-token",
-			IssueGrouping:    "Resources",
+			JiraUrl:       "mycompany.atlassian.net",
+			IssueType:     "Bug",
+			ProjectID:     "TEST",
+			Username:      "my@username.com",
+			ApiToken:      "my-api-token",
+			IssueGrouping: "Resources",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "JIRA integration name mismatch")
@@ -301,6 +293,7 @@ func jiraMultiIntegrationJsonResponse(guids []string) string {
 `
 }
 
+// @afiune heads-up: MIN_ALERT_SEVERITY is a legacy field
 func singleJiraIntegration(id string) string {
 	return `
 {

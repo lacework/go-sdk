@@ -32,7 +32,6 @@ package api
 //   pagerduty := api.NewPagerDutyAlertChannel("foo",
 //     api.PagerDutyData{
 //       IntegrationKey:   "1234abc8901abc567abc123abc78e012",
-//       MinAlertSeverity: api.AllAlertLevel,
 //     },
 //   )
 //
@@ -95,7 +94,6 @@ type PagerDutyAlertChannel struct {
 }
 
 type PagerDutyData struct {
-	IssueGrouping    string     `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
-	IntegrationKey   string     `json:"API_INTG_KEY" mapstructure:"API_INTG_KEY"`
-	MinAlertSeverity AlertLevel `json:"MIN_ALERT_SEVERITY,omitempty" mapstructure:"MIN_ALERT_SEVERITY"`
+	IssueGrouping  string `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
+	IntegrationKey string `json:"API_INTG_KEY" mapstructure:"API_INTG_KEY"`
 }

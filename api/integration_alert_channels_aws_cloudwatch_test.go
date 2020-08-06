@@ -34,12 +34,10 @@ import (
 func TestIntegrationsNewAwsCloudWatchAlertChannel(t *testing.T) {
 	subject := api.NewAwsCloudWatchAlertChannel("integration_name",
 		api.AwsCloudWatchData{
-			EventBusArn:      "arn:aws:events:us-west-2:1234567890:event-bus/default",
-			MinAlertSeverity: 1,
+			EventBusArn: "arn:aws:events:us-west-2:1234567890:event-bus/default",
 		},
 	)
 	assert.Equal(t, api.AwsCloudWatchIntegration.String(), subject.Type)
-	assert.Equal(t, api.CriticalAlertLevel, subject.Data.MinAlertSeverity)
 }
 
 func TestIntegrationsCreateAwsCloudWatchAlertChannel(t *testing.T) {
@@ -55,7 +53,6 @@ func TestIntegrationsCreateAwsCloudWatchAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "integration_name", "integration name is missing")
 			assert.Contains(t, body, "CLOUDWATCH_EB", "wrong integration type")
 			assert.Contains(t, body, "arn:aws:events:us-west-2:1234567890:event-bus/default", "wrong event bus arn")
-			assert.Contains(t, body, "MIN_ALERT_SEVERITY\":3", "wrong alert severity")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
 
@@ -71,8 +68,7 @@ func TestIntegrationsCreateAwsCloudWatchAlertChannel(t *testing.T) {
 
 	data := api.NewAwsCloudWatchAlertChannel("integration_name",
 		api.AwsCloudWatchData{
-			EventBusArn:      "arn:aws:events:us-west-2:1234567890:event-bus/default",
-			MinAlertSeverity: 3,
+			EventBusArn: "arn:aws:events:us-west-2:1234567890:event-bus/default",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "AwsCloudWatch integration name mismatch")
@@ -89,7 +85,6 @@ func TestIntegrationsCreateAwsCloudWatchAlertChannel(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "arn:aws:events:us-west-2:1234567890:event-bus/default", resData.Data.EventBusArn)
-		assert.Equal(t, api.AlertLevel(3), resData.Data.MinAlertSeverity)
 	}
 }
 
@@ -121,7 +116,6 @@ func TestIntegrationsGetAwsCloudWatchAlertChannel(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "arn:aws:events:us-west-2:1234567890:event-bus/default", resData.Data.EventBusArn)
-		assert.Equal(t, api.AlertLevel(3), resData.Data.MinAlertSeverity)
 	}
 }
 
@@ -140,7 +134,6 @@ func TestIntegrationsUpdateAwsCloudWatchAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "integration_name", "integration name is missing")
 			assert.Contains(t, body, "CLOUDWATCH_EB", "wrong integration type")
 			assert.Contains(t, body, "arn:aws:events:us-west-2:1234567890:event-bus/default", "wrong event bus arn")
-			assert.Contains(t, body, "MIN_ALERT_SEVERITY\":3", "wrong alert severity")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
 
@@ -156,8 +149,7 @@ func TestIntegrationsUpdateAwsCloudWatchAlertChannel(t *testing.T) {
 
 	data := api.NewAwsCloudWatchAlertChannel("integration_name",
 		api.AwsCloudWatchData{
-			EventBusArn:      "arn:aws:events:us-west-2:1234567890:event-bus/default",
-			MinAlertSeverity: 3,
+			EventBusArn: "arn:aws:events:us-west-2:1234567890:event-bus/default",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "AwsCloudWatch integration name mismatch")
@@ -226,6 +218,7 @@ func awsCloudWatchMultiIntegrationJsonResponse(guids []string) string {
 `
 }
 
+// @afiune heads-up: MIN_ALERT_SEVERITY is a legacy field
 func singleAwsCloudWatchIntegration(id string) string {
 	return `
 {

@@ -32,7 +32,6 @@ package api
 //   awsCloudWatch := api.NewAwsCloudWatchAlertChannel("foo",
 //     api.AwsCloudWatchData{
 //       EventBusArn: "arn:aws:events:us-west-2:1234567890:event-bus/default",
-//       MinAlertSeverity: api.MediumAlertLevel,
 //     },
 //   )
 //
@@ -95,7 +94,6 @@ type AwsCloudWatchAlertChannel struct {
 }
 
 type AwsCloudWatchData struct {
-	IssueGrouping    string     `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
-	EventBusArn      string     `json:"EVENT_BUS_ARN" mapstructure:"EVENT_BUS_ARN"`
-	MinAlertSeverity AlertLevel `json:"MIN_ALERT_SEVERITY,omitempty" mapstructure:"MIN_ALERT_SEVERITY"`
+	IssueGrouping string `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
+	EventBusArn   string `json:"EVENT_BUS_ARN" mapstructure:"EVENT_BUS_ARN"`
 }

@@ -36,26 +36,11 @@ func createPagerDutyAlertChannelIntegration() error {
 			Prompt:   &survey.Input{Message: "Integration Key: "},
 			Validate: survey.Required,
 		},
-		{
-			Name: "alert_severity_level",
-			Prompt: &survey.Select{
-				Message: "Alert Severity Level: ",
-				Options: []string{
-					"Critical",
-					"High and above",
-					"Medium and above",
-					"Low and above",
-					"All",
-				},
-			},
-			Validate: survey.Required,
-		},
 	}
 
 	answers := struct {
-		Name          string
-		Key           string
-		AlertSeverity string `survey:"alert_severity_level"`
+		Name string
+		Key  string
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -67,8 +52,7 @@ func createPagerDutyAlertChannelIntegration() error {
 
 	alert := api.NewPagerDutyAlertChannel(answers.Name,
 		api.PagerDutyData{
-			IntegrationKey:   answers.Key,
-			MinAlertSeverity: alertSeverityToEnum(answers.AlertSeverity),
+			IntegrationKey: answers.Key,
 		},
 	)
 

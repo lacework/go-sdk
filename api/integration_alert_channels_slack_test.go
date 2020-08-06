@@ -34,12 +34,10 @@ import (
 func TestIntegrationsNewSlackAlertChannel(t *testing.T) {
 	subject := api.NewSlackAlertChannel("integration_name",
 		api.SlackChannelData{
-			SlackUrl:         "https://hooks.slack.com/services/ABCD/12345/abcd1234",
-			MinAlertSeverity: 3,
+			SlackUrl: "https://hooks.slack.com/services/ABCD/12345/abcd1234",
 		},
 	)
 	assert.Equal(t, api.SlackChannelIntegration.String(), subject.Type)
-	assert.Equal(t, api.MediumAlertLevel, subject.Data.MinAlertSeverity)
 }
 
 func TestIntegrationsCreateSlackAlertChannel(t *testing.T) {
@@ -55,7 +53,6 @@ func TestIntegrationsCreateSlackAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "integration_name", "integration name is missing")
 			assert.Contains(t, body, "SLACK_CHANNEL", "wrong integration type")
 			assert.Contains(t, body, "https://hooks.slack.com/services/ABCD/12345/abcd1234", "wrong slack url")
-			assert.Contains(t, body, "MIN_ALERT_SEVERITY\":3", "wrong alert severity")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
 
@@ -71,8 +68,7 @@ func TestIntegrationsCreateSlackAlertChannel(t *testing.T) {
 
 	data := api.NewSlackAlertChannel("integration_name",
 		api.SlackChannelData{
-			SlackUrl:         "https://hooks.slack.com/services/ABCD/12345/abcd1234",
-			MinAlertSeverity: 3,
+			SlackUrl: "https://hooks.slack.com/services/ABCD/12345/abcd1234",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "SlackChannel integration name mismatch")
@@ -89,7 +85,6 @@ func TestIntegrationsCreateSlackAlertChannel(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "https://hooks.slack.com/services/ABCD/12345/abcd1234", resData.Data.SlackUrl)
-		assert.Equal(t, api.AlertLevel(3), resData.Data.MinAlertSeverity)
 	}
 }
 
@@ -121,7 +116,6 @@ func TestIntegrationsGetSlackAlertChannel(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "https://hooks.slack.com/services/ABCD/12345/abcd1234", resData.Data.SlackUrl)
-		assert.Equal(t, api.AlertLevel(3), resData.Data.MinAlertSeverity)
 	}
 }
 
@@ -140,7 +134,6 @@ func TestIntegrationsUpdateSlackAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "integration_name", "integration name is missing")
 			assert.Contains(t, body, "SLACK_CHANNEL", "wrong integration type")
 			assert.Contains(t, body, "https://hooks.slack.com/services/ABCD/12345/abcd1234", "wrong slack url")
-			assert.Contains(t, body, "MIN_ALERT_SEVERITY\":3", "wrong alert severity")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
 
@@ -156,8 +149,7 @@ func TestIntegrationsUpdateSlackAlertChannel(t *testing.T) {
 
 	data := api.NewSlackAlertChannel("integration_name",
 		api.SlackChannelData{
-			SlackUrl:         "https://hooks.slack.com/services/ABCD/12345/abcd1234",
-			MinAlertSeverity: 3,
+			SlackUrl: "https://hooks.slack.com/services/ABCD/12345/abcd1234",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "SlackChannel integration name mismatch")
@@ -226,6 +218,7 @@ func slackChanMultiIntegrationJsonResponse(guids []string) string {
 `
 }
 
+// @afiune heads-up: MIN_ALERT_SEVERITY is a legacy field
 func singleSlackChanIntegration(id string) string {
 	return `
 {

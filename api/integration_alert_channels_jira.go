@@ -36,7 +36,6 @@ const (
 //
 //   jiraAlert := api.NewJiraAlertChannel("foo",
 //     api.JiraAlertChannelData{
-//       MinAlertSeverity: api.CriticalAlertLevel,
 //       JiraType:         api.JiraCloudAlertType,
 //       JiraUrl:          "mycompany.atlassian.net",
 //       IssueType:        "Bug",
@@ -118,15 +117,14 @@ type JiraAlertChannel struct {
 }
 
 type JiraAlertChannelData struct {
-	JiraType         string     `json:"JIRA_TYPE" mapstructure:"JIRA_TYPE"`
-	JiraUrl          string     `json:"JIRA_URL" mapstructure:"JIRA_URL"`
-	IssueType        string     `json:"ISSUE_TYPE" mapstructure:"ISSUE_TYPE"`
-	ProjectID        string     `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
-	Username         string     `json:"USERNAME" mapstructure:"USERNAME"`
-	ApiToken         string     `json:"API_TOKEN,omitempty" mapstructure:"API_TOKEN"` // Jira Cloud
-	Password         string     `json:"PASSWORD,omitempty" mapstructure:"PASSWORD"`   // Jira Server
-	IssueGrouping    string     `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
-	MinAlertSeverity AlertLevel `json:"MIN_ALERT_SEVERITY,omitempty" mapstructure:"MIN_ALERT_SEVERITY"`
+	JiraType      string `json:"JIRA_TYPE" mapstructure:"JIRA_TYPE"`
+	JiraUrl       string `json:"JIRA_URL" mapstructure:"JIRA_URL"`
+	IssueType     string `json:"ISSUE_TYPE" mapstructure:"ISSUE_TYPE"`
+	ProjectID     string `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
+	Username      string `json:"USERNAME" mapstructure:"USERNAME"`
+	ApiToken      string `json:"API_TOKEN,omitempty" mapstructure:"API_TOKEN"` // Jira Cloud
+	Password      string `json:"PASSWORD,omitempty" mapstructure:"PASSWORD"`   // Jira Server
+	IssueGrouping string `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
 
 	//CustomTemplateFile string `json:"CUSTOM_TEMPLATE_FILE,omitempty"`
 }
