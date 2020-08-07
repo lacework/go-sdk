@@ -409,7 +409,6 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		out := [][]string{
 			[]string{"SLACK URL", iData.SlackUrl},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
-			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
 		}
 
 		return out
@@ -429,7 +428,6 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		out := [][]string{
 			[]string{"EVENT BUS ARN", iData.EventBusArn},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
-			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
 		}
 
 		return out
@@ -449,7 +447,6 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		out := [][]string{
 			[]string{"INTEGRATION KEY", iData.IntegrationKey},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
-			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
 		}
 
 		return out
@@ -473,7 +470,6 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			[]string{"USERNAME", iData.Username},
 			[]string{"ISSUE TYPE", iData.IssueType},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
-			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
 		}
 
 		return out
