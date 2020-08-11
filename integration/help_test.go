@@ -135,6 +135,7 @@ Usage:
   lacework [command]
 
 Available Commands:
+  access-token  generate temporary access tokens
   api           helper to call Lacework's RestfulAPI
   compliance    manage compliance reports
   configure     configure the Lacework CLI

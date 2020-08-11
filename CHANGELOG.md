@@ -1,3 +1,42 @@
+# v0.1.23
+
+## Refactor
+* refactor(cli): replace '--pdf-file' for '--pdf' (#180) (Salim Afiune)([80bbce6](https://github.com/lacework/go-sdk/commit/80bbce636cac49fe315118add45252bd8ee4bf6a))
+## Bug Fixes
+* fix(cli): missing integration details (#181) (Salim Afiune)([40355d3](https://github.com/lacework/go-sdk/commit/40355d3877c2674268c38bb5cc81a698dd115166))
+* fix(cli): error showing non-existing integration (#178) (Salim Afiune)([252072f](https://github.com/lacework/go-sdk/commit/252072faa60aaac06fb7bbf2dd7ca82fa71d2b09))
+## Other Changes
+* ci: build statically linked binaries (Salim Afiune Maya)([43f6f80](https://github.com/lacework/go-sdk/commit/43f6f804ffac3f8e326dc31f4196808f39bc035d))
+* ci(integration): add windows support (Salim Afiune Maya)([46632e7](https://github.com/lacework/go-sdk/commit/46632e72e0ab9ee45d690605e4c52efb1a8cf391))
+---
+# v0.1.22
+
+## Features
+* feat(cli): Create PagerDuty Alert Channels 🚨 (#174) (Salim Afiune)([5cc424e](https://github.com/lacework/go-sdk/commit/5cc424e21598482f817288037c8f8e54397c13bd))
+* feat(api): add PagerDuty alert channel integrations (#173) (Salim Afiune)([f46316c](https://github.com/lacework/go-sdk/commit/f46316c7f4150ccf99646640a12d801cb407134b))
+* feat(cli): Create AWS CloudWatch Alert Channels 🚨 (Salim Afiune Maya)([201b59b](https://github.com/lacework/go-sdk/commit/201b59be0a97d661916ff401da0be903fee06f2f))
+* feat(api): add AWS CloudWatch Alert Channels Int (Salim Afiune Maya)([d9a11ec](https://github.com/lacework/go-sdk/commit/d9a11ec5c242b09e19338c6b8a5a39ddf6ad368d))
+* feat(api): enum AlertLevel for alert severity levels (Salim Afiune Maya)([d3bf436](https://github.com/lacework/go-sdk/commit/d3bf436933a794b6bbcc733da724159a9dc79a95))
+* feat(api): get/update container registry integrations (#168) (Salim Afiune)([a072c46](https://github.com/lacework/go-sdk/commit/a072c46aff03e619fbef03488ba5b65730264b91))
+## Refactor
+* refactor(api): AlertChannel prefix in funcs/structs (Salim Afiune Maya)([b0429ef](https://github.com/lacework/go-sdk/commit/b0429efd0efa56ec9ccbe338a37a6e6ae2dc3bc5))
+* refactor(api): use AlertLevel enum for Slack Alerts (Salim Afiune Maya)([4b5acf9](https://github.com/lacework/go-sdk/commit/4b5acf989fda4c052c3dc6b0206db866aa57f243))
+## Bug Fixes
+* fix(cli): missing fields for Slack integrations (#170) (Salim Afiune)([a8ce9a9](https://github.com/lacework/go-sdk/commit/a8ce9a90f52dd81281fca78b077435229bdbafaf))
+## Other Changes
+* chore(api): adds alert channel \_examples/ (Salim Afiune Maya)([f967206](https://github.com/lacework/go-sdk/commit/f967206db3dd209f94e694b5f4db98dd8b11f113))
+---
+# v0.1.21
+
+## Features
+* feat(cli): Create Slack Channel Alerts 🚨 (#165) (Salim Afiune)([0d1f8c7](https://github.com/lacework/go-sdk/commit/0d1f8c74656c4e2043323b38cadde4e0456d6cfd))
+* feat(api): add Slack Channel integrations (#164) (Salim Afiune)([fb81416](https://github.com/lacework/go-sdk/commit/fb81416b541882ef697d9be6dc0685772183e336))
+* feat(api): new Vulnerabilities.ListEvaluations() func (#160) (Salim Afiune)([0060799](https://github.com/lacework/go-sdk/commit/0060799f47742091f9dc16eb987ba8cc5b5cee25))
+* feat(cli): configure in non-interactive mode (#158) (Salim Afiune)([781f65b](https://github.com/lacework/go-sdk/commit/781f65b7f3449cbb2bb04831aa5443e7981a30e4))
+* feat(cli): add --packages flag to vulnerability cmd (#149) (Salim Afiune)([3c34eaf](https://github.com/lacework/go-sdk/commit/3c34eaf8de21a1e5f23707034ca69c02cabf5e25))
+## Other Changes
+* chore(cli): remove deprecated old config loading (#159) (Salim Afiune)([1661939](https://github.com/lacework/go-sdk/commit/1661939b94c42c080f051039c70f4c82a56f2ad3))
+---
 # v0.1.20
 
 ## Features

@@ -9,6 +9,7 @@ orbs:
   lacework: lacework/lacework@1.0.0
   slack: circleci/slack@3.4.2
   jq: circleci/jq@2.1.0
+  win: circleci/windows@2.2.0
 
 executors:
   go-executor:
@@ -40,13 +41,20 @@ jobs:
           root: bin
           paths:
             - lacework-cli-*
-  integration-test:
+  integration-test-linux:
     executor: go-executor
     steps:
       - checkout
       - attach_workspace:
           at: bin
       - run: make integration-only
+  integration-test-win:
+    executor: win/default
+    steps:
+      - checkout
+      - attach_workspace:
+          at: bin
+      - run: ./bin/lacework-cli-windows-amd64.exe help
   verify-release:
     executor: alpine
     steps:
@@ -100,13 +108,17 @@ workflows:
     jobs:
       - unit-test
       - build-cli
-      - integration-test:
+      - integration-test-linux:
+          requires:
+            - build-cli
+      - integration-test-win:
           requires:
             - build-cli
       - trigger-release:
           requires:
             - unit-test
-            - integration-test
+            - integration-test-win
+            - integration-test-linux
           filters:
             branches:
               only: master
@@ -148,10 +160,14 @@ workflows:
     jobs:
       - unit-test
       - build-cli
-      - integration-test:
+      - integration-test-linux:
+          requires:
+            - build-cli
+      - integration-test-win:
           requires:
             - build-cli
       - notify-slack-status:
           requires:
             - unit-test
-            - integration-test
+            - integration-test-linux
+            - integration-test-win

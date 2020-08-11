@@ -10,7 +10,8 @@ GO_LDFLAGS="-X github.com/lacework/go-sdk/cli/cmd.Version=$(shell cat VERSION) \
             -X github.com/lacework/go-sdk/cli/cmd.GitSHA=$(shell git rev-parse HEAD) \
             -X github.com/lacework/go-sdk/cli/cmd.BuildTime=$(shell date +%Y%m%d%H%M%S)"
 GOFLAGS=-mod=vendor
-export GOFLAGS GO_LDFLAGS
+CGO_ENABLED?=0
+export GOFLAGS GO_LDFLAGS CGO_ENABLED
 
 prepare: install-tools go-vendor
 

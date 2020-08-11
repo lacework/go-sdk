@@ -54,6 +54,18 @@ const (
 
 	// Container registry integration type
 	ContainerRegistryIntegration
+
+	// Slack channel integration type
+	SlackChannelIntegration
+
+	// AWS CloudWatch integration type
+	AwsCloudWatchIntegration
+
+	// Pager Duty integration type
+	PagerDutyIntegration
+
+	// Jira integration type
+	JiraIntegration
 )
 
 // IntegrationTypes is the list of available integration types
@@ -66,6 +78,10 @@ var IntegrationTypes = map[integrationType]string{
 	AzureCfgIntegration:          "AZURE_CFG",
 	AzureActivityLogIntegration:  "AZURE_AL_SEQ",
 	ContainerRegistryIntegration: "CONT_VULN_CFG",
+	SlackChannelIntegration:      "SLACK_CHANNEL",
+	AwsCloudWatchIntegration:     "CLOUDWATCH_EB",
+	PagerDutyIntegration:         "PAGER_DUTY_API",
+	JiraIntegration:              "JIRA",
 }
 
 // String returns the string representation of an integration type

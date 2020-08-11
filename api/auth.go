@@ -24,7 +24,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const defaultTokenExpiryTime = 3600
+const DefaultTokenExpiryTime = 3600
 
 // authConfig representing information like key_id, secret and token
 // used for authenticating requests
@@ -85,7 +85,7 @@ func WithExpirationTime(t int) Option {
 }
 
 // GenerateToken generates a new access token
-func (c *Client) GenerateToken() (response tokenResponse, err error) {
+func (c *Client) GenerateToken() (response TokenResponse, err error) {
 	if c.auth.keyID == "" || c.auth.secret == "" {
 		err = fmt.Errorf("unable to generate access token: auth keys missing")
 		return
@@ -113,7 +113,7 @@ func (c *Client) GenerateToken() (response tokenResponse, err error) {
 }
 
 // GenerateTokenWithKeys generates a new access token with the provided keys
-func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (tokenResponse, error) {
+func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (TokenResponse, error) {
 	c.log.Debug("setting up auth",
 		zap.String("key", keyID),
 		zap.String("secret", secretKey),
@@ -123,13 +123,13 @@ func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (tokenResponse, 
 	return c.GenerateToken()
 }
 
-type tokenResponse struct {
+type TokenResponse struct {
 	Data    []tokenData `json:"data"`
 	Ok      bool        `json:"ok"`
 	Message string      `json:"message"`
 }
 
-func (tr tokenResponse) Token() string {
+func (tr TokenResponse) Token() string {
 	if len(tr.Data) > 0 {
 		// @afiune how do we handle cases where there is more than one token
 		return tr.Data[0].Token

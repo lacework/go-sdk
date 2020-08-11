@@ -92,3 +92,17 @@ func TestIntegrationCommandListWithTypeFlagErrorUnknownType(t *testing.T) {
 	assert.Equal(t, 1, exitcode,
 		"EXITCODE is not the expected one")
 }
+
+func TestIntegrationCommandShowNonExistingError(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("integration", "show", "EXXAMPLE_123")
+	assert.Emptyf(t, out.String(),
+		"STDOUT should be empty")
+	assert.Equal(t, 1, exitcode,
+		"EXITCODE is not the expected one")
+	assert.Contains(t, err.String(),
+		"ERROR the provided integration GUID was not found",
+		"STDERR should contain a helpful message")
+	assert.Contains(t, err.String(),
+		"To list the available integrations in your account run 'lacework integrations list'",
+		"STDERR should contain a helpful message")
+}

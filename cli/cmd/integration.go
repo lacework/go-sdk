@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -93,6 +94,12 @@ var (
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(integration.Data)
+			}
+
+			if len(integration.Data) == 0 {
+				msg := "the provided integration GUID was not found\n\n"
+				msg += "To list the available integrations in your account run 'lacework integrations list'"
+				return errors.New(msg)
 			}
 
 			cli.OutputHuman(buildIntegrationsTable(integration.Data))
@@ -183,6 +190,11 @@ func promptCreateIntegration() error {
 		prompt      = &survey.Select{
 			Message: "Choose an integration type to create: ",
 			Options: []string{
+				"Slack Alert Channel",
+				"PagerDuty Alert Channel",
+				"AWS CloudWatch Alert Channel",
+				"Jira Cloud Alert Channel",
+				"Jira Server Alert Channel",
 				"Docker Hub",
 				"AWS Config",
 				"AWS CloudTrail",
@@ -203,6 +215,16 @@ func promptCreateIntegration() error {
 	}
 
 	switch integration {
+	case "Slack Alert Channel":
+		return createSlackAlertChannelIntegration()
+	case "PagerDuty Alert Channel":
+		return createPagerDutyAlertChannelIntegration()
+	case "AWS CloudWatch Alert Channel":
+		return createAwsCloudWatchAlertChannelIntegration()
+	case "Jira Cloud Alert Channel":
+		return createJiraCloudAlertChannelIntegration()
+	case "Jira Server Alert Channel":
+		return createJiraServerAlertChannelIntegration()
 	case "Docker Hub":
 		return createDockerHubIntegration()
 	case "AWS Config":
@@ -272,6 +294,8 @@ func buildIntDetailsTable(integrations []api.RawIntegration) string {
 	if len(integrations) != 0 {
 		integration := integrations[0]
 		t.AppendBulk(reflectIntegrationData(integration))
+		t.Append([]string{"UPDATE AT", integration.CreatedOrUpdatedTime})
+		t.Append([]string{"UPDATE BY", integration.CreatedOrUpdatedBy})
 		t.AppendBulk(buildIntegrationState(integration.State))
 	}
 	t.Render()
@@ -289,8 +313,8 @@ func buildIntDetailsTable(integrations []api.RawIntegration) string {
 func buildIntegrationState(state *api.IntegrationState) [][]string {
 	if state != nil {
 		return [][]string{
-			[]string{"LAST UPDATED TIME", state.LastUpdatedTime},
-			[]string{"LAST SUCCESSFUL TIME", state.LastSuccessfulTime},
+			[]string{"STATE UPDATED AT", state.LastUpdatedTime},
+			[]string{"LAST SUCCESSFUL STATE", state.LastSuccessfulTime},
 		}
 	}
 
@@ -370,6 +394,86 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		return out
 
+	case api.SlackChannelIntegration.String():
+
+		var iData api.SlackChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"SLACK URL", iData.SlackUrl},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+		}
+
+		return out
+
+	case api.AwsCloudWatchIntegration.String():
+
+		var iData api.AwsCloudWatchData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"EVENT BUS ARN", iData.EventBusArn},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+		}
+
+		return out
+
+	case api.PagerDutyIntegration.String():
+
+		var iData api.PagerDutyData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"INTEGRATION KEY", iData.IntegrationKey},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+		}
+
+		return out
+
+	case api.JiraIntegration.String():
+
+		var iData api.JiraAlertChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"JIRA INTEGRATION TYPE", iData.JiraType},
+			[]string{"JIRA URL", iData.JiraUrl},
+			[]string{"PROJECT KEY", iData.ProjectID},
+			[]string{"USERNAME", iData.Username},
+			[]string{"ISSUE TYPE", iData.IssueType},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+		}
+
+		return out
+
 	default:
 		out := [][]string{}
 		for key, value := range deepKeyValueExtract(raw.Data) {
@@ -386,12 +490,27 @@ func deepKeyValueExtract(v interface{}) map[string]string {
 
 	m, ok := v.(map[string]interface{})
 	if !ok {
+		cli.Log.Warnw("unable to parse raw data field", "type", fmt.Sprintf("%T", v))
 		return out
 	}
 
 	for key, value := range m {
 		if s, ok := value.(string); ok {
 			out[key] = s
+		} else if i, ok := value.(int); ok {
+			out[key] = fmt.Sprintf("%d", i)
+		} else if i, ok := value.(int32); ok {
+			out[key] = fmt.Sprintf("%d", i)
+		} else if i, ok := value.(float32); ok {
+			out[key] = fmt.Sprintf("%.0f", i)
+		} else if i, ok := value.(float64); ok {
+			out[key] = fmt.Sprintf("%.0f", i)
+		} else if b, ok := value.(bool); ok {
+			if b {
+				out[key] = "ENABLE"
+			} else {
+				out[key] = "DISABLE"
+			}
 		} else {
 			deepMap := deepKeyValueExtract(value)
 			for deepK, deepV := range deepMap {
