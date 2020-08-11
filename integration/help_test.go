@@ -142,7 +142,7 @@ Available Commands:
   event         inspect Lacework events
   integration   manage external integrations
   version       print the Lacework CLI version
-  vulnerability view vulnerability evaluations and run on-demand scans
+  vulnerability container and host vulnerability assessments
 
 Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
