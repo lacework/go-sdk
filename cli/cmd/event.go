@@ -39,6 +39,9 @@ var (
 
 		// end time for listing events
 		End string
+
+		// list events from an specific number of days
+		Days int
 	}{}
 
 	// easily add or remove borders to all event details tables
@@ -56,8 +59,7 @@ var (
 	eventListCmd = &cobra.Command{
 		Use:   "list",
 		Short: "list all events from a date range (default last 7 days)",
-		Long: `
-List all events from a time range, by default this command displays the
+		Long: `List all events from a time range, by default this command displays the
 events from the last 7 days, but it is possible to specify a different
 time range.`,
 		Args: cobra.NoArgs,
@@ -75,6 +77,14 @@ time range.`,
 
 				cli.Log.Infow("requesting list of events from custom time range",
 					"start_time", start, "end_time", end,
+				)
+				response, err = cli.LwApi.Events.ListDateRange(start, end)
+			} else if eventsCmdState.Days != 0 {
+				end := time.Now()
+				start := end.Add(time.Hour * 24 * time.Duration(eventsCmdState.Days) * -1)
+
+				cli.Log.Infow("requesting list of events from specific days",
+					"days", eventsCmdState.Days, "start_time", start, "end_time", end,
 				)
 				response, err = cli.LwApi.Events.ListDateRange(start, end)
 			} else {
@@ -151,6 +161,10 @@ func init() {
 	// add end flag to events list command
 	eventListCmd.Flags().StringVar(&eventsCmdState.End,
 		"end", "", "end of the time range in UTC (format: yyyy-MM-ddTHH:mm:ssZ)",
+	)
+	// add days flag to events list command
+	eventListCmd.Flags().IntVar(&eventsCmdState.Days,
+		"days", 0, "list events from an specific number of days (max: 7 days)",
 	)
 
 	eventCmd.AddCommand(eventShowCmd)
