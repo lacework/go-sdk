@@ -1,14 +1,15 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.1.23`.
+Another day, another release. These are the release notes for the version `v0.1.24`.
 
+## Features
+* feat(cli): better ux in account validation (#187) (Salim Afiune)([cdd045a](https://github.com/lacework/go-sdk/commit/cdd045a830dcdc788daf77d9ea558ba4d296e003))
+* feat(cli): new access-tokens command (#184) (Salim Afiune)([ee338c4](https://github.com/lacework/go-sdk/commit/ee338c4afb057bf4ea578a8d0ddb48b2d39b34d3))
+* feat(cli): Create Jira Alert Channels 🚨 (Salim Afiune Maya)([6ca8cef](https://github.com/lacework/go-sdk/commit/6ca8ceffce1c17f3f84634da5514c059da952ca1))
+* feat(api): add Jira alert channel integrations (Salim Afiune Maya)([0cdb2a4](https://github.com/lacework/go-sdk/commit/0cdb2a46d820f249c0fe918320303b1061e0f5ed))
 ## Refactor
-* refactor(cli): replace '--pdf-file' for '--pdf' (#180) (Salim Afiune)([80bbce6](https://github.com/lacework/go-sdk/commit/80bbce636cac49fe315118add45252bd8ee4bf6a))
+* refactor: remove legacy field min_alert_severity (#186) (Salim Afiune)([54ca38c](https://github.com/lacework/go-sdk/commit/54ca38c8c509d800e2bddca5435529f5d0b60643))
 ## Bug Fixes
-* fix(cli): missing integration details (#181) (Salim Afiune)([40355d3](https://github.com/lacework/go-sdk/commit/40355d3877c2674268c38bb5cc81a698dd115166))
-* fix(cli): error showing non-existing integration (#178) (Salim Afiune)([252072f](https://github.com/lacework/go-sdk/commit/252072faa60aaac06fb7bbf2dd7ca82fa71d2b09))
-## Other Changes
-* ci: build statically linked binaries (Salim Afiune Maya)([43f6f80](https://github.com/lacework/go-sdk/commit/43f6f804ffac3f8e326dc31f4196808f39bc035d))
-* ci(integration): add windows support (Salim Afiune Maya)([46632e7](https://github.com/lacework/go-sdk/commit/46632e72e0ab9ee45d690605e4c52efb1a8cf391))
+* fix(cli): display integration update by/update time (Salim Afiune Maya)([7060078](https://github.com/lacework/go-sdk/commit/7060078d3f8a09a82a4efaf98c4cb15f4856f753))
 
 ## Docker Images
 * `docker pull techallylw/lacework-cli:latest`
