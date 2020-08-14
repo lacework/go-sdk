@@ -78,7 +78,7 @@ time range.`,
 		Args: cobra.NoArgs,
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
-				response api.VulContainerEvaluationsResponse
+				response api.VulnContainerAssessmentsResponse
 				err      error
 			)
 			if vulCmdState.Start != "" || vulCmdState.End != "" {
@@ -90,10 +90,10 @@ time range.`,
 				cli.Log.Infow("requesting list of assessments from custom time range",
 					"start_time", start, "end_time", end,
 				)
-				response, err = cli.LwApi.Vulnerabilities.ListEvaluationsDateRange(start, end)
+				response, err = cli.LwApi.Vulnerabilities.Container.ListAssessmentsDateRange(start, end)
 			} else {
 				cli.Log.Info("requesting list of assessments from the last 7 days")
-				response, err = cli.LwApi.Vulnerabilities.ListEvaluations()
+				response, err = cli.LwApi.Vulnerabilities.Container.ListAssessments()
 			}
 
 			if err != nil {
@@ -102,15 +102,15 @@ time range.`,
 
 			cli.Log.Debugw("assessments", "raw", response)
 			// Sort the assessments from the response by date
-			sort.Slice(response.Evaluations, func(i, j int) bool {
-				return response.Evaluations[i].StartTime.ToTime().After(response.Evaluations[j].StartTime.ToTime())
+			sort.Slice(response.Assessments, func(i, j int) bool {
+				return response.Assessments[i].StartTime.ToTime().After(response.Assessments[j].StartTime.ToTime())
 			})
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Evaluations)
+				return cli.OutputJSON(response.Assessments)
 			}
 
-			cli.OutputHuman(vulAssessmentsToTableReport(response.Evaluations))
+			cli.OutputHuman(vulAssessmentsToTableReport(response.Assessments))
 			return nil
 		},
 	}
@@ -191,7 +191,7 @@ func requestOnDemandContainerVulnerabilityScan(args []string) error {
 		"repository", args[1],
 		"tag_or_digest", args[2],
 	)
-	scan, err := cli.LwApi.Vulnerabilities.Scan(args[0], args[1], args[2])
+	scan, err := cli.LwApi.Vulnerabilities.Container.Scan(args[0], args[1], args[2])
 	if err != nil {
 		return errors.Wrap(err, "unable to request on-demand vulnerability scan")
 	}
@@ -260,18 +260,18 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 
 func showContainerAssessmentsWithSha256(sha string) error {
 	var (
-		assessment  api.VulContainerReportResponse
+		assessment  api.VulnContainerAssessmentResponse
 		searchField string
 		err         error
 	)
 	if vulCmdState.ImageID {
 		searchField = "image_id"
 		cli.Log.Debugw("retrieve image assessment", searchField, sha)
-		assessment, err = cli.LwApi.Vulnerabilities.ReportFromID(sha)
+		assessment, err = cli.LwApi.Vulnerabilities.Container.AssessmentFromImageID(sha)
 	} else {
 		searchField = "digest"
 		cli.Log.Debugw("retrieve image assessment", searchField, sha)
-		assessment, err = cli.LwApi.Vulnerabilities.ReportFromDigest(sha)
+		assessment, err = cli.LwApi.Vulnerabilities.Container.AssessmentFromImageDigest(sha)
 	}
 	if err != nil {
 		return errors.Wrap(err, "unable to show vulnerability assessment")
@@ -320,7 +320,7 @@ For more information about supported distributions, visit:
 	return nil
 }
 
-func buildVulnerabilityReport(report *api.VulContainerReport) string {
+func buildVulnerabilityReport(report *api.VulnContainerAssessment) string {
 	var (
 		t                 *tablewriter.Table
 		imageDetailsTable = &strings.Builder{}
@@ -379,7 +379,7 @@ func buildVulnerabilityReport(report *api.VulContainerReport) string {
 	return mainReport.String()
 }
 
-func buildVulnerabilityPackageSummary(report *api.VulContainerReport) string {
+func buildVulnerabilityPackageSummary(report *api.VulnContainerAssessment) string {
 	var (
 		detailsTable = &strings.Builder{}
 		t            = tablewriter.NewWriter(detailsTable)
@@ -402,7 +402,7 @@ func buildVulnerabilityPackageSummary(report *api.VulContainerReport) string {
 	return detailsTable.String()
 }
 
-func buildVulnerabilityReportDetails(report *api.VulContainerReport) string {
+func buildVulnerabilityReportDetails(report *api.VulnContainerAssessment) string {
 	var (
 		detailsTable = &strings.Builder{}
 		t            = tablewriter.NewWriter(detailsTable)
@@ -430,7 +430,7 @@ func buildVulnerabilityReportDetails(report *api.VulContainerReport) string {
 	return detailsTable.String()
 }
 
-func vulContainerImagePackagesToTable(image *api.VulContainerImage) [][]string {
+func vulContainerImagePackagesToTable(image *api.VulnContainerImage) [][]string {
 	if image == nil {
 		return [][]string{}
 	}
@@ -481,7 +481,7 @@ func vulContainerImagePackagesToTable(image *api.VulContainerImage) [][]string {
 	return out
 }
 
-func vulContainerImageLayersToTable(image *api.VulContainerImage) [][]string {
+func vulContainerImageLayersToTable(image *api.VulnContainerImage) [][]string {
 	if image == nil {
 		return [][]string{}
 	}
@@ -515,22 +515,22 @@ func vulContainerImageLayersToTable(image *api.VulContainerImage) [][]string {
 	return out
 }
 
-func vulContainerReportToCountsTable(report *api.VulContainerReport) [][]string {
+func vulContainerReportToCountsTable(report *api.VulnContainerAssessment) [][]string {
 	return [][]string{
 		[]string{"Critical", fmt.Sprint(report.CriticalVulnerabilities),
-			fmt.Sprint(report.VulFixableCount("critical"))},
+			fmt.Sprint(report.VulnFixableCount("critical"))},
 		[]string{"High", fmt.Sprint(report.HighVulnerabilities),
-			fmt.Sprint(report.VulFixableCount("high"))},
+			fmt.Sprint(report.VulnFixableCount("high"))},
 		[]string{"Medium", fmt.Sprint(report.MediumVulnerabilities),
-			fmt.Sprint(report.VulFixableCount("medium"))},
+			fmt.Sprint(report.VulnFixableCount("medium"))},
 		[]string{"Low", fmt.Sprint(report.LowVulnerabilities),
-			fmt.Sprint(report.VulFixableCount("low"))},
+			fmt.Sprint(report.VulnFixableCount("low"))},
 		[]string{"Info", fmt.Sprint(report.InfoVulnerabilities),
-			fmt.Sprint(report.VulFixableCount("info"))},
+			fmt.Sprint(report.VulnFixableCount("info"))},
 	}
 }
 
-func vulContainerImageToTable(image *api.VulContainerImage) [][]string {
+func vulContainerImageToTable(image *api.VulnContainerImage) [][]string {
 	if image == nil || image.ImageInfo == nil {
 		return [][]string{}
 	}
@@ -547,7 +547,7 @@ func vulContainerImageToTable(image *api.VulContainerImage) [][]string {
 	}
 }
 
-func vulAssessmentsToTableReport(assessments []api.VulContainerEvaluation) string {
+func vulAssessmentsToTableReport(assessments []api.VulnContainerAssessmentSummary) string {
 	var (
 		assessmentsTable = &strings.Builder{}
 		t                = tablewriter.NewWriter(assessmentsTable)
@@ -570,7 +570,7 @@ func vulAssessmentsToTableReport(assessments []api.VulContainerEvaluation) strin
 	return assessmentsTable.String()
 }
 
-func vulAssessmentsToTable(assessments []api.VulContainerEvaluation) [][]string {
+func vulAssessmentsToTable(assessments []api.VulnContainerAssessmentSummary) [][]string {
 	out := [][]string{}
 	for _, assessment := range assessments {
 		out = append(out, []string{
@@ -587,7 +587,7 @@ func vulAssessmentsToTable(assessments []api.VulContainerEvaluation) [][]string 
 	return out
 }
 
-func vulSummaryFromAssessment(assessment *api.VulContainerEvaluation) string {
+func vulSummaryFromAssessment(assessment *api.VulnContainerAssessmentSummary) string {
 	summary := []string{}
 
 	summary = addToAssessmentSummary(summary, assessment.NumVulnerabilitiesSeverity1, "Critical")
