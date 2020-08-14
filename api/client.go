@@ -95,7 +95,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	c.Events = &EventsService{c}
 	c.Compliance = &ComplianceService{c}
 	c.Integrations = &IntegrationsService{c}
-	c.Vulnerabilities = &VulnerabilitiesService{c}
+	c.Vulnerabilities = NewVulnerabilityService(c)
 
 	// init logger, this could change if a user calls api.WithLogLevel()
 	c.initLogger()
