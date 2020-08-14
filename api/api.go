@@ -25,11 +25,11 @@ import (
 )
 
 const (
-	apiIntegrations       = "external/integrations"
-	apiIntegrationsByType = "external/integrations/type/%s"
-	apiIntegrationByGUID  = "external/integrations/%s"
-	apiIntegrationSchema  = "external/integrations/schema/%s"
-	apiTokens             = "access/tokens"
+	apiIntegrations        = "external/integrations"
+	apiIntegrationsByType  = "external/integrations/type/%s"
+	apiIntegrationFromGUID = "external/integrations/%s"
+	apiIntegrationSchema   = "external/integrations/schema/%s"
+	apiTokens              = "access/tokens"
 
 	apiVulnerabilitiesContainerScan             = "external/vulnerabilities/container/repository/images/scan"
 	apiVulnerabilitiesContainerScanStatus       = "external/vulnerabilities/container/reqId/%s"
