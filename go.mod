@@ -7,7 +7,6 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
 	github.com/briandowns/spinner v1.10.0
-	github.com/creack/pty v1.1.10 // indirect
 	github.com/fatih/color v1.9.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
@@ -34,3 +33,5 @@ require (
 	gopkg.in/ini.v1 v1.55.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
+
+replace github.com/kr/pty => github.com/creack/pty v1.1.7
