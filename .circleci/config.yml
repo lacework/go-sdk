@@ -48,13 +48,18 @@ jobs:
       - attach_workspace:
           at: bin
       - run: make integration-only
-  integration-test-win:
+  integration-test-windows:
     executor: win/default
     steps:
       - checkout
       - attach_workspace:
           at: bin
-      - run: ./bin/lacework-cli-windows-amd64.exe help
+      - run:
+          command: |
+            $env:LW_CLI_BIN = Join-Path (Get-Location).Path "bin\\lacework-cli-windows-amd64.exe"
+            go test -v github.com/lacework/go-sdk/integration
+    environment:
+      GOFLAGS: -mod=vendor
   verify-release:
     executor: alpine
     steps:
@@ -83,11 +88,6 @@ jobs:
       - slack/status:
           fail_only: false
           mentions: << pipeline.parameters.slack-mentions >>
-  notify-slack-status:
-    executor: alpine
-    steps:
-      - slack/status:
-          mentions: << pipeline.parameters.slack-mentions >>
   vuln-scan-cli:
     executor: lacework/default
     parameters:
@@ -111,13 +111,13 @@ workflows:
       - integration-test-linux:
           requires:
             - build-cli
-      - integration-test-win:
+      - integration-test-windows:
           requires:
             - build-cli
       - trigger-release:
           requires:
             - unit-test
-            - integration-test-win
+            - integration-test-windows
             - integration-test-linux
           filters:
             branches:
@@ -163,11 +163,6 @@ workflows:
       - integration-test-linux:
           requires:
             - build-cli
-      - integration-test-win:
+      - integration-test-windows:
           requires:
             - build-cli
-      - notify-slack-status:
-          requires:
-            - unit-test
-            - integration-test-linux
-            - integration-test-win
