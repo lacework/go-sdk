@@ -30,6 +30,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwpager"
 )
 
 // cliState holds the state of the entire Lacework CLI
@@ -44,6 +45,7 @@ type cliState struct {
 	LwApi *api.Client
 	JsonF *prettyjson.Formatter
 	Log   *zap.SugaredLogger
+	Pager *lwpager.Pager
 
 	spinner        *spinner.Spinner
 	jsonOutput     bool
@@ -53,8 +55,14 @@ type cliState struct {
 
 // NewDefaultState creates a new cliState with some defaults
 func NewDefaultState() cliState {
+	pager, err := lwpager.New()
+	if err != nil {
+		panic(err)
+	}
+
 	return cliState{
 		Profile: "default",
+		Pager:   pager,
 		JsonF: &prettyjson.Formatter{
 			KeyColor:    color.New(color.FgCyan, color.Bold),
 			StringColor: color.New(color.FgGreen, color.Bold),

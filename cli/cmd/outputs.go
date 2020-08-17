@@ -20,7 +20,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/fatih/color"
@@ -41,7 +40,7 @@ func (c *cliState) OutputJSON(v interface{}) error {
 // configured to talk to humans, to switch to json format use --json
 func (c *cliState) OutputHuman(format string, a ...interface{}) {
 	if c.HumanOutput() {
-		fmt.Fprintf(os.Stdout, format, a...)
+		fmt.Fprintf(c.Pager.Out, format, a...)
 	}
 }
 

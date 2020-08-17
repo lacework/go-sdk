@@ -57,6 +57,11 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 				return cli.NewClient()
 			}
 		},
+		PersistentPostRun: func(cmd *cobra.Command, _ []string) {
+			fmt.Println("postrun!")
+			cli.Pager.Cmd.Start()
+			cli.Pager.Wait()
+		},
 	}
 )
 
