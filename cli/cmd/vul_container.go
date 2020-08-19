@@ -660,6 +660,7 @@ func vulSummaryFromAssessment(assessment *api.VulnContainerAssessmentSummary) (s
 	summary = addToAssessmentSummary(summary, assessment.NumVulnerabilitiesSeverity5, "Info")
 
 	if len(summary) == 0 {
+		// @afiune this emoji's do not work on Windows
 		return fmt.Sprintf("None! Time for %s", randomEmoji()), false
 	}
 

@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/lacework/go-sdk/api"
@@ -191,6 +192,7 @@ func hostVulnHostsToTable(hosts []api.HostVulnDetail) string {
 		"Machine ID",
 		"Hostname",
 		"External IP",
+		"Internal IP",
 		"Os",
 		"Arch",
 		"Provider",
@@ -212,6 +214,7 @@ func hostVulnHostsTable(hosts []api.HostVulnDetail) [][]string {
 			host.Details.MachineID,
 			host.Details.Hostname,
 			host.Details.Tags.ExternalIP,
+			host.Details.Tags.InternalIP,
 			host.Details.Tags.Os,
 			host.Details.Tags.Arch,
 			host.Details.Tags.VmProvider,
@@ -233,9 +236,10 @@ func hostVulnCVEsToTable(cves []api.HostVulnCVE) string {
 	t.SetHeader([]string{
 		"CVE",
 		"Severity",
-		"Package",
-		"Pkg Version",
 		"Score",
+		"Package",
+		"Current Version",
+		"Fix Version",
 		"OS Version",
 		"Hosts",
 		"Status",
@@ -249,24 +253,49 @@ func hostVulnCVEsToTable(cves []api.HostVulnCVE) string {
 
 func hostVulnCVEsTable(cves []api.HostVulnCVE) [][]string {
 	out := [][]string{}
+	out = append(out, hostVulnCVEsTableForSeverity(cves, "Critical")...)
+	out = append(out, hostVulnCVEsTableForSeverity(cves, "High")...)
+	out = append(out, hostVulnCVEsTableForSeverity(cves, "Medium")...)
+	out = append(out, hostVulnCVEsTableForSeverity(cves, "Low")...)
+	out = append(out, hostVulnCVEsTableForSeverity(cves, "Info")...)
+	out = append(out, hostVulnCVEsTableForSeverity(cves, "Negligible")...)
+	return out
+}
+
+func hostVulnCVEsTableForSeverity(cves []api.HostVulnCVE, severity string) [][]string {
+	out := [][]string{}
 	for _, cve := range cves {
 		for _, pkg := range cve.Packages {
-			out = append(out, []string{
-				cve.ID,
-				pkg.Severity,
-				pkg.Name,
-				pkg.Version,
-				pkg.CvssScore,
-				pkg.Namespace,
-				pkg.HostCount,
-				pkg.Status,
-			})
+			if pkg.Severity == severity {
+				out = append(out, []string{
+					cve.ID,
+					pkg.Severity,
+					pkg.CvssScore,
+					pkg.Name,
+					pkg.Version,
+					pkg.FixedVersion,
+					pkg.Namespace,
+					pkg.HostCount,
+					pkg.Status,
+				})
+			}
 		}
 	}
 
-	// order by severity
+	// order by total number of host
 	sort.Slice(out, func(i, j int) bool {
-		return severityOrder(out[i][1]) < severityOrder(out[j][1])
+		iCtr, err := strconv.Atoi(out[i][7])
+		if err != nil {
+			// log error
+			iCtr = 0
+		}
+		jCtr, err := strconv.Atoi(out[j][7])
+		if err != nil {
+			// log error
+			jCtr = 0
+		}
+		return iCtr > jCtr
+
 	})
 
 	return out
@@ -282,6 +311,7 @@ func hostVulnHostDetailsToTable(assessment api.HostVulnHostAssessment) string {
 		"Machine ID",
 		"Hostname",
 		"External IP",
+		"Internal IP",
 		"Os",
 		"Arch",
 		"Provider",
@@ -295,6 +325,7 @@ func hostVulnHostDetailsToTable(assessment api.HostVulnHostAssessment) string {
 			assessment.Host.MachineID,
 			assessment.Host.Hostname,
 			assessment.Host.Tags.ExternalIP,
+			assessment.Host.Tags.InternalIP,
 			assessment.Host.Tags.Os,
 			assessment.Host.Tags.Arch,
 			assessment.Host.Tags.VmProvider,
