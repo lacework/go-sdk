@@ -20,6 +20,7 @@ package api_test
 
 import (
 	"io/ioutil"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,6 +31,6 @@ import (
 func TestVersionMatchVERSIONfile(t *testing.T) {
 	expectedVersion, err := ioutil.ReadFile("../VERSION")
 	assert.Nil(t, err)
-	assert.Equalf(t, string(expectedVersion), subject.Version,
+	assert.Equalf(t, strings.TrimSuffix(string(expectedVersion), "\n"), subject.Version,
 		"api/version.go doesn't match with VERSION file; run scripts/version_updater.sh")
 }
