@@ -91,14 +91,14 @@ type hostVulnListHostsResponse struct {
 
 type HostVulnDetail struct {
 	Details  hostVulnHostDetail `json:"host"`
-	Packages []hostVulnPackage  `json:"packages"`
-	Summary  hostVulnCveSummary `json:"summary"`
+	Packages []HostVulnPackage  `json:"packages"`
+	Summary  HostVulnCveSummary `json:"summary"`
 }
 
 type hostVulnHostDetail struct {
 	Hostname      string      `json:"hostname"`
 	MachineID     string      `json:"machine_id"`
-	MachineStatus string      `json:"machine_status"`
+	MachineStatus string      `json:"machine_status,omitempty"`
 	Tags          hostVulnTag `json:"tags"`
 }
 
@@ -127,47 +127,142 @@ type hostVulnListCvesResponse struct {
 
 type HostVulnCVE struct {
 	ID       string             `json:"cve_id"`
-	Packages []hostVulnPackage  `json:"packages"`
-	Summary  hostVulnCveSummary `json:"summary"`
+	Packages []HostVulnPackage  `json:"packages"`
+	Summary  HostVulnCveSummary `json:"summary"`
 }
 
-type hostVulnPackage struct {
-	Name          string `json:"name"`
-	Namespace     string `json:"namespace"`
-	Severity      string `json:"severity"`
-	Status        string `json:"status"`
-	Version       string `json:"version"`
-	HostCount     string `json:"host_count"`
-	PackageStatus string `json:"package_status"`
-	CveLink       string `json:"cve_link"`
-	CvssScore     string `json:"cvss_score"`
-	CvssV2Score   string `json:"cvss_v_2_score"`
-	CvssV3Score   string `json:"cvss_v_3_score"`
+type HostVulnPackage struct {
+	Name                string `json:"name"`
+	Namespace           string `json:"namespace"`
+	Severity            string `json:"severity"`
+	Status              string `json:"status,omitempty"`
+	VulnerabilityStatus string `json:"vulnerabiliy_status,omitempty"` // @afiune typo
+	Version             string `json:"version"`
+	HostCount           string `json:"host_count"`
+	PackageStatus       string `json:"package_status"`
+	CveLink             string `json:"cve_link"`
+	CvssScore           string `json:"cvss_score"`
+	CvssV2Score         string `json:"cvss_v_2_score"`
+	CvssV3Score         string `json:"cvss_v_3_score"`
 	//FirstSeenTime time.Time `json:"first_seen_time"`
 	FixAvailable string `json:"fix_available"`
 	FixedVersion string `json:"fixed_version"`
 }
 
-type hostVulnCveSummary struct {
-	Severity             map[string]interface{} `json:"severity"` // @afiune not sure if there is a defined structure for this field
-	TotalVulnerabilities int                    `json:"total_vulnerabilities"`
-	//LastEvaluationTime   time.Time              `json:"last_evaluation_time"`
+func (assessment *HostVulnHostAssessment) VulnerabilityCounts() HostVulnCounts {
+	var hostCounts = HostVulnCounts{}
+
+	for _, cve := range assessment.CVEs {
+		for _, pkg := range cve.Packages {
+
+			switch strings.ToLower(pkg.Severity) {
+			case "critical":
+				hostCounts.Critical++
+				if pkg.FixedVersion != "" {
+					hostCounts.CritFixable++
+				}
+			case "high":
+				hostCounts.High++
+				if pkg.FixedVersion != "" {
+					hostCounts.HighFixable++
+				}
+			case "medium":
+				hostCounts.Medium++
+				if pkg.FixedVersion != "" {
+					hostCounts.MedFixable++
+				}
+			case "low":
+				hostCounts.Low++
+				if pkg.FixedVersion != "" {
+					hostCounts.LowFixable++
+				}
+			default:
+				hostCounts.Negligible++
+				if pkg.FixedVersion != "" {
+					hostCounts.NegFixable++
+				}
+			}
+		}
+	}
+
+	return hostCounts
 }
 
-// Severity above looks like this:
-//
-//"Medium": {
-//"fixable": 0,
-//"vulnerabilities": 2
-//}
-//"Low": {
-//"fixable": 0,
-//"vulnerabilities": 3
-//},
-//"Negligible": {
-//"fixable": 0,
-//"vulnerabilities": 1
-//}
+type HostVulnCounts struct {
+	Critical     int32
+	CritFixable  int32
+	High         int32
+	HighFixable  int32
+	Medium       int32
+	MedFixable   int32
+	Low          int32
+	LowFixable   int32
+	Negligible   int32
+	NegFixable   int32
+	Total        int32
+	TotalFixable int32
+}
+
+type HostVulnSeverityCounts struct {
+	Critical   *hostVulnSeverityCountsDetails `json:"Critical"`
+	High       *hostVulnSeverityCountsDetails `json:"High"`
+	Medium     *hostVulnSeverityCountsDetails `json:"Medium"`
+	Low        *hostVulnSeverityCountsDetails `json:"Low"`
+	Negligible *hostVulnSeverityCountsDetails `json:"Negligible"`
+}
+
+func (counts *HostVulnSeverityCounts) VulnerabilityCounts() HostVulnCounts {
+	var hostCounts = HostVulnCounts{}
+
+	if counts.Critical != nil {
+		hostCounts.Critical += counts.Critical.Vulnerabilities
+		hostCounts.CritFixable += counts.Critical.Fixable
+		hostCounts.Total += counts.Critical.Vulnerabilities
+		hostCounts.TotalFixable += counts.Critical.Fixable
+	}
+
+	if counts.High != nil {
+		hostCounts.High += counts.High.Vulnerabilities
+		hostCounts.HighFixable += counts.High.Fixable
+		hostCounts.Total += counts.High.Vulnerabilities
+		hostCounts.TotalFixable += counts.High.Fixable
+	}
+
+	if counts.Medium != nil {
+		hostCounts.Medium += counts.Medium.Vulnerabilities
+		hostCounts.MedFixable += counts.Medium.Fixable
+		hostCounts.Total += counts.Medium.Vulnerabilities
+		hostCounts.TotalFixable += counts.Medium.Fixable
+	}
+
+	if counts.Low != nil {
+		hostCounts.Low += counts.Low.Vulnerabilities
+		hostCounts.LowFixable += counts.Low.Fixable
+		hostCounts.Total += counts.Low.Vulnerabilities
+		hostCounts.TotalFixable += counts.Low.Fixable
+	}
+
+	if counts.Negligible != nil {
+		hostCounts.Negligible += counts.Negligible.Vulnerabilities
+		hostCounts.NegFixable += counts.Negligible.Fixable
+		hostCounts.Total += counts.Negligible.Vulnerabilities
+		hostCounts.TotalFixable += counts.Negligible.Fixable
+	}
+
+	return hostCounts
+
+}
+
+type hostVulnSeverityCountsDetails struct {
+	Fixable         int32 `json:"fixable"`
+	Vulnerabilities int32 `json:"vulnerabilities"`
+}
+
+type HostVulnCveSummary struct {
+	Severity             HostVulnSeverityCounts `json:"severity"`
+	TotalVulnerabilities int                    `json:"total_vulnerabilities"`
+	LastEvaluationTime   Json16DigitTime        `json:"last_evaluation_time"`
+}
 
 // TODO @afiune add scan response
 //    {
