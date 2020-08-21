@@ -103,7 +103,7 @@ time range.`,
 			cli.Log.Debugw("assessments", "raw", response)
 
 			if len(response.Assessments) == 0 {
-				cli.OutputHuman("There are no container assessments in your account.\n")
+				cli.OutputHuman("There are no assessments of container in your environment.\n")
 				return nil
 			}
 
@@ -112,19 +112,7 @@ time range.`,
 			if vulCmdState.Active {
 				// Sort the assessments from the response by running containers
 				sort.Slice(response.Assessments, func(i, j int) bool {
-
-					iCtr, err := strconv.Atoi(response.Assessments[i].NdvContainers)
-					if err != nil {
-						// log error
-						iCtr = 0
-					}
-					jCtr, err := strconv.Atoi(response.Assessments[j].NdvContainers)
-					if err != nil {
-						// log error
-						jCtr = 0
-					}
-
-					return iCtr > jCtr
+					return stringToInt(response.Assessments[i].NdvContainers) > stringToInt(response.Assessments[j].NdvContainers)
 				})
 			} else {
 				// Sort the assessments from the response by date
@@ -202,6 +190,7 @@ func init() {
 		vulContainerScanCmd.Flags(),
 		vulContainerScanStatusCmd.Flags(),
 		vulContainerShowAssessmentCmd.Flags(),
+		vulContainerListAssessmentsCmd.Flags(),
 	)
 
 	setPackagesFlag(
@@ -360,7 +349,8 @@ func buildVulnerabilityReport(report *api.VulnContainerAssessment) string {
 	)
 
 	if report.TotalVulnerabilities == 0 {
-		return "Great news! This container image has no vulnerabilities.\n"
+		// @afiune this emoji's do not work on Windows
+		return fmt.Sprintf("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
 	}
 
 	t = tablewriter.NewWriter(imageDetailsTable)
@@ -399,11 +389,11 @@ func buildVulnerabilityReport(report *api.VulnContainerAssessment) string {
 		} else {
 			mainReport.WriteString(buildVulnerabilityReportDetails(report))
 			mainReport.WriteString("\n")
-			mainReport.WriteString("Try using '--packages' to show a list of packages with CVE count.\n")
+			mainReport.WriteString("Try adding '--packages' to show a list of packages with CVE count.\n")
 		}
 	} else {
 		mainReport.WriteString(
-			"Try using '--details' to increase details shown about the vulnerability report.\n",
+			"Try adding '--details' to increase details shown about the vulnerability report.\n",
 		)
 	}
 
@@ -588,13 +578,13 @@ func vulAssessmentsToTableReport(assessments []api.VulnContainerAssessmentSummar
 	// if the user wants to show only assessments of containers running
 	// and we don't have any, show a friendly message
 	if vulCmdState.Active && len(rows) == 0 {
+		//@afiune add fixable flag
 		return "There are no active containers in your environment.\n"
 	}
 
 	t.SetHeader([]string{
 		"Registry",
 		"Repository",
-		//"Tags",
 		"Last Scan",
 		"Status",
 		"Containers",
@@ -607,6 +597,15 @@ func vulAssessmentsToTableReport(assessments []api.VulnContainerAssessmentSummar
 	t.AppendBulk(rows)
 	t.Render()
 
+	if !vulCmdState.Active {
+		assessmentsTable.WriteString(
+			"\nTry adding '--active' to only show assessments of containers actively running with vulnerabilities in your environment.\n",
+		)
+	} else if !vulCmdState.Fixable {
+		assessmentsTable.WriteString(
+			"\nTry adding '--fixable' to only show assessments with fixable vulnerabilities.\n",
+		)
+	}
 	return assessmentsTable.String()
 }
 
@@ -616,6 +615,9 @@ func vulAssessmentsToTable(assessments []api.VulnContainerAssessmentSummary) [][
 		// do not add assessments that doesn't have running containers
 		// if the user wants to show only assessments of containers running
 		if vulCmdState.Active && assessment.NdvContainers == "0" {
+			continue
+		}
+		if vulCmdState.Fixable && assessment.NumFixes == "0" {
 			continue
 		}
 
@@ -638,8 +640,6 @@ func vulAssessmentsToTable(assessments []api.VulnContainerAssessmentSummary) [][
 		out = append(out, []string{
 			assessment.ImageRegistry,
 			assessment.ImageRepo,
-			//fmt.Sprintf("%s:%s", assessment.ImageRegistry, assessment.ImageRepo),
-			//strings.Join(assessment.ImageTags, ", "),
 			assessment.StartTime.UTC().Format(time.RFC3339),
 			assessment.ImageScanStatus,
 			assessment.NdvContainers,
@@ -660,7 +660,6 @@ func vulSummaryFromAssessment(assessment *api.VulnContainerAssessmentSummary) (s
 	summary = addToAssessmentSummary(summary, assessment.NumVulnerabilitiesSeverity5, "Info")
 
 	if len(summary) == 0 {
-		// @afiune this emoji's do not work on Windows
 		return fmt.Sprintf("None! Time for %s", randomEmoji()), false
 	}
 

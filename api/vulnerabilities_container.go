@@ -283,27 +283,60 @@ type VulnContainerAssessmentsResponse struct {
 type Json16DigitTime time.Time
 
 // imeplement Marshal and Unmarshal interfaces
-func (j *Json16DigitTime) UnmarshalJSON(b []byte) error {
+func (self *Json16DigitTime) UnmarshalJSON(b []byte) error {
 	ms, _ := strconv.Atoi(string(b))
 	t := time.Unix(0, int64(ms)*int64(time.Millisecond))
-	*j = Json16DigitTime(t)
+	*self = Json16DigitTime(t)
 	return nil
 }
 
-func (j Json16DigitTime) MarshalJSON() ([]byte, error) {
+func (self Json16DigitTime) MarshalJSON() ([]byte, error) {
 	// @afiune we might have problems changing the location :(
-	return j.ToTime().UTC().MarshalJSON()
+	return self.ToTime().UTC().MarshalJSON()
 }
 
 // A few format functions for printing and manipulating the custom date
-func (j Json16DigitTime) ToTime() time.Time {
-	return time.Time(j)
+func (self Json16DigitTime) ToTime() time.Time {
+	return time.Time(self)
 }
-func (j Json16DigitTime) Format(s string) string {
-	return j.ToTime().Format(s)
+func (self Json16DigitTime) Format(s string) string {
+	return self.ToTime().Format(s)
 }
-func (j Json16DigitTime) UTC() time.Time {
-	return j.ToTime().UTC()
+func (self Json16DigitTime) UTC() time.Time {
+	return self.ToTime().UTC()
+}
+
+// time type to parse the returned time with nano format
+//
+// Example:
+//
+// "START_TIME":"2020-08-20T01:00:00+0000"
+type NanoTime time.Time
+
+func (self *NanoTime) UnmarshalJSON(b []byte) (err error) {
+	s := string(b)
+	t, err := time.Parse(time.RFC3339Nano, s[1:len(s)-1])
+	if err != nil {
+		t, err = time.Parse("2006-01-02T15:04:05.999999999Z0700", s[1:len(s)-1])
+	}
+	*self = NanoTime(t)
+	return
+}
+
+func (self NanoTime) MarshalJSON() ([]byte, error) {
+	// @afiune we might have problems changing the location :(
+	return self.ToTime().UTC().MarshalJSON()
+}
+
+// A few format functions for printing and manipulating the custom date
+func (self NanoTime) ToTime() time.Time {
+	return time.Time(self)
+}
+func (self NanoTime) Format(s string) string {
+	return self.ToTime().Format(s)
+}
+func (self NanoTime) UTC() time.Time {
+	return self.ToTime().UTC()
 }
 
 type VulnContainerAssessmentSummary struct {
@@ -328,5 +361,5 @@ type VulnContainerAssessmentSummary struct {
 	NumVulnerabilitiesSeverity3 string          `json:"num_vulnerabilities_severity_3"`
 	NumVulnerabilitiesSeverity4 string          `json:"num_vulnerabilities_severity_4"`
 	NumVulnerabilitiesSeverity5 string          `json:"num_vulnerabilities_severity_5"`
-	StartTime                   Json16DigitTime `json:"start_time"`
+	StartTime                   NanoTime        `json:"start_time"`
 }

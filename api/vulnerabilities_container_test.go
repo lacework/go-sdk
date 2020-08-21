@@ -336,7 +336,7 @@ func TestVulnerabilitiesListAssessments(t *testing.T) {
 			assert.Equal(t, "sha256:14a3076d0885a4ab36d52a6834583bc07b6530f7940bff378a67d33c2ee0002b", eval.ImageID)
 			assert.Equal(t, "2020-06-25T21:01:18Z", eval.ImageCreatedTime.UTC().Format(time.RFC3339))
 			assert.Equal(t, "2020-07-01T16:00:30Z", eval.ImageScanTime.ToTime().UTC().Format(time.RFC3339))
-			assert.Equal(t, "2020-07-01T16:00:51Z", eval.StartTime.UTC().Format(time.RFC3339))
+			assert.Equal(t, "2020-08-20T01:00:00Z", eval.StartTime.UTC().Format(time.RFC3339))
 			assert.Equal(t, "index.docker.io", eval.ImageRegistry)
 			assert.Equal(t, "techallylw/lacework-cli", eval.ImageRepo)
 			assert.Equal(t, "Success", eval.ImageScanStatus)
@@ -355,7 +355,7 @@ func TestVulnerabilitiesListAssessments(t *testing.T) {
 			eval = response.Assessments[1]
 			assert.Equal(t, "2020-04-17T23:13:43Z", eval.ImageCreatedTime.UTC().Format(time.RFC3339))
 			assert.Equal(t, "2020-04-17T23:14:07Z", eval.ImageScanTime.ToTime().UTC().Format(time.RFC3339))
-			assert.Equal(t, "2020-07-02T02:19:06Z", eval.StartTime.UTC().Format(time.RFC3339))
+			assert.Equal(t, "2020-08-20T01:00:00Z", eval.StartTime.UTC().Format(time.RFC3339))
 			assert.Equal(t, "index.docker.io", eval.ImageRegistry)
 			assert.Equal(t, "techallylw/lacework-cli", eval.ImageRepo)
 			assert.Equal(t, "Unsupported", eval.ImageScanStatus)
@@ -512,7 +512,7 @@ func vulContainerAssessmentsResponse(t int64) string {
       "NUM_VULNERABILITIES_SEVERITY_3": "0",
       "NUM_VULNERABILITIES_SEVERITY_4": "0",
       "NUM_VULNERABILITIES_SEVERITY_5": "0",
-      "START_TIME": 1593619251414
+      "START_TIME": "2020-08-20T01:00:00+0000"
     },
        {
       "EVAL_GUID": "6c590a95af27068ff7cec5f327044ce9",
@@ -538,7 +538,7 @@ func vulContainerAssessmentsResponse(t int64) string {
       "NUM_VULNERABILITIES_SEVERITY_3": null,
       "NUM_VULNERABILITIES_SEVERITY_4": null,
       "NUM_VULNERABILITIES_SEVERITY_5": null,
-      "START_TIME": 1593656346316
+      "START_TIME": "2020-08-20T01:00:00+0000"
     }
   ],
   "message": "SUCCESS",
