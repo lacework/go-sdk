@@ -1,3 +1,4 @@
+// +build !windows
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
@@ -20,11 +21,10 @@ package cmd
 
 import (
 	"math/rand"
-	"time"
+
+	"github.com/kyokomi/emoji/v2"
 )
 
-var emojis = []string{":beer:", ":pizza:", ":taco:"}
-
-func init() {
-	rand.Seed(time.Now().UTC().UnixNano())
+func randomEmoji() string {
+	return emoji.Sprint(emojis[rand.Intn(len(emojis))])
 }

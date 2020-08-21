@@ -20,11 +20,8 @@ package cmd
 
 import (
 	"math/rand"
-	"time"
 )
 
-var emojis = []string{":beer:", ":pizza:", ":taco:"}
-
-func init() {
-	rand.Seed(time.Now().UTC().UnixNano())
+func randomEmoji() string {
+	return emojis[rand.Intn(len(emojis))]
 }
