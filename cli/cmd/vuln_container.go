@@ -70,11 +70,11 @@ Arguments:
 	vulContainerListAssessmentsCmd = &cobra.Command{
 		Use:     "list-assessments",
 		Aliases: []string{"list", "ls"},
-		Short:   "list container vulnerability assessments from a time range (default last 7 days)",
-		Long: `List all images scanned by the Lacework container vulnerability assessments
-during the specified time range, by default this command displays the
-assessments from the last 7 days, but it is possible to specify a different
-time range.`,
+		Short:   "list container vulnerability assessments (default last 7 days)",
+		Long: `List all container vulnerability assessments for the last 7 days by default, or
+pass --start and --end to specify a custom time period. You can also pass --active
+to filter on active containers in your environment, as well as pass --fixable to
+filter on containers with vulnerabilities that have fixes available.`,
 		Args: cobra.NoArgs,
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
