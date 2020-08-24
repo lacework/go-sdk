@@ -58,11 +58,11 @@ func TestEventCommandList(t *testing.T) {
 		"EXITCODE is not the expected one")
 }
 
-func TestEventCommandListDays(t *testing.T) {
+func TestEventCommandList3Days(t *testing.T) {
 	// @afiune could we find a way to generate a consistent event? but if we do
 	// wouldn't the ML learn it and then become a known behavior? uhmmm
 	// for now we will just check that we have the headers :wink:
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--days", "1")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--days", "3")
 	assert.Contains(t, out.String(), "EVENT ID",
 		"STDOUT table headers changed, please check")
 	assert.Contains(t, out.String(), "TYPE",
@@ -94,7 +94,7 @@ func TestEventCommandListSeverityError(t *testing.T) {
 func TestEventCommandListTimeRange(t *testing.T) {
 	var (
 		now  = time.Now().UTC()
-		from = now.AddDate(0, 0, -1) // 1 days from now
+		from = now.AddDate(0, 0, -2) // 2 days from now
 	)
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--start", from.Format(time.RFC3339), "--end", now.Format(time.RFC3339))
@@ -112,5 +112,17 @@ func TestEventCommandListTimeRange(t *testing.T) {
 		err.String(),
 		"STDERR should be empty")
 	assert.Equal(t, 0, exitcode,
+		"EXITCODE is not the expected one")
+}
+
+func TestEventCommandOpenError(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "open", "123abc")
+	assert.Contains(t, err.String(),
+		"ERROR invalid event id 123abc. Event id should be a numeric value",
+		"STDERR the error message changed, update")
+	assert.Empty(t,
+		out.String(),
+		"STDOUT should be empty")
+	assert.Equal(t, 1, exitcode,
 		"EXITCODE is not the expected one")
 }
