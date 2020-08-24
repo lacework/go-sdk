@@ -340,7 +340,7 @@ For more information about supported distributions, visit:
 	return nil
 }
 
-func buildVulnerabilityReport(report *api.VulnContainerAssessment) string {
+func buildVulnerabilityReport(assessment *api.VulnContainerAssessment) string {
 	var (
 		t                 *tablewriter.Table
 		imageDetailsTable = &strings.Builder{}
@@ -348,7 +348,7 @@ func buildVulnerabilityReport(report *api.VulnContainerAssessment) string {
 		mainReport        = &strings.Builder{}
 	)
 
-	if report.TotalVulnerabilities == 0 {
+	if assessment.TotalVulnerabilities == 0 {
 		// @afiune this emoji's do not work on Windows
 		return fmt.Sprintf("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
 	}
@@ -357,7 +357,7 @@ func buildVulnerabilityReport(report *api.VulnContainerAssessment) string {
 	t.SetBorder(false)
 	t.SetColumnSeparator("")
 	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.AppendBulk(vulContainerImageToTable(report.Image))
+	t.AppendBulk(vulContainerImageToTable(assessment.Image))
 	t.Render()
 
 	t = tablewriter.NewWriter(vulCountsTable)
@@ -366,7 +366,7 @@ func buildVulnerabilityReport(report *api.VulnContainerAssessment) string {
 	t.SetHeader([]string{
 		"Severity", "Count", "Fixable",
 	})
-	t.AppendBulk(vulContainerReportToCountsTable(report))
+	t.AppendBulk(vulContainerAssessmentToCountsTable(assessment))
 	t.Render()
 
 	t = tablewriter.NewWriter(mainReport)
@@ -384,23 +384,23 @@ func buildVulnerabilityReport(report *api.VulnContainerAssessment) string {
 
 	if vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages {
 		if vulCmdState.Packages {
-			mainReport.WriteString(buildVulnerabilityPackageSummary(report))
+			mainReport.WriteString(buildVulnerabilityPackageSummary(assessment))
 			mainReport.WriteString("\n")
 		} else {
-			mainReport.WriteString(buildVulnerabilityReportDetails(report))
+			mainReport.WriteString(buildVulnerabilityReportDetails(assessment))
 			mainReport.WriteString("\n")
 			mainReport.WriteString("Try adding '--packages' to show a list of packages with CVE count.\n")
 		}
 	} else {
 		mainReport.WriteString(
-			"Try adding '--details' to increase details shown about the vulnerability report.\n",
+			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
 		)
 	}
 
 	return mainReport.String()
 }
 
-func buildVulnerabilityPackageSummary(report *api.VulnContainerAssessment) string {
+func buildVulnerabilityPackageSummary(assessment *api.VulnContainerAssessment) string {
 	var (
 		detailsTable = &strings.Builder{}
 		t            = tablewriter.NewWriter(detailsTable)
@@ -417,13 +417,13 @@ func buildVulnerabilityPackageSummary(report *api.VulnContainerAssessment) strin
 		"Current Version",
 		"Fix Version",
 	})
-	t.AppendBulk(vulContainerImagePackagesToTable(report.Image))
+	t.AppendBulk(vulContainerImagePackagesToTable(assessment.Image))
 	t.Render()
 
 	return detailsTable.String()
 }
 
-func buildVulnerabilityReportDetails(report *api.VulnContainerAssessment) string {
+func buildVulnerabilityReportDetails(assessment *api.VulnContainerAssessment) string {
 	var (
 		detailsTable = &strings.Builder{}
 		t            = tablewriter.NewWriter(detailsTable)
@@ -445,7 +445,7 @@ func buildVulnerabilityReportDetails(report *api.VulnContainerAssessment) string
 		"Fix Version",
 		"Introduced in Layer",
 	})
-	t.AppendBulk(vulContainerImageLayersToTable(report.Image))
+	t.AppendBulk(vulContainerImageLayersToTable(assessment.Image))
 	t.Render()
 
 	return detailsTable.String()
@@ -536,18 +536,18 @@ func vulContainerImageLayersToTable(image *api.VulnContainerImage) [][]string {
 	return out
 }
 
-func vulContainerReportToCountsTable(report *api.VulnContainerAssessment) [][]string {
+func vulContainerAssessmentToCountsTable(assessment *api.VulnContainerAssessment) [][]string {
 	return [][]string{
-		[]string{"Critical", fmt.Sprint(report.CriticalVulnerabilities),
-			fmt.Sprint(report.VulnFixableCount("critical"))},
-		[]string{"High", fmt.Sprint(report.HighVulnerabilities),
-			fmt.Sprint(report.VulnFixableCount("high"))},
-		[]string{"Medium", fmt.Sprint(report.MediumVulnerabilities),
-			fmt.Sprint(report.VulnFixableCount("medium"))},
-		[]string{"Low", fmt.Sprint(report.LowVulnerabilities),
-			fmt.Sprint(report.VulnFixableCount("low"))},
-		[]string{"Info", fmt.Sprint(report.InfoVulnerabilities),
-			fmt.Sprint(report.VulnFixableCount("info"))},
+		[]string{"Critical", fmt.Sprint(assessment.CriticalVulnerabilities),
+			fmt.Sprint(assessment.VulnFixableCount("critical"))},
+		[]string{"High", fmt.Sprint(assessment.HighVulnerabilities),
+			fmt.Sprint(assessment.VulnFixableCount("high"))},
+		[]string{"Medium", fmt.Sprint(assessment.MediumVulnerabilities),
+			fmt.Sprint(assessment.VulnFixableCount("medium"))},
+		[]string{"Low", fmt.Sprint(assessment.LowVulnerabilities),
+			fmt.Sprint(assessment.VulnFixableCount("low"))},
+		[]string{"Info", fmt.Sprint(assessment.InfoVulnerabilities),
+			fmt.Sprint(assessment.VulnFixableCount("info"))},
 	}
 }
 
@@ -599,7 +599,7 @@ func vulAssessmentsToTableReport(assessments []api.VulnContainerAssessmentSummar
 
 	if !vulCmdState.Active {
 		assessmentsTable.WriteString(
-			"\nTry adding '--active' to only show assessments of containers actively running with vulnerabilities in your environment.\n",
+			"\nTry adding '--active' to only show assessments of containers actively running with vulnerabilities.\n",
 		)
 	} else if !vulCmdState.Fixable {
 		assessmentsTable.WriteString(

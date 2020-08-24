@@ -250,7 +250,6 @@ func (counts *HostVulnSeverityCounts) VulnerabilityCounts() HostVulnCounts {
 	}
 
 	return hostCounts
-
 }
 
 type hostVulnSeverityCountsDetails struct {
