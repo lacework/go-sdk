@@ -103,29 +103,33 @@ filter on containers with vulnerabilities that have fixes available.`,
 			cli.Log.Debugw("assessments", "raw", response)
 
 			if len(response.Assessments) == 0 {
-				cli.OutputHuman("There are no assessments of container in your environment.\n")
+				cli.OutputHuman("There are no container assessments for this environment.\n")
 				return nil
 			}
+
+			// filter assessments by repositories, if the user doens't provide a filter
+			// the function returns all the assessments
+			assessments := filterAssessmentsByReporitories(response.Assessments)
 
 			// if the user wants to show only assessments of running containers
 			// order them by that field, number of running containers
 			if vulCmdState.Active {
-				// Sort the assessments from the response by running containers
-				sort.Slice(response.Assessments, func(i, j int) bool {
-					return stringToInt(response.Assessments[i].NdvContainers) > stringToInt(response.Assessments[j].NdvContainers)
+				// Sort the assessments by running containers
+				sort.Slice(assessments, func(i, j int) bool {
+					return stringToInt(assessments[i].NdvContainers) > stringToInt(assessments[j].NdvContainers)
 				})
 			} else {
-				// Sort the assessments from the response by date
-				sort.Slice(response.Assessments, func(i, j int) bool {
-					return response.Assessments[i].StartTime.ToTime().After(response.Assessments[j].StartTime.ToTime())
+				// Sort the assessments by date
+				sort.Slice(assessments, func(i, j int) bool {
+					return assessments[i].StartTime.ToTime().After(assessments[j].StartTime.ToTime())
 				})
 			}
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Assessments)
+				return cli.OutputJSON(assessments)
 			}
 
-			cli.OutputHuman(vulAssessmentsToTableReport(response.Assessments))
+			cli.OutputHuman(vulAssessmentsToTableReport(assessments))
 			return nil
 		},
 	}
@@ -174,6 +178,10 @@ func init() {
 	vulContainerListAssessmentsCmd.Flags().BoolVar(&vulCmdState.Active,
 		"active", false, "only show assessments of containers actively running with vulnerabilities in your environment",
 	)
+	// add repository flag to list-assessments command
+	vulContainerListAssessmentsCmd.Flags().StringSliceVarP(&vulCmdState.Repositories,
+		"repository", "r", []string{}, "filter assessments for specific repositories",
+	)
 
 	setPollFlag(
 		vulContainerScanCmd.Flags(),
@@ -203,6 +211,25 @@ func init() {
 		&vulCmdState.ImageID, "image_id", false,
 		"tread the provided sha256 hash as image id",
 	)
+}
+
+func filterAssessmentsByReporitories(assessments []api.VulnContainerAssessmentSummary) []api.VulnContainerAssessmentSummary {
+	if len(vulCmdState.Repositories) == 0 {
+		return assessments
+	}
+
+	filtered := []api.VulnContainerAssessmentSummary{}
+	for _, assessment := range assessments {
+		// for every repository that the user is filtering for
+		for _, repo := range vulCmdState.Repositories {
+			if strings.Contains(assessment.ImageRepo, repo) {
+				filtered = append(filtered, assessment)
+			}
+		}
+
+	}
+
+	return filtered
 }
 
 func requestOnDemandContainerVulnerabilityScan(args []string) error {
@@ -577,9 +604,8 @@ func vulAssessmentsToTableReport(assessments []api.VulnContainerAssessmentSummar
 
 	// if the user wants to show only assessments of containers running
 	// and we don't have any, show a friendly message
-	if vulCmdState.Active && len(rows) == 0 {
-		//@afiune add fixable flag
-		return "There are no active containers in your environment.\n"
+	if len(rows) == 0 {
+		return buildContainerAssessmentsError()
 	}
 
 	t.SetHeader([]string{
@@ -607,6 +633,30 @@ func vulAssessmentsToTableReport(assessments []api.VulnContainerAssessmentSummar
 		)
 	}
 	return assessmentsTable.String()
+}
+
+func buildContainerAssessmentsError() string {
+	msg := "There are no"
+	if vulCmdState.Active {
+		msg = fmt.Sprintf("%s active containers", msg)
+	} else {
+		msg = fmt.Sprintf("%s assessments", msg)
+	}
+
+	if len(vulCmdState.Repositories) != 0 {
+		msg = fmt.Sprintf("%s for the specified", msg)
+		if len(vulCmdState.Repositories) == 1 {
+			msg = fmt.Sprintf("%s repository", msg)
+		} else {
+			msg = fmt.Sprintf("%s repositories", msg)
+		}
+	}
+
+	if vulCmdState.Fixable {
+		msg = fmt.Sprintf("%s with fixable vulnerabilities", msg)
+	}
+
+	return fmt.Sprintf("%s in your environment.\n", msg)
 }
 
 func vulAssessmentsToTable(assessments []api.VulnContainerAssessmentSummary) [][]string {
