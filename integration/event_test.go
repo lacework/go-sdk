@@ -80,6 +80,17 @@ func TestEventCommandListDays(t *testing.T) {
 		"EXITCODE is not the expected one")
 }
 
+func TestEventCommandListSeverityError(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--severity", "foo")
+	assert.Contains(t, err.String(), "ERROR the severity foo is not valid, use one of critical, high, medium, low, info",
+		"STDERR the message to the user has changed, update please")
+	assert.Empty(t,
+		out.String(),
+		"STDOUT should be empty")
+	assert.Equal(t, 1, exitcode,
+		"EXITCODE is not the expected one")
+}
+
 func TestEventCommandListTimeRange(t *testing.T) {
 	var (
 		now  = time.Now().UTC()
