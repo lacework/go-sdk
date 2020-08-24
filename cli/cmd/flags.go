@@ -37,7 +37,7 @@ func parseStartAndEndTime(s, e string) (start time.Time, end time.Time, err erro
 	}
 
 	if e == "" {
-		err = errors.New("when providing a start time, end time should be provided (--end)")
+		end = time.Now()
 		return
 	}
 	end, err = time.Parse(time.RFC3339, e)
