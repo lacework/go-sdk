@@ -16,21 +16,15 @@
 // limitations under the License.
 //
 
-package api_test
+package cmd
 
 import (
-	"io/ioutil"
-	"strings"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
-	subject "github.com/lacework/go-sdk/api"
+	"math/rand"
+	"time"
 )
 
-func TestVersionMatchVERSIONfile(t *testing.T) {
-	expectedVersion, err := ioutil.ReadFile("../VERSION")
-	assert.Nil(t, err)
-	assert.Equalf(t, strings.TrimSuffix(string(expectedVersion), "\n"), subject.Version,
-		"api/version.go doesn't match with VERSION file; run scripts/version_updater.sh")
+var emojis = []string{":beer:", ":pizza:", ":taco:"}
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
 }

@@ -16,21 +16,35 @@
 // limitations under the License.
 //
 
-package api_test
+package cmd
 
 import (
-	"io/ioutil"
-	"strings"
-	"testing"
+	"time"
 
-	"github.com/stretchr/testify/assert"
-
-	subject "github.com/lacework/go-sdk/api"
+	"github.com/pkg/errors"
 )
 
-func TestVersionMatchVERSIONfile(t *testing.T) {
-	expectedVersion, err := ioutil.ReadFile("../VERSION")
-	assert.Nil(t, err)
-	assert.Equalf(t, strings.TrimSuffix(string(expectedVersion), "\n"), subject.Version,
-		"api/version.go doesn't match with VERSION file; run scripts/version_updater.sh")
+// parse the start and end time provided by the user
+func parseStartAndEndTime(s, e string) (start time.Time, end time.Time, err error) {
+	if s == "" {
+		err = errors.New("when providing an end time, start time should be provided (--start)")
+		return
+	}
+	start, err = time.Parse(time.RFC3339, s)
+	if err != nil {
+		err = errors.Wrap(err, "unable to parse start time")
+		return
+	}
+
+	if e == "" {
+		end = time.Now()
+		return
+	}
+	end, err = time.Parse(time.RFC3339, e)
+	if err != nil {
+		err = errors.Wrap(err, "unable to parse end time")
+		return
+	}
+
+	return
 }

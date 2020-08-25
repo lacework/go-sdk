@@ -1,3 +1,4 @@
+// +build !windows
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
@@ -16,21 +17,14 @@
 // limitations under the License.
 //
 
-package api_test
+package cmd
 
 import (
-	"io/ioutil"
-	"strings"
-	"testing"
+	"math/rand"
 
-	"github.com/stretchr/testify/assert"
-
-	subject "github.com/lacework/go-sdk/api"
+	"github.com/kyokomi/emoji/v2"
 )
 
-func TestVersionMatchVERSIONfile(t *testing.T) {
-	expectedVersion, err := ioutil.ReadFile("../VERSION")
-	assert.Nil(t, err)
-	assert.Equalf(t, strings.TrimSuffix(string(expectedVersion), "\n"), subject.Version,
-		"api/version.go doesn't match with VERSION file; run scripts/version_updater.sh")
+func randomEmoji() string {
+	return emoji.Sprint(emojis[rand.Intn(len(emojis))])
 }

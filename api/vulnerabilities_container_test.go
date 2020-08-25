@@ -56,7 +56,7 @@ func TestVulnerabilitiesScan(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Vulnerabilities.Scan(
+	response, err := c.Vulnerabilities.Container.Scan(
 		"gcr.io",
 		"example/repo",
 		"v0.1.0-dev",
@@ -93,7 +93,7 @@ func TestVulnerabilitiesScanLaceworkError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Vulnerabilities.Scan(
+	response, err := c.Vulnerabilities.Container.Scan(
 		"example.com",
 		"example/repo",
 		"v0.1.0-dev",
@@ -115,7 +115,7 @@ func TestVulnerabilitiesScan404Error(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Vulnerabilities.Scan(
+	response, err := c.Vulnerabilities.Container.Scan(
 		"example.com",
 		"example/repo",
 		"v0.1.0-dev",
@@ -144,7 +144,7 @@ func TestVulnerabilitiesScanStatus(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Vulnerabilities.ScanStatus(expectedRequestID)
+	response, err := c.Vulnerabilities.Container.ScanStatus(expectedRequestID)
 	assert.Nil(t, err)
 	if assert.NotNil(t, response) {
 		assert.Equal(t, expectedStatus, response.CheckStatus())
@@ -168,7 +168,7 @@ func TestVulnerabilitiesScanStatusError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Vulnerabilities.ScanStatus(expectedRequestID)
+	response, err := c.Vulnerabilities.Container.ScanStatus(expectedRequestID)
 	assert.Nil(t, err)
 	if assert.NotNil(t, response) {
 		assert.Equal(t, "there is a problem with the vulnerability scan: something happened", response.CheckStatus())
@@ -195,7 +195,7 @@ func TestVulnerabilitiesReportFromID(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Vulnerabilities.ReportFromID(imageID)
+	response, err := c.Vulnerabilities.Container.AssessmentFromImageID(imageID)
 	assert.Nil(t, err)
 	var zero int32 = 0
 	var uno int32 = 1
@@ -213,8 +213,8 @@ func TestVulnerabilitiesReportFromID(t *testing.T) {
 		assert.Equal(t, zero, response.Data.InfoVulnerabilities)
 		assert.Equal(t, uno, response.Data.FixableVulnerabilities)
 
-		assert.Equal(t, uno, response.Data.VulFixableCount("High"))
-		assert.Equal(t, zero, response.Data.VulFixableCount("Info"))
+		assert.Equal(t, uno, response.Data.VulnFixableCount("High"))
+		assert.Equal(t, zero, response.Data.VulnFixableCount("Info"))
 	}
 }
 
@@ -228,7 +228,7 @@ func TestVulnerabilitiesReportFromIDNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Vulnerabilities.ReportFromID("sha256:01f5882aae5ea55e0dc1b49330b0a83e6be386acd502e6c3ff4b031a227c0dac")
+	response, err := c.Vulnerabilities.Container.AssessmentFromImageID("sha256:01f5882aae5ea55e0dc1b49330b0a83e6be386acd502e6c3ff4b031a227c0dac")
 	if assert.NotNil(t, err) {
 		assert.Contains(t, err.Error(), "404 page not found")
 	}
@@ -258,7 +258,7 @@ func TestVulnerabilitiesReportFromDigest(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Vulnerabilities.ReportFromDigest(digestID)
+	response, err := c.Vulnerabilities.Container.AssessmentFromImageDigest(digestID)
 	assert.Nil(t, err)
 	var zero int32 = 0
 	var uno int32 = 1
@@ -276,17 +276,17 @@ func TestVulnerabilitiesReportFromDigest(t *testing.T) {
 		assert.Equal(t, zero, response.Data.InfoVulnerabilities)
 		assert.Equal(t, uno, response.Data.FixableVulnerabilities)
 
-		assert.Equal(t, uno, response.Data.VulFixableCount("High"))
-		assert.Equal(t, zero, response.Data.VulFixableCount("Info"))
+		assert.Equal(t, uno, response.Data.VulnFixableCount("High"))
+		assert.Equal(t, zero, response.Data.VulnFixableCount("Info"))
 	}
 }
 
-func TestVulnerabilitiesListEvaluations(t *testing.T) {
+func TestVulnerabilitiesListAssessments(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		"external/vulnerabilities/container/GetEvaluationsForDateRange",
+		"external/vulnerabilities/container/GetAssessmentsForDateRange",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "ListEvaluations or ListEvaluationsDateRange should be a GET method")
+			assert.Equal(t, "GET", r.Method, "ListAssessments or ListAssessmentsDateRange should be a GET method")
 
 			start, ok := r.URL.Query()["START_TIME"]
 			if assert.True(t, ok,
@@ -311,7 +311,7 @@ func TestVulnerabilitiesListEvaluations(t *testing.T) {
 						startTime.AddDate(0, 0, 7).Add(-(time.Minute * time.Duration(2))).Equal(endTime),
 						"the data range is not 7 days apart",
 					)
-					fmt.Fprintf(w, vulContainerEvaluationsResponse(startTime.UnixNano()))
+					fmt.Fprintf(w, vulContainerAssessmentsResponse(startTime.UnixNano()))
 				}
 			}
 		},
@@ -324,11 +324,11 @@ func TestVulnerabilitiesListEvaluations(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Vulnerabilities.ListEvaluations()
+	response, err := c.Vulnerabilities.Container.ListAssessments()
 	assert.Nil(t, err)
 	if assert.NotNil(t, response) {
-		if assert.Equal(t, 2, len(response.Evaluations)) {
-			eval := response.Evaluations[0]
+		if assert.Equal(t, 2, len(response.Assessments)) {
+			eval := response.Assessments[0]
 			assert.Equal(t, "PASSED", eval.EvalStatus)
 			assert.Equal(t, "EvalBySQL", eval.EvalType)
 			assert.Equal(t, "492c2f55cf3073e3978138e599bd2074", eval.EvalGuid)
@@ -336,7 +336,7 @@ func TestVulnerabilitiesListEvaluations(t *testing.T) {
 			assert.Equal(t, "sha256:14a3076d0885a4ab36d52a6834583bc07b6530f7940bff378a67d33c2ee0002b", eval.ImageID)
 			assert.Equal(t, "2020-06-25T21:01:18Z", eval.ImageCreatedTime.UTC().Format(time.RFC3339))
 			assert.Equal(t, "2020-07-01T16:00:30Z", eval.ImageScanTime.ToTime().UTC().Format(time.RFC3339))
-			assert.Equal(t, "2020-07-01T16:00:51Z", eval.StartTime.UTC().Format(time.RFC3339))
+			assert.Equal(t, "2020-08-20T01:00:00Z", eval.StartTime.UTC().Format(time.RFC3339))
 			assert.Equal(t, "index.docker.io", eval.ImageRegistry)
 			assert.Equal(t, "techallylw/lacework-cli", eval.ImageRepo)
 			assert.Equal(t, "Success", eval.ImageScanStatus)
@@ -352,10 +352,10 @@ func TestVulnerabilitiesListEvaluations(t *testing.T) {
 			assert.Equal(t, "0", eval.NumVulnerabilitiesSeverity4)
 			assert.Equal(t, "0", eval.NumVulnerabilitiesSeverity5)
 
-			eval = response.Evaluations[1]
+			eval = response.Assessments[1]
 			assert.Equal(t, "2020-04-17T23:13:43Z", eval.ImageCreatedTime.UTC().Format(time.RFC3339))
 			assert.Equal(t, "2020-04-17T23:14:07Z", eval.ImageScanTime.ToTime().UTC().Format(time.RFC3339))
-			assert.Equal(t, "2020-07-02T02:19:06Z", eval.StartTime.UTC().Format(time.RFC3339))
+			assert.Equal(t, "2020-08-20T01:00:00Z", eval.StartTime.UTC().Format(time.RFC3339))
 			assert.Equal(t, "index.docker.io", eval.ImageRegistry)
 			assert.Equal(t, "techallylw/lacework-cli", eval.ImageRepo)
 			assert.Equal(t, "Unsupported", eval.ImageScanStatus)
@@ -372,7 +372,7 @@ func TestVulnerabilitiesListEvaluations(t *testing.T) {
 	}
 }
 
-func TestVulnerabilitiesListEvaluationsDateRangeError(t *testing.T) {
+func TestVulnerabilitiesListAssessmentsDateRangeError(t *testing.T) {
 	var (
 		now    = time.Now().UTC()
 		from   = now.AddDate(0, 0, -7) // 7 days from now
@@ -383,7 +383,7 @@ func TestVulnerabilitiesListEvaluationsDateRangeError(t *testing.T) {
 	// a tipical user input error could be that they provide the
 	// date range the other way around, from should be the start
 	// time, and now should be the end time
-	response, err := c.Vulnerabilities.ListEvaluationsDateRange(now, from)
+	response, err := c.Vulnerabilities.Container.ListAssessmentsDateRange(now, from)
 	assert.Empty(t, response)
 	if assert.NotNil(t, err) {
 		assert.Equal(t,
@@ -484,7 +484,7 @@ func vulScanErrorJsonResponse(message string) string {
 	`
 }
 
-func vulContainerEvaluationsResponse(t int64) string {
+func vulContainerAssessmentsResponse(t int64) string {
 	return `
 {
   "data": [
@@ -512,7 +512,7 @@ func vulContainerEvaluationsResponse(t int64) string {
       "NUM_VULNERABILITIES_SEVERITY_3": "0",
       "NUM_VULNERABILITIES_SEVERITY_4": "0",
       "NUM_VULNERABILITIES_SEVERITY_5": "0",
-      "START_TIME": 1593619251414
+      "START_TIME": "2020-08-20T01:00:00+0000"
     },
        {
       "EVAL_GUID": "6c590a95af27068ff7cec5f327044ce9",
@@ -538,7 +538,7 @@ func vulContainerEvaluationsResponse(t int64) string {
       "NUM_VULNERABILITIES_SEVERITY_3": null,
       "NUM_VULNERABILITIES_SEVERITY_4": null,
       "NUM_VULNERABILITIES_SEVERITY_5": null,
-      "START_TIME": 1593656346316
+      "START_TIME": "2020-08-20T01:00:00+0000"
     }
   ],
   "message": "SUCCESS",

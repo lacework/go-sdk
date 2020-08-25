@@ -25,17 +25,22 @@ import (
 )
 
 const (
-	apiIntegrations       = "external/integrations"
-	apiIntegrationsByType = "external/integrations/type/%s"
-	apiIntegrationByGUID  = "external/integrations/%s"
-	apiIntegrationSchema  = "external/integrations/schema/%s"
-	apiTokens             = "access/tokens"
+	apiIntegrations        = "external/integrations"
+	apiIntegrationsByType  = "external/integrations/type/%s"
+	apiIntegrationFromGUID = "external/integrations/%s"
+	apiIntegrationSchema   = "external/integrations/schema/%s"
+	apiTokens              = "access/tokens"
 
-	apiVulnerabilitiesScan             = "external/vulnerabilities/container/repository/images/scan"
-	apiVulnerabilitiesScanStatus       = "external/vulnerabilities/container/reqId/%s"
-	apiVulnerabilitiesReportFromID     = "external/vulnerabilities/container/imageId/%s"
-	apiVulnerabilitiesReportFromDigest = "external/vulnerabilities/container/imageDigest/%s"
-	apiVulEvaluationsForDateRange      = "external/vulnerabilities/container/GetEvaluationsForDateRange"
+	apiVulnerabilitiesContainerScan             = "external/vulnerabilities/container/repository/images/scan"
+	apiVulnerabilitiesContainerScanStatus       = "external/vulnerabilities/container/reqId/%s"
+	apiVulnerabilitiesAssessmentFromImageID     = "external/vulnerabilities/container/imageId/%s"
+	apiVulnerabilitiesAssessmentFromImageDigest = "external/vulnerabilities/container/imageDigest/%s"
+	apiVulnContainerAssessmentsForDateRange     = "external/vulnerabilities/container/GetAssessmentsForDateRange"
+
+	apiVulnerabilitiesScanPkgManifest             = "external/vulnerabilities/scan"
+	apiVulnerabilitiesHostListCves                = "external/vulnerabilities/host"
+	apiVulnerabilitiesListHostsWithCveID          = "external/vulnerabilities/host/cveId/%s"
+	apiVulnerabilitiesHostAssessmentFromMachineID = "external/vulnerabilities/host/machineId/%s"
 
 	apiComplianceAwsLatestReport        = "external/compliance/aws/GetLatestComplianceReport?AWS_ACCOUNT_ID=%s"
 	apiComplianceGcpLatestReport        = "external/compliance/gcp/GetLatestComplianceReport?GCP_ORG_ID=%s&GCP_PROJ_ID=%s"

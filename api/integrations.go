@@ -144,7 +144,7 @@ func (svc *IntegrationsService) GetSchema(iType integrationType) (
 }
 
 func (svc *IntegrationsService) get(guid string, response interface{}) error {
-	apiPath := fmt.Sprintf(apiIntegrationByGUID, guid)
+	apiPath := fmt.Sprintf(apiIntegrationFromGUID, guid)
 	return svc.client.RequestDecoder("GET", apiPath, nil, response)
 }
 
@@ -160,7 +160,7 @@ func (svc *IntegrationsService) create(data interface{}, response interface{}) e
 
 func (svc *IntegrationsService) update(guid string, data interface{}, response interface{}) error {
 	var (
-		apiPath   = fmt.Sprintf(apiIntegrationByGUID, guid)
+		apiPath   = fmt.Sprintf(apiIntegrationFromGUID, guid)
 		body, err = jsonReader(data)
 	)
 	if err != nil {
@@ -171,7 +171,7 @@ func (svc *IntegrationsService) update(guid string, data interface{}, response i
 }
 
 func (svc *IntegrationsService) delete(guid string, response interface{}) error {
-	apiPath := fmt.Sprintf(apiIntegrationByGUID, guid)
+	apiPath := fmt.Sprintf(apiIntegrationFromGUID, guid)
 	return svc.client.RequestDecoder("DELETE", apiPath, nil, response)
 }
 
