@@ -294,8 +294,8 @@ func buildIntDetailsTable(integrations []api.RawIntegration) string {
 	if len(integrations) != 0 {
 		integration := integrations[0]
 		t.AppendBulk(reflectIntegrationData(integration))
-		t.Append([]string{"UPDATE AT", integration.CreatedOrUpdatedTime})
-		t.Append([]string{"UPDATE BY", integration.CreatedOrUpdatedBy})
+		t.Append([]string{"UPDATED AT", integration.CreatedOrUpdatedTime})
+		t.Append([]string{"UPDATED BY", integration.CreatedOrUpdatedBy})
 		t.AppendBulk(buildIntegrationState(integration.State))
 	}
 	t.Render()

@@ -58,6 +58,39 @@ func TestEventCommandList(t *testing.T) {
 		"EXITCODE is not the expected one")
 }
 
+func TestEventCommandListDays(t *testing.T) {
+	// @afiune could we find a way to generate a consistent event? but if we do
+	// wouldn't the ML learn it and then become a known behavior? uhmmm
+	// for now we will just check that we have the headers :wink:
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--days", "1")
+	assert.Contains(t, out.String(), "EVENT ID",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "TYPE",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "SEVERITY",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "START TIME",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "END TIME",
+		"STDOUT table headers changed, please check")
+	assert.Empty(t,
+		err.String(),
+		"STDERR should be empty")
+	assert.Equal(t, 0, exitcode,
+		"EXITCODE is not the expected one")
+}
+
+func TestEventCommandListSeverityError(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--severity", "foo")
+	assert.Contains(t, err.String(), "ERROR the severity foo is not valid, use one of critical, high, medium, low, info",
+		"STDERR the message to the user has changed, update please")
+	assert.Empty(t,
+		out.String(),
+		"STDOUT should be empty")
+	assert.Equal(t, 1, exitcode,
+		"EXITCODE is not the expected one")
+}
+
 func TestEventCommandListTimeRange(t *testing.T) {
 	var (
 		now  = time.Now().UTC()

@@ -39,6 +39,12 @@ var (
 
 		// end time for listing events
 		End string
+
+		// list events from an specific number of days
+		Days int
+
+		// list events with a specific severity
+		Severity string
 	}{}
 
 	// easily add or remove borders to all event details tables
@@ -55,11 +61,17 @@ var (
 	// eventListCmd represents the list sub-command inside the event command
 	eventListCmd = &cobra.Command{
 		Use:   "list",
-		Short: "list all events from a date range (default last 7 days)",
-		Long: `
-List all events from a time range, by default this command displays the
-events from the last 7 days, but it is possible to specify a different
-time range.`,
+		Short: "list all events (default last 7 days)",
+		Long: `List all events for the last 7 days by default, or pass --start and --end to
+specify a custom time period. You can also pass --serverity to filter by a
+severity threshold.
+
+Additionally, pass --days to list events for a specified number of days.
+
+For example, to list all events from the last day with severity medium and above
+(Critical, High and Medium) run:
+
+  $ lacework events list --severity medium --days 1`,
 		Args: cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 
@@ -67,6 +79,15 @@ time range.`,
 				response api.EventsResponse
 				err      error
 			)
+
+			if eventsCmdState.Severity != "" {
+				if !array.ContainsStr(api.ValidEventSeverities, eventsCmdState.Severity) {
+					return errors.Errorf("the severity %s is not valid, use one of %s",
+						eventsCmdState.Severity, strings.Join(api.ValidEventSeverities, ", "),
+					)
+				}
+			}
+
 			if eventsCmdState.Start != "" || eventsCmdState.End != "" {
 				start, end, errT := parseStartAndEndTime(eventsCmdState.Start, eventsCmdState.End)
 				if errT != nil {
@@ -75,6 +96,14 @@ time range.`,
 
 				cli.Log.Infow("requesting list of events from custom time range",
 					"start_time", start, "end_time", end,
+				)
+				response, err = cli.LwApi.Events.ListDateRange(start, end)
+			} else if eventsCmdState.Days != 0 {
+				end := time.Now()
+				start := end.Add(time.Hour * 24 * time.Duration(eventsCmdState.Days) * -1)
+
+				cli.Log.Infow("requesting list of events from specific days",
+					"days", eventsCmdState.Days, "start_time", start, "end_time", end,
 				)
 				response, err = cli.LwApi.Events.ListDateRange(start, end)
 			} else {
@@ -87,16 +116,30 @@ time range.`,
 			}
 
 			cli.Log.Debugw("events", "raw", response)
-			// Sort the events from the response by severity
-			sort.Slice(response.Events, func(i, j int) bool {
-				return response.Events[i].Severity < response.Events[j].Severity
+
+			// filter events by severity, if the user didn't specify a severity
+			// the funtion will return it back without modifications
+			events := filterEventsWithSeverity(response.Events)
+
+			// Sort the events by severity
+			sort.Slice(events, func(i, j int) bool {
+				return events[i].Severity < events[j].Severity
 			})
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Events)
+				return cli.OutputJSON(events)
 			}
 
-			cli.OutputHuman(eventsToTableReport(response.Events))
+			if len(events) == 0 {
+				if eventsCmdState.Severity != "" {
+					cli.OutputHuman("There are no events with the specified severity.\n")
+				} else {
+					cli.OutputHuman("There are no events in your account in the specified time range.\n")
+				}
+				return nil
+			}
+
+			cli.OutputHuman(eventsToTableReport(events))
 			return nil
 		},
 	}
@@ -151,6 +194,18 @@ func init() {
 	// add end flag to events list command
 	eventListCmd.Flags().StringVar(&eventsCmdState.End,
 		"end", "", "end of the time range in UTC (format: yyyy-MM-ddTHH:mm:ssZ)",
+	)
+	// add days flag to events list command
+	eventListCmd.Flags().IntVar(&eventsCmdState.Days,
+		"days", 0, "list events for specified number of days (max: 7 days)",
+	)
+	// add severity flag to events list command
+	eventListCmd.Flags().StringVar(&eventsCmdState.Severity,
+		"severity", "",
+		fmt.Sprintf(
+			"filter events by severity threshold (%s)",
+			strings.Join(api.ValidEventSeverities, ", "),
+		),
 	)
 
 	eventCmd.AddCommand(eventShowCmd)
@@ -898,4 +953,41 @@ func eventMachineEntitiesTable(machines []api.EventMachineEntity) string {
 	t.Render()
 
 	return r.String()
+}
+
+func filterEventsWithSeverity(events []api.Event) []api.Event {
+	if eventsCmdState.Severity == "" {
+		return events
+	}
+
+	sevThreshold, sevString := eventSeverityToProperTypes(eventsCmdState.Severity)
+	cli.Log.Debugw("filtering events", "threshold", sevThreshold, "severity", sevString)
+	eFiltered := []api.Event{}
+	for _, event := range events {
+		eventSeverity, _ := eventSeverityToProperTypes(event.Severity)
+		if eventSeverity <= sevThreshold {
+			eFiltered = append(eFiltered, event)
+		}
+	}
+
+	cli.Log.Debugw("filtered events", "events", eFiltered)
+
+	return eFiltered
+}
+
+func eventSeverityToProperTypes(severity string) (int, string) {
+	switch strings.ToLower(severity) {
+	case "1", "critical":
+		return 1, "Critical"
+	case "2", "high":
+		return 2, "High"
+	case "3", "medium":
+		return 3, "Medium"
+	case "4", "low":
+		return 4, "Low"
+	case "5", "info":
+		return 5, "Info"
+	default:
+		return 6, "Unknown"
+	}
 }
