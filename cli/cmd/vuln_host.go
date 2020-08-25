@@ -72,10 +72,11 @@ Simple usage:
 	vulHostListCvesCmd = &cobra.Command{
 		Use:   "list-cves",
 		Args:  cobra.NoArgs,
-		Short: "list the CVEs found in the hosts of your environment",
-		Long: `List the CVEs found in the hosts of your environment.
+		Short: "list the CVEs found in the hosts in your environment",
+		Long: `List the CVEs found in the hosts in your environment.
 
-To only show fixable vulnerabilities of packages actively running in your environment:
+Filter results to only show vulnerabilities actively running in your environment
+with fixes:
 
     $ lacework vulnerability host list-cves --active --fixable`,
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -110,8 +111,8 @@ To only show fixable vulnerabilities of packages actively running in your enviro
 	vulHostListHostsCmd = &cobra.Command{
 		Use:   "list-hosts <cve_id>",
 		Args:  cobra.ExactArgs(1),
-		Short: "list the hosts with a common CVE id in your environment",
-		Long: `List the hosts with a common CVE id in your environment.
+		Short: "list the hosts that contain a specified CVE id in your environment",
+		Long: `List the hosts that contain a specified CVE id in your environment.
 
 To list the CVEs found in the hosts of your environment run:
 

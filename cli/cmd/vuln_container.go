@@ -72,7 +72,7 @@ Arguments:
 		Aliases: []string{"list", "ls"},
 		Short:   "list container vulnerability assessments (default last 7 days)",
 		Long: `List all container vulnerability assessments for the last 7 days by default, or
-pass --start and --end to specify a custom time period. You can also pass --active
+pass --start and --end to specify a custom time range. You can also pass --active
 to filter on active containers in your environment, as well as pass --fixable to
 filter on containers with vulnerabilities that have fixes available.`,
 		Args: cobra.NoArgs,
@@ -140,18 +140,18 @@ filter on containers with vulnerabilities that have fixes available.`,
 		Use:     "show-assessment <sha256:hash>",
 		Aliases: []string{"show"},
 		Short:   "show results of a container vulnerability assessment",
-		Long: `Review the results from a vulnerability assessment of a container image.
+		Long: `Show the results from a vulnerability assessment of a specified container.
 
 Arguments:
   <sha256:hash> a sha256 hash of a container image (format: sha256:1ee...1d3b)
 
-By default, this command treads the provided sha256 as image digest, when trying to
-lookup an assessment by its image id, provided the flag '--image_id'.
+By default, this command expects a sha256 image digest or tag. To lookup an
+assessment by its image id, use the flag '--image_id' followed by the sha256
+image id.
 
 To request an on-demand vulnerability scan:
 
-    $ lacework vulnerability container scan <registry> <repository> <tag|digest>
-`,
+    $ lacework vulnerability container scan <registry> <repository> <tag|digest>`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			return showContainerAssessmentsWithSha256(args[0])
