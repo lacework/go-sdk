@@ -20,7 +20,10 @@ package cmd
 
 import (
 	"fmt"
+	"os/exec"
+	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -175,6 +178,46 @@ For example, to list all events from the last day with severity medium and above
 				cli.OutputHuman("\n")
 				cli.OutputHuman(entityTable)
 			}
+
+			cli.OutputHuman(
+				"\nFor further investigation of this event navigate to %s\n",
+				eventLinkBuilder(args[0]),
+			)
+			return nil
+		},
+	}
+
+	// eventOpenCmd represents the open sub-command inside the event command
+	eventOpenCmd = &cobra.Command{
+		Use:   "open <event_id>",
+		Short: "open a specified event in a web browser",
+		Long:  "Open a specified event in a web browser.",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			// Event IDs should be only numeric values
+			if _, err := strconv.Atoi(args[0]); err != nil {
+				return errors.Errorf("invalid event id %s. Event id should be a numeric value", args[0])
+			}
+
+			var (
+				err error
+				url = eventLinkBuilder(args[0])
+			)
+
+			switch runtime.GOOS {
+			case "linux":
+				err = exec.Command("xdg-open", url).Start()
+			case "windows":
+				err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+			case "darwin":
+				err = exec.Command("open", url).Start()
+			default:
+				err = fmt.Errorf("unsupported platform\n\nNavigate to %s", url)
+			}
+			if err != nil {
+				return errors.Wrap(err, "unable to open web browser")
+			}
+
 			return nil
 		},
 	}
@@ -209,6 +252,13 @@ func init() {
 	)
 
 	eventCmd.AddCommand(eventShowCmd)
+	eventCmd.AddCommand(eventOpenCmd)
+}
+
+// Generates a URL similar to:
+//   => https://account.lacework.net/ui/investigate/recents/EventDossier-123
+func eventLinkBuilder(id string) string {
+	return fmt.Sprintf("https://%s.lacework.net/ui/investigation/recents/EventDossier-%s", cli.Account, id)
 }
 
 func eventsToTableReport(events []api.Event) string {
