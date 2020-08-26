@@ -111,13 +111,9 @@ workflows:
       - integration-test-linux:
           requires:
             - build-cli
-      - integration-test-windows:
-          requires:
-            - build-cli
       - trigger-release:
           requires:
             - unit-test
-            - integration-test-windows
             - integration-test-linux
           filters:
             branches:
