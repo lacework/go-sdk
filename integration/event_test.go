@@ -94,7 +94,7 @@ func TestEventCommandListSeverityError(t *testing.T) {
 func TestEventCommandListTimeRange(t *testing.T) {
 	var (
 		now  = time.Now().UTC()
-		from = now.AddDate(0, 0, -2) // 2 days from now
+		from = now.AddDate(0, 0, -4) // 4 days from now
 	)
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--start", from.Format(time.RFC3339), "--end", now.Format(time.RFC3339))

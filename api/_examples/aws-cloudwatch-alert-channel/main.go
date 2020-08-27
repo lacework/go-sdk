@@ -15,8 +15,7 @@ func main() {
 
 	alert := api.NewAwsCloudWatchAlertChannel("aws-cloudwatch-alert-from-golang",
 		api.AwsCloudWatchData{
-			EventBusArn:      "arn:aws:events:us-west-2:1234567890:event-bus/default",
-			MinAlertSeverity: 1,
+			EventBusArn: "arn:aws:events:us-west-2:1234567890:event-bus/default",
 		},
 	)
 
