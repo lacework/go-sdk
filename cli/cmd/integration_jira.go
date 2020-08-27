@@ -76,17 +76,41 @@ func createJiraCloudAlertChannelIntegration() error {
 		return err
 	}
 
-	jira := api.NewJiraCloudAlertChannel(answers.Name,
-		api.JiraAlertChannelData{
-			JiraUrl:   answers.Url,
-			IssueType: answers.Issue,
-			ProjectID: answers.Project,
-			Username:  answers.Username,
-			ApiToken:  answers.Token,
-		},
-	)
+	jira := api.JiraAlertChannelData{
+		JiraUrl:   answers.Url,
+		IssueType: answers.Issue,
+		ProjectID: answers.Project,
+		Username:  answers.Username,
+		ApiToken:  answers.Token,
+	}
 
-	return createJiraAlertChannelIntegration(jira)
+	// ask the user if they would like to configure a Custom Template
+	custom := false
+	err = survey.AskOne(&survey.Confirm{
+		Message: "Configure a Custom Template File?",
+	}, &custom)
+
+	if err != nil {
+		return err
+	}
+
+	if custom {
+		var content string
+
+		err = survey.AskOne(&survey.Editor{
+			Message:  "Provide the Custom Template File in JSON format",
+			FileName: "*.json",
+		}, &content)
+
+		if err != nil {
+			return err
+		}
+
+		jira.EncodeCustomTemplateFile(content)
+	}
+
+	jiraAlert := api.NewJiraCloudAlertChannel(answers.Name, jira)
+	return createJiraAlertChannelIntegration(jiraAlert)
 }
 
 func createJiraServerAlertChannelIntegration() error {
@@ -131,16 +155,43 @@ func createJiraServerAlertChannelIntegration() error {
 		return err
 	}
 
-	jira := api.NewJiraServerAlertChannel(answers.Name,
-		api.JiraAlertChannelData{
-			JiraUrl:   answers.Url,
-			IssueType: answers.Issue,
-			ProjectID: answers.Project,
-			Username:  answers.Username,
-			Password:  answers.Password,
-		},
-	)
-	return createJiraAlertChannelIntegration(jira)
+	jira := api.JiraAlertChannelData{
+		JiraUrl:   answers.Url,
+		IssueType: answers.Issue,
+		ProjectID: answers.Project,
+		Username:  answers.Username,
+		Password:  answers.Password,
+	}
+
+	// ask the user if they would like to configure a Custom Template
+	custom := false
+	err = survey.AskOne(&survey.Confirm{
+		Message: "Configure a Custom Template File?",
+	}, &custom)
+
+	if err != nil {
+		return err
+	}
+
+	if custom {
+		var content string
+
+		err = survey.AskOne(&survey.Editor{
+			Message:  "Provide the Custom Template File in JSON format",
+			FileName: "*.json",
+		}, &content)
+
+		if err != nil {
+			return err
+		}
+
+		if len(content) != 0 {
+			jira.EncodeCustomTemplateFile(content)
+		}
+	}
+
+	jiraAlert := api.NewJiraServerAlertChannel(answers.Name, jira)
+	return createJiraAlertChannelIntegration(jiraAlert)
 }
 
 func createJiraAlertChannelIntegration(jira api.JiraAlertChannel) error {
