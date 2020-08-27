@@ -290,6 +290,7 @@ func buildIntDetailsTable(integrations []api.RawIntegration) string {
 	)
 
 	t.SetBorder(false)
+	t.SetAutoWrapText(false)
 	t.SetAlignment(tablewriter.ALIGN_LEFT)
 	if len(integrations) != 0 {
 		integration := integrations[0]
@@ -463,6 +464,15 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			)
 			break
 		}
+
+		templateString, err := iData.DecodeCustomTemplateFile()
+		if err != nil {
+			cli.Log.Debugw("unable to decode custom template file",
+				"integration_type", raw.Type,
+				"raw_data", iData.CustomTemplateFile,
+				"error", err,
+			)
+		}
 		out := [][]string{
 			[]string{"JIRA INTEGRATION TYPE", iData.JiraType},
 			[]string{"JIRA URL", iData.JiraUrl},
@@ -470,6 +480,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			[]string{"USERNAME", iData.Username},
 			[]string{"ISSUE TYPE", iData.IssueType},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+			[]string{"CUSTOM TEMPLATE FILE", templateString},
 		}
 
 		return out
