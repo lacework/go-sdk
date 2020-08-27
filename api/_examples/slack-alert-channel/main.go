@@ -15,8 +15,7 @@ func main() {
 
 	mySlackChannel := api.NewSlackAlertChannel("slack-alert-from-golang",
 		api.SlackChannelData{
-			SlackUrl:         "https://hooks.slack.com/services/ABCD/12345/abcd1234",
-			MinAlertSeverity: 3,
+			SlackUrl: "https://hooks.slack.com/services/ABCD/12345/abcd1234",
 		},
 	)
 
