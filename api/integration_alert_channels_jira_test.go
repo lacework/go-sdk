@@ -52,6 +52,39 @@ func TestIntegrationsNewJiraAlertChannel(t *testing.T) {
 	assert.Equal(t, api.JiraCloudAlertType, subject.Data.JiraType)
 }
 
+func TestIntegrationsNewJiraAlertChannelWithCustomTemplateFile(t *testing.T) {
+	templateJSON := `{
+      "fields": {
+          "labels": [
+              "myLabel"
+          ],
+          "priority": 
+          {
+              "id": "1"
+          }
+      }
+  }`
+	jira := api.JiraAlertChannelData{
+		JiraType:      api.JiraCloudAlertType,
+		JiraUrl:       "mycompany.atlassian.net",
+		IssueType:     "Bug",
+		ProjectID:     "TEST",
+		Username:      "my@username.com",
+		ApiToken:      "my-api-token",
+		IssueGrouping: "Resources",
+	}
+	jira.EncodeCustomTemplateFile(templateJSON)
+
+	subject := api.NewJiraAlertChannel("integration_name", jira)
+	assert.Equal(t, api.JiraIntegration.String(), subject.Type)
+	assert.Equal(t, api.JiraCloudAlertType, subject.Data.JiraType)
+	assert.Contains(t,
+		subject.Data.CustomTemplateFile,
+		"data:application/json;name=i.json;base64,",
+		"check the custom_template_file encoder",
+	)
+}
+
 func TestIntegrationsNewJiraCloudAlertChannel(t *testing.T) {
 	subject := api.NewJiraCloudAlertChannel("integration_name",
 		api.JiraAlertChannelData{
