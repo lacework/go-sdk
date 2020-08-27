@@ -83,6 +83,17 @@ func TestIntegrationsNewJiraAlertChannelWithCustomTemplateFile(t *testing.T) {
 		"data:application/json;name=i.json;base64,",
 		"check the custom_template_file encoder",
 	)
+	templateString, err := subject.Data.DecodeCustomTemplateFile()
+	assert.Nil(t, err)
+	assert.Equal(t, templateJSON, templateString)
+
+	// When there is no custom template file, this function should
+	// return an empty string to match the pattern
+	subject.Data.CustomTemplateFile = ""
+	templateString, err = subject.Data.DecodeCustomTemplateFile()
+	assert.Nil(t, err)
+	assert.Equal(t, "", templateString)
+
 }
 
 func TestIntegrationsNewJiraCloudAlertChannel(t *testing.T) {
