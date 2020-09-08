@@ -54,7 +54,7 @@ To find out which AWS accounts are connected to you Lacework account, use the fo
 
   $ lacework integrations list --type AWS_CFG
 
-Then, choose one integration, copy the GUID and visialize its details using the command:
+Then, choose one integration, copy the GUID and visualize its details using the command:
 
   $ lacework integration show <int_guid>
 
