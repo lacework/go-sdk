@@ -195,16 +195,16 @@ func promptCreateIntegration() error {
 				"AWS CloudWatch Alert Channel",
 				"Jira Cloud Alert Channel",
 				"Jira Server Alert Channel",
-				"Docker Hub",
+				"Docker Hub Registry",
+				"Docker V2 Registry",
+				"Amazon Container Registry (ECR)",
+				"Google Container Registry (GCR)",
 				"AWS Config",
 				"AWS CloudTrail",
 				"GCP Config",
 				"GCP Audit Log",
 				"Azure Config",
 				"Azure Activity Log",
-				//"Docker V2 Registry",
-				//"Amazon Container Registry",
-				//"Google Container Registry",
 				//"Snowflake Data Share",
 			},
 		}
@@ -225,8 +225,14 @@ func promptCreateIntegration() error {
 		return createJiraCloudAlertChannelIntegration()
 	case "Jira Server Alert Channel":
 		return createJiraServerAlertChannelIntegration()
-	case "Docker Hub":
+	case "Docker Hub Registry":
 		return createDockerHubIntegration()
+	case "Docker V2 Registry":
+		return createDockerV2Integration()
+	case "Amazon Container Registry (ECR)":
+		return createAwsEcrIntegration()
+	case "Google Container Registry (GCR)":
+		return createGcrIntegration()
 	case "AWS Config":
 		return createAwsConfigIntegration()
 	case "AWS CloudTrail":
@@ -239,9 +245,6 @@ func promptCreateIntegration() error {
 		return createAzureConfigIntegration()
 	case "Azure Activity Log":
 		return createAzureActivityLogIntegration()
-	//case "Docker V2 Registry":
-	//case "Amazon Container Registry":
-	//case "Google Container Registry":
 	//case "Snowflake Data Share":
 	default:
 		return errors.New("unknown integration type")
@@ -429,6 +432,60 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		out := [][]string{
 			[]string{"EVENT BUS ARN", iData.EventBusArn},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+		}
+
+		return out
+
+	case api.ContainerRegistryIntegration.String():
+
+		var iData api.ContainerRegData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"REGISTRY TYPE", iData.RegistryType},
+			[]string{"REGISTRY DOMAIN", iData.RegistryDomain},
+			[]string{"LIMIT BY TAG", iData.LimitByTag},
+			[]string{"LIMIT BY LABEL", iData.LimitByLabel},
+			[]string{"LIMIT BY REPOSITORY", iData.LimitByRep},
+			[]string{"LIMIT NUM IMAGES PER REPO", fmt.Sprintf("%d", iData.LimitNumImg)},
+		}
+
+		switch iData.RegistryType {
+		case api.DockerHubRegistry.String():
+			out = append(out, []string{"USERNAME", iData.Credentials.Username})
+			out = append(out, []string{"PASSWORD", iData.Credentials.Password})
+		case api.DockerV2Registry.String():
+			out = append(out, []string{"USERNAME", iData.Credentials.Username})
+			out = append(out, []string{"PASSWORD", iData.Credentials.Password})
+			if iData.Credentials.SSL {
+				out = append(out, []string{"SSL", "ENABLE"})
+			} else {
+				out = append(out, []string{"SSL", "DISABLE"})
+			}
+		case api.GcrRegistry.String():
+			out = append(out, []string{"CLIENT ID", iData.Credentials.ClientID})
+			out = append(out, []string{"CLIENT EMAIL", iData.Credentials.ClientEmail})
+			out = append(out, []string{"PRIVATE KEY ID", iData.Credentials.PrivateKeyID})
+		case api.EcrRegistry.String():
+			var ecrData api.AwsEcrData
+			err := mapstructure.Decode(raw.Data, &ecrData)
+			if err != nil {
+				cli.Log.Debugw("unable to decode integration data",
+					"integration_type", raw.Type,
+					"registry_type", iData.RegistryType,
+					"raw_data", raw.Data,
+					"error", err,
+				)
+				break
+			}
+			out = append(out, []string{"ACCESS KEY ID", ecrData.Credentials.AccessKeyID})
 		}
 
 		return out

@@ -26,7 +26,7 @@ import (
 	"github.com/lacework/go-sdk/api"
 )
 
-func createDockerHubIntegration() error {
+func createAwsEcrIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -34,13 +34,18 @@ func createDockerHubIntegration() error {
 			Validate: survey.Required,
 		},
 		{
-			Name:     "username",
-			Prompt:   &survey.Input{Message: "Username: "},
+			Name:     "domain",
+			Prompt:   &survey.Input{Message: "Registry Domain: "},
 			Validate: survey.Required,
 		},
 		{
-			Name:     "password",
-			Prompt:   &survey.Password{Message: "Password: "},
+			Name:     "access_key_id",
+			Prompt:   &survey.Input{Message: "Access Key ID: "},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "secret_access_key",
+			Prompt:   &survey.Password{Message: "Secret Access Key: "},
 			Validate: survey.Required,
 		},
 		{
@@ -72,13 +77,14 @@ func createDockerHubIntegration() error {
 	}
 
 	answers := struct {
-		Name           string
-		Username       string
-		Password       string
-		LimitTag       string `survey:"limit_tag"`
-		LimitLabel     string `survey:"limit_label"`
-		LimitRepos     string `survey:"limit_repos"`
-		LimitMaxImages string `survey:"limit_max_images"`
+		Name            string
+		Domain          string
+		AccessKeyID     string `survey:"access_key_id"`
+		SecretAccessKey string `survey:"secret_access_key"`
+		LimitTag        string `survey:"limit_tag"`
+		LimitLabel      string `survey:"limit_label"`
+		LimitRepos      string `survey:"limit_repos"`
+		LimitMaxImages  string `survey:"limit_max_images"`
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -98,21 +104,22 @@ func createDockerHubIntegration() error {
 		limitMaxImages = 5
 	}
 
-	docker := api.NewDockerHubRegistryIntegration(answers.Name,
-		api.ContainerRegData{
-			Credentials: api.ContainerRegCreds{
-				Username: answers.Username,
-				Password: answers.Password,
+	ecr := api.NewAwsEcrRegistryIntegration(answers.Name,
+		api.AwsEcrData{
+			Credentials: api.AwsEcrCreds{
+				AccessKeyID:     answers.AccessKeyID,
+				SecretAccessKey: answers.SecretAccessKey,
 			},
-			LimitByTag:   answers.LimitTag,
-			LimitByLabel: answers.LimitLabel,
-			LimitByRep:   answers.LimitRepos,
-			LimitNumImg:  limitMaxImages,
+			RegistryDomain: answers.Domain,
+			LimitByTag:     answers.LimitTag,
+			LimitByLabel:   answers.LimitLabel,
+			LimitByRep:     answers.LimitRepos,
+			LimitNumImg:    limitMaxImages,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateContainerRegistry(docker)
+	_, err = cli.LwApi.Integrations.CreateAwsEcrRegistry(ecr)
 	cli.StopProgress()
 	return err
 }

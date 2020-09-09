@@ -25,6 +25,8 @@ const (
 	NoneRegistry registryType = iota
 	DockerHubRegistry
 	DockerV2Registry
+	EcrRegistry
+	GcrRegistry
 )
 
 // RegistryTypes is the list of available registry types
@@ -32,6 +34,8 @@ var RegistryTypes = map[registryType]string{
 	NoneRegistry:      "NONE",
 	DockerHubRegistry: "DOCKERHUB",
 	DockerV2Registry:  "V2_REGISTRY",
+	EcrRegistry:       "AWS_ECR",
+	GcrRegistry:       "GCP_GCR",
 }
 
 // String returns the string representation of an registry type
@@ -76,10 +80,25 @@ func NewContainerRegIntegration(name string, data ContainerRegData) ContainerReg
 	}
 }
 
+func NewDockerHubRegistryIntegration(name string, data ContainerRegData) ContainerRegIntegration {
+	data.RegistryType = DockerHubRegistry.String()
+	data.RegistryDomain = "index.docker.io"
+	return NewContainerRegIntegration(name, data)
+}
+
+func NewDockerV2RegistryIntegration(name string, data ContainerRegData) ContainerRegIntegration {
+	data.RegistryType = DockerV2Registry.String()
+	return NewContainerRegIntegration(name, data)
+}
+
+func NewGcrRegistryIntegration(name string, data ContainerRegData) ContainerRegIntegration {
+	data.RegistryType = GcrRegistry.String()
+	return NewContainerRegIntegration(name, data)
+}
+
 // CreateContainerRegistry creates a container registry integration on the Lacework Server
 func (svc *IntegrationsService) CreateContainerRegistry(integration ContainerRegIntegration) (
-	response map[string]interface{},
-	//response ContainerRegIntResponse, // @afiune we can't use this :(
+	response ContainerRegIntResponse,
 	err error,
 ) {
 	err = svc.create(integration, &response)
@@ -89,8 +108,7 @@ func (svc *IntegrationsService) CreateContainerRegistry(integration ContainerReg
 // GetContainerRegistry gets a container registry integration that matches with
 // the provided integration guid on the Lacework Server
 func (svc *IntegrationsService) GetContainerRegistry(guid string) (
-	response map[string]interface{},
-	//response ContainerRegIntResponse, // @afiune we can't use this :(
+	response ContainerRegIntResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
@@ -99,12 +117,17 @@ func (svc *IntegrationsService) GetContainerRegistry(guid string) (
 
 // UpdateContainerRegistry updates a single container registry integration
 func (svc *IntegrationsService) UpdateContainerRegistry(integration ContainerRegIntegration) (
-	response map[string]interface{},
-	//response ContainerRegIntResponse, // @afiune we can't use this :(
+	response ContainerRegIntResponse,
 	err error,
 ) {
 	err = svc.update(integration.IntgGuid, integration, &response)
 	return
+}
+
+type ContainerRegIntResponse struct {
+	Data    []ContainerRegIntegration `json:"data"`
+	Ok      bool                      `json:"ok"`
+	Message string                    `json:"message"`
 }
 
 type ContainerRegIntegration struct {
@@ -113,30 +136,34 @@ type ContainerRegIntegration struct {
 }
 
 type ContainerRegData struct {
-	Credentials    ContainerRegCreds `json:"CREDENTIALS" mapstructure:"CREDENTIALS"`
-	RegistryType   string            `json:"REGISTRY_TYPE" mapstructure:"REGISTRY_TYPE"`
-	RegistryDomain string            `json:"REGISTRY_DOMAIN" mapstructure:"REGISTRY_DOMAIN"`
-	LimitByTag     string            `json:"LIMIT_BY_TAG" mapstructure:"LIMIT_BY_TAG"`
-	LimitByLabel   string            `json:"LIMIT_BY_LABEL" mapstructure:"LIMIT_BY_LABEL"`
-	LimitByRep     string            `json:"LIMIT_BY_REP,omitempty" mapstructure:"LIMIT_BY_REP"`
-	LimitNumImg    int               `json:"LIMIT_NUM_IMG"` // @afiune we can't parse this field
+	// @afiune the container registry schema contains a few different DATA types,
+	// and because of that we are adding ALL fields that we could possibly have
+	// for ALL container registry types (look at the variable RegistryTypes) with
+	// the exception of AWS_ECR, this integration has a different credentials field
+	// and because of that we have to define it separately
+	Credentials  ContainerRegCreds `json:"CREDENTIALS" mapstructure:"CREDENTIALS"`
+	RegistryType string            `json:"REGISTRY_TYPE" mapstructure:"REGISTRY_TYPE"`
+
+	// for GCP_GCR integrations, the registry domain has to be one of:
+	// => [ "gcr.io", "us.gcr.io", "eu.gcr.io", "asia.gcr.io" ]
+	RegistryDomain string `json:"REGISTRY_DOMAIN" mapstructure:"REGISTRY_DOMAIN"`
+	LimitByTag     string `json:"LIMIT_BY_TAG" mapstructure:"LIMIT_BY_TAG"`
+	LimitByLabel   string `json:"LIMIT_BY_LABEL" mapstructure:"LIMIT_BY_LABEL"`
+	LimitByRep     string `json:"LIMIT_BY_REP,omitempty" mapstructure:"LIMIT_BY_REP"`
+	LimitNumImg    int    `json:"LIMIT_NUM_IMG,omitempty" mapstructure:"LIMIT_NUM_IMG"`
 }
 
 type ContainerRegCreds struct {
-	Username string `json:"USERNAME" mapstructure:"USERNAME"`
-	Password string `json:"PASSWORD" mapstructure:"PASSWORD"`
-	// @afiune this is for docker V2 registry
-	SSL bool `json:"SSL,omitempty" mapstructure:"SSL"`
-}
+	// for docker hub registry (DOCKERHUB)
+	Username string `json:"USERNAME,omitempty" mapstructure:"USERNAME"`
+	Password string `json:"PASSWORD,omitempty" mapstructure:"PASSWORD"`
 
-// @afiune we can't use this response since the request sent to the
-// Server is different from the one it returns as a response. :(
-// If we enable this struct we will get the following error:
-//
-// json: cannot unmarshal string into Go struct field
-//       ContainerRegData.data.DATA.LIMIT_NUM_IMG of type int
-type ContainerRegIntResponse struct {
-	Data    []ContainerRegIntegration `json:"data"`
-	Ok      bool                      `json:"ok"`
-	Message string                    `json:"message"`
+	// for docker V2 registry (V2_REGISTRY)
+	SSL bool `json:"SSL,omitempty" mapstructure:"SSL"`
+
+	// for GCR registry (GCP_GCR)
+	ClientEmail  string `json:"CLIENT_EMAIL,omitempty" mapstructure:"CLIENT_EMAIL"`
+	ClientID     string `json:"CLIENT_ID,omitempty" mapstructure:"CLIENT_ID"`
+	PrivateKey   string `json:"PRIVATE_KEY,omitempty" mapstructure:"PRIVATE_KEY"`
+	PrivateKeyID string `json:"PRIVATE_KEY_ID,omitempty" mapstructure:"PRIVATE_KEY_ID"`
 }
