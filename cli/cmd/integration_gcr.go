@@ -26,7 +26,7 @@ import (
 	"github.com/lacework/go-sdk/api"
 )
 
-func createDockerHubIntegration() error {
+func createGcrIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -34,13 +34,36 @@ func createDockerHubIntegration() error {
 			Validate: survey.Required,
 		},
 		{
-			Name:     "username",
-			Prompt:   &survey.Input{Message: "Username: "},
+			Name: "domain",
+			Prompt: &survey.Select{
+				Message: "Registry Domain:",
+				Options: []string{
+					"gcr.io",
+					"us.gcr.io",
+					"eu.gcr.io",
+					"asia.gcr.io",
+				},
+			},
 			Validate: survey.Required,
 		},
 		{
-			Name:     "password",
-			Prompt:   &survey.Password{Message: "Password: "},
+			Name:     "client_id",
+			Prompt:   &survey.Input{Message: "Client ID:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "private_key_id",
+			Prompt:   &survey.Input{Message: "Private Key ID:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "client_email",
+			Prompt:   &survey.Input{Message: "Client Email:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "private_key",
+			Prompt:   &survey.Input{Message: "Private Key:"},
 			Validate: survey.Required,
 		},
 		{
@@ -73,8 +96,11 @@ func createDockerHubIntegration() error {
 
 	answers := struct {
 		Name           string
-		Username       string
-		Password       string
+		Domain         string
+		ClientID       string `survey:"client_id"`
+		PrivateKeyID   string `survey:"private_key_id"`
+		ClientEmail    string `survey:"client_email"`
+		PrivateKey     string `survey:"private_key"`
 		LimitTag       string `survey:"limit_tag"`
 		LimitLabel     string `survey:"limit_label"`
 		LimitRepos     string `survey:"limit_repos"`
@@ -98,21 +124,24 @@ func createDockerHubIntegration() error {
 		limitMaxImages = 5
 	}
 
-	docker := api.NewDockerHubRegistryIntegration(answers.Name,
+	gcr := api.NewGcrRegistryIntegration(answers.Name,
 		api.ContainerRegData{
 			Credentials: api.ContainerRegCreds{
-				Username: answers.Username,
-				Password: answers.Password,
+				ClientEmail:  answers.ClientEmail,
+				ClientID:     answers.ClientID,
+				PrivateKey:   answers.PrivateKey,
+				PrivateKeyID: answers.PrivateKeyID,
 			},
-			LimitByTag:   answers.LimitTag,
-			LimitByLabel: answers.LimitLabel,
-			LimitByRep:   answers.LimitRepos,
-			LimitNumImg:  limitMaxImages,
+			RegistryDomain: answers.Domain,
+			LimitByTag:     answers.LimitTag,
+			LimitByLabel:   answers.LimitLabel,
+			LimitByRep:     answers.LimitRepos,
+			LimitNumImg:    limitMaxImages,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateContainerRegistry(docker)
+	_, err = cli.LwApi.Integrations.CreateContainerRegistry(gcr)
 	cli.StopProgress()
 	return err
 }

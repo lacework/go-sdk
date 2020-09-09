@@ -19,18 +19,21 @@
 package cmd
 
 import (
-	"strconv"
-
 	"github.com/AlecAivazis/survey/v2"
 
 	"github.com/lacework/go-sdk/api"
 )
 
-func createDockerHubIntegration() error {
+func createDockerV2Integration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
 			Prompt:   &survey.Input{Message: "Name: "},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "domain",
+			Prompt:   &survey.Input{Message: "Registry Domain: "},
 			Validate: survey.Required,
 		},
 		{
@@ -42,6 +45,10 @@ func createDockerHubIntegration() error {
 			Name:     "password",
 			Prompt:   &survey.Password{Message: "Password: "},
 			Validate: survey.Required,
+		},
+		{
+			Name:   "ssl",
+			Prompt: &survey.Confirm{Message: "Enable SSL?"},
 		},
 		{
 			Name: "limit_tag",
@@ -57,28 +64,16 @@ func createDockerHubIntegration() error {
 				Default: "*",
 			},
 		},
-		{
-			Name:   "limit_repos",
-			Prompt: &survey.Input{Message: "Limit by Repository: "},
-		},
-		{
-			Name: "limit_max_images",
-			Prompt: &survey.Select{
-				Message: "Limit Number of Images per Repo: ",
-				Options: []string{"5", "10", "15"},
-			},
-			Validate: survey.Required,
-		},
 	}
 
 	answers := struct {
-		Name           string
-		Username       string
-		Password       string
-		LimitTag       string `survey:"limit_tag"`
-		LimitLabel     string `survey:"limit_label"`
-		LimitRepos     string `survey:"limit_repos"`
-		LimitMaxImages string `survey:"limit_max_images"`
+		Name       string
+		Domain     string
+		Username   string
+		Password   string
+		SSL        bool
+		LimitTag   string `survey:"limit_tag"`
+		LimitLabel string `survey:"limit_label"`
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -88,26 +83,16 @@ func createDockerHubIntegration() error {
 		return err
 	}
 
-	limitMaxImages, err := strconv.Atoi(answers.LimitMaxImages)
-	if err != nil {
-		cli.Log.Warnw("unable to convert limit_max_images, using default",
-			"error", err,
-			"input", answers.LimitMaxImages,
-			"default", "5",
-		)
-		limitMaxImages = 5
-	}
-
-	docker := api.NewDockerHubRegistryIntegration(answers.Name,
+	docker := api.NewDockerV2RegistryIntegration(answers.Name,
 		api.ContainerRegData{
 			Credentials: api.ContainerRegCreds{
 				Username: answers.Username,
 				Password: answers.Password,
+				SSL:      answers.SSL,
 			},
-			LimitByTag:   answers.LimitTag,
-			LimitByLabel: answers.LimitLabel,
-			LimitByRep:   answers.LimitRepos,
-			LimitNumImg:  limitMaxImages,
+			RegistryDomain: answers.Domain,
+			LimitByTag:     answers.LimitTag,
+			LimitByLabel:   answers.LimitLabel,
 		},
 	)
 

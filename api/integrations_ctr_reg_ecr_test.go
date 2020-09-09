@@ -25,19 +25,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIntegrationsNewContainerRegIntegration(t *testing.T) {
-	subject := api.NewContainerRegIntegration("integration_name",
-		api.ContainerRegData{
-			Credentials: api.ContainerRegCreds{
-				Username: "techally",
-				Password: "secret",
+func TestIntegrationsNewAwsEcrRegistryIntegration(t *testing.T) {
+	subject := api.NewAwsEcrRegistryIntegration("integration_name",
+		api.AwsEcrData{
+			Credentials: api.AwsEcrCreds{
+				AccessKeyID:     "id",
+				SecretAccessKey: "secret",
 			},
-			RegistryType:   api.DockerHubRegistry.String(),
-			RegistryDomain: "index.docker.io",
-			LimitByTag:     "*",
-			LimitByLabel:   "*",
-			LimitNumImg:    5,
 		},
 	)
 	assert.Equal(t, api.ContainerRegistryIntegration.String(), subject.Type)
+	assert.Equal(t, api.EcrRegistry.String(), subject.Data.RegistryType)
 }
