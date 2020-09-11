@@ -42,7 +42,7 @@ Use the following command to list all Azure integrations in your account:
 
   $ lacework integrations list --type AZURE_CFG
 
-Then, select one GUID from an integration and visialize its details using the command:
+Then, select one GUID from an integration and visualize its details using the command:
 
   $ lacework integration show <int_guid>
 `,
