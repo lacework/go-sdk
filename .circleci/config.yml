@@ -99,7 +99,7 @@ jobs:
           api-key: CI_API_KEY
           api-secret: CI_API_SECRET
           registry: index.docker.io
-          repository: techallylw/lacework-cli
+          repository: lacework/lacework-cli
           tag: << parameters.tag >>
 
 workflows:

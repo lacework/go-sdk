@@ -13,7 +13,7 @@ set -eou pipefail
 readonly project_name=go-sdk
 readonly package_name=lacework-cli
 readonly binary_name=lacework
-readonly docker_org=techallylw
+readonly docker_org=lacework
 readonly docker_tags=(
   latest
   scratch
