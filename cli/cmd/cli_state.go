@@ -182,6 +182,7 @@ func (c *cliState) NewClient() error {
 
 	client, err := api.NewClient(c.Account,
 		api.WithLogLevel(c.LogLevel),
+		api.WithApiV2(),
 		api.WithApiKeys(c.KeyID, c.Secret),
 		api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
 	)
