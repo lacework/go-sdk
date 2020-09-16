@@ -82,6 +82,14 @@ else
 endif
 	@echo "\nThe lacework cli has been installed at /usr/local/bin"
 
+install-v2: build-cli-cross-platform
+ifeq (x86_64, $(shell uname -m))
+	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-amd64 /usr/local/bin/laceworkv2
+else
+	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-386 /usr/local/bin/laceworkv2
+endif
+	@echo "\nThe lacework cli has been installed at /usr/local/bin"
+
 release: lint test fmt-check imports-check build-cli-cross-platform
 	scripts/release.sh prepare
 
