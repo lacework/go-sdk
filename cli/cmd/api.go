@@ -65,17 +65,6 @@ func init() {
 }
 
 func runApiCommand(_ *cobra.Command, args []string) error {
-	switch args[0] {
-	case "post", "patch":
-		if apiData == "" {
-			return fmt.Errorf("missing '--data' parameter for post or patch requests")
-		}
-	case "delete", "get":
-		if apiData != "" {
-			return fmt.Errorf("use '--data' only for post and patch requests")
-		}
-	}
-
 	response := new(map[string]interface{})
 	err := cli.LwApi.RequestDecoder(
 		strings.ToUpper(args[0]),
