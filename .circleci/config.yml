@@ -4,6 +4,9 @@ parameters:
   slack-mentions:
     type: string
     default: 'afiune,scottford'
+  only_for_branches:
+    type: string
+    default: 'master'
 
 orbs:
   lacework: lacework/lacework@1.0.0
@@ -31,6 +34,10 @@ jobs:
       - run: make test
       - run: make fmt-check
       - run: make imports-check
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
+          only_for_branches: <<pipeline.parameters.only_for_branches>>
   build-cli:
     executor: go-executor
     steps:
@@ -41,6 +48,10 @@ jobs:
           root: bin
           paths:
             - lacework-cli-*
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
+          only_for_branches: <<pipeline.parameters.only_for_branches>>
   integration-test-linux:
     executor: go-executor
     steps:
@@ -48,6 +59,10 @@ jobs:
       - attach_workspace:
           at: bin
       - run: make integration-only
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
+          only_for_branches: <<pipeline.parameters.only_for_branches>>
   integration-test-windows:
     executor: win/default
     steps:
@@ -58,6 +73,10 @@ jobs:
           command: |
             $env:LW_CLI_BIN = Join-Path (Get-Location).Path "bin\\lacework-cli-windows-amd64.exe"
             go test -v github.com/lacework/go-sdk/integration
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
+          only_for_branches: <<pipeline.parameters.only_for_branches>>
     environment:
       GOFLAGS: -mod=vendor
   verify-release:
@@ -86,7 +105,6 @@ jobs:
       - setup_remote_docker
       - run: scripts/release_containers.sh
       - slack/status:
-          fail_only: false
           mentions: << pipeline.parameters.slack-mentions >>
   vuln-scan-cli:
     executor: lacework/default
@@ -101,6 +119,10 @@ jobs:
           registry: index.docker.io
           repository: lacework/lacework-cli
           tag: << parameters.tag >>
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
+          only_for_branches: <<pipeline.parameters.only_for_branches>>
 
 workflows:
   version: 2
