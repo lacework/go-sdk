@@ -65,7 +65,7 @@ func init() {
 }
 
 func runApiCommand(_ *cobra.Command, args []string) error {
-	response := new(map[string]interface{})
+	response := new(interface{})
 	err := cli.LwApi.RequestDecoder(
 		strings.ToUpper(args[0]),
 		strings.TrimPrefix(args[1], "/"),

@@ -85,7 +85,7 @@ func WithExpirationTime(t int) Option {
 }
 
 // GenerateToken generates a new access token
-func (c *Client) GenerateToken() (response TokenResponse, err error) {
+func (c *Client) GenerateToken() (response TokenData, err error) {
 	if c.auth.keyID == "" || c.auth.secret == "" {
 		err = fmt.Errorf("unable to generate access token: auth keys missing")
 		return
@@ -101,19 +101,13 @@ func (c *Client) GenerateToken() (response TokenResponse, err error) {
 		return
 	}
 
-	if len(response.Data) > 0 {
-		// @afiune how do we handle cases where there is more than one token
-		c.log.Debug("storing token", zap.Reflect("data", response.Data))
-		c.auth.token = response.Data[0].Token
-		return
-	}
-
-	c.log.Debug("empty token response data", zap.Reflect("response", response))
+	c.log.Debug("storing token", zap.Reflect("data", response))
+	c.auth.token = response.Token
 	return
 }
 
 // GenerateTokenWithKeys generates a new access token with the provided keys
-func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (TokenResponse, error) {
+func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (TokenData, error) {
 	c.log.Debug("setting up auth",
 		zap.String("key", keyID),
 		zap.String("secret", secretKey),
@@ -124,7 +118,7 @@ func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (TokenResponse, 
 }
 
 type TokenResponse struct {
-	Data    []tokenData `json:"data"`
+	Data    []TokenData `json:"data"`
 	Ok      bool        `json:"ok"`
 	Message string      `json:"message"`
 }
@@ -138,8 +132,8 @@ func (tr TokenResponse) Token() string {
 	return ""
 }
 
-type tokenData struct {
-	ExpiresAt string `json:"expiresAt"`
+type TokenData struct {
+	ExpiresAt string `json:"expires_at"`
 	Token     string `json:"token"`
 }
 

@@ -53,7 +53,7 @@ func init() {
 
 func generateAccessToken(_ *cobra.Command, args []string) error {
 	var (
-		response api.TokenResponse
+		response api.TokenData
 		err      error
 	)
 
@@ -80,22 +80,11 @@ func generateAccessToken(_ *cobra.Command, args []string) error {
 		}
 	}
 
-	if len(response.Data) == 0 {
-		return errors.New(`unable to generate access token
-
-The platform did not return any token in the response body, this is very
-unlikely to happen but, hey it happened. Please help us improve the
-Lacework CLI by reporting this issue at:
-
-  https://support.lacework.com/hc/en-us/requests/new
-`)
-	}
-
 	if cli.JSONOutput() {
-		return cli.OutputJSON(response.Data[0])
+		return cli.OutputJSON(response)
 	}
 
-	cli.OutputHuman(response.Token())
+	cli.OutputHuman(response.Token)
 	cli.OutputHuman("\n")
 	return nil
 }
