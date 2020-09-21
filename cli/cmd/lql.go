@@ -19,11 +19,16 @@
 package cmd
 
 import (
+	"io/ioutil"
+
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 var (
+	lqlFile string
+
 	// lqlCmd represents the lql command
 	lqlCmd = &cobra.Command{
 		Use:    "lql <query>",
@@ -36,7 +41,7 @@ A simple example of an LQL query:
   $ lacework lql 'SimpleLQL_3(RecentComplianceReports Data) {SELECT Data.*}'
 
 NOTE: This feature is not yet available!`,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.MaximumNArgs(1),
 		RunE: runLQLQuery,
 	}
 )
@@ -44,11 +49,39 @@ NOTE: This feature is not yet available!`,
 func init() {
 	// add the lql command
 	rootCmd.AddCommand(lqlCmd)
+
+	// file flag to specify a query from disk
+	lqlCmd.Flags().StringVarP(&lqlFile,
+		"file", "f", "",
+		"path to an LQL query to run",
+	)
 }
 
 func runLQLQuery(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("running LQL query", "query", args[0])
-	response, err := cli.LwApi.LQL.Query(args[0])
+	var query = ""
+
+	if len(args) != 0 && args[0] != "" {
+		query = args[0]
+	} else if lqlFile != "" {
+		lqlQuery, err := ioutil.ReadFile(lqlFile)
+		if err != nil {
+			return errors.Wrap(err, "unable to read file")
+		}
+		query = string(lqlQuery)
+	} else {
+		// avoid asking for a confirmation before launching the editor
+		prompt := &survey.Editor{
+			Message:  "Type an LQL query to run",
+			FileName: "query*.sh",
+		}
+		err := survey.AskOne(prompt, &query)
+		if err != nil {
+			return err
+		}
+	}
+
+	cli.Log.Debugw("running LQL query", "query", query)
+	response, err := cli.LwApi.LQL.Query(query)
 	if err != nil {
 		return errors.Wrap(err, "unable to run LQL query")
 	}
