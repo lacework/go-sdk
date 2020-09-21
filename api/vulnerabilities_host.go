@@ -34,8 +34,7 @@ type HostVulnerabilityService struct {
 //
 // NOTE: Only packages managed by a package manager for supported OS's are reported
 func (svc *HostVulnerabilityService) Scan(manifest string) (
-	// TODO @afiune add scan response. look at the end of this file
-	response map[string]interface{},
+	response hostVulnScanPkgManifestResponse,
 	err error,
 ) {
 	err = svc.client.RequestDecoder("POST",
@@ -263,80 +262,95 @@ type HostVulnCveSummary struct {
 	LastEvaluationTime   Json16DigitTime        `json:"last_evaluation_time"`
 }
 
-// TODO @afiune add scan response
-//    {
-//      "CVE_PROPS": {
-//        "cve_batch_id": "d4cca68d-8850-4f77-8ce4-554a434dbbf9",
-//        "description": "The OpenSSL ECDSA signature algorithm has been shown to be vulnerable to a timing side channel attack. An attacker could use variations in the signing algorithm to recover the private key. Fixed in OpenSSL 1.1.0j (Affected 1.1.0-1.1.0i). Fixed in OpenSSL 1.1.1a (Affected 1.1.1).",
-//        "link": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-0735",
-//        "metadata": {
-//          "NVD": {
-//            "CVSSv2": {
-//              "PublishedDateTime": "2018-10-29T13:29Z",
-//              "Score": 4.3,
-//              "Vectors": "AV:N/AC:M/Au:N/C:P/I:N/A:N"
-//            },
-//            "CVSSv3": {
-//              "ExploitabilityScore": 2.2,
-//              "ImpactScore": 3.6,
-//              "Score": 5.9,
-//              "Vectors": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
-//            }
-//          }
-//        }
-//      },
-//      "FEATURE_KEY": {
-//        "name": "openssl",
-//        "namespace": "ubuntu:18.04"
-//      },
-//      "FIX_INFO": {
-//        "compare_result": -1,
-//        "eval_status": "GOOD",
-//        "fix_available": 0,
-//        "fixed_version": "0:1.1.0g-2ubuntu4.3",
-//        "fixed_version_comparison_infos": [
-//          {
-//            "curr_fix_ver": "1.1.0g-2ubuntu4.3",
-//            "is_curr_fix_ver_greater_than_other_fix_ver": "0",
-//            "other_fix_ver": "1.1.0g-2ubuntu4.3"
-//          }
-//        ],
-//        "fixed_version_comparison_score": 0,
-//        "max_prefix_matching_len_score": 6,
-//        "version_installed": "0:1.1.1-1ubuntu2.1~18.04.5"
-//      },
-//      "OS_PKG_INFO": {
-//        "namespace": "ubuntu:18.04",
-//        "os": "Ubuntu",
-//        "os_ver": "18.04",
-//        "pkg": "openssl",
-//        "pkg_ver": "1.1.1-1ubuntu2.1~18.04.5",
-//        "version_format": "dpkg"
-//      },
-//      "PROPS": {
-//        "eval_algo": "1001"
-//      },
-//      "SEVERITY": "Low",
-//      "SUMMARY": {
-//        "eval_created_time": "Mon, 17 Aug 2020 06:27:42 -0700",
-//        "eval_status": "MATCH_VULN",
-//        "num_fixable_vuln": 4,
-//        "num_fixable_vuln_by_severity": {
-//          "1": 0,
-//          "2": 0,
-//          "3": 4,
-//          "4": 0,
-//          "5": 0
-//        },
-//        "num_total": 64,
-//        "num_vuln": 4,
-//        "num_vuln_by_severity": {
-//          "1": 0,
-//          "2": 0,
-//          "3": 4,
-//          "4": 0,
-//          "5": 0
-//        }
-//      },
-//      "VULN_ID": "CVE-2018-0735"
-//    },
+type hostVulnScanPkgManifestResponse struct {
+	Vulns   []HostScanPackageVulnDetails `json:"data"`
+	Ok      bool                         `json:"ok"`
+	Message string                       `json:"message"`
+}
+
+func (scanPkg *HostScanPackageVulnDetails) ScoreString() string {
+	if scanPkg.CVEProps.Metadata.NVD.CVSSv3.Score != 0 {
+		return fmt.Sprintf("%.1f", scanPkg.CVEProps.Metadata.NVD.CVSSv3.Score)
+	}
+
+	if scanPkg.CVEProps.Metadata.NVD.CVSSv2.Score != 0 {
+		return fmt.Sprintf("%.1f", scanPkg.CVEProps.Metadata.NVD.CVSSv2.Score)
+	}
+
+	return ""
+}
+
+type HostScanPackageVulnDetails struct {
+	CVEProps struct {
+		CveBatchID  string `json:"cve_batch_id"`
+		Description string `json:"description"`
+		Link        string `json:"link"`
+		Metadata    struct {
+			NVD struct {
+				CVSSv2 struct {
+					PublishedDateTime string  `json:"PublishedDateTime"`
+					Score             float64 `json:"Score"`
+					Vectors           string  `json:"Vectors"`
+				} `json:"CVSSv2"`
+				CVSSv3 struct {
+					ExploitabilityScore float64 `json:"ExploitabilityScore"`
+					ImpactScore         float64 `json:"ImpactScore"`
+					Score               float64 `json:"Score"`
+					Vectors             string  `json:"Vectors"`
+				} `json:"CVSSv3"`
+			} `json:"NVD"`
+		} `json:"metadata"`
+	} `json:"CVE_PROPS"`
+	FeatureKey struct {
+		Name      string `json:"name"`
+		Namespace string `json:"namespace"`
+	} `json:"FEATURE_KEY"`
+	FixInfo struct {
+		CompareResult               int    `json:"compare_result"`
+		EvalStatus                  string `json:"eval_status"`
+		FixAvailable                int    `json:"fix_available"`
+		FixedVersion                string `json:"fixed_version"`
+		FixedVersionComparisonInfos []struct {
+			CurrFixVer                         string `json:"curr_fix_ver"`
+			IsCurrFixVerGreaterThanOtherFixVer string `json:"is_curr_fix_ver_greater_than_other_fix_ver"`
+			OtherFixVer                        string `json:"other_fix_ver"`
+		} `json:"fixed_version_comparison_infos"`
+		FixedVersionComparisonScore int    `json:"fixed_version_comparison_score"`
+		MaxPrefixMatchingLenScore   int    `json:"max_prefix_matching_len_score"`
+		VersionInstalled            string `json:"version_installed"`
+	} `json:"FIX_INFO"`
+	OsPkgInfo struct {
+		Namespace     string `json:"namespace"`
+		Os            string `json:"os"`
+		OsVer         string `json:"os_ver"`
+		Pkg           string `json:"pkg"`
+		PkgVer        string `json:"pkg_ver"`
+		VersionFormat string `json:"version_format"`
+	} `json:"OS_PKG_INFO"`
+	Props struct {
+		EvalAlgo string `json:"eval_algo"`
+	} `json:"PROPS"`
+	Severity string `json:"SEVERITY"`
+	Summary  struct {
+		EvalCreatedTime          string `json:"eval_created_time"`
+		EvalStatus               string `json:"eval_status"`
+		NumFixableVuln           int    `json:"num_fixable_vuln"`
+		NumFixableVulnBySeverity struct {
+			Num1 int `json:"1"`
+			Num2 int `json:"2"`
+			Num3 int `json:"3"`
+			Num4 int `json:"4"`
+			Num5 int `json:"5"`
+		} `json:"num_fixable_vuln_by_severity"`
+		NumTotal          int `json:"num_total"`
+		NumVuln           int `json:"num_vuln"`
+		NumVulnBySeverity struct {
+			Num1 int `json:"1"`
+			Num2 int `json:"2"`
+			Num3 int `json:"3"`
+			Num4 int `json:"4"`
+			Num5 int `json:"5"`
+		} `json:"num_vuln_by_severity"`
+	} `json:"SUMMARY"`
+	VulnID string `json:"VULN_ID"`
+}
