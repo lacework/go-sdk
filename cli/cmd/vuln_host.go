@@ -20,10 +20,12 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -32,6 +34,9 @@ import (
 )
 
 var (
+	// the package manifest file
+	pkgManifestFile string
+
 	vulHostScanPkgManifestCmd = &cobra.Command{
 		Use:     "scan-pkg-manifest <manifest>",
 		Aliases: []string{"manifest"},
@@ -59,7 +64,29 @@ Simple usage:
  - This operation is limited to 1k of packages per payload. If you require a payload
    larger than 1k, you must make multiple requests.`,
 		RunE: func(_ *cobra.Command, args []string) error {
-			response, err := cli.LwApi.Vulnerabilities.Host.Scan(args[0])
+
+			var pkgManifest = ""
+			if len(args) != 0 && args[0] != "" {
+				pkgManifest = args[0]
+			} else if pkgManifestFile != "" {
+				pkgManifestBytes, err := ioutil.ReadFile(pkgManifestFile)
+				if err != nil {
+					return errors.Wrap(err, "unable to read file")
+				}
+				pkgManifest = string(pkgManifestBytes)
+			} else {
+				// avoid asking for a confirmation before launching the editor
+				prompt := &survey.Editor{
+					Message:  "Provide a package manifest to scan",
+					FileName: "pkg-manifest*.json",
+				}
+				err := survey.AskOne(prompt, &pkgManifest)
+				if err != nil {
+					return err
+				}
+			}
+
+			response, err := cli.LwApi.Vulnerabilities.Host.Scan(pkgManifest)
 			if err != nil {
 				return errors.Wrap(err, "unable to request an on-demand host vulnerability scan")
 			}
@@ -234,6 +261,11 @@ func init() {
 		"offline", false, "only show hosts that are offline",
 	)
 
+	// the package manifest file
+	vulHostScanPkgManifestCmd.Flags().StringVarP(&pkgManifestFile,
+		"file", "f", "",
+		"path to a package manifest to scan",
+	)
 }
 
 func hostVulnHostsToTable(hosts []api.HostVulnDetail) string {
