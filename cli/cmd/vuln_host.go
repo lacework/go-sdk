@@ -64,8 +64,22 @@ Simple usage:
 				return errors.Wrap(err, "unable to request an on-demand host vulnerability scan")
 			}
 
-			// TODO @afiune add human readable output
-			return cli.OutputJSON(response)
+			if cli.JSONOutput() {
+				return cli.OutputJSON(response)
+			}
+
+			if len(response.Vulns) == 0 {
+				// @afiune add a helpful message, possible things are:
+				cli.OutputHuman("There are no vulnerabilities found.\n")
+				return nil
+			}
+
+			if vulCmdState.Packages {
+				cli.OutputHuman(hostScanPackagesVulnSummary(response.Vulns))
+			} else {
+				cli.OutputHuman(hostScanPackagesVulnToTable(response.Vulns))
+			}
+			return nil
 		},
 	}
 
@@ -199,6 +213,7 @@ func init() {
 	setPackagesFlag(
 		vulHostListCvesCmd.Flags(),
 		vulHostShowAssessmentCmd.Flags(),
+		vulHostScanPkgManifestCmd.Flags(),
 	)
 
 	setDetailsFlag(
@@ -682,4 +697,127 @@ func addToHostSummary(text []string, num int32, severity string) []string {
 		}
 	}
 	return text
+}
+
+func hostScanPackagesVulnToTable(vulns []api.HostScanPackageVulnDetails) string {
+	var (
+		tableBuilder = &strings.Builder{}
+		t            = tablewriter.NewWriter(tableBuilder)
+	)
+
+	t.SetHeader([]string{
+		"CVE",
+		"Severity",
+		"Score",
+		"Package",
+		"Version",
+		"Fix Version",
+	})
+	t.SetBorder(false)
+	t.AppendBulk(hostScanPackagesVulnDetailsTable(vulns))
+	t.Render()
+
+	return tableBuilder.String()
+}
+
+func hostScanPackagesVulnDetailsTable(vulns []api.HostScanPackageVulnDetails) [][]string {
+	out := [][]string{}
+	for _, vuln := range vulns {
+		if vuln.Summary.EvalStatus != "MATCH_VULN" {
+			continue
+		}
+
+		fixedVersion := ""
+		if vuln.FixInfo.EvalStatus == "GOOD" {
+			fixedVersion = vuln.FixInfo.FixedVersion
+		}
+
+		out = append(out, []string{
+			vuln.VulnID,
+			vuln.Severity,
+			vuln.ScoreString(),
+			vuln.OsPkgInfo.Pkg,
+			vuln.OsPkgInfo.PkgVer,
+			fixedVersion,
+		})
+	}
+
+	// order by severity
+	sort.Slice(out, func(i, j int) bool {
+		return severityOrder(out[i][1]) < severityOrder(out[j][1])
+	})
+
+	return out
+}
+
+func hostScanPackagesVulnSummary(vulns []api.HostScanPackageVulnDetails) string {
+	var (
+		tableBuilder = &strings.Builder{}
+		t            = tablewriter.NewWriter(tableBuilder)
+	)
+
+	t.SetHeader([]string{
+		"CVE Count",
+		"Severity",
+		"Package",
+		"Version",
+		"Fixes Available",
+	})
+	t.SetBorder(false)
+	t.AppendBulk(hostScanPackagesVulnSummaryTable(vulns))
+	t.Render()
+
+	return tableBuilder.String()
+}
+
+func hostScanPackagesVulnSummaryTable(vulns []api.HostScanPackageVulnDetails) [][]string {
+	out := [][]string{}
+	for _, vuln := range vulns {
+		if vuln.Summary.EvalStatus != "MATCH_VULN" {
+			continue
+		}
+
+		added := false
+		for i := range out {
+			if out[i][1] == vuln.Severity &&
+				out[i][2] == vuln.OsPkgInfo.Pkg &&
+				out[i][3] == vuln.OsPkgInfo.PkgVer {
+
+				if countCVEs, err := strconv.Atoi(out[i][0]); err == nil {
+					out[i][0] = fmt.Sprintf("%d", (countCVEs + 1))
+					added = true
+				}
+
+				if vuln.FixInfo.EvalStatus == "GOOD" {
+					if fixes, err := strconv.Atoi(out[i][4]); err == nil {
+						out[i][4] = fmt.Sprintf("%d", (fixes + 1))
+					}
+				}
+			}
+		}
+
+		if added {
+			continue
+		}
+
+		fixes := "0"
+		if vuln.FixInfo.EvalStatus == "GOOD" {
+			fixes = "1"
+		}
+
+		out = append(out, []string{
+			"1",
+			vuln.Severity,
+			vuln.OsPkgInfo.Pkg,
+			vuln.OsPkgInfo.PkgVer,
+			fixes,
+		})
+	}
+
+	// order by severity
+	sort.Slice(out, func(i, j int) bool {
+		return severityOrder(out[i][1]) < severityOrder(out[j][1])
+	})
+
+	return out
 }
