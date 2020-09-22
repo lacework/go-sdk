@@ -31,7 +31,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var SupportedPackageManagers = []string{"dpkg-query", "rpm", "apk"} // @afiune can we support ym and apk?
+var SupportedPackageManagers = []string{"dpkg-query", "rpm"} // @afiune can we support ym and apk?
 
 type PackageManifest struct {
 	OsPkgInfoList []OsPkgInfo `json:"os_pkg_info_list"`
