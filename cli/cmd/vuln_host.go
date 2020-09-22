@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"sort"
@@ -37,11 +38,35 @@ var (
 	// the package manifest file
 	pkgManifestFile string
 
+	// automatically generate the package manifest from the local host
+	pkgManifestLocal bool
+
+	vulHostGenPkgManifestCmd = &cobra.Command{
+		Use:   "generate-pkg-manifest",
+		Args:  cobra.NoArgs,
+		Short: "generates a package-manifest from the local host",
+		Long: `Generates a package-manifest formatted for usage with the Lacework
+scan package-manifest API.
+
+Additionally, you can automatically generate a package-manifest from
+the local host and send it directly to the Lacework API with the command:
+
+    $ lacework vulnerability host scan-pkg-manifest --local
+    `,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			manifest, err := cli.GeneratePackageManifest()
+			if err != nil {
+				return errors.Wrap(err, "unable to generate package manifest")
+			}
+
+			return cli.OutputJSON(manifest)
+		},
+	}
+
 	vulHostScanPkgManifestCmd = &cobra.Command{
-		Use:     "scan-pkg-manifest <manifest>",
-		Aliases: []string{"manifest"},
-		Args:    cobra.MaximumNArgs(1),
-		Short:   "request an on-demand host vulnerability assessment from a package-manifest",
+		Use:   "scan-pkg-manifest <manifest>",
+		Args:  cobra.MaximumNArgs(1),
+		Short: "request an on-demand host vulnerability assessment from a package-manifest",
 		Long: `Request an on-demand host vulnerability assessment of your software packages to
 determine if the packages contain any common vulnerabilities and exposures.
 
@@ -57,6 +82,10 @@ Simple usage:
             }
         ]
     }'
+
+To generate a package-manifest from the local host and scan it automatically:
+
+    $ lacework vulnerability host scan-pkg-manifest --local
 
 (*) NOTE:
  - Only packages managed by a package manager for supported OS's are reported.
@@ -74,6 +103,17 @@ Simple usage:
 					return errors.Wrap(err, "unable to read file")
 				}
 				pkgManifest = string(pkgManifestBytes)
+			} else if pkgManifestLocal {
+				manifest, err := cli.GeneratePackageManifest()
+				if err != nil {
+					return errors.Wrap(err, "unable to generate package manifest")
+				}
+				manifestString, err := json.Marshal(&manifest)
+				if err != nil {
+					panic(err)
+				}
+
+				pkgManifest = string(manifestString)
 			} else {
 				// avoid asking for a confirmation before launching the editor
 				prompt := &survey.Editor{
@@ -227,6 +267,7 @@ Grab a CVE id and feed it to the command:
 func init() {
 	// add sub-commands to the 'vulnerability host' command
 	vulHostCmd.AddCommand(vulHostScanPkgManifestCmd)
+	vulHostCmd.AddCommand(vulHostGenPkgManifestCmd)
 	vulHostCmd.AddCommand(vulHostListAssessmentsCmd)
 	vulHostCmd.AddCommand(vulHostListCvesCmd)
 	vulHostCmd.AddCommand(vulHostListHostsCmd)
@@ -265,6 +306,12 @@ func init() {
 	vulHostScanPkgManifestCmd.Flags().StringVarP(&pkgManifestFile,
 		"file", "f", "",
 		"path to a package manifest to scan",
+	)
+
+	// automatically generate the package manifest from the local host
+	vulHostScanPkgManifestCmd.Flags().BoolVarP(&pkgManifestLocal,
+		"local", "l", false,
+		"automatically generate the package manifest from the local host",
 	)
 }
 
@@ -735,7 +782,12 @@ func hostScanPackagesVulnToTable(vulns []api.HostScanPackageVulnDetails) string 
 	var (
 		tableBuilder = &strings.Builder{}
 		t            = tablewriter.NewWriter(tableBuilder)
+		rows         = hostScanPackagesVulnDetailsTable(vulns)
 	)
+
+	if len(rows) == 0 {
+		return "There are no matching vulnerabilities. Try adding '--json'.\n"
+	}
 
 	t.SetHeader([]string{
 		"CVE",
@@ -746,6 +798,7 @@ func hostScanPackagesVulnToTable(vulns []api.HostScanPackageVulnDetails) string 
 		"Fix Version",
 	})
 	t.SetBorder(false)
+	t.SetAlignment(tablewriter.ALIGN_LEFT)
 	t.AppendBulk(hostScanPackagesVulnDetailsTable(vulns))
 	t.Render()
 
@@ -786,7 +839,12 @@ func hostScanPackagesVulnSummary(vulns []api.HostScanPackageVulnDetails) string 
 	var (
 		tableBuilder = &strings.Builder{}
 		t            = tablewriter.NewWriter(tableBuilder)
+		rows         = hostScanPackagesVulnSummaryTable(vulns)
 	)
+
+	if len(rows) == 0 {
+		return "There are no matching vulnerabilities. Try adding '--json'.\n"
+	}
 
 	t.SetHeader([]string{
 		"CVE Count",
@@ -796,7 +854,8 @@ func hostScanPackagesVulnSummary(vulns []api.HostScanPackageVulnDetails) string 
 		"Fixes Available",
 	})
 	t.SetBorder(false)
-	t.AppendBulk(hostScanPackagesVulnSummaryTable(vulns))
+	t.SetAlignment(tablewriter.ALIGN_LEFT)
+	t.AppendBulk(rows)
 	t.Render()
 
 	return tableBuilder.String()
