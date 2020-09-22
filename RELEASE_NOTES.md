@@ -1,15 +1,13 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.2.2`.
+Another day, another release. These are the release notes for the version `v0.2.3`.
 
 ## Features
-* feat(lql): --file flag to load LQL query from disk (Salim Afiune Maya)([4804319](https://github.com/lacework/go-sdk/commit/4804319a0c26211119c10eb3dc4d889b3da7e227))
-* feat(cli): --file to pass a package manifest file (Salim Afiune Maya)([75680d8](https://github.com/lacework/go-sdk/commit/75680d8d9469d8679b17c46979439340d8869da9))
-* feat: human-readable output for scan-pkg-manifest (Salim Afiune Maya)([783f550](https://github.com/lacework/go-sdk/commit/783f55015c1e6a1071927e19810266376ecbe082))
-* feat(lql): improve running queries (Salim Afiune Maya)([61c5ee5](https://github.com/lacework/go-sdk/commit/61c5ee51aac65626aff4f81ebceb96633865d2f7))
-## Bug Fixes
-* fix(ci): remove slack notification for windows (#214) (Salim Afiune)([a2c5124](https://github.com/lacework/go-sdk/commit/a2c51242c08c1683cfb9c80c832be2559058f957))
+* feat(cli): add scan-pkg-manifest summary 📈 (#220) (Salim Afiune)([9b009c3](https://github.com/lacework/go-sdk/commit/9b009c3e98a69d294d424c2b912b1aadb675ee98))
+* feat(ux): generate package-manifest command (#217) (Salim Afiune)([0c842ab](https://github.com/lacework/go-sdk/commit/0c842ab15c30b3f754a379ecd2aea014c367bae7))
+## Refactor
+* refactor: remove 'apk' as supported pkg manager (Salim Afiune Maya)([4165783](https://github.com/lacework/go-sdk/commit/41657839f06ea9b8eae85119451c77e632ec99bb))
 ## Other Changes
-* ci(slack): notify pipeline failures (#213) (Salim Afiune)([85ad396](https://github.com/lacework/go-sdk/commit/85ad396f6cb049ab246ff36fa2f29d46fab6459d))
+* chore(ci): update lacework circleci orb (Salim Afiune Maya)([3952c66](https://github.com/lacework/go-sdk/commit/3952c66f47dbb0024b3fef35f3f39087fa76844e))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
