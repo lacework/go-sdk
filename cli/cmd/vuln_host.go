@@ -51,8 +51,7 @@ scan package-manifest API.
 Additionally, you can automatically generate a package-manifest from
 the local host and send it directly to the Lacework API with the command:
 
-    $ lacework vulnerability host scan-pkg-manifest --local
-    `,
+    $ lacework vulnerability host scan-pkg-manifest --local`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			manifest, err := cli.GeneratePackageManifest()
 			if err != nil {
@@ -93,7 +92,6 @@ To generate a package-manifest from the local host and scan it automatically:
  - This operation is limited to 1k of packages per payload. If you require a payload
    larger than 1k, you must make multiple requests.`,
 		RunE: func(_ *cobra.Command, args []string) error {
-
 			var pkgManifest = ""
 			if len(args) != 0 && args[0] != "" {
 				pkgManifest = args[0]
@@ -141,11 +139,7 @@ To generate a package-manifest from the local host and scan it automatically:
 				return nil
 			}
 
-			if vulCmdState.Packages {
-				cli.OutputHuman(hostScanPackagesVulnSummary(response.Vulns))
-			} else {
-				cli.OutputHuman(hostScanPackagesVulnToTable(response.Vulns))
-			}
+			cli.OutputHuman(hostScanPackagesVulnToTable(&response))
 			return nil
 		},
 	}
@@ -276,6 +270,7 @@ func init() {
 	setFixableFlag(
 		vulHostListCvesCmd.Flags(),
 		vulHostShowAssessmentCmd.Flags(),
+		vulHostScanPkgManifestCmd.Flags(),
 	)
 
 	setPackagesFlag(
@@ -778,28 +773,64 @@ func addToHostSummary(text []string, num int32, severity string) []string {
 	return text
 }
 
-func hostScanPackagesVulnToTable(vulns []api.HostScanPackageVulnDetails) string {
+func hostScanPackagesVulnToTable(scan *api.HostVulnScanPkgManifestResponse) string {
 	var (
-		tableBuilder = &strings.Builder{}
-		t            = tablewriter.NewWriter(tableBuilder)
-		rows         = hostScanPackagesVulnDetailsTable(vulns)
+		tableBuilder   = &strings.Builder{}
+		summaryBuilder = &strings.Builder{}
+		t              *tablewriter.Table
+		rows           [][]string
+		headers        []string
 	)
 
+	if vulCmdState.Packages {
+		rows = hostScanPackagesVulnPackagesView(scan.Vulns)
+		headers = []string{
+			"CVE Count",
+			"Severity",
+			"Package",
+			"Version",
+			"Fixes Available",
+		}
+	} else {
+		rows = hostScanPackagesVulnDetailsTable(scan.Vulns)
+		headers = []string{
+			"CVE",
+			"Severity",
+			"Score",
+			"Package",
+			"Version",
+			"Fix Version",
+		}
+	}
+
 	if len(rows) == 0 {
+		if vulCmdState.Fixable {
+			return "There are no fixable vulnerabilities.\n"
+		}
 		return "There are no matching vulnerabilities. Try adding '--json'.\n"
 	}
 
+	t = tablewriter.NewWriter(summaryBuilder)
+	t.SetBorder(false)
+	t.SetColumnSeparator(" ")
 	t.SetHeader([]string{
-		"CVE",
-		"Severity",
-		"Score",
-		"Package",
-		"Version",
-		"Fix Version",
+		"Severity", "Count", "Fixable",
 	})
+	t.AppendBulk(hostVulnAssessmentToCountsTable(scan.VulnerabilityCounts()))
+	t.Render()
+
+	t = tablewriter.NewWriter(tableBuilder)
+	t.SetBorder(false)
+	t.SetAutoWrapText(false)
+	t.SetHeader([]string{"Vulnerabilities"})
+	t.Append([]string{summaryBuilder.String()})
+	t.Render()
+
+	t = tablewriter.NewWriter(tableBuilder)
+	t.SetHeader(headers)
 	t.SetBorder(false)
 	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.AppendBulk(hostScanPackagesVulnDetailsTable(vulns))
+	t.AppendBulk(rows)
 	t.Render()
 
 	return tableBuilder.String()
@@ -809,6 +840,10 @@ func hostScanPackagesVulnDetailsTable(vulns []api.HostScanPackageVulnDetails) []
 	out := [][]string{}
 	for _, vuln := range vulns {
 		if vuln.Summary.EvalStatus != "MATCH_VULN" {
+			continue
+		}
+
+		if vulCmdState.Fixable && vuln.FixInfo.EvalStatus != "GOOD" {
 			continue
 		}
 
@@ -835,36 +870,14 @@ func hostScanPackagesVulnDetailsTable(vulns []api.HostScanPackageVulnDetails) []
 	return out
 }
 
-func hostScanPackagesVulnSummary(vulns []api.HostScanPackageVulnDetails) string {
-	var (
-		tableBuilder = &strings.Builder{}
-		t            = tablewriter.NewWriter(tableBuilder)
-		rows         = hostScanPackagesVulnSummaryTable(vulns)
-	)
-
-	if len(rows) == 0 {
-		return "There are no matching vulnerabilities. Try adding '--json'.\n"
-	}
-
-	t.SetHeader([]string{
-		"CVE Count",
-		"Severity",
-		"Package",
-		"Version",
-		"Fixes Available",
-	})
-	t.SetBorder(false)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.AppendBulk(rows)
-	t.Render()
-
-	return tableBuilder.String()
-}
-
-func hostScanPackagesVulnSummaryTable(vulns []api.HostScanPackageVulnDetails) [][]string {
+func hostScanPackagesVulnPackagesView(vulns []api.HostScanPackageVulnDetails) [][]string {
 	out := [][]string{}
 	for _, vuln := range vulns {
 		if vuln.Summary.EvalStatus != "MATCH_VULN" {
+			continue
+		}
+
+		if vulCmdState.Fixable && vuln.FixInfo.EvalStatus != "GOOD" {
 			continue
 		}
 

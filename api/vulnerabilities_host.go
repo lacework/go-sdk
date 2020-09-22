@@ -34,7 +34,7 @@ type HostVulnerabilityService struct {
 //
 // NOTE: Only packages managed by a package manager for supported OS's are reported
 func (svc *HostVulnerabilityService) Scan(manifest string) (
-	response hostVulnScanPkgManifestResponse,
+	response HostVulnScanPkgManifestResponse,
 	err error,
 ) {
 	err = svc.client.RequestDecoder("POST",
@@ -262,10 +262,50 @@ type HostVulnCveSummary struct {
 	LastEvaluationTime   Json16DigitTime        `json:"last_evaluation_time"`
 }
 
-type hostVulnScanPkgManifestResponse struct {
+type HostVulnScanPkgManifestResponse struct {
 	Vulns   []HostScanPackageVulnDetails `json:"data"`
 	Ok      bool                         `json:"ok"`
 	Message string                       `json:"message"`
+}
+
+func (scanPkgManifest *HostVulnScanPkgManifestResponse) VulnerabilityCounts() HostVulnCounts {
+	var hostCounts = HostVulnCounts{}
+
+	for _, vuln := range scanPkgManifest.Vulns {
+		if vuln.Summary.EvalStatus != "MATCH_VULN" {
+			continue
+		}
+
+		switch vuln.Severity {
+		case "Critical":
+			hostCounts.Critical++
+			if vuln.FixInfo.EvalStatus == "GOOD" {
+				hostCounts.CritFixable++
+			}
+		case "High":
+			hostCounts.High++
+			if vuln.FixInfo.EvalStatus == "GOOD" {
+				hostCounts.HighFixable++
+			}
+		case "Medium":
+			hostCounts.Medium++
+			if vuln.FixInfo.EvalStatus == "GOOD" {
+				hostCounts.MedFixable++
+			}
+		case "Low":
+			hostCounts.Low++
+			if vuln.FixInfo.EvalStatus == "GOOD" {
+				hostCounts.LowFixable++
+			}
+		default:
+			hostCounts.Negligible++
+			if vuln.FixInfo.EvalStatus == "GOOD" {
+				hostCounts.NegFixable++
+			}
+		}
+	}
+
+	return hostCounts
 }
 
 func (scanPkg *HostScanPackageVulnDetails) ScoreString() string {
