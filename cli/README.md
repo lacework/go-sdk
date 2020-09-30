@@ -115,9 +115,9 @@ $ lacework integrations list
 ```bash
 $ lacework events list
 ```
-3) Request an on-demand vulnerability scan:
+3) Request an on-demand container vulnerability scan:
 ```bash
-$ lacework vulnerability scan run index.docker.io techallylw/lacework-cli latest
+$ lacework vulnerability container scan index.docker.io lacework/lacework-cli latest
 ```
 4) Use the `api` command to access Lacework's RestfulAPI, for example,
 to list the common vulnerabilities found in the hosts of your Lacework environment:

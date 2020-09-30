@@ -6,7 +6,7 @@ set -eou pipefail
 if [ -n "${LW_DEBUG:-}" ]; then set -x; fi
 
 readonly github_releases="https://github.com/lacework/go-sdk/releases"
-readonly installation_dir=/usr/local/bin
+readonly default_install_dir=/usr/local/bin
 readonly package_name=lacework-cli
 readonly binary_name=lacework
 
@@ -24,6 +24,7 @@ USAGE:
 FLAGS:
     -h    Prints help information
     -v    Specifies a version (ex: v0.1.0)
+    -d    The installation directory (default: $default_install_dir)
     -t    Specifies the target of the program to download (default: linux-amd64)
 USAGE
 }
@@ -31,8 +32,8 @@ USAGE
 main() {
   version=""
 
-  # Parse command line flags and options.
-  while getopts "c:hv:t:" opt; do
+  # Parse command line flags and options
+  while getopts "h:v:t:d:" opt; do
     case "${opt}" in
       h)
         usage
@@ -44,6 +45,9 @@ main() {
       t)
         target="${OPTARG}"
         ;;
+      d)
+        installation_dir="${OPTARG}"
+        ;;
       \?)
         echo "" >&2
         usage >&2
@@ -51,6 +55,10 @@ main() {
         ;;
     esac
   done
+
+  if [ -z "${installation_dir:-}" ]; then
+    installation_dir=$default_install_dir
+  fi
 
   log "Installing the Lacework CLI"
   create_workdir
