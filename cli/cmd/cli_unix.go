@@ -21,6 +21,9 @@ package cmd
 
 import "github.com/AlecAivazis/survey/v2"
 
+// used by configure.go
+var configureListCmdSetProfileEnv = `$ export LW_PROFILE="my-profile"`
+
 // promptIconsFuncs configures the prompt icons for Unix systems
 var promptIconsFunc = func(icons *survey.IconSet) {
 	icons.Question.Text = "▸"

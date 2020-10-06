@@ -20,6 +20,9 @@ package cmd
 
 import "github.com/AlecAivazis/survey/v2"
 
+// used by configure.go
+var configureListCmdSetProfileEnv = `C:\> $env:LW_PROFILE = 'my-profile'`
+
 // promptIconsFuncs configures the prompt icons for Windows systems
 var promptIconsFunc = func(icons *survey.IconSet) {
 	icons.Question.Text = ">"

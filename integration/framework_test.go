@@ -172,6 +172,21 @@ func createDummyTOMLConfig() string {
 account = 'dummy'
 api_key = 'DUMMY_1234567890abcdefg'
 api_secret = '_superdummysecret'
+
+[test]
+account = 'test.account'
+api_key = 'INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00'
+api_secret = '_00000000000000000000000000000000'
+
+[integration]
+account = 'integration'
+api_key = 'INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70'
+api_secret = '_1234abdc00ff11vv22zz33xyz1234abc'
+
+[dev]
+account = 'dev.example'
+api_key = 'DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC000'
+api_secret = '_11111111111111111111111111111111'
 `)
 	err = ioutil.WriteFile(configFile, c, 0644)
 	if err != nil {

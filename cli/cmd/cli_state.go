@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	prettyjson "github.com/hokaccha/go-prettyjson"
@@ -114,6 +115,26 @@ func (c *cliState) LoadState() error {
 
 	c.loadStateFromViper()
 	return nil
+}
+
+// LoadProfiles loads all the profiles from the configuration file
+func (c *cliState) LoadProfiles() (Profiles, error) {
+	var (
+		profiles = Profiles{}
+		confPath = viper.ConfigFileUsed()
+	)
+
+	if confPath == "" {
+		return profiles, errors.New("unable to load profiles. No configuration file found.")
+	}
+
+	cli.Log.Debugw("decoding config", "path", confPath)
+	if _, err := toml.DecodeFile(confPath, &profiles); err != nil {
+		return profiles, errors.Wrap(err, "unable to decode profiles from config")
+	}
+
+	cli.Log.Debugw("profiles loaded from config", "profiles", profiles)
+	return profiles, nil
 }
 
 // VerifySettings checks if the CLI state has the neccessary settings to run,
