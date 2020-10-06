@@ -40,11 +40,11 @@ var (
 
 Use the following command to list all Azure integrations in your account:
 
-  $ lacework integrations list --type AZURE_CFG
+    $ lacework integrations list --type AZURE_CFG
 
 Then, select one GUID from an integration and visualize its details using the command:
 
-  $ lacework integration show <int_guid>
+    $ lacework integration show <int_guid>
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -83,7 +83,7 @@ typically once a day. The available report formats are human-readable (default),
 
 To run an ad-hoc compliance assessment use the command:
 
-  $ lacework compliance azure run-assessment <tenant_id>
+    $ lacework compliance azure run-assessment <tenant_id>
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(_ *cobra.Command, args []string) error {

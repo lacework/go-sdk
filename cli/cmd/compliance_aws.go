@@ -52,15 +52,15 @@ typically once a day. The available report formats are human-readable (default),
 
 To find out which AWS accounts are connected to you Lacework account, use the following command:
 
-  $ lacework integrations list --type AWS_CFG
+    $ lacework integrations list --type AWS_CFG
 
 Then, choose one integration, copy the GUID and visualize its details using the command:
 
-  $ lacework integration show <int_guid>
+    $ lacework integration show <int_guid>
 
 To run an ad-hoc compliance assessment use the command:
 
-  $ lacework compliance aws run-assessment <account_id>
+    $ lacework compliance aws run-assessment <account_id>
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {

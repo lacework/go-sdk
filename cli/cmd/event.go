@@ -74,7 +74,7 @@ Additionally, pass --days to list events for a specified number of days.
 For example, to list all events from the last day with severity medium and above
 (Critical, High and Medium) run:
 
-  $ lacework events list --severity medium --days 1`,
+    $ lacework events list --severity medium --days 1`,
 		Args: cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 

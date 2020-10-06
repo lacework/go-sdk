@@ -135,6 +135,7 @@ prepare_release() {
   log "preparing new release"
   prerequisites
   remove_tag_version
+  generate_cli_docs
   generate_release_notes
   update_changelog
   add_tag_version "release"
@@ -148,6 +149,10 @@ publish_release() {
   compress_targets
   generate_shasums
   create_release
+}
+
+generate_cli_docs() {
+  make generate-docs
 }
 
 update_changelog() {
