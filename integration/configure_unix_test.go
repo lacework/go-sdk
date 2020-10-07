@@ -270,7 +270,20 @@ func TestConfigureCommandWithJSONFileFlagError(t *testing.T) {
 	assert.Contains(t,
 		err.String(),
 		"ERROR unable to load keys from the provided json file: open foo: no such file or directory",
-		"STDERR should be empty")
+		"STDERR error message changed, please check")
 	assert.Equal(t, 1, exitcode,
+		"EXITCODE is not the expected one")
+}
+
+func TestConfigureListHelp(t *testing.T) {
+	out, err, exitcode := LaceworkCLI("configure", "list", "--help")
+	assert.Empty(t,
+		err.String(),
+		"STDERR should be empty")
+	assert.Contains(t,
+		out.String(),
+		"$ export LW_PROFILE=\"my-profile\"",
+		"STDOUT the environment variable in the help message is not correct")
+	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
 }

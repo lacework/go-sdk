@@ -150,7 +150,8 @@ For example, to list all events from the last day with severity medium and above
 	// eventShowCmd represents the show sub-command inside the event command
 	eventShowCmd = &cobra.Command{
 		Use:   "show <event_id>",
-		Short: "Show details about a specific event",
+		Short: "show details about a specific event",
+		Long:  "Show details about a specific event.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			cli.Log.Infow("requesting event details", "event_id", args[0])

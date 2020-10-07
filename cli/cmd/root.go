@@ -39,8 +39,7 @@ var (
 		Use:           "lacework",
 		Short:         "A tool to manage the Lacework cloud security platform.",
 		SilenceErrors: true,
-		Long: `
-The Lacework Command Line Interface is a tool that helps you manage the
+		Long: `The Lacework Command Line Interface is a tool that helps you manage the
 Lacework cloud security platform. Use it to manage compliance reports,
 external integrations, vulnerability scans, and other operations.
 
@@ -54,6 +53,10 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 			case "help [command]", "configure", "version", "generate-pkg-manifest":
 				return nil
 			default:
+				// @afiune no need to create a client for any configure command
+				if cmd.HasParent() && cmd.Parent().Use == "configure" {
+					return nil
+				}
 				return cli.NewClient()
 			}
 		},
@@ -162,7 +165,9 @@ func initConfig() {
 			cli.Log.Debugw("configuration file not found")
 		} else {
 			// the config file was found but another error was produced
-			exitwith(errors.Wrap(err, "Error: unable to read in config"))
+			errcheckWARN(rootCmd.Help())
+			cli.OutputHuman("\n")
+			exitwith(errors.Wrap(err, "unable to read in config file ~/.lacework.toml"))
 		}
 	} else {
 		cli.Log.Debugw("using configuration file",
