@@ -1,13 +1,52 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.2.3`.
+Another day, another release. These are the release notes for the version `v0.2.4`.
+
+### Allow custom installation directory
+Now you can install the Lacework CLI on any directory you wish to install it!
+```
+$ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash -s -- -d $HOME/bin
+```
+
+The `install.sh` script has other flags like `-v` that allows you to rollback
+to a previous version of the Lacework CLI:
+```
+bash: Installs the Lacework Command Line Interface.
+
+Authors: Technology Alliances <tech-ally@lacework.net>
+
+USAGE:
+    bash [FLAGS]
+
+FLAGS:
+    -h    Prints help information
+    -v    Specifies a version (ex: v0.1.0)
+    -d    The installation directory (default: /usr/local/bin)
+    -t    Specifies the target of the program to download (default: linux-amd64)
+```
+
+### Programatic access to profile data
+We have seen a number of Lacework CLI users with a high number of configured
+profiles, to help them manage their profiles we have introduced a new `list`
+command that lists all profiles configured into the config file located at
+`~/.lacework.toml`:
+```
+$ lacework configure list
+```
+
+Additionally, there is a new `show` command that allows you to programmatically
+access the current computed configuration data. This makes it easy to export
+the necessary environment variables for different workflows:
+```
+$ export LW_API_KEY="$(lacework configure show api_key --profile dev)"
+```
 
 ## Features
-* feat(cli): add scan-pkg-manifest summary 📈 (#220) (Salim Afiune)([9b009c3](https://github.com/lacework/go-sdk/commit/9b009c3e98a69d294d424c2b912b1aadb675ee98))
-* feat(ux): generate package-manifest command (#217) (Salim Afiune)([0c842ab](https://github.com/lacework/go-sdk/commit/0c842ab15c30b3f754a379ecd2aea014c367bae7))
-## Refactor
-* refactor: remove 'apk' as supported pkg manager (Salim Afiune Maya)([4165783](https://github.com/lacework/go-sdk/commit/41657839f06ea9b8eae85119451c77e632ec99bb))
+* feat(cli): programatic access to profile data (#225) (Salim Afiune)([ab7ce7c](https://github.com/lacework/go-sdk/commit/ab7ce7cfe8e94053ca6bf8d32d929c5e748496e4))
+* feat(cli): allow custom installation directory -d 📁 (#223) (Salim Afiune)([ee9e686](https://github.com/lacework/go-sdk/commit/ee9e686c46029b32e711f9534ecd7755926ec22b))
+## Documentation Updates
+* docs: automatically generate cli docs (#224) (Salim Afiune)([5b91e1e](https://github.com/lacework/go-sdk/commit/5b91e1e788128dd3cddf457bce565749c73eddae))
 ## Other Changes
-* chore(ci): update lacework circleci orb (Salim Afiune Maya)([3952c66](https://github.com/lacework/go-sdk/commit/3952c66f47dbb0024b3fef35f3f39087fa76844e))
+* chore: add badges to README.md (#222) (Salim Afiune)([db7235d](https://github.com/lacework/go-sdk/commit/db7235d20e7af012cb8e8f3041a02728d4f28719))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
