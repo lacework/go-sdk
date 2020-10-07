@@ -32,7 +32,7 @@ func TestComplianceCommandHelp(t *testing.T) {
 To start sending data about your environment to Lacework for compliance reporting
 analysis, configure one or more cloud integration using the following command:
 
-  $ lacework integration create
+    $ lacework integration create
 
 Or, if you prefer to do it via the WebUI, log in to your account at:
 
@@ -42,7 +42,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 Use the following command to list all available integrations in your account:
 
-  $ lacework integrations list
+    $ lacework integrations list
 
 Usage:
   lacework compliance [command]

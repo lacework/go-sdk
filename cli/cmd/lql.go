@@ -38,7 +38,7 @@ var (
 
 A simple example of an LQL query:
 
-  $ lacework lql 'SimpleLQL_3(RecentComplianceReports Data) {SELECT Data.*}'
+    $ lacework lql 'SimpleLQL_3(RecentComplianceReports Data) {SELECT Data.*}'
 
 NOTE: This feature is not yet available!`,
 		Args: cobra.MaximumNArgs(1),
