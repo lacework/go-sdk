@@ -807,7 +807,12 @@ func hostScanPackagesVulnToTable(scan *api.HostVulnScanPkgManifestResponse) stri
 		if vulCmdState.Fixable {
 			return "There are no fixable vulnerabilities.\n"
 		}
-		return "There are no matching vulnerabilities. Try adding '--json'.\n"
+		scannedVia := "package manifest"
+		if pkgManifestLocal {
+			scannedVia = "localhost"
+		}
+		return fmt.Sprintf("Great news! The %s has no vulnerabilities... (time for %s)\n",
+			scannedVia, randomEmoji())
 	}
 
 	t = tablewriter.NewWriter(summaryBuilder)
