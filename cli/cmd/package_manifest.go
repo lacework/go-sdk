@@ -70,7 +70,7 @@ func (c *cliState) GeneratePackageManifest() (*PackageManifest, error) {
 	switch manager {
 	case "rpm":
 		managerQuery, err = exec.Command(
-			"rpm", "-qa", "--queryformat", "%{NAME},%{VERSION}-%{RELEASE}\n",
+			"rpm", "-qa", "--queryformat", "%{NAME},%|EPOCH?{%{EPOCH}}:{0}|:%{VERSION}-%{RELEASE}\n",
 		).Output()
 		if err != nil {
 			return manifest, errors.Wrap(err, "unable to query packages from package manager")
