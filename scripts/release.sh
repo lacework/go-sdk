@@ -11,6 +11,7 @@
 set -eou pipefail
 
 readonly project_name=go-sdk
+readonly org_name=lacework
 readonly package_name=lacework-cli
 readonly binary_name=lacework
 readonly docker_org=lacework
@@ -82,7 +83,7 @@ trigger_release() {
       log ""
       log "removing release tag from version '${VERSION}'"
       remove_tag_version
-      log "commiting and pushing the vertion bump to github"
+      log "commiting and pushing the version bump to github"
       git config --global user.email "afiune@lacework.net"
       git config --global user.name "Salim Afiune Maya"
       git add VERSION
@@ -95,7 +96,7 @@ trigger_release() {
       log "No release needed. (VERSION=${VERSION})"
       log ""
       log "Read more about the release process at:"
-      log "  - https://github.com/lacework/${project_name}/wiki/Release-Process"
+      log "  - https://github.com/${org_name}/${project_name}/wiki/Release-Process"
   fi
 }
 
@@ -115,7 +116,7 @@ verify_release() {
       warn "$f needs to be updated"
       warn ""
       warn "Read more about the release process at:"
-      warn "  - https://github.com/lacework/${project_name}/wiki/Release-Process"
+      warn "  - https://github.com/${org_name}/${project_name}/wiki/Release-Process"
       exit 123
     fi
   done
@@ -126,7 +127,7 @@ verify_release() {
       warn "the 'VERSION' needs to be updated to have the 'x.y.z-release' tag"
       warn ""
       warn "Read more about the release process at:"
-      warn "  - https://github.com/lacework/${project_name}/wiki/Release-Process"
+      warn "  - https://github.com/${org_name}/${project_name}/wiki/Release-Process"
       exit 123
   fi
 }
@@ -169,7 +170,7 @@ update_changelog() {
 
 load_list_of_changes() {
   latest_version=$(find_latest_version)
-  local _list_of_changes=$(git log --no-merges --pretty="* %s (%an)([%h](https://github.com/lacework/${project_name}/commit/%H))" ${latest_version}..master)
+  local _list_of_changes=$(git log --no-merges --pretty="* %s (%an)([%h](https://github.com/${org_name}/${project_name}/commit/%H))" ${latest_version}..master)
   echo "## Features" > CHANGES.md
   echo "$_list_of_changes" | grep "\* feat[:(]" >> CHANGES.md
   echo "## Refactor" >> CHANGES.md
@@ -367,7 +368,7 @@ create_release() {
   log "generating GH release $_tag"
   generate_release_body "$_body"
   curl -XPOST -H "Authorization: token $GITHUB_TOKEN" --data  "@$_body" \
-        https://api.github.com/repos/lacework/${project_name}/releases > $_release
+        https://api.github.com/repos/${org_name}/${project_name}/releases > $_release
 
   local _content_type
   local _artifact
@@ -400,7 +401,7 @@ create_release() {
 
   log "the release has been completed!"
   log ""
-  log " -> https://github.com/lacework/${project_name}/releases/tag/${_tag}"
+  log " -> https://github.com/${org_name}/${project_name}/releases/tag/${_tag}"
 }
 
 generate_release_body() {
