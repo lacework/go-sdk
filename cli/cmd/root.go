@@ -36,9 +36,10 @@ var (
 
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
-		Use:           "lacework",
-		Short:         "A tool to manage the Lacework cloud security platform.",
-		SilenceErrors: true,
+		Use:               "lacework",
+		Short:             "A tool to manage the Lacework cloud security platform.",
+		DisableAutoGenTag: true,
+		SilenceErrors:     true,
 		Long: `The Lacework Command Line Interface is a tool that helps you manage the
 Lacework cloud security platform. Use it to manage compliance reports,
 external integrations, vulnerability scans, and other operations.
