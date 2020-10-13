@@ -18,6 +18,8 @@
 
 package api
 
+import "go.uber.org/zap"
+
 // gcpResourceLevel determines Project or Organization level integration
 type gcpResourceLevel int
 
@@ -94,6 +96,35 @@ func (svc *IntegrationsService) CreateGcp(data GcpIntegration) (
 	err error,
 ) {
 	err = svc.create(data, &response)
+	if err != nil {
+		return
+	}
+
+	// WORKAROUND (@afiune) The backend is currently not triggering an initial
+	// report automatically after creation of Cloud Account (CFG) Integrations,
+	// we are implementing this trigger here until we implement it in the backend
+	// with RAIN-13422
+	if len(response.Data) == 0 {
+		return
+	}
+	if data.Type != GcpCfgIntegration.String() {
+		return
+	}
+
+	intgGuid := response.Data[0].IntgGuid
+	svc.client.log.Info("triggering compliance report",
+		zap.String("cloud_integration", data.Type),
+		zap.String("int_guid", intgGuid),
+	)
+	_, errComplianceReport := svc.client.Compliance.RunIntegrationReport(intgGuid)
+	if errComplianceReport != nil {
+		svc.client.log.Warn("unable to trigger compliance report",
+			zap.String("cloud_integration", data.Type),
+			zap.String("int_guid", intgGuid),
+			zap.String("error", errComplianceReport.Error()),
+		)
+	}
+
 	return
 }
 

@@ -18,6 +18,8 @@
 
 package api
 
+import "go.uber.org/zap"
+
 // NewAzureIntegration returns an instance of AzureIntegration with the provided
 // integration type, name and data. The type can only be AzureCfgIntegration or
 // AzureActivityLogIntegration
@@ -74,6 +76,35 @@ func (svc *IntegrationsService) CreateAzure(integration AzureIntegration) (
 	err error,
 ) {
 	err = svc.create(integration, &response)
+	if err != nil {
+		return
+	}
+
+	// WORKAROUND (@afiune) The backend is currently not triggering an initial
+	// report automatically after creation of Cloud Account (CFG) Integrations,
+	// we are implementing this trigger here until we implement it in the backend
+	// with RAIN-13422
+	if len(response.Data) == 0 {
+		return
+	}
+	if integration.Type != AzureCfgIntegration.String() {
+		return
+	}
+
+	intgGuid := response.Data[0].IntgGuid
+	svc.client.log.Info("triggering compliance report",
+		zap.String("cloud_integration", integration.Type),
+		zap.String("int_guid", intgGuid),
+	)
+	_, errComplianceReport := svc.client.Compliance.RunIntegrationReport(intgGuid)
+	if errComplianceReport != nil {
+		svc.client.log.Warn("unable to trigger compliance report",
+			zap.String("cloud_integration", integration.Type),
+			zap.String("int_guid", intgGuid),
+			zap.String("error", errComplianceReport.Error()),
+		)
+	}
+
 	return
 }
 
