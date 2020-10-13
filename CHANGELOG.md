@@ -1,3 +1,10 @@
+# v0.2.6
+
+## Features
+* feat(api): trigger initial report automatically (#230) (Salim Afiune)([1e24a22](https://github.com/lacework/go-sdk/commit/1e24a229d2f2c54b81809ccb156a9d4283962c32))
+## Documentation Updates
+* docs(cli): disable timestamp for automatic docs (#229) (Salim Afiune)([f4d7841](https://github.com/lacework/go-sdk/commit/f4d78417c307c38507995892999cb85e7be74cf2))
+---
 # v0.2.5
 
 ## Bug Fixes
