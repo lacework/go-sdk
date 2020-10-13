@@ -48,9 +48,10 @@ const (
 	apiComplianceAzureLatestReport      = "external/compliance/azure/GetLatestComplianceReport?AZURE_TENANT_ID=%s&AZURE_SUBS_ID=%s"
 	apiComplianceAzureListSubscriptions = "external/compliance/azure/ListSubscriptionsForTenant?AZURE_TENANT_ID=%s"
 
-	apiRunReportGcp   = "external/runReport/gcp/%s"
-	apiRunReportAws   = "external/runReport/aws/%s"
-	apiRunReportAzure = "external/runReport/azure/%s"
+	apiRunReportIntegration = "external/runReport/integration/%s"
+	apiRunReportGcp         = "external/runReport/gcp/%s"
+	apiRunReportAws         = "external/runReport/aws/%s"
+	apiRunReportAzure       = "external/runReport/azure/%s"
 
 	apiEventsDetails   = "external/events/GetEventDetails"
 	apiEventsDateRange = "external/events/GetEventsForDateRange"

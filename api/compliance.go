@@ -35,6 +35,15 @@ func (svc *ComplianceService) ListGcpProjects(orgID string) (
 	return
 }
 
+func (svc *ComplianceService) RunIntegrationReport(intgGuid string) (
+	response map[string]interface{},
+	err error,
+) {
+	apiPath := fmt.Sprintf(apiRunReportIntegration, intgGuid)
+	err = svc.client.RequestDecoder("POST", apiPath, nil, &response)
+	return
+}
+
 type compGcpProjectsResponse struct {
 	Data    []CompGcpProjects `json:"data"`
 	Ok      bool              `json:"ok"`
