@@ -1,11 +1,10 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.2.5`.
+Another day, another release. These are the release notes for the version `v0.2.6`.
 
-## Bug Fixes
-* fix(cli): add epoch to package manifest (Salim Afiune Maya)([17da487](https://github.com/lacework/go-sdk/commit/17da48755062265245d98ba6f4a330ae65fcdb6b))
-## Other Changes
-* chore(ci): make GH org a readonly parameter (Salim Afiune Maya)([b4f5f6d](https://github.com/lacework/go-sdk/commit/b4f5f6d5ba5a644a6198445bd820d68bf243907d))
-* chore(cli): update pkg-manifest message for 0 vuln (Salim Afiune Maya)([5029dc8](https://github.com/lacework/go-sdk/commit/5029dc82aa51f260e84cd476acd6c64cab7f063a))
+## Features
+* feat(api): trigger initial report automatically (#230) (Salim Afiune)([1e24a22](https://github.com/lacework/go-sdk/commit/1e24a229d2f2c54b81809ccb156a9d4283962c32))
+## Documentation Updates
+* docs(cli): disable timestamp for automatic docs (#229) (Salim Afiune)([f4d7841](https://github.com/lacework/go-sdk/commit/f4d78417c307c38507995892999cb85e7be74cf2))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
