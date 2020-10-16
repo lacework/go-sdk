@@ -1,6 +1,6 @@
 module github.com/briandowns/spinner
 
-go 1.14
+go 1.15
 
 require (
 	github.com/fatih/color v1.7.0
