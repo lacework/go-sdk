@@ -121,6 +121,12 @@ check_platform() {
    i686)
       arch=386
       ;;
+   aarch64* | armv8*)
+      arch=arm64
+      ;;
+   armv7* | arm)
+      arch=arm
+      ;;
     *)
       exit_with "architecture not supported: ${arch}" 3
       ;;
