@@ -273,6 +273,60 @@ type containerVulnerability struct {
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
+// traverseMetadata will try to extract an interface from the nested tree of key
+// values contain inside the Metadata field of a container vulnerability struct
+//
+// Example: extract the version 3 of the CVSS Score
+//
+//          score := v.traverseMetadata("NVD", "CVSSv3", "Score")
+//
+func (v *containerVulnerability) traverseMetadata(fields ...string) interface{} {
+
+	var (
+		metaInterface interface{}
+		metaMap       = v.Metadata
+	)
+	for i, field := range fields {
+
+		if i != 0 {
+			if newMap, ok := metaInterface.(map[string]interface{}); ok {
+				metaMap = newMap
+			} else {
+				return nil
+			}
+		}
+
+		if found, ok := metaMap[field]; ok {
+			metaInterface = found
+		} else {
+			return nil
+		}
+
+	}
+
+	return metaInterface
+}
+
+func (v *containerVulnerability) CVSSv3Score() float64 {
+	score := v.traverseMetadata("NVD", "CVSSv3", "Score")
+
+	if f, ok := score.(float64); ok {
+		return f
+	}
+
+	return 0
+}
+
+func (v *containerVulnerability) CVSSv2Score() float64 {
+	score := v.traverseMetadata("NVD", "CVSSv2", "Score")
+
+	if f, ok := score.(float64); ok {
+		return f
+	}
+
+	return 0
+}
+
 type VulnContainerAssessmentsResponse struct {
 	Assessments []VulnContainerAssessmentSummary `json:"data"`
 	Ok          bool                             `json:"ok"`

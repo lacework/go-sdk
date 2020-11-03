@@ -55,6 +55,9 @@ build-cli-cross-platform:
             -ldflags=$(GO_LDFLAGS) \
             github.com/lacework/go-sdk/cli
 
+generate-databox:
+	go generate internal/databox/box.go
+
 generate-docs:
 	go generate cli/cmd/docs.go
 

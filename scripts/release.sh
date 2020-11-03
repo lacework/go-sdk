@@ -138,7 +138,7 @@ prepare_release() {
   log "preparing new release"
   prerequisites
   remove_tag_version
-  generate_cli_docs
+  cli_generate_files
   generate_release_notes
   update_changelog
   add_tag_version "release"
@@ -154,8 +154,9 @@ publish_release() {
   create_release
 }
 
-generate_cli_docs() {
+cli_generate_files() {
   make generate-docs
+  make generate-databox
 }
 
 update_changelog() {
