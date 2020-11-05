@@ -124,7 +124,7 @@ check_platform() {
    aarch64* | armv8*)
       arch=arm64
       ;;
-   armv7* | arm)
+   armv7* | armv6* | arm)
       arch=arm
       ;;
     *)
