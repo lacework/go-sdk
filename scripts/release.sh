@@ -34,6 +34,8 @@ TARGETS=(
   ${package_name}-windows-amd64.exe
   ${package_name}-linux-386
   ${package_name}-linux-amd64
+  ${package_name}-linux-arm
+  ${package_name}-linux-arm64
 )
 
 usage() {

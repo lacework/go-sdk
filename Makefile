@@ -51,6 +51,7 @@ build-cli-cross-platform:
 	gox -output="bin/$(PACKAGENAME)-{{.OS}}-{{.Arch}}" \
             -os="darwin linux windows" \
             -arch="amd64 386" \
+            -osarch="linux/arm linux/arm64" \
             -ldflags=$(GO_LDFLAGS) \
             github.com/lacework/go-sdk/cli
 
