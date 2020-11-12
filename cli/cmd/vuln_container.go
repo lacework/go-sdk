@@ -188,6 +188,12 @@ func init() {
 		vulContainerScanStatusCmd.Flags(),
 	)
 
+	setHtmlFlag(
+		vulContainerScanCmd.Flags(),
+		vulContainerScanStatusCmd.Flags(),
+		vulContainerShowAssessmentCmd.Flags(),
+	)
+
 	setDetailsFlag(
 		vulContainerScanCmd.Flags(),
 		vulContainerScanStatusCmd.Flags(),
@@ -328,11 +334,17 @@ func showContainerAssessmentsWithSha256(sha string) error {
 	status := assessment.CheckStatus()
 	switch status {
 	case "Success":
+
 		if cli.JSONOutput() {
 			return cli.OutputJSON(assessment.Data)
 		}
 
 		cli.OutputHuman(buildVulnerabilityReport(&assessment.Data))
+
+		// @afiune is this the best way to make sense of this new flag?
+		if vulCmdState.Html {
+			return generateVulnAssessmentHTML(&assessment.Data)
+		}
 	case "Unsupported":
 		return errors.Errorf(
 			`unable to retrieve assessment for the provided container image. (unsupported distribution)
@@ -416,9 +428,11 @@ func buildVulnerabilityReport(assessment *api.VulnContainerAssessment) string {
 		} else {
 			mainReport.WriteString(buildVulnerabilityReportDetails(assessment))
 			mainReport.WriteString("\n")
-			mainReport.WriteString("Try adding '--packages' to show a list of packages with CVE count.\n")
+			if !vulCmdState.Html {
+				mainReport.WriteString("Try adding '--packages' to show a list of packages with CVE count.\n")
+			}
 		}
-	} else {
+	} else if !vulCmdState.Html {
 		mainReport.WriteString(
 			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
 		)

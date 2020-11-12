@@ -215,6 +215,18 @@ func TestVulnerabilitiesReportFromID(t *testing.T) {
 
 		assert.Equal(t, uno, response.Data.VulnFixableCount("High"))
 		assert.Equal(t, zero, response.Data.VulnFixableCount("Info"))
+
+		// CVSSv2 Score
+		var expectedScore float64 = 5
+		assert.Equal(t, expectedScore, response.Data.Image.
+			ImageLayers[0].Packages[0].
+			Vulnerabilities[0].CVSSv2Score())
+
+		// CVSSv3 Score
+		expectedScore = 7.5
+		assert.Equal(t, expectedScore, response.Data.Image.
+			ImageLayers[0].Packages[0].
+			Vulnerabilities[0].CVSSv3Score())
 	}
 }
 
