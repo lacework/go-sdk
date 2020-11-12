@@ -1,3 +1,14 @@
+# v0.2.7
+
+## Features
+* feat(cli): enable html copy to clipboard icons (Salim Afiune Maya)([ec2d1fa](https://github.com/lacework/go-sdk/commit/ec2d1fa5b796e2b51e49a850deff01d2f64ded18))
+* feat(cli): HTML format for vulnerability assessments (Salim Afiune Maya)([00c2f43](https://github.com/lacework/go-sdk/commit/00c2f43613e554afd8ed283cbc12eb0b8eed0179))
+* feat(cli): add ARM support (#236) (Salim Afiune)([821b8e6](https://github.com/lacework/go-sdk/commit/821b8e699e61eefda7d287a71b08ef26382a4ad7))
+## Bug Fixes
+* fix(cli): remove html column sort icons (Salim Afiune Maya)([dc4c0f6](https://github.com/lacework/go-sdk/commit/dc4c0f64055bfaada503b8f4f21ceda707bc5e55))
+## Other Changes
+* ci(fix) Update CI test node (#233) (Scott Ford)([ddbf86e](https://github.com/lacework/go-sdk/commit/ddbf86e8fbf9053af43bab9d57c04645383e529e))
+---
 # v0.2.6
 
 ## Features
