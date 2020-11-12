@@ -1666,7 +1666,7 @@
               }
           }
           /*! CSS Used fontfaces */
-          
+
            @font-face{
               font-family:"icon";
               src:url('https://techally-artifacts.s3-us-west-2.amazonaws.com/lacework-cli-prod/html-feature/icon.eot?48301238');
@@ -1871,7 +1871,7 @@
         <script data-dapp-detection="">
             (function() {
               let alreadyInsertedMetaTag = false
-            
+
               function __insertDappDetected() {
                 if (!alreadyInsertedMetaTag) {
                   const meta = document.createElement('meta')
@@ -1880,7 +1880,7 @@
                   alreadyInsertedMetaTag = true
                 }
               }
-            
+
               if (window.hasOwnProperty('web3')) {
                 // Note a closure can't be used for this var because some sites like
                 // www.wnyc.org do a second script execution via eval for some reason.
@@ -1910,6 +1910,32 @@
               }
             })()
         </script>
+        <script>
+            function copyToClipboard(text) {
+                var textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                try {
+                    var successful = document.execCommand('copy');
+                    if (successful) {
+                        alert('"' + text + '" copied to clipboard.');
+                    } else {
+                        alert('Unable to copy text to clipboard.');
+                    }
+                } catch (err) {
+                    alert('Fallback: Oops, unable to copy', err);
+                }
+
+                document.body.removeChild(textArea);
+            }
+        </script>
     </head>
     <body data-new-gr-c-s-check-loaded="14.982.0">
         <div id="main_body_wrapper_container">
@@ -1929,7 +1955,7 @@
                     <div class="user" title="Profile Options">
                         <div class="user-info">
                             <span class="user-role"><h4>Local Mode</h4></span>
-			</div>
+                        </div>
                         <span class="ant-avatar user-image user-image-color ant-avatar-circle" style="width: 32px; height: 32px; line-height: 32px; font-size: 1rem;"><span class="ant-avatar-string" style="line-height: 32px; transform: scale(1) translateX(-50%);">CLI</span></span>
                     </div>
                 </header>
@@ -1940,7 +1966,7 @@
                                 <h1 class="icon-container-vuln"><span>Vulnerability Assessment&nbsp;&nbsp;&gt;&nbsp;&nbsp;Image</span></h1>
                                 <ul class="actions   center">
                                     <li class="action  ">
-					    <span class="input-label"></span></li>
+                                            <span class="input-label"></span></li>
                                     <li class="action  default">
                                         <div class="Select vul-report-dropdown has-value is-searchable Select--single">
                                             <input name="form-field-name" type="hidden" value="cb5c44daa61b53050499222084744b43">
@@ -1958,8 +1984,8 @@
                                                 <h1 class="vul-report-group-header">Repository</h1>
                                                 <section>
                                                     <li class="action  ">
-                                                        <button class="button-primary icon-only undefined icon-copy-to-clipboard null" title="Copy to clipboard" type="button"></button>
-							                            <h4 class="summary-ellipsis">{{.Repository}}</h4>
+                                                        <button class="button-primary icon-only undefined icon-copy-to-clipboard null" title="Copy to clipboard" type="button" onclick="copyToClipboard('{{.Repository}}')"></button>
+                                                                                    <h4 class="summary-ellipsis">{{.Repository}}</h4>
                                                     </li>
                                                 </section>
                                             </div>
@@ -1967,8 +1993,8 @@
                                                 <h1 class="vul-report-group-header">ID</h1>
                                                 <section>
                                                     <li class="action  ">
-                                                        <button class="button-primary icon-only undefined icon-copy-to-clipboard null" title="Copy to clipboard" type="button"></button>
-							<h4 class="summary-ellipsis">{{.ID}}</h4>
+                                                        <button class="button-primary icon-only undefined icon-copy-to-clipboard null" title="Copy to clipboard" type="button" onclick="copyToClipboard('{{.ID}}')")></button>
+                                                        <h4 class="summary-ellipsis">{{.ID}}</h4>
                                                     </li>
                                                 </section>
                                             </div>
@@ -1976,7 +2002,7 @@
                                                 <h1 class="vul-report-group-header">Digest</h1>
                                                 <section>
                                                     <li class="action  ">
-                                                        <button class="button-primary icon-only undefined icon-copy-to-clipboard null" title="Copy to clipboard" type="button"></button>
+                                                        <button class="button-primary icon-only undefined icon-copy-to-clipboard null" title="Copy to clipboard" type="button" onclick="copyToClipboard('{{.Digest}}')"></button>
                                                         <h4 class="summary-ellipsis">{{.Digest}}</h4>
                                                     </li>
                                                 </section>
@@ -2000,7 +2026,7 @@
                                                     {{- range $tag := .Tags }}
                                                         <span class="ant-tag">{{ $tag }}</span>
                                                     {{- end }}
-						    </div>
+                                                    </div>
                                                 </section>
                                             </div>
                                         </section>
@@ -2010,16 +2036,16 @@
                                     <section class="view vuln-view-report">
                                         <div class="vul-report-group-row">
                                             <h1 class="vul-report-group-header">{{.TotalVulnerabilities}} unique vulnerabilities were detected in this assessment</h1>
-					    <h4><span>{{.FixableVulnerabilities}} fixed versions available</span></h4>
+                                            <h4><span>{{.FixableVulnerabilities}} fixed versions available</span></h4>
                                         </div>
                                         <section class="view-chart">
                                             <div class="vul-report-bar-chart" id="bar-chart">
                                                 <svg class="chart bar multi-fill" width="100%" height="70" preserveAspectRatio="xMinYMin meet" viewBox="100%">
                                                     <g class="chart-group" transform="translate(0, 0)">
                                                         <g class="bar-group" width="1546">
-							<rect class="bar clickable light" id="critical" fill="#b80c09" y="0" x="0%" height="40" width="{{calcBarChartWidth "critical" .}}"></rect>
-							<rect class="bar clickable light" id="high" fill="#ff1200" y="0" x="{{calcBarChartX "high" .}}" height="40" width="{{calcBarChartWidth "high" .}}"></rect>
-							<rect class="bar clickable light" id="medium" fill="#ffa400" y="0" x="{{calcBarChartX "medium" .}}" height="40" width="{{calcBarChartWidth "medium" .}}"></rect>
+                                                        <rect class="bar clickable light" id="critical" fill="#b80c09" y="0" x="0%" height="40" width="{{calcBarChartWidth "critical" .}}"></rect>
+                                                        <rect class="bar clickable light" id="high" fill="#ff1200" y="0" x="{{calcBarChartX "high" .}}" height="40" width="{{calcBarChartWidth "high" .}}"></rect>
+                                                        <rect class="bar clickable light" id="medium" fill="#ffa400" y="0" x="{{calcBarChartX "medium" .}}" height="40" width="{{calcBarChartWidth "medium" .}}"></rect>
                                                             <rect class="bar clickable light" id="low" fill="#ffd151" y="0" x="{{calcBarChartX "low" .}}" height="40" width="{{calcBarChartWidth "low" .}}"></rect>
                                                             <rect class="bar clickable light" id="info" fill="#2eb9f0" y="0" x="{{calcBarChartX "info" .}}" height="40" width="{{calcBarChartWidth "info" .}}"></rect>
                                                             <text fill="inherit" class="text" id="critical-text" x="{{calcBarChartTextX "critical" .}}" dy="25px" style="pointer-events: none;">{{.CriticalVulnerabilities}}</text>
@@ -2238,10 +2264,10 @@
                                                                                                     </div>
                                                                                                     {{- end }}
                                                                                                     {{- if $vuln.UseV2Score}}
-												    <div class="vuln-report-score-container v2-border">
-												        <p class="vuln-report-score1 v2-background">CVSS 2.0</p>
-													<p class="vuln-report-score2">{{ $vuln.V2Score }} of 10</p>
-												    </div>
+                                                                                                    <div class="vuln-report-score-container v2-border">
+                                                                                                        <p class="vuln-report-score1 v2-background">CVSS 2.0</p>
+                                                                                                        <p class="vuln-report-score2">{{ $vuln.V2Score }} of 10</p>
+                                                                                                    </div>
                                                                                                     {{- end }}
                                                                                                     {{- if $vuln.UseNoScore}}
                                                                                                     <div class="vuln-report-score-container">N/A</div>
@@ -2255,7 +2281,7 @@
                                                                                     <div class="fixedDataTableCellLayout_wrap1 public_fixedDataTableCell_wrap1">
                                                                                         <div class="fixedDataTableCellLayout_wrap2 public_fixedDataTableCell_wrap2">
                                                                                             <div class="fixedDataTableCellLayout_wrap3 public_fixedDataTableCell_wrap3">
-												    <div class="public_fixedDataTableCell_cellContent">  <span><span class="ellipsis" title="{{ $vuln.PkgName }}">{{ $vuln.PkgName }}</span></span> </div>
+                                                                                                    <div class="public_fixedDataTableCell_cellContent">  <span><span class="ellipsis" title="{{ $vuln.PkgName }}">{{ $vuln.PkgName }}</span></span> </div>
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -2284,9 +2310,11 @@
                                                                                             <div class="fixedDataTableCellLayout_wrap3 public_fixedDataTableCell_wrap3">
                                                                                                 <div class="public_fixedDataTableCell_cellContent">
                                                                                                     <ul class="actions  hover left">
-                                                                                                        <li class="action  default"><button class="button-primary icon-only undefined icon-copy-to-clipboard null" title="Copy to clipboard" type="button"></button></li>
+                                                                                                        <li class="action  default">
+                                                                                                            <button class="button-primary icon-only undefined icon-copy-to-clipboard null" title="Copy to clipboard" type="button" onclick="copyToClipboard('{{ $vuln.Layer }}')"></button>
+                                                                                                        </li>
                                                                                                     </ul>
-												    <span><span class="ellipsis" title=" {{ layerPrint $vuln.Layer }}"><span class="fixedDataTable-bold-text">{{ layerInstruction $vuln.Layer }}</span>  {{ layerPrint $vuln.Layer }}</span></span>
+                                                                                                    <span><span class="ellipsis" title=" {{ layerPrint $vuln.Layer }}"><span class="fixedDataTable-bold-text">{{ layerInstruction $vuln.Layer }}</span>  {{ layerPrint $vuln.Layer }}</span></span>
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
