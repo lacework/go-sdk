@@ -308,6 +308,9 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 	}
 
 	cli.OutputHuman(buildVulnerabilityReport(results))
+	if vulCmdState.Html {
+		return generateVulnAssessmentHTML(results)
+	}
 	return nil
 }
 
