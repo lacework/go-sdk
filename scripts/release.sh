@@ -15,6 +15,8 @@ readonly org_name=lacework
 readonly package_name=lacework-cli
 readonly binary_name=lacework
 readonly docker_org=lacework
+readonly git_user="Salim Afiune Maya"
+readonly git_email="afiune@lacework.net"
 readonly docker_tags=(
   latest
   scratch
@@ -80,25 +82,16 @@ main() {
 }
 
 trigger_release() {
-  if [[ "$VERSION" =~ "-release" ]]; then
-      log "VERSION has 'x.y.z-release' tag. Triggering a release!"
-      log ""
-      log "removing release tag from version '${VERSION}'"
-      remove_tag_version
-      log "commiting and pushing the version bump to github"
-      git config --global user.email "afiune@lacework.net"
-      git config --global user.name "Salim Afiune Maya"
-      git add VERSION
-      git add api/version.go # file genereted by scripts/version_updater.sh
-      git commit -m "trigger release v$VERSION"
-      git push origin master
-      tag_release
-      bump_version
-    else
+  if [[ "$VERSION" =~ "-dev" ]]; then
       log "No release needed. (VERSION=${VERSION})"
       log ""
       log "Read more about the release process at:"
       log "  - https://github.com/${org_name}/${project_name}/wiki/Release-Process"
+    else
+      log "VERSION ready to be released to 'x.y.z' tag. Triggering a release!"
+      log ""
+      tag_release
+      bump_version
   fi
 }
 
@@ -123,14 +116,14 @@ verify_release() {
     fi
   done
 
-  if [[ "$VERSION" =~ "-release" ]]; then
-      log "(required) VERSION has 'x.y.z-release' tag. Great!"
-    else
-      warn "the 'VERSION' needs to be updated to have the 'x.y.z-release' tag"
+  if [[ "$VERSION" =~ "-dev" ]]; then
+      warn "the 'VERSION' needs to be cleaned up to be only 'x.y.z' tag"
       warn ""
       warn "Read more about the release process at:"
       warn "  - https://github.com/${org_name}/${project_name}/wiki/Release-Process"
       exit 123
+    else
+      log "(required) VERSION has been cleaned up to 'x.y.z' tag. Great!"
   fi
 }
 
@@ -141,7 +134,6 @@ prepare_release() {
   cli_generate_files
   generate_release_notes
   update_changelog
-  add_tag_version "release"
   push_release
 }
 
@@ -297,6 +289,8 @@ bump_version() {
   fi
 
   log "commiting and pushing the vertion bump to github"
+  git config --global user.email $git_email
+  git config --global user.name $git_user
   git add VERSION
   git add api/version.go # file genereted by scripts/version_updater.sh
   git commit -m "version bump to v$VERSION"
