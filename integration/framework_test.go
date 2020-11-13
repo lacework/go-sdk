@@ -25,6 +25,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"runtime"
 )
@@ -193,4 +194,23 @@ api_secret = '_11111111111111111111111111111111'
 		panic(err)
 	}
 	return dir
+}
+
+// store a file in Circle CI Working directory, only if we are running on CircleCI
+func storeFileInCircleCI(f string) {
+	if jobDir := os.Getenv("CIRCLE_WORKING_DIRECTORY"); jobDir != "" {
+		var (
+			file      = filepath.Base(f)
+			artifacts = path.Join(jobDir, "circleci-artifacts")
+			err       = os.Mkdir(artifacts, 0755)
+		)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		err = os.Rename(f, path.Join(artifacts, file))
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 }

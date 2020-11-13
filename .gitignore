@@ -6,6 +6,7 @@
 
 # Go test coverage
 coverage.out
+circleci-artifacts/
 
 # for building binary files
 bin/
