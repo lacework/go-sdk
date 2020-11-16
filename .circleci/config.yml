@@ -118,7 +118,14 @@ jobs:
           api-secret: CI_API_SECRET
           registry: index.docker.io
           repository: lacework/lacework-cli
+          html: yes
           tag: << parameters.tag >>
+      - run:
+          command: |
+            mkdir  circleci-artifacts/
+            mv lacework-lacework-cli* circleci-artifacts/
+      - store_artifacts:
+          path: circleci-artifacts
       - slack/status:
           fail_only: true
           mentions: << pipeline.parameters.slack-mentions >>
