@@ -75,10 +75,8 @@ jobs:
           command: |
             $env:LW_CLI_BIN = Join-Path (Get-Location).Path "bin\\lacework-cli-windows-amd64.exe"
             go test -v github.com/lacework/go-sdk/integration
-      - slack/status:
-          fail_only: true
-          mentions: << pipeline.parameters.slack-mentions >>
-          only_for_branches: <<pipeline.parameters.only_for_branches>>
+      - store_artifacts:
+          path: circleci-artifacts
     environment:
       GOFLAGS: -mod=vendor
   verify-release:
