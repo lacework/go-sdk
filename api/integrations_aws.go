@@ -18,7 +18,13 @@
 
 package api
 
-import "go.uber.org/zap"
+import (
+	"encoding/base64"
+	"fmt"
+	"strings"
+
+	"go.uber.org/zap"
+)
 
 // NewAwsIntegration returns an instance of AwsIntegration with the provided
 // integration type, name and data. The type can only be AwsCfgIntegration or
@@ -161,6 +167,34 @@ type AwsIntegrationData struct {
 	// QueueUrl is a field that exists and is required for the AWS_CT_SQS integration,
 	// though, it doesn't exist for AWS_CFG integrations, that's why we omit it if empty
 	QueueUrl string `json:"QUEUE_URL,omitempty" mapstructure:"QUEUE_URL"`
+
+	// This field must be a base64 encode with the following format:
+	//
+	// "data:application/json;name=i.json;base64,[ENCODING]"
+	//
+	// [ENCODING] is the the base64 encode, use EncodeAccountMappingFile() to encode a JSON mapping file
+	AccountMappingFile string `json:"ACCOUNT_MAPPING_FILE,omitempty" mapstructure:"ACCOUNT_MAPPING_FILE"`
+}
+
+func (aws *AwsIntegrationData) EncodeAccountMappingFile(mapping string) {
+	encodedMappings := base64.StdEncoding.EncodeToString([]byte(mapping))
+	aws.AccountMappingFile = fmt.Sprintf("data:application/json;name=i.json;base64,%s", encodedMappings)
+}
+
+func (aws *AwsIntegrationData) DecodeAccountMappingFile() (string, error) {
+	if len(aws.AccountMappingFile) == 0 {
+		return "", nil
+	}
+
+	var (
+		b64      = strings.Split(aws.AccountMappingFile, ",")
+		raw, err = base64.StdEncoding.DecodeString(b64[1])
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return string(raw), nil
 }
 
 type AwsIntegrationCreds struct {
