@@ -34,5 +34,5 @@ func main() {
 	}
 	jira.EncodeCustomTemplateFile(jiraTemplateJSON)
 	jiraAlert := api.NewJiraAlertChannel("integration_name", jira)
-	client.Integrations.CreateJiraAlertChannel(jiraAlert)
+	lacework.Integrations.CreateJiraAlertChannel(jiraAlert)
 }
