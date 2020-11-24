@@ -137,7 +137,7 @@ func createAwsCloudTrailIntegration() error {
 			return err
 		}
 
-		aws.EncodeAccountMappingFile(content)
+		aws.EncodeAccountMappingFile([]byte(content))
 	}
 
 	awsCT := api.NewAwsCloudTrailIntegration(answers.Name, aws)

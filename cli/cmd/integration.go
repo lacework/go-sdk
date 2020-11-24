@@ -371,7 +371,25 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			[]string{"EXTERNAL ID", iData.Credentials.ExternalID},
 		}
 		if iData.QueueUrl != "" {
-			return append(out, []string{"QUEUE URL", iData.QueueUrl})
+			out = append(out, []string{"QUEUE URL", iData.QueueUrl})
+		}
+
+		accountMapping, err := iData.DecodeAccountMappingFile()
+		if err != nil {
+			cli.Log.Debugw("unable to decode account mapping file",
+				"integration_type", raw.Type,
+				"raw_data", iData.AccountMappingFile,
+				"error", err,
+			)
+		}
+
+		if len(accountMapping) != 0 {
+			// @afiune should we disable the colors here?
+			accountMappingJSON, err := cli.FormatJSONString(string(accountMapping))
+			if err != nil {
+				accountMappingJSON = string(accountMapping)
+			}
+			out = append(out, []string{"ACCOUNT MAPPING FILE", accountMappingJSON})
 		}
 		return out
 
@@ -530,6 +548,12 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 				"error", err,
 			)
 		}
+
+		// @afiune should we disable the colors here?
+		tmplStrPretty, err := cli.FormatJSONString(templateString)
+		if err != nil {
+			tmplStrPretty = templateString
+		}
 		out := [][]string{
 			[]string{"JIRA INTEGRATION TYPE", iData.JiraType},
 			[]string{"JIRA URL", iData.JiraUrl},
@@ -537,7 +561,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			[]string{"USERNAME", iData.Username},
 			[]string{"ISSUE TYPE", iData.IssueType},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
-			[]string{"CUSTOM TEMPLATE FILE", templateString},
+			[]string{"CUSTOM TEMPLATE FILE", tmplStrPretty},
 		}
 
 		return out
