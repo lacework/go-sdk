@@ -174,6 +174,9 @@ type AwsIntegrationData struct {
 	//
 	// [ENCODING] is the the base64 encode, use EncodeAccountMappingFile() to encode a JSON mapping file
 	AccountMappingFile string `json:"ACCOUNT_MAPPING_FILE,omitempty" mapstructure:"ACCOUNT_MAPPING_FILE"`
+
+	// AwsAccountID is the AWS account that owns the IAM role credentials
+	AwsAccountID string `json:"AWS_ACCOUNT_ID,omitempty" mapstructure:"AWS_ACCOUNT_ID"`
 }
 
 func (aws *AwsIntegrationData) EncodeAccountMappingFile(mapping string) {

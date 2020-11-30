@@ -31,6 +31,49 @@ import (
 )
 
 var (
+	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
+	complianceAwsListAccountsCmd = &cobra.Command{
+		Use:     "list-accounts",
+		Aliases: []string{"list"},
+		Short:   "list all AWS accounts configured",
+		Long:    `List all AWS accounts configured in your account.`,
+		Args:    cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			awsIntegrations, err := cli.LwApi.Integrations.ListAwsCfg()
+			if err != nil {
+				return errors.Wrap(err, "unable to get aws compliance integrations")
+			}
+			if len(awsIntegrations.Data) == 0 {
+				msg := `There are no AWS accounts configured in your account.
+
+Get started by integrating your AWS accounts to analyze configuration compliance using the command:
+
+    $ lacework integration create
+
+Or, if you prefer to do it via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Cloud Accounts.
+`
+				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
+				return nil
+			}
+
+			awsAccounts := make([]string, 0)
+			for _, i := range awsIntegrations.Data {
+				awsAccounts = append(awsAccounts, i.Data.AwsAccountID)
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(awsAccounts)
+			}
+
+			cli.OutputHuman(buildAwsComplianceAccountsTable(awsAccounts))
+			return nil
+		},
+	}
+
 	// complianceAwsGetReportCmd represents the get-report sub-command inside the aws command
 	complianceAwsGetReportCmd = &cobra.Command{
 		Use:     "get-report <account_id>",
@@ -47,18 +90,15 @@ var (
 			}
 		},
 		Short: "get the latest AWS compliance report",
-		Long: `Get the latest AWS compliance assessment report, these reports run on a regular schedule,
-typically once a day. The available report formats are human-readable (default), json and pdf.
+		Long: `Get the latest compliance assessment report from the provided AWS account, these
+reports run on a regular schedule, typically once a day. The available report formats
+are human-readable (default), json and pdf.
 
-To find out which AWS accounts are connected to you Lacework account, use the following command:
+To list all AWS accounts configured in your account:
 
-    $ lacework integrations list --type AWS_CFG
+    $ lacework compliance aws list-accounts
 
-Then, choose one integration, copy the GUID and visualize its details using the command:
-
-    $ lacework integration show <int_guid>
-
-To run an ad-hoc compliance assessment use the command:
+To run an ad-hoc compliance assessment of an AWS account:
 
     $ lacework compliance aws run-assessment <account_id>
 `,
@@ -151,6 +191,7 @@ To run an ad-hoc compliance assessment use the command:
 func init() {
 	// add sub-commands to the aws command
 	complianceAwsCmd.AddCommand(complianceAwsGetReportCmd)
+	complianceAwsCmd.AddCommand(complianceAwsListAccountsCmd)
 	complianceAwsCmd.AddCommand(complianceAwsRunAssessmentCmd)
 
 	complianceAwsGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
@@ -192,4 +233,21 @@ func complianceAwsReportDetailsTable(report *api.ComplianceAwsReport) [][]string
 		[]string{"Account Alias", report.AccountAlias},
 		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
+}
+
+func buildAwsComplianceAccountsTable(accounts []string) string {
+	var (
+		tBuilder = &strings.Builder{}
+		t        = tablewriter.NewWriter(tBuilder)
+	)
+
+	t.SetHeader([]string{"AWS Accounts"})
+	t.SetBorder(false)
+	t.SetAutoWrapText(false)
+	for _, acc := range accounts {
+		t.Append([]string{acc})
+	}
+	t.Render()
+
+	return tBuilder.String()
 }
