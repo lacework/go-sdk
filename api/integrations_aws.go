@@ -176,14 +176,14 @@ type AwsIntegrationData struct {
 	AccountMappingFile string `json:"ACCOUNT_MAPPING_FILE,omitempty" mapstructure:"ACCOUNT_MAPPING_FILE"`
 }
 
-func (aws *AwsIntegrationData) EncodeAccountMappingFile(mapping string) {
-	encodedMappings := base64.StdEncoding.EncodeToString([]byte(mapping))
+func (aws *AwsIntegrationData) EncodeAccountMappingFile(mapping []byte) {
+	encodedMappings := base64.StdEncoding.EncodeToString(mapping)
 	aws.AccountMappingFile = fmt.Sprintf("data:application/json;name=i.json;base64,%s", encodedMappings)
 }
 
-func (aws *AwsIntegrationData) DecodeAccountMappingFile() (string, error) {
+func (aws *AwsIntegrationData) DecodeAccountMappingFile() ([]byte, error) {
 	if len(aws.AccountMappingFile) == 0 {
-		return "", nil
+		return []byte{}, nil
 	}
 
 	var (
@@ -191,10 +191,10 @@ func (aws *AwsIntegrationData) DecodeAccountMappingFile() (string, error) {
 		raw, err = base64.StdEncoding.DecodeString(b64[1])
 	)
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
 
-	return string(raw), nil
+	return raw, nil
 }
 
 type AwsIntegrationCreds struct {

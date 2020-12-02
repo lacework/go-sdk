@@ -44,7 +44,7 @@ func TestIntegrationsNewAwsCfgIntegration(t *testing.T) {
 }
 
 func TestIntegrationsNewAwsCfgIntegrationWithCustomTemplateFile(t *testing.T) {
-	accountMappingJSON := `{
+	accountMappingJSON := []byte(`{
     "defaultLaceworkAccountAws": "lw_account_1",
     "integration_mappings": {
       "lw_account_2": {
@@ -60,7 +60,7 @@ func TestIntegrationsNewAwsCfgIntegrationWithCustomTemplateFile(t *testing.T) {
         ]
       }
     }
-  }`
+  }`)
 	awsData := api.AwsIntegrationData{
 		Credentials: api.AwsIntegrationCreds{
 			RoleArn:    "arn:foo:bar",
@@ -76,16 +76,16 @@ func TestIntegrationsNewAwsCfgIntegrationWithCustomTemplateFile(t *testing.T) {
 		"data:application/json;name=i.json;base64,",
 		"check the custom_template_file encoder",
 	)
-	accountMappingString, err := subject.Data.DecodeAccountMappingFile()
+	accountMapping, err := subject.Data.DecodeAccountMappingFile()
 	assert.Nil(t, err)
-	assert.Equal(t, accountMappingJSON, accountMappingString)
+	assert.Equal(t, accountMappingJSON, accountMapping)
 
 	// When there is no custom account mapping file, this function should
 	// return an empty string to match the pattern
 	subject.Data.AccountMappingFile = ""
-	accountMappingString, err = subject.Data.DecodeAccountMappingFile()
+	accountMapping, err = subject.Data.DecodeAccountMappingFile()
 	assert.Nil(t, err)
-	assert.Equal(t, "", accountMappingString)
+	assert.Empty(t, accountMapping)
 
 }
 
