@@ -31,6 +31,9 @@ const (
 	apiIntegrationSchema   = "external/integrations/schema/%s"
 	apiTokens              = "access/tokens"
 
+	apiAgentTokens      = "external/tokens"
+	apiAgentTokenFromID = "external/tokens/%s"
+
 	apiVulnerabilitiesContainerScan             = "external/vulnerabilities/container/repository/images/scan"
 	apiVulnerabilitiesContainerScanStatus       = "external/vulnerabilities/container/reqId/%s"
 	apiVulnerabilitiesAssessmentFromImageID     = "external/vulnerabilities/container/imageId/%s"

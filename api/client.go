@@ -44,6 +44,7 @@ type Client struct {
 	headers    map[string]string
 
 	LQL             *LQLService
+	Agents          *AgentsService
 	Events          *EventsService
 	Compliance      *ComplianceService
 	Integrations    *IntegrationsService
@@ -92,6 +93,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		c: &http.Client{Timeout: defaultTimeout},
 	}
 	c.LQL = &LQLService{c}
+	c.Agents = &AgentsService{c}
 	c.Events = &EventsService{c}
 	c.Compliance = &ComplianceService{c}
 	c.Integrations = &IntegrationsService{c}
