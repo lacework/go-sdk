@@ -51,10 +51,13 @@ var (
 		Use:     "compliance",
 		Aliases: []string{"comp"},
 		Short:   "manage compliance reports",
-		Long: `Manage compliance reports for GCP, Azure, or AWS cloud providers.
+		Long: `Manage compliance reports for Google, Azure, or AWS cloud providers.
 
-To start sending data about your environment to Lacework for compliance reporting
-analysis, configure one or more cloud integration using the following command:
+Lacework cloud security platform provides continuous Compliance monitoring against
+cloud security best practices and compliance standards as CIS, PCI DSS, SoC II and
+HIPAA benchmark standards.
+
+Get started by integrating one or more cloud accounts using the command:
 
     $ lacework integration create
 
@@ -74,8 +77,8 @@ Use the following command to list all available integrations in your account:
 	complianceAzureCmd = &cobra.Command{
 		Use:     "azure",
 		Aliases: []string{"az"},
-		Short:   "compliance for Microsoft Azure",
-		Long: `Manage compliance reports for Microsoft Azure.
+		Short:   "compliance for Azure Cloud",
+		Long: `Manage compliance reports for Azure Cloud.
 
 To get the latest Azure compliance assessment report, use the command:
 
@@ -105,8 +108,9 @@ To run an ad-hoc compliance assessment use the command:
 
 	// complianceGcpCmd represents the gcp sub-command inside the compliance command
 	complianceGcpCmd = &cobra.Command{
-		Use:   "gcp",
-		Short: "compliance for Google Cloud",
+		Use:     "google",
+		Aliases: []string{"gcp"},
+		Short:   "compliance for Google Cloud",
 		Long: `Manage compliance reports for Google Cloud.
 
 To get the latest GCP compliance assessment report, use the command:
@@ -139,25 +143,19 @@ To run an ad-hoc compliance assessment use the command:
 	complianceAwsCmd = &cobra.Command{
 		Use:   "aws",
 		Short: "compliance for AWS",
-		Long: `Manage compliance reports for Amazon Web Services.
+		Long: `Manage compliance reports for Amazon Web Services (AWS).
 
-To get the latest AWS compliance assessment report, use the command:
+To list all AWS accounts configured in your account:
+
+    $ lacework compliance aws list-accounts
+
+To get the latest AWS compliance assessment report:
 
     $ lacework compliance aws get-report <account_id>
 
 These reports run on a regular schedule, typically once a day.
 
-To find out which AWS accounts are connected to you Lacework account,
-use the following command:
-
-    $ lacework integrations list --type AWS_CFG
-
-Then, choose one integration, copy the GUID and visualize its details
-using the command:
-
-    $ lacework integration show <int_guid>
-
-To run an ad-hoc compliance assessment use the command:
+To run an ad-hoc compliance assessment:
 
     $ lacework compliance aws run-assessment <account_id>
 `,
