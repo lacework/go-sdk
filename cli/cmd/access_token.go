@@ -33,8 +33,8 @@ var (
 	// accessTokenCmd represents the access-token command
 	accessTokenCmd = &cobra.Command{
 		Use:   "access-token",
-		Short: "generate temporary access tokens",
-		Long: `Generates a temporary access token that can be used to access the
+		Short: "generate temporary API access tokens",
+		Long: `Generates a temporary API access token that can be used to access the
 Lacework API. The token will be valid for the duration that you specify.`,
 		Args: cobra.NoArgs,
 		RunE: generateAccessToken,
