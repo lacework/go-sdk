@@ -92,37 +92,51 @@ To generate a package-manifest from the local host and scan it automatically:
  - This operation is limited to 1k of packages per payload. If you require a payload
    larger than 1k, you must make multiple requests.`,
 		RunE: func(_ *cobra.Command, args []string) error {
-			var pkgManifest = ""
+			var (
+				pkgManifest      = new(api.PackageManifest)
+				pkgManifestBytes []byte
+				err              error
+			)
+
 			if len(args) != 0 && args[0] != "" {
-				pkgManifest = args[0]
+				pkgManifestBytes = []byte(args[0])
+				cli.Log.Infow("package manifest loaded from arguments", "raw", args[0])
 			} else if pkgManifestFile != "" {
-				pkgManifestBytes, err := ioutil.ReadFile(pkgManifestFile)
+				pkgManifestBytes, err = ioutil.ReadFile(pkgManifestFile)
 				if err != nil {
 					return errors.Wrap(err, "unable to read file")
 				}
-				pkgManifest = string(pkgManifestBytes)
+				cli.Log.Infow("package manifest loaded from file", "raw", string(pkgManifestBytes))
 			} else if pkgManifestLocal {
-				manifest, err := cli.GeneratePackageManifest()
+				pkgManifest, err = cli.GeneratePackageManifest()
 				if err != nil {
 					return errors.Wrap(err, "unable to generate package manifest")
 				}
-				manifestString, err := json.Marshal(&manifest)
-				if err != nil {
-					panic(err)
-				}
-
-				pkgManifest = string(manifestString)
+				cli.Log.Infow("package manifest generated from localhost", "raw", pkgManifest)
 			} else {
 				// avoid asking for a confirmation before launching the editor
+				var content string
 				prompt := &survey.Editor{
 					Message:  "Provide a package manifest to scan",
-					FileName: "pkg-manifest*.json",
+					FileName: "package-manifest*.json",
 				}
-				err := survey.AskOne(prompt, &pkgManifest)
+				err = survey.AskOne(prompt, &content)
 				if err != nil {
-					return err
+					return errors.Wrap(err, "unable to load package manifest from editor")
+				}
+				pkgManifestBytes = []byte(content)
+				cli.Log.Infow("package manifest loaded via editor", "raw", content)
+			}
+
+			if len(pkgManifestBytes) != 0 {
+				err = json.Unmarshal(pkgManifestBytes, pkgManifest)
+				if err != nil {
+					return errors.Wrap(err, "invalid package manifest json file")
 				}
 			}
+
+			// TODO @afiune check if the package manifest has more than
+			// 1k packages, if so, make multiple API requests
 
 			response, err := cli.LwApi.Vulnerabilities.Host.Scan(pkgManifest)
 			if err != nil {
@@ -844,16 +858,12 @@ func hostScanPackagesVulnToTable(scan *api.HostVulnScanPkgManifestResponse) stri
 func hostScanPackagesVulnDetailsTable(vulns []api.HostScanPackageVulnDetails) [][]string {
 	out := [][]string{}
 	for _, vuln := range vulns {
-		if vuln.Summary.EvalStatus != "MATCH_VULN" {
-			continue
-		}
-
-		if vulCmdState.Fixable && vuln.FixInfo.EvalStatus != "GOOD" {
+		if vulCmdState.Fixable && vuln.HasFix() {
 			continue
 		}
 
 		fixedVersion := ""
-		if vuln.FixInfo.EvalStatus == "GOOD" {
+		if vuln.HasFix() {
 			fixedVersion = vuln.FixInfo.FixedVersion
 		}
 
@@ -878,11 +888,7 @@ func hostScanPackagesVulnDetailsTable(vulns []api.HostScanPackageVulnDetails) []
 func hostScanPackagesVulnPackagesView(vulns []api.HostScanPackageVulnDetails) [][]string {
 	out := [][]string{}
 	for _, vuln := range vulns {
-		if vuln.Summary.EvalStatus != "MATCH_VULN" {
-			continue
-		}
-
-		if vulCmdState.Fixable && vuln.FixInfo.EvalStatus != "GOOD" {
+		if vulCmdState.Fixable && vuln.HasFix() {
 			continue
 		}
 
@@ -897,7 +903,7 @@ func hostScanPackagesVulnPackagesView(vulns []api.HostScanPackageVulnDetails) []
 					added = true
 				}
 
-				if vuln.FixInfo.EvalStatus == "GOOD" {
+				if vuln.HasFix() {
 					if fixes, err := strconv.Atoi(out[i][4]); err == nil {
 						out[i][4] = fmt.Sprintf("%d", (fixes + 1))
 					}
@@ -910,7 +916,7 @@ func hostScanPackagesVulnPackagesView(vulns []api.HostScanPackageVulnDetails) []
 		}
 
 		fixes := "0"
-		if vuln.FixInfo.EvalStatus == "GOOD" {
+		if vuln.HasFix() {
 			fixes = "1"
 		}
 
