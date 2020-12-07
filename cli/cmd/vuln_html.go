@@ -28,9 +28,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/databox"
 	"github.com/pkg/errors"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 const (

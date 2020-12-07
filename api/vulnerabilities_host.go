@@ -33,15 +33,23 @@ type HostVulnerabilityService struct {
 // to determine if the packages contain any common vulnerabilities and exposures
 //
 // NOTE: Only packages managed by a package manager for supported OS's are reported
-func (svc *HostVulnerabilityService) Scan(manifest string) (
+func (svc *HostVulnerabilityService) Scan(manifest *PackageManifest) (
 	response HostVulnScanPkgManifestResponse,
 	err error,
 ) {
-	err = svc.client.RequestDecoder("POST",
+	err = svc.client.RequestEncoderDecoder("POST",
 		apiVulnerabilitiesScanPkgManifest,
-		strings.NewReader(manifest),
+		manifest,
 		&response,
 	)
+
+	if err == nil {
+		// the API response coming from the Lacework server contains too much
+		// information that could confuse our users, this function will parse
+		// all the vulnerabilities and remove the non-matching ones
+		response.CleanResponse()
+	}
+
 	return
 }
 
@@ -268,38 +276,50 @@ type HostVulnScanPkgManifestResponse struct {
 	Message string                       `json:"message"`
 }
 
+// CleanResponse will go over all the vulnerabilities from a package-manifest
+// scan and remove the non-matching ones, leaving only the vulnerabilities
+// that matter
+func (scanPkgManifest *HostVulnScanPkgManifestResponse) CleanResponse() {
+	filteredVulns := make([]HostScanPackageVulnDetails, 0)
+
+	for _, vuln := range scanPkgManifest.Vulns {
+		if !vuln.Match() {
+			continue
+		}
+		filteredVulns = append(filteredVulns, vuln)
+	}
+
+	scanPkgManifest.Vulns = filteredVulns
+}
+
 func (scanPkgManifest *HostVulnScanPkgManifestResponse) VulnerabilityCounts() HostVulnCounts {
 	var hostCounts = HostVulnCounts{}
 
 	for _, vuln := range scanPkgManifest.Vulns {
-		if vuln.Summary.EvalStatus != "MATCH_VULN" {
-			continue
-		}
-
 		switch vuln.Severity {
 		case "Critical":
 			hostCounts.Critical++
-			if vuln.FixInfo.EvalStatus == "GOOD" {
+			if vuln.HasFix() {
 				hostCounts.CritFixable++
 			}
 		case "High":
 			hostCounts.High++
-			if vuln.FixInfo.EvalStatus == "GOOD" {
+			if vuln.HasFix() {
 				hostCounts.HighFixable++
 			}
 		case "Medium":
 			hostCounts.Medium++
-			if vuln.FixInfo.EvalStatus == "GOOD" {
+			if vuln.HasFix() {
 				hostCounts.MedFixable++
 			}
 		case "Low":
 			hostCounts.Low++
-			if vuln.FixInfo.EvalStatus == "GOOD" {
+			if vuln.HasFix() {
 				hostCounts.LowFixable++
 			}
 		default:
 			hostCounts.Negligible++
-			if vuln.FixInfo.EvalStatus == "GOOD" {
+			if vuln.HasFix() {
 				hostCounts.NegFixable++
 			}
 		}
@@ -393,4 +413,42 @@ type HostScanPackageVulnDetails struct {
 		} `json:"num_vuln_by_severity"`
 	} `json:"SUMMARY"`
 	VulnID string `json:"VULN_ID"`
+}
+
+func (v *HostScanPackageVulnDetails) Match() bool {
+	if v.Summary.EvalStatus != "MATCH_VULN" {
+		return false
+	}
+	if v.FixInfo.EvalStatus != "VULNERABLE" {
+		return false
+	}
+	return true
+}
+
+func (v *HostScanPackageVulnDetails) HasFix() bool {
+	return v.FixInfo.FixAvailable == 1
+}
+
+// PackageManifest is the representation of a package manifest
+// that the Lacework API server expects when executing a scan
+//
+// {
+//     "os_pkg_info_list": [
+//         {
+//             "os":"Ubuntu",
+//             "os_ver":"18.04",
+//             "pkg": "openssl",
+//             "pkg_ver": "1.1.1-1ubuntu2.1~18.04.6"
+//         }
+//     ]
+// }
+type PackageManifest struct {
+	OsPkgInfoList []OsPkgInfo `json:"os_pkg_info_list"`
+}
+
+type OsPkgInfo struct {
+	Os     string `json:"os"`
+	OsVer  string `json:"os_ver"`
+	Pkg    string `json:"pkg"`
+	PkgVer string `json:"pkg_ver"`
 }

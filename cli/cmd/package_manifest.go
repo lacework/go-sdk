@@ -29,20 +29,11 @@ import (
 	"syscall"
 
 	"github.com/pkg/errors"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var SupportedPackageManagers = []string{"dpkg-query", "rpm"} // @afiune can we support ym and apk?
-
-type PackageManifest struct {
-	OsPkgInfoList []OsPkgInfo `json:"os_pkg_info_list"`
-}
-
-type OsPkgInfo struct {
-	Os     string `json:"os"`
-	OsVer  string `json:"os_ver"`
-	Pkg    string `json:"pkg"`
-	PkgVer string `json:"pkg_ver"`
-}
 
 type OS struct {
 	Name    string
@@ -55,8 +46,8 @@ var (
 	rexVersionID  = regexp.MustCompile(`^VERSION_ID=(.*)$`)
 )
 
-func (c *cliState) GeneratePackageManifest() (*PackageManifest, error) {
-	manifest := new(PackageManifest)
+func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
+	manifest := new(api.PackageManifest)
 	osInfo, err := cli.GetOSInfo()
 	if err != nil {
 		return manifest, err
@@ -144,7 +135,7 @@ func (c *cliState) GeneratePackageManifest() (*PackageManifest, error) {
 		}
 
 		manifest.OsPkgInfoList = append(manifest.OsPkgInfoList,
-			OsPkgInfo{
+			api.OsPkgInfo{
 				Os:     osInfo.Name,
 				OsVer:  osInfo.Version,
 				Pkg:    pkgDetail[0],
