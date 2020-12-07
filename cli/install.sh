@@ -189,7 +189,7 @@ install_cli() {
 }
 
 print_cli_version() {
-  info "Verifying installed Lacework CLI version"
+  log "Verifying installed Lacework CLI version"
   "${installation_dir}/${binary_name}" version
 }
 
