@@ -1,21 +1,28 @@
-## lacework access-token
+## lacework compliance google list-projects
 
-generate temporary API access tokens
+list projects from an organization
 
 ### Synopsis
 
-Generates a temporary API access token that can be used to access the
-Lacework API. The token will be valid for the duration that you specify.
+List all GCP projects from the provided organization ID.
+
+Use the following command to list all GCP integrations in your account:
+
+    $ lacework integrations list --type GCP_CFG
+
+Then, select one GUID from an integration and visualize its details using the command:
+
+    $ lacework integration show <int_guid>
+
 
 ```
-lacework access-token [flags]
+lacework compliance google list-projects <organization_id> [flags]
 ```
 
 ### Options
 
 ```
-  -d, --duration_seconds int   duration in seconds that the access token should remain valid (default 3600)
-  -h, --help                   help for access-token
+  -h, --help   help for list-projects
 ```
 
 ### Options inherited from parent commands
@@ -33,5 +40,5 @@ lacework access-token [flags]
 
 ### SEE ALSO
 
-* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
 

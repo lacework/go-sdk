@@ -1,21 +1,19 @@
-## lacework access-token
+## lacework agent token create
 
-generate temporary API access tokens
+create a new agent access token
 
 ### Synopsis
 
-Generates a temporary API access token that can be used to access the
-Lacework API. The token will be valid for the duration that you specify.
+Create a new agent access token.
 
 ```
-lacework access-token [flags]
+lacework agent token create <name> [description] [flags]
 ```
 
 ### Options
 
 ```
-  -d, --duration_seconds int   duration in seconds that the access token should remain valid (default 3600)
-  -h, --help                   help for access-token
+  -h, --help   help for create
 ```
 
 ### Options inherited from parent commands
@@ -33,5 +31,5 @@ lacework access-token [flags]
 
 ### SEE ALSO
 
-* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
 

@@ -4,18 +4,15 @@ get the latest AWS compliance report
 
 ### Synopsis
 
-Get the latest AWS compliance assessment report, these reports run on a regular schedule,
-typically once a day. The available report formats are human-readable (default), json and pdf.
+Get the latest compliance assessment report from the provided AWS account, these
+reports run on a regular schedule, typically once a day. The available report formats
+are human-readable (default), json and pdf.
 
-To find out which AWS accounts are connected to you Lacework account, use the following command:
+To list all AWS accounts configured in your account:
 
-    $ lacework integrations list --type AWS_CFG
+    $ lacework compliance aws list-accounts
 
-Then, choose one integration, copy the GUID and visualize its details using the command:
-
-    $ lacework integration show <int_guid>
-
-To run an ad-hoc compliance assessment use the command:
+To run an ad-hoc compliance assessment of an AWS account:
 
     $ lacework compliance aws run-assessment <account_id>
 

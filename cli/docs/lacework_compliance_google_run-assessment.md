@@ -1,21 +1,19 @@
-## lacework access-token
+## lacework compliance google run-assessment
 
-generate temporary API access tokens
+run a new GCP compliance assessment
 
 ### Synopsis
 
-Generates a temporary API access token that can be used to access the
-Lacework API. The token will be valid for the duration that you specify.
+Run a compliance assessment for the provided GCP organization or project.
 
 ```
-lacework access-token [flags]
+lacework compliance google run-assessment <org_or_project_id> [flags]
 ```
 
 ### Options
 
 ```
-  -d, --duration_seconds int   duration in seconds that the access token should remain valid (default 3600)
-  -h, --help                   help for access-token
+  -h, --help   help for run-assessment
 ```
 
 ### Options inherited from parent commands
@@ -33,5 +31,5 @@ lacework access-token [flags]
 
 ### SEE ALSO
 
-* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
 

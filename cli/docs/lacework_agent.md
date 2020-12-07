@@ -1,21 +1,23 @@
-## lacework access-token
+## lacework agent
 
-generate temporary API access tokens
+manage Lacework agents
 
 ### Synopsis
 
-Generates a temporary API access token that can be used to access the
-Lacework API. The token will be valid for the duration that you specify.
+Manage agents and agent access tokens in your account.
 
-```
-lacework access-token [flags]
-```
+To analyze application, host, and user behavior, Lacework uses a lightweight agent,
+which securely forwards collected metadata to the Lacework cloud for analysis. The
+agent requires minimal system resources and runs on most 64-bit Linux distributions.
+
+For a complete list of supported operating systems, visit:
+
+    https://support.lacework.com/hc/en-us/articles/360005230014-Supported-Operating-Systems
 
 ### Options
 
 ```
-  -d, --duration_seconds int   duration in seconds that the access token should remain valid (default 3600)
-  -h, --help                   help for access-token
+  -h, --help   help for agent
 ```
 
 ### Options inherited from parent commands
@@ -34,4 +36,5 @@ lacework access-token [flags]
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
 
