@@ -1,28 +1,19 @@
-## lacework compliance gcp list-projects
+## lacework agent token show
 
-list projects from an organization
+show details about an agent access token
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    $ lacework integrations list --type GCP_CFG
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    $ lacework integration show <int_guid>
-
+Show details about an agent access token.
 
 ```
-lacework compliance gcp list-projects <organization_id> [flags]
+lacework agent token show <token> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for show
 ```
 
 ### Options inherited from parent commands
@@ -40,5 +31,5 @@ lacework compliance gcp list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance gcp](lacework_compliance_gcp.md)	 - compliance for Google Cloud
+* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
 

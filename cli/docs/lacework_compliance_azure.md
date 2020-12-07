@@ -1,10 +1,10 @@
 ## lacework compliance azure
 
-compliance for Microsoft Azure
+compliance for Azure Cloud
 
 ### Synopsis
 
-Manage compliance reports for Microsoft Azure.
+Manage compliance reports for Azure Cloud.
 
 To get the latest Azure compliance assessment report, use the command:
 

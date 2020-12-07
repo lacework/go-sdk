@@ -31,5 +31,5 @@ lacework compliance azure run-assessment <tenant_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Microsoft Azure
+* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Azure Cloud
 

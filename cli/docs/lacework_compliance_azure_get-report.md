@@ -41,5 +41,5 @@ lacework compliance azure get-report <tenant_id> <subscriptions_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Microsoft Azure
+* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Azure Cloud
 

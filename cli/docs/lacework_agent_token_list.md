@@ -1,19 +1,19 @@
-## lacework compliance gcp run-assessment
+## lacework agent token list
 
-run a new GCP compliance assessment
+list all agent access tokens
 
 ### Synopsis
 
-Run a compliance assessment for the provided GCP organization or project.
+List all agent access tokens.
 
 ```
-lacework compliance gcp run-assessment <org_or_project_id> [flags]
+lacework agent token list [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for run-assessment
+  -h, --help   help for list
 ```
 
 ### Options inherited from parent commands
@@ -31,5 +31,5 @@ lacework compliance gcp run-assessment <org_or_project_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance gcp](lacework_compliance_gcp.md)	 - compliance for Google Cloud
+* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
 

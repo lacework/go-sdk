@@ -4,10 +4,13 @@ manage compliance reports
 
 ### Synopsis
 
-Manage compliance reports for GCP, Azure, or AWS cloud providers.
+Manage compliance reports for Google, Azure, or AWS cloud providers.
 
-To start sending data about your environment to Lacework for compliance reporting
-analysis, configure one or more cloud integration using the following command:
+Lacework cloud security platform provides continuous Compliance monitoring against
+cloud security best practices and compliance standards as CIS, PCI DSS, SoC II and
+HIPAA benchmark standards.
+
+Get started by integrating one or more cloud accounts using the command:
 
     $ lacework integration create
 
@@ -45,6 +48,6 @@ Use the following command to list all available integrations in your account:
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
 * [lacework compliance aws](lacework_compliance_aws.md)	 - compliance for AWS
-* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Microsoft Azure
-* [lacework compliance gcp](lacework_compliance_gcp.md)	 - compliance for Google Cloud
+* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Azure Cloud
+* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
 

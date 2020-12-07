@@ -1,21 +1,19 @@
-## lacework access-token
+## lacework compliance aws list-accounts
 
-generate temporary API access tokens
+list all AWS accounts configured
 
 ### Synopsis
 
-Generates a temporary API access token that can be used to access the
-Lacework API. The token will be valid for the duration that you specify.
+List all AWS accounts configured in your account.
 
 ```
-lacework access-token [flags]
+lacework compliance aws list-accounts [flags]
 ```
 
 ### Options
 
 ```
-  -d, --duration_seconds int   duration in seconds that the access token should remain valid (default 3600)
-  -h, --help                   help for access-token
+  -h, --help   help for list-accounts
 ```
 
 ### Options inherited from parent commands
@@ -33,5 +31,5 @@ lacework access-token [flags]
 
 ### SEE ALSO
 
-* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework compliance aws](lacework_compliance_aws.md)	 - compliance for AWS
 

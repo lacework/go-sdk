@@ -1,4 +1,4 @@
-## lacework compliance gcp get-report
+## lacework compliance google get-report
 
 get the latest GCP compliance report
 
@@ -13,7 +13,7 @@ To run an ad-hoc compliance assessment use the command:
 
 
 ```
-lacework compliance gcp get-report <organization_id> <project_id> [flags]
+lacework compliance google get-report <organization_id> <project_id> [flags]
 ```
 
 ### Options
@@ -41,5 +41,5 @@ lacework compliance gcp get-report <organization_id> <project_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance gcp](lacework_compliance_gcp.md)	 - compliance for Google Cloud
+* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
 
