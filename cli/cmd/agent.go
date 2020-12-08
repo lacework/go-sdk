@@ -242,7 +242,7 @@ func updateAgentToken(_ *cobra.Command, args []string) error {
 	updated := api.AgentTokenRequest{
 		TokenAlias: actual.TokenAlias,
 		Enabled:    actual.EnabledInt(),
-		Props: api.AgentTokenProps{
+		Props: &api.AgentTokenProps{
 			CreatedTime: actual.Props.CreatedTime,
 		},
 	}
