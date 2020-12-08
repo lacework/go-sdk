@@ -47,7 +47,7 @@ func (svc *AgentsService) CreateToken(name, desc string) (response AgentTokensRe
 		AgentTokenRequest{
 			TokenAlias: name,
 			Enabled:    1,
-			Props: AgentTokenProps{
+			Props: &AgentTokenProps{
 				Description: desc,
 			},
 		},
@@ -122,9 +122,9 @@ func (t AgentToken) EnabledInt() int {
 }
 
 type AgentTokenRequest struct {
-	TokenAlias string          `json:"TOKEN_ALIAS,omitempty"`
-	Enabled    int             `json:"TOKEN_ENABLED"`
-	Props      AgentTokenProps `json:"PROPS,omitempty"`
+	TokenAlias string           `json:"TOKEN_ALIAS,omitempty"`
+	Enabled    int              `json:"TOKEN_ENABLED"`
+	Props      *AgentTokenProps `json:"PROPS,omitempty"`
 }
 
 type AgentTokenProps struct {
