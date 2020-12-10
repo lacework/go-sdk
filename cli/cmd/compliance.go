@@ -207,74 +207,51 @@ func complianceReportRecommendationsTable(recommendations []api.ComplianceRecomm
 	return out
 }
 
-func buildComplianceReportRecommandations(recommendationsTable [][]string) string {
-	var (
-		detailsTable = &strings.Builder{}
-		t            = tablewriter.NewWriter(detailsTable)
-	)
-
-	t.SetRowLine(true)
-	t.SetBorders(tablewriter.Border{
-		Left:   false,
-		Right:  false,
-		Top:    true,
-		Bottom: true,
-	})
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.SetHeader([]string{
-		"ID",
-		"Recommendation",
-		"Status",
-		"Severity",
-		"Service",
-		"Affected",
-		"Assessed",
-	})
-	t.AppendBulk(recommendationsTable)
-	t.Render()
-
-	return detailsTable.String()
-}
-
 func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable [][]string) string {
-	var (
-		t             *tablewriter.Table
-		mainReport    = &strings.Builder{}
-		summaryReport = &strings.Builder{}
-		reportDetails = &strings.Builder{}
+	mainReport := &strings.Builder{}
+	mainReport.WriteString(
+		renderCustomTable(
+			[]string{
+				"Compliance Report Details",
+				"Non-Compliant Recommendations",
+			},
+			[][]string{[]string{
+				renderCustomTable([]string{}, detailsTable,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator("")
+						t.SetAlignment(tablewriter.ALIGN_LEFT)
+					}),
+				),
+				renderCustomTable([]string{"Severity", "Count"}, summaryTable,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator(" ")
+					}),
+				),
+			}},
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetAutoWrapText(false)
+				t.SetColumnSeparator(" ")
+			}),
+		),
 	)
-
-	t = tablewriter.NewWriter(reportDetails)
-	t.SetBorder(false)
-	t.SetColumnSeparator("")
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.AppendBulk(detailsTable)
-	t.Render()
-
-	t = tablewriter.NewWriter(summaryReport)
-	t.SetBorder(false)
-	t.SetColumnSeparator(" ")
-	t.SetHeader([]string{
-		"Severity", "Count",
-	})
-	t.AppendBulk(summaryTable)
-	t.Render()
-
-	t = tablewriter.NewWriter(mainReport)
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.SetHeader([]string{
-		"Compliance Report Details",
-		"Non-Compliant Recommendations",
-	})
-	t.Append([]string{
-		reportDetails.String(),
-		summaryReport.String(),
-	})
-	t.Render()
 
 	if compCmdState.Details {
-		mainReport.WriteString(buildComplianceReportRecommandations(recommendationsTable))
+		mainReport.WriteString("\n")
+		mainReport.WriteString(
+			renderCustomTable(
+				[]string{"ID", "Recommendation", "Status", "Severity",
+					"Service", "Affected", "Assessed"},
+				recommendationsTable,
+				tableFunc(func(t *tablewriter.Table) {
+					t.SetBorder(false)
+					t.SetRowLine(true)
+					t.SetColumnSeparator(" ")
+				}),
+			),
+		)
 		mainReport.WriteString("\n")
 		mainReport.WriteString(
 			"Try using '--pdf' to download the report in PDF format.",
@@ -282,7 +259,7 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 		mainReport.WriteString("\n")
 	} else {
 		mainReport.WriteString(
-			"Try using '--details' to increase details shown about the compliance report.\n",
+			"\nTry using '--details' to increase details shown about the compliance report.\n",
 		)
 	}
 	return mainReport.String()

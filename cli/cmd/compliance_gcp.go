@@ -20,10 +20,8 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -57,7 +55,13 @@ Then, select one GUID from an integration and visualize its details using the co
 				return cli.OutputJSON(response.Data[0])
 			}
 
-			cli.OutputHuman(buildGcpProjectsTable(response.Data))
+			rows := [][]string{}
+			for _, gcp := range response.Data {
+				for _, proj := range gcp.Projects {
+					rows = append(rows, []string{proj})
+				}
+			}
+			cli.OutputHuman(renderSimpleTable([]string{"Projects"}, rows))
 			return nil
 		},
 	}
@@ -164,7 +168,12 @@ To run an ad-hoc compliance assessment use the command:
 
 			cli.OutputHuman("A new GCP compliance assessment has been initiated.\n")
 			cli.OutputHuman("\n")
-			cli.OutputHuman(buildGcpRunAssessmentTable(response.IntgGuid, args[0]))
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"INTEGRATION GUID", "ORG/PROJECT ID"},
+					[][]string{[]string{response.IntgGuid, args[0]}},
+				),
+			)
 			return nil
 		},
 	}
@@ -190,40 +199,6 @@ func init() {
 	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
 		"report type to display, supported types: CIS, SOC, or PCI",
 	)
-}
-
-func buildGcpRunAssessmentTable(intGuid, id string) string {
-	var (
-		tBuilder = &strings.Builder{}
-		t        = tablewriter.NewWriter(tBuilder)
-	)
-
-	t.SetHeader([]string{"INTEGRATION GUID", "ORG/PROJECT ID"})
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.Append([]string{intGuid, id})
-	t.Render()
-
-	return tBuilder.String()
-}
-
-func buildGcpProjectsTable(gcpProjects []api.CompGcpProjects) string {
-	var (
-		tableBuilder = &strings.Builder{}
-		t            = tablewriter.NewWriter(tableBuilder)
-	)
-
-	t.SetHeader([]string{"Projects"})
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	for _, gcp := range gcpProjects {
-		for _, proj := range gcp.Projects {
-			t.Append([]string{proj})
-		}
-	}
-	t.Render()
-
-	return tableBuilder.String()
 }
 
 func complianceGcpReportDetailsTable(report *api.ComplianceGcpReport) [][]string {

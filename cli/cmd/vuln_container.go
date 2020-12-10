@@ -129,7 +129,30 @@ filter on containers with vulnerabilities that have fixes available.`,
 				return cli.OutputJSON(assessments)
 			}
 
-			cli.OutputHuman(vulAssessmentsToTableReport(assessments))
+			rows := vulAssessmentsToTable(assessments)
+
+			// if the user wants to show only assessments of containers running
+			// and we don't have any, show a friendly message
+			if len(rows) == 0 {
+				cli.OutputHuman(buildContainerAssessmentsError())
+			} else {
+				cli.OutputHuman(
+					renderSimpleTable(
+						[]string{"Registry", "Repository", "Last Scan", "Status",
+							"Containers", "Vulnerabilities", "Image Digest"},
+						rows,
+					),
+				)
+				if !vulCmdState.Active {
+					cli.OutputHuman(
+						"\nTry adding '--active' to only show assessments of containers actively running with vulnerabilities.\n",
+					)
+				} else if !vulCmdState.Fixable {
+					cli.OutputHuman(
+						"\nTry adding '--fixable' to only show assessments with fixable vulnerabilities.\n",
+					)
+				}
+			}
 			return nil
 		},
 	}
@@ -307,7 +330,7 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 		return nil
 	}
 
-	cli.OutputHuman(buildVulnerabilityReport(results))
+	cli.OutputHuman(buildVulnerabilityReportTable(results))
 	if vulCmdState.Html {
 		return generateVulnAssessmentHTML(results)
 	}
@@ -342,7 +365,7 @@ func showContainerAssessmentsWithSha256(sha string) error {
 			return cli.OutputJSON(assessment.Data)
 		}
 
-		cli.OutputHuman(buildVulnerabilityReport(&assessment.Data))
+		cli.OutputHuman(buildVulnerabilityReportTable(&assessment.Data))
 
 		// @afiune is this the best way to make sense of this new flag?
 		if vulCmdState.Html {
@@ -382,117 +405,78 @@ For more information about supported distributions, visit:
 	return nil
 }
 
-func buildVulnerabilityReport(assessment *api.VulnContainerAssessment) string {
-	var (
-		t                 *tablewriter.Table
-		imageDetailsTable = &strings.Builder{}
-		vulCountsTable    = &strings.Builder{}
-		mainReport        = &strings.Builder{}
-	)
-
+func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) string {
 	if assessment.TotalVulnerabilities == 0 {
-		// @afiune this emoji's do not work on Windows
 		return fmt.Sprintf("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
 	}
 
-	t = tablewriter.NewWriter(imageDetailsTable)
-	t.SetBorder(false)
-	t.SetColumnSeparator("")
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.AppendBulk(vulContainerImageToTable(assessment.Image))
-	t.Render()
-
-	t = tablewriter.NewWriter(vulCountsTable)
-	t.SetBorder(false)
-	t.SetColumnSeparator(" ")
-	t.SetHeader([]string{
-		"Severity", "Count", "Fixable",
-	})
-	t.AppendBulk(vulContainerAssessmentToCountsTable(assessment))
-	t.Render()
-
-	t = tablewriter.NewWriter(mainReport)
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.SetHeader([]string{
-		"Container Image Details",
-		"Vulnerabilities",
-	})
-	t.Append([]string{
-		imageDetailsTable.String(),
-		vulCountsTable.String(),
-	})
-	t.Render()
+	mainReport := &strings.Builder{}
+	mainReport.WriteString(
+		renderCustomTable(
+			[]string{
+				"Container Image Details",
+				"Vulnerabilities",
+			},
+			[][]string{[]string{
+				renderCustomTable([]string{},
+					vulContainerImageToTable(assessment.Image),
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator("")
+						t.SetAlignment(tablewriter.ALIGN_LEFT)
+					}),
+				),
+				renderCustomTable([]string{"Severity", "Count", "Fixable"},
+					vulContainerAssessmentToCountsTable(assessment),
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator(" ")
+					}),
+				),
+			}},
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetAutoWrapText(false)
+				t.SetColumnSeparator(" ")
+			}),
+		),
+	)
 
 	if vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages {
+		mainReport.WriteString("\n")
 		if vulCmdState.Packages {
-			mainReport.WriteString(buildVulnerabilityPackageSummary(assessment))
-			mainReport.WriteString("\n")
+			mainReport.WriteString(
+				renderSimpleTable(
+					[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version"},
+					vulContainerImagePackagesToTable(assessment.Image),
+				),
+			)
 		} else {
-			mainReport.WriteString(buildVulnerabilityReportDetails(assessment))
-			mainReport.WriteString("\n")
+			mainReport.WriteString(
+				renderCustomTable(
+					[]string{"CVE ID", "Severity", "Package", "Current Version",
+						"Fix Version", "Introduced in Layer"},
+					vulContainerImageLayersToTable(assessment.Image),
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetRowLine(true)
+						t.SetColumnSeparator(" ")
+						t.SetAlignment(tablewriter.ALIGN_LEFT)
+					}),
+				),
+			)
 			if !vulCmdState.Html {
+				mainReport.WriteString("\n")
 				mainReport.WriteString("Try adding '--packages' to show a list of packages with CVE count.\n")
 			}
 		}
 	} else if !vulCmdState.Html {
 		mainReport.WriteString(
-			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
+			"\nTry adding '--details' to increase details shown about the vulnerability assessment.\n",
 		)
 	}
 
 	return mainReport.String()
-}
-
-func buildVulnerabilityPackageSummary(assessment *api.VulnContainerAssessment) string {
-	var (
-		detailsTable = &strings.Builder{}
-		t            = tablewriter.NewWriter(detailsTable)
-	)
-
-	t.SetRowLine(false)
-	t.SetBorder(false)
-	t.SetColumnSeparator(" ")
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.SetHeader([]string{
-		"CVE Count",
-		"Severity",
-		"Package",
-		"Current Version",
-		"Fix Version",
-	})
-	t.AppendBulk(vulContainerImagePackagesToTable(assessment.Image))
-	t.Render()
-
-	return detailsTable.String()
-}
-
-func buildVulnerabilityReportDetails(assessment *api.VulnContainerAssessment) string {
-	var (
-		detailsTable = &strings.Builder{}
-		t            = tablewriter.NewWriter(detailsTable)
-	)
-
-	t.SetRowLine(true)
-	t.SetBorders(tablewriter.Border{
-		Left:   false,
-		Right:  false,
-		Top:    true,
-		Bottom: true,
-	})
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.SetHeader([]string{
-		"CVE",
-		"Severity",
-		"Package",
-		"Current Version",
-		"Fix Version",
-		"Introduced in Layer",
-	})
-	t.AppendBulk(vulContainerImageLayersToTable(assessment.Image))
-	t.Render()
-
-	return detailsTable.String()
 }
 
 func vulContainerImagePackagesToTable(image *api.VulnContainerImage) [][]string {
@@ -610,46 +594,6 @@ func vulContainerImageToTable(image *api.VulnContainerImage) [][]string {
 		[]string{"Created At", info.CreatedTime},
 		[]string{"Tags", strings.Join(info.Tags, ",")},
 	}
-}
-
-func vulAssessmentsToTableReport(assessments []api.VulnContainerAssessmentSummary) string {
-	var (
-		assessmentsTable = &strings.Builder{}
-		t                = tablewriter.NewWriter(assessmentsTable)
-		rows             = vulAssessmentsToTable(assessments)
-	)
-
-	// if the user wants to show only assessments of containers running
-	// and we don't have any, show a friendly message
-	if len(rows) == 0 {
-		return buildContainerAssessmentsError()
-	}
-
-	t.SetHeader([]string{
-		"Registry",
-		"Repository",
-		"Last Scan",
-		"Status",
-		"Containers",
-		"Vulnerabilities",
-		"Image Digest",
-	})
-	t.SetAutoWrapText(true)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.SetBorder(false)
-	t.AppendBulk(rows)
-	t.Render()
-
-	if !vulCmdState.Active {
-		assessmentsTable.WriteString(
-			"\nTry adding '--active' to only show assessments of containers actively running with vulnerabilities.\n",
-		)
-	} else if !vulCmdState.Fixable {
-		assessmentsTable.WriteString(
-			"\nTry adding '--fixable' to only show assessments with fixable vulnerabilities.\n",
-		)
-	}
-	return assessmentsTable.String()
 }
 
 func buildContainerAssessmentsError() string {
