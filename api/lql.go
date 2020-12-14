@@ -18,40 +18,24 @@
 
 package api
 
-import (
-	"bytes"
-
-	"go.uber.org/zap"
-)
-
 // LQLService is a service that interacts with the LQL
 // endpoints from the Lacework Server
 type LQLService struct {
 	client *Client
 }
 
+type lqlQueryRequest struct {
+	QueryText string `json:"QUERY_TEXT"`
+}
+
 func (svc *LQLService) Query(query string) (
 	response map[string]interface{},
 	err error,
 ) {
-	request, err := svc.client.NewRequest(
-		"POST",
+	err = svc.client.RequestEncoderDecoder("POST",
 		apiLQLQuery,
-		bytes.NewReader([]byte(query)),
+		lqlQueryRequest{query},
+		&response,
 	)
-	if err != nil {
-		return
-	}
-
-	// LQL requires the Content-Type to be 'text/plain'
-	svc.client.log.Debug("setting custom header for LQL", zap.String("Content-Type", "text/plain"))
-	request.Header.Set("Content-Type", "text/plain")
-
-	res, err := svc.client.DoDecoder(request, &response)
-	if err != nil {
-		return
-	}
-	defer res.Body.Close()
-
 	return
 }
