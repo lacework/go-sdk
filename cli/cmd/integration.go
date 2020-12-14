@@ -286,15 +286,18 @@ func buildIntDetailsTable(integrations []api.RawIntegration) string {
 	details = append(details, buildIntegrationState(integration.State)...)
 
 	return renderOneLineCustomTable("INTEGRATION DETAILS",
-		renderSimpleTable([]string{}, details),
+		renderCustomTable([]string{}, details,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+			}),
+		),
 		tableFunc(func(t *tablewriter.Table) {
 			t.SetBorder(false)
 			t.SetAutoWrapText(false)
 		}),
 	)
-	//t.SetBorder(false)
-	//t.SetAutoWrapText(false)
-	//t.SetAlignment(tablewriter.ALIGN_LEFT)
 }
 
 func buildIntegrationState(state *api.IntegrationState) [][]string {
