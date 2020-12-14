@@ -21,7 +21,6 @@ package cmd
 import (
 	"fmt"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/lacework/go-sdk/api"
@@ -177,7 +176,12 @@ func listAgents(_ *cobra.Command, _ []string) error {
 		return cli.OutputJSON(response.Data)
 	}
 
-	cli.OutputHuman(buildAgentsTable(response.Data))
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"Hostname", "Name", "IP Address", "External IP", "Status", "OS Arch", "Version"},
+			agentsToTable(response.Data),
+		),
+	)
 	return nil
 }
 
@@ -332,30 +336,13 @@ func listAgentTokens(_ *cobra.Command, _ []string) error {
 		return cli.OutputJSON(response.Data)
 	}
 
-	cli.OutputHuman(buildAgentTokensTable(response.Data))
-	return nil
-}
-
-func buildAgentsTable(agents []AgentHost) string {
-	var (
-		bldr = &strings.Builder{}
-		t    = tablewriter.NewWriter(bldr)
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"Token", "Name", "Status"},
+			agentTokensToTable(response.Data),
+		),
 	)
-
-	t.SetHeader([]string{
-		"Hostname",
-		"Name",
-		"IP Address",
-		"External IP",
-		"Status",
-		"OS Arch",
-		"Version",
-	})
-	t.SetBorder(false)
-	t.AppendBulk(agentsToTable(agents))
-	t.Render()
-
-	return bldr.String()
+	return nil
 }
 
 func agentsToTable(agents []AgentHost) [][]string {
@@ -380,24 +367,6 @@ func agentsToTable(agents []AgentHost) [][]string {
 	return out
 }
 
-func buildAgentTokensTable(tokens []api.AgentToken) string {
-	var (
-		bldr = &strings.Builder{}
-		t    = tablewriter.NewWriter(bldr)
-	)
-
-	t.SetHeader([]string{
-		"Token",
-		"Name",
-		"Status",
-	})
-	t.SetBorder(false)
-	t.AppendBulk(agentTokensToTable(tokens))
-	t.Render()
-
-	return bldr.String()
-}
-
 func agentTokensToTable(tokens []api.AgentToken) [][]string {
 	out := [][]string{}
 	for _, token := range tokens {
@@ -411,33 +380,22 @@ func agentTokensToTable(tokens []api.AgentToken) [][]string {
 }
 
 func buildAgentTokenDetailsTable(token api.AgentToken) string {
-	var (
-		main    = &strings.Builder{}
-		details = &strings.Builder{}
-		t       = tablewriter.NewWriter(details)
+	return renderOneLineCustomTable("Agent Token Details",
+		renderSimpleTable([]string{},
+			[][]string{
+				[]string{"TOKEN", token.AccessToken},
+				[]string{"NAME", token.TokenAlias},
+				[]string{"DESCRIPTION", token.Props.Description},
+				[]string{"ACCOUNT", token.Account},
+				[]string{"VERSION", token.Version},
+				[]string{"STATUS", token.PrettyStatus()},
+				[]string{"CREATED AT", token.Props.CreatedTime.Format(time.RFC3339)},
+				[]string{"UPDATED AT", token.LastUpdatedTime.Format(time.RFC3339)},
+			},
+		),
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetAutoWrapText(false)
+		}),
 	)
-
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.AppendBulk([][]string{
-		[]string{"TOKEN", token.AccessToken},
-		[]string{"NAME", token.TokenAlias},
-		[]string{"DESCRIPTION", token.Props.Description},
-		[]string{"ACCOUNT", token.Account},
-		[]string{"VERSION", token.Version},
-		[]string{"STATUS", token.PrettyStatus()},
-		[]string{"CREATED AT", token.Props.CreatedTime.Format(time.RFC3339)},
-		[]string{"UPDATED AT", token.LastUpdatedTime.Format(time.RFC3339)},
-	})
-	t.Render()
-
-	t = tablewriter.NewWriter(main)
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.SetHeader([]string{"Agent Token Details"})
-	t.Append([]string{details.String()})
-	t.Render()
-
-	return main.String()
 }

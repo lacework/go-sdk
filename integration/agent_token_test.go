@@ -31,6 +31,9 @@ import (
 const (
 	testTokenAlias = "circle-ci-test-token"
 	testTokenDesc  = "this token is used for our ci/cd tests (do-not-update)"
+	// since we are wrapping the table output, we need to check for different strings
+	testTokenDescWrap1 = "this token is used for our"
+	testTokenDescWrap2 = "ci/cd tests (do-not-update)"
 )
 
 func TestAgentTokenCommandAliases(t *testing.T) {
@@ -179,7 +182,9 @@ func TestAgentTokenCommandEndToEnd(t *testing.T) {
 			"STDERR should be empty")
 		assert.Equal(t, 0, exitcode,
 			"EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), testTokenDesc,
+		assert.Contains(t, out.String(), testTokenDescWrap1,
+			"STDOUT token description mismatch")
+		assert.Contains(t, out.String(), testTokenDescWrap2,
 			"STDOUT token description mismatch")
 	})
 

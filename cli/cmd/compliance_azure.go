@@ -20,10 +20,8 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -57,7 +55,13 @@ Then, select one GUID from an integration and visualize its details using the co
 				return cli.OutputJSON(response.Data[0])
 			}
 
-			cli.OutputHuman(buildAzureSubscriptionsTable(response.Data))
+			rows := [][]string{}
+			for _, azure := range response.Data {
+				for _, subs := range azure.Subscriptions {
+					rows = append(rows, []string{subs})
+				}
+			}
+			cli.OutputHuman(renderSimpleTable([]string{"Subscriptions"}, rows))
 			return nil
 		},
 	}
@@ -164,7 +168,12 @@ To run an ad-hoc compliance assessment use the command:
 
 			cli.OutputHuman("A new Azure compliance assessment has been initiated.\n")
 			cli.OutputHuman("\n")
-			cli.OutputHuman(buildAzureRunAssessmentTable(response.IntgGuid, args[0]))
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"INTEGRATION GUID", "TENANT ID"},
+					[][]string{[]string{response.IntgGuid, args[0]}},
+				),
+			)
 			return nil
 		},
 	}
@@ -190,40 +199,6 @@ func init() {
 	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
 		"report type to display, supported types: CIS, SOC, or PCI",
 	)
-}
-
-func buildAzureRunAssessmentTable(intGuid, id string) string {
-	var (
-		tBuilder = &strings.Builder{}
-		t        = tablewriter.NewWriter(tBuilder)
-	)
-
-	t.SetHeader([]string{"INTEGRATION GUID", "TENANT ID"})
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.Append([]string{intGuid, id})
-	t.Render()
-
-	return tBuilder.String()
-}
-
-func buildAzureSubscriptionsTable(azureSubs []api.CompAzureSubscriptions) string {
-	var (
-		tBuilder = &strings.Builder{}
-		t        = tablewriter.NewWriter(tBuilder)
-	)
-
-	t.SetHeader([]string{"Subscriptions"})
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	for _, azure := range azureSubs {
-		for _, subs := range azure.Subscriptions {
-			t.Append([]string{subs})
-		}
-	}
-	t.Render()
-
-	return tBuilder.String()
 }
 
 func complianceAzureReportDetailsTable(report *api.ComplianceAzureReport) [][]string {

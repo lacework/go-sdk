@@ -32,7 +32,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/BurntSushi/toml"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -127,18 +126,12 @@ export the environment variable:
 				return err
 			}
 
-			var (
-				strBuilder = &strings.Builder{}
-				table      = tablewriter.NewWriter(strBuilder)
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"Profile", "Account", "API Key", "API Secret"},
+					buildProfilesTableContent(cli.Profile, profiles),
+				),
 			)
-
-			table.SetBorder(false)
-			table.SetAlignment(tablewriter.ALIGN_LEFT)
-			table.SetHeader([]string{"Profile", "Account", "API Key", "API Secret"})
-			table.AppendBulk(buildProfilesTableContent(cli.Profile, profiles))
-			table.Render()
-
-			cli.OutputHuman(strBuilder.String())
 			return nil
 		},
 	}

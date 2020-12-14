@@ -20,7 +20,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/mitchellh/mapstructure"
@@ -76,7 +75,12 @@ var (
 				return nil
 			}
 
-			cli.OutputHuman(buildIntegrationsTable(integrations.Data))
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"Integration GUID", "Name", "Type", "Status", "State"},
+					integrationsToTable(integrations.Data),
+				),
+			)
 			return nil
 		},
 	}
@@ -102,7 +106,12 @@ var (
 				return errors.New(msg)
 			}
 
-			cli.OutputHuman(buildIntegrationsTable(integration.Data))
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"Integration GUID", "Name", "Type", "Status", "State"},
+					integrationsToTable(integration.Data),
+				),
+			)
 			cli.OutputHuman("\n")
 			cli.OutputHuman(buildIntDetailsTable(integration.Data))
 			return nil
@@ -251,7 +260,7 @@ func promptCreateIntegration() error {
 	}
 }
 
-func integrationsTable(integrations []api.RawIntegration) [][]string {
+func integrationsToTable(integrations []api.RawIntegration) [][]string {
 	out := [][]string{}
 	for _, idata := range integrations {
 		out = append(out, []string{
@@ -265,53 +274,27 @@ func integrationsTable(integrations []api.RawIntegration) [][]string {
 	return out
 }
 
-func buildIntegrationsTable(integrations []api.RawIntegration) string {
-	var (
-		tableBuilder = &strings.Builder{}
-		t            = tablewriter.NewWriter(tableBuilder)
-	)
-
-	t.SetHeader([]string{
-		"Integration GUID",
-		"Name",
-		"Type",
-		"Status",
-		"State",
-	})
-	t.SetBorder(false)
-	t.AppendBulk(integrationsTable(integrations))
-	t.Render()
-
-	return tableBuilder.String()
-}
-
 func buildIntDetailsTable(integrations []api.RawIntegration) string {
-	var (
-		main    = &strings.Builder{}
-		details = &strings.Builder{}
-		t       = tablewriter.NewWriter(details)
-	)
-
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	if len(integrations) != 0 {
-		integration := integrations[0]
-		t.AppendBulk(reflectIntegrationData(integration))
-		t.Append([]string{"UPDATED AT", integration.CreatedOrUpdatedTime})
-		t.Append([]string{"UPDATED BY", integration.CreatedOrUpdatedBy})
-		t.AppendBulk(buildIntegrationState(integration.State))
+	if len(integrations) == 0 {
+		return "ERROR unable to access integration details. No data!\n"
 	}
-	t.Render()
 
-	t = tablewriter.NewWriter(main)
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.SetHeader([]string{"INTEGRATION DETAILS"})
-	t.Append([]string{details.String()})
-	t.Render()
+	integration := integrations[0]
+	details := reflectIntegrationData(integration)
+	details = append(details, []string{"UPDATED AT", integration.CreatedOrUpdatedTime})
+	details = append(details, []string{"UPDATED BY", integration.CreatedOrUpdatedBy})
+	details = append(details, buildIntegrationState(integration.State)...)
 
-	return main.String()
+	return renderOneLineCustomTable("INTEGRATION DETAILS",
+		renderSimpleTable([]string{}, details),
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetAutoWrapText(false)
+		}),
+	)
+	//t.SetBorder(false)
+	//t.SetAutoWrapText(false)
+	//t.SetAlignment(tablewriter.ALIGN_LEFT)
 }
 
 func buildIntegrationState(state *api.IntegrationState) [][]string {

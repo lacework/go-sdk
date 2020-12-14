@@ -188,11 +188,40 @@ with fixes:
 			}
 
 			if vulCmdState.Packages {
-				cli.OutputHuman(hostVulnCVEsPackagesSummary(response.CVEs, true))
-			} else {
-				cli.OutputHuman(hostVulnCVEsToTable(response.CVEs))
+				cli.OutputHuman(
+					renderSimpleTable(
+						[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
+						hostVulnPackagesTable(response.CVEs, true),
+					),
+				)
+				return nil
 			}
 
+			rows := hostVulnCVEsTable(response.CVEs)
+			// if the user wants to show only online or
+			// offline hosts, show a friendly message
+			if len(rows) == 0 {
+				cli.OutputHuman(buildHostVulnCVEsToTableError())
+				return nil
+			}
+
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"CVE ID", "Severity", "Score", "Package", "Current Version",
+						"Fix Version", "OS Version", "Hosts", "Pkg Status", "Vuln Status"},
+					rows,
+				),
+			)
+
+			if !vulCmdState.Active {
+				cli.OutputHuman(
+					"\nTry adding '--active' to only show vulnerabilities of packages actively running.\n",
+				)
+			} else if !vulCmdState.Fixable {
+				cli.OutputHuman(
+					"\nTry adding '--fixable' to only show fixable vulnerabilities.\n",
+				)
+			}
 			return nil
 		},
 	}
@@ -225,7 +254,26 @@ To list the CVEs found in the hosts of your environment run:
 				return nil
 			}
 
-			cli.OutputHuman(hostVulnHostsToTable(response.Hosts))
+			rows := hostVulnHostsTable(response.Hosts)
+			// if the user wants to show only online or
+			// offline hosts, show a friendly message
+			if len(rows) == 0 {
+				if vulCmdState.Online {
+					cli.OutputHuman("There are no online hosts.\n")
+				}
+				if vulCmdState.Offline {
+					cli.OutputHuman("There are no offline hosts.\n")
+				}
+				return nil
+			}
+
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"Machine ID", "Hostname", "External IP", "Internal IP",
+						"Os/Arch", "Provider", "Instance ID", "Vulnerabilities", "Status"},
+					rows,
+				),
+			)
 			return nil
 		},
 	}
@@ -324,43 +372,6 @@ func init() {
 	)
 }
 
-func hostVulnHostsToTable(hosts []api.HostVulnDetail) string {
-	var (
-		tableBuilder = &strings.Builder{}
-		t            = tablewriter.NewWriter(tableBuilder)
-		rows         = hostVulnHostsTable(hosts)
-	)
-
-	// if the user wants to show only online or
-	// offline hosts, show a friendly message
-	if len(rows) == 0 {
-		if vulCmdState.Online {
-			return "There are no online hosts.\n"
-		}
-		if vulCmdState.Offline {
-			return "There are no offline hosts.\n"
-		}
-	}
-
-	t.SetHeader([]string{
-		"Machine ID",
-		"Hostname",
-		"External IP",
-		"Internal IP",
-		"Os/Arch",
-		"Provider",
-		"Instance ID",
-		"Vulnerabilities",
-		"Status",
-	})
-	t.SetBorder(false)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.AppendBulk(rows)
-	t.Render()
-
-	return tableBuilder.String()
-}
-
 func hostVulnHostsTable(hosts []api.HostVulnDetail) [][]string {
 	out := [][]string{}
 	for _, host := range hosts {
@@ -410,32 +421,6 @@ func hostVulnSummaryFromHostDetail(hostVulnSummary *api.HostVulnCveSummary) (str
 	}
 
 	return strings.Join(summary, " "), true
-}
-
-func hostVulnCVEsPackagesSummary(cves []api.HostVulnCVE, withHosts bool) string {
-	var (
-		tableBuilder = &strings.Builder{}
-		t            = tablewriter.NewWriter(tableBuilder)
-	)
-
-	headers := []string{
-		"CVE Count",
-		"Severity",
-		"Package",
-		"Current Version",
-		"Fix Version",
-		"Pkg Status",
-	}
-	if withHosts {
-		headers = append(headers, "Hosts")
-	}
-	t.SetHeader(headers)
-	t.SetBorder(false)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.AppendBulk(hostVulnPackagesTable(cves, withHosts))
-	t.Render()
-
-	return tableBuilder.String()
 }
 
 func hostVulnPackagesTable(cves []api.HostVulnCVE, withHosts bool) [][]string {
@@ -501,48 +486,6 @@ func hostVulnPackagesTable(cves []api.HostVulnCVE, withHosts bool) [][]string {
 	return out
 }
 
-func hostVulnCVEsToTable(cves []api.HostVulnCVE) string {
-	var (
-		tableBuilder = &strings.Builder{}
-		t            = tablewriter.NewWriter(tableBuilder)
-		rows         = hostVulnCVEsTable(cves)
-	)
-
-	// if the user wants to show only online or
-	// offline hosts, show a friendly message
-	if len(rows) == 0 {
-		return buildHostVulnCVEsToTableError()
-	}
-
-	t.SetHeader([]string{
-		"CVE",
-		"Severity",
-		"Score",
-		"Package",
-		"Current Version",
-		"Fix Version",
-		"OS Version",
-		"Hosts",
-		"Pkg Status",
-		"Vuln Status",
-	})
-	t.SetBorder(false)
-	t.AppendBulk(rows)
-	t.Render()
-
-	if !vulCmdState.Active {
-		tableBuilder.WriteString(
-			"\nTry adding '--active' to only show vulnerabilities of packages actively running.\n",
-		)
-	} else if !vulCmdState.Fixable {
-		tableBuilder.WriteString(
-			"\nTry adding '--fixable' to only show fixable vulnerabilities.\n",
-		)
-	}
-
-	return tableBuilder.String()
-}
-
 func hostVulnCVEsTable(cves []api.HostVulnCVE) [][]string {
 	out := [][]string{}
 	out = append(out, hostVulnCVEsTableForSeverity(cves, "Critical")...)
@@ -592,116 +535,97 @@ func hostVulnCVEsTableForSeverity(cves []api.HostVulnCVE, severity string) [][]s
 }
 
 func hostVulnHostDetailsToTable(assessment api.HostVulnHostAssessment) string {
-	var (
-		tableBuilder        = &strings.Builder{}
-		hostDetailsTable    = &strings.Builder{}
-		hostVulnCountsTable = &strings.Builder{}
-		t                   = tablewriter.NewWriter(hostDetailsTable)
+	mainBldr := &strings.Builder{}
+	mainBldr.WriteString(
+		renderCustomTable([]string{"Host Details", "Vulnerabilities"},
+			[][]string{[]string{
+				renderCustomTable([]string{},
+					[][]string{
+						[]string{"Machine ID", assessment.Host.MachineID},
+						[]string{"Hostname", assessment.Host.Hostname},
+						[]string{"External IP", assessment.Host.Tags.ExternalIP},
+						[]string{"Internal IP", assessment.Host.Tags.InternalIP},
+						[]string{"Os", assessment.Host.Tags.Os},
+						[]string{"Arch", assessment.Host.Tags.Arch},
+						[]string{"Namespace", getNamespaceFromHostVuln(assessment.CVEs)},
+						[]string{"Provider", assessment.Host.Tags.VmProvider},
+						[]string{"Instance ID", assessment.Host.Tags.InstanceID},
+						[]string{"AMI", assessment.Host.Tags.AmiID},
+					},
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetColumnSeparator("")
+						t.SetBorder(false)
+						t.SetAlignment(tablewriter.ALIGN_LEFT)
+
+					}),
+				),
+				renderCustomTable(
+					[]string{"Severity", "Count", "Fixable"},
+					hostVulnAssessmentToCountsTable(assessment.VulnerabilityCounts()),
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator(" ")
+					}),
+				),
+			}},
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetAutoWrapText(false)
+				t.SetColumnSeparator(" ")
+			}),
+		),
 	)
 
-	t.SetColumnSeparator("")
-	t.SetBorder(false)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.AppendBulk(
-		[][]string{
-			[]string{"Machine ID", assessment.Host.MachineID},
-			[]string{"Hostname", assessment.Host.Hostname},
-			[]string{"External IP", assessment.Host.Tags.ExternalIP},
-			[]string{"Internal IP", assessment.Host.Tags.InternalIP},
-			[]string{"Os", assessment.Host.Tags.Os},
-			[]string{"Arch", assessment.Host.Tags.Arch},
-			[]string{"Namespace", getNamespaceFromHostVuln(assessment.CVEs)},
-			[]string{"Provider", assessment.Host.Tags.VmProvider},
-			[]string{"Instance ID", assessment.Host.Tags.InstanceID},
-			[]string{"AMI", assessment.Host.Tags.AmiID},
-		},
-	)
-	t.Render()
-
-	t = tablewriter.NewWriter(hostVulnCountsTable)
-	t.SetBorder(false)
-	t.SetColumnSeparator(" ")
-	t.SetHeader([]string{
-		"Severity", "Count", "Fixable",
-	})
-	t.AppendBulk(hostVulnAssessmentToCountsTable(assessment.VulnerabilityCounts()))
-	t.Render()
-
-	t = tablewriter.NewWriter(tableBuilder)
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.SetHeader([]string{
-		"Host Details",
-		"Vulnerabilities",
-	})
-	t.Append([]string{
-		hostDetailsTable.String(),
-		hostVulnCountsTable.String(),
-	})
-	t.Render()
-
+	mainBldr.WriteString("\n")
 	if vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages || vulCmdState.Active {
 		if vulCmdState.Packages {
-			tableBuilder.WriteString(hostVulnCVEsPackagesSummary(assessment.CVEs, false))
+			mainBldr.WriteString(
+				renderSimpleTable(
+					[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status"},
+					hostVulnPackagesTable(assessment.CVEs, false),
+				),
+			)
 		} else {
-			tableBuilder.WriteString(hostVulnHostAssessmentCVEsToTable(assessment))
+			rows := hostVulnCVEsTableForHostView(assessment.CVEs)
+
+			// if the user wants to show only vulnerabilities of active packages
+			// and we don't have any, show a friendly message
+			if len(rows) == 0 {
+				if vulCmdState.Active && vulCmdState.Fixable {
+					mainBldr.WriteString("There are no fixable vulnerabilities with packages actively running in this host.\n")
+				}
+				if vulCmdState.Active {
+					mainBldr.WriteString("There are no vulnerabilities with packages actively running in this host.\n")
+				}
+				if vulCmdState.Active {
+					mainBldr.WriteString("There are no fixable vulnerabilities in this host.\n")
+				}
+			} else {
+				mainBldr.WriteString(renderSimpleTable([]string{
+					"CVE ID", "Severity", "Score", "Package", "Current Version",
+					"Fix Version", "Pgk Status", "Vuln Status"},
+					rows,
+				))
+			}
 		}
-		tableBuilder.WriteString("\n")
+		mainBldr.WriteString("\n")
 	}
 
 	if !vulCmdState.Details && !vulCmdState.Active && !vulCmdState.Fixable && !vulCmdState.Packages {
-		tableBuilder.WriteString(
+		mainBldr.WriteString(
 			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
 		)
 	} else if !vulCmdState.Active {
-		tableBuilder.WriteString(
+		mainBldr.WriteString(
 			"Try adding '--active' to only show vulnerabilities of packages actively running.\n",
 		)
 	} else if !vulCmdState.Fixable {
-		tableBuilder.WriteString(
+		mainBldr.WriteString(
 			"Try adding '--fixable' to only show fixable vulnerabilities.\n",
 		)
 	}
 
-	return tableBuilder.String()
-}
-
-func hostVulnHostAssessmentCVEsToTable(assessment api.HostVulnHostAssessment) string {
-	var (
-		tableBuilder = &strings.Builder{}
-		t            = tablewriter.NewWriter(tableBuilder)
-		rows         = hostVulnCVEsTableForHostView(assessment.CVEs)
-	)
-
-	// if the user wants to show only vulnerabilities of active packages
-	// and we don't have any, show a friendly message
-	if len(rows) == 0 {
-		if vulCmdState.Active && vulCmdState.Fixable {
-			return "There are no fixable vulnerabilities with packages actively running in this host.\n"
-		}
-		if vulCmdState.Active {
-			return "There are no vulnerabilities with packages actively running in this host.\n"
-		}
-		if vulCmdState.Active {
-			return "There are no fixable vulnerabilities in this host.\n"
-		}
-	}
-
-	t.SetHeader([]string{
-		"CVE",
-		"Severity",
-		"Score",
-		"Package",
-		"Current Version",
-		"Fix Version",
-		"Pgk Status",
-		"Vuln Status",
-	})
-	t.SetBorder(false)
-	t.AppendBulk(rows)
-	t.Render()
-
-	return tableBuilder.String()
+	return mainBldr.String()
 }
 
 func hostVulnCVEsTableForHostView(cves []api.HostVulnCVE) [][]string {
@@ -789,11 +713,9 @@ func addToHostSummary(text []string, num int32, severity string) []string {
 
 func hostScanPackagesVulnToTable(scan *api.HostVulnScanPkgManifestResponse) string {
 	var (
-		tableBuilder   = &strings.Builder{}
-		summaryBuilder = &strings.Builder{}
-		t              *tablewriter.Table
-		rows           [][]string
-		headers        []string
+		mainBldr = &strings.Builder{}
+		rows     [][]string
+		headers  []string
 	)
 
 	if vulCmdState.Packages {
@@ -808,7 +730,7 @@ func hostScanPackagesVulnToTable(scan *api.HostVulnScanPkgManifestResponse) stri
 	} else {
 		rows = hostScanPackagesVulnDetailsTable(scan.Vulns)
 		headers = []string{
-			"CVE",
+			"CVE ID",
 			"Severity",
 			"Score",
 			"Package",
@@ -825,34 +747,32 @@ func hostScanPackagesVulnToTable(scan *api.HostVulnScanPkgManifestResponse) stri
 		if pkgManifestLocal {
 			scannedVia = "localhost"
 		}
-		return fmt.Sprintf("Great news! The %s has no vulnerabilities... (time for %s)\n",
-			scannedVia, randomEmoji())
+		return fmt.Sprintf(
+			"Great news! The %s has no vulnerabilities... (time for %s)\n",
+			scannedVia, randomEmoji(),
+		)
 	}
 
-	t = tablewriter.NewWriter(summaryBuilder)
-	t.SetBorder(false)
-	t.SetColumnSeparator(" ")
-	t.SetHeader([]string{
-		"Severity", "Count", "Fixable",
-	})
-	t.AppendBulk(hostVulnAssessmentToCountsTable(scan.VulnerabilityCounts()))
-	t.Render()
+	mainBldr.WriteString(
+		renderOneLineCustomTable("Vulnerabilities",
+			renderCustomTable(
+				[]string{"Severity", "Count", "Fixable"},
+				hostVulnAssessmentToCountsTable(scan.VulnerabilityCounts()),
+				tableFunc(func(t *tablewriter.Table) {
+					t.SetBorder(false)
+					t.SetColumnSeparator(" ")
+				}),
+			),
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetAutoWrapText(false)
+			}),
+		),
+	)
 
-	t = tablewriter.NewWriter(tableBuilder)
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.SetHeader([]string{"Vulnerabilities"})
-	t.Append([]string{summaryBuilder.String()})
-	t.Render()
+	mainBldr.WriteString(renderSimpleTable(headers, rows))
 
-	t = tablewriter.NewWriter(tableBuilder)
-	t.SetHeader(headers)
-	t.SetBorder(false)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.AppendBulk(rows)
-	t.Render()
-
-	return tableBuilder.String()
+	return mainBldr.String()
 }
 
 func hostScanPackagesVulnDetailsTable(vulns []api.HostScanPackageVulnDetails) [][]string {

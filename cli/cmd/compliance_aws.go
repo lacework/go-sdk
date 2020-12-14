@@ -20,10 +20,8 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -69,7 +67,12 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 				return cli.OutputJSON(awsAccounts)
 			}
 
-			cli.OutputHuman(buildAwsComplianceAccountsTable(awsAccounts))
+			rows := [][]string{}
+			for _, acc := range awsAccounts {
+				rows = append(rows, []string{acc})
+			}
+
+			cli.OutputHuman(renderSimpleTable([]string{"AWS Accounts"}, rows))
 			return nil
 		},
 	}
@@ -181,7 +184,12 @@ To run an ad-hoc compliance assessment of an AWS account:
 			// @afiune not consistent with the other cloud providers
 			for key := range response {
 				cli.OutputHuman("\n")
-				cli.OutputHuman(buildAwsRunAssessmentTable(key, args[0]))
+				cli.OutputHuman(
+					renderSimpleTable(
+						[]string{"INTEGRATION GUID", "ACCOUNT ID"},
+						[][]string{[]string{key, args[0]}},
+					),
+				)
 			}
 			return nil
 		},
@@ -210,21 +218,6 @@ func init() {
 	)
 }
 
-func buildAwsRunAssessmentTable(intGuid, id string) string {
-	var (
-		tBuilder = &strings.Builder{}
-		t        = tablewriter.NewWriter(tBuilder)
-	)
-
-	t.SetHeader([]string{"INTEGRATION GUID", "ACCOUNT ID"})
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.Append([]string{intGuid, id})
-	t.Render()
-
-	return tBuilder.String()
-}
-
 func complianceAwsReportDetailsTable(report *api.ComplianceAwsReport) [][]string {
 	return [][]string{
 		[]string{"Report Type", report.ReportType},
@@ -233,21 +226,4 @@ func complianceAwsReportDetailsTable(report *api.ComplianceAwsReport) [][]string
 		[]string{"Account Alias", report.AccountAlias},
 		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
-}
-
-func buildAwsComplianceAccountsTable(accounts []string) string {
-	var (
-		tBuilder = &strings.Builder{}
-		t        = tablewriter.NewWriter(tBuilder)
-	)
-
-	t.SetHeader([]string{"AWS Accounts"})
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	for _, acc := range accounts {
-		t.Append([]string{acc})
-	}
-	t.Render()
-
-	return tBuilder.String()
 }
