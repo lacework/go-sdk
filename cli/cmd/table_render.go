@@ -40,13 +40,6 @@ func renderSimpleTable(headers []string, data [][]string) string {
 	tbl.SetAutoWrapText(true)
 	tbl.SetAlignment(tablewriter.ALIGN_LEFT)
 	tbl.SetColumnSeparator(" ")
-
-	//tbl.SetRowSeparator("")
-	//tbl.SetCenterSeparator("")
-	//tbl.SetColumnSeparator("")
-	//tbl.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	//tbl.SetHeaderLine(false)
-
 	tbl.AppendBulk(data)
 	tbl.Render()
 	return tblBldr.String()

@@ -239,7 +239,6 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 	)
 
 	if compCmdState.Details {
-		mainReport.WriteString("\n")
 		mainReport.WriteString(
 			renderCustomTable(
 				[]string{"ID", "Recommendation", "Status", "Severity",
@@ -259,7 +258,7 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 		mainReport.WriteString("\n")
 	} else {
 		mainReport.WriteString(
-			"\nTry using '--details' to increase details shown about the compliance report.\n",
+			"Try using '--details' to increase details shown about the compliance report.\n",
 		)
 	}
 	return mainReport.String()

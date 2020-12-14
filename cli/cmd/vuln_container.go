@@ -443,7 +443,6 @@ func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) stri
 	)
 
 	if vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages {
-		mainReport.WriteString("\n")
 		if vulCmdState.Packages {
 			mainReport.WriteString(
 				renderSimpleTable(
@@ -466,13 +465,12 @@ func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) stri
 				),
 			)
 			if !vulCmdState.Html {
-				mainReport.WriteString("\n")
-				mainReport.WriteString("Try adding '--packages' to show a list of packages with CVE count.\n")
+				mainReport.WriteString("\nTry adding '--packages' to show a list of packages with CVE count.\n")
 			}
 		}
 	} else if !vulCmdState.Html {
 		mainReport.WriteString(
-			"\nTry adding '--details' to increase details shown about the vulnerability assessment.\n",
+			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
 		)
 	}
 
