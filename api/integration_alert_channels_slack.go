@@ -94,6 +94,5 @@ type SlackAlertChannel struct {
 }
 
 type SlackChannelData struct {
-	IssueGrouping string `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
-	SlackUrl      string `json:"SLACK_URL" mapstructure:"SLACK_URL"`
+	SlackUrl string `json:"SLACK_URL" mapstructure:"SLACK_URL"`
 }

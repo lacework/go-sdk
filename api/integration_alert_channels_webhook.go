@@ -68,6 +68,5 @@ type WebhookAlertChannel struct {
 }
 
 type WebhookChannelData struct {
-	IssueGrouping string `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
-	WebhookUrl    string `json:"WEBHOOK_URL" mapstructure:"WEBHOOK_URL"`
+	WebhookUrl string `json:"WEBHOOK_URL" mapstructure:"WEBHOOK_URL"`
 }
