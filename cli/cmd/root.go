@@ -61,6 +61,15 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 				return cli.NewClient()
 			}
 		},
+		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
+			// run the daily version check but do not fail if we couldn't check
+			// this is not a critical part of the CLI and we do not want to impact
+			// cusomters workflows or CI systems
+			if err := dailyVersionCheck(); err != nil {
+				cli.Log.Debugw("unable to run daily version check", "error", err)
+			}
+			return nil
+		},
 	}
 )
 
