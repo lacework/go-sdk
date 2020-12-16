@@ -28,6 +28,8 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+
+	"github.com/lacework/go-sdk/lwupdater"
 )
 
 // Use this function to execute a real lacework CLI command, under the hood the function
@@ -85,6 +87,7 @@ func NewLaceworkCLI(workingDir string, args ...string) *exec.Cmd {
 		cmd.Dir = workingDir
 		cmd.Env = append(os.Environ(),
 			fmt.Sprintf("HOME=%s", workingDir),
+			fmt.Sprintf("%s=1", lwupdater.DisableEnv),
 		)
 	}
 	return cmd
@@ -128,7 +131,6 @@ func createTOMLConfigFromCIvars() string {
 	if os.Getenv("CI_ACCOUNT") == "" ||
 		os.Getenv("CI_API_KEY") == "" ||
 		os.Getenv("CI_API_SECRET") == "" {
-		// @afiune add instructions
 		log.Fatal(missingCIEnvironmentVariables())
 	}
 

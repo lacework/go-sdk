@@ -83,6 +83,14 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 }
 
+// VersionCache is the representation of the file named 'version_cache' stored
+// at the directory ~/.config/lacework
+type VersionCache struct {
+	Project        string    `json:"project"`
+	CurrentVersion string    `json:"current_version"`
+	LastCheckTime  time.Time `json:"last_check_time"`
+}
+
 // versionCheck checks if the user is running the latest version of the cli,
 // if not, displays a friendly message about the new version available
 func versionCheck() error {
@@ -102,14 +110,9 @@ func versionCheck() error {
 	return nil
 }
 
-type VersionCache struct {
-	Project        string    `json:"project"`
-	CurrentVersion string    `json:"current_version"`
-	LastCheckTime  time.Time `json:"last_check_time"`
-}
-
+// dailyVersionCheck will execute a version check on a daily basis, the function uses
+// the file ~/.config/lacework/version_cache to track the time of last check
 func dailyVersionCheck() error {
-	// find home directory
 	home, err := homedir.Dir()
 	if err != nil {
 		return err
