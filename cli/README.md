@@ -6,7 +6,9 @@ The Lacework Command Line Interface is a tool that helps you manage the
 Lacework cloud security platform. You can use it to manage compliance
 reports, external integrations, vulnerability scans, and other operations.
 
-## Install
+🐳 [CLI Docker Containers](https://hub.docker.com/r/lacework/lacework-cli)
+
+## Installation
 
 ### Bash:
 
@@ -120,9 +122,9 @@ $ lacework events list
 $ lacework vulnerability container scan index.docker.io lacework/lacework-cli latest
 ```
 4) Use the `api` command to access Lacework's RestfulAPI, for example,
-to list the common vulnerabilities found in the hosts of your Lacework environment:
+to look at the SCHEMA of the `WEBHOOK` integration:
 ```bash
-$ lacework api get /external/vulnerabilities/host
+$ lacework api get /external/integrations/schema/WEBHOOK
 ```
 
 ## CLI Documentation

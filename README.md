@@ -12,6 +12,8 @@ This repository provides a set of tools, libraries, relevant documentation, code
 samples, processes, and/or guides that allow users and developers to interact with
 the Lacework platform.
 
+Find more information about this repository at the following [Wiki page](https://github.com/lacework/go-sdk/wiki).
+
 ## Lacework CLI ([`cli`](cli/))
 
 The Lacework Command Line Interface is a tool that helps you manage the
@@ -31,7 +33,7 @@ C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
 C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.ps1'))
 ```
 
-Look at the [cli/](cli/) folder for more documentation.
+Look at the [cli/](cli/) folder for more information.
 
 ## Lacework API Client ([`api`](api/))
 
@@ -63,11 +65,11 @@ func main() {
 	fmt.Println(tokenRes.Token())
 }
 ```
-Look at the [api/](api/) folder for more documentation.
+Look at the [api/](api/) folder for more information.
 
 ## Lacework Logger ([`lwlogger`](lwlogger/))
 
-A Logger wrapper for Lacework based of zap logger Go package.
+A Logger wrapper for Lacework based of [zap](https://github.com/uber-go/zap) logger Go package.
 
 ### Basic Usage
 ```go
@@ -82,6 +84,8 @@ func main() {
 	lwL.Info("interesting info")
 }
 ```
+
+Look at the [lwlogger/](lwlogger/) folder for more information.
 
 ## Lacework Updater ([`lwupdater`](lwupdater/))
 
@@ -115,6 +119,10 @@ func main() {
 ```
 
 Set the environment variable `LW_UPDATES_DISABLE=1` to avoid checking for updates.
+
+## Release Process
+
+The release process of this repository is documented at the following [Wiki page](https://github.com/lacework/go-sdk/wiki/Release-Process).
 
 ## License and Copyright
 
