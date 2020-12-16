@@ -200,6 +200,7 @@ func promptCreateIntegration() error {
 			Message: "Choose an integration type to create: ",
 			Options: []string{
 				"Slack Alert Channel",
+				"Webhook Alert Channel",
 				"PagerDuty Alert Channel",
 				"AWS CloudWatch Alert Channel",
 				"Jira Cloud Alert Channel",
@@ -226,6 +227,8 @@ func promptCreateIntegration() error {
 	switch integration {
 	case "Slack Alert Channel":
 		return createSlackAlertChannelIntegration()
+	case "Webhook Alert Channel":
+		return createWebhookIntegration()
 	case "PagerDuty Alert Channel":
 		return createPagerDutyAlertChannelIntegration()
 	case "AWS CloudWatch Alert Channel":
@@ -416,7 +419,24 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		out := [][]string{
 			[]string{"SLACK URL", iData.SlackUrl},
-			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+		}
+
+		return out
+
+	case api.WebhookIntegration.String():
+
+		var iData api.WebhookChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"WEBHOOK URL", iData.WebhookUrl},
 		}
 
 		return out

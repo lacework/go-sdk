@@ -66,6 +66,9 @@ const (
 
 	// Jira integration type
 	JiraIntegration
+
+	// Webhook channel integration type
+	WebhookIntegration
 )
 
 // IntegrationTypes is the list of available integration types
@@ -82,6 +85,7 @@ var IntegrationTypes = map[integrationType]string{
 	AwsCloudWatchIntegration:     "CLOUDWATCH_EB",
 	PagerDutyIntegration:         "PAGER_DUTY_API",
 	JiraIntegration:              "JIRA",
+	WebhookIntegration:           "WEBHOOK",
 }
 
 // String returns the string representation of an integration type
