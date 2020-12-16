@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// erorResponse handles errors caused by a Lacework API request
+// errorResponse handles errors caused by a Lacework API request
 type errorResponse struct {
 	Response *http.Response
 	Message  string
