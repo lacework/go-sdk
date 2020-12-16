@@ -18,6 +18,25 @@
 
 package api
 
+// NewWebhookAlertChannel returns an instance of WebhookAlertChannel
+// with the provided name and data.
+//
+// Basic usage: Initialize a new WebhookAlertChannel struct, then
+//              use the new instance to do CRUD operations
+//
+//   client, err := api.NewClient("account")
+//   if err != nil {
+//     return err
+//   }
+//
+//   webhookChannel := api.NewWebhookAlertChannel("foo",
+//     api.WebhookChannelData{
+//       WebhookUrl: "https://mywebhook.com/?api-token=123",
+//     },
+//   )
+//
+//   client.Integrations.CreateWebhookAlertChannel(webhookChannel)
+//
 func NewWebhookAlertChannel(name string, data WebhookChannelData) WebhookAlertChannel {
 	return WebhookAlertChannel{
 		commonIntegrationData: commonIntegrationData{
@@ -29,6 +48,7 @@ func NewWebhookAlertChannel(name string, data WebhookChannelData) WebhookAlertCh
 	}
 }
 
+// CreateWebhookAlertChannel creates a webhook alert channel integration on the Lacework Server
 func (svc *IntegrationsService) CreateWebhookAlertChannel(integration WebhookAlertChannel) (
 	response WebhookAlertChannelResponse,
 	err error,
@@ -37,12 +57,15 @@ func (svc *IntegrationsService) CreateWebhookAlertChannel(integration WebhookAle
 	return
 }
 
+// GetWebhookAlertChannel gets a webhook alert channel integration that matches with
+// the provided integration guid on the Lacework Server
 func (svc *IntegrationsService) GetWebhookAlertChannel(guid string) (response WebhookAlertChannelResponse,
 	err error) {
 	err = svc.get(guid, &response)
 	return
 }
 
+// UpdateWebhookAlertChannel updates a single webhook alert channel integration
 func (svc *IntegrationsService) UpdateWebhookAlertChannel(data WebhookAlertChannel) (
 	response WebhookAlertChannelResponse,
 	err error,
@@ -51,6 +74,7 @@ func (svc *IntegrationsService) UpdateWebhookAlertChannel(data WebhookAlertChann
 	return
 }
 
+// ListWebhookAlertChannel lists the WEBHOOK external integrationS available on the Lacework Server
 func (svc *IntegrationsService) ListWebhookAlertChannel() (response WebhookAlertChannelResponse, err error) {
 	err = svc.listByType(WebhookIntegration, &response)
 	return
