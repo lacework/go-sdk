@@ -100,6 +100,7 @@ operation of the Lacework CLI.
 |`LW_NOCOLOR=1`|turn off colors|
 |`LW_DEBUG=1`|turn on debug logging|
 |`LW_JSON=1`|switch commands output from human-readable to JSON format|
+|`LW_UPDATES_DISABLE=1`|disable daily version checks|
 |`LW_NONINTERACTIVE=1`|disable interactive progress bars (i.e. spinners)|
 |`LW_PROFILE="<name>"`|switch between profiles configured at `~/.lacework.toml`|
 |`LW_ACCOUNT="<account>"`|account subdomain of URL (i.e. `<ACCOUNT>.lacework.net`)|

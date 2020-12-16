@@ -85,12 +85,37 @@ func NewLaceworkCLI(workingDir string, args ...string) *exec.Cmd {
 	cmd.Env = os.Environ()
 	if len(workingDir) != 0 {
 		cmd.Dir = workingDir
-		cmd.Env = append(os.Environ(),
-			fmt.Sprintf("HOME=%s", workingDir),
-			fmt.Sprintf("%s=1", lwupdater.DisableEnv),
-		)
+		env := append(os.Environ(), fmt.Sprintf("HOME=%s", workingDir))
+
+		// by default, we disable all lwupdater requests, unless we are testing it
+		// to test it, set the environment variable CI_TEST_LWUPDATER
+		if os.Getenv(ciTestingUpdaterEnv) == "" {
+			env = append(env, fmt.Sprintf("%s=1", lwupdater.DisableEnv))
+		}
+		cmd.Env = env
 	}
 	return cmd
+}
+
+// By default, we disable all lwupdater requests, unless we are testing it
+// to test it, set the environment variable CI_TEST_LWUPDATER=1
+//
+// Example:
+//
+// func TestUpdaterExample(t *testing.T) {
+//   enableTestingUpdaterEnv()
+//   defer disableTestingUpdaterEnv()
+//
+//   // exacute an updater test
+// }
+var ciTestingUpdaterEnv = "CI_TEST_LWUPDATER"
+
+func enableTestingUpdaterEnv() {
+	os.Setenv(ciTestingUpdaterEnv, "1")
+}
+
+func disableTestingUpdaterEnv() {
+	os.Setenv(ciTestingUpdaterEnv, "")
 }
 
 func runLaceworkCLI(workingDir string, args ...string) (stdout bytes.Buffer, stderr bytes.Buffer, exitcode int) {

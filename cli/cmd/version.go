@@ -19,10 +19,7 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"time"
@@ -46,6 +43,9 @@ var (
 
 	// BuildTime is a human-readable time when the cli was built at
 	BuildTime = "unknown"
+
+	// The name of the version cache file needed for daily version checks
+	VersionCacheFile = "version_cache"
 
 	// versionCmd represents the version command
 	versionCmd = &cobra.Command{
@@ -72,7 +72,7 @@ Set the environment variable 'LW_UPDATES_DISABLE=1' to avoid checking for update
 			cli.OutputHuman("lacework v%s (sha:%s) (time:%s)\n", Version, GitSHA, BuildTime)
 
 			// check the latest version of the cli
-			if err := versionCheck(); err != nil {
+			if _, err := versionCheck(); err != nil {
 				exitwithCode(err, 4)
 			}
 		},
@@ -83,107 +83,91 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 }
 
-// VersionCache is the representation of the file named 'version_cache' stored
-// at the directory ~/.config/lacework
-type VersionCache struct {
-	Project        string    `json:"project"`
-	CurrentVersion string    `json:"current_version"`
-	LastCheckTime  time.Time `json:"last_check_time"`
-}
-
 // versionCheck checks if the user is running the latest version of the cli,
 // if not, displays a friendly message about the new version available
-func versionCheck() error {
-	cli.Log.Debugw("check version of the lacework-cli version", "repository", "go-sdk")
+func versionCheck() (*lwupdater.Version, error) {
+	cli.Log.Debugw("check version of the lacework-cli", "repository", "github.com/lacework/go-sdk")
 	sdk, err := lwupdater.Check("go-sdk", fmt.Sprintf("v%s", Version))
 	if err != nil {
-		return errors.Wrap(err, "unable to check updates")
+		return nil, errors.Wrap(err, "unable to check updates")
 	}
 
 	if sdk.Outdated {
 		cli.OutputHuman(fmt.Sprintf(
 			"\nA newer version of the Lacework CLI is available! The latest version is %s,\n"+
 				"to update execute the following command:\n%s\n",
-			sdk.Latest, cli.UpdateCommand()))
+			sdk.LatestVersion, cli.UpdateCommand()))
 	}
 
-	return nil
+	return sdk, nil
+}
+
+func versionCacheDir() (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return path.Join(home, ".config", "lacework"), nil
 }
 
 // dailyVersionCheck will execute a version check on a daily basis, the function uses
-// the file ~/.config/lacework/version_cache to track the time of last check
+// the file ~/.config/lacework/version_cache to track the last check time
 func dailyVersionCheck() error {
-	home, err := homedir.Dir()
+	cacheDir, err := versionCacheDir()
 	if err != nil {
 		return err
 	}
-	var (
-		configDir   = path.Join(home, ".config")
-		lwConfigDir = path.Join(configDir, "lacework")
-		cacheFile   = path.Join(lwConfigDir, "version_cache")
-	)
 
+	cacheFile := path.Join(cacheDir, VersionCacheFile)
 	if _, err := os.Stat(cacheFile); os.IsNotExist(err) {
 		// first time running the daily version check, create directory
-		if err := os.MkdirAll(lwConfigDir, 0755); err != nil {
+		if err := os.MkdirAll(cacheDir, 0755); err != nil {
 			return err
 		}
 
-		if err := updateVersionCache(cacheFile); err != nil {
+		currentVersion, err := versionCheck()
+		if err != nil {
 			return err
 		}
 
-		return versionCheck()
+		cli.Log.Debugw("storing version cache", "content", currentVersion)
+		if err := currentVersion.StoreCache(cacheFile); err != nil {
+			return err
+		}
+
 	}
 
-	cli.Log.Debugw("verify cached version", "cache_file", cacheFile)
-	cacheJSON, err := ioutil.ReadFile(cacheFile)
+	cli.Log.Debugw("verifying cached version", "cache_file", cacheFile)
+	versionCache, err := lwupdater.LoadCache(cacheFile)
 	if err != nil {
-		return err
-	}
-
-	var versionCache VersionCache
-	if err := json.Unmarshal(cacheJSON, &versionCache); err != nil {
 		return err
 	}
 
 	cli.Log.Debugw("version cache", "content", versionCache)
+
+	// since our check is daily, substract one day from now and compare it
 	checkTime := time.Now().AddDate(0, 0, -1)
 	if versionCache.LastCheckTime.Before(checkTime) {
-		cli.Log.Debugw("triggering daily version check")
-		if err := updateVersionCache(cacheFile); err != nil {
+		versionCache.LastCheckTime = time.Now()
+
+		cli.Log.Debugw("storing new version cache", "content", versionCache)
+		err := versionCache.StoreCache(cacheFile)
+		if err != nil {
 			return err
 		}
 
-		return versionCheck()
+		_, err = versionCheck()
+		return err
 	}
 
 	cli.Log.Debugw("threshold not yet met. skipping daily version check",
 		"threshold", "1d",
+		"current_version", versionCache.CurrentVersion,
+		"latest_version", versionCache.LatestVersion,
+		"version_outdated", versionCache.Outdated,
 		"last_check_time", versionCache.LastCheckTime,
 		"next_check_time", versionCache.LastCheckTime.AddDate(0, 0, 1))
-
-	return nil
-}
-
-func updateVersionCache(cacheFile string) error {
-	var (
-		versionCache = VersionCache{
-			Project:        "lacework-cli",
-			CurrentVersion: Version,
-			LastCheckTime:  time.Now(),
-		}
-		buf = new(bytes.Buffer)
-	)
-	cli.Log.Debugw("storing version cache", "content", versionCache)
-	if err := json.NewEncoder(buf).Encode(versionCache); err != nil {
-		return err
-	}
-
-	err := ioutil.WriteFile(cacheFile, buf.Bytes(), 0644)
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
