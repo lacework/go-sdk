@@ -19,7 +19,7 @@ func main() {
 		},
 	)
 
-	response, err := lacework.Integrations.CreateWebhookAlertChannel(mySlackChannel)
+	response, err := lacework.Integrations.CreateWebhookAlertChannel(myWebhookChannel)
 	if err != nil {
 		log.Fatal(err)
 	}
