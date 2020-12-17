@@ -1,15 +1,20 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.2.10`.
+Another day, another release. These are the release notes for the version `v0.2.11`.
 
 ## Features
-* feat(cli): new agent access token command (#256) (Salim Afiune)([7f8ba11](https://github.com/lacework/go-sdk/commit/7f8ba113b38ecd768f61e54ba712badf6596a587))
-* feat(compliance): new aws list-accounts command (Salim Afiune Maya)([705f2eb](https://github.com/lacework/go-sdk/commit/705f2ebf9f1b9b5af2eb745c86498fe31c01e174))
+* feat(cli): daily version check (#269) (Salim Afiune)([5c15eef](https://github.com/lacework/go-sdk/commit/5c15eef84f428ec0534954babb28a3db92d5a7c5))
+* feat(api): add Webhook integration (#267) (Darren)([f32572e](https://github.com/lacework/go-sdk/commit/f32572ecdadd5c179227cd228bf1fdd7cf618763))
 ## Refactor
-* refactor: account mapping file for consolidated CT (#252) (Salim Afiune)([402a363](https://github.com/lacework/go-sdk/commit/402a3634765ef8c6f1f65d1be13da2ad34cf2960))
+* refactor(cli): abstract rendering tables (human-readable) (#263) (Salim Afiune)([8a10b4c](https://github.com/lacework/go-sdk/commit/8a10b4cf10de03d9b4c0409e495fdd7118974b92))
 ## Bug Fixes
-* fix(install.sh): avoid logging with 'info' cmd (#254) (Salim Afiune)([df5f8cf](https://github.com/lacework/go-sdk/commit/df5f8cfbc7228ff9bff25e6e22a2ab68acd47fa4))
-* fix: false positive results in pkg manifest scan (#255) (Salim Afiune)([a6d6cda](https://github.com/lacework/go-sdk/commit/a6d6cda9f36b38f8b653bd01ef258bd431611908))
-* fix(databox): remove hardcoded LW account (Salim Afiune Maya)([c806157](https://github.com/lacework/go-sdk/commit/c80615749827c12dbfef5e1c76bf5857cd3dae7a))
+* fix(cli): render account mapping file correctly (#266) (Salim Afiune)([4c327d7](https://github.com/lacework/go-sdk/commit/4c327d7e6081d0f7726a1bc007b1b736a106933f))
+* fix(api): new request body for lql service (#260) (Salim Afiune)([4e2b439](https://github.com/lacework/go-sdk/commit/4e2b439ff394d632cd6ebf214da376050da46812))
+* fix(api): avoid updating AgentTokenResponse.Props (#259) (Salim Afiune)([c3fe8bc](https://github.com/lacework/go-sdk/commit/c3fe8bcc41efd995f756f97a5ffca8bb961e89e4))
+## Documentation Updates
+* docs: update READMEs and _examples/ (#268) (Salim Afiune)([3791da0](https://github.com/lacework/go-sdk/commit/3791da01005335c34852446c57eb99e51a6d3ce1))
+## Other Changes
+* build: upgrade Go version to 1.15 (#265) (Salim Afiune)([06d41f5](https://github.com/lacework/go-sdk/commit/06d41f56add71f8369ffae68ea7ba5d738eb4d5b))
+* ci: update hostname from our test machine (#262) (Salim Afiune)([beb289e](https://github.com/lacework/go-sdk/commit/beb289e732c177e2f3d062d61dee5dd9f1593ce9))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
