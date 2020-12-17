@@ -36,13 +36,6 @@ func TestIntegrationsCreateAzure(t *testing.T) {
 		intgGUID   = intgguid.New()
 		fakeServer = lacework.MockServer()
 	)
-	// WORKAROUND (@afiune) The backend is currently not triggering an initial
-	// report automatically after creation of Cloud Account (CFG) Integrations,
-	// we are implementing this trigger here until we implement it in the backend
-	// with RAIN-13422
-	fakeServer.MockAPI("external/runReport/integration/"+intgGUID, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "POST", r.Method, "RunReport should be a POST method")
-	})
 	fakeServer.MockAPI("external/integrations", func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "POST", r.Method, "CreateAzure should be a POST method")
 
