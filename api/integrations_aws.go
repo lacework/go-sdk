@@ -22,8 +22,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
-
-	"go.uber.org/zap"
 )
 
 // NewAwsIntegration returns an instance of AwsIntegration with the provided
@@ -77,35 +75,6 @@ func (svc *IntegrationsService) CreateAws(integration AwsIntegration) (
 	err error,
 ) {
 	err = svc.create(integration, &response)
-	if err != nil {
-		return
-	}
-
-	// WORKAROUND (@afiune) The backend is currently not triggering an initial
-	// report automatically after creation of Cloud Account (CFG) Integrations,
-	// we are implementing this trigger here until we implement it in the backend
-	// with RAIN-13422
-	if len(response.Data) == 0 {
-		return
-	}
-	if integration.Type != AwsCfgIntegration.String() {
-		return
-	}
-
-	intgGuid := response.Data[0].IntgGuid
-	svc.client.log.Info("triggering compliance report",
-		zap.String("cloud_integration", integration.Type),
-		zap.String("int_guid", intgGuid),
-	)
-	_, errComplianceReport := svc.client.Compliance.RunIntegrationReport(intgGuid)
-	if errComplianceReport != nil {
-		svc.client.log.Warn("unable to trigger compliance report",
-			zap.String("cloud_integration", integration.Type),
-			zap.String("int_guid", intgGuid),
-			zap.String("error", errComplianceReport.Error()),
-		)
-	}
-
 	return
 }
 
