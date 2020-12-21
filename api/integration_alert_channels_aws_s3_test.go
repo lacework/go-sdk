@@ -173,7 +173,7 @@ func TestIntegrationsUpdateAwsS3AlertChannel(t *testing.T) {
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "AwsS3Channel integration name mismatch")
-	assert.Equal(t, "AWS_S#", data.Type, "a new AwsS3Channel integration should match its type")
+	assert.Equal(t, "AWS_S3", data.Type, "a new AwsS3Channel integration should match its type")
 	assert.Equal(t, 1, data.Enabled, "a new AwsS3Channel integration should be enabled")
 	data.IntgGuid = intgGUID
 
