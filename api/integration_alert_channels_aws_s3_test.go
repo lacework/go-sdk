@@ -146,7 +146,6 @@ func TestIntegrationsUpdateAwsS3AlertChannel(t *testing.T) {
 			body := httpBodySniffer(r)
 			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
 			assert.Contains(t, body, "integration_name", "integration name is missing")
-			assert.Contains(t, body, "SLACK_CHANNEL", "wrong integration type")
 			assert.Contains(t, body, "arn:aws:iam::1234567890:role/lacework_iam_example_role", "wrong role arn")
 			assert.Contains(t, body, "arn:aws:s3:::bucket_name/key_name", "wrong bucket arn")
 			assert.Contains(t, body, "0123456789", "wrong external id")
