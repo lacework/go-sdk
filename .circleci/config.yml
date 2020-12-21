@@ -123,7 +123,9 @@ jobs:
       - run:
           command: |
             mkdir  circleci-artifacts/
-            mv lacework-lacework-cli* circleci-artifacts/
+            if [ `ls -1 lacework-lacework-cli* 2>/dev/null | wc -l ` -gt 0 ]; then
+                mv lacework-lacework-cli* circleci-artifacts/
+            fi
       - store_artifacts:
           path: circleci-artifacts
       - slack/status:
