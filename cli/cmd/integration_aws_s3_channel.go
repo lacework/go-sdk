@@ -50,9 +50,9 @@ func createAwsS3ChannelIntegration() error {
 
 	answers := struct {
 		Name       string
-		RoleArn    string
-		BucketArn  string
-		ExternalID string
+		RoleArn    string `survey:"role_arn"`
+		BucketArn  string `survey:"bucket_arn"`
+		ExternalID string `survey:"external_id"`
 	}{}
 
 	err := survey.Ask(questions, &answers,
