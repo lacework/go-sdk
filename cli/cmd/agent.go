@@ -20,21 +20,34 @@ package cmd
 
 import (
 	"fmt"
+	"path"
 	"sort"
+	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwrunner"
+	"github.com/AlecAivazis/survey/v2"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwrunner"
 )
 
 var (
-	tokenUpdateEnable  bool
-	tokenUpdateDisable bool
-	tokenUpdateName    string
-	tokenUpdateDesc    string
+	agentCmdState = struct {
+		TokenUpdateEnable   bool
+		TokenUpdateDisable  bool
+		TokenUpdateName     string
+		TokenUpdateDesc     string
+		InstallSshUser      string
+		InstallAgentToken   string
+		InstallPassword     string
+		InstallIdentityFile string
+	}{}
+
+	defaultSshIdentityKey = "~/.ssh/id_rsa"
 
 	agentCmd = &cobra.Command{
 		Use:   "agent",
@@ -110,7 +123,7 @@ To enable a token:
 	agentListCmd = &cobra.Command{
 		Use:    "list",
 		Short:  "list all hosts with a running agent",
-		Long:   `List all hosts in your environment that has a running agent.`,
+		Long:   `List all hosts in your environment that has a running agent`,
 		Hidden: true,
 		RunE:   listAgents,
 	}
@@ -126,12 +139,28 @@ To enable a token:
 
 	// TODO hidden for now
 	agentInstallCmd = &cobra.Command{
-		Use:    "install <host> <token>",
-		Short:  "install an agent on a remote host",
-		Args:   cobra.ExactArgs(2),
-		Long:   `TBA`,
-		Hidden: true,
-		RunE:   installRemoteAgent,
+		Use:   "install <host>",
+		Short: "install the datacollector agent on a remote host",
+		Args:  cobra.ExactArgs(1),
+		Long: `For single host installation of the Lacework agent via Secure Shell (SSH).
+
+When this command is executed without any additional flag, an interactive prompt will be
+launched to help gather the necessary authentication information to access the remote host.
+
+To authenticate to the remote host with a username and password.
+
+    $ lacework agent install <host> --ssh_username <your-user> --ssh_password <secret>
+
+To authenticate to the remote host with an identity file instead.
+
+    $ lacework agent install <user@host> -i /path/to/your/key
+
+To provide an agent access token of your choice, use the command 'lacework agent token list',
+select a token and pass it to the '--token' flag.
+
+    $ lacework agent install <user@host> -i /path/to/your/key --token <token>
+    `,
+		RunE: installRemoteAgent,
 	}
 )
 
@@ -151,17 +180,33 @@ func init() {
 	agentTokenCmd.AddCommand(agentTokenShowCmd)
 	agentTokenCmd.AddCommand(agentTokenUpdateCmd)
 
-	agentTokenUpdateCmd.Flags().BoolVar(&tokenUpdateEnable,
+	// 'agent token update' flags
+	agentTokenUpdateCmd.Flags().BoolVar(&agentCmdState.TokenUpdateEnable,
 		"enable", false, "enable agent access token",
 	)
-	agentTokenUpdateCmd.Flags().BoolVar(&tokenUpdateDisable,
+	agentTokenUpdateCmd.Flags().BoolVar(&agentCmdState.TokenUpdateDisable,
 		"disable", false, "disable agent access token",
 	)
-	agentTokenUpdateCmd.Flags().StringVar(&tokenUpdateName,
+	agentTokenUpdateCmd.Flags().StringVar(&agentCmdState.TokenUpdateName,
 		"name", "", "new agent access token name",
 	)
-	agentTokenUpdateCmd.Flags().StringVar(&tokenUpdateDesc,
+	agentTokenUpdateCmd.Flags().StringVar(&agentCmdState.TokenUpdateDesc,
 		"description", "", "new agent access token description",
+	)
+
+	// 'agent install' flags
+	agentInstallCmd.Flags().StringVarP(&agentCmdState.InstallIdentityFile,
+		"identity_file", "i", defaultSshIdentityKey,
+		"identity (private key) for public key authentication",
+	)
+	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallPassword,
+		"ssh_password", "", "password for authentication",
+	)
+	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
+		"ssh_username", "", "user to log in as on the remote host",
+	)
+	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
+		"token", "", "agent access token",
 	)
 }
 
@@ -185,25 +230,175 @@ func listAgents(_ *cobra.Command, _ []string) error {
 	return nil
 }
 
+func selectAgentAccessToken() (string, error) {
+	cli.StartProgress(" Searching for agent access tokens...")
+	response, err := cli.LwApi.Agents.ListTokens()
+	cli.StopProgress()
+	if err != nil {
+		return "", errors.Wrap(err, "unable to list agent access token")
+	}
+
+	var (
+		tokenNames = make([]string, len(response.Data))
+		tokenName  = ""
+	)
+	for i, aTkn := range response.Data {
+		tokenNames[i] = aTkn.TokenAlias
+	}
+
+	err = survey.AskOne(&survey.Select{
+		Message: "Choose an agent access token: ",
+		Options: tokenNames,
+	}, &tokenName, survey.WithValidator(survey.Required))
+	if err != nil {
+		return "", errors.Wrap(err, "unable to ask for agent access token")
+	}
+	for _, aTkn := range response.Data {
+		if tokenName == aTkn.TokenAlias {
+			return aTkn.AccessToken, nil
+		}
+	}
+
+	// @afiune this should never happen
+	return "", errors.New("something went pretty wrong here, contact support@lacework.net")
+}
+
 func installRemoteAgent(_ *cobra.Command, args []string) error {
+	token := agentCmdState.InstallAgentToken
+	if token == "" {
+		// user didn't provide an agent token
+		var err error
+		token, err = selectAgentAccessToken()
+		if err != nil {
+			return err
+		}
+	}
+
 	var (
 		// TODO @afiune where can we get it?
 		sha         = "3.3.5_2020-11-16_master_ac0e65055f11f4f59bab6ea4dfa61dcafaa9a3f1"
 		downloadUrl = fmt.Sprintf("https://s3-us-west-2.amazonaws.com/www.lacework.net/download/%s/install.sh", sha)
-		cmd         = fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", downloadUrl, args[1])
+		cmd         = fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", downloadUrl, token)
+		user        = agentCmdState.InstallSshUser
+		host        = args[0]
+		authSet     = false
 	)
 
+	// verify if the user specified the username via user@host
+	if strings.Contains(host, "@") {
+		userHost := strings.Split(host, "@")
+		user = userHost[0]
+		host = userHost[1]
+	}
+
+	cli.Log.Debugw("creating runner", "user", user, "host", host)
+	runner := lwrunner.New(user, host)
+
+	if runner.User == "" {
+		cli.Log.Debugw("ssh username not set")
+		// ask for the username
+		err := survey.AskOne(&survey.Input{
+			Message: "SSH username:",
+		}, &user, survey.WithValidator(survey.Required))
+		if err != nil {
+			return errors.Wrap(err, "unable to ask for username")
+		}
+
+		runner.User = user
+		cli.Log.Debugw("ssh settings", "user", runner.User)
+	}
+
+	if agentCmdState.InstallIdentityFile != defaultSshIdentityKey {
+		cli.Log.Debugw("ssh settings", "identity_file", agentCmdState.InstallIdentityFile)
+		err := runner.UseIdentityFile(agentCmdState.InstallIdentityFile)
+		if err != nil {
+			return errors.Wrap(err, "unable to use provided identity file")
+		}
+		authSet = true
+	}
+
+	if agentCmdState.InstallPassword != "" {
+		cli.Log.Debugw("ssh settings", "auth", "password_from_flag")
+		runner.UsePassword(agentCmdState.InstallPassword)
+		authSet = true
+	}
+
+	// if no authentication was set
+	if !authSet {
+		// try to use the default identity file
+		home, err := homedir.Dir()
+		if err != nil {
+			return err
+		}
+
+		err = runner.UseIdentityFile(path.Join(home, ".ssh", "id_rsa"))
+		if err != nil {
+			cli.Log.Debugw("unable to use default identity file", "error", err)
+
+			// if the default identity file didn't work, ask the user for auth details
+			cli.Log.Debugw("ssh auth settings not configured")
+			err := askForAuthenticationDetails(runner)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	cli.StartProgress(" Installing agent on remote host...")
-	out, err := lwrunner.Exec(args[0], cmd)
+	cli.Log.Debugw("executing remote command", "cmd", cmd)
+	stdout, stderr, err := runner.Exec(cmd)
 	cli.StopProgress()
 	if err != nil {
+		cli.OutputHuman(stderr.String())
 		return errors.Wrap(err, "unable to install agent")
 	}
 
-	cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", args[0])
-	cli.OutputHuman("EXECUTION DETAILS\n")
+	cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", host)
+	cli.OutputHuman("INSTALLATION DETAILS\n")
 	cli.OutputHuman("-----------------------------------------------------------------\n")
-	cli.OutputHuman(out)
+	cli.OutputHuman(stdout.String())
+	return nil
+}
+
+func askForAuthenticationDetails(runner *lwrunner.Runner) error {
+	authMethod := ""
+	err := survey.AskOne(&survey.Select{
+		Message: "Choose SSH authentication method: ",
+		Options: []string{"Identity File", "Password"},
+	}, &authMethod, survey.WithValidator(survey.Required))
+	if err != nil {
+		return errors.Wrap(err, "unable to ask for authentication method")
+	}
+	switch authMethod {
+	case "Password":
+		// ask for a password
+		var password string
+		err = survey.AskOne(&survey.Password{
+			Message: "SSH password:",
+		}, &password, survey.WithValidator(survey.Required))
+		if err != nil {
+			return errors.Wrap(err, "unable to ask for password")
+		}
+
+		runner.UsePassword(password)
+		cli.Log.Debugw("ssh settings", "auth", "password_from_input")
+	default:
+		// ask for an identity file
+		var identityFile string
+		err = survey.AskOne(&survey.Input{
+			Message: "SSH identity file:",
+		}, &identityFile, survey.WithValidator(survey.Required))
+		if err != nil {
+			return errors.Wrap(err, "unable to ask for identity file")
+		}
+
+		err = runner.UseIdentityFile(identityFile)
+		if err != nil {
+			return errors.Wrap(err, "unable to use provided identity file")
+		}
+		cli.Log.Debugw("ssh settings", "identity_file", identityFile)
+	}
+
 	return nil
 }
 
@@ -233,7 +428,7 @@ Lacework CLI by reporting this issue at:
 }
 
 func updateAgentToken(_ *cobra.Command, args []string) error {
-	if tokenUpdateEnable && tokenUpdateDisable {
+	if agentCmdState.TokenUpdateEnable && agentCmdState.TokenUpdateDisable {
 		return errors.New("specify only one --enable or --disable")
 	}
 
@@ -251,20 +446,20 @@ func updateAgentToken(_ *cobra.Command, args []string) error {
 		},
 	}
 
-	if tokenUpdateEnable {
+	if agentCmdState.TokenUpdateEnable {
 		updated.Enabled = 1
 	}
 
-	if tokenUpdateDisable {
+	if agentCmdState.TokenUpdateDisable {
 		updated.Enabled = 0
 	}
 
-	if tokenUpdateName != "" {
-		updated.TokenAlias = tokenUpdateName
+	if agentCmdState.TokenUpdateName != "" {
+		updated.TokenAlias = agentCmdState.TokenUpdateName
 	}
 
-	if tokenUpdateDesc != "" {
-		updated.Props.Description = tokenUpdateDesc
+	if agentCmdState.TokenUpdateDesc != "" {
+		updated.Props.Description = agentCmdState.TokenUpdateDesc
 	}
 
 	response, err = cli.LwApi.Agents.UpdateToken(args[0], updated)
