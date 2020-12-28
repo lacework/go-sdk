@@ -19,7 +19,9 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
+	"net"
 	"path"
 	"sort"
 	"strings"
@@ -30,6 +32,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/lwrunner"
@@ -267,26 +270,11 @@ func selectAgentAccessToken() (string, error) {
 }
 
 func installRemoteAgent(_ *cobra.Command, args []string) error {
-	token := agentCmdState.InstallAgentToken
-	if token == "" {
-		// user didn't provide an agent token
-		var err error
-		token, err = selectAgentAccessToken()
-		if err != nil {
-			return err
-		}
-	}
-
 	var (
-		// TODO @afiune where can we get it?
-		sha         = "3.3.5_2020-11-16_master_ac0e65055f11f4f59bab6ea4dfa61dcafaa9a3f1"
-		downloadUrl = fmt.Sprintf("https://s3-us-west-2.amazonaws.com/www.lacework.net/download/%s/install.sh", sha)
-		cmd         = fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", downloadUrl, token)
-		user        = agentCmdState.InstallSshUser
-		host        = args[0]
-		authSet     = false
+		user    = agentCmdState.InstallSshUser
+		host    = args[0]
+		authSet = false
 	)
-
 	// verify if the user specified the username via user@host
 	if strings.Contains(host, "@") {
 		userHost := strings.Split(host, "@")
@@ -295,7 +283,10 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 	}
 
 	cli.Log.Debugw("creating runner", "user", user, "host", host)
-	runner := lwrunner.New(user, host)
+	runner, err := lwrunner.New(user, host, verifyHostCallback)
+	if err != nil {
+		return errors.Wrap(err, "unable to initialize Lacework runner")
+	}
 
 	if runner.User == "" {
 		cli.Log.Debugw("ssh username not set")
@@ -347,13 +338,50 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 		}
 	}
 
-	cli.StartProgress(" Installing agent on remote host...")
-	cli.Log.Debugw("executing remote command", "cmd", cmd)
-	stdout, stderr, err := runner.Exec(cmd)
+	accessCmd := "echo we-are-in"
+	cli.StartProgress(" Verifying access to the remote host...")
+	cli.Log.Debugw("exec remote command", "cmd", accessCmd)
+	stdout, stderr, err := runner.Exec(accessCmd)
 	cli.StopProgress()
+	cli.Log.Debugw("remote command results", "cmd", accessCmd,
+		"stdout", stdout.String(),
+		"stderr", stderr.String(),
+		"error", err,
+	)
+	if err != nil || !strings.Contains(stdout.String(), "we-are-in") {
+		return errors.Wrap(formatRunnerError(stdout, stderr, err), "unable to connect to the remote host")
+	}
+
+	token := agentCmdState.InstallAgentToken
+	if token == "" {
+		// user didn't provide an agent token
+		cli.Log.Debugw("agent token not provided")
+		var err error
+		token, err = selectAgentAccessToken()
+		if err != nil {
+			return err
+		}
+	}
+
+	var (
+		// TODO @afiune where can we get it?
+		sha         = "3.3.5_2020-11-16_master_ac0e65055f11f4f59bab6ea4dfa61dcafaa9a3f1"
+		downloadUrl = fmt.Sprintf("https://s3-us-west-2.amazonaws.com/www.lacework.net/download/%s/install.sh", sha)
+		cmd         = fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", downloadUrl, token)
+	)
+
+	cli.StartProgress(" Installing agent on remote host...")
+	cli.Log.Debugw("exec remote command", "cmd", cmd)
+	stdout, stderr, err = runner.Exec(cmd)
+	cli.StopProgress()
+	cli.Log.Debugw("remote command results",
+		"cmd", cmd,
+		"stdout", stdout.String(),
+		"stderr", stderr.String(),
+		"error", err,
+	)
 	if err != nil {
-		cli.OutputHuman(stderr.String())
-		return errors.Wrap(err, "unable to install agent")
+		return errors.Wrap(formatRunnerError(stdout, stderr, err), "unable to install agent")
 	}
 
 	cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", host)
@@ -361,6 +389,75 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 	cli.OutputHuman("-----------------------------------------------------------------\n")
 	cli.OutputHuman(stdout.String())
 	return nil
+}
+
+func formatRunnerError(stdout, stderr bytes.Buffer, err error) error {
+	formatted := ""
+
+	if stdout.String() != "" {
+		formatted = fmt.Sprintf("%s\n\nSTDOUT:\n%s", formatted, stdout.String())
+	}
+
+	if stderr.String() != "" {
+		formatted = fmt.Sprintf("%s\n\nSTDERR:\n%s", formatted, stderr.String())
+	}
+
+	if formatted == "" {
+		return err
+	}
+
+	if err == nil {
+		return errors.New(formatted)
+	}
+
+	return errors.Wrap(err, formatted)
+}
+
+func verifyHostCallback(host string, remote net.Addr, key ssh.PublicKey) error {
+	// error if key does not exist inside the default known_hosts file,
+	// or if host in known_hosts file but key changed!
+	hostFound, err := lwrunner.CheckKnownHost(host, remote, key, "")
+	if hostFound && err != nil {
+		// the host in known_hosts file was found but key mismatch
+		return err
+	}
+
+	// handshake because public key already exists
+	if hostFound && err == nil {
+		return nil
+	}
+
+	// ask user to check if he/she trust the host public key
+	if askIsHostTrusted(host, key) {
+		// add the new host to known hosts file.
+		return lwrunner.AddKnownHost(host, remote, key, "")
+	}
+
+	// non trusted key
+	return errors.New("you typed no, the agent installation was aborted!")
+}
+
+// ask user to check if he/she trust the host public key
+func askIsHostTrusted(host string, key ssh.PublicKey) bool {
+	// about to ask a question to the user
+	cli.StopProgress()
+
+	var (
+		trust    = false
+		question = fmt.Sprintf(
+			"Unknown Host: %s\nFingerprint: %s\nWould you like to continue connecting?",
+			host, ssh.FingerprintSHA256(key),
+		)
+		err = survey.AskOne(&survey.Confirm{
+			Message: question,
+			Help:    "By typing 'yes', the host will be added to the $HOME/.ssh/known_hosts file.",
+		}, &trust)
+	)
+	if err != nil {
+		cli.Log.Debugw("unable to ask if host is trusted", "error", err)
+		return false
+	}
+	return trust
 }
 
 func askForAuthenticationDetails(runner *lwrunner.Runner) error {
