@@ -138,12 +138,13 @@ To enable a token:
 		Short:  "generate agent deployment scripts",
 		Long:   `TBA`,
 		Hidden: true,
-		RunE:   listAgentTokens,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return nil
+		},
 	}
 
-	// TODO hidden for now
 	agentInstallCmd = &cobra.Command{
-		Use:   "install <host>",
+		Use:   "install <[user@]host>",
 		Short: "install the datacollector agent on a remote host",
 		Args:  cobra.ExactArgs(1),
 		Long: `For single host installation of the Lacework agent via Secure Shell (SSH).
