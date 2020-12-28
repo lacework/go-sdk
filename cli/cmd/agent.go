@@ -44,6 +44,7 @@ var (
 		TokenUpdateDisable  bool
 		TokenUpdateName     string
 		TokenUpdateDesc     string
+		InstallForce        bool
 		InstallSshUser      string
 		InstallAgentToken   string
 		InstallPassword     string
@@ -206,7 +207,10 @@ func init() {
 		"ssh_password", "", "password for authentication",
 	)
 	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
-		"ssh_username", "", "user to log in as on the remote host",
+		"ssh_username", "", "username to login with",
+	)
+	agentInstallCmd.Flags().BoolVar(&agentCmdState.InstallForce,
+		"force", false, "override any pre-installed agent",
 	)
 	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
 		"token", "", "agent access token",
@@ -309,6 +313,11 @@ func isAgentInstalledOnRemoteHost(runner *lwrunner.Runner) error {
 		// if we couldn't run the agent version command it means that
 		// the agent is not yet installed, so we return nil to continue
 		// with the agent installation process
+		return nil
+	}
+
+	if agentCmdState.InstallForce {
+		cli.Log.Debugw("forcing previous agent installation on remote host")
 		return nil
 	}
 
