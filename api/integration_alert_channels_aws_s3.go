@@ -29,14 +29,15 @@ package api
 //     return err
 //   }
 //
-// awsS3Channel := api.NewAwsS3AlertChannel("foo",
-// api.AwsS3ChannelData{
-// 	Credentials: api.AwsS3Creds{
-// 		ExternalID: "1234",
-// 		RoleArn:    "arn:aws:iam::account-id:role/role-name-with-path",
-// 		BucketArn:  "arn:aws:s3:::bucket_name/key_name"},
-// },
-// )
+//   awsS3Channel := api.NewAwsS3AlertChannel("foo",
+//     api.AwsS3ChannelData{
+//       Credentials: api.AwsS3Creds{
+//         ExternalID:  "1234",
+//         RoleArn:     "arn:aws:iam::account-id:role/role-name-with-path",
+//         BucketArn:   "arn:aws:s3:::bucket_name/key_name",
+//       },
+//     },
+//   )
 //
 //   client.Integrations.CreateAwsS3AlertChannel(awsS3Channel)
 //
