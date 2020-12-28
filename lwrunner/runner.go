@@ -21,8 +21,10 @@ package lwrunner
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"path"
 
@@ -37,16 +39,12 @@ type Runner struct {
 	*ssh.ClientConfig
 }
 
-func New(user, host string) *Runner {
-	// @afiune notify the user?
-	hostKeyCallback := ssh.InsecureIgnoreHostKey()
-
-	// try to use the known_hosts file as a host key callback
-	home, err := homedir.Dir()
-	if err == nil {
-		hostKeyFromKnownHosts, err := knownhosts.New(path.Join(home, ".ssh", "known_hosts"))
-		if err == nil {
-			hostKeyCallback = hostKeyFromKnownHosts
+func New(user, host string, callback ssh.HostKeyCallback) (*Runner, error) {
+	var err error
+	if callback == nil {
+		callback, err = DefaultKnownHosts()
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -60,9 +58,9 @@ func New(user, host string) *Runner {
 		&ssh.ClientConfig{
 			User:            user,
 			Auth:            []ssh.AuthMethod{defaultAuthMethod()},
-			HostKeyCallback: hostKeyCallback,
+			HostKeyCallback: callback,
 		},
-	}
+	}, nil
 }
 
 func (run Runner) UseIdentityFile(file string) error {
@@ -84,7 +82,6 @@ func (run *Runner) Address() string {
 
 // Exec executes a command on the configured remote host
 func (run *Runner) Exec(cmd string) (stdout bytes.Buffer, stderr bytes.Buffer, err error) {
-	// @afiune make the port configurable
 	conn, err := ssh.Dial("tcp", run.Address(), run.ClientConfig)
 	if err != nil {
 		return
@@ -100,6 +97,101 @@ func (run *Runner) Exec(cmd string) (stdout bytes.Buffer, stderr bytes.Buffer, e
 	session.Stderr = &stderr
 	err = session.Run(cmd)
 	return
+}
+
+// DefaultKnownHosts returns a host key callback from default known hosts path
+func DefaultKnownHosts() (ssh.HostKeyCallback, error) {
+	path, err := DefaultKnownHostsPath()
+	if err != nil {
+		return nil, err
+	}
+
+	return knownhosts.New(path)
+}
+
+// DefaultKnownHostsPath returns default user ~/.ssh/known_hosts file
+func DefaultKnownHostsPath() (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return path.Join(home, ".ssh", "known_hosts"), err
+}
+
+// AddKnownHost adds a host to the provided known hosts file, if no known hosts
+// file is provided, it will fallback to default known_hosts file
+func AddKnownHost(host string, remote net.Addr, key ssh.PublicKey, knownFile string) (err error) {
+	if knownFile == "" {
+		path, err := DefaultKnownHostsPath()
+		if err != nil {
+			return err
+		}
+
+		knownFile = path
+	}
+
+	f, err := os.OpenFile(knownFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	var (
+		remoteNormalized = knownhosts.Normalize(remote.String())
+		hostNormalized   = knownhosts.Normalize(host)
+		addresses        = []string{remoteNormalized}
+	)
+
+	if hostNormalized != remoteNormalized {
+		addresses = append(addresses, hostNormalized)
+	}
+
+	_, err = f.WriteString(knownhosts.Line(addresses, key) + "\n")
+	return err
+}
+
+// CheckKnownHost checks if a host is in known hosts file, if no known hosts
+// file is provided, it will fallback to default known_hosts file
+func CheckKnownHost(host string, remote net.Addr, key ssh.PublicKey, knownFile string) (found bool, err error) {
+	var keyErr *knownhosts.KeyError
+
+	// Fallback to default known_hosts file
+	if knownFile == "" {
+		path, err := DefaultKnownHostsPath()
+		if err != nil {
+			return false, err
+		}
+
+		knownFile = path
+	}
+
+	// get host key callback
+	callback, err := knownhosts.New(knownFile)
+	if err != nil {
+		return false, err
+	}
+
+	// check if host already exists
+	err = callback(host, remote, key)
+	if err == nil {
+		// host is known (already exists)
+		return true, nil
+	}
+
+	// if keyErr.Want is greater than 0 length, that means host is in file with different key
+	if errors.As(err, &keyErr) && len(keyErr.Want) > 0 {
+		return true, keyErr
+	}
+
+	// if not, pass it back to the user
+	if err != nil {
+		return false, err
+	}
+
+	// key is not trusted because it is not in the known hosts file
+	return false, nil
 }
 
 func newSignerFromFile(keyname string) (ssh.Signer, error) {
