@@ -40,6 +40,9 @@ const (
 	// AWS CloudTrail integration type
 	AwsCloudTrailIntegration
 
+	// AWS S3 channel integration type
+	AwsS3ChannelIntegration
+
 	// GCP Config integration type
 	GcpCfgIntegration
 
@@ -76,6 +79,7 @@ var IntegrationTypes = map[integrationType]string{
 	NoneIntegration:              "NONE",
 	AwsCfgIntegration:            "AWS_CFG",
 	AwsCloudTrailIntegration:     "AWS_CT_SQS",
+	AwsS3ChannelIntegration:      "AWS_S3",
 	GcpCfgIntegration:            "GCP_CFG",
 	GcpAuditLogIntegration:       "GCP_AT_SES",
 	AzureCfgIntegration:          "AZURE_CFG",
