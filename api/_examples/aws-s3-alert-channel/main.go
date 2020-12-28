@@ -19,7 +19,7 @@ func main() {
 				RoleArn:    "arn:aws:iam::1234567890:role/lacework_iam_example_role",
 				BucketArn:  "arn:aws:s3:::bucket_name/key_name",
 				ExternalID: "0123456789",
-			}
+			},
 		},
 	)
 
