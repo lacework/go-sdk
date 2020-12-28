@@ -239,11 +239,14 @@ func selectAgentAccessToken() (string, error) {
 	}
 
 	var (
-		tokenNames = make([]string, len(response.Data))
+		tokenNames = make([]string, 0)
 		tokenName  = ""
 	)
-	for i, aTkn := range response.Data {
-		tokenNames[i] = aTkn.TokenAlias
+	for _, aTkn := range response.Data {
+		// only display tokens that have a name (a.k.a Alias)
+		if strings.TrimSpace(aTkn.TokenAlias) != "" {
+			tokenNames = append(tokenNames, aTkn.TokenAlias)
+		}
 	}
 
 	err = survey.AskOne(&survey.Select{
