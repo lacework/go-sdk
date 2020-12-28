@@ -269,6 +269,72 @@ func selectAgentAccessToken() (string, error) {
 	return "", errors.New("something went pretty wrong here, contact support@lacework.net")
 }
 
+// ask for the ssh username
+func askForUsername() (string, error) {
+	var user string
+
+	err := survey.AskOne(&survey.Input{
+		Message: "SSH username:",
+	}, &user, survey.WithValidator(survey.Required))
+	if err != nil {
+		return "", errors.Wrap(err, "unable to ask for username")
+	}
+
+	return user, nil
+}
+
+func defaultIdentityFile() (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return path.Join(home, ".ssh", "id_rsa"), nil
+}
+
+func isAgentInstalledOnRemoteHost(runner *lwrunner.Runner) error {
+	agentVersionCmd := "sudo sh -c \"/var/lib/lacework/datacollector -v\""
+
+	cli.StartProgress(" Verifying previous agent installations...")
+	cli.Log.Debugw("exec remote command", "cmd", agentVersionCmd)
+	stdout, stderr, err := runner.Exec(agentVersionCmd)
+	cli.StopProgress()
+	cli.Log.Debugw("remote command results", "cmd", agentVersionCmd,
+		"stdout", stdout.String(),
+		"stderr", stderr.String(),
+		"error", err,
+	)
+
+	if err != nil {
+		// if we couldn't run the agent version command it means that
+		// the agent is not yet installed, so we return nil to continue
+		// with the agent installation process
+		return nil
+	}
+
+	return errors.Errorf("agent already installed on the remote host. %s", stderr.String())
+}
+
+func verifyAccessToRemoteHost(runner *lwrunner.Runner) error {
+	accessCmd := "echo we-are-in"
+
+	cli.StartProgress(" Verifying access to the remote host...")
+	cli.Log.Debugw("exec remote command", "cmd", accessCmd)
+	stdout, stderr, err := runner.Exec(accessCmd)
+	cli.StopProgress()
+	cli.Log.Debugw("remote command results", "cmd", accessCmd,
+		"stdout", stdout.String(),
+		"stderr", stderr.String(),
+		"error", err,
+	)
+
+	if err != nil || !strings.Contains(stdout.String(), "we-are-in") {
+		return errors.Wrap(formatRunnerError(stdout, stderr, err), "unable to connect to the remote host")
+	}
+
+	return nil
+}
+
 func installRemoteAgent(_ *cobra.Command, args []string) error {
 	var (
 		user    = agentCmdState.InstallSshUser
@@ -285,17 +351,14 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("creating runner", "user", user, "host", host)
 	runner, err := lwrunner.New(user, host, verifyHostCallback)
 	if err != nil {
-		return errors.Wrap(err, "unable to initialize Lacework runner")
+		return errors.Wrap(err, "unable to initialize lwrunner")
 	}
 
 	if runner.User == "" {
 		cli.Log.Debugw("ssh username not set")
-		// ask for the username
-		err := survey.AskOne(&survey.Input{
-			Message: "SSH username:",
-		}, &user, survey.WithValidator(survey.Required))
+		user, err := askForUsername()
 		if err != nil {
-			return errors.Wrap(err, "unable to ask for username")
+			return err
 		}
 
 		runner.User = user
@@ -320,36 +383,29 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 	// if no authentication was set
 	if !authSet {
 		// try to use the default identity file
-		home, err := homedir.Dir()
+		identityFile, err := defaultIdentityFile()
 		if err != nil {
 			return err
 		}
 
-		err = runner.UseIdentityFile(path.Join(home, ".ssh", "id_rsa"))
+		err = runner.UseIdentityFile(identityFile)
 		if err != nil {
 			cli.Log.Debugw("unable to use default identity file", "error", err)
 
 			// if the default identity file didn't work, ask the user for auth details
 			cli.Log.Debugw("ssh auth settings not configured")
-			err := askForAuthenticationDetails(runner)
-			if err != nil {
+			if err := askForAuthenticationDetails(runner); err != nil {
 				return err
 			}
 		}
 	}
 
-	accessCmd := "echo we-are-in"
-	cli.StartProgress(" Verifying access to the remote host...")
-	cli.Log.Debugw("exec remote command", "cmd", accessCmd)
-	stdout, stderr, err := runner.Exec(accessCmd)
-	cli.StopProgress()
-	cli.Log.Debugw("remote command results", "cmd", accessCmd,
-		"stdout", stdout.String(),
-		"stderr", stderr.String(),
-		"error", err,
-	)
-	if err != nil || !strings.Contains(stdout.String(), "we-are-in") {
-		return errors.Wrap(formatRunnerError(stdout, stderr, err), "unable to connect to the remote host")
+	if err := verifyAccessToRemoteHost(runner); err != nil {
+		return err
+	}
+
+	if err := isAgentInstalledOnRemoteHost(runner); err != nil {
+		return err
 	}
 
 	token := agentCmdState.InstallAgentToken
@@ -372,7 +428,7 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 
 	cli.StartProgress(" Installing agent on remote host...")
 	cli.Log.Debugw("exec remote command", "cmd", cmd)
-	stdout, stderr, err = runner.Exec(cmd)
+	stdout, stderr, err := runner.Exec(cmd)
 	cli.StopProgress()
 	cli.Log.Debugw("remote command results",
 		"cmd", cmd,
