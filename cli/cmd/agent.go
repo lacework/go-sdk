@@ -126,7 +126,7 @@ To enable a token:
 	agentListCmd = &cobra.Command{
 		Use:    "list",
 		Short:  "list all hosts with a running agent",
-		Long:   `List all hosts in your environment that has a running agent`,
+		Long:   `List all hosts that have a running agent in your environment`,
 		Hidden: true,
 		RunE:   listAgents,
 	}
