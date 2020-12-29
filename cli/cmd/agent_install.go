@@ -24,11 +24,9 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"path"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -51,10 +49,7 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 	}
 
 	cli.Log.Debugw("creating runner", "user", user, "host", host)
-	runner, err := lwrunner.New(user, host, verifyHostCallback)
-	if err != nil {
-		return errors.Wrap(err, "unable to initialize lwrunner")
-	}
+	runner := lwrunner.New(user, host, verifyHostCallback)
 
 	if runner.User == "" {
 		cli.Log.Debugw("ssh username not set")
@@ -85,7 +80,7 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 	// if no authentication was set
 	if !authSet {
 		// try to use the default identity file
-		identityFile, err := defaultIdentityFile()
+		identityFile, err := lwrunner.DefaultIdentityFilePath()
 		if err != nil {
 			return err
 		}
@@ -285,15 +280,6 @@ func askForUsername() (string, error) {
 	}
 
 	return user, nil
-}
-
-func defaultIdentityFile() (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(home, ".ssh", "id_rsa"), nil
 }
 
 func verifyHostCallback(host string, remote net.Addr, key ssh.PublicKey) error {

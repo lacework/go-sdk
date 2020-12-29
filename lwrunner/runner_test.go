@@ -32,8 +32,85 @@ import (
 )
 
 func TestLwRunnerNew(t *testing.T) {
-	// we use the default know host file inside the HOME directory
-	// of the current user, that is why we need to mock it
+	subject := lwrunner.New("root", "192.1.1.2", nil)
+	assert.Equal(t, 22, subject.Port)
+	assert.Equal(t, "root", subject.User)
+	assert.Equal(t, "192.1.1.2", subject.Hostname)
+}
+
+func TestLwRunnerNewIgnoreHostKey(t *testing.T) {
+	subject := lwrunner.New("ubuntu", "my-test-host", ssh.InsecureIgnoreHostKey())
+	assert.Equal(t, 22, subject.Port)
+	assert.Equal(t, "ubuntu", subject.User)
+	assert.Equal(t, "my-test-host", subject.Hostname)
+}
+
+func TestLwRunnerNewCustomCallback(t *testing.T) {
+	subject := lwrunner.New("ec2-user", "host.example.com", customHostCallback)
+	assert.Equal(t, 22, subject.Port)
+	assert.Equal(t, subject.User, "ec2-user")
+	assert.Equal(t, subject.Hostname, "host.example.com")
+}
+
+// test function to mock host callback
+func customHostCallback(host string, remote net.Addr, key ssh.PublicKey) error {
+	return nil
+}
+
+func TestLwRunnerNewUserEnvVariable(t *testing.T) {
+	os.Setenv("LW_SSH_USER", "root")
+	defer os.Setenv("LW_SSH_USER", "")
+
+	subject := lwrunner.New("ubuntu", "a-test-host", ssh.InsecureIgnoreHostKey())
+	assert.Equal(t, subject.User, "root")
+	assert.Equal(t, subject.Hostname, "a-test-host")
+}
+
+func TestLwRunnerUsePassword(t *testing.T) {
+	subject := lwrunner.New("ec2-user", "host.example.com", customHostCallback)
+	assert.Equal(t, "ec2-user", subject.User)
+	assert.Equal(t, "host.example.com:22", subject.Address())
+
+	subject.UsePassword("secret123")
+	assert.Equal(t, 1, len(subject.Auth))
+}
+
+func TestLwRunnerUseIdentityFile(t *testing.T) {
+	subject := lwrunner.New("ec2-user", "host.example.com", customHostCallback)
+	assert.Equal(t, "ec2-user", subject.User)
+	assert.Equal(t, "host.example.com:22", subject.Address())
+
+	err := subject.UseIdentityFile("file-not-found")
+	assert.NotNil(t, err)
+}
+
+func TestLwRunnerDefaultKnownHostsPath(t *testing.T) {
+	subject, err := lwrunner.DefaultKnownHostsPath()
+	if assert.Nil(t, err) {
+		assert.Contains(t, subject, ".ssh/known_hosts")
+	}
+}
+
+func TestDefaultIdentityFilePath(t *testing.T) {
+	subject, err := lwrunner.DefaultIdentityFilePath()
+	if assert.Nil(t, err) {
+		assert.Contains(t, subject, ".ssh")
+		assert.Contains(t, subject, "id_rsa")
+	}
+}
+
+func TestDefaultIdentityFilePathEnvVariable(t *testing.T) {
+	expected := "/pat/to/key"
+	os.Setenv("LW_SSH_IDENTITY_FILE", expected)
+	defer os.Setenv("LW_SSH_IDENTITY_FILE", "")
+
+	subject, err := lwrunner.DefaultIdentityFilePath()
+	if assert.Nil(t, err) {
+		assert.Equal(t, subject, expected)
+	}
+}
+
+func TestLwRunnerDefaultKnownHosts(t *testing.T) {
 	mockHome, err := ioutil.TempDir("", "lwrunner")
 	if err != nil {
 		panic(err)
@@ -53,74 +130,30 @@ func TestLwRunnerNew(t *testing.T) {
 	os.Setenv("HOME", mockHome)
 	defer os.Setenv("HOME", homeCache)
 
-	subject, err := lwrunner.New("root", "192.1.1.2", nil)
+	subject, err := lwrunner.DefaultKnownHosts()
+	assert.NotNil(t, subject)
 	if assert.Nil(t, err) {
-		assert.Equal(t, 22, subject.Port)
-		assert.Equal(t, "root", subject.User)
-		assert.Equal(t, "192.1.1.2", subject.Hostname)
+		assert.NotNil(t, subject("mock.hostname.example.com:22", mockAddr{}, mockPublicKey{}))
 	}
 }
 
-func TestLwRunnerNewIgnoreHostKey(t *testing.T) {
-	subject, err := lwrunner.New("ubuntu", "my-test-host", ssh.InsecureIgnoreHostKey())
-	if assert.Nil(t, err) {
-		assert.Equal(t, 22, subject.Port)
-		assert.Equal(t, "ubuntu", subject.User)
-		assert.Equal(t, "my-test-host", subject.Hostname)
-	}
+type mockAddr struct{}
+
+func (m mockAddr) Network() string {
+	return "tcp"
+}
+func (m mockAddr) String() string {
+	return "mock.hostname.example.com:22"
 }
 
-func TestLwRunnerNewCustomCallback(t *testing.T) {
-	subject, err := lwrunner.New("ec2-user", "host.example.com", customHostCallback)
-	if assert.Nil(t, err) {
-		assert.Equal(t, 22, subject.Port)
-		assert.Equal(t, subject.User, "ec2-user")
-		assert.Equal(t, subject.Hostname, "host.example.com")
-	}
-}
+type mockPublicKey struct{}
 
-// test function to mock host callback
-func customHostCallback(host string, remote net.Addr, key ssh.PublicKey) error {
+func (m mockPublicKey) Type() string {
+	return "ssh-rsa"
+}
+func (m mockPublicKey) Marshal() []byte {
+	return []byte{}
+}
+func (m mockPublicKey) Verify(_ []byte, _ *ssh.Signature) error {
 	return nil
-}
-
-func TestLwRunnerNewUserEnvVariable(t *testing.T) {
-	os.Setenv("LW_SSH_USER", "root")
-	defer os.Setenv("LW_SSH_USER", "")
-
-	subject, err := lwrunner.New("ubuntu", "a-test-host", ssh.InsecureIgnoreHostKey())
-	if assert.Nil(t, err) {
-		assert.Equal(t, subject.User, "root")
-		assert.Equal(t, subject.Hostname, "a-test-host")
-	}
-}
-
-func TestLwRunnerUsePassword(t *testing.T) {
-	subject, err := lwrunner.New("ec2-user", "host.example.com", customHostCallback)
-	if assert.Nil(t, err) {
-		assert.Equal(t, "ec2-user", subject.User)
-		assert.Equal(t, "host.example.com:22", subject.Address())
-	}
-
-	subject.UsePassword("secret123")
-
-	assert.Equal(t, 1, len(subject.Auth))
-}
-
-func TestLwRunnerUseIdentityFile(t *testing.T) {
-	subject, err := lwrunner.New("ec2-user", "host.example.com", customHostCallback)
-	if assert.Nil(t, err) {
-		assert.Equal(t, "ec2-user", subject.User)
-		assert.Equal(t, "host.example.com:22", subject.Address())
-	}
-
-	err = subject.UseIdentityFile("file-not-found")
-	assert.NotNil(t, err)
-}
-
-func TestLwRunnerDefaultKnownHostsPath(t *testing.T) {
-	subject, err := lwrunner.DefaultKnownHostsPath()
-	if assert.Nil(t, err) {
-		assert.Contains(t, subject, ".ssh/known_hosts")
-	}
 }
