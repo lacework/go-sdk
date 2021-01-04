@@ -219,7 +219,7 @@ func initConfig() {
 				"error", err,
 			)
 		} else {
-			// @afiune figure out how to propagate this to main()
+			// TODO @afiune figure out how to propagate this to main()
 			exitwith(err)
 		}
 	}

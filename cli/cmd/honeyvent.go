@@ -38,7 +38,9 @@ var (
 	// are running on. During development, we send all events and
 	// tracing data to a default dataset.
 	HoneyDataset = "lacework-cli-dev"
+)
 
+const (
 	// DisableTelemetry is an environment variable that can be used to
 	// disable telemetry sent to Honeycomb
 	DisableTelemetry = "LW_TELEMETRY_DISABLE"
@@ -163,4 +165,11 @@ func (c *cliState) SendHoneyvent() {
 		}
 
 	}(&c.workers, honeyvent)
+
+	// after adding a worker to submit a honeyvent, we remove
+	// all temporal fields such as feature, feature.data, error
+	c.Event.DurationMs = 0
+	c.Event.Error = ""
+	c.Event.Feature = ""
+	c.Event.FeatureData = nil
 }

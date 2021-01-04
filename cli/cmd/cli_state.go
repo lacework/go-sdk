@@ -102,6 +102,13 @@ func (c *cliState) SetProfile(profile string) error {
 // breadcrumbs to help the user configure the CLI. After loading the profile,
 // this function verifies parameters and env variables coming from viper
 func (c *cliState) LoadState() error {
+	defer func() {
+		// update global honeyvent with loaded state
+		c.Event.Account = c.Account
+		c.Event.Profile = c.Profile
+		c.Event.ApiKey = c.KeyID
+	}()
+
 	c.profileDetails = viper.GetStringMap(c.Profile)
 	if len(c.profileDetails) == 0 {
 		if c.Profile != "default" {
@@ -128,12 +135,6 @@ func (c *cliState) LoadState() error {
 	)
 
 	c.loadStateFromViper()
-
-	// update global honeyvent with loaded state
-	c.Event.Account = cli.Account
-	c.Event.Profile = cli.Profile
-	c.Event.ApiKey = cli.KeyID
-
 	return nil
 }
 
