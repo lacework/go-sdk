@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,8 @@ import (
 func TestHoneyventDefaultParameters(t *testing.T) {
 	assert.NotNil(t, cli.Event)
 	assert.Equal(t, Version, cli.Event.Version)
+	assert.Equal(t, runtime.GOOS, cli.Event.Os)
+	assert.Equal(t, runtime.GOARCH, cli.Event.Arch)
 	assert.Equal(t, cli.Profile, cli.Event.Profile)
 	assert.Equal(t, cli.Account, cli.Event.Account)
 	assert.Equal(t, cli.KeyID, cli.Event.ApiKey)

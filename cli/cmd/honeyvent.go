@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"os"
+	"runtime"
 	"sync"
 
 	"github.com/honeycombio/libhoney-go"
@@ -73,6 +74,8 @@ var (
 // Honeyvent defines what a Honeycomb event looks like for the Lacework CLI
 type Honeyvent struct {
 	Version     string      `json:"version"`
+	Os          string      `json:"os"`
+	Arch        string      `json:"arch"`
 	Command     string      `json:"command,omitempty"`
 	Args        []string    `json:"args,omitempty"`
 	Account     string      `json:"account,omitempty"`
@@ -101,6 +104,8 @@ func (c *cliState) InitHoneyvent() {
 	_ = libhoney.Init(hc)
 
 	c.Event = &Honeyvent{
+		Os:      runtime.GOOS,
+		Arch:    runtime.GOARCH,
 		Version: Version,
 		Profile: c.Profile,
 		Account: c.Account,
