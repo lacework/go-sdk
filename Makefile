@@ -6,8 +6,15 @@ GOLANGCILINTVERSION?=1.23.8
 COVERAGEOUT?=coverage.out
 PACKAGENAME?=lacework-cli
 CLINAME?=lacework
+# Honeycomb variables
+HONEYDATASET?=lacework-cli-dev
+# => HONEYAPIKEY should be exported on every developers workstation or else events
+#                won't be recorded in Honeycomb. Inside our CI/CD pipeline this
+#                secret is set as well as a different dataset for production
 GO_LDFLAGS="-X github.com/lacework/go-sdk/cli/cmd.Version=$(shell cat VERSION) \
             -X github.com/lacework/go-sdk/cli/cmd.GitSHA=$(shell git rev-parse HEAD) \
+            -X github.com/lacework/go-sdk/cli/cmd.HoneyApiKey=$(HONEYAPIKEY) \
+            -X github.com/lacework/go-sdk/cli/cmd.HoneyDataset=$(HONEYDATASET) \
             -X github.com/lacework/go-sdk/cli/cmd.BuildTime=$(shell date +%Y%m%d%H%M%S)"
 GOFLAGS=-mod=vendor
 CGO_ENABLED?=0

@@ -49,7 +49,13 @@ Start by configuring the Lacework CLI with the command:
     $ lacework configure
 
 This will prompt you for your Lacework account and a set of API access keys.`,
-		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			cli.Log.Debugw("updating honeyvent", "dataset", HoneyDataset)
+			cli.Event.Command = cmd.CommandPath()
+			cli.Event.Args = args
+			// TODO @afiune how do we send flags?
+			cli.SendHoneyvent()
+
 			switch cmd.Use {
 			case "help [command]", "configure", "version", "generate-pkg-manifest":
 				return nil
@@ -61,13 +67,14 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 				return cli.NewClient()
 			}
 		},
-		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
+		PersistentPostRunE: func(_ *cobra.Command, _ []string) error {
 			// run the daily version check but do not fail if we couldn't check
 			// this is not a critical part of the CLI and we do not want to impact
 			// cusomters workflows or CI systems
 			if err := dailyVersionCheck(); err != nil {
 				cli.Log.Debugw("unable to run daily version check", "error", err)
 			}
+
 			return nil
 		},
 	}
@@ -75,7 +82,9 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute() error {
+	defer cli.Wait()
+
 	// first, verify if the user provided a command to execute,
 	// if no command was provided, only print out the usage message
 	if noCommandProvided() {
@@ -83,10 +92,18 @@ func Execute() {
 		os.Exit(127)
 	}
 
-	errcheckEXIT(rootCmd.Execute())
+	if err := rootCmd.Execute(); err != nil {
+		// send a new error event to Honeycomb
+		cli.Event.Error = err.Error()
+		cli.SendHoneyvent()
+		return err
+	}
+
+	return nil
 }
 
 func init() {
+	// initialize cobra
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().Bool("debug", false,
@@ -202,6 +219,7 @@ func initConfig() {
 				"error", err,
 			)
 		} else {
+			// @afiune figure out how to propagate this to main()
 			exitwith(err)
 		}
 	}

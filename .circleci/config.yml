@@ -40,6 +40,8 @@ jobs:
           only_for_branches: <<pipeline.parameters.only_for_branches>>
   build-cli:
     executor: go-executor
+    environment:
+      HONEYDATASET: lacework-cli-ci
     steps:
       - checkout
       - run: make prepare
@@ -77,8 +79,6 @@ jobs:
             go test -v github.com/lacework/go-sdk/integration
       - store_artifacts:
           path: circleci-artifacts
-    environment:
-      GOFLAGS: -mod=vendor
   verify-release:
     executor: alpine
     steps:
@@ -94,6 +94,8 @@ jobs:
       - run: scripts/release.sh trigger
   release:
     executor: go-executor
+    environment:
+      HONEYDATASET: lacework-cli-prod
     steps:
       - checkout
       - jq/install
@@ -165,6 +167,7 @@ workflows:
                only: /^v.*/
             branches:
               ignore: /.*/
+          context: techally_releases
       - vuln-scan-cli:
           filters:
             tags:
