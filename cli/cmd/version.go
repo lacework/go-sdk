@@ -147,12 +147,15 @@ func dailyVersionCheck() error {
 	cli.Log.Debugw("version cache", "content", versionCache)
 
 	// since our check is daily, substract one day from now and compare it
-	checkTime := time.Now().AddDate(0, 0, -1)
+	var (
+		nowTime   = time.Now()
+		checkTime = nowTime.AddDate(0, 0, -1)
+	)
 	if versionCache.LastCheckTime.Before(checkTime) {
-		cli.Event.Feature = "daily_check"
+		cli.Event.Feature = featDailyVerCheck
 		defer cli.SendHoneyvent()
 
-		versionCache.LastCheckTime = time.Now()
+		versionCache.LastCheckTime = nowTime
 		cli.Log.Debugw("storing new version cache", "content", versionCache)
 		err := versionCache.StoreCache(cacheFile)
 		if err != nil {
@@ -166,6 +169,7 @@ func dailyVersionCheck() error {
 			return err
 		}
 
+		cli.Event.DurationMs = time.Since(nowTime).Milliseconds()
 		cli.Event.FeatureData = lwv
 		return nil
 	}

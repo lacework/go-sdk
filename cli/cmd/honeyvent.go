@@ -41,25 +41,53 @@ var (
 	// DisableTelemetry is an environment variable that can be used to
 	// disable telemetry sent to Honeycomb
 	DisableTelemetry = "LW_TELEMETRY_DISABLE"
+
+	// List of Features
+	//
+	// A feature within the Lacework CLI is any functionality that
+	// can't be traced or tracked by the default event sent to Honeycomb,
+	// it is a behavior that we, Lacework engineers, would like to
+	// trace and understand its usage and adoption.
+	//
+	// By default the Feature field within the Honeyvent is empty,
+	// define a new feature below and set it before sending a new
+	// Honeyvent. Additionally, there is a FeatureData field that
+	// any feature can use to inject any specific information
+	// related to that feature.
+	//
+	// Example:
+	//
+	// ```go
+	// cli.Event.Feature = featPollCtrScan
+	// cli.Event.FeatureData = map[string]interface{"key", "value"}
+	// cli.SendHoneyvent()
+	// ```
+	//
+	// Polling mechanism feature
+	featPollCtrScan = "poll_ctr_scan"
+
+	// Daily version check feature
+	featDailyVerCheck = "daily_check"
 )
 
 // Honeyvent defines what a Honeycomb event looks like for the Lacework CLI
 type Honeyvent struct {
-	Command     string      `json:"command"`
-	Args        []string    `json:"args"`
 	Version     string      `json:"version"`
-	Account     string      `json:"account"`
-	Profile     string      `json:"profile"`
-	ApiKey      string      `json:"api_key"`
-	Feature     string      `json:"feature"`
-	FeatureData interface{} `json:"feature_data"`
-	Error       string      `json:"error"`
+	Command     string      `json:"command,omitempty"`
+	Args        []string    `json:"args,omitempty"`
+	Account     string      `json:"account,omitempty"`
+	Profile     string      `json:"profile,omitempty"`
+	ApiKey      string      `json:"api_key,omitempty"`
+	Feature     string      `json:"feature,omitempty"`
+	FeatureData interface{} `json:"feature.data,omitempty"`
+	DurationMs  int64       `json:"duration_ms,omitempty"`
+	Error       string      `json:"error,omitempty"`
 
 	// tracing data for multiple events, this is useful for specific features
 	// within the Lacework CLI such as daily version check, polling mechanism, etc.
-	TraceID  string `json:"trace.trace_id"`
-	SpanID   string `json:"trace.span_id"`
-	ParentID string `json:"trace.parent_id"`
+	TraceID  string `json:"trace.trace_id,omitempty"`
+	SpanID   string `json:"trace.span_id,omitempty"`
+	ParentID string `json:"trace.parent_id,omitempty"`
 }
 
 // InitHoneyvent initialize honeycomb library and main Honeyvent, such event
