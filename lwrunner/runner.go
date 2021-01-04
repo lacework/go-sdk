@@ -39,17 +39,14 @@ type Runner struct {
 	*ssh.ClientConfig
 }
 
-func New(user, host string, callback ssh.HostKeyCallback) (*Runner, error) {
-	var err error
-	if callback == nil {
-		callback, err = DefaultKnownHosts()
-		if err != nil {
-			return nil, err
-		}
-	}
-
+func New(user, host string, callback ssh.HostKeyCallback) *Runner {
 	if os.Getenv("LW_SSH_USER") != "" {
 		user = os.Getenv("LW_SSH_USER")
+	}
+
+	defaultCallback, err := DefaultKnownHosts()
+	if err == nil && callback == nil {
+		callback = defaultCallback
 	}
 
 	return &Runner{
@@ -57,10 +54,10 @@ func New(user, host string, callback ssh.HostKeyCallback) (*Runner, error) {
 		22,
 		&ssh.ClientConfig{
 			User:            user,
-			Auth:            []ssh.AuthMethod{defaultAuthMethod()},
+			Auth:            []ssh.AuthMethod{},
 			HostKeyCallback: callback,
 		},
-	}, nil
+	}
 }
 
 func (run Runner) UseIdentityFile(file string) error {
@@ -116,7 +113,7 @@ func DefaultKnownHostsPath() (string, error) {
 		return "", err
 	}
 
-	return path.Join(home, ".ssh", "known_hosts"), err
+	return path.Join(home, ".ssh", "known_hosts"), nil
 }
 
 // AddKnownHost adds a host to the provided known hosts file, if no known hosts
@@ -194,6 +191,19 @@ func CheckKnownHost(host string, remote net.Addr, key ssh.PublicKey, knownFile s
 	return false, nil
 }
 
+func DefaultIdentityFilePath() (string, error) {
+	if os.Getenv("LW_SSH_IDENTITY_FILE") != "" {
+		return os.Getenv("LW_SSH_IDENTITY_FILE"), nil
+	}
+
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return path.Join(home, ".ssh", "id_rsa"), nil
+}
+
 func newSignerFromFile(keyname string) (ssh.Signer, error) {
 	fp, err := os.Open(keyname)
 	if err != nil {
@@ -207,28 +217,4 @@ func newSignerFromFile(keyname string) (ssh.Signer, error) {
 	}
 
 	return ssh.ParsePrivateKey(buf)
-}
-
-func defaultAuthMethod() ssh.AuthMethod {
-	var (
-		signers = []ssh.Signer{}
-		keys    = []string{}
-	)
-	home, err := homedir.Dir()
-	if err == nil {
-		keys = append(keys, path.Join(home, ".ssh", "id_rsa"))
-	}
-
-	if os.Getenv("LW_SSH_IDENTITY_FILE") != "" {
-		keys = append(keys, os.Getenv("LW_SSH_IDENTITY_FILE"))
-	}
-
-	for _, keyname := range keys {
-		signer, err := newSignerFromFile(keyname)
-		if err == nil {
-			signers = append(signers, signer)
-		}
-	}
-
-	return ssh.PublicKeys(signers...)
 }

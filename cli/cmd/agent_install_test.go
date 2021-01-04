@@ -46,14 +46,6 @@ func TestLatestAgentVersionSHA(t *testing.T) {
 	}
 }
 
-func TestDefaultIdentityFile(t *testing.T) {
-	subject, err := defaultIdentityFile()
-	if assert.Nil(t, err) {
-		assert.Contains(t, subject, ".ssh")
-		assert.Contains(t, subject, "id_rsa")
-	}
-}
-
 func TestFormatRunnerError(t *testing.T) {
 	cases := []struct {
 		expected error
