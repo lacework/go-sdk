@@ -245,4 +245,4 @@ exit_with() {
   exit "${2:-10}"
 }
 
-main "$@" || exit 99
+main "$@"
