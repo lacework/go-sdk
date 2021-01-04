@@ -23,18 +23,27 @@ import (
 	"sort"
 	"time"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwrunner"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
-	tokenUpdateEnable  bool
-	tokenUpdateDisable bool
-	tokenUpdateName    string
-	tokenUpdateDesc    string
+	agentCmdState = struct {
+		TokenUpdateEnable   bool
+		TokenUpdateDisable  bool
+		TokenUpdateName     string
+		TokenUpdateDesc     string
+		InstallForce        bool
+		InstallSshUser      string
+		InstallAgentToken   string
+		InstallPassword     string
+		InstallIdentityFile string
+	}{}
+
+	defaultSshIdentityKey = "~/.ssh/id_rsa"
 
 	agentCmd = &cobra.Command{
 		Use:   "agent",
@@ -110,7 +119,7 @@ To enable a token:
 	agentListCmd = &cobra.Command{
 		Use:    "list",
 		Short:  "list all hosts with a running agent",
-		Long:   `List all hosts in your environment that has a running agent.`,
+		Long:   `List all hosts that have a running agent in your environment`,
 		Hidden: true,
 		RunE:   listAgents,
 	}
@@ -121,17 +130,34 @@ To enable a token:
 		Short:  "generate agent deployment scripts",
 		Long:   `TBA`,
 		Hidden: true,
-		RunE:   listAgentTokens,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return nil
+		},
 	}
 
-	// TODO hidden for now
 	agentInstallCmd = &cobra.Command{
-		Use:    "install <host> <token>",
-		Short:  "install an agent on a remote host",
-		Args:   cobra.ExactArgs(2),
-		Long:   `TBA`,
-		Hidden: true,
-		RunE:   installRemoteAgent,
+		Use:   "install <[user@]host>",
+		Short: "install the datacollector agent on a remote host",
+		Args:  cobra.ExactArgs(1),
+		Long: `For single host installation of the Lacework agent via Secure Shell (SSH).
+
+When this command is executed without any additional flag, an interactive prompt will be
+launched to help gather the necessary authentication information to access the remote host.
+
+To authenticate to the remote host with a username and password.
+
+    $ lacework agent install <host> --ssh_username <your-user> --ssh_password <secret>
+
+To authenticate to the remote host with an identity file instead.
+
+    $ lacework agent install <user@host> -i /path/to/your/key
+
+To provide an agent access token of your choice, use the command 'lacework agent token list',
+select a token and pass it to the '--token' flag.
+
+    $ lacework agent install <user@host> -i /path/to/your/key --token <token>
+    `,
+		RunE: installRemoteAgent,
 	}
 )
 
@@ -151,17 +177,36 @@ func init() {
 	agentTokenCmd.AddCommand(agentTokenShowCmd)
 	agentTokenCmd.AddCommand(agentTokenUpdateCmd)
 
-	agentTokenUpdateCmd.Flags().BoolVar(&tokenUpdateEnable,
+	// 'agent token update' flags
+	agentTokenUpdateCmd.Flags().BoolVar(&agentCmdState.TokenUpdateEnable,
 		"enable", false, "enable agent access token",
 	)
-	agentTokenUpdateCmd.Flags().BoolVar(&tokenUpdateDisable,
+	agentTokenUpdateCmd.Flags().BoolVar(&agentCmdState.TokenUpdateDisable,
 		"disable", false, "disable agent access token",
 	)
-	agentTokenUpdateCmd.Flags().StringVar(&tokenUpdateName,
+	agentTokenUpdateCmd.Flags().StringVar(&agentCmdState.TokenUpdateName,
 		"name", "", "new agent access token name",
 	)
-	agentTokenUpdateCmd.Flags().StringVar(&tokenUpdateDesc,
+	agentTokenUpdateCmd.Flags().StringVar(&agentCmdState.TokenUpdateDesc,
 		"description", "", "new agent access token description",
+	)
+
+	// 'agent install' flags
+	agentInstallCmd.Flags().StringVarP(&agentCmdState.InstallIdentityFile,
+		"identity_file", "i", defaultSshIdentityKey,
+		"identity (private key) for public key authentication",
+	)
+	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallPassword,
+		"ssh_password", "", "password for authentication",
+	)
+	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
+		"ssh_username", "", "username to login with",
+	)
+	agentInstallCmd.Flags().BoolVar(&agentCmdState.InstallForce,
+		"force", false, "override any pre-installed agent",
+	)
+	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
+		"token", "", "agent access token",
 	)
 }
 
@@ -182,28 +227,6 @@ func listAgents(_ *cobra.Command, _ []string) error {
 			agentsToTable(response.Data),
 		),
 	)
-	return nil
-}
-
-func installRemoteAgent(_ *cobra.Command, args []string) error {
-	var (
-		// TODO @afiune where can we get it?
-		sha         = "3.3.5_2020-11-16_master_ac0e65055f11f4f59bab6ea4dfa61dcafaa9a3f1"
-		downloadUrl = fmt.Sprintf("https://s3-us-west-2.amazonaws.com/www.lacework.net/download/%s/install.sh", sha)
-		cmd         = fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", downloadUrl, args[1])
-	)
-
-	cli.StartProgress(" Installing agent on remote host...")
-	out, err := lwrunner.Exec(args[0], cmd)
-	cli.StopProgress()
-	if err != nil {
-		return errors.Wrap(err, "unable to install agent")
-	}
-
-	cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", args[0])
-	cli.OutputHuman("EXECUTION DETAILS\n")
-	cli.OutputHuman("-----------------------------------------------------------------\n")
-	cli.OutputHuman(out)
 	return nil
 }
 
@@ -233,7 +256,7 @@ Lacework CLI by reporting this issue at:
 }
 
 func updateAgentToken(_ *cobra.Command, args []string) error {
-	if tokenUpdateEnable && tokenUpdateDisable {
+	if agentCmdState.TokenUpdateEnable && agentCmdState.TokenUpdateDisable {
 		return errors.New("specify only one --enable or --disable")
 	}
 
@@ -251,20 +274,20 @@ func updateAgentToken(_ *cobra.Command, args []string) error {
 		},
 	}
 
-	if tokenUpdateEnable {
+	if agentCmdState.TokenUpdateEnable {
 		updated.Enabled = 1
 	}
 
-	if tokenUpdateDisable {
+	if agentCmdState.TokenUpdateDisable {
 		updated.Enabled = 0
 	}
 
-	if tokenUpdateName != "" {
-		updated.TokenAlias = tokenUpdateName
+	if agentCmdState.TokenUpdateName != "" {
+		updated.TokenAlias = agentCmdState.TokenUpdateName
 	}
 
-	if tokenUpdateDesc != "" {
-		updated.Props.Description = tokenUpdateDesc
+	if agentCmdState.TokenUpdateDesc != "" {
+		updated.Props.Description = agentCmdState.TokenUpdateDesc
 	}
 
 	response, err = cli.LwApi.Agents.UpdateToken(args[0], updated)
