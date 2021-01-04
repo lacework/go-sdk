@@ -147,18 +147,31 @@ func dailyVersionCheck() error {
 	cli.Log.Debugw("version cache", "content", versionCache)
 
 	// since our check is daily, substract one day from now and compare it
-	checkTime := time.Now().AddDate(0, 0, -1)
+	var (
+		nowTime   = time.Now()
+		checkTime = nowTime.AddDate(0, 0, -1)
+	)
 	if versionCache.LastCheckTime.Before(checkTime) {
-		versionCache.LastCheckTime = time.Now()
+		cli.Event.Feature = featDailyVerCheck
+		defer cli.SendHoneyvent()
 
+		versionCache.LastCheckTime = nowTime
 		cli.Log.Debugw("storing new version cache", "content", versionCache)
 		err := versionCache.StoreCache(cacheFile)
 		if err != nil {
+			cli.Event.Error = err.Error()
 			return err
 		}
 
-		_, err = versionCheck()
-		return err
+		lwv, err := versionCheck()
+		if err != nil {
+			cli.Event.Error = err.Error()
+			return err
+		}
+
+		cli.Event.DurationMs = time.Since(nowTime).Milliseconds()
+		cli.Event.FeatureData = lwv
+		return nil
 	}
 
 	cli.Log.Debugw("threshold not yet met. skipping daily version check",

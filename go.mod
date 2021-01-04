@@ -11,6 +11,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
+	github.com/honeycombio/libhoney-go v1.15.0
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/kyokomi/emoji/v2 v2.2.5
 	github.com/mattn/go-colorable v0.1.6 // indirect
@@ -26,11 +27,10 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392
 	golang.org/x/sys v0.0.0-20200509044756-6aff5f38e54f // indirect
-	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20200327183106-8f81e2e6d478 // indirect
 	gopkg.in/ini.v1 v1.55.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect

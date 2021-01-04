@@ -100,12 +100,13 @@ operation of the Lacework CLI.
 |`LW_NOCOLOR=1`|turn off colors|
 |`LW_DEBUG=1`|turn on debug logging|
 |`LW_JSON=1`|switch commands output from human-readable to JSON format|
-|`LW_UPDATES_DISABLE=1`|disable daily version checks|
 |`LW_NONINTERACTIVE=1`|disable interactive progress bars (i.e. spinners)|
+|`LW_UPDATES_DISABLE=1`|disable daily version checks|
+|`LW_TELEMETRY_DISABLE=1`|disable sending telemetry data|
 |`LW_PROFILE="<name>"`|switch between profiles configured at `~/.lacework.toml`|
 |`LW_ACCOUNT="<account>"`|account subdomain of URL (i.e. `<ACCOUNT>.lacework.net`)|
-|`LW_API_KEY="<key>"`|access key id|
-|`LW_API_SECRET="<secret>"`|secret access key|
+|`LW_API_KEY="<key>"`|API access key id|
+|`LW_API_SECRET="<secret>"`|API secret access key|
 
 ## Basic Usage
 A few basic commands are:
@@ -148,13 +149,20 @@ Running unit tests should be as simple as executing the `make test` directive.
 
 ### Integration Tests
 
-The integration tests are end-to-end tests that are run against a real Lacework API
-Server, for that reason it requires a set of Lacework API keys, to run these tests
+The integration tests are end-to-end tests that run against a real Lacework API
+Server, for that reason, it requires a set of Lacework API keys. To run these tests
 locally you need to setup the following environment variables and use the directive
 `make integration`, an example of the command you can use is:
 ```
 $ CI_ACCOUNT="<YOUR_ACCOUNT>" CI_API_KEY="<YOUR_API_KEY>" CI_API_SECRET="<YOUR_API_SECRET>" make integration
 ```
+
+### Telemetry via Honeycomb
+
+We use [Honeycomb](https://www.honeycomb.io/) for observability, to enable sending
+tracing data to our development dataset, you must configure the environment variable
+`HONEYAPIKEY`. This variable as well as the above CI environment variables can be
+configured inside your bash profile (or any other shell profile you prefer).
 
 ## License and Copyright
 Copyright 2020, Lacework Inc.
