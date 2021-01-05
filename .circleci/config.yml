@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   slack-mentions:
     type: string
-    default: 'afiune,scottford'
+    default: 'allies'
   only_for_branches:
     type: string
     default: 'master'
