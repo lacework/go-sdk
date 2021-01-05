@@ -79,6 +79,16 @@ jobs:
             go test -v github.com/lacework/go-sdk/integration
       - store_artifacts:
           path: circleci-artifacts
+  integration-test-macos:
+    macos:  # indicate that we are using the macOS executor
+      xcode: 11.3.0 # indicate our selected version of Xcode
+    steps:
+      - checkout
+      - attach_workspace:
+          at: bin
+      - run: make integration-only
+      - store_artifacts:
+          path: circleci-artifacts
   verify-release:
     executor: alpine
     steps:
@@ -144,6 +154,9 @@ workflows:
       - integration-test-linux:
           requires:
             - build-cli
+      - integration-test-macos:
+          requires:
+            - build-cli
       - trigger-release:
           requires:
             - unit-test
@@ -194,5 +207,8 @@ workflows:
           requires:
             - build-cli
       - integration-test-windows:
+          requires:
+            - build-cli
+      - integration-test-macos:
           requires:
             - build-cli
