@@ -340,13 +340,11 @@ func (c *cliState) checkPackageManagerWithNativeCommand(manager string) bool {
 }
 
 func removeEpochFromPkgVersion(pkgVer string) string {
-	if !strings.Contains(pkgVer, ":") {
-		return pkgVer
-	}
-
-	pkgVerSplit := strings.Split(pkgVer, ":")
-	if len(pkgVerSplit) == 2 {
-		return pkgVerSplit[1]
+	if strings.Contains(pkgVer, ":") {
+		pkgVerSplit := strings.Split(pkgVer, ":")
+		if len(pkgVerSplit) == 2 {
+			return pkgVerSplit[1]
+		}
 	}
 
 	return pkgVer
