@@ -27,13 +27,14 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/lacework/go-sdk/api"
 )
 
-var SupportedPackageManagers = []string{"dpkg-query", "rpm"} // @afiune can we support ym and apk?
+var SupportedPackageManagers = []string{"dpkg-query", "rpm"} // @afiune can we support yum and apk?
 
 type OS struct {
 	Name    string
@@ -47,15 +48,37 @@ var (
 )
 
 func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
+	var (
+		err   error
+		start = time.Now()
+	)
+
+	defer func() {
+		c.Event.DurationMs = time.Since(start).Milliseconds()
+		if err == nil {
+			// if this function returns an error, most likely,
+			// the command will send a honeyvent with that error,
+			// therefore we should duplicate events and only send
+			// one here if there is NO error
+			c.SendHoneyvent()
+		}
+	}()
+
+	c.Event.Feature = featGenPkgManifest
+
 	manifest := new(api.PackageManifest)
-	osInfo, err := cli.GetOSInfo()
+	osInfo, err := c.GetOSInfo()
 	if err != nil {
 		return manifest, err
 	}
-	manager, err := cli.DetectPackageManager()
+	c.Event.AddFeatureField("os", osInfo.Name)
+	c.Event.AddFeatureField("os_ver", osInfo.Version)
+
+	manager, err := c.DetectPackageManager()
 	if err != nil {
 		return manifest, err
 	}
+	c.Event.AddFeatureField("pkg_manager", manager)
 
 	var managerQuery []byte
 	switch manager {
@@ -105,7 +128,7 @@ func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
 		managerQuery = []byte(strings.Join(mq, "\n"))
 	default:
 		return manifest, errors.New(
-			"this is most likely a mistake on us, please report it to support.lacework.com.",
+			"this is most likely a mistake on us, please report it to support@lacework.com.",
 		)
 	}
 
@@ -144,8 +167,87 @@ func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
 		)
 	}
 
+	c.Event.AddFeatureField("total_manifest_pkgs", len(manifest.OsPkgInfoList))
 	c.Log.Debugw("package-manifest", "raw", manifest)
-	return manifest, nil
+	return c.removeInactivePackagesFromManifest(manifest, manager), nil
+}
+
+func (c *cliState) removeInactivePackagesFromManifest(manifest *api.PackageManifest, manager string) *api.PackageManifest {
+	// Detect Active Kernel
+	//
+	// The default behavior of most linux distros is to keep the last N kernel packages
+	// installed for users that need to fallback in case the new kernel do not boot.
+	// However, the presence of the package does not mean that kernel is active.
+	// We must continue to allow the standard kernel package preservation behavior
+	// without providing false-positives of vulnerabilities that are not active.
+	//
+	// We will try to detect the active kernel and remove any other installed-inactive
+	// kernel from the generated package manifest
+	activeKernel, detected := c.detectActiveKernel()
+	c.Event.AddFeatureField("active_kernel", activeKernel)
+	if !detected {
+		return manifest
+	}
+
+	newManifest := new(api.PackageManifest)
+	for i, pkg := range manifest.OsPkgInfoList {
+
+		switch manager {
+		case "rpm":
+			kernelPkgName := "kernel"
+			pkgVer := removeEpochFromPkgVersion(pkg.PkgVer)
+			if pkg.Pkg == kernelPkgName && !strings.Contains(activeKernel, pkgVer) {
+				// this package is NOT the active kernel
+				c.Log.Warnw("inactive kernel package detected, removing from generated pkg manifest",
+					"pkg_name", kernelPkgName,
+					"pkg_version", pkg.PkgVer,
+					"active_kernel", activeKernel,
+				)
+				c.Event.AddFeatureField(
+					fmt.Sprintf("kernel_suppressed_%d", i),
+					fmt.Sprintf("%s-%s", pkg.Pkg, pkg.PkgVer))
+				continue
+			}
+		case "dpkg-query":
+			kernelPkgName := "linux-image-"
+			if strings.Contains(pkg.Pkg, kernelPkgName) {
+				// this is a kernel package, trim the package name prefix to get the version
+				kernelVer := strings.TrimPrefix(pkg.Pkg, kernelPkgName)
+
+				if !strings.Contains(activeKernel, kernelVer) {
+					// this package is NOT the active kernel
+					c.Log.Warnw("inactive kernel package detected, removing from generated pkg manifest",
+						"pkg_name", kernelPkgName,
+						"pkg_version", pkg.PkgVer,
+						"active_kernel", activeKernel,
+					)
+					c.Event.AddFeatureField(
+						fmt.Sprintf("kernel_suppressed_%d", i),
+						fmt.Sprintf("%s-%s", pkg.Pkg, pkg.PkgVer))
+					continue
+				}
+			}
+		}
+
+		newManifest.OsPkgInfoList = append(newManifest.OsPkgInfoList, pkg)
+	}
+
+	if len(manifest.OsPkgInfoList) != len(newManifest.OsPkgInfoList) {
+		c.Log.Debugw("package-manifest modified", "raw", newManifest)
+	}
+	return newManifest
+}
+
+func (c *cliState) detectActiveKernel() (string, bool) {
+	kernel, err := exec.Command("uname", "-r").Output()
+	if err != nil {
+		c.Log.Warnw("unable to detect active kernel",
+			"cmd", "uname -r",
+			"error", err,
+		)
+		return "", false
+	}
+	return strings.TrimSuffix(string(kernel), "\n"), true
 }
 
 func (c *cliState) GetOSInfo() (*OS, error) {
@@ -183,7 +285,7 @@ func (c *cliState) DetectPackageManager() (string, error) {
 	c.Log.Debugw("detecting package-manager")
 
 	for _, manager := range SupportedPackageManagers {
-		if cli.checkPackageManager(manager) {
+		if c.checkPackageManager(manager) {
 			c.Log.Debugw("detected", "package-manager", manager)
 			return manager, nil
 		}
@@ -210,7 +312,7 @@ func (c *cliState) checkPackageManager(manager string) bool {
 			return waitStatus.ExitStatus() == 0
 		}
 		c.Log.Warnw("something went wrong with 'which', trying native command")
-		return cli.checkPackageManagerWithNativeCommand(manager)
+		return c.checkPackageManagerWithNativeCommand(manager)
 	}
 	waitStatus := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	return waitStatus.ExitStatus() == 0
@@ -235,4 +337,15 @@ func (c *cliState) checkPackageManagerWithNativeCommand(manager string) bool {
 	}
 	waitStatus := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	return waitStatus.ExitStatus() == 0
+}
+
+func removeEpochFromPkgVersion(pkgVer string) string {
+	if strings.Contains(pkgVer, ":") {
+		pkgVerSplit := strings.Split(pkgVer, ":")
+		if len(pkgVerSplit) == 2 {
+			return pkgVerSplit[1]
+		}
+	}
+
+	return pkgVer
 }

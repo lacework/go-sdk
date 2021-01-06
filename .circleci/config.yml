@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   slack-mentions:
     type: string
-    default: 'allies'
+    default: 'S01JP5A3ACQ'
   only_for_branches:
     type: string
     default: 'master'
