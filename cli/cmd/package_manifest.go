@@ -27,6 +27,7 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -47,15 +48,33 @@ var (
 )
 
 func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
+	var (
+		err   error
+		start = time.Now()
+	)
+
+	defer func() {
+		c.Event.DurationMs = time.Since(start).Milliseconds()
+		if err == nil {
+			c.SendHoneyvent()
+		}
+	}()
+
+	c.Event.Feature = featGenPkgManifest
+
 	manifest := new(api.PackageManifest)
-	osInfo, err := cli.GetOSInfo()
+	osInfo, err := c.GetOSInfo()
 	if err != nil {
 		return manifest, err
 	}
-	manager, err := cli.DetectPackageManager()
+	c.Event.AddFeatureField("os", osInfo.Name)
+	c.Event.AddFeatureField("os_ver", osInfo.Version)
+
+	manager, err := c.DetectPackageManager()
 	if err != nil {
 		return manifest, err
 	}
+	c.Event.AddFeatureField("pkg_manager", manager)
 
 	var managerQuery []byte
 	switch manager {
@@ -144,6 +163,7 @@ func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
 		)
 	}
 
+	c.Event.AddFeatureField("total_manifest_pkgs", len(manifest.OsPkgInfoList))
 	c.Log.Debugw("package-manifest", "raw", manifest)
 	return c.removeInactivePackagesFromManifest(manifest, manager), nil
 }
@@ -160,12 +180,13 @@ func (c *cliState) removeInactivePackagesFromManifest(manifest *api.PackageManif
 	// We will try to detect the active kernel and remove any other installed-inactive
 	// kernel from the generated package manifest
 	activeKernel, detected := c.detectActiveKernel()
+	c.Event.AddFeatureField("active_kernel", activeKernel)
 	if !detected {
 		return manifest
 	}
 
 	newManifest := new(api.PackageManifest)
-	for _, pkg := range manifest.OsPkgInfoList {
+	for i, pkg := range manifest.OsPkgInfoList {
 
 		switch manager {
 		case "rpm":
@@ -178,6 +199,9 @@ func (c *cliState) removeInactivePackagesFromManifest(manifest *api.PackageManif
 					"pkg_version", pkg.PkgVer,
 					"active_kernel", activeKernel,
 				)
+				c.Event.AddFeatureField(
+					fmt.Sprintf("kernel_suppressed_%d", i),
+					fmt.Sprintf("%s-%s", pkg.Pkg, pkg.PkgVer))
 				continue
 			}
 		case "dpkg-query":
@@ -193,6 +217,9 @@ func (c *cliState) removeInactivePackagesFromManifest(manifest *api.PackageManif
 						"pkg_version", pkg.PkgVer,
 						"active_kernel", activeKernel,
 					)
+					c.Event.AddFeatureField(
+						fmt.Sprintf("kernel_suppressed_%d", i),
+						fmt.Sprintf("%s-%s", pkg.Pkg, pkg.PkgVer))
 					continue
 				}
 			}
@@ -204,7 +231,6 @@ func (c *cliState) removeInactivePackagesFromManifest(manifest *api.PackageManif
 	if len(manifest.OsPkgInfoList) != len(newManifest.OsPkgInfoList) {
 		c.Log.Debugw("package-manifest modified", "raw", newManifest)
 	}
-
 	return newManifest
 }
 
@@ -255,7 +281,7 @@ func (c *cliState) DetectPackageManager() (string, error) {
 	c.Log.Debugw("detecting package-manager")
 
 	for _, manager := range SupportedPackageManagers {
-		if cli.checkPackageManager(manager) {
+		if c.checkPackageManager(manager) {
 			c.Log.Debugw("detected", "package-manager", manager)
 			return manager, nil
 		}
@@ -282,7 +308,7 @@ func (c *cliState) checkPackageManager(manager string) bool {
 			return waitStatus.ExitStatus() == 0
 		}
 		c.Log.Warnw("something went wrong with 'which', trying native command")
-		return cli.checkPackageManagerWithNativeCommand(manager)
+		return c.checkPackageManagerWithNativeCommand(manager)
 	}
 	waitStatus := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	return waitStatus.ExitStatus() == 0

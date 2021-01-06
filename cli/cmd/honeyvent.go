@@ -71,6 +71,9 @@ const (
 
 	// Daily version check feature
 	featDailyVerCheck = "daily_check"
+
+	// Generate package manifest feature
+	featGenPkgManifest = "gen_pkg_manifest"
 )
 
 // Honeyvent defines what a Honeycomb event looks like for the Lacework CLI
@@ -172,4 +175,16 @@ func (c *cliState) SendHoneyvent() {
 	c.Event.Error = ""
 	c.Event.Feature = ""
 	c.Event.FeatureData = nil
+}
+
+func (e *Honeyvent) AddFeatureField(key string, value interface{}) {
+	if e.FeatureData == nil {
+		e.FeatureData = map[string]interface{}{key: value}
+		return
+	}
+
+	if v, ok := e.FeatureData.(map[string]interface{}); ok {
+		v[key] = value
+		e.FeatureData = v
+	}
 }
