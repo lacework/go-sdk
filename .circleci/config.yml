@@ -31,7 +31,9 @@ jobs:
       - checkout
       - run: make prepare
       - run: make lint
-      - run: make test
+      - run: make coverage-ci
+      - store_artifacts:
+          path: circleci-artifacts
       - run: make fmt-check
       - run: make imports-check
       - slack/status:
@@ -69,6 +71,8 @@ jobs:
           only_for_branches: <<pipeline.parameters.only_for_branches>>
   integration-test-windows:
     executor: win/default
+    environment:
+      GOFLAGS: -mod=vendor
     steps:
       - checkout
       - attach_workspace:
