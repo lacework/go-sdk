@@ -56,6 +56,10 @@ func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
 	defer func() {
 		c.Event.DurationMs = time.Since(start).Milliseconds()
 		if err == nil {
+			// if this function returns an error, most likely,
+			// the command will send a honeyvent with that error,
+			// therefore we should duplicate events and only send
+			// one here if there is NO error
 			c.SendHoneyvent()
 		}
 	}()
