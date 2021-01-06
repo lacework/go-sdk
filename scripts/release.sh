@@ -175,6 +175,7 @@ load_list_of_changes() {
   _fix=$(echo "$_list_of_changes" | grep "\* fix[:(]")
   _doc=$(echo "$_list_of_changes" | grep "\* doc[:(]")
   _docs=$(echo "$_list_of_changes" | grep "\* docs[:(]")
+  _metric=$(echo "$_list_of_changes" | grep "\* metric[:(]")
   _style=$(echo "$_list_of_changes" | grep "\* style[:(]")
   _chore=$(echo "$_list_of_changes" | grep "\* chore[:(]")
   _build=$(echo "$_list_of_changes" | grep "\* build[:(]")
@@ -213,6 +214,7 @@ load_list_of_changes() {
     if [ "$_chore" != "" ]; then echo "$_chore" >> CHANGES.md; fi
     if [ "$_build" != "" ]; then echo "$_build" >> CHANGES.md; fi
     if [ "$_ci" != "" ]; then echo "$_ci" >> CHANGES.md; fi
+    if [ "$_metric" != "" ]; then echo "$_metric" >> CHANGES.md; fi
     if [ "$_test" != "" ]; then echo "$_test" >> CHANGES.md; fi
   fi
 }
