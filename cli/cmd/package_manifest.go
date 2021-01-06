@@ -33,7 +33,7 @@ import (
 	"github.com/lacework/go-sdk/api"
 )
 
-var SupportedPackageManagers = []string{"dpkg-query", "rpm"} // @afiune can we support ym and apk?
+var SupportedPackageManagers = []string{"dpkg-query", "rpm"} // @afiune can we support yum and apk?
 
 type OS struct {
 	Name    string
@@ -105,7 +105,7 @@ func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
 		managerQuery = []byte(strings.Join(mq, "\n"))
 	default:
 		return manifest, errors.New(
-			"this is most likely a mistake on us, please report it to support.lacework.com.",
+			"this is most likely a mistake on us, please report it to support@lacework.com.",
 		)
 	}
 
@@ -145,7 +145,79 @@ func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
 	}
 
 	c.Log.Debugw("package-manifest", "raw", manifest)
-	return manifest, nil
+	return c.removeInactivePackagesFromManifest(manifest, manager), nil
+}
+
+func (c *cliState) removeInactivePackagesFromManifest(manifest *api.PackageManifest, manager string) *api.PackageManifest {
+	// Detect Active Kernel
+	//
+	// The default behavior of most linux distros is to keep the last N kernel packages
+	// installed for users that need to fallback in case the new kernel do not boot.
+	// However, the presence of the package does not mean that kernel is active.
+	// We must continue to allow the standard kernel package preservation behavior
+	// without providing false-positives of vulnerabilities that are not active.
+	//
+	// We will try to detect the active kernel and remove any other installed-inactive
+	// kernel from the generated package manifest
+	activeKernel, detected := c.detectActiveKernel()
+	if !detected {
+		return manifest
+	}
+
+	newManifest := new(api.PackageManifest)
+	for _, pkg := range manifest.OsPkgInfoList {
+
+		switch manager {
+		case "rpm":
+			kernelPkgName := "kernel"
+			pkgVer := removeEpochFromPkgVersion(pkg.PkgVer)
+			if pkg.Pkg == kernelPkgName && !strings.Contains(activeKernel, pkgVer) {
+				// this package is NOT the active kernel
+				c.Log.Warnw("inactive kernel package detected, removing from generated pkg manifest",
+					"pkg_name", kernelPkgName,
+					"pkg_version", pkg.PkgVer,
+					"active_kernel", activeKernel,
+				)
+				continue
+			}
+		case "dpkg-query":
+			kernelPkgName := "linux-image-"
+			if strings.Contains(pkg.Pkg, kernelPkgName) {
+				// this is a kernel package, trim the package name prefix to get the version
+				kernelVer := strings.TrimPrefix(pkg.Pkg, kernelPkgName)
+
+				if !strings.Contains(activeKernel, kernelVer) {
+					// this package is NOT the active kernel
+					c.Log.Warnw("inactive kernel package detected, removing from generated pkg manifest",
+						"pkg_name", kernelPkgName,
+						"pkg_version", pkg.PkgVer,
+						"active_kernel", activeKernel,
+					)
+					continue
+				}
+			}
+		}
+
+		newManifest.OsPkgInfoList = append(newManifest.OsPkgInfoList, pkg)
+	}
+
+	if len(manifest.OsPkgInfoList) != len(newManifest.OsPkgInfoList) {
+		c.Log.Debugw("package-manifest modified", "raw", newManifest)
+	}
+
+	return newManifest
+}
+
+func (c *cliState) detectActiveKernel() (string, bool) {
+	kernel, err := exec.Command("uname", "-r").Output()
+	if err != nil {
+		c.Log.Warnw("unable to detect active kernel",
+			"cmd", "uname -r",
+			"error", err,
+		)
+		return "", false
+	}
+	return strings.TrimSuffix(string(kernel), "\n"), true
 }
 
 func (c *cliState) GetOSInfo() (*OS, error) {
@@ -235,4 +307,17 @@ func (c *cliState) checkPackageManagerWithNativeCommand(manager string) bool {
 	}
 	waitStatus := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	return waitStatus.ExitStatus() == 0
+}
+
+func removeEpochFromPkgVersion(pkgVer string) string {
+	if !strings.Contains(pkgVer, ":") {
+		return pkgVer
+	}
+
+	pkgVerSplit := strings.Split(pkgVer, ":")
+	if len(pkgVerSplit) == 2 {
+		return pkgVerSplit[1]
+	}
+
+	return pkgVer
 }
