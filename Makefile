@@ -3,7 +3,9 @@ default: ci
 ci: lint test fmt-check imports-check integration
 
 GOLANGCILINTVERSION?=1.23.8
+CIARTIFACTS?=circleci-artifacts
 COVERAGEOUT?=coverage.out
+COVERAGEHTML?=coverage.html
 PACKAGENAME?=lacework-cli
 CLINAME?=lacework
 # Honeycomb variables
@@ -35,6 +37,10 @@ coverage: test
 
 coverage-html: test
 	go tool cover -html=$(COVERAGEOUT)
+
+coverage-ci: test
+	mkdir -p $(CIARTIFACTS)
+	go tool cover -html=$(COVERAGEOUT) -o "$(CIARTIFACTS)/$(COVERAGEHTML)"
 
 go-vendor:
 	go mod tidy
