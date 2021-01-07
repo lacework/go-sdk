@@ -130,6 +130,15 @@ func TestSplitPackageManifest(t *testing.T) {
 }
 
 func TestFanOutHostScans(t *testing.T) {
+	// mock the api client
+	client, err := api.NewClient("test", api.WithToken("mock"))
+	assert.Nil(t, err)
+	client.Vulnerabilities = api.NewVulnerabilityService(client)
+	cli.LwApi = client
+	defer func() {
+		cli.LwApi = nil
+	}()
+
 	subject, err := fanOutHostScans()
 	assert.Nil(t, err)
 	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
@@ -148,19 +157,10 @@ func TestFanOutHostScans(t *testing.T) {
 	}
 	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
 
-	// mock the api client
-	client, err := api.NewClient("test")
-	assert.Nil(t, err)
-	client.Vulnerabilities = api.NewVulnerabilityService(client)
-	cli.LwApi = client
-	defer func() {
-		cli.LwApi = nil
-	}()
-
 	subject, err = fanOutHostScans(&api.PackageManifest{})
 	if assert.NotNil(t, err) {
 		assert.Contains(t, err.Error(),
-			"unable to generate access token: auth keys missing",
+			"[403] Forbidden", // intentional error since we are mocking the api token
 		)
 	}
 	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)

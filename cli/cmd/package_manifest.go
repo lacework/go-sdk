@@ -401,6 +401,15 @@ func fanOutHostScans(manifests ...*api.PackageManifest) (api.HostVulnScanPkgMani
 		}
 	}()
 
+	// ensure that the api client has a valid token
+	// before creating workers
+	if !cli.LwApi.ValidAuth() {
+		_, err = cli.LwApi.GenerateToken()
+		if err != nil {
+			return fanInRes, err
+		}
+	}
+
 	// for every manifest, create a new worker, that is, spawn
 	// a new goroutine that will send the manifest to scan
 	for n, m := range manifests {

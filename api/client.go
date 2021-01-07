@@ -147,6 +147,11 @@ func (c *Client) URL() string {
 	return c.baseURL.String()
 }
 
+// ValidAuth verifies that the client has valid authentication
+func (c *Client) ValidAuth() bool {
+	return c.auth.token != ""
+}
+
 // newID generates a new client id, this id is useful for logging purposes
 // when there are more than one client running on the same machine
 func newID() string {
