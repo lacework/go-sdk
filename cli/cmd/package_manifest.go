@@ -349,3 +349,128 @@ func removeEpochFromPkgVersion(pkgVer string) string {
 
 	return pkgVer
 }
+
+// split the provided package_manifest into chucks, if the manifest
+// is smaller than the provided chunk size, it will return the manifest
+// as an array without modifications
+func splitPackageManifest(manifest *api.PackageManifest, chunks int) []*api.PackageManifest {
+	if len(manifest.OsPkgInfoList) <= chunks {
+		return []*api.PackageManifest{manifest}
+	}
+
+	var batches []*api.PackageManifest
+	for i := 0; i < len(manifest.OsPkgInfoList); i += chunks {
+		batch := manifest.OsPkgInfoList[i:min(i+chunks, len(manifest.OsPkgInfoList))]
+		cli.Log.Infow("manifest batch", "total_packages", len(batch))
+		batches = append(batches, &api.PackageManifest{OsPkgInfoList: batch})
+	}
+	return batches
+}
+
+func min(a, b int) int {
+	if a <= b {
+		return a
+	}
+	return b
+}
+
+// fan-out a number of package manifests into multiple requests all at once
+func fanOutHostScans(manifests ...*api.PackageManifest) (api.HostVulnScanPkgManifestResponse, error) {
+	var (
+		resCh    = make(chan api.HostVulnScanPkgManifestResponse)
+		errCh    = make(chan error)
+		workers  = len(manifests)
+		fanInRes = api.HostVulnScanPkgManifestResponse{}
+	)
+
+	// disallow more than 10 workers which are 10 calls all at once,
+	// the API has a rate-limit of 10 calls per hour, per access key
+	if workers > 10 {
+		return fanInRes, errors.New("limit of packages exceeded")
+	}
+
+	var (
+		err   error
+		start = time.Now()
+	)
+	defer func() {
+		cli.Event.DurationMs = time.Since(start).Milliseconds()
+		// avoid duplicating events
+		if err == nil {
+			cli.SendHoneyvent()
+		}
+	}()
+
+	// ensure that the api client has a valid token
+	// before creating workers
+	if !cli.LwApi.ValidAuth() {
+		_, err = cli.LwApi.GenerateToken()
+		if err != nil {
+			return fanInRes, err
+		}
+	}
+
+	// for every manifest, create a new worker, that is, spawn
+	// a new goroutine that will send the manifest to scan
+	for n, m := range manifests {
+		if m == nil {
+			workers--
+			continue
+		}
+		cli.Log.Infow("spawn worker", "number", n+1)
+		go cli.triggerHostVulnScan(m, resCh, errCh)
+	}
+
+	cli.Event.AddFeatureField("workers", workers)
+
+	// lock the main process and read both, the error and response
+	// channels, if we receive at least one error, we will stop
+	// processing and bubble up the error to the caller
+	for processed := 0; processed < workers; processed++ {
+		select {
+		case err = <-errCh:
+			// end processing as soon as we receive the first error
+			return fanInRes, err
+		case res := <-resCh:
+			// processing scan
+			cli.Log.Infow("processing worker response", "n", processed+1)
+			cli.Event.AddFeatureField(fmt.Sprintf("worker%d_total_vulns", processed), len(res.Vulns))
+			mergeHostVulnScanPkgManifestResponses(&fanInRes, &res)
+		}
+	}
+
+	return fanInRes, nil
+}
+
+func mergeHostVulnScanPkgManifestResponses(to, from *api.HostVulnScanPkgManifestResponse) {
+	// append vulnerabilities from -> to
+	to.Vulns = append(to.Vulns, from.Vulns...)
+
+	// requests should always return an ok state
+	to.Ok = from.Ok
+
+	// store the message from the response only if it is NOT empty
+	// and it is different from the previous response (to)
+	if to.Message == "" {
+		to.Message = from.Message
+		return
+	}
+
+	// concatenate messages "to,from" response only if they
+	// are NOT empty and they are different from each other
+	if from.Message != "" && from.Message != to.Message {
+		to.Message = fmt.Sprintf("%s,%s", to.Message, from.Message)
+	}
+}
+
+func (c *cliState) triggerHostVulnScan(manifest *api.PackageManifest,
+	resCh chan<- api.HostVulnScanPkgManifestResponse,
+	errCh chan<- error,
+) {
+	response, err := c.LwApi.Vulnerabilities.Host.Scan(manifest)
+	if err != nil {
+		errCh <- err
+		return
+	}
+	resCh <- response
+}

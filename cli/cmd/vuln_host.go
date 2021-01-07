@@ -35,6 +35,9 @@ import (
 )
 
 var (
+	// the maximum number of packages per scan request
+	manifestPkgsCap = 1000
+
 	// the package manifest file
 	pkgManifestFile string
 
@@ -100,19 +103,19 @@ To generate a package-manifest from the local host and scan it automatically:
 
 			if len(args) != 0 && args[0] != "" {
 				pkgManifestBytes = []byte(args[0])
-				cli.Log.Infow("package manifest loaded from arguments", "raw", args[0])
+				cli.Log.Debugw("package manifest loaded from arguments", "raw", args[0])
 			} else if pkgManifestFile != "" {
 				pkgManifestBytes, err = ioutil.ReadFile(pkgManifestFile)
 				if err != nil {
 					return errors.Wrap(err, "unable to read file")
 				}
-				cli.Log.Infow("package manifest loaded from file", "raw", string(pkgManifestBytes))
+				cli.Log.Debugw("package manifest loaded from file", "raw", string(pkgManifestBytes))
 			} else if pkgManifestLocal {
 				pkgManifest, err = cli.GeneratePackageManifest()
 				if err != nil {
 					return errors.Wrap(err, "unable to generate package manifest")
 				}
-				cli.Log.Infow("package manifest generated from localhost", "raw", pkgManifest)
+				cli.Log.Debugw("package manifest generated from localhost", "raw", pkgManifest)
 			} else {
 				// avoid asking for a confirmation before launching the editor
 				var content string
@@ -125,7 +128,7 @@ To generate a package-manifest from the local host and scan it automatically:
 					return errors.Wrap(err, "unable to load package manifest from editor")
 				}
 				pkgManifestBytes = []byte(content)
-				cli.Log.Infow("package manifest loaded via editor", "raw", content)
+				cli.Log.Debugw("package manifest loaded via editor", "raw", content)
 			}
 
 			if len(pkgManifestBytes) != 0 {
@@ -135,10 +138,23 @@ To generate a package-manifest from the local host and scan it automatically:
 				}
 			}
 
-			// TODO @afiune check if the package manifest has more than
-			// 1k packages, if so, make multiple API requests
-
-			response, err := cli.LwApi.Vulnerabilities.Host.Scan(pkgManifest)
+			totalPkgs := len(pkgManifest.OsPkgInfoList)
+			cli.StartProgress(" Scanning packages...")
+			cli.Log.Infow("manifest", "total_packages", totalPkgs)
+			var response api.HostVulnScanPkgManifestResponse
+			// check if the package manifest has more than the maximum
+			// number of packages, if so, make multiple API requests
+			if totalPkgs >= manifestPkgsCap {
+				cli.Log.Infow("manifest over the limit, splitting up")
+				cli.Event.Feature = featSplitPkgManifest
+				cli.Event.AddFeatureField("total_packages", totalPkgs)
+				response, err = fanOutHostScans(
+					splitPackageManifest(pkgManifest, manifestPkgsCap)...,
+				)
+			} else {
+				response, err = cli.LwApi.Vulnerabilities.Host.Scan(pkgManifest)
+			}
+			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to request an on-demand host vulnerability scan")
 			}

@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -90,4 +91,134 @@ func TestRemoveEpochFromPkgVersion(t *testing.T) {
 	assert.Equal(t,
 		"version",
 		removeEpochFromPkgVersion("epoch:version"))
+}
+
+func TestSplitPackageManifest(t *testing.T) {
+	cases := []struct {
+		chunks       int
+		size         int
+		expectedSize int
+	}{
+		{expectedSize: 100,
+			size:   500,
+			chunks: 5},
+		{expectedSize: 45,
+			size:   45000,
+			chunks: 1000},
+		{expectedSize: 50,
+			size:   100,
+			chunks: 2},
+		{expectedSize: 2,
+			size:   1001,
+			chunks: 1000},
+		{expectedSize: 28,
+			size:   55000,
+			chunks: 2000},
+		{expectedSize: 1,
+			size:   123,
+			chunks: 1000},
+	}
+	for i, kase := range cases {
+		t.Run(fmt.Sprintf("test case %d", i), func(t *testing.T) {
+			manifest := &api.PackageManifest{
+				OsPkgInfoList: make([]api.OsPkgInfo, kase.size),
+			}
+			subject := splitPackageManifest(manifest, kase.chunks)
+			assert.Equal(t, kase.expectedSize, len(subject))
+		})
+	}
+}
+
+func TestFanOutHostScans(t *testing.T) {
+	// mock the api client
+	client, err := api.NewClient("test", api.WithToken("mock"))
+	assert.Nil(t, err)
+	client.Vulnerabilities = api.NewVulnerabilityService(client)
+	cli.LwApi = client
+	defer func() {
+		cli.LwApi = nil
+	}()
+
+	subject, err := fanOutHostScans()
+	assert.Nil(t, err)
+	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+
+	subject, err = fanOutHostScans(nil)
+	assert.Nil(t, err)
+	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+
+	// more than 10 morkers should return an error
+	multiManifests := make([]*api.PackageManifest, 11)
+	subject, err = fanOutHostScans(multiManifests...)
+	if assert.NotNil(t, err) {
+		assert.Contains(t, err.Error(),
+			"limit of packages exceeded",
+		)
+	}
+	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+
+	subject, err = fanOutHostScans(&api.PackageManifest{})
+	if assert.NotNil(t, err) {
+		assert.Contains(t, err.Error(),
+			"[403] Forbidden", // intentional error since we are mocking the api token
+		)
+	}
+	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+}
+
+func TestMergeHostVulnScanPkgManifestResponses(t *testing.T) {
+	cases := []struct {
+		expected api.HostVulnScanPkgManifestResponse
+		from     api.HostVulnScanPkgManifestResponse
+		to       api.HostVulnScanPkgManifestResponse
+	}{
+		// empty responses
+		{expected: api.HostVulnScanPkgManifestResponse{},
+			from: api.HostVulnScanPkgManifestResponse{},
+			to:   api.HostVulnScanPkgManifestResponse{}},
+		// responses should return an Ok status
+		{expected: api.HostVulnScanPkgManifestResponse{
+			Ok: true},
+			from: api.HostVulnScanPkgManifestResponse{
+				Ok: true},
+			to: api.HostVulnScanPkgManifestResponse{
+				Ok: false}},
+		// messages should change only if the previous one is empty or different
+		{expected: api.HostVulnScanPkgManifestResponse{
+			Message: "SUCCESS"},
+			from: api.HostVulnScanPkgManifestResponse{
+				Message: "SUCCESS"},
+			to: api.HostVulnScanPkgManifestResponse{
+				Message: ""}},
+		{expected: api.HostVulnScanPkgManifestResponse{
+			Message: "YES"},
+			from: api.HostVulnScanPkgManifestResponse{
+				Message: ""},
+			to: api.HostVulnScanPkgManifestResponse{
+				Message: "YES"}},
+		{expected: api.HostVulnScanPkgManifestResponse{
+			Message: "OLD,NEW"},
+			from: api.HostVulnScanPkgManifestResponse{
+				Message: "NEW"},
+			to: api.HostVulnScanPkgManifestResponse{
+				Message: "OLD"}},
+		// merge two responses into one single response 1 + 1 = 2
+		{
+			expected: api.HostVulnScanPkgManifestResponse{
+				Vulns: []api.HostScanPackageVulnDetails{
+					api.HostScanPackageVulnDetails{}, api.HostScanPackageVulnDetails{},
+				},
+			},
+			from: api.HostVulnScanPkgManifestResponse{
+				Vulns: []api.HostScanPackageVulnDetails{api.HostScanPackageVulnDetails{}}},
+			to: api.HostVulnScanPkgManifestResponse{
+				Vulns: []api.HostScanPackageVulnDetails{api.HostScanPackageVulnDetails{}}},
+		},
+	}
+	for i, kase := range cases {
+		t.Run(fmt.Sprintf("test case %d", i), func(t *testing.T) {
+			mergeHostVulnScanPkgManifestResponses(&kase.to, &kase.from)
+			assert.Equal(t, kase.expected, kase.to)
+		})
+	}
 }
