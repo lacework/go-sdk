@@ -389,6 +389,18 @@ func fanOutHostScans(manifests ...*api.PackageManifest) (api.HostVulnScanPkgMani
 		return fanInRes, errors.New("limit of packages exceeded")
 	}
 
+	var (
+		err   error
+		start = time.Now()
+	)
+	defer func() {
+		cli.Event.DurationMs = time.Since(start).Milliseconds()
+		// avoid duplicating events
+		if err == nil {
+			cli.SendHoneyvent()
+		}
+	}()
+
 	// for every manifest, create a new worker, that is, spawn
 	// a new goroutine that will send the manifest to scan
 	for n, m := range manifests {
@@ -397,34 +409,59 @@ func fanOutHostScans(manifests ...*api.PackageManifest) (api.HostVulnScanPkgMani
 			continue
 		}
 		cli.Log.Infow("spawn worker", "number", n+1)
-		go func(manifest *api.PackageManifest, c *cliState) {
-			response, err := c.LwApi.Vulnerabilities.Host.Scan(manifest)
-			if err != nil {
-				errCh <- err
-				return
-			}
-			resCh <- response
-		}(m, cli)
+		go cli.triggerHostVulnScan(m, resCh, errCh)
 	}
+
+	cli.Event.AddFeatureField("workers", workers)
 
 	// lock the main process and read both, the error and response
 	// channels, if we receive at least one error, we will stop
 	// processing and bubble up the error to the caller
 	for processed := 0; processed < workers; processed++ {
 		select {
-		case err := <-errCh:
+		case err = <-errCh:
 			// end processing as soon as we receive the first error
 			return fanInRes, err
 		case res := <-resCh:
 			// processing scan
 			cli.Log.Infow("processing worker response", "n", processed+1)
-			fanInRes.Vulns = append(fanInRes.Vulns, res.Vulns...)
-			if res.Message != "" && res.Message != fanInRes.Message {
-				fanInRes.Message = res.Message
-			}
-			fanInRes.Ok = res.Ok
+			cli.Event.AddFeatureField(fmt.Sprintf("worker%d_total_vulns", processed), len(res.Vulns))
+			mergeHostVulnScanPkgManifestResponses(&fanInRes, &res)
 		}
 	}
 
 	return fanInRes, nil
+}
+
+func mergeHostVulnScanPkgManifestResponses(to, from *api.HostVulnScanPkgManifestResponse) {
+	// append vulnerabilities from -> to
+	to.Vulns = append(to.Vulns, from.Vulns...)
+
+	// requests should always return an ok state
+	to.Ok = from.Ok
+
+	// store the message from the response only if it is NOT empty
+	// and it is different from the previous response (to)
+	if to.Message == "" {
+		to.Message = from.Message
+		return
+	}
+
+	// concatenate messages "to,from" response only if they
+	// are NOT empty and they are different from each other
+	if from.Message != "" && from.Message != to.Message {
+		to.Message = fmt.Sprintf("%s,%s", to.Message, from.Message)
+	}
+}
+
+func (c *cliState) triggerHostVulnScan(manifest *api.PackageManifest,
+	resCh chan<- api.HostVulnScanPkgManifestResponse,
+	errCh chan<- error,
+) {
+	response, err := c.LwApi.Vulnerabilities.Host.Scan(manifest)
+	if err != nil {
+		errCh <- err
+		return
+	}
+	resCh <- response
 }

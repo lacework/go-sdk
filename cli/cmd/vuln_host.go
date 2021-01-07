@@ -138,13 +138,16 @@ To generate a package-manifest from the local host and scan it automatically:
 				}
 			}
 
+			totalPkgs := len(pkgManifest.OsPkgInfoList)
 			cli.StartProgress(" Scanning packages...")
-			cli.Log.Infow("manifest", "total_packages", len(pkgManifest.OsPkgInfoList))
+			cli.Log.Infow("manifest", "total_packages", totalPkgs)
 			var response api.HostVulnScanPkgManifestResponse
 			// check if the package manifest has more than the maximum
 			// number of packages, if so, make multiple API requests
-			if len(pkgManifest.OsPkgInfoList) >= manifestPkgsCap {
+			if totalPkgs >= manifestPkgsCap {
 				cli.Log.Infow("manifest over the limit, splitting up")
+				cli.Event.Feature = featSplitPkgManifest
+				cli.Event.AddFeatureField("total_packages", totalPkgs)
 				response, err = fanOutHostScans(
 					splitPackageManifest(pkgManifest, manifestPkgsCap)...,
 				)

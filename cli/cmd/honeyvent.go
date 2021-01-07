@@ -62,7 +62,7 @@ const (
 	//
 	// ```go
 	// cli.Event.Feature = featPollCtrScan
-	// cli.Event.FeatureData = map[string]interface{"key", "value"}
+	// cli.Event.AddFeatureField("key", "value")
 	// cli.SendHoneyvent()
 	// ```
 	//
@@ -74,6 +74,9 @@ const (
 
 	// Generate package manifest feature
 	featGenPkgManifest = "gen_pkg_manifest"
+
+	// Split package manifest feature
+	featSplitPkgManifest = "split_pkg_manifest"
 )
 
 // Honeyvent defines what a Honeycomb event looks like for the Lacework CLI
