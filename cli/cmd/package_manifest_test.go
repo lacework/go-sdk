@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -90,4 +91,77 @@ func TestRemoveEpochFromPkgVersion(t *testing.T) {
 	assert.Equal(t,
 		"version",
 		removeEpochFromPkgVersion("epoch:version"))
+}
+
+func TestSplitPackageManifest(t *testing.T) {
+	cases := []struct {
+		chunks       int
+		size         int
+		expectedSize int
+	}{
+		{expectedSize: 100,
+			size:   500,
+			chunks: 5},
+		{expectedSize: 45,
+			size:   45000,
+			chunks: 1000},
+		{expectedSize: 50,
+			size:   100,
+			chunks: 2},
+		{expectedSize: 2,
+			size:   1001,
+			chunks: 1000},
+		{expectedSize: 28,
+			size:   55000,
+			chunks: 2000},
+		{expectedSize: 1,
+			size:   123,
+			chunks: 1000},
+	}
+	for i, kase := range cases {
+		t.Run(fmt.Sprintf("test case %d", i), func(t *testing.T) {
+			manifest := &api.PackageManifest{
+				OsPkgInfoList: make([]api.OsPkgInfo, kase.size),
+			}
+			subject := splitPackageManifest(manifest, kase.chunks)
+			assert.Equal(t, kase.expectedSize, len(subject))
+		})
+	}
+}
+
+func TestFanOutHostScans(t *testing.T) {
+	subject, err := fanOutHostScans()
+	assert.Nil(t, err)
+	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+
+	subject, err = fanOutHostScans(nil)
+	assert.Nil(t, err)
+	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+
+	// more than 10 morkers should return an error
+	multiManifests := make([]*api.PackageManifest, 11)
+	subject, err = fanOutHostScans(multiManifests...)
+	if assert.NotNil(t, err) {
+		assert.Contains(t, err.Error(),
+			"limit of packages exceeded",
+		)
+	}
+	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+
+	// mock the api client
+	client, err := api.NewClient("test")
+	assert.Nil(t, err)
+	client.Vulnerabilities = api.NewVulnerabilityService(client)
+	cli.LwApi = client
+	defer func() {
+		cli.LwApi = nil
+	}()
+
+	subject, err = fanOutHostScans(&api.PackageManifest{})
+	if assert.NotNil(t, err) {
+		assert.Contains(t, err.Error(),
+			"unable to generate access token: auth keys missing",
+		)
+	}
+	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
 }
