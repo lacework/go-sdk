@@ -194,8 +194,8 @@ func TestConfigureCommandErrors(t *testing.T) {
 			c.ExpectString("Account:")
 			c.SendLine("")
 			c.ExpectString("The account subdomain of URL is required")
-			c.SendLine("my-account.lacework.net") // if the full URL was provided we transform it and inform the user
-			c.ExpectString("Passing '.lacework.net' domain not required. Using 'my-account'")
+			c.SendLine("https://my-account.lacework.net") // if the full URL was provided we transform it and inform the user
+			c.ExpectString("Passing full 'lacework.net' domain not required. Using 'my-account'")
 			c.ExpectString("Access Key ID:")
 			c.SendLine("")
 			c.ExpectString("The API access key id must have more than 55 characters")
