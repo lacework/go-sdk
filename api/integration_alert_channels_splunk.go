@@ -104,7 +104,7 @@ type SplunkChannelData struct {
 	HecToken  string          `json:"HEC_TOKEN" mapstructure:"HEC_TOKEN"`
 	Host      string          `json:"HOST" mapstructure:"HOST"`
 	Port      int             `json:"PORT" mapstructure:"PORT"`
-	Ssl       bool            `json:"SSL,omitempty" mapstructure:"SSL"`
+	Ssl       bool            `json:"SSL" mapstructure:"SSL"`
 	EventData SplunkEventData `json:"EVENT_DATA" mapstructure:"EVENT_DATA"`
 }
 

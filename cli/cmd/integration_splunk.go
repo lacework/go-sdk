@@ -69,7 +69,7 @@ func createSplunkIntegration() error {
 	answers := struct {
 		Name     string
 		Channel  string
-		HecToken string
+		HecToken string `survey:"hec_token"`
 		Host     string
 		Port     int
 		Source   string
