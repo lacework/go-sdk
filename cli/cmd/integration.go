@@ -460,7 +460,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"Channel", iData.Channel},
+			[]string{"CHANNEL", iData.Channel},
 			[]string{"HEC TOKEN", iData.HecToken},
 			[]string{"HOST", iData.Host},
 			[]string{"PORT", fmt.Sprintf("%d", iData.Port)},
