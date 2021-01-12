@@ -19,7 +19,6 @@
 package api_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -99,12 +98,6 @@ func TestIntegrationsCreateSplunkAlertChannel(t *testing.T) {
 	assert.Equal(t, 1, data.Enabled, "a new Splunk integration should be enabled")
 
 	response, err := c.Integrations.CreateSplunkAlertChannel(data)
-	b, err := json.Marshal(data)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(string(b))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
