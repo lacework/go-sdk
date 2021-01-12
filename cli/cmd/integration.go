@@ -202,6 +202,7 @@ func promptCreateIntegration() error {
 				"Slack Alert Channel",
 				"AWS S3 Alert Channel",
 				"Webhook Alert Channel",
+				"Splunk Alert Channel",
 				"PagerDuty Alert Channel",
 				"AWS CloudWatch Alert Channel",
 				"Jira Cloud Alert Channel",
@@ -232,6 +233,8 @@ func promptCreateIntegration() error {
 		return createAwsS3ChannelIntegration()
 	case "Webhook Alert Channel":
 		return createWebhookIntegration()
+	case "Splunk Alert Channel":
+		return createSplunkIntegration()
 	case "PagerDuty Alert Channel":
 		return createPagerDutyAlertChannelIntegration()
 	case "AWS CloudWatch Alert Channel":
@@ -440,6 +443,34 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		out := [][]string{
 			[]string{"WEBHOOK URL", iData.WebhookUrl},
+		}
+
+		return out
+
+	case api.SplunkIntegration.String():
+
+		var iData api.SplunkChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"CHANNEL", iData.Channel},
+			[]string{"HEC TOKEN", iData.HecToken},
+			[]string{"HOST", iData.Host},
+			[]string{"PORT", fmt.Sprintf("%d", iData.Port)},
+			[]string{"INDEX", iData.EventData.Index},
+			[]string{"SOURCE", iData.EventData.Source},
+		}
+		if iData.Ssl {
+			out = append(out, []string{"SSL", "ENABLE"})
+		} else {
+			out = append(out, []string{"SSL", "DISABLE"})
 		}
 
 		return out

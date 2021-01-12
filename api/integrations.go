@@ -61,6 +61,9 @@ const (
 	// Slack channel integration type
 	SlackChannelIntegration
 
+	// Splunk channel integration type
+	SplunkIntegration
+
 	// AWS CloudWatch integration type
 	AwsCloudWatchIntegration
 
@@ -86,6 +89,7 @@ var IntegrationTypes = map[integrationType]string{
 	AzureActivityLogIntegration:  "AZURE_AL_SEQ",
 	ContainerRegistryIntegration: "CONT_VULN_CFG",
 	SlackChannelIntegration:      "SLACK_CHANNEL",
+	SplunkIntegration:            "SPLUNK_HEC",
 	AwsCloudWatchIntegration:     "CLOUDWATCH_EB",
 	PagerDutyIntegration:         "PAGER_DUTY_API",
 	JiraIntegration:              "JIRA",
