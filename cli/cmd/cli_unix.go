@@ -38,10 +38,10 @@ var promptIconsFunc = func(icons *survey.IconSet) {
 func (c *cliState) UpdateCommand() string {
 	if os.Getenv("LW_HOMEBREW_INSTALL") != "" {
 		return `
-	 $ brew upgrade lacework-cli
-	`
+  $ brew upgrade lacework-cli
+`
 	}
 	return `
-	   $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash
-	 `
+  $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash
+`
 }
