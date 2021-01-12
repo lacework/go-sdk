@@ -82,7 +82,7 @@ func (svc *IntegrationsService) UpdateSplunkAlertChannel(data SplunkAlertChannel
 	return
 }
 
-// ListSplunkAlertChannel lists the SPLUNK external integrationS available on the Lacework Server
+// ListSplunkAlertChannel lists the splunk alert channel integrations available on the Lacework Server
 func (svc *IntegrationsService) ListSplunkAlertChannel() (response SplunkAlertChannelResponse, err error) {
 	err = svc.listByType(SplunkIntegration, &response)
 	return
