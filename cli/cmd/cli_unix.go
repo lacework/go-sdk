@@ -19,7 +19,11 @@
 
 package cmd
 
-import "github.com/AlecAivazis/survey/v2"
+import (
+	"os"
+
+	"github.com/AlecAivazis/survey/v2"
+)
 
 // used by configure.go
 var configureListCmdSetProfileEnv = `$ export LW_PROFILE="my-profile"`
@@ -32,7 +36,12 @@ var promptIconsFunc = func(icons *survey.IconSet) {
 // UpdateCommand returns the command that a user should run to update the cli
 // to the latest available version (unix specific command)
 func (c *cliState) UpdateCommand() string {
+	if os.Getenv("LW_HOMEBREW_INSTALL") != "" {
+		return `
+	 $ brew upgrade lacework-cli
+	`
+	}
 	return `
-  $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash
-`
+	   $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash
+	 `
 }
