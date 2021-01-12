@@ -21,27 +21,20 @@ package cmd
 
 import (
 	"os"
+	"testing"
 
-	"github.com/AlecAivazis/survey/v2"
+	"github.com/stretchr/testify/assert"
 )
 
-// used by configure.go
-var configureListCmdSetProfileEnv = `$ export LW_PROFILE="my-profile"`
+func TestCliStateUpdateCommand(t *testing.T) {
+	assert.Contains(t,
+		cli.UpdateCommand(),
+		"curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash",
+	)
 
-// promptIconsFuncs configures the prompt icons for Unix systems
-var promptIconsFunc = func(icons *survey.IconSet) {
-	icons.Question.Text = "▸"
-}
-
-// UpdateCommand returns the command that a user should run to update the cli
-// to the latest available version (unix specific command)
-func (c *cliState) UpdateCommand() string {
-	if os.Getenv("LW_HOMEBREW_INSTALL") != "" {
-		return `
-  $ brew upgrade lacework-cli
-`
-	}
-	return `
-  $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash
-`
+	t.Run("Homebrew installation", func(t *testing.T) {
+		os.Setenv("LW_HOMEBREW_INSTALL", "1")
+		defer os.Setenv("LW_HOMEBREW_INSTALL", "")
+		assert.Contains(t, cli.UpdateCommand(), "brew upgrade lacework-cli")
+	})
 }
