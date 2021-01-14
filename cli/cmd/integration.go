@@ -201,6 +201,7 @@ func promptCreateIntegration() error {
 			Options: []string{
 				"Slack Alert Channel",
 				"AWS S3 Alert Channel",
+				"GCP PubSub Alert Channel",
 				"Webhook Alert Channel",
 				"Splunk Alert Channel",
 				"PagerDuty Alert Channel",
@@ -229,6 +230,8 @@ func promptCreateIntegration() error {
 	switch integration {
 	case "Slack Alert Channel":
 		return createSlackAlertChannelIntegration()
+	case "GCP PubSub Alert Channel":
+		return createGcpPubSubChannelIntegration()
 	case "AWS S3 Alert Channel":
 		return createAwsS3ChannelIntegration()
 	case "Webhook Alert Channel":
@@ -491,6 +494,29 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			[]string{"ROLE ARN", iData.Credentials.RoleArn},
 			[]string{"BUCKET ARN", iData.Credentials.BucketArn},
 			[]string{"EXTERNAL ID", iData.Credentials.ExternalID},
+		}
+
+		return out
+
+	case api.GcpPubSubChannelIntegration.String():
+
+		var iData api.GcpPubSubChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"PROJECT ID", iData.ProjectID},
+			[]string{"TOPIC ID", iData.TopicID},
+			[]string{"CLIENT ID", iData.Credentials.ClientID},
+			[]string{"CLIENT EMAIL", iData.Credentials.ClientEmail},
+			[]string{"PRIVATE_KEY_ID", iData.Credentials.PrivateKeyID},
+			[]string{"PRIVATE_KEY", iData.Credentials.PrivateKey},
 		}
 
 		return out
