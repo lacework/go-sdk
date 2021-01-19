@@ -31,6 +31,7 @@ readonly docker_tags=(
 VERSION=$(cat VERSION)
 TARGETS=(
   ${package_name}-darwin-amd64
+  ${package_name}-darwin-arm64
   ${package_name}-windows-386.exe
   ${package_name}-windows-amd64.exe
   ${package_name}-linux-386
