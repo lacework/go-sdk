@@ -516,7 +516,6 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			[]string{"CLIENT ID", iData.Credentials.ClientID},
 			[]string{"CLIENT EMAIL", iData.Credentials.ClientEmail},
 			[]string{"PRIVATE_KEY_ID", iData.Credentials.PrivateKeyID},
-			[]string{"PRIVATE_KEY", iData.Credentials.PrivateKey},
 		}
 
 		return out
