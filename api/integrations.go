@@ -49,6 +49,9 @@ const (
 	// GCP Audit Log integration type
 	GcpAuditLogIntegration
 
+	// GCP Pub Sub alert channel integration type
+	GcpPubSubChannelIntegration
+
 	// Azure Config integration type
 	AzureCfgIntegration
 
@@ -85,6 +88,7 @@ var IntegrationTypes = map[integrationType]string{
 	AwsS3ChannelIntegration:      "AWS_S3",
 	GcpCfgIntegration:            "GCP_CFG",
 	GcpAuditLogIntegration:       "GCP_AT_SES",
+	GcpPubSubChannelIntegration:  "GCP_PUBSUB",
 	AzureCfgIntegration:          "AZURE_CFG",
 	AzureActivityLogIntegration:  "AZURE_AL_SEQ",
 	ContainerRegistryIntegration: "CONT_VULN_CFG",
