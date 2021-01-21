@@ -37,6 +37,7 @@ func TestHoneyventDefaultParameters(t *testing.T) {
 	assert.NotEmpty(t, cli.Event.TraceID)
 	assert.Empty(t, cli.Event.SpanID)
 	assert.Empty(t, cli.Event.ParentID)
+	assert.Empty(t, cli.Event.InstallMethod)
 }
 
 func TestSendHoneyventTracingFields(t *testing.T) {
@@ -104,4 +105,20 @@ func TestSendHoneyventDisableTelemetry(t *testing.T) {
 	assert.Equal(t, "test_feature", cli.Event.Feature)
 	// this validates that the environment variable is not sending
 	// events when it is set (disabled)
+}
+
+func TestSendHoneyventHomebrewInstall(t *testing.T) {
+	// testing that the install method will be "Homebrew"
+	// environment variable 'LW_HOMEBREW_INSTALL'  is set
+	os.Setenv(HomebrewInstall, "1")
+	defer os.Setenv(HomebrewInstall, "")
+
+	// init honeyvent as InstallMethod is set on init
+	cli.InitHoneyvent()
+
+	// mocking sending honeyvent
+	cli.SendHoneyvent()
+
+	assert.NotEmpty(t, cli.Event.InstallMethod)
+	assert.Equal(t, "HOMEBREW", cli.Event.InstallMethod)
 }

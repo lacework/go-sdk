@@ -45,6 +45,10 @@ const (
 	// disable telemetry sent to Honeycomb
 	DisableTelemetry = "LW_TELEMETRY_DISABLE"
 
+	// HomebrewInstall is an environment variable that denotes the
+	// install method was via homebrew package manager
+	HomebrewInstall = "LW_HOMEBREW_INSTALL"
+
 	// List of Features
 	//
 	// A feature within the Lacework CLI is any functionality that
@@ -81,18 +85,19 @@ const (
 
 // Honeyvent defines what a Honeycomb event looks like for the Lacework CLI
 type Honeyvent struct {
-	Version     string      `json:"version"`
-	Os          string      `json:"os"`
-	Arch        string      `json:"arch"`
-	Command     string      `json:"command,omitempty"`
-	Args        []string    `json:"args,omitempty"`
-	Account     string      `json:"account,omitempty"`
-	Profile     string      `json:"profile,omitempty"`
-	ApiKey      string      `json:"api_key,omitempty"`
-	Feature     string      `json:"feature,omitempty"`
-	FeatureData interface{} `json:"feature.data,omitempty"`
-	DurationMs  int64       `json:"duration_ms,omitempty"`
-	Error       string      `json:"error,omitempty"`
+	Version       string      `json:"version"`
+	Os            string      `json:"os"`
+	Arch          string      `json:"arch"`
+	Command       string      `json:"command,omitempty"`
+	Args          []string    `json:"args,omitempty"`
+	Account       string      `json:"account,omitempty"`
+	Profile       string      `json:"profile,omitempty"`
+	ApiKey        string      `json:"api_key,omitempty"`
+	Feature       string      `json:"feature,omitempty"`
+	FeatureData   interface{} `json:"feature.data,omitempty"`
+	DurationMs    int64       `json:"duration_ms,omitempty"`
+	Error         string      `json:"error,omitempty"`
+	InstallMethod string      `json:"install_method,omitempty"`
 
 	// tracing data for multiple events, this is useful for specific features
 	// within the Lacework CLI such as daily version check, polling mechanism, etc.
@@ -112,13 +117,14 @@ func (c *cliState) InitHoneyvent() {
 	_ = libhoney.Init(hc)
 
 	c.Event = &Honeyvent{
-		Os:      runtime.GOOS,
-		Arch:    runtime.GOARCH,
-		Version: Version,
-		Profile: c.Profile,
-		Account: c.Account,
-		ApiKey:  c.KeyID,
-		TraceID: newID(),
+		Os:            runtime.GOOS,
+		Arch:          runtime.GOARCH,
+		Version:       Version,
+		Profile:       c.Profile,
+		Account:       c.Account,
+		ApiKey:        c.KeyID,
+		TraceID:       newID(),
+		InstallMethod: installMethod(),
 	}
 }
 
@@ -190,4 +196,11 @@ func (e *Honeyvent) AddFeatureField(key string, value interface{}) {
 		v[key] = value
 		e.FeatureData = v
 	}
+}
+
+func installMethod() string {
+	if os.Getenv(HomebrewInstall) != "" {
+		return "HOMEBREW"
+	}
+	return ""
 }

@@ -36,7 +36,7 @@ var promptIconsFunc = func(icons *survey.IconSet) {
 // UpdateCommand returns the command that a user should run to update the cli
 // to the latest available version (unix specific command)
 func (c *cliState) UpdateCommand() string {
-	if os.Getenv("LW_HOMEBREW_INSTALL") != "" {
+	if os.Getenv(HomebrewInstall) != "" {
 		return `
   $ brew upgrade lacework-cli
 `
