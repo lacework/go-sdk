@@ -25,6 +25,10 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 )
 
+// HomebrewInstall is an environment variable that denotes the
+// install method was via homebrew package manager
+const HomebrewInstall = "LW_HOMEBREW_INSTALL"
+
 // used by configure.go
 var configureListCmdSetProfileEnv = `$ export LW_PROFILE="my-profile"`
 
@@ -36,7 +40,7 @@ var promptIconsFunc = func(icons *survey.IconSet) {
 // UpdateCommand returns the command that a user should run to update the cli
 // to the latest available version (unix specific command)
 func (c *cliState) UpdateCommand() string {
-	if os.Getenv("LW_HOMEBREW_INSTALL") != "" {
+	if os.Getenv(HomebrewInstall) != "" {
 		return `
   $ brew upgrade lacework-cli
 `

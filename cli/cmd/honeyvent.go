@@ -45,10 +45,6 @@ const (
 	// disable telemetry sent to Honeycomb
 	DisableTelemetry = "LW_TELEMETRY_DISABLE"
 
-	// HomebrewInstall is an environment variable that denotes the
-	// install method was via homebrew package manager
-	HomebrewInstall = "LW_HOMEBREW_INSTALL"
-
 	// List of Features
 	//
 	// A feature within the Lacework CLI is any functionality that
