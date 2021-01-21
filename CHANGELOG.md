@@ -1,3 +1,9 @@
+# v0.2.15
+
+## Features
+* feat: add telemetry to detect Homebrew installations (#297) (Darren)([fa81abc](https://github.com/lacework/go-sdk/commit/fa81abc1c044cb362cd29608c65fc820d0c8a706))
+* feat(cli): New Gcp PubSub alert channel (#294) (Darren)([08a3e61](https://github.com/lacework/go-sdk/commit/08a3e61469a1bb35675d63070474bad3e7988ad4))
+---
 # v0.2.14
 
 ## Features
