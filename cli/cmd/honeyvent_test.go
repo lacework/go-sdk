@@ -120,5 +120,5 @@ func TestSendHoneyventHomebrewInstall(t *testing.T) {
 	cli.SendHoneyvent()
 
 	assert.NotEmpty(t, cli.Event.InstallMethod)
-	assert.Equal(t, HomebrewInstall, cli.Event.InstallMethod)
+	assert.Equal(t, "HOMEBREW", cli.Event.InstallMethod)
 }

@@ -25,10 +25,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 )
 
-// HomebrewInstall is an environment variable that denotes the
-// install method was via homebrew package manager
-const HomebrewInstall = "LW_HOMEBREW_INSTALL"
-
 // used by configure.go
 var configureListCmdSetProfileEnv = `$ export LW_PROFILE="my-profile"`
 
