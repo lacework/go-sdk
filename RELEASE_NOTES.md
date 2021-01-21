@@ -1,12 +1,9 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.2.14`.
+Another day, another release. These are the release notes for the version `v0.2.15`.
 
 ## Features
-* feat(cli): support Homebrew upgrade command (#291) (Darren)([bedfa5d](https://github.com/lacework/go-sdk/commit/bedfa5d2895fa7aabe1de6ef2902eb260133c3fd))
-* feat(cli): Add Splunk alert channel (#289) (Darren)([04679a5](https://github.com/lacework/go-sdk/commit/04679a51bf35469f4986e693ed19a75cc36dbbb2))
-* feat(cli): add account check to catch http(s):// (#288) (Salim Afiune)([3d770a1](https://github.com/lacework/go-sdk/commit/3d770a1171814e33de7f6420d1637ad8c03f30c8))
-## Bug Fixes
-* fix(cli): skip daily version check for version cmd (#290) (Salim Afiune)([5c9f4ca](https://github.com/lacework/go-sdk/commit/5c9f4cab61620636e0962e0fbe4edce97c41e8dc))
+* feat: add telemetry to detect Homebrew installations (#297) (Darren)([fa81abc](https://github.com/lacework/go-sdk/commit/fa81abc1c044cb362cd29608c65fc820d0c8a706))
+* feat(cli): New Gcp PubSub alert channel (#294) (Darren)([08a3e61](https://github.com/lacework/go-sdk/commit/08a3e61469a1bb35675d63070474bad3e7988ad4))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
