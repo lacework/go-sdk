@@ -89,6 +89,10 @@ create_workdir() {
 }
 
 check_target() {
+  if [[ ! $target =~ "-" ]]; then
+    exit_with "malformed target '${target}' (format: system-arch)" 5
+  fi
+
   sys=$(echo "$target" | cut -d- -f1)
   if [ -z "${sys}" ]; then
     exit_with "malformed target '${target}' (format: system-arch)" 5
@@ -232,7 +236,7 @@ download_file() {
     if [ $_code -eq 0 ]; then
       return 0
     else
-      warn "wget failed to download file, trying to download with curl"
+      warn "wget failed to download file, trying to download with curl (exitcode: ${_code})"
     fi
   fi
 
@@ -248,7 +252,7 @@ download_file() {
     if [ $_code -eq 0 ]; then
       return 0
     else
-      warn "curl failed to download file"
+      warn "curl failed to download file (exitcode: ${_code})"
     fi
   fi
 
