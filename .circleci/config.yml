@@ -138,6 +138,10 @@ jobs:
           fail_only: true
           mentions: << pipeline.parameters.slack-mentions >>
           only_for_branches: <<pipeline.parameters.only_for_branches>>
+  trigger-homebrew-update:
+    executor: alpine
+    steps:
+      - run: curl -u "$CIRCLE_TOKEN" https://circleci.com/api/v1.1/project/gh/lacework/homebrew-tap/tree/main -d "build_parameters[CIRCLE_JOB]=update"
 
 workflows:
   version: 2
@@ -183,6 +187,14 @@ workflows:
           matrix:
             parameters:
               tag: ["ubi-8", "centos-8", "debian-10", "ubuntu-1804", "amazonlinux-2"]
+      - trigger-homebrew-update:
+          filters:
+            tags:
+               only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - vuln-scan-cli
 
   nightly:
     triggers:
