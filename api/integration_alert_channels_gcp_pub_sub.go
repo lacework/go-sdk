@@ -33,7 +33,7 @@ package api
 // 	api.GcpPubSubChannelData{
 // 		ProjectID:     "my-sample-project-191923",
 // 		TopicID:   	   "mytopic",
-//      IssueGrouping: "Resources",
+//              IssueGrouping: "Resources",
 // 		Credentials: api.GcpCredentials{
 // 			ClientID:     "client_id",
 // 			ClientEmail:  "foo@example.iam.gserviceaccount.com",
