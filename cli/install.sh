@@ -60,9 +60,14 @@ main() {
     installation_dir=$default_install_dir
   fi
 
+  if [ -z "${target:-}" ]; then
+    check_platform
+  else
+    check_target
+  fi
+
   log "Installing the Lacework CLI"
   create_workdir
-  check_platform
   download_archive "$version" "$target"
   verify_archive
   extract_archive
@@ -82,6 +87,32 @@ create_workdir() {
   # add a trap to clean up work directory
   trap 'code=$?; rm -rf $workdir; exit $code' INT TERM EXIT
   cd "${workdir}"
+}
+
+check_target() {
+  _sys=$(echo "$target" | cut -d- -f1)
+  if [ -z "${_sys}" ]; then
+    exit_with "malformed target '${target}' (format: sys-arch)" 5
+  fi
+
+  _arch=$(echo "$target" | cut -d- -f2)
+  if [ -z "${_arch}" ]; then
+    exit_with "malformed target '${target}' (format: sys-arch)" 5
+  fi
+
+  case "${_sys}" in
+    darwin)
+      ext=zip
+      shasum_cmd="shasum -a 256"
+      ;;
+    linux)
+      ext=tar.gz
+      shasum_cmd="sha256sum"
+      ;;
+    *)
+      exit_with "unsupported target: ${_sys}" 5
+      ;;
+  esac
 }
 
 check_platform() {
@@ -132,9 +163,7 @@ check_platform() {
       ;;
   esac
 
-  if [ -z "${target:-}" ]; then
-    target="${sys}-${arch}"
-  fi
+  target="${sys}-${arch}"
 }
 
 download_archive() {
