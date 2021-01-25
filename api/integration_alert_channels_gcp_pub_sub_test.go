@@ -34,8 +34,9 @@ import (
 func TestIntegrationsNewGcpPubSubAlertChannel(t *testing.T) {
 	subject := api.NewGcpPubSubAlertChannel("integration_name",
 		api.GcpPubSubChannelData{
-			ProjectID: "my-sample-project-191923",
-			TopicID:   "mytopic",
+			ProjectID:     "my-sample-project-191923",
+			TopicID:       "mytopic",
+			IssueGrouping: "Events",
 			Credentials: api.GcpCredentials{
 				ClientID:     "client_id",
 				ClientEmail:  "foo@example.iam.gserviceaccount.com",
@@ -60,6 +61,7 @@ func TestIntegrationsCreateGcpPubSubAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "integration_name", "integration name is missing")
 			assert.Contains(t, body, "GCP_PUBSUB", "wrong integration type")
 			assert.Contains(t, body, "mytopic", "wrong topic id")
+			assert.Contains(t, body, "Events", "wrong issue grouping")
 			assert.Contains(t, body, "my-sample-project-191923", "wrong project id")
 			assert.Contains(t, body, "client_id", "wrong client id")
 			assert.Contains(t, body, "foo@example.iam.gserviceaccount.com", "wrong client email")
@@ -80,8 +82,9 @@ func TestIntegrationsCreateGcpPubSubAlertChannel(t *testing.T) {
 
 	data := api.NewGcpPubSubAlertChannel("integration_name",
 		api.GcpPubSubChannelData{
-			ProjectID: "my-sample-project-191923",
-			TopicID:   "mytopic",
+			ProjectID:     "my-sample-project-191923",
+			TopicID:       "mytopic",
+			IssueGrouping: "Events",
 			Credentials: api.GcpCredentials{
 				ClientID:     "client_id",
 				ClientEmail:  "foo@example.iam.gserviceaccount.com",
@@ -105,6 +108,7 @@ func TestIntegrationsCreateGcpPubSubAlertChannel(t *testing.T) {
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "my-sample-project-191923", resData.Data.ProjectID)
 		assert.Equal(t, "mytopic", resData.Data.TopicID)
+		assert.Equal(t, "Events", resData.Data.IssueGrouping)
 		assert.Equal(t, "client_id", resData.Data.Credentials.ClientID)
 		assert.Equal(t, "foo@example.iam.gserviceaccount.com", resData.Data.Credentials.ClientEmail)
 		assert.Equal(t, "priv_key", resData.Data.Credentials.PrivateKey)
@@ -141,6 +145,7 @@ func TestIntegrationsGetGcpPubSubAlertChannel(t *testing.T) {
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "my-sample-project-191923", resData.Data.ProjectID)
 		assert.Equal(t, "mytopic", resData.Data.TopicID)
+		assert.Equal(t, "Events", resData.Data.IssueGrouping)
 		assert.Equal(t, "client_id", resData.Data.Credentials.ClientID)
 		assert.Equal(t, "foo@example.iam.gserviceaccount.com", resData.Data.Credentials.ClientEmail)
 		assert.Equal(t, "priv_key", resData.Data.Credentials.PrivateKey)
@@ -163,6 +168,7 @@ func TestIntegrationsUpdateGcpPubSubAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "integration_name", "integration name is missing")
 			assert.Contains(t, body, "GCP_PUBSUB", "wrong integration type")
 			assert.Contains(t, body, "mytopic", "wrong topic id")
+			assert.Contains(t, body, "Events", "wrong issue grouping")
 			assert.Contains(t, body, "my-sample-project-191923", "wrong project id")
 			assert.Contains(t, body, "client_id", "wrong client id")
 			assert.Contains(t, body, "foo@example.iam.gserviceaccount.com", "wrong client email")
@@ -183,8 +189,9 @@ func TestIntegrationsUpdateGcpPubSubAlertChannel(t *testing.T) {
 
 	data := api.NewGcpPubSubAlertChannel("integration_name",
 		api.GcpPubSubChannelData{
-			ProjectID: "my-sample-project-191923",
-			TopicID:   "mytopic",
+			ProjectID:     "my-sample-project-191923",
+			TopicID:       "mytopic",
+			IssueGrouping: "Events",
 			Credentials: api.GcpCredentials{
 				ClientID:     "client_id",
 				ClientEmail:  "foo@example.iam.gserviceaccount.com",
@@ -282,7 +289,8 @@ func singleGcpPubSubChanIntegration(id string) string {
 					"PRIVATE_KEY_ID": "p_key_id"
 				},
 				"PROJECT_ID": "my-sample-project-191923",
-				"TOPIC_ID": "mytopic"
+				"TOPIC_ID": "mytopic",
+				"ISSUE_GROUPING": "Events"
 			},
 			"TYPE_NAME": "GCP PUBSUB"
 		}

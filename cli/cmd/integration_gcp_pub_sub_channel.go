@@ -61,16 +61,23 @@ func createGcpPubSubChannelIntegration() error {
 			Prompt:   &survey.Input{Message: "Topic ID:"},
 			Validate: survey.Required,
 		},
+		{
+			Name: "issue_grouping",
+			Prompt: &survey.MultiSelect{Message: "Issue Grouping:",
+				Options: []string{"Events", "Resources"},
+			},
+		},
 	}
 
 	answers := struct {
-		Name         string
-		ClientID     string `survey:"client_id"`
-		PrivateKeyID string `survey:"private_key_id"`
-		ClientEmail  string `survey:"client_email"`
-		PrivateKey   string `survey:"private_key"`
-		ProjectID    string `survey:"project_id"`
-		TopicID      string `survey:"topic_id"`
+		Name          string
+		ClientID      string `survey:"client_id"`
+		PrivateKeyID  string `survey:"private_key_id"`
+		ClientEmail   string `survey:"client_email"`
+		PrivateKey    string `survey:"private_key"`
+		ProjectID     string `survey:"project_id"`
+		TopicID       string `survey:"topic_id"`
+		IssueGrouping string `survey:"issue_grouping"`
 	}{}
 
 	err := survey.Ask(questions, &answers,

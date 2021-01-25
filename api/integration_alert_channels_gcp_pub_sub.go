@@ -31,8 +31,9 @@ package api
 //
 //   gcpPubSubChannel := api.NewGcpPubSubAlertChannel("foo",
 // 	api.GcpPubSubChannelData{
-// 		ProjectID: "my-sample-project-191923",
-// 		TopicID:   "mytopic",
+// 		ProjectID:     "my-sample-project-191923",
+// 		TopicID:   	   "mytopic",
+//      IssueGrouping: "Resources",
 // 		Credentials: api.GcpCredentials{
 // 			ClientID:     "client_id",
 // 			ClientEmail:  "foo@example.iam.gserviceaccount.com",
@@ -101,7 +102,8 @@ type GcpPubSubAlertChannel struct {
 }
 
 type GcpPubSubChannelData struct {
-	ProjectID   string         `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
-	TopicID     string         `json:"TOPIC_ID" mapstructure:"TOPIC_ID"`
-	Credentials GcpCredentials `json:"CREDENTIALS" mapstructure:"CREDENTIALS"`
+	ProjectID     string         `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
+	TopicID       string         `json:"TOPIC_ID" mapstructure:"TOPIC_ID"`
+	IssueGrouping string         `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
+	Credentials   GcpCredentials `json:"CREDENTIALS" mapstructure:"CREDENTIALS"`
 }
