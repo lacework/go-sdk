@@ -44,6 +44,7 @@ main() {
         ;;
       t)
         target="${OPTARG}"
+        check_target
         ;;
       d)
         installation_dir="${OPTARG}"
@@ -61,9 +62,7 @@ main() {
   fi
 
   if [ -z "${target:-}" ]; then
-    check_platform
-  else
-    check_target
+    detect_platform
   fi
 
   log "Installing the Lacework CLI"
@@ -90,32 +89,20 @@ create_workdir() {
 }
 
 check_target() {
-  _sys=$(echo "$target" | cut -d- -f1)
-  if [ -z "${_sys}" ]; then
-    exit_with "malformed target '${target}' (format: sys-arch)" 5
+  sys=$(echo "$target" | cut -d- -f1)
+  if [ -z "${sys}" ]; then
+    exit_with "malformed target '${target}' (format: system-arch)" 5
   fi
 
-  _arch=$(echo "$target" | cut -d- -f2)
-  if [ -z "${_arch}" ]; then
-    exit_with "malformed target '${target}' (format: sys-arch)" 5
+  arch=$(echo "$target" | cut -d- -f2)
+  if [ -z "${arch}" ]; then
+    exit_with "malformed target '${target}' (format: system-arch)" 5
   fi
 
-  case "${_sys}" in
-    darwin)
-      ext=zip
-      shasum_cmd="shasum -a 256"
-      ;;
-    linux)
-      ext=tar.gz
-      shasum_cmd="sha256sum"
-      ;;
-    *)
-      exit_with "unsupported target: ${_sys}" 5
-      ;;
-  esac
+  verify_platform
 }
 
-check_platform() {
+detect_platform() {
   local _ostype
   _ostype="$(uname -s)"
 
@@ -129,6 +116,12 @@ check_platform() {
       ;;
   esac
 
+  verify_platform
+
+  target="${sys}-${arch}"
+}
+
+verify_platform() {
   case "${sys}" in
     darwin)
       ext=zip
@@ -146,13 +139,13 @@ check_platform() {
   # The following architectures match our cross-platform build process
   # https://golang.org/doc/install/source#environment
   case "${arch}" in
-    x86_64)
+    x86_64 | amd64)
       arch=amd64
       ;;
-   i686)
+   i686 | 386)
       arch=386
       ;;
-   aarch64* | armv8*)
+   aarch64* | armv8* | arm64)
       arch=arm64
       ;;
    armv7* | armv6* | arm)
@@ -162,8 +155,6 @@ check_platform() {
       exit_with "architecture not supported: ${arch}" 3
       ;;
   esac
-
-  target="${sys}-${arch}"
 }
 
 download_archive() {
@@ -233,8 +224,10 @@ download_file() {
   if command -v wget > /dev/null; then
     log "Downloading via wget: ${_url}"
 
+    set +e
     wget -q -O "${_dst}" "${_url}"
     _code="$?"
+    set -eou pipefail
 
     if [ $_code -eq 0 ]; then
       return 0
@@ -247,8 +240,10 @@ download_file() {
   if command -v curl > /dev/null; then
     log "Downloading via curl: ${_url}"
 
+    set +e
     curl -sSfL "${_url}" -o "${_dst}"
     _code="$?"
+    set -eou pipefail
 
     if [ $_code -eq 0 ]; then
       return 0
@@ -258,7 +253,7 @@ download_file() {
   fi
 
   # wget and curl have failed, inform the user
-  exit_with "Required: SSL-enabled 'curl' or 'wget' on PATH with" 6
+  exit_with "Required: SSL-enabled 'curl' or 'wget' on PATH" 6
 }
 
 log() {
