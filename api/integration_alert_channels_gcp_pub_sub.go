@@ -86,19 +86,6 @@ func (svc *IntegrationsService) UpdateGcpPubSubAlertChannel(data GcpPubSubAlertC
 
 // ListGcpPubSubAlertChannel lists the GCP_PUBSUB external integrations available on the Lacework Server
 func (svc *IntegrationsService) ListGcpPubSubAlertChannel() (response GcpPubSubAlertChannelResponse, err error) {
-	gcpPubSubChannel := api.NewGcpPubSubAlertChannel("foo",
-		api.GcpPubSubChannelData{
-			ProjectID:     "my-sample-project-191923",
-			TopicID:       "mytopic",
-			IssueGrouping: "Resources",
-			Credentials: api.GcpCredentials{
-				ClientID:     "client_id",
-				ClientEmail:  "foo@example.iam.gserviceaccount.com",
-				PrivateKey:   "priv_key",
-				PrivateKeyID: "p_key_id",
-			},
-		},
-	)
 	err = svc.listByType(GcpPubSubChannelIntegration, &response)
 	return
 }
