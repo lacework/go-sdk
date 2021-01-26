@@ -204,6 +204,7 @@ func promptCreateIntegration() error {
 				"GCP PubSub Alert Channel",
 				"Webhook Alert Channel",
 				"Splunk Alert Channel",
+				"Service Now Alert Channel",
 				"PagerDuty Alert Channel",
 				"AWS CloudWatch Alert Channel",
 				"Jira Cloud Alert Channel",
@@ -240,6 +241,8 @@ func promptCreateIntegration() error {
 		return createSplunkIntegration()
 	case "PagerDuty Alert Channel":
 		return createPagerDutyAlertChannelIntegration()
+	case "Service Now Alert Channel":
+		return createServiceNowAlertChannelIntegration()
 	case "AWS CloudWatch Alert Channel":
 		return createAwsCloudWatchAlertChannelIntegration()
 	case "Jira Cloud Alert Channel":
@@ -474,6 +477,27 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			out = append(out, []string{"SSL", "ENABLE"})
 		} else {
 			out = append(out, []string{"SSL", "DISABLE"})
+		}
+
+		return out
+
+	case api.ServiceNowChannelIntegration.String():
+
+		var iData api.ServiceNowChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"INSTANCE URL", iData.InstanceURL},
+			[]string{"USERNAME", iData.Username},
+			[]string{"PASSWORD", iData.Password},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
 		}
 
 		return out

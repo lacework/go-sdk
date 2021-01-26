@@ -64,6 +64,9 @@ const (
 	// Slack channel integration type
 	SlackChannelIntegration
 
+	// Sevice Now alert channel integration type
+	ServiceNowChannelIntegration
+
 	// Splunk channel integration type
 	SplunkIntegration
 
@@ -94,6 +97,7 @@ var IntegrationTypes = map[integrationType]string{
 	ContainerRegistryIntegration: "CONT_VULN_CFG",
 	SlackChannelIntegration:      "SLACK_CHANNEL",
 	SplunkIntegration:            "SPLUNK_HEC",
+	ServiceNowChannelIntegration: "SERVICE_NOW_REST",
 	AwsCloudWatchIntegration:     "CLOUDWATCH_EB",
 	PagerDutyIntegration:         "PAGER_DUTY_API",
 	JiraIntegration:              "JIRA",
