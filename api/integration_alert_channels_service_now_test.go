@@ -57,7 +57,7 @@ func TestIntegrationsCreateServiceNowAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "SERVICE_NOW_REST", "wrong integration type")
 			assert.Contains(t, body, "snow-user", "wrong username")
 			assert.Contains(t, body, "snow-lacework.com", "wrong instance url")
-			assert.Contains(t, body, "snow-password", "wrong password")
+			assert.Contains(t, body, "snow-pass", "wrong password")
 			assert.Contains(t, body, "Events", "wrong issue grouping")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
@@ -94,8 +94,8 @@ func TestIntegrationsCreateServiceNowAlertChannel(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "snow-lacework.com", resData.Data.InstanceUrl)
-		assert.Equal(t, "snow-user.com", resData.Data.Username)
-		assert.Equal(t, "snow-pass.com", resData.Data.Password)
+		assert.Equal(t, "snow-user", resData.Data.Username)
+		assert.Equal(t, "snow-pass", resData.Data.Password)
 		assert.Equal(t, "Events", resData.Data.IssueGrouping)
 	}
 }
@@ -150,7 +150,7 @@ func TestIntegrationsUpdateServiceNowAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "SERVICE_NOW_REST", "wrong integration type")
 			assert.Contains(t, body, "snow-user", "wrong username")
 			assert.Contains(t, body, "snow-lacework.com", "wrong instance url")
-			assert.Contains(t, body, "snow-password", "wrong password")
+			assert.Contains(t, body, "snow-pass", "wrong password")
 			assert.Contains(t, body, "Events", "wrong issue grouping")
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
@@ -257,7 +257,7 @@ func singleServiceNowChanIntegration(id string) string {
 			"DATA": {
 				"INSTANCE_URL": "snow-lacework.com",
 				"USERNAME": "snow-user",
-				"PASSWORD": "snow-password",
+				"PASSWORD": "snow-pass",
 				"ISSUE_GROUPING": "Events"
 			},
 			"TYPE_NAME": "SERVICE_NOW_REST"
