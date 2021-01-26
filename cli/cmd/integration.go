@@ -494,7 +494,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"INSTANCE URL", iData.InstanceUrl},
+			[]string{"INSTANCE URL", iData.InstanceURL},
 			[]string{"USERNAME", iData.Username},
 			[]string{"PASSWORD", iData.Password},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},

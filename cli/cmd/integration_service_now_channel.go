@@ -33,7 +33,7 @@ func createServiceNowAlertChannelIntegration() error {
 		},
 		{
 			Name:     "instance_url",
-			Prompt:   &survey.Input{Message: "InstanceUrl:"},
+			Prompt:   &survey.Input{Message: "InstanceURL:"},
 			Validate: survey.Required,
 		},
 		{
@@ -56,7 +56,7 @@ func createServiceNowAlertChannelIntegration() error {
 
 	answers := struct {
 		Name          string
-		InstanceUrl   string `survey:"instance_url"`
+		InstanceURL   string `survey:"instance_url"`
 		Username      string `survey:"username"`
 		Password      string `survey:"password"`
 		IssueGrouping string `survey:"issue_grouping"`
@@ -71,7 +71,7 @@ func createServiceNowAlertChannelIntegration() error {
 
 	snow := api.NewServiceNowAlertChannel(answers.Name,
 		api.ServiceNowChannelData{
-			InstanceUrl:   answers.InstanceUrl,
+			InstanceURL:   answers.InstanceURL,
 			Username:      answers.Username,
 			Password:      answers.Password,
 			IssueGrouping: answers.IssueGrouping,

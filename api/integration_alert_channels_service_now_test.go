@@ -34,7 +34,7 @@ import (
 func TestIntegrationsNewServiceNowAlertChannel(t *testing.T) {
 	subject := api.NewServiceNowAlertChannel("integration_name",
 		api.ServiceNowChannelData{
-			InstanceUrl:   "snow-lacework.com",
+			InstanceURL:   "snow-lacework.com",
 			Username:      "snow-user",
 			Password:      "snow-pass",
 			IssueGrouping: "Events",
@@ -74,7 +74,7 @@ func TestIntegrationsCreateServiceNowAlertChannel(t *testing.T) {
 
 	data := api.NewServiceNowAlertChannel("integration_name",
 		api.ServiceNowChannelData{
-			InstanceUrl:   "snow-lacework.com",
+			InstanceURL:   "snow-lacework.com",
 			Username:      "snow-user",
 			Password:      "snow-pass",
 			IssueGrouping: "Events",
@@ -93,7 +93,7 @@ func TestIntegrationsCreateServiceNowAlertChannel(t *testing.T) {
 		assert.Equal(t, intgGUID, resData.IntgGuid)
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
-		assert.Equal(t, "snow-lacework.com", resData.Data.InstanceUrl)
+		assert.Equal(t, "snow-lacework.com", resData.Data.InstanceURL)
 		assert.Equal(t, "snow-user", resData.Data.Username)
 		assert.Equal(t, "snow-pass", resData.Data.Password)
 		assert.Equal(t, "Events", resData.Data.IssueGrouping)
@@ -127,7 +127,7 @@ func TestIntegrationsGetServiceNowAlertChannel(t *testing.T) {
 		assert.Equal(t, intgGUID, resData.IntgGuid)
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
-		assert.Equal(t, "snow-lacework.com", resData.Data.InstanceUrl)
+		assert.Equal(t, "snow-lacework.com", resData.Data.InstanceURL)
 		assert.Equal(t, "snow-user", resData.Data.Username)
 		assert.Equal(t, "snow-pass", resData.Data.Password)
 		assert.Equal(t, "Events", resData.Data.IssueGrouping)
@@ -167,7 +167,7 @@ func TestIntegrationsUpdateServiceNowAlertChannel(t *testing.T) {
 
 	data := api.NewServiceNowAlertChannel("integration_name",
 		api.ServiceNowChannelData{
-			InstanceUrl:   "snow-lacework.com",
+			InstanceURL:   "snow-lacework.com",
 			Username:      "snow-user",
 			Password:      "snow-pass",
 			IssueGrouping: "Events",

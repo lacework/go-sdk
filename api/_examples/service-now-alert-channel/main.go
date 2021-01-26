@@ -15,7 +15,7 @@ func main() {
 
 	myServiceNowChannel := api.NewServiceNowAlertChannel("service-now-alert-from-golang",
 		api.ServiceNowChannelData{
-			InstanceUrl:   "snow-lacework.com",
+			InstanceURL:   "snow-lacework.com",
 			Username:      "snow-user",
 			Password:      "snow-password",
 			IssueGrouping: "Events",

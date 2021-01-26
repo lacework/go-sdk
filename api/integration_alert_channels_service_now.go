@@ -31,7 +31,7 @@ package api
 //
 //   serviceNowChannel := api.NewServiceNowAlertChannel("foo",
 //     api.ServiceNowChannelData{
-//       InstanceUrl:   "snow-lacework.com",
+//       InstanceURL:   "snow-lacework.com",
 //       Username:      "snow-user",
 //       Password:      "snow-password",
 //       IssueGrouping: "Events",
@@ -95,7 +95,7 @@ type ServiceNowAlertChannel struct {
 }
 
 type ServiceNowChannelData struct {
-	InstanceUrl   string `json:"INSTANCE_URL" mapstructure:"INSTANCE_URL"`
+	InstanceURL   string `json:"INSTANCE_URL" mapstructure:"INSTANCE_URL"`
 	Username      string `json:"USERNAME" mapstructure:"USERNAME"`
 	Password      string `json:"PASSWORD" mapstructure:"PASSWORD"`
 	IssueGrouping string `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
