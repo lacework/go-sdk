@@ -128,8 +128,8 @@ func TestIntegrationsGetServiceNowAlertChannel(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "snow-lacework.com", resData.Data.InstanceUrl)
-		assert.Equal(t, "snow-user.com", resData.Data.Username)
-		assert.Equal(t, "snow-pass.com", resData.Data.Password)
+		assert.Equal(t, "snow-user", resData.Data.Username)
+		assert.Equal(t, "snow-pass", resData.Data.Password)
 		assert.Equal(t, "Events", resData.Data.IssueGrouping)
 	}
 }
