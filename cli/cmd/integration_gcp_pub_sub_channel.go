@@ -32,23 +32,8 @@ func createGcpPubSubChannelIntegration() error {
 			Validate: survey.Required,
 		},
 		{
-			Name:     "client_id",
-			Prompt:   &survey.Input{Message: "Client ID:"},
-			Validate: survey.Required,
-		},
-		{
-			Name:     "private_key_id",
-			Prompt:   &survey.Input{Message: "Private Key ID:"},
-			Validate: survey.Required,
-		},
-		{
-			Name:     "client_email",
-			Prompt:   &survey.Input{Message: "Client Email:"},
-			Validate: survey.Required,
-		},
-		{
-			Name:     "private_key",
-			Prompt:   &survey.Input{Message: "Private Key:"},
+			Name:     "topic_id",
+			Prompt:   &survey.Input{Message: "Topic ID:"},
 			Validate: survey.Required,
 		},
 		{
@@ -57,8 +42,23 @@ func createGcpPubSubChannelIntegration() error {
 			Validate: survey.Required,
 		},
 		{
-			Name:     "topic_id",
-			Prompt:   &survey.Input{Message: "Topic ID:"},
+			Name:     "client_id",
+			Prompt:   &survey.Input{Message: "Client ID:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "client_email",
+			Prompt:   &survey.Input{Message: "Client Email:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "private_key_id",
+			Prompt:   &survey.Input{Message: "Private Key ID:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "private_key",
+			Prompt:   &survey.Editor{Message: "Enter properly formatted Private Key:"},
 			Validate: survey.Required,
 		},
 		{
