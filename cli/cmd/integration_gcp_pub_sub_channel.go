@@ -58,7 +58,7 @@ func createGcpPubSubChannelIntegration() error {
 		},
 		{
 			Name:     "private_key",
-			Prompt:   &survey.Editor{Message: "Enter correctly formatted Private Key:"},
+			Prompt:   &survey.Editor{Message: "Enter properly formatted Private Key:"},
 			Validate: survey.Required,
 		},
 		{
