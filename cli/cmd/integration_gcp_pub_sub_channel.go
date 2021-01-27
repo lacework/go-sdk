@@ -63,7 +63,7 @@ func createGcpPubSubChannelIntegration() error {
 		},
 		{
 			Name: "issue_grouping",
-			Prompt: &survey.MultiSelect{Message: "Issue Grouping:",
+			Prompt: &survey.Select{Message: "Issue Grouping:",
 				Options: []string{"Events", "Resources"},
 			},
 		},
