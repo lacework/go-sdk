@@ -63,7 +63,7 @@ func createGcpPubSubChannelIntegration() error {
 		},
 		{
 			Name: "issue_grouping",
-			Prompt: &survey.MultiSelect{Message: "Issue Grouping:",
+			Prompt: &survey.Select{Message: "Issue Grouping:",
 				Options: []string{"Events", "Resources"},
 			},
 		},
@@ -89,8 +89,9 @@ func createGcpPubSubChannelIntegration() error {
 
 	gcp := api.NewGcpPubSubAlertChannel(answers.Name,
 		api.GcpPubSubChannelData{
-			ProjectID: answers.ProjectID,
-			TopicID:   answers.TopicID,
+			ProjectID:     answers.ProjectID,
+			TopicID:       answers.TopicID,
+			IssueGrouping: answers.IssueGrouping,
 			Credentials: api.GcpCredentials{
 				ClientID:     answers.ClientID,
 				ClientEmail:  answers.ClientEmail,
