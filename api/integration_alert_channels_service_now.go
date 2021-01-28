@@ -96,7 +96,7 @@ type ServiceNowAlertChannel struct {
 
 type ServiceNowChannelData struct {
 	InstanceURL   string `json:"INSTANCE_URL" mapstructure:"INSTANCE_URL"`
-	Username      string `json:"USERNAME" mapstructure:"USERNAME"`
+	Username      string `json:"USER_NAME" mapstructure:"USER_NAME"`
 	Password      string `json:"PASSWORD" mapstructure:"PASSWORD"`
 	IssueGrouping string `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
 }

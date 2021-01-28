@@ -256,7 +256,7 @@ func singleServiceNowChanIntegration(id string) string {
 			"IS_ORG": 0,
 			"DATA": {
 				"INSTANCE_URL": "snow-lacework.com",
-				"USERNAME": "snow-user",
+				"USER_NAME": "snow-user",
 				"PASSWORD": "snow-pass",
 				"ISSUE_GROUPING": "Events"
 			},
