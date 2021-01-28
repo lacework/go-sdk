@@ -25,6 +25,7 @@ import (
 	"path"
 	"testing"
 
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/ssh"
 
@@ -130,6 +131,7 @@ func TestLwRunnerDefaultKnownHosts(t *testing.T) {
 	os.Setenv("HOME", mockHome)
 	defer os.Setenv("HOME", homeCache)
 
+	homedir.DisableCache = true
 	subject, err := lwrunner.DefaultKnownHosts()
 	assert.NotNil(t, subject)
 	if assert.Nil(t, err) {

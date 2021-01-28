@@ -42,7 +42,7 @@ func TestRemoveInactivePackagesFromManifestRemoveKernelRPM(t *testing.T) {
 			},
 			api.OsPkgInfo{
 				Os: "amzn", OsVer: "2",
-				Pkg: "kernel", PkgVer: "4.14.203-156.332.amzn2", // without EPOCH
+				Pkg: "kernel", PkgVer: "4.14.203-156.331.amzn2", // without EPOCH
 			},
 		},
 	}
