@@ -1,3 +1,8 @@
+# v0.2.17
+
+## Bug Fixes
+* fix: Json mapping for Snow Username (#307) (Darren)([1ef8d99](https://github.com/lacework/go-sdk/commit/1ef8d9912dd66522712bfa4a15d4ab728d409e65))
+---
 # v0.2.16
 
 ## Features
