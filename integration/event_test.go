@@ -103,21 +103,25 @@ func TestEventCommandListTimeRange(t *testing.T) {
 	)
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--start", from.Format(time.RFC3339), "--end", now.Format(time.RFC3339))
-	assert.Contains(t, out.String(), "EVENT ID",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "TYPE",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "SEVERITY",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "START TIME",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "END TIME",
-		"STDOUT table headers changed, please check")
 	assert.Empty(t,
 		err.String(),
 		"STDERR should be empty")
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
+
+	// only verify the table headers if there are events
+	if !strings.Contains(out.String(), "There are no events in your account in the specified time range.") {
+		assert.Contains(t, out.String(), "EVENT ID",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "TYPE",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "SEVERITY",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "START TIME",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "END TIME",
+			"STDOUT table headers changed, please check")
+	}
 }
 
 func TestEventCommandOpenError(t *testing.T) {
