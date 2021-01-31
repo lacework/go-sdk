@@ -114,6 +114,10 @@ func versionCacheDir() (string, error) {
 // dailyVersionCheck will execute a version check on a daily basis, the function uses
 // the file ~/.config/lacework/version_cache to track the last check time
 func dailyVersionCheck() error {
+	if disabled := os.Getenv(lwupdater.DisableEnv); disabled != "" {
+		return nil
+	}
+
 	cacheDir, err := versionCacheDir()
 	if err != nil {
 		return err
