@@ -29,12 +29,12 @@ package api
 //     return err
 //   }
 //
-//   datadogChannel := api.NewDatadogAlertChannel("foo",
-//     api.DatadogChannelData{
-//       DatadogSite: "com",
-//       DatadogType: "Events Summary",
-//       ApiKey: 	  "key",
-//     },
+//   datadog := api.NewDatadogAlertChannel("foo",
+//   api.DatadogChannelData{
+//    DatadogSite: "eu",
+// 	  DatadogType: "Events Summary",
+// 	  ApiKey:      "datadog-key",
+//   },
 //   )
 //
 //   client.Integrations.CreateDatadogAlertChannel(datadogChannel)

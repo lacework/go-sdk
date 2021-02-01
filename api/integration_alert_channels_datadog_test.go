@@ -236,25 +236,25 @@ func datadogChanMultiIntegrationJsonResponse(guids []string) string {
 
 func singleDatadogChanIntegration(id string) string {
 	return `
-		{
-			"INTG_GUID": "` + id + `",
-			"NAME": "integration_name",
-			"CREATED_OR_UPDATED_TIME": "2020-Mar-10 01:00:00 UTC",
-			"CREATED_OR_UPDATED_BY": "user@email.com",
-			"TYPE": "DATADOG",
-			"ENABLED": 1,
-			"STATE": {
-				"ok": true,
-				"lastUpdatedTime": "2020-Mar-10 01:00:00 UTC",
-				"lastSuccessfulTime": "2020-Mar-10 01:00:00 UTC"
-			},
-			"IS_ORG": 0,
-			"DATA": {
-				"DATADOG_SITE": "eu",
-				"DATADOG_TYPE": "Events Summary",
-				"API_KEY": "datadog-key"
-			},
-			"TYPE_NAME": "DATADOG"
-		}
+	{
+		"INTG_GUID": "` + id + `",
+		"NAME": "integration_name",
+		"CREATED_OR_UPDATED_TIME": "2020-Mar-10 01:00:00 UTC",
+		"CREATED_OR_UPDATED_BY": "user@email.com",
+		"TYPE": "DATADOG",
+		"ENABLED": 1,
+		"STATE": {
+			"ok": true,
+			"lastUpdatedTime": "2020-Mar-10 01:00:00 UTC",
+			"lastSuccessfulTime": "2020-Mar-10 01:00:00 UTC"
+		},
+		"IS_ORG": 0,
+		"DATA": {
+			"DATADOG_SITE": "eu",
+			"DATADOG_TYPE": "Events Summary",
+			"API_KEY": "datadog-key"
+		},
+		"TYPE_NAME": "DATADOG"
+	}
 	`
 }

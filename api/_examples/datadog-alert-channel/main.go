@@ -17,7 +17,7 @@ func main() {
 		api.DatadogChannelData{
 			DatadogSite: "eu",
 			DatadogType: "Events Summary",
-			ApiKey:      "data-key",
+			ApiKey:      "datadog-key",
 		},
 	)
 
