@@ -539,7 +539,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		out := [][]string{
 			[]string{"DATADOG SITE", iData.DatadogSite},
-			[]string{"DATADOG TYPE", iData.DatadogService},
+			[]string{"DATADOG SERVICE", iData.DatadogService},
 			[]string{"API KEY", iData.ApiKey},
 		}
 
