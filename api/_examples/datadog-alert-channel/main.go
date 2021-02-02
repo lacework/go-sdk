@@ -15,9 +15,9 @@ func main() {
 
 	myDatadogChannel := api.NewDatadogAlertChannel("datadog-alert-from-golang",
 		api.DatadogChannelData{
-			DatadogSite: "eu",
-			DatadogType: "Events Summary",
-			ApiKey:      "datadog-key",
+			DatadogSite:    "eu",
+			DatadogService: "Events Summary",
+			ApiKey:         "datadog-key",
 		},
 	)
 

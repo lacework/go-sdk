@@ -34,16 +34,16 @@ func createDatadogIntegration() error {
 		{
 			Name: "datadog_site",
 			Prompt: &survey.Select{Message: "Datadog Site: ",
-				Options: []string{"eu", "com"},
+				Options: []string{api.DatadogSiteEu.String(), api.DatadogSiteCom.String()},
+				Default: api.DatadogSiteCom.String(),
 			},
-			Validate: survey.Required,
 		},
 		{
 			Name: "datadog_type",
 			Prompt: &survey.Select{Message: "Datadog Type: ",
-				Options: []string{"Logs Detail", "Logs Summary", "Events Summary"},
+				Options: []string{api.DatadogServiceLogsDetails.String(), api.DatadogServiceEventsSummary.String(), api.DatadogServiceLogsSummary.String()},
+				Default: api.DatadogServiceLogsDetails.String(),
 			},
-			Validate: survey.Required,
 		},
 		{
 			Name:     "api_key",
@@ -53,10 +53,10 @@ func createDatadogIntegration() error {
 	}
 
 	answers := struct {
-		Name        string
-		DatadogKey  string `survey:"datadog_site"`
-		DatadogType string `survey:"datadog_type"`
-		ApiKey      string `survey:"api_key"`
+		Name           string
+		DatadogSite    string `survey:"datadog_site"`
+		DatadogService string `survey:"datadog_type"`
+		ApiKey         string `survey:"api_key"`
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -68,9 +68,9 @@ func createDatadogIntegration() error {
 
 	datadog := api.NewDatadogAlertChannel(answers.Name,
 		api.DatadogChannelData{
-			DatadogSite: answers.DatadogKey,
-			DatadogType: answers.DatadogType,
-			ApiKey:      answers.ApiKey,
+			DatadogSite:    answers.DatadogSite,
+			DatadogService: answers.DatadogService,
+			ApiKey:         answers.ApiKey,
 		},
 	)
 

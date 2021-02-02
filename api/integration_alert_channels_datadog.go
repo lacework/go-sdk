@@ -18,6 +18,21 @@
 
 package api
 
+type datadogSite string
+
+type datadogService string
+
+const (
+	//The list of valid inputs for DatadogService field
+	DatadogSiteEu  datadogSite = "eu"
+	DatadogSiteCom datadogSite = "com"
+
+	//The list of valid inputs for DatadogService field
+	DatadogServiceLogsDetails   datadogService = "Logs Detail"
+	DatadogServiceEventsSummary datadogService = "Events Summary"
+	DatadogServiceLogsSummary   datadogService = "Logs Summary"
+)
+
 // NewDatadogAlertChannel returns an instance of DatadogAlertChannel
 // with the provided name and data.
 //
@@ -31,9 +46,9 @@ package api
 //
 //   datadog := api.NewDatadogAlertChannel("foo",
 //   api.DatadogChannelData{
-//    DatadogSite: "eu",
-// 	  DatadogType: "Events Summary",
-// 	  ApiKey:      "datadog-key",
+// 		DatadogSite:    api.DatadogSiteEu.String(),
+//  	DatadogService: api.DatadogServiceEventsSummary.String(),
+// 	  	ApiKey:      	"datadog-key",
 //   },
 //   )
 //
@@ -82,6 +97,14 @@ func (svc *IntegrationsService) ListDatadogAlertChannel() (response DatadogAlert
 	return
 }
 
+func (i datadogSite) String() string {
+	return string(i)
+}
+
+func (i datadogService) String() string {
+	return string(i)
+}
+
 type DatadogAlertChannelResponse struct {
 	Data    []DatadogAlertChannel `json:"data"`
 	Ok      bool                  `json:"ok"`
@@ -94,7 +117,7 @@ type DatadogAlertChannel struct {
 }
 
 type DatadogChannelData struct {
-	DatadogSite string `json:"DATADOG_SITE" mapstructure:"DATADOG_SITE"`
-	DatadogType string `json:"DATADOG_TYPE" mapstructure:"DATADOG_TYPE"`
-	ApiKey      string `json:"API_KEY" mapstructure:"API_KEY"`
+	DatadogSite    string `json:"DATADOG_SITE,omitempty" mapstructure:"DATADOG_SITE"`
+	DatadogService string `json:"DATADOG_TYPE,omitempty" mapstructure:"DATADOG_TYPE"`
+	ApiKey         string `json:"API_KEY" mapstructure:"API_KEY"`
 }

@@ -34,9 +34,9 @@ import (
 func TestIntegrationsNewDatadogAlertChannel(t *testing.T) {
 	subject := api.NewDatadogAlertChannel("integration_name",
 		api.DatadogChannelData{
-			DatadogSite: "eu",
-			DatadogType: "Events Summary",
-			ApiKey:      "datadog-key",
+			DatadogSite:    api.DatadogSiteEu.String(),
+			DatadogService: api.DatadogServiceEventsSummary.String(),
+			ApiKey:         "datadog-key",
 		},
 	)
 	assert.Equal(t, api.DatadogChannelIntegration.String(), subject.Type)
@@ -72,9 +72,9 @@ func TestIntegrationsCreateDatadogAlertChannel(t *testing.T) {
 
 	data := api.NewDatadogAlertChannel("integration_name",
 		api.DatadogChannelData{
-			DatadogSite: "eu",
-			DatadogType: "Events Summary",
-			ApiKey:      "datadog-key",
+			DatadogSite:    api.DatadogSiteEu.String(),
+			DatadogService: api.DatadogServiceEventsSummary.String(),
+			ApiKey:         "datadog-key",
 		},
 	)
 
@@ -93,7 +93,7 @@ func TestIntegrationsCreateDatadogAlertChannel(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "eu", resData.Data.DatadogSite)
-		assert.Equal(t, "Events Summary", resData.Data.DatadogType)
+		assert.Equal(t, "Events Summary", resData.Data.DatadogService)
 		assert.Equal(t, "datadog-key", resData.Data.ApiKey)
 	}
 }
@@ -126,7 +126,7 @@ func TestIntegrationsGetDatadogAlertChannel(t *testing.T) {
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
 		assert.Equal(t, "eu", resData.Data.DatadogSite)
-		assert.Equal(t, "Events Summary", resData.Data.DatadogType)
+		assert.Equal(t, "Events Summary", resData.Data.DatadogService)
 		assert.Equal(t, "datadog-key", resData.Data.ApiKey)
 	}
 }
@@ -163,9 +163,9 @@ func TestIntegrationsUpdateDatadogAlertChannel(t *testing.T) {
 
 	data := api.NewDatadogAlertChannel("integration_name",
 		api.DatadogChannelData{
-			DatadogSite: "eu",
-			DatadogType: "Events Summary",
-			ApiKey:      "datadog-key",
+			DatadogSite:    api.DatadogSiteEu.String(),
+			DatadogService: api.DatadogServiceEventsSummary.String(),
+			ApiKey:         "datadog-key",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "Datadog integration name mismatch")
