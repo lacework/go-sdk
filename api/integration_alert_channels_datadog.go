@@ -44,13 +44,13 @@ const (
 //     return err
 //   }
 //
-//   datadog := api.NewDatadogAlertChannel("foo",
+// datadog := api.NewDatadogAlertChannel("foo",
 //   api.DatadogChannelData{
-// 		DatadogSite:    api.DatadogSiteEu.String(),
-//  	DatadogService: api.DatadogServiceEventsSummary.String(),
-// 	  	ApiKey:      	"datadog-key",
+// 	  DatadogSite:    api.DatadogSiteEu.String(),
+// 	  DatadogService: api.DatadogServiceEventsSummary.String(),
+// 	  ApiKey:      	"datadog-key",
 //   },
-//   )
+// )
 //
 //   client.Integrations.CreateDatadogAlertChannel(datadogChannel)
 //
