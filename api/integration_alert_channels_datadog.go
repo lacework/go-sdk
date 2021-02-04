@@ -25,7 +25,7 @@ type datadogSite string
 type datadogService string
 
 const (
-	//The list of valid inputs for DatadogService field
+	// The list of valid inputs for DatadogSite field
 	DatadogSiteEu  datadogSite = "eu"
 	DatadogSiteCom datadogSite = "com"
 
