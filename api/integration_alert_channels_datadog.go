@@ -29,7 +29,7 @@ const (
 	DatadogSiteEu  datadogSite = "eu"
 	DatadogSiteCom datadogSite = "com"
 
-	//The list of valid inputs for DatadogService field
+	// The list of valid inputs for DatadogService field
 	DatadogServiceLogsDetails   datadogService = "Logs Detail"
 	DatadogServiceEventsSummary datadogService = "Events Summary"
 	DatadogServiceLogsSummary   datadogService = "Logs Summary"
