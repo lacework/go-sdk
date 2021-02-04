@@ -18,6 +18,8 @@
 
 package api
 
+import "github.com/pkg/errors"
+
 type datadogSite string
 
 type datadogService string
@@ -33,6 +35,17 @@ const (
 	DatadogServiceLogsSummary   datadogService = "Logs Summary"
 )
 
+var datadogSites = map[string]datadogSite{
+	string(DatadogSiteEu):  DatadogSiteEu,
+	string(DatadogSiteCom): DatadogSiteCom,
+}
+
+var datadogServices = map[string]datadogService{
+	string(DatadogServiceLogsDetails):   DatadogServiceLogsDetails,
+	string(DatadogServiceEventsSummary): DatadogServiceEventsSummary,
+	string(DatadogServiceLogsSummary):   DatadogServiceLogsSummary,
+}
+
 // NewDatadogAlertChannel returns an instance of DatadogAlertChannel
 // with the provided name and data.
 //
@@ -44,13 +57,13 @@ const (
 //     return err
 //   }
 //
-// datadog := api.NewDatadogAlertChannel("foo",
+//   datadog := api.NewDatadogAlertChannel("foo",
 //   api.DatadogChannelData{
-// 	  DatadogSite:    api.DatadogSiteEu.String(),
-// 	  DatadogService: api.DatadogServiceEventsSummary.String(),
-// 	  ApiKey:      	"datadog-key",
+// 		DatadogSite:    api.DatadogSiteEu.String(),
+//  	DatadogService: api.DatadogServiceEventsSummary.String(),
+// 	  	ApiKey:      	"datadog-key",
 //   },
-// )
+//   )
 //
 //   client.Integrations.CreateDatadogAlertChannel(datadogChannel)
 //
@@ -97,18 +110,26 @@ func (svc *IntegrationsService) ListDatadogAlertChannel() (response DatadogAlert
 	return
 }
 
-func (i datadogSite) String() string {
-	return string(i)
-}
-
-func (i datadogService) String() string {
-	return string(i)
-}
-
 type DatadogAlertChannelResponse struct {
 	Data    []DatadogAlertChannel `json:"data"`
 	Ok      bool                  `json:"ok"`
 	Message string                `json:"message"`
+}
+
+// DatadogSite returns the datadogSite type for the corresponding string input
+func DatadogSite(site string) (datadogSite, error) {
+	if val, ok := datadogSites[site]; ok {
+		return val, nil
+	}
+	return "", errors.Errorf("%v is not a valid Datadog Site", site)
+}
+
+// DatadogService returns the datadogService type for the corresponding string input
+func DatadogService(service string) (datadogService, error) {
+	if val, ok := datadogServices[service]; ok {
+		return val, nil
+	}
+	return "", errors.Errorf("%v is not a valid Datadog Site", service)
 }
 
 type DatadogAlertChannel struct {
@@ -117,7 +138,7 @@ type DatadogAlertChannel struct {
 }
 
 type DatadogChannelData struct {
-	DatadogSite    string `json:"DATADOG_SITE,omitempty" mapstructure:"DATADOG_SITE"`
-	DatadogService string `json:"DATADOG_TYPE,omitempty" mapstructure:"DATADOG_TYPE"`
-	ApiKey         string `json:"API_KEY" mapstructure:"API_KEY"`
+	DatadogSite    datadogSite    `json:"DATADOG_SITE,omitempty" mapstructure:"DATADOG_SITE"`
+	DatadogService datadogService `json:"DATADOG_TYPE,omitempty" mapstructure:"DATADOG_TYPE"`
+	ApiKey         string         `json:"API_KEY" mapstructure:"API_KEY"`
 }

@@ -34,8 +34,8 @@ import (
 func TestIntegrationsNewDatadogAlertChannel(t *testing.T) {
 	subject := api.NewDatadogAlertChannel("integration_name",
 		api.DatadogChannelData{
-			DatadogSite:    api.DatadogSiteEu.String(),
-			DatadogService: api.DatadogServiceEventsSummary.String(),
+			DatadogSite:    api.DatadogSiteEu,
+			DatadogService: api.DatadogServiceEventsSummary,
 			ApiKey:         "datadog-key",
 		},
 	)
@@ -72,8 +72,8 @@ func TestIntegrationsCreateDatadogAlertChannel(t *testing.T) {
 
 	data := api.NewDatadogAlertChannel("integration_name",
 		api.DatadogChannelData{
-			DatadogSite:    api.DatadogSiteEu.String(),
-			DatadogService: api.DatadogServiceEventsSummary.String(),
+			DatadogSite:    api.DatadogSiteEu,
+			DatadogService: api.DatadogServiceEventsSummary,
 			ApiKey:         "datadog-key",
 		},
 	)
@@ -92,8 +92,8 @@ func TestIntegrationsCreateDatadogAlertChannel(t *testing.T) {
 		assert.Equal(t, intgGUID, resData.IntgGuid)
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
-		assert.Equal(t, "eu", resData.Data.DatadogSite)
-		assert.Equal(t, "Events Summary", resData.Data.DatadogService)
+		assert.Equal(t, api.DatadogSiteEu, resData.Data.DatadogSite)
+		assert.Equal(t, api.DatadogServiceEventsSummary, resData.Data.DatadogService)
 		assert.Equal(t, "datadog-key", resData.Data.ApiKey)
 	}
 }
@@ -125,8 +125,8 @@ func TestIntegrationsGetDatadogAlertChannel(t *testing.T) {
 		assert.Equal(t, intgGUID, resData.IntgGuid)
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
-		assert.Equal(t, "eu", resData.Data.DatadogSite)
-		assert.Equal(t, "Events Summary", resData.Data.DatadogService)
+		assert.Equal(t, api.DatadogSiteEu, resData.Data.DatadogSite)
+		assert.Equal(t, api.DatadogServiceEventsSummary, resData.Data.DatadogService)
 		assert.Equal(t, "datadog-key", resData.Data.ApiKey)
 	}
 }
@@ -163,8 +163,8 @@ func TestIntegrationsUpdateDatadogAlertChannel(t *testing.T) {
 
 	data := api.NewDatadogAlertChannel("integration_name",
 		api.DatadogChannelData{
-			DatadogSite:    api.DatadogSiteEu.String(),
-			DatadogService: api.DatadogServiceEventsSummary.String(),
+			DatadogSite:    api.DatadogSiteEu,
+			DatadogService: api.DatadogServiceEventsSummary,
 			ApiKey:         "datadog-key",
 		},
 	)

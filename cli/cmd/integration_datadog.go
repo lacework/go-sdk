@@ -34,15 +34,15 @@ func createDatadogIntegration() error {
 		{
 			Name: "datadog_site",
 			Prompt: &survey.Select{Message: "Datadog Site: ",
-				Options: []string{api.DatadogSiteEu.String(), api.DatadogSiteCom.String()},
-				Default: api.DatadogSiteCom.String(),
+				Options: []string{string(api.DatadogSiteEu), string(api.DatadogSiteCom)},
+				Default: string(api.DatadogSiteCom),
 			},
 		},
 		{
 			Name: "datadog_type",
 			Prompt: &survey.Select{Message: "Datadog Type: ",
-				Options: []string{api.DatadogServiceLogsDetails.String(), api.DatadogServiceEventsSummary.String(), api.DatadogServiceLogsSummary.String()},
-				Default: api.DatadogServiceLogsDetails.String(),
+				Options: []string{string(api.DatadogServiceLogsDetails), string(api.DatadogServiceEventsSummary), string(api.DatadogServiceLogsSummary)},
+				Default: string(api.DatadogServiceLogsDetails),
 			},
 		},
 		{
@@ -66,10 +66,22 @@ func createDatadogIntegration() error {
 		return err
 	}
 
+	site, err := api.DatadogSite(answers.DatadogSite)
+
+	if err != nil {
+		return err
+	}
+
+	service, err := api.DatadogService(answers.DatadogService)
+	if err != nil {
+
+		return err
+	}
+
 	datadog := api.NewDatadogAlertChannel(answers.Name,
 		api.DatadogChannelData{
-			DatadogSite:    answers.DatadogSite,
-			DatadogService: answers.DatadogService,
+			DatadogSite:    site,
+			DatadogService: service,
 			ApiKey:         answers.ApiKey,
 		},
 	)
