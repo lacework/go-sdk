@@ -67,7 +67,6 @@ func createDatadogIntegration() error {
 	}
 
 	site, err := api.DatadogSite(answers.DatadogSite)
-
 	if err != nil {
 		return err
 	}
