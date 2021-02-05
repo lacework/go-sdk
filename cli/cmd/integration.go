@@ -201,6 +201,7 @@ func promptCreateIntegration() error {
 			Options: []string{
 				"Slack Alert Channel",
 				"AWS S3 Alert Channel",
+				"Datadog Alert Channel",
 				"GCP PubSub Alert Channel",
 				"Webhook Alert Channel",
 				"Splunk Alert Channel",
@@ -235,6 +236,8 @@ func promptCreateIntegration() error {
 		return createGcpPubSubChannelIntegration()
 	case "AWS S3 Alert Channel":
 		return createAwsS3ChannelIntegration()
+	case "Datadog Alert Channel":
+		return createDatadogIntegration()
 	case "Webhook Alert Channel":
 		return createWebhookIntegration()
 	case "Splunk Alert Channel":
@@ -518,6 +521,26 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			[]string{"ROLE ARN", iData.Credentials.RoleArn},
 			[]string{"BUCKET ARN", iData.Credentials.BucketArn},
 			[]string{"EXTERNAL ID", iData.Credentials.ExternalID},
+		}
+
+		return out
+
+	case api.DatadogChannelIntegration.String():
+
+		var iData api.DatadogChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"DATADOG SITE", string(iData.DatadogSite)},
+			[]string{"DATADOG SERVICE", string(iData.DatadogService)},
+			[]string{"API KEY", iData.ApiKey},
 		}
 
 		return out

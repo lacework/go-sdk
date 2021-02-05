@@ -43,6 +43,9 @@ const (
 	// AWS S3 channel integration type
 	AwsS3ChannelIntegration
 
+	// Datadog channel integration type
+	DatadogChannelIntegration
+
 	// GCP Config integration type
 	GcpCfgIntegration
 
@@ -89,6 +92,7 @@ var IntegrationTypes = map[integrationType]string{
 	AwsCfgIntegration:            "AWS_CFG",
 	AwsCloudTrailIntegration:     "AWS_CT_SQS",
 	AwsS3ChannelIntegration:      "AWS_S3",
+	DatadogChannelIntegration:    "DATADOG",
 	GcpCfgIntegration:            "GCP_CFG",
 	GcpAuditLogIntegration:       "GCP_AT_SES",
 	GcpPubSubChannelIntegration:  "GCP_PUBSUB",
