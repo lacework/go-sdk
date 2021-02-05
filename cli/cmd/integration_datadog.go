@@ -41,7 +41,11 @@ func createDatadogIntegration() error {
 		{
 			Name: "datadog_type",
 			Prompt: &survey.Select{Message: "Datadog Type: ",
-				Options: []string{string(api.DatadogServiceLogsDetails), string(api.DatadogServiceEventsSummary), string(api.DatadogServiceLogsSummary)},
+				Options: []string{
+					string(api.DatadogServiceLogsDetails),
+					string(api.DatadogServiceEventsSummary),
+					string(api.DatadogServiceLogsSummary),
+				},
 				Default: string(api.DatadogServiceLogsDetails),
 			},
 		},
