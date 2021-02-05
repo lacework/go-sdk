@@ -60,7 +60,7 @@ var datadogServices = map[string]datadogService{
 //   datadog := api.NewDatadogAlertChannel("foo",
 //   api.DatadogChannelData{
 // 		DatadogSite:    api.DatadogSiteEu,
-//  	DatadogService: api.DatadogServiceEventsSummary,
+//  		DatadogService: api.DatadogServiceEventsSummary,
 // 	  	ApiKey:      	"datadog-key",
 //   },
 //   )
