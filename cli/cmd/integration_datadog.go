@@ -77,7 +77,6 @@ func createDatadogIntegration() error {
 
 	service, err := api.DatadogService(answers.DatadogService)
 	if err != nil {
-
 		return err
 	}
 
