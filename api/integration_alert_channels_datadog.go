@@ -129,7 +129,7 @@ func DatadogService(service string) (datadogService, error) {
 	if val, ok := datadogServices[service]; ok {
 		return val, nil
 	}
-	return "", errors.Errorf("%v is not a valid Datadog Site", service)
+	return "", errors.Errorf("%v is not a valid Datadog Service", service)
 }
 
 type DatadogAlertChannel struct {
