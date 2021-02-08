@@ -3,7 +3,7 @@
 # Lacework Go SDK
 
 [![GitHub release](https://img.shields.io/github/release/lacework/go-sdk.svg)](https://github.com/lacework/go-sdk/releases/)
-[![Go version](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)](https://github.com/lacework/go-sdk)
+[![Go version](https://img.shields.io/github/go-mod/go-version/lacework/go-sdk)](https://github.com/lacework/go-sdk)
 [![Go report](https://goreportcard.com/badge/github.com/lacework/go-sdk)](https://goreportcard.com/report/github.com/lacework/go-sdk)
 [![CircleCI status](https://circleci.com/gh/lacework/go-sdk.svg?style=shield)](https://circleci.com/gh/lacework/go-sdk)
 [![GitHub releases](https://img.shields.io/github/downloads/lacework/go-sdk/total.svg)](https://GitHub.com/lacework/go-sdk/releases/)
