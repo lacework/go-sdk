@@ -64,6 +64,9 @@ const (
 	// Container registry integration type
 	ContainerRegistryIntegration
 
+	// Microsoft Teams channel integration type
+	MicrosoftTeamsChannelIntegration
+
 	// Slack channel integration type
 	SlackChannelIntegration
 
@@ -88,24 +91,25 @@ const (
 
 // IntegrationTypes is the list of available integration types
 var IntegrationTypes = map[integrationType]string{
-	NoneIntegration:              "NONE",
-	AwsCfgIntegration:            "AWS_CFG",
-	AwsCloudTrailIntegration:     "AWS_CT_SQS",
-	AwsS3ChannelIntegration:      "AWS_S3",
-	DatadogChannelIntegration:    "DATADOG",
-	GcpCfgIntegration:            "GCP_CFG",
-	GcpAuditLogIntegration:       "GCP_AT_SES",
-	GcpPubSubChannelIntegration:  "GCP_PUBSUB",
-	AzureCfgIntegration:          "AZURE_CFG",
-	AzureActivityLogIntegration:  "AZURE_AL_SEQ",
-	ContainerRegistryIntegration: "CONT_VULN_CFG",
-	SlackChannelIntegration:      "SLACK_CHANNEL",
-	SplunkIntegration:            "SPLUNK_HEC",
-	ServiceNowChannelIntegration: "SERVICE_NOW_REST",
-	AwsCloudWatchIntegration:     "CLOUDWATCH_EB",
-	PagerDutyIntegration:         "PAGER_DUTY_API",
-	JiraIntegration:              "JIRA",
-	WebhookIntegration:           "WEBHOOK",
+	NoneIntegration:                  "NONE",
+	AwsCfgIntegration:                "AWS_CFG",
+	AwsCloudTrailIntegration:         "AWS_CT_SQS",
+	AwsS3ChannelIntegration:          "AWS_S3",
+	DatadogChannelIntegration:        "DATADOG",
+	GcpCfgIntegration:                "GCP_CFG",
+	GcpAuditLogIntegration:           "GCP_AT_SES",
+	GcpPubSubChannelIntegration:      "GCP_PUBSUB",
+	AzureCfgIntegration:              "AZURE_CFG",
+	AzureActivityLogIntegration:      "AZURE_AL_SEQ",
+	ContainerRegistryIntegration:     "CONT_VULN_CFG",
+	MicrosoftTeamsChannelIntegration: "MS_TEAMS_CHANNEL",
+	SlackChannelIntegration:          "SLACK_CHANNEL",
+	SplunkIntegration:                "SPLUNK_HEC",
+	ServiceNowChannelIntegration:     "SERVICE_NOW_REST",
+	AwsCloudWatchIntegration:         "CLOUDWATCH_EB",
+	PagerDutyIntegration:             "PAGER_DUTY_API",
+	JiraIntegration:                  "JIRA",
+	WebhookIntegration:               "WEBHOOK",
 }
 
 // String returns the string representation of an integration type
