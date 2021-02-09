@@ -102,7 +102,7 @@ var IntegrationTypes = map[integrationType]string{
 	AzureCfgIntegration:              "AZURE_CFG",
 	AzureActivityLogIntegration:      "AZURE_AL_SEQ",
 	ContainerRegistryIntegration:     "CONT_VULN_CFG",
-	MicrosoftTeamsChannelIntegration: "MS_TEAMS_CHANNEL",
+	MicrosoftTeamsChannelIntegration: "MICROSOFT_TEAMS",
 	SlackChannelIntegration:          "SLACK_CHANNEL",
 	SplunkIntegration:                "SPLUNK_HEC",
 	ServiceNowChannelIntegration:     "SERVICE_NOW_REST",
