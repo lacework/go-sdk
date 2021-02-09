@@ -208,6 +208,7 @@ func promptCreateIntegration() error {
 				"Webhook Alert Channel",
 				"VictorOps Alert Channel",
 				"Splunk Alert Channel",
+				"QRadar Alert Channel",
 				"Service Now Alert Channel",
 				"PagerDuty Alert Channel",
 				"AWS CloudWatch Alert Channel",
@@ -253,6 +254,8 @@ func promptCreateIntegration() error {
 		return createSplunkIntegration()
 	case "PagerDuty Alert Channel":
 		return createPagerDutyAlertChannelIntegration()
+	case "QRadar Alert Channel":
+		return createQRadarAlertChannelIntegration()
 	case "Service Now Alert Channel":
 		return createServiceNowAlertChannelIntegration()
 	case "AWS CloudWatch Alert Channel":
@@ -548,6 +551,26 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			[]string{"ROLE ARN", iData.Credentials.RoleArn},
 			[]string{"BUCKET ARN", iData.Credentials.BucketArn},
 			[]string{"EXTERNAL ID", iData.Credentials.ExternalID},
+		}
+
+		return out
+
+	case api.QRadarChannelIntegration.String():
+
+		var iData api.QRadarChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"QRADAR HOST PORT", fmt.Sprint(iData.HostPort)},
+			[]string{"QRADAR HOST URL", iData.HostURL},
+			[]string{"QRADAR COMM TYPE", string(iData.CommunicationType)},
 		}
 
 		return out
