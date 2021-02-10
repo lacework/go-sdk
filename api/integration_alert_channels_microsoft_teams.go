@@ -31,7 +31,7 @@ package api
 //
 //   microsoftTeamsChannel := api.NewMicrosoftTeamsAlertChannel("foo",
 //     api.MicrosoftTeamsChannelData{
-//       TeamsURL: "https://outlook.office.com/webhook/api-token",
+//       WebhookURL: "https://outlook.office.com/webhook/api-token",
 //     },
 //   )
 //
@@ -92,5 +92,5 @@ type MicrosoftTeamsAlertChannel struct {
 }
 
 type MicrosoftTeamsChannelData struct {
-	TeamsURL string `json:"TEAMS_URL" mapstructure:"TEAMS_URL"`
+	WebhookURL string `json:"TEAMS_URL" mapstructure:"TEAMS_URL"`
 }

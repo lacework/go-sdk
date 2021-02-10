@@ -34,7 +34,7 @@ import (
 func TestIntegrationsNewMicrosoftTeamsAlertChannel(t *testing.T) {
 	subject := api.NewMicrosoftTeamsAlertChannel("integration_name",
 		api.MicrosoftTeamsChannelData{
-			TeamsURL: "https://outlook.office.com/webhook/api-token",
+			WebhookURL: "https://outlook.office.com/webhook/api-token",
 		},
 	)
 	assert.Equal(t, api.MicrosoftTeamsChannelIntegration.String(), subject.Type)
@@ -68,7 +68,7 @@ func TestIntegrationsCreateMicrosoftTeamsAlertChannel(t *testing.T) {
 
 	data := api.NewMicrosoftTeamsAlertChannel("integration_name",
 		api.MicrosoftTeamsChannelData{
-			TeamsURL: "https://outlook.office.com/webhook/api-token",
+			WebhookURL: "https://outlook.office.com/webhook/api-token",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "MicrosoftTeams integration name mismatch")
@@ -84,7 +84,7 @@ func TestIntegrationsCreateMicrosoftTeamsAlertChannel(t *testing.T) {
 		assert.Equal(t, intgGUID, resData.IntgGuid)
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
-		assert.Equal(t, "https://outlook.office.com/webhook/api-token", resData.Data.TeamsURL)
+		assert.Equal(t, "https://outlook.office.com/webhook/api-token", resData.Data.WebhookURL)
 	}
 }
 
@@ -115,7 +115,7 @@ func TestIntegrationsGetMicrosoftTeamsAlertChannel(t *testing.T) {
 		assert.Equal(t, intgGUID, resData.IntgGuid)
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
-		assert.Equal(t, "https://outlook.office.com/webhook/api-token", resData.Data.TeamsURL)
+		assert.Equal(t, "https://outlook.office.com/webhook/api-token", resData.Data.WebhookURL)
 	}
 }
 
@@ -149,7 +149,7 @@ func TestIntegrationsUpdateMicrosoftTeamsAlertChannel(t *testing.T) {
 
 	data := api.NewMicrosoftTeamsAlertChannel("integration_name",
 		api.MicrosoftTeamsChannelData{
-			TeamsURL: "https://outlook.office.com/webhook/api-token",
+			WebhookURL: "https://outlook.office.com/webhook/api-token",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "MicrosoftTeams integration name mismatch")

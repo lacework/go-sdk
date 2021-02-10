@@ -32,15 +32,15 @@ func createMicrosoftTeamsChannelIntegration() error {
 			Validate: survey.Required,
 		},
 		{
-			Name:     "teams url",
-			Prompt:   &survey.Input{Message: "Teams URL: "},
+			Name:     "webhook_url",
+			Prompt:   &survey.Input{Message: "Webhook URL: "},
 			Validate: survey.Required,
 		},
 	}
 
 	answers := struct {
-		Name string
-		Url  string
+		Name       string
+		WebhookUrl string `survey:"webhook_url"`
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -52,7 +52,7 @@ func createMicrosoftTeamsChannelIntegration() error {
 
 	teams := api.NewMicrosoftTeamsAlertChannel(answers.Name,
 		api.MicrosoftTeamsChannelData{
-			TeamsURL: answers.Url,
+			WebhookURL: answers.WebhookUrl,
 		},
 	)
 

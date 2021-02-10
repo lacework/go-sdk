@@ -584,7 +584,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"TEAMS URL", iData.TeamsURL},
+			[]string{"WEBHOOK URL", iData.WebhookURL},
 		}
 
 		return out
