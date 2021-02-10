@@ -544,7 +544,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"CISCO WEBEX URL", iData.Credentials.Webhook},
+			[]string{"CISCO WEBEX URL", iData.WebhookURL},
 		}
 
 		return out

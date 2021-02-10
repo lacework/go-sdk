@@ -24,7 +24,7 @@ import (
 	"github.com/lacework/go-sdk/api"
 )
 
-func createCiscoWebexIntegration() error {
+func createCiscoWebexChannelIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",

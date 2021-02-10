@@ -56,7 +56,7 @@ func TestIntegrationsCreateCiscoWebexAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
 
-		fmt.Fprintf(w, webhookChannelIntegrationJsonResponse(intgGUID))
+		fmt.Fprintf(w, ciscoWebexChannelIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
 
@@ -96,7 +96,7 @@ func TestIntegrationsGetCiscoWebexAlertChannel(t *testing.T) {
 	)
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "GET", r.Method, "GetCiscoWebexAlertChannel should be a GET method")
-		fmt.Fprintf(w, webhookChannelIntegrationJsonResponse(intgGUID))
+		fmt.Fprintf(w, ciscoWebexChannelIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
 
@@ -137,7 +137,7 @@ func TestIntegrationsUpdateCiscoWebexAlertChannel(t *testing.T) {
 			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
 		}
 
-		fmt.Fprintf(w, webhookChannelIntegrationJsonResponse(intgGUID))
+		fmt.Fprintf(w, ciscoWebexChannelIntegrationJsonResponse(intgGUID))
 	})
 	defer fakeServer.Close()
 
@@ -173,7 +173,7 @@ func TestIntegrationsListCiscoWebexAlertChannel(t *testing.T) {
 	fakeServer.MockAPI("external/integrations/type/CISCO_SPARK_WEBHOOK",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "ListCiscoWebexAlertChannel should be a GET method")
-			fmt.Fprintf(w, webhookChanMultiIntegrationJsonResponse(intgGUIDs))
+			fmt.Fprintf(w, ciscoWebexChanMultiIntegrationJsonResponse(intgGUIDs))
 		},
 	)
 	defer fakeServer.Close()
