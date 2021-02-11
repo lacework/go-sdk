@@ -23,6 +23,10 @@ executors:
     docker:
       - image: cibuilds/base:latest
     resource_class: small
+  arm-linux:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: arm.medium
 
 jobs:
   unit-test:
@@ -52,6 +56,19 @@ jobs:
           root: bin
           paths:
             - lacework-cli-*
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
+          only_for_branches: <<pipeline.parameters.only_for_branches>>
+  integration-test-arm-linux:
+    executor: arm-linux
+    steps:
+      - checkout
+      - attach_workspace:
+          at: bin
+      - run: make integration-only
+      - store_artifacts:
+          path: circleci-artifacts
       - slack/status:
           fail_only: true
           mentions: << pipeline.parameters.slack-mentions >>
@@ -213,5 +230,8 @@ workflows:
           requires:
             - build-cli
       - integration-test-windows:
+          requires:
+            - build-cli
+      - integration-test-arm-linux:
           requires:
             - build-cli
