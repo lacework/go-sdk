@@ -24,7 +24,7 @@ import (
 	"github.com/lacework/go-sdk/api"
 )
 
-func createVictorOpsIntegration() error {
+func createVictorOpsChannelIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -52,7 +52,7 @@ func createVictorOpsIntegration() error {
 
 	victorops := api.NewVictorOpsAlertChannel(answers.Name,
 		api.VictorOpsChannelData{
-			VictorOpsURL: answers.Url,
+			WebhookURL: answers.Url,
 		},
 	)
 

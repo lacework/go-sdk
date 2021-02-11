@@ -15,7 +15,7 @@ func main() {
 
 	myVictorOpsChannel := api.NewVictorOpsAlertChannel("victorops-alert-from-golang",
 		api.VictorOpsChannelData{
-			VictorOpsURL: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
+			WebhookURL: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
 		},
 	)
 

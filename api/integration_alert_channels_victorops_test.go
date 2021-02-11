@@ -34,7 +34,7 @@ import (
 func TestIntegrationsNewVictorOpsAlertChannel(t *testing.T) {
 	subject := api.NewVictorOpsAlertChannel("integration_name",
 		api.VictorOpsChannelData{
-			VictorOpsURL: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
+			WebhookURL: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
 		},
 	)
 	assert.Equal(t, api.VictorOpsChannelIntegration.String(), subject.Type)
@@ -68,7 +68,7 @@ func TestIntegrationsCreateVictorOpsAlertChannel(t *testing.T) {
 
 	data := api.NewVictorOpsAlertChannel("integration_name",
 		api.VictorOpsChannelData{
-			VictorOpsURL: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
+			WebhookURL: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "VictorOps integration name mismatch")
@@ -84,7 +84,7 @@ func TestIntegrationsCreateVictorOpsAlertChannel(t *testing.T) {
 		assert.Equal(t, intgGUID, resData.IntgGuid)
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
-		assert.Equal(t, "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database", resData.Data.VictorOpsURL)
+		assert.Equal(t, "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database", resData.Data.WebhookURL)
 	}
 }
 
@@ -115,7 +115,7 @@ func TestIntegrationsGetVictorOpsAlertChannel(t *testing.T) {
 		assert.Equal(t, intgGUID, resData.IntgGuid)
 		assert.Equal(t, "integration_name", resData.Name)
 		assert.True(t, resData.State.Ok)
-		assert.Equal(t, "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database", resData.Data.VictorOpsURL)
+		assert.Equal(t, "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database", resData.Data.WebhookURL)
 	}
 }
 
@@ -149,7 +149,7 @@ func TestIntegrationsUpdateVictorOpsAlertChannel(t *testing.T) {
 
 	data := api.NewVictorOpsAlertChannel("integration_name",
 		api.VictorOpsChannelData{
-			VictorOpsURL: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
+			WebhookURL: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
 		},
 	)
 	assert.Equal(t, "integration_name", data.Name, "VictorOps integration name mismatch")
