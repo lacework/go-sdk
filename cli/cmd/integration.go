@@ -203,6 +203,7 @@ func promptCreateIntegration() error {
 				"AWS S3 Alert Channel",
 				"Datadog Alert Channel",
 				"GCP PubSub Alert Channel",
+				"Microsoft Teams Alert Channel",
 				"Webhook Alert Channel",
 				"Splunk Alert Channel",
 				"Service Now Alert Channel",
@@ -234,6 +235,8 @@ func promptCreateIntegration() error {
 		return createSlackAlertChannelIntegration()
 	case "GCP PubSub Alert Channel":
 		return createGcpPubSubChannelIntegration()
+	case "Microsoft Teams Alert Channel":
+		return createMicrosoftTeamsChannelIntegration()
 	case "AWS S3 Alert Channel":
 		return createAwsS3ChannelIntegration()
 	case "Datadog Alert Channel":
@@ -564,6 +567,24 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			[]string{"CLIENT EMAIL", iData.Credentials.ClientEmail},
 			[]string{"PRIVATE_KEY_ID", iData.Credentials.PrivateKeyID},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+		}
+
+		return out
+
+	case api.MicrosoftTeamsChannelIntegration.String():
+
+		var iData api.MicrosoftTeamsChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"WEBHOOK URL", iData.WebhookURL},
 		}
 
 		return out
