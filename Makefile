@@ -30,7 +30,7 @@ test:
 integration: build-cli-cross-platform integration-only
 
 integration-only:
-	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration
+	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m
 
 coverage: test
 	go tool cover -func=$(COVERAGEOUT)
