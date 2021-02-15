@@ -11,9 +11,12 @@
 set -eou pipefail
 
 readonly project_name=go-sdk
+readonly org_name=lacework
 readonly package_name=lacework-cli
 readonly binary_name=lacework
-readonly docker_org=techallylw
+readonly docker_org=lacework
+readonly git_user="Salim Afiune Maya"
+readonly git_email="afiune@lacework.net"
 readonly docker_tags=(
   latest
   scratch
@@ -27,12 +30,13 @@ readonly docker_tags=(
 
 VERSION=$(cat VERSION)
 TARGETS=(
-  ${package_name}-darwin-386
   ${package_name}-darwin-amd64
   ${package_name}-windows-386.exe
   ${package_name}-windows-amd64.exe
   ${package_name}-linux-386
   ${package_name}-linux-amd64
+  ${package_name}-linux-arm
+  ${package_name}-linux-arm64
 )
 
 usage() {
@@ -77,25 +81,16 @@ main() {
 }
 
 trigger_release() {
-  if [[ "$VERSION" =~ "-release" ]]; then
-      log "VERSION has 'x.y.z-release' tag. Triggering a release!"
-      log ""
-      log "removing release tag from version '${VERSION}'"
-      remove_tag_version
-      log "commiting and pushing the vertion bump to github"
-      git config --global user.email "afiune@lacework.net"
-      git config --global user.name "Salim Afiune Maya"
-      git add VERSION
-      git add api/version.go # file genereted by scripts/version_updater.sh
-      git commit -m "trigger release v$VERSION"
-      git push origin master
-      tag_release
-      bump_version
-    else
+  if [[ "$VERSION" =~ "-dev" ]]; then
       log "No release needed. (VERSION=${VERSION})"
       log ""
       log "Read more about the release process at:"
-      log "  - https://github.com/lacework/${project_name}/wiki/Release-Process"
+      log "  - https://github.com/${org_name}/${project_name}/wiki/Release-Process"
+    else
+      log "VERSION ready to be released to 'x.y.z' tag. Triggering a release!"
+      log ""
+      tag_release
+      bump_version
   fi
 }
 
@@ -115,19 +110,19 @@ verify_release() {
       warn "$f needs to be updated"
       warn ""
       warn "Read more about the release process at:"
-      warn "  - https://github.com/lacework/${project_name}/wiki/Release-Process"
+      warn "  - https://github.com/${org_name}/${project_name}/wiki/Release-Process"
       exit 123
     fi
   done
 
-  if [[ "$VERSION" =~ "-release" ]]; then
-      log "(required) VERSION has 'x.y.z-release' tag. Great!"
-    else
-      warn "the 'VERSION' needs to be updated to have the 'x.y.z-release' tag"
+  if [[ "$VERSION" =~ "-dev" ]]; then
+      warn "the 'VERSION' needs to be cleaned up to be only 'x.y.z' tag"
       warn ""
       warn "Read more about the release process at:"
-      warn "  - https://github.com/lacework/${project_name}/wiki/Release-Process"
+      warn "  - https://github.com/${org_name}/${project_name}/wiki/Release-Process"
       exit 123
+    else
+      log "(required) VERSION has been cleaned up to 'x.y.z' tag. Great!"
   fi
 }
 
@@ -135,9 +130,9 @@ prepare_release() {
   log "preparing new release"
   prerequisites
   remove_tag_version
+  cli_generate_files
   generate_release_notes
   update_changelog
-  add_tag_version "release"
   push_release
 }
 
@@ -148,6 +143,11 @@ publish_release() {
   compress_targets
   generate_shasums
   create_release
+}
+
+cli_generate_files() {
+  make generate-docs
+  make generate-databox
 }
 
 update_changelog() {
@@ -164,24 +164,59 @@ update_changelog() {
 
 load_list_of_changes() {
   latest_version=$(find_latest_version)
-  local _list_of_changes=$(git log --no-merges --pretty="* %s (%an)([%h](https://github.com/lacework/${project_name}/commit/%H))" ${latest_version}..master)
-  echo "## Features" > CHANGES.md
-  echo "$_list_of_changes" | grep "\* feat[:(]" >> CHANGES.md
-  echo "## Refactor" >> CHANGES.md
-  echo "$_list_of_changes" | grep "\* refactor[:(]" >> CHANGES.md
-  echo "## Performance Improvements" >> CHANGES.md
-  echo "$_list_of_changes" | grep "\* perf[:(]" >> CHANGES.md
-  echo "## Bug Fixes" >> CHANGES.md
-  echo "$_list_of_changes" | grep "\* fix[:(]" >> CHANGES.md
-  echo "## Documentation Updates" >> CHANGES.md
-  echo "$_list_of_changes" | grep "\* doc[:(]" >> CHANGES.md
-  echo "$_list_of_changes" | grep "\* docs[:(]" >> CHANGES.md
-  echo "## Other Changes" >> CHANGES.md
-  echo "$_list_of_changes" | grep "\* style[:(]" >> CHANGES.md
-  echo "$_list_of_changes" | grep "\* chore[:(]" >> CHANGES.md
-  echo "$_list_of_changes" | grep "\* build[:(]" >> CHANGES.md
-  echo "$_list_of_changes" | grep "\* ci[:(]" >> CHANGES.md
-  echo "$_list_of_changes" | grep "\* test[:(]" >> CHANGES.md
+  local _list_of_changes=$(git log --no-merges --pretty="* %s (%an)([%h](https://github.com/${org_name}/${project_name}/commit/%H))" ${latest_version}..master)
+
+  # init changes file
+  true > CHANGES.md
+
+  _feat=$(echo "$_list_of_changes" | grep "\* feat[:(]")
+  _refactor=$(echo "$_list_of_changes" | grep "\* refactor[:(]")
+  _perf=$(echo "$_list_of_changes" | grep "\* perf[:(]")
+  _fix=$(echo "$_list_of_changes" | grep "\* fix[:(]")
+  _doc=$(echo "$_list_of_changes" | grep "\* doc[:(]")
+  _docs=$(echo "$_list_of_changes" | grep "\* docs[:(]")
+  _metric=$(echo "$_list_of_changes" | grep "\* metric[:(]")
+  _style=$(echo "$_list_of_changes" | grep "\* style[:(]")
+  _chore=$(echo "$_list_of_changes" | grep "\* chore[:(]")
+  _build=$(echo "$_list_of_changes" | grep "\* build[:(]")
+  _ci=$(echo "$_list_of_changes" | grep "\* ci[:(]")
+  _test=$(echo "$_list_of_changes" | grep "\* test[:(]")
+
+  if [ "$_feat" != "" ]; then
+    echo "## Features" >> CHANGES.md
+    echo "$_feat" >> CHANGES.md
+  fi
+
+  if [ "$_refactor" != "" ]; then
+    echo "## Refactor" >> CHANGES.md
+    echo "$_refactor" >> CHANGES.md
+  fi
+
+  if [ "$_perf" != "" ]; then
+    echo "## Performance Improvements" >> CHANGES.md
+    echo "$_perf" >> CHANGES.md
+  fi
+
+  if [ "$_fix" != "" ]; then
+    echo "## Bug Fixes" >> CHANGES.md
+    echo "$_fix" >> CHANGES.md
+  fi
+
+  if [ "${_docs}${_doc}" != "" ]; then
+    echo "## Documentation Updates" >> CHANGES.md
+    if [ "$_doc" != "" ]; then echo "$_doc" >> CHANGES.md; fi
+    if [ "$_docs" != "" ]; then echo "$_docs" >> CHANGES.md; fi
+  fi
+
+  if [ "${_style}${_chore}${_build}${_ci}${_test}" != "" ]; then
+    echo "## Other Changes" >> CHANGES.md
+    if [ "$_style" != "" ]; then echo "$_style" >> CHANGES.md; fi
+    if [ "$_chore" != "" ]; then echo "$_chore" >> CHANGES.md; fi
+    if [ "$_build" != "" ]; then echo "$_build" >> CHANGES.md; fi
+    if [ "$_ci" != "" ]; then echo "$_ci" >> CHANGES.md; fi
+    if [ "$_metric" != "" ]; then echo "$_metric" >> CHANGES.md; fi
+    if [ "$_test" != "" ]; then echo "$_test" >> CHANGES.md; fi
+  fi
 }
 
 generate_release_notes() {
@@ -288,6 +323,8 @@ bump_version() {
   fi
 
   log "commiting and pushing the vertion bump to github"
+  git config --global user.email $git_email
+  git config --global user.name $git_user
   git add VERSION
   git add api/version.go # file genereted by scripts/version_updater.sh
   git commit -m "version bump to v$VERSION"
@@ -362,7 +399,7 @@ create_release() {
   log "generating GH release $_tag"
   generate_release_body "$_body"
   curl -XPOST -H "Authorization: token $GITHUB_TOKEN" --data  "@$_body" \
-        https://api.github.com/repos/lacework/${project_name}/releases > $_release
+        https://api.github.com/repos/${org_name}/${project_name}/releases > $_release
 
   local _content_type
   local _artifact
@@ -395,7 +432,7 @@ create_release() {
 
   log "the release has been completed!"
   log ""
-  log " -> https://github.com/lacework/${project_name}/releases/tag/${_tag}"
+  log " -> https://github.com/${org_name}/${project_name}/releases/tag/${_tag}"
 }
 
 generate_release_body() {

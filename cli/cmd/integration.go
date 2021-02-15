@@ -19,7 +19,7 @@
 package cmd
 
 import (
-	"strings"
+	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/mitchellh/mapstructure"
@@ -75,7 +75,12 @@ var (
 				return nil
 			}
 
-			cli.OutputHuman(buildIntegrationsTable(integrations.Data))
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"Integration GUID", "Name", "Type", "Status", "State"},
+					integrationsToTable(integrations.Data),
+				),
+			)
 			return nil
 		},
 	}
@@ -101,7 +106,12 @@ var (
 				return errors.New(msg)
 			}
 
-			cli.OutputHuman(buildIntegrationsTable(integration.Data))
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"Integration GUID", "Name", "Type", "Status", "State"},
+					integrationsToTable(integration.Data),
+				),
+			)
 			cli.OutputHuman("\n")
 			cli.OutputHuman(buildIntDetailsTable(integration.Data))
 			return nil
@@ -190,18 +200,27 @@ func promptCreateIntegration() error {
 			Message: "Choose an integration type to create: ",
 			Options: []string{
 				"Slack Alert Channel",
+				"AWS S3 Alert Channel",
+				"Datadog Alert Channel",
+				"GCP PubSub Alert Channel",
+				"Microsoft Teams Alert Channel",
+				"Webhook Alert Channel",
+				"Splunk Alert Channel",
+				"Service Now Alert Channel",
 				"PagerDuty Alert Channel",
 				"AWS CloudWatch Alert Channel",
-				"Docker Hub",
+				"Jira Cloud Alert Channel",
+				"Jira Server Alert Channel",
+				"Docker Hub Registry",
+				"Docker V2 Registry",
+				"Amazon Container Registry (ECR)",
+				"Google Container Registry (GCR)",
 				"AWS Config",
 				"AWS CloudTrail",
 				"GCP Config",
 				"GCP Audit Log",
 				"Azure Config",
 				"Azure Activity Log",
-				//"Docker V2 Registry",
-				//"Amazon Container Registry",
-				//"Google Container Registry",
 				//"Snowflake Data Share",
 			},
 		}
@@ -214,12 +233,36 @@ func promptCreateIntegration() error {
 	switch integration {
 	case "Slack Alert Channel":
 		return createSlackAlertChannelIntegration()
+	case "GCP PubSub Alert Channel":
+		return createGcpPubSubChannelIntegration()
+	case "Microsoft Teams Alert Channel":
+		return createMicrosoftTeamsChannelIntegration()
+	case "AWS S3 Alert Channel":
+		return createAwsS3ChannelIntegration()
+	case "Datadog Alert Channel":
+		return createDatadogIntegration()
+	case "Webhook Alert Channel":
+		return createWebhookIntegration()
+	case "Splunk Alert Channel":
+		return createSplunkIntegration()
 	case "PagerDuty Alert Channel":
 		return createPagerDutyAlertChannelIntegration()
+	case "Service Now Alert Channel":
+		return createServiceNowAlertChannelIntegration()
 	case "AWS CloudWatch Alert Channel":
 		return createAwsCloudWatchAlertChannelIntegration()
-	case "Docker Hub":
+	case "Jira Cloud Alert Channel":
+		return createJiraCloudAlertChannelIntegration()
+	case "Jira Server Alert Channel":
+		return createJiraServerAlertChannelIntegration()
+	case "Docker Hub Registry":
 		return createDockerHubIntegration()
+	case "Docker V2 Registry":
+		return createDockerV2Integration()
+	case "Amazon Container Registry (ECR)":
+		return createAwsEcrIntegration()
+	case "Google Container Registry (GCR)":
+		return createGcrIntegration()
 	case "AWS Config":
 		return createAwsConfigIntegration()
 	case "AWS CloudTrail":
@@ -232,16 +275,13 @@ func promptCreateIntegration() error {
 		return createAzureConfigIntegration()
 	case "Azure Activity Log":
 		return createAzureActivityLogIntegration()
-	//case "Docker V2 Registry":
-	//case "Amazon Container Registry":
-	//case "Google Container Registry":
 	//case "Snowflake Data Share":
 	default:
 		return errors.New("unknown integration type")
 	}
 }
 
-func integrationsTable(integrations []api.RawIntegration) [][]string {
+func integrationsToTable(integrations []api.RawIntegration) [][]string {
 	out := [][]string{}
 	for _, idata := range integrations {
 		out = append(out, []string{
@@ -255,57 +295,37 @@ func integrationsTable(integrations []api.RawIntegration) [][]string {
 	return out
 }
 
-func buildIntegrationsTable(integrations []api.RawIntegration) string {
-	var (
-		tableBuilder = &strings.Builder{}
-		t            = tablewriter.NewWriter(tableBuilder)
-	)
-
-	t.SetHeader([]string{
-		"Integration GUID",
-		"Name",
-		"Type",
-		"Status",
-		"State",
-	})
-	t.SetBorder(false)
-	t.AppendBulk(integrationsTable(integrations))
-	t.Render()
-
-	return tableBuilder.String()
-}
-
 func buildIntDetailsTable(integrations []api.RawIntegration) string {
-	var (
-		main    = &strings.Builder{}
-		details = &strings.Builder{}
-		t       = tablewriter.NewWriter(details)
-	)
-
-	t.SetBorder(false)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	if len(integrations) != 0 {
-		integration := integrations[0]
-		t.AppendBulk(reflectIntegrationData(integration))
-		t.AppendBulk(buildIntegrationState(integration.State))
+	if len(integrations) == 0 {
+		return "ERROR unable to access integration details. No data!\n"
 	}
-	t.Render()
 
-	t = tablewriter.NewWriter(main)
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.SetHeader([]string{"INTEGRATION DETAILS"})
-	t.Append([]string{details.String()})
-	t.Render()
+	integration := integrations[0]
+	details := reflectIntegrationData(integration)
+	details = append(details, []string{"UPDATED AT", integration.CreatedOrUpdatedTime})
+	details = append(details, []string{"UPDATED BY", integration.CreatedOrUpdatedBy})
+	details = append(details, buildIntegrationState(integration.State)...)
 
-	return main.String()
+	return renderOneLineCustomTable("INTEGRATION DETAILS",
+		renderCustomTable([]string{}, details,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+			}),
+		),
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetAutoWrapText(false)
+		}),
+	)
 }
 
 func buildIntegrationState(state *api.IntegrationState) [][]string {
 	if state != nil {
 		return [][]string{
-			[]string{"LAST UPDATED TIME", state.LastUpdatedTime},
-			[]string{"LAST SUCCESSFUL TIME", state.LastSuccessfulTime},
+			[]string{"STATE UPDATED AT", state.LastUpdatedTime},
+			[]string{"LAST SUCCESSFUL STATE", state.LastSuccessfulTime},
 		}
 	}
 
@@ -358,7 +378,25 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			[]string{"EXTERNAL ID", iData.Credentials.ExternalID},
 		}
 		if iData.QueueUrl != "" {
-			return append(out, []string{"QUEUE URL", iData.QueueUrl})
+			out = append(out, []string{"QUEUE URL", iData.QueueUrl})
+		}
+
+		accountMapping, err := iData.DecodeAccountMappingFile()
+		if err != nil {
+			cli.Log.Debugw("unable to decode account mapping file",
+				"integration_type", raw.Type,
+				"raw_data", iData.AccountMappingFile,
+				"error", err,
+			)
+		}
+
+		if len(accountMapping) != 0 {
+			// @afiune should we disable the colors here?
+			accountMappingJSON, err := cli.FormatJSONString(string(accountMapping))
+			if err != nil {
+				accountMappingJSON = string(accountMapping)
+			}
+			out = append(out, []string{"ACCOUNT MAPPING FILE", accountMappingJSON})
 		}
 		return out
 
@@ -399,8 +437,154 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		out := [][]string{
 			[]string{"SLACK URL", iData.SlackUrl},
+		}
+
+		return out
+
+	case api.WebhookIntegration.String():
+
+		var iData api.WebhookChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"WEBHOOK URL", iData.WebhookUrl},
+		}
+
+		return out
+
+	case api.SplunkIntegration.String():
+
+		var iData api.SplunkChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"CHANNEL", iData.Channel},
+			[]string{"HEC TOKEN", iData.HecToken},
+			[]string{"HOST", iData.Host},
+			[]string{"PORT", fmt.Sprintf("%d", iData.Port)},
+			[]string{"INDEX", iData.EventData.Index},
+			[]string{"SOURCE", iData.EventData.Source},
+		}
+		if iData.Ssl {
+			out = append(out, []string{"SSL", "ENABLE"})
+		} else {
+			out = append(out, []string{"SSL", "DISABLE"})
+		}
+
+		return out
+
+	case api.ServiceNowChannelIntegration.String():
+
+		var iData api.ServiceNowChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"INSTANCE URL", iData.InstanceURL},
+			[]string{"USERNAME", iData.Username},
+			[]string{"PASSWORD", iData.Password},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
-			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
+		}
+
+		return out
+
+	case api.AwsS3ChannelIntegration.String():
+
+		var iData api.AwsS3ChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"ROLE ARN", iData.Credentials.RoleArn},
+			[]string{"BUCKET ARN", iData.Credentials.BucketArn},
+			[]string{"EXTERNAL ID", iData.Credentials.ExternalID},
+		}
+
+		return out
+
+	case api.DatadogChannelIntegration.String():
+
+		var iData api.DatadogChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"DATADOG SITE", string(iData.DatadogSite)},
+			[]string{"DATADOG SERVICE", string(iData.DatadogService)},
+			[]string{"API KEY", iData.ApiKey},
+		}
+
+		return out
+
+	case api.GcpPubSubChannelIntegration.String():
+
+		var iData api.GcpPubSubChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"PROJECT ID", iData.ProjectID},
+			[]string{"TOPIC ID", iData.TopicID},
+			[]string{"CLIENT ID", iData.Credentials.ClientID},
+			[]string{"CLIENT EMAIL", iData.Credentials.ClientEmail},
+			[]string{"PRIVATE_KEY_ID", iData.Credentials.PrivateKeyID},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+		}
+
+		return out
+
+	case api.MicrosoftTeamsChannelIntegration.String():
+
+		var iData api.MicrosoftTeamsChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"WEBHOOK URL", iData.WebhookURL},
 		}
 
 		return out
@@ -420,7 +604,60 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		out := [][]string{
 			[]string{"EVENT BUS ARN", iData.EventBusArn},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
-			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
+		}
+
+		return out
+
+	case api.ContainerRegistryIntegration.String():
+
+		var iData api.ContainerRegData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"REGISTRY TYPE", iData.RegistryType},
+			[]string{"REGISTRY DOMAIN", iData.RegistryDomain},
+			[]string{"LIMIT BY TAG", iData.LimitByTag},
+			[]string{"LIMIT BY LABEL", iData.LimitByLabel},
+			[]string{"LIMIT BY REPOSITORY", iData.LimitByRep},
+			[]string{"LIMIT NUM IMAGES PER REPO", fmt.Sprintf("%d", iData.LimitNumImg)},
+		}
+
+		switch iData.RegistryType {
+		case api.DockerHubRegistry.String():
+			out = append(out, []string{"USERNAME", iData.Credentials.Username})
+			out = append(out, []string{"PASSWORD", iData.Credentials.Password})
+		case api.DockerV2Registry.String():
+			out = append(out, []string{"USERNAME", iData.Credentials.Username})
+			out = append(out, []string{"PASSWORD", iData.Credentials.Password})
+			if iData.Credentials.SSL {
+				out = append(out, []string{"SSL", "ENABLE"})
+			} else {
+				out = append(out, []string{"SSL", "DISABLE"})
+			}
+		case api.GcrRegistry.String():
+			out = append(out, []string{"CLIENT ID", iData.Credentials.ClientID})
+			out = append(out, []string{"CLIENT EMAIL", iData.Credentials.ClientEmail})
+			out = append(out, []string{"PRIVATE KEY ID", iData.Credentials.PrivateKeyID})
+		case api.EcrRegistry.String():
+			var ecrData api.AwsEcrData
+			err := mapstructure.Decode(raw.Data, &ecrData)
+			if err != nil {
+				cli.Log.Debugw("unable to decode integration data",
+					"integration_type", raw.Type,
+					"registry_type", iData.RegistryType,
+					"raw_data", raw.Data,
+					"error", err,
+				)
+				break
+			}
+			out = append(out, []string{"ACCESS KEY ID", ecrData.Credentials.AccessKeyID})
 		}
 
 		return out
@@ -440,10 +677,49 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		out := [][]string{
 			[]string{"INTEGRATION KEY", iData.IntegrationKey},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
-			[]string{"ALERT ON SEVERITY", iData.MinAlertSeverity.String()},
 		}
 
 		return out
+
+	case api.JiraIntegration.String():
+
+		var iData api.JiraAlertChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+
+		templateString, err := iData.DecodeCustomTemplateFile()
+		if err != nil {
+			cli.Log.Debugw("unable to decode custom template file",
+				"integration_type", raw.Type,
+				"raw_data", iData.CustomTemplateFile,
+				"error", err,
+			)
+		}
+
+		// @afiune should we disable the colors here?
+		tmplStrPretty, err := cli.FormatJSONString(templateString)
+		if err != nil {
+			tmplStrPretty = templateString
+		}
+		out := [][]string{
+			[]string{"JIRA INTEGRATION TYPE", iData.JiraType},
+			[]string{"JIRA URL", iData.JiraUrl},
+			[]string{"PROJECT KEY", iData.ProjectID},
+			[]string{"USERNAME", iData.Username},
+			[]string{"ISSUE TYPE", iData.IssueType},
+			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+			[]string{"CUSTOM TEMPLATE FILE", tmplStrPretty},
+		}
+
+		return out
+
 	default:
 		out := [][]string{}
 		for key, value := range deepKeyValueExtract(raw.Data) {
@@ -460,12 +736,27 @@ func deepKeyValueExtract(v interface{}) map[string]string {
 
 	m, ok := v.(map[string]interface{})
 	if !ok {
+		cli.Log.Warnw("unable to parse raw data field", "type", fmt.Sprintf("%T", v))
 		return out
 	}
 
 	for key, value := range m {
 		if s, ok := value.(string); ok {
 			out[key] = s
+		} else if i, ok := value.(int); ok {
+			out[key] = fmt.Sprintf("%d", i)
+		} else if i, ok := value.(int32); ok {
+			out[key] = fmt.Sprintf("%d", i)
+		} else if i, ok := value.(float32); ok {
+			out[key] = fmt.Sprintf("%.0f", i)
+		} else if i, ok := value.(float64); ok {
+			out[key] = fmt.Sprintf("%.0f", i)
+		} else if b, ok := value.(bool); ok {
+			if b {
+				out[key] = "ENABLE"
+			} else {
+				out[key] = "DISABLE"
+			}
 		} else {
 			deepMap := deepKeyValueExtract(value)
 			for deepK, deepV := range deepMap {

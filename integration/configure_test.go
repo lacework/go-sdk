@@ -25,31 +25,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Netflix/go-expect"
-	"github.com/hinshun/vt10x"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestConfigureCommand(t *testing.T) {
-	_, laceworkTOML := runConfigureTest(t,
-		func(c *expect.Console) {
-			c.ExpectString("Account:")
-			c.SendLine("test-account")
-			c.ExpectString("Access Key ID:")
-			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
-			c.ExpectString("Secret Access Key:")
-			c.SendLine("_00000000000000000000000000000000")
-			c.ExpectString("You are all set!")
-		},
-		"configure",
-	)
-
-	assert.Equal(t, `[default]
-  account = "test-account"
-  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
-  api_secret = "_00000000000000000000000000000000"
-`, laceworkTOML, "there is a problem with the generated config")
-}
 
 func TestConfigureCommandNonInteractive(t *testing.T) {
 	// create a temporal directory where we will check that the
@@ -386,52 +363,6 @@ func createJSONFileLikeWebUI(content string) string {
 		panic(err)
 	}
 	return tmpfile.Name()
-}
-
-func runConfigureTest(t *testing.T, conditions func(*expect.Console), args ...string) (string, string) {
-	// create a temporal directory where we will check that the
-	// configuration file is deployed (.lacework.toml)
-	dir, err := ioutil.TempDir("", "lacework-cli")
-	if err != nil {
-		panic(err)
-	}
-	defer os.RemoveAll(dir)
-	return runConfigureTestFromDir(t, dir, conditions, args...)
-}
-
-func runConfigureTestFromDir(t *testing.T, dir string, conditions func(*expect.Console), args ...string) (string, string) {
-	console, state, err := vt10x.NewVT10XConsole()
-	if err != nil {
-		panic(err)
-	}
-	defer console.Close()
-
-	donec := make(chan struct{})
-	go func() {
-		defer close(donec)
-		conditions(console)
-	}()
-
-	// spawn a new `lacework configure' command
-	cmd := NewLaceworkCLI(dir, args...)
-	cmd.Stdin = console.Tty()
-	cmd.Stdout = console.Tty()
-	cmd.Stderr = console.Tty()
-	err = cmd.Start()
-	assert.Nil(t, err)
-
-	// read the remaining bytes
-	console.Tty().Close()
-	<-donec
-
-	configPath := path.Join(dir, ".lacework.toml")
-	assert.Contains(t, state.String(), "You are all set!", "you are not all set, check configure cmd")
-	assert.FileExists(t, configPath, "the configuration file is missing")
-	laceworkTOML, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		panic(err)
-	}
-	return state.String(), string(laceworkTOML)
 }
 
 func createTOMLConfig() string {

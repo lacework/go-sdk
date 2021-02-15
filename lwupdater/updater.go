@@ -19,8 +19,10 @@
 package lwupdater
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -39,37 +41,66 @@ const (
 	DisableEnv = "LW_UPDATES_DISABLE"
 )
 
-type info struct {
-	Project  string
-	Version  string
-	Latest   string
-	Outdated bool
+// Version is used to check project versions and store it into a cache file
+// normally at the directory ~/.config/lacework, to execute regular version checks
+type Version struct {
+	Project        string    `json:"project"`
+	CurrentVersion string    `json:"current_version"`
+	LatestVersion  string    `json:"latest_version"`
+	LastCheckTime  time.Time `json:"last_check_time"`
+	Outdated       bool      `json:"outdated"`
+}
+
+// StoreCache stores version information into the provided path
+func (cache *Version) StoreCache(path string) error {
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(cache); err != nil {
+		return err
+	}
+
+	err := ioutil.WriteFile(path, buf.Bytes(), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Check verifies if the a project is outdated based of the current version
-func Check(project, current string) (*info, error) {
+func Check(project, current string) (*Version, error) {
 	if disabled := os.Getenv(DisableEnv); disabled != "" {
-		return new(info), nil
+		return new(Version), nil
 	}
 
 	release, err := getGitRelease(project, "latest")
 	if err != nil {
-		return new(info), err
+		return new(Version), err
 	}
 
-	return &info{
-		Project:  project,
-		Version:  current,
-		Latest:   release.TagName,
-		Outdated: current != release.TagName,
+	return &Version{
+		Project:        project,
+		CurrentVersion: current,
+		LatestVersion:  release.TagName,
+		LastCheckTime:  time.Now(),
+		Outdated:       current != release.TagName,
 	}, nil
+}
+
+// LoadCache loads a version cache file from the provided path
+func LoadCache(path string) (*Version, error) {
+	cacheJSON, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var versionCache = new(Version)
+	err = json.Unmarshal(cacheJSON, versionCache)
+	return versionCache, err
 }
 
 // getGitRelease uses the git API to fetch the release information of a project.
 // This function could hit request rate limits wich are roughly 60 every 30m, to
 // check your current rate limits run: curl https://api.github.com/rate_limit
-//
-// TODO @afiune implement a cache mechanism
 func getGitRelease(project, version string) (*gitReleaseResponse, error) {
 	if project == "" {
 		return nil, errors.New("specify a valid project")

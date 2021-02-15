@@ -40,11 +40,20 @@ const (
 	// AWS CloudTrail integration type
 	AwsCloudTrailIntegration
 
+	// AWS S3 channel integration type
+	AwsS3ChannelIntegration
+
+	// Datadog channel integration type
+	DatadogChannelIntegration
+
 	// GCP Config integration type
 	GcpCfgIntegration
 
 	// GCP Audit Log integration type
 	GcpAuditLogIntegration
+
+	// GCP Pub Sub alert channel integration type
+	GcpPubSubChannelIntegration
 
 	// Azure Config integration type
 	AzureCfgIntegration
@@ -55,29 +64,52 @@ const (
 	// Container registry integration type
 	ContainerRegistryIntegration
 
+	// Microsoft Teams channel integration type
+	MicrosoftTeamsChannelIntegration
+
 	// Slack channel integration type
 	SlackChannelIntegration
+
+	// Sevice Now alert channel integration type
+	ServiceNowChannelIntegration
+
+	// Splunk channel integration type
+	SplunkIntegration
 
 	// AWS CloudWatch integration type
 	AwsCloudWatchIntegration
 
 	// Pager Duty integration type
 	PagerDutyIntegration
+
+	// Jira integration type
+	JiraIntegration
+
+	// Webhook channel integration type
+	WebhookIntegration
 )
 
 // IntegrationTypes is the list of available integration types
 var IntegrationTypes = map[integrationType]string{
-	NoneIntegration:              "NONE",
-	AwsCfgIntegration:            "AWS_CFG",
-	AwsCloudTrailIntegration:     "AWS_CT_SQS",
-	GcpCfgIntegration:            "GCP_CFG",
-	GcpAuditLogIntegration:       "GCP_AT_SES",
-	AzureCfgIntegration:          "AZURE_CFG",
-	AzureActivityLogIntegration:  "AZURE_AL_SEQ",
-	ContainerRegistryIntegration: "CONT_VULN_CFG",
-	SlackChannelIntegration:      "SLACK_CHANNEL",
-	AwsCloudWatchIntegration:     "CLOUDWATCH_EB",
-	PagerDutyIntegration:         "PAGER_DUTY_API",
+	NoneIntegration:                  "NONE",
+	AwsCfgIntegration:                "AWS_CFG",
+	AwsCloudTrailIntegration:         "AWS_CT_SQS",
+	AwsS3ChannelIntegration:          "AWS_S3",
+	DatadogChannelIntegration:        "DATADOG",
+	GcpCfgIntegration:                "GCP_CFG",
+	GcpAuditLogIntegration:           "GCP_AT_SES",
+	GcpPubSubChannelIntegration:      "GCP_PUBSUB",
+	AzureCfgIntegration:              "AZURE_CFG",
+	AzureActivityLogIntegration:      "AZURE_AL_SEQ",
+	ContainerRegistryIntegration:     "CONT_VULN_CFG",
+	MicrosoftTeamsChannelIntegration: "MICROSOFT_TEAMS",
+	SlackChannelIntegration:          "SLACK_CHANNEL",
+	SplunkIntegration:                "SPLUNK_HEC",
+	ServiceNowChannelIntegration:     "SERVICE_NOW_REST",
+	AwsCloudWatchIntegration:         "CLOUDWATCH_EB",
+	PagerDutyIntegration:             "PAGER_DUTY_API",
+	JiraIntegration:                  "JIRA",
+	WebhookIntegration:               "WEBHOOK",
 }
 
 // String returns the string representation of an integration type
@@ -140,7 +172,7 @@ func (svc *IntegrationsService) GetSchema(iType integrationType) (
 }
 
 func (svc *IntegrationsService) get(guid string, response interface{}) error {
-	apiPath := fmt.Sprintf(apiIntegrationByGUID, guid)
+	apiPath := fmt.Sprintf(apiIntegrationFromGUID, guid)
 	return svc.client.RequestDecoder("GET", apiPath, nil, response)
 }
 
@@ -156,7 +188,7 @@ func (svc *IntegrationsService) create(data interface{}, response interface{}) e
 
 func (svc *IntegrationsService) update(guid string, data interface{}, response interface{}) error {
 	var (
-		apiPath   = fmt.Sprintf(apiIntegrationByGUID, guid)
+		apiPath   = fmt.Sprintf(apiIntegrationFromGUID, guid)
 		body, err = jsonReader(data)
 	)
 	if err != nil {
@@ -167,7 +199,7 @@ func (svc *IntegrationsService) update(guid string, data interface{}, response i
 }
 
 func (svc *IntegrationsService) delete(guid string, response interface{}) error {
-	apiPath := fmt.Sprintf(apiIntegrationByGUID, guid)
+	apiPath := fmt.Sprintf(apiIntegrationFromGUID, guid)
 	return svc.client.RequestDecoder("DELETE", apiPath, nil, response)
 }
 

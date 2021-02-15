@@ -43,6 +43,8 @@ type Client struct {
 	log        *zap.Logger
 	headers    map[string]string
 
+	LQL             *LQLService
+	Agents          *AgentsService
 	Events          *EventsService
 	Compliance      *ComplianceService
 	Integrations    *IntegrationsService
@@ -86,14 +88,16 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 			"User-Agent": fmt.Sprintf("Go Client/%s", Version),
 		},
 		auth: &authConfig{
-			expiration: defaultTokenExpiryTime,
+			expiration: DefaultTokenExpiryTime,
 		},
 		c: &http.Client{Timeout: defaultTimeout},
 	}
+	c.LQL = &LQLService{c}
+	c.Agents = &AgentsService{c}
 	c.Events = &EventsService{c}
 	c.Compliance = &ComplianceService{c}
 	c.Integrations = &IntegrationsService{c}
-	c.Vulnerabilities = &VulnerabilitiesService{c}
+	c.Vulnerabilities = NewVulnerabilityService(c)
 
 	// init logger, this could change if a user calls api.WithLogLevel()
 	c.initLogger()
@@ -141,6 +145,11 @@ func WithHeader(header, value string) Option {
 // URL returns the base url configured
 func (c *Client) URL() string {
 	return c.baseURL.String()
+}
+
+// ValidAuth verifies that the client has valid authentication
+func (c *Client) ValidAuth() bool {
+	return c.auth.token != ""
 }
 
 // newID generates a new client id, this id is useful for logging purposes

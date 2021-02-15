@@ -31,6 +31,9 @@ type EventsService struct {
 	client *Client
 }
 
+// ValidEventSeverities is a list of all valid event severities
+var ValidEventSeverities = []string{"critical", "high", "medium", "low", "info"}
+
 // List leverages ListDateRange and returns a list of events from the last 7 days
 func (svc *EventsService) List() (EventsResponse, error) {
 	var (

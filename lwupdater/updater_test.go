@@ -19,8 +19,11 @@
 package lwupdater_test
 
 import (
+	"io/ioutil"
 	"os"
+	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -38,14 +41,12 @@ func TestCheckErrorEmptyProject(t *testing.T) {
 // @afiune this test requires to actually have internet access,
 // I wonder if this will cause problems in the future, if so,
 // we should disable it.
-//
-// TODO @afiune implement a cache mechanism
 func TestCheck(t *testing.T) {
-	info, err := lwupdater.Check("go-sdk", "v0.1.6")
+	info, err := lwupdater.Check("go-sdk", "0.1.6")
 	if assert.Nil(t, err) {
 		assert.Equal(t, "go-sdk", info.Project)
-		assert.Equal(t, "v0.1.6", info.Version)
-		assert.Regexp(t, `^v?([0-9]+)(\.[0-9]+)?(\.[0-9]+)$`, info.Latest)
+		assert.Equal(t, "0.1.6", info.CurrentVersion)
+		assert.Regexp(t, `^v?([0-9]+)(\.[0-9]+)?(\.[0-9]+)$`, info.LatestVersion)
 		assert.True(t, info.Outdated)
 	}
 }
@@ -57,4 +58,47 @@ func TestCheckDisabled(t *testing.T) {
 	info, err := lwupdater.Check("go-sdk", "v0.1.0")
 	assert.Nil(t, err)
 	assert.Empty(t, info)
+}
+
+func TestVersionLoadCacheError(t *testing.T) {
+	dir, err := ioutil.TempDir("", "version_cache")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(dir)
+
+	cacheFile := path.Join(dir, "version_cache")
+	v, err := lwupdater.LoadCache(cacheFile)
+	assert.Empty(t, v)
+	if assert.NotNil(t, err) {
+		assert.Contains(t, err.Error(), "no such file or directory")
+	}
+}
+
+func TestVersionStoreLoadCache(t *testing.T) {
+	dir, err := ioutil.TempDir("", "version_cache")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(dir)
+
+	cacheFile := path.Join(dir, "version_cache")
+
+	mockVersion := lwupdater.Version{
+		Project:        "lwupdater",
+		CurrentVersion: "0.1.0",
+		LastCheckTime:  time.Now(),
+	}
+	err = mockVersion.StoreCache(cacheFile)
+	assert.Nil(t, err)
+
+	subjectVersion, err := lwupdater.LoadCache(cacheFile)
+	if assert.Nil(t, err) {
+		assert.Equal(t, mockVersion.Project, subjectVersion.Project)
+		assert.Equal(t, mockVersion.CurrentVersion, subjectVersion.CurrentVersion)
+		assert.Equal(t,
+			mockVersion.LastCheckTime.Format(time.RFC3339),
+			subjectVersion.LastCheckTime.Format(time.RFC3339),
+		)
+	}
 }

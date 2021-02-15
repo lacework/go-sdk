@@ -17,7 +17,7 @@ func main() {
 	} else {
 		// Output: The latest release of the go-sdk project is v0.1.7
 		fmt.Printf("The latest release of the %s project is %s\n",
-			project, sdk.Latest,
+			project, sdk.LatestVersion,
 		)
 	}
 }

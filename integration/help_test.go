@@ -40,8 +40,7 @@ func TestHelpCommand(t *testing.T) {
 func TestHelpCommandForConfigureCommand(t *testing.T) {
 	out, err, exitcode := LaceworkCLI("help", "configure")
 	assert.Equal(t,
-		`
-Configure settings that the Lacework CLI uses to interact with the Lacework
+		`Configure settings that the Lacework CLI uses to interact with the Lacework
 platform. These include your Lacework account, API access key and secret.
 
 To create a set of API keys, log in to your Lacework account via WebUI and
@@ -49,22 +48,27 @@ navigate to Settings > API Keys and click + Create New. Enter a name for
 the key and an optional description, then click Save. To get the secret key,
 download the generated API key file.
 
-Use the argument --json_file to preload the downloaded API key file.
+Use the flag --json_file to preload the downloaded API key file.
 
-If this command is run with no arguments, the Lacework CLI will store all
+If this command is run with no flags, the Lacework CLI will store all
 settings under the default profile. The information in the default profile
 is used any time you run a Lacework CLI command that doesn't explicitly
 specify a profile to use.
 
-You can configure multiple profiles by using the --profile argument. If a
-config file does not exist (the default location is ~/.lacework.toml), the
-Lacework CLI will create it for you.
+You can configure multiple profiles by using the --profile flag. If a
+config file does not exist (the default location is ~/.lacework.toml),
+the Lacework CLI will create it for you.
 
 For organization administrators, use the argument --subaccount to configure a
 sub-account. To remove this configuration pass the --remove_subaccount flag.
 
 Usage:
   lacework configure [flags]
+  lacework configure [command]
+
+Available Commands:
+  list        list all configured profiles at ~/.lacework.toml
+  show        show current configuration data
 
 Flags:
   -h, --help                help for configure
@@ -81,6 +85,8 @@ Global Flags:
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
   -u, --subaccount string   sub-account name inside your organization (org admin only)
+
+Use "lacework configure [command] --help" for more information about a command.
 `,
 		out.String(),
 		"the configure help message changed, please update")
@@ -125,8 +131,7 @@ func TestCommandDoesNotExist(t *testing.T) {
 func TestNoCommandProvided(t *testing.T) {
 	out, err, exitcode := LaceworkCLI()
 	assert.Equal(t,
-		`
-The Lacework Command Line Interface is a tool that helps you manage the
+		`The Lacework Command Line Interface is a tool that helps you manage the
 Lacework cloud security platform. Use it to manage compliance reports,
 external integrations, vulnerability scans, and other operations.
 
@@ -140,13 +145,15 @@ Usage:
   lacework [command]
 
 Available Commands:
+  access-token  generate temporary API access tokens
+  agent         manage Lacework agents
   api           helper to call Lacework's RestfulAPI
   compliance    manage compliance reports
   configure     configure the Lacework CLI
   event         inspect Lacework events
   integration   manage external integrations
   version       print the Lacework CLI version
-  vulnerability view vulnerability reports and run on-demand scans
+  vulnerability container and host vulnerability assessments
 
 Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

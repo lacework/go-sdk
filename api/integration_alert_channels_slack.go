@@ -32,7 +32,6 @@ package api
 //   slackChannel := api.NewSlackAlertChannel("foo",
 //     api.SlackChannelData{
 //       SlackUrl: "https://hooks.slack.com/services/ABCD/12345/abcd1234",
-//       MinAlertSeverity: api.CriticalAlertLevel,
 //     },
 //   )
 //
@@ -95,7 +94,5 @@ type SlackAlertChannel struct {
 }
 
 type SlackChannelData struct {
-	IssueGrouping    string     `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
-	SlackUrl         string     `json:"SLACK_URL" mapstructure:"SLACK_URL"`
-	MinAlertSeverity AlertLevel `json:"MIN_ALERT_SEVERITY,omitempty" mapstructure:"MIN_ALERT_SEVERITY"`
+	SlackUrl string `json:"SLACK_URL" mapstructure:"SLACK_URL"`
 }

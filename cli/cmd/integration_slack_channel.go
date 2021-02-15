@@ -36,26 +36,11 @@ func createSlackAlertChannelIntegration() error {
 			Prompt:   &survey.Input{Message: "Slack URL: "},
 			Validate: survey.Required,
 		},
-		{
-			Name: "alert_severity_level",
-			Prompt: &survey.Select{
-				Message: "Alert Severity Level: ",
-				Options: []string{
-					"Critical",
-					"High and above",
-					"Medium and above",
-					"Low and above",
-					"All",
-				},
-			},
-			Validate: survey.Required,
-		},
 	}
 
 	answers := struct {
-		Name          string
-		Url           string
-		AlertSeverity string `survey:"alert_severity_level"`
+		Name string
+		Url  string
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -67,8 +52,7 @@ func createSlackAlertChannelIntegration() error {
 
 	slack := api.NewSlackAlertChannel(answers.Name,
 		api.SlackChannelData{
-			SlackUrl:         answers.Url,
-			MinAlertSeverity: alertSeverityToEnum(answers.AlertSeverity),
+			SlackUrl: answers.Url,
 		},
 	)
 
@@ -76,21 +60,4 @@ func createSlackAlertChannelIntegration() error {
 	_, err = cli.LwApi.Integrations.CreateSlackAlertChannel(slack)
 	cli.StopProgress()
 	return err
-}
-
-func alertSeverityToEnum(level string) api.AlertLevel {
-	switch level {
-	case "Critical":
-		return api.CriticalAlertLevel
-	case "High and above":
-		return api.HighAlertLevel
-	case "Medium and above":
-		return api.MediumAlertLevel
-	case "Low and above":
-		return api.LowAlertLevel
-	case "All":
-		return api.AllAlertLevel
-	default:
-		return api.MediumAlertLevel
-	}
 }

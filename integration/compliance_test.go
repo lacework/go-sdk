@@ -27,12 +27,15 @@ import (
 func TestComplianceCommandHelp(t *testing.T) {
 	out, err, exitcode := LaceworkCLI("help", "compliance")
 	assert.Equal(t,
-		`Manage compliance reports for GCP, Azure, or AWS cloud providers.
+		`Manage compliance reports for Google, Azure, or AWS cloud providers.
 
-To start sending data about your environment to Lacework for compliance reporting
-analysis, configure one or more cloud integration using the following command:
+Lacework cloud security platform provides continuous Compliance monitoring against
+cloud security best practices and compliance standards as CIS, PCI DSS, SoC II and
+HIPAA benchmark standards.
 
-  $ lacework integration create
+Get started by integrating one or more cloud accounts using the command:
+
+    $ lacework integration create
 
 Or, if you prefer to do it via the WebUI, log in to your account at:
 
@@ -42,7 +45,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 Use the following command to list all available integrations in your account:
 
-  $ lacework integrations list
+    $ lacework integrations list
 
 Usage:
   lacework compliance [command]
@@ -52,8 +55,8 @@ Aliases:
 
 Available Commands:
   aws         compliance for AWS
-  azure       compliance for Microsoft Azure
-  gcp         compliance for Google Cloud
+  azure       compliance for Azure Cloud
+  google      compliance for Google Cloud
 
 Flags:
   -h, --help   help for compliance

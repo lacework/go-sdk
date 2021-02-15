@@ -169,7 +169,7 @@ func TestIntegrationsGet(t *testing.T) {
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v1/external/integrations/UNKNOWN_INTG_GUID")
-			assert.Contains(t, err.Error(), "404 Not Found")
+			assert.Contains(t, err.Error(), "[404] Not Found")
 		}
 	})
 }

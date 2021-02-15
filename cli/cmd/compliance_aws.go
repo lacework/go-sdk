@@ -20,10 +20,8 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -31,6 +29,54 @@ import (
 )
 
 var (
+	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
+	complianceAwsListAccountsCmd = &cobra.Command{
+		Use:     "list-accounts",
+		Aliases: []string{"list"},
+		Short:   "list all AWS accounts configured",
+		Long:    `List all AWS accounts configured in your account.`,
+		Args:    cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			awsIntegrations, err := cli.LwApi.Integrations.ListAwsCfg()
+			if err != nil {
+				return errors.Wrap(err, "unable to get aws compliance integrations")
+			}
+			if len(awsIntegrations.Data) == 0 {
+				msg := `There are no AWS accounts configured in your account.
+
+Get started by integrating your AWS accounts to analyze configuration compliance using the command:
+
+    $ lacework integration create
+
+Or, if you prefer to do it via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Cloud Accounts.
+`
+				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
+				return nil
+			}
+
+			awsAccounts := make([]string, 0)
+			for _, i := range awsIntegrations.Data {
+				awsAccounts = append(awsAccounts, i.Data.AwsAccountID)
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(awsAccounts)
+			}
+
+			rows := [][]string{}
+			for _, acc := range awsAccounts {
+				rows = append(rows, []string{acc})
+			}
+
+			cli.OutputHuman(renderSimpleTable([]string{"AWS Accounts"}, rows))
+			return nil
+		},
+	}
+
 	// complianceAwsGetReportCmd represents the get-report sub-command inside the aws command
 	complianceAwsGetReportCmd = &cobra.Command{
 		Use:     "get-report <account_id>",
@@ -47,20 +93,17 @@ var (
 			}
 		},
 		Short: "get the latest AWS compliance report",
-		Long: `Get the latest AWS compliance assessment report, these reports run on a regular schedule,
-typically once a day. The available report formats are human-readable (default), json and pdf.
+		Long: `Get the latest compliance assessment report from the provided AWS account, these
+reports run on a regular schedule, typically once a day. The available report formats
+are human-readable (default), json and pdf.
 
-To find out which AWS accounts are connected to you Lacework account, use the following command:
+To list all AWS accounts configured in your account:
 
-  $ lacework integrations list --type AWS_CFG
+    $ lacework compliance aws list-accounts
 
-Then, choose one integration, copy the GUID and visialize its details using the command:
+To run an ad-hoc compliance assessment of an AWS account:
 
-  $ lacework integration show <int_guid>
-
-To run an ad-hoc compliance assessment use the command:
-
-  $ lacework compliance aws run-assessment <account_id>
+    $ lacework compliance aws run-assessment <account_id>
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -69,15 +112,26 @@ To run an ad-hoc compliance assessment use the command:
 				Type:      compCmdState.Type,
 			}
 
-			if compCmdState.PdfName != "" {
+			if compCmdState.Pdf || compCmdState.PdfName != "" {
+				pdfName := fmt.Sprintf(
+					"%s_Report_%s_%s_%s.pdf",
+					config.Type,
+					config.AccountID,
+					cli.Account, time.Now().Format("20060102150405"),
+				)
+				if compCmdState.PdfName != "" {
+					cli.OutputHuman("(DEPRECATED) This flag has been replaced by '--pdf'\n\n")
+					pdfName = compCmdState.PdfName
+				}
+
 				cli.StartProgress(" Downloading compliance report...")
-				err := cli.LwApi.Compliance.DownloadAwsReportPDF(compCmdState.PdfName, config)
+				err := cli.LwApi.Compliance.DownloadAwsReportPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get aws pdf compliance report")
 				}
 
-				cli.OutputHuman("The AWS compliance report was downloaded at '%s'.\n", compCmdState.PdfName)
+				cli.OutputHuman("The AWS compliance report was downloaded at '%s'\n", pdfName)
 				return nil
 			}
 
@@ -130,7 +184,12 @@ To run an ad-hoc compliance assessment use the command:
 			// @afiune not consistent with the other cloud providers
 			for key := range response {
 				cli.OutputHuman("\n")
-				cli.OutputHuman(buildAwsRunAssessmentTable(key, args[0]))
+				cli.OutputHuman(
+					renderSimpleTable(
+						[]string{"INTEGRATION GUID", "ACCOUNT ID"},
+						[][]string{[]string{key, args[0]}},
+					),
+				)
 			}
 			return nil
 		},
@@ -140,34 +199,23 @@ To run an ad-hoc compliance assessment use the command:
 func init() {
 	// add sub-commands to the aws command
 	complianceAwsCmd.AddCommand(complianceAwsGetReportCmd)
+	complianceAwsCmd.AddCommand(complianceAwsListAccountsCmd)
 	complianceAwsCmd.AddCommand(complianceAwsRunAssessmentCmd)
 
 	complianceAwsGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
 	)
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.PdfName, "pdf-file", "",
-		"download the report as PDF format with the provided filename",
+		"(DEPRECATED) use --pdf",
+	)
+	complianceAwsGetReportCmd.Flags().BoolVar(&compCmdState.Pdf, "pdf", false,
+		"download report in PDF format",
 	)
 
 	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
 		"report type to display, supported types: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI",
 	)
-}
-
-func buildAwsRunAssessmentTable(intGuid, id string) string {
-	var (
-		tBuilder = &strings.Builder{}
-		t        = tablewriter.NewWriter(tBuilder)
-	)
-
-	t.SetHeader([]string{"INTEGRATION GUID", "ACCOUNT ID"})
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.Append([]string{intGuid, id})
-	t.Render()
-
-	return tBuilder.String()
 }
 
 func complianceAwsReportDetailsTable(report *api.ComplianceAwsReport) [][]string {

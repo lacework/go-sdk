@@ -19,9 +19,15 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/lacework/go-sdk/cli/cmd"
 )
 
 func main() {
-	cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR %s\n", err)
+		os.Exit(1)
+	}
 }

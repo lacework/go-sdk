@@ -25,17 +25,25 @@ import (
 )
 
 const (
-	apiIntegrations       = "external/integrations"
-	apiIntegrationsByType = "external/integrations/type/%s"
-	apiIntegrationByGUID  = "external/integrations/%s"
-	apiIntegrationSchema  = "external/integrations/schema/%s"
-	apiTokens             = "access/tokens"
+	apiIntegrations        = "external/integrations"
+	apiIntegrationsByType  = "external/integrations/type/%s"
+	apiIntegrationFromGUID = "external/integrations/%s"
+	apiIntegrationSchema   = "external/integrations/schema/%s"
+	apiTokens              = "access/tokens"
 
-	apiVulnerabilitiesScan             = "external/vulnerabilities/container/repository/images/scan"
-	apiVulnerabilitiesScanStatus       = "external/vulnerabilities/container/reqId/%s"
-	apiVulnerabilitiesReportFromID     = "external/vulnerabilities/container/imageId/%s"
-	apiVulnerabilitiesReportFromDigest = "external/vulnerabilities/container/imageDigest/%s"
-	apiVulEvaluationsForDateRange      = "external/vulnerabilities/container/GetEvaluationsForDateRange"
+	apiAgentTokens      = "external/tokens"
+	apiAgentTokenFromID = "external/tokens/%s"
+
+	apiVulnerabilitiesContainerScan             = "external/vulnerabilities/container/repository/images/scan"
+	apiVulnerabilitiesContainerScanStatus       = "external/vulnerabilities/container/reqId/%s"
+	apiVulnerabilitiesAssessmentFromImageID     = "external/vulnerabilities/container/imageId/%s"
+	apiVulnerabilitiesAssessmentFromImageDigest = "external/vulnerabilities/container/imageDigest/%s"
+	apiVulnContainerAssessmentsForDateRange     = "external/vulnerabilities/container/GetAssessmentsForDateRange"
+
+	apiVulnerabilitiesScanPkgManifest             = "external/vulnerabilities/scan"
+	apiVulnerabilitiesHostListCves                = "external/vulnerabilities/host"
+	apiVulnerabilitiesListHostsWithCveID          = "external/vulnerabilities/host/cveId/%s"
+	apiVulnerabilitiesHostAssessmentFromMachineID = "external/vulnerabilities/host/machineId/%s"
 
 	apiComplianceAwsLatestReport        = "external/compliance/aws/GetLatestComplianceReport?AWS_ACCOUNT_ID=%s"
 	apiComplianceGcpLatestReport        = "external/compliance/gcp/GetLatestComplianceReport?GCP_ORG_ID=%s&GCP_PROJ_ID=%s"
@@ -43,12 +51,16 @@ const (
 	apiComplianceAzureLatestReport      = "external/compliance/azure/GetLatestComplianceReport?AZURE_TENANT_ID=%s&AZURE_SUBS_ID=%s"
 	apiComplianceAzureListSubscriptions = "external/compliance/azure/ListSubscriptionsForTenant?AZURE_TENANT_ID=%s"
 
-	apiRunReportGcp   = "external/runReport/gcp/%s"
-	apiRunReportAws   = "external/runReport/aws/%s"
-	apiRunReportAzure = "external/runReport/azure/%s"
+	apiRunReportIntegration = "external/runReport/integration/%s"
+	apiRunReportGcp         = "external/runReport/gcp/%s"
+	apiRunReportAws         = "external/runReport/aws/%s"
+	apiRunReportAzure       = "external/runReport/azure/%s"
 
 	apiEventsDetails   = "external/events/GetEventDetails"
 	apiEventsDateRange = "external/events/GetEventsForDateRange"
+
+	// Alpha
+	apiLQLQuery = "external/lql/query"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

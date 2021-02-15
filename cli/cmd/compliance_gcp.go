@@ -20,10 +20,8 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -40,11 +38,11 @@ var (
 
 Use the following command to list all GCP integrations in your account:
 
-  $ lacework integrations list --type GCP_CFG
+    $ lacework integrations list --type GCP_CFG
 
-Then, select one GUID from an integration and visialize its details using the command:
+Then, select one GUID from an integration and visualize its details using the command:
 
-  $ lacework integration show <int_guid>
+    $ lacework integration show <int_guid>
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -57,7 +55,13 @@ Then, select one GUID from an integration and visialize its details using the co
 				return cli.OutputJSON(response.Data[0])
 			}
 
-			cli.OutputHuman(buildGcpProjectsTable(response.Data))
+			rows := [][]string{}
+			for _, gcp := range response.Data {
+				for _, proj := range gcp.Projects {
+					rows = append(rows, []string{proj})
+				}
+			}
+			cli.OutputHuman(renderSimpleTable([]string{"Projects"}, rows))
 			return nil
 		},
 	}
@@ -83,7 +87,7 @@ typically once a day. The available report formats are human-readable (default),
 
 To run an ad-hoc compliance assessment use the command:
 
-  $ lacework compliance gcp run-assessment <project_id>
+    $ lacework compliance gcp run-assessment <project_id>
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -93,15 +97,27 @@ To run an ad-hoc compliance assessment use the command:
 				Type:           compCmdState.Type,
 			}
 
-			if compCmdState.PdfName != "" {
+			if compCmdState.Pdf || compCmdState.PdfName != "" {
+				pdfName := fmt.Sprintf(
+					"%s_Report_%s_%s_%s_%s.pdf",
+					config.Type,
+					config.OrganizationID,
+					config.ProjectID,
+					cli.Account, time.Now().Format("20060102150405"),
+				)
+				if compCmdState.PdfName != "" {
+					cli.OutputHuman("(DEPRECATED) This flag has been replaced by '--pdf'\n\n")
+					pdfName = compCmdState.PdfName
+				}
+
 				cli.StartProgress(" Downloading compliance report...")
-				err := cli.LwApi.Compliance.DownloadGcpReportPDF(compCmdState.PdfName, config)
+				err := cli.LwApi.Compliance.DownloadGcpReportPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get gcp pdf compliance report")
 				}
 
-				cli.OutputHuman("The GCP compliance report was downloaded at '%s'.\n", compCmdState.PdfName)
+				cli.OutputHuman("The GCP compliance report was downloaded at '%s'\n", pdfName)
 				return nil
 			}
 
@@ -152,7 +168,12 @@ To run an ad-hoc compliance assessment use the command:
 
 			cli.OutputHuman("A new GCP compliance assessment has been initiated.\n")
 			cli.OutputHuman("\n")
-			cli.OutputHuman(buildGcpRunAssessmentTable(response.IntgGuid, args[0]))
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"INTEGRATION GUID", "ORG/PROJECT ID"},
+					[][]string{[]string{response.IntgGuid, args[0]}},
+				),
+			)
 			return nil
 		},
 	}
@@ -168,47 +189,16 @@ func init() {
 		"increase details about the compliance report",
 	)
 	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.PdfName, "pdf-file", "",
-		"download the report as PDF format with the provided filename",
+		"(DEPRECATED) use --pdf",
+	)
+	complianceGcpGetReportCmd.Flags().BoolVar(&compCmdState.Pdf, "pdf", false,
+		"download report in PDF format",
 	)
 
 	// GCP report types: GCP_CIS, GCP_SOC, or GCP_PCI.
 	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
 		"report type to display, supported types: CIS, SOC, or PCI",
 	)
-}
-
-func buildGcpRunAssessmentTable(intGuid, id string) string {
-	var (
-		tBuilder = &strings.Builder{}
-		t        = tablewriter.NewWriter(tBuilder)
-	)
-
-	t.SetHeader([]string{"INTEGRATION GUID", "ORG/PROJECT ID"})
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	t.Append([]string{intGuid, id})
-	t.Render()
-
-	return tBuilder.String()
-}
-
-func buildGcpProjectsTable(gcpProjects []api.CompGcpProjects) string {
-	var (
-		tableBuilder = &strings.Builder{}
-		t            = tablewriter.NewWriter(tableBuilder)
-	)
-
-	t.SetHeader([]string{"Projects"})
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-	for _, gcp := range gcpProjects {
-		for _, proj := range gcp.Projects {
-			t.Append([]string{proj})
-		}
-	}
-	t.Render()
-
-	return tableBuilder.String()
 }
 
 func complianceGcpReportDetailsTable(report *api.ComplianceGcpReport) [][]string {

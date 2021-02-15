@@ -4,8 +4,7 @@
 set -eou pipefail
 
 # The repository where we are hosting the lacework-cli containers
-# TODO @afiune switch it to "lacework/lacework-cli" repository
-readonly repository="techallylw/lacework-cli"
+readonly repository="lacework/lacework-cli"
 readonly project_name=lacework-cli
 
 log() {

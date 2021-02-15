@@ -20,7 +20,10 @@ package cmd
 
 import (
 	"fmt"
+	"os/exec"
+	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -39,10 +42,13 @@ var (
 
 		// end time for listing events
 		End string
-	}{}
 
-	// easily add or remove borders to all event details tables
-	eventDetailsBorder = true
+		// list events from an specific number of days
+		Days int
+
+		// list events with a specific severity
+		Severity string
+	}{}
 
 	// eventCmd represents the event command
 	eventCmd = &cobra.Command{
@@ -55,11 +61,17 @@ var (
 	// eventListCmd represents the list sub-command inside the event command
 	eventListCmd = &cobra.Command{
 		Use:   "list",
-		Short: "list all events from a date range (default last 7 days)",
-		Long: `
-List all events from a time range, by default this command displays the
-events from the last 7 days, but it is possible to specify a different
-time range.`,
+		Short: "list all events (default last 7 days)",
+		Long: `List all events for the last 7 days by default, or pass --start and --end to
+specify a custom time period. You can also pass --serverity to filter by a
+severity threshold.
+
+Additionally, pass --days to list events for a specified number of days.
+
+For example, to list all events from the last day with severity medium and above
+(Critical, High and Medium) run:
+
+    $ lacework events list --severity medium --days 1`,
 		Args: cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 
@@ -67,14 +79,31 @@ time range.`,
 				response api.EventsResponse
 				err      error
 			)
+
+			if eventsCmdState.Severity != "" {
+				if !array.ContainsStr(api.ValidEventSeverities, eventsCmdState.Severity) {
+					return errors.Errorf("the severity %s is not valid, use one of %s",
+						eventsCmdState.Severity, strings.Join(api.ValidEventSeverities, ", "),
+					)
+				}
+			}
+
 			if eventsCmdState.Start != "" || eventsCmdState.End != "" {
-				start, end, errT := parseStartAndEndTime()
+				start, end, errT := parseStartAndEndTime(eventsCmdState.Start, eventsCmdState.End)
 				if errT != nil {
 					return errors.Wrap(errT, "unable to parse time range")
 				}
 
 				cli.Log.Infow("requesting list of events from custom time range",
 					"start_time", start, "end_time", end,
+				)
+				response, err = cli.LwApi.Events.ListDateRange(start, end)
+			} else if eventsCmdState.Days != 0 {
+				end := time.Now()
+				start := end.Add(time.Hour * 24 * time.Duration(eventsCmdState.Days) * -1)
+
+				cli.Log.Infow("requesting list of events from specific days",
+					"days", eventsCmdState.Days, "start_time", start, "end_time", end,
 				)
 				response, err = cli.LwApi.Events.ListDateRange(start, end)
 			} else {
@@ -87,16 +116,35 @@ time range.`,
 			}
 
 			cli.Log.Debugw("events", "raw", response)
-			// Sort the events from the response by severity
-			sort.Slice(response.Events, func(i, j int) bool {
-				return response.Events[i].Severity < response.Events[j].Severity
+
+			// filter events by severity, if the user didn't specify a severity
+			// the funtion will return it back without modifications
+			events := filterEventsWithSeverity(response.Events)
+
+			// Sort the events by severity
+			sort.Slice(events, func(i, j int) bool {
+				return events[i].Severity < events[j].Severity
 			})
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Events)
+				return cli.OutputJSON(events)
 			}
 
-			cli.OutputHuman(eventsToTableReport(response.Events))
+			if len(events) == 0 {
+				if eventsCmdState.Severity != "" {
+					cli.OutputHuman("There are no events with the specified severity.\n")
+				} else {
+					cli.OutputHuman("There are no events in your account in the specified time range.\n")
+				}
+				return nil
+			}
+
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"Event ID", "Type", "Severity", "Start Time", "End Time"},
+					eventsToTable(events),
+				),
+			)
 			return nil
 		},
 	}
@@ -104,7 +152,8 @@ time range.`,
 	// eventShowCmd represents the show sub-command inside the event command
 	eventShowCmd = &cobra.Command{
 		Use:   "show <event_id>",
-		Short: "Show details about a specific event",
+		Short: "show details about a specific event",
+		Long:  "Show details about a specific event.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			cli.Log.Infow("requesting event details", "event_id", args[0])
@@ -132,6 +181,46 @@ time range.`,
 				cli.OutputHuman("\n")
 				cli.OutputHuman(entityTable)
 			}
+
+			cli.OutputHuman(
+				"\nFor further investigation of this event navigate to %s\n",
+				eventLinkBuilder(args[0]),
+			)
+			return nil
+		},
+	}
+
+	// eventOpenCmd represents the open sub-command inside the event command
+	eventOpenCmd = &cobra.Command{
+		Use:   "open <event_id>",
+		Short: "open a specified event in a web browser",
+		Long:  "Open a specified event in a web browser.",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			// Event IDs should be only numeric values
+			if _, err := strconv.Atoi(args[0]); err != nil {
+				return errors.Errorf("invalid event id %s. Event id should be a numeric value", args[0])
+			}
+
+			var (
+				err error
+				url = eventLinkBuilder(args[0])
+			)
+
+			switch runtime.GOOS {
+			case "linux":
+				err = exec.Command("xdg-open", url).Start()
+			case "windows":
+				err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+			case "darwin":
+				err = exec.Command("open", url).Start()
+			default:
+				err = fmt.Errorf("unsupported platform\n\nNavigate to %s", url)
+			}
+			if err != nil {
+				return errors.Wrap(err, "unable to open web browser")
+			}
+
 			return nil
 		},
 	}
@@ -152,28 +241,40 @@ func init() {
 	eventListCmd.Flags().StringVar(&eventsCmdState.End,
 		"end", "", "end of the time range in UTC (format: yyyy-MM-ddTHH:mm:ssZ)",
 	)
-
-	eventCmd.AddCommand(eventShowCmd)
-}
-
-func eventsToTableReport(events []api.Event) string {
-	var (
-		eventsReport = &strings.Builder{}
-		t            = tablewriter.NewWriter(eventsReport)
+	// add days flag to events list command
+	eventListCmd.Flags().IntVar(&eventsCmdState.Days,
+		"days", 0, "list events for specified number of days (max: 7 days)",
+	)
+	// add severity flag to events list command
+	eventListCmd.Flags().StringVar(&eventsCmdState.Severity,
+		"severity", "",
+		fmt.Sprintf(
+			"filter events by severity threshold (%s)",
+			strings.Join(api.ValidEventSeverities, ", "),
+		),
 	)
 
-	t.SetHeader([]string{
-		"Event ID",
-		"Type",
-		"Severity",
-		"Start Time",
-		"End Time",
-	})
-	t.SetBorder(false)
-	t.AppendBulk(eventsToTable(events))
-	t.Render()
+	eventCmd.AddCommand(eventShowCmd)
+	eventCmd.AddCommand(eventOpenCmd)
+}
 
-	return eventsReport.String()
+// Generates a URL similar to:
+//   => https://account.lacework.net/ui/investigate/recents/EventDossier-123
+func eventLinkBuilder(id string) string {
+	return fmt.Sprintf("https://%s.lacework.net/ui/investigation/recents/EventDossier-%s", cli.Account, id)
+}
+
+// easily add or remove borders to all event details tables
+func eventsTableOptions() tableOption {
+	return tableFunc(func(t *tablewriter.Table) {
+		t.SetBorders(tablewriter.Border{
+			Left:   false,
+			Right:  false,
+			Top:    true,
+			Bottom: false,
+		})
+		t.SetColumnSeparator(" ")
+	})
 }
 
 func eventsToTable(events []api.Event) [][]string {
@@ -191,31 +292,18 @@ func eventsToTable(events []api.Event) [][]string {
 }
 
 func eventDetailsSummaryReport(details api.EventDetails) string {
-	var (
-		report = &strings.Builder{}
-		t      = tablewriter.NewWriter(report)
+	return renderCustomTable(
+		[]string{"Event ID", "Type", "Actor", "Model", "Start Time", "End Time"},
+		[][]string{[]string{
+			details.EventID,
+			details.EventType,
+			details.EventActor,
+			details.EventModel,
+			details.StartTime.UTC().Format(time.RFC3339),
+			details.EndTime.UTC().Format(time.RFC3339),
+		}},
+		eventsTableOptions(),
 	)
-
-	t.SetHeader([]string{
-		"Event ID",
-		"Type",
-		"Actor",
-		"Model",
-		"Start Time",
-		"End Time",
-	})
-	t.SetBorder(eventDetailsBorder)
-	t.Append([]string{
-		details.EventID,
-		details.EventType,
-		details.EventActor,
-		details.EventModel,
-		details.StartTime.UTC().Format(time.RFC3339),
-		details.EndTime.UTC().Format(time.RFC3339),
-	})
-	t.Render()
-
-	return report.String()
 }
 
 func eventEntityMapTables(eventEntities api.EventEntityMap) []string {
@@ -284,25 +372,18 @@ func eventRegionEntitiesTable(regions []api.EventRegionEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Region",
-		"Accounts",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, user := range regions {
-		t.Append([]string{
+		data = append(data, []string{
 			user.Region,
 			strings.Join(user.AccountList, ", "),
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Region", "Accounts"}, data,
+		eventsTableOptions(),
+	)
 }
 
 func eventCTUserEntitiesTable(users []api.EventCTUserEntity) string {
@@ -310,26 +391,13 @@ func eventCTUserEntitiesTable(users []api.EventCTUserEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Username",
-		"Account ID",
-		"Principal ID",
-		"MFA",
-		"List of APIs",
-		"Regions",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, user := range users {
 		mfa := "Disabled"
 		if user.Mfa != 0 {
 			mfa = "Enabled"
 		}
-		t.Append([]string{
+		data = append(data, []string{
 			user.Username,
 			user.AccountID,
 			user.PrincipalID,
@@ -338,9 +406,11 @@ func eventCTUserEntitiesTable(users []api.EventCTUserEntity) string {
 			strings.Join(user.RegionList, ", "),
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Username", "Account ID", "Principal ID", "MFA", "List of APIs", "Regions"}, data,
+		eventsTableOptions(),
+	)
 }
 
 func eventDnsNameEntitiesTable(dnss []api.EventDnsNameEntity) string {
@@ -348,29 +418,20 @@ func eventDnsNameEntitiesTable(dnss []api.EventDnsNameEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"DNS Hostname",
-		"List of Ports",
-		"Inbound Bytes",
-		"Outboud Bytes",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, d := range dnss {
-		t.Append([]string{
+		data = append(data, []string{
 			d.Hostname,
 			array.JoinInt32(d.PortList, ", "),
 			fmt.Sprintf("%.3f", d.TotalInBytes),
 			fmt.Sprintf("%.3f", d.TotalOutBytes),
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"DNS Hostname", "List of Ports", "Inbound Bytes", "Outboud Bytes"}, data,
+		eventsTableOptions(),
+	)
 }
 
 func eventAPIEntitiesTable(apis []api.EventAPIEntity) string {
@@ -378,25 +439,15 @@ func eventAPIEntitiesTable(apis []api.EventAPIEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Service",
-		"API",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, a := range apis {
-		t.Append([]string{
-			a.Service,
-			a.Api,
-		})
+		data = append(data, []string{a.Service, a.Api})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Service", "API"}, data,
+		eventsTableOptions(),
+	)
 }
 
 func eventSourceIpAddressEntitiesTable(ips []api.EventSourceIpAddressEntity) string {
@@ -404,27 +455,15 @@ func eventSourceIpAddressEntitiesTable(ips []api.EventSourceIpAddressEntity) str
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Source IP Address",
-		"Country",
-		"Region",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, ip := range ips {
-		t.Append([]string{
-			ip.IpAddress,
-			ip.Country,
-			ip.Region,
-		})
+		data = append(data, []string{ip.IpAddress, ip.Country, ip.Region})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Source IP Address", "Country", "Region"}, data,
+		eventsTableOptions(),
+	)
 }
 
 func eventIpAddressEntitiesTable(ips []api.EventIpAddressEntity) string {
@@ -432,25 +471,9 @@ func eventIpAddressEntitiesTable(ips []api.EventIpAddressEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"IP Address",
-		"Inbound Bytes",
-		"Outboud Bytes",
-		"List of Ports",
-		"First Time Seen",
-		"Threat Tags",
-		"Threat Source",
-		"Country",
-		"Region",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, ip := range ips {
-		t.Append([]string{
+		data = append(data, []string{
 			ip.IpAddress,
 			fmt.Sprintf("%.3f", ip.TotalInBytes),
 			fmt.Sprintf("%.3f", ip.TotalOutBytes),
@@ -462,9 +485,13 @@ func eventIpAddressEntitiesTable(ips []api.EventIpAddressEntity) string {
 			ip.Region,
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"IP Address", "Inbound Bytes", "Outboud Bytes", "List of Ports",
+			"First Time Seen", "Threat Tags", "Threat Source", "Country", "Region",
+		}, data,
+		eventsTableOptions(),
+	)
 }
 
 func eventFileDataHashEntitiesTable(dataHashes []api.EventFileDataHashEntity) string {
@@ -472,25 +499,13 @@ func eventFileDataHashEntitiesTable(dataHashes []api.EventFileDataHashEntity) st
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Executable Paths",
-		"File Hash",
-		"Number of Machines",
-		"First Time Seen",
-		"Known Bad",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, dHash := range dataHashes {
 		knownBad := "No"
 		if dHash.IsKnownBad != 0 {
 			knownBad = "Yes"
 		}
-		t.Append([]string{
+		data = append(data, []string{
 			strings.Join(dHash.ExePathList, ", "),
 			dHash.FiledataHash,
 			fmt.Sprintf("%d", dHash.MachineCount),
@@ -498,9 +513,11 @@ func eventFileDataHashEntitiesTable(dataHashes []api.EventFileDataHashEntity) st
 			knownBad,
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Executable Paths", "File Hash", "Number of Machines", "First Time Seen", "Known Bad"},
+		data, eventsTableOptions(),
+	)
 }
 
 func eventFileExePathEntitiesTable(exePaths []api.EventFileExePathEntity) string {
@@ -508,22 +525,9 @@ func eventFileExePathEntitiesTable(exePaths []api.EventFileExePathEntity) string
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Executable Path",
-		"First Time Seen",
-		"Last File Hash",
-		"Last Package Name",
-		"Last Version",
-		"Last File Owner",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, exe := range exePaths {
-		t.Append([]string{
+		data = append(data, []string{
 			exe.ExePath,
 			exe.FirstSeenTime.UTC().Format(time.RFC3339),
 			exe.LastFiledataHash,
@@ -532,9 +536,14 @@ func eventFileExePathEntitiesTable(exePaths []api.EventFileExePathEntity) string
 			exe.LastFileOwner,
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{
+			"Executable Path", "First Time Seen", "Last File Hash",
+			"Last Package Name", "Last Version", "Last File Owner",
+		},
+		data, eventsTableOptions(),
+	)
 }
 
 func eventProcessEntitiesTable(processes []api.EventProcessEntity) string {
@@ -542,21 +551,13 @@ func eventProcessEntitiesTable(processes []api.EventProcessEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Process ID",
-		"Hostname",
-		"Start Time",
-		"CPU Percentage",
-		"Command",
+	alignLeft := tableFunc(func(t *tablewriter.Table) {
+		t.SetAlignment(tablewriter.ALIGN_LEFT)
 	})
-	t.SetBorder(eventDetailsBorder)
+
+	data := [][]string{}
 	for _, proc := range processes {
-		t.Append([]string{
+		data = append(data, []string{
 			fmt.Sprintf("%d", proc.ProcessID),
 			proc.Hostname,
 			proc.ProcessStartTime.UTC().Format(time.RFC3339),
@@ -564,9 +565,11 @@ func eventProcessEntitiesTable(processes []api.EventProcessEntity) string {
 			proc.Cmdline,
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Process ID", "Hostname", "Start Time", "CPU Percentage", "Command"},
+		data, eventsTableOptions(), alignLeft,
+	)
 }
 
 func eventContainerEntitiesTable(containers []api.EventContainerEntity) string {
@@ -574,21 +577,7 @@ func eventContainerEntitiesTable(containers []api.EventContainerEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Image Repo",
-		"Image Tag",
-		"External Connections",
-		"Type",
-		"First Time Seen",
-		"Pod Namespace",
-		"Pod Ipaddress",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, container := range containers {
 		containerType := ""
 		if container.IsClient != 0 {
@@ -601,7 +590,7 @@ func eventContainerEntitiesTable(containers []api.EventContainerEntity) string {
 				containerType = "Server"
 			}
 		}
-		t.Append([]string{
+		data = append(data, []string{
 			container.ImageRepo,
 			container.ImageTag,
 			fmt.Sprintf("%d", container.HasExternalConns),
@@ -611,9 +600,13 @@ func eventContainerEntitiesTable(containers []api.EventContainerEntity) string {
 			container.PodIpAddr,
 		})
 	}
-	t.Render()
-
-	return r.String()
+	return renderCustomTable(
+		[]string{
+			"Image Repo", "Image Tag", "External Connections", "Type",
+			"First Time Seen", "Pod Namespace", "Pod Ipaddress",
+		},
+		data, eventsTableOptions(),
+	)
 }
 
 func eventUserEntitiesTable(users []api.EventUserEntity) string {
@@ -621,25 +614,15 @@ func eventUserEntitiesTable(users []api.EventUserEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Username",
-		"Hostname",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, user := range users {
-		t.Append([]string{
-			user.Username,
-			user.MachineHostname,
-		})
+		data = append(data, []string{user.Username, user.MachineHostname})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Username", "Hostname"},
+		data, eventsTableOptions(),
+	)
 }
 
 func eventApplicationEntitiesTable(applications []api.EventApplicationEntity) string {
@@ -647,18 +630,7 @@ func eventApplicationEntitiesTable(applications []api.EventApplicationEntity) st
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Application",
-		"External Connections",
-		"Type",
-		"Earliest Known Time",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, app := range applications {
 		appType := ""
 		if app.IsClient != 0 {
@@ -671,16 +643,18 @@ func eventApplicationEntitiesTable(applications []api.EventApplicationEntity) st
 				appType = "Server"
 			}
 		}
-		t.Append([]string{
+		data = append(data, []string{
 			app.Application,
 			fmt.Sprintf("%d", app.HasExternalConns),
 			appType,
 			app.EarliestKnownTime.UTC().Format(time.RFC3339),
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Application", "External Connections", "Type", "Earliest Known Time"},
+		data, eventsTableOptions(),
+	)
 }
 
 func eventCustomRuleEntitiesTable(rules []api.EventCustomRuleEntity) string {
@@ -688,41 +662,28 @@ func eventCustomRuleEntitiesTable(rules []api.EventCustomRuleEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-	t.SetBorder(false)
-	t.SetAutoWrapText(false)
-
+	r := &strings.Builder{}
 	for _, rule := range rules {
-		t.Append([]string{eventCustomRuleEntityTable(rule)})
-		t.Append([]string{eventCustomRuleDisplayFilerTable(rule)})
+		r.WriteString(eventCustomRuleEntityTable(rule))
+		r.WriteString("\n")
+		r.WriteString(eventCustomRuleDisplayFilerTable(rule))
 	}
-	t.Render()
 
 	return r.String()
 }
 
 func eventCustomRuleEntityTable(rule api.EventCustomRuleEntity) string {
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
+	autoWrapText := tableFunc(func(t *tablewriter.Table) {
+		t.SetAutoWrapText(false)
+	})
+
+	return renderCustomTable(
+		[]string{"Rule GUID", "Last Updated User", "Last Updated Time"},
+		[][]string{[]string{
+			rule.RuleGuid, rule.LastUpdatedUser, rule.LastUpdatedTime.UTC().Format(time.RFC3339),
+		}},
+		eventsTableOptions(), autoWrapText,
 	)
-	t.SetHeader([]string{
-		"Rule GUID",
-		"Last Updated User",
-		"Last Updated Time",
-	})
-	t.SetBorder(eventDetailsBorder)
-	t.SetAutoWrapText(false)
-	t.Append([]string{
-		rule.RuleGuid,
-		rule.LastUpdatedUser,
-		rule.LastUpdatedTime.UTC().Format(time.RFC3339),
-	})
-	t.Render()
-	return r.String()
 }
 
 func eventCustomRuleDisplayFilerTable(rule api.EventCustomRuleEntity) string {
@@ -731,23 +692,17 @@ func eventCustomRuleDisplayFilerTable(rule api.EventCustomRuleEntity) string {
 		filter = rule.DisplayFilter
 	}
 
-	return oneLineTable("Display Filter", filter)
-}
+	tblOption := tableFunc(func(t *tablewriter.Table) {
+		t.SetBorder(true)
+		t.SetAutoWrapText(false)
+		t.SetAlignment(tablewriter.ALIGN_LEFT)
+	})
 
-func oneLineTable(title, content string) string {
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
+	return renderCustomTable(
+		[]string{"Display Filter"},
+		[][]string{[]string{filter}},
+		eventsTableOptions(), tblOption,
 	)
-
-	t.SetHeader([]string{title})
-	t.SetBorder(eventDetailsBorder)
-	t.SetAutoWrapText(false)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.Append([]string{content})
-	t.Render()
-
-	return r.String()
 }
 
 func eventRecIDEntitiesTable(records []api.EventRecIDEntity) string {
@@ -755,23 +710,9 @@ func eventRecIDEntitiesTable(records []api.EventRecIDEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Record ID",
-		"Account ID",
-		"Account Alias",
-		"Description",
-		"Status",
-		"Evaluation Type",
-		"Evaluation GUID",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, rec := range records {
-		t.Append([]string{
+		data = append(data, []string{
 			rec.RecID,
 			rec.AccountID,
 			rec.AccountAlias,
@@ -781,9 +722,12 @@ func eventRecIDEntitiesTable(records []api.EventRecIDEntity) string {
 			rec.EvalGuid,
 		})
 	}
-	t.Render()
-
-	return r.String()
+	return renderCustomTable(
+		[]string{"Record ID", "Account ID", "Account Alias",
+			"Description", "Status", "Evaluation Type", "Evaluation GUID",
+		},
+		data, eventsTableOptions(),
+	)
 }
 
 func eventViolationReasonEntitiesTable(reasons []api.EventViolationReasonEntity) string {
@@ -791,25 +735,18 @@ func eventViolationReasonEntitiesTable(reasons []api.EventViolationReasonEntity)
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Violation ID",
-		"Reason",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, reason := range reasons {
-		t.Append([]string{
+		data = append(data, []string{
 			reason.RecID,
 			reason.Reason,
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Violation ID", "Reason"},
+		data, eventsTableOptions(),
+	)
 }
 
 func eventResourceEntitiesTable(resources []api.EventResourceEntity) string {
@@ -817,25 +754,18 @@ func eventResourceEntitiesTable(resources []api.EventResourceEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Name",
-		"Value",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, res := range resources {
-		t.Append([]string{
+		data = append(data, []string{
 			res.Name,
 			fmt.Sprintf("%v", res.Value),
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Name", "Value"},
+		data, eventsTableOptions(),
+	)
 }
 
 func eventNewViolationEntitiesTable(violations []api.EventNewViolationEntity) string {
@@ -843,27 +773,19 @@ func eventNewViolationEntitiesTable(violations []api.EventNewViolationEntity) st
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Violation ID",
-		"Reason",
-		"Resource",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, v := range violations {
-		t.Append([]string{
+		data = append(data, []string{
 			v.RecID,
 			v.Reason,
 			v.Resource,
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Violation ID", "Reason", "Resource"},
+		data, eventsTableOptions(),
+	)
 }
 
 func eventMachineEntitiesTable(machines []api.EventMachineEntity) string {
@@ -871,22 +793,9 @@ func eventMachineEntitiesTable(machines []api.EventMachineEntity) string {
 		return ""
 	}
 
-	var (
-		r = &strings.Builder{}
-		t = tablewriter.NewWriter(r)
-	)
-
-	t.SetHeader([]string{
-		"Hostname",
-		"External IP",
-		"Instance ID",
-		"Instance Name",
-		"CPU Percentage",
-		"Internal Ipaddress",
-	})
-	t.SetBorder(eventDetailsBorder)
+	data := [][]string{}
 	for _, m := range machines {
-		t.Append([]string{
+		data = append(data, []string{
 			m.Hostname,
 			m.ExternalIp,
 			m.InstanceID,
@@ -895,32 +804,46 @@ func eventMachineEntitiesTable(machines []api.EventMachineEntity) string {
 			m.InternalIpAddress,
 		})
 	}
-	t.Render()
 
-	return r.String()
+	return renderCustomTable(
+		[]string{"Hostname", "External IP", "Instance ID",
+			"Instance Name", "CPU Percentage", "Internal Ipaddress"},
+		data, eventsTableOptions(),
+	)
 }
 
-// parse the start and end time provided by the user
-func parseStartAndEndTime() (start time.Time, end time.Time, err error) {
-	if eventsCmdState.Start == "" {
-		err = errors.New("when providing an end time, start time should be provided (--start)")
-		return
-	}
-	start, err = time.Parse(time.RFC3339, eventsCmdState.Start)
-	if err != nil {
-		err = errors.Wrap(err, "unable to parse start time")
-		return
+func filterEventsWithSeverity(events []api.Event) []api.Event {
+	if eventsCmdState.Severity == "" {
+		return events
 	}
 
-	if eventsCmdState.End == "" {
-		err = errors.New("when providing a start time, end time should be provided (--end)")
-		return
-	}
-	end, err = time.Parse(time.RFC3339, eventsCmdState.End)
-	if err != nil {
-		err = errors.Wrap(err, "unable to parse end time")
-		return
+	sevThreshold, sevString := eventSeverityToProperTypes(eventsCmdState.Severity)
+	cli.Log.Debugw("filtering events", "threshold", sevThreshold, "severity", sevString)
+	eFiltered := []api.Event{}
+	for _, event := range events {
+		eventSeverity, _ := eventSeverityToProperTypes(event.Severity)
+		if eventSeverity <= sevThreshold {
+			eFiltered = append(eFiltered, event)
+		}
 	}
 
-	return
+	cli.Log.Debugw("filtered events", "events", eFiltered)
+	return eFiltered
+}
+
+func eventSeverityToProperTypes(severity string) (int, string) {
+	switch strings.ToLower(severity) {
+	case "1", "critical":
+		return 1, "Critical"
+	case "2", "high":
+		return 2, "High"
+	case "3", "medium":
+		return 3, "Medium"
+	case "4", "low":
+		return 4, "Low"
+	case "5", "info":
+		return 5, "Info"
+	default:
+		return 6, "Unknown"
+	}
 }

@@ -2,11 +2,17 @@
 
 # Lacework Go SDK
 
-[![lacework](https://circleci.com/gh/lacework/go-sdk.svg?style=shield)](https://circleci.com/gh/lacework/go-sdk)
+[![GitHub release](https://img.shields.io/github/release/lacework/go-sdk.svg)](https://github.com/lacework/go-sdk/releases/)
+[![Go version](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)](https://github.com/lacework/go-sdk)
+[![Go report](https://goreportcard.com/badge/github.com/lacework/go-sdk)](https://goreportcard.com/report/github.com/lacework/go-sdk)
+[![CircleCI status](https://circleci.com/gh/lacework/go-sdk.svg?style=shield)](https://circleci.com/gh/lacework/go-sdk)
+[![GitHub releases](https://img.shields.io/github/downloads/lacework/go-sdk/total.svg)](https://GitHub.com/lacework/go-sdk/releases/)
 
 This repository provides a set of tools, libraries, relevant documentation, code
 samples, processes, and/or guides that allow users and developers to interact with
 the Lacework platform.
+
+Find more information about this repository at the following [Wiki page](https://github.com/lacework/go-sdk/wiki).
 
 ## Lacework CLI ([`cli`](cli/))
 
@@ -27,7 +33,7 @@ C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
 C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.ps1'))
 ```
 
-Look at the [cli/](cli/) folder for more documentation.
+Look at the [cli/](cli/) folder for more information.
 
 ## Lacework API Client ([`api`](api/))
 
@@ -59,11 +65,11 @@ func main() {
 	fmt.Println(tokenRes.Token())
 }
 ```
-Look at the [api/](api/) folder for more documentation.
+Look at the [api/](api/) folder for more information.
 
 ## Lacework Logger ([`lwlogger`](lwlogger/))
 
-A Logger wrapper for Lacework based of zap logger Go package.
+A Logger wrapper for Lacework based of [zap](https://github.com/uber-go/zap) logger Go package.
 
 ### Basic Usage
 ```go
@@ -78,6 +84,8 @@ func main() {
 	lwL.Info("interesting info")
 }
 ```
+
+Look at the [lwlogger/](lwlogger/) folder for more information.
 
 ## Lacework Updater ([`lwupdater`](lwupdater/))
 
@@ -104,13 +112,17 @@ func main() {
 	} else {
 		// Output: The latest release of the go-sdk project is v0.1.7
 		fmt.Printf("The latest release of the %s project is %s\n",
-			project, sdk.Latest,
+			project, sdk.LatestVersion,
 		)
 	}
 }
 ```
 
 Set the environment variable `LW_UPDATES_DISABLE=1` to avoid checking for updates.
+
+## Release Process
+
+The release process of this repository is documented at the following [Wiki page](https://github.com/lacework/go-sdk/wiki/Release-Process).
 
 ## License and Copyright
 

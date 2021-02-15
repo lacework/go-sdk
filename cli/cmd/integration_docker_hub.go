@@ -88,9 +88,6 @@ func createDockerHubIntegration() error {
 		return err
 	}
 
-	// @afiune we should not error here since the survey.Select is letting
-	// the user choose 5, 10, or 15. Though, we always check errors!
-	// TODO can we do this via `Transformer`?
 	limitMaxImages, err := strconv.Atoi(answers.LimitMaxImages)
 	if err != nil {
 		cli.Log.Warnw("unable to convert limit_max_images, using default",
@@ -101,18 +98,16 @@ func createDockerHubIntegration() error {
 		limitMaxImages = 5
 	}
 
-	docker := api.NewContainerRegIntegration(answers.Name,
+	docker := api.NewDockerHubRegistryIntegration(answers.Name,
 		api.ContainerRegData{
 			Credentials: api.ContainerRegCreds{
 				Username: answers.Username,
 				Password: answers.Password,
 			},
-			RegistryType:   api.DockerHubRegistry.String(),
-			RegistryDomain: "index.docker.io",
-			LimitByTag:     answers.LimitTag,
-			LimitByLabel:   answers.LimitLabel,
-			LimitByRep:     answers.LimitRepos,
-			LimitNumImg:    limitMaxImages,
+			LimitByTag:   answers.LimitTag,
+			LimitByLabel: answers.LimitLabel,
+			LimitByRep:   answers.LimitRepos,
+			LimitNumImg:  limitMaxImages,
 		},
 	)
 

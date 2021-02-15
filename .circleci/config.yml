@@ -3,10 +3,13 @@ version: 2.1
 parameters:
   slack-mentions:
     type: string
-    default: 'afiune,scottford'
+    default: 'S01JP5A3ACQ'
+  only_for_branches:
+    type: string
+    default: 'master'
 
 orbs:
-  lacework: lacework/lacework@1.0.0
+  lacework: lacework/lacework@1
   slack: circleci/slack@3.4.2
   jq: circleci/jq@2.1.0
   win: circleci/windows@2.2.0
@@ -14,7 +17,7 @@ orbs:
 executors:
   go-executor:
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.15
     working_directory: /go/src/github.com/lacework/go-sdk
   alpine:
     docker:
@@ -28,11 +31,19 @@ jobs:
       - checkout
       - run: make prepare
       - run: make lint
-      - run: make test
+      - run: make coverage-ci
+      - store_artifacts:
+          path: circleci-artifacts
       - run: make fmt-check
       - run: make imports-check
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
+          only_for_branches: <<pipeline.parameters.only_for_branches>>
   build-cli:
     executor: go-executor
+    environment:
+      HONEYDATASET: lacework-cli-ci
     steps:
       - checkout
       - run: make prepare
@@ -41,6 +52,10 @@ jobs:
           root: bin
           paths:
             - lacework-cli-*
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
+          only_for_branches: <<pipeline.parameters.only_for_branches>>
   integration-test-linux:
     executor: go-executor
     steps:
@@ -48,13 +63,26 @@ jobs:
       - attach_workspace:
           at: bin
       - run: make integration-only
-  integration-test-win:
+      - store_artifacts:
+          path: circleci-artifacts
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
+          only_for_branches: <<pipeline.parameters.only_for_branches>>
+  integration-test-windows:
     executor: win/default
+    environment:
+      GOFLAGS: -mod=vendor
     steps:
       - checkout
       - attach_workspace:
           at: bin
-      - run: ./bin/lacework-cli-windows-amd64.exe help
+      - run:
+          command: |
+            $env:LW_CLI_BIN = Join-Path (Get-Location).Path "bin\\lacework-cli-windows-amd64.exe"
+            go test -v github.com/lacework/go-sdk/integration
+      - store_artifacts:
+          path: circleci-artifacts
   verify-release:
     executor: alpine
     steps:
@@ -70,6 +98,8 @@ jobs:
       - run: scripts/release.sh trigger
   release:
     executor: go-executor
+    environment:
+      HONEYDATASET: lacework-cli-prod
     steps:
       - checkout
       - jq/install
@@ -81,12 +111,6 @@ jobs:
       - setup_remote_docker
       - run: scripts/release_containers.sh
       - slack/status:
-          fail_only: false
-          mentions: << pipeline.parameters.slack-mentions >>
-  notify-slack-status:
-    executor: alpine
-    steps:
-      - slack/status:
           mentions: << pipeline.parameters.slack-mentions >>
   vuln-scan-cli:
     executor: lacework/default
@@ -94,13 +118,30 @@ jobs:
       tag:
         type: string
     steps:
-      - lacework/vuln-scan-run:
+      - lacework/ctr-vuln-scan:
           account: CI_ACCOUNT
           api-key: CI_API_KEY
           api-secret: CI_API_SECRET
           registry: index.docker.io
-          repository: techallylw/lacework-cli
+          repository: lacework/lacework-cli
+          html: yes
           tag: << parameters.tag >>
+      - run:
+          command: |
+            mkdir  circleci-artifacts/
+            if [ `ls -1 lacework-lacework-cli* 2>/dev/null | wc -l ` -gt 0 ]; then
+                mv lacework-lacework-cli* circleci-artifacts/
+            fi
+      - store_artifacts:
+          path: circleci-artifacts
+      - slack/status:
+          fail_only: true
+          mentions: << pipeline.parameters.slack-mentions >>
+          only_for_branches: <<pipeline.parameters.only_for_branches>>
+  trigger-homebrew-update:
+    executor: alpine
+    steps:
+      - run: curl -u "$CIRCLE_TOKEN" https://circleci.com/api/v1.1/project/gh/lacework/homebrew-tap/tree/main -d "build_parameters[CIRCLE_JOB]=update"
 
 workflows:
   version: 2
@@ -111,13 +152,9 @@ workflows:
       - integration-test-linux:
           requires:
             - build-cli
-      - integration-test-win:
-          requires:
-            - build-cli
       - trigger-release:
           requires:
             - unit-test
-            - integration-test-win
             - integration-test-linux
           filters:
             branches:
@@ -138,6 +175,7 @@ workflows:
                only: /^v.*/
             branches:
               ignore: /.*/
+          context: techally_releases
       - vuln-scan-cli:
           filters:
             tags:
@@ -149,6 +187,14 @@ workflows:
           matrix:
             parameters:
               tag: ["ubi-8", "centos-8", "debian-10", "ubuntu-1804", "amazonlinux-2"]
+      - trigger-homebrew-update:
+          filters:
+            tags:
+               only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - vuln-scan-cli
 
   nightly:
     triggers:
@@ -163,11 +209,6 @@ workflows:
       - integration-test-linux:
           requires:
             - build-cli
-      - integration-test-win:
+      - integration-test-windows:
           requires:
             - build-cli
-      - notify-slack-status:
-          requires:
-            - unit-test
-            - integration-test-linux
-            - integration-test-win

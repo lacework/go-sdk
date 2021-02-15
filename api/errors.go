@@ -25,31 +25,40 @@ import (
 	"net/http"
 )
 
-// erorResponse handles errors caused by a Lacework API request
+// errorResponse handles errors caused by a Lacework API request
 type errorResponse struct {
 	Response *http.Response
 	Message  string
 }
 
 type apiErrorResponse struct {
-	Ok   bool
+	Ok   bool `json:"ok"`
 	Data struct {
-		Message       string
-		StatusMessage string
-	}
+		Message       string `json:"message"`
+		StatusMessage string `json:"statusMessage"`
+		ErrorMsg      string `json:"ErrorMsg"`
+	} `json:"data"`
 }
 
 // Message extracts the message from an api error response
 func (r *apiErrorResponse) Message() string {
 	if r != nil {
-		return r.Data.Message
+		if r.Data.Message != "" {
+			return r.Data.Message
+		}
+		if r.Data.ErrorMsg != "" {
+			return r.Data.ErrorMsg
+		}
+		if r.Data.StatusMessage != "" {
+			return r.Data.StatusMessage
+		}
 	}
 	return ""
 }
 
 // Error fulfills the built-in error interface function
 func (r *errorResponse) Error() string {
-	return fmt.Sprintf("[%v] %v: %d %s",
+	return fmt.Sprintf("\n  [%v] %v\n  [%d] %s",
 		r.Response.Request.Method,
 		r.Response.Request.URL,
 		r.Response.StatusCode,
@@ -70,11 +79,30 @@ func checkErrorInResponse(r *http.Response) error {
 	if err == nil && len(data) > 0 {
 		// try to unmarshal the api error response
 		apiErrRes := &apiErrorResponse{}
-		if err := json.Unmarshal(data, apiErrRes); err == nil {
-			errRes.Message = apiErrRes.Message()
-		} else {
+		if err := json.Unmarshal(data, apiErrRes); err != nil {
 			errRes.Message = string(data)
+			return errRes
 		}
+
+		var (
+			apiErrResMessage = apiErrRes.Message()
+			statusText       = http.StatusText(r.StatusCode)
+		)
+
+		// try our best to parse the error message
+		if apiErrResMessage != "" {
+			errRes.Message = apiErrResMessage
+			return errRes
+		}
+
+		// if it is empty, try to display the Status Code in pretty Text
+		if statusText != "" {
+			errRes.Message = statusText
+			return errRes
+		}
+
+		// if we couldn't even decode the StatusCode... well, lets just be transparent
+		errRes.Message = "Unknown"
 	}
 
 	return errRes

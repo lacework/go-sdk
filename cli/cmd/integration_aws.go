@@ -56,7 +56,7 @@ func createAwsConfigIntegration() error {
 		return err
 	}
 
-	aws := api.NewAwsCfgIntegration(answers.Name,
+	awsCfg := api.NewAwsCfgIntegration(answers.Name,
 		api.AwsIntegrationData{
 			Credentials: api.AwsIntegrationCreds{
 				RoleArn:    answers.RoleArn,
@@ -64,9 +64,8 @@ func createAwsConfigIntegration() error {
 			},
 		},
 	)
-
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAws(aws)
+	_, err = cli.LwApi.Integrations.CreateAws(awsCfg)
 	cli.StopProgress()
 	return err
 }
@@ -109,18 +108,48 @@ func createAwsCloudTrailIntegration() error {
 		return err
 	}
 
-	aws := api.NewAwsCloudTrailIntegration(answers.Name,
-		api.AwsIntegrationData{
-			QueueUrl: answers.QueueUrl,
-			Credentials: api.AwsIntegrationCreds{
-				RoleArn:    answers.RoleArn,
-				ExternalID: answers.ExternalID,
-			},
+	aws := api.AwsIntegrationData{
+		QueueUrl: answers.QueueUrl,
+		Credentials: api.AwsIntegrationCreds{
+			RoleArn:    answers.RoleArn,
+			ExternalID: answers.ExternalID,
 		},
-	)
+	}
+	// ask the user if they would like to configure an Account Mapping
+	mapping := false
+	err = survey.AskOne(&survey.Confirm{
+		Message: "Configure an Account Mapping File?",
+	}, &mapping)
+
+	if err != nil {
+		return err
+	}
+
+	if mapping {
+		var content string
+
+		err = survey.AskOne(&survey.Editor{
+			Message:  "Provide the Account Mapping File in JSON format",
+			FileName: "*.json",
+		}, &content)
+
+		if err != nil {
+			return err
+		}
+
+		aws.EncodeAccountMappingFile([]byte(content))
+	}
+
+	awsCT := api.NewAwsCloudTrailIntegration(answers.Name, aws)
+
+	// if the user provided an account mapping file, means that it is
+	// trying to create an organization level integration
+	if mapping {
+		awsCT.IsOrg = 1
+	}
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAws(aws)
+	_, err = cli.LwApi.Integrations.CreateAws(awsCT)
 	cli.StopProgress()
 	return err
 }

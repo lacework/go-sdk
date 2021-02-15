@@ -36,26 +36,11 @@ func createAwsCloudWatchAlertChannelIntegration() error {
 			Prompt:   &survey.Input{Message: "Event Bus ARN: "},
 			Validate: survey.Required,
 		},
-		{
-			Name: "alert_severity_level",
-			Prompt: &survey.Select{
-				Message: "Alert Severity Level: ",
-				Options: []string{
-					"Critical",
-					"High and above",
-					"Medium and above",
-					"Low and above",
-					"All",
-				},
-			},
-			Validate: survey.Required,
-		},
 	}
 
 	answers := struct {
-		Name          string
-		Arn           string
-		AlertSeverity string `survey:"alert_severity_level"`
+		Name string
+		Arn  string
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -67,8 +52,7 @@ func createAwsCloudWatchAlertChannelIntegration() error {
 
 	slack := api.NewAwsCloudWatchAlertChannel(answers.Name,
 		api.AwsCloudWatchData{
-			EventBusArn:      answers.Arn,
-			MinAlertSeverity: alertSeverityToEnum(answers.AlertSeverity),
+			EventBusArn: answers.Arn,
 		},
 	)
 

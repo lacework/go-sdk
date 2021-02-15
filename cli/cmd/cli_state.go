@@ -20,8 +20,12 @@ package cmd
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
+	"sync"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	prettyjson "github.com/hokaccha/go-prettyjson"
@@ -30,6 +34,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwlogger"
 )
 
 // cliState holds the state of the entire Lacework CLI
@@ -45,7 +50,10 @@ type cliState struct {
 	LwApi *api.Client
 	JsonF *prettyjson.Formatter
 	Log   *zap.SugaredLogger
+	Event *Honeyvent
 
+	id             string
+	workers        sync.WaitGroup
 	spinner        *spinner.Spinner
 	jsonOutput     bool
 	nonInteractive bool
@@ -53,9 +61,11 @@ type cliState struct {
 }
 
 // NewDefaultState creates a new cliState with some defaults
-func NewDefaultState() cliState {
-	return cliState{
+func NewDefaultState() *cliState {
+	c := &cliState{
+		id:      newID(),
 		Profile: "default",
+		Log:     lwlogger.New("").Sugar(),
 		JsonF: &prettyjson.Formatter{
 			KeyColor:    color.New(color.FgCyan, color.Bold),
 			StringColor: color.New(color.FgGreen, color.Bold),
@@ -66,6 +76,11 @@ func NewDefaultState() cliState {
 			Newline:     "\n",
 		},
 	}
+
+	// initialize honeycomb library and honeyvent
+	c.InitHoneyvent()
+
+	return c
 }
 
 // SetProfile sets the provided profile into the cliState and loads the entire
@@ -88,6 +103,13 @@ func (c *cliState) SetProfile(profile string) error {
 // breadcrumbs to help the user configure the CLI. After loading the profile,
 // this function verifies parameters and env variables coming from viper
 func (c *cliState) LoadState() error {
+	defer func() {
+		// update global honeyvent with loaded state
+		c.Event.Account = c.Account
+		c.Event.Profile = c.Profile
+		c.Event.ApiKey = c.KeyID
+	}()
+
 	c.profileDetails = viper.GetStringMap(c.Profile)
 	if len(c.profileDetails) == 0 {
 		if c.Profile != "default" {
@@ -116,6 +138,26 @@ func (c *cliState) LoadState() error {
 
 	c.loadStateFromViper()
 	return nil
+}
+
+// LoadProfiles loads all the profiles from the configuration file
+func (c *cliState) LoadProfiles() (Profiles, error) {
+	var (
+		profiles = Profiles{}
+		confPath = viper.ConfigFileUsed()
+	)
+
+	if confPath == "" {
+		return profiles, errors.New("unable to load profiles. No configuration file found.")
+	}
+
+	cli.Log.Debugw("decoding config", "path", confPath)
+	if _, err := toml.DecodeFile(confPath, &profiles); err != nil {
+		return profiles, errors.Wrap(err, "unable to decode profiles from config")
+	}
+
+	cli.Log.Debugw("profiles loaded from config", "profiles", profiles)
+	return profiles, nil
 }
 
 // VerifySettings checks if the CLI state has the neccessary settings to run,
@@ -279,4 +321,13 @@ func (c *cliState) extractValueString(key string) string {
 		"key", key,
 	)
 	return ""
+}
+
+// newID generates a new client id, this id is useful for logging purposes
+// when there are more than one client running on the same machine
+// TODO @afiune move this into its own go package (look at api/client.go)
+func newID() string {
+	now := time.Now().UTC().UnixNano()
+	seed := rand.New(rand.NewSource(now))
+	return strconv.FormatInt(seed.Int63(), 16)
 }

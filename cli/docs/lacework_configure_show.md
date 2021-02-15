@@ -1,0 +1,47 @@
+## lacework configure show
+
+show current configuration data
+
+### Synopsis
+
+Prints the current computed configuration data from the specified configuration
+key. The order of precedence to compute the configuration is flags, environment
+variables, and the configuration file ~/.lacework.toml. 
+
+The available configuration keys are:
+* profile
+* account
+* api_secret
+* api_key
+
+To show the configuration from a different profile, use the flag --profile.
+
+    $ lacework configure show account --profile my-profile
+
+```
+lacework configure show <config_key> [flags]
+```
+
+### Options
+
+```
+  -h, --help   help for show
+```
+
+### Options inherited from parent commands
+
+```
+  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+  -k, --api_key string      access key id
+  -s, --api_secret string   secret access key
+      --debug               turn on debug logging
+      --json                switch commands output from human-readable to json format
+      --nocolor             turn off colors
+      --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+  -p, --profile string      switch between profiles configured at ~/.lacework.toml
+```
+
+### SEE ALSO
+
+* [lacework configure](lacework_configure.md)	 - configure the Lacework CLI
+

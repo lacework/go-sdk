@@ -25,8 +25,11 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"runtime"
+
+	"github.com/lacework/go-sdk/lwupdater"
 )
 
 // Use this function to execute a real lacework CLI command, under the hood the function
@@ -82,11 +85,37 @@ func NewLaceworkCLI(workingDir string, args ...string) *exec.Cmd {
 	cmd.Env = os.Environ()
 	if len(workingDir) != 0 {
 		cmd.Dir = workingDir
-		cmd.Env = append(os.Environ(),
-			fmt.Sprintf("HOME=%s", workingDir),
-		)
+		env := append(os.Environ(), fmt.Sprintf("HOME=%s", workingDir))
+
+		// by default, we disable all lwupdater requests, unless we are testing it
+		// to test it, set the environment variable CI_TEST_LWUPDATER
+		if os.Getenv(ciTestingUpdaterEnv) == "" {
+			env = append(env, fmt.Sprintf("%s=1", lwupdater.DisableEnv))
+		}
+		cmd.Env = env
 	}
 	return cmd
+}
+
+// By default, we disable all lwupdater requests, unless we are testing it
+// to test it, set the environment variable CI_TEST_LWUPDATER=1
+//
+// Example:
+//
+// func TestUpdaterExample(t *testing.T) {
+//   enableTestingUpdaterEnv()
+//   defer disableTestingUpdaterEnv()
+//
+//   // exacute an updater test
+// }
+var ciTestingUpdaterEnv = "CI_TEST_LWUPDATER"
+
+func enableTestingUpdaterEnv() {
+	os.Setenv(ciTestingUpdaterEnv, "1")
+}
+
+func disableTestingUpdaterEnv() {
+	os.Setenv(ciTestingUpdaterEnv, "")
 }
 
 func runLaceworkCLI(workingDir string, args ...string) (stdout bytes.Buffer, stderr bytes.Buffer, exitcode int) {
@@ -127,7 +156,6 @@ func createTOMLConfigFromCIvars() string {
 	if os.Getenv("CI_ACCOUNT") == "" ||
 		os.Getenv("CI_API_KEY") == "" ||
 		os.Getenv("CI_API_SECRET") == "" {
-		// @afiune add instructions
 		log.Fatal(missingCIEnvironmentVariables())
 	}
 
@@ -172,10 +200,44 @@ func createDummyTOMLConfig() string {
 account = 'dummy'
 api_key = 'DUMMY_1234567890abcdefg'
 api_secret = '_superdummysecret'
+
+[test]
+account = 'test.account'
+api_key = 'INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00'
+api_secret = '_00000000000000000000000000000000'
+
+[integration]
+account = 'integration'
+api_key = 'INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70'
+api_secret = '_1234abdc00ff11vv22zz33xyz1234abc'
+
+[dev]
+account = 'dev.example'
+api_key = 'DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC000'
+api_secret = '_11111111111111111111111111111111'
 `)
 	err = ioutil.WriteFile(configFile, c, 0644)
 	if err != nil {
 		panic(err)
 	}
 	return dir
+}
+
+// store a file in Circle CI Working directory, only if we are running on CircleCI
+func storeFileInCircleCI(f string) {
+	if jobDir := os.Getenv("CIRCLE_WORKING_DIRECTORY"); jobDir != "" {
+		var (
+			file      = filepath.Base(f)
+			artifacts = path.Join(jobDir, "circleci-artifacts")
+			err       = os.Mkdir(artifacts, 0755)
+		)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		err = os.Rename(f, path.Join(artifacts, file))
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 }

@@ -19,6 +19,7 @@
 package integration
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -58,27 +59,80 @@ func TestEventCommandList(t *testing.T) {
 		"EXITCODE is not the expected one")
 }
 
-func TestEventCommandListTimeRange(t *testing.T) {
-	var (
-		now  = time.Now().UTC()
-		from = now.AddDate(0, 0, -1) // 1 days from now
-	)
-
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--start", from.Format(time.RFC3339), "--end", now.Format(time.RFC3339))
-	assert.Contains(t, out.String(), "EVENT ID",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "TYPE",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "SEVERITY",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "START TIME",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "END TIME",
-		"STDOUT table headers changed, please check")
+func TestEventCommandList4Days(t *testing.T) {
+	// @afiune could we find a way to generate a consistent event? but if we do
+	// wouldn't the ML learn it and then become a known behavior? uhmmm
+	// for now we will just check that we have the headers :wink:
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--days", "4")
 	assert.Empty(t,
 		err.String(),
 		"STDERR should be empty")
 	assert.Equal(t, 0, exitcode,
+		"EXITCODE is not the expected one")
+
+	// only verify the table headers if there are events
+	if !strings.Contains(out.String(), "There are no events in your account in the specified time range.") {
+		assert.Contains(t, out.String(), "EVENT ID",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "TYPE",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "SEVERITY",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "START TIME",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "END TIME",
+			"STDOUT table headers changed, please check")
+	}
+}
+
+func TestEventCommandListSeverityError(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--severity", "foo")
+	assert.Contains(t, err.String(), "ERROR the severity foo is not valid, use one of critical, high, medium, low, info",
+		"STDERR the message to the user has changed, update please")
+	assert.Empty(t,
+		out.String(),
+		"STDOUT should be empty")
+	assert.Equal(t, 1, exitcode,
+		"EXITCODE is not the expected one")
+}
+
+func TestEventCommandListTimeRange(t *testing.T) {
+	var (
+		now  = time.Now().UTC()
+		from = now.AddDate(0, 0, -4) // 4 days from now
+	)
+
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--start", from.Format(time.RFC3339), "--end", now.Format(time.RFC3339))
+	assert.Empty(t,
+		err.String(),
+		"STDERR should be empty")
+	assert.Equal(t, 0, exitcode,
+		"EXITCODE is not the expected one")
+
+	// only verify the table headers if there are events
+	if !strings.Contains(out.String(), "There are no events in your account in the specified time range.") {
+		assert.Contains(t, out.String(), "EVENT ID",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "TYPE",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "SEVERITY",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "START TIME",
+			"STDOUT table headers changed, please check")
+		assert.Contains(t, out.String(), "END TIME",
+			"STDOUT table headers changed, please check")
+	}
+}
+
+func TestEventCommandOpenError(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "open", "123abc")
+	assert.Contains(t, err.String(),
+		"ERROR invalid event id 123abc. Event id should be a numeric value",
+		"STDERR the error message changed, update")
+	assert.Empty(t,
+		out.String(),
+		"STDOUT should be empty")
+	assert.Equal(t, 1, exitcode,
 		"EXITCODE is not the expected one")
 }
 

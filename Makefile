@@ -3,11 +3,20 @@ default: ci
 ci: lint test fmt-check imports-check integration
 
 GOLANGCILINTVERSION?=1.23.8
+CIARTIFACTS?=circleci-artifacts
 COVERAGEOUT?=coverage.out
+COVERAGEHTML?=coverage.html
 PACKAGENAME?=lacework-cli
 CLINAME?=lacework
+# Honeycomb variables
+HONEYDATASET?=lacework-cli-dev
+# => HONEYAPIKEY should be exported on every developers workstation or else events
+#                won't be recorded in Honeycomb. Inside our CI/CD pipeline this
+#                secret is set as well as a different dataset for production
 GO_LDFLAGS="-X github.com/lacework/go-sdk/cli/cmd.Version=$(shell cat VERSION) \
             -X github.com/lacework/go-sdk/cli/cmd.GitSHA=$(shell git rev-parse HEAD) \
+            -X github.com/lacework/go-sdk/cli/cmd.HoneyApiKey=$(HONEYAPIKEY) \
+            -X github.com/lacework/go-sdk/cli/cmd.HoneyDataset=$(HONEYDATASET) \
             -X github.com/lacework/go-sdk/cli/cmd.BuildTime=$(shell date +%Y%m%d%H%M%S)"
 GOFLAGS=-mod=vendor
 CGO_ENABLED?=0
@@ -29,6 +38,10 @@ coverage: test
 coverage-html: test
 	go tool cover -html=$(COVERAGEOUT)
 
+coverage-ci: test
+	mkdir -p $(CIARTIFACTS)
+	go tool cover -html=$(COVERAGEOUT) -o "$(CIARTIFACTS)/$(COVERAGEHTML)"
+
 go-vendor:
 	go mod tidy
 	go mod vendor
@@ -49,10 +62,17 @@ imports-check:
 
 build-cli-cross-platform:
 	gox -output="bin/$(PACKAGENAME)-{{.OS}}-{{.Arch}}" \
-            -os="darwin linux windows" \
+            -os="linux windows" \
             -arch="amd64 386" \
+            -osarch="darwin/amd64 linux/arm linux/arm64" \
             -ldflags=$(GO_LDFLAGS) \
             github.com/lacework/go-sdk/cli
+
+generate-databox:
+	go generate internal/databox/box.go
+
+generate-docs:
+	go generate cli/cmd/docs.go
 
 install-cli: build-cli-cross-platform
 ifeq (x86_64, $(shell uname -m))

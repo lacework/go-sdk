@@ -6,7 +6,7 @@ set -eou pipefail
 if [ -n "${LW_DEBUG:-}" ]; then set -x; fi
 
 readonly github_releases="https://github.com/lacework/go-sdk/releases"
-readonly installation_dir=/usr/local/bin
+readonly default_install_dir=/usr/local/bin
 readonly package_name=lacework-cli
 readonly binary_name=lacework
 
@@ -24,6 +24,7 @@ USAGE:
 FLAGS:
     -h    Prints help information
     -v    Specifies a version (ex: v0.1.0)
+    -d    The installation directory (default: $default_install_dir)
     -t    Specifies the target of the program to download (default: linux-amd64)
 USAGE
 }
@@ -31,8 +32,8 @@ USAGE
 main() {
   version=""
 
-  # Parse command line flags and options.
-  while getopts "c:hv:t:" opt; do
+  # Parse command line flags and options
+  while getopts "h:v:t:d:" opt; do
     case "${opt}" in
       h)
         usage
@@ -43,6 +44,10 @@ main() {
         ;;
       t)
         target="${OPTARG}"
+        check_target
+        ;;
+      d)
+        installation_dir="${OPTARG}"
         ;;
       \?)
         echo "" >&2
@@ -52,9 +57,16 @@ main() {
     esac
   done
 
+  if [ -z "${installation_dir:-}" ]; then
+    installation_dir=$default_install_dir
+  fi
+
+  if [ -z "${target:-}" ]; then
+    detect_platform
+  fi
+
   log "Installing the Lacework CLI"
   create_workdir
-  check_platform
   download_archive "$version" "$target"
   verify_archive
   extract_archive
@@ -76,7 +88,25 @@ create_workdir() {
   cd "${workdir}"
 }
 
-check_platform() {
+check_target() {
+  if [[ ! $target =~ "-" ]]; then
+    exit_with "malformed target '${target}' (format: system-arch)" 5
+  fi
+
+  sys=$(echo "$target" | cut -d- -f1)
+  if [ -z "${sys}" ]; then
+    exit_with "malformed target '${target}' (format: system-arch)" 5
+  fi
+
+  arch=$(echo "$target" | cut -d- -f2)
+  if [ -z "${arch}" ]; then
+    exit_with "malformed target '${target}' (format: system-arch)" 5
+  fi
+
+  verify_platform
+}
+
+detect_platform() {
   local _ostype
   _ostype="$(uname -s)"
 
@@ -90,6 +120,12 @@ check_platform() {
       ;;
   esac
 
+  verify_platform
+
+  target="${sys}-${arch}"
+}
+
+verify_platform() {
   case "${sys}" in
     darwin)
       ext=zip
@@ -107,20 +143,22 @@ check_platform() {
   # The following architectures match our cross-platform build process
   # https://golang.org/doc/install/source#environment
   case "${arch}" in
-    x86_64)
+    x86_64 | amd64)
       arch=amd64
       ;;
-   i686)
+   i686 | 386)
       arch=386
+      ;;
+   aarch64* | armv8* | arm64)
+      arch=arm64
+      ;;
+   armv7* | armv6* | arm)
+      arch=arm
       ;;
     *)
       exit_with "architecture not supported: ${arch}" 3
       ;;
   esac
-
-  if [ -z "${target:-}" ]; then
-    target="${sys}-${arch}"
-  fi
 }
 
 download_archive() {
@@ -175,8 +213,8 @@ install_cli() {
 }
 
 print_cli_version() {
-  info "Verifying installed Lacework CLI version"
-  "${installation_dir}/${binary_name}" version
+  log "Verifying installed Lacework CLI version"
+  LW_TELEMETRY_DISABLE=1 LW_UPDATES_DISABLE=1 "${installation_dir}/${binary_name}" version
 }
 
 download_file() {
@@ -190,13 +228,15 @@ download_file() {
   if command -v wget > /dev/null; then
     log "Downloading via wget: ${_url}"
 
+    set +e
     wget -q -O "${_dst}" "${_url}"
     _code="$?"
+    set -eou pipefail
 
     if [ $_code -eq 0 ]; then
       return 0
     else
-      warn "wget failed to download file, trying to download with curl"
+      warn "wget failed to download file, trying to download with curl (exitcode: ${_code})"
     fi
   fi
 
@@ -204,18 +244,20 @@ download_file() {
   if command -v curl > /dev/null; then
     log "Downloading via curl: ${_url}"
 
+    set +e
     curl -sSfL "${_url}" -o "${_dst}"
     _code="$?"
+    set -eou pipefail
 
     if [ $_code -eq 0 ]; then
       return 0
     else
-      warn "curl failed to download file"
+      warn "curl failed to download file (exitcode: ${_code})"
     fi
   fi
 
   # wget and curl have failed, inform the user
-  exit_with "Required: SSL-enabled 'curl' or 'wget' on PATH with" 6
+  exit_with "Required: SSL-enabled 'curl' or 'wget' on PATH" 6
 }
 
 log() {
@@ -231,4 +273,4 @@ exit_with() {
   exit "${2:-10}"
 }
 
-main "$@" || exit 99
+main "$@"
