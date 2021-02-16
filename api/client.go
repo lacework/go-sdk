@@ -117,6 +117,15 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	return c, nil
 }
 
+// WithTimeout changes the default client timeout
+func WithTimeout(timeout time.Duration) Option {
+	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up client", zap.Reflect("timeout", timeout))
+		c.c.Timeout = timeout
+		return nil
+	})
+}
+
 // WithURL sets the base URL, this options is only available for test purposes
 func WithURL(baseURL string) Option {
 	return clientFunc(func(c *Client) error {
