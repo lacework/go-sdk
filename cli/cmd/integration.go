@@ -478,7 +478,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"URL", iData.WebhookURL},
+			[]string{"WEBHOOK URL", iData.WebhookURL},
 		}
 
 		return out
