@@ -206,6 +206,7 @@ func promptCreateIntegration() error {
 				"GCP PubSub Alert Channel",
 				"Microsoft Teams Alert Channel",
 				"Webhook Alert Channel",
+				"VictorOps Alert Channel",
 				"Splunk Alert Channel",
 				"Service Now Alert Channel",
 				"PagerDuty Alert Channel",
@@ -246,6 +247,8 @@ func promptCreateIntegration() error {
 		return createDatadogIntegration()
 	case "Webhook Alert Channel":
 		return createWebhookIntegration()
+	case "VictorOps Alert Channel":
+		return createVictorOpsChannelIntegration()
 	case "Splunk Alert Channel":
 		return createSplunkIntegration()
 	case "PagerDuty Alert Channel":
@@ -458,6 +461,24 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		out := [][]string{
 			[]string{"WEBHOOK URL", iData.WebhookUrl},
+		}
+
+		return out
+
+	case api.VictorOpsChannelIntegration.String():
+
+		var iData api.VictorOpsChannelData
+		err := mapstructure.Decode(raw.Data, &iData)
+		if err != nil {
+			cli.Log.Debugw("unable to decode integration data",
+				"integration_type", raw.Type,
+				"raw_data", raw.Data,
+				"error", err,
+			)
+			break
+		}
+		out := [][]string{
+			[]string{"WEBHOOK URL", iData.WebhookURL},
 		}
 
 		return out
