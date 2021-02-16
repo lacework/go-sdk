@@ -20,6 +20,7 @@ package api_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -53,6 +54,7 @@ func TestNewClientWithOptions(t *testing.T) {
 		api.WithURL(fakeServer.URL()),
 		api.WithExpirationTime(1800),
 		api.WithApiV2(),
+		api.WithTimeout(time.Minute*5),
 		api.WithLogLevel("DEBUG"),
 		api.WithHeader("User-Agent", "test-agent"),
 		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
