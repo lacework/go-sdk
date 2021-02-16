@@ -62,7 +62,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: bin
-      - run: make integration-only
+      - run:
+          command: make integration-only
+          no_output_timeout: 30m
       - store_artifacts:
           path: circleci-artifacts
       - slack/status:
@@ -80,7 +82,8 @@ jobs:
       - run:
           command: |
             $env:LW_CLI_BIN = Join-Path (Get-Location).Path "bin\\lacework-cli-windows-amd64.exe"
-            go test -v github.com/lacework/go-sdk/integration
+            go test -v github.com/lacework/go-sdk/integration -timeout 30m
+          no_output_timeout: 30m
       - store_artifacts:
           path: circleci-artifacts
   verify-release:
