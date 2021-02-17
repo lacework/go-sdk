@@ -241,7 +241,7 @@ func promptCreateIntegration() error {
 	case "Microsoft Teams Alert Channel":
 		return createMicrosoftTeamsChannelIntegration()
 	case "New Relic Insights Alert Channel":
-		return createNewRelicChannelIntegration()
+		return createNewRelicAlertChannelIntegration()
 	case "AWS S3 Alert Channel":
 		return createAwsS3ChannelIntegration()
 	case "Cisco Webex Alert Channel":
@@ -586,7 +586,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"ACCOUNT ID", string(iData.AccountID)},
+			[]string{"ACCOUNT ID", fmt.Sprint(iData.AccountID)},
 			[]string{"INSERT KEY", iData.InsertKey},
 		}
 

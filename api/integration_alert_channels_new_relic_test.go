@@ -227,24 +227,24 @@ func newRelicChanMultiIntegrationJsonResponse(guids []string) string {
 
 func singleNewRelicChanIntegration(id string) string {
 	return `
-		{
-			"INTG_GUID": "` + id + `",
-			"NAME": "integration_name",
-			"CREATED_OR_UPDATED_TIME": "2020-Mar-10 01:00:00 UTC",
-			"CREATED_OR_UPDATED_BY": "user@email.com",
-			"TYPE": "NEW_RELIC_INSIGHTS",
-			"ENABLED": 1,
-			"STATE": {
-				"ok": true,
-				"lastUpdatedTime": "2020-Mar-10 01:00:00 UTC",
-				"lastSuccessfulTime": "2020-Mar-10 01:00:00 UTC"
-			},
-			"IS_ORG": 0,
-			"DATA": {
-				"ACCOUNT_ID": 2338053,
-				"INSERT_KEY": "x-xx-xxxxxxxxxxxxxxxxxx",
-			},
-			"TYPE_NAME": "NEW_RELIC_INSIGHTS"
-		}
-	`
+{
+  "INTG_GUID": "` + id + `",
+  "CREATED_OR_UPDATED_BY": "user@email.com",
+  "CREATED_OR_UPDATED_TIME": "2020-Jul-16 19:59:22 UTC",
+  "DATA": {
+    "ACCOUNT_ID": 2338053,
+    "INSERT_KEY": "x-xx-xxxxxxxxxxxxxxxxxx"
+  },
+  "ENABLED": 1,
+  "IS_ORG": 0,
+  "NAME": "integration_name",
+  "STATE": {
+    "lastSuccessfulTime": "2020-Jul-16 18:26:54 UTC",
+    "lastUpdatedTime": "2020-Jul-16 18:26:54 UTC",
+    "ok": true
+  },
+  "TYPE": "NEW_RELIC_INSIGHTS",
+  "TYPE_NAME": "NEW_RELIC_INSIGHTS"
+}
+`
 }

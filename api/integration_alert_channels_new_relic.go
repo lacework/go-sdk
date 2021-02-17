@@ -49,7 +49,7 @@ func NewNewRelicAlertChannel(name string, data NewRelicChannelData) NewRelicAler
 	}
 }
 
-// CreateNewRelicAlertChannel creates an GCP_PUBSUB alert channel integration on the Lacework Server
+// CreateNewRelicAlertChannel creates an NEW_RELIC_INSIGHTS alert channel integration on the Lacework Server
 func (svc *IntegrationsService) CreateNewRelicAlertChannel(integration NewRelicAlertChannel) (
 	response NewRelicAlertChannelResponse,
 	err error,
@@ -58,7 +58,7 @@ func (svc *IntegrationsService) CreateNewRelicAlertChannel(integration NewRelicA
 	return
 }
 
-// GetNewRelicAlertChannel gets an GCP_PUBSUB alert channel integration that matches with
+// GetNewRelicAlertChannel gets an NEW_RELIC_INSIGHTS alert channel integration that matches with
 // the provided integration guid on the Lacework Server
 func (svc *IntegrationsService) GetNewRelicAlertChannel(guid string) (
 	response NewRelicAlertChannelResponse,
@@ -68,7 +68,7 @@ func (svc *IntegrationsService) GetNewRelicAlertChannel(guid string) (
 	return
 }
 
-// UpdateNewRelicAlertChannel updates a single GCP_PUBSUB alert channel integration
+// UpdateNewRelicAlertChannel updates a single NEW_RELIC_INSIGHTS alert channel integration
 func (svc *IntegrationsService) UpdateNewRelicAlertChannel(data NewRelicAlertChannel) (
 	response NewRelicAlertChannelResponse,
 	err error,
@@ -77,7 +77,7 @@ func (svc *IntegrationsService) UpdateNewRelicAlertChannel(data NewRelicAlertCha
 	return
 }
 
-// ListNewRelicAlertChannel lists the GCP_PUBSUB external integrations available on the Lacework Server
+// ListNewRelicAlertChannel lists the NEW_RELIC_INSIGHTS external integrations available on the Lacework Server
 func (svc *IntegrationsService) ListNewRelicAlertChannel() (response NewRelicAlertChannelResponse, err error) {
 	err = svc.listByType(NewRelicChannelIntegration, &response)
 	return
