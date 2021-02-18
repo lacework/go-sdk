@@ -64,7 +64,7 @@ func createQRadarAlertChannelIntegration() error {
 		return err
 	}
 
-	commType, err := api.DatadogService(answers.CommunicationType)
+	commType, err := api.QRadarComm(answers.CommunicationType)
 	if err != nil {
 		return err
 	}

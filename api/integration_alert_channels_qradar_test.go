@@ -234,25 +234,25 @@ func qradarChanMultiIntegrationJsonResponse(guids []string) string {
 
 func singleQRadarChanIntegration(id string) string {
 	return `
-		{
-			"INTG_GUID": "` + id + `",
-			"NAME": "integration_name",
-			"CREATED_OR_UPDATED_TIME": "2020-Mar-10 01:00:00 UTC",
-			"CREATED_OR_UPDATED_BY": "user@email.com",
-			"TYPE": "IBM_QRADAR",
-			"ENABLED": 1,
-			"STATE": {
-				"ok": true,
-				"lastUpdatedTime": "2020-Mar-10 01:00:00 UTC",
-				"lastSuccessfulTime": "2020-Mar-10 01:00:00 UTC"
-			},
-			"IS_ORG": 0,
-			"DATA": {
-				"QRADAR_HOST_URL": "https://qradar-lacework.com",
-				"QRADAR_COMM_TYPE": "HTTPS",
-				"QRADAR_HOST_PORT": 8080,
-			},
-			"TYPE_NAME": "IBM_QRADAR"
-		}
-	`
+{
+  "INTG_GUID": "` + id + `",
+  "CREATED_OR_UPDATED_BY": "user@email.com",
+  "CREATED_OR_UPDATED_TIME": "2020-Jul-16 19:59:22 UTC",
+  "DATA": {
+	"QRADAR_HOST_URL": "https://qradar-lacework.com",
+	"QRADAR_COMM_TYPE": "HTTPS",
+	"QRADAR_HOST_PORT": 8080
+  },
+  "ENABLED": 1,
+  "IS_ORG": 0,
+  "NAME": "integration_name",
+  "STATE": {
+    "lastSuccessfulTime": "2020-Jul-16 18:26:54 UTC",
+    "lastUpdatedTime": "2020-Jul-16 18:26:54 UTC",
+    "ok": true
+  },
+  "TYPE": "WEBHOOK",
+  "TYPE_NAME": "IBM_QRADAR"
+}
+`
 }
