@@ -34,7 +34,7 @@ package api
 //			AccountID: 2338053,
 //			InsertKey: "x-xx-xxxxxxxxxxxxxxxxxx",
 //		},
-//		)
+//	)
 //
 //   client.Integrations.CreateNewRelicAlertChannel(newRelicChannel)
 //
