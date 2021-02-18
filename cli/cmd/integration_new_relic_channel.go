@@ -38,7 +38,7 @@ func createNewRelicAlertChannelIntegration() error {
 		},
 		{
 			Name:     "insert_key",
-			Prompt:   &survey.Input{Message: "InsertKey:"},
+			Prompt:   &survey.Input{Message: "Insert API Key:"},
 			Validate: survey.Required,
 		},
 	}
