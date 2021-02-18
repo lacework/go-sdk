@@ -587,7 +587,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 		out := [][]string{
 			[]string{"ACCOUNT ID", fmt.Sprint(iData.AccountID)},
-			[]string{"INSERT KEY", iData.InsertKey},
+			[]string{"INSERT API KEY", iData.InsertKey},
 		}
 
 		return out
