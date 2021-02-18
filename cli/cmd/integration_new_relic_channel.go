@@ -33,7 +33,7 @@ func createNewRelicAlertChannelIntegration() error {
 		},
 		{
 			Name:     "account_id",
-			Prompt:   &survey.Input{Message: "AccountID:"},
+			Prompt:   &survey.Input{Message: "Account ID:"},
 			Validate: survey.Required,
 		},
 		{
