@@ -73,6 +73,9 @@ const (
 	// Microsoft Teams channel integration type
 	MicrosoftTeamsChannelIntegration
 
+	// QRadar channel integration type
+	QRadarChannelIntegration
+
 	// Slack channel integration type
 	SlackChannelIntegration
 
@@ -113,6 +116,7 @@ var IntegrationTypes = map[integrationType]string{
 	AzureCfgIntegration:              "AZURE_CFG",
 	AzureActivityLogIntegration:      "AZURE_AL_SEQ",
 	ContainerRegistryIntegration:     "CONT_VULN_CFG",
+	QRadarChannelIntegration:         "IBM_QRADAR",
 	MicrosoftTeamsChannelIntegration: "MICROSOFT_TEAMS",
 	SlackChannelIntegration:          "SLACK_CHANNEL",
 	SplunkIntegration:                "SPLUNK_HEC",
