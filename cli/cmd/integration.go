@@ -568,9 +568,9 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"QRADAR HOST PORT", fmt.Sprint(iData.HostPort)},
-			[]string{"QRADAR HOST URL", iData.HostURL},
-			[]string{"QRADAR COMM TYPE", string(iData.CommunicationType)},
+			[]string{"HOST PORT", fmt.Sprint(iData.HostPort)},
+			[]string{"HOST URL", iData.HostURL},
+			[]string{"COMMUNICATION TYPE", string(iData.CommunicationType)},
 		}
 
 		return out
