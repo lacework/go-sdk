@@ -1,18 +1,11 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.2.19`.
+Another day, another release. These are the release notes for the version `v0.2.20`.
 
 ## Features
-* feat(cli): New VictorOps alert channel (#318) (Darren)([dfcd34a](https://github.com/lacework/go-sdk/commit/dfcd34adae5b84d697bd5f76831f749765f885fa))
-* feat(cli): New CiscoWebex alert channel (#316) (Darren)([8e0071a](https://github.com/lacework/go-sdk/commit/8e0071a7d8a879d59c4545c8528e01287b90041e))
-* feat: New Microsoft Teams alert channel (#315) (Darren)([e414226](https://github.com/lacework/go-sdk/commit/e41422624b5274a5d2b571fca4399ee2c9df3af3))
-## Refactor
-* refactor(cli): exponential retries polling scans (Salim Afiune Maya)([2bb881d](https://github.com/lacework/go-sdk/commit/2bb881d90fa6497003a89045acb41978398d5502))
-## Bug Fixes
-* fix(cli): match API client timeout with NGINX (#321) (Salim Afiune)([10b7a28](https://github.com/lacework/go-sdk/commit/10b7a28677af003e176de26b0dc1558c4837d1c4))
-## Other Changes
-* ci: increase integration test timeout to 30m (Salim Afiune Maya)([3081e3c](https://github.com/lacework/go-sdk/commit/3081e3cc6264e85b7fd80019a36d89dda1d9e5c9))
-* test: change ctr vuln scan tag (Salim Afiune Maya)([c15bd1b](https://github.com/lacework/go-sdk/commit/c15bd1b2e0454ff61f6a7549f62c6bc791190079))
-* test(cli): disable failing tests (RAIN-15300) (#320) (Salim Afiune)([e2afb31](https://github.com/lacework/go-sdk/commit/e2afb31277e8a2781c5f8e55ebf352992cd6d2b0))
+* feat(cli): New IBM QRadar alert channel (#325) (Darren)([0e9f6f5](https://github.com/lacework/go-sdk/commit/0e9f6f57e16e96ccfb84b9bd618e595378cf0fb3))
+* feat(cli): New Relic Insights alert channel (#323) (Darren)([d7242b8](https://github.com/lacework/go-sdk/commit/d7242b84a525a4b9484324f2dfb49b172528302b))
+## Documentation Updates
+* doc(cli): update scan-pkg-manifest help to 10k pkgs (#324) (Salim Afiune)([0348800](https://github.com/lacework/go-sdk/commit/03488001d7c0aab308adf00ec6d8ac4a73aec78c))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
