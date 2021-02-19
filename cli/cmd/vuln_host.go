@@ -92,8 +92,7 @@ To generate a package-manifest from the local host and scan it automatically:
 (*) NOTE:
  - Only packages managed by a package manager for supported OS's are reported.
  - Calls to this operation are rate limited to 10 calls per hour, per access key.
- - This operation is limited to 1k of packages per payload. If you require a payload
-   larger than 1k, you must make multiple requests.`,
+ - This operation is limited to 10k packages per command execution.`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				pkgManifest      = new(api.PackageManifest)
