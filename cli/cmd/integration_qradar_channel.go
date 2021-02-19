@@ -33,18 +33,18 @@ func createQRadarAlertChannelIntegration() error {
 		},
 		{
 			Name:     "host_url",
-			Prompt:   &survey.Input{Message: "Url:"},
+			Prompt:   &survey.Input{Message: "Host Url:"},
 			Validate: survey.Required,
 		},
 		{
 			Name:     "host_port",
-			Prompt:   &survey.Input{Message: "Port:"},
+			Prompt:   &survey.Input{Message: "Host Port:"},
 			Validate: survey.Required,
 		},
 		{
 			Name: "communication_type",
 			Prompt: &survey.Select{Message: "Communication Type:",
-				Options: []string{string(api.QRadarCommHttps), string(api.QRadarCommSelfSigned)},
+				Options: []string{string(api.QRadarCommHttps), string(api.QRadarCommHttpsSelfSigned)},
 				Default: string(api.QRadarCommHttps),
 			},
 		},

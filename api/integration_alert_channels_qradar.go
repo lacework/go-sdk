@@ -105,13 +105,13 @@ type qradarComm string
 
 const (
 	// The list of valid inputs for QRadar Communication Type field
-	QRadarCommHttps      qradarComm = "HTTPS"
-	QRadarCommSelfSigned qradarComm = "HTTPS Self Signed Cert"
+	QRadarCommHttps           qradarComm = "HTTPS"
+	QRadarCommHttpsSelfSigned qradarComm = "HTTPS Self Signed Cert"
 )
 
 var qradarCommTypes = map[string]qradarComm{
-	string(QRadarCommHttps):      QRadarCommHttps,
-	string(QRadarCommSelfSigned): QRadarCommSelfSigned,
+	string(QRadarCommHttps):           QRadarCommHttps,
+	string(QRadarCommHttpsSelfSigned): QRadarCommHttpsSelfSigned,
 }
 
 // QRadarComm returns the qradarComm type for the corresponding string input
