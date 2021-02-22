@@ -529,10 +529,25 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			)
 			break
 		}
+
+		templateString, err := iData.DecodeCustomTemplateFile()
+		if err != nil {
+			cli.Log.Debugw("unable to decode custom template file",
+				"integration_type", raw.Type,
+				"raw_data", iData.CustomTemplateFile,
+				"error", err,
+			)
+		}
+
+		tmplStrPretty, err := cli.FormatJSONString(templateString)
+		if err != nil {
+			tmplStrPretty = templateString
+		}
 		out := [][]string{
 			[]string{"INSTANCE URL", iData.InstanceURL},
 			[]string{"USERNAME", iData.Username},
 			[]string{"PASSWORD", iData.Password},
+			[]string{"CUSTOM TEMPLATE FILE", tmplStrPretty},
 			[]string{"ISSUE GROUPING", iData.IssueGrouping},
 		}
 

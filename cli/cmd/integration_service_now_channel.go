@@ -69,17 +69,42 @@ func createServiceNowAlertChannelIntegration() error {
 		return err
 	}
 
-	snow := api.NewServiceNowAlertChannel(answers.Name,
-		api.ServiceNowChannelData{
-			InstanceURL:   answers.InstanceURL,
-			Username:      answers.Username,
-			Password:      answers.Password,
-			IssueGrouping: answers.IssueGrouping,
-		},
-	)
+	snow := api.ServiceNowChannelData{
+		InstanceURL:   answers.InstanceURL,
+		Username:      answers.Username,
+		Password:      answers.Password,
+		IssueGrouping: answers.IssueGrouping,
+	}
+
+	// ask the user if they would like to configure a Custom Template
+	custom := false
+	err = survey.AskOne(&survey.Confirm{
+		Message: "Configure a Custom Template File?",
+	}, &custom)
+
+	if err != nil {
+		return err
+	}
+
+	if custom {
+		var content string
+
+		err = survey.AskOne(&survey.Editor{
+			Message:  "Provide the Custom Template File in JSON format",
+			FileName: "*.json",
+		}, &content)
+
+		if err != nil {
+			return err
+		}
+
+		snow.EncodeCustomTemplateFile(content)
+	}
+
+	snowAlert := api.NewServiceNowAlertChannel(answers.Name, snow)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateServiceNowAlertChannel(snow)
+	_, err = cli.LwApi.Integrations.CreateServiceNowAlertChannel(snowAlert)
 	cli.StopProgress()
 	return err
 }
