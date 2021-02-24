@@ -35,6 +35,11 @@ C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubus
 
 Look at the [cli/](cli/) folder for more information.
 
+#### Homebrew:
+```
+$ brew install lacework/tap/lacework-cli
+```
+See [Lacework Homebrew Tap](https://github.com/lacework/homebrew-tap) for more details
 ## Lacework API Client ([`api`](api/))
 
 A Golang API client for interacting with the [Lacework API](https://support.lacework.com/hc/en-us/categories/360002496114-Lacework-API-).
