@@ -18,6 +18,12 @@
 
 package api
 
+import (
+	"encoding/base64"
+	"fmt"
+	"strings"
+)
+
 // NewServiceNowAlertChannel returns an instance of ServiceNowAlertChannel
 // with the provided name and data.
 //
@@ -95,8 +101,30 @@ type ServiceNowAlertChannel struct {
 }
 
 type ServiceNowChannelData struct {
-	InstanceURL   string `json:"INSTANCE_URL" mapstructure:"INSTANCE_URL"`
-	Username      string `json:"USER_NAME" mapstructure:"USER_NAME"`
-	Password      string `json:"PASSWORD" mapstructure:"PASSWORD"`
-	IssueGrouping string `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
+	InstanceURL        string `json:"INSTANCE_URL" mapstructure:"INSTANCE_URL"`
+	Username           string `json:"USER_NAME" mapstructure:"USER_NAME"`
+	Password           string `json:"PASSWORD" mapstructure:"PASSWORD"`
+	CustomTemplateFile string `json:"CUSTOM_TEMPLATE_FILE,omitempty" mapstructure:"CUSTOM_TEMPLATE_FILE"`
+	IssueGrouping      string `json:"ISSUE_GROUPING,omitempty" mapstructure:"ISSUE_GROUPING"`
+}
+
+func (snow *ServiceNowChannelData) EncodeCustomTemplateFile(template string) {
+	encodedTemplate := base64.StdEncoding.EncodeToString([]byte(template))
+	snow.CustomTemplateFile = fmt.Sprintf("data:application/json;name=i.json;base64,%s", encodedTemplate)
+}
+
+func (snow *ServiceNowChannelData) DecodeCustomTemplateFile() (string, error) {
+	if len(snow.CustomTemplateFile) == 0 {
+		return "", nil
+	}
+
+	var (
+		b64      = strings.Split(snow.CustomTemplateFile, ",")
+		raw, err = base64.StdEncoding.DecodeString(b64[1])
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return string(raw), nil
 }
