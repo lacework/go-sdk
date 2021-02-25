@@ -32,14 +32,14 @@ $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh |
 C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
 C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.ps1'))
 ```
-
-Look at the [cli/](cli/) folder for more information.
-
 #### Homebrew:
 ```
 $ brew install lacework/tap/lacework-cli
 ```
-See [Lacework Homebrew Tap](https://github.com/lacework/homebrew-tap) for more details
+For more details, see [Lacework Homebrew Tap](https://github.com/lacework/homebrew-tap).
+
+Look at the [cli/](cli/) folder for more information.
+
 ## Lacework API Client ([`api`](api/))
 
 A Golang API client for interacting with the [Lacework API](https://support.lacework.com/hc/en-us/categories/360002496114-Lacework-API-).
