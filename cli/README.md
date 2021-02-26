@@ -23,6 +23,10 @@ C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
 C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.ps1'))
 ```
 
+### Homebrew:
+```
+$ brew install lacework/tap/lacework-cli
+```
 ## Quick Configuration
 
 The `lacework configure` command is the fastest way to set up your Lacework
