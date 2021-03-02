@@ -305,8 +305,8 @@ func matchRecommendationsFilters(r api.ComplianceRecommendation) bool {
 	// severity returns specified threshold and above
 	if compCmdState.Severity != "" {
 		sevThreshold, _ := eventSeverityToProperTypes(compCmdState.Severity)
-				results = append(results, r.Severity <= sevThreshold)
-		}
+		results = append(results, r.Severity <= sevThreshold)
+	}
 
 	if compCmdState.Category != "" {
 		category := strings.ReplaceAll(compCmdState.Category, "-", " ")
