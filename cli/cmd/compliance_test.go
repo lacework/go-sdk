@@ -116,6 +116,40 @@ func TestComplianceRecommendationsFilterMultiple(t *testing.T) {
 	clearFilters()
 }
 
+func TestStatusInputToProperTransform(t *testing.T) {
+	status := statusToProperTypes("non-compliant")
+	assert.Equal(t, status, "NonCompliant")
+
+	status = statusToProperTypes("compliant")
+	assert.Equal(t, status, "Compliant")
+
+	status = statusToProperTypes("suppressed")
+	assert.Equal(t, status, "Suppressed")
+
+	status = statusToProperTypes("requires-manual-assessment")
+	assert.Equal(t, status, "RequiresManualAssessment")
+}
+
+func TestFiltersEnabled(t *testing.T) {
+	NoneEnabled := filtersEnabled()
+	assert.Equal(t, NoneEnabled, false)
+
+	compCmdState.Category = "s3"
+	compCmdState.Status = "non-compliant"
+	compCmdState.Severity = "high"
+	compCmdState.Service = "aws:s3"
+	AllEnabled := filtersEnabled()
+	assert.Equal(t, AllEnabled, true)
+
+	compCmdState.Severity = ""
+	compCmdState.Service = ""
+
+	SomeEnabled := filtersEnabled()
+	assert.Equal(t, SomeEnabled, true)
+
+	clearFilters()
+}
+
 func clearFilters() {
 	compCmdState.Category = ""
 	compCmdState.Severity = ""
