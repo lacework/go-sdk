@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -138,11 +139,13 @@ To run an ad-hoc compliance assessment use the command:
 
 			report := response.Data[0]
 			cli.OutputHuman("\n")
+			recommendations, filteredOutput := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman(
 				buildComplianceReportTable(
 					complianceGcpReportDetailsTable(&report),
 					complianceReportSummaryTable(report.Summary),
-					complianceReportRecommendationsTable(report.Recommendations),
+					recommendations,
+					filteredOutput,
 				),
 			)
 			return nil
@@ -198,6 +201,24 @@ func init() {
 	// GCP report types: GCP_CIS, GCP_SOC, or GCP_PCI.
 	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
 		"report type to display, supported types: CIS, SOC, or PCI",
+	)
+
+	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Category, "category", "",
+		"filter the compliance report details view by category (identity-and-access-management, s3, logging...)",
+	)
+
+	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Service, "service", "",
+		"filter the compliance report details view by service (aws:s3, aws:iam, aws:cloudtrail ...)",
+	)
+
+	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Severity, "severity", "",
+		fmt.Sprintf("filter compliance report details view by severity threshold (%s)",
+			strings.Join(api.ValidEventSeverities, ", ")),
+	)
+
+	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",
+		fmt.Sprintf("filter compliance report details view by status (%s)",
+			strings.Join(api.ValidComplianceStatuses, ", ")),
 	)
 }
 

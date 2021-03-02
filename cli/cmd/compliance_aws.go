@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -151,12 +152,14 @@ To run an ad-hoc compliance assessment of an AWS account:
 			}
 
 			report := response.Data[0]
+			recommendations, filteredOutput := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman("\n")
 			cli.OutputHuman(
 				buildComplianceReportTable(
 					complianceAwsReportDetailsTable(&report),
 					complianceReportSummaryTable(report.Summary),
-					complianceReportRecommendationsTable(report.Recommendations),
+					recommendations,
+					filteredOutput,
 				),
 			)
 			return nil
@@ -215,6 +218,24 @@ func init() {
 	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
 		"report type to display, supported types: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI",
+	)
+
+	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Category, "category", "",
+		"filter the compliance report details view by category (identity-and-access-management, s3, logging...)",
+	)
+
+	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Service, "service", "",
+		"filter the compliance report details view by service (aws:s3, aws:iam, aws:cloudtrail ...)",
+	)
+
+	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Severity, "severity", "",
+		fmt.Sprintf("filter compliance report details view by severity threshold (%s)",
+			strings.Join(api.ValidEventSeverities, ", ")),
+	)
+
+	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",
+		fmt.Sprintf("filter compliance report details view by status (%s)",
+			strings.Join(api.ValidComplianceStatuses, ", ")),
 	)
 }
 

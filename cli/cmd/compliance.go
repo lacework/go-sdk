@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
@@ -44,6 +45,18 @@ var (
 
 		// display extended details about a compliance report
 		Details bool
+
+		// Filter the recommendations table by category
+		Category string
+
+		// Filter the recommendations table by service
+		Service string
+
+		// Filter the recommendations table by severity
+		Severity string
+
+		// Filter the recommendations table by status
+		Status string
 	}{Type: "CIS"}
 
 	// complianceCmd represents the compliance command
@@ -186,8 +199,12 @@ func complianceReportSummaryTable(summaries []api.ComplianceSummary) [][]string 
 	}
 }
 
-func complianceReportRecommendationsTable(recommendations []api.ComplianceRecommendation) [][]string {
+func complianceReportRecommendationsTable(recommendations []api.ComplianceRecommendation) ([][]string, string) {
 	out := [][]string{}
+	var filteredOutput string
+	if filtersEnabled() {
+		recommendations, filteredOutput = filterRecommendations(recommendations)
+	}
 	for _, recommend := range recommendations {
 		out = append(out, []string{
 			recommend.RecID,
@@ -204,10 +221,10 @@ func complianceReportRecommendationsTable(recommendations []api.ComplianceRecomm
 		return severityOrder(out[i][3]) < severityOrder(out[j][3])
 	})
 
-	return out
+	return out, filteredOutput
 }
 
-func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable [][]string) string {
+func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable [][]string, filteredOutput string) string {
 	mainReport := &strings.Builder{}
 	mainReport.WriteString(
 		renderCustomTable(
@@ -251,6 +268,9 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 				}),
 			),
 		)
+		if filteredOutput != "" {
+			mainReport.WriteString(filteredOutput)
+		}
 		mainReport.WriteString("\n")
 		mainReport.WriteString(
 			"Try using '--pdf' to download the report in PDF format.",
@@ -262,4 +282,65 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 		)
 	}
 	return mainReport.String()
+}
+
+func filterRecommendations(recommendations []api.ComplianceRecommendation) ([]api.ComplianceRecommendation, string) {
+	var filtered []api.ComplianceRecommendation
+	for _, r := range recommendations {
+		if matchRecommendationsFilters(r) {
+			filtered = append(filtered, r)
+		}
+	}
+	if len(filtered) == 0 {
+		return filtered, "There are no recommendations with the specified filters.\n"
+	}
+
+	cli.Log.Debugw("filtered recommendations", "recommendations", filtered)
+	return filtered, fmt.Sprintf("%v of %v recommendations showing \n", len(filtered), len(recommendations))
+}
+
+func matchRecommendationsFilters(r api.ComplianceRecommendation) bool {
+	var results []bool
+
+	// severity returns specified threshold and above
+	if compCmdState.Severity != "" {
+		sevThreshold, _ := eventSeverityToProperTypes(compCmdState.Severity)
+			if r.Severity <= sevThreshold {
+				results = append(results, true)
+			}
+		}
+
+	if compCmdState.Category != "" {
+		category := strings.ReplaceAll(compCmdState.Category, "-", " ")
+		results = append(results, strings.EqualFold(r.Category, category))
+	}
+
+	if compCmdState.Service != "" {
+		results = append(results, strings.EqualFold(r.Service, compCmdState.Service))
+	}
+
+	if compCmdState.Status != "" {
+		results = append(results, r.Status == statusToProperTypes(compCmdState.Status))
+	}
+
+	return !array.ContainsBool(results, false)
+}
+
+func filtersEnabled() bool {
+	return compCmdState.Category != "" || compCmdState.Status != "" || compCmdState.Severity != "" || compCmdState.Service != ""
+}
+
+func statusToProperTypes(status string) string {
+	switch strings.ToLower(status) {
+	case "non-compliant", "noncompliant":
+		return "NonCompliant"
+	case "compliant":
+		return "Compliant"
+	case "suppressed":
+		return "Suppressed"
+	case "requires-manual-assessment", "requiresmanualassessment":
+		return "RequiresManualAssessment"
+	default:
+		return "Unknown"
+	}
 }

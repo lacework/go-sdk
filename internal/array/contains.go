@@ -46,3 +46,12 @@ func ContainsInt(array []int, expected int) bool {
 	}
 	return false
 }
+
+func ContainsBool(array []bool, expected bool) bool {
+	for _, value := range array {
+		if expected == value {
+			return true
+		}
+	}
+	return false
+}

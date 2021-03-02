@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -137,12 +138,14 @@ To run an ad-hoc compliance assessment use the command:
 			}
 
 			report := response.Data[0]
+			recommendations, filteredOutput := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman("\n")
 			cli.OutputHuman(
 				buildComplianceReportTable(
 					complianceAzureReportDetailsTable(&report),
 					complianceReportSummaryTable(report.Summary),
-					complianceReportRecommendationsTable(report.Recommendations),
+					recommendations,
+					filteredOutput,
 				),
 			)
 			return nil
@@ -198,6 +201,24 @@ func init() {
 	// Azure report types: AZURE_CIS, AZURE_SOC, or AZURE_PCI
 	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
 		"report type to display, supported types: CIS, SOC, or PCI",
+	)
+
+	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Category, "category", "",
+		"filter the compliance report details view by category (identity-and-access-management, s3, logging...)",
+	)
+
+	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Service, "service", "",
+		"filter the compliance report details view by service (aws:s3, aws:iam, aws:cloudtrail ...)",
+	)
+
+	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Severity, "severity", "",
+		fmt.Sprintf("filter compliance report details view by severity threshold (%s)",
+			strings.Join(api.ValidEventSeverities, ", ")),
+	)
+
+	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",
+		fmt.Sprintf("filter compliance report details view by status (%s)",
+			strings.Join(api.ValidComplianceStatuses, ", ")),
 	)
 }
 
