@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
@@ -120,6 +121,21 @@ To run an ad-hoc compliance assessment use the command:
 
 				cli.OutputHuman("The GCP compliance report was downloaded at '%s'\n", pdfName)
 				return nil
+			}
+
+			if compCmdState.Severity != "" {
+				if !array.ContainsStr(api.ValidEventSeverities, compCmdState.Severity) {
+					return errors.Errorf("the severity %s is not valid, use one of %s",
+						compCmdState.Severity, strings.Join(api.ValidEventSeverities, ", "),
+					)
+				}
+			}
+			if compCmdState.Status != "" {
+				if !array.ContainsStr(api.ValidComplianceStatuses, compCmdState.Status) {
+					return errors.Errorf("the status %s is not valid, use one of %s",
+						compCmdState.Status, strings.Join(api.ValidComplianceStatuses, ", "),
+					)
+				}
 			}
 
 			cli.StartProgress(" Getting compliance report...")
