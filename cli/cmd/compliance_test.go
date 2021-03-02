@@ -73,11 +73,11 @@ func TestComplianceRecommendationsFilterOnSeverityLow(t *testing.T) {
 func TestComplianceRecommendationsFilterOnSeverityCritical(t *testing.T) {
 	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
-	compCmdState.Severity = "low"
+	compCmdState.Severity = "critical"
 	result, output := filterRecommendations(mockRecommendations)
 
-	assert.Equal(t, len(result), 4)
-	assert.Equal(t, output, "4 of 4 recommendations showing \n")
+	assert.Equal(t, len(result), 1)
+	assert.Equal(t, output, "1 of 4 recommendations showing \n")
 	clearFilters()
 }
 
@@ -105,7 +105,7 @@ func TestComplianceRecommendationsFilterMultiple(t *testing.T) {
 	clearFilters()
 }
 
-func clearFilters(){
+func clearFilters() {
 	compCmdState.Category = ""
 	compCmdState.Severity = ""
 	compCmdState.Service = ""
