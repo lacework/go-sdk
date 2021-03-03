@@ -334,6 +334,8 @@ func statusToProperTypes(status string) string {
 		return "NonCompliant"
 	case "compliant":
 		return "Compliant"
+	case "could-not-assess":
+		return "CouldNotAssess"
 	case "suppressed":
 		return "Suppressed"
 	case "requires-manual-assessment", "requiresmanualassessment":

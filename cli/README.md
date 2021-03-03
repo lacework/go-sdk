@@ -107,6 +107,7 @@ operation of the Lacework CLI.
 |`LW_ACCOUNT="<account>"`|account subdomain of URL (i.e. `<ACCOUNT>.lacework.net`)|
 |`LW_API_KEY="<key>"`|API access key id|
 |`LW_API_SECRET="<secret>"`|API secret access key|
+|`LW_INT_TEST_AWS_ACC="<secret>"`|AWS Account for integration tests|
 
 ## Basic Usage
 A few basic commands are:

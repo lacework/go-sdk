@@ -108,4 +108,4 @@ type ComplianceViolation struct {
 }
 
 // ValidComplianceStatuses is a list of all valid compliance statuses
-var ValidComplianceStatuses = []string{"non-compliant", "requires-manual-assessment", "suppressed", "compliant"}
+var ValidComplianceStatuses = []string{"non-compliant", "requires-manual-assessment", "suppressed", "compliant", "could-not-assess"}
