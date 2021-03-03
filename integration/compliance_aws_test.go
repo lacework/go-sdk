@@ -29,6 +29,6 @@ func TestComplianceAwsGetReportFilter(t *testing.T) {
 	detailsOutput := "recommendations showing"
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--details", "--status", "could-not-assess")
 	assert.Contains(t, out.String(), detailsOutput, "Filtered detail output should contain filtered result")
-	assert.Empty(t, err.String(),  "STDERR should be empty")
+	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
