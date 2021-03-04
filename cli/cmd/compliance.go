@@ -292,7 +292,7 @@ func filterRecommendations(recommendations []api.ComplianceRecommendation) ([]ap
 		}
 	}
 	if len(filtered) == 0 {
-		return filtered, "There are no recommendations with the specified filters.\n"
+		return filtered, "There are no recommendations with the specified filter(s).\n"
 	}
 
 	cli.Log.Debugw("filtered recommendations", "recommendations", filtered)

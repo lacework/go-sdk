@@ -107,7 +107,6 @@ operation of the Lacework CLI.
 |`LW_ACCOUNT="<account>"`|account subdomain of URL (i.e. `<ACCOUNT>.lacework.net`)|
 |`LW_API_KEY="<key>"`|API access key id|
 |`LW_API_SECRET="<secret>"`|API secret access key|
-|`LW_INT_TEST_AWS_ACC="<secret>"`|AWS Account for integration tests|
 
 ## Basic Usage
 A few basic commands are:
@@ -157,6 +156,11 @@ locally you need to setup the following environment variables and use the direct
 ```
 $ CI_ACCOUNT="<YOUR_ACCOUNT>" CI_API_KEY="<YOUR_API_KEY>" CI_API_SECRET="<YOUR_API_SECRET>" make integration
 ```
+This is a list of all environment variables used in the running the integration tests.
+
+| Environment Variable | Description |
+|----------------------|-------------|
+|`LW_INT_TEST_AWS_ACC="<secret>"`|AWS Account for integration tests|
 
 ### Telemetry via Honeycomb
 
