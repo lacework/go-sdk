@@ -219,11 +219,11 @@ func init() {
 		"report type to display, supported types: CIS, SOC, or PCI",
 	)
 
-	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Category, "category", "",
+	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter the compliance report details view by category (identity-and-access-management, s3, logging...)",
 	)
 
-	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Service, "service", "",
+	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Service, "service", []string{},
 		"filter the compliance report details view by service (aws:s3, aws:iam, aws:cloudtrail ...)",
 	)
 

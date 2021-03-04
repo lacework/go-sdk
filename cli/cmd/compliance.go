@@ -47,10 +47,10 @@ var (
 		Details bool
 
 		// Filter the recommendations table by category
-		Category string
+		Category []string
 
 		// Filter the recommendations table by service
-		Service string
+		Service []string
 
 		// Filter the recommendations table by severity
 		Severity string
@@ -199,6 +199,12 @@ func complianceReportSummaryTable(summaries []api.ComplianceSummary) [][]string 
 	}
 }
 
+// And or for mulitple filters
+// integration test for headers
+// statuses to status
+// implicit --details
+// move env var to string above
+
 func complianceReportRecommendationsTable(recommendations []api.ComplianceRecommendation) ([][]string, string) {
 	out := [][]string{}
 	var filteredOutput string
@@ -308,13 +314,16 @@ func matchRecommendationsFilters(r api.ComplianceRecommendation) bool {
 		results = append(results, r.Severity <= sevThreshold)
 	}
 
-	if compCmdState.Category != "" {
-		category := strings.ReplaceAll(compCmdState.Category, "-", " ")
-		results = append(results, strings.EqualFold(r.Category, category))
+	if len(compCmdState.Category) > 0 {
+		var categories []string
+		for _, c := range compCmdState.Category {
+			categories = append(categories, strings.ReplaceAll(c, "-", " "))
+		}
+		results = append(results, array.ContainsStrCaseInsensitive(categories, r.Category))
 	}
 
-	if compCmdState.Service != "" {
-		results = append(results, strings.EqualFold(r.Service, compCmdState.Service))
+	if len(compCmdState.Service) > 0 {
+		results = append(results, array.ContainsStrCaseInsensitive(compCmdState.Service, r.Service))
 	}
 
 	if compCmdState.Status != "" {
@@ -325,7 +334,7 @@ func matchRecommendationsFilters(r api.ComplianceRecommendation) bool {
 }
 
 func filtersEnabled() bool {
-	return compCmdState.Category != "" || compCmdState.Status != "" || compCmdState.Severity != "" || compCmdState.Service != ""
+	return len(compCmdState.Category) > 0 || compCmdState.Status != "" || compCmdState.Severity != "" || len(compCmdState.Service) > 0
 }
 
 func statusToProperTypes(status string) string {

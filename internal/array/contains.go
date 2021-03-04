@@ -29,6 +29,15 @@ func ContainsStr(array []string, expected string) bool {
 	return false
 }
 
+func ContainsStrCaseInsensitive(array []string, expected string) bool {
+	for _, value := range array {
+		if strings.EqualFold(expected, value) {
+			return true
+		}
+	}
+	return false
+}
+
 func ContainsPartialStr(array []string, expected string) bool {
 	for _, value := range array {
 		if strings.Contains(value, expected) {

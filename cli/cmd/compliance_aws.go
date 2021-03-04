@@ -236,11 +236,11 @@ func init() {
 		"report type to display, supported types: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI",
 	)
 
-	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Category, "category", "",
+	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (identity-and-access-management, s3, logging...)",
 	)
 
-	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Service, "service", "",
+	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Service, "service", []string{},
 		"filter report details by service (aws:s3, aws:iam, aws:cloudtrail, ...)",
 	)
 

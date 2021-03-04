@@ -28,7 +28,7 @@ import (
 func TestComplianceRecommendationsFilterNoResults(t *testing.T) {
 	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
-	compCmdState.Category = "monitoring"
+	compCmdState.Category = []string{"monitoring"}
 	result, output := filterRecommendations(mockRecommendations)
 
 	assert.Equal(t, len(result), 0)
@@ -39,7 +39,7 @@ func TestComplianceRecommendationsFilterNoResults(t *testing.T) {
 func TestComplianceRecommendationsFilterOnCategory(t *testing.T) {
 	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
-	compCmdState.Category = "identity-and-access-management"
+	compCmdState.Category = []string{"identity-and-access-management"}
 	result, output := filterRecommendations(mockRecommendations)
 
 	assert.Equal(t, len(result), 1)
@@ -50,7 +50,7 @@ func TestComplianceRecommendationsFilterOnCategory(t *testing.T) {
 func TestComplianceRecommendationsFilterOnService(t *testing.T) {
 	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
-	compCmdState.Service = "aws:cloudtrail"
+	compCmdState.Service = []string{"aws:cloudtrail"}
 	result, output := filterRecommendations(mockRecommendations)
 
 	assert.Equal(t, len(result), 2)
@@ -116,6 +116,30 @@ func TestComplianceRecommendationsFilterMultiple(t *testing.T) {
 	clearFilters()
 }
 
+func TestComplianceRecommendationsFilterMultipleCategories(t *testing.T) {
+	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+		mockRecommendationThree, mockRecommendationFour}
+	compCmdState.Category = []string{"s3", "logging"}
+
+	result, output := filterRecommendations(mockRecommendations)
+
+	assert.Equal(t, len(result), 3)
+	assert.Equal(t, output, "3 of 4 recommendations showing \n")
+	clearFilters()
+}
+
+func TestComplianceRecommendationsFilterMultipleServices(t *testing.T) {
+	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+		mockRecommendationThree, mockRecommendationFour}
+	compCmdState.Service = []string{"aws:s3", "aws:iam"}
+
+	result, output := filterRecommendations(mockRecommendations)
+
+	assert.Equal(t, len(result), 2)
+	assert.Equal(t, output, "2 of 4 recommendations showing \n")
+	clearFilters()
+}
+
 func TestStatusInputToProperTransform(t *testing.T) {
 	status := statusToProperTypes("non-compliant")
 	assert.Equal(t, status, "NonCompliant")
@@ -134,15 +158,15 @@ func TestFiltersEnabled(t *testing.T) {
 	NoneEnabled := filtersEnabled()
 	assert.Equal(t, NoneEnabled, false)
 
-	compCmdState.Category = "s3"
+	compCmdState.Category = []string{"s3"}
 	compCmdState.Status = "non-compliant"
 	compCmdState.Severity = "high"
-	compCmdState.Service = "aws:s3"
+	compCmdState.Service = []string{"aws:s3"}
 	AllEnabled := filtersEnabled()
 	assert.Equal(t, AllEnabled, true)
 
 	compCmdState.Severity = ""
-	compCmdState.Service = ""
+	compCmdState.Service = []string{}
 
 	SomeEnabled := filtersEnabled()
 	assert.Equal(t, SomeEnabled, true)
@@ -151,9 +175,9 @@ func TestFiltersEnabled(t *testing.T) {
 }
 
 func clearFilters() {
-	compCmdState.Category = ""
+	compCmdState.Category = []string{}
 	compCmdState.Severity = ""
-	compCmdState.Service = ""
+	compCmdState.Service = []string{}
 	compCmdState.Status = ""
 }
 
