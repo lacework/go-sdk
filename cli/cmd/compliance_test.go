@@ -32,7 +32,7 @@ func TestComplianceRecommendationsFilterNoResults(t *testing.T) {
 	result, output := filterRecommendations(mockRecommendations)
 
 	assert.Equal(t, len(result), 0)
-	assert.Equal(t, output, "There are no recommendations with the specified filters.\n")
+	assert.Equal(t, output, "There are no recommendations with the specified filter(s).\n")
 	clearFilters()
 }
 
