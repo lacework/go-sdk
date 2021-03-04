@@ -255,7 +255,7 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 		),
 	)
 
-	if compCmdState.Details {
+	if compCmdState.Details || filtersEnabled() {
 		mainReport.WriteString(
 			renderCustomTable(
 				[]string{"ID", "Recommendation", "Status", "Severity",
