@@ -107,5 +107,5 @@ type ComplianceViolation struct {
 	Reasons  []string `json:"reasons"`
 }
 
-// ValidComplianceStatuses is a list of all valid compliance statuses
-var ValidComplianceStatuses = []string{"non-compliant", "requires-manual-assessment", "suppressed", "compliant", "could-not-assess"}
+// ValidComplianceStatus is a list of all valid compliance status
+var ValidComplianceStatus = []string{"non-compliant", "requires-manual-assessment", "suppressed", "compliant", "could-not-assess"}

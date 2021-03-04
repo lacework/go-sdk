@@ -199,12 +199,6 @@ func complianceReportSummaryTable(summaries []api.ComplianceSummary) [][]string 
 	}
 }
 
-// And or for mulitple filters
-// integration test for headers
-// statuses to status
-// implicit --details
-// move env var to string above
-
 func complianceReportRecommendationsTable(recommendations []api.ComplianceRecommendation) ([][]string, string) {
 	out := [][]string{}
 	var filteredOutput string

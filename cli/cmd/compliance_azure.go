@@ -131,9 +131,9 @@ To run an ad-hoc compliance assessment use the command:
 				}
 			}
 			if compCmdState.Status != "" {
-				if !array.ContainsStr(api.ValidComplianceStatuses, compCmdState.Status) {
+				if !array.ContainsStr(api.ValidComplianceStatus, compCmdState.Status) {
 					return errors.Errorf("the status %s is not valid, use one of %s",
-						compCmdState.Status, strings.Join(api.ValidComplianceStatuses, ", "),
+						compCmdState.Status, strings.Join(api.ValidComplianceStatus, ", "),
 					)
 				}
 			}
@@ -234,7 +234,7 @@ func init() {
 
 	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",
 		fmt.Sprintf("filter compliance report details view by status (%s)",
-			strings.Join(api.ValidComplianceStatuses, ", ")),
+			strings.Join(api.ValidComplianceStatus, ", ")),
 	)
 }
 

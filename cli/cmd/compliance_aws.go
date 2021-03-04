@@ -145,9 +145,9 @@ To run an ad-hoc compliance assessment of an AWS account:
 				}
 			}
 			if compCmdState.Status != "" {
-				if !array.ContainsStr(api.ValidComplianceStatuses, compCmdState.Status) {
+				if !array.ContainsStr(api.ValidComplianceStatus, compCmdState.Status) {
 					return errors.Errorf("the status %s is not valid, use one of %s",
-						compCmdState.Status, strings.Join(api.ValidComplianceStatuses, ", "),
+						compCmdState.Status, strings.Join(api.ValidComplianceStatus, ", "),
 					)
 				}
 			}
@@ -251,7 +251,7 @@ func init() {
 
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",
 		fmt.Sprintf("filter report details by status (%s)",
-			strings.Join(api.ValidComplianceStatuses, ", ")),
+			strings.Join(api.ValidComplianceStatus, ", ")),
 	)
 }
 
