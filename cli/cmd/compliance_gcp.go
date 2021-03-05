@@ -20,12 +20,14 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
@@ -121,6 +123,21 @@ To run an ad-hoc compliance assessment use the command:
 				return nil
 			}
 
+			if compCmdState.Severity != "" {
+				if !array.ContainsStr(api.ValidEventSeverities, compCmdState.Severity) {
+					return errors.Errorf("the severity %s is not valid, use one of %s",
+						compCmdState.Severity, strings.Join(api.ValidEventSeverities, ", "),
+					)
+				}
+			}
+			if compCmdState.Status != "" {
+				if !array.ContainsStr(api.ValidComplianceStatus, compCmdState.Status) {
+					return errors.Errorf("the status %s is not valid, use one of %s",
+						compCmdState.Status, strings.Join(api.ValidComplianceStatus, ", "),
+					)
+				}
+			}
+
 			cli.StartProgress(" Getting compliance report...")
 			response, err := cli.LwApi.Compliance.GetGcpReport(config)
 			cli.StopProgress()
@@ -138,11 +155,13 @@ To run an ad-hoc compliance assessment use the command:
 
 			report := response.Data[0]
 			cli.OutputHuman("\n")
+			recommendations, filteredOutput := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman(
 				buildComplianceReportTable(
 					complianceGcpReportDetailsTable(&report),
 					complianceReportSummaryTable(report.Summary),
-					complianceReportRecommendationsTable(report.Recommendations),
+					recommendations,
+					filteredOutput,
 				),
 			)
 			return nil
@@ -198,6 +217,24 @@ func init() {
 	// GCP report types: GCP_CIS, GCP_SOC, or GCP_PCI.
 	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
 		"report type to display, supported types: CIS, SOC, or PCI",
+	)
+
+	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
+		"filter report details by category (storage, networking, identity-and-access-management, ...)",
+	)
+
+	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Service, "service", []string{},
+		"filter report details by service (gcp:storage:bucket, gcp:kms:cryptoKey, gcp:project, ...)",
+	)
+
+	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Severity, "severity", "",
+		fmt.Sprintf("filter report details by severity threshold (%s)",
+			strings.Join(api.ValidEventSeverities, ", ")),
+	)
+
+	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",
+		fmt.Sprintf("filter report details by status (%s)",
+			strings.Join(api.ValidComplianceStatus, ", ")),
 	)
 }
 

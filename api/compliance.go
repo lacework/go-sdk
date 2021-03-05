@@ -106,3 +106,6 @@ type ComplianceViolation struct {
 	Resource string   `json:"resource"`
 	Reasons  []string `json:"reasons"`
 }
+
+// ValidComplianceStatus is a list of all valid compliance status
+var ValidComplianceStatus = []string{"non-compliant", "requires-manual-assessment", "suppressed", "compliant", "could-not-assess"}

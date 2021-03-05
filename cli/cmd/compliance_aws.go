@@ -20,12 +20,14 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
@@ -135,6 +137,21 @@ To run an ad-hoc compliance assessment of an AWS account:
 				return nil
 			}
 
+			if compCmdState.Severity != "" {
+				if !array.ContainsStr(api.ValidEventSeverities, compCmdState.Severity) {
+					return errors.Errorf("the severity %s is not valid, use one of %s",
+						compCmdState.Severity, strings.Join(api.ValidEventSeverities, ", "),
+					)
+				}
+			}
+			if compCmdState.Status != "" {
+				if !array.ContainsStr(api.ValidComplianceStatus, compCmdState.Status) {
+					return errors.Errorf("the status %s is not valid, use one of %s",
+						compCmdState.Status, strings.Join(api.ValidComplianceStatus, ", "),
+					)
+				}
+			}
+
 			cli.StartProgress(" Getting compliance report...")
 			response, err := cli.LwApi.Compliance.GetAwsReport(config)
 			cli.StopProgress()
@@ -151,12 +168,14 @@ To run an ad-hoc compliance assessment of an AWS account:
 			}
 
 			report := response.Data[0]
+			recommendations, filteredOutput := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman("\n")
 			cli.OutputHuman(
 				buildComplianceReportTable(
 					complianceAwsReportDetailsTable(&report),
 					complianceReportSummaryTable(report.Summary),
-					complianceReportRecommendationsTable(report.Recommendations),
+					recommendations,
+					filteredOutput,
 				),
 			)
 			return nil
@@ -215,6 +234,24 @@ func init() {
 	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
 		"report type to display, supported types: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI",
+	)
+
+	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
+		"filter report details by category (identity-and-access-management, s3, logging...)",
+	)
+
+	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Service, "service", []string{},
+		"filter report details by service (aws:s3, aws:iam, aws:cloudtrail, ...)",
+	)
+
+	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Severity, "severity", "",
+		fmt.Sprintf("filter report details by severity threshold (%s)",
+			strings.Join(api.ValidEventSeverities, ", ")),
+	)
+
+	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",
+		fmt.Sprintf("filter report details by status (%s)",
+			strings.Join(api.ValidComplianceStatus, ", ")),
 	)
 }
 
