@@ -72,7 +72,70 @@ func TestConfigureCommandWithProfileFlag(t *testing.T) {
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
-func TestConfigureCommandWithJSONFileFlag(t *testing.T) {
+func TestConfigureCommandWithNewJSONFileFlagForStandaloneAccounts(t *testing.T) {
+	// create a New JSON file similar to what the Lacework Web UI would provide
+	s := createJSONFileLikeWebUI(`
+{
+  "account": "standalone.lacework.net",
+  "keyId": "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00",
+  "secret": "_cccccccccccccccccccccccccccccccc"
+}
+`)
+	defer os.Remove(s)
+
+	_, laceworkTOML := runConfigureTest(t,
+		func(c *expect.Console) {
+			c.ExpectString("Account:")
+			c.SendLine("") // using the default, which should be auto-populated from the new JSON file
+			c.ExpectString("Access Key ID:")
+			c.SendLine("") // using the default, which should be loaded from the JSON file
+			c.ExpectString("Secret Access Key:")
+			c.SendLine("") // using the default, which should be loaded from the JSON file
+			c.ExpectString("You are all set!")
+		},
+		"configure", "--json_file", s,
+	)
+
+	assert.Equal(t, `[default]
+  account = "standalone"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_secret = "_cccccccccccccccccccccccccccccccc"
+`, laceworkTOML, "there is a problem with the generated config")
+}
+
+func TestConfigureCommandWithNewJSONFileFlagForOrganizationalAccounts(t *testing.T) {
+	// create a New JSON file similar to what the Lacework Web UI would provide
+	s := createJSONFileLikeWebUI(`
+{
+  "subAccount": "sub-account-name",
+  "account": "organization.lacework.net",
+  "keyId": "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00",
+  "secret": "_cccccccccccccccccccccccccccccccc"
+}
+`)
+	defer os.Remove(s)
+
+	_, laceworkTOML := runConfigureTest(t,
+		func(c *expect.Console) {
+			c.ExpectString("Account:")
+			c.SendLine("") // using the default, which should be auto-populated from the new JSON file
+			c.ExpectString("Access Key ID:")
+			c.SendLine("") // using the default, which should be loaded from the JSON file
+			c.ExpectString("Secret Access Key:")
+			c.SendLine("") // using the default, which should be loaded from the JSON file
+			c.ExpectString("You are all set!")
+		},
+		"configure", "--json_file", s,
+	)
+
+	assert.Equal(t, `[default]
+  account = "sub-account-name"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_secret = "_cccccccccccccccccccccccccccccccc"
+`, laceworkTOML, "there is a problem with the generated config")
+}
+
+func TestConfigureCommandWithOldJSONFileFlag(t *testing.T) {
 	// create a JSON file similar to what the Lacework Web UI would provide
 	s := createJSONFileLikeWebUI(`{"keyId": "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00","secret": "_cccccccccccccccccccccccccccccccc"}`)
 	defer os.Remove(s)
