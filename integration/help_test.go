@@ -69,7 +69,7 @@ Available Commands:
 
 Flags:
   -h, --help               help for configure
-  -j, --json_file string   loads the generated API key JSON file from the WebUI
+  -j, --json_file string   loads the API key JSON file downloaded from the WebUI
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

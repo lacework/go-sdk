@@ -74,8 +74,10 @@ func (c *credsDetails) Verify() error {
 // apiKeyDetails represents the details of an API key, we use this struct
 // internally to unmarshal the JSON file provided by the Lacework WebUI
 type apiKeyDetails struct {
-	KeyID  string `json:"keyId"`
-	Secret string `json:"secret"`
+	Account    string `json:"account,omitempty"`
+	SubAccount string `json:"subAccount,omitempty"`
+	KeyID      string `json:"keyId"`
+	Secret     string `json:"secret"`
 }
 
 var (
@@ -193,7 +195,7 @@ func init() {
 	configureCmd.AddCommand(configureGetCmd)
 
 	configureCmd.Flags().StringVarP(&configureJsonFile,
-		"json_file", "j", "", "loads the generated API key JSON file from the WebUI",
+		"json_file", "j", "", "loads the API key JSON file downloaded from the WebUI",
 	)
 }
 
@@ -210,12 +212,10 @@ func promptConfigureSetup() error {
 	}
 
 	if len(configureJsonFile) != 0 {
-		auth, err := loadKeysFromJsonFile(configureJsonFile)
+		err := loadUIJsonFile(configureJsonFile)
 		if err != nil {
 			return errors.Wrap(err, "unable to load keys from the provided json file")
 		}
-		cli.KeyID = auth.KeyID
-		cli.Secret = auth.Secret
 	}
 
 	questions := []*survey.Question{
@@ -349,17 +349,41 @@ func promptConfigureSetup() error {
 	return nil
 }
 
-func loadKeysFromJsonFile(file string) (*apiKeyDetails, error) {
+func loadUIJsonFile(file string) error {
 	cli.Log.Debugw("loading API key JSON file", "path", file)
 	jsonData, err := ioutil.ReadFile(file)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	cli.Log.Debugw("keys from file", "raw", string(jsonData))
+	cli.Log.Debugw("JSON file", "raw", string(jsonData))
 	var auth apiKeyDetails
 	err = json.Unmarshal(jsonData, &auth)
-	return &auth, err
+	if err != nil {
+		return err
+	}
+
+	cli.KeyID = auth.KeyID
+	cli.Secret = auth.Secret
+
+	if auth.SubAccount != "" {
+		// organizational account: we use this account name to auth to APIv1
+		cli.Account = auth.SubAccount
+	} else if auth.Account != "" {
+		// standalone account: we substract the account name from the
+		// full domain ACCOUNT.lacework.net
+		rx, err := regexp.Compile(`\.lacework\.net.*`)
+		if err != nil {
+			return errors.Wrap(err, "unable to substract account name from full domain")
+		}
+
+		accountSplit := rx.Split(auth.Account, -1)
+		if len(accountSplit) != 0 {
+			cli.Account = accountSplit[0]
+		}
+	}
+
+	return nil
 }
 
 func buildProfilesTableContent(current string, profiles Profiles) [][]string {
