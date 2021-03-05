@@ -220,20 +220,20 @@ func init() {
 	)
 
 	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
-		"filter the compliance report details view by category (identity-and-access-management, s3, logging...)",
+		"filter report details by category (networking, storage, ...)",
 	)
 
 	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Service, "service", []string{},
-		"filter the compliance report details view by service (aws:s3, aws:iam, aws:cloudtrail ...)",
+		"filter report details by service (azure:ms:storage, azure:ms:sql, azure:ms:network, ...)",
 	)
 
 	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Severity, "severity", "",
-		fmt.Sprintf("filter compliance report details view by severity threshold (%s)",
+		fmt.Sprintf("filter report details by severity threshold (%s)",
 			strings.Join(api.ValidEventSeverities, ", ")),
 	)
 
 	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",
-		fmt.Sprintf("filter compliance report details view by status (%s)",
+		fmt.Sprintf("filter report details by status (%s)",
 			strings.Join(api.ValidComplianceStatus, ", ")),
 	)
 }
