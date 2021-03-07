@@ -20,6 +20,7 @@ package api
 
 import (
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -33,6 +34,7 @@ type authConfig struct {
 	secret     string
 	token      string
 	expiration int
+	expiresAt  time.Time
 }
 
 // WithApiKeys sets the key_id and secret used to generate API access tokens
@@ -80,8 +82,13 @@ func WithExpirationTime(t int) Option {
 		c.log.Debug("setting up auth", zap.Int("expiration", t))
 
 		c.auth.expiration = t
+		c.auth.expiresAt = time.Now().Add(time.Duration(t) * time.Second)
 		return nil
 	})
+}
+
+func (c *Client) TokenExpired() bool {
+	return time.Until(c.auth.expiresAt) <= 0
 }
 
 // GenerateToken generates a new access token
@@ -105,6 +112,10 @@ func (c *Client) GenerateToken() (response TokenResponse, err error) {
 		// @afiune how do we handle cases where there is more than one token
 		c.log.Debug("storing token", zap.Reflect("data", response.Data))
 		c.auth.token = response.Data[0].Token
+		c.auth.expiresAt, err = time.Parse("Jan 02 2006 15:04", response.Data[0].ExpiresAt)
+		if err != nil {
+			c.log.Error("Failed to parse token expiration response", zap.Error(err))
+		}
 		return
 	}
 
