@@ -72,6 +72,7 @@ func WithToken(token string) Option {
 	return clientFunc(func(c *Client) error {
 		c.log.Debug("setting up auth", zap.String("token", token))
 		c.auth.token = token
+		c.auth.expiresAt = time.Now().Add(defaultTimeout)
 		return nil
 	})
 }
