@@ -23,6 +23,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewRequest(t *testing.T) {
@@ -39,6 +43,21 @@ func TestRequestDecoder(t *testing.T) {
 
 func TestDo(t *testing.T) {
 	// TODO @afiune to-be-implemented!
+}
+
+// When a new request is made, an expired token should be refreshed
+func TestNewRequestWithExpiredToken(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	c, _ := api.NewClient("foo", api.WithURL(fakeServer.URL()), api.WithTokenFromKeys("KEY", "SECRET"), api.WithExpirationTime(-60))
+	expiredToken := c.TokenExpired()
+	_, err := c.NewRequest("GET", "foo", nil)
+
+	assert.Equal(t, expiredToken, true, "Token starting state should be expired")
+	assert.Nilf(t, err, "Error refreshing token %v", err)
+	assert.Equal(t, c.TokenExpired(), false, "Expired token should be refreshed")
 }
 
 // httpBodySniffer is like a request sniffer, it reads the body

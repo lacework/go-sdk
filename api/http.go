@@ -52,8 +52,8 @@ func (c *Client) NewRequest(method string, apiURL string, body io.Reader) (*http
 	if apiURL == apiTokens {
 		headers["X-LW-UAKS"] = c.auth.secret
 	} else {
-		// verify that the client has a token, if not, try to generate one
-		if c.auth.token == "" {
+		// verify that the client has a token or token is not expired, if not, try to generate one
+		if c.auth.token == "" || c.TokenExpired() {
 			if _, err = c.GenerateToken(); err != nil {
 				return nil, err
 			}

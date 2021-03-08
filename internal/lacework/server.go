@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"time"
 )
 
 // Mock is a quick HTTP server that can be used to mock a Lacework API
@@ -63,10 +64,11 @@ func (m *Mock) MockAPI(p string, handler func(http.ResponseWriter, *http.Request
 
 func (s *Mock) MockToken(token string) {
 	s.MockAPI("access/tokens", func(w http.ResponseWriter, r *http.Request) {
+		expiration := time.Now().AddDate(0, 0, 1)
 		fmt.Fprintf(w, `
       {
         "data": [{
-          "expiresAt": "Mar 10 2020 08:10",
+          "expiresAt": "`+expiration.Format("Jan 02 2006 15:04")+`",
           "token": "`+token+`"
         }],
         "ok": true,
