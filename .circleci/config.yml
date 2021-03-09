@@ -97,7 +97,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - "ac:42:17:fc:47:cb:cb:2a:e4:c3:c1:76:6c:73:b1:87"
+            - "ab:67:49:c0:c9:ae:ae:36:98:aa:18:5d:7f:48:fd:b6"
       - run: scripts/release.sh trigger
   release:
     executor: go-executor

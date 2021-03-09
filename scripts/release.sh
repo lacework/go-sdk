@@ -15,8 +15,8 @@ readonly org_name=lacework
 readonly package_name=lacework-cli
 readonly binary_name=lacework
 readonly docker_org=lacework
-readonly git_user="Salim Afiune Maya"
-readonly git_email="afiune@lacework.net"
+readonly git_user="Lacework Inc."
+readonly git_email="ops+releng@lacework.net"
 readonly docker_tags=(
   latest
   scratch
