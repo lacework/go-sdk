@@ -183,7 +183,7 @@ ERROR
   Missing CI environment variables.
 
   To run the integration tests you need to setup a few environment variables, look
-  at https://github.com/lacework/go-sdk/tree/master/cli#integration-tests for
+  at https://github.com/lacework/go-sdk/tree/main/cli#integration-tests for
   more information.
 
 `

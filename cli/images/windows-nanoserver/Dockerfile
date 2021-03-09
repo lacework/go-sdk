@@ -4,4 +4,4 @@ LABEL maintainer="tech-ally@lacework.net" \
 
 COPY ./LICENSE /
 RUN Set-ExecutionPolicy Bypass -Scope Process -Force
-RUN iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.ps1'))
+RUN iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.ps1'))

@@ -5,4 +5,4 @@ LABEL maintainer="tech-ally@lacework.net" \
 RUN apt-get update
 RUN apt-get install curl -y
 COPY ./LICENSE /
-RUN curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash
+RUN curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash

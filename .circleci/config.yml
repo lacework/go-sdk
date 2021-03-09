@@ -6,7 +6,7 @@ parameters:
     default: 'S01JP5A3ACQ'
   only_for_branches:
     type: string
-    default: 'master'
+    default: 'main'
 
 orbs:
   lacework: lacework/lacework@1
@@ -161,7 +161,7 @@ workflows:
             - integration-test-linux
           filters:
             branches:
-              only: master
+              only: main
 
   verify-release:
     jobs:
@@ -205,7 +205,7 @@ workflows:
           cron: "0 12 * * *"
           filters:
             branches:
-              only: master
+              only: main
     jobs:
       - unit-test
       - build-cli

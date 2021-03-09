@@ -29,7 +29,7 @@ import (
 func TestCliStateUpdateCommand(t *testing.T) {
 	assert.Contains(t,
 		cli.UpdateCommand(),
-		"curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash",
+		"curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash",
 	)
 
 	t.Run("Homebrew installation", func(t *testing.T) {

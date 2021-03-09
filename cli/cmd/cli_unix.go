@@ -42,6 +42,6 @@ func (c *cliState) UpdateCommand() string {
 `
 	}
 	return `
-  $ curl https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.sh | bash
+  $ curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
 `
 }
