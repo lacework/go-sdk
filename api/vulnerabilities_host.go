@@ -143,7 +143,7 @@ type HostVulnPackage struct {
 	Namespace           string `json:"namespace"`
 	Severity            string `json:"severity"`
 	Status              string `json:"status,omitempty"`
-	VulnerabilityStatus string `json:"vulnerabiliy_status,omitempty"` // @afiune typo
+	VulnerabilityStatus string `json:"vulnerability_status,omitempty"`
 	Version             string `json:"version"`
 	HostCount           string `json:"host_count"`
 	PackageStatus       string `json:"package_status"`
