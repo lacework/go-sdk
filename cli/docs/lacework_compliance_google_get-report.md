@@ -19,11 +19,15 @@ lacework compliance google get-report <organization_id> <project_id> [flags]
 ### Options
 
 ```
-      --details           increase details about the compliance report
-  -h, --help              help for get-report
-      --pdf               download report in PDF format
-      --pdf-file string   (DEPRECATED) use --pdf
-      --type string       report type to display, supported types: CIS, SOC, or PCI (default "CIS")
+      --category strings   filter report details by category (storage, networking, identity-and-access-management, ...)
+      --details            increase details about the compliance report
+  -h, --help               help for get-report
+      --pdf                download report in PDF format
+      --pdf-file string    (DEPRECATED) use --pdf
+      --service strings    filter report details by service (gcp:storage:bucket, gcp:kms:cryptoKey, gcp:project, ...)
+      --severity string    filter report details by severity threshold (critical, high, medium, low, info)
+      --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
+      --type string        report type to display, supported types: CIS, SOC, or PCI (default "CIS")
 ```
 
 ### Options inherited from parent commands

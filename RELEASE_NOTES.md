@@ -1,11 +1,17 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.2.20`.
+Another day, another release. These are the release notes for the version `v0.2.21`.
 
 ## Features
-* feat(cli): New IBM QRadar alert channel (#325) (Darren)([0e9f6f5](https://github.com/lacework/go-sdk/commit/0e9f6f57e16e96ccfb84b9bd618e595378cf0fb3))
-* feat(cli): New Relic Insights alert channel (#323) (Darren)([d7242b8](https://github.com/lacework/go-sdk/commit/d7242b84a525a4b9484324f2dfb49b172528302b))
+* feat(cli): load account from new UI API JSON file (#331) (Salim Afiune)([e841210](https://github.com/lacework/go-sdk/commit/e841210501eaa25620e102fad1e1ecf7a8c3bd3b))
+* feat(cli): filtering flags for compliance report recommendations (#330) (Darren)([d04f09f](https://github.com/lacework/go-sdk/commit/d04f09f7cebaf278aaf22085cdb0f0a9f54b0b85))
+* feat: Add support for ServiceNow Alert custom JSON template (#327) (Darren)([129bc28](https://github.com/lacework/go-sdk/commit/129bc2861f7ba7a807cb35c9d001b7ae575d97ab))
+## Bug Fixes
+* fix: Generate a new token upon a request with an expired token (#332) (Darren)([2bbc8b3](https://github.com/lacework/go-sdk/commit/2bbc8b38d7f5332174eb2f7266e300763054bdce))
 ## Documentation Updates
-* doc(cli): update scan-pkg-manifest help to 10k pkgs (#324) (Salim Afiune)([0348800](https://github.com/lacework/go-sdk/commit/03488001d7c0aab308adf00ec6d8ac4a73aec78c))
+* docs: update go version batch in README (#329) (Salim Afiune)([161753e](https://github.com/lacework/go-sdk/commit/161753e35eac1990f69cc58d24c2b8afc5a5364d))
+* docs: Add Homebrew installation to README (#328) (Darren)([e4ad780](https://github.com/lacework/go-sdk/commit/e4ad7803de81ed330b1a6eb9e5f61c0e3353c5e2))
+## Other Changes
+* ci: delete 'master' branch (#334) (Salim Afiune)([792e458](https://github.com/lacework/go-sdk/commit/792e458aed01012d2c665998a3e1e09f4a7facbb))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`

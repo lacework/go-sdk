@@ -31,7 +31,7 @@ lacework configure [flags]
 
 ```
   -h, --help               help for configure
-  -j, --json_file string   loads the generated API key JSON file from the WebUI
+  -j, --json_file string   loads the API key JSON file downloaded from the WebUI
 ```
 
 ### Options inherited from parent commands
