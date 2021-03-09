@@ -24,11 +24,15 @@ lacework compliance aws get-report <account_id> [flags]
 ### Options
 
 ```
-      --details           increase details about the compliance report
-  -h, --help              help for get-report
-      --pdf               download report in PDF format
-      --pdf-file string   (DEPRECATED) use --pdf
-      --type string       report type to display, supported types: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI (default "CIS")
+      --category strings   filter report details by category (identity-and-access-management, s3, logging...)
+      --details            increase details about the compliance report
+  -h, --help               help for get-report
+      --pdf                download report in PDF format
+      --pdf-file string    (DEPRECATED) use --pdf
+      --service strings    filter report details by service (aws:s3, aws:iam, aws:cloudtrail, ...)
+      --severity string    filter report details by severity threshold (critical, high, medium, low, info)
+      --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
+      --type string        report type to display, supported types: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI (default "CIS")
 ```
 
 ### Options inherited from parent commands
