@@ -33,6 +33,6 @@ var promptIconsFunc = func(icons *survey.IconSet) {
 func (c *cliState) UpdateCommand() string {
 	return `
   C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
-  C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/master/cli/install.ps1'))
+  C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.ps1'))
 `
 }
