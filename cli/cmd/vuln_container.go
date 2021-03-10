@@ -448,7 +448,7 @@ func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) stri
 		),
 	)
 
-	if vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages || vulFiltersEnabled(){
+	if vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages || vulFiltersEnabled() {
 		if vulCmdState.Packages {
 			vulnPackagesTable, filteredOutput := vulContainerImagePackagesToTable(assessment.Image)
 
@@ -575,8 +575,8 @@ func vulContainerImageLayersToTable(image *api.VulnContainerImage) ([][]string, 
 				if vulCmdState.Severity != "" {
 					if filterSeverity(vul.Severity, vulCmdState.Severity) {
 						continue
+					}
 				}
-			}
 
 				space := regexp.MustCompile(`\s+`)
 				createdBy := space.ReplaceAllString(layer.CreatedBy, " ")
