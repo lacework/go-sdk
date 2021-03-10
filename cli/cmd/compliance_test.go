@@ -155,20 +155,20 @@ func TestStatusInputToProperTransform(t *testing.T) {
 }
 
 func TestFiltersEnabled(t *testing.T) {
-	NoneEnabled := filtersEnabled()
+	NoneEnabled := complianceFiltersEnabled()
 	assert.Equal(t, NoneEnabled, false)
 
 	compCmdState.Category = []string{"s3"}
 	compCmdState.Status = "non-compliant"
 	compCmdState.Severity = "high"
 	compCmdState.Service = []string{"aws:s3"}
-	AllEnabled := filtersEnabled()
+	AllEnabled := complianceFiltersEnabled()
 	assert.Equal(t, AllEnabled, true)
 
 	compCmdState.Severity = ""
 	compCmdState.Service = []string{}
 
-	SomeEnabled := filtersEnabled()
+	SomeEnabled := complianceFiltersEnabled()
 	assert.Equal(t, SomeEnabled, true)
 
 	clearFilters()
