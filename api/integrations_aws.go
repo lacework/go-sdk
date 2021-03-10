@@ -39,7 +39,7 @@ import (
 //   aws := api.NewAwsIntegration("foo",
 //     api.AwsCfgIntegration,
 //     api.AwsIntegrationData{
-//       Credentials: api.AwsIntegrationCreds {
+//       Credentials: api.AwsCrossAccountCreds {
 //         RoleArn: "arn:aws:XYZ",
 //         ExternalID: "1",
 //       },
@@ -131,7 +131,7 @@ type AwsIntegration struct {
 }
 
 type AwsIntegrationData struct {
-	Credentials AwsIntegrationCreds `json:"CROSS_ACCOUNT_CREDENTIALS" mapstructure:"CROSS_ACCOUNT_CREDENTIALS"`
+	Credentials AwsCrossAccountCreds `json:"CROSS_ACCOUNT_CREDENTIALS" mapstructure:"CROSS_ACCOUNT_CREDENTIALS"`
 
 	// QueueUrl is a field that exists and is required for the AWS_CT_SQS integration,
 	// though, it doesn't exist for AWS_CFG integrations, that's why we omit it if empty
@@ -169,7 +169,7 @@ func (aws *AwsIntegrationData) DecodeAccountMappingFile() ([]byte, error) {
 	return raw, nil
 }
 
-type AwsIntegrationCreds struct {
+type AwsCrossAccountCreds struct {
 	RoleArn    string `json:"ROLE_ARN" mapstructure:"ROLE_ARN"`
 	ExternalID string `json:"EXTERNAL_ID" mapstructure:"EXTERNAL_ID"`
 }
