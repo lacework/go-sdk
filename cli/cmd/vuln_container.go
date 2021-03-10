@@ -492,60 +492,75 @@ func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) stri
 	return mainReport.String()
 }
 
+type packageTable struct {
+	cveCount       int
+	severity       string
+	packageName    string
+	currentVersion string
+	fixVersion     string
+}
+
+func aggregatePackages(slice []packageTable, s packageTable) []packageTable {
+	for i, item := range slice {
+		if item.packageName == s.packageName &&
+			item.currentVersion == s.currentVersion &&
+			item.severity == s.severity &&
+			item.fixVersion == s.fixVersion {
+			slice[i].cveCount++
+			return slice
+		}
+	}
+	return append(slice, s)
+}
+
 func vulContainerImagePackagesToTable(image *api.VulnContainerImage) ([][]string, string) {
 	if image == nil {
 		return [][]string{}, ""
 	}
-	packagesCount := 0
 	filteredOutput := ""
+	var filteredPackages []packageTable
+	var aggregatedPackages []packageTable
 
 	out := [][]string{}
 	for _, layer := range image.ImageLayers {
 		for _, pkg := range layer.Packages {
 			for _, vul := range pkg.Vulnerabilities {
+				pack := packageTable{
+					cveCount:       1,
+					severity:       strings.Title(vul.Severity),
+					packageName:    pkg.Name,
+					currentVersion: pkg.Version,
+					fixVersion:     vul.FixVersion,
+				}
+
 				if vulCmdState.Fixable && vul.FixVersion == "" {
+					filteredPackages = aggregatePackages(filteredPackages, pack)
 					continue
 				}
 
 				if vulCmdState.Severity != "" {
 					if filterSeverity(vul.Severity, vulCmdState.Severity) {
+						filteredPackages = aggregatePackages(filteredPackages, pack)
 						continue
 					}
 				}
-
-				added := false
-				for i := range out {
-					if out[i][1] == strings.Title(vul.Severity) &&
-						out[i][2] == pkg.Name &&
-						out[i][3] == pkg.Version &&
-						out[i][4] == vul.FixVersion {
-
-						if count, err := strconv.Atoi(out[i][0]); err == nil {
-							out[i][0] = fmt.Sprintf("%d", (count + 1))
-							added = true
-						}
-
-					}
-				}
-
-				if added {
-					packagesCount++
-					continue
-				}
-
-				out = append(out, []string{
-					"1",
-					strings.Title(vul.Severity),
-					pkg.Name,
-					pkg.Version,
-					vul.FixVersion,
-				})
+				aggregatedPackages = aggregatePackages(aggregatedPackages, pack)
 			}
 		}
 	}
 
+	for _, p := range aggregatedPackages {
+		out = append(out, []string{
+			strconv.Itoa(p.cveCount),
+			p.severity,
+			p.packageName,
+			p.currentVersion,
+			p.fixVersion,
+		})
+	}
+
 	if vulFiltersEnabled() {
-		filteredOutput = fmt.Sprintf("%v of %v packages showing \n", len(out), packagesCount)
+		filteredOutput = fmt.Sprintf("%v of %v packages showing \n", len(out), len(aggregatedPackages)+len(filteredPackages))
 	}
 
 	// order by severity
