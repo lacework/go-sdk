@@ -25,10 +25,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIntegrationsNewAwsEcrRegistryIntegration(t *testing.T) {
-	subject := api.NewAwsEcrRegistryIntegration("integration_name",
-		api.AwsEcrData{
-			Credentials: api.AwsEcrCreds{
+func TestIntegrationsNewAwsEcrAccessKeyIntegration(t *testing.T) {
+	subject := api.NewAwsEcrWithAccessKeyIntegration("integration_name",
+		api.AwsEcrDataWithAccessKeyCreds{
+			Credentials: api.AwsEcrAccessKeyCreds{
 				AccessKeyID:     "id",
 				SecretAccessKey: "secret",
 			},
@@ -36,4 +36,5 @@ func TestIntegrationsNewAwsEcrRegistryIntegration(t *testing.T) {
 	)
 	assert.Equal(t, api.ContainerRegistryIntegration.String(), subject.Type)
 	assert.Equal(t, api.EcrRegistry.String(), subject.Data.RegistryType)
+	assert.Equal(t, api.AwsEcrAccessKey.String(), subject.Data.AwsAuthType)
 }

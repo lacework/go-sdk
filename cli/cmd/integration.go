@@ -748,7 +748,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			out = append(out, []string{"CLIENT EMAIL", iData.Credentials.ClientEmail})
 			out = append(out, []string{"PRIVATE KEY ID", iData.Credentials.PrivateKeyID})
 		case api.EcrRegistry.String():
-			var ecrData api.AwsEcrData
+			var ecrData api.AwsEcrCommonData
 			err := mapstructure.Decode(raw.Data, &ecrData)
 			if err != nil {
 				cli.Log.Debugw("unable to decode integration data",
@@ -759,7 +759,38 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 				)
 				break
 			}
-			out = append(out, []string{"ACCESS KEY ID", ecrData.Credentials.AccessKeyID})
+
+			out = append(out, []string{"AWS AUTH TYPE", ecrData.AwsAuthType})
+
+			switch ecrData.AwsAuthType {
+			case api.AwsEcrAccessKey.String():
+				var ecrIAMData api.AwsEcrDataWithAccessKeyCreds
+				err := mapstructure.Decode(raw.Data, &ecrIAMData)
+				if err != nil {
+					cli.Log.Debugw("unable to decode ECR integration data",
+						"integration_type", raw.Type,
+						"registry_type", iData.RegistryType,
+						"raw_data", raw.Data,
+						"error", err,
+					)
+					break
+				}
+				out = append(out, []string{"ACCESS KEY ID", ecrIAMData.Credentials.AccessKeyID})
+			case api.AwsEcrIAM.String():
+				var ecrCrossAccountData api.AwsEcrDataWithCrossAccountCreds
+				err := mapstructure.Decode(raw.Data, &ecrCrossAccountData)
+				if err != nil {
+					cli.Log.Debugw("unable to decode ECR integration data",
+						"integration_type", raw.Type,
+						"registry_type", iData.RegistryType,
+						"raw_data", raw.Data,
+						"error", err,
+					)
+					break
+				}
+				out = append(out, []string{"ROLE ARN", ecrCrossAccountData.Credentials.RoleArn})
+				out = append(out, []string{"EXTERNAL ID", ecrCrossAccountData.Credentials.ExternalID})
+			}
 		}
 
 		return out

@@ -22,6 +22,7 @@ import (
 	"strconv"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
 
 	"github.com/lacework/go-sdk/api"
 )
@@ -36,16 +37,6 @@ func createAwsEcrIntegration() error {
 		{
 			Name:     "domain",
 			Prompt:   &survey.Input{Message: "Registry Domain: "},
-			Validate: survey.Required,
-		},
-		{
-			Name:     "access_key_id",
-			Prompt:   &survey.Input{Message: "Access Key ID: "},
-			Validate: survey.Required,
-		},
-		{
-			Name:     "secret_access_key",
-			Prompt:   &survey.Password{Message: "Secret Access Key: "},
 			Validate: survey.Required,
 		},
 		{
@@ -74,6 +65,14 @@ func createAwsEcrIntegration() error {
 			},
 			Validate: survey.Required,
 		},
+		{
+			Name: "aws_auth_type",
+			Prompt: &survey.Select{
+				Message: "Authentication Type: ",
+				Options: []string{"AWS IAM Role", "AWS Access Key"},
+			},
+			Validate: survey.Required,
+		},
 	}
 
 	answers := struct {
@@ -85,6 +84,7 @@ func createAwsEcrIntegration() error {
 		LimitLabel      string `survey:"limit_label"`
 		LimitRepos      string `survey:"limit_repos"`
 		LimitMaxImages  string `survey:"limit_max_images"`
+		AwsAuthType     string `survey:"aws_auth_type"`
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -104,22 +104,103 @@ func createAwsEcrIntegration() error {
 		limitMaxImages = 5
 	}
 
-	ecr := api.NewAwsEcrRegistryIntegration(answers.Name,
-		api.AwsEcrData{
-			Credentials: api.AwsEcrCreds{
-				AccessKeyID:     answers.AccessKeyID,
-				SecretAccessKey: answers.SecretAccessKey,
-			},
-			RegistryDomain: answers.Domain,
-			LimitByTag:     answers.LimitTag,
-			LimitByLabel:   answers.LimitLabel,
-			LimitByRep:     answers.LimitRepos,
-			LimitNumImg:    limitMaxImages,
-		},
-	)
+	switch answers.AwsAuthType {
 
-	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAwsEcrRegistry(ecr)
-	cli.StopProgress()
-	return err
+	case "AWS IAM Role":
+		ecrAuthAnswers := struct {
+			RoleArn    string `survey:"role_arn"`
+			ExternalID string `survey:"external_id"`
+		}{}
+
+		questionsAuth := []*survey.Question{
+			{
+				Name:     "role_arn",
+				Prompt:   &survey.Input{Message: "Role ARN:"},
+				Validate: survey.Required,
+			},
+			{
+				Name:     "external_id",
+				Prompt:   &survey.Input{Message: "External ID:"},
+				Validate: survey.Required,
+			},
+		}
+
+		err := survey.Ask(questionsAuth, &ecrAuthAnswers,
+			survey.WithIcons(promptIconsFunc),
+		)
+		if err != nil {
+			return err
+		}
+
+		ecr := api.NewAwsEcrWithCrossAccountIntegration(answers.Name,
+			api.AwsEcrDataWithCrossAccountCreds{
+				Credentials: api.AwsCrossAccountCreds{
+					RoleArn:    ecrAuthAnswers.RoleArn,
+					ExternalID: ecrAuthAnswers.ExternalID,
+				},
+				AwsEcrCommonData: api.AwsEcrCommonData{
+					RegistryDomain: answers.Domain,
+					LimitByTag:     answers.LimitTag,
+					LimitByLabel:   answers.LimitLabel,
+					LimitByRep:     answers.LimitRepos,
+					LimitNumImg:    limitMaxImages,
+				},
+			},
+		)
+
+		cli.StartProgress(" Creating integration...")
+		_, err = cli.LwApi.Integrations.CreateAwsEcrWithCrossAccount(ecr)
+		cli.StopProgress()
+		return err
+
+	case "AWS Access Key":
+		ecrAuthAnswers := struct {
+			AccessKeyID     string `survey:"access_key_id"`
+			SecretAccessKey string `survey:"secret_access_key"`
+		}{}
+
+		questionsAuth := []*survey.Question{
+			{
+				Name:     "access_key_id",
+				Prompt:   &survey.Input{Message: "Access Key ID: "},
+				Validate: survey.Required,
+			},
+			{
+				Name:     "secret_access_key",
+				Prompt:   &survey.Password{Message: "Secret Access Key: "},
+				Validate: survey.Required,
+			},
+		}
+
+		err := survey.Ask(questionsAuth, &ecrAuthAnswers,
+			survey.WithIcons(promptIconsFunc),
+		)
+		if err != nil {
+			return err
+		}
+
+		ecr := api.NewAwsEcrWithAccessKeyIntegration(answers.Name,
+			api.AwsEcrDataWithAccessKeyCreds{
+				Credentials: api.AwsEcrAccessKeyCreds{
+					AccessKeyID:     ecrAuthAnswers.AccessKeyID,
+					SecretAccessKey: ecrAuthAnswers.SecretAccessKey,
+				},
+				AwsEcrCommonData: api.AwsEcrCommonData{
+					RegistryDomain: answers.Domain,
+					LimitByTag:     answers.LimitTag,
+					LimitByLabel:   answers.LimitLabel,
+					LimitByRep:     answers.LimitRepos,
+					LimitNumImg:    limitMaxImages,
+				},
+			},
+		)
+
+		cli.StartProgress(" Creating integration...")
+		_, err = cli.LwApi.Integrations.CreateAwsEcrWithAccessKey(ecr)
+		cli.StopProgress()
+		return err
+
+	default:
+		return errors.New("unknown ECR authentication method")
+	}
 }
