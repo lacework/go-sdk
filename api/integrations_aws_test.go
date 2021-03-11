@@ -34,7 +34,7 @@ import (
 func TestIntegrationsNewAwsCfgIntegration(t *testing.T) {
 	subject := api.NewAwsCfgIntegration("integration_name",
 		api.AwsIntegrationData{
-			Credentials: api.AwsIntegrationCreds{
+			Credentials: api.AwsCrossAccountCreds{
 				RoleArn:    "arn:foo:bar",
 				ExternalID: "0123456789",
 			},
@@ -62,7 +62,7 @@ func TestIntegrationsNewAwsCfgIntegrationWithCustomTemplateFile(t *testing.T) {
     }
   }`)
 	awsData := api.AwsIntegrationData{
-		Credentials: api.AwsIntegrationCreds{
+		Credentials: api.AwsCrossAccountCreds{
 			RoleArn:    "arn:foo:bar",
 			ExternalID: "0123456789",
 		},
@@ -120,7 +120,7 @@ func TestIntegrationsCreateAws(t *testing.T) {
 	data := api.NewAwsIntegration("integration_name",
 		api.AwsCfgIntegration,
 		api.AwsIntegrationData{
-			Credentials: api.AwsIntegrationCreds{
+			Credentials: api.AwsCrossAccountCreds{
 				RoleArn:    "arn:foo:bar",
 				ExternalID: "0123456789",
 			},
@@ -208,7 +208,7 @@ func TestIntegrationsUpdateAws(t *testing.T) {
 	data := api.NewAwsIntegration("integration_name",
 		api.AwsCloudTrailIntegration,
 		api.AwsIntegrationData{
-			Credentials: api.AwsIntegrationCreds{
+			Credentials: api.AwsCrossAccountCreds{
 				RoleArn:    "arn:foo:bar",
 				ExternalID: "0123456789",
 			},
