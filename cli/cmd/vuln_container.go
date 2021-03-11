@@ -448,7 +448,7 @@ func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) stri
 		),
 	)
 
-	if vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages || vulFiltersEnabled() {
+	if vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled() {
 		if vulCmdState.Packages {
 			vulnPackagesTable, filteredOutput := vulContainerImagePackagesToTable(assessment.Image)
 
@@ -752,5 +752,5 @@ func filterSeverity(severity string, threshold string) bool {
 }
 
 func vulFiltersEnabled() bool {
-	return vulCmdState.Severity != ""
+	return vulCmdState.Severity != "" || vulCmdState.Fixable
 }
