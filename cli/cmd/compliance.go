@@ -202,7 +202,7 @@ func complianceReportSummaryTable(summaries []api.ComplianceSummary) [][]string 
 func complianceReportRecommendationsTable(recommendations []api.ComplianceRecommendation) ([][]string, string) {
 	out := [][]string{}
 	var filteredOutput string
-	if filtersEnabled() {
+	if complianceFiltersEnabled() {
 		recommendations, filteredOutput = filterRecommendations(recommendations)
 	}
 	for _, recommend := range recommendations {
@@ -255,7 +255,7 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 		),
 	)
 
-	if compCmdState.Details || filtersEnabled() {
+	if compCmdState.Details || complianceFiltersEnabled() {
 		mainReport.WriteString(
 			renderCustomTable(
 				[]string{"ID", "Recommendation", "Status", "Severity",
@@ -327,7 +327,7 @@ func matchRecommendationsFilters(r api.ComplianceRecommendation) bool {
 	return !array.ContainsBool(results, false)
 }
 
-func filtersEnabled() bool {
+func complianceFiltersEnabled() bool {
 	return len(compCmdState.Category) > 0 || compCmdState.Status != "" || compCmdState.Severity != "" || len(compCmdState.Service) > 0
 }
 
