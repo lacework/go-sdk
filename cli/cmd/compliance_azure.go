@@ -76,18 +76,18 @@ Then, select one GUID from an integration and visualize its details using the co
 		Long:    `List all Azure Tenants.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			response, err := cli.LwApi.Compliance.ListAzureTenants()
+			response, err := cli.LwApi.Integrations.ListAzureCfg()
 			if err != nil {
 				return errors.Wrap(err, "unable to list azure tenants")
 			}
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(response)
+				return cli.OutputJSON(response.Data[0])
 			}
 
 			var rows [][]string
-			for _, tenant := range response {
-				rows = append(rows, []string{tenant})
+			for _, azure := range response.Data {
+				rows = append(rows, []string{azure.Data.TenantID})
 			}
 
 			cli.OutputHuman(renderSimpleTable([]string{"Tenants"}, rows))

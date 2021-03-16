@@ -33,20 +33,6 @@ type ComplianceAzureReportConfig struct {
 	Type           string
 }
 
-func (svc *ComplianceService) ListAzureTenants() ([]string, error) {
-	var response AzureIntegrationsResponse
-	var tenants []string
-
-	err := svc.client.RequestDecoder("GET", fmt.Sprintf(apiIntegrationsByType, "AZURE_CFG"), nil, &response)
-	if err != nil {
-		return nil, err
-	}
-	for _, azure := range response.Data {
-		tenants = append(tenants, azure.Data.TenantID)
-	}
-	return tenants, err
-}
-
 func (svc *ComplianceService) ListAzureSubscriptions(tenantID string) (
 	response compAzureSubsResponse,
 	err error,
