@@ -34,7 +34,7 @@ var (
 	// complianceAzureListSubsCmd represents the list-subscriptions sub-command inside the azure command
 	complianceAzureListSubsCmd = &cobra.Command{
 		Use:     "list-subscriptions <tenant_id>",
-		Aliases: []string{"list-subs", "list"},
+		Aliases: []string{"list-subs"},
 		Short:   "list subscriptions from tenant",
 		Long: `List all Azure subscriptions from the provided tenant ID.
 
@@ -64,6 +64,33 @@ Then, select one GUID from an integration and visualize its details using the co
 				}
 			}
 			cli.OutputHuman(renderSimpleTable([]string{"Subscriptions"}, rows))
+			return nil
+		},
+	}
+
+	// complianceAzureListTenantsCmd represents the list-tenants sub-command inside the azure command
+	complianceAzureListTenantsCmd = &cobra.Command{
+		Use:     "list-tenants",
+		Aliases: []string{"list"},
+		Short:   "list subscriptions from tenant",
+		Long: `List all Azure Tenants.`,
+		Args:  cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			response, err := cli.LwApi.Compliance.ListAzureTenants()
+			if err != nil {
+				return errors.Wrap(err, "unable to list azure tenants")
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(response)
+			}
+
+			var rows [][]string
+			for _, tenant := range response {
+				rows = append(rows, []string{tenant})
+			}
+
+			cli.OutputHuman(renderSimpleTable([]string{"Tenants"}, rows))
 			return nil
 		},
 	}
@@ -201,6 +228,7 @@ To run an ad-hoc compliance assessment use the command:
 func init() {
 	// add sub-commands to the azure command
 	complianceAzureCmd.AddCommand(complianceAzureListSubsCmd)
+	complianceAzureCmd.AddCommand(complianceAzureListTenantsCmd)
 	complianceAzureCmd.AddCommand(complianceAzureGetReportCmd)
 	complianceAzureCmd.AddCommand(complianceAzureRunAssessmentCmd)
 
