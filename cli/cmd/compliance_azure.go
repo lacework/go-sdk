@@ -73,8 +73,8 @@ Then, select one GUID from an integration and visualize its details using the co
 		Use:     "list-tenants",
 		Aliases: []string{"list"},
 		Short:   "list subscriptions from tenant",
-		Long: `List all Azure Tenants.`,
-		Args:  cobra.NoArgs,
+		Long:    `List all Azure Tenants.`,
+		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			response, err := cli.LwApi.Compliance.ListAzureTenants()
 			if err != nil {

@@ -33,7 +33,7 @@ type ComplianceAzureReportConfig struct {
 	Type           string
 }
 
-func (svc *ComplianceService) ListAzureTenants() ([]string, error){
+func (svc *ComplianceService) ListAzureTenants() ([]string, error) {
 	var response AzureIntegrationsResponse
 	var tenants []string
 
