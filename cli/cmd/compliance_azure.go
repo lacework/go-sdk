@@ -34,18 +34,13 @@ var (
 	// complianceAzureListSubsCmd represents the list-subscriptions sub-command inside the azure command
 	complianceAzureListSubsCmd = &cobra.Command{
 		Use:     "list-subscriptions <tenant_id>",
-		Aliases: []string{"list-subs", "list"},
+		Aliases: []string{"list-subs"},
 		Short:   "list subscriptions from tenant",
-		Long: `List all Azure subscriptions from the provided tenant ID.
+		Long: `List all Azure subscriptions from the provided Tenant ID.
 
-Use the following command to list all Azure integrations in your account:
+Use the following command to list all Azure Tenants configured in your account:
 
-    $ lacework integrations list --type AZURE_CFG
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    $ lacework integration show <int_guid>
-`,
+    $ lacework compliance az list`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			response, err := cli.LwApi.Compliance.ListAzureSubscriptions(args[0])
@@ -64,6 +59,54 @@ Then, select one GUID from an integration and visualize its details using the co
 				}
 			}
 			cli.OutputHuman(renderSimpleTable([]string{"Subscriptions"}, rows))
+			return nil
+		},
+	}
+
+	// complianceAzureListTenantsCmd represents the list-tenants sub-command inside the azure command
+	complianceAzureListTenantsCmd = &cobra.Command{
+		Use:     "list-tenants",
+		Aliases: []string{"list"},
+		Short:   "list all Azure Tenants configured",
+		Long:    `List all Azure Tenants configured in your account.`,
+		Args:    cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			azureIntegrations, err := cli.LwApi.Integrations.ListAzureCfg()
+			if err != nil {
+				return errors.Wrap(err, "unable to get azure integrations")
+			}
+			if len(azureIntegrations.Data) == 0 {
+				msg := `There are no Azure Tenants configured in your account.
+
+Get started by integrating your Azure Tenants to analyze configuration compliance using the command:
+
+    $ lacework integration create
+
+Or, if you prefer to do it via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Cloud Accounts.
+`
+				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
+				return nil
+			}
+
+			azureTenants := make([]string, 0)
+			for _, i := range azureIntegrations.Data {
+				azureTenants = append(azureTenants, i.Data.TenantID)
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(azureTenants)
+			}
+
+			var rows [][]string
+			for _, tenant := range azureTenants {
+				rows = append(rows, []string{tenant})
+			}
+
+			cli.OutputHuman(renderSimpleTable([]string{"Azure Tenants"}, rows))
 			return nil
 		},
 	}
@@ -201,6 +244,7 @@ To run an ad-hoc compliance assessment use the command:
 func init() {
 	// add sub-commands to the azure command
 	complianceAzureCmd.AddCommand(complianceAzureListSubsCmd)
+	complianceAzureCmd.AddCommand(complianceAzureListTenantsCmd)
 	complianceAzureCmd.AddCommand(complianceAzureGetReportCmd)
 	complianceAzureCmd.AddCommand(complianceAzureRunAssessmentCmd)
 
