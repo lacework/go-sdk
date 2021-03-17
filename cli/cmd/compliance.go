@@ -93,25 +93,19 @@ Use the following command to list all available integrations in your account:
 		Short:   "compliance for Azure Cloud",
 		Long: `Manage compliance reports for Azure Cloud.
 
+To list all Azure Tenants configured in your account:
+
+    $ lacework compliance azure list-tenants
+
+To list all Azure Subscriptions from a Tenant, use the command:
+
+    $ lacework compliance azure list-subscriptions <tenant_id>
+
 To get the latest Azure compliance assessment report, use the command:
 
     $ lacework compliance azure get-report <tenant_id> <subscriptions_id>
 
 These reports run on a regular schedule, typically once a day.
-
-To find out which Azure tenants/subscriptions are connected to your
-Lacework account, use the following command:
-
-    $ lacework integrations list --type AZURE_CFG
-
-Then, choose one integration, copy the GUID and visualize its details
-using the command:
-
-    $ lacework integration show <int_guid>
-
-To list all Azure subscriptions from a tenant, use the command:
-
-    $ lacework compliance azure list-subscriptions <tenant_id>
 
 To run an ad-hoc compliance assessment use the command:
 
