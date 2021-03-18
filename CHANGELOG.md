@@ -1,3 +1,9 @@
+# v0.2.23
+
+## Features
+* feat(cli): add Azure list-tenants sub-command (#341) (Darren)([960a8b7](https://github.com/lacework/go-sdk/commit/960a8b7f53a52febb66e89dce20f28211569a3fb))
+* feat(cli): filter vulnerability assessments by severity (#338) (Darren)([07af9b1](https://github.com/lacework/go-sdk/commit/07af9b1091c8387d5d9e094a0fb5e9024749e4ef))
+---
 # v0.2.22
 
 ## Bug Fixes

@@ -1,23 +1,19 @@
-## lacework compliance azure list-subscriptions
+## lacework compliance azure list-tenants
 
-list subscriptions from tenant
+list all Azure Tenants configured
 
 ### Synopsis
 
-List all Azure subscriptions from the provided Tenant ID.
-
-Use the following command to list all Azure Tenants configured in your account:
-
-    $ lacework compliance az list
+List all Azure Tenants configured in your account.
 
 ```
-lacework compliance azure list-subscriptions <tenant_id> [flags]
+lacework compliance azure list-tenants [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-subscriptions
+  -h, --help   help for list-tenants
 ```
 
 ### Options inherited from parent commands
