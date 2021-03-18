@@ -29,6 +29,10 @@ executors:
     resource_class: arm.medium
 
 jobs:
+  prepare-test-resources:
+    executor: go-executor
+    steps:
+      - run: make test-resources
   unit-test:
     executor: go-executor
     steps:
@@ -162,10 +166,6 @@ jobs:
     executor: alpine
     steps:
       - run: curl -u "$CIRCLE_TOKEN" https://circleci.com/api/v1.1/project/gh/lacework/homebrew-tap/tree/main -d "build_parameters[CIRCLE_JOB]=update"
-prepare-test-resources:
-    executor: alpine
-    steps:
-      - run: make test-resources
 
 workflows:
   version: 2
