@@ -16,7 +16,6 @@ func main() {
 	alert := api.NewPagerDutyAlertChannel("pagerduty-alert-from-golang",
 		api.PagerDutyData{
 			IntegrationKey:   "1234abc8901abc567abc123abc78e012",
-			MinAlertSeverity: 5,
 		},
 	)
 
