@@ -113,7 +113,7 @@ func (c *Client) GenerateToken() (response TokenResponse, err error) {
 		// @afiune how do we handle cases where there is more than one token
 		c.log.Debug("storing token", zap.Reflect("data", response.Data))
 		c.auth.token = response.Data[0].Token
-		c.auth.expiresAt, err = time.Parse("Jan 02 2006 15:04", response.Data[0].ExpiresAt)
+		c.auth.expiresAt, err = time.Parse("Jan 02 2006 15:04:05", response.Data[0].ExpiresAt)
 		if err != nil {
 			c.log.Error("Failed to parse token expiration response", zap.Error(err))
 		}
