@@ -35,7 +35,7 @@ build_clean() {
 
 build_dirty() {
   echo "building dirty container"
-  docker build --no-cache -f "integration/test_resources/vuln_scan/dirty.Dockerfile" -t techallylw/test-cli-dirty .
+  docker build -f "integration/test_resources/vuln_scan/dirty.Dockerfile" -t techallylw/test-cli-dirty .
   docker push techallylw/test-cli-dirty
 }
 

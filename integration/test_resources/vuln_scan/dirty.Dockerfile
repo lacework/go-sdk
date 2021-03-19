@@ -1,1 +1,1 @@
-FROM node:latest
+FROM node:15.2.0
