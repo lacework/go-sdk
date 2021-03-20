@@ -74,6 +74,9 @@ generate-databox:
 generate-docs:
 	go generate cli/cmd/docs.go
 
+test-resources:
+	scripts/prepare_test_resources.sh all
+
 install-cli: build-cli-cross-platform
 ifeq (x86_64, $(shell uname -m))
 	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-amd64 /usr/local/bin/$(CLINAME)

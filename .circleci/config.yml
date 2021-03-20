@@ -29,6 +29,10 @@ executors:
     resource_class: arm.medium
 
 jobs:
+  prepare-test-resources:
+    executor: go-executor
+    steps:
+      - run: make test-resources
   unit-test:
     executor: go-executor
     steps:
@@ -224,6 +228,7 @@ workflows:
             branches:
               only: main
     jobs:
+      - prepare-test-resources
       - unit-test
       - build-cli
       - integration-test-linux:
