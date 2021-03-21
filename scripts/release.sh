@@ -130,6 +130,7 @@ prepare_release() {
   log "preparing new release"
   prerequisites
   remove_tag_version
+  check_for_minor_version_bump
   cli_generate_files
   generate_release_notes
   update_changelog
@@ -160,6 +161,12 @@ update_changelog() {
   echo "$_changelog" >> CHANGELOG.md
   # clean changes file since we don't need it anymore
   rm CHANGES.md
+}
+
+release_contains_features() {
+  latest_version=$(find_latest_version)
+  git log --no-merges --pretty="%s" ${latest_version}..main | grep "feat[:(]" >/dev/null
+  return $?
 }
 
 load_list_of_changes() {
@@ -289,6 +296,16 @@ add_tag_version() {
   VERSION=$(cat VERSION)
   scripts/version_updater.sh
   log "updated version to v$VERSION"
+}
+
+check_for_minor_version_bump() {
+  if release_contains_features; then
+    log "new feature detected, minor version bump"
+    echo $VERSION | awk -F. '{printf("%d.%d.0", $1, $2+1)}' > VERSION
+    VERSION=$(cat VERSION)
+    scripts/version_updater.sh
+    log "updated version to v$VERSION"
+  fi
 }
 
 remove_tag_version() {
