@@ -31,6 +31,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
@@ -45,7 +46,11 @@ NOTE: Scans can take up to 15 minutes to return results.
 Arguments:
   <registry>    container registry where the container image has been published
   <repository>  repository name that contains the container image
-  <tag|digest>  either a tag or an image digest to scan (digest format: sha256:1ee...1d3b)`,
+  <tag|digest>  either a tag or an image digest to scan (digest format: sha256:1ee...1d3b)
+
+To list all Container Registries configured in your account:
+
+    $ lacework vuln container list-registries`,
 		Args: cobra.ExactArgs(3),
 		RunE: func(_ *cobra.Command, args []string) error {
 			return requestOnDemandContainerVulnerabilityScan(args)
@@ -62,6 +67,65 @@ Arguments:
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			return checkOnDemandContainerVulnerabilityStatus(args[0])
+		},
+	}
+
+	// vulContainerListRegistriesCmd represents the list-registries sub-command inside the container
+	// vulnerability command
+	vulContainerListRegistriesCmd = &cobra.Command{
+		Use:     "list-registries",
+		Aliases: []string{"list-reg", "registries"},
+		Short:   "list all Container Registries configured",
+		Long:    `List all Container Registries configured in your account.`,
+		Args:    cobra.NoArgs,
+		RunE: func(_ *cobra.Command, args []string) error {
+			regsIntegrations, err := cli.LwApi.Integrations.ListContainerRegistries()
+			if err != nil {
+				return errors.Wrap(err, "unable to get container registry integrations")
+			}
+			if len(regsIntegrations.Data) == 0 {
+				msg := `There are no Container Registries configured in your account.
+
+Get started by integrating your Container Registry using the command:
+
+    $ lacework integration create
+
+Or, if you prefer to do it via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Container Registry.
+`
+				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
+				return nil
+			}
+
+			registries := make([]string, 0)
+			for _, i := range regsIntegrations.Data {
+				// avoid adding empty registries coming from the new local_scanner
+				if i.Data.RegistryDomain == "" {
+					continue
+				}
+
+				// avoid adding duplicate registries
+				if array.ContainsStr(registries, i.Data.RegistryDomain) {
+					continue
+				}
+
+				registries = append(registries, i.Data.RegistryDomain)
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(registries)
+			}
+
+			rows := [][]string{}
+			for _, acc := range registries {
+				rows = append(rows, []string{acc})
+			}
+
+			cli.OutputHuman(renderSimpleTable([]string{"Container Registries"}, rows))
+			return nil
 		},
 	}
 
@@ -187,6 +251,7 @@ func init() {
 	vulContainerCmd.AddCommand(vulContainerScanCmd)
 	vulContainerCmd.AddCommand(vulContainerScanStatusCmd)
 	vulContainerCmd.AddCommand(vulContainerListAssessmentsCmd)
+	vulContainerCmd.AddCommand(vulContainerListRegistriesCmd)
 	vulContainerCmd.AddCommand(vulContainerShowAssessmentCmd)
 
 	// add start flag to list-assessments command
