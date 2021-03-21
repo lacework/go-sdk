@@ -135,6 +135,7 @@ prepare_release() {
   generate_release_notes
   update_changelog
   push_release
+  open_pull_request
 }
 
 publish_release() {
@@ -248,8 +249,21 @@ push_release() {
   git checkout -B release
   git commit -am "Release v$_version_no_tag"
   git push origin release
+}
+
+open_pull_request() {
+  local _body="/tmp/pr.json"
+  local _pr="/tmp/pr.out"
+
+  log "opening GH pull request"
+  generate_pr_body "$_body"
+  curl -XPOST -H "Authorization: token $GITHUB_TOKEN" --data  "@$_body" \
+        https://api.github.com/repos/${org_name}/${project_name}/pulls > $_pr
+
+  _pr_url=$(jq .html_url $_pr)
   log ""
-  log "Follow the above url and open a pull request"
+  log "It is time to review the release!"
+  log "    $_pr_url"
 }
 
 tag_release() {
@@ -450,6 +464,20 @@ create_release() {
   log "the release has been completed!"
   log ""
   log " -> https://github.com/${org_name}/${project_name}/releases/tag/${_tag}"
+}
+
+generate_pr_body() {
+  _file=${1:-pr.json}
+  _version_no_tag=$(echo $VERSION | awk -F. '{printf("%d.%d.%d", $1, $2, $3)}')
+  _release_notes=$(jq -aRs .  <<< cat RELEASE_NOTES.md)
+  cat <<EOF > $_file
+{
+  "base": "main",
+  "head": "release",
+  "title": "Release v$_version_no_tag",
+  "body": $_release_notes
+}
+EOF
 }
 
 generate_release_body() {
