@@ -37,7 +37,7 @@ Get started by integrating one or more cloud accounts using the command:
 
     $ lacework integration create
 
-Or, if you prefer to do it via the WebUI, log in to your account at:
+If you prefer to configure the integration via the WebUI, log in to your account at:
 
     https://<ACCOUNT>.lacework.net
 

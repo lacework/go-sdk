@@ -124,8 +124,8 @@ func (svc *IntegrationsService) UpdateContainerRegistry(integration ContainerReg
 	return
 }
 
-// ListContainerRegistries lists the CONT_VULN_CFG external integrations available on the Lacework Server
-func (svc *IntegrationsService) ListContainerRegistries() (response ContainerRegIntResponse, err error) {
+// ListContainerRegistryIntegrations lists the CONT_VULN_CFG external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListContainerRegistryIntegrations() (response ContainerRegIntResponse, err error) {
 	err = svc.listByType(ContainerRegistryIntegration, &response)
 	return
 }
