@@ -130,10 +130,12 @@ prepare_release() {
   log "preparing new release"
   prerequisites
   remove_tag_version
+  check_for_minor_version_bump
   cli_generate_files
   generate_release_notes
   update_changelog
   push_release
+  open_pull_request
 }
 
 publish_release() {
@@ -160,6 +162,12 @@ update_changelog() {
   echo "$_changelog" >> CHANGELOG.md
   # clean changes file since we don't need it anymore
   rm CHANGES.md
+}
+
+release_contains_features() {
+  latest_version=$(find_latest_version)
+  git log --no-merges --pretty="%s" ${latest_version}..main | grep "feat[:(]" >/dev/null
+  return $?
 }
 
 load_list_of_changes() {
@@ -241,8 +249,21 @@ push_release() {
   git checkout -B release
   git commit -am "Release v$_version_no_tag"
   git push origin release
+}
+
+open_pull_request() {
+  local _body="/tmp/pr.json"
+  local _pr="/tmp/pr.out"
+
+  log "opening GH pull request"
+  generate_pr_body "$_body"
+  curl -XPOST -H "Authorization: token $GITHUB_TOKEN" --data  "@$_body" \
+        https://api.github.com/repos/${org_name}/${project_name}/pulls > $_pr
+
+  _pr_url=$(jq .html_url $_pr)
   log ""
-  log "Follow the above url and open a pull request"
+  log "It is time to review the release!"
+  log "    $_pr_url"
 }
 
 tag_release() {
@@ -289,6 +310,16 @@ add_tag_version() {
   VERSION=$(cat VERSION)
   scripts/version_updater.sh
   log "updated version to v$VERSION"
+}
+
+check_for_minor_version_bump() {
+  if release_contains_features; then
+    log "new feature detected, minor version bump"
+    echo $VERSION | awk -F. '{printf("%d.%d.0", $1, $2+1)}' > VERSION
+    VERSION=$(cat VERSION)
+    scripts/version_updater.sh
+    log "updated version to v$VERSION"
+  fi
 }
 
 remove_tag_version() {
@@ -433,6 +464,20 @@ create_release() {
   log "the release has been completed!"
   log ""
   log " -> https://github.com/${org_name}/${project_name}/releases/tag/${_tag}"
+}
+
+generate_pr_body() {
+  _file=${1:-pr.json}
+  _version_no_tag=$(echo $VERSION | awk -F. '{printf("%d.%d.%d", $1, $2, $3)}')
+  _release_notes=$(jq -aRs .  <<< cat RELEASE_NOTES.md)
+  cat <<EOF > $_file
+{
+  "base": "main",
+  "head": "release",
+  "title": "Release v$_version_no_tag",
+  "body": $_release_notes
+}
+EOF
 }
 
 generate_release_body() {
