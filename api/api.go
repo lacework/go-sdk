@@ -59,6 +59,8 @@ const (
 	apiEventsDetails   = "external/events/GetEventDetails"
 	apiEventsDateRange = "external/events/GetEventsForDateRange"
 
+	apiAccountOrganizationInfo = "external/account/organizationInfo"
+
 	// Alpha
 	apiLQLQuery = "external/lql/query"
 )
