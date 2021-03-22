@@ -32,6 +32,7 @@ jobs:
   prepare-test-resources:
     executor: go-executor
     steps:
+      - checkout
       - run: make test-resources
   unit-test:
     executor: go-executor
