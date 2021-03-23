@@ -24,7 +24,7 @@ type AccountService struct {
 	client *Client
 }
 
-func (svc *AccountService) OrganizationInfo() (
+func (svc *AccountService) GetOrganizationInfo() (
 	response accountOrganizationInfoResponse,
 	err error,
 ) {
