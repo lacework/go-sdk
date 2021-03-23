@@ -31,6 +31,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
@@ -45,7 +46,11 @@ NOTE: Scans can take up to 15 minutes to return results.
 Arguments:
   <registry>    container registry where the container image has been published
   <repository>  repository name that contains the container image
-  <tag|digest>  either a tag or an image digest to scan (digest format: sha256:1ee...1d3b)`,
+  <tag|digest>  either a tag or an image digest to scan (digest format: sha256:1ee...1d3b)
+
+To list all container registries configured in your account:
+
+    $ lacework vulnerability container list-registries`,
 		Args: cobra.ExactArgs(3),
 		RunE: func(_ *cobra.Command, args []string) error {
 			return requestOnDemandContainerVulnerabilityScan(args)
@@ -62,6 +67,50 @@ Arguments:
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			return checkOnDemandContainerVulnerabilityStatus(args[0])
+		},
+	}
+
+	// vulContainerListRegistriesCmd represents the list-registries sub-command inside the container
+	// vulnerability command
+	vulContainerListRegistriesCmd = &cobra.Command{
+		Use:     "list-registries",
+		Aliases: []string{"list-reg", "registries"},
+		Short:   "list all container registries configured",
+		Long:    `List all container registries configured in your account.`,
+		Args:    cobra.NoArgs,
+		RunE: func(_ *cobra.Command, args []string) error {
+			registries, err := getContainerRegistries()
+			if err != nil {
+				return err
+			}
+			if len(registries) == 0 {
+				msg := `There are no container registries configured in your account.
+
+Get started by integrating your container registry using the command:
+
+    $ lacework integration create
+
+If you prefer to configure the integration via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Container Registry.
+`
+				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
+				return nil
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(registries)
+			}
+
+			rows := [][]string{}
+			for _, acc := range registries {
+				rows = append(rows, []string{acc})
+			}
+
+			cli.OutputHuman(renderSimpleTable([]string{"Container Registries"}, rows))
+			return nil
 		},
 	}
 
@@ -187,6 +236,7 @@ func init() {
 	vulContainerCmd.AddCommand(vulContainerScanCmd)
 	vulContainerCmd.AddCommand(vulContainerScanStatusCmd)
 	vulContainerCmd.AddCommand(vulContainerListAssessmentsCmd)
+	vulContainerCmd.AddCommand(vulContainerListRegistriesCmd)
 	vulContainerCmd.AddCommand(vulContainerShowAssessmentCmd)
 
 	// add start flag to list-assessments command
@@ -275,7 +325,7 @@ func requestOnDemandContainerVulnerabilityScan(args []string) error {
 	)
 	scan, err := cli.LwApi.Vulnerabilities.Container.Scan(args[0], args[1], args[2])
 	if err != nil {
-		return errors.Wrap(err, "unable to request on-demand vulnerability scan")
+		return userFriendlyErrorForOnDemandCtrVulnScan(err, args[0], args[1], args[2])
 	}
 
 	cli.Log.Debugw("vulnerability scan", "details", scan)
@@ -753,4 +803,90 @@ func filterSeverity(severity string, threshold string) bool {
 
 func vulFiltersEnabled() bool {
 	return vulCmdState.Severity != "" || vulCmdState.Fixable
+}
+
+func getContainerRegistries() ([]string, error) {
+	var (
+		registries            = make([]string, 0)
+		regsIntegrations, err = cli.LwApi.Integrations.ListContainerRegistryIntegrations()
+	)
+	if err != nil {
+		return registries, errors.Wrap(err, "unable to get container registry integrations")
+	}
+
+	for _, i := range regsIntegrations.Data {
+		// avoid adding empty registries coming from the new local_scanner and avoid adding duplicate registries
+		if i.Data.RegistryDomain == "" || array.ContainsStr(registries, i.Data.RegistryDomain) {
+			continue
+		}
+
+		registries = append(registries, i.Data.RegistryDomain)
+	}
+
+	return registries, nil
+}
+
+// Creates a user-friendly error message
+func userFriendlyErrorForOnDemandCtrVulnScan(err error, registry, repo, tag string) error {
+	if strings.Contains(err.Error(),
+		"Could not find integraion matching the registry provided",
+	) || strings.Contains(err.Error(),
+		"Could not find vulnerability integrations",
+	) {
+
+		registries, errReg := getContainerRegistries()
+		if errReg != nil {
+			cli.Log.Debugw("error trying to retrieve configured registries", "error", errReg)
+			return errors.Errorf("container registry '%s' not found", registry)
+		}
+
+		if len(registries) == 0 {
+			msg := `there are no container registries configured in your account.
+
+Get started by integrating your container registry using the command:
+
+    $ lacework integration create
+
+If you prefer to configure the integration via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Container Registry.
+`
+			return errors.New(fmt.Sprintf(msg, cli.Account))
+		}
+
+		msg := `container registry '%s' not found
+
+Your account has the following container registries configured:
+
+    > %s
+
+To integrate a new container registry use the command:
+
+    $ lacework integration create
+`
+		return errors.New(fmt.Sprintf(msg, registry, strings.Join(registries, "\n    > ")))
+	}
+
+	if strings.Contains(
+		err.Error(),
+		"Could not successfully send scan request to available integrations for given repo and label",
+	) {
+
+		msg := `container image '%s:%s' not found in registry '%s'.
+
+This error is likely due to a problem with the container registry integration 
+configured in your account. Verify that the integration was configured with 
+Lacework using the correct permissions, and that the repository belongs
+to the provided registry.
+
+To view all container registries configured in your account use the command:
+
+    $ lacework vulnerability container list-registries
+`
+		return errors.Errorf(msg, repo, tag, registry)
+	}
+
+	return errors.Wrap(err, "unable to request on-demand vulnerability scan")
 }

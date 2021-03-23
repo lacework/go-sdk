@@ -82,7 +82,7 @@ Get started by integrating your Azure Tenants to analyze configuration complianc
 
     $ lacework integration create
 
-Or, if you prefer to do it via the WebUI, log in to your account at:
+If you prefer to configure the integration via the WebUI, log in to your account at:
 
     https://%s.lacework.net
 
