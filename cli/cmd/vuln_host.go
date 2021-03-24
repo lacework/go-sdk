@@ -172,6 +172,11 @@ To generate a package-manifest from the local host and scan it automatically:
 			}
 
 			cli.OutputHuman(hostScanPackagesVulnToTable(&response))
+
+			if vulCmdState.FailOnSeverity != "" {
+				vulnFailureThreshold(response)
+			}
+
 			return nil
 		},
 	}
@@ -243,6 +248,7 @@ with fixes:
 					"\nTry adding '--fixable' to only show fixable vulnerabilities.\n",
 				)
 			}
+
 			return nil
 		},
 	}
@@ -327,6 +333,11 @@ Grab a CVE id and feed it to the command:
 			}
 
 			cli.OutputHuman(hostVulnHostDetailsToTable(response.Assessment))
+
+			if vulCmdState.FailOnSeverity != "" {
+				vulnFailureThresholdc(response.Assessment)
+			}
+
 			return nil
 		},
 	}
@@ -660,9 +671,7 @@ func hostVulnHostDetailsToTable(assessment api.HostVulnHostAssessment) string {
 			"Try adding '--fixable' to only show fixable vulnerabilities.\n",
 		)
 	}
-	if vulCmdState.FailOnSeverity != "" {
-		vulnFailureThreshold(assessment)
-	}
+
 	return mainBldr.String()
 }
 

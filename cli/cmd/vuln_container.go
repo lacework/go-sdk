@@ -414,6 +414,11 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 	if vulCmdState.Html {
 		return generateVulnAssessmentHTML(results)
 	}
+
+	if vulCmdState.FailOnSeverity != "" {
+		vulnContainerFailureThreshold(results)
+	}
+
 	return nil
 }
 
@@ -499,6 +504,10 @@ For more information about supported distributions, visit:
 		)
 	}
 
+	if vulCmdState.FailOnSeverity != "" {
+		vulnContainerFailureThreshold(&assessment.Data)
+	}
+
 	return nil
 }
 
@@ -578,10 +587,6 @@ func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) stri
 		mainReport.WriteString(
 			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
 		)
-	}
-
-	if vulCmdState.FailOnSeverity != "" {
-		vulnContainerFailureThreshold(assessment)
 	}
 
 	return mainReport.String()
