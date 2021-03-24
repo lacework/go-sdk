@@ -62,7 +62,11 @@ const (
 	apiAccountOrganizationInfo = "external/account/organizationInfo"
 
 	// Alpha
-	apiLQLQuery = "external/lql/query"
+	apiLQL            = "external/lql"
+	apiLQLCompile     = "external/lql/compile"
+	apiLQLDataSources = "external/lql/dataSources"
+	apiLQLDescribe    = "external/lql/describe"
+	apiLQLQuery       = "external/lql/query"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
