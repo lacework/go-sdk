@@ -94,6 +94,9 @@ To generate a package-manifest from the local host and scan it automatically:
  - Calls to this operation are rate limited to 10 calls per hour, per access key.
  - This operation is limited to 10k packages per command execution.`,
 		RunE: func(_ *cobra.Command, args []string) error {
+			if err := validateFailureFlags(); err != nil {
+				return err
+			}
 			var (
 				pkgManifest      = new(api.PackageManifest)
 				pkgManifestBytes []byte
@@ -184,6 +187,9 @@ with fixes:
 
     $ lacework vulnerability host list-cves --active --fixable`,
 		RunE: func(_ *cobra.Command, args []string) error {
+			if err := validateFailureFlags(); err != nil {
+				return err
+			}
 			response, err := cli.LwApi.Vulnerabilities.Host.ListCves()
 			if err != nil {
 				return errors.Wrap(err, "unable to get CVEs from hosts")
@@ -308,6 +314,9 @@ Grab a CVE id and feed it to the command:
 
     $ lacework vulnerability host list-hosts my_cve_id`,
 		RunE: func(_ *cobra.Command, args []string) error {
+			if err := validateFailureFlags(); err != nil {
+				return err
+			}
 			response, err := cli.LwApi.Vulnerabilities.Host.GetHostAssessment(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to get host assessment with id "+args[0])

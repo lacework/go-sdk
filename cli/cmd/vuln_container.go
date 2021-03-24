@@ -26,6 +26,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lacework/go-sdk/internal/array"
+
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -53,6 +55,9 @@ To list all container registries configured in your account:
     $ lacework vulnerability container list-registries`,
 		Args: cobra.ExactArgs(3),
 		RunE: func(_ *cobra.Command, args []string) error {
+			if err := validateFailureFlags(); err != nil {
+				return err
+			}
 			return requestOnDemandContainerVulnerabilityScan(args)
 		},
 	}
@@ -66,6 +71,9 @@ To list all container registries configured in your account:
 		Long:    "Check the status of an on-demand container vulnerability assessment.",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			if err := validateFailureFlags(); err != nil {
+				return err
+			}
 			return checkOnDemandContainerVulnerabilityStatus(args[0])
 		},
 	}
@@ -226,6 +234,9 @@ To request an on-demand vulnerability scan:
     $ lacework vulnerability container scan <registry> <repository> <tag|digest>`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			if err := validateFailureFlags(); err != nil {
+				return err
+			}
 			return showContainerAssessmentsWithSha256(args[0])
 		},
 	}
@@ -330,6 +341,8 @@ func filterAssessmentsByReporitories(assessments []api.VulnContainerAssessmentSu
 }
 
 func requestOnDemandContainerVulnerabilityScan(args []string) error {
+
+
 	cli.Log.Debugw("requesting vulnerability scan",
 		"registry", args[0],
 		"repository", args[1],
@@ -411,6 +424,23 @@ func showContainerAssessmentsWithSha256(sha string) error {
 		searchField string
 		err         error
 	)
+
+	if vulCmdState.Severity != "" {
+		if !array.ContainsStr(api.ValidEventSeverities, vulCmdState.Severity) {
+			return errors.Errorf("the severity %s is not valid, use one of %s",
+				vulCmdState.Severity, strings.Join(api.ValidEventSeverities, ", "),
+			)
+		}
+	}
+
+	if vulCmdState.FailOnSeverity != "" {
+		if !array.ContainsStr(api.ValidEventSeverities, vulCmdState.FailOnSeverity) {
+			return errors.Errorf("the severity %s is not valid, use one of %s",
+				vulCmdState.FailOnSeverity, strings.Join(api.ValidEventSeverities, ", "),
+			)
+		}
+	}
+
 	if vulCmdState.ImageID {
 		searchField = "image_id"
 		cli.Log.Debugw("retrieve image assessment", searchField, sha)
