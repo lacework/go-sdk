@@ -342,7 +342,6 @@ func filterAssessmentsByReporitories(assessments []api.VulnContainerAssessmentSu
 
 func requestOnDemandContainerVulnerabilityScan(args []string) error {
 
-
 	cli.Log.Debugw("requesting vulnerability scan",
 		"registry", args[0],
 		"repository", args[1],
