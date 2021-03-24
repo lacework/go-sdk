@@ -360,6 +360,18 @@ func init() {
 		vulHostShowAssessmentCmd.Flags(),
 	)
 
+	setFailOnSeverityFlag(
+		vulHostListCvesCmd.Flags(),
+		vulHostShowAssessmentCmd.Flags(),
+		vulHostScanPkgManifestCmd.Flags(),
+	)
+
+	setFailOnFixableFlag(
+		vulHostListCvesCmd.Flags(),
+		vulHostShowAssessmentCmd.Flags(),
+		vulHostScanPkgManifestCmd.Flags(),
+	)
+
 	setActiveFlag(
 		vulHostShowAssessmentCmd.Flags(),
 		vulHostListCvesCmd.Flags(),
@@ -639,7 +651,9 @@ func hostVulnHostDetailsToTable(assessment api.HostVulnHostAssessment) string {
 			"Try adding '--fixable' to only show fixable vulnerabilities.\n",
 		)
 	}
-
+	if vulCmdState.FailOnSeverity != "" {
+		vulnFailureThreshold(assessment)
+	}
 	return mainBldr.String()
 }
 

@@ -195,6 +195,42 @@ func (assessment *HostVulnHostAssessment) VulnerabilityCounts() HostVulnCounts {
 	return hostCounts
 }
 
+func (assessment *HostVulnHostAssessment) HighestSeverity() string {
+	vulnCounts := assessment.VulnerabilityCounts()
+
+	if vulnCounts.Critical != 0 {
+		return "critical"
+	}
+	if vulnCounts.High != 0 {
+		return "high"
+	}
+	if vulnCounts.Medium != 0 {
+		return "medium"
+	}
+	if vulnCounts.Low != 0 {
+		return "low"
+	}
+	return "unknown"
+}
+
+func (assessment *HostVulnHostAssessment) HighestFixableSeverity() string {
+	vulnCounts := assessment.VulnerabilityCounts()
+
+	if vulnCounts.CritFixable != 0 {
+		return "critical"
+	}
+	if vulnCounts.HighFixable != 0 {
+		return "high"
+	}
+	if vulnCounts.MedFixable != 0 {
+		return "medium"
+	}
+	if vulnCounts.LowFixable != 0 {
+		return "low"
+	}
+	return "unknown"
+}
+
 type HostVulnCounts struct {
 	Critical     int32
 	CritFixable  int32
