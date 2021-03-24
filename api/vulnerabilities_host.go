@@ -195,6 +195,7 @@ func (assessment *HostVulnHostAssessment) VulnerabilityCounts() HostVulnCounts {
 	return hostCounts
 }
 
+// HighestSeverity returns the highest severity level vulnerability in a HostVulnHostAssessment
 func (assessment *HostVulnHostAssessment) HighestSeverity() string {
 	vulnCounts := assessment.VulnerabilityCounts()
 
@@ -213,6 +214,7 @@ func (assessment *HostVulnHostAssessment) HighestSeverity() string {
 	return "unknown"
 }
 
+// HighestFixableSeverity returns the highest fixable severity level vulnerability in a HostVulnHostAssessment
 func (assessment *HostVulnHostAssessment) HighestFixableSeverity() string {
 	vulnCounts := assessment.VulnerabilityCounts()
 

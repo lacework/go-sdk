@@ -279,6 +279,18 @@ func init() {
 		vulContainerShowAssessmentCmd.Flags(),
 	)
 
+	setFailOnSeverityFlag(
+		vulContainerScanCmd.Flags(),
+		vulContainerScanStatusCmd.Flags(),
+		vulContainerShowAssessmentCmd.Flags(),
+	)
+
+	setFailOnFixableFlag(
+		vulContainerScanCmd.Flags(),
+		vulContainerScanStatusCmd.Flags(),
+		vulContainerShowAssessmentCmd.Flags(),
+	)
+
 	setFixableFlag(
 		vulContainerScanCmd.Flags(),
 		vulContainerScanStatusCmd.Flags(),
@@ -537,6 +549,10 @@ func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) stri
 		mainReport.WriteString(
 			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
 		)
+	}
+
+	if vulCmdState.FailOnSeverity != "" {
+		vulnContainerFailureThreshold(assessment)
 	}
 
 	return mainReport.String()
