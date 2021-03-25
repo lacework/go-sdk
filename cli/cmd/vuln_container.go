@@ -53,7 +53,7 @@ To list all container registries configured in your account:
     $ lacework vulnerability container list-registries`,
 		Args: cobra.ExactArgs(3),
 		RunE: func(_ *cobra.Command, args []string) error {
-			if err := validateFailureFlags(); err != nil {
+			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
 			return requestOnDemandContainerVulnerabilityScan(args)
@@ -69,7 +69,7 @@ To list all container registries configured in your account:
 		Long:    "Check the status of an on-demand container vulnerability assessment.",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			if err := validateFailureFlags(); err != nil {
+			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
 			return checkOnDemandContainerVulnerabilityStatus(args[0])
@@ -232,7 +232,7 @@ To request an on-demand vulnerability scan:
     $ lacework vulnerability container scan <registry> <repository> <tag|digest>`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			if err := validateFailureFlags(); err != nil {
+			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
 			return showContainerAssessmentsWithSha256(args[0])
@@ -413,8 +413,13 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 		return generateVulnAssessmentHTML(results)
 	}
 
-	if vulCmdState.FailOnSeverity != "" {
-		vulnContainerFailureThreshold(results)
+	if vulFailureFlagsEnabled() {
+		vulnAssess := vulAssessment{
+			severityRating:        results.HighestSeverity(),
+			fixableSeverityRating: results.HighestFixableSeverity(),
+			fixableVulCount:       results.FixableVulnerabilities,
+		}
+		vulnAssess.validate()
 	}
 
 	return nil
@@ -486,8 +491,13 @@ For more information about supported distributions, visit:
 		)
 	}
 
-	if vulCmdState.FailOnSeverity != "" {
-		vulnContainerFailureThreshold(&assessment.Data)
+	if vulFailureFlagsEnabled() {
+		vulnAssess := vulAssessment{
+			severityRating:        assessment.Data.HighestSeverity(),
+			fixableSeverityRating: assessment.Data.HighestFixableSeverity(),
+			fixableVulCount:       assessment.Data.FixableVulnerabilities,
+		}
+		vulnAssess.validate()
 	}
 
 	return nil
@@ -831,10 +841,6 @@ func filterSeverity(severity string, threshold string) bool {
 	thresholdValue, _ := eventSeverityToProperTypes(threshold)
 	severityValue, _ := eventSeverityToProperTypes(severity)
 	return severityValue > thresholdValue
-}
-
-func vulFiltersEnabled() bool {
-	return vulCmdState.Severity != "" || vulCmdState.Fixable
 }
 
 func getContainerRegistries() ([]string, error) {

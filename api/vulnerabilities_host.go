@@ -195,10 +195,8 @@ func (assessment *HostVulnHostAssessment) VulnerabilityCounts() HostVulnCounts {
 	return hostCounts
 }
 
-// HighestSeverity returns the highest severity level vulnerability in a HostVulnScanPkgManifestResponse
-func (scanPkgManifest *HostVulnScanPkgManifestResponse) HighestSeverity() string {
-	vulnCounts := scanPkgManifest.VulnerabilityCounts()
-
+// HighestSeverity returns the highest severity level vulnerability
+func HighestSeverity(vulnCounts HostVulnCounts) string {
 	if vulnCounts.Critical != 0 {
 		return "critical"
 	}
@@ -214,29 +212,8 @@ func (scanPkgManifest *HostVulnScanPkgManifestResponse) HighestSeverity() string
 	return "unknown"
 }
 
-// HighestFixableSeverity returns the highest fixable severity level vulnerability in a HostVulnScanPkgManifestResponse
-func (scanPkgManifest *HostVulnScanPkgManifestResponse) HighestFixableSeverity() string {
-	vulnCounts := scanPkgManifest.VulnerabilityCounts()
-
-	if vulnCounts.CritFixable != 0 {
-		return "critical"
-	}
-	if vulnCounts.HighFixable != 0 {
-		return "high"
-	}
-	if vulnCounts.MedFixable != 0 {
-		return "medium"
-	}
-	if vulnCounts.LowFixable != 0 {
-		return "low"
-	}
-	return "unknown"
-}
-
-// HighestSeverity returns the highest severity level vulnerability in a HostVulnHostAssessment
-func (assessment *HostVulnHostAssessment) HighestSeverity() string {
-	vulnCounts := assessment.VulnerabilityCounts()
-
+// HighestFixableSeverity returns the highest fixable severity level vulnerability
+func HighestFixableSeverity(vulnCounts HostVulnCounts) string {
 	if vulnCounts.Critical != 0 {
 		return "critical"
 	}
@@ -247,25 +224,6 @@ func (assessment *HostVulnHostAssessment) HighestSeverity() string {
 		return "medium"
 	}
 	if vulnCounts.Low != 0 {
-		return "low"
-	}
-	return "unknown"
-}
-
-// HighestFixableSeverity returns the highest fixable severity level vulnerability in a HostVulnHostAssessment
-func (assessment *HostVulnHostAssessment) HighestFixableSeverity() string {
-	vulnCounts := assessment.VulnerabilityCounts()
-
-	if vulnCounts.CritFixable != 0 {
-		return "critical"
-	}
-	if vulnCounts.HighFixable != 0 {
-		return "high"
-	}
-	if vulnCounts.MedFixable != 0 {
-		return "medium"
-	}
-	if vulnCounts.LowFixable != 0 {
 		return "low"
 	}
 	return "unknown"

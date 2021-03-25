@@ -94,7 +94,7 @@ To generate a package-manifest from the local host and scan it automatically:
  - Calls to this operation are rate limited to 10 calls per hour, per access key.
  - This operation is limited to 10k packages per command execution.`,
 		RunE: func(_ *cobra.Command, args []string) error {
-			if err := validateFailureFlags(); err != nil {
+			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
 			var (
@@ -173,8 +173,13 @@ To generate a package-manifest from the local host and scan it automatically:
 
 			cli.OutputHuman(hostScanPackagesVulnToTable(&response))
 
-			if vulCmdState.FailOnSeverity != "" {
-				vulnFailureThreshold(response)
+			if vulFailureFlagsEnabled() {
+				vulnAssess := vulAssessment{
+					severityRating:        api.HighestSeverity(response.VulnerabilityCounts()),
+					fixableSeverityRating: api.HighestFixableSeverity(response.VulnerabilityCounts()),
+					fixableVulCount:       response.VulnerabilityCounts().TotalFixable,
+				}
+				vulnAssess.validate()
 			}
 
 			return nil
@@ -317,7 +322,7 @@ Grab a CVE id and feed it to the command:
 
     $ lacework vulnerability host list-hosts my_cve_id`,
 		RunE: func(_ *cobra.Command, args []string) error {
-			if err := validateFailureFlags(); err != nil {
+			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
 			response, err := cli.LwApi.Vulnerabilities.Host.GetHostAssessment(args[0])
@@ -331,8 +336,13 @@ Grab a CVE id and feed it to the command:
 
 			cli.OutputHuman(hostVulnHostDetailsToTable(response.Assessment))
 
-			if vulCmdState.FailOnSeverity != "" {
-				vulnFailureThresholdHostAssessment(response.Assessment)
+			if vulFailureFlagsEnabled() {
+				vulnAssess := vulAssessment{
+					severityRating:        api.HighestSeverity(response.Assessment.VulnerabilityCounts()),
+					fixableSeverityRating: api.HighestFixableSeverity(response.Assessment.VulnerabilityCounts()),
+					fixableVulCount:       response.Assessment.VulnerabilityCounts().TotalFixable,
+				}
+				vulnAssess.validate()
 			}
 
 			return nil
