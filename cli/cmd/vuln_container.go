@@ -26,8 +26,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/internal/array"
-
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -428,22 +426,6 @@ func showContainerAssessmentsWithSha256(sha string) error {
 		searchField string
 		err         error
 	)
-
-	if vulCmdState.Severity != "" {
-		if !array.ContainsStr(api.ValidEventSeverities, vulCmdState.Severity) {
-			return errors.Errorf("the severity %s is not valid, use one of %s",
-				vulCmdState.Severity, strings.Join(api.ValidEventSeverities, ", "),
-			)
-		}
-	}
-
-	if vulCmdState.FailOnSeverity != "" {
-		if !array.ContainsStr(api.ValidEventSeverities, vulCmdState.FailOnSeverity) {
-			return errors.Errorf("the severity %s is not valid, use one of %s",
-				vulCmdState.FailOnSeverity, strings.Join(api.ValidEventSeverities, ", "),
-			)
-		}
-	}
 
 	if vulCmdState.ImageID {
 		searchField = "image_id"

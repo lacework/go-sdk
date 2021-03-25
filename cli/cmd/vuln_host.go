@@ -192,9 +192,6 @@ with fixes:
 
     $ lacework vulnerability host list-cves --active --fixable`,
 		RunE: func(_ *cobra.Command, args []string) error {
-			if err := validateFailureFlags(); err != nil {
-				return err
-			}
 			response, err := cli.LwApi.Vulnerabilities.Host.ListCves()
 			if err != nil {
 				return errors.Wrap(err, "unable to get CVEs from hosts")
@@ -335,7 +332,7 @@ Grab a CVE id and feed it to the command:
 			cli.OutputHuman(hostVulnHostDetailsToTable(response.Assessment))
 
 			if vulCmdState.FailOnSeverity != "" {
-				vulnFailureThresholdc(response.Assessment)
+				vulnFailureThresholdHostAssessment(response.Assessment)
 			}
 
 			return nil
