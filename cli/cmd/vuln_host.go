@@ -93,10 +93,11 @@ To generate a package-manifest from the local host and scan it automatically:
  - Only packages managed by a package manager for supported OS's are reported.
  - Calls to this operation are rate limited to 10 calls per hour, per access key.
  - This operation is limited to 10k packages per command execution.`,
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(c *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
+
 			var (
 				pkgManifest      = new(api.PackageManifest)
 				pkgManifestBytes []byte
@@ -174,14 +175,21 @@ To generate a package-manifest from the local host and scan it automatically:
 			cli.OutputHuman(hostScanPackagesVulnToTable(&response))
 
 			if vulFailureFlagsEnabled() {
-				vulnAssess := vulAssessment{
-					severityRating:        api.HighestSeverity(response.VulnerabilityCounts()),
-					fixableSeverityRating: api.HighestFixableSeverity(response.VulnerabilityCounts()),
-					fixableVulCount:       response.VulnerabilityCounts().TotalFixable,
+				cli.Log.Infow("failure flags enabled",
+					"fail_on_severity", vulCmdState.FailOnSeverity,
+					"fail_on_fixable", vulCmdState.FailOnFixable,
+				)
+				assessmentCounts := response.VulnerabilityCounts()
+				vulnPolicy := NewVulnerabilityPolicyError(
+					&assessmentCounts,
+					vulCmdState.FailOnSeverity,
+					vulCmdState.FailOnFixable,
+				)
+				if vulnPolicy.NonCompliant() {
+					c.SilenceUsage = true
+					return vulnPolicy
 				}
-				vulnAssess.validate()
 			}
-
 			return nil
 		},
 	}
@@ -321,7 +329,7 @@ To find the machine id from hosts in your environment, use the command:
 Grab a CVE id and feed it to the command:
 
     $ lacework vulnerability host list-hosts my_cve_id`,
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(c *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
@@ -337,14 +345,21 @@ Grab a CVE id and feed it to the command:
 			cli.OutputHuman(hostVulnHostDetailsToTable(response.Assessment))
 
 			if vulFailureFlagsEnabled() {
-				vulnAssess := vulAssessment{
-					severityRating:        api.HighestSeverity(response.Assessment.VulnerabilityCounts()),
-					fixableSeverityRating: api.HighestFixableSeverity(response.Assessment.VulnerabilityCounts()),
-					fixableVulCount:       response.Assessment.VulnerabilityCounts().TotalFixable,
+				cli.Log.Infow("failure flags enabled",
+					"fail_on_severity", vulCmdState.FailOnSeverity,
+					"fail_on_fixable", vulCmdState.FailOnFixable,
+				)
+				assessmentCounts := response.Assessment.VulnerabilityCounts()
+				vulnPolicy := NewVulnerabilityPolicyError(
+					&assessmentCounts,
+					vulCmdState.FailOnSeverity,
+					vulCmdState.FailOnFixable,
+				)
+				if vulnPolicy.NonCompliant() {
+					c.SilenceUsage = true
+					return vulnPolicy
 				}
-				vulnAssess.validate()
 			}
-
 			return nil
 		},
 	}

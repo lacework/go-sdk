@@ -817,11 +817,11 @@ func filterEventsWithSeverity(events []api.Event) []api.Event {
 		return events
 	}
 
-	sevThreshold, sevString := eventSeverityToProperTypes(eventsCmdState.Severity)
+	sevThreshold, sevString := severityToProperTypes(eventsCmdState.Severity)
 	cli.Log.Debugw("filtering events", "threshold", sevThreshold, "severity", sevString)
 	eFiltered := []api.Event{}
 	for _, event := range events {
-		eventSeverity, _ := eventSeverityToProperTypes(event.Severity)
+		eventSeverity, _ := severityToProperTypes(event.Severity)
 		if eventSeverity <= sevThreshold {
 			eFiltered = append(eFiltered, event)
 		}
@@ -831,7 +831,7 @@ func filterEventsWithSeverity(events []api.Event) []api.Event {
 	return eFiltered
 }
 
-func eventSeverityToProperTypes(severity string) (int, string) {
+func severityToProperTypes(severity string) (int, string) {
 	switch strings.ToLower(severity) {
 	case "1", "critical":
 		return 1, "Critical"
@@ -844,6 +844,6 @@ func eventSeverityToProperTypes(severity string) (int, string) {
 	case "5", "info":
 		return 5, "Info"
 	default:
-		return 6, "Unknown"
+		return 0, "Unknown"
 	}
 }

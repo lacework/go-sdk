@@ -258,6 +258,11 @@ func (report *VulnContainerAssessment) HighestFixableSeverity() string {
 	return "unknown"
 }
 
+// TotalFixableVulnerabilities returns the total number of vulnerabilities that have a fix available
+func (report *VulnContainerAssessment) TotalFixableVulnerabilities() int32 {
+	return report.FixableVulnerabilities
+}
+
 type VulnContainerImage struct {
 	ImageInfo   *vulnContainerImageInfo   `json:"image_info,omitempty"`
 	ImageLayers []vulnContainerImageLayer `json:"image_layers,omitempty"`
