@@ -83,7 +83,7 @@ func (svc *LQLService) CreateQuery(query string) (
 }
 
 func (svc *LQLService) DeleteQuery(queryID string) (
-	response LQLQueryResponse,
+	response map[string]interface{},
 	err error,
 ) {
 	var uri string
@@ -132,7 +132,7 @@ func (svc *LQLService) GetQueryByID(queryID string) (
 }
 
 func (svc *LQLService) RunQuery(query, start, end string) (
-	response LQLQueryResponse,
+	response map[string]interface{},
 	err error,
 ) {
 	lqlQuery := LQLQuery{
@@ -152,7 +152,7 @@ func (svc *LQLService) RunQuery(query, start, end string) (
 }
 
 func (svc *LQLService) UpdateQuery(query string) (
-	response LQLQueryResponse,
+	response map[string]interface{},
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}

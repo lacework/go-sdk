@@ -21,56 +21,58 @@ package cmd
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 const (
-	debugSourcesMsg    string = "retrieving LQL data sources"
-	notFoundSourcesMsg string = "There were no data sources found.\n"
-	unableSourcesMsg   string = "unable to retrieve LQL data sources"
+	debugListMsg    string = "retrieving LQL queries"
+	notFoundListMsg string = "There were no queries found."
+	unableListMsg   string = "unable to retrieve LQL queries"
 )
 
 var (
-	// lqlSourcesCmd represents the lql data sources command
-	lqlSourcesCmd = &cobra.Command{
-		Use:   "sources",
-		Short: "list LQL data sources",
-		Long:  `List LQL data sources.`,
-		Args:  cobra.NoArgs,
-		RunE:  getQuerySources,
+	// lqlListCmd represents the lql list command
+	lqlListCmd = &cobra.Command{
+		Use:   "list",
+		Short: "list LQL queries",
+		Long:  `List LQL queries.`,
+		Args:  cobra.MaximumNArgs(1),
+		RunE:  listQueries,
 	}
 )
 
 func init() {
-	lqlCmd.AddCommand(lqlSourcesCmd)
+	lqlCmd.AddCommand(lqlListCmd)
 }
 
-func dataSourcesToTable(dataSources []string) (out [][]string) {
-	for _, source := range dataSources {
+func queryIDTable(queryData []api.LQLQuery) (out [][]string) {
+	for _, lqlQuery := range queryData {
 		out = append(out, []string{
-			source,
+			lqlQuery.ID,
 		})
 	}
 	return
 }
 
-func getQuerySources(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw(debugSourcesMsg)
+func listQueries(_ *cobra.Command, args []string) error {
+	cli.Log.Debugw(debugListMsg)
 
-	dataSources, err := cli.LwApi.LQL.DataSources()
+	queryResponse, err := cli.LwApi.LQL.GetQueries()
 
 	if err != nil {
-		return errors.Wrap(err, unableSourcesMsg)
+		return errors.Wrap(err, unableListMsg)
 	}
 	if cli.JSONOutput() {
-		return cli.OutputJSON(dataSources.Data)
+		return cli.OutputJSON(queryResponse.Data)
 	}
-	if len(dataSources.Data) == 0 {
-		cli.OutputHuman(notFoundSourcesMsg)
+	if len(queryResponse.Data) == 0 {
+		cli.OutputHuman(notFoundListMsg)
 	} else {
 		cli.OutputHuman(
 			renderSimpleTable(
-				[]string{"Data Source"},
-				dataSourcesToTable(dataSources.Data),
+				[]string{"Query ID"},
+				queryIDTable(queryResponse.Data),
 			),
 		)
 	}

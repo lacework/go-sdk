@@ -69,17 +69,6 @@ NOTE: This feature is not yet available!`,
 		RunE:  deleteQuery,
 	}
 
-	// lqlListCmd represents the lql list command
-	// TODO: Show should show individual
-	// TODO: Table system output
-	lqlListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "list LQL queries",
-		Long:  `List LQL queries.`,
-		Args:  cobra.MaximumNArgs(1),
-		RunE:  listQueries,
-	}
-
 	// lqlRunCmd represents the lql run command
 	lqlRunCmd = &cobra.Command{
 		Use:   "run <query|queryID>",
@@ -115,16 +104,6 @@ Start and End times are required to run a query:
 		RunE: runQuery,
 	}
 
-	// lqlShowCmd represents the lql show command
-	// TODO: Table system output
-	lqlShowCmd = &cobra.Command{
-		Use:   "show <queryID>",
-		Short: "show an LQL query",
-		Long:  `Show an LQL query.`,
-		Args:  cobra.MaximumNArgs(1),
-		RunE:  showQuery,
-	}
-
 	// lqlUpdateCmd represents the lql update command
 	lqlUpdateCmd = &cobra.Command{
 		Use:   "update <query>",
@@ -151,9 +130,7 @@ func init() {
 	// add sub-commands to the lql command
 	lqlCmd.AddCommand(lqlCreateCmd)
 	lqlCmd.AddCommand(lqlDeleteCmd)
-	lqlCmd.AddCommand(lqlListCmd)
 	lqlCmd.AddCommand(lqlRunCmd)
-	lqlCmd.AddCommand(lqlShowCmd)
 	lqlCmd.AddCommand(lqlUpdateCmd)
 
 	// for commands that take query "text" as input
@@ -280,7 +257,24 @@ func inputQuery(cmd *cobra.Command, args []string) (
 }
 
 // standardized cli/error output
-func output(response api.LQLQueryResponse, err error, msg string) error {
+func output(response map[string]interface{}, err error, msg string) error {
+	if err != nil {
+		return errors.Wrap(err, msg)
+	}
+
+	if data, ok := response["data"]; ok {
+		err := cli.OutputJSON(data)
+		return err
+	}
+
+	if err := cli.OutputJSON(response); err != nil {
+		return errors.Wrap(err, "unable to format json response")
+	}
+
+	return nil
+}
+
+func outputQuery(response api.LQLQueryResponse, err error, msg string) error {
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
@@ -293,13 +287,13 @@ func createQuery(cmd *cobra.Command, args []string) error {
 
 	query, err := inputQuery(cmd, args)
 	if err != nil {
-		return output(queryResponse, err, msg)
+		return outputQuery(queryResponse, err, msg)
 	}
 
 	cli.Log.Debugw("creating LQL query", "query", query)
 	queryResponse, err = cli.LwApi.LQL.CreateQuery(query)
 
-	return output(queryResponse, err, msg)
+	return outputQuery(queryResponse, err, msg)
 }
 
 func deleteQuery(_ *cobra.Command, args []string) error {
@@ -311,26 +305,18 @@ func deleteQuery(_ *cobra.Command, args []string) error {
 	}
 
 	cli.Log.Debugw("deleting LQL query", "queryID", queryID)
-	queryResponse, err := cli.LwApi.LQL.DeleteQuery(queryID)
+	response, err := cli.LwApi.LQL.DeleteQuery(queryID)
 
-	return output(queryResponse, err, msg)
-}
-
-func listQueries(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("retrieving LQL queries")
-
-	queryResponse, err := cli.LwApi.LQL.GetQueries()
-
-	return output(queryResponse, err, "unable to retrieve LQL queries")
+	return output(response, err, msg)
 }
 
 func runQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to run LQL query"
-	var queryResponse api.LQLQueryResponse
+	var response map[string]interface{}
 
 	query, err := inputQuery(cmd, args)
 	if err != nil {
-		return output(queryResponse, err, msg)
+		return output(response, err, msg)
 	}
 
 	cli.Log.Debugw("running LQL query", "query", query)
@@ -340,36 +326,23 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		return CompileQueryAndOutput(query)
 	} else {
 		// !validate_only should should run
-		queryResponse, err = cli.LwApi.LQL.RunQuery(query, lqlStart, lqlEnd)
+		response, err = cli.LwApi.LQL.RunQuery(query, lqlStart, lqlEnd)
 	}
 
-	return output(queryResponse, err, msg)
-}
-
-func showQuery(_ *cobra.Command, args []string) error {
-	queryID := ""
-
-	if len(args) != 0 && args[0] != "" {
-		queryID = args[0]
-	}
-	cli.Log.Debugw("retrieving LQL query", "queryID", queryID)
-
-	queryResponse, err := cli.LwApi.LQL.GetQueryByID(queryID)
-
-	return output(queryResponse, err, "unable to retrieve LQL query")
+	return output(response, err, msg)
 }
 
 func updateQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to update LQL query"
-	var queryResponse api.LQLQueryResponse
+	var response map[string]interface{}
 
 	query, err := inputQuery(cmd, args)
 	if err != nil {
-		return output(queryResponse, err, msg)
+		return output(response, err, msg)
 	}
 
 	cli.Log.Debugw("updating LQL query", "query", query)
-	queryResponse, err = cli.LwApi.LQL.UpdateQuery(query)
+	response, err = cli.LwApi.LQL.UpdateQuery(query)
 
-	return output(queryResponse, err, msg)
+	return output(response, err, msg)
 }
