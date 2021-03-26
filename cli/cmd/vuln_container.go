@@ -410,7 +410,9 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 
 	cli.OutputHuman(buildVulnerabilityReportTable(results))
 	if vulCmdState.Html {
-		return generateVulnAssessmentHTML(results)
+		if err = generateVulnAssessmentHTML(results); err != nil {
+			return err
+		}
 	}
 
 	if vulFailureFlagsEnabled() {
