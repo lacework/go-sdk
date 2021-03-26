@@ -45,7 +45,7 @@ func init() {
 }
 
 func validateQuery(cmd *cobra.Command, args []string) error {
-	query, err := inputLQLQuery(cmd, args)
+	query, err := inputQuery(cmd, args)
 	if err != nil {
 		return errors.Wrap(err, unableValidateMsg)
 	}

@@ -20,11 +20,8 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"regexp"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -32,6 +29,7 @@ const (
 )
 
 type LQLQuery struct {
+	ID             string `json:"LQL_ID,omitempty"`
 	StartTimeRange string `json:"START_TIME_RANGE,omitempty"`
 	EndTimeRange   string `json:"END_TIME_RANGE,omitempty"`
 	QueryText      string `json:"QUERY_TEXT"`
@@ -56,6 +54,12 @@ func (q *LQLQuery) translate() {
 	}
 }
 
+type LQLQueryResponse struct {
+	Data    []LQLQuery `json:"data"`
+	Ok      bool       `json:"ok"`
+	Message string     `json:"message"`
+}
+
 // LQLService is a service that interacts with the LQL
 // endpoints from the Lacework Server
 type LQLService struct {
@@ -63,7 +67,7 @@ type LQLService struct {
 }
 
 func (svc *LQLService) CreateQuery(query string) (
-	response map[string]interface{},
+	response LQLQueryResponse,
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
@@ -79,7 +83,7 @@ func (svc *LQLService) CreateQuery(query string) (
 }
 
 func (svc *LQLService) DeleteQuery(queryID string) (
-	response map[string]interface{},
+	response LQLQueryResponse,
 	err error,
 ) {
 	var uri string
@@ -100,43 +104,14 @@ func (svc *LQLService) DeleteQuery(queryID string) (
 }
 
 func (svc *LQLService) GetQueries() (
-	response map[string]interface{},
+	response LQLQueryResponse,
 	err error,
 ) {
 	return svc.GetQueryByID("")
 }
 
-func (svc *LQLService) GetQueryTextByID(queryID string) (
-	query string,
-	err error,
-) {
-	msg := "unable to retrieve query"
-	var response map[string]interface{}
-
-	response, err = svc.GetQueryByID(queryID)
-
-	if err != nil {
-		err = errors.Wrap(err, msg)
-	} else if data, ok := response["data"]; ok {
-		queries, ok := data.([]interface{})
-		if ok && len(queries) != 0 {
-			if in, ok := queries[0].(map[string]interface{}); ok {
-				for k, v := range in {
-					if k == "QUERY_TEXT" || k == "query_text" {
-						query = fmt.Sprintf("%v", v)
-						err = nil
-						return
-					}
-				}
-			}
-		}
-		err = errors.New(msg)
-	}
-	return
-}
-
 func (svc *LQLService) GetQueryByID(queryID string) (
-	response map[string]interface{},
+	response LQLQueryResponse,
 	err error,
 ) {
 	var uri string
@@ -157,7 +132,7 @@ func (svc *LQLService) GetQueryByID(queryID string) (
 }
 
 func (svc *LQLService) RunQuery(query, start, end string) (
-	response map[string]interface{},
+	response LQLQueryResponse,
 	err error,
 ) {
 	lqlQuery := LQLQuery{
@@ -177,7 +152,7 @@ func (svc *LQLService) RunQuery(query, start, end string) (
 }
 
 func (svc *LQLService) UpdateQuery(query string) (
-	response map[string]interface{},
+	response LQLQueryResponse,
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
