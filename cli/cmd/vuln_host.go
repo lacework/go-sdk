@@ -388,13 +388,11 @@ func init() {
 	)
 
 	setFailOnSeverityFlag(
-		vulHostListCvesCmd.Flags(),
 		vulHostShowAssessmentCmd.Flags(),
 		vulHostScanPkgManifestCmd.Flags(),
 	)
 
 	setFailOnFixableFlag(
-		vulHostListCvesCmd.Flags(),
 		vulHostShowAssessmentCmd.Flags(),
 		vulHostScanPkgManifestCmd.Flags(),
 	)
