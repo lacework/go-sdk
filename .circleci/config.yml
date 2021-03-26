@@ -33,6 +33,7 @@ jobs:
     executor: go-executor
     steps:
       - checkout
+      - setup_remote_docker
       - run: make test-resources
   unit-test:
     executor: go-executor
@@ -172,6 +173,7 @@ workflows:
   version: 2
   build_test_trigger-release:
     jobs:
+      - prepare-test-resources
       - unit-test
       - build-cli
       - integration-test-linux:
