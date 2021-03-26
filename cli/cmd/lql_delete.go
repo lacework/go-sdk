@@ -19,51 +19,57 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 const (
-	lqlShowDebugMsg    string = "retrieving LQL query"
-	lqlShowNotFoundMsg string = "There were no queries found."
-	lqlShowUnableMsg   string = "unable to retrieve LQL query"
+	lqlDeleteBadInputMsg string = "Please specify a valid query ID."
+	lqlDeleteDebugMsg    string = "deleting LQL query"
+	lqlDeleteSuccessMsg  string = "LQL query (%v) deleted successfully.\n"
+	lqlDeleteUnableMsg   string = "unable to delete LQL query"
 )
 
 var (
-	// lqlShowCmd represents the lql show command
-	lqlShowCmd = &cobra.Command{
-		Use:   "show <queryID>",
-		Short: "show an LQL query",
-		Long:  `Show an LQL query.`,
+	// lqlDeleteCmd represents the lql delete command
+	lqlDeleteCmd = &cobra.Command{
+		Use:   "delete <queryID>",
+		Short: "delete an LQL query",
+		Long:  `Delete an LQL query.`,
 		Args:  cobra.MaximumNArgs(1),
-		RunE:  showQuery,
+		RunE:  deleteQuery,
 	}
 )
 
 func init() {
-	lqlCmd.AddCommand(lqlShowCmd)
+	// add sub-commands to the lql command
+	lqlCmd.AddCommand(lqlDeleteCmd)
 }
 
-func showQuery(_ *cobra.Command, args []string) error {
-	queryID := ""
+func deleteQuery(_ *cobra.Command, args []string) error {
+	var queryID string
 
 	if len(args) != 0 && args[0] != "" {
 		queryID = args[0]
+	} else {
+		return errors.Wrap(
+			errors.New(lqlDeleteBadInputMsg),
+			lqlDeleteUnableMsg,
+		)
 	}
-	cli.Log.Debugw(lqlShowDebugMsg, "queryID", queryID)
 
-	queryResponse, err := cli.LwApi.LQL.GetQueryByID(queryID)
+	cli.Log.Debugw(lqlDeleteDebugMsg, "queryID", queryID)
+	delete, err := cli.LwApi.LQL.DeleteQuery(queryID)
 
 	if err != nil {
-		return errors.Wrap(err, lqlShowUnableMsg)
+		return errors.Wrap(err, lqlDeleteUnableMsg)
 	}
 	if cli.JSONOutput() {
-		return cli.OutputJSON(queryResponse.Data)
+		return cli.OutputJSON(delete.Message)
 	}
-	if len(queryResponse.Data) == 0 {
-		cli.OutputHuman(lqlShowNotFoundMsg)
-	} else {
-		cli.OutputHuman(queryResponse.Data[0].QueryText)
-	}
+	cli.OutputHuman(
+		fmt.Sprintf(lqlDeleteSuccessMsg, delete.Message.ID))
 	return nil
 }

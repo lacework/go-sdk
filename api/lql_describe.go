@@ -23,22 +23,23 @@ import (
 	"net/url"
 )
 
-type DescribeResponse struct {
-	Data    []DescribeData `json:"data"`
-	Ok      bool           `json:"ok"`
-	Message string         `json:"message"`
+type LQLDescribeResponse struct {
+	Data    []LQLDescribeData `json:"data"`
+	Ok      bool              `json:"ok"`
+	Message string            `json:"message"`
 }
 
-type DescribeData struct {
-	Complexity  int                    `json:complexity`
-	MaxDuration int                    `json:maxDuration`
-	Parameters  []DescribeParameters   `json:parameters`
-	PrimaryKey  []interface{}          `json:primaryKey`
-	Props       map[string]interface{} `json:props`
-	Schema      []DescribeSchema       `json:schema`
+type LQLDescribeData struct {
+	Complexity  int                     `json:complexity`
+	MaxDuration int                     `json:maxDuration`
+	Parameters  []LQLDescribeParameters `json:parameters`
+	PrimaryKey  []interface{}           `json:primaryKey`
+	Props       map[string]interface{}  `json:props`
+	Schema      []LQLDescribeSchema     `json:schema`
+	Type        string                  `json:type`
 }
 
-type DescribeParameters struct {
+type LQLDescribeParameters struct {
 	Default  string                 `json:default`
 	Name     string                 `json:name`
 	Props    map[string]interface{} `json:props`
@@ -46,14 +47,14 @@ type DescribeParameters struct {
 	Type     string                 `json:type`
 }
 
-type DescribeSchema struct {
+type LQLDescribeSchema struct {
 	Name  string                 `json:name`
 	Props map[string]interface{} `json:props`
 	Type  string                 `json:type`
 }
 
 func (svc *LQLService) Describe(dataSource string) (
-	response DescribeResponse,
+	response LQLDescribeResponse,
 	err error,
 ) {
 	uri := "%v/%v"

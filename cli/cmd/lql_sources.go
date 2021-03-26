@@ -24,9 +24,9 @@ import (
 )
 
 const (
-	debugSourcesMsg    string = "retrieving LQL data sources"
-	notFoundSourcesMsg string = "There were no data sources found.\n"
-	unableSourcesMsg   string = "unable to retrieve LQL data sources"
+	lqlSourcesDebugMsg    string = "retrieving LQL data sources"
+	lqlSourcesNotFoundMsg string = "There were no data sources found.\n"
+	lqlSourcesUnableMsg   string = "unable to retrieve LQL data sources"
 )
 
 var (
@@ -54,18 +54,18 @@ func dataSourcesToTable(dataSources []string) (out [][]string) {
 }
 
 func getQuerySources(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw(debugSourcesMsg)
+	cli.Log.Debugw(lqlSourcesDebugMsg)
 
 	dataSources, err := cli.LwApi.LQL.DataSources()
 
 	if err != nil {
-		return errors.Wrap(err, unableSourcesMsg)
+		return errors.Wrap(err, lqlSourcesUnableMsg)
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(dataSources.Data)
 	}
 	if len(dataSources.Data) == 0 {
-		cli.OutputHuman(notFoundSourcesMsg)
+		cli.OutputHuman(lqlSourcesNotFoundMsg)
 	} else {
 		cli.OutputHuman(
 			renderSimpleTable(

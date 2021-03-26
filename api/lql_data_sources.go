@@ -18,14 +18,14 @@
 
 package api
 
-type DataSourcesResponse struct {
+type LQLDataSourcesResponse struct {
 	Data    []string `json:"data"`
 	Ok      bool     `json:"ok"`
 	Message string   `json:"message"`
 }
 
 func (svc *LQLService) DataSources() (
-	response DataSourcesResponse,
+	response LQLDataSourcesResponse,
 	err error,
 ) {
 	err = svc.client.RequestDecoder(

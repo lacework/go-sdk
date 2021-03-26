@@ -28,10 +28,10 @@ import (
 )
 
 const (
-	badInputDescribeMsg string = "Please specify a valid data source"
-	debugDescribeMsg    string = "describing LQL data source"
-	notFoundDescribeMsg string = "There is nothing to describe.\n"
-	unableDescribeMsg   string = "unable to describe an LQL data source"
+	lqlDescribeBadInputMsg string = "Please specify a valid data source"
+	lqlDescribeDebugMsg    string = "describing LQL data source"
+	lqlDescribeNotFoundMsg string = "There is nothing to describe.\n"
+	lqlDescribeUnableMsg   string = "unable to describe an LQL data source"
 )
 
 var (
@@ -49,7 +49,7 @@ func init() {
 	lqlCmd.AddCommand(lqlDescribeCmd)
 }
 
-func describeToTable(describeData []api.DescribeData) (out [][]string) {
+func describeToTable(describeData []api.LQLDescribeData) (out [][]string) {
 	if len(describeData) == 0 {
 		return
 	}
@@ -83,21 +83,21 @@ func describeQuerySource(_ *cobra.Command, args []string) error {
 		dataSource = args[0]
 	} else {
 		return errors.Wrap(
-			errors.New(badInputDescribeMsg),
-			unableDescribeMsg,
+			errors.New(lqlDescribeBadInputMsg),
+			lqlDescribeUnableMsg,
 		)
 	}
 
-	cli.Log.Debugw(debugDescribeMsg, "data source", dataSource)
+	cli.Log.Debugw(lqlDescribeDebugMsg, "data source", dataSource)
 
 	describe, err := cli.LwApi.LQL.Describe(dataSource)
 
 	if err != nil {
-		return errors.Wrap(err, unableDescribeMsg)
+		return errors.Wrap(err, lqlDescribeUnableMsg)
 	} else if cli.JSONOutput() {
 		return cli.OutputJSON(describe.Data)
 	} else if len(describe.Data) == 0 {
-		cli.OutputHuman(notFoundDescribeMsg)
+		cli.OutputHuman(lqlDescribeNotFoundMsg)
 	} else {
 		cli.OutputHuman(
 			renderSimpleTable(

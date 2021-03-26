@@ -18,22 +18,25 @@
 
 package api
 
-type LQLCompileResponse struct {
-	Data    []map[string]interface{} `json:"data"`
-	Ok      bool                     `json:"ok"`
-	Message string                   `json:"message"`
+type LQLUpdateResponse struct {
+	Ok      bool             `json:"ok"`
+	Message LQLUpdateMessage `json:"message"`
 }
 
-func (svc *LQLService) CompileQuery(query string) (
-	response LQLCompileResponse,
+type LQLUpdateMessage struct {
+	ID string `json:"lqlUpdated"`
+}
+
+func (svc *LQLService) UpdateQuery(query string) (
+	response LQLUpdateResponse,
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
 	lqlQuery.translate()
 
 	err = svc.client.RequestEncoderDecoder(
-		"POST",
-		apiLQLCompile,
+		"PATCH",
+		apiLQL,
 		lqlQuery,
 		&response,
 	)

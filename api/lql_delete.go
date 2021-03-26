@@ -18,23 +18,35 @@
 
 package api
 
-type LQLCompileResponse struct {
-	Data    []map[string]interface{} `json:"data"`
-	Ok      bool                     `json:"ok"`
-	Message string                   `json:"message"`
+import (
+	"net/url"
+)
+
+type LQLDeleteResponse struct {
+	Ok      bool             `json:"ok"`
+	Message LQLDeleteMessage `json:"message"`
 }
 
-func (svc *LQLService) CompileQuery(query string) (
-	response LQLCompileResponse,
+type LQLDeleteMessage struct {
+	ID string `json:"lqlDeleted"`
+}
+
+func (svc *LQLService) DeleteQuery(queryID string) (
+	response LQLDeleteResponse,
 	err error,
 ) {
-	lqlQuery := LQLQuery{QueryBlob: query}
-	lqlQuery.translate()
+	var uri string
 
-	err = svc.client.RequestEncoderDecoder(
-		"POST",
-		apiLQLCompile,
-		lqlQuery,
+	if queryID != "" {
+		uri = apiLQL + "?LQL_ID=" + url.QueryEscape(queryID)
+	} else {
+		uri = apiLQL
+	}
+
+	err = svc.client.RequestDecoder(
+		"DELETE",
+		uri,
+		nil,
 		&response,
 	)
 	return

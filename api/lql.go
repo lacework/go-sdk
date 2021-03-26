@@ -46,6 +46,8 @@ func (q *LQLQuery) translate() {
 		err := json.Unmarshal([]byte(q.QueryBlob), &t)
 
 		if err == nil {
+			q.StartTimeRange = t.StartTimeRange
+			q.EndTimeRange = t.EndTimeRange
 			q.QueryText = t.QueryText
 			// if QueryBlob is LQL
 		} else if matched, _ := regexp.MatchString(reLQL, q.QueryBlob); matched {
@@ -77,27 +79,6 @@ func (svc *LQLService) CreateQuery(query string) (
 		"POST",
 		apiLQL,
 		lqlQuery,
-		&response,
-	)
-	return
-}
-
-func (svc *LQLService) DeleteQuery(queryID string) (
-	response map[string]interface{},
-	err error,
-) {
-	var uri string
-
-	if queryID != "" {
-		uri = apiLQL + "?LQL_ID=" + url.QueryEscape(queryID)
-	} else {
-		uri = apiLQL
-	}
-
-	err = svc.client.RequestDecoder(
-		"DELETE",
-		uri,
-		nil,
 		&response,
 	)
 	return
@@ -145,22 +126,6 @@ func (svc *LQLService) RunQuery(query, start, end string) (
 	err = svc.client.RequestEncoderDecoder(
 		"POST",
 		apiLQLQuery,
-		lqlQuery,
-		&response,
-	)
-	return
-}
-
-func (svc *LQLService) UpdateQuery(query string) (
-	response map[string]interface{},
-	err error,
-) {
-	lqlQuery := LQLQuery{QueryBlob: query}
-	lqlQuery.translate()
-
-	err = svc.client.RequestEncoderDecoder(
-		"PATCH",
-		apiLQL,
 		lqlQuery,
 		&response,
 	)

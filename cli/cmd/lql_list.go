@@ -26,9 +26,9 @@ import (
 )
 
 const (
-	debugListMsg    string = "retrieving LQL queries"
-	notFoundListMsg string = "There were no queries found."
-	unableListMsg   string = "unable to retrieve LQL queries"
+	lqlListDebugMsg    string = "retrieving LQL queries"
+	lqlListNotFoundMsg string = "There were no queries found."
+	lqlListUnableMsg   string = "unable to retrieve LQL queries"
 )
 
 var (
@@ -56,18 +56,18 @@ func queryIDTable(queryData []api.LQLQuery) (out [][]string) {
 }
 
 func listQueries(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw(debugListMsg)
+	cli.Log.Debugw(lqlListDebugMsg)
 
 	queryResponse, err := cli.LwApi.LQL.GetQueries()
 
 	if err != nil {
-		return errors.Wrap(err, unableListMsg)
+		return errors.Wrap(err, lqlListUnableMsg)
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)
 	}
 	if len(queryResponse.Data) == 0 {
-		cli.OutputHuman(notFoundListMsg)
+		cli.OutputHuman(lqlListNotFoundMsg)
 	} else {
 		cli.OutputHuman(
 			renderSimpleTable(

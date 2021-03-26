@@ -19,50 +19,54 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 const (
-	lqlValidateDebugMsg   string = "validating LQL query"
-	lqlValidateSuccessMsg string = "LQL query validated successfully.\n"
-	lqlValidateUnableMsg  string = "unable to validate LQL query"
+	lqlUpdateDebugMsg   string = "updating LQL query"
+	lqlUpdateSuccessMsg string = "LQL query (%v) updated successfully.\n"
+	lqlUpdateUnableMsg  string = "unable to update LQL query"
 )
 
 var (
-	// lqlValidateCmd represents the lql validate command
-	lqlValidateCmd = &cobra.Command{
-		Use:   "validate <query>",
-		Short: "validate an LQL query",
-		Long:  `Validate an LQL query.`,
-		Args:  cobra.MaximumNArgs(1),
-		RunE:  validateQuery,
+	// lqlUpdateCmd represents the lql update command
+	lqlUpdateCmd = &cobra.Command{
+		Use:   "update <query>",
+		Short: "update an LQL query",
+		Long:  `Update an LQL query.`,
+		Args:  cobra.NoArgs,
+		RunE:  updateQuery,
 	}
 )
 
 func init() {
-	lqlCmd.AddCommand(lqlValidateCmd)
+	// add sub-commands to the lql command
+	lqlCmd.AddCommand(lqlUpdateCmd)
 }
 
-func validateQuery(cmd *cobra.Command, args []string) error {
+func updateQuery(cmd *cobra.Command, args []string) error {
+	var update api.LQLUpdateResponse
+
 	query, err := inputQuery(cmd, args)
 	if err != nil {
-		return errors.Wrap(err, lqlValidateUnableMsg)
+		return errors.Wrap(err, lqlUpdateUnableMsg)
 	}
-	return CompileQueryAndOutput(query)
-}
 
-func CompileQueryAndOutput(query string) error {
-	cli.Log.Debugw(lqlValidateDebugMsg, "query", query)
-
-	compile, err := cli.LwApi.LQL.CompileQuery(query)
+	cli.Log.Debugw(lqlUpdateDebugMsg, "query", query)
+	update, err = cli.LwApi.LQL.UpdateQuery(query)
 
 	if err != nil {
-		return errors.Wrap(err, lqlValidateUnableMsg)
+		return errors.Wrap(err, lqlUpdateUnableMsg)
 	}
 	if cli.JSONOutput() {
-		return cli.OutputJSON(compile.Data)
+		return cli.OutputJSON(update.Message)
 	}
-	cli.OutputHuman(lqlValidateSuccessMsg)
+	cli.OutputHuman(
+		fmt.Sprintf(lqlUpdateSuccessMsg, update.Message.ID))
 	return nil
 }
