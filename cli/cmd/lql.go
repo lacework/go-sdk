@@ -23,6 +23,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
@@ -30,34 +31,22 @@ import (
 )
 
 var (
-	lqlEnd   string
-	lqlEnv   bool
-	lqlFile  string
-	lqlRepo  bool
-	lqlStart string
-	lqlURL   string
+	lqlEnd      string
+	lqlEnv      bool
+	lqlFile     string
+	lqlRepo     bool
+	lqlStart    string
+	lqlURL      string
+	lqlValidate bool
 
 	// lqlCmd represents the lql parent command
 	lqlCmd = &cobra.Command{
-		Use:   "lql",
-		Short: "Run and manage LQL queries",
+		Aliases: []string{"lql"},
+		Use:     "query",
+		Short:   "Run and manage LQL queries",
 		Long: `Run and manage LQL queries.
 
-A simple example of an LQL query:
-
-    $ lacework lql run 'SimpleLQL_3(RecentComplianceReports Data) {SELECT Data.*}'
-
 NOTE: This feature is not yet available!`,
-	}
-
-	// lqlCompileCmd represents the lql compile command
-	// TODO: perhaps roll this into run via --dry_run flag
-	lqlCompileCmd = &cobra.Command{
-		Use:   "compile <query>",
-		Short: "compile LQL query",
-		Long:  `Compile LQL query.`,
-		Args:  cobra.MaximumNArgs(1),
-		RunE:  compileQueries,
 	}
 
 	// lqlCreateCmd represents the lql create command
@@ -74,24 +63,17 @@ NOTE: This feature is not yet available!`,
 		Use:   "delete <queryID>",
 		Short: "delete an LQL query",
 		Long:  `Delete an LQL query.`,
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		RunE:  deleteQuery,
 	}
 
-	// lqlDescribeCmd represents the lql describe command
-	lqlDescribeCmd = &cobra.Command{
-		Use:   "describe <data source>",
-		Short: "describe LQL data source",
-		Long:  `Describe LQL data source.`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  describeQuerySource,
-	}
-
 	// lqlListCmd represents the lql list command
+	// TODO: Show should show individual
+	// TODO: Table system output
 	lqlListCmd = &cobra.Command{
-		Use:   "list ?<query>",
-		Short: "get LQL queries",
-		Long:  `Get LQL queries (or a single query by specifying a query id)`,
+		Use:   "list",
+		Short: "list LQL queries",
+		Long:  `List LQL queries.`,
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  listQueries,
 	}
@@ -131,15 +113,17 @@ Start and End times are required to run a query:
 		RunE: runQuery,
 	}
 
-	// lqlSourcesCmd represents the lql data sources command
-	lqlSourcesCmd = &cobra.Command{
-		Use:   "sources",
-		Short: "list LQL data sources",
-		Long:  `List LQL data sources.`,
-		Args:  cobra.NoArgs,
-		RunE:  getQuerySources,
+	// lqlShowCmd represents the lql show command
+	// TODO: Table system output
+	lqlShowCmd = &cobra.Command{
+		Use:   "show <queryID>",
+		Short: "show an LQL query",
+		Long:  `Show an LQL query.`,
+		Args:  cobra.MaximumNArgs(1),
+		RunE:  showQuery,
 	}
 
+	// lqlUpdateCmd represents the lql update command
 	lqlUpdateCmd = &cobra.Command{
 		Use:   "update <query>",
 		Short: "update an LQL query",
@@ -151,10 +135,10 @@ Start and End times are required to run a query:
 	// create a slice of the cobra.Command pointers
 	// which need query "text" as input
 	lqlQueryCommands []*cobra.Command = []*cobra.Command{
-		lqlCompileCmd,
 		lqlCreateCmd,
 		lqlRunCmd,
 		lqlUpdateCmd,
+		lqlValidateCmd,
 	}
 )
 
@@ -164,30 +148,28 @@ func init() {
 
 	// add sub-commands to the lql command
 	lqlCmd.AddCommand(lqlCreateCmd)
-	lqlCmd.AddCommand(lqlCompileCmd)
 	lqlCmd.AddCommand(lqlDeleteCmd)
-	lqlCmd.AddCommand(lqlDescribeCmd)
 	lqlCmd.AddCommand(lqlListCmd)
 	lqlCmd.AddCommand(lqlRunCmd)
-	lqlCmd.AddCommand(lqlSourcesCmd)
+	lqlCmd.AddCommand(lqlShowCmd)
 	lqlCmd.AddCommand(lqlUpdateCmd)
 
 	// for commands that take query "text" as input
 	for _, cmd := range lqlQueryCommands {
 		// file flag to specify a query from disk
-		(*cmd).Flags().StringVarP(
+		cmd.Flags().StringVarP(
 			&lqlFile,
 			"file", "f", "",
 			"path to an LQL query to run",
 		)
 		// repo flag to specify a query from repo
-		(*cmd).Flags().BoolVarP(
+		cmd.Flags().BoolVarP(
 			&lqlRepo,
 			"repo", "r", false,
 			"id of an LQL query to run via active repo",
 		)
 		// url flag to specify a query from url
-		(*cmd).Flags().StringVarP(
+		cmd.Flags().StringVarP(
 			&lqlURL,
 			"url", "u", "",
 			"url to an LQL query to run",
@@ -202,21 +184,28 @@ func init() {
 		"run an LQL query by ID (using active profile)",
 	)
 	// start time flag
+	// TODO: come up with reasonable default per UI (1d)
 	lqlRunCmd.Flags().StringVarP(
 		&lqlStart,
 		"start", "", "",
 		"start time for LQL query",
 	)
 	// end time flag
+	// TODO: come up with reasonable default per UI (1d)
 	lqlRunCmd.Flags().StringVarP(
 		&lqlEnd,
 		"end", "", "",
 		"end time for LQL query",
 	)
+	lqlRunCmd.Flags().BoolVarP(
+		&lqlValidate,
+		"validate_only", "", false,
+		"validate query only (do not run)",
+	)
 }
 
 // for commands that take a query as input
-func inputQuery(args []string, lqlFile string) (
+func inputLQLQuery(cmd *cobra.Command, args []string) (
 	query string,
 	err error,
 ) {
@@ -253,11 +242,14 @@ func inputQuery(args []string, lqlFile string) (
 		if err != nil {
 			err = errors.Wrap(err, msg)
 			return
-		} else if response.StatusCode != 200 {
+		}
+		defer response.Body.Close()
+
+		if response.StatusCode != 200 {
 			err = errors.Wrap(errors.New(response.Status), msg)
 			return
 		}
-		defer response.Body.Close()
+
 		body, err = io.ReadAll(response.Body)
 		if err != nil {
 			err = errors.Wrap(err, msg)
@@ -265,9 +257,16 @@ func inputQuery(args []string, lqlFile string) (
 		}
 		query = string(body)
 	} else {
+		var firstUseWord string
+		if lqlValidate {
+			firstUseWord = "validate"
+		} else {
+			firstUseWord = strings.Split(cmd.Use, " ")[0]
+		}
+
 		// avoid asking for a confirmation before launching the editor
 		prompt := &survey.Editor{
-			Message:  "Type an LQL query to run",
+			Message:  fmt.Sprintf("Type a query to %v", firstUseWord),
 			FileName: "query*.sh",
 		}
 		err = survey.AskOne(prompt, &query)
@@ -294,32 +293,17 @@ func output(response map[string]interface{}, err error, msg string) error {
 	return nil
 }
 
-func createQuery(_ *cobra.Command, args []string) error {
+func createQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to create LQL query"
 	var response map[string]interface{}
 
-	query, err := inputQuery(args, lqlFile)
+	query, err := inputLQLQuery(cmd, args)
 	if err != nil {
 		return output(response, err, msg)
 	}
 
 	cli.Log.Debugw("creating LQL query", "query", query)
 	response, err = cli.LwApi.LQL.CreateQuery(query)
-
-	return output(response, err, msg)
-}
-
-func compileQueries(_ *cobra.Command, args []string) error {
-	msg := "unable to compile LQL query"
-	var response map[string]interface{}
-
-	query, err := inputQuery(args, lqlFile)
-	if err != nil {
-		return output(response, err, msg)
-	}
-
-	cli.Log.Debugw("running LQL query", "query", query)
-	response, err = cli.LwApi.LQL.CompileQuery(query)
 
 	return output(response, err, msg)
 }
@@ -338,77 +322,54 @@ func deleteQuery(_ *cobra.Command, args []string) error {
 	return output(response, err, msg)
 }
 
-func describeQuerySource(_ *cobra.Command, args []string) error {
-	msg := "unable to describe LQL data source"
-	var dataSource string
-	var response map[string]interface{}
-	var err error
-
-	if len(args) != 0 && args[0] != "" {
-		dataSource = args[0]
-	} else {
-		return output(
-			response,
-			errors.New("Please specify a valid data source"),
-			msg,
-		)
-	}
-
-	cli.Log.Debugw("describing LQL data source", "data source", dataSource)
-
-	response, err = cli.LwApi.LQL.Describe(dataSource)
-
-	return output(response, err, msg)
-}
-
-func getQuerySources(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("retrieving LQL data sources")
-
-	response, err := cli.LwApi.LQL.DataSources()
-
-	return output(response, err, "unable to retrieve LQL data sources")
-}
-
 func listQueries(_ *cobra.Command, args []string) error {
-	msg := "unable to retrieve LQL %v"
-	queryID := ""
+	cli.Log.Debugw("retrieving LQL queries")
 
-	if len(args) != 0 && args[0] != "" {
-		queryID = args[0]
-	}
-	cli.Log.Debugw("retrieving LQL queries", "queryID", queryID)
+	response, err := cli.LwApi.LQL.GetQueries()
 
-	response, err := cli.LwApi.LQL.GetQueryByID(queryID)
-
-	if queryID != "" {
-		msg = fmt.Sprintf(msg, "query")
-	} else {
-		msg = fmt.Sprintf(msg, "queries")
-	}
-
-	return output(response, err, msg)
+	return output(response, err, "unable to retrieve LQL queries")
 }
 
-func runQuery(_ *cobra.Command, args []string) error {
+func runQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to run LQL query"
 	var response map[string]interface{}
 
-	query, err := inputQuery(args, lqlFile)
+	query, err := inputLQLQuery(cmd, args)
 	if err != nil {
 		return output(response, err, msg)
 	}
 
 	cli.Log.Debugw("running LQL query", "query", query)
-	response, err = cli.LwApi.LQL.RunQuery(query, lqlStart, lqlEnd)
+
+	if lqlValidate {
+		// validate_only should compile
+		return CompileQueryAndOutput(query)
+	} else {
+		// !validate_only should should run
+		response, err = cli.LwApi.LQL.RunQuery(query, lqlStart, lqlEnd)
+	}
 
 	return output(response, err, msg)
 }
 
-func updateQuery(_ *cobra.Command, args []string) error {
+func showQuery(_ *cobra.Command, args []string) error {
+	queryID := ""
+
+	if len(args) != 0 && args[0] != "" {
+		queryID = args[0]
+	}
+	cli.Log.Debugw("retrieving LQL query", "queryID", queryID)
+
+	response, err := cli.LwApi.LQL.GetQueryByID(queryID)
+
+	return output(response, err, "unable to retrieve LQL query")
+}
+
+func updateQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to update LQL query"
 	var response map[string]interface{}
 
-	query, err := inputQuery(args, lqlFile)
+	query, err := inputLQLQuery(cmd, args)
 	if err != nil {
 		return output(response, err, msg)
 	}

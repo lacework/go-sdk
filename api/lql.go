@@ -31,23 +31,29 @@ const (
 	reLQL string = `(?ms)^(\w+)\(\w+\s\w+\)\s*{`
 )
 
-// LQLQuery is a special string that supports type conversion
-// back and forth from LQL to JSON
-type LQLQuery string
+type LQLQuery struct {
+	StartTimeRange string `json:"START_TIME_RANGE,omitempty"`
+	EndTimeRange   string `json:"END_TIME_RANGE,omitempty"`
+	QueryText      string `json:"QUERY_TEXT"`
+	// QueryBlob is a special string that supports type conversion
+	// back and forth from LQL to JSON
+	QueryBlob string `json:"-"`
+}
 
-func (q LQLQuery) json() (
-	qMap map[string]interface{},
-	err error,
-) {
-	matched, _ := regexp.MatchString(reLQL, string(q))
-	if matched {
-		qMap = make(map[string]interface{})
-		qMap["QUERY_TEXT"] = string(q)
-		return
+func (q *LQLQuery) translate() {
+	// if QueryText is not already populated
+	if q.QueryText == "" {
+		// if QueryBlob is JSON
+		var t LQLQuery
+		err := json.Unmarshal([]byte(q.QueryBlob), &t)
+
+		if err == nil {
+			q.QueryText = t.QueryText
+			// if QueryBlob is LQL
+		} else if matched, _ := regexp.MatchString(reLQL, q.QueryBlob); matched {
+			q.QueryText = q.QueryBlob
+		}
 	}
-	qBytes := []byte(q)
-	err = json.Unmarshal(qBytes, &qMap)
-	return
 }
 
 // LQLService is a service that interacts with the LQL
@@ -60,46 +66,13 @@ func (svc *LQLService) CreateQuery(query string) (
 	response map[string]interface{},
 	err error,
 ) {
-	var qMap map[string]interface{}
-	qMap, err = LQLQuery(query).json()
-	if err != nil {
-		return
-	}
+	lqlQuery := LQLQuery{QueryBlob: query}
+	lqlQuery.translate()
+
 	err = svc.client.RequestEncoderDecoder(
 		"POST",
 		apiLQL,
-		qMap,
-		&response,
-	)
-	return
-}
-
-func (svc *LQLService) CompileQuery(query string) (
-	response map[string]interface{},
-	err error,
-) {
-	var qMap map[string]interface{}
-	qMap, err = LQLQuery(query).json()
-	if err != nil {
-		return
-	}
-	err = svc.client.RequestEncoderDecoder(
-		"POST",
-		apiLQLCompile,
-		qMap,
-		&response,
-	)
-	return
-}
-
-func (svc *LQLService) DataSources() (
-	response map[string]interface{},
-	err error,
-) {
-	err = svc.client.RequestDecoder(
-		"GET",
-		apiLQLDataSources,
-		nil,
+		lqlQuery,
 		&response,
 	)
 	return
@@ -119,22 +92,6 @@ func (svc *LQLService) DeleteQuery(queryID string) (
 
 	err = svc.client.RequestDecoder(
 		"DELETE",
-		uri,
-		nil,
-		&response,
-	)
-	return
-}
-
-func (svc *LQLService) Describe(dataSource string) (
-	response map[string]interface{},
-	err error,
-) {
-	uri := "%v/%v"
-	uri = fmt.Sprintf(uri, apiLQLDescribe, url.QueryEscape(dataSource))
-
-	err = svc.client.RequestDecoder(
-		"GET",
 		uri,
 		nil,
 		&response,
@@ -203,21 +160,17 @@ func (svc *LQLService) RunQuery(query, start, end string) (
 	response map[string]interface{},
 	err error,
 ) {
-	var qMap map[string]interface{}
-	qMap, err = LQLQuery(query).json()
-	if err != nil {
-		return
+	lqlQuery := LQLQuery{
+		StartTimeRange: start,
+		EndTimeRange:   end,
+		QueryBlob:      query,
 	}
-	if start != "" {
-		qMap["START_TIME_RANGE"] = start
-	}
-	if end != "" {
-		qMap["END_TIME_RANGE"] = end
-	}
+	lqlQuery.translate()
+
 	err = svc.client.RequestEncoderDecoder(
 		"POST",
 		apiLQLQuery,
-		qMap,
+		lqlQuery,
 		&response,
 	)
 	return
@@ -227,15 +180,13 @@ func (svc *LQLService) UpdateQuery(query string) (
 	response map[string]interface{},
 	err error,
 ) {
-	var qMap map[string]interface{}
-	qMap, err = LQLQuery(query).json()
-	if err != nil {
-		return
-	}
+	lqlQuery := LQLQuery{QueryBlob: query}
+	lqlQuery.translate()
+
 	err = svc.client.RequestEncoderDecoder(
 		"PATCH",
 		apiLQL,
-		qMap,
+		lqlQuery,
 		&response,
 	)
 	return
