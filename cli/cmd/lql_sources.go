@@ -32,11 +32,12 @@ const (
 var (
 	// lqlSourcesCmd represents the lql data sources command
 	lqlSourcesCmd = &cobra.Command{
-		Use:   "sources",
-		Short: "list LQL data sources",
-		Long:  `List LQL data sources.`,
-		Args:  cobra.NoArgs,
-		RunE:  getQuerySources,
+		Aliases: []string{"sources"},
+		Use:     "list-sources",
+		Short:   "list LQL data sources",
+		Long:    `List LQL data sources.`,
+		Args:    cobra.NoArgs,
+		RunE:    getQuerySources,
 	}
 )
 
