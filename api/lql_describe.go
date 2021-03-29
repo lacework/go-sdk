@@ -30,41 +30,35 @@ type LQLDescribeResponse struct {
 }
 
 type LQLDescribeData struct {
-	Complexity  int                     `json:complexity`
-	MaxDuration int                     `json:maxDuration`
-	Parameters  []LQLDescribeParameters `json:parameters`
-	PrimaryKey  []interface{}           `json:primaryKey`
-	Props       map[string]interface{}  `json:props`
-	Schema      []LQLDescribeSchema     `json:schema`
-	Type        string                  `json:type`
+	Complexity  int                     `json:"complexity"`
+	MaxDuration int                     `json:"maxDuration"`
+	Parameters  []LQLDescribeParameters `json:"parameters"`
+	PrimaryKey  []interface{}           `json:"primaryKey"`
+	Props       map[string]interface{}  `json:"props"`
+	Schema      []LQLDescribeSchema     `json:"schema"`
+	Type        string                  `json:"type"`
 }
 
 type LQLDescribeParameters struct {
-	Default  string                 `json:default`
-	Name     string                 `json:name`
-	Props    map[string]interface{} `json:props`
-	Required bool                   `json:required`
-	Type     string                 `json:type`
+	Default  string                 `json:"default"`
+	Name     string                 `json:"name"`
+	Props    map[string]interface{} `json:"props"`
+	Required bool                   `json:"required"`
+	Type     string                 `json:"type"`
 }
 
 type LQLDescribeSchema struct {
-	Name  string                 `json:name`
-	Props map[string]interface{} `json:props`
-	Type  string                 `json:type`
+	Name  string                 `json:"name"`
+	Props map[string]interface{} `json:"props"`
+	Type  string                 `json:"type"`
 }
 
 func (svc *LQLService) Describe(dataSource string) (
 	response LQLDescribeResponse,
 	err error,
 ) {
-	uri := "%s/%s"
-	uri = fmt.Sprintf(uri, apiLQLDescribe, url.QueryEscape(dataSource))
+	uri := fmt.Sprintf("%s/%s", apiLQLDescribe, url.QueryEscape(dataSource))
 
-	err = svc.client.RequestDecoder(
-		"GET",
-		uri,
-		nil,
-		&response,
-	)
+	err = svc.client.RequestDecoder("GET", uri, nil, &response)
 	return
 }

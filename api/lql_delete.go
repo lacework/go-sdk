@@ -35,19 +35,12 @@ func (svc *LQLService) DeleteQuery(queryID string) (
 	response LQLDeleteResponse,
 	err error,
 ) {
-	var uri string
+	uri := apiLQL
 
 	if queryID != "" {
-		uri = apiLQL + "?LQL_ID=" + url.QueryEscape(queryID)
-	} else {
-		uri = apiLQL
+		uri += "?LQL_ID=" + url.QueryEscape(queryID)
 	}
 
-	err = svc.client.RequestDecoder(
-		"DELETE",
-		uri,
-		nil,
-		&response,
-	)
+	err = svc.client.RequestDecoder("DELETE", uri, nil, &response)
 	return
 }

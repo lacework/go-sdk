@@ -64,7 +64,7 @@ const (
 	// Alpha
 	apiLQL            = "external/lql"
 	apiLQLCompile     = "external/lql/compile"
-	apiLQLDataSources = "external/lql/dataSources"
+	ApiLQLDataSources = "external/lql/dataSources"
 	apiLQLDescribe    = "external/lql/describe"
 	apiLQLQuery       = "external/lql/query"
 )
