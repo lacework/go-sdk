@@ -98,3 +98,6 @@ endif
 ifeq (, $(shell which gox))
 	go get github.com/mitchellh/gox
 endif
+
+git-env:
+	scripts/git_env.sh
