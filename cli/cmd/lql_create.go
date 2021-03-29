@@ -30,7 +30,7 @@ import (
 const (
 	lqlCreateDebugMsg    string = "creating LQL query"
 	lqlCreateNotFoundMsg string = "Query created succesfully but not returned.\n"
-	lqlCreateSuccessMsg  string = "LQL query (%v) created successfully.\n"
+	lqlCreateSuccessMsg  string = "LQL query (%s) created successfully.\n"
 	lqlCreateUnableMsg   string = "unable to create LQL query"
 )
 

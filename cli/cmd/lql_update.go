@@ -29,7 +29,7 @@ import (
 
 const (
 	lqlUpdateDebugMsg   string = "updating LQL query"
-	lqlUpdateSuccessMsg string = "LQL query (%v) updated successfully.\n"
+	lqlUpdateSuccessMsg string = "LQL query (%s) updated successfully.\n"
 	lqlUpdateUnableMsg  string = "unable to update LQL query"
 )
 

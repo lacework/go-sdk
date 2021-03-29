@@ -60,7 +60,7 @@ func describeToTable(describeData []api.LQLDescribeData) (out [][]string) {
 			param.Name,
 			"Parameters",
 			param.Type,
-			fmt.Sprintf("%v", param.Required),
+			fmt.Sprintf("%t", param.Required),
 			param.Default,
 		})
 	}

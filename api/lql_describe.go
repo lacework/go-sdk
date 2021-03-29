@@ -57,7 +57,7 @@ func (svc *LQLService) Describe(dataSource string) (
 	response LQLDescribeResponse,
 	err error,
 ) {
-	uri := "%v/%v"
+	uri := "%s/%s"
 	uri = fmt.Sprintf(uri, apiLQLDescribe, url.QueryEscape(dataSource))
 
 	err = svc.client.RequestDecoder(

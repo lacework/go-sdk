@@ -39,20 +39,24 @@ type LQLQuery struct {
 }
 
 func (q *LQLQuery) translate() {
-	// if QueryText is not already populated
-	if q.QueryText == "" {
-		// if QueryBlob is JSON
-		var t LQLQuery
-		err := json.Unmarshal([]byte(q.QueryBlob), &t)
+	// if QueryText is populated; return
+	if q.QueryText != "" {
+		return
+	}
 
-		if err == nil {
-			q.StartTimeRange = t.StartTimeRange
-			q.EndTimeRange = t.EndTimeRange
-			q.QueryText = t.QueryText
-			// if QueryBlob is LQL
-		} else if matched, _ := regexp.MatchString(reLQL, q.QueryBlob); matched {
-			q.QueryText = q.QueryBlob
-		}
+	// if QueryBlob is JSON
+	var t LQLQuery
+
+	if err := json.Unmarshal([]byte(q.QueryBlob), &t); err == nil {
+		q.StartTimeRange = t.StartTimeRange
+		q.EndTimeRange = t.EndTimeRange
+		q.QueryText = t.QueryText
+		return
+	}
+
+	// if QueryBlob is LQL
+	if matched, _ := regexp.MatchString(reLQL, q.QueryBlob); matched {
+		q.QueryText = q.QueryBlob
 	}
 }
 

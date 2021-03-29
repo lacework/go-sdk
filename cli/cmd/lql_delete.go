@@ -28,7 +28,7 @@ import (
 const (
 	lqlDeleteBadInputMsg string = "Please specify a valid query ID."
 	lqlDeleteDebugMsg    string = "deleting LQL query"
-	lqlDeleteSuccessMsg  string = "LQL query (%v) deleted successfully.\n"
+	lqlDeleteSuccessMsg  string = "LQL query (%s) deleted successfully.\n"
 	lqlDeleteUnableMsg   string = "unable to delete LQL query"
 )
 

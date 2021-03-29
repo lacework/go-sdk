@@ -217,7 +217,7 @@ func inputQuery(cmd *cobra.Command, args []string) (
 			firstUseWord = strings.Split(cmd.Use, " ")[0]
 		}
 		prompt := &survey.Editor{
-			Message:  fmt.Sprintf("Type a query to %v", firstUseWord),
+			Message:  fmt.Sprintf("Type a query to %s", firstUseWord),
 			FileName: "query*.sh",
 		}
 		err = survey.AskOne(prompt, &query)
