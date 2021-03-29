@@ -32,7 +32,7 @@ const (
 var (
 	// lqlShowCmd represents the lql show command
 	lqlShowCmd = &cobra.Command{
-		Use:   "show <queryID>",
+		Use:   "show <query_id>",
 		Short: "show an LQL query",
 		Long:  `Show an LQL query.`,
 		Args:  cobra.MaximumNArgs(1),

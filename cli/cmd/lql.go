@@ -20,7 +20,6 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -28,24 +27,27 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 
 	"github.com/lacework/go-sdk/api"
 )
 
 var (
-	lqlEnd      string
-	lqlEnv      bool
-	lqlFile     string
-	lqlRepo     bool
-	lqlStart    string
-	lqlURL      string
-	lqlValidate bool
+	lqlCmdState = struct {
+		end          string
+		env          bool
+		file         string
+		repo         bool
+		start        string
+		url          string
+		validateOnly bool
+	}{}
 
 	// lqlCmd represents the lql parent command
 	lqlCmd = &cobra.Command{
 		Aliases: []string{"lql"},
 		Use:     "query",
-		Short:   "Run and manage LQL queries",
+		Short:   "run and manage LQL queries",
 		Long: `Run and manage LQL queries.
 
 NOTE: This feature is not yet available!`,
@@ -53,7 +55,7 @@ NOTE: This feature is not yet available!`,
 
 	// lqlRunCmd represents the lql run command
 	lqlRunCmd = &cobra.Command{
-		Use:   "run <query|queryID>",
+		Use:   "run [query|query_id]",
 		Short: "run an LQL query",
 		Long: `Run an LQL query.
 
@@ -85,15 +87,6 @@ Start and End times are required to run a query:
 		Args: cobra.MaximumNArgs(1),
 		RunE: runQuery,
 	}
-
-	// create a slice of the cobra.Command pointers
-	// which need query "text" as input
-	lqlQueryCommands []*cobra.Command = []*cobra.Command{
-		lqlCreateCmd,
-		lqlRunCmd,
-		lqlUpdateCmd,
-		lqlValidateCmd,
-	}
 )
 
 func init() {
@@ -103,54 +96,59 @@ func init() {
 	// add sub-commands to the lql command
 	lqlCmd.AddCommand(lqlRunCmd)
 
-	// for commands that take query "text" as input
-	for _, cmd := range lqlQueryCommands {
-		// file flag to specify a query from disk
-		cmd.Flags().StringVarP(
-			&lqlFile,
-			"file", "f", "",
-			"path to an LQL query to run",
-		)
-		// repo flag to specify a query from repo
-		cmd.Flags().BoolVarP(
-			&lqlRepo,
-			"repo", "r", false,
-			"id of an LQL query to run via active repo",
-		)
-		// url flag to specify a query from url
-		cmd.Flags().StringVarP(
-			&lqlURL,
-			"url", "u", "",
-			"url to an LQL query to run",
-		)
-	}
-
 	// run specific flags
+	setQueryFlags(lqlRunCmd.Flags())
+
 	// env flag to specify a query from disk
 	lqlRunCmd.Flags().BoolVarP(
-		&lqlEnv,
+		&lqlCmdState.env,
 		"env", "e", false,
 		"run an LQL query by ID (using active profile)",
 	)
 	// start time flag
 	// TODO: come up with reasonable default per UI (1d)
 	lqlRunCmd.Flags().StringVarP(
-		&lqlStart,
+		&lqlCmdState.start,
 		"start", "", "",
 		"start time for LQL query",
 	)
 	// end time flag
 	// TODO: come up with reasonable default per UI (1d)
 	lqlRunCmd.Flags().StringVarP(
-		&lqlEnd,
+		&lqlCmdState.end,
 		"end", "", "",
 		"end time for LQL query",
 	)
 	lqlRunCmd.Flags().BoolVarP(
-		&lqlValidate,
+		&lqlCmdState.validateOnly,
 		"validate_only", "", false,
 		"validate query only (do not run)",
 	)
+}
+
+func setQueryFlags(cmds ...*flag.FlagSet) {
+	for _, cmd := range cmds {
+		if cmd != nil {
+			// file flag to specify a query from disk
+			cmd.StringVarP(
+				&lqlCmdState.file,
+				"file", "f", "",
+				"path to an LQL query to run",
+			)
+			// repo flag to specify a query from repo
+			cmd.BoolVarP(
+				&lqlCmdState.repo,
+				"repo", "r", false,
+				"id of an LQL query to run via active repo",
+			)
+			// url flag to specify a query from url
+			cmd.StringVarP(
+				&lqlCmdState.url,
+				"url", "u", "",
+				"url to an LQL query to run",
+			)
+		}
+	}
 }
 
 // for commands that take a query as input
@@ -163,35 +161,35 @@ func inputQuery(cmd *cobra.Command, args []string) (
 	// if an inline argument was provided
 	// determine if it's a query or a query identifier
 	if len(args) != 0 && args[0] != "" {
-		if lqlEnv || lqlRepo {
+		if lqlCmdState.env || lqlCmdState.repo {
 			queryID = args[0]
 		} else {
 			query = args[0]
 		}
 	}
 
-	if lqlEnv {
+	if lqlCmdState.env {
 		var queryResponse api.LQLQueryResponse
 		queryResponse, err = cli.LwApi.LQL.GetQueryByID(queryID)
 		if err == nil && len(queryResponse.Data) != 0 {
 			query = queryResponse.Data[0].QueryText
 		}
-	} else if lqlRepo {
+	} else if lqlCmdState.repo {
 		err = errors.New("NotImplementedError")
-	} else if lqlFile != "" {
+	} else if lqlCmdState.file != "" {
 		var fileData []byte
-		fileData, err = ioutil.ReadFile(lqlFile)
+		fileData, err = ioutil.ReadFile(lqlCmdState.file)
 		if err != nil {
 			err = errors.Wrap(err, "unable to read file")
 			return
 		}
 		query = string(fileData)
-	} else if lqlURL != "" {
+	} else if lqlCmdState.url != "" {
 		msg := "unable to open URL"
 		var response *http.Response
 		var body []byte
 
-		response, err = http.Get(lqlURL)
+		response, err = http.Get(lqlCmdState.url)
 		if err != nil {
 			err = errors.Wrap(err, msg)
 			return
@@ -203,7 +201,7 @@ func inputQuery(cmd *cobra.Command, args []string) (
 			return
 		}
 
-		body, err = io.ReadAll(response.Body)
+		body, err = ioutil.ReadAll(response.Body)
 		if err != nil {
 			err = errors.Wrap(err, msg)
 			return
@@ -211,7 +209,7 @@ func inputQuery(cmd *cobra.Command, args []string) (
 		query = string(body)
 	} else {
 		var firstUseWord string
-		if lqlValidate {
+		if lqlCmdState.validateOnly {
 			firstUseWord = "validate"
 		} else {
 			firstUseWord = strings.Split(cmd.Use, " ")[0]
@@ -255,12 +253,12 @@ func runQuery(cmd *cobra.Command, args []string) error {
 
 	cli.Log.Debugw("running LQL query", "query", query)
 
-	if lqlValidate {
+	if lqlCmdState.validateOnly {
 		// validate_only should compile
 		return CompileQueryAndOutput(query)
 	} else {
 		// !validate_only should should run
-		response, err = cli.LwApi.LQL.RunQuery(query, lqlStart, lqlEnd)
+		response, err = cli.LwApi.LQL.RunQuery(query, lqlCmdState.start, lqlCmdState.end)
 	}
 
 	return output(response, err, msg)

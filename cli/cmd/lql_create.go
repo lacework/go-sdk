@@ -29,7 +29,7 @@ import (
 
 const (
 	lqlCreateDebugMsg    string = "creating LQL query"
-	lqlCreateNotFoundMsg string = "Query created succesfully but not returned.\n"
+	lqlCreateNotFoundMsg string = "Query created successfully but not returned.\n"
 	lqlCreateSuccessMsg  string = "LQL query (%s) created successfully.\n"
 	lqlCreateUnableMsg   string = "unable to create LQL query"
 )
@@ -37,7 +37,7 @@ const (
 var (
 	// lqlCreateCmd represents the lql create command
 	lqlCreateCmd = &cobra.Command{
-		Use:   "create <query>",
+		Use:   "create [query]",
 		Short: "create an LQL query",
 		Long:  `Create an LQL query.`,
 		Args:  cobra.MaximumNArgs(1),
@@ -48,6 +48,8 @@ var (
 func init() {
 	// add sub-commands to the lql command
 	lqlCmd.AddCommand(lqlCreateCmd)
+
+	setQueryFlags(lqlCreateCmd.Flags())
 }
 
 func createQuery(cmd *cobra.Command, args []string) error {

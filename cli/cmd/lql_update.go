@@ -36,7 +36,7 @@ const (
 var (
 	// lqlUpdateCmd represents the lql update command
 	lqlUpdateCmd = &cobra.Command{
-		Use:   "update <query>",
+		Use:   "update [query]",
 		Short: "update an LQL query",
 		Long:  `Update an LQL query.`,
 		Args:  cobra.NoArgs,
@@ -47,6 +47,8 @@ var (
 func init() {
 	// add sub-commands to the lql command
 	lqlCmd.AddCommand(lqlUpdateCmd)
+
+	setQueryFlags(lqlUpdateCmd.Flags())
 }
 
 func updateQuery(cmd *cobra.Command, args []string) error {

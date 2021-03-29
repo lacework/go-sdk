@@ -32,7 +32,7 @@ const (
 var (
 	// lqlValidateCmd represents the lql validate command
 	lqlValidateCmd = &cobra.Command{
-		Use:   "validate <query>",
+		Use:   "validate [query]",
 		Short: "validate an LQL query",
 		Long:  `Validate an LQL query.`,
 		Args:  cobra.MaximumNArgs(1),
@@ -42,6 +42,8 @@ var (
 
 func init() {
 	lqlCmd.AddCommand(lqlValidateCmd)
+
+	setQueryFlags(lqlValidateCmd.Flags())
 }
 
 func validateQuery(cmd *cobra.Command, args []string) error {

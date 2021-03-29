@@ -37,7 +37,7 @@ const (
 var (
 	// lqlDescribeCmd represents the lql describe command
 	lqlDescribeCmd = &cobra.Command{
-		Use:   "describe <data source>",
+		Use:   "describe <data_source>",
 		Short: "describe an LQL data source",
 		Long:  `Describe an LQL data source.`,
 		Args:  cobra.MaximumNArgs(1),
