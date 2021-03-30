@@ -20,6 +20,12 @@ package api
 
 import (
 	"net/url"
+
+	"github.com/pkg/errors"
+)
+
+const (
+	LQLDeleteBadInputMsg string = "Please specify a valid query ID."
 )
 
 type LQLDeleteResponse struct {
@@ -35,11 +41,11 @@ func (svc *LQLService) DeleteQuery(queryID string) (
 	response LQLDeleteResponse,
 	err error,
 ) {
-	uri := apiLQL
-
-	if queryID != "" {
-		uri += "?LQL_ID=" + url.QueryEscape(queryID)
+	if queryID == "" {
+		err = errors.New(LQLDeleteBadInputMsg)
+		return
 	}
+	var uri string = ApiLQL + "?LQL_ID=" + url.QueryEscape(queryID)
 
 	err = svc.client.RequestDecoder("DELETE", uri, nil, &response)
 	return

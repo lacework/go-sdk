@@ -27,7 +27,8 @@ import (
 )
 
 const (
-	reLQL string = `(?ms)^(\w+)\(\w+\s\w+\)\s*{`
+	reLQL                  string = `(?ms)^(\w+)\(\w+\s\w+\)\s*{`
+	LQLQueryTranslateError string = "unable to translate query blob"
 )
 
 type LQLQuery struct {
@@ -50,8 +51,12 @@ func (q *LQLQuery) Translate() (returnErr error) {
 	var t LQLQuery
 
 	if err := json.Unmarshal([]byte(q.QueryBlob), &t); err == nil {
-		q.StartTimeRange = t.StartTimeRange
-		q.EndTimeRange = t.EndTimeRange
+		if q.StartTimeRange == "" {
+			q.StartTimeRange = t.StartTimeRange
+		}
+		if q.EndTimeRange == "" {
+			q.EndTimeRange = t.EndTimeRange
+		}
 		q.QueryText = t.QueryText
 		return
 	}
@@ -62,7 +67,7 @@ func (q *LQLQuery) Translate() (returnErr error) {
 		return
 	}
 
-	return errors.New("unable to translate query blob")
+	return errors.New(LQLQueryTranslateError)
 }
 
 type LQLQueryResponse struct {
@@ -86,7 +91,7 @@ func (svc *LQLService) CreateQuery(query string) (
 		return
 	}
 
-	err = svc.client.RequestEncoderDecoder("POST", apiLQL, lqlQuery, &response)
+	err = svc.client.RequestEncoderDecoder("POST", ApiLQL, lqlQuery, &response)
 	return
 }
 
@@ -101,7 +106,7 @@ func (svc *LQLService) GetQueryByID(queryID string) (
 	response LQLQueryResponse,
 	err error,
 ) {
-	uri := apiLQL
+	uri := ApiLQL
 
 	if queryID != "" {
 		uri += "?LQL_ID=" + url.QueryEscape(queryID)
@@ -124,6 +129,6 @@ func (svc *LQLService) RunQuery(query, start, end string) (
 		return
 	}
 
-	err = svc.client.RequestEncoderDecoder("POST", apiLQLQuery, lqlQuery, &response)
+	err = svc.client.RequestEncoderDecoder("POST", ApiLQLQuery, lqlQuery, &response)
 	return
 }

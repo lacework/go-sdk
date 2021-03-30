@@ -23,13 +23,14 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 const (
-	lqlDeleteBadInputMsg string = "Please specify a valid query ID."
-	lqlDeleteDebugMsg    string = "deleting LQL query"
-	lqlDeleteSuccessMsg  string = "LQL query (%s) deleted successfully.\n"
-	lqlDeleteUnableMsg   string = "unable to delete LQL query"
+	lqlDeleteDebugMsg   string = "deleting LQL query"
+	lqlDeleteSuccessMsg string = "LQL query (%s) deleted successfully.\n"
+	lqlDeleteUnableMsg  string = "unable to delete LQL query"
 )
 
 var (
@@ -55,7 +56,7 @@ func deleteQuery(_ *cobra.Command, args []string) error {
 		queryID = args[0]
 	} else {
 		return errors.Wrap(
-			errors.New(lqlDeleteBadInputMsg),
+			errors.New(api.LQLDeleteBadInputMsg),
 			lqlDeleteUnableMsg,
 		)
 	}
