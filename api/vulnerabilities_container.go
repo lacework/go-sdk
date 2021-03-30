@@ -224,6 +224,45 @@ func (report *VulnContainerAssessment) VulnFixableCount(severity string) int32 {
 	return fixable
 }
 
+// HighestSeverity returns the highest severity level vulnerability in a VulnContainerAssessment
+func (report *VulnContainerAssessment) HighestSeverity() string {
+	if report.CriticalVulnerabilities != 0 {
+		return "critical"
+	}
+	if report.HighVulnerabilities != 0 {
+		return "high"
+	}
+	if report.MediumVulnerabilities != 0 {
+		return "medium"
+	}
+	if report.LowVulnerabilities != 0 {
+		return "low"
+	}
+	return "unknown"
+}
+
+// HighestFixableSeverity returns the highest fixable severity level vulnerability in a VulnContainerAssessment
+func (report *VulnContainerAssessment) HighestFixableSeverity() string {
+	if report.VulnFixableCount("critical") != 0 {
+		return "critical"
+	}
+	if report.VulnFixableCount("high") != 0 {
+		return "high"
+	}
+	if report.VulnFixableCount("medium") != 0 {
+		return "medium"
+	}
+	if report.VulnFixableCount("low") != 0 {
+		return "low"
+	}
+	return "unknown"
+}
+
+// TotalFixableVulnerabilities returns the total number of vulnerabilities that have a fix available
+func (report *VulnContainerAssessment) TotalFixableVulnerabilities() int32 {
+	return report.FixableVulnerabilities
+}
+
 type VulnContainerImage struct {
 	ImageInfo   *vulnContainerImageInfo   `json:"image_info,omitempty"`
 	ImageLayers []vulnContainerImageLayer `json:"image_layers,omitempty"`
