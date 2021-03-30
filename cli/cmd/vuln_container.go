@@ -412,10 +412,6 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 		return err
 	}
 
-	if cli.JSONOutput() {
-		return cli.OutputJSON(results)
-	}
-
 	// if the scan is still running, display a nice message
 	if scanning {
 		cli.OutputHuman(
@@ -426,7 +422,14 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 		return nil
 	}
 
-	cli.OutputHuman(buildVulnerabilityReportTable(results))
+	if cli.JSONOutput() {
+		if err := cli.OutputJSON(results); err != nil {
+			return err
+		}
+	} else {
+		cli.OutputHuman(buildVulnerabilityReportTable(results))
+	}
+
 	if vulCmdState.Html {
 		if err := generateVulnAssessmentHTML(results); err != nil {
 			return err
@@ -477,10 +480,12 @@ func showContainerAssessmentsWithSha256(sha string) error {
 	case "Success":
 
 		if cli.JSONOutput() {
-			return cli.OutputJSON(assessment.Data)
+			if err := cli.OutputJSON(assessment.Data); err != nil {
+				return err
+			}
+		} else {
+			cli.OutputHuman(buildVulnerabilityReportTable(&assessment.Data))
 		}
-
-		cli.OutputHuman(buildVulnerabilityReportTable(&assessment.Data))
 
 		// @afiune is this the best way to make sense of this new flag?
 		if vulCmdState.Html {

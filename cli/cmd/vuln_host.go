@@ -163,16 +163,17 @@ To generate a package-manifest from the local host and scan it automatically:
 			}
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(response)
+				if err := cli.OutputJSON(response); err != nil {
+					return err
+				}
+			}  else {
+				if len(response.Vulns) == 0 {
+					// @afiune add a helpful message, possible things are:
+					cli.OutputHuman("There are no vulnerabilities found.\n")
+					return nil
+				}
+				cli.OutputHuman(hostScanPackagesVulnToTable(&response))
 			}
-
-			if len(response.Vulns) == 0 {
-				// @afiune add a helpful message, possible things are:
-				cli.OutputHuman("There are no vulnerabilities found.\n")
-				return nil
-			}
-
-			cli.OutputHuman(hostScanPackagesVulnToTable(&response))
 
 			if vulFailureFlagsEnabled() {
 				cli.Log.Infow("failure flags enabled",
@@ -339,10 +340,12 @@ Grab a CVE id and feed it to the command:
 			}
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Assessment)
+				if err = cli.OutputJSON(response.Assessment); err != nil {
+					return err
+				}
+			} else {
+				cli.OutputHuman(hostVulnHostDetailsToTable(response.Assessment))
 			}
-
-			cli.OutputHuman(hostVulnHostDetailsToTable(response.Assessment))
 
 			if vulFailureFlagsEnabled() {
 				cli.Log.Infow("failure flags enabled",
