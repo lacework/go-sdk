@@ -166,7 +166,7 @@ To generate a package-manifest from the local host and scan it automatically:
 				if err := cli.OutputJSON(response); err != nil {
 					return err
 				}
-			}  else {
+			} else {
 				if len(response.Vulns) == 0 {
 					// @afiune add a helpful message, possible things are:
 					cli.OutputHuman("There are no vulnerabilities found.\n")
