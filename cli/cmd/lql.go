@@ -25,17 +25,15 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
-
-	"github.com/lacework/go-sdk/api"
 )
 
 var (
 	lqlCmdState = struct {
 		End          string
-		Env          bool
 		File         string
 		Repo         bool
 		Start        string
@@ -55,17 +53,17 @@ NOTE: This feature is not yet available!`,
 
 	// lqlRunCmd represents the lql run command
 	lqlRunCmd = &cobra.Command{
-		Use:   "run [query|query_id]",
+		Use:   "run [query_id]",
 		Short: "run an LQL query",
 		Long: `Run an LQL query.
 
 Run a query via text:
 
-	$ lacework lql run 'SimpleLQL_3(CloudTrailRawEvents e) {SELECT INSERT_ID}' --start <start> --end <end>
+	$ lacework query run
 
-Run a query via ID:
+Run a query via ID (uses active profile):
 
-	$ lacework lql run MyQuery -e
+	$ lacework query run MyQuery
 
 Start and End times are required to run a query:
 
@@ -99,12 +97,6 @@ func init() {
 	// run specific flags
 	setQueryFlags(lqlRunCmd.Flags())
 
-	// env flag to specify a query from disk
-	lqlRunCmd.Flags().BoolVarP(
-		&lqlCmdState.Env,
-		"env", "e", false,
-		"run an LQL query by ID (using active profile)",
-	)
 	// start time flag
 	// TODO: come up with reasonable default per UI (1d)
 	lqlRunCmd.Flags().StringVarP(
@@ -156,90 +148,107 @@ func inputQuery(cmd *cobra.Command, args []string) (
 	query string,
 	err error,
 ) {
-	var queryID string
-
-	// if an inline argument was provided
-	// determine if it's a query or a query identifier
+	// if a query_id was specified
 	if len(args) != 0 && args[0] != "" {
-		if lqlCmdState.Env || lqlCmdState.Repo {
-			queryID = args[0]
-		} else {
-			query = args[0]
-		}
+		return inputQueryFromEnv(args[0])
 	}
-
-	if lqlCmdState.Env {
-		var queryResponse api.LQLQueryResponse
-		queryResponse, err = cli.LwApi.LQL.GetQueryByID(queryID)
-		if err == nil && len(queryResponse.Data) != 0 {
-			query = queryResponse.Data[0].QueryText
-		}
-	} else if lqlCmdState.Repo {
-		err = errors.New("NotImplementedError")
-	} else if lqlCmdState.File != "" {
-		var fileData []byte
-		fileData, err = ioutil.ReadFile(lqlCmdState.File)
-		if err != nil {
-			err = errors.Wrap(err, "unable to read file")
-			return
-		}
-		query = string(fileData)
-	} else if lqlCmdState.URL != "" {
-		msg := "unable to open URL"
-		var response *http.Response
-		var body []byte
-
-		response, err = http.Get(lqlCmdState.URL)
-		if err != nil {
-			err = errors.Wrap(err, msg)
-			return
-		}
-		defer response.Body.Close()
-
-		if response.StatusCode != 200 {
-			err = errors.Wrap(errors.New(response.Status), msg)
-			return
-		}
-
-		body, err = ioutil.ReadAll(response.Body)
-		if err != nil {
-			err = errors.Wrap(err, msg)
-			return
-		}
-		query = string(body)
-	} else {
-		var firstUseWord string
-		if lqlCmdState.ValidateOnly {
-			firstUseWord = "validate"
-		} else {
-			firstUseWord = strings.Split(cmd.Use, " ")[0]
-		}
-		prompt := &survey.Editor{
-			Message:  fmt.Sprintf("Type a query to %s", firstUseWord),
-			FileName: "query*.sh",
-		}
-		err = survey.AskOne(prompt, &query)
+	// if running via repo
+	if lqlCmdState.Repo {
+		return inputQueryFromRepo()
 	}
+	// if running via file
+	if lqlCmdState.File != "" {
+		return inputQueryFromFile(lqlCmdState.File)
+	}
+	// if running via URL
+	if lqlCmdState.URL != "" {
+		return inputQueryFromURL(lqlCmdState.URL)
+	}
+	// if running via editor
+	action := "validate"
+	if !lqlCmdState.ValidateOnly {
+		action = strings.Split(cmd.Use, " ")[0]
+	}
+	return inputQueryFromEditor(action)
+}
 
+func inputQueryFromEnv(queryID string) (
+	query string,
+	err error,
+) {
+	var queryResponse api.LQLQueryResponse
+
+	queryResponse, err = cli.LwApi.LQL.GetQueryByID(queryID)
+	if err == nil && len(queryResponse.Data) != 0 {
+		query = queryResponse.Data[0].QueryText
+	}
 	return
 }
 
-// standardized cli/error output
-func output(response map[string]interface{}, err error, msg string) error {
+func inputQueryFromRepo() (
+	query string,
+	err error,
+) {
+	err = errors.New("NotImplementedError")
+	return
+}
+
+func inputQueryFromFile(filePath string) (
+	query string,
+	err error,
+) {
+	var fileData []byte
+	fileData, err = ioutil.ReadFile(filePath)
+
 	if err != nil {
-		return errors.Wrap(err, msg)
+		err = errors.Wrap(err, "unable to read file")
+		return
 	}
 
-	if data, ok := response["data"]; ok {
-		err := cli.OutputJSON(data)
-		return err
+	query = string(fileData)
+	return
+}
+
+func inputQueryFromURL(url string) (
+	query string,
+	err error,
+) {
+	msg := "unable to open URL"
+	var response *http.Response
+	var body []byte
+
+	response, err = http.Get(url)
+	if err != nil {
+		err = errors.Wrap(err, msg)
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		err = errors.Wrap(errors.New(response.Status), msg)
+		return
 	}
 
-	if err := cli.OutputJSON(response); err != nil {
-		return errors.Wrap(err, "unable to format json response")
+	body, err = ioutil.ReadAll(response.Body)
+	if err != nil {
+		err = errors.Wrap(err, msg)
+		return
 	}
+	query = string(body)
+	return
+}
 
-	return nil
+func inputQueryFromEditor(action string) (
+	query string,
+	err error,
+) {
+	prompt := &survey.Editor{
+		Message:  fmt.Sprintf("Type a query to %s", action),
+		FileName: "query*.sh",
+	}
+	err = survey.AskOne(prompt, &query)
+
+	return
 }
 
 func runQuery(cmd *cobra.Command, args []string) error {
@@ -248,18 +257,26 @@ func runQuery(cmd *cobra.Command, args []string) error {
 
 	query, err := inputQuery(cmd, args)
 	if err != nil {
-		return output(response, err, msg)
+		return errors.Wrap(err, msg)
 	}
 
 	cli.Log.Debugw("running LQL query", "query", query)
 
+	// validate_only should compile
 	if lqlCmdState.ValidateOnly {
-		// validate_only should compile
 		return CompileQueryAndOutput(query)
-	} else {
-		// !validate_only should should run
-		response, err = cli.LwApi.LQL.RunQuery(query, lqlCmdState.Start, lqlCmdState.End)
 	}
+	// !validate_only should should run
+	response, err = cli.LwApi.LQL.RunQuery(query, lqlCmdState.Start, lqlCmdState.End)
 
-	return output(response, err, msg)
+	if err != nil {
+		return errors.Wrap(err, msg)
+	}
+	if data, ok := response["data"]; ok {
+		return cli.OutputJSON(data)
+	}
+	if err := cli.OutputJSON(response); err != nil {
+		return errors.Wrap(err, "unable to format json response")
+	}
+	return nil
 }
