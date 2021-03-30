@@ -35,7 +35,7 @@ const (
 var (
 	// lqlDeleteCmd represents the lql delete command
 	lqlDeleteCmd = &cobra.Command{
-		Use:   "delete <queryID>",
+		Use:   "delete <query_id>",
 		Short: "delete an LQL query",
 		Long:  `Delete an LQL query.`,
 		Args:  cobra.MaximumNArgs(1),

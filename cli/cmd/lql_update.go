@@ -36,7 +36,7 @@ const (
 var (
 	// lqlUpdateCmd represents the lql update command
 	lqlUpdateCmd = &cobra.Command{
-		Use:   "update [query]",
+		Use:   "update",
 		Short: "update an LQL query",
 		Long:  `Update an LQL query.`,
 		Args:  cobra.NoArgs,

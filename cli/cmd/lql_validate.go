@@ -32,7 +32,7 @@ const (
 var (
 	// lqlValidateCmd represents the lql validate command
 	lqlValidateCmd = &cobra.Command{
-		Use:   "validate [query]",
+		Use:   "validate [query_id]",
 		Short: "validate an LQL query",
 		Long:  `Validate an LQL query.`,
 		Args:  cobra.MaximumNArgs(1),

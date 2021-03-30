@@ -37,7 +37,7 @@ var (
 		Use:   "list",
 		Short: "list LQL queries",
 		Long:  `List LQL queries.`,
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		RunE:  listQueries,
 	}
 )

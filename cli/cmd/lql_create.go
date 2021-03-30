@@ -37,10 +37,10 @@ const (
 var (
 	// lqlCreateCmd represents the lql create command
 	lqlCreateCmd = &cobra.Command{
-		Use:   "create [query]",
+		Use:   "create",
 		Short: "create an LQL query",
 		Long:  `Create an LQL query.`,
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		RunE:  createQuery,
 	}
 )
