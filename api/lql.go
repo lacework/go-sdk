@@ -22,6 +22,8 @@ import (
 	"encoding/json"
 	"net/url"
 	"regexp"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -38,7 +40,7 @@ type LQLQuery struct {
 	QueryBlob string `json:"-"`
 }
 
-func (q *LQLQuery) translate() {
+func (q *LQLQuery) Translate() (returnErr error) {
 	// if QueryText is populated; return
 	if q.QueryText != "" {
 		return
@@ -57,7 +59,10 @@ func (q *LQLQuery) translate() {
 	// if QueryBlob is LQL
 	if matched, _ := regexp.MatchString(reLQL, q.QueryBlob); matched {
 		q.QueryText = q.QueryBlob
+		return
 	}
+
+	return errors.New("unable to translate query blob")
 }
 
 type LQLQueryResponse struct {
@@ -77,7 +82,9 @@ func (svc *LQLService) CreateQuery(query string) (
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
-	lqlQuery.translate()
+	if err = lqlQuery.Translate(); err != nil {
+		return
+	}
 
 	err = svc.client.RequestEncoderDecoder("POST", apiLQL, lqlQuery, &response)
 	return
@@ -113,7 +120,9 @@ func (svc *LQLService) RunQuery(query, start, end string) (
 		EndTimeRange:   end,
 		QueryBlob:      query,
 	}
-	lqlQuery.translate()
+	if err = lqlQuery.Translate(); err != nil {
+		return
+	}
 
 	err = svc.client.RequestEncoderDecoder("POST", apiLQLQuery, lqlQuery, &response)
 	return

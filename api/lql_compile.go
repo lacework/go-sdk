@@ -29,7 +29,9 @@ func (svc *LQLService) CompileQuery(query string) (
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
-	lqlQuery.translate()
+	if err = lqlQuery.Translate(); err != nil {
+		return
+	}
 
 	err = svc.client.RequestEncoderDecoder("POST", apiLQLCompile, lqlQuery, &response)
 	return

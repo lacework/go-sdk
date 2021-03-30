@@ -32,7 +32,9 @@ func (svc *LQLService) UpdateQuery(query string) (
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
-	lqlQuery.translate()
+	if err = lqlQuery.Translate(); err != nil {
+		return
+	}
 
 	err = svc.client.RequestEncoderDecoder("PATCH", apiLQL, lqlQuery, &response)
 	return
