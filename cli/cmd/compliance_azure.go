@@ -142,7 +142,7 @@ To run an ad-hoc compliance assessment use the command:
 				Type:           compCmdState.Type,
 			}
 
-			if compCmdState.Pdf || compCmdState.PdfName != "" {
+			if compCmdState.Pdf {
 				pdfName := fmt.Sprintf(
 					"%s_Report_%s_%s_%s_%s.pdf",
 					config.Type,
@@ -150,10 +150,6 @@ To run an ad-hoc compliance assessment use the command:
 					config.SubscriptionID,
 					cli.Account, time.Now().Format("20060102150405"),
 				)
-				if compCmdState.PdfName != "" {
-					cli.OutputHuman("(DEPRECATED) This flag has been replaced by '--pdf'\n\n")
-					pdfName = compCmdState.PdfName
-				}
 
 				cli.StartProgress(" Downloading compliance report...")
 				err := cli.LwApi.Compliance.DownloadAzureReportPDF(pdfName, config)
@@ -250,9 +246,6 @@ func init() {
 
 	complianceAzureGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
-	)
-	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.PdfName, "pdf-file", "",
-		"(DEPRECATED) use --pdf",
 	)
 	complianceAzureGetReportCmd.Flags().BoolVar(&compCmdState.Pdf, "pdf", false,
 		"download report in PDF format",

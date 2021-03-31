@@ -36,10 +36,6 @@ var (
 		// default: CIS
 		Type string
 
-		// download the report as PDF format with the provided filename
-		// (DEPRECATED)
-		PdfName string
-
 		// download report in PDF format
 		Pdf bool
 
