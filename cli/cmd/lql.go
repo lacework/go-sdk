@@ -264,7 +264,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 
 	// validate_only should compile
 	if lqlCmdState.ValidateOnly {
-		return CompileQueryAndOutput(query)
+		return compileQueryAndOutput(query)
 	}
 	// !validate_only should should run
 	response, err = cli.LwApi.LQL.RunQuery(query, lqlCmdState.Start, lqlCmdState.End)

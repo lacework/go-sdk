@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/pkg/errors"
 )
 
 type vulnerabilityPolicyError struct {
@@ -109,4 +110,11 @@ func (e *vulnerabilityPolicyError) validate() bool {
 	e.Message = "Compliant policy"
 	e.ExitCode = 0
 	return true
+}
+
+func yikes(msg string) error {
+	return errors.Wrap(
+		errors.New("something went pretty wrong here, contact support@lacework.net"),
+		msg,
+	)
 }

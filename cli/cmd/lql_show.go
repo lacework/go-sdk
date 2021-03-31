@@ -61,9 +61,8 @@ func showQuery(_ *cobra.Command, args []string) error {
 		return cli.OutputJSON(queryResponse.Data)
 	}
 	if len(queryResponse.Data) == 0 {
-		cli.OutputHuman(lqlShowNotFoundMsg)
-	} else {
-		cli.OutputHuman(queryResponse.Data[0].QueryText)
+		return yikes(lqlShowUnableMsg)
 	}
+	cli.OutputHuman(queryResponse.Data[0].QueryText)
 	return nil
 }

@@ -28,10 +28,9 @@ import (
 )
 
 const (
-	lqlCreateDebugMsg    string = "creating LQL query"
-	lqlCreateNotFoundMsg string = "Query created successfully but not returned.\n"
-	lqlCreateSuccessMsg  string = "LQL query (%s) created successfully.\n"
-	lqlCreateUnableMsg   string = "unable to create LQL query"
+	lqlCreateDebugMsg   string = "creating LQL query"
+	lqlCreateSuccessMsg string = "LQL query (%s) created successfully.\n"
+	lqlCreateUnableMsg  string = "unable to create LQL query"
 )
 
 var (
@@ -69,11 +68,10 @@ func createQuery(cmd *cobra.Command, args []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(create.Data)
 	}
-	if len(create.Data) == 0 {
-		cli.OutputHuman(lqlCreateNotFoundMsg)
-	} else {
-		cli.OutputHuman(
-			fmt.Sprintf(lqlCreateSuccessMsg, create.Data[0].ID))
+	queryID := "unknown"
+	if len(create.Data) > 0 {
+		queryID = create.Data[0].ID
 	}
+	cli.OutputHuman(fmt.Sprintf(lqlCreateSuccessMsg, queryID))
 	return nil
 }

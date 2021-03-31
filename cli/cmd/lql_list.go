@@ -68,13 +68,13 @@ func listQueries(_ *cobra.Command, args []string) error {
 	}
 	if len(queryResponse.Data) == 0 {
 		cli.OutputHuman(lqlListNotFoundMsg)
-	} else {
-		cli.OutputHuman(
-			renderSimpleTable(
-				[]string{"Query ID"},
-				queryIDTable(queryResponse.Data),
-			),
-		)
+		return nil
 	}
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"Query ID"},
+			queryIDTable(queryResponse.Data),
+		),
+	)
 	return nil
 }

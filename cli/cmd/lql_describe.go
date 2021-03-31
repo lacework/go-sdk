@@ -30,8 +30,7 @@ import (
 const (
 	lqlDescribeBadInputMsg string = "Please specify a valid data source"
 	lqlDescribeDebugMsg    string = "describing LQL data source"
-	lqlDescribeNotFoundMsg string = "There is nothing to describe.\n"
-	lqlDescribeUnableMsg   string = "unable to describe an LQL data source"
+	lqlDescribeUnableMsg   string = "unable to describe LQL data source"
 )
 
 var (
@@ -94,18 +93,18 @@ func describeQuerySource(_ *cobra.Command, args []string) error {
 
 	if err != nil {
 		return errors.Wrap(err, lqlDescribeUnableMsg)
-	} else if cli.JSONOutput() {
-		return cli.OutputJSON(describe.Data)
-	} else if len(describe.Data) == 0 {
-		cli.OutputHuman(lqlDescribeNotFoundMsg)
-	} else {
-		cli.OutputHuman(
-			renderSimpleTable(
-				[]string{"Field Name", "Placement", "Type", "Required", "Default"},
-				describeToTable(describe.Data),
-			),
-		)
 	}
-
+	if cli.JSONOutput() {
+		return cli.OutputJSON(describe.Data)
+	}
+	if len(describe.Data) == 0 {
+		return yikes(lqlDescribeUnableMsg)
+	}
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"Field Name", "Placement", "Type", "Required", "Default"},
+			describeToTable(describe.Data),
+		),
+	)
 	return nil
 }
