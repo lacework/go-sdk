@@ -1,6 +1,6 @@
 #!/bin/bash
 readonly project_name=go-sdk
-readonly commit_tags="feat(:|\(.*\):)|fix(:|(.*):)|style(:|(.*):)|refactor(:|(.*):)\|test(:|(.*):)\|docs(:|(.*):)\|chore(:|(.*):)\|build(:|(.*):)\|ci(:|(.*):)\|perf(:|(.*):)\|metric(:|(.*):)\|misc(:|(.*):)"
+readonly commit_tags="feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)\|test(:|\(.*\):)\|docs(:|\(.*\):)\|chore(:|\(.*\):)\|build(:|\(.*\):)\|ci(:|\(.*\):)\|perf(:|\(.*\):)\|metric(:|\(.*\):)\|misc(:|\(.*\):)"
 readonly commit_message=`cat $1`
 
 validate_commit_message(){
