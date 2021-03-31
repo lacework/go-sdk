@@ -1,6 +1,6 @@
 #!/bin/bash
 readonly project_name=go-sdk
-readonly commit_tags=feat:\|fix:\|style:\|refactor:\|test:\|docs:\|chore:\|build:\|ci:\|perf:\|metric:\|misc:
+readonly commit_tags="feat(:|\(.*\):)|fix(:|(.*):)|style(:|(.*):)|refactor(:|(.*):)\|test(:|(.*):)\|docs(:|(.*):)\|chore(:|(.*):)\|build(:|(.*):)\|ci(:|(.*):)\|perf(:|(.*):)\|metric(:|(.*):)\|misc(:|(.*):)"
 readonly commit_message=`cat $1`
 
 validate_commit_message(){
@@ -13,7 +13,8 @@ validate_commit_message(){
 
 invalid_message(){
     log "Invalid commit message"
-    log "Message must contain one of $commit_tags"
+    log "Message must contain one of feat: | fix: | style: | refactor: | test: | docs: | chore: | build: | ci: | perf: | metric: | misc:
+      Or with scope in parenthesis eg. feat(cli): Add new feature"
 }
 
 log() {
