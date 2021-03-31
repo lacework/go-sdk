@@ -165,34 +165,83 @@ func (assessment *HostVulnHostAssessment) VulnerabilityCounts() HostVulnCounts {
 			switch strings.ToLower(pkg.Severity) {
 			case "critical":
 				hostCounts.Critical++
+				hostCounts.Total++
 				if pkg.FixedVersion != "" {
 					hostCounts.CritFixable++
+					hostCounts.TotalFixable++
 				}
 			case "high":
 				hostCounts.High++
+				hostCounts.Total++
 				if pkg.FixedVersion != "" {
 					hostCounts.HighFixable++
+					hostCounts.TotalFixable++
 				}
 			case "medium":
 				hostCounts.Medium++
+				hostCounts.Total++
 				if pkg.FixedVersion != "" {
 					hostCounts.MedFixable++
+					hostCounts.TotalFixable++
 				}
 			case "low":
 				hostCounts.Low++
+				hostCounts.Total++
 				if pkg.FixedVersion != "" {
 					hostCounts.LowFixable++
+					hostCounts.TotalFixable++
 				}
 			default:
 				hostCounts.Negligible++
+				hostCounts.Total++
 				if pkg.FixedVersion != "" {
 					hostCounts.NegFixable++
+					hostCounts.TotalFixable++
 				}
 			}
 		}
 	}
 
 	return hostCounts
+}
+
+// HighestSeverity returns the highest severity level vulnerability
+func (h *HostVulnCounts) HighestSeverity() string {
+	if h.Critical != 0 {
+		return "critical"
+	}
+	if h.High != 0 {
+		return "high"
+	}
+	if h.Medium != 0 {
+		return "medium"
+	}
+	if h.Low != 0 {
+		return "low"
+	}
+	return "unknown"
+}
+
+// HighestFixableSeverity returns the highest fixable severity level vulnerability
+func (h *HostVulnCounts) HighestFixableSeverity() string {
+	if h.CritFixable != 0 {
+		return "critical"
+	}
+	if h.HighFixable != 0 {
+		return "high"
+	}
+	if h.MedFixable != 0 {
+		return "medium"
+	}
+	if h.LowFixable != 0 {
+		return "low"
+	}
+	return "unknown"
+}
+
+// TotalFixableVulnerabilities returns the total number of vulnerabilities that have a fix available
+func (h *HostVulnCounts) TotalFixableVulnerabilities() int32 {
+	return h.TotalFixable
 }
 
 type HostVulnCounts struct {
@@ -211,11 +260,11 @@ type HostVulnCounts struct {
 }
 
 type HostVulnSeverityCounts struct {
-	Critical   *hostVulnSeverityCountsDetails `json:"Critical"`
-	High       *hostVulnSeverityCountsDetails `json:"High"`
-	Medium     *hostVulnSeverityCountsDetails `json:"Medium"`
-	Low        *hostVulnSeverityCountsDetails `json:"Low"`
-	Negligible *hostVulnSeverityCountsDetails `json:"Negligible"`
+	Critical   *HostVulnSeverityCountsDetails `json:"Critical"`
+	High       *HostVulnSeverityCountsDetails `json:"High"`
+	Medium     *HostVulnSeverityCountsDetails `json:"Medium"`
+	Low        *HostVulnSeverityCountsDetails `json:"Low"`
+	Negligible *HostVulnSeverityCountsDetails `json:"Negligible"`
 }
 
 func (counts *HostVulnSeverityCounts) VulnerabilityCounts() HostVulnCounts {
@@ -259,7 +308,7 @@ func (counts *HostVulnSeverityCounts) VulnerabilityCounts() HostVulnCounts {
 	return hostCounts
 }
 
-type hostVulnSeverityCountsDetails struct {
+type HostVulnSeverityCountsDetails struct {
 	Fixable         int32 `json:"fixable"`
 	Vulnerabilities int32 `json:"vulnerabilities"`
 }
@@ -299,28 +348,38 @@ func (scanPkgManifest *HostVulnScanPkgManifestResponse) VulnerabilityCounts() Ho
 		switch vuln.Severity {
 		case "Critical":
 			hostCounts.Critical++
+			hostCounts.Total++
 			if vuln.HasFix() {
 				hostCounts.CritFixable++
+				hostCounts.TotalFixable++
 			}
 		case "High":
 			hostCounts.High++
+			hostCounts.Total++
 			if vuln.HasFix() {
 				hostCounts.HighFixable++
+				hostCounts.TotalFixable++
 			}
 		case "Medium":
 			hostCounts.Medium++
+			hostCounts.Total++
 			if vuln.HasFix() {
 				hostCounts.MedFixable++
+				hostCounts.TotalFixable++
 			}
 		case "Low":
 			hostCounts.Low++
+			hostCounts.Total++
 			if vuln.HasFix() {
 				hostCounts.LowFixable++
+				hostCounts.TotalFixable++
 			}
 		default:
 			hostCounts.Negligible++
+			hostCounts.Total++
 			if vuln.HasFix() {
 				hostCounts.NegFixable++
+				hostCounts.TotalFixable++
 			}
 		}
 	}
@@ -365,20 +424,7 @@ type HostScanPackageVulnDetails struct {
 		Name      string `json:"name"`
 		Namespace string `json:"namespace"`
 	} `json:"FEATURE_KEY"`
-	FixInfo struct {
-		CompareResult               int    `json:"compare_result"`
-		EvalStatus                  string `json:"eval_status"`
-		FixAvailable                int    `json:"fix_available"`
-		FixedVersion                string `json:"fixed_version"`
-		FixedVersionComparisonInfos []struct {
-			CurrFixVer                         string `json:"curr_fix_ver"`
-			IsCurrFixVerGreaterThanOtherFixVer string `json:"is_curr_fix_ver_greater_than_other_fix_ver"`
-			OtherFixVer                        string `json:"other_fix_ver"`
-		} `json:"fixed_version_comparison_infos"`
-		FixedVersionComparisonScore int    `json:"fixed_version_comparison_score"`
-		MaxPrefixMatchingLenScore   int    `json:"max_prefix_matching_len_score"`
-		VersionInstalled            string `json:"version_installed"`
-	} `json:"FIX_INFO"`
+	FixInfo   HostScanPackageVulnFixInfo `json:"FIX_INFO"`
 	OsPkgInfo struct {
 		Namespace     string `json:"namespace"`
 		Os            string `json:"os"`
@@ -451,4 +497,19 @@ type OsPkgInfo struct {
 	OsVer  string `json:"os_ver"`
 	Pkg    string `json:"pkg"`
 	PkgVer string `json:"pkg_ver"`
+}
+
+type HostScanPackageVulnFixInfo struct {
+	CompareResult               int    `json:"compare_result"`
+	EvalStatus                  string `json:"eval_status"`
+	FixAvailable                int    `json:"fix_available"`
+	FixedVersion                string `json:"fixed_version"`
+	FixedVersionComparisonInfos []struct {
+		CurrFixVer                         string `json:"curr_fix_ver"`
+		IsCurrFixVerGreaterThanOtherFixVer string `json:"is_curr_fix_ver_greater_than_other_fix_ver"`
+		OtherFixVer                        string `json:"other_fix_ver"`
+	} `json:"fixed_version_comparison_infos"`
+	FixedVersionComparisonScore int    `json:"fixed_version_comparison_score"`
+	MaxPrefixMatchingLenScore   int    `json:"max_prefix_matching_len_score"`
+	VersionInstalled            string `json:"version_installed"`
 }

@@ -87,7 +87,13 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() error {
+func Execute() (err error) {
+	defer func() {
+		var e *vulnerabilityPolicyError
+		if errors.As(err, &e) {
+			exitwithCode(e, e.ExitCode)
+		}
+	}()
 	defer cli.Wait()
 
 	// first, verify if the user provided a command to execute,
@@ -97,14 +103,13 @@ func Execute() error {
 		os.Exit(127)
 	}
 
-	if err := rootCmd.Execute(); err != nil {
+	if err = rootCmd.Execute(); err != nil {
 		// send a new error event to Honeycomb
 		cli.Event.Error = err.Error()
 		cli.SendHoneyvent()
-		return err
 	}
 
-	return nil
+	return
 }
 
 func init() {
@@ -198,7 +203,6 @@ func initConfig() {
 		} else {
 			// the config file was found but another error was produced
 			errcheckWARN(rootCmd.Help())
-			cli.OutputHuman("\n")
 			exitwith(errors.Wrap(err, "unable to read in config file ~/.lacework.toml"))
 		}
 	} else {
@@ -275,6 +279,6 @@ func exitwith(err error) {
 // exitwithCode prints out an error message and exits the program with
 // the provided exit code
 func exitwithCode(err error, code int) {
-	fmt.Fprintf(os.Stderr, "ERROR %s\n", err)
+	fmt.Fprintf(os.Stderr, "\nERROR %s\n", err)
 	os.Exit(code)
 }

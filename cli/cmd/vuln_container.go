@@ -52,8 +52,18 @@ To list all container registries configured in your account:
 
     $ lacework vulnerability container list-registries`,
 		Args: cobra.ExactArgs(3),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return requestOnDemandContainerVulnerabilityScan(args)
+		RunE: func(c *cobra.Command, args []string) error {
+			if err := validateSeverityFlags(); err != nil {
+				return err
+			}
+
+			err := requestOnDemandContainerVulnerabilityScan(args)
+			var e *vulnerabilityPolicyError
+			if errors.As(err, &e) {
+				c.SilenceUsage = true
+			}
+
+			return err
 		},
 	}
 
@@ -65,8 +75,17 @@ To list all container registries configured in your account:
 		Short:   "check the status of an on-demand container vulnerability assessment",
 		Long:    "Check the status of an on-demand container vulnerability assessment.",
 		Args:    cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return checkOnDemandContainerVulnerabilityStatus(args[0])
+		RunE: func(c *cobra.Command, args []string) error {
+			if err := validateSeverityFlags(); err != nil {
+				return err
+			}
+			err := checkOnDemandContainerVulnerabilityStatus(args[0])
+			var e *vulnerabilityPolicyError
+			if errors.As(err, &e) {
+				c.SilenceUsage = true
+			}
+
+			return err
 		},
 	}
 
@@ -225,8 +244,17 @@ To request an on-demand vulnerability scan:
 
     $ lacework vulnerability container scan <registry> <repository> <tag|digest>`,
 		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return showContainerAssessmentsWithSha256(args[0])
+		RunE: func(c *cobra.Command, args []string) error {
+			if err := validateSeverityFlags(); err != nil {
+				return err
+			}
+			err := showContainerAssessmentsWithSha256(args[0])
+			var e *vulnerabilityPolicyError
+			if errors.As(err, &e) {
+				c.SilenceUsage = true
+			}
+
+			return err
 		},
 	}
 )
@@ -274,6 +302,18 @@ func init() {
 	)
 
 	setSeverityFlag(
+		vulContainerScanCmd.Flags(),
+		vulContainerScanStatusCmd.Flags(),
+		vulContainerShowAssessmentCmd.Flags(),
+	)
+
+	setFailOnSeverityFlag(
+		vulContainerScanCmd.Flags(),
+		vulContainerScanStatusCmd.Flags(),
+		vulContainerShowAssessmentCmd.Flags(),
+	)
+
+	setFailOnFixableFlag(
 		vulContainerScanCmd.Flags(),
 		vulContainerScanStatusCmd.Flags(),
 		vulContainerShowAssessmentCmd.Flags(),
@@ -372,10 +412,6 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 		return err
 	}
 
-	if cli.JSONOutput() {
-		return cli.OutputJSON(results)
-	}
-
 	// if the scan is still running, display a nice message
 	if scanning {
 		cli.OutputHuman(
@@ -386,10 +422,35 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 		return nil
 	}
 
-	cli.OutputHuman(buildVulnerabilityReportTable(results))
-	if vulCmdState.Html {
-		return generateVulnAssessmentHTML(results)
+	if cli.JSONOutput() {
+		if err := cli.OutputJSON(results); err != nil {
+			return err
+		}
+	} else {
+		cli.OutputHuman(buildVulnerabilityReportTable(results))
 	}
+
+	if vulCmdState.Html {
+		if err := generateVulnAssessmentHTML(results); err != nil {
+			return err
+		}
+	}
+
+	if vulFailureFlagsEnabled() {
+		cli.Log.Infow("failure flags enabled",
+			"fail_on_severity", vulCmdState.FailOnSeverity,
+			"fail_on_fixable", vulCmdState.FailOnFixable,
+		)
+		vulnPolicy := NewVulnerabilityPolicyError(
+			results,
+			vulCmdState.FailOnSeverity,
+			vulCmdState.FailOnFixable,
+		)
+		if vulnPolicy.NonCompliant() {
+			return vulnPolicy
+		}
+	}
+
 	return nil
 }
 
@@ -399,6 +460,7 @@ func showContainerAssessmentsWithSha256(sha string) error {
 		searchField string
 		err         error
 	)
+
 	if vulCmdState.ImageID {
 		searchField = "image_id"
 		cli.Log.Debugw("retrieve image assessment", searchField, sha)
@@ -418,14 +480,18 @@ func showContainerAssessmentsWithSha256(sha string) error {
 	case "Success":
 
 		if cli.JSONOutput() {
-			return cli.OutputJSON(assessment.Data)
+			if err := cli.OutputJSON(assessment.Data); err != nil {
+				return err
+			}
+		} else {
+			cli.OutputHuman(buildVulnerabilityReportTable(&assessment.Data))
 		}
-
-		cli.OutputHuman(buildVulnerabilityReportTable(&assessment.Data))
 
 		// @afiune is this the best way to make sense of this new flag?
 		if vulCmdState.Html {
-			return generateVulnAssessmentHTML(&assessment.Data)
+			if err := generateVulnAssessmentHTML(&assessment.Data); err != nil {
+				return err
+			}
 		}
 	case "Unsupported":
 		return errors.Errorf(
@@ -456,6 +522,21 @@ For more information about supported distributions, visit:
 		return errors.New(
 			"unable to get assessment status from the container image. Use '--debug' to troubleshoot.",
 		)
+	}
+
+	if vulFailureFlagsEnabled() {
+		cli.Log.Infow("failure flags enabled",
+			"fail_on_severity", vulCmdState.FailOnSeverity,
+			"fail_on_fixable", vulCmdState.FailOnFixable,
+		)
+		vulnPolicy := NewVulnerabilityPolicyError(
+			&assessment.Data,
+			vulCmdState.FailOnSeverity,
+			vulCmdState.FailOnFixable,
+		)
+		if vulnPolicy.NonCompliant() {
+			return vulnPolicy
+		}
 	}
 
 	return nil
@@ -796,13 +877,9 @@ func addToAssessmentSummary(text []string, num, severity string) []string {
 }
 
 func filterSeverity(severity string, threshold string) bool {
-	thresholdValue, _ := eventSeverityToProperTypes(threshold)
-	severityValue, _ := eventSeverityToProperTypes(severity)
+	thresholdValue, _ := severityToProperTypes(threshold)
+	severityValue, _ := severityToProperTypes(severity)
 	return severityValue > thresholdValue
-}
-
-func vulFiltersEnabled() bool {
-	return vulCmdState.Severity != "" || vulCmdState.Fixable
 }
 
 func getContainerRegistries() ([]string, error) {

@@ -35,3 +35,12 @@ func NewVulnerabilityService(c *Client) *VulnerabilitiesService {
 		&ContainerVulnerabilityService{c},
 	}
 }
+
+// VulnerabilityAssessment is used to provide common functions that are
+// required by host or container vulnerability assessments, this is used
+// to treat them both as equal
+type VulnerabilityAssessment interface {
+	HighestSeverity() string
+	HighestFixableSeverity() string
+	TotalFixableVulnerabilities() int32
+}

@@ -6,9 +6,7 @@
 #
 
 main() {
-  if [[ -z $DOCKERHUB_PASS ]]; then
-    echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-  fi
+  echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
   case "${1:-}" in
   clean)
