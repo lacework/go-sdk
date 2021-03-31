@@ -1,3 +1,4 @@
+
 #!/bin/bash
 #
 # Name::        git_env.sh
@@ -5,7 +6,7 @@
 # Author::      Darren Murray (<dmurray-lacework@lacework.net>)
 #
 
-readonly commit_hook=scripts/githooks/prepare-commit-msg
+readonly commit_hook=scripts/githooks/commit-msg
 readonly hooks_path=scripts/githooks/
 readonly project_name=go-sdk
 

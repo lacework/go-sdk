@@ -2,14 +2,15 @@
 readonly project_name=go-sdk
 readonly commit_tags="feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)\|test(:|\(.*\):)\|docs(:|\(.*\):)\|chore(:|\(.*\):)\|build(:|\(.*\):)\|ci(:|\(.*\):)\|perf(:|\(.*\):)\|metric(:|\(.*\):)\|misc(:|\(.*\):)"
 readonly commit_message=`cat $1`
+readonly blah="Please enter the commit message for your changes"
 
 validate_commit_message(){
-    if ! [[ $commit_message =~ $commit_tags ]]; then
-        invalid_message
-        exit 1
-    fi
-    log "Commit message is valid"
-}
+        if ! [[ $commit_message =~ $commit_tags ]]; then
+            invalid_message
+            exit 1
+        fi
+            log "Commit message is valid"
+} 
 
 invalid_message(){
     log "Invalid commit message"
