@@ -92,24 +92,24 @@ func (q LQLQuery) ValidateRange(allowEmptyTimes bool) error {
 	// validate start
 	start, err := q.ParseTime(q.StartTimeRange)
 	if err != nil {
-		if q.StartTimeRange == "" && allowEmptyTimes {
-			start = time.Unix(0, 0)
-		} else if q.StartTimeRange == "" {
-			return errors.New("start time must not be empty")
-		} else {
+		if q.StartTimeRange != "" {
 			return err
 		}
+		if !allowEmptyTimes {
+			return errors.New("start time must not be empty")
+		}
+		start = time.Unix(0, 0)
 	}
 	// validate end
 	end, err := q.ParseTime(q.EndTimeRange)
 	if err != nil {
-		if q.EndTimeRange == "" && allowEmptyTimes {
-			end = time.Now()
-		} else if q.EndTimeRange == "" {
-			return errors.New("end time must not be empty")
-		} else {
+		if q.EndTimeRange != "" {
 			return err
 		}
+		if !allowEmptyTimes {
+			return errors.New("end time must not be empty")
+		}
+		end = time.Now()
 	}
 	// validate range
 	if start.After(end) {
