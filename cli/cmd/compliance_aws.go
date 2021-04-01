@@ -114,17 +114,13 @@ To run an ad-hoc compliance assessment of an AWS account:
 				Type:      compCmdState.Type,
 			}
 
-			if compCmdState.Pdf || compCmdState.PdfName != "" {
+			if compCmdState.Pdf {
 				pdfName := fmt.Sprintf(
 					"%s_Report_%s_%s_%s.pdf",
 					config.Type,
 					config.AccountID,
 					cli.Account, time.Now().Format("20060102150405"),
 				)
-				if compCmdState.PdfName != "" {
-					cli.OutputHuman("(DEPRECATED) This flag has been replaced by '--pdf'\n\n")
-					pdfName = compCmdState.PdfName
-				}
 
 				cli.StartProgress(" Downloading compliance report...")
 				err := cli.LwApi.Compliance.DownloadAwsReportPDF(pdfName, config)
@@ -224,9 +220,7 @@ func init() {
 	complianceAwsGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
 	)
-	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.PdfName, "pdf-file", "",
-		"(DEPRECATED) use --pdf",
-	)
+
 	complianceAwsGetReportCmd.Flags().BoolVar(&compCmdState.Pdf, "pdf", false,
 		"download report in PDF format",
 	)
