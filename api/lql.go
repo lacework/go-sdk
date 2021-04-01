@@ -22,12 +22,14 @@ import (
 	"encoding/json"
 	"net/url"
 	"regexp"
+	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 )
 
 const (
-	reLQL                  string = `(?ms)^(\w+)\(\w+\s\w+\)\s*{`
+	reLQL                  string = `(?ms)^(\w+)\([^)]+\)\s*{`
 	LQLQueryTranslateError string = "unable to translate query blob"
 )
 
@@ -41,7 +43,7 @@ type LQLQuery struct {
 	QueryBlob string `json:"-"`
 }
 
-func (q *LQLQuery) Translate() (returnErr error) {
+func (q *LQLQuery) Translate() (returnError error) {
 	// if QueryText is populated; return
 	if q.QueryText != "" {
 		return
@@ -70,6 +72,64 @@ func (q *LQLQuery) Translate() (returnErr error) {
 	return errors.New(LQLQueryTranslateError)
 }
 
+func (q *LQLQuery) Validate(allowEmptyTimes bool) error {
+	// translate
+	if err := q.Translate(); err != nil {
+		return err
+	}
+	// validate range
+	if err := q.ValidateRange(allowEmptyTimes); err != nil {
+		return err
+	}
+	// validate query
+	if q.QueryText == "" {
+		return errors.New("query should not be empty")
+	}
+	return nil
+}
+
+func (q LQLQuery) ValidateRange(allowEmptyTimes bool) error {
+	// validate start
+	start, err := q.ParseTime(q.StartTimeRange)
+	if err != nil {
+		if q.StartTimeRange == "" && allowEmptyTimes {
+			start = time.Unix(0, 0)
+		} else if q.StartTimeRange == "" {
+			return errors.New("start time must not be empty")
+		} else {
+			return err
+		}
+	}
+	// validate end
+	end, err := q.ParseTime(q.EndTimeRange)
+	if err != nil {
+		if q.EndTimeRange == "" && allowEmptyTimes {
+			end = time.Now()
+		} else if q.EndTimeRange == "" {
+			return errors.New("end time must not be empty")
+		} else {
+			return err
+		}
+	}
+	// validate range
+	if start.After(end) {
+		return errors.New("date range should have a start time before the end time")
+	}
+	return nil
+}
+
+func (q LQLQuery) ParseTime(t string) (time.Time, error) {
+	// parse time as RFC3339
+	if tim, err := time.Parse(time.RFC3339, t); err == nil {
+		return tim, err
+	}
+	// parse time as millis
+	if msInt, err := strconv.ParseInt(t, 10, 64); err == nil {
+		return time.Unix(0, msInt*int64(time.Millisecond)), err
+	}
+	return time.Time{}, errors.New("unable to parse time (" + t + ")")
+}
+
 type LQLQueryResponse struct {
 	Data    []LQLQuery `json:"data"`
 	Ok      bool       `json:"ok"`
@@ -87,7 +147,7 @@ func (svc *LQLService) CreateQuery(query string) (
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
-	if err = lqlQuery.Translate(); err != nil {
+	if err = lqlQuery.Validate(true); err != nil {
 		return
 	}
 
@@ -125,7 +185,7 @@ func (svc *LQLService) RunQuery(query, start, end string) (
 		EndTimeRange:   end,
 		QueryBlob:      query,
 	}
-	if err = lqlQuery.Translate(); err != nil {
+	if err = lqlQuery.Validate(false); err != nil {
 		return
 	}
 

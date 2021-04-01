@@ -29,8 +29,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var ()
-
 func TestUpdateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(

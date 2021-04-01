@@ -23,8 +23,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/lacework/go-sdk/api"
 )
 
 const (
@@ -52,15 +50,13 @@ func init() {
 }
 
 func updateQuery(cmd *cobra.Command, args []string) error {
-	var update api.LQLUpdateResponse
-
 	query, err := inputQuery(cmd, args)
 	if err != nil {
 		return errors.Wrap(err, lqlUpdateUnableMsg)
 	}
 
 	cli.Log.Debugw(lqlUpdateDebugMsg, "query", query)
-	update, err = cli.LwApi.LQL.UpdateQuery(query)
+	update, err := cli.LwApi.LQL.UpdateQuery(query)
 
 	if err != nil {
 		return errors.Wrap(err, lqlUpdateUnableMsg)

@@ -32,7 +32,7 @@ func (svc *LQLService) UpdateQuery(query string) (
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
-	if err = lqlQuery.Translate(); err != nil {
+	if err = lqlQuery.Validate(true); err != nil {
 		return
 	}
 

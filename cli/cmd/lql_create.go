@@ -23,8 +23,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/lacework/go-sdk/api"
 )
 
 const (
@@ -52,15 +50,13 @@ func init() {
 }
 
 func createQuery(cmd *cobra.Command, args []string) error {
-	var create api.LQLQueryResponse
-
 	query, err := inputQuery(cmd, args)
 	if err != nil {
 		return errors.Wrap(err, lqlCreateUnableMsg)
 	}
 
 	cli.Log.Debugw(lqlCreateDebugMsg, "query", query)
-	create, err = cli.LwApi.LQL.CreateQuery(query)
+	create, err := cli.LwApi.LQL.CreateQuery(query)
 
 	if err != nil {
 		return errors.Wrap(err, lqlCreateUnableMsg)

@@ -197,8 +197,7 @@ func inputQueryFromFile(filePath string) (
 	query string,
 	err error,
 ) {
-	var fileData []byte
-	fileData, err = ioutil.ReadFile(filePath)
+	fileData, err := ioutil.ReadFile(filePath)
 
 	if err != nil {
 		err = errors.Wrap(err, "unable to read file")
@@ -214,10 +213,8 @@ func inputQueryFromURL(url string) (
 	err error,
 ) {
 	msg := "unable to open URL"
-	var response *http.Response
-	var body []byte
 
-	response, err = http.Get(url)
+	response, err := http.Get(url)
 	if err != nil {
 		err = errors.Wrap(err, msg)
 		return
@@ -229,7 +226,7 @@ func inputQueryFromURL(url string) (
 		return
 	}
 
-	body, err = ioutil.ReadAll(response.Body)
+	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		err = errors.Wrap(err, msg)
 		return
@@ -253,7 +250,6 @@ func inputQueryFromEditor(action string) (
 
 func runQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to run LQL query"
-	var response map[string]interface{}
 
 	query, err := inputQuery(cmd, args)
 	if err != nil {
@@ -267,7 +263,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		return compileQueryAndOutput(query)
 	}
 	// !validate_only should should run
-	response, err = cli.LwApi.LQL.RunQuery(query, lqlCmdState.Start, lqlCmdState.End)
+	response, err := cli.LwApi.LQL.RunQuery(query, lqlCmdState.Start, lqlCmdState.End)
 
 	if err != nil {
 		return errors.Wrap(err, msg)

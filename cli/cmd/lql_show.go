@@ -45,7 +45,7 @@ func init() {
 }
 
 func showQuery(_ *cobra.Command, args []string) error {
-	queryID := ""
+	var queryID string
 
 	if len(args) != 0 && args[0] != "" {
 		queryID = args[0]
