@@ -22,7 +22,7 @@ github.com/facebookgo/clock
 github.com/facebookgo/limitgroup
 # github.com/facebookgo/muster v0.0.0-20150708232844-fd3d7953fd52
 github.com/facebookgo/muster
-# github.com/fatih/color v1.9.0
+# github.com/fatih/color v1.10.0
 ## explicit
 github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.9
@@ -69,8 +69,7 @@ github.com/kr/pty
 github.com/kyokomi/emoji/v2
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
-# github.com/mattn/go-colorable v0.1.6
-## explicit
+# github.com/mattn/go-colorable v0.1.8
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.12
 github.com/mattn/go-isatty
