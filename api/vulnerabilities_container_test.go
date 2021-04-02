@@ -504,7 +504,7 @@ func vulContainerAssessmentsResponse(t int64) string {
       "EVAL_GUID": "492c2f55cf3073e3978138e599bd2074",
       "EVAL_STATUS": "PASSED",
       "EVAL_TYPE": "EvalBySQL",
-      "IMAGE_CREATED_TIME": 1593118878546,
+      "IMAGE_CREATED_TIME": "2020-06-25T21:01:18+0000",
       "IMAGE_DIGEST": "sha256:4393dcffe989b8785a15c696ae5201b8f82744f7f63743ab470e4ca956dad660",
       "IMAGE_ID": "sha256:14a3076d0885a4ab36d52a6834583bc07b6530f7940bff378a67d33c2ee0002b",
       "IMAGE_NAMESPACE": null,
@@ -512,7 +512,7 @@ func vulContainerAssessmentsResponse(t int64) string {
       "IMAGE_REPO": "techallylw/lacework-cli",
       "IMAGE_SCAN_ERROR_MSG": "",
       "IMAGE_SCAN_STATUS": "Success",
-      "IMAGE_SCAN_TIME": 1593619230613,
+      "IMAGE_SCAN_TIME": "2020-07-01T16:00:30+0000",
       "IMAGE_SIZE": "102087642",
       "IMAGE_TAGS": [
         "centos-8"
@@ -530,7 +530,7 @@ func vulContainerAssessmentsResponse(t int64) string {
       "EVAL_GUID": "6c590a95af27068ff7cec5f327044ce9",
       "EVAL_STATUS": "PASSED",
       "EVAL_TYPE": "EvalBySQL",
-      "IMAGE_CREATED_TIME": 1587165223000,
+      "IMAGE_CREATED_TIME": "2020-04-17T23:13:43+0000",
       "IMAGE_DIGEST": "sha256:412e1e517c9a6bc2dbcd7bcaaaf5bc09d139ab6b1d0d841c23515a1add1a6eb5",
       "IMAGE_ID": "sha256:b24f6152db4a18a12a3ba60d298bb3ef5004e8e2c573b91327bf2c7ddc0f4b12",
       "IMAGE_NAMESPACE": null,
@@ -538,7 +538,7 @@ func vulContainerAssessmentsResponse(t int64) string {
       "IMAGE_REPO": "techallylw/lacework-cli",
       "IMAGE_SCAN_ERROR_MSG": "Image Distro is not supported.",
       "IMAGE_SCAN_STATUS": "Unsupported",
-      "IMAGE_SCAN_TIME": 1587165247448,
+      "IMAGE_SCAN_TIME": "2020-04-17T23:14:07+0000",
       "IMAGE_SIZE": "7341696",
       "IMAGE_TAGS": [
         "latest"
