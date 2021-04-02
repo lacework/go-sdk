@@ -69,7 +69,7 @@ Start and End times are required to run a query:
 
 1.  Start and End times must be specified in one of the following formats:
 
-	A. ISO 8601 Date and Time
+	A. RFC3339 Date and Time
 	B. Epoch time in milliseconds
 
 2. Start and End times must be specified in one of the following ways:

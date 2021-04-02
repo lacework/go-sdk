@@ -50,21 +50,36 @@ var (
 		`"message": "{\"error\":\"Error: Unable to locate lql query NoSuchQuery, please double check the query exists and has not already been updated.\"}"`,
 		"false",
 	)
-	lqlLQLParseTimeTests []LQLParseTimeTest = []LQLParseTimeTest{
-		LQLParseTimeTest{
-			Name:      "valid-rfc",
-			Input:     "2021-03-31T00:00:00Z",
-			ReturnErr: nil,
+	lqlTranslateTimeTests []LQLTranslateTimeTest = []LQLTranslateTimeTest{
+		LQLTranslateTimeTest{
+			Name:       "valid-rfc-utc",
+			Input:      "2021-03-31T00:00:00Z",
+			ReturnTime: "2021-03-31T00:00:00Z",
+			ReturnErr:  nil,
 		},
-		LQLParseTimeTest{
-			Name:      "valid-milli",
-			Input:     "1617230464000",
-			ReturnErr: nil,
+		LQLTranslateTimeTest{
+			Name:       "valid-rfc-central",
+			Input:      "2021-03-31T00:00:00-05:00",
+			ReturnTime: "2021-03-31T05:00:00Z",
+			ReturnErr:  nil,
 		},
-		LQLParseTimeTest{
-			Name:      "invalid",
-			Input:     "",
-			ReturnErr: "unable to parse time ()",
+		LQLTranslateTimeTest{
+			Name:       "valid-milli",
+			Input:      "1617230464000",
+			ReturnTime: "2021-03-31T22:41:04Z",
+			ReturnErr:  nil,
+		},
+		LQLTranslateTimeTest{
+			Name:       "empty",
+			Input:      "",
+			ReturnTime: "",
+			ReturnErr:  nil,
+		},
+		LQLTranslateTimeTest{
+			Name:       "invalid",
+			Input:      "jweaver",
+			ReturnTime: "",
+			ReturnErr:  "unable to parse time (jweaver)",
 		},
 	}
 	lqlValidateRangeTests []LQLValidateRangeTest = []LQLValidateRangeTest{
@@ -73,6 +88,7 @@ var (
 			Input: api.LQLQuery{
 				StartTimeRange: "0",
 				EndTimeRange:   "1",
+				QueryBlob:      lqlQueryStr,
 			},
 			AllowEmpty: false,
 			Return:     nil,
@@ -82,6 +98,7 @@ var (
 			Input: api.LQLQuery{
 				StartTimeRange: "",
 				EndTimeRange:   "1",
+				QueryBlob:      lqlQueryStr,
 			},
 			AllowEmpty: true,
 			Return:     nil,
@@ -91,6 +108,7 @@ var (
 			Input: api.LQLQuery{
 				StartTimeRange: "",
 				EndTimeRange:   "1",
+				QueryBlob:      lqlQueryStr,
 			},
 			AllowEmpty: false,
 			Return:     "start time must not be empty",
@@ -100,6 +118,7 @@ var (
 			Input: api.LQLQuery{
 				StartTimeRange: "0",
 				EndTimeRange:   "",
+				QueryBlob:      lqlQueryStr,
 			},
 			AllowEmpty: true,
 			Return:     nil,
@@ -109,6 +128,7 @@ var (
 			Input: api.LQLQuery{
 				StartTimeRange: "0",
 				EndTimeRange:   "",
+				QueryBlob:      lqlQueryStr,
 			},
 			AllowEmpty: false,
 			Return:     "end time must not be empty",
@@ -118,8 +138,29 @@ var (
 			Input: api.LQLQuery{
 				StartTimeRange: "",
 				EndTimeRange:   "",
+				QueryBlob:      lqlQueryStr,
 			},
 			AllowEmpty: true,
+			Return:     nil,
+		},
+		LQLValidateRangeTest{
+			Name: "start-after-end",
+			Input: api.LQLQuery{
+				StartTimeRange: "1717333947000",
+				EndTimeRange:   "1617333947000",
+				QueryBlob:      lqlQueryStr,
+			},
+			AllowEmpty: false,
+			Return:     "date range should have a start time before the end time",
+		},
+		LQLValidateRangeTest{
+			Name: "start-equal-end",
+			Input: api.LQLQuery{
+				StartTimeRange: "1617333947000",
+				EndTimeRange:   "1617333947000",
+				QueryBlob:      lqlQueryStr,
+			},
+			AllowEmpty: false,
 			Return:     nil,
 		},
 	}
@@ -168,8 +209,8 @@ var (
 			},
 			Return: nil,
 			Expected: &api.LQLQuery{
-				StartTimeRange: "678910",
-				EndTimeRange:   "111213141516",
+				StartTimeRange: "1970-01-01T00:11:18Z",
+				EndTimeRange:   "1973-07-11T04:32:21Z",
 				QueryText:      "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
 				QueryBlob: `{
 	"START_TIME_RANGE": "678910",
@@ -189,8 +230,8 @@ var (
 			},
 			Return: nil,
 			Expected: &api.LQLQuery{
-				StartTimeRange: "678910",
-				EndTimeRange:   "111213141516",
+				StartTimeRange: "1970-01-01T00:11:18Z",
+				EndTimeRange:   "1973-07-11T04:32:21Z",
 				QueryText:      "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
 				QueryBlob: `{
 	"start_time_range": "678910",
@@ -213,8 +254,8 @@ var (
 		LQLQueryTest{
 			Name: "overwrite-blob",
 			Input: &api.LQLQuery{
-				StartTimeRange: "should not overwrite",
-				EndTimeRange:   "should not overwrite",
+				StartTimeRange: "0",
+				EndTimeRange:   "1",
 				QueryText:      "should not overwrite",
 				QueryBlob: `{
 	"START_TIME_RANGE": "678910",
@@ -224,8 +265,8 @@ var (
 			},
 			Return: nil,
 			Expected: &api.LQLQuery{
-				StartTimeRange: "should not overwrite",
-				EndTimeRange:   "should not overwrite",
+				StartTimeRange: "1970-01-01T00:00:00Z",
+				EndTimeRange:   "1970-01-01T00:00:00Z",
 				QueryText:      "should not overwrite",
 				QueryBlob: `{
 	"START_TIME_RANGE": "678910",
@@ -237,10 +278,11 @@ var (
 	}
 )
 
-type LQLParseTimeTest struct {
-	Name      string
-	Input     string
-	ReturnErr interface{}
+type LQLTranslateTimeTest struct {
+	Name       string
+	Input      string
+	ReturnTime string
+	ReturnErr  interface{}
 }
 
 type LQLValidateRangeTest struct {
@@ -263,14 +305,15 @@ type LQLQueryTest struct {
 	Expected *api.LQLQuery
 }
 
-func TestParseTime(t *testing.T) {
-	for _, lqlLQLParseTimeTest := range lqlLQLParseTimeTests {
-		t.Run(lqlLQLParseTimeTest.Name, func(t *testing.T) {
-			_, err := api.LQLQuery{}.ParseTime(lqlLQLParseTimeTest.Input)
+func TestTranslateTime(t *testing.T) {
+	for _, lqlTranslateTimeTest := range lqlTranslateTimeTests {
+		t.Run(lqlTranslateTimeTest.Name, func(t *testing.T) {
+			outTime, err := api.LQLQuery{}.TranslateTime(lqlTranslateTimeTest.Input)
 			if err == nil {
-				assert.Equal(t, lqlLQLParseTimeTest.ReturnErr, err)
+				assert.Equal(t, lqlTranslateTimeTest.ReturnTime, outTime)
+				assert.Equal(t, lqlTranslateTimeTest.ReturnErr, err)
 			} else {
-				assert.Equal(t, lqlLQLParseTimeTest.ReturnErr, err.Error())
+				assert.Equal(t, lqlTranslateTimeTest.ReturnErr, err.Error())
 			}
 		})
 	}
@@ -279,7 +322,9 @@ func TestParseTime(t *testing.T) {
 func TestValidateRange(t *testing.T) {
 	for _, lqlValidateRangeTest := range lqlValidateRangeTests {
 		t.Run(lqlValidateRangeTest.Name, func(t *testing.T) {
-			err := lqlValidateRangeTest.Input.ValidateRange(lqlValidateRangeTest.AllowEmpty)
+			err := lqlValidateRangeTest.Input.Translate()
+			assert.Nil(t, err)
+			err = lqlValidateRangeTest.Input.ValidateRange(lqlValidateRangeTest.AllowEmpty)
 			if err == nil {
 				assert.Equal(t, lqlValidateRangeTest.Return, err)
 			} else {
@@ -292,7 +337,9 @@ func TestValidateRange(t *testing.T) {
 func TestValidate(t *testing.T) {
 	for _, lqlValidateTest := range lqlValidateTests {
 		t.Run(lqlValidateTest.Name, func(t *testing.T) {
-			err := lqlValidateTest.Input.ValidateRange(true)
+			err := lqlValidateTest.Input.Translate()
+			assert.Nil(t, err)
+			err = lqlValidateTest.Input.ValidateRange(true)
 			if err == nil {
 				assert.Equal(t, lqlValidateTest.Return, err)
 			} else {
