@@ -25,12 +25,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	lqlUpdateDebugMsg   string = "updating LQL query"
-	lqlUpdateSuccessMsg string = "LQL query (%s) updated successfully.\n"
-	lqlUpdateUnableMsg  string = "unable to update LQL query"
-)
-
 var (
 	// lqlUpdateCmd represents the lql update command
 	lqlUpdateCmd = &cobra.Command{
@@ -50,12 +44,14 @@ func init() {
 }
 
 func updateQuery(cmd *cobra.Command, args []string) error {
+	lqlUpdateUnableMsg := "unable to update LQL query"
+
 	query, err := inputQuery(cmd, args)
 	if err != nil {
 		return errors.Wrap(err, lqlUpdateUnableMsg)
 	}
 
-	cli.Log.Debugw(lqlUpdateDebugMsg, "query", query)
+	cli.Log.Debugw("updating LQL query", "query", query)
 	update, err := cli.LwApi.LQL.UpdateQuery(query)
 
 	if err != nil {
@@ -65,6 +61,6 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 		return cli.OutputJSON(update.Message)
 	}
 	cli.OutputHuman(
-		fmt.Sprintf(lqlUpdateSuccessMsg, update.Message.ID))
+		fmt.Sprintf("LQL query (%s) updated successfully.\n", update.Message.ID))
 	return nil
 }

@@ -73,7 +73,7 @@ func TestDeleteBadInput(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = c.LQL.DeleteQuery("")
-	assert.Equal(t, api.LQLDeleteBadInputMsg, err.Error())
+	assert.NotNil(t, err)
 }
 
 func TestDeleteOK(t *testing.T) {

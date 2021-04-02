@@ -25,12 +25,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	lqlCreateDebugMsg   string = "creating LQL query"
-	lqlCreateSuccessMsg string = "LQL query (%s) created successfully.\n"
-	lqlCreateUnableMsg  string = "unable to create LQL query"
-)
-
 var (
 	// lqlCreateCmd represents the lql create command
 	lqlCreateCmd = &cobra.Command{
@@ -50,12 +44,14 @@ func init() {
 }
 
 func createQuery(cmd *cobra.Command, args []string) error {
+	lqlCreateUnableMsg := "unable to create LQL query"
+
 	query, err := inputQuery(cmd, args)
 	if err != nil {
 		return errors.Wrap(err, lqlCreateUnableMsg)
 	}
 
-	cli.Log.Debugw(lqlCreateDebugMsg, "query", query)
+	cli.Log.Debugw("creating LQL query", "query", query)
 	create, err := cli.LwApi.LQL.CreateQuery(query)
 
 	if err != nil {
@@ -68,6 +64,6 @@ func createQuery(cmd *cobra.Command, args []string) error {
 	if len(create.Data) > 0 {
 		queryID = create.Data[0].ID
 	}
-	cli.OutputHuman(fmt.Sprintf(lqlCreateSuccessMsg, queryID))
+	cli.OutputHuman(fmt.Sprintf("LQL query (%s) created successfully.\n", queryID))
 	return nil
 }

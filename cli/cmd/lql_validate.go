@@ -24,9 +24,7 @@ import (
 )
 
 const (
-	lqlValidateDebugMsg   string = "validating LQL query"
-	lqlValidateSuccessMsg string = "LQL query validated successfully.\n"
-	lqlValidateUnableMsg  string = "unable to validate LQL query"
+	lqlValidateUnableMsg string = "unable to validate LQL query"
 )
 
 var (
@@ -55,7 +53,7 @@ func validateQuery(cmd *cobra.Command, args []string) error {
 }
 
 func compileQueryAndOutput(query string) error {
-	cli.Log.Debugw(lqlValidateDebugMsg, "query", query)
+	cli.Log.Debugw("validating LQL query", "query", query)
 
 	compile, err := cli.LwApi.LQL.CompileQuery(query)
 
@@ -65,6 +63,6 @@ func compileQueryAndOutput(query string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(compile.Data)
 	}
-	cli.OutputHuman(lqlValidateSuccessMsg)
+	cli.OutputHuman("LQL query validated successfully.\n")
 	return nil
 }

@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	LQLDeleteBadInputMsg string = "Please specify a valid query ID."
+	lqlDeleteBadInputMsg string = "Please specify a valid query ID."
 )
 
 type LQLDeleteResponse struct {
@@ -42,10 +42,10 @@ func (svc *LQLService) DeleteQuery(queryID string) (
 	err error,
 ) {
 	if queryID == "" {
-		err = errors.New(LQLDeleteBadInputMsg)
+		err = errors.New(lqlDeleteBadInputMsg)
 		return
 	}
-	var uri string = ApiLQL + "?LQL_ID=" + url.QueryEscape(queryID)
+	uri := ApiLQL + "?LQL_ID=" + url.QueryEscape(queryID)
 
 	err = svc.client.RequestDecoder("DELETE", uri, nil, &response)
 	return

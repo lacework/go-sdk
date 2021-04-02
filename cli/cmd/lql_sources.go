@@ -23,11 +23,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	lqlSourcesDebugMsg  string = "retrieving LQL data sources"
-	lqlSourcesUnableMsg string = "unable to retrieve LQL data sources"
-)
-
 var (
 	// lqlSourcesCmd represents the lql data sources command
 	lqlSourcesCmd = &cobra.Command{
@@ -54,8 +49,9 @@ func dataSourcesToTable(dataSources []string) (out [][]string) {
 }
 
 func getQuerySources(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw(lqlSourcesDebugMsg)
+	cli.Log.Debugw("retrieving LQL data sources")
 
+	lqlSourcesUnableMsg := "unable to retrieve LQL data sources"
 	dataSources, err := cli.LwApi.LQL.DataSources()
 
 	if err != nil {

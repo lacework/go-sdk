@@ -27,12 +27,6 @@ import (
 	"github.com/lacework/go-sdk/api"
 )
 
-const (
-	lqlDescribeBadInputMsg string = "Please specify a valid data source"
-	lqlDescribeDebugMsg    string = "describing LQL data source"
-	lqlDescribeUnableMsg   string = "unable to describe LQL data source"
-)
-
 var (
 	// lqlDescribeCmd represents the lql describe command
 	lqlDescribeCmd = &cobra.Command{
@@ -76,18 +70,19 @@ func describeToTable(describeData []api.LQLDescribeData) (out [][]string) {
 }
 
 func describeQuerySource(_ *cobra.Command, args []string) error {
+	lqlDescribeUnableMsg := "unable to describe LQL data source"
 	var dataSource string
 
 	if len(args) != 0 && args[0] != "" {
 		dataSource = args[0]
 	} else {
 		return errors.Wrap(
-			errors.New(lqlDescribeBadInputMsg),
+			errors.New("Please specify a valid data source"),
 			lqlDescribeUnableMsg,
 		)
 	}
 
-	cli.Log.Debugw(lqlDescribeDebugMsg, "data source", dataSource)
+	cli.Log.Debugw("describing LQL data source", "data source", dataSource)
 
 	describe, err := cli.LwApi.LQL.Describe(dataSource)
 

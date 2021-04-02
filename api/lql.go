@@ -20,7 +20,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -60,35 +59,35 @@ func (q *LQLQuery) Validate(allowEmptyTimes bool) error {
 	return nil
 }
 
-func (q *LQLQuery) Translate() (err error) {
+func (q *LQLQuery) Translate() error {
 	// query
-	if err = q.TranslateQuery(); err != nil {
-		return
+	if err := q.TranslateQuery(); err != nil {
+		return err
 	}
 	// start
-	var start string
-	if start, err = q.TranslateTime(q.StartTimeRange); err != nil {
-		return
+	if start, err := q.TranslateTime(q.StartTimeRange); err != nil {
+		return err
+	} else {
+		q.StartTimeRange = start
 	}
-	q.StartTimeRange = start
 	// end
-	var end string
-	if end, err = q.TranslateTime(q.EndTimeRange); err != nil {
-		return
+	if end, err := q.TranslateTime(q.EndTimeRange); err != nil {
+		return nil
+	} else {
+		q.EndTimeRange = end
 	}
-	q.EndTimeRange = end
-	return
+	return nil
 }
 
-func (q *LQLQuery) TranslateQuery() (err error) {
+func (q *LQLQuery) TranslateQuery() error {
 	// empty
 	if q.QueryText != "" {
-		return
+		return nil
 	}
 	// json
 	var t LQLQuery
 
-	if err = json.Unmarshal([]byte(q.QueryBlob), &t); err == nil {
+	if err := json.Unmarshal([]byte(q.QueryBlob), &t); err == nil {
 		if q.StartTimeRange == "" {
 			q.StartTimeRange = t.StartTimeRange
 		}
@@ -96,7 +95,7 @@ func (q *LQLQuery) TranslateQuery() (err error) {
 			q.EndTimeRange = t.EndTimeRange
 		}
 		q.QueryText = t.QueryText
-		return
+		return err
 	}
 	// lql
 	if matched, _ := regexp.MatchString(reLQL, q.QueryBlob); matched {
@@ -130,7 +129,7 @@ func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {
 	var start time.Time
 	if q.StartTimeRange != "" {
 		if start, err = time.Parse(time.RFC3339, q.StartTimeRange); err != nil {
-			return
+			return err
 		}
 	} else if allowEmptyTimes {
 		start = time.Unix(0, 0)
@@ -141,7 +140,7 @@ func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {
 	var end time.Time
 	if q.EndTimeRange != "" {
 		if end, err = time.Parse(time.RFC3339, q.EndTimeRange); err != nil {
-			return
+			return err
 		}
 	} else if allowEmptyTimes {
 		end = time.Now()
@@ -149,12 +148,10 @@ func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {
 		return errors.New("end time must not be empty")
 	}
 	// validate range
-	fmt.Println(start)
-	fmt.Println(end)
 	if start.After(end) {
 		return errors.New("date range should have a start time before the end time")
 	}
-	return
+	return nil
 }
 
 type LQLQueryResponse struct {

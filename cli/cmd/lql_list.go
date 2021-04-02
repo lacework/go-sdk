@@ -25,12 +25,6 @@ import (
 	"github.com/lacework/go-sdk/api"
 )
 
-const (
-	lqlListDebugMsg    string = "retrieving LQL queries"
-	lqlListNotFoundMsg string = "There were no queries found."
-	lqlListUnableMsg   string = "unable to retrieve LQL queries"
-)
-
 var (
 	// lqlListCmd represents the lql list command
 	lqlListCmd = &cobra.Command{
@@ -56,18 +50,18 @@ func queryIDTable(queryData []api.LQLQuery) (out [][]string) {
 }
 
 func listQueries(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw(lqlListDebugMsg)
+	cli.Log.Debugw("retrieving LQL queries")
 
 	queryResponse, err := cli.LwApi.LQL.GetQueries()
 
 	if err != nil {
-		return errors.Wrap(err, lqlListUnableMsg)
+		return errors.Wrap(err, "unable to retrieve LQL queries")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)
 	}
 	if len(queryResponse.Data) == 0 {
-		cli.OutputHuman(lqlListNotFoundMsg)
+		cli.OutputHuman("There were no queries found.")
 		return nil
 	}
 	cli.OutputHuman(

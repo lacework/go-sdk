@@ -23,12 +23,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	lqlShowDebugMsg    string = "retrieving LQL query"
-	lqlShowNotFoundMsg string = "There were no queries found."
-	lqlShowUnableMsg   string = "unable to retrieve LQL query"
-)
-
 var (
 	// lqlShowCmd represents the lql show command
 	lqlShowCmd = &cobra.Command{
@@ -45,12 +39,13 @@ func init() {
 }
 
 func showQuery(_ *cobra.Command, args []string) error {
+	lqlShowUnableMsg := "unable to retrieve LQL query"
 	var queryID string
 
 	if len(args) != 0 && args[0] != "" {
 		queryID = args[0]
 	}
-	cli.Log.Debugw(lqlShowDebugMsg, "queryID", queryID)
+	cli.Log.Debugw("retrieving LQL query", "queryID", queryID)
 
 	queryResponse, err := cli.LwApi.LQL.GetQueryByID(queryID)
 
