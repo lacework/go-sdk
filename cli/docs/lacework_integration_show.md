@@ -2,10 +2,6 @@
 
 Show details about a specific external integration
 
-### Synopsis
-
-Show details about a specific external integration
-
 ```
 lacework integration show <int_guid> [flags]
 ```
