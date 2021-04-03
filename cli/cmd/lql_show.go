@@ -39,12 +39,18 @@ func init() {
 }
 
 func showQuery(_ *cobra.Command, args []string) error {
-	lqlShowUnableMsg := "unable to retrieve LQL query"
+	lqlShowUnableMsg := "unable to show LQL query"
 	var queryID string
 
 	if len(args) != 0 && args[0] != "" {
 		queryID = args[0]
+	} else {
+		return errors.Wrap(
+			errors.New("Please specify a valid query ID."),
+			lqlShowUnableMsg,
+		)
 	}
+
 	cli.Log.Debugw("retrieving LQL query", "queryID", queryID)
 
 	queryResponse, err := cli.LwApi.LQL.GetQueryByID(queryID)

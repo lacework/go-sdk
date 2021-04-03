@@ -28,9 +28,10 @@ import (
 )
 
 const (
-	lqlQueryID   string = "MyLQL"
-	lqlQueryText string = "MyLQL(CloudTrailRawEvents e) {SELECT INSERT_ID LIMIT 1}"
-	lqlQueryURL  string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/my.lql"
+	lqlQueryID     string = "MyLQL"
+	lqlQueryText   string = "MyLQL(CloudTrailRawEvents e) {SELECT INSERT_ID LIMIT 1}"
+	lqlQueryUpdate string = "MyLQL(CloudTrailRawEvents e) {SELECT INSERT_ID, INSERT_TIME LIMIT 1}"
+	lqlQueryURL    string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/my.lql"
 )
 
 var (
@@ -40,7 +41,7 @@ var (
 )
 
 func TestQueryAliases(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 	// lacework query
@@ -57,7 +58,7 @@ func TestQueryAliases(t *testing.T) {
 }
 
 func TestQueryBase(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 	out, err, exitcode := LaceworkCLI("query")
@@ -75,14 +76,13 @@ func TestQueryBase(t *testing.T) {
 }
 
 func TestQueryRunHelp(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 	out, err, exitcode := LaceworkCLI("help", "query", "run")
 	assert.Contains(t, out.String(), "lacework query run [query_id] [flags]")
 	assert.Contains(t, out.String(), "--end string")
 	assert.Contains(t, out.String(), "-f, --file string")
-	assert.Contains(t, out.String(), "-r, --repo")
 	assert.Contains(t, out.String(), "--start string")
 	assert.Contains(t, out.String(), "-u, --url string")
 	assert.Contains(t, out.String(), "--validate_only")
@@ -91,18 +91,27 @@ func TestQueryRunHelp(t *testing.T) {
 }
 
 func TestQueryRunEditor(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
+
+	// run
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "run")
 	assert.Contains(t, out.String(), "Type a query to run")
+	assert.Contains(t, out.String(), "[Enter to launch editor]")
+	assert.Contains(t, err.String(), "ERROR unable to run LQL query: EOF")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+
+	// validate_only
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "run", "--validate_only")
+	assert.Contains(t, out.String(), "Type a query to validate")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
 	assert.Contains(t, err.String(), "ERROR unable to run LQL query: EOF")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestQueryRunID(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 	// setup
@@ -111,15 +120,22 @@ func TestQueryRunID(t *testing.T) {
 	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
 
 	// run
-	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", lqlQueryID, "--start", lqlQueryStart, "--end", lqlQueryEnd)
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
-	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// validate_only
+	out, err, exitcode = LaceworkCLIWithTOMLConfig(
+		"query", "run", lqlQueryID, "--start", lqlQueryStart, "--end", lqlQueryEnd, "--validate_only")
+	assert.Contains(t, out.String(), "LQL query validated successfully.")
+	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestQueryRunFile(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 	// get temp file
@@ -142,28 +158,30 @@ func TestQueryRunFile(t *testing.T) {
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
 
-func TestQueryRunURL(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
-		t.Skip("skipping test in production mode")
-	}
-	// run
-	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
-		"query", "run", "-u", lqlQueryURL, "--start", lqlQueryStart, "--end", lqlQueryEnd)
-	assert.Contains(t, out.String(), `"INSERT_ID"`)
+	// validate_only
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig(
+		"query", "run", "-f", file.Name(), "--start", lqlQueryStart, "--end", lqlQueryEnd, "--validate_only")
+	assert.Contains(t, out.String(), "LQL query validated successfully.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestQueryRunValidateOnly(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+func TestQueryRunURL(t *testing.T) {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 	// run
-	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
-		"query", "run", "-u", lqlQueryURL, "--validate_only")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"query", "run", "-u", lqlQueryURL, "--start", lqlQueryStart, "--end", lqlQueryEnd)
+	assert.Contains(t, out.String(), `"INSERT_ID"`)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// validate_only
+	out, err, exitcode = LaceworkCLIWithTOMLConfig(
+		"query", "run", "-u", lqlQueryURL, "--start", lqlQueryStart, "--end", lqlQueryEnd, "--validate_only")
 	assert.Contains(t, out.String(), "LQL query validated successfully.")
-	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

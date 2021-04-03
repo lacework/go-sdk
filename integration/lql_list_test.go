@@ -26,7 +26,7 @@ import (
 )
 
 func TestQueryListHelp(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 	out, err, exitcode := LaceworkCLI("help", "query", "list")
@@ -36,7 +36,7 @@ func TestQueryListHelp(t *testing.T) {
 }
 
 func TestQueryList(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 

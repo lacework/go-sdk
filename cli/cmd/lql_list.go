@@ -50,12 +50,12 @@ func queryIDTable(queryData []api.LQLQuery) (out [][]string) {
 }
 
 func listQueries(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("retrieving LQL queries")
+	cli.Log.Debugw("listing LQL queries")
 
 	queryResponse, err := cli.LwApi.LQL.GetQueries()
 
 	if err != nil {
-		return errors.Wrap(err, "unable to retrieve LQL queries")
+		return errors.Wrap(err, "unable to list LQL queries")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)

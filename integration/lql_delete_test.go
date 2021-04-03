@@ -25,47 +25,40 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQueryDescribeHelp(t *testing.T) {
+func TestQueryDeleteHelp(t *testing.T) {
 	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
-
-	out, err, exitcode := LaceworkCLI("help", "query", "describe")
-	assert.Contains(t, out.String(), "lacework query describe <data_source> [flags]")
+	out, err, exitcode := LaceworkCLI("help", "query", "delete")
+	assert.Contains(t, out.String(), "lacework query delete <query_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestQueryDescribeNoInput(t *testing.T) {
+func TestQueryDeleteNoInput(t *testing.T) {
 	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "delete")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
-	assert.Contains(t, err.String(), "ERROR unable to describe LQL data source: Please specify a valid data source.")
+	assert.Contains(t, err.String(), "ERROR unable to delete LQL query: Please specify a valid query ID.")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestQueryDescribeTable(t *testing.T) {
+func TestQueryDelete(t *testing.T) {
 	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents")
-	assert.Contains(t, out.String(), "FIELD NAME")
-	assert.Contains(t, out.String(), "INSERT_ID")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
+	// setup
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
 
-func TestQueryDescribeJSON(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
+	// table delete tested by virtue of TestQueryCreateFile
 
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents", "--json")
-	assert.Contains(t, out.String(), `"INSERT_ID"`)
+	// json
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID, "--json")
+	assert.Contains(t, out.String(), `"`+lqlQueryID+`"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

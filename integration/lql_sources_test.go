@@ -26,7 +26,7 @@ import (
 )
 
 func TestQuerySourcesAliases(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 	// lacework query sources
@@ -43,7 +43,7 @@ func TestQuerySourcesAliases(t *testing.T) {
 }
 
 func TestQuerySourcesTable(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources")
@@ -54,7 +54,7 @@ func TestQuerySourcesTable(t *testing.T) {
 }
 
 func TestQuerySourcesJSON(t *testing.T) {
-	if env := os.Getenv("CI_BETA"); env == "" {
+	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources", "--json")

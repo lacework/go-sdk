@@ -77,7 +77,7 @@ func describeQuerySource(_ *cobra.Command, args []string) error {
 		dataSource = args[0]
 	} else {
 		return errors.Wrap(
-			errors.New("Please specify a valid data source"),
+			errors.New("Please specify a valid data source."),
 			lqlDescribeUnableMsg,
 		)
 	}

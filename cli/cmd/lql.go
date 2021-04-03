@@ -43,6 +43,7 @@ var (
 
 	// lqlCmd represents the lql parent command
 	lqlCmd = &cobra.Command{
+		Hidden:  true,
 		Aliases: []string{"lql"},
 		Use:     "query",
 		Short:   "run and manage LQL queries",
@@ -127,12 +128,12 @@ func setQueryFlags(cmds ...*flag.FlagSet) {
 				"file", "f", "",
 				"path to an LQL query to run",
 			)
-			// repo flag to specify a query from repo
+			/* repo flag to specify a query from repo
 			cmd.BoolVarP(
 				&lqlCmdState.Repo,
 				"repo", "r", false,
 				"id of an LQL query to run via active repo",
-			)
+			)*/
 			// url flag to specify a query from url
 			cmd.StringVarP(
 				&lqlCmdState.URL,
