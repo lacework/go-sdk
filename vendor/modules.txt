@@ -47,7 +47,7 @@ github.com/hinshun/vt10x
 # github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 ## explicit
 github.com/hokaccha/go-prettyjson
-# github.com/honeycombio/libhoney-go v1.15.0
+# github.com/honeycombio/libhoney-go v1.15.2
 ## explicit
 github.com/honeycombio/libhoney-go
 github.com/honeycombio/libhoney-go/transmission
@@ -55,7 +55,7 @@ github.com/honeycombio/libhoney-go/transmission
 github.com/inconshreveable/mousetrap
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 github.com/kballard/go-shellquote
-# github.com/klauspost/compress v1.11.2
+# github.com/klauspost/compress v1.11.4
 github.com/klauspost/compress/fse
 github.com/klauspost/compress/huff0
 github.com/klauspost/compress/snappy
