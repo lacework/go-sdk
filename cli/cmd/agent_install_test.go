@@ -21,30 +21,11 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestLatestAgentInstallDownloadUrl(t *testing.T) {
-	downloadUrl, err := latestAgentInstallDownloadUrl()
-	if assert.Nil(t, err) {
-		assert.Contains(t, downloadUrl, "https://s3-us-west-2.amazonaws.com/www.lacework.net/download")
-		assert.Contains(t, downloadUrl, "install.sh")
-	}
-}
-
-func TestLatestAgentVersionSHA(t *testing.T) {
-	sha, err := latestAgentVersionSHA()
-	if assert.Nil(t, err) {
-		// Example: 3.3.5_2020-11-16_master_ac0e65055f11f4f59bab6ea4dfa61dcafaa9a3f1
-		assert.Regexpf(t,
-			regexp.MustCompile("[0-9]*\\.[0-9]*\\.[0-9]*_[0-9]*-[0-9]*-[0-9]*_\\w*_*"), sha,
-			"agent version SHA doesn't match regex AGENT_VERSION_YYYY-MM-DD_BRANCHNAME_GITHASH")
-	}
-}
 
 func TestFormatRunnerError(t *testing.T) {
 	cases := []struct {
