@@ -33,7 +33,7 @@ const (
 	defaultSampleRate = 1
 	defaultAPIHost    = "https://api.honeycomb.io/"
 	defaultDataset    = "libhoney-go dataset"
-	version           = "1.15.0"
+	version           = "1.15.2"
 
 	// DefaultMaxBatchSize how many events to collect in a batch
 	DefaultMaxBatchSize = 50
@@ -915,7 +915,6 @@ func (b *Builder) Clone() *Builder {
 		Dataset:    b.Dataset,
 		SampleRate: b.SampleRate,
 		APIHost:    b.APIHost,
-		dynFields:  make([]dynamicField, 0, len(b.dynFields)),
 		client:     b.client,
 	}
 	newB.data = make(map[string]interface{})
@@ -927,9 +926,8 @@ func (b *Builder) Clone() *Builder {
 	// copy dynamic metric generators
 	b.dynFieldsLock.RLock()
 	defer b.dynFieldsLock.RUnlock()
-	for _, dynFd := range b.dynFields {
-		newB.dynFields = append(newB.dynFields, dynFd)
-	}
+	newB.dynFields = make([]dynamicField, len(b.dynFields))
+	copy(newB.dynFields, b.dynFields)
 	return newB
 }
 
