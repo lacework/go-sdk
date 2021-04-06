@@ -206,6 +206,10 @@ with fixes:
 
     $ lacework vulnerability host list-cves --active --fixable`,
 		RunE: func(_ *cobra.Command, args []string) error {
+			if err := validateSeverityFlags(); err != nil {
+				return err
+			}
+
 			response, err := cli.LwApi.Vulnerabilities.Host.ListCves()
 			if err != nil {
 				return errors.Wrap(err, "unable to get CVEs from hosts")
@@ -234,7 +238,7 @@ with fixes:
 				return nil
 			}
 
-			rows := hostVulnCVEsTable(response.CVEs)
+			rows, filtered := hostVulnCVEsTable(response.CVEs)
 			// if the user wants to show only online or
 			// offline hosts, show a friendly message
 			if len(rows) == 0 {
@@ -249,6 +253,10 @@ with fixes:
 					rows,
 				),
 			)
+
+			if filtered != "" {
+				cli.OutputHuman(filtered)
+			}
 
 			if !vulCmdState.Active {
 				cli.OutputHuman(
@@ -405,6 +413,11 @@ func init() {
 		vulHostShowAssessmentCmd.Flags(),
 	)
 
+	setSeverityFlag(
+		vulHostListCvesCmd.Flags(),
+		vulHostShowAssessmentCmd.Flags(),
+	)
+
 	setFailOnSeverityFlag(
 		vulHostShowAssessmentCmd.Flags(),
 		vulHostScanPkgManifestCmd.Flags(),
@@ -556,30 +569,53 @@ func hostVulnPackagesTable(cves []api.HostVulnCVE, withHosts bool) [][]string {
 	return out
 }
 
-func hostVulnCVEsTable(cves []api.HostVulnCVE) [][]string {
-	out := [][]string{}
-	out = append(out, hostVulnCVEsTableForSeverity(cves, "Critical")...)
-	out = append(out, hostVulnCVEsTableForSeverity(cves, "High")...)
-	out = append(out, hostVulnCVEsTableForSeverity(cves, "Medium")...)
-	out = append(out, hostVulnCVEsTableForSeverity(cves, "Low")...)
-	//out = append(out, hostVulnCVEsTableForSeverity(cves, "Info")...)
-	out = append(out, hostVulnCVEsTableForSeverity(cves, "Negligible")...)
-	return out
+func hostVulnCVEsTable(cves []api.HostVulnCVE) ([][]string, string) {
+	var out [][]string
+	var filteredCves = 0
+	var totalCves = 0
+
+	for _, severity := range api.ValidEventSeverities {
+		_, sev := severityToProperTypes(severity)
+		output, filtered, total := hostVulnCVEsTableForSeverity(cves, sev)
+		filteredCves += filtered
+		totalCves += total
+		out = append(out, output...)
+	}
+
+	if filteredCves > 0 {
+		return out, fmt.Sprintf("\n %v of %v cve(s) showing \n", filteredCves, totalCves)
+	}
+
+	return out, ""
 }
 
-func hostVulnCVEsTableForSeverity(cves []api.HostVulnCVE, severity string) [][]string {
+func hostVulnCVEsTableForSeverity(cves []api.HostVulnCVE, severity string) ([][]string, int ,int) {
 	out := [][]string{}
+	var filtered = 0
+	var total = 0
+
 	for _, cve := range cves {
 		for _, pkg := range cve.Packages {
-			// if the user wants to show only vulnerabilities of acive packages
-			if vulCmdState.Active && pkg.PackageStatus == "" {
-				continue
-			}
-			if vulCmdState.Fixable && pkg.FixedVersion == "" {
-				continue
-			}
-
 			if pkg.Severity == severity {
+				total++
+
+				// if the user wants to show only vulnerabilities of active packages
+				if vulCmdState.Active && pkg.PackageStatus == "" {
+					filtered++
+					continue
+				}
+				if vulCmdState.Fixable && pkg.FixedVersion == "" {
+					filtered++
+					continue
+				}
+
+				if vulCmdState.Severity != "" {
+					if filterSeverity(severity, vulCmdState.Severity) {
+						filtered++
+						continue
+					}
+				}
+
 				out = append(out, []string{
 					cve.ID,
 					pkg.Severity,
@@ -601,7 +637,7 @@ func hostVulnCVEsTableForSeverity(cves []api.HostVulnCVE, severity string) [][]s
 		return stringToInt(out[i][7]) > stringToInt(out[j][7])
 	})
 
-	return out
+	return out, total-filtered, total
 }
 
 func hostVulnHostDetailsToTable(assessment api.HostVulnHostAssessment) string {
