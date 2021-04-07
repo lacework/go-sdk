@@ -19,9 +19,10 @@
 package cmd
 
 import (
+	"testing"
+
 	"github.com/lacework/go-sdk/api"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestListCvesFilterSeverity(t *testing.T) {
@@ -30,6 +31,17 @@ func TestListCvesFilterSeverity(t *testing.T) {
 
 	mockCves := []api.HostVulnCVE{mockCveOne}
 	result, output := hostVulnCVEsTable(mockCves)
+
+	assert.Equal(t, len(result), 1)
+	assert.Equal(t, output, "\n 1 of 2 cve(s) showing \n")
+}
+
+func TestShowAssessmentFilterSeverity(t *testing.T) {
+	vulCmdState.Severity = "critical"
+	defer clearVulnFilters()
+
+	mockCves := []api.HostVulnCVE{mockCveOne}
+	result, output := hostVulnCVEsTableForHostView(mockCves)
 
 	assert.Equal(t, len(result), 1)
 	assert.Equal(t, output, "\n 1 of 2 cve(s) showing \n")
@@ -59,20 +71,19 @@ var mockCveOne = api.HostVulnCVE{
 }
 
 var mockPackageOne = api.HostVulnPackage{
-	Name:                "test",
-	Namespace:           "rhel:8",
-	Severity:            "High",
-	Status:              "Active",
-	HostCount:           "1",
-	FixAvailable:        "1",
+	Name:         "test",
+	Namespace:    "rhel:8",
+	Severity:     "High",
+	Status:       "Active",
+	HostCount:    "1",
+	FixAvailable: "1",
 }
 
 var mockPackageTwo = api.HostVulnPackage{
-	Name:                "test2",
-	Namespace:           "rhel:8",
-	Severity:            "Critical",
-	Status:              "Active",
-	HostCount:           "1",
-	FixAvailable:        "1",
+	Name:         "test2",
+	Namespace:    "rhel:8",
+	Severity:     "Critical",
+	Status:       "Active",
+	HostCount:    "1",
+	FixAvailable: "1",
 }
-
