@@ -843,8 +843,6 @@ func severityToProperTypes(severity string) (int, string) {
 		return 4, "Low"
 	case "5", "info":
 		return 5, "Info"
-	case "6", "negligible":
-		return 6, "Negligible"
 	default:
 		return 0, "Unknown"
 	}
