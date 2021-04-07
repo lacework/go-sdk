@@ -26,13 +26,13 @@ import (
 
 func TestListCvesFilterSeverity(t *testing.T) {
 	vulCmdState.Severity = "critical"
+	defer clearVulnFilters()
+
 	mockCves := []api.HostVulnCVE{mockCveOne}
 	result, output := hostVulnCVEsTable(mockCves)
 
 	assert.Equal(t, len(result), 1)
 	assert.Equal(t, output, "\n 1 of 2 cve(s) showing \n")
-
-	clearVulnFilters()
 }
 
 func clearVulnFilters() {
@@ -40,7 +40,7 @@ func clearVulnFilters() {
 }
 
 var mockCveOne = api.HostVulnCVE{
-	ID:       "",
+	ID:       "TestID",
 	Packages: []api.HostVulnPackage{mockPackageOne, mockPackageTwo},
 	Summary: api.HostVulnCveSummary{
 		Severity: api.HostVulnSeverityCounts{
@@ -52,9 +52,6 @@ var mockCveOne = api.HostVulnCVE{
 				Fixable:         1,
 				Vulnerabilities: 1,
 			},
-			Medium:               nil,
-			Low:                  nil,
-			Negligible:           nil,
 		},
 		TotalVulnerabilities: 2,
 		LastEvaluationTime:   api.Json16DigitTime{},
@@ -66,16 +63,8 @@ var mockPackageOne = api.HostVulnPackage{
 	Namespace:           "rhel:8",
 	Severity:            "High",
 	Status:              "Active",
-	VulnerabilityStatus: "",
-	Version:             "",
 	HostCount:           "1",
-	PackageStatus:       "",
-	CveLink:             "",
-	CvssScore:           "",
-	CvssV2Score:         "",
-	CvssV3Score:         "",
 	FixAvailable:        "1",
-	FixedVersion:        "",
 }
 
 var mockPackageTwo = api.HostVulnPackage{
@@ -83,15 +72,7 @@ var mockPackageTwo = api.HostVulnPackage{
 	Namespace:           "rhel:8",
 	Severity:            "Critical",
 	Status:              "Active",
-	VulnerabilityStatus: "",
-	Version:             "",
 	HostCount:           "1",
-	PackageStatus:       "",
-	CveLink:             "",
-	CvssScore:           "",
-	CvssV2Score:         "",
-	CvssV3Score:         "",
 	FixAvailable:        "1",
-	FixedVersion:        "",
 }
 

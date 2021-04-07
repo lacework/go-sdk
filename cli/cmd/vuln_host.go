@@ -583,7 +583,8 @@ func hostVulnCVEsTable(cves []api.HostVulnCVE) ([][]string, string) {
 	}
 
 	if filteredCves > 0 {
-		return out, fmt.Sprintf("\n %v of %v cve(s) showing \n", filteredCves, totalCves)
+		showing :=  totalCves - filteredCves
+		return out, fmt.Sprintf("\n %v of %v cve(s) showing \n", showing, totalCves)
 	}
 
 	return out, ""
@@ -639,7 +640,7 @@ func hostVulnCVEsTableForSeverity(cves []api.HostVulnCVE, severity string) ([][]
 		return stringToInt(out[i][7]) > stringToInt(out[j][7])
 	})
 
-	return out, total-filtered, total
+	return out, filtered, total
 }
 
 func hostVulnHostDetailsToTable(assessment api.HostVulnHostAssessment) string {
