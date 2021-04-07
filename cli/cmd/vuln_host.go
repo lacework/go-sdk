@@ -544,6 +544,9 @@ func hostVulnPackagesTable(cves []api.HostVulnCVE, withHosts bool) ([][]string, 
 				fixVersion:     pkg.FixedVersion,
 				packageStatus:  pkg.PackageStatus,
 			}
+			if withHosts {
+				pack.hostCount = 1
+			}
 
 			if vulCmdState.Active && pkg.PackageStatus == "" {
 				filteredPackages = aggregatePackagesWithHosts(filteredPackages, pack, withHosts)
