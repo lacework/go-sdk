@@ -11,3 +11,6 @@ circleci-artifacts/
 
 # for building binary files
 bin/
+
+# vscode debug.test
+**/debug.test
