@@ -629,6 +629,8 @@ type packageTable struct {
 	packageName    string
 	currentVersion string
 	fixVersion     string
+	packageStatus  string
+	hostCount      int
 }
 
 func aggregatePackages(slice []packageTable, s packageTable) []packageTable {
