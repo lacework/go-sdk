@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -53,17 +54,23 @@ Then, select one GUID from an integration and visualize its details using the co
 				return errors.Wrap(err, "unable to list gcp projects")
 			}
 
+			if len(response.Data) == 0 {
+				return errors.New("no data found for the provided organization")
+			}
+
+			// ALLY-431 Workaround to split the Project ID and Project Alias
+			// ultimately, we need to fix this in the API response
+			cliCompGcpProjects := fixGcpProjectsApiResponse(response.Data[0])
+
 			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Data[0])
+				return cli.OutputJSON(cliCompGcpProjects)
 			}
 
 			rows := [][]string{}
-			for _, gcp := range response.Data {
-				for _, proj := range gcp.Projects {
-					rows = append(rows, []string{proj})
-				}
+			for _, project := range cliCompGcpProjects.Projects {
+				rows = append(rows, []string{project.ID, project.Alias})
 			}
-			cli.OutputHuman(renderSimpleTable([]string{"Projects"}, rows))
+			cli.OutputHuman(renderSimpleTable([]string{"Project ID", "Project Alias"}, rows))
 			return nil
 		},
 	}
@@ -241,4 +248,58 @@ func complianceGcpReportDetailsTable(report *api.ComplianceGcpReport) [][]string
 		[]string{"Project Name", report.ProjectName},
 		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
+}
+
+// ALLY-431 Workaround to split the Project ID and Project Alias
+// ultimately, we need to fix this in the API response
+func fixGcpProjectsApiResponse(gcpInfo api.CompGcpProjects) cliComplianceGcpInfo {
+	var (
+		orgID, orgAlias = splitIDAndAlias(gcpInfo.Organization)
+		cliGcpInfo      = cliComplianceGcpInfo{
+			Organization: cliComplianceIDAlias{orgID, orgAlias},
+			Projects:     make([]cliComplianceIDAlias, 0),
+		}
+	)
+
+	for _, project := range gcpInfo.Projects {
+		id, alias := splitIDAndAlias(project)
+		cliGcpInfo.Projects = append(cliGcpInfo.Projects, cliComplianceIDAlias{id, alias})
+	}
+
+	return cliGcpInfo
+}
+
+// @afiune we use named return in this function to be explicit about what is it
+// that the function is returning, id and alias respectively
+func splitIDAndAlias(text string) (id string, alias string) {
+	// Getting alias from text
+	aliasRegex := regexp.MustCompile(`\((.*?)\)`)
+	aliasBytes := aliasRegex.Find([]byte(text))
+	if len(aliasBytes) == 0 {
+		// if we couldn't get the alias from the provided text
+		// it means that the entire text is the id
+		id = text
+		return
+	}
+	alias = string(aliasBytes)
+	alias = strings.Trim(alias, "(")
+	alias = strings.Trim(alias, ")")
+
+	// Getting id from text
+	idRegex := regexp.MustCompile(`^(.*?)\(`)
+	idBytes := idRegex.Find([]byte(text))
+	id = string(idBytes)
+	id = strings.Trim(id, "(")
+	id = strings.TrimSpace(id)
+	return
+}
+
+type cliComplianceGcpInfo struct {
+	Organization cliComplianceIDAlias   `json:"organization"`
+	Projects     []cliComplianceIDAlias `json:"projects"`
+}
+
+type cliComplianceIDAlias struct {
+	ID    string `json:"id"`
+	Alias string `json:"alias"`
 }
