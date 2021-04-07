@@ -590,9 +590,11 @@ func hostVulnCVEsTable(cves []api.HostVulnCVE) ([][]string, string) {
 }
 
 func hostVulnCVEsTableForSeverity(cves []api.HostVulnCVE, severity string) ([][]string, int ,int) {
-	out := [][]string{}
-	var filtered = 0
-	var total = 0
+	var (
+		filtered = 0
+		total    = 0
+		out      = [][]string{}
+	)
 
 	for _, cve := range cves {
 		for _, pkg := range cve.Packages {
