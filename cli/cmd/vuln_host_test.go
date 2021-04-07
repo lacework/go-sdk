@@ -47,6 +47,18 @@ func TestShowAssessmentFilterSeverity(t *testing.T) {
 	assert.Equal(t, output, "\n 1 of 2 cve(s) showing \n")
 }
 
+func TestShowAssessmentFilterSeverityWithPackages(t *testing.T) {
+	vulCmdState.Severity = "critical"
+	vulCmdState.Packages = true
+	defer clearVulnFilters()
+
+	mockCves := []api.HostVulnCVE{mockCveOne}
+	result, output := hostVulnPackagesTable(mockCves, true)
+
+	assert.Equal(t, len(result), 1)
+	assert.Equal(t, output, "1 of 2 package(s) showing \n")
+}
+
 func clearVulnFilters() {
 	vulCmdState.Severity = ""
 }
