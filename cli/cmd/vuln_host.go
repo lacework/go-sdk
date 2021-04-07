@@ -566,18 +566,17 @@ func hostVulnPackagesTable(cves []api.HostVulnCVE, withHosts bool) ([][]string, 
 	}
 
 	for _, p := range aggregatedPackages {
-		out = append(out, []string{
+		output := []string{
 			strconv.Itoa(p.cveCount),
 			p.severity,
 			p.packageName,
 			p.currentVersion,
 			p.fixVersion,
-			p.packageStatus,
-		})
-
+			p.packageStatus}
 		if p.hostCount > 0 {
-			out = append(out, []string{strconv.Itoa(p.hostCount)})
+			output = append(output, strconv.Itoa(p.hostCount))
 		}
+		out = append(out, output)
 	}
 
 	// order by severity
