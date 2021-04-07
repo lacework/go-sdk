@@ -108,7 +108,7 @@ func TestFixGcpProjectsApiResponse(t *testing.T) {
 	for i, kase := range cases {
 		t.Run(fmt.Sprintf("test case %d", i), func(t *testing.T) {
 			assert.Equalf(t,
-				kase.expected, fixGcpProjectsApiResponse(kase.subject),
+				kase.expected, splitGcpProjectsApiResponse(kase.subject),
 				"there is a problem with this test case, please check",
 			)
 		})

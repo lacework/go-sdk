@@ -60,7 +60,7 @@ Then, select one GUID from an integration and visualize its details using the co
 
 			// ALLY-431 Workaround to split the Project ID and Project Alias
 			// ultimately, we need to fix this in the API response
-			cliCompGcpProjects := fixGcpProjectsApiResponse(response.Data[0])
+			cliCompGcpProjects := splitGcpProjectsApiResponse(response.Data[0])
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(cliCompGcpProjects)
@@ -252,7 +252,7 @@ func complianceGcpReportDetailsTable(report *api.ComplianceGcpReport) [][]string
 
 // ALLY-431 Workaround to split the Project ID and Project Alias
 // ultimately, we need to fix this in the API response
-func fixGcpProjectsApiResponse(gcpInfo api.CompGcpProjects) cliComplianceGcpInfo {
+func splitGcpProjectsApiResponse(gcpInfo api.CompGcpProjects) cliComplianceGcpInfo {
 	var (
 		orgID, orgAlias = splitIDAndAlias(gcpInfo.Organization)
 		cliGcpInfo      = cliComplianceGcpInfo{
