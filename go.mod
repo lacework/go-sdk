@@ -13,7 +13,7 @@ require (
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/honeycombio/libhoney-go v1.15.2
 	github.com/kr/pty v1.1.8 // indirect
-	github.com/kyokomi/emoji/v2 v2.2.5
+	github.com/kyokomi/emoji/v2 v2.2.8
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.0
 	github.com/olekukonko/tablewriter v0.0.5
