@@ -851,6 +851,11 @@ func buildHostVulnCVEsToTableError() string {
 	if vulCmdState.Fixable {
 		msg = fmt.Sprintf("%s fixable", msg)
 	}
+
+	if vulCmdState.Severity != "" {
+		msg = fmt.Sprintf("%s %s", msg, vulCmdState.Severity)
+	}
+
 	msg = fmt.Sprintf("%s vulnerabilities", msg)
 
 	if vulCmdState.Active {
