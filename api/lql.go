@@ -20,12 +20,15 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
+
+	"github.com/lacework/go-sdk/lwtime"
 )
 
 const (
@@ -106,22 +109,29 @@ func (q *LQLQuery) TranslateQuery() error {
 }
 
 func (q LQLQuery) TranslateTime(inTime string) (outTime string, err error) {
+	baseErr := fmt.Sprintf("unable to parse time (%s)", inTime)
 	// empty
 	if inTime == "" {
 		return
 	}
+	// parse time as relative
+	rt := lwtime.RelTime{}
+	if err = rt.Parse(inTime); err == nil {
+		if t, err := rt.Time(); err == nil {
+			return t.UTC().Format(time.RFC3339), err
+		}
+		return outTime, errors.Wrap(err, baseErr)
+	}
 	// parse time as RFC3339
 	if t, err := time.Parse(time.RFC3339, inTime); err == nil {
-		outTime = t.UTC().Format(time.RFC3339)
-		return outTime, err
+		return t.UTC().Format(time.RFC3339), err
 	}
 	// parse time as millis
 	if t, err := strconv.ParseInt(inTime, 10, 64); err == nil {
 		outTime = time.Unix(0, t*int64(time.Millisecond)).UTC().Format(time.RFC3339)
 		return outTime, err
 	}
-	err = errors.New("unable to parse time (" + inTime + ")")
-	return
+	return outTime, errors.New(baseErr)
 }
 
 func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {
