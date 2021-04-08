@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDeleteMethod(t *testing.T) {
+func TestLQLDeleteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQL,
@@ -56,7 +56,7 @@ func TestDeleteMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestDeleteBadInput(t *testing.T) {
+func TestLQLDeleteBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQL,
@@ -76,7 +76,7 @@ func TestDeleteBadInput(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestDeleteOK(t *testing.T) {
+func TestLQLDeleteOK(t *testing.T) {
 	mockResponse := mockLQLMessageResponse(
 		fmt.Sprintf(`"lqlDeleted": "%s"`, lqlQueryID),
 		"true",
@@ -107,7 +107,7 @@ func TestDeleteOK(t *testing.T) {
 	assert.Equal(t, deleteExpected, deleteActual)
 }
 
-func TestDeleteNotFound(t *testing.T) {
+func TestLQLDeleteNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQLCompile,

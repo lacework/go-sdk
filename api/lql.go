@@ -179,10 +179,7 @@ func (svc *LQLService) CreateQuery(query string) (
 	return
 }
 
-func (svc *LQLService) GetQueries() (
-	response LQLQueryResponse,
-	err error,
-) {
+func (svc *LQLService) GetQueries() (LQLQueryResponse, error) {
 	return svc.GetQueryByID("")
 }
 
