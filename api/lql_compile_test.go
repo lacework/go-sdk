@@ -79,7 +79,7 @@ var (
 	}]`
 )
 
-func TestCompileMethod(t *testing.T) {
+func TestLQLCompileMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQLCompile,
@@ -100,7 +100,7 @@ func TestCompileMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestCompileBadInput(t *testing.T) {
+func TestLQLCompileBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQLCompile,
@@ -120,7 +120,7 @@ func TestCompileBadInput(t *testing.T) {
 	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
 }
 
-func TestCompileOK(t *testing.T) {
+func TestLQLCompileOK(t *testing.T) {
 	mockResponse := mockLQLDataResponse(lqlCompileData)
 
 	fakeServer := lacework.MockServer()
@@ -147,7 +147,7 @@ func TestCompileOK(t *testing.T) {
 	assert.Equal(t, compileExpected, compileActual)
 }
 
-func TestCompileError(t *testing.T) {
+func TestLQLCompileError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQLCompile,

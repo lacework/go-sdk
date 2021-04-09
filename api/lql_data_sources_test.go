@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDataSourcesMethod(t *testing.T) {
+func TestLQLDataSourcesMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQLDataSources,
@@ -50,7 +50,7 @@ func TestDataSourcesMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestDataSourcesOK(t *testing.T) {
+func TestLQLDataSourcesOK(t *testing.T) {
 	dataSources := []string{"CloudTrailRawEvents"}
 	var dataSourcesData string
 	if dataSourcesBytes, err := json.Marshal(dataSources); err == nil {
@@ -83,7 +83,7 @@ func TestDataSourcesOK(t *testing.T) {
 	assert.Equal(t, dataSourcesExpected, dataSourcesActual)
 }
 
-func TestDataSourcesError(t *testing.T) {
+func TestLQLDataSourcesError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQLDataSources,

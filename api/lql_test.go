@@ -50,232 +50,6 @@ var (
 		`"message": "{\"error\":\"Error: Unable to locate lql query NoSuchQuery, please double check the query exists and has not already been updated.\"}"`,
 		"false",
 	)
-	lqlTranslateTimeTests []LQLTranslateTimeTest = []LQLTranslateTimeTest{
-		LQLTranslateTimeTest{
-			Name:       "valid-rfc-utc",
-			Input:      "2021-03-31T00:00:00Z",
-			ReturnTime: "2021-03-31T00:00:00Z",
-			ReturnErr:  nil,
-		},
-		LQLTranslateTimeTest{
-			Name:       "valid-rfc-central",
-			Input:      "2021-03-31T00:00:00-05:00",
-			ReturnTime: "2021-03-31T05:00:00Z",
-			ReturnErr:  nil,
-		},
-		LQLTranslateTimeTest{
-			Name:       "valid-milli",
-			Input:      "1617230464000",
-			ReturnTime: "2021-03-31T22:41:04Z",
-			ReturnErr:  nil,
-		},
-		LQLTranslateTimeTest{
-			Name:       "empty",
-			Input:      "",
-			ReturnTime: "",
-			ReturnErr:  nil,
-		},
-		LQLTranslateTimeTest{
-			Name:       "invalid",
-			Input:      "jweaver",
-			ReturnTime: "",
-			ReturnErr:  "unable to parse time (jweaver)",
-		},
-	}
-	lqlValidateRangeTests []LQLValidateRangeTest = []LQLValidateRangeTest{
-		LQLValidateRangeTest{
-			Name: "ok",
-			Input: api.LQLQuery{
-				StartTimeRange: "0",
-				EndTimeRange:   "1",
-				QueryBlob:      lqlQueryStr,
-			},
-			AllowEmpty: false,
-			Return:     nil,
-		},
-		LQLValidateRangeTest{
-			Name: "empty-start-allowed",
-			Input: api.LQLQuery{
-				StartTimeRange: "",
-				EndTimeRange:   "1",
-				QueryBlob:      lqlQueryStr,
-			},
-			AllowEmpty: true,
-			Return:     nil,
-		},
-		LQLValidateRangeTest{
-			Name: "empty-start-disallowed",
-			Input: api.LQLQuery{
-				StartTimeRange: "",
-				EndTimeRange:   "1",
-				QueryBlob:      lqlQueryStr,
-			},
-			AllowEmpty: false,
-			Return:     "start time must not be empty",
-		},
-		LQLValidateRangeTest{
-			Name: "empty-end-allowed",
-			Input: api.LQLQuery{
-				StartTimeRange: "0",
-				EndTimeRange:   "",
-				QueryBlob:      lqlQueryStr,
-			},
-			AllowEmpty: true,
-			Return:     nil,
-		},
-		LQLValidateRangeTest{
-			Name: "empty-end-disallowed",
-			Input: api.LQLQuery{
-				StartTimeRange: "0",
-				EndTimeRange:   "",
-				QueryBlob:      lqlQueryStr,
-			},
-			AllowEmpty: false,
-			Return:     "end time must not be empty",
-		},
-		LQLValidateRangeTest{
-			Name: "empty-both-allowed",
-			Input: api.LQLQuery{
-				StartTimeRange: "",
-				EndTimeRange:   "",
-				QueryBlob:      lqlQueryStr,
-			},
-			AllowEmpty: true,
-			Return:     nil,
-		},
-		LQLValidateRangeTest{
-			Name: "start-after-end",
-			Input: api.LQLQuery{
-				StartTimeRange: "1717333947000",
-				EndTimeRange:   "1617333947000",
-				QueryBlob:      lqlQueryStr,
-			},
-			AllowEmpty: false,
-			Return:     "date range should have a start time before the end time",
-		},
-		LQLValidateRangeTest{
-			Name: "start-equal-end",
-			Input: api.LQLQuery{
-				StartTimeRange: "1617333947000",
-				EndTimeRange:   "1617333947000",
-				QueryBlob:      lqlQueryStr,
-			},
-			AllowEmpty: false,
-			Return:     nil,
-		},
-	}
-	lqlValidateTests []LQLValidateTest = []LQLValidateTest{
-		LQLValidateTest{
-			Name: "empty",
-			Input: &api.LQLQuery{
-				StartTimeRange: "0",
-				EndTimeRange:   "1",
-				QueryText:      lqlQueryStr,
-			},
-			Return: nil,
-		},
-	}
-	lqlQueryTypeTests []LQLQueryTest = []LQLQueryTest{
-		LQLQueryTest{
-			Name: "empty-blob",
-			Input: &api.LQLQuery{
-				QueryBlob: ``,
-			},
-			Return: api.LQLQueryTranslateError,
-			Expected: &api.LQLQuery{
-				QueryText: ``,
-				QueryBlob: ``,
-			},
-		},
-		LQLQueryTest{
-			Name: "junk-blob",
-			Input: &api.LQLQuery{
-				QueryBlob: `this is junk`,
-			},
-			Return: api.LQLQueryTranslateError,
-			Expected: &api.LQLQuery{
-				QueryText: ``,
-				QueryBlob: `this is junk`,
-			},
-		},
-		LQLQueryTest{
-			Name: "json-blob",
-			Input: &api.LQLQuery{
-				QueryBlob: `{
-	"START_TIME_RANGE": "678910",
-	"END_TIME_RANGE": "111213141516",
-	"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
-}`,
-			},
-			Return: nil,
-			Expected: &api.LQLQuery{
-				StartTimeRange: "1970-01-01T00:11:18Z",
-				EndTimeRange:   "1973-07-11T04:32:21Z",
-				QueryText:      "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
-				QueryBlob: `{
-	"START_TIME_RANGE": "678910",
-	"END_TIME_RANGE": "111213141516",
-	"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
-}`,
-			},
-		},
-		LQLQueryTest{
-			Name: "json-blob-lower",
-			Input: &api.LQLQuery{
-				QueryBlob: `{
-	"start_time_range": "678910",
-	"end_time_range": "111213141516",
-	"query_text": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
-}`,
-			},
-			Return: nil,
-			Expected: &api.LQLQuery{
-				StartTimeRange: "1970-01-01T00:11:18Z",
-				EndTimeRange:   "1973-07-11T04:32:21Z",
-				QueryText:      "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
-				QueryBlob: `{
-	"start_time_range": "678910",
-	"end_time_range": "111213141516",
-	"query_text": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
-}`,
-			},
-		},
-		LQLQueryTest{
-			Name: "lql-blob",
-			Input: &api.LQLQuery{
-				QueryBlob: "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
-			},
-			Return: nil,
-			Expected: &api.LQLQuery{
-				QueryText: "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
-				QueryBlob: "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
-			},
-		},
-		LQLQueryTest{
-			Name: "overwrite-blob",
-			Input: &api.LQLQuery{
-				StartTimeRange: "0",
-				EndTimeRange:   "1",
-				QueryText:      "should not overwrite",
-				QueryBlob: `{
-	"START_TIME_RANGE": "678910",
-	"END_TIME_RANGE": "111213141516",
-	"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
-}`,
-			},
-			Return: nil,
-			Expected: &api.LQLQuery{
-				StartTimeRange: "1970-01-01T00:00:00Z",
-				EndTimeRange:   "1970-01-01T00:00:00Z",
-				QueryText:      "should not overwrite",
-				QueryBlob: `{
-	"START_TIME_RANGE": "678910",
-	"END_TIME_RANGE": "111213141516",
-	"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
-}`,
-			},
-		},
-	}
 )
 
 type LQLTranslateTimeTest struct {
@@ -285,27 +59,40 @@ type LQLTranslateTimeTest struct {
 	ReturnErr  interface{}
 }
 
-type LQLValidateRangeTest struct {
-	Name       string
-	Input      api.LQLQuery
-	AllowEmpty bool
-	Return     interface{}
+var lqlTranslateTimeTests []LQLTranslateTimeTest = []LQLTranslateTimeTest{
+	LQLTranslateTimeTest{
+		Name:       "valid-rfc-utc",
+		Input:      "2021-03-31T00:00:00Z",
+		ReturnTime: "2021-03-31T00:00:00Z",
+		ReturnErr:  nil,
+	},
+	LQLTranslateTimeTest{
+		Name:       "valid-rfc-central",
+		Input:      "2021-03-31T00:00:00-05:00",
+		ReturnTime: "2021-03-31T05:00:00Z",
+		ReturnErr:  nil,
+	},
+	LQLTranslateTimeTest{
+		Name:       "valid-milli",
+		Input:      "1617230464000",
+		ReturnTime: "2021-03-31T22:41:04Z",
+		ReturnErr:  nil,
+	},
+	LQLTranslateTimeTest{
+		Name:       "empty",
+		Input:      "",
+		ReturnTime: "",
+		ReturnErr:  nil,
+	},
+	LQLTranslateTimeTest{
+		Name:       "invalid",
+		Input:      "jweaver",
+		ReturnTime: "",
+		ReturnErr:  "unable to parse time (jweaver)",
+	},
 }
 
-type LQLValidateTest struct {
-	Name   string
-	Input  *api.LQLQuery
-	Return interface{}
-}
-
-type LQLQueryTest struct {
-	Name     string
-	Input    *api.LQLQuery
-	Return   interface{}
-	Expected *api.LQLQuery
-}
-
-func TestTranslateTime(t *testing.T) {
+func TestLQLTranslateTime(t *testing.T) {
 	for _, lqlTranslateTimeTest := range lqlTranslateTimeTests {
 		t.Run(lqlTranslateTimeTest.Name, func(t *testing.T) {
 			outTime, err := api.LQLQuery{}.TranslateTime(lqlTranslateTimeTest.Input)
@@ -319,7 +106,97 @@ func TestTranslateTime(t *testing.T) {
 	}
 }
 
-func TestValidateRange(t *testing.T) {
+type LQLValidateRangeTest struct {
+	Name       string
+	Input      api.LQLQuery
+	AllowEmpty bool
+	Return     interface{}
+}
+
+var lqlValidateRangeTests []LQLValidateRangeTest = []LQLValidateRangeTest{
+	LQLValidateRangeTest{
+		Name: "ok",
+		Input: api.LQLQuery{
+			StartTimeRange: "0",
+			EndTimeRange:   "1",
+			QueryBlob:      lqlQueryStr,
+		},
+		AllowEmpty: false,
+		Return:     nil,
+	},
+	LQLValidateRangeTest{
+		Name: "empty-start-allowed",
+		Input: api.LQLQuery{
+			StartTimeRange: "",
+			EndTimeRange:   "1",
+			QueryBlob:      lqlQueryStr,
+		},
+		AllowEmpty: true,
+		Return:     nil,
+	},
+	LQLValidateRangeTest{
+		Name: "empty-start-disallowed",
+		Input: api.LQLQuery{
+			StartTimeRange: "",
+			EndTimeRange:   "1",
+			QueryBlob:      lqlQueryStr,
+		},
+		AllowEmpty: false,
+		Return:     "start time must not be empty",
+	},
+	LQLValidateRangeTest{
+		Name: "empty-end-allowed",
+		Input: api.LQLQuery{
+			StartTimeRange: "0",
+			EndTimeRange:   "",
+			QueryBlob:      lqlQueryStr,
+		},
+		AllowEmpty: true,
+		Return:     nil,
+	},
+	LQLValidateRangeTest{
+		Name: "empty-end-disallowed",
+		Input: api.LQLQuery{
+			StartTimeRange: "0",
+			EndTimeRange:   "",
+			QueryBlob:      lqlQueryStr,
+		},
+		AllowEmpty: false,
+		Return:     "end time must not be empty",
+	},
+	LQLValidateRangeTest{
+		Name: "empty-both-allowed",
+		Input: api.LQLQuery{
+			StartTimeRange: "",
+			EndTimeRange:   "",
+			QueryBlob:      lqlQueryStr,
+		},
+		AllowEmpty: true,
+		Return:     nil,
+	},
+	LQLValidateRangeTest{
+		Name: "start-after-end",
+		Input: api.LQLQuery{
+			StartTimeRange: "1717333947000",
+			EndTimeRange:   "1617333947000",
+			QueryBlob:      lqlQueryStr,
+		},
+		AllowEmpty: false,
+		Return:     "date range should have a start time before the end time",
+	},
+	LQLValidateRangeTest{
+		Name: "start-equal-end",
+		Input: api.LQLQuery{
+			StartTimeRange: "1617333947000",
+			EndTimeRange:   "1617333947000",
+			QueryBlob:      lqlQueryStr,
+		},
+		AllowEmpty: false,
+		Return:     nil,
+	},
+}
+
+func TestLQLValidateRange(t *testing.T) {
 	for _, lqlValidateRangeTest := range lqlValidateRangeTests {
 		t.Run(lqlValidateRangeTest.Name, func(t *testing.T) {
 			err := lqlValidateRangeTest.Input.Translate()
@@ -334,7 +211,25 @@ func TestValidateRange(t *testing.T) {
 	}
 }
 
-func TestValidate(t *testing.T) {
+type LQLValidateTest struct {
+	Name   string
+	Input  *api.LQLQuery
+	Return interface{}
+}
+
+var lqlValidateTests []LQLValidateTest = []LQLValidateTest{
+	LQLValidateTest{
+		Name: "empty",
+		Input: &api.LQLQuery{
+			StartTimeRange: "0",
+			EndTimeRange:   "1",
+			QueryText:      lqlQueryStr,
+		},
+		Return: nil,
+	},
+}
+
+func TestLQLValidate(t *testing.T) {
 	for _, lqlValidateTest := range lqlValidateTests {
 		t.Run(lqlValidateTest.Name, func(t *testing.T) {
 			err := lqlValidateTest.Input.Translate()
@@ -347,6 +242,115 @@ func TestValidate(t *testing.T) {
 			}
 		})
 	}
+}
+
+type LQLQueryTest struct {
+	Name     string
+	Input    *api.LQLQuery
+	Return   interface{}
+	Expected *api.LQLQuery
+}
+
+var lqlQueryTypeTests []LQLQueryTest = []LQLQueryTest{
+	LQLQueryTest{
+		Name: "empty-blob",
+		Input: &api.LQLQuery{
+			QueryBlob: ``,
+		},
+		Return: api.LQLQueryTranslateError,
+		Expected: &api.LQLQuery{
+			QueryText: ``,
+			QueryBlob: ``,
+		},
+	},
+	LQLQueryTest{
+		Name: "junk-blob",
+		Input: &api.LQLQuery{
+			QueryBlob: `this is junk`,
+		},
+		Return: api.LQLQueryTranslateError,
+		Expected: &api.LQLQuery{
+			QueryText: ``,
+			QueryBlob: `this is junk`,
+		},
+	},
+	LQLQueryTest{
+		Name: "json-blob",
+		Input: &api.LQLQuery{
+			QueryBlob: `{
+"START_TIME_RANGE": "678910",
+"END_TIME_RANGE": "111213141516",
+"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+}`,
+		},
+		Return: nil,
+		Expected: &api.LQLQuery{
+			StartTimeRange: "1970-01-01T00:11:18Z",
+			EndTimeRange:   "1973-07-11T04:32:21Z",
+			QueryText:      "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
+			QueryBlob: `{
+"START_TIME_RANGE": "678910",
+"END_TIME_RANGE": "111213141516",
+"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+}`,
+		},
+	},
+	LQLQueryTest{
+		Name: "json-blob-lower",
+		Input: &api.LQLQuery{
+			QueryBlob: `{
+"start_time_range": "678910",
+"end_time_range": "111213141516",
+"query_text": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+}`,
+		},
+		Return: nil,
+		Expected: &api.LQLQuery{
+			StartTimeRange: "1970-01-01T00:11:18Z",
+			EndTimeRange:   "1973-07-11T04:32:21Z",
+			QueryText:      "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
+			QueryBlob: `{
+"start_time_range": "678910",
+"end_time_range": "111213141516",
+"query_text": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+}`,
+		},
+	},
+	LQLQueryTest{
+		Name: "lql-blob",
+		Input: &api.LQLQuery{
+			QueryBlob: "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
+		},
+		Return: nil,
+		Expected: &api.LQLQuery{
+			QueryText: "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
+			QueryBlob: "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
+		},
+	},
+	LQLQueryTest{
+		Name: "overwrite-blob",
+		Input: &api.LQLQuery{
+			StartTimeRange: "0",
+			EndTimeRange:   "1",
+			QueryText:      "should not overwrite",
+			QueryBlob: `{
+"START_TIME_RANGE": "678910",
+"END_TIME_RANGE": "111213141516",
+"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+}`,
+		},
+		Return: nil,
+		Expected: &api.LQLQuery{
+			StartTimeRange: "1970-01-01T00:00:00Z",
+			EndTimeRange:   "1970-01-01T00:00:00Z",
+			QueryText:      "should not overwrite",
+			QueryBlob: `{
+"START_TIME_RANGE": "678910",
+"END_TIME_RANGE": "111213141516",
+"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+}`,
+		},
+	},
 }
 
 func TestLQLQueryTranslate(t *testing.T) {
@@ -378,7 +382,7 @@ func mockLQLMessageResponse(message string, ok string) string {
 }`
 }
 
-func TestCreateMethod(t *testing.T) {
+func TestLQLCreateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQL,
@@ -399,7 +403,7 @@ func TestCreateMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestCreateBadInput(t *testing.T) {
+func TestLQLCreateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQL,
@@ -419,7 +423,7 @@ func TestCreateBadInput(t *testing.T) {
 	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
 }
 
-func TestCreateOK(t *testing.T) {
+func TestLQLCreateOK(t *testing.T) {
 	mockResponse := mockLQLDataResponse(lqlCreateData)
 
 	fakeServer := lacework.MockServer()
@@ -447,7 +451,7 @@ func TestCreateOK(t *testing.T) {
 	assert.Equal(t, createExpected, createActual)
 }
 
-func TestCreateError(t *testing.T) {
+func TestLQLCreateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQL,
@@ -467,7 +471,7 @@ func TestCreateError(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestGetQueriesMethod(t *testing.T) {
+func TestLQLGetQueriesMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQL,
@@ -494,7 +498,7 @@ func TestGetQueriesMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestGetQueryByIDOK(t *testing.T) {
+func TestLQLGetQueryByIDOK(t *testing.T) {
 	mockResponse := mockLQLDataResponse(lqlCreateData)
 
 	fakeServer := lacework.MockServer()
@@ -522,7 +526,7 @@ func TestGetQueryByIDOK(t *testing.T) {
 	assert.Equal(t, createExpected, createActual)
 }
 
-func TestGetQueryByIDNotFound(t *testing.T) {
+func TestLQLGetQueryByIDNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQL,
@@ -542,7 +546,7 @@ func TestGetQueryByIDNotFound(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestRunQueryMethod(t *testing.T) {
+func TestLQLRunQueryMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQLQuery,
@@ -563,7 +567,7 @@ func TestRunQueryMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestRunQueryBadInput(t *testing.T) {
+func TestLQLRunQueryBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQLQuery,
@@ -583,7 +587,7 @@ func TestRunQueryBadInput(t *testing.T) {
 	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
 }
 
-func TestRunQueryOK(t *testing.T) {
+func TestLQLRunQueryOK(t *testing.T) {
 	mockResponse := mockLQLDataResponse(lqlRunData)
 
 	fakeServer := lacework.MockServer()
@@ -611,7 +615,7 @@ func TestRunQueryOK(t *testing.T) {
 	assert.Equal(t, runExpected, runActual)
 }
 
-func TestRunQueryError(t *testing.T) {
+func TestLQLRunQueryError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQL,

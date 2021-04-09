@@ -112,7 +112,7 @@ var (
 	}]`
 )
 
-func TestDescribeMethod(t *testing.T) {
+func TestLQLDescribeMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", api.ApiLQLDescribe, url.QueryEscape(lqlDataSource)),
@@ -139,7 +139,7 @@ func TestDescribeMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestDescribeOK(t *testing.T) {
+func TestLQLDescribeOK(t *testing.T) {
 	mockResponse := mockLQLDataResponse(lqlDescribeData)
 
 	fakeServer := lacework.MockServer()
@@ -167,7 +167,7 @@ func TestDescribeOK(t *testing.T) {
 	assert.Equal(t, describeExpected, describeActual)
 }
 
-func TestDescribeNotFound(t *testing.T) {
+func TestLQLDescribeNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", api.ApiLQLDescribe, url.QueryEscape(lqlDataSource)),
@@ -187,7 +187,7 @@ func TestDescribeNotFound(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestDescribeError(t *testing.T) {
+func TestLQLDescribeError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQLCompile,

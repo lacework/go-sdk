@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateMethod(t *testing.T) {
+func TestLQLUpdateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQL,
@@ -50,7 +50,7 @@ func TestUpdateMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestUpdateBadInput(t *testing.T) {
+func TestLQLUpdateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQL,
@@ -70,7 +70,7 @@ func TestUpdateBadInput(t *testing.T) {
 	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
 }
 
-func TestUpdateOK(t *testing.T) {
+func TestLQLUpdateOK(t *testing.T) {
 	mockResponse := mockLQLMessageResponse(
 		fmt.Sprintf(`"lqlUpdated": "%s"`, lqlQueryID),
 		"true",
@@ -101,7 +101,7 @@ func TestUpdateOK(t *testing.T) {
 	assert.Equal(t, updateExpected, updateActual)
 }
 
-func TestUpdateNotFound(t *testing.T) {
+func TestLQLUpdateNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		api.ApiLQLCompile,
