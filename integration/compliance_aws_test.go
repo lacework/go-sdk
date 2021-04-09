@@ -84,3 +84,14 @@ func TestComplianceAwsGetReportDetails(t *testing.T) {
 	assert.Contains(t, out.String(), "ASSESSED",
 		"STDOUT table headers changed, please check")
 }
+
+func TestComplianceAwsGetReportFiltersWithJsonOutput(t *testing.T) {
+	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--severity", "critical", "--json")
+	severities := []string{"\"severity\": 2","\"severity\": 3","\"severity\": 4", "\"severity\": 5"}
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	// When critical severity filter is set, other severities should not be returned in json result
+	assert.NotContains(t, severities, out.String(),
+		"Json output does not adhere to severity filter")
+}
