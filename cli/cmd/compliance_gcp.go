@@ -100,11 +100,17 @@ To run an ad-hoc compliance assessment use the command:
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(_ *cobra.Command, args []string) error {
-			config := api.ComplianceGcpReportConfig{
-				OrganizationID: args[0],
-				ProjectID:      args[1],
-				Type:           compCmdState.Type,
-			}
+			var (
+				// clean projectID and orgID if they were provided
+				// with an Alias in between parentheses
+				orgID, _     = splitIDAndAlias(args[0])
+				projectID, _ = splitIDAndAlias(args[1])
+				config       = api.ComplianceGcpReportConfig{
+					OrganizationID: orgID,
+					ProjectID:      projectID,
+					Type:           compCmdState.Type,
+				}
+			)
 
 			if compCmdState.Pdf {
 				pdfName := fmt.Sprintf(
@@ -291,6 +297,8 @@ func splitIDAndAlias(text string) (id string, alias string) {
 	id = string(idBytes)
 	id = strings.Trim(id, "(")
 	id = strings.TrimSpace(id)
+
+	cli.Log.Infow("splitted", "text", text, "id", id, "alias", alias)
 	return
 }
 
