@@ -44,7 +44,7 @@ func TestShowAssessmentFilterSeverity(t *testing.T) {
 	result, output := hostVulnCVEsTableForHostView(mockCves)
 
 	assert.Equal(t, len(result), 1)
-	assert.Equal(t, output, "\n 1 of 2 cve(s) showing \n")
+	assert.Equal(t, output, "\n1 of 2 cve(s) showing \n")
 }
 
 func TestShowAssessmentFilterSeverityWithPackages(t *testing.T) {
