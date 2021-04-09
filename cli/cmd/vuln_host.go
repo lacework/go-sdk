@@ -813,7 +813,7 @@ func hostVulnCVEsTableForHostView(cves []api.HostVulnCVE) ([][]string, string) {
 
 	if len(out) < total {
 		showing := total - len(out)
-		return out, fmt.Sprintf("\n %v of %v cve(s) showing \n", showing, total)
+		return out, fmt.Sprintf("\n%d of %d cve(s) showing \n", showing, total)
 	}
 
 	return out, ""
