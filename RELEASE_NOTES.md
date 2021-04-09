@@ -1,27 +1,22 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.4.0`.
+Another day, another release. These are the release notes for the version `v0.5.0`.
 
 ## Features
-* feat: add new flags to fail host and container vuln scans (#352) (Darren)([1209d59](https://github.com/lacework/go-sdk/commit/1209d59138365a2aa86e9e0f8af66586542201db))
+* feat: Filter vuln host list cves and show assessment by severity (#375) (Darren)([7e9313e](https://github.com/lacework/go-sdk/commit/7e9313e82f6a9af30560aac441f67bd6bee0a619))
+* feat(cli): split list of Google project id and alias (#377) (Salim Afiune)([3f8dd94](https://github.com/lacework/go-sdk/commit/3f8dd9419350d60bd3bdd5b416a2e5d7e23af89a))
 ## Refactor
-* refactor: Remove deprecated ListRange function (Darren Murray)([2a0019f](https://github.com/lacework/go-sdk/commit/2a0019f28dba6fcc6d470c2f6d54136581aac817))
-* refactor: Remove deprecated vulnerability report command (Darren Murray)([d0de656](https://github.com/lacework/go-sdk/commit/d0de6564d7f6f87f682db902ed51e7aba0efbe87))
-* refactor: Remove deprecated pdfName flag (Darren Murray)([94b8f67](https://github.com/lacework/go-sdk/commit/94b8f67aca806265de8ca8e6128fc3f137381efb))
+* refactor(cli): use official url for agent installs (#369) (Salim Afiune)([ca2d3f7](https://github.com/lacework/go-sdk/commit/ca2d3f7063dce713f6743ace9a4a07d5cc6c2119))
 ## Bug Fixes
-* fix(cli): mask ServiceNow integration password (#359) (Salim Afiune)([8e37697](https://github.com/lacework/go-sdk/commit/8e376976df0d429a403319c43e46ff1ad87dbc97))
-* fix(api): update time format in API response (#360) (Salim Afiune)([a0045b4](https://github.com/lacework/go-sdk/commit/a0045b440a4164ff5ffd5c42d5a049471893b18f))
+* fix(cli): split GCP projects with parentheses (#380) (Salim Afiune)([339d13e](https://github.com/lacework/go-sdk/commit/339d13ef3af47cc4d52e6833ae308e0d96e5349f))
+* fix(cli): match err message changed in server resp (#376) (Salim Afiune)([de7b137](https://github.com/lacework/go-sdk/commit/de7b13796ce7a5edfb173f2a868d281dce35ddc1))
 ## Other Changes
-* chore(deps): bump github.com/spf13/viper from 1.6.2 to 1.7.1 (#364) (dependabot[bot])([4f8f838](https://github.com/lacework/go-sdk/commit/4f8f838d3ed4352d5d660d75ce99a121ffc73cf0))
-* chore(deps): bump github.com/stretchr/testify from 1.6.1 to 1.7.0 (#363) (dependabot[bot])([eed32e8](https://github.com/lacework/go-sdk/commit/eed32e8de351736c670594affda7d28002b7b778))
-* chore(deps): bump github.com/fatih/color from 1.9.0 to 1.10.0 (#365) (dependabot[bot])([008253b](https://github.com/lacework/go-sdk/commit/008253bc78d27e2cb31434082284d6b64e0e51a4))
-* chore(deps): bump github.com/spf13/cobra from 1.0.0 to 1.1.3 (#362) (dependabot[bot])([f3427ea](https://github.com/lacework/go-sdk/commit/f3427ea014da326218cb639f24f1ca58ae3e0515))
-* chore: Validation script for git commit message conventions (#355) (Darren)([7fe9678](https://github.com/lacework/go-sdk/commit/7fe9678e854890a6a393df722007be38290630ff))
-* ci: fix githooks and release scripts (#366) (Salim Afiune)([9036013](https://github.com/lacework/go-sdk/commit/90360137f823a4efa9651ade65ffaedfb4f61861))
-* ci: switch over our CI to CodeFresh (#357) (Salim Afiune)([734acb7](https://github.com/lacework/go-sdk/commit/734acb7971c35ae79d6435ecc89d5a7fb4d493e7))
-* ci: Fix prepare_test_resources script (Darren Murray)([e89beb6](https://github.com/lacework/go-sdk/commit/e89beb63d11941c67a97d91044fcbd6fe7ee2ad1))
-* ci: Add setup_remote_docker to prepare-test-resources job (Darren Murray)([60628cd](https://github.com/lacework/go-sdk/commit/60628cd7731d0c15693a9b274f087a0b3eba590c))
-* test(cli): lacework query command (#358) (hazedav)([d5473df](https://github.com/lacework/go-sdk/commit/d5473df7369b23d4e04dccb287de9b509b646342))
-* test: removed Azure tenants from test account (Salim Afiune Maya)([e181ed1](https://github.com/lacework/go-sdk/commit/e181ed174fa9096e7c7a4a01ee95cc22951ba55d))
+* chore: run goimports-reviser to order imports (#378) (Salim Afiune)([44b8e58](https://github.com/lacework/go-sdk/commit/44b8e589e3861b849e6092db2a248f98882f5918))
+* chore(deps): bump github.com/briandowns/spinner from 1.10.0 to 1.12.0 (#374) (dependabot[bot])([e6058eb](https://github.com/lacework/go-sdk/commit/e6058ebd1ec3e82c6c7c8763ac6b1a9ef9a552db))
+* chore(deps): bump github.com/mitchellh/mapstructure from 1.3.0 to 1.4.1 (#373) (dependabot[bot])([2f40036](https://github.com/lacework/go-sdk/commit/2f40036fb827181ac9e7fc37d71a66ff916bc775))
+* chore(deps): bump github.com/kyokomi/emoji/v2 from 2.2.5 to 2.2.8 (#372) (dependabot[bot])([ec6ec28](https://github.com/lacework/go-sdk/commit/ec6ec281c41fd047521c8c6715b2b9a9e78e0a56))
+* chore(deps): bump github.com/olekukonko/tablewriter from 0.0.4 to 0.0.5 (#370) (dependabot[bot])([bdfa365](https://github.com/lacework/go-sdk/commit/bdfa365f936f775704f7c74320e162f000066ebc))
+* chore(deps): bump github.com/honeycombio/libhoney-go (#371) (dependabot[bot])([0494850](https://github.com/lacework/go-sdk/commit/0494850865c95d1f07348c17a069ea116e6fe121))
+* test(integration): fix failing test from API changes (#368) (Salim Afiune)([57b33e3](https://github.com/lacework/go-sdk/commit/57b33e360cb207b431c077937b99255f7bef4352))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
