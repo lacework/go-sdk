@@ -24,8 +24,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/internal/array"
 	"github.com/pkg/errors"
+
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 // ContainerVulnerabilityService is a service that interacts with the vulnerabilities

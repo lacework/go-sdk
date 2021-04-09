@@ -24,10 +24,10 @@ import (
 	"os"
 	"syscall"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"github.com/lacework/go-sdk/lwlogger"
-	"github.com/pkg/errors"
 )
 
 // WithLogLevel sets the log level of the client, available: info or debug

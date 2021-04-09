@@ -24,9 +24,10 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewRequest(t *testing.T) {

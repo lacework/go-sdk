@@ -21,8 +21,9 @@ package api_test
 import (
 	"testing"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 func TestAlertLevelValid(t *testing.T) {
