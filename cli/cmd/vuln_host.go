@@ -588,7 +588,7 @@ func hostVulnPackagesTable(cves []api.HostVulnCVE, withHosts bool) ([][]string, 
 	})
 
 	if len(filteredPackages) > 0 {
-		filteredOutput := fmt.Sprintf("%v of %v package(s) showing \n", len(out), len(aggregatedPackages)+len(filteredPackages))
+		filteredOutput := fmt.Sprintf("%d of %d package(s) showing \n", len(out), len(aggregatedPackages)+len(filteredPackages))
 		return out, filteredOutput
 	}
 
