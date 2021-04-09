@@ -610,7 +610,7 @@ func hostVulnCVEsTable(cves []api.HostVulnCVE) ([][]string, string) {
 
 	if filteredCves > 0 {
 		showing := totalCves - filteredCves
-		return out, fmt.Sprintf("\n %v of %v cve(s) showing \n", showing, totalCves)
+		return out, fmt.Sprintf("\n%d of %d cve(s) showing \n", showing, totalCves)
 	}
 
 	return out, ""
