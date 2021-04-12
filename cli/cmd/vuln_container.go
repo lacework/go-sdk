@@ -193,11 +193,13 @@ filter on containers with vulnerabilities that have fixes available.`,
 				})
 			}
 
+			filteredAssessments := filterAssessments(assessments)
+
 			if cli.JSONOutput() {
-				return cli.OutputJSON(assessments)
+				return cli.OutputJSON(filteredAssessments)
 			}
 
-			rows := vulAssessmentsToTable(assessments)
+			rows := vulAssessmentsToTable(filteredAssessments)
 
 			// if the user wants to show only assessments of containers running
 			// and we don't have any, show a friendly message
@@ -422,18 +424,8 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 		return nil
 	}
 
-	if cli.JSONOutput() {
-		if err := cli.OutputJSON(results); err != nil {
-			return err
-		}
-	} else {
-		cli.OutputHuman(buildVulnerabilityReportTable(results))
-	}
-
-	if vulCmdState.Html {
-		if err := generateVulnAssessmentHTML(results); err != nil {
-			return err
-		}
+	if err := buildReports(results) ; err != nil{
+		return err
 	}
 
 	if vulFailureFlagsEnabled() {
@@ -478,20 +470,8 @@ func showContainerAssessmentsWithSha256(sha string) error {
 	status := assessment.CheckStatus()
 	switch status {
 	case "Success":
-
-		if cli.JSONOutput() {
-			if err := cli.OutputJSON(assessment.Data); err != nil {
-				return err
-			}
-		} else {
-			cli.OutputHuman(buildVulnerabilityReportTable(&assessment.Data))
-		}
-
-		// @afiune is this the best way to make sense of this new flag?
-		if vulCmdState.Html {
-			if err := generateVulnAssessmentHTML(&assessment.Data); err != nil {
-				return err
-			}
+		if err := buildReports(&assessment.Data) ; err != nil{
+			return err
 		}
 	case "Unsupported":
 		return errors.Errorf(
@@ -542,8 +522,60 @@ For more information about supported distributions, visit:
 	return nil
 }
 
-func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) string {
-	if assessment.TotalVulnerabilities == 0 {
+func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) string {
+	report := &strings.Builder{}
+
+	if vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled() {
+		if vulCmdState.Packages {
+			vulnPackagesTable := vulContainerImagePackagesToTable(details.packages)
+
+			report.WriteString(
+				renderSimpleTable(
+					[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version"},
+					vulnPackagesTable,
+				),
+			)
+
+			if vulFiltersEnabled() {
+				filteredOutput := fmt.Sprintf("%v of %v packages showing \n", details.packages.totalPackages, details.packages.totalUnfiltered)
+				report.WriteString(filteredOutput)
+			}
+		} else {
+			vulnImageTable := vulContainerImageLayersToTable(details.vulns)
+
+			report.WriteString(
+				renderCustomTable(
+					[]string{"CVE ID", "Severity", "Package", "Current Version",
+						"Fix Version", "Introduced in Layer"},
+					vulnImageTable,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetRowLine(true)
+						t.SetColumnSeparator(" ")
+						t.SetAlignment(tablewriter.ALIGN_LEFT)
+					}),
+				),
+			)
+
+			if vulFiltersEnabled() {
+				filteredOutput := fmt.Sprintf("%v of %v vulnerabilities showing \n", details.vulns.totalVulns, details.vulns.totalUnfiltered)
+				report.WriteString(filteredOutput)
+			}
+			if !vulCmdState.Html {
+				report.WriteString("\nTry adding '--packages' to show a list of packages with CVE count.\n")
+			}
+		}
+	} else if !vulCmdState.Html {
+		report.WriteString(
+			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
+		)
+	}
+
+	return report.String()
+}
+
+func buildVulnerabilityReportTable(summary vulnerabilitySummaryReport) string {
+	if summary.vulnCounts.totalVulnerabilities == 0 {
 		return fmt.Sprintf("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
 	}
 
@@ -556,7 +588,7 @@ func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) stri
 			},
 			[][]string{[]string{
 				renderCustomTable([]string{},
-					vulContainerImageToTable(assessment.Image),
+					vulContainerImageToTable(&summary.image),
 					tableFunc(func(t *tablewriter.Table) {
 						t.SetBorder(false)
 						t.SetColumnSeparator("")
@@ -564,7 +596,7 @@ func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) stri
 					}),
 				),
 				renderCustomTable([]string{"Severity", "Count", "Fixable"},
-					vulContainerAssessmentToCountsTable(assessment),
+					vulContainerAssessmentToCountsTable(summary.vulnCounts),
 					tableFunc(func(t *tablewriter.Table) {
 						t.SetBorder(false)
 						t.SetColumnSeparator(" ")
@@ -579,47 +611,6 @@ func buildVulnerabilityReportTable(assessment *api.VulnContainerAssessment) stri
 		),
 	)
 
-	if vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled() {
-		if vulCmdState.Packages {
-			vulnPackagesTable, filteredOutput := vulContainerImagePackagesToTable(assessment.Image)
-
-			mainReport.WriteString(
-				renderSimpleTable(
-					[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version"},
-					vulnPackagesTable,
-				),
-			)
-			if filteredOutput != "" {
-				mainReport.WriteString(filteredOutput)
-			}
-		} else {
-			vulnTable, filteredOutput := vulContainerImageLayersToTable(assessment.Image)
-			mainReport.WriteString(
-				renderCustomTable(
-					[]string{"CVE ID", "Severity", "Package", "Current Version",
-						"Fix Version", "Introduced in Layer"},
-					vulnTable,
-					tableFunc(func(t *tablewriter.Table) {
-						t.SetBorder(false)
-						t.SetRowLine(true)
-						t.SetColumnSeparator(" ")
-						t.SetAlignment(tablewriter.ALIGN_LEFT)
-					}),
-				),
-			)
-			if filteredOutput != "" {
-				mainReport.WriteString(filteredOutput)
-			}
-			if !vulCmdState.Html {
-				mainReport.WriteString("\nTry adding '--packages' to show a list of packages with CVE count.\n")
-			}
-		}
-	} else if !vulCmdState.Html {
-		mainReport.WriteString(
-			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
-		)
-	}
-
 	return mainReport.String()
 }
 
@@ -631,6 +622,27 @@ type packageTable struct {
 	fixVersion     string
 	packageStatus  string
 	hostCount      int
+}
+
+type vulnTable struct {
+	name       string
+	severity       string
+	packageName    string
+	currentVersion string
+	fixVersion     string
+	createdBy  string
+}
+
+type filteredPackageTable struct {
+	packages []packageTable
+	totalPackages int
+	totalUnfiltered int
+}
+
+type filteredImageTable struct {
+	vulns []vulnTable
+	totalVulns int
+	totalUnfiltered int
 }
 
 func aggregatePackages(slice []packageTable, s packageTable) []packageTable {
@@ -646,15 +658,13 @@ func aggregatePackages(slice []packageTable, s packageTable) []packageTable {
 	return append(slice, s)
 }
 
-func vulContainerImagePackagesToTable(image *api.VulnContainerImage) ([][]string, string) {
+func filterVulnContainerImagePackages(image *api.VulnContainerImage) filteredPackageTable{
 	if image == nil {
-		return [][]string{}, ""
+		return filteredPackageTable{}
 	}
-	filteredOutput := ""
 	var filteredPackages []packageTable
 	var aggregatedPackages []packageTable
 
-	out := [][]string{}
 	for _, layer := range image.ImageLayers {
 		for _, pkg := range layer.Packages {
 			for _, vul := range pkg.Vulnerabilities {
@@ -681,8 +691,14 @@ func vulContainerImagePackagesToTable(image *api.VulnContainerImage) ([][]string
 			}
 		}
 	}
+	totalUnfiltered := len(filteredPackages) + len(filteredPackages)
+	return filteredPackageTable{packages: filteredPackages, totalPackages: len(filteredPackages), totalUnfiltered: totalUnfiltered}
+}
 
-	for _, p := range aggregatedPackages {
+func vulContainerImagePackagesToTable(packageTable filteredPackageTable) [][]string {
+	var out [][]string
+
+	for _, p := range packageTable.packages {
 		out = append(out, []string{
 			strconv.Itoa(p.cveCount),
 			p.severity,
@@ -692,26 +708,23 @@ func vulContainerImagePackagesToTable(image *api.VulnContainerImage) ([][]string
 		})
 	}
 
-	if vulFiltersEnabled() {
-		filteredOutput = fmt.Sprintf("%v of %v packages showing \n", len(out), len(aggregatedPackages)+len(filteredPackages))
-	}
-
 	// order by severity
 	sort.Slice(out, func(i, j int) bool {
 		return severityOrder(out[i][1]) < severityOrder(out[j][1])
 	})
 
-	return out, filteredOutput
+	return out
 }
 
-func vulContainerImageLayersToTable(image *api.VulnContainerImage) ([][]string, string) {
+func filterVulContainerImageLayers(image *api.VulnContainerImage) filteredImageTable {
 	if image == nil {
-		return [][]string{}, ""
+		return filteredImageTable{}
 	}
+	var (
+		vulns []vulnTable
+		vulnsCount int
+	)
 
-	out := [][]string{}
-	vulnsCount := 0
-	filteredOutput := ""
 	for _, layer := range image.ImageLayers {
 		for _, pkg := range layer.Packages {
 			for _, vul := range pkg.Vulnerabilities {
@@ -729,41 +742,52 @@ func vulContainerImageLayersToTable(image *api.VulnContainerImage) ([][]string, 
 				space := regexp.MustCompile(`\s+`)
 				createdBy := space.ReplaceAllString(layer.CreatedBy, " ")
 
-				out = append(out, []string{
-					vul.Name,
-					strings.Title(vul.Severity),
-					pkg.Name,
-					pkg.Version,
-					vul.FixVersion,
-					createdBy,
+				vulns = append(vulns, vulnTable{
+					name:           vul.Name,
+					severity:       strings.Title(vul.Severity),
+					packageName:    pkg.Name,
+					currentVersion: pkg.Version,
+					fixVersion:     vul.FixVersion,
+					createdBy:      createdBy,
 				})
 			}
 		}
 	}
+	return filteredImageTable{vulns: vulns, totalVulns: len(vulns), totalUnfiltered: vulnsCount}
+}
 
-	if vulFiltersEnabled() {
-		filteredOutput = fmt.Sprintf("%v of %v vulnerabilities showing \n", len(out), vulnsCount)
+	func vulContainerImageLayersToTable(imageTable filteredImageTable) [][]string {
+		var out [][]string
+	for _, vuln := range imageTable.vulns {
+				out = append(out, []string{
+					vuln.name,
+					vuln.severity,
+					vuln.packageName,
+					vuln.currentVersion,
+					vuln.fixVersion,
+					vuln.createdBy,
+				})
 	}
 
 	sort.Slice(out, func(i, j int) bool {
 		return severityOrder(out[i][1]) < severityOrder(out[j][1])
 	})
 
-	return out, filteredOutput
+	return out
 }
 
-func vulContainerAssessmentToCountsTable(assessment *api.VulnContainerAssessment) [][]string {
+func vulContainerAssessmentToCountsTable(count vulnCounts) [][]string {
 	return [][]string{
-		[]string{"Critical", fmt.Sprint(assessment.CriticalVulnerabilities),
-			fmt.Sprint(assessment.VulnFixableCount("critical"))},
-		[]string{"High", fmt.Sprint(assessment.HighVulnerabilities),
-			fmt.Sprint(assessment.VulnFixableCount("high"))},
-		[]string{"Medium", fmt.Sprint(assessment.MediumVulnerabilities),
-			fmt.Sprint(assessment.VulnFixableCount("medium"))},
-		[]string{"Low", fmt.Sprint(assessment.LowVulnerabilities),
-			fmt.Sprint(assessment.VulnFixableCount("low"))},
-		[]string{"Info", fmt.Sprint(assessment.InfoVulnerabilities),
-			fmt.Sprint(assessment.VulnFixableCount("info"))},
+		[]string{"Critical", fmt.Sprint(count.criticalVulnerabilities),
+			fmt.Sprint(count.fixableVulnCounts.fixableCriticalVulnerabilities)},
+		[]string{"High", fmt.Sprint(count.highVulnerabilities),
+			fmt.Sprint(count.fixableVulnCounts.fixableHighVulnerabilities)},
+		[]string{"Medium", fmt.Sprint(count.mediumVulnerabilities),
+			fmt.Sprint(count.fixableVulnCounts.fixableMediumVulnerabilities)},
+		[]string{"Low", fmt.Sprint(count.lowVulnerabilities),
+			fmt.Sprint(count.fixableVulnCounts.fixableLowVulnerabilities)},
+		[]string{"Info", fmt.Sprint(count.infoVulnerabilities),
+			fmt.Sprint(count.fixableVulnCounts.fixableInfoVulnerabilities)},
 	}
 }
 
@@ -808,8 +832,8 @@ func buildContainerAssessmentsError() string {
 	return fmt.Sprintf("%s in your environment.\n", msg)
 }
 
-func vulAssessmentsToTable(assessments []api.VulnContainerAssessmentSummary) [][]string {
-	out := [][]string{}
+func filterAssessments(assessments []api.VulnContainerAssessmentSummary) []assessmentOutput {
+	var out []assessmentOutput
 	for _, assessment := range assessments {
 		// do not add assessments that doesn't have running containers
 		// if the user wants to show only assessments of containers running
@@ -836,17 +860,44 @@ func vulAssessmentsToTable(assessments []api.VulnContainerAssessmentSummary) [][
 			continue
 		}
 
-		out = append(out, []string{
-			assessment.ImageRegistry,
-			assessment.ImageRepo,
-			assessment.StartTime.UTC().Format(time.RFC3339),
-			assessment.ImageScanStatus,
-			assessment.NdvContainers,
-			assessmentSummary,
-			assessment.ImageDigest,
+		out = append(out, assessmentOutput{
+			imageRegistry:     assessment.ImageRegistry,
+			imageRepo:         assessment.ImageRepo,
+			startTime:         assessment.StartTime.UTC().Format(time.RFC3339),
+			imageScanStatus:   assessment.ImageScanStatus,
+			ndvContainers:     assessment.NdvContainers,
+			assessmentSummary: assessmentSummary,
+			imageDigest:       assessment.ImageDigest,
 		})
 	}
 	return out
+}
+
+func vulAssessmentsToTable(assessments []assessmentOutput) [][]string {
+	var out [][]string
+	for _, assessment := range assessments {
+		out = append(out, []string{
+			assessment.imageRegistry,
+			assessment.imageRepo,
+			assessment.startTime,
+			assessment.imageScanStatus,
+			assessment.ndvContainers,
+			assessment.assessmentSummary,
+			assessment.imageDigest,
+		})
+	}
+	return out
+}
+
+type assessmentOutput struct {
+	imageRegistry string
+	imageRepo string
+	startTime string
+	imageScanStatus string
+	ndvContainers string
+	assessmentSummary string
+	imageDigest string
+
 }
 
 func vulSummaryFromAssessment(assessment *api.VulnContainerAssessmentSummary) (string, bool) {
