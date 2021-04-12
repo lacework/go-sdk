@@ -111,14 +111,16 @@ func (q LQLQuery) TranslateTime(inTime string) (outTime string, err error) {
 		return
 	}
 	// parse time as RFC3339
-	if t, err := time.Parse(time.RFC3339, inTime); err == nil {
+	var t time.Time
+	if t, err = time.Parse(time.RFC3339, inTime); err == nil {
 		outTime = t.UTC().Format(time.RFC3339)
-		return outTime, err
+		return
 	}
 	// parse time as millis
-	if t, err := strconv.ParseInt(inTime, 10, 64); err == nil {
-		outTime = time.Unix(0, t*int64(time.Millisecond)).UTC().Format(time.RFC3339)
-		return outTime, err
+	var i int64
+	if i, err = strconv.ParseInt(inTime, 10, 64); err == nil {
+		outTime = time.Unix(0, i*int64(time.Millisecond)).UTC().Format(time.RFC3339)
+		return
 	}
 	err = errors.New("unable to parse time (" + inTime + ")")
 	return
@@ -129,27 +131,30 @@ func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {
 	var start time.Time
 	if q.StartTimeRange != "" {
 		if start, err = time.Parse(time.RFC3339, q.StartTimeRange); err != nil {
-			return err
+			return
 		}
 	} else if allowEmptyTimes {
 		start = time.Unix(0, 0)
 	} else {
-		return errors.New("start time must not be empty")
+		err = errors.New("start time must not be empty")
+		return
 	}
 	// validate end
 	var end time.Time
 	if q.EndTimeRange != "" {
 		if end, err = time.Parse(time.RFC3339, q.EndTimeRange); err != nil {
-			return err
+			return
 		}
 	} else if allowEmptyTimes {
 		end = time.Now()
 	} else {
-		return errors.New("end time must not be empty")
+		err = errors.New("end time must not be empty")
+		return
 	}
 	// validate range
 	if start.After(end) {
-		return errors.New("date range should have a start time before the end time")
+		err = errors.New("date range should have a start time before the end time")
+		return
 	}
 	return nil
 }
