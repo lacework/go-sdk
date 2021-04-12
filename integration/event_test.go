@@ -135,3 +135,15 @@ func TestEventCommandOpenError(t *testing.T) {
 	assert.Equal(t, 1, exitcode,
 		"EXITCODE is not the expected one")
 }
+
+func TestEventCommandListSeverityWithJsonFlag(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--severity", "high", "--json")
+	severities := []string{"\"severity\": 3","\"severity\": 4", "\"severity\": 5"}
+	assert.Empty(t,
+		err.String(),
+		"STDERR should be empty")
+	assert.Equal(t, 0, exitcode,
+		"EXITCODE is not the expected one")
+	assert.NotContains(t, severities, out.String(),
+		"Json output does not adhere to severity filter")
+}
