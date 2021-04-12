@@ -23,9 +23,11 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -59,38 +61,49 @@ type LQLTranslateTimeTest struct {
 	ReturnErr  interface{}
 }
 
-var lqlTranslateTimeTests []LQLTranslateTimeTest = []LQLTranslateTimeTest{
-	LQLTranslateTimeTest{
-		Name:       "valid-rfc-utc",
-		Input:      "2021-03-31T00:00:00Z",
-		ReturnTime: "2021-03-31T00:00:00Z",
-		ReturnErr:  nil,
-	},
-	LQLTranslateTimeTest{
-		Name:       "valid-rfc-central",
-		Input:      "2021-03-31T00:00:00-05:00",
-		ReturnTime: "2021-03-31T05:00:00Z",
-		ReturnErr:  nil,
-	},
-	LQLTranslateTimeTest{
-		Name:       "valid-milli",
-		Input:      "1617230464000",
-		ReturnTime: "2021-03-31T22:41:04Z",
-		ReturnErr:  nil,
-	},
-	LQLTranslateTimeTest{
-		Name:       "empty",
-		Input:      "",
-		ReturnTime: "",
-		ReturnErr:  nil,
-	},
-	LQLTranslateTimeTest{
-		Name:       "invalid",
-		Input:      "jweaver",
-		ReturnTime: "",
-		ReturnErr:  "unable to parse time (jweaver)",
-	},
-}
+var (
+	reltime               lwtime.RelTime         = lwtime.RelTime{}
+	_                     error                  = reltime.Parse("@d")
+	atDay, _                                     = reltime.Time()
+	lqlTranslateTimeTests []LQLTranslateTimeTest = []LQLTranslateTimeTest{
+		LQLTranslateTimeTest{
+			Name:       "valid-rfc-utc",
+			Input:      "2021-03-31T00:00:00Z",
+			ReturnTime: "2021-03-31T00:00:00Z",
+			ReturnErr:  nil,
+		},
+		LQLTranslateTimeTest{
+			Name:       "valid-rfc-central",
+			Input:      "2021-03-31T00:00:00-05:00",
+			ReturnTime: "2021-03-31T05:00:00Z",
+			ReturnErr:  nil,
+		},
+		LQLTranslateTimeTest{
+			Name:       "valid-milli",
+			Input:      "1617230464000",
+			ReturnTime: "2021-03-31T22:41:04Z",
+			ReturnErr:  nil,
+		},
+		LQLTranslateTimeTest{
+			Name:       "valid-relative",
+			Input:      "@d",
+			ReturnTime: atDay.UTC().Format(time.RFC3339),
+			ReturnErr:  nil,
+		},
+		LQLTranslateTimeTest{
+			Name:       "empty",
+			Input:      "",
+			ReturnTime: "",
+			ReturnErr:  nil,
+		},
+		LQLTranslateTimeTest{
+			Name:       "invalid",
+			Input:      "jweaver",
+			ReturnTime: "",
+			ReturnErr:  "unable to parse time (jweaver)",
+		},
+	}
+)
 
 func TestLQLTranslateTime(t *testing.T) {
 	for _, lqlTranslateTimeTest := range lqlTranslateTimeTests {

@@ -82,8 +82,11 @@ func TestQueryRunHelp(t *testing.T) {
 	out, err, exitcode := LaceworkCLI("help", "query", "run")
 	assert.Contains(t, out.String(), "lacework query run [query_id] [flags]")
 	assert.Contains(t, out.String(), "--end string")
+	assert.Contains(t, out.String(), `end time for LQL query (default "now")`)
 	assert.Contains(t, out.String(), "-f, --file string")
 	assert.Contains(t, out.String(), "--start string")
+	assert.Contains(t, out.String(), `start time for LQL query (default "@d")`)
+	assert.Contains(t, out.String(), "--range string")
 	assert.Contains(t, out.String(), "-u, --url string")
 	assert.Contains(t, out.String(), "--validate_only")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -119,16 +122,14 @@ func TestQueryRunID(t *testing.T) {
 	// teardown
 	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
 
-	// run
-	out, err, exitcode := LaceworkCLIWithTOMLConfig(
-		"query", "run", lqlQueryID, "--start", lqlQueryStart, "--end", lqlQueryEnd)
+	// run (default times)
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "run", lqlQueryID)
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// validate_only
-	out, err, exitcode = LaceworkCLIWithTOMLConfig(
-		"query", "run", lqlQueryID, "--start", lqlQueryStart, "--end", lqlQueryEnd, "--validate_only")
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "run", lqlQueryID, "--validate_only")
 	assert.Contains(t, out.String(), "LQL query validated successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -152,7 +153,7 @@ func TestQueryRunFile(t *testing.T) {
 	}
 	file.Close()
 
-	// run
+	// run (explicit times)
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-f", file.Name(), "--start", lqlQueryStart, "--end", lqlQueryEnd)
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
@@ -161,7 +162,7 @@ func TestQueryRunFile(t *testing.T) {
 
 	// validate_only
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig(
-		"query", "run", "-f", file.Name(), "--start", lqlQueryStart, "--end", lqlQueryEnd, "--validate_only")
+		"query", "run", "-f", file.Name(), "--validate_only")
 	assert.Contains(t, out.String(), "LQL query validated successfully.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -171,16 +172,16 @@ func TestQueryRunURL(t *testing.T) {
 	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
-	// run
+	// run (natural time)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
-		"query", "run", "-u", lqlQueryURL, "--start", lqlQueryStart, "--end", lqlQueryEnd)
+		"query", "run", "-u", lqlQueryURL, "--range", "last week")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// validate_only
 	out, err, exitcode = LaceworkCLIWithTOMLConfig(
-		"query", "run", "-u", lqlQueryURL, "--start", lqlQueryStart, "--end", lqlQueryEnd, "--validate_only")
+		"query", "run", "-u", lqlQueryURL, "--validate_only")
 	assert.Contains(t, out.String(), "LQL query validated successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
