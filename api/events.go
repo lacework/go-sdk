@@ -44,12 +44,6 @@ func (svc *EventsService) List() (EventsResponse, error) {
 	return svc.ListDateRange(from, now)
 }
 
-// TODO @afiune (to-be-deprecated) https://github.com/lacework/go-sdk/issues/161
-func (svc *EventsService) ListRange(start, end time.Time) (EventsResponse, error) {
-	svc.client.log.Warn("ListRange() is DEPRECATED: use ListDateRange() instead")
-	return svc.ListDateRange(start, end)
-}
-
 // ListDateRange returns a list of Lacework events during the specified date range
 //
 // Requirements and specifications:

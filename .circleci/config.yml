@@ -173,16 +173,7 @@ workflows:
   version: 2
   build_test_trigger-release:
     jobs:
-      - prepare-test-resources
-      - unit-test
-      - build-cli
-      - integration-test-linux:
-          requires:
-            - build-cli
       - trigger-release:
-          requires:
-            - unit-test
-            - integration-test-linux
           filters:
             branches:
               only: main

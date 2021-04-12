@@ -21,8 +21,9 @@ package cmd
 import (
 	"testing"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 func TestComplianceRecommendationsFilterNoResults(t *testing.T) {

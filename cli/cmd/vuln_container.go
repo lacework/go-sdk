@@ -629,6 +629,8 @@ type packageTable struct {
 	packageName    string
 	currentVersion string
 	fixVersion     string
+	packageStatus  string
+	hostCount      int
 }
 
 func aggregatePackages(slice []packageTable, s packageTable) []packageTable {
@@ -906,7 +908,7 @@ func getContainerRegistries() ([]string, error) {
 // Creates a user-friendly error message
 func userFriendlyErrorForOnDemandCtrVulnScan(err error, registry, repo, tag string) error {
 	if strings.Contains(err.Error(),
-		"Could not find integraion matching the registry provided",
+		"Could not find integration matching the registry provided",
 	) || strings.Contains(err.Error(),
 		"Could not find vulnerability integrations",
 	) {

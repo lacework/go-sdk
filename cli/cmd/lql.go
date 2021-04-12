@@ -154,10 +154,7 @@ func setQueryFlags(cmds ...*flag.FlagSet) {
 }
 
 // for commands that take a query as input
-func inputQuery(cmd *cobra.Command, args []string) (
-	query string,
-	err error,
-) {
+func inputQuery(cmd *cobra.Command, args []string) (string, error) {
 	// if a query_id was specified
 	if len(args) != 0 && args[0] != "" {
 		return inputQueryFromEnv(args[0])
@@ -182,10 +179,7 @@ func inputQuery(cmd *cobra.Command, args []string) (
 	return inputQueryFromEditor(action)
 }
 
-func inputQueryFromEnv(queryID string) (
-	query string,
-	err error,
-) {
+func inputQueryFromEnv(queryID string) (query string, err error) {
 	var queryResponse api.LQLQueryResponse
 
 	queryResponse, err = cli.LwApi.LQL.GetQueryByID(queryID)
@@ -195,18 +189,12 @@ func inputQueryFromEnv(queryID string) (
 	return
 }
 
-func inputQueryFromRepo() (
-	query string,
-	err error,
-) {
+func inputQueryFromRepo() (query string, err error) {
 	err = errors.New("NotImplementedError")
 	return
 }
 
-func inputQueryFromFile(filePath string) (
-	query string,
-	err error,
-) {
+func inputQueryFromFile(filePath string) (query string, err error) {
 	fileData, err := ioutil.ReadFile(filePath)
 
 	if err != nil {
@@ -218,10 +206,7 @@ func inputQueryFromFile(filePath string) (
 	return
 }
 
-func inputQueryFromURL(url string) (
-	query string,
-	err error,
-) {
+func inputQueryFromURL(url string) (query string, err error) {
 	msg := "unable to open URL"
 
 	response, err := http.Get(url)
@@ -245,10 +230,7 @@ func inputQueryFromURL(url string) (
 	return
 }
 
-func inputQueryFromEditor(action string) (
-	query string,
-	err error,
-) {
+func inputQueryFromEditor(action string) (query string, err error) {
 	prompt := &survey.Editor{
 		Message:  fmt.Sprintf("Type a query to %s", action),
 		FileName: "query*.sh",

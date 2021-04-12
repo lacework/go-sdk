@@ -43,7 +43,7 @@ func createServiceNowAlertChannelIntegration() error {
 		},
 		{
 			Name:     "password",
-			Prompt:   &survey.Input{Message: "Password:"},
+			Prompt:   &survey.Password{Message: "Password:"},
 			Validate: survey.Required,
 		},
 		{

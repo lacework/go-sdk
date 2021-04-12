@@ -2,10 +2,6 @@
 
 list all available external integrations
 
-### Synopsis
-
-list all available external integrations
-
 ```
 lacework integration list [flags]
 ```

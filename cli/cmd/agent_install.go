@@ -21,9 +21,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net"
-	"net/http"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -34,6 +32,9 @@ import (
 
 	"github.com/lacework/go-sdk/lwrunner"
 )
+
+// Official download url for installing Lacework agents
+const agentInstallDownloadURL = "https://packages.lacework.net/install.sh"
 
 func installRemoteAgent(_ *cobra.Command, args []string) error {
 	var (
@@ -115,13 +116,7 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 			return err
 		}
 	}
-
-	downloadUrl, err := latestAgentInstallDownloadUrl()
-	if err != nil {
-		return err
-	}
-
-	cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", downloadUrl, token)
+	cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 	return runInstallCommandOnRemoteHost(runner, cmd)
 }
 
@@ -148,40 +143,6 @@ func runInstallCommandOnRemoteHost(runner *lwrunner.Runner, cmd string) error {
 			t.SetAutoWrapText(false)
 		})))
 	return nil
-}
-
-func latestAgentInstallDownloadUrl() (string, error) {
-	sha, err := latestAgentVersionSHA()
-	if err != nil {
-		return "", err
-	}
-
-	url := fmt.Sprintf("https://s3-us-west-2.amazonaws.com/www.lacework.net/download/%s/install.sh", sha)
-	cli.Log.Debugw("latest agent install.sh", "url", url)
-	return url, nil
-}
-
-func latestAgentVersionSHA() (string, error) {
-	url := "https://techally-artifacts.s3-us-west-2.amazonaws.com/lacework-cli-prod/agent-install/latest"
-	cli.Log.Debugw("fetching latest agent version SHA", "url", url)
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to fetch latest agent version")
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == 404 {
-		return "", errors.New("agent version artifact not found. Report this to support@lacework.net")
-	}
-
-	shaBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to read response from latest agent version")
-	}
-
-	sha := strings.TrimSpace(string(shaBytes))
-	cli.Log.Debugw("latest agent version SHA", "sha", sha)
-	return sha, nil
 }
 
 func isAgentInstalledOnRemoteHost(runner *lwrunner.Runner) error {
