@@ -28,7 +28,6 @@ lacework compliance aws get-report <account_id> [flags]
       --details            increase details about the compliance report
   -h, --help               help for get-report
       --pdf                download report in PDF format
-      --pdf-file string    (DEPRECATED) use --pdf
       --service strings    filter report details by service (aws:s3, aws:iam, aws:cloudtrail, ...)
       --severity string    filter report details by severity threshold (critical, high, medium, low, info)
       --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
