@@ -120,7 +120,8 @@ func (q LQLQuery) TranslateTime(inTime string) (outTime string, err error) {
 		if t, err := rt.Time(); err == nil {
 			return t.UTC().Format(time.RFC3339), err
 		}
-		return outTime, errors.Wrap(err, baseErr)
+		err = errors.Wrap(err, baseErr)
+		return
 	}
 	// parse time as RFC3339
 	var t time.Time
@@ -134,7 +135,8 @@ func (q LQLQuery) TranslateTime(inTime string) (outTime string, err error) {
 		outTime = time.Unix(0, i*int64(time.Millisecond)).UTC().Format(time.RFC3339)
 		return
 	}
-	return outTime, errors.New(baseErr)
+	err = errors.New(baseErr)
+	return
 }
 
 func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {

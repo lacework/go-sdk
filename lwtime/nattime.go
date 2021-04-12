@@ -80,7 +80,7 @@ func (nt *NatTime) LoadRelTimeUnit(u string) bool {
 	return true
 }
 
-func (nt *NatTime) Parse(s string) (err error) {
+func (nt *NatTime) Parse(s string) error {
 	s = strings.ToLower(s)
 	// Today
 	if NatTimeAdjective(s) == Today {
@@ -116,6 +116,7 @@ func (nt *NatTime) Parse(s string) (err error) {
 	}
 	// Num
 	nt.Num = nt_parts[2]
+	var err error
 	nt.INum, err = strconv.Atoi(nt.Num)
 	if err != nil {
 		nt.Num = "1"
@@ -133,9 +134,9 @@ type NatTimeRange struct {
 	End   string
 }
 
-func (ntr *NatTimeRange) Parse(s string) (err error) {
+func (ntr *NatTimeRange) Parse(s string) error {
 	nt := NatTime{}
-	if err = nt.Parse(s); err != nil {
+	if err := nt.Parse(s); err != nil {
 		return err
 	}
 
@@ -158,7 +159,8 @@ func (ntr *NatTimeRange) Parse(s string) (err error) {
 }
 
 func (ntr NatTimeRange) Range() (start time.Time, end time.Time, err error) {
-	return ntr.Range_(time.Now())
+	start, end, err = ntr.Range_(time.Now())
+	return
 }
 
 func (ntr NatTimeRange) Range_(t time.Time) (start time.Time, end time.Time, err error) {
@@ -167,25 +169,28 @@ func (ntr NatTimeRange) Range_(t time.Time) (start time.Time, end time.Time, err
 
 	// start
 	if err = rt.Parse(ntr.Start); err != nil {
-		return start, end, errors.Wrap(
+		err = errors.Wrap(
 			errors.New(fmt.Sprintf(
 				"invalid relative time (%s) for range start", ntr.Start)),
 			baseErr,
 		)
+		return
 	}
 	if start, err = rt.Time_(t); err != nil {
-		return start, end, errors.Wrap(err, baseErr)
+		err = errors.Wrap(err, baseErr)
+		return
 	}
 	// end
 	if err = rt.Parse(ntr.End); err != nil {
-		return start, end, errors.Wrap(
+		err = errors.Wrap(
 			errors.New(fmt.Sprintf(
 				"invalid relative time (%s) for range end", ntr.End)),
 			baseErr,
 		)
+		return
 	}
 	if end, err = rt.Time_(t); err != nil {
-		return start, end, err
+		return
 	}
-	return start, end, err
+	return
 }

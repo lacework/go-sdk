@@ -72,8 +72,9 @@ func (rtu RelTimeUnit) IsValid() bool {
 func (rtu RelTimeUnit) SnapTime(inTime time.Time) (outTime time.Time, err error) {
 	// immediately short circuit if snap is invalid
 	if !rtu.IsValid() {
-		return outTime, errors.New(
-			fmt.Sprintf("snap (%s) is not a valid relative time unit", rtu))
+		err = errors.New(fmt.Sprintf(
+			"snap (%s) is not a valid relative time unit", rtu))
+		return
 	}
 
 	year, month, day := inTime.Date()
@@ -92,7 +93,7 @@ func (rtu RelTimeUnit) SnapTime(inTime time.Time) (outTime time.Time, err error)
 			relDate.Day,
 			0, 0, 0, 0, inTime.Location(),
 		)
-		return outTime, nil
+		return
 	case Year:
 		month = 1
 		fallthrough
@@ -111,7 +112,8 @@ func (rtu RelTimeUnit) SnapTime(inTime time.Time) (outTime time.Time, err error)
 	case Second:
 		nano = 0
 	}
-	return time.Date(year, month, day, hour, minute, second, nano, inTime.Location()), nil
+	outTime = time.Date(year, month, day, hour, minute, second, nano, inTime.Location())
+	return
 }
 
 type RelTime struct {
@@ -121,7 +123,7 @@ type RelTime struct {
 	Snap RelTimeUnit
 }
 
-func (rt *RelTime) Parse(s string) (err error) {
+func (rt *RelTime) Parse(s string) error {
 	var rt_parts []string
 	// now is equivelant to +0s
 	if s == "now" {
@@ -138,6 +140,7 @@ func (rt *RelTime) Parse(s string) (err error) {
 	} else {
 		rt.Num = rt_parts[2]
 	}
+	var err error
 	rt.INum, err = strconv.Atoi(rt.Num)
 	if err != nil {
 		rt.Num = "0"
@@ -165,8 +168,9 @@ func (rt *RelTime) Parse(s string) (err error) {
 	return nil
 }
 
-func (rt RelTime) Time() (t time.Time, err error) {
-	return rt.Time_(time.Now())
+func (rt RelTime) Time() (outTime time.Time, err error) {
+	outTime, err = rt.Time_(time.Now())
+	return
 }
 
 func (rt RelTime) Time_(inTime time.Time) (outTime time.Time, err error) {
@@ -182,23 +186,26 @@ func (rt RelTime) Time_(inTime time.Time) (outTime time.Time, err error) {
 		var d time.Duration
 		d, err = time.ParseDuration(fmt.Sprintf("%s%s", rt.Num, rt.Unit))
 		if err != nil {
-			return outTime, err
+			return
 		}
 		outTime = inTime.Add(d)
 	default:
-		return outTime, errors.Wrap(
+		err = errors.Wrap(
 			errors.New(fmt.Sprintf("relative time unit (%s) is invalid", rt.Unit)),
 			baseErr,
 		)
+		return
 	}
 	if rt.Snap != "" {
 		outTime, err = rt.Snap.SnapTime(outTime)
 	}
 	if err != nil {
-		return outTime, errors.Wrap(err, baseErr)
+		err = errors.Wrap(err, baseErr)
+		return
 	}
 	if outTime.Unix() < 0 {
-		return outTime, errors.Wrap(errors.New("time predates epoch"), baseErr)
+		err = errors.Wrap(errors.New("time predates epoch"), baseErr)
+		return
 	}
-	return outTime, err
+	return
 }
