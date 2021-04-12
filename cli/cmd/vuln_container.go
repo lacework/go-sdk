@@ -691,8 +691,8 @@ func filterVulnContainerImagePackages(image *api.VulnContainerImage) filteredPac
 			}
 		}
 	}
-	totalUnfiltered := len(filteredPackages) + len(filteredPackages)
-	return filteredPackageTable{packages: filteredPackages, totalPackages: len(filteredPackages), totalUnfiltered: totalUnfiltered}
+	totalUnfiltered := len(filteredPackages) + len(aggregatedPackages)
+	return filteredPackageTable{packages: aggregatedPackages, totalPackages: len(aggregatedPackages), totalUnfiltered: totalUnfiltered}
 }
 
 func vulContainerImagePackagesToTable(packageTable filteredPackageTable) [][]string {
