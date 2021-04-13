@@ -123,7 +123,7 @@ Then navigate to Settings > Integrations > Container Registry.
 				return cli.OutputJSON(registries)
 			}
 
-			rows := [][]string{}
+			var rows [][]string
 			for _, acc := range registries {
 				rows = append(rows, []string{acc})
 			}
@@ -175,9 +175,9 @@ filter on containers with vulnerabilities that have fixes available.`,
 				return nil
 			}
 
-			// filter assessments by repositories, if the user doens't provide a filter
+			// filter assessments by repositories, if the user doesn't provide a filter
 			// the function returns all the assessments
-			assessments := filterAssessmentsByReporitories(response.Assessments)
+			assessments := filterAssessmentsByRepositories(response.Assessments)
 
 			// if the user wants to show only assessments of running containers
 			// order them by that field, number of running containers
@@ -340,12 +340,12 @@ func init() {
 	)
 }
 
-func filterAssessmentsByReporitories(assessments []api.VulnContainerAssessmentSummary) []api.VulnContainerAssessmentSummary {
+func filterAssessmentsByRepositories(assessments []api.VulnContainerAssessmentSummary) []api.VulnContainerAssessmentSummary {
 	if len(vulCmdState.Repositories) == 0 {
 		return assessments
 	}
 
-	filtered := []api.VulnContainerAssessmentSummary{}
+	var filtered []api.VulnContainerAssessmentSummary
 	for _, assessment := range assessments {
 		// for every repository that the user is filtering for
 		for _, repo := range vulCmdState.Repositories {
@@ -527,7 +527,7 @@ func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) st
 
 	if vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled() {
 		if vulCmdState.Packages {
-			vulnPackagesTable := vulContainerImagePackagesToTable(details.packages)
+			vulnPackagesTable := vulContainerImagePackagesToTable(details.Packages)
 
 			report.WriteString(
 				renderSimpleTable(
@@ -537,11 +537,11 @@ func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) st
 			)
 
 			if vulFiltersEnabled() {
-				filteredOutput := fmt.Sprintf("%v of %v packages showing \n", details.packages.totalPackages, details.packages.totalUnfiltered)
+				filteredOutput := fmt.Sprintf("%v of %v packages showing \n", details.Packages.totalPackages, details.Packages.totalUnfiltered)
 				report.WriteString(filteredOutput)
 			}
 		} else {
-			vulnImageTable := vulContainerImageLayersToTable(details.vulns)
+			vulnImageTable := vulContainerImageLayersToTable(details.VulnerabilityDetails)
 
 			report.WriteString(
 				renderCustomTable(
@@ -558,7 +558,8 @@ func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) st
 			)
 
 			if vulFiltersEnabled() {
-				filteredOutput := fmt.Sprintf("%v of %v vulnerabilities showing \n", details.vulns.totalVulns, details.vulns.totalUnfiltered)
+				filteredOutput := fmt.Sprintf("%v of %v vulnerabilities showing \n",
+					details.VulnerabilityDetails.TotalVulnerabilitiesShowing, details.VulnerabilityDetails.TotalVulnerabilities)
 				report.WriteString(filteredOutput)
 			}
 			if !vulCmdState.Html {
@@ -575,7 +576,7 @@ func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) st
 }
 
 func buildVulnerabilityReportTable(summary vulnerabilitySummaryReport) string {
-	if summary.vulnCounts.totalVulnerabilities == 0 {
+	if summary.VulnCounts.TotalVulnerabilities == 0 {
 		return fmt.Sprintf("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
 	}
 
@@ -586,9 +587,9 @@ func buildVulnerabilityReportTable(summary vulnerabilitySummaryReport) string {
 				"Container Image Details",
 				"Vulnerabilities",
 			},
-			[][]string{[]string{
+			[][]string{{
 				renderCustomTable([]string{},
-					vulContainerImageToTable(&summary.image),
+					vulContainerImageToTable(summary.ImageInfo),
 					tableFunc(func(t *tablewriter.Table) {
 						t.SetBorder(false)
 						t.SetColumnSeparator("")
@@ -596,13 +597,13 @@ func buildVulnerabilityReportTable(summary vulnerabilitySummaryReport) string {
 					}),
 				),
 				renderCustomTable([]string{"Severity", "Count", "Fixable"},
-					vulContainerAssessmentToCountsTable(summary.vulnCounts),
+					vulContainerAssessmentToCountsTable(summary.VulnCounts),
 					tableFunc(func(t *tablewriter.Table) {
 						t.SetBorder(false)
 						t.SetColumnSeparator(" ")
-					}),
-				),
-			}},
+								}),
+							),
+						}},
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetBorder(false)
 				t.SetAutoWrapText(false)
@@ -625,12 +626,12 @@ type packageTable struct {
 }
 
 type vulnTable struct {
-	name       string
-	severity       string
-	packageName    string
-	currentVersion string
-	fixVersion     string
-	createdBy  string
+	Name       string
+	Severity       string
+	PackageName    string
+	CurrentVersion string
+	FixVersion     string
+	CreatedBy  string
 }
 
 type filteredPackageTable struct {
@@ -640,9 +641,9 @@ type filteredPackageTable struct {
 }
 
 type filteredImageTable struct {
-	vulns []vulnTable
-	totalVulns int
-	totalUnfiltered int
+	Vulnerabilities []vulnTable
+	TotalVulnerabilitiesShowing int
+	TotalVulnerabilities int
 }
 
 func aggregatePackages(slice []packageTable, s packageTable) []packageTable {
@@ -743,29 +744,29 @@ func filterVulContainerImageLayers(image *api.VulnContainerImage) filteredImageT
 				createdBy := space.ReplaceAllString(layer.CreatedBy, " ")
 
 				vulns = append(vulns, vulnTable{
-					name:           vul.Name,
-					severity:       strings.Title(vul.Severity),
-					packageName:    pkg.Name,
-					currentVersion: pkg.Version,
-					fixVersion:     vul.FixVersion,
-					createdBy:      createdBy,
+					Name:           vul.Name,
+					Severity:       strings.Title(vul.Severity),
+					PackageName:    pkg.Name,
+					CurrentVersion: pkg.Version,
+					FixVersion:     vul.FixVersion,
+					CreatedBy:      createdBy,
 				})
 			}
 		}
 	}
-	return filteredImageTable{vulns: vulns, totalVulns: len(vulns), totalUnfiltered: vulnsCount}
+	return filteredImageTable{Vulnerabilities: vulns, TotalVulnerabilitiesShowing: len(vulns), TotalVulnerabilities: vulnsCount}
 }
 
 	func vulContainerImageLayersToTable(imageTable filteredImageTable) [][]string {
 		var out [][]string
-	for _, vuln := range imageTable.vulns {
+	for _, vuln := range imageTable.Vulnerabilities {
 				out = append(out, []string{
-					vuln.name,
-					vuln.severity,
-					vuln.packageName,
-					vuln.currentVersion,
-					vuln.fixVersion,
-					vuln.createdBy,
+					vuln.Name,
+					vuln.Severity,
+					vuln.PackageName,
+					vuln.CurrentVersion,
+					vuln.FixVersion,
+					vuln.CreatedBy,
 				})
 	}
 
@@ -778,33 +779,28 @@ func filterVulContainerImageLayers(image *api.VulnContainerImage) filteredImageT
 
 func vulContainerAssessmentToCountsTable(count vulnCounts) [][]string {
 	return [][]string{
-		[]string{"Critical", fmt.Sprint(count.criticalVulnerabilities),
-			fmt.Sprint(count.fixableVulnCounts.fixableCriticalVulnerabilities)},
-		[]string{"High", fmt.Sprint(count.highVulnerabilities),
-			fmt.Sprint(count.fixableVulnCounts.fixableHighVulnerabilities)},
-		[]string{"Medium", fmt.Sprint(count.mediumVulnerabilities),
-			fmt.Sprint(count.fixableVulnCounts.fixableMediumVulnerabilities)},
-		[]string{"Low", fmt.Sprint(count.lowVulnerabilities),
-			fmt.Sprint(count.fixableVulnCounts.fixableLowVulnerabilities)},
-		[]string{"Info", fmt.Sprint(count.infoVulnerabilities),
-			fmt.Sprint(count.fixableVulnCounts.fixableInfoVulnerabilities)},
+		{"Critical", fmt.Sprint(count.CriticalVulnerabilities),
+			fmt.Sprint(count.FixableVulnCounts.FixableCriticalVulnerabilities)},
+		{"High", fmt.Sprint(count.HighVulnerabilities),
+			fmt.Sprint(count.FixableVulnCounts.FixableHighVulnerabilities)},
+		{"Medium", fmt.Sprint(count.MediumVulnerabilities),
+			fmt.Sprint(count.FixableVulnCounts.FixableMediumVulnerabilities)},
+		{"Low", fmt.Sprint(count.LowVulnerabilities),
+			fmt.Sprint(count.FixableVulnCounts.FixableLowVulnerabilities)},
+		{"Info", fmt.Sprint(count.InfoVulnerabilities),
+			fmt.Sprint(count.FixableVulnCounts.FixableInfoVulnerabilities)},
 	}
 }
 
-func vulContainerImageToTable(image *api.VulnContainerImage) [][]string {
-	if image == nil || image.ImageInfo == nil {
-		return [][]string{}
-	}
-
-	info := image.ImageInfo
+func vulContainerImageToTable(info imageInfo) [][]string {
 	return [][]string{
-		[]string{"ID", info.ImageID},
-		[]string{"Digest", info.ImageDigest},
-		[]string{"Registry", info.Registry},
-		[]string{"Repository", info.Repository},
-		[]string{"Size", byteCountBinary(info.Size)},
-		[]string{"Created At", info.CreatedTime},
-		[]string{"Tags", strings.Join(info.Tags, ",")},
+		{"ID", info.ImageID},
+		{"Digest", info.ImageDigest},
+		{"Registry", info.Registry},
+		{"Repository", info.Repository},
+		{"Size", byteCountBinary(info.Size)},
+		{"Created At", info.CreatedTime},
+		{"Tags", strings.Join(info.Tags, ",")},
 	}
 }
 
@@ -901,7 +897,7 @@ type assessmentOutput struct {
 }
 
 func vulSummaryFromAssessment(assessment *api.VulnContainerAssessmentSummary) (string, bool) {
-	summary := []string{}
+	var summary []string
 
 	summary = addToAssessmentSummary(summary, assessment.NumVulnerabilitiesSeverity1, "Critical")
 	summary = addToAssessmentSummary(summary, assessment.NumVulnerabilitiesSeverity2, "High")
