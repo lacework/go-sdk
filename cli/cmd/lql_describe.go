@@ -33,7 +33,7 @@ var (
 		Use:   "describe <data_source>",
 		Short: "describe an LQL data source",
 		Long:  `Describe an LQL data source.`,
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.ExactArgs(1),
 		RunE:  describeQuerySource,
 	}
 )
@@ -70,30 +70,18 @@ func describeToTable(describeData []api.LQLDescribeData) (out [][]string) {
 }
 
 func describeQuerySource(_ *cobra.Command, args []string) error {
-	lqlDescribeUnableMsg := "unable to describe LQL data source"
-	var dataSource string
+	cli.Log.Debugw("describing LQL data source", "data source", args[0])
 
-	if len(args) != 0 && args[0] != "" {
-		dataSource = args[0]
-	} else {
-		return errors.Wrap(
-			errors.New("Please specify a valid data source."),
-			lqlDescribeUnableMsg,
-		)
-	}
-
-	cli.Log.Debugw("describing LQL data source", "data source", dataSource)
-
-	describe, err := cli.LwApi.LQL.Describe(dataSource)
+	describe, err := cli.LwApi.LQL.Describe(args[0])
 
 	if err != nil {
-		return errors.Wrap(err, lqlDescribeUnableMsg)
+		return errors.Wrap(err, "unable to describe LQL data source")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(describe.Data)
 	}
 	if len(describe.Data) == 0 {
-		return yikes(lqlDescribeUnableMsg)
+		return yikes("unable to describe LQL data source")
 	}
 	cli.OutputHuman(
 		renderSimpleTable(

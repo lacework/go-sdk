@@ -29,7 +29,7 @@ var (
 		Use:   "show <query_id>",
 		Short: "show an LQL query",
 		Long:  `Show an LQL query.`,
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.ExactArgs(1),
 		RunE:  showQuery,
 	}
 )
@@ -39,30 +39,18 @@ func init() {
 }
 
 func showQuery(_ *cobra.Command, args []string) error {
-	lqlShowUnableMsg := "unable to show LQL query"
-	var queryID string
+	cli.Log.Debugw("retrieving LQL query", "queryID", args[0])
 
-	if len(args) != 0 && args[0] != "" {
-		queryID = args[0]
-	} else {
-		return errors.Wrap(
-			errors.New("Please specify a valid query ID."),
-			lqlShowUnableMsg,
-		)
-	}
-
-	cli.Log.Debugw("retrieving LQL query", "queryID", queryID)
-
-	queryResponse, err := cli.LwApi.LQL.GetQueryByID(queryID)
+	queryResponse, err := cli.LwApi.LQL.GetQueryByID(args[0])
 
 	if err != nil {
-		return errors.Wrap(err, lqlShowUnableMsg)
+		return errors.Wrap(err, "unable to show LQL query")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)
 	}
 	if len(queryResponse.Data) == 0 {
-		return yikes(lqlShowUnableMsg)
+		return yikes("unable to show LQL query")
 	}
 	cli.OutputHuman(queryResponse.Data[0].QueryText)
 	return nil

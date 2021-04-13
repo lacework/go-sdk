@@ -198,7 +198,7 @@ func inputQueryFromFile(filePath string) (query string, err error) {
 }
 
 func inputQueryFromURL(url string) (query string, err error) {
-	msg := "unable to open URL"
+	msg := "unable to access URL"
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -224,7 +224,7 @@ func inputQueryFromURL(url string) (query string, err error) {
 func inputQueryFromEditor(action string) (query string, err error) {
 	prompt := &survey.Editor{
 		Message:  fmt.Sprintf("Type a query to %s", action),
-		FileName: "query*.sh",
+		FileName: "query*.lql",
 	}
 	err = survey.AskOne(prompt, &query)
 

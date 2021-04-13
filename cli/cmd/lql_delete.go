@@ -31,7 +31,7 @@ var (
 		Use:   "delete <query_id>",
 		Short: "delete an LQL query",
 		Long:  `Delete an LQL query.`,
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.ExactArgs(1),
 		RunE:  deleteQuery,
 	}
 )
@@ -42,23 +42,12 @@ func init() {
 }
 
 func deleteQuery(_ *cobra.Command, args []string) error {
-	lqlDeleteUnableMsg := "unable to delete LQL query"
-	var queryID string
+	cli.Log.Debugw("deleting LQL query", "queryID", args[0])
 
-	if len(args) != 0 && args[0] != "" {
-		queryID = args[0]
-	} else {
-		return errors.Wrap(
-			errors.New("Please specify a valid query ID."),
-			lqlDeleteUnableMsg,
-		)
-	}
-
-	cli.Log.Debugw("deleting LQL query", "queryID", queryID)
-	delete, err := cli.LwApi.LQL.DeleteQuery(queryID)
+	delete, err := cli.LwApi.LQL.DeleteQuery(args[0])
 
 	if err != nil {
-		return errors.Wrap(err, lqlDeleteUnableMsg)
+		return errors.Wrap(err, "unable to delete LQL query")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(delete.Message)
