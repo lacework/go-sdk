@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	lqlCompileData string = `[{
+	lqlCompileData = `[{
 		"name": "my_lql",
 		"props": {
 			"lql": true

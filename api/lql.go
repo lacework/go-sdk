@@ -68,17 +68,18 @@ func (q *LQLQuery) Translate() error {
 		return err
 	}
 	// start
-	if start, err := q.TranslateTime(q.StartTimeRange); err != nil {
+	start, err := q.TranslateTime(q.StartTimeRange)
+	if err != nil {
 		return err
-	} else {
-		q.StartTimeRange = start
 	}
+	q.StartTimeRange = start
 	// end
-	if end, err := q.TranslateTime(q.EndTimeRange); err != nil {
+	end, err := q.TranslateTime(q.EndTimeRange)
+	if err != nil {
 		return nil
-	} else {
-		q.EndTimeRange = end
 	}
+	q.EndTimeRange = end
+
 	return nil
 }
 

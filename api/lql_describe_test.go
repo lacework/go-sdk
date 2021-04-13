@@ -31,8 +31,8 @@ import (
 )
 
 var (
-	lqlDataSource   string = "CloudTrailRawEvents"
-	lqlDescribeData string = `[{
+	lqlDataSource   = "CloudTrailRawEvents"
+	lqlDescribeData = `[{
 		"props": {
 			"cachable": true
 		},

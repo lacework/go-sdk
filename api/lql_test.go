@@ -32,23 +32,23 @@ import (
 )
 
 var (
-	lqlQueryID    string = "my_lql"
-	lqlQueryStr   string = "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
-	lqlCreateData string = `[
+	lqlQueryID    = "my_lql"
+	lqlQueryStr   = "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+	lqlCreateData = `[
 	{
 		"lql_id": "my_lql",
 		"query_text": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
 	}
 ]`
-	lqlRunData string = `[
+	lqlRunData = `[
 	{
 		"INSERT_ID": "35308423"
 	}
 ]`
-	lqlErrorReponse string = mockLQLDataResponse(
+	lqlErrorReponse = mockLQLDataResponse(
 		`{ "message": "Error Serving Request" }`,
 	)
-	lqlUnableResponse string = mockLQLMessageResponse(
+	lqlUnableResponse = mockLQLMessageResponse(
 		`"message": "{\"error\":\"Error: Unable to locate lql query NoSuchQuery, please double check the query exists and has not already been updated.\"}"`,
 		"false",
 	)
@@ -62,10 +62,10 @@ type LQLTranslateTimeTest struct {
 }
 
 var (
-	reltime               lwtime.RelTime         = lwtime.RelTime{}
-	_                     error                  = reltime.Parse("@d")
-	atDay, _                                     = reltime.Time()
-	lqlTranslateTimeTests []LQLTranslateTimeTest = []LQLTranslateTimeTest{
+	reltime               = lwtime.RelTime{}
+	_                     = reltime.Parse("@d")
+	atDay, _              = reltime.Time()
+	lqlTranslateTimeTests = []LQLTranslateTimeTest{
 		LQLTranslateTimeTest{
 			Name:       "valid-rfc-utc",
 			Input:      "2021-03-31T00:00:00Z",
@@ -126,7 +126,7 @@ type LQLValidateRangeTest struct {
 	Return     interface{}
 }
 
-var lqlValidateRangeTests []LQLValidateRangeTest = []LQLValidateRangeTest{
+var lqlValidateRangeTests = []LQLValidateRangeTest{
 	LQLValidateRangeTest{
 		Name: "ok",
 		Input: api.LQLQuery{
@@ -230,7 +230,7 @@ type LQLValidateTest struct {
 	Return interface{}
 }
 
-var lqlValidateTests []LQLValidateTest = []LQLValidateTest{
+var lqlValidateTests = []LQLValidateTest{
 	LQLValidateTest{
 		Name: "empty",
 		Input: &api.LQLQuery{
@@ -264,7 +264,7 @@ type LQLQueryTest struct {
 	Expected *api.LQLQuery
 }
 
-var lqlQueryTypeTests []LQLQueryTest = []LQLQueryTest{
+var lqlQueryTypeTests = []LQLQueryTest{
 	LQLQueryTest{
 		Name: "empty-blob",
 		Input: &api.LQLQuery{

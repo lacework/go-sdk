@@ -35,9 +35,9 @@ const (
 )
 
 var (
-	d, _                 = time.ParseDuration("-24h")
-	lqlQueryStart string = time.Now().Add(d).Format(time.RFC3339)
-	lqlQueryEnd   string = time.Now().Format(time.RFC3339)
+	d, _          = time.ParseDuration("-24h")
+	lqlQueryStart = time.Now().Add(d).Format(time.RFC3339)
+	lqlQueryEnd   = time.Now().Format(time.RFC3339)
 )
 
 func TestQueryAliases(t *testing.T) {

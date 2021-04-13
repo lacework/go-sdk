@@ -44,18 +44,16 @@ func init() {
 }
 
 func createQuery(cmd *cobra.Command, args []string) error {
-	lqlCreateUnableMsg := "unable to create LQL query"
-
 	query, err := inputQuery(cmd, args)
 	if err != nil {
-		return errors.Wrap(err, lqlCreateUnableMsg)
+		return errors.Wrap(err, "unable to create LQL query")
 	}
 
 	cli.Log.Debugw("creating LQL query", "query", query)
 	create, err := cli.LwApi.LQL.CreateQuery(query)
 
 	if err != nil {
-		return errors.Wrap(err, lqlCreateUnableMsg)
+		return errors.Wrap(err, "unable to create LQL query")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(create.Data)
