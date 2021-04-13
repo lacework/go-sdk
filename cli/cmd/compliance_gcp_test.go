@@ -58,7 +58,7 @@ func TestSplitIDAndAlias(t *testing.T) {
 	}
 }
 
-func TestFixGcpProjectsApiResponse(t *testing.T) {
+func TestSplitGcpProjectsApiResponse(t *testing.T) {
 	cases := []struct {
 		subject  api.CompGcpProjects
 		expected cliComplianceGcpInfo
