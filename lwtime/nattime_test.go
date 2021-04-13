@@ -46,7 +46,7 @@ type NatTimeLoadRTUTest struct {
 	OK       bool
 }
 
-var NatTimeLoadRTUTests []NatTimeLoadRTUTest = []NatTimeLoadRTUTest{
+var NatTimeLoadRTUTests = []NatTimeLoadRTUTest{
 	NatTimeLoadRTUTest{
 		"year",
 		"year",
@@ -121,7 +121,7 @@ type NatTimeParseTest struct {
 	Error    error
 }
 
-var NatTimeParseTests []NatTimeParseTest = []NatTimeParseTest{
+var NatTimeParseTests = []NatTimeParseTest{
 	NatTimeParseTest{
 		"today",
 		"TODAY",
@@ -206,7 +206,7 @@ type NatTimeRangeParseTest struct {
 	Error    error
 }
 
-var NatTimeRangeParseTests []NatTimeRangeParseTest = []NatTimeRangeParseTest{
+var NatTimeRangeParseTests = []NatTimeRangeParseTest{
 	NatTimeRangeParseTest{
 		"today",
 		"today",
@@ -281,7 +281,7 @@ type NatTimeRangeRange_Test struct {
 	Error               error
 }
 
-var NatTimeRangeRange_Tests []NatTimeRangeRange_Test = []NatTimeRangeRange_Test{
+var NatTimeRangeRange_Tests = []NatTimeRangeRange_Test{
 	NatTimeRangeRange_Test{
 		"today",
 		"2021-01-01T00:00:01Z",

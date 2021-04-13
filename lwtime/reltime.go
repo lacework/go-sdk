@@ -51,7 +51,7 @@ func Mondays(year int) (mondays []RelDate) {
 type RelTimeUnit string
 
 const (
-	relTimeRE string      = `^([+-])?(?:(\d+)(\w+))?(?:@(\w+))?$`
+	relTimeRE             = `^([+-])?(?:(\d+)(\w+))?(?:@(\w+))?$`
 	Year      RelTimeUnit = "y"
 	Month     RelTimeUnit = "mon"
 	Week      RelTimeUnit = "w"

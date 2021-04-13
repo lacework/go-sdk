@@ -32,8 +32,8 @@ type NatTimeAdjective string
 
 const (
 	// both plural and singular regular expressions should contain 3 capture groups
-	natTimePluralRE   string = `^(last)\s(\d+)\s(years|months|weeks|days|hours|minutes|seconds)$`
-	natTimeSingularRE string = `^(this|current|previous|last)(\s)(year|month|week|day|hour|minute|second)$`
+	natTimePluralRE   = `^(last)\s(\d+)\s(years|months|weeks|days|hours|minutes|seconds)$`
+	natTimeSingularRE = `^(this|current|previous|last)(\s)(year|month|week|day|hour|minute|second)$`
 
 	Today     NatTimeAdjective = "today"
 	Yesterday NatTimeAdjective = "yesterday"

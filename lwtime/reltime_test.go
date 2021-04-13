@@ -60,7 +60,7 @@ type RTUSnapTest struct {
 	Error               error
 }
 
-var RTUSnapTests []RTUSnapTest = []RTUSnapTest{
+var RTUSnapTests = []RTUSnapTest{
 	RTUSnapTest{
 		"year",
 		"2006-02-02T15:04:05-07:00",
@@ -159,7 +159,7 @@ type RelTimeParseTest struct {
 	Error  error
 }
 
-var RelTimeParseTests []RelTimeParseTest = []RelTimeParseTest{
+var RelTimeParseTests = []RelTimeParseTest{
 	RelTimeParseTest{
 		"now",
 		"now",
@@ -298,7 +298,7 @@ type RelTimeTime_Test struct {
 	Error               error
 }
 
-var RelTimeTime_Tests []RelTimeTime_Test = []RelTimeTime_Test{
+var RelTimeTime_Tests = []RelTimeTime_Test{
 	RelTimeTime_Test{
 		"now",
 		"2006-02-02T15:04:05-07:00",
