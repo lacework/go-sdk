@@ -644,6 +644,7 @@ type filteredImageTable struct {
 	Vulnerabilities []vulnTable
 	TotalVulnerabilitiesShowing int
 	TotalVulnerabilities int
+	ImageLayers []api.VulnContainerImageLayer
 }
 
 func aggregatePackages(slice []packageTable, s packageTable) []packageTable {
@@ -724,10 +725,17 @@ func filterVulContainerImageLayers(image *api.VulnContainerImage) filteredImageT
 	var (
 		vulns []vulnTable
 		vulnsCount int
+		filteredImageLayers []api.VulnContainerImageLayer
+		filteredPkg api.VulnContainerPackage
+		filteredImageLayer api.VulnContainerImageLayer
 	)
 
 	for _, layer := range image.ImageLayers {
+		filteredImageLayer = layer
+		filteredImageLayer.Packages = []api.VulnContainerPackage{}
 		for _, pkg := range layer.Packages {
+			filteredPkg = pkg
+			filteredPkg.Vulnerabilities = []api.ContainerVulnerability{}
 			for _, vul := range pkg.Vulnerabilities {
 				vulnsCount++
 				if vulCmdState.Fixable && vul.FixVersion == "" {
@@ -751,10 +759,23 @@ func filterVulContainerImageLayers(image *api.VulnContainerImage) filteredImageT
 					FixVersion:     vul.FixVersion,
 					CreatedBy:      createdBy,
 				})
+
+				filteredPkg.Vulnerabilities = append(filteredPkg.Vulnerabilities , vul)
+			}
+			if len(filteredPkg.Vulnerabilities) > 0 {
+				filteredImageLayer.Packages = append(filteredImageLayer.Packages, filteredPkg)
 			}
 		}
+		if len(filteredImageLayer.Packages) > 0 {
+			filteredImageLayers = append(filteredImageLayers, filteredImageLayer)
+		}
 	}
-	return filteredImageTable{Vulnerabilities: vulns, TotalVulnerabilitiesShowing: len(vulns), TotalVulnerabilities: vulnsCount}
+
+	return filteredImageTable{
+		Vulnerabilities: vulns,
+		TotalVulnerabilitiesShowing: len(vulns),
+		TotalVulnerabilities: vulnsCount,
+		ImageLayers: filteredImageLayers}
 }
 
 	func vulContainerImageLayersToTable(imageTable filteredImageTable) [][]string {
