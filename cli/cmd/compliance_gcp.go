@@ -158,13 +158,19 @@ To run an ad-hoc compliance assessment use the command:
 				return errors.New("there is no data found in the report")
 			}
 
-			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Data[0])
+			report := response.Data[0]
+			filteredOutput := ""
+
+			if complianceFiltersEnabled() {
+				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
 			}
 
-			report := response.Data[0]
+			if cli.JSONOutput() {
+				return cli.OutputJSON(report)
+			}
+
+			recommendations := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman("\n")
-			recommendations, filteredOutput := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman(
 				buildComplianceReportTable(
 					complianceGcpReportDetailsTable(&report),
