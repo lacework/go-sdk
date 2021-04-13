@@ -138,7 +138,7 @@ func TestEventCommandOpenError(t *testing.T) {
 
 func TestEventCommandListSeverityWithJsonFlag(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--severity", "high", "--json")
-	severities := []string{"\"severity\": 3","\"severity\": 4", "\"severity\": 5"}
+	severities := []string{"\"severity\": 3", "\"severity\": 4", "\"severity\": 5"}
 	assert.Empty(t,
 		err.String(),
 		"STDERR should be empty")
