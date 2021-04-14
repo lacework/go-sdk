@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestComplianceGetReportOrgAndProjectWithAlias(t *testing.T) {
+func TestComplianceGoogleGetReportOrgAndProjectWithAlias(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "gcp", "get-report", "org-id (org-alias)", "proj-id (proj-alias)",
 	)

@@ -189,12 +189,8 @@ func complianceReportSummaryTable(summaries []api.ComplianceSummary) [][]string 
 	}
 }
 
-func complianceReportRecommendationsTable(recommendations []api.ComplianceRecommendation) ([][]string, string) {
+func complianceReportRecommendationsTable(recommendations []api.ComplianceRecommendation) [][]string {
 	out := [][]string{}
-	var filteredOutput string
-	if complianceFiltersEnabled() {
-		recommendations, filteredOutput = filterRecommendations(recommendations)
-	}
 	for _, recommend := range recommendations {
 		out = append(out, []string{
 			recommend.RecID,
@@ -211,7 +207,7 @@ func complianceReportRecommendationsTable(recommendations []api.ComplianceRecomm
 		return severityOrder(out[i][3]) < severityOrder(out[j][3])
 	})
 
-	return out, filteredOutput
+	return out
 }
 
 func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable [][]string, filteredOutput string) string {

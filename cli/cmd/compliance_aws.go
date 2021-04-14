@@ -109,10 +109,15 @@ To run an ad-hoc compliance assessment of an AWS account:
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			config := api.ComplianceAwsReportConfig{
-				AccountID: args[0],
-				Type:      compCmdState.Type,
-			}
+			var (
+				// clean the AWS account ID if it was provided
+				// with an Alias in between parentheses
+				awsAccountID, _ = splitIDAndAlias(args[0])
+				config          = api.ComplianceAwsReportConfig{
+					AccountID: awsAccountID,
+					Type:      compCmdState.Type,
+				}
+			)
 
 			if compCmdState.Pdf {
 				pdfName := fmt.Sprintf(
@@ -159,12 +164,18 @@ To run an ad-hoc compliance assessment of an AWS account:
 				return errors.New("there is no data found in the report")
 			}
 
-			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Data[0])
+			report := response.Data[0]
+			filteredOutput := ""
+
+			if complianceFiltersEnabled() {
+				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
 			}
 
-			report := response.Data[0]
-			recommendations, filteredOutput := complianceReportRecommendationsTable(report.Recommendations)
+			if cli.JSONOutput() {
+				return cli.OutputJSON(report)
+			}
+
+			recommendations := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman("\n")
 			cli.OutputHuman(
 				buildComplianceReportTable(
