@@ -43,22 +43,34 @@ Use the following command to list all Azure Tenants configured in your account:
     $ lacework compliance az list`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			response, err := cli.LwApi.Compliance.ListAzureSubscriptions(args[0])
+			var (
+				tenantID, _   = splitIDAndAlias(args[0])
+				response, err = cli.LwApi.Compliance.ListAzureSubscriptions(tenantID)
+			)
 			if err != nil {
 				return errors.Wrap(err, "unable to list azure subscriptions")
 			}
 
+			if len(response.Data) == 0 {
+				return errors.New("no data found for the provided tenant")
+			}
+
+			// ALLY-431 Workaround to split the subscription ID and subscription Alias
+			// ultimately, we need to fix this in the API response
+			cliCompAzureSubscriptions := splitAzureSubscriptionsApiResponse(response.Data[0])
+
 			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Data[0])
+				return cli.OutputJSON(cliCompAzureSubscriptions)
 			}
 
 			rows := [][]string{}
-			for _, azure := range response.Data {
-				for _, subs := range azure.Subscriptions {
-					rows = append(rows, []string{subs})
-				}
+			for _, subscription := range cliCompAzureSubscriptions.Subscriptions {
+				rows = append(rows, []string{subscription.ID, subscription.Alias})
 			}
-			cli.OutputHuman(renderSimpleTable([]string{"Subscriptions"}, rows))
+
+			cli.OutputHuman(renderSimpleTable(
+				[]string{"Subscription ID", "Subscription Alias"}, rows),
+			)
 			return nil
 		},
 	}
@@ -136,11 +148,17 @@ To run an ad-hoc compliance assessment use the command:
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(_ *cobra.Command, args []string) error {
-			config := api.ComplianceAzureReportConfig{
-				TenantID:       args[0],
-				SubscriptionID: args[1],
-				Type:           compCmdState.Type,
-			}
+			var (
+				// clean tenantID and subscriptionID if they were provided
+				// with an Alias in between parentheses
+				tenantID, _       = splitIDAndAlias(args[0])
+				subscriptionID, _ = splitIDAndAlias(args[1])
+				config            = api.ComplianceAzureReportConfig{
+					TenantID:       tenantID,
+					SubscriptionID: subscriptionID,
+					Type:           compCmdState.Type,
+				}
+			)
 
 			if compCmdState.Pdf {
 				pdfName := fmt.Sprintf(
@@ -188,12 +206,18 @@ To run an ad-hoc compliance assessment use the command:
 				return errors.New("there is no data found in the report")
 			}
 
-			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Data[0])
+			report := response.Data[0]
+			filteredOutput := ""
+
+			if complianceFiltersEnabled() {
+				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
 			}
 
-			report := response.Data[0]
-			recommendations, filteredOutput := complianceReportRecommendationsTable(report.Recommendations)
+			if cli.JSONOutput() {
+				return cli.OutputJSON(report)
+			}
+
+			recommendations := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman("\n")
 			cli.OutputHuman(
 				buildComplianceReportTable(
@@ -285,4 +309,28 @@ func complianceAzureReportDetailsTable(report *api.ComplianceAzureReport) [][]st
 		[]string{"Subscription Name", report.SubscriptionName},
 		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
+}
+
+// ALLY-431 Workaround to split the Subscription ID and Subscription Alias
+// ultimately, we need to fix this in the API response
+func splitAzureSubscriptionsApiResponse(azInfo api.CompAzureSubscriptions) cliComplianceAzureInfo {
+	var (
+		tenantID, tenantAlias = splitIDAndAlias(azInfo.Tenant)
+		cliAzureInfo          = cliComplianceAzureInfo{
+			Tenant:        cliComplianceIDAlias{tenantID, tenantAlias},
+			Subscriptions: make([]cliComplianceIDAlias, 0),
+		}
+	)
+
+	for _, subscription := range azInfo.Subscriptions {
+		id, alias := splitIDAndAlias(subscription)
+		cliAzureInfo.Subscriptions = append(cliAzureInfo.Subscriptions, cliComplianceIDAlias{id, alias})
+	}
+
+	return cliAzureInfo
+}
+
+type cliComplianceAzureInfo struct {
+	Tenant        cliComplianceIDAlias   `json:"tenant"`
+	Subscriptions []cliComplianceIDAlias `json:"subscriptions"`
 }

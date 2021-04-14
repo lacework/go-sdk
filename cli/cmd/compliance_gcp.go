@@ -49,7 +49,10 @@ Then, select one GUID from an integration and visualize its details using the co
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			response, err := cli.LwApi.Compliance.ListGcpProjects(args[0])
+			var (
+				orgID, _      = splitIDAndAlias(args[0])
+				response, err = cli.LwApi.Compliance.ListGcpProjects(orgID)
+			)
 			if err != nil {
 				return errors.Wrap(err, "unable to list gcp projects")
 			}
@@ -158,13 +161,19 @@ To run an ad-hoc compliance assessment use the command:
 				return errors.New("there is no data found in the report")
 			}
 
-			if cli.JSONOutput() {
-				return cli.OutputJSON(response.Data[0])
+			report := response.Data[0]
+			filteredOutput := ""
+
+			if complianceFiltersEnabled() {
+				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
 			}
 
-			report := response.Data[0]
+			if cli.JSONOutput() {
+				return cli.OutputJSON(report)
+			}
+
+			recommendations := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman("\n")
-			recommendations, filteredOutput := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman(
 				buildComplianceReportTable(
 					complianceGcpReportDetailsTable(&report),

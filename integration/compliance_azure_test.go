@@ -31,3 +31,19 @@ func TestComplianceAzureListTenants(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 }
+
+func TestComplianceAzureGetReportTenantAndSubscriptionWithAlias(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "azure", "get-report", "tenant-id (tenant-alias)", "subscription-id (subscription-alias)",
+	)
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(),
+		"Getting compliance report...",
+		"STDOUT changed, please check")
+	assert.Contains(t, err.String(),
+		"unable to get azure compliance report",
+		"STDERR changed, please check")
+	assert.Contains(t, err.String(),
+		"AZURE_SUBS_ID=subscription-id&AZURE_TENANT_ID=tenant-id&",
+		"STDERR changed, please check")
+}
