@@ -186,7 +186,7 @@ func calcHtmlBarChartWidth(severity string, htmlData vulnImageAssessmentHtml) st
 	case "info":
 		return fmt.Sprintf("%f%%", htmlData.InfoVulnPercent())
 	default:
-		return fmt.Sprintf("0")
+		return "0"
 	}
 }
 
