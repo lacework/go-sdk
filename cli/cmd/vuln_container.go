@@ -566,10 +566,6 @@ func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) st
 				report.WriteString("\nTry adding '--packages' to show a list of packages with CVE count.\n")
 			}
 		}
-	} else if !vulCmdState.Html {
-		report.WriteString(
-			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
-		)
 	}
 
 	return report.String()
