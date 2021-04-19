@@ -975,8 +975,12 @@ func buildListCVEReports(cves []api.HostVulnCVE) error {
 	filteredCves, filtered := hostVulnCVEs(cves)
 
 	if cli.JSONOutput() {
-		if err := cli.OutputJSON(filteredCves); err != nil {
-			return err
+		if filteredCves == nil {
+			cli.OutputJSON(buildHostVulnCVEsToTableError())
+		} else {
+			if err := cli.OutputJSON(filteredCves); err != nil {
+				return err
+			}
 		}
 		return nil
 	}
