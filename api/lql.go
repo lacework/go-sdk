@@ -109,35 +109,29 @@ func (q *LQLQuery) TranslateQuery() error {
 	return errors.New(LQLQueryTranslateError)
 }
 
-func (q LQLQuery) TranslateTime(inTime string) (outTime string, err error) {
+func (q LQLQuery) TranslateTime(inTime string) (string, error) {
 	baseErr := fmt.Sprintf("unable to parse time (%s)", inTime)
 	// empty
 	if inTime == "" {
-		return
+		return "", nil
 	}
 	// parse time as relative
 	rt := lwtime.RelTime{}
-	if err = rt.Parse(inTime); err == nil {
+	if err := rt.Parse(inTime); err == nil {
 		if t, err := rt.Time(); err == nil {
 			return t.UTC().Format(time.RFC3339), err
 		}
-		err = errors.Wrap(err, baseErr)
-		return
+		return "", errors.Wrap(err, baseErr)
 	}
 	// parse time as RFC3339
-	var t time.Time
-	if t, err = time.Parse(time.RFC3339, inTime); err == nil {
-		outTime = t.UTC().Format(time.RFC3339)
-		return
+	if t, err := time.Parse(time.RFC3339, inTime); err == nil {
+		return t.UTC().Format(time.RFC3339), nil
 	}
 	// parse time as millis
-	var i int64
-	if i, err = strconv.ParseInt(inTime, 10, 64); err == nil {
-		outTime = time.Unix(0, i*int64(time.Millisecond)).UTC().Format(time.RFC3339)
-		return
+	if i, err := strconv.ParseInt(inTime, 10, 64); err == nil {
+		return time.Unix(0, i*int64(time.Millisecond)).UTC().Format(time.RFC3339), nil
 	}
-	err = errors.New(baseErr)
-	return
+	return "", errors.New(baseErr)
 }
 
 func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {
