@@ -41,7 +41,7 @@ var (
 func init() {
 	lqlCmd.AddCommand(lqlValidateCmd)
 
-	setQueryFlags(lqlValidateCmd.Flags())
+	setQuerySourceFlags(lqlValidateCmd)
 }
 
 func validateQuery(cmd *cobra.Command, args []string) error {
@@ -58,6 +58,7 @@ func compileQueryAndOutput(query string) error {
 	compile, err := cli.LwApi.LQL.CompileQuery(query)
 
 	if err != nil {
+		err = queryErrorCrumbs(query, err)
 		return errors.Wrap(err, lqlValidateUnableMsg)
 	}
 	if cli.JSONOutput() {

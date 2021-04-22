@@ -40,7 +40,7 @@ func init() {
 	// add sub-commands to the lql command
 	lqlCmd.AddCommand(lqlUpdateCmd)
 
-	setQueryFlags(lqlUpdateCmd.Flags())
+	setQuerySourceFlags(lqlUpdateCmd)
 }
 
 func updateQuery(cmd *cobra.Command, args []string) error {
@@ -55,6 +55,7 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 	update, err := cli.LwApi.LQL.UpdateQuery(query)
 
 	if err != nil {
+		err = queryErrorCrumbs(query, err)
 		return errors.Wrap(err, lqlUpdateUnableMsg)
 	}
 	if cli.JSONOutput() {
