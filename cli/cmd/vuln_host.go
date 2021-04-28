@@ -202,7 +202,6 @@ with fixes:
 			}
 
 			response, err := cli.LwApi.Vulnerabilities.Host.ListCves()
-
 			if err != nil {
 				return errors.Wrap(err, "unable to get CVEs from hosts")
 			}
