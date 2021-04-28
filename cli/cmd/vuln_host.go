@@ -924,8 +924,11 @@ func filterHostScanPackagesVulnPackages(vulns []api.HostScanPackageVulnDetails) 
 		aggregatedPackages = aggregatePackagesWithHosts(aggregatedPackages, pack, false, vuln.HasFix())
 	}
 
-	totalUnfiltered := len(filteredPackages) + len(aggregatedPackages)
-	return filteredPackageTable{packages: aggregatedPackages, totalPackages: len(aggregatedPackages), totalUnfiltered: totalUnfiltered}
+	return filteredPackageTable{
+		packages:        aggregatedPackages,
+		totalPackages:   len(aggregatedPackages),
+		totalUnfiltered: len(filteredPackages) + len(aggregatedPackages),
+	}
 }
 
 func hostScanPackagesVulnPackagesTable(pkgs filteredPackageTable) [][]string {
