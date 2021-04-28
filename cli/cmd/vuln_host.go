@@ -1050,7 +1050,7 @@ func buildListCVEReports(cves []api.HostVulnCVE) error {
 func buildVulnHostScanPkgManifestReports(response api.HostVulnScanPkgManifestResponse) error {
 	if len(response.Vulns) == 0 {
 		// @afiune add a helpful message, possible things are:
-		cli.OutputHuman("There are no vulnerabilities found.\n")
+		cli.OutputHuman(fmt.Sprintf("There are no vulnerabilities found! Time for %s\n", randomEmoji()))
 		return nil
 	}
 
