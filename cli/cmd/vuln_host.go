@@ -531,7 +531,7 @@ func hostVulnPackagesTable(cves []api.HostVulnCVE, withHosts bool) ([][]string, 
 	return out, ""
 }
 
-func hostVulnCVEs(cves []api.HostVulnCVE) ([]api.HostVulnCVE, string) {
+func filterHostCVEsTable(cves []api.HostVulnCVE) ([]api.HostVulnCVE, string) {
 	var out []api.HostVulnCVE
 	var filteredCves = 0
 	var totalCves = 0
@@ -568,7 +568,7 @@ func hostVulnCVEsTable(cves []api.HostVulnCVE) [][]string {
 		}
 	}
 
-	//order by total number of host
+	// order by the total number of host
 	sort.Slice(out, func(i, j int) bool {
 		return stringToInt(out[i][7]) > stringToInt(out[j][7])
 	})
@@ -869,12 +869,6 @@ func filterHostScanPackagesVulnDetails(vulns []api.HostScanPackageVulnDetails) [
 			continue
 		}
 
-		fixedVersion := ""
-		if vuln.HasFix() {
-			fixedVersion = vuln.FixInfo.FixedVersion
-		}
-
-		vuln.FixInfo.FixedVersion = fixedVersion
 		out = append(out, vuln)
 	}
 
@@ -884,13 +878,19 @@ func filterHostScanPackagesVulnDetails(vulns []api.HostScanPackageVulnDetails) [
 func hostScanPackagesVulnDetailsTable(vulns []api.HostScanPackageVulnDetails) [][]string {
 	var out [][]string
 	for _, vuln := range vulns {
+
+		fixedVersion := ""
+		if vuln.HasFix() {
+			fixedVersion = vuln.FixInfo.FixedVersion
+		}
+
 		out = append(out, []string{
 			vuln.VulnID,
 			vuln.Severity,
 			vuln.ScoreString(),
 			vuln.OsPkgInfo.Pkg,
 			vuln.OsPkgInfo.PkgVer,
-			vuln.FixInfo.FixedVersion,
+			fixedVersion,
 		})
 	}
 
@@ -954,7 +954,7 @@ func hostScanPackagesVulnPackagesTable(pkgs filteredPackageTable) [][]string {
 // Build the cli output for vuln host show-assessment
 func buildVulnHostReports(assessment api.HostVulnHostAssessment) error {
 	mainReport := hostVulnHostDetailsMainReportTable(assessment)
-	filteredCves, filtered := hostVulnCVEs(assessment.CVEs)
+	filteredCves, filtered := filterHostCVEsTable(assessment.CVEs)
 	assessment.CVEs = filteredCves
 
 	detailsReport := buildVulnHostsDetailsTable(filteredCves)
@@ -976,7 +976,7 @@ func buildVulnHostReports(assessment api.HostVulnHostAssessment) error {
 
 // Build the cli output for vuln host list-cves
 func buildListCVEReports(cves []api.HostVulnCVE) error {
-	filteredCves, filtered := hostVulnCVEs(cves)
+	filteredCves, filtered := filterHostCVEsTable(cves)
 
 	if cli.JSONOutput() {
 		if filteredCves == nil {

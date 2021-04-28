@@ -30,7 +30,7 @@ func TestListCvesFilterSeverity(t *testing.T) {
 	defer clearVulnFilters()
 
 	mockCves := []api.HostVulnCVE{mockCveOne}
-	result, output := hostVulnCVEs(mockCves)
+	result, output := filterHostCVEsTable(mockCves)
 
 	assert.Equal(t, len(result), 1)
 	assert.Equal(t, output, "\n1 of 2 cve(s) showing \n")
@@ -41,7 +41,7 @@ func TestShowAssessmentFilterSeverity(t *testing.T) {
 	defer clearVulnFilters()
 
 	mockCves := []api.HostVulnCVE{mockCveOne}
-	result, output := hostVulnCVEs(mockCves)
+	result, output := filterHostCVEsTable(mockCves)
 
 	assert.Equal(t, len(result), 1)
 	assert.Equal(t, output, "\n1 of 2 cve(s) showing \n")
