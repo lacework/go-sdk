@@ -424,7 +424,7 @@ func checkOnDemandContainerVulnerabilityStatus(reqID string) error {
 		return nil
 	}
 
-	if err := buildReports(results); err != nil {
+	if err := buildVulnContainerAssessmentReports(results); err != nil {
 		return err
 	}
 
@@ -470,7 +470,7 @@ func showContainerAssessmentsWithSha256(sha string) error {
 	status := assessment.CheckStatus()
 	switch status {
 	case "Success":
-		if err := buildReports(&assessment.Data); err != nil {
+		if err := buildVulnContainerAssessmentReports(&assessment.Data); err != nil {
 			return err
 		}
 	case "Unsupported":
