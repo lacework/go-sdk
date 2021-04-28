@@ -43,12 +43,13 @@ type Client struct {
 	log        *zap.Logger
 	headers    map[string]string
 
-	LQL             *LQLService
 	Account         *AccountService
 	Agents          *AgentsService
-	Events          *EventsService
 	Compliance      *ComplianceService
+	Events          *EventsService
 	Integrations    *IntegrationsService
+	LQL             *LQLService
+	Policy          *PolicyService
 	Vulnerabilities *VulnerabilitiesService
 }
 
@@ -93,12 +94,13 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		},
 		c: &http.Client{Timeout: defaultTimeout},
 	}
-	c.LQL = &LQLService{c}
 	c.Account = &AccountService{c}
 	c.Agents = &AgentsService{c}
-	c.Events = &EventsService{c}
 	c.Compliance = &ComplianceService{c}
+	c.Events = &EventsService{c}
 	c.Integrations = &IntegrationsService{c}
+	c.LQL = &LQLService{c}
+	c.Policy = &PolicyService{c}
 	c.Vulnerabilities = NewVulnerabilityService(c)
 
 	// init logger, this could change if a user calls api.WithLogLevel()
