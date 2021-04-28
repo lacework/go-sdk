@@ -56,8 +56,8 @@ func TestHostVulnHostAssessmentVulnerabilityCounts(t *testing.T) {
 	assert.Equal(t, int32(0), assessmentCounts.MedFixable, "wrong medium fixable vuln")
 	assert.Equal(t, int32(1), assessmentCounts.Low, "wrong low vuln")
 	assert.Equal(t, int32(0), assessmentCounts.LowFixable, "wrong low fixable vuln")
-	assert.Equal(t, int32(0), assessmentCounts.Negligible, "wrong negligible vuln")
-	assert.Equal(t, int32(0), assessmentCounts.NegFixable, "wrong negligible fixable vuln")
+	assert.Equal(t, int32(0), assessmentCounts.Info, "wrong info vuln")
+	assert.Equal(t, int32(0), assessmentCounts.InfoFixable, "wrong info fixable vuln")
 
 	assert.Equal(t, int32(7), assessmentCounts.Total, "wrong total vuln")
 	assert.Equal(t, int32(1), assessmentCounts.TotalFixable, "wrong total fixable vuln")
@@ -66,9 +66,9 @@ func TestHostVulnHostAssessmentVulnerabilityCounts(t *testing.T) {
 func TestHostVulnSeverityCountsVulnerabilityCounts(t *testing.T) {
 
 	assessment := subject.HostVulnSeverityCounts{
-		High:       &subject.HostVulnSeverityCountsDetails{32, 45},
-		Medium:     &subject.HostVulnSeverityCountsDetails{1, 432},
-		Negligible: &subject.HostVulnSeverityCountsDetails{0, 923},
+		High:   &subject.HostVulnSeverityCountsDetails{32, 45},
+		Medium: &subject.HostVulnSeverityCountsDetails{1, 432},
+		Info:   &subject.HostVulnSeverityCountsDetails{0, 923},
 	}
 
 	assessmentCounts := assessment.VulnerabilityCounts()
@@ -80,8 +80,8 @@ func TestHostVulnSeverityCountsVulnerabilityCounts(t *testing.T) {
 	assert.Equal(t, int32(1), assessmentCounts.MedFixable, "wrong medium fixable vuln")
 	assert.Equal(t, int32(0), assessmentCounts.Low, "wrong low vuln")
 	assert.Equal(t, int32(0), assessmentCounts.LowFixable, "wrong low fixable vuln")
-	assert.Equal(t, int32(923), assessmentCounts.Negligible, "wrong negligible vuln")
-	assert.Equal(t, int32(0), assessmentCounts.NegFixable, "wrong negligible fixable vuln")
+	assert.Equal(t, int32(923), assessmentCounts.Info, "wrong info vuln")
+	assert.Equal(t, int32(0), assessmentCounts.InfoFixable, "wrong info fixable vuln")
 
 	assert.Equal(t, int32(1400), assessmentCounts.Total, "wrong total vuln")
 	assert.Equal(t, int32(33), assessmentCounts.TotalFixable, "wrong total fixable vuln")
@@ -118,8 +118,8 @@ func TestHostVulnScanPkgManifestResponseVulnerabilityCounts(t *testing.T) {
 	assert.Equal(t, int32(1), assessmentCounts.MedFixable, "wrong medium fixable vuln")
 	assert.Equal(t, int32(6), assessmentCounts.Low, "wrong low vuln")
 	assert.Equal(t, int32(0), assessmentCounts.LowFixable, "wrong low fixable vuln")
-	assert.Equal(t, int32(1), assessmentCounts.Negligible, "wrong negligible vuln")
-	assert.Equal(t, int32(1), assessmentCounts.NegFixable, "wrong negligible fixable vuln")
+	assert.Equal(t, int32(1), assessmentCounts.Info, "wrong info vuln")
+	assert.Equal(t, int32(1), assessmentCounts.InfoFixable, "wrong info fixable vuln")
 
 	assert.Equal(t, int32(9), assessmentCounts.Total, "wrong total vuln")
 	assert.Equal(t, int32(2), assessmentCounts.TotalFixable, "wrong total fixable vuln")

@@ -28,7 +28,6 @@ import (
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
 )
 
 var (
@@ -96,7 +95,7 @@ func init() {
 	lqlCmd.AddCommand(lqlRunCmd)
 
 	// run specific flags
-	setQueryFlags(lqlRunCmd.Flags())
+	setQuerySourceFlags(lqlRunCmd)
 
 	// start time flag
 	// TODO: come up with reasonable default per UI (1d)
@@ -119,26 +118,28 @@ func init() {
 	)
 }
 
-func setQueryFlags(cmds ...*flag.FlagSet) {
+func setQuerySourceFlags(cmds ...*cobra.Command) {
 	for _, cmd := range cmds {
 		if cmd != nil {
+			action := strings.Split(cmd.Use, " ")[0]
+
 			// file flag to specify a query from disk
-			cmd.StringVarP(
+			cmd.Flags().StringVarP(
 				&lqlCmdState.File,
 				"file", "f", "",
-				"path to an LQL query to run",
+				fmt.Sprintf("path to an LQL query to %s", action),
 			)
 			/* repo flag to specify a query from repo
-			cmd.BoolVarP(
+			cmd.Flags().BoolVarP(
 				&lqlCmdState.Repo,
 				"repo", "r", false,
-				"id of an LQL query to run via active repo",
+				fmt.Sprintf("id of an LQL query to %s via active repo", action),
 			)*/
 			// url flag to specify a query from url
-			cmd.StringVarP(
+			cmd.Flags().StringVarP(
 				&lqlCmdState.URL,
 				"url", "u", "",
-				"url to an LQL query to run",
+				fmt.Sprintf("url to an LQL query to %s", action),
 			)
 		}
 	}
@@ -231,6 +232,35 @@ func inputQueryFromEditor(action string) (query string, err error) {
 	return
 }
 
+func queryErrorCrumbs(query string, err error) error {
+	// not the error we're looking for
+	if !strings.Contains(fmt.Sprintf("%s", err), "unable to translate query blob") {
+		return err
+	}
+	// smells like json
+	query = strings.TrimLeft(query, " ")
+	if strings.HasPrefix(query, "{") || strings.HasPrefix(query, "[") {
+		return errors.New(`invalid query
+
+It looks like you attempted to submit an LQL query in JSON format.
+Please validate that the JSON is formatted properly and adheres to the following schema:
+
+{
+	"QUERY_TEXT": "MyLQL(CloudTrailRawEvents e) { SELECT INSERT_ID }"
+}`)
+	}
+	// smells like plain text
+	return errors.New(`invalid query
+	
+It looks like you attempted to submit an LQL query in plain text format.
+Please validate that the text adheres to the following schema:
+
+MyLQL(CloudTrailRawEvents e) { 
+	SELECT INSERT_ID 
+}
+`)
+}
+
 func runQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to run LQL query"
 
@@ -249,6 +279,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	response, err := cli.LwApi.LQL.RunQuery(query, lqlCmdState.Start, lqlCmdState.End)
 
 	if err != nil {
+		err = queryErrorCrumbs(query, err)
 		return errors.Wrap(err, msg)
 	}
 	if data, ok := response["data"]; ok {

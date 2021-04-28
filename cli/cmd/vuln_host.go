@@ -497,7 +497,7 @@ func hostVulnSummaryFromHostDetail(hostVulnSummary *api.HostVulnCveSummary) (str
 	summary = addToHostSummary(summary, hostVulnCounts.High, "High")
 	summary = addToHostSummary(summary, hostVulnCounts.Medium, "Medium")
 	summary = addToHostSummary(summary, hostVulnCounts.Low, "Low")
-	summary = addToHostSummary(summary, hostVulnCounts.Negligible, "Negligible")
+	summary = addToHostSummary(summary, hostVulnCounts.Info, "Info")
 
 	if len(summary) == 0 {
 		return fmt.Sprintf("None! Time for %s", randomEmoji()), false
@@ -841,8 +841,8 @@ func hostVulnAssessmentToCountsTable(counts api.HostVulnCounts) [][]string {
 			fmt.Sprint(counts.MedFixable)},
 		[]string{"Low", fmt.Sprint(counts.Low),
 			fmt.Sprint(counts.LowFixable)},
-		[]string{"Negligible", fmt.Sprint(counts.Negligible),
-			fmt.Sprint(counts.NegFixable)},
+		[]string{"Info", fmt.Sprint(counts.Info),
+			fmt.Sprint(counts.InfoFixable)},
 	}
 }
 
