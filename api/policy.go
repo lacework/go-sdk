@@ -36,7 +36,7 @@ type Policy struct {
 	PolicyID string `json:"policy_id"`
 }
 
-func (svc *PolicyService) CreatePolicy(policy string) (
+func (svc *PolicyService) Create(policy string) (
 	response PolicyCreateResponse,
 	err error,
 ) {

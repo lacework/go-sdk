@@ -93,7 +93,7 @@ func TestPolicyCreateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.CreatePolicy(policyStr)
+	_, err = c.Policy.Create(policyStr)
 	assert.Nil(t, err)
 }
 
@@ -113,7 +113,7 @@ func TestPolicyCreateBadJSON(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.CreatePolicy("")
+	_, err = c.Policy.Create("")
 	assert.Equal(t, "unexpected end of JSON input", err.Error())
 }
 
@@ -139,7 +139,7 @@ func TestPolicyCreateOK(t *testing.T) {
 	createExpected := api.PolicyCreateResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
 
-	createActual, err := c.Policy.CreatePolicy("{}")
+	createActual, err := c.Policy.Create("{}")
 	assert.Nil(t, err)
 	assert.Equal(t, createExpected, createActual)
 }
@@ -160,6 +160,6 @@ func TestPolicyCreateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.CreatePolicy(policyStr)
+	_, err = c.Policy.Create(policyStr)
 	assert.NotNil(t, err)
 }

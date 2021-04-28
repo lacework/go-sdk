@@ -113,6 +113,8 @@ func TestPolicyCreateFile(t *testing.T) {
 	assert.Contains(t, out.String(), `"policy_id"`)
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// todo teardown policy
 }
 
 func TestPolicyCreateURL(t *testing.T) {
@@ -129,4 +131,6 @@ func TestPolicyCreateURL(t *testing.T) {
 	assert.Contains(t, out.String(), "Policy (my-policy-1) created successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// todo teardown policy
 }

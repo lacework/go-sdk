@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -108,7 +109,7 @@ func setPolicySourceFlags(cmds ...*cobra.Command) {
 }
 
 // for commands that take a policy as input
-func inputPolicy(cmd *cobra.Command, args []string) (string, error) {
+func inputPolicy(cmd *cobra.Command) (string, error) {
 	// if running via repo
 	if policyCmdState.Repo {
 		return inputPolicyFromRepo()
@@ -131,16 +132,14 @@ func inputPolicyFromRepo() (policy string, err error) {
 	return
 }
 
-func inputPolicyFromFile(filePath string) (policy string, err error) {
+func inputPolicyFromFile(filePath string) (string, error) {
 	fileData, err := ioutil.ReadFile(filePath)
 
 	if err != nil {
-		err = errors.Wrap(err, "unable to read file")
-		return
+		return "", errors.Wrap(err, "unable to read file")
 	}
 
-	policy = string(fileData)
-	return
+	return string(fileData), nil
 }
 
 func inputPolicyFromURL(url string) (policy string, err error) {
@@ -177,19 +176,20 @@ func inputPolicyFromEditor(action string) (policy string, err error) {
 	return
 }
 
-func createPolicy(cmd *cobra.Command, args []string) error {
-	policy, err := inputPolicy(cmd, args)
+func createPolicy(cmd *cobra.Command, _ []string) error {
+	policy, err := inputPolicy(cmd)
 	if err != nil {
 		return errors.Wrap(err, "unable to create policy")
 	}
 
 	cli.Log.Debugw("creating policy", "policy", policy)
 
-	create, err := cli.LwApi.Policy.CreatePolicy(policy)
-
-	if err != nil {
+	var create api.PolicyCreateResponse
+	if create, err = cli.LwApi.Policy.Create(policy); err != nil {
 		return errors.Wrap(err, "unable to create policy")
+
 	}
+
 	if cli.JSONOutput() {
 		return cli.OutputJSON(create.Data)
 	}
