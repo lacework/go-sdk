@@ -903,8 +903,10 @@ func hostScanPackagesVulnDetailsTable(vulns []api.HostScanPackageVulnDetails) []
 }
 
 func filterHostScanPackagesVulnPackages(vulns []api.HostScanPackageVulnDetails) filteredPackageTable {
-	var filteredPackages []packageTable
-	var aggregatedPackages []packageTable
+	var (
+		filteredPackages   []packageTable
+		aggregatedPackages []packageTable
+	)
 
 	for _, vuln := range vulns {
 		pack := packageTable{
