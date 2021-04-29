@@ -18,7 +18,10 @@
 
 package api
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"net/url"
+)
 
 // PolicyService is a service that interacts with the Custom Policies
 // endpoints from the Lacework Server
@@ -26,18 +29,27 @@ type PolicyService struct {
 	client *Client
 }
 
-type PolicyCreateResponse struct {
+// ValidPolicySeverities is a list of all valid policy severities
+var ValidPolicySeverities = []string{"critical", "high", "medium", "low", "info"}
+
+type PolicyResponse struct {
 	Data    []Policy `json:"data"`
 	Ok      bool     `json:"ok"`
 	Message string   `json:"message"`
 }
 
 type Policy struct {
-	PolicyID string `json:"policy_id"`
+	ID           string `json:"policy_id"`
+	Title        string `json:"title"`
+	Enabled      bool   `json:"enabled"`
+	AlertEnabled bool   `json:"alert_enabled"`
+	Frequency    string `json:"eval_frequency"`
+	Severity     string `json:"severity"`
+	QueryID      string `json:"lql_id"`
 }
 
 func (svc *PolicyService) Create(policy string) (
-	response PolicyCreateResponse,
+	response PolicyResponse,
 	err error,
 ) {
 	var p map[string]interface{}
@@ -45,5 +57,23 @@ func (svc *PolicyService) Create(policy string) (
 		return
 	}
 	err = svc.client.RequestEncoderDecoder("POST", ApiPolicy, p, &response)
+	return
+}
+
+func (svc *PolicyService) GetAll() (PolicyResponse, error) {
+	return svc.GetByID("")
+}
+
+func (svc *PolicyService) GetByID(policyID string) (
+	response PolicyResponse,
+	err error,
+) {
+	uri := ApiPolicy
+
+	if policyID != "" {
+		uri += "?POLICY_ID=" + url.QueryEscape(policyID)
+	}
+
+	err = svc.client.RequestDecoder("GET", uri, nil, &response)
 	return
 }

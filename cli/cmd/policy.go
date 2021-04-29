@@ -22,19 +22,24 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 var (
 	policyCmdState = struct {
-		File string
-		Repo bool
-		URL  string
+		AlertEnabled bool
+		Enabled      bool
+		File         string
+		Repo         bool
+		Severity     string
+		URL          string
 	}{}
 
 	// policyCmd represents the policy parent command
@@ -67,17 +72,53 @@ The following attributes are minimally required:
 		Args: cobra.NoArgs,
 		RunE: createPolicy,
 	}
+
+	// policyListCmd represents the policy list command
+	policyListCmd = &cobra.Command{
+		Use:   "list",
+		Short: "list policies",
+		Long:  `List policies.`,
+		Args:  cobra.NoArgs,
+		RunE:  listPolicies,
+	}
+
+	// policyListCmd represents the policy list command
+	policyShowCmd = &cobra.Command{
+		Use:   "show <policy_id>",
+		Short: "show policy",
+		Long:  `Show policy.`,
+		Args:  cobra.ExactArgs(1),
+		RunE:  showPolicy,
+	}
 )
 
 func init() {
-	// add the lql command
+	// add the policy command
 	rootCmd.AddCommand(policyCmd)
 
-	// add sub-commands to the lql command
+	// add sub-commands to the policy command
 	policyCmd.AddCommand(policyCreateCmd)
+	policyCmd.AddCommand(policyListCmd)
+	policyCmd.AddCommand(policyShowCmd)
 
-	// run specific flags
+	// policy source specific flags
 	setPolicySourceFlags(policyCreateCmd)
+
+	// policy list specific flags
+	policyListCmd.Flags().StringVar(
+		&policyCmdState.Severity,
+		"severity", "",
+		fmt.Sprintf("filter policies by severity threshold (%s)",
+			strings.Join(api.ValidPolicySeverities, ", ")),
+	)
+	policyListCmd.Flags().BoolVar(
+		&policyCmdState.Enabled,
+		"enabled", false, "only show enabled policies",
+	)
+	policyListCmd.Flags().BoolVar(
+		&policyCmdState.AlertEnabled,
+		"alert_enabled", false, "only show alert_enabled policies",
+	)
 }
 
 func setPolicySourceFlags(cmds ...*cobra.Command) {
@@ -184,7 +225,7 @@ func createPolicy(cmd *cobra.Command, _ []string) error {
 
 	cli.Log.Debugw("creating policy", "policy", policy)
 
-	var create api.PolicyCreateResponse
+	var create api.PolicyResponse
 	if create, err = cli.LwApi.Policy.Create(policy); err != nil {
 		return errors.Wrap(err, "unable to create policy")
 
@@ -195,8 +236,89 @@ func createPolicy(cmd *cobra.Command, _ []string) error {
 	}
 	policyID := ""
 	if len(create.Data) > 0 {
-		policyID = create.Data[0].PolicyID
+		policyID = create.Data[0].ID
 	}
 	cli.OutputHuman(fmt.Sprintf("Policy (%s) created successfully.\n", policyID))
+	return nil
+}
+
+var policyTableHeaders = []string{"Policy ID", "Severity", "Title", "Enabled", "Alert Enabled", "Frequency", "Query ID"}
+
+func policyTable(policies []api.Policy) (out [][]string) {
+	sevThreshold, _ := severityToProperTypes(policyCmdState.Severity)
+
+	for _, policy := range policies {
+		// filter severity if desired
+		if sevThreshold > 0 {
+			policySeverity, _ := severityToProperTypes(policy.Severity)
+
+			if policySeverity > sevThreshold {
+				continue
+			}
+		}
+		// filter enabled=false if requesting "enabled-only"
+		if policyCmdState.Enabled && !policy.Enabled {
+			continue
+		}
+		// filter alert_enabled=false if requesting "alert_enabled-only"
+		if policyCmdState.AlertEnabled && !policy.AlertEnabled {
+			continue
+		}
+		out = append(out, []string{
+			policy.ID,
+			policy.Severity,
+			policy.Title,
+			strconv.FormatBool(policy.Enabled),
+			strconv.FormatBool(policy.AlertEnabled),
+			policy.Frequency,
+			policy.QueryID,
+		})
+	}
+	return
+}
+
+func listPolicies(_ *cobra.Command, args []string) error {
+	cli.Log.Debugw("listing policies")
+
+	if policyCmdState.Severity != "" && !array.ContainsStr(
+		api.ValidPolicySeverities, policyCmdState.Severity) {
+		return errors.Wrap(
+			errors.New(fmt.Sprintf("the severity %s is not valid, use one of %s",
+				policyCmdState.Severity, strings.Join(api.ValidPolicySeverities, ", "))),
+			"unable to list policies",
+		)
+	}
+
+	policyResponse, err := cli.LwApi.Policy.GetAll()
+	if err != nil {
+		return errors.Wrap(err, "unable to list policies")
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(policyResponse.Data)
+	}
+	if len(policyResponse.Data) == 0 {
+		cli.OutputHuman("There were no policies found.")
+		return nil
+	}
+	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policyResponse.Data)))
+	return nil
+}
+
+func showPolicy(_ *cobra.Command, args []string) error {
+	cli.Log.Debugw("retrieving policy", "policyID", args[0])
+
+	policyResponse, err := cli.LwApi.Policy.GetByID(args[0])
+	if err != nil {
+		return errors.Wrap(err, "unable to show policy")
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(policyResponse.Data)
+	}
+	if len(policyResponse.Data) == 0 {
+		return yikes("unable to show policy")
+	}
+	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policyResponse.Data)))
 	return nil
 }

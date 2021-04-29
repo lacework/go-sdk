@@ -30,6 +30,7 @@ import (
 )
 
 var (
+	policyID  = "my-policy-1"
 	policyStr = `{
 	"policy_id": "my-policy-1",
 	"title": "My Policy Title",
@@ -54,25 +55,21 @@ var (
 		"policy_type": "Violation"
 	}
 ]`
-	policyErrorResponse = mockPolicyMessageResponse(
-		`"message": "{\"error\":\"Error: Cannot create rule my-policy-1 because it already exists in database.\"}"`,
+	policyAlreadyExistsError = mockPolicyDataResponse(
+		`{ "message": "{\"error\":\"Error: Cannot create rule my-policy-1 because it already exists in database.\"}" }`,
+		"false",
+	)
+	policyUnableToLocateError = mockPolicyDataResponse(
+		`{ "message": "{\"error\":\"Error: Unable to locate policy foo, please double check the policy exists and has not already been deleted.\"}" }`,
 		"false",
 	)
 )
 
-func mockPolicyDataResponse(data string) string {
+func mockPolicyDataResponse(data string, ok string) string {
 	return `{
 	"data": ` + data + `,
-	"ok": true,
-	"message": "SUCCESS"
-}`
-}
-
-func mockPolicyMessageResponse(message string, ok string) string {
-	return `{
 	"ok": ` + ok + `,
-	"message": {` + message + `
-	}
+	"message": "SUCCESS"
 }`
 }
 
@@ -118,7 +115,7 @@ func TestPolicyCreateBadJSON(t *testing.T) {
 }
 
 func TestPolicyCreateOK(t *testing.T) {
-	mockResponse := mockPolicyDataResponse(policyCreateData)
+	mockResponse := mockPolicyDataResponse(policyCreateData, "true")
 	fmt.Println(mockResponse)
 
 	fakeServer := lacework.MockServer()
@@ -136,7 +133,7 @@ func TestPolicyCreateOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	createExpected := api.PolicyCreateResponse{}
+	createExpected := api.PolicyResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
 
 	createActual, err := c.Policy.Create("{}")
@@ -149,7 +146,7 @@ func TestPolicyCreateError(t *testing.T) {
 	fakeServer.MockAPI(
 		api.ApiPolicy,
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, policyErrorResponse, http.StatusBadRequest)
+			http.Error(w, policyAlreadyExistsError, http.StatusBadRequest)
 		},
 	)
 	defer fakeServer.Close()
@@ -161,5 +158,74 @@ func TestPolicyCreateError(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = c.Policy.Create(policyStr)
+	assert.NotNil(t, err)
+}
+
+func TestPolicyGetByIDMethod(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		api.ApiPolicy,
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "List should be a GET method")
+			fmt.Fprint(w, "{}")
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.Policy.GetByID(policyID)
+	assert.Nil(t, err)
+}
+
+func TestPolicyGetByIDOK(t *testing.T) {
+	mockResponse := mockPolicyDataResponse(policyCreateData, "true")
+
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		api.ApiPolicy,
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, mockResponse)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	getExpected := api.PolicyResponse{}
+	_ = json.Unmarshal([]byte(mockResponse), &getExpected)
+
+	var getActual api.PolicyResponse
+	getActual, err = c.Policy.GetByID(policyID)
+	assert.Nil(t, err)
+
+	assert.Equal(t, getExpected, getActual)
+}
+
+func TestPolicyByIDNotFound(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		api.ApiLQL,
+		func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, policyUnableToLocateError, http.StatusBadRequest)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.Policy.GetByID("NoSuchPolicy")
 	assert.NotNil(t, err)
 }
