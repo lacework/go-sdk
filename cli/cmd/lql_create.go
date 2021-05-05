@@ -40,7 +40,7 @@ func init() {
 	// add sub-commands to the lql command
 	lqlCmd.AddCommand(lqlCreateCmd)
 
-	setQueryFlags(lqlCreateCmd.Flags())
+	setQuerySourceFlags(lqlCreateCmd)
 }
 
 func createQuery(cmd *cobra.Command, args []string) error {
@@ -53,6 +53,7 @@ func createQuery(cmd *cobra.Command, args []string) error {
 	create, err := cli.LwApi.LQL.CreateQuery(query)
 
 	if err != nil {
+		err = queryErrorCrumbs(query, err)
 		return errors.Wrap(err, "unable to create LQL query")
 	}
 	if cli.JSONOutput() {

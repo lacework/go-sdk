@@ -192,10 +192,10 @@ func (assessment *HostVulnHostAssessment) VulnerabilityCounts() HostVulnCounts {
 					hostCounts.TotalFixable++
 				}
 			default:
-				hostCounts.Negligible++
+				hostCounts.Info++
 				hostCounts.Total++
 				if pkg.FixedVersion != "" {
-					hostCounts.NegFixable++
+					hostCounts.InfoFixable++
 					hostCounts.TotalFixable++
 				}
 			}
@@ -253,18 +253,18 @@ type HostVulnCounts struct {
 	MedFixable   int32
 	Low          int32
 	LowFixable   int32
-	Negligible   int32
-	NegFixable   int32
+	Info         int32
+	InfoFixable  int32
 	Total        int32
 	TotalFixable int32
 }
 
 type HostVulnSeverityCounts struct {
-	Critical   *HostVulnSeverityCountsDetails `json:"Critical"`
-	High       *HostVulnSeverityCountsDetails `json:"High"`
-	Medium     *HostVulnSeverityCountsDetails `json:"Medium"`
-	Low        *HostVulnSeverityCountsDetails `json:"Low"`
-	Negligible *HostVulnSeverityCountsDetails `json:"Negligible"`
+	Critical *HostVulnSeverityCountsDetails `json:"Critical"`
+	High     *HostVulnSeverityCountsDetails `json:"High"`
+	Medium   *HostVulnSeverityCountsDetails `json:"Medium"`
+	Low      *HostVulnSeverityCountsDetails `json:"Low"`
+	Info     *HostVulnSeverityCountsDetails `json:"Info"`
 }
 
 func (counts *HostVulnSeverityCounts) VulnerabilityCounts() HostVulnCounts {
@@ -298,11 +298,11 @@ func (counts *HostVulnSeverityCounts) VulnerabilityCounts() HostVulnCounts {
 		hostCounts.TotalFixable += counts.Low.Fixable
 	}
 
-	if counts.Negligible != nil {
-		hostCounts.Negligible += counts.Negligible.Vulnerabilities
-		hostCounts.NegFixable += counts.Negligible.Fixable
-		hostCounts.Total += counts.Negligible.Vulnerabilities
-		hostCounts.TotalFixable += counts.Negligible.Fixable
+	if counts.Info != nil {
+		hostCounts.Info += counts.Info.Vulnerabilities
+		hostCounts.InfoFixable += counts.Info.Fixable
+		hostCounts.Total += counts.Info.Vulnerabilities
+		hostCounts.TotalFixable += counts.Info.Fixable
 	}
 
 	return hostCounts
@@ -375,10 +375,10 @@ func (scanPkgManifest *HostVulnScanPkgManifestResponse) VulnerabilityCounts() Ho
 				hostCounts.TotalFixable++
 			}
 		default:
-			hostCounts.Negligible++
+			hostCounts.Info++
 			hostCounts.Total++
 			if vuln.HasFix() {
-				hostCounts.NegFixable++
+				hostCounts.InfoFixable++
 				hostCounts.TotalFixable++
 			}
 		}

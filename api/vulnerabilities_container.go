@@ -266,7 +266,7 @@ func (report *VulnContainerAssessment) TotalFixableVulnerabilities() int32 {
 
 type VulnContainerImage struct {
 	ImageInfo   *vulnContainerImageInfo   `json:"image_info,omitempty"`
-	ImageLayers []vulnContainerImageLayer `json:"image_layers,omitempty"`
+	ImageLayers []VulnContainerImageLayer `json:"image_layers,omitempty"`
 }
 
 type vulnContainerImageInfo struct {
@@ -279,17 +279,17 @@ type vulnContainerImageInfo struct {
 	Tags        []string `json:"tags"`
 }
 
-type vulnContainerImageLayer struct {
+type VulnContainerImageLayer struct {
 	Hash      string                 `json:"hash"`
 	CreatedBy string                 `json:"created_by"`
-	Packages  []vulnContainerPackage `json:"packages"`
+	Packages  []VulnContainerPackage `json:"packages"`
 }
 
-type vulnContainerPackage struct {
+type VulnContainerPackage struct {
 	Name            string                   `json:"name"`
 	Namespace       string                   `json:"namescape"`
 	Version         string                   `json:"version"`
-	Vulnerabilities []containerVulnerability `json:"vulnerabilities"`
+	Vulnerabilities []ContainerVulnerability `json:"vulnerabilities"`
 
 	// @afiune maybe these fields are host related information and not container
 	FixAvailable  string `json:"fix_available,omitempty"`
@@ -304,7 +304,7 @@ type vulnContainerPackage struct {
 	FirstSeenTime string `json:"first_seen_time,omitempty"`
 }
 
-type containerVulnerability struct {
+type ContainerVulnerability struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
 	Severity    string                 `json:"severity"`
@@ -320,7 +320,7 @@ type containerVulnerability struct {
 //
 //          score := v.traverseMetadata("NVD", "CVSSv3", "Score")
 //
-func (v *containerVulnerability) traverseMetadata(fields ...string) interface{} {
+func (v *ContainerVulnerability) traverseMetadata(fields ...string) interface{} {
 
 	var (
 		metaInterface interface{}
@@ -347,7 +347,7 @@ func (v *containerVulnerability) traverseMetadata(fields ...string) interface{} 
 	return metaInterface
 }
 
-func (v *containerVulnerability) CVSSv3Score() float64 {
+func (v *ContainerVulnerability) CVSSv3Score() float64 {
 	score := v.traverseMetadata("NVD", "CVSSv3", "Score")
 
 	if f, ok := score.(float64); ok {
@@ -357,7 +357,7 @@ func (v *containerVulnerability) CVSSv3Score() float64 {
 	return 0
 }
 
-func (v *containerVulnerability) CVSSv2Score() float64 {
+func (v *ContainerVulnerability) CVSSv2Score() float64 {
 	score := v.traverseMetadata("NVD", "CVSSv2", "Score")
 
 	if f, ok := score.(float64); ok {

@@ -135,6 +135,56 @@ func TestQueryRunID(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
+func TestQueryRunFileJSONCrumb(t *testing.T) {
+	if os.Getenv("CI_BETA") == "" {
+		t.Skip("skipping test in production mode")
+	}
+	// get temp file
+	file, err := ioutil.TempFile("", "TestQueryRunFile")
+	if err != nil {
+		t.FailNow()
+	}
+	defer os.Remove(file.Name())
+
+	// write-to and close file
+	_, err = file.Write([]byte("{"))
+	if err != nil {
+		t.FailNow()
+	}
+	file.Close()
+
+	// run
+	_, stderr, exitcode := LaceworkCLIWithTOMLConfig(
+		"query", "run", "-f", file.Name(), "--start", lqlQueryStart, "--end", lqlQueryEnd)
+	assert.Contains(t, stderr.String(), "LQL query in JSON format")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestQueryRunFilePlainCrumb(t *testing.T) {
+	if os.Getenv("CI_BETA") == "" {
+		t.Skip("skipping test in production mode")
+	}
+	// get temp file
+	file, err := ioutil.TempFile("", "TestQueryRunFile")
+	if err != nil {
+		t.FailNow()
+	}
+	defer os.Remove(file.Name())
+
+	// write-to and close file
+	_, err = file.Write([]byte("tigerking"))
+	if err != nil {
+		t.FailNow()
+	}
+	file.Close()
+
+	// run
+	_, stderr, exitcode := LaceworkCLIWithTOMLConfig(
+		"query", "run", "-f", file.Name(), "--start", lqlQueryStart, "--end", lqlQueryEnd)
+	assert.Contains(t, stderr.String(), "LQL query in plain text format")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+}
+
 func TestQueryRunFile(t *testing.T) {
 	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
