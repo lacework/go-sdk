@@ -273,21 +273,21 @@ var newRelativeTests = []newRelativeTest{
 }
 
 func TestNewRelative(t *testing.T) {
-	for _, rtpt := range newRelativeTests {
-		t.Run(rtpt.Name, func(t *testing.T) {
-			input, err := newRelative(rtpt.Input)
+	for _, nrt := range newRelativeTests {
+		t.Run(nrt.Name, func(t *testing.T) {
+			input, err := newRelative(nrt.Input)
 
-			if rtpt.Error == nil {
+			if nrt.Error == nil {
 				assert.Nil(t, err)
-				assert.Equal(t, rtpt.Output, input)
+				assert.Equal(t, nrt.Output, input)
 				return
 			}
-			assert.Equal(t, rtpt.Error.Error(), err.Error())
+			assert.Equal(t, nrt.Error.Error(), err.Error())
 		})
 	}
 }
 
-type RelativeFromTimeTest struct {
+type RelativeTimeTest struct {
 	Name                string
 	ReferenceTime       string
 	ReferenceTimeFormat string
@@ -296,8 +296,8 @@ type RelativeFromTimeTest struct {
 	Error               error
 }
 
-var RelativeFromTimeTests = []RelativeFromTimeTest{
-	RelativeFromTimeTest{
+var RelativeTimeTests = []RelativeTimeTest{
+	RelativeTimeTest{
 		"now",
 		"2006-02-02T15:04:05-07:00",
 		time.RFC3339,
@@ -305,7 +305,7 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 		"2006-02-02T15:04:05-07:00",
 		nil,
 	},
-	RelativeFromTimeTest{
+	RelativeTimeTest{
 		"minus-10-seconds",
 		"2006-02-02T15:04:05-07:00",
 		time.RFC3339,
@@ -313,7 +313,7 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 		"2006-02-02T15:03:55-07:00",
 		nil,
 	},
-	RelativeFromTimeTest{
+	RelativeTimeTest{
 		"plus-5-minutes",
 		"2006-02-02T15:04:05-07:00",
 		time.RFC3339,
@@ -321,7 +321,7 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 		"2006-02-02T15:09:05-07:00",
 		nil,
 	},
-	RelativeFromTimeTest{
+	RelativeTimeTest{
 		"minus-12-hours-at-hour",
 		"2006-02-02T15:04:05-07:00",
 		time.RFC3339,
@@ -329,7 +329,7 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 		"2006-02-02T03:00:00-07:00",
 		nil,
 	},
-	RelativeFromTimeTest{
+	RelativeTimeTest{
 		"minus-1-week-at-week",
 		"2006-01-01T15:04:05-07:00",
 		time.RFC3339,
@@ -337,7 +337,7 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 		"2005-12-19T00:00:00-07:00",
 		nil,
 	},
-	RelativeFromTimeTest{
+	RelativeTimeTest{
 		"plus-1-month-at-day",
 		"2007-01-29T15:04:05-07:00",
 		time.RFC3339,
@@ -345,7 +345,7 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 		"2007-03-01T00:00:00-07:00",
 		nil,
 	},
-	RelativeFromTimeTest{
+	RelativeTimeTest{
 		"minus-2-years",
 		"2009-02-02T15:04:05-07:00",
 		time.RFC3339,
@@ -353,7 +353,7 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 		"2007-02-02T15:04:05-07:00",
 		nil,
 	},
-	RelativeFromTimeTest{
+	RelativeTimeTest{
 		"minus-730-days", // 2 years in days
 		"2009-02-02T15:04:05-07:00",
 		time.RFC3339,
@@ -361,7 +361,7 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 		"2007-02-03T15:04:05-07:00",
 		nil,
 	},
-	RelativeFromTimeTest{
+	RelativeTimeTest{
 		"minus-3000-years",
 		"2009-02-02T15:04:05-07:00",
 		time.RFC3339,
@@ -369,7 +369,7 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 		"",
 		errors.New("unable to construct time object: time predates epoch"),
 	},
-	RelativeFromTimeTest{
+	RelativeTimeTest{
 		"minus-3-invalid",
 		"2009-02-02T15:04:05-07:00",
 		time.RFC3339,
@@ -377,7 +377,7 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 		"",
 		errors.New("unable to construct time object: relative time unit (x) is invalid"),
 	},
-	RelativeFromTimeTest{
+	RelativeTimeTest{
 		"minus-3-years-at-invalid",
 		"2009-02-02T15:04:05-07:00",
 		time.RFC3339,
@@ -387,27 +387,27 @@ var RelativeFromTimeTests = []RelativeFromTimeTest{
 	},
 }
 
-func TestRelativeFromTime(t *testing.T) {
-	for _, rt_t := range RelativeFromTimeTests {
-		t.Run(rt_t.Name, func(t *testing.T) {
-			refTime, err := time.Parse(rt_t.ReferenceTimeFormat, rt_t.ReferenceTime)
+func TestRelativeTime(t *testing.T) {
+	for _, rtt := range RelativeTimeTests {
+		t.Run(rtt.Name, func(t *testing.T) {
+			refTime, err := time.Parse(rtt.ReferenceTimeFormat, rtt.ReferenceTime)
 			if err != nil {
 				assert.FailNow(t, "unable to parse reference time")
 			}
 
-			rel, err := newRelative(rt_t.Input)
+			rel, err := newRelative(rtt.Input)
 			// if we're expecting an error don't worry about this
-			if rt_t.Error == nil {
+			if rtt.Error == nil {
 				assert.Nil(t, err)
 			}
 			outTime, err := rel.time(refTime)
 
-			if rt_t.Error == nil {
+			if rtt.Error == nil {
 				assert.Nil(t, err)
-				assert.Equal(t, rt_t.Output, outTime.Format(time.RFC3339))
+				assert.Equal(t, rtt.Output, outTime.Format(time.RFC3339))
 				return
 			}
-			assert.Equal(t, rt_t.Error.Error(), err.Error())
+			assert.Equal(t, rtt.Error.Error(), err.Error())
 		})
 	}
 }

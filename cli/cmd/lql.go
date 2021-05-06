@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
@@ -281,10 +282,13 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	if lqlCmdState.Range != "" {
 		cli.Log.Debugw("retrieving natural time range")
 
-		lqlCmdState.Start, lqlCmdState.End, err = lwtime.ParseNatural(lqlCmdState.Range)
+		var start, end time.Time
+		start, end, err = lwtime.ParseNatural(lqlCmdState.Range)
 		if err != nil {
 			return errors.Wrap(err, msg)
 		}
+		lqlCmdState.Start = start.UTC().Format(time.RFC3339)
+		lqlCmdState.End = end.UTC().Format(time.RFC3339)
 	}
 
 	cli.Log.Debugw("running LQL query", "query", query)

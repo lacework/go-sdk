@@ -16,6 +16,7 @@
 // limitations under the License.
 //
 
+// A simple relative and natural time package
 package lwtime
 
 import (
@@ -178,6 +179,7 @@ func newRelative(s string) (relative, error) {
 
 func (rel relative) time(inTime time.Time) (outTime time.Time, err error) {
 	baseErr := "unable to construct time object"
+
 	switch rel.unit {
 	case Year:
 		outTime = inTime.AddDate(rel.iNum, 0, 0)

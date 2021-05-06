@@ -16,6 +16,7 @@
 // limitations under the License.
 //
 
+// A simple relative and natural time package
 package lwtime
 
 import (
@@ -113,7 +114,7 @@ func newNatural(s string) (natural, error) {
 	// Adjective
 	nt.adjective = naturalAdjective(nt_parts[1])
 	if !nt.adjective.isValid() {
-		// this would indicate a code mismatch between enumerated Adjectives and Regex
+		// this would indicate a code mismatch between enumerated adjectives and regex
 		return nt, errors.New(fmt.Sprintf("invalid adjective for natural time (%s)", s))
 	}
 	// Num
@@ -126,6 +127,7 @@ func newNatural(s string) (natural, error) {
 	}
 	// Unit
 	if ok := nt.loadRelativeUnit(nt_parts[3]); !ok {
+		// this would indicate a code mismatch between relative units and regex
 		return nt, errors.New(fmt.Sprintf("invalid unit for natural time (%s)", s))
 	}
 	return nt, nil

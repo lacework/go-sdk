@@ -17,3 +17,23 @@
 //
 
 package lwtime_test
+
+import (
+	"testing"
+
+	"github.com/lacework/go-sdk/lwtime"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestParseNaturalOK(t *testing.T) {
+	start, end, err := lwtime.ParseNatural("today")
+	assert.Nil(t, err)
+
+	dur := end.Unix() - start.Unix()
+	assert.LessOrEqual(t, dur, int64(86400))
+}
+
+func TestParseNaturalErr(t *testing.T) {
+	_, _, err := lwtime.ParseNatural("jackie weaver")
+	assert.NotNil(t, err)
+}

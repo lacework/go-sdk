@@ -17,3 +17,24 @@
 //
 
 package lwtime_test
+
+import (
+	"testing"
+	"time"
+
+	"github.com/lacework/go-sdk/lwtime"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestParseRelativeOK(t *testing.T) {
+	rt, err := lwtime.ParseRelative("now")
+	assert.Nil(t, err)
+
+	dur := rt.Unix() - time.Now().Unix()
+	assert.LessOrEqual(t, dur, int64(2))
+}
+
+func TestParseRelativeErr(t *testing.T) {
+	_, err := lwtime.ParseRelative("jackie weaver")
+	assert.NotNil(t, err)
+}
