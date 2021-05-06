@@ -110,28 +110,23 @@ func (q *LQLQuery) TranslateQuery() error {
 }
 
 func (q LQLQuery) TranslateTime(inTime string) (string, error) {
-	baseErr := fmt.Sprintf("unable to parse time (%s)", inTime)
 	// empty
 	if inTime == "" {
 		return "", nil
 	}
 	// parse time as relative
-	rt := lwtime.RelTime{}
-	if err := rt.Parse(inTime); err == nil {
-		if t, err := rt.Time(); err == nil {
-			return t.UTC().Format(time.RFC3339), err
-		}
-		return "", errors.Wrap(err, baseErr)
+	if t, err := lwtime.ParseRelative(inTime); err == nil {
+		return t.UTC().Format(time.RFC3339), err
 	}
 	// parse time as RFC3339
 	if t, err := time.Parse(time.RFC3339, inTime); err == nil {
-		return t.UTC().Format(time.RFC3339), nil
+		return t.UTC().Format(time.RFC3339), err
 	}
 	// parse time as millis
 	if i, err := strconv.ParseInt(inTime, 10, 64); err == nil {
-		return time.Unix(0, i*int64(time.Millisecond)).UTC().Format(time.RFC3339), nil
+		return time.Unix(0, i*int64(time.Millisecond)).UTC().Format(time.RFC3339), err
 	}
-	return "", errors.New(baseErr)
+	return "", errors.New(fmt.Sprintf("unable to parse time (%s)", inTime))
 }
 
 func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {

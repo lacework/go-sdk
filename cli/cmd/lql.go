@@ -280,12 +280,11 @@ func runQuery(cmd *cobra.Command, args []string) error {
 
 	if lqlCmdState.Range != "" {
 		cli.Log.Debugw("retrieving natural time range")
-		ntr := lwtime.NatTimeRange{}
-		if err = ntr.Parse(lqlCmdState.Range); err != nil {
+
+		lqlCmdState.Start, lqlCmdState.End, err = lwtime.ParseNatural(lqlCmdState.Range)
+		if err != nil {
 			return errors.Wrap(err, msg)
 		}
-		lqlCmdState.Start = ntr.Start
-		lqlCmdState.End = ntr.End
 	}
 
 	cli.Log.Debugw("running LQL query", "query", query)

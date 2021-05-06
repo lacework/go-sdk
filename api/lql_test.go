@@ -62,9 +62,7 @@ type LQLTranslateTimeTest struct {
 }
 
 var (
-	reltime               = lwtime.RelTime{}
-	_                     = reltime.Parse("@d")
-	atDay, _              = reltime.Time()
+	atDay, _              = lwtime.ParseRelative("@d")
 	lqlTranslateTimeTests = []LQLTranslateTimeTest{
 		LQLTranslateTimeTest{
 			Name:       "valid-rfc-utc",

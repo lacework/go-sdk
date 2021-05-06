@@ -28,52 +28,58 @@ import (
 	"github.com/pkg/errors"
 )
 
-type RelDate struct {
-	Year  int
-	Month time.Month
-	Day   int
+type relativeDate struct {
+	year  int
+	month time.Month
+	day   int
 }
 
-func Mondays(year int) (mondays []RelDate) {
+func mondays(year int) (mondays []relativeDate) {
+	// get the start of the year datetime
 	start := time.Date(year, 1, 1, 0, 0, 0, 0, time.Now().Location())
+	// get 24 hours of duration
 	d, _ := time.ParseDuration("24h")
+	// set startYear for comparison as we iterate
 	startYear := start.Year()
+	// iterate until startYear deviates from start.Year()
 	for startYear == start.Year() {
+		// if we kave a monday, add it....
 		if start.Weekday() == time.Monday {
 			year, month, day := start.Date()
-			mondays = append(mondays, RelDate{year, month, day})
+			mondays = append(mondays, relativeDate{year, month, day})
 		}
+		// add our 24 hour duration
 		start = start.Add(d)
 	}
 	return mondays
 }
 
-type RelTimeUnit string
+type relativeUnit string
 
 const (
-	relTimeRE             = `^([+-])?(?:(\d+)(\w+))?(?:@(\w+))?$`
-	Year      RelTimeUnit = "y"
-	Month     RelTimeUnit = "mon"
-	Week      RelTimeUnit = "w"
-	Day       RelTimeUnit = "d"
-	Hour      RelTimeUnit = "h"
-	Minute    RelTimeUnit = "m"
-	Second    RelTimeUnit = "s"
+	relativeRE              = `^([+-])?(?:(\d+)(\w+))?(?:@(\w+))?$`
+	Year       relativeUnit = "y"
+	Month      relativeUnit = "mon"
+	Week       relativeUnit = "w"
+	Day        relativeUnit = "d"
+	Hour       relativeUnit = "h"
+	Minute     relativeUnit = "m"
+	Second     relativeUnit = "s"
 )
 
-func (rtu RelTimeUnit) IsValid() bool {
-	switch RelTimeUnit(strings.ToLower(string(rtu))) { // inline lowercase conversion
-	case Year, Month, Week, Day, Hour, Minute, Second, RelTimeUnit(""):
+func (ru relativeUnit) isValid() bool {
+	switch relativeUnit(strings.ToLower(string(ru))) { // inline lowercase conversion
+	case Year, Month, Week, Day, Hour, Minute, Second, relativeUnit(""):
 		return true
 	}
 	return false
 }
 
-func (rtu RelTimeUnit) SnapTime(inTime time.Time) (outTime time.Time, err error) {
+func (ru relativeUnit) snapTime(inTime time.Time) (outTime time.Time, err error) {
 	// immediately short circuit if snap is invalid
-	if !rtu.IsValid() {
+	if !ru.isValid() {
 		err = errors.New(fmt.Sprintf(
-			"snap (%s) is not a valid relative time unit", rtu))
+			"snap (%s) is not a valid relative time unit", ru))
 		return
 	}
 
@@ -83,14 +89,14 @@ func (rtu RelTimeUnit) SnapTime(inTime time.Time) (outTime time.Time, err error)
 	second := inTime.Second()
 	nano := inTime.Nanosecond()
 
-	switch RelTimeUnit(strings.ToLower(string(rtu))) {
+	switch relativeUnit(strings.ToLower(string(ru))) {
 	case Week:
 		year, week := inTime.ISOWeek()
-		relDate := Mondays(year)[week-1]
+		relDate := mondays(year)[week-1]
 		outTime = time.Date(
-			relDate.Year,
-			relDate.Month,
-			relDate.Day,
+			relDate.year,
+			relDate.month,
+			relDate.day,
 			0, 0, 0, 0, inTime.Location(),
 		)
 		return
@@ -116,88 +122,85 @@ func (rtu RelTimeUnit) SnapTime(inTime time.Time) (outTime time.Time, err error)
 	return
 }
 
-type RelTime struct {
-	Num  string
-	INum int
-	Unit RelTimeUnit
-	Snap RelTimeUnit
+type relative struct {
+	num  string
+	iNum int
+	unit relativeUnit
+	snap relativeUnit
 }
 
-func (rt *RelTime) Parse(s string) error {
-	var rt_parts []string
+func newRelative(s string) (relative, error) {
+	var rel relative
+	var rel_parts []string
+
 	// now is equivelant to +0s
 	if s == "now" {
 		s = "+0s"
 	}
 	// regex
-	re := regexp.MustCompile(relTimeRE)
-	if rt_parts = re.FindStringSubmatch(s); s == "" || rt_parts == nil {
-		return errors.New(fmt.Sprintf("relative time specifier (%s) is invalid", s))
+	re := regexp.MustCompile(relativeRE)
+	if rel_parts = re.FindStringSubmatch(s); s == "" || rel_parts == nil {
+		return rel, errors.New(fmt.Sprintf("relative time specifier (%s) is invalid", s))
 	}
 	// Num
-	if rt_parts[1] == "-" {
-		rt.Num = rt_parts[1] + rt_parts[2]
+	if rel_parts[1] == "-" {
+		rel.num = rel_parts[1] + rel_parts[2]
 	} else {
-		rt.Num = rt_parts[2]
+		rel.num = rel_parts[2]
 	}
 	var err error
-	rt.INum, err = strconv.Atoi(rt.Num)
+	rel.iNum, err = strconv.Atoi(rel.num)
 	if err != nil {
-		rt.Num = "0"
-		rt.INum = 0
+		rel.num = "0"
+		rel.iNum = 0
 	}
 	// Unit
-	rt.Unit = RelTimeUnit(strings.ToLower(string(rt_parts[3])))
-	if !rt.Unit.IsValid() {
-		return errors.New(fmt.Sprintf("invalid unit for relative time specifier (%s)", s))
+	rel.unit = relativeUnit(strings.ToLower(string(rel_parts[3])))
+	if !rel.unit.isValid() {
+		return rel, errors.New(fmt.Sprintf("invalid unit for relative time specifier (%s)", s))
 	}
-	if rt.Unit == RelTimeUnit("") {
-		rt.Unit = Second
+	if rel.unit == relativeUnit("") {
+		rel.unit = Second
 	}
 	// Weeeeeeek
-	if rt.Unit == Week {
-		rt.INum = rt.INum * 7
-		rt.Num = strconv.Itoa(rt.INum)
-		rt.Unit = Day
+	if rel.unit == Week {
+		rel.iNum = rel.iNum * 7
+		rel.num = strconv.Itoa(rel.iNum)
+		rel.unit = Day
 	}
 	// Snap
-	rt.Snap = RelTimeUnit(strings.ToLower(string(rt_parts[4])))
-	if !rt.Snap.IsValid() {
-		return errors.New(fmt.Sprintf("invalid snap for relative time specifier (%s)", s))
+	rel.snap = relativeUnit(strings.ToLower(string(rel_parts[4])))
+	if !rel.snap.isValid() {
+		return rel, errors.New(fmt.Sprintf("invalid snap for relative time specifier (%s)", s))
 	}
-	return nil
+	return rel, nil
 }
 
-func (rt RelTime) Time() (outTime time.Time, err error) {
-	outTime, err = rt.Time_(time.Now())
-	return
-}
-
-func (rt RelTime) Time_(inTime time.Time) (outTime time.Time, err error) {
+func (rel relative) time(inTime time.Time) (outTime time.Time, err error) {
 	baseErr := "unable to construct time object"
-	switch rt.Unit {
+	switch rel.unit {
 	case Year:
-		outTime = inTime.AddDate(rt.INum, 0, 0)
+		outTime = inTime.AddDate(rel.iNum, 0, 0)
 	case Month:
-		outTime = inTime.AddDate(0, rt.INum, 0)
+		outTime = inTime.AddDate(0, rel.iNum, 0)
 	case Day:
-		outTime = inTime.AddDate(0, 0, rt.INum)
+		outTime = inTime.AddDate(0, 0, rel.iNum)
 	case Hour, Minute, Second:
 		var d time.Duration
-		d, err = time.ParseDuration(fmt.Sprintf("%s%s", rt.Num, rt.Unit))
+		d, err = time.ParseDuration(fmt.Sprintf("%s%s", rel.num, rel.unit))
 		if err != nil {
 			return
 		}
 		outTime = inTime.Add(d)
 	default:
 		err = errors.Wrap(
-			errors.New(fmt.Sprintf("relative time unit (%s) is invalid", rt.Unit)),
+			errors.New(fmt.Sprintf("relative time unit (%s) is invalid", rel.unit)),
 			baseErr,
 		)
 		return
 	}
-	if rt.Snap != "" {
-		outTime, err = rt.Snap.SnapTime(outTime)
+	if rel.snap != "" {
+		outTime, err = rel.snap.snapTime(outTime)
 	}
 	if err != nil {
 		err = errors.Wrap(err, baseErr)
@@ -208,4 +211,25 @@ func (rt RelTime) Time_(inTime time.Time) (outTime time.Time, err error) {
 		return
 	}
 	return
+}
+
+// Parse the string representation of a Lacework relative time
+//
+// t, err := lwtime.ParseRelative("-1y@y")
+// if err != nil {
+// 	...
+// }
+func ParseRelative(s string) (time.Time, error) {
+	return parseRelativeFromTime(s, time.Now())
+}
+
+func parseRelativeFromTime(s string, fromTime time.Time) (time.Time, error) {
+	var t time.Time
+
+	relative, err := newRelative(s)
+	if err != nil {
+		return t, err
+	}
+
+	return relative.time(fromTime)
 }
