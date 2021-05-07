@@ -125,6 +125,32 @@ func main() {
 
 Set the environment variable `LW_UPDATES_DISABLE=1` to avoid checking for updates.
 
+## Lacework Config ([`lwconfig`](lwconfig/))
+
+A Go library to help you manage the Lacework configuration file (`$HOME/.lacework.toml`)
+
+### Basic Usage
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lacework/go-sdk/lwconfig"
+)
+
+func main() {
+	profiles, err := lwconfig.LoadProfiles()
+	if err != nil {
+		fmt.Println("Unable to load profiles: %s", err)
+	} else {
+		fmt.Println("You have '%d' profiles configured!", len(profiles))
+	}
+}
+```
+
+Look at the [lwconfig/](lwconfig/) folder for more information.
+
 ## Release Process
 
 The release process of this repository is documented at the following [Wiki page](https://github.com/lacework/go-sdk/wiki/Release-Process).
