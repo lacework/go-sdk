@@ -1,9 +1,9 @@
 # Survey
 
 [![Build Status](https://travis-ci.org/AlecAivazis/survey.svg?branch=feature%2Fpretty)](https://travis-ci.org/AlecAivazis/survey)
-[![GoDoc](http://img.shields.io/badge/godoc-reference-5272B4.svg)](https://godoc.org/github.com/AlecAivazis/survey)
+[![GoDoc](http://img.shields.io/badge/godoc-reference-5272B4.svg)](https://pkg.go.dev/github.com/AlecAivazis/survey/v2)
 
-A library for building interactive prompts.
+A library for building interactive prompts on terminals supporting ANSI escape sequences.
 
 <img width="550" src="https://thumbs.gfycat.com/VillainousGraciousKouprey-size_restricted.gif"/>
 
@@ -62,6 +62,7 @@ func main() {
 1. [Running the Prompts](#running-the-prompts)
 1. [Prompts](#prompts)
    1. [Input](#input)
+      1. [Suggestion Options](#suggestion-options)
    1. [Multiline](#multiline)
    1. [Password](#password)
    1. [Confirm](#confirm)
@@ -84,7 +85,7 @@ Examples can be found in the `examples/` directory. Run them
 to see basic behavior:
 
 ```bash
-go get github.com/AlecAivazis/survey
+go get github.com/AlecAivazis/survey/v2
 
 cd $GOPATH/src/github.com/AlecAivazis/survey
 
@@ -135,6 +136,23 @@ prompt := &survey.Input{
     Message: "ping",
 }
 survey.AskOne(prompt, &name)
+```
+
+#### Suggestion Options
+
+<img src="https://i.imgur.com/Q7POpA1.gif" width="800px"/>
+
+```golang
+file := ""
+prompt := &survey.Input{
+    Message: "inform a file to save:",
+    Suggest: func (toComplete string) []string {
+        files, _ := filepath.Glob(toComplete + "*")
+        return files
+    },
+}
+}
+survey.AskOne(prompt, &file)
 ```
 
 ### Multiline
@@ -205,7 +223,7 @@ survey.AskOne(prompt, &days, survey.WithPageSize(10))
 
 ### MultiSelect
 
-<img src="https://thumbs.gfycat.com/SharpTameAntelope-size_restricted.gif" width="450px"/>
+![Example](img/multi-select-all-none.gif)
 
 ```golang
 days := []string{}
@@ -438,6 +456,11 @@ For some examples, you can see any of the tests in this repo.
 
 ## FAQ
 
+### What kinds of IO are supported by `survey`?
+survey aims to support most terminal emulators; it expects support for ANSI escape sequences.
+This means that reading from piped stdin or writing to piped stdout is **not supported**,
+and likely to break your application in these situations. See [#337](https://github.com/AlecAivazis/survey/pull/337#issue-581351617)
+
 ### Why isn't sending a SIGINT (aka. CTRL-C) signal working?
 
 When you send an interrupt signal to the process, it only interrupts the current prompt instead of the entire process. This manifests in a `github.com/AlecAivazis/survey/v2/terminal.InterruptErr` being returned from `Ask` and `AskOne`. If you want to stop the process, handle the returned error in your code:
@@ -452,3 +475,4 @@ if err == terminal.InterruptErr {
 	panic(err)
 }
 ```
+
