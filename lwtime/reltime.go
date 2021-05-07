@@ -226,11 +226,9 @@ func ParseRelative(s string) (time.Time, error) {
 }
 
 func parseRelativeFromTime(s string, fromTime time.Time) (time.Time, error) {
-	var t time.Time
-
 	relative, err := newRelative(s)
 	if err != nil {
-		return t, err
+		return time.Time{}, err
 	}
 
 	return relative.time(fromTime)

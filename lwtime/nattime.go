@@ -82,27 +82,28 @@ func (nt *natural) loadRelativeUnit(u string) bool {
 }
 
 func newNatural(s string) (natural, error) {
-	nt := natural{}
 	s = strings.ToLower(s)
 
 	// Today
 	if naturalAdjective(s) == Today {
-		nt.adjective = This
-		nt.num = "1"
-		nt.iNum = 1
-		nt.unit = relativeUnit("d")
-		return nt, nil
+		return natural{
+			adjective: This,
+			num:       "1", iNum: 1,
+			unit: relativeUnit("d"),
+		}, nil
 	}
 	// Yesterday
 	if naturalAdjective(s) == Yesterday {
-		nt.adjective = Previous
-		nt.num = "1"
-		nt.iNum = 1
-		nt.unit = relativeUnit("d")
-		return nt, nil
+		return natural{
+			adjective: Previous,
+			num:       "1", iNum: 1,
+			unit: relativeUnit("d"),
+		}, nil
 	}
-	// Singular
+
+	nt := natural{}
 	var nt_parts []string
+	// Singular
 	singularRE := regexp.MustCompile(naturalSingularRE)
 	if nt_parts = singularRE.FindStringSubmatch(s); s == "" || nt_parts == nil {
 		// Plural
@@ -133,7 +134,7 @@ func newNatural(s string) (natural, error) {
 	return nt, nil
 }
 
-func (nt natural) range_(t time.Time) (start time.Time, end time.Time, err error) {
+func (nt natural) getRange(t time.Time) (start time.Time, end time.Time, err error) {
 	var relStart, relEnd string
 	baseErr := "unable to compute natural time range"
 
@@ -187,12 +188,10 @@ func ParseNatural(n string) (time.Time, time.Time, error) {
 }
 
 func parseNaturalFromTime(n string, fromTime time.Time) (time.Time, time.Time, error) {
-	var start, end time.Time
-
 	natural, err := newNatural(n)
 	if err != nil {
-		return start, end, err
+		return time.Time{}, time.Time{}, err
 	}
 
-	return natural.range_(fromTime)
+	return natural.getRange(fromTime)
 }

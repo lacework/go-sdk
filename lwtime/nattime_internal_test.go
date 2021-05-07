@@ -356,7 +356,7 @@ func TestNaturalFromTime(t *testing.T) {
 			}
 
 			nt, _ := newNatural(nft.Input)
-			start, end, err := nt.range_(refTime)
+			start, end, err := nt.getRange(refTime)
 
 			if nft.Error == nil {
 				d := end.Unix() - start.Unix()
