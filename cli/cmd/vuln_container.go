@@ -611,16 +611,6 @@ func buildVulnerabilitySummaryReportTable(assessment *api.VulnContainerAssessmen
 	return mainReport.String()
 }
 
-type packageTable struct {
-	cveCount       int
-	severity       string
-	packageName    string
-	currentVersion string
-	fixVersion     string
-	packageStatus  string
-	hostCount      int
-}
-
 type vulnTable struct {
 	Name           string
 	Severity       string
@@ -628,12 +618,6 @@ type vulnTable struct {
 	CurrentVersion string
 	FixVersion     string
 	CreatedBy      string
-}
-
-type filteredPackageTable struct {
-	packages        []packageTable
-	totalPackages   int
-	totalUnfiltered int
 }
 
 type filteredImageTable struct {
