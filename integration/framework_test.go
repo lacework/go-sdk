@@ -223,12 +223,12 @@ api_secret = '_11111111111111111111111111111111'
 	return dir
 }
 
-// store a file in Circle CI Working directory, only if we are running on CircleCI
+// store a file in CI Working directory, only if we find "clone" env variable
 func storeFileInCircleCI(f string) {
-	if jobDir := os.Getenv("CIRCLE_WORKING_DIRECTORY"); jobDir != "" {
+	if jobDir := os.Getenv("clone"); jobDir != "" {
 		var (
 			file      = filepath.Base(f)
-			artifacts = path.Join(jobDir, "circleci-artifacts")
+			artifacts = path.Join(jobDir, "ci-artifacts")
 			err       = os.Mkdir(artifacts, 0755)
 		)
 		if err != nil {
