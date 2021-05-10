@@ -22,6 +22,7 @@ package lwconfig
 import (
 	"bytes"
 	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/BurntSushi/toml"
@@ -86,22 +87,22 @@ func DefaultConfigPath() (string, error) {
 
 // LoadProfiles loads all the profiles from the default location ($HOME/.lacework.toml)
 func LoadProfiles() (Profiles, error) {
-	path, err = DefaultConfigPath()
+	configPath, err := DefaultConfigPath()
 	if err != nil {
 		return Profiles{}, err
 	}
 
-	return LoadProfilesFrom(path)
+	return LoadProfilesFrom(configPath)
 }
 
 // LoadProfilesFrom loads all the profiles from the provided location
-func LoadProfilesFrom(path string) (Profiles, error) {
-	if path == "" {
+func LoadProfilesFrom(configPath string) (Profiles, error) {
+	if configPath == "" {
 		return Profiles{}, errors.New("unable to load profiles. Specify a configuration file.")
 	}
 
 	var profiles Profiles
-	if _, err := toml.DecodeFile(path, &profiles); err != nil {
+	if _, err := toml.DecodeFile(configPath, &profiles); err != nil {
 		return profiles, errors.Wrap(err, "unable to decode profiles from config")
 	}
 
@@ -109,29 +110,31 @@ func LoadProfilesFrom(path string) (Profiles, error) {
 }
 
 // StoreProfileAt updates a single profile from the provided configuration file
-func StoreProfileAt(path, name string, profile Profile) error {
+func StoreProfileAt(configPath, name string, profile Profile) error {
+	cPath := configPath
+	if cPath == "" {
+		defaultPath, err := DefaultConfigPath()
+		if err != nil {
+			return err
+		}
+		cPath = defaultPath
+	}
+
 	var (
 		profiles = Profiles{}
-		buf      = new(bytes.Buffer)
 		err      error
 	)
-
-	if path == "" {
-		path, err = DefaultConfigPath()
-		if err != nil {
+	if _, err = os.Stat(cPath); err == nil {
+		if profiles, err = LoadProfilesFrom(cPath); err != nil {
 			return err
 		}
 	}
 
-	profiles, err = LoadProfilesFrom(path)
-	if err != nil {
-		return err
-	}
-
 	profiles[name] = profile
+	var buf = new(bytes.Buffer)
 	if err = toml.NewEncoder(buf).Encode(profiles); err != nil {
 		return err
 	}
 
-	return ioutil.WriteFile(path, buf.Bytes(), 0600)
+	return ioutil.WriteFile(cPath, buf.Bytes(), 0600)
 }
