@@ -246,9 +246,13 @@ generate_release_notes() {
 push_release() {
   log "commiting and pushing the release to github"
   _version_no_tag=$(echo $VERSION | awk -F. '{printf("%d.%d.%d", $1, $2, $3)}')
+  if [ "$CI" != "" ]; then
+    git config --global user.email $git_email
+    git config --global user.name $git_user
+  fi
   git checkout -B release
   git commit -am "release: v$_version_no_tag"
-  git push origin release
+  git push origin release -f
 }
 
 open_pull_request() {
