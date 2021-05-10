@@ -142,7 +142,7 @@ import (
 func main() {
 	profiles, err := lwconfig.LoadProfiles()
 	if err != nil {
-		fmt.Println("Unable to load profiles: %s", err)
+		fmt.Printf("Unable to load profiles: %s", err)
 	} else {
 		fmt.Printf("You have '%d' profiles configured!\n", len(profiles))
 	}
