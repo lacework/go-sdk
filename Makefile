@@ -3,7 +3,7 @@ default: ci
 ci: lint test fmt-check imports-check integration
 
 GOLANGCILINTVERSION?=1.23.8
-CIARTIFACTS?=circleci-artifacts
+CIARTIFACTS?=ci-artifacts
 COVERAGEOUT?=coverage.out
 COVERAGEHTML?=coverage.html
 PACKAGENAME?=lacework-cli
