@@ -23,11 +23,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwtime"
 )
 
 var (
@@ -35,6 +38,7 @@ var (
 		End          string
 		File         string
 		Repo         bool
+		Range        string
 		Start        string
 		URL          string
 		ValidateOnly bool
@@ -57,20 +61,21 @@ NOTE: This feature is not yet available!`,
 		Short: "run an LQL query",
 		Long: `Run an LQL query.
 
-Run a query via text:
+Run a query via editor:
 
-	$ lacework query run
+	$ lacework query run --range today
 
 Run a query via ID (uses active profile):
 
-	$ lacework query run MyQuery
+	$ lacework query run MyQuery --range
 
 Start and End times are required to run a query:
 
 1.  Start and End times must be specified in one of the following formats:
 
-	A. RFC3339 Date and Time
-	B. Epoch time in milliseconds
+	A. A relative time specifier
+	B. RFC3339 Date and Time
+	C. Epoch time in milliseconds
 
 2. Start and End times must be specified in one of the following ways:
 
@@ -97,18 +102,23 @@ func init() {
 	// run specific flags
 	setQuerySourceFlags(lqlRunCmd)
 
+	// since time flag
+	lqlRunCmd.Flags().StringVarP(
+		&lqlCmdState.Range,
+		"range", "", "",
+		"natural time range for LQL query",
+	)
+
 	// start time flag
-	// TODO: come up with reasonable default per UI (1d)
 	lqlRunCmd.Flags().StringVarP(
 		&lqlCmdState.Start,
-		"start", "", "",
+		"start", "", "@d",
 		"start time for LQL query",
 	)
 	// end time flag
-	// TODO: come up with reasonable default per UI (1d)
 	lqlRunCmd.Flags().StringVarP(
 		&lqlCmdState.End,
-		"end", "", "",
+		"end", "", "now",
 		"end time for LQL query",
 	)
 	lqlRunCmd.Flags().BoolVarP(
@@ -267,6 +277,18 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	query, err := inputQuery(cmd, args)
 	if err != nil {
 		return errors.Wrap(err, msg)
+	}
+
+	if lqlCmdState.Range != "" {
+		cli.Log.Debugw("retrieving natural time range")
+
+		var start, end time.Time
+		start, end, err = lwtime.ParseNatural(lqlCmdState.Range)
+		if err != nil {
+			return errors.Wrap(err, msg)
+		}
+		lqlCmdState.Start = start.UTC().Format(time.RFC3339)
+		lqlCmdState.End = end.UTC().Format(time.RFC3339)
 	}
 
 	cli.Log.Debugw("running LQL query", "query", query)
