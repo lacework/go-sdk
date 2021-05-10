@@ -10,13 +10,13 @@ import (
 func main() {
 	cPath, err := lwconfig.DefaultConfigPath()
 	if err != nil {
-		fmt.Println("Unable to detect default config path location: %s", err)
+		fmt.Printf("Unable to detect default config path location: %s\n", err)
 		os.Exit(1)
 	}
 
 	profiles, err := lwconfig.LoadProfilesFrom(cPath)
 	if err != nil {
-		fmt.Println("Error trying to load profiles: %s", err)
+		fmt.Printf("Error trying to load profiles: %s\n", err)
 		os.Exit(1)
 	}
 

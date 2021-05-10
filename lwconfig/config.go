@@ -111,21 +111,20 @@ func LoadProfilesFrom(configPath string) (Profiles, error) {
 
 // StoreProfileAt updates a single profile from the provided configuration file
 func StoreProfileAt(configPath, name string, profile Profile) error {
-	cPath := configPath
-	if cPath == "" {
+	if configPath == "" {
 		defaultPath, err := DefaultConfigPath()
 		if err != nil {
 			return err
 		}
-		cPath = defaultPath
+		configPath = defaultPath
 	}
 
 	var (
 		profiles = Profiles{}
 		err      error
 	)
-	if _, err = os.Stat(cPath); err == nil {
-		if profiles, err = LoadProfilesFrom(cPath); err != nil {
+	if _, err = os.Stat(configPath); err == nil {
+		if profiles, err = LoadProfilesFrom(configPath); err != nil {
 			return err
 		}
 	}
@@ -136,5 +135,4 @@ func StoreProfileAt(configPath, name string, profile Profile) error {
 		return err
 	}
 
-	return ioutil.WriteFile(cPath, buf.Bytes(), 0600)
-}
+	return ioutil.WriteFile(configPath, buf.Bytes(), 0600)

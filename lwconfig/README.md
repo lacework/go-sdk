@@ -30,7 +30,7 @@ import (
 func main() {
 	profiles, err := lwconfig.LoadProfiles()
 	if err != nil {
-		fmt.Println("Error trying to load profiles: %s", err)
+		fmt.Printf("Error trying to load profiles: %s\n", err)
 		os.Exit(1)
 	}
 
