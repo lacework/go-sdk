@@ -21,6 +21,7 @@ package cmd
 import (
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/honeycombio/libhoney-go"
@@ -157,6 +158,12 @@ func (c *cliState) SendHoneyvent() {
 		c.Event.ParentID = c.id
 		c.Event.SpanID = newID()
 	}
+
+	// Lacework accounts are NOT case-sensitive but some users configure them
+	// in uppercase and other in lowercase, therefore we will normalize all
+	// account to be lowercase so that we don't see different accounts in
+	// Honeycomb.
+	c.Event.Account = strings.ToLower(c.Event.Account)
 
 	c.Log.Debugw("new honeyvent", "dataset", HoneyDataset,
 		"trace_id", c.Event.TraceID,
