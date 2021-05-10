@@ -223,7 +223,7 @@ api_secret = '_11111111111111111111111111111111'
 	return dir
 }
 
-// store a file in CI Working directory, only if we find "clone" env variable
+// store a file in CI Working directory, only if we find "CI" env variable
 func storeFileInCircleCI(f string) {
 	if jobDir := os.Getenv("clone"); jobDir != "" {
 		var (
