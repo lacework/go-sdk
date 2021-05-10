@@ -144,7 +144,7 @@ func main() {
 	if err != nil {
 		fmt.Println("Unable to load profiles: %s", err)
 	} else {
-		fmt.Println("You have '%d' profiles configured!", len(profiles))
+		fmt.Printf("You have '%d' profiles configured!\n", len(profiles))
 	}
 }
 ```
