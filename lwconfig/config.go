@@ -136,3 +136,4 @@ func StoreProfileAt(configPath, name string, profile Profile) error {
 	}
 
 	return ioutil.WriteFile(configPath, buf.Bytes(), 0600)
+}
