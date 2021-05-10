@@ -5,7 +5,7 @@
 [![GitHub release](https://img.shields.io/github/release/lacework/go-sdk.svg)](https://github.com/lacework/go-sdk/releases/)
 [![Go version](https://img.shields.io/github/go-mod/go-version/lacework/go-sdk)](https://github.com/lacework/go-sdk)
 [![Go report](https://goreportcard.com/badge/github.com/lacework/go-sdk)](https://goreportcard.com/report/github.com/lacework/go-sdk)
-[![CircleCI status](https://circleci.com/gh/lacework/go-sdk.svg?style=shield)](https://circleci.com/gh/lacework/go-sdk)
+[![Codefresh build status]( https://g.codefresh.io/api/badges/pipeline/lacework/go-sdk%2Ftest-build?type=cf-1&key=eyJhbGciOiJIUzI1NiJ9.NWVmNTAxOGU4Y2FjOGQzYTkxYjg3ZDEx.RJ3DEzWmBXrJX7m38iExJ_ntGv4_Ip8VTa-an8gBwBo)]( https://g.codefresh.io/pipelines/edit/new/builds?id=601309a0b0dae020a9cf1275&pipeline=test-build&projects=go-sdk&projectId=60118409468eb5f1e534734f)
 [![GitHub releases](https://img.shields.io/github/downloads/lacework/go-sdk/total.svg)](https://GitHub.com/lacework/go-sdk/releases/)
 
 This repository provides a set of tools, libraries, relevant documentation, code
