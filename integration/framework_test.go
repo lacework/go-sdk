@@ -225,7 +225,7 @@ api_secret = '_11111111111111111111111111111111'
 
 // store a file in CI Working directory, only if we find "CI" env variable
 func storeFileInCircleCI(f string) {
-	if jobDir := os.Getenv("CI"); jobDir != "" {
+	if jobDir := os.Getenv("CF_VOLUME_PATH"); jobDir != "" {
 		var (
 			file      = filepath.Base(f)
 			artifacts = path.Join(jobDir, "ci-artifacts")
