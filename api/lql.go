@@ -20,12 +20,15 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
+
+	"github.com/lacework/go-sdk/lwtime"
 )
 
 const (
@@ -106,25 +109,24 @@ func (q *LQLQuery) TranslateQuery() error {
 	return errors.New(LQLQueryTranslateError)
 }
 
-func (q LQLQuery) TranslateTime(inTime string) (outTime string, err error) {
+func (q LQLQuery) TranslateTime(inTime string) (string, error) {
 	// empty
 	if inTime == "" {
-		return
+		return "", nil
+	}
+	// parse time as relative
+	if t, err := lwtime.ParseRelative(inTime); err == nil {
+		return t.UTC().Format(time.RFC3339), err
 	}
 	// parse time as RFC3339
-	var t time.Time
-	if t, err = time.Parse(time.RFC3339, inTime); err == nil {
-		outTime = t.UTC().Format(time.RFC3339)
-		return
+	if t, err := time.Parse(time.RFC3339, inTime); err == nil {
+		return t.UTC().Format(time.RFC3339), err
 	}
 	// parse time as millis
-	var i int64
-	if i, err = strconv.ParseInt(inTime, 10, 64); err == nil {
-		outTime = time.Unix(0, i*int64(time.Millisecond)).UTC().Format(time.RFC3339)
-		return
+	if i, err := strconv.ParseInt(inTime, 10, 64); err == nil {
+		return time.Unix(0, i*int64(time.Millisecond)).UTC().Format(time.RFC3339), err
 	}
-	err = errors.New("unable to parse time (" + inTime + ")")
-	return
+	return "", errors.New(fmt.Sprintf("unable to parse time (%s)", inTime))
 }
 
 func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {

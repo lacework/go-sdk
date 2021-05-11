@@ -3,7 +3,7 @@ default: ci
 ci: lint test fmt-check imports-check integration
 
 GOLANGCILINTVERSION?=1.23.8
-CIARTIFACTS?=circleci-artifacts
+CIARTIFACTS?=ci-artifacts
 COVERAGEOUT?=coverage.out
 COVERAGEHTML?=coverage.html
 PACKAGENAME?=lacework-cli
@@ -24,8 +24,8 @@ export GOFLAGS GO_LDFLAGS CGO_ENABLED
 
 prepare: install-tools go-vendor
 
-test:
-	go test -v -cover -coverprofile=$(COVERAGEOUT) $(shell go list ./... | grep -v integration)
+test: prepare
+	gotestsum -f testname -- -v -cover -coverprofile=$(COVERAGEOUT) $(shell go list ./... | grep -v integration)
 
 integration: build-cli-cross-platform integration-only
 
@@ -97,6 +97,9 @@ ifeq (, $(shell which goimports))
 endif
 ifeq (, $(shell which gox))
 	go get github.com/mitchellh/gox
+endif
+ifeq (, $(shell which gotestsum))
+	go get gotest.tools/gotestsum
 endif
 
 git-env:

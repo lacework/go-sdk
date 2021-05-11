@@ -122,3 +122,14 @@ func TestSendHoneyventHomebrewInstall(t *testing.T) {
 	assert.NotEmpty(t, cli.Event.InstallMethod)
 	assert.Equal(t, "HOMEBREW", cli.Event.InstallMethod)
 }
+
+func TestSendHoneyventAccountToLower(t *testing.T) {
+	cli.Event.Account = "all-lower-OR-ALL-UPPER"
+
+	// mocking sending honeyvent
+	cli.SendHoneyvent()
+
+	// after submitting the honeyvent, the global
+	// event struct should be resetted
+	assert.Equal(t, "all-lower-or-all-upper", cli.Event.Account)
+}
