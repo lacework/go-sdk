@@ -1,0 +1,47 @@
+//
+// Author:: Salim Afiune Maya (<afiune@lacework.net>)
+// Copyright:: Copyright 2021, Lacework Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+package api
+
+// V2Endpoints
+type V2Endpoints struct {
+	client *Client
+}
+
+func (v2 *V2Endpoints) GetUserProfile() (response UserProfileResponse, err error) {
+	v2.client.apiVersion = "v2"
+	err = v2.client.RequestDecoder("GET", apiV2UserProfile, nil, &response)
+	return
+}
+
+type UserProfileResponse struct {
+	Data []struct {
+		Username   string `json:"username"`
+		OrgAccount bool   `json:"orgAccount"`
+		URL        string `json:"url"`
+		OrgAdmin   bool   `json:"orgAdmin"`
+		OrgUser    bool   `json:"orgUser"`
+		Accounts   []struct {
+			Admin       bool   `json:"admin"`
+			AccountName string `json:"accountName"`
+			CustGUID    string `json:"custGuid"`
+			UserGUID    string `json:"userGuid"`
+			UserEnabled int    `json:"userEnabled"`
+		} `json:"accounts"`
+	} `json:"data"`
+}

@@ -37,7 +37,7 @@ func TestWithApiV2(t *testing.T) {
 func TestWithToken(t *testing.T) {
 	c, err := api.NewClient("test", api.WithToken("TOKEN"))
 	if assert.Nil(t, err) {
-		assert.Equal(t, "v1", c.ApiVersion(), "API version should be v2")
+		assert.Equal(t, "v1", c.ApiVersion(), "API version should be v1")
 	}
 }
 
@@ -69,6 +69,23 @@ func TestWithTokenFromKeys(t *testing.T) {
 	}
 }
 
+func TestGenerateTokenV2(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockTokenV2("TOKEN")
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("foo",
+		api.WithApiV2(),
+		api.WithURL(fakeServer.URL()),
+		api.WithApiKeys("KEY", "SECRET"),
+	)
+	if assert.Nil(t, err) {
+		response, err := c.GenerateToken()
+		assert.Nil(t, err)
+		assert.Equal(t, "TOKEN", response.Token, "token mismatch")
+	}
+}
+
 func TestGenerateToken(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockToken("TOKEN")
@@ -81,7 +98,7 @@ func TestGenerateToken(t *testing.T) {
 	if assert.Nil(t, err) {
 		response, err := c.GenerateToken()
 		assert.Nil(t, err)
-		assert.Equal(t, "TOKEN", response.Token(), "token mismatch")
+		assert.Equal(t, "TOKEN", response.Token, "token mismatch")
 	}
 }
 
@@ -94,7 +111,7 @@ func TestGenerateTokenWithKeys(t *testing.T) {
 	if assert.Nil(t, err) {
 		response, err := c.GenerateTokenWithKeys("KEY", "SECRET")
 		assert.Nil(t, err)
-		assert.Equal(t, "TOKEN", response.Token(), "token mismatch")
+		assert.Equal(t, "TOKEN", response.Token, "token mismatch")
 	}
 }
 

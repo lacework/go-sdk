@@ -25,6 +25,7 @@ import (
 )
 
 const (
+	// API v1 Endpoints
 	apiIntegrations        = "external/integrations"
 	apiIntegrationsByType  = "external/integrations/type/%s"
 	apiIntegrationFromGUID = "external/integrations/%s"
@@ -67,7 +68,19 @@ const (
 	ApiLQLDataSources = "external/lql/dataSources"
 	ApiLQLDescribe    = "external/lql/describe"
 	ApiLQLQuery       = "external/lql/query"
+
+	// API v2 Endpoints
+	apiV2UserProfile = "UserProfile"
 )
+
+// WithApiV1 configures the client to use the API version 1 (/api/v1)
+func WithApiV1() Option {
+	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up client", zap.String("api_version", "v1"))
+		c.apiVersion = "v1"
+		return nil
+	})
+}
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
 func WithApiV2() Option {
@@ -76,6 +89,18 @@ func WithApiV2() Option {
 		c.apiVersion = "v2"
 		return nil
 	})
+}
+
+// UseApiV1 configures the client to use the API version 1 (/api/v1)
+func (c *Client) UseApiV1() {
+	c.log.Debug("setting up client", zap.String("api_version", "v1"))
+	c.apiVersion = "v1"
+}
+
+// UseApiV2 configures the client to use the API version 2 (/api/v2)
+func (c *Client) UseApiV2() {
+	c.log.Debug("setting up client", zap.String("api_version", "v2"))
+	c.apiVersion = "v2"
 }
 
 // ApiVersion returns the API client version

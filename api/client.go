@@ -35,6 +35,7 @@ const defaultTimeout = 60 * time.Second
 type Client struct {
 	id         string
 	account    string
+	subaccount string
 	apiVersion string
 	logLevel   string
 	baseURL    *url.URL
@@ -50,6 +51,7 @@ type Client struct {
 	Compliance      *ComplianceService
 	Integrations    *IntegrationsService
 	Vulnerabilities *VulnerabilitiesService
+	V2              *V2Endpoints
 }
 
 type Option interface {
@@ -100,6 +102,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	c.Compliance = &ComplianceService{c}
 	c.Integrations = &IntegrationsService{c}
 	c.Vulnerabilities = NewVulnerabilityService(c)
+	c.V2 = &V2Endpoints{c}
 
 	// init logger, this could change if a user calls api.WithLogLevel()
 	c.initLogger()
@@ -117,6 +120,15 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		zap.Int("timeout", c.auth.expiration),
 	)
 	return c, nil
+}
+
+// WithSubaccount sets a subaccount
+func WithSubaccount(subaccount string) Option {
+	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up client", zap.Reflect("subaccount", subaccount))
+		c.subaccount = subaccount
+		return nil
+	})
 }
 
 // WithTimeout changes the default client timeout
