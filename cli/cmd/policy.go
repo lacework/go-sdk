@@ -90,6 +90,15 @@ The following attributes are minimally required:
 		Args:  cobra.ExactArgs(1),
 		RunE:  showPolicy,
 	}
+
+	// policyDeleteCmd represents the policy delete command
+	policyDeleteCmd = &cobra.Command{
+		Use:   "delete <policy_id>",
+		Short: "delete policy",
+		Long:  `Delete policy.`,
+		Args:  cobra.ExactArgs(1),
+		RunE:  deletePolicy,
+	}
 )
 
 func init() {
@@ -100,6 +109,7 @@ func init() {
 	policyCmd.AddCommand(policyCreateCmd)
 	policyCmd.AddCommand(policyListCmd)
 	policyCmd.AddCommand(policyShowCmd)
+	policyCmd.AddCommand(policyDeleteCmd)
 
 	// policy source specific flags
 	setPolicySourceFlags(policyCreateCmd)
@@ -320,5 +330,21 @@ func showPolicy(_ *cobra.Command, args []string) error {
 		return yikes("unable to show policy")
 	}
 	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policyResponse.Data)))
+	return nil
+}
+
+func deletePolicy(_ *cobra.Command, args []string) error {
+	cli.Log.Debugw("deleting policy", "policyID", args[0])
+
+	delete, err := cli.LwApi.Policy.Delete(args[0])
+	if err != nil {
+		return errors.Wrap(err, "unable to delete policy")
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(delete)
+	}
+	cli.OutputHuman(
+		fmt.Sprintf("Policy (%s) deleted successfully.\n", args[0]))
 	return nil
 }

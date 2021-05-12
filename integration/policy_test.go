@@ -131,7 +131,11 @@ func TestPolicyCreateFile(t *testing.T) {
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	// todo teardown policy
+	// delete
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "delete", "my-policy-2")
+	assert.Contains(t, out.String(), "Policy (my-policy-2) deleted successfully.")
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestPolicyCreateURL(t *testing.T) {
@@ -145,11 +149,12 @@ func TestPolicyCreateURL(t *testing.T) {
 
 	// create (output human)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
+	// teardown policy
+	defer LaceworkCLIWithTOMLConfig("policy", "delete", "my-policy-2")
+
 	assert.Contains(t, out.String(), "Policy (my-policy-1) created successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-
-	// todo teardown policy
 }
 
 func TestPolicyListHelp(t *testing.T) {
@@ -235,6 +240,48 @@ func TestPolicyShow(t *testing.T) {
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1", "--json")
 	assert.Contains(t, out.String(), `"policy_id"`)
 	assert.Contains(t, out.String(), `"lacework-global-1"`)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestPolicyDeleteHelp(t *testing.T) {
+	if os.Getenv("CI_BETA") == "" {
+		t.Skip("skipping test in production mode")
+	}
+	out, err, exitcode := LaceworkCLI("help", "policy", "delete")
+	assert.Contains(t, out.String(), "lacework policy delete <policy_id> [flags]")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestPolicyDeleteNoInput(t *testing.T) {
+	if os.Getenv("CI_BETA") == "" {
+		t.Skip("skipping test in production mode")
+	}
+
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete")
+	assert.Empty(t, out.String(), "STDOUT should be empty")
+	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestPolicyDelete(t *testing.T) {
+	if os.Getenv("CI_BETA") == "" {
+		t.Skip("skipping test in production mode")
+	}
+
+	// setup query
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	// teardown query
+	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+	// setup policy
+	LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
+
+	// table delete tested by virtue of TestPolicyCreateFile
+
+	// json
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete", "my-policy-1", "--json")
+	assert.Contains(t, out.String(), `"my-policy-1"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
