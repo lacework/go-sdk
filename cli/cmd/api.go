@@ -38,16 +38,28 @@ var (
 	// apiCmd represents the api command
 	apiCmd = &cobra.Command{
 		Use:   "api <method> <path>",
-		Short: "helper to call Lacework's RestfulAPI",
-		Long: `Use this command as a helper to call any available Lacework API endpoint.
+		Short: "helper to call Lacework's API",
+		Long: `Use this command as a helper to call any available Lacework API v1 & v2 endpoint.
 
-For example, to list all integrations configured in your account run:
+== For APIv1 ==
 
-    lacework api get /external/integrations
+To list all integrations configured in your account:
 
-For a complete list of available API endpoints visit:
+    lacework api get /v1/external/integrations
+
+For a complete list of available API v1 endpoints visit:
 
     https://<ACCOUNT>.lacework.net/api/v1/external/docs
+
+== For APIv2 ==
+
+To list all available Lacework schema types:
+
+    lacework api get /v2/schemas
+
+For a complete list of available API v1 endpoints visit:
+
+    https://<ACCOUNT>.lacework.net/api/v2/docs
 `,
 		Args: argsApiValidator,
 		RunE: runApiCommand,
@@ -76,32 +88,10 @@ func runApiCommand(_ *cobra.Command, args []string) error {
 		}
 	}
 
-	endpoint := args[1]
-	pathSplit := strings.Split(args[1], "/")
-	size := len(pathSplit)
-	if size > 0 {
-		switch pathSplit[0] {
-		case "v2":
-			cli.LwApi.UseApiV2()
-			endpoint = strings.Join(pathSplit[1:], "/")
-		case "v1":
-			endpoint = strings.Join(pathSplit[1:], "/")
-		}
-	}
-	if size > 1 {
-		switch pathSplit[1] {
-		case "v2":
-			cli.LwApi.UseApiV2()
-			endpoint = strings.Join(pathSplit[2:], "/")
-		case "v1":
-			endpoint = strings.Join(pathSplit[2:], "/")
-		}
-	}
-
 	response := new(interface{})
 	err := cli.LwApi.RequestDecoder(
 		strings.ToUpper(args[0]),
-		strings.TrimPrefix(endpoint, "/"),
+		strings.TrimPrefix(args[1], "/"),
 		strings.NewReader(apiData),
 		response,
 	)

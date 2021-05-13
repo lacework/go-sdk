@@ -49,7 +49,7 @@ func (svc *LQLService) DeleteQuery(queryID string) (
 
 	err = svc.client.RequestDecoder(
 		"DELETE",
-		fmt.Sprintf("%s?LQL_ID=%s", ApiLQL, url.QueryEscape(queryID)),
+		fmt.Sprintf("%s?LQL_ID=%s", apiLQL, url.QueryEscape(queryID)),
 		nil,
 		&response,
 	)

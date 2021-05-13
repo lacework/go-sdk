@@ -115,7 +115,7 @@ var (
 func TestLQLDescribeMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		fmt.Sprintf("%s/%s", api.ApiLQLDescribe, url.QueryEscape(lqlDataSource)),
+		fmt.Sprintf("external/lql/describe/%s", url.QueryEscape(lqlDataSource)),
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "Describe should be a GET method")
 			assert.Subset(
@@ -144,7 +144,7 @@ func TestLQLDescribeOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		fmt.Sprintf("%s/%s", api.ApiLQLDescribe, url.QueryEscape(lqlDataSource)),
+		fmt.Sprintf("external/lql/describe/%s", url.QueryEscape(lqlDataSource)),
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -170,7 +170,7 @@ func TestLQLDescribeOK(t *testing.T) {
 func TestLQLDescribeNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		fmt.Sprintf("%s/%s", api.ApiLQLDescribe, url.QueryEscape(lqlDataSource)),
+		fmt.Sprintf("external/lql/describe/%s", url.QueryEscape(lqlDataSource)),
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -190,7 +190,7 @@ func TestLQLDescribeNotFound(t *testing.T) {
 func TestLQLDescribeError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLCompile,
+		"external/lql/compile",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
 		},

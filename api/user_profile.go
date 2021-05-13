@@ -25,7 +25,6 @@ type UserProfileService struct {
 }
 
 func (svc *UserProfileService) Get() (response UserProfileResponse, err error) {
-	svc.client.apiVersion = "v2"
 	err = svc.client.RequestDecoder("GET", apiV2UserProfile, nil, &response)
 	return
 }

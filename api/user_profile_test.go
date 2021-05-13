@@ -77,8 +77,8 @@ func userProfileResponse() string {
         {
           "admin": true,
           "accountName": "CUSTOMERDEMO",
-          "custGuid": "CUSTOMER_721595854C4272A5AC58B9FAA369C0ABB05564A91DA0ED9",
-          "userGuid": "CUSTOMER_997F8E3EDECD89F30125BCCFCFD308CCABE8DF908A08DD3",
+          "custGuid": "CUSTOMER_123455854C4272A5AC58B9FAA369C0ABB05564A91DA0ED9",
+          "userGuid": "CUSTOMER_12345E3EDECD89F30125BCCFCFD308CCABE8DF908A08DD3",
           "userEnabled": 1
         }
       ]

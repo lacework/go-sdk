@@ -21,7 +21,9 @@ package api
 // V2Endpoints groups all APIv2 endpoints available, they are grouped by
 // schema which matches with our service architecture
 type V2Endpoints struct {
-	client      *Client
+	client *Client
+
+	// Every schema must have its own service
 	UserProfile *UserProfileService
 }
 

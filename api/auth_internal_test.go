@@ -35,7 +35,7 @@ func TestApiPath(t *testing.T) {
 	c2 := &Client{apiVersion: "v2"}
 	assert.Equal(t, "/api/v2/bar", c2.apiPath("bar"), "api path mismatch")
 	assert.Equal(t,
-		"/api/v2/external/integrations",
-		c2.apiPath(apiIntegrations),
+		"/api/v2/UserProfile",
+		c2.apiPath(apiV2UserProfile),
 		"integrations api path mismatch")
 }
