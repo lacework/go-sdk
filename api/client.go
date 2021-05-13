@@ -51,7 +51,8 @@ type Client struct {
 	Compliance      *ComplianceService
 	Integrations    *IntegrationsService
 	Vulnerabilities *VulnerabilitiesService
-	V2              *V2Endpoints
+
+	V2 *V2Endpoints
 }
 
 type Option interface {
@@ -102,7 +103,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	c.Compliance = &ComplianceService{c}
 	c.Integrations = &IntegrationsService{c}
 	c.Vulnerabilities = NewVulnerabilityService(c)
-	c.V2 = &V2Endpoints{c}
+	c.V2 = NewV2Endpoints(c)
 
 	// init logger, this could change if a user calls api.WithLogLevel()
 	c.initLogger()

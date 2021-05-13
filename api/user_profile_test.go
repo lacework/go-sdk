@@ -47,7 +47,7 @@ func TestV2UserProfile(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.GetUserProfile()
+	response, err := c.V2.UserProfile.Get()
 	assert.Nil(t, err)
 
 	if assert.NotNil(t, response) {

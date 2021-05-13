@@ -18,14 +18,15 @@
 
 package api
 
-// V2Endpoints
-type V2Endpoints struct {
+// UserProfileService is the service that interacts with the UserProfile
+// schema from the Lacework APIv2 Server
+type UserProfileService struct {
 	client *Client
 }
 
-func (v2 *V2Endpoints) GetUserProfile() (response UserProfileResponse, err error) {
-	v2.client.apiVersion = "v2"
-	err = v2.client.RequestDecoder("GET", apiV2UserProfile, nil, &response)
+func (svc *UserProfileService) Get() (response UserProfileResponse, err error) {
+	svc.client.apiVersion = "v2"
+	err = svc.client.RequestDecoder("GET", apiV2UserProfile, nil, &response)
 	return
 }
 

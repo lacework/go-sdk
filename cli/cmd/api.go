@@ -66,13 +66,13 @@ func init() {
 
 func runApiCommand(_ *cobra.Command, args []string) error {
 	switch args[0] {
-	case "post", "patch":
+	case "patch":
 		if apiData == "" {
-			return fmt.Errorf("missing '--data' parameter for post or patch requests")
+			return fmt.Errorf("missing '--data' parameter patch requests")
 		}
-	case "delete", "get":
+	case "get":
 		if apiData != "" {
-			return fmt.Errorf("use '--data' only for post and patch requests")
+			return fmt.Errorf("use '--data' only for post, delete and patch requests")
 		}
 	}
 
