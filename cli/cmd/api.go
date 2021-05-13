@@ -91,7 +91,7 @@ func runApiCommand(_ *cobra.Command, args []string) error {
 	response := new(interface{})
 	err := cli.LwApi.RequestDecoder(
 		strings.ToUpper(args[0]),
-		strings.TrimPrefix(args[1], "/"),
+		cleanupEndpoint(args[1]),
 		strings.NewReader(apiData),
 		response,
 	)
@@ -116,4 +116,20 @@ func argsApiValidator(_ *cobra.Command, args []string) error {
 		)
 	}
 	return nil
+}
+
+// cleanupEndpoint will make sure that any provided endpoint is well formatted
+// and doesn't contain known fields like /api/v1/foo
+func cleanupEndpoint(endpoint string) string {
+	splitEndpoint := strings.Split(endpoint, "/")
+
+	if len(splitEndpoint) > 0 && splitEndpoint[0] == "api" {
+		return strings.Join(splitEndpoint[1:], "/")
+	}
+
+	if len(splitEndpoint) > 1 && splitEndpoint[1] == "api" {
+		return strings.Join(splitEndpoint[2:], "/")
+	}
+
+	return strings.TrimPrefix(endpoint, "/")
 }
