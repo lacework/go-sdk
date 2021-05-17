@@ -205,8 +205,14 @@ func (svc *LQLService) GetQueryByID(queryID string) (
 	return
 }
 
+type LQLRunResponse struct {
+	Data    []interface{} `json:"data"`
+	Ok      bool          `json:"ok"`
+	Message string        `json:"message"`
+}
+
 func (svc *LQLService) RunQuery(query, start, end string) (
-	response map[string]interface{},
+	response LQLRunResponse,
 	err error,
 ) {
 	lqlQuery := LQLQuery{

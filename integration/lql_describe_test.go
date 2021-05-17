@@ -43,7 +43,7 @@ func TestQueryDescribeNoInput(t *testing.T) {
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
-	assert.Contains(t, err.String(), "ERROR unable to describe LQL data source: Please specify a valid data source.")
+	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 

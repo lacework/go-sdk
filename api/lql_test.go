@@ -616,10 +616,10 @@ func TestLQLRunQueryOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	var runExpected map[string]interface{}
+	var runExpected api.LQLRunResponse
 	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
 
-	var runActual map[string]interface{}
+	var runActual api.LQLRunResponse
 	runActual, err = c.LQL.RunQuery(lqlQueryStr, "0", "1")
 	assert.Nil(t, err)
 

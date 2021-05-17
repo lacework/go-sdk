@@ -22,6 +22,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -42,6 +45,7 @@ var (
 		Start        string
 		URL          string
 		ValidateOnly bool
+		FailOnCount  string
 	}{}
 
 	// lqlCmd represents the lql parent command
@@ -125,6 +129,12 @@ func init() {
 		&lqlCmdState.ValidateOnly,
 		"validate_only", "", false,
 		"validate query only (do not run)",
+	)
+	// fail on count
+	lqlRunCmd.Flags().StringVarP(
+		&lqlCmdState.FailOnCount,
+		"fail_on_count", "", "",
+		"fail if the query matches the fail_on_count expression",
 	)
 }
 
@@ -290,6 +300,19 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		lqlCmdState.Start = start.UTC().Format(time.RFC3339)
 		lqlCmdState.End = end.UTC().Format(time.RFC3339)
 	}
+	// fail_on_count pre
+	var co countOperation
+	if lqlCmdState.FailOnCount != "" {
+		err = co.parse(lqlCmdState.FailOnCount)
+		if err != nil {
+			return err
+		}
+
+		_, err = co.isFail(0)
+		if err != nil {
+			return err
+		}
+	}
 
 	cli.Log.Debugw("running LQL query", "query", query)
 
@@ -304,11 +327,59 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		err = queryErrorCrumbs(query, err)
 		return errors.Wrap(err, msg)
 	}
-	if data, ok := response["data"]; ok {
-		return cli.OutputJSON(data)
+	// output
+	if err = cli.OutputJSON(response.Data); err != nil {
+		return err
 	}
-	if err := cli.OutputJSON(response); err != nil {
-		return errors.Wrap(err, "unable to format json response")
+	// fail_on_count post
+	if lqlCmdState.FailOnCount != "" {
+		isFail, err := co.isFail(len(response.Data))
+		if err != nil {
+			return err
+		}
+		if isFail {
+			os.Exit(9)
+		}
 	}
 	return nil
+}
+
+const operationRE = `^(>|>=|<|<=|={1,2}|!=)\s*(\d+)$`
+
+type countOperation struct {
+	operator string
+	num      int
+}
+
+func (co *countOperation) parse(s string) error {
+	re := regexp.MustCompile(operationRE)
+
+	s = strings.TrimSpace(s)
+
+	var op_parts []string
+	if op_parts = re.FindStringSubmatch(s); s == "" || op_parts == nil {
+		return errors.New(
+			fmt.Sprintf("count operation (%s) is invalid", s))
+	}
+	co.num, _ = strconv.Atoi(op_parts[2])
+	co.operator = op_parts[1]
+	return nil
+}
+
+func (co countOperation) isFail(count int) (bool, error) {
+	switch co.operator {
+	case ">":
+		return count > co.num, nil
+	case ">=":
+		return count >= co.num, nil
+	case "<":
+		return count < co.num, nil
+	case "<=":
+		return count <= co.num, nil
+	case "=", "==":
+		return count == co.num, nil
+	case "!=":
+		return count != co.num, nil
+	}
+	return true, errors.New(fmt.Sprintf("count operation (%s) is invalid", co.operator))
 }

@@ -236,3 +236,38 @@ func TestQueryRunURL(t *testing.T) {
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
+
+func TestQueryRunFailOnBadInput(t *testing.T) {
+	if os.Getenv("CI_BETA") == "" {
+		t.Skip("skipping test in production mode")
+	}
+
+	_, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"query", "run", "-u", lqlQueryURL, "--fail_on_count", "!30")
+	assert.Contains(t, err.String(), "ERROR count operation (!30) is invalid")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestQueryRunFailOnPos(t *testing.T) {
+	if os.Getenv("CI_BETA") == "" {
+		t.Skip("skipping test in production mode")
+	}
+
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"query", "run", "-u", lqlQueryURL, "--fail_on_count", "=1")
+	assert.Contains(t, out.String(), `"INSERT_ID"`)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 9, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestQueryRunFailOnNeg(t *testing.T) {
+	if os.Getenv("CI_BETA") == "" {
+		t.Skip("skipping test in production mode")
+	}
+
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"query", "run", "-u", lqlQueryURL, "--fail_on_count", ">1")
+	assert.Contains(t, out.String(), `"INSERT_ID"`)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
