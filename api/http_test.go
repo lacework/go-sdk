@@ -38,6 +38,25 @@ func TestDoDecoder(t *testing.T) {
 	// TODO @afiune to-be-implemented!
 }
 
+func TestDoDecoder204(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI(
+		"foo",
+		func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "", http.StatusNoContent)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, _ := api.NewClient("foo", api.WithURL(fakeServer.URL()), api.WithTokenFromKeys("KEY", "SECRET"), api.WithExpirationTime(-60))
+	request, _ := c.NewRequest("GET", "foo", nil)
+
+	var v interface{}
+	_, err := c.DoDecoder(request, v)
+	assert.Nil(t, err)
+}
+
 func TestRequestDecoder(t *testing.T) {
 	// TODO @afiune to-be-implemented!
 }
