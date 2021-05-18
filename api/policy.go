@@ -20,7 +20,10 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
+
+	"github.com/pkg/errors"
 )
 
 // PolicyService is a service that interacts with the Custom Policies
@@ -56,7 +59,7 @@ func (svc *PolicyService) Create(policy string) (
 	if err = json.Unmarshal([]byte(policy), &p); err != nil {
 		return
 	}
-	err = svc.client.RequestEncoderDecoder("POST", ApiPolicy, p, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiPolicy, p, &response)
 	return
 }
 
@@ -68,12 +71,30 @@ func (svc *PolicyService) GetByID(policyID string) (
 	response PolicyResponse,
 	err error,
 ) {
-	uri := ApiPolicy
+	uri := apiPolicy
 
 	if policyID != "" {
 		uri += "?POLICY_ID=" + url.QueryEscape(policyID)
 	}
 
 	err = svc.client.RequestDecoder("GET", uri, nil, &response)
+	return
+}
+
+func (svc *PolicyService) Delete(policyID string) (
+	response map[string]interface{}, // endpoint currently 204's so no response content
+	err error,
+) {
+	if policyID == "" {
+		err = errors.New("policy ID must be provided")
+		return
+	}
+
+	err = svc.client.RequestDecoder(
+		"DELETE",
+		fmt.Sprintf("%s?POLICY_ID=%s", apiPolicy, url.QueryEscape(policyID)),
+		nil,
+		&response,
+	)
 	return
 }
