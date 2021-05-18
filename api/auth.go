@@ -93,39 +93,53 @@ func (c *Client) TokenExpired() bool {
 }
 
 // GenerateToken generates a new access token
-func (c *Client) GenerateToken() (response TokenResponse, err error) {
+func (c *Client) GenerateToken() (*TokenData, error) {
 	if c.auth.keyID == "" || c.auth.secret == "" {
-		err = fmt.Errorf("unable to generate access token: auth keys missing")
-		return
+		return nil, fmt.Errorf("unable to generate access token: auth keys missing")
 	}
 
 	body, err := jsonReader(tokenRequest{c.auth.keyID, c.auth.expiration})
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	err = c.RequestDecoder("POST", apiTokens, body, &response)
+	request, err := c.NewRequest("POST", apiTokens, body)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	if len(response.Data) > 0 {
-		// @afiune how do we handle cases where there is more than one token
-		c.log.Debug("storing token", zap.Reflect("data", response.Data))
-		c.auth.token = response.Data[0].Token
-		c.auth.expiresAt, err = time.Parse("Jan 02 2006 15:04", response.Data[0].ExpiresAt)
+	var tokenData TokenData
+	switch c.ApiVersion() {
+	case "v2":
+		res, err := c.DoDecoder(request, &tokenData)
 		if err != nil {
-			c.log.Error("Failed to parse token expiration response", zap.Error(err))
+			return nil, err
 		}
-		return
+		defer res.Body.Close()
+	default:
+		// we default to v1
+		var tokenResponse TokenResponse
+		res, err := c.DoDecoder(request, &tokenResponse)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+
+		tokenData.Token = tokenResponse.Token()
+		tokenData.ExpiresAt = tokenResponse.ExpiresAt()
 	}
 
-	c.log.Debug("empty token response data", zap.Reflect("response", response))
-	return
+	c.log.Debug("storing token", zap.Reflect("data", tokenData))
+	c.auth.token = tokenData.Token
+	c.auth.expiresAt, err = time.Parse(time.RFC3339, tokenData.ExpiresAt)
+	if err != nil {
+		c.log.Error("failed to parse token expiration response", zap.Error(err))
+	}
+	return &tokenData, nil
 }
 
 // GenerateTokenWithKeys generates a new access token with the provided keys
-func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (TokenResponse, error) {
+func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (*TokenData, error) {
 	c.log.Debug("setting up auth",
 		zap.String("key", keyID),
 		zap.String("secret", secretKey),
@@ -136,7 +150,7 @@ func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (TokenResponse, 
 }
 
 type TokenResponse struct {
-	Data    []tokenData `json:"data"`
+	Data    []TokenData `json:"data"`
 	Ok      bool        `json:"ok"`
 	Message string      `json:"message"`
 }
@@ -150,7 +164,19 @@ func (tr TokenResponse) Token() string {
 	return ""
 }
 
-type tokenData struct {
+func (tr TokenResponse) ExpiresAt() string {
+	if len(tr.Data) > 0 {
+		// @afiune how do we handle cases where there is more than one token
+		expiresAtTime, err := time.Parse("Jan 02 2006 15:04", tr.Data[0].ExpiresAt)
+		if err == nil {
+			return expiresAtTime.Format(time.RFC3339)
+		}
+	}
+
+	return ""
+}
+
+type TokenData struct {
 	ExpiresAt string `json:"expiresAt"`
 	Token     string `json:"token"`
 }

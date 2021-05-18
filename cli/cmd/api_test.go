@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2020, Lacework Inc.
+// Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,26 +16,36 @@
 // limitations under the License.
 //
 
-package api
+package cmd
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestApiPath(t *testing.T) {
-	c1 := &Client{apiVersion: "v1"}
-	assert.Equal(t, "/api/v1/foo", c1.apiPath("foo"), "api path mismatch")
-	assert.Equal(t,
-		"/api/v1/access/tokens",
-		c1.apiPath(apiTokens),
-		"token api path mismatch")
+func TestAPICleanupEndpoint(t *testing.T) {
 
-	c2 := &Client{apiVersion: "v2"}
-	assert.Equal(t, "/api/v2/bar", c2.apiPath("bar"), "api path mismatch")
-	assert.Equal(t,
-		"/api/v2/UserProfile",
-		c2.apiPath(apiV2UserProfile),
-		"integrations api path mismatch")
+	cases := []struct {
+		endpoint         string
+		expectedEndpoint string
+	}{
+		{"", ""},
+		{"/foo", "foo"},
+		{"/external/bar", "external/bar"},
+		{"/v1/bubulubu", "v1/bubulubu"},
+		{"/v2/bubulubu", "v2/bubulubu"},
+
+		{"/api/v2/schemas", "v2/schemas"},
+		{"/api/v1/external/foo", "v1/external/foo"},
+		{"api/v1/endpoint", "v1/endpoint"},
+		{"api/v2/coolendpoint", "v2/coolendpoint"},
+	}
+
+	for i, kase := range cases {
+		t.Run(fmt.Sprintf("test case %d", i), func(t *testing.T) {
+			assert.Equal(t, kase.expectedEndpoint, cleanupEndpoint(kase.endpoint))
+		})
+	}
 }

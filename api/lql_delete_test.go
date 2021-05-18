@@ -32,13 +32,13 @@ import (
 func TestLQLDeleteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "DELETE", r.Method, "Delete should be a DELETE method")
 			assert.Subset(
 				t,
 				[]byte(r.RequestURI),
-				[]byte(api.ApiLQL+"?LQL_ID=my_lql"),
+				[]byte("external/lql?LQL_ID=my_lql"),
 				"Delete should specify LQL_ID argument",
 			)
 			fmt.Fprint(w, "{}")
@@ -59,7 +59,7 @@ func TestLQLDeleteMethod(t *testing.T) {
 func TestLQLDeleteBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -84,7 +84,7 @@ func TestLQLDeleteOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -110,7 +110,7 @@ func TestLQLDeleteOK(t *testing.T) {
 func TestLQLDeleteNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLCompile,
+		"external/lql/compile",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlUnableResponse, http.StatusBadRequest)
 		},
