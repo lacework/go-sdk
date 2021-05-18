@@ -20,59 +20,82 @@ package api
 
 import (
 	"fmt"
+	"strings"
 
 	"go.uber.org/zap"
 )
 
 const (
-	apiIntegrations        = "external/integrations"
-	apiIntegrationsByType  = "external/integrations/type/%s"
-	apiIntegrationFromGUID = "external/integrations/%s"
-	apiIntegrationSchema   = "external/integrations/schema/%s"
-	apiTokens              = "access/tokens"
+	// Common endpoints
+	//
+	// There will be times where we will have common endpoints between
+	// different versions of our APIs, by default such endpoints will
+	// be driven by the global client.apiVersion setting, when we are
+	// ready to switch over/upgrade we can do so with the option
+	// WithApiV2() at the time that the caller initializes the Go Client
+	//
+	// Example:
+	// ```go
+	//   api.NewClient("my-account", api.WithApiV2())
+	// ```
+	apiTokens = "access/tokens" // Auth
 
-	apiAgentTokens      = "external/tokens"
-	apiAgentTokenFromID = "external/tokens/%s"
+	// API v1 Endpoints
+	//
+	// These endpoints only exist in APIv1 and therefore we prefix them with 'v1/'
+	apiIntegrations        = "v1/external/integrations"
+	apiIntegrationsByType  = "v1/external/integrations/type/%s"
+	apiIntegrationFromGUID = "v1/external/integrations/%s"
+	apiIntegrationSchema   = "v1/external/integrations/schema/%s"
 
-	apiVulnerabilitiesContainerScan             = "external/vulnerabilities/container/repository/images/scan"
-	apiVulnerabilitiesContainerScanStatus       = "external/vulnerabilities/container/reqId/%s"
-	apiVulnerabilitiesAssessmentFromImageID     = "external/vulnerabilities/container/imageId/%s"
-	apiVulnerabilitiesAssessmentFromImageDigest = "external/vulnerabilities/container/imageDigest/%s"
-	apiVulnContainerAssessmentsForDateRange     = "external/vulnerabilities/container/GetAssessmentsForDateRange"
+	apiAgentTokens      = "v1/external/tokens"
+	apiAgentTokenFromID = "v1/external/tokens/%s"
 
-	apiVulnerabilitiesScanPkgManifest             = "external/vulnerabilities/scan"
-	apiVulnerabilitiesHostListCves                = "external/vulnerabilities/host"
-	apiVulnerabilitiesListHostsWithCveID          = "external/vulnerabilities/host/cveId/%s"
-	apiVulnerabilitiesHostAssessmentFromMachineID = "external/vulnerabilities/host/machineId/%s"
+	apiVulnerabilitiesContainerScan             = "v1/external/vulnerabilities/container/repository/images/scan"
+	apiVulnerabilitiesContainerScanStatus       = "v1/external/vulnerabilities/container/reqId/%s"
+	apiVulnerabilitiesAssessmentFromImageID     = "v1/external/vulnerabilities/container/imageId/%s"
+	apiVulnerabilitiesAssessmentFromImageDigest = "v1/external/vulnerabilities/container/imageDigest/%s"
+	apiVulnContainerAssessmentsForDateRange     = "v1/external/vulnerabilities/container/GetAssessmentsForDateRange"
 
-	apiComplianceAwsLatestReport        = "external/compliance/aws/GetLatestComplianceReport?AWS_ACCOUNT_ID=%s"
-	apiComplianceGcpLatestReport        = "external/compliance/gcp/GetLatestComplianceReport?GCP_ORG_ID=%s&GCP_PROJ_ID=%s"
-	apiComplianceGcpListProjects        = "external/compliance/gcp/ListProjectsForOrganization?GCP_ORG_ID=%s"
-	apiComplianceAzureLatestReport      = "external/compliance/azure/GetLatestComplianceReport?AZURE_TENANT_ID=%s&AZURE_SUBS_ID=%s"
-	apiComplianceAzureListSubscriptions = "external/compliance/azure/ListSubscriptionsForTenant?AZURE_TENANT_ID=%s"
+	apiVulnerabilitiesScanPkgManifest             = "v1/external/vulnerabilities/scan"
+	apiVulnerabilitiesHostListCves                = "v1/external/vulnerabilities/host"
+	apiVulnerabilitiesListHostsWithCveID          = "v1/external/vulnerabilities/host/cveId/%s"
+	apiVulnerabilitiesHostAssessmentFromMachineID = "v1/external/vulnerabilities/host/machineId/%s"
 
-	apiRunReportIntegration = "external/runReport/integration/%s"
-	apiRunReportGcp         = "external/runReport/gcp/%s"
-	apiRunReportAws         = "external/runReport/aws/%s"
-	apiRunReportAzure       = "external/runReport/azure/%s"
+	apiComplianceAwsLatestReport        = "v1/external/compliance/aws/GetLatestComplianceReport?AWS_ACCOUNT_ID=%s"
+	apiComplianceGcpLatestReport        = "v1/external/compliance/gcp/GetLatestComplianceReport?GCP_ORG_ID=%s&GCP_PROJ_ID=%s"
+	apiComplianceGcpListProjects        = "v1/external/compliance/gcp/ListProjectsForOrganization?GCP_ORG_ID=%s"
+	apiComplianceAzureLatestReport      = "v1/external/compliance/azure/GetLatestComplianceReport?AZURE_TENANT_ID=%s&AZURE_SUBS_ID=%s"
+	apiComplianceAzureListSubscriptions = "v1/external/compliance/azure/ListSubscriptionsForTenant?AZURE_TENANT_ID=%s"
 
-	apiEventsDetails   = "external/events/GetEventDetails"
-	apiEventsDateRange = "external/events/GetEventsForDateRange"
+	apiRunReportIntegration = "v1/external/runReport/integration/%s"
+	apiRunReportGcp         = "v1/external/runReport/gcp/%s"
+	apiRunReportAws         = "v1/external/runReport/aws/%s"
+	apiRunReportAzure       = "v1/external/runReport/azure/%s"
 
-	apiAccountOrganizationInfo = "external/account/organizationInfo"
+	apiEventsDetails   = "v1/external/events/GetEventDetails"
+	apiEventsDateRange = "v1/external/events/GetEventsForDateRange"
 
-	// LQL
-	ApiLQL            = "external/lql"
-	ApiLQLCompile     = "external/lql/compile"
-	ApiLQLDataSources = "external/lql/dataSources"
-	ApiLQLDescribe    = "external/lql/describe"
-	ApiLQLQuery       = "external/lql/query"
+	apiAccountOrganizationInfo = "v1/external/account/organizationInfo"
+
+	// Alpha
+	apiLQL            = "v1/external/lql"
+	apiLQLCompile     = "v1/external/lql/compile"
+	apiLQLDataSources = "v1/external/lql/dataSources"
+	apiLQLDescribe    = "v1/external/lql/describe"
+	apiLQLQuery       = "v1/external/lql/query"
 
 	// Custom Policies
 	ApiPolicy = "external/lqlPolicies"
+
+	// API v2 Endpoints
+	//
+	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
+	apiV2UserProfile = "v2/UserProfile"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
+// for common API endpoints
 func WithApiV2() Option {
 	return clientFunc(func(c *Client) error {
 		c.log.Debug("setting up client", zap.String("api_version", "v2"))
@@ -88,5 +111,9 @@ func (c *Client) ApiVersion() string {
 
 // apiPath builds a path by using the current API version
 func (c *Client) apiPath(p string) string {
+	if strings.HasPrefix(p, "v1") || strings.HasPrefix(p, "v2") {
+		return fmt.Sprintf("/api/%s", p)
+	}
+
 	return fmt.Sprintf("/api/%s/%s", c.apiVersion, p)
 }

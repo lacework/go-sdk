@@ -142,7 +142,7 @@ Usage:
 Available Commands:
   access-token  generate temporary API access tokens
   agent         manage Lacework agents
-  api           helper to call Lacework's RestfulAPI
+  api           helper to call Lacework's API
   compliance    manage compliance reports
   configure     configure the Lacework CLI
   event         inspect Lacework events

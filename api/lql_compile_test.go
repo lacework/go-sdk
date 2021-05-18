@@ -82,7 +82,7 @@ var (
 func TestLQLCompileMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLCompile,
+		"external/lql/compile",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method, "Compile should be a POST method")
 			fmt.Fprint(w, "{}")
@@ -103,7 +103,7 @@ func TestLQLCompileMethod(t *testing.T) {
 func TestLQLCompileBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLCompile,
+		"external/lql/compile",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -125,7 +125,7 @@ func TestLQLCompileOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLCompile,
+		"external/lql/compile",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -150,7 +150,7 @@ func TestLQLCompileOK(t *testing.T) {
 func TestLQLCompileError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLCompile,
+		"external/lql/compile",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
 		},

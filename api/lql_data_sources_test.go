@@ -32,7 +32,7 @@ import (
 func TestLQLDataSourcesMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLDataSources,
+		"external/lql/dataSources",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "DataSources should be a GET method")
 			fmt.Fprint(w, "{}")
@@ -61,7 +61,7 @@ func TestLQLDataSourcesOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLDataSources,
+		"external/lql/dataSources",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -86,7 +86,7 @@ func TestLQLDataSourcesOK(t *testing.T) {
 func TestLQLDataSourcesError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLDataSources,
+		"external/lql/dataSources",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
 		},
