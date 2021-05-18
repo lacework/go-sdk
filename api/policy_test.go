@@ -30,6 +30,7 @@ import (
 )
 
 var (
+	policyURI = "external/lqlPolicies"
 	policyID  = "my-policy-1"
 	policyStr = `{
 	"policy_id": "my-policy-1",
@@ -76,7 +77,7 @@ func mockPolicyDataResponse(data string, ok string) string {
 func TestPolicyCreateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiPolicy,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method, "Create should be a POST method")
 			fmt.Fprint(w, "{}")
@@ -97,7 +98,7 @@ func TestPolicyCreateMethod(t *testing.T) {
 func TestPolicyCreateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiPolicy,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -119,7 +120,7 @@ func TestPolicyCreateOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiPolicy,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -143,7 +144,7 @@ func TestPolicyCreateOK(t *testing.T) {
 func TestPolicyCreateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiPolicy,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, policyAlreadyExistsError, http.StatusBadRequest)
 		},
@@ -163,7 +164,7 @@ func TestPolicyCreateError(t *testing.T) {
 func TestPolicyGetByIDMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiPolicy,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "List should be a GET method")
 			fmt.Fprint(w, "{}")
@@ -186,7 +187,7 @@ func TestPolicyGetByIDOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiPolicy,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -212,7 +213,7 @@ func TestPolicyGetByIDOK(t *testing.T) {
 func TestPolicyGetByIDNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, policyUnableToLocateError, http.StatusBadRequest)
 		},
@@ -232,7 +233,7 @@ func TestPolicyGetByIDNotFound(t *testing.T) {
 func TestPolicyDeleteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiPolicy,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "DELETE", r.Method, "Delete should be a DELETE method")
 			fmt.Fprint(w, "{}")
@@ -253,7 +254,7 @@ func TestPolicyDeleteMethod(t *testing.T) {
 func TestPolicyDeleteBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiPolicy,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -275,7 +276,7 @@ func TestPolicyDeleteOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiPolicy,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -299,7 +300,7 @@ func TestPolicyDeleteOK(t *testing.T) {
 func TestPolicyDeleteError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiPolicy,
+		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, policyUnableToLocateError, http.StatusBadRequest)
 		},

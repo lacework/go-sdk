@@ -59,7 +59,7 @@ func (svc *PolicyService) Create(policy string) (
 	if err = json.Unmarshal([]byte(policy), &p); err != nil {
 		return
 	}
-	err = svc.client.RequestEncoderDecoder("POST", ApiPolicy, p, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiPolicy, p, &response)
 	return
 }
 
@@ -71,7 +71,7 @@ func (svc *PolicyService) GetByID(policyID string) (
 	response PolicyResponse,
 	err error,
 ) {
-	uri := ApiPolicy
+	uri := apiPolicy
 
 	if policyID != "" {
 		uri += "?POLICY_ID=" + url.QueryEscape(policyID)
@@ -92,7 +92,7 @@ func (svc *PolicyService) Delete(policyID string) (
 
 	err = svc.client.RequestDecoder(
 		"DELETE",
-		fmt.Sprintf("%s?POLICY_ID=%s", ApiPolicy, url.QueryEscape(policyID)),
+		fmt.Sprintf("%s?POLICY_ID=%s", apiPolicy, url.QueryEscape(policyID)),
 		nil,
 		&response,
 	)
