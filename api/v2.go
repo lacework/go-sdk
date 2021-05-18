@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2020, Lacework Inc.
+// Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,21 +18,17 @@
 
 package api
 
-type LQLCompileResponse struct {
-	Data    []map[string]interface{} `json:"data"`
-	Ok      bool                     `json:"ok"`
-	Message string                   `json:"message"`
+// V2Endpoints groups all APIv2 endpoints available, they are grouped by
+// schema which matches with our service architecture
+type V2Endpoints struct {
+	client *Client
+
+	// Every schema must have its own service
+	UserProfile *UserProfileService
 }
 
-func (svc *LQLService) CompileQuery(query string) (
-	response LQLCompileResponse,
-	err error,
-) {
-	lqlQuery := LQLQuery{QueryBlob: query}
-	if err = lqlQuery.Translate(); err != nil {
-		return
+func NewV2Endpoints(c *Client) *V2Endpoints {
+	return &V2Endpoints{c,
+		&UserProfileService{c},
 	}
-
-	err = svc.client.RequestEncoderDecoder("POST", apiLQLCompile, lqlQuery, &response)
-	return
 }

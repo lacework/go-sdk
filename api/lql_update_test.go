@@ -32,7 +32,7 @@ import (
 func TestLQLUpdateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "PATCH", r.Method, "Update should be a PATCH method")
 			fmt.Fprint(w, "{}")
@@ -53,7 +53,7 @@ func TestLQLUpdateMethod(t *testing.T) {
 func TestLQLUpdateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -78,7 +78,7 @@ func TestLQLUpdateOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -104,7 +104,7 @@ func TestLQLUpdateOK(t *testing.T) {
 func TestLQLUpdateNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLCompile,
+		"external/lql/compile",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlUnableResponse, http.StatusBadRequest)
 		},

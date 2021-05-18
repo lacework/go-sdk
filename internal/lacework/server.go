@@ -57,6 +57,10 @@ func MockServer() *Mock {
 	}
 }
 
+func (m *Mock) UseApiV2() {
+	m.ApiVersion = "v2"
+}
+
 // MockAPI will mock the api path inside the server mutex with the provided handler function
 func (m *Mock) MockAPI(p string, handler func(http.ResponseWriter, *http.Request)) {
 	m.Mux.HandleFunc(fmt.Sprintf("/api/%s/%s", m.ApiVersion, p), handler)
@@ -73,6 +77,19 @@ func (s *Mock) MockToken(token string) {
         }],
         "ok": true,
         "message": "SUCCESS"
+      }
+    `)
+	})
+}
+
+func (s *Mock) MockTokenV2(token string) {
+	s.UseApiV2()
+	s.MockAPI("access/tokens", func(w http.ResponseWriter, r *http.Request) {
+		expiration := time.Now().AddDate(0, 0, 1)
+		fmt.Fprintf(w, `
+      {
+        "expiresAt": "`+expiration.Format(time.RFC3339)+`",
+        "token": "`+token+`"
       }
     `)
 	})

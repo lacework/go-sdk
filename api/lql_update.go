@@ -36,6 +36,6 @@ func (svc *LQLService) UpdateQuery(query string) (
 		return
 	}
 
-	err = svc.client.RequestEncoderDecoder("PATCH", ApiLQL, lqlQuery, &response)
+	err = svc.client.RequestEncoderDecoder("PATCH", apiLQL, lqlQuery, &response)
 	return
 }

@@ -28,6 +28,6 @@ func (svc *LQLService) DataSources() (
 	response LQLDataSourcesResponse,
 	err error,
 ) {
-	err = svc.client.RequestDecoder("GET", ApiLQLDataSources, nil, &response)
+	err = svc.client.RequestDecoder("GET", apiLQLDataSources, nil, &response)
 	return
 }
