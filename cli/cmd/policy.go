@@ -91,11 +91,37 @@ The following attributes are minimally required:
 		RunE:  showPolicy,
 	}
 
+	// policyUpdateCmd represents the policy update command
+	policyUpdateCmd = &cobra.Command{
+		Use:   "update [policy_id]",
+		Short: "update a policy",
+		Long: `Update a policy.
+
+A policy identifier is required to update a policy.
+
+A policy identifier can be specified via:
+1.  A policy update command argument
+
+	lacework policy update my-policy-1
+
+2. The policy update payload
+
+{
+	"policy_id": "my-policy-1",
+	"severity": "critical"
+}
+
+A policy identifier specifed via command argument will always take precedence over
+a policy identifer specified via payload.`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: updatePolicy,
+	}
+
 	// policyDeleteCmd represents the policy delete command
 	policyDeleteCmd = &cobra.Command{
 		Use:   "delete <policy_id>",
-		Short: "delete policy",
-		Long:  `Delete policy.`,
+		Short: "delete a policy",
+		Long:  `Delete a policy.`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  deletePolicy,
 	}
@@ -109,10 +135,12 @@ func init() {
 	policyCmd.AddCommand(policyCreateCmd)
 	policyCmd.AddCommand(policyListCmd)
 	policyCmd.AddCommand(policyShowCmd)
+	policyCmd.AddCommand(policyUpdateCmd)
 	policyCmd.AddCommand(policyDeleteCmd)
 
 	// policy source specific flags
 	setPolicySourceFlags(policyCreateCmd)
+	setPolicySourceFlags(policyUpdateCmd)
 
 	// policy list specific flags
 	policyListCmd.Flags().StringVar(
@@ -244,7 +272,7 @@ func createPolicy(cmd *cobra.Command, _ []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(create.Data)
 	}
-	policyID := ""
+	var policyID string
 	if len(create.Data) > 0 {
 		policyID = create.Data[0].ID
 	}
@@ -330,6 +358,38 @@ func showPolicy(_ *cobra.Command, args []string) error {
 		return yikes("unable to show policy")
 	}
 	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policyResponse.Data)))
+	return nil
+}
+
+func updatePolicy(cmd *cobra.Command, args []string) error {
+	var policyID string
+	if len(args) != 0 {
+		policyID = args[0]
+	}
+
+	policy, err := inputPolicy(cmd)
+	if err != nil {
+		return errors.Wrap(err, "unable to update policy")
+	}
+
+	cli.Log.Debugw("updating policy",
+		"policyID", policyID,
+		"policy", policy,
+	)
+
+	var update api.PolicyResponse
+	if update, err = cli.LwApi.Policy.Update(policyID, policy); err != nil {
+		return errors.Wrap(err, "unable to update policy")
+
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(update.Data)
+	}
+	if len(update.Data) > 0 {
+		policyID = update.Data[0].ID
+	}
+	cli.OutputHuman(fmt.Sprintf("Policy (%s) updated successfully.\n", policyID))
 	return nil
 }
 
