@@ -64,6 +64,10 @@ var (
 		`{ "message": "{\"error\":\"Error: Unable to locate policy foo, please double check the policy exists and has not already been deleted.\"}" }`,
 		"false",
 	)
+	policyUpdateError = mockPolicyDataResponse(
+		`{ "message": "Severity field only accept value [critical, 1, high, 2, medium, 3, low, 4, info, 5]" }`,
+		"false",
+	)
 )
 
 func mockPolicyDataResponse(data string, ok string) string {
@@ -227,6 +231,114 @@ func TestPolicyGetByIDNotFound(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = c.Policy.GetByID("NoSuchPolicy")
+	assert.NotNil(t, err)
+}
+
+func TestPolicyUpdateMethod(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		policyURI,
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "PATCH", r.Method, "Update should be a PATCH method")
+			fmt.Fprint(w, "{}")
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.Policy.Update(policyID, policyStr)
+	assert.Nil(t, err)
+}
+
+func TestPolicyUpdateNoPolicyID(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		policyURI,
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, "{}")
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.Policy.Update("", "{}")
+	assert.Equal(t, "policy ID must be provided", err.Error())
+}
+
+func TestPolicyUpdatePolicyIDFromPayload(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		policyURI,
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, "{}")
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.Policy.Update("", `{"policy_id": "my-policy-1"}`)
+	assert.Nil(t, err)
+}
+
+func TestPolicyUpdateOK(t *testing.T) {
+	// policy create and update data are same-same
+	mockResponse := mockPolicyDataResponse(policyCreateData, "true")
+
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		policyURI,
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, mockResponse)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	updateExpected := api.PolicyResponse{}
+	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
+
+	updateActual, err := c.Policy.Update(policyID, `{"severity": "high"}`)
+	assert.Nil(t, err)
+	assert.Equal(t, updateExpected, updateActual)
+}
+
+func TestPolicyUpdateError(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		policyURI,
+		func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, policyUpdateError, http.StatusBadRequest)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.Policy.Create(policyStr)
 	assert.NotNil(t, err)
 }
 

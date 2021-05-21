@@ -81,6 +81,35 @@ func (svc *PolicyService) GetByID(policyID string) (
 	return
 }
 
+func (svc *PolicyService) Update(policyID, policy string) (
+	response PolicyResponse,
+	err error,
+) {
+	var p map[string]interface{}
+	if err = json.Unmarshal([]byte(policy), &p); err != nil {
+		return
+	}
+
+	// retreive policyID from payload and delete it
+	if payloadPolicyID, ok := p["policy_id"]; ok {
+		delete(p, "policy_id")
+		// if policyID is unset, take from the payload
+		if policyID == "" {
+			policyID = fmt.Sprintf("%v", payloadPolicyID)
+		}
+	}
+
+	// if policyID is still not specified; error
+	if policyID == "" {
+		err = errors.New("policy ID must be provided")
+		return
+	}
+
+	uri := fmt.Sprintf("%s?POLICY_ID=%s", apiPolicy, url.QueryEscape(policyID))
+	err = svc.client.RequestEncoderDecoder("PATCH", uri, p, &response)
+	return
+}
+
 func (svc *PolicyService) Delete(policyID string) (
 	response map[string]interface{}, // endpoint currently 204's so no response content
 	err error,
