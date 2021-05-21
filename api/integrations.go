@@ -40,6 +40,9 @@ const (
 	// AWS CloudTrail integration type
 	AwsCloudTrailIntegration
 
+	// AWS Gov Cloud Config integration type
+	AwsGovCloudCfgIntegration
+
 	// AWS S3 channel integration type
 	AwsS3ChannelIntegration
 
@@ -106,6 +109,7 @@ var IntegrationTypes = map[integrationType]string{
 	NoneIntegration:                  "NONE",
 	AwsCfgIntegration:                "AWS_CFG",
 	AwsCloudTrailIntegration:         "AWS_CT_SQS",
+	AwsGovCloudCfgIntegration:        "AWS_US_GOV_CFG",
 	AwsS3ChannelIntegration:          "AWS_S3",
 	CiscoWebexChannelIntegration:     "CISCO_SPARK_WEBHOOK",
 	DatadogChannelIntegration:        "DATADOG",
