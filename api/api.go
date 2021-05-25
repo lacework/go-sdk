@@ -86,7 +86,7 @@ const (
 	apiLQLQuery       = "v1/external/lql/query"
 
 	// Custom Policies
-	apiPolicy = "external/lqlPolicies"
+	apiPolicy = "v1/external/lqlPolicies"
 
 	// API v2 Endpoints
 	//
