@@ -196,16 +196,14 @@ func inputQueryFromRepo() (query string, err error) {
 	return
 }
 
-func inputQueryFromFile(filePath string) (query string, err error) {
+func inputQueryFromFile(filePath string) (string, error) {
 	fileData, err := ioutil.ReadFile(filePath)
 
 	if err != nil {
-		err = errors.Wrap(err, "unable to read file")
-		return
+		return "", errors.Wrap(err, "unable to read file")
 	}
 
-	query = string(fileData)
-	return
+	return string(fileData), nil
 }
 
 func inputQueryFromURL(url string) (query string, err error) {

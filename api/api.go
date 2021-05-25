@@ -85,6 +85,9 @@ const (
 	apiLQLDescribe    = "v1/external/lql/describe"
 	apiLQLQuery       = "v1/external/lql/query"
 
+	// Custom Policies
+	apiPolicy = "v1/external/lqlPolicies"
+
 	// API v2 Endpoints
 	//
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
