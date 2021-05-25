@@ -34,13 +34,35 @@ import (
 func TestIntegrationsNewAwsCfgIntegration(t *testing.T) {
 	subject := api.NewAwsCfgIntegration("integration_name",
 		api.AwsIntegrationData{
-			Credentials: api.AwsCrossAccountCreds{
+			Credentials: &api.AwsCrossAccountCreds{
 				RoleArn:    "arn:foo:bar",
 				ExternalID: "0123456789",
 			},
 		},
 	)
 	assert.Equal(t, api.AwsCfgIntegration.String(), subject.Type)
+}
+
+func TestIntegrationsEmptyAwsCredentials(t *testing.T) {
+	var awsData  api.AwsIntegrationData
+	credentials := awsData.GetCredentials()
+
+	externalID := credentials.ExternalID
+	roleArn := credentials.RoleArn
+	assert.Empty(t, externalID)
+	assert.Empty(t, roleArn)
+}
+
+func TestIntegrationsEmptyAwsGovCloudCredentials(t *testing.T) {
+	var awsData  api.AwsIntegrationData
+	credentials := awsData.GetGovCloudCredentials()
+	accountID := awsData.GetAccountID()
+
+	secretKey := credentials.SecretAccessKey
+	accessID := credentials.AccessKeyID
+	assert.Empty(t, accountID)
+	assert.Empty(t, secretKey)
+	assert.Empty(t, accessID)
 }
 
 func TestIntegrationsNewAwsCfgIntegrationWithCustomTemplateFile(t *testing.T) {
@@ -62,7 +84,7 @@ func TestIntegrationsNewAwsCfgIntegrationWithCustomTemplateFile(t *testing.T) {
     }
   }`)
 	awsData := api.AwsIntegrationData{
-		Credentials: api.AwsCrossAccountCreds{
+		Credentials: &api.AwsCrossAccountCreds{
 			RoleArn:    "arn:foo:bar",
 			ExternalID: "0123456789",
 		},
@@ -120,7 +142,7 @@ func TestIntegrationsCreateAws(t *testing.T) {
 	data := api.NewAwsIntegration("integration_name",
 		api.AwsCfgIntegration,
 		api.AwsIntegrationData{
-			Credentials: api.AwsCrossAccountCreds{
+			Credentials: &api.AwsCrossAccountCreds{
 				RoleArn:    "arn:foo:bar",
 				ExternalID: "0123456789",
 			},
@@ -208,7 +230,7 @@ func TestIntegrationsUpdateAws(t *testing.T) {
 	data := api.NewAwsIntegration("integration_name",
 		api.AwsCloudTrailIntegration,
 		api.AwsIntegrationData{
-			Credentials: api.AwsCrossAccountCreds{
+			Credentials: &api.AwsCrossAccountCreds{
 				RoleArn:    "arn:foo:bar",
 				ExternalID: "0123456789",
 			},

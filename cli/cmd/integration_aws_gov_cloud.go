@@ -65,7 +65,7 @@ func createAwsGovCloudConfigIntegration() error {
 	awsCfg := api.NewAwsIntegration(answers.Name,
 		api.AwsGovCloudCfgIntegration,
 		api.AwsIntegrationData{
-			GovCloudCredentials: api.AwsGovCloudCreds{
+			GovCloudCredentials: &api.AwsGovCloudCreds{
 				AccountID:       answers.AccountID,
 				AccessKeyID:     answers.AccessKeyID,
 				SecretAccessKey: answers.SecretAccessKey,

@@ -58,7 +58,7 @@ func createAwsConfigIntegration() error {
 
 	awsCfg := api.NewAwsCfgIntegration(answers.Name,
 		api.AwsIntegrationData{
-			Credentials: api.AwsCrossAccountCreds{
+			Credentials: &api.AwsCrossAccountCreds{
 				RoleArn:    answers.RoleArn,
 				ExternalID: answers.ExternalID,
 			},
@@ -110,7 +110,7 @@ func createAwsCloudTrailIntegration() error {
 
 	aws := api.AwsIntegrationData{
 		QueueUrl: answers.QueueUrl,
-		Credentials: api.AwsCrossAccountCreds{
+		Credentials: &api.AwsCrossAccountCreds{
 			RoleArn:    answers.RoleArn,
 			ExternalID: answers.ExternalID,
 		},
