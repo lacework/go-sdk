@@ -131,7 +131,7 @@ type AwsIntegration struct {
 }
 
 type AwsIntegrationData struct {
-	Credentials AwsCrossAccountCreds `json:"CROSS_ACCOUNT_CREDENTIALS" mapstructure:"CROSS_ACCOUNT_CREDENTIALS"`
+	Credentials AwsCrossAccountCreds `json:"CROSS_ACCOUNT_CREDENTIALS,omitempty" mapstructure:"CROSS_ACCOUNT_CREDENTIALS"`
 
 	// QueueUrl is a field that exists and is required for the AWS_CT_SQS integration,
 	// though, it doesn't exist for AWS_CFG integrations, that's why we omit it if empty
@@ -147,6 +147,7 @@ type AwsIntegrationData struct {
 	// AwsAccountID is the AWS account that owns the IAM role credentials
 	AwsAccountID string `json:"AWS_ACCOUNT_ID,omitempty" mapstructure:"AWS_ACCOUNT_ID"`
 
+	// GovCloudCredentials represents the credential structure for AWS_US_GOV_CFG and AWS_US_GOV_CT_SQS integrations
 	GovCloudCredentials AwsGovCloudCreds `json:"ACCESS_KEY_CREDENTIALS,omitempty" mapstructure:"ACCESS_KEY_CREDENTIALS"`
 }
 

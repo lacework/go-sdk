@@ -43,7 +43,7 @@ func createAwsGovCloudConfigIntegration() error {
 		},
 		{
 			Name:     "secret_access_key",
-			Prompt:   &survey.Input{Message: "Secret Access Key: "},
+			Prompt:   &survey.Password{Message: "Secret Access Key: "},
 			Validate: survey.Required,
 		},
 	}
