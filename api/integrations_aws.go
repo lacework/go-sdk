@@ -145,7 +145,10 @@ type AwsIntegrationData struct {
 	AccountMappingFile string `json:"ACCOUNT_MAPPING_FILE,omitempty" mapstructure:"ACCOUNT_MAPPING_FILE"`
 
 	// AwsAccountID is the AWS account that owns the IAM role credentials
-	AwsAccountID string `json:"AWS_ACCOUNT_ID,omitempty" mapstructure:"AWS_ACCOUNT_ID"`
+	AwsAccountID        string `json:"AWS_ACCOUNT_ID,omitempty" mapstructure:"AWS_ACCOUNT_ID"`
+
+
+	GovCloudCredentials AwsGovCloudCreds `json:"ACCESS_KEY_CREDENTIALS,omitempty" mapstructure:"ACCESS_KEY_CREDENTIALS"`
 }
 
 func (aws *AwsIntegrationData) EncodeAccountMappingFile(mapping []byte) {
@@ -172,4 +175,25 @@ func (aws *AwsIntegrationData) DecodeAccountMappingFile() ([]byte, error) {
 type AwsCrossAccountCreds struct {
 	RoleArn    string `json:"ROLE_ARN" mapstructure:"ROLE_ARN"`
 	ExternalID string `json:"EXTERNAL_ID" mapstructure:"EXTERNAL_ID"`
+}
+
+type AwsGovCloudIntegrationsResponse struct {
+	Data    []AwsGovCloudIntegration `json:"data"`
+	Ok      bool                     `json:"ok"`
+	Message string                   `json:"message"`
+}
+
+type AwsGovCloudIntegration struct {
+	commonIntegrationData
+	Data AwsGovCloudIntegrationData `json:"DATA"`
+}
+
+type AwsGovCloudIntegrationData struct {
+	Credentials AwsGovCloudCreds `json:"ACCESS_KEY_CREDENTIALS" mapstructure:"ACCESS_KEY_CREDENTIALS"`
+}
+
+type AwsGovCloudCreds struct {
+	AccountID       string `json:"ACCOUNT_ID" mapstructure:"ACCOUNT_ID"`
+	AccessKeyID     string `json:"ACCESS_KEY_ID" mapstructure:"ACCESS_KEY_ID"`
+	SecretAccessKey string `json:"SECRET_ACCESS_KEY" mapstructure:"SECRET_ACCESS_KEY"`
 }

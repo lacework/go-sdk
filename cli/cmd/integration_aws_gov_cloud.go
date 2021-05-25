@@ -62,10 +62,10 @@ func createAwsGovCloudConfigIntegration() error {
 		return err
 	}
 
-	awsCfg := api.NewAwsGovCloudCfgIntegration(answers.Name,
+	awsCfg := api.NewAwsIntegration(answers.Name,
 		api.AwsGovCloudCfgIntegration,
-		api.AwsGovCloudIntegrationData{
-			Credentials: api.AwsGovCloudCreds{
+		api.AwsIntegrationData{
+			GovCloudCredentials: api.AwsGovCloudCreds{
 				AccountID:       answers.AccountID,
 				AccessKeyID:     answers.AccessKeyID,
 				SecretAccessKey: answers.SecretAccessKey,
@@ -73,7 +73,7 @@ func createAwsGovCloudConfigIntegration() error {
 		},
 	)
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAwsGovCloudCfg(awsCfg)
+	_, err = cli.LwApi.Integrations.CreateAws(awsCfg)
 	cli.StopProgress()
 	return err
 }
