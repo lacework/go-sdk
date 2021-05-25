@@ -221,7 +221,7 @@ func promptCreateIntegration() error {
 				"Google Container Registry (GCR)",
 				"AWS Config",
 				"AWS CloudTrail",
-				"AWS Gov Cloud Config",
+				"AWS GovCloud Config",
 				"GCP Config",
 				"GCP Audit Log",
 				"Azure Config",
