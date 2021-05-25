@@ -145,8 +145,7 @@ type AwsIntegrationData struct {
 	AccountMappingFile string `json:"ACCOUNT_MAPPING_FILE,omitempty" mapstructure:"ACCOUNT_MAPPING_FILE"`
 
 	// AwsAccountID is the AWS account that owns the IAM role credentials
-	AwsAccountID        string `json:"AWS_ACCOUNT_ID,omitempty" mapstructure:"AWS_ACCOUNT_ID"`
-
+	AwsAccountID string `json:"AWS_ACCOUNT_ID,omitempty" mapstructure:"AWS_ACCOUNT_ID"`
 
 	GovCloudCredentials AwsGovCloudCreds `json:"ACCESS_KEY_CREDENTIALS,omitempty" mapstructure:"ACCESS_KEY_CREDENTIALS"`
 }
