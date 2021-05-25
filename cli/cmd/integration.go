@@ -280,7 +280,7 @@ func promptCreateIntegration() error {
 		return createAwsConfigIntegration()
 	case "AWS CloudTrail":
 		return createAwsCloudTrailIntegration()
-	case "AWS Gov Cloud Config":
+	case "AWS GovCloud Config":
 		return createAwsGovCloudConfigIntegration()
 	case "GCP Config":
 		return createGcpConfigIntegration()
