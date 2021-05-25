@@ -151,21 +151,21 @@ type AwsIntegrationData struct {
 	GovCloudCredentials *AwsGovCloudCreds `json:"ACCESS_KEY_CREDENTIALS,omitempty" mapstructure:"ACCESS_KEY_CREDENTIALS"`
 }
 
-func (aws *AwsIntegrationData) GetCredentials() *AwsCrossAccountCreds{
+func (aws *AwsIntegrationData) GetCredentials() *AwsCrossAccountCreds {
 	if aws.Credentials != nil {
 		return aws.Credentials
 	}
 	return &AwsCrossAccountCreds{}
 }
 
-func (aws *AwsIntegrationData) GetGovCloudCredentials() *AwsGovCloudCreds{
+func (aws *AwsIntegrationData) GetGovCloudCredentials() *AwsGovCloudCreds {
 	if aws.GovCloudCredentials != nil {
 		return aws.GovCloudCredentials
 	}
 	return &AwsGovCloudCreds{}
 }
 
-func (aws *AwsIntegrationData) GetAccountID() string{
+func (aws *AwsIntegrationData) GetAccountID() string {
 	if aws.GovCloudCredentials != nil {
 		return aws.GovCloudCredentials.AccountID
 	}

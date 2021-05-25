@@ -44,7 +44,7 @@ func TestIntegrationsNewAwsCfgIntegration(t *testing.T) {
 }
 
 func TestIntegrationsEmptyAwsCredentials(t *testing.T) {
-	var awsData  api.AwsIntegrationData
+	var awsData api.AwsIntegrationData
 	credentials := awsData.GetCredentials()
 
 	externalID := credentials.ExternalID
@@ -54,7 +54,7 @@ func TestIntegrationsEmptyAwsCredentials(t *testing.T) {
 }
 
 func TestIntegrationsEmptyAwsGovCloudCredentials(t *testing.T) {
-	var awsData  api.AwsIntegrationData
+	var awsData api.AwsIntegrationData
 	credentials := awsData.GetGovCloudCredentials()
 	accountID := awsData.GetAccountID()
 
