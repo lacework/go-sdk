@@ -48,6 +48,7 @@ func TestConfigureCommand(t *testing.T) {
   account = "test-account"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -69,6 +70,7 @@ func TestConfigureCommandWithProfileFlag(t *testing.T) {
   account = "test-account"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -100,6 +102,7 @@ func TestConfigureCommandWithNewJSONFileFlagForStandaloneAccounts(t *testing.T) 
   account = "standalone"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -129,9 +132,11 @@ func TestConfigureCommandWithNewJSONFileFlagForOrganizationalAccounts(t *testing
 	)
 
 	assert.Equal(t, `[default]
-  account = "sub-account-name"
+  account = "organization"
+  subaccount = "sub-account-name"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -157,6 +162,7 @@ func TestConfigureCommandWithOldJSONFileFlag(t *testing.T) {
   account = "web-ui-test"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -185,6 +191,7 @@ func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
   account = "env-vars"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -209,6 +216,7 @@ func TestConfigureCommandWithAPIkeysFromFlags(t *testing.T) {
   account = "from-flags"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -233,21 +241,30 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
   account = "test.account"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
+  version = 2
 
 [dev]
   account = "dev.example"
   api_key = "DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC000"
   api_secret = "_11111111111111111111111111111111"
+  version = 2
 
 [integration]
   account = "integration"
   api_key = "INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70001"
   api_secret = "_1234abdc00ff11vv22zz33xyz1234abc"
+  version = 2
 
 [new-profile]
   account = "super-cool-profile"
   api_key = "TEST_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
   api_secret = "_uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"
+  version = 2
+
+[v1]
+  account = "v1.example"
+  api_key = "V1CONFIG_KEY"
+  api_secret = "_secret"
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -276,6 +293,7 @@ func TestConfigureCommandErrors(t *testing.T) {
   account = "my-account"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 

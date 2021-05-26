@@ -42,6 +42,7 @@ func TestConfigureCommandNonInteractive(t *testing.T) {
 		"-a", "my-account",
 		"-k", "my-key",
 		"-s", "my-secret",
+		"-u", "my-sub-account",
 	)
 
 	assert.Empty(t, errB.String())
@@ -58,8 +59,10 @@ func TestConfigureCommandNonInteractive(t *testing.T) {
 
 	assert.Equal(t, `[default]
   account = "my-account"
+  subaccount = "my-sub-account"
   api_key = "my-key"
   api_secret = "my-secret"
+  version = 2
 `, string(laceworkTOML), "there is a problem with the generated config")
 }
 
@@ -87,16 +90,24 @@ func createTOMLConfig() string {
 account = 'test.account'
 api_key = 'INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00'
 api_secret = '_00000000000000000000000000000000'
+version = 2
 
 [integration]
 account = 'integration'
 api_key = 'INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70001'
 api_secret = '_1234abdc00ff11vv22zz33xyz1234abc'
+version = 2
 
 [dev]
 account = 'dev.example'
 api_key = 'DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC000'
 api_secret = '_11111111111111111111111111111111'
+version = 2
+
+[v1]
+account = 'v1.example'
+api_key = 'V1CONFIG_KEY'
+api_secret = '_secret'
 `)
 	err = ioutil.WriteFile(configFile, c, 0644)
 	if err != nil {

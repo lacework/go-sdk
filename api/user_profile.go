@@ -18,6 +18,11 @@
 
 package api
 
+import (
+	"regexp"
+	"strings"
+)
+
 // UserProfileService is the service that interacts with the UserProfile
 // schema from the Lacework APIv2 Server
 type UserProfileService struct {
@@ -30,18 +35,53 @@ func (svc *UserProfileService) Get() (response UserProfileResponse, err error) {
 }
 
 type UserProfileResponse struct {
-	Data []struct {
-		Username   string `json:"username"`
-		OrgAccount bool   `json:"orgAccount"`
-		URL        string `json:"url"`
-		OrgAdmin   bool   `json:"orgAdmin"`
-		OrgUser    bool   `json:"orgUser"`
-		Accounts   []struct {
-			Admin       bool   `json:"admin"`
-			AccountName string `json:"accountName"`
-			CustGUID    string `json:"custGuid"`
-			UserGUID    string `json:"userGuid"`
-			UserEnabled int    `json:"userEnabled"`
-		} `json:"accounts"`
-	} `json:"data"`
+	Data []UserProfile `json:"data"`
+}
+
+type UserProfile struct {
+	Username   string    `json:"username"`
+	OrgAccount bool      `json:"orgAccount"`
+	URL        string    `json:"url"`
+	OrgAdmin   bool      `json:"orgAdmin"`
+	OrgUser    bool      `json:"orgUser"`
+	Accounts   []Account `json:"accounts"`
+}
+
+func (p *UserProfile) OrgAccountName() string {
+	// TODO @afiune should we handle other datacenters?
+	rx, err := regexp.Compile(`\.lacework\.net.*`)
+	if err == nil {
+		if split := rx.Split(p.URL, -1); len(split) != 0 {
+			return strings.ToLower(split[0])
+		}
+	}
+
+	return p.URL
+}
+
+func (p *UserProfile) SubAccountNames() []string {
+	names := make([]string, 0)
+	orgAccountName := p.OrgAccountName()
+	for _, acc := range p.Accounts {
+		accName := strings.ToLower(acc.AccountName)
+		if accName == orgAccountName {
+			continue
+		}
+		if acc.Enabled() {
+			names = append(names, accName)
+		}
+	}
+	return names
+}
+
+type Account struct {
+	Admin       bool   `json:"admin"`
+	AccountName string `json:"accountName"`
+	CustGUID    string `json:"custGuid"`
+	UserGUID    string `json:"userGuid"`
+	UserEnabled int    `json:"userEnabled"`
+}
+
+func (a *Account) Enabled() bool {
+	return a.UserEnabled == 1
 }
