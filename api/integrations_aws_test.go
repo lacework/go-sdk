@@ -225,68 +225,6 @@ func TestIntegrationsCreateAwsGovCloudConfig(t *testing.T) {
 	}
 }
 
-func TestIntegrationsCreateAwsGovCloudCT(t *testing.T) {
-	var (
-		intgGUID   = intgguid.New()
-		fakeServer = lacework.MockServer()
-	)
-
-	fakeServer.MockAPI("external/integrations", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "POST", r.Method, "CreateAwsGovCloudCT should be a POST method")
-
-		if assert.NotNil(t, r.Body) {
-			body := httpBodySniffer(r)
-			assert.Contains(t, body, "integration_name", "integration name is missing")
-			assert.Contains(t, body, "AWS_US_GOV_CT_SQS", "wrong integration type")
-			assert.Contains(t, body, "0123456789", "wrong account id")
-			assert.Contains(t, body, "AWS123abcAccessKeyID", "wrong access key id")
-			assert.Contains(t, body, "AWS123abc123abcSecretAccessKey0000000000", "wrong secret access key")
-			assert.Contains(t, body, "https://sqs.us-gov-west-1.amazonaws.com/123456789012/my_queue", "wrong queue url")
-			assert.Contains(t, body, "ENABLED\":1", "integration is not enabled")
-		}
-
-		fmt.Fprintf(w, awsGovCloudCTIntegrationJsonResponse(intgGUID))
-	})
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	data := api.NewAwsIntegration("integration_name",
-		api.AwsGovCloudCTIntegration,
-		api.AwsIntegrationData{
-			QueueUrl: "https://sqs.us-gov-west-1.amazonaws.com/123456789012/my_queue",
-			GovCloudCredentials: &api.AwsGovCloudCreds{
-				AccountID:       "0123456789",
-				AccessKeyID:     "AWS123abcAccessKeyID",
-				SecretAccessKey: "AWS123abc123abcSecretAccessKey0000000000",
-			},
-		},
-	)
-	assert.Equal(t, "integration_name", data.Name, "AWS integration name mismatch")
-	assert.Equal(t, "AWS_US_GOV_CT_SQS", data.Type, "a new AWS GovCloud integration should match its type")
-	assert.Equal(t, 1, data.Enabled, "a new AWS integration should be enabled")
-
-	response, err := c.Integrations.CreateAws(data)
-	assert.Nil(t, err)
-	assert.NotNil(t, response)
-	assert.True(t, response.Ok)
-	if assert.Equal(t, 1, len(response.Data)) {
-		resData := response.Data[0]
-		assert.Equal(t, intgGUID, resData.IntgGuid)
-		assert.Equal(t, "integration_name", resData.Name)
-		assert.True(t, resData.State.Ok)
-		credentials := resData.Data.GetGovCloudCredentials()
-		assert.Equal(t, "AWS123abcAccessKeyID", credentials.AccessKeyID)
-		assert.Equal(t, "AWS123abc123abcSecretAccessKey0000000000", credentials.SecretAccessKey)
-		assert.Equal(t, "0123456789", resData.Data.GetAccountID())
-		assert.Equal(t, "https://sqs.us-gov-west-1.amazonaws.com/123456789012/my_queue", resData.Data.QueueUrl)
-	}
-}
-
 func TestIntegrationsGetAws(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
@@ -445,16 +383,6 @@ func awsGovCloudIntegrationJsonResponse(intgGUID string) string {
 	`
 }
 
-func awsGovCloudCTIntegrationJsonResponse(intgGUID string) string {
-	return `
-		{
-			"data": [` + singleAwsGovCloudCTIntegration(intgGUID) + `],
-			"ok": true,
-			"message": "SUCCESS"
-		}
-	`
-}
-
 func awsMultiIntegrationJsonResponse(guids []string) string {
 	integrations := []string{}
 	for _, guid := range guids {
@@ -511,34 +439,6 @@ func singleAwsGovCloudCfgIntegration(id string) string {
 			},
 			"IS_ORG": 0,
 			"DATA": {
-				"ACCESS_KEY_CREDENTIALS": {
-          				"ACCOUNT_ID": "0123456789",
-					"ACCESS_KEY_ID": "AWS123abcAccessKeyID",
-					"SECRET_ACCESS_KEY": "AWS123abc123abcSecretAccessKey0000000000"
-				}
-            },
-			"TYPE_NAME": "AWS Compliance"
-		}
-	`
-}
-
-func singleAwsGovCloudCTIntegration(id string) string {
-	return `
-		{
-			"INTG_GUID": "` + id + `",
-			"NAME": "integration_name",
-			"CREATED_OR_UPDATED_TIME": "2020-Mar-10 01:00:00 UTC",
-			"CREATED_OR_UPDATED_BY": "user@email.com",
-			"TYPE": "AWS_US_GOV_CT_SQS",
-			"ENABLED": 1,
-			"STATE": {
-				"ok": true,
-				"lastUpdatedTime": "2020-Mar-10 01:00:00 UTC",
-				"lastSuccessfulTime": "2020-Mar-10 01:00:00 UTC"
-			},
-			"IS_ORG": 0,
-			"DATA": {
- 				"QUEUE_URL": "https://sqs.us-gov-west-1.amazonaws.com/123456789012/my_queue",
 				"ACCESS_KEY_CREDENTIALS": {
           				"ACCOUNT_ID": "0123456789",
 					"ACCESS_KEY_ID": "AWS123abcAccessKeyID",
