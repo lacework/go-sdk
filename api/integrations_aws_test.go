@@ -540,7 +540,7 @@ func singleAwsGovCloudCTIntegration(id string) string {
 			"DATA": {
  				"QUEUE_URL": "https://sqs.us-gov-west-1.amazonaws.com/123456789012/my_queue",
 				"ACCESS_KEY_CREDENTIALS": {
-          			"ACCOUNT_ID": "0123456789",
+          				"ACCOUNT_ID": "0123456789",
 					"ACCESS_KEY_ID": "AWS123abcAccessKeyID",
 					"SECRET_ACCESS_KEY": "AWS123abc123abcSecretAccessKey0000000000"
 				}
