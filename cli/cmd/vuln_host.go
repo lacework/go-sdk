@@ -201,6 +201,10 @@ with fixes:
 				return err
 			}
 
+			if vulCmdState.Csv {
+				cli.NonInteractive()
+			}
+
 			response, err := cli.LwApi.Vulnerabilities.Host.ListCves()
 			if err != nil {
 				return errors.Wrap(err, "unable to get CVEs from hosts")
@@ -232,7 +236,7 @@ To list the CVEs found in the hosts of your environment run:
 				return cli.OutputJSON(response.Hosts)
 			}
 
-			if len(response.Hosts) == 0 {
+			if len(response.Hosts) == 0 && !vulCmdState.Csv {
 				// @afiune add a helpful message, possible things are:
 				// 1) host vuln feature is not enabled on the account
 				// 2) user doesn't have agents deployed
@@ -242,25 +246,35 @@ To list the CVEs found in the hosts of your environment run:
 			}
 
 			rows := hostVulnHostsTable(response.Hosts)
-			// if the user wants to show only online or
-			// offline hosts, show a friendly message
-			if len(rows) == 0 {
-				if vulCmdState.Online {
-					cli.OutputHuman("There are no online hosts.\n")
+			if vulCmdState.Csv {
+				cli.OutputHuman(
+					renderAsCSV(
+						[]string{"Machine ID", "Hostname", "External IP", "Internal IP",
+							"Os/Arch", "Provider", "Instance ID", "Vulnerabilities", "Status"},
+						rows,
+					),
+				)
+			} else {
+				// if the user wants to show only online or
+				// offline hosts, show a friendly message
+				if len(rows) == 0 {
+					if vulCmdState.Online {
+						cli.OutputHuman("There are no online hosts.\n")
+					}
+					if vulCmdState.Offline {
+						cli.OutputHuman("There are no offline hosts.\n")
+					}
+					return nil
 				}
-				if vulCmdState.Offline {
-					cli.OutputHuman("There are no offline hosts.\n")
-				}
-				return nil
-			}
 
-			cli.OutputHuman(
-				renderSimpleTable(
-					[]string{"Machine ID", "Hostname", "External IP", "Internal IP",
-						"Os/Arch", "Provider", "Instance ID", "Vulnerabilities", "Status"},
-					rows,
-				),
-			)
+				cli.OutputHuman(
+					renderSimpleTable(
+						[]string{"Machine ID", "Hostname", "External IP", "Internal IP",
+							"Os/Arch", "Provider", "Instance ID", "Vulnerabilities", "Status"},
+						rows,
+					),
+				)
+			}
 			return nil
 		},
 	}
@@ -368,6 +382,11 @@ func init() {
 	setActiveFlag(
 		vulHostShowAssessmentCmd.Flags(),
 		vulHostListCvesCmd.Flags(),
+	)
+
+	setCsvFlag(
+		vulHostListCvesCmd.Flags(),
+		vulHostListHostsCmd.Flags(),
 	)
 
 	// add online flag to host list-hosts command
@@ -1002,16 +1021,27 @@ func buildListCVEReports(cves []api.HostVulnCVE) error {
 
 	if vulCmdState.Packages {
 		packages, filtered := hostVulnPackagesTable(cves, true)
-		cli.OutputHuman(
-			renderSimpleTable(
-				[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
-				packages,
-			),
-		)
-		if filtered != "" {
-			cli.OutputHuman(filtered)
+
+		if vulCmdState.Csv {
+			cli.OutputHuman(
+				renderAsCSV(
+					[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
+					packages,
+				),
+			)
+			return nil
+		} else {
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
+					packages,
+				),
+			)
+			if filtered != "" {
+				cli.OutputHuman(filtered)
+			}
+			return nil
 		}
-		return nil
 	}
 
 	rows := hostVulnCVEsTable(filteredCves)
@@ -1022,13 +1052,24 @@ func buildListCVEReports(cves []api.HostVulnCVE) error {
 		return nil
 	}
 
-	cli.OutputHuman(
-		renderSimpleTable(
-			[]string{"CVE ID", "Severity", "Score", "Package", "Current Version",
-				"Fix Version", "OS Version", "Hosts", "Pkg Status", "Vuln Status"},
-			rows,
-		),
-	)
+	if vulCmdState.Csv {
+		cli.OutputHuman(
+			renderAsCSV(
+				[]string{"CVE ID", "Severity", "Score", "Package", "Current Version",
+					"Fix Version", "OS Version", "Hosts", "Pkg Status", "Vuln Status"},
+				rows,
+			),
+		)
+		return nil
+	} else {
+		cli.OutputHuman(
+			renderSimpleTable(
+				[]string{"CVE ID", "Severity", "Score", "Package", "Current Version",
+					"Fix Version", "OS Version", "Hosts", "Pkg Status", "Vuln Status"},
+				rows,
+			),
+		)
+	}
 
 	if filtered != "" {
 		cli.OutputHuman(filtered)

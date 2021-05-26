@@ -128,6 +128,10 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 		Use:     "get-report <tenant_id> <subscriptions_id>",
 		Aliases: []string{"get"},
 		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if compCmdState.Csv {
+				cli.NonInteractive()
+			}
+
 			switch compCmdState.Type {
 			case "CIS", "SOC", "PCI":
 				compCmdState.Type = fmt.Sprintf("AZURE_%s", compCmdState.Type)
@@ -273,6 +277,11 @@ func init() {
 	)
 	complianceAzureGetReportCmd.Flags().BoolVar(&compCmdState.Pdf, "pdf", false,
 		"download report in PDF format",
+	)
+
+	// Output the report in CSV format
+	complianceAzureGetReportCmd.Flags().BoolVar(&compCmdState.Csv, "csv", false,
+		"download report in CSV format",
 	)
 
 	// Azure report types: AZURE_CIS, AZURE_SOC, or AZURE_PCI
