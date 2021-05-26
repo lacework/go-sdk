@@ -512,7 +512,7 @@ func singleAwsGovCloudCfgIntegration(id string) string {
 			"IS_ORG": 0,
 			"DATA": {
 				"ACCESS_KEY_CREDENTIALS": {
-          			"ACCOUNT_ID": "0123456789",
+          				"ACCOUNT_ID": "0123456789",
 					"ACCESS_KEY_ID": "AWS123abcAccessKeyID",
 					"SECRET_ACCESS_KEY": "AWS123abc123abcSecretAccessKey0000000000"
 				}
