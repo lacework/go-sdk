@@ -21,6 +21,7 @@ package integration
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"testing"
@@ -373,6 +374,10 @@ func runConfigureTestFromDir(t *testing.T, dir string, conditions func(*expect.C
 		panic(err)
 	}
 	defer console.Close()
+
+	if os.Getenv("DEBUG") != "" {
+		state.DebugLogger = log.Default()
+	}
 
 	donec := make(chan struct{})
 	go func() {
