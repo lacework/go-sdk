@@ -94,6 +94,28 @@ func TestConfigureShowCommandWithConfigAndProfile(t *testing.T) {
 			"STDOUT does not match with the correct value")
 	})
 
+	t.Run("v2.subaccount", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithDummyConfig("configure", "show", "subaccount", "--profile", "v2")
+		assert.Empty(t,
+			err.String(),
+			"STDERR should be empty")
+		assert.Equal(t, 0, exitcode,
+			"EXITCODE is not the expected one")
+		assert.Equal(t, "subaccount.example\n", out.String(),
+			"STDOUT does not match with the correct value")
+	})
+
+	t.Run("v2.version", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithDummyConfig("configure", "show", "version", "-p", "v2")
+		assert.Empty(t,
+			err.String(),
+			"STDERR should be empty")
+		assert.Equal(t, 0, exitcode,
+			"EXITCODE is not the expected one")
+		assert.Equal(t, "2\n", out.String(),
+			"STDOUT does not match with the correct value")
+	})
+
 	t.Run("foo.unknown", func(t *testing.T) {
 		out, err, exitcode := LaceworkCLIWithDummyConfig("configure", "show", "account", "-p", "foo")
 		assert.Empty(t,

@@ -62,7 +62,7 @@ You can configure multiple profiles by using the --profile flag. If a
 config file does not exist (the default location is ~/.lacework.toml),
 the Lacework CLI will create it for you.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return promptConfigureSetup()
+			return runConfigureSetup()
 		},
 	}
 
@@ -155,7 +155,7 @@ func init() {
 	)
 }
 
-func promptConfigureSetup() error {
+func runConfigureSetup() error {
 	cli.Log.Debugw("configuring cli", "profile", cli.Profile)
 
 	// make sure that the state is loaded to use during configuration
@@ -174,6 +174,68 @@ func promptConfigureSetup() error {
 		}
 	}
 
+	// all new configurations should default to version 2
+	cli.CfgVersion = 2
+
+	newProfile := lwconfig.Profile{
+		Version:    cli.CfgVersion,
+		Subaccount: cli.Subaccount,
+		Account:    cli.Account,
+		ApiKey:     cli.KeyID,
+		ApiSecret:  cli.Secret,
+	}
+	if cli.InteractiveMode() {
+		if err := promptConfigureSetup(&newProfile); err != nil {
+			return err
+		}
+
+		// before trying to detect if the account is organizational or not, and to
+		// check if there are sub-accounts, we need to configure the CLI settings
+		// for cases where the user is configuring the CLI by the first time with
+		// no configuration file, no flags, no environment variables, no UI JSON
+		// file, pretty much no nothing :smile:
+		if err := cli.VerifySettings(); err != nil {
+			cli.Log.Debug("storing interactive information into the cli state")
+			cli.Account = newProfile.Account
+			cli.Secret = newProfile.ApiSecret
+			cli.KeyID = newProfile.ApiKey
+		}
+
+		// generate a new API client to connect and check for sub-accounts
+		if err := cli.NewClient(); err != nil {
+			return err
+		}
+
+		// remove the sub-account, if any, for organization admins only
+		cli.LwApi.RemoveSubaccount()
+
+		// get sub-accounts from organizational accounts
+		subaccount, err := getSubAccountForOrgAdmins()
+		if err != nil {
+			return err
+		}
+
+		// only configure the subaccount if it is not empty
+		if subaccount != "" {
+			newProfile.Subaccount = subaccount
+		}
+
+		cli.OutputHuman("\n")
+	}
+
+	if err := newProfile.Verify(); err != nil {
+		return errors.Wrap(err, "unable to configure the command-line")
+	}
+
+	if err := lwconfig.StoreProfileAt(viper.ConfigFileUsed(), cli.Profile, newProfile); err != nil {
+		return errors.Wrap(err, "unable to configure the command-line")
+	}
+
+	cli.OutputHuman("You are all set!\n")
+	return nil
+}
+
+func promptConfigureSetup(newProfile *lwconfig.Profile) error {
 	questions := []*survey.Question{
 		{
 			Name: "account",
@@ -200,7 +262,7 @@ func promptConfigureSetup() error {
 					if err == nil {
 						accountSplit := rx.Split(answer, -1)
 						if len(accountSplit) != 0 {
-							cli.OutputHuman("Passing full 'lacework.net' domain not required. Using '%s'\n", accountSplit[0])
+							cli.OutputHuman("\nPassing full 'lacework.net' domain not required. Using '%s'\n", accountSplit[0])
 							return accountSplit[0]
 						}
 					}
@@ -245,63 +307,17 @@ func promptConfigureSetup() error {
 		Message: secretMessage,
 	}
 
-	cli.CfgVersion = 2
-	newProfile := lwconfig.Profile{Version: 2}
-	if cli.InteractiveMode() {
-		err := survey.Ask(append(questions, secretQuest), &newProfile,
-			survey.WithIcons(promptIconsFunc),
-		)
-		if err != nil {
-			return err
-		}
+	err := survey.Ask(append(questions, secretQuest), newProfile,
+		survey.WithIcons(promptIconsFunc),
+	)
+	if err != nil {
+		return err
+	}
 
-		if len(newProfile.ApiSecret) == 0 {
-			newProfile.ApiSecret = cli.Secret
-		}
-
-		// set the subaccount if it was set via env variables or UI JSON file
-		newProfile.Subaccount = cli.Subaccount
-
-		// new setup, no config, no flags, no envs, no UI JSON file, no nothing
-		if err := cli.VerifySettings(); err != nil {
-			cli.Log.Debug("storing interactive information into the cli state")
-			cli.Account = newProfile.Account
-			cli.Secret = newProfile.ApiSecret
-			cli.KeyID = newProfile.ApiKey
-		}
-
-		if err := cli.NewClient(); err != nil {
-			return err
-		}
-
-		// for organization admins only
-		cli.LwApi.RemoveSubaccount()
-
-		subaccount, err := getSubAccountForOrgAdmins()
-		if err != nil {
-			return err
-		}
-		if subaccount != "" {
-			newProfile.Subaccount = subaccount
-		}
-
-		cli.OutputHuman("\n")
-	} else {
-		newProfile.Account = cli.Account
-		newProfile.Subaccount = cli.Subaccount
-		newProfile.ApiKey = cli.KeyID
+	if len(newProfile.ApiSecret) == 0 {
 		newProfile.ApiSecret = cli.Secret
 	}
 
-	if err := newProfile.Verify(); err != nil {
-		return errors.Wrap(err, "unable to configure the command-line")
-	}
-
-	if err := lwconfig.StoreProfileAt(viper.ConfigFileUsed(), cli.Profile, newProfile); err != nil {
-		return errors.Wrap(err, "unable to configure the command-line")
-	}
-
-	cli.OutputHuman("You are all set!\n")
 	return nil
 }
 
