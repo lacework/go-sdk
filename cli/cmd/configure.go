@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -31,6 +30,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/lacework/go-sdk/internal/domain"
 	"github.com/lacework/go-sdk/lwconfig"
 )
 
@@ -190,16 +190,12 @@ func runConfigureSetup() error {
 		}
 
 		// before trying to detect if the account is organizational or not, and to
-		// check if there are sub-accounts, we need to configure the CLI settings
-		// for cases where the user is configuring the CLI by the first time with
-		// no configuration file, no flags, no environment variables, no UI JSON
-		// file, pretty much no nothing :smile:
-		if err := cli.VerifySettings(); err != nil {
-			cli.Log.Debug("storing interactive information into the cli state")
-			cli.Account = newProfile.Account
-			cli.Secret = newProfile.ApiSecret
-			cli.KeyID = newProfile.ApiKey
-		}
+		// check if there are sub-accounts, we need to update the CLI settings
+		cli.Log.Debug("storing interactive information into the cli state")
+		cli.Account = newProfile.Account
+		cli.Subaccount = newProfile.Subaccount
+		cli.Secret = newProfile.ApiSecret
+		cli.KeyID = newProfile.ApiKey
 
 		// generate a new API client to connect and check for sub-accounts
 		if err := cli.NewClient(); err != nil {
@@ -249,25 +245,14 @@ func promptConfigureSetup(newProfile *lwconfig.Profile) error {
 			Transform: func(ans interface{}) interface{} {
 				answer, ok := ans.(string)
 				if ok && strings.Contains(answer, ".lacework.net") {
-					// if the provided account is the full URL https://ACCOUNT.lacework.net
-					// remove the prefix https:// or http://
-					rx, err := regexp.Compile(`(http://|https://)`)
-					if err == nil {
-						answer = rx.ReplaceAllString(answer, "")
-					}
 
-					// if the provided account is the full domain ACCOUNT.lacework.net
-					// subtract the account name and inform the user
-					rx, err = regexp.Compile(`\.lacework\.net.*`)
-					if err == nil {
-						accountSplit := rx.Split(answer, -1)
-						if len(accountSplit) != 0 {
-							cli.OutputHuman("\nPassing full 'lacework.net' domain not required. Using '%s'\n", accountSplit[0])
-							return accountSplit[0]
-						}
+					d, err := domain.New(answer)
+					if err != nil {
+						cli.Log.Warn(err)
+						return answer
 					}
-
-					return answer
+					cli.OutputHuman("\nPassing full 'lacework.net' domain not required. Using '%s'\n", d.String())
+					return d.String()
 				}
 
 				return ans
@@ -334,7 +319,12 @@ func getSubAccountForOrgAdmins() (string, error) {
 		return "", nil
 	}
 
-	if len(user.Data) != 0 && user.Data[0].OrgAccount {
+	// We only ask for the sub-account if the account is an organizational account
+	// and it has at least one sub-account other than the primary account
+	if len(user.Data) != 0 &&
+		user.Data[0].OrgAccount &&
+		len(user.Data[0].SubAccountNames()) > 0 {
+
 		var (
 			subaccount string
 			primary    = fmt.Sprintf("PRIMARY (%s)", cli.Account)
@@ -384,17 +374,11 @@ func loadUIJsonFile(file string) error {
 	cli.Subaccount = strings.ToLower(auth.SubAccount)
 
 	if auth.Account != "" {
-		// standalone account: we substract the account name from the
-		// full domain ACCOUNT.lacework.net
-		rx, err := regexp.Compile(`\.lacework\.net.*`)
+		d, err := domain.New(auth.Account)
 		if err != nil {
-			return errors.Wrap(err, "unable to substract account name from full domain")
+			return err
 		}
-
-		accountSplit := rx.Split(auth.Account, -1)
-		if len(accountSplit) != 0 {
-			cli.Account = accountSplit[0]
-		}
+		cli.Account = d.String()
 	}
 
 	return nil

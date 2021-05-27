@@ -19,8 +19,9 @@
 package api
 
 import (
-	"regexp"
 	"strings"
+
+	"github.com/lacework/go-sdk/internal/domain"
 )
 
 // UserProfileService is the service that interacts with the UserProfile
@@ -48,15 +49,11 @@ type UserProfile struct {
 }
 
 func (p *UserProfile) OrgAccountName() string {
-	// TODO @afiune should we handle other datacenters?
-	rx, err := regexp.Compile(`\.lacework\.net.*`)
-	if err == nil {
-		if split := rx.Split(p.URL, -1); len(split) != 0 {
-			return strings.ToLower(split[0])
-		}
+	d, err := domain.New(p.URL)
+	if err != nil {
+		return p.URL
 	}
-
-	return p.URL
+	return d.Account
 }
 
 func (p *UserProfile) SubAccountNames() []string {
