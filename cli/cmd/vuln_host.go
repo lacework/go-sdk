@@ -189,6 +189,12 @@ To generate a package-manifest from the local host and scan it automatically:
 	vulHostListCvesCmd = &cobra.Command{
 		Use:   "list-cves",
 		Args:  cobra.NoArgs,
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if vulCmdState.Csv {
+				cli.NonInteractive()
+			}
+			return nil
+		},
 		Short: "list the CVEs found in the hosts in your environment",
 		Long: `List the CVEs found in the hosts in your environment.
 
@@ -199,10 +205,6 @@ with fixes:
 		RunE: func(_ *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
 				return err
-			}
-
-			if vulCmdState.Csv {
-				cli.NonInteractive()
 			}
 
 			response, err := cli.LwApi.Vulnerabilities.Host.ListCves()
@@ -220,6 +222,12 @@ with fixes:
 	vulHostListHostsCmd = &cobra.Command{
 		Use:   "list-hosts <cve_id>",
 		Args:  cobra.ExactArgs(1),
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if vulCmdState.Csv {
+				cli.NonInteractive()
+			}
+			return nil
+		},
 		Short: "list the hosts that contain a specified CVE id in your environment",
 		Long: `List the hosts that contain a specified CVE id in your environment.
 

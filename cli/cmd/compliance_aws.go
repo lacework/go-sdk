@@ -180,6 +180,16 @@ To run an ad-hoc compliance assessment of an AWS account:
 			}
 
 			recommendations := complianceReportRecommendationsTable(report.Recommendations)
+			if compCmdState.Csv {
+				cli.OutputHuman(
+					renderAsCSV(
+						[]string{"ID", "Recommendation", "Status", "Severity", "Service", "Affected", "Assessed"},
+						recommendations,
+					),
+				)
+				return nil
+			}
+
 			cli.OutputHuman("\n")
 			cli.OutputHuman(
 				buildComplianceReportTable(

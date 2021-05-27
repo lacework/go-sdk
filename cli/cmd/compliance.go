@@ -214,70 +214,63 @@ func complianceReportRecommendationsTable(recommendations []api.ComplianceRecomm
 }
 
 func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable [][]string, filteredOutput string) string {
-	if compCmdState.Csv {
-		return renderAsCSV(
-				[]string{"ID", "Recommendation", "Status", "Severity", "Service", "Affected", "Assessed"},
-				recommendationsTable,
-		)
-	} else {
-		mainReport := &strings.Builder{}
+	mainReport := &strings.Builder{}
+	mainReport.WriteString(
+		renderCustomTable(
+			[]string{
+				"Compliance Report Details",
+				"Non-Compliant Recommendations",
+			},
+			[][]string{[]string{
+				renderCustomTable([]string{}, detailsTable,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator("")
+						t.SetAlignment(tablewriter.ALIGN_LEFT)
+					}),
+				),
+				renderCustomTable([]string{"Severity", "Count"}, summaryTable,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator(" ")
+					}),
+				),
+			}},
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetAutoWrapText(false)
+				t.SetColumnSeparator(" ")
+			}),
+		),
+	)
+
+	if compCmdState.Details || complianceFiltersEnabled() {
 		mainReport.WriteString(
 			renderCustomTable(
-				[]string{
-					"Compliance Report Details",
-					"Non-Compliant Recommendations",
-				},
-				[][]string{[]string{
-					renderCustomTable([]string{}, detailsTable,
-						tableFunc(func(t *tablewriter.Table) {
-							t.SetBorder(false)
-							t.SetColumnSeparator("")
-							t.SetAlignment(tablewriter.ALIGN_LEFT)
-						}),
-					),
-					renderCustomTable([]string{"Severity", "Count"}, summaryTable,
-						tableFunc(func(t *tablewriter.Table) {
-							t.SetBorder(false)
-							t.SetColumnSeparator(" ")
-						}),
-					),
-				}},
+				[]string{"ID", "Recommendation", "Status", "Severity",
+					"Service", "Affected", "Assessed"},
+				recommendationsTable,
 				tableFunc(func(t *tablewriter.Table) {
 					t.SetBorder(false)
-					t.SetAutoWrapText(false)
+					t.SetRowLine(true)
 					t.SetColumnSeparator(" ")
 				}),
 			),
 		)
-
-		if compCmdState.Details || complianceFiltersEnabled() {
-			mainReport.WriteString(
-				renderCustomTable(
-					[]string{"ID", "Recommendation", "Status", "Severity",
-						"Service", "Affected", "Assessed"},
-					recommendationsTable,
-					tableFunc(func(t *tablewriter.Table) {
-						t.SetBorder(false)
-						t.SetRowLine(true)
-						t.SetColumnSeparator(" ")
-					}),
-				),
-			)
-			if filteredOutput != "" {
-				mainReport.WriteString(filteredOutput)
-			}
-			mainReport.WriteString("\n")
-			mainReport.WriteString(
-				"Try using '--pdf' to download the report in PDF format.",
-			)
-			mainReport.WriteString("\n")
-		} else {
-			mainReport.WriteString(
-				"Try using '--details' to increase details shown about the compliance report.\n",
-			)
+		if filteredOutput != "" {
+			mainReport.WriteString(filteredOutput)
 		}
-		return mainReport.String()
+		mainReport.WriteString("\n")
+		mainReport.WriteString(
+			"Try using '--pdf' to download the report in PDF format.",
+		)
+		mainReport.WriteString("\n")
+	} else {
+		mainReport.WriteString(
+			"Try using '--details' to increase details shown about the compliance report.\n",
+		)
 	}
+	return mainReport.String()
 }
 
 func filterRecommendations(recommendations []api.ComplianceRecommendation) ([]api.ComplianceRecommendation, string) {
