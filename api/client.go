@@ -123,14 +123,6 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	return c, nil
 }
 
-// RemoveSubaccount removes the subaccount from the API client
-func (c *Client) RemoveSubaccount() {
-	c.log.Debug("removing subaccount from client")
-	c.subaccount = ""
-	c.log.Debug("removing header", zap.String("field", "Account-Name"))
-	delete(c.headers, "Account-Name")
-}
-
 // WithSubaccount sets a subaccount into an API client
 func WithSubaccount(subaccount string) Option {
 	return clientFunc(func(c *Client) error {

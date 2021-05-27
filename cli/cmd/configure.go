@@ -202,9 +202,6 @@ func runConfigureSetup() error {
 			return err
 		}
 
-		// remove the sub-account, if any, for organization admins only
-		cli.LwApi.RemoveSubaccount()
-
 		// get sub-accounts from organizational accounts
 		subaccount, err := getSubAccountForOrgAdmins()
 		if err != nil {
