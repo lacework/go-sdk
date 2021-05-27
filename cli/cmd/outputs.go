@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"encoding/csv"
 	"fmt"
 	"os"
 	"strings"
@@ -63,4 +64,33 @@ func (c *cliState) FormatJSONString(s string) (string, error) {
 		return "", err
 	}
 	return string(pretty), nil
+}
+
+// Used to clean CSV inputs prior to rendering
+func csvCleanData(input []string) []string {
+	var data []string
+	for _, h := range input {
+		data = append(data, strings.Replace(h, "\n", "", -1))
+	}
+	return data
+}
+
+// Used to produce CSV output
+func renderAsCSV(headers []string, data [][]string) string {
+	csvOut := &strings.Builder{}
+	csv := csv.NewWriter(csvOut)
+
+	if len(headers) > 0 {
+		csv.Write(csvCleanData(headers))
+	}
+
+	for _, record := range data {
+		if err := csv.Write(csvCleanData(record)); err != nil {
+			fmt.Printf("Failed to build csv output, got error: %s", err.Error())
+		}
+	}
+
+	// Write any buffered data to the underlying writer (standard output).
+	csv.Flush()
+	return csvOut.String()
 }
