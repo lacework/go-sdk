@@ -76,6 +76,32 @@ func TestConfigureCommandForFrankfurtDatacenter(t *testing.T) {
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
+func TestConfigureCommandForOrgAdmins(t *testing.T) {
+	_, laceworkTOML := runConfigureTest(t,
+		func(c *expect.Console) {
+			c.ExpectString("Account:")
+			c.SendLine(os.Getenv("CI_V2_ACCOUNT"))
+			c.ExpectString("Access Key ID:")
+			c.SendLine(os.Getenv("CI_API_KEY"))
+			c.ExpectString("Secret Access Key:")
+			c.SendLine(os.Getenv("CI_API_SECRET"))
+			c.ExpectString("Verifying credentials ...")
+			c.ExpectString("(Org Admins) Managing a sub-account?")
+			c.SendLine(os.Getenv("CI_ACCOUNT"))
+			c.ExpectString("You are all set!")
+		},
+		"configure",
+	)
+
+	assert.Equal(t, `[default]
+  account = "`+os.Getenv("CI_V2_ACCOUNT")+`"
+  subaccount = "`+os.Getenv("CI_ACCOUNT")+`"
+  api_key = "`+os.Getenv("CI_API_KEY")+`"
+  api_secret = "`+os.Getenv("CI_API_SECRET")+`"
+  version = 2
+`, laceworkTOML, "there is a problem with the generated config")
+}
+
 func TestConfigureCommandWithProfileFlag(t *testing.T) {
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {

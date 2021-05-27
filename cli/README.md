@@ -158,7 +158,11 @@ Server, for that reason, it requires a set of Lacework API keys. To run these te
 locally you need to setup the following environment variables and use the directive
 `make integration`, an example of the command you can use is:
 ```
-$ CI_ACCOUNT="<YOUR_ACCOUNT>" CI_API_KEY="<YOUR_API_KEY>" CI_API_SECRET="<YOUR_API_SECRET>" LW_INT_TEST_AWS_ACC="<YOUR_AWS_ACCOUNT>" make integration
+$ CI_ACCOUNT="<YOUR_ACCOUNT>" \
+  CI_V2_ACCOUNT="<YOUR_APIV2_PRIMARY_ACCOUNT>" \
+  CI_API_KEY="<YOUR_API_KEY>" \
+  CI_API_SECRET="<YOUR_API_SECRET>" \
+  LW_INT_TEST_AWS_ACC="<YOUR_AWS_ACCOUNT>" make integration
 ```
 This is a list of all environment variables used in the running the integration tests.
 
