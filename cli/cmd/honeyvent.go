@@ -87,11 +87,13 @@ const (
 // Honeyvent defines what a Honeycomb event looks like for the Lacework CLI
 type Honeyvent struct {
 	Version       string      `json:"version"`
+	CfgVersion    int         `json:"config_version"`
 	Os            string      `json:"os"`
 	Arch          string      `json:"arch"`
 	Command       string      `json:"command,omitempty"`
 	Args          []string    `json:"args,omitempty"`
 	Account       string      `json:"account,omitempty"`
+	Subaccount    string      `json:"subaccount,omitempty"`
 	Profile       string      `json:"profile,omitempty"`
 	ApiKey        string      `json:"api_key,omitempty"`
 	Feature       string      `json:"feature,omitempty"`
@@ -123,7 +125,9 @@ func (c *cliState) InitHoneyvent() {
 		Version:       Version,
 		Profile:       c.Profile,
 		Account:       c.Account,
+		Subaccount:    c.Subaccount,
 		ApiKey:        c.KeyID,
+		CfgVersion:    c.CfgVersion,
 		TraceID:       newID(),
 		InstallMethod: installMethod(),
 	}

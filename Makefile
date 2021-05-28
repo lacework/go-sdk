@@ -22,6 +22,10 @@ GOFLAGS=-mod=vendor
 CGO_ENABLED?=0
 export GOFLAGS GO_LDFLAGS CGO_ENABLED
 
+# CI variables
+CI_V2_ACCOUNT?=customerdemo
+export CI_V2_ACCOUNT
+
 prepare: install-tools go-vendor
 
 test: prepare

@@ -125,11 +125,15 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	return c, nil
 }
 
-// WithSubaccount sets a subaccount
+// WithSubaccount sets a subaccount into an API client
 func WithSubaccount(subaccount string) Option {
 	return clientFunc(func(c *Client) error {
-		c.log.Debug("setting up client", zap.Reflect("subaccount", subaccount))
-		c.subaccount = subaccount
+		if subaccount != "" {
+			c.log.Debug("setting up client", zap.String("subaccount", subaccount))
+			c.subaccount = subaccount
+			c.log.Debug("setting up header", zap.String("Account-Name", subaccount))
+			c.headers["Account-Name"] = subaccount
+		}
 		return nil
 	})
 }

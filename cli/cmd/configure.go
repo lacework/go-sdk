@@ -19,66 +19,20 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path"
-	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/BurntSushi/toml"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/lacework/go-sdk/internal/domain"
+	"github.com/lacework/go-sdk/lwconfig"
 )
-
-// Profiles is the representation of the ~/.lacework.toml
-//
-// Example:
-//
-// [default]
-// account = "example"
-// api_key = "EXAMPLE_0123456789"
-// api_secret = "_0123456789"
-//
-// [dev]
-// account = "dev"
-// api_key = "DEV_0123456789"
-// api_secret = "_0123456789"
-type Profiles map[string]credsDetails
-
-type credsDetails struct {
-	Account   string `toml:"account" json:"account"`
-	ApiKey    string `toml:"api_key" json:"api_key" survey:"api_key"`
-	ApiSecret string `toml:"api_secret" json:"api_secret" survey:"api_secret"`
-}
-
-func (c *credsDetails) Verify() error {
-	if c.Account == "" {
-		return errors.New("account missing")
-	}
-	if c.ApiKey == "" {
-		return errors.New("api_key missing")
-	}
-	if c.ApiSecret == "" {
-		return errors.New("api_secret missing")
-	}
-	return nil
-}
-
-// apiKeyDetails represents the details of an API key, we use this struct
-// internally to unmarshal the JSON file provided by the Lacework WebUI
-type apiKeyDetails struct {
-	Account    string `json:"account,omitempty"`
-	SubAccount string `json:"subAccount,omitempty"`
-	KeyID      string `json:"keyId"`
-	Secret     string `json:"secret"`
-}
 
 var (
 	// configureJsonFile is the API key file downloaded form the Lacework WebUI
@@ -108,7 +62,7 @@ You can configure multiple profiles by using the --profile flag. If a
 config file does not exist (the default location is ~/.lacework.toml),
 the Lacework CLI will create it for you.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return promptConfigureSetup()
+			return runConfigureSetup()
 		},
 	}
 
@@ -130,7 +84,7 @@ export the environment variable:
 
 			cli.OutputHuman(
 				renderSimpleTable(
-					[]string{"Profile", "Account", "API Key", "API Secret"},
+					[]string{"Profile", "Account", "Subaccount", "API Key", "API Secret", "V"},
 					buildProfilesTableContent(cli.Profile, profiles),
 				),
 			)
@@ -158,17 +112,15 @@ To show the configuration from a different profile, use the flag --profile.
 		RunE: func(_ *cobra.Command, args []string) error {
 			data, ok := showConfigurationDataFromKey(args[0])
 			if !ok {
-				return errors.New("unknown configuration key. (available: profile, account, api_secret, api_key)")
+				// TODO change this to be dynamic
+				return errors.New("unknown configuration key. (available: profile, account, subaccount, api_secret, api_key, version)")
 			}
 
-			if data == "" {
-				// @afiune something is not set correctly, here is a big
-				// exeption to exit the CLI in a non-standard way
-				os.Exit(1)
+			if data != "" {
+				cli.OutputHuman(data)
+				cli.OutputHuman("\n")
 			}
 
-			cli.OutputHuman(data)
-			cli.OutputHuman("\n")
 			return nil
 		},
 	}
@@ -180,10 +132,14 @@ func showConfigurationDataFromKey(key string) (string, bool) {
 		return cli.Profile, true
 	case "account":
 		return cli.Account, true
+	case "subaccount":
+		return cli.Subaccount, true
 	case "api_secret":
 		return cli.Secret, true
 	case "api_key":
 		return cli.KeyID, true
+	case "version":
+		return fmt.Sprintf("%d", cli.CfgVersion), true
 	default:
 		return "", false
 	}
@@ -199,7 +155,7 @@ func init() {
 	)
 }
 
-func promptConfigureSetup() error {
+func runConfigureSetup() error {
 	cli.Log.Debugw("configuring cli", "profile", cli.Profile)
 
 	// make sure that the state is loaded to use during configuration
@@ -218,6 +174,61 @@ func promptConfigureSetup() error {
 		}
 	}
 
+	// all new configurations should default to version 2
+	cli.CfgVersion = 2
+
+	newProfile := lwconfig.Profile{
+		Version:    cli.CfgVersion,
+		Subaccount: cli.Subaccount,
+		Account:    cli.Account,
+		ApiKey:     cli.KeyID,
+		ApiSecret:  cli.Secret,
+	}
+	if cli.InteractiveMode() {
+		if err := promptConfigureSetup(&newProfile); err != nil {
+			return err
+		}
+
+		// before trying to detect if the account is organizational or not, and to
+		// check if there are sub-accounts, we need to update the CLI settings
+		cli.Log.Debug("storing interactive information into the cli state")
+		cli.Account = newProfile.Account
+		cli.Subaccount = newProfile.Subaccount
+		cli.Secret = newProfile.ApiSecret
+		cli.KeyID = newProfile.ApiKey
+
+		// generate a new API client to connect and check for sub-accounts
+		if err := cli.NewClient(); err != nil {
+			return err
+		}
+
+		// get sub-accounts from organizational accounts
+		subaccount, err := getSubAccountForOrgAdmins()
+		if err != nil {
+			return err
+		}
+
+		// only configure the subaccount if it is not empty
+		if subaccount != "" {
+			newProfile.Subaccount = subaccount
+		}
+
+		cli.OutputHuman("\n")
+	}
+
+	if err := newProfile.Verify(); err != nil {
+		return errors.Wrap(err, "unable to configure the command-line")
+	}
+
+	if err := lwconfig.StoreProfileAt(viper.ConfigFileUsed(), cli.Profile, newProfile); err != nil {
+		return errors.Wrap(err, "unable to configure the command-line")
+	}
+
+	cli.OutputHuman("You are all set!\n")
+	return nil
+}
+
+func promptConfigureSetup(newProfile *lwconfig.Profile) error {
 	questions := []*survey.Question{
 		{
 			Name: "account",
@@ -231,25 +242,14 @@ func promptConfigureSetup() error {
 			Transform: func(ans interface{}) interface{} {
 				answer, ok := ans.(string)
 				if ok && strings.Contains(answer, ".lacework.net") {
-					// if the provided account is the full URL https://ACCOUNT.lacework.net
-					// remove the prefix https:// or http://
-					rx, err := regexp.Compile(`(http://|https://)`)
-					if err == nil {
-						answer = rx.ReplaceAllString(answer, "")
-					}
 
-					// if the provided account is the full domain ACCOUNT.lacework.net
-					// subtract the account name and inform the user
-					rx, err = regexp.Compile(`\.lacework\.net.*`)
-					if err == nil {
-						accountSplit := rx.Split(answer, -1)
-						if len(accountSplit) != 0 {
-							cli.OutputHuman("Passing full 'lacework.net' domain not required. Using '%s'\n", accountSplit[0])
-							return accountSplit[0]
-						}
+					d, err := domain.New(answer)
+					if err != nil {
+						cli.Log.Warn(err)
+						return answer
 					}
-
-					return answer
+					cli.OutputHuman("\nPassing full 'lacework.net' domain not required. Using '%s'\n", d.String())
+					return d.String()
 				}
 
 				return ans
@@ -289,64 +289,67 @@ func promptConfigureSetup() error {
 		Message: secretMessage,
 	}
 
-	newCreds := credsDetails{}
-	if cli.InteractiveMode() {
-		err := survey.Ask(append(questions, secretQuest), &newCreds,
-			survey.WithIcons(promptIconsFunc),
-		)
-		if err != nil {
-			return err
-		}
-
-		if len(newCreds.ApiSecret) == 0 {
-			newCreds.ApiSecret = cli.Secret
-		}
-		cli.OutputHuman("\n")
-	} else {
-		newCreds.Account = cli.Account
-		newCreds.ApiKey = cli.KeyID
-		newCreds.ApiSecret = cli.Secret
-	}
-
-	if err := newCreds.Verify(); err != nil {
-		return errors.Wrap(err, "unable to configure the command-line")
-	}
-
-	var (
-		profiles = Profiles{}
-		confPath = viper.ConfigFileUsed()
-		buf      = new(bytes.Buffer)
-		err      error
+	err := survey.Ask(append(questions, secretQuest), newProfile,
+		survey.WithIcons(promptIconsFunc),
 	)
-	if confPath == "" {
-		home, err := homedir.Dir()
-		if err != nil {
-			return err
-		}
-		confPath = path.Join(home, ".lacework.toml")
-		cli.Log.Debugw("generating new config file",
-			"path", confPath,
-		)
-	} else {
-		profiles, err = cli.LoadProfiles()
-		if err != nil {
-			return err
-		}
-	}
-
-	profiles[cli.Profile] = newCreds
-	cli.Log.Debugw("storing updated profiles", "profiles", profiles)
-	if err := toml.NewEncoder(buf).Encode(profiles); err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(confPath, buf.Bytes(), 0600)
 	if err != nil {
 		return err
 	}
 
-	cli.OutputHuman("You are all set!\n")
+	if len(newProfile.ApiSecret) == 0 {
+		newProfile.ApiSecret = cli.Secret
+	}
+
 	return nil
+}
+
+func getSubAccountForOrgAdmins() (string, error) {
+	cli.StartProgress(" Verifying credentials ...")
+	user, err := cli.LwApi.V2.UserProfile.Get()
+	cli.StopProgress()
+	if err != nil {
+		cli.Log.Warnw("unable to access UserProfile endpoint",
+			"error", err,
+		)
+		// We do NOT error here since API v2 is sending 500 errors
+		// for mortal users, we need to fix this on the server side
+		return "", nil
+	}
+
+	// We only ask for the sub-account if the account is an organizational account
+	// and it has at least one sub-account other than the primary account
+	if len(user.Data) != 0 &&
+		user.Data[0].OrgAccount &&
+		len(user.Data[0].SubAccountNames()) > 0 {
+
+		var (
+			subaccount string
+			primary    = fmt.Sprintf("PRIMARY (%s)", cli.Account)
+		)
+		err := survey.AskOne(&survey.Select{
+			Message: "(Org Admins) Managing a sub-account?",
+			Default: strings.ToLower(cli.Subaccount),
+			Options: append([]string{primary}, user.Data[0].SubAccountNames()...),
+		}, &subaccount, survey.WithIcons(promptIconsFunc))
+		if err != nil {
+			return "", err
+		}
+
+		if subaccount != primary {
+			return subaccount, nil
+		}
+	}
+
+	return "", nil
+}
+
+// apiKeyDetails represents the details of an API key, we use this struct
+// internally to unmarshal the JSON file provided by the Lacework WebUI
+type apiKeyDetails struct {
+	Account    string `json:"account,omitempty"`
+	SubAccount string `json:"subAccount,omitempty"`
+	KeyID      string `json:"keyId"`
+	Secret     string `json:"secret"`
 }
 
 func loadUIJsonFile(file string) error {
@@ -365,35 +368,29 @@ func loadUIJsonFile(file string) error {
 
 	cli.KeyID = auth.KeyID
 	cli.Secret = auth.Secret
+	cli.Subaccount = strings.ToLower(auth.SubAccount)
 
-	if auth.SubAccount != "" {
-		// organizational account: we use this account name to auth to APIv1
-		cli.Account = auth.SubAccount
-	} else if auth.Account != "" {
-		// standalone account: we substract the account name from the
-		// full domain ACCOUNT.lacework.net
-		rx, err := regexp.Compile(`\.lacework\.net.*`)
+	if auth.Account != "" {
+		d, err := domain.New(auth.Account)
 		if err != nil {
-			return errors.Wrap(err, "unable to substract account name from full domain")
+			return err
 		}
-
-		accountSplit := rx.Split(auth.Account, -1)
-		if len(accountSplit) != 0 {
-			cli.Account = accountSplit[0]
-		}
+		cli.Account = d.String()
 	}
 
 	return nil
 }
 
-func buildProfilesTableContent(current string, profiles Profiles) [][]string {
+func buildProfilesTableContent(current string, profiles lwconfig.Profiles) [][]string {
 	out := [][]string{}
 	for profile, creds := range profiles {
 		out = append(out, []string{
 			profile,
 			creds.Account,
+			creds.Subaccount,
 			creds.ApiKey,
 			formatSecret(4, creds.ApiSecret),
+			fmt.Sprintf("%d", creds.Version),
 		})
 	}
 
