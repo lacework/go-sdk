@@ -9,7 +9,7 @@ github.com/BurntSushi/toml
 # github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
 ## explicit
 github.com/Netflix/go-expect
-# github.com/briandowns/spinner v1.12.0
+# github.com/briandowns/spinner v1.13.0
 ## explicit
 github.com/briandowns/spinner
 # github.com/cpuguy83/go-md2man/v2 v2.0.0
