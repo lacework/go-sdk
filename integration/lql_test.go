@@ -29,9 +29,9 @@ import (
 
 const (
 	lqlQueryID     string = "MyLQL"
-	lqlQueryText   string = "MyLQL(CloudTrailRawEvents e) {SELECT INSERT_ID LIMIT 1}"
-	lqlQueryUpdate string = "MyLQL(CloudTrailRawEvents e) {SELECT INSERT_ID, INSERT_TIME LIMIT 1}"
-	lqlQueryURL    string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/my.lql"
+	lqlQueryText   string = "MyLQL { source { CloudTrailRawEvents } return { insert_id } }"
+	lqlQueryUpdate string = "MyLQL { source { CloudTrailRawEvents } return { insert_id, insert_time } }"
+	lqlQueryURL    string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/MyLQL.lql"
 )
 
 var (

@@ -246,15 +246,19 @@ func queryErrorCrumbs(query string, err error) error {
 		return err
 	}
 	// smells like json
-	query = strings.TrimLeft(query, " ")
-	if strings.HasPrefix(query, "{") || strings.HasPrefix(query, "[") {
+	query = strings.ToLower(query)
+	if strings.Contains(query, "start_time_range") ||
+		strings.Contains(query, "end_time_range") ||
+		strings.Contains(query, "lql_id") ||
+		strings.Contains(query, "query_text") {
+
 		return errors.New(`invalid query
 
 It looks like you attempted to submit an LQL query in JSON format.
 Please validate that the JSON is formatted properly and adheres to the following schema:
 
 {
-	"QUERY_TEXT": "MyLQL(CloudTrailRawEvents e) { SELECT INSERT_ID }"
+	"QUERY_TEXT": "MyLQL { source { CloudTrailRawEvents } filter { event_source = 's3.amazonaws.com' } return { insert_id } }"
 }`)
 	}
 	// smells like plain text
@@ -263,8 +267,16 @@ Please validate that the JSON is formatted properly and adheres to the following
 It looks like you attempted to submit an LQL query in plain text format.
 Please validate that the text adheres to the following schema:
 
-MyLQL(CloudTrailRawEvents e) { 
-	SELECT INSERT_ID 
+MyLQL {
+	source {
+		CloudTrailRawEvents
+	}
+	filter {
+		event_source = 's3.amazonaws.com'
+	}
+	return {
+		insert_id
+	}
 }
 `)
 }

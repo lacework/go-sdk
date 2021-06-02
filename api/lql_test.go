@@ -33,11 +33,11 @@ import (
 
 var (
 	lqlQueryID    = "my_lql"
-	lqlQueryStr   = "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+	lqlQueryStr   = "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
 	lqlCreateData = `[
 	{
 		"lql_id": "my_lql",
-		"query_text": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+		"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
 	}
 ]`
 	lqlRunData = `[
@@ -291,18 +291,18 @@ var lqlQueryTypeTests = []LQLQueryTest{
 			QueryBlob: `{
 "START_TIME_RANGE": "678910",
 "END_TIME_RANGE": "111213141516",
-"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
 }`,
 		},
 		Return: nil,
 		Expected: &api.LQLQuery{
 			StartTimeRange: "1970-01-01T00:11:18Z",
 			EndTimeRange:   "1973-07-11T04:32:21Z",
-			QueryText:      "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
+			QueryText:      "my_lql { source { CloudTrailRawEvents } return { insert_id } }",
 			QueryBlob: `{
 "START_TIME_RANGE": "678910",
 "END_TIME_RANGE": "111213141516",
-"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
 }`,
 		},
 	},
@@ -312,30 +312,30 @@ var lqlQueryTypeTests = []LQLQueryTest{
 			QueryBlob: `{
 "start_time_range": "678910",
 "end_time_range": "111213141516",
-"query_text": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
 }`,
 		},
 		Return: nil,
 		Expected: &api.LQLQuery{
 			StartTimeRange: "1970-01-01T00:11:18Z",
 			EndTimeRange:   "1973-07-11T04:32:21Z",
-			QueryText:      "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
+			QueryText:      "my_lql { source { CloudTrailRawEvents } return { insert_id } }",
 			QueryBlob: `{
 "start_time_range": "678910",
 "end_time_range": "111213141516",
-"query_text": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
 }`,
 		},
 	},
 	LQLQueryTest{
 		Name: "lql-blob",
 		Input: &api.LQLQuery{
-			QueryBlob: "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
+			QueryBlob: "my_lql { source { CloudTrailRawEvents } return { insert_id } }",
 		},
 		Return: nil,
 		Expected: &api.LQLQuery{
-			QueryText: "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
-			QueryBlob: "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }",
+			QueryText: "my_lql { source { CloudTrailRawEvents } return { insert_id } }",
+			QueryBlob: "my_lql { source { CloudTrailRawEvents } return { insert_id } }",
 		},
 	},
 	LQLQueryTest{
@@ -347,7 +347,7 @@ var lqlQueryTypeTests = []LQLQueryTest{
 			QueryBlob: `{
 "START_TIME_RANGE": "678910",
 "END_TIME_RANGE": "111213141516",
-"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
 }`,
 		},
 		Return: nil,
@@ -358,7 +358,7 @@ var lqlQueryTypeTests = []LQLQueryTest{
 			QueryBlob: `{
 "START_TIME_RANGE": "678910",
 "END_TIME_RANGE": "111213141516",
-"QUERY_TEXT": "my_lql(CloudTrailRawEvents e) { SELECT INSERT_ID LIMIT 10 }"
+"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
 }`,
 		},
 	},

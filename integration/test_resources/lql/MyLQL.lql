@@ -1,6 +1,10 @@
 --- This query produces a web (github) hosted object for "lacework query" integration testing
 --- Specifically: TestQueryRunURL
-MyLQL(CloudTrailRawEvents e) {
-    SELECT INSERT_ID
-    LIMIT 1
+MyLQL {
+    source {
+        CloudTrailRawEvents
+    }
+    return {
+        insert_id
+    }
 }

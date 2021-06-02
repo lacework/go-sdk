@@ -22,8 +22,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -32,7 +32,6 @@ import (
 )
 
 const (
-	reLQL                  string = `(?ms)^(\w+)\([^)]+\)\s*{`
 	LQLQueryTranslateError string = "unable to translate query blob"
 )
 
@@ -84,13 +83,12 @@ func (q *LQLQuery) Translate() error {
 }
 
 func (q *LQLQuery) TranslateQuery() error {
-	// empty
+	// if query text is already populated
 	if q.QueryText != "" {
 		return nil
 	}
-	// json
+	// valid json
 	var t LQLQuery
-
 	if err := json.Unmarshal([]byte(q.QueryBlob), &t); err == nil {
 		if q.StartTimeRange == "" {
 			q.StartTimeRange = t.StartTimeRange
@@ -101,11 +99,21 @@ func (q *LQLQuery) TranslateQuery() error {
 		q.QueryText = t.QueryText
 		return err
 	}
-	// lql
-	if matched, _ := regexp.MatchString(reLQL, q.QueryBlob); matched {
+	// invalid json
+	qblob := strings.ToLower(q.QueryBlob)
+	if strings.Contains(qblob, "start_time_range") ||
+		strings.Contains(qblob, "end_time_range") ||
+		strings.Contains(qblob, "lql_id") ||
+		strings.Contains(qblob, "query_text") {
+
+		return errors.New(LQLQueryTranslateError)
+	}
+	// valid lql text
+	if strings.Contains(q.QueryBlob, "{") {
 		q.QueryText = q.QueryBlob
 		return nil
 	}
+	// invalid lql text
 	return errors.New(LQLQueryTranslateError)
 }
 
