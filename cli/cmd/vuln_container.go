@@ -834,32 +834,23 @@ func buildContainerAssessmentsError() string {
 	return fmt.Sprintf("%s in your environment.\n", msg)
 }
 
-func filterAssessments(assessments []api.VulnContainerAssessmentSummary) []assessmentOutput {
+// assessmentSummaryToOutputFormat builds assessmentOutput from the raw response
+func assessmentSummaryToOutputFormat(assessments []api.VulnContainerAssessmentSummary) []assessmentOutput {
 	var out []assessmentOutput
 	for _, assessment := range assessments {
-		// do not add assessments that doesn't have running containers
-		// if the user wants to show only assessments of containers running
-		if vulCmdState.Active && assessment.NdvContainers == "0" {
-			continue
-		}
-		if vulCmdState.Fixable && assessment.NumFixes == "0" {
-			continue
-		}
 
 		// if an assessment is unsupported, the summary should not be generated
 		var (
 			assessmentSummary  = "-"
 			hasVulnerabilities bool
 		)
+
+		// Build the assessment summary output field "AssessmentSummary": "1 Medium 1 Fixable"
 		if assessment.ImageScanStatus != "Unsupported" {
 			assessmentSummary, hasVulnerabilities = vulSummaryFromAssessment(&assessment)
 			if vulCmdState.Active && !hasVulnerabilities {
 				continue
 			}
-		}
-
-		if vulCmdState.Active && assessment.ImageScanStatus == "Unsupported" {
-			continue
 		}
 
 		out = append(out, assessmentOutput{
@@ -875,9 +866,33 @@ func filterAssessments(assessments []api.VulnContainerAssessmentSummary) []asses
 	return out
 }
 
-func vulAssessmentsToTable(assessments []assessmentOutput) [][]string {
-	var out [][]string
+// filters the raw response, returns the same raw response with filtered elements removed
+func filterAssessments(assessments []api.VulnContainerAssessmentSummary) []api.VulnContainerAssessmentSummary {
+	var out []api.VulnContainerAssessmentSummary
 	for _, assessment := range assessments {
+		// do not add assessments that doesn't have running containers
+		// if the user wants to show only assessments of containers running
+		if vulCmdState.Active && assessment.NdvContainers == "0" {
+			continue
+		}
+		if vulCmdState.Fixable && assessment.NumFixes == "0" {
+			continue
+		}
+
+		if vulCmdState.Active && assessment.ImageScanStatus == "Unsupported" {
+			continue
+		}
+
+		out = append(out, assessment)
+	}
+	return out
+}
+
+// vulAssessmentsToTable returns assessments in format compatible with table output
+func vulAssessmentsToTable(assessments []api.VulnContainerAssessmentSummary) [][]string {
+	assessmentOutput := assessmentSummaryToOutputFormat(assessments)
+	var out [][]string
+	for _, assessment := range assessmentOutput {
 		out = append(out, []string{
 			assessment.imageRegistry,
 			assessment.imageRepo,
