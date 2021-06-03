@@ -160,7 +160,7 @@ func (c *cliState) LoadProfiles() (lwconfig.Profiles, error) {
 	return lwconfig.LoadProfilesFrom(confPath)
 }
 
-// VerifySettings checks if the CLI state has the neccessary settings to run,
+// VerifySettings checks if the CLI state has the necessary settings to run,
 // if not, it throws an error with breadcrumbs to help the user configure the CLI
 func (c *cliState) VerifySettings() error {
 	c.Log.Debugw("verifying config", "version", c.CfgVersion)
