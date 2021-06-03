@@ -129,7 +129,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 		Aliases: []string{"get"},
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			if compCmdState.Csv {
-				cli.NonInteractive()
+				cli.EnableCSVOutput()
 			}
 
 			switch compCmdState.Type {
@@ -222,14 +222,11 @@ To run an ad-hoc compliance assessment use the command:
 			}
 
 			recommendations := complianceReportRecommendationsTable(report.Recommendations)
-			if compCmdState.Csv {
-				cli.OutputHuman(
-					renderAsCSV(
-						[]string{"ID", "Recommendation", "Status", "Severity", "Service", "Affected", "Assessed"},
-						recommendations,
-					),
+			if cli.CSVOutput() {
+				return cli.OutputCSV(
+					[]string{"ID", "Recommendation", "Status", "Severity", "Service", "Affected", "Assessed"},
+					recommendations,
 				)
-				return nil
 			}
 
 			cli.OutputHuman("\n")
@@ -291,7 +288,7 @@ func init() {
 
 	// Output the report in CSV format
 	complianceAzureGetReportCmd.Flags().BoolVar(&compCmdState.Csv, "csv", false,
-		"download report in CSV format",
+		"output report in CSV format",
 	)
 
 	// Azure report types: AZURE_CIS, AZURE_SOC, or AZURE_PCI

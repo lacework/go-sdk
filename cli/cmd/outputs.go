@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/pkg/errors"
 )
 
 // OutputJSON will print out the JSON representation of the provided data
@@ -76,21 +77,35 @@ func csvCleanData(input []string) []string {
 }
 
 // Used to produce CSV output
-func renderAsCSV(headers []string, data [][]string) string {
+func renderAsCSV(headers []string, data [][]string) (error, string) {
 	csvOut := &strings.Builder{}
 	csv := csv.NewWriter(csvOut)
 
 	if len(headers) > 0 {
-		csv.Write(csvCleanData(headers))
+		if err := csv.Write(csvCleanData(headers)); err != nil {
+			return errors.Wrap(err, "Failed to build csv output"), ""
+		}
 	}
 
 	for _, record := range data {
 		if err := csv.Write(csvCleanData(record)); err != nil {
-			fmt.Printf("Failed to build csv output, got error: %s", err.Error())
+			return errors.Wrap(err, "Failed to build csv output"), ""
 		}
 	}
 
 	// Write any buffered data to the underlying writer (standard output).
 	csv.Flush()
-	return csvOut.String()
+	return nil, csvOut.String()
+}
+
+// OutputCSV will print out the provided headers/data in CSV format if the cli state is
+// configured to output CSV
+func (c *cliState) OutputCSV(headers []string, data [][]string) error {
+	err, csv := renderAsCSV(headers, data)
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(csv)
+	return nil
 }

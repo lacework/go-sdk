@@ -84,7 +84,7 @@ Then, select one GUID from an integration and visualize its details using the co
 		Aliases: []string{"get"},
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			if compCmdState.Csv {
-				cli.NonInteractive()
+				cli.EnableCSVOutput()
 			}
 
 			switch compCmdState.Type {
@@ -177,14 +177,11 @@ To run an ad-hoc compliance assessment use the command:
 			}
 
 			recommendations := complianceReportRecommendationsTable(report.Recommendations)
-			if compCmdState.Csv {
-				cli.OutputHuman(
-					renderAsCSV(
-						[]string{"ID", "Recommendation", "Status", "Severity", "Service", "Affected", "Assessed"},
-						recommendations,
-					),
+			if cli.CSVOutput() {
+				return cli.OutputCSV(
+					[]string{"ID", "Recommendation", "Status", "Severity", "Service", "Affected", "Assessed"},
+					recommendations,
 				)
-				return nil
 			}
 
 			cli.OutputHuman("\n")
@@ -245,7 +242,7 @@ func init() {
 
 	// Output the report in CSV format
 	complianceGcpGetReportCmd.Flags().BoolVar(&compCmdState.Csv, "csv", false,
-		"download report in CSV format",
+		"output report in CSV format",
 	)
 
 	// GCP report types: GCP_CIS, GCP_SOC, or GCP_PCI.

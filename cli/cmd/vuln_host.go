@@ -191,7 +191,7 @@ To generate a package-manifest from the local host and scan it automatically:
 		Args:  cobra.NoArgs,
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			if vulCmdState.Csv {
-				cli.NonInteractive()
+				cli.EnableCSVOutput()
 			}
 			return nil
 		},
@@ -224,7 +224,7 @@ with fixes:
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			if vulCmdState.Csv {
-				cli.NonInteractive()
+				cli.EnableCSVOutput()
 			}
 			return nil
 		},
@@ -244,7 +244,7 @@ To list the CVEs found in the hosts of your environment run:
 				return cli.OutputJSON(response.Hosts)
 			}
 
-			if len(response.Hosts) == 0 && !vulCmdState.Csv {
+			if len(response.Hosts) == 0 {
 				// @afiune add a helpful message, possible things are:
 				// 1) host vuln feature is not enabled on the account
 				// 2) user doesn't have agents deployed
@@ -254,35 +254,33 @@ To list the CVEs found in the hosts of your environment run:
 			}
 
 			rows := hostVulnHostsTable(response.Hosts)
-			if vulCmdState.Csv {
-				cli.OutputHuman(
-					renderAsCSV(
-						[]string{"Machine ID", "Hostname", "External IP", "Internal IP",
-							"Os/Arch", "Provider", "Instance ID", "Vulnerabilities", "Status"},
-						rows,
-					),
-				)
-			} else {
-				// if the user wants to show only online or
-				// offline hosts, show a friendly message
-				if len(rows) == 0 {
-					if vulCmdState.Online {
-						cli.OutputHuman("There are no online hosts.\n")
-					}
-					if vulCmdState.Offline {
-						cli.OutputHuman("There are no offline hosts.\n")
-					}
-					return nil
-				}
-
-				cli.OutputHuman(
-					renderSimpleTable(
-						[]string{"Machine ID", "Hostname", "External IP", "Internal IP",
-							"Os/Arch", "Provider", "Instance ID", "Vulnerabilities", "Status"},
-						rows,
-					),
+			if cli.CSVOutput() {
+				return cli.OutputCSV(
+					[]string{"Machine ID", "Hostname", "External IP", "Internal IP",
+						"Os/Arch", "Provider", "Instance ID", "Vulnerabilities", "Status"},
+					rows,
 				)
 			}
+
+			// if the user wants to show only online or
+			// offline hosts, show a friendly message
+			if len(rows) == 0 {
+				if vulCmdState.Online {
+					cli.OutputHuman("There are no online hosts.\n")
+				}
+				if vulCmdState.Offline {
+					cli.OutputHuman("There are no offline hosts.\n")
+				}
+				return nil
+			}
+
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"Machine ID", "Hostname", "External IP", "Internal IP",
+						"Os/Arch", "Provider", "Instance ID", "Vulnerabilities", "Status"},
+					rows,
+				),
+			)
 			return nil
 		},
 	}
@@ -1030,26 +1028,23 @@ func buildListCVEReports(cves []api.HostVulnCVE) error {
 	if vulCmdState.Packages {
 		packages, filtered := hostVulnPackagesTable(cves, true)
 
-		if vulCmdState.Csv {
-			cli.OutputHuman(
-				renderAsCSV(
-					[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
-					packages,
-				),
+		if cli.CSVOutput() {
+			return cli.OutputCSV(
+				[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
+				packages,
 			)
-			return nil
-		} else {
-			cli.OutputHuman(
-				renderSimpleTable(
-					[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
-					packages,
-				),
-			)
-			if filtered != "" {
-				cli.OutputHuman(filtered)
-			}
-			return nil
 		}
+
+		cli.OutputHuman(
+			renderSimpleTable(
+				[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
+				packages,
+			),
+		)
+		if filtered != "" {
+			cli.OutputHuman(filtered)
+		}
+		return nil
 	}
 
 	rows := hostVulnCVEsTable(filteredCves)
@@ -1060,24 +1055,21 @@ func buildListCVEReports(cves []api.HostVulnCVE) error {
 		return nil
 	}
 
-	if vulCmdState.Csv {
-		cli.OutputHuman(
-			renderAsCSV(
-				[]string{"CVE ID", "Severity", "Score", "Package", "Current Version",
-					"Fix Version", "OS Version", "Hosts", "Pkg Status", "Vuln Status"},
-				rows,
-			),
-		)
-		return nil
-	} else {
-		cli.OutputHuman(
-			renderSimpleTable(
-				[]string{"CVE ID", "Severity", "Score", "Package", "Current Version",
-					"Fix Version", "OS Version", "Hosts", "Pkg Status", "Vuln Status"},
-				rows,
-			),
+	if cli.CSVOutput() {
+		return cli.OutputCSV(
+			[]string{"CVE ID", "Severity", "Score", "Package", "Current Version",
+				"Fix Version", "OS Version", "Hosts", "Pkg Status", "Vuln Status"},
+			rows,
 		)
 	}
+
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"CVE ID", "Severity", "Score", "Package", "Current Version",
+				"Fix Version", "OS Version", "Hosts", "Pkg Status", "Vuln Status"},
+			rows,
+		),
+	)
 
 	if filtered != "" {
 		cli.OutputHuman(filtered)

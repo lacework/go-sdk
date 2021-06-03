@@ -85,7 +85,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 		Aliases: []string{"get"},
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			if compCmdState.Csv {
-				cli.NonInteractive()
+				cli.EnableCSVOutput()
 			}
 
 			switch compCmdState.Type {
@@ -180,14 +180,11 @@ To run an ad-hoc compliance assessment of an AWS account:
 			}
 
 			recommendations := complianceReportRecommendationsTable(report.Recommendations)
-			if compCmdState.Csv {
-				cli.OutputHuman(
-					renderAsCSV(
-						[]string{"ID", "Recommendation", "Status", "Severity", "Service", "Affected", "Assessed"},
-						recommendations,
-					),
+			if cli.CSVOutput() {
+				return cli.OutputCSV(
+					[]string{"ID", "Recommendation", "Status", "Severity", "Service", "Affected", "Assessed"},
+					recommendations,
 				)
-				return nil
 			}
 
 			cli.OutputHuman("\n")
@@ -251,7 +248,7 @@ func init() {
 	)
 
 	complianceAwsGetReportCmd.Flags().BoolVar(&compCmdState.Csv, "csv", false,
-		"download report in CSV format",
+		"output report in CSV format",
 	)
 
 	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI

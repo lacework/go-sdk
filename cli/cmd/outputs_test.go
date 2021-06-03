@@ -33,15 +33,16 @@ key2,value2
 key3,value3
 `, "\n")
 
-	assert.Equal(t,
-		renderAsCSV(
+  _, csv := renderAsCSV(
 			[]string{"KEY", "VALUE"},
 			[][]string{
 						{"key1", "value1"},
 						{"key2", "value2"},
 						{"key3", "value3"},
 				},
-		),
+	)
+	assert.Equal(t,
+		csv,
 		expectedCsv,
 		"csv is not being formatted correctly")
 }
@@ -54,15 +55,16 @@ key2,value2
 key3,value3
 `, "\n")
 
-	assert.Equal(t,
-		renderAsCSV(
+	_, csv := renderAsCSV(
 			[]string{"KEY\n HEADER VALUE", "VALUE,TEST"},
 			[][]string{
 						{"key1", "this is a value, from [a, b, c]"},
 						{"key2", "value2"},
 						{"key3", "value3"},
 				},
-		),
+	)
+	assert.Equal(t,
+		csv,
 		expectedCsv,
 		"csv is not being formatted correctly")
 }
