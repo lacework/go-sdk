@@ -77,35 +77,34 @@ func csvCleanData(input []string) []string {
 }
 
 // Used to produce CSV output
-func renderAsCSV(headers []string, data [][]string) (error, string) {
+func renderAsCSV(headers []string, data [][]string) (string, error) {
 	csvOut := &strings.Builder{}
 	csv := csv.NewWriter(csvOut)
 
 	if len(headers) > 0 {
 		if err := csv.Write(csvCleanData(headers)); err != nil {
-			return errors.Wrap(err, "Failed to build csv output"), ""
+			return "", errors.Wrap(err, "Failed to build csv output")
 		}
 	}
 
 	for _, record := range data {
 		if err := csv.Write(csvCleanData(record)); err != nil {
-			return errors.Wrap(err, "Failed to build csv output"), ""
+			return "", errors.Wrap(err, "Failed to build csv output")
 		}
 	}
 
 	// Write any buffered data to the underlying writer (standard output).
 	csv.Flush()
-	return nil, csvOut.String()
+	return csvOut.String(), csv.Error()
 }
 
-// OutputCSV will print out the provided headers/data in CSV format if the cli state is
-// configured to output CSV
+// OutputCSV will print out the provided headers/data in CSV format
 func (c *cliState) OutputCSV(headers []string, data [][]string) error {
-	err, csv := renderAsCSV(headers, data)
+	csv, err := renderAsCSV(headers, data)
 	if err != nil {
 		return err
 	}
 
-	fmt.Print(csv)
+	fmt.Fprint(os.Stdout, csv)
 	return nil
 }

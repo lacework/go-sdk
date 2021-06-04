@@ -187,8 +187,8 @@ To generate a package-manifest from the local host and scan it automatically:
 	}
 
 	vulHostListCvesCmd = &cobra.Command{
-		Use:   "list-cves",
-		Args:  cobra.NoArgs,
+		Use:  "list-cves",
+		Args: cobra.NoArgs,
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			if vulCmdState.Csv {
 				cli.EnableCSVOutput()
@@ -220,8 +220,8 @@ with fixes:
 	}
 
 	vulHostListHostsCmd = &cobra.Command{
-		Use:   "list-hosts <cve_id>",
-		Args:  cobra.ExactArgs(1),
+		Use:  "list-hosts <cve_id>",
+		Args: cobra.ExactArgs(1),
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			if vulCmdState.Csv {
 				cli.EnableCSVOutput()

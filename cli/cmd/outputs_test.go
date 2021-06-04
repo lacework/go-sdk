@@ -33,13 +33,13 @@ key2,value2
 key3,value3
 `, "\n")
 
-  _, csv := renderAsCSV(
-			[]string{"KEY", "VALUE"},
-			[][]string{
-						{"key1", "value1"},
-						{"key2", "value2"},
-						{"key3", "value3"},
-				},
+	csv, _ := renderAsCSV(
+		[]string{"KEY", "VALUE"},
+		[][]string{
+			{"key1", "value1"},
+			{"key2", "value2"},
+			{"key3", "value3"},
+		},
 	)
 	assert.Equal(t,
 		csv,
@@ -55,13 +55,13 @@ key2,value2
 key3,value3
 `, "\n")
 
-	_, csv := renderAsCSV(
-			[]string{"KEY\n HEADER VALUE", "VALUE,TEST"},
-			[][]string{
-						{"key1", "this is a value, from [a, b, c]"},
-						{"key2", "value2"},
-						{"key3", "value3"},
-				},
+	csv, _ := renderAsCSV(
+		[]string{"KEY\n HEADER VALUE", "VALUE,TEST"},
+		[][]string{
+			{"key1", "this is a value, from [a, b, c]"},
+			{"key2", "value2"},
+			{"key3", "value3"},
+		},
 	)
 	assert.Equal(t,
 		csv,
@@ -71,5 +71,5 @@ key3,value3
 
 func TestCSVDataCleanup(t *testing.T) {
 	data := csvCleanData([]string{"KEY\n HEADER\n VALUE", "VALUE,TEST\n"})
-	assert.False(t, strings.Contains(strings.Join(data, ""), "\n"), "data is not being cleaned up properly")
+	assert.NotContains(t, strings.Join(data, ""), "\n", "data is not being cleaned up properly")
 }
