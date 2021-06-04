@@ -47,7 +47,8 @@ func TestAccountOrganizationInfoForStandalone(t *testing.T) {
 	assert.Nil(t, err)
 	if assert.NotNil(t, response) {
 		assert.False(t, response.OrgAccount)
-		assert.Empty(t, response.OrgAccountName)
+		assert.Empty(t, response.OrgAccountURL)
+		assert.Empty(t, response.AccountName())
 	}
 }
 
@@ -69,7 +70,8 @@ func TestAccountOrganizationInfoForOrganizational(t *testing.T) {
 	assert.Nil(t, err)
 	if assert.NotNil(t, response) {
 		assert.True(t, response.OrgAccount)
-		assert.Equal(t, "test-org", response.OrgAccountName)
+		assert.Equal(t, "test-org", response.AccountName())
+		assert.Equal(t, "test-org.lacework.net", response.OrgAccountURL)
 	}
 }
 
@@ -80,6 +82,6 @@ func accountOrganizationInfoResponseStandalone() string {
 func accountOrganizationInfoResponseOrganizational(name string) string {
 	return `{
   "orgAccount": true,
-  "orgAccountName": "` + name + `"
+  "orgAccountUrl": "` + name + `.lacework.net"
 }`
 }

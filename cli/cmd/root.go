@@ -64,7 +64,13 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 				if cmd.HasParent() && cmd.Parent().Use == "configure" {
 					return nil
 				}
-				return cli.NewClient()
+
+				if err := cli.NewClient(); err != nil {
+					return err
+				}
+
+				// @afiune execute any necessary migration, if any
+				return cli.Migrations()
 			}
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
