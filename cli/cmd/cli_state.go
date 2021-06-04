@@ -60,6 +60,7 @@ type cliState struct {
 	workers        sync.WaitGroup
 	spinner        *spinner.Spinner
 	jsonOutput     bool
+	csvOutput      bool
 	nonInteractive bool
 	profileDetails map[string]interface{}
 }
@@ -210,7 +211,7 @@ func (c *cliState) NewClient() error {
 
 // InteractiveMode returns true if the cli is running in interactive mode
 func (c *cliState) InteractiveMode() bool {
-	return !c.nonInteractive
+	return !c.nonInteractive && !c.csvOutput
 }
 
 // NonInteractive turns off interactive mode, that is, no progress bars and spinners
@@ -274,14 +275,25 @@ func (c *cliState) EnableHumanOutput() {
 	c.jsonOutput = false
 }
 
+// EnableCSVOutput enables the cli to display CSV output
+func (c *cliState) EnableCSVOutput() {
+	c.Log.Info("switch output to csv format")
+	c.csvOutput = true
+}
+
 // JSONOutput returns true if the cli is configured to display JSON output
 func (c *cliState) JSONOutput() bool {
 	return c.jsonOutput
 }
 
-// HumanOutput returns true if the cli is configured to siplay human readable output
+// HumanOutput returns true if the cli is configured to display human readable output
 func (c *cliState) HumanOutput() bool {
-	return !c.jsonOutput
+	return !c.jsonOutput && !c.csvOutput
+}
+
+// CSVOutput returns true if the cli is configured to display csv output
+func (c *cliState) CSVOutput() bool {
+	return c.csvOutput
 }
 
 // loadStateFromViper loads parameters and environment variables

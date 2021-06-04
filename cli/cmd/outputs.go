@@ -19,11 +19,13 @@
 package cmd
 
 import (
+	"encoding/csv"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/pkg/errors"
 )
 
 // OutputJSON will print out the JSON representation of the provided data
@@ -63,4 +65,46 @@ func (c *cliState) FormatJSONString(s string) (string, error) {
 		return "", err
 	}
 	return string(pretty), nil
+}
+
+// Used to clean CSV inputs prior to rendering
+func csvCleanData(input []string) []string {
+	var data []string
+	for _, h := range input {
+		data = append(data, strings.Replace(h, "\n", "", -1))
+	}
+	return data
+}
+
+// Used to produce CSV output
+func renderAsCSV(headers []string, data [][]string) (string, error) {
+	csvOut := &strings.Builder{}
+	csv := csv.NewWriter(csvOut)
+
+	if len(headers) > 0 {
+		if err := csv.Write(csvCleanData(headers)); err != nil {
+			return "", errors.Wrap(err, "Failed to build csv output")
+		}
+	}
+
+	for _, record := range data {
+		if err := csv.Write(csvCleanData(record)); err != nil {
+			return "", errors.Wrap(err, "Failed to build csv output")
+		}
+	}
+
+	// Write any buffered data to the underlying writer (standard output).
+	csv.Flush()
+	return csvOut.String(), csv.Error()
+}
+
+// OutputCSV will print out the provided headers/data in CSV format
+func (c *cliState) OutputCSV(headers []string, data [][]string) error {
+	csv, err := renderAsCSV(headers, data)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprint(os.Stdout, csv)
+	return nil
 }
