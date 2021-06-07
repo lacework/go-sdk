@@ -184,7 +184,7 @@ func inputQuery(cmd *cobra.Command, args []string) (string, error) {
 func inputQueryFromEnv(queryID string) (query string, err error) {
 	var queryResponse api.LQLQueryResponse
 
-	queryResponse, err = cli.LwApi.LQL.GetQueryByID(queryID)
+	queryResponse, err = cli.LwApi.LQL.GetByID(queryID)
 	if err == nil && len(queryResponse.Data) != 0 {
 		query = queryResponse.Data[0].QueryText
 	}
@@ -296,7 +296,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		return compileQueryAndOutput(query)
 	}
 	// !validate_only should should run
-	response, err := cli.LwApi.LQL.RunQuery(query, lqlCmdState.Start, lqlCmdState.End)
+	response, err := cli.LwApi.LQL.Run(query, lqlCmdState.Start, lqlCmdState.End)
 
 	if err != nil {
 		err = queryErrorCrumbs(query, err)

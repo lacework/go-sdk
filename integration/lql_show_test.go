@@ -42,7 +42,7 @@ func TestQueryShowNoInput(t *testing.T) {
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "show")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
-	assert.Contains(t, err.String(), "ERROR unable to show LQL query: Please specify a valid query ID.")
+	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 

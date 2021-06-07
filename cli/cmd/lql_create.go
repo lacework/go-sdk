@@ -50,7 +50,7 @@ func createQuery(cmd *cobra.Command, args []string) error {
 	}
 
 	cli.Log.Debugw("creating LQL query", "query", query)
-	create, err := cli.LwApi.LQL.CreateQuery(query)
+	create, err := cli.LwApi.LQL.Create(query)
 
 	if err != nil {
 		err = queryErrorCrumbs(query, err)

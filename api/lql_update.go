@@ -27,7 +27,7 @@ type LQLUpdateMessage struct {
 	ID string `json:"lqlUpdated"`
 }
 
-func (svc *LQLService) UpdateQuery(query string) (
+func (svc *LQLService) Update(query string) (
 	response LQLUpdateResponse,
 	err error,
 ) {

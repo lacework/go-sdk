@@ -24,7 +24,7 @@ type LQLCompileResponse struct {
 	Message string                   `json:"message"`
 }
 
-func (svc *LQLService) CompileQuery(query string) (
+func (svc *LQLService) Compile(query string) (
 	response LQLCompileResponse,
 	err error,
 ) {

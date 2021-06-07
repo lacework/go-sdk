@@ -52,7 +52,7 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 	}
 
 	cli.Log.Debugw("updating LQL query", "query", query)
-	update, err := cli.LwApi.LQL.UpdateQuery(query)
+	update, err := cli.LwApi.LQL.Update(query)
 
 	if err != nil {
 		err = queryErrorCrumbs(query, err)

@@ -46,7 +46,7 @@ func TestLQLUpdateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.UpdateQuery(lqlQueryStr)
+	_, err = c.LQL.Update(lqlQueryStr)
 	assert.Nil(t, err)
 }
 
@@ -66,15 +66,12 @@ func TestLQLUpdateBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.UpdateQuery("")
+	_, err = c.LQL.Update("")
 	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
 }
 
 func TestLQLUpdateOK(t *testing.T) {
-	mockResponse := mockLQLMessageResponse(
-		fmt.Sprintf(`"lqlUpdated": "%s"`, lqlQueryID),
-		"true",
-	)
+	mockResponse := mockLQLMessageResponse(fmt.Sprintf(`"lqlUpdated": "%s"`, lqlQueryID))
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -95,7 +92,7 @@ func TestLQLUpdateOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
 
 	var updateActual api.LQLUpdateResponse
-	updateActual, err = c.LQL.UpdateQuery(lqlQueryStr)
+	updateActual, err = c.LQL.Update(lqlQueryStr)
 	assert.Nil(t, err)
 
 	assert.Equal(t, updateExpected, updateActual)
@@ -117,6 +114,6 @@ func TestLQLUpdateNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.UpdateQuery(lqlQueryStr)
+	_, err = c.LQL.Update(lqlQueryStr)
 	assert.NotNil(t, err)
 }

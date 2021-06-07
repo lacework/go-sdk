@@ -174,7 +174,7 @@ type LQLService struct {
 	client *Client
 }
 
-func (svc *LQLService) CreateQuery(query string) (
+func (svc *LQLService) Create(query string) (
 	response LQLQueryResponse,
 	err error,
 ) {
@@ -188,10 +188,10 @@ func (svc *LQLService) CreateQuery(query string) (
 }
 
 func (svc *LQLService) GetQueries() (LQLQueryResponse, error) {
-	return svc.GetQueryByID("")
+	return svc.GetByID("")
 }
 
-func (svc *LQLService) GetQueryByID(queryID string) (
+func (svc *LQLService) GetByID(queryID string) (
 	response LQLQueryResponse,
 	err error,
 ) {
@@ -205,7 +205,7 @@ func (svc *LQLService) GetQueryByID(queryID string) (
 	return
 }
 
-func (svc *LQLService) RunQuery(query, start, end string) (
+func (svc *LQLService) Run(query, start, end string) (
 	response map[string]interface{},
 	err error,
 ) {

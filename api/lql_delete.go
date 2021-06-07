@@ -38,7 +38,7 @@ type LQLDeleteMessage struct {
 	ID string `json:"lqlDeleted"`
 }
 
-func (svc *LQLService) DeleteQuery(queryID string) (
+func (svc *LQLService) Delete(queryID string) (
 	response LQLDeleteResponse,
 	err error,
 ) {
