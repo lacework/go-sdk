@@ -146,7 +146,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("account", "a", "",
 		"account subdomain of URL (i.e. <ACCOUNT>.lacework.net)",
 	)
-	rootCmd.PersistentFlags().StringP("subaccount", "u", "",
+	rootCmd.PersistentFlags().String("subaccount", "",
 		"sub-account name inside your organization (org admins only)",
 	)
 
