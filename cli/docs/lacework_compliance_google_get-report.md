@@ -20,6 +20,7 @@ lacework compliance google get-report <organization_id> <project_id> [flags]
 
 ```
       --category strings   filter report details by category (storage, networking, identity-and-access-management, ...)
+      --csv                output report in CSV format
       --details            increase details about the compliance report
   -h, --help               help for get-report
       --pdf                download report in PDF format
@@ -40,6 +41,7 @@ lacework compliance google get-report <organization_id> <project_id> [flags]
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
+  -u, --subaccount string   sub-account name inside your organization (org admins only)
 ```
 
 ### SEE ALSO

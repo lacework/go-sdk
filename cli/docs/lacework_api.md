@@ -1,18 +1,30 @@
 ## lacework api
 
-helper to call Lacework's RestfulAPI
+helper to call Lacework's API
 
 ### Synopsis
 
-Use this command as a helper to call any available Lacework API endpoint.
+Use this command as a helper to call any available Lacework API v1 & v2 endpoint.
 
-For example, to list all integrations configured in your account run:
+== For APIv1 ==
 
-    lacework api get /external/integrations
+To list all integrations configured in your account:
 
-For a complete list of available API endpoints visit:
+    lacework api get /v1/external/integrations
+
+For a complete list of available API v1 endpoints visit:
 
     https://<ACCOUNT>.lacework.net/api/v1/external/docs
+
+== For APIv2 ==
+
+To list all available Lacework schema types:
+
+    lacework api get /v2/schemas
+
+For a complete list of available API v1 endpoints visit:
+
+    https://<ACCOUNT>.lacework.net/api/v2/docs
 
 
 ```
@@ -37,6 +49,7 @@ lacework api <method> <path> [flags]
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
+  -u, --subaccount string   sub-account name inside your organization (org admins only)
 ```
 
 ### SEE ALSO

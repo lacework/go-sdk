@@ -42,6 +42,7 @@ To run an ad-hoc compliance assessment use the command:
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
+  -u, --subaccount string   sub-account name inside your organization (org admins only)
 ```
 
 ### SEE ALSO
