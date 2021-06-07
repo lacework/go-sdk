@@ -49,6 +49,7 @@ lacework agent install <[user@]host> [flags]
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
+      --subaccount string   sub-account name inside your organization (org admins only)
 ```
 
 ### SEE ALSO

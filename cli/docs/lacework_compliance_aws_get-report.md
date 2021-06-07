@@ -25,6 +25,7 @@ lacework compliance aws get-report <account_id> [flags]
 
 ```
       --category strings   filter report details by category (identity-and-access-management, s3, logging...)
+      --csv                output report in CSV format
       --details            increase details about the compliance report
   -h, --help               help for get-report
       --pdf                download report in PDF format
@@ -45,6 +46,7 @@ lacework compliance aws get-report <account_id> [flags]
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
+      --subaccount string   sub-account name inside your organization (org admins only)
 ```
 
 ### SEE ALSO
