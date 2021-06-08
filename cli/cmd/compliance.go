@@ -39,6 +39,9 @@ var (
 		// download report in PDF format
 		Pdf bool
 
+		// output report in CSV format
+		Csv bool
+
 		// display extended details about a compliance report
 		Details bool
 

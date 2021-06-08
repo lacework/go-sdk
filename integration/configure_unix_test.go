@@ -20,6 +20,7 @@
 package integration
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -87,7 +88,9 @@ func TestConfigureCommandForOrgAdmins(t *testing.T) {
 			c.SendLine(os.Getenv("CI_API_SECRET"))
 			c.ExpectString("Verifying credentials ...")
 			c.ExpectString("(Org Admins) Managing a sub-account?")
-			c.SendLine(os.Getenv("CI_ACCOUNT"))
+			// @afiune this is needed just because we have two accounts that start exactly the same
+			// and so, we need to key in ARROW DOWN to chose the right one.
+			c.SendLine(fmt.Sprintf("%s\x1B[B", os.Getenv("CI_ACCOUNT")))
 			c.ExpectString("You are all set!")
 		},
 		"configure",

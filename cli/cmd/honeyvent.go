@@ -82,6 +82,9 @@ const (
 
 	// Split package manifest feature
 	featSplitPkgManifest = "split_pkg_manifest"
+
+	// Migration API v1 -> v2 feature
+	featMigrateConfigV2 = "migrate_config_v2"
 )
 
 // Honeyvent defines what a Honeycomb event looks like for the Lacework CLI

@@ -16,34 +16,15 @@
 // limitations under the License.
 //
 
-package api
+package cmd
 
-import "github.com/lacework/go-sdk/internal/domain"
+import "os"
 
-// AccountService is a service that interacts with Account related
-// endpoints from the Lacework Server
-type AccountService struct {
-	client *Client
-}
-
-func (svc *AccountService) GetOrganizationInfo() (
-	response accountOrganizationInfoResponse,
-	err error,
-) {
-	err = svc.client.RequestDecoder("GET",
-		apiAccountOrganizationInfo,
-		nil,
-		&response,
-	)
-	return
-}
-
-type accountOrganizationInfoResponse struct {
-	OrgAccount    bool   `json:"orgAccount"`
-	OrgAccountURL string `json:"orgAccountUrl,omitempty"`
-}
-
-func (r accountOrganizationInfoResponse) AccountName() string {
-	d, _ := domain.New(r.OrgAccountURL)
-	return d.String()
+// fileExists checks if a file exists and is not a directory
+func fileExists(filename string) bool {
+	f, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !f.IsDir()
 }

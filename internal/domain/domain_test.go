@@ -78,6 +78,8 @@ func TestDomains(t *testing.T) {
 			expectedInternal: true},
 
 		// Errors!!!!
+		{URL: "",
+			expectedError: "domain not supported"},
 		{URL: "account.lacework.com",
 			expectedError: "domain not supported"},
 		{URL: "account.c.not-corp.lacework.net",

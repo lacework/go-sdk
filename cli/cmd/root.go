@@ -64,7 +64,13 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 				if cmd.HasParent() && cmd.Parent().Use == "configure" {
 					return nil
 				}
-				return cli.NewClient()
+
+				if err := cli.NewClient(); err != nil {
+					return err
+				}
+
+				// @afiune execute any necessary migration, if any
+				return cli.Migrations()
 			}
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
@@ -140,7 +146,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("account", "a", "",
 		"account subdomain of URL (i.e. <ACCOUNT>.lacework.net)",
 	)
-	rootCmd.PersistentFlags().StringP("subaccount", "u", "",
+	rootCmd.PersistentFlags().String("subaccount", "",
 		"sub-account name inside your organization (org admins only)",
 	)
 

@@ -42,7 +42,7 @@ func TestConfigureCommandNonInteractive(t *testing.T) {
 		"-a", "my-account",
 		"-k", "my-key",
 		"-s", "my-secret",
-		"-u", "my-sub-account",
+		"--subaccount", "my-sub-account",
 	)
 
 	assert.Empty(t, errB.String())

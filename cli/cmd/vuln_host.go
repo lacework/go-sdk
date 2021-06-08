@@ -187,8 +187,14 @@ To generate a package-manifest from the local host and scan it automatically:
 	}
 
 	vulHostListCvesCmd = &cobra.Command{
-		Use:   "list-cves",
-		Args:  cobra.NoArgs,
+		Use:  "list-cves",
+		Args: cobra.NoArgs,
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if vulCmdState.Csv {
+				cli.EnableCSVOutput()
+			}
+			return nil
+		},
 		Short: "list the CVEs found in the hosts in your environment",
 		Long: `List the CVEs found in the hosts in your environment.
 
@@ -214,8 +220,14 @@ with fixes:
 	}
 
 	vulHostListHostsCmd = &cobra.Command{
-		Use:   "list-hosts <cve_id>",
-		Args:  cobra.ExactArgs(1),
+		Use:  "list-hosts <cve_id>",
+		Args: cobra.ExactArgs(1),
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if vulCmdState.Csv {
+				cli.EnableCSVOutput()
+			}
+			return nil
+		},
 		Short: "list the hosts that contain a specified CVE id in your environment",
 		Long: `List the hosts that contain a specified CVE id in your environment.
 
@@ -242,6 +254,14 @@ To list the CVEs found in the hosts of your environment run:
 			}
 
 			rows := hostVulnHostsTable(response.Hosts)
+			if cli.CSVOutput() {
+				return cli.OutputCSV(
+					[]string{"Machine ID", "Hostname", "External IP", "Internal IP",
+						"Os/Arch", "Provider", "Instance ID", "Vulnerabilities", "Status"},
+					rows,
+				)
+			}
+
 			// if the user wants to show only online or
 			// offline hosts, show a friendly message
 			if len(rows) == 0 {
@@ -368,6 +388,11 @@ func init() {
 	setActiveFlag(
 		vulHostShowAssessmentCmd.Flags(),
 		vulHostListCvesCmd.Flags(),
+	)
+
+	setCsvFlag(
+		vulHostListCvesCmd.Flags(),
+		vulHostListHostsCmd.Flags(),
 	)
 
 	// add online flag to host list-hosts command
@@ -1002,6 +1027,14 @@ func buildListCVEReports(cves []api.HostVulnCVE) error {
 
 	if vulCmdState.Packages {
 		packages, filtered := hostVulnPackagesTable(cves, true)
+
+		if cli.CSVOutput() {
+			return cli.OutputCSV(
+				[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
+				packages,
+			)
+		}
+
 		cli.OutputHuman(
 			renderSimpleTable(
 				[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
@@ -1020,6 +1053,14 @@ func buildListCVEReports(cves []api.HostVulnCVE) error {
 	if len(rows) == 0 {
 		cli.OutputHuman(buildHostVulnCVEsToTableError())
 		return nil
+	}
+
+	if cli.CSVOutput() {
+		return cli.OutputCSV(
+			[]string{"CVE ID", "Severity", "Score", "Package", "Current Version",
+				"Fix Version", "OS Version", "Hosts", "Pkg Status", "Vuln Status"},
+			rows,
+		)
 	}
 
 	cli.OutputHuman(
