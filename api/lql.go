@@ -36,10 +36,10 @@ const (
 )
 
 type LQLQuery struct {
-	ID             string `json:"LQL_ID,omitempty"`
-	StartTimeRange string `json:"START_TIME_RANGE,omitempty"`
-	EndTimeRange   string `json:"END_TIME_RANGE,omitempty"`
-	QueryText      string `json:"QUERY_TEXT"`
+	ID             string `json:"lql_id,omitempty"`
+	StartTimeRange string `json:"start_time_range,omitempty"`
+	EndTimeRange   string `json:"end_time_range,omitempty"`
+	QueryText      string `json:"query_text"`
 	// QueryBlob is a special string that supports type conversion
 	// back and forth from LQL to JSON
 	QueryBlob string `json:"-"`
@@ -109,8 +109,10 @@ func (q *LQLQuery) TranslateQuery() error {
 		return errors.New(LQLQueryTranslateError)
 	}
 	// valid lql text
-	if strings.Contains(q.QueryBlob, "{") {
+	if strings.Contains(q.QueryBlob, "{") &&
+		strings.Contains(q.QueryBlob, "}") {
 		q.QueryText = q.QueryBlob
+
 		return nil
 	}
 	// invalid lql text
@@ -183,7 +185,7 @@ type LQLService struct {
 }
 
 func (svc *LQLService) CreateQuery(query string) (
-	response LQLQueryResponse,
+	response LQLQuery,
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
@@ -192,6 +194,19 @@ func (svc *LQLService) CreateQuery(query string) (
 	}
 
 	err = svc.client.RequestEncoderDecoder("POST", apiLQL, lqlQuery, &response)
+	return
+}
+
+func (svc *LQLService) UpdateQuery(query string) (
+	response LQLQuery,
+	err error,
+) {
+	lqlQuery := LQLQuery{QueryBlob: query}
+	if err = lqlQuery.Validate(true); err != nil {
+		return
+	}
+
+	err = svc.client.RequestEncoderDecoder("PATCH", apiLQL, lqlQuery, &response)
 	return
 }
 

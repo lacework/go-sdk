@@ -80,7 +80,7 @@ Start and End times are required to run a query:
 2. Start and End times must be specified in one of the following ways:
 
 	A.  As StartTimeRange and EndTimeRange in the ParamInfo block within the LQL query
-	B.  As START_TIME_RANGE and END_TIME_RANGE if specifying JSON
+	B.  As start_time_range and end_time_range if specifying JSON
 	C.  As --start and --end CLI flags
 	
 3. Start and End time precedence:
@@ -258,7 +258,7 @@ It looks like you attempted to submit an LQL query in JSON format.
 Please validate that the JSON is formatted properly and adheres to the following schema:
 
 {
-	"QUERY_TEXT": "MyLQL { source { CloudTrailRawEvents } filter { event_source = 's3.amazonaws.com' } return { insert_id } }"
+	"query_text": "MyLQL { source { CloudTrailRawEvents } filter { EVENT_SOURCE = 's3.amazonaws.com' } return { INSERT_ID } }"
 }`)
 	}
 	// smells like plain text
@@ -272,10 +272,10 @@ MyLQL {
 		CloudTrailRawEvents
 	}
 	filter {
-		event_source = 's3.amazonaws.com'
+		EVENT_SOURCE = 's3.amazonaws.com'
 	}
 	return {
-		insert_id
+		INSERT_ID
 	}
 }
 `)

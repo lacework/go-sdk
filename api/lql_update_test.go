@@ -29,6 +29,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	lqlUpdateResponse = `{
+		"lql_id": "my_lql",
+		"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
+	}`
+)
+
 func TestLQLUpdateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -71,16 +78,11 @@ func TestLQLUpdateBadInput(t *testing.T) {
 }
 
 func TestLQLUpdateOK(t *testing.T) {
-	mockResponse := mockLQLMessageResponse(
-		fmt.Sprintf(`"lqlUpdated": "%s"`, lqlQueryID),
-		"true",
-	)
-
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, mockResponse)
+			fmt.Fprint(w, lqlUpdateResponse)
 		},
 	)
 	defer fakeServer.Close()
@@ -91,10 +93,10 @@ func TestLQLUpdateOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	updateExpected := api.LQLUpdateResponse{}
-	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
+	updateExpected := api.LQLQuery{}
+	_ = json.Unmarshal([]byte(lqlUpdateResponse), &updateExpected)
 
-	var updateActual api.LQLUpdateResponse
+	var updateActual api.LQLQuery
 	updateActual, err = c.LQL.UpdateQuery(lqlQueryStr)
 	assert.Nil(t, err)
 

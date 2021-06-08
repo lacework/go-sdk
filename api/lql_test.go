@@ -32,14 +32,12 @@ import (
 )
 
 var (
-	lqlQueryID    = "my_lql"
-	lqlQueryStr   = "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
-	lqlCreateData = `[
-	{
-		"lql_id": "my_lql",
-		"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
-	}
-]`
+	lqlQueryID        = "my_lql"
+	lqlQueryStr       = "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
+	lqlCreateResponse = `{
+	"lql_id": "my_lql",
+	"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
+}`
 	lqlRunData = `[
 	{
 		"INSERT_ID": "35308423"
@@ -286,23 +284,34 @@ var lqlQueryTypeTests = []LQLQueryTest{
 		},
 	},
 	LQLQueryTest{
+		Name: "partial-blob",
+		Input: &api.LQLQuery{
+			QueryBlob: `{`,
+		},
+		Return: api.LQLQueryTranslateError,
+		Expected: &api.LQLQuery{
+			QueryText: ``,
+			QueryBlob: ``,
+		},
+	},
+	LQLQueryTest{
 		Name: "json-blob",
 		Input: &api.LQLQuery{
 			QueryBlob: `{
-"START_TIME_RANGE": "678910",
-"END_TIME_RANGE": "111213141516",
-"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
+"start_time_range": "678910",
+"end_time_range": "111213141516",
+"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
 }`,
 		},
 		Return: nil,
 		Expected: &api.LQLQuery{
 			StartTimeRange: "1970-01-01T00:11:18Z",
 			EndTimeRange:   "1973-07-11T04:32:21Z",
-			QueryText:      "my_lql { source { CloudTrailRawEvents } return { insert_id } }",
+			QueryText:      "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }",
 			QueryBlob: `{
-"START_TIME_RANGE": "678910",
-"END_TIME_RANGE": "111213141516",
-"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
+"start_time_range": "678910",
+"end_time_range": "111213141516",
+"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
 }`,
 		},
 	},
@@ -312,30 +321,30 @@ var lqlQueryTypeTests = []LQLQueryTest{
 			QueryBlob: `{
 "start_time_range": "678910",
 "end_time_range": "111213141516",
-"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
+"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
 }`,
 		},
 		Return: nil,
 		Expected: &api.LQLQuery{
 			StartTimeRange: "1970-01-01T00:11:18Z",
 			EndTimeRange:   "1973-07-11T04:32:21Z",
-			QueryText:      "my_lql { source { CloudTrailRawEvents } return { insert_id } }",
+			QueryText:      "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }",
 			QueryBlob: `{
 "start_time_range": "678910",
 "end_time_range": "111213141516",
-"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
+"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
 }`,
 		},
 	},
 	LQLQueryTest{
 		Name: "lql-blob",
 		Input: &api.LQLQuery{
-			QueryBlob: "my_lql { source { CloudTrailRawEvents } return { insert_id } }",
+			QueryBlob: "--a comment\nmy_lql { source { CloudTrailRawEvents } return { INSERT_ID } }",
 		},
 		Return: nil,
 		Expected: &api.LQLQuery{
-			QueryText: "my_lql { source { CloudTrailRawEvents } return { insert_id } }",
-			QueryBlob: "my_lql { source { CloudTrailRawEvents } return { insert_id } }",
+			QueryText: "--a comment\nmy_lql { source { CloudTrailRawEvents } return { INSERT_ID } }",
+			QueryBlob: "--a comment\nmy_lql { source { CloudTrailRawEvents } return { INSERT_ID } }",
 		},
 	},
 	LQLQueryTest{
@@ -345,9 +354,9 @@ var lqlQueryTypeTests = []LQLQueryTest{
 			EndTimeRange:   "1",
 			QueryText:      "should not overwrite",
 			QueryBlob: `{
-"START_TIME_RANGE": "678910",
-"END_TIME_RANGE": "111213141516",
-"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
+"start_time_range": "678910",
+"end_time_range": "111213141516",
+"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
 }`,
 		},
 		Return: nil,
@@ -356,9 +365,9 @@ var lqlQueryTypeTests = []LQLQueryTest{
 			EndTimeRange:   "1970-01-01T00:00:00Z",
 			QueryText:      "should not overwrite",
 			QueryBlob: `{
-"START_TIME_RANGE": "678910",
-"END_TIME_RANGE": "111213141516",
-"QUERY_TEXT": "my_lql { source { CloudTrailRawEvents } return { insert_id } }"
+"start_time_range": "678910",
+"end_time_range": "111213141516",
+"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
 }`,
 		},
 	},
@@ -435,13 +444,11 @@ func TestLQLCreateBadInput(t *testing.T) {
 }
 
 func TestLQLCreateOK(t *testing.T) {
-	mockResponse := mockLQLDataResponse(lqlCreateData)
-
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, mockResponse)
+			fmt.Fprint(w, lqlCreateResponse)
 		},
 	)
 	defer fakeServer.Close()
@@ -452,10 +459,10 @@ func TestLQLCreateOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	createExpected := api.LQLQueryResponse{}
-	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
+	createExpected := api.LQLQuery{}
+	_ = json.Unmarshal([]byte(lqlCreateResponse), &createExpected)
 
-	var createActual api.LQLQueryResponse
+	var createActual api.LQLQuery
 	createActual, err = c.LQL.CreateQuery(lqlQueryStr)
 	assert.Nil(t, err)
 
@@ -510,7 +517,7 @@ func TestLQLGetQueriesMethod(t *testing.T) {
 }
 
 func TestLQLGetQueryByIDOK(t *testing.T) {
-	mockResponse := mockLQLDataResponse(lqlCreateData)
+	mockResponse := mockLQLDataResponse("[" + lqlCreateResponse + "]")
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(

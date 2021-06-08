@@ -29,8 +29,8 @@ import (
 
 const (
 	lqlQueryID     string = "MyLQL"
-	lqlQueryText   string = "MyLQL { source { CloudTrailRawEvents } return { insert_id } }"
-	lqlQueryUpdate string = "MyLQL { source { CloudTrailRawEvents } return { insert_id, insert_time } }"
+	lqlQueryText   string = "MyLQL { source { CloudTrailRawEvents } return { INSERT_ID } }"
+	lqlQueryUpdate string = "MyLQL { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
 	lqlQueryURL    string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/MyLQL.lql"
 )
 
@@ -156,7 +156,7 @@ func TestQueryRunFileJSONCrumb(t *testing.T) {
 	// run
 	_, stderr, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-f", file.Name(), "--start", lqlQueryStart, "--end", lqlQueryEnd)
-	assert.Contains(t, stderr.String(), "LQL query in JSON format")
+	assert.Contains(t, stderr.String(), "LQL query in plain text format")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
