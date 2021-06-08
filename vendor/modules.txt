@@ -169,7 +169,7 @@ golang.org/x/term
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
-# golang.org/x/tools v0.1.1
+# golang.org/x/tools v0.1.2
 ## explicit
 # google.golang.org/appengine v1.6.5
 google.golang.org/appengine

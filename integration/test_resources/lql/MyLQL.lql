@@ -5,6 +5,6 @@ MyLQL {
         CloudTrailRawEvents
     }
     return {
-        insert_id
+        INSERT_ID
     }
 }

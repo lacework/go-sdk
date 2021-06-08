@@ -124,7 +124,7 @@ func dailyVersionCheck() error {
 	}
 
 	cacheFile := path.Join(cacheDir, VersionCacheFile)
-	if _, err := os.Stat(cacheFile); os.IsNotExist(err) {
+	if !fileExists(cacheFile) {
 		// first time running the daily version check, create directory
 		if err := os.MkdirAll(cacheDir, 0755); err != nil {
 			return err

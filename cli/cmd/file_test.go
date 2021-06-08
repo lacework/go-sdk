@@ -16,34 +16,32 @@
 // limitations under the License.
 //
 
-package api
+package cmd
 
-import "github.com/lacework/go-sdk/internal/domain"
+import (
+	"io/ioutil"
+	"os"
+	"testing"
 
-// AccountService is a service that interacts with Account related
-// endpoints from the Lacework Server
-type AccountService struct {
-	client *Client
+	"github.com/stretchr/testify/assert"
+)
+
+func TestFileExistsWhenFileActuallyExists(t *testing.T) {
+	file, err := ioutil.TempFile("", "bar")
+	if assert.Nil(t, err) {
+		assert.True(t, fileExists(file.Name()))
+		os.Remove(file.Name())
+	}
 }
 
-func (svc *AccountService) GetOrganizationInfo() (
-	response accountOrganizationInfoResponse,
-	err error,
-) {
-	err = svc.client.RequestDecoder("GET",
-		apiAccountOrganizationInfo,
-		nil,
-		&response,
-	)
-	return
+func TestFileExistsWhenFileIsADirectory(t *testing.T) {
+	dir, err := ioutil.TempDir("", "bar")
+	if assert.Nil(t, err) {
+		assert.False(t, fileExists(dir))
+		os.RemoveAll(dir)
+	}
 }
 
-type accountOrganizationInfoResponse struct {
-	OrgAccount    bool   `json:"orgAccount"`
-	OrgAccountURL string `json:"orgAccountUrl,omitempty"`
-}
-
-func (r accountOrganizationInfoResponse) AccountName() string {
-	d, _ := domain.New(r.OrgAccountURL)
-	return d.String()
+func TestFileExistsWhenFileDoesNotExists(t *testing.T) {
+	assert.False(t, fileExists("file.name"))
 }

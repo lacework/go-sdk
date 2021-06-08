@@ -26,13 +26,14 @@ This will prompt you for your Lacework account and a set of API access keys.
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
+      --subaccount string   sub-account name inside your organization (org admins only)
 ```
 
 ### SEE ALSO
 
 * [lacework access-token](lacework_access-token.md)	 - generate temporary API access tokens
 * [lacework agent](lacework_agent.md)	 - manage Lacework agents
-* [lacework api](lacework_api.md)	 - helper to call Lacework's RestfulAPI
+* [lacework api](lacework_api.md)	 - helper to call Lacework's API
 * [lacework compliance](lacework_compliance.md)	 - manage compliance reports
 * [lacework configure](lacework_configure.md)	 - configure the Lacework CLI
 * [lacework event](lacework_event.md)	 - inspect Lacework events

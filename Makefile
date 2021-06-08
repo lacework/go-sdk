@@ -2,7 +2,12 @@ default: ci
 
 ci: lint test fmt-check imports-check integration
 
+# Tooling versions
 GOLANGCILINTVERSION?=1.23.8
+GOIMPORTSVERSION?=v0.1.2
+GOXVERSION?=v1.0.1
+GOTESTSUMVERSION?=v1.6.4
+
 CIARTIFACTS?=ci-artifacts
 COVERAGEOUT?=coverage.out
 COVERAGEHTML?=coverage.html
@@ -97,13 +102,13 @@ ifeq (, $(shell which golangci-lint))
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v$(GOLANGCILINTVERSION)
 endif
 ifeq (, $(shell which goimports))
-	go get golang.org/x/tools/cmd/goimports
+	go get golang.org/x/tools/cmd/goimports@$(GOIMPORTSVERSION)
 endif
 ifeq (, $(shell which gox))
-	go get github.com/mitchellh/gox
+	go get github.com/mitchellh/gox@$(GOXVERSION)
 endif
 ifeq (, $(shell which gotestsum))
-	go get gotest.tools/gotestsum
+	go get gotest.tools/gotestsum@$(GOTESTSUMVERSION)
 endif
 
 git-env:
