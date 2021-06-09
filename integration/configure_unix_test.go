@@ -20,7 +20,9 @@
 package integration
 
 import (
+	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"testing"
@@ -48,6 +50,58 @@ func TestConfigureCommand(t *testing.T) {
   account = "test-account"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
+  version = 2
+`, laceworkTOML, "there is a problem with the generated config")
+}
+
+func TestConfigureCommandForFrankfurtDatacenter(t *testing.T) {
+	_, laceworkTOML := runConfigureTest(t,
+		func(c *expect.Console) {
+			c.ExpectString("Account:")
+			// if the full URL was provided we transform it and inform the user
+			c.SendLine("my-account-in.fra.lacework.net")
+			c.ExpectString("Passing full 'lacework.net' domain not required. Using 'my-account-in.fra'")
+			c.ExpectString("Access Key ID:")
+			c.SendLine("FRANK_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC0011")
+			c.ExpectString("Secret Access Key:")
+			c.SendLine("_00000000000000000000000000000000")
+			c.ExpectString("You are all set!")
+		},
+		"configure",
+	)
+	assert.Equal(t, `[default]
+  account = "my-account-in.fra"
+  api_key = "FRANK_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC0011"
+  api_secret = "_00000000000000000000000000000000"
+  version = 2
+`, laceworkTOML, "there is a problem with the generated config")
+}
+
+func TestConfigureCommandForOrgAdmins(t *testing.T) {
+	_, laceworkTOML := runConfigureTest(t,
+		func(c *expect.Console) {
+			c.ExpectString("Account:")
+			c.SendLine(os.Getenv("CI_V2_ACCOUNT"))
+			c.ExpectString("Access Key ID:")
+			c.SendLine(os.Getenv("CI_API_KEY"))
+			c.ExpectString("Secret Access Key:")
+			c.SendLine(os.Getenv("CI_API_SECRET"))
+			c.ExpectString("Verifying credentials ...")
+			c.ExpectString("(Org Admins) Managing a sub-account?")
+			// @afiune this is needed just because we have two accounts that start exactly the same
+			// and so, we need to key in ARROW DOWN to chose the right one.
+			c.SendLine(fmt.Sprintf("%s\x1B[B", os.Getenv("CI_ACCOUNT")))
+			c.ExpectString("You are all set!")
+		},
+		"configure",
+	)
+
+	assert.Equal(t, `[default]
+  account = "`+os.Getenv("CI_V2_ACCOUNT")+`"
+  subaccount = "`+os.Getenv("CI_ACCOUNT")+`"
+  api_key = "`+os.Getenv("CI_API_KEY")+`"
+  api_secret = "`+os.Getenv("CI_API_SECRET")+`"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -69,6 +123,7 @@ func TestConfigureCommandWithProfileFlag(t *testing.T) {
   account = "test-account"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -100,6 +155,7 @@ func TestConfigureCommandWithNewJSONFileFlagForStandaloneAccounts(t *testing.T) 
   account = "standalone"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -129,15 +185,22 @@ func TestConfigureCommandWithNewJSONFileFlagForOrganizationalAccounts(t *testing
 	)
 
 	assert.Equal(t, `[default]
-  account = "sub-account-name"
+  account = "organization"
+  subaccount = "sub-account-name"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
 func TestConfigureCommandWithOldJSONFileFlag(t *testing.T) {
 	// create a JSON file similar to what the Lacework Web UI would provide
-	s := createJSONFileLikeWebUI(`{"keyId": "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00","secret": "_cccccccccccccccccccccccccccccccc"}`)
+	s := createJSONFileLikeWebUI(`
+{
+  "keyId": "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00",
+  "secret": "_cccccccccccccccccccccccccccccccc"
+}
+`)
 	defer os.Remove(s)
 
 	_, laceworkTOML := runConfigureTest(t,
@@ -150,21 +213,24 @@ func TestConfigureCommandWithOldJSONFileFlag(t *testing.T) {
 			c.SendLine("") // using the default, which should be loaded from the JSON file
 			c.ExpectString("You are all set!")
 		},
-		"configure", "--json_file", s, "--profile", "web-ui-test",
+		"configure", "--json_file", s, "--profile", "v1-web-ui-test",
 	)
 
-	assert.Equal(t, `[web-ui-test]
-  account = "web-ui-test"
+	assert.Equal(t, `[v1-web-ui-test]
+  account = "v1-web-ui-test"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
 func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
 	os.Setenv("LW_ACCOUNT", "env-vars")
+	os.Setenv("LW_SUBACCOUNT", "sublime")
 	os.Setenv("LW_API_KEY", "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
 	os.Setenv("LW_API_SECRET", "_cccccccccccccccccccccccccccccccc")
 	defer os.Setenv("LW_ACCOUNT", "")
+	defer os.Setenv("LW_SUBACCOUNT", "")
 	defer os.Setenv("LW_API_KEY", "")
 	defer os.Setenv("LW_API_SECRET", "")
 
@@ -183,12 +249,14 @@ func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
 
 	assert.Equal(t, `[default]
   account = "env-vars"
+  subaccount = "sublime"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
-func TestConfigureCommandWithAPIkeysFromFlags(t *testing.T) {
+func TestConfigureCommandWithAPIkeysFromFlagsWithoutSubaccount(t *testing.T) {
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Account:")
@@ -209,6 +277,34 @@ func TestConfigureCommandWithAPIkeysFromFlags(t *testing.T) {
   account = "from-flags"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
+`, laceworkTOML, "there is a problem with the generated config")
+}
+
+func TestConfigureCommandWithAPIkeysFromFlagsWithSubaccount(t *testing.T) {
+	_, laceworkTOML := runConfigureTest(t,
+		func(c *expect.Console) {
+			c.ExpectString("Account:")
+			c.SendLine("") // using the default, which should be loaded from the provided flags
+			c.ExpectString("Access Key ID:")
+			c.SendLine("") // using the default, which should be loaded from the provided flags
+			c.ExpectString("Secret Access Key:")
+			c.SendLine("") // using the default, which should be loaded from the provided flags
+			c.ExpectString("You are all set!")
+		},
+		"configure",
+		"--account", "from-flags",
+		"--subaccount", "sublime",
+		"--api_key", "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00",
+		"--api_secret", "_cccccccccccccccccccccccccccccccc",
+	)
+
+	assert.Equal(t, `[default]
+  account = "from-flags"
+  subaccount = "sublime"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_secret = "_cccccccccccccccccccccccccccccccc"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -233,21 +329,30 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
   account = "test.account"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
+  version = 2
 
 [dev]
   account = "dev.example"
   api_key = "DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC000"
   api_secret = "_11111111111111111111111111111111"
+  version = 2
 
 [integration]
   account = "integration"
   api_key = "INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70001"
   api_secret = "_1234abdc00ff11vv22zz33xyz1234abc"
+  version = 2
 
 [new-profile]
   account = "super-cool-profile"
   api_key = "TEST_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
   api_secret = "_uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"
+  version = 2
+
+[v1]
+  account = "v1.example"
+  api_key = "V1CONFIG_KEY"
+  api_secret = "_secret"
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -257,7 +362,8 @@ func TestConfigureCommandErrors(t *testing.T) {
 			c.ExpectString("Account:")
 			c.SendLine("")
 			c.ExpectString("The account subdomain of URL is required")
-			c.SendLine("https://my-account.lacework.net") // if the full URL was provided we transform it and inform the user
+			// if the full URL was provided we transform it and inform the user
+			c.SendLine("https://my-account.lacework.net")
 			c.ExpectString("Passing full 'lacework.net' domain not required. Using 'my-account'")
 			c.ExpectString("Access Key ID:")
 			c.SendLine("")
@@ -276,6 +382,7 @@ func TestConfigureCommandErrors(t *testing.T) {
   account = "my-account"
   api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
   api_secret = "_00000000000000000000000000000000"
+  version = 2
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
@@ -296,6 +403,10 @@ func runConfigureTestFromDir(t *testing.T, dir string, conditions func(*expect.C
 		panic(err)
 	}
 	defer console.Close()
+
+	if os.Getenv("DEBUG") != "" {
+		state.DebugLogger = log.Default()
+	}
 
 	donec := make(chan struct{})
 	go func() {

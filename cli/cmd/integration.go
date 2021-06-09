@@ -221,6 +221,8 @@ func promptCreateIntegration() error {
 				"Google Container Registry (GCR)",
 				"AWS Config",
 				"AWS CloudTrail",
+				"AWS Config (US GovCloud)",
+				"AWS CloudTrail (US GovCloud)",
 				"GCP Config",
 				"GCP Audit Log",
 				"Azure Config",
@@ -279,6 +281,10 @@ func promptCreateIntegration() error {
 		return createAwsConfigIntegration()
 	case "AWS CloudTrail":
 		return createAwsCloudTrailIntegration()
+	case "AWS GovCloud Config":
+		return createAwsGovCloudConfigIntegration()
+	case "AWS GovCloud CloudTrail":
+		return createAwsGovCloudCTIntegration()
 	case "GCP Config":
 		return createGcpConfigIntegration()
 	case "GCP Audit Log":

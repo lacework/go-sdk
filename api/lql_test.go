@@ -396,7 +396,7 @@ func mockLQLMessageResponse(message string, ok string) string {
 func TestLQLCreateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method, "Create should be a POST method")
 			fmt.Fprint(w, "{}")
@@ -417,7 +417,7 @@ func TestLQLCreateMethod(t *testing.T) {
 func TestLQLCreateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -439,7 +439,7 @@ func TestLQLCreateOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -465,7 +465,7 @@ func TestLQLCreateOK(t *testing.T) {
 func TestLQLCreateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
 		},
@@ -485,13 +485,13 @@ func TestLQLCreateError(t *testing.T) {
 func TestLQLGetQueriesMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "Get should be a GET method")
 			assert.NotSubset(
 				t,
 				[]byte(r.RequestURI),
-				[]byte(api.ApiLQL+"?LQL_ID"),
+				[]byte("external/lql?LQL_ID"),
 				"GetQueries should not specify LQL_ID argument",
 			)
 			fmt.Fprint(w, "{}")
@@ -514,7 +514,7 @@ func TestLQLGetQueryByIDOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -540,7 +540,7 @@ func TestLQLGetQueryByIDOK(t *testing.T) {
 func TestLQLGetQueryByIDNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlUnableResponse, http.StatusBadRequest)
 		},
@@ -560,7 +560,7 @@ func TestLQLGetQueryByIDNotFound(t *testing.T) {
 func TestLQLRunQueryMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLQuery,
+		"external/lql/query",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method, "Run should be a POST method")
 			fmt.Fprint(w, "{}")
@@ -581,7 +581,7 @@ func TestLQLRunQueryMethod(t *testing.T) {
 func TestLQLRunQueryBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLQuery,
+		"external/lql/query",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -603,7 +603,7 @@ func TestLQLRunQueryOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQLQuery,
+		"external/lql/query",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -629,7 +629,7 @@ func TestLQLRunQueryOK(t *testing.T) {
 func TestLQLRunQueryError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		api.ApiLQL,
+		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
 		},

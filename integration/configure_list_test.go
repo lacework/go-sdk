@@ -36,8 +36,10 @@ func TestConfigureListCommandWithConfig(t *testing.T) {
 		// headers
 		"PROFILE",
 		"ACCOUNT",
+		"SUBACCOUNT",
 		"API KEY",
 		"API SECRET",
+		"V",
 
 		// column 1
 		"> default",
@@ -52,12 +54,19 @@ func TestConfigureListCommandWithConfig(t *testing.T) {
 		"*****************************1111",
 
 		// column 3
+		"v2",
+		"v2.config",
+		"subaccount.example",
+		"V2_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00",
+		"*****************************2222",
+
+		// column 4
 		"integration",
 		"integration",
 		"INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70",
 		"*****************************4abc",
 
-		// column 3
+		// column 5
 		"test",
 		"test.account",
 		"INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00",

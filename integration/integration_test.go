@@ -83,7 +83,7 @@ func TestIntegrationCommandListWithTypeFlag(t *testing.T) {
 }
 
 func TestIntegrationCommandListWithTypeFlagErrorUnknownType(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithDummyConfig("integration", "list", "--type", "FOO_BAR")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("integration", "list", "--type", "FOO_BAR")
 	assert.Emptyf(t, out.String(),
 		"STDOUT should be empty")
 	assert.Contains(t, err.String(),

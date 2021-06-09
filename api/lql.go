@@ -183,7 +183,7 @@ func (svc *LQLService) CreateQuery(query string) (
 		return
 	}
 
-	err = svc.client.RequestEncoderDecoder("POST", ApiLQL, lqlQuery, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiLQL, lqlQuery, &response)
 	return
 }
 
@@ -195,7 +195,7 @@ func (svc *LQLService) GetQueryByID(queryID string) (
 	response LQLQueryResponse,
 	err error,
 ) {
-	uri := ApiLQL
+	uri := apiLQL
 
 	if queryID != "" {
 		uri += "?LQL_ID=" + url.QueryEscape(queryID)
@@ -224,6 +224,6 @@ func (svc *LQLService) RunQuery(query, start, end string) (
 		return
 	}
 
-	err = svc.client.RequestEncoderDecoder("POST", ApiLQLQuery, lqlQuery, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiLQLQuery, lqlQuery, &response)
 	return
 }

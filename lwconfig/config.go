@@ -130,8 +130,21 @@ func StoreProfileAt(configPath, name string, profile Profile) error {
 	}
 
 	profiles[name] = profile
+	return StoreAt(configPath, profiles)
+}
+
+// StoreAt stores the provided profiles into the selected configuration file
+func StoreAt(configPath string, profiles Profiles) error {
+	if configPath == "" {
+		defaultPath, err := DefaultConfigPath()
+		if err != nil {
+			return err
+		}
+		configPath = defaultPath
+	}
+
 	var buf = new(bytes.Buffer)
-	if err = toml.NewEncoder(buf).Encode(profiles); err != nil {
+	if err := toml.NewEncoder(buf).Encode(profiles); err != nil {
 		return err
 	}
 

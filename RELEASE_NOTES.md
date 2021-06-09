@@ -1,25 +1,26 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.7.0`.
+Another day, another release. These are the release notes for the version `v0.8.0`.
 
 ## Features
-* feat: new lwconfig Go package to handle Lacework config (#402) (Salim Afiune)([18d4864](https://github.com/lacework/go-sdk/commit/18d4864b0f5fd904ebc31e5f66ded697f068c209))
-* feat(cli): lacework query natural/relative times (hazedav)([624235d](https://github.com/lacework/go-sdk/commit/624235dffb40ca6bfd853a736ed71f155441b5ec))
-* feat(cli): lacework query crumbs (hazedav)([333bec3](https://github.com/lacework/go-sdk/commit/333bec3dcf9295a30967cb06d7daf8a1560154dc))
+* feat(cli): Add CSV rendering output for select commands (#424) (Matt Cadorette)([1bbe07c](https://github.com/lacework/go-sdk/commit/1bbe07c2055e61d6d34d0f4acb8bd9194358fcaf))
+* feat(cli): Automate migration of v2 configuration (#431) (Salim Afiune)([2ac806a](https://github.com/lacework/go-sdk/commit/2ac806a91e8fea03eb6dec96e2ce8e8b3944b5e7))
+* feat(pkg): to disseminate a domain URL (Salim Afiune Maya)([0770102](https://github.com/lacework/go-sdk/commit/07701029b5a057fd1b4da97d10683b27a381f365))
+* feat(cli): v2 configure cmd undestands subaccounts (Salim Afiune Maya)([5e092f7](https://github.com/lacework/go-sdk/commit/5e092f70e601e081a02bb7ec18204c6373cdb6ec))
+* feat: AWS Gov Cloud CloudTrail integration (#425) (Darren)([63097d5](https://github.com/lacework/go-sdk/commit/63097d55ae37616a61022f8cb0cba3cc5dcb9134))
+* feat(cli): AWS GovCloud Config integration (#421) (Darren)([68d7087](https://github.com/lacework/go-sdk/commit/68d708713289c84606613a7261e015462c413299))
+* feat(cli): lacework policy command (hazedav)([8c53e8e](https://github.com/lacework/go-sdk/commit/8c53e8eac2a06916dab4cf0062ea8ffc3781895e))
+* feat: introducing first APIv2 endpoint UserProfile (#411) (Salim Afiune)([c183cce](https://github.com/lacework/go-sdk/commit/c183ccec205c473e461eae19d116f863a613ab9b))
 ## Refactor
-* refactor: negligible -> info (#393) (Darren)([be9d203](https://github.com/lacework/go-sdk/commit/be9d2034cfdcbd207ff220ce11f223dac54bd811))
+* refactor(cli): remove shorthand of subaccount "u" (#436) (Salim Afiune)([2decc86](https://github.com/lacework/go-sdk/commit/2decc8610b77244c0f1b04370b34d368ea6b9206))
+* refactor(cli): use new internal domain go package (Salim Afiune Maya)([1695993](https://github.com/lacework/go-sdk/commit/16959935dc6f876f82c970c9f1844ecd4068ccb7))
+* refactor(cli): improve configure command (Salim Afiune Maya)([b14938b](https://github.com/lacework/go-sdk/commit/b14938be7ac4f22dc83d9659d9b062071f981cf9))
 ## Bug Fixes
-* fix(cli): Fix filters with json output for vuln host command (#388) (Darren)([282404f](https://github.com/lacework/go-sdk/commit/282404f01dbace5c88d30fc5268addf839c5b40e))
-* fix(cli): Json output for vuln ctr adheres to filter flags (#383) (Darren)([cf7bb6d](https://github.com/lacework/go-sdk/commit/cf7bb6d29652fe75cbb7564793d76524e1ecd320))
+* fix: Fix vuln container list-assessments json output (#430) (Darren)([02ff56d](https://github.com/lacework/go-sdk/commit/02ff56d37ab0fe0468aaeb1dd8afe28a53abbf0b))
 ## Other Changes
-* style: Add gotestsum to Makefile (#397) (Ross)([6b98f91](https://github.com/lacework/go-sdk/commit/6b98f9136f545fd576452ac47b507406b98c2864))
-* chore(deps): bump github.com/AlecAivazis/survey/v2 from 2.0.7 to 2.2.12 (#395) (dependabot[bot])([3b3fd4e](https://github.com/lacework/go-sdk/commit/3b3fd4e4b37753666e448aa5ba0ce2da824d122d))
-* ci: fix release script for automatic releases (#405) (Salim Afiune)([3b657ee](https://github.com/lacework/go-sdk/commit/3b657ee1f61aa2148c5a4c88c040c6cfa0552329))
-* ci: Add Codefresh badge (#404) (Darren)([f94d4ab](https://github.com/lacework/go-sdk/commit/f94d4abff5e17674a48777f958036d00612c0c35))
-* ci: Remove Circleci config (#398) (Darren)([6b95e84](https://github.com/lacework/go-sdk/commit/6b95e849efb78def42a156eb026202049171ca46))
-* ci: update ci tools (#403) (Salim Afiune)([580947b](https://github.com/lacework/go-sdk/commit/580947b066c28217733954fc00cadbc543b482bc))
-* ci: disable on-deman ctr vulnerability tests (#400) (Salim Afiune)([bcaaaa7](https://github.com/lacework/go-sdk/commit/bcaaaa7116145e0c1eb8898fec512aa988442257))
-* metric: normalize account inside Honeyvent (#407) (Salim Afiune)([3eb3b56](https://github.com/lacework/go-sdk/commit/3eb3b565a211905524f17ca81a91f327237c1d97))
-* test(policy): adding policy test resource (#391) (hazedav)([74d8cfe](https://github.com/lacework/go-sdk/commit/74d8cfe6510c02332f223b1ca3bf447905561761))
+* ci: fix a bunch of things with our CI pipeline (#432) (Salim Afiune)([af603e1](https://github.com/lacework/go-sdk/commit/af603e145fe138a79fd21445da75087b2de93a49))
+* test(integration): configure command for OrgAdmins (Salim Afiune Maya)([6504ad9](https://github.com/lacework/go-sdk/commit/6504ad991058eac4c0db2cd238d42580f9193e43))
+* test: new DEBUG env variable for interactive shell (Salim Afiune Maya)([bd58489](https://github.com/lacework/go-sdk/commit/bd584894848e27593349c4ee9a779f4ee7fff9b2))
+* test(integration): fix missed help message update (#419) (Salim Afiune)([f1fcbf3](https://github.com/lacework/go-sdk/commit/f1fcbf32b3dc571978b42293509f4def1d7c56cb))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`

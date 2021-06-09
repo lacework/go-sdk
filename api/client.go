@@ -35,6 +35,7 @@ const defaultTimeout = 60 * time.Second
 type Client struct {
 	id         string
 	account    string
+	subaccount string
 	apiVersion string
 	logLevel   string
 	baseURL    *url.URL
@@ -43,13 +44,16 @@ type Client struct {
 	log        *zap.Logger
 	headers    map[string]string
 
-	LQL             *LQLService
 	Account         *AccountService
 	Agents          *AgentsService
-	Events          *EventsService
 	Compliance      *ComplianceService
+	Events          *EventsService
 	Integrations    *IntegrationsService
+	LQL             *LQLService
+	Policy          *PolicyService
 	Vulnerabilities *VulnerabilitiesService
+
+	V2 *V2Endpoints
 }
 
 type Option interface {
@@ -93,13 +97,15 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		},
 		c: &http.Client{Timeout: defaultTimeout},
 	}
-	c.LQL = &LQLService{c}
 	c.Account = &AccountService{c}
 	c.Agents = &AgentsService{c}
-	c.Events = &EventsService{c}
 	c.Compliance = &ComplianceService{c}
+	c.Events = &EventsService{c}
 	c.Integrations = &IntegrationsService{c}
+	c.LQL = &LQLService{c}
+	c.Policy = &PolicyService{c}
 	c.Vulnerabilities = NewVulnerabilityService(c)
+	c.V2 = NewV2Endpoints(c)
 
 	// init logger, this could change if a user calls api.WithLogLevel()
 	c.initLogger()
@@ -117,6 +123,19 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		zap.Int("timeout", c.auth.expiration),
 	)
 	return c, nil
+}
+
+// WithSubaccount sets a subaccount into an API client
+func WithSubaccount(subaccount string) Option {
+	return clientFunc(func(c *Client) error {
+		if subaccount != "" {
+			c.log.Debug("setting up client", zap.String("subaccount", subaccount))
+			c.subaccount = subaccount
+			c.log.Debug("setting up header", zap.String("Account-Name", subaccount))
+			c.headers["Account-Name"] = subaccount
+		}
+		return nil
+	})
 }
 
 // WithTimeout changes the default client timeout

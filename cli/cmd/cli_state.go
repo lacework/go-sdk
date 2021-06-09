@@ -21,11 +21,12 @@ package cmd
 import (
 	"fmt"
 	"math/rand"
+	"os"
+	"reflect"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	prettyjson "github.com/hokaccha/go-prettyjson"
@@ -34,17 +35,21 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwconfig"
 	"github.com/lacework/go-sdk/lwlogger"
 )
 
 // cliState holds the state of the entire Lacework CLI
 type cliState struct {
-	Profile  string
-	Account  string
-	KeyID    string
-	Secret   string
-	Token    string
-	LogLevel string
+	Profile    string
+	Account    string
+	Subaccount string
+	KeyID      string
+	Secret     string
+	Token      string
+	LogLevel   string
+	OrgLevel   bool
+	CfgVersion int
 
 	LwApi *api.Client
 	JsonF *prettyjson.Formatter
@@ -55,6 +60,7 @@ type cliState struct {
 	workers        sync.WaitGroup
 	spinner        *spinner.Spinner
 	jsonOutput     bool
+	csvOutput      bool
 	nonInteractive bool
 	profileDetails map[string]interface{}
 }
@@ -105,8 +111,10 @@ func (c *cliState) LoadState() error {
 	defer func() {
 		// update global honeyvent with loaded state
 		c.Event.Account = c.Account
+		c.Event.Subaccount = c.Subaccount
 		c.Event.Profile = c.Profile
 		c.Event.ApiKey = c.KeyID
+		c.Event.CfgVersion = c.CfgVersion
 	}()
 
 	c.profileDetails = viper.GetStringMap(c.Profile)
@@ -126,12 +134,16 @@ func (c *cliState) LoadState() error {
 	c.KeyID = c.extractValueString("api_key")
 	c.Secret = c.extractValueString("api_secret")
 	c.Account = c.extractValueString("account")
+	c.Subaccount = c.extractValueString("subaccount")
+	c.CfgVersion = c.extractValueInt("version")
 
 	c.Log.Debugw("state loaded",
 		"profile", c.Profile,
 		"account", c.Account,
+		"subaccount", c.Subaccount,
 		"api_key", c.KeyID,
 		"api_secret", c.Secret,
+		"config_version", c.CfgVersion,
 	)
 
 	c.loadStateFromViper()
@@ -139,28 +151,20 @@ func (c *cliState) LoadState() error {
 }
 
 // LoadProfiles loads all the profiles from the configuration file
-func (c *cliState) LoadProfiles() (Profiles, error) {
-	var (
-		profiles = Profiles{}
-		confPath = viper.ConfigFileUsed()
-	)
+func (c *cliState) LoadProfiles() (lwconfig.Profiles, error) {
+	confPath := viper.ConfigFileUsed()
 
 	if confPath == "" {
-		return profiles, errors.New("unable to load profiles. No configuration file found.")
+		return nil, errors.New("unable to load profiles. No configuration file found.")
 	}
 
-	cli.Log.Debugw("decoding config", "path", confPath)
-	if _, err := toml.DecodeFile(confPath, &profiles); err != nil {
-		return profiles, errors.Wrap(err, "unable to decode profiles from config")
-	}
-
-	cli.Log.Debugw("profiles loaded from config", "profiles", profiles)
-	return profiles, nil
+	return lwconfig.LoadProfilesFrom(confPath)
 }
 
-// VerifySettings checks if the CLI state has the neccessary settings to run,
+// VerifySettings checks if the CLI state has the necessary settings to run,
 // if not, it throws an error with breadcrumbs to help the user configure the CLI
 func (c *cliState) VerifySettings() error {
+	c.Log.Debugw("verifying config", "version", c.CfgVersion)
 	if c.Profile == "" ||
 		c.Account == "" ||
 		c.Secret == "" ||
@@ -180,12 +184,23 @@ func (c *cliState) NewClient() error {
 		return err
 	}
 
-	client, err := api.NewClient(c.Account,
+	apiOpts := []api.Option{
 		api.WithLogLevel(c.LogLevel),
+		api.WithSubaccount(c.Subaccount),
 		api.WithApiKeys(c.KeyID, c.Secret),
-		api.WithTimeout(time.Second*125),
+		api.WithTimeout(time.Second * 125),
 		api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
-	)
+	}
+
+	if c.CfgVersion == 2 {
+		apiOpts = append(apiOpts, api.WithApiV2())
+	}
+
+	if os.Getenv("LW_API_SERVER_URL") != "" {
+		apiOpts = append(apiOpts, api.WithURL(os.Getenv("LW_API_SERVER_URL")))
+	}
+
+	client, err := api.NewClient(c.Account, apiOpts...)
 	if err != nil {
 		return errors.Wrap(err, "unable to generate api client")
 	}
@@ -196,7 +211,7 @@ func (c *cliState) NewClient() error {
 
 // InteractiveMode returns true if the cli is running in interactive mode
 func (c *cliState) InteractiveMode() bool {
-	return !c.nonInteractive
+	return !c.nonInteractive && !c.csvOutput
 }
 
 // NonInteractive turns off interactive mode, that is, no progress bars and spinners
@@ -260,14 +275,25 @@ func (c *cliState) EnableHumanOutput() {
 	c.jsonOutput = false
 }
 
+// EnableCSVOutput enables the cli to display CSV output
+func (c *cliState) EnableCSVOutput() {
+	c.Log.Info("switch output to csv format")
+	c.csvOutput = true
+}
+
 // JSONOutput returns true if the cli is configured to display JSON output
 func (c *cliState) JSONOutput() bool {
 	return c.jsonOutput
 }
 
-// HumanOutput returns true if the cli is configured to siplay human readable output
+// HumanOutput returns true if the cli is configured to display human readable output
 func (c *cliState) HumanOutput() bool {
-	return !c.jsonOutput
+	return !c.jsonOutput && !c.csvOutput
+}
+
+// CSVOutput returns true if the cli is configured to display csv output
+func (c *cliState) CSVOutput() bool {
+	return c.csvOutput
 }
 
 // loadStateFromViper loads parameters and environment variables
@@ -287,6 +313,11 @@ func (c *cliState) loadStateFromViper() {
 		c.Account = v
 		c.Log.Debugw("state updated", "account", c.Account)
 	}
+
+	if v := viper.GetString("subaccount"); v != "" {
+		c.Subaccount = v
+		c.Log.Debugw("state updated", "subaccount", c.Subaccount)
+	}
 }
 
 func (c *cliState) extractValueString(key string) string {
@@ -296,6 +327,7 @@ func (c *cliState) extractValueString(key string) string {
 		}
 		c.Log.Warnw("config value type mismatch",
 			"expected_type", "string",
+			"actual_type", reflect.TypeOf(val),
 			"file", viper.ConfigFileUsed(),
 			"profile", c.Profile,
 			"key", key,
@@ -309,6 +341,29 @@ func (c *cliState) extractValueString(key string) string {
 		"key", key,
 	)
 	return ""
+}
+
+func (c *cliState) extractValueInt(key string) int {
+	if val, ok := c.profileDetails[key]; ok {
+		if i, ok := val.(int64); ok {
+			return int(i)
+		}
+		c.Log.Warnw("config value type mismatch",
+			"expected_type", "int",
+			"actual_type", reflect.TypeOf(val),
+			"file", viper.ConfigFileUsed(),
+			"profile", c.Profile,
+			"key", key,
+			"value", val,
+		)
+		return 0
+	}
+	c.Log.Warnw("unable to find key from config",
+		"file", viper.ConfigFileUsed(),
+		"profile", c.Profile,
+		"key", key,
+	)
+	return 0
 }
 
 // newID generates a new client id, this id is useful for logging purposes

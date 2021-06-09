@@ -33,6 +33,6 @@ func (svc *LQLService) CompileQuery(query string) (
 		return
 	}
 
-	err = svc.client.RequestEncoderDecoder("POST", ApiLQLCompile, lqlQuery, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiLQLCompile, lqlQuery, &response)
 	return
 }

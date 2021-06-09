@@ -39,7 +39,7 @@ import (
 //   aws := api.NewAwsIntegration("foo",
 //     api.AwsCfgIntegration,
 //     api.AwsIntegrationData{
-//       Credentials: api.AwsCrossAccountCreds {
+//       Credentials: &api.AwsCrossAccountCreds {
 //         RoleArn: "arn:aws:XYZ",
 //         ExternalID: "1",
 //       },
@@ -131,7 +131,7 @@ type AwsIntegration struct {
 }
 
 type AwsIntegrationData struct {
-	Credentials AwsCrossAccountCreds `json:"CROSS_ACCOUNT_CREDENTIALS" mapstructure:"CROSS_ACCOUNT_CREDENTIALS"`
+	Credentials *AwsCrossAccountCreds `json:"CROSS_ACCOUNT_CREDENTIALS,omitempty" mapstructure:"CROSS_ACCOUNT_CREDENTIALS"`
 
 	// QueueUrl is a field that exists and is required for the AWS_CT_SQS integration,
 	// though, it doesn't exist for AWS_CFG integrations, that's why we omit it if empty
@@ -146,6 +146,30 @@ type AwsIntegrationData struct {
 
 	// AwsAccountID is the AWS account that owns the IAM role credentials
 	AwsAccountID string `json:"AWS_ACCOUNT_ID,omitempty" mapstructure:"AWS_ACCOUNT_ID"`
+
+	// GovCloudCredentials represents the credential structure for AWS_US_GOV_CFG and AWS_US_GOV_CT_SQS integrations
+	GovCloudCredentials *AwsGovCloudCreds `json:"ACCESS_KEY_CREDENTIALS,omitempty" mapstructure:"ACCESS_KEY_CREDENTIALS"`
+}
+
+func (aws *AwsIntegrationData) GetCredentials() *AwsCrossAccountCreds {
+	if aws.Credentials != nil {
+		return aws.Credentials
+	}
+	return &AwsCrossAccountCreds{}
+}
+
+func (aws *AwsIntegrationData) GetGovCloudCredentials() *AwsGovCloudCreds {
+	if aws.GovCloudCredentials != nil {
+		return aws.GovCloudCredentials
+	}
+	return &AwsGovCloudCreds{}
+}
+
+func (aws *AwsIntegrationData) GetAccountID() string {
+	if aws.GovCloudCredentials != nil {
+		return aws.GovCloudCredentials.AccountID
+	}
+	return aws.AwsAccountID
 }
 
 func (aws *AwsIntegrationData) EncodeAccountMappingFile(mapping []byte) {
@@ -172,4 +196,25 @@ func (aws *AwsIntegrationData) DecodeAccountMappingFile() ([]byte, error) {
 type AwsCrossAccountCreds struct {
 	RoleArn    string `json:"ROLE_ARN" mapstructure:"ROLE_ARN"`
 	ExternalID string `json:"EXTERNAL_ID" mapstructure:"EXTERNAL_ID"`
+}
+
+type AwsGovCloudIntegrationsResponse struct {
+	Data    []AwsGovCloudIntegration `json:"data"`
+	Ok      bool                     `json:"ok"`
+	Message string                   `json:"message"`
+}
+
+type AwsGovCloudIntegration struct {
+	commonIntegrationData
+	Data AwsGovCloudIntegrationData `json:"DATA"`
+}
+
+type AwsGovCloudIntegrationData struct {
+	Credentials AwsGovCloudCreds `json:"ACCESS_KEY_CREDENTIALS" mapstructure:"ACCESS_KEY_CREDENTIALS"`
+}
+
+type AwsGovCloudCreds struct {
+	AccountID       string `json:"ACCOUNT_ID" mapstructure:"ACCOUNT_ID"`
+	AccessKeyID     string `json:"ACCESS_KEY_ID" mapstructure:"ACCESS_KEY_ID"`
+	SecretAccessKey string `json:"SECRET_ACCESS_KEY" mapstructure:"SECRET_ACCESS_KEY"`
 }

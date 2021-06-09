@@ -206,6 +206,13 @@ account = 'test.account'
 api_key = 'INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00'
 api_secret = '_00000000000000000000000000000000'
 
+[v2]
+account = 'v2.config'
+subaccount = 'subaccount.example'
+api_key = 'V2_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00'
+api_secret = '_22222222222222222222222222222222'
+version = 2
+
 [integration]
 account = 'integration'
 api_key = 'INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70'

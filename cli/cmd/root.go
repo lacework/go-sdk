@@ -64,7 +64,13 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 				if cmd.HasParent() && cmd.Parent().Use == "configure" {
 					return nil
 				}
-				return cli.NewClient()
+
+				if err := cli.NewClient(); err != nil {
+					return err
+				}
+
+				// @afiune execute any necessary migration, if any
+				return cli.Migrations()
 			}
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
@@ -140,6 +146,9 @@ func init() {
 	rootCmd.PersistentFlags().StringP("account", "a", "",
 		"account subdomain of URL (i.e. <ACCOUNT>.lacework.net)",
 	)
+	rootCmd.PersistentFlags().String("subaccount", "",
+		"sub-account name inside your organization (org admins only)",
+	)
 
 	errcheckWARN(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
 	errcheckWARN(viper.BindPFlag("nocolor", rootCmd.PersistentFlags().Lookup("nocolor")))
@@ -149,6 +158,7 @@ func init() {
 	errcheckWARN(viper.BindPFlag("account", rootCmd.PersistentFlags().Lookup("account")))
 	errcheckWARN(viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api_key")))
 	errcheckWARN(viper.BindPFlag("api_secret", rootCmd.PersistentFlags().Lookup("api_secret")))
+	errcheckWARN(viper.BindPFlag("subaccount", rootCmd.PersistentFlags().Lookup("subaccount")))
 }
 
 // initConfig reads in config file and ENV variables if set
