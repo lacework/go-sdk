@@ -291,7 +291,7 @@ var lqlQueryTypeTests = []LQLQueryTest{
 		Return: api.LQLQueryTranslateError,
 		Expected: &api.LQLQuery{
 			QueryText: ``,
-			QueryBlob: ``,
+			QueryBlob: `{`,
 		},
 	},
 	LQLQueryTest{
