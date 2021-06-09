@@ -57,6 +57,7 @@ func (svc *PolicyService) Create(policy string) (
 ) {
 	var p map[string]interface{}
 	if err = json.Unmarshal([]byte(policy), &p); err != nil {
+		err = errors.Wrap(err, "policy must be valid JSON")
 		return
 	}
 	err = svc.client.RequestEncoderDecoder("POST", apiPolicy, p, &response)
@@ -87,6 +88,7 @@ func (svc *PolicyService) Update(policyID, policy string) (
 ) {
 	var p map[string]interface{}
 	if err = json.Unmarshal([]byte(policy), &p); err != nil {
+		err = errors.Wrap(err, "policy must be valid JSON")
 		return
 	}
 
