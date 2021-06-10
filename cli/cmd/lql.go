@@ -80,7 +80,7 @@ Start and End times are required to run a query:
 2. Start and End times must be specified in one of the following ways:
 
 	A.  As StartTimeRange and EndTimeRange in the ParamInfo block within the LQL query
-	B.  As START_TIME_RANGE and END_TIME_RANGE if specifying JSON
+	B.  As start_time_range and end_time_range if specifying JSON
 	C.  As --start and --end CLI flags
 	
 3. Start and End time precedence:
@@ -246,15 +246,19 @@ func queryErrorCrumbs(query string, err error) error {
 		return err
 	}
 	// smells like json
-	query = strings.TrimLeft(query, " ")
-	if strings.HasPrefix(query, "{") || strings.HasPrefix(query, "[") {
+	query = strings.ToLower(query)
+	if strings.Contains(query, "start_time_range") ||
+		strings.Contains(query, "end_time_range") ||
+		strings.Contains(query, "lql_id") ||
+		strings.Contains(query, "query_text") {
+
 		return errors.New(`invalid query
 
 It looks like you attempted to submit an LQL query in JSON format.
 Please validate that the JSON is formatted properly and adheres to the following schema:
 
 {
-	"QUERY_TEXT": "MyLQL(CloudTrailRawEvents e) { SELECT INSERT_ID }"
+	"query_text": "MyLQL { source { CloudTrailRawEvents } filter { EVENT_SOURCE = 's3.amazonaws.com' } return { INSERT_ID } }"
 }`)
 	}
 	// smells like plain text
@@ -263,8 +267,16 @@ Please validate that the JSON is formatted properly and adheres to the following
 It looks like you attempted to submit an LQL query in plain text format.
 Please validate that the text adheres to the following schema:
 
-MyLQL(CloudTrailRawEvents e) { 
-	SELECT INSERT_ID 
+MyLQL {
+	source {
+		CloudTrailRawEvents
+	}
+	filter {
+		EVENT_SOURCE = 's3.amazonaws.com'
+	}
+	return {
+		INSERT_ID
+	}
 }
 `)
 }
