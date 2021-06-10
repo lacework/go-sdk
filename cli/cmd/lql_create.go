@@ -57,12 +57,8 @@ func createQuery(cmd *cobra.Command, args []string) error {
 		return errors.Wrap(err, "unable to create LQL query")
 	}
 	if cli.JSONOutput() {
-		return cli.OutputJSON(create.Data)
+		return cli.OutputJSON(create)
 	}
-	queryID := "unknown"
-	if len(create.Data) > 0 {
-		queryID = create.Data[0].ID
-	}
-	cli.OutputHuman(fmt.Sprintf("LQL query (%s) created successfully.\n", queryID))
+	cli.OutputHuman(fmt.Sprintf("LQL query (%s) created successfully.\n", create.ID))
 	return nil
 }

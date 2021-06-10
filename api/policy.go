@@ -42,13 +42,18 @@ type PolicyResponse struct {
 }
 
 type Policy struct {
-	ID           string `json:"policy_id"`
-	Title        string `json:"title"`
-	Enabled      bool   `json:"enabled"`
-	AlertEnabled bool   `json:"alert_enabled"`
-	Frequency    string `json:"eval_frequency"`
-	Severity     string `json:"severity"`
-	QueryID      string `json:"lql_id"`
+	ID           string                 `json:"policy_id"`
+	Title        string                 `json:"title"`
+	Enabled      bool                   `json:"enabled"`
+	AlertEnabled bool                   `json:"alert_enabled"`
+	Frequency    string                 `json:"eval_frequency"`
+	Severity     string                 `json:"severity"`
+	QueryID      string                 `json:"lql_id"`
+	AlertProfile string                 `json:"alert_profile"`
+	Limit        int                    `json:"limit"`
+	Description  string                 `json:"description"`
+	Remediation  string                 `json:"remediation"`
+	Properties   map[string]interface{} `json:"properties"`
 }
 
 func (svc *PolicyService) Create(policy string) (
@@ -57,6 +62,7 @@ func (svc *PolicyService) Create(policy string) (
 ) {
 	var p map[string]interface{}
 	if err = json.Unmarshal([]byte(policy), &p); err != nil {
+		err = errors.Wrap(err, "policy must be valid JSON")
 		return
 	}
 	err = svc.client.RequestEncoderDecoder("POST", apiPolicy, p, &response)
@@ -87,6 +93,7 @@ func (svc *PolicyService) Update(policyID, policy string) (
 ) {
 	var p map[string]interface{}
 	if err = json.Unmarshal([]byte(policy), &p); err != nil {
+		err = errors.Wrap(err, "policy must be valid JSON")
 		return
 	}
 

@@ -116,7 +116,7 @@ func TestPolicyCreateBadInput(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = c.Policy.Create("")
-	assert.Equal(t, "unexpected end of JSON input", err.Error())
+	assert.Equal(t, "policy must be valid JSON: unexpected end of JSON input", err.Error())
 }
 
 func TestPolicyCreateOK(t *testing.T) {
