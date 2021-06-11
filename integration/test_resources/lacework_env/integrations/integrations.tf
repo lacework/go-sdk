@@ -4,6 +4,10 @@ terraform {
       source = "lacework/lacework"
     }
   }
+  backend "gcs" {
+    bucket = var.storage_bucket_name
+    prefix = "lacework"
+  }
 }
 
 provider "lacework" {
@@ -39,7 +43,6 @@ module "gcp_organization_level_config" {
 }
 
 # Lacework Azure config integration; currently our CI does not require Azure cloud integration
-
 //provider "azuread" {}
 //provider "azurerm" {
 //  subscription_id = var.az_subscription

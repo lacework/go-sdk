@@ -4,6 +4,12 @@ variable "az_subscription" {
   description = "The Azure subscription ID"
 }
 
+variable "storage_bucket_name" {
+  type        = string
+  default     = ""
+  description = "The name of the gcs where tf state is stored"
+}
+
 variable "org_integration" {
   type        = bool
   default     = true
