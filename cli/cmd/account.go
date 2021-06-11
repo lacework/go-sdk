@@ -26,7 +26,7 @@ var (
 	// accountCmd represents the account command
 	accountCmd = &cobra.Command{
 		Use:     "account",
-		Aliases: []string{"accounts", "acc", "org"},
+		Aliases: []string{"accounts", "acc"},
 		Short:   "manage accounts in an organization (org admins only)",
 		Long: `Manage accounts inside your Lacework organization.
 
