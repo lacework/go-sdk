@@ -18,10 +18,10 @@ provider "google" {
   credentials = file("gcp.json")
 }
 
-resource "lacework_agent_access_token" "token" {
-  name        = "circle-ci-test-token"
-  description = "this token is used for our ci/cd tests (do-not-update)"
-}
+//resource "lacework_agent_access_token" "token" {
+//  name        = "circle-ci-test-token"
+//  description = "this token is used for our ci/cd tests (do-not-update)"
+//}
 
 # Tech Ally Docker Hub, required for go-sdk/integration/container_vulnerability_test.go
 resource "lacework_integration_docker_hub" "techally_dockerhub" {
