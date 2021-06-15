@@ -185,7 +185,7 @@ type LQLService struct {
 }
 
 func (svc *LQLService) Create(query string) (
-	response LQLQuery,
+	response LQLQueryResponse,
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
@@ -198,7 +198,7 @@ func (svc *LQLService) Create(query string) (
 }
 
 func (svc *LQLService) Update(query string) (
-	response LQLQuery,
+	response LQLQueryResponse,
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}

@@ -59,9 +59,13 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 		return errors.Wrap(err, lqlUpdateUnableMsg)
 	}
 	if cli.JSONOutput() {
-		return cli.OutputJSON(update)
+		return cli.OutputJSON(update.Data)
 	}
-	cli.OutputHuman(
-		fmt.Sprintf("LQL query (%s) updated successfully.\n", update.ID))
+	queryID := "unknown"
+	if len(update.Data) > 0 {
+		queryID = update.Data[0].ID
+	}
+	cli.OutputHuman(fmt.Sprintf("LQL query (%s) updated successfully.\n", queryID))
 	return nil
+}
 }

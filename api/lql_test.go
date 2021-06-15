@@ -32,12 +32,12 @@ import (
 )
 
 var (
-	lqlQueryID        = "my_lql"
-	lqlQueryStr       = "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-	lqlCreateResponse = `{
+	lqlQueryID    = "my_lql"
+	lqlQueryStr   = "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
+	lqlCreateData = `[{
 	"lql_id": "my_lql",
 	"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-}`
+}]`
 	lqlRunData = `[
 	{
 		"INSERT_ID": "35308423"
@@ -451,11 +451,13 @@ func TestLQLCreateBadInput(t *testing.T) {
 }
 
 func TestLQLCreateOK(t *testing.T) {
+	mockResponse := mockLQLDataResponse(lqlCreateData)
+
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, lqlCreateResponse)
+			fmt.Fprint(w, mockResponse)
 		},
 	)
 	defer fakeServer.Close()
@@ -466,10 +468,10 @@ func TestLQLCreateOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	createExpected := api.LQLQuery{}
-	_ = json.Unmarshal([]byte(lqlCreateResponse), &createExpected)
+	createExpected := api.LQLQueryResponse{}
+	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
 
-	var createActual api.LQLQuery
+	var createActual api.LQLQueryResponse
 	createActual, err = c.LQL.Create(lqlQueryStr)
 	assert.Nil(t, err)
 
@@ -524,7 +526,7 @@ func TestLQLGetQueriesMethod(t *testing.T) {
 }
 
 func TestLQLGetQueryByIDOK(t *testing.T) {
-	mockResponse := mockLQLDataResponse("[" + lqlCreateResponse + "]")
+	mockResponse := mockLQLDataResponse(lqlCreateData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
