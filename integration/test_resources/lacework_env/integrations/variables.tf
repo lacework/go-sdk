@@ -37,6 +37,5 @@ variable "docker_hub_user" {
 variable "docker_hub_pass" {
   type        = string
   default     = ""
-  sensitive   = true
   description = "The password for dockerhub"
 }
