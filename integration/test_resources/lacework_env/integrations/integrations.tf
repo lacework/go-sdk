@@ -15,7 +15,7 @@ provider "lacework" {
 
 provider "aws" {}
 provider "google" {
-  credentials = file("~/.gcp.json")
+  credentials = file("gcp.json")
 }
 
 resource "lacework_agent_access_token" "token" {
