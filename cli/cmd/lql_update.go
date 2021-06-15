@@ -68,4 +68,3 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 	cli.OutputHuman(fmt.Sprintf("LQL query (%s) updated successfully.\n", queryID))
 	return nil
 }
-}
