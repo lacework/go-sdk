@@ -14,7 +14,9 @@ provider "lacework" {
 }
 
 provider "aws" {}
-provider "google" {}
+provider "google" {
+  credentials = file("~/.gcp.json")
+}
 
 resource "lacework_agent_access_token" "token" {
   name        = "circle-ci-test-token"
