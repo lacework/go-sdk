@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"github.com/lacework/go-sdk/lwtime"
 	"testing"
 
 	"github.com/lacework/go-sdk/api"
@@ -78,7 +79,7 @@ var mockCveOne = api.HostVulnCVE{
 			},
 		},
 		TotalVulnerabilities: 2,
-		LastEvaluationTime:   api.Json16DigitTime{},
+		LastEvaluationTime:   lwtime.EpochTime{},
 	},
 }
 
