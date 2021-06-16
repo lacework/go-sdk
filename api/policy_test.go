@@ -26,6 +26,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -78,6 +79,64 @@ func mockPolicyDataResponse(data string, ok string) string {
 }`
 }
 
+type PolicyTranslateTest struct {
+	Name     string
+	Input    string
+	Expected api.Policy
+	Error    error
+}
+
+var PolicyTranslateTests = []PolicyTranslateTest{
+	PolicyTranslateTest{
+		"json",
+		`{"policy_id": "my-policy-1", "severity": "high"}`,
+		api.Policy{ID: "my-policy-1", Severity: "high"},
+		nil,
+	},
+	PolicyTranslateTest{
+		"nested-yaml",
+		`---
+policies:
+  - policy_id: my-policy-1
+    severity: high`,
+		api.Policy{ID: "my-policy-1", Severity: "high"},
+		nil,
+	},
+	PolicyTranslateTest{
+		"yaml",
+		`policy_id: my-policy-1
+severity: high`,
+		api.Policy{ID: "my-policy-1", Severity: "high"},
+		nil,
+	},
+	PolicyTranslateTest{
+		"empty",
+		"",
+		api.Policy{},
+		errors.New("unable to translate policy blob"),
+	},
+	PolicyTranslateTest{
+		"junk",
+		"this is junk",
+		api.Policy{},
+		errors.New("unable to translate policy blob"),
+	},
+}
+
+func TestPolicyTranslate(t *testing.T) {
+	for _, ptt := range PolicyTranslateTests {
+		t.Run(ptt.Name, func(t *testing.T) {
+			actual, err := api.TranslatePolicy(ptt.Input)
+
+			if ptt.Error == nil {
+				assert.Equal(t, ptt.Expected, actual)
+				return
+			}
+			assert.Equal(t, ptt.Error.Error(), err.Error())
+		})
+	}
+}
+
 func TestPolicyCreateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -116,7 +175,8 @@ func TestPolicyCreateBadInput(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = c.Policy.Create("")
-	assert.Equal(t, "policy must be valid JSON: unexpected end of JSON input", err.Error())
+	fmt.Println(err)
+	assert.Equal(t, "unable to translate policy blob", err.Error())
 }
 
 func TestPolicyCreateOK(t *testing.T) {

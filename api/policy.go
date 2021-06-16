@@ -22,8 +22,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
 
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v3"
 )
 
 // PolicyService is a service that interacts with the Custom Policies
@@ -41,28 +43,57 @@ type PolicyResponse struct {
 	Message string   `json:"message"`
 }
 
+type PoliciesYAML struct {
+	Policies []Policy `yaml:policies`
+}
+
 type Policy struct {
-	ID           string                 `json:"policy_id"`
-	Title        string                 `json:"title"`
-	Enabled      bool                   `json:"enabled"`
-	AlertEnabled bool                   `json:"alert_enabled"`
-	Frequency    string                 `json:"eval_frequency"`
-	Severity     string                 `json:"severity"`
-	QueryID      string                 `json:"lql_id"`
-	AlertProfile string                 `json:"alert_profile"`
-	Limit        int                    `json:"limit"`
-	Description  string                 `json:"description"`
-	Remediation  string                 `json:"remediation"`
-	Properties   map[string]interface{} `json:"properties"`
+	ID           string                 `json:"policy_id,omitempty" yaml:"policy_id"`
+	Title        string                 `json:"title,omitempty" yaml:"title"`
+	Enabled      *bool                  `json:"enabled,omitempty" yaml:"enabled"`
+	AlertEnabled *bool                  `json:"alert_enabled,omitempty" yaml:"alert_enabled"`
+	Frequency    string                 `json:"eval_frequency,omitempty" yaml:"eval_frequency"`
+	Severity     string                 `json:"severity,omitempty" yaml:"severity"`
+	QueryID      string                 `json:"lql_id,omitempty" yaml:"lql_id"`
+	AlertProfile string                 `json:"alert_profile,omitempty" yaml:"alert_profile"`
+	Limit        *int                   `json:"limit,omitempty" yaml:"limit"`
+	Description  string                 `json:"description,omitempty" yaml:"description"`
+	Remediation  string                 `json:"remediation,omitempty" yaml:"remediation"`
+	Properties   map[string]interface{} `json:"properties,omitempty" yaml:"properties"`
+}
+
+func TranslatePolicy(s string) (Policy, error) {
+	var policy Policy
+	var err error
+
+	// valid json
+	if err = json.Unmarshal([]byte(s), &policy); err == nil {
+		return policy, err
+	}
+	// nested yaml
+	var policies PoliciesYAML
+
+	if err = yaml.Unmarshal([]byte(s), &policies); err == nil {
+		if len(policies.Policies) > 0 {
+			return policies.Policies[0], err
+		}
+	}
+	// straight yaml
+	policy = Policy{}
+	err = yaml.Unmarshal([]byte(s), &policy)
+	if err != nil && !reflect.DeepEqual(policy, Policy{}) { // empty string unmarshals w/o error
+		return policy, nil
+	}
+	// invalid policy
+	return policy, errors.New("unable to translate policy blob")
 }
 
 func (svc *PolicyService) Create(policy string) (
 	response PolicyResponse,
 	err error,
 ) {
-	var p map[string]interface{}
-	if err = json.Unmarshal([]byte(policy), &p); err != nil {
-		err = errors.Wrap(err, "policy must be valid JSON")
+	var p Policy
+	if p, err = TranslatePolicy(policy); err != nil {
 		return
 	}
 	err = svc.client.RequestEncoderDecoder("POST", apiPolicy, p, &response)
@@ -91,19 +122,15 @@ func (svc *PolicyService) Update(policyID, policy string) (
 	response PolicyResponse,
 	err error,
 ) {
-	var p map[string]interface{}
-	if err = json.Unmarshal([]byte(policy), &p); err != nil {
-		err = errors.Wrap(err, "policy must be valid JSON")
+	var p Policy
+	if p, err = TranslatePolicy(policy); err != nil {
 		return
 	}
 
 	// retreive policyID from payload and delete it
-	if payloadPolicyID, ok := p["policy_id"]; ok {
-		delete(p, "policy_id")
-		// if policyID is unset, take from the payload
-		if policyID == "" {
-			policyID = fmt.Sprintf("%v", payloadPolicyID)
-		}
+	if p.ID != "" {
+		policyID = p.ID
+		p.ID = ""
 	}
 
 	// if policyID is still not specified; error

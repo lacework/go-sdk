@@ -286,6 +286,21 @@ func policyTable(policies []api.Policy) (out [][]string) {
 	sevThreshold, _ := severityToProperTypes(policyCmdState.Severity)
 
 	for _, policy := range policies {
+		// normalize policy.Enabled
+		var enabled string
+		if policy.Enabled == nil { // nil ptr check
+			enabled = "unknown"
+		} else {
+			enabled = strconv.FormatBool(*policy.Enabled)
+		}
+		// normalize policy.AlertEnabled
+		var alertEnabled string
+		if policy.AlertEnabled == nil { // nil ptr check
+			alertEnabled = "unknown"
+		} else {
+			alertEnabled = strconv.FormatBool(*policy.AlertEnabled)
+		}
+
 		// filter severity if desired
 		if sevThreshold > 0 {
 			policySeverity, _ := severityToProperTypes(policy.Severity)
@@ -295,19 +310,19 @@ func policyTable(policies []api.Policy) (out [][]string) {
 			}
 		}
 		// filter enabled=false if requesting "enabled-only"
-		if policyCmdState.Enabled && !policy.Enabled {
+		if policyCmdState.Enabled && enabled == "false" {
 			continue
 		}
 		// filter alert_enabled=false if requesting "alert_enabled-only"
-		if policyCmdState.AlertEnabled && !policy.AlertEnabled {
+		if policyCmdState.AlertEnabled && alertEnabled == "false" {
 			continue
 		}
 		out = append(out, []string{
 			policy.ID,
 			policy.Severity,
 			policy.Title,
-			strconv.FormatBool(policy.Enabled),
-			strconv.FormatBool(policy.AlertEnabled),
+			enabled,
+			alertEnabled,
 			policy.Frequency,
 			policy.QueryID,
 		})
