@@ -19,10 +19,10 @@
 package cmd
 
 import (
-	"github.com/lacework/go-sdk/lwtime"
 	"testing"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/stretchr/testify/assert"
 )
 
