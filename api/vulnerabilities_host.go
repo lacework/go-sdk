@@ -21,6 +21,8 @@ package api
 import (
 	"fmt"
 	"strings"
+
+	"github.com/lacework/go-sdk/lwtime"
 )
 
 // HostVulnerabilityService is a service that interacts with the vulnerabilities
@@ -316,7 +318,7 @@ type HostVulnSeverityCountsDetails struct {
 type HostVulnCveSummary struct {
 	Severity             HostVulnSeverityCounts `json:"severity"`
 	TotalVulnerabilities int                    `json:"total_vulnerabilities"`
-	LastEvaluationTime   Json16DigitTime        `json:"last_evaluation_time"`
+	LastEvaluationTime   lwtime.EpochTime       `json:"last_evaluation_time"`
 }
 
 type HostVulnScanPkgManifestResponse struct {
