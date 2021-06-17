@@ -28,10 +28,10 @@ import (
 )
 
 const (
-	lqlQueryID     string = "MyLQL"
-	lqlQueryText   string = "MyLQL { source { CloudTrailRawEvents } return { INSERT_ID } }"
-	lqlQueryUpdate string = "MyLQL { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
-	lqlQueryURL    string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/MyLQL.lql"
+	lqlQueryID     string = "LW_CLI_AWS_CTA_IntegrationTest"
+	lqlQueryText   string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID } }"
+	lqlQueryUpdate string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
+	lqlQueryURL    string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/LW_CLI_AWS_CTA_IntegrationTest.lql"
 )
 
 var (
