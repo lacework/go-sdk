@@ -9,7 +9,7 @@ import (
 )
 
 type mockEvalTimeResponse struct {
-	LastEvaluationTime EpochTime `json:"last_evaluation_time"`
+	LastEvaluationTime EpochString `json:"last_evaluation_time"`
 }
 
 func TestUnmarshallEpoch(t *testing.T) {
@@ -17,5 +17,5 @@ func TestUnmarshallEpoch(t *testing.T) {
 	jsonString := fmt.Sprintf(`{"last_evaluation_time": "%s"}`, timeString)
 	res := mockEvalTimeResponse{}
 	json.Unmarshal([]byte(jsonString), &res)
-	assert.Equal(t, timeString, fmt.Sprint(res.LastEvaluationTime.Time.Unix()), "failed to parse Epoch time")
+	assert.Equal(t, timeString, fmt.Sprint(res.LastEvaluationTime.ToTime().Unix()), "failed to parse Epoch time")
 }

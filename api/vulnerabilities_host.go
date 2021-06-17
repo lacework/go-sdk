@@ -318,7 +318,7 @@ type HostVulnSeverityCountsDetails struct {
 type HostVulnCveSummary struct {
 	Severity             HostVulnSeverityCounts `json:"severity"`
 	TotalVulnerabilities int                    `json:"total_vulnerabilities"`
-	LastEvaluationTime   lwtime.EpochTime       `json:"last_evaluation_time"`
+	LastEvaluationTime   lwtime.EpochString     `json:"last_evaluation_time"`
 }
 
 type HostVulnScanPkgManifestResponse struct {
