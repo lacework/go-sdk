@@ -12,8 +12,9 @@ type EpochString time.Time
 
 func (epoch *EpochString) UnmarshalJSON(b []byte) error {
 	t := strings.Trim(string(b), `"`)
-	seconds, _ := strconv.ParseInt(t, 10, 64)
-	*epoch = EpochString(time.Unix(seconds, 0))
+	millis, _ := strconv.ParseInt(t, 10, 64)
+	seconds := time.Unix(millis/1000, 0)
+	*epoch = EpochString(seconds)
 	return nil
 }
 
