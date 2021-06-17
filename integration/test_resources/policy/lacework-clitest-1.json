@@ -1,8 +1,8 @@
 {
-	"policy_id": "my-policy-1",
+	"policy_id": "lacework-clitest-1",
 	"title": "My Policy Title",
 	"enabled": false,
-	"lql_id": "MyLQL",
+	"lql_id": "LW_CLI_AWS_CTA_IntegrationTest",
 	"severity": "high",
 	"description": "My Policy Description",
 	"remediation": "Check yourself..."
