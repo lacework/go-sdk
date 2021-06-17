@@ -47,6 +47,8 @@ type PoliciesYAML struct {
 	Policies []Policy `yaml:policies`
 }
 
+// Use of pointers intentional here for optimal json.Marshal() behavior
+// This permits distinction between bool/int zero values vs. missing/unspecified
 type Policy struct {
 	ID           string                 `json:"policy_id,omitempty" yaml:"policy_id"`
 	Title        string                 `json:"title,omitempty" yaml:"title"`
