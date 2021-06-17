@@ -84,12 +84,21 @@ func (c *cliState) Migrations() (err error) {
 
 		// if the user is accessing a sub-account, that is, if the current
 		// account is different from the primary account name, set it as
-		// a what it is, the sub-account
+		// what it is, the sub-account
 		if primaryAccount != c.Account {
 			c.Log.Debugw("updating account settings for APIv2",
 				"old_account", c.Account,
 				"new_account", primaryAccount,
 			)
+
+			// ALLY-541: Frankfurt accounts will have the account as 'account.fra',
+			//           we need to remove the .fra domain to use it as a subaccount
+			if strings.Contains(c.Account, ".") {
+				c.Log.Debugw("subaccount needs cleanup", "subaccount", c.Account)
+				accSplit := strings.Split(c.Account, ".")
+				c.Account = accSplit[0]
+			}
+
 			c.Subaccount = c.Account
 			c.Account = primaryAccount
 

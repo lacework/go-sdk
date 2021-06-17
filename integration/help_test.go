@@ -142,6 +142,7 @@ Usage:
 
 Available Commands:
   access-token  generate temporary API access tokens
+  account       manage accounts in an organization (org admins only)
   agent         manage Lacework agents
   api           helper to call Lacework's API
   compliance    manage compliance reports
