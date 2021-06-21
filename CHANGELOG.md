@@ -1,3 +1,9 @@
+# v0.9.1
+
+## Bug Fixes
+* fix(api): Parse LastEvaluationTime correctly in hostVulnListHostsResponse (#446) (Darren)([7918c4c](https://github.com/lacework/go-sdk/commit/7918c4c2cf816cad193f07a35150ce8de91481e0))
+* fix(api): Enable FirstSeenTime field in hostVulnListHostsResponse (#445) (Darren)([195d44a](https://github.com/lacework/go-sdk/commit/195d44a98d019b293edaf8643c8aa876b996b945))
+---
 # v0.9.0
 
 ## Features
