@@ -44,7 +44,7 @@ func init() {
 func deleteQuery(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("deleting LQL query", "queryID", args[0])
 
-	delete, err := cli.LwApi.LQL.DeleteQuery(args[0])
+	delete, err := cli.LwApi.LQL.Delete(args[0])
 
 	if err != nil {
 		return errors.Wrap(err, "unable to delete LQL query")
@@ -53,6 +53,6 @@ func deleteQuery(_ *cobra.Command, args []string) error {
 		return cli.OutputJSON(delete.Message)
 	}
 	cli.OutputHuman(
-		fmt.Sprintf("LQL query (%s) deleted successfully.\n", delete.Message.ID))
+		fmt.Sprintf("LQL query (%s) deleted successfully.\n", args[0]))
 	return nil
 }

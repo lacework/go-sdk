@@ -184,8 +184,8 @@ type LQLService struct {
 	client *Client
 }
 
-func (svc *LQLService) CreateQuery(query string) (
-	response LQLQuery,
+func (svc *LQLService) Create(query string) (
+	response LQLQueryResponse,
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
@@ -197,8 +197,8 @@ func (svc *LQLService) CreateQuery(query string) (
 	return
 }
 
-func (svc *LQLService) UpdateQuery(query string) (
-	response LQLQuery,
+func (svc *LQLService) Update(query string) (
+	response LQLQueryResponse,
 	err error,
 ) {
 	lqlQuery := LQLQuery{QueryBlob: query}
@@ -211,10 +211,10 @@ func (svc *LQLService) UpdateQuery(query string) (
 }
 
 func (svc *LQLService) GetQueries() (LQLQueryResponse, error) {
-	return svc.GetQueryByID("")
+	return svc.GetByID("")
 }
 
-func (svc *LQLService) GetQueryByID(queryID string) (
+func (svc *LQLService) GetByID(queryID string) (
 	response LQLQueryResponse,
 	err error,
 ) {
@@ -228,7 +228,7 @@ func (svc *LQLService) GetQueryByID(queryID string) (
 	return
 }
 
-func (svc *LQLService) RunQuery(query, start, end string) (
+func (svc *LQLService) Run(query, start, end string) (
 	response map[string]interface{},
 	err error,
 ) {

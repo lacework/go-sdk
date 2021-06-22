@@ -52,7 +52,7 @@ func TestLQLDeleteMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.DeleteQuery(lqlQueryID)
+	_, err = c.LQL.Delete(lqlQueryID)
 	assert.Nil(t, err)
 }
 
@@ -72,15 +72,12 @@ func TestLQLDeleteBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.DeleteQuery("")
+	_, err = c.LQL.Delete("")
 	assert.NotNil(t, err)
 }
 
 func TestLQLDeleteOK(t *testing.T) {
-	mockResponse := mockLQLMessageResponse(
-		fmt.Sprintf(`"lqlDeleted": "%s"`, lqlQueryID),
-		"true",
-	)
+	mockResponse := mockLQLMessageResponse(fmt.Sprintf(`"lqlDeleted": "%s"`, lqlQueryID))
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -101,7 +98,7 @@ func TestLQLDeleteOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &deleteExpected)
 
 	var deleteActual api.LQLDeleteResponse
-	deleteActual, err = c.LQL.DeleteQuery(lqlQueryID)
+	deleteActual, err = c.LQL.Delete(lqlQueryID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, deleteExpected, deleteActual)
@@ -123,6 +120,6 @@ func TestLQLDeleteNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.DeleteQuery(lqlQueryID)
+	_, err = c.LQL.Delete(lqlQueryID)
 	assert.NotNil(t, err)
 }

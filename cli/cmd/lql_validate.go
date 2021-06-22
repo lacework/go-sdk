@@ -55,7 +55,7 @@ func validateQuery(cmd *cobra.Command, args []string) error {
 func compileQueryAndOutput(query string) error {
 	cli.Log.Debugw("validating LQL query", "query", query)
 
-	compile, err := cli.LwApi.LQL.CompileQuery(query)
+	compile, err := cli.LwApi.LQL.Compile(query)
 
 	if err != nil {
 		err = queryErrorCrumbs(query, err)

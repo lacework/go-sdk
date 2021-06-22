@@ -28,16 +28,16 @@ import (
 
 const (
 	policyText string = `{
-	"policy_id": "my-policy-1",
+	"policy_id": "lacework-clitest-1",
 	"title": "My Policy Title",
 	"enabled": false,
 	"alert_enabled": false,
-	"lql_id": "MyLQL",
+	"lql_id": "LW_CLI_AWS_CTA_IntegrationTest",
 	"severity": "low",
 	"description": "My Policy Description",
 	"remediation": "Check yourself..."
 }`
-	policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/my-policy-1.json"
+	policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/lacework-clitest-1.json"
 )
 
 func TestPolicyHelp(t *testing.T) {
@@ -118,27 +118,27 @@ func TestPolicyCreateFile(t *testing.T) {
 
 	// update-url (output human)
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "update", "-u", policyURL)
-	assert.Contains(t, out.String(), "Policy (my-policy-1) updated successfully.")
+	assert.Contains(t, out.String(), "Policy (lacework-clitest-1) updated successfully.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// list enabled-only
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--enabled")
 	assert.Contains(t, out.String(), "lacework-global-1")
-	assert.NotContains(t, out.String(), "my-policy-1")
+	assert.NotContains(t, out.String(), "lacework-clitest-1")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// list alert_enabled-only
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--alert_enabled")
 	assert.Contains(t, out.String(), "lacework-global-1")
-	assert.NotContains(t, out.String(), "my-policy-1")
+	assert.NotContains(t, out.String(), "lacework-clitest-1")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// delete
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "delete", "my-policy-1")
-	assert.Contains(t, out.String(), "Policy (my-policy-1) deleted successfully.")
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "delete", "lacework-clitest-1")
+	assert.Contains(t, out.String(), "Policy (lacework-clitest-1) deleted successfully.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
@@ -155,9 +155,9 @@ func TestPolicyCreateURL(t *testing.T) {
 	// create (output human)
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
 	// teardown policy
-	defer LaceworkCLIWithTOMLConfig("policy", "delete", "my-policy-1")
+	defer LaceworkCLIWithTOMLConfig("policy", "delete", "lacework-clitest-1")
 
-	assert.Contains(t, out.String(), "Policy (my-policy-1) created successfully.")
+	assert.Contains(t, out.String(), "Policy (lacework-clitest-1) created successfully.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
@@ -345,8 +345,8 @@ func TestPolicyDelete(t *testing.T) {
 	// human delete tested by virtue of TestPolicyCreateFile
 
 	// json
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete", "my-policy-1", "--json")
-	assert.Contains(t, out.String(), `"my-policy-1"`)
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete", "lacework-clitest-1", "--json")
+	assert.Contains(t, out.String(), `"lacework-clitest-1"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
