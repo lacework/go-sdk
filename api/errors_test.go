@@ -28,6 +28,41 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
+func TestErrorWithV2Message(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI(
+		"any/endpoint",
+		func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, `
+{
+  "message": "This is an APIv2 error messages. Catch it!"
+}
+`, http.StatusInternalServerError)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	var v interface{}
+	err = c.RequestDecoder("GET", "any/endpoint", nil, v)
+	assert.Nil(t, v)
+	if assert.NotNil(t, err) {
+		assert.Contains(t, err.Error(), "[GET] http://")
+		assert.Contains(t, err.Error(), "/any/endpoint")
+		assert.Contains(t,
+			err.Error(),
+			"[500] This is an APIv2 error messages. Catch it!",
+		)
+	}
+}
+
 func TestErrorWithDataMessage(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
