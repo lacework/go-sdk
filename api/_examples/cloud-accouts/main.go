@@ -70,7 +70,7 @@ func main() {
 	)
 
 	// Account Mappings are only allowed at Organization level,
-	// copy the client to make it and org client
+	// copy the client to make it an org client
 	orgLwClient, err := api.CopyClient(lacework,
 		api.WithOrgAccess(),
 	)
