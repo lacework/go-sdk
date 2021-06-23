@@ -41,7 +41,7 @@ func init() {
 func showQuery(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving LQL query", "queryID", args[0])
 
-	queryResponse, err := cli.LwApi.LQL.GetQueryByID(args[0])
+	queryResponse, err := cli.LwApi.LQL.GetByID(args[0])
 
 	if err != nil {
 		return errors.Wrap(err, "unable to show LQL query")

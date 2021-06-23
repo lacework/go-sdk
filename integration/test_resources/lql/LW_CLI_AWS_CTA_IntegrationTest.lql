@@ -1,6 +1,6 @@
 --- This query produces a web (github) hosted object for "lacework query" integration testing
 --- Specifically: TestQueryRunURL
-MyLQL {
+LW_CLI_AWS_CTA_IntegrationTest {
     source {
         CloudTrailRawEvents
     }

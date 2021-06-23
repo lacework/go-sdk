@@ -32,12 +32,12 @@ import (
 )
 
 var (
-	lqlQueryID        = "my_lql"
-	lqlQueryStr       = "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-	lqlCreateResponse = `{
+	lqlQueryID    = "my_lql"
+	lqlQueryStr   = "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
+	lqlCreateData = `[{
 	"lql_id": "my_lql",
 	"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-}`
+}]`
 	lqlRunData = `[
 	{
 		"INSERT_ID": "35308423"
@@ -46,8 +46,8 @@ var (
 	lqlErrorReponse = mockLQLDataResponse(
 		`{ "message": "Error Serving Request" }`,
 	)
-	lqlUnableResponse = mockLQLMessageResponse(
-		`"message": "{\"error\":\"Error: Unable to locate lql query NoSuchQuery, please double check the query exists and has not already been updated.\"}"`,
+	lqlUnableResponse = mockLQLErrorResponse(
+		`"{\"error\":\"Error: Unable to locate lql query NoSuchQuery, please double check the query exists and has not already been updated.\"}"`,
 		"false",
 	)
 )
@@ -394,9 +394,16 @@ func mockLQLDataResponse(data string) string {
 }`
 }
 
-func mockLQLMessageResponse(message string, ok string) string {
+func mockLQLErrorResponse(message string, ok string) string {
 	return `{
-	"ok": ` + ok + `,
+		"ok": ` + ok + `,
+		"data": { "message": {` + message + `} }
+	}`
+}
+
+func mockLQLMessageResponse(message string) string {
+	return `{
+	"ok": true,
 	"message": {` + message + `
 	}
 }`
@@ -419,7 +426,7 @@ func TestLQLCreateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.CreateQuery(lqlQueryStr)
+	_, err = c.LQL.Create(lqlQueryStr)
 	assert.Nil(t, err)
 }
 
@@ -439,16 +446,18 @@ func TestLQLCreateBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.CreateQuery("")
+	_, err = c.LQL.Create("")
 	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
 }
 
 func TestLQLCreateOK(t *testing.T) {
+	mockResponse := mockLQLDataResponse(lqlCreateData)
+
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql",
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, lqlCreateResponse)
+			fmt.Fprint(w, mockResponse)
 		},
 	)
 	defer fakeServer.Close()
@@ -459,11 +468,11 @@ func TestLQLCreateOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	createExpected := api.LQLQuery{}
-	_ = json.Unmarshal([]byte(lqlCreateResponse), &createExpected)
+	createExpected := api.LQLQueryResponse{}
+	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
 
-	var createActual api.LQLQuery
-	createActual, err = c.LQL.CreateQuery(lqlQueryStr)
+	var createActual api.LQLQueryResponse
+	createActual, err = c.LQL.Create(lqlQueryStr)
 	assert.Nil(t, err)
 
 	assert.Equal(t, createExpected, createActual)
@@ -485,7 +494,7 @@ func TestLQLCreateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.CreateQuery(lqlQueryStr)
+	_, err = c.LQL.Create(lqlQueryStr)
 	assert.NotNil(t, err)
 }
 
@@ -517,7 +526,7 @@ func TestLQLGetQueriesMethod(t *testing.T) {
 }
 
 func TestLQLGetQueryByIDOK(t *testing.T) {
-	mockResponse := mockLQLDataResponse("[" + lqlCreateResponse + "]")
+	mockResponse := mockLQLDataResponse(lqlCreateData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -534,17 +543,17 @@ func TestLQLGetQueryByIDOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	createExpected := api.LQLQueryResponse{}
-	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
+	getExpected := api.LQLQueryResponse{}
+	_ = json.Unmarshal([]byte(mockResponse), &getExpected)
 
-	var createActual api.LQLQueryResponse
-	createActual, err = c.LQL.GetQueryByID(lqlQueryStr)
+	var getActual api.LQLQueryResponse
+	getActual, err = c.LQL.GetByID(lqlQueryID)
 	assert.Nil(t, err)
 
-	assert.Equal(t, createExpected, createActual)
+	assert.Equal(t, getExpected, getActual)
 }
 
-func TestLQLGetQueryByIDNotFound(t *testing.T) {
+func TestLQLGetByIDNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql",
@@ -560,11 +569,11 @@ func TestLQLGetQueryByIDNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.GetQueryByID("NoSuchQuery")
+	_, err = c.LQL.GetByID("NoSuchQuery")
 	assert.NotNil(t, err)
 }
 
-func TestLQLRunQueryMethod(t *testing.T) {
+func TestLQLRunMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql/query",
@@ -581,11 +590,11 @@ func TestLQLRunQueryMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.RunQuery(lqlQueryStr, "0", "1")
+	_, err = c.LQL.Run(lqlQueryStr, "0", "1")
 	assert.Nil(t, err)
 }
 
-func TestLQLRunQueryBadInput(t *testing.T) {
+func TestLQLRunBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql/query",
@@ -601,11 +610,11 @@ func TestLQLRunQueryBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.RunQuery("", "", "")
+	_, err = c.LQL.Run("", "", "")
 	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
 }
 
-func TestLQLRunQueryOK(t *testing.T) {
+func TestLQLRunOK(t *testing.T) {
 	mockResponse := mockLQLDataResponse(lqlRunData)
 
 	fakeServer := lacework.MockServer()
@@ -627,13 +636,13 @@ func TestLQLRunQueryOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
 
 	var runActual map[string]interface{}
-	runActual, err = c.LQL.RunQuery(lqlQueryStr, "0", "1")
+	runActual, err = c.LQL.Run(lqlQueryStr, "0", "1")
 	assert.Nil(t, err)
 
 	assert.Equal(t, runExpected, runActual)
 }
 
-func TestLQLRunQueryError(t *testing.T) {
+func TestLQLRunError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql",
@@ -649,6 +658,6 @@ func TestLQLRunQueryError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.CreateQuery(lqlQueryStr)
+	_, err = c.LQL.Create(lqlQueryStr)
 	assert.NotNil(t, err)
 }

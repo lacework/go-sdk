@@ -96,7 +96,7 @@ func TestLQLCompileMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.CompileQuery(lqlQueryStr)
+	_, err = c.LQL.Compile(lqlQueryStr)
 	assert.Nil(t, err)
 }
 
@@ -116,7 +116,7 @@ func TestLQLCompileBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.CompileQuery("")
+	_, err = c.LQL.Compile("")
 	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
 }
 
@@ -142,7 +142,7 @@ func TestLQLCompileOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &compileExpected)
 
 	var compileActual api.LQLCompileResponse
-	compileActual, err = c.LQL.CompileQuery(lqlQueryStr)
+	compileActual, err = c.LQL.Compile(lqlQueryStr)
 	assert.Nil(t, err)
 	assert.Equal(t, compileExpected, compileActual)
 }
@@ -163,6 +163,6 @@ func TestLQLCompileError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.CompileQuery(lqlQueryStr)
+	_, err = c.LQL.Compile(lqlQueryStr)
 	assert.NotNil(t, err)
 }

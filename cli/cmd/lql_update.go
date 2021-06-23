@@ -52,16 +52,19 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 	}
 
 	cli.Log.Debugw("updating LQL query", "query", query)
-	update, err := cli.LwApi.LQL.UpdateQuery(query)
+	update, err := cli.LwApi.LQL.Update(query)
 
 	if err != nil {
 		err = queryErrorCrumbs(query, err)
 		return errors.Wrap(err, lqlUpdateUnableMsg)
 	}
 	if cli.JSONOutput() {
-		return cli.OutputJSON(update)
+		return cli.OutputJSON(update.Data)
 	}
-	cli.OutputHuman(
-		fmt.Sprintf("LQL query (%s) updated successfully.\n", update.ID))
+	queryID := "unknown"
+	if len(update.Data) > 0 {
+		queryID = update.Data[0].ID
+	}
+	cli.OutputHuman(fmt.Sprintf("LQL query (%s) updated successfully.\n", queryID))
 	return nil
 }

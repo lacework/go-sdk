@@ -21,6 +21,8 @@ package api
 import (
 	"fmt"
 	"strings"
+
+	"github.com/lacework/go-sdk/lwtime"
 )
 
 // HostVulnerabilityService is a service that interacts with the vulnerabilities
@@ -139,21 +141,21 @@ type HostVulnCVE struct {
 }
 
 type HostVulnPackage struct {
-	Name                string `json:"name"`
-	Namespace           string `json:"namespace"`
-	Severity            string `json:"severity"`
-	Status              string `json:"status,omitempty"`
-	VulnerabilityStatus string `json:"vulnerability_status,omitempty"`
-	Version             string `json:"version"`
-	HostCount           string `json:"host_count"`
-	PackageStatus       string `json:"package_status"`
-	CveLink             string `json:"cve_link"`
-	CvssScore           string `json:"cvss_score"`
-	CvssV2Score         string `json:"cvss_v_2_score"`
-	CvssV3Score         string `json:"cvss_v_3_score"`
-	//FirstSeenTime time.Time `json:"first_seen_time"`
-	FixAvailable string `json:"fix_available"`
-	FixedVersion string `json:"fixed_version"`
+	Name                string          `json:"name"`
+	Namespace           string          `json:"namespace"`
+	Severity            string          `json:"severity"`
+	Status              string          `json:"status,omitempty"`
+	VulnerabilityStatus string          `json:"vulnerability_status,omitempty"`
+	Version             string          `json:"version"`
+	HostCount           string          `json:"host_count"`
+	PackageStatus       string          `json:"package_status"`
+	CveLink             string          `json:"cve_link"`
+	CvssScore           string          `json:"cvss_score"`
+	CvssV2Score         string          `json:"cvss_v_2_score"`
+	CvssV3Score         string          `json:"cvss_v_3_score"`
+	FirstSeenTime       lwtime.RFC1123Z `json:"first_seen_time"`
+	FixAvailable        string          `json:"fix_available"`
+	FixedVersion        string          `json:"fixed_version"`
 }
 
 func (assessment *HostVulnHostAssessment) VulnerabilityCounts() HostVulnCounts {
@@ -316,7 +318,7 @@ type HostVulnSeverityCountsDetails struct {
 type HostVulnCveSummary struct {
 	Severity             HostVulnSeverityCounts `json:"severity"`
 	TotalVulnerabilities int                    `json:"total_vulnerabilities"`
-	LastEvaluationTime   Json16DigitTime        `json:"last_evaluation_time"`
+	LastEvaluationTime   lwtime.EpochString     `json:"last_evaluation_time"`
 }
 
 type HostVulnScanPkgManifestResponse struct {
