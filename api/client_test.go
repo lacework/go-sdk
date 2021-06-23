@@ -19,6 +19,8 @@
 package api_test
 
 import (
+	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
@@ -46,7 +48,7 @@ func TestNewClientAccountEmptyError(t *testing.T) {
 
 func TestNewClientWithOptions(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.ApiVersion = "v2"
+	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -62,4 +64,74 @@ func TestNewClientWithOptions(t *testing.T) {
 	if assert.Nil(t, err) {
 		assert.Equal(t, "v2", c.ApiVersion(), "modified API version should be v2")
 	}
+}
+
+func TestCopyClientWithOptions(t *testing.T) {
+	var v interface{}
+	fakeServer := lacework.MockServer()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI(
+		"endpoint-org-access",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "true", r.Header.Get("Org-Access"))
+			fmt.Fprintf(w, "{}")
+		},
+	)
+	fakeServer.MockAPI(
+		"endpoint-NO-org-access",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "", r.Header.Get("Org-Access"))
+			fmt.Fprintf(w, "{}")
+		},
+	)
+
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithURL(fakeServer.URL()),
+		api.WithExpirationTime(1800),
+		api.WithTimeout(time.Minute*5),
+		api.WithLogLevel("DEBUG"),
+		api.WithHeader("User-Agent", "test-agent"),
+		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
+	)
+	if assert.Nil(t, err) {
+		assert.Equal(t, "v1", c.ApiVersion(), "default API version should be v1")
+		assert.Contains(t, c.URL(), "http://127.0.0.1:", "wrong URL")
+		assert.True(t, c.ValidAuth())
+	}
+
+	err = c.RequestDecoder("GET", "endpoint-NO-org-access", nil, v)
+	assert.Nil(t, err)
+
+	newExactClient, err := api.CopyClient(c)
+	if assert.Nil(t, err) {
+		assert.Equal(t, c.ApiVersion(), newExactClient.ApiVersion(), "copy client mismatch")
+		assert.Equal(t, c.URL(), newExactClient.URL(), "copy client mismatch")
+		assert.True(t, newExactClient.ValidAuth())
+	}
+
+	td, err := newExactClient.GenerateToken()
+	if assert.Nil(t, err) {
+		assert.Equal(t, "TOKEN", td.Token)
+	}
+
+	newModifiedClient, err := api.CopyClient(c,
+		api.WithURL("https://new.lacework.net/"),
+		api.WithExpirationTime(3600),
+		api.WithApiV2(),
+		api.WithTimeout(time.Minute*60), // LOL!
+		api.WithLogLevel("INFO"),
+		api.WithOrgAccess(),
+	)
+	if assert.Nil(t, err) {
+		assert.NotEqual(t, c.ApiVersion(), newModifiedClient.ApiVersion(), "copy modified client mismatch")
+		assert.NotEqual(t, c.URL(), newModifiedClient.URL(), "copy modified client mismatch")
+		assert.Equal(t, "v2", newModifiedClient.ApiVersion(), "copy modified API version should be v2")
+		assert.Equal(t, "https://new.lacework.net/", newModifiedClient.URL(), "copy modified client mismatch")
+		assert.True(t, newExactClient.ValidAuth())
+	}
+
+	err = c.RequestDecoder("GET", "endpoint-org-access", nil, v)
+	assert.Nil(t, err)
 }

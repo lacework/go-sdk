@@ -200,6 +200,15 @@ func WithHeader(header, value string) Option {
 	})
 }
 
+// WithOrgAccess sets the Org-Access Header to access the organization level data sets
+func WithOrgAccess() Option {
+	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up header", zap.String("Org-Access", "true"))
+		c.headers["Org-Access"] = "true"
+		return nil
+	})
+}
+
 // URL returns the base url configured
 func (c *Client) URL() string {
 	return c.baseURL.String()
