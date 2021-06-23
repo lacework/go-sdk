@@ -149,6 +149,9 @@ func init() {
 	rootCmd.PersistentFlags().String("subaccount", "",
 		"sub-account name inside your organization (org admins only)",
 	)
+	rootCmd.PersistentFlags().Bool("organization", false,
+		"access organization level data sets (org admins only)",
+	)
 
 	errcheckWARN(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
 	errcheckWARN(viper.BindPFlag("nocolor", rootCmd.PersistentFlags().Lookup("nocolor")))
@@ -159,6 +162,7 @@ func init() {
 	errcheckWARN(viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api_key")))
 	errcheckWARN(viper.BindPFlag("api_secret", rootCmd.PersistentFlags().Lookup("api_secret")))
 	errcheckWARN(viper.BindPFlag("subaccount", rootCmd.PersistentFlags().Lookup("subaccount")))
+	errcheckWARN(viper.BindPFlag("organization", rootCmd.PersistentFlags().Lookup("organization")))
 }
 
 // initConfig reads in config file and ENV variables if set
