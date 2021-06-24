@@ -35,11 +35,11 @@ func (svc *CloudAccountsService) GetAwsCtSqs(guid string) (
 }
 
 // UpdateAwsCtSqs updates a single AwsCtSqs integration on the Lacework Server
-func (svc *CloudAccountsService) UpdateAwsCtSqs(data AwsCtSqsIntegration) (
+func (svc *CloudAccountsService) UpdateAwsCtSqs(data CloudAccount) (
 	response AwsCtSqsIntegrationResponse,
 	err error,
 ) {
-	err = svc.update(data.IntgGuid, data, &response)
+	err = svc.update(data.ID(), data, &response)
 	return
 }
 
