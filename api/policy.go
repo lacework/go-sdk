@@ -44,7 +44,7 @@ type PolicyResponse struct {
 }
 
 type PoliciesYAML struct {
-	Policies []Policy `yaml:policies`
+	Policies []Policy `yaml:"policies"`
 }
 
 // Use of pointers intentional here for optimal json.Marshal() behavior
