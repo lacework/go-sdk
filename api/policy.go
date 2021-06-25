@@ -83,11 +83,11 @@ func TranslatePolicy(s string) (Policy, error) {
 	// straight yaml
 	policy = Policy{}
 	err = yaml.Unmarshal([]byte(s), &policy)
-	if err != nil && !reflect.DeepEqual(policy, Policy{}) { // empty string unmarshals w/o error
+	if err == nil && !reflect.DeepEqual(policy, Policy{}) { // empty string unmarshals w/o error
 		return policy, nil
 	}
 	// invalid policy
-	return policy, errors.New("unable to translate policy blob")
+	return policy, errors.New("policy must be valid JSON or YAML")
 }
 
 func (svc *PolicyService) Create(policy string) (

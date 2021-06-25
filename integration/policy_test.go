@@ -27,16 +27,18 @@ import (
 )
 
 const (
-	policyText string = `{
-	"policy_id": "lacework-clitest-1",
-	"title": "My Policy Title",
-	"enabled": false,
-	"alert_enabled": false,
-	"lql_id": "LW_CLI_AWS_CTA_IntegrationTest",
-	"severity": "low",
-	"description": "My Policy Description",
-	"remediation": "Check yourself..."
-}`
+	policyYAML string = `policy_id: lacework-clitest-1
+title: My Policy Title
+enabled: false
+alert_enabled: false
+lql_id: LW_CLI_AWS_CTA_IntegrationTest
+severity: low
+description: My Policy Description
+remediation: Check yourself...`
+	policyNestedYAML string = `---
+policies:
+  - policy_id: lacework-clitest-1
+    title: My Policy Title!`
 	policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/lacework-clitest-1.json"
 )
 
@@ -104,7 +106,7 @@ func TestPolicyCreateFile(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(policyText))
+	_, err = file.Write([]byte(policyYAML))
 	if err != nil {
 		t.FailNow()
 	}
@@ -160,27 +162,6 @@ func TestPolicyCreateURL(t *testing.T) {
 	assert.Contains(t, out.String(), "Policy (lacework-clitest-1) created successfully.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-
-	// update-file (output json)
-	// get temp file
-	file, err := ioutil.TempFile("", "TestPolicyUpdateFile")
-	if err != nil {
-		t.FailNow()
-	}
-	defer os.Remove(file.Name())
-
-	// write-to and close file
-	_, err = file.Write([]byte(policyText))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
-
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "update", "-f", file.Name(), "--json")
-	assert.Contains(t, out.String(), `"policy_id"`)
-	assert.Contains(t, out.String(), `"low"`)
-	assert.Empty(t, stderr.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestPolicyListHelp(t *testing.T) {
@@ -224,7 +205,6 @@ func TestPolicyBadSeverity(t *testing.T) {
 	_, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list", "--severity", "superhigh")
 	assert.Contains(t, err.String(), "the severity superhigh is not valid, use one of critical, high, medium, low, info")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
-
 }
 
 func TestPolicySeverityCritical(t *testing.T) {
@@ -299,7 +279,36 @@ func TestPolicyUpdateFile(t *testing.T) {
 	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
-	// update file tested by virtue of TestPolicyCreateURL
+	// setup query
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	// teardown query
+	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+
+	// setup policy
+	LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
+	// teardown policy
+	defer LaceworkCLIWithTOMLConfig("policy", "delete", "lacework-clitest-1")
+
+	// update-file (output json)
+	// get temp file
+	file, err := ioutil.TempFile("", "TestPolicyUpdateFile")
+	if err != nil {
+		t.FailNow()
+	}
+	defer os.Remove(file.Name())
+
+	// write-to and close file
+	_, err = file.Write([]byte(policyNestedYAML))
+	if err != nil {
+		t.FailNow()
+	}
+	file.Close()
+
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "update", "-f", file.Name(), "--json")
+	assert.Contains(t, out.String(), `"My Policy Title!"`)
+	assert.Contains(t, out.String(), `"enabled": false`)
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestPolicyUpdateURL(t *testing.T) {

@@ -248,7 +248,7 @@ func inputPolicyFromURL(url string) (policy string, err error) {
 func inputPolicyFromEditor(action string) (policy string, err error) {
 	prompt := &survey.Editor{
 		Message:  fmt.Sprintf("Type a policy to %s", action),
-		FileName: "policy*.json",
+		FileName: "policy*",
 	}
 	err = survey.AskOne(prompt, &policy)
 

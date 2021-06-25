@@ -113,13 +113,13 @@ severity: high`,
 		"empty",
 		"",
 		api.Policy{},
-		errors.New("unable to translate policy blob"),
+		errors.New("policy must be valid JSON or YAML"),
 	},
 	PolicyTranslateTest{
 		"junk",
 		"this is junk",
 		api.Policy{},
-		errors.New("unable to translate policy blob"),
+		errors.New("policy must be valid JSON or YAML"),
 	},
 }
 
@@ -176,7 +176,7 @@ func TestPolicyCreateBadInput(t *testing.T) {
 
 	_, err = c.Policy.Create("")
 	fmt.Println(err)
-	assert.Equal(t, "unable to translate policy blob", err.Error())
+	assert.Equal(t, "policy must be valid JSON or YAML", err.Error())
 }
 
 func TestPolicyCreateOK(t *testing.T) {
