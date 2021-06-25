@@ -125,6 +125,34 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	return c, nil
 }
 
+// CopyClient generates a copy of the provider Lacework API Go client
+//
+// Example of basic usage
+//
+//   client, err := api.NewClient("demo")
+//   if err == nil {
+//       client.Integrations.List()
+//   }
+//
+//   clientCopy, err := api.CopyClient(client, api.WithOrgAccess())
+//   if err == nil {
+//       clientCopy.Integrations.List()
+//   }
+func CopyClient(origin *Client, opts ...Option) (*Client, error) {
+	dest := new(Client)
+	*dest = *origin
+
+	// no client should have the same ID
+	dest.id = newID()
+
+	for _, opt := range opts {
+		if err := opt.apply(dest); err != nil {
+			return dest, err
+		}
+	}
+	return dest, nil
+}
+
 // WithSubaccount sets a subaccount into an API client
 func WithSubaccount(subaccount string) Option {
 	return clientFunc(func(c *Client) error {
@@ -168,6 +196,15 @@ func WithHeader(header, value string) Option {
 			c.log.Debug("setting up header", zap.String(header, value))
 			c.headers[header] = value
 		}
+		return nil
+	})
+}
+
+// WithOrgAccess sets the Org-Access Header to access the organization level data sets
+func WithOrgAccess() Option {
+	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up header", zap.String("Org-Access", "true"))
+		c.headers["Org-Access"] = "true"
 		return nil
 	})
 }
