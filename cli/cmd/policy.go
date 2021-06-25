@@ -58,7 +58,7 @@ NOTE: This feature is not yet available!`,
 		Short: "create a policy",
 		Long: `Create a policy.
 
-A policy is represented in JSON format.
+A policy is represented in either JSON or YAML format.
 The following attributes are minimally required:
 {
     "policy_id": "lacework-example-1",
@@ -97,6 +97,7 @@ The following attributes are minimally required:
 		Short: "update a policy",
 		Long: `Update a policy.
 
+A policy is represented in either JSON or YAML format.
 A policy identifier is required to update a policy.
 
 A policy identifier can be specified via:
