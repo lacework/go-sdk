@@ -193,7 +193,7 @@ func TestConfigureCommandWithNewJSONFileFlagForOrganizationalAccounts(t *testing
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
-func TestConfigureCommandWithOldJSONFileFlag(t *testing.T) {
+func _TestConfigureCommandWithOldJSONFileFlag(t *testing.T) {
 	// create a JSON file similar to what the Lacework Web UI would provide
 	s := createJSONFileLikeWebUI(`
 {
