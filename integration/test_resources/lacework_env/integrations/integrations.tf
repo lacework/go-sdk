@@ -1,3 +1,15 @@
+terraform {
+  required_providers {
+    lacework = {
+      source = "lacework/lacework"
+    }
+  }
+  backend "gcs" {
+    bucket = var.storage_bucket_name
+    prefix = "lacework"
+  }
+}
+
 provider "lacework" {
 }
 
