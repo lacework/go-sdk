@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	testTokenAlias = "circle-ci-test-token"
+	testTokenAlias = "codefresh-int-test-token"
 	testTokenDesc  = "this token is used for our ci/cd tests (do-not-update)"
 	// since we are wrapping the table output, we need to check for different strings
 	testTokenDescWrap1 = "this token is used for our"
