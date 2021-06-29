@@ -56,7 +56,7 @@ func TestAgentTokenCommandList(t *testing.T) {
 		"STDOUT table headers changed, please check")
 	assert.Contains(t, out.String(), "NAME",
 		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "STATUS",
+	assert.Contains(t, out.String(), "STATE",
 		"STDOUT table headers changed, please check")
 	assert.Empty(t,
 		err.String(),
@@ -67,11 +67,12 @@ func TestAgentTokenCommandList(t *testing.T) {
 
 func TestAgentTokenCommandEndToEnd(t *testing.T) {
 	var (
-		out              bytes.Buffer
-		err              bytes.Buffer
-		exitcode         int
-		agentTokens      []agentToken
-		tokenUpdatedTime time.Time
+		out         bytes.Buffer
+		err         bytes.Buffer
+		exitcode    int
+		agentTokens []agentToken
+		// @afiune last_updated_time doesn't seem to exist in API v2 ....
+		//tokenUpdatedTime time.Time
 	)
 	t.Run("list agent tokens", func(t *testing.T) {
 		out, err, exitcode = LaceworkCLIWithTOMLConfig("agent", "token", "list", "--json")
@@ -109,14 +110,14 @@ func TestAgentTokenCommandEndToEnd(t *testing.T) {
 
 		expectedOutput := []string{
 			// headers
-			"AGENT TOKEN DETAILS",
+			"AGENT ACCESS TOKEN DETAILS",
 			"NAME",
 			"DESCRIPTION",
-			"ACCOUNT",
 			"VERSION",
-			"STATUS",
+			"STATE",
 			"CREATED AT",
-			"UPDATED AT",
+			// @afiune last_updated_time doesn't seem to exist in API v2 ....
+			//"UPDATED AT",
 		}
 		for _, str := range expectedOutput {
 			assert.Contains(t, out.String(), str,
@@ -136,7 +137,7 @@ func TestAgentTokenCommandEndToEnd(t *testing.T) {
 		errJson := json.Unmarshal(out.Bytes(), &token)
 		assert.Nil(t, errJson)
 		assert.NotEmpty(t, token, "check JSON token show response while parsing update time")
-		tokenUpdatedTime = token.LastUpdatedTime
+		//tokenUpdatedTime = token.LastUpdatedTime
 	})
 
 	t.Run("token update: disable", func(t *testing.T) {
@@ -200,26 +201,24 @@ func TestAgentTokenCommandEndToEnd(t *testing.T) {
 		errJson := json.Unmarshal(out.Bytes(), &token)
 		assert.Nil(t, errJson)
 		assert.NotEmpty(t, token, "check JSON token show response while parsing update time")
-		assert.True(t,
-			tokenUpdatedTime.Before(token.LastUpdatedTime),
-			fmt.Sprintf("the agent access token last_update_time was NOT updated! check please. (old:%s) (new:%s)",
-				tokenUpdatedTime, token.LastUpdatedTime,
-			),
-		)
+		//assert.True(t,
+		//tokenUpdatedTime.Before(token.LastUpdatedTime),
+		//fmt.Sprintf("the agent access token last_update_time was NOT updated! check please. (old:%s) (new:%s)",
+		//tokenUpdatedTime, token.LastUpdatedTime,
+		//),
+		//)
 	})
 }
 
 type agentToken struct {
-	AccessToken     string          `json:"ACCESS_TOKEN"`
-	Account         string          `json:"ACCOUNT"`
-	LastUpdatedTime time.Time       `json:"LAST_UPDATED_TIME"`
-	Props           agentTokenProps `json:"PROPS,omitempty"`
-	TokenAlias      string          `json:"TOKEN_ALIAS"`
-	Enabled         string          `json:"TOKEN_ENABLED"`
-	Version         string          `json:"VERSION"`
+	AccessToken string          `json:"accessToken"`
+	Props       agentTokenProps `json:"props,omitempty"`
+	TokenAlias  string          `json:"tokenAlias"`
+	Enabled     int             `json:"tokenEnabled"`
+	Version     string          `json:"version"`
 }
 
 type agentTokenProps struct {
-	CreatedTime time.Time `json:"CREATED_TIME,omitempty"`
-	Description string    `json:"DESCRIPTION,omitempty"`
+	CreatedTime time.Time `json:"createdTime,omitempty"`
+	Description string    `json:"description,omitempty"`
 }
