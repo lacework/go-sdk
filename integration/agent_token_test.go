@@ -65,6 +65,19 @@ func TestAgentTokenCommandList(t *testing.T) {
 		"EXITCODE is not the expected one")
 }
 
+func TestAgentTokenCommandShowNotFound(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("agent", "token", "show", "unknown_token")
+	assert.Contains(t, err.String(), "ERROR unable to get agent access token",
+		"STDERR message changed, please check")
+	//assert.Contains(t, err.String(), "[404] Not Found",
+	//"STDERR message changed, please check")
+	assert.Empty(t,
+		out.String(),
+		"STDOUT should be empty")
+	assert.Equal(t, 1, exitcode,
+		"EXITCODE is not the expected one")
+}
+
 func TestAgentTokenCommandEndToEnd(t *testing.T) {
 	var (
 		out         bytes.Buffer
