@@ -39,3 +39,9 @@ variable "docker_hub_pass" {
   default     = ""
   description = "The password for dockerhub"
 }
+
+variable "lacework_aws_account_id" {
+  type        = string
+  default     = ""
+  description = "The Aws Account"
+}
