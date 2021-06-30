@@ -272,11 +272,7 @@ func createPolicy(cmd *cobra.Command, _ []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(create.Data)
 	}
-	var policyID string
-	if len(create.Data) > 0 {
-		policyID = create.Data[0].ID
-	}
-	cli.OutputHuman(fmt.Sprintf("Policy (%s) created successfully.\n", policyID))
+	cli.OutputHuman(fmt.Sprintf("Policy (%s) created successfully.\n", create.Data.ID))
 	return nil
 }
 
@@ -354,10 +350,8 @@ func showPolicy(_ *cobra.Command, args []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policyResponse.Data)
 	}
-	if len(policyResponse.Data) == 0 {
-		return yikes("unable to show policy")
-	}
-	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policyResponse.Data)))
+	cli.OutputHuman(
+		renderSimpleTable(policyTableHeaders, policyTable([]api.Policy{policyResponse.Data})))
 	return nil
 }
 
@@ -386,10 +380,7 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(update.Data)
 	}
-	if len(update.Data) > 0 {
-		policyID = update.Data[0].ID
-	}
-	cli.OutputHuman(fmt.Sprintf("Policy (%s) updated successfully.\n", policyID))
+	cli.OutputHuman(fmt.Sprintf("Policy (%s) updated successfully.\n", update.Data.ID))
 	return nil
 }
 

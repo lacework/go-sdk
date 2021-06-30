@@ -36,23 +36,28 @@ type PolicyService struct {
 var ValidPolicySeverities = []string{"critical", "high", "medium", "low", "info"}
 
 type PolicyResponse struct {
+	Data    Policy `json:"data"`
+	Message string `json:"message"`
+}
+
+type PoliciesResponse struct {
 	Data    []Policy `json:"data"`
-	Ok      bool     `json:"ok"`
 	Message string   `json:"message"`
 }
 
 type Policy struct {
-	ID           string                 `json:"policy_id"`
+	ID           string                 `json:"policyId"`
 	Title        string                 `json:"title"`
 	Enabled      bool                   `json:"enabled"`
-	AlertEnabled bool                   `json:"alert_enabled"`
-	Frequency    string                 `json:"eval_frequency"`
+	AlertEnabled bool                   `json:"alertEnabled"`
+	Frequency    string                 `json:"evalFrequency"`
 	Severity     string                 `json:"severity"`
-	QueryID      string                 `json:"lql_id"`
-	AlertProfile string                 `json:"alert_profile"`
+	QueryID      string                 `json:"queryId"`
+	AlertProfile string                 `json:"alertProfile"`
 	Limit        int                    `json:"limit"`
 	Description  string                 `json:"description"`
 	Remediation  string                 `json:"remediation"`
+	EvaluatorId  string                 `json:"evaluatorId"`
 	Properties   map[string]interface{} `json:"properties"`
 }
 
@@ -65,25 +70,32 @@ func (svc *PolicyService) Create(policy string) (
 		err = errors.Wrap(err, "policy must be valid JSON")
 		return
 	}
-	err = svc.client.RequestEncoderDecoder("POST", apiPolicy, p, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiV2Policies, p, &response)
 	return
 }
 
-func (svc *PolicyService) GetAll() (PolicyResponse, error) {
-	return svc.GetByID("")
+func (svc *PolicyService) GetAll() (
+	response PoliciesResponse,
+	err error,
+) {
+	err = svc.client.RequestDecoder("GET", apiV2Policies, nil, &response)
+	return
 }
 
 func (svc *PolicyService) GetByID(policyID string) (
 	response PolicyResponse,
 	err error,
 ) {
-	uri := apiPolicy
-
-	if policyID != "" {
-		uri += "?POLICY_ID=" + url.QueryEscape(policyID)
+	if policyID == "" {
+		err = errors.New("policy ID must be provided")
+		return
 	}
-
-	err = svc.client.RequestDecoder("GET", uri, nil, &response)
+	err = svc.client.RequestDecoder(
+		"GET",
+		fmt.Sprintf("%s/%s", apiV2Policies, url.QueryEscape(policyID)),
+		nil,
+		&response,
+	)
 	return
 }
 
@@ -111,24 +123,26 @@ func (svc *PolicyService) Update(policyID, policy string) (
 		err = errors.New("policy ID must be provided")
 		return
 	}
-
-	uri := fmt.Sprintf("%s?POLICY_ID=%s", apiPolicy, url.QueryEscape(policyID))
-	err = svc.client.RequestEncoderDecoder("PATCH", uri, p, &response)
+	err = svc.client.RequestEncoderDecoder(
+		"PATCH",
+		fmt.Sprintf("%s/%s", apiV2Policies, url.QueryEscape(policyID)),
+		p,
+		&response,
+	)
 	return
 }
 
 func (svc *PolicyService) Delete(policyID string) (
-	response map[string]interface{}, // endpoint currently 204's so no response content
+	response PolicyResponse,
 	err error,
 ) {
 	if policyID == "" {
 		err = errors.New("policy ID must be provided")
 		return
 	}
-
 	err = svc.client.RequestDecoder(
 		"DELETE",
-		fmt.Sprintf("%s?POLICY_ID=%s", apiPolicy, url.QueryEscape(policyID)),
+		fmt.Sprintf("%s/%s", apiV2Policies, url.QueryEscape(policyID)),
 		nil,
 		&response,
 	)

@@ -84,16 +84,15 @@ const (
 	apiLQLDataSources = "v1/external/lql/dataSources"
 	apiLQLDescribe    = "v1/external/lql/describe"
 	apiLQLQuery       = "v1/external/lql/query"
-
-	// Custom Policies
-	apiPolicy = "v1/external/lqlPolicies"
+	apiPolicy         = "v1/external/lqlPolicies"
 
 	// API v2 Endpoints
 	//
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
-	apiV2UserProfile          = "v2/UserProfile"
 	apiV2CloudAccounts        = "v2/CloudAccounts"
 	apiV2CloudAccountFromGUID = "v2/CloudAccounts/%s"
+	apiV2Policies             = "v2/Policies"
+	apiV2UserProfile          = "v2/UserProfile"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
