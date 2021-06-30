@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -32,14 +33,20 @@ import (
 )
 
 const (
+	queryIDPattern         string = "(?m)^(.*?)\\s*{"
 	LQLQueryTranslateError string = "unable to translate query blob"
 )
 
 type LQLQuery struct {
-	ID             string `json:"lql_id,omitempty"`
-	StartTimeRange string `json:"start_time_range,omitempty"`
-	EndTimeRange   string `json:"end_time_range,omitempty"`
-	QueryText      string `json:"query_text"`
+	ID             string                   `json:"queryId,omitempty"`
+	StartTimeRange string                   `json:"start_time_range,omitempty"`
+	EndTimeRange   string                   `json:"end_time_range,omitempty"`
+	EvaluatorID    string                   `json:"evaluatorId"`
+	QueryText      string                   `json:"queryText"`
+	Owner          string                   `json:"owner"`
+	LastUpdateTime string                   `json:"lastUpdateTime"`
+	LastUpdateUser string                   `json:"lastUpdateUser"`
+	ResultSchema   []map[string]interface{} `json:"resultSchema"`
 	// QueryBlob is a special string that supports type conversion
 	// back and forth from LQL to JSON
 	QueryBlob string `json:"-"`
@@ -82,10 +89,23 @@ func (q *LQLQuery) Translate() error {
 	return nil
 }
 
+func (q *LQLQuery) PopulateID() error {
+	if q.QueryText == "" {
+		return errors.New("unable to extract ID from query text")
+	}
+
+	queryIDRE := regexp.MustCompile(queryIDPattern)
+	if queryIDMatches := queryIDRE.FindStringSubmatch(q.QueryText); queryIDMatches != nil {
+		q.ID = queryIDMatches[1]
+		return nil
+	}
+	return errors.New("unable to extract ID from query text")
+}
+
 func (q *LQLQuery) TranslateQuery() error {
 	// if query text is already populated
 	if q.QueryText != "" {
-		return nil
+		return q.PopulateID()
 	}
 	// valid json
 	var t LQLQuery
@@ -96,15 +116,21 @@ func (q *LQLQuery) TranslateQuery() error {
 		if q.EndTimeRange == "" {
 			q.EndTimeRange = t.EndTimeRange
 		}
+		if q.EvaluatorID == "" {
+			q.EvaluatorID = t.EvaluatorID
+		}
+		if q.ID == "" {
+			q.ID = t.ID
+		}
 		q.QueryText = t.QueryText
-		return err
+		return q.PopulateID()
 	}
 	// invalid json
 	qblob := strings.ToLower(q.QueryBlob)
 	if strings.Contains(qblob, "start_time_range") ||
 		strings.Contains(qblob, "end_time_range") ||
-		strings.Contains(qblob, "lql_id") ||
-		strings.Contains(qblob, "query_text") {
+		strings.Contains(qblob, "queryId") ||
+		strings.Contains(qblob, "queryText") {
 
 		return errors.New(LQLQueryTranslateError)
 	}
@@ -112,8 +138,7 @@ func (q *LQLQuery) TranslateQuery() error {
 	if strings.Contains(q.QueryBlob, "{") &&
 		strings.Contains(q.QueryBlob, "}") {
 		q.QueryText = q.QueryBlob
-
-		return nil
+		return q.PopulateID()
 	}
 	// invalid lql text
 	return errors.New(LQLQueryTranslateError)
@@ -173,8 +198,12 @@ func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {
 }
 
 type LQLQueryResponse struct {
+	Data    LQLQuery `json:"data"`
+	Message string   `json:"message"`
+}
+
+type LQLQueriesResponse struct {
 	Data    []LQLQuery `json:"data"`
-	Ok      bool       `json:"ok"`
 	Message string     `json:"message"`
 }
 
@@ -192,8 +221,7 @@ func (svc *LQLService) Create(query string) (
 	if err = lqlQuery.Validate(true); err != nil {
 		return
 	}
-
-	err = svc.client.RequestEncoderDecoder("POST", apiLQL, lqlQuery, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiV2LQL, lqlQuery, &response)
 	return
 }
 
@@ -205,26 +233,37 @@ func (svc *LQLService) Update(query string) (
 	if err = lqlQuery.Validate(true); err != nil {
 		return
 	}
-
-	err = svc.client.RequestEncoderDecoder("PATCH", apiLQL, lqlQuery, &response)
+	err = svc.client.RequestEncoderDecoder(
+		"PATCH",
+		fmt.Sprintf("%s/%s", apiV2LQL, url.QueryEscape(lqlQuery.ID)),
+		lqlQuery,
+		&response,
+	)
 	return
 }
 
-func (svc *LQLService) GetQueries() (LQLQueryResponse, error) {
-	return svc.GetByID("")
+func (svc *LQLService) GetQueries() (
+	response LQLQueriesResponse,
+	err error,
+) {
+	err = svc.client.RequestDecoder("GET", apiV2LQL, nil, &response)
+	return
 }
 
 func (svc *LQLService) GetByID(queryID string) (
 	response LQLQueryResponse,
 	err error,
 ) {
-	uri := apiLQL
-
-	if queryID != "" {
-		uri += "?LQL_ID=" + url.QueryEscape(queryID)
+	if queryID == "" {
+		err = errors.New("query ID must be provided")
+		return
 	}
-
-	err = svc.client.RequestDecoder("GET", uri, nil, &response)
+	err = svc.client.RequestDecoder(
+		"GET",
+		fmt.Sprintf("%s/%s", apiV2LQL, url.QueryEscape(queryID)),
+		nil,
+		&response,
+	)
 	return
 }
 

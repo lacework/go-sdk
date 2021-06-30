@@ -44,6 +44,9 @@ func queryIDTable(queryData []api.LQLQuery) (out [][]string) {
 	for _, lqlQuery := range queryData {
 		out = append(out, []string{
 			lqlQuery.ID,
+			lqlQuery.Owner,
+			lqlQuery.LastUpdateTime,
+			lqlQuery.LastUpdateUser,
 		})
 	}
 	return
@@ -66,7 +69,7 @@ func listQueries(_ *cobra.Command, args []string) error {
 	}
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"Query ID"},
+			[]string{"Query ID", "Owner", "Last Update Time", "Last Update User"},
 			queryIDTable(queryResponse.Data),
 		),
 	)

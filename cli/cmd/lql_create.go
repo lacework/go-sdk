@@ -59,10 +59,7 @@ func createQuery(cmd *cobra.Command, args []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(create.Data)
 	}
-	queryID := "unknown"
-	if len(create.Data) > 0 {
-		queryID = create.Data[0].ID
-	}
-	cli.OutputHuman(fmt.Sprintf("LQL query (%s) created successfully.\n", queryID))
+	cli.OutputHuman(
+		fmt.Sprintf("LQL query (%s) created successfully.\n", create.Data.ID))
 	return nil
 }

@@ -30,16 +30,17 @@ import (
 )
 
 var (
-	lqlUpdateData = `[{
-	"lql_id": "my_lql",
-	"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
-}]`
+	lqlUpdateData = `{
+	"queryId": "my_lql",
+	"queryText": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
+}`
 )
 
 func TestLQLUpdateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "PATCH", r.Method, "Update should be a PATCH method")
 			fmt.Fprint(w, "{}")
@@ -59,8 +60,9 @@ func TestLQLUpdateMethod(t *testing.T) {
 
 func TestLQLUpdateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -81,8 +83,9 @@ func TestLQLUpdateOK(t *testing.T) {
 	mockResponse := mockLQLDataResponse(lqlUpdateData)
 
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -107,10 +110,11 @@ func TestLQLUpdateOK(t *testing.T) {
 
 func TestLQLUpdateNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql/compile",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, lqlUnableResponse, http.StatusBadRequest)
+			http.Error(w, lqlErrorReponse, http.StatusBadRequest)
 		},
 	)
 	defer fakeServer.Close()

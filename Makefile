@@ -41,6 +41,16 @@ integration: build-cli-cross-platform integration-only
 integration-only:
 	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m
 
+integration-lql: build-cli-cross-platform integration-lql-only
+
+integration-lql-only:
+	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -run TestQuery* -timeout 30m
+
+integration-policy: build-cli-cross-platform integration-policy-only
+
+integration-policy-only:
+	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -run TestPolicy* -timeout 30m
+
 coverage: test
 	go tool cover -func=$(COVERAGEOUT)
 

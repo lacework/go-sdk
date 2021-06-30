@@ -25,17 +25,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	lqlDeleteBadInputMsg string = "query ID must be provided"
-)
-
 type LQLDeleteResponse struct {
-	Ok      bool             `json:"ok"`
-	Message LQLDeleteMessage `json:"message"`
-}
-
-type LQLDeleteMessage struct {
-	ID string `json:"lqlDeleted"`
+	Message string `json:"message"`
 }
 
 func (svc *LQLService) Delete(queryID string) (
@@ -43,13 +34,12 @@ func (svc *LQLService) Delete(queryID string) (
 	err error,
 ) {
 	if queryID == "" {
-		err = errors.New(lqlDeleteBadInputMsg)
+		err = errors.New("query ID must be provided")
 		return
 	}
-
 	err = svc.client.RequestDecoder(
 		"DELETE",
-		fmt.Sprintf("%s?LQL_ID=%s", apiLQL, url.QueryEscape(queryID)),
+		fmt.Sprintf("%s/%s", apiV2LQL, url.QueryEscape(queryID)),
 		nil,
 		&response,
 	)

@@ -28,28 +28,23 @@ import (
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
 	"github.com/lacework/go-sdk/lwtime"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
 	lqlQueryID    = "my_lql"
 	lqlQueryStr   = "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-	lqlCreateData = `[{
-	"lql_id": "my_lql",
-	"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-}]`
+	lqlCreateData = fmt.Sprintf(`{
+	"queryID": "my_lql",
+	"queryText": "%s"
+}`, lqlQueryStr)
 	lqlRunData = `[
 	{
 		"INSERT_ID": "35308423"
 	}
 ]`
-	lqlErrorReponse = mockLQLDataResponse(
-		`{ "message": "Error Serving Request" }`,
-	)
-	lqlUnableResponse = mockLQLErrorResponse(
-		`"{\"error\":\"Error: Unable to locate lql query NoSuchQuery, please double check the query exists and has not already been updated.\"}"`,
-		"false",
-	)
+	lqlErrorReponse = `{ "message": "This is an error message" }`
 )
 
 type LQLTranslateTimeTest struct {
@@ -256,8 +251,68 @@ func TestLQLValidate(t *testing.T) {
 type LQLQueryTest struct {
 	Name     string
 	Input    *api.LQLQuery
-	Return   interface{}
+	Return   error
 	Expected *api.LQLQuery
+}
+
+var lqlQueryPopulateIDTests = []LQLQueryTest{
+	LQLQueryTest{
+		Name:     "empty",
+		Input:    &api.LQLQuery{},
+		Return:   errors.New("unable to extract ID from query text"),
+		Expected: &api.LQLQuery{},
+	},
+	LQLQueryTest{
+		Name: "junk",
+		Input: &api.LQLQuery{
+			QueryText: "this is junk",
+		},
+		Return: errors.New("unable to extract ID from query text"),
+		Expected: &api.LQLQuery{
+			QueryText: "this is junk",
+		},
+	},
+	LQLQueryTest{
+		Name: "simple",
+		Input: &api.LQLQuery{
+			QueryText: lqlQueryStr,
+		},
+		Return: nil,
+		Expected: &api.LQLQuery{
+			ID:        lqlQueryID,
+			QueryText: lqlQueryStr,
+		},
+	},
+	LQLQueryTest{
+		Name: "newlines",
+		Input: &api.LQLQuery{
+			QueryText: `
+-- a comment
+my query {
+}`,
+		},
+		Return: nil,
+		Expected: &api.LQLQuery{
+			ID: "my query",
+			QueryText: `
+-- a comment
+my query {
+}`,
+		},
+	},
+}
+
+func TestLQLQueryPopulateID(t *testing.T) {
+	for _, lqlQueryTest := range lqlQueryPopulateIDTests {
+		t.Run(lqlQueryTest.Name, func(t *testing.T) {
+			if err := lqlQueryTest.Input.PopulateID(); err == nil {
+				assert.Equal(t, lqlQueryTest.Return, err)
+			} else {
+				assert.Equal(t, lqlQueryTest.Return.Error(), err.Error())
+			}
+			assert.Equal(t, lqlQueryTest.Expected, lqlQueryTest.Input)
+		})
+	}
 }
 
 var lqlQueryTypeTests = []LQLQueryTest{
@@ -266,7 +321,7 @@ var lqlQueryTypeTests = []LQLQueryTest{
 		Input: &api.LQLQuery{
 			QueryBlob: ``,
 		},
-		Return: api.LQLQueryTranslateError,
+		Return: errors.New(api.LQLQueryTranslateError),
 		Expected: &api.LQLQuery{
 			QueryText: ``,
 			QueryBlob: ``,
@@ -277,7 +332,7 @@ var lqlQueryTypeTests = []LQLQueryTest{
 		Input: &api.LQLQuery{
 			QueryBlob: `this is junk`,
 		},
-		Return: api.LQLQueryTranslateError,
+		Return: errors.New(api.LQLQueryTranslateError),
 		Expected: &api.LQLQuery{
 			QueryText: ``,
 			QueryBlob: `this is junk`,
@@ -288,7 +343,7 @@ var lqlQueryTypeTests = []LQLQueryTest{
 		Input: &api.LQLQuery{
 			QueryBlob: `{`,
 		},
-		Return: api.LQLQueryTranslateError,
+		Return: errors.New(api.LQLQueryTranslateError),
 		Expected: &api.LQLQuery{
 			QueryText: ``,
 			QueryBlob: `{`,
@@ -297,54 +352,57 @@ var lqlQueryTypeTests = []LQLQueryTest{
 	LQLQueryTest{
 		Name: "json-blob",
 		Input: &api.LQLQuery{
-			QueryBlob: `{
+			QueryBlob: fmt.Sprintf(`{
 "start_time_range": "678910",
 "end_time_range": "111213141516",
-"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-}`,
+"queryText": "%s"
+}`, lqlQueryStr),
 		},
 		Return: nil,
 		Expected: &api.LQLQuery{
 			StartTimeRange: "1970-01-01T00:11:18Z",
 			EndTimeRange:   "1973-07-11T04:32:21Z",
-			QueryText:      "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }",
-			QueryBlob: `{
+			ID:             lqlQueryID,
+			QueryText:      lqlQueryStr,
+			QueryBlob: fmt.Sprintf(`{
 "start_time_range": "678910",
 "end_time_range": "111213141516",
-"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-}`,
+"queryText": "%s"
+}`, lqlQueryStr),
 		},
 	},
 	LQLQueryTest{
 		Name: "json-blob-lower",
 		Input: &api.LQLQuery{
-			QueryBlob: `{
+			QueryBlob: fmt.Sprintf(`{
 "start_time_range": "678910",
 "end_time_range": "111213141516",
-"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-}`,
+"queryText": "%s"
+}`, lqlQueryStr),
 		},
 		Return: nil,
 		Expected: &api.LQLQuery{
 			StartTimeRange: "1970-01-01T00:11:18Z",
 			EndTimeRange:   "1973-07-11T04:32:21Z",
-			QueryText:      "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }",
-			QueryBlob: `{
+			ID:             lqlQueryID,
+			QueryText:      lqlQueryStr,
+			QueryBlob: fmt.Sprintf(`{
 "start_time_range": "678910",
 "end_time_range": "111213141516",
-"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-}`,
+"queryText": "%s"
+}`, lqlQueryStr),
 		},
 	},
 	LQLQueryTest{
 		Name: "lql-blob",
 		Input: &api.LQLQuery{
-			QueryBlob: "--a comment\nmy_lql { source { CloudTrailRawEvents } return { INSERT_ID } }",
+			QueryBlob: fmt.Sprintf("--a comment\n%s", lqlQueryStr),
 		},
 		Return: nil,
 		Expected: &api.LQLQuery{
-			QueryText: "--a comment\nmy_lql { source { CloudTrailRawEvents } return { INSERT_ID } }",
-			QueryBlob: "--a comment\nmy_lql { source { CloudTrailRawEvents } return { INSERT_ID } }",
+			ID:        lqlQueryID,
+			QueryText: fmt.Sprintf("--a comment\n%s", lqlQueryStr),
+			QueryBlob: fmt.Sprintf("--a comment\n%s", lqlQueryStr),
 		},
 	},
 	LQLQueryTest{
@@ -353,22 +411,23 @@ var lqlQueryTypeTests = []LQLQueryTest{
 			StartTimeRange: "0",
 			EndTimeRange:   "1",
 			QueryText:      "should not overwrite",
-			QueryBlob: `{
+			QueryBlob: fmt.Sprintf(`{
 "start_time_range": "678910",
 "end_time_range": "111213141516",
-"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-}`,
+"queryText": "%s"
+}`, lqlQueryStr),
 		},
-		Return: nil,
+		Return: errors.New("unable to extract ID from query text"),
 		Expected: &api.LQLQuery{
-			StartTimeRange: "1970-01-01T00:00:00Z",
-			EndTimeRange:   "1970-01-01T00:00:00Z",
+			StartTimeRange: "0",
+			EndTimeRange:   "1",
+			ID:             "",
 			QueryText:      "should not overwrite",
-			QueryBlob: `{
+			QueryBlob: fmt.Sprintf(`{
 "start_time_range": "678910",
 "end_time_range": "111213141516",
-"query_text": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-}`,
+"queryText": "%s"
+}`, lqlQueryStr),
 		},
 	},
 }
@@ -379,7 +438,7 @@ func TestLQLQueryTranslate(t *testing.T) {
 			if err := lqlQueryTest.Input.Translate(); err == nil {
 				assert.Equal(t, lqlQueryTest.Return, err)
 			} else {
-				assert.Equal(t, lqlQueryTest.Return, err.Error())
+				assert.Equal(t, lqlQueryTest.Return.Error(), err.Error())
 			}
 			assert.Equal(t, lqlQueryTest.Expected, lqlQueryTest.Input)
 		})
@@ -388,31 +447,15 @@ func TestLQLQueryTranslate(t *testing.T) {
 
 func mockLQLDataResponse(data string) string {
 	return `{
-	"data": ` + data + `,
-	"ok": true,
-	"message": "SUCCESS"
-}`
-}
-
-func mockLQLErrorResponse(message string, ok string) string {
-	return `{
-		"ok": ` + ok + `,
-		"data": { "message": {` + message + `} }
-	}`
-}
-
-func mockLQLMessageResponse(message string) string {
-	return `{
-	"ok": true,
-	"message": {` + message + `
-	}
+	"data": ` + data + `
 }`
 }
 
 func TestLQLCreateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method, "Create should be a POST method")
 			fmt.Fprint(w, "{}")
@@ -433,7 +476,7 @@ func TestLQLCreateMethod(t *testing.T) {
 func TestLQLCreateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -454,8 +497,9 @@ func TestLQLCreateOK(t *testing.T) {
 	mockResponse := mockLQLDataResponse(lqlCreateData)
 
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -480,8 +524,9 @@ func TestLQLCreateOK(t *testing.T) {
 
 func TestLQLCreateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
 		},
@@ -500,16 +545,11 @@ func TestLQLCreateError(t *testing.T) {
 
 func TestLQLGetQueriesMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "Get should be a GET method")
-			assert.NotSubset(
-				t,
-				[]byte(r.RequestURI),
-				[]byte("external/lql?LQL_ID"),
-				"GetQueries should not specify LQL_ID argument",
-			)
 			fmt.Fprint(w, "{}")
 		},
 	)
@@ -529,9 +569,11 @@ func TestLQLGetQueryByIDOK(t *testing.T) {
 	mockResponse := mockLQLDataResponse(lqlCreateData)
 
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Get should be a GET method")
 			fmt.Fprint(w, mockResponse)
 		},
 	)
@@ -555,10 +597,11 @@ func TestLQLGetQueryByIDOK(t *testing.T) {
 
 func TestLQLGetByIDNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries",
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, lqlUnableResponse, http.StatusBadRequest)
+			http.Error(w, lqlErrorReponse, http.StatusBadRequest)
 		},
 	)
 	defer fakeServer.Close()
@@ -645,7 +688,7 @@ func TestLQLRunOK(t *testing.T) {
 func TestLQLRunError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		"external/lql",
+		"external/lql/query",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
 		},
@@ -658,6 +701,6 @@ func TestLQLRunError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Create(lqlQueryStr)
+	_, err = c.LQL.Run(lqlQueryStr, "0", "1")
 	assert.NotNil(t, err)
 }

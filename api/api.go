@@ -91,9 +91,10 @@ const (
 	// API v2 Endpoints
 	//
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
-	apiV2UserProfile          = "v2/UserProfile"
 	apiV2CloudAccounts        = "v2/CloudAccounts"
 	apiV2CloudAccountFromGUID = "v2/CloudAccounts/%s"
+	apiV2LQL                  = "v2/Queries"
+	apiV2UserProfile          = "v2/UserProfile"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

@@ -49,9 +49,6 @@ func showQuery(_ *cobra.Command, args []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)
 	}
-	if len(queryResponse.Data) == 0 {
-		return yikes("unable to show LQL query")
-	}
-	cli.OutputHuman(queryResponse.Data[0].QueryText)
+	cli.OutputHuman(queryResponse.Data.QueryText)
 	return nil
 }

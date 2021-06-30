@@ -185,8 +185,8 @@ func inputQueryFromEnv(queryID string) (query string, err error) {
 	var queryResponse api.LQLQueryResponse
 
 	queryResponse, err = cli.LwApi.LQL.GetByID(queryID)
-	if err == nil && len(queryResponse.Data) != 0 {
-		query = queryResponse.Data[0].QueryText
+	if err == nil {
+		query = queryResponse.Data.QueryText
 	}
 	return
 }
@@ -249,8 +249,8 @@ func queryErrorCrumbs(query string, err error) error {
 	query = strings.ToLower(query)
 	if strings.Contains(query, "start_time_range") ||
 		strings.Contains(query, "end_time_range") ||
-		strings.Contains(query, "lql_id") ||
-		strings.Contains(query, "query_text") {
+		strings.Contains(query, "queryId") ||
+		strings.Contains(query, "queryText") {
 
 		return errors.New(`invalid query
 
@@ -258,7 +258,7 @@ It looks like you attempted to submit an LQL query in JSON format.
 Please validate that the JSON is formatted properly and adheres to the following schema:
 
 {
-	"query_text": "MyLQL { source { CloudTrailRawEvents } filter { EVENT_SOURCE = 's3.amazonaws.com' } return { INSERT_ID } }"
+	"queryText": "MyLQL { source { CloudTrailRawEvents } filter { EVENT_SOURCE = 's3.amazonaws.com' } return { INSERT_ID } }"
 }`)
 	}
 	// smells like plain text

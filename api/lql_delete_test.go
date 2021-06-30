@@ -31,16 +31,11 @@ import (
 
 func TestLQLDeleteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "DELETE", r.Method, "Delete should be a DELETE method")
-			assert.Subset(
-				t,
-				[]byte(r.RequestURI),
-				[]byte("external/lql?LQL_ID=my_lql"),
-				"Delete should specify LQL_ID argument",
-			)
 			fmt.Fprint(w, "{}")
 		},
 	)
@@ -53,13 +48,15 @@ func TestLQLDeleteMethod(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = c.LQL.Delete(lqlQueryID)
+	fmt.Println(err)
 	assert.Nil(t, err)
 }
 
 func TestLQLDeleteBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -77,13 +74,14 @@ func TestLQLDeleteBadInput(t *testing.T) {
 }
 
 func TestLQLDeleteOK(t *testing.T) {
-	mockResponse := mockLQLMessageResponse(fmt.Sprintf(`"lqlDeleted": "%s"`, lqlQueryID))
 
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, mockResponse)
+			// send the headers with a 204 response code.
+			w.WriteHeader(http.StatusNoContent)
 		},
 	)
 	defer fakeServer.Close()
@@ -95,7 +93,7 @@ func TestLQLDeleteOK(t *testing.T) {
 	assert.Nil(t, err)
 
 	deleteExpected := api.LQLDeleteResponse{}
-	_ = json.Unmarshal([]byte(mockResponse), &deleteExpected)
+	_ = json.Unmarshal([]byte(""), &deleteExpected)
 
 	var deleteActual api.LQLDeleteResponse
 	deleteActual, err = c.LQL.Delete(lqlQueryID)
@@ -106,10 +104,11 @@ func TestLQLDeleteOK(t *testing.T) {
 
 func TestLQLDeleteNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql/compile",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, lqlUnableResponse, http.StatusBadRequest)
+			http.Error(w, lqlErrorReponse, http.StatusBadRequest)
 		},
 	)
 	defer fakeServer.Close()
