@@ -196,6 +196,11 @@ func (c *cliState) NewClient() error {
 		apiOpts = append(apiOpts, api.WithApiV2())
 	}
 
+	if c.OrgLevel {
+		c.Log.Debug("accessing organization level data sets")
+		apiOpts = append(apiOpts, api.WithOrgAccess())
+	}
+
 	if os.Getenv("LW_API_SERVER_URL") != "" {
 		apiOpts = append(apiOpts, api.WithURL(os.Getenv("LW_API_SERVER_URL")))
 	}
@@ -317,6 +322,11 @@ func (c *cliState) loadStateFromViper() {
 	if v := viper.GetString("subaccount"); v != "" {
 		c.Subaccount = v
 		c.Log.Debugw("state updated", "subaccount", c.Subaccount)
+	}
+
+	if viper.GetBool("organization") {
+		c.OrgLevel = true
+		c.Log.Debugw("state updated", "organization", "true")
 	}
 }
 
