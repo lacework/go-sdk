@@ -78,7 +78,7 @@ func TestConfigureCommandForFrankfurtDatacenter(t *testing.T) {
 }
 
 func TestConfigureCommandForOrgAdmins(t *testing.T) {
-	if os.Getenv("CI_ORG_ACCOUNT") == "" {
+	if os.Getenv("CI_STANDALONE_ACCOUNT") != "" {
 		t.Skip("skipping organizational account test")
 	}
 	_, laceworkTOML := runConfigureTest(t,
