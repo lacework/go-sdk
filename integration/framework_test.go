@@ -21,7 +21,6 @@ package integration
 import (
 	"bytes"
 	"fmt"
-	"github.com/lacework/go-sdk/api"
 	"io/ioutil"
 	"log"
 	"os"
@@ -29,6 +28,8 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+
+	"github.com/lacework/go-sdk/api"
 
 	"github.com/lacework/go-sdk/lwupdater"
 )
@@ -250,7 +251,7 @@ func storeFileInCircleCI(f string) {
 	}
 }
 
-func laceworkIntegrationTestClient() (*api.Client, error){
+func laceworkIntegrationTestClient() (*api.Client, error) {
 	fmt.Println("Setting up host tests")
 	account := os.Getenv("CI_ACCOUNT")
 	key := os.Getenv("CI_API_KEY")
