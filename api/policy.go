@@ -46,19 +46,24 @@ type PoliciesResponse struct {
 }
 
 type Policy struct {
-	ID           string                 `json:"policyId"`
-	Title        string                 `json:"title"`
-	Enabled      bool                   `json:"enabled"`
-	AlertEnabled bool                   `json:"alertEnabled"`
-	Frequency    string                 `json:"evalFrequency"`
-	Severity     string                 `json:"severity"`
-	QueryID      string                 `json:"queryId"`
-	AlertProfile string                 `json:"alertProfile"`
-	Limit        int                    `json:"limit"`
-	Description  string                 `json:"description"`
-	Remediation  string                 `json:"remediation"`
-	EvaluatorId  string                 `json:"evaluatorId"`
-	Properties   map[string]interface{} `json:"properties"`
+	EvaluatorID    string                 `json:"evaluatorId"`
+	ID             string                 `json:"policyId"`
+	Type           string                 `json:"policyType"`
+	QueryID        string                 `json:"queryId"`
+	Title          string                 `json:"title"`
+	Enabled        bool                   `json:"enabled"`
+	Description    string                 `json:"description"`
+	Remediation    string                 `json:"remediation"`
+	Severity       string                 `json:"severity"`
+	Limit          int                    `json:"limit"`
+	Frequency      string                 `json:"evalFrequency"`
+	AlertEnabled   bool                   `json:"alertEnabled"`
+	AlertProfile   string                 `json:"alertProfile"`
+	Owner          string                 `json:"owner"`
+	LastUpdateTime string                 `json:"lastUpdateTime"`
+	LastUpdateUser string                 `json:"lastUpdateUser"`
+	PolicyUI       map[string]string      `json:"policyUi"`
+	Properties     map[string]interface{} `json:"properties"`
 }
 
 func (svc *PolicyService) Create(policy string) (
