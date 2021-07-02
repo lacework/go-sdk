@@ -39,7 +39,7 @@ func (svc *LQLService) Delete(queryID string) (
 	}
 	err = svc.client.RequestDecoder(
 		"DELETE",
-		fmt.Sprintf("%s/%s", apiV2LQL, url.QueryEscape(queryID)),
+		fmt.Sprintf("%s/%s", apiV2Queries, url.QueryEscape(queryID)),
 		nil,
 		&response,
 	)

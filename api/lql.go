@@ -113,7 +113,7 @@ func (svc *LQLService) Create(q string) (
 	if query, err = ParseQuery(q); err != nil {
 		return
 	}
-	err = svc.client.RequestEncoderDecoder("POST", apiV2LQL, query, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiV2Queries, query, &response)
 	return
 }
 
@@ -127,7 +127,7 @@ func (svc *LQLService) Update(q string) (
 	}
 	err = svc.client.RequestEncoderDecoder(
 		"PATCH",
-		fmt.Sprintf("%s/%s", apiV2LQL, url.QueryEscape(query.ID)),
+		fmt.Sprintf("%s/%s", apiV2Queries, url.QueryEscape(query.ID)),
 		query,
 		&response,
 	)
@@ -138,7 +138,7 @@ func (svc *LQLService) GetQueries() (
 	response LQLQueriesResponse,
 	err error,
 ) {
-	err = svc.client.RequestDecoder("GET", apiV2LQL, nil, &response)
+	err = svc.client.RequestDecoder("GET", apiV2Queries, nil, &response)
 	return
 }
 
@@ -152,7 +152,7 @@ func (svc *LQLService) GetByID(queryID string) (
 	}
 	err = svc.client.RequestDecoder(
 		"GET",
-		fmt.Sprintf("%s/%s", apiV2LQL, url.QueryEscape(queryID)),
+		fmt.Sprintf("%s/%s", apiV2Queries, url.QueryEscape(queryID)),
 		nil,
 		&response,
 	)

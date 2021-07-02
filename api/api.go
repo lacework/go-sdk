@@ -92,7 +92,7 @@ const (
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
 	apiV2CloudAccounts        = "v2/CloudAccounts"
 	apiV2CloudAccountFromGUID = "v2/CloudAccounts/%s"
-	apiV2LQL                  = "v2/Queries"
+	apiV2Queries              = "v2/Queries"
 	apiV2UserProfile          = "v2/UserProfile"
 )
 
