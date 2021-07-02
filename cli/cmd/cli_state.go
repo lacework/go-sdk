@@ -216,7 +216,7 @@ func (c *cliState) NewClient() error {
 
 // InteractiveMode returns true if the cli is running in interactive mode
 func (c *cliState) InteractiveMode() bool {
-	return !c.nonInteractive && !c.csvOutput
+	return !c.nonInteractive && !c.csvOutput && !c.jsonOutput
 }
 
 // NonInteractive turns off interactive mode, that is, no progress bars and spinners
