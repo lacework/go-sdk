@@ -242,15 +242,13 @@ func inputQueryFromEditor(action string) (query string, err error) {
 
 func queryErrorCrumbs(query string, err error) error {
 	// not the error we're looking for
-	if !strings.Contains(fmt.Sprintf("%s", err), "unable to translate query blob") {
+	if !strings.Contains(fmt.Sprintf("%s", err), "query must be valid JSON or YAML") {
 		return err
 	}
 	// smells like json
-	query = strings.ToLower(query)
-	if strings.Contains(query, "start_time_range") ||
-		strings.Contains(query, "end_time_range") ||
-		strings.Contains(query, "queryId") ||
-		strings.Contains(query, "queryText") {
+	query = strings.TrimSpace(query)
+	if strings.HasPrefix(query, "[") ||
+		strings.HasPrefix(query, "{") {
 
 		return errors.New(`invalid query
 
@@ -258,26 +256,32 @@ It looks like you attempted to submit an LQL query in JSON format.
 Please validate that the JSON is formatted properly and adheres to the following schema:
 
 {
-	"queryText": "MyLQL { source { CloudTrailRawEvents } filter { EVENT_SOURCE = 's3.amazonaws.com' } return { INSERT_ID } }"
-}`)
+    "evaluatorId": "Cloudtrail",
+    "queryId": "MyLQL",
+    "queryText": "MyLQL { source { CloudTrailRawEvents } filter { EVENT_SOURCE = 's3.amazonaws.com' } return { INSERT_ID } }"
+}
+`)
 	}
 	// smells like plain text
 	return errors.New(`invalid query
 	
-It looks like you attempted to submit an LQL query in plain text format.
+It looks like you attempted to submit an LQL query in YAML format.
 Please validate that the text adheres to the following schema:
 
-MyLQL {
-	source {
-		CloudTrailRawEvents
-	}
-	filter {
-		EVENT_SOURCE = 's3.amazonaws.com'
-	}
-	return {
-		INSERT_ID
-	}
-}
+evaluatorId: Cloudtrail
+queryId: MyLQL
+queryText: |-
+  MyLQL {
+      source {
+          CloudTrailRawEvents
+      }
+      filter {
+          EVENT_SOURCE = 's3.amazonaws.com'
+      }
+      return {
+          INSERT_ID
+      }
+  }"
 `)
 }
 
