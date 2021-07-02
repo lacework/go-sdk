@@ -79,7 +79,6 @@ const (
 	apiAccountOrganizationInfo = "v1/external/account/organizationInfo"
 
 	// Alpha
-	apiLQL            = "v1/external/lql"
 	apiLQLCompile     = "v1/external/lql/compile"
 	apiLQLDataSources = "v1/external/lql/dataSources"
 	apiLQLDescribe    = "v1/external/lql/describe"
