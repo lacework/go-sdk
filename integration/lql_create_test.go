@@ -62,7 +62,8 @@ func TestQueryCreateFile(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(queryText))
+	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText)
+	_, err = file.Write([]byte(query))
 	if err != nil {
 		t.FailNow()
 	}

@@ -19,9 +19,13 @@
 package api
 
 type LQLDataSourcesResponse struct {
-	Data    []string `json:"data"`
-	Ok      bool     `json:"ok"`
-	Message string   `json:"message"`
+	Data    []LQLDataSources `json:"data"`
+	Ok      bool             `json:"ok"`
+	Message string           `json:"message"`
+}
+
+type LQLDataSources struct {
+	DataSources []string `json:"datasources"`
 }
 
 func (svc *LQLService) DataSources() (

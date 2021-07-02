@@ -19,6 +19,7 @@
 package integration
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -28,10 +29,16 @@ import (
 )
 
 const (
-	queryID     string = "LW_CLI_AWS_CTA_IntegrationTest"
-	queryText   string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID } }"
-	queryUpdate string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
-	queryURL    string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/LW_CLI_AWS_CTA_IntegrationTest.lql"
+	evaluatorID       string = "Cloudtrail"
+	queryID           string = "LW_CLI_AWS_CTA_IntegrationTest"
+	queryText         string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID } }"
+	queryUpdateText   string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
+	queryJSONTemplate string = `{
+	"evaluatorID": "%s",
+	"queryID": "%s",
+	"queryText": "%s"
+}`
+	queryURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/LW_CLI_AWS_CTA_IntegrationTest.yaml"
 )
 
 var (
@@ -197,7 +204,8 @@ func TestQueryRunFile(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(queryText))
+	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText)
+	_, err = file.Write([]byte(query))
 	if err != nil {
 		t.FailNow()
 	}

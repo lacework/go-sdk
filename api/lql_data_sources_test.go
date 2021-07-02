@@ -51,12 +51,13 @@ func TestLQLDataSourcesMethod(t *testing.T) {
 }
 
 func TestLQLDataSourcesOK(t *testing.T) {
-	dataSources := []string{"CloudTrailRawEvents"}
-	var dataSourcesData string
-	if dataSourcesBytes, err := json.Marshal(dataSources); err == nil {
-		dataSourcesData = string(dataSourcesBytes)
+	dataSourcesData := `[
+	{
+		"datasources": [
+		"CloudTrailRawEvents"
+		]
 	}
-
+]`
 	mockResponse := mockLQLDataResponse(dataSourcesData)
 
 	fakeServer := lacework.MockServer()

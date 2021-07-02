@@ -62,7 +62,8 @@ func TestQueryUpdateFile(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(queryUpdate))
+	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText)
+	_, err = file.Write([]byte(query))
 	if err != nil {
 		t.FailNow()
 	}
@@ -97,7 +98,8 @@ func TestQueryUpdateURL(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(queryUpdate))
+	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText)
+	_, err = file.Write([]byte(query))
 	if err != nil {
 		t.FailNow()
 	}
