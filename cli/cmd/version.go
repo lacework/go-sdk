@@ -118,6 +118,10 @@ func dailyVersionCheck() error {
 		return nil
 	}
 
+	if !cli.InteractiveMode() {
+		return nil
+	}
+
 	cacheDir, err := versionCacheDir()
 	if err != nil {
 		return err
