@@ -92,9 +92,9 @@ func TestPolicyCreateFile(t *testing.T) {
 		t.Skip("skipping test in production mode")
 	}
 	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// get temp file
 	file, err := ioutil.TempFile("", "TestPolicyCreateFile")
@@ -148,9 +148,9 @@ func TestPolicyCreateURL(t *testing.T) {
 		t.Skip("skipping test in production mode")
 	}
 	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// create (output human)
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
@@ -336,9 +336,9 @@ func TestPolicyDelete(t *testing.T) {
 	}
 
 	// setup query
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown query
-	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 	// setup policy
 	LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
 

@@ -54,18 +54,18 @@ func TestQueryValidateID(t *testing.T) {
 		t.Skip("skipping test in production mode")
 	}
 	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// validate
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", lqlQueryID)
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", queryID)
 	assert.Contains(t, out.String(), "LQL query validated successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "validate", lqlQueryID, "--json")
-	assert.Contains(t, out.String(), `"`+lqlQueryID+`"`)
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "validate", queryID, "--json")
+	assert.Contains(t, out.String(), `"`+queryID+`"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
@@ -82,7 +82,7 @@ func TestQueryValidateFile(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(lqlQueryText))
+	_, err = file.Write([]byte(queryText))
 	if err != nil {
 		t.FailNow()
 	}
@@ -100,7 +100,7 @@ func TestQueryValidateURL(t *testing.T) {
 		t.Skip("skipping test in production mode")
 	}
 	// validate
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-u", lqlQueryURL)
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-u", queryURL)
 	assert.Contains(t, out.String(), "LQL query validated successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")

@@ -33,12 +33,19 @@ import (
 )
 
 var (
-	lqlQueryID    = "my_lql"
-	lqlQueryStr   = "my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }"
-	lqlCreateData = fmt.Sprintf(`{
-	"queryID": "my_lql",
+	queryEvaluator = "Cloudtrail"
+	queryID        = "my_lql"
+	queryText      = `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`
+	queryJSON      = fmt.Sprintf(`{
+	"evaluatorId": "%s",
+	"queryId": "%s",
 	"queryText": "%s"
-}`, lqlQueryStr)
+}`, queryEvaluator, queryID, queryText)
+	queryYAML = fmt.Sprintf(`---
+evaluatorId: %s
+queryId: %s
+queryText: %s
+`, queryEvaluator, queryID, queryText)
 	lqlRunData = `[
 	{
 		"INSERT_ID": "35308423"
@@ -47,400 +54,180 @@ var (
 	lqlErrorReponse = `{ "message": "This is an error message" }`
 )
 
-type LQLTranslateTimeTest struct {
+type LQLParseQueryTimeTest struct {
 	Name       string
 	Input      string
 	ReturnTime string
-	ReturnErr  interface{}
+	ReturnErr  error
 }
 
 var (
-	atDay, _              = lwtime.ParseRelative("@d")
-	lqlTranslateTimeTests = []LQLTranslateTimeTest{
-		LQLTranslateTimeTest{
+	atDay, _               = lwtime.ParseRelative("@d")
+	lqlParseQueryTimeTests = []LQLParseQueryTimeTest{
+		LQLParseQueryTimeTest{
 			Name:       "valid-rfc-utc",
 			Input:      "2021-03-31T00:00:00Z",
 			ReturnTime: "2021-03-31T00:00:00Z",
 			ReturnErr:  nil,
 		},
-		LQLTranslateTimeTest{
+		LQLParseQueryTimeTest{
 			Name:       "valid-rfc-central",
 			Input:      "2021-03-31T00:00:00-05:00",
 			ReturnTime: "2021-03-31T05:00:00Z",
 			ReturnErr:  nil,
 		},
-		LQLTranslateTimeTest{
+		LQLParseQueryTimeTest{
 			Name:       "valid-milli",
 			Input:      "1617230464000",
 			ReturnTime: "2021-03-31T22:41:04Z",
 			ReturnErr:  nil,
 		},
-		LQLTranslateTimeTest{
+		LQLParseQueryTimeTest{
 			Name:       "valid-relative",
 			Input:      "@d",
 			ReturnTime: atDay.UTC().Format(time.RFC3339),
 			ReturnErr:  nil,
 		},
-		LQLTranslateTimeTest{
+		LQLParseQueryTimeTest{
 			Name:       "empty",
 			Input:      "",
-			ReturnTime: "",
-			ReturnErr:  nil,
+			ReturnTime: "0001-01-01T00:00:00Z",
+			ReturnErr:  errors.New("unable to parse time ()"),
 		},
-		LQLTranslateTimeTest{
+		LQLParseQueryTimeTest{
 			Name:       "invalid",
 			Input:      "jweaver",
-			ReturnTime: "",
-			ReturnErr:  "unable to parse time (jweaver)",
+			ReturnTime: "0001-01-01T00:00:00Z",
+			ReturnErr:  errors.New("unable to parse time (jweaver)"),
 		},
 	}
 )
 
-func TestLQLTranslateTime(t *testing.T) {
-	for _, lqlTranslateTimeTest := range lqlTranslateTimeTests {
-		t.Run(lqlTranslateTimeTest.Name, func(t *testing.T) {
-			outTime, err := api.LQLQuery{}.TranslateTime(lqlTranslateTimeTest.Input)
+func TestLQLParseQueryTime(t *testing.T) {
+	for _, lqlPQTT := range lqlParseQueryTimeTests {
+		t.Run(lqlPQTT.Name, func(t *testing.T) {
+			outTime, err := api.ParseQueryTime(lqlPQTT.Input)
 			if err == nil {
-				assert.Equal(t, lqlTranslateTimeTest.ReturnTime, outTime)
-				assert.Equal(t, lqlTranslateTimeTest.ReturnErr, err)
+				assert.Equal(t, lqlPQTT.ReturnErr, err)
 			} else {
-				assert.Equal(t, lqlTranslateTimeTest.ReturnErr, err.Error())
+				assert.Equal(t, lqlPQTT.ReturnErr.Error(), err.Error())
+			}
+			assert.Equal(t, lqlPQTT.ReturnTime, outTime.UTC().Format(time.RFC3339))
+		})
+	}
+}
+
+type LQLValidateQueryRangeTest struct {
+	Name           string
+	StartTimeRange time.Time
+	EndTimeRange   time.Time
+	Return         error
+}
+
+var lqlValidateQueryRangeTests = []LQLValidateQueryRangeTest{
+	LQLValidateQueryRangeTest{
+		Name:           "ok",
+		StartTimeRange: time.Unix(0, 0),
+		EndTimeRange:   time.Unix(1, 0),
+		Return:         nil,
+	},
+	LQLValidateQueryRangeTest{
+		Name:           "empty-start",
+		StartTimeRange: time.Time{},
+		EndTimeRange:   time.Unix(1, 0),
+		Return:         nil,
+	},
+	LQLValidateQueryRangeTest{
+		Name:           "empty-end",
+		StartTimeRange: time.Unix(1, 0),
+		EndTimeRange:   time.Time{},
+		Return:         errors.New("date range should have a start time before the end time"),
+	},
+	LQLValidateQueryRangeTest{
+		Name:           "start-after-end",
+		StartTimeRange: time.Unix(1717333947, 0),
+		EndTimeRange:   time.Unix(1617333947, 0),
+		Return:         errors.New("date range should have a start time before the end time"),
+	},
+	LQLValidateQueryRangeTest{
+		Name:           "start-equal-end",
+		StartTimeRange: time.Unix(1617333947, 0),
+		EndTimeRange:   time.Unix(1617333947, 0),
+		Return:         nil,
+	},
+}
+
+func TestLQLValidateQueryRange(t *testing.T) {
+	for _, lqlVQRT := range lqlValidateQueryRangeTests {
+		t.Run(lqlVQRT.Name, func(t *testing.T) {
+			err := api.ValidateQueryRange(lqlVQRT.StartTimeRange, lqlVQRT.EndTimeRange)
+			if err == nil {
+				assert.Equal(t, lqlVQRT.Return, err)
+			} else {
+				assert.Equal(t, lqlVQRT.Return.Error(), err.Error())
 			}
 		})
 	}
 }
 
-type LQLValidateRangeTest struct {
-	Name       string
-	Input      api.LQLQuery
-	AllowEmpty bool
-	Return     interface{}
-}
-
-var lqlValidateRangeTests = []LQLValidateRangeTest{
-	LQLValidateRangeTest{
-		Name: "ok",
-		Input: api.LQLQuery{
-			StartTimeRange: "0",
-			EndTimeRange:   "1",
-			QueryBlob:      lqlQueryStr,
-		},
-		AllowEmpty: false,
-		Return:     nil,
-	},
-	LQLValidateRangeTest{
-		Name: "empty-start-allowed",
-		Input: api.LQLQuery{
-			StartTimeRange: "",
-			EndTimeRange:   "1",
-			QueryBlob:      lqlQueryStr,
-		},
-		AllowEmpty: true,
-		Return:     nil,
-	},
-	LQLValidateRangeTest{
-		Name: "empty-start-disallowed",
-		Input: api.LQLQuery{
-			StartTimeRange: "",
-			EndTimeRange:   "1",
-			QueryBlob:      lqlQueryStr,
-		},
-		AllowEmpty: false,
-		Return:     "start time must not be empty",
-	},
-	LQLValidateRangeTest{
-		Name: "empty-end-allowed",
-		Input: api.LQLQuery{
-			StartTimeRange: "0",
-			EndTimeRange:   "",
-			QueryBlob:      lqlQueryStr,
-		},
-		AllowEmpty: true,
-		Return:     nil,
-	},
-	LQLValidateRangeTest{
-		Name: "empty-end-disallowed",
-		Input: api.LQLQuery{
-			StartTimeRange: "0",
-			EndTimeRange:   "",
-			QueryBlob:      lqlQueryStr,
-		},
-		AllowEmpty: false,
-		Return:     "end time must not be empty",
-	},
-	LQLValidateRangeTest{
-		Name: "empty-both-allowed",
-		Input: api.LQLQuery{
-			StartTimeRange: "",
-			EndTimeRange:   "",
-			QueryBlob:      lqlQueryStr,
-		},
-		AllowEmpty: true,
-		Return:     nil,
-	},
-	LQLValidateRangeTest{
-		Name: "start-after-end",
-		Input: api.LQLQuery{
-			StartTimeRange: "1717333947000",
-			EndTimeRange:   "1617333947000",
-			QueryBlob:      lqlQueryStr,
-		},
-		AllowEmpty: false,
-		Return:     "date range should have a start time before the end time",
-	},
-	LQLValidateRangeTest{
-		Name: "start-equal-end",
-		Input: api.LQLQuery{
-			StartTimeRange: "1617333947000",
-			EndTimeRange:   "1617333947000",
-			QueryBlob:      lqlQueryStr,
-		},
-		AllowEmpty: false,
-		Return:     nil,
-	},
-}
-
-func TestLQLValidateRange(t *testing.T) {
-	for _, lqlValidateRangeTest := range lqlValidateRangeTests {
-		t.Run(lqlValidateRangeTest.Name, func(t *testing.T) {
-			err := lqlValidateRangeTest.Input.Translate()
-			assert.Nil(t, err)
-			err = lqlValidateRangeTest.Input.ValidateRange(lqlValidateRangeTest.AllowEmpty)
-			if err == nil {
-				assert.Equal(t, lqlValidateRangeTest.Return, err)
-			} else {
-				assert.Equal(t, lqlValidateRangeTest.Return, err.Error())
-			}
-		})
-	}
-}
-
-type LQLValidateTest struct {
-	Name   string
-	Input  *api.LQLQuery
-	Return interface{}
-}
-
-var lqlValidateTests = []LQLValidateTest{
-	LQLValidateTest{
-		Name: "empty",
-		Input: &api.LQLQuery{
-			StartTimeRange: "0",
-			EndTimeRange:   "1",
-			QueryText:      lqlQueryStr,
-		},
-		Return: nil,
-	},
-}
-
-func TestLQLValidate(t *testing.T) {
-	for _, lqlValidateTest := range lqlValidateTests {
-		t.Run(lqlValidateTest.Name, func(t *testing.T) {
-			err := lqlValidateTest.Input.Translate()
-			assert.Nil(t, err)
-			err = lqlValidateTest.Input.ValidateRange(true)
-			if err == nil {
-				assert.Equal(t, lqlValidateTest.Return, err)
-			} else {
-				assert.Equal(t, lqlValidateTest.Return, err.Error())
-			}
-		})
-	}
-}
-
-type LQLQueryTest struct {
+type LQLParseQueryTest struct {
 	Name     string
-	Input    *api.LQLQuery
+	Input    string
 	Return   error
-	Expected *api.LQLQuery
+	Expected api.Query
 }
 
-var lqlQueryPopulateIDTests = []LQLQueryTest{
-	LQLQueryTest{
-		Name:     "empty",
-		Input:    &api.LQLQuery{},
-		Return:   errors.New("unable to extract ID from query text"),
-		Expected: &api.LQLQuery{},
+var lqlParseQueryTests = []LQLParseQueryTest{
+	LQLParseQueryTest{
+		Name:     "empty-blob",
+		Input:    "",
+		Return:   errors.New("query must be valid JSON or YAML"),
+		Expected: api.Query{},
 	},
-	LQLQueryTest{
-		Name: "junk",
-		Input: &api.LQLQuery{
-			QueryText: "this is junk",
-		},
-		Return: errors.New("unable to extract ID from query text"),
-		Expected: &api.LQLQuery{
-			QueryText: "this is junk",
-		},
+	LQLParseQueryTest{
+		Name:     "junk-blob",
+		Input:    "this is junk",
+		Return:   errors.New("query must be valid JSON or YAML"),
+		Expected: api.Query{},
 	},
-	LQLQueryTest{
-		Name: "simple",
-		Input: &api.LQLQuery{
-			QueryText: lqlQueryStr,
-		},
+	LQLParseQueryTest{
+		Name:     "partial-blob",
+		Input:    "{",
+		Return:   errors.New("query must be valid JSON or YAML"),
+		Expected: api.Query{},
+	},
+	LQLParseQueryTest{
+		Name:   "json-blob",
+		Input:  queryJSON,
 		Return: nil,
-		Expected: &api.LQLQuery{
-			ID:        lqlQueryID,
-			QueryText: lqlQueryStr,
+		Expected: api.Query{
+			ID:          queryID,
+			QueryText:   queryText,
+			EvaluatorID: queryEvaluator,
 		},
 	},
-	LQLQueryTest{
-		Name: "newlines",
-		Input: &api.LQLQuery{
-			QueryText: `
--- a comment
-my query {
-}`,
-		},
+	LQLParseQueryTest{
+		Name:   "yaml-blob",
+		Input:  queryYAML,
 		Return: nil,
-		Expected: &api.LQLQuery{
-			ID: "my query",
-			QueryText: `
--- a comment
-my query {
-}`,
+		Expected: api.Query{
+			ID:          queryID,
+			QueryText:   queryText,
+			EvaluatorID: queryEvaluator,
 		},
 	},
 }
 
-func TestLQLQueryPopulateID(t *testing.T) {
-	for _, lqlQueryTest := range lqlQueryPopulateIDTests {
-		t.Run(lqlQueryTest.Name, func(t *testing.T) {
-			if err := lqlQueryTest.Input.PopulateID(); err == nil {
-				assert.Equal(t, lqlQueryTest.Return, err)
+func TestLQLParseQuery(t *testing.T) {
+	for _, lqlPQT := range lqlParseQueryTests {
+		t.Run(lqlPQT.Name, func(t *testing.T) {
+			actual, err := api.ParseQuery(lqlPQT.Input)
+			if err == nil {
+				assert.Equal(t, lqlPQT.Return, err)
 			} else {
-				assert.Equal(t, lqlQueryTest.Return.Error(), err.Error())
+				assert.Equal(t, lqlPQT.Return.Error(), err.Error())
 			}
-			assert.Equal(t, lqlQueryTest.Expected, lqlQueryTest.Input)
-		})
-	}
-}
-
-var lqlQueryTypeTests = []LQLQueryTest{
-	LQLQueryTest{
-		Name: "empty-blob",
-		Input: &api.LQLQuery{
-			QueryBlob: ``,
-		},
-		Return: errors.New(api.LQLQueryTranslateError),
-		Expected: &api.LQLQuery{
-			QueryText: ``,
-			QueryBlob: ``,
-		},
-	},
-	LQLQueryTest{
-		Name: "junk-blob",
-		Input: &api.LQLQuery{
-			QueryBlob: `this is junk`,
-		},
-		Return: errors.New(api.LQLQueryTranslateError),
-		Expected: &api.LQLQuery{
-			QueryText: ``,
-			QueryBlob: `this is junk`,
-		},
-	},
-	LQLQueryTest{
-		Name: "partial-blob",
-		Input: &api.LQLQuery{
-			QueryBlob: `{`,
-		},
-		Return: errors.New(api.LQLQueryTranslateError),
-		Expected: &api.LQLQuery{
-			QueryText: ``,
-			QueryBlob: `{`,
-		},
-	},
-	LQLQueryTest{
-		Name: "json-blob",
-		Input: &api.LQLQuery{
-			QueryBlob: fmt.Sprintf(`{
-"start_time_range": "678910",
-"end_time_range": "111213141516",
-"queryText": "%s"
-}`, lqlQueryStr),
-		},
-		Return: nil,
-		Expected: &api.LQLQuery{
-			StartTimeRange: "1970-01-01T00:11:18Z",
-			EndTimeRange:   "1973-07-11T04:32:21Z",
-			ID:             lqlQueryID,
-			QueryText:      lqlQueryStr,
-			QueryBlob: fmt.Sprintf(`{
-"start_time_range": "678910",
-"end_time_range": "111213141516",
-"queryText": "%s"
-}`, lqlQueryStr),
-		},
-	},
-	LQLQueryTest{
-		Name: "json-blob-lower",
-		Input: &api.LQLQuery{
-			QueryBlob: fmt.Sprintf(`{
-"start_time_range": "678910",
-"end_time_range": "111213141516",
-"queryText": "%s"
-}`, lqlQueryStr),
-		},
-		Return: nil,
-		Expected: &api.LQLQuery{
-			StartTimeRange: "1970-01-01T00:11:18Z",
-			EndTimeRange:   "1973-07-11T04:32:21Z",
-			ID:             lqlQueryID,
-			QueryText:      lqlQueryStr,
-			QueryBlob: fmt.Sprintf(`{
-"start_time_range": "678910",
-"end_time_range": "111213141516",
-"queryText": "%s"
-}`, lqlQueryStr),
-		},
-	},
-	LQLQueryTest{
-		Name: "lql-blob",
-		Input: &api.LQLQuery{
-			QueryBlob: fmt.Sprintf("--a comment\n%s", lqlQueryStr),
-		},
-		Return: nil,
-		Expected: &api.LQLQuery{
-			ID:        lqlQueryID,
-			QueryText: fmt.Sprintf("--a comment\n%s", lqlQueryStr),
-			QueryBlob: fmt.Sprintf("--a comment\n%s", lqlQueryStr),
-		},
-	},
-	LQLQueryTest{
-		Name: "overwrite-blob",
-		Input: &api.LQLQuery{
-			StartTimeRange: "0",
-			EndTimeRange:   "1",
-			QueryText:      "should not overwrite",
-			QueryBlob: fmt.Sprintf(`{
-"start_time_range": "678910",
-"end_time_range": "111213141516",
-"queryText": "%s"
-}`, lqlQueryStr),
-		},
-		Return: errors.New("unable to extract ID from query text"),
-		Expected: &api.LQLQuery{
-			StartTimeRange: "0",
-			EndTimeRange:   "1",
-			ID:             "",
-			QueryText:      "should not overwrite",
-			QueryBlob: fmt.Sprintf(`{
-"start_time_range": "678910",
-"end_time_range": "111213141516",
-"queryText": "%s"
-}`, lqlQueryStr),
-		},
-	},
-}
-
-func TestLQLQueryTranslate(t *testing.T) {
-	for _, lqlQueryTest := range lqlQueryTypeTests {
-		t.Run(lqlQueryTest.Name, func(t *testing.T) {
-			if err := lqlQueryTest.Input.Translate(); err == nil {
-				assert.Equal(t, lqlQueryTest.Return, err)
-			} else {
-				assert.Equal(t, lqlQueryTest.Return.Error(), err.Error())
-			}
-			assert.Equal(t, lqlQueryTest.Expected, lqlQueryTest.Input)
+			assert.Equal(t, lqlPQT.Expected, actual)
 		})
 	}
 }
@@ -469,7 +256,7 @@ func TestLQLCreateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Create(lqlQueryStr)
+	_, err = c.LQL.Create(queryJSON)
 	assert.Nil(t, err)
 }
 
@@ -490,11 +277,11 @@ func TestLQLCreateBadInput(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = c.LQL.Create("")
-	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
+	assert.Equal(t, "query must be valid JSON or YAML", err.Error())
 }
 
 func TestLQLCreateOK(t *testing.T) {
-	mockResponse := mockLQLDataResponse(lqlCreateData)
+	mockResponse := mockLQLDataResponse(queryJSON)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
@@ -512,11 +299,11 @@ func TestLQLCreateOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	createExpected := api.LQLQueryResponse{}
+	createExpected := api.QueryResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
 
-	var createActual api.LQLQueryResponse
-	createActual, err = c.LQL.Create(lqlQueryStr)
+	var createActual api.QueryResponse
+	createActual, err = c.LQL.Create(queryJSON)
 	assert.Nil(t, err)
 
 	assert.Equal(t, createExpected, createActual)
@@ -539,7 +326,7 @@ func TestLQLCreateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Create(lqlQueryStr)
+	_, err = c.LQL.Create(queryJSON)
 	assert.NotNil(t, err)
 }
 
@@ -566,7 +353,7 @@ func TestLQLGetQueriesMethod(t *testing.T) {
 }
 
 func TestLQLGetQueryByIDOK(t *testing.T) {
-	mockResponse := mockLQLDataResponse(lqlCreateData)
+	mockResponse := mockLQLDataResponse(queryJSON)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
@@ -585,11 +372,11 @@ func TestLQLGetQueryByIDOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	getExpected := api.LQLQueryResponse{}
+	getExpected := api.QueryResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &getExpected)
 
-	var getActual api.LQLQueryResponse
-	getActual, err = c.LQL.GetByID(lqlQueryID)
+	var getActual api.QueryResponse
+	getActual, err = c.LQL.GetByID(queryID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, getExpected, getActual)
@@ -633,7 +420,7 @@ func TestLQLRunMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Run(lqlQueryStr, "0", "1")
+	_, err = c.LQL.Run(queryJSON, "0", "1")
 	assert.Nil(t, err)
 }
 
@@ -654,7 +441,7 @@ func TestLQLRunBadInput(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = c.LQL.Run("", "", "")
-	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
+	assert.Equal(t, "query must be valid JSON or YAML", err.Error())
 }
 
 func TestLQLRunOK(t *testing.T) {
@@ -679,7 +466,7 @@ func TestLQLRunOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
 
 	var runActual map[string]interface{}
-	runActual, err = c.LQL.Run(lqlQueryStr, "0", "1")
+	runActual, err = c.LQL.Run(queryJSON, "0", "1")
 	assert.Nil(t, err)
 
 	assert.Equal(t, runExpected, runActual)
@@ -701,6 +488,6 @@ func TestLQLRunError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Run(lqlQueryStr, "0", "1")
+	_, err = c.LQL.Run(queryJSON, "0", "1")
 	assert.NotNil(t, err)
 }

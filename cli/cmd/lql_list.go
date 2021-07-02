@@ -40,13 +40,13 @@ func init() {
 	lqlCmd.AddCommand(lqlListCmd)
 }
 
-func queryIDTable(queryData []api.LQLQuery) (out [][]string) {
-	for _, lqlQuery := range queryData {
+func queryIDTable(queryData []api.Query) (out [][]string) {
+	for _, query := range queryData {
 		out = append(out, []string{
-			lqlQuery.ID,
-			lqlQuery.Owner,
-			lqlQuery.LastUpdateTime,
-			lqlQuery.LastUpdateUser,
+			query.ID,
+			query.Owner,
+			query.LastUpdateTime,
+			query.LastUpdateUser,
 		})
 	}
 	return

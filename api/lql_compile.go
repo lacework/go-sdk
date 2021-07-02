@@ -24,15 +24,15 @@ type LQLCompileResponse struct {
 	Message string                   `json:"message"`
 }
 
-func (svc *LQLService) Compile(query string) (
+func (svc *LQLService) Compile(q string) (
 	response LQLCompileResponse,
 	err error,
 ) {
-	lqlQuery := LQLQuery{QueryBlob: query}
-	if err = lqlQuery.Translate(); err != nil {
+	var v2Query Query
+	if v2Query, err = ParseQuery(q); err != nil {
 		return
 	}
-
-	err = svc.client.RequestEncoderDecoder("POST", apiLQLCompile, lqlQuery, &response)
+	v1Query := map[string]string{"query_text": v2Query.QueryText}
+	err = svc.client.RequestEncoderDecoder("POST", apiLQLCompile, v1Query, &response)
 	return
 }

@@ -22,173 +22,65 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"regexp"
+	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v3"
 
 	"github.com/lacework/go-sdk/lwtime"
 )
 
-const (
-	queryIDPattern         string = "(?m)^(.*?)\\s*{"
-	LQLQueryTranslateError string = "unable to translate query blob"
-)
-
-type LQLQuery struct {
-	ID             string                   `json:"queryId,omitempty"`
-	StartTimeRange string                   `json:"start_time_range,omitempty"`
-	EndTimeRange   string                   `json:"end_time_range,omitempty"`
-	EvaluatorID    string                   `json:"evaluatorId"`
-	QueryText      string                   `json:"queryText"`
-	Owner          string                   `json:"owner"`
-	LastUpdateTime string                   `json:"lastUpdateTime"`
-	LastUpdateUser string                   `json:"lastUpdateUser"`
-	ResultSchema   []map[string]interface{} `json:"resultSchema"`
-	// QueryBlob is a special string that supports type conversion
-	// back and forth from LQL to JSON
-	QueryBlob string `json:"-"`
+type Query struct {
+	ID             string                   `json:"queryId,omitempty" yaml:"queryId,omitempty"`
+	QueryText      string                   `json:"queryText,omitempty" yaml:"queryText,omitempty"`
+	EvaluatorID    string                   `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
+	Owner          string                   `json:"owner,omitempty" yaml:"owner,omitempty"`
+	LastUpdateTime string                   `json:"lastUpdateTime,omitempty" yaml:"lastUpdateTime,omitempty"`
+	LastUpdateUser string                   `json:"lastUpdateUser,omitempty" yaml:"lastUpdateUser,omitempty"`
+	ResultSchema   []map[string]interface{} `json:"resultSchema,omitempty" yaml:"resultSchema,omitempty"`
 }
 
-func (q *LQLQuery) Validate(allowEmptyTimes bool) error {
-	// translate
-	if err := q.Translate(); err != nil {
-		return err
-	}
-	// validate range
-	if err := q.ValidateRange(allowEmptyTimes); err != nil {
-		return err
-	}
-	// validate query
-	if q.QueryText == "" {
-		return errors.New("query should not be empty")
-	}
-	return nil
-}
+func ParseQuery(s string) (Query, error) {
+	var query Query
+	var err error
 
-func (q *LQLQuery) Translate() error {
-	// query
-	if err := q.TranslateQuery(); err != nil {
-		return err
-	}
-	// start
-	start, err := q.TranslateTime(q.StartTimeRange)
-	if err != nil {
-		return err
-	}
-	q.StartTimeRange = start
-	// end
-	end, err := q.TranslateTime(q.EndTimeRange)
-	if err != nil {
-		return nil
-	}
-	q.EndTimeRange = end
-
-	return nil
-}
-
-func (q *LQLQuery) PopulateID() error {
-	if q.QueryText == "" {
-		return errors.New("unable to extract ID from query text")
-	}
-
-	queryIDRE := regexp.MustCompile(queryIDPattern)
-	if queryIDMatches := queryIDRE.FindStringSubmatch(q.QueryText); queryIDMatches != nil {
-		q.ID = queryIDMatches[1]
-		return nil
-	}
-	return errors.New("unable to extract ID from query text")
-}
-
-func (q *LQLQuery) TranslateQuery() error {
-	// if query text is already populated
-	if q.QueryText != "" {
-		return q.PopulateID()
-	}
 	// valid json
-	var t LQLQuery
-	if err := json.Unmarshal([]byte(q.QueryBlob), &t); err == nil {
-		if q.StartTimeRange == "" {
-			q.StartTimeRange = t.StartTimeRange
-		}
-		if q.EndTimeRange == "" {
-			q.EndTimeRange = t.EndTimeRange
-		}
-		if q.EvaluatorID == "" {
-			q.EvaluatorID = t.EvaluatorID
-		}
-		if q.ID == "" {
-			q.ID = t.ID
-		}
-		q.QueryText = t.QueryText
-		return q.PopulateID()
+	if err = json.Unmarshal([]byte(s), &query); err == nil {
+		return query, err
 	}
-	// invalid json
-	qblob := strings.ToLower(q.QueryBlob)
-	if strings.Contains(qblob, "start_time_range") ||
-		strings.Contains(qblob, "end_time_range") ||
-		strings.Contains(qblob, "queryId") ||
-		strings.Contains(qblob, "queryText") {
-
-		return errors.New(LQLQueryTranslateError)
+	// valid yaml
+	query = Query{}
+	err = yaml.Unmarshal([]byte(s), &query)
+	if err == nil && !reflect.DeepEqual(query, Query{}) { // empty string unmarshals w/o error
+		return query, nil
 	}
-	// valid lql text
-	if strings.Contains(q.QueryBlob, "{") &&
-		strings.Contains(q.QueryBlob, "}") {
-		q.QueryText = q.QueryBlob
-		return q.PopulateID()
-	}
-	// invalid lql text
-	return errors.New(LQLQueryTranslateError)
+	// invalid policy
+	return query, errors.New("query must be valid JSON or YAML")
 }
 
-func (q LQLQuery) TranslateTime(inTime string) (string, error) {
+func ParseQueryTime(inTime string) (time.Time, error) {
 	// empty
 	if inTime == "" {
-		return "", nil
+		return time.Time{}, errors.New(fmt.Sprintf("unable to parse time (%s)", inTime))
 	}
 	// parse time as relative
 	if t, err := lwtime.ParseRelative(inTime); err == nil {
-		return t.UTC().Format(time.RFC3339), err
+		return t, err
 	}
 	// parse time as RFC3339
 	if t, err := time.Parse(time.RFC3339, inTime); err == nil {
-		return t.UTC().Format(time.RFC3339), err
+		return t, err
 	}
 	// parse time as millis
 	if i, err := strconv.ParseInt(inTime, 10, 64); err == nil {
-		return time.Unix(0, i*int64(time.Millisecond)).UTC().Format(time.RFC3339), err
+		return time.Unix(0, i*int64(time.Millisecond)), err
 	}
-	return "", errors.New(fmt.Sprintf("unable to parse time (%s)", inTime))
+	return time.Time{}, errors.New(fmt.Sprintf("unable to parse time (%s)", inTime))
 }
 
-func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {
-	// validate start
-	var start time.Time
-	if q.StartTimeRange != "" {
-		if start, err = time.Parse(time.RFC3339, q.StartTimeRange); err != nil {
-			return
-		}
-	} else if allowEmptyTimes {
-		start = time.Unix(0, 0)
-	} else {
-		err = errors.New("start time must not be empty")
-		return
-	}
-	// validate end
-	var end time.Time
-	if q.EndTimeRange != "" {
-		if end, err = time.Parse(time.RFC3339, q.EndTimeRange); err != nil {
-			return
-		}
-	} else if allowEmptyTimes {
-		end = time.Now()
-	} else {
-		err = errors.New("end time must not be empty")
-		return
-	}
+func ValidateQueryRange(start, end time.Time) (err error) {
 	// validate range
 	if start.After(end) {
 		err = errors.New("date range should have a start time before the end time")
@@ -197,14 +89,14 @@ func (q LQLQuery) ValidateRange(allowEmptyTimes bool) (err error) {
 	return nil
 }
 
-type LQLQueryResponse struct {
-	Data    LQLQuery `json:"data"`
-	Message string   `json:"message"`
+type QueryResponse struct {
+	Data    Query  `json:"data"`
+	Message string `json:"message"`
 }
 
 type LQLQueriesResponse struct {
-	Data    []LQLQuery `json:"data"`
-	Message string     `json:"message"`
+	Data    []Query `json:"data"`
+	Message string  `json:"message"`
 }
 
 // LQLService is a service that interacts with the LQL
@@ -213,30 +105,30 @@ type LQLService struct {
 	client *Client
 }
 
-func (svc *LQLService) Create(query string) (
-	response LQLQueryResponse,
+func (svc *LQLService) Create(q string) (
+	response QueryResponse,
 	err error,
 ) {
-	lqlQuery := LQLQuery{QueryBlob: query}
-	if err = lqlQuery.Validate(true); err != nil {
+	var query Query
+	if query, err = ParseQuery(q); err != nil {
 		return
 	}
-	err = svc.client.RequestEncoderDecoder("POST", apiV2LQL, lqlQuery, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiV2LQL, query, &response)
 	return
 }
 
-func (svc *LQLService) Update(query string) (
-	response LQLQueryResponse,
+func (svc *LQLService) Update(q string) (
+	response QueryResponse,
 	err error,
 ) {
-	lqlQuery := LQLQuery{QueryBlob: query}
-	if err = lqlQuery.Validate(true); err != nil {
+	var query Query
+	if query, err = ParseQuery(q); err != nil {
 		return
 	}
 	err = svc.client.RequestEncoderDecoder(
 		"PATCH",
-		fmt.Sprintf("%s/%s", apiV2LQL, url.QueryEscape(lqlQuery.ID)),
-		lqlQuery,
+		fmt.Sprintf("%s/%s", apiV2LQL, url.QueryEscape(query.ID)),
+		query,
 		&response,
 	)
 	return
@@ -251,7 +143,7 @@ func (svc *LQLService) GetQueries() (
 }
 
 func (svc *LQLService) GetByID(queryID string) (
-	response LQLQueryResponse,
+	response QueryResponse,
 	err error,
 ) {
 	if queryID == "" {
@@ -267,19 +159,31 @@ func (svc *LQLService) GetByID(queryID string) (
 	return
 }
 
-func (svc *LQLService) Run(query, start, end string) (
+func (svc *LQLService) Run(q, start, end string) (
 	response map[string]interface{},
 	err error,
 ) {
-	lqlQuery := LQLQuery{
-		StartTimeRange: start,
-		EndTimeRange:   end,
-		QueryBlob:      query,
-	}
-	if err = lqlQuery.Validate(false); err != nil {
+	var v2Query Query
+	if v2Query, err = ParseQuery(q); err != nil {
 		return
 	}
 
-	err = svc.client.RequestEncoderDecoder("POST", apiLQLQuery, lqlQuery, &response)
+	var startTimeRange, endTimeRange time.Time
+	if startTimeRange, err = ParseQueryTime(start); err != nil {
+		return
+	}
+	if endTimeRange, err = ParseQueryTime(end); err != nil {
+		return
+	}
+	if err = ValidateQueryRange(startTimeRange, endTimeRange); err != nil {
+		return
+	}
+
+	v1Query := map[string]string{
+		"query_text":       v2Query.QueryText,
+		"start_time_range": startTimeRange.UTC().Format(time.RFC3339),
+		"end_time_range":   endTimeRange.UTC().Format(time.RFC3339),
+	}
+	err = svc.client.RequestEncoderDecoder("POST", apiLQLQuery, v1Query, &response)
 	return
 }

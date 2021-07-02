@@ -182,7 +182,7 @@ func inputQuery(cmd *cobra.Command, args []string) (string, error) {
 }
 
 func inputQueryFromEnv(queryID string) (query string, err error) {
-	var queryResponse api.LQLQueryResponse
+	var queryResponse api.QueryResponse
 
 	queryResponse, err = cli.LwApi.LQL.GetByID(queryID)
 	if err == nil {

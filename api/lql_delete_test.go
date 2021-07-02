@@ -47,7 +47,7 @@ func TestLQLDeleteMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Delete(lqlQueryID)
+	_, err = c.LQL.Delete(queryID)
 	fmt.Println(err)
 	assert.Nil(t, err)
 }
@@ -96,7 +96,7 @@ func TestLQLDeleteOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(""), &deleteExpected)
 
 	var deleteActual api.LQLDeleteResponse
-	deleteActual, err = c.LQL.Delete(lqlQueryID)
+	deleteActual, err = c.LQL.Delete(queryID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, deleteExpected, deleteActual)
@@ -119,6 +119,6 @@ func TestLQLDeleteNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Delete(lqlQueryID)
+	_, err = c.LQL.Delete(queryID)
 	assert.NotNil(t, err)
 }

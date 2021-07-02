@@ -62,7 +62,7 @@ func TestQueryCreateFile(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(lqlQueryText))
+	_, err = file.Write([]byte(queryText))
 	if err != nil {
 		t.FailNow()
 	}
@@ -70,24 +70,24 @@ func TestQueryCreateFile(t *testing.T) {
 
 	// create
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "create", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) created successfully.", lqlQueryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) created successfully.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// show
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", lqlQueryID)
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", queryID)
 	assert.Contains(t, out.String(), "INSERT_ID")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", lqlQueryID, "--json")
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", queryID, "--json")
 	assert.Contains(t, out.String(), "INSERT_ID")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// delete
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
-	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) deleted successfully.", lqlQueryID))
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "delete", queryID)
+	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) deleted successfully.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

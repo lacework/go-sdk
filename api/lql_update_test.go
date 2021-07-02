@@ -54,7 +54,7 @@ func TestLQLUpdateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Update(lqlQueryStr)
+	_, err = c.LQL.Update(queryJSON)
 	assert.Nil(t, err)
 }
 
@@ -76,7 +76,7 @@ func TestLQLUpdateBadInput(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = c.LQL.Update("")
-	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
+	assert.Equal(t, "query must be valid JSON or YAML", err.Error())
 }
 
 func TestLQLUpdateOK(t *testing.T) {
@@ -98,11 +98,11 @@ func TestLQLUpdateOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	updateExpected := api.LQLQueryResponse{}
+	updateExpected := api.QueryResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
 
-	var updateActual api.LQLQueryResponse
-	updateActual, err = c.LQL.Update(lqlQueryStr)
+	var updateActual api.QueryResponse
+	updateActual, err = c.LQL.Update(queryJSON)
 	assert.Nil(t, err)
 
 	assert.Equal(t, updateExpected, updateActual)
@@ -125,6 +125,6 @@ func TestLQLUpdateNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Update(lqlQueryStr)
+	_, err = c.LQL.Update(queryJSON)
 	assert.NotNil(t, err)
 }
