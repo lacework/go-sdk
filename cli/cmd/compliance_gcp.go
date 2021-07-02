@@ -368,7 +368,6 @@ func getGcpAccounts(orgID string) []gcpAccount {
 	var accounts []gcpAccount
 	projectsResponse, err := cli.LwApi.Compliance.ListGcpProjects(orgID)
 	if err != nil {
-		errors.Wrap(err, fmt.Sprintf("unable to list gcp projects for %s", orgID))
 		return accounts
 	}
 	for _, projects := range projectsResponse.Data {
