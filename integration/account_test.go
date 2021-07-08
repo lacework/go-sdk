@@ -40,6 +40,9 @@ func TestAccountCommandAliases(t *testing.T) {
 }
 
 func TestAccountCommandList(t *testing.T) {
+	if os.Getenv("CI_STANDALONE_ACCOUNT") != "" {
+		t.Skip("skipping organizational account test")
+	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("account", "list")
 	assert.Contains(t, out.String(), "ACCOUNTS",
 		"STDOUT table headers changed, please check")
