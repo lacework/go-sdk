@@ -176,13 +176,13 @@ func TestQueryGetQueryByIDOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &getExpected)
 
 	var getActual api.QueryResponse
-	getActual, err = c.V2.Query.GetByID(queryID)
+	getActual, err = c.V2.Query.Get(queryID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, getExpected, getActual)
 }
 
-func TestQueryGetByIDNotFound(t *testing.T) {
+func TestQueryGetNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -199,7 +199,7 @@ func TestQueryGetByIDNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.GetByID("NoSuchQuery")
+	_, err = c.V2.Query.Get("NoSuchQuery")
 	assert.NotNil(t, err)
 }
 

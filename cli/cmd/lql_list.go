@@ -40,7 +40,7 @@ func init() {
 	queryCmd.AddCommand(queryListCmd)
 }
 
-func queryIDTable(queryData []api.Query) (out [][]string) {
+func queryTable(queryData []api.Query) (out [][]string) {
 	for _, query := range queryData {
 		out = append(out, []string{
 			query.QueryID,
@@ -70,7 +70,7 @@ func listQueries(_ *cobra.Command, args []string) error {
 	cli.OutputHuman(
 		renderSimpleTable(
 			[]string{"Query ID", "Owner", "Last Update Time", "Last Update User"},
-			queryIDTable(queryResponse.Data),
+			queryTable(queryResponse.Data),
 		),
 	)
 	return nil

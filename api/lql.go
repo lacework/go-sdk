@@ -79,17 +79,17 @@ func (svc *QueryService) Create(nq NewQuery) (
 	return
 }
 
-func (svc *QueryService) Update(queryID string, uq UpdateQuery) (
+func (svc *QueryService) Update(id string, uq UpdateQuery) (
 	response QueryResponse,
 	err error,
 ) {
-	if queryID == "" {
+	if id == "" {
 		err = errors.New("query ID must be provided")
 		return
 	}
 	err = svc.client.RequestEncoderDecoder(
 		"PATCH",
-		fmt.Sprintf("%s/%s", apiV2Queries, url.QueryEscape(queryID)),
+		fmt.Sprintf("%s/%s", apiV2Queries, url.QueryEscape(id)),
 		uq,
 		&response,
 	)
@@ -104,17 +104,17 @@ func (svc *QueryService) List() (
 	return
 }
 
-func (svc *QueryService) GetByID(queryID string) (
+func (svc *QueryService) Get(id string) (
 	response QueryResponse,
 	err error,
 ) {
-	if queryID == "" {
+	if id == "" {
 		err = errors.New("query ID must be provided")
 		return
 	}
 	err = svc.client.RequestDecoder(
 		"GET",
-		fmt.Sprintf("%s/%s", apiV2Queries, url.QueryEscape(queryID)),
+		fmt.Sprintf("%s/%s", apiV2Queries, url.QueryEscape(id)),
 		nil,
 		&response,
 	)

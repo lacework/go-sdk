@@ -29,17 +29,17 @@ type QueryDeleteResponse struct {
 	Message string `json:"message"`
 }
 
-func (svc *QueryService) Delete(queryID string) (
+func (svc *QueryService) Delete(id string) (
 	response QueryDeleteResponse,
 	err error,
 ) {
-	if queryID == "" {
+	if id == "" {
 		err = errors.New("query ID must be provided")
 		return
 	}
 	err = svc.client.RequestDecoder(
 		"DELETE",
-		fmt.Sprintf("%s/%s", apiV2Queries, url.QueryEscape(queryID)),
+		fmt.Sprintf("%s/%s", apiV2Queries, url.QueryEscape(id)),
 		nil,
 		&response,
 	)

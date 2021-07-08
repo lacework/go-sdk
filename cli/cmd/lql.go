@@ -185,10 +185,10 @@ func inputQuery(cmd *cobra.Command, args []string) (string, error) {
 	return inputQueryFromEditor(action)
 }
 
-func inputQueryFromEnv(queryID string) (query string, err error) {
+func inputQueryFromEnv(id string) (query string, err error) {
 	var queryResponse api.QueryResponse
 
-	queryResponse, err = cli.LwApi.V2.Query.GetByID(queryID)
+	queryResponse, err = cli.LwApi.V2.Query.Get(id)
 	if err == nil {
 		query = queryResponse.Data.QueryText
 	}
