@@ -257,7 +257,7 @@ func laceworkIntegrationTestClient() (*api.Client, error) {
 	key := os.Getenv("CI_API_KEY")
 	secret := os.Getenv("CI_API_SECRET")
 
-	lacework, err := api.NewClient(account, api.WithApiKeys(key, secret))
+	lacework, err := api.NewClient(account, api.WithApiV2(), api.WithApiKeys(key, secret))
 	if err != nil {
 		fmt.Println(err)
 	}
