@@ -45,10 +45,9 @@ var (
 	"queryText": "%s"
 	}`, queryEvaluator, queryID, newQueryText)
 	newQueryYAML = fmt.Sprintf(`---
-	evaluatorId: %s
-	queryId: %s
-	queryText: %s
-	`, queryEvaluator, queryID, newQueryText)
+evaluatorId: %s
+queryId: %s
+queryText: %s`, queryEvaluator, queryID, newQueryText)
 )
 
 type parseQueryTest struct {
@@ -62,19 +61,19 @@ var parseQueryTests = []parseQueryTest{
 	parseQueryTest{
 		Name:     "empty-blob",
 		Input:    "",
-		Return:   errors.New("query must be valid JSON or YAML"),
+		Return:   queryErrorCrumbs(""),
 		Expected: api.NewQuery{},
 	},
 	parseQueryTest{
 		Name:     "junk-blob",
 		Input:    "this is junk",
-		Return:   errors.New("query must be valid JSON or YAML"),
+		Return:   queryErrorCrumbs("this is junk"),
 		Expected: api.NewQuery{},
 	},
 	parseQueryTest{
 		Name:     "partial-blob",
 		Input:    "{",
-		Return:   errors.New("query must be valid JSON or YAML"),
+		Return:   queryErrorCrumbs("{"),
 		Expected: api.NewQuery{},
 	},
 	parseQueryTest{
@@ -99,11 +98,11 @@ var parseQueryTests = []parseQueryTest{
 	},
 }
 
-func TestparseQuery(t *testing.T) {
+func TestParseQuery(t *testing.T) {
 	for _, pqt := range parseQueryTests {
 		t.Run(pqt.Name, func(t *testing.T) {
 			actual, err := parseQuery(pqt.Input)
-			if err == nil {
+			if pqt.Return == nil {
 				assert.Equal(t, pqt.Return, err)
 			} else {
 				assert.Equal(t, pqt.Return.Error(), err.Error())

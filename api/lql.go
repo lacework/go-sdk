@@ -33,17 +33,17 @@ type NewQuery struct {
 }
 
 type UpdateQuery struct {
-	QueryText string `json:"queryText" yaml:"queryText"`
+	QueryText string `json:"queryText"`
 }
 
 type Query struct {
-	QueryID        string                   `json:"queryId" yaml:"queryId"`
-	QueryText      string                   `json:"queryText" yaml:"queryText"`
-	EvaluatorID    string                   `json:"evaluatorId" yaml:"evaluatorId"`
-	Owner          string                   `json:"owner" yaml:"owner"`
-	LastUpdateTime string                   `json:"lastUpdateTime" yaml:"lastUpdateTime"`
-	LastUpdateUser string                   `json:"lastUpdateUser" yaml:"lastUpdateUser"`
-	ResultSchema   []map[string]interface{} `json:"resultSchema" yaml:"resultSchema"`
+	QueryID        string                   `json:"queryId"`
+	QueryText      string                   `json:"queryText"`
+	EvaluatorID    string                   `json:"evaluatorId"`
+	Owner          string                   `json:"owner"`
+	LastUpdateTime string                   `json:"lastUpdateTime"`
+	LastUpdateUser string                   `json:"lastUpdateUser"`
+	ResultSchema   []map[string]interface{} `json:"resultSchema"`
 }
 
 type QueryResponse struct {

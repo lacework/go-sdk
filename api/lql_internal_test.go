@@ -66,7 +66,7 @@ var validateQueryRangeTests = []validateQueryRangeTest{
 	},
 }
 
-func TestvalidateQueryRange(t *testing.T) {
+func TestValidateQueryRange(t *testing.T) {
 	for _, vqrt := range validateQueryRangeTests {
 		t.Run(vqrt.name, func(t *testing.T) {
 			err := validateQueryRange(vqrt.startTimeRange, vqrt.endTimeRange)
