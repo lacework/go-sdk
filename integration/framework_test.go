@@ -29,6 +29,8 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/lacework/go-sdk/api"
+
 	"github.com/lacework/go-sdk/lwupdater"
 )
 
@@ -247,4 +249,17 @@ func storeFileInCircleCI(f string) {
 			fmt.Println(err)
 		}
 	}
+}
+
+func laceworkIntegrationTestClient() (*api.Client, error) {
+	fmt.Println("Setting up host tests")
+	account := os.Getenv("CI_ACCOUNT")
+	key := os.Getenv("CI_API_KEY")
+	secret := os.Getenv("CI_API_SECRET")
+
+	lacework, err := api.NewClient(account, api.WithApiV2(), api.WithApiKeys(key, secret))
+	if err != nil {
+		fmt.Println(err)
+	}
+	return lacework, err
 }
