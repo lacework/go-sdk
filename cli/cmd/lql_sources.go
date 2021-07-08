@@ -24,8 +24,8 @@ import (
 )
 
 var (
-	// lqlSourcesCmd represents the lql data sources command
-	lqlSourcesCmd = &cobra.Command{
+	// querySourcesCmd represents the lql data sources command
+	querySourcesCmd = &cobra.Command{
 		Aliases: []string{"sources"},
 		Use:     "list-sources",
 		Short:   "list LQL data sources",
@@ -36,7 +36,7 @@ var (
 )
 
 func init() {
-	lqlCmd.AddCommand(lqlSourcesCmd)
+	queryCmd.AddCommand(querySourcesCmd)
 }
 
 func dataSourcesToTable(dataSources []string) (out [][]string) {
@@ -52,7 +52,7 @@ func getQuerySources(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving LQL data sources")
 
 	lqlSourcesUnableMsg := "unable to retrieve LQL data sources"
-	dataSourcesResponse, err := cli.LwApi.LQL.DataSources()
+	dataSourcesResponse, err := cli.LwApi.Query.DataSources()
 
 	if err != nil {
 		return errors.Wrap(err, lqlSourcesUnableMsg)

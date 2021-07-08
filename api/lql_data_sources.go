@@ -18,18 +18,18 @@
 
 package api
 
-type LQLDataSourcesResponse struct {
-	Data    []LQLDataSources `json:"data"`
-	Ok      bool             `json:"ok"`
-	Message string           `json:"message"`
+type QueryDataSourcesResponse struct {
+	Data    []QueryDataSources `json:"data"`
+	Ok      bool               `json:"ok"`
+	Message string             `json:"message"`
 }
 
-type LQLDataSources struct {
+type QueryDataSources struct {
 	DataSources []string `json:"datasources"`
 }
 
-func (svc *LQLService) DataSources() (
-	response LQLDataSourcesResponse,
+func (svc *QueryService) DataSources() (
+	response QueryDataSourcesResponse,
 	err error,
 ) {
 	err = svc.client.RequestDecoder("GET", apiLQLDataSources, nil, &response)

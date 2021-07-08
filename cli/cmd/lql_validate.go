@@ -24,46 +24,51 @@ import (
 )
 
 const (
-	lqlValidateUnableMsg string = "unable to validate LQL query"
+	lqlValidateUnableMsg string = "unable to validate query"
 )
 
 var (
-	// lqlValidateCmd represents the lql validate command
-	lqlValidateCmd = &cobra.Command{
+	// queryValidateCmd represents the lql validate command
+	queryValidateCmd = &cobra.Command{
 		Use:   "validate [query_id]",
-		Short: "validate an LQL query",
-		Long:  `Validate an LQL query.`,
+		Short: "validate a query",
+		Long:  `Validate a query.`,
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  validateQuery,
 	}
 )
 
 func init() {
-	lqlCmd.AddCommand(lqlValidateCmd)
+	queryCmd.AddCommand(queryValidateCmd)
 
-	setQuerySourceFlags(lqlValidateCmd)
+	setQuerySourceFlags(queryValidateCmd)
 }
 
 func validateQuery(cmd *cobra.Command, args []string) error {
-	query, err := inputQuery(cmd, args)
+	// input query
+	queryString, err := inputQuery(cmd, args)
 	if err != nil {
 		return errors.Wrap(err, lqlValidateUnableMsg)
 	}
-	return compileQueryAndOutput(query)
+	// parse query
+	newQuery, err := parseQuery(queryString)
+	if err != nil {
+		return errors.Wrap(err, lqlValidateUnableMsg)
+	}
+	return validateQueryAndOutput(newQuery.QueryText)
 }
 
-func compileQueryAndOutput(query string) error {
-	cli.Log.Debugw("validating LQL query", "query", query)
+func validateQueryAndOutput(s string) error {
+	cli.Log.Debugw("validating query", "query", s)
 
-	compile, err := cli.LwApi.LQL.Compile(query)
+	validate, err := cli.LwApi.Query.Validate(s)
 
 	if err != nil {
-		err = queryErrorCrumbs(query, err)
 		return errors.Wrap(err, lqlValidateUnableMsg)
 	}
 	if cli.JSONOutput() {
-		return cli.OutputJSON(compile.Data)
+		return cli.OutputJSON(validate.Data)
 	}
-	cli.OutputHuman("LQL query validated successfully.\n")
+	cli.OutputHuman("query validated successfully.\n")
 	return nil
 }

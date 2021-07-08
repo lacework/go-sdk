@@ -46,7 +46,7 @@ func TestQueryUpdateEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "update")
 	assert.Contains(t, out.String(), "Type a query to update")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to update LQL query: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to update query: EOF")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
@@ -76,7 +76,7 @@ func TestQueryUpdateFile(t *testing.T) {
 
 	// update
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "update", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) updated successfully.", queryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("query (%s) updated successfully.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
@@ -112,7 +112,7 @@ func TestQueryUpdateURL(t *testing.T) {
 
 	// update
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "update", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) updated successfully.", queryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("query (%s) updated successfully.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 

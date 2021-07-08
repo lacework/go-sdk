@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	lqlCompileData = `[{
+	QueryValidateData = `[{
 		"name": "my_lql",
 		"props": {
 			"lql": true
@@ -79,7 +79,7 @@ var (
 	}]`
 )
 
-func TestLQLCompileMethod(t *testing.T) {
+func TestQueryValidateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql/compile",
@@ -96,11 +96,11 @@ func TestLQLCompileMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Compile(queryJSON)
+	_, err = c.Query.Validate(newQueryText)
 	assert.Nil(t, err)
 }
 
-func TestLQLCompileBadInput(t *testing.T) {
+func TestQueryValidateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql/compile",
@@ -116,12 +116,12 @@ func TestLQLCompileBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Compile("")
-	assert.Equal(t, "query must be valid JSON or YAML", err.Error())
+	_, err = c.Query.Validate("")
+	assert.Equal(t, "query text must be provided", err.Error())
 }
 
-func TestLQLCompileOK(t *testing.T) {
-	mockResponse := mockLQLDataResponse(lqlCompileData)
+func TestQueryValidateOK(t *testing.T) {
+	mockResponse := mockQueryDataResponse(QueryValidateData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -138,16 +138,16 @@ func TestLQLCompileOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	compileExpected := api.LQLCompileResponse{}
+	compileExpected := api.QueryValidateResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &compileExpected)
 
-	var compileActual api.LQLCompileResponse
-	compileActual, err = c.LQL.Compile(queryJSON)
+	var compileActual api.QueryValidateResponse
+	compileActual, err = c.Query.Validate(newQueryText)
 	assert.Nil(t, err)
 	assert.Equal(t, compileExpected, compileActual)
 }
 
-func TestLQLCompileError(t *testing.T) {
+func TestQueryValidateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql/compile",
@@ -163,6 +163,6 @@ func TestLQLCompileError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Compile(queryJSON)
+	_, err = c.Query.Validate(newQueryText)
 	assert.NotNil(t, err)
 }

@@ -25,12 +25,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-type LQLDeleteResponse struct {
+type QueryDeleteResponse struct {
 	Message string `json:"message"`
 }
 
-func (svc *LQLService) Delete(queryID string) (
-	response LQLDeleteResponse,
+func (svc *QueryService) Delete(queryID string) (
+	response QueryDeleteResponse,
 	err error,
 ) {
 	if queryID == "" {

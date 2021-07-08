@@ -23,23 +23,23 @@ import (
 	"net/url"
 )
 
-type LQLDescribeResponse struct {
-	Data    []LQLDescribeData `json:"data"`
-	Ok      bool              `json:"ok"`
-	Message string            `json:"message"`
+type QueryDescribeResponse struct {
+	Data    []QueryDescribeData `json:"data"`
+	Ok      bool                `json:"ok"`
+	Message string              `json:"message"`
 }
 
-type LQLDescribeData struct {
-	Complexity  int                     `json:"complexity"`
-	MaxDuration int                     `json:"maxDuration"`
-	Parameters  []LQLDescribeParameters `json:"parameters"`
-	PrimaryKey  []interface{}           `json:"primaryKey"`
-	Props       map[string]interface{}  `json:"props"`
-	Schema      []LQLDescribeSchema     `json:"schema"`
-	Type        string                  `json:"type"`
+type QueryDescribeData struct {
+	Complexity  int                       `json:"complexity"`
+	MaxDuration int                       `json:"maxDuration"`
+	Parameters  []QueryDescribeParameters `json:"parameters"`
+	PrimaryKey  []interface{}             `json:"primaryKey"`
+	Props       map[string]interface{}    `json:"props"`
+	Schema      []QueryDescribeSchema     `json:"schema"`
+	Type        string                    `json:"type"`
 }
 
-type LQLDescribeParameters struct {
+type QueryDescribeParameters struct {
 	Default  string                 `json:"default"`
 	Name     string                 `json:"name"`
 	Props    map[string]interface{} `json:"props"`
@@ -47,14 +47,14 @@ type LQLDescribeParameters struct {
 	Type     string                 `json:"type"`
 }
 
-type LQLDescribeSchema struct {
+type QueryDescribeSchema struct {
 	Name  string                 `json:"name"`
 	Props map[string]interface{} `json:"props"`
 	Type  string                 `json:"type"`
 }
 
-func (svc *LQLService) Describe(dataSource string) (
-	response LQLDescribeResponse,
+func (svc *QueryService) Describe(dataSource string) (
+	response QueryDescribeResponse,
 	err error,
 ) {
 	uri := fmt.Sprintf("%s/%s", apiLQLDescribe, url.QueryEscape(dataSource))

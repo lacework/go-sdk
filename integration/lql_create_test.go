@@ -46,7 +46,7 @@ func TestQueryCreateEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "create")
 	assert.Contains(t, out.String(), "Type a query to create")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to create LQL query: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to create query: EOF")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
@@ -71,7 +71,7 @@ func TestQueryCreateFile(t *testing.T) {
 
 	// create
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "create", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) created successfully.", queryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("query (%s) created successfully.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
@@ -88,7 +88,7 @@ func TestQueryCreateFile(t *testing.T) {
 
 	// delete
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "delete", queryID)
-	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) deleted successfully.", queryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("query (%s) deleted successfully.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

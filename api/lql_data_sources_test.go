@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLQLDataSourcesMethod(t *testing.T) {
+func TestQueryDataSourcesMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql/dataSources",
@@ -46,11 +46,11 @@ func TestLQLDataSourcesMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.DataSources()
+	_, err = c.Query.DataSources()
 	assert.Nil(t, err)
 }
 
-func TestLQLDataSourcesOK(t *testing.T) {
+func TestQueryDataSourcesOK(t *testing.T) {
 	dataSourcesData := `[
 	{
 		"datasources": [
@@ -58,7 +58,7 @@ func TestLQLDataSourcesOK(t *testing.T) {
 		]
 	}
 ]`
-	mockResponse := mockLQLDataResponse(dataSourcesData)
+	mockResponse := mockQueryDataResponse(dataSourcesData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -75,16 +75,16 @@ func TestLQLDataSourcesOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	dataSourcesExpected := api.LQLDataSourcesResponse{}
+	dataSourcesExpected := api.QueryDataSourcesResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &dataSourcesExpected)
 
-	var dataSourcesActual api.LQLDataSourcesResponse
-	dataSourcesActual, err = c.LQL.DataSources()
+	var dataSourcesActual api.QueryDataSourcesResponse
+	dataSourcesActual, err = c.Query.DataSources()
 	assert.Nil(t, err)
 	assert.Equal(t, dataSourcesExpected, dataSourcesActual)
 }
 
-func TestLQLDataSourcesError(t *testing.T) {
+func TestQueryDataSourcesError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql/dataSources",
@@ -100,6 +100,6 @@ func TestLQLDataSourcesError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.DataSources()
+	_, err = c.Query.DataSources()
 	assert.NotNil(t, err)
 }

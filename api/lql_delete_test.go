@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLQLDeleteMethod(t *testing.T) {
+func TestQueryDeleteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -47,12 +47,12 @@ func TestLQLDeleteMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Delete(queryID)
+	_, err = c.Query.Delete(queryID)
 	fmt.Println(err)
 	assert.Nil(t, err)
 }
 
-func TestLQLDeleteBadInput(t *testing.T) {
+func TestQueryDeleteBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -69,11 +69,11 @@ func TestLQLDeleteBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Delete("")
-	assert.NotNil(t, err)
+	_, err = c.Query.Delete("")
+	assert.Equal(t, "query ID must be provided", err.Error())
 }
 
-func TestLQLDeleteOK(t *testing.T) {
+func TestQueryDeleteOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
@@ -92,17 +92,17 @@ func TestLQLDeleteOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	deleteExpected := api.LQLDeleteResponse{}
+	deleteExpected := api.QueryDeleteResponse{}
 	_ = json.Unmarshal([]byte(""), &deleteExpected)
 
-	var deleteActual api.LQLDeleteResponse
-	deleteActual, err = c.LQL.Delete(queryID)
+	var deleteActual api.QueryDeleteResponse
+	deleteActual, err = c.Query.Delete(queryID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, deleteExpected, deleteActual)
 }
 
-func TestLQLDeleteNotFound(t *testing.T) {
+func TestQueryDeleteNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -119,6 +119,6 @@ func TestLQLDeleteNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Delete(queryID)
+	_, err = c.Query.Delete(queryID)
 	assert.NotNil(t, err)
 }

@@ -19,22 +19,26 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/lwtime"
 )
 
 var (
-	lqlCmdState = struct {
+	queryCmdState = struct {
 		End          string
 		File         string
 		Repo         bool
@@ -44,22 +48,22 @@ var (
 		ValidateOnly bool
 	}{}
 
-	// lqlCmd represents the lql parent command
-	lqlCmd = &cobra.Command{
+	// queryCmd represents the lql parent command
+	queryCmd = &cobra.Command{
 		Hidden:  true,
 		Aliases: []string{"lql"},
 		Use:     "query",
-		Short:   "run and manage LQL queries",
-		Long: `Run and manage LQL queries.
+		Short:   "run and manage queries",
+		Long: `Run and manage queries.
 
 NOTE: This feature is not yet available!`,
 	}
 
-	// lqlRunCmd represents the lql run command
-	lqlRunCmd = &cobra.Command{
+	// queryRunCmd represents the lql run command
+	queryRunCmd = &cobra.Command{
 		Use:   "run [query_id]",
-		Short: "run an LQL query",
-		Long: `Run an LQL query.
+		Short: "run a query",
+		Long: `Run a query.
 
 Run a query via editor:
 
@@ -79,7 +83,7 @@ Start and End times are required to run a query:
 
 2. Start and End times must be specified in one of the following ways:
 
-	A.  As StartTimeRange and EndTimeRange in the ParamInfo block within the LQL query
+	A.  As StartTimeRange and EndTimeRange in the ParamInfo block within the query
 	B.  As start_time_range and end_time_range if specifying JSON
 	C.  As --start and --end CLI flags
 	
@@ -94,35 +98,35 @@ Start and End times are required to run a query:
 
 func init() {
 	// add the lql command
-	rootCmd.AddCommand(lqlCmd)
+	rootCmd.AddCommand(queryCmd)
 
 	// add sub-commands to the lql command
-	lqlCmd.AddCommand(lqlRunCmd)
+	queryCmd.AddCommand(queryRunCmd)
 
 	// run specific flags
-	setQuerySourceFlags(lqlRunCmd)
+	setQuerySourceFlags(queryRunCmd)
 
 	// since time flag
-	lqlRunCmd.Flags().StringVarP(
-		&lqlCmdState.Range,
+	queryRunCmd.Flags().StringVarP(
+		&queryCmdState.Range,
 		"range", "", "",
-		"natural time range for LQL query",
+		"natural time range for query",
 	)
 
 	// start time flag
-	lqlRunCmd.Flags().StringVarP(
-		&lqlCmdState.Start,
+	queryRunCmd.Flags().StringVarP(
+		&queryCmdState.Start,
 		"start", "", "@d",
-		"start time for LQL query",
+		"start time for query",
 	)
 	// end time flag
-	lqlRunCmd.Flags().StringVarP(
-		&lqlCmdState.End,
+	queryRunCmd.Flags().StringVarP(
+		&queryCmdState.End,
 		"end", "", "now",
-		"end time for LQL query",
+		"end time for query",
 	)
-	lqlRunCmd.Flags().BoolVarP(
-		&lqlCmdState.ValidateOnly,
+	queryRunCmd.Flags().BoolVarP(
+		&queryCmdState.ValidateOnly,
 		"validate_only", "", false,
 		"validate query only (do not run)",
 	)
@@ -135,21 +139,21 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 
 			// file flag to specify a query from disk
 			cmd.Flags().StringVarP(
-				&lqlCmdState.File,
+				&queryCmdState.File,
 				"file", "f", "",
-				fmt.Sprintf("path to an LQL query to %s", action),
+				fmt.Sprintf("path to a query to %s", action),
 			)
 			/* repo flag to specify a query from repo
 			cmd.Flags().BoolVarP(
-				&lqlCmdState.Repo,
+				&queryCmdState.Repo,
 				"repo", "r", false,
-				fmt.Sprintf("id of an LQL query to %s via active repo", action),
+				fmt.Sprintf("id of a query to %s via active repo", action),
 			)*/
 			// url flag to specify a query from url
 			cmd.Flags().StringVarP(
-				&lqlCmdState.URL,
+				&queryCmdState.URL,
 				"url", "u", "",
-				fmt.Sprintf("url to an LQL query to %s", action),
+				fmt.Sprintf("url to a query to %s", action),
 			)
 		}
 	}
@@ -162,20 +166,20 @@ func inputQuery(cmd *cobra.Command, args []string) (string, error) {
 		return inputQueryFromEnv(args[0])
 	}
 	// if running via repo
-	if lqlCmdState.Repo {
+	if queryCmdState.Repo {
 		return inputQueryFromRepo()
 	}
 	// if running via file
-	if lqlCmdState.File != "" {
-		return inputQueryFromFile(lqlCmdState.File)
+	if queryCmdState.File != "" {
+		return inputQueryFromFile(queryCmdState.File)
 	}
 	// if running via URL
-	if lqlCmdState.URL != "" {
-		return inputQueryFromURL(lqlCmdState.URL)
+	if queryCmdState.URL != "" {
+		return inputQueryFromURL(queryCmdState.URL)
 	}
 	// if running via editor
 	action := "validate"
-	if !lqlCmdState.ValidateOnly {
+	if !queryCmdState.ValidateOnly {
 		action = strings.Split(cmd.Use, " ")[0]
 	}
 	return inputQueryFromEditor(action)
@@ -184,7 +188,7 @@ func inputQuery(cmd *cobra.Command, args []string) (string, error) {
 func inputQueryFromEnv(queryID string) (query string, err error) {
 	var queryResponse api.QueryResponse
 
-	queryResponse, err = cli.LwApi.LQL.GetByID(queryID)
+	queryResponse, err = cli.LwApi.Query.GetByID(queryID)
 	if err == nil {
 		query = queryResponse.Data.QueryText
 	}
@@ -240,19 +244,53 @@ func inputQueryFromEditor(action string) (query string, err error) {
 	return
 }
 
-func queryErrorCrumbs(query string, err error) error {
-	// not the error we're looking for
-	if !strings.Contains(fmt.Sprintf("%s", err), "query must be valid JSON or YAML") {
-		return err
+func parseQuery(s string) (api.NewQuery, error) {
+	var query api.NewQuery
+	var err error
+
+	// valid json
+	if err = json.Unmarshal([]byte(s), &query); err == nil {
+		return query, err
 	}
+	// valid yaml
+	query = api.NewQuery{}
+	err = yaml.Unmarshal([]byte(s), &query)
+	if err == nil && !reflect.DeepEqual(query, api.NewQuery{}) { // empty string unmarshals w/o error
+		return query, nil
+	}
+	// invalid policy
+	return query, queryErrorCrumbs(s)
+}
+
+func parseQueryTime(s string) (time.Time, error) {
+	// empty
+	if s == "" {
+		return time.Time{}, errors.New(fmt.Sprintf("unable to parse time (%s)", s))
+	}
+	// parse time as relative
+	if t, err := lwtime.ParseRelative(s); err == nil {
+		return t, err
+	}
+	// parse time as RFC3339
+	if t, err := time.Parse(time.RFC3339, s); err == nil {
+		return t, err
+	}
+	// parse time as millis
+	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
+		return time.Unix(0, i*int64(time.Millisecond)), err
+	}
+	return time.Time{}, errors.New(fmt.Sprintf("unable to parse time (%s)", s))
+}
+
+func queryErrorCrumbs(q string) error {
 	// smells like json
-	query = strings.TrimSpace(query)
-	if strings.HasPrefix(query, "[") ||
-		strings.HasPrefix(query, "{") {
+	q = strings.TrimSpace(q)
+	if strings.HasPrefix(q, "[") ||
+		strings.HasPrefix(q, "{") {
 
 		return errors.New(`invalid query
 
-It looks like you attempted to submit an LQL query in JSON format.
+It looks like you attempted to submit a query in JSON format.
 Please validate that the JSON is formatted properly and adheres to the following schema:
 
 {
@@ -265,7 +303,7 @@ Please validate that the JSON is formatted properly and adheres to the following
 	// smells like plain text
 	return errors.New(`invalid query
 	
-It looks like you attempted to submit an LQL query in YAML format.
+It looks like you attempted to submit a query in YAML format.
 Please validate that the text adheres to the following schema:
 
 evaluatorId: Cloudtrail
@@ -286,36 +324,52 @@ queryText: |-
 }
 
 func runQuery(cmd *cobra.Command, args []string) error {
-	msg := "unable to run LQL query"
+	var start, end time.Time
+	msg := "unable to run query"
 
-	query, err := inputQuery(cmd, args)
+	// input query
+	queryString, err := inputQuery(cmd, args)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
+	// parse query
+	newQuery, err := parseQuery(queryString)
+	if err != nil {
+		return errors.Wrap(err, msg)
+	}
+	// validate_only should compile
+	if queryCmdState.ValidateOnly {
+		return validateQueryAndOutput(newQuery.QueryText)
+	}
 
-	if lqlCmdState.Range != "" {
+	// use of if/else intentional here based on logic paths for determining start and end time.Time values
+	// if cli user has specified a range we use ParseNatural which gives us start and end time.Time values
+	// otherwise we need to convert queryCmdState start and end strings to time.Time values using parseQueryTime
+	if queryCmdState.Range != "" {
 		cli.Log.Debugw("retrieving natural time range")
 
-		var start, end time.Time
-		start, end, err = lwtime.ParseNatural(lqlCmdState.Range)
+		start, end, err = lwtime.ParseNatural(queryCmdState.Range)
 		if err != nil {
 			return errors.Wrap(err, msg)
 		}
-		lqlCmdState.Start = start.UTC().Format(time.RFC3339)
-		lqlCmdState.End = end.UTC().Format(time.RFC3339)
+	} else {
+		// parse start
+		start, err = parseQueryTime(queryCmdState.Start)
+		if err != nil {
+			return errors.Wrap(err, msg)
+		}
+		// parse end
+		end, err = parseQueryTime(queryCmdState.End)
+		if err != nil {
+			return errors.Wrap(err, msg)
+		}
 	}
 
-	cli.Log.Debugw("running LQL query", "query", query)
+	cli.Log.Debugw("running query", "query", queryString)
 
-	// validate_only should compile
-	if lqlCmdState.ValidateOnly {
-		return compileQueryAndOutput(query)
-	}
-	// !validate_only should should run
-	response, err := cli.LwApi.LQL.Run(query, lqlCmdState.Start, lqlCmdState.End)
+	response, err := cli.LwApi.Query.Execute(newQuery.QueryText, start, end)
 
 	if err != nil {
-		err = queryErrorCrumbs(query, err)
 		return errors.Wrap(err, msg)
 	}
 	if data, ok := response["data"]; ok {

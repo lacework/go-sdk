@@ -24,27 +24,27 @@ import (
 )
 
 var (
-	// lqlShowCmd represents the lql show command
-	lqlShowCmd = &cobra.Command{
+	// queryShowCmd represents the lql show command
+	queryShowCmd = &cobra.Command{
 		Use:   "show <query_id>",
-		Short: "show an LQL query",
-		Long:  `Show an LQL query.`,
+		Short: "show a query",
+		Long:  `Show a query.`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  showQuery,
 	}
 )
 
 func init() {
-	lqlCmd.AddCommand(lqlShowCmd)
+	queryCmd.AddCommand(queryShowCmd)
 }
 
 func showQuery(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("retrieving LQL query", "queryID", args[0])
+	cli.Log.Debugw("retrieving query", "queryID", args[0])
 
-	queryResponse, err := cli.LwApi.LQL.GetByID(args[0])
+	queryResponse, err := cli.LwApi.Query.GetByID(args[0])
 
 	if err != nil {
-		return errors.Wrap(err, "unable to show LQL query")
+		return errors.Wrap(err, "unable to show query")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)

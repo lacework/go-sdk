@@ -30,13 +30,18 @@ import (
 )
 
 var (
-	lqlUpdateData = `{
-	"queryId": "my_lql",
-	"queryText": "my_lql { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
-}`
+	updateQueryText = `my_lql { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }`
+	updateQuery     = api.UpdateQuery{
+		QueryText: newQueryText,
+	}
+	updateQueryJSON = fmt.Sprintf(`{
+	"evaluatorId": "%s",
+	"queryId": "%s",
+	"queryText": "%s"
+}`, queryEvaluator, queryID, updateQueryText)
 )
 
-func TestLQLUpdateMethod(t *testing.T) {
+func TestQueryUpdateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -54,11 +59,11 @@ func TestLQLUpdateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Update(queryJSON)
+	_, err = c.Query.Update(queryID, updateQuery)
 	assert.Nil(t, err)
 }
 
-func TestLQLUpdateBadInput(t *testing.T) {
+func TestQueryUpdateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -75,12 +80,12 @@ func TestLQLUpdateBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Update("")
-	assert.Equal(t, "query must be valid JSON or YAML", err.Error())
+	_, err = c.Query.Update("", api.UpdateQuery{})
+	assert.Equal(t, "query ID must be provided", err.Error())
 }
 
-func TestLQLUpdateOK(t *testing.T) {
-	mockResponse := mockLQLDataResponse(lqlUpdateData)
+func TestQueryUpdateOK(t *testing.T) {
+	mockResponse := mockQueryDataResponse(updateQueryJSON)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
@@ -102,13 +107,13 @@ func TestLQLUpdateOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
 
 	var updateActual api.QueryResponse
-	updateActual, err = c.LQL.Update(queryJSON)
+	updateActual, err = c.Query.Update(queryID, updateQuery)
 	assert.Nil(t, err)
 
 	assert.Equal(t, updateExpected, updateActual)
 }
 
-func TestLQLUpdateNotFound(t *testing.T) {
+func TestQueryUpdateNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -125,6 +130,6 @@ func TestLQLUpdateNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Update(queryJSON)
+	_, err = c.Query.Update(queryID, updateQuery)
 	assert.NotNil(t, err)
 }
