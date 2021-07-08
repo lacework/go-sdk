@@ -76,7 +76,7 @@ func TestQueryCreateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Create(newQuery)
+	_, err = c.V2.Query.Create(newQuery)
 	assert.Nil(t, err)
 }
 
@@ -103,7 +103,7 @@ func TestQueryCreateOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
 
 	var createActual api.QueryResponse
-	createActual, err = c.Query.Create(newQuery)
+	createActual, err = c.V2.Query.Create(newQuery)
 	assert.Nil(t, err)
 
 	assert.Equal(t, createExpected, createActual)
@@ -126,11 +126,11 @@ func TestQueryCreateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Create(newQuery)
+	_, err = c.V2.Query.Create(newQuery)
 	assert.NotNil(t, err)
 }
 
-func TestQueryGetQueriesMethod(t *testing.T) {
+func TestQueryListMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -148,7 +148,7 @@ func TestQueryGetQueriesMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.GetQueries()
+	_, err = c.V2.Query.List()
 	assert.Nil(t, err)
 }
 
@@ -176,7 +176,7 @@ func TestQueryGetQueryByIDOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &getExpected)
 
 	var getActual api.QueryResponse
-	getActual, err = c.Query.GetByID(queryID)
+	getActual, err = c.V2.Query.GetByID(queryID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, getExpected, getActual)
@@ -199,7 +199,7 @@ func TestQueryGetByIDNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.GetByID("NoSuchQuery")
+	_, err = c.V2.Query.GetByID("NoSuchQuery")
 	assert.NotNil(t, err)
 }
 
@@ -220,7 +220,7 @@ func TestQueryExecuteMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Execute(newQueryText, time.Unix(0, 0), time.Unix(1, 0))
+	_, err = c.V2.Query.Execute(newQueryText, time.Unix(0, 0), time.Unix(1, 0))
 	assert.Nil(t, err)
 }
 
@@ -240,7 +240,7 @@ func TestQueryExecuteBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Execute("", time.Unix(0, 0), time.Unix(1, 0))
+	_, err = c.V2.Query.Execute("", time.Unix(0, 0), time.Unix(1, 0))
 	assert.Equal(t, "query text must be provided", err.Error())
 }
 
@@ -266,7 +266,7 @@ func TestQueryExecuteOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
 
 	var runActual map[string]interface{}
-	runActual, err = c.Query.Execute(newQueryText, time.Unix(0, 0), time.Unix(1, 0))
+	runActual, err = c.V2.Query.Execute(newQueryText, time.Unix(0, 0), time.Unix(1, 0))
 	assert.Nil(t, err)
 
 	assert.Equal(t, runExpected, runActual)
@@ -288,6 +288,6 @@ func TestQueryExecuteError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Execute(newQueryText, time.Unix(0, 0), time.Unix(1, 0))
+	_, err = c.V2.Query.Execute(newQueryText, time.Unix(0, 0), time.Unix(1, 0))
 	assert.NotNil(t, err)
 }

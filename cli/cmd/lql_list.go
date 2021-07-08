@@ -55,7 +55,7 @@ func queryIDTable(queryData []api.Query) (out [][]string) {
 func listQueries(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("listing queries")
 
-	queryResponse, err := cli.LwApi.Query.GetQueries()
+	queryResponse, err := cli.LwApi.V2.Query.List()
 
 	if err != nil {
 		return errors.Wrap(err, "unable to list queries")

@@ -52,7 +52,7 @@ func getQuerySources(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving LQL data sources")
 
 	lqlSourcesUnableMsg := "unable to retrieve LQL data sources"
-	dataSourcesResponse, err := cli.LwApi.Query.DataSources()
+	dataSourcesResponse, err := cli.LwApi.V2.Query.DataSources()
 
 	if err != nil {
 		return errors.Wrap(err, lqlSourcesUnableMsg)

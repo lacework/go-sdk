@@ -135,7 +135,7 @@ func TestQueryDescribeMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Describe(QueryDataSource)
+	_, err = c.V2.Query.Describe(QueryDataSource)
 	assert.Nil(t, err)
 }
 
@@ -161,7 +161,7 @@ func TestQueryDescribeOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &describeExpected)
 
 	var describeActual api.QueryDescribeResponse
-	describeActual, err = c.Query.Describe(QueryDataSource)
+	describeActual, err = c.V2.Query.Describe(QueryDataSource)
 	assert.Nil(t, err)
 
 	assert.Equal(t, describeExpected, describeActual)
@@ -183,7 +183,7 @@ func TestQueryDescribeNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Describe("NoSuchDataSource")
+	_, err = c.V2.Query.Describe("NoSuchDataSource")
 	assert.NotNil(t, err)
 }
 
@@ -203,6 +203,6 @@ func TestQueryDescribeError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Describe(QueryDataSource)
+	_, err = c.V2.Query.Describe(QueryDataSource)
 	assert.NotNil(t, err)
 }

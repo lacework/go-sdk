@@ -61,7 +61,7 @@ func validateQuery(cmd *cobra.Command, args []string) error {
 func validateQueryAndOutput(s string) error {
 	cli.Log.Debugw("validating query", "query", s)
 
-	validate, err := cli.LwApi.Query.Validate(s)
+	validate, err := cli.LwApi.V2.Query.Validate(s)
 
 	if err != nil {
 		return errors.Wrap(err, lqlValidateUnableMsg)

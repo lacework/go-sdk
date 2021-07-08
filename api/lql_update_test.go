@@ -59,7 +59,7 @@ func TestQueryUpdateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Update(queryID, updateQuery)
+	_, err = c.V2.Query.Update(queryID, updateQuery)
 	assert.Nil(t, err)
 }
 
@@ -80,7 +80,7 @@ func TestQueryUpdateBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Update("", api.UpdateQuery{})
+	_, err = c.V2.Query.Update("", api.UpdateQuery{})
 	assert.Equal(t, "query ID must be provided", err.Error())
 }
 
@@ -107,7 +107,7 @@ func TestQueryUpdateOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
 
 	var updateActual api.QueryResponse
-	updateActual, err = c.Query.Update(queryID, updateQuery)
+	updateActual, err = c.V2.Query.Update(queryID, updateQuery)
 	assert.Nil(t, err)
 
 	assert.Equal(t, updateExpected, updateActual)
@@ -130,6 +130,6 @@ func TestQueryUpdateNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Update(queryID, updateQuery)
+	_, err = c.V2.Query.Update(queryID, updateQuery)
 	assert.NotNil(t, err)
 }

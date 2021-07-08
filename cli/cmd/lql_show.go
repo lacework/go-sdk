@@ -41,7 +41,7 @@ func init() {
 func showQuery(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving query", "queryID", args[0])
 
-	queryResponse, err := cli.LwApi.Query.GetByID(args[0])
+	queryResponse, err := cli.LwApi.V2.Query.GetByID(args[0])
 
 	if err != nil {
 		return errors.Wrap(err, "unable to show query")

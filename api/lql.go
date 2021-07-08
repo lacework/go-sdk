@@ -96,7 +96,7 @@ func (svc *QueryService) Update(queryID string, uq UpdateQuery) (
 	return
 }
 
-func (svc *QueryService) GetQueries() (
+func (svc *QueryService) List() (
 	response QueriesResponse,
 	err error,
 ) {

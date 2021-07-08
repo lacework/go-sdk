@@ -96,7 +96,7 @@ func TestQueryValidateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Validate(newQueryText)
+	_, err = c.V2.Query.Validate(newQueryText)
 	assert.Nil(t, err)
 }
 
@@ -116,7 +116,7 @@ func TestQueryValidateBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Validate("")
+	_, err = c.V2.Query.Validate("")
 	assert.Equal(t, "query text must be provided", err.Error())
 }
 
@@ -142,7 +142,7 @@ func TestQueryValidateOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &compileExpected)
 
 	var compileActual api.QueryValidateResponse
-	compileActual, err = c.Query.Validate(newQueryText)
+	compileActual, err = c.V2.Query.Validate(newQueryText)
 	assert.Nil(t, err)
 	assert.Equal(t, compileExpected, compileActual)
 }
@@ -163,6 +163,6 @@ func TestQueryValidateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Validate(newQueryText)
+	_, err = c.V2.Query.Validate(newQueryText)
 	assert.NotNil(t, err)
 }

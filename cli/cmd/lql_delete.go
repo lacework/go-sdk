@@ -44,7 +44,7 @@ func init() {
 func deleteQuery(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("deleting query", "queryID", args[0])
 
-	_, err := cli.LwApi.Query.Delete(args[0])
+	_, err := cli.LwApi.V2.Query.Delete(args[0])
 
 	if err != nil {
 		return errors.Wrap(err, "unable to delete query")

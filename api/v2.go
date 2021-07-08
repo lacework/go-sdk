@@ -26,11 +26,13 @@ type V2Endpoints struct {
 	// Every schema must have its own service
 	UserProfile   *UserProfileService
 	CloudAccounts *CloudAccountsService
+	Query         *QueryService
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
 	return &V2Endpoints{c,
 		&UserProfileService{c},
 		&CloudAccountsService{c},
+		&QueryService{c},
 	}
 }

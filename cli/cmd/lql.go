@@ -188,7 +188,7 @@ func inputQuery(cmd *cobra.Command, args []string) (string, error) {
 func inputQueryFromEnv(queryID string) (query string, err error) {
 	var queryResponse api.QueryResponse
 
-	queryResponse, err = cli.LwApi.Query.GetByID(queryID)
+	queryResponse, err = cli.LwApi.V2.Query.GetByID(queryID)
 	if err == nil {
 		query = queryResponse.Data.QueryText
 	}
@@ -319,7 +319,7 @@ queryText: |-
       return {
           INSERT_ID
       }
-  }"
+  }
 `)
 }
 
@@ -367,7 +367,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 
 	cli.Log.Debugw("running query", "query", queryString)
 
-	response, err := cli.LwApi.Query.Execute(newQuery.QueryText, start, end)
+	response, err := cli.LwApi.V2.Query.Execute(newQuery.QueryText, start, end)
 
 	if err != nil {
 		return errors.Wrap(err, msg)

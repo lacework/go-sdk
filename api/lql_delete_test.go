@@ -47,7 +47,7 @@ func TestQueryDeleteMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Delete(queryID)
+	_, err = c.V2.Query.Delete(queryID)
 	fmt.Println(err)
 	assert.Nil(t, err)
 }
@@ -69,7 +69,7 @@ func TestQueryDeleteBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Delete("")
+	_, err = c.V2.Query.Delete("")
 	assert.Equal(t, "query ID must be provided", err.Error())
 }
 
@@ -96,7 +96,7 @@ func TestQueryDeleteOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(""), &deleteExpected)
 
 	var deleteActual api.QueryDeleteResponse
-	deleteActual, err = c.Query.Delete(queryID)
+	deleteActual, err = c.V2.Query.Delete(queryID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, deleteExpected, deleteActual)
@@ -119,6 +119,6 @@ func TestQueryDeleteNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.Delete(queryID)
+	_, err = c.V2.Query.Delete(queryID)
 	assert.NotNil(t, err)
 }

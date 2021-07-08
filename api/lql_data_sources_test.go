@@ -46,7 +46,7 @@ func TestQueryDataSourcesMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.DataSources()
+	_, err = c.V2.Query.DataSources()
 	assert.Nil(t, err)
 }
 
@@ -79,7 +79,7 @@ func TestQueryDataSourcesOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &dataSourcesExpected)
 
 	var dataSourcesActual api.QueryDataSourcesResponse
-	dataSourcesActual, err = c.Query.DataSources()
+	dataSourcesActual, err = c.V2.Query.DataSources()
 	assert.Nil(t, err)
 	assert.Equal(t, dataSourcesExpected, dataSourcesActual)
 }
@@ -100,6 +100,6 @@ func TestQueryDataSourcesError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Query.DataSources()
+	_, err = c.V2.Query.DataSources()
 	assert.NotNil(t, err)
 }

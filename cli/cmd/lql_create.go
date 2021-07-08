@@ -58,7 +58,7 @@ func createQuery(cmd *cobra.Command, args []string) error {
 	}
 
 	cli.Log.Debugw("creating query", "query", queryString)
-	create, err := cli.LwApi.Query.Create(newQuery)
+	create, err := cli.LwApi.V2.Query.Create(newQuery)
 
 	if err != nil {
 		return errors.Wrap(err, msg)

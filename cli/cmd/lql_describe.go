@@ -72,7 +72,7 @@ func describeToTable(describeData []api.QueryDescribeData) (out [][]string) {
 func describeQuerySource(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("describing LQL data source", "data source", args[0])
 
-	describe, err := cli.LwApi.Query.Describe(args[0])
+	describe, err := cli.LwApi.V2.Query.Describe(args[0])
 
 	if err != nil {
 		return errors.Wrap(err, "unable to describe LQL data source")
