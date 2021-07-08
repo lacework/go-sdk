@@ -43,5 +43,5 @@ variable "docker_hub_pass" {
 variable "lacework_aws_account_id" {
   type        = string
   default     = ""
-  description = "The Aws Account"
+  description = "The Lacework AWS account that the IAM role will grant access"
 }
