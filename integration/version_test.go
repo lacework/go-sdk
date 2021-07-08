@@ -127,3 +127,22 @@ func TestVersionCommand(t *testing.T) {
 		"version update message should be displayed",
 	)
 }
+
+func TestDailyVersionCheckShouldNotRunWhenInNonInteractiveMode(t *testing.T) {
+	enableTestingUpdaterEnv()
+	defer disableTestingUpdaterEnv()
+
+	home := createTOMLConfigFromCIvars()
+	defer os.RemoveAll(home)
+
+	out, err, exitcode := LaceworkCLIWithHome(home, "configure", "list", "--noninteractive")
+	assert.Empty(t, err.String())
+	assert.Equal(t, 0, exitcode)
+	assert.NotContains(t, out.String(),
+		"A newer version of the Lacework CLI is available! The latest version is v",
+		"we shouldn't see this daily version check message",
+	)
+
+	versionCacheFile := path.Join(home, ".config", "lacework", "version_cache")
+	assert.NoFileExists(t, versionCacheFile, "the version_cache file is missing")
+}
