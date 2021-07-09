@@ -9,6 +9,7 @@ require (
 	github.com/briandowns/spinner v1.12.0
 	github.com/fatih/color v1.12.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/google/btree v1.0.1 // indirect
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/honeycombio/libhoney-go v1.15.2
@@ -18,6 +19,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml v1.6.0 // indirect
+	github.com/peterbourgon/diskv/v3 v3.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cast v1.3.1 // indirect

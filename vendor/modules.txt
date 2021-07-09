@@ -30,6 +30,9 @@ github.com/fatih/color
 github.com/fsnotify/fsnotify
 # github.com/golang/protobuf v1.3.5
 github.com/golang/protobuf/proto
+# github.com/google/btree v1.0.1
+## explicit
+github.com/google/btree
 # github.com/hashicorp/hcl v1.0.0
 github.com/hashicorp/hcl
 github.com/hashicorp/hcl/hcl/ast
@@ -89,6 +92,9 @@ github.com/olekukonko/tablewriter
 # github.com/pelletier/go-toml v1.6.0
 ## explicit
 github.com/pelletier/go-toml
+# github.com/peterbourgon/diskv/v3 v3.0.0
+## explicit
+github.com/peterbourgon/diskv/v3
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
