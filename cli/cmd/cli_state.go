@@ -225,7 +225,10 @@ func (c *cliState) NewClient() error {
 			api.WithLifecycleCallbacks(api.LifecycleCallbacks{
 				TokenExpiredCallback: cli.EraseCachedToken,
 				RequestCallback: func(httpCode int, _ http.Header) error {
-					return c.Cache.Erase("token")
+					if httpCode == 403 {
+						return c.Cache.Erase("token")
+					}
+					return nil
 				},
 			}))
 	}
