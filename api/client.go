@@ -43,6 +43,7 @@ type Client struct {
 	c          *http.Client
 	log        *zap.Logger
 	headers    map[string]string
+	callbacks  LifecycleCallbacks
 
 	Account         *AccountService
 	Agents          *AgentsService
