@@ -34,6 +34,7 @@ resource "lacework_integration_docker_hub" "techally_dockerhub" {
 # Lacework AWS config integration, required for go-sdk/integration/compliance_aws_test.go
 module "aws_config" {
   source  = "lacework/config/aws"
+  lacework_aws_account_id = var.lacework_aws_account_id
 }
 
 # Lacework GCP config integration, required for go-sdk/integration/compliance_gcp_test.go
