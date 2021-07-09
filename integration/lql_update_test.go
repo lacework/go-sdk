@@ -46,7 +46,7 @@ func TestQueryUpdateEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "update")
 	assert.Contains(t, out.String(), "Type a query to update")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to update LQL query: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to update query: EOF")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
@@ -62,24 +62,25 @@ func TestQueryUpdateFile(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(lqlQueryUpdate))
+	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText)
+	_, err = file.Write([]byte(query))
 	if err != nil {
 		t.FailNow()
 	}
 	file.Close()
 
 	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// update
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "update", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) updated successfully.", lqlQueryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("query (%s) updated successfully.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", lqlQueryID)
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", queryID)
 	assert.Contains(t, out.String(), "INSERT_TIME")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -97,24 +98,25 @@ func TestQueryUpdateURL(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(lqlQueryUpdate))
+	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText)
+	_, err = file.Write([]byte(query))
 	if err != nil {
 		t.FailNow()
 	}
 	file.Close()
 
 	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// update
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "update", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) updated successfully.", lqlQueryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("query (%s) updated successfully.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", lqlQueryID)
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", queryID)
 	assert.Contains(t, out.String(), "INSERT_TIME")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")

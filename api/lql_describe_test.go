@@ -31,8 +31,8 @@ import (
 )
 
 var (
-	lqlDataSource   = "CloudTrailRawEvents"
-	lqlDescribeData = `[{
+	QueryDataSource   = "CloudTrailRawEvents"
+	QueryDescribeData = `[{
 		"props": {
 			"cachable": true
 		},
@@ -112,17 +112,17 @@ var (
 	}]`
 )
 
-func TestLQLDescribeMethod(t *testing.T) {
+func TestQueryDescribeMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		fmt.Sprintf("external/lql/describe/%s", url.QueryEscape(lqlDataSource)),
+		fmt.Sprintf("external/lql/describe/%s", url.QueryEscape(QueryDataSource)),
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "Describe should be a GET method")
 			assert.Subset(
 				t,
 				[]byte(r.RequestURI),
-				[]byte(lqlDataSource),
-				"Describe should specify lqlDataSource route",
+				[]byte(QueryDataSource),
+				"Describe should specify QueryDataSource route",
 			)
 			fmt.Fprint(w, "{}")
 		},
@@ -135,16 +135,16 @@ func TestLQLDescribeMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Describe(lqlDataSource)
+	_, err = c.V2.Query.Describe(QueryDataSource)
 	assert.Nil(t, err)
 }
 
-func TestLQLDescribeOK(t *testing.T) {
-	mockResponse := mockLQLDataResponse(lqlDescribeData)
+func TestQueryDescribeOK(t *testing.T) {
+	mockResponse := mockQueryDataResponse(QueryDescribeData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		fmt.Sprintf("external/lql/describe/%s", url.QueryEscape(lqlDataSource)),
+		fmt.Sprintf("external/lql/describe/%s", url.QueryEscape(QueryDataSource)),
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -157,20 +157,20 @@ func TestLQLDescribeOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	describeExpected := api.LQLDescribeResponse{}
+	describeExpected := api.QueryDescribeResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &describeExpected)
 
-	var describeActual api.LQLDescribeResponse
-	describeActual, err = c.LQL.Describe(lqlDataSource)
+	var describeActual api.QueryDescribeResponse
+	describeActual, err = c.V2.Query.Describe(QueryDataSource)
 	assert.Nil(t, err)
 
 	assert.Equal(t, describeExpected, describeActual)
 }
 
-func TestLQLDescribeNotFound(t *testing.T) {
+func TestQueryDescribeNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		fmt.Sprintf("external/lql/describe/%s", url.QueryEscape(lqlDataSource)),
+		fmt.Sprintf("external/lql/describe/%s", url.QueryEscape(QueryDataSource)),
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -183,11 +183,11 @@ func TestLQLDescribeNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Describe("NoSuchDataSource")
+	_, err = c.V2.Query.Describe("NoSuchDataSource")
 	assert.NotNil(t, err)
 }
 
-func TestLQLDescribeError(t *testing.T) {
+func TestQueryDescribeError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
 		"external/lql/compile",
@@ -203,6 +203,6 @@ func TestLQLDescribeError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Describe(lqlDataSource)
+	_, err = c.V2.Query.Describe(QueryDataSource)
 	assert.NotNil(t, err)
 }

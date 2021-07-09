@@ -27,6 +27,7 @@ type V2Endpoints struct {
 	UserProfile       *UserProfileService
 	CloudAccounts     *CloudAccountsService
 	AgentAccessTokens *AgentAccessTokensService
+	Query             *QueryService
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
@@ -34,5 +35,6 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&UserProfileService{c},
 		&CloudAccountsService{c},
 		&AgentAccessTokensService{c},
+		&QueryService{c},
 	}
 }

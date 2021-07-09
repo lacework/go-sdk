@@ -79,7 +79,6 @@ const (
 	apiAccountOrganizationInfo = "v1/external/account/organizationInfo"
 
 	// Alpha
-	apiLQL            = "v1/external/lql"
 	apiLQLCompile     = "v1/external/lql/compile"
 	apiLQLDataSources = "v1/external/lql/dataSources"
 	apiLQLDescribe    = "v1/external/lql/describe"
@@ -99,6 +98,8 @@ const (
 	apiV2AgentAccessTokens       = "v2/AgentAccessTokens"
 	apiV2AgentAccessTokensSearch = "v2/AgentAccessTokens/search"
 	apiV2AgentAccessTokenFromID  = "v2/AgentAccessTokens/%s"
+
+	apiV2Queries = "v2/Queries"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

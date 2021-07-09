@@ -41,9 +41,9 @@ func TestQueryList(t *testing.T) {
 	}
 
 	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "list")
 	assert.Contains(t, out.String(), "QUERY ID")

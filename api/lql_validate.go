@@ -18,21 +18,23 @@
 
 package api
 
-type LQLCompileResponse struct {
+import "github.com/pkg/errors"
+
+type QueryValidateResponse struct {
 	Data    []map[string]interface{} `json:"data"`
 	Ok      bool                     `json:"ok"`
 	Message string                   `json:"message"`
 }
 
-func (svc *LQLService) Compile(query string) (
-	response LQLCompileResponse,
+func (svc *QueryService) Validate(queryText string) (
+	response QueryValidateResponse,
 	err error,
 ) {
-	lqlQuery := LQLQuery{QueryBlob: query}
-	if err = lqlQuery.Translate(); err != nil {
+	if queryText == "" {
+		err = errors.New("query text must be provided")
 		return
 	}
-
-	err = svc.client.RequestEncoderDecoder("POST", apiLQLCompile, lqlQuery, &response)
+	query := map[string]string{"query_text": queryText}
+	err = svc.client.RequestEncoderDecoder("POST", apiLQLCompile, query, &response)
 	return
 }

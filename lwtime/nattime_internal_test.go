@@ -182,7 +182,7 @@ var NewNaturalTests = []NewNaturalTest{
 	},
 }
 
-func TestnewNatural(t *testing.T) {
+func TestNewNatural(t *testing.T) {
 	for _, pnt := range NewNaturalTests {
 		t.Run(pnt.Name, func(t *testing.T) {
 			nt, err := newNatural(pnt.Input)

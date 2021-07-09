@@ -23,14 +23,16 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
-	// lqlUpdateCmd represents the lql update command
-	lqlUpdateCmd = &cobra.Command{
+	// queryUpdateCmd represents the lql update command
+	queryUpdateCmd = &cobra.Command{
 		Use:   "update",
-		Short: "update an LQL query",
-		Long:  `Update an LQL query.`,
+		Short: "update a query",
+		Long:  `Update a query.`,
 		Args:  cobra.NoArgs,
 		RunE:  updateQuery,
 	}
@@ -38,33 +40,37 @@ var (
 
 func init() {
 	// add sub-commands to the lql command
-	lqlCmd.AddCommand(lqlUpdateCmd)
+	queryCmd.AddCommand(queryUpdateCmd)
 
-	setQuerySourceFlags(lqlUpdateCmd)
+	setQuerySourceFlags(queryUpdateCmd)
 }
 
 func updateQuery(cmd *cobra.Command, args []string) error {
-	lqlUpdateUnableMsg := "unable to update LQL query"
+	msg := "unable to update query"
 
-	query, err := inputQuery(cmd, args)
+	// input query
+	queryString, err := inputQuery(cmd, args)
 	if err != nil {
-		return errors.Wrap(err, lqlUpdateUnableMsg)
+		return errors.Wrap(err, msg)
+	}
+	// parse query
+	newQuery, err := parseQuery(queryString)
+	if err != nil {
+		return errors.Wrap(err, msg)
+	}
+	updateQuery := api.UpdateQuery{
+		QueryText: newQuery.QueryText,
 	}
 
-	cli.Log.Debugw("updating LQL query", "query", query)
-	update, err := cli.LwApi.LQL.Update(query)
+	cli.Log.Debugw("updating query", "query", queryString)
+	update, err := cli.LwApi.V2.Query.Update(newQuery.QueryID, updateQuery)
 
 	if err != nil {
-		err = queryErrorCrumbs(query, err)
-		return errors.Wrap(err, lqlUpdateUnableMsg)
+		return errors.Wrap(err, msg)
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(update.Data)
 	}
-	queryID := "unknown"
-	if len(update.Data) > 0 {
-		queryID = update.Data[0].ID
-	}
-	cli.OutputHuman(fmt.Sprintf("LQL query (%s) updated successfully.\n", queryID))
+	cli.OutputHuman(fmt.Sprintf("query (%s) updated successfully.\n", update.Data.QueryID))
 	return nil
 }

@@ -52,13 +52,14 @@ func TestQueryDelete(t *testing.T) {
 	}
 
 	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 
 	// table delete tested by virtue of TestQueryCreateFile
 
 	// json
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID, "--json")
-	assert.Contains(t, out.String(), `"`+lqlQueryID+`"`)
+	_, err, exitcode := LaceworkCLIWithTOMLConfig("query", "delete", queryID, "--json")
+	// delete returns HTTP 204 no content so there is nothing to display at this junctured
+	//assert.Contains(t, out.String(), `"`+queryID+`"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
