@@ -163,11 +163,11 @@ func TestQueryRunFileJSONCrumb(t *testing.T) {
 	// run
 	_, stderr, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-f", file.Name(), "--start", queryStart, "--end", queryEnd)
-	assert.Contains(t, stderr.String(), "query in plain text format")
+	assert.Contains(t, stderr.String(), "query in JSON format")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestQueryRunFilePlainCrumb(t *testing.T) {
+func TestQueryRunFileYAMLCrumb(t *testing.T) {
 	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")
 	}
@@ -188,7 +188,7 @@ func TestQueryRunFilePlainCrumb(t *testing.T) {
 	// run
 	_, stderr, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-f", file.Name(), "--start", queryStart, "--end", queryEnd)
-	assert.Contains(t, stderr.String(), "query in plain text format")
+	assert.Contains(t, stderr.String(), "query in YAML format")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
