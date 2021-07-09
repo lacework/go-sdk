@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2020, Lacework Inc.
+// Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,15 +16,17 @@
 // limitations under the License.
 //
 
-package cmd
+package format
 
-import "github.com/pkg/errors"
-
-func promptRequiredStringLen(size int, err string) func(interface{}) error {
-	return func(input interface{}) error {
-		if str, ok := input.(string); !ok || len(str) < size {
-			return errors.New(err)
-		}
-		return nil
+func Secret(nToShow int, secret string) string {
+	secretSize := len(secret)
+	if secretSize <= nToShow {
+		return secret
 	}
+
+	var chars = []byte(secret)
+	for i := 0; i < (secretSize - nToShow); i++ {
+		chars[i] = '*'
+	}
+	return string(chars)
 }
