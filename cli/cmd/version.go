@@ -24,7 +24,6 @@ import (
 	"path"
 	"time"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -102,15 +101,6 @@ func versionCheck() (*lwupdater.Version, error) {
 	return sdk, nil
 }
 
-func versionCacheDir() (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(home, ".config", "lacework"), nil
-}
-
 // dailyVersionCheck will execute a version check on a daily basis, the function uses
 // the file ~/.config/lacework/version_cache to track the last check time
 func dailyVersionCheck() error {
@@ -122,7 +112,7 @@ func dailyVersionCheck() error {
 		return nil
 	}
 
-	cacheDir, err := versionCacheDir()
+	cacheDir, err := cacheDir()
 	if err != nil {
 		return err
 	}

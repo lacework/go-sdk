@@ -155,7 +155,7 @@ func createConfigurationBackup() (string, error) {
 		return "", err
 	}
 
-	cacheDir, err := versionCacheDir()
+	cacheDir, err := cacheDir()
 	if err != nil {
 		return "", err
 	}

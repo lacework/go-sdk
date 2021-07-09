@@ -33,6 +33,9 @@ import (
 )
 
 func TestConfigureCommand(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Account:")
@@ -55,6 +58,9 @@ func TestConfigureCommand(t *testing.T) {
 }
 
 func TestConfigureCommandForFrankfurtDatacenter(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Account:")
@@ -109,6 +115,9 @@ func TestConfigureCommandForOrgAdmins(t *testing.T) {
 }
 
 func TestConfigureCommandWithProfileFlag(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Account:")
@@ -131,6 +140,9 @@ func TestConfigureCommandWithProfileFlag(t *testing.T) {
 }
 
 func TestConfigureCommandWithNewJSONFileFlagForStandaloneAccounts(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
 	// create a New JSON file similar to what the Lacework Web UI would provide
 	s := createJSONFileLikeWebUI(`
 {
@@ -163,6 +175,9 @@ func TestConfigureCommandWithNewJSONFileFlagForStandaloneAccounts(t *testing.T) 
 }
 
 func TestConfigureCommandWithNewJSONFileFlagForOrganizationalAccounts(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
 	// create a New JSON file similar to what the Lacework Web UI would provide
 	s := createJSONFileLikeWebUI(`
 {
@@ -197,6 +212,9 @@ func TestConfigureCommandWithNewJSONFileFlagForOrganizationalAccounts(t *testing
 }
 
 func TestConfigureCommandWithOldJSONFileFlag(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
 	// create a JSON file similar to what the Lacework Web UI would provide
 	s := createJSONFileLikeWebUI(`
 {
@@ -228,10 +246,12 @@ func TestConfigureCommandWithOldJSONFileFlag(t *testing.T) {
 }
 
 func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
 	os.Setenv("LW_ACCOUNT", "env-vars")
 	os.Setenv("LW_SUBACCOUNT", "sublime")
 	os.Setenv("LW_API_KEY", "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
 	os.Setenv("LW_API_SECRET", "_cccccccccccccccccccccccccccccccc")
+	defer os.Setenv("LW_NOCACHE", "")
 	defer os.Setenv("LW_ACCOUNT", "")
 	defer os.Setenv("LW_SUBACCOUNT", "")
 	defer os.Setenv("LW_API_KEY", "")
@@ -260,6 +280,9 @@ func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
 }
 
 func TestConfigureCommandWithAPIkeysFromFlagsWithoutSubaccount(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Account:")
@@ -285,6 +308,9 @@ func TestConfigureCommandWithAPIkeysFromFlagsWithoutSubaccount(t *testing.T) {
 }
 
 func TestConfigureCommandWithAPIkeysFromFlagsWithSubaccount(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Account:")
@@ -312,6 +338,9 @@ func TestConfigureCommandWithAPIkeysFromFlagsWithSubaccount(t *testing.T) {
 }
 
 func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
 	dir := createTOMLConfig()
 	defer os.RemoveAll(dir)
 
@@ -360,6 +389,9 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
 }
 
 func TestConfigureCommandErrors(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Account:")
@@ -433,9 +465,7 @@ func runConfigureTestFromDir(t *testing.T, dir string, conditions func(*expect.C
 	assert.Contains(t, state.String(), "You are all set!", "you are not all set, check configure cmd")
 	assert.FileExists(t, configPath, "the configuration file is missing")
 	laceworkTOML, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		panic(err)
-	}
+	assert.Nil(t, err)
 	return state.String(), string(laceworkTOML)
 }
 
