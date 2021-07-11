@@ -20,7 +20,6 @@ package cmd
 
 import (
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
@@ -223,7 +222,7 @@ func listAgents(_ *cobra.Command, _ []string) error {
 
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"Hostname", "Name", "IP Address", "External IP", "Status", "OS Arch", "Version"},
+			[]string{"Hostname", "Name", "IP Address", "External IP", "State", "OS Arch", "Version"},
 			agentsToTable(response.Data),
 		),
 	)
@@ -231,27 +230,16 @@ func listAgents(_ *cobra.Command, _ []string) error {
 }
 
 func showAgentToken(_ *cobra.Command, args []string) error {
-	response, err := cli.LwApi.Agents.GetToken(args[0])
+	response, err := cli.LwApi.V2.AgentAccessTokens.Get(args[0])
 	if err != nil {
 		return errors.Wrap(err, "unable to get agent access token")
 	}
 
-	if len(response.Data) == 0 {
-		return errors.New(`unable to create agent access token
-
-The platform did not return any token in the response body, this is very
-unlikely to happen but, hey it happened. Please help us improve the
-Lacework CLI by reporting this issue at:
-
-  https://support.lacework.com/hc/en-us/requests/new
-`)
-	}
-
 	if cli.JSONOutput() {
-		return cli.OutputJSON(response.Data[0])
+		return cli.OutputJSON(response.Data)
 	}
 
-	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data[0]))
+	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data))
 	return nil
 }
 
@@ -261,15 +249,15 @@ func updateAgentToken(_ *cobra.Command, args []string) error {
 	}
 
 	// read the current state
-	response, err := cli.LwApi.Agents.GetToken(args[0])
+	response, err := cli.LwApi.V2.AgentAccessTokens.Get(args[0])
 	if err != nil {
 		return errors.Wrap(err, "unable to get agent access token")
 	}
-	actual := response.Data[0]
-	updated := api.AgentTokenRequest{
+	actual := response.Data
+	updated := api.AgentAccessTokenRequest{
 		TokenAlias: actual.TokenAlias,
-		Enabled:    actual.EnabledInt(),
-		Props: &api.AgentTokenProps{
+		Enabled:    actual.Enabled,
+		Props: &api.AgentAccessTokenProps{
 			CreatedTime: actual.Props.CreatedTime,
 		},
 	}
@@ -290,27 +278,16 @@ func updateAgentToken(_ *cobra.Command, args []string) error {
 		updated.Props.Description = agentCmdState.TokenUpdateDesc
 	}
 
-	response, err = cli.LwApi.Agents.UpdateToken(args[0], updated)
+	response, err = cli.LwApi.V2.AgentAccessTokens.Update(args[0], updated)
 	if err != nil {
 		return errors.Wrap(err, "unable to update the agent access token")
 	}
 
-	if len(response.Data) == 0 {
-		return errors.New(`unable to update the agent access token
-
-The platform did not return any token in the response body, this is very
-unlikely to happen but, hey it happened. Please help us improve the
-Lacework CLI by reporting this issue at:
-
-  https://support.lacework.com/hc/en-us/requests/new
-`)
-	}
-
 	if cli.JSONOutput() {
-		return cli.OutputJSON(response.Data[0])
+		return cli.OutputJSON(response.Data)
 	}
 
-	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data[0]))
+	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data))
 	return nil
 }
 
@@ -320,32 +297,21 @@ func createAgentToken(_ *cobra.Command, args []string) error {
 		desc = args[1]
 	}
 
-	response, err := cli.LwApi.Agents.CreateToken(args[0], desc)
+	response, err := cli.LwApi.V2.AgentAccessTokens.Create(args[0], desc)
 	if err != nil {
 		return errors.Wrap(err, "unable to create agent access token")
 	}
 
-	if len(response.Data) == 0 {
-		return errors.New(`unable to create agent access token
-
-The platform did not return any token in the response body, this is very
-unlikely to happen but, hey it happened. Please help us improve the
-Lacework CLI by reporting this issue at:
-
-  https://support.lacework.com/hc/en-us/requests/new
-`)
-	}
-
 	if cli.JSONOutput() {
-		return cli.OutputJSON(response.Data[0])
+		return cli.OutputJSON(response.Data)
 	}
 
-	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data[0]))
+	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data))
 	return nil
 }
 
 func listAgentTokens(_ *cobra.Command, _ []string) error {
-	response, err := cli.LwApi.Agents.ListTokens()
+	response, err := cli.LwApi.V2.AgentAccessTokens.List()
 	if err != nil {
 		return errors.Wrap(err, "unable to list agent access token")
 	}
@@ -361,7 +327,7 @@ func listAgentTokens(_ *cobra.Command, _ []string) error {
 
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"Token", "Name", "Status"},
+			[]string{"Token", "Name", "State"},
 			agentTokensToTable(response.Data),
 		),
 	)
@@ -382,38 +348,31 @@ func agentsToTable(agents []AgentHost) [][]string {
 		})
 	}
 
-	// order by severity
-	sort.Slice(out, func(i, j int) bool {
-		return out[i][1] < out[j][1]
-	})
-
 	return out
 }
 
-func agentTokensToTable(tokens []api.AgentToken) [][]string {
+func agentTokensToTable(tokens []api.AgentAccessToken) [][]string {
 	out := [][]string{}
 	for _, token := range tokens {
 		out = append(out, []string{
 			token.AccessToken,
 			token.TokenAlias,
-			token.PrettyStatus(),
+			token.PrettyState(),
 		})
 	}
 	return out
 }
 
-func buildAgentTokenDetailsTable(token api.AgentToken) string {
-	return renderOneLineCustomTable("Agent Token Details",
+func buildAgentTokenDetailsTable(token api.AgentAccessToken) string {
+	return renderOneLineCustomTable("Agent Access Token Details",
 		renderSimpleTable([]string{},
 			[][]string{
-				[]string{"TOKEN", token.AccessToken},
-				[]string{"NAME", token.TokenAlias},
-				[]string{"DESCRIPTION", token.Props.Description},
-				[]string{"ACCOUNT", token.Account},
-				[]string{"VERSION", token.Version},
-				[]string{"STATUS", token.PrettyStatus()},
-				[]string{"CREATED AT", token.Props.CreatedTime.Format(time.RFC3339)},
-				[]string{"UPDATED AT", token.LastUpdatedTime.Format(time.RFC3339)},
+				{"TOKEN", token.AccessToken},
+				{"NAME", token.TokenAlias},
+				{"DESCRIPTION", token.Props.Description},
+				{"VERSION", token.Version},
+				{"STATE", token.PrettyState()},
+				{"CREATED AT", token.Props.CreatedTime.Format(time.RFC3339)},
 			},
 		),
 		tableFunc(func(t *tablewriter.Table) {

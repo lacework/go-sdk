@@ -26,11 +26,11 @@ import (
 )
 
 var (
-	// lqlCreateCmd represents the lql create command
-	lqlCreateCmd = &cobra.Command{
+	// queryCreateCmd represents the lql create command
+	queryCreateCmd = &cobra.Command{
 		Use:   "create",
-		Short: "create an LQL query",
-		Long:  `Create an LQL query.`,
+		Short: "create a query",
+		Long:  `Create a query.`,
 		Args:  cobra.NoArgs,
 		RunE:  createQuery,
 	}
@@ -38,31 +38,35 @@ var (
 
 func init() {
 	// add sub-commands to the lql command
-	lqlCmd.AddCommand(lqlCreateCmd)
+	queryCmd.AddCommand(queryCreateCmd)
 
-	setQuerySourceFlags(lqlCreateCmd)
+	setQuerySourceFlags(queryCreateCmd)
 }
 
 func createQuery(cmd *cobra.Command, args []string) error {
-	query, err := inputQuery(cmd, args)
+	msg := "unable to create query"
+
+	// input query
+	queryString, err := inputQuery(cmd, args)
 	if err != nil {
-		return errors.Wrap(err, "unable to create LQL query")
+		return errors.Wrap(err, msg)
+	}
+	// parse query
+	newQuery, err := parseQuery(queryString)
+	if err != nil {
+		return errors.Wrap(err, msg)
 	}
 
-	cli.Log.Debugw("creating LQL query", "query", query)
-	create, err := cli.LwApi.LQL.Create(query)
+	cli.Log.Debugw("creating query", "query", queryString)
+	create, err := cli.LwApi.V2.Query.Create(newQuery)
 
 	if err != nil {
-		err = queryErrorCrumbs(query, err)
-		return errors.Wrap(err, "unable to create LQL query")
+		return errors.Wrap(err, msg)
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(create.Data)
 	}
-	queryID := "unknown"
-	if len(create.Data) > 0 {
-		queryID = create.Data[0].ID
-	}
-	cli.OutputHuman(fmt.Sprintf("LQL query (%s) created successfully.\n", queryID))
+	cli.OutputHuman(
+		fmt.Sprintf("query (%s) created successfully.\n", create.Data.QueryID))
 	return nil
 }

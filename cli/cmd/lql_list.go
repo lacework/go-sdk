@@ -26,36 +26,39 @@ import (
 )
 
 var (
-	// lqlListCmd represents the lql list command
-	lqlListCmd = &cobra.Command{
+	// queryListCmd represents the lql list command
+	queryListCmd = &cobra.Command{
 		Use:   "list",
-		Short: "list LQL queries",
-		Long:  `List LQL queries.`,
+		Short: "list queries",
+		Long:  `List queries.`,
 		Args:  cobra.NoArgs,
 		RunE:  listQueries,
 	}
 )
 
 func init() {
-	lqlCmd.AddCommand(lqlListCmd)
+	queryCmd.AddCommand(queryListCmd)
 }
 
-func queryIDTable(queryData []api.LQLQuery) (out [][]string) {
-	for _, lqlQuery := range queryData {
+func queryTable(queryData []api.Query) (out [][]string) {
+	for _, query := range queryData {
 		out = append(out, []string{
-			lqlQuery.ID,
+			query.QueryID,
+			query.Owner,
+			query.LastUpdateTime,
+			query.LastUpdateUser,
 		})
 	}
 	return
 }
 
 func listQueries(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("listing LQL queries")
+	cli.Log.Debugw("listing queries")
 
-	queryResponse, err := cli.LwApi.LQL.GetQueries()
+	queryResponse, err := cli.LwApi.V2.Query.List()
 
 	if err != nil {
-		return errors.Wrap(err, "unable to list LQL queries")
+		return errors.Wrap(err, "unable to list queries")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)
@@ -66,8 +69,8 @@ func listQueries(_ *cobra.Command, args []string) error {
 	}
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"Query ID"},
-			queryIDTable(queryResponse.Data),
+			[]string{"Query ID", "Owner", "Last Update Time", "Last Update User"},
+			queryTable(queryResponse.Data),
 		),
 	)
 	return nil

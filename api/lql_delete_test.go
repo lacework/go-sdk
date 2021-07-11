@@ -29,18 +29,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLQLDeleteMethod(t *testing.T) {
+func TestQueryDeleteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "DELETE", r.Method, "Delete should be a DELETE method")
-			assert.Subset(
-				t,
-				[]byte(r.RequestURI),
-				[]byte("external/lql?LQL_ID=my_lql"),
-				"Delete should specify LQL_ID argument",
-			)
 			fmt.Fprint(w, "{}")
 		},
 	)
@@ -52,14 +47,16 @@ func TestLQLDeleteMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Delete(lqlQueryID)
+	_, err = c.V2.Query.Delete(queryID)
+	fmt.Println(err)
 	assert.Nil(t, err)
 }
 
-func TestLQLDeleteBadInput(t *testing.T) {
+func TestQueryDeleteBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -72,18 +69,19 @@ func TestLQLDeleteBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Delete("")
-	assert.NotNil(t, err)
+	_, err = c.V2.Query.Delete("")
+	assert.Equal(t, "query ID must be provided", err.Error())
 }
 
-func TestLQLDeleteOK(t *testing.T) {
-	mockResponse := mockLQLMessageResponse(fmt.Sprintf(`"lqlDeleted": "%s"`, lqlQueryID))
+func TestQueryDeleteOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, mockResponse)
+			// send the headers with a 204 response code.
+			w.WriteHeader(http.StatusNoContent)
 		},
 	)
 	defer fakeServer.Close()
@@ -94,22 +92,23 @@ func TestLQLDeleteOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	deleteExpected := api.LQLDeleteResponse{}
-	_ = json.Unmarshal([]byte(mockResponse), &deleteExpected)
+	deleteExpected := api.QueryDeleteResponse{}
+	_ = json.Unmarshal([]byte(""), &deleteExpected)
 
-	var deleteActual api.LQLDeleteResponse
-	deleteActual, err = c.LQL.Delete(lqlQueryID)
+	var deleteActual api.QueryDeleteResponse
+	deleteActual, err = c.V2.Query.Delete(queryID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, deleteExpected, deleteActual)
 }
 
-func TestLQLDeleteNotFound(t *testing.T) {
+func TestQueryDeleteNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql/compile",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, lqlUnableResponse, http.StatusBadRequest)
+			http.Error(w, lqlErrorReponse, http.StatusBadRequest)
 		},
 	)
 	defer fakeServer.Close()
@@ -120,6 +119,6 @@ func TestLQLDeleteNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.Delete(lqlQueryID)
+	_, err = c.V2.Query.Delete(queryID)
 	assert.NotNil(t, err)
 }

@@ -26,11 +26,11 @@ import (
 )
 
 var (
-	// lqlDeleteCmd represents the lql delete command
-	lqlDeleteCmd = &cobra.Command{
+	// queryDeleteCmd represents the lql delete command
+	queryDeleteCmd = &cobra.Command{
 		Use:   "delete <query_id>",
-		Short: "delete an LQL query",
-		Long:  `Delete an LQL query.`,
+		Short: "delete a query",
+		Long:  `Delete a query.`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  deleteQuery,
 	}
@@ -38,21 +38,18 @@ var (
 
 func init() {
 	// add sub-commands to the lql command
-	lqlCmd.AddCommand(lqlDeleteCmd)
+	queryCmd.AddCommand(queryDeleteCmd)
 }
 
 func deleteQuery(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("deleting LQL query", "queryID", args[0])
+	cli.Log.Debugw("deleting query", "id", args[0])
 
-	delete, err := cli.LwApi.LQL.Delete(args[0])
+	_, err := cli.LwApi.V2.Query.Delete(args[0])
 
 	if err != nil {
-		return errors.Wrap(err, "unable to delete LQL query")
-	}
-	if cli.JSONOutput() {
-		return cli.OutputJSON(delete.Message)
+		return errors.Wrap(err, "unable to delete query")
 	}
 	cli.OutputHuman(
-		fmt.Sprintf("LQL query (%s) deleted successfully.\n", args[0]))
+		fmt.Sprintf("query (%s) deleted successfully.\n", args[0]))
 	return nil
 }
