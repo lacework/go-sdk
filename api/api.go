@@ -83,7 +83,6 @@ const (
 	apiLQLDataSources = "v1/external/lql/dataSources"
 	apiLQLDescribe    = "v1/external/lql/describe"
 	apiLQLQuery       = "v1/external/lql/query"
-	apiPolicy         = "v1/external/lqlPolicies"
 
 	// API v2 Endpoints
 	//
