@@ -32,22 +32,46 @@ import (
 var (
 	policyURI = "Policies"
 	policyID  = "my-policy-1"
-	policyStr = `{
-	"policyId": "my-policy-1",
-	"title": "My Policy Title",
-	"enabled": false,
-	"queryId": "MyExampleQuery",
-	"severity": "high",
-	"description": "My Policy Description",
-	"remediation": "Check yourself..."
-}`
+	newPolicy = api.NewPolicy{
+		EvaluatorID:   "Cloudtrail",
+		PolicyID:      "my-policy-1",
+		PolicyType:    "Violation",
+		QueryID:       "MyExampleQuery",
+		Title:         "My Policy Title",
+		Enabled:       false,
+		Description:   "My Policy Description",
+		Remediation:   "Check yourself...",
+		Severity:      "high",
+		EvalFrequency: "Hourly",
+		AlertEnabled:  false,
+		AlertProfile:  "LW_CloudTrail_Alerts",
+		PolicyUI:      map[string]string{"domain": "AWS", "subdomain": "Cloudtrail"},
+	}
+	updatePolicy = api.UpdatePolicy{
+		Title: "My New Policy Title",
+	}
 	policyCreateData = `{
+	"evaluatorId": "Cloudtrail",
 	"policyId": "my-policy-1",
 	"title": "My Policy Title",
 	"enabled": false,
 	"description": "My Policy Description",
 	"remediation": "Check yourself...",
-	"severity": "2",
+	"severity": "high",
+	"evalFrequency": "Hourly",
+	"limit": 1000,
+	"alertEnabled": false,
+	"alertProfile": "LW_CloudTrail_Alerts",
+	"policyType": "Violation"
+}`
+	policyUpdateData = `{
+	"evaluatorId": "Cloudtrail",
+	"policyId": "my-policy-1",
+	"title": "My New Policy Title",
+	"enabled": false,
+	"description": "My Policy Description",
+	"remediation": "Check yourself...",
+	"severity": "high",
 	"evalFrequency": "Hourly",
 	"limit": 1000,
 	"alertEnabled": false,
@@ -84,29 +108,8 @@ func TestPolicyCreateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Create(policyStr)
+	_, err = c.V2.Policy.Create(api.NewPolicy{})
 	assert.Nil(t, err)
-}
-
-func TestPolicyCreateBadInput(t *testing.T) {
-	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
-	fakeServer.MockAPI(
-		policyURI,
-		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "{}")
-		},
-	)
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	_, err = c.Policy.Create("")
-	assert.Equal(t, "policy must be valid JSON: unexpected end of JSON input", err.Error())
 }
 
 func TestPolicyCreateOK(t *testing.T) {
@@ -131,7 +134,7 @@ func TestPolicyCreateOK(t *testing.T) {
 	createExpected := api.PolicyResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
 
-	createActual, err := c.Policy.Create("{}")
+	createActual, err := c.V2.Policy.Create(newPolicy)
 	assert.Nil(t, err)
 	assert.Equal(t, createExpected, createActual)
 }
@@ -153,11 +156,11 @@ func TestPolicyCreateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Create(policyStr)
+	_, err = c.V2.Policy.Create(api.NewPolicy{})
 	assert.NotNil(t, err)
 }
 
-func TestPolicyGetByIDMethod(t *testing.T) {
+func TestPolicyGetMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -175,11 +178,11 @@ func TestPolicyGetByIDMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.GetByID(policyID)
+	_, err = c.V2.Policy.Get(policyID)
 	assert.Nil(t, err)
 }
 
-func TestPolicyGetByIDOK(t *testing.T) {
+func TestPolicyGetOK(t *testing.T) {
 	mockResponse := mockPolicyDataResponse(policyCreateData)
 
 	fakeServer := lacework.MockServer()
@@ -202,13 +205,13 @@ func TestPolicyGetByIDOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &getExpected)
 
 	var getActual api.PolicyResponse
-	getActual, err = c.Policy.GetByID(policyID)
+	getActual, err = c.V2.Policy.Get(policyID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, getExpected, getActual)
 }
 
-func TestPolicyGetByIDNotFound(t *testing.T) {
+func TestPolicyGetNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -225,7 +228,7 @@ func TestPolicyGetByIDNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.GetByID("NoSuchPolicy")
+	_, err = c.V2.Policy.Get("NoSuchPolicy")
 	assert.NotNil(t, err)
 }
 
@@ -247,11 +250,11 @@ func TestPolicyUpdateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Update(policyID, policyStr)
+	_, err = c.V2.Policy.Update(policyID, api.UpdatePolicy{})
 	assert.Nil(t, err)
 }
 
-func TestPolicyUpdateNoPolicyID(t *testing.T) {
+func TestPolicyUpdateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -268,35 +271,13 @@ func TestPolicyUpdateNoPolicyID(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Update("", "{}")
+	_, err = c.V2.Policy.Update("", api.UpdatePolicy{})
 	assert.Equal(t, "policy ID must be provided", err.Error())
-}
-
-func TestPolicyUpdatePolicyIDFromPayload(t *testing.T) {
-	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
-	fakeServer.MockAPI(
-		fmt.Sprintf("%s/%s", policyURI, policyID),
-		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "{}")
-		},
-	)
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	_, err = c.Policy.Update("",
-		fmt.Sprintf(`{"policy_id": "%s"}`, policyID))
-	assert.Nil(t, err)
 }
 
 func TestPolicyUpdateOK(t *testing.T) {
 	// policy create and update data are same-same
-	mockResponse := mockPolicyDataResponse(policyCreateData)
+	mockResponse := mockPolicyDataResponse(policyUpdateData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
@@ -317,7 +298,7 @@ func TestPolicyUpdateOK(t *testing.T) {
 	updateExpected := api.PolicyResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
 
-	updateActual, err := c.Policy.Update(policyID, `{"severity": "high"}`)
+	updateActual, err := c.V2.Policy.Update(policyID, updatePolicy)
 	assert.Nil(t, err)
 	assert.Equal(t, updateExpected, updateActual)
 }
@@ -339,7 +320,7 @@ func TestPolicyUpdateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Create(policyStr)
+	_, err = c.V2.Policy.Update(policyID, api.UpdatePolicy{})
 	assert.NotNil(t, err)
 }
 
@@ -361,7 +342,7 @@ func TestPolicyDeleteMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Delete(policyID)
+	_, err = c.V2.Policy.Delete(policyID)
 	assert.Nil(t, err)
 }
 
@@ -382,7 +363,7 @@ func TestPolicyDeleteBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Delete("")
+	_, err = c.V2.Policy.Delete("")
 	assert.Equal(t, "policy ID must be provided", err.Error())
 }
 
@@ -404,7 +385,7 @@ func TestPolicyDeleteOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Delete(policyID)
+	_, err = c.V2.Policy.Delete(policyID)
 	assert.Nil(t, err)
 }
 
@@ -425,6 +406,6 @@ func TestPolicyDeleteError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Delete("no-such-policy")
+	_, err = c.V2.Policy.Delete("no-such-policy")
 	assert.NotNil(t, err)
 }

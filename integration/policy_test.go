@@ -27,17 +27,29 @@ import (
 )
 
 const (
-	policyText string = `{
-	"policy_id": "lacework-clitest-1",
-	"title": "My Policy Title",
-	"enabled": false,
-	"alert_enabled": false,
-	"lql_id": "LW_CLI_AWS_CTA_IntegrationTest",
-	"severity": "low",
-	"description": "My Policy Description",
-	"remediation": "Check yourself..."
-}`
-	policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/lacework-clitest-1.json"
+	newPolicyYAML string = `---
+evaluatorId: Cloudtrail
+policyId: lacework-clitest-1
+policyType: Violation
+queryId: LW_CLI_AWS_CTA_IntegrationTest
+title: My Policy Title
+enabled: false
+description: My Policy Description
+remediation: Check yourself...
+severity: high
+alertEnabled: false
+alertProfile: LW_CloudTrail_Alerts
+policyUi:
+  domain: AWS
+  subdomain: Cloudtrail
+`
+	// nested
+	updatePolicyYAML string = `---
+policies:
+  - severity: low
+`
+	//policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/lacework-clitest-1.json"
+	policyURL string = "https://raw.githubusercontent.com/hazedav/go-sdk-integration/main/README.md?token=AB37PAFMUKMBZR53JLP6QV3A5R2PO"
 )
 
 func TestPolicyHelp(t *testing.T) {
@@ -104,7 +116,7 @@ func TestPolicyCreateFile(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(policyText))
+	_, err = file.Write([]byte(newPolicyYAML))
 	if err != nil {
 		t.FailNow()
 	}
@@ -112,7 +124,7 @@ func TestPolicyCreateFile(t *testing.T) {
 
 	// create (output json)
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "create", "-f", file.Name(), "--json")
-	assert.Contains(t, out.String(), `"policy_id"`)
+	assert.Contains(t, out.String(), `"policyId"`)
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
@@ -170,14 +182,15 @@ func TestPolicyCreateURL(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// write-to and close file
-	_, err = file.Write([]byte(policyText))
+	_, err = file.Write([]byte(updatePolicyYAML))
 	if err != nil {
 		t.FailNow()
 	}
 	file.Close()
 
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "update", "-f", file.Name(), "--json")
-	assert.Contains(t, out.String(), `"policy_id"`)
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig(
+		"policy", "update", "lacework-clitest-1", "-f", file.Name(), "--json") // specify id inline
+	assert.Contains(t, out.String(), `"policyId"`)
 	assert.Contains(t, out.String(), `"low"`)
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -210,7 +223,7 @@ func TestPolicyList(t *testing.T) {
 
 	// list (output json)
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--json")
-	assert.Contains(t, out.String(), `"policy_id"`)
+	assert.Contains(t, out.String(), `"policyId"`)
 	assert.Contains(t, out.String(), `"lacework-global-1"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -264,7 +277,7 @@ func TestPolicyShow(t *testing.T) {
 
 	// show (output json)
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1", "--json")
-	assert.Contains(t, out.String(), `"policy_id"`)
+	assert.Contains(t, out.String(), `"policyId"`)
 	assert.Contains(t, out.String(), `"lacework-global-1"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -345,8 +358,7 @@ func TestPolicyDelete(t *testing.T) {
 	// human delete tested by virtue of TestPolicyCreateFile
 
 	// json
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete", "lacework-clitest-1", "--json")
-	assert.Contains(t, out.String(), `"lacework-clitest-1"`)
+	_, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete", "lacework-clitest-1", "--json")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
