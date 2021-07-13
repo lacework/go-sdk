@@ -84,9 +84,6 @@ const (
 	apiLQLDescribe    = "v1/external/lql/describe"
 	apiLQLQuery       = "v1/external/lql/query"
 
-	// Custom Policies
-	apiPolicy = "v1/external/lqlPolicies"
-
 	// API v2 Endpoints
 	//
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
@@ -99,7 +96,8 @@ const (
 	apiV2AgentAccessTokensSearch = "v2/AgentAccessTokens/search"
 	apiV2AgentAccessTokenFromID  = "v2/AgentAccessTokens/%s"
 
-	apiV2Queries = "v2/Queries"
+	apiV2Policies = "v2/Policies"
+	apiV2Queries  = "v2/Queries"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

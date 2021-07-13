@@ -31,23 +31,20 @@ import (
 )
 
 var (
-	queryEvaluator = "Cloudtrail"
-	queryID        = "my_lql"
-	newQueryText   = `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`
-	newQuery       = api.NewQuery{
-		EvaluatorID: queryEvaluator,
-		QueryID:     queryID,
-		QueryText:   newQueryText,
+	newQuery = api.NewQuery{
+		EvaluatorID: "Cloudtrail",
+		QueryID:     "my_lql",
+		QueryText:   `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`,
 	}
 	newQueryJSON = fmt.Sprintf(`{
 	"evaluatorId": "%s",
 	"queryId": "%s",
 	"queryText": "%s"
-	}`, queryEvaluator, queryID, newQueryText)
+	}`, newQuery.EvaluatorID, newQuery.QueryID, newQuery.QueryText)
 	newQueryYAML = fmt.Sprintf(`---
 evaluatorId: %s
 queryId: %s
-queryText: %s`, queryEvaluator, queryID, newQueryText)
+queryText: %s`, newQuery.EvaluatorID, newQuery.QueryID, newQuery.QueryText)
 )
 
 type parseQueryTest struct {
@@ -77,24 +74,16 @@ var parseQueryTests = []parseQueryTest{
 		Expected: api.NewQuery{},
 	},
 	parseQueryTest{
-		Name:   "json-blob",
-		Input:  newQueryJSON,
-		Return: nil,
-		Expected: api.NewQuery{
-			QueryID:     queryID,
-			QueryText:   newQueryText,
-			EvaluatorID: queryEvaluator,
-		},
+		Name:     "json-blob",
+		Input:    newQueryJSON,
+		Return:   nil,
+		Expected: newQuery,
 	},
 	parseQueryTest{
-		Name:   "yaml-blob",
-		Input:  newQueryYAML,
-		Return: nil,
-		Expected: api.NewQuery{
-			QueryID:     queryID,
-			QueryText:   newQueryText,
-			EvaluatorID: queryEvaluator,
-		},
+		Name:     "yaml-blob",
+		Input:    newQueryYAML,
+		Return:   nil,
+		Expected: newQuery,
 	},
 }
 
