@@ -1,9 +1,17 @@
 {
-	"policy_id": "lacework-clitest-1",
+	"evaluatorId": "Cloudtrail",
+	"policyId": "lacework-clitest-1",
+	"policyType": "Violation",
+	"queryId": "LW_CLI_AWS_CTA_IntegrationTest",
 	"title": "My Policy Title",
 	"enabled": false,
-	"lql_id": "LW_CLI_AWS_CTA_IntegrationTest",
-	"severity": "high",
 	"description": "My Policy Description",
-	"remediation": "Check yourself..."
+	"remediation": "Check yourself...",
+	"severity": "high",
+	"alertEnabled": false,
+	"alertProfile": "LW_CloudTrail_Alerts",
+	"policyUi": {
+		"domain": "AWS",
+		"subdomain": "Cloudtrail"
+	}
 }
