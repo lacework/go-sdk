@@ -97,7 +97,7 @@ func NewWithWriter(level string, out io.Writer, options ...zap.Option) *zap.Logg
 			zap.ErrorOutput(writeSyncer),
 			zap.AddCaller(),
 			zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-				return zapcore.NewSampler(core, time.Second, 100, 100)
+				return zapcore.NewSamplerWithOptions(core, time.Second, 100, 100)
 			}),
 		}
 	)
