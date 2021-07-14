@@ -38,3 +38,15 @@ func TestComplianceGoogleGetReportOrgAndProjectWithAlias(t *testing.T) {
 		"GCP_ORG_ID=org-id&GCP_PROJ_ID=proj-id&",
 		"STDERR changed, please check")
 }
+
+func TestComplianceGoogleList(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "gcp", "list",
+	)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(),
+		"PROJECT ID   ORGANIZATION ID",
+		"STDOUT changed, please check")
+}
