@@ -1,7 +1,4 @@
-//
-// Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2020, Lacework Inc.
-// License:: Apache License, Version 2.0
+// Copyright 2014 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,17 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 
-package cmd
+module github.com/google/btree
 
-import "github.com/pkg/errors"
-
-func promptRequiredStringLen(size int, err string) func(interface{}) error {
-	return func(input interface{}) error {
-		if str, ok := input.(string); !ok || len(str) < size {
-			return errors.New(err)
-		}
-		return nil
-	}
-}
+go 1.12

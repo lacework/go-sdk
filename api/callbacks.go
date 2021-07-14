@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2020, Lacework Inc.
+// Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,15 +16,24 @@
 // limitations under the License.
 //
 
-package cmd
+package api
 
-import "github.com/pkg/errors"
+import "net/http"
 
-func promptRequiredStringLen(size int, err string) func(interface{}) error {
-	return func(input interface{}) error {
-		if str, ok := input.(string); !ok || len(str) < size {
-			return errors.New(err)
-		}
+type LifecycleCallbacks struct {
+	// RequestCallback is a function that will be executed after every client request
+	RequestCallback func(int, http.Header) error
+
+	// TokenExpiredCallback  is a function that the consumer can configure
+	// into the client so that it is run when the token expired
+	TokenExpiredCallback func() error
+}
+
+// WithLifecycleCallbacks will configure the lifecycle callback functions
+func WithLifecycleCallbacks(callbacks LifecycleCallbacks) Option {
+	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up client callbacks")
+		c.callbacks = callbacks
 		return nil
-	}
+	})
 }

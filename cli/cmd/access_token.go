@@ -67,6 +67,7 @@ func generateAccessToken(_ *cobra.Command, args []string) error {
 		// if the duration is different from the default,
 		// regenerate the lacework api client
 		client, err := api.NewClient(cli.Account,
+			api.WithApiV2(),
 			api.WithLogLevel(cli.LogLevel),
 			api.WithExpirationTime(durationSeconds),
 			api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
@@ -79,6 +80,15 @@ func generateAccessToken(_ *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.Wrap(err, "unable to generate access token")
 		}
+	}
+
+	// cache new token
+	err = cli.Cache.Write("token", structToString(response))
+	if err != nil {
+		cli.Log.Warnw("unable to write token in cache",
+			"feature", "cache",
+			"error", err.Error(),
+		)
 	}
 
 	if cli.JSONOutput() {

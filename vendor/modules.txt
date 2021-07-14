@@ -30,6 +30,9 @@ github.com/fatih/color
 github.com/fsnotify/fsnotify
 # github.com/golang/protobuf v1.3.5
 github.com/golang/protobuf/proto
+# github.com/google/btree v1.0.1
+## explicit
+github.com/google/btree
 # github.com/hashicorp/hcl v1.0.0
 github.com/hashicorp/hcl
 github.com/hashicorp/hcl/hcl/ast
@@ -89,6 +92,9 @@ github.com/olekukonko/tablewriter
 # github.com/pelletier/go-toml v1.6.0
 ## explicit
 github.com/pelletier/go-toml
+# github.com/peterbourgon/diskv/v3 v3.0.0
+## explicit
+github.com/peterbourgon/diskv/v3
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -190,5 +196,6 @@ gopkg.in/ini.v1
 # gopkg.in/yaml.v2 v2.4.0
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
+## explicit
 gopkg.in/yaml.v3
 # github.com/kr/pty => github.com/creack/pty v1.1.7

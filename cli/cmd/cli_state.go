@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	"reflect"
 	"strconv"
@@ -30,6 +31,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	prettyjson "github.com/hokaccha/go-prettyjson"
+	"github.com/peterbourgon/diskv/v3"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -55,6 +57,7 @@ type cliState struct {
 	JsonF *prettyjson.Formatter
 	Log   *zap.SugaredLogger
 	Event *Honeyvent
+	Cache *diskv.Diskv
 
 	id             string
 	workers        sync.WaitGroup
@@ -62,7 +65,9 @@ type cliState struct {
 	jsonOutput     bool
 	csvOutput      bool
 	nonInteractive bool
+	noCache        bool
 	profileDetails map[string]interface{}
+	tokenCache     api.TokenData
 }
 
 // NewDefaultState creates a new cliState with some defaults
@@ -165,6 +170,12 @@ func (c *cliState) LoadProfiles() (lwconfig.Profiles, error) {
 // if not, it throws an error with breadcrumbs to help the user configure the CLI
 func (c *cliState) VerifySettings() error {
 	c.Log.Debugw("verifying config", "version", c.CfgVersion)
+
+	// Token from cache
+	if c.Token != "" && c.Account != "" {
+		return nil
+	}
+
 	if c.Profile == "" ||
 		c.Account == "" ||
 		c.Secret == "" ||
@@ -179,6 +190,12 @@ func (c *cliState) VerifySettings() error {
 
 // NewClient creates and stores a new Lacework API client to be used by the CLI
 func (c *cliState) NewClient() error {
+	// @afiune load token from cache only if the token has not been already
+	// provided by env variables or flags. Example: lacework --api_token foo
+	if c.Token == "" {
+		c.ReadCachedToken()
+	}
+
 	err := c.VerifySettings()
 	if err != nil {
 		return err
@@ -201,6 +218,21 @@ func (c *cliState) NewClient() error {
 		apiOpts = append(apiOpts, api.WithOrgAccess())
 	}
 
+	if c.Token != "" {
+		apiOpts = append(apiOpts,
+			api.WithTokenAndExpiration(c.Token, c.tokenCache.ExpiresAt))
+		apiOpts = append(apiOpts,
+			api.WithLifecycleCallbacks(api.LifecycleCallbacks{
+				TokenExpiredCallback: cli.EraseCachedToken,
+				RequestCallback: func(httpCode int, _ http.Header) error {
+					if httpCode == 403 {
+						return c.Cache.Erase("token")
+					}
+					return nil
+				},
+			}))
+	}
+
 	if os.Getenv("LW_API_SERVER_URL") != "" {
 		apiOpts = append(apiOpts, api.WithURL(os.Getenv("LW_API_SERVER_URL")))
 	}
@@ -211,18 +243,26 @@ func (c *cliState) NewClient() error {
 	}
 
 	c.LwApi = client
-	return nil
+
+	// cache token
+	return c.WriteCachedToken()
 }
 
 // InteractiveMode returns true if the cli is running in interactive mode
 func (c *cliState) InteractiveMode() bool {
-	return !c.nonInteractive && !c.csvOutput && !c.jsonOutput
+	return !c.nonInteractive && !c.csvOutput
 }
 
 // NonInteractive turns off interactive mode, that is, no progress bars and spinners
 func (c *cliState) NonInteractive() {
 	c.Log.Info("turning off interactive mode")
 	c.nonInteractive = true
+}
+
+// NoCache turns off the Lacework CLI caching mechanism, so nothing will be cached
+func (c *cliState) NoCache() {
+	c.Log.Info("turning off caching mechanism")
+	c.noCache = true
 }
 
 // StartProgress starts a new progress spinner with the provider suffix and stores it

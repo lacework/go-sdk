@@ -128,6 +128,9 @@ func init() {
 	rootCmd.PersistentFlags().Bool("nocolor", false,
 		"turn off colors",
 	)
+	rootCmd.PersistentFlags().Bool("nocache", false,
+		"turn off caching",
+	)
 	rootCmd.PersistentFlags().Bool("noninteractive", false,
 		"turn off interactive mode (disable spinners, prompts, etc.)",
 	)
@@ -155,6 +158,7 @@ func init() {
 
 	errcheckWARN(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
 	errcheckWARN(viper.BindPFlag("nocolor", rootCmd.PersistentFlags().Lookup("nocolor")))
+	errcheckWARN(viper.BindPFlag("nocache", rootCmd.PersistentFlags().Lookup("nocache")))
 	errcheckWARN(viper.BindPFlag("noninteractive", rootCmd.PersistentFlags().Lookup("noninteractive")))
 	errcheckWARN(viper.BindPFlag("json", rootCmd.PersistentFlags().Lookup("json")))
 	errcheckWARN(viper.BindPFlag("profile", rootCmd.PersistentFlags().Lookup("profile")))
@@ -195,18 +199,12 @@ func initConfig() {
 		cli.NonInteractive()
 	}
 
-	if viper.GetBool("json") {
-		cli.EnableJSONOutput()
+	if viper.GetBool("nocache") {
+		cli.NoCache()
 	}
 
-	// by default the cli logs are going to be visualized in
-	// a console format unless the user wants the opposite
-	if os.Getenv("LW_LOG_FORMAT") == "" {
-		if cli.JSONOutput() {
-			os.Setenv("LW_LOG_FORMAT", "JSON")
-		} else {
-			os.Setenv("LW_LOG_FORMAT", "CONSOLE")
-		}
+	if viper.GetBool("json") {
+		cli.EnableJSONOutput()
 	}
 
 	// try to read config file
@@ -246,6 +244,9 @@ func initConfig() {
 			exitwith(err)
 		}
 	}
+
+	// initialize cli cache library
+	cli.InitCache()
 }
 
 // isCommand checks the overall arguments passed to the lacework cli

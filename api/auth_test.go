@@ -129,3 +129,21 @@ func TestGenerateTokenErrorKeysMissing(t *testing.T) {
 		}
 	}
 }
+
+func TestGenerateTokenV1(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockToken("EXPECTED_TOKEN")
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("t",
+		api.WithURL(fakeServer.URL()),
+		api.WithApiKeys("KEY", "SECRET"),
+	)
+
+	assert.Nil(t, err)
+
+	tokenData, err := c.GenerateToken()
+	if assert.Nil(t, err) {
+		assert.Equal(t, "EXPECTED_TOKEN", tokenData.Token)
+	}
+}

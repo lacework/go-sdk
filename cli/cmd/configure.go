@@ -31,6 +31,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/lacework/go-sdk/internal/domain"
+	"github.com/lacework/go-sdk/internal/format"
 	"github.com/lacework/go-sdk/lwconfig"
 )
 
@@ -283,7 +284,7 @@ func promptConfigureSetup(newProfile *lwconfig.Profile) error {
 
 	secretMessage := "Secret Access Key:"
 	if len(cli.Secret) != 0 {
-		secretMessage = fmt.Sprintf("Secret Access Key: (%s)", formatSecret(4, cli.Secret))
+		secretMessage = fmt.Sprintf("Secret Access Key: (%s)", format.Secret(4, cli.Secret))
 	}
 	secretQuest.Prompt = &survey.Password{
 		Message: secretMessage,
@@ -389,7 +390,7 @@ func buildProfilesTableContent(current string, profiles lwconfig.Profiles) [][]s
 			creds.Account,
 			creds.Subaccount,
 			creds.ApiKey,
-			formatSecret(4, creds.ApiSecret),
+			format.Secret(4, creds.ApiSecret),
 			fmt.Sprintf("%d", creds.Version),
 		})
 	}
