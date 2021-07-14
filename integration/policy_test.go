@@ -48,8 +48,7 @@ policyUi:
 policies:
   - severity: low
 `
-	//policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/lacework-clitest-1.json"
-	policyURL string = "https://raw.githubusercontent.com/hazedav/go-sdk-integration/main/README.md?token=AB37PAFMUKMBZR53JLP6QV3A5R2PO"
+	policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/lacework-clitest-1.json"
 )
 
 func TestPolicyHelp(t *testing.T) {
