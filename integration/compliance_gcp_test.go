@@ -46,7 +46,6 @@ func TestComplianceGoogleList(t *testing.T) {
 	assert.Empty(t, err.String(), "STDERR should be empty")
 
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-	assert.Contains(t, out.String(),
-		"PROJECT ID   ORGANIZATION ID",
-		"STDOUT changed, please check")
+	assert.Contains(t, out.String(), "PROJECT ID", "STDOUT changed, please check")
+	assert.Contains(t, out.String(), "ORGANIZATION ID", "STDOUT changed, please check")
 }
