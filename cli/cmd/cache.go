@@ -30,7 +30,9 @@ import (
 
 const MaxCacheSize = 1024 * 1024 * 1024
 
-// InitCache initializes the Lacework CLI cache to store data on disk
+// InitCache initializes the Lacework CLI cache to store data on disk,
+// this functions accepts an specific path to store the cache or, by
+// default, it will use the default location.
 //
 // Simple CRUD example:
 //
@@ -41,17 +43,22 @@ const MaxCacheSize = 1024 * 1024 * 1024
 // cli.Cache.Erase("data")                            // Delete
 // ```
 //
-func (c *cliState) InitCache() {
-	// @afiune: add a way to disable the cache
-	dir, err := cacheDir()
-	if err == nil {
-		c.Cache = diskv.New(diskv.Options{
-			BasePath:          path.Join(dir, "cache"),
-			AdvancedTransform: CacheTransform,
-			InverseTransform:  InverseCacheTransform,
-			CacheSizeMax:      MaxCacheSize,
-		})
+func (c *cliState) InitCache(d ...string) {
+	if len(d) == 0 {
+		dir, err := cacheDir()
+		if err == nil {
+			d = []string{dir}
+		}
 	}
+
+	cache := strings.Join(d, "/")
+	// @afiune: add a way to disable the cache
+	c.Cache = diskv.New(diskv.Options{
+		BasePath:          path.Join(cache, "cache"),
+		AdvancedTransform: CacheTransform,
+		InverseTransform:  InverseCacheTransform,
+		CacheSizeMax:      MaxCacheSize,
+	})
 }
 
 func CacheTransform(key string) *diskv.PathKey {
@@ -65,9 +72,13 @@ func CacheTransform(key string) *diskv.PathKey {
 	//
 	if strings.HasPrefix(key, "global/") {
 		keys := strings.Split(key, "/")
+		pathToKey := []string{}
+		if len(keys) > 2 {
+			pathToKey = keys[1 : len(keys)-1]
+		}
 		return &diskv.PathKey{
-			Path:     []string{keys[1]},
-			FileName: key,
+			Path:     pathToKey,
+			FileName: keys[len(keys)-1],
 		}
 	}
 

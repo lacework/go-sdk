@@ -129,7 +129,7 @@ func init() {
 		"turn off colors",
 	)
 	rootCmd.PersistentFlags().Bool("nocache", false,
-		"turn off chaching",
+		"turn off caching",
 	)
 	rootCmd.PersistentFlags().Bool("noninteractive", false,
 		"turn off interactive mode (disable spinners, prompts, etc.)",

@@ -261,7 +261,7 @@ func (c *cliState) NonInteractive() {
 
 // NoCache turns off the Lacework CLI caching mechanism, so nothing will be cached
 func (c *cliState) NoCache() {
-	c.Log.Info("turning off chaching mechanism")
+	c.Log.Info("turning off caching mechanism")
 	c.noCache = true
 }
 
