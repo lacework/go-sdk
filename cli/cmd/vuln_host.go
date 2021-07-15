@@ -782,15 +782,15 @@ func getNamespaceFromHostVuln(cves []api.HostVulnCVE) string {
 
 func hostVulnAssessmentToCountsTable(counts api.HostVulnCounts) [][]string {
 	return [][]string{
-		[]string{"Critical", fmt.Sprint(counts.Critical),
+		{"Critical", fmt.Sprint(counts.Critical),
 			fmt.Sprint(counts.CritFixable)},
-		[]string{"High", fmt.Sprint(counts.High),
+		{"High", fmt.Sprint(counts.High),
 			fmt.Sprint(counts.HighFixable)},
-		[]string{"Medium", fmt.Sprint(counts.Medium),
+		{"Medium", fmt.Sprint(counts.Medium),
 			fmt.Sprint(counts.MedFixable)},
-		[]string{"Low", fmt.Sprint(counts.Low),
+		{"Low", fmt.Sprint(counts.Low),
 			fmt.Sprint(counts.LowFixable)},
-		[]string{"Info", fmt.Sprint(counts.Info),
+		{"Info", fmt.Sprint(counts.Info),
 			fmt.Sprint(counts.InfoFixable)},
 	}
 }
