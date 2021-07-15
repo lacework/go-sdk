@@ -115,3 +115,16 @@ func TestSplitGcpProjectsApiResponse(t *testing.T) {
 		})
 	}
 }
+
+func TestDuplicateGcpAccountCheck(t *testing.T) {
+	gcpOne := gcpAccount{OrganizationID: "n/a", ProjectID: "1"}
+	gcpTwo := gcpAccount{OrganizationID: "n/a", ProjectID: "2"}
+	gcpThree := gcpAccount{OrganizationID: "n/a", ProjectID: "3"}
+	mockGcpAccounts := []gcpAccount{gcpOne, gcpTwo, gcpThree}
+
+	duplicate := containsDuplicateProjectID(mockGcpAccounts, "1")
+	different := containsDuplicateProjectID(mockGcpAccounts, "4")
+
+	assert.True(t, duplicate)
+	assert.False(t, different)
+}

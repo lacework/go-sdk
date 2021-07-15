@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -32,10 +33,36 @@ import (
 )
 
 var (
+	// complianceGcpListCmd represents the list sub-command inside the gcp command
+	complianceGcpListCmd = &cobra.Command{
+		Use:   "list",
+		Short: "list gcp projects and organizations",
+		Long:  `List all GCP projects and organization IDs.`,
+		RunE: func(_ *cobra.Command, args []string) error {
+			var (
+				response, err = cli.LwApi.Integrations.ListGcpCfg()
+				rows          [][]string
+			)
+
+			if err != nil {
+				return errors.Wrap(err, "unable to list gcp projects/organizations")
+			}
+
+			gcpAccounts := extractGcpAccounts(response)
+
+			for _, gcp := range gcpAccounts {
+				rows = append(rows, []string{gcp.OrganizationID, gcp.ProjectID})
+			}
+
+			cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID"}, rows))
+			return nil
+		},
+	}
+
 	// complianceGcpListProjCmd represents the list-projects sub-command inside the gcp command
 	complianceGcpListProjCmd = &cobra.Command{
 		Use:     "list-projects <organization_id>",
-		Aliases: []string{"list-proj", "list"},
+		Aliases: []string{"list-proj"},
 		Short:   "list projects from an organization",
 		Long: `List all GCP projects from the provided organization ID.
 
@@ -229,6 +256,7 @@ To run an ad-hoc compliance assessment use the command:
 
 func init() {
 	// add sub-commands to the gcp command
+	complianceGcpCmd.AddCommand(complianceGcpListCmd)
 	complianceGcpCmd.AddCommand(complianceGcpListProjCmd)
 	complianceGcpCmd.AddCommand(complianceGcpRunAssessmentCmd)
 	complianceGcpCmd.AddCommand(complianceGcpGetReportCmd)
@@ -327,6 +355,22 @@ func splitIDAndAlias(text string) (id string, alias string) {
 	return
 }
 
+func getGcpAccounts(orgID string) []gcpAccount {
+	var accounts []gcpAccount
+	projectsResponse, err := cli.LwApi.Compliance.ListGcpProjects(orgID)
+	if err != nil {
+		cli.Log.Warn("unable to list gcp projects", "org_id", orgID, "error", err.Error())
+		return accounts
+	}
+	for _, projects := range projectsResponse.Data {
+		for _, project := range projects.Projects {
+			projectID, _ := splitIDAndAlias(project)
+			accounts = append(accounts, gcpAccount{OrganizationID: orgID, ProjectID: projectID})
+		}
+	}
+	return accounts
+}
+
 type cliComplianceGcpInfo struct {
 	Organization cliComplianceIDAlias   `json:"organization"`
 	Projects     []cliComplianceIDAlias `json:"projects"`
@@ -335,4 +379,44 @@ type cliComplianceGcpInfo struct {
 type cliComplianceIDAlias struct {
 	ID    string `json:"id"`
 	Alias string `json:"alias"`
+}
+
+type gcpAccount struct {
+	ProjectID      string
+	OrganizationID string
+}
+
+func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpAccount {
+	var gcpAccounts []gcpAccount
+
+	for _, gcp := range response.Data {
+		// if organization account, fetch the project ids
+		if gcp.Data.IDType == "ORGANIZATION" {
+			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcp.Data.ID)...)
+		} else if !containsDuplicateProjectID(gcpAccounts, gcp.Data.ID) {
+			gcpIntegration := gcpAccount{OrganizationID: "n/a", ProjectID: gcp.Data.ID}
+			gcpAccounts = append(gcpAccounts, gcpIntegration)
+		}
+	}
+
+	sort.Slice(gcpAccounts, func(i, j int) bool {
+		switch strings.Compare(gcpAccounts[i].OrganizationID, gcpAccounts[j].OrganizationID) {
+		case -1:
+			return true
+		case 1:
+			return false
+		}
+		return gcpAccounts[i].ProjectID < gcpAccounts[j].ProjectID
+	})
+
+	return gcpAccounts
+}
+
+func containsDuplicateProjectID(gcpAccounts []gcpAccount, projectID string) bool {
+	for _, value := range gcpAccounts {
+		if projectID == value.ProjectID {
+			return true
+		}
+	}
+	return false
 }
