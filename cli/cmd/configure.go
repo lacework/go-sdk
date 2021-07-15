@@ -307,7 +307,7 @@ func getSubAccountForOrgAdmins() (string, error) {
 	user, err := cli.LwApi.V2.UserProfile.Get()
 	cli.StopProgress()
 	if err != nil {
-		return "", errors.Wrap(err, "unable to access UserProfile endpoit")
+		return "", errors.Wrap(err, "unable to access UserProfile endpoint")
 	}
 
 	// We only ask for the sub-account if the account is an organizational account
