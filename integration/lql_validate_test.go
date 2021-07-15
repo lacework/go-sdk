@@ -50,27 +50,6 @@ func TestQueryValidateEditor(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestQueryValidateID(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
-	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
-
-	// validate
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", queryID)
-	assert.Contains(t, out.String(), "query validated successfully.")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-
-	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "validate", queryID, "--json")
-	assert.Contains(t, out.String(), `"`+queryID+`"`)
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
-
 func TestQueryValidateFile(t *testing.T) {
 	if os.Getenv("CI_BETA") == "" {
 		t.Skip("skipping test in production mode")

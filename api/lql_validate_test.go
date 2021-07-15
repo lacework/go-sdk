@@ -30,59 +30,17 @@ import (
 )
 
 var (
-	QueryValidateData = `[{
-		"name": "my_lql",
-		"props": {
-			"lql": true
-		},
-		"type": "Entity",
-		"maxDuration": -1,
-		"complexity": 3,
-		"schema": [
-			{
-				"name": "INSERT_ID",
-				"type": "String",
-				"props": {}
-			}
-		],
-		"parameters": [
-			{
-				"required": false,
-				"name": "StartTimeRange",
-				"type": "Timestamp",
-				"default": null,
-				"props": null
-			},
-			{
-				"required": true,
-				"name": "EventRawTable",
-				"type": "String",
-				"default": "CLOUD_TRAIL_INTERNAL.EVENT_RAW_T",
-				"props": null
-			},
-			{
-				"required": false,
-				"name": "BATCH_ID",
-				"type": "Number",
-				"default": null,
-				"props": null
-			},
-			{
-				"required": false,
-				"name": "EndTimeRange",
-				"type": "Timestamp",
-				"default": null,
-				"props": null
-			}
-		],
-		"primaryKey": []
-	}]`
+	validateQuery = api.ValidateQuery{
+		EvaluatorID: queryEvaluator,
+		QueryText:   newQueryText,
+	}
 )
 
 func TestQueryValidateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql/compile",
+		"Queries/validate",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method, "Compile should be a POST method")
 			fmt.Fprint(w, "{}")
@@ -96,36 +54,17 @@ func TestQueryValidateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.Validate(newQueryText)
+	_, err = c.V2.Query.Validate(api.ValidateQuery{})
 	assert.Nil(t, err)
-}
-
-func TestQueryValidateBadInput(t *testing.T) {
-	fakeServer := lacework.MockServer()
-	fakeServer.MockAPI(
-		"external/lql/compile",
-		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "{}")
-		},
-	)
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	_, err = c.V2.Query.Validate("")
-	assert.Equal(t, "query text must be provided", err.Error())
 }
 
 func TestQueryValidateOK(t *testing.T) {
-	mockResponse := mockQueryDataResponse(QueryValidateData)
+	mockResponse := mockQueryDataResponse(newQueryJSON)
 
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql/compile",
+		"Queries/validate",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -138,19 +77,20 @@ func TestQueryValidateOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	compileExpected := api.QueryValidateResponse{}
-	_ = json.Unmarshal([]byte(mockResponse), &compileExpected)
+	validateExpected := api.QueryResponse{}
+	_ = json.Unmarshal([]byte(mockResponse), &validateExpected)
 
-	var compileActual api.QueryValidateResponse
-	compileActual, err = c.V2.Query.Validate(newQueryText)
+	var validateActual api.QueryResponse
+	validateActual, err = c.V2.Query.Validate(validateQuery)
 	assert.Nil(t, err)
-	assert.Equal(t, compileExpected, compileActual)
+	assert.Equal(t, validateExpected, validateActual)
 }
 
 func TestQueryValidateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql/compile",
+		"Queries/validate",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
 		},
@@ -163,6 +103,6 @@ func TestQueryValidateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.Validate(newQueryText)
+	_, err = c.V2.Query.Validate(api.ValidateQuery{})
 	assert.NotNil(t, err)
 }
