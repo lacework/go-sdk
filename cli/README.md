@@ -13,7 +13,7 @@ reports, external integrations, vulnerability scans, and other operations.
 ### Bash:
 
 ```
-$ curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
+curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
 ```
 
 ### Powershell:
@@ -25,7 +25,7 @@ C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubus
 
 ### Homebrew:
 ```
-$ brew install lacework/tap/lacework-cli
+brew install lacework/tap/lacework-cli
 ```
 ## Quick Configuration
 
@@ -102,6 +102,7 @@ operation of the Lacework CLI.
 | Environment Variable | Description |
 |----------------------|-------------|
 |`LW_NOCOLOR=1`|turn off colors|
+|`LW_NOCACHE=1`|turn off caching|
 |`LW_DEBUG=1`|turn on debug logging|
 |`LW_JSON=1`|switch commands output from human-readable to JSON format|
 |`LW_NONINTERACTIVE=1`|disable interactive progress bars (i.e. spinners)|
@@ -142,9 +143,41 @@ To build and install the CLI from source, use the `make install-cli` directive
 defined at the top level of this repository, the automation will install the
 tool at `/usr/local/bin/lacework`:
 ```
+$ make prepare
 $ make install-cli
 $ lacework version
 lacework 0.1.1-dev (sha:ca9f95d17f4f2092f89dba7b64eaed6db7493a5a) (time:20200406091143)
+```
+
+### Test Supported Platforms
+
+The Lacework CLI runs on almost any operating system out there, it runs on Darwin,
+Windows, and many Linux distributions. After setting up your development environment
+you can test the generated binary by standing up a virtual machine of any supported
+platform, to do that, you will need to install [Vagrant](https://www.vagrantup.com/) and
+[VirtualBox](https://www.virtualbox.org/wiki/Downloads) on your workstation.
+
+To start a supported host, run:
+```
+$ make vagrant-windows-up  # Stand up a Windows 10 VM
+$ make vagrant-macos-up    # Stand up a Macos Sierra VM
+$ make vagrant-linux-up    # Stand up a Ubuntu 18.04 VM
+```
+
+To access the VM, run:
+```
+$ make vagrant-windows-login  # Access the Windows 10 VM via WinRM/Powershell
+$ make vagrant-macos-login    # Access the Macos Sierra VM via SSH
+$ make vagrant-linux-login    # Access the Ubuntu 18.04 VM via SSH
+```
+__NOTE: When accessing a Windows VM from a Linux or MacOS system, you will need
+to use the VirtualBox GUI rather than your terminal.__
+
+To destroy the VM, run:
+```
+$ make vagrant-windows-destroy  # Destroy the Windows 10 VM
+$ make vagrant-macos-destroy    # Destroy the Macos Sierra VM
+$ make vagrant-linux-destroy    # Destroy the Ubuntu 18.04 VM
 ```
 
 ### Unit Tests

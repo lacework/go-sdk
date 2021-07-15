@@ -15,6 +15,9 @@ bin/
 # vscode debug.test
 **/debug.test
 
+# Vagrant
+**/.vagrant/*
+
 # Terraform
 **/.terraform/*
 *.tfstate
