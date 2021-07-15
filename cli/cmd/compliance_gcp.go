@@ -63,7 +63,7 @@ var (
 				rows = append(rows, []string{gcp.ProjectID, gcp.OrganizationID})
 			}
 
-			cli.OutputHuman(renderSimpleTable([]string{"Project ID", "Organization ID"}, rows))
+			cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID"}, rows))
 			return nil
 		},
 	}
