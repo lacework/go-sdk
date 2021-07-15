@@ -395,11 +395,10 @@ type gcpAccount struct {
 }
 
 func containsDuplicateProjectID(gcpAccounts []gcpAccount, projectID string) bool {
-	containsDuplicate := false
 	for _, value := range gcpAccounts {
 		if projectID == value.ProjectID {
-			containsDuplicate = true
+			return true
 		}
 	}
-	return containsDuplicate
+	return false
 }
