@@ -6,7 +6,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.2.14
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
-	github.com/briandowns/spinner v1.16.0
+	github.com/briandowns/spinner v1.13.0
 	github.com/fatih/color v1.12.0
 	github.com/google/btree v1.0.1 // indirect
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
