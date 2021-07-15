@@ -63,6 +63,9 @@ integration-policy: build-cli-cross-platform integration-policy-only
 integration-policy-only:
 	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="policy"
 
+integration-container-vuln-only:
+	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -run TestContainerVulnerabilityCommandsEndToEnd -timeout 30m
+
 coverage: test
 	go tool cover -func=$(COVERAGEOUT)
 
