@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -39,28 +40,18 @@ var (
 		Long:  `List all GCP projects and organization IDs.`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
-				gcpAccounts   []gcpAccount
 				response, err = cli.LwApi.Integrations.ListGcpCfg()
-				rows          [][]string
+				rows [][]string
 			)
 
 			if err != nil {
 				return errors.Wrap(err, "unable to list gcp projects/organizations")
 			}
 
-			for _, gcp := range response.Data {
-				gcpIntegration := gcpAccount{}
-				// if organization account, fetch the project ids
-				if gcp.Data.IDType == "ORGANIZATION" {
-					gcpAccounts = append(gcpAccounts, getGcpAccounts(gcpIntegration.OrganizationID)...)
-				} else if !containsDuplicateProjectID(gcpAccounts, gcp.Data.ID) {
-					gcpIntegration = gcpAccount{OrganizationID: "n/a", ProjectID: gcp.Data.ID}
-					gcpAccounts = append(gcpAccounts, gcpIntegration)
-				}
-			}
+			gcpAccounts := extractGcpAccounts(response)
 
 			for _, gcp := range gcpAccounts {
-				rows = append(rows, []string{gcp.ProjectID, gcp.OrganizationID})
+				rows = append(rows, []string{gcp.OrganizationID, gcp.ProjectID})
 			}
 
 			cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID"}, rows))
@@ -392,6 +383,26 @@ type cliComplianceIDAlias struct {
 type gcpAccount struct {
 	ProjectID      string
 	OrganizationID string
+}
+
+func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpAccount {
+	var gcpAccounts []gcpAccount
+
+	for _, gcp := range response.Data {
+		// if organization account, fetch the project ids
+		if gcp.Data.IDType == "ORGANIZATION" {
+			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcp.Data.ID)...)
+		} else if !containsDuplicateProjectID(gcpAccounts, gcp.Data.ID) {
+			gcpIntegration := gcpAccount{OrganizationID: "n/a", ProjectID: gcp.Data.ID}
+			gcpAccounts = append(gcpAccounts, gcpIntegration)
+		}
+	}
+
+	sort.Slice(gcpAccounts, func(i, j int) bool {
+		return gcpAccounts[i].ProjectID < gcpAccounts[j].ProjectID
+	})
+
+	return gcpAccounts
 }
 
 func containsDuplicateProjectID(gcpAccounts []gcpAccount, projectID string) bool {
