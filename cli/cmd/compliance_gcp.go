@@ -41,7 +41,7 @@ var (
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				response, err = cli.LwApi.Integrations.ListGcpCfg()
-				rows [][]string
+				rows          [][]string
 			)
 
 			if err != nil {
