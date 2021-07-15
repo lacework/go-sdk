@@ -141,14 +141,17 @@ func (svc *PolicyService) Get(policyID string) (
 	return
 }
 
-func (svc *PolicyService) Update(policyID string, up UpdatePolicy) (
+func (svc *PolicyService) Update(up UpdatePolicy) (
 	response PolicyResponse,
 	err error,
 ) {
-	if policyID == "" {
+	if up.PolicyID == "" {
 		err = errors.New("policy ID must be provided")
 		return
 	}
+	var policyID = up.PolicyID
+	up.PolicyID = "" // omit this for PATCH
+
 	err = svc.client.RequestEncoderDecoder(
 		"PATCH",
 		fmt.Sprintf("%s/%s", apiV2Policies, url.QueryEscape(policyID)),

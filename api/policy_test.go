@@ -34,7 +34,7 @@ var (
 	policyID  = "my-policy-1"
 	newPolicy = api.NewPolicy{
 		EvaluatorID:   "Cloudtrail",
-		PolicyID:      "my-policy-1",
+		PolicyID:      policyID,
 		PolicyType:    "Violation",
 		QueryID:       "MyExampleQuery",
 		Title:         "My Policy Title",
@@ -48,11 +48,12 @@ var (
 		PolicyUI:      map[string]string{"domain": "AWS", "subdomain": "Cloudtrail"},
 	}
 	updatePolicy = api.UpdatePolicy{
-		Title: "My New Policy Title",
+		PolicyID: policyID,
+		Title:    "My New Policy Title",
 	}
-	policyCreateData = `{
+	policyCreateData = fmt.Sprintf(`{
 	"evaluatorId": "Cloudtrail",
-	"policyId": "my-policy-1",
+	"policyId": "%s",
 	"title": "My Policy Title",
 	"enabled": false,
 	"description": "My Policy Description",
@@ -63,10 +64,10 @@ var (
 	"alertEnabled": false,
 	"alertProfile": "LW_CloudTrail_Alerts",
 	"policyType": "Violation"
-}`
-	policyUpdateData = `{
+}`, policyID)
+	policyUpdateData = fmt.Sprintf(`{
 	"evaluatorId": "Cloudtrail",
-	"policyId": "my-policy-1",
+	"policyId": "%s",
 	"title": "My New Policy Title",
 	"enabled": false,
 	"description": "My Policy Description",
@@ -77,7 +78,7 @@ var (
 	"alertEnabled": false,
 	"alertProfile": "LW_CloudTrail_Alerts",
 	"policyType": "Violation"
-}`
+}`, policyID)
 	mockPolicyErrorResponse = `{
 	"message": "This is an error message"
 }`
@@ -250,7 +251,7 @@ func TestPolicyUpdateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Policy.Update(policyID, api.UpdatePolicy{})
+	_, err = c.V2.Policy.Update(updatePolicy)
 	assert.Nil(t, err)
 }
 
@@ -271,7 +272,7 @@ func TestPolicyUpdateBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Policy.Update("", api.UpdatePolicy{})
+	_, err = c.V2.Policy.Update(api.UpdatePolicy{})
 	assert.Equal(t, "policy ID must be provided", err.Error())
 }
 
@@ -298,7 +299,7 @@ func TestPolicyUpdateOK(t *testing.T) {
 	updateExpected := api.PolicyResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
 
-	updateActual, err := c.V2.Policy.Update(policyID, updatePolicy)
+	updateActual, err := c.V2.Policy.Update(updatePolicy)
 	assert.Nil(t, err)
 	assert.Equal(t, updateExpected, updateActual)
 }
@@ -320,7 +321,7 @@ func TestPolicyUpdateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Policy.Update(policyID, api.UpdatePolicy{})
+	_, err = c.V2.Policy.Update(api.UpdatePolicy{})
 	assert.NotNil(t, err)
 }
 

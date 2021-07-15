@@ -108,17 +108,15 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
-	// get policy id
-	policyID := updatePolicy.PolicyID
+	// set policy id
 	if len(args) != 0 {
-		policyID = args[0]
+		updatePolicy.PolicyID = args[0]
 	}
-	updatePolicy.PolicyID = "" // omit this for PATCH
 
-	cli.Log.Debugw("updating policy", "policyID", policyID, "policy", policyStr)
+	cli.Log.Debugw("updating policy", "policy", policyStr)
 
 	var updateResponse api.PolicyResponse
-	if updateResponse, err = cli.LwApi.V2.Policy.Update(policyID, updatePolicy); err != nil {
+	if updateResponse, err = cli.LwApi.V2.Policy.Update(updatePolicy); err != nil {
 		return errors.Wrap(err, msg)
 	}
 	if cli.JSONOutput() {
