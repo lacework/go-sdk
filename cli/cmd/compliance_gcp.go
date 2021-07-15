@@ -359,6 +359,7 @@ func getGcpAccounts(orgID string) []gcpAccount {
 	var accounts []gcpAccount
 	projectsResponse, err := cli.LwApi.Compliance.ListGcpProjects(orgID)
 	if err != nil {
+		cli.Log.Warn("unable to list gcp projects", "org_id", orgID, "error", err.Error())
 		return accounts
 	}
 	for _, projects := range projectsResponse.Data {
@@ -399,6 +400,12 @@ func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpAccount {
 	}
 
 	sort.Slice(gcpAccounts, func(i, j int) bool {
+		switch strings.Compare(gcpAccounts[i].OrganizationID, gcpAccounts[j].OrganizationID) {
+		case -1:
+			return true
+		case 1:
+			return false
+		}
 		return gcpAccounts[i].ProjectID < gcpAccounts[j].ProjectID
 	})
 
