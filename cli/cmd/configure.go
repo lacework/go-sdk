@@ -206,14 +206,12 @@ func runConfigureSetup() error {
 		// get sub-accounts from organizational accounts
 		subaccount, err := getSubAccountForOrgAdmins()
 		if err != nil {
-			return err
-		}
-
-		// only configure the subaccount if it is not empty
-		if subaccount != "" {
+			// We do NOT error here since API v2 is sending 500 errors
+			// for mortal users, we need to fix this on the server side
+			cli.Log.Warnw("unable to get sub-accounts for org admins", "error", err)
+		} else {
 			newProfile.Subaccount = subaccount
 		}
-
 		cli.OutputHuman("\n")
 	}
 
@@ -309,12 +307,7 @@ func getSubAccountForOrgAdmins() (string, error) {
 	user, err := cli.LwApi.V2.UserProfile.Get()
 	cli.StopProgress()
 	if err != nil {
-		cli.Log.Warnw("unable to access UserProfile endpoint",
-			"error", err,
-		)
-		// We do NOT error here since API v2 is sending 500 errors
-		// for mortal users, we need to fix this on the server side
-		return "", nil
+		return "", errors.Wrap(err, "unable to access UserProfile endpoint")
 	}
 
 	// We only ask for the sub-account if the account is an organizational account
