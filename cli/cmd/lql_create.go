@@ -67,6 +67,6 @@ func createQuery(cmd *cobra.Command, args []string) error {
 		return cli.OutputJSON(create.Data)
 	}
 	cli.OutputHuman(
-		fmt.Sprintf("query (%s) created successfully.\n", create.Data.QueryID))
+		fmt.Sprintf("Query (%s) created successfully.\n", create.Data.QueryID))
 	return nil
 }

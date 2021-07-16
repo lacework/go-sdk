@@ -71,7 +71,7 @@ func TestQueryValidateFile(t *testing.T) {
 
 	// validate
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-f", file.Name())
-	assert.Contains(t, out.String(), "query validated successfully.")
+	assert.Contains(t, out.String(), "Query validated successfully.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
@@ -82,7 +82,7 @@ func TestQueryValidateURL(t *testing.T) {
 	}
 	// validate
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-u", queryURL)
-	assert.Contains(t, out.String(), "query validated successfully.")
+	assert.Contains(t, out.String(), "Query validated successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

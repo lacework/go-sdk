@@ -137,7 +137,7 @@ func TestQueryRunID(t *testing.T) {
 
 	// validate_only
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "run", queryID, "--validate_only")
-	assert.Contains(t, out.String(), "query validated successfully.")
+	assert.Contains(t, out.String(), "Query validated successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
@@ -221,7 +221,7 @@ func TestQueryRunFile(t *testing.T) {
 	// validate_only
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig(
 		"query", "run", "-f", file.Name(), "--validate_only")
-	assert.Contains(t, out.String(), "query validated successfully.")
+	assert.Contains(t, out.String(), "Query validated successfully.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
@@ -240,7 +240,7 @@ func TestQueryRunURL(t *testing.T) {
 	// validate_only
 	out, err, exitcode = LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--validate_only")
-	assert.Contains(t, out.String(), "query validated successfully.")
+	assert.Contains(t, out.String(), "Query validated successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
