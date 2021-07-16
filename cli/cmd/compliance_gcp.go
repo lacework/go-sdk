@@ -54,6 +54,10 @@ var (
 				rows = append(rows, []string{gcp.OrganizationID, gcp.ProjectID})
 			}
 
+			if cli.JSONOutput() {
+				return cli.OutputJSON(rows)
+			}
+
 			cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID"}, rows))
 			return nil
 		},
