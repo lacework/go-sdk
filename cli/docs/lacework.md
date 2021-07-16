@@ -23,8 +23,10 @@ This will prompt you for your Lacework account and a set of API access keys.
       --debug               turn on debug logging
   -h, --help                help for lacework
       --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
 ```
