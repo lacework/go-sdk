@@ -64,7 +64,7 @@ integration-policy-only:
 	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="policy"
 
 integration-container-vuln-only:
-	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -run TestContainerVulnerabilityCommandsEndToEnd -timeout 180m
+	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -run TestContainerVulnerabilityCommandsEndToEnd -timeout 600m
 
 coverage: test
 	go tool cover -func=$(COVERAGEOUT)
