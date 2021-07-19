@@ -21,7 +21,6 @@ package api
 import (
 	"fmt"
 	"net/url"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -54,15 +53,6 @@ type QueryResponse struct {
 type QueriesResponse struct {
 	Data    []Query `json:"data"`
 	Message string  `json:"message"`
-}
-
-func validateQueryRange(start, end time.Time) (err error) {
-	// validate range
-	if start.After(end) {
-		err = errors.New("date range should have a start time before the end time")
-		return
-	}
-	return nil
 }
 
 // QueryService is a service that interacts with the Queries
@@ -118,25 +108,5 @@ func (svc *QueryService) Get(id string) (
 		nil,
 		&response,
 	)
-	return
-}
-
-func (svc *QueryService) Execute(queryText string, start time.Time, end time.Time) (
-	response map[string]interface{},
-	err error,
-) {
-	if queryText == "" {
-		err = errors.New("query text must be provided")
-		return
-	}
-	if err = validateQueryRange(start, end); err != nil {
-		return
-	}
-	query := map[string]string{
-		"query_text":       queryText,
-		"start_time_range": start.UTC().Format(time.RFC3339),
-		"end_time_range":   end.UTC().Format(time.RFC3339),
-	}
-	err = svc.client.RequestEncoderDecoder("POST", apiLQLQuery, query, &response)
 	return
 }

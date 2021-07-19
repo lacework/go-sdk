@@ -81,7 +81,6 @@ const (
 	// Alpha
 	apiLQLDataSources = "v1/external/lql/dataSources"
 	apiLQLDescribe    = "v1/external/lql/describe"
-	apiLQLQuery       = "v1/external/lql/query"
 
 	// API v2 Endpoints
 	//
@@ -97,6 +96,7 @@ const (
 
 	apiV2Policies        = "v2/Policies"
 	apiV2Queries         = "v2/Queries"
+	apiV2QueriesExecute  = "v2/Queries/execute"
 	apiV2QueriesValidate = "v2/Queries/validate"
 )
 

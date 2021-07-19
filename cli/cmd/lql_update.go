@@ -49,7 +49,7 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to update query"
 
 	// input query
-	queryString, err := inputQuery(cmd, args)
+	queryString, err := inputQuery(cmd)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
