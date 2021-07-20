@@ -386,8 +386,8 @@ type cliComplianceIDAlias struct {
 }
 
 type gcpAccount struct {
-	ProjectID      string
-	OrganizationID string
+	ProjectID      string `json:"project_id"`
+	OrganizationID string `json:"organization_id"`
 }
 
 func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpAccount {
