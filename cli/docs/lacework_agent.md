@@ -28,8 +28,10 @@ For a complete list of supported operating systems, visit:
   -s, --api_secret string   secret access key
       --debug               turn on debug logging
       --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
 ```

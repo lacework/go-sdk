@@ -123,3 +123,28 @@ endif
 
 git-env:
 	scripts/git_env.sh
+
+vagrant-macos-up: build-cli-cross-platform
+	$(call run_vagrant,macos-sierra,up)
+vagrant-macos-login: build-cli-cross-platform
+	$(call run_vagrant,macos-sierra,ssh)
+vagrant-macos-destroy:
+	$(call run_vagrant,macos-sierra,destroy -f)
+
+vagrant-linux-up: build-cli-cross-platform
+	$(call run_vagrant,ubuntu-1804,up)
+vagrant-linux-login: build-cli-cross-platform
+	$(call run_vagrant,ubuntu-1804,ssh)
+vagrant-linux-destroy:
+	$(call run_vagrant,ubuntu-1804,destroy -f)
+
+vagrant-windows-up: build-cli-cross-platform
+	$(call run_vagrant,windows-10,up)
+vagrant-windows-login: build-cli-cross-platform
+	$(call run_vagrant,windows-10,powershell)
+vagrant-windows-destroy:
+	$(call run_vagrant,windows-10,destroy -f)
+
+define run_vagrant
+	cd cli/vagrant/${1}; vagrant ${2}
+endef
