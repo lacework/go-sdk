@@ -55,7 +55,7 @@ var (
 			}
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(rows)
+				return cli.OutputJSON(gcpAccounts)
 			}
 
 			cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID"}, rows))
