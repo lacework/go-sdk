@@ -18,23 +18,16 @@
 
 package api
 
-import "github.com/pkg/errors"
-
-type QueryValidateResponse struct {
-	Data    []map[string]interface{} `json:"data"`
-	Ok      bool                     `json:"ok"`
-	Message string                   `json:"message"`
+type ValidateQuery struct {
+	QueryText   string `json:"queryText"`
+	EvaluatorID string `json:"evaluatorId"`
 }
 
-func (svc *QueryService) Validate(queryText string) (
-	response QueryValidateResponse,
+func (svc *QueryService) Validate(vq ValidateQuery) (
+	response QueryResponse,
 	err error,
 ) {
-	if queryText == "" {
-		err = errors.New("query text must be provided")
-		return
-	}
-	query := map[string]string{"query_text": queryText}
-	err = svc.client.RequestEncoderDecoder("POST", apiLQLCompile, query, &response)
+	err = svc.client.RequestEncoderDecoder(
+		"POST", apiV2QueriesValidate, vq, &response)
 	return
 }

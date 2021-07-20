@@ -71,6 +71,6 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(update.Data)
 	}
-	cli.OutputHuman(fmt.Sprintf("query (%s) updated successfully.\n", update.Data.QueryID))
+	cli.OutputHuman(fmt.Sprintf("Query (%s) updated successfully.\n", update.Data.QueryID))
 	return nil
 }

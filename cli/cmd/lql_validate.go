@@ -21,6 +21,8 @@ package cmd
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 const (
@@ -30,10 +32,10 @@ const (
 var (
 	// queryValidateCmd represents the lql validate command
 	queryValidateCmd = &cobra.Command{
-		Use:   "validate [query_id]",
+		Use:   "validate",
 		Short: "validate a query",
 		Long:  `Validate a query.`,
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		RunE:  validateQuery,
 	}
 )
@@ -55,13 +57,19 @@ func validateQuery(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, lqlValidateUnableMsg)
 	}
-	return validateQueryAndOutput(newQuery.QueryText)
+
+	cli.Log.Debugw("validating query", "query", queryString)
+
+	return validateQueryAndOutput(newQuery)
 }
 
-func validateQueryAndOutput(s string) error {
-	cli.Log.Debugw("validating query", "query", s)
+func validateQueryAndOutput(nq api.NewQuery) error {
+	vq := api.ValidateQuery{
+		QueryText:   nq.QueryText,
+		EvaluatorID: nq.EvaluatorID,
+	}
 
-	validate, err := cli.LwApi.V2.Query.Validate(s)
+	validate, err := cli.LwApi.V2.Query.Validate(vq)
 
 	if err != nil {
 		return errors.Wrap(err, lqlValidateUnableMsg)
@@ -69,6 +77,6 @@ func validateQueryAndOutput(s string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(validate.Data)
 	}
-	cli.OutputHuman("query validated successfully.\n")
+	cli.OutputHuman("Query validated successfully.\n")
 	return nil
 }
