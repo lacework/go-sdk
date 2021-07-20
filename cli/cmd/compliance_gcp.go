@@ -54,6 +54,10 @@ var (
 				rows = append(rows, []string{gcp.OrganizationID, gcp.ProjectID})
 			}
 
+			if cli.JSONOutput() {
+				return cli.OutputJSON(gcpAccounts)
+			}
+
 			cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID"}, rows))
 			return nil
 		},
@@ -382,8 +386,8 @@ type cliComplianceIDAlias struct {
 }
 
 type gcpAccount struct {
-	ProjectID      string
-	OrganizationID string
+	ProjectID      string `json:"project_id"`
+	OrganizationID string `json:"organization_id"`
 }
 
 func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpAccount {
