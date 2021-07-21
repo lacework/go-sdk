@@ -30,35 +30,41 @@ import (
 )
 
 var (
-	queryEvaluator = "Cloudtrail"
-	queryID        = "my_lql"
-	newQueryText   = `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`
-	newQuery       = api.NewQuery{
-		EvaluatorID: queryEvaluator,
-		QueryID:     queryID,
-		QueryText:   newQueryText,
+	executeQueryArguments = []api.ExecuteQueryArgument{
+		api.ExecuteQueryArgument{
+			Name:  "StartTimeRange",
+			Value: "2021-07-11T00:00:00.000Z",
+		},
+		api.ExecuteQueryArgument{
+			Name:  "EndTimeRange",
+			Value: "2021-07-12T00:00:00.000Z",
+		},
 	}
-	newQueryJSON = fmt.Sprintf(`{
-	"evaluatorId": "%s",
-	"queryId": "%s",
-	"queryText": "%s"
-}`, queryEvaluator, queryID, newQueryText)
-	lqlErrorReponse = `{ "message": "This is an error message" }`
+	executeQuery = api.ExecuteQueryRequest{
+		Query: api.ExecuteQuery{
+			QueryText:   newQueryText,
+			EvaluatorID: queryEvaluator,
+		},
+		Arguments: executeQueryArguments,
+	}
+	executeQueryByID = api.ExecuteQueryByIDRequest{
+		QueryID:   queryID,
+		Arguments: executeQueryArguments,
+	}
+	executeQueryData = `[
+	{
+		"INSERT_ID": "35308423"
+	}
+]`
 )
 
-func mockQueryDataResponse(data string) string {
-	return `{
-	"data": ` + data + `
-}`
-}
-
-func TestQueryCreateMethod(t *testing.T) {
+func TestQueryExecuteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"Queries",
+		"Queries/execute",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "POST", r.Method, "Create should be a POST method")
+			assert.Equal(t, "POST", r.Method, "Execute should be a POST method")
 			fmt.Fprint(w, "{}")
 		},
 	)
@@ -70,17 +76,17 @@ func TestQueryCreateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.Create(newQuery)
+	_, err = c.V2.Query.Execute(executeQuery)
 	assert.Nil(t, err)
 }
 
-func TestQueryCreateOK(t *testing.T) {
-	mockResponse := mockQueryDataResponse(newQueryJSON)
+func TestQueryExecuteOK(t *testing.T) {
+	mockResponse := mockQueryDataResponse(executeQueryData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"Queries",
+		"Queries/execute",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -93,21 +99,21 @@ func TestQueryCreateOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	createExpected := api.QueryResponse{}
-	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
+	var runExpected map[string]interface{}
+	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
 
-	var createActual api.QueryResponse
-	createActual, err = c.V2.Query.Create(newQuery)
+	var runActual map[string]interface{}
+	runActual, err = c.V2.Query.Execute(executeQuery)
 	assert.Nil(t, err)
 
-	assert.Equal(t, createExpected, createActual)
+	assert.Equal(t, runExpected, runActual)
 }
 
-func TestQueryCreateError(t *testing.T) {
+func TestQueryExecuteError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"Queries",
+		"Queries/execute",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
 		},
@@ -120,17 +126,17 @@ func TestQueryCreateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.Create(newQuery)
+	_, err = c.V2.Query.Execute(api.ExecuteQueryRequest{})
 	assert.NotNil(t, err)
 }
 
-func TestQueryListMethod(t *testing.T) {
+func TestQueryExecuteByIDMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"Queries",
+		fmt.Sprintf("Queries/%s/execute", queryID),
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "Get should be a GET method")
+			assert.Equal(t, "POST", r.Method, "Execute should be a POST method")
 			fmt.Fprint(w, "{}")
 		},
 	)
@@ -142,19 +148,18 @@ func TestQueryListMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.List()
+	_, err = c.V2.Query.ExecuteByID(executeQueryByID)
 	assert.Nil(t, err)
 }
 
-func TestQueryGetQueryByIDOK(t *testing.T) {
-	mockResponse := mockQueryDataResponse(newQueryJSON)
+func TestQueryExecuteByIDOK(t *testing.T) {
+	mockResponse := mockQueryDataResponse(executeQueryData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"Queries/my_lql",
+		fmt.Sprintf("Queries/%s/execute", queryID),
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "Get should be a GET method")
 			fmt.Fprint(w, mockResponse)
 		},
 	)
@@ -166,23 +171,23 @@ func TestQueryGetQueryByIDOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	getExpected := api.QueryResponse{}
-	_ = json.Unmarshal([]byte(mockResponse), &getExpected)
+	var runExpected map[string]interface{}
+	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
 
-	var getActual api.QueryResponse
-	getActual, err = c.V2.Query.Get(queryID)
+	var runActual map[string]interface{}
+	runActual, err = c.V2.Query.ExecuteByID(executeQueryByID)
 	assert.Nil(t, err)
 
-	assert.Equal(t, getExpected, getActual)
+	assert.Equal(t, runExpected, runActual)
 }
 
-func TestQueryGetNotFound(t *testing.T) {
+func TestQueryExecuteByIDError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"Queries",
+		fmt.Sprintf("Queries/%s/execute", queryID),
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, lqlErrorReponse, http.StatusBadRequest)
+			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
 		},
 	)
 	defer fakeServer.Close()
@@ -193,6 +198,6 @@ func TestQueryGetNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.Get("NoSuchQuery")
+	_, err = c.V2.Query.ExecuteByID(api.ExecuteQueryByIDRequest{})
 	assert.NotNil(t, err)
 }
