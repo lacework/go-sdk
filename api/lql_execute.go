@@ -23,11 +23,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
-)
-
-const (
-	RFC3339Milli = "2006-01-02T15:04:05.000Z"
 )
 
 type ExecuteQuery struct {
@@ -80,7 +77,7 @@ func validateQueryArguments(args []ExecuteQueryArgument) (err error) {
 
 // StartTimeRange and EndTimeRange should be
 func validateQueryTimeString(s string) (time.Time, error) {
-	return time.Parse(RFC3339Milli, s)
+	return time.Parse(lwtime.RFC3339Milli, s)
 }
 
 func validateQueryRange(start, end time.Time) (err error) {

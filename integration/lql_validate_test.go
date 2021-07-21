@@ -32,7 +32,7 @@ func TestQueryValidateHelp(t *testing.T) {
 		t.Skip("skipping test in production mode")
 	}
 	out, err, exitcode := LaceworkCLI("help", "query", "validate")
-	assert.Contains(t, out.String(), "lacework query validate [query_id] [flags]")
+	assert.Contains(t, out.String(), "lacework query validate [flags]")
 	assert.Contains(t, out.String(), "-f, --file string")
 	assert.Contains(t, out.String(), "-u, --url string")
 	assert.Empty(t, err.String(), "STDERR should be empty")

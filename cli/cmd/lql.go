@@ -354,11 +354,11 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	queryArgs := []api.ExecuteQueryArgument{
 		api.ExecuteQueryArgument{
 			Name:  "StartTimeRange",
-			Value: start.UTC().Format(api.RFC3339Milli),
+			Value: start.UTC().Format(lwtime.RFC3339Milli),
 		},
 		api.ExecuteQueryArgument{
 			Name:  "EndTimeRange",
-			Value: end.UTC().Format(api.RFC3339Milli),
+			Value: end.UTC().Format(lwtime.RFC3339Milli),
 		},
 	}
 
