@@ -19,16 +19,12 @@
 package integration
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQueryDeleteHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "query", "delete")
 	assert.Contains(t, out.String(), "lacework query delete <query_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -36,10 +32,6 @@ func TestQueryDeleteHelp(t *testing.T) {
 }
 
 func TestQueryDeleteNoInput(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "delete")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")
@@ -47,10 +39,6 @@ func TestQueryDeleteNoInput(t *testing.T) {
 }
 
 func TestQueryDelete(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 

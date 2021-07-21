@@ -19,16 +19,12 @@
 package integration
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQueryListHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "query", "list")
 	assert.Contains(t, out.String(), "lacework query list [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -36,10 +32,6 @@ func TestQueryListHelp(t *testing.T) {
 }
 
 func TestQueryList(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown

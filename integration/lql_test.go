@@ -48,9 +48,6 @@ var (
 )
 
 func TestQueryAliases(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// lacework query
 	out, err, exitcode := LaceworkCLI("help", "query")
 	assert.Contains(t, out.String(), "lacework query [command]")
@@ -65,9 +62,6 @@ func TestQueryAliases(t *testing.T) {
 }
 
 func TestQueryBase(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("query")
 	assert.Contains(t, out.String(), "create")
 	assert.Contains(t, out.String(), "delete")
@@ -83,9 +77,6 @@ func TestQueryBase(t *testing.T) {
 }
 
 func TestQueryRunHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "query", "run")
 	assert.Contains(t, out.String(), "lacework query run [query_id] [flags]")
 	assert.Contains(t, out.String(), "--end string")
@@ -101,10 +92,6 @@ func TestQueryRunHelp(t *testing.T) {
 }
 
 func TestQueryRunEditor(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	// run
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "run")
 	assert.Contains(t, out.String(), "Type a query to run")
@@ -121,9 +108,6 @@ func TestQueryRunEditor(t *testing.T) {
 }
 
 func TestQueryRunID(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
@@ -142,9 +126,6 @@ func TestQueryRunID(t *testing.T) {
 }
 
 func TestQueryRunFileJSONCrumb(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
 	file, err := ioutil.TempFile("", "TestQueryRunFile")
 	if err != nil {
@@ -167,9 +148,6 @@ func TestQueryRunFileJSONCrumb(t *testing.T) {
 }
 
 func TestQueryRunFileYAMLCrumb(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
 	file, err := ioutil.TempFile("", "TestQueryRunFile")
 	if err != nil {
@@ -192,9 +170,6 @@ func TestQueryRunFileYAMLCrumb(t *testing.T) {
 }
 
 func TestQueryRunFile(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
 	file, err := ioutil.TempFile("", "TestQueryRunFile")
 	if err != nil {
@@ -226,9 +201,6 @@ func TestQueryRunFile(t *testing.T) {
 }
 
 func TestQueryRunURL(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// run (natural time)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--range", "last week")

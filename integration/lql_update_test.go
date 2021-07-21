@@ -28,9 +28,6 @@ import (
 )
 
 func TestQueryUpdateHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "query", "update")
 	assert.Contains(t, out.String(), "lacework query update [flags]")
 	assert.Contains(t, out.String(), "-f, --file string")
@@ -40,9 +37,6 @@ func TestQueryUpdateHelp(t *testing.T) {
 }
 
 func TestQueryUpdateEditor(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "update")
 	assert.Contains(t, out.String(), "Type a query to update")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
@@ -51,9 +45,6 @@ func TestQueryUpdateEditor(t *testing.T) {
 }
 
 func TestQueryUpdateFile(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
 	file, err := ioutil.TempFile("", "TestUpdateFile")
 	if err != nil {
@@ -87,9 +78,6 @@ func TestQueryUpdateFile(t *testing.T) {
 }
 
 func TestQueryUpdateURL(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
 	file, err := ioutil.TempFile("", "TestUpdateURL")
 	if err != nil {

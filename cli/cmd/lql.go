@@ -50,7 +50,6 @@ var (
 
 	// queryCmd represents the lql parent command
 	queryCmd = &cobra.Command{
-		Hidden:  true,
 		Aliases: []string{"lql"},
 		Use:     "query",
 		Short:   "run and manage queries",

@@ -19,16 +19,12 @@
 package integration
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQuerySourcesAliases(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// lacework query sources
 	out, err, exitcode := LaceworkCLI("help", "query", "sources")
 	assert.Contains(t, out.String(), "lacework query list-sources [flags]")

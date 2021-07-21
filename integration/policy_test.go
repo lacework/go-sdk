@@ -52,9 +52,6 @@ policies:
 )
 
 func TestPolicyHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// lacework policy
 	out, err, exitcode := LaceworkCLI("help", "policy")
 	assert.Contains(t, out.String(), "lacework policy [command]")
@@ -63,9 +60,6 @@ func TestPolicyHelp(t *testing.T) {
 }
 
 func TestPolicyBase(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("policy")
 	assert.Contains(t, out.String(), "create")
 	assert.Contains(t, out.String(), "list")
@@ -75,9 +69,6 @@ func TestPolicyBase(t *testing.T) {
 }
 
 func TestPolicyCreateHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "policy", "create")
 	assert.Contains(t, out.String(), "lacework policy create [flags]")
 	assert.Contains(t, out.String(), "-f, --file string")
@@ -87,9 +78,6 @@ func TestPolicyCreateHelp(t *testing.T) {
 }
 
 func TestPolicyCreateEditor(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// create
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "create")
 	assert.Contains(t, out.String(), "Type a policy to create")
@@ -99,9 +87,6 @@ func TestPolicyCreateEditor(t *testing.T) {
 }
 
 func TestPolicyCreateFile(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
@@ -155,9 +140,6 @@ func TestPolicyCreateFile(t *testing.T) {
 }
 
 func TestPolicyCreateURL(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
@@ -196,9 +178,6 @@ func TestPolicyCreateURL(t *testing.T) {
 }
 
 func TestPolicyListHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "policy", "list")
 	assert.Contains(t, out.String(), "lacework policy list [flags]")
 	assert.Contains(t, out.String(), "--alert_enabled     only show alert_enabled policies")
@@ -209,10 +188,6 @@ func TestPolicyListHelp(t *testing.T) {
 }
 
 func TestPolicyList(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	// list (output human)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list")
 	assert.Contains(t, out.String(), "POLICY ID")
@@ -229,10 +204,6 @@ func TestPolicyList(t *testing.T) {
 }
 
 func TestPolicyBadSeverity(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	_, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list", "--severity", "superhigh")
 	assert.Contains(t, err.String(), "the severity superhigh is not valid, use one of critical, high, medium, low, info")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
@@ -240,10 +211,6 @@ func TestPolicyBadSeverity(t *testing.T) {
 }
 
 func TestPolicySeverityCritical(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list", "--severity", "critical")
 	assert.Contains(t, out.String(), "lacework-global-8")
 	assert.NotContains(t, out.String(), "lacework-global-1")
@@ -252,10 +219,6 @@ func TestPolicySeverityCritical(t *testing.T) {
 }
 
 func TestPolicyShowHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	out, err, exitcode := LaceworkCLI("help", "policy", "show")
 	assert.Contains(t, out.String(), "lacework policy show <policy_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -263,10 +226,6 @@ func TestPolicyShowHelp(t *testing.T) {
 }
 
 func TestPolicyShow(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	// show (output)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
 	assert.Contains(t, out.String(), "POLICY ID")
@@ -283,9 +242,6 @@ func TestPolicyShow(t *testing.T) {
 }
 
 func TestPolicyUpdateHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "policy", "update")
 	assert.Contains(t, out.String(), "lacework policy update [policy_id] [flags]")
 	assert.Contains(t, out.String(), "-f, --file string")
@@ -295,9 +251,6 @@ func TestPolicyUpdateHelp(t *testing.T) {
 }
 
 func TestPolicyUpdateEditor(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// update
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "update")
 
@@ -308,23 +261,14 @@ func TestPolicyUpdateEditor(t *testing.T) {
 }
 
 func TestPolicyUpdateFile(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// update file tested by virtue of TestPolicyCreateURL
 }
 
 func TestPolicyUpdateURL(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// update URL tested by virtue of TestPolicyCreateFile
 }
 
 func TestPolicyDeleteHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "policy", "delete")
 	assert.Contains(t, out.String(), "lacework policy delete <policy_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -332,10 +276,6 @@ func TestPolicyDeleteHelp(t *testing.T) {
 }
 
 func TestPolicyDeleteNoInput(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")
@@ -343,10 +283,6 @@ func TestPolicyDeleteNoInput(t *testing.T) {
 }
 
 func TestPolicyDelete(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	// setup query
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown query

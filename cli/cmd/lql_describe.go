@@ -30,11 +30,12 @@ import (
 var (
 	// queryDescribeCmd represents the lql describe command
 	queryDescribeCmd = &cobra.Command{
-		Use:   "describe <data_source>",
-		Short: "describe an LQL data source",
-		Long:  `Describe an LQL data source.`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  describeQuerySource,
+		Hidden: true, // no api exists for this
+		Use:    "describe <data_source>",
+		Short:  "describe an LQL data source",
+		Long:   `Describe an LQL data source.`,
+		Args:   cobra.ExactArgs(1),
+		RunE:   describeQuerySource,
 	}
 )
 

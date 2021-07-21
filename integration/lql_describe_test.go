@@ -19,17 +19,12 @@
 package integration
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQueryDescribeHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	out, err, exitcode := LaceworkCLI("help", "query", "describe")
 	assert.Contains(t, out.String(), "lacework query describe <data_source> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -37,10 +32,6 @@ func TestQueryDescribeHelp(t *testing.T) {
 }
 
 func TestQueryDescribeNoInput(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")

@@ -28,9 +28,6 @@ import (
 )
 
 func TestQueryValidateHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "query", "validate")
 	assert.Contains(t, out.String(), "lacework query validate [flags]")
 	assert.Contains(t, out.String(), "-f, --file string")
@@ -40,9 +37,6 @@ func TestQueryValidateHelp(t *testing.T) {
 }
 
 func TestQueryValidateEditor(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate")
 	assert.Contains(t, out.String(), "Type a query to validate")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
@@ -51,9 +45,6 @@ func TestQueryValidateEditor(t *testing.T) {
 }
 
 func TestQueryValidateFile(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
 	file, err := ioutil.TempFile("", "TestQueryValidateFile")
 	if err != nil {
@@ -77,9 +68,6 @@ func TestQueryValidateFile(t *testing.T) {
 }
 
 func TestQueryValidateURL(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// validate
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-u", queryURL)
 	assert.Contains(t, out.String(), "Query validated successfully.")
