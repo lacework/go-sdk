@@ -100,6 +100,9 @@ const (
 	// Jira integration type
 	JiraIntegration
 
+	// Email integration type
+	EmailIntegration
+
 	// VictorOps channel integration type
 	VictorOpsChannelIntegration
 
@@ -132,6 +135,7 @@ var IntegrationTypes = map[integrationType]string{
 	AwsCloudWatchIntegration:         "CLOUDWATCH_EB",
 	PagerDutyIntegration:             "PAGER_DUTY_API",
 	JiraIntegration:                  "JIRA",
+	EmailIntegration:                 "EMAIL_USER",
 	VictorOpsChannelIntegration:      "VICTOR_OPS",
 	WebhookIntegration:               "WEBHOOK",
 }

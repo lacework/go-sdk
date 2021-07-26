@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/mitchellh/mapstructure"
@@ -200,6 +201,7 @@ func promptCreateIntegration() error {
 			Message: "Choose an integration type to create: ",
 			Options: []string{
 				"Slack Alert Channel",
+				"Email Alert Channel",
 				"AWS S3 Alert Channel",
 				"Cisco Webex Alert Channel",
 				"Datadog Alert Channel",
@@ -239,6 +241,8 @@ func promptCreateIntegration() error {
 	switch integration {
 	case "Slack Alert Channel":
 		return createSlackAlertChannelIntegration()
+	case "Email Alert Channel":
+		return createEmailAlertChannelIntegration()
 	case "GCP PubSub Alert Channel":
 		return createGcpPubSubChannelIntegration()
 	case "Microsoft Teams Alert Channel":
@@ -819,6 +823,20 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 
 		return out
+
+	case api.EmailIntegration.String():
+		// Use v2 endpoint for Email Alert Channel
+		emailAlertChan, err := cli.LwApi.V2.AlertChannels.GetEmailUser(raw.IntgGuid)
+		if err != nil {
+			cli.Log.Debugw("unable to get EmailUser Alert Channel (v2)",
+				"error", err.Error(),
+			)
+			break
+		}
+		return [][]string{
+			{"RECIPIENTS",
+				strings.Join(emailAlertChan.Data.Data.ChannelProps.Recipients, "\n")},
+		}
 
 	case api.JiraIntegration.String():
 
