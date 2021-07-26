@@ -334,6 +334,7 @@ func buildIntDetailsTable(integrations []api.RawIntegration) string {
 				t.SetBorder(false)
 				t.SetColumnSeparator(" ")
 				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
 			}),
 		),
 		tableFunc(func(t *tablewriter.Table) {
