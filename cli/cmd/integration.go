@@ -97,14 +97,14 @@ var (
 				return errors.Wrap(err, "unable to get integration")
 			}
 
-			if cli.JSONOutput() {
-				return cli.OutputJSON(integration.Data)
-			}
-
 			if len(integration.Data) == 0 {
 				msg := "the provided integration GUID was not found\n\n"
 				msg += "To list the available integrations in your account run 'lacework integrations list'"
 				return errors.New(msg)
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(integration.Data[0])
 			}
 
 			cli.OutputHuman(
