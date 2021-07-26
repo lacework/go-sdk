@@ -27,8 +27,6 @@ github.com/facebookgo/muster
 github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.9
 github.com/fsnotify/fsnotify
-# github.com/golang/protobuf v1.5.2
-github.com/golang/protobuf/proto
 # github.com/golang/snappy v0.0.3
 github.com/golang/snappy
 # github.com/google/btree v1.0.1
@@ -51,7 +49,7 @@ github.com/hinshun/vt10x
 # github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 ## explicit
 github.com/hokaccha/go-prettyjson
-# github.com/honeycombio/libhoney-go v1.15.3
+# github.com/honeycombio/libhoney-go v1.15.4
 ## explicit
 github.com/honeycombio/libhoney-go
 github.com/honeycombio/libhoney-go/transmission
@@ -59,7 +57,7 @@ github.com/honeycombio/libhoney-go/transmission
 github.com/inconshreveable/mousetrap
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 github.com/kballard/go-shellquote
-# github.com/klauspost/compress v1.12.2
+# github.com/klauspost/compress v1.12.3
 github.com/klauspost/compress/fse
 github.com/klauspost/compress/huff0
 github.com/klauspost/compress/zstd
@@ -125,13 +123,13 @@ github.com/spf13/viper
 github.com/stretchr/testify/assert
 # github.com/subosito/gotenv v1.2.0
 github.com/subosito/gotenv
-# github.com/vmihailenco/msgpack/v4 v4.3.12
-github.com/vmihailenco/msgpack/v4
-github.com/vmihailenco/msgpack/v4/codes
-# github.com/vmihailenco/tagparser v0.1.1
-github.com/vmihailenco/tagparser
-github.com/vmihailenco/tagparser/internal
-github.com/vmihailenco/tagparser/internal/parser
+# github.com/vmihailenco/msgpack/v5 v5.2.0
+github.com/vmihailenco/msgpack/v5
+github.com/vmihailenco/msgpack/v5/msgpcode
+# github.com/vmihailenco/tagparser/v2 v2.0.0
+github.com/vmihailenco/tagparser/v2
+github.com/vmihailenco/tagparser/v2/internal
+github.com/vmihailenco/tagparser/v2/internal/parser
 # go.uber.org/atomic v1.7.0
 go.uber.org/atomic
 # go.uber.org/multierr v1.6.0
@@ -157,8 +155,6 @@ golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/knownhosts
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
-golang.org/x/net/context
 # golang.org/x/sys v0.0.0-20210510120138-977fb7262007
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
@@ -171,46 +167,6 @@ golang.org/x/term
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
-# google.golang.org/appengine v1.6.7
-google.golang.org/appengine
-google.golang.org/appengine/datastore
-google.golang.org/appengine/datastore/internal/cloudkey
-google.golang.org/appengine/datastore/internal/cloudpb
-google.golang.org/appengine/internal
-google.golang.org/appengine/internal/app_identity
-google.golang.org/appengine/internal/base
-google.golang.org/appengine/internal/datastore
-google.golang.org/appengine/internal/log
-google.golang.org/appengine/internal/modules
-google.golang.org/appengine/internal/remote_api
-# google.golang.org/protobuf v1.26.0
-google.golang.org/protobuf/encoding/prototext
-google.golang.org/protobuf/encoding/protowire
-google.golang.org/protobuf/internal/descfmt
-google.golang.org/protobuf/internal/descopts
-google.golang.org/protobuf/internal/detrand
-google.golang.org/protobuf/internal/encoding/defval
-google.golang.org/protobuf/internal/encoding/messageset
-google.golang.org/protobuf/internal/encoding/tag
-google.golang.org/protobuf/internal/encoding/text
-google.golang.org/protobuf/internal/errors
-google.golang.org/protobuf/internal/filedesc
-google.golang.org/protobuf/internal/filetype
-google.golang.org/protobuf/internal/flags
-google.golang.org/protobuf/internal/genid
-google.golang.org/protobuf/internal/impl
-google.golang.org/protobuf/internal/order
-google.golang.org/protobuf/internal/pragma
-google.golang.org/protobuf/internal/set
-google.golang.org/protobuf/internal/strs
-google.golang.org/protobuf/internal/version
-google.golang.org/protobuf/proto
-google.golang.org/protobuf/reflect/protodesc
-google.golang.org/protobuf/reflect/protoreflect
-google.golang.org/protobuf/reflect/protoregistry
-google.golang.org/protobuf/runtime/protoiface
-google.golang.org/protobuf/runtime/protoimpl
-google.golang.org/protobuf/types/descriptorpb
 # gopkg.in/alexcesaro/statsd.v2 v2.0.0
 gopkg.in/alexcesaro/statsd.v2
 # gopkg.in/ini.v1 v1.62.0
