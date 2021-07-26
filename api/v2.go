@@ -25,6 +25,7 @@ type V2Endpoints struct {
 
 	// Every schema must have its own service
 	UserProfile       *UserProfileService
+	AlertChannels     *AlertChannelsService
 	CloudAccounts     *CloudAccountsService
 	AgentAccessTokens *AgentAccessTokensService
 	Query             *QueryService
@@ -34,6 +35,7 @@ type V2Endpoints struct {
 func NewV2Endpoints(c *Client) *V2Endpoints {
 	return &V2Endpoints{c,
 		&UserProfileService{c},
+		&AlertChannelsService{c},
 		&CloudAccountsService{c},
 		&AgentAccessTokensService{c},
 		&QueryService{c},

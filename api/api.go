@@ -87,6 +87,9 @@ const (
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
 	apiV2UserProfile = "v2/UserProfile"
 
+	apiV2AlertChannels        = "v2/AlertChannels"
+	apiV2AlertChannelFromGUID = "v2/AlertChannels/%s"
+
 	apiV2CloudAccounts        = "v2/CloudAccounts"
 	apiV2CloudAccountFromGUID = "v2/CloudAccounts/%s"
 
