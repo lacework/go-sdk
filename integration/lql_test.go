@@ -65,9 +65,9 @@ func TestQueryBase(t *testing.T) {
 	out, err, exitcode := LaceworkCLI("query")
 	assert.Contains(t, out.String(), "create")
 	assert.Contains(t, out.String(), "delete")
-	assert.Contains(t, out.String(), "describe")
+	//assert.Contains(t, out.String(), "describe")
 	assert.Contains(t, out.String(), "list")
-	assert.Contains(t, out.String(), "list-sources")
+	//assert.Contains(t, out.String(), "list-sources")
 	assert.Contains(t, out.String(), "run")
 	assert.Contains(t, out.String(), "show")
 	assert.Contains(t, out.String(), "update")
@@ -122,7 +122,7 @@ func TestQueryRunID(t *testing.T) {
 	// validate_only
 	_, err, exitcode = LaceworkCLIWithTOMLConfig("query", "run", queryID, "--validate_only")
 	assert.Contains(t, err.String(), "ERROR flag --validate_only unavailable when specifying query_id argument")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestQueryRunFileJSONCrumb(t *testing.T) {

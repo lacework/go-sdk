@@ -19,8 +19,11 @@
 package integration
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,7 +32,7 @@ import (
 const (
 	newPolicyYAML string = `---
 evaluatorId: Cloudtrail
-policyId: lacework-clitest-1
+policyId: clitest-1
 policyType: Violation
 queryId: LW_CLI_AWS_CTA_IntegrationTest
 title: My Policy Title
@@ -48,8 +51,20 @@ policyUi:
 policies:
   - severity: low
 `
-	policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/lacework-clitest-1.json"
+	policyURL string = "https://raw.githubusercontent.com/hazedav/go-sdk-integration/main/README.md?token=AB37PAFCER64GYF6K2WLA3LBABNDA"
+	//policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/lacework-clitest-1.json"
 )
+
+var (
+	policyIDRE *regexp.Regexp = regexp.MustCompile(`(\w+-clitest-1)`)
+)
+
+func getPolicyIdFromStdout(s string) (string, error) {
+	if match := policyIDRE.FindStringSubmatch(s); match != nil {
+		return match[1], nil
+	}
+	return "", errors.New("unable to extract policy identifier")
+}
 
 func TestPolicyHelp(t *testing.T) {
 	// lacework policy
@@ -112,29 +127,36 @@ func TestPolicyCreateFile(t *testing.T) {
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
+	policyID, err := getPolicyIdFromStdout(out.String())
+	assert.Nil(t, err)
+
 	// update-url (output human)
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "update", "-u", policyURL)
-	assert.Contains(t, out.String(), "Policy (lacework-clitest-1) updated successfully.")
+	// ideally we wouldn't specify a policyID here since it's in policyURL
+	// but the policy API is completely jacked up with respect to persisting a policyID as code
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "update", policyID, "-u", policyURL)
+	assert.Contains(t, out.String(),
+		fmt.Sprintf("Policy (%s) updated successfully.", policyID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// list enabled-only
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--enabled")
 	assert.Contains(t, out.String(), "lacework-global-1")
-	assert.NotContains(t, out.String(), "lacework-clitest-1")
+	assert.NotContains(t, out.String(), policyID)
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// list alert_enabled-only
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--alert_enabled")
 	assert.Contains(t, out.String(), "lacework-global-1")
-	assert.NotContains(t, out.String(), "lacework-clitest-1")
+	assert.NotContains(t, out.String(), policyID)
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// delete
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "delete", "lacework-clitest-1")
-	assert.Contains(t, out.String(), "Policy (lacework-clitest-1) deleted successfully.")
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
+	assert.Contains(t, out.String(),
+		fmt.Sprintf("Policy (%s) deleted successfully.", policyID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
@@ -147,10 +169,14 @@ func TestPolicyCreateURL(t *testing.T) {
 
 	// create (output human)
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
+	policyID, err := getPolicyIdFromStdout(out.String())
 	// teardown policy
-	defer LaceworkCLIWithTOMLConfig("policy", "delete", "lacework-clitest-1")
+	defer LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
 
-	assert.Contains(t, out.String(), "Policy (lacework-clitest-1) created successfully.")
+	assert.Nil(t, err)
+
+	assert.Contains(t, out.String(),
+		fmt.Sprintf("Policy (%s) created successfully.", policyID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
@@ -169,8 +195,9 @@ func TestPolicyCreateURL(t *testing.T) {
 	}
 	file.Close()
 
+	// this test intentionally (vs. being required to) specifies the policyID inline
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig(
-		"policy", "update", "lacework-clitest-1", "-f", file.Name(), "--json") // specify id inline
+		"policy", "update", policyID, "-f", file.Name(), "--json") // specify id inline
 	assert.Contains(t, out.String(), `"policyId"`)
 	assert.Contains(t, out.String(), `"low"`)
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
@@ -288,12 +315,14 @@ func TestPolicyDelete(t *testing.T) {
 	// teardown query
 	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 	// setup policy
-	LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
+	out, _, _ := LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
+	policyID, err := getPolicyIdFromStdout(out.String())
+	assert.Nil(t, err)
 
 	// human delete tested by virtue of TestPolicyCreateFile
 
 	// json
-	_, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete", "lacework-clitest-1", "--json")
-	assert.Empty(t, err.String(), "STDERR should be empty")
+	_, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete", policyID, "--json")
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
