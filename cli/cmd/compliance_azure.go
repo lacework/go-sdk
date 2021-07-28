@@ -110,7 +110,10 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 			}
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(azureTenants)
+				jsonOut := struct {
+					Tenants []string `json:"azure_tenants"`
+				}{Tenants: azureTenants}
+				return cli.OutputJSON(jsonOut)
 			}
 
 			var rows [][]string
