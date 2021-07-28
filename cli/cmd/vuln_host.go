@@ -162,7 +162,7 @@ To generate a package-manifest from the local host and scan it automatically:
 				return errors.Wrap(err, "unable to request an on-demand host vulnerability scan")
 			}
 
-			if err := buildVulnHostScanPkgManifestReports(response); err != nil {
+			if err := buildVulnHostScanPkgManifestReports(&response); err != nil {
 				return err
 			}
 
@@ -1088,22 +1088,18 @@ func buildListCVEReports(cves []api.HostVulnCVE) error {
 }
 
 // Build the cli output for vuln host scan-package-manifest
-func buildVulnHostScanPkgManifestReports(response api.HostVulnScanPkgManifestResponse) error {
+func buildVulnHostScanPkgManifestReports(response *api.HostVulnScanPkgManifestResponse) error {
 	response.Vulns = filterHostScanPackagesVulnDetails(response.Vulns)
 
 	if cli.JSONOutput() {
-		if err := cli.OutputJSON(response); err != nil {
-			return err
-		}
-	} else {
-		cli.OutputHuman(hostScanPackagesVulnToTable(&response))
-		return nil
+		return cli.OutputJSON(response)
 	}
 
 	if len(response.Vulns) == 0 {
-		// @afiune add a helpful message, possible things are:
 		cli.OutputHuman(fmt.Sprintf("There are no vulnerabilities found! Time for %s\n", randomEmoji()))
-		return nil
+	} else {
+		cli.OutputHuman(hostScanPackagesVulnToTable(response))
 	}
+
 	return nil
 }
