@@ -887,7 +887,7 @@ func hostScanPackagesVulnToTable(scan *api.HostVulnScanPkgManifestResponse) stri
 }
 
 func filterHostScanPackagesVulnDetails(vulns []api.HostScanPackageVulnDetails) []api.HostScanPackageVulnDetails {
-	var out []api.HostScanPackageVulnDetails
+	out := make([]api.HostScanPackageVulnDetails, 0)
 
 	for _, vuln := range vulns {
 		if vulCmdState.Fixable && vuln.HasFix() {
@@ -1089,12 +1089,6 @@ func buildListCVEReports(cves []api.HostVulnCVE) error {
 
 // Build the cli output for vuln host scan-package-manifest
 func buildVulnHostScanPkgManifestReports(response api.HostVulnScanPkgManifestResponse) error {
-	if len(response.Vulns) == 0 {
-		// @afiune add a helpful message, possible things are:
-		cli.OutputHuman(fmt.Sprintf("There are no vulnerabilities found! Time for %s\n", randomEmoji()))
-		return nil
-	}
-
 	response.Vulns = filterHostScanPackagesVulnDetails(response.Vulns)
 
 	if cli.JSONOutput() {
@@ -1103,7 +1097,13 @@ func buildVulnHostScanPkgManifestReports(response api.HostVulnScanPkgManifestRes
 		}
 	} else {
 		cli.OutputHuman(hostScanPackagesVulnToTable(&response))
+		return nil
 	}
 
+	if len(response.Vulns) == 0 {
+		// @afiune add a helpful message, possible things are:
+		cli.OutputHuman(fmt.Sprintf("There are no vulnerabilities found! Time for %s\n", randomEmoji()))
+		return nil
+	}
 	return nil
 }
