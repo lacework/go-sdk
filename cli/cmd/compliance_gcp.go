@@ -48,6 +48,23 @@ var (
 				return errors.Wrap(err, "unable to list gcp projects/organizations")
 			}
 
+			if len(response.Data) == 0 {
+				msg := `There are no GCP integrations configured in your account.
+
+Get started by integrating your GCP to analyze configuration compliance using the command:
+
+    $ lacework integration create
+
+If you prefer to configure the integration via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Cloud Accounts.
+`
+				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
+				return nil
+			}
+
 			gcpAccounts := extractGcpAccounts(response)
 
 			for _, gcp := range gcpAccounts {
@@ -55,7 +72,10 @@ var (
 			}
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(gcpAccounts)
+				jsonOut := struct {
+					Accounts []gcpAccount `json:"gcp_accounts"`
+				}{Accounts: gcpAccounts}
+				return cli.OutputJSON(jsonOut)
 			}
 
 			cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID"}, rows))
