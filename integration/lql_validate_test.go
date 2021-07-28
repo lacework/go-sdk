@@ -32,7 +32,7 @@ func TestQueryValidateHelp(t *testing.T) {
 		t.Skip("skipping test in production mode")
 	}
 	out, err, exitcode := LaceworkCLI("help", "query", "validate")
-	assert.Contains(t, out.String(), "lacework query validate [query_id] [flags]")
+	assert.Contains(t, out.String(), "lacework query validate [flags]")
 	assert.Contains(t, out.String(), "-f, --file string")
 	assert.Contains(t, out.String(), "-u, --url string")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -48,27 +48,6 @@ func TestQueryValidateEditor(t *testing.T) {
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
 	assert.Contains(t, err.String(), "ERROR unable to validate query: EOF")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
-}
-
-func TestQueryValidateID(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
-	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
-
-	// validate
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", queryID)
-	assert.Contains(t, out.String(), "query validated successfully.")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-
-	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "validate", queryID, "--json")
-	assert.Contains(t, out.String(), `"`+queryID+`"`)
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestQueryValidateFile(t *testing.T) {
@@ -92,7 +71,7 @@ func TestQueryValidateFile(t *testing.T) {
 
 	// validate
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-f", file.Name())
-	assert.Contains(t, out.String(), "query validated successfully.")
+	assert.Contains(t, out.String(), "Query validated successfully.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
@@ -103,7 +82,7 @@ func TestQueryValidateURL(t *testing.T) {
 	}
 	// validate
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-u", queryURL)
-	assert.Contains(t, out.String(), "query validated successfully.")
+	assert.Contains(t, out.String(), "Query validated successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

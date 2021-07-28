@@ -49,7 +49,7 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to update query"
 
 	// input query
-	queryString, err := inputQuery(cmd, args)
+	queryString, err := inputQuery(cmd)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
@@ -71,6 +71,6 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(update.Data)
 	}
-	cli.OutputHuman(fmt.Sprintf("query (%s) updated successfully.\n", update.Data.QueryID))
+	cli.OutputHuman(fmt.Sprintf("Query (%s) updated successfully.\n", update.Data.QueryID))
 	return nil
 }

@@ -48,9 +48,7 @@ func TestQueryDescribeNoInput(t *testing.T) {
 }
 
 func TestQueryDescribeTable(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
+	t.Skip("skipping test due to unavailable api")
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents")
 	assert.Contains(t, out.String(), "FIELD NAME")
@@ -60,9 +58,7 @@ func TestQueryDescribeTable(t *testing.T) {
 }
 
 func TestQueryDescribeJSON(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
+	t.Skip("skipping test due to unavailable api")
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents", "--json")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)

@@ -47,7 +47,7 @@ func createQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to create query"
 
 	// input query
-	queryString, err := inputQuery(cmd, args)
+	queryString, err := inputQuery(cmd)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
@@ -67,6 +67,6 @@ func createQuery(cmd *cobra.Command, args []string) error {
 		return cli.OutputJSON(create.Data)
 	}
 	cli.OutputHuman(
-		fmt.Sprintf("query (%s) created successfully.\n", create.Data.QueryID))
+		fmt.Sprintf("Query (%s) created successfully.\n", create.Data.QueryID))
 	return nil
 }

@@ -50,6 +50,6 @@ func deleteQuery(_ *cobra.Command, args []string) error {
 		return errors.Wrap(err, "unable to delete query")
 	}
 	cli.OutputHuman(
-		fmt.Sprintf("query (%s) deleted successfully.\n", args[0]))
+		fmt.Sprintf("Query (%s) deleted successfully.\n", args[0]))
 	return nil
 }

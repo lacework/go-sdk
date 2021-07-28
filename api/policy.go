@@ -45,7 +45,7 @@ type NewPolicy struct {
 	Remediation   string            `json:"remediation" yaml:"remediation"`
 	Severity      string            `json:"severity" yaml:"severity"`
 	Limit         int               `json:"limit,omitempty" yaml:"limit,omitempty"`
-	EvalFrequency string            `json:"evalFrequency" yaml:"evalFrequency"`
+	EvalFrequency string            `json:"evalFrequency,omitempty" yaml:"evalFrequency,omitempty"`
 	AlertEnabled  bool              `json:"alertEnabled" yaml:"alertEnabled"`
 	AlertProfile  string            `json:"alertProfile" yaml:"alertProfile"`
 	PolicyUI      map[string]string `json:"policyUi" yaml:"policyUi"`

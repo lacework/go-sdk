@@ -149,6 +149,7 @@ type HostVulnPackage struct {
 	Version             string          `json:"version"`
 	HostCount           string          `json:"host_count"`
 	PackageStatus       string          `json:"package_status"`
+	Description         string          `json:"description"`
 	CveLink             string          `json:"cve_link"`
 	CvssScore           string          `json:"cvss_score"`
 	CvssV2Score         string          `json:"cvss_v_2_score"`

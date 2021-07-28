@@ -175,7 +175,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	// run request callback
-	if call := c.callbacks.RequestCallback; call != nil {
+	if call := c.callbacks.RequestCallback; call != nil && response != nil {
 		if err := call(response.StatusCode, response.Header); err != nil {
 			c.log.Info("request callback failure", zap.String("error", err.Error()))
 		}

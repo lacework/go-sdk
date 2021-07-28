@@ -79,15 +79,16 @@ const (
 	apiAccountOrganizationInfo = "v1/external/account/organizationInfo"
 
 	// Alpha
-	apiLQLCompile     = "v1/external/lql/compile"
 	apiLQLDataSources = "v1/external/lql/dataSources"
 	apiLQLDescribe    = "v1/external/lql/describe"
-	apiLQLQuery       = "v1/external/lql/query"
 
 	// API v2 Endpoints
 	//
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
 	apiV2UserProfile = "v2/UserProfile"
+
+	apiV2AlertChannels        = "v2/AlertChannels"
+	apiV2AlertChannelFromGUID = "v2/AlertChannels/%s"
 
 	apiV2CloudAccounts        = "v2/CloudAccounts"
 	apiV2CloudAccountFromGUID = "v2/CloudAccounts/%s"
@@ -96,8 +97,10 @@ const (
 	apiV2AgentAccessTokensSearch = "v2/AgentAccessTokens/search"
 	apiV2AgentAccessTokenFromID  = "v2/AgentAccessTokens/%s"
 
-	apiV2Policies = "v2/Policies"
-	apiV2Queries  = "v2/Queries"
+	apiV2Policies        = "v2/Policies"
+	apiV2Queries         = "v2/Queries"
+	apiV2QueriesExecute  = "v2/Queries/execute"
+	apiV2QueriesValidate = "v2/Queries/validate"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

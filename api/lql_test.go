@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
@@ -44,11 +43,6 @@ var (
 	"queryId": "%s",
 	"queryText": "%s"
 }`, queryEvaluator, queryID, newQueryText)
-	queryRunData = `[
-	{
-		"INSERT_ID": "35308423"
-	}
-]`
 	lqlErrorReponse = `{ "message": "This is an error message" }`
 )
 
@@ -200,94 +194,5 @@ func TestQueryGetNotFound(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = c.V2.Query.Get("NoSuchQuery")
-	assert.NotNil(t, err)
-}
-
-func TestQueryExecuteMethod(t *testing.T) {
-	fakeServer := lacework.MockServer()
-	fakeServer.MockAPI(
-		"external/lql/query",
-		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "POST", r.Method, "Run should be a POST method")
-			fmt.Fprint(w, "{}")
-		},
-	)
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	_, err = c.V2.Query.Execute(newQueryText, time.Unix(0, 0), time.Unix(1, 0))
-	assert.Nil(t, err)
-}
-
-func TestQueryExecuteBadInput(t *testing.T) {
-	fakeServer := lacework.MockServer()
-	fakeServer.MockAPI(
-		"external/lql/query",
-		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "{}")
-		},
-	)
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	_, err = c.V2.Query.Execute("", time.Unix(0, 0), time.Unix(1, 0))
-	assert.Equal(t, "query text must be provided", err.Error())
-}
-
-func TestQueryExecuteOK(t *testing.T) {
-	mockResponse := mockQueryDataResponse(queryRunData)
-
-	fakeServer := lacework.MockServer()
-	fakeServer.MockAPI(
-		"external/lql/query",
-		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, mockResponse)
-		},
-	)
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	var runExpected map[string]interface{}
-	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
-
-	var runActual map[string]interface{}
-	runActual, err = c.V2.Query.Execute(newQueryText, time.Unix(0, 0), time.Unix(1, 0))
-	assert.Nil(t, err)
-
-	assert.Equal(t, runExpected, runActual)
-}
-
-func TestQueryExecuteError(t *testing.T) {
-	fakeServer := lacework.MockServer()
-	fakeServer.MockAPI(
-		"external/lql/query",
-		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, lqlErrorReponse, http.StatusInternalServerError)
-		},
-	)
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	_, err = c.V2.Query.Execute(newQueryText, time.Unix(0, 0), time.Unix(1, 0))
 	assert.NotNil(t, err)
 }

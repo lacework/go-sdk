@@ -43,9 +43,8 @@ func TestQuerySourcesAliases(t *testing.T) {
 }
 
 func TestQuerySourcesTable(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
+	t.Skip("skipping test due to unavailable api")
+
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources")
 	assert.Contains(t, out.String(), "DATA SOURCE")
 	assert.Contains(t, out.String(), "CloudTrailRawEvents")
@@ -54,9 +53,8 @@ func TestQuerySourcesTable(t *testing.T) {
 }
 
 func TestQuerySourcesJSON(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
+	t.Skip("skipping test due to unavailable api")
+
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources", "--json")
 	assert.Contains(t, out.String(), "[")
 	assert.Contains(t, out.String(), `"CloudTrailRawEvents"`)

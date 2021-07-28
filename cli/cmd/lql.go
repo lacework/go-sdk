@@ -61,8 +61,9 @@ NOTE: This feature is not yet available!`,
 
 	// queryRunCmd represents the lql run command
 	queryRunCmd = &cobra.Command{
-		Use:   "run [query_id]",
-		Short: "run a query",
+		Aliases: []string{"execute"},
+		Use:     "run [query_id]",
+		Short:   "run a query",
 		Long: `Run a query.
 
 Run a query via editor:
@@ -160,11 +161,7 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 }
 
 // for commands that take a query as input
-func inputQuery(cmd *cobra.Command, args []string) (string, error) {
-	// if a query_id was specified
-	if len(args) != 0 && args[0] != "" {
-		return inputQueryFromEnv(args[0])
-	}
+func inputQuery(cmd *cobra.Command) (string, error) {
 	// if running via repo
 	if queryCmdState.Repo {
 		return inputQueryFromRepo()
@@ -183,16 +180,6 @@ func inputQuery(cmd *cobra.Command, args []string) (string, error) {
 		action = strings.Split(cmd.Use, " ")[0]
 	}
 	return inputQueryFromEditor(action)
-}
-
-func inputQueryFromEnv(id string) (query string, err error) {
-	var queryResponse api.QueryResponse
-
-	queryResponse, err = cli.LwApi.V2.Query.Get(id)
-	if err == nil {
-		query = queryResponse.Data.QueryText
-	}
-	return
 }
 
 func inputQueryFromRepo() (query string, err error) {
@@ -324,22 +311,21 @@ queryText: |-
 }
 
 func runQuery(cmd *cobra.Command, args []string) error {
-	var start, end time.Time
-	msg := "unable to run query"
+	var (
+		err        error
+		start      time.Time
+		end        time.Time
+		msg        string = "unable to run query"
+		hasCmdArgs bool   = len(args) != 0 && args[0] != ""
+	)
 
-	// input query
-	queryString, err := inputQuery(cmd, args)
-	if err != nil {
-		return errors.Wrap(err, msg)
+	// validate_only w/ query_id
+	if queryCmdState.ValidateOnly && hasCmdArgs {
+		return errors.New("flag --validate_only unavailable when specifying query_id argument")
 	}
-	// parse query
-	newQuery, err := parseQuery(queryString)
-	if err != nil {
-		return errors.Wrap(err, msg)
-	}
-	// validate_only should compile
+	// validate_only
 	if queryCmdState.ValidateOnly {
-		return validateQueryAndOutput(newQuery.QueryText)
+		return validateQuery(cmd, args)
 	}
 
 	// use of if/else intentional here based on logic paths for determining start and end time.Time values
@@ -365,9 +351,72 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	cli.Log.Debugw("running query", "query", queryString)
+	queryArgs := []api.ExecuteQueryArgument{
+		api.ExecuteQueryArgument{
+			Name:  "StartTimeRange",
+			Value: start.UTC().Format(lwtime.RFC3339Milli),
+		},
+		api.ExecuteQueryArgument{
+			Name:  "EndTimeRange",
+			Value: end.UTC().Format(lwtime.RFC3339Milli),
+		},
+	}
 
-	response, err := cli.LwApi.V2.Query.Execute(newQuery.QueryText, start, end)
+	// query by id
+	if hasCmdArgs {
+		return outputQueryRunResponse(
+			runQueryByID(args[0], queryArgs),
+		)
+	}
+	// adhoc query
+	return outputQueryRunResponse(
+		runAdhocQuery(cmd, queryArgs),
+	)
+}
+
+func runQueryByID(id string, args []api.ExecuteQueryArgument) (
+	map[string]interface{},
+	error,
+) {
+	cli.Log.Debugw("running query", "query", id)
+
+	request := api.ExecuteQueryByIDRequest{
+		QueryID:   id,
+		Arguments: args,
+	}
+	return cli.LwApi.V2.Query.ExecuteByID(request)
+}
+
+func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
+	response map[string]interface{},
+	err error,
+) {
+	// input query
+	queryString, err := inputQuery(cmd)
+	if err != nil {
+		return
+	}
+	// parse query
+	newQuery, err := parseQuery(queryString)
+	if err != nil {
+		return
+	}
+	// execute query
+	executeQuery := api.ExecuteQueryRequest{
+		Query: api.ExecuteQuery{
+			QueryText:   newQuery.QueryText,
+			EvaluatorID: newQuery.EvaluatorID,
+		},
+		Arguments: args,
+	}
+
+	cli.Log.Debugw("running query", "query", queryString)
+	response, err = cli.LwApi.V2.Query.Execute(executeQuery)
+	return
+}
+
+func outputQueryRunResponse(response map[string]interface{}, err error) error {
+	msg := "unable to run query"
 
 	if err != nil {
 		return errors.Wrap(err, msg)
