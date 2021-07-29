@@ -1,3 +1,8 @@
+# v0.11.1
+
+## Bug Fixes
+* fix(cli): scan-pkg-manifest returns valid JSON when no vulns are found (#498) (Darren)([0cdcc7e](https://github.com/lacework/go-sdk/commit/0cdcc7ed90e446b61db4bb4f55f47e1db35ff14f))
+---
 # v0.11.0
 
 ## Features
