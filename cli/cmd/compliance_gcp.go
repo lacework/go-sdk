@@ -73,8 +73,8 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 			if cli.JSONOutput() {
 				jsonOut := struct {
-					Accounts []gcpAccount `json:"gcp_accounts"`
-				}{Accounts: gcpAccounts}
+					Projects []gcpProject `json:"gcp_projects"`
+				}{Projects: gcpAccounts}
 				return cli.OutputJSON(jsonOut)
 			}
 
@@ -379,8 +379,8 @@ func splitIDAndAlias(text string) (id string, alias string) {
 	return
 }
 
-func getGcpAccounts(orgID string) []gcpAccount {
-	var accounts []gcpAccount
+func getGcpAccounts(orgID string) []gcpProject {
+	var accounts []gcpProject
 	projectsResponse, err := cli.LwApi.Compliance.ListGcpProjects(orgID)
 	if err != nil {
 		cli.Log.Warn("unable to list gcp projects", "org_id", orgID, "error", err.Error())
@@ -389,7 +389,7 @@ func getGcpAccounts(orgID string) []gcpAccount {
 	for _, projects := range projectsResponse.Data {
 		for _, project := range projects.Projects {
 			projectID, _ := splitIDAndAlias(project)
-			accounts = append(accounts, gcpAccount{OrganizationID: orgID, ProjectID: projectID})
+			accounts = append(accounts, gcpProject{OrganizationID: orgID, ProjectID: projectID})
 		}
 	}
 	return accounts
@@ -405,20 +405,20 @@ type cliComplianceIDAlias struct {
 	Alias string `json:"alias"`
 }
 
-type gcpAccount struct {
+type gcpProject struct {
 	ProjectID      string `json:"project_id"`
 	OrganizationID string `json:"organization_id"`
 }
 
-func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpAccount {
-	var gcpAccounts []gcpAccount
+func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpProject {
+	var gcpAccounts []gcpProject
 
 	for _, gcp := range response.Data {
 		// if organization account, fetch the project ids
 		if gcp.Data.IDType == "ORGANIZATION" {
 			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcp.Data.ID)...)
 		} else if !containsDuplicateProjectID(gcpAccounts, gcp.Data.ID) {
-			gcpIntegration := gcpAccount{OrganizationID: "n/a", ProjectID: gcp.Data.ID}
+			gcpIntegration := gcpProject{OrganizationID: "n/a", ProjectID: gcp.Data.ID}
 			gcpAccounts = append(gcpAccounts, gcpIntegration)
 		}
 	}
@@ -436,7 +436,7 @@ func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpAccount {
 	return gcpAccounts
 }
 
-func containsDuplicateProjectID(gcpAccounts []gcpAccount, projectID string) bool {
+func containsDuplicateProjectID(gcpAccounts []gcpProject, projectID string) bool {
 	for _, value := range gcpAccounts {
 		if projectID == value.ProjectID {
 			return true
