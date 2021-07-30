@@ -48,14 +48,34 @@ var (
 				return errors.Wrap(err, "unable to list gcp projects/organizations")
 			}
 
-			gcpAccounts := extractGcpAccounts(response)
+			if len(response.Data) == 0 {
+				msg := `There are no GCP integrations configured in your account.
 
-			for _, gcp := range gcpAccounts {
+Get started by integrating your GCP to analyze configuration compliance using the command:
+
+    $ lacework integration create
+
+If you prefer to configure the integration via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Cloud Accounts.
+`
+				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
+				return nil
+			}
+
+			gcpProjects := extractGcpProjects(response)
+
+			for _, gcp := range gcpProjects {
 				rows = append(rows, []string{gcp.OrganizationID, gcp.ProjectID})
 			}
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(gcpAccounts)
+				jsonOut := struct {
+					Projects []gcpProject `json:"gcp_projects"`
+				}{Projects: gcpProjects}
+				return cli.OutputJSON(jsonOut)
 			}
 
 			cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID"}, rows))
@@ -359,8 +379,8 @@ func splitIDAndAlias(text string) (id string, alias string) {
 	return
 }
 
-func getGcpAccounts(orgID string) []gcpAccount {
-	var accounts []gcpAccount
+func getGcpAccounts(orgID string) []gcpProject {
+	var accounts []gcpProject
 	projectsResponse, err := cli.LwApi.Compliance.ListGcpProjects(orgID)
 	if err != nil {
 		cli.Log.Warn("unable to list gcp projects", "org_id", orgID, "error", err.Error())
@@ -369,7 +389,7 @@ func getGcpAccounts(orgID string) []gcpAccount {
 	for _, projects := range projectsResponse.Data {
 		for _, project := range projects.Projects {
 			projectID, _ := splitIDAndAlias(project)
-			accounts = append(accounts, gcpAccount{OrganizationID: orgID, ProjectID: projectID})
+			accounts = append(accounts, gcpProject{OrganizationID: orgID, ProjectID: projectID})
 		}
 	}
 	return accounts
@@ -385,20 +405,20 @@ type cliComplianceIDAlias struct {
 	Alias string `json:"alias"`
 }
 
-type gcpAccount struct {
+type gcpProject struct {
 	ProjectID      string `json:"project_id"`
 	OrganizationID string `json:"organization_id"`
 }
 
-func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpAccount {
-	var gcpAccounts []gcpAccount
+func extractGcpProjects(response api.GcpIntegrationsResponse) []gcpProject {
+	var gcpAccounts []gcpProject
 
 	for _, gcp := range response.Data {
 		// if organization account, fetch the project ids
 		if gcp.Data.IDType == "ORGANIZATION" {
 			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcp.Data.ID)...)
 		} else if !containsDuplicateProjectID(gcpAccounts, gcp.Data.ID) {
-			gcpIntegration := gcpAccount{OrganizationID: "n/a", ProjectID: gcp.Data.ID}
+			gcpIntegration := gcpProject{OrganizationID: "n/a", ProjectID: gcp.Data.ID}
 			gcpAccounts = append(gcpAccounts, gcpIntegration)
 		}
 	}
@@ -416,7 +436,7 @@ func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpAccount {
 	return gcpAccounts
 }
 
-func containsDuplicateProjectID(gcpAccounts []gcpAccount, projectID string) bool {
+func containsDuplicateProjectID(gcpAccounts []gcpProject, projectID string) bool {
 	for _, value := range gcpAccounts {
 		if projectID == value.ProjectID {
 			return true

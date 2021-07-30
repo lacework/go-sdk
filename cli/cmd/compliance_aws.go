@@ -66,7 +66,10 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 			}
 
 			if cli.JSONOutput() {
-				return cli.OutputJSON(awsAccounts)
+				jsonOut := struct {
+					Accounts []string `json:"aws_accounts"`
+				}{Accounts: awsAccounts}
+				return cli.OutputJSON(jsonOut)
 			}
 
 			rows := [][]string{}
