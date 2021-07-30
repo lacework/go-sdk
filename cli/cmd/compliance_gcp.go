@@ -65,16 +65,16 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 				return nil
 			}
 
-			gcpAccounts := extractGcpAccounts(response)
+			gcpProjects := extractGcpProjects(response)
 
-			for _, gcp := range gcpAccounts {
+			for _, gcp := range gcpProjects {
 				rows = append(rows, []string{gcp.OrganizationID, gcp.ProjectID})
 			}
 
 			if cli.JSONOutput() {
 				jsonOut := struct {
 					Projects []gcpProject `json:"gcp_projects"`
-				}{Projects: gcpAccounts}
+				}{Projects: gcpProjects}
 				return cli.OutputJSON(jsonOut)
 			}
 
@@ -410,7 +410,7 @@ type gcpProject struct {
 	OrganizationID string `json:"organization_id"`
 }
 
-func extractGcpAccounts(response api.GcpIntegrationsResponse) []gcpProject {
+func extractGcpProjects(response api.GcpIntegrationsResponse) []gcpProject {
 	var gcpAccounts []gcpProject
 
 	for _, gcp := range response.Data {

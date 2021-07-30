@@ -117,10 +117,10 @@ func TestSplitGcpProjectsApiResponse(t *testing.T) {
 }
 
 func TestDuplicateGcpAccountCheck(t *testing.T) {
-	gcpOne := gcpAccount{OrganizationID: "n/a", ProjectID: "1"}
-	gcpTwo := gcpAccount{OrganizationID: "n/a", ProjectID: "2"}
-	gcpThree := gcpAccount{OrganizationID: "n/a", ProjectID: "3"}
-	mockGcpAccounts := []gcpAccount{gcpOne, gcpTwo, gcpThree}
+	gcpOne := gcpProject{OrganizationID: "n/a", ProjectID: "1"}
+	gcpTwo := gcpProject{OrganizationID: "n/a", ProjectID: "2"}
+	gcpThree := gcpProject{OrganizationID: "n/a", ProjectID: "3"}
+	mockGcpAccounts := []gcpProject{gcpOne, gcpTwo, gcpThree}
 
 	duplicate := containsDuplicateProjectID(mockGcpAccounts, "1")
 	different := containsDuplicateProjectID(mockGcpAccounts, "4")
