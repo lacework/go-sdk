@@ -1,6 +1,6 @@
 {
 	"evaluatorId": "Cloudtrail",
-	"policyId": "lacework-clitest-1",
+	"policyId": "clitest-1",
 	"policyType": "Violation",
 	"queryId": "LW_CLI_AWS_CTA_IntegrationTest",
 	"title": "My Policy Title",
