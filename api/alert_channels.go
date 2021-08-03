@@ -146,7 +146,7 @@ func (svc *AlertChannelsService) Test(guid string) error {
 		return err
 	}
 
-	resp, err :=  svc.client.Do(request)
+	resp, err := svc.client.Do(request)
 	if err != nil {
 		return err
 	}
