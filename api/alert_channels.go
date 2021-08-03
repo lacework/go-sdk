@@ -134,6 +134,31 @@ func (svc *AlertChannelsService) Delete(guid string) error {
 	)
 }
 
+// Test tests an Alert Channel integration that matches the provided guid
+func (svc *AlertChannelsService) Test(guid string) error {
+	if guid == "" {
+		return errors.New("specify an intgGuid")
+	}
+
+	apiPath := fmt.Sprintf(apiV2AlertChannelTest, guid)
+	request, err := svc.client.NewRequest("POST", apiPath, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err :=  svc.client.Do(request)
+	if err != nil {
+		return err
+	}
+	err = checkErrorInResponse(resp)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Get returns a raw response of the Alert Channel with the matching integration guid.
 //
 // To return a more specific Go struct of a Alert Channel integration, use the proper
