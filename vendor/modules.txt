@@ -25,6 +25,9 @@ github.com/facebookgo/muster
 # github.com/fatih/color v1.12.0
 ## explicit
 github.com/fatih/color
+# github.com/fatih/structs v1.1.0
+## explicit
+github.com/fatih/structs
 # github.com/fsnotify/fsnotify v1.4.9
 github.com/fsnotify/fsnotify
 # github.com/golang/protobuf v1.5.2
