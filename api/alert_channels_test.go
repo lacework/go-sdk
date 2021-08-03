@@ -238,6 +238,44 @@ func generateAlertChannels(guids []string, iType string) string {
 	return strings.Join(alertChannels, ", ")
 }
 
+func TestAlertChannelsTest(t *testing.T) {
+	var (
+		intgGUID   = intgguid.New()
+		apiPath    = fmt.Sprintf("AlertChannels/%s/test", intgGUID)
+		fakeServer = lacework.MockServer()
+	)
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath,
+		func(w http.ResponseWriter, r *http.Request) {
+			if assert.Equal(t, "POST", r.Method, "Post() should be a POST method") {
+
+			}
+		},
+	)
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	t.Run("when alert channel exists", func(t *testing.T) {
+		err := c.V2.AlertChannels.Test(intgGUID)
+		assert.Nil(t, err)
+	})
+
+	t.Run("when alert channel id is empty", func(t *testing.T) {
+		err := c.V2.AlertChannels.Test("")
+		if assert.NotNil(t, err) {
+			assert.Contains(t, err.Error(), "specify an intgGuid")
+		}
+	})
+}
+
 func generateAlertChannelsResponse(data string) string {
 	return `
 		{
