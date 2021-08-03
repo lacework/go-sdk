@@ -63,7 +63,7 @@ func createGcrIntegration() error {
 		},
 		{
 			Name:     "private_key",
-			Prompt:   &survey.Input{Message: "Private Key:"},
+			Prompt:   &survey.Editor{Message: "Enter properly formatted Private Key:"},
 			Validate: survey.Required,
 		},
 		{
