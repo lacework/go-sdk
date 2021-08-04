@@ -52,7 +52,7 @@ type AlertChannelsService struct {
 //     },
 //   )
 //
-//   client.V2.AlertChannels.Creates(emailAlertChan)
+//   client.V2.AlertChannels.Create(emailAlertChan)
 //
 func NewAlertChannel(name string, iType alertChannelType, data interface{}) AlertChannelRaw {
 	return AlertChannelRaw{

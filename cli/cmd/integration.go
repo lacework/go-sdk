@@ -221,6 +221,8 @@ func promptCreateIntegration() error {
 				"Docker V2 Registry",
 				"Amazon Container Registry (ECR)",
 				"Google Container Registry (GCR)",
+				"Google Artifact Registry (GAR)",
+				"Github Container Registry (GHCR)",
 				"AWS Config",
 				"AWS CloudTrail",
 				"AWS Config (US GovCloud)",
@@ -279,6 +281,10 @@ func promptCreateIntegration() error {
 		return createDockerV2Integration()
 	case "Amazon Container Registry (ECR)":
 		return createAwsEcrIntegration()
+	case "Google Artifact Registry (GAR)":
+		return createGarIntegration()
+	case "Github Container Registry (GHCR)":
+		return createGhcrIntegration()
 	case "Google Container Registry (GCR)":
 		return createGcrIntegration()
 	case "AWS Config":
@@ -742,7 +748,8 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		case api.DockerHubRegistry.String():
 			out = append(out, []string{"USERNAME", iData.Credentials.Username})
 			out = append(out, []string{"PASSWORD", iData.Credentials.Password})
-		case api.DockerV2Registry.String():
+		case api.GhcrContainerRegistry.String(),
+			api.DockerV2Registry.String():
 			out = append(out, []string{"USERNAME", iData.Credentials.Username})
 			out = append(out, []string{"PASSWORD", iData.Credentials.Password})
 			if iData.Credentials.SSL {
@@ -750,7 +757,8 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			} else {
 				out = append(out, []string{"SSL", "DISABLE"})
 			}
-		case api.GcrRegistry.String():
+		case api.GcpGarContainerRegistry.String(),
+			api.GcrRegistry.String():
 			out = append(out, []string{"CLIENT ID", iData.Credentials.ClientID})
 			out = append(out, []string{"CLIENT EMAIL", iData.Credentials.ClientEmail})
 			out = append(out, []string{"PRIVATE KEY ID", iData.Credentials.PrivateKeyID})

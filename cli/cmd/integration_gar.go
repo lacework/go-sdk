@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2020, Lacework Inc.
+// Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,17 +20,18 @@ package cmd
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 
 	"github.com/lacework/go-sdk/api"
 )
 
-func createGcrIntegration() error {
+func createGarIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
-			Prompt:   &survey.Input{Message: "Name: "},
+			Prompt:   &survey.Input{Message: "Name:"},
 			Validate: survey.Required,
 		},
 		{
@@ -38,11 +39,35 @@ func createGcrIntegration() error {
 			Prompt: &survey.Select{
 				Message: "Registry Domain:",
 				Options: []string{
-					"gcr.io",
-					"us.gcr.io",
-					"eu.gcr.io",
-					"asia.gcr.io",
+					"northamerica-northeast1-docker.pkg.dev",
+					"us-central1-docker.pkg.dev",
+					"us-east1-docker.pkg.dev",
+					"us-east4-docker.pkg.dev",
+					"us-west1-docker.pkg.dev",
+					"us-west2-docker.pkg.dev",
+					"us-west3-docker.pkg.dev",
+					"us-west4-docker.pkg.dev",
+					"southamerica-east1-docker.pkg.dev",
+					"europe-north1-docker.pkg.dev",
+					"europe-west1-docker.pkg.dev",
+					"europe-west2-docker.pkg.dev",
+					"europe-west3-docker.pkg.dev",
+					"europe-west4-docker.pkg.dev",
+					"europe-west6-docker.pkg.dev",
+					"asia-east1-docker.pkg.dev",
+					"asia-east2-docker.pkg.dev",
+					"asia-northeast1-docker.pkg.dev",
+					"asia-northeast2-docker.pkg.dev",
+					"asia-northeast3-docker.pkg.dev",
+					"asia-south1-docker.pkg.dev",
+					"asia-southeast1-docker.pkg.dev",
+					"asia-southeast2-docker.pkg.dev",
+					"australia-southeast1-docker.pkg.dev",
+					"asia-docker.pkg.dev",
+					"europe-docker.pkg.dev",
+					"us-docker.pkg.dev",
 				},
+				Default: "us-west1-docker.pkg.dev",
 			},
 			Validate: survey.Required,
 		},
@@ -67,27 +92,9 @@ func createGcrIntegration() error {
 			Validate: survey.Required,
 		},
 		{
-			Name: "limit_tag",
-			Prompt: &survey.Input{
-				Message: "Limit by Tag: ",
-				Default: "*",
-			},
-		},
-		{
-			Name: "limit_label",
-			Prompt: &survey.Input{
-				Message: "Limit by Label: ",
-				Default: "*",
-			},
-		},
-		{
-			Name:   "limit_repos",
-			Prompt: &survey.Input{Message: "Limit by Repository: "},
-		},
-		{
 			Name: "limit_max_images",
 			Prompt: &survey.Select{
-				Message: "Limit Number of Images per Repo: ",
+				Message: "Limit number of images per repository: ",
 				Options: []string{"5", "10", "15"},
 			},
 			Validate: survey.Required,
@@ -101,16 +108,15 @@ func createGcrIntegration() error {
 		PrivateKeyID   string `survey:"private_key_id"`
 		ClientEmail    string `survey:"client_email"`
 		PrivateKey     string `survey:"private_key"`
-		LimitTag       string `survey:"limit_tag"`
-		LimitLabel     string `survey:"limit_label"`
+		LimitTags      string `survey:"limit_tags"`
+		LimitLabels    string `survey:"limit_labels"`
 		LimitRepos     string `survey:"limit_repos"`
 		LimitMaxImages string `survey:"limit_max_images"`
 	}{}
 
-	err := survey.Ask(questions, &answers,
+	if err := survey.Ask(questions, &answers,
 		survey.WithIcons(promptIconsFunc),
-	)
-	if err != nil {
+	); err != nil {
 		return err
 	}
 
@@ -124,24 +130,30 @@ func createGcrIntegration() error {
 		limitMaxImages = 5
 	}
 
-	gcr := api.NewGcrRegistryIntegration(answers.Name,
-		api.ContainerRegData{
-			Credentials: api.ContainerRegCreds{
+	// @afiune these are the new API v2 limits
+	if err := askV2Limits(&answers); err != nil {
+		return err
+	}
+
+	gar := api.NewContainerRegistry(answers.Name,
+		api.GcpGarContainerRegistry,
+		api.GcpGarData{
+			Credentials: api.GcpCredentialsV2{
 				ClientEmail:  answers.ClientEmail,
 				ClientID:     answers.ClientID,
 				PrivateKey:   answers.PrivateKey,
 				PrivateKeyID: answers.PrivateKeyID,
 			},
 			RegistryDomain: answers.Domain,
-			LimitByTag:     answers.LimitTag,
-			LimitByLabel:   answers.LimitLabel,
-			LimitByRep:     answers.LimitRepos,
+			LimitByTag:     strings.Split(answers.LimitTags, "\n"),
+			LimitByLabel:   castStringToLimitByLabel(answers.LimitLabels),
+			LimitByRep:     strings.Split(answers.LimitRepos, "\n"),
 			LimitNumImg:    limitMaxImages,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateContainerRegistry(gcr)
+	_, err = cli.LwApi.V2.ContainerRegistries.Create(gar)
 	cli.StopProgress()
 	return err
 }
