@@ -89,6 +89,7 @@ const (
 
 	apiV2AlertChannels        = "v2/AlertChannels"
 	apiV2AlertChannelFromGUID = "v2/AlertChannels/%s"
+	apiV2AlertChannelTest     = "v2/AlertChannels/%s/test"
 
 	apiV2CloudAccounts        = "v2/CloudAccounts"
 	apiV2CloudAccountFromGUID = "v2/CloudAccounts/%s"
