@@ -34,11 +34,10 @@ func TestContainerRegistriesNewGhcr(t *testing.T) {
 	subject := api.NewContainerRegistry("integration_name",
 		api.GhcrContainerRegistry,
 		api.GhcrData{
-			RegistryDomain: "southamerica-east1-docker.pkg.dev",
-			LimitByTag:     []string{"foo"},
-			LimitByLabel:   []map[string]string{{"key": "value"}},
-			LimitByRep:     []string{"xyz/name"},
-			LimitNumImg:    15,
+			LimitByTag:   []string{"foo"},
+			LimitByLabel: []map[string]string{{"key": "value"}},
+			LimitByRep:   []string{"xyz/name"},
+			LimitNumImg:  15,
 			Credentials: api.GhcrCredentials{
 				Username: "user",
 				Password: "pass",

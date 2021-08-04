@@ -42,7 +42,7 @@ func castStringToLimitByLabel(labels string) []map[string]string {
 	return out
 }
 
-func askForV2Limits(answers interface{}) error {
+func askV2LimitByTags(answers interface{}) error {
 	custom := false
 	if err := survey.AskOne(&survey.Confirm{
 		Message: "Configure limit of scans by tags?",
@@ -63,7 +63,11 @@ func askForV2Limits(answers interface{}) error {
 		}
 	}
 
-	custom = false
+	return nil
+}
+
+func askV2LimitByLabels(answers interface{}) error {
+	custom := false
 	if err := survey.AskOne(&survey.Confirm{
 		Message: "Configure limit of scans by labels?",
 	}, &custom); err != nil {
@@ -83,7 +87,11 @@ func askForV2Limits(answers interface{}) error {
 		}
 	}
 
-	custom = false
+	return nil
+}
+
+func askV2LimitByRepositories(answers interface{}) error {
+	custom := false
 	if err := survey.AskOne(&survey.Confirm{
 		Message: "Configure limit of scans by repositories?",
 	}, &custom); err != nil {
@@ -104,4 +112,14 @@ func askForV2Limits(answers interface{}) error {
 	}
 
 	return nil
+}
+
+func askV2Limits(answers interface{}) error {
+	if err := askV2LimitByTags(answers); err != nil {
+		return err
+	}
+	if err := askV2LimitByLabels(answers); err != nil {
+		return err
+	}
+	return askV2LimitByRepositories(answers)
 }

@@ -131,7 +131,7 @@ func createGarIntegration() error {
 	}
 
 	// @afiune these are the new API v2 limits
-	if err := askForV2Limits(&answers); err != nil {
+	if err := askV2Limits(&answers); err != nil {
 		return err
 	}
 
