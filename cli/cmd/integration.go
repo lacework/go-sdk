@@ -93,6 +93,7 @@ var (
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			integration, err := cli.LwApi.Integrations.Get(args[0])
+
 			if err != nil {
 				return errors.Wrap(err, "unable to get integration")
 			}
@@ -101,6 +102,16 @@ var (
 				msg := "the provided integration GUID was not found\n\n"
 				msg += "To list the available integrations in your account run 'lacework integrations list'"
 				return errors.New(msg)
+			}
+
+			integrationType, _ := api.FindIntegrationType(integration.Data[0].TypeName)
+
+			var resp api.AlertChannelResponse
+			err = cli.LwApi.V2.Schemas.GetService(integrationType.Schema()).Get(args[0], &resp)
+			integration.Data[0].State.Details = resp.Data.State.Details
+
+			if err != nil {
+				return errors.Wrap(err, "unable to get integration")
 			}
 
 			if cli.JSONOutput() {
@@ -352,13 +363,28 @@ func buildIntDetailsTable(integrations []api.RawIntegration) string {
 
 func buildIntegrationState(state *api.IntegrationState) [][]string {
 	if state != nil {
-		return [][]string{
+		details := [][]string{
 			{"STATE UPDATED AT", state.LastUpdatedTime},
 			{"LAST SUCCESSFUL STATE", state.LastSuccessfulTime},
 		}
+
+		if state.Details != nil {
+			details = append(details, extractIntegrationDetails(state.Details)...)
+		}
+		return details
 	}
 
 	return [][]string{}
+}
+
+func extractIntegrationDetails(details map[string]interface{}) [][]string {
+	v := make([][]string, 0, len(details))
+
+	for  key, value := range details {
+		 row := []string{strings.ToUpper(key), strings.TrimRight(value.(string), "\n")}
+		 v = append(v, row)
+	}
+	return v
 }
 
 func reflectIntegrationData(raw api.RawIntegration) [][]string {

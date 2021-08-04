@@ -152,7 +152,7 @@ func (svc *AlertChannelsService) Test(guid string) error {
 //  Get<Type>(guid)
 //
 //    Where <Type> is the Alert Channel integration type.
-func (svc *AlertChannelsService) Get(guid string) (response AlertChannelResponse, err error) {
+func (svc *AlertChannelsService) Get(guid string, response interface{}) (err error) {
 	err = svc.get(guid, &response)
 	return
 }
