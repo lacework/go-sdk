@@ -141,22 +141,7 @@ func (svc *AlertChannelsService) Test(guid string) error {
 	}
 
 	apiPath := fmt.Sprintf(apiV2AlertChannelTest, guid)
-	request, err := svc.client.NewRequest("POST", apiPath, nil)
-	if err != nil {
-		return err
-	}
-
-	resp, err := svc.client.Do(request)
-	if err != nil {
-		return err
-	}
-	err = checkErrorInResponse(resp)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return svc.client.RequestDecoder("POST", apiPath, nil, nil)
 }
 
 // Get returns a raw response of the Alert Channel with the matching integration guid.
