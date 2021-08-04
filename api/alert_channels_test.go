@@ -250,7 +250,7 @@ func TestAlertChannelsTest(t *testing.T) {
 
 	fakeServer.MockAPI(apiPath,
 		func(w http.ResponseWriter, r *http.Request) {
-			if assert.Equal(t, "POST", r.Method, "Post() should be a POST method") {
+			if assert.Equal(t, "POST", r.Method, "Test() should be a POST method") {
 
 			}
 		},
