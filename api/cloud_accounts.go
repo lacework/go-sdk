@@ -56,7 +56,7 @@ type CloudAccountsService struct {
 //     },
 //   )
 //
-//   client.V2.CloudAccount.Creates(awsCtSqs)
+//   client.V2.CloudAccount.Create(awsCtSqs)
 //
 func NewCloudAccount(name string, iType cloudAccountType, data interface{}) CloudAccountRaw {
 	return CloudAccountRaw{

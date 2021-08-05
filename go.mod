@@ -8,10 +8,11 @@ require (
 	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
 	github.com/briandowns/spinner v1.13.0
 	github.com/fatih/color v1.12.0
+	github.com/fatih/structs v1.1.0
 	github.com/google/btree v1.0.1 // indirect
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
-	github.com/honeycombio/libhoney-go v1.15.3
+	github.com/honeycombio/libhoney-go v1.15.4
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/kyokomi/emoji/v2 v2.2.8
 	github.com/mitchellh/go-homedir v1.1.0

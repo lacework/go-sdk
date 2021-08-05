@@ -106,6 +106,7 @@ func (c *Client) DoDecoder(req *http.Request, v interface{}) (*http.Response, er
 	if err != nil {
 		return nil, err
 	}
+
 	// optimized return for HTTP 204 as there's nothing to decode onto v
 	if res.StatusCode == http.StatusNoContent {
 		return res, nil
