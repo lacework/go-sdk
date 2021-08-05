@@ -46,8 +46,11 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&SchemasService{c, map[integrationSchema]V2Service{}},
 	}
 
-	v2.Schemas.Services = map[integrationSchema]V2Service{AlertChannels: &AlertChannelsService{c},
-		CloudAccounts: &CloudAccountsService{c}, ContainerRegistries: &ContainerRegistriesService{c}}
+	v2.Schemas.Services = map[integrationSchema]V2Service{
+		AlertChannels:       &AlertChannelsService{c},
+		CloudAccounts:       &CloudAccountsService{c},
+		ContainerRegistries: &ContainerRegistriesService{c},
+	}
 	return v2
 }
 

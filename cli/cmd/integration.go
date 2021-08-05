@@ -93,7 +93,6 @@ var (
 		Short: "Show details about a specific external integration",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			var resp api.V2CommonIntegration
 			integration, err := cli.LwApi.Integrations.Get(args[0])
 
 			if err != nil {
@@ -107,10 +106,11 @@ var (
 			}
 
 			integrationType, _ := api.FindIntegrationType(integration.Data[0].Type)
+			var resp api.V2CommonIntegration
 			err = cli.LwApi.V2.Schemas.GetService(integrationType.Schema()).Get(args[0], &resp)
 
 			if err != nil {
-				cli.Log.Debugw("unable to get integration service")
+				cli.Log.Debugw("unable to get integration service", "error", err.Error())
 			}
 
 			if resp.Data.State != nil {
@@ -373,11 +373,13 @@ func buildIntegrationState(state *api.IntegrationState) [][]string {
 		if len(state.Details) != 0 {
 			detailsStr, err := json.Marshal(state.Details)
 			if err != nil {
+				cli.Log.Debugw("unable to marshall state details", "error", err.Error())
 				return details
 			}
 
 			detailsJSON, err := cli.FormatJSONString(string(detailsStr))
 			if err != nil {
+				cli.Log.Debugw("unable to json format state details", "error", err.Error())
 				return details
 			}
 			details = append(details, []string{"STATE DETAILS", detailsJSON})
