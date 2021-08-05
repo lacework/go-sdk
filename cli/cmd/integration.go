@@ -92,6 +92,7 @@ var (
 		Short: "Show details about a specific external integration",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			var resp api.V2CommonIntegration
 			integration, err := cli.LwApi.Integrations.Get(args[0])
 
 			if err != nil {
@@ -104,16 +105,13 @@ var (
 				return errors.New(msg)
 			}
 
-			integrationType, _ := api.FindIntegrationType(integration.Data[0].TypeName)
-
-			var resp api.AlertChannelResponse
+			integrationType, _ := api.FindIntegrationType(integration.Data[0].Type)
 			err = cli.LwApi.V2.Schemas.GetService(integrationType.Schema()).Get(args[0], &resp)
-			integration.Data[0].State.Details = resp.Data.State.Details
-
 			if err != nil {
 				return errors.Wrap(err, "unable to get integration")
 			}
 
+			integration.Data[0].State.Details = resp.State.Details
 			if cli.JSONOutput() {
 				return cli.OutputJSON(integration.Data[0])
 			}
@@ -380,9 +378,9 @@ func buildIntegrationState(state *api.IntegrationState) [][]string {
 func extractIntegrationDetails(details map[string]interface{}) [][]string {
 	v := make([][]string, 0, len(details))
 
-	for  key, value := range details {
-		 row := []string{strings.ToUpper(key), strings.TrimRight(value.(string), "\n")}
-		 v = append(v, row)
+	for key, value := range details {
+		row := []string{strings.ToUpper(key), strings.TrimRight(value.(string), "\n")}
+		v = append(v, row)
 	}
 	return v
 }

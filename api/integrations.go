@@ -110,39 +110,39 @@ const (
 	WebhookIntegration
 )
 
-type  integration struct {
-	name string
+type integration struct {
+	name   string
 	schema integrationSchema
 }
 
 // IntegrationTypes is the list of available integration types
-var IntegrationTypes = map[integrationType]integration {
+var IntegrationTypes = map[integrationType]integration{
 	NoneIntegration:                  {"NONE", None},
 	AwsCfgIntegration:                {"AWS_CFG", CloudAccounts},
-	AwsCloudTrailIntegration:         {"AWS_CT_SQS",CloudAccounts},
-	AwsGovCloudCfgIntegration:        {"AWS_US_GOV_CFG",CloudAccounts},
-	AwsGovCloudCTIntegration:         {"AWS_US_GOV_CT_SQS",CloudAccounts},
-	AwsS3ChannelIntegration:          {"AWS_S3",AlertChannels},
-	CiscoWebexChannelIntegration:     {"CISCO_SPARK_WEBHOOK",AlertChannels},
-	DatadogChannelIntegration:        {"DATADOG",AlertChannels},
-	GcpCfgIntegration:                {"GCP_CFG",CloudAccounts},
-	GcpAuditLogIntegration:           {"GCP_AT_SES",CloudAccounts},
-	GcpPubSubChannelIntegration:      {"GCP_PUBSUB",AlertChannels},
-	NewRelicChannelIntegration:       {"NEW_RELIC_INSIGHTS",AlertChannels},
-	AzureCfgIntegration:              {"AZURE_CFG",CloudAccounts},
-	AzureActivityLogIntegration:      {"AZURE_AL_SEQ",CloudAccounts},
-	ContainerRegistryIntegration:     {"CONT_VULN_CFG",ContainerRegistries},
-	QRadarChannelIntegration:         {"IBM_QRADAR",AlertChannels},
-	MicrosoftTeamsChannelIntegration: {"MICROSOFT_TEAMS",AlertChannels},
-	SlackChannelIntegration:          {"SLACK_CHANNEL",AlertChannels},
-	SplunkIntegration:                {"SPLUNK_HEC",AlertChannels},
-	ServiceNowChannelIntegration:     {"SERVICE_NOW_REST",AlertChannels},
-	AwsCloudWatchIntegration:         {"CLOUDWATCH_EB",AlertChannels},
-	PagerDutyIntegration:             {"PAGER_DUTY_API",AlertChannels},
-	JiraIntegration:                  {"JIRA",AlertChannels},
-	EmailIntegration:                 {"EMAIL_USER",AlertChannels},
-	VictorOpsChannelIntegration:      {"VICTOR_OPS",AlertChannels},
-	WebhookIntegration:               {"WEBHOOK",AlertChannels},
+	AwsCloudTrailIntegration:         {"AWS_CT_SQS", CloudAccounts},
+	AwsGovCloudCfgIntegration:        {"AWS_US_GOV_CFG", CloudAccounts},
+	AwsGovCloudCTIntegration:         {"AWS_US_GOV_CT_SQS", CloudAccounts},
+	AwsS3ChannelIntegration:          {"AWS_S3", AlertChannels},
+	CiscoWebexChannelIntegration:     {"CISCO_SPARK_WEBHOOK", AlertChannels},
+	DatadogChannelIntegration:        {"DATADOG", AlertChannels},
+	GcpCfgIntegration:                {"GCP_CFG", CloudAccounts},
+	GcpAuditLogIntegration:           {"GCP_AT_SES", CloudAccounts},
+	GcpPubSubChannelIntegration:      {"GCP_PUBSUB", AlertChannels},
+	NewRelicChannelIntegration:       {"NEW_RELIC_INSIGHTS", AlertChannels},
+	AzureCfgIntegration:              {"AZURE_CFG", CloudAccounts},
+	AzureActivityLogIntegration:      {"AZURE_AL_SEQ", CloudAccounts},
+	ContainerRegistryIntegration:     {"CONT_VULN_CFG", ContainerRegistries},
+	QRadarChannelIntegration:         {"IBM_QRADAR", AlertChannels},
+	MicrosoftTeamsChannelIntegration: {"MICROSOFT_TEAMS", AlertChannels},
+	SlackChannelIntegration:          {"SLACK_CHANNEL", AlertChannels},
+	SplunkIntegration:                {"SPLUNK_HEC", AlertChannels},
+	ServiceNowChannelIntegration:     {"SERVICE_NOW_REST", AlertChannels},
+	AwsCloudWatchIntegration:         {"CLOUDWATCH_EB", AlertChannels},
+	PagerDutyIntegration:             {"PAGER_DUTY_API", AlertChannels},
+	JiraIntegration:                  {"JIRA", AlertChannels},
+	EmailIntegration:                 {"EMAIL_USER", AlertChannels},
+	VictorOpsChannelIntegration:      {"VICTOR_OPS", AlertChannels},
+	WebhookIntegration:               {"WEBHOOK", AlertChannels},
 }
 
 // String returns the string representation of an integration type
@@ -273,10 +273,10 @@ func (c commonIntegrationData) StateString() string {
 }
 
 type IntegrationState struct {
-	Ok                 bool   `json:"ok"`
-	LastUpdatedTime    string `json:"lastUpdatedTime"`
-	LastSuccessfulTime string `json:"lastSuccessfulTime"`
-	Details 		   map[string]interface{} `json:"details,omitempty"`
+	Ok                 bool                   `json:"ok"`
+	LastUpdatedTime    string                 `json:"lastUpdatedTime"`
+	LastSuccessfulTime string                 `json:"lastSuccessfulTime"`
+	Details            map[string]interface{} `json:"details,omitempty"`
 }
 
 type RawIntegration struct {

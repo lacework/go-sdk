@@ -20,7 +20,7 @@ package api
 
 // SchemaService is the service that retrieves schemas for v2
 type SchemasService struct {
-	client *Client
+	client   *Client
 	Services map[integrationSchema]V2Service
 }
 
@@ -33,7 +33,6 @@ const (
 	CloudAccounts
 )
 
-func (svc *SchemasService) GetService(schemaName integrationSchema) V2Service{
+func (svc *SchemasService) GetService(schemaName integrationSchema) V2Service {
 	return svc.Services[schemaName]
 }
-

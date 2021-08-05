@@ -46,11 +46,17 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&SchemasService{c, map[integrationSchema]V2Service{}},
 	}
 
-	v2.Schemas.Services = map[integrationSchema]V2Service{AlertChannels: &AlertChannelsService{c}}
+	v2.Schemas.Services = map[integrationSchema]V2Service{AlertChannels: &AlertChannelsService{c},
+		CloudAccounts: &CloudAccountsService{c}, ContainerRegistries: &ContainerRegistriesService{c}}
 	return v2
 }
 
 type V2Service interface {
 	Get(string, interface{}) error
 	Delete(string) error
+}
+
+type V2CommonIntegration struct {
+	v2CommonIntegrationData
+	Data interface{} `json:"data"`
 }
