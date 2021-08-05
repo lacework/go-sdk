@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -107,11 +108,14 @@ var (
 
 			integrationType, _ := api.FindIntegrationType(integration.Data[0].Type)
 			err = cli.LwApi.V2.Schemas.GetService(integrationType.Schema()).Get(args[0], &resp)
+
 			if err != nil {
-				return errors.Wrap(err, "unable to get integration")
+				cli.Log.Debugw("unable to get integration service")
 			}
 
-			integration.Data[0].State.Details = resp.State.Details
+			if resp.Data.State != nil {
+				integration.Data[0].State.Details = resp.Data.State.Details
+			}
 			if cli.JSONOutput() {
 				return cli.OutputJSON(integration.Data[0])
 			}
@@ -366,23 +370,22 @@ func buildIntegrationState(state *api.IntegrationState) [][]string {
 			{"LAST SUCCESSFUL STATE", state.LastSuccessfulTime},
 		}
 
-		if state.Details != nil {
-			details = append(details, extractIntegrationDetails(state.Details)...)
+		if len(state.Details) != 0 {
+			detailsStr, err := json.Marshal(state.Details)
+			if err != nil {
+				return details
+			}
+
+			detailsJSON, err := cli.FormatJSONString(string(detailsStr))
+			if err != nil {
+				return details
+			}
+			details = append(details, []string{"STATE DETAILS", detailsJSON})
 		}
 		return details
 	}
 
 	return [][]string{}
-}
-
-func extractIntegrationDetails(details map[string]interface{}) [][]string {
-	v := make([][]string, 0, len(details))
-
-	for key, value := range details {
-		row := []string{strings.ToUpper(key), strings.TrimRight(value.(string), "\n")}
-		v = append(v, row)
-	}
-	return v
 }
 
 func reflectIntegrationData(raw api.RawIntegration) [][]string {

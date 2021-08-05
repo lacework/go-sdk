@@ -57,6 +57,5 @@ type V2Service interface {
 }
 
 type V2CommonIntegration struct {
-	v2CommonIntegrationData
-	Data interface{} `json:"data"`
+	Data v2CommonIntegrationData `json:"data"`
 }
