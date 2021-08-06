@@ -21,7 +21,6 @@ package integration
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"testing"
@@ -55,7 +54,7 @@ policies:
 )
 
 var (
-	policyIDRE *regexp.Regexp = regexp.MustCompile(`(\w+-clitest-1)`)
+	policyIDRE *regexp.Regexp = regexp.MustCompile(`([\w-]+-clitest-1)`)
 )
 
 func getPolicyIdFromStdout(s string) (string, error) {
@@ -107,18 +106,11 @@ func TestPolicyCreateFile(t *testing.T) {
 	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// get temp file
-	file, err := ioutil.TempFile("", "TestPolicyCreateFile")
+	file, err := createTemporaryFile("TestPolicyCreateFile", newPolicyYAML)
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	_, err = file.Write([]byte(newPolicyYAML))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// create (output json)
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "create", "-f", file.Name(), "--json")
@@ -181,18 +173,11 @@ func TestPolicyCreateURL(t *testing.T) {
 
 	// update-file (output json)
 	// get temp file
-	file, err := ioutil.TempFile("", "TestPolicyUpdateFile")
+	file, err := createTemporaryFile("TestPolicyUpdateFile", updatePolicyYAML)
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	_, err = file.Write([]byte(updatePolicyYAML))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// this test intentionally (vs. being required to) specifies the policyID inline
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig(
@@ -313,6 +298,7 @@ func TestPolicyDelete(t *testing.T) {
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown query
 	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
+
 	// setup policy
 	out, _, _ := LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
 	policyID, err := getPolicyIdFromStdout(out.String())

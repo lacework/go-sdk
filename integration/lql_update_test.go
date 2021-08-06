@@ -20,7 +20,6 @@ package integration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -46,19 +45,14 @@ func TestQueryUpdateEditor(t *testing.T) {
 
 func TestQueryUpdateFile(t *testing.T) {
 	// get temp file
-	file, err := ioutil.TempFile("", "TestUpdateFile")
+	file, err := createTemporaryFile(
+		"TestQueryUpdateFile",
+		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText),
+	)
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText)
-	_, err = file.Write([]byte(query))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
@@ -79,19 +73,14 @@ func TestQueryUpdateFile(t *testing.T) {
 
 func TestQueryUpdateURL(t *testing.T) {
 	// get temp file
-	file, err := ioutil.TempFile("", "TestUpdateURL")
+	file, err := createTemporaryFile(
+		"TestQueryUpdateFile",
+		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText),
+	)
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText)
-	_, err = file.Write([]byte(query))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)

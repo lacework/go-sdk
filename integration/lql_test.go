@@ -19,6 +19,7 @@
 package integration
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -46,6 +47,28 @@ var (
 	queryStart = time.Now().Add(d).Format(time.RFC3339)
 	queryEnd   = time.Now().Format(time.RFC3339)
 )
+
+func createTemporaryFile(name, content string) (*os.File, error) {
+	// get temp file
+	file, err := ioutil.TempFile("", name)
+	if err != nil {
+		return nil, err
+	}
+
+	// write-to and close file
+	_, err = file.Write([]byte(content))
+	if err != nil {
+		return nil, err
+	}
+	file.Close()
+
+	return file, err
+}
+
+func cleanAndCreateQuery(id string, args ...string) (bytes.Buffer, bytes.Buffer, int) {
+	LaceworkCLIWithTOMLConfig("query", "delete", id)
+	return LaceworkCLIWithTOMLConfig(args...)
+}
 
 func TestQueryAliases(t *testing.T) {
 	// lacework query
@@ -127,18 +150,11 @@ func TestQueryRunID(t *testing.T) {
 
 func TestQueryRunFileJSONCrumb(t *testing.T) {
 	// get temp file
-	file, err := ioutil.TempFile("", "TestQueryRunFile")
+	file, err := createTemporaryFile("TestQueryRunFile", "{")
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	_, err = file.Write([]byte("{"))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// run
 	_, stderr, exitcode := LaceworkCLIWithTOMLConfig(
@@ -149,18 +165,11 @@ func TestQueryRunFileJSONCrumb(t *testing.T) {
 
 func TestQueryRunFileYAMLCrumb(t *testing.T) {
 	// get temp file
-	file, err := ioutil.TempFile("", "TestQueryRunFile")
+	file, err := createTemporaryFile("TestQueryRunFile", "tigerking")
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	_, err = file.Write([]byte("tigerking"))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// run
 	_, stderr, exitcode := LaceworkCLIWithTOMLConfig(
@@ -171,19 +180,13 @@ func TestQueryRunFileYAMLCrumb(t *testing.T) {
 
 func TestQueryRunFile(t *testing.T) {
 	// get temp file
-	file, err := ioutil.TempFile("", "TestQueryRunFile")
+	file, err := createTemporaryFile(
+		"TestQueryRunFile",
+		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText))
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText)
-	_, err = file.Write([]byte(query))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// run (explicit times)
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(

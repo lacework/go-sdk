@@ -20,7 +20,6 @@ package integration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -46,22 +45,17 @@ func TestQueryCreateEditor(t *testing.T) {
 
 func TestQueryCreateFile(t *testing.T) {
 	// get temp file
-	file, err := ioutil.TempFile("", "TestCreateFile")
+	file, err := createTemporaryFile(
+		"TestQueryCreateFile",
+		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText),
+	)
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
 
-	// write-to and close file
-	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText)
-	_, err = file.Write([]byte(query))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
-
 	// create
-	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "create", "-f", file.Name())
+	out, stderr, exitcode := cleanAndCreateQuery(queryID, "query", "create", "-f", file.Name())
 	assert.Contains(t, out.String(), fmt.Sprintf("Query (%s) created successfully.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")

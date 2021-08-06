@@ -20,7 +20,6 @@ package integration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -46,19 +45,14 @@ func TestQueryValidateEditor(t *testing.T) {
 
 func TestQueryValidateFile(t *testing.T) {
 	// get temp file
-	file, err := ioutil.TempFile("", "TestQueryValidateFile")
+	file, err := createTemporaryFile(
+		"TestQueryValidateFile",
+		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText),
+	)
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText)
-	_, err = file.Write([]byte(query))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// validate
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-f", file.Name())
