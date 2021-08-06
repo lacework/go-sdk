@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -93,6 +94,7 @@ var (
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			integration, err := cli.LwApi.Integrations.Get(args[0])
+
 			if err != nil {
 				return errors.Wrap(err, "unable to get integration")
 			}
@@ -103,6 +105,17 @@ var (
 				return errors.New(msg)
 			}
 
+			integrationType, _ := api.FindIntegrationType(integration.Data[0].Type)
+			var resp api.V2CommonIntegration
+			err = cli.LwApi.V2.Schemas.GetService(integrationType.Schema()).Get(args[0], &resp)
+
+			if err != nil {
+				cli.Log.Debugw("unable to get integration service", "error", err.Error())
+			}
+
+			if resp.Data.State != nil {
+				integration.Data[0].State.Details = resp.Data.State.Details
+			}
 			if cli.JSONOutput() {
 				return cli.OutputJSON(integration.Data[0])
 			}
@@ -352,10 +365,26 @@ func buildIntDetailsTable(integrations []api.RawIntegration) string {
 
 func buildIntegrationState(state *api.IntegrationState) [][]string {
 	if state != nil {
-		return [][]string{
+		details := [][]string{
 			{"STATE UPDATED AT", state.LastUpdatedTime},
 			{"LAST SUCCESSFUL STATE", state.LastSuccessfulTime},
 		}
+
+		if len(state.Details) != 0 {
+			detailsStr, err := json.Marshal(state.Details)
+			if err != nil {
+				cli.Log.Debugw("unable to marshall state details", "error", err.Error())
+				return details
+			}
+
+			detailsJSON, err := cli.FormatJSONString(string(detailsStr))
+			if err != nil {
+				cli.Log.Debugw("unable to json format state details", "error", err.Error())
+				return details
+			}
+			details = append(details, []string{"STATE DETAILS", detailsJSON})
+		}
+		return details
 	}
 
 	return [][]string{}

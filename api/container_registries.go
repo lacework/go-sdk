@@ -157,9 +157,8 @@ func (svc *ContainerRegistriesService) Delete(guid string) error {
 //  Get<Type>(guid)
 //
 //    Where <Type> is the Container Registry integration type.
-func (svc *ContainerRegistriesService) Get(guid string) (response ContainerRegistryResponse, err error) {
-	err = svc.get(guid, &response)
-	return
+func (svc *ContainerRegistriesService) Get(guid string, response interface{}) error {
+	return svc.get(guid, &response)
 }
 
 type ContainerRegistryRaw struct {

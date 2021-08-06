@@ -110,46 +110,56 @@ const (
 	WebhookIntegration
 )
 
+type integration struct {
+	name   string
+	schema integrationSchema
+}
+
 // IntegrationTypes is the list of available integration types
-var IntegrationTypes = map[integrationType]string{
-	NoneIntegration:                  "NONE",
-	AwsCfgIntegration:                "AWS_CFG",
-	AwsCloudTrailIntegration:         "AWS_CT_SQS",
-	AwsGovCloudCfgIntegration:        "AWS_US_GOV_CFG",
-	AwsGovCloudCTIntegration:         "AWS_US_GOV_CT_SQS",
-	AwsS3ChannelIntegration:          "AWS_S3",
-	CiscoWebexChannelIntegration:     "CISCO_SPARK_WEBHOOK",
-	DatadogChannelIntegration:        "DATADOG",
-	GcpCfgIntegration:                "GCP_CFG",
-	GcpAuditLogIntegration:           "GCP_AT_SES",
-	GcpPubSubChannelIntegration:      "GCP_PUBSUB",
-	NewRelicChannelIntegration:       "NEW_RELIC_INSIGHTS",
-	AzureCfgIntegration:              "AZURE_CFG",
-	AzureActivityLogIntegration:      "AZURE_AL_SEQ",
-	ContainerRegistryIntegration:     "CONT_VULN_CFG",
-	QRadarChannelIntegration:         "IBM_QRADAR",
-	MicrosoftTeamsChannelIntegration: "MICROSOFT_TEAMS",
-	SlackChannelIntegration:          "SLACK_CHANNEL",
-	SplunkIntegration:                "SPLUNK_HEC",
-	ServiceNowChannelIntegration:     "SERVICE_NOW_REST",
-	AwsCloudWatchIntegration:         "CLOUDWATCH_EB",
-	PagerDutyIntegration:             "PAGER_DUTY_API",
-	JiraIntegration:                  "JIRA",
-	EmailIntegration:                 "EMAIL_USER",
-	VictorOpsChannelIntegration:      "VICTOR_OPS",
-	WebhookIntegration:               "WEBHOOK",
+var IntegrationTypes = map[integrationType]integration{
+	NoneIntegration:                  {"NONE", None},
+	AwsCfgIntegration:                {"AWS_CFG", CloudAccounts},
+	AwsCloudTrailIntegration:         {"AWS_CT_SQS", CloudAccounts},
+	AwsGovCloudCfgIntegration:        {"AWS_US_GOV_CFG", CloudAccounts},
+	AwsGovCloudCTIntegration:         {"AWS_US_GOV_CT_SQS", CloudAccounts},
+	AwsS3ChannelIntegration:          {"AWS_S3", AlertChannels},
+	CiscoWebexChannelIntegration:     {"CISCO_SPARK_WEBHOOK", AlertChannels},
+	DatadogChannelIntegration:        {"DATADOG", AlertChannels},
+	GcpCfgIntegration:                {"GCP_CFG", CloudAccounts},
+	GcpAuditLogIntegration:           {"GCP_AT_SES", CloudAccounts},
+	GcpPubSubChannelIntegration:      {"GCP_PUBSUB", AlertChannels},
+	NewRelicChannelIntegration:       {"NEW_RELIC_INSIGHTS", AlertChannels},
+	AzureCfgIntegration:              {"AZURE_CFG", CloudAccounts},
+	AzureActivityLogIntegration:      {"AZURE_AL_SEQ", CloudAccounts},
+	ContainerRegistryIntegration:     {"CONT_VULN_CFG", ContainerRegistries},
+	QRadarChannelIntegration:         {"IBM_QRADAR", AlertChannels},
+	MicrosoftTeamsChannelIntegration: {"MICROSOFT_TEAMS", AlertChannels},
+	SlackChannelIntegration:          {"SLACK_CHANNEL", AlertChannels},
+	SplunkIntegration:                {"SPLUNK_HEC", AlertChannels},
+	ServiceNowChannelIntegration:     {"SERVICE_NOW_REST", AlertChannels},
+	AwsCloudWatchIntegration:         {"CLOUDWATCH_EB", AlertChannels},
+	PagerDutyIntegration:             {"PAGER_DUTY_API", AlertChannels},
+	JiraIntegration:                  {"JIRA", AlertChannels},
+	EmailIntegration:                 {"EMAIL_USER", AlertChannels},
+	VictorOpsChannelIntegration:      {"VICTOR_OPS", AlertChannels},
+	WebhookIntegration:               {"WEBHOOK", AlertChannels},
 }
 
 // String returns the string representation of an integration type
 func (i integrationType) String() string {
-	return IntegrationTypes[i]
+	return IntegrationTypes[i].name
+}
+
+// Schema returns the integration type
+func (i integrationType) Schema() integrationSchema {
+	return IntegrationTypes[i].schema
 }
 
 // FindIntegrationType looks up inside the list of available integration types
 // the matching type from the provided string, if none, returns NoneIntegration
 func FindIntegrationType(t string) (integrationType, bool) {
 	for iType, str := range IntegrationTypes {
-		if str == t {
+		if str.name == t {
 			return iType, true
 		}
 	}
@@ -263,9 +273,10 @@ func (c commonIntegrationData) StateString() string {
 }
 
 type IntegrationState struct {
-	Ok                 bool   `json:"ok"`
-	LastUpdatedTime    string `json:"lastUpdatedTime"`
-	LastSuccessfulTime string `json:"lastSuccessfulTime"`
+	Ok                 bool                   `json:"ok"`
+	LastUpdatedTime    string                 `json:"lastUpdatedTime"`
+	LastSuccessfulTime string                 `json:"lastSuccessfulTime"`
+	Details            map[string]interface{} `json:"details,omitempty"`
 }
 
 type RawIntegration struct {

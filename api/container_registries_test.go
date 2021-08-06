@@ -108,7 +108,8 @@ func TestContainerRegistriesGet(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Run("when container registry exists", func(t *testing.T) {
-		response, err := c.V2.ContainerRegistries.Get(intgGUID)
+		var response api.ContainerRegistryResponse
+		err := c.V2.ContainerRegistries.Get(intgGUID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -118,7 +119,8 @@ func TestContainerRegistriesGet(t *testing.T) {
 	})
 
 	t.Run("when container registry does NOT exist", func(t *testing.T) {
-		response, err := c.V2.ContainerRegistries.Get("UNKNOWN_INTG_GUID")
+		var response api.ContainerRegistriesResponse
+		err := c.V2.ContainerRegistries.Get("UNKNOWN_INTG_GUID", response)
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/ContainerRegistries/UNKNOWN_INTG_GUID")
@@ -173,7 +175,8 @@ func TestContainerRegistriesDelete(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Run("verify container registry exists", func(t *testing.T) {
-		response, err := c.V2.ContainerRegistries.Get(intgGUID)
+		var response api.ContainerRegistryResponse
+		err := c.V2.ContainerRegistries.Get(intgGUID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -186,7 +189,8 @@ func TestContainerRegistriesDelete(t *testing.T) {
 		err := c.V2.ContainerRegistries.Delete(intgGUID)
 		assert.Nil(t, err)
 
-		response, err := c.V2.ContainerRegistries.Get(intgGUID)
+		var response api.ContainerRegistriesResponse
+		err = c.V2.ContainerRegistries.Get(intgGUID, response)
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/ContainerRegistries/MOCK_")

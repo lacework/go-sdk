@@ -31,10 +31,11 @@ type V2Endpoints struct {
 	AgentAccessTokens   *AgentAccessTokensService
 	Query               *QueryService
 	Policy              *PolicyService
+	Schemas             *SchemasService
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
-	return &V2Endpoints{c,
+	v2 := &V2Endpoints{c,
 		&UserProfileService{c},
 		&AlertChannelsService{c},
 		&CloudAccountsService{c},
@@ -42,5 +43,22 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&AgentAccessTokensService{c},
 		&QueryService{c},
 		&PolicyService{c},
+		&SchemasService{c, map[integrationSchema]V2Service{}},
 	}
+
+	v2.Schemas.Services = map[integrationSchema]V2Service{
+		AlertChannels:       &AlertChannelsService{c},
+		CloudAccounts:       &CloudAccountsService{c},
+		ContainerRegistries: &ContainerRegistriesService{c},
+	}
+	return v2
+}
+
+type V2Service interface {
+	Get(string, interface{}) error
+	Delete(string) error
+}
+
+type V2CommonIntegration struct {
+	Data v2CommonIntegrationData `json:"data"`
 }

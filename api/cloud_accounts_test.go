@@ -89,7 +89,8 @@ func TestCloudAccountsGet(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Run("when cloud account exists", func(t *testing.T) {
-		response, err := c.V2.CloudAccounts.Get(intgGUID)
+		var response api.CloudAccountResponse
+		err := c.V2.CloudAccounts.Get(intgGUID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -99,7 +100,8 @@ func TestCloudAccountsGet(t *testing.T) {
 	})
 
 	t.Run("when cloud account does NOT exist", func(t *testing.T) {
-		response, err := c.V2.CloudAccounts.Get("UNKNOWN_INTG_GUID")
+		var response api.CloudAccountResponse
+		err := c.V2.CloudAccounts.Get("UNKNOWN_INTG_GUID", response)
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/CloudAccounts/UNKNOWN_INTG_GUID")
@@ -154,7 +156,8 @@ func TestCloudAccountsDelete(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Run("verify cloud account exists", func(t *testing.T) {
-		response, err := c.V2.CloudAccounts.Get(intgGUID)
+		var response api.CloudAccountResponse
+		err := c.V2.CloudAccounts.Get(intgGUID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -167,7 +170,8 @@ func TestCloudAccountsDelete(t *testing.T) {
 		err := c.V2.CloudAccounts.Delete(intgGUID)
 		assert.Nil(t, err)
 
-		response, err := c.V2.CloudAccounts.Get(intgGUID)
+		var response api.CloudAccountResponse
+		err = c.V2.CloudAccounts.Get(intgGUID, response)
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/CloudAccounts/MOCK_")

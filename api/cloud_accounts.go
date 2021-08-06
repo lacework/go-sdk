@@ -146,9 +146,8 @@ func (svc *CloudAccountsService) Delete(guid string) error {
 //  Get<Type>(guid)
 //
 //    Where <Type> is the Cloud Account integration type.
-func (svc *CloudAccountsService) Get(guid string) (response CloudAccountResponse, err error) {
-	err = svc.get(guid, &response)
-	return
+func (svc *CloudAccountsService) Get(guid string, response interface{}) error {
+	return svc.get(guid, &response)
 }
 
 type CloudAccountRaw struct {

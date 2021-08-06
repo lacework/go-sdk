@@ -89,7 +89,8 @@ func TestAlertChannelsGet(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Run("when alert channel exists", func(t *testing.T) {
-		response, err := c.V2.AlertChannels.Get(intgGUID)
+		var response api.AlertChannelResponse
+		err := c.V2.AlertChannels.Get(intgGUID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -99,7 +100,8 @@ func TestAlertChannelsGet(t *testing.T) {
 	})
 
 	t.Run("when alert channel does NOT exist", func(t *testing.T) {
-		response, err := c.V2.AlertChannels.Get("UNKNOWN_INTG_GUID")
+		var response api.AlertChannelResponse
+		err := c.V2.AlertChannels.Get("UNKNOWN_INTG_GUID", response)
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/AlertChannels/UNKNOWN_INTG_GUID")
@@ -154,7 +156,8 @@ func TestAlertChannelsDelete(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Run("verify alert channel exists", func(t *testing.T) {
-		response, err := c.V2.AlertChannels.Get(intgGUID)
+		var response api.AlertChannelResponse
+		err := c.V2.AlertChannels.Get(intgGUID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -167,7 +170,8 @@ func TestAlertChannelsDelete(t *testing.T) {
 		err := c.V2.AlertChannels.Delete(intgGUID)
 		assert.Nil(t, err)
 
-		response, err := c.V2.AlertChannels.Get(intgGUID)
+		var response api.AlertChannelResponse
+		err = c.V2.AlertChannels.Get(intgGUID, &response)
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/AlertChannels/MOCK_")
