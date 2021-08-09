@@ -489,7 +489,7 @@ func TestConfigureListHelp(t *testing.T) {
 		"STDERR should be empty")
 	assert.Contains(t,
 		out.String(),
-		"$ export LW_PROFILE=\"my-profile\"",
+		"export LW_PROFILE=\"my-profile\"",
 		"STDOUT the environment variable in the help message is not correct")
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
