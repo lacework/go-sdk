@@ -19,6 +19,7 @@
 package integration
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -47,10 +48,29 @@ var (
 	queryEnd   = time.Now().Format(time.RFC3339)
 )
 
-func TestQueryAliases(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
+func createTemporaryFile(name, content string) (*os.File, error) {
+	// get temp file
+	file, err := ioutil.TempFile("", name)
+	if err != nil {
+		return nil, err
 	}
+
+	// write-to and close file
+	_, err = file.Write([]byte(content))
+	if err != nil {
+		return nil, err
+	}
+	file.Close()
+
+	return file, err
+}
+
+func cleanAndCreateQuery(id string, args ...string) (bytes.Buffer, bytes.Buffer, int) {
+	LaceworkCLIWithTOMLConfig("query", "delete", id)
+	return LaceworkCLIWithTOMLConfig(args...)
+}
+
+func TestQueryAliases(t *testing.T) {
 	// lacework query
 	out, err, exitcode := LaceworkCLI("help", "query")
 	assert.Contains(t, out.String(), "lacework query [command]")
@@ -65,15 +85,12 @@ func TestQueryAliases(t *testing.T) {
 }
 
 func TestQueryBase(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("query")
 	assert.Contains(t, out.String(), "create")
 	assert.Contains(t, out.String(), "delete")
-	assert.Contains(t, out.String(), "describe")
+	//assert.Contains(t, out.String(), "describe")
 	assert.Contains(t, out.String(), "list")
-	assert.Contains(t, out.String(), "list-sources")
+	//assert.Contains(t, out.String(), "list-sources")
 	assert.Contains(t, out.String(), "run")
 	assert.Contains(t, out.String(), "show")
 	assert.Contains(t, out.String(), "update")
@@ -83,9 +100,6 @@ func TestQueryBase(t *testing.T) {
 }
 
 func TestQueryRunHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "query", "run")
 	assert.Contains(t, out.String(), "lacework query run [query_id] [flags]")
 	assert.Contains(t, out.String(), "--end string")
@@ -101,10 +115,6 @@ func TestQueryRunHelp(t *testing.T) {
 }
 
 func TestQueryRunEditor(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	// run
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "run")
 	assert.Contains(t, out.String(), "Type a query to run")
@@ -121,9 +131,6 @@ func TestQueryRunEditor(t *testing.T) {
 }
 
 func TestQueryRunID(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
@@ -138,26 +145,16 @@ func TestQueryRunID(t *testing.T) {
 	// validate_only
 	_, err, exitcode = LaceworkCLIWithTOMLConfig("query", "run", queryID, "--validate_only")
 	assert.Contains(t, err.String(), "ERROR flag --validate_only unavailable when specifying query_id argument")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestQueryRunFileJSONCrumb(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
-	file, err := ioutil.TempFile("", "TestQueryRunFile")
+	file, err := createTemporaryFile("TestQueryRunFile", "{")
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	_, err = file.Write([]byte("{"))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// run
 	_, stderr, exitcode := LaceworkCLIWithTOMLConfig(
@@ -167,22 +164,12 @@ func TestQueryRunFileJSONCrumb(t *testing.T) {
 }
 
 func TestQueryRunFileYAMLCrumb(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
-	file, err := ioutil.TempFile("", "TestQueryRunFile")
+	file, err := createTemporaryFile("TestQueryRunFile", "tigerking")
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	_, err = file.Write([]byte("tigerking"))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// run
 	_, stderr, exitcode := LaceworkCLIWithTOMLConfig(
@@ -192,23 +179,14 @@ func TestQueryRunFileYAMLCrumb(t *testing.T) {
 }
 
 func TestQueryRunFile(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
-	file, err := ioutil.TempFile("", "TestQueryRunFile")
+	file, err := createTemporaryFile(
+		"TestQueryRunFile",
+		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText))
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
-
-	// write-to and close file
-	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText)
-	_, err = file.Write([]byte(query))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
 
 	// run (explicit times)
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
@@ -226,9 +204,6 @@ func TestQueryRunFile(t *testing.T) {
 }
 
 func TestQueryRunURL(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// run (natural time)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--range", "last week")

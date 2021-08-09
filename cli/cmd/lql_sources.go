@@ -26,6 +26,7 @@ import (
 var (
 	// querySourcesCmd represents the lql data sources command
 	querySourcesCmd = &cobra.Command{
+		Hidden:  true, // no api exists for this
 		Aliases: []string{"sources"},
 		Use:     "list-sources",
 		Short:   "list LQL data sources",

@@ -43,9 +43,8 @@ var (
 
 	// policyCmd represents the policy parent command
 	policyCmd = &cobra.Command{
-		Hidden: true,
-		Use:    "policy",
-		Short:  "manage policies",
+		Use:   "policy",
+		Short: "manage policies",
 		Long: `Manage policies.
 
 NOTE: This feature is not yet available!`,

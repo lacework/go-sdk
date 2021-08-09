@@ -20,7 +20,6 @@ package integration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -28,9 +27,6 @@ import (
 )
 
 func TestQueryCreateHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "query", "create")
 	assert.Contains(t, out.String(), "lacework query create [flags]")
 	assert.Contains(t, out.String(), "-f, --file string")
@@ -40,9 +36,6 @@ func TestQueryCreateHelp(t *testing.T) {
 }
 
 func TestQueryCreateEditor(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "create")
 	assert.Contains(t, out.String(), "Type a query to create")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
@@ -51,26 +44,18 @@ func TestQueryCreateEditor(t *testing.T) {
 }
 
 func TestQueryCreateFile(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
-	file, err := ioutil.TempFile("", "TestCreateFile")
+	file, err := createTemporaryFile(
+		"TestQueryCreateFile",
+		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText),
+	)
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
 
-	// write-to and close file
-	query := fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText)
-	_, err = file.Write([]byte(query))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
-
 	// create
-	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "create", "-f", file.Name())
+	out, stderr, exitcode := cleanAndCreateQuery(queryID, "query", "create", "-f", file.Name())
 	assert.Contains(t, out.String(), fmt.Sprintf("Query (%s) created successfully.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -94,9 +79,6 @@ func TestQueryCreateFile(t *testing.T) {
 }
 
 func TestQueryCreateURL(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// This is tested by virtue of setup in other tests
 	return
 }

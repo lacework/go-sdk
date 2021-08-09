@@ -151,6 +151,8 @@ Available Commands:
   configure     configure the Lacework CLI
   event         inspect Lacework events
   integration   manage external integrations
+  policy        manage policies
+  query         run and manage queries
   version       print the Lacework CLI version
   vulnerability container and host vulnerability assessments
 
