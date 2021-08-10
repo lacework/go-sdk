@@ -57,4 +57,3 @@ lacework api <method> <path> [flags]
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-
