@@ -44,7 +44,6 @@ integration-only:
 		agent_token \
 		compliance \
 		configure \
-		core \
 		event \
 		help \
 		integration \
@@ -57,12 +56,12 @@ integration-only:
 integration-lql: build-cli-cross-platform integration-lql-only
 
 integration-lql-only:
-	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="core query"
+	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="query"
 
 integration-policy: build-cli-cross-platform integration-policy-only
 
 integration-policy-only:
-	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="core policy"
+	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="policy"
 
 coverage: test
 	go tool cover -func=$(COVERAGEOUT)
