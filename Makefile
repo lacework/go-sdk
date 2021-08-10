@@ -50,7 +50,7 @@ integration-only:
 		integration \
 		migration \
 		policy-disabled \
-		query \
+		query-disabled \
 		version \
 		vulnerability"
 
