@@ -1,4 +1,5 @@
-//
+// +build compliance
+
 // Author:: Darren Murray (<darren.murray@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0

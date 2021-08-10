@@ -1,4 +1,5 @@
-//
+// +build core
+
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -262,4 +263,21 @@ func laceworkIntegrationTestClient() (*api.Client, error) {
 		fmt.Println(err)
 	}
 	return lacework, err
+}
+
+func createTemporaryFile(name, content string) (*os.File, error) {
+	// get temp file
+	file, err := ioutil.TempFile("", name)
+	if err != nil {
+		return nil, err
+	}
+
+	// write-to and close file
+	_, err = file.Write([]byte(content))
+	if err != nil {
+		return nil, err
+	}
+	file.Close()
+
+	return file, err
 }
