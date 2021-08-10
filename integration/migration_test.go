@@ -1,4 +1,5 @@
-//
+// +build migration
+
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0

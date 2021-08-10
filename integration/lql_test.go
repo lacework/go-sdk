@@ -1,4 +1,5 @@
-//
+// +build query
+
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -21,7 +22,6 @@ package integration
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -29,41 +29,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	evaluatorID       string = "Cloudtrail"
-	queryID           string = "LW_CLI_AWS_CTA_IntegrationTest"
-	queryText         string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID } }"
-	queryUpdateText   string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
-	queryJSONTemplate string = `{
-	"evaluatorID": "%s",
-	"queryID": "%s",
-	"queryText": "%s"
-}`
-	queryURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/LW_CLI_AWS_CTA_IntegrationTest.yaml"
-)
-
 var (
 	d, _       = time.ParseDuration("-24h")
 	queryStart = time.Now().Add(d).Format(time.RFC3339)
 	queryEnd   = time.Now().Format(time.RFC3339)
 )
-
-func createTemporaryFile(name, content string) (*os.File, error) {
-	// get temp file
-	file, err := ioutil.TempFile("", name)
-	if err != nil {
-		return nil, err
-	}
-
-	// write-to and close file
-	_, err = file.Write([]byte(content))
-	if err != nil {
-		return nil, err
-	}
-	file.Close()
-
-	return file, err
-}
 
 func cleanAndCreateQuery(id string, args ...string) (bytes.Buffer, bytes.Buffer, int) {
 	LaceworkCLIWithTOMLConfig("query", "delete", id)
