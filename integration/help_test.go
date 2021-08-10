@@ -84,6 +84,7 @@ Global Flags:
       --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
+      --token string        access token (replaces the use of api_key and api_secret)
 
 Use "lacework configure [command] --help" for more information about a command.
 `,
@@ -169,6 +170,7 @@ Flags:
       --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
+      --token string        access token (replaces the use of api_key and api_secret)
 
 Use "lacework [command] --help" for more information about a command.
 `,

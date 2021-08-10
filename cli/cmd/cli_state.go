@@ -37,6 +37,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/format"
 	"github.com/lacework/go-sdk/lwconfig"
 	"github.com/lacework/go-sdk/lwlogger"
 )
@@ -136,6 +137,7 @@ func (c *cliState) LoadState() error {
 		}
 	}
 
+	c.Token = c.extractValueString("token")
 	c.KeyID = c.extractValueString("api_key")
 	c.Secret = c.extractValueString("api_secret")
 	c.Account = c.extractValueString("account")
@@ -146,8 +148,9 @@ func (c *cliState) LoadState() error {
 		"profile", c.Profile,
 		"account", c.Account,
 		"subaccount", c.Subaccount,
+		"token", format.Secret(4, c.Token),
 		"api_key", c.KeyID,
-		"api_secret", c.Secret,
+		"api_secret", format.Secret(4, c.Secret),
 		"config_version", c.CfgVersion,
 	)
 
@@ -218,20 +221,23 @@ func (c *cliState) NewClient() error {
 		apiOpts = append(apiOpts, api.WithOrgAccess())
 	}
 
-	if c.Token != "" {
+	if c.tokenCache.Token != "" {
 		apiOpts = append(apiOpts,
 			api.WithTokenAndExpiration(c.Token, c.tokenCache.ExpiresAt))
-		apiOpts = append(apiOpts,
-			api.WithLifecycleCallbacks(api.LifecycleCallbacks{
-				TokenExpiredCallback: cli.EraseCachedToken,
-				RequestCallback: func(httpCode int, _ http.Header) error {
-					if httpCode == 403 {
-						return c.Cache.Erase("token")
-					}
-					return nil
-				},
-			}))
+	} else if c.Token != "" {
+		apiOpts = append(apiOpts, api.WithToken(c.Token))
 	}
+
+	apiOpts = append(apiOpts,
+		api.WithLifecycleCallbacks(api.LifecycleCallbacks{
+			TokenExpiredCallback: cli.EraseCachedToken,
+			RequestCallback: func(httpCode int, _ http.Header) error {
+				if httpCode == 403 {
+					return c.Cache.Erase("token")
+				}
+				return nil
+			},
+		}))
 
 	if os.Getenv("LW_API_SERVER_URL") != "" {
 		apiOpts = append(apiOpts, api.WithURL(os.Getenv("LW_API_SERVER_URL")))
@@ -344,6 +350,11 @@ func (c *cliState) CSVOutput() bool {
 // loadStateFromViper loads parameters and environment variables
 // coming from viper into the CLI state
 func (c *cliState) loadStateFromViper() {
+	if v := viper.GetString("token"); v != "" {
+		c.Token = v
+		c.Log.Debugw("state updated", "token", format.Secret(4, c.Token))
+	}
+
 	if v := viper.GetString("api_key"); v != "" {
 		c.KeyID = v
 		c.Log.Debugw("state updated", "api_key", c.KeyID)
@@ -351,7 +362,7 @@ func (c *cliState) loadStateFromViper() {
 
 	if v := viper.GetString("api_secret"); v != "" {
 		c.Secret = v
-		c.Log.Debugw("state updated", "api_secret", c.Secret)
+		c.Log.Debugw("state updated", "api_secret", format.Secret(4, c.Secret))
 	}
 
 	if v := viper.GetString("account"); v != "" {
