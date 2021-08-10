@@ -26,7 +26,7 @@ import (
 )
 
 // used by configure.go
-var configureListCmdSetProfileEnv = `$ export LW_PROFILE="my-profile"`
+var configureListCmdSetProfileEnv = `export LW_PROFILE="my-profile"`
 
 // promptIconsFuncs configures the prompt icons for Unix systems
 var promptIconsFunc = func(icons *survey.IconSet) {
@@ -38,10 +38,10 @@ var promptIconsFunc = func(icons *survey.IconSet) {
 func (c *cliState) UpdateCommand() string {
 	if os.Getenv(HomebrewInstall) != "" {
 		return `
-  $ brew upgrade lacework-cli
+  brew upgrade lacework-cli
 `
 	}
 	return `
-  $ curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
+  curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
 `
 }

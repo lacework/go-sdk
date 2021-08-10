@@ -21,7 +21,7 @@ package cmd
 import "github.com/AlecAivazis/survey/v2"
 
 // used by configure.go
-var configureListCmdSetProfileEnv = `C:\> $env:LW_PROFILE = 'my-profile'`
+var configureListCmdSetProfileEnv = `$env:LW_PROFILE = 'my-profile'`
 
 // promptIconsFuncs configures the prompt icons for Windows systems
 var promptIconsFunc = func(icons *survey.IconSet) {
@@ -32,7 +32,7 @@ var promptIconsFunc = func(icons *survey.IconSet) {
 // to the latest available version (windows specific command)
 func (c *cliState) UpdateCommand() string {
 	return `
-  C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
-  C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.ps1'))
+  Set-ExecutionPolicy Bypass -Scope Process -Force;
+  iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.ps1'))
 `
 }

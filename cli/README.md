@@ -19,8 +19,8 @@ curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bas
 ### Powershell:
 
 ```
-C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
-C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.ps1'))
+Set-ExecutionPolicy Bypass -Scope Process -Force;
+iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.ps1'))
 ```
 
 ### Homebrew:
@@ -75,7 +75,7 @@ Then, when you run a command, you can specify a `--profile prod` and use the
 credentials and settings stored under that name.
 
 ```bash
-$ lacework integration list --profile prod
+lacework integration list --profile prod
 ```
 
 If there is no `--profile` option, the CLI will default to the `default` profile.
@@ -86,14 +86,14 @@ overriden by setting environment variables prefixed with `LW_`.
 
 To override the `account`, `api_key`, and `api_secret`  configurations:
 ```
-$ export LW_ACCOUNT="<YOUR_ACCOUNT>"
-$ export LW_API_KEY="<YOUR_API_KEY>"
-$ export LW_API_SECRET="<YOUR_API_SECRET>"
+export LW_ACCOUNT="<YOUR_ACCOUNT>"
+export LW_API_KEY="<YOUR_API_KEY>"
+export LW_API_SECRET="<YOUR_API_SECRET>"
 ```
 
 To override the profile to use:
 ```
-$ export LW_PROFILE=prod
+export LW_PROFILE=prod
 ```
 
 This is a list of all environment variables that can be used to modify the
@@ -118,20 +118,20 @@ A few basic commands are:
 
 1) List all integration in your account:
 ```bash
-$ lacework integrations list
+lacework integrations list
 ```
 2) List all events from the last 7 days in your account:
 ```bash
-$ lacework events list
+lacework events list
 ```
 3) Request an on-demand container vulnerability scan:
 ```bash
-$ lacework vulnerability container scan index.docker.io lacework/lacework-cli latest
+lacework vulnerability container scan index.docker.io lacework/lacework-cli latest
 ```
 4) Use the `api` command to access Lacework's RestfulAPI, for example,
 to look at the SCHEMA of the `WEBHOOK` integration:
 ```bash
-$ lacework api get /external/integrations/schema/WEBHOOK
+lacework api get /external/integrations/schema/WEBHOOK
 ```
 
 ## CLI Documentation
@@ -191,7 +191,7 @@ Server, for that reason, it requires a set of Lacework API keys. To run these te
 locally you need to setup the following environment variables and use the directive
 `make integration`, an example of the command you can use is:
 ```
-$ CI_ACCOUNT="<YOUR_ACCOUNT>" \
+CI_ACCOUNT="<YOUR_ACCOUNT>" \
   CI_V2_ACCOUNT="<YOUR_APIV2_PRIMARY_ACCOUNT>" \
   CI_API_KEY="<YOUR_API_KEY>" \
   CI_API_SECRET="<YOUR_API_SECRET>" \

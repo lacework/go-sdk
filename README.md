@@ -24,17 +24,17 @@ reports, external integrations, vulnerability scans, and other operations.
 
 #### Bash:
 ```
-$ curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
+curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
 ```
 
 #### Powershell:
 ```
-C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
-C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.ps1'))
+Set-ExecutionPolicy Bypass -Scope Process -Force;
+iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.ps1'))
 ```
 #### Homebrew:
 ```
-$ brew install lacework/tap/lacework-cli
+brew install lacework/tap/lacework-cli
 ```
 For more details, see [Lacework Homebrew Tap](https://github.com/lacework/homebrew-tap).
 
