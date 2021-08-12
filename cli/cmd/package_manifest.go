@@ -263,29 +263,21 @@ func (c *cliState) GetOSInfo() (*OS, error) {
 	if err == nil {
 		c.Log.Debugw("parsing os release file", "file", osReleaseFile)
 		osInfo, parseErr := openOsReleaseFile()
-		if parseErr != nil {
-			return osInfo, parseErr
-		}
+		return osInfo, parseErr
 	}
 
 	_, err = os.Stat(sysReleaseFile)
 	if err == nil {
 		c.Log.Debugw("parsing system release file", "file", sysReleaseFile)
 		osInfo, parseErr := openSystemReleaseFile()
-		if parseErr != nil {
-			return osInfo, parseErr
-		}
+		return osInfo, parseErr
 	}
 
-	if err != nil {
 		msg := `unsupported platform
 
 For more information about supported platforms, visit:
    https://support.lacework.com/hc/en-us/articles/360049666194-Host-Vulnerability-Assessment-Overview`
 		return osInfo, errors.Wrap(err, msg)
-	}
-
-	return osInfo, nil
 }
 
 func openSystemReleaseFile() (*OS, error) {
