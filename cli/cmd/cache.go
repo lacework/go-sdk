@@ -151,7 +151,7 @@ func (c *cliState) WriteCachedToken() error {
 		return nil
 	}
 
-	if c.tokenCache.Token == "" {
+	if c.Token == "" {
 		response, err := c.LwApi.GenerateToken()
 		if err != nil {
 			return err
