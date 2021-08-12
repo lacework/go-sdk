@@ -43,6 +43,7 @@ type OS struct {
 
 var (
 	osReleaseFile = "/etc/os-release"
+	sysReleaseFile = "/etc/system-release"
 	rexNameFromID = regexp.MustCompile(`^ID=(.*)$`)
 	rexVersionID  = regexp.MustCompile(`^VERSION_ID=(.*)$`)
 )
@@ -251,24 +252,63 @@ func (c *cliState) detectActiveKernel() (string, bool) {
 }
 
 func (c *cliState) GetOSInfo() (*OS, error) {
-	osInfo := new(OS)
+	var (
+		osInfo = new(OS)
+		err error
+	)
 
 	c.Log.Debugw("detecting operating system information",
 		"os", runtime.GOOS,
 		"arch", runtime.GOARCH,
 	)
 
-	f, err := os.Open(osReleaseFile)
+	if _, err = os.Stat(osReleaseFile); err == nil {
+		c.Log.Debugw("parsing os release file", "file", osReleaseFile)
+		osInfo, err = openOsReleaseFile()
+	}
+
+	if _, err = os.Stat(sysReleaseFile); err == nil {
+		c.Log.Debugw("parsing system release file", "file", sysReleaseFile)
+		osInfo, err = openSystemReleaseFile()
+	}
+
 	if err != nil {
 		msg := `unsupported platform
 
 For more information about supported platforms, visit:
-    https://support.lacework.com/hc/en-us/articles/360049666194-Host-Vulnerability-Assessment-Overview`
-		return osInfo, errors.New(msg)
+   https://support.lacework.com/hc/en-us/articles/360049666194-Host-Vulnerability-Assessment-Overview`
+		return osInfo, errors.Wrap(err, msg)
 	}
+
+	return osInfo, nil
+}
+
+func openSystemReleaseFile() (*OS, error) {
+	osInfo := new(OS)
+
+	f, err := os.Open(sysReleaseFile)
+
+	defer f.Close()
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		m := strings.Split(s.Text(), " ")
+		if len(m) > 0 {
+			osInfo.Name = strings.ToLower(m[0])
+			osInfo.Version = strings.ToLower(m[2])
+			break
+		}
+	}
+
+	return osInfo, err
+}
+
+func openOsReleaseFile() (*OS, error){
+	osInfo := new(OS)
+
+	f, err := os.Open(osReleaseFile)
+
 	defer f.Close()
 
-	c.Log.Debugw("parsing os release file", "file", osReleaseFile)
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		if m := rexNameFromID.FindStringSubmatch(s.Text()); m != nil {
@@ -278,7 +318,7 @@ For more information about supported platforms, visit:
 		}
 	}
 
-	return osInfo, nil
+	return osInfo, err
 }
 
 func (c *cliState) DetectPackageManager() (string, error) {
