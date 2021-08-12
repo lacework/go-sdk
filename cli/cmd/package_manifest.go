@@ -42,10 +42,10 @@ type OS struct {
 }
 
 var (
-	osReleaseFile = "/etc/os-release"
+	osReleaseFile  = "/etc/os-release"
 	sysReleaseFile = "/etc/system-release"
-	rexNameFromID = regexp.MustCompile(`^ID=(.*)$`)
-	rexVersionID  = regexp.MustCompile(`^VERSION_ID=(.*)$`)
+	rexNameFromID  = regexp.MustCompile(`^ID=(.*)$`)
+	rexVersionID   = regexp.MustCompile(`^VERSION_ID=(.*)$`)
 )
 
 func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
@@ -268,8 +268,8 @@ func (c *cliState) GetOSInfo() (*OS, error) {
 		}
 	}
 
-	 _, err = os.Stat(sysReleaseFile)
-	 if err == nil {
+	_, err = os.Stat(sysReleaseFile)
+	if err == nil {
 		c.Log.Debugw("parsing system release file", "file", sysReleaseFile)
 		osInfo, parseErr := openSystemReleaseFile()
 		if parseErr != nil {
@@ -312,7 +312,7 @@ func openSystemReleaseFile() (*OS, error) {
 	return osInfo, err
 }
 
-func openOsReleaseFile() (*OS, error){
+func openOsReleaseFile() (*OS, error) {
 	osInfo := new(OS)
 
 	f, err := os.Open(osReleaseFile)
