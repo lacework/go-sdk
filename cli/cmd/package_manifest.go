@@ -252,24 +252,29 @@ func (c *cliState) detectActiveKernel() (string, bool) {
 }
 
 func (c *cliState) GetOSInfo() (*OS, error) {
-	var (
-		osInfo = new(OS)
-		err error
-	)
+	osInfo := new(OS)
 
 	c.Log.Debugw("detecting operating system information",
 		"os", runtime.GOOS,
 		"arch", runtime.GOARCH,
 	)
 
-	if _, err = os.Stat(osReleaseFile); err == nil {
+	_, err := os.Stat(osReleaseFile)
+	if err == nil {
 		c.Log.Debugw("parsing os release file", "file", osReleaseFile)
-		osInfo, err = openOsReleaseFile()
+		osInfo, parseErr := openOsReleaseFile()
+		if parseErr != nil {
+			return osInfo, parseErr
+		}
 	}
 
-	if _, err = os.Stat(sysReleaseFile); err == nil {
+	 _, err = os.Stat(sysReleaseFile)
+	 if err == nil {
 		c.Log.Debugw("parsing system release file", "file", sysReleaseFile)
-		osInfo, err = openSystemReleaseFile()
+		osInfo, parseErr := openSystemReleaseFile()
+		if parseErr != nil {
+			return osInfo, parseErr
+		}
 	}
 
 	if err != nil {
@@ -288,7 +293,12 @@ func openSystemReleaseFile() (*OS, error) {
 
 	f, err := os.Open(sysReleaseFile)
 
+	if err != nil {
+		return osInfo, err
+	}
+
 	defer f.Close()
+
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		m := strings.Split(s.Text(), " ")
@@ -306,6 +316,10 @@ func openOsReleaseFile() (*OS, error){
 	osInfo := new(OS)
 
 	f, err := os.Open(osReleaseFile)
+
+	if err != nil {
+		return osInfo, err
+	}
 
 	defer f.Close()
 
