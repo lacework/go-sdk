@@ -137,7 +137,7 @@ func (c *cliState) LoadState() error {
 		}
 	}
 
-	c.Token = c.extractValueString("token")
+	c.Token = c.extractValueString("api_token")
 	c.KeyID = c.extractValueString("api_key")
 	c.Secret = c.extractValueString("api_secret")
 	c.Account = c.extractValueString("account")
@@ -148,7 +148,7 @@ func (c *cliState) LoadState() error {
 		"profile", c.Profile,
 		"account", c.Account,
 		"subaccount", c.Subaccount,
-		"token", format.Secret(4, c.Token),
+		"api_token", format.Secret(4, c.Token),
 		"api_key", c.KeyID,
 		"api_secret", format.Secret(4, c.Secret),
 		"config_version", c.CfgVersion,
@@ -350,9 +350,9 @@ func (c *cliState) CSVOutput() bool {
 // loadStateFromViper loads parameters and environment variables
 // coming from viper into the CLI state
 func (c *cliState) loadStateFromViper() {
-	if v := viper.GetString("token"); v != "" {
+	if v := viper.GetString("api_token"); v != "" {
 		c.Token = v
-		c.Log.Debugw("state updated", "token", format.Secret(4, c.Token))
+		c.Log.Debugw("state updated", "api_token", format.Secret(4, c.Token))
 	}
 
 	if v := viper.GetString("api_key"); v != "" {

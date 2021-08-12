@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGlobalFlagToken(t *testing.T) {
+func TestGlobalFlagApiToken(t *testing.T) {
 	// generating a token with toml config
 	token, err, exitcode := LaceworkCLIWithTOMLConfig("access-token")
 	assert.Contains(t, token.String(), "_", // @afiune tokens start with "_secret123"
@@ -39,7 +39,7 @@ func TestGlobalFlagToken(t *testing.T) {
 
 		// running the Lacework CLI without toml config but with the token flag
 		out, err, exitcode := LaceworkCLI("int", "list",
-			"--token", strings.Trim(token.String(), "\n"), "--account", os.Getenv("CI_ACCOUNT"))
+			"--api_token", strings.Trim(token.String(), "\n"), "--account", os.Getenv("CI_ACCOUNT"))
 		assert.Contains(t, out.String(), "INTEGRATION GUID")
 		assert.Empty(t, err.String(), "STDERR should be empty")
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")

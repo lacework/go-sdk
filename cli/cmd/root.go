@@ -146,11 +146,11 @@ func init() {
 	rootCmd.PersistentFlags().StringP("api_secret", "s", "",
 		"secret access key",
 	)
+	rootCmd.PersistentFlags().String("api_token", "",
+		"access token (replaces the use of api_key and api_secret)",
+	)
 	rootCmd.PersistentFlags().StringP("account", "a", "",
 		"account subdomain of URL (i.e. <ACCOUNT>.lacework.net)",
-	)
-	rootCmd.PersistentFlags().String("token", "",
-		"access token (replaces the use of api_key and api_secret)",
 	)
 	rootCmd.PersistentFlags().String("subaccount", "",
 		"sub-account name inside your organization (org admins only)",
@@ -168,7 +168,7 @@ func init() {
 	errcheckWARN(viper.BindPFlag("account", rootCmd.PersistentFlags().Lookup("account")))
 	errcheckWARN(viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api_key")))
 	errcheckWARN(viper.BindPFlag("api_secret", rootCmd.PersistentFlags().Lookup("api_secret")))
-	errcheckWARN(viper.BindPFlag("token", rootCmd.PersistentFlags().Lookup("token")))
+	errcheckWARN(viper.BindPFlag("api_token", rootCmd.PersistentFlags().Lookup("api_token")))
 	errcheckWARN(viper.BindPFlag("subaccount", rootCmd.PersistentFlags().Lookup("subaccount")))
 	errcheckWARN(viper.BindPFlag("organization", rootCmd.PersistentFlags().Lookup("organization")))
 }
