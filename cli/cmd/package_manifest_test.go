@@ -225,13 +225,6 @@ func TestMergeHostVulnScanPkgManifestResponses(t *testing.T) {
 	}
 }
 
-func TestGetOsInfoUnsupported(t *testing.T) {
-	_, err := cli.GetOSInfo()
-	assert.Contains(t, err.Error(),
-		"unsupported platform",
-	)
-}
-
 func TestParseOsRelease(t *testing.T) {
 	file, err := ioutil.TempFile("", "os-release")
 	assert.Nil(t, err)
@@ -274,5 +267,12 @@ BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
 PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
 VERSION_CODENAME=bionic
 UBUNTU_CODENAME=bionic
+`
+	mockAlpineOSReleaseFile = `NAME="Alpine Linux"
+ID=alpine
+VERSION_ID=3.7.0
+PRETTY_NAME="Alpine Linux v3.7"
+HOME_URL="http://alpinelinux.org"
+BUG_REPORT_URL="http://bugs.alpinelinux.org"
 `
 )
