@@ -259,9 +259,9 @@ func TestParseSysRelease(t *testing.T) {
 }
 
 var (
-	mockCentos = OS{Name: "centos", Version: "6.10"}
-	mockUbuntu = OS{Name: "ubuntu", Version: "18.04"}
-	mockCentosSystemFile = "CentOS release 6.10 (Final)"
+	mockCentos              = OS{Name: "centos", Version: "6.10"}
+	mockUbuntu              = OS{Name: "ubuntu", Version: "18.04"}
+	mockCentosSystemFile    = "CentOS release 6.10 (Final)"
 	mockUbuntuOSReleaseFile = `NAME="Ubuntu"
 VERSION="18.04.5 LTS (Bionic Beaver)"
 ID=ubuntu
@@ -276,6 +276,3 @@ VERSION_CODENAME=bionic
 UBUNTU_CODENAME=bionic
 `
 )
-
-
-
