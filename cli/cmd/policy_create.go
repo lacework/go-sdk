@@ -113,14 +113,15 @@ func createPolicy(cmd *cobra.Command, _ []string) error {
 	}
 
 	cli.Log.Debugw("creating policy", "policy", policyStr)
-
-	var createResponse api.PolicyResponse
-	if createResponse, err = cli.LwApi.V2.Policy.Create(newPolicy); err != nil {
+	cli.StartProgress(" Creating policy...")
+	createResponse, err := cli.LwApi.V2.Policy.Create(newPolicy)
+	cli.StopProgress()
+	if err != nil {
 		return errors.Wrap(err, msg)
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(createResponse.Data)
 	}
-	cli.OutputHuman(fmt.Sprintf("Policy (%s) created successfully.\n", createResponse.Data.PolicyID))
+	cli.OutputHuman(fmt.Sprintf("The policy %s was created.\n", createResponse.Data.PolicyID))
 	return nil
 }

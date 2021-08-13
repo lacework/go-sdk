@@ -40,15 +40,16 @@ func init() {
 
 func showQuery(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving query", "id", args[0])
-
+	cli.StartProgress(" Retrieving query...")
 	queryResponse, err := cli.LwApi.V2.Query.Get(args[0])
-
+	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to show query")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)
 	}
+
 	cli.OutputHuman(queryResponse.Data.QueryText)
 	return nil
 }

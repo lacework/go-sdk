@@ -50,12 +50,39 @@ var (
 
 	// queryCmd represents the lql parent command
 	queryCmd = &cobra.Command{
-		Aliases: []string{"lql"},
 		Use:     "query",
+		Aliases: []string{"lql", "queries"},
 		Short:   "run and manage queries",
-		Long: `Run and manage queries.
+		Long: `Run and manage Lacework Query Language (LQL) queries.
 
-NOTE: This feature is not yet available!`,
+To provide customizable specification of datasets, Lacework provides the Lacework
+Query Language (LQL). LQL is a human-readable text syntax for specifying selection,
+filtering, and manipulation of data.
+
+Currently, Lacework has introduced LQL for configuration of AWS CloudTrail policies
+and queries. This means you can use LQL to customize AWS CloudTrail policies only.
+For all other policies, use the previous existing methods.
+
+Lacework ships a set of default LQL queries that are available in your account.
+
+For more information about LQL, visit:
+
+   https://support.lacework.com/hc/en-us/articles/4402301824403-LQL-Overview
+
+To view all LQL queries in your Lacework account.
+
+    lacework lql ls
+
+To show a query.
+
+    lacework query show <query_id>
+
+To execute a query.
+
+    lacework query run <query_id>
+
+** NOTE: LQL syntax may change. **
+`,
 	}
 
 	// queryRunCmd represents the lql run command
@@ -63,34 +90,32 @@ NOTE: This feature is not yet available!`,
 		Aliases: []string{"execute"},
 		Use:     "run [query_id]",
 		Short:   "run a query",
-		Long: `Run a query.
+		Long: `Run an LQL query via editor:
 
-Run a query via editor:
-
-	$ lacework query run --range today
+    lacework query run --range today
 
 Run a query via ID (uses active profile):
 
-	$ lacework query run MyQuery --range
+    lacework query run MyQuery --range
 
 Start and End times are required to run a query:
 
 1.  Start and End times must be specified in one of the following formats:
 
-	A. A relative time specifier
-	B. RFC3339 Date and Time
-	C. Epoch time in milliseconds
+    A. A relative time specifier
+    B. RFC3339 Date and Time
+    C. Epoch time in milliseconds
 
 2. Start and End times must be specified in one of the following ways:
 
-	A.  As StartTimeRange and EndTimeRange in the ParamInfo block within the query
-	B.  As start_time_range and end_time_range if specifying JSON
-	C.  As --start and --end CLI flags
-	
+    A.  As StartTimeRange and EndTimeRange in the ParamInfo block within the query
+    B.  As start_time_range and end_time_range if specifying JSON
+    C.  As --start and --end CLI flags
+
 3. Start and End time precedence:
 
-	A.  CLI flags take precedence over JSON specifications
-	B.  JSON specifications take precedence over ParamInfo specifications`,
+    A.  CLI flags take precedence over JSON specifications
+    B.  JSON specifications take precedence over ParamInfo specifications`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: runQuery,
 	}
@@ -360,6 +385,9 @@ func runQuery(cmd *cobra.Command, args []string) error {
 			Value: end.UTC().Format(lwtime.RFC3339Milli),
 		},
 	}
+
+	cli.StartProgress(" Executing query...")
+	defer cli.StopProgress()
 
 	// query by id
 	if hasCmdArgs {

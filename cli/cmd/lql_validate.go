@@ -34,9 +34,20 @@ var (
 	queryValidateCmd = &cobra.Command{
 		Use:   "validate",
 		Short: "validate a query",
-		Long:  `Validate a query.`,
-		Args:  cobra.NoArgs,
-		RunE:  validateQuery,
+		Long: `Use this command to validate a single LQL query before creating it.
+
+There are multiple ways you can validate a query:
+
+  * Typing the query into your default editor (via $EDITOR)
+  * From a local file on disk using the flag '--file'
+  * From a URL using the flag '--url'
+
+To launch your default editor and validate a query.
+
+    lacework lql validate
+`,
+		Args: cobra.NoArgs,
+		RunE: validateQuery,
 	}
 )
 
@@ -69,14 +80,17 @@ func validateQueryAndOutput(nq api.NewQuery) error {
 		EvaluatorID: nq.EvaluatorID,
 	}
 
+	cli.StartProgress(" Validating query...")
 	validate, err := cli.LwApi.V2.Query.Validate(vq)
-
+	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, lqlValidateUnableMsg)
 	}
+
 	if cli.JSONOutput() {
 		return cli.OutputJSON(validate.Data)
 	}
-	cli.OutputHuman("Query validated successfully.\n")
+
+	cli.OutputHuman("Query validated successfully. Time for %s\n", randomEmoji())
 	return nil
 }
