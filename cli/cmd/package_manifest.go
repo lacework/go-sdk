@@ -259,31 +259,27 @@ func (c *cliState) GetOSInfo() (*OS, error) {
 		"arch", runtime.GOARCH,
 	)
 
-	_, err := os.Stat(osReleaseFile)
-	if err == nil {
+	if fileExists(osReleaseFile) {
 		c.Log.Debugw("parsing os release file", "file", osReleaseFile)
-		osInfo, parseErr := openOsReleaseFile()
-		return osInfo, parseErr
+		return openOsReleaseFile(osReleaseFile)
 	}
 
-	_, err = os.Stat(sysReleaseFile)
-	if err == nil {
+	if fileExists(sysReleaseFile) {
 		c.Log.Debugw("parsing system release file", "file", sysReleaseFile)
-		osInfo, parseErr := openSystemReleaseFile()
-		return osInfo, parseErr
+		return openSystemReleaseFile(sysReleaseFile)
 	}
 
 	msg := `unsupported platform
 
 For more information about supported platforms, visit:
    https://support.lacework.com/hc/en-us/articles/360049666194-Host-Vulnerability-Assessment-Overview`
-	return osInfo, errors.Wrap(err, msg)
+	return osInfo, errors.New(msg)
 }
 
-func openSystemReleaseFile() (*OS, error) {
+func openSystemReleaseFile(filename string) (*OS, error) {
 	osInfo := new(OS)
 
-	f, err := os.Open(sysReleaseFile)
+	f, err := os.Open(filename)
 
 	if err != nil {
 		return osInfo, err
@@ -304,10 +300,10 @@ func openSystemReleaseFile() (*OS, error) {
 	return osInfo, err
 }
 
-func openOsReleaseFile() (*OS, error) {
+func openOsReleaseFile(filename string) (*OS, error) {
 	osInfo := new(OS)
 
-	f, err := os.Open(osReleaseFile)
+	f, err := os.Open(filename)
 
 	if err != nil {
 		return osInfo, err
