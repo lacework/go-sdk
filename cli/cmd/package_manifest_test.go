@@ -228,7 +228,7 @@ func TestMergeHostVulnScanPkgManifestResponses(t *testing.T) {
 func TestGetOsInfoUnsupported(t *testing.T) {
 	_, err := cli.GetOSInfo()
 	assert.Contains(t, err.Error(),
-		"unsupported platform", // intentional error since we are mocking the api token
+		"unsupported platform",
 	)
 }
 
