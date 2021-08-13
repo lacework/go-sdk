@@ -37,6 +37,7 @@ var (
 		TokenUpdateDesc     string
 		InstallForce        bool
 		InstallSshUser      string
+		InstallSshPort      int
 		InstallAgentToken   string
 		InstallPassword     string
 		InstallIdentityFile string
@@ -135,7 +136,7 @@ To enable a token:
 	}
 
 	agentInstallCmd = &cobra.Command{
-		Use:   "install <[user@]host>",
+		Use:   "install <[user@]host[:port]>",
 		Short: "install the datacollector agent on a remote host",
 		Args:  cobra.ExactArgs(1),
 		Long: `For single host installation of the Lacework agent via Secure Shell (SSH).
@@ -155,6 +156,11 @@ To provide an agent access token of your choice, use the command 'lacework agent
 select a token and pass it to the '--token' flag.
 
     $ lacework agent install <user@host> -i /path/to/your/key --token <token>
+
+To authenticate to the remote host on a non-standard SSH port use the '--ssh_port' flag or
+pass it directly via the argument.
+
+    $ lacework agent install <user@host:port>
     `,
 		RunE: installRemoteAgent,
 	}
@@ -200,6 +206,9 @@ func init() {
 	)
 	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
 		"ssh_username", "", "username to login with",
+	)
+	agentInstallCmd.Flags().IntVar(&agentCmdState.InstallSshPort,
+		"ssh_port", 22, "port to connect to on the remote host",
 	)
 	agentInstallCmd.Flags().BoolVar(&agentCmdState.InstallForce,
 		"force", false, "override any pre-installed agent",
