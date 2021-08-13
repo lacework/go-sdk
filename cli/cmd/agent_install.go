@@ -257,6 +257,11 @@ func verifyHostCallback(host string, remote net.Addr, key ssh.PublicKey) error {
 		return nil
 	}
 
+	if agentCmdState.InstallTrustHostKey {
+		// the user wants to add the new host to known hosts file automatically
+		return lwrunner.AddKnownHost(host, remote, key, "")
+	}
+
 	// ask user to check if he/she trust the host public key
 	if askIsHostTrusted(host, key) {
 		// add the new host to known hosts file.

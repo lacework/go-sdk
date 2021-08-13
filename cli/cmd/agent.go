@@ -38,6 +38,7 @@ var (
 		InstallForce        bool
 		InstallSshUser      string
 		InstallAgentToken   string
+		InstallTrustHostKey bool
 		InstallPassword     string
 		InstallIdentityFile string
 	}{}
@@ -206,6 +207,9 @@ func init() {
 	)
 	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
 		"token", "", "agent access token",
+	)
+	agentInstallCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
+		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
 }
 
