@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -39,18 +40,36 @@ const agentInstallDownloadURL = "https://packages.lacework.net/install.sh"
 func installRemoteAgent(_ *cobra.Command, args []string) error {
 	var (
 		user    = agentCmdState.InstallSshUser
+		port    = agentCmdState.InstallSshPort
 		host    = args[0]
 		authSet = false
 	)
-	// verify if the user specified the username via user@host
+
+	// verify if the user specified the username via "user@host"
 	if strings.Contains(host, "@") {
 		userHost := strings.Split(host, "@")
 		user = userHost[0]
 		host = userHost[1]
 	}
 
+	// verify if the user specified the port via "host:port"
+	if strings.Contains(host, ":") {
+		userHost := strings.Split(host, ":")
+		host = userHost[0]
+		p, err := strconv.Atoi(userHost[1])
+		if err != nil {
+			return errors.Wrap(err, "invalid port")
+		}
+		port = p
+	}
+
 	cli.Log.Debugw("creating runner", "user", user, "host", host)
 	runner := lwrunner.New(user, host, verifyHostCallback)
+
+	if runner.Port != port {
+		cli.Log.Debugw("ssh settings", "port", port)
+		runner.Port = port
+	}
 
 	if runner.User == "" {
 		cli.Log.Debugw("ssh username not set")
