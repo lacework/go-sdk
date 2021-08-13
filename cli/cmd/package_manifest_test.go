@@ -20,6 +20,8 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -222,3 +224,50 @@ func TestMergeHostVulnScanPkgManifestResponses(t *testing.T) {
 		})
 	}
 }
+
+func TestParseOsRelease(t *testing.T) {
+	file, err := ioutil.TempFile("", "os-release")
+	assert.Nil(t, err)
+	_, err = file.WriteString(mockUbuntuOSReleaseFile)
+	assert.Nil(t, err)
+
+	defer os.Remove(file.Name())
+
+	os, err := openOsReleaseFile(file.Name())
+	assert.Nil(t, err)
+	assert.Equal(t, mockUbuntu.Name, os.Name)
+	assert.Equal(t, mockUbuntu.Version, os.Version)
+}
+
+func TestParseSysRelease(t *testing.T) {
+	file, err := ioutil.TempFile("", "system-release")
+	assert.Nil(t, err)
+	_, err = file.WriteString(mockCentosSystemFile)
+	assert.Nil(t, err)
+
+	defer os.Remove(file.Name())
+
+	os, err := openSystemReleaseFile(file.Name())
+	assert.Nil(t, err)
+	assert.Equal(t, mockCentos.Name, os.Name)
+	assert.Equal(t, mockCentos.Version, os.Version)
+}
+
+var (
+	mockCentos              = OS{Name: "centos", Version: "6.10"}
+	mockUbuntu              = OS{Name: "ubuntu", Version: "18.04"}
+	mockCentosSystemFile    = "CentOS release 6.10 (Final)"
+	mockUbuntuOSReleaseFile = `NAME="Ubuntu"
+VERSION="18.04.5 LTS (Bionic Beaver)"
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME="Ubuntu 18.04.5 LTS"
+VERSION_ID="18.04"
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+VERSION_CODENAME=bionic
+UBUNTU_CODENAME=bionic
+`
+)

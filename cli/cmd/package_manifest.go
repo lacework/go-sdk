@@ -42,9 +42,10 @@ type OS struct {
 }
 
 var (
-	osReleaseFile = "/etc/os-release"
-	rexNameFromID = regexp.MustCompile(`^ID=(.*)$`)
-	rexVersionID  = regexp.MustCompile(`^VERSION_ID=(.*)$`)
+	osReleaseFile  = "/etc/os-release"
+	sysReleaseFile = "/etc/system-release"
+	rexNameFromID  = regexp.MustCompile(`^ID=(.*)$`)
+	rexVersionID   = regexp.MustCompile(`^VERSION_ID=(.*)$`)
 )
 
 func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
@@ -258,17 +259,57 @@ func (c *cliState) GetOSInfo() (*OS, error) {
 		"arch", runtime.GOARCH,
 	)
 
-	f, err := os.Open(osReleaseFile)
-	if err != nil {
-		msg := `unsupported platform
+	if fileExists(osReleaseFile) {
+		c.Log.Debugw("parsing os release file", "file", osReleaseFile)
+		return openOsReleaseFile(osReleaseFile)
+	}
+
+	if fileExists(sysReleaseFile) {
+		c.Log.Debugw("parsing system release file", "file", sysReleaseFile)
+		return openSystemReleaseFile(sysReleaseFile)
+	}
+
+	msg := `unsupported platform
 
 For more information about supported platforms, visit:
-    https://support.lacework.com/hc/en-us/articles/360049666194-Host-Vulnerability-Assessment-Overview`
-		return osInfo, errors.New(msg)
+   https://support.lacework.com/hc/en-us/articles/360049666194-Host-Vulnerability-Assessment-Overview`
+	return osInfo, errors.New(msg)
+}
+
+func openSystemReleaseFile(filename string) (*OS, error) {
+	osInfo := new(OS)
+
+	f, err := os.Open(filename)
+
+	if err != nil {
+		return osInfo, err
 	}
+
 	defer f.Close()
 
-	c.Log.Debugw("parsing os release file", "file", osReleaseFile)
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		m := strings.Split(s.Text(), " ")
+		if len(m) > 0 {
+			osInfo.Name = strings.ToLower(m[0])
+			osInfo.Version = strings.ToLower(m[2])
+			break
+		}
+	}
+
+	return osInfo, err
+}
+
+func openOsReleaseFile(filename string) (*OS, error) {
+	osInfo := new(OS)
+
+	f, err := os.Open(filename)
+	if err != nil {
+		return osInfo, err
+	}
+
+	defer f.Close()
+
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		if m := rexNameFromID.FindStringSubmatch(s.Text()); m != nil {
@@ -278,7 +319,7 @@ For more information about supported platforms, visit:
 		}
 	}
 
-	return osInfo, nil
+	return osInfo, err
 }
 
 func (c *cliState) DetectPackageManager() (string, error) {
