@@ -304,7 +304,6 @@ func openOsReleaseFile(filename string) (*OS, error) {
 	osInfo := new(OS)
 
 	f, err := os.Open(filename)
-
 	if err != nil {
 		return osInfo, err
 	}

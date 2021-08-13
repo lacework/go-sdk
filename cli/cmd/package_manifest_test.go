@@ -234,6 +234,7 @@ func TestParseOsRelease(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	os, err := openOsReleaseFile(file.Name())
+	assert.Nil(t, err)
 	assert.Equal(t, mockUbuntu.Name, os.Name)
 	assert.Equal(t, mockUbuntu.Version, os.Version)
 }
@@ -247,6 +248,7 @@ func TestParseSysRelease(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	os, err := openSystemReleaseFile(file.Name())
+	assert.Nil(t, err)
 	assert.Equal(t, mockCentos.Name, os.Name)
 	assert.Equal(t, mockCentos.Version, os.Version)
 }
@@ -267,12 +269,5 @@ BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
 PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
 VERSION_CODENAME=bionic
 UBUNTU_CODENAME=bionic
-`
-	mockAlpineOSReleaseFile = `NAME="Alpine Linux"
-ID=alpine
-VERSION_ID=3.7.0
-PRETTY_NAME="Alpine Linux v3.7"
-HOME_URL="http://alpinelinux.org"
-BUG_REPORT_URL="http://bugs.alpinelinux.org"
 `
 )
