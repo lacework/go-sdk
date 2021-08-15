@@ -36,6 +36,11 @@ There are multiple ways you can create a query:
   * From a local file on disk using the flag '--file'
   * From a URL using the flag '--url'
 
+There are also multiple formats you can use to define a query:
+
+  * Javascript Object Notation (JSON)
+  * YAML Ain't Markup Language (YAML)
+
 To launch your default editor and create a new query.
 
     lacework lql create
@@ -63,10 +68,13 @@ queryText: |-
       }
   }
 
-This query specifies a dataset named 'LW_Global_AWS_CTA_AccessKeyDeleted'. Policy
-evaluation uses this dataset name to identify AWS CloudTrail events that signify
-that an IAM access key was deleted. The query is delimited by '{ }' and contains
-three sections:
+Identifier of the query that executes while running the policy
+
+
+This query specifies an identifier named 'LW_Global_AWS_CTA_AccessKeyDeleted'.
+Policy evaluation uses this dataset (along with the filters) to identify AWS
+CloudTrail events that signify that an IAM access key was deleted. The query
+is delimited by '{ }' and contains three sections:
 
   * Source data is specified in the 'source' clause. The source of data is the
   'CloudTrailRawEvents' dataset. LQL queries generally refer to other datasets,

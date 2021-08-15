@@ -71,7 +71,7 @@ For more information about LQL, visit:
 
 To view all LQL queries in your Lacework account.
 
-    lacework lql ls
+    lacework query ls
 
 To show a query.
 
@@ -96,7 +96,7 @@ To execute a query.
 
 Run a query via ID (uses active profile):
 
-    lacework query run MyQuery --range
+    lacework query run MyQuery --start "-1w@w" --end "@w"
 
 Start and End times are required to run a query:
 

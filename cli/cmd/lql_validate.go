@@ -42,9 +42,14 @@ There are multiple ways you can validate a query:
   * From a local file on disk using the flag '--file'
   * From a URL using the flag '--url'
 
+There are also multiple formats you can use to define a query:
+
+  * Javascript Object Notation (JSON)
+  * YAML Ain't Markup Language (YAML)
+
 To launch your default editor and validate a query.
 
-    lacework lql validate
+    lacework query validate
 `,
 		Args: cobra.NoArgs,
 		RunE: validateQuery,

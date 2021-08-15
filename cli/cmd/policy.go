@@ -52,8 +52,10 @@ var (
 		Short:   "manage policies",
 		Long: `Manage policies in your Lacework account.
 
-A policy is a mechanism used to add annotated metadata to an LQL query for improving
+A policy is a mechanism used to add annotated metadata to a Lacework query for improving
 the context of alerts, reports, and information displayed in the Lacework Console.
+
+A policy also facilitates the scheduled execution of a Lacework query
 
 A query is a mechanism used to interactively request information from a specific
 curated dataset. A query has a defined structure for authoring detections.
