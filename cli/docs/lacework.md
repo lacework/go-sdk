@@ -20,6 +20,7 @@ This will prompt you for your Lacework account and a set of API access keys.
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
       --debug               turn on debug logging
   -h, --help                help for lacework
       --json                switch commands output from human-readable to json format
@@ -41,6 +42,8 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework configure](lacework_configure.md)	 - configure the Lacework CLI
 * [lacework event](lacework_event.md)	 - inspect Lacework events
 * [lacework integration](lacework_integration.md)	 - manage external integrations
+* [lacework policy](lacework_policy.md)	 - manage policies
+* [lacework query](lacework_query.md)	 - run and manage queries
 * [lacework version](lacework_version.md)	 - print the Lacework CLI version
 * [lacework vulnerability](lacework_vulnerability.md)	 - container and host vulnerability assessments
 

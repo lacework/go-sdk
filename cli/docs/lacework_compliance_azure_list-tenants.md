@@ -22,6 +22,7 @@ lacework compliance azure list-tenants [flags]
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
       --debug               turn on debug logging
       --json                switch commands output from human-readable to json format
       --nocache             turn off caching
