@@ -27,6 +27,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -41,40 +42,76 @@ var (
 		URL          string
 	}{}
 
+	policyTableHeaders = []string{
+		"Policy ID", "Evaluator ID", "Severity", "Title", "State", "Alert State", "Frequency", "Query ID"}
+
 	// policyCmd represents the policy parent command
 	policyCmd = &cobra.Command{
-		Use:   "policy",
-		Short: "manage policies",
-		Long: `Manage policies.
+		Use:     "policy",
+		Aliases: []string{"policies"},
+		Short:   "manage policies",
+		Long: `Manage policies in your Lacework account.
 
-NOTE: This feature is not yet available!`,
+A policy is a mechanism used to add annotated metadata to a Lacework query for improving
+the context of alerts, reports, and information displayed in the Lacework Console.
+
+A policy also facilitates the scheduled execution of a Lacework query
+
+A query is a mechanism used to interactively request information from a specific
+curated dataset. A query has a defined structure for authoring detections.
+
+Lacework ships a set of default LQL policies that are available in your account.
+
+Limitations:
+  * The maximum number of records that each policy will return is 1000
+  * The maximum number of API calls is 120 per hour for ad-hoc LQL query executions
+
+To view all the policies in your Lacework account.
+
+    lacework policy ls
+
+To view more details about a single policy.
+
+    lacework policy show <policy_id>
+
+To view the LQL query associated with the policy, use the query id shown.
+
+    lacework query show <query_id>
+
+** NOTE: LQL syntax may change. **
+`,
 	}
 
 	// policyListCmd represents the policy list command
 	policyListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "list policies",
-		Long:  `List policies.`,
-		Args:  cobra.NoArgs,
-		RunE:  listPolicies,
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "list policies",
+		Long:    `List all the registered policies in your Lacework account.`,
+		Args:    cobra.NoArgs,
+		RunE:    listPolicies,
 	}
 
 	// policyListCmd represents the policy list command
 	policyShowCmd = &cobra.Command{
-		Use:   "show <policy_id>",
-		Short: "show policy",
-		Long:  `Show policy.`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  showPolicy,
+		Use:     "show <policy_id>",
+		Aliases: []string{"ls"},
+		Short:   "show policy",
+		Long:    `Show details about a single policy.`,
+		Args:    cobra.ExactArgs(1),
+		RunE:    showPolicy,
 	}
 
 	// policyDeleteCmd represents the policy delete command
 	policyDeleteCmd = &cobra.Command{
 		Use:   "delete <policy_id>",
 		Short: "delete a policy",
-		Long:  `Delete a policy.`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  deletePolicy,
+		Long: `Delete a policy by providing the policy id.
+
+Use the command 'lacework policy list' to list the registered policies in
+your Lacework account.`,
+		Args: cobra.ExactArgs(1),
+		RunE: deletePolicy,
 	}
 )
 
@@ -200,8 +237,6 @@ func inputPolicyFromEditor(action string) (policy string, err error) {
 	return
 }
 
-var policyTableHeaders = []string{"Policy ID", "Evaluator ID", "Severity", "Title", "State", "Alert State", "Frequency", "Query ID"}
-
 func policyTable(policies []api.Policy) (out [][]string) {
 	sevThreshold, _ := severityToProperTypes(policyCmdState.Severity)
 
@@ -256,7 +291,9 @@ func listPolicies(_ *cobra.Command, args []string) error {
 		)
 	}
 
+	cli.StartProgress(" Retrieving policies...")
 	policyResponse, err := cli.LwApi.V2.Policy.List()
+	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to list policies")
 	}
@@ -274,8 +311,9 @@ func listPolicies(_ *cobra.Command, args []string) error {
 
 func showPolicy(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving policy", "policyID", args[0])
-
+	cli.StartProgress(" Retrieving policy...")
 	policyResponse, err := cli.LwApi.V2.Policy.Get(args[0])
+	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to show policy")
 	}
@@ -285,21 +323,56 @@ func showPolicy(_ *cobra.Command, args []string) error {
 	}
 	cli.OutputHuman(
 		renderSimpleTable(policyTableHeaders, policyTable([]api.Policy{policyResponse.Data})))
+	cli.OutputHuman("\n")
+	cli.OutputHuman(buildPolicyDetailsTable(policyResponse.Data))
 	return nil
 }
 
 func deletePolicy(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("deleting policy", "policyID", args[0])
-
-	delete, err := cli.LwApi.V2.Policy.Delete(args[0])
+	cli.StartProgress(" Deleting policy...")
+	deleted, err := cli.LwApi.V2.Policy.Delete(args[0])
+	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to delete policy")
 	}
 
 	if cli.JSONOutput() {
-		return cli.OutputJSON(delete)
+		return cli.OutputJSON(deleted)
 	}
+
 	cli.OutputHuman(
-		fmt.Sprintf("Policy (%s) deleted successfully.\n", args[0]))
+		fmt.Sprintf("The policy %s was deleted.\n", args[0]))
 	return nil
+}
+
+func buildPolicyDetailsTable(policy api.Policy) string {
+	details := [][]string{
+		{"DESCRIPTION", policy.Description},
+		{"REMEDIATION", policy.Remediation},
+		{"POLICY TYPE", policy.PolicyType},
+		{"LIMIT", fmt.Sprintf("%d", policy.Limit)},
+		{"ALERT PROFILE", policy.AlertProfile},
+		{"OWNER", policy.Owner},
+		{"UPDATED AT", policy.LastUpdateTime},
+		{"UPDATED BY", policy.LastUpdateUser},
+		{"EVALUATION FREQUENCY", policy.EvalFrequency},
+		{"POLICY DOMAIN", policy.PolicyUI.Domain},
+		{"POLICY SUBDOMAIN", policy.PolicyUI.Subdomain},
+	}
+
+	return renderOneLineCustomTable("POLICY DETAILS",
+		renderCustomTable([]string{}, details,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+			}),
+		),
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetAutoWrapText(false)
+		}),
+	)
 }

@@ -28,11 +28,12 @@ import (
 var (
 	// queryListCmd represents the lql list command
 	queryListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "list queries",
-		Long:  `List queries.`,
-		Args:  cobra.NoArgs,
-		RunE:  listQueries,
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "list queries",
+		Long:    `List all LQL queries in your Lacework account.`,
+		Args:    cobra.NoArgs,
+		RunE:    listQueries,
 	}
 )
 
@@ -55,18 +56,22 @@ func queryTable(queryData []api.Query) (out [][]string) {
 func listQueries(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("listing queries")
 
+	cli.StartProgress(" Retrieving queries...")
 	queryResponse, err := cli.LwApi.V2.Query.List()
-
+	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to list queries")
 	}
-	if cli.JSONOutput() {
-		return cli.OutputJSON(queryResponse.Data)
-	}
+
 	if len(queryResponse.Data) == 0 {
 		cli.OutputHuman("There were no queries found.")
 		return nil
 	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(queryResponse.Data)
+	}
+
 	cli.OutputHuman(
 		renderSimpleTable(
 			[]string{"Query ID", "Owner", "Last Update Time", "Last Update User"},

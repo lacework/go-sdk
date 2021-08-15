@@ -95,7 +95,7 @@ type Policy struct {
 
 type PolicyUI struct {
 	Domain    string `json:"domain"`
-	SubDomain string `json:"subdomain"`
+	Subdomain string `json:"subdomain"`
 }
 
 type PolicyResponse struct {

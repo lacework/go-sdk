@@ -20,7 +20,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 
 	"github.com/lacework/go-sdk/api"
@@ -41,13 +40,13 @@ A policy identifier is required to update a policy.
 A policy identifier can be specified via:
 1.  A policy update command argument
 
-	lacework policy update my-policy-1
+    lacework policy update my-policy-1
 
 2. The policy update payload
 
 {
-	"policy_id": "my-policy-1",
-	"severity": "critical"
+    "policy_id": "my-policy-1",
+    "severity": "critical"
 }
 
 A policy identifier specifed via command argument will always take precedence over
@@ -114,14 +113,15 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 	}
 
 	cli.Log.Debugw("updating policy", "policy", policyStr)
-
-	var updateResponse api.PolicyResponse
-	if updateResponse, err = cli.LwApi.V2.Policy.Update(updatePolicy); err != nil {
+	cli.StartProgress(" Updating policy...")
+	updateResponse, err := cli.LwApi.V2.Policy.Update(updatePolicy)
+	cli.StopProgress()
+	if err != nil {
 		return errors.Wrap(err, msg)
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(updateResponse.Data)
 	}
-	cli.OutputHuman(fmt.Sprintf("Policy (%s) updated successfully.\n", updateResponse.Data.PolicyID))
+	cli.OutputHuman("The policy %s was updated.\n", updateResponse.Data.PolicyID)
 	return nil
 }

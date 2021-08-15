@@ -90,7 +90,7 @@ var (
 	// integrationShowCmd represents the show sub-command inside the integration command
 	integrationShowCmd = &cobra.Command{
 		Use:   "show <int_guid>",
-		Short: "Show details about a specific external integration",
+		Short: "show details about a specific external integration",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			integration, err := cli.LwApi.Integrations.Get(args[0])
@@ -168,8 +168,9 @@ var (
 	integrationDeleteCmd = &cobra.Command{
 		Use:   "delete <int_guid>",
 		Short: "delete an external integrations",
-		Long: `Delete an external integration by providing its integration GUID. Integration
-GUIDs can be found by using the 'lacework integration list' command.`,
+		Long: `Delete an external integration by providing an integration GUID.
+
+Integration GUIDs can be found by using the 'lacework integration list' command.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			cli.Log.Info("deleting integration", "int_guid", args[0])

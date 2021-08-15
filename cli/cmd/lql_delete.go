@@ -19,8 +19,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -30,9 +28,12 @@ var (
 	queryDeleteCmd = &cobra.Command{
 		Use:   "delete <query_id>",
 		Short: "delete a query",
-		Long:  `Delete a query.`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  deleteQuery,
+		Long: `Delete a single LQL query by providing the query id.
+
+Use the command 'lacework query list' to list the available queries in
+your Lacework account.`,
+		Args: cobra.ExactArgs(1),
+		RunE: deleteQuery,
 	}
 )
 
@@ -44,12 +45,13 @@ func init() {
 func deleteQuery(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("deleting query", "id", args[0])
 
+	cli.StartProgress(" Deleting query...")
 	_, err := cli.LwApi.V2.Query.Delete(args[0])
-
+	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to delete query")
 	}
-	cli.OutputHuman(
-		fmt.Sprintf("Query (%s) deleted successfully.\n", args[0]))
+
+	cli.OutputHuman("The query %s was deleted.\n", args[0])
 	return nil
 }
