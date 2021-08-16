@@ -74,9 +74,10 @@ type cliState struct {
 // NewDefaultState creates a new cliState with some defaults
 func NewDefaultState() *cliState {
 	c := &cliState{
-		id:      newID(),
-		Profile: "default",
-		Log:     lwlogger.New("").Sugar(),
+		id:         newID(),
+		Profile:    "default",
+		CfgVersion: 2,
+		Log:        lwlogger.New("").Sugar(),
 		JsonF: &prettyjson.Formatter{
 			KeyColor:    color.New(color.FgCyan, color.Bold),
 			StringColor: color.New(color.FgGreen, color.Bold),
