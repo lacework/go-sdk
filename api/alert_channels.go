@@ -44,7 +44,7 @@ type AlertChannelsService struct {
 //   }
 //
 //   emailAlertChan := api.NewAlertChannel("foo",
-//     api.EmailUserAlertChannel,
+//     api.EmailUserAlertChannelType,
 //     api.EmailUserData{
 //       ChannelProps: api.EmailUserChannelProps{
 //         Recipients: []string{"name@example.com"},
@@ -79,14 +79,18 @@ type alertChannelType int
 
 const (
 	// type that defines a non-existing Alert Channel integration
-	NoneAlertChannel alertChannelType = iota
-	EmailUserAlertChannel
+	NoneAlertChannelType alertChannelType = iota
+	EmailUserAlertChannelType
+	SlackChannelAlertChannelType
+	AwsS3AlertChannelType
 )
 
-// AlertChannelTypes is the list of available Alert Channel integration types
+// AlertChannelTypeTypes is the list of available Alert Channel integration types
 var AlertChannelTypes = map[alertChannelType]string{
-	NoneAlertChannel:      "None",
-	EmailUserAlertChannel: "EmailUser",
+	NoneAlertChannelType:         "None",
+	EmailUserAlertChannelType:    "EmailUser",
+	SlackChannelAlertChannelType: "SlackChannel",
+	AwsS3AlertChannelType:        "AwsS3",
 }
 
 // String returns the string representation of a Alert Channel integration type
@@ -95,14 +99,14 @@ func (i alertChannelType) String() string {
 }
 
 // FindAlertChannelType looks up inside the list of available alert channel types
-// the matching type from the provided string, if none, returns NoneAlertChannel
+// the matching type from the provided string, if none, returns NoneAlertChannelType
 func FindAlertChannelType(alertChannel string) (alertChannelType, bool) {
 	for cType, cStr := range AlertChannelTypes {
 		if cStr == alertChannel {
 			return cType, true
 		}
 	}
-	return NoneAlertChannel, false
+	return NoneAlertChannelType, false
 }
 
 // List returns a list of Alert Channel integrations

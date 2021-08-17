@@ -31,9 +31,17 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestAlertChannelTypeEmailUser(t *testing.T) {
+func TestAlertChannelTypes(t *testing.T) {
 	assert.Equal(t,
-		"EmailUser", api.EmailUserAlertChannel.String(),
+		"EmailUser", api.EmailUserAlertChannelType.String(),
+		"wrong alert channel type",
+	)
+	assert.Equal(t,
+		"SlackChannel", api.SlackChannelAlertChannelType.String(),
+		"wrong alert channel type",
+	)
+	assert.Equal(t,
+		"AwsS3", api.AwsS3AlertChannelType.String(),
 		"wrong alert channel type",
 	)
 }
@@ -182,12 +190,12 @@ func TestAlertChannelsDelete(t *testing.T) {
 
 func TestAlertChannelsList(t *testing.T) {
 	var (
-		emailAlertChan  = []string{intgguid.New(), intgguid.New(), intgguid.New()}
-		splunkAlertChan = []string{intgguid.New(), intgguid.New()}
-		slackAlertChan  = []string{
+		emailAlertChan = []string{intgguid.New(), intgguid.New(), intgguid.New()}
+		awsS3AlertChan = []string{intgguid.New(), intgguid.New()}
+		slackAlertChan = []string{
 			intgguid.New(), intgguid.New(), intgguid.New(), intgguid.New(),
 		}
-		allGUIDs    = append(splunkAlertChan, append(slackAlertChan, emailAlertChan...)...)
+		allGUIDs    = append(awsS3AlertChan, append(slackAlertChan, emailAlertChan...)...)
 		expectedLen = len(allGUIDs)
 		fakeServer  = lacework.MockServer()
 	)
@@ -198,9 +206,8 @@ func TestAlertChannelsList(t *testing.T) {
 			assert.Equal(t, "GET", r.Method, "List() should be a GET method")
 			alertChannels := []string{
 				generateAlertChannels(emailAlertChan, "EmailUser"),
-				// TODO @afiune come back here and update these Alert Channels types when they exist
-				generateAlertChannels(slackAlertChan, "EmailUser"),  // "SlackChannel"),
-				generateAlertChannels(splunkAlertChan, "EmailUser"), // "SplunkHec"),
+				generateAlertChannels(slackAlertChan, "SlackChannel"),
+				generateAlertChannels(awsS3AlertChan, "AwsS3"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -231,12 +238,12 @@ func generateAlertChannels(guids []string, iType string) string {
 	alertChannels := make([]string, len(guids))
 	for i, guid := range guids {
 		switch iType {
-		case api.EmailUserAlertChannel.String():
+		case api.EmailUserAlertChannelType.String():
 			alertChannels[i] = singleEmailUserAlertChannel(guid)
-			// TODO @afiune come back here and update these Alert Channels types
-			// when they exist
-			//case api.SlackChannelAlertChannel.String():
-			//alertChannels[i] = singleSlackChannelAlertChannel(guid)
+		case api.SlackChannelAlertChannelType.String():
+			alertChannels[i] = singleSlackChannelAlertChannel(guid)
+		case api.AwsS3AlertChannelType.String():
+			alertChannels[i] = singleAwsS3AlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")

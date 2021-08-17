@@ -53,7 +53,7 @@ func createEmailAlertChannelIntegration() error {
 	}
 
 	emailAlertChan := api.NewAlertChannel(answers.Name,
-		api.EmailUserAlertChannel,
+		api.EmailUserAlertChannelType,
 		api.EmailUserData{
 			ChannelProps: api.EmailUserChannelProps{
 				Recipients: strings.Split(answers.Recipients, "\n"),
