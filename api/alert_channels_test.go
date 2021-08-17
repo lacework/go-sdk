@@ -31,9 +31,17 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestAlertChannelTypeEmailUser(t *testing.T) {
+func TestAlertChannelTypes(t *testing.T) {
 	assert.Equal(t,
-		"EmailUser", api.EmailUserAlertChannel.String(),
+		"EmailUser", api.EmailUserAlertChannelType.String(),
+		"wrong alert channel type",
+	)
+	assert.Equal(t,
+		"SlackChannel", api.SlackChannelAlertChannelType.String(),
+		"wrong alert channel type",
+	)
+	assert.Equal(t,
+		"AwsS3", api.AwsS3AlertChannelType.String(),
 		"wrong alert channel type",
 	)
 }
@@ -231,12 +239,10 @@ func generateAlertChannels(guids []string, iType string) string {
 	alertChannels := make([]string, len(guids))
 	for i, guid := range guids {
 		switch iType {
-		case api.EmailUserAlertChannel.String():
+		case api.EmailUserAlertChannelType.String():
 			alertChannels[i] = singleEmailUserAlertChannel(guid)
-			// TODO @afiune come back here and update these Alert Channels types
-			// when they exist
-			//case api.SlackChannelAlertChannel.String():
-			//alertChannels[i] = singleSlackChannelAlertChannel(guid)
+		case api.SlackChannelAlertChannelType.String():
+			alertChannels[i] = singleSlackChannelAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")

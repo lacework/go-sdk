@@ -96,7 +96,7 @@ func TestAlertChannelsEmailUserUpdate(t *testing.T) {
 	assert.Nil(t, err)
 
 	emailAlertChan := api.NewAlertChannel("integration_name",
-		api.EmailUserAlertChannel,
+		api.EmailUserAlertChannelType,
 		api.EmailUserData{
 			ChannelProps: api.EmailUserChannelProps{
 				Recipients: []string{"foo@example.com", "bar@example.com"},
