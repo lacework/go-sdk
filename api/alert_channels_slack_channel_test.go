@@ -18,10 +18,103 @@
 
 package api_test
 
+import (
+	"fmt"
+	"net/http"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/intgguid"
+	"github.com/lacework/go-sdk/internal/lacework"
+)
+
+func TestAlertChannelsGetSlackChannel(t *testing.T) {
+	var (
+		intgGUID   = intgguid.New()
+		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
+		fakeServer = lacework.MockServer()
+	)
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "GET", r.Method, "GetSlackChannel() should be a GET method")
+		fmt.Fprintf(w, generateAlertChannelResponse(singleSlackChannelAlertChannel(intgGUID)))
+	})
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	response, err := c.V2.AlertChannels.GetSlackChannel(intgGUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, intgGUID, response.Data.IntgGuid)
+	assert.Equal(t, "integration_name", response.Data.Name)
+	assert.True(t, response.Data.State.Ok)
+	assert.Contains(t, response.Data.Data.SlackUrl, "https://hooks.slack.com/services/abc/foo/secret123")
+}
+
+func TestAlertChannelsSlackChannelUpdate(t *testing.T) {
+	var (
+		intgGUID   = intgguid.New()
+		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
+		fakeServer = lacework.MockServer()
+	)
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "PATCH", r.Method, "UpdateSlackChannel() should be a PATCH method")
+
+		if assert.NotNil(t, r.Body) {
+			body := httpBodySniffer(r)
+			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
+			assert.Contains(t, body, "integration_name", "cloud account name is missing")
+			assert.Contains(t, body, "SlackChannel", "wrong cloud account type")
+			assert.Contains(t, body, "https://hooks.slack.com/services/abc/foo/secret123", "missing slack url")
+			assert.Contains(t, body, "enabled\":1", "cloud account is not enabled")
+		}
+
+		fmt.Fprintf(w, generateAlertChannelResponse(singleSlackChannelAlertChannel(intgGUID)))
+	})
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	emailAlertChan := api.NewAlertChannel("integration_name",
+		api.SlackChannelAlertChannelType,
+		api.SlackChannelData{
+			SlackUrl: "https://hooks.slack.com/services/abc/foo/secret123",
+		},
+	)
+	assert.Equal(t, "integration_name", emailAlertChan.Name, "SlackChannel cloud account name mismatch")
+	assert.Equal(t, "SlackChannel", emailAlertChan.Type, "a new SlackChannel cloud account should match its type")
+	assert.Equal(t, 1, emailAlertChan.Enabled, "a new SlackChannel cloud account should be enabled")
+	emailAlertChan.IntgGuid = intgGUID
+
+	response, err := c.V2.AlertChannels.UpdateSlackChannel(emailAlertChan)
+	assert.Nil(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, intgGUID, response.Data.IntgGuid)
+	assert.True(t, response.Data.State.Ok)
+	assert.Contains(t, response.Data.Data.SlackUrl, "https://hooks.slack.com/services/abc/foo/secret123")
+}
+
 func singleSlackChannelAlertChannel(id string) string {
 	return `
 {
-  "data": {
     "createdOrUpdatedBy": "salim.afiunemaya@lacework.net",
     "createdOrUpdatedTime": "2021-06-01T18:10:40.745Z",
     "data": {
@@ -30,7 +123,7 @@ func singleSlackChannelAlertChannel(id string) string {
     "enabled": 1,
     "intgGuid": "` + id + `",
     "isOrg": 0,
-    "name": "#tech-ally-notify",
+    "name": "integration_name",
     "state": {
       "details": {},
       "lastSuccessfulTime": 1627895573122,
@@ -38,7 +131,6 @@ func singleSlackChannelAlertChannel(id string) string {
       "ok": true
     },
     "type": "SlackChannel"
-  }
 }
   `
 }
