@@ -51,7 +51,7 @@ func TestCliStateUpdateCommand(t *testing.T) {
 	})
 
 	t.Run("Azure CloudShell Installation", func(t *testing.T) {
-		os.Setenv("POWERSHELL_DISTRIBUTION_CHANNEL", "Cloudshell")
+		os.Setenv("POWERSHELL_DISTRIBUTION_CHANNEL", "CloudShell")
 		defer os.Setenv("POWERSHELL_DISTRIBUTION_CHANNEL", "")
 		assert.Contains(t, cli.UpdateCommand(), "curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash -s -- -d $HOME/bin")
 	})
