@@ -78,7 +78,7 @@ func isGcpCloudShell() bool {
 	return os.Getenv(gcpCloudEnv) == "true"
 }
 
-// isAwsCloudShell uses the native env variable AWS_EXECUTION_ENV="CloudShell"
+// isAwsCloudShell uses the native env variable AWS_EXECUTION_ENV="Cloudshell"
 // to determine if the Lacework CLI is running on AWS cloudshell
 func isAwsCloudShell() bool {
 	return os.Getenv(awsCloudEnv) == "Cloudshell"
