@@ -33,8 +33,9 @@ var promptIconsFunc = func(icons *survey.IconSet) {
 	icons.Question.Text = "▸"
 }
 
-// Env variables found in GCP, AWS and Azure cloudshell
-var (
+// Env variables found in GCP, AWS and Azure cloudshell.
+// Used to determine if cli is running on cloudshell.
+const (
 	gcpCloudEnv   = "CLOUD_SHELL"
 	awsCloudEnv   = "AWS_EXECUTION_ENV"
 	AzureCloudEnv = "POWERSHELL_DISTRIBUTION_CHANNEL"
@@ -49,7 +50,7 @@ func (c *cliState) UpdateCommand() string {
 `
 	}
 
-	if isCloudshell() {
+	if isCloudShell() {
 		return `
   curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash -s -- -d $HOME/bin
 `
@@ -59,6 +60,26 @@ func (c *cliState) UpdateCommand() string {
 `
 }
 
-func isCloudshell() bool {
-	return os.Getenv(gcpCloudEnv) == "true" || os.Getenv(awsCloudEnv) == "Cloudshell" || os.Getenv(AzureCloudEnv) == "CloudShell"
+// isCloudShell uses env variables specific to GCP, AWS and Azure
+// to determine if the Lacework CLI is running on cloudshell
+func isCloudShell() bool {
+	return isAwsCloudShell() || isGcpCloudShell() || isAzureCloudShell()
+}
+
+// isAzureCloudShell uses the native env variable POWERSHELL_DISTRIBUTION_CHANNEL="CloudShell"
+// to determine if the Lacework CLI is running on Azure cloudshell
+func isAzureCloudShell() bool {
+	return os.Getenv(AzureCloudEnv) == "CloudShell"
+}
+
+// isGcpCloudShell uses the native env variable CLOUD_SHELL=true
+// to determine if the Lacework CLI is running on GCP cloudshell
+func isGcpCloudShell() bool {
+	return os.Getenv(gcpCloudEnv) == "true"
+}
+
+// isAwsCloudShell uses the native env variable AWS_EXECUTION_ENV="CloudShell"
+// to determine if the Lacework CLI is running on AWS cloudshell
+func isAwsCloudShell() bool {
+	return os.Getenv(awsCloudEnv) == "Cloudshell"
 }
