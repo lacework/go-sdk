@@ -42,7 +42,6 @@ var (
 		Limit:        nil,
 		AlertEnabled: &falsePtr,
 		AlertProfile: "LW_CloudTrail_Alerts",
-		PolicyUI:     map[string]string{"domain": "AWS", "subdomain": "Cloudtrail"},
 	}
 	updateTestPolicyJSON = fmt.Sprintf(`{
 	"evaluatorId": "%s",
@@ -55,14 +54,10 @@ var (
 	"remediation": "%s",
 	"severity": "%s",
 	"alertEnabled": %t,
-	"alertProfile": "%s",
-	"policyUi": {
-		"domain": "%s",
-		"subdomain": "%s"
-	}
+	"alertProfile": "%s"
 }`, updateTestPolicy.EvaluatorID, updateTestPolicy.PolicyID, updateTestPolicy.PolicyType, updateTestPolicy.QueryID, updateTestPolicy.Title,
 		false, updateTestPolicy.Description, updateTestPolicy.Remediation, updateTestPolicy.Severity, false,
-		updateTestPolicy.AlertProfile, updateTestPolicy.PolicyUI["domain"], updateTestPolicy.PolicyUI["subdomain"])
+		updateTestPolicy.AlertProfile)
 	updatePolicyYAML = fmt.Sprintf(`---
 evaluatorId: %s
 policyId: %s
@@ -75,12 +70,9 @@ remediation: %s
 severity: %s
 alertEnabled: %t
 alertProfile: %s
-policyUi:
-  domain: %s
-  subdomain: %s
 `, updateTestPolicy.EvaluatorID, updateTestPolicy.PolicyID, updateTestPolicy.PolicyType, updateTestPolicy.QueryID, updateTestPolicy.Title,
 		false, updateTestPolicy.Description, updateTestPolicy.Remediation, updateTestPolicy.Severity, false,
-		updateTestPolicy.AlertProfile, updateTestPolicy.PolicyUI["domain"], updateTestPolicy.PolicyUI["subdomain"])
+		updateTestPolicy.AlertProfile)
 	updatePolicyNestedYAML = fmt.Sprintf(`---
 policies:
 - evaluatorId: %s
@@ -94,12 +86,9 @@ policies:
   severity: %s
   alertEnabled: %t
   alertProfile: %s
-  policyUi:
-    domain: %s
-    subdomain: %s
 `, updateTestPolicy.EvaluatorID, updateTestPolicy.PolicyID, updateTestPolicy.PolicyType, updateTestPolicy.QueryID, updateTestPolicy.Title,
 		false, updateTestPolicy.Description, updateTestPolicy.Remediation, updateTestPolicy.Severity, false,
-		updateTestPolicy.AlertProfile, updateTestPolicy.PolicyUI["domain"], updateTestPolicy.PolicyUI["subdomain"])
+		updateTestPolicy.AlertProfile)
 )
 
 type parseUpdatePolicyTest struct {

@@ -45,7 +45,6 @@ var (
 		EvalFrequency: "Hourly",
 		AlertEnabled:  false,
 		AlertProfile:  "LW_CloudTrail_Alerts",
-		PolicyUI:      map[string]string{"domain": "AWS", "subdomain": "Cloudtrail"},
 	}
 	updatePolicy = api.UpdatePolicy{
 		PolicyID: policyID,

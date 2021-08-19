@@ -42,7 +42,6 @@ var (
 		Limit:        0,
 		AlertEnabled: false,
 		AlertProfile: "LW_CloudTrail_Alerts",
-		PolicyUI:     map[string]string{"domain": "AWS", "subdomain": "Cloudtrail"},
 	}
 	newPolicyJSON = fmt.Sprintf(`{
 	"evaluatorId": "%s",
@@ -56,13 +55,10 @@ var (
 	"severity": "%s",
 	"alertEnabled": %t,
 	"alertProfile": "%s",
-	"policyUi": {
-		"domain": "%s",
-		"subdomain": "%s"
 	}
 }`, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
 		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.AlertEnabled,
-		newPolicy.AlertProfile, newPolicy.PolicyUI["domain"], newPolicy.PolicyUI["subdomain"])
+		newPolicy.AlertProfile)
 	newPolicyYAML = fmt.Sprintf(`---
 evaluatorId: %s
 policyId: %s
@@ -75,12 +71,9 @@ remediation: %s
 severity: %s
 alertEnabled: %t
 alertProfile: %s
-policyUi:
-  domain: %s
-  subdomain: %s
 `, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
 		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.AlertEnabled,
-		newPolicy.AlertProfile, newPolicy.PolicyUI["domain"], newPolicy.PolicyUI["subdomain"])
+		newPolicy.AlertProfile)
 	newPolicyNestedYAML = fmt.Sprintf(`---
 policies:
 - evaluatorId: %s
@@ -94,12 +87,9 @@ policies:
   severity: %s
   alertEnabled: %t
   alertProfile: %s
-  policyUi:
-    domain: %s
-    subdomain: %s
 `, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
 		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.AlertEnabled,
-		newPolicy.AlertProfile, newPolicy.PolicyUI["domain"], newPolicy.PolicyUI["subdomain"])
+		newPolicy.AlertProfile)
 )
 
 type parseNewPolicyTest struct {

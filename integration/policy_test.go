@@ -42,9 +42,6 @@ remediation: Check yourself...
 severity: high
 alertEnabled: false
 alertProfile: LW_CloudTrail_Alerts
-policyUi:
-  domain: AWS
-  subdomain: Cloudtrail
 `
 	// nested
 	updatePolicyYAML string = `---
