@@ -386,9 +386,6 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		},
 	}
 
-	cli.StartProgress(" Executing query...")
-	defer cli.StopProgress()
-
 	// query by id
 	if hasCmdArgs {
 		return outputQueryRunResponse(
@@ -406,6 +403,9 @@ func runQueryByID(id string, args []api.ExecuteQueryArgument) (
 	error,
 ) {
 	cli.Log.Debugw("running query", "query", id)
+
+	cli.StartProgress(" Executing query...")
+	defer cli.StopProgress()
 
 	request := api.ExecuteQueryByIDRequest{
 		QueryID:   id,
@@ -428,6 +428,10 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 	if err != nil {
 		return
 	}
+
+	cli.StartProgress(" Executing query...")
+	defer cli.StopProgress()
+
 	// execute query
 	executeQuery := api.ExecuteQueryRequest{
 		Query: api.ExecuteQuery{
