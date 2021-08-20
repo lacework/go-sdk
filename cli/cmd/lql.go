@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -197,6 +198,12 @@ func inputQuery(cmd *cobra.Command) (string, error) {
 	// if running via URL
 	if queryCmdState.URL != "" {
 		return inputQueryFromURL(queryCmdState.URL)
+	}
+	// if running via stdin
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		bytes, err := ioutil.ReadAll(os.Stdin)
+		return string(bytes), err
 	}
 	// if running via editor
 	action := "validate"

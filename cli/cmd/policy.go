@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -182,6 +183,12 @@ func inputPolicy(cmd *cobra.Command) (string, error) {
 	// if running via URL
 	if policyCmdState.URL != "" {
 		return inputPolicyFromURL(policyCmdState.URL)
+	}
+	// if running via stdin
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		bytes, err := ioutil.ReadAll(os.Stdin)
+		return string(bytes), err
 	}
 	// if running via editor
 	action := strings.Split(cmd.Use, " ")[0]
