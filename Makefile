@@ -48,8 +48,8 @@ integration-only:
 		help \
 		integration \
 		migration \
-		policy-disabled \
-		query-disabled \
+		policy \
+		query \
 		version \
 		vulnerability"
 
