@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -204,6 +205,99 @@ func complianceReportRecommendationsTable(recommendations []api.ComplianceRecomm
 			fmt.Sprint(recommend.ResourceCount),
 			fmt.Sprint(recommend.AssessedResourceCount),
 		})
+	}
+
+	sort.Slice(out, func(i, j int) bool {
+		return severityOrder(out[i][3]) < severityOrder(out[j][3])
+	})
+
+	return out
+}
+
+type complianceCSVReportDetails struct {
+	// For clouds with tenant models, supply tenant ID
+	TenantID string
+
+	// For clouds with tenant models, supply tenant name/alias
+	TenantName string
+
+	// Supply the account id for the cloud enviornment
+	AccountID string
+
+	// Supply the account name/alias for the cloud enviornment, if available
+	AccountName string
+
+	// The type of report being rendered
+	ReportType string
+
+	// The time of the report execution
+	ReportTime time.Time
+
+	// Recommendations
+	Recommendations []api.ComplianceRecommendation
+}
+
+func (c complianceCSVReportDetails) GetAccountDetails() []string {
+	accountAlias := c.AccountID
+	if c.AccountName != "" {
+		accountAlias = fmt.Sprintf("%s(%s)", c.AccountName, c.AccountID)
+	}
+
+	tenantAlias := c.TenantID
+	if c.TenantName != "" {
+		tenantAlias = fmt.Sprintf("%s(%s)", c.TenantName, c.TenantID)
+	}
+	out := []string{}
+	if tenantAlias != "" {
+		out = append(out, tenantAlias)
+	}
+
+	if accountAlias != "" {
+		out = append(out, accountAlias)
+	}
+	return out
+}
+
+func (c complianceCSVReportDetails) GetReportMetaData() []string {
+	return append([]string{c.ReportType, c.ReportTime.Format(time.RFC3339)}, c.GetAccountDetails()...)
+}
+
+func (c complianceCSVReportDetails) SortRecommendations() {
+	sort.Slice(c.Recommendations, func(i, j int) bool {
+		return c.Recommendations[i].Category < c.Recommendations[j].Category
+	})
+
+}
+
+func complianceCSVReportRecommendationsTable(details *complianceCSVReportDetails) [][]string {
+	details.SortRecommendations()
+	out := [][]string{}
+
+	for _, recommendation := range details.Recommendations {
+		for _, suppression := range recommendation.Suppressions {
+			out = append(out,
+				append(details.GetReportMetaData(),
+					recommendation.Category,
+					recommendation.RecID,
+					recommendation.Title,
+					"Suppressed",
+					recommendation.SeverityString(),
+					suppression,
+					"",
+					""))
+		}
+		for _, violation := range recommendation.Violations {
+			out = append(out,
+				append(details.GetReportMetaData(),
+					recommendation.Category,
+					recommendation.RecID,
+					recommendation.Title,
+					recommendation.Status,
+					recommendation.SeverityString(),
+					violation.Resource,
+					violation.Region,
+					strings.Join(violation.Reasons, ",")))
+		}
 	}
 
 	sort.Slice(out, func(i, j int) bool {
