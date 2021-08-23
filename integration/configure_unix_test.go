@@ -450,7 +450,7 @@ func runConfigureTestFromDir(t *testing.T, dir string, conditions func(*expect.C
 	}()
 
 	// spawn a new `lacework configure' command
-	cmd := NewLaceworkCLI(dir, args...)
+	cmd := NewLaceworkCLI(dir, nil, args...)
 	cmd.Stdin = console.Tty()
 	cmd.Stdout = console.Tty()
 	cmd.Stderr = console.Tty()
