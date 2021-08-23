@@ -469,7 +469,7 @@ func showContainerAssessmentsWithSha256(sha string) error {
 	cli.Log.Debugw("image assessment", "details", assessment)
 	status := assessment.CheckStatus()
 	switch status {
-	case "Success":
+	case "Success", "Partial":
 		if err := buildVulnContainerAssessmentReports(&assessment.Data); err != nil {
 			return err
 		}
@@ -499,9 +499,8 @@ For more information about supported distributions, visit:
 			"the assessment failed to execute. Use '--debug' to troubleshoot.",
 		)
 	default:
-		return errors.New(
-			"unable to get assessment status from the container image. Use '--debug' to troubleshoot.",
-		)
+		return errors.Errorf(
+			"unable to get status: '%s' from vulnerability scan. Use '--debug' to troubleshoot.", status)
 	}
 
 	if vulFailureFlagsEnabled() {

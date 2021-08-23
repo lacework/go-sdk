@@ -57,7 +57,7 @@ func TestQueryCreateFile(t *testing.T) {
 
 	// create
 	out, stderr, exitcode := cleanAndCreateQuery(queryID, "query", "create", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("Query (%s) created successfully.", queryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("The query %s was created.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
@@ -74,7 +74,7 @@ func TestQueryCreateFile(t *testing.T) {
 
 	// delete
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "delete", queryID)
-	assert.Contains(t, out.String(), fmt.Sprintf("Query (%s) deleted successfully.", queryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("The query %s was deleted.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

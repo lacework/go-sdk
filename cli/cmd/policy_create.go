@@ -51,9 +51,6 @@ severity: high
 evalFrequency: Daily
 alertEnabled: false
 alertProfile: LW_CloudTrail_Alerts
-policyUi:
-  domain: AWS
-  subdomain: Cloudtrail
 `,
 		Args: cobra.NoArgs,
 		RunE: createPolicy,
