@@ -62,7 +62,7 @@ func TestQueryUpdateFile(t *testing.T) {
 
 	// update
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "update", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("Query (%s) updated successfully.", queryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("The query %s was updated.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
@@ -90,7 +90,7 @@ func TestQueryUpdateURL(t *testing.T) {
 
 	// update
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "update", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("Query (%s) updated successfully.", queryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("The query %s was updated.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 

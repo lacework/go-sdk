@@ -357,8 +357,6 @@ func buildPolicyDetailsTable(policy api.Policy) string {
 		{"UPDATED AT", policy.LastUpdateTime},
 		{"UPDATED BY", policy.LastUpdateUser},
 		{"EVALUATION FREQUENCY", policy.EvalFrequency},
-		{"POLICY DOMAIN", policy.PolicyUI.Domain},
-		{"POLICY SUBDOMAIN", policy.PolicyUI.Subdomain},
 	}
 
 	return renderOneLineCustomTable("POLICY DETAILS",

@@ -42,9 +42,6 @@ remediation: Check yourself...
 severity: high
 alertEnabled: false
 alertProfile: LW_CloudTrail_Alerts
-policyUi:
-  domain: AWS
-  subdomain: Cloudtrail
 `
 	// nested
 	updatePolicyYAML string = `---
@@ -127,7 +124,7 @@ func TestPolicyCreateFile(t *testing.T) {
 	// but the policy API is completely jacked up with respect to persisting a policyID as code
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "update", policyID, "-u", policyURL)
 	assert.Contains(t, out.String(),
-		fmt.Sprintf("Policy (%s) updated successfully.", policyID))
+		fmt.Sprintf("The policy %s was updated.", policyID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
@@ -148,7 +145,7 @@ func TestPolicyCreateFile(t *testing.T) {
 	// delete
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
 	assert.Contains(t, out.String(),
-		fmt.Sprintf("Policy (%s) deleted successfully.", policyID))
+		fmt.Sprintf("The policy %s was deleted.", policyID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
@@ -168,7 +165,7 @@ func TestPolicyCreateURL(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Contains(t, out.String(),
-		fmt.Sprintf("Policy (%s) created successfully.", policyID))
+		fmt.Sprintf("The policy %s was created.", policyID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
