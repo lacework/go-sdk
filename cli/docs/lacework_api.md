@@ -22,7 +22,7 @@ To list all available Lacework schema types:
 
     lacework api get /v2/schemas
 
-For a complete list of available API v1 endpoints visit:
+For a complete list of available API v2 endpoints visit:
 
     https://<ACCOUNT>.lacework.net/api/v2/docs
 
