@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -66,11 +67,16 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 				}
 
 				if err := cli.NewClient(); err != nil {
-					return err
+					if !strings.Contains(err.Error(), "Invalid Account") {
+						return err
+					}
+
+					if err := cli.Migrations(); err != nil {
+						return err
+					}
 				}
 
-				// @afiune execute any necessary migration, if any
-				return cli.Migrations()
+				return nil
 			}
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
