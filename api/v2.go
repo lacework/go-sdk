@@ -28,6 +28,7 @@ type V2Endpoints struct {
 	AlertChannels       *AlertChannelsService
 	CloudAccounts       *CloudAccountsService
 	ContainerRegistries *ContainerRegistriesService
+	ResourceGroups      *ResourceGroupsService
 	AgentAccessTokens   *AgentAccessTokensService
 	Query               *QueryService
 	Policy              *PolicyService
@@ -40,6 +41,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&AlertChannelsService{c},
 		&CloudAccountsService{c},
 		&ContainerRegistriesService{c},
+		&ResourceGroupsService{c},
 		&AgentAccessTokensService{c},
 		&QueryService{c},
 		&PolicyService{c},
@@ -50,6 +52,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		AlertChannels:       &AlertChannelsService{c},
 		CloudAccounts:       &CloudAccountsService{c},
 		ContainerRegistries: &ContainerRegistriesService{c},
+		ResourceGroups:      &ResourceGroupsService{c},
 	}
 	return v2
 }
