@@ -103,7 +103,7 @@ func NewResourceGroup(name string, iType ResourceGroupType, props interface{}) R
 	}
 }
 
-// FindResourceGroupType looks up inside the list of available cloud account types
+// FindResourceGroupType looks up inside the list of available resource group types
 // the matching type from the provided string, if none, returns NoneResourceGroup
 func FindResourceGroupType(resourceGroup string) (ResourceGroupType, bool) {
 	for resType, resStr := range ResourceGroupTypes {
