@@ -18,6 +18,8 @@
 
 package api
 
+import "encoding/json"
+
 // GetAzureResourceGroup gets a single Azure ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetAzureResourceGroup(guid string) (
@@ -37,18 +39,26 @@ func (svc *ResourceGroupsService) UpdateAzureResourceGroup(data ResourceGroup) (
 	return
 }
 
+func (group *AzureResourceGroupData) GetProps() (props AzureResourceGroupProps) {
+	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+	if err != nil {
+		return AzureResourceGroupProps{}
+	}
+	return
+}
+
 type AzureResourceGroupResponse struct {
 	Data AzureResourceGroupData `json:"data"`
 }
 
 type AzureResourceGroupData struct {
-	Guid         string                  `json:"guid,omitempty"`
-	IsDefault    string                  `json:"isDefault,omitempty"`
-	ResourceGuid string                  `json:"resourceGuid,omitempty"`
-	Name         string                  `json:"resourceName"`
-	Type         string                  `json:"resourceType"`
-	Enabled      int                     `json:"enabled,omitempty"`
-	Props        AzureResourceGroupProps `json:"props"`
+	Guid         string      `json:"guid,omitempty"`
+	IsDefault    string      `json:"isDefault,omitempty"`
+	ResourceGuid string      `json:"resourceGuid,omitempty"`
+	Name         string      `json:"resourceName"`
+	Type         string      `json:"resourceType"`
+	Enabled      int         `json:"enabled,omitempty"`
+	Props        interface{} `json:"props"`
 }
 
 type AzureResourceGroupProps struct {

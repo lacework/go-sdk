@@ -18,6 +18,8 @@
 
 package api
 
+import "encoding/json"
+
 // GetGcpResourceGroup gets a single Gcp ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetGcpResourceGroup(guid string) (
@@ -37,18 +39,26 @@ func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
 	return
 }
 
+func (group *GcpResourceGroupData) GetProps() (props GcpResourceGroupProps) {
+	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+	if err != nil {
+		return GcpResourceGroupProps{}
+	}
+	return
+}
+
 type GcpResourceGroupResponse struct {
 	Data GcpResourceGroupData `json:"data"`
 }
 
 type GcpResourceGroupData struct {
-	Guid         string                `json:"guid,omitempty"`
-	IsDefault    string                `json:"isDefault,omitempty"`
-	ResourceGuid string                `json:"resourceGuid,omitempty"`
-	Name         string                `json:"resourceName"`
-	Type         string                `json:"resourceType"`
-	Enabled      int                   `json:"enabled,omitempty"`
-	Props        GcpResourceGroupProps `json:"props"`
+	Guid         string      `json:"guid,omitempty"`
+	IsDefault    string      `json:"isDefault,omitempty"`
+	ResourceGuid string      `json:"resourceGuid,omitempty"`
+	Name         string      `json:"resourceName"`
+	Type         string      `json:"resourceType"`
+	Enabled      int         `json:"enabled,omitempty"`
+	Props        interface{} `json:"props"`
 }
 
 type GcpResourceGroupProps struct {

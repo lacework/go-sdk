@@ -18,6 +18,8 @@
 
 package api
 
+import "encoding/json"
+
 // GetContainerResourceGroup gets a single LwAccount ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetLwAccountResourceGroup(guid string) (
@@ -37,18 +39,26 @@ func (svc *ResourceGroupsService) UpdateLwAccountResourceGroup(data ResourceGrou
 	return
 }
 
+func (group *LwAccountResourceGroupData) GetProps() (props LwAccountResourceGroupProps) {
+	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+	if err != nil {
+		return LwAccountResourceGroupProps{}
+	}
+	return
+}
+
 type LwAccountResourceGroupResponse struct {
 	Data LwAccountResourceGroupData `json:"data"`
 }
 
 type LwAccountResourceGroupData struct {
-	Guid         string                      `json:"guid,omitempty"`
-	IsDefault    string                      `json:"isDefault,omitempty"`
-	ResourceGuid string                      `json:"resourceGuid,omitempty"`
-	Name         string                      `json:"resourceName"`
-	Type         string                      `json:"resourceType"`
-	Enabled      int                         `json:"enabled,omitempty"`
-	Props        LwAccountResourceGroupProps `json:"props"`
+	Guid         string      `json:"guid,omitempty"`
+	IsDefault    string      `json:"isDefault,omitempty"`
+	ResourceGuid string      `json:"resourceGuid,omitempty"`
+	Name         string      `json:"resourceName"`
+	Type         string      `json:"resourceType"`
+	Enabled      int         `json:"enabled,omitempty"`
+	Props        interface{} `json:"props"`
 }
 
 type LwAccountResourceGroupProps struct {

@@ -18,6 +18,8 @@
 
 package api
 
+import "encoding/json"
+
 // GetMachineResourceGroup gets a single Machine ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetMachineResourceGroup(guid string) (
@@ -37,18 +39,26 @@ func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup)
 	return
 }
 
+func (group *MachineResourceGroupData) GetProps() (props MachineResourceGroupProps) {
+	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+	if err != nil {
+		return MachineResourceGroupProps{}
+	}
+	return
+}
+
 type MachineResourceGroupResponse struct {
 	Data MachineResourceGroupData `json:"data"`
 }
 
 type MachineResourceGroupData struct {
-	Guid         string                    `json:"guid,omitempty"`
-	IsDefault    string                    `json:"isDefault,omitempty"`
-	ResourceGuid string                    `json:"resourceGuid,omitempty"`
-	Name         string                    `json:"resourceName"`
-	Type         string                    `json:"resourceType"`
-	Enabled      int                       `json:"enabled,omitempty"`
-	Props        MachineResourceGroupProps `json:"props"`
+	Guid         string      `json:"guid,omitempty"`
+	IsDefault    string      `json:"isDefault,omitempty"`
+	ResourceGuid string      `json:"resourceGuid,omitempty"`
+	Name         string      `json:"resourceName"`
+	Type         string      `json:"resourceType"`
+	Enabled      int         `json:"enabled,omitempty"`
+	Props        interface{} `json:"props"`
 }
 
 type MachineResourceGroupProps struct {

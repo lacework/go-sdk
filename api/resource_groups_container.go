@@ -18,6 +18,8 @@
 
 package api
 
+import "encoding/json"
+
 // GetContainerResourceGroup gets a single Container ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetContainerResourceGroup(guid string) (
@@ -37,18 +39,26 @@ func (svc *ResourceGroupsService) UpdateContainerResourceGroup(data ResourceGrou
 	return
 }
 
+func (group *ContainerResourceGroupData) GetProps() (props ContainerResourceGroupProps) {
+	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+	if err != nil {
+		return ContainerResourceGroupProps{}
+	}
+	return
+}
+
 type ContainerResourceGroupResponse struct {
 	Data ContainerResourceGroupData `json:"data"`
 }
 
 type ContainerResourceGroupData struct {
-	Guid         string                      `json:"guid,omitempty"`
-	IsDefault    string                      `json:"isDefault,omitempty"`
-	ResourceGuid string                      `json:"resourceGuid,omitempty"`
-	Name         string                      `json:"resourceName"`
-	Type         string                      `json:"resourceType"`
-	Enabled      int                         `json:"enabled,omitempty"`
-	Props        ContainerResourceGroupProps `json:"props"`
+	Guid         string      `json:"guid,omitempty"`
+	IsDefault    string      `json:"isDefault,omitempty"`
+	ResourceGuid string      `json:"resourceGuid,omitempty"`
+	Name         string      `json:"resourceName"`
+	Type         string      `json:"resourceType"`
+	Enabled      int         `json:"enabled,omitempty"`
+	Props        interface{} `json:"props"`
 }
 
 type ContainerResourceGroupProps struct {

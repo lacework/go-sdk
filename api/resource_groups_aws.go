@@ -39,6 +39,14 @@ func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
 	return
 }
 
+func (group *AwsResourceGroupData) GetProps() (props AwsResourceGroupProps) {
+	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+	if err != nil {
+		return AwsResourceGroupProps{}
+	}
+	return
+}
+
 type AwsResourceGroupResponse struct {
 	Data AwsResourceGroupData `json:"data"`
 }
@@ -51,14 +59,6 @@ type AwsResourceGroupData struct {
 	Type         string      `json:"resourceType"`
 	Enabled      int         `json:"enabled,omitempty"`
 	Props        interface{} `json:"props"`
-}
-
-func (group *AwsResourceGroupData) GetProps() (props AwsResourceGroupProps) {
-	err := json.Unmarshal([]byte(group.Props.(string)), &props)
-	if err != nil {
-		return props
-	}
-	return
 }
 
 type AwsResourceGroupProps struct {
