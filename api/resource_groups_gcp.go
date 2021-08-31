@@ -26,8 +26,13 @@ func (svc *ResourceGroupsService) GetGcpResourceGroup(guid string) (
 	response GcpResourceGroupResponse,
 	err error,
 ) {
-	err = svc.get(guid, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.get(guid, &rawResponse)
+	if err != nil {
+		return GcpResourceGroupResponse{}, err
+	}
+
+	return convertGcpResponse(rawResponse)
 }
 
 // UpdateGcpResourceGroup updates a single Gcp ResourceGroup on the Lacework Server
@@ -39,11 +44,29 @@ func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
 	return
 }
 
-func (group *GcpResourceGroupData) GetProps() (props GcpResourceGroupProps) {
-	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+func convertGcpResponse(rawResponse ResourceGroupResponse) (gcpResponse GcpResourceGroupResponse, err error) {
+	var props GcpResourceGroupProps
+	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
 	if err != nil {
-		return GcpResourceGroupProps{}
+		return GcpResourceGroupResponse{}, err
 	}
+
+	gcpResponse, err = castGcpResponse(rawResponse)
+	if err != nil {
+		return GcpResourceGroupResponse{}, err
+	}
+
+	gcpResponse.Data.Props = props
+	return gcpResponse, nil
+}
+
+func castGcpResponse(res interface{}) (r GcpResourceGroupResponse, err error) {
+	var j []byte
+	j, err = json.Marshal(res)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(j, &r)
 	return
 }
 
@@ -52,19 +75,19 @@ type GcpResourceGroupResponse struct {
 }
 
 type GcpResourceGroupData struct {
-	Guid         string      `json:"guid,omitempty"`
-	IsDefault    string      `json:"isDefault,omitempty"`
-	ResourceGuid string      `json:"resourceGuid,omitempty"`
-	Name         string      `json:"resourceName"`
-	Type         string      `json:"resourceType"`
-	Enabled      int         `json:"enabled,omitempty"`
-	Props        interface{} `json:"props"`
+	Guid         string                `json:"guid,omitempty"`
+	IsDefault    string                `json:"isDefault,omitempty"`
+	ResourceGuid string                `json:"resourceGuid,omitempty"`
+	Name         string                `json:"resourceName"`
+	Type         string                `json:"resourceType"`
+	Enabled      int                   `json:"enabled,omitempty"`
+	Props        GcpResourceGroupProps `json:"props"`
 }
 
 type GcpResourceGroupProps struct {
 	Description  string   `json:"DESCRIPTION,omitempty"`
-	Organization string   `json:"ORGANIZATION,omitempty"`
-	Projects     []string `json:"PROJECTS,omitempty"`
+	Organization string   `json:"ORGANIZATION"`
+	Projects     []string `json:"PROJECTS"`
 	UpdatedBy    string   `json:"UPDATED_BY,omitempty"`
 	LastUpdated  int      `json:"LAST_UPDATED,omitempty"`
 }

@@ -26,8 +26,13 @@ func (svc *ResourceGroupsService) GetMachineResourceGroup(guid string) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {
-	err = svc.get(guid, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.get(guid, &rawResponse)
+	if err != nil {
+		return MachineResourceGroupResponse{}, err
+	}
+
+	return convertMachineResponse(rawResponse)
 }
 
 // UpdateMachineResourceGroup updates a single Machine ResourceGroup on the Lacework Server
@@ -39,11 +44,29 @@ func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup)
 	return
 }
 
-func (group *MachineResourceGroupData) GetProps() (props MachineResourceGroupProps) {
-	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+func convertMachineResponse(rawResponse ResourceGroupResponse) (machineResponse MachineResourceGroupResponse, err error) {
+	var props MachineResourceGroupProps
+	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
 	if err != nil {
-		return MachineResourceGroupProps{}
+		return MachineResourceGroupResponse{}, err
 	}
+
+	machineResponse, err = castMachineResponse(rawResponse)
+	if err != nil {
+		return MachineResourceGroupResponse{}, err
+	}
+
+	machineResponse.Data.Props = props
+	return machineResponse, nil
+}
+
+func castMachineResponse(res interface{}) (r MachineResourceGroupResponse, err error) {
+	var j []byte
+	j, err = json.Marshal(res)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(j, &r)
 	return
 }
 
@@ -52,18 +75,18 @@ type MachineResourceGroupResponse struct {
 }
 
 type MachineResourceGroupData struct {
-	Guid         string      `json:"guid,omitempty"`
-	IsDefault    string      `json:"isDefault,omitempty"`
-	ResourceGuid string      `json:"resourceGuid,omitempty"`
-	Name         string      `json:"resourceName"`
-	Type         string      `json:"resourceType"`
-	Enabled      int         `json:"enabled,omitempty"`
-	Props        interface{} `json:"props"`
+	Guid         string                    `json:"guid,omitempty"`
+	IsDefault    string                    `json:"isDefault,omitempty"`
+	ResourceGuid string                    `json:"resourceGuid,omitempty"`
+	Name         string                    `json:"resourceName"`
+	Type         string                    `json:"resourceType"`
+	Enabled      int                       `json:"enabled,omitempty"`
+	Props        MachineResourceGroupProps `json:"props"`
 }
 
 type MachineResourceGroupProps struct {
 	Description string              `json:"DESCRIPTION,omitempty"`
-	MachineTags []map[string]string `json:"MACHINE_TAGS,omitempty"`
+	MachineTags []map[string]string `json:"MACHINE_TAGS"`
 	UpdatedBy   string              `json:"UPDATED_BY,omitempty"`
 	LastUpdated int                 `json:"LAST_UPDATED,omitempty"`
 }

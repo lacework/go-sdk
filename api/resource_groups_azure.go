@@ -26,8 +26,13 @@ func (svc *ResourceGroupsService) GetAzureResourceGroup(guid string) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
-	err = svc.get(guid, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.get(guid, &rawResponse)
+	if err != nil {
+		return AzureResourceGroupResponse{}, err
+	}
+
+	return convertAzureResponse(rawResponse)
 }
 
 // UpdateAzureResourceGroup updates a single Azure ResourceGroup on the Lacework Server
@@ -39,11 +44,29 @@ func (svc *ResourceGroupsService) UpdateAzureResourceGroup(data ResourceGroup) (
 	return
 }
 
-func (group *AzureResourceGroupData) GetProps() (props AzureResourceGroupProps) {
-	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+func convertAzureResponse(rawResponse ResourceGroupResponse) (azureResponse AzureResourceGroupResponse, err error) {
+	var props AzureResourceGroupProps
+	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
 	if err != nil {
-		return AzureResourceGroupProps{}
+		return AzureResourceGroupResponse{}, err
 	}
+
+	azureResponse, err = castAzureResponse(rawResponse)
+	if err != nil {
+		return AzureResourceGroupResponse{}, err
+	}
+
+	azureResponse.Data.Props = props
+	return azureResponse, nil
+}
+
+func castAzureResponse(res interface{}) (r AzureResourceGroupResponse, err error) {
+	var j []byte
+	j, err = json.Marshal(res)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(j, &r)
 	return
 }
 
@@ -52,19 +75,19 @@ type AzureResourceGroupResponse struct {
 }
 
 type AzureResourceGroupData struct {
-	Guid         string      `json:"guid,omitempty"`
-	IsDefault    string      `json:"isDefault,omitempty"`
-	ResourceGuid string      `json:"resourceGuid,omitempty"`
-	Name         string      `json:"resourceName"`
-	Type         string      `json:"resourceType"`
-	Enabled      int         `json:"enabled,omitempty"`
-	Props        interface{} `json:"props"`
+	Guid         string                  `json:"guid,omitempty"`
+	IsDefault    string                  `json:"isDefault,omitempty"`
+	ResourceGuid string                  `json:"resourceGuid,omitempty"`
+	Name         string                  `json:"resourceName"`
+	Type         string                  `json:"resourceType"`
+	Enabled      int                     `json:"enabled,omitempty"`
+	Props        AzureResourceGroupProps `json:"props"`
 }
 
 type AzureResourceGroupProps struct {
 	Description   string   `json:"DESCRIPTION,omitempty"`
-	Tenant        string   `json:"TENANT,omitempty"`
-	Subscriptions []string `json:"SUBSCRIPTIONS,omitempty"`
+	Tenant        string   `json:"TENANT"`
+	Subscriptions []string `json:"SUBSCRIPTIONS"`
 	UpdatedBy     string   `json:"UPDATED_BY,omitempty"`
 	LastUpdated   int      `json:"LAST_UPDATED,omitempty"`
 }

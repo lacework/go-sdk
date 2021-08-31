@@ -57,8 +57,8 @@ func TestResourceGroupLwAccountGet(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
 	assert.Equal(t, "group_name", response.Data.Name)
-	assert.Equal(t, "All Lacework Accounts", response.Data.GetProps().Description)
-	assert.Equal(t, []string{"*"}, response.Data.GetProps().LwAccounts)
+	assert.Equal(t, "All Lacework Accounts", response.Data.Props.Description)
+	assert.Equal(t, []string{"*"}, response.Data.Props.LwAccounts)
 }
 
 func TestResourceGroupsLwAccountUpdate(t *testing.T) {

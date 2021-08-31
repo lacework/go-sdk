@@ -57,9 +57,9 @@ func TestResourceGroupContainerGet(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
 	assert.Equal(t, "group_name", response.Data.Name)
-	assert.Equal(t, "All Container Labels", response.Data.GetProps().Description)
-	assert.Equal(t, []string{"*"}, response.Data.GetProps().ContainerTags)
-	assert.Equal(t, []map[string]string{{"*": "*"}}, response.Data.GetProps().ContainerLabels)
+	assert.Equal(t, "All Container Labels", response.Data.Props.Description)
+	assert.Equal(t, []string{"*"}, response.Data.Props.ContainerTags)
+	assert.Equal(t, []map[string]string{{"*": "*"}}, response.Data.Props.ContainerLabels)
 }
 
 func TestResourceGroupsContainerUpdate(t *testing.T) {

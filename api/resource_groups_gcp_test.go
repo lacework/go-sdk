@@ -57,9 +57,9 @@ func TestResourceGroupGcpGet(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
 	assert.Equal(t, "group_name", response.Data.Name)
-	assert.Equal(t, "All Organizations and Projects", response.Data.GetProps().Description)
-	assert.Equal(t, []string{"*"}, response.Data.GetProps().Projects)
-	assert.Equal(t, "*", response.Data.GetProps().Organization)
+	assert.Equal(t, "All Organizations and Projects", response.Data.Props.Description)
+	assert.Equal(t, []string{"*"}, response.Data.Props.Projects)
+	assert.Equal(t, "*", response.Data.Props.Organization)
 }
 
 func TestResourceGroupsGcpUpdate(t *testing.T) {

@@ -92,14 +92,12 @@ func (i ResourceGroupType) String() string {
 //
 //   client.V2.ResourceGroups.Create(group)
 //
-func NewResourceGroup(name string, iType ResourceGroupType, props interface{}) ResourceGroupRaw {
-	return ResourceGroupRaw{
-		ResourceGroupData: ResourceGroupData{
-			Name:    name,
-			Type:    iType.String(),
-			Enabled: 1,
-			Props:   props,
-		},
+func NewResourceGroup(name string, iType ResourceGroupType, props interface{}) ResourceGroupData {
+	return ResourceGroupData{
+		Name:    name,
+		Type:    iType.String(),
+		Enabled: 1,
+		Props:   props,
 	}
 }
 
@@ -121,7 +119,7 @@ func (svc *ResourceGroupsService) List() (response ResourceGroupsResponse, err e
 }
 
 // Create creates a single Resource Group
-func (svc *ResourceGroupsService) Create(integration ResourceGroupRaw) (
+func (svc *ResourceGroupsService) Create(integration ResourceGroupData) (
 	response ResourceGroupsResponse,
 	err error,
 ) {
@@ -180,20 +178,16 @@ func (group ResourceGroupData) ResourceGroupType() ResourceGroupType {
 	return t
 }
 
-type ResourceGroupRaw struct {
-	ResourceGroupData
+func (group ResourceGroupData) ID() string {
+	return group.ResourceGuid
 }
 
 type ResourceGroupResponse struct {
-	Data ResourceGroupRaw `json:"data"`
+	Data ResourceGroupData `json:"data"`
 }
 
 type ResourceGroupsResponse struct {
 	Data []ResourceGroupData `json:"data"`
-}
-
-func (group ResourceGroupData) ID() string {
-	return group.ResourceGuid
 }
 
 type ResourceGroupData struct {

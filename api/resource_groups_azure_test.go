@@ -57,9 +57,9 @@ func TestResourceGroupAzureGet(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
 	assert.Equal(t, "group_name", response.Data.Name)
-	assert.Equal(t, "All Tenants and Subscriptions", response.Data.GetProps().Description)
-	assert.Equal(t, []string{"*"}, response.Data.GetProps().Subscriptions)
-	assert.Equal(t, "*", response.Data.GetProps().Tenant)
+	assert.Equal(t, "All Tenants and Subscriptions", response.Data.Props.Description)
+	assert.Equal(t, []string{"*"}, response.Data.Props.Subscriptions)
+	assert.Equal(t, "*", response.Data.Props.Tenant)
 }
 
 func TestResourceGroupsAzureUpdate(t *testing.T) {

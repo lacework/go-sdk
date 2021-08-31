@@ -26,8 +26,13 @@ func (svc *ResourceGroupsService) GetAwsResourceGroup(guid string) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
-	err = svc.get(guid, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.get(guid, &rawResponse)
+	if err != nil {
+		return AwsResourceGroupResponse{}, err
+	}
+
+	return convertAwsResponse(rawResponse)
 }
 
 // UpdateAwsResourceGroup updates a single Aws ResourceGroup on the Lacework Server
@@ -39,11 +44,29 @@ func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
 	return
 }
 
-func (group *AwsResourceGroupData) GetProps() (props AwsResourceGroupProps) {
-	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+func convertAwsResponse(rawResponse ResourceGroupResponse) (awsResponse AwsResourceGroupResponse, err error) {
+	var props AwsResourceGroupProps
+	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
 	if err != nil {
-		return AwsResourceGroupProps{}
+		return AwsResourceGroupResponse{}, err
 	}
+
+	awsResponse, err = castAwsResponse(rawResponse)
+	if err != nil {
+		return AwsResourceGroupResponse{}, err
+	}
+
+	awsResponse.Data.Props = props
+	return awsResponse, nil
+}
+
+func castAwsResponse(res interface{}) (r AwsResourceGroupResponse, err error) {
+	var j []byte
+	j, err = json.Marshal(res)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(j, &r)
 	return
 }
 
@@ -52,18 +75,18 @@ type AwsResourceGroupResponse struct {
 }
 
 type AwsResourceGroupData struct {
-	Guid         string      `json:"guid,omitempty"`
-	IsDefault    string      `json:"isDefault,omitempty"`
-	ResourceGuid string      `json:"resourceGuid,omitempty"`
-	Name         string      `json:"resourceName"`
-	Type         string      `json:"resourceType"`
-	Enabled      int         `json:"enabled,omitempty"`
-	Props        interface{} `json:"props"`
+	Guid         string                `json:"guid,omitempty"`
+	IsDefault    string                `json:"isDefault,omitempty"`
+	ResourceGuid string                `json:"resourceGuid,omitempty"`
+	Name         string                `json:"resourceName"`
+	Type         string                `json:"resourceType"`
+	Enabled      int                   `json:"enabled,omitempty"`
+	Props        AwsResourceGroupProps `json:"props"`
 }
 
 type AwsResourceGroupProps struct {
 	Description string   `json:"DESCRIPTION,omitempty"`
-	AccountIDs  []string `json:"ACCOUNT_IDS,omitempty"`
+	AccountIDs  []string `json:"ACCOUNT_IDS"`
 	UpdatedBy   string   `json:"UPDATED_BY,omitempty"`
 	LastUpdated int      `json:"LAST_UPDATED,omitempty"`
 }

@@ -57,8 +57,8 @@ func TestResourceGroupMachineGet(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
 	assert.Equal(t, "group_name", response.Data.Name)
-	assert.Equal(t, "All Machine Tags", response.Data.GetProps().Description)
-	assert.Equal(t, []map[string]string{{"*": "*"}}, response.Data.GetProps().MachineTags)
+	assert.Equal(t, "All Machine Tags", response.Data.Props.Description)
+	assert.Equal(t, []map[string]string{{"*": "*"}}, response.Data.Props.MachineTags)
 }
 
 func TestResourceGroupsMachineUpdate(t *testing.T) {

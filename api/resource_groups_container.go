@@ -26,8 +26,13 @@ func (svc *ResourceGroupsService) GetContainerResourceGroup(guid string) (
 	response ContainerResourceGroupResponse,
 	err error,
 ) {
-	err = svc.get(guid, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.get(guid, &rawResponse)
+	if err != nil {
+		return ContainerResourceGroupResponse{}, err
+	}
+
+	return convertContainerResponse(rawResponse)
 }
 
 // UpdateContainerResourceGroup updates a single Container ResourceGroup on the Lacework Server
@@ -39,11 +44,29 @@ func (svc *ResourceGroupsService) UpdateContainerResourceGroup(data ResourceGrou
 	return
 }
 
-func (group *ContainerResourceGroupData) GetProps() (props ContainerResourceGroupProps) {
-	err := json.Unmarshal([]byte(group.Props.(string)), &props)
+func convertContainerResponse(rawResponse ResourceGroupResponse) (containerResponse ContainerResourceGroupResponse, err error) {
+	var props ContainerResourceGroupProps
+	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
 	if err != nil {
-		return ContainerResourceGroupProps{}
+		return ContainerResourceGroupResponse{}, err
 	}
+
+	containerResponse, err = castContainerResponse(rawResponse)
+	if err != nil {
+		return ContainerResourceGroupResponse{}, err
+	}
+
+	containerResponse.Data.Props = props
+	return containerResponse, nil
+}
+
+func castContainerResponse(res interface{}) (r ContainerResourceGroupResponse, err error) {
+	var j []byte
+	j, err = json.Marshal(res)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(j, &r)
 	return
 }
 
@@ -52,19 +75,19 @@ type ContainerResourceGroupResponse struct {
 }
 
 type ContainerResourceGroupData struct {
-	Guid         string      `json:"guid,omitempty"`
-	IsDefault    string      `json:"isDefault,omitempty"`
-	ResourceGuid string      `json:"resourceGuid,omitempty"`
-	Name         string      `json:"resourceName"`
-	Type         string      `json:"resourceType"`
-	Enabled      int         `json:"enabled,omitempty"`
-	Props        interface{} `json:"props"`
+	Guid         string                      `json:"guid,omitempty"`
+	IsDefault    string                      `json:"isDefault,omitempty"`
+	ResourceGuid string                      `json:"resourceGuid,omitempty"`
+	Name         string                      `json:"resourceName"`
+	Type         string                      `json:"resourceType"`
+	Enabled      int                         `json:"enabled,omitempty"`
+	Props        ContainerResourceGroupProps `json:"props"`
 }
 
 type ContainerResourceGroupProps struct {
 	Description     string              `json:"DESCRIPTION,omitempty"`
-	ContainerLabels []map[string]string `json:"CONTAINER_LABELS,omitempty"`
-	ContainerTags   []string            `json:"CONTAINER_TAGS,omitempty"`
+	ContainerLabels []map[string]string `json:"CONTAINER_LABELS"`
+	ContainerTags   []string            `json:"CONTAINER_TAGS"`
 	UpdatedBy       string              `json:"UPDATED_BY,omitempty"`
 	LastUpdated     int                 `json:"LAST_UPDATED,omitempty"`
 }
