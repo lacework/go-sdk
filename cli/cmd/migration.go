@@ -38,12 +38,10 @@ const ConfigBackupDir = "cfg_backups"
 // if a configuration file does not exist, it will only update
 // the CLI state to the appropriate parameters
 func (c *cliState) Migrations() (err error) {
-	if !needMigration() {
-		return nil
-	}
-
 	c.Log.Debugw("executing v2 migration")
 	c.Event.Feature = featMigrateConfigV2
+	c.CfgVersion = 0
+
 	defer func() {
 		if err == nil {
 			c.SendHoneyvent()
@@ -56,6 +54,11 @@ func (c *cliState) Migrations() (err error) {
 		c.Event.Subaccount = c.Subaccount
 		c.Event.CfgVersion = c.CfgVersion
 	}()
+
+	err = c.NewClient()
+	if err != nil {
+		return
+	}
 
 	err = c.VerifySettings()
 	if err != nil {
@@ -170,8 +173,4 @@ func createConfigurationBackup() (string, error) {
 			time.Now().Format("20060102150405"), newID()),
 	)
 	return backupCfgPath, lwconfig.StoreAt(backupCfgPath, profiles)
-}
-
-func needMigration() bool {
-	return cli.CfgVersion != 2 // &&
 }

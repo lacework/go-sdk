@@ -74,9 +74,10 @@ type cliState struct {
 // NewDefaultState creates a new cliState with some defaults
 func NewDefaultState() *cliState {
 	c := &cliState{
-		id:      newID(),
-		Profile: "default",
-		Log:     lwlogger.New("").Sugar(),
+		id:         newID(),
+		Profile:    "default",
+		CfgVersion: 2,
+		Log:        lwlogger.New("").Sugar(),
 		JsonF: &prettyjson.Formatter{
 			KeyColor:    color.New(color.FgCyan, color.Bold),
 			StringColor: color.New(color.FgGreen, color.Bold),
@@ -142,7 +143,10 @@ func (c *cliState) LoadState() error {
 	c.Secret = c.extractValueString("api_secret")
 	c.Account = c.extractValueString("account")
 	c.Subaccount = c.extractValueString("subaccount")
-	c.CfgVersion = c.extractValueInt("version")
+	version := c.extractValueInt("version")
+	if version > 2 {
+		c.CfgVersion = version
+	}
 
 	c.Log.Debugw("state loaded",
 		"profile", c.Profile,
