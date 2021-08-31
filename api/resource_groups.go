@@ -259,6 +259,13 @@ func (group ResourceGroupData) ID() string {
 	return group.ResourceGuid
 }
 
+func (group ResourceGroupData) Status() string {
+	if group.Enabled == 1 {
+		return "Enabled"
+	}
+	return "Disabled"
+}
+
 type ResourceGroupResponse struct {
 	Data ResourceGroupData `json:"data"`
 }
