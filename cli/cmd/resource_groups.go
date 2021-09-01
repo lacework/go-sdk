@@ -22,11 +22,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/olekukonko/tablewriter"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -106,7 +105,7 @@ Then navigate to Settings > Resource Groups.
 			var response api.ResourceGroupResponse
 			err := cli.LwApi.V2.ResourceGroups.Get(args[0], &response)
 			if err != nil {
-				return errors.Wrap(err, "unable to get resource groups")
+				return errors.Wrap(err, "unable to get resource group")
 			}
 
 			group := resourceGroup{
@@ -134,7 +133,80 @@ Then navigate to Settings > Resource Groups.
 			return nil
 		},
 	}
+
+	// delete command is used to remove a lacework resource group by resource id
+	resourceGroupsDeleteCommand = &cobra.Command{
+		Use:   "delete",
+		Short: "delete a resource group",
+		Long:  "Delete a single resource group by it's Resource ID.",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			err := cli.LwApi.V2.ResourceGroups.Delete(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unable to delete resource group")
+			}
+			return nil
+		},
+	}
+
+	// create command is used to create a new lacework resource group
+	resourceGroupsCreateCommand = &cobra.Command{
+		Use:   "create",
+		Short: "create a new resource group",
+		Long:  "Creates a new single resource group.",
+		RunE: func(_ *cobra.Command, args []string) error {
+			if !cli.InteractiveMode() {
+				return errors.New("interactive mode is disabled")
+			}
+
+			err := promptCreateResourceGroup()
+			if err != nil {
+				return errors.Wrap(err, "unable to create resource group")
+			}
+
+			cli.OutputHuman("The resource group was created.\n")
+			return nil
+		},
+	}
 )
+
+func promptCreateResourceGroup() error {
+	var (
+		group  = ""
+		prompt = &survey.Select{
+			Message: "Choose a resource group type to create: ",
+			Options: []string{
+				"Aws",
+				"Azure",
+				"Container",
+				"Gcp",
+				"LwAccount",
+				"Machine",
+			},
+		}
+		err = survey.AskOne(prompt, &group)
+	)
+	if err != nil {
+		return err
+	}
+
+	switch group {
+	case "Aws":
+		return createAwsResourceGroup()
+	case "Azure":
+		return createAzureResourceGroup()
+	case "Container":
+		return createContainerResourceGroup()
+	case "Gcp":
+		return createGcpResourceGroup()
+	case "LwAccount":
+		return createLwAccountResourceGroup()
+	case "Machine":
+		return createMachineResourceGroup()
+	default:
+		return errors.New("unknown resource group type")
+	}
+}
 
 func buildResourceGroupPropsTable(group resourceGroup) string {
 	props := determineResourceGroupProps(group.ResType, group.Props)
@@ -162,7 +234,7 @@ func determineResourceGroupProps(resType string, props interface{}) [][]string {
 	case api.AwsResourceGroup.String():
 		details = append(details, setAwsProps(props))
 	case api.AzureResourceGroup.String():
-		details = append(details, setAzureProps(props))
+		details = append(details, setAzureProps(props)...)
 	case api.ContainerResourceGroup.String():
 		details = append(details, setContainerProps(props)...)
 	case api.GcpResourceGroup.String():
@@ -193,91 +265,6 @@ func setBaseProps(props interface{}) [][]string {
 	return details
 }
 
-func setAwsProps(group interface{}) []string {
-	var awsProps api.AwsResourceGroupProps
-	err := json.Unmarshal([]byte(group.(string)), &awsProps)
-	if err != nil {
-		return []string{}
-	}
-
-	return []string{"ACCOUNT IDS", strings.Join(awsProps.AccountIDs, ",")}
-}
-
-func setAzureProps(group interface{}) []string {
-	var azProps api.AzureResourceGroupProps
-	err := json.Unmarshal([]byte(group.(string)), &azProps)
-	if err != nil {
-		return []string{}
-	}
-
-	return []string{"ACCOUNT IDS", strings.Join(azProps.Subscriptions, ",")}
-}
-
-func setContainerProps(group interface{}) [][]string {
-	var (
-		ctrProps api.ContainerResourceGroupProps
-		labels   []string
-		details  [][]string
-	)
-	err := json.Unmarshal([]byte(group.(string)), &ctrProps)
-	if err != nil {
-		return [][]string{}
-	}
-
-	for _, labelMap := range ctrProps.ContainerLabels {
-		for key, val := range labelMap {
-			labels = append(labels, fmt.Sprintf("%s: %v", key, val))
-
-		}
-	}
-	details = append(details, []string{"CONTAINER LABELS", strings.Join(labels, ",")})
-	details = append(details, []string{"CONTAINER TAGS", strings.Join(ctrProps.ContainerTags, ",")})
-	return details
-}
-
-func setGcpProps(group interface{}) [][]string {
-	var (
-		gcpProps api.GcpResourceGroupProps
-		details  [][]string
-	)
-	err := json.Unmarshal([]byte(group.(string)), &gcpProps)
-	if err != nil {
-		return [][]string{}
-	}
-
-	details = append(details, []string{"ORGANIZATION", gcpProps.Organization})
-	details = append(details, []string{"PROJECTS", strings.Join(gcpProps.Projects, ",")})
-	return details
-}
-
-func setLwAccountProps(group interface{}) []string {
-	var lwProps api.LwAccountResourceGroupProps
-	err := json.Unmarshal([]byte(group.(string)), &lwProps)
-	if err != nil {
-		return []string{}
-	}
-
-	return []string{"LW ACCOUNTS", strings.Join(lwProps.LwAccounts, ",")}
-}
-
-func setMachineProps(group interface{}) []string {
-	var machineProps api.MachineResourceGroupProps
-
-	err := json.Unmarshal([]byte(group.(string)), &machineProps)
-	if err != nil {
-		return []string{}
-	}
-
-	var tags []string
-	for _, tagMap := range machineProps.MachineTags {
-		for key, val := range tagMap {
-			tags = append(tags, fmt.Sprintf("%s: %v", key, val))
-
-		}
-	}
-	return []string{"MACHINE TAGS", strings.Join(tags, ",")}
-}
-
 func init() {
 	// add the resource_group command
 	rootCmd.AddCommand(resourceGroupsCommand)
@@ -285,6 +272,8 @@ func init() {
 	// add sub-commands to the resource_group command
 	resourceGroupsCommand.AddCommand(resourceGroupsListCommand)
 	resourceGroupsCommand.AddCommand(resourceGroupsShowCommand)
+	resourceGroupsCommand.AddCommand(resourceGroupsCreateCommand)
+	resourceGroupsCommand.AddCommand(resourceGroupsDeleteCommand)
 }
 
 type resourceGroup struct {
