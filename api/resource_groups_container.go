@@ -32,7 +32,7 @@ func (svc *ResourceGroupsService) GetContainerResourceGroup(guid string) (
 		return ContainerResourceGroupResponse{}, err
 	}
 
-	return convertContainerResponse(rawResponse)
+	return setContainerResponse(rawResponse)
 }
 
 // UpdateContainerResourceGroup updates a single Container ResourceGroup on the Lacework Server
@@ -40,33 +40,33 @@ func (svc *ResourceGroupsService) UpdateContainerResourceGroup(data ResourceGrou
 	response ContainerResourceGroupResponse,
 	err error,
 ) {
-	err = svc.update(data.ID(), data, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.update(data.ID(), data, &rawResponse)
+	if err != nil {
+		return ContainerResourceGroupResponse{}, err
+	}
+
+	return setContainerResponse(rawResponse)
 }
 
-func convertContainerResponse(rawResponse ResourceGroupResponse) (containerResponse ContainerResourceGroupResponse, err error) {
+func setContainerResponse(response ResourceGroupResponse) (ctr ContainerResourceGroupResponse, err error) {
 	var props ContainerResourceGroupProps
-	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
-	if err != nil {
-		return ContainerResourceGroupResponse{}, err
+	ctr = ContainerResourceGroupResponse{
+		Data: ContainerResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+		},
 	}
 
-	containerResponse, err = castContainerResponse(rawResponse)
-	if err != nil {
-		return ContainerResourceGroupResponse{}, err
-	}
-
-	containerResponse.Data.Props = props
-	return containerResponse, nil
-}
-
-func castContainerResponse(res interface{}) (r ContainerResourceGroupResponse, err error) {
-	var j []byte
-	j, err = json.Marshal(res)
+	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)
 	if err != nil {
 		return
 	}
-	err = json.Unmarshal(j, &r)
+	ctr.Data.Props = props
 	return
 }
 

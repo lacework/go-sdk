@@ -32,7 +32,7 @@ func (svc *ResourceGroupsService) GetAzureResourceGroup(guid string) (
 		return AzureResourceGroupResponse{}, err
 	}
 
-	return convertAzureResponse(rawResponse)
+	return setAzureResponse(rawResponse)
 }
 
 // UpdateAzureResourceGroup updates a single Azure ResourceGroup on the Lacework Server
@@ -40,33 +40,33 @@ func (svc *ResourceGroupsService) UpdateAzureResourceGroup(data ResourceGroup) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
-	err = svc.update(data.ID(), data, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.update(data.ID(), data, &rawResponse)
+	if err != nil {
+		return AzureResourceGroupResponse{}, err
+	}
+
+	return setAzureResponse(rawResponse)
 }
 
-func convertAzureResponse(rawResponse ResourceGroupResponse) (azureResponse AzureResourceGroupResponse, err error) {
+func setAzureResponse(response ResourceGroupResponse) (az AzureResourceGroupResponse, err error) {
 	var props AzureResourceGroupProps
-	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
-	if err != nil {
-		return AzureResourceGroupResponse{}, err
+	az = AzureResourceGroupResponse{
+		Data: AzureResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+		},
 	}
 
-	azureResponse, err = castAzureResponse(rawResponse)
-	if err != nil {
-		return AzureResourceGroupResponse{}, err
-	}
-
-	azureResponse.Data.Props = props
-	return azureResponse, nil
-}
-
-func castAzureResponse(res interface{}) (r AzureResourceGroupResponse, err error) {
-	var j []byte
-	j, err = json.Marshal(res)
+	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)
 	if err != nil {
 		return
 	}
-	err = json.Unmarshal(j, &r)
+	az.Data.Props = props
 	return
 }
 

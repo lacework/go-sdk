@@ -119,12 +119,31 @@ func (svc *ResourceGroupsService) List() (response ResourceGroupsResponse, err e
 }
 
 // Create creates a single Resource Group
-func (svc *ResourceGroupsService) Create(integration ResourceGroupData) (
-	response ResourceGroupsResponse,
+func (svc *ResourceGroupsService) Create(group ResourceGroupData) (
+	response ResourceGroupResponse,
 	err error,
 ) {
-	err = svc.create(integration, &response)
-	return
+	var rawResponse ResourceGroupCreateResponse
+	err = svc.create(group, &rawResponse)
+	if err != nil {
+		return ResourceGroupResponse{}, err
+	}
+
+	return setResourceGroupResponse(rawResponse), nil
+}
+
+func setResourceGroupResponse(response ResourceGroupCreateResponse) ResourceGroupResponse {
+	return ResourceGroupResponse{
+		Data: ResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+			Props:        response.Data.Props,
+		},
+	}
 }
 
 // Delete deletes a Resource Group that matches the provided resource guid
@@ -193,6 +212,21 @@ type ResourceGroupsResponse struct {
 type ResourceGroupData struct {
 	Guid         string      `json:"guid,omitempty"`
 	IsDefault    string      `json:"isDefault,omitempty"`
+	ResourceGuid string      `json:"resourceGuid,omitempty"`
+	Name         string      `json:"resourceName"`
+	Type         string      `json:"resourceType"`
+	Enabled      int         `json:"enabled,omitempty"`
+	Props        interface{} `json:"props,omitempty"`
+}
+
+// RAIN-21510 workaround
+type ResourceGroupCreateResponse struct {
+	Data ResourceGroupData `json:"data"`
+}
+
+type ResourceGroupCreateData struct {
+	Guid         string      `json:"guid,omitempty"`
+	IsDefault    int         `json:"isDefault,omitempty"`
 	ResourceGuid string      `json:"resourceGuid,omitempty"`
 	Name         string      `json:"resourceName"`
 	Type         string      `json:"resourceType"`

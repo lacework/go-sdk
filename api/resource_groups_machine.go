@@ -32,7 +32,7 @@ func (svc *ResourceGroupsService) GetMachineResourceGroup(guid string) (
 		return MachineResourceGroupResponse{}, err
 	}
 
-	return convertMachineResponse(rawResponse)
+	return setMachineAccountResponse(rawResponse)
 }
 
 // UpdateMachineResourceGroup updates a single Machine ResourceGroup on the Lacework Server
@@ -40,33 +40,33 @@ func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup)
 	response MachineResourceGroupResponse,
 	err error,
 ) {
-	err = svc.update(data.ID(), data, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.update(data.ID(), data, &rawResponse)
+	if err != nil {
+		return MachineResourceGroupResponse{}, err
+	}
+
+	return setMachineAccountResponse(rawResponse)
 }
 
-func convertMachineResponse(rawResponse ResourceGroupResponse) (machineResponse MachineResourceGroupResponse, err error) {
+func setMachineAccountResponse(response ResourceGroupResponse) (machine MachineResourceGroupResponse, err error) {
 	var props MachineResourceGroupProps
-	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
-	if err != nil {
-		return MachineResourceGroupResponse{}, err
+	machine = MachineResourceGroupResponse{
+		Data: MachineResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+		},
 	}
 
-	machineResponse, err = castMachineResponse(rawResponse)
-	if err != nil {
-		return MachineResourceGroupResponse{}, err
-	}
-
-	machineResponse.Data.Props = props
-	return machineResponse, nil
-}
-
-func castMachineResponse(res interface{}) (r MachineResourceGroupResponse, err error) {
-	var j []byte
-	j, err = json.Marshal(res)
+	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)
 	if err != nil {
 		return
 	}
-	err = json.Unmarshal(j, &r)
+	machine.Data.Props = props
 	return
 }
 

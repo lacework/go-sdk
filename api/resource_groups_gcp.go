@@ -32,7 +32,7 @@ func (svc *ResourceGroupsService) GetGcpResourceGroup(guid string) (
 		return GcpResourceGroupResponse{}, err
 	}
 
-	return convertGcpResponse(rawResponse)
+	return setGcpResponse(rawResponse)
 }
 
 // UpdateGcpResourceGroup updates a single Gcp ResourceGroup on the Lacework Server
@@ -40,33 +40,33 @@ func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
 	response GcpResourceGroupResponse,
 	err error,
 ) {
-	err = svc.update(data.ID(), data, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.update(data.ID(), data, &rawResponse)
+	if err != nil {
+		return GcpResourceGroupResponse{}, err
+	}
+
+	return setGcpResponse(rawResponse)
 }
 
-func convertGcpResponse(rawResponse ResourceGroupResponse) (gcpResponse GcpResourceGroupResponse, err error) {
+func setGcpResponse(response ResourceGroupResponse) (gcp GcpResourceGroupResponse, err error) {
 	var props GcpResourceGroupProps
-	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
-	if err != nil {
-		return GcpResourceGroupResponse{}, err
+	gcp = GcpResourceGroupResponse{
+		Data: GcpResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+		},
 	}
 
-	gcpResponse, err = castGcpResponse(rawResponse)
-	if err != nil {
-		return GcpResourceGroupResponse{}, err
-	}
-
-	gcpResponse.Data.Props = props
-	return gcpResponse, nil
-}
-
-func castGcpResponse(res interface{}) (r GcpResourceGroupResponse, err error) {
-	var j []byte
-	j, err = json.Marshal(res)
+	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)
 	if err != nil {
 		return
 	}
-	err = json.Unmarshal(j, &r)
+	gcp.Data.Props = props
 	return
 }
 

@@ -18,7 +18,9 @@
 
 package api
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 // GetAwsResourceGroup gets a single Aws ResourceGroup matching the
 // provided resource guid
@@ -32,7 +34,7 @@ func (svc *ResourceGroupsService) GetAwsResourceGroup(guid string) (
 		return AwsResourceGroupResponse{}, err
 	}
 
-	return convertAwsResponse(rawResponse)
+	return setAwsResponse(rawResponse)
 }
 
 // UpdateAwsResourceGroup updates a single Aws ResourceGroup on the Lacework Server
@@ -40,33 +42,33 @@ func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
-	err = svc.update(data.ID(), data, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.update(data.ID(), data, &rawResponse)
+	if err != nil {
+		return AwsResourceGroupResponse{}, err
+	}
+
+	return setAwsResponse(rawResponse)
 }
 
-func convertAwsResponse(rawResponse ResourceGroupResponse) (awsResponse AwsResourceGroupResponse, err error) {
+func setAwsResponse(response ResourceGroupResponse) (aws AwsResourceGroupResponse, err error) {
 	var props AwsResourceGroupProps
-	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
-	if err != nil {
-		return AwsResourceGroupResponse{}, err
+	aws = AwsResourceGroupResponse{
+		Data: AwsResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+		},
 	}
 
-	awsResponse, err = castAwsResponse(rawResponse)
-	if err != nil {
-		return AwsResourceGroupResponse{}, err
-	}
-
-	awsResponse.Data.Props = props
-	return awsResponse, nil
-}
-
-func castAwsResponse(res interface{}) (r AwsResourceGroupResponse, err error) {
-	var j []byte
-	j, err = json.Marshal(res)
+	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)
 	if err != nil {
 		return
 	}
-	err = json.Unmarshal(j, &r)
+	aws.Data.Props = props
 	return
 }
 

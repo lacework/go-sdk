@@ -32,7 +32,7 @@ func (svc *ResourceGroupsService) GetLwAccountResourceGroup(guid string) (
 		return LwAccountResourceGroupResponse{}, err
 	}
 
-	return convertLwAccountResponse(rawResponse)
+	return setLwAccountResponse(rawResponse)
 }
 
 // UpdateLwAccountResourceGroup updates a single LwAccount ResourceGroup on the Lacework Server
@@ -40,33 +40,33 @@ func (svc *ResourceGroupsService) UpdateLwAccountResourceGroup(data ResourceGrou
 	response LwAccountResourceGroupResponse,
 	err error,
 ) {
-	err = svc.update(data.ID(), data, &response)
-	return
+	var rawResponse ResourceGroupResponse
+	err = svc.update(data.ID(), data, &rawResponse)
+	if err != nil {
+		return LwAccountResourceGroupResponse{}, err
+	}
+
+	return setLwAccountResponse(rawResponse)
 }
 
-func convertLwAccountResponse(rawResponse ResourceGroupResponse) (lwAccountResponse LwAccountResourceGroupResponse, err error) {
+func setLwAccountResponse(response ResourceGroupResponse) (lw LwAccountResourceGroupResponse, err error) {
 	var props LwAccountResourceGroupProps
-	err = json.Unmarshal([]byte(rawResponse.Data.Props.(string)), &props)
-	if err != nil {
-		return LwAccountResourceGroupResponse{}, err
+	lw = LwAccountResourceGroupResponse{
+		Data: LwAccountResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+		},
 	}
 
-	lwAccountResponse, err = castLwAccountResponse(rawResponse)
-	if err != nil {
-		return LwAccountResourceGroupResponse{}, err
-	}
-
-	lwAccountResponse.Data.Props = props
-	return lwAccountResponse, nil
-}
-
-func castLwAccountResponse(res interface{}) (r LwAccountResourceGroupResponse, err error) {
-	var j []byte
-	j, err = json.Marshal(res)
+	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)
 	if err != nil {
 		return
 	}
-	err = json.Unmarshal(j, &r)
+	lw.Data.Props = props
 	return
 }
 
