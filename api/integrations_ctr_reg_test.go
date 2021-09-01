@@ -33,11 +33,12 @@ func TestIntegrationsNewContainerRegIntegration(t *testing.T) {
 				Username: "techally",
 				Password: "secret",
 			},
-			RegistryType:   api.DockerHubRegistry.String(),
-			RegistryDomain: "index.docker.io",
-			LimitByTag:     "*",
-			LimitByLabel:   "*",
-			LimitNumImg:    5,
+			RegistryType:     api.DockerHubRegistry.String(),
+			RegistryDomain:   "index.docker.io",
+			LimitByTag:       "*",
+			LimitByLabel:     "*",
+			LimitNumImg:      5,
+			NonOSPackageEval: true,
 		},
 	)
 	assert.Equal(t, api.ContainerRegistryIntegration.String(), subject.Type)
