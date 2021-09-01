@@ -18,7 +18,11 @@
 
 package api
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/pkg/errors"
+)
 
 // GetContainerResourceGroup gets a single LwAccount ResourceGroup matching the
 // provided resource guid
@@ -29,7 +33,7 @@ func (svc *ResourceGroupsService) GetLwAccountResourceGroup(guid string) (
 	var rawResponse ResourceGroupResponse
 	err = svc.get(guid, &rawResponse)
 	if err != nil {
-		return LwAccountResourceGroupResponse{}, err
+		return
 	}
 
 	return setLwAccountResponse(rawResponse)
@@ -43,7 +47,7 @@ func (svc *ResourceGroupsService) UpdateLwAccountResourceGroup(data ResourceGrou
 	var rawResponse ResourceGroupResponse
 	err = svc.update(data.ID(), data, &rawResponse)
 	if err != nil {
-		return LwAccountResourceGroupResponse{}, err
+		return
 	}
 
 	return setLwAccountResponse(rawResponse)
@@ -60,6 +64,12 @@ func setLwAccountResponse(response ResourceGroupResponse) (lw LwAccountResourceG
 			Type:         response.Data.Type,
 			Enabled:      response.Data.Enabled,
 		},
+	}
+
+	_, ok := response.Data.Props.(string)
+	if !ok {
+		err = errors.New("unable to cast props field from API response")
+		return
 	}
 
 	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)

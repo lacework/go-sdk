@@ -124,7 +124,7 @@ func (svc *ResourceGroupsService) Create(group ResourceGroupData) (
 	response ResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupCreateResponse
+	var rawResponse resourceGroupCreateResponse
 	err = svc.create(group, &rawResponse)
 	if err != nil {
 		return ResourceGroupResponse{}, err
@@ -133,7 +133,7 @@ func (svc *ResourceGroupsService) Create(group ResourceGroupData) (
 	return setResourceGroupResponse(rawResponse), nil
 }
 
-func setResourceGroupResponse(response ResourceGroupCreateResponse) ResourceGroupResponse {
+func setResourceGroupResponse(response resourceGroupCreateResponse) ResourceGroupResponse {
 	return ResourceGroupResponse{
 		Data: ResourceGroupData{
 			Guid:         response.Data.Guid,
@@ -221,11 +221,11 @@ type ResourceGroupData struct {
 }
 
 // RAIN-21510 workaround
-type ResourceGroupCreateResponse struct {
-	Data ResourceGroupCreateData `json:"data"`
+type resourceGroupCreateResponse struct {
+	Data resourceGroupCreateData `json:"data"`
 }
 
-type ResourceGroupCreateData struct {
+type resourceGroupCreateData struct {
 	Guid         string      `json:"guid,omitempty"`
 	IsDefault    int         `json:"isDefault,omitempty"`
 	ResourceGuid string      `json:"resourceGuid,omitempty"`

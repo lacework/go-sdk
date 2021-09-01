@@ -18,7 +18,11 @@
 
 package api
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/pkg/errors"
+)
 
 // GetMachineResourceGroup gets a single Machine ResourceGroup matching the
 // provided resource guid
@@ -29,7 +33,7 @@ func (svc *ResourceGroupsService) GetMachineResourceGroup(guid string) (
 	var rawResponse ResourceGroupResponse
 	err = svc.get(guid, &rawResponse)
 	if err != nil {
-		return MachineResourceGroupResponse{}, err
+		return
 	}
 
 	return setMachineAccountResponse(rawResponse)
@@ -43,7 +47,7 @@ func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup)
 	var rawResponse ResourceGroupResponse
 	err = svc.update(data.ID(), data, &rawResponse)
 	if err != nil {
-		return MachineResourceGroupResponse{}, err
+		return
 	}
 
 	return setMachineAccountResponse(rawResponse)
@@ -60,6 +64,12 @@ func setMachineAccountResponse(response ResourceGroupResponse) (machine MachineR
 			Type:         response.Data.Type,
 			Enabled:      response.Data.Enabled,
 		},
+	}
+
+	_, ok := response.Data.Props.(string)
+	if !ok {
+		err = errors.New("unable to cast props field from API response")
+		return
 	}
 
 	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)

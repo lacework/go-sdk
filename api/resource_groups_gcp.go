@@ -18,7 +18,11 @@
 
 package api
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/pkg/errors"
+)
 
 // GetGcpResourceGroup gets a single Gcp ResourceGroup matching the
 // provided resource guid
@@ -29,7 +33,7 @@ func (svc *ResourceGroupsService) GetGcpResourceGroup(guid string) (
 	var rawResponse ResourceGroupResponse
 	err = svc.get(guid, &rawResponse)
 	if err != nil {
-		return GcpResourceGroupResponse{}, err
+		return
 	}
 
 	return setGcpResponse(rawResponse)
@@ -43,7 +47,7 @@ func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
 	var rawResponse ResourceGroupResponse
 	err = svc.update(data.ID(), data, &rawResponse)
 	if err != nil {
-		return GcpResourceGroupResponse{}, err
+		return
 	}
 
 	return setGcpResponse(rawResponse)
@@ -60,6 +64,12 @@ func setGcpResponse(response ResourceGroupResponse) (gcp GcpResourceGroupRespons
 			Type:         response.Data.Type,
 			Enabled:      response.Data.Enabled,
 		},
+	}
+
+	_, ok := response.Data.Props.(string)
+	if !ok {
+		err = errors.New("unable to cast props field from API response")
+		return
 	}
 
 	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)
