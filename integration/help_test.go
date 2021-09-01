@@ -145,18 +145,19 @@ Usage:
   lacework [command]
 
 Available Commands:
-  access-token  generate temporary API access tokens
-  account       manage accounts in an organization (org admins only)
-  agent         manage Lacework agents
-  api           helper to call Lacework's API
-  compliance    manage compliance reports
-  configure     configure the Lacework CLI
-  event         inspect Lacework events
-  integration   manage external integrations
-  policy        manage policies
-  query         run and manage queries
-  version       print the Lacework CLI version
-  vulnerability container and host vulnerability assessments
+  access-token   generate temporary API access tokens
+  account        manage accounts in an organization (org admins only)
+  agent          manage Lacework agents
+  api            helper to call Lacework's API
+  compliance     manage compliance reports
+  configure      configure the Lacework CLI
+  event          inspect Lacework events
+  integration    manage external integrations
+  policy         manage policies
+  query          run and manage queries
+  resource-group manage resource groups
+  version        print the Lacework CLI version
+  vulnerability  container and host vulnerability assessments
 
 Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
