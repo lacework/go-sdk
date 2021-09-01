@@ -149,11 +149,9 @@ Available Commands:
   account        manage accounts in an organization (org admins only)
   agent          manage Lacework agents
   api            helper to call Lacework's API
-  completion     generate the autocompletion script for the specified shell
   compliance     manage compliance reports
   configure      configure the Lacework CLI
   event          inspect Lacework events
-  help           Help about any command
   integration    manage external integrations
   policy         manage policies
   query          run and manage queries
