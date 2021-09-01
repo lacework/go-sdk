@@ -20,6 +20,8 @@ package api
 
 import (
 	"encoding/json"
+
+	"github.com/pkg/errors"
 )
 
 // GetAwsResourceGroup gets a single Aws ResourceGroup matching the
@@ -31,10 +33,10 @@ func (svc *ResourceGroupsService) GetAwsResourceGroup(guid string) (
 	var rawResponse ResourceGroupResponse
 	err = svc.get(guid, &rawResponse)
 	if err != nil {
-		return AwsResourceGroupResponse{}, err
+		return
 	}
 
-	return setAwsResponse(rawResponse)
+	return setAwsResourceGroupResponse(rawResponse)
 }
 
 // UpdateAwsResourceGroup updates a single Aws ResourceGroup on the Lacework Server
@@ -45,13 +47,13 @@ func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
 	var rawResponse ResourceGroupResponse
 	err = svc.update(data.ID(), data, &rawResponse)
 	if err != nil {
-		return AwsResourceGroupResponse{}, err
+		return
 	}
 
-	return setAwsResponse(rawResponse)
+	return setAwsResourceGroupResponse(rawResponse)
 }
 
-func setAwsResponse(response ResourceGroupResponse) (aws AwsResourceGroupResponse, err error) {
+func setAwsResourceGroupResponse(response ResourceGroupResponse) (aws AwsResourceGroupResponse, err error) {
 	var props AwsResourceGroupProps
 	aws = AwsResourceGroupResponse{
 		Data: AwsResourceGroupData{
@@ -62,6 +64,12 @@ func setAwsResponse(response ResourceGroupResponse) (aws AwsResourceGroupRespons
 			Type:         response.Data.Type,
 			Enabled:      response.Data.Enabled,
 		},
+	}
+
+	_, ok := response.Data.Props.(string)
+	if !ok {
+		err = errors.New("unable to cast props field from API response")
+		return
 	}
 
 	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)

@@ -20,6 +20,7 @@ package api
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -66,7 +67,7 @@ func (i ResourceGroupType) String() string {
 	return ResourceGroupTypes[i]
 }
 
-// NewResourceGroup returns an instance of the ResourceGroupRaw struct with the
+// NewResourceGroup returns an instance of the ResourceGroupData struct with the
 // provided ResourceGroup type, name and the props field as an interface{}.
 //
 // NOTE: This function must be used by any ResourceGroup type.
@@ -136,7 +137,7 @@ func setResourceGroupResponse(response ResourceGroupCreateResponse) ResourceGrou
 	return ResourceGroupResponse{
 		Data: ResourceGroupData{
 			Guid:         response.Data.Guid,
-			IsDefault:    response.Data.IsDefault,
+			IsDefault:    strconv.Itoa(response.Data.IsDefault),
 			ResourceGuid: response.Data.ResourceGuid,
 			Name:         response.Data.Name,
 			Type:         response.Data.Type,
@@ -216,12 +217,12 @@ type ResourceGroupData struct {
 	Name         string      `json:"resourceName"`
 	Type         string      `json:"resourceType"`
 	Enabled      int         `json:"enabled,omitempty"`
-	Props        interface{} `json:"props,omitempty"`
+	Props        interface{} `json:"props"`
 }
 
 // RAIN-21510 workaround
 type ResourceGroupCreateResponse struct {
-	Data ResourceGroupData `json:"data"`
+	Data ResourceGroupCreateData `json:"data"`
 }
 
 type ResourceGroupCreateData struct {
@@ -231,5 +232,5 @@ type ResourceGroupCreateData struct {
 	Name         string      `json:"resourceName"`
 	Type         string      `json:"resourceType"`
 	Enabled      int         `json:"enabled,omitempty"`
-	Props        interface{} `json:"props,omitempty"`
+	Props        interface{} `json:"props"`
 }
