@@ -20,6 +20,7 @@ package api
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -30,7 +31,7 @@ func (svc *ResourceGroupsService) GetAwsResourceGroup(guid string) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
+	var rawResponse resourceGroupWorkaroundResponse
 	err = svc.get(guid, &rawResponse)
 	if err != nil {
 		return
@@ -44,7 +45,7 @@ func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
+	var rawResponse resourceGroupWorkaroundResponse
 	err = svc.update(data.ID(), data, &rawResponse)
 	if err != nil {
 		return
@@ -53,12 +54,18 @@ func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
 	return setAwsResourceGroupResponse(rawResponse)
 }
 
-func setAwsResourceGroupResponse(response ResourceGroupResponse) (aws AwsResourceGroupResponse, err error) {
+func setAwsResourceGroupResponse(response resourceGroupWorkaroundResponse) (aws AwsResourceGroupResponse, err error) {
 	var props AwsResourceGroupProps
+
+	isDefault, err := strconv.Atoi(response.Data.IsDefault)
+	if err != nil {
+		return AwsResourceGroupResponse{}, err
+	}
+
 	aws = AwsResourceGroupResponse{
 		Data: AwsResourceGroupData{
 			Guid:         response.Data.Guid,
-			IsDefault:    response.Data.IsDefault,
+			IsDefault:    isDefault,
 			ResourceGuid: response.Data.ResourceGuid,
 			Name:         response.Data.Name,
 			Type:         response.Data.Type,
@@ -86,7 +93,7 @@ type AwsResourceGroupResponse struct {
 
 type AwsResourceGroupData struct {
 	Guid         string                `json:"guid,omitempty"`
-	IsDefault    string                `json:"isDefault,omitempty"`
+	IsDefault    int                   `json:"isDefault,omitempty"`
 	ResourceGuid string                `json:"resourceGuid,omitempty"`
 	Name         string                `json:"resourceName"`
 	Type         string                `json:"resourceType"`

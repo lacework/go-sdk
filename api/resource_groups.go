@@ -19,6 +19,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -115,7 +116,16 @@ func FindResourceGroupType(resourceGroup string) (ResourceGroupType, bool) {
 
 // List returns a list of Resource Groups
 func (svc *ResourceGroupsService) List() (response ResourceGroupsResponse, err error) {
-	err = svc.client.RequestDecoder("GET", apiV2ResourceGroups, nil, &response)
+	var rawResponse resourceGroupsWorkaroundResponse
+	err = svc.client.RequestDecoder("GET", apiV2ResourceGroups, nil, &rawResponse)
+	if err != nil {
+		return
+	}
+	response, err = setResourceGroupsResponse(rawResponse)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -124,27 +134,69 @@ func (svc *ResourceGroupsService) Create(group ResourceGroupData) (
 	response ResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse resourceGroupCreateResponse
+	var rawResponse ResourceGroupResponse
 	err = svc.create(group, &rawResponse)
+	return
+}
+
+func castResourceGroupResponse(data resourceGroupWorkaroundData, response interface{}) error {
+	isDefault, err := strconv.Atoi(data.IsDefault)
+	if err != nil {
+		return err
+	}
+	group := ResourceGroupResponse{
+		Data: ResourceGroupData{
+			Guid:         data.Guid,
+			IsDefault:    isDefault,
+			ResourceGuid: data.ResourceGuid,
+			Name:         data.Name,
+			Type:         data.Type,
+			Enabled:      data.Enabled,
+			Props:        data.Props,
+		},
+	}
+
+	j, err := json.Marshal(group)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(j, &response)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func setResourceGroupResponse(response resourceGroupWorkaroundData) (ResourceGroupResponse, error) {
+	isDefault, err := strconv.Atoi(response.IsDefault)
 	if err != nil {
 		return ResourceGroupResponse{}, err
 	}
-
-	return setResourceGroupResponse(rawResponse), nil
-}
-
-func setResourceGroupResponse(response resourceGroupCreateResponse) ResourceGroupResponse {
 	return ResourceGroupResponse{
 		Data: ResourceGroupData{
-			Guid:         response.Data.Guid,
-			IsDefault:    strconv.Itoa(response.Data.IsDefault),
-			ResourceGuid: response.Data.ResourceGuid,
-			Name:         response.Data.Name,
-			Type:         response.Data.Type,
-			Enabled:      response.Data.Enabled,
-			Props:        response.Data.Props,
+			Guid:         response.Guid,
+			IsDefault:    isDefault,
+			ResourceGuid: response.ResourceGuid,
+			Name:         response.Name,
+			Type:         response.Type,
+			Enabled:      response.Enabled,
+			Props:        response.Props,
 		},
+	}, nil
+}
+
+func setResourceGroupsResponse(workaround resourceGroupsWorkaroundResponse) (ResourceGroupsResponse, error) {
+	var data []ResourceGroupData
+	for _, r := range workaround.Data {
+		group, err := setResourceGroupResponse(r)
+		if err != nil {
+			return ResourceGroupsResponse{}, err
+		}
+		data = append(data, group.Data)
 	}
+
+	return ResourceGroupsResponse{Data: data}, nil
 }
 
 // Delete deletes a Resource Group that matches the provided resource guid
@@ -170,7 +222,18 @@ func (svc *ResourceGroupsService) Delete(guid string) error {
 //
 //    Where <Type> is the Resource Group type.
 func (svc *ResourceGroupsService) Get(guid string, response interface{}) error {
-	return svc.get(guid, &response)
+	var rawResponse resourceGroupWorkaroundResponse
+	err := svc.get(guid, &rawResponse)
+	if err != nil {
+		return err
+	}
+
+	err = castResourceGroupResponse(rawResponse.Data, &response)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (svc *ResourceGroupsService) create(data interface{}, response interface{}) error {
@@ -212,7 +275,7 @@ type ResourceGroupsResponse struct {
 
 type ResourceGroupData struct {
 	Guid         string      `json:"guid,omitempty"`
-	IsDefault    string      `json:"isDefault,omitempty"`
+	IsDefault    int         `json:"isDefault,omitempty"`
 	ResourceGuid string      `json:"resourceGuid,omitempty"`
 	Name         string      `json:"resourceName"`
 	Type         string      `json:"resourceType"`
@@ -221,13 +284,17 @@ type ResourceGroupData struct {
 }
 
 // RAIN-21510 workaround
-type resourceGroupCreateResponse struct {
-	Data resourceGroupCreateData `json:"data"`
+type resourceGroupWorkaroundResponse struct {
+	Data resourceGroupWorkaroundData `json:"data"`
 }
 
-type resourceGroupCreateData struct {
+type resourceGroupsWorkaroundResponse struct {
+	Data []resourceGroupWorkaroundData `json:"data"`
+}
+
+type resourceGroupWorkaroundData struct {
 	Guid         string      `json:"guid,omitempty"`
-	IsDefault    int         `json:"isDefault,omitempty"`
+	IsDefault    string      `json:"isDefault,omitempty"`
 	ResourceGuid string      `json:"resourceGuid,omitempty"`
 	Name         string      `json:"resourceName"`
 	Type         string      `json:"resourceType"`

@@ -20,6 +20,7 @@ package api
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -30,7 +31,7 @@ func (svc *ResourceGroupsService) GetGcpResourceGroup(guid string) (
 	response GcpResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
+	var rawResponse resourceGroupWorkaroundResponse
 	err = svc.get(guid, &rawResponse)
 	if err != nil {
 		return
@@ -44,7 +45,7 @@ func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
 	response GcpResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
+	var rawResponse resourceGroupWorkaroundResponse
 	err = svc.update(data.ID(), data, &rawResponse)
 	if err != nil {
 		return
@@ -53,12 +54,18 @@ func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
 	return setGcpResponse(rawResponse)
 }
 
-func setGcpResponse(response ResourceGroupResponse) (gcp GcpResourceGroupResponse, err error) {
+func setGcpResponse(response resourceGroupWorkaroundResponse) (gcp GcpResourceGroupResponse, err error) {
 	var props GcpResourceGroupProps
+
+	isDefault, err := strconv.Atoi(response.Data.IsDefault)
+	if err != nil {
+		return GcpResourceGroupResponse{}, err
+	}
+
 	gcp = GcpResourceGroupResponse{
 		Data: GcpResourceGroupData{
 			Guid:         response.Data.Guid,
-			IsDefault:    response.Data.IsDefault,
+			IsDefault:    isDefault,
 			ResourceGuid: response.Data.ResourceGuid,
 			Name:         response.Data.Name,
 			Type:         response.Data.Type,
@@ -86,7 +93,7 @@ type GcpResourceGroupResponse struct {
 
 type GcpResourceGroupData struct {
 	Guid         string                `json:"guid,omitempty"`
-	IsDefault    string                `json:"isDefault,omitempty"`
+	IsDefault    int                   `json:"isDefault,omitempty"`
 	ResourceGuid string                `json:"resourceGuid,omitempty"`
 	Name         string                `json:"resourceName"`
 	Type         string                `json:"resourceType"`

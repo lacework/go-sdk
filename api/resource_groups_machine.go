@@ -20,6 +20,7 @@ package api
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -30,7 +31,7 @@ func (svc *ResourceGroupsService) GetMachineResourceGroup(guid string) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
+	var rawResponse resourceGroupWorkaroundResponse
 	err = svc.get(guid, &rawResponse)
 	if err != nil {
 		return
@@ -44,7 +45,7 @@ func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup)
 	response MachineResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
+	var rawResponse resourceGroupWorkaroundResponse
 	err = svc.update(data.ID(), data, &rawResponse)
 	if err != nil {
 		return
@@ -53,12 +54,18 @@ func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup)
 	return setMachineAccountResponse(rawResponse)
 }
 
-func setMachineAccountResponse(response ResourceGroupResponse) (machine MachineResourceGroupResponse, err error) {
+func setMachineAccountResponse(response resourceGroupWorkaroundResponse) (machine MachineResourceGroupResponse, err error) {
 	var props MachineResourceGroupProps
+
+	isDefault, err := strconv.Atoi(response.Data.IsDefault)
+	if err != nil {
+		return MachineResourceGroupResponse{}, err
+	}
+
 	machine = MachineResourceGroupResponse{
 		Data: MachineResourceGroupData{
 			Guid:         response.Data.Guid,
-			IsDefault:    response.Data.IsDefault,
+			IsDefault:    isDefault,
 			ResourceGuid: response.Data.ResourceGuid,
 			Name:         response.Data.Name,
 			Type:         response.Data.Type,
@@ -86,7 +93,7 @@ type MachineResourceGroupResponse struct {
 
 type MachineResourceGroupData struct {
 	Guid         string                    `json:"guid,omitempty"`
-	IsDefault    string                    `json:"isDefault,omitempty"`
+	IsDefault    int                       `json:"isDefault,omitempty"`
 	ResourceGuid string                    `json:"resourceGuid,omitempty"`
 	Name         string                    `json:"resourceName"`
 	Type         string                    `json:"resourceType"`

@@ -20,6 +20,7 @@ package api
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -30,7 +31,7 @@ func (svc *ResourceGroupsService) GetAzureResourceGroup(guid string) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
+	var rawResponse resourceGroupWorkaroundResponse
 	err = svc.get(guid, &rawResponse)
 	if err != nil {
 		return
@@ -44,7 +45,7 @@ func (svc *ResourceGroupsService) UpdateAzureResourceGroup(data ResourceGroup) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
+	var rawResponse resourceGroupWorkaroundResponse
 	err = svc.update(data.ID(), data, &rawResponse)
 	if err != nil {
 		return
@@ -53,12 +54,18 @@ func (svc *ResourceGroupsService) UpdateAzureResourceGroup(data ResourceGroup) (
 	return setAzureResponse(rawResponse)
 }
 
-func setAzureResponse(response ResourceGroupResponse) (az AzureResourceGroupResponse, err error) {
+func setAzureResponse(response resourceGroupWorkaroundResponse) (az AzureResourceGroupResponse, err error) {
 	var props AzureResourceGroupProps
+
+	isDefault, err := strconv.Atoi(response.Data.IsDefault)
+	if err != nil {
+		return AzureResourceGroupResponse{}, err
+	}
+
 	az = AzureResourceGroupResponse{
 		Data: AzureResourceGroupData{
 			Guid:         response.Data.Guid,
-			IsDefault:    response.Data.IsDefault,
+			IsDefault:    isDefault,
 			ResourceGuid: response.Data.ResourceGuid,
 			Name:         response.Data.Name,
 			Type:         response.Data.Type,
@@ -86,7 +93,7 @@ type AzureResourceGroupResponse struct {
 
 type AzureResourceGroupData struct {
 	Guid         string                  `json:"guid,omitempty"`
-	IsDefault    string                  `json:"isDefault,omitempty"`
+	IsDefault    int                     `json:"isDefault,omitempty"`
 	ResourceGuid string                  `json:"resourceGuid,omitempty"`
 	Name         string                  `json:"resourceName"`
 	Type         string                  `json:"resourceType"`
