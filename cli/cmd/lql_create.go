@@ -33,6 +33,7 @@ var (
 There are multiple ways you can create a query:
 
   * Typing the query into your default editor (via $EDITOR)
+  * Piping a query to the Lacework CLI command (via $STDIN)
   * From a local file on disk using the flag '--file'
   * From a URL using the flag '--url'
 
