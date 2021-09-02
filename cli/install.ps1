@@ -18,8 +18,8 @@ param (
 
 $ErrorActionPreference="stop"
 
-Set-Variable GithubReleasesRootUrl -Option ReadOnly -value "https://github.com/lacework/go-sdk/releases"
-Set-Variable PackageName -Option ReadOnly -value "lacework-cli-windows-amd64.exe.zip"
+Set-Variable GithubReleasesRootUrl -Option ReadOnly -value "https://github.com/lacework/go-sdk/releases" -Force
+Set-Variable PackageName -Option ReadOnly -value "lacework-cli-windows-amd64.exe.zip" -Force
 
 Function Get-File($url, $dst) {
     Write-Host "Downloading $url"
