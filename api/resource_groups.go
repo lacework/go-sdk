@@ -228,12 +228,7 @@ func (svc *ResourceGroupsService) Get(guid string, response interface{}) error {
 		return err
 	}
 
-	err = castResourceGroupResponse(rawResponse.Data, &response)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return castResourceGroupResponse(rawResponse.Data, &response)
 }
 
 func (svc *ResourceGroupsService) create(data interface{}, response interface{}) error {
