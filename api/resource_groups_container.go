@@ -79,13 +79,13 @@ func setContainerResponse(response resourceGroupWorkaroundResponse) (ctr Contain
 		},
 	}
 
-	_, ok := response.Data.Props.(string)
+	propsString, ok := response.Data.Props.(string)
 	if !ok {
 		err = errors.New("unable to cast props field from API response")
 		return
 	}
 
-	err = json.Unmarshal([]byte(response.Data.Props.(string)), &props)
+	err = json.Unmarshal([]byte(propsString), &props)
 	if err != nil {
 		return
 	}
