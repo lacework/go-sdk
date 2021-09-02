@@ -25,6 +25,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Wildcard values for selecting all labels/tags
+var (
+	ContainerResourceGroupAllLabels = []map[string]string{{"*": "*"}}
+	ContainerResourceGroupAllTags   = []string{"*"}
+)
+
 // GetContainerResourceGroup gets a single Container ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetContainerResourceGroup(guid string) (

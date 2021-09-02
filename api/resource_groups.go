@@ -86,8 +86,8 @@ func (i ResourceGroupType) String() string {
 //     api.ContainerResourceGroupData{
 //       Props: api.ContainerResourceGroupProps{
 //			Description:     "all containers,
-//			ContainerLabels: []map[string]string{{"*": "*"}},
-//			ContainerTags:   []string{"*"},
+//			ContainerLabels: ContainerResourceGroupAllLabels,
+//			ContainerTags:   ContainerResourceGroupAllTags,
 //		},
 //     },
 //   )

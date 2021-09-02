@@ -25,6 +25,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Wildcard values for selecting all gcp projects
+var (
+	GcpResourceGroupAllProjects = []string{"*"}
+)
+
 // GetGcpResourceGroup gets a single Gcp ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetGcpResourceGroup(guid string) (

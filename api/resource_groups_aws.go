@@ -25,6 +25,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Wildcard values for selecting all aws accounts
+var (
+	AwsResourceGroupAllAccounts = []string{"*"}
+)
+
 // GetAwsResourceGroup gets a single Aws ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetAwsResourceGroup(guid string) (

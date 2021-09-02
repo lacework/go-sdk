@@ -25,6 +25,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Wildcard values for selecting all azure subscriptions
+var (
+	AzureResourceGroupAllSubscriptions = []string{"*"}
+)
+
 // GetAzureResourceGroup gets a single Azure ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetAzureResourceGroup(guid string) (

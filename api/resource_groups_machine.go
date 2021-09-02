@@ -25,6 +25,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Wildcard values for selecting all machine tags
+var (
+	MachineResourceGroupAllTags = []map[string]string{{"*": "*"}}
+)
+
 // GetMachineResourceGroup gets a single Machine ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetMachineResourceGroup(guid string) (

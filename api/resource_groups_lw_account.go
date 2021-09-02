@@ -25,6 +25,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Wildcard values for selecting all lacework accounts
+var (
+	LwAccountResourceGroupAllAccounts = []string{"*"}
+)
+
 // GetContainerResourceGroup gets a single LwAccount ResourceGroup matching the
 // provided resource guid
 func (svc *ResourceGroupsService) GetLwAccountResourceGroup(guid string) (
