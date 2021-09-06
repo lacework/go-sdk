@@ -103,17 +103,8 @@ func setMachineAccountResponse(response resourceGroupWorkaroundResponse) (machin
 	if err != nil {
 		return
 	}
-	machine.Data.Props = mapMachineProps(props)
+	machine.Data.Props = MachineResourceGroupProps(props)
 	return
-}
-
-func mapMachineProps(props MachineResourceGroupJsonStringProps) MachineResourceGroupProps {
-	return MachineResourceGroupProps{
-		Description: props.Description,
-		MachineTags: props.MachineTags,
-		UpdatedBy:   props.UpdatedBy,
-		LastUpdated: props.LastUpdated,
-	}
 }
 
 type MachineResourceGroupResponse struct {

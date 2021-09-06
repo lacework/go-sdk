@@ -75,16 +75,6 @@ func (svc *ResourceGroupsService) CreateContainerResourceGroup(data ResourceGrou
 	return
 }
 
-func mapContainerProps(props ContainerResourceJsonStringGroupProps) ContainerResourceGroupProps {
-	return ContainerResourceGroupProps{
-		Description:     props.Description,
-		ContainerLabels: props.ContainerLabels,
-		ContainerTags:   props.ContainerTags,
-		UpdatedBy:       props.UpdatedBy,
-		LastUpdated:     props.LastUpdated,
-	}
-}
-
 func setContainerResponse(response resourceGroupWorkaroundResponse) (ctr ContainerResourceGroupResponse, err error) {
 	var props ContainerResourceJsonStringGroupProps
 
@@ -115,7 +105,7 @@ func setContainerResponse(response resourceGroupWorkaroundResponse) (ctr Contain
 		return
 	}
 
-	ctr.Data.Props = mapContainerProps(props)
+	ctr.Data.Props = ContainerResourceGroupProps(props)
 	return
 }
 

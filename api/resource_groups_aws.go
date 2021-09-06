@@ -102,17 +102,8 @@ func setAwsResourceGroupResponse(response resourceGroupWorkaroundResponse) (aws 
 	if err != nil {
 		return
 	}
-	aws.Data.Props = mapAwsProps(props)
+	aws.Data.Props = AwsResourceGroupProps(props)
 	return
-}
-
-func mapAwsProps(props AwsResourceJsonStringGroupProps) AwsResourceGroupProps {
-	return AwsResourceGroupProps{
-		Description: props.Description,
-		AccountIDs:  props.AccountIDs,
-		UpdatedBy:   props.UpdatedBy,
-		LastUpdated: props.LastUpdated,
-	}
 }
 
 type AwsResourceGroupResponse struct {

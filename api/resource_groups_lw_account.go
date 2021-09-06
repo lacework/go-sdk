@@ -103,17 +103,8 @@ func setLwAccountResponse(response resourceGroupWorkaroundResponse) (lw LwAccoun
 	if err != nil {
 		return
 	}
-	lw.Data.Props = mapLwAccountProps(props)
+	lw.Data.Props = LwAccountResourceGroupProps(props)
 	return
-}
-
-func mapLwAccountProps(props LwAccountResourceGroupJsonStringProps) LwAccountResourceGroupProps {
-	return LwAccountResourceGroupProps{
-		Description: props.Description,
-		LwAccounts:  props.LwAccounts,
-		UpdatedBy:   props.UpdatedBy,
-		LastUpdated: props.LastUpdated,
-	}
 }
 
 type LwAccountResourceGroupResponse struct {

@@ -103,18 +103,8 @@ func setGcpResponse(response resourceGroupWorkaroundResponse) (gcp GcpResourceGr
 	if err != nil {
 		return
 	}
-	gcp.Data.Props = mapGcpProps(props)
+	gcp.Data.Props = GcpResourceGroupProps(props)
 	return
-}
-
-func mapGcpProps(props GcpResourceGroupJsonStringProps) GcpResourceGroupProps {
-	return GcpResourceGroupProps{
-		Description:  props.Description,
-		Organization: props.Organization,
-		Projects:     props.Projects,
-		UpdatedBy:    props.UpdatedBy,
-		LastUpdated:  props.LastUpdated,
-	}
 }
 
 type GcpResourceGroupResponse struct {

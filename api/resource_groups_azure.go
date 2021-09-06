@@ -74,16 +74,6 @@ func (svc *ResourceGroupsService) CreateAzureResourceGroup(data ResourceGroup) (
 	return
 }
 
-func mapAzureProps(props AzureResourceJsonStringGroupProps) AzureResourceGroupProps {
-	return AzureResourceGroupProps{
-		Description:   props.Description,
-		Tenant:        props.Tenant,
-		Subscriptions: props.Subscriptions,
-		UpdatedBy:     props.UpdatedBy,
-		LastUpdated:   props.LastUpdated,
-	}
-}
-
 func setAzureResponse(response resourceGroupWorkaroundResponse) (az AzureResourceGroupResponse, err error) {
 	var props AzureResourceJsonStringGroupProps
 
@@ -114,7 +104,8 @@ func setAzureResponse(response resourceGroupWorkaroundResponse) (az AzureResourc
 		return
 	}
 
-	az.Data.Props = mapAzureProps(props)
+	az.Data.Props = AzureResourceGroupProps(props)
+
 	return
 }
 
