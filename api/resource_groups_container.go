@@ -51,13 +51,15 @@ func (svc *ResourceGroupsService) UpdateContainerResourceGroup(data ResourceGrou
 	response ContainerResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse resourceGroupWorkaroundResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+	guid := data.ID()
+	data.resetResourceGUID()
+
+	err = svc.update(guid, data, &response)
 	if err != nil {
 		return
 	}
 
-	return setContainerResponse(rawResponse)
+	return
 }
 
 // CreateContainerResourceGroup creates a single Container ResourceGroup on the Lacework Server
@@ -65,45 +67,26 @@ func (svc *ResourceGroupsService) CreateContainerResourceGroup(data ResourceGrou
 	response ContainerResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
-	err = svc.create(data, &rawResponse)
+	err = svc.create(data, &response)
 	if err != nil {
 		return
 	}
 
-	return setContainerResourceGroupCreateResponse(rawResponse)
-}
-
-func setContainerResourceGroupCreateResponse(response ResourceGroupResponse) (container ContainerResourceGroupResponse, err error) {
-	var props ContainerResourceGroupProps
-
-	container = ContainerResourceGroupResponse{
-		Data: ContainerResourceGroupData{
-			Guid:         response.Data.Guid,
-			IsDefault:    response.Data.IsDefault,
-			ResourceGuid: response.Data.ResourceGuid,
-			Name:         response.Data.Name,
-			Type:         response.Data.Type,
-			Enabled:      response.Data.Enabled,
-		},
-	}
-
-	propsString, ok := response.Data.Props.(string)
-	if !ok {
-		err = errors.New("unable to cast props field from API response")
-		return
-	}
-
-	err = json.Unmarshal([]byte(propsString), &props)
-	if err != nil {
-		return
-	}
-	container.Data.Props = props
 	return
 }
 
+func mapContainerProps(props ContainerResourceJsonStringGroupProps) ContainerResourceGroupProps {
+	return ContainerResourceGroupProps{
+		Description:     props.Description,
+		ContainerLabels: props.ContainerLabels,
+		ContainerTags:   props.ContainerTags,
+		UpdatedBy:       props.UpdatedBy,
+		LastUpdated:     props.LastUpdated,
+	}
+}
+
 func setContainerResponse(response resourceGroupWorkaroundResponse) (ctr ContainerResourceGroupResponse, err error) {
-	var props ContainerResourceGroupProps
+	var props ContainerResourceJsonStringGroupProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
@@ -131,7 +114,8 @@ func setContainerResponse(response resourceGroupWorkaroundResponse) (ctr Contain
 	if err != nil {
 		return
 	}
-	ctr.Data.Props = props
+
+	ctr.Data.Props = mapContainerProps(props)
 	return
 }
 
@@ -150,6 +134,15 @@ type ContainerResourceGroupData struct {
 }
 
 type ContainerResourceGroupProps struct {
+	Description     string              `json:"description,omitempty"`
+	ContainerLabels []map[string]string `json:"containerLabels"`
+	ContainerTags   []string            `json:"containerTags"`
+	UpdatedBy       string              `json:"updatedBy,omitempty"`
+	LastUpdated     int                 `json:"lastUpdated,omitempty"`
+}
+
+// Workaround for props being returned as a json string
+type ContainerResourceJsonStringGroupProps struct {
 	Description     string              `json:"DESCRIPTION,omitempty"`
 	ContainerLabels []map[string]string `json:"CONTAINER_LABELS"`
 	ContainerTags   []string            `json:"CONTAINER_TAGS"`

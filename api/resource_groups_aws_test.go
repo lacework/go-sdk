@@ -76,14 +76,14 @@ func TestResourceGroupsAwsUpdate(t *testing.T) {
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
-			assert.Contains(t, body, resourceGUID, "ResourceGUID missing")
+			fmt.Println(body)
 			assert.Contains(t, body, "group_name", "Resource Group  name is missing")
 			assert.Contains(t, body, "AWS", "wrong Resource Group  type")
 			assert.Contains(t, body, "Updated", "wrong description")
 			assert.Contains(t, body, "[\"abc123\",\"cba321\"]", "wrong account ids")
 		}
 
-		fmt.Fprintf(w, generateResourceGroupResponse(singleAwsResourceGroup(resourceGUID)))
+		fmt.Fprintf(w, generateResourceGroupResponse(singleAwsResourceGroupUpdateResponse(resourceGUID)))
 	})
 
 	c, err := api.NewClient("test",
@@ -95,11 +95,9 @@ func TestResourceGroupsAwsUpdate(t *testing.T) {
 
 	resourceGroup := api.NewResourceGroup("group_name",
 		api.AwsResourceGroup,
-		api.AwsResourceGroupData{
-			Props: api.AwsResourceGroupProps{
-				Description: "Updated",
-				AccountIDs:  []string{"abc123", "cba321"},
-			},
+		api.AwsResourceGroupProps{
+			Description: "Updated",
+			AccountIDs:  []string{"abc123", "cba321"},
 		},
 	)
 	assert.Equal(t, "group_name", resourceGroup.Name, "Aws Resource Group name mismatch")
@@ -107,7 +105,7 @@ func TestResourceGroupsAwsUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new Aws Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateAwsResourceGroup(resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateAwsResourceGroup(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -119,6 +117,25 @@ func singleAwsResourceGroup(id string) string {
         "guid": "` + id + `",
         "isDefault": "1",
         "props": "{\"DESCRIPTION\":\"All Aws Accounts\",\"ACCOUNT_IDS\":[\"*\"],\"UPDATED_BY\":null,\"LAST_UPDATED\":1586453993470}",
+        "resourceGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "AWS",
+        "enabled": 1
+	}
+	`
+}
+
+func singleAwsResourceGroupUpdateResponse(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+        "isDefault": 1,
+        "props": {
+			"description":"All Aws Accounts",
+			"accountIds":["*"],
+			"updatedBy":null,
+			"lastUpdated":1586453993470 
+			},
         "resourceGuid": "` + id + `",
         "resourceName": "group_name",
         "resourceType": "AWS",

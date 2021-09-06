@@ -50,13 +50,15 @@ func (svc *ResourceGroupsService) UpdateAzureResourceGroup(data ResourceGroup) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse resourceGroupWorkaroundResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+	guid := data.ID()
+	data.resetResourceGUID()
+
+	err = svc.update(guid, data, &response)
 	if err != nil {
 		return
 	}
 
-	return setAzureResponse(rawResponse)
+	return
 }
 
 // CreateAzureResourceGroup creates a single Azure ResourceGroup on the Lacework Server
@@ -64,45 +66,26 @@ func (svc *ResourceGroupsService) CreateAzureResourceGroup(data ResourceGroup) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
-	err = svc.create(data, &rawResponse)
+	err = svc.create(data, &response)
 	if err != nil {
 		return
 	}
 
-	return setAzureResourceGroupCreateResponse(rawResponse)
-}
-
-func setAzureResourceGroupCreateResponse(response ResourceGroupResponse) (azure AzureResourceGroupResponse, err error) {
-	var props AzureResourceGroupProps
-
-	azure = AzureResourceGroupResponse{
-		Data: AzureResourceGroupData{
-			Guid:         response.Data.Guid,
-			IsDefault:    response.Data.IsDefault,
-			ResourceGuid: response.Data.ResourceGuid,
-			Name:         response.Data.Name,
-			Type:         response.Data.Type,
-			Enabled:      response.Data.Enabled,
-		},
-	}
-
-	propsString, ok := response.Data.Props.(string)
-	if !ok {
-		err = errors.New("unable to cast props field from API response")
-		return
-	}
-
-	err = json.Unmarshal([]byte(propsString), &props)
-	if err != nil {
-		return
-	}
-	azure.Data.Props = props
 	return
 }
 
+func mapAzureProps(props AzureResourceJsonStringGroupProps) AzureResourceGroupProps {
+	return AzureResourceGroupProps{
+		Description:   props.Description,
+		Tenant:        props.Tenant,
+		Subscriptions: props.Subscriptions,
+		UpdatedBy:     props.UpdatedBy,
+		LastUpdated:   props.LastUpdated,
+	}
+}
+
 func setAzureResponse(response resourceGroupWorkaroundResponse) (az AzureResourceGroupResponse, err error) {
-	var props AzureResourceGroupProps
+	var props AzureResourceJsonStringGroupProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
@@ -130,7 +113,8 @@ func setAzureResponse(response resourceGroupWorkaroundResponse) (az AzureResourc
 	if err != nil {
 		return
 	}
-	az.Data.Props = props
+
+	az.Data.Props = mapAzureProps(props)
 	return
 }
 
@@ -149,6 +133,15 @@ type AzureResourceGroupData struct {
 }
 
 type AzureResourceGroupProps struct {
+	Description   string   `json:"description,omitempty"`
+	Tenant        string   `json:"tenant"`
+	Subscriptions []string `json:"subscriptions"`
+	UpdatedBy     string   `json:"updatedBy,omitempty"`
+	LastUpdated   int      `json:"lastUpdated,omitempty"`
+}
+
+// Workaround for props being returned as a json string
+type AzureResourceJsonStringGroupProps struct {
 	Description   string   `json:"DESCRIPTION,omitempty"`
 	Tenant        string   `json:"TENANT"`
 	Subscriptions []string `json:"SUBSCRIPTIONS"`

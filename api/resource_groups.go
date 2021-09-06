@@ -35,6 +35,7 @@ type ResourceGroupsService struct {
 type ResourceGroup interface {
 	ID() string
 	ResourceGroupType() ResourceGroupType
+	resetResourceGUID()
 }
 
 type ResourceGroupType int
@@ -244,8 +245,9 @@ func (svc *ResourceGroupsService) get(guid string, response interface{}) error {
 
 func (svc *ResourceGroupsService) update(guid string, data interface{}, response interface{}) error {
 	if guid == "" {
-		return errors.New("specify an intgGuid")
+		return errors.New("specify a resource group guid")
 	}
+
 	apiPath := fmt.Sprintf(apiV2ResourceGroupsFromGUID, guid)
 	return svc.client.RequestEncoderDecoder("PATCH", apiPath, data, response)
 }
@@ -257,6 +259,10 @@ func (group ResourceGroupData) ResourceGroupType() ResourceGroupType {
 
 func (group ResourceGroupData) ID() string {
 	return group.ResourceGuid
+}
+
+func (group *ResourceGroupData) resetResourceGUID() {
+	group.ResourceGuid = ""
 }
 
 func (group ResourceGroupData) Status() string {

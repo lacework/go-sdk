@@ -50,13 +50,15 @@ func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup)
 	response MachineResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse resourceGroupWorkaroundResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+	guid := data.ID()
+	data.resetResourceGUID()
+
+	err = svc.update(guid, data, &response)
 	if err != nil {
 		return
 	}
 
-	return setMachineAccountResponse(rawResponse)
+	return
 }
 
 // CreateMachineResourceGroup creates a single Machine ResourceGroup on the Lacework Server
@@ -64,45 +66,16 @@ func (svc *ResourceGroupsService) CreateMachineResourceGroup(data ResourceGroup)
 	response MachineResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
-	err = svc.create(data, &rawResponse)
+	err = svc.create(data, &response)
 	if err != nil {
 		return
 	}
 
-	return setMachineResourceGroupCreateResponse(rawResponse)
-}
-
-func setMachineResourceGroupCreateResponse(response ResourceGroupResponse) (machine MachineResourceGroupResponse, err error) {
-	var props MachineResourceGroupProps
-
-	machine = MachineResourceGroupResponse{
-		Data: MachineResourceGroupData{
-			Guid:         response.Data.Guid,
-			IsDefault:    response.Data.IsDefault,
-			ResourceGuid: response.Data.ResourceGuid,
-			Name:         response.Data.Name,
-			Type:         response.Data.Type,
-			Enabled:      response.Data.Enabled,
-		},
-	}
-
-	propsString, ok := response.Data.Props.(string)
-	if !ok {
-		err = errors.New("unable to cast props field from API response")
-		return
-	}
-
-	err = json.Unmarshal([]byte(propsString), &props)
-	if err != nil {
-		return
-	}
-	machine.Data.Props = props
 	return
 }
 
 func setMachineAccountResponse(response resourceGroupWorkaroundResponse) (machine MachineResourceGroupResponse, err error) {
-	var props MachineResourceGroupProps
+	var props MachineResourceGroupJsonStringProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
@@ -130,8 +103,17 @@ func setMachineAccountResponse(response resourceGroupWorkaroundResponse) (machin
 	if err != nil {
 		return
 	}
-	machine.Data.Props = props
+	machine.Data.Props = mapMachineProps(props)
 	return
+}
+
+func mapMachineProps(props MachineResourceGroupJsonStringProps) MachineResourceGroupProps {
+	return MachineResourceGroupProps{
+		Description: props.Description,
+		MachineTags: props.MachineTags,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated,
+	}
 }
 
 type MachineResourceGroupResponse struct {
@@ -149,6 +131,14 @@ type MachineResourceGroupData struct {
 }
 
 type MachineResourceGroupProps struct {
+	Description string              `json:"description,omitempty"`
+	MachineTags []map[string]string `json:"machineTags"`
+	UpdatedBy   string              `json:"updatedBy,omitempty"`
+	LastUpdated int                 `json:"lastUpdated,omitempty"`
+}
+
+// Workaround for props being returned as a json string
+type MachineResourceGroupJsonStringProps struct {
 	Description string              `json:"DESCRIPTION,omitempty"`
 	MachineTags []map[string]string `json:"MACHINE_TAGS"`
 	UpdatedBy   string              `json:"UPDATED_BY,omitempty"`

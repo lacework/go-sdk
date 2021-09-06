@@ -50,13 +50,14 @@ func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse resourceGroupWorkaroundResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+	guid := data.ID()
+	data.resetResourceGUID()
+
+	err = svc.update(guid, data, &response)
 	if err != nil {
 		return
 	}
-
-	return setAwsResourceGroupResponse(rawResponse)
+	return
 }
 
 // CreateAwsResourceGroup creates a single Aws ResourceGroup on the Lacework Server
@@ -64,45 +65,16 @@ func (svc *ResourceGroupsService) CreateAwsResourceGroup(data ResourceGroup) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
-	err = svc.create(data, &rawResponse)
+	err = svc.create(data, &response)
 	if err != nil {
 		return
 	}
 
-	return setAwsResourceGroupCreateResponse(rawResponse)
-}
-
-func setAwsResourceGroupCreateResponse(response ResourceGroupResponse) (aws AwsResourceGroupResponse, err error) {
-	var props AwsResourceGroupProps
-
-	aws = AwsResourceGroupResponse{
-		Data: AwsResourceGroupData{
-			Guid:         response.Data.Guid,
-			IsDefault:    response.Data.IsDefault,
-			ResourceGuid: response.Data.ResourceGuid,
-			Name:         response.Data.Name,
-			Type:         response.Data.Type,
-			Enabled:      response.Data.Enabled,
-		},
-	}
-
-	propsString, ok := response.Data.Props.(string)
-	if !ok {
-		err = errors.New("unable to cast props field from API response")
-		return
-	}
-
-	err = json.Unmarshal([]byte(propsString), &props)
-	if err != nil {
-		return
-	}
-	aws.Data.Props = props
 	return
 }
 
 func setAwsResourceGroupResponse(response resourceGroupWorkaroundResponse) (aws AwsResourceGroupResponse, err error) {
-	var props AwsResourceGroupProps
+	var props AwsResourceJsonStringGroupProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
@@ -130,8 +102,17 @@ func setAwsResourceGroupResponse(response resourceGroupWorkaroundResponse) (aws 
 	if err != nil {
 		return
 	}
-	aws.Data.Props = props
+	aws.Data.Props = mapAwsProps(props)
 	return
+}
+
+func mapAwsProps(props AwsResourceJsonStringGroupProps) AwsResourceGroupProps {
+	return AwsResourceGroupProps{
+		Description: props.Description,
+		AccountIDs:  props.AccountIDs,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated,
+	}
 }
 
 type AwsResourceGroupResponse struct {
@@ -149,6 +130,14 @@ type AwsResourceGroupData struct {
 }
 
 type AwsResourceGroupProps struct {
+	Description string   `json:"description,omitempty"`
+	AccountIDs  []string `json:"accountIds"`
+	UpdatedBy   string   `json:"updatedBy,omitempty"`
+	LastUpdated int      `json:"lastUpdated,omitempty"`
+}
+
+// Workaround for props being returned as a json string
+type AwsResourceJsonStringGroupProps struct {
 	Description string   `json:"DESCRIPTION,omitempty"`
 	AccountIDs  []string `json:"ACCOUNT_IDS"`
 	UpdatedBy   string   `json:"UPDATED_BY,omitempty"`

@@ -76,14 +76,13 @@ func TestResourceGroupsLwAccountUpdate(t *testing.T) {
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
-			assert.Contains(t, body, resourceGUID, "ResourceGUID missing")
 			assert.Contains(t, body, "group_name", "Resource Group name is missing")
 			assert.Contains(t, body, "LW_ACCOUNT", "wrong Resource Group type")
 			assert.Contains(t, body, "Updated", "wrong description")
 			assert.Contains(t, body, "[\"abc123\",\"cba321\"]", "wrong lw accounts ids")
 		}
 
-		fmt.Fprintf(w, generateResourceGroupResponse(singleLwAccountResourceGroup(resourceGUID)))
+		fmt.Fprintf(w, generateResourceGroupResponse(singleLwAccountResourceGroupUpdateResponse(resourceGUID)))
 	})
 
 	c, err := api.NewClient("test",
@@ -95,11 +94,9 @@ func TestResourceGroupsLwAccountUpdate(t *testing.T) {
 
 	resourceGroup := api.NewResourceGroup("group_name",
 		api.LwAccountResourceGroup,
-		api.LwAccountResourceGroupData{
-			Props: api.LwAccountResourceGroupProps{
-				Description: "Updated",
-				LwAccounts:  []string{"abc123", "cba321"},
-			},
+		api.LwAccountResourceGroupProps{
+			Description: "Updated",
+			LwAccounts:  []string{"abc123", "cba321"},
 		},
 	)
 	assert.Equal(t, "group_name", resourceGroup.Name, "LwAccount Resource Group name mismatch")
@@ -107,7 +104,7 @@ func TestResourceGroupsLwAccountUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new LwAccount Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateLwAccountResourceGroup(resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateLwAccountResourceGroup(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -122,6 +119,25 @@ func singleLwAccountResourceGroup(id string) string {
         "resourceGuid": "` + id + `",
         "resourceName": "group_name",
 			"resourceType": "lW_ACCOUNT",
+        "enabled": 1
+	}
+	`
+}
+
+func singleLwAccountResourceGroupUpdateResponse(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+        "isDefault": 1,
+        "props": {
+			"description":"All Lacework Accounts",
+			"lwAccounts":["*"],
+			"updatedBy":null,
+			"lastUpdated":1586453993470 
+			},
+        "resourceGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "AWS",
         "enabled": 1
 	}
 	`

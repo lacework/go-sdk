@@ -77,14 +77,13 @@ func TestResourceGroupsAzureUpdate(t *testing.T) {
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
-			assert.Contains(t, body, resourceGUID, "ResourceGUID missing")
 			assert.Contains(t, body, "group_name", "Resource Group  name is missing")
 			assert.Contains(t, body, "AZURE", "wrong Resource Group  type")
 			assert.Contains(t, body, "Updated", "wrong description")
 			assert.Contains(t, body, "[\"abc123\",\"cba321\"]", "wrong subscriptions")
 		}
 
-		fmt.Fprintf(w, generateResourceGroupResponse(singleAzureResourceGroup(resourceGUID)))
+		fmt.Fprintf(w, generateResourceGroupResponse(singleAzureResourceGroupUpdateResponse(resourceGUID)))
 	})
 
 	c, err := api.NewClient("test",
@@ -96,12 +95,10 @@ func TestResourceGroupsAzureUpdate(t *testing.T) {
 
 	resourceGroup := api.NewResourceGroup("group_name",
 		api.AzureResourceGroup,
-		api.AzureResourceGroupData{
-			Props: api.AzureResourceGroupProps{
-				Description:   "Updated",
-				Subscriptions: []string{"abc123", "cba321"},
-				Tenant:        "tenant",
-			},
+		api.AzureResourceGroupProps{
+			Description:   "Updated",
+			Subscriptions: []string{"abc123", "cba321"},
+			Tenant:        "tenant",
 		},
 	)
 	assert.Equal(t, "group_name", resourceGroup.Name, "Azure Resource Group name mismatch")
@@ -109,7 +106,7 @@ func TestResourceGroupsAzureUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new Azure Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateAzureResourceGroup(resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateAzureResourceGroup(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -124,6 +121,26 @@ func singleAzureResourceGroup(id string) string {
         "resourceGuid": "` + id + `",
         "resourceName": "group_name",
         "resourceType": "AZURE",
+        "enabled": 1
+	}
+	`
+}
+
+func singleAzureResourceGroupUpdateResponse(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+        "isDefault": 1,
+        "props": {
+			"description":"All Tenants and Subscriptions",
+			"subscriptions":["*"],
+			"tenant":"*",
+			"updatedBy":null,
+			"lastUpdated":1586453993470 
+			},
+        "resourceGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "AWS",
         "enabled": 1
 	}
 	`

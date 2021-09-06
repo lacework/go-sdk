@@ -50,13 +50,15 @@ func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
 	response GcpResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse resourceGroupWorkaroundResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+	guid := data.ID()
+	data.resetResourceGUID()
+
+	err = svc.update(guid, data, &response)
 	if err != nil {
 		return
 	}
 
-	return setGcpResponse(rawResponse)
+	return
 }
 
 // CreateGcpResourceGroup creates a single Gcp ResourceGroup on the Lacework Server
@@ -64,45 +66,16 @@ func (svc *ResourceGroupsService) CreateGcpResourceGroup(data ResourceGroup) (
 	response GcpResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
-	err = svc.create(data, &rawResponse)
+	err = svc.create(data, &response)
 	if err != nil {
 		return
 	}
 
-	return setGcpResourceGroupCreateResponse(rawResponse)
-}
-
-func setGcpResourceGroupCreateResponse(response ResourceGroupResponse) (gcp GcpResourceGroupResponse, err error) {
-	var props GcpResourceGroupProps
-
-	gcp = GcpResourceGroupResponse{
-		Data: GcpResourceGroupData{
-			Guid:         response.Data.Guid,
-			IsDefault:    response.Data.IsDefault,
-			ResourceGuid: response.Data.ResourceGuid,
-			Name:         response.Data.Name,
-			Type:         response.Data.Type,
-			Enabled:      response.Data.Enabled,
-		},
-	}
-
-	propsString, ok := response.Data.Props.(string)
-	if !ok {
-		err = errors.New("unable to cast props field from API response")
-		return
-	}
-
-	err = json.Unmarshal([]byte(propsString), &props)
-	if err != nil {
-		return
-	}
-	gcp.Data.Props = props
 	return
 }
 
 func setGcpResponse(response resourceGroupWorkaroundResponse) (gcp GcpResourceGroupResponse, err error) {
-	var props GcpResourceGroupProps
+	var props GcpResourceGroupJsonStringProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
@@ -130,8 +103,18 @@ func setGcpResponse(response resourceGroupWorkaroundResponse) (gcp GcpResourceGr
 	if err != nil {
 		return
 	}
-	gcp.Data.Props = props
+	gcp.Data.Props = mapGcpProps(props)
 	return
+}
+
+func mapGcpProps(props GcpResourceGroupJsonStringProps) GcpResourceGroupProps {
+	return GcpResourceGroupProps{
+		Description:  props.Description,
+		Organization: props.Organization,
+		Projects:     props.Projects,
+		UpdatedBy:    props.UpdatedBy,
+		LastUpdated:  props.LastUpdated,
+	}
 }
 
 type GcpResourceGroupResponse struct {
@@ -149,6 +132,15 @@ type GcpResourceGroupData struct {
 }
 
 type GcpResourceGroupProps struct {
+	Description  string   `json:"description,omitempty"`
+	Organization string   `json:"organization"`
+	Projects     []string `json:"projects"`
+	UpdatedBy    string   `json:"updatedBy,omitempty"`
+	LastUpdated  int      `json:"lastUpdated,omitempty"`
+}
+
+// Workaround for props being returned as a json string
+type GcpResourceGroupJsonStringProps struct {
 	Description  string   `json:"DESCRIPTION,omitempty"`
 	Organization string   `json:"ORGANIZATION"`
 	Projects     []string `json:"PROJECTS"`
