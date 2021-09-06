@@ -180,7 +180,7 @@ func promptCreateResourceGroup() error {
 				"AZURE",
 				"CONTAINER",
 				"GCP",
-				"LWACCOUNT",
+				"LW_ACCOUNT",
 				"MACHINE",
 			},
 		}
@@ -199,7 +199,7 @@ func promptCreateResourceGroup() error {
 		return createContainerResourceGroup()
 	case "GCP":
 		return createGcpResourceGroup()
-	case "LWACCOUNT":
+	case "LW_ACCOUNT":
 		return createLwAccountResourceGroup()
 	case "MACHINE":
 		return createMachineResourceGroup()

@@ -66,8 +66,17 @@ func createLwAccountResourceGroup() error {
 			LwAccounts:  strings.Split(answers.Accounts, "\n"),
 		})
 
+	orgLwClient, err := api.CopyClient(cli.LwApi,
+		api.WithOrgAccess(),
+	)
+
+	if err != nil {
+		return err
+	}
+
 	cli.StartProgress(" Creating resource group...")
-	_, err = cli.LwApi.V2.ResourceGroups.Create(lwAccount)
+	_, err = orgLwClient.V2.ResourceGroups.Create(lwAccount)
+
 	cli.StopProgress()
 	return err
 }
