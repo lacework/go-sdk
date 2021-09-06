@@ -56,7 +56,7 @@ var (
 
 Get started by integrating your resource groups to manage alerting using the command:
 
-    $ lacework resource_group create
+    $ lacework resource-group create
 
 If you prefer to configure resource groups via the WebUI, log in to your account at:
 
