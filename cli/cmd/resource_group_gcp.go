@@ -40,7 +40,7 @@ func createGcpResourceGroup() error {
 		},
 		{
 			Name:     "organization",
-			Prompt:   &survey.Input{Message: "organization: "},
+			Prompt:   &survey.Input{Message: "Organization: "},
 			Validate: survey.Required,
 		},
 		{
