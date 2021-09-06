@@ -44,10 +44,10 @@ func main() {
 		fmt.Printf("%s:%s:%s\n", account.ResourceGuid, account.Type, support)
 	}
 
-		props := api.LwAccountResourceGroupProps{
-			Description: "All Lacework accounts",
-			LwAccounts:  []string{"tech-ally"},
-		}
+	props := api.LwAccountResourceGroupProps{
+		Description: "All Lacework accounts",
+		LwAccounts:  []string{"tech-ally"},
+	}
 
 	myResourceGroup := api.NewResourceGroup(
 		"resource-group-from-golang",
