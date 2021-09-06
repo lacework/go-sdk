@@ -79,12 +79,12 @@ func createGcpResourceGroup() error {
 	return err
 }
 
-func setGcpProps(group interface{}) [][]string {
+func setGcpProps(group string) [][]string {
 	var (
 		gcpProps api.GcpResourceGroupProps
 		details  [][]string
 	)
-	err := json.Unmarshal([]byte(group.(string)), &gcpProps)
+	err := json.Unmarshal([]byte(group), &gcpProps)
 	if err != nil {
 		return [][]string{}
 	}

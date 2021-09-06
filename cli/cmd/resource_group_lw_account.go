@@ -72,9 +72,9 @@ func createLwAccountResourceGroup() error {
 	return err
 }
 
-func setLwAccountProps(group interface{}) []string {
+func setLwAccountProps(group string) []string {
 	var lwProps api.LwAccountResourceGroupProps
-	err := json.Unmarshal([]byte(group.(string)), &lwProps)
+	err := json.Unmarshal([]byte(group), &lwProps)
 	if err != nil {
 		return []string{}
 	}

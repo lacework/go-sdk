@@ -80,12 +80,12 @@ func createAzureResourceGroup() error {
 	return err
 }
 
-func setAzureProps(group interface{}) [][]string {
+func setAzureProps(group string) [][]string {
 	var (
 		azProps api.AzureResourceGroupProps
 		details [][]string
 	)
-	err := json.Unmarshal([]byte(group.(string)), &azProps)
+	err := json.Unmarshal([]byte(group), &azProps)
 	if err != nil {
 		return [][]string{}
 	}

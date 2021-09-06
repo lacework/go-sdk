@@ -73,9 +73,9 @@ func createAwsResourceGroup() error {
 	return err
 }
 
-func setAwsProps(group interface{}) []string {
+func setAwsProps(group string) []string {
 	var awsProps api.AwsResourceGroupProps
-	err := json.Unmarshal([]byte(group.(string)), &awsProps)
+	err := json.Unmarshal([]byte(group), &awsProps)
 	if err != nil {
 		return []string{}
 	}

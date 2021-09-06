@@ -73,10 +73,10 @@ func createMachineResourceGroup() error {
 	return err
 }
 
-func setMachineProps(group interface{}) []string {
+func setMachineProps(group string) []string {
 	var machineProps api.MachineResourceGroupProps
 
-	err := json.Unmarshal([]byte(group.(string)), &machineProps)
+	err := json.Unmarshal([]byte(group), &machineProps)
 	if err != nil {
 		return []string{}
 	}

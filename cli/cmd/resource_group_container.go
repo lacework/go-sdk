@@ -80,13 +80,13 @@ func createContainerResourceGroup() error {
 	return err
 }
 
-func setContainerProps(group interface{}) [][]string {
+func setContainerProps(group string) [][]string {
 	var (
 		ctrProps api.ContainerResourceGroupProps
 		labels   []string
 		details  [][]string
 	)
-	err := json.Unmarshal([]byte(group.(string)), &ctrProps)
+	err := json.Unmarshal([]byte(group), &ctrProps)
 	if err != nil {
 		return [][]string{}
 	}

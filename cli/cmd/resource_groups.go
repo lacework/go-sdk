@@ -176,12 +176,12 @@ func promptCreateResourceGroup() error {
 		prompt = &survey.Select{
 			Message: "Choose a resource group type to create: ",
 			Options: []string{
-				"Aws",
-				"Azure",
-				"Container",
-				"Gcp",
-				"LwAccount",
-				"Machine",
+				"AWS",
+				"AZURE",
+				"CONTAINER",
+				"GCP",
+				"LWACCOUNT",
+				"MACHINE",
 			},
 		}
 		err = survey.AskOne(prompt, &group)
@@ -191,17 +191,17 @@ func promptCreateResourceGroup() error {
 	}
 
 	switch group {
-	case "Aws":
+	case "AWS":
 		return createAwsResourceGroup()
-	case "Azure":
+	case "AZURE":
 		return createAzureResourceGroup()
-	case "Container":
+	case "CONTAINER":
 		return createContainerResourceGroup()
-	case "Gcp":
+	case "GCP":
 		return createGcpResourceGroup()
-	case "LwAccount":
+	case "LWACCOUNT":
 		return createLwAccountResourceGroup()
-	case "Machine":
+	case "MACHINE":
 		return createMachineResourceGroup()
 	default:
 		return errors.New("unknown resource group type")
@@ -229,20 +229,21 @@ func buildResourceGroupPropsTable(group resourceGroup) string {
 
 func determineResourceGroupProps(resType string, props interface{}) [][]string {
 	details := setBaseProps(props)
+	propsString := props.(string)
 
 	switch resType {
 	case api.AwsResourceGroup.String():
-		details = append(details, setAwsProps(props))
+		details = append(details, setAwsProps(propsString))
 	case api.AzureResourceGroup.String():
-		details = append(details, setAzureProps(props)...)
+		details = append(details, setAzureProps(propsString)...)
 	case api.ContainerResourceGroup.String():
-		details = append(details, setContainerProps(props)...)
+		details = append(details, setContainerProps(propsString)...)
 	case api.GcpResourceGroup.String():
-		details = append(details, setGcpProps(props)...)
+		details = append(details, setGcpProps(propsString)...)
 	case api.LwAccountResourceGroup.String():
-		details = append(details, setLwAccountProps(props))
+		details = append(details, setLwAccountProps(propsString))
 	case api.MachineResourceGroup.String():
-		details = append(details, setMachineProps(props))
+		details = append(details, setMachineProps(propsString))
 	}
 
 	return details
