@@ -59,6 +59,48 @@ func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
 	return setGcpResponse(rawResponse)
 }
 
+// CreateGcpResourceGroup creates a single Gcp ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateGcpResourceGroup(data ResourceGroup) (
+	response GcpResourceGroupResponse,
+	err error,
+) {
+	var rawResponse ResourceGroupResponse
+	err = svc.update(data.ID(), data, &rawResponse)
+	if err != nil {
+		return
+	}
+
+	return setGcpResourceGroupCreateResponse(rawResponse)
+}
+
+func setGcpResourceGroupCreateResponse(response ResourceGroupResponse) (gcp GcpResourceGroupResponse, err error) {
+	var props GcpResourceGroupProps
+
+	gcp = GcpResourceGroupResponse{
+		Data: GcpResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+		},
+	}
+
+	propsString, ok := response.Data.Props.(string)
+	if !ok {
+		err = errors.New("unable to cast props field from API response")
+		return
+	}
+
+	err = json.Unmarshal([]byte(propsString), &props)
+	if err != nil {
+		return
+	}
+	gcp.Data.Props = props
+	return
+}
+
 func setGcpResponse(response resourceGroupWorkaroundResponse) (gcp GcpResourceGroupResponse, err error) {
 	var props GcpResourceGroupProps
 

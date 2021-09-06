@@ -59,6 +59,48 @@ func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup)
 	return setMachineAccountResponse(rawResponse)
 }
 
+// CreateMachineResourceGroup creates a single Machine ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateMachineResourceGroup(data ResourceGroup) (
+	response MachineResourceGroupResponse,
+	err error,
+) {
+	var rawResponse ResourceGroupResponse
+	err = svc.update(data.ID(), data, &rawResponse)
+	if err != nil {
+		return
+	}
+
+	return setMachineResourceGroupCreateResponse(rawResponse)
+}
+
+func setMachineResourceGroupCreateResponse(response ResourceGroupResponse) (machine MachineResourceGroupResponse, err error) {
+	var props MachineResourceGroupProps
+
+	machine = MachineResourceGroupResponse{
+		Data: MachineResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+		},
+	}
+
+	propsString, ok := response.Data.Props.(string)
+	if !ok {
+		err = errors.New("unable to cast props field from API response")
+		return
+	}
+
+	err = json.Unmarshal([]byte(propsString), &props)
+	if err != nil {
+		return
+	}
+	machine.Data.Props = props
+	return
+}
+
 func setMachineAccountResponse(response resourceGroupWorkaroundResponse) (machine MachineResourceGroupResponse, err error) {
 	var props MachineResourceGroupProps
 

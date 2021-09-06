@@ -59,6 +59,48 @@ func (svc *ResourceGroupsService) UpdateLwAccountResourceGroup(data ResourceGrou
 	return setLwAccountResponse(rawResponse)
 }
 
+// CreateLwAccountResourceGroup creates a single LwAccount ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateLwAccountResourceGroup(data ResourceGroup) (
+	response LwAccountResourceGroupResponse,
+	err error,
+) {
+	var rawResponse ResourceGroupResponse
+	err = svc.update(data.ID(), data, &rawResponse)
+	if err != nil {
+		return
+	}
+
+	return setLwAccountResourceGroupCreateResponse(rawResponse)
+}
+
+func setLwAccountResourceGroupCreateResponse(response ResourceGroupResponse) (lwAccount LwAccountResourceGroupResponse, err error) {
+	var props LwAccountResourceGroupProps
+
+	lwAccount = LwAccountResourceGroupResponse{
+		Data: LwAccountResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+		},
+	}
+
+	propsString, ok := response.Data.Props.(string)
+	if !ok {
+		err = errors.New("unable to cast props field from API response")
+		return
+	}
+
+	err = json.Unmarshal([]byte(propsString), &props)
+	if err != nil {
+		return
+	}
+	lwAccount.Data.Props = props
+	return
+}
+
 func setLwAccountResponse(response resourceGroupWorkaroundResponse) (lw LwAccountResourceGroupResponse, err error) {
 	var props LwAccountResourceGroupProps
 

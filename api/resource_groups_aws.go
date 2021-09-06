@@ -59,6 +59,48 @@ func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
 	return setAwsResourceGroupResponse(rawResponse)
 }
 
+// CreateAwsResourceGroup creates a single Aws ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateAwsResourceGroup(data ResourceGroup) (
+	response AwsResourceGroupResponse,
+	err error,
+) {
+	var rawResponse ResourceGroupResponse
+	err = svc.update(data.ID(), data, &rawResponse)
+	if err != nil {
+		return
+	}
+
+	return setAwsResourceGroupCreateResponse(rawResponse)
+}
+
+func setAwsResourceGroupCreateResponse(response ResourceGroupResponse) (aws AwsResourceGroupResponse, err error) {
+	var props AwsResourceGroupProps
+
+	aws = AwsResourceGroupResponse{
+		Data: AwsResourceGroupData{
+			Guid:         response.Data.Guid,
+			IsDefault:    response.Data.IsDefault,
+			ResourceGuid: response.Data.ResourceGuid,
+			Name:         response.Data.Name,
+			Type:         response.Data.Type,
+			Enabled:      response.Data.Enabled,
+		},
+	}
+
+	propsString, ok := response.Data.Props.(string)
+	if !ok {
+		err = errors.New("unable to cast props field from API response")
+		return
+	}
+
+	err = json.Unmarshal([]byte(propsString), &props)
+	if err != nil {
+		return
+	}
+	aws.Data.Props = props
+	return
+}
+
 func setAwsResourceGroupResponse(response resourceGroupWorkaroundResponse) (aws AwsResourceGroupResponse, err error) {
 	var props AwsResourceGroupProps
 
