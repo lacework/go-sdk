@@ -31,6 +31,7 @@ const (
 	AlertChannels
 	ContainerRegistries
 	CloudAccounts
+	ResourceGroups
 )
 
 func (svc *SchemasService) GetService(schemaName integrationSchema) V2Service {
