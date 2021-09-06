@@ -65,7 +65,7 @@ func setContainerResponse(response resourceGroupWorkaroundResponse) (ctr Contain
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
-		return ContainerResourceGroupResponse{}, err
+		return
 	}
 
 	ctr = ContainerResourceGroupResponse{

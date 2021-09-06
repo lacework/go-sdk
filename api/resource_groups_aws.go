@@ -64,7 +64,7 @@ func setAwsResourceGroupResponse(response resourceGroupWorkaroundResponse) (aws 
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
-		return AwsResourceGroupResponse{}, err
+		return
 	}
 
 	aws = AwsResourceGroupResponse{

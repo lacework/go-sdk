@@ -64,7 +64,7 @@ func setLwAccountResponse(response resourceGroupWorkaroundResponse) (lw LwAccoun
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
-		return LwAccountResourceGroupResponse{}, err
+		return
 	}
 
 	lw = LwAccountResourceGroupResponse{

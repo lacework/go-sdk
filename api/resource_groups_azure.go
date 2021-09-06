@@ -64,7 +64,7 @@ func setAzureResponse(response resourceGroupWorkaroundResponse) (az AzureResourc
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
-		return AzureResourceGroupResponse{}, err
+		return
 	}
 
 	az = AzureResourceGroupResponse{

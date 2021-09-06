@@ -64,7 +64,7 @@ func setGcpResponse(response resourceGroupWorkaroundResponse) (gcp GcpResourceGr
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
-		return GcpResourceGroupResponse{}, err
+		return
 	}
 
 	gcp = GcpResourceGroupResponse{

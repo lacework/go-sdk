@@ -64,7 +64,7 @@ func setMachineAccountResponse(response resourceGroupWorkaroundResponse) (machin
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
-		return MachineResourceGroupResponse{}, err
+		return
 	}
 
 	machine = MachineResourceGroupResponse{
