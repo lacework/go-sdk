@@ -66,7 +66,7 @@ func (svc *ResourceGroupsService) CreateContainerResourceGroup(data ResourceGrou
 	err error,
 ) {
 	var rawResponse ResourceGroupResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+	err = svc.create(data, &rawResponse)
 	if err != nil {
 		return
 	}
