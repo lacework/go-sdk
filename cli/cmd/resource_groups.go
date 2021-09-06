@@ -31,12 +31,12 @@ import (
 )
 
 var (
-	// resource_groups command is used to manage lacework resource groups
+	// resource-groups command is used to manage lacework resource groups
 	resourceGroupsCommand = &cobra.Command{
 		Use:     "resource-group",
-		Aliases: []string{"group", "rg"},
+		Aliases: []string{"resource-groups", "rg"},
 		Short:   "manage resource groups",
-		Long:    "Manage resource groups.",
+		Long:    "Manage Lacework-identifiable assets via the use of resource groups.",
 	}
 
 	// list command is used to list all lacework resource groups
@@ -91,7 +91,7 @@ Then navigate to Settings > Resource Groups.
 				rows = append(rows, []string{g.Id, g.ResType, g.Name, g.State})
 			}
 
-			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE ID", "TYPE", "NAME", "STATE"}, rows))
+			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GUID", "TYPE", "NAME", "STATE"}, rows))
 			return nil
 		},
 	}
@@ -267,10 +267,10 @@ func setBaseProps(props interface{}) [][]string {
 }
 
 func init() {
-	// add the resource_group command
+	// add the resource-group command
 	rootCmd.AddCommand(resourceGroupsCommand)
 
-	// add sub-commands to the resource_group command
+	// add sub-commands to the resource-group command
 	resourceGroupsCommand.AddCommand(resourceGroupsListCommand)
 	resourceGroupsCommand.AddCommand(resourceGroupsShowCommand)
 	resourceGroupsCommand.AddCommand(resourceGroupsCreateCommand)
