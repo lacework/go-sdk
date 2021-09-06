@@ -134,8 +134,7 @@ func (svc *ResourceGroupsService) Create(group ResourceGroupData) (
 	response ResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse ResourceGroupResponse
-	err = svc.create(group, &rawResponse)
+	err = svc.create(group, &response)
 	return
 }
 

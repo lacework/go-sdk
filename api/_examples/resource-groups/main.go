@@ -1,4 +1,4 @@
-package resource_groups
+package main
 
 import (
 	"fmt"
@@ -44,17 +44,15 @@ func main() {
 		fmt.Printf("%s:%s:%s\n", account.ResourceGuid, account.Type, support)
 	}
 
-	lwAccResourceGroupData := api.LwAccountResourceGroupData{
-		Props: api.LwAccountResourceGroupProps{
-			Description: "All AWS accounts",
-			LwAccounts:  []string{"*"},
-		},
-	}
+		props := api.LwAccountResourceGroupProps{
+			Description: "All Lacework accounts",
+			LwAccounts:  []string{"tech-ally"},
+		}
 
 	myResourceGroup := api.NewResourceGroup(
 		"resource-group-from-golang",
 		api.LwAccountResourceGroup,
-		lwAccResourceGroupData,
+		props,
 	)
 
 	// LW_ACCOUNT resource groups are only allowed at Organization level,
@@ -72,5 +70,5 @@ func main() {
 	}
 
 	// Output: Resource Group created: RESOURCE_GUID
-	fmt.Printf("Resource Group created: %s", response.Data[0].ResourceGuid)
+	fmt.Printf("Resource Group created: %s", response.Data.ResourceGuid)
 }
