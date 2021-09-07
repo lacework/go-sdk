@@ -52,7 +52,7 @@ func TestResourceGroupMachineGet(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.ResourceGroups.GetMachineResourceGroup(resourceGUID)
+	response, err := c.V2.ResourceGroups.GetMachine(resourceGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -104,7 +104,7 @@ func TestResourceGroupsMachineUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new Machine Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateMachineResourceGroup(&resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateMachine(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)

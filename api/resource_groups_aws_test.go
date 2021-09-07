@@ -52,7 +52,7 @@ func TestResourceGroupAwsGet(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.ResourceGroups.GetAwsResourceGroup(resourceGUID)
+	response, err := c.V2.ResourceGroups.GetAws(resourceGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -104,7 +104,7 @@ func TestResourceGroupsAwsUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new Aws Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateAwsResourceGroup(&resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateAws(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)

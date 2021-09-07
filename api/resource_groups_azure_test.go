@@ -52,7 +52,7 @@ func TestResourceGroupAzureGet(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.ResourceGroups.GetAzureResourceGroup(resourceGUID)
+	response, err := c.V2.ResourceGroups.GetAzure(resourceGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -106,7 +106,7 @@ func TestResourceGroupsAzureUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new Azure Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateAzureResourceGroup(&resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateAzure(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)

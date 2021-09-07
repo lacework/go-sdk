@@ -30,9 +30,9 @@ var (
 	GcpResourceGroupAllProjects = []string{"*"}
 )
 
-// GetGcpResourceGroup gets a single Gcp ResourceGroup matching the
+// GetGcp gets a single Gcp ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetGcpResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetGcp(guid string) (
 	response GcpResourceGroupResponse,
 	err error,
 ) {
@@ -45,8 +45,8 @@ func (svc *ResourceGroupsService) GetGcpResourceGroup(guid string) (
 	return setGcpResponse(rawResponse)
 }
 
-// UpdateGcpResourceGroup updates a single Gcp ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
+// UpdateGcp updates a single Gcp ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateGcp(data ResourceGroup) (
 	response GcpResourceGroupResponse,
 	err error,
 ) {
@@ -57,8 +57,8 @@ func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
 	return
 }
 
-// CreateGcpResourceGroup creates a single Gcp ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) CreateGcpResourceGroup(data ResourceGroup) (
+// CreateGcp creates a single Gcp ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateGcp(data ResourceGroup) (
 	response GcpResourceGroupResponse,
 	err error,
 ) {

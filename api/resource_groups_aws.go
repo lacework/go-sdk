@@ -30,9 +30,9 @@ var (
 	AwsResourceGroupAllAccounts = []string{"*"}
 )
 
-// GetAwsResourceGroup gets a single Aws ResourceGroup matching the
+// GetAws gets a single Aws ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetAwsResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetAws(guid string) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
@@ -45,8 +45,8 @@ func (svc *ResourceGroupsService) GetAwsResourceGroup(guid string) (
 	return setAwsResourceGroupResponse(rawResponse)
 }
 
-// UpdateAwsResourceGroup updates a single Aws ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
+// UpdateAws updates a single Aws ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateAws(data ResourceGroup) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
@@ -60,8 +60,8 @@ func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
 	return
 }
 
-// CreateAwsResourceGroup creates a single Aws ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) CreateAwsResourceGroup(data ResourceGroup) (
+// CreateAws creates a single Aws ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateAws(data ResourceGroup) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {

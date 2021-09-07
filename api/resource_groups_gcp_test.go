@@ -52,7 +52,7 @@ func TestResourceGroupGcpGet(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.ResourceGroups.GetGcpResourceGroup(resourceGUID)
+	response, err := c.V2.ResourceGroups.GetGcp(resourceGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -106,7 +106,7 @@ func TestResourceGroupsGcpUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new Gcp Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateGcpResourceGroup(&resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateGcp(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)

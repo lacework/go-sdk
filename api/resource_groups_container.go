@@ -31,9 +31,9 @@ var (
 	ContainerResourceGroupAllTags   = []string{"*"}
 )
 
-// GetContainerResourceGroup gets a single Container ResourceGroup matching the
+// GetContainer gets a single Container ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetContainerResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetContainer(guid string) (
 	response ContainerResourceGroupResponse,
 	err error,
 ) {
@@ -46,8 +46,8 @@ func (svc *ResourceGroupsService) GetContainerResourceGroup(guid string) (
 	return setContainerResponse(rawResponse)
 }
 
-// UpdateContainerResourceGroup updates a single Container ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateContainerResourceGroup(data ResourceGroup) (
+// UpdateContainer updates a single Container ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateContainer(data ResourceGroup) (
 	response ContainerResourceGroupResponse,
 	err error,
 ) {
@@ -58,8 +58,8 @@ func (svc *ResourceGroupsService) UpdateContainerResourceGroup(data ResourceGrou
 	return
 }
 
-// CreateContainerResourceGroup creates a single Container ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) CreateContainerResourceGroup(data ResourceGroup) (
+// CreateContainer creates a single Container ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateContainer(data ResourceGroup) (
 	response ContainerResourceGroupResponse,
 	err error,
 ) {

@@ -30,9 +30,9 @@ var (
 	MachineResourceGroupAllTags = []map[string]string{{"*": "*"}}
 )
 
-// GetMachineResourceGroup gets a single Machine ResourceGroup matching the
+// GetMachine gets a single Machine ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetMachineResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetMachine(guid string) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {
@@ -45,8 +45,8 @@ func (svc *ResourceGroupsService) GetMachineResourceGroup(guid string) (
 	return setMachineAccountResponse(rawResponse)
 }
 
-// UpdateMachineResourceGroup updates a single Machine ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup) (
+// UpdateMachine updates a single Machine ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateMachine(data ResourceGroup) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {
@@ -61,8 +61,8 @@ func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup)
 	return
 }
 
-// CreateMachineResourceGroup creates a single Machine ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) CreateMachineResourceGroup(data ResourceGroup) (
+// CreateMachine creates a single Machine ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateMachine(data ResourceGroup) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {

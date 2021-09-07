@@ -30,9 +30,9 @@ var (
 	LwAccountResourceGroupAllAccounts = []string{"*"}
 )
 
-// GetContainerResourceGroup gets a single LwAccount ResourceGroup matching the
+// GetContainer gets a single LwAccount ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetLwAccountResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetLwAccount(guid string) (
 	response LwAccountResourceGroupResponse,
 	err error,
 ) {
@@ -45,8 +45,8 @@ func (svc *ResourceGroupsService) GetLwAccountResourceGroup(guid string) (
 	return setLwAccountResponse(rawResponse)
 }
 
-// UpdateLwAccountResourceGroup updates a single LwAccount ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateLwAccountResourceGroup(data ResourceGroup) (
+// UpdateLwAccount updates a single LwAccount ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateLwAccount(data ResourceGroup) (
 	response LwAccountResourceGroupResponse,
 	err error,
 ) {
@@ -61,8 +61,8 @@ func (svc *ResourceGroupsService) UpdateLwAccountResourceGroup(data ResourceGrou
 	return
 }
 
-// CreateLwAccountResourceGroup creates a single LwAccount ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) CreateLwAccountResourceGroup(data ResourceGroup) (
+// CreateLwAccount creates a single LwAccount ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateLwAccount(data ResourceGroup) (
 	response LwAccountResourceGroupResponse,
 	err error,
 ) {

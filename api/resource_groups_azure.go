@@ -30,9 +30,9 @@ var (
 	AzureResourceGroupAllSubscriptions = []string{"*"}
 )
 
-// GetAzureResourceGroup gets a single Azure ResourceGroup matching the
+// GetAzure gets a single Azure ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetAzureResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetAzure(guid string) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
@@ -45,8 +45,8 @@ func (svc *ResourceGroupsService) GetAzureResourceGroup(guid string) (
 	return setAzureResponse(rawResponse)
 }
 
-// UpdateAzureResourceGroup updates a single Azure ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateAzureResourceGroup(data ResourceGroup) (
+// UpdateAzure updates a single Azure ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateAzure(data ResourceGroup) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
@@ -61,8 +61,8 @@ func (svc *ResourceGroupsService) UpdateAzureResourceGroup(data ResourceGroup) (
 	return
 }
 
-// CreateAzureResourceGroup creates a single Azure ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) CreateAzureResourceGroup(data ResourceGroup) (
+// CreateAzure creates a single Azure ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateAzure(data ResourceGroup) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {

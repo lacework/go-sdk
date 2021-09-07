@@ -52,7 +52,7 @@ func TestResourceGroupLwAccountGet(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.ResourceGroups.GetLwAccountResourceGroup(resourceGUID)
+	response, err := c.V2.ResourceGroups.GetLwAccount(resourceGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -104,7 +104,7 @@ func TestResourceGroupsLwAccountUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new LwAccount Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateLwAccountResourceGroup(&resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateLwAccount(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)

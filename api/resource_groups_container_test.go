@@ -52,7 +52,7 @@ func TestResourceGroupContainerGet(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.ResourceGroups.GetContainerResourceGroup(resourceGUID)
+	response, err := c.V2.ResourceGroups.GetContainer(resourceGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -106,7 +106,7 @@ func TestResourceGroupsContainerUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new Container Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateContainerResourceGroup(&resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateContainer(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
