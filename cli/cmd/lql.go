@@ -202,7 +202,7 @@ func inputQuery(cmd *cobra.Command) (string, error) {
 	// if running via stdin
 	stat, err := os.Stdin.Stat()
 	if err != nil {
-		cli.Log.Debugw("error retrieving stdin mode")
+		cli.Log.Debugw("error retrieving stdin mode", "error", err.Error())
 	} else if (stat.Mode() & os.ModeCharDevice) == 0 {
 		bytes, err := ioutil.ReadAll(os.Stdin)
 		return string(bytes), err
