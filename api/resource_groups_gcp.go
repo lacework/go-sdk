@@ -54,10 +54,6 @@ func (svc *ResourceGroupsService) UpdateGcpResourceGroup(data ResourceGroup) (
 	data.resetResourceGUID()
 
 	err = svc.update(guid, data, &response)
-	if err != nil {
-		return
-	}
-
 	return
 }
 

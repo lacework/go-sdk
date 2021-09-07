@@ -76,7 +76,6 @@ func TestResourceGroupsAwsUpdate(t *testing.T) {
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
-			fmt.Println(body)
 			assert.Contains(t, body, "group_name", "Resource Group  name is missing")
 			assert.Contains(t, body, "AWS", "wrong Resource Group  type")
 			assert.Contains(t, body, "Updated", "wrong description")

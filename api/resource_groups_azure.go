@@ -67,10 +67,6 @@ func (svc *ResourceGroupsService) CreateAzureResourceGroup(data ResourceGroup) (
 	err error,
 ) {
 	err = svc.create(data, &response)
-	if err != nil {
-		return
-	}
-
 	return
 }
 

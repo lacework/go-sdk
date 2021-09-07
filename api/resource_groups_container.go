@@ -55,10 +55,6 @@ func (svc *ResourceGroupsService) UpdateContainerResourceGroup(data ResourceGrou
 	data.resetResourceGUID()
 
 	err = svc.update(guid, data, &response)
-	if err != nil {
-		return
-	}
-
 	return
 }
 
