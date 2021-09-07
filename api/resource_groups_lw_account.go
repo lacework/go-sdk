@@ -51,7 +51,8 @@ func (svc *ResourceGroupsService) UpdateLwAccount(data ResourceGroup) (
 	err error,
 ) {
 	if data == nil {
-		return LwAccountResourceGroupResponse{}, errors.New("resource group must not be empty")
+		err = errors.New("resource group must not be empty")
+		return
 	}
 	guid := data.ID()
 	data.ResetResourceGUID()

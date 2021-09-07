@@ -49,7 +49,8 @@ func (svc *ResourceGroupsService) GetAws(guid string) (
 func (svc *ResourceGroupsService) UpdateAws(data ResourceGroup) (
 	response AwsResourceGroupResponse, err error) {
 	if data == nil {
-		return AwsResourceGroupResponse{}, errors.New("resource group must not be empty")
+		err = errors.New("resource group must not be empty")
+		return
 	}
 	guid := data.ID()
 	data.ResetResourceGUID()

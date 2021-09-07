@@ -51,7 +51,8 @@ func (svc *ResourceGroupsService) UpdateAzure(data ResourceGroup) (
 	err error,
 ) {
 	if data == nil {
-		return AzureResourceGroupResponse{}, errors.New("resource group must not be empty")
+		err = errors.New("resource group must not be empty")
+		return
 	}
 	guid := data.ID()
 	data.ResetResourceGUID()

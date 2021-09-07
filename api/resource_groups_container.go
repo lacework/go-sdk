@@ -52,7 +52,8 @@ func (svc *ResourceGroupsService) UpdateContainer(data ResourceGroup) (
 	err error,
 ) {
 	if data == nil {
-		return ContainerResourceGroupResponse{}, errors.New("resource group must not be empty")
+		err = errors.New("resource group must not be empty")
+		return
 	}
 	guid := data.ID()
 	data.ResetResourceGUID()
