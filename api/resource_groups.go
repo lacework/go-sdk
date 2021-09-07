@@ -35,7 +35,7 @@ type ResourceGroupsService struct {
 type ResourceGroup interface {
 	ID() string
 	ResourceGroupType() ResourceGroupType
-	resetResourceGUID()
+	ResetResourceGUID()
 }
 
 type ResourceGroupType int
@@ -136,6 +136,25 @@ func (svc *ResourceGroupsService) Create(group ResourceGroupData) (
 	err error,
 ) {
 	err = svc.create(group, &response)
+	return
+}
+
+// Update updates a single ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) Update(data ResourceGroup) (
+	response ResourceGroupResponse,
+	err error,
+) {
+	if data == nil {
+		return ResourceGroupResponse{}, errors.New("resource group must not be empty")
+	}
+	guid := data.ID()
+	data.ResetResourceGUID()
+
+	err = svc.update(guid, data, &response)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -261,7 +280,7 @@ func (group ResourceGroupData) ID() string {
 	return group.ResourceGuid
 }
 
-func (group *ResourceGroupData) resetResourceGUID() {
+func (group *ResourceGroupData) ResetResourceGUID() {
 	group.ResourceGuid = ""
 }
 

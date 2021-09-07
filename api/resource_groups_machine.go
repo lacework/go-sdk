@@ -50,8 +50,11 @@ func (svc *ResourceGroupsService) UpdateMachine(data ResourceGroup) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {
+	if data == nil {
+		return MachineResourceGroupResponse{}, errors.New("resource group must not be empty")
+	}
 	guid := data.ID()
-	data.resetResourceGUID()
+	data.ResetResourceGUID()
 
 	err = svc.update(guid, data, &response)
 	if err != nil {

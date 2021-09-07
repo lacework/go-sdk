@@ -50,8 +50,11 @@ func (svc *ResourceGroupsService) UpdateGcp(data ResourceGroup) (
 	response GcpResourceGroupResponse,
 	err error,
 ) {
+	if data == nil {
+		return GcpResourceGroupResponse{}, errors.New("resource group must not be empty")
+	}
 	guid := data.ID()
-	data.resetResourceGUID()
+	data.ResetResourceGUID()
 
 	err = svc.update(guid, data, &response)
 	return

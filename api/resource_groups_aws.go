@@ -47,16 +47,18 @@ func (svc *ResourceGroupsService) GetAws(guid string) (
 
 // UpdateAws updates a single Aws ResourceGroup on the Lacework Server
 func (svc *ResourceGroupsService) UpdateAws(data ResourceGroup) (
-	response AwsResourceGroupResponse,
-	err error,
-) {
+	response AwsResourceGroupResponse, err error) {
+	if data == nil {
+		return AwsResourceGroupResponse{}, errors.New("resource group must not be empty")
+	}
 	guid := data.ID()
-	data.resetResourceGUID()
+	data.ResetResourceGUID()
 
 	err = svc.update(guid, data, &response)
 	if err != nil {
 		return
 	}
+
 	return
 }
 
