@@ -20,6 +20,7 @@ package integration
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -81,9 +82,10 @@ func LaceworkCLIWithHome(dir string, args ...string) (bytes.Buffer, bytes.Buffer
 	return runLaceworkCLI(dir, args...)
 }
 
-func NewLaceworkCLI(workingDir string, args ...string) *exec.Cmd {
+func NewLaceworkCLI(workingDir string, stdin io.Reader, args ...string) *exec.Cmd {
 	cmd := exec.Command(findLaceworkCLIBinary(), args...)
 	cmd.Env = os.Environ()
+	cmd.Stdin = stdin
 	if len(workingDir) != 0 {
 		cmd.Dir = workingDir
 		env := append(os.Environ(), fmt.Sprintf("HOME=%s", workingDir))
@@ -120,24 +122,29 @@ func disableTestingUpdaterEnv() {
 }
 
 func runLaceworkCLI(workingDir string, args ...string) (stdout bytes.Buffer, stderr bytes.Buffer, exitcode int) {
-	cmd := NewLaceworkCLI(workingDir, args...)
+	cmd := NewLaceworkCLI(workingDir, nil, args...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	exitcode = 0
-	if err := cmd.Run(); err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			exitcode = exitError.ExitCode()
-		} else {
-			exitcode = 999
-			fmt.Println(stderr)
-			if _, err := stderr.WriteString(err.Error()); err != nil {
-				// @afiune we should never get here but if we do, lets print the error
-				fmt.Println(err)
-			}
+	exitcode, err := runLaceworkCLIFromCmd(cmd)
+	if exitcode == 999 {
+		fmt.Println(stderr)
+		if _, err := stderr.WriteString(err.Error()); err != nil {
+			// @afiune we should never get here but if we do, lets print the error
+			fmt.Println(err)
 		}
 	}
 	return
+}
+
+func runLaceworkCLIFromCmd(cmd *exec.Cmd) (int, error) {
+	if err := cmd.Run(); err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return exitError.ExitCode(), err
+		}
+		return 999, err
+	}
+	return 0, nil
 }
 
 func findLaceworkCLIBinary() string {

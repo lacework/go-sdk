@@ -20,6 +20,7 @@
 package integration
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -182,6 +183,56 @@ func TestPolicyCreateURL(t *testing.T) {
 		"policy", "update", policyID, "-f", file.Name(), "--json") // specify id inline
 	assert.Contains(t, out.String(), `"policyId"`)
 	assert.Contains(t, out.String(), `"low"`)
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestPolicyCreateStdin(t *testing.T) {
+	var out, stderr bytes.Buffer
+
+	// get CLI
+	dir := createTOMLConfigFromCIvars()
+	defer os.RemoveAll(dir)
+
+	// setup query
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
+	// teardown query
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
+
+	// get temp policy file
+	file, err := createTemporaryFile("TestPolicyCreateFile", newPolicyYAML)
+	if err != nil {
+		t.FailNow()
+	}
+	defer os.Remove(file.Name())
+
+	// open file by name
+	stdin, err := os.Open(file.Name())
+	if err != nil {
+		t.FailNow()
+	}
+
+	// setup command
+	cmd := NewLaceworkCLI(dir, stdin, "policy", "create")
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	// run command
+	exitcode, err := runLaceworkCLIFromCmd(cmd)
+	if exitcode == 999 {
+		fmt.Println(stderr)
+		if _, err := stderr.WriteString(err.Error()); err != nil {
+			// @afiune we should never get here but if we do, lets print the error
+			fmt.Println(err)
+		}
+	}
+
+	policyID, err := getPolicyIdFromStdout(out.String())
+	assert.Nil(t, err)
+	defer LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
+
+	assert.Contains(t, out.String(),
+		fmt.Sprintf("The policy %s was created.", policyID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

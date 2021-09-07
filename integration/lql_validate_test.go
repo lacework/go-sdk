@@ -20,6 +20,7 @@
 package integration
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"testing"
@@ -67,5 +68,46 @@ func TestQueryValidateURL(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-u", queryURL)
 	assert.Contains(t, out.String(), "Query validated successfully.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestQueryValidateStdin(t *testing.T) {
+	var out, stderr bytes.Buffer
+
+	// get CLI
+	dir := createTOMLConfigFromCIvars()
+	defer os.RemoveAll(dir)
+
+	// get temp file
+	file, err := createTemporaryFile(
+		"TestQueryValidateFile",
+		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText),
+	)
+	if err != nil {
+		t.FailNow()
+	}
+	defer os.Remove(file.Name())
+
+	// open file by name
+	stdin, err := os.Open(file.Name())
+	if err != nil {
+		t.FailNow()
+	}
+
+	cmd := NewLaceworkCLI(dir, stdin, "query", "validate")
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	exitcode, err := runLaceworkCLIFromCmd(cmd)
+	if exitcode == 999 {
+		fmt.Println(stderr)
+		if _, err := stderr.WriteString(err.Error()); err != nil {
+			// @afiune we should never get here but if we do, lets print the error
+			fmt.Println(err)
+		}
+	}
+
+	assert.Contains(t, out.String(), "Query validated successfully.")
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
