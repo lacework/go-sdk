@@ -52,7 +52,7 @@ func TestResourceGroupGcpGet(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.ResourceGroups.GetGcpResourceGroup(resourceGUID)
+	response, err := c.V2.ResourceGroups.GetGcp(resourceGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -77,14 +77,13 @@ func TestResourceGroupsGcpUpdate(t *testing.T) {
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
-			assert.Contains(t, body, resourceGUID, "ResourceGUID missing")
 			assert.Contains(t, body, "group_name", "Resource Group  name is missing")
 			assert.Contains(t, body, "GCP", "wrong Resource Group  type")
 			assert.Contains(t, body, "Updated", "wrong description")
 			assert.Contains(t, body, "[\"abc123\",\"cba321\"]", "wrong project ids")
 		}
 
-		fmt.Fprintf(w, generateResourceGroupResponse(singleGcpResourceGroup(resourceGUID)))
+		fmt.Fprintf(w, generateResourceGroupResponse(singleGcpResourceGroupUpdateResponse(resourceGUID)))
 	})
 
 	c, err := api.NewClient("test",
@@ -96,12 +95,10 @@ func TestResourceGroupsGcpUpdate(t *testing.T) {
 
 	resourceGroup := api.NewResourceGroup("group_name",
 		api.GcpResourceGroup,
-		api.GcpResourceGroupData{
-			Props: api.GcpResourceGroupProps{
-				Description:  "Updated",
-				Projects:     []string{"abc123", "cba321"},
-				Organization: "ORG123",
-			},
+		api.GcpResourceGroupProps{
+			Description:  "Updated",
+			Projects:     []string{"abc123", "cba321"},
+			Organization: "ORG123",
 		},
 	)
 	assert.Equal(t, "group_name", resourceGroup.Name, "Gcp Resource Group name mismatch")
@@ -109,7 +106,7 @@ func TestResourceGroupsGcpUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new Gcp Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateGcpResourceGroup(resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateGcp(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -121,6 +118,26 @@ func singleGcpResourceGroup(id string) string {
         "guid": "` + id + `",
         "isDefault": "1",
         "props": "{\"DESCRIPTION\":\"All Organizations and Projects\",\"PROJECTS\":[\"*\"],\"ORGANIZATION\":\"*\",\"UPDATED_BY\":null,\"LAST_UPDATED\":1586453993529}",
+        "resourceGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "AWS",
+        "enabled": 1
+	}
+	`
+}
+
+func singleGcpResourceGroupUpdateResponse(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+        "isDefault": 1,
+        "props": {
+			"description":"All Organizations and Projects",
+			"organization": "*",
+			"projects":["*"],
+			"updatedBy":null,
+			"lastUpdated":1586453993470 
+			},
         "resourceGuid": "` + id + `",
         "resourceName": "group_name",
         "resourceType": "AWS",

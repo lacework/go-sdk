@@ -30,9 +30,9 @@ var (
 	MachineResourceGroupAllTags = []map[string]string{{"*": "*"}}
 )
 
-// GetMachineResourceGroup gets a single Machine ResourceGroup matching the
+// GetMachine gets a single Machine ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetMachineResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetMachine(guid string) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {
@@ -45,22 +45,37 @@ func (svc *ResourceGroupsService) GetMachineResourceGroup(guid string) (
 	return setMachineAccountResponse(rawResponse)
 }
 
-// UpdateMachineResourceGroup updates a single Machine ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateMachineResourceGroup(data ResourceGroup) (
+// UpdateMachine updates a single Machine ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateMachine(data ResourceGroup) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse resourceGroupWorkaroundResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+	if data == nil {
+		err = errors.New("resource group must not be empty")
+		return
+	}
+	guid := data.ID()
+	data.ResetResourceGUID()
+
+	err = svc.update(guid, data, &response)
 	if err != nil {
 		return
 	}
 
-	return setMachineAccountResponse(rawResponse)
+	return
+}
+
+// CreateMachine creates a single Machine ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateMachine(data ResourceGroup) (
+	response MachineResourceGroupResponse,
+	err error,
+) {
+	err = svc.create(data, &response)
+	return
 }
 
 func setMachineAccountResponse(response resourceGroupWorkaroundResponse) (machine MachineResourceGroupResponse, err error) {
-	var props MachineResourceGroupProps
+	var props MachineResourceGroupJsonStringProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
@@ -88,7 +103,7 @@ func setMachineAccountResponse(response resourceGroupWorkaroundResponse) (machin
 	if err != nil {
 		return
 	}
-	machine.Data.Props = props
+	machine.Data.Props = MachineResourceGroupProps(props)
 	return
 }
 
@@ -107,6 +122,14 @@ type MachineResourceGroupData struct {
 }
 
 type MachineResourceGroupProps struct {
+	Description string              `json:"description,omitempty"`
+	MachineTags []map[string]string `json:"machineTags"`
+	UpdatedBy   string              `json:"updatedBy,omitempty"`
+	LastUpdated int                 `json:"lastUpdated,omitempty"`
+}
+
+// Workaround for props being returned as a json string
+type MachineResourceGroupJsonStringProps struct {
 	Description string              `json:"DESCRIPTION,omitempty"`
 	MachineTags []map[string]string `json:"MACHINE_TAGS"`
 	UpdatedBy   string              `json:"UPDATED_BY,omitempty"`

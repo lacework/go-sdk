@@ -52,7 +52,7 @@ func TestResourceGroupMachineGet(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.ResourceGroups.GetMachineResourceGroup(resourceGUID)
+	response, err := c.V2.ResourceGroups.GetMachine(resourceGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -76,14 +76,13 @@ func TestResourceGroupsMachineUpdate(t *testing.T) {
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
-			assert.Contains(t, body, resourceGUID, "ResourceGUID missing")
 			assert.Contains(t, body, "group_name", "Resource Group  name is missing")
 			assert.Contains(t, body, "MACHINE", "wrong Resource Group  type")
 			assert.Contains(t, body, "Updated", "wrong description")
 			assert.Contains(t, body, "[{\"tag\":\"machineTag\"}]", "wrong machine tags")
 		}
 
-		fmt.Fprintf(w, generateResourceGroupResponse(singleMachineResourceGroup(resourceGUID)))
+		fmt.Fprintf(w, generateResourceGroupResponse(singleMachineResourceGroupUpdateResponse(resourceGUID)))
 	})
 
 	c, err := api.NewClient("test",
@@ -95,11 +94,9 @@ func TestResourceGroupsMachineUpdate(t *testing.T) {
 
 	resourceGroup := api.NewResourceGroup("group_name",
 		api.MachineResourceGroup,
-		api.MachineResourceGroupData{
-			Props: api.MachineResourceGroupProps{
-				Description: "Updated",
-				MachineTags: []map[string]string{{"tag": "machineTag"}},
-			},
+		api.MachineResourceGroupProps{
+			Description: "Updated",
+			MachineTags: []map[string]string{{"tag": "machineTag"}},
 		},
 	)
 	assert.Equal(t, "group_name", resourceGroup.Name, "Machine Resource Group name mismatch")
@@ -107,7 +104,7 @@ func TestResourceGroupsMachineUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new Machine Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateMachineResourceGroup(resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateMachine(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -122,6 +119,25 @@ func singleMachineResourceGroup(id string) string {
         "resourceGuid": "` + id + `",
         "resourceName": "group_name",
 				"resourceType": "MACHINE",
+        "enabled": 1
+	}
+	`
+}
+
+func singleMachineResourceGroupUpdateResponse(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+        "isDefault": 1,
+        "props": {
+			"description":"All Machine Tags",
+			"machineTags":[{"*":"*"}],
+			"updatedBy":null,
+			"lastUpdated":1586453993470 
+			},
+        "resourceGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "AWS",
         "enabled": 1
 	}
 	`

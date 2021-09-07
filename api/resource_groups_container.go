@@ -31,9 +31,9 @@ var (
 	ContainerResourceGroupAllTags   = []string{"*"}
 )
 
-// GetContainerResourceGroup gets a single Container ResourceGroup matching the
+// GetContainer gets a single Container ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetContainerResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetContainer(guid string) (
 	response ContainerResourceGroupResponse,
 	err error,
 ) {
@@ -46,22 +46,37 @@ func (svc *ResourceGroupsService) GetContainerResourceGroup(guid string) (
 	return setContainerResponse(rawResponse)
 }
 
-// UpdateContainerResourceGroup updates a single Container ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateContainerResourceGroup(data ResourceGroup) (
+// UpdateContainer updates a single Container ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateContainer(data ResourceGroup) (
 	response ContainerResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse resourceGroupWorkaroundResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+	if data == nil {
+		err = errors.New("resource group must not be empty")
+		return
+	}
+	guid := data.ID()
+	data.ResetResourceGUID()
+
+	err = svc.update(guid, data, &response)
+	return
+}
+
+// CreateContainer creates a single Container ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateContainer(data ResourceGroup) (
+	response ContainerResourceGroupResponse,
+	err error,
+) {
+	err = svc.create(data, &response)
 	if err != nil {
 		return
 	}
 
-	return setContainerResponse(rawResponse)
+	return
 }
 
 func setContainerResponse(response resourceGroupWorkaroundResponse) (ctr ContainerResourceGroupResponse, err error) {
-	var props ContainerResourceGroupProps
+	var props ContainerResourceJsonStringGroupProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
@@ -89,7 +104,8 @@ func setContainerResponse(response resourceGroupWorkaroundResponse) (ctr Contain
 	if err != nil {
 		return
 	}
-	ctr.Data.Props = props
+
+	ctr.Data.Props = ContainerResourceGroupProps(props)
 	return
 }
 
@@ -108,6 +124,15 @@ type ContainerResourceGroupData struct {
 }
 
 type ContainerResourceGroupProps struct {
+	Description     string              `json:"description,omitempty"`
+	ContainerLabels []map[string]string `json:"containerLabels"`
+	ContainerTags   []string            `json:"containerTags"`
+	UpdatedBy       string              `json:"updatedBy,omitempty"`
+	LastUpdated     int                 `json:"lastUpdated,omitempty"`
+}
+
+// Workaround for props being returned as a json string
+type ContainerResourceJsonStringGroupProps struct {
 	Description     string              `json:"DESCRIPTION,omitempty"`
 	ContainerLabels []map[string]string `json:"CONTAINER_LABELS"`
 	ContainerTags   []string            `json:"CONTAINER_TAGS"`

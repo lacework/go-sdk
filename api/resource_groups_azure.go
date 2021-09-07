@@ -30,9 +30,9 @@ var (
 	AzureResourceGroupAllSubscriptions = []string{"*"}
 )
 
-// GetAzureResourceGroup gets a single Azure ResourceGroup matching the
+// GetAzure gets a single Azure ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetAzureResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetAzure(guid string) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
@@ -45,22 +45,37 @@ func (svc *ResourceGroupsService) GetAzureResourceGroup(guid string) (
 	return setAzureResponse(rawResponse)
 }
 
-// UpdateAzureResourceGroup updates a single Azure ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateAzureResourceGroup(data ResourceGroup) (
+// UpdateAzure updates a single Azure ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateAzure(data ResourceGroup) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse resourceGroupWorkaroundResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+	if data == nil {
+		err = errors.New("resource group must not be empty")
+		return
+	}
+	guid := data.ID()
+	data.ResetResourceGUID()
+
+	err = svc.update(guid, data, &response)
 	if err != nil {
 		return
 	}
 
-	return setAzureResponse(rawResponse)
+	return
+}
+
+// CreateAzure creates a single Azure ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateAzure(data ResourceGroup) (
+	response AzureResourceGroupResponse,
+	err error,
+) {
+	err = svc.create(data, &response)
+	return
 }
 
 func setAzureResponse(response resourceGroupWorkaroundResponse) (az AzureResourceGroupResponse, err error) {
-	var props AzureResourceGroupProps
+	var props AzureResourceJsonStringGroupProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
@@ -88,7 +103,9 @@ func setAzureResponse(response resourceGroupWorkaroundResponse) (az AzureResourc
 	if err != nil {
 		return
 	}
-	az.Data.Props = props
+
+	az.Data.Props = AzureResourceGroupProps(props)
+
 	return
 }
 
@@ -107,6 +124,15 @@ type AzureResourceGroupData struct {
 }
 
 type AzureResourceGroupProps struct {
+	Description   string   `json:"description,omitempty"`
+	Tenant        string   `json:"tenant"`
+	Subscriptions []string `json:"subscriptions"`
+	UpdatedBy     string   `json:"updatedBy,omitempty"`
+	LastUpdated   int      `json:"lastUpdated,omitempty"`
+}
+
+// Workaround for props being returned as a json string
+type AzureResourceJsonStringGroupProps struct {
 	Description   string   `json:"DESCRIPTION,omitempty"`
 	Tenant        string   `json:"TENANT"`
 	Subscriptions []string `json:"SUBSCRIPTIONS"`

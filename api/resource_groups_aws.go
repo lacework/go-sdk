@@ -30,9 +30,9 @@ var (
 	AwsResourceGroupAllAccounts = []string{"*"}
 )
 
-// GetAwsResourceGroup gets a single Aws ResourceGroup matching the
+// GetAws gets a single Aws ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetAwsResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetAws(guid string) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
@@ -45,22 +45,35 @@ func (svc *ResourceGroupsService) GetAwsResourceGroup(guid string) (
 	return setAwsResourceGroupResponse(rawResponse)
 }
 
-// UpdateAwsResourceGroup updates a single Aws ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateAwsResourceGroup(data ResourceGroup) (
-	response AwsResourceGroupResponse,
-	err error,
-) {
-	var rawResponse resourceGroupWorkaroundResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+// UpdateAws updates a single Aws ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateAws(data ResourceGroup) (
+	response AwsResourceGroupResponse, err error) {
+	if data == nil {
+		err = errors.New("resource group must not be empty")
+		return
+	}
+	guid := data.ID()
+	data.ResetResourceGUID()
+
+	err = svc.update(guid, data, &response)
 	if err != nil {
 		return
 	}
 
-	return setAwsResourceGroupResponse(rawResponse)
+	return
+}
+
+// CreateAws creates a single Aws ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateAws(data ResourceGroup) (
+	response AwsResourceGroupResponse,
+	err error,
+) {
+	err = svc.create(data, &response)
+	return
 }
 
 func setAwsResourceGroupResponse(response resourceGroupWorkaroundResponse) (aws AwsResourceGroupResponse, err error) {
-	var props AwsResourceGroupProps
+	var props AwsResourceJsonStringGroupProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
@@ -88,7 +101,7 @@ func setAwsResourceGroupResponse(response resourceGroupWorkaroundResponse) (aws 
 	if err != nil {
 		return
 	}
-	aws.Data.Props = props
+	aws.Data.Props = AwsResourceGroupProps(props)
 	return
 }
 
@@ -107,6 +120,14 @@ type AwsResourceGroupData struct {
 }
 
 type AwsResourceGroupProps struct {
+	Description string   `json:"description,omitempty"`
+	AccountIDs  []string `json:"accountIds"`
+	UpdatedBy   string   `json:"updatedBy,omitempty"`
+	LastUpdated int      `json:"lastUpdated,omitempty"`
+}
+
+// Workaround for props being returned as a json string
+type AwsResourceJsonStringGroupProps struct {
 	Description string   `json:"DESCRIPTION,omitempty"`
 	AccountIDs  []string `json:"ACCOUNT_IDS"`
 	UpdatedBy   string   `json:"UPDATED_BY,omitempty"`

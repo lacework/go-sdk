@@ -30,9 +30,9 @@ var (
 	LwAccountResourceGroupAllAccounts = []string{"*"}
 )
 
-// GetContainerResourceGroup gets a single LwAccount ResourceGroup matching the
+// GetContainer gets a single LwAccount ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetLwAccountResourceGroup(guid string) (
+func (svc *ResourceGroupsService) GetLwAccount(guid string) (
 	response LwAccountResourceGroupResponse,
 	err error,
 ) {
@@ -45,22 +45,37 @@ func (svc *ResourceGroupsService) GetLwAccountResourceGroup(guid string) (
 	return setLwAccountResponse(rawResponse)
 }
 
-// UpdateLwAccountResourceGroup updates a single LwAccount ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateLwAccountResourceGroup(data ResourceGroup) (
+// UpdateLwAccount updates a single LwAccount ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) UpdateLwAccount(data ResourceGroup) (
 	response LwAccountResourceGroupResponse,
 	err error,
 ) {
-	var rawResponse resourceGroupWorkaroundResponse
-	err = svc.update(data.ID(), data, &rawResponse)
+	if data == nil {
+		err = errors.New("resource group must not be empty")
+		return
+	}
+	guid := data.ID()
+	data.ResetResourceGUID()
+
+	err = svc.update(guid, data, &response)
 	if err != nil {
 		return
 	}
 
-	return setLwAccountResponse(rawResponse)
+	return
+}
+
+// CreateLwAccount creates a single LwAccount ResourceGroup on the Lacework Server
+func (svc *ResourceGroupsService) CreateLwAccount(data ResourceGroup) (
+	response LwAccountResourceGroupResponse,
+	err error,
+) {
+	err = svc.create(data, &response)
+	return
 }
 
 func setLwAccountResponse(response resourceGroupWorkaroundResponse) (lw LwAccountResourceGroupResponse, err error) {
-	var props LwAccountResourceGroupProps
+	var props LwAccountResourceGroupJsonStringProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)
 	if err != nil {
@@ -88,7 +103,7 @@ func setLwAccountResponse(response resourceGroupWorkaroundResponse) (lw LwAccoun
 	if err != nil {
 		return
 	}
-	lw.Data.Props = props
+	lw.Data.Props = LwAccountResourceGroupProps(props)
 	return
 }
 
@@ -107,6 +122,14 @@ type LwAccountResourceGroupData struct {
 }
 
 type LwAccountResourceGroupProps struct {
+	Description string   `json:"description,omitempty"`
+	LwAccounts  []string `json:"lwAccounts"`
+	UpdatedBy   string   `json:"updatedBy,omitempty"`
+	LastUpdated int      `json:"lastUpdated,omitempty"`
+}
+
+// Workaround for props being returned as a json string
+type LwAccountResourceGroupJsonStringProps struct {
 	Description string   `json:"DESCRIPTION,omitempty"`
 	LwAccounts  []string `json:"LW_ACCOUNTS"`
 	UpdatedBy   string   `json:"UPDATED_BY,omitempty"`

@@ -52,7 +52,7 @@ func TestResourceGroupContainerGet(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.ResourceGroups.GetContainerResourceGroup(resourceGUID)
+	response, err := c.V2.ResourceGroups.GetContainer(resourceGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -77,14 +77,13 @@ func TestResourceGroupsContainerUpdate(t *testing.T) {
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
-			assert.Contains(t, body, resourceGUID, "ResourceGUID missing")
 			assert.Contains(t, body, "group_name", "Resource Group  name is missing")
 			assert.Contains(t, body, "CONTAINER", "wrong Resource Group  type")
 			assert.Contains(t, body, "Updated", "wrong description")
 			assert.Contains(t, body, "[\"abc123\",\"cba321\"]", "wrong container tags ids")
 		}
 
-		fmt.Fprintf(w, generateResourceGroupResponse(singleContainerResourceGroup(resourceGUID)))
+		fmt.Fprintf(w, generateResourceGroupResponse(singleContainerResourceGroupUpdateResponse(resourceGUID)))
 	})
 
 	c, err := api.NewClient("test",
@@ -96,12 +95,10 @@ func TestResourceGroupsContainerUpdate(t *testing.T) {
 
 	resourceGroup := api.NewResourceGroup("group_name",
 		api.ContainerResourceGroup,
-		api.ContainerResourceGroupData{
-			Props: api.ContainerResourceGroupProps{
-				Description:     "Updated",
-				ContainerTags:   []string{"abc123", "cba321"},
-				ContainerLabels: []map[string]string{{"label1": "testlabel"}},
-			},
+		api.ContainerResourceGroupProps{
+			Description:     "Updated",
+			ContainerTags:   []string{"abc123", "cba321"},
+			ContainerLabels: []map[string]string{{"label1": "testlabel"}},
 		},
 	)
 	assert.Equal(t, "group_name", resourceGroup.Name, "Container Resource Group name mismatch")
@@ -109,7 +106,7 @@ func TestResourceGroupsContainerUpdate(t *testing.T) {
 	assert.Equal(t, 1, resourceGroup.Enabled, "a new Container Resource Group should be enabled")
 	resourceGroup.ResourceGuid = resourceGUID
 
-	response, err := c.V2.ResourceGroups.UpdateContainerResourceGroup(resourceGroup)
+	response, err := c.V2.ResourceGroups.UpdateContainer(&resourceGroup)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
@@ -124,6 +121,26 @@ func singleContainerResourceGroup(id string) string {
         "resourceGuid": "` + id + `",
         "resourceName": "group_name",
         "resourceType": "CONTAINER",
+        "enabled": 1
+	}
+	`
+}
+
+func singleContainerResourceGroupUpdateResponse(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+        "isDefault": 1,
+        "props": {
+			"description":"All Container Labels",
+			"containerLabels":[{"*":"*"}],
+			"containerTags":["*"],
+			"updatedBy":null,
+			"lastUpdated":1586453993470 
+			},
+        "resourceGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "AWS",
         "enabled": 1
 	}
 	`
