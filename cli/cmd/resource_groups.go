@@ -72,10 +72,12 @@ Then navigate to Settings > Resource Groups.
 			for _, g := range resourceGroups.Data {
 
 				groups = append(groups, resourceGroup{
-					Id:      g.ResourceGuid,
-					ResType: g.Type,
-					Name:    g.Name,
-					State:   g.Status(),
+					Id:        g.ResourceGuid,
+					ResType:   g.Type,
+					Name:      g.Name,
+					status:    g.Status(),
+					Enabled:   g.Enabled,
+					IsDefault: g.IsDefault,
 				})
 			}
 
@@ -88,10 +90,10 @@ Then navigate to Settings > Resource Groups.
 
 			rows := [][]string{}
 			for _, g := range groups {
-				rows = append(rows, []string{g.Id, g.ResType, g.Name, g.State})
+				rows = append(rows, []string{g.Id, g.ResType, g.Name, g.status, IsDefault(g.IsDefault)})
 			}
 
-			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GUID", "TYPE", "NAME", "STATE"}, rows))
+			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GUID", "TYPE", "NAME", "STATUS", "DEFAULT"}, rows))
 			return nil
 		},
 	}
@@ -111,11 +113,13 @@ Then navigate to Settings > Resource Groups.
 			props, _ := parsePropsType(response)
 
 			group := resourceGroup{
-				Id:      response.Data.ResourceGuid,
-				ResType: response.Data.Type,
-				Name:    response.Data.Name,
-				State:   response.Data.Status(),
-				Props:   props,
+				Id:        response.Data.ResourceGuid,
+				ResType:   response.Data.Type,
+				Name:      response.Data.Name,
+				status:    response.Data.Status(),
+				Props:     props,
+				Enabled:   response.Data.Enabled,
+				IsDefault: response.Data.IsDefault,
 			}
 
 			if cli.JSONOutput() {
@@ -126,9 +130,9 @@ Then navigate to Settings > Resource Groups.
 			}
 
 			var groupCommon [][]string
-			groupCommon = append(groupCommon, []string{group.Id, group.ResType, group.Name, group.State})
+			groupCommon = append(groupCommon, []string{group.Id, group.ResType, group.Name, group.status, IsDefault(group.IsDefault)})
 
-			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE ID", "TYPE", "NAME", "STATE"}, groupCommon))
+			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE ID", "TYPE", "NAME", "STATE", "DEFAULT"}, groupCommon))
 			cli.OutputHuman("\n")
 			cli.OutputHuman(buildResourceGroupPropsTable(group))
 
@@ -304,12 +308,21 @@ func init() {
 	resourceGroupsCommand.AddCommand(resourceGroupsDeleteCommand)
 }
 
+func IsDefault(isDefault int) string {
+	if isDefault == 1 {
+		return "True"
+	}
+	return "False"
+}
+
 type resourceGroup struct {
-	Id      string      `json:"resource_guid"`
-	ResType string      `json:"type"`
-	Name    string      `json:"name"`
-	State   string      `json:"state"`
-	Props   interface{} `json:"props"`
+	Id        string      `json:"resource_guid"`
+	ResType   string      `json:"type"`
+	Name      string      `json:"name"`
+	Props     interface{} `json:"props"`
+	Enabled   int         `json:"enabled"`
+	IsDefault int         `json:"isDefault"`
+	status    string
 }
 
 type resourceGroupPropsBase struct {
