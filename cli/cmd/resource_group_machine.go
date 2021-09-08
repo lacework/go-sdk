@@ -73,10 +73,8 @@ func createMachineResourceGroup() error {
 	return err
 }
 
-func setMachineProps(group string) []string {
-	var machineProps api.MachineResourceGroupProps
-
-	err := json.Unmarshal([]byte(group), &machineProps)
+func setMachineProps(group []byte) []string {
+	machineProps, err := unmarshallMachineProps(group)
 	if err != nil {
 		return []string{}
 	}
@@ -89,4 +87,16 @@ func setMachineProps(group string) []string {
 		}
 	}
 	return []string{"MACHINE TAGS", strings.Join(tags, ",")}
+}
+
+func unmarshallMachinePropString(group []byte) (props api.MachineResourceGroupProps, err error) {
+	var rawProps api.MachineResourceGroupJsonStringProps
+	err = json.Unmarshal(group, &rawProps)
+	props = api.MachineResourceGroupProps(rawProps)
+	return
+}
+
+func unmarshallMachineProps(group []byte) (props api.MachineResourceGroupProps, err error) {
+	err = json.Unmarshal(group, &props)
+	return
 }

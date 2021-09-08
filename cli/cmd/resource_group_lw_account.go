@@ -81,12 +81,23 @@ func createLwAccountResourceGroup() error {
 	return err
 }
 
-func setLwAccountProps(group string) []string {
-	var lwProps api.LwAccountResourceGroupProps
-	err := json.Unmarshal([]byte(group), &lwProps)
+func setLwAccountProps(group []byte) []string {
+	lwProps, err := unmarshallLwAccountProps(group)
 	if err != nil {
 		return []string{}
 	}
 
 	return []string{"LW ACCOUNTS", strings.Join(lwProps.LwAccounts, ",")}
+}
+
+func unmarshallLwAccountPropString(group []byte) (props api.LwAccountResourceGroupProps, err error) {
+	var rawProps api.LwAccountResourceGroupJsonStringProps
+	err = json.Unmarshal(group, &rawProps)
+	props = api.LwAccountResourceGroupProps(rawProps)
+	return
+}
+
+func unmarshallLwAccountProps(group []byte) (props api.LwAccountResourceGroupProps, err error) {
+	err = json.Unmarshal(group, &props)
+	return
 }

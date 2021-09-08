@@ -80,12 +80,10 @@ func createAzureResourceGroup() error {
 	return err
 }
 
-func setAzureProps(group string) [][]string {
-	var (
-		azProps api.AzureResourceGroupProps
-		details [][]string
-	)
-	err := json.Unmarshal([]byte(group), &azProps)
+func setAzureProps(group []byte) [][]string {
+	var details [][]string
+
+	azProps, err := unmarshallAzureProps(group)
 	if err != nil {
 		return [][]string{}
 	}
@@ -93,4 +91,16 @@ func setAzureProps(group string) [][]string {
 	details = append(details, []string{"TENANT", azProps.Tenant})
 	details = append(details, []string{"SUBSCRIPTIONS", strings.Join(azProps.Subscriptions, ",")})
 	return details
+}
+
+func unmarshallAzurePropString(group []byte) (props api.AzureResourceGroupProps, err error) {
+	var rawProps api.AzureResourceJsonStringGroupProps
+	err = json.Unmarshal(group, &rawProps)
+	props = api.AzureResourceGroupProps(rawProps)
+	return
+}
+
+func unmarshallAzureProps(group []byte) (props api.AzureResourceGroupProps, err error) {
+	err = json.Unmarshal(group, &props)
+	return
 }

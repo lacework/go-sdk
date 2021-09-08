@@ -79,12 +79,10 @@ func createGcpResourceGroup() error {
 	return err
 }
 
-func setGcpProps(group string) [][]string {
-	var (
-		gcpProps api.GcpResourceGroupProps
-		details  [][]string
-	)
-	err := json.Unmarshal([]byte(group), &gcpProps)
+func setGcpProps(group []byte) [][]string {
+	var details [][]string
+
+	gcpProps, err := unmarshallGcpProps(group)
 	if err != nil {
 		return [][]string{}
 	}
@@ -92,4 +90,16 @@ func setGcpProps(group string) [][]string {
 	details = append(details, []string{"ORGANIZATION", gcpProps.Organization})
 	details = append(details, []string{"PROJECTS", strings.Join(gcpProps.Projects, ",")})
 	return details
+}
+
+func unmarshallGcpPropString(group []byte) (props api.GcpResourceGroupProps, err error) {
+	var rawProps api.GcpResourceGroupJsonStringProps
+	err = json.Unmarshal(group, &rawProps)
+	props = api.GcpResourceGroupProps(rawProps)
+	return
+}
+
+func unmarshallGcpProps(group []byte) (props api.GcpResourceGroupProps, err error) {
+	err = json.Unmarshal(group, &props)
+	return
 }

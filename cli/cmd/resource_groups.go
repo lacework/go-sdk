@@ -108,12 +108,14 @@ Then navigate to Settings > Resource Groups.
 				return errors.Wrap(err, "unable to get resource group")
 			}
 
+			props, _ := parsePropsType(response)
+
 			group := resourceGroup{
 				Id:      response.Data.ResourceGuid,
 				ResType: response.Data.Type,
 				Name:    response.Data.Name,
 				State:   response.Data.Status(),
-				Props:   response.Data.Props,
+				Props:   props,
 			}
 
 			if cli.JSONOutput() {
@@ -123,7 +125,7 @@ Then navigate to Settings > Resource Groups.
 				return cli.OutputJSON(jsonOut)
 			}
 
-			groupCommon := [][]string{}
+			var groupCommon [][]string
 			groupCommon = append(groupCommon, []string{group.Id, group.ResType, group.Name, group.State})
 
 			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE ID", "TYPE", "NAME", "STATE"}, groupCommon))
@@ -169,6 +171,28 @@ Then navigate to Settings > Resource Groups.
 		},
 	}
 )
+
+// parsePropsType converts props json string to interface of resource group props type
+func parsePropsType(response api.ResourceGroupResponse) (interface{}, error) {
+	propsString := response.Data.Props.(string)
+
+	switch response.Data.Type {
+	case api.AwsResourceGroup.String():
+		return unmarshallAwsPropString([]byte(propsString))
+	case api.AzureResourceGroup.String():
+		return unmarshallAzurePropString([]byte(propsString))
+	case api.ContainerResourceGroup.String():
+		return unmarshallContainerPropString([]byte(propsString))
+	case api.GcpResourceGroup.String():
+		return unmarshallGcpPropString([]byte(propsString))
+	case api.LwAccountResourceGroup.String():
+		return unmarshallLwAccountPropString([]byte(propsString))
+	case api.MachineResourceGroup.String():
+		return unmarshallMachinePropString([]byte(propsString))
+	}
+	return nil, errors.New("Unable to determine resource group props type")
+
+}
 
 func promptCreateResourceGroup() error {
 	var (
@@ -228,8 +252,11 @@ func buildResourceGroupPropsTable(group resourceGroup) string {
 }
 
 func determineResourceGroupProps(resType string, props interface{}) [][]string {
-	details := setBaseProps(props)
-	propsString := props.(string)
+	propsString, err := json.Marshal(props)
+	if err != nil {
+		return [][]string{}
+	}
+	details := setBaseProps(propsString)
 
 	switch resType {
 	case api.AwsResourceGroup.String():
@@ -249,13 +276,13 @@ func determineResourceGroupProps(resType string, props interface{}) [][]string {
 	return details
 }
 
-func setBaseProps(props interface{}) [][]string {
+func setBaseProps(props []byte) [][]string {
 	var (
 		baseProps resourceGroupPropsBase
 		details   [][]string
 	)
 
-	err := json.Unmarshal([]byte(props.(string)), &baseProps)
+	err := json.Unmarshal(props, &baseProps)
 	if err != nil {
 		return [][]string{}
 	}
@@ -287,6 +314,6 @@ type resourceGroup struct {
 
 type resourceGroupPropsBase struct {
 	Description string `json:"description"`
-	UpdatedBy   string `json:"UPDATED_BY,omitempty"`
-	LastUpdated int    `json:"LAST_UPDATED,omitempty"`
+	UpdatedBy   string `json:"updatedBy,omitempty"`
+	LastUpdated int    `json:"lastUpdated,omitempty"`
 }
