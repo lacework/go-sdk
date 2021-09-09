@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
 )
 
@@ -122,18 +123,18 @@ type GcpResourceGroupData struct {
 }
 
 type GcpResourceGroupProps struct {
-	Description  string   `json:"description,omitempty"`
-	Organization string   `json:"organization"`
-	Projects     []string `json:"projects"`
-	UpdatedBy    string   `json:"updatedBy,omitempty"`
-	LastUpdated  int      `json:"lastUpdated,omitempty"`
+	Description  string       `json:"description,omitempty"`
+	Organization string       `json:"organization"`
+	Projects     []string     `json:"projects"`
+	UpdatedBy    string       `json:"updatedBy,omitempty"`
+	LastUpdated  lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
 type GcpResourceGroupJsonStringProps struct {
-	Description  string   `json:"DESCRIPTION,omitempty"`
-	Organization string   `json:"ORGANIZATION"`
-	Projects     []string `json:"PROJECTS"`
-	UpdatedBy    string   `json:"UPDATED_BY,omitempty"`
-	LastUpdated  int      `json:"LAST_UPDATED,omitempty"`
+	Description  string       `json:"DESCRIPTION,omitempty"`
+	Organization string       `json:"ORGANIZATION"`
+	Projects     []string     `json:"PROJECTS"`
+	UpdatedBy    string       `json:"UPDATED_BY,omitempty"`
+	LastUpdated  lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
 }

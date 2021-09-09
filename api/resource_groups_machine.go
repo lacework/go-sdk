@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
 )
 
@@ -125,7 +126,7 @@ type MachineResourceGroupProps struct {
 	Description string              `json:"description,omitempty"`
 	MachineTags []map[string]string `json:"machineTags"`
 	UpdatedBy   string              `json:"updatedBy,omitempty"`
-	LastUpdated int                 `json:"lastUpdated,omitempty"`
+	LastUpdated lwtime.Epoch        `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
@@ -133,5 +134,5 @@ type MachineResourceGroupJsonStringProps struct {
 	Description string              `json:"DESCRIPTION,omitempty"`
 	MachineTags []map[string]string `json:"MACHINE_TAGS"`
 	UpdatedBy   string              `json:"UPDATED_BY,omitempty"`
-	LastUpdated int                 `json:"LAST_UPDATED,omitempty"`
+	LastUpdated lwtime.Epoch        `json:"LAST_UPDATED,omitempty"`
 }

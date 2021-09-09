@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
 )
 
@@ -122,16 +123,16 @@ type LwAccountResourceGroupData struct {
 }
 
 type LwAccountResourceGroupProps struct {
-	Description string   `json:"description,omitempty"`
-	LwAccounts  []string `json:"lwAccounts"`
-	UpdatedBy   string   `json:"updatedBy,omitempty"`
-	LastUpdated int      `json:"lastUpdated,omitempty"`
+	Description string       `json:"description,omitempty"`
+	LwAccounts  []string     `json:"lwAccounts"`
+	UpdatedBy   string       `json:"updatedBy,omitempty"`
+	LastUpdated lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
 type LwAccountResourceGroupJsonStringProps struct {
-	Description string   `json:"DESCRIPTION,omitempty"`
-	LwAccounts  []string `json:"LW_ACCOUNTS"`
-	UpdatedBy   string   `json:"UPDATED_BY,omitempty"`
-	LastUpdated int      `json:"LAST_UPDATED,omitempty"`
+	Description string       `json:"DESCRIPTION,omitempty"`
+	LwAccounts  []string     `json:"LW_ACCOUNTS"`
+	UpdatedBy   string       `json:"UPDATED_BY,omitempty"`
+	LastUpdated lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
 }
