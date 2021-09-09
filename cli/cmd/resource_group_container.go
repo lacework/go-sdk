@@ -80,13 +80,13 @@ func createContainerResourceGroup() error {
 	return err
 }
 
-func setContainerProps(group string) [][]string {
+func setContainerProps(group []byte) [][]string {
 	var (
-		ctrProps api.ContainerResourceGroupProps
-		labels   []string
-		details  [][]string
+		details [][]string
+		labels  []string
 	)
-	err := json.Unmarshal([]byte(group), &ctrProps)
+
+	ctrProps, err := unmarshallContainerProps(group)
 	if err != nil {
 		return [][]string{}
 	}
@@ -99,4 +99,16 @@ func setContainerProps(group string) [][]string {
 	details = append(details, []string{"CONTAINER LABELS", strings.Join(labels, ",")})
 	details = append(details, []string{"CONTAINER TAGS", strings.Join(ctrProps.ContainerTags, ",")})
 	return details
+}
+
+func unmarshallContainerPropString(group []byte) (props api.ContainerResourceGroupProps, err error) {
+	var rawProps api.ContainerResourceJsonStringGroupProps
+	err = json.Unmarshal(group, &rawProps)
+	props = api.ContainerResourceGroupProps(rawProps)
+	return
+}
+
+func unmarshallContainerProps(group []byte) (props api.ContainerResourceGroupProps, err error) {
+	err = json.Unmarshal(group, &props)
+	return
 }

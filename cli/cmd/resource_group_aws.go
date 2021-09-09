@@ -73,12 +73,23 @@ func createAwsResourceGroup() error {
 	return err
 }
 
-func setAwsProps(group string) []string {
-	var awsProps api.AwsResourceGroupProps
-	err := json.Unmarshal([]byte(group), &awsProps)
+func setAwsProps(group []byte) []string {
+	awsProps, err := unmarshallAwsProps(group)
 	if err != nil {
 		return []string{}
 	}
 
 	return []string{"ACCOUNT IDS", strings.Join(awsProps.AccountIDs, ",")}
+}
+
+func unmarshallAwsPropString(group []byte) (props api.AwsResourceGroupProps, err error) {
+	var rawProps api.AwsResourceJsonStringGroupProps
+	err = json.Unmarshal(group, &rawProps)
+	props = api.AwsResourceGroupProps(rawProps)
+	return
+}
+
+func unmarshallAwsProps(group []byte) (props api.AwsResourceGroupProps, err error) {
+	err = json.Unmarshal(group, &props)
+	return
 }

@@ -72,10 +72,12 @@ Then navigate to Settings > Resource Groups.
 			for _, g := range resourceGroups.Data {
 
 				groups = append(groups, resourceGroup{
-					Id:      g.ResourceGuid,
-					ResType: g.Type,
-					Name:    g.Name,
-					State:   g.Status(),
+					Id:        g.ResourceGuid,
+					ResType:   g.Type,
+					Name:      g.Name,
+					status:    g.Status(),
+					Enabled:   g.Enabled,
+					IsDefault: g.IsDefault,
 				})
 			}
 
@@ -88,10 +90,10 @@ Then navigate to Settings > Resource Groups.
 
 			rows := [][]string{}
 			for _, g := range groups {
-				rows = append(rows, []string{g.Id, g.ResType, g.Name, g.State})
+				rows = append(rows, []string{g.Id, g.ResType, g.Name, g.status, IsDefault(g.IsDefault)})
 			}
 
-			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GUID", "TYPE", "NAME", "STATE"}, rows))
+			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GUID", "TYPE", "NAME", "STATUS", "DEFAULT"}, rows))
 			return nil
 		},
 	}
@@ -108,12 +110,16 @@ Then navigate to Settings > Resource Groups.
 				return errors.Wrap(err, "unable to get resource group")
 			}
 
+			props, _ := parsePropsType(response)
+
 			group := resourceGroup{
-				Id:      response.Data.ResourceGuid,
-				ResType: response.Data.Type,
-				Name:    response.Data.Name,
-				State:   response.Data.Status(),
-				Props:   response.Data.Props,
+				Id:        response.Data.ResourceGuid,
+				ResType:   response.Data.Type,
+				Name:      response.Data.Name,
+				status:    response.Data.Status(),
+				Props:     props,
+				Enabled:   response.Data.Enabled,
+				IsDefault: response.Data.IsDefault,
 			}
 
 			if cli.JSONOutput() {
@@ -123,10 +129,10 @@ Then navigate to Settings > Resource Groups.
 				return cli.OutputJSON(jsonOut)
 			}
 
-			groupCommon := [][]string{}
-			groupCommon = append(groupCommon, []string{group.Id, group.ResType, group.Name, group.State})
+			var groupCommon [][]string
+			groupCommon = append(groupCommon, []string{group.Id, group.ResType, group.Name, group.status, IsDefault(group.IsDefault)})
 
-			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE ID", "TYPE", "NAME", "STATE"}, groupCommon))
+			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE ID", "TYPE", "NAME", "STATE", "DEFAULT"}, groupCommon))
 			cli.OutputHuman("\n")
 			cli.OutputHuman(buildResourceGroupPropsTable(group))
 
@@ -169,6 +175,28 @@ Then navigate to Settings > Resource Groups.
 		},
 	}
 )
+
+// parsePropsType converts props json string to interface of resource group props type
+func parsePropsType(response api.ResourceGroupResponse) (interface{}, error) {
+	propsString := response.Data.Props.(string)
+
+	switch response.Data.Type {
+	case api.AwsResourceGroup.String():
+		return unmarshallAwsPropString([]byte(propsString))
+	case api.AzureResourceGroup.String():
+		return unmarshallAzurePropString([]byte(propsString))
+	case api.ContainerResourceGroup.String():
+		return unmarshallContainerPropString([]byte(propsString))
+	case api.GcpResourceGroup.String():
+		return unmarshallGcpPropString([]byte(propsString))
+	case api.LwAccountResourceGroup.String():
+		return unmarshallLwAccountPropString([]byte(propsString))
+	case api.MachineResourceGroup.String():
+		return unmarshallMachinePropString([]byte(propsString))
+	}
+	return nil, errors.New("Unable to determine resource group props type")
+
+}
 
 func promptCreateResourceGroup() error {
 	var (
@@ -228,8 +256,11 @@ func buildResourceGroupPropsTable(group resourceGroup) string {
 }
 
 func determineResourceGroupProps(resType string, props interface{}) [][]string {
-	details := setBaseProps(props)
-	propsString := props.(string)
+	propsString, err := json.Marshal(props)
+	if err != nil {
+		return [][]string{}
+	}
+	details := setBaseProps(propsString)
 
 	switch resType {
 	case api.AwsResourceGroup.String():
@@ -249,13 +280,13 @@ func determineResourceGroupProps(resType string, props interface{}) [][]string {
 	return details
 }
 
-func setBaseProps(props interface{}) [][]string {
+func setBaseProps(props []byte) [][]string {
 	var (
 		baseProps resourceGroupPropsBase
 		details   [][]string
 	)
 
-	err := json.Unmarshal([]byte(props.(string)), &baseProps)
+	err := json.Unmarshal(props, &baseProps)
 	if err != nil {
 		return [][]string{}
 	}
@@ -277,16 +308,25 @@ func init() {
 	resourceGroupsCommand.AddCommand(resourceGroupsDeleteCommand)
 }
 
+func IsDefault(isDefault int) string {
+	if isDefault == 1 {
+		return "True"
+	}
+	return "False"
+}
+
 type resourceGroup struct {
-	Id      string      `json:"resource_guid"`
-	ResType string      `json:"type"`
-	Name    string      `json:"name"`
-	State   string      `json:"state"`
-	Props   interface{} `json:"props"`
+	Id        string      `json:"resource_guid"`
+	ResType   string      `json:"type"`
+	Name      string      `json:"name"`
+	Props     interface{} `json:"props"`
+	Enabled   int         `json:"enabled"`
+	IsDefault int         `json:"isDefault"`
+	status    string
 }
 
 type resourceGroupPropsBase struct {
 	Description string `json:"description"`
-	UpdatedBy   string `json:"UPDATED_BY,omitempty"`
-	LastUpdated int    `json:"LAST_UPDATED,omitempty"`
+	UpdatedBy   string `json:"updatedBy,omitempty"`
+	LastUpdated int    `json:"lastUpdated,omitempty"`
 }
