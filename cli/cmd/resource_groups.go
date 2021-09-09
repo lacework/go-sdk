@@ -21,10 +21,11 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -293,7 +294,7 @@ func setBaseProps(props []byte) [][]string {
 
 	details = append(details, []string{"DESCRIPTION", baseProps.Description})
 	details = append(details, []string{"UPDATED BY", baseProps.UpdatedBy})
-	details = append(details, []string{"LAST UPDATED", strconv.Itoa(baseProps.LastUpdated)})
+	details = append(details, []string{"LAST UPDATED", baseProps.LastUpdated.UTC().Format(time.RFC3339)})
 	return details
 }
 
@@ -326,7 +327,7 @@ type resourceGroup struct {
 }
 
 type resourceGroupPropsBase struct {
-	Description string `json:"description"`
-	UpdatedBy   string `json:"updatedBy,omitempty"`
-	LastUpdated int    `json:"lastUpdated,omitempty"`
+	Description string       `json:"description"`
+	UpdatedBy   string       `json:"updatedBy,omitempty"`
+	LastUpdated lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
