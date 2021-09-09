@@ -54,11 +54,12 @@ type cliState struct {
 	OrgLevel   bool
 	CfgVersion int
 
-	LwApi *api.Client
-	JsonF *prettyjson.Formatter
-	Log   *zap.SugaredLogger
-	Event *Honeyvent
-	Cache *diskv.Diskv
+	LwApi        *api.Client
+	JsonF        *prettyjson.Formatter
+	Log          *zap.SugaredLogger
+	Event        *Honeyvent
+	Cache        *diskv.Diskv
+	LwComponents *LwComponentState
 
 	id             string
 	workers        sync.WaitGroup
