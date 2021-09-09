@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-package domain
+package lwdomain
 
 import (
 	"fmt"
@@ -39,9 +39,9 @@ type domain struct {
 //
 // For instance, the following URL:
 // ```
-// d := domain.New("https://account.fra.lacework.net")
+// d, err := lwdomain.New("https://account.fra.lacework.net")
 // ```
-// Would be dessiminated into:
+// Would be disseminated into:
 // * `account` as the account name
 // * `fra` as the cluster name
 func New(url string) (domain, error) {

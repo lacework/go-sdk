@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-package domain_test
+package lwdomain_test
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	subject "github.com/lacework/go-sdk/internal/domain"
+	subject "github.com/lacework/go-sdk/lwdomain"
 )
 
 func TestDomains(t *testing.T) {

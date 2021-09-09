@@ -21,7 +21,7 @@ package api
 import (
 	"strings"
 
-	"github.com/lacework/go-sdk/internal/domain"
+	"github.com/lacework/go-sdk/lwdomain"
 )
 
 // UserProfileService is the service that interacts with the UserProfile
@@ -49,7 +49,7 @@ type UserProfile struct {
 }
 
 func (p *UserProfile) OrgAccountName() string {
-	d, err := domain.New(p.URL)
+	d, err := lwdomain.New(p.URL)
 	if err != nil {
 		return p.URL
 	}

@@ -30,9 +30,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/lacework/go-sdk/internal/domain"
 	"github.com/lacework/go-sdk/internal/format"
 	"github.com/lacework/go-sdk/lwconfig"
+	"github.com/lacework/go-sdk/lwdomain"
 )
 
 var (
@@ -242,7 +242,7 @@ func promptConfigureSetup(newProfile *lwconfig.Profile) error {
 				answer, ok := ans.(string)
 				if ok && strings.Contains(answer, ".lacework.net") {
 
-					d, err := domain.New(answer)
+					d, err := lwdomain.New(answer)
 					if err != nil {
 						cli.Log.Warn(err)
 						return answer
@@ -365,7 +365,7 @@ func loadUIJsonFile(file string) error {
 	cli.Subaccount = strings.ToLower(auth.SubAccount)
 
 	if auth.Account != "" {
-		d, err := domain.New(auth.Account)
+		d, err := lwdomain.New(auth.Account)
 		if err != nil {
 			return err
 		}

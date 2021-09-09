@@ -151,6 +151,35 @@ func main() {
 
 Look at the [lwconfig/](lwconfig/) folder for more information.
 
+## Lacework Domain ([`lwdomain`](lwdomain/))
+
+Go package to disseminate a domain URL into account, cluster and whether or not
+it is an internal account.
+
+### Basic Usage
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/lacework/go-sdk/lwdomain"
+)
+
+func main() {
+	domain, err := lwdomain.New("https://account.fra.lacework.net")
+	if err != nil {
+		fmt.Printf("Error %s\n", err)
+		os.Exit(1)
+	}
+
+	// Output: Lacework Account Name: account
+	fmt.Println("Lacework Account Name: %s", domain.Account)
+}
+```
+
+
 ## Release Process
 
 The release process of this repository is documented at the following [Wiki page](https://github.com/lacework/go-sdk/wiki/Release-Process).
