@@ -18,7 +18,7 @@ func (epoch *Epoch) UnmarshalJSON(b []byte) error {
 }
 
 func (epoch Epoch) MarshalJSON() ([]byte, error) {
-	epochJson := fmt.Sprintf("%v", epoch.ToTime().UnixMilli())
+	epochJson := fmt.Sprintf("%v", epoch.ToTime().UnixNano() / int64(time.Millisecond))
 	return []byte(epochJson), nil
 }
 
