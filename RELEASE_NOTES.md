@@ -1,20 +1,25 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.14.0`.
+Another day, another release. These are the release notes for the version `v0.15.0`.
 
 ## Features
-* feat(cli): More detailed CSV compliance reports (#522) (Matt Cadorette)([bd02a44](https://github.com/lacework/go-sdk/commit/bd02a44009e5cf00901ced32385add97e04be0aa))
-* feat(api): AwsS3 Alert Channel (v2) (Salim Afiune Maya)([507cac1](https://github.com/lacework/go-sdk/commit/507cac14781b986662a2a78b7d436cc2ba1250ee))
-* feat(api): SlackChannel Alert Channel (v2) (Salim Afiune Maya)([e6ac8cb](https://github.com/lacework/go-sdk/commit/e6ac8cb8eed31646020aeb3bbf5d2ef539258389))
+* feat(lwdomain): export go package (#545) (Salim Afiune)([13fb167](https://github.com/lacework/go-sdk/commit/13fb1675fdc30446ef903404a191104cf71195ee))
+* feat(cli): stdin support for query/policy (hazedav)([770f0ee](https://github.com/lacework/go-sdk/commit/770f0ee26c613a59a166673f9d4a372a586f7da1))
+* feat(cli): Manage Resource Groups in the lacework cli (#538) (Darren)([5e27cc8](https://github.com/lacework/go-sdk/commit/5e27cc8f0fba66d62b9113be1af0f97957529063))
+* feat: Resource Groups (#537) (Darren)([754e8f4](https://github.com/lacework/go-sdk/commit/754e8f47ba2fbf1a68ca8b71fe3a761a36f1eb6a))
+* feat(api): Add Non-OS Package Support for APIv1 (#539) (Andre Elizondo)([92e20e6](https://github.com/lacework/go-sdk/commit/92e20e6fa48be3ce192b84cfec832d9261f892e2))
+* feat(cli): switch over to API v2 by default (#519) (Salim Afiune)([d605b45](https://github.com/lacework/go-sdk/commit/d605b45ad95920990ce7b0e8e662b0c12369afff))
 ## Refactor
-* refactor: rename alert channel enums (Salim Afiune Maya)([f727b9b](https://github.com/lacework/go-sdk/commit/f727b9b78a79047b5df5665324d54d0cb4302b7b))
+* refactor: Add resource group specific create functions(#542) (Darren)([8a78438](https://github.com/lacework/go-sdk/commit/8a7843885afdfcde4ac0d98381748b0f220dbfcc))
 ## Bug Fixes
-* fix(cli): removing policyUi from policy schema (#523) (hazedav)([5586aec](https://github.com/lacework/go-sdk/commit/5586aec415034a431490c0b3cfb4d51385bfdd23))
-* fix(cli): handle scan status 'Partial' (#525) (Darren)([a8ba4b7](https://github.com/lacework/go-sdk/commit/a8ba4b722cf211f527c685519504359525bd0ebe))
-* fix(cli): query run via editor (hazedav)([ca3f2a3](https://github.com/lacework/go-sdk/commit/ca3f2a34bb76b97f42b6a5cafb664839a1fc3689))
-* fix(cli): Detect if running in cloudshell to output correct update command (#521) (Darren)([477fadd](https://github.com/lacework/go-sdk/commit/477fadd9a96398198f397eb57c29231761173a9b))
+* fix(cli): Output correct resource group json (#543) (Darren)([3311ef2](https://github.com/lacework/go-sdk/commit/3311ef262edc058f29f0f151d938c3e76ab15f05))
+* fix(install.ps1): Force Set-Variable as Constant (#541) (Salim Afiune)([6087ac2](https://github.com/lacework/go-sdk/commit/6087ac2b977132ba13350b248e2551c15c75881c))
+## Documentation Updates
+* docs(cli): correct typo v1 to v2 (#536) (lhasadreams)([cff6064](https://github.com/lacework/go-sdk/commit/cff6064a25d711d784dd0623c41739af78f0ff92))
 ## Other Changes
-* chore(api): update v2 alert channel tests (Salim Afiune Maya)([3581d0a](https://github.com/lacework/go-sdk/commit/3581d0a2237d176c6e1d1d0dfa749b1a3bce8480))
-* ci: version bump to v0.13.1-dev (Lacework)([39cc865](https://github.com/lacework/go-sdk/commit/39cc865741096ae4f7a29c09722bd38d7637752d))
+* ci: version bump to v0.14.1-dev (Lacework)([9417890](https://github.com/lacework/go-sdk/commit/941789044a3cdba6565209570149cf15475ad5fe))
+* test(cli): re-enable vuln ctr scan tests (#532) (Salim Afiune)([7697c23](https://github.com/lacework/go-sdk/commit/7697c23c76f581f1610e16c83f0c787bac74695d))
+* test(cli): disable vuln ctr scan tests (#530) (Salim Afiune)([0787b1b](https://github.com/lacework/go-sdk/commit/0787b1b6f7f74a79a528e0dde5157b172732344d))
+* test(cli): re-enable query/policy integration (#526) (hazedav)([d54b51a](https://github.com/lacework/go-sdk/commit/d54b51a46a2154d8912859c64eb761d6bb72256f))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`

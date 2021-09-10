@@ -44,6 +44,7 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework integration](lacework_integration.md)	 - manage external integrations
 * [lacework policy](lacework_policy.md)	 - manage policies
 * [lacework query](lacework_query.md)	 - run and manage queries
+* [lacework resource-group](lacework_resource-group.md)	 - manage resource groups
 * [lacework version](lacework_version.md)	 - print the Lacework CLI version
 * [lacework vulnerability](lacework_vulnerability.md)	 - container and host vulnerability assessments
 
