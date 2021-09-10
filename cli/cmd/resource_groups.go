@@ -21,7 +21,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
@@ -294,7 +293,7 @@ func setBaseProps(props []byte) [][]string {
 
 	details = append(details, []string{"DESCRIPTION", baseProps.Description})
 	details = append(details, []string{"UPDATED BY", baseProps.UpdatedBy})
-	details = append(details, []string{"LAST UPDATED", baseProps.LastUpdated.UTC().Format(time.RFC3339)})
+	details = append(details, []string{"LAST UPDATED", baseProps.LastUpdated.String()})
 	return details
 }
 

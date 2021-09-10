@@ -1,6 +1,7 @@
 package lwtime
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -16,9 +17,9 @@ func (epoch *Epoch) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (epoch *Epoch) MarshalJSON() ([]byte, error) {
-	// @afiune we might have problems changing the location :(
-	return epoch.ToTime().UTC().MarshalJSON()
+func (epoch Epoch) MarshalJSON() ([]byte, error) {
+	epochJson := fmt.Sprintf("%v", epoch.ToTime().UnixMilli())
+	return []byte(epochJson), nil
 }
 
 // A few format functions for printing and manipulating the custom date
@@ -30,4 +31,8 @@ func (epoch Epoch) Format(s string) string {
 }
 func (epoch Epoch) UTC() time.Time {
 	return epoch.ToTime().UTC()
+}
+
+func (epoch *Epoch) String() string {
+	return epoch.UTC().Format(time.RFC3339)
 }
