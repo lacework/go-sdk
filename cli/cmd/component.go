@@ -107,11 +107,14 @@ func (c *cliState) LoadComponents() {
 	c.LwComponents = loadComponentsFromDirk()
 	for _, component := range c.LwComponents.Components {
 		if component.Status == "Installed" && component.CLICommand {
-			cmd := component.Name
-			cli.Log.Debugw("loading cli command", "component", cmd)
+			var (
+				cmd     = component.Name
+				cmdName = component.CommandName
+			)
+			cli.Log.Debugw("loading cli command", "component", cmd, "command_name", cmdName)
 			rootCmd.AddCommand(
 				&cobra.Command{
-					Use:   cmd,
+					Use:   cmdName,
 					Short: fmt.Sprintf("%s component", cmd),
 					Run: func(_ *cobra.Command, args []string) {
 						runComponent(cmd, args)
@@ -135,12 +138,13 @@ type Component struct {
 	//Size ?
 
 	// will this component be accessible via the CLI
-	CLICommand bool `json:"cli_command"`
+	CLICommand  bool   `json:"cli_command"`
+	CommandName string `json:"command_name"`
 
 	// the component is a binary
 	Binary bool `json:"binary"`
 
-	// the component is a library, provides content
+	// the component is a library, only provides content for the CLI or other components
 	Library bool `json:"library"`
 }
 
