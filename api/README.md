@@ -58,3 +58,7 @@ func main() {
 ```
 
 Look at the [examples/](examples/) folder for more examples.
+
+## Contributing
+
+For guidlines on how to contribute to the project see the [CONTRIBUTING.md](CONTRIBUTING.md)

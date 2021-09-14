@@ -1,10 +1,8 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: ''
+title: 'bug:'
 labels: bug
-assignees: ''
-
 ---
 
 **Describe the bug**
@@ -22,7 +20,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Please complete the following information):**
- - OS: [e.g. iOS]
+ - OS: [e.g. macOS Big Sur 11.5.2 ]
  - Version [e.g. v0.15.0]
 
 **Additional context**
