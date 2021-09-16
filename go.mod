@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.2.12
-	github.com/BurntSushi/toml v0.3.1
+	github.com/BurntSushi/toml v0.4.1
 	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
 	github.com/briandowns/spinner v1.13.0
 	github.com/fatih/color v1.12.0
