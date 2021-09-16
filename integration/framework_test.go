@@ -177,6 +177,7 @@ func createTOMLConfigFromCIvars() string {
 account = '` + os.Getenv("CI_ACCOUNT") + `'
 api_key = '` + os.Getenv("CI_API_KEY") + `'
 api_secret = '` + os.Getenv("CI_API_SECRET") + `'
+version = 2
 `)
 	err = ioutil.WriteFile(configFile, c, 0644)
 	if err != nil {
