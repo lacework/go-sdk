@@ -95,6 +95,7 @@ type Honeyvent struct {
 	Arch          string      `json:"arch"`
 	Command       string      `json:"command,omitempty"`
 	Args          []string    `json:"args,omitempty"`
+	Flags         []string    `json:"flags,omitempty"`
 	Account       string      `json:"account,omitempty"`
 	Subaccount    string      `json:"subaccount,omitempty"`
 	Profile       string      `json:"profile,omitempty"`
@@ -217,4 +218,19 @@ func installMethod() string {
 		return "HOMEBREW"
 	}
 	return ""
+}
+
+// parseFlags is a helper used to parse all the flags that the user provided
+func parseFlags(args []string) (flags []string) {
+	for len(args) > 0 {
+		arg := args[0]
+		args = args[1:]
+		if len(arg) <= 1 || arg[0] != '-' {
+			// not a flag
+			continue
+		}
+
+		flags = append(flags, arg)
+	}
+	return
 }

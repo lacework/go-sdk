@@ -54,7 +54,7 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 			cli.Log.Debugw("updating honeyvent", "dataset", HoneyDataset)
 			cli.Event.Command = cmd.CommandPath()
 			cli.Event.Args = args
-			// TODO @afiune how do we send flags?
+			cli.Event.Flags = parseFlags(os.Args[1:])
 			cli.SendHoneyvent()
 
 			switch cmd.Use {
