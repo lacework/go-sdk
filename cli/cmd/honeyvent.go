@@ -225,7 +225,7 @@ func parseFlags(args []string) (flags []string) {
 	for len(args) > 0 {
 		arg := args[0]
 		args = args[1:]
-		if len(arg) == 0 || arg[0] != '-' || len(arg) == 1 {
+		if len(arg) <= 1 || arg[0] != '-' {
 			// not a flag
 			continue
 		}
