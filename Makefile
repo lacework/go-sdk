@@ -116,7 +116,7 @@ imports-check: ## Lists imports issues
 	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./...))
 
 .PHONY: build-cli-cross-platform
-build-cli-cross-platform: ## Compiles the go-sdk for all supported platforms
+build-cli-cross-platform: ## Compiles the Lacework CLI for all supported platforms
 	gox -output="bin/$(PACKAGENAME)-{{.OS}}-{{.Arch}}" \
             -os="linux windows" \
             -arch="amd64 386" \
@@ -137,7 +137,7 @@ test-resources: ## *CI ONLY* Prepares CI test containers
 	scripts/prepare_test_resources.sh all
 
 .PHONY: install-cli
-install-cli: build-cli-cross-platform ## Build the go-sdk project and install the resulting binary
+install-cli: build-cli-cross-platform ## Build and install the Lacework CLI binary at /usr/local/bin/lacework
 ifeq (x86_64, $(shell uname -m))
 	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-amd64 /usr/local/bin/$(CLINAME)
 else
