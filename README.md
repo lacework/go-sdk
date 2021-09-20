@@ -184,6 +184,10 @@ func main() {
 
 The release process of this repository is documented at the following [Wiki page](https://github.com/lacework/go-sdk/wiki/Release-Process).
 
+## Contributing
+
+For guidelines on how to contribute to the project see the [CONTRIBUTING.md](CONTRIBUTING.md)
+
 ## License and Copyright
 
 Copyright 2020, Lacework Inc.
