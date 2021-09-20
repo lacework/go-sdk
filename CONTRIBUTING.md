@@ -18,7 +18,7 @@ Read the [README.md](https://github.com/lacework/go-sdk/blob/main/README.md), th
 and the Lacework CLI documentation on the [wiki](https://github.com/lacework/go-sdk/wiki/CLI-Documentation).
 
 
-## How to contribute?
+## How to contribute
 There are 3 ways that community members can help contribute to the Lacework CLI.
 Reporting any issues you may find either in functionality of the CLI or documentation. Or if you believe some functionality should exist
 within the Lacework CLI you can make a feature request. Finally, if you've gone one step further and made the changes to submit for a pull request.
