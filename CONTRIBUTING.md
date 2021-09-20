@@ -7,7 +7,7 @@
 * [How to contribute](#how-to-contribute)
     * [Reporting Bugs](#reporting-bugs)
     * [Feature Requests](#feature-requests)
-    * [Pull Requests](#creating-a-pull-request)
+    * [Pull Requests](#pull-requests)
 
 * [Developer Guidelines](/DEVELOPER_GUIDELINES.md)
 
@@ -35,7 +35,7 @@ Include as much relevant information as possible. See the [bug template](https:/
 If you wish to submit a request to add new functionality or an improvement to the go-sdk then use the the [feature request](https://github.com/lacework/go-sdk/blob/main/.github/ISSUE_TEMPLATE/feature_request.md) template to 
 open a new [issue](https://github.com/lacework/go-sdk/issues/new)
 
-### Creating a Pull Request
+### Pull Requests
 
 When submitting a pull request follow the [commit message standard](#commit-message-standard).
 Reduce the likelihood of pushing breaking changes by running the go-sdk unit and integration tests, 
