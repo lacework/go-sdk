@@ -4,7 +4,7 @@
 
 * [Before getting started?](#before-getting-started)
 
-* [How to Contribute?](#how-can-i-contribute)
+* [How to Contribute?](#how-to-contribute?)
     * [Reporting Bugs](#reporting-bugs)
     * [Feature Requests](#feature-requests)
     * [Pull Requests](#creating-a-pull-request)
