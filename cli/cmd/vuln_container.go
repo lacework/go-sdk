@@ -396,7 +396,11 @@ func requestOnDemandContainerVulnerabilityScan(args []string) error {
 	}
 
 	cli.OutputHuman("To track the progress of the scan, use the command:\n")
-	cli.OutputHuman("  $ lacework vulnerability container scan-status %s\n", scan.Data.RequestID)
+	cli.OutputHuman(
+		"  $ lacework vulnerability container scan-status %s%s\n",
+		scan.Data.RequestID,
+		cli.OutputNonDefaultProfileFlag(),
+	)
 	return nil
 }
 
