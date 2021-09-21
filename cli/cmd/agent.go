@@ -330,7 +330,10 @@ func listAgentTokens(_ *cobra.Command, _ []string) error {
 	}
 
 	if len(response.Data) == 0 {
-		cli.OutputHuman("There are no agent access tokens. Try creating one with 'lacework agent token create'\n")
+		cli.OutputHuman(
+			"There are no agent access tokens. Try creating one with 'lacework agent token create%s'\n",
+			cli.OutputNonDefaultProfileFlag(),
+		)
 		return nil
 	}
 

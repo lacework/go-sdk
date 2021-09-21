@@ -108,3 +108,10 @@ func (c *cliState) OutputCSV(headers []string, data [][]string) error {
 	fmt.Fprint(os.Stdout, csv)
 	return nil
 }
+
+func (c *cliState) OutputNonDefaultProfileFlag() string {
+	if c.Profile != "default" {
+		return fmt.Sprintf(" --profile %s", c.Profile)
+	}
+	return ""
+}
