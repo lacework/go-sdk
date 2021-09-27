@@ -31,8 +31,6 @@ github.com/fatih/color
 github.com/fatih/structs
 # github.com/fsnotify/fsnotify v1.4.9
 github.com/fsnotify/fsnotify
-# github.com/golang/snappy v0.0.3
-github.com/golang/snappy
 # github.com/google/btree v1.0.1
 ## explicit
 github.com/google/btree
@@ -53,7 +51,7 @@ github.com/hinshun/vt10x
 # github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 ## explicit
 github.com/hokaccha/go-prettyjson
-# github.com/honeycombio/libhoney-go v1.15.4
+# github.com/honeycombio/libhoney-go v1.15.5
 ## explicit
 github.com/honeycombio/libhoney-go
 github.com/honeycombio/libhoney-go/transmission
@@ -61,9 +59,11 @@ github.com/honeycombio/libhoney-go/transmission
 github.com/inconshreveable/mousetrap
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 github.com/kballard/go-shellquote
-# github.com/klauspost/compress v1.12.3
+# github.com/klauspost/compress v1.13.5
+github.com/klauspost/compress
 github.com/klauspost/compress/fse
 github.com/klauspost/compress/huff0
+github.com/klauspost/compress/internal/snapref
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/kr/pty v1.1.8 => github.com/creack/pty v1.1.7
@@ -127,7 +127,7 @@ github.com/spf13/viper
 github.com/stretchr/testify/assert
 # github.com/subosito/gotenv v1.2.0
 github.com/subosito/gotenv
-# github.com/vmihailenco/msgpack/v5 v5.2.0
+# github.com/vmihailenco/msgpack/v5 v5.3.4
 github.com/vmihailenco/msgpack/v5
 github.com/vmihailenco/msgpack/v5/msgpcode
 # github.com/vmihailenco/tagparser/v2 v2.0.0
