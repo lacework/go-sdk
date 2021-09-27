@@ -64,13 +64,14 @@ func (svc *IntegrationsService) UpdateAwsEcrWithAccessKey(integration AwsEcrWith
 }
 
 type AwsEcrCommonData struct {
-	AwsAuthType    string `json:"AWS_AUTH_TYPE" mapstructure:"AWS_AUTH_TYPE"`
-	RegistryType   string `json:"REGISTRY_TYPE" mapstructure:"REGISTRY_TYPE"`
-	RegistryDomain string `json:"REGISTRY_DOMAIN" mapstructure:"REGISTRY_DOMAIN"`
-	LimitByTag     string `json:"LIMIT_BY_TAG" mapstructure:"LIMIT_BY_TAG"`
-	LimitByLabel   string `json:"LIMIT_BY_LABEL" mapstructure:"LIMIT_BY_LABEL"`
-	LimitByRep     string `json:"LIMIT_BY_REP,omitempty" mapstructure:"LIMIT_BY_REP"`
-	LimitNumImg    int    `json:"LIMIT_NUM_IMG,omitempty" mapstructure:"LIMIT_NUM_IMG"`
+	AwsAuthType      string `json:"AWS_AUTH_TYPE" mapstructure:"AWS_AUTH_TYPE"`
+	RegistryType     string `json:"REGISTRY_TYPE" mapstructure:"REGISTRY_TYPE"`
+	RegistryDomain   string `json:"REGISTRY_DOMAIN" mapstructure:"REGISTRY_DOMAIN"`
+	LimitByTag       string `json:"LIMIT_BY_TAG" mapstructure:"LIMIT_BY_TAG"`
+	LimitByLabel     string `json:"LIMIT_BY_LABEL" mapstructure:"LIMIT_BY_LABEL"`
+	LimitByRep       string `json:"LIMIT_BY_REP,omitempty" mapstructure:"LIMIT_BY_REP"`
+	LimitNumImg      int    `json:"LIMIT_NUM_IMG,omitempty" mapstructure:"LIMIT_NUM_IMG"`
+	NonOSPackageEval bool   `json:"NON_OS_PACKAGE_EVAL,omitempty" mapstructure:"NON_OS_PACKAGE_EVAL"`
 }
 
 type AwsEcrWithAccessKeyIntegrationResponse struct {
