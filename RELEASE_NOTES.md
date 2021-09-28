@@ -1,25 +1,18 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.15.0`.
+Another day, another release. These are the release notes for the version `v0.16.0`.
 
 ## Features
-* feat(lwdomain): export go package (#545) (Salim Afiune)([13fb167](https://github.com/lacework/go-sdk/commit/13fb1675fdc30446ef903404a191104cf71195ee))
-* feat(cli): stdin support for query/policy (hazedav)([770f0ee](https://github.com/lacework/go-sdk/commit/770f0ee26c613a59a166673f9d4a372a586f7da1))
-* feat(cli): Manage Resource Groups in the lacework cli (#538) (Darren)([5e27cc8](https://github.com/lacework/go-sdk/commit/5e27cc8f0fba66d62b9113be1af0f97957529063))
-* feat: Resource Groups (#537) (Darren)([754e8f4](https://github.com/lacework/go-sdk/commit/754e8f47ba2fbf1a68ca8b71fe3a761a36f1eb6a))
-* feat(api): Add Non-OS Package Support for APIv1 (#539) (Andre Elizondo)([92e20e6](https://github.com/lacework/go-sdk/commit/92e20e6fa48be3ce192b84cfec832d9261f892e2))
-* feat(cli): switch over to API v2 by default (#519) (Salim Afiune)([d605b45](https://github.com/lacework/go-sdk/commit/d605b45ad95920990ce7b0e8e662b0c12369afff))
-## Refactor
-* refactor: Add resource group specific create functions(#542) (Darren)([8a78438](https://github.com/lacework/go-sdk/commit/8a7843885afdfcde4ac0d98381748b0f220dbfcc))
-## Bug Fixes
-* fix(cli): Output correct resource group json (#543) (Darren)([3311ef2](https://github.com/lacework/go-sdk/commit/3311ef262edc058f29f0f151d938c3e76ab15f05))
-* fix(install.ps1): Force Set-Variable as Constant (#541) (Salim Afiune)([6087ac2](https://github.com/lacework/go-sdk/commit/6087ac2b977132ba13350b248e2551c15c75881c))
+* feat: Add NonOSPackageSupport container registries (#560) (Darren)([c61e4d3](https://github.com/lacework/go-sdk/commit/c61e4d3a4fbf26b821c831574a2c5556b90e424b))
+* feat(cli): pass-through used profile in recommendations (#554) (Salim Afiune)([d5340c1](https://github.com/lacework/go-sdk/commit/d5340c15e2a196897f0cd4339b45d01236d0d5e9))
+* feat(telemetry): send information about flags (#551) (Salim Afiune)([8f626d6](https://github.com/lacework/go-sdk/commit/8f626d63905bd43e017fad9f83476972a7aa5ae0))
 ## Documentation Updates
-* docs(cli): correct typo v1 to v2 (#536) (lhasadreams)([cff6064](https://github.com/lacework/go-sdk/commit/cff6064a25d711d784dd0623c41739af78f0ff92))
+* docs: Contributor Documentation (#550) (Darren)([a278374](https://github.com/lacework/go-sdk/commit/a27837457423d79aedeaf3d1e66bba0cea4069df))
 ## Other Changes
-* ci: version bump to v0.14.1-dev (Lacework)([9417890](https://github.com/lacework/go-sdk/commit/941789044a3cdba6565209570149cf15475ad5fe))
-* test(cli): re-enable vuln ctr scan tests (#532) (Salim Afiune)([7697c23](https://github.com/lacework/go-sdk/commit/7697c23c76f581f1610e16c83f0c787bac74695d))
-* test(cli): disable vuln ctr scan tests (#530) (Salim Afiune)([0787b1b](https://github.com/lacework/go-sdk/commit/0787b1b6f7f74a79a528e0dde5157b172732344d))
-* test(cli): re-enable query/policy integration (#526) (hazedav)([d54b51a](https://github.com/lacework/go-sdk/commit/d54b51a46a2154d8912859c64eb761d6bb72256f))
+* chore(deps): bump github.com/AlecAivazis/survey/v2 from 2.2.12 to 2.3.2 (#549) (dependabot[bot])([00deaa0](https://github.com/lacework/go-sdk/commit/00deaa034ae2b02508381756bb900c47e799e9f9))
+* chore(deps): bump go.uber.org/zap from 1.18.1 to 1.19.1 (#548) (dependabot[bot])([f98cdc3](https://github.com/lacework/go-sdk/commit/f98cdc300bc1acf0027c6128c149a18260ab8256))
+* chore(deps): bump github.com/BurntSushi/toml from 0.3.1 to 0.4.1 (#509) (dependabot[bot])([e1184a1](https://github.com/lacework/go-sdk/commit/e1184a1af99435b8348a4a15ad87bc2e96ac2b16))
+* ci: ran make go-vendor to fix pipeline (#558) (Salim Afiune)([576b127](https://github.com/lacework/go-sdk/commit/576b1272b58534a6b7726e10caec751cbab9f509))
+* ci: version bump to v0.15.1-dev (Lacework)([aa0751f](https://github.com/lacework/go-sdk/commit/aa0751fd8940ddd63759ab0a9cdc8ad6f9660dfc))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
