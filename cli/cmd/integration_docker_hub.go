@@ -46,7 +46,7 @@ func createDockerHubIntegration() error {
 		{
 			Name: "non_os_package_support",
 			Prompt: &survey.Confirm{
-				Message: "Enable Scanning for non-os packages: "},
+				Message: "Enable scanning for Non-OS packages: "},
 		},
 		{
 			Name: "limit_tag",

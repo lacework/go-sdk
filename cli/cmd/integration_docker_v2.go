@@ -52,7 +52,7 @@ func createDockerV2Integration() error {
 		},
 		{
 			Name:   "non_os_package_support",
-			Prompt: &survey.Confirm{Message: "Enable Scanning for non-os packages: "},
+			Prompt: &survey.Confirm{Message: "Enable scanning for Non-OS packages: "},
 		},
 		{
 			Name: "limit_tag",
