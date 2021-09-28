@@ -53,6 +53,11 @@ func createGhcrIntegration() error {
 			Prompt: &survey.Confirm{Message: "Subscribe to Registry Notifications?"},
 		},
 		{
+			Name: "non_os_package_support",
+			Prompt: &survey.Confirm{
+				Message: "Enable scanning for Non-OS packages: "},
+		},
+		{
 			Name: "limit_max_images",
 			Prompt: &survey.Select{
 				Message: "Limit number of images per repository: ",
@@ -63,15 +68,16 @@ func createGhcrIntegration() error {
 	}
 
 	answers := struct {
-		Name           string
-		Username       string
-		Password       string
-		SSL            bool
-		Notifications  bool
-		LimitTags      string `survey:"limit_tags"`
-		LimitLabels    string `survey:"limit_labels"`
-		LimitRepos     string `survey:"limit_repos"`
-		LimitMaxImages string `survey:"limit_max_images"`
+		Name                string
+		Username            string
+		Password            string
+		SSL                 bool
+		Notifications       bool
+		NonOSPackageSupport bool   `survey:"non_os_package_support"`
+		LimitTags           string `survey:"limit_tags"`
+		LimitLabels         string `survey:"limit_labels"`
+		LimitRepos          string `survey:"limit_repos"`
+		LimitMaxImages      string `survey:"limit_max_images"`
 	}{}
 
 	if err := survey.Ask(questions, &answers,
@@ -103,10 +109,11 @@ func createGhcrIntegration() error {
 				Password: answers.Password,
 				Ssl:      answers.SSL,
 			},
-			LimitByTag:   strings.Split(answers.LimitTags, "\n"),
-			LimitByLabel: castStringToLimitByLabel(answers.LimitLabels),
-			LimitByRep:   strings.Split(answers.LimitRepos, "\n"),
-			LimitNumImg:  limitMaxImages,
+			NonOSPackageEval: answers.NonOSPackageSupport,
+			LimitByTag:       strings.Split(answers.LimitTags, "\n"),
+			LimitByLabel:     castStringToLimitByLabel(answers.LimitLabels),
+			LimitByRep:       strings.Split(answers.LimitRepos, "\n"),
+			LimitNumImg:      limitMaxImages,
 		},
 	)
 

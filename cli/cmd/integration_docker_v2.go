@@ -51,6 +51,10 @@ func createDockerV2Integration() error {
 			Prompt: &survey.Confirm{Message: "Enable SSL?"},
 		},
 		{
+			Name:   "non_os_package_support",
+			Prompt: &survey.Confirm{Message: "Enable scanning for Non-OS packages: "},
+		},
+		{
 			Name: "limit_tag",
 			Prompt: &survey.Input{
 				Message: "Limit by Tag: ",
@@ -67,13 +71,14 @@ func createDockerV2Integration() error {
 	}
 
 	answers := struct {
-		Name       string
-		Domain     string
-		Username   string
-		Password   string
-		SSL        bool
-		LimitTag   string `survey:"limit_tag"`
-		LimitLabel string `survey:"limit_label"`
+		Name                string
+		Domain              string
+		Username            string
+		Password            string
+		SSL                 bool
+		NonOSPackageSupport bool   `survey:"non_os_package_support"`
+		LimitTag            string `survey:"limit_tag"`
+		LimitLabel          string `survey:"limit_label"`
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -90,9 +95,10 @@ func createDockerV2Integration() error {
 				Password: answers.Password,
 				SSL:      answers.SSL,
 			},
-			RegistryDomain: answers.Domain,
-			LimitByTag:     answers.LimitTag,
-			LimitByLabel:   answers.LimitLabel,
+			RegistryDomain:   answers.Domain,
+			NonOSPackageEval: answers.NonOSPackageSupport,
+			LimitByTag:       answers.LimitTag,
+			LimitByLabel:     answers.LimitLabel,
 		},
 	)
 

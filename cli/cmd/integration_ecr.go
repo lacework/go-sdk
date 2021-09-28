@@ -40,6 +40,11 @@ func createAwsEcrIntegration() error {
 			Validate: survey.Required,
 		},
 		{
+			Name: "non_os_package_support",
+			Prompt: &survey.Confirm{
+				Message: "Enable scanning for Non-OS packages: "},
+		},
+		{
 			Name: "limit_tag",
 			Prompt: &survey.Input{
 				Message: "Limit by Tag: ",
@@ -76,15 +81,16 @@ func createAwsEcrIntegration() error {
 	}
 
 	answers := struct {
-		Name            string
-		Domain          string
-		AccessKeyID     string `survey:"access_key_id"`
-		SecretAccessKey string `survey:"secret_access_key"`
-		LimitTag        string `survey:"limit_tag"`
-		LimitLabel      string `survey:"limit_label"`
-		LimitRepos      string `survey:"limit_repos"`
-		LimitMaxImages  string `survey:"limit_max_images"`
-		AwsAuthType     string `survey:"aws_auth_type"`
+		Name                string
+		Domain              string
+		AccessKeyID         string `survey:"access_key_id"`
+		SecretAccessKey     string `survey:"secret_access_key"`
+		LimitTag            string `survey:"limit_tag"`
+		LimitLabel          string `survey:"limit_label"`
+		LimitRepos          string `survey:"limit_repos"`
+		LimitMaxImages      string `survey:"limit_max_images"`
+		AwsAuthType         string `survey:"aws_auth_type"`
+		NonOSPackageSupport bool   `survey:"non_os_package_support"`
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -139,11 +145,12 @@ func createAwsEcrIntegration() error {
 					ExternalID: ecrAuthAnswers.ExternalID,
 				},
 				AwsEcrCommonData: api.AwsEcrCommonData{
-					RegistryDomain: answers.Domain,
-					LimitByTag:     answers.LimitTag,
-					LimitByLabel:   answers.LimitLabel,
-					LimitByRep:     answers.LimitRepos,
-					LimitNumImg:    limitMaxImages,
+					RegistryDomain:   answers.Domain,
+					NonOSPackageEval: answers.NonOSPackageSupport,
+					LimitByTag:       answers.LimitTag,
+					LimitByLabel:     answers.LimitLabel,
+					LimitByRep:       answers.LimitRepos,
+					LimitNumImg:      limitMaxImages,
 				},
 			},
 		)

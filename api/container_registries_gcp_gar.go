@@ -52,13 +52,14 @@ func (reg GcpGarIntegration) ContainerRegistryType() containerRegistryType {
 }
 
 type GcpGarData struct {
-	Credentials    GcpCredentialsV2    `json:"credentials"`
-	RegistryDomain string              `json:"registryDomain"`
-	RegistryType   string              `json:"registryType"` // always "GCP_GAR"
-	LimitByTag     []string            `json:"limitByTag"`
-	LimitByLabel   []map[string]string `json:"limitByLabel"`
-	LimitByRep     []string            `json:"limitByRep"`
-	LimitNumImg    int                 `json:"limitNumImg"`
+	Credentials      GcpCredentialsV2    `json:"credentials"`
+	RegistryDomain   string              `json:"registryDomain"`
+	RegistryType     string              `json:"registryType"` // always "GCP_GAR"
+	LimitByTag       []string            `json:"limitByTag"`
+	LimitByLabel     []map[string]string `json:"limitByLabel"`
+	LimitByRep       []string            `json:"limitByRep"`
+	LimitNumImg      int                 `json:"limitNumImg"`
+	NonOSPackageEval bool                `json:"nonOsPackageEval"`
 }
 
 func verifyGcpGarContainerRegistry(data interface{}) interface{} {
