@@ -92,6 +92,11 @@ func createGarIntegration() error {
 			Validate: survey.Required,
 		},
 		{
+			Name: "non_os_package_support",
+			Prompt: &survey.Confirm{
+				Message: "Enable Scanning for non-os packages: "},
+		},
+		{
 			Name: "limit_max_images",
 			Prompt: &survey.Select{
 				Message: "Limit number of images per repository: ",
@@ -102,16 +107,17 @@ func createGarIntegration() error {
 	}
 
 	answers := struct {
-		Name           string
-		Domain         string
-		ClientID       string `survey:"client_id"`
-		PrivateKeyID   string `survey:"private_key_id"`
-		ClientEmail    string `survey:"client_email"`
-		PrivateKey     string `survey:"private_key"`
-		LimitTags      string `survey:"limit_tags"`
-		LimitLabels    string `survey:"limit_labels"`
-		LimitRepos     string `survey:"limit_repos"`
-		LimitMaxImages string `survey:"limit_max_images"`
+		Name                string
+		Domain              string
+		ClientID            string `survey:"client_id"`
+		PrivateKeyID        string `survey:"private_key_id"`
+		ClientEmail         string `survey:"client_email"`
+		PrivateKey          string `survey:"private_key"`
+		NonOSPackageSupport bool   `survey:"non_os_package_support"`
+		LimitTags           string `survey:"limit_tags"`
+		LimitLabels         string `survey:"limit_labels"`
+		LimitRepos          string `survey:"limit_repos"`
+		LimitMaxImages      string `survey:"limit_max_images"`
 	}{}
 
 	if err := survey.Ask(questions, &answers,
@@ -144,11 +150,12 @@ func createGarIntegration() error {
 				PrivateKey:   answers.PrivateKey,
 				PrivateKeyID: answers.PrivateKeyID,
 			},
-			RegistryDomain: answers.Domain,
-			LimitByTag:     strings.Split(answers.LimitTags, "\n"),
-			LimitByLabel:   castStringToLimitByLabel(answers.LimitLabels),
-			LimitByRep:     strings.Split(answers.LimitRepos, "\n"),
-			LimitNumImg:    limitMaxImages,
+			RegistryDomain:   answers.Domain,
+			NonOSPackageEval: answers.NonOSPackageSupport,
+			LimitByTag:       strings.Split(answers.LimitTags, "\n"),
+			LimitByLabel:     castStringToLimitByLabel(answers.LimitLabels),
+			LimitByRep:       strings.Split(answers.LimitRepos, "\n"),
+			LimitNumImg:      limitMaxImages,
 		},
 	)
 

@@ -44,6 +44,11 @@ func createDockerHubIntegration() error {
 			Validate: survey.Required,
 		},
 		{
+			Name: "non_os_package_support",
+			Prompt: &survey.Confirm{
+				Message: "Enable Scanning for non-os packages: "},
+		},
+		{
 			Name: "limit_tag",
 			Prompt: &survey.Input{
 				Message: "Limit by Tag: ",
@@ -72,13 +77,14 @@ func createDockerHubIntegration() error {
 	}
 
 	answers := struct {
-		Name           string
-		Username       string
-		Password       string
-		LimitTag       string `survey:"limit_tag"`
-		LimitLabel     string `survey:"limit_label"`
-		LimitRepos     string `survey:"limit_repos"`
-		LimitMaxImages string `survey:"limit_max_images"`
+		Name                string
+		Username            string
+		Password            string
+		LimitTag            string `survey:"limit_tag"`
+		LimitLabel          string `survey:"limit_label"`
+		LimitRepos          string `survey:"limit_repos"`
+		LimitMaxImages      string `survey:"limit_max_images"`
+		NonOSPackageSupport bool   `survey:"non_os_package_support"`
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -104,10 +110,11 @@ func createDockerHubIntegration() error {
 				Username: answers.Username,
 				Password: answers.Password,
 			},
-			LimitByTag:   answers.LimitTag,
-			LimitByLabel: answers.LimitLabel,
-			LimitByRep:   answers.LimitRepos,
-			LimitNumImg:  limitMaxImages,
+			NonOSPackageEval: answers.NonOSPackageSupport,
+			LimitByTag:       answers.LimitTag,
+			LimitByLabel:     answers.LimitLabel,
+			LimitByRep:       answers.LimitRepos,
+			LimitNumImg:      limitMaxImages,
 		},
 	)
 
