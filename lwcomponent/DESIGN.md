@@ -93,3 +93,24 @@ notify the user.
 A second safety we should have is to check the SHA256 (256-bit) checksums of the downloaded binary or compressed file
 which should match with the one provided by (APIs) the new components internal service.
 
+### Create A New Component 
+
+To create a new component, we need to define the following things:
+
+* Define the component type (binary, commands, or content)
+* For binary components, have cross-platform binaries (support windows, linux and osx)
+* Automate the release process via CD pipelines
+
+
+## Observability
+
+End to end observability?
+
+## Deprecations
+
+## Attribution to third-party tools
+
+## Open Questions:
+* Will there be components that doesn't have cross-platform support? If yes, document examples and add details about how to handle these cases
+* ...
+
