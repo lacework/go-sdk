@@ -44,6 +44,10 @@ func TestAlertChannelTypes(t *testing.T) {
 		"AwsS3", api.AwsS3AlertChannelType.String(),
 		"wrong alert channel type",
 	)
+	assert.Equal(t,
+		"CloudwatchEb", api.CloudwatchEbAlertChannelType.String(),
+		"wrong alert channel type",
+	)
 }
 
 func TestFindAlertChannelType(t *testing.T) {
@@ -56,9 +60,17 @@ func TestFindAlertChannelType(t *testing.T) {
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "EmailUser", alertFound.String(), "wrong alert channel type")
 
-	//alertFound, found = api.FindAlertChannelType("SlackChannel")
-	//assert.True(t, found, "alert channel type should exist")
-	//assert.Equal(t, "SlackChannel", alertFound.String(), "wrong alert channel type")
+	alertFound, found = api.FindAlertChannelType("SlackChannel")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "SlackChannel", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("AwsS3")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "AwsS3", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("CloudwatchEb")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "CloudwatchEb", alertFound.String(), "wrong alert channel type")
 }
 
 func TestAlertChannelsGet(t *testing.T) {
@@ -195,9 +207,11 @@ func TestAlertChannelsList(t *testing.T) {
 		slackAlertChan = []string{
 			intgguid.New(), intgguid.New(), intgguid.New(), intgguid.New(),
 		}
-		allGUIDs    = append(awsS3AlertChan, append(slackAlertChan, emailAlertChan...)...)
-		expectedLen = len(allGUIDs)
-		fakeServer  = lacework.MockServer()
+		cloudwatchAlertChan = []string{intgguid.New(), intgguid.New()}
+		someGUIDs           = append(awsS3AlertChan, append(slackAlertChan, emailAlertChan...)...)
+		allGUIDs            = append(someGUIDs, cloudwatchAlertChan...)
+		expectedLen         = len(allGUIDs)
+		fakeServer          = lacework.MockServer()
 	)
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
@@ -208,6 +222,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(emailAlertChan, "EmailUser"),
 				generateAlertChannels(slackAlertChan, "SlackChannel"),
 				generateAlertChannels(awsS3AlertChan, "AwsS3"),
+				generateAlertChannels(cloudwatchAlertChan, "CloudwatchEb"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -244,6 +259,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleSlackChannelAlertChannel(guid)
 		case api.AwsS3AlertChannelType.String():
 			alertChannels[i] = singleAwsS3AlertChannel(guid)
+		case api.CloudwatchEbAlertChannelType.String():
+			alertChannels[i] = singleAWSCloudwatchAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")
