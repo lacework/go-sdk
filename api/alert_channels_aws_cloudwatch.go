@@ -32,7 +32,8 @@ func (svc *AlertChannelsService) UpdateCloudwatchEb(data AlertChannel) (response
 }
 
 type CloudwatchEbDataV2 struct {
-	EventBusArn string `json:"eventBusArn"`
+	EventBusArn   string `json:"eventBusArn"`
+	IssueGrouping string `json:"issueGrouping,omitempty"`
 }
 
 type CloudwatchEbAlertChannelV2 struct {

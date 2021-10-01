@@ -32,9 +32,10 @@ import (
 
 func TestAlertChannelsService_GetCloudwatchEb(t *testing.T) {
 	var (
-		intgGUID   = intgguid.New()
-		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
-		fakeServer = lacework.MockServer()
+		intgGUID    = intgguid.New()
+		apiPath     = fmt.Sprintf("AlertChannels/%s", intgGUID)
+		fakeServer  = lacework.MockServer()
+		eventBusArn = "arn:aws:events:YourRegion:YourAccountID:event-bus/default"
 	)
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
@@ -58,7 +59,8 @@ func TestAlertChannelsService_GetCloudwatchEb(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data.IntgGuid)
 	assert.Equal(t, "integration_name", response.Data.Name)
 	assert.True(t, response.Data.State.Ok)
-	assert.Equal(t, response.Data.Data.EventBusArn, "arn:aws:events:YourRegion:YourAccountID:event-bus/default")
+	assert.Equal(t, eventBusArn, response.Data.Data.EventBusArn)
+	assert.Equal(t, "Events", response.Data.Data.IssueGrouping)
 }
 
 func TestAlertChannelsService_UpdateCloudwatchEb(t *testing.T) {
@@ -109,6 +111,7 @@ func TestAlertChannelsService_UpdateCloudwatchEb(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data.IntgGuid)
 	assert.True(t, response.Data.State.Ok)
 	assert.Equal(t, eventBusArn, response.Data.Data.EventBusArn)
+	assert.Equal(t, "Events", response.Data.Data.IssueGrouping)
 }
 
 func singleAWSCloudwatchAlertChannel(id string) string {
@@ -117,7 +120,8 @@ func singleAWSCloudwatchAlertChannel(id string) string {
 		"createdOrUpdatedBy": "vatasha.white@lacework.net",
 		"createdOrUpdatedTime": "2021-09-29T117:55:47.277316",
 		"data": {
-			"eventBusArn": "arn:aws:events:YourRegion:YourAccountID:event-bus/default"
+			"eventBusArn": "arn:aws:events:YourRegion:YourAccountID:event-bus/default",
+			"issueGrouping": "Events"
 		},
 		"enabled": 1,
 		"intgGuid": %q,
