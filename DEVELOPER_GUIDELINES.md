@@ -1,11 +1,16 @@
-## Go-sdk Developer Guidelines
+## Developer Guidelines
+
+## Signed Commits
+Signed commits are required for any contribution to this project. Please see Github's documentation on configuring signed commits, [tell git about your signing key](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification/telling-git-about-your-signing-key) and [signing commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
 
 ## Commit message standard
 
 The format is:
 ```
 type(scope): subject
+
 BODY
+
 FOOTER
 ```
 
