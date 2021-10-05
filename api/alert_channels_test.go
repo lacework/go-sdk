@@ -49,6 +49,10 @@ func TestAlertChannelTypes(t *testing.T) {
 		"wrong alert channel type",
 	)
 	assert.Equal(t,
+		"Datadog", api.DatadogAlertChannelType.String(),
+		"wrong alert channel type",
+	)
+	assert.Equal(t,
 		"Webhook", api.WebhookAlertChannelType.String(),
 		"wrong alert channel type",
 	)
@@ -75,6 +79,10 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("CloudwatchEb")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "CloudwatchEb", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("Datadog")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "Datadog", alertFound.String(), "wrong alert channel type")
 
 	alertFound, found = api.FindAlertChannelType("Webhook")
 	assert.True(t, found, "alert channel type should exist")
@@ -215,6 +223,7 @@ func TestAlertChannelsList(t *testing.T) {
 		awsS3AlertChan      = generateGuids(&allGUIDs, 2)
 		slackAlertChan      = generateGuids(&allGUIDs, 4)
 		cloudwatchAlertChan = generateGuids(&allGUIDs, 2)
+		datadogAlertChan    = generateGuids(&allGUIDs, 2)
 		webhookAlertChan    = generateGuids(&allGUIDs, 2)
 		expectedLen         = len(allGUIDs)
 		fakeServer          = lacework.MockServer()
@@ -230,6 +239,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(slackAlertChan, "SlackChannel"),
 				generateAlertChannels(awsS3AlertChan, "AwsS3"),
 				generateAlertChannels(cloudwatchAlertChan, "CloudwatchEb"),
+				generateAlertChannels(datadogAlertChan, "Datadog"),
 				generateAlertChannels(webhookAlertChan, "Webhook"),
 			}
 			fmt.Fprintf(w,
@@ -280,6 +290,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleAwsS3AlertChannel(guid)
 		case api.CloudwatchEbAlertChannelType.String():
 			alertChannels[i] = singleAWSCloudwatchAlertChannel(guid)
+		case api.DatadogAlertChannelType.String():
+			alertChannels[i] = singleDatadogAlertChannel(guid)
 		case api.WebhookAlertChannelType.String():
 			alertChannels[i] = singleWebhookAlertChannel(guid)
 		}

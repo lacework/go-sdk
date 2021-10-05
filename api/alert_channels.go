@@ -84,6 +84,7 @@ const (
 	SlackChannelAlertChannelType
 	AwsS3AlertChannelType
 	CloudwatchEbAlertChannelType
+	DatadogAlertChannelType
 	WebhookAlertChannelType
 )
 
@@ -94,6 +95,7 @@ var AlertChannelTypes = map[alertChannelType]string{
 	SlackChannelAlertChannelType: "SlackChannel",
 	AwsS3AlertChannelType:        "AwsS3",
 	CloudwatchEbAlertChannelType: "CloudwatchEb",
+	DatadogAlertChannelType:      "Datadog",
 	WebhookAlertChannelType:      "Webhook",
 }
 
