@@ -35,10 +35,9 @@ func TestAlertChannelsService_GetDatadog(t *testing.T) {
 		intgGUID    = intgguid.New()
 		apiPath     = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer  = lacework.MockServer()
-		APIKey = "Im-a-fake-api-key"
+		APIKey      = "Im-a-fake-api-key"
 		DatadogSite = "com"
 		DatadogType = "Logs Detail"
-
 	)
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
@@ -72,7 +71,7 @@ func TestAlertChannelsService_UpdateDatadog(t *testing.T) {
 		intgGUID    = intgguid.New()
 		apiPath     = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer  = lacework.MockServer()
-		APIKey = "Im-a-fake-api-key"
+		APIKey      = "Im-a-fake-api-key"
 		DatadogSite = "com"
 		DatadogType = "Logs Detail"
 	)
@@ -151,4 +150,3 @@ func singleDatadogAlertChannel(id string) string {
 	}
 	`, id)
 }
-
