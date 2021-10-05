@@ -48,6 +48,10 @@ func TestAlertChannelTypes(t *testing.T) {
 		"CloudwatchEb", api.CloudwatchEbAlertChannelType.String(),
 		"wrong alert channel type",
 	)
+	assert.Equal(t,
+		"Datadog", api.DatadogAlertChannelType.String(),
+		"wrong alert channel type",
+	)
 }
 
 func TestFindAlertChannelType(t *testing.T) {
@@ -71,6 +75,10 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("CloudwatchEb")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "CloudwatchEb", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("Datadog")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "Datadog", alertFound.String(), "wrong alert channel type")
 }
 
 func TestAlertChannelsGet(t *testing.T) {
@@ -202,14 +210,12 @@ func TestAlertChannelsDelete(t *testing.T) {
 
 func TestAlertChannelsList(t *testing.T) {
 	var (
-		emailAlertChan = []string{intgguid.New(), intgguid.New(), intgguid.New()}
-		awsS3AlertChan = []string{intgguid.New(), intgguid.New()}
-		slackAlertChan = []string{
-			intgguid.New(), intgguid.New(), intgguid.New(), intgguid.New(),
-		}
-		cloudwatchAlertChan = []string{intgguid.New(), intgguid.New()}
-		someGUIDs           = append(awsS3AlertChan, append(slackAlertChan, emailAlertChan...)...)
-		allGUIDs            = append(someGUIDs, cloudwatchAlertChan...)
+		allGUIDs            []string
+		emailAlertChan      = generateGuids(&allGUIDs, 3)
+		awsS3AlertChan      = generateGuids(&allGUIDs, 2)
+		slackAlertChan      = generateGuids(&allGUIDs, 4)
+		cloudwatchAlertChan = generateGuids(&allGUIDs, 2)
+		datadogAlertChan    = generateGuids(&allGUIDs, 2)
 		expectedLen         = len(allGUIDs)
 		fakeServer          = lacework.MockServer()
 	)
@@ -223,6 +229,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(slackAlertChan, "SlackChannel"),
 				generateAlertChannels(awsS3AlertChan, "AwsS3"),
 				generateAlertChannels(cloudwatchAlertChan, "CloudwatchEb"),
+				generateAlertChannels(datadogAlertChan, "Datadog"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -249,6 +256,17 @@ func TestAlertChannelsList(t *testing.T) {
 	}
 }
 
+func generateGuids(allGuids *[]string, guidCount int) []string {
+	var channelGuids []string
+
+	for i := 0; i < guidCount; i++ {
+		channelGuids = append(channelGuids, intgguid.New())
+	}
+
+	*allGuids = append(*allGuids, channelGuids...)
+	return channelGuids
+}
+
 func generateAlertChannels(guids []string, iType string) string {
 	alertChannels := make([]string, len(guids))
 	for i, guid := range guids {
@@ -261,6 +279,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleAwsS3AlertChannel(guid)
 		case api.CloudwatchEbAlertChannelType.String():
 			alertChannels[i] = singleAWSCloudwatchAlertChannel(guid)
+		case api.DatadogAlertChannelType.String():
+			alertChannels[i] = singleDatadogAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")

@@ -84,6 +84,7 @@ const (
 	SlackChannelAlertChannelType
 	AwsS3AlertChannelType
 	CloudwatchEbAlertChannelType
+	DatadogAlertChannelType
 )
 
 // AlertChannelTypeTypes is the list of available Alert Channel integration types
@@ -93,6 +94,7 @@ var AlertChannelTypes = map[alertChannelType]string{
 	SlackChannelAlertChannelType: "SlackChannel",
 	AwsS3AlertChannelType:        "AwsS3",
 	CloudwatchEbAlertChannelType: "CloudwatchEb",
+	DatadogAlertChannelType:      "Datadog",
 }
 
 // String returns the string representation of a Alert Channel integration type
