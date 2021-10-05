@@ -56,14 +56,15 @@ func TestAlertChannelsService_GetDatadog(t *testing.T) {
 	assert.Nil(t, err)
 
 	response, err := c.V2.AlertChannels.GetDatadog(intgGUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, intgGUID, response.Data.IntgGuid)
-	assert.Equal(t, "integration_name", response.Data.Name)
-	assert.True(t, response.Data.State.Ok)
-	assert.Equal(t, APIKey, response.Data.Data.APIKey)
-	assert.Equal(t, DatadogSite, response.Data.Data.DatadogSite)
-	assert.Equal(t, DatadogType, response.Data.Data.DatadogType)
+	if assert.NoError(t, err) {
+		assert.NotNil(t, response)
+		assert.Equal(t, intgGUID, response.Data.IntgGuid)
+		assert.Equal(t, "integration_name", response.Data.Name)
+		assert.True(t, response.Data.State.Ok)
+		assert.Equal(t, APIKey, response.Data.Data.APIKey)
+		assert.Equal(t, DatadogSite, response.Data.Data.DatadogSite)
+		assert.Equal(t, DatadogType, response.Data.Data.DatadogType)
+	}
 }
 
 func TestAlertChannelsService_UpdateDatadog(t *testing.T) {
@@ -117,13 +118,14 @@ func TestAlertChannelsService_UpdateDatadog(t *testing.T) {
 	alertChannel.IntgGuid = intgGUID
 
 	response, err := c.V2.AlertChannels.UpdateDatadog(alertChannel)
-	assert.Nil(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, intgGUID, response.Data.IntgGuid)
-	assert.True(t, response.Data.State.Ok)
-	assert.Equal(t, APIKey, response.Data.Data.APIKey)
-	assert.Equal(t, DatadogSite, response.Data.Data.DatadogSite)
-	assert.Equal(t, DatadogType, response.Data.Data.DatadogType)
+	if assert.NoError(t, err) {
+		assert.NotNil(t, response)
+		assert.Equal(t, intgGUID, response.Data.IntgGuid)
+		assert.True(t, response.Data.State.Ok)
+		assert.Equal(t, APIKey, response.Data.Data.APIKey)
+		assert.Equal(t, DatadogSite, response.Data.Data.DatadogSite)
+		assert.Equal(t, DatadogType, response.Data.Data.DatadogType)
+	}
 }
 
 func singleDatadogAlertChannel(id string) string {
