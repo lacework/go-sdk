@@ -104,8 +104,8 @@ lint: ## Runs go linter
 
 .PHONY: fmt
 fmt: ## Runs and applies go formatting changes
-	@gofmt -w -l ./
-	@goimports -w -l ./
+	@gofmt -w -l $(shell go list -f {{.Dir}} ./...)
+	@goimports -w -l $(shell go list -f {{.Dir}} ./...)
 
 .PHONY: fmt-check
 fmt-check: ## Lists formatting issues

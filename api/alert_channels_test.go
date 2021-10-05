@@ -52,6 +52,10 @@ func TestAlertChannelTypes(t *testing.T) {
 		"Datadog", api.DatadogAlertChannelType.String(),
 		"wrong alert channel type",
 	)
+	assert.Equal(t,
+		"Webhook", api.WebhookAlertChannelType.String(),
+		"wrong alert channel type",
+	)
 }
 
 func TestFindAlertChannelType(t *testing.T) {
@@ -79,6 +83,10 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("Datadog")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "Datadog", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("Webhook")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "Webhook", alertFound.String(), "wrong alert channel type")
 }
 
 func TestAlertChannelsGet(t *testing.T) {
@@ -216,9 +224,11 @@ func TestAlertChannelsList(t *testing.T) {
 		slackAlertChan      = generateGuids(&allGUIDs, 4)
 		cloudwatchAlertChan = generateGuids(&allGUIDs, 2)
 		datadogAlertChan    = generateGuids(&allGUIDs, 2)
+		webhookAlertChan    = generateGuids(&allGUIDs, 2)
 		expectedLen         = len(allGUIDs)
 		fakeServer          = lacework.MockServer()
 	)
+
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("AlertChannels",
@@ -230,6 +240,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(awsS3AlertChan, "AwsS3"),
 				generateAlertChannels(cloudwatchAlertChan, "CloudwatchEb"),
 				generateAlertChannels(datadogAlertChan, "Datadog"),
+				generateAlertChannels(webhookAlertChan, "Webhook"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -281,6 +292,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleAWSCloudwatchAlertChannel(guid)
 		case api.DatadogAlertChannelType.String():
 			alertChannels[i] = singleDatadogAlertChannel(guid)
+		case api.WebhookAlertChannelType.String():
+			alertChannels[i] = singleWebhookAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")
