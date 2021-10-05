@@ -53,12 +53,13 @@ func TestAlertChannelsGetWebhook(t *testing.T) {
 	assert.Nil(t, err)
 
 	response, err := c.V2.AlertChannels.GetWebhook(intgGUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, intgGUID, response.Data.IntgGuid)
-	assert.Equal(t, "integration_name", response.Data.Name)
-	assert.True(t, response.Data.State.Ok)
-	assert.Contains(t, response.Data.Data.Url, "https://hooks.webhook.com/?api-token=12345")
+	if assert.NoError(t, err) {
+		assert.NotNil(t, response)
+		assert.Equal(t, intgGUID, response.Data.IntgGuid)
+		assert.Equal(t, "integration_name", response.Data.Name)
+		assert.True(t, response.Data.State.Ok)
+		assert.Equal(t, response.Data.Data.WebhookUrl, "https://hooks.webhook.com/?api-token=12345")
+	}
 }
 
 func TestAlertChannelWebhookUpdate(t *testing.T) {
@@ -95,7 +96,7 @@ func TestAlertChannelWebhookUpdate(t *testing.T) {
 	webhookAlertChan := api.NewAlertChannel("integration_name",
 		api.WebhookAlertChannelType,
 		api.WebhookDataV2{
-			Url: "https://hooks.webhook.com/?api-token=12345",
+			WebhookUrl: "https://hooks.webhook.com/?api-token=12345",
 		},
 	)
 	assert.Equal(t, "integration_name", webhookAlertChan.Name, "Webhook alert channel name mismatch")
@@ -104,11 +105,12 @@ func TestAlertChannelWebhookUpdate(t *testing.T) {
 	webhookAlertChan.IntgGuid = intgGUID
 
 	response, err := c.V2.AlertChannels.UpdateWebhook(webhookAlertChan)
-	assert.Nil(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, intgGUID, response.Data.IntgGuid)
-	assert.True(t, response.Data.State.Ok)
-	assert.Contains(t, response.Data.Data.Url, "https://hooks.webhook.com/?api-token=12345")
+	if assert.NoError(t, err) {
+		assert.NotNil(t, response)
+		assert.Equal(t, intgGUID, response.Data.IntgGuid)
+		assert.True(t, response.Data.State.Ok)
+		assert.Contains(t, response.Data.Data.WebhookUrl, "https://hooks.webhook.com/?api-token=12345")
+	}
 }
 
 func singleWebhookAlertChannel(id string) string {

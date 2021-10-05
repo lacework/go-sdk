@@ -47,5 +47,5 @@ type WebhookAlertChannelV2 struct {
 }
 
 type WebhookDataV2 struct {
-	Url string `json:"webhookUrl"`
+	WebhookUrl string `json:"webhookUrl"`
 }

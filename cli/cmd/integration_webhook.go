@@ -53,7 +53,7 @@ func createWebhookIntegration() error {
 	webhook := api.NewAlertChannel(answers.Name,
 		api.WebhookAlertChannelType,
 		api.WebhookDataV2{
-			Url: answers.Url,
+			WebhookUrl: answers.Url,
 		},
 	)
 
