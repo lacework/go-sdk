@@ -37,7 +37,7 @@ open a new [issue](https://github.com/lacework/go-sdk/issues/new)
 
 ### Pull Requests
 
-When submitting a pull request follow the [commit message standard](#commit-message-standard).
+When submitting a pull request follow the [commit message standard](DEVELOPER_GUIDELINES.md#commit-message-standard).
 Reduce the likelihood of pushing breaking changes by running the go-sdk unit and integration tests, 
 see [development documentation](https://github.com/lacework/go-sdk/tree/main/cli#development).
 
