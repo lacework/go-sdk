@@ -78,10 +78,6 @@ const (
 
 	apiAccountOrganizationInfo = "v1/external/account/organizationInfo"
 
-	// Alpha
-	apiLQLDataSources = "v1/external/lql/dataSources"
-	apiLQLDescribe    = "v1/external/lql/describe"
-
 	// API v2 Endpoints
 	//
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
@@ -105,6 +101,7 @@ const (
 	apiV2Queries         = "v2/Queries"
 	apiV2QueriesExecute  = "v2/Queries/execute"
 	apiV2QueriesValidate = "v2/Queries/validate"
+	apiV2Datasources     = "v2/Datasources"
 
 	apiV2ResourceGroups         = "v2/ResourceGroups"
 	apiV2ResourceGroupsFromGUID = "v2/ResourceGroups/%s"
