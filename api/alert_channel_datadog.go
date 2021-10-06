@@ -32,9 +32,9 @@ func (svc *AlertChannelsService) UpdateDatadog(data AlertChannel) (response Data
 }
 
 type DatadogDataV2 struct {
-	APIKey      string `json:"apiKey"`
-	DatadogSite string `json:"datadogSite,omitempty"`
-	DatadogType string `json:"datadogType,omitempty"`
+	ApiKey      string `json:"apiKey"`
+	DatadogSite datadogSite `json:"datadogSite,omitempty"`
+	DatadogType datadogService `json:"datadogType,omitempty"`
 }
 
 type DatadogAlertChannelV2 struct {
