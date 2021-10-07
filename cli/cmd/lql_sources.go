@@ -52,7 +52,7 @@ func init() {
 	queryCmd.AddCommand(queryShowSourceCmd)
 }
 
-func getListQuerySourcesTable(datasources []api.QueryDatasource) (out [][]string) {
+func getListQuerySourcesTable(datasources []api.Datasource) (out [][]string) {
 	for _, source := range datasources {
 		out = append(out, []string{
 			source.Name,
@@ -66,7 +66,7 @@ func listQuerySources(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving LQL data sources")
 
 	lqlSourcesUnableMsg := "unable to retrieve LQL data sources"
-	datasourcesResponse, err := cli.LwApi.V2.Query.ListSources()
+	datasourcesResponse, err := cli.LwApi.V2.Datasources.List()
 
 	if err != nil {
 		return errors.Wrap(err, lqlSourcesUnableMsg)
@@ -86,7 +86,7 @@ func listQuerySources(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func getShowQuerySourceTable(resultSchema []api.QueryDatasourceSchema) (out [][]string) {
+func getShowQuerySourceTable(resultSchema []api.DatasourceSchema) (out [][]string) {
 	for _, schemaItem := range resultSchema {
 		out = append(out, []string{
 			schemaItem.Name,
@@ -101,7 +101,7 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving datasource", "id", args[0])
 
 	cli.StartProgress(" Retrieving datasource...")
-	datasourceResponse, err := cli.LwApi.V2.Query.GetSource(args[0])
+	datasourceResponse, err := cli.LwApi.V2.Datasources.Get(args[0])
 	cli.StopProgress()
 
 	if err != nil {
@@ -113,7 +113,7 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 	cli.OutputHuman(
 		renderSimpleTable(
 			[]string{"Datasource", "Description"},
-			getListQuerySourcesTable([]api.QueryDatasource{datasourceResponse.Data}),
+			getListQuerySourcesTable([]api.Datasource{datasourceResponse.Data}),
 		),
 	)
 	cli.OutputHuman("\n")

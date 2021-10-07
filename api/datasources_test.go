@@ -43,13 +43,13 @@ const (
 }`
 )
 
-func TestQueryListSourcesMethod(t *testing.T) {
+func TestDatasourcesListMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Datasources",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "ListSources should be a GET method")
+			assert.Equal(t, "GET", r.Method, "List should be a GET method")
 			fmt.Fprint(w, "{}")
 		},
 	)
@@ -61,11 +61,11 @@ func TestQueryListSourcesMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.ListSources()
+	_, err = c.V2.Datasources.List()
 	assert.Nil(t, err)
 }
 
-func TestQueryListSourcesOK(t *testing.T) {
+func TestDatasourcesListOK(t *testing.T) {
 	mockResponse := fmt.Sprintf(`{"data": [ %s ] }`, lqlDatasourceStr)
 
 	fakeServer := lacework.MockServer()
@@ -84,16 +84,16 @@ func TestQueryListSourcesOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	datasourcesExpected := api.QueryDatasourcesResponse{}
+	datasourcesExpected := api.DatasourcesResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &datasourcesExpected)
 
-	var datasourcesActual api.QueryDatasourcesResponse
-	datasourcesActual, err = c.V2.Query.ListSources()
+	var datasourcesActual api.DatasourcesResponse
+	datasourcesActual, err = c.V2.Datasources.List()
 	assert.Nil(t, err)
 	assert.Equal(t, datasourcesExpected, datasourcesActual)
 }
 
-func TestQueryListSourcesError(t *testing.T) {
+func TestDatasourcesListError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -110,17 +110,17 @@ func TestQueryListSourcesError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.ListSources()
+	_, err = c.V2.Datasources.List()
 	assert.NotNil(t, err)
 }
 
-func TestQueryGetSourceMethod(t *testing.T) {
+func TestDatasourcesGetMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Datasources/CloudTrailRawEvents",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "GetSource should be a GET method")
+			assert.Equal(t, "GET", r.Method, "Get should be a GET method")
 			fmt.Fprint(w, "{}")
 		},
 	)
@@ -132,11 +132,11 @@ func TestQueryGetSourceMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.GetSource("CloudTrailRawEvents")
+	_, err = c.V2.Datasources.Get("CloudTrailRawEvents")
 	assert.Nil(t, err)
 }
 
-func TestQueryGetSourceOK(t *testing.T) {
+func TestDatasourcesGetOK(t *testing.T) {
 	mockResponse := fmt.Sprintf(`{"data": %s }`, lqlDatasourceStr)
 
 	fakeServer := lacework.MockServer()
@@ -155,16 +155,16 @@ func TestQueryGetSourceOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	datasourceExpected := api.QueryDatasourceResponse{}
+	datasourceExpected := api.DatasourceResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &datasourceExpected)
 
-	var datasourceActual api.QueryDatasourceResponse
-	datasourceActual, err = c.V2.Query.GetSource("CloudTrailRawEvents")
+	var datasourceActual api.DatasourceResponse
+	datasourceActual, err = c.V2.Datasources.Get("CloudTrailRawEvents")
 	assert.Nil(t, err)
 	assert.Equal(t, datasourceExpected, datasourceActual)
 }
 
-func TestQueryGetSourceBadInput(t *testing.T) {
+func TestDatasourcesGetBadInput(t *testing.T) {
 	mockResponse := fmt.Sprintf(`{"data": %s }`, lqlDatasourceStr)
 
 	fakeServer := lacework.MockServer()
@@ -183,11 +183,11 @@ func TestQueryGetSourceBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.GetSource("")
+	_, err = c.V2.Datasources.Get("")
 	assert.Equal(t, "datasource ID must be provided", err.Error())
 }
 
-func TestQueryGetSourceError(t *testing.T) {
+func TestDatasourcesGetError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
@@ -204,6 +204,6 @@ func TestQueryGetSourceError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Query.GetSource("CloudTrailRawEvents")
+	_, err = c.V2.Datasources.Get("CloudTrailRawEvents")
 	assert.NotNil(t, err)
 }

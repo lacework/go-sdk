@@ -101,10 +101,11 @@ const (
 	apiV2Queries         = "v2/Queries"
 	apiV2QueriesExecute  = "v2/Queries/execute"
 	apiV2QueriesValidate = "v2/Queries/validate"
-	apiV2Datasources     = "v2/Datasources"
 
 	apiV2ResourceGroups         = "v2/ResourceGroups"
 	apiV2ResourceGroupsFromGUID = "v2/ResourceGroups/%s"
+
+	apiV2Datasources = "v2/Datasources"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

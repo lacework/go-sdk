@@ -25,38 +25,44 @@ import (
 	"github.com/pkg/errors"
 )
 
-type QueryDatasourcesResponse struct {
-	Data    []QueryDatasource `json:"data"`
-	Message string            `json:"message"`
+type DatasourcesResponse struct {
+	Data    []Datasource `json:"data"`
+	Message string       `json:"message"`
 }
 
-type QueryDatasourceResponse struct {
-	Data    QueryDatasource `json:"data"`
-	Message string          `json:"message"`
+type DatasourceResponse struct {
+	Data    Datasource `json:"data"`
+	Message string     `json:"message"`
 }
 
-type QueryDatasource struct {
-	Name         string                  `json:"name"`
-	Description  string                  `json:"description"`
-	ResultSchema []QueryDatasourceSchema `json:"resultSchema"`
+type Datasource struct {
+	Name         string             `json:"name"`
+	Description  string             `json:"description"`
+	ResultSchema []DatasourceSchema `json:"resultSchema"`
 }
 
-type QueryDatasourceSchema struct {
+type DatasourceSchema struct {
 	Name        string `json:"name"`
 	DataType    string `json:"dataType"`
 	Description string `json:"description"`
 }
 
-func (svc *QueryService) ListSources() (
-	response QueryDatasourcesResponse,
+// DatasourcesService is a service that interacts with the Datasources
+// endpoints from the Lacework Server
+type DatasourcesService struct {
+	client *Client
+}
+
+func (svc *DatasourcesService) List() (
+	response DatasourcesResponse,
 	err error,
 ) {
 	err = svc.client.RequestDecoder("GET", apiV2Datasources, nil, &response)
 	return
 }
 
-func (svc *QueryService) GetSource(id string) (
-	response QueryDatasourceResponse,
+func (svc *DatasourcesService) Get(id string) (
+	response DatasourceResponse,
 	err error,
 ) {
 	if id == "" {
