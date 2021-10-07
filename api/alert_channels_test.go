@@ -87,6 +87,10 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("Webhook")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "Webhook", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("VictorOps")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "VictorOps", alertFound.String(), "wrong alert channel type")
 }
 
 func TestAlertChannelsGet(t *testing.T) {
@@ -225,6 +229,7 @@ func TestAlertChannelsList(t *testing.T) {
 		cloudwatchAlertChan = generateGuids(&allGUIDs, 2)
 		datadogAlertChan    = generateGuids(&allGUIDs, 2)
 		webhookAlertChan    = generateGuids(&allGUIDs, 2)
+		victorOpsAlertChan  = generateGuids(&allGUIDs, 2)
 		expectedLen         = len(allGUIDs)
 		fakeServer          = lacework.MockServer()
 	)
@@ -241,6 +246,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(cloudwatchAlertChan, "CloudwatchEb"),
 				generateAlertChannels(datadogAlertChan, "Datadog"),
 				generateAlertChannels(webhookAlertChan, "Webhook"),
+				generateAlertChannels(victorOpsAlertChan, "VictorOps"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -294,6 +300,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleDatadogAlertChannel(guid)
 		case api.WebhookAlertChannelType.String():
 			alertChannels[i] = singleWebhookAlertChannel(guid)
+		case api.VictorOpsAlertChannelType.String():
+			alertChannels[i] = singleVictorOpsAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")
