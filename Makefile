@@ -155,13 +155,13 @@ ifeq (, $(shell which golangci-lint))
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v$(GOLANGCILINTVERSION)
 endif
 ifeq (, $(shell which goimports))
-	go get golang.org/x/tools/cmd/goimports@$(GOIMPORTSVERSION)
+	GOFLAGS=-mod=readonly go install golang.org/x/tools/cmd/goimports@$(GOIMPORTSVERSION)
 endif
 ifeq (, $(shell which gox))
-	go get github.com/mitchellh/gox@$(GOXVERSION)
+	GOFLAGS=-mod=readonly go install github.com/mitchellh/gox@$(GOXVERSION)
 endif
 ifeq (, $(shell which gotestsum))
-	go get gotest.tools/gotestsum@$(GOTESTSUMVERSION)
+	GOFLAGS=-mod=readonly go install gotest.tools/gotestsum@$(GOTESTSUMVERSION)
 endif
 
 .PHONY: git-env
