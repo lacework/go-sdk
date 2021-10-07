@@ -35,9 +35,9 @@ func TestAlertChannelsService_GetDatadog(t *testing.T) {
 		intgGUID    = intgguid.New()
 		apiPath     = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer  = lacework.MockServer()
-		APIKey      = "Im-a-fake-api-key"
-		DatadogSite = "com"
-		DatadogType = "Logs Detail"
+		ApiKey      = "Im-a-fake-api-key"
+		DatadogSite = api.DatadogSiteCom
+		DatadogType = api.DatadogServiceLogsDetails
 	)
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
@@ -61,7 +61,7 @@ func TestAlertChannelsService_GetDatadog(t *testing.T) {
 		assert.Equal(t, intgGUID, response.Data.IntgGuid)
 		assert.Equal(t, "integration_name", response.Data.Name)
 		assert.True(t, response.Data.State.Ok)
-		assert.Equal(t, APIKey, response.Data.Data.APIKey)
+		assert.Equal(t, ApiKey, response.Data.Data.ApiKey)
 		assert.Equal(t, DatadogSite, response.Data.Data.DatadogSite)
 		assert.Equal(t, DatadogType, response.Data.Data.DatadogType)
 	}
@@ -72,9 +72,9 @@ func TestAlertChannelsService_UpdateDatadog(t *testing.T) {
 		intgGUID    = intgguid.New()
 		apiPath     = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer  = lacework.MockServer()
-		APIKey      = "Im-a-fake-api-key"
-		DatadogSite = "com"
-		DatadogType = "Logs Detail"
+		ApiKey      = "Im-a-fake-api-key"
+		DatadogSite = api.DatadogSiteCom
+		DatadogType = api.DatadogServiceLogsDetails
 	)
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
@@ -88,7 +88,7 @@ func TestAlertChannelsService_UpdateDatadog(t *testing.T) {
 			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
 			assert.Contains(t, body, "integration_name", "cloud account name is missing")
 			assert.Contains(t, body, "Datadog", "wrong cloud account type")
-			assert.Contains(t, body, APIKey, "missing API key")
+			assert.Contains(t, body, ApiKey, "missing API key")
 			assert.Contains(t, body, DatadogSite, "missing datadog site")
 			assert.Contains(t, body, DatadogType, "missing datadog type")
 			assert.Contains(t, body, "enabled\":1", "cloud account is not enabled")
@@ -107,7 +107,7 @@ func TestAlertChannelsService_UpdateDatadog(t *testing.T) {
 	alertChannel := api.NewAlertChannel("integration_name",
 		api.DatadogAlertChannelType,
 		api.DatadogDataV2{
-			APIKey:      APIKey,
+			ApiKey:      ApiKey,
 			DatadogSite: DatadogSite,
 			DatadogType: DatadogType,
 		},
@@ -122,7 +122,7 @@ func TestAlertChannelsService_UpdateDatadog(t *testing.T) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.IntgGuid)
 		assert.True(t, response.Data.State.Ok)
-		assert.Equal(t, APIKey, response.Data.Data.APIKey)
+		assert.Equal(t, ApiKey, response.Data.Data.ApiKey)
 		assert.Equal(t, DatadogSite, response.Data.Data.DatadogSite)
 		assert.Equal(t, DatadogType, response.Data.Data.DatadogType)
 	}
