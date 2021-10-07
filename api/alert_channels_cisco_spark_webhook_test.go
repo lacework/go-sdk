@@ -74,7 +74,7 @@ func TestAlertChannelsService_UpdateCiscoSparkWebhook(t *testing.T) {
 	defer fakeServer.Close()
 
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method, "UpdateCloudwatchEb() should be a PATCH method")
+		assert.Equal(t, "PATCH", r.Method, "UpdateCiscoSparkWebhook() should be a PATCH method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
@@ -130,7 +130,7 @@ func singleCiscoSparkWebhookAlertChannel(id string) string {
 			"lastUpdatedTime": 1632932665892,
 			"ok": true
 	},
-		"type": "CloudwatchEb"
+		"type": "CiscoSparkWebhook"
 	}
 	`, id)
 }
