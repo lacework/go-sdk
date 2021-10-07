@@ -4,6 +4,8 @@ Another day, another release. These are the release notes for the version `v0.17
 ## Features
 * feat(api): Migrate VictorOps alert channel to V2 (#573) (Darren)([6bc3b88](https://github.com/lacework/go-sdk/commit/6bc3b881ab72d5d767ae54fe5b9c14dc9dc0a17a))
 * feat(api): Webhook alert channel(v2) (#565) (Darren)([06915a0](https://github.com/lacework/go-sdk/commit/06915a0271330abfedce23606f04c5a1cf16a077))
+* feat(api): Cloudwatch alert channel(v2) (#562) (Vatasha)([d0c9be7](https://github.com/lacework/go-sdk/commit/d0c9be752ec6a2552cc7abd18acfa39fbca2f5c6))
+* feat(api): Datadog alert channel(v2) (#570) (Vatasha)([3135b95](https://github.com/lacework/go-sdk/commit/3135b955ebbfe5d1a68d1328c01b900f413a1db9))
 ## Refactor
 * refactor(cli): use APIv2 to create Datadog integrations + update api/examples (#571) (vatasha)([9d6ea0e](https://github.com/lacework/go-sdk/commit/9d6ea0eba0fc34ef594fac141d55cded3b0d7ea6))
 ## Bug Fixes
