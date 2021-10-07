@@ -58,7 +58,7 @@ func TestAlertChannelsGetVictorOps(t *testing.T) {
 		assert.Equal(t, intgGUID, response.Data.IntgGuid)
 		assert.Equal(t, "integration_name", response.Data.Name)
 		assert.True(t, response.Data.State.Ok)
-		assert.Equal(t, response.Data.Data.VictorOpsUrl, "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database")
+		assert.Equal(t, response.Data.Data.Url, "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database")
 	}
 }
 
@@ -97,7 +97,7 @@ func TestAlertChannelVictorOpsUpdate(t *testing.T) {
 	victorOpsAlertChan := api.NewAlertChannel("integration_name",
 		api.VictorOpsAlertChannelType,
 		api.VictorOpsDataV2{
-			VictorOpsUrl: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
+			Url: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
 		},
 	)
 	assert.Equal(t, "integration_name", victorOpsAlertChan.Name, "VictorOps alert channel name mismatch")
@@ -110,7 +110,7 @@ func TestAlertChannelVictorOpsUpdate(t *testing.T) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.IntgGuid)
 		assert.True(t, response.Data.State.Ok)
-		assert.Contains(t, response.Data.Data.VictorOpsUrl, "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database")
+		assert.Contains(t, response.Data.Data.Url, "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database")
 	}
 }
 

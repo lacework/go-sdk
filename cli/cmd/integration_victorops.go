@@ -53,7 +53,7 @@ func createVictorOpsChannelIntegration() error {
 	victorops := api.NewAlertChannel(answers.Name,
 		api.VictorOpsAlertChannelType,
 		api.VictorOpsDataV2{
-			VictorOpsUrl: answers.Url,
+			Url: answers.Url,
 		},
 	)
 

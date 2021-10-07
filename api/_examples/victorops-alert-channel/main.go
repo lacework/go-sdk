@@ -16,7 +16,7 @@ func main() {
 	myVictorOpsChannel := api.NewAlertChannel("victorops-alert-from-golang",
 		api.VictorOpsAlertChannelType,
 		api.VictorOpsDataV2{
-			VictorOpsUrl: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
+			Url: "https://alert.victorops.com/integrations/generic/20131114/alert/31e945ee-5cad-44e7-afb0-97c20ea80dd8/database",
 		},
 	)
 

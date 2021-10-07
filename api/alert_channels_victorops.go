@@ -47,5 +47,5 @@ type VictorOpsAlertChannelV2 struct {
 }
 
 type VictorOpsDataV2 struct {
-	VictorOpsUrl string `json:"intgUrl"`
+	Url string `json:"intgUrl"`
 }
