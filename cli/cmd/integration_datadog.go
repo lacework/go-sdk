@@ -80,16 +80,17 @@ func createDatadogIntegration() error {
 		return err
 	}
 
-	datadog := api.NewDatadogAlertChannel(answers.Name,
-		api.DatadogChannelData{
-			DatadogSite:    site,
-			DatadogService: service,
-			ApiKey:         answers.ApiKey,
+	datadog := api.NewAlertChannel(answers.Name,
+		api.DatadogAlertChannelType,
+		api.DatadogDataV2{
+			DatadogSite: site,
+			DatadogType: service,
+			ApiKey:      answers.ApiKey,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateDatadogAlertChannel(datadog)
+	_, err = cli.LwApi.V2.AlertChannels.Create(datadog)
 	cli.StopProgress()
 	return err
 }
