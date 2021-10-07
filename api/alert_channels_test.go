@@ -300,7 +300,7 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleDatadogAlertChannel(guid)
 		case api.WebhookAlertChannelType.String():
 			alertChannels[i] = singleWebhookAlertChannel(guid)
-		case api.WebhookAlertChannelType.String():
+		case api.VictorOpsAlertChannelType.String():
 			alertChannels[i] = singleVictorOpsAlertChannel(guid)
 		}
 	}
