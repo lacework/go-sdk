@@ -214,7 +214,7 @@ install_cli() {
 
 print_cli_version() {
   log "Verifying installed Lacework CLI version"
-  LW_TELEMETRY_DISABLE=1 LW_UPDATES_DISABLE=1 "${installation_dir}/${binary_name}" version
+  LW_NOCACHE=1 LW_TELEMETRY_DISABLE=1 LW_UPDATES_DISABLE=1 "${installation_dir}/${binary_name}" version
 }
 
 download_file() {

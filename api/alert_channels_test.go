@@ -44,6 +44,18 @@ func TestAlertChannelTypes(t *testing.T) {
 		"AwsS3", api.AwsS3AlertChannelType.String(),
 		"wrong alert channel type",
 	)
+	assert.Equal(t,
+		"CloudwatchEb", api.CloudwatchEbAlertChannelType.String(),
+		"wrong alert channel type",
+	)
+	assert.Equal(t,
+		"Datadog", api.DatadogAlertChannelType.String(),
+		"wrong alert channel type",
+	)
+	assert.Equal(t,
+		"Webhook", api.WebhookAlertChannelType.String(),
+		"wrong alert channel type",
+	)
 }
 
 func TestFindAlertChannelType(t *testing.T) {
@@ -56,9 +68,29 @@ func TestFindAlertChannelType(t *testing.T) {
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "EmailUser", alertFound.String(), "wrong alert channel type")
 
-	//alertFound, found = api.FindAlertChannelType("SlackChannel")
-	//assert.True(t, found, "alert channel type should exist")
-	//assert.Equal(t, "SlackChannel", alertFound.String(), "wrong alert channel type")
+	alertFound, found = api.FindAlertChannelType("SlackChannel")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "SlackChannel", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("AwsS3")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "AwsS3", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("CloudwatchEb")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "CloudwatchEb", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("Datadog")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "Datadog", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("Webhook")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "Webhook", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("VictorOps")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "VictorOps", alertFound.String(), "wrong alert channel type")
 }
 
 func TestAlertChannelsGet(t *testing.T) {
@@ -190,15 +222,18 @@ func TestAlertChannelsDelete(t *testing.T) {
 
 func TestAlertChannelsList(t *testing.T) {
 	var (
-		emailAlertChan = []string{intgguid.New(), intgguid.New(), intgguid.New()}
-		awsS3AlertChan = []string{intgguid.New(), intgguid.New()}
-		slackAlertChan = []string{
-			intgguid.New(), intgguid.New(), intgguid.New(), intgguid.New(),
-		}
-		allGUIDs    = append(awsS3AlertChan, append(slackAlertChan, emailAlertChan...)...)
-		expectedLen = len(allGUIDs)
-		fakeServer  = lacework.MockServer()
+		allGUIDs            []string
+		emailAlertChan      = generateGuids(&allGUIDs, 3)
+		awsS3AlertChan      = generateGuids(&allGUIDs, 2)
+		slackAlertChan      = generateGuids(&allGUIDs, 4)
+		cloudwatchAlertChan = generateGuids(&allGUIDs, 2)
+		datadogAlertChan    = generateGuids(&allGUIDs, 2)
+		webhookAlertChan    = generateGuids(&allGUIDs, 2)
+		victorOpsAlertChan  = generateGuids(&allGUIDs, 2)
+		expectedLen         = len(allGUIDs)
+		fakeServer          = lacework.MockServer()
 	)
+
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("AlertChannels",
@@ -208,6 +243,10 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(emailAlertChan, "EmailUser"),
 				generateAlertChannels(slackAlertChan, "SlackChannel"),
 				generateAlertChannels(awsS3AlertChan, "AwsS3"),
+				generateAlertChannels(cloudwatchAlertChan, "CloudwatchEb"),
+				generateAlertChannels(datadogAlertChan, "Datadog"),
+				generateAlertChannels(webhookAlertChan, "Webhook"),
+				generateAlertChannels(victorOpsAlertChan, "VictorOps"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -234,6 +273,17 @@ func TestAlertChannelsList(t *testing.T) {
 	}
 }
 
+func generateGuids(allGuids *[]string, guidCount int) []string {
+	var channelGuids []string
+
+	for i := 0; i < guidCount; i++ {
+		channelGuids = append(channelGuids, intgguid.New())
+	}
+
+	*allGuids = append(*allGuids, channelGuids...)
+	return channelGuids
+}
+
 func generateAlertChannels(guids []string, iType string) string {
 	alertChannels := make([]string, len(guids))
 	for i, guid := range guids {
@@ -244,6 +294,14 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleSlackChannelAlertChannel(guid)
 		case api.AwsS3AlertChannelType.String():
 			alertChannels[i] = singleAwsS3AlertChannel(guid)
+		case api.CloudwatchEbAlertChannelType.String():
+			alertChannels[i] = singleAWSCloudwatchAlertChannel(guid)
+		case api.DatadogAlertChannelType.String():
+			alertChannels[i] = singleDatadogAlertChannel(guid)
+		case api.WebhookAlertChannelType.String():
+			alertChannels[i] = singleWebhookAlertChannel(guid)
+		case api.VictorOpsAlertChannelType.String():
+			alertChannels[i] = singleVictorOpsAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")
