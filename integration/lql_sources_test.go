@@ -40,7 +40,7 @@ func TestQueryListSourcesAliases(t *testing.T) {
 }
 
 func TestQueryListSourcesTable(t *testing.T) {
-	// t.Skip("skipping test due to unavailable api")
+	t.Skip("skipping test due to unavailable api")
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources")
 	assert.Contains(t, out.String(), "DATASOURCE")
@@ -50,7 +50,7 @@ func TestQueryListSourcesTable(t *testing.T) {
 }
 
 func TestQueryListSourcesJSON(t *testing.T) {
-	// t.Skip("skipping test due to unavailable api")
+	t.Skip("skipping test due to unavailable api")
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources", "--json")
 	assert.Contains(t, out.String(), "[")
@@ -80,7 +80,7 @@ func TestQueryShowSourceNoInput(t *testing.T) {
 }
 
 func TestQueryShowSourceTable(t *testing.T) {
-	// t.Skip("skipping test due to unavailable api")
+	t.Skip("skipping test due to unavailable api")
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents")
 	assert.Contains(t, out.String(), "FIELD NAME")
@@ -90,7 +90,7 @@ func TestQueryShowSourceTable(t *testing.T) {
 }
 
 func TestQueryShowSourceJSON(t *testing.T) {
-	// t.Skip("skipping test due to unavailable api")
+	t.Skip("skipping test due to unavailable api")
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents", "--json")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
