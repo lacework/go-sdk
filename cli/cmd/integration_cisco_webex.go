@@ -50,14 +50,15 @@ func createCiscoWebexChannelIntegration() error {
 		return err
 	}
 
-	webex := api.NewCiscoWebexAlertChannel(answers.Name,
-		api.CiscoWebexChannelData{
-			WebhookURL: answers.Url,
+	webex := api.NewAlertChannel(answers.Name,
+		api.CiscoSparkWebhookAlertChannelType,
+		api.CiscoSparkWebhookDataV2{
+			Webhook: answers.Url,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateCiscoWebexAlertChannel(webex)
+	_, err = cli.LwApi.V2.AlertChannels.Create(webex)
 	cli.StopProgress()
 	return err
 }
