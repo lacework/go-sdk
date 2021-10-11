@@ -139,13 +139,13 @@ Then, select one GUID from an integration and visualize its details using the co
 			}
 
 			switch compCmdState.Type {
-			case "CIS", "SOC", "PCI":
+			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI":
 				compCmdState.Type = fmt.Sprintf("GCP_%s", compCmdState.Type)
 				return nil
-			case "GCP_CIS", "GCP_SOC", "GCP_PCI":
+			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, SOC, or PCI")
+				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, or PCI")
 			}
 		},
 		Short: "get the latest GCP compliance report",
@@ -309,9 +309,9 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// GCP report types: GCP_CIS, GCP_SOC, or GCP_PCI.
+	// GCP report types: GCP_CIS, GCP_CIS12, GCP_K8S, GCP_HIPAA, GCP_SOC, or GCP_PCI.
 	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, SOC, or PCI",
+		"report type to display, supported types: CIS, CIS12, K8S, HIPAA, SOC, or PCI",
 	)
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
