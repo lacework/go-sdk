@@ -3,27 +3,30 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/lacework/go-sdk/api"
 )
 
 func main() {
-	lacework, err := api.NewClient("account", api.WithApiKeys("KEY", "SECRET"))
+	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"), api.WithApiV2(),
+		api.WithApiKeys(os.Getenv("LW_API_KEY"), os.Getenv("LW_API_SECRET")))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	myTeamsChannel := api.NewMicrosoftTeamsAlertChannel("microsoft-teams-alert-from-golang",
-		api.MicrosoftTeamsChannelData{
-			WebhookURL: "https://outlook.office.com/webhook/api-token",
+	myTeamsChannel := api.NewAlertChannel("microsoft-teams-alert-from-golang",
+		api.MicrosoftTeamsAlertChannelType,
+		api.MicrosoftTeamsData{
+			TeamsUrl: "https://outlook.office.com/webhook/api-token",
 		},
 	)
 
-	response, err := lacework.Integrations.CreateMicrosoftTeamsAlertChannel(myTeamsChannel)
+	response, err := lacework.V2.AlertChannels.Create(myTeamsChannel)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Output: Microsoft Teams alert channel created: THE-INTEGRATION-GUID
-	fmt.Printf("Microsoft Teams alert channel created: %s", response.Data[0].IntgGuid)
+	fmt.Printf("Microsoft Teams alert channel created: %s", response.Data.IntgGuid)
 }
