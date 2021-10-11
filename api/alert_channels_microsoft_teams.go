@@ -32,7 +32,7 @@ func (svc *AlertChannelsService) UpdateMicrosoftTeams(data AlertChannel) (respon
 }
 
 type MicrosoftTeamsData struct {
-	TeamsUrl string `json:"teamsUrl"`
+	TeamsURL string `json:"teamsUrl"`
 }
 
 type MicrosoftTeamsAlertChannelV2 struct {

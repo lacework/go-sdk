@@ -58,7 +58,7 @@ func TestAlertChannelsGetMicrosoftTeams(t *testing.T) {
 	assert.Equal(t, intgGUID, response.Data.IntgGuid)
 	assert.Equal(t, "integration_name", response.Data.Name)
 	assert.True(t, response.Data.State.Ok)
-	assert.Contains(t, response.Data.Data.TeamsUrl, "https://example.webhook.office.com/webwook123/abc")
+	assert.Contains(t, response.Data.Data.TeamsURL, "https://example.webhook.office.com/webwook123/abc")
 }
 
 func TestAlertChannelsMicrosoftTeamsUpdate(t *testing.T) {
@@ -96,7 +96,7 @@ func TestAlertChannelsMicrosoftTeamsUpdate(t *testing.T) {
 	emailAlertChan := api.NewAlertChannel("integration_name",
 		api.MicrosoftTeamsAlertChannelType,
 		api.MicrosoftTeamsData{
-			TeamsUrl: "https://example.webhook.office.com/webwook123/abc",
+			TeamsURL: "https://example.webhook.office.com/webwook123/abc",
 		},
 	)
 	assert.Equal(t, "integration_name", emailAlertChan.Name, "MicrosoftTeams cloud account name mismatch")
@@ -109,7 +109,7 @@ func TestAlertChannelsMicrosoftTeamsUpdate(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, intgGUID, response.Data.IntgGuid)
 	assert.True(t, response.Data.State.Ok)
-	assert.Contains(t, response.Data.Data.TeamsUrl, "https://example.webhook.office.com/webwook123/abc")
+	assert.Contains(t, response.Data.Data.TeamsURL, "https://example.webhook.office.com/webwook123/abc")
 }
 
 func singleMicrosoftTeamsAlertChannel(id string) string {

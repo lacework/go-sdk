@@ -18,7 +18,7 @@ func main() {
 	myTeamsChannel := api.NewAlertChannel("microsoft-teams-alert-from-golang",
 		api.MicrosoftTeamsAlertChannelType,
 		api.MicrosoftTeamsData{
-			TeamsUrl: "https://outlook.office.com/webhook/api-token",
+			TeamsURL: "https://outlook.office.com/webhook/api-token",
 		},
 	)
 

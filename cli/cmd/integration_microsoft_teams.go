@@ -53,7 +53,7 @@ func createMicrosoftTeamsChannelIntegration() error {
 	teams := api.NewAlertChannel(answers.Name,
 		api.MicrosoftTeamsAlertChannelType,
 		api.MicrosoftTeamsData{
-			TeamsUrl: answers.WebhookUrl,
+			TeamsURL: answers.WebhookUrl,
 		},
 	)
 
