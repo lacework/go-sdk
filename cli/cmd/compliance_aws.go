@@ -97,7 +97,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 				return nil
 			case "SOC_Rev2":
 				compCmdState.Type = fmt.Sprintf("AWS_%s", compCmdState.Type)
-                                return nil
+				return nil
 			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2", "PCI":
 				return nil
 			default:
