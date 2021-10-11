@@ -60,6 +60,10 @@ func TestAlertChannelTypes(t *testing.T) {
 		"CiscoSparkWebhook", api.CiscoSparkWebhookAlertChannelType.String(),
 		"wrong alert channel type",
 	)
+	assert.Equal(t,
+		"MicrosoftTeams", api.MicrosoftTeamsAlertChannelType.String(),
+		"wrong alert channel type",
+	)
 }
 
 func TestFindAlertChannelType(t *testing.T) {
@@ -99,6 +103,10 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("CiscoSparkWebhook")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "CiscoSparkWebhook", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("MicrosoftTeams")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "MicrosoftTeams", alertFound.String(), "wrong alert channel type")
 }
 
 func TestAlertChannelsGet(t *testing.T) {
@@ -239,6 +247,7 @@ func TestAlertChannelsList(t *testing.T) {
 		webhookAlertChan           = generateGuids(&allGUIDs, 2)
 		victorOpsAlertChan         = generateGuids(&allGUIDs, 2)
 		ciscoSparkWebhookAlertChan = generateGuids(&allGUIDs, 2)
+		microsoftTeamsAlertChan    = generateGuids(&allGUIDs, 2)
 		expectedLen                = len(allGUIDs)
 		fakeServer                 = lacework.MockServer()
 	)
@@ -257,6 +266,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(webhookAlertChan, "Webhook"),
 				generateAlertChannels(victorOpsAlertChan, "VictorOps"),
 				generateAlertChannels(ciscoSparkWebhookAlertChan, "CiscoSparkWebhook"),
+				generateAlertChannels(microsoftTeamsAlertChan, "MicrosoftTeams"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -314,6 +324,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleVictorOpsAlertChannel(guid)
 		case api.CiscoSparkWebhookAlertChannelType.String():
 			alertChannels[i] = singleCiscoSparkWebhookAlertChannel(guid)
+		case api.MicrosoftTeamsAlertChannelType.String():
+			alertChannels[i] = singleMicrosoftTeamsAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")
