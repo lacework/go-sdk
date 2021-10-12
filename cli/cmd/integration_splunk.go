@@ -86,13 +86,13 @@ func createSplunkIntegration() error {
 
 	splunk := api.NewAlertChannel(answers.Name,
 		api.SplunkHecAlertChannelType,
-		api.SplunkDataV2{
+		api.SplunkHecDataV2{
 			Channel:  answers.Channel,
 			HecToken: answers.HecToken,
 			Host:     answers.Host,
 			Port:     answers.Port,
 			Ssl:      answers.Ssl,
-			EventData: api.SplunkEventDataV2{
+			EventData: api.SplunkHecEventDataV2{
 				Index:  answers.Index,
 				Source: answers.Source,
 			},

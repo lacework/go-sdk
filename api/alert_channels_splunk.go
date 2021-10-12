@@ -21,7 +21,7 @@ package api
 // GetSplunkHec gets a single Splunk alert channel matching the
 // provided integration guid
 func (svc *AlertChannelsService) GetSplunkHec(guid string) (
-	response SplunkAlertChannelResponseV2,
+	response SplunkHecAlertChannelResponseV2,
 	err error,
 ) {
 	err = svc.get(guid, &response)
@@ -30,32 +30,32 @@ func (svc *AlertChannelsService) GetSplunkHec(guid string) (
 
 // UpdateSplunkHec updates a single Splunk integration on the Lacework Server
 func (svc *AlertChannelsService) UpdateSplunkHec(data AlertChannel) (
-	response SplunkAlertChannelResponseV2,
+	response SplunkHecAlertChannelResponseV2,
 	err error,
 ) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type SplunkAlertChannelResponseV2 struct {
-	Data SplunkAlertChannelV2 `json:"data"`
+type SplunkHecAlertChannelResponseV2 struct {
+	Data SplunkHecAlertChannelV2 `json:"data"`
 }
 
-type SplunkAlertChannelV2 struct {
+type SplunkHecAlertChannelV2 struct {
 	v2CommonIntegrationData
-	Data SplunkDataV2 `json:"data"`
+	Data SplunkHecDataV2 `json:"data"`
 }
 
-type SplunkDataV2 struct {
-	HecToken  string            `json:"hecToken"`
-	Channel   string            `json:"channel,omitempty"`
-	Host      string            `json:"host"`
-	Port      int               `json:"port"`
-	Ssl       bool              `json:"ssl,omitempty"`
-	EventData SplunkEventDataV2 `json:"eventData"`
+type SplunkHecDataV2 struct {
+	HecToken  string               `json:"hecToken"`
+	Channel   string               `json:"channel,omitempty"`
+	Host      string               `json:"host"`
+	Port      int                  `json:"port"`
+	Ssl       bool                 `json:"ssl,omitempty"`
+	EventData SplunkHecEventDataV2 `json:"eventData"`
 }
 
-type SplunkEventDataV2 struct {
+type SplunkHecEventDataV2 struct {
 	Index  string `json:"index"`
 	Source string `json:"source"`
 }

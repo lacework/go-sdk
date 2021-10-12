@@ -107,13 +107,13 @@ func TestAlertChannelSplunkUpdate(t *testing.T) {
 
 	splunkAlertChan := api.NewAlertChannel("integration_name",
 		api.SplunkHecAlertChannelType,
-		api.SplunkDataV2{
+		api.SplunkHecDataV2{
 			Channel:  "channel-name",
 			HecToken: "AA111111-11AA-1AA1-11AA-11111AA1111A",
 			Host:     "localhost",
 			Port:     80,
 			Ssl:      true,
-			EventData: api.SplunkEventDataV2{
+			EventData: api.SplunkHecEventDataV2{
 				Index:  "test-index",
 				Source: "test-source",
 			},
