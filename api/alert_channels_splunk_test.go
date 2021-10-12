@@ -120,7 +120,7 @@ func TestAlertChannelSplunkUpdate(t *testing.T) {
 		},
 	)
 	assert.Equal(t, "integration_name", splunkAlertChan.Name, "Splunk alert channel name mismatch")
-	assert.Equal(t, "Splunk", splunkAlertChan.Type, "a new Splunk alert channel should match its type")
+	assert.Equal(t, "SplunkHec", splunkAlertChan.Type, "a new Splunk alert channel should match its type")
 	assert.Equal(t, 1, splunkAlertChan.Enabled, "a new Splunk alert channel should be enabled")
 	splunkAlertChan.IntgGuid = intgGUID
 
