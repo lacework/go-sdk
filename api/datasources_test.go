@@ -110,8 +110,10 @@ func TestDatasourcesListError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Datasources.List()
+	var datasourcesActual api.DatasourcesResponse
+	datasourcesActual, err = c.V2.Datasources.List()
 	assert.NotNil(t, err)
+	assert.Equal(t, api.DatasourcesResponse{}, datasourcesActual)
 }
 
 func TestDatasourcesGetMethod(t *testing.T) {
@@ -183,8 +185,10 @@ func TestDatasourcesGetBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Datasources.Get("")
+	var datasourceActual api.DatasourceResponse
+	datasourceActual, err = c.V2.Datasources.Get("")
 	assert.Equal(t, "datasource ID must be provided", err.Error())
+	assert.Equal(t, api.DatasourceResponse{}, datasourceActual)
 }
 
 func TestDatasourcesGetError(t *testing.T) {
@@ -204,6 +208,8 @@ func TestDatasourcesGetError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Datasources.Get("CloudTrailRawEvents")
+	var datasourceActual api.DatasourceResponse
+	datasourceActual, err = c.V2.Datasources.Get("CloudTrailRawEvents")
 	assert.NotNil(t, err)
+	assert.Equal(t, api.DatasourceResponse{}, datasourceActual)
 }
