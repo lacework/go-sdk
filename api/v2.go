@@ -33,6 +33,7 @@ type V2Endpoints struct {
 	Query               *QueryService
 	Policy              *PolicyService
 	Schemas             *SchemasService
+	Datasources         *DatasourcesService
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
@@ -46,6 +47,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&QueryService{c},
 		&PolicyService{c},
 		&SchemasService{c, map[integrationSchema]V2Service{}},
+		&DatasourcesService{c},
 	}
 
 	v2.Schemas.Services = map[integrationSchema]V2Service{

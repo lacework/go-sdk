@@ -21,53 +21,106 @@ package cmd
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
-	// querySourcesCmd represents the lql data sources command
-	querySourcesCmd = &cobra.Command{
-		Hidden:  true, // no api exists for this
+	queryListSourcesCmd = &cobra.Command{
+		Hidden:  true, // api to be exposed for 4.31
 		Aliases: []string{"sources"},
 		Use:     "list-sources",
-		Short:   "list LQL data sources",
-		Long:    `List LQL data sources.`,
+		Short:   "list Lacework query data sources",
+		Long:    `List Lacework query data sources.`,
 		Args:    cobra.NoArgs,
-		RunE:    getQuerySources,
+		RunE:    listQuerySources,
+	}
+
+	queryShowSourceCmd = &cobra.Command{
+		Hidden:  true, // api to be exposed for 4.31
+		Aliases: []string{"describe"},
+		Use:     "show-source <datasource_id>",
+		Short:   "show Lacework query data source",
+		Long:    `Show Lacework query data source.`,
+		Args:    cobra.ExactArgs(1),
+		RunE:    showQuerySource,
 	}
 )
 
 func init() {
-	queryCmd.AddCommand(querySourcesCmd)
+	queryCmd.AddCommand(queryListSourcesCmd)
+	queryCmd.AddCommand(queryShowSourceCmd)
 }
 
-func dataSourcesToTable(dataSources []string) (out [][]string) {
-	for _, source := range dataSources {
+func getListQuerySourcesTable(datasources []api.Datasource) (out [][]string) {
+	for _, source := range datasources {
 		out = append(out, []string{
-			source,
+			source.Name,
+			source.Description,
 		})
 	}
 	return
 }
 
-func getQuerySources(_ *cobra.Command, args []string) error {
+func listQuerySources(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving LQL data sources")
 
 	lqlSourcesUnableMsg := "unable to retrieve LQL data sources"
-	dataSourcesResponse, err := cli.LwApi.V2.Query.DataSources()
+	datasourcesResponse, err := cli.LwApi.V2.Datasources.List()
 
 	if err != nil {
 		return errors.Wrap(err, lqlSourcesUnableMsg)
 	}
 	if cli.JSONOutput() {
-		return cli.OutputJSON(dataSourcesResponse.Data)
+		return cli.OutputJSON(datasourcesResponse.Data)
 	}
-	if len(dataSourcesResponse.Data) == 0 {
+	if len(datasourcesResponse.Data) == 0 {
 		return yikes(lqlSourcesUnableMsg)
 	}
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"Data Source"},
-			dataSourcesToTable(dataSourcesResponse.Data[0].DataSources),
+			[]string{"Datasource", "Description"},
+			getListQuerySourcesTable(datasourcesResponse.Data),
+		),
+	)
+	return nil
+}
+
+func getShowQuerySourceTable(resultSchema []api.DatasourceSchema) (out [][]string) {
+	for _, schemaItem := range resultSchema {
+		out = append(out, []string{
+			schemaItem.Name,
+			schemaItem.DataType,
+			schemaItem.Description,
+		})
+	}
+	return
+}
+
+func showQuerySource(_ *cobra.Command, args []string) error {
+	cli.Log.Debugw("retrieving datasource", "id", args[0])
+
+	cli.StartProgress(" Retrieving datasource...")
+	datasourceResponse, err := cli.LwApi.V2.Datasources.Get(args[0])
+	cli.StopProgress()
+
+	if err != nil {
+		return errors.Wrap(err, "unable to show datasource")
+	}
+	if cli.JSONOutput() {
+		return cli.OutputJSON(datasourceResponse.Data)
+	}
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"Datasource", "Description"},
+			getListQuerySourcesTable([]api.Datasource{datasourceResponse.Data}),
+		),
+	)
+	cli.OutputHuman("\n")
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"Field Name", "Data Type", "Description"},
+			getShowQuerySourceTable(datasourceResponse.Data.ResultSchema),
 		),
 	)
 	return nil
