@@ -41,7 +41,7 @@ func TestAlertChannelsGetSplunk(t *testing.T) {
 	defer fakeServer.Close()
 
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method, "GetSplunk() should be a GET method")
+		assert.Equal(t, "GET", r.Method, "GetSplunkHec() should be a GET method")
 		fmt.Fprintf(w, generateAlertChannelResponse(singleSplunkAlertChannel(intgGUID)))
 	})
 
@@ -52,7 +52,7 @@ func TestAlertChannelsGetSplunk(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.AlertChannels.GetSplunk(intgGUID)
+	response, err := c.V2.AlertChannels.GetSplunkHec(intgGUID)
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.IntgGuid)

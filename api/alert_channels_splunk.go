@@ -18,7 +18,7 @@
 
 package api
 
-// GetSplunk gets a single Splunk alert channel matching the
+// GetSplunkHec gets a single Splunk alert channel matching the
 // provided integration guid
 func (svc *AlertChannelsService) GetSplunkHec(guid string) (
 	response SplunkAlertChannelResponseV2,
