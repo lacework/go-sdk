@@ -256,7 +256,7 @@ func TestAlertChannelsList(t *testing.T) {
 		victorOpsAlertChan         = generateGuids(&allGUIDs, 2)
 		ciscoSparkWebhookAlertChan = generateGuids(&allGUIDs, 2)
 		microsoftTeamsAlertChan    = generateGuids(&allGUIDs, 2)
-		splunkHecOpsAlertChan         = generateGuids(&allGUIDs, 2)
+		splunkHecOpsAlertChan      = generateGuids(&allGUIDs, 2)
 		expectedLen                = len(allGUIDs)
 		fakeServer                 = lacework.MockServer()
 	)
