@@ -89,7 +89,7 @@ const (
 	VictorOpsAlertChannelType
 	CiscoSparkWebhookAlertChannelType
 	MicrosoftTeamsAlertChannelType
-	SplunkAlertChannelType
+	SplunkHecAlertChannelType
 )
 
 // AlertChannelTypeTypes is the list of available Alert Channel integration types
