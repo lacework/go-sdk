@@ -79,7 +79,7 @@ func TestAlertChannelSplunkUpdate(t *testing.T) {
 	defer fakeServer.Close()
 
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method, "UpdateSplunk() should be a PATCH method")
+		assert.Equal(t, "PATCH", r.Method, "UpdateSplunkHec() should be a PATCH method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
@@ -124,7 +124,7 @@ func TestAlertChannelSplunkUpdate(t *testing.T) {
 	assert.Equal(t, 1, splunkAlertChan.Enabled, "a new Splunk alert channel should be enabled")
 	splunkAlertChan.IntgGuid = intgGUID
 
-	response, err := c.V2.AlertChannels.UpdateSplunk(splunkAlertChan)
+	response, err := c.V2.AlertChannels.UpdateSplunkHec(splunkAlertChan)
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.IntgGuid)

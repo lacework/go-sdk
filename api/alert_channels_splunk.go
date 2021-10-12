@@ -28,8 +28,8 @@ func (svc *AlertChannelsService) GetSplunkHec(guid string) (
 	return
 }
 
-// UpdateSplunk updates a single Splunk integration on the Lacework Server
-func (svc *AlertChannelsService) UpdateSplunk(data AlertChannel) (
+// UpdateSplunkHec updates a single Splunk integration on the Lacework Server
+func (svc *AlertChannelsService) UpdateSplunkHec(data AlertChannel) (
 	response SplunkAlertChannelResponseV2,
 	err error,
 ) {
