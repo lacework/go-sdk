@@ -112,3 +112,16 @@ func TestComplianceAwsGetReportAccountIDWithAlias(t *testing.T) {
 		"AWS_ACCOUNT_ID=account-id&",
 		"STDERR changed, please check")
 }
+
+func TestComplianceAwsGetReportTypeAWS_SOC_Rev2(t *testing.T) {
+	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", "AWS_SOC_Rev2")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "AWS_SOC_Rev2",
+		"STDOUT report type missing or something else is going on, please check")
+	assert.Contains(t, out.String(), "Report Type",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), account,
+		"Account ID in compliance report is not correct")
+}

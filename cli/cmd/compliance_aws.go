@@ -95,10 +95,13 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 			case "CIS":
 				compCmdState.Type = fmt.Sprintf("AWS_%s_S3", compCmdState.Type)
 				return nil
-			case "AWS_CIS_S3", "NIST_800-53_Rev4", "ISO_2700", "HIPAA", "SOC", "PCI":
+			case "SOC_Rev2":
+				compCmdState.Type = fmt.Sprintf("AWS_%s", compCmdState.Type)
+				return nil
+			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2", "PCI":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI")
+				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI")
 			}
 		},
 		Short: "get the latest AWS compliance report",
@@ -264,9 +267,9 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI
+	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, AWS_SOC_Rev2, or PCI
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI",
+		"report type to display, supported types: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI",
 	)
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
