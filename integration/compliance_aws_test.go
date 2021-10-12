@@ -1,4 +1,3 @@
-//go:build compliance
 // +build compliance
 
 // Author:: Darren Murray (<darren.murray@lacework.net>)
