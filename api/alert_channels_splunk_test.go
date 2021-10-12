@@ -132,8 +132,8 @@ func TestAlertChannelSplunkUpdate(t *testing.T) {
 		assert.Contains(t, response.Data.Data.Channel, "channel-name")
 		assert.Contains(t, response.Data.Data.HecToken, "AA111111-11AA-1AA1-11AA-11111AA1111A")
 		assert.Contains(t, response.Data.Data.Host, "localhost")
-		assert.Contains(t, response.Data.Data.Port, 80)
-		assert.Contains(t, response.Data.Data.Ssl, true)
+		assert.Equal(t, response.Data.Data.Port, 80)
+		assert.Equal(t, response.Data.Data.Ssl, true)
 		assert.Contains(t, response.Data.Data.EventData.Source, "test-source")
 		assert.Contains(t, response.Data.Data.EventData.Index, "test-index")
 	}
@@ -154,7 +154,6 @@ func singleSplunkAlertChannel(id string) string {
       "host": "localhost",
       "port": 80,
       "ssl": true
-  },
     },
     "enabled": 1,
     "intgGuid": "` + id + `",
