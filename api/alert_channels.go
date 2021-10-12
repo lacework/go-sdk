@@ -104,7 +104,7 @@ var AlertChannelTypes = map[alertChannelType]string{
 	VictorOpsAlertChannelType:         "VictorOps",
 	CiscoSparkWebhookAlertChannelType: "CiscoSparkWebhook",
 	MicrosoftTeamsAlertChannelType:    "MicrosoftTeams",
-	SplunkAlertChannelType:       "SplunkHec",
+	SplunkAlertChannelType:            "SplunkHec",
 }
 
 // String returns the string representation of a Alert Channel integration type
