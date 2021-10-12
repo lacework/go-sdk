@@ -64,6 +64,10 @@ func TestAlertChannelTypes(t *testing.T) {
 		"MicrosoftTeams", api.MicrosoftTeamsAlertChannelType.String(),
 		"wrong alert channel type",
 	)
+	assert.Equal(t,
+		"SplunkHec", api.SplunkAlertChannelType.String(),
+		"wrong alert channel type",
+	)
 }
 
 func TestFindAlertChannelType(t *testing.T) {
@@ -107,6 +111,10 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("MicrosoftTeams")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "MicrosoftTeams", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("SplunkHec")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "SplunkHec", alertFound.String(), "wrong alert channel type")
 }
 
 func TestAlertChannelsGet(t *testing.T) {
@@ -248,6 +256,7 @@ func TestAlertChannelsList(t *testing.T) {
 		victorOpsAlertChan         = generateGuids(&allGUIDs, 2)
 		ciscoSparkWebhookAlertChan = generateGuids(&allGUIDs, 2)
 		microsoftTeamsAlertChan    = generateGuids(&allGUIDs, 2)
+		splunkOpsAlertChan  = generateGuids(&allGUIDs, 2)
 		expectedLen                = len(allGUIDs)
 		fakeServer                 = lacework.MockServer()
 	)
@@ -267,6 +276,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(victorOpsAlertChan, "VictorOps"),
 				generateAlertChannels(ciscoSparkWebhookAlertChan, "CiscoSparkWebhook"),
 				generateAlertChannels(microsoftTeamsAlertChan, "MicrosoftTeams"),
+				generateAlertChannels(splunkOpsAlertChan, "SplunkHec"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -326,6 +336,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleCiscoSparkWebhookAlertChannel(guid)
 		case api.MicrosoftTeamsAlertChannelType.String():
 			alertChannels[i] = singleMicrosoftTeamsAlertChannel(guid)
+		case api.SplunkAlertChannelType.String():
+			alertChannels[i] = singleSplunkAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")

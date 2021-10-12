@@ -13,25 +13,26 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mySplunkChannel := api.NewSplunkAlertChannel("splunk-alert-from-golang",
-		api.SplunkChannelData{
+	mySplunkChannel := api.NewAlertChannel("splunk-alert-from-golang",
+		api.SplunkAlertChannelType,
+		api.SplunkDataV2{
 			Channel:  "channel-name",
 			HecToken: "AA111111-11AA-1AA1-11AA-11111AA1111A",
 			Host:     "localhost",
 			Port:     80,
 			Ssl:      false,
-			EventData: api.SplunkEventData{
+			EventData: api.SplunkEventDataV2{
 				Index:  "test-index",
 				Source: "test-source",
 			},
 		},
 	)
 
-	response, err := lacework.Integrations.CreateSplunkAlertChannel(mySplunkChannel)
+	response, err := lacework.V2.AlertChannels.Create(mySplunkChannel)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Output: Splunk alert channel created: THE-INTEGRATION-GUID
-	fmt.Printf("Splunk alert channel created: %s", response.Data[0].IntgGuid)
+	fmt.Printf("Splunk alert channel created: %s", response.Data.IntgGuid)
 }

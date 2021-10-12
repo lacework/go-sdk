@@ -84,14 +84,15 @@ func createSplunkIntegration() error {
 		return err
 	}
 
-	splunk := api.NewSplunkAlertChannel(answers.Name,
-		api.SplunkChannelData{
+	splunk := api.NewAlertChannel(answers.Name,
+		api.SplunkAlertChannelType,
+		api.SplunkDataV2{
 			Channel:  answers.Channel,
 			HecToken: answers.HecToken,
 			Host:     answers.Host,
 			Port:     answers.Port,
 			Ssl:      answers.Ssl,
-			EventData: api.SplunkEventData{
+			EventData: api.SplunkEventDataV2{
 				Index:  answers.Index,
 				Source: answers.Source,
 			},
@@ -99,7 +100,7 @@ func createSplunkIntegration() error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateSplunkAlertChannel(splunk)
+	_, err = cli.LwApi.V2.AlertChannels.Create(splunk)
 	cli.StopProgress()
 	return err
 }
