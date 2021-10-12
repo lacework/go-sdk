@@ -18,30 +18,28 @@
 
 package api
 
-// GetDatadog gets a single instance of a Datadog alert channel
+// GetCiscoSparkWebhook gets a single instance of a Cisco Spark webhook alert channel
 // with the corresponding integration guid
-func (svc *AlertChannelsService) GetDatadog(guid string) (response DatadogAlertChannelResponseV2, err error) {
+func (svc *AlertChannelsService) GetCiscoSparkWebhook(guid string) (response CiscoSparkWebhookAlertChannelResponseV2, err error) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateDatadog updates a single instance of a Datadog integration on the Lacework server
-func (svc *AlertChannelsService) UpdateDatadog(data AlertChannel) (response DatadogAlertChannelResponseV2, err error) {
+// UpdateCiscoSparkWebhook updates a single instance of Cisco Spark webhook integration on the Lacework server
+func (svc *AlertChannelsService) UpdateCiscoSparkWebhook(data AlertChannel) (response CiscoSparkWebhookAlertChannelResponseV2, err error) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type DatadogDataV2 struct {
-	ApiKey      string         `json:"apiKey"`
-	DatadogSite datadogSite    `json:"datadogSite,omitempty"`
-	DatadogType datadogService `json:"datadogType,omitempty"`
+type CiscoSparkWebhookDataV2 struct {
+	Webhook string `json:"webhook"`
 }
 
-type DatadogAlertChannelV2 struct {
+type CiscoSparkWebhookAlertChannelV2 struct {
 	v2CommonIntegrationData
-	Data DatadogDataV2 `json:"data"`
+	Data CiscoSparkWebhookDataV2 `json:"data"`
 }
 
-type DatadogAlertChannelResponseV2 struct {
-	Data DatadogAlertChannelV2 `json:"data"`
+type CiscoSparkWebhookAlertChannelResponseV2 struct {
+	Data CiscoSparkWebhookAlertChannelV2 `json:"data"`
 }

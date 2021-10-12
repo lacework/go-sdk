@@ -50,14 +50,15 @@ func createVictorOpsChannelIntegration() error {
 		return err
 	}
 
-	victorops := api.NewVictorOpsAlertChannel(answers.Name,
-		api.VictorOpsChannelData{
-			WebhookURL: answers.Url,
+	victorops := api.NewAlertChannel(answers.Name,
+		api.VictorOpsAlertChannelType,
+		api.VictorOpsDataV2{
+			Url: answers.Url,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateVictorOpsAlertChannel(victorops)
+	_, err = cli.LwApi.V2.AlertChannels.Create(victorops)
 	cli.StopProgress()
 	return err
 }

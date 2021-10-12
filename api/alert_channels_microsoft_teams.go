@@ -1,5 +1,5 @@
 //
-// Author:: Vatasha White (<vatasha.white@lacework.net>)
+// Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
@@ -18,30 +18,28 @@
 
 package api
 
-// GetDatadog gets a single instance of a Datadog alert channel
+// GetMicrosoftTeams gets a single instance of a MicrosoftTeams alert channel
 // with the corresponding integration guid
-func (svc *AlertChannelsService) GetDatadog(guid string) (response DatadogAlertChannelResponseV2, err error) {
+func (svc *AlertChannelsService) GetMicrosoftTeams(guid string) (response MicrosoftTeamsAlertChannelResponseV2, err error) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateDatadog updates a single instance of a Datadog integration on the Lacework server
-func (svc *AlertChannelsService) UpdateDatadog(data AlertChannel) (response DatadogAlertChannelResponseV2, err error) {
+// UpdateMicrosoftTeams updates a single instance of a MicrosoftTeams integration on the Lacework server
+func (svc *AlertChannelsService) UpdateMicrosoftTeams(data AlertChannel) (response MicrosoftTeamsAlertChannelResponseV2, err error) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type DatadogDataV2 struct {
-	ApiKey      string         `json:"apiKey"`
-	DatadogSite datadogSite    `json:"datadogSite,omitempty"`
-	DatadogType datadogService `json:"datadogType,omitempty"`
+type MicrosoftTeamsData struct {
+	TeamsURL string `json:"teamsUrl"`
 }
 
-type DatadogAlertChannelV2 struct {
+type MicrosoftTeamsAlertChannelV2 struct {
 	v2CommonIntegrationData
-	Data DatadogDataV2 `json:"data"`
+	Data MicrosoftTeamsData `json:"data"`
 }
 
-type DatadogAlertChannelResponseV2 struct {
-	Data DatadogAlertChannelV2 `json:"data"`
+type MicrosoftTeamsAlertChannelResponseV2 struct {
+	Data MicrosoftTeamsAlertChannelV2 `json:"data"`
 }

@@ -56,6 +56,14 @@ func TestAlertChannelTypes(t *testing.T) {
 		"Webhook", api.WebhookAlertChannelType.String(),
 		"wrong alert channel type",
 	)
+	assert.Equal(t,
+		"CiscoSparkWebhook", api.CiscoSparkWebhookAlertChannelType.String(),
+		"wrong alert channel type",
+	)
+	assert.Equal(t,
+		"MicrosoftTeams", api.MicrosoftTeamsAlertChannelType.String(),
+		"wrong alert channel type",
+	)
 }
 
 func TestFindAlertChannelType(t *testing.T) {
@@ -87,6 +95,18 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("Webhook")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "Webhook", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("VictorOps")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "VictorOps", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("CiscoSparkWebhook")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "CiscoSparkWebhook", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("MicrosoftTeams")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "MicrosoftTeams", alertFound.String(), "wrong alert channel type")
 }
 
 func TestAlertChannelsGet(t *testing.T) {
@@ -218,15 +238,18 @@ func TestAlertChannelsDelete(t *testing.T) {
 
 func TestAlertChannelsList(t *testing.T) {
 	var (
-		allGUIDs            []string
-		emailAlertChan      = generateGuids(&allGUIDs, 3)
-		awsS3AlertChan      = generateGuids(&allGUIDs, 2)
-		slackAlertChan      = generateGuids(&allGUIDs, 4)
-		cloudwatchAlertChan = generateGuids(&allGUIDs, 2)
-		datadogAlertChan    = generateGuids(&allGUIDs, 2)
-		webhookAlertChan    = generateGuids(&allGUIDs, 2)
-		expectedLen         = len(allGUIDs)
-		fakeServer          = lacework.MockServer()
+		allGUIDs                   []string
+		emailAlertChan             = generateGuids(&allGUIDs, 3)
+		awsS3AlertChan             = generateGuids(&allGUIDs, 2)
+		slackAlertChan             = generateGuids(&allGUIDs, 4)
+		cloudwatchAlertChan        = generateGuids(&allGUIDs, 2)
+		datadogAlertChan           = generateGuids(&allGUIDs, 2)
+		webhookAlertChan           = generateGuids(&allGUIDs, 2)
+		victorOpsAlertChan         = generateGuids(&allGUIDs, 2)
+		ciscoSparkWebhookAlertChan = generateGuids(&allGUIDs, 2)
+		microsoftTeamsAlertChan    = generateGuids(&allGUIDs, 2)
+		expectedLen                = len(allGUIDs)
+		fakeServer                 = lacework.MockServer()
 	)
 
 	fakeServer.UseApiV2()
@@ -241,6 +264,9 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(cloudwatchAlertChan, "CloudwatchEb"),
 				generateAlertChannels(datadogAlertChan, "Datadog"),
 				generateAlertChannels(webhookAlertChan, "Webhook"),
+				generateAlertChannels(victorOpsAlertChan, "VictorOps"),
+				generateAlertChannels(ciscoSparkWebhookAlertChan, "CiscoSparkWebhook"),
+				generateAlertChannels(microsoftTeamsAlertChan, "MicrosoftTeams"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -294,6 +320,12 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleDatadogAlertChannel(guid)
 		case api.WebhookAlertChannelType.String():
 			alertChannels[i] = singleWebhookAlertChannel(guid)
+		case api.VictorOpsAlertChannelType.String():
+			alertChannels[i] = singleVictorOpsAlertChannel(guid)
+		case api.CiscoSparkWebhookAlertChannelType.String():
+			alertChannels[i] = singleCiscoSparkWebhookAlertChannel(guid)
+		case api.MicrosoftTeamsAlertChannelType.String():
+			alertChannels[i] = singleMicrosoftTeamsAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")
