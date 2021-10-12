@@ -65,7 +65,7 @@ func TestAlertChannelTypes(t *testing.T) {
 		"wrong alert channel type",
 	)
 	assert.Equal(t,
-		"SplunkHec", api.SplunkAlertChannelType.String(),
+		"SplunkHec", api.SplunkHecAlertChannelType.String(),
 		"wrong alert channel type",
 	)
 }
@@ -336,7 +336,7 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleCiscoSparkWebhookAlertChannel(guid)
 		case api.MicrosoftTeamsAlertChannelType.String():
 			alertChannels[i] = singleMicrosoftTeamsAlertChannel(guid)
-		case api.SplunkAlertChannelType.String():
+		case api.SplunkHecAlertChannelType.String():
 			alertChannels[i] = singleSplunkAlertChannel(guid)
 		}
 	}

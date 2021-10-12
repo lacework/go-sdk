@@ -106,7 +106,7 @@ func TestAlertChannelSplunkUpdate(t *testing.T) {
 	assert.Nil(t, err)
 
 	splunkAlertChan := api.NewAlertChannel("integration_name",
-		api.SplunkAlertChannelType,
+		api.SplunkHecAlertChannelType,
 		api.SplunkDataV2{
 			Channel:  "channel-name",
 			HecToken: "AA111111-11AA-1AA1-11AA-11111AA1111A",

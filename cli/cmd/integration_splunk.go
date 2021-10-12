@@ -85,7 +85,7 @@ func createSplunkIntegration() error {
 	}
 
 	splunk := api.NewAlertChannel(answers.Name,
-		api.SplunkAlertChannelType,
+		api.SplunkHecAlertChannelType,
 		api.SplunkDataV2{
 			Channel:  answers.Channel,
 			HecToken: answers.HecToken,

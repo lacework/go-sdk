@@ -19,7 +19,7 @@ func main() {
 	}
 
 	mySplunkChannel := api.NewAlertChannel("splunk-alert-from-golang",
-		api.SplunkAlertChannelType,
+		api.SplunkHecAlertChannelType,
 		api.SplunkDataV2{
 			Channel:  "channel-name",
 			HecToken: "AA111111-11AA-1AA1-11AA-11111AA1111A",
