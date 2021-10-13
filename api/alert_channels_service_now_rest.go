@@ -77,6 +77,6 @@ type ServiceNowRestDataV2 struct {
 	Username           string `json:"userName"`
 	Password           string `json:"password"`
 	InstanceURL        string `json:"instanceUrl"`
-	CustomTemplateFile string `json:"CustomTemplateFile,omitempty"`
+	CustomTemplateFile string `json:"customTemplateFile,omitempty"`
 	IssueGrouping      string `json:"issueGrouping,omitempty"`
 }

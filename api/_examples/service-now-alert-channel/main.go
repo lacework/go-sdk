@@ -18,7 +18,7 @@ func main() {
 	myServiceNowChannel := api.NewAlertChannel("service-now-alert-from-golang",
 		api.ServiceNowRestAlertChannelType,
 		api.ServiceNowRestDataV2{
-			InstanceURL:   "snow-lacework.com",
+			InstanceURL:   "https://dev123.service-now.com",
 			Username:      "snow-user",
 			Password:      "snow-password",
 			IssueGrouping: "Events",
