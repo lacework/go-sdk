@@ -68,6 +68,10 @@ func TestAlertChannelTypes(t *testing.T) {
 		"GcpPubsub", api.GcpPubSubAlertChannelType.String(),
 		"wrong alert channel type",
 	)
+	assert.Equal(t,
+		"SplunkHec", api.SplunkHecAlertChannelType.String(),
+		"wrong alert channel type",
+	)
 }
 
 func TestFindAlertChannelType(t *testing.T) {
@@ -115,6 +119,10 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("GcpPubsub")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "GcpPubsub", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("SplunkHec")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "SplunkHec", alertFound.String(), "wrong alert channel type")
 }
 
 func TestAlertChannelsGet(t *testing.T) {
@@ -257,6 +265,7 @@ func TestAlertChannelsList(t *testing.T) {
 		ciscoSparkWebhookAlertChan = generateGuids(&allGUIDs, 2)
 		microsoftTeamsAlertChan    = generateGuids(&allGUIDs, 2)
 		gcpPubSubAlertChan         = generateGuids(&allGUIDs, 2)
+		splunkHecOpsAlertChan      = generateGuids(&allGUIDs, 2)
 		expectedLen                = len(allGUIDs)
 		fakeServer                 = lacework.MockServer()
 	)
@@ -277,6 +286,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(ciscoSparkWebhookAlertChan, "CiscoSparkWebhook"),
 				generateAlertChannels(microsoftTeamsAlertChan, "MicrosoftTeams"),
 				generateAlertChannels(gcpPubSubAlertChan, "GcpPubsub"),
+				generateAlertChannels(splunkHecOpsAlertChan, "SplunkHec"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -338,6 +348,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleMicrosoftTeamsAlertChannel(guid)
 		case api.GcpPubSubAlertChannelType.String():
 			alertChannels[i] = singleGcpPubSubAlertChannel(guid)
+		case api.SplunkHecAlertChannelType.String():
+			alertChannels[i] = singleSplunkAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")
