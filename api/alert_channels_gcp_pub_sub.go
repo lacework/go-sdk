@@ -33,7 +33,7 @@ func (svc *AlertChannelsService) UpdateGcpPubSub(data AlertChannel) (response Gc
 type GcpPubSubDataV2 struct {
 	Credentials   GcpPubSubCredentials `json:"credentials"`
 	IssueGrouping string               `json:"issueGrouping"`
-	ProjectId     string               `json:"ProjectId"`
+	ProjectId     string               `json:"projectId"`
 	TopicId       string               `json:"topicId"`
 }
 

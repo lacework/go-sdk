@@ -82,15 +82,15 @@ func TestAlertChannelsService_UpdateGcpPubSub(t *testing.T) {
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
-			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
-			assert.Contains(t, body, "integration_name", "cloud account name is missing")
-			assert.Contains(t, body, "GcpPubsub", "wrong cloud account type")
-			assert.Contains(t, body, "vatasha.white@lacework.net", "missing client email")
-			assert.Contains(t, body, "fake-client-id", "missing client id")
-			assert.Contains(t, body, "fake-private-key", "missing private key")
-			assert.Contains(t, body, "fake-private-key-id", "missing private key id")
-			assert.Contains(t, body, "fake-project-id", "missing project id")
-			assert.Contains(t, body, "fake-topic-id", "missing topic id")
+			assert.Contains(t, body, intgGUID, "IntgGUID missing")
+			assert.Contains(t, body, "name\":\"integration_name", "cloud account name is missing")
+			assert.Contains(t, body, "type\":\"GcpPubsub", "wrong cloud account type")
+			assert.Contains(t, body, "clientEmail\":\"vatasha.white@lacework.net", "missing client email")
+			assert.Contains(t, body, "clientId\":\"fake-client-id", "missing client id")
+			assert.Contains(t, body, "privateKey\":\"fake-private-key", "missing private key")
+			assert.Contains(t, body, "privateKeyId\":\"fake-private-key-id", "missing private key id")
+			assert.Contains(t, body, "projectId\":\"fake-project-id", "missing project id")
+			assert.Contains(t, body, "topicId\":\"fake-topic-id", "missing topic id")
 			assert.Contains(t, body, "enabled\":1", "cloud account is not enabled")
 		}
 
