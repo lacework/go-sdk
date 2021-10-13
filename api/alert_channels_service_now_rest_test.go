@@ -1,0 +1,152 @@
+//
+// Author:: Darren Murray (<darren.murray@lacework.net>)
+// Copyright:: Copyright 2021, Lacework Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+package api_test
+
+import (
+	"fmt"
+	"net/http"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/intgguid"
+	"github.com/lacework/go-sdk/internal/lacework"
+)
+
+func TestAlertChannelsGetServiceNowRest(t *testing.T) {
+	var (
+		intgGUID   = intgguid.New()
+		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
+		fakeServer = lacework.MockServer()
+	)
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "GET", r.Method, "GetServiceNowRest() should be a GET method")
+		fmt.Fprintf(w, generateAlertChannelResponse(singleServiceNowRestAlertChannel(intgGUID)))
+	})
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	response, err := c.V2.AlertChannels.GetServiceNowRest(intgGUID)
+	if assert.NoError(t, err) {
+		assert.NotNil(t, response)
+		assert.Equal(t, intgGUID, response.Data.IntgGuid)
+		assert.Equal(t, "integration_name", response.Data.Name)
+		assert.True(t, response.Data.State.Ok)
+		assert.Equal(t, response.Data.Data.Username, "snow-user")
+		assert.Equal(t, response.Data.Data.Password, "snow-password")
+		assert.Equal(t, response.Data.Data.InstanceURL, "snow-lacework.com")
+		assert.Equal(t, response.Data.Data.IssueGrouping, "Events")
+	}
+}
+
+func TestAlertChannelServiceNowRestUpdate(t *testing.T) {
+	var (
+		intgGUID   = intgguid.New()
+		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
+		fakeServer = lacework.MockServer()
+	)
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "PATCH", r.Method, "UpdateServiceNowRest() should be a PATCH method")
+
+		if assert.NotNil(t, r.Body) {
+			body := httpBodySniffer(r)
+			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
+			assert.Contains(t, body, "integration_name", "alert channel name is missing")
+			assert.Contains(t, body, "ServiceNowRest", "wrong alert channel type")
+			assert.Contains(t, body, "snow-lacework.com", "missing service now instance url")
+			assert.Contains(t, body, "snow-user", "missing service now username")
+			assert.Contains(t, body, "snow-password", "missing service now password")
+			assert.Contains(t, body, "Events", "missing service now issue grouping")
+		}
+
+		fmt.Fprintf(w, generateAlertChannelResponse(singleServiceNowRestAlertChannel(intgGUID)))
+	})
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	serviceNowRestAlertChan := api.NewAlertChannel("integration_name",
+		api.ServiceNowRestAlertChannelType,
+		api.ServiceNowRestDataV2{
+			InstanceURL:   "snow-lacework.com",
+			Username:      "snow-user",
+			Password:      "snow-password",
+			IssueGrouping: "Events",
+		},
+	)
+	assert.Equal(t, "integration_name", serviceNowRestAlertChan.Name, "ServiceNowRest alert channel name mismatch")
+	assert.Equal(t, "ServiceNowRest", serviceNowRestAlertChan.Type, "a new ServiceNowRest alert channel should match its type")
+	assert.Equal(t, 1, serviceNowRestAlertChan.Enabled, "a new ServiceNowRest alert channel should be enabled")
+	serviceNowRestAlertChan.IntgGuid = intgGUID
+
+	response, err := c.V2.AlertChannels.UpdateServiceNowRest(serviceNowRestAlertChan)
+	if assert.NoError(t, err) {
+		assert.NotNil(t, response)
+		assert.Equal(t, intgGUID, response.Data.IntgGuid)
+		assert.True(t, response.Data.State.Ok)
+		assert.Contains(t, response.Data.Data.InstanceURL, "snow-lacework.com")
+		assert.Contains(t, response.Data.Data.Username, "snow-user")
+		assert.Contains(t, response.Data.Data.Password, "snow-password")
+		assert.Contains(t, response.Data.Data.IssueGrouping, "Events")
+	}
+}
+
+func singleServiceNowRestAlertChannel(id string) string {
+	return fmt.Sprintf(`
+{
+    "createdOrUpdatedBy": "salim.afiunemaya@lacework.net",
+    "createdOrUpdatedTime": "2021-06-01T18:10:40.745Z",
+    "data": {
+	  "instanceUrl": "snow-lacework.com",
+	  "userName": "snow-user",
+	  "password": "snow-password",
+	  "issueGrouping": "Events"
+    },
+    "enabled": 1,
+    "intgGuid": %q,
+    "isOrg": 0,
+    "name": "integration_name",
+    "state": {
+      "details": {},
+      "lastSuccessfulTime": 1627895573122,
+      "lastUpdatedTime": 1627895573122,
+      "ok": true
+    },
+    "type": "ServiceNowRest"
+}
+  `, id)
+}
