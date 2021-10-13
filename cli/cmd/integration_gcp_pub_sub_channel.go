@@ -87,22 +87,23 @@ func createGcpPubSubChannelIntegration() error {
 		return err
 	}
 
-	gcp := api.NewGcpPubSubAlertChannel(answers.Name,
-		api.GcpPubSubChannelData{
-			ProjectID:     answers.ProjectID,
-			TopicID:       answers.TopicID,
+	gcp := api.NewAlertChannel(answers.Name,
+		api.GcpPubSubAlertChannelType,
+		api.GcpPubSubDataV2{
+			ProjectId:     answers.ProjectID,
+			TopicId:       answers.TopicID,
 			IssueGrouping: answers.IssueGrouping,
-			Credentials: api.GcpCredentials{
-				ClientID:     answers.ClientID,
+			Credentials: api.GcpPubSubCredentials{
+				ClientId:     answers.ClientID,
 				ClientEmail:  answers.ClientEmail,
-				PrivateKeyID: answers.PrivateKeyID,
+				PrivateKeyId: answers.PrivateKeyID,
 				PrivateKey:   answers.PrivateKey,
 			},
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateGcpPubSubAlertChannel(gcp)
+	_, err = cli.LwApi.V2.AlertChannels.Create(gcp)
 	cli.StopProgress()
 	return err
 }
