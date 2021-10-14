@@ -69,7 +69,7 @@ func createServiceNowAlertChannelIntegration() error {
 		return err
 	}
 
-	snow := api.ServiceNowChannelData{
+	snow := api.ServiceNowRestDataV2{
 		InstanceURL:   answers.InstanceURL,
 		Username:      answers.Username,
 		Password:      answers.Password,
@@ -101,10 +101,12 @@ func createServiceNowAlertChannelIntegration() error {
 		snow.EncodeCustomTemplateFile(content)
 	}
 
-	snowAlert := api.NewServiceNowAlertChannel(answers.Name, snow)
+	snowAlert := api.NewAlertChannel(answers.Name,
+		api.ServiceNowRestAlertChannelType,
+		snow)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateServiceNowAlertChannel(snowAlert)
+	_, err = cli.LwApi.V2.AlertChannels.Create(snowAlert)
 	cli.StopProgress()
 	return err
 }
