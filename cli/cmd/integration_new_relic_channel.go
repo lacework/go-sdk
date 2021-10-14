@@ -56,15 +56,16 @@ func createNewRelicAlertChannelIntegration() error {
 		return err
 	}
 
-	relic := api.NewNewRelicAlertChannel(answers.Name,
-		api.NewRelicChannelData{
+	relic := api.NewAlertChannel(answers.Name,
+		api.NewRelicAlertChannelType,
+		api.NewRelicDataV2{
 			AccountID: answers.AccountID,
 			InsertKey: answers.InsertKey,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateNewRelicAlertChannel(relic)
+	_, err = cli.LwApi.V2.AlertChannels.Create(relic)
 	cli.StopProgress()
 	return err
 }
