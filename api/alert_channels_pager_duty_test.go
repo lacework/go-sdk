@@ -114,15 +114,15 @@ func TestAlertChannelPagerDutyUpdate(t *testing.T) {
 }
 
 func singlePagerDutyAlertChannel(id string) string {
-	return `
+	return fmt.Sprintf(`
 {
     "createdOrUpdatedBy": "salim.afiunemaya@lacework.net",
     "createdOrUpdatedTime": "2021-06-01T18:10:40.745Z",
     "data": {
-	  "apiIntgKey": "1234abc8901abc567abc123abc78e012",
+		"apiIntgKey": "1234abc8901abc567abc123abc78e012"
     },
     "enabled": 1,
-    "intgGuid": "` + id + `",
+    "intgGuid": %q,
     "isOrg": 0,
     "name": "integration_name",
     "state": {
@@ -131,7 +131,7 @@ func singlePagerDutyAlertChannel(id string) string {
       "lastUpdatedTime": 1627895573122,
       "ok": true
     },
-    "type": "PagerDutyApi"
+    "type": "ServiceNowRest"
 }
-  `
+  `, id)
 }
