@@ -73,10 +73,10 @@ const (
 //   alertRule := api.NewAlertRule(
 //		"Foo",
 //     api.AlertRule{
-//		 Description: "My Alert Rule"
-//       Severities: api.AlertRuleSeverities{api.AlertRuleSeverityHigh,
-//		 Channels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
-//		 ResourceGroups: []string{"TECHALLY_111111111111AAAAAAAAAAAAAAAAAAAA"}
+//		Description: "My Alert Rule"
+//		Severities: api.AlertRuleSeverities{api.AlertRuleSeverityHigh,
+//		Channels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
+//		ResourceGroups: []string{"TECHALLY_111111111111AAAAAAAAAAAAAAAAAAAA"}
 //       },
 //     },
 //   )
