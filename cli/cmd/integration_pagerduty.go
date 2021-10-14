@@ -50,14 +50,15 @@ func createPagerDutyAlertChannelIntegration() error {
 		return err
 	}
 
-	alert := api.NewPagerDutyAlertChannel(answers.Name,
-		api.PagerDutyData{
+	alert := api.NewAlertChannel(answers.Name,
+		api.PagerDutyAlertChannelType,
+		api.PagerDutyDataV2{
 			IntegrationKey: answers.Key,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreatePagerDutyAlertChannel(alert)
+	_, err = cli.LwApi.V2.AlertChannels.Create(alert)
 	cli.StopProgress()
 	return err
 }

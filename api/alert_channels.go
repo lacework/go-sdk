@@ -91,6 +91,7 @@ const (
 	MicrosoftTeamsAlertChannelType
 	SplunkHecAlertChannelType
 	ServiceNowRestAlertChannelType
+	PagerDutyAlertChannelType
 )
 
 // AlertChannelTypeTypes is the list of available Alert Channel integration types
@@ -107,6 +108,7 @@ var AlertChannelTypes = map[alertChannelType]string{
 	MicrosoftTeamsAlertChannelType:    "MicrosoftTeams",
 	SplunkHecAlertChannelType:         "SplunkHec",
 	ServiceNowRestAlertChannelType:    "ServiceNowRest",
+	PagerDutyAlertChannelType:         "PagerDutyApi",
 }
 
 // String returns the string representation of a Alert Channel integration type
