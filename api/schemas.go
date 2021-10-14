@@ -29,6 +29,7 @@ type integrationSchema int
 const (
 	None integrationSchema = iota
 	AlertChannels
+	AlertRules
 	ContainerRegistries
 	CloudAccounts
 	ResourceGroups
