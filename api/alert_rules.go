@@ -30,19 +30,11 @@ type AlertRulesService struct {
 	client *Client
 }
 
-type alertRuleType string
-
 type alertRuleSeverity int
 
 type AlertRuleSeverities []alertRuleSeverity
 
-// Alert Rule type is an enum in api v2, with only 1 supported value "Event"
-const AlertRuleEventType alertRuleType = "Event"
-
-// String returns the string representation of a Alert Rule integration type
-func (i alertRuleType) String() string {
-	return string(i)
-}
+const alertRuleEventType = "Event"
 
 func (sevs AlertRuleSeverities) toInt() []int {
 	var res []int
@@ -53,11 +45,11 @@ func (sevs AlertRuleSeverities) toInt() []int {
 }
 
 const (
-	AlertRuleSeverityCritical alertRuleSeverity = iota + 1
-	AlertRuleSeverityHigh
-	AlertRuleSeverityMedium
-	AlertRuleSeverityLow
-	AlertRuleSeverityInfo
+	AlertRuleSeverityCritical alertRuleSeverity = 1
+	AlertRuleSeverityHigh     alertRuleSeverity = 2
+	AlertRuleSeverityMedium   alertRuleSeverity = 3
+	AlertRuleSeverityLow      alertRuleSeverity = 4
+	AlertRuleSeverityInfo     alertRuleSeverity = 5
 )
 
 // NewAlertRule returns an instance of the AlertRuleData struct
@@ -72,7 +64,7 @@ const (
 //
 //   alertRule := api.NewAlertRule(
 //		"Foo",
-//     api.AlertRule{
+//		api.AlertRule{
 //		Description: "My Alert Rule"
 //		Severities: api.AlertRuleSeverities{api.AlertRuleSeverityHigh,
 //		Channels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
@@ -86,15 +78,14 @@ const (
 func NewAlertRule(name string, rule AlertRule) AlertRuleData {
 	return AlertRuleData{
 		Channels: rule.Channels,
-		Type:     AlertRuleEventType.String(),
+		Type:     alertRuleEventType,
 		Filter: AlertRuleFilter{
-			AlertRuleComputedData: AlertRuleComputedData{},
-			Name:                  name,
-			Enabled:               1,
-			Description:           rule.Description,
-			Severity:              rule.Severities.toInt(),
-			ResourceGroups:        rule.ResourceGroups,
-			EventCategories:       rule.EventCategories,
+			Name:            name,
+			Enabled:         1,
+			Description:     rule.Description,
+			Severity:        rule.Severities.toInt(),
+			ResourceGroups:  rule.ResourceGroups,
+			EventCategories: rule.EventCategories,
 		},
 	}
 }
@@ -110,7 +101,7 @@ func (svc *AlertRulesService) Create(rule AlertRuleData) (
 	response AlertRuleResponse,
 	err error,
 ) {
-	err = svc.create(rule, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiV2AlertRules, rule, &response)
 	return
 }
 
@@ -133,13 +124,22 @@ func (svc *AlertRulesService) Update(data AlertRuleData) (
 	response AlertRuleResponse,
 	err error,
 ) {
-	err = svc.update(data.Guid, data, &response)
+	if data.Guid == "" {
+		err = errors.New("specify a Guid")
+		return
+	}
+	apiPath := fmt.Sprintf(apiV2AlertRuleFromGUID, data.Guid)
+	err = svc.client.RequestEncoderDecoder("PATCH", apiPath, data, &response)
 	return
 }
 
 // Get returns a raw response of the Alert Rule with the matching guid.
 func (svc *AlertRulesService) Get(guid string, response interface{}) error {
-	return svc.get(guid, &response)
+	if guid == "" {
+		return errors.New("specify a Guid")
+	}
+	apiPath := fmt.Sprintf(apiV2AlertRuleFromGUID, guid)
+	return svc.client.RequestDecoder("GET", apiPath, nil, &response)
 }
 
 type AlertRule struct {
@@ -158,18 +158,14 @@ type AlertRuleData struct {
 }
 
 type AlertRuleFilter struct {
-	AlertRuleComputedData
-	Name            string   `json:"name"`
-	Enabled         int      `json:"enabled"`
-	Description     string   `json:"description,omitempty"`
-	Severity        []int    `json:"severity"`
-	ResourceGroups  []string `json:"resourceGroups,omitempty"`
-	EventCategories []string `json:"eventCategory,omitempty"`
-}
-
-type AlertRuleComputedData struct {
-	CreatedOrUpdatedTime string `json:"createdOrUpdatedTime,omitempty"`
-	CreatedOrUpdatedBy   string `json:"createdOrUpdatedBy,omitempty"`
+	Name                 string   `json:"name"`
+	Enabled              int      `json:"enabled"`
+	Description          string   `json:"description,omitempty"`
+	Severity             []int    `json:"severity"`
+	ResourceGroups       []string `json:"resourceGroups,omitempty"`
+	EventCategories      []string `json:"eventCategory,omitempty"`
+	CreatedOrUpdatedTime string   `json:"createdOrUpdatedTime,omitempty"`
+	CreatedOrUpdatedBy   string   `json:"createdOrUpdatedBy,omitempty"`
 }
 
 type AlertRuleResponse struct {
@@ -178,24 +174,4 @@ type AlertRuleResponse struct {
 
 type AlertRulesResponse struct {
 	Data []AlertRuleData `json:"data"`
-}
-
-func (svc *AlertRulesService) create(data interface{}, response interface{}) error {
-	return svc.client.RequestEncoderDecoder("POST", apiV2AlertRules, data, response)
-}
-
-func (svc *AlertRulesService) get(guid string, response interface{}) error {
-	if guid == "" {
-		return errors.New("specify a Guid")
-	}
-	apiPath := fmt.Sprintf(apiV2AlertRuleFromGUID, guid)
-	return svc.client.RequestDecoder("GET", apiPath, nil, response)
-}
-
-func (svc *AlertRulesService) update(guid string, data interface{}, response interface{}) error {
-	if guid == "" {
-		return errors.New("specify a Guid")
-	}
-	apiPath := fmt.Sprintf(apiV2AlertRuleFromGUID, guid)
-	return svc.client.RequestEncoderDecoder("PATCH", apiPath, data, response)
 }
