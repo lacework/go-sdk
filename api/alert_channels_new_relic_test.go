@@ -41,7 +41,7 @@ func TestAlertChannelsGetNewRelic(t *testing.T) {
 	defer fakeServer.Close()
 
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method, "GetNewRelic() should be a GET method")
+		assert.Equal(t, "GET", r.Method, "GetNewRelicInsights() should be a GET method")
 		fmt.Fprintf(w, generateAlertChannelResponse(singleNewRelicAlertChannel(intgGUID)))
 	})
 
@@ -52,7 +52,7 @@ func TestAlertChannelsGetNewRelic(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.AlertChannels.GetNewRelic(intgGUID)
+	response, err := c.V2.AlertChannels.GetNewRelicInsights(intgGUID)
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -74,15 +74,15 @@ func TestAlertChannelNewRelicUpdate(t *testing.T) {
 	defer fakeServer.Close()
 
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method, "UpdateNewRelic() should be a PATCH method")
+		assert.Equal(t, "PATCH", r.Method, "UpdateNewRelicInsights() should be a PATCH method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
 			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
 			assert.Contains(t, body, "integration_name", "alert channel name is missing")
 			assert.Contains(t, body, "NewRelicInsights", "wrong alert channel type")
-			assert.Contains(t, body, "2338053", "missing account id")
-			assert.Contains(t, body, "x-xx-xxxxxxxxxxxxxxxxxx", "missing insert key")
+			assert.Contains(t, body, "\"accountId\":2338053", "missing account id")
+			assert.Contains(t, body, "\"insertKey\":\"x-xx-xxxxxxxxxxxxxxxxxx\"", "missing insert key")
 		}
 
 		fmt.Fprintf(w, generateAlertChannelResponse(singleNewRelicAlertChannel(intgGUID)))
@@ -96,8 +96,8 @@ func TestAlertChannelNewRelicUpdate(t *testing.T) {
 	assert.Nil(t, err)
 
 	newRelicAlertChan := api.NewAlertChannel("integration_name",
-		api.NewRelicAlertChannelType,
-		api.NewRelicDataV2{
+		api.NewRelicInsightsAlertChannelType,
+		api.NewRelicInsightsDataV2{
 			AccountID: 2338053,
 			InsertKey: "x-xx-xxxxxxxxxxxxxxxxxx",
 		},
@@ -107,7 +107,7 @@ func TestAlertChannelNewRelicUpdate(t *testing.T) {
 	assert.Equal(t, 1, newRelicAlertChan.Enabled, "a new NewRelic alert channel should be enabled")
 	newRelicAlertChan.IntgGuid = intgGUID
 
-	response, err := c.V2.AlertChannels.UpdateNewRelic(newRelicAlertChan)
+	response, err := c.V2.AlertChannels.UpdateNewRelicInsights(newRelicAlertChan)
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -136,7 +136,7 @@ func singleNewRelicAlertChannel(id string) string {
       "lastUpdatedTime": 1627895573122,
       "ok": true
     },
-    "type": "ServiceNowRest"
+    "type": "NewRelicInsights"
 }
   `, id)
 }

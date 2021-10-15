@@ -73,7 +73,7 @@ func TestAlertChannelTypes(t *testing.T) {
 		"wrong alert channel type",
 	)
 	assert.Equal(t,
-		"NewRelicInsights", api.NewRelicAlertChannelType.String(),
+		"NewRelicInsights", api.NewRelicInsightsAlertChannelType.String(),
 		"wrong alert channel type",
 	)
 }
@@ -360,7 +360,7 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleSplunkAlertChannel(guid)
 		case api.ServiceNowRestAlertChannelType.String():
 			alertChannels[i] = singleServiceNowRestAlertChannel(guid)
-		case api.NewRelicAlertChannelType.String():
+		case api.NewRelicInsightsAlertChannelType.String():
 			alertChannels[i] = singleNewRelicAlertChannel(guid)
 		}
 	}

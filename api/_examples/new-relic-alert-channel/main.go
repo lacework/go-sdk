@@ -9,15 +9,17 @@ import (
 )
 
 func main() {
-	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"), api.WithApiV2(),
-		api.WithApiKeys(os.Getenv("LW_API_KEY"), os.Getenv("LW_API_SECRET")))
+	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"),
+		api.WithSubaccount(os.Getenv("LW_SUBACCOUNT")),
+		api.WithApiKeys(os.Getenv("LW_API_KEY"), os.Getenv("LW_API_SECRET")),
+		api.WithApiV2())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	myNewRelicChannel := api.NewAlertChannel("new-relic-alert-from-golang",
-		api.NewRelicAlertChannelType,
-		api.NewRelicDataV2{
+		api.NewRelicInsightsAlertChannelType,
+		api.NewRelicInsightsDataV2{
 			AccountID: 2338053,
 			InsertKey: "x-xx-xxxxxxxxxxxxxxxxxx",
 		},

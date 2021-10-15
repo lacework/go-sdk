@@ -18,35 +18,35 @@
 
 package api
 
-// GetNewRelic gets a single NewRelic alert channel matching the
+// GetNewRelicInsights gets a single NewRelic alert channel matching the
 // provided integration guid
-func (svc *AlertChannelsService) GetNewRelic(guid string) (
-	response NewRelicAlertChannelResponseV2,
+func (svc *AlertChannelsService) GetNewRelicInsights(guid string) (
+	response NewRelicInsightsAlertChannelResponseV2,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateNewRelic updates a single NewRelic integration on the Lacework Server
-func (svc *AlertChannelsService) UpdateNewRelic(data AlertChannel) (
-	response NewRelicAlertChannelResponseV2,
+// UpdateNewRelicInsights updates a single NewRelic integration on the Lacework Server
+func (svc *AlertChannelsService) UpdateNewRelicInsights(data AlertChannel) (
+	response NewRelicInsightsAlertChannelResponseV2,
 	err error,
 ) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type NewRelicAlertChannelResponseV2 struct {
-	Data NewRelicAlertChannelV2 `json:"data"`
+type NewRelicInsightsAlertChannelResponseV2 struct {
+	Data NewRelicInsightsAlertChannelV2 `json:"data"`
 }
 
-type NewRelicAlertChannelV2 struct {
+type NewRelicInsightsAlertChannelV2 struct {
 	v2CommonIntegrationData
-	Data NewRelicDataV2 `json:"data"`
+	Data NewRelicInsightsDataV2 `json:"data"`
 }
 
-type NewRelicDataV2 struct {
+type NewRelicInsightsDataV2 struct {
 	AccountID int    `json:"accountId"`
 	InsertKey string `json:"insertKey"`
 }

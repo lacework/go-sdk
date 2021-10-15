@@ -57,8 +57,8 @@ func createNewRelicAlertChannelIntegration() error {
 	}
 
 	relic := api.NewAlertChannel(answers.Name,
-		api.NewRelicAlertChannelType,
-		api.NewRelicDataV2{
+		api.NewRelicInsightsAlertChannelType,
+		api.NewRelicInsightsDataV2{
 			AccountID: answers.AccountID,
 			InsertKey: answers.InsertKey,
 		},
