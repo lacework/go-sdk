@@ -18,34 +18,34 @@
 
 package api
 
-// GetPagerDuty gets a single PagerDuty alert channel matching the
+// GetPagerDutyApi gets a single PagerDuty alert channel matching the
 // provided integration guid
-func (svc *AlertChannelsService) GetPagerDuty(guid string) (
-	response PagerDutyAlertChannelResponseV2,
+func (svc *AlertChannelsService) GetPagerDutyApi(guid string) (
+	response PagerDutyApiAlertChannelResponseV2,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdatePagerDuty updates a single PagerDuty integration on the Lacework Server
-func (svc *AlertChannelsService) UpdatePagerDuty(data AlertChannel) (
-	response PagerDutyAlertChannelResponseV2,
+// UpdatePagerDutyApi updates a single PagerDuty integration on the Lacework Server
+func (svc *AlertChannelsService) UpdatePagerDutyApi(data AlertChannel) (
+	response PagerDutyApiAlertChannelResponseV2,
 	err error,
 ) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type PagerDutyAlertChannelResponseV2 struct {
-	Data PagerDutyAlertChannelV2 `json:"data"`
+type PagerDutyApiAlertChannelResponseV2 struct {
+	Data PagerDutyApiAlertChannelV2 `json:"data"`
 }
 
-type PagerDutyAlertChannelV2 struct {
+type PagerDutyApiAlertChannelV2 struct {
 	v2CommonIntegrationData
-	Data PagerDutyDataV2 `json:"data"`
+	Data PagerDutyApiDataV2 `json:"data"`
 }
 
-type PagerDutyDataV2 struct {
+type PagerDutyApiDataV2 struct {
 	IntegrationKey string `json:"apiIntgKey"`
 }

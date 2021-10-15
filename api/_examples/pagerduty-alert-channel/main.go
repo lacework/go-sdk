@@ -9,15 +9,17 @@ import (
 )
 
 func main() {
-	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"), api.WithApiV2(),
-		api.WithApiKeys(os.Getenv("LW_API_KEY"), os.Getenv("LW_API_SECRET")))
+	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"),
+		api.WithSubaccount(os.Getenv("LW_SUBACCOUNT")),
+		api.WithApiKeys(os.Getenv("LW_API_KEY"), os.Getenv("LW_API_SECRET")),
+		api.WithApiV2())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	alert := api.NewAlertChannel("pagerduty-alert-from-golang",
-		api.PagerDutyAlertChannelType,
-		api.PagerDutyDataV2{
+		api.PagerDutyApiAlertChannelType,
+		api.PagerDutyApiDataV2{
 			IntegrationKey: "1234abc8901abc567abc123abc78e012",
 		},
 	)

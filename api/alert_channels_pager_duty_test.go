@@ -41,7 +41,7 @@ func TestAlertChannelsGetPagerDuty(t *testing.T) {
 	defer fakeServer.Close()
 
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method, "GetPagerDuty() should be a GET method")
+		assert.Equal(t, "GET", r.Method, "GetPagerDutyApi() should be a GET method")
 		fmt.Fprintf(w, generateAlertChannelResponse(singlePagerDutyAlertChannel(intgGUID)))
 	})
 
@@ -52,7 +52,7 @@ func TestAlertChannelsGetPagerDuty(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.AlertChannels.GetPagerDuty(intgGUID)
+	response, err := c.V2.AlertChannels.GetPagerDutyApi(intgGUID)
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -73,14 +73,14 @@ func TestAlertChannelPagerDutyUpdate(t *testing.T) {
 	defer fakeServer.Close()
 
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method, "UpdatePagerDuty() should be a PATCH method")
+		assert.Equal(t, "PATCH", r.Method, "UpdatePagerDutyApi() should be a PATCH method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)
 			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
 			assert.Contains(t, body, "integration_name", "alert channel name is missing")
 			assert.Contains(t, body, "PagerDutyApi", "wrong alert channel type")
-			assert.Contains(t, body, "1234abc8901abc567abc123abc78e012", "missing host url")
+			assert.Contains(t, body, "apiIntgKey\":\"1234abc8901abc567abc123abc78e012", "missing host url")
 		}
 
 		fmt.Fprintf(w, generateAlertChannelResponse(singlePagerDutyAlertChannel(intgGUID)))
@@ -94,8 +94,8 @@ func TestAlertChannelPagerDutyUpdate(t *testing.T) {
 	assert.Nil(t, err)
 
 	pagerDutyAlertChan := api.NewAlertChannel("integration_name",
-		api.PagerDutyAlertChannelType,
-		api.PagerDutyDataV2{
+		api.PagerDutyApiAlertChannelType,
+		api.PagerDutyApiDataV2{
 			IntegrationKey: "1234abc8901abc567abc123abc78e012",
 		},
 	)
@@ -104,7 +104,7 @@ func TestAlertChannelPagerDutyUpdate(t *testing.T) {
 	assert.Equal(t, 1, pagerDutyAlertChan.Enabled, "a new PagerDuty alert channel should be enabled")
 	pagerDutyAlertChan.IntgGuid = intgGUID
 
-	response, err := c.V2.AlertChannels.UpdatePagerDuty(pagerDutyAlertChan)
+	response, err := c.V2.AlertChannels.UpdatePagerDutyApi(pagerDutyAlertChan)
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -131,7 +131,7 @@ func singlePagerDutyAlertChannel(id string) string {
       "lastUpdatedTime": 1627895573122,
       "ok": true
     },
-    "type": "ServiceNowRest"
+    "type": "PagerDutyApi"
 }
   `, id)
 }

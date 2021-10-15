@@ -51,8 +51,8 @@ func createPagerDutyAlertChannelIntegration() error {
 	}
 
 	alert := api.NewAlertChannel(answers.Name,
-		api.PagerDutyAlertChannelType,
-		api.PagerDutyDataV2{
+		api.PagerDutyApiAlertChannelType,
+		api.PagerDutyApiDataV2{
 			IntegrationKey: answers.Key,
 		},
 	)

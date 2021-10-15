@@ -73,7 +73,7 @@ func TestAlertChannelTypes(t *testing.T) {
 		"wrong alert channel type",
 	)
 	assert.Equal(t,
-		"PagerDutyApi", api.PagerDutyAlertChannelType.String(),
+		"PagerDutyApi", api.PagerDutyApiAlertChannelType.String(),
 		"wrong alert channel type",
 	)
 }
@@ -360,7 +360,7 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleSplunkAlertChannel(guid)
 		case api.ServiceNowRestAlertChannelType.String():
 			alertChannels[i] = singleServiceNowRestAlertChannel(guid)
-		case api.PagerDutyAlertChannelType.String():
+		case api.PagerDutyApiAlertChannelType.String():
 			alertChannels[i] = singlePagerDutyAlertChannel(guid)
 		}
 	}
