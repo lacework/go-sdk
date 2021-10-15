@@ -65,6 +65,10 @@ func TestAlertChannelTypes(t *testing.T) {
 		"wrong alert channel type",
 	)
 	assert.Equal(t,
+		"GcpPubsub", api.GcpPubSubAlertChannelType.String(),
+		"wrong alert channel type",
+	)
+	assert.Equal(t,
 		"SplunkHec", api.SplunkHecAlertChannelType.String(),
 		"wrong alert channel type",
 	)
@@ -119,6 +123,10 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("MicrosoftTeams")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "MicrosoftTeams", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("GcpPubsub")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "GcpPubsub", alertFound.String(), "wrong alert channel type")
 
 	alertFound, found = api.FindAlertChannelType("SplunkHec")
 	assert.True(t, found, "alert channel type should exist")
@@ -272,6 +280,7 @@ func TestAlertChannelsList(t *testing.T) {
 		victorOpsAlertChan         = generateGuids(&allGUIDs, 2)
 		ciscoSparkWebhookAlertChan = generateGuids(&allGUIDs, 2)
 		microsoftTeamsAlertChan    = generateGuids(&allGUIDs, 2)
+		gcpPubSubAlertChan         = generateGuids(&allGUIDs, 2)
 		splunkHecAlertChan         = generateGuids(&allGUIDs, 2)
 		serviceNowRestAlertChan    = generateGuids(&allGUIDs, 2)
 		ibmQradarAlertChan         = generateGuids(&allGUIDs, 2)
@@ -294,6 +303,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(victorOpsAlertChan, "VictorOps"),
 				generateAlertChannels(ciscoSparkWebhookAlertChan, "CiscoSparkWebhook"),
 				generateAlertChannels(microsoftTeamsAlertChan, "MicrosoftTeams"),
+				generateAlertChannels(gcpPubSubAlertChan, "GcpPubsub"),
 				generateAlertChannels(splunkHecAlertChan, "SplunkHec"),
 				generateAlertChannels(serviceNowRestAlertChan, "ServiceNowRest"),
 				generateAlertChannels(ibmQradarAlertChan, "IbmQradar"),
@@ -356,6 +366,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleCiscoSparkWebhookAlertChannel(guid)
 		case api.MicrosoftTeamsAlertChannelType.String():
 			alertChannels[i] = singleMicrosoftTeamsAlertChannel(guid)
+		case api.GcpPubSubAlertChannelType.String():
+			alertChannels[i] = singleGcpPubSubAlertChannel(guid)
 		case api.SplunkHecAlertChannelType.String():
 			alertChannels[i] = singleSplunkAlertChannel(guid)
 		case api.ServiceNowRestAlertChannelType.String():
