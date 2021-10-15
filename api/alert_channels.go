@@ -91,6 +91,8 @@ const (
 	MicrosoftTeamsAlertChannelType
 	GcpPubSubAlertChannelType
 	SplunkHecAlertChannelType
+	ServiceNowRestAlertChannelType
+	IbmQRadarAlertChannelType
 )
 
 // AlertChannelTypes is the list of available Alert Channel integration types
@@ -107,6 +109,8 @@ var AlertChannelTypes = map[alertChannelType]string{
 	MicrosoftTeamsAlertChannelType:    "MicrosoftTeams",
 	GcpPubSubAlertChannelType:         "GcpPubsub",
 	SplunkHecAlertChannelType:         "SplunkHec",
+	ServiceNowRestAlertChannelType:    "ServiceNowRest",
+	IbmQRadarAlertChannelType:         "IbmQradar",
 }
 
 // String returns the string representation of a Alert Channel integration type
