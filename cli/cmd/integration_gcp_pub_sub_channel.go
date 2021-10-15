@@ -90,13 +90,13 @@ func createGcpPubSubChannelIntegration() error {
 	gcp := api.NewAlertChannel(answers.Name,
 		api.GcpPubSubAlertChannelType,
 		api.GcpPubSubDataV2{
-			ProjectId:     answers.ProjectID,
-			TopicId:       answers.TopicID,
+			ProjectID:     answers.ProjectID,
+			TopicID:       answers.TopicID,
 			IssueGrouping: answers.IssueGrouping,
 			Credentials: api.GcpPubSubCredentials{
-				ClientId:     answers.ClientID,
+				ClientID:     answers.ClientID,
 				ClientEmail:  answers.ClientEmail,
-				PrivateKeyId: answers.PrivateKeyID,
+				PrivateKeyID: answers.PrivateKeyID,
 				PrivateKey:   answers.PrivateKey,
 			},
 		},

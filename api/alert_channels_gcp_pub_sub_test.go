@@ -59,11 +59,11 @@ func TestAlertChannelsService_GetGcpPubSub(t *testing.T) {
 	assert.Equal(t, "integration_name", response.Data.Name)
 	assert.True(t, response.Data.State.Ok)
 	assert.Equal(t, "vatasha.white@lacework.net", response.Data.Data.Credentials.ClientEmail)
-	assert.Equal(t, "fake-client-id", response.Data.Data.Credentials.ClientId)
+	assert.Equal(t, "fake-client-id", response.Data.Data.Credentials.ClientID)
 	assert.Equal(t, "fake-private-key", response.Data.Data.Credentials.PrivateKey)
-	assert.Equal(t, "fake-private-key-id", response.Data.Data.Credentials.PrivateKeyId)
-	assert.Equal(t, "fake-project-id", response.Data.Data.ProjectId)
-	assert.Equal(t, "fake-topic-id", response.Data.Data.TopicId)
+	assert.Equal(t, "fake-private-key-id", response.Data.Data.Credentials.PrivateKeyID)
+	assert.Equal(t, "fake-project-id", response.Data.Data.ProjectID)
+	assert.Equal(t, "fake-topic-id", response.Data.Data.TopicID)
 	assert.Equal(t, "Events", response.Data.Data.IssueGrouping)
 }
 
@@ -109,13 +109,13 @@ func TestAlertChannelsService_UpdateGcpPubSub(t *testing.T) {
 		api.GcpPubSubDataV2{
 			Credentials: api.GcpPubSubCredentials{
 				ClientEmail:  "vatasha.white@lacework.net",
-				ClientId:     "fake-client-id",
+				ClientID:     "fake-client-id",
 				PrivateKey:   "fake-private-key",
-				PrivateKeyId: "fake-private-key-id",
+				PrivateKeyID: "fake-private-key-id",
 			},
 			IssueGrouping: "Events",
-			ProjectId:     "fake-project-id",
-			TopicId:       "fake-topic-id",
+			ProjectID:     "fake-project-id",
+			TopicID:       "fake-topic-id",
 		},
 	)
 	assert.Equal(t, "integration_name", gcpPubSubAlertChan.Name)

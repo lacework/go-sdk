@@ -18,13 +18,13 @@ func main() {
 	myGcpPubSubChannel := api.NewAlertChannel("gcp-pub-sub-alert-from-golang",
 		api.GcpPubSubAlertChannelType,
 		api.GcpPubSubDataV2{
-			ProjectId: "my-sample-project-191923",
-			TopicId:   "mytopic",
+			ProjectID: "my-sample-project-191923",
+			TopicID:   "mytopic",
 			Credentials: api.GcpPubSubCredentials{
-				ClientId:     "client_id",
+				ClientID:     "client_id",
 				ClientEmail:  "foo@example.iam.gserviceaccount.com",
 				PrivateKey:   "priv_key",
-				PrivateKeyId: "p_key_id",
+				PrivateKeyID: "p_key_id",
 			},
 		},
 	)

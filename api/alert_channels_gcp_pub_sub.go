@@ -33,8 +33,8 @@ func (svc *AlertChannelsService) UpdateGcpPubSub(data AlertChannel) (response Gc
 type GcpPubSubDataV2 struct {
 	Credentials   GcpPubSubCredentials `json:"credentials"`
 	IssueGrouping string               `json:"issueGrouping"`
-	ProjectId     string               `json:"projectId"`
-	TopicId       string               `json:"topicId"`
+	ProjectID     string               `json:"projectId"`
+	TopicID       string               `json:"topicId"`
 }
 
 type GcpPubSubAlertChannelV2 struct {
@@ -48,7 +48,7 @@ type GcpPubSubAlertChannelResponseV2 struct {
 
 type GcpPubSubCredentials struct {
 	ClientEmail  string `json:"clientEmail"`
-	ClientId     string `json:"clientId"`
+	ClientID     string `json:"clientId"`
 	PrivateKey   string `json:"privateKey"`
-	PrivateKeyId string `json:"privateKeyId"`
+	PrivateKeyID string `json:"privateKeyId"`
 }
