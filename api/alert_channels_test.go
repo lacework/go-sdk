@@ -78,9 +78,9 @@ func TestAlertChannelTypes(t *testing.T) {
 	)
 	assert.Equal(t,
 		"NewRelicInsights", api.NewRelicInsightsAlertChannelType.String(),
- 		"wrong alert channel type",
+		"wrong alert channel type",
 	)
- 	assert.Equal(t,
+	assert.Equal(t,
 		"PagerDutyApi", api.PagerDutyApiAlertChannelType.String(),
 		"wrong alert channel type",
 	)
@@ -148,7 +148,7 @@ func TestFindAlertChannelType(t *testing.T) {
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "NewRelicInsights", alertFound.String(), "wrong alert channel type")
 
-  alertFound, found = api.FindAlertChannelType("PagerDutyApi")
+	alertFound, found = api.FindAlertChannelType("PagerDutyApi")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "PagerDutyApi", alertFound.String(), "wrong alert channel type")
 
@@ -299,7 +299,7 @@ func TestAlertChannelsList(t *testing.T) {
 		gcpPubSubAlertChan         = generateGuids(&allGUIDs, 2)
 		splunkHecAlertChan         = generateGuids(&allGUIDs, 2)
 		serviceNowRestAlertChan    = generateGuids(&allGUIDs, 2)
-    newRelicInsightsAlertChan  = generateGuids(&allGUIDs, 2)
+		newRelicInsightsAlertChan  = generateGuids(&allGUIDs, 2)
 		pagerDutyApiAlertChan      = generateGuids(&allGUIDs, 2)
 		ibmQradarAlertChan         = generateGuids(&allGUIDs, 2)
 		expectedLen                = len(allGUIDs)
@@ -325,7 +325,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(splunkHecAlertChan, "SplunkHec"),
 				generateAlertChannels(serviceNowRestAlertChan, "ServiceNowRest"),
 				generateAlertChannels(pagerDutyApiAlertChan, "PagerDutyApi"),
-        generateAlertChannels(newRelicInsightsAlertChan, "NewRelicInsights"),
+				generateAlertChannels(newRelicInsightsAlertChan, "NewRelicInsights"),
 				generateAlertChannels(ibmQradarAlertChan, "IbmQradar"),
 			}
 			fmt.Fprintf(w,
