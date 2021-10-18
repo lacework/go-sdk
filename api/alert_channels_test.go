@@ -80,8 +80,8 @@ func TestAlertChannelTypes(t *testing.T) {
 		"PagerDutyApi", api.PagerDutyApiAlertChannelType.String(),
 		"wrong alert channel type",
 	)
-  assert.Equal(t,
-    "IbmQradar", api.IbmQRadarAlertChannelType.String(),
+	assert.Equal(t,
+		"IbmQradar", api.IbmQRadarAlertChannelType.String(),
 		"wrong alert channel type",
 	)
 }
@@ -144,7 +144,7 @@ func TestFindAlertChannelType(t *testing.T) {
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "PagerDutyApi", alertFound.String(), "wrong alert channel type")
 
-  alertFound, found = api.FindAlertChannelType("IbmQradar")
+	alertFound, found = api.FindAlertChannelType("IbmQradar")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "IbmQradar", alertFound.String(), "wrong alert channel type")
 }
@@ -291,7 +291,7 @@ func TestAlertChannelsList(t *testing.T) {
 		gcpPubSubAlertChan         = generateGuids(&allGUIDs, 2)
 		splunkHecAlertChan         = generateGuids(&allGUIDs, 2)
 		serviceNowRestAlertChan    = generateGuids(&allGUIDs, 2)
-    pagerDutyApiAlertChan      = generateGuids(&allGUIDs, 2)
+		pagerDutyApiAlertChan      = generateGuids(&allGUIDs, 2)
 		ibmQradarAlertChan         = generateGuids(&allGUIDs, 2)
 		expectedLen                = len(allGUIDs)
 		fakeServer                 = lacework.MockServer()
@@ -315,7 +315,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(gcpPubSubAlertChan, "GcpPubsub"),
 				generateAlertChannels(splunkHecAlertChan, "SplunkHec"),
 				generateAlertChannels(serviceNowRestAlertChan, "ServiceNowRest"),
-        generateAlertChannels(pagerDutyApiAlertChan, "PagerDutyApi"),
+				generateAlertChannels(pagerDutyApiAlertChan, "PagerDutyApi"),
 				generateAlertChannels(ibmQradarAlertChan, "IbmQradar"),
 			}
 			fmt.Fprintf(w,
