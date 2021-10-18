@@ -92,6 +92,7 @@ const (
 	GcpPubSubAlertChannelType
 	SplunkHecAlertChannelType
 	ServiceNowRestAlertChannelType
+	PagerDutyApiAlertChannelType
 	IbmQRadarAlertChannelType
 )
 
@@ -110,6 +111,7 @@ var AlertChannelTypes = map[alertChannelType]string{
 	GcpPubSubAlertChannelType:         "GcpPubsub",
 	SplunkHecAlertChannelType:         "SplunkHec",
 	ServiceNowRestAlertChannelType:    "ServiceNowRest",
+	PagerDutyApiAlertChannelType:      "PagerDutyApi",
 	IbmQRadarAlertChannelType:         "IbmQradar",
 }
 
