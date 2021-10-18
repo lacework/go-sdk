@@ -229,7 +229,7 @@ func TestAlertRuleUpdate(t *testing.T) {
 	assert.Nil(t, err)
 
 	alertRule := api.NewAlertRule("rule_name",
-		api.AlertRule{
+		api.AlertRuleConfig{
 			Channels:        []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
 			Description:     "This is a test alert rule",
 			Severities:      api.AlertRuleSeverities{api.AlertRuleSeverityHigh},

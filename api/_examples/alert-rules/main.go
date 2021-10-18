@@ -26,7 +26,7 @@ func main() {
 	for _, rule := range res.Data {
 		support := "Unsupported"
 		switch rule.Type {
-		case api.AlertRuleEventType.String():
+		case api.AlertRuleEventType:
 			support = "Supported"
 		}
 
@@ -34,7 +34,7 @@ func main() {
 		fmt.Printf("%s:%s:%s\n", rule.Guid, rule.Type, support)
 	}
 
-	rule := api.AlertRule{
+	rule := api.AlertRuleConfig{
 		Channels:        []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
 		Description:     "This is a test alert rule",
 		Severities:      api.AlertRuleSeverities{api.AlertRuleSeverityHigh},

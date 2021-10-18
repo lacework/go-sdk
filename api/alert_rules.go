@@ -34,7 +34,7 @@ type alertRuleSeverity int
 
 type AlertRuleSeverities []alertRuleSeverity
 
-const alertRuleEventType = "Event"
+const AlertRuleEventType = "Event"
 
 func (sevs AlertRuleSeverities) toInt() []int {
 	var res []int
@@ -52,9 +52,9 @@ const (
 	AlertRuleSeverityInfo     alertRuleSeverity = 5
 )
 
-// NewAlertRule returns an instance of the AlertRuleData struct
+// NewAlertRule returns an instance of the AlertRule struct
 //
-// Basic usage: Initialize a new AlertRuleData struct, then
+// Basic usage: Initialize a new AlertRule struct, then
 //              use the new instance to do CRUD operations
 //
 //   client, err := api.NewClient("account")
@@ -64,7 +64,7 @@ const (
 //
 //   alertRule := api.NewAlertRule(
 //		"Foo",
-//		api.AlertRule{
+//		api.AlertRuleConfig{
 //		Description: "My Alert Rule"
 //		Severities: api.AlertRuleSeverities{api.AlertRuleSeverityHigh,
 //		Channels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
@@ -75,10 +75,10 @@ const (
 //
 //   client.V2.AlertRules.Create(alertRule)
 //
-func NewAlertRule(name string, rule AlertRule) AlertRuleData {
-	return AlertRuleData{
+func NewAlertRule(name string, rule AlertRuleConfig) AlertRule {
+	return AlertRule{
 		Channels: rule.Channels,
-		Type:     alertRuleEventType,
+		Type:     AlertRuleEventType,
 		Filter: AlertRuleFilter{
 			Name:            name,
 			Enabled:         1,
@@ -97,7 +97,7 @@ func (svc *AlertRulesService) List() (response AlertRulesResponse, err error) {
 }
 
 // Create creates a single Alert Rule
-func (svc *AlertRulesService) Create(rule AlertRuleData) (
+func (svc *AlertRulesService) Create(rule AlertRule) (
 	response AlertRuleResponse,
 	err error,
 ) {
@@ -120,7 +120,7 @@ func (svc *AlertRulesService) Delete(guid string) error {
 }
 
 // Update updates a single Alert Rule of the provided guid.
-func (svc *AlertRulesService) Update(data AlertRuleData) (
+func (svc *AlertRulesService) Update(data AlertRule) (
 	response AlertRuleResponse,
 	err error,
 ) {
@@ -142,7 +142,7 @@ func (svc *AlertRulesService) Get(guid string, response interface{}) error {
 	return svc.client.RequestDecoder("GET", apiPath, nil, &response)
 }
 
-type AlertRule struct {
+type AlertRuleConfig struct {
 	Channels        []string
 	Description     string
 	Severities      AlertRuleSeverities
@@ -150,7 +150,7 @@ type AlertRule struct {
 	EventCategories []string
 }
 
-type AlertRuleData struct {
+type AlertRule struct {
 	Guid     string          `json:"mcGuid,omitempty"`
 	Type     string          `json:"type"`
 	Channels []string        `json:"intgGuidList"`
@@ -169,9 +169,9 @@ type AlertRuleFilter struct {
 }
 
 type AlertRuleResponse struct {
-	Data AlertRuleData `json:"data"`
+	Data AlertRule `json:"data"`
 }
 
 type AlertRulesResponse struct {
-	Data []AlertRuleData `json:"data"`
+	Data []AlertRule `json:"data"`
 }
