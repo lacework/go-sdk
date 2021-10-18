@@ -77,6 +77,10 @@ func TestAlertChannelTypes(t *testing.T) {
 		"wrong alert channel type",
 	)
 	assert.Equal(t,
+		"NewRelicInsights", api.NewRelicInsightsAlertChannelType.String(),
+		"wrong alert channel type",
+	)
+	assert.Equal(t,
 		"PagerDutyApi", api.PagerDutyApiAlertChannelType.String(),
 		"wrong alert channel type",
 	)
@@ -139,6 +143,10 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("ServiceNowRest")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "ServiceNowRest", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("NewRelicInsights")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "NewRelicInsights", alertFound.String(), "wrong alert channel type")
 
 	alertFound, found = api.FindAlertChannelType("PagerDutyApi")
 	assert.True(t, found, "alert channel type should exist")
@@ -291,6 +299,7 @@ func TestAlertChannelsList(t *testing.T) {
 		gcpPubSubAlertChan         = generateGuids(&allGUIDs, 2)
 		splunkHecAlertChan         = generateGuids(&allGUIDs, 2)
 		serviceNowRestAlertChan    = generateGuids(&allGUIDs, 2)
+		newRelicInsightsAlertChan  = generateGuids(&allGUIDs, 2)
 		pagerDutyApiAlertChan      = generateGuids(&allGUIDs, 2)
 		ibmQradarAlertChan         = generateGuids(&allGUIDs, 2)
 		expectedLen                = len(allGUIDs)
@@ -316,6 +325,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(splunkHecAlertChan, "SplunkHec"),
 				generateAlertChannels(serviceNowRestAlertChan, "ServiceNowRest"),
 				generateAlertChannels(pagerDutyApiAlertChan, "PagerDutyApi"),
+				generateAlertChannels(newRelicInsightsAlertChan, "NewRelicInsights"),
 				generateAlertChannels(ibmQradarAlertChan, "IbmQradar"),
 			}
 			fmt.Fprintf(w,
@@ -382,6 +392,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singleSplunkAlertChannel(guid)
 		case api.ServiceNowRestAlertChannelType.String():
 			alertChannels[i] = singleServiceNowRestAlertChannel(guid)
+		case api.NewRelicInsightsAlertChannelType.String():
+			alertChannels[i] = singleNewRelicAlertChannel(guid)
 		case api.PagerDutyApiAlertChannelType.String():
 			alertChannels[i] = singlePagerDutyAlertChannel(guid)
 		case api.IbmQRadarAlertChannelType.String():
