@@ -78,7 +78,7 @@ type AlertChannel interface {
 type alertChannelType int
 
 const (
-	// type that defines a non-existing Alert Channel integration
+	// NoneAlertChannelType type that defines a non-existing Alert Channel integration
 	NoneAlertChannelType alertChannelType = iota
 	EmailUserAlertChannelType
 	SlackChannelAlertChannelType
@@ -89,12 +89,14 @@ const (
 	VictorOpsAlertChannelType
 	CiscoSparkWebhookAlertChannelType
 	MicrosoftTeamsAlertChannelType
+	GcpPubSubAlertChannelType
 	SplunkHecAlertChannelType
 	ServiceNowRestAlertChannelType
 	PagerDutyApiAlertChannelType
+	IbmQRadarAlertChannelType
 )
 
-// AlertChannelTypeTypes is the list of available Alert Channel integration types
+// AlertChannelTypes is the list of available Alert Channel integration types
 var AlertChannelTypes = map[alertChannelType]string{
 	NoneAlertChannelType:              "None",
 	EmailUserAlertChannelType:         "EmailUser",
@@ -106,9 +108,11 @@ var AlertChannelTypes = map[alertChannelType]string{
 	VictorOpsAlertChannelType:         "VictorOps",
 	CiscoSparkWebhookAlertChannelType: "CiscoSparkWebhook",
 	MicrosoftTeamsAlertChannelType:    "MicrosoftTeams",
+	GcpPubSubAlertChannelType:         "GcpPubsub",
 	SplunkHecAlertChannelType:         "SplunkHec",
 	ServiceNowRestAlertChannelType:    "ServiceNowRest",
 	PagerDutyApiAlertChannelType:      "PagerDutyApi",
+	IbmQRadarAlertChannelType:         "IbmQradar",
 }
 
 // String returns the string representation of a Alert Channel integration type
