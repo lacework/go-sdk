@@ -51,7 +51,7 @@ type SplunkHecDataV2 struct {
 	Channel   string               `json:"channel,omitempty"`
 	Host      string               `json:"host"`
 	Port      int                  `json:"port"`
-	Ssl       bool                 `json:"ssl,omitempty"`
+	Ssl       bool                 `json:"ssl"`
 	EventData SplunkHecEventDataV2 `json:"eventData"`
 }
 
