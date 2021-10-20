@@ -1,4 +1,3 @@
-//go:build query
 // +build query
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
