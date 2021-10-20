@@ -1,3 +1,4 @@
+//go:build query
 // +build query
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
@@ -40,8 +41,6 @@ func TestQueryListSourcesAliases(t *testing.T) {
 }
 
 func TestQueryListSourcesTable(t *testing.T) {
-	t.Skip("skipping test due to unavailable api")
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources")
 	assert.Contains(t, out.String(), "DATASOURCE")
 	assert.Contains(t, out.String(), "CloudTrailRawEvents")
@@ -50,8 +49,6 @@ func TestQueryListSourcesTable(t *testing.T) {
 }
 
 func TestQueryListSourcesJSON(t *testing.T) {
-	t.Skip("skipping test due to unavailable api")
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources", "--json")
 	assert.Contains(t, out.String(), "[")
 	assert.Contains(t, out.String(), `"CloudTrailRawEvents"`)
@@ -80,8 +77,6 @@ func TestQueryShowSourceNoInput(t *testing.T) {
 }
 
 func TestQueryShowSourceTable(t *testing.T) {
-	t.Skip("skipping test due to unavailable api")
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents")
 	assert.Contains(t, out.String(), "FIELD NAME")
 	assert.Contains(t, out.String(), "INSERT_ID")
@@ -90,8 +85,6 @@ func TestQueryShowSourceTable(t *testing.T) {
 }
 
 func TestQueryShowSourceJSON(t *testing.T) {
-	t.Skip("skipping test due to unavailable api")
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents", "--json")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
