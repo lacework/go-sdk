@@ -27,7 +27,7 @@ import (
 
 var (
 	queryListSourcesCmd = &cobra.Command{
-		Hidden:  true, // api to be exposed for 4.31
+		Hidden:  false,
 		Aliases: []string{"sources"},
 		Use:     "list-sources",
 		Short:   "list Lacework query data sources",
@@ -37,7 +37,7 @@ var (
 	}
 
 	queryShowSourceCmd = &cobra.Command{
-		Hidden:  true, // api to be exposed for 4.31
+		Hidden:  false,
 		Aliases: []string{"describe"},
 		Use:     "show-source <datasource_id>",
 		Short:   "show Lacework query data source",
