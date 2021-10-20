@@ -32,7 +32,7 @@ lacework compliance aws get-report <account_id> [flags]
       --service strings    filter report details by service (aws:s3, aws:iam, aws:cloudtrail, ...)
       --severity string    filter report details by severity threshold (critical, high, medium, low, info)
       --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
-      --type string        report type to display, supported types: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI (default "CIS")
+      --type string        report type to display, supported types: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI (default "CIS")
 ```
 
 ### Options inherited from parent commands

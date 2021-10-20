@@ -27,7 +27,7 @@ lacework compliance google get-report <organization_id> <project_id> [flags]
       --service strings    filter report details by service (gcp:storage:bucket, gcp:kms:cryptoKey, gcp:project, ...)
       --severity string    filter report details by severity threshold (critical, high, medium, low, info)
       --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
-      --type string        report type to display, supported types: CIS, SOC, or PCI (default "CIS")
+      --type string        report type to display, supported types: CIS, CIS12, K8S, HIPAA, SOC, or PCI (default "CIS")
 ```
 
 ### Options inherited from parent commands
