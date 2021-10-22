@@ -1,30 +1,26 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.17.0`.
+Another day, another release. These are the release notes for the version `v0.18.0`.
 
 ## Features
-* feat(api): Migrate VictorOps alert channel to V2 (#573) (Darren)([6bc3b88](https://github.com/lacework/go-sdk/commit/6bc3b881ab72d5d767ae54fe5b9c14dc9dc0a17a))
-* feat(api): Webhook alert channel(v2) (#565) (Darren)([06915a0](https://github.com/lacework/go-sdk/commit/06915a0271330abfedce23606f04c5a1cf16a077))
-* feat(api): Cloudwatch alert channel(v2) (#562) (Vatasha)([d0c9be7](https://github.com/lacework/go-sdk/commit/d0c9be752ec6a2552cc7abd18acfa39fbca2f5c6))
-* feat(api): Datadog alert channel(v2) (#570) (Vatasha)([3135b95](https://github.com/lacework/go-sdk/commit/3135b955ebbfe5d1a68d1328c01b900f413a1db9))
+* feat(cli): unhiding query "sources" cmd (hazedav)([4e2513f](https://github.com/lacework/go-sdk/commit/4e2513fc3ccd4f4b9818378c98f771df9f3a4546))
+* feat(api): Alert Rules v2 service (#583) (Darren)([a549a8c](https://github.com/lacework/go-sdk/commit/a549a8c501e00a42be879d38197fc13a4984c914))
+* feat(cli): Migrate New Relic alert channel to API v2 (#586) (Darren)([6f32767](https://github.com/lacework/go-sdk/commit/6f327671b19e221859bff761e495ba696279bb61))
+* feat(cli): Migrate Pager Duty alert channel to API v2 (#585) (Darren)([68be1ec](https://github.com/lacework/go-sdk/commit/68be1eccbce846810ec35ece9819f99b1c73d5e9))
+* feat(api): Migrate GCP Pub Sub alert channel to API v2 (#581) (vatasha)([7847d3b](https://github.com/lacework/go-sdk/commit/7847d3bddcaf7e2f8174684f25588559db4cdb37))
+* feat(cli): Migrate Ibm QRadar alert channel to API v2 (#584) (Darren)([b2a0cde](https://github.com/lacework/go-sdk/commit/b2a0cde29e8f6400934d9ac4dc40fab4fe1ef513))
+* feat(api): Migrate Service Now alert channel to API v2 (#582) (Darren)([692c8e5](https://github.com/lacework/go-sdk/commit/692c8e58650ed98891cd9202ea273400f51744b3))
+* feat: Migrate Splunk alert channel to V2 (#580) (Darren)([c0c422b](https://github.com/lacework/go-sdk/commit/c0c422b71b7893958c0641c7d75b2401546bfee5))
+* feat(cli): Add support for new GCP and AWS compliance reports (#579) (iancrichardson)([1de409b](https://github.com/lacework/go-sdk/commit/1de409b0aaaa9d20b8b882f04db5dae679157f07))
+* feat(cli): adding lql query data sources (hazedav)([8828823](https://github.com/lacework/go-sdk/commit/882882383471db9b32076e047d9d00ab3d0a37c7))
+* feat(api): Microsoft Teams alert channel APIv2 (Salim Afiune Maya)([57b318e](https://github.com/lacework/go-sdk/commit/57b318e102749c5bd34901f595424671b61c0b1e))
+* feat(api): Migrate Cisco Spark Webhook alert channel to API v2 (#577) (vatasha)([9481999](https://github.com/lacework/go-sdk/commit/9481999f2faeabde3a9085601f5fbfdfee17531c))
 ## Refactor
-* refactor(cli): use APIv2 to create Datadog integrations + update api/examples (#571) (vatasha)([9d6ea0e](https://github.com/lacework/go-sdk/commit/9d6ea0eba0fc34ef594fac141d55cded3b0d7ea6))
+* refactor(cli): create Microsoft Teams alert channels via APIv2 (Salim Afiune Maya)([74372b8](https://github.com/lacework/go-sdk/commit/74372b8ba1303eeb259799b3d080c0329fb34253))
 ## Bug Fixes
-* fix(cli): disable cache mechanism in install.sh (#563) (Salim Afiune)([0ccd32e](https://github.com/lacework/go-sdk/commit/0ccd32e682e99eda369121c97eb7d6c695ddc9e8))
-* fix:Add issue grouping field to cloudwatch alert channel data (#566) (vatasha)([1e93e91](https://github.com/lacework/go-sdk/commit/1e93e91beb7a0cd95c49b211486b1ae032a0b2ae))
-* fix(cli): install.ps1 avoid fail for False boolean (#564) (Larry Eichenbaum)([32604df](https://github.com/lacework/go-sdk/commit/32604df46c095bf8efa28dcc1b32c0fef14b1e16))
-## Documentation Updates
-* docs: improve developer guidelines (Salim Afiune Maya)([80f8e9e](https://github.com/lacework/go-sdk/commit/80f8e9e2f62ce0a567883824eb2105866ddb274a))
-* docs: add signed commits documentation (Salim Afiune Maya)([b8b6325](https://github.com/lacework/go-sdk/commit/b8b63257de8a8ae2c7b0fc6b4fa7711eaa87ff70))
-* docs: fix broken link in CONTRIBUTING.md (Salim Afiune Maya)([92a4d0c](https://github.com/lacework/go-sdk/commit/92a4d0cfcdd208305f1c4b3c321cd6639fd5dda1))
-* docs: improve pull request template (Salim Afiune Maya)([967f9d6](https://github.com/lacework/go-sdk/commit/967f9d6d642b563b043ed0b6207ed09374d86523))
+* fix: Splunk ssl (#587) (Darren)([eab94cf](https://github.com/lacework/go-sdk/commit/eab94cf33b16b48cb7fb3146c2aa903a7ae37d7e))
 ## Other Changes
-* chore(deps): bump go.uber.org/zap from 1.19.0 to 1.19.1 (#568) (dependabot[bot])([3f4a1f2](https://github.com/lacework/go-sdk/commit/3f4a1f2e07e9fd4c3009e2dcc6d0a8309f53fe23))
-* chore(deps): bump github.com/fatih/color from 1.12.0 to 1.13.0 (#556) (dependabot[bot])([bf79562](https://github.com/lacework/go-sdk/commit/bf7956236a1e9dcdc1a7cdb891da57918d510471))
-* chore(deps): bump github.com/honeycombio/libhoney-go (#557) (dependabot[bot])([39fa065](https://github.com/lacework/go-sdk/commit/39fa065c3f46449c2033311b89eebe036f994769))
-* chore(deps): bump github.com/spf13/viper from 1.8.1 to 1.9.0 (#553) (dependabot[bot])([bf4a39a](https://github.com/lacework/go-sdk/commit/bf4a39a802daa8e017d141f7a101afb03427ebb1))
-* chore(deps): bump github.com/mitchellh/mapstructure from 1.4.1 to 1.4.2 (#552) (dependabot[bot])([649c729](https://github.com/lacework/go-sdk/commit/649c729f37f5067cda2ecac55deac1a32c0ec6a6))
-* ci: fix downgrading of go packages (#575) (vatasha)([1a816c9](https://github.com/lacework/go-sdk/commit/1a816c9f8b7d47831326b3344d94072ff8350c6c))
-* ci: version bump to v0.16.1-dev (Lacework)([bb5caa0](https://github.com/lacework/go-sdk/commit/bb5caa057d2ae5515aebbaf2a6d9ec2247f1e4ea))
+* style: rename TeamsUrl in favor of TeamsURL (Salim Afiune Maya)([bd46e0d](https://github.com/lacework/go-sdk/commit/bd46e0d46c37017834fcd6521ade92d28cb0f9f9))
+* ci: version bump to v0.17.1-dev (Lacework)([9df310c](https://github.com/lacework/go-sdk/commit/9df310c0a20d97b79ecfdf4c6ffe520b87456d93))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
