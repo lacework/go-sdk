@@ -88,6 +88,10 @@ func TestAlertChannelTypes(t *testing.T) {
 		"IbmQradar", api.IbmQRadarAlertChannelType.String(),
 		"wrong alert channel type",
 	)
+	assert.Equal(t,
+		"Jira", api.JiraAlertChannelType.String(),
+		"wrong alert channel type",
+	)
 }
 
 func TestFindAlertChannelType(t *testing.T) {
@@ -155,6 +159,10 @@ func TestFindAlertChannelType(t *testing.T) {
 	alertFound, found = api.FindAlertChannelType("IbmQradar")
 	assert.True(t, found, "alert channel type should exist")
 	assert.Equal(t, "IbmQradar", alertFound.String(), "wrong alert channel type")
+
+	alertFound, found = api.FindAlertChannelType("Jira")
+	assert.True(t, found, "alert channel type should exist")
+	assert.Equal(t, "Jira", alertFound.String(), "wrong alert channel type")
 }
 
 func TestAlertChannelsGet(t *testing.T) {
@@ -302,6 +310,7 @@ func TestAlertChannelsList(t *testing.T) {
 		newRelicInsightsAlertChan  = generateGuids(&allGUIDs, 2)
 		pagerDutyApiAlertChan      = generateGuids(&allGUIDs, 2)
 		ibmQradarAlertChan         = generateGuids(&allGUIDs, 2)
+		jiraAlertChan              = generateGuids(&allGUIDs, 2)
 		expectedLen                = len(allGUIDs)
 		fakeServer                 = lacework.MockServer()
 	)
@@ -327,6 +336,7 @@ func TestAlertChannelsList(t *testing.T) {
 				generateAlertChannels(pagerDutyApiAlertChan, "PagerDutyApi"),
 				generateAlertChannels(newRelicInsightsAlertChan, "NewRelicInsights"),
 				generateAlertChannels(ibmQradarAlertChan, "IbmQradar"),
+				generateAlertChannels(jiraAlertChan, "Jira"),
 			}
 			fmt.Fprintf(w,
 				generateAlertChannelsResponse(
@@ -398,6 +408,8 @@ func generateAlertChannels(guids []string, iType string) string {
 			alertChannels[i] = singlePagerDutyAlertChannel(guid)
 		case api.IbmQRadarAlertChannelType.String():
 			alertChannels[i] = singleIbmQRadarAlertChannel(guid)
+		case api.JiraAlertChannelType.String():
+			alertChannels[i] = singleJiraCloudAlertChannel(guid)
 		}
 	}
 	return strings.Join(alertChannels, ", ")

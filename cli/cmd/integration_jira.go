@@ -76,12 +76,13 @@ func createJiraCloudAlertChannelIntegration() error {
 		return err
 	}
 
-	jira := api.JiraAlertChannelData{
-		JiraUrl:   answers.Url,
+	jira := api.JiraDataV2{
+		ApiToken:  answers.Token,
 		IssueType: answers.Issue,
+		JiraType:  api.JiraCloudAlertType,
+		JiraUrl:   answers.Url,
 		ProjectID: answers.Project,
 		Username:  answers.Username,
-		ApiToken:  answers.Token,
 	}
 
 	// ask the user if they would like to configure a Custom Template
@@ -109,8 +110,12 @@ func createJiraCloudAlertChannelIntegration() error {
 		jira.EncodeCustomTemplateFile(content)
 	}
 
-	jiraAlert := api.NewJiraCloudAlertChannel(answers.Name, jira)
-	return createJiraAlertChannelIntegration(jiraAlert)
+	jiraCloudAlertChan := api.NewAlertChannel(answers.Name, api.JiraAlertChannelType, jira)
+
+	cli.StartProgress(" Creating integration...")
+	_, err = cli.LwApi.V2.AlertChannels.Create(jiraCloudAlertChan)
+	cli.StopProgress()
+	return err
 }
 
 func createJiraServerAlertChannelIntegration() error {
@@ -156,6 +161,7 @@ func createJiraServerAlertChannelIntegration() error {
 	}
 
 	jira := api.JiraAlertChannelData{
+		JiraType:  api.JiraServerAlertType,
 		JiraUrl:   answers.Url,
 		IssueType: answers.Issue,
 		ProjectID: answers.Project,
@@ -190,13 +196,9 @@ func createJiraServerAlertChannelIntegration() error {
 		}
 	}
 
-	jiraAlert := api.NewJiraServerAlertChannel(answers.Name, jira)
-	return createJiraAlertChannelIntegration(jiraAlert)
-}
-
-func createJiraAlertChannelIntegration(jira api.JiraAlertChannel) error {
+	jiraServerAlertChan := api.NewAlertChannel(answers.Name, api.JiraAlertChannelType, jira)
 	cli.StartProgress(" Creating integration...")
-	_, err := cli.LwApi.Integrations.CreateJiraAlertChannel(jira)
+	_, err = cli.LwApi.V2.AlertChannels.Create(jiraServerAlertChan)
 	cli.StopProgress()
 	return err
 }
