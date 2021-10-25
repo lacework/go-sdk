@@ -38,7 +38,7 @@ func (svc *AlertChannelsService) UpdateJira(data AlertChannel) (response JiraAle
 
 type JiraDataV2 struct {
 	ApiToken           string `json:"apiToken,omitempty"` // used for Jira Cloud
-	CustomTemplateFile string `json:"customTemplateFile"`
+	CustomTemplateFile string `json:"customTemplateFile,omitempty"`
 	IssueGrouping      string `json:"issueGrouping,omitempty"`
 	IssueType          string `json:"issueType"`
 	JiraType           string `json:"jiraType"`
