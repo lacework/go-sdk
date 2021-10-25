@@ -79,7 +79,7 @@ const (
 	AlertRuleSeverityMedium   alertRuleSeverity = 3
 	AlertRuleSeverityLow      alertRuleSeverity = 4
 	AlertRuleSeverityInfo     alertRuleSeverity = 5
-	AlertRuleSeverityUnknown  alertRuleSeverity = 6
+	AlertRuleSeverityUnknown  alertRuleSeverity = 0
 )
 
 // NewAlertRule returns an instance of the AlertRule struct
