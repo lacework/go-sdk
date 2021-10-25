@@ -20,6 +20,7 @@ package api
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -44,12 +45,41 @@ func (sevs AlertRuleSeverities) toInt() []int {
 	return res
 }
 
+func NewAlertRuleSeverities(sevSlice []string) AlertRuleSeverities {
+	var res AlertRuleSeverities
+	for _, i := range sevSlice {
+		sev := convertSeverity(i)
+		if sev != AlertRuleSeverityUnknown {
+			res = append(res, sev)
+		}
+	}
+	return res
+}
+
+func convertSeverity(sev string) alertRuleSeverity {
+	switch strings.ToLower(sev) {
+	case "critical":
+		return AlertRuleSeverityCritical
+	case "high":
+		return AlertRuleSeverityHigh
+	case "medium":
+		return AlertRuleSeverityMedium
+	case "low":
+		return AlertRuleSeverityLow
+	case "info":
+		return AlertRuleSeverityInfo
+	default:
+		return AlertRuleSeverityUnknown
+	}
+}
+
 const (
 	AlertRuleSeverityCritical alertRuleSeverity = 1
 	AlertRuleSeverityHigh     alertRuleSeverity = 2
 	AlertRuleSeverityMedium   alertRuleSeverity = 3
 	AlertRuleSeverityLow      alertRuleSeverity = 4
 	AlertRuleSeverityInfo     alertRuleSeverity = 5
+	AlertRuleSeverityUnknown  alertRuleSeverity = 6
 )
 
 // NewAlertRule returns an instance of the AlertRule struct
