@@ -252,6 +252,26 @@ func TestAlertRuleUpdate(t *testing.T) {
 	}
 }
 
+func TestAlertRuleSeveritiesFromIntSlice(t *testing.T) {
+	var (
+		sevInts            = []int{1, 2, 55, 0, -1, 4}
+		expectedSeverities = api.AlertRuleSeverities{api.AlertRuleSeverityCritical, api.AlertRuleSeverityHigh, api.AlertRuleSeverityLow}
+	)
+
+	severities := api.NewAlertRuleSeveritiesFromIntSlice(sevInts)
+	assert.Equal(t, expectedSeverities, severities)
+}
+
+func TestAlertRuleSeveritiesToString(t *testing.T) {
+	var (
+		sevInts                 = []int{1, 2, 55, 0, -1, 4}
+		expectedSeverityStrings = []string{"Critical", "High", "Low"}
+	)
+
+	severityStrings := api.NewAlertRuleSeveritiesFromIntSlice(sevInts).ToStringSlice()
+	assert.Equal(t, expectedSeverityStrings, severityStrings)
+}
+
 func generateAlertRules(guids []string) string {
 	alertRules := make([]string, len(guids))
 	for i, guid := range guids {
