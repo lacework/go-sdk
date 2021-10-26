@@ -185,11 +185,11 @@ func complianceReportSummaryTable(summaries []api.ComplianceSummary) [][]string 
 	}
 	summary := summaries[0]
 	return [][]string{
-		[]string{"Critical", fmt.Sprint(summary.NumSeverity1NonCompliance)},
-		[]string{"High", fmt.Sprint(summary.NumSeverity2NonCompliance)},
-		[]string{"Medium", fmt.Sprint(summary.NumSeverity3NonCompliance)},
-		[]string{"Low", fmt.Sprint(summary.NumSeverity4NonCompliance)},
-		[]string{"Info", fmt.Sprint(summary.NumSeverity5NonCompliance)},
+		{"Critical", fmt.Sprint(summary.NumSeverity1NonCompliance)},
+		{"High", fmt.Sprint(summary.NumSeverity2NonCompliance)},
+		{"Medium", fmt.Sprint(summary.NumSeverity3NonCompliance)},
+		{"Low", fmt.Sprint(summary.NumSeverity4NonCompliance)},
+		{"Info", fmt.Sprint(summary.NumSeverity5NonCompliance)},
 	}
 }
 
@@ -202,7 +202,7 @@ func complianceReportRecommendationsTable(recommendations []api.ComplianceRecomm
 			recommend.Status,
 			recommend.SeverityString(),
 			recommend.Service,
-			fmt.Sprint(recommend.ResourceCount),
+			fmt.Sprint(len(recommend.Violations)),
 			fmt.Sprint(recommend.AssessedResourceCount),
 		})
 	}
