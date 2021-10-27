@@ -1,3 +1,4 @@
+//go:build query || policy
 // +build query policy
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
@@ -20,10 +21,14 @@
 package integration
 
 const (
-	evaluatorID       string = "Cloudtrail"
-	queryID           string = "LW_CLI_AWS_CTA_IntegrationTest"
-	queryText         string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID } }"
-	queryUpdateText   string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
+	evaluatorID     string = "Cloudtrail"
+	queryID         string = "LW_CLI_AWS_CTA_IntegrationTest"
+	queryText       string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID } }"
+	queryUpdateText string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
+
+	queryHostID   string = "LW_CLI_Host_File_IntegrationTest"
+	queryHostText string = "LW_CLI_Host_File_IntegrationTest { source { LW_HE_FILES } return { PATH } }"
+
 	queryJSONTemplate string = `{
 	"evaluatorID": "%s",
 	"queryID": "%s",

@@ -63,6 +63,24 @@ func TestQueryValidateFile(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
+func TestQueryValidateHost(t *testing.T) {
+	// get temp file
+	file, err := createTemporaryFile(
+		"TestQueryValidateHost",
+		fmt.Sprintf(queryJSONTemplate, "", queryHostID, queryHostText))
+	if err != nil {
+		t.FailNow()
+	}
+	defer os.Remove(file.Name())
+
+	// validate_only
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
+		"query", "validate", "-f", file.Name())
+	assert.Contains(t, out.String(), "Query validated successfully.")
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
 func TestQueryValidateURL(t *testing.T) {
 	// validate
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-u", queryURL)

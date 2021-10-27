@@ -29,7 +29,7 @@ import (
 
 type ExecuteQuery struct {
 	QueryText   string `json:"queryText"`
-	EvaluatorID string `json:"evaluatorId"`
+	EvaluatorID string `json:"evaluatorId,omitempty"`
 }
 
 type ExecuteQueryArgument struct {
