@@ -1,4 +1,3 @@
-//go:build query || policy
 // +build query policy
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
