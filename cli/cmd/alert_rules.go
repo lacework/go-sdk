@@ -34,7 +34,7 @@ import (
 var (
 	// alert-rules command is used to manage lacework alert rules
 	alertRulesCommand = &cobra.Command{
-		Use:     "alert-rules",
+		Use:     "alert-rule",
 		Aliases: []string{"alert-rules", "ar"},
 		Short:   "manage alert rules",
 		Long:    "Manage routing events to channels using alert rules.",
@@ -69,10 +69,7 @@ Then navigate to Settings > Alert Rules.
 				return nil
 			}
 			if cli.JSONOutput() {
-				jsonOut := struct {
-					AlertRules []api.AlertRule `json:"alertRules"`
-				}{AlertRules: alertRules.Data}
-				return cli.OutputJSON(jsonOut)
+				return cli.OutputJSON(alertRules)
 			}
 
 			var rows [][]string
@@ -96,15 +93,12 @@ Then navigate to Settings > Alert Rules.
 			if err != nil {
 				return errors.Wrap(err, "unable to get alert rule")
 			}
-			alertRule := response.Data
 
 			if cli.JSONOutput() {
-				jsonOut := struct {
-					AlertRule api.AlertRule `json:"alertRule"`
-				}{AlertRule: alertRule}
-				return cli.OutputJSON(jsonOut)
+				return cli.OutputJSON(response)
 			}
 
+			alertRule := response.Data
 			var headers [][]string
 			headers = append(headers, []string{alertRule.Guid, alertRule.Filter.Name, alertRule.Filter.Description, alertRule.Filter.Status()})
 
@@ -173,16 +167,15 @@ func buildAlertRuleDetailsTable(rule api.AlertRule) string {
 	if nano, err := strconv.ParseInt(rule.Filter.CreatedOrUpdatedTime, 10, 64); err == nil {
 		updatedTime = time.Unix(nano/1000, 0).Format(time.RFC3339)
 	}
-
-	details = append(details, []string{"CHANNELS", strings.Join(rule.Channels, ",")})
-	details = append(details, []string{"SEVERITIES", strings.Join(severities, ",")})
-	details = append(details, []string{"EVENT CATEGORIES", strings.Join(rule.Filter.EventCategories, ",")})
-	details = append(details, []string{"RESOURCE GROUPS", strings.Join(rule.Filter.ResourceGroups, ",")})
+	details = append(details, []string{"SEVERITIES", strings.Join(severities, ", ")})
+	details = append(details, []string{"EVENT CATEGORIES", strings.Join(rule.Filter.EventCategories, ", ")})
 	details = append(details, []string{"DESCRIPTION", rule.Filter.Description})
 	details = append(details, []string{"UPDATED BY", rule.Filter.CreatedOrUpdatedBy})
 	details = append(details, []string{"LAST UPDATED", updatedTime})
+	IDsList := [][]string{{strings.Join(rule.Channels, "\n")}, {strings.Join(rule.Filter.ResourceGroups, "\n")}}
 
-	return renderOneLineCustomTable("ALERT RULE DETAILS",
+	detailsTable := &strings.Builder{}
+	detailsTable.WriteString(renderOneLineCustomTable("ALERT RULE DETAILS",
 		renderCustomTable([]string{}, details,
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetBorder(false)
@@ -195,7 +188,18 @@ func buildAlertRuleDetailsTable(rule api.AlertRule) string {
 			t.SetBorder(false)
 			t.SetAutoWrapText(false)
 		}),
+	),
 	)
+
+	detailsTable.WriteString(renderCustomTable([]string{"CHANNELS", "RESOURCE GROUPS"}, IDsList,
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetColumnSeparator(" ")
+		}),
+	),
+	)
+
+	return detailsTable.String()
 }
 
 func promptCreateAlertRule() (api.AlertRuleResponse, error) {
@@ -293,7 +297,7 @@ func getAlertChannels() ([]string, map[string]string) {
 	}
 	var items = make(map[string]string)
 	for _, i := range response.Data {
-		displayName := fmt.Sprintf("%s - %s", i.Name, i.ID())
+		displayName := fmt.Sprintf("%s - %s", i.ID(), i.Name)
 		channels = append(channels, displayName)
 		items[displayName] = i.ID()
 	}
@@ -310,7 +314,7 @@ func getResourceGroups() ([]string, map[string]string) {
 	}
 	var items = make(map[string]string)
 	for _, i := range response.Data {
-		displayName := fmt.Sprintf("%s - %s", i.Name, i.ID())
+		displayName := fmt.Sprintf("%s - %s", i.ID(), i.Name)
 		groups = append(groups, displayName)
 		items[displayName] = i.ID()
 	}
@@ -342,5 +346,5 @@ func promptAddResourceGroupsToAlertRule() ([]string, map[string]string) {
 		}
 		return groups, groupMap
 	}
-
+	return nil, nil
 }
