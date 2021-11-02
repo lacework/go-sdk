@@ -129,7 +129,7 @@ type ContainerResourceGroupProps struct {
 	ContainerLabels []map[string]string `json:"containerLabels"`
 	ContainerTags   []string            `json:"containerTags"`
 	UpdatedBy       string              `json:"updatedBy,omitempty"`
-	LastUpdated     *lwtime.Epoch        `json:"lastUpdated,omitempty"`
+	LastUpdated     *lwtime.Epoch       `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
@@ -138,7 +138,7 @@ type ContainerResourceJsonStringGroupProps struct {
 	ContainerLabels []map[string]string `json:"CONTAINER_LABELS"`
 	ContainerTags   []string            `json:"CONTAINER_TAGS"`
 	UpdatedBy       string              `json:"UPDATED_BY,omitempty"`
-	LastUpdated     *lwtime.Epoch        `json:"LAST_UPDATED,omitempty"`
+	LastUpdated     *lwtime.Epoch       `json:"LAST_UPDATED,omitempty"`
 }
 
 func (props ContainerResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {
