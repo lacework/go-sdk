@@ -1,0 +1,14 @@
+---
+evaluatorId:
+queryId: LW_CLI_Host_Files_IntegrationTest
+queryText: |-
+  --- This query produces a web (github) hosted object for "lacework query" integration testing
+  --- Specifically: TestPolicyCreateHost
+  LW_CLI_Host_Files_IntegrationTest {
+      source {
+          LW_HE_FILES
+      }
+      return {
+          PATH
+      }
+  }
