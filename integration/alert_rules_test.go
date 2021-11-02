@@ -82,9 +82,9 @@ func TestAlertRulesJsonOutput(t *testing.T) {
 
 func createAlertRuleWithSlackAlertChannel() (alertRule api.AlertRuleResponse, err error) {
 	var slackChannel string
-	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"),
-		api.WithSubaccount(os.Getenv("LW_SUBACCOUNT")),
-		api.WithApiKeys(os.Getenv("LW_API_KEY"), os.Getenv("LW_API_SECRET")),
+	lacework, err := api.NewClient(os.Getenv("CI_V2_ACCOUNT"),
+		api.WithSubaccount(os.Getenv("CI_ACCOUNT")),
+		api.WithApiKeys(os.Getenv("CI_API_KEY"), os.Getenv("CI_API_SECRET")),
 		api.WithApiV2(),
 	)
 	if err != nil {
