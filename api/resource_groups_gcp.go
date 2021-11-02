@@ -138,3 +138,28 @@ type GcpResourceGroupJsonStringProps struct {
 	UpdatedBy    string       `json:"UPDATED_BY,omitempty"`
 	LastUpdated  lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
 }
+
+func (props GcpResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {
+	return ResourceGroupPropsBase{
+		Description: props.Description,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated,
+	}
+}
+
+func (props GcpResourceGroupProps) MarshalJSON() ([]byte, error) {
+	res := struct {
+		Description  string   `json:"description,omitempty"`
+		Organization string   `json:"organization"`
+		Projects     []string `json:"projects"`
+		UpdatedBy    string   `json:"updatedBy,omitempty"`
+		LastUpdated  string   `json:"lastUpdated,omitempty"`
+	}{
+		Description:  props.Description,
+		Organization: props.Organization,
+		Projects:     props.Projects,
+		UpdatedBy:    props.UpdatedBy,
+		LastUpdated:  props.LastUpdated.String(),
+	}
+	return json.Marshal(&res)
+}

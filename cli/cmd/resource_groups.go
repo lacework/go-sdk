@@ -24,7 +24,6 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwtime"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -70,6 +69,7 @@ Then navigate to Settings > Resource Groups.
 
 			groups := make([]resourceGroup, 0)
 			for _, g := range resourceGroups.Data {
+				props, _ := parsePropsType(g)
 
 				groups = append(groups, resourceGroup{
 					Id:        g.ResourceGuid,
@@ -78,6 +78,7 @@ Then navigate to Settings > Resource Groups.
 					status:    g.Status(),
 					Enabled:   g.Enabled,
 					IsDefault: g.IsDefault,
+					Props:     props,
 				})
 			}
 
@@ -110,7 +111,7 @@ Then navigate to Settings > Resource Groups.
 				return errors.Wrap(err, "unable to get resource group")
 			}
 
-			props, _ := parsePropsType(response)
+			props, _ := parsePropsType(response.Data)
 
 			group := resourceGroup{
 				Id:        response.Data.ResourceGuid,
@@ -177,10 +178,10 @@ Then navigate to Settings > Resource Groups.
 )
 
 // parsePropsType converts props json string to interface of resource group props type
-func parsePropsType(response api.ResourceGroupResponse) (interface{}, error) {
-	propsString := response.Data.Props.(string)
+func parsePropsType(response api.ResourceGroupData) (api.ResourceGroupProps, error) {
+	propsString := response.Props.(string)
 
-	switch response.Data.Type {
+	switch response.Type {
 	case api.AwsResourceGroup.String():
 		return unmarshallAwsPropString([]byte(propsString))
 	case api.AzureResourceGroup.String():
@@ -195,7 +196,6 @@ func parsePropsType(response api.ResourceGroupResponse) (interface{}, error) {
 		return unmarshallMachinePropString([]byte(propsString))
 	}
 	return nil, errors.New("Unable to determine resource group props type")
-
 }
 
 func promptCreateResourceGroup() error {
@@ -255,12 +255,12 @@ func buildResourceGroupPropsTable(group resourceGroup) string {
 	)
 }
 
-func determineResourceGroupProps(resType string, props interface{}) [][]string {
+func determineResourceGroupProps(resType string, props api.ResourceGroupProps) [][]string {
 	propsString, err := json.Marshal(props)
 	if err != nil {
 		return [][]string{}
 	}
-	details := setBaseProps(propsString)
+	details := setBaseProps(props)
 
 	switch resType {
 	case api.AwsResourceGroup.String():
@@ -280,20 +280,14 @@ func determineResourceGroupProps(resType string, props interface{}) [][]string {
 	return details
 }
 
-func setBaseProps(props []byte) [][]string {
+func setBaseProps(props api.ResourceGroupProps) [][]string {
 	var (
-		baseProps resourceGroupPropsBase
-		details   [][]string
+		details [][]string
 	)
-
-	err := json.Unmarshal(props, &baseProps)
-	if err != nil {
-		return [][]string{}
-	}
-
-	details = append(details, []string{"DESCRIPTION", baseProps.Description})
-	details = append(details, []string{"UPDATED BY", baseProps.UpdatedBy})
-	details = append(details, []string{"LAST UPDATED", baseProps.LastUpdated.String()})
+	lastUpdated := props.GetBaseProps().LastUpdated
+	details = append(details, []string{"DESCRIPTION", props.GetBaseProps().Description})
+	details = append(details, []string{"UPDATED BY", props.GetBaseProps().UpdatedBy})
+	details = append(details, []string{"LAST UPDATED", lastUpdated.String()})
 	return details
 }
 
@@ -316,17 +310,11 @@ func IsDefault(isDefault int) string {
 }
 
 type resourceGroup struct {
-	Id        string      `json:"resource_guid"`
-	ResType   string      `json:"type"`
-	Name      string      `json:"name"`
-	Props     interface{} `json:"props"`
-	Enabled   int         `json:"enabled"`
-	IsDefault int         `json:"isDefault"`
+	Id        string                 `json:"resource_guid"`
+	ResType   string                 `json:"type"`
+	Name      string                 `json:"name"`
+	Props     api.ResourceGroupProps `json:"props"`
+	Enabled   int                    `json:"enabled"`
+	IsDefault int                    `json:"isDefault"`
 	status    string
-}
-
-type resourceGroupPropsBase struct {
-	Description string       `json:"description"`
-	UpdatedBy   string       `json:"updatedBy,omitempty"`
-	LastUpdated lwtime.Epoch `json:"lastUpdated,omitempty"`
 }

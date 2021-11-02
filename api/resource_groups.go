@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
 )
 
@@ -30,6 +31,16 @@ import (
 // the ResourceGroups schema from the Lacework APIv2 Server
 type ResourceGroupsService struct {
 	client *Client
+}
+
+type ResourceGroupProps interface {
+	GetBaseProps() ResourceGroupPropsBase
+}
+
+type ResourceGroupPropsBase struct {
+	Description string       `json:"description"`
+	UpdatedBy   string       `json:"updatedBy,omitempty"`
+	LastUpdated lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 type ResourceGroup interface {

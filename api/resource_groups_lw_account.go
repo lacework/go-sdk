@@ -136,3 +136,26 @@ type LwAccountResourceGroupJsonStringProps struct {
 	UpdatedBy   string       `json:"UPDATED_BY,omitempty"`
 	LastUpdated lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
 }
+
+func (props LwAccountResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {
+	return ResourceGroupPropsBase{
+		Description: props.Description,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated,
+	}
+}
+
+func (props LwAccountResourceGroupProps) MarshalJSON() ([]byte, error) {
+	res := struct {
+		Description string   `json:"description,omitempty"`
+		LwAccounts  []string `json:"lwAccounts"`
+		UpdatedBy   string   `json:"updatedBy,omitempty"`
+		LastUpdated string   `json:"lastUpdated,omitempty"`
+	}{
+		Description: props.Description,
+		LwAccounts:  props.LwAccounts,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated.String(),
+	}
+	return json.Marshal(&res)
+}

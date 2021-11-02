@@ -134,3 +134,26 @@ type AwsResourceJsonStringGroupProps struct {
 	UpdatedBy   string       `json:"UPDATED_BY,omitempty"`
 	LastUpdated lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
 }
+
+func (props AwsResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {
+	return ResourceGroupPropsBase{
+		Description: props.Description,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated,
+	}
+}
+
+func (props AwsResourceGroupProps) MarshalJSON() ([]byte, error) {
+	res := struct {
+		Description string   `json:"description,omitempty"`
+		AccountIDs  []string `json:"accountIds"`
+		UpdatedBy   string   `json:"updatedBy,omitempty"`
+		LastUpdated string   `json:"lastUpdated,omitempty"`
+	}{
+		Description: props.Description,
+		AccountIDs:  props.AccountIDs,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated.String(),
+	}
+	return json.Marshal(&res)
+}

@@ -140,3 +140,28 @@ type ContainerResourceJsonStringGroupProps struct {
 	UpdatedBy       string              `json:"UPDATED_BY,omitempty"`
 	LastUpdated     lwtime.Epoch        `json:"LAST_UPDATED,omitempty"`
 }
+
+func (props ContainerResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {
+	return ResourceGroupPropsBase{
+		Description: props.Description,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated,
+	}
+}
+
+func (props ContainerResourceGroupProps) MarshalJSON() ([]byte, error) {
+	res := struct {
+		Description     string              `json:"description,omitempty"`
+		ContainerLabels []map[string]string `json:"containerLabels"`
+		ContainerTags   []string            `json:"containerTags"`
+		UpdatedBy       string              `json:"updatedBy,omitempty"`
+		LastUpdated     string              `json:"lastUpdated,omitempty"`
+	}{
+		Description:     props.Description,
+		ContainerLabels: props.ContainerLabels,
+		ContainerTags:   props.ContainerTags,
+		UpdatedBy:       props.UpdatedBy,
+		LastUpdated:     props.LastUpdated.String(),
+	}
+	return json.Marshal(&res)
+}
