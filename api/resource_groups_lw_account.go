@@ -126,7 +126,7 @@ type LwAccountResourceGroupProps struct {
 	Description string       `json:"description,omitempty"`
 	LwAccounts  []string     `json:"lwAccounts"`
 	UpdatedBy   string       `json:"updatedBy,omitempty"`
-	LastUpdated lwtime.Epoch `json:"lastUpdated,omitempty"`
+	LastUpdated *lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
@@ -134,7 +134,7 @@ type LwAccountResourceGroupJsonStringProps struct {
 	Description string       `json:"DESCRIPTION,omitempty"`
 	LwAccounts  []string     `json:"LW_ACCOUNTS"`
 	UpdatedBy   string       `json:"UPDATED_BY,omitempty"`
-	LastUpdated lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
+	LastUpdated *lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
 }
 
 func (props LwAccountResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {

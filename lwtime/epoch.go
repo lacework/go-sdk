@@ -34,5 +34,8 @@ func (epoch Epoch) UTC() time.Time {
 }
 
 func (epoch *Epoch) String() string {
-	return epoch.UTC().Format(time.RFC3339)
+	if epoch != nil {
+		return epoch.UTC().Format(time.RFC3339)
+	}
+	return ""
 }

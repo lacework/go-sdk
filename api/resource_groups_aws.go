@@ -124,7 +124,7 @@ type AwsResourceGroupProps struct {
 	Description string       `json:"description,omitempty"`
 	AccountIDs  []string     `json:"accountIds"`
 	UpdatedBy   string       `json:"updatedBy,omitempty"`
-	LastUpdated lwtime.Epoch `json:"lastUpdated,omitempty"`
+	LastUpdated *lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
@@ -132,7 +132,7 @@ type AwsResourceJsonStringGroupProps struct {
 	Description string       `json:"DESCRIPTION,omitempty"`
 	AccountIDs  []string     `json:"ACCOUNT_IDS"`
 	UpdatedBy   string       `json:"UPDATED_BY,omitempty"`
-	LastUpdated lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
+	LastUpdated *lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
 }
 
 func (props AwsResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {

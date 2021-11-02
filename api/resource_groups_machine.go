@@ -126,7 +126,7 @@ type MachineResourceGroupProps struct {
 	Description string              `json:"description,omitempty"`
 	MachineTags []map[string]string `json:"machineTags"`
 	UpdatedBy   string              `json:"updatedBy,omitempty"`
-	LastUpdated lwtime.Epoch        `json:"lastUpdated,omitempty"`
+	LastUpdated *lwtime.Epoch        `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
@@ -134,7 +134,7 @@ type MachineResourceGroupJsonStringProps struct {
 	Description string              `json:"DESCRIPTION,omitempty"`
 	MachineTags []map[string]string `json:"MACHINE_TAGS"`
 	UpdatedBy   string              `json:"UPDATED_BY,omitempty"`
-	LastUpdated lwtime.Epoch        `json:"LAST_UPDATED,omitempty"`
+	LastUpdated *lwtime.Epoch        `json:"LAST_UPDATED,omitempty"`
 }
 
 func (props MachineResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {

@@ -129,7 +129,7 @@ type AzureResourceGroupProps struct {
 	Tenant        string       `json:"tenant"`
 	Subscriptions []string     `json:"subscriptions"`
 	UpdatedBy     string       `json:"updatedBy,omitempty"`
-	LastUpdated   lwtime.Epoch `json:"lastUpdated,omitempty"`
+	LastUpdated   *lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
@@ -138,7 +138,7 @@ type AzureResourceJsonStringGroupProps struct {
 	Tenant        string       `json:"TENANT"`
 	Subscriptions []string     `json:"SUBSCRIPTIONS"`
 	UpdatedBy     string       `json:"UPDATED_BY,omitempty"`
-	LastUpdated   lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
+	LastUpdated   *lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
 }
 
 func (props AzureResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {

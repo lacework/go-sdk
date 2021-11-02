@@ -40,7 +40,7 @@ type ResourceGroupProps interface {
 type ResourceGroupPropsBase struct {
 	Description string       `json:"description"`
 	UpdatedBy   string       `json:"updatedBy,omitempty"`
-	LastUpdated lwtime.Epoch `json:"lastUpdated,omitempty"`
+	LastUpdated *lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 type ResourceGroup interface {

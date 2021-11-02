@@ -127,7 +127,7 @@ type GcpResourceGroupProps struct {
 	Organization string       `json:"organization"`
 	Projects     []string     `json:"projects"`
 	UpdatedBy    string       `json:"updatedBy,omitempty"`
-	LastUpdated  lwtime.Epoch `json:"lastUpdated,omitempty"`
+	LastUpdated  *lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
@@ -136,7 +136,7 @@ type GcpResourceGroupJsonStringProps struct {
 	Organization string       `json:"ORGANIZATION"`
 	Projects     []string     `json:"PROJECTS"`
 	UpdatedBy    string       `json:"UPDATED_BY,omitempty"`
-	LastUpdated  lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
+	LastUpdated  *lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
 }
 
 func (props GcpResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {
