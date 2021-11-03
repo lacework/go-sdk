@@ -22,6 +22,7 @@ package integration
 const (
 	evaluatorID       string = "Cloudtrail"
 	queryID           string = "LW_CLI_AWS_CTA_IntegrationTest"
+	queryHostID       string = "LW_CLI_Host_Files_IntegrationTest"
 	queryText         string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID } }"
 	queryUpdateText   string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
 	queryJSONTemplate string = `{
@@ -29,5 +30,6 @@ const (
 	"queryID": "%s",
 	"queryText": "%s"
 }`
-	queryURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/LW_CLI_AWS_CTA_IntegrationTest.yaml"
+	queryURL     string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/LW_CLI_AWS_CTA_IntegrationTest.yaml"
+	queryHostURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/LW_CLI_Host_Files_IntegrationTest.yaml"
 )
