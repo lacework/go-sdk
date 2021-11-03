@@ -24,12 +24,24 @@ import (
 	"strconv"
 
 	"github.com/pkg/errors"
+
+	"github.com/lacework/go-sdk/lwtime"
 )
 
 // ResourceGroupsService is the service that interacts with
 // the ResourceGroups schema from the Lacework APIv2 Server
 type ResourceGroupsService struct {
 	client *Client
+}
+
+type ResourceGroupProps interface {
+	GetBaseProps() ResourceGroupPropsBase
+}
+
+type ResourceGroupPropsBase struct {
+	Description string        `json:"description"`
+	UpdatedBy   string        `json:"updatedBy,omitempty"`
+	LastUpdated *lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 type ResourceGroup interface {

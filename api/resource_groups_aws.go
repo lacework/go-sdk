@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
 )
 
@@ -120,16 +121,39 @@ type AwsResourceGroupData struct {
 }
 
 type AwsResourceGroupProps struct {
-	Description string   `json:"description,omitempty"`
-	AccountIDs  []string `json:"accountIds"`
-	UpdatedBy   string   `json:"updatedBy,omitempty"`
-	LastUpdated int      `json:"lastUpdated,omitempty"`
+	Description string        `json:"description,omitempty"`
+	AccountIDs  []string      `json:"accountIds"`
+	UpdatedBy   string        `json:"updatedBy,omitempty"`
+	LastUpdated *lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
 type AwsResourceJsonStringGroupProps struct {
-	Description string   `json:"DESCRIPTION,omitempty"`
-	AccountIDs  []string `json:"ACCOUNT_IDS"`
-	UpdatedBy   string   `json:"UPDATED_BY,omitempty"`
-	LastUpdated int      `json:"LAST_UPDATED,omitempty"`
+	Description string        `json:"DESCRIPTION,omitempty"`
+	AccountIDs  []string      `json:"ACCOUNT_IDS"`
+	UpdatedBy   string        `json:"UPDATED_BY,omitempty"`
+	LastUpdated *lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
+}
+
+func (props AwsResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {
+	return ResourceGroupPropsBase{
+		Description: props.Description,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated,
+	}
+}
+
+func (props AwsResourceGroupProps) MarshalJSON() ([]byte, error) {
+	res := struct {
+		Description string   `json:"description,omitempty"`
+		AccountIDs  []string `json:"accountIds"`
+		UpdatedBy   string   `json:"updatedBy,omitempty"`
+		LastUpdated string   `json:"lastUpdated,omitempty"`
+	}{
+		Description: props.Description,
+		AccountIDs:  props.AccountIDs,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated.String(),
+	}
+	return json.Marshal(&res)
 }

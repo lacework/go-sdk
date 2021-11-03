@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
 )
 
@@ -128,7 +129,7 @@ type ContainerResourceGroupProps struct {
 	ContainerLabels []map[string]string `json:"containerLabels"`
 	ContainerTags   []string            `json:"containerTags"`
 	UpdatedBy       string              `json:"updatedBy,omitempty"`
-	LastUpdated     int                 `json:"lastUpdated,omitempty"`
+	LastUpdated     *lwtime.Epoch       `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
@@ -137,5 +138,30 @@ type ContainerResourceJsonStringGroupProps struct {
 	ContainerLabels []map[string]string `json:"CONTAINER_LABELS"`
 	ContainerTags   []string            `json:"CONTAINER_TAGS"`
 	UpdatedBy       string              `json:"UPDATED_BY,omitempty"`
-	LastUpdated     int                 `json:"LAST_UPDATED,omitempty"`
+	LastUpdated     *lwtime.Epoch       `json:"LAST_UPDATED,omitempty"`
+}
+
+func (props ContainerResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {
+	return ResourceGroupPropsBase{
+		Description: props.Description,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated,
+	}
+}
+
+func (props ContainerResourceGroupProps) MarshalJSON() ([]byte, error) {
+	res := struct {
+		Description     string              `json:"description,omitempty"`
+		ContainerLabels []map[string]string `json:"containerLabels"`
+		ContainerTags   []string            `json:"containerTags"`
+		UpdatedBy       string              `json:"updatedBy,omitempty"`
+		LastUpdated     string              `json:"lastUpdated,omitempty"`
+	}{
+		Description:     props.Description,
+		ContainerLabels: props.ContainerLabels,
+		ContainerTags:   props.ContainerTags,
+		UpdatedBy:       props.UpdatedBy,
+		LastUpdated:     props.LastUpdated.String(),
+	}
+	return json.Marshal(&res)
 }

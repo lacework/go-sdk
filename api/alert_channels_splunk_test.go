@@ -19,9 +19,12 @@
 package api_test
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -137,6 +140,21 @@ func TestAlertChannelSplunkUpdate(t *testing.T) {
 		assert.Contains(t, response.Data.Data.EventData.Source, "test-source")
 		assert.Contains(t, response.Data.Data.EventData.Index, "test-index")
 	}
+}
+
+func TestMarshallAlertChannelLastUpdatedTime(t *testing.T) {
+	var res api.SplunkHecAlertChannelResponseV2
+	err := json.Unmarshal([]byte(generateAlertChannelResponse(singleSplunkAlertChannel("test"))), &res)
+	if err != nil {
+		log.Fatal("Unable to unmarshall splunk string")
+	}
+	jsonString, err := json.Marshal(res)
+	if err != nil {
+		log.Fatal("Unable to marshall splunk string")
+	}
+
+	assert.Equal(t, res.Data.State.LastUpdatedTime.ToTime().UnixNano()/int64(time.Millisecond), int64(1627895573122))
+	assert.Contains(t, string(jsonString), "1627895573122")
 }
 
 func singleSplunkAlertChannel(id string) string {

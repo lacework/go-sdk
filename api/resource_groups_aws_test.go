@@ -19,9 +19,12 @@
 package api_test
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -108,6 +111,21 @@ func TestResourceGroupsAwsUpdate(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
+}
+
+func TestMarshallResourceGroupLastUpdatedTime(t *testing.T) {
+	var res api.AwsResourceGroupResponse
+	err := json.Unmarshal([]byte(generateResourceGroupResponse(singleAwsResourceGroupUpdateResponse("test"))), &res)
+	if err != nil {
+		log.Fatal("Unable to unmarshall aws resource group string")
+	}
+	jsonString, err := json.Marshal(res)
+	if err != nil {
+		log.Fatal("Unable to marshall aws resource group string")
+	}
+
+	assert.Equal(t, res.Data.Props.LastUpdated.ToTime().UnixNano()/int64(time.Millisecond), int64(1586453993470))
+	assert.Contains(t, string(jsonString), "2020-04-09T17:39:53Z")
 }
 
 func singleAwsResourceGroup(id string) string {
