@@ -25,10 +25,11 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/lacework/go-sdk/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
@@ -37,7 +38,13 @@ var (
 		Use:     "alert-rule",
 		Aliases: []string{"alert-rules", "ar"},
 		Short:   "manage alert rules",
-		Long:    "Manage routing events to channels using alert rules.",
+		Long: `Manage routing events to channels using alert rules.
+Configure alert rules with alert channels and optionally resource groups
+to send events in one of these categories: 
+App, Compliance, Cloud, File, Machine, User and Platform
+with any of these severities:
+Critical, High, Medium, Low and Info
+`,
 	}
 
 	// list command is used to list all lacework alert rules
@@ -57,7 +64,7 @@ var (
 
 Get started by integrating your alert rules to manage alerting using the command:
 
-    $ lacework alert-rule create
+    lacework alert-rule create
 
 If you prefer to configure alert rules via the WebUI, log in to your account at:
 
@@ -74,18 +81,18 @@ Then navigate to Settings > Alert Rules.
 
 			var rows [][]string
 			for _, rule := range alertRules.Data {
-				rows = append(rows, []string{rule.Guid, rule.Filter.Name, rule.Filter.Description, rule.Filter.Status()})
+				rows = append(rows, []string{rule.Guid, rule.Filter.Name, rule.Filter.Status()})
 			}
 
-			cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "DESCRIPTION", "ENABLED"}, rows))
+			cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "ENABLED"}, rows))
 			return nil
 		},
 	}
 	// show command is used to retrieve a lacework alert rule by resource id
 	alertRulesShowCommand = &cobra.Command{
 		Use:   "show",
-		Short: "get an alert rule by id",
-		Long:  "Get a single alert rule by it's ID.",
+		Short: "show an alert rule by id",
+		Long:  "Show a single alert rule by it's ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var response api.AlertRuleResponse
@@ -100,9 +107,9 @@ Then navigate to Settings > Alert Rules.
 
 			alertRule := response.Data
 			var headers [][]string
-			headers = append(headers, []string{alertRule.Guid, alertRule.Filter.Name, alertRule.Filter.Description, alertRule.Filter.Status()})
+			headers = append(headers, []string{alertRule.Guid, alertRule.Filter.Name, alertRule.Filter.Status()})
 
-			cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "DESCRIPTION", "ENABLED"}, headers))
+			cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "ENABLED"}, headers))
 			cli.OutputHuman("\n")
 			cli.OutputHuman(buildAlertRuleDetailsTable(alertRule))
 
@@ -140,7 +147,7 @@ Then navigate to Settings > Alert Rules.
 				return errors.Wrap(err, "unable to create alert rule")
 			}
 
-			cli.OutputHuman(fmt.Sprintf("The alert rule was created with ID %s \n", response.Data.Guid))
+			cli.OutputHuman(fmt.Sprintf("The alert rule was created with GUID %s \n", response.Data.Guid))
 			return nil
 		},
 	}
@@ -172,7 +179,6 @@ func buildAlertRuleDetailsTable(rule api.AlertRule) string {
 	details = append(details, []string{"DESCRIPTION", rule.Filter.Description})
 	details = append(details, []string{"UPDATED BY", rule.Filter.CreatedOrUpdatedBy})
 	details = append(details, []string{"LAST UPDATED", updatedTime})
-	IDsList := [][]string{{strings.Join(rule.Channels, "\n")}, {strings.Join(rule.Filter.ResourceGroups, "\n")}}
 
 	detailsTable := &strings.Builder{}
 	detailsTable.WriteString(renderOneLineCustomTable("ALERT RULE DETAILS",
@@ -191,13 +197,28 @@ func buildAlertRuleDetailsTable(rule api.AlertRule) string {
 	),
 	)
 
-	detailsTable.WriteString(renderCustomTable([]string{"CHANNELS", "RESOURCE GROUPS"}, IDsList,
-		tableFunc(func(t *tablewriter.Table) {
-			t.SetBorder(false)
-			t.SetColumnSeparator(" ")
-		}),
-	),
-	)
+	if len(rule.Channels) > 0 {
+		channels := [][]string{{strings.Join(rule.Channels, "\n")}}
+		detailsTable.WriteString(renderCustomTable([]string{"CHANNELS"}, channels,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+			}),
+		),
+		)
+		detailsTable.WriteString("\n")
+	}
+
+	if len(rule.Filter.ResourceGroups) > 0 {
+		resourceGroups := [][]string{{strings.Join(rule.Filter.ResourceGroups, "\n")}}
+		detailsTable.WriteString(renderCustomTable([]string{"RESOURCE GROUPS"}, resourceGroups,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+			}),
+		),
+		)
+	}
 
 	return detailsTable.String()
 }
@@ -290,12 +311,12 @@ func promptCreateAlertRule() (api.AlertRuleResponse, error) {
 
 func getAlertChannels() ([]string, map[string]string) {
 	response, err := cli.LwApi.V2.AlertChannels.List()
-	var channels []string
 
 	if err != nil {
 		return nil, nil
 	}
 	var items = make(map[string]string)
+	var channels = make([]string, 0)
 	for _, i := range response.Data {
 		displayName := fmt.Sprintf("%s - %s", i.ID(), i.Name)
 		channels = append(channels, displayName)
@@ -307,12 +328,13 @@ func getAlertChannels() ([]string, map[string]string) {
 
 func getResourceGroups() ([]string, map[string]string) {
 	response, err := cli.LwApi.V2.ResourceGroups.List()
-	var groups []string
 
 	if err != nil {
 		return nil, nil
 	}
 	var items = make(map[string]string)
+	var groups = make([]string, 0)
+
 	for _, i := range response.Data {
 		displayName := fmt.Sprintf("%s - %s", i.ID(), i.Name)
 		groups = append(groups, displayName)
