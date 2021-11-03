@@ -23,8 +23,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
+
+	"github.com/lacework/go-sdk/lwtime"
 )
 
 // ResourceGroupsService is the service that interacts with
