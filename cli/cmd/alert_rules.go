@@ -38,12 +38,11 @@ var (
 		Use:     "alert-rule",
 		Aliases: []string{"alert-rules", "ar"},
 		Short:   "manage alert rules",
-		Long: `Manage routing events to channels using alert rules.
-Configure alert rules with alert channels and optionally resource groups
-to send events in one of these categories: 
-App, Compliance, Cloud, File, Machine, User and Platform
-with any of these severities:
-Critical, High, Medium, Low and Info
+		Long: `Manage alert rules to route events to the appropriate people or tools.		
+An alert rule has three parts:
+  1. Alert channel(s) that should receive the event notification
+  2. Event severity and categories to include
+  3. Resource group(s) containing the subset of your environment to consider
 `,
 	}
 
@@ -128,6 +127,7 @@ Then navigate to Settings > Alert Rules.
 			if err != nil {
 				return errors.Wrap(err, "unable to delete alert rule")
 			}
+			cli.OutputHuman(fmt.Sprintf("The alert rule with GUID %s was deleted \n", args[0]))
 			return nil
 		},
 	}
@@ -199,7 +199,7 @@ func buildAlertRuleDetailsTable(rule api.AlertRule) string {
 
 	if len(rule.Channels) > 0 {
 		channels := [][]string{{strings.Join(rule.Channels, "\n")}}
-		detailsTable.WriteString(renderCustomTable([]string{"CHANNELS"}, channels,
+		detailsTable.WriteString(renderCustomTable([]string{"ALERT CHANNELS"}, channels,
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetBorder(false)
 				t.SetColumnSeparator(" ")
@@ -227,7 +227,7 @@ func promptCreateAlertRule() (api.AlertRuleResponse, error) {
 	channelList, channelMap := getAlertChannels()
 
 	if len(channelList) < 1 {
-		return api.AlertRuleResponse{}, errors.New("No Alert Channels found.")
+		return api.AlertRuleResponse{}, errors.New("no Alert Channels found.")
 	}
 
 	questions := []*survey.Question{
