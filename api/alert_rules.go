@@ -169,6 +169,13 @@ func NewAlertRule(name string, rule AlertRuleConfig) AlertRule {
 	}
 }
 
+func (rule AlertRuleFilter) Status() string {
+	if rule.Enabled == 1 {
+		return "Enabled"
+	}
+	return "Disabled"
+}
+
 // List returns a list of Alert Rules
 func (svc *AlertRulesService) List() (response AlertRulesResponse, err error) {
 	err = svc.client.RequestDecoder("GET", apiV2AlertRules, nil, &response)

@@ -148,6 +148,7 @@ Available Commands:
   access-token   generate temporary API access tokens
   account        manage accounts in an organization (org admins only)
   agent          manage Lacework agents
+  alert-rule     manage alert rules
   api            helper to call Lacework's API
   compliance     manage compliance reports
   configure      configure the Lacework CLI
