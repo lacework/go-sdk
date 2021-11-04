@@ -41,7 +41,6 @@ func TestAlertRuleRead(t *testing.T) {
 		"DESCRIPTION",
 		"ENABLED",
 		"CHANNELS",
-		"RESOURCE GROUPS",
 		"SEVERITIES",
 		"EVENT CATEGORIES",
 	}
