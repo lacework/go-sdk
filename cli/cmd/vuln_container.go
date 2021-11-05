@@ -575,10 +575,6 @@ func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) st
 }
 
 func buildVulnerabilitySummaryReportTable(assessment *api.VulnContainerAssessment) string {
-	if assessment.TotalVulnerabilities == 0 {
-		return fmt.Sprintf("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
-	}
-
 	mainReport := &strings.Builder{}
 	mainReport.WriteString(
 		renderCustomTable(
