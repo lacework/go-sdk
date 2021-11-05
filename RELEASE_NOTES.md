@@ -1,15 +1,15 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.19.0`.
+Another day, another release. These are the release notes for the version `v0.20.0`.
 
 ## Features
-* feat: AlertRuleSeverities constructor from int slice (#595) (Darren)([637bcab](https://github.com/lacework/go-sdk/commit/637bcabd9f59a3d73cf0c740b58d7cfecb5b0c90))
-* feat(api): Migrate Jira Cloud and Jira Server to API v2 (#590) (vatasha)([15369f3](https://github.com/lacework/go-sdk/commit/15369f35ef472fe8d2bf162e4e0e4d99304413aa))
-## Refactor
-* refactor: Add function to convert string slice to AlertRuleSeverities (#591) (Darren)([b3ae293](https://github.com/lacework/go-sdk/commit/b3ae2931f2a201059909f72b91b79f7c7c20ffc8))
+* feat(cli): Manage Alert Rules in Lacework CLI (#597) (Darren)([4d5648c](https://github.com/lacework/go-sdk/commit/4d5648cce2430b670167d3d66c3d8aee860b5f39))
 ## Bug Fixes
-* fix(cli): affected resource count in compliance reports (#592) (Salim Afiune)([7dc18d9](https://github.com/lacework/go-sdk/commit/7dc18d9288285ad3196ff3f186641891cda8ec7d))
+* fix(cli): avoid panic when assessment has NO vulns (#600) (Salim Afiune)([4638c7e](https://github.com/lacework/go-sdk/commit/4638c7e7d6b08e8f9bb123ed897321897a33ab4e))
+* fix: ResourceGroups lastUpdated time format (#599) (Darren)([506954f](https://github.com/lacework/go-sdk/commit/506954fd1451d192a43d2ae1a38fb1e2b6261b4e))
+* fix(cli): making evaluatorId optional (hazedav)([a7da3c0](https://github.com/lacework/go-sdk/commit/a7da3c0bc346ac1db957a3854c04c2c5a6a537c6))
 ## Other Changes
-* ci: version bump to v0.18.1-dev (Lacework)([21b392a](https://github.com/lacework/go-sdk/commit/21b392ad93c6a2f83d003d80125bc3da16feadc4))
+* ci: version bump to v0.19.1-dev (Lacework)([e8e36dd](https://github.com/lacework/go-sdk/commit/e8e36ddf314463540288dea6d577a12b5d41456a))
+* test(cli): adds host query integration test file (hazedav)([7be96a7](https://github.com/lacework/go-sdk/commit/7be96a79d2bb3f9df84c259615fe0027110342bf))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
