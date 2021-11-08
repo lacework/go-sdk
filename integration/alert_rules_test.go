@@ -68,6 +68,12 @@ func TestAlertRuleRead(t *testing.T) {
 }
 
 func TestAlertRulesJsonOutput(t *testing.T) {
+	alertRule, createErr := createAlertRuleWithSlackAlertChannel()
+	if createErr != nil {
+		log.Fatal(createErr)
+	}
+	defer LaceworkCLIWithTOMLConfig("alert-rules", "delete", alertRule.Data.Guid)
+
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert-rules", "list", "--json")
 
 	var rule api.AlertRulesResponse
