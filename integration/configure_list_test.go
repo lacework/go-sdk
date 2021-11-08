@@ -1,4 +1,4 @@
-// +build configure
+//go:build configure
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.

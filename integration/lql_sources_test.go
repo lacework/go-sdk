@@ -1,4 +1,4 @@
-// +build query
+//go:build query
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.

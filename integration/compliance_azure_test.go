@@ -1,4 +1,4 @@
-// +build compliance
+//go:build compliance
 
 // Author:: Darren Murray (<darren.murray@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.

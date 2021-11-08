@@ -1,4 +1,4 @@
-// +build migration
+//go:build migration
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2021, Lacework Inc.
