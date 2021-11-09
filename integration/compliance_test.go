@@ -1,4 +1,4 @@
-// +build compliance
+//go:build compliance
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
