@@ -109,6 +109,12 @@ version = 2
 account = 'v1.example'
 api_key = 'V1CONFIG_KEY'
 api_secret = '_secret'
+
+[v2]
+account = 'v2.example'
+api_key = 'V2CONFIG_KEY'
+api_secret = '_secret'
+subaccount = 'sub-account'
 `)
 	err = ioutil.WriteFile(configFile, c, 0644)
 	if err != nil {

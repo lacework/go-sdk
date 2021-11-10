@@ -193,10 +193,15 @@ func runConfigureSetup() error {
 		// before trying to detect if the account is organizational or not, and to
 		// check if there are sub-accounts, we need to update the CLI settings
 		cli.Log.Debug("storing interactive information into the cli state")
-		cli.Account = newProfile.Account
-		cli.Subaccount = newProfile.Subaccount
 		cli.Secret = newProfile.ApiSecret
 		cli.KeyID = newProfile.ApiKey
+		if cli.Account != newProfile.Account {
+			// if the account provided by the interactive prompt is different,
+			// we need to remove the previous sub-account since it's a reconfiguration
+			cli.Account = newProfile.Account
+			cli.Subaccount = ""
+			newProfile.Subaccount = ""
+		}
 
 		// generate a new API client to connect and check for sub-accounts
 		if err := cli.NewClient(); err != nil {

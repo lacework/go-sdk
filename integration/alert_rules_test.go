@@ -79,9 +79,10 @@ func TestAlertRulesJsonOutput(t *testing.T) {
 	var rule api.AlertRulesResponse
 	jsonErr := json.Unmarshal(out.Bytes(), &rule)
 
-	assert.NoError(t, jsonErr)
-	assert.NotNil(t, rule.Data[0].Filter.Name)
-	assert.Empty(t, err.String(), "STDERR should be empty")
+	if assert.NoError(t, jsonErr) {
+		assert.NotNil(t, rule.Data[0].Filter.Name)
+		assert.Empty(t, err.String(), "STDERR should be empty")
+	}
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
