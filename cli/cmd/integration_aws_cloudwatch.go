@@ -50,7 +50,7 @@ func createAwsCloudWatchAlertChannelIntegration() error {
 		return err
 	}
 
-	slack := api.NewAlertChannel(answers.Name,
+	cloudwatch := api.NewAlertChannel(answers.Name,
 		api.CloudwatchEbAlertChannelType,
 		api.CloudwatchEbDataV2{
 			EventBusArn: answers.Arn,
@@ -58,7 +58,7 @@ func createAwsCloudWatchAlertChannelIntegration() error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.V2.AlertChannels.Create(slack)
+	_, err = cli.LwApi.V2.AlertChannels.Create(cloudwatch)
 	cli.StopProgress()
 	return err
 }
