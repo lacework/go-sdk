@@ -62,9 +62,10 @@ func createAwsS3ChannelIntegration() error {
 		return err
 	}
 
-	s3 := api.NewAwsS3AlertChannel(answers.Name,
-		api.AwsS3ChannelData{
-			Credentials: api.AwsS3Creds{
+	s3 := api.NewAlertChannel(answers.Name,
+		api.AwsS3AlertChannelType,
+		api.AwsS3DataV2{
+			Credentials: api.AwsS3Credentials{
 				RoleArn:    answers.RoleArn,
 				BucketArn:  answers.BucketArn,
 				ExternalID: answers.ExternalID,
@@ -73,7 +74,7 @@ func createAwsS3ChannelIntegration() error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAwsS3AlertChannel(s3)
+	_, err = cli.LwApi.V2.AlertChannels.Create(s3)
 	cli.StopProgress()
 	return err
 }

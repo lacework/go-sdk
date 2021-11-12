@@ -3,27 +3,30 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/lacework/go-sdk/api"
 )
 
 func main() {
-	lacework, err := api.NewClient("account", api.WithApiKeys("KEY", "SECRET"))
+	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"), api.WithApiV2(),
+		api.WithApiKeys(os.Getenv("LW_API_KEY"), os.Getenv("LW_API_SECRET")))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	myWebhookChannel := api.NewWebhookAlertChannel("webhook-alert-from-golang",
-		api.WebhookChannelData{
+	myWebhookChannel := api.NewAlertChannel("webhook-alert-from-golang",
+		api.WebhookAlertChannelType,
+		api.WebhookDataV2{
 			WebhookUrl: "https://mywebhook.com/?api-token=123",
 		},
 	)
 
-	response, err := lacework.Integrations.CreateWebhookAlertChannel(myWebhookChannel)
+	response, err := lacework.V2.AlertChannels.Create(myWebhookChannel)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Output: Webhook alert channel created: THE-INTEGRATION-GUID
-	fmt.Printf("Webhook alert channel created: %s", response.Data[0].IntgGuid)
+	fmt.Printf("Webhook alert channel created: %s", response.Data.IntgGuid)
 }
