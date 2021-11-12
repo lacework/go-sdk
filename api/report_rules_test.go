@@ -234,7 +234,7 @@ func TestReportRuleUpdate(t *testing.T) {
 			Description:        "This is a test report rule",
 			Severities:         api.ReportRuleSeverities{api.ReportRuleSeverityHigh},
 			ResourceGroups:     []string{"TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB"},
-			NotificationTypes:  api.ReportRuleNotificationTypes{GcpCis: true},
+			NotificationTypes:  []api.ReportRuleNotification{api.GcpReportRuleNotifications{GcpCis: true}},
 		},
 	)
 	assert.Equal(t, "rule_name", reportRule.Filter.Name, "report rule name mismatch")
@@ -299,7 +299,6 @@ func generateReportRuleResponse(data string) string {
 func singleMockReportRule(id string) string {
 	return fmt.Sprintf(`
     {
-      "mcGuid": %q,
       "filters": {
             "name": "rule_name",
             "description": "This is a test report rule",
@@ -311,14 +310,15 @@ func singleMockReportRule(id string) string {
             ],
             "severity": [
                 2
-            ],
+            ]
 	  },
-		"reportNotificationTypes": {
-                "gcpCis": false
-		},
+      "mcGuid": %q,
         "intgGuidList": [
             "TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"
         ],
+        "reportNotificationTypes": {
+			"gcpCis": true
+		},
       "name": "rule_name",
       "type": "Report"
     }

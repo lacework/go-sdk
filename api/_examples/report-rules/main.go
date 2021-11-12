@@ -39,10 +39,7 @@ func main() {
 		Description:        "This is a test report rule",
 		Severities:         api.ReportRuleSeverities{api.ReportRuleSeverityCritical},
 		ResourceGroups:     []string{"TECHALLY_69B96544DE073FA270C1AFE4CA7FE74DA784C3A1B8EC77B"},
-		NotificationTypes: api.ReportRuleNotificationTypes{
-			GcpAuditTrailEvents: true,
-			GcpCis:              true,
-		},
+		NotificationTypes:  []api.ReportRuleNotification{api.AllGcpReportRuleNotifications, api.AllAwsReportRuleNotifications},
 	}
 
 	myReportRule := api.NewReportRule("MyTestReportRule",

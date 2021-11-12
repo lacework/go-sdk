@@ -148,7 +148,7 @@ const (
 //		Severities: api.ReportRuleSeverities{api.ReportRuleSeverityHigh,
 //		EmailAlertChannels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
 //		ResourceGroups: []string{"TECHALLY_111111111111AAAAAAAAAAAAAAAAAAAA"}
-//		NotificationTypes: api.ReportRuleNotificationTypes{GcpCis: true},
+//		NotificationTypes: api.WeeklyEventsReportRuleNotifications{TrendReport: true},
 //       },
 //     },
 //   )
@@ -166,7 +166,7 @@ func NewReportRule(name string, rule ReportRuleConfig) ReportRule {
 			Severity:       rule.Severities.toInt(),
 			ResourceGroups: rule.ResourceGroups,
 		},
-		NotificationTypes: rule.NotificationTypes,
+		NotificationTypes: setNotificationTypes(rule.NotificationTypes),
 	}
 }
 
@@ -233,7 +233,7 @@ type ReportRuleConfig struct {
 	EmailAlertChannels []string
 	Description        string
 	Severities         ReportRuleSeverities
-	NotificationTypes  ReportRuleNotificationTypes
+	NotificationTypes  []ReportRuleNotification
 	ResourceGroups     []string
 }
 
@@ -250,6 +250,13 @@ type ReportRuleNotificationTypes struct {
 	AwsCisS3                  bool `json:"awsCisS3"`
 	AwsCloudtrailEvents       bool `json:"awsCloudtrailEvents"`
 	AwsComplianceEvents       bool `json:"awsComplianceEvents"`
+	AwsHipaa                  bool `json:"hipaa"`
+	AwsIso2700                bool `json:"iso2700"`
+	AwsNist80053Rev4          bool `json:"nist800-53Rev4"`
+	AwsNist800171Rev2         bool `json:"nist800-171Rev2"`
+	AwsPci                    bool `json:"pci"`
+	AwsSoc                    bool `json:"soc"`
+	AwsSocRev2                bool `json:"awsSocRev2"`
 	AzureActivityLogEvents    bool `json:"azureActivityLogEvents"`
 	AzureCis                  bool `json:"azureCis"`
 	AzureCis131               bool `json:"azureCis131"`
@@ -268,16 +275,9 @@ type ReportRuleNotificationTypes struct {
 	GcpPciRev2                bool `json:"gcpPciRev2"`
 	GcpSoc                    bool `json:"gcpSoc"`
 	GcpSocRev2                bool `json:"gcpSocRev2"`
-	Hipaa                     bool `json:"hipaa"`
-	Iso2700                   bool `json:"iso2700"`
-	Nist80053Rev4             bool `json:"nist800-53Rev4"`
-	Nist800171Rev2            bool `json:"nist800-171Rev2"`
 	OpenShiftCompliance       bool `json:"openShiftCompliance"`
 	OpenShiftComplianceEvents bool `json:"openShiftComplianceEvents"`
-	Pci                       bool `json:"pci"`
 	PlatformEvents            bool `json:"platformEvents"`
-	Soc                       bool `json:"soc"`
-	AwsSocRev2                bool `json:"awsSocRev2"`
 	TrendReport               bool `json:"trendReport"`
 }
 
