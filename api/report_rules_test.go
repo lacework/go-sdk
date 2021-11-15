@@ -228,7 +228,7 @@ func TestReportRuleUpdate(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	reportRule := api.NewReportRule("rule_name",
+	reportRule, err := api.NewReportRule("rule_name",
 		api.ReportRuleConfig{
 			EmailAlertChannels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
 			Description:        "This is a test report rule",

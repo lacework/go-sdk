@@ -20,13 +20,15 @@ package api
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 
 	"github.com/fatih/structs"
+	"github.com/pkg/errors"
 )
 
 type ReportRuleNotification interface {
 	allNotifications() ReportRuleNotificationTypes
+	ToMap() map[string]bool
 }
 
 // Enable all Gcp report rules
@@ -44,28 +46,64 @@ var AllDailyReportRuleNotifications = new(DailyEventsReportRuleNotifications).al
 // Enable all Weekly report rules
 var AllWeeklyReportRuleNotifications = new(WeeklyEventsReportRuleNotifications).allNotifications()
 
-func setNotificationTypes(types []ReportRuleNotification) ReportRuleNotificationTypes {
+// Enable all report rules
+var AllReportRuleNotifications = new(ReportRuleNotificationTypes).allNotifications()
+
+func NewReportRuleNotification(notificationsMap map[string]bool, notificationType ReportRuleNotification) error {
+	jsonMap, err := json.Marshal(notificationsMap)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(jsonMap, &notificationType)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func setNotificationTypes(types []ReportRuleNotification) (ReportRuleNotificationTypes, error) {
 	notificationsTypes := ReportRuleNotificationTypes{}
 	notificationsMap := make(map[string]bool)
+
 	for _, notificationType := range types {
 		m := structs.Map(notificationType)
 		for k, v := range m {
+			if _, ok := notificationsMap[k]; ok {
+				return ReportRuleNotificationTypes{}, errors.New(fmt.Sprintf("notification types contains a duplicate type: %s", k))
+			}
 			if v.(bool) {
 				notificationsMap[k] = true
+			} else {
+				notificationsMap[k] = false
 			}
 		}
 
 		jsonMap, err := json.Marshal(notificationsMap)
 		if err != nil {
-			log.Fatal("unable to set report rule notification types")
+			return ReportRuleNotificationTypes{}, errors.New("unable to set report rule notification types")
 		}
 
 		err = json.Unmarshal(jsonMap, &notificationsTypes)
 		if err != nil {
-			log.Fatal("unable to set report rule notification types")
+			return ReportRuleNotificationTypes{}, errors.New("unable to set report rule notification types")
 		}
 	}
-	return notificationsTypes
+	return notificationsTypes, nil
+}
+
+func reportRuleNotificationToMap(notificationType ReportRuleNotification) map[string]bool {
+	notificationsMap := make(map[string]bool)
+	m := structs.Map(notificationType)
+	for k, v := range m {
+		if v.(bool) {
+			notificationsMap[k] = true
+		} else {
+			notificationsMap[k] = false
+		}
+	}
+	return notificationsMap
 }
 
 type GcpReportRuleNotifications struct {
@@ -96,6 +134,10 @@ func (gcp GcpReportRuleNotifications) allNotifications() ReportRuleNotificationT
 	}
 }
 
+func (gcp GcpReportRuleNotifications) ToMap() map[string]bool {
+	return reportRuleNotificationToMap(gcp)
+}
+
 type AwsReportRuleNotifications struct {
 	AwsCisS3          bool `json:"awsCisS3"`
 	AwsHipaa          bool `json:"hipaa"`
@@ -120,6 +162,10 @@ func (aws AwsReportRuleNotifications) allNotifications() ReportRuleNotificationT
 	}
 }
 
+func (aws AwsReportRuleNotifications) ToMap() map[string]bool {
+	return reportRuleNotificationToMap(aws)
+}
+
 type AzureReportRuleNotifications struct {
 	AzureCis    bool `json:"azureCis"`
 	AzureCis131 bool `json:"azureCis131"`
@@ -127,7 +173,7 @@ type AzureReportRuleNotifications struct {
 	AzureSoc    bool `json:"azureSoc"`
 }
 
-func (aws AzureReportRuleNotifications) allNotifications() ReportRuleNotificationTypes {
+func (az AzureReportRuleNotifications) allNotifications() ReportRuleNotificationTypes {
 	return ReportRuleNotificationTypes{
 		AzureActivityLogEvents: true,
 		AzureCis:               true,
@@ -135,6 +181,10 @@ func (aws AzureReportRuleNotifications) allNotifications() ReportRuleNotificatio
 		AzurePci:               true,
 		AzureSoc:               true,
 	}
+}
+
+func (az AzureReportRuleNotifications) ToMap() map[string]bool {
+	return reportRuleNotificationToMap(az)
 }
 
 type DailyEventsReportRuleNotifications struct {
@@ -150,7 +200,7 @@ type DailyEventsReportRuleNotifications struct {
 	GcpComplianceEvents       bool `json:"gcpComplianceEvents"`
 }
 
-func (aws DailyEventsReportRuleNotifications) allNotifications() ReportRuleNotificationTypes {
+func (daily DailyEventsReportRuleNotifications) allNotifications() ReportRuleNotificationTypes {
 	return ReportRuleNotificationTypes{
 		AgentEvents:               true,
 		OpenShiftCompliance:       true,
@@ -165,17 +215,25 @@ func (aws DailyEventsReportRuleNotifications) allNotifications() ReportRuleNotif
 	}
 }
 
+func (daily DailyEventsReportRuleNotifications) ToMap() map[string]bool {
+	return reportRuleNotificationToMap(daily)
+}
+
 type WeeklyEventsReportRuleNotifications struct {
 	TrendReport bool `json:"trendReport"`
 }
 
-func (aws WeeklyEventsReportRuleNotifications) allNotifications() ReportRuleNotificationTypes {
+func (weekly WeeklyEventsReportRuleNotifications) allNotifications() ReportRuleNotificationTypes {
 	return ReportRuleNotificationTypes{
 		TrendReport: true,
 	}
 }
 
-func (report ReportRuleNotificationTypes) allNotifications() ReportRuleNotificationTypes {
+func (weekly WeeklyEventsReportRuleNotifications) ToMap() map[string]bool {
+	return reportRuleNotificationToMap(weekly)
+}
+
+func (all ReportRuleNotificationTypes) allNotifications() ReportRuleNotificationTypes {
 	return ReportRuleNotificationTypes{
 		AgentEvents:               true,
 		AwsCisS3:                  true,
@@ -211,4 +269,8 @@ func (report ReportRuleNotificationTypes) allNotifications() ReportRuleNotificat
 		PlatformEvents:            true,
 		TrendReport:               true,
 	}
+}
+
+func (all ReportRuleNotificationTypes) ToMap() map[string]bool {
+	return reportRuleNotificationToMap(all)
 }

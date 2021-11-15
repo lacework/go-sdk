@@ -155,7 +155,12 @@ const (
 //
 //   client.V2.ReportRules.Create(reportRule)
 //
-func NewReportRule(name string, rule ReportRuleConfig) ReportRule {
+func NewReportRule(name string, rule ReportRuleConfig) (ReportRule, error) {
+	notifications, err := setNotificationTypes(rule.NotificationTypes)
+	if err != nil {
+		return ReportRule{}, err
+	}
+
 	return ReportRule{
 		EmailAlertChannels: rule.EmailAlertChannels,
 		Type:               ReportRuleEventType,
@@ -166,8 +171,8 @@ func NewReportRule(name string, rule ReportRuleConfig) ReportRule {
 			Severity:       rule.Severities.toInt(),
 			ResourceGroups: rule.ResourceGroups,
 		},
-		NotificationTypes: setNotificationTypes(rule.NotificationTypes),
-	}
+		NotificationTypes: notifications,
+	}, nil
 }
 
 func (rule ReportRuleFilter) Status() string {
