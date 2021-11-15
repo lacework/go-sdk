@@ -10,13 +10,15 @@ terraform {
   }
 }
 
-provider "lacework" {
-}
-
+provider "lacework" {}
 provider "aws" {}
-
 provider "google" {
   credentials = file("gcp.json")
+}
+provider "azuread" {}
+provider "azurerm" {
+  subscription_id = var.az_subscription
+  features {}
 }
 
 resource "lacework_agent_access_token" "token" {
@@ -33,7 +35,8 @@ resource "lacework_integration_docker_hub" "techally_dockerhub" {
 
 # Lacework AWS config integration, required for go-sdk/integration/compliance_aws_test.go
 module "aws_config" {
-  source  = "lacework/config/aws"
+  source = "lacework/config/aws"
+
   lacework_aws_account_id = var.lacework_aws_account_id
 }
 
@@ -46,13 +49,6 @@ module "gcp_organization_level_config" {
   project_id      = var.project_id
 }
 
-# Lacework Azure config integration; currently our CI does not require Azure cloud integration
-//provider "azuread" {}
-//provider "azurerm" {
-//  subscription_id = var.az_subscription
-//  features {}
-//}
-
-//module "az_config" {
-//  source  = "lacework/config/azure"
-//}
+module "az_config" {
+  source = "lacework/config/azure"
+}
