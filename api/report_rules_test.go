@@ -234,7 +234,7 @@ func TestReportRuleUpdate(t *testing.T) {
 			Description:        "This is a test report rule",
 			Severities:         api.ReportRuleSeverities{api.ReportRuleSeverityHigh},
 			ResourceGroups:     []string{"TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB"},
-			NotificationTypes:  []api.ReportRuleNotification{api.GcpReportRuleNotifications{GcpCis: true}},
+			NotificationTypes:  api.ReportRuleNotifications{api.GcpReportRuleNotifications{GcpCis: true}},
 		},
 	)
 	assert.Equal(t, "rule_name", reportRule.Filter.Name, "report rule name mismatch")
@@ -246,7 +246,7 @@ func TestReportRuleUpdate(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.Guid)
-		assert.Equal(t, response.Data.NotificationTypes.GcpCis, true)
+		assert.Equal(t, response.Data.ReportNotificationTypes.GcpCis, true)
 		assert.Contains(t, response.Data.Filter.ResourceGroups, "TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB")
 		assert.Contains(t, response.Data.EmailAlertChannels, "TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA")
 	}

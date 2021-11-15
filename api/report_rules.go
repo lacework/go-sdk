@@ -148,7 +148,7 @@ const (
 //		Severities: api.ReportRuleSeverities{api.ReportRuleSeverityHigh,
 //		EmailAlertChannels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
 //		ResourceGroups: []string{"TECHALLY_111111111111AAAAAAAAAAAAAAAAAAAA"}
-//		NotificationTypes: api.WeeklyEventsReportRuleNotifications{TrendReport: true},
+//		ReportNotificationTypes: api.WeeklyEventsReportRuleNotifications{TrendReport: true},
 //       },
 //     },
 //   )
@@ -156,7 +156,7 @@ const (
 //   client.V2.ReportRules.Create(reportRule)
 //
 func NewReportRule(name string, rule ReportRuleConfig) (ReportRule, error) {
-	notifications, err := setNotificationTypes(rule.NotificationTypes)
+	notifications, err := NewReportRuleNotificationTypes(rule.NotificationTypes)
 	if err != nil {
 		return ReportRule{}, err
 	}
@@ -171,7 +171,7 @@ func NewReportRule(name string, rule ReportRuleConfig) (ReportRule, error) {
 			Severity:       rule.Severities.toInt(),
 			ResourceGroups: rule.ResourceGroups,
 		},
-		NotificationTypes: notifications,
+		ReportNotificationTypes: notifications,
 	}, nil
 }
 
@@ -238,16 +238,16 @@ type ReportRuleConfig struct {
 	EmailAlertChannels []string
 	Description        string
 	Severities         ReportRuleSeverities
-	NotificationTypes  []ReportRuleNotification
+	NotificationTypes  []reportRuleNotification
 	ResourceGroups     []string
 }
 
 type ReportRule struct {
-	Guid               string                      `json:"mcGuid,omitempty"`
-	Type               string                      `json:"type"`
-	EmailAlertChannels []string                    `json:"intgGuidList"`
-	Filter             ReportRuleFilter            `json:"filters"`
-	NotificationTypes  ReportRuleNotificationTypes `json:"reportNotificationTypes"`
+	Guid                    string                      `json:"mcGuid,omitempty"`
+	Type                    string                      `json:"type"`
+	EmailAlertChannels      []string                    `json:"intgGuidList"`
+	Filter                  ReportRuleFilter            `json:"filters"`
+	ReportNotificationTypes ReportRuleNotificationTypes `json:"reportNotificationTypes"`
 }
 
 type ReportRuleNotificationTypes struct {

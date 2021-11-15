@@ -26,10 +26,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-type ReportRuleNotification interface {
+type reportRuleNotification interface {
 	allNotifications() ReportRuleNotificationTypes
 	ToMap() map[string]bool
 }
+
+type ReportRuleNotifications []reportRuleNotification
 
 // Enable all Gcp report rules
 var AllGcpReportRuleNotifications = new(GcpReportRuleNotifications).allNotifications()
@@ -49,7 +51,7 @@ var AllWeeklyReportRuleNotifications = new(WeeklyEventsReportRuleNotifications).
 // Enable all report rules
 var AllReportRuleNotifications = new(ReportRuleNotificationTypes).allNotifications()
 
-func NewReportRuleNotification(notificationsMap map[string]bool, notificationType ReportRuleNotification) error {
+func TransformReportRuleNotification(notificationsMap map[string]bool, notificationType reportRuleNotification) error {
 	jsonMap, err := json.Marshal(notificationsMap)
 	if err != nil {
 		return err
@@ -63,7 +65,7 @@ func NewReportRuleNotification(notificationsMap map[string]bool, notificationTyp
 	return nil
 }
 
-func setNotificationTypes(types []ReportRuleNotification) (ReportRuleNotificationTypes, error) {
+func NewReportRuleNotificationTypes(types []reportRuleNotification) (ReportRuleNotificationTypes, error) {
 	notificationsTypes := ReportRuleNotificationTypes{}
 	notificationsMap := make(map[string]bool)
 
@@ -93,7 +95,7 @@ func setNotificationTypes(types []ReportRuleNotification) (ReportRuleNotificatio
 	return notificationsTypes, nil
 }
 
-func reportRuleNotificationToMap(notificationType ReportRuleNotification) map[string]bool {
+func reportRuleNotificationToMap(notificationType reportRuleNotification) map[string]bool {
 	notificationsMap := make(map[string]bool)
 	m := structs.Map(notificationType)
 	for k, v := range m {

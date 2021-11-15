@@ -44,7 +44,7 @@ func TestNewNotificationType(t *testing.T) {
 
 	dailyMap := map[string]bool{"OpenShiftComplianceEvents": true, "OpenShiftCompliance": true}
 
-	err := api.NewReportRuleNotification(gcpMap, &gcp)
+	err := api.TransformReportRuleNotification(gcpMap, &gcp)
 
 	if assert.NoError(t, err) {
 		assert.True(t, gcp.GcpCis)
@@ -58,7 +58,7 @@ func TestNewNotificationType(t *testing.T) {
 		assert.False(t, gcp.GcpSoc)
 	}
 
-	err = api.NewReportRuleNotification(dailyMap, &daily)
+	err = api.TransformReportRuleNotification(dailyMap, &daily)
 	if assert.NoError(t, err) {
 		assert.True(t, daily.OpenShiftComplianceEvents)
 		assert.True(t, daily.OpenShiftCompliance)
@@ -110,7 +110,7 @@ func TestReportRuleDuplicateTypes(t *testing.T) {
 			Description:        "This is a test report rule",
 			Severities:         api.ReportRuleSeverities{api.ReportRuleSeverityHigh},
 			ResourceGroups:     []string{"TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB"},
-			NotificationTypes: []api.ReportRuleNotification{
+			NotificationTypes: api.ReportRuleNotifications{
 				api.GcpReportRuleNotifications{GcpCis: true},
 				api.GcpReportRuleNotifications{GcpCis: true},
 			},
@@ -123,7 +123,7 @@ func TestReportRuleDuplicateTypes(t *testing.T) {
 			Description:        "This is a test report rule",
 			Severities:         api.ReportRuleSeverities{api.ReportRuleSeverityHigh},
 			ResourceGroups:     []string{"TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB"},
-			NotificationTypes: []api.ReportRuleNotification{
+			NotificationTypes: api.ReportRuleNotifications{
 				api.GcpReportRuleNotifications{GcpCis: true},
 				api.AwsReportRuleNotifications{AwsHipaa: true},
 				api.AzureReportRuleNotifications{AzureSoc: false},
@@ -140,7 +140,7 @@ func TestReportRuleDuplicateTypes(t *testing.T) {
 			Description:        "This is a test report rule",
 			Severities:         api.ReportRuleSeverities{api.ReportRuleSeverityHigh},
 			ResourceGroups:     []string{"TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB"},
-			NotificationTypes: []api.ReportRuleNotification{
+			NotificationTypes: api.ReportRuleNotifications{
 				api.GcpReportRuleNotifications{GcpCis: true},
 				api.AwsReportRuleNotifications{AwsHipaa: true},
 				api.AzureReportRuleNotifications{AzureSoc: false},
