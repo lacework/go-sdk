@@ -35,6 +35,7 @@ type V2Endpoints struct {
 	Policy              *PolicyService
 	Schemas             *SchemasService
 	Datasources         *DatasourcesService
+	TeamMembers         *TeamMembersService
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
@@ -50,6 +51,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&PolicyService{c},
 		&SchemasService{c, map[integrationSchema]V2Service{}},
 		&DatasourcesService{c},
+		&TeamMembersService{c},
 	}
 
 	v2.Schemas.Services = map[integrationSchema]V2Service{
@@ -58,6 +60,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		CloudAccounts:       &CloudAccountsService{c},
 		ContainerRegistries: &ContainerRegistriesService{c},
 		ResourceGroups:      &ResourceGroupsService{c},
+		TeamMembers:         &TeamMembersService{c},
 	}
 	return v2
 }

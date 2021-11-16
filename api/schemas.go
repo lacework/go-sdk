@@ -33,6 +33,7 @@ const (
 	ContainerRegistries
 	CloudAccounts
 	ResourceGroups
+	TeamMembers
 )
 
 func (svc *SchemasService) GetService(schemaName integrationSchema) V2Service {
