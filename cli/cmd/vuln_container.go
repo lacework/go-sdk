@@ -175,9 +175,8 @@ filter on containers with vulnerabilities that have fixes available.`,
 				return nil
 			}
 
-			// filter assessments by repositories, if the user doesn't provide a filter
-			// the function returns all the assessments
-			assessments := filterAssessmentsByRepositories(response.Assessments)
+			// filter assessments
+			assessments := filterVulnAssessments(response.Assessments)
 
 			// if the user wants to show only assessments of running containers
 			// order them by that field, number of running containers
@@ -286,6 +285,11 @@ func init() {
 		"repository", "r", []string{}, "filter assessments for specific repositories",
 	)
 
+	// add registry flag to list-assessments command
+	vulContainerListAssessmentsCmd.Flags().StringSliceVarP(&vulCmdState.Registries,
+		"registry", "", []string{}, "filter assessments for specific registries",
+	)
+
 	setPollFlag(
 		vulContainerScanCmd.Flags(),
 		vulContainerScanStatusCmd.Flags(),
@@ -340,6 +344,18 @@ func init() {
 	)
 }
 
+func filterVulnAssessments(assessments []api.VulnContainerAssessmentSummary) []api.VulnContainerAssessmentSummary {
+	if len(vulCmdState.Repositories) > 0 {
+		assessments = filterAssessmentsByRepositories(assessments)
+	}
+
+	if len(vulCmdState.Registries) > 0 {
+		assessments = filterAssessmentsByRegistries(assessments)
+	}
+
+	return assessments
+}
+
 func filterAssessmentsByRepositories(assessments []api.VulnContainerAssessmentSummary) []api.VulnContainerAssessmentSummary {
 	if len(vulCmdState.Repositories) == 0 {
 		return assessments
@@ -350,6 +366,24 @@ func filterAssessmentsByRepositories(assessments []api.VulnContainerAssessmentSu
 		// for every repository that the user is filtering for
 		for _, repo := range vulCmdState.Repositories {
 			if strings.Contains(assessment.ImageRepo, repo) {
+				filtered = append(filtered, assessment)
+			}
+		}
+	}
+
+	return filtered
+}
+
+func filterAssessmentsByRegistries(assessments []api.VulnContainerAssessmentSummary) []api.VulnContainerAssessmentSummary {
+	if len(vulCmdState.Registries) == 0 {
+		return assessments
+	}
+
+	var filtered []api.VulnContainerAssessmentSummary
+	for _, assessment := range assessments {
+		// for every registry that the user is filtering for
+		for _, reg := range vulCmdState.Registries {
+			if strings.Contains(assessment.ImageRegistry, reg) {
 				filtered = append(filtered, assessment)
 			}
 		}
@@ -823,6 +857,15 @@ func buildContainerAssessmentsError() string {
 			msg = fmt.Sprintf("%s repository", msg)
 		} else {
 			msg = fmt.Sprintf("%s repositories", msg)
+		}
+	}
+
+	if len(vulCmdState.Registries) != 0 {
+		msg = fmt.Sprintf("%s for the specified", msg)
+		if len(vulCmdState.Registries) == 1 {
+			msg = fmt.Sprintf("%s registry", msg)
+		} else {
+			msg = fmt.Sprintf("%s registries", msg)
 		}
 	}
 
