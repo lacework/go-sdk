@@ -19,8 +19,30 @@
 
 package cmd
 
-import "github.com/spf13/cobra/doc"
+import (
+	"fmt"
+	"path"
+	"path/filepath"
+	"strings"
+
+	"github.com/spf13/cobra/doc"
+)
+
+const fmTemplate = `---
+title: "%s"
+slug: %s
+---
+`
 
 func GenerateMarkdownDocs() {
-	errcheckEXIT(doc.GenMarkdownTree(rootCmd, "../docs"))
+	linkHandler := func(s string) string { return s }
+	filePrepender := func(filename string) string {
+		var (
+			name = filepath.Base(filename)
+			base = strings.TrimSuffix(name, path.Ext(name))
+		)
+		return fmt.Sprintf(fmTemplate, strings.Replace(base, "_", " ", -1), base)
+	}
+
+	errcheckEXIT(doc.GenMarkdownTreeCustom(rootCmd, "../docs", filePrepender, linkHandler))
 }
