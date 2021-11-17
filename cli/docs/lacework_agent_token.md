@@ -41,9 +41,9 @@ complete, the old token can safely be disabled without interrupting Lacework ser
 
 ### SEE ALSO
 
-* [lacework agent](/cli/commands/lacework_agent/)	 - manage Lacework agents
-* [lacework agent token create](/cli/commands/lacework_agent_token_create/)	 - create a new agent access token
-* [lacework agent token list](/cli/commands/lacework_agent_token_list/)	 - list all agent access tokens
-* [lacework agent token show](/cli/commands/lacework_agent_token_show/)	 - show details about an agent access token
-* [lacework agent token update](/cli/commands/lacework_agent_token_update/)	 - update an agent access token
+* [lacework agent](lacework_agent.md)	 - manage Lacework agents
+* [lacework agent token create](lacework_agent_token_create.md)	 - create a new agent access token
+* [lacework agent token list](lacework_agent_token_list.md)	 - list all agent access tokens
+* [lacework agent token show](lacework_agent_token_show.md)	 - show details about an agent access token
+* [lacework agent token update](lacework_agent_token_update.md)	 - update an agent access token
 

@@ -58,7 +58,7 @@ lacework configure [flags]
 
 ### SEE ALSO
 
-* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
-* [lacework configure list](/cli/commands/lacework_configure_list/)	 - list all configured profiles at ~/.lacework.toml
-* [lacework configure show](/cli/commands/lacework_configure_show/)	 - show current configuration data
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework configure list](lacework_configure_list.md)	 - list all configured profiles at ~/.lacework.toml
+* [lacework configure show](lacework_configure_show.md)	 - show current configuration data
 

@@ -44,7 +44,7 @@ For a complete list of supported operating systems, visit:
 
 ### SEE ALSO
 
-* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
-* [lacework agent install](/cli/commands/lacework_agent_install/)	 - install the datacollector agent on a remote host
-* [lacework agent token](/cli/commands/lacework_agent_token/)	 - manage agent access tokens
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework agent install](lacework_agent_install.md)	 - install the datacollector agent on a remote host
+* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
 

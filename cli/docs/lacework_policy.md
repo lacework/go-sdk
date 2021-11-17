@@ -65,10 +65,10 @@ To view the LQL query associated with the policy, use the query id shown.
 
 ### SEE ALSO
 
-* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
-* [lacework policy create](/cli/commands/lacework_policy_create/)	 - create a policy
-* [lacework policy delete](/cli/commands/lacework_policy_delete/)	 - delete a policy
-* [lacework policy list](/cli/commands/lacework_policy_list/)	 - list policies
-* [lacework policy show](/cli/commands/lacework_policy_show/)	 - show policy
-* [lacework policy update](/cli/commands/lacework_policy_update/)	 - update a policy
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework policy create](lacework_policy_create.md)	 - create a policy
+* [lacework policy delete](lacework_policy_delete.md)	 - delete a policy
+* [lacework policy list](lacework_policy_list.md)	 - list policies
+* [lacework policy show](lacework_policy_show.md)	 - show policy
+* [lacework policy update](lacework_policy_update.md)	 - update a policy
 

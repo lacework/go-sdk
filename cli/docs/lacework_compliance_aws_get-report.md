@@ -59,5 +59,5 @@ lacework compliance aws get-report <account_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance aws](/cli/commands/lacework_compliance_aws/)	 - compliance for AWS
+* [lacework compliance aws](lacework_compliance_aws.md)	 - compliance for AWS
 

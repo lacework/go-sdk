@@ -41,9 +41,9 @@ An alert rule has three parts:
 
 ### SEE ALSO
 
-* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
-* [lacework alert-rule create](/cli/commands/lacework_alert-rule_create/)	 - create a new alert rule
-* [lacework alert-rule delete](/cli/commands/lacework_alert-rule_delete/)	 - delete a alert rule
-* [lacework alert-rule list](/cli/commands/lacework_alert-rule_list/)	 - list all alert rules
-* [lacework alert-rule show](/cli/commands/lacework_alert-rule_show/)	 - show an alert rule by id
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework alert-rule create](lacework_alert-rule_create.md)	 - create a new alert rule
+* [lacework alert-rule delete](lacework_alert-rule_delete.md)	 - delete a alert rule
+* [lacework alert-rule list](lacework_alert-rule_list.md)	 - list all alert rules
+* [lacework alert-rule show](lacework_alert-rule_show.md)	 - show an alert rule by id
 

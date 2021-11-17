@@ -44,5 +44,5 @@ lacework compliance azure list-subscriptions <tenant_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance azure](/cli/commands/lacework_compliance_azure/)	 - compliance for Azure Cloud
+* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Azure Cloud
 

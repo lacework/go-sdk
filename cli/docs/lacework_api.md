@@ -62,5 +62,5 @@ lacework api <method> <path> [flags]
 
 ### SEE ALSO
 
-* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
 

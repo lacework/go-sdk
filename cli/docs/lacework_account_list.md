@@ -40,5 +40,5 @@ lacework account list [flags]
 
 ### SEE ALSO
 
-* [lacework account](/cli/commands/lacework_account/)	 - manage accounts in an organization (org admins only)
+* [lacework account](lacework_account.md)	 - manage accounts in an organization (org admins only)
 

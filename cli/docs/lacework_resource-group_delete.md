@@ -40,5 +40,5 @@ lacework resource-group delete [flags]
 
 ### SEE ALSO
 
-* [lacework resource-group](/cli/commands/lacework_resource-group/)	 - manage resource groups
+* [lacework resource-group](lacework_resource-group.md)	 - manage resource groups
 

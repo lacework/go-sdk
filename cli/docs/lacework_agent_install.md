@@ -69,5 +69,5 @@ lacework agent install <[user@]host[:port]> [flags]
 
 ### SEE ALSO
 
-* [lacework agent](/cli/commands/lacework_agent/)	 - manage Lacework agents
+* [lacework agent](lacework_agent.md)	 - manage Lacework agents
 

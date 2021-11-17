@@ -40,5 +40,5 @@ lacework agent token show <token> [flags]
 
 ### SEE ALSO
 
-* [lacework agent token](/cli/commands/lacework_agent_token/)	 - manage agent access tokens
+* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
 

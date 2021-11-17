@@ -40,5 +40,5 @@ lacework compliance google list [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](/cli/commands/lacework_compliance_google/)	 - compliance for Google Cloud
+* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
 

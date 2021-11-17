@@ -40,5 +40,5 @@ lacework alert-rule delete [flags]
 
 ### SEE ALSO
 
-* [lacework alert-rule](/cli/commands/lacework_alert-rule/)	 - manage alert rules
+* [lacework alert-rule](lacework_alert-rule.md)	 - manage alert rules
 

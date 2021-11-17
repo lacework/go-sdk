@@ -36,9 +36,9 @@ Manage external integrations with the Lacework platform
 
 ### SEE ALSO
 
-* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
-* [lacework integration create](/cli/commands/lacework_integration_create/)	 - create an external integrations
-* [lacework integration delete](/cli/commands/lacework_integration_delete/)	 - delete an external integrations
-* [lacework integration list](/cli/commands/lacework_integration_list/)	 - list all available external integrations
-* [lacework integration show](/cli/commands/lacework_integration_show/)	 - show details about a specific external integration
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework integration create](lacework_integration_create.md)	 - create an external integrations
+* [lacework integration delete](lacework_integration_delete.md)	 - delete an external integrations
+* [lacework integration list](lacework_integration_list.md)	 - list all available external integrations
+* [lacework integration show](lacework_integration_show.md)	 - show details about a specific external integration
 

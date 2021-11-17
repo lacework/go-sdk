@@ -40,5 +40,5 @@ lacework query show <query_id> [flags]
 
 ### SEE ALSO
 
-* [lacework query](/cli/commands/lacework_query/)	 - run and manage queries
+* [lacework query](lacework_query.md)	 - run and manage queries
 

@@ -45,5 +45,5 @@ lacework configure list [flags]
 
 ### SEE ALSO
 
-* [lacework configure](/cli/commands/lacework_configure/)	 - configure the Lacework CLI
+* [lacework configure](lacework_configure.md)	 - configure the Lacework CLI
 

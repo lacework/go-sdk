@@ -65,14 +65,14 @@ To execute a query.
 
 ### SEE ALSO
 
-* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
-* [lacework query create](/cli/commands/lacework_query_create/)	 - create a query
-* [lacework query delete](/cli/commands/lacework_query_delete/)	 - delete a query
-* [lacework query list](/cli/commands/lacework_query_list/)	 - list queries
-* [lacework query list-sources](/cli/commands/lacework_query_list-sources/)	 - list Lacework query data sources
-* [lacework query run](/cli/commands/lacework_query_run/)	 - run a query
-* [lacework query show](/cli/commands/lacework_query_show/)	 - show a query
-* [lacework query show-source](/cli/commands/lacework_query_show-source/)	 - show Lacework query data source
-* [lacework query update](/cli/commands/lacework_query_update/)	 - update a query
-* [lacework query validate](/cli/commands/lacework_query_validate/)	 - validate a query
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework query create](lacework_query_create.md)	 - create a query
+* [lacework query delete](lacework_query_delete.md)	 - delete a query
+* [lacework query list](lacework_query_list.md)	 - list queries
+* [lacework query list-sources](lacework_query_list-sources.md)	 - list Lacework query data sources
+* [lacework query run](lacework_query_run.md)	 - run a query
+* [lacework query show](lacework_query_show.md)	 - show a query
+* [lacework query show-source](lacework_query_show-source.md)	 - show Lacework query data source
+* [lacework query update](lacework_query_update.md)	 - update a query
+* [lacework query validate](lacework_query_validate.md)	 - validate a query
 

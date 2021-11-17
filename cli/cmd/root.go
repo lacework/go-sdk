@@ -58,7 +58,7 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 			cli.SendHoneyvent()
 
 			switch cmd.Use {
-			case "help [command]", "configure", "version", "generate-pkg-manifest":
+			case "help [command]", "configure", "version", "docs <directory>", "generate-pkg-manifest":
 				return nil
 			default:
 				// @afiune no need to create a client for any configure command

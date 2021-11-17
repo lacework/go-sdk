@@ -43,5 +43,5 @@ lacework policy delete <policy_id> [flags]
 
 ### SEE ALSO
 
-* [lacework policy](/cli/commands/lacework_policy/)	 - manage policies
+* [lacework policy](lacework_policy.md)	 - manage policies
 

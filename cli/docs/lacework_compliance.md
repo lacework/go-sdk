@@ -55,8 +55,8 @@ Use the following command to list all available integrations in your account:
 
 ### SEE ALSO
 
-* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
-* [lacework compliance aws](/cli/commands/lacework_compliance_aws/)	 - compliance for AWS
-* [lacework compliance azure](/cli/commands/lacework_compliance_azure/)	 - compliance for Azure Cloud
-* [lacework compliance google](/cli/commands/lacework_compliance_google/)	 - compliance for Google Cloud
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework compliance aws](lacework_compliance_aws.md)	 - compliance for AWS
+* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Azure Cloud
+* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
 
