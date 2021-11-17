@@ -1,3 +1,7 @@
+---
+title: "lacework query"
+slug: lacework_query
+---
 ## lacework query
 
 run and manage queries

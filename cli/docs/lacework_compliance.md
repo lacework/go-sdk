@@ -1,3 +1,7 @@
+---
+title: "lacework compliance"
+slug: lacework_compliance
+---
 ## lacework compliance
 
 manage compliance reports

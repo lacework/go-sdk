@@ -1,3 +1,7 @@
+---
+title: "lacework integration show"
+slug: lacework_integration_show
+---
 ## lacework integration show
 
 show details about a specific external integration

@@ -1,3 +1,7 @@
+---
+title: "lacework configure list"
+slug: lacework_configure_list
+---
 ## lacework configure list
 
 list all configured profiles at ~/.lacework.toml

@@ -1,3 +1,7 @@
+---
+title: "lacework alert-rule delete"
+slug: lacework_alert-rule_delete
+---
 ## lacework alert-rule delete
 
 delete a alert rule

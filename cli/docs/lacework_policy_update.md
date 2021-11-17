@@ -1,3 +1,7 @@
+---
+title: "lacework policy update"
+slug: lacework_policy_update
+---
 ## lacework policy update
 
 update a policy

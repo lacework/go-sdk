@@ -1,3 +1,7 @@
+---
+title: "lacework"
+slug: lacework
+---
 ## lacework
 
 A tool to manage the Lacework cloud security platform.

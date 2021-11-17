@@ -1,3 +1,7 @@
+---
+title: "lacework query create"
+slug: lacework_query_create
+---
 ## lacework query create
 
 create a query

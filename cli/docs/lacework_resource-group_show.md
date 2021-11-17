@@ -1,3 +1,7 @@
+---
+title: "lacework resource-group show"
+slug: lacework_resource-group_show
+---
 ## lacework resource-group show
 
 get resource group by id

@@ -1,3 +1,7 @@
+---
+title: "lacework event show"
+slug: lacework_event_show
+---
 ## lacework event show
 
 show details about a specific event

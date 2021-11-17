@@ -1,3 +1,7 @@
+---
+title: "lacework agent token create"
+slug: lacework_agent_token_create
+---
 ## lacework agent token create
 
 create a new agent access token

@@ -1,3 +1,7 @@
+---
+title: "lacework compliance aws"
+slug: lacework_compliance_aws
+---
 ## lacework compliance aws
 
 compliance for AWS

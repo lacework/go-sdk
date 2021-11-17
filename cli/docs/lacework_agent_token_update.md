@@ -1,3 +1,7 @@
+---
+title: "lacework agent token update"
+slug: lacework_agent_token_update
+---
 ## lacework agent token update
 
 update an agent access token

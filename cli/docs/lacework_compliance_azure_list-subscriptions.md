@@ -1,3 +1,7 @@
+---
+title: "lacework compliance azure list-subscriptions"
+slug: lacework_compliance_azure_list-subscriptions
+---
 ## lacework compliance azure list-subscriptions
 
 list subscriptions from tenant

@@ -1,3 +1,7 @@
+---
+title: "lacework compliance azure run-assessment"
+slug: lacework_compliance_azure_run-assessment
+---
 ## lacework compliance azure run-assessment
 
 run a new Azure compliance assessment

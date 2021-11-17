@@ -1,3 +1,7 @@
+---
+title: "lacework policy list"
+slug: lacework_policy_list
+---
 ## lacework policy list
 
 list policies

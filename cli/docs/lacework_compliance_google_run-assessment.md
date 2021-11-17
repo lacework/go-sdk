@@ -1,3 +1,7 @@
+---
+title: "lacework compliance google run-assessment"
+slug: lacework_compliance_google_run-assessment
+---
 ## lacework compliance google run-assessment
 
 run a new GCP compliance assessment

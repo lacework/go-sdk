@@ -1,3 +1,7 @@
+---
+title: "lacework resource-group list"
+slug: lacework_resource-group_list
+---
 ## lacework resource-group list
 
 list all resource groups

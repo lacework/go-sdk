@@ -1,3 +1,7 @@
+---
+title: "lacework policy create"
+slug: lacework_policy_create
+---
 ## lacework policy create
 
 create a policy

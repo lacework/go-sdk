@@ -1,3 +1,7 @@
+---
+title: "lacework compliance azure list-tenants"
+slug: lacework_compliance_azure_list-tenants
+---
 ## lacework compliance azure list-tenants
 
 list all Azure Tenants configured

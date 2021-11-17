@@ -1,3 +1,7 @@
+---
+title: "lacework compliance google list-projects"
+slug: lacework_compliance_google_list-projects
+---
 ## lacework compliance google list-projects
 
 list projects from an organization

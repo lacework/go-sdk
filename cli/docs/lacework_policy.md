@@ -1,3 +1,7 @@
+---
+title: "lacework policy"
+slug: lacework_policy
+---
 ## lacework policy
 
 manage policies

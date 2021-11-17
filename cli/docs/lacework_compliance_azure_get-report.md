@@ -1,3 +1,7 @@
+---
+title: "lacework compliance azure get-report"
+slug: lacework_compliance_azure_get-report
+---
 ## lacework compliance azure get-report
 
 get the latest Azure compliance report

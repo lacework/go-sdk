@@ -1,3 +1,7 @@
+---
+title: "lacework alert-rule create"
+slug: lacework_alert-rule_create
+---
 ## lacework alert-rule create
 
 create a new alert rule

@@ -1,3 +1,7 @@
+---
+title: "lacework compliance google list"
+slug: lacework_compliance_google_list
+---
 ## lacework compliance google list
 
 list gcp projects and organizations

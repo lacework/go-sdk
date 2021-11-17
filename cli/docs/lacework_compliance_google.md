@@ -1,3 +1,7 @@
+---
+title: "lacework compliance google"
+slug: lacework_compliance_google
+---
 ## lacework compliance google
 
 compliance for Google Cloud

@@ -1,3 +1,7 @@
+---
+title: "lacework agent token"
+slug: lacework_agent_token
+---
 ## lacework agent token
 
 manage agent access tokens

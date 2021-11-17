@@ -1,3 +1,7 @@
+---
+title: "lacework query update"
+slug: lacework_query_update
+---
 ## lacework query update
 
 update a query
