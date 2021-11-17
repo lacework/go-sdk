@@ -2,6 +2,7 @@
 title: "lacework configure show"
 slug: lacework_configure_show
 ---
+
 ## lacework configure show
 
 show current configuration data

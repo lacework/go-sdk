@@ -32,6 +32,7 @@ const fmTemplate = `---
 title: "%s"
 slug: %s
 ---
+
 `
 
 func GenerateMarkdownDocs() {

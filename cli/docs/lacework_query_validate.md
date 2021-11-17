@@ -2,6 +2,7 @@
 title: "lacework query validate"
 slug: lacework_query_validate
 ---
+
 ## lacework query validate
 
 validate a query

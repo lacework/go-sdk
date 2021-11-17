@@ -2,6 +2,7 @@
 title: "lacework access-token"
 slug: lacework_access-token
 ---
+
 ## lacework access-token
 
 generate temporary API access tokens

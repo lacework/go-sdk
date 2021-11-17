@@ -2,6 +2,7 @@
 title: "lacework compliance aws get-report"
 slug: lacework_compliance_aws_get-report
 ---
+
 ## lacework compliance aws get-report
 
 get the latest AWS compliance report

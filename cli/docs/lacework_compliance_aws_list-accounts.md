@@ -2,6 +2,7 @@
 title: "lacework compliance aws list-accounts"
 slug: lacework_compliance_aws_list-accounts
 ---
+
 ## lacework compliance aws list-accounts
 
 list all AWS accounts configured

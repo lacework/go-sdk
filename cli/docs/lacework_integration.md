@@ -2,6 +2,7 @@
 title: "lacework integration"
 slug: lacework_integration
 ---
+
 ## lacework integration
 
 manage external integrations

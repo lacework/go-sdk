@@ -2,6 +2,7 @@
 title: "lacework compliance azure"
 slug: lacework_compliance_azure
 ---
+
 ## lacework compliance azure
 
 compliance for Azure Cloud

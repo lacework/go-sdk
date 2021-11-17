@@ -2,6 +2,7 @@
 title: "lacework event"
 slug: lacework_event
 ---
+
 ## lacework event
 
 inspect Lacework events

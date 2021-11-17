@@ -2,6 +2,7 @@
 title: "lacework api"
 slug: lacework_api
 ---
+
 ## lacework api
 
 helper to call Lacework's API

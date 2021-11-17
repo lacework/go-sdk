@@ -2,6 +2,7 @@
 title: "lacework agent install"
 slug: lacework_agent_install
 ---
+
 ## lacework agent install
 
 install the datacollector agent on a remote host

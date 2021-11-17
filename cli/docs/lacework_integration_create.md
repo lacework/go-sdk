@@ -2,6 +2,7 @@
 title: "lacework integration create"
 slug: lacework_integration_create
 ---
+
 ## lacework integration create
 
 create an external integrations

@@ -2,6 +2,7 @@
 title: "lacework account"
 slug: lacework_account
 ---
+
 ## lacework account
 
 manage accounts in an organization (org admins only)

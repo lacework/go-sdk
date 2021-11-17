@@ -2,6 +2,7 @@
 title: "lacework agent"
 slug: lacework_agent
 ---
+
 ## lacework agent
 
 manage Lacework agents

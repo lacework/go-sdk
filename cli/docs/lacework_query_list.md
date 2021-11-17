@@ -2,6 +2,7 @@
 title: "lacework query list"
 slug: lacework_query_list
 ---
+
 ## lacework query list
 
 list queries

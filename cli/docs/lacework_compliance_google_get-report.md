@@ -2,6 +2,7 @@
 title: "lacework compliance google get-report"
 slug: lacework_compliance_google_get-report
 ---
+
 ## lacework compliance google get-report
 
 get the latest GCP compliance report
