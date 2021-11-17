@@ -44,5 +44,5 @@ lacework version [flags]
 
 ### SEE ALSO
 
-* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
 

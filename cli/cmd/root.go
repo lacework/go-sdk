@@ -47,7 +47,7 @@ external integrations, vulnerability scans, and other operations.
 
 Start by configuring the Lacework CLI with the command:
 
-    $ lacework configure
+    lacework configure
 
 This will prompt you for your Lacework account and a set of API access keys.`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

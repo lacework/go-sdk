@@ -46,6 +46,6 @@ To enroll your Lacework account in an organization follow the documentation:
 
 ### SEE ALSO
 
-* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework account list](lacework_account_list.md)	 - list all accounts
+* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
+* [lacework account list](/cli/commands/lacework_account_list/)	 - list all accounts
 

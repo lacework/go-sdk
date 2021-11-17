@@ -14,6 +14,7 @@ key. The order of precedence to compute the configuration is flags, environment
 variables, and the configuration file ~/.lacework.toml. 
 
 The available configuration keys are:
+
 * profile
 * account
 * api_secret
@@ -21,7 +22,7 @@ The available configuration keys are:
 
 To show the configuration from a different profile, use the flag --profile.
 
-    $ lacework configure show account --profile my-profile
+    lacework configure show account --profile my-profile
 
 ```
 lacework configure show <config_key> [flags]
@@ -52,5 +53,5 @@ lacework configure show <config_key> [flags]
 
 ### SEE ALSO
 
-* [lacework configure](lacework_configure.md)	 - configure the Lacework CLI
+* [lacework configure](/cli/commands/lacework_configure/)	 - configure the Lacework CLI
 

@@ -40,5 +40,5 @@ lacework compliance google run-assessment <org_or_project_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
+* [lacework compliance google](/cli/commands/lacework_compliance_google/)	 - compliance for Google Cloud
 

@@ -18,7 +18,7 @@ Additionally, pass --days to list events for a specified number of days.
 For example, to list all events from the last day with severity medium and above
 (Critical, High and Medium) run:
 
-    $ lacework events list --severity medium --days 1
+    lacework events list --severity medium --days 1
 
 ```
 lacework event list [flags]
@@ -53,5 +53,5 @@ lacework event list [flags]
 
 ### SEE ALSO
 
-* [lacework event](lacework_event.md)	 - inspect Lacework events
+* [lacework event](/cli/commands/lacework_event/)	 - inspect Lacework events
 

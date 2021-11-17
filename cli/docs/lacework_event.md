@@ -36,8 +36,8 @@ Inspect events reported by the Lacework platform
 
 ### SEE ALSO
 
-* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework event list](lacework_event_list.md)	 - list all events (default last 7 days)
-* [lacework event open](lacework_event_open.md)	 - open a specified event in a web browser
-* [lacework event show](lacework_event_show.md)	 - show details about a specific event
+* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
+* [lacework event list](/cli/commands/lacework_event_list/)	 - list all events (default last 7 days)
+* [lacework event open](/cli/commands/lacework_event_open/)	 - open a specified event in a web browser
+* [lacework event show](/cli/commands/lacework_event_show/)	 - show details about a specific event
 

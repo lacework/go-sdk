@@ -40,7 +40,7 @@ var (
 
 Use the following command to list all Azure Tenants configured in your account:
 
-    $ lacework compliance az list`,
+    lacework compliance az list`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
@@ -92,7 +92,7 @@ Use the following command to list all Azure Tenants configured in your account:
 
 Get started by integrating your Azure Tenants to analyze configuration compliance using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -151,7 +151,7 @@ typically once a day. The available report formats are human-readable (default),
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance azure run-assessment <tenant_id>
+    lacework compliance azure run-assessment <tenant_id>
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(_ *cobra.Command, args []string) error {

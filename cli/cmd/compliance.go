@@ -72,7 +72,7 @@ HIPAA benchmark standards.
 
 Get started by integrating one or more cloud accounts using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -82,7 +82,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 Use the following command to list all available integrations in your account:
 
-    $ lacework integrations list
+    lacework integrations list
 `,
 	}
 
@@ -95,21 +95,21 @@ Use the following command to list all available integrations in your account:
 
 To list all Azure Tenants configured in your account:
 
-    $ lacework compliance azure list-tenants
+    lacework compliance azure list-tenants
 
 To list all Azure Subscriptions from a Tenant, use the command:
 
-    $ lacework compliance azure list-subscriptions <tenant_id>
+    lacework compliance azure list-subscriptions <tenant_id>
 
 To get the latest Azure compliance assessment report, use the command:
 
-    $ lacework compliance azure get-report <tenant_id> <subscriptions_id>
+    lacework compliance azure get-report <tenant_id> <subscriptions_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance azure run-assessment <tenant_id>
+    lacework compliance azure run-assessment <tenant_id>
 `,
 	}
 
@@ -122,27 +122,27 @@ To run an ad-hoc compliance assessment use the command:
 
 To get the latest GCP compliance assessment report, use the command:
 
-    $ lacework compliance gcp get-report <organization_id> <project_id>
+    lacework compliance gcp get-report <organization_id> <project_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To find out which GCP organizations/projects are connected to your
 Lacework account, use the following command:
 
-    $ lacework integrations list --type GCP_CFG
+    lacework integrations list --type GCP_CFG
 
 Then, choose one integration, copy the GUID and visualize its details
 using the command:
 
-    $ lacework integration show <int_guid>
+    lacework integration show <int_guid>
 
 To list all GCP projects from an organization, use the command:
 
-    $ lacework compliance gcp list-projects <organization_id>
+    lacework compliance gcp list-projects <organization_id>
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance gcp run-assessment <org_or_project_id>
+    lacework compliance gcp run-assessment <org_or_project_id>
 `,
 	}
 
@@ -154,17 +154,17 @@ To run an ad-hoc compliance assessment use the command:
 
 To list all AWS accounts configured in your account:
 
-    $ lacework compliance aws list-accounts
+    lacework compliance aws list-accounts
 
 To get the latest AWS compliance assessment report:
 
-    $ lacework compliance aws get-report <account_id>
+    lacework compliance aws get-report <account_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment:
 
-    $ lacework compliance aws run-assessment <account_id>
+    lacework compliance aws run-assessment <account_id>
 `,
 	}
 )

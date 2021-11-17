@@ -41,16 +41,17 @@ var (
 		Short: "request an on-demand container vulnerability assessment",
 		Long: `Request on-demand container vulnerability assessments and view the generated results.
 
-NOTE: Scans can take up to 15 minutes to return results.
-
-Arguments:
-  <registry>    container registry where the container image has been published
-  <repository>  repository name that contains the container image
-  <tag|digest>  either a tag or an image digest to scan (digest format: sha256:1ee...1d3b)
-
 To list all container registries configured in your account:
 
-    $ lacework vulnerability container list-registries`,
+    lacework vulnerability container list-registries
+
+**NOTE:** Scans can take up to 15 minutes to return results.
+
+Arguments:
+    <registry>    container registry where the container image has been published
+    <repository>  repository name that contains the container image
+    <tag|digest>  either a tag or an image digest to scan (digest format: sha256:1ee...1d3b)
+    `,
 		Args: cobra.ExactArgs(3),
 		RunE: func(c *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
@@ -107,7 +108,7 @@ To list all container registries configured in your account:
 
 Get started by integrating your container registry using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -243,7 +244,7 @@ image id.
 
 To request an on-demand vulnerability scan:
 
-    $ lacework vulnerability container scan <registry> <repository> <tag|digest>`,
+    lacework vulnerability container scan <registry> <repository> <tag|digest>`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(c *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
@@ -431,7 +432,7 @@ func requestOnDemandContainerVulnerabilityScan(args []string) error {
 
 	cli.OutputHuman("To track the progress of the scan, use the command:\n")
 	cli.OutputHuman(
-		"  $ lacework vulnerability container scan-status %s%s\n",
+		"    lacework vulnerability container scan-status %s%s\n",
 		scan.Data.RequestID,
 		cli.OutputNonDefaultProfileFlag(),
 	)
@@ -1033,7 +1034,7 @@ func userFriendlyErrorForOnDemandCtrVulnScan(err error, registry, repo, tag stri
 
 Get started by integrating your container registry using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -1052,7 +1053,7 @@ Your account has the following container registries configured:
 
 To integrate a new container registry use the command:
 
-    $ lacework integration create
+    lacework integration create
 `
 		return errors.New(fmt.Sprintf(msg, registry, strings.Join(registries, "\n    > ")))
 	}
@@ -1071,7 +1072,7 @@ to the provided registry.
 
 To view all container registries configured in your account use the command:
 
-    $ lacework vulnerability container list-registries
+    lacework vulnerability container list-registries
 `
 		return errors.Errorf(msg, repo, tag, registry)
 	}

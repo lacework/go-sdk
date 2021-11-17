@@ -36,7 +36,7 @@ HIPAA benchmark standards.
 
 Get started by integrating one or more cloud accounts using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -46,7 +46,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 Use the following command to list all available integrations in your account:
 
-    $ lacework integrations list
+    lacework integrations list
 
 Usage:
   lacework compliance [command]

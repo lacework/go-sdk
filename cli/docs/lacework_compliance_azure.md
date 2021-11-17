@@ -13,21 +13,21 @@ Manage compliance reports for Azure Cloud.
 
 To list all Azure Tenants configured in your account:
 
-    $ lacework compliance azure list-tenants
+    lacework compliance azure list-tenants
 
 To list all Azure Subscriptions from a Tenant, use the command:
 
-    $ lacework compliance azure list-subscriptions <tenant_id>
+    lacework compliance azure list-subscriptions <tenant_id>
 
 To get the latest Azure compliance assessment report, use the command:
 
-    $ lacework compliance azure get-report <tenant_id> <subscriptions_id>
+    lacework compliance azure get-report <tenant_id> <subscriptions_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance azure run-assessment <tenant_id>
+    lacework compliance azure run-assessment <tenant_id>
 
 
 ### Options
@@ -55,9 +55,9 @@ To run an ad-hoc compliance assessment use the command:
 
 ### SEE ALSO
 
-* [lacework compliance](lacework_compliance.md)	 - manage compliance reports
-* [lacework compliance azure get-report](lacework_compliance_azure_get-report.md)	 - get the latest Azure compliance report
-* [lacework compliance azure list-subscriptions](lacework_compliance_azure_list-subscriptions.md)	 - list subscriptions from tenant
-* [lacework compliance azure list-tenants](lacework_compliance_azure_list-tenants.md)	 - list all Azure Tenants configured
-* [lacework compliance azure run-assessment](lacework_compliance_azure_run-assessment.md)	 - run a new Azure compliance assessment
+* [lacework compliance](/cli/commands/lacework_compliance/)	 - manage compliance reports
+* [lacework compliance azure get-report](/cli/commands/lacework_compliance_azure_get-report/)	 - get the latest Azure compliance report
+* [lacework compliance azure list-subscriptions](/cli/commands/lacework_compliance_azure_list-subscriptions/)	 - list subscriptions from tenant
+* [lacework compliance azure list-tenants](/cli/commands/lacework_compliance_azure_list-tenants/)	 - list all Azure Tenants configured
+* [lacework compliance azure run-assessment](/cli/commands/lacework_compliance_azure_run-assessment/)	 - run a new Azure compliance assessment
 

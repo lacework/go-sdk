@@ -59,5 +59,5 @@ lacework policy create [flags]
 
 ### SEE ALSO
 
-* [lacework policy](lacework_policy.md)	 - manage policies
+* [lacework policy](/cli/commands/lacework_policy/)	 - manage policies
 

@@ -53,7 +53,7 @@ var (
 
 Get started by integrating your GCP to analyze configuration compliance using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -92,11 +92,11 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 Use the following command to list all GCP integrations in your account:
 
-    $ lacework integrations list --type GCP_CFG
+    lacework integrations list --type GCP_CFG
 
 Then, select one GUID from an integration and visualize its details using the command:
 
-    $ lacework integration show <int_guid>
+    lacework integration show <int_guid>
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -154,7 +154,7 @@ typically once a day. The available report formats are human-readable (default),
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance gcp run-assessment <project_id>
+    lacework compliance gcp run-assessment <project_id>
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(_ *cobra.Command, args []string) error {

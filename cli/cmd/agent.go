@@ -57,7 +57,7 @@ agent requires minimal system resources and runs on most 64-bit Linux distributi
 
 For a complete list of supported operating systems, visit:
 
-    https://support.lacework.com/hc/en-us/articles/360005230014-Supported-Operating-Systems`,
+  https://support.lacework.com/hc/en-us/articles/360005230014-Supported-Operating-Systems`,
 	}
 
 	agentTokenCmd = &cobra.Command{
@@ -103,15 +103,15 @@ complete, the old token can safely be disabled without interrupting Lacework ser
 
 To update the token name and description:
 
-    $ lacework agent token update <token> --name dev --description "k8s deployment for dev"
+    lacework agent token update <token> --name dev --description "k8s deployment for dev"
 
 To disable a token:
 
-    $ lacework agent token update <token> --disable
+    lacework agent token update <token> --disable
 
 To enable a token:
 
-    $ lacework agent token update <token> --enable`,
+    lacework agent token update <token> --enable`,
 		Args: cobra.ExactArgs(1),
 		RunE: updateAgentToken,
 	}
@@ -147,21 +147,21 @@ launched to help gather the necessary authentication information to access the r
 
 To authenticate to the remote host with a username and password.
 
-    $ lacework agent install <host> --ssh_username <your-user> --ssh_password <secret>
+    lacework agent install <host> --ssh_username <your-user> --ssh_password <secret>
 
 To authenticate to the remote host with an identity file instead.
 
-    $ lacework agent install <user@host> -i /path/to/your/key
+    lacework agent install <user@host> -i /path/to/your/key
 
 To provide an agent access token of your choice, use the command 'lacework agent token list',
 select a token and pass it to the '--token' flag.
 
-    $ lacework agent install <user@host> -i /path/to/your/key --token <token>
+    lacework agent install <user@host> -i /path/to/your/key --token <token>
 
 To authenticate to the remote host on a non-standard SSH port use the '--ssh_port' flag or
 pass it directly via the argument.
 
-    $ lacework agent install <user@host:port>
+    lacework agent install <user@host:port>
     `,
 		RunE: installRemoteAgent,
 	}

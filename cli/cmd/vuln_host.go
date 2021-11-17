@@ -54,7 +54,7 @@ scan package-manifest API.
 Additionally, you can automatically generate a package-manifest from
 the local host and send it directly to the Lacework API with the command:
 
-    $ lacework vulnerability host scan-pkg-manifest --local`,
+    lacework vulnerability host scan-pkg-manifest --local`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			manifest, err := cli.GeneratePackageManifest()
 			if err != nil {
@@ -74,7 +74,7 @@ determine if the packages contain any common vulnerabilities and exposures.
 
 Simple usage:
 
-    $ lacework vulnerability host scan-pkg-manifest '{
+    lacework vulnerability host scan-pkg-manifest '{
         "os_pkg_info_list": [
             {
                 "os":"Ubuntu",
@@ -87,7 +87,7 @@ Simple usage:
 
 To generate a package-manifest from the local host and scan it automatically:
 
-    $ lacework vulnerability host scan-pkg-manifest --local
+    lacework vulnerability host scan-pkg-manifest --local
 
 (*) NOTE:
  - Only packages managed by a package manager for supported OS's are reported.
@@ -201,7 +201,7 @@ To generate a package-manifest from the local host and scan it automatically:
 Filter results to only show vulnerabilities actively running in your environment
 with fixes:
 
-    $ lacework vulnerability host list-cves --active --fixable`,
+    lacework vulnerability host list-cves --active --fixable`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
 				return err
@@ -233,7 +233,7 @@ with fixes:
 
 To list the CVEs found in the hosts of your environment run:
 
-    $ lacework vulnerability host list-cves`,
+    lacework vulnerability host list-cves`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			response, err := cli.LwApi.Vulnerabilities.Host.ListHostsWithCVE(args[0])
 			if err != nil {
@@ -294,11 +294,11 @@ To list the CVEs found in the hosts of your environment run:
 
 To find the machine id from hosts in your environment, use the command:
 
-    $ lacework vulnerability host list-cves
+    lacework vulnerability host list-cves
 
 Grab a CVE id and feed it to the command:
 
-    $ lacework vulnerability host list-hosts my_cve_id`,
+    lacework vulnerability host list-hosts my_cve_id`,
 		RunE: func(c *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
 				return err

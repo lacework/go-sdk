@@ -13,15 +13,15 @@ Update an agent access token.
 
 To update the token name and description:
 
-    $ lacework agent token update <token> --name dev --description "k8s deployment for dev"
+    lacework agent token update <token> --name dev --description "k8s deployment for dev"
 
 To disable a token:
 
-    $ lacework agent token update <token> --disable
+    lacework agent token update <token> --disable
 
 To enable a token:
 
-    $ lacework agent token update <token> --enable
+    lacework agent token update <token> --enable
 
 ```
 lacework agent token update <token> [flags]
@@ -56,5 +56,5 @@ lacework agent token update <token> [flags]
 
 ### SEE ALSO
 
-* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
+* [lacework agent token](/cli/commands/lacework_agent_token/)	 - manage agent access tokens
 

@@ -102,6 +102,7 @@ key. The order of precedence to compute the configuration is flags, environment
 variables, and the configuration file ~/.lacework.toml. 
 
 The available configuration keys are:
+
 * profile
 * account
 * api_secret
@@ -109,7 +110,7 @@ The available configuration keys are:
 
 To show the configuration from a different profile, use the flag --profile.
 
-    $ lacework configure show account --profile my-profile`,
+    lacework configure show account --profile my-profile`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			data, ok := showConfigurationDataFromKey(args[0])
 			if !ok {

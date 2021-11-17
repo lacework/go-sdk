@@ -42,5 +42,5 @@ lacework integration delete <int_guid> [flags]
 
 ### SEE ALSO
 
-* [lacework integration](lacework_integration.md)	 - manage external integrations
+* [lacework integration](/cli/commands/lacework_integration/)	 - manage external integrations
 

@@ -34,9 +34,15 @@ slug: %s
 ---
 
 `
+const docsFolder = "/cli/commands/"
 
 func GenerateMarkdownDocs() {
-	linkHandler := func(s string) string { return s }
+
+	linkHandler := func(name string) string {
+		base := strings.TrimSuffix(name, path.Ext(name))
+		return docsFolder + strings.ToLower(base) + "/"
+	}
+
 	filePrepender := func(filename string) string {
 		var (
 			name = filepath.Base(filename)

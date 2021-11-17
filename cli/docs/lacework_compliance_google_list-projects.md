@@ -13,11 +13,11 @@ List all GCP projects from the provided organization ID.
 
 Use the following command to list all GCP integrations in your account:
 
-    $ lacework integrations list --type GCP_CFG
+    lacework integrations list --type GCP_CFG
 
 Then, select one GUID from an integration and visualize its details using the command:
 
-    $ lacework integration show <int_guid>
+    lacework integration show <int_guid>
 
 
 ```
@@ -49,5 +49,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
+* [lacework compliance google](/cli/commands/lacework_compliance_google/)	 - compliance for Google Cloud
 

@@ -113,5 +113,5 @@ lacework query create [flags]
 
 ### SEE ALSO
 
-* [lacework query](lacework_query.md)	 - run and manage queries
+* [lacework query](/cli/commands/lacework_query/)	 - run and manage queries
 

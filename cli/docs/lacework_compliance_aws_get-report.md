@@ -15,11 +15,11 @@ are human-readable (default), json and pdf.
 
 To list all AWS accounts configured in your account:
 
-    $ lacework compliance aws list-accounts
+    lacework compliance aws list-accounts
 
 To run an ad-hoc compliance assessment of an AWS account:
 
-    $ lacework compliance aws run-assessment <account_id>
+    lacework compliance aws run-assessment <account_id>
 
 
 ```
@@ -59,5 +59,5 @@ lacework compliance aws get-report <account_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance aws](lacework_compliance_aws.md)	 - compliance for AWS
+* [lacework compliance aws](/cli/commands/lacework_compliance_aws/)	 - compliance for AWS
 

@@ -11,7 +11,7 @@ helper to call Lacework's API
 
 Use this command as a helper to call any available Lacework API v1 & v2 endpoint.
 
-== For APIv1 ==
+### For APIv1
 
 To list all integrations configured in your account:
 
@@ -21,7 +21,7 @@ For a complete list of available API v1 endpoints visit:
 
     https://<ACCOUNT>.lacework.net/api/v1/external/docs
 
-== For APIv2 ==
+### For APIv2
 
 To list all available Lacework schema types:
 
@@ -62,5 +62,5 @@ lacework api <method> <path> [flags]
 
 ### SEE ALSO
 
-* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
 

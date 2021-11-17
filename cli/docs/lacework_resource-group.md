@@ -36,9 +36,9 @@ Manage Lacework-identifiable assets via the use of resource groups.
 
 ### SEE ALSO
 
-* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework resource-group create](lacework_resource-group_create.md)	 - create a new resource group
-* [lacework resource-group delete](lacework_resource-group_delete.md)	 - delete a resource group
-* [lacework resource-group list](lacework_resource-group_list.md)	 - list all resource groups
-* [lacework resource-group show](lacework_resource-group_show.md)	 - get resource group by id
+* [lacework](/cli/commands/lacework/)	 - A tool to manage the Lacework cloud security platform.
+* [lacework resource-group create](/cli/commands/lacework_resource-group_create/)	 - create a new resource group
+* [lacework resource-group delete](/cli/commands/lacework_resource-group_delete/)	 - delete a resource group
+* [lacework resource-group list](/cli/commands/lacework_resource-group_list/)	 - list all resource groups
+* [lacework resource-group show](/cli/commands/lacework_resource-group_show/)	 - get resource group by id
 

@@ -40,5 +40,5 @@ lacework event show <event_id> [flags]
 
 ### SEE ALSO
 
-* [lacework event](lacework_event.md)	 - inspect Lacework events
+* [lacework event](/cli/commands/lacework_event/)	 - inspect Lacework events
 
