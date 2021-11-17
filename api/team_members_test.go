@@ -61,10 +61,10 @@ func TestTeamMembers_List(t *testing.T) {
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	response, err := c.V2.TeamMembers.List()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response.Data))
 	for _, d := range response.Data {
@@ -76,7 +76,7 @@ func TestTeamMembers_Get(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
 		apiPath    = fmt.Sprintf("TeamMembers/%s", intgGUID)
-		teamMember = singleMockTeamMember(intgGUID)
+		teamMember = singleMockTeamMember(intgGUID, "vatasha.white@lacework.net")
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.UseApiV2()
@@ -96,12 +96,12 @@ func TestTeamMembers_Get(t *testing.T) {
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	t.Run("when the team member exists", func(t *testing.T) {
 		var response api.TeamMemberResponse
 		err := c.V2.TeamMembers.Get(intgGUID, &response)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, intgGUID, response.Data.UserGuid)
 			assert.Equal(t, "vatasha.white@lacework.net", response.Data.UserName)
@@ -113,7 +113,7 @@ func TestTeamMembers_Get(t *testing.T) {
 		var response api.TeamMemberResponse
 		err := c.V2.TeamMembers.Get("FAKE_GUID", &response)
 		assert.Empty(t, response)
-		if assert.NotNil(t, err) {
+		if assert.Error(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/TeamMembers/FAKE_GUID")
 			assert.Contains(t, err.Error(), "[404] 404 page not found")
 		}
@@ -123,7 +123,7 @@ func TestTeamMembers_Get(t *testing.T) {
 func TestTeamMembers_Create(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
-		teamMember = singleMockTeamMember(intgGUID)
+		teamMember = singleMockTeamMember(intgGUID, "vatasha.white@lacework.net")
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.UseApiV2()
@@ -143,7 +143,7 @@ func TestTeamMembers_Create(t *testing.T) {
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	t.Run("when the team member is successfully created", func(t *testing.T) {
 		props := api.TeamMemberProps{
@@ -159,8 +159,7 @@ func TestTeamMembers_Create(t *testing.T) {
 			OrgUser:                false,
 			UpdatedTime:            "0",
 		}
-		tm, err := api.NewTeamMember("vatasha.white@lacework.net", "1", props)
-		assert.NoError(t, err)
+		tm := api.NewTeamMember("vatasha.white@lacework.net", props)
 		response, err := c.V2.TeamMembers.Create(tm)
 		assert.NoError(t, err)
 		if assert.NotNil(t, response) {
@@ -169,8 +168,46 @@ func TestTeamMembers_Create(t *testing.T) {
 			assert.Equal(t, "Lacework", response.Data.Props.Company)
 		}
 	})
+}
 
-	t.Run("when the team member is not successfully created because userEnabled is greater than 1", func(t *testing.T) {
+func TestTeamMember_Update(t *testing.T) {
+	var (
+		intgGUID   = intgguid.New()
+		teamMember = singleMockTeamMember(intgGUID, "vatasha.white+updated@lacework.net")
+		fakeServer = lacework.MockServer()
+		apiPath    = fmt.Sprintf("TeamMembers/%s", intgGUID)
+	)
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath,
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "PATCH", r.Method, "Update() should be a PATCH method")
+
+			if assert.NotNil(t, r.Body) {
+				body := httpBodySniffer(r)
+				assert.Contains(t, body, intgGUID, "IntgGUID missing")
+				assert.Contains(t, body, "company\":\"Lacework", "missing company")
+				assert.Contains(t, body, "firstName\":\"Vatasha", "missing first name")
+				assert.Contains(t, body, "lastName\":\"White", "missing last name")
+				assert.Contains(t, body, "userEnabled\":1", "missing user enabled")
+				assert.Contains(t, body, "userName\":\"vatasha.white+updated@lacework.net", "missing username")
+			}
+
+			fmt.Fprintf(w, generateTeamMemberResponse(teamMember))
+
+		},
+	)
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	t.Run("when the team member is successfully updated", func(t *testing.T) {
 		props := api.TeamMemberProps{
 			AccountAdmin:           false,
 			Company:                "Lacework",
@@ -184,33 +221,81 @@ func TestTeamMembers_Create(t *testing.T) {
 			OrgUser:                false,
 			UpdatedTime:            "0",
 		}
-		_, err := api.NewTeamMember("vatasha.white@lacework.net", "2", props)
-		assert.EqualError(t, err, "userEnabled field must be 0 for disabled or 1 for enabled")
+		tm := api.NewTeamMember("vatasha.white+updated@lacework.net", props)
+		tm.UserGuid = intgGUID
+		response, err := c.V2.TeamMembers.Update(tm)
+		assert.NoError(t, err)
+		if assert.NotNil(t, response) {
+			assert.Equal(t, "vatasha.white+updated@lacework.net", response.Data.UserName)
+		}
+	})
+}
+
+func TestTeamMember_Delete(t *testing.T) {
+	var (
+		intgGUID        = intgguid.New()
+		teamMember      = singleMockTeamMember(intgGUID, "vatasha.white@lacework.net")
+		fakeServer      = lacework.MockServer()
+		apiPath         = fmt.Sprintf("TeamMembers/%s", intgGUID)
+		responseFromGet = generateTeamMemberResponse(teamMember)
+	)
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath,
+		func(w http.ResponseWriter, r *http.Request) {
+			if responseFromGet != "" {
+				switch r.Method {
+				case "GET":
+					fmt.Fprintf(w, responseFromGet)
+				case "DELETE":
+					responseFromGet = ""
+				}
+			} else {
+				http.Error(w, "{ \"message\": \"Not Found\"}", 404)
+			}
+		},
+	)
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	t.Run("verify that the team member exists", func(t *testing.T) {
+		var response api.TeamMemberResponse
+		err := c.V2.TeamMembers.Get(intgGUID, &response)
+		assert.NoError(t, err)
+		if assert.NotNil(t, response) {
+			assert.Equal(t, intgGUID, response.Data.UserGuid)
+			assert.Equal(t, "vatasha.white@lacework.net", response.Data.UserName)
+			assert.Equal(t, "Lacework", response.Data.Props.Company)
+		}
 	})
 
-	t.Run("when the team member is not successfully created because userEnabled is less than 0", func(t *testing.T) {
-		props := api.TeamMemberProps{
-			AccountAdmin:           false,
-			Company:                "Lacework",
-			CreatedTime:            "2021-11-16T16:33:17.573Z",
-			FirstName:              "Vatasha",
-			JitCreated:             false,
-			LastLoginTime:          "0",
-			LastName:               "White",
-			LastSessionCreatedTime: "0",
-			OrgAdmin:               false,
-			OrgUser:                false,
-			UpdatedTime:            "0",
+
+	t.Run("when the team member has been deleted", func(t *testing.T) {
+		err := c.V2.TeamMembers.Delete(intgGUID)
+		assert.NoError(t, err)
+
+		var response api.TeamMemberResponse
+		err = c.V2.TeamMembers.Get(intgGUID, &response)
+		assert.Empty(t, response)
+		if assert.Error(t, err) {
+			assert.Contains(t, err.Error(), apiPath)
+			assert.Contains(t, err.Error(), "[404] Not Found")
 		}
-		_, err := api.NewTeamMember("vatasha.white@gmail.com", "-100", props)
-		assert.EqualError(t, err, "userEnabled field must be 0 for disabled or 1 for enabled")
 	})
 }
 
 func generateTeamMembers(guids []string) string {
 	tms := make([]string, len(guids))
 	for i, guid := range guids {
-		tms[i] = singleMockTeamMember(guid)
+		username := fmt.Sprintf("vatasha.white+%s@lacework.net", guid)
+		tms[i] = singleMockTeamMember(guid, username)
 	}
 	return strings.Join(tms, ", ")
 }
@@ -231,7 +316,7 @@ func generateTeamMemberResponse(data string) string {
 	`
 }
 
-func singleMockTeamMember(id string) string {
+func singleMockTeamMember(id, username string) string {
 	return fmt.Sprintf(`
     {
 	  "custGuid": "TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA",
@@ -248,9 +333,9 @@ func singleMockTeamMember(id string) string {
       		"orgUser": false,
       		"updatedTime": "0"
 	  },
-      "userEnabled": "1",
+      "userEnabled": %d,
       "userGuid": %q,
-      "userName": "vatasha.white@lacework.net" 
+      "userName": "%s"
     }
-	`, false, false, id)
+	`, false, false, 1, id, username)
 }

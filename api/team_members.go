@@ -21,7 +21,6 @@ package api
 import (
 	"errors"
 	"fmt"
-	"strconv"
 )
 
 type TeamMembersService struct {
@@ -39,7 +38,6 @@ type TeamMembersService struct {
 //
 //   teamMember := api.NewTeamMember(
 //		"FooBar",
-//		"1",
 //		api.TeamMemberProps{
 //		Company: "ACME Inc",
 //		FirstName: "Foo",
@@ -50,21 +48,12 @@ type TeamMembersService struct {
 //
 // client.V2.TeamMembers.Create(teamMember)
 //
-func NewTeamMember(username, userEnabled string, props TeamMemberProps) (TeamMember, error) {
-	userEnabledEnum, err := strconv.Atoi(userEnabled)
-	if err != nil {
-		return TeamMember{}, err
-	}
-
-	if userEnabledEnum > 1 || userEnabledEnum < 0 {
-		return TeamMember{}, errors.New("userEnabled field must be 0 for disabled or 1 for enabled")
-	}
-
+func NewTeamMember(username string, props TeamMemberProps) TeamMember {
 	return TeamMember{
 		Props:       props,
-		UserEnabled: userEnabled,
+		UserEnabled: 1,
 		UserName:    username,
-	}, nil
+	}
 }
 
 // List returns a list of team members
@@ -82,7 +71,7 @@ func (svc *TeamMembersService) Create(tm TeamMember) (res TeamMemberResponse, er
 // Delete deletes a single team member with the corresponding guid
 func (svc *TeamMembersService) Delete(guid string) error {
 	if guid == "" {
-		errors.New("please specify a guid")
+		return errors.New("please specify a guid")
 	}
 
 	return svc.client.RequestDecoder("DELETE", fmt.Sprintf(apiV2TeamMembersFromGUID, guid), nil, nil)
@@ -90,7 +79,7 @@ func (svc *TeamMembersService) Delete(guid string) error {
 
 // Update updates a single team member with the corresponding guid
 func (svc *TeamMembersService) Update(tm TeamMember) (res TeamMemberResponse, err error) {
-	if tm.CustGuid == "" {
+	if tm.UserGuid == "" {
 		err = errors.New("please specify a guid")
 		return
 	}
@@ -125,7 +114,7 @@ type TeamMemberProps struct {
 type TeamMember struct {
 	CustGuid    string          `json:"custGuid,omitempty"`
 	Props       TeamMemberProps `json:"props"`
-	UserEnabled string          `json:"userEnabled"`
+	UserEnabled int             `json:"userEnabled"`
 	UserGuid    string          `json:"userGuid,omitempty"`
 	UserName    string          `json:"userName"`
 }
