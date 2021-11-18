@@ -1,3 +1,8 @@
+---
+title: "lacework query list-sources"
+slug: lacework_query_list-sources
+---
+
 ## lacework query list-sources
 
 list Lacework query data sources

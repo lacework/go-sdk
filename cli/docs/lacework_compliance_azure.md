@@ -1,3 +1,8 @@
+---
+title: "lacework compliance azure"
+slug: lacework_compliance_azure
+---
+
 ## lacework compliance azure
 
 compliance for Azure Cloud
@@ -8,21 +13,21 @@ Manage compliance reports for Azure Cloud.
 
 To list all Azure Tenants configured in your account:
 
-    $ lacework compliance azure list-tenants
+    lacework compliance azure list-tenants
 
 To list all Azure Subscriptions from a Tenant, use the command:
 
-    $ lacework compliance azure list-subscriptions <tenant_id>
+    lacework compliance azure list-subscriptions <tenant_id>
 
 To get the latest Azure compliance assessment report, use the command:
 
-    $ lacework compliance azure get-report <tenant_id> <subscriptions_id>
+    lacework compliance azure get-report <tenant_id> <subscriptions_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance azure run-assessment <tenant_id>
+    lacework compliance azure run-assessment <tenant_id>
 
 
 ### Options

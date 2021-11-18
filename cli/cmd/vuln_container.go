@@ -38,19 +38,20 @@ var (
 	// vulContainerScanCmd represents the scan sub-command inside the container vulnerability command
 	vulContainerScanCmd = &cobra.Command{
 		Use:   "scan <registry> <repository> <tag|digest>",
-		Short: "request an on-demand container vulnerability assessment",
+		Short: "Request an on-demand container vulnerability assessment",
 		Long: `Request on-demand container vulnerability assessments and view the generated results.
-
-NOTE: Scans can take up to 15 minutes to return results.
-
-Arguments:
-  <registry>    container registry where the container image has been published
-  <repository>  repository name that contains the container image
-  <tag|digest>  either a tag or an image digest to scan (digest format: sha256:1ee...1d3b)
 
 To list all container registries configured in your account:
 
-    $ lacework vulnerability container list-registries`,
+    lacework vulnerability container list-registries
+
+**NOTE:** Scans can take up to 15 minutes to return results.
+
+Arguments:
+    <registry>    container registry where the container image has been published
+    <repository>  repository name that contains the container image
+    <tag|digest>  either a tag or an image digest to scan (digest format: sha256:1ee...1d3b)
+    `,
 		Args: cobra.ExactArgs(3),
 		RunE: func(c *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
@@ -72,7 +73,7 @@ To list all container registries configured in your account:
 	vulContainerScanStatusCmd = &cobra.Command{
 		Use:     "scan-status <request_id>",
 		Aliases: []string{"status"},
-		Short:   "check the status of an on-demand container vulnerability assessment",
+		Short:   "Check the status of an on-demand container vulnerability assessment",
 		Long:    "Check the status of an on-demand container vulnerability assessment.",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(c *cobra.Command, args []string) error {
@@ -94,7 +95,7 @@ To list all container registries configured in your account:
 	vulContainerListRegistriesCmd = &cobra.Command{
 		Use:     "list-registries",
 		Aliases: []string{"list-reg", "registries"},
-		Short:   "list all container registries configured",
+		Short:   "List all container registries configured",
 		Long:    `List all container registries configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -107,7 +108,7 @@ To list all container registries configured in your account:
 
 Get started by integrating your container registry using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -138,7 +139,7 @@ Then navigate to Settings > Integrations > Container Registry.
 	vulContainerListAssessmentsCmd = &cobra.Command{
 		Use:     "list-assessments",
 		Aliases: []string{"list", "ls"},
-		Short:   "list container vulnerability assessments (default last 7 days)",
+		Short:   "List container vulnerability assessments (default last 7 days)",
 		Long: `List all container vulnerability assessments for the last 7 days by default, or
 pass --start and --end to specify a custom time range. You can also pass --active
 to filter on active containers in your environment, as well as pass --fixable to
@@ -231,11 +232,11 @@ filter on containers with vulnerabilities that have fixes available.`,
 	vulContainerShowAssessmentCmd = &cobra.Command{
 		Use:     "show-assessment <sha256:hash>",
 		Aliases: []string{"show"},
-		Short:   "show results of a container vulnerability assessment",
+		Short:   "Show results of a container vulnerability assessment",
 		Long: `Show the results from a vulnerability assessment of a specified container.
 
 Arguments:
-  <sha256:hash> a sha256 hash of a container image (format: sha256:1ee...1d3b)
+    <sha256:hash> a sha256 hash of a container image (format: sha256:1ee...1d3b)
 
 By default, this command expects a sha256 image digest or tag. To lookup an
 assessment by its image id, use the flag '--image_id' followed by the sha256
@@ -243,7 +244,7 @@ image id.
 
 To request an on-demand vulnerability scan:
 
-    $ lacework vulnerability container scan <registry> <repository> <tag|digest>`,
+    lacework vulnerability container scan <registry> <repository> <tag|digest>`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(c *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
@@ -431,7 +432,7 @@ func requestOnDemandContainerVulnerabilityScan(args []string) error {
 
 	cli.OutputHuman("To track the progress of the scan, use the command:\n")
 	cli.OutputHuman(
-		"  $ lacework vulnerability container scan-status %s%s\n",
+		"    lacework vulnerability container scan-status %s%s\n",
 		scan.Data.RequestID,
 		cli.OutputNonDefaultProfileFlag(),
 	)
@@ -516,7 +517,7 @@ func showContainerAssessmentsWithSha256(sha string) error {
 			`unable to retrieve assessment for the provided container image. (unsupported distribution)
 
 For more information about supported distributions, visit:
-    https://support.lacework.com/hc/en-us/articles/360035472393-Container-Vulnerability-Assessment-Overview
+  https://docs.lacework.com/container-vulnerability-assessment-overview
 `,
 		)
 	case "NotFound":
@@ -1033,7 +1034,7 @@ func userFriendlyErrorForOnDemandCtrVulnScan(err error, registry, repo, tag stri
 
 Get started by integrating your container registry using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -1052,7 +1053,7 @@ Your account has the following container registries configured:
 
 To integrate a new container registry use the command:
 
-    $ lacework integration create
+    lacework integration create
 `
 		return errors.New(fmt.Sprintf(msg, registry, strings.Join(registries, "\n    > ")))
 	}
@@ -1071,7 +1072,7 @@ to the provided registry.
 
 To view all container registries configured in your account use the command:
 
-    $ lacework vulnerability container list-registries
+    lacework vulnerability container list-registries
 `
 		return errors.Errorf(msg, repo, tag, registry)
 	}

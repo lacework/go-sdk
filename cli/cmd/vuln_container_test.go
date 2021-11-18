@@ -39,6 +39,6 @@ func TestUserFriendlyErrorFromOnDemandCtrVulnScanRepositoryNotFound(t *testing.T
 			"To view all container registries configured in your account use the command:")
 		assert.Contains(t,
 			err.Error(),
-			"$ lacework vulnerability container list-registries")
+			"lacework vulnerability container list-registries")
 	}
 }

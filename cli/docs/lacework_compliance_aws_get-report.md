@@ -1,3 +1,8 @@
+---
+title: "lacework compliance aws get-report"
+slug: lacework_compliance_aws_get-report
+---
+
 ## lacework compliance aws get-report
 
 get the latest AWS compliance report
@@ -10,11 +15,11 @@ are human-readable (default), json and pdf.
 
 To list all AWS accounts configured in your account:
 
-    $ lacework compliance aws list-accounts
+    lacework compliance aws list-accounts
 
 To run an ad-hoc compliance assessment of an AWS account:
 
-    $ lacework compliance aws run-assessment <account_id>
+    lacework compliance aws run-assessment <account_id>
 
 
 ```

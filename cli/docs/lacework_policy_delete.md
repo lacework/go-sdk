@@ -1,3 +1,8 @@
+---
+title: "lacework policy delete"
+slug: lacework_policy_delete
+---
+
 ## lacework policy delete
 
 delete a policy

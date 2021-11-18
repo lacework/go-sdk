@@ -1,3 +1,8 @@
+---
+title: "lacework agent"
+slug: lacework_agent
+---
+
 ## lacework agent
 
 manage Lacework agents
@@ -12,7 +17,7 @@ agent requires minimal system resources and runs on most 64-bit Linux distributi
 
 For a complete list of supported operating systems, visit:
 
-    https://support.lacework.com/hc/en-us/articles/360005230014-Supported-Operating-Systems
+  https://support.lacework.com/hc/en-us/articles/360005230014-Supported-Operating-Systems
 
 ### Options
 

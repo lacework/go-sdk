@@ -37,9 +37,11 @@ var (
 	alertRulesCommand = &cobra.Command{
 		Use:     "alert-rule",
 		Aliases: []string{"alert-rules", "ar"},
-		Short:   "manage alert rules",
+		Short:   "Manage alert rules",
 		Long: `Manage alert rules to route events to the appropriate people or tools.		
+
 An alert rule has three parts:
+
   1. Alert channel(s) that should receive the event notification
   2. Event severity and categories to include
   3. Resource group(s) containing the subset of your environment to consider
@@ -50,7 +52,7 @@ An alert rule has three parts:
 	alertRulesListCommand = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "list all alert rules",
+		Short:   "List all alert rules",
 		Long:    "List all alert rules configured in your Lacework account.",
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -90,7 +92,7 @@ Then navigate to Settings > Alert Rules.
 	// show command is used to retrieve a lacework alert rule by resource id
 	alertRulesShowCommand = &cobra.Command{
 		Use:   "show",
-		Short: "show an alert rule by id",
+		Short: "Show an alert rule by id",
 		Long:  "Show a single alert rule by it's ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -119,7 +121,7 @@ Then navigate to Settings > Alert Rules.
 	// delete command is used to remove a lacework alert rule by resource id
 	alertRulesDeleteCommand = &cobra.Command{
 		Use:   "delete",
-		Short: "delete a alert rule",
+		Short: "Delete a alert rule",
 		Long:  "Delete a single alert rule by it's ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -135,8 +137,7 @@ Then navigate to Settings > Alert Rules.
 	// create command is used to create a new lacework alert rule
 	alertRulesCreateCommand = &cobra.Command{
 		Use:   "create",
-		Short: "create a new alert rule",
-		Long:  "Creates a new single alert rule.",
+		Short: "Create a new alert rule",
 		RunE: func(_ *cobra.Command, args []string) error {
 			if !cli.InteractiveMode() {
 				return errors.New("interactive mode is disabled")

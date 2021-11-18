@@ -1,3 +1,8 @@
+---
+title: "lacework event open"
+slug: lacework_event_open
+---
+
 ## lacework event open
 
 open a specified event in a web browser

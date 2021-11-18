@@ -1,3 +1,8 @@
+---
+title: "lacework resource-group delete"
+slug: lacework_resource-group_delete
+---
+
 ## lacework resource-group delete
 
 delete a resource group

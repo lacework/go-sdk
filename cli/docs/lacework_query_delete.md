@@ -1,3 +1,8 @@
+---
+title: "lacework query delete"
+slug: lacework_query_delete
+---
+
 ## lacework query delete
 
 delete a query

@@ -1,3 +1,8 @@
+---
+title: "lacework compliance azure get-report"
+slug: lacework_compliance_azure_get-report
+---
+
 ## lacework compliance azure get-report
 
 get the latest Azure compliance report
@@ -9,7 +14,7 @@ typically once a day. The available report formats are human-readable (default),
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance azure run-assessment <tenant_id>
+    lacework compliance azure run-assessment <tenant_id>
 
 
 ```

@@ -1,3 +1,8 @@
+---
+title: "lacework configure"
+slug: lacework_configure
+---
+
 ## lacework configure
 
 configure the Lacework CLI

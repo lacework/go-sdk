@@ -35,7 +35,7 @@ var (
 	complianceAwsListAccountsCmd = &cobra.Command{
 		Use:     "list-accounts",
 		Aliases: []string{"list"},
-		Short:   "list all AWS accounts configured",
+		Short:   "List all AWS accounts configured",
 		Long:    `List all AWS accounts configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -48,7 +48,7 @@ var (
 
 Get started by integrating your AWS accounts to analyze configuration compliance using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -104,18 +104,18 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI")
 			}
 		},
-		Short: "get the latest AWS compliance report",
+		Short: "Get the latest AWS compliance report",
 		Long: `Get the latest compliance assessment report from the provided AWS account, these
 reports run on a regular schedule, typically once a day. The available report formats
 are human-readable (default), json and pdf.
 
 To list all AWS accounts configured in your account:
 
-    $ lacework compliance aws list-accounts
+    lacework compliance aws list-accounts
 
 To run an ad-hoc compliance assessment of an AWS account:
 
-    $ lacework compliance aws run-assessment <account_id>
+    lacework compliance aws run-assessment <account_id>
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -220,7 +220,7 @@ To run an ad-hoc compliance assessment of an AWS account:
 	complianceAwsRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <account_id>",
 		Aliases: []string{"run"},
-		Short:   "run a new AWS compliance report",
+		Short:   "Run a new AWS compliance report",
 		Long:    `Run a compliance assessment for the provided AWS account.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {

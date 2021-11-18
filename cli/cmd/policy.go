@@ -50,7 +50,7 @@ var (
 	policyCmd = &cobra.Command{
 		Use:     "policy",
 		Aliases: []string{"policies"},
-		Short:   "manage policies",
+		Short:   "Manage policies",
 		Long: `Manage policies in your Lacework account.
 
 A policy is a mechanism used to add annotated metadata to a Lacework query for improving
@@ -79,7 +79,7 @@ To view the LQL query associated with the policy, use the query id shown.
 
     lacework query show <query_id>
 
-** NOTE: LQL syntax may change. **
+**NOTE: LQL syntax may change.**
 `,
 	}
 
@@ -87,7 +87,7 @@ To view the LQL query associated with the policy, use the query id shown.
 	policyListCmd = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "list policies",
+		Short:   "List policies",
 		Long:    `List all the registered policies in your Lacework account.`,
 		Args:    cobra.NoArgs,
 		RunE:    listPolicies,
@@ -97,7 +97,7 @@ To view the LQL query associated with the policy, use the query id shown.
 	policyShowCmd = &cobra.Command{
 		Use:     "show <policy_id>",
 		Aliases: []string{"ls"},
-		Short:   "show policy",
+		Short:   "Show policy",
 		Long:    `Show details about a single policy.`,
 		Args:    cobra.ExactArgs(1),
 		RunE:    showPolicy,
@@ -106,7 +106,7 @@ To view the LQL query associated with the policy, use the query id shown.
 	// policyDeleteCmd represents the policy delete command
 	policyDeleteCmd = &cobra.Command{
 		Use:   "delete <policy_id>",
-		Short: "delete a policy",
+		Short: "Delete a policy",
 		Long: `Delete a policy by providing the policy id.
 
 Use the command 'lacework policy list' to list the registered policies in

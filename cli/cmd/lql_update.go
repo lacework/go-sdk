@@ -29,9 +29,8 @@ var (
 	// queryUpdateCmd represents the lql update command
 	queryUpdateCmd = &cobra.Command{
 		Use:   "update",
-		Short: "update a query",
-		Long: `Update a single LQL query.
-
+		Short: "Update a query",
+		Long: `
 There are multiple ways you can update a query:
 
   * Typing the query into your default editor (via $EDITOR)

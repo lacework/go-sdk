@@ -1,3 +1,8 @@
+---
+title: "lacework resource-group"
+slug: lacework_resource-group
+---
+
 ## lacework resource-group
 
 manage resource groups

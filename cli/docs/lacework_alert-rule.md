@@ -1,3 +1,8 @@
+---
+title: "lacework alert-rule"
+slug: lacework_alert-rule
+---
+
 ## lacework alert-rule
 
 manage alert rules

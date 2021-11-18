@@ -1,3 +1,8 @@
+---
+title: "lacework alert-rule show"
+slug: lacework_alert-rule_show
+---
+
 ## lacework alert-rule show
 
 show an alert rule by id

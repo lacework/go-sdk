@@ -1,3 +1,8 @@
+---
+title: "lacework compliance google"
+slug: lacework_compliance_google
+---
+
 ## lacework compliance google
 
 compliance for Google Cloud
@@ -8,27 +13,27 @@ Manage compliance reports for Google Cloud.
 
 To get the latest GCP compliance assessment report, use the command:
 
-    $ lacework compliance gcp get-report <organization_id> <project_id>
+    lacework compliance gcp get-report <organization_id> <project_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To find out which GCP organizations/projects are connected to your
 Lacework account, use the following command:
 
-    $ lacework integrations list --type GCP_CFG
+    lacework integrations list --type GCP_CFG
 
 Then, choose one integration, copy the GUID and visualize its details
 using the command:
 
-    $ lacework integration show <int_guid>
+    lacework integration show <int_guid>
 
 To list all GCP projects from an organization, use the command:
 
-    $ lacework compliance gcp list-projects <organization_id>
+    lacework compliance gcp list-projects <organization_id>
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance gcp run-assessment <org_or_project_id>
+    lacework compliance gcp run-assessment <org_or_project_id>
 
 
 ### Options

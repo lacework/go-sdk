@@ -32,22 +32,23 @@ var (
 	// policyUpdateCmd represents the policy update command
 	policyUpdateCmd = &cobra.Command{
 		Use:   "update [policy_id]",
-		Short: "update a policy",
+		Short: "Update a policy",
 		Long: `Update a policy.
 
 A policy identifier is required to update a policy.
 
 A policy identifier can be specified via:
+
 1.  A policy update command argument
 
     lacework policy update my-policy-1
 
 2. The policy update payload
 
-{
-    "policy_id": "my-policy-1",
-    "severity": "critical"
-}
+    {
+        "policy_id": "my-policy-1",
+        "severity": "critical"
+    }
 
 A policy identifier specifed via command argument will always take precedence over
 a policy identifer specified via payload.`,

@@ -1,3 +1,8 @@
+---
+title: "lacework resource-group create"
+slug: lacework_resource-group_create
+---
+
 ## lacework resource-group create
 
 create a new resource group

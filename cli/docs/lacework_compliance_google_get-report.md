@@ -1,3 +1,8 @@
+---
+title: "lacework compliance google get-report"
+slug: lacework_compliance_google_get-report
+---
+
 ## lacework compliance google get-report
 
 get the latest GCP compliance report
@@ -9,7 +14,7 @@ typically once a day. The available report formats are human-readable (default),
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance gcp run-assessment <project_id>
+    lacework compliance gcp run-assessment <project_id>
 
 
 ```

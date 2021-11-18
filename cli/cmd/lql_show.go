@@ -27,7 +27,7 @@ var (
 	// queryShowCmd represents the lql show command
 	queryShowCmd = &cobra.Command{
 		Use:   "show <query_id>",
-		Short: "show a query",
+		Short: "Show a query",
 		Long:  `Show a query.`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  showQuery,

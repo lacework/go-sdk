@@ -1,3 +1,8 @@
+---
+title: "lacework agent token show"
+slug: lacework_agent_token_show
+---
+
 ## lacework agent token show
 
 show details about an agent access token

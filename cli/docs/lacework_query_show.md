@@ -1,3 +1,8 @@
+---
+title: "lacework query show"
+slug: lacework_query_show
+---
+
 ## lacework query show
 
 show a query

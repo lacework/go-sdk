@@ -1,3 +1,8 @@
+---
+title: "lacework alert-rule list"
+slug: lacework_alert-rule_list
+---
+
 ## lacework alert-rule list
 
 list all alert rules

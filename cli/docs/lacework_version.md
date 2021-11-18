@@ -1,3 +1,8 @@
+---
+title: "lacework version"
+slug: lacework_version
+---
+
 ## lacework version
 
 print the Lacework CLI version

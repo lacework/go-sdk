@@ -1,3 +1,8 @@
+---
+title: "lacework compliance aws run-assessment"
+slug: lacework_compliance_aws_run-assessment
+---
+
 ## lacework compliance aws run-assessment
 
 run a new AWS compliance report
