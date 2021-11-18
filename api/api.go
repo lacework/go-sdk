@@ -110,7 +110,7 @@ const (
 
 	apiV2Datasources = "v2/Datasources"
 
-	apiV2TeamMembers = "v2/TeamMembers"
+	apiV2TeamMembers         = "v2/TeamMembers"
 	apiV2TeamMembersFromGUID = "v2/TeamMembers/%s"
 )
 

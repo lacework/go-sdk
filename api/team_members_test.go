@@ -276,7 +276,6 @@ func TestTeamMember_Delete(t *testing.T) {
 		}
 	})
 
-
 	t.Run("when the team member has been deleted", func(t *testing.T) {
 		err := c.V2.TeamMembers.Delete(intgGUID)
 		assert.NoError(t, err)
