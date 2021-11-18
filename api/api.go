@@ -105,6 +105,9 @@ const (
 	apiV2QueriesExecute  = "v2/Queries/execute"
 	apiV2QueriesValidate = "v2/Queries/validate"
 
+	apiV2ReportRules        = "v2/ReportRules"
+	apiV2ReportRuleFromGUID = "v2/ReportRules/%s"
+
 	apiV2ResourceGroups         = "v2/ResourceGroups"
 	apiV2ResourceGroupsFromGUID = "v2/ResourceGroups/%s"
 
