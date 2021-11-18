@@ -63,7 +63,7 @@ var (
 	complianceCmd = &cobra.Command{
 		Use:     "compliance",
 		Aliases: []string{"comp"},
-		Short:   "manage compliance reports",
+		Short:   "Manage compliance reports",
 		Long: `Manage compliance reports for Google, Azure, or AWS cloud providers.
 
 Lacework cloud security platform provides continuous Compliance monitoring against
@@ -90,7 +90,7 @@ Use the following command to list all available integrations in your account:
 	complianceAzureCmd = &cobra.Command{
 		Use:     "azure",
 		Aliases: []string{"az"},
-		Short:   "compliance for Azure Cloud",
+		Short:   "Compliance for Azure Cloud",
 		Long: `Manage compliance reports for Azure Cloud.
 
 To list all Azure Tenants configured in your account:
@@ -117,7 +117,7 @@ To run an ad-hoc compliance assessment use the command:
 	complianceGcpCmd = &cobra.Command{
 		Use:     "google",
 		Aliases: []string{"gcp"},
-		Short:   "compliance for Google Cloud",
+		Short:   "Compliance for Google Cloud",
 		Long: `Manage compliance reports for Google Cloud.
 
 To get the latest GCP compliance assessment report, use the command:
@@ -149,7 +149,7 @@ To run an ad-hoc compliance assessment use the command:
 	// complianceAwsCmd represents the aws sub-command inside the compliance command
 	complianceAwsCmd = &cobra.Command{
 		Use:   "aws",
-		Short: "compliance for AWS",
+		Short: "Compliance for AWS",
 		Long: `Manage compliance reports for Amazon Web Services (AWS).
 
 To list all AWS accounts configured in your account:

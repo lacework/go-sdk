@@ -27,9 +27,8 @@ var (
 	// queryCreateCmd represents the lql create command
 	queryCreateCmd = &cobra.Command{
 		Use:   "create",
-		Short: "create a query",
-		Long: `Create a query.
-
+		Short: "Create a query",
+		Long: `
 There are multiple ways you can create a query:
 
   * Typing the query into your default editor (via $EDITOR)
@@ -48,29 +47,28 @@ To launch your default editor and create a new query.
 
 The following example comes from Lacework's implementation of a policy query:
 
----
-evaluatorId: Cloudtrail
-queryId: LW_Global_AWS_CTA_AccessKeyDeleted
-queryText: |-
-  LW_Global_AWS_CTA_AccessKeyDeleted {
-      source {
-          CloudTrailRawEvents
+    ---
+    evaluatorId: Cloudtrail
+    queryId: LW_Global_AWS_CTA_AccessKeyDeleted
+    queryText: |-
+      LW_Global_AWS_CTA_AccessKeyDeleted {
+          source {
+              CloudTrailRawEvents
+          }
+          filter {
+              EVENT_SOURCE = 'iam.amazonaws.com'
+              and EVENT_NAME = 'DeleteAccessKey'
+              and ERROR_CODE is null
+          }
+          return distinct {
+              INSERT_ID,
+              INSERT_TIME,
+              EVENT_TIME,
+              EVENT
+          }
       }
-      filter {
-          EVENT_SOURCE = 'iam.amazonaws.com'
-          and EVENT_NAME = 'DeleteAccessKey'
-          and ERROR_CODE is null
-      }
-      return distinct {
-          INSERT_ID,
-          INSERT_TIME,
-          EVENT_TIME,
-          EVENT
-      }
-  }
 
 Identifier of the query that executes while running the policy
-
 
 This query specifies an identifier named 'LW_Global_AWS_CTA_AccessKeyDeleted'.
 Policy evaluation uses this dataset (along with the filters) to identify AWS

@@ -55,9 +55,9 @@ Aliases:
   compliance, comp
 
 Available Commands:
-  aws         compliance for AWS
-  azure       compliance for Azure Cloud
-  google      compliance for Google Cloud
+  aws         Compliance for AWS
+  azure       Compliance for Azure Cloud
+  google      Compliance for Google Cloud
 
 Flags:
   -h, --help   help for compliance

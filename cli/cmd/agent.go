@@ -48,7 +48,7 @@ var (
 
 	agentCmd = &cobra.Command{
 		Use:   "agent",
-		Short: "manage Lacework agents",
+		Short: "Manage Lacework agents",
 		Long: `Manage agents and agent access tokens in your account.
 
 To analyze application, host, and user behavior, Lacework uses a lightweight agent,
@@ -63,7 +63,7 @@ For a complete list of supported operating systems, visit:
 	agentTokenCmd = &cobra.Command{
 		Use:     "token",
 		Aliases: []string{"tokens"},
-		Short:   "manage agent access tokens",
+		Short:   "Manage agent access tokens",
 		Long: `Manage agent access tokens in your account.
 
 Agent tokens should be treated as secret and not published. A token uniquely identifies
@@ -74,31 +74,28 @@ complete, the old token can safely be disabled without interrupting Lacework ser
 
 	agentTokenListCmd = &cobra.Command{
 		Use:   "list",
-		Short: "list all agent access tokens",
-		Long:  `List all agent access tokens.`,
+		Short: "List all agent access tokens",
 		Args:  cobra.NoArgs,
 		RunE:  listAgentTokens,
 	}
 
 	agentTokenCreateCmd = &cobra.Command{
 		Use:   "create <name> [description]",
-		Short: "create a new agent access token",
-		Long:  `Create a new agent access token.`,
+		Short: "Create a new agent access token",
 		Args:  cobra.RangeArgs(1, 2),
 		RunE:  createAgentToken,
 	}
 
 	agentTokenShowCmd = &cobra.Command{
 		Use:   "show <token>",
-		Short: "show details about an agent access token",
-		Long:  `Show details about an agent access token.`,
+		Short: "Show details about an agent access token",
 		Args:  cobra.ExactArgs(1),
 		RunE:  showAgentToken,
 	}
 
 	agentTokenUpdateCmd = &cobra.Command{
 		Use:   "update <token>",
-		Short: "update an agent access token",
+		Short: "Update an agent access token",
 		Long: `Update an agent access token.
 
 To update the token name and description:
@@ -119,7 +116,7 @@ To enable a token:
 	// TODO hidden for now
 	agentListCmd = &cobra.Command{
 		Use:    "list",
-		Short:  "list all hosts with a running agent",
+		Short:  "List all hosts with a running agent",
 		Long:   `List all hosts that have a running agent in your environment`,
 		Hidden: true,
 		RunE:   listAgents,
@@ -128,7 +125,7 @@ To enable a token:
 	// TODO hidden for now
 	agentGenerateCmd = &cobra.Command{
 		Use:    "generate",
-		Short:  "generate agent deployment scripts",
+		Short:  "Generate agent deployment scripts",
 		Long:   `TBA`,
 		Hidden: true,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -138,7 +135,7 @@ To enable a token:
 
 	agentInstallCmd = &cobra.Command{
 		Use:   "install <[user@]host[:port]>",
-		Short: "install the datacollector agent on a remote host",
+		Short: "Install the datacollector agent on a remote host",
 		Args:  cobra.ExactArgs(1),
 		Long: `For single host installation of the Lacework agent via Secure Shell (SSH).
 

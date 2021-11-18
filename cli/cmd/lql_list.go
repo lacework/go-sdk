@@ -30,7 +30,7 @@ var (
 	queryListCmd = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "list queries",
+		Short:   "List queries",
 		Long:    `List all LQL queries in your Lacework account.`,
 		Args:    cobra.NoArgs,
 		RunE:    listQueries,

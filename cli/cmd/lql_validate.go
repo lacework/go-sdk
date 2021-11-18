@@ -33,7 +33,7 @@ var (
 	// queryValidateCmd represents the lql validate command
 	queryValidateCmd = &cobra.Command{
 		Use:   "validate",
-		Short: "validate a query",
+		Short: "Validate a query",
 		Long: `Use this command to validate a single LQL query before creating it.
 
 There are multiple ways you can validate a query:

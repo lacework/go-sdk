@@ -47,7 +47,7 @@ var (
 	vulHostGenPkgManifestCmd = &cobra.Command{
 		Use:   "generate-pkg-manifest",
 		Args:  cobra.NoArgs,
-		Short: "generates a package-manifest from the local host",
+		Short: "Generates a package-manifest from the local host",
 		Long: `Generates a package-manifest formatted for usage with the Lacework
 scan package-manifest API.
 
@@ -68,7 +68,7 @@ the local host and send it directly to the Lacework API with the command:
 	vulHostScanPkgManifestCmd = &cobra.Command{
 		Use:   "scan-pkg-manifest <manifest>",
 		Args:  cobra.MaximumNArgs(1),
-		Short: "request an on-demand host vulnerability assessment from a package-manifest",
+		Short: "Request an on-demand host vulnerability assessment from a package-manifest",
 		Long: `Request an on-demand host vulnerability assessment of your software packages to
 determine if the packages contain any common vulnerabilities and exposures.
 
@@ -89,7 +89,7 @@ To generate a package-manifest from the local host and scan it automatically:
 
     lacework vulnerability host scan-pkg-manifest --local
 
-(*) NOTE:
+**NOTE:**
  - Only packages managed by a package manager for supported OS's are reported.
  - Calls to this operation are rate limited to 10 calls per hour, per access key.
  - This operation is limited to 10k packages per command execution.`,
@@ -195,7 +195,7 @@ To generate a package-manifest from the local host and scan it automatically:
 			}
 			return nil
 		},
-		Short: "list the CVEs found in the hosts in your environment",
+		Short: "List the CVEs found in the hosts in your environment",
 		Long: `List the CVEs found in the hosts in your environment.
 
 Filter results to only show vulnerabilities actively running in your environment
@@ -228,7 +228,7 @@ with fixes:
 			}
 			return nil
 		},
-		Short: "list the hosts that contain a specified CVE id in your environment",
+		Short: "List the hosts that contain a specified CVE id in your environment",
 		Long: `List the hosts that contain a specified CVE id in your environment.
 
 To list the CVEs found in the hosts of your environment run:
@@ -289,7 +289,7 @@ To list the CVEs found in the hosts of your environment run:
 		Use:     "show-assessment <machine_id>",
 		Aliases: []string{"show"},
 		Args:    cobra.ExactArgs(1),
-		Short:   "show results of a host vulnerability assessment",
+		Short:   "Show results of a host vulnerability assessment",
 		Long: `Show results of a host vulnerability assessment.
 
 To find the machine id from hosts in your environment, use the command:
@@ -337,7 +337,7 @@ Grab a CVE id and feed it to the command:
 		Use:    "list-assessments",
 		Hidden: true,
 		//Aliases: []string{"list", "ls"},
-		Short: "list host vulnerability assessments from a time range",
+		Short: "List host vulnerability assessments from a time range",
 		Long:  "List host vulnerability assessments from a time range.",
 		RunE: func(_ *cobra.Command, args []string) error {
 			return nil

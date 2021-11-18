@@ -35,7 +35,7 @@ var (
 	complianceAzureListSubsCmd = &cobra.Command{
 		Use:     "list-subscriptions <tenant_id>",
 		Aliases: []string{"list-subs"},
-		Short:   "list subscriptions from tenant",
+		Short:   "List subscriptions from tenant",
 		Long: `List all Azure subscriptions from the provided Tenant ID.
 
 Use the following command to list all Azure Tenants configured in your account:
@@ -79,7 +79,7 @@ Use the following command to list all Azure Tenants configured in your account:
 	complianceAzureListTenantsCmd = &cobra.Command{
 		Use:     "list-tenants",
 		Aliases: []string{"list"},
-		Short:   "list all Azure Tenants configured",
+		Short:   "List all Azure Tenants configured",
 		Long:    `List all Azure Tenants configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -145,7 +145,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 				return errors.New("supported report types are: CIS, SOC, or PCI")
 			}
 		},
-		Short: "get the latest Azure compliance report",
+		Short: "Get the latest Azure compliance report",
 		Long: `Get the latest Azure compliance assessment report, these reports run on a regular schedule,
 typically once a day. The available report formats are human-readable (default), json and pdf.
 
@@ -261,7 +261,7 @@ To run an ad-hoc compliance assessment use the command:
 	complianceAzureRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <tenant_id>",
 		Aliases: []string{"run"},
-		Short:   "run a new Azure compliance assessment",
+		Short:   "Run a new Azure compliance assessment",
 		Long:    `Run a compliance assessment of the provided Azure tenant.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {

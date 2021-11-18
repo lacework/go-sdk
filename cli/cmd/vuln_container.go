@@ -38,7 +38,7 @@ var (
 	// vulContainerScanCmd represents the scan sub-command inside the container vulnerability command
 	vulContainerScanCmd = &cobra.Command{
 		Use:   "scan <registry> <repository> <tag|digest>",
-		Short: "request an on-demand container vulnerability assessment",
+		Short: "Request an on-demand container vulnerability assessment",
 		Long: `Request on-demand container vulnerability assessments and view the generated results.
 
 To list all container registries configured in your account:
@@ -73,7 +73,7 @@ Arguments:
 	vulContainerScanStatusCmd = &cobra.Command{
 		Use:     "scan-status <request_id>",
 		Aliases: []string{"status"},
-		Short:   "check the status of an on-demand container vulnerability assessment",
+		Short:   "Check the status of an on-demand container vulnerability assessment",
 		Long:    "Check the status of an on-demand container vulnerability assessment.",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(c *cobra.Command, args []string) error {
@@ -95,7 +95,7 @@ Arguments:
 	vulContainerListRegistriesCmd = &cobra.Command{
 		Use:     "list-registries",
 		Aliases: []string{"list-reg", "registries"},
-		Short:   "list all container registries configured",
+		Short:   "List all container registries configured",
 		Long:    `List all container registries configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -139,7 +139,7 @@ Then navigate to Settings > Integrations > Container Registry.
 	vulContainerListAssessmentsCmd = &cobra.Command{
 		Use:     "list-assessments",
 		Aliases: []string{"list", "ls"},
-		Short:   "list container vulnerability assessments (default last 7 days)",
+		Short:   "List container vulnerability assessments (default last 7 days)",
 		Long: `List all container vulnerability assessments for the last 7 days by default, or
 pass --start and --end to specify a custom time range. You can also pass --active
 to filter on active containers in your environment, as well as pass --fixable to
@@ -232,11 +232,11 @@ filter on containers with vulnerabilities that have fixes available.`,
 	vulContainerShowAssessmentCmd = &cobra.Command{
 		Use:     "show-assessment <sha256:hash>",
 		Aliases: []string{"show"},
-		Short:   "show results of a container vulnerability assessment",
+		Short:   "Show results of a container vulnerability assessment",
 		Long: `Show the results from a vulnerability assessment of a specified container.
 
 Arguments:
-  <sha256:hash> a sha256 hash of a container image (format: sha256:1ee...1d3b)
+    <sha256:hash> a sha256 hash of a container image (format: sha256:1ee...1d3b)
 
 By default, this command expects a sha256 image digest or tag. To lookup an
 assessment by its image id, use the flag '--image_id' followed by the sha256

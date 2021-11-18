@@ -39,7 +39,7 @@ var (
 	docsCmd = &cobra.Command{
 		Use:    "docs <directory>",
 		Hidden: true,
-		Short:  "generate Markdown documentation",
+		Short:  "Generate Markdown documentation",
 		Args:   cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			return GenerateMarkdownDocs(args[0])

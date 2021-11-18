@@ -40,14 +40,14 @@ var (
 	integrationCmd = &cobra.Command{
 		Use:     "integration",
 		Aliases: []string{"integrations", "int"},
-		Short:   "manage external integrations",
+		Short:   "Manage external integrations",
 		Long:    `Manage external integrations with the Lacework platform`,
 	}
 
 	// integrationListCmd represents the list sub-command inside the integration command
 	integrationListCmd = &cobra.Command{
 		Use:   "list",
-		Short: "list all available external integrations",
+		Short: "List all available external integrations",
 		Args:  cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			var (
@@ -90,7 +90,7 @@ var (
 	// integrationShowCmd represents the show sub-command inside the integration command
 	integrationShowCmd = &cobra.Command{
 		Use:   "show <int_guid>",
-		Short: "show details about a specific external integration",
+		Short: "Show details about a specific external integration",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			integration, err := cli.LwApi.Integrations.Get(args[0])
@@ -135,7 +135,7 @@ var (
 	// integrationCreateCmd represents the create sub-command inside the integration command
 	integrationCreateCmd = &cobra.Command{
 		Use:   "create",
-		Short: "create an external integrations",
+		Short: "Create an external integrations",
 		Args:  cobra.NoArgs,
 		Long:  `Creates an external integration in your account through an interactive session.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -157,7 +157,7 @@ var (
 	integrationUpdateCmd = &cobra.Command{
 		Use:    "update",
 		Hidden: true,
-		Short:  "update an external integrations",
+		Short:  "Update an external integrations",
 		Args:   cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return nil
@@ -167,7 +167,7 @@ var (
 	// integrationDeleteCmd represents the delete sub-command inside the integration command
 	integrationDeleteCmd = &cobra.Command{
 		Use:   "delete <int_guid>",
-		Short: "delete an external integrations",
+		Short: "Delete an external integrations",
 		Long: `Delete an external integration by providing an integration GUID.
 
 Integration GUIDs can be found by using the 'lacework integration list' command.`,

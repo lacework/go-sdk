@@ -65,8 +65,8 @@ Usage:
   lacework configure [command]
 
 Available Commands:
-  list        list all configured profiles at ~/.lacework.toml
-  show        show current configuration data
+  list        List all configured profiles at ~/.lacework.toml
+  show        Show current configuration data
 
 Flags:
   -h, --help               help for configure
@@ -145,20 +145,20 @@ Usage:
   lacework [command]
 
 Available Commands:
-  access-token   generate temporary API access tokens
-  account        manage accounts in an organization (org admins only)
-  agent          manage Lacework agents
-  alert-rule     manage alert rules
-  api            helper to call Lacework's API
-  compliance     manage compliance reports
-  configure      configure the Lacework CLI
-  event          inspect Lacework events
-  integration    manage external integrations
-  policy         manage policies
-  query          run and manage queries
-  resource-group manage resource groups
-  version        print the Lacework CLI version
-  vulnerability  container and host vulnerability assessments
+  access-token   Generate temporary API access tokens
+  account        Manage accounts in an organization (org admins only)
+  agent          Manage Lacework agents
+  alert-rule     Manage alert rules
+  api            Helper to call Lacework's API
+  compliance     Manage compliance reports
+  configure      Configure the Lacework CLI
+  event          Inspect Lacework events
+  integration    Manage external integrations
+  policy         Manage policies
+  query          Run and manage queries
+  resource-group Manage resource groups
+  version        Print the Lacework CLI version
+  vulnerability  Container and host vulnerability assessments
 
 Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

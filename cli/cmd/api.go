@@ -38,7 +38,7 @@ var (
 	// apiCmd represents the api command
 	apiCmd = &cobra.Command{
 		Use:   "api <method> <path>",
-		Short: "helper to call Lacework's API",
+		Short: "Helper to call Lacework's API",
 		Long: `Use this command as a helper to call any available Lacework API v1 & v2 endpoint.
 
 ### For APIv1
