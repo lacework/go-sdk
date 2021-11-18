@@ -51,6 +51,7 @@ var (
 	headerTemplate = `---
 title: "%s"
 slug: %s
+hide_title: true
 ---
 
 `
