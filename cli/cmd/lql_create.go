@@ -98,7 +98,7 @@ names of the columns selected. If desired, you could alias them to other names a
 
 For more information about LQL, visit:
 
-    https://support.lacework.com/hc/en-us/articles/4402301824403-LQL-Overview
+  https://docs.lacework.com/lql-overview
 `,
 		Args: cobra.NoArgs,
 		RunE: createQuery,

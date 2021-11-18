@@ -272,7 +272,7 @@ func (c *cliState) GetOSInfo() (*OS, error) {
 	msg := `unsupported platform
 
 For more information about supported platforms, visit:
-   https://support.lacework.com/hc/en-us/articles/360049666194-Host-Vulnerability-Assessment-Overview`
+  https://docs.lacework.com/host-vulnerability-assessment-overview`
 	return osInfo, errors.New(msg)
 }
 

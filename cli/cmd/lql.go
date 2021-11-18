@@ -68,7 +68,7 @@ Lacework ships a set of default LQL queries that are available in your account.
 
 For more information about LQL, visit:
 
-   https://support.lacework.com/hc/en-us/articles/4402301824403-LQL-Overview
+  https://docs.lacework.com/lql-overview
 
 To view all LQL queries in your Lacework account.
 

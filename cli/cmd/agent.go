@@ -57,7 +57,7 @@ agent requires minimal system resources and runs on most 64-bit Linux distributi
 
 For a complete list of supported operating systems, visit:
 
-  https://support.lacework.com/hc/en-us/articles/360005230014-Supported-Operating-Systems`,
+  https://docs.lacework.com/supported-operating-systems`,
 	}
 
 	agentTokenCmd = &cobra.Command{

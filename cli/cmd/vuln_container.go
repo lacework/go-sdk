@@ -517,7 +517,7 @@ func showContainerAssessmentsWithSha256(sha string) error {
 			`unable to retrieve assessment for the provided container image. (unsupported distribution)
 
 For more information about supported distributions, visit:
-    https://support.lacework.com/hc/en-us/articles/360035472393-Container-Vulnerability-Assessment-Overview
+  https://docs.lacework.com/container-vulnerability-assessment-overview
 `,
 		)
 	case "NotFound":

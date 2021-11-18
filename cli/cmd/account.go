@@ -37,7 +37,7 @@ and can easily switch between them.
 
 To enroll your Lacework account in an organization follow the documentation:
 
-  https://support.lacework.com/hc/en-us/articles/360041727394-Organization-Overview
+  https://docs.lacework.com/organization-overview
     `,
 	}
 
