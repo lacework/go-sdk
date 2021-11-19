@@ -1,11 +1,12 @@
 ---
 title: "lacework query show-source"
 slug: lacework_query_show-source
+hide_title: true
 ---
 
 ## lacework query show-source
 
-show Lacework query data source
+Show Lacework query data source
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework query show-source <datasource_id> [flags]
 
 ### SEE ALSO
 
-* [lacework query](lacework_query.md)	 - run and manage queries
+* [lacework query](lacework_query.md)	 - Run and manage queries
 

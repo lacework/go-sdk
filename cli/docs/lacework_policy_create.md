@@ -1,31 +1,34 @@
 ---
 title: "lacework policy create"
 slug: lacework_policy_create
+hide_title: true
 ---
 
 ## lacework policy create
 
-create a policy
+Create a policy
 
 ### Synopsis
 
 Create a policy.
 
 A policy is represented in either JSON or YAML format.
+
 The following attributes are minimally required:
----
-evaluatorId: Cloudtrail
-policyId: lacework-example-1
-policyType: Violation
-queryId: MyQuery
-title: My Policy
-enabled: false
-description: My Policy Description
-remediation: My Policy Remediation
-severity: high
-evalFrequency: Daily
-alertEnabled: false
-alertProfile: LW_CloudTrail_Alerts
+
+    ---
+    evaluatorId: Cloudtrail
+    policyId: lacework-example-1
+    policyType: Violation
+    queryId: MyQuery
+    title: My Policy
+    enabled: false
+    description: My Policy Description
+    remediation: My Policy Remediation
+    severity: high
+    evalFrequency: Daily
+    alertEnabled: false
+    alertProfile: LW_CloudTrail_Alerts
 
 
 ```
@@ -59,5 +62,5 @@ lacework policy create [flags]
 
 ### SEE ALSO
 
-* [lacework policy](lacework_policy.md)	 - manage policies
+* [lacework policy](lacework_policy.md)	 - Manage policies
 

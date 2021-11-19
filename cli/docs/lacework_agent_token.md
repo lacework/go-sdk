@@ -1,11 +1,12 @@
 ---
 title: "lacework agent token"
 slug: lacework_agent_token
+hide_title: true
 ---
 
 ## lacework agent token
 
-manage agent access tokens
+Manage agent access tokens
 
 ### Synopsis
 
@@ -41,9 +42,9 @@ complete, the old token can safely be disabled without interrupting Lacework ser
 
 ### SEE ALSO
 
-* [lacework agent](lacework_agent.md)	 - manage Lacework agents
-* [lacework agent token create](lacework_agent_token_create.md)	 - create a new agent access token
-* [lacework agent token list](lacework_agent_token_list.md)	 - list all agent access tokens
-* [lacework agent token show](lacework_agent_token_show.md)	 - show details about an agent access token
-* [lacework agent token update](lacework_agent_token_update.md)	 - update an agent access token
+* [lacework agent](lacework_agent.md)	 - Manage Lacework agents
+* [lacework agent token create](lacework_agent_token_create.md)	 - Create a new agent access token
+* [lacework agent token list](lacework_agent_token_list.md)	 - List all agent access tokens
+* [lacework agent token show](lacework_agent_token_show.md)	 - Show details about an agent access token
+* [lacework agent token update](lacework_agent_token_update.md)	 - Update an agent access token
 

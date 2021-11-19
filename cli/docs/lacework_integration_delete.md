@@ -1,11 +1,12 @@
 ---
 title: "lacework integration delete"
 slug: lacework_integration_delete
+hide_title: true
 ---
 
 ## lacework integration delete
 
-delete an external integrations
+Delete an external integrations
 
 ### Synopsis
 
@@ -42,5 +43,5 @@ lacework integration delete <int_guid> [flags]
 
 ### SEE ALSO
 
-* [lacework integration](lacework_integration.md)	 - manage external integrations
+* [lacework integration](lacework_integration.md)	 - Manage external integrations
 

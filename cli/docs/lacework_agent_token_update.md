@@ -1,11 +1,12 @@
 ---
 title: "lacework agent token update"
 slug: lacework_agent_token_update
+hide_title: true
 ---
 
 ## lacework agent token update
 
-update an agent access token
+Update an agent access token
 
 ### Synopsis
 
@@ -56,5 +57,5 @@ lacework agent token update <token> [flags]
 
 ### SEE ALSO
 
-* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
+* [lacework agent token](lacework_agent_token.md)	 - Manage agent access tokens
 

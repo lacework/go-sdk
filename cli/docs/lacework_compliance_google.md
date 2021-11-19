@@ -1,11 +1,12 @@
 ---
 title: "lacework compliance google"
 slug: lacework_compliance_google
+hide_title: true
 ---
 
 ## lacework compliance google
 
-compliance for Google Cloud
+Compliance for Google Cloud
 
 ### Synopsis
 
@@ -61,9 +62,9 @@ To run an ad-hoc compliance assessment use the command:
 
 ### SEE ALSO
 
-* [lacework compliance](lacework_compliance.md)	 - manage compliance reports
-* [lacework compliance google get-report](lacework_compliance_google_get-report.md)	 - get the latest GCP compliance report
-* [lacework compliance google list](lacework_compliance_google_list.md)	 - list gcp projects and organizations
-* [lacework compliance google list-projects](lacework_compliance_google_list-projects.md)	 - list projects from an organization
-* [lacework compliance google run-assessment](lacework_compliance_google_run-assessment.md)	 - run a new GCP compliance assessment
+* [lacework compliance](lacework_compliance.md)	 - Manage compliance reports
+* [lacework compliance google get-report](lacework_compliance_google_get-report.md)	 - Get the latest GCP compliance report
+* [lacework compliance google list](lacework_compliance_google_list.md)	 - List gcp projects and organizations
+* [lacework compliance google list-projects](lacework_compliance_google_list-projects.md)	 - List projects from an organization
+* [lacework compliance google run-assessment](lacework_compliance_google_run-assessment.md)	 - Run a new GCP compliance assessment
 

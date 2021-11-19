@@ -1,11 +1,12 @@
 ---
 title: "lacework integration create"
 slug: lacework_integration_create
+hide_title: true
 ---
 
 ## lacework integration create
 
-create an external integrations
+Create an external integrations
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework integration create [flags]
 
 ### SEE ALSO
 
-* [lacework integration](lacework_integration.md)	 - manage external integrations
+* [lacework integration](lacework_integration.md)	 - Manage external integrations
 

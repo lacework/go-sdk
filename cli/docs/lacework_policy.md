@@ -1,11 +1,12 @@
 ---
 title: "lacework policy"
 slug: lacework_policy
+hide_title: true
 ---
 
 ## lacework policy
 
-manage policies
+Manage policies
 
 ### Synopsis
 
@@ -37,7 +38,7 @@ To view the LQL query associated with the policy, use the query id shown.
 
     lacework query show <query_id>
 
-** NOTE: LQL syntax may change. **
+**NOTE: LQL syntax may change.**
 
 
 ### Options
@@ -66,9 +67,9 @@ To view the LQL query associated with the policy, use the query id shown.
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework policy create](lacework_policy_create.md)	 - create a policy
-* [lacework policy delete](lacework_policy_delete.md)	 - delete a policy
-* [lacework policy list](lacework_policy_list.md)	 - list policies
-* [lacework policy show](lacework_policy_show.md)	 - show policy
-* [lacework policy update](lacework_policy_update.md)	 - update a policy
+* [lacework policy create](lacework_policy_create.md)	 - Create a policy
+* [lacework policy delete](lacework_policy_delete.md)	 - Delete a policy
+* [lacework policy list](lacework_policy_list.md)	 - List policies
+* [lacework policy show](lacework_policy_show.md)	 - Show policy
+* [lacework policy update](lacework_policy_update.md)	 - Update a policy
 

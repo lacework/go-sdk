@@ -1,11 +1,12 @@
 ---
 title: "lacework compliance azure list-tenants"
 slug: lacework_compliance_azure_list-tenants
+hide_title: true
 ---
 
 ## lacework compliance azure list-tenants
 
-list all Azure Tenants configured
+List all Azure Tenants configured
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework compliance azure list-tenants [flags]
 
 ### SEE ALSO
 
-* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Azure Cloud
+* [lacework compliance azure](lacework_compliance_azure.md)	 - Compliance for Azure Cloud
 

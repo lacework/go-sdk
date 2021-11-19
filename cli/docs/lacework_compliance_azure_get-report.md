@@ -1,11 +1,12 @@
 ---
 title: "lacework compliance azure get-report"
 slug: lacework_compliance_azure_get-report
+hide_title: true
 ---
 
 ## lacework compliance azure get-report
 
-get the latest Azure compliance report
+Get the latest Azure compliance report
 
 ### Synopsis
 
@@ -54,5 +55,5 @@ lacework compliance azure get-report <tenant_id> <subscriptions_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Azure Cloud
+* [lacework compliance azure](lacework_compliance_azure.md)	 - Compliance for Azure Cloud
 

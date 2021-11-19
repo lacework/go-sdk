@@ -1,11 +1,12 @@
 ---
 title: "lacework integration show"
 slug: lacework_integration_show
+hide_title: true
 ---
 
 ## lacework integration show
 
-show details about a specific external integration
+Show details about a specific external integration
 
 ```
 lacework integration show <int_guid> [flags]
@@ -36,5 +37,5 @@ lacework integration show <int_guid> [flags]
 
 ### SEE ALSO
 
-* [lacework integration](lacework_integration.md)	 - manage external integrations
+* [lacework integration](lacework_integration.md)	 - Manage external integrations
 

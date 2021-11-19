@@ -1,11 +1,12 @@
 ---
 title: "lacework alert-rule show"
 slug: lacework_alert-rule_show
+hide_title: true
 ---
 
 ## lacework alert-rule show
 
-show an alert rule by id
+Show an alert rule by id
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework alert-rule show [flags]
 
 ### SEE ALSO
 
-* [lacework alert-rule](lacework_alert-rule.md)	 - manage alert rules
+* [lacework alert-rule](lacework_alert-rule.md)	 - Manage alert rules
 

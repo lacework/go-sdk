@@ -1,11 +1,12 @@
 ---
 title: "lacework compliance aws"
 slug: lacework_compliance_aws
+hide_title: true
 ---
 
 ## lacework compliance aws
 
-compliance for AWS
+Compliance for AWS
 
 ### Synopsis
 
@@ -51,8 +52,8 @@ To run an ad-hoc compliance assessment:
 
 ### SEE ALSO
 
-* [lacework compliance](lacework_compliance.md)	 - manage compliance reports
-* [lacework compliance aws get-report](lacework_compliance_aws_get-report.md)	 - get the latest AWS compliance report
-* [lacework compliance aws list-accounts](lacework_compliance_aws_list-accounts.md)	 - list all AWS accounts configured
-* [lacework compliance aws run-assessment](lacework_compliance_aws_run-assessment.md)	 - run a new AWS compliance report
+* [lacework compliance](lacework_compliance.md)	 - Manage compliance reports
+* [lacework compliance aws get-report](lacework_compliance_aws_get-report.md)	 - Get the latest AWS compliance report
+* [lacework compliance aws list-accounts](lacework_compliance_aws_list-accounts.md)	 - List all AWS accounts configured
+* [lacework compliance aws run-assessment](lacework_compliance_aws_run-assessment.md)	 - Run a new AWS compliance report
 

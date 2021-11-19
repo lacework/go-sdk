@@ -1,11 +1,12 @@
 ---
 title: "lacework integration list"
 slug: lacework_integration_list
+hide_title: true
 ---
 
 ## lacework integration list
 
-list all available external integrations
+List all available external integrations
 
 ```
 lacework integration list [flags]
@@ -37,5 +38,5 @@ lacework integration list [flags]
 
 ### SEE ALSO
 
-* [lacework integration](lacework_integration.md)	 - manage external integrations
+* [lacework integration](lacework_integration.md)	 - Manage external integrations
 

@@ -1,11 +1,12 @@
 ---
 title: "lacework integration"
 slug: lacework_integration
+hide_title: true
 ---
 
 ## lacework integration
 
-manage external integrations
+Manage external integrations
 
 ### Synopsis
 
@@ -37,8 +38,8 @@ Manage external integrations with the Lacework platform
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework integration create](lacework_integration_create.md)	 - create an external integrations
-* [lacework integration delete](lacework_integration_delete.md)	 - delete an external integrations
-* [lacework integration list](lacework_integration_list.md)	 - list all available external integrations
-* [lacework integration show](lacework_integration_show.md)	 - show details about a specific external integration
+* [lacework integration create](lacework_integration_create.md)	 - Create an external integrations
+* [lacework integration delete](lacework_integration_delete.md)	 - Delete an external integrations
+* [lacework integration list](lacework_integration_list.md)	 - List all available external integrations
+* [lacework integration show](lacework_integration_show.md)	 - Show details about a specific external integration
 

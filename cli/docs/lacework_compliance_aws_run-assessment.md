@@ -1,11 +1,12 @@
 ---
 title: "lacework compliance aws run-assessment"
 slug: lacework_compliance_aws_run-assessment
+hide_title: true
 ---
 
 ## lacework compliance aws run-assessment
 
-run a new AWS compliance report
+Run a new AWS compliance report
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework compliance aws run-assessment <account_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance aws](lacework_compliance_aws.md)	 - compliance for AWS
+* [lacework compliance aws](lacework_compliance_aws.md)	 - Compliance for AWS
 

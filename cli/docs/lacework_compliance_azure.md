@@ -1,11 +1,12 @@
 ---
 title: "lacework compliance azure"
 slug: lacework_compliance_azure
+hide_title: true
 ---
 
 ## lacework compliance azure
 
-compliance for Azure Cloud
+Compliance for Azure Cloud
 
 ### Synopsis
 
@@ -55,9 +56,9 @@ To run an ad-hoc compliance assessment use the command:
 
 ### SEE ALSO
 
-* [lacework compliance](lacework_compliance.md)	 - manage compliance reports
-* [lacework compliance azure get-report](lacework_compliance_azure_get-report.md)	 - get the latest Azure compliance report
-* [lacework compliance azure list-subscriptions](lacework_compliance_azure_list-subscriptions.md)	 - list subscriptions from tenant
-* [lacework compliance azure list-tenants](lacework_compliance_azure_list-tenants.md)	 - list all Azure Tenants configured
-* [lacework compliance azure run-assessment](lacework_compliance_azure_run-assessment.md)	 - run a new Azure compliance assessment
+* [lacework compliance](lacework_compliance.md)	 - Manage compliance reports
+* [lacework compliance azure get-report](lacework_compliance_azure_get-report.md)	 - Get the latest Azure compliance report
+* [lacework compliance azure list-subscriptions](lacework_compliance_azure_list-subscriptions.md)	 - List subscriptions from tenant
+* [lacework compliance azure list-tenants](lacework_compliance_azure_list-tenants.md)	 - List all Azure Tenants configured
+* [lacework compliance azure run-assessment](lacework_compliance_azure_run-assessment.md)	 - Run a new Azure compliance assessment
 
