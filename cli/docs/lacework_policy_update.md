@@ -1,11 +1,12 @@
 ---
 title: "lacework policy update"
 slug: lacework_policy_update
+hide_title: true
 ---
 
 ## lacework policy update
 
-update a policy
+Update a policy
 
 ### Synopsis
 
@@ -14,16 +15,17 @@ Update a policy.
 A policy identifier is required to update a policy.
 
 A policy identifier can be specified via:
+
 1.  A policy update command argument
 
     lacework policy update my-policy-1
 
 2. The policy update payload
 
-{
-    "policy_id": "my-policy-1",
-    "severity": "critical"
-}
+    {
+        "policy_id": "my-policy-1",
+        "severity": "critical"
+    }
 
 A policy identifier specifed via command argument will always take precedence over
 a policy identifer specified via payload.
@@ -59,5 +61,5 @@ lacework policy update [policy_id] [flags]
 
 ### SEE ALSO
 
-* [lacework policy](lacework_policy.md)	 - manage policies
+* [lacework policy](lacework_policy.md)	 - Manage policies
 

@@ -1,11 +1,12 @@
 ---
 title: "lacework compliance aws get-report"
 slug: lacework_compliance_aws_get-report
+hide_title: true
 ---
 
 ## lacework compliance aws get-report
 
-get the latest AWS compliance report
+Get the latest AWS compliance report
 
 ### Synopsis
 
@@ -59,5 +60,5 @@ lacework compliance aws get-report <account_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance aws](lacework_compliance_aws.md)	 - compliance for AWS
+* [lacework compliance aws](lacework_compliance_aws.md)	 - Compliance for AWS
 

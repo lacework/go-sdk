@@ -1,11 +1,12 @@
 ---
 title: "lacework event list"
 slug: lacework_event_list
+hide_title: true
 ---
 
 ## lacework event list
 
-list all events (default last 7 days)
+List all events (default last 7 days)
 
 ### Synopsis
 
@@ -53,5 +54,5 @@ lacework event list [flags]
 
 ### SEE ALSO
 
-* [lacework event](lacework_event.md)	 - inspect Lacework events
+* [lacework event](lacework_event.md)	 - Inspect Lacework events
 

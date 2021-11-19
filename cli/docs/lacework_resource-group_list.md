@@ -1,11 +1,12 @@
 ---
 title: "lacework resource-group list"
 slug: lacework_resource-group_list
+hide_title: true
 ---
 
 ## lacework resource-group list
 
-list all resource groups
+List all resource groups
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework resource-group list [flags]
 
 ### SEE ALSO
 
-* [lacework resource-group](lacework_resource-group.md)	 - manage resource groups
+* [lacework resource-group](lacework_resource-group.md)	 - Manage resource groups
 

@@ -1,11 +1,12 @@
 ---
 title: "lacework query"
 slug: lacework_query
+hide_title: true
 ---
 
 ## lacework query
 
-run and manage queries
+Run and manage queries
 
 ### Synopsis
 
@@ -23,7 +24,7 @@ Lacework ships a set of default LQL queries that are available in your account.
 
 For more information about LQL, visit:
 
-   https://support.lacework.com/hc/en-us/articles/4402301824403-LQL-Overview
+  https://docs.lacework.com/lql-overview
 
 To view all LQL queries in your Lacework account.
 
@@ -37,7 +38,7 @@ To execute a query.
 
     lacework query run <query_id>
 
-** NOTE: LQL syntax may change. **
+**NOTE: LQL syntax may change.**
 
 
 ### Options
@@ -66,13 +67,13 @@ To execute a query.
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework query create](lacework_query_create.md)	 - create a query
-* [lacework query delete](lacework_query_delete.md)	 - delete a query
-* [lacework query list](lacework_query_list.md)	 - list queries
-* [lacework query list-sources](lacework_query_list-sources.md)	 - list Lacework query data sources
-* [lacework query run](lacework_query_run.md)	 - run a query
-* [lacework query show](lacework_query_show.md)	 - show a query
-* [lacework query show-source](lacework_query_show-source.md)	 - show Lacework query data source
-* [lacework query update](lacework_query_update.md)	 - update a query
-* [lacework query validate](lacework_query_validate.md)	 - validate a query
+* [lacework query create](lacework_query_create.md)	 - Create a query
+* [lacework query delete](lacework_query_delete.md)	 - Delete a query
+* [lacework query list](lacework_query_list.md)	 - List queries
+* [lacework query list-sources](lacework_query_list-sources.md)	 - List Lacework query data sources
+* [lacework query run](lacework_query_run.md)	 - Run a query
+* [lacework query show](lacework_query_show.md)	 - Show a query
+* [lacework query show-source](lacework_query_show-source.md)	 - Show Lacework query data source
+* [lacework query update](lacework_query_update.md)	 - Update a query
+* [lacework query validate](lacework_query_validate.md)	 - Validate a query
 

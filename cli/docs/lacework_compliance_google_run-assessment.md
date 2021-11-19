@@ -1,11 +1,12 @@
 ---
 title: "lacework compliance google run-assessment"
 slug: lacework_compliance_google_run-assessment
+hide_title: true
 ---
 
 ## lacework compliance google run-assessment
 
-run a new GCP compliance assessment
+Run a new GCP compliance assessment
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework compliance google run-assessment <org_or_project_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
+* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
 

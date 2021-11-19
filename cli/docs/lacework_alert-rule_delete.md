@@ -1,11 +1,12 @@
 ---
 title: "lacework alert-rule delete"
 slug: lacework_alert-rule_delete
+hide_title: true
 ---
 
 ## lacework alert-rule delete
 
-delete a alert rule
+Delete a alert rule
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework alert-rule delete [flags]
 
 ### SEE ALSO
 
-* [lacework alert-rule](lacework_alert-rule.md)	 - manage alert rules
+* [lacework alert-rule](lacework_alert-rule.md)	 - Manage alert rules
 

@@ -1,11 +1,12 @@
 ---
 title: "lacework event open"
 slug: lacework_event_open
+hide_title: true
 ---
 
 ## lacework event open
 
-open a specified event in a web browser
+Open a specified event in a web browser
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework event open <event_id> [flags]
 
 ### SEE ALSO
 
-* [lacework event](lacework_event.md)	 - inspect Lacework events
+* [lacework event](lacework_event.md)	 - Inspect Lacework events
 

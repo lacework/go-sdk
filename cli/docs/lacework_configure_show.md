@@ -1,11 +1,12 @@
 ---
 title: "lacework configure show"
 slug: lacework_configure_show
+hide_title: true
 ---
 
 ## lacework configure show
 
-show current configuration data
+Show current configuration data
 
 ### Synopsis
 
@@ -53,5 +54,5 @@ lacework configure show <config_key> [flags]
 
 ### SEE ALSO
 
-* [lacework configure](lacework_configure.md)	 - configure the Lacework CLI
+* [lacework configure](lacework_configure.md)	 - Configure the Lacework CLI
 

@@ -1,11 +1,12 @@
 ---
 title: "lacework policy list"
 slug: lacework_policy_list
+hide_title: true
 ---
 
 ## lacework policy list
 
-list policies
+List policies
 
 ### Synopsis
 
@@ -43,5 +44,5 @@ lacework policy list [flags]
 
 ### SEE ALSO
 
-* [lacework policy](lacework_policy.md)	 - manage policies
+* [lacework policy](lacework_policy.md)	 - Manage policies
 

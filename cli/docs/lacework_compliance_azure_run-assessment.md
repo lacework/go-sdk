@@ -1,11 +1,12 @@
 ---
 title: "lacework compliance azure run-assessment"
 slug: lacework_compliance_azure_run-assessment
+hide_title: true
 ---
 
 ## lacework compliance azure run-assessment
 
-run a new Azure compliance assessment
+Run a new Azure compliance assessment
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework compliance azure run-assessment <tenant_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Azure Cloud
+* [lacework compliance azure](lacework_compliance_azure.md)	 - Compliance for Azure Cloud
 

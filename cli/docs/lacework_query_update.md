@@ -1,15 +1,15 @@
 ---
 title: "lacework query update"
 slug: lacework_query_update
+hide_title: true
 ---
 
 ## lacework query update
 
-update a query
+Update a query
 
 ### Synopsis
 
-Update a single LQL query.
 
 There are multiple ways you can update a query:
 
@@ -58,5 +58,5 @@ lacework query update [flags]
 
 ### SEE ALSO
 
-* [lacework query](lacework_query.md)	 - run and manage queries
+* [lacework query](lacework_query.md)	 - Run and manage queries
 

@@ -1,11 +1,12 @@
 ---
 title: "lacework api"
 slug: lacework_api
+hide_title: true
 ---
 
 ## lacework api
 
-helper to call Lacework's API
+Helper to call Lacework's API
 
 ### Synopsis
 

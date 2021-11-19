@@ -1,11 +1,12 @@
 ---
 title: "lacework compliance google list"
 slug: lacework_compliance_google_list
+hide_title: true
 ---
 
 ## lacework compliance google list
 
-list gcp projects and organizations
+List gcp projects and organizations
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework compliance google list [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
+* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
 

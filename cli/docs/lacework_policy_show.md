@@ -1,11 +1,12 @@
 ---
 title: "lacework policy show"
 slug: lacework_policy_show
+hide_title: true
 ---
 
 ## lacework policy show
 
-show policy
+Show policy
 
 ### Synopsis
 
@@ -40,5 +41,5 @@ lacework policy show <policy_id> [flags]
 
 ### SEE ALSO
 
-* [lacework policy](lacework_policy.md)	 - manage policies
+* [lacework policy](lacework_policy.md)	 - Manage policies
 

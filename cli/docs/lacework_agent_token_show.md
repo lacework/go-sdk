@@ -1,15 +1,12 @@
 ---
 title: "lacework agent token show"
 slug: lacework_agent_token_show
+hide_title: true
 ---
 
 ## lacework agent token show
 
-show details about an agent access token
-
-### Synopsis
-
-Show details about an agent access token.
+Show details about an agent access token
 
 ```
 lacework agent token show <token> [flags]
@@ -40,5 +37,5 @@ lacework agent token show <token> [flags]
 
 ### SEE ALSO
 
-* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
+* [lacework agent token](lacework_agent_token.md)	 - Manage agent access tokens
 

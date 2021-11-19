@@ -1,11 +1,12 @@
 ---
 title: "lacework query run"
 slug: lacework_query_run
+hide_title: true
 ---
 
 ## lacework query run
 
-run a query
+Run a query
 
 ### Synopsis
 
@@ -21,20 +22,20 @@ Start and End times are required to run a query:
 
 1.  Start and End times must be specified in one of the following formats:
 
-    A. A relative time specifier
-    B. RFC3339 Date and Time
-    C. Epoch time in milliseconds
+    A. A relative time specifier  
+    B. RFC3339 Date and Time  
+    C. Epoch time in milliseconds  
 
 2. Start and End times must be specified in one of the following ways:
 
-    A.  As StartTimeRange and EndTimeRange in the ParamInfo block within the query
-    B.  As start_time_range and end_time_range if specifying JSON
-    C.  As --start and --end CLI flags
+    A. As StartTimeRange and EndTimeRange in the ParamInfo block within the query  
+    B. As start_time_range and end_time_range if specifying JSON  
+    C. As --start and --end CLI flags  
 
 3. Start and End time precedence:
 
-    A.  CLI flags take precedence over JSON specifications
-    B.  JSON specifications take precedence over ParamInfo specifications
+    A. CLI flags take precedence over JSON specifications  
+    B. JSON specifications take precedence over ParamInfo specifications  
 
 ```
 lacework query run [query_id] [flags]
@@ -71,5 +72,5 @@ lacework query run [query_id] [flags]
 
 ### SEE ALSO
 
-* [lacework query](lacework_query.md)	 - run and manage queries
+* [lacework query](lacework_query.md)	 - Run and manage queries
 

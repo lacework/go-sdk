@@ -1,11 +1,12 @@
 ---
 title: "lacework agent install"
 slug: lacework_agent_install
+hide_title: true
 ---
 
 ## lacework agent install
 
-install the datacollector agent on a remote host
+Install the datacollector agent on a remote host
 
 ### Synopsis
 
@@ -69,5 +70,5 @@ lacework agent install <[user@]host[:port]> [flags]
 
 ### SEE ALSO
 
-* [lacework agent](lacework_agent.md)	 - manage Lacework agents
+* [lacework agent](lacework_agent.md)	 - Manage Lacework agents
 
