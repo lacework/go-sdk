@@ -1,4 +1,4 @@
-package lwgenerate
+package aws
 
 import (
 	"fmt"
@@ -10,9 +10,16 @@ import (
 
 // Helper for combining string expected values
 func reqProviderAndRegion(extraInputs ...string) string {
-	base := requiredProviders + awsProvider
-	for _, e := range extraInputs {
-		base = base + e
+	base := requiredProviders + "\n" + awsProvider
+	countInputs := len(extraInputs)
+	for i, e := range extraInputs {
+		if i < countInputs {
+			base = base + "\n" + e
+		}
+
+		if i >= countInputs {
+			base = base + e
+		}
 	}
 	return base
 }
@@ -32,10 +39,14 @@ func TestGenerationConfig(t *testing.T) {
 }
 
 func TestGenerationWithCustomAwsProfile(t *testing.T) {
-	hcl, err := NewAwsTerraform("us-east-2", false, true, AwsTerraformWithAwsProfile("myprofile")).Generate()
+	hcl, err := NewAwsTerraform("us-east-2", false, true, WithAwsProfile("myprofile")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, requiredProviders+awsProviderWithProfile+moduleImportCtWithoutConfig, hcl)
+	assert.Equal(
+		t,
+		fmt.Sprintf("%s\n%s\n%s", requiredProviders, awsProviderWithProfile, moduleImportCtWithoutConfig),
+		hcl,
+	)
 }
 
 func TestGenerationConfigAndCt(t *testing.T) {
@@ -46,7 +57,7 @@ func TestGenerationConfigAndCt(t *testing.T) {
 }
 
 func TestGenerationWithLaceworkProvider(t *testing.T) {
-	hcl, err := NewAwsTerraform("us-east-2", false, true, AwsTerraformWithLaceworkProfile("test-profile")).Generate()
+	hcl, err := NewAwsTerraform("us-east-2", false, true, WithLaceworkProfile("test-profile")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(laceworkProvider, moduleImportCtWithoutConfig), hcl)
@@ -134,8 +145,8 @@ func TestConsolidatedCtWithMultipleAccounts(t *testing.T) {
 	data, err := NewAwsTerraform("us-east-2",
 		true,
 		true,
-		AwsTerraformWithAwsProfile("main"),
-		AwsTerraformWithSubaccounts(
+		WithAwsProfile("main"),
+		WithSubaccounts(
 			NewAwsSubAccount("subaccount1", "us-east-1"),
 			NewAwsSubAccount("subaccount2", "us-east-2"),
 		),
@@ -171,17 +182,17 @@ var iamErrorString = "invalid inputs: when using an existing IAM role, existing 
 
 func TestGenerationFailureWithIncompleteExistingIam(t *testing.T) {
 	_, err := NewAwsTerraform("us-east-2", false, true,
-		AwsTerraformUseExistingIamRole(&ExistingIamRoleDetails{Arn: "foo"})).Generate()
+		UseExistingIamRole(&ExistingIamRoleDetails{Arn: "foo"})).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
 
 	_, err = NewAwsTerraform("us-east-2", false, true,
-		AwsTerraformUseExistingIamRole(&ExistingIamRoleDetails{Name: "foo"})).Generate()
+		UseExistingIamRole(&ExistingIamRoleDetails{Name: "foo"})).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
 
 	_, err = NewAwsTerraform("us-east-2", false, true,
-		AwsTerraformUseExistingIamRole(&ExistingIamRoleDetails{ExternalId: "foo"})).Generate()
+		UseExistingIamRole(&ExistingIamRoleDetails{ExternalId: "foo"})).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
 }
@@ -194,26 +205,22 @@ var requiredProviders = `terraform {
     }
   }
 }
-
 `
 
 var awsProvider = `provider "aws" {
   region = "us-east-2"
 }
-
 `
 
 var awsProviderWithProfile = `provider "aws" {
   profile = "myprofile"
   region  = "us-east-2"
 }
-
 `
 
 var laceworkProvider = `provider "lacework" {
   profile = "test-profile"
 }
-
 `
 
 var moduleImportCtWithConfig = `module "main_cloudtrail" {
@@ -224,18 +231,16 @@ var moduleImportCtWithConfig = `module "main_cloudtrail" {
   iam_role_name         = module.aws_config.iam_role_name
   use_existing_iam_role = true
 }
-
 `
+
 var moduleImportCtWithoutConfig = `module "main_cloudtrail" {
   source  = "lacework/cloudtrail/aws"
   version = "~> 0.1"
 }
-
 `
 
 var moduleImportConfig = `module "aws_config" {
   source  = "lacework/config/aws"
   version = "~> 0.1"
 }
-
 `

@@ -135,5 +135,4 @@ var testRequiredProvider = `terraform {
     }
   }
 }
-
 `

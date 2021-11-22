@@ -1,9 +1,10 @@
-package lwgenerate
+package aws
 
 import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/pkg/errors"
 )
 
@@ -106,7 +107,20 @@ func (args *GenerateAwsTfConfigurationArgs) validate() error {
 
 type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 
-// Create new AWS Terraform configuration
+// NewAwsTerraform returns an instance of the GenerateAwsTfConfigurationArgs struct with the provided region and enabled
+// settings (config/cloudtrail).
+//
+// Note: Additional configuration details may be set using modifiers of the AwsTerraformModifier type
+//
+// Basic usage: Initialize a new AwsTerraformModifier struct, with a non-default AWS profile set. Then use generate to
+//              create a string output of the required HCL.
+//
+//   hcl, err := aws.NewAwsTerraform(
+//     "us-east-1",
+//     true,
+//     true,
+//     aws.WithAwsProfile("mycorp-profile")).Generate()
+//
 func NewAwsTerraform(region string, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier) *GenerateAwsTfConfigurationArgs {
 	config := &GenerateAwsTfConfigurationArgs{AwsRegion: region, Cloudtrail: enableCloudtrail, Config: enableConfig}
 	for _, m := range mods {
@@ -116,56 +130,56 @@ func NewAwsTerraform(region string, enableConfig bool, enableCloudtrail bool, mo
 }
 
 // Set the AWS Profile to utilize for the main AWS provider
-func AwsTerraformWithAwsProfile(name string) AwsTerraformModifier {
+func WithAwsProfile(name string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.AwsProfile = name
 	}
 }
 
 // Set the Lacework Profile to utilize when integrating
-func AwsTerraformWithLaceworkProfile(name string) AwsTerraformModifier {
+func WithLaceworkProfile(name string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.LaceworkProfile = name
 	}
 }
 
 // Set the bucket ARN of an existing Cloudtrail setup
-func AwsTerraformExistingCloudtrailBucketArn(arn string) AwsTerraformModifier {
+func ExistingCloudtrailBucketArn(arn string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingCloudtrailBucketArn = arn
 	}
 }
 
 // Set the SNS Topic ARN of an existing Cloudtrail setup
-func AwsTerraformExistingSnsTopicArn(arn string) AwsTerraformModifier {
+func ExistingSnsTopicArn(arn string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingSnsTopicArn = arn
 	}
 }
 
 // Enable Consolidated Cloudtrail use
-func AwsTerraformUseConsolidatedCloudtrail() AwsTerraformModifier {
+func UseConsolidatedCloudtrail() AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ConsolidatedCloudtrail = true
 	}
 }
 
 // Set the S3 ForceDestroy parameter to true for newly created buckets
-func AwsTerraformEnableForceDestroyS3Bucket() AwsTerraformModifier {
+func EnableForceDestroyS3Bucket() AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ForceDestroyS3Bucket = true
 	}
 }
 
 // Set an existing IAM role configuration to use with the created Terraform code
-func AwsTerraformUseExistingIamRole(iamDetails *ExistingIamRoleDetails) AwsTerraformModifier {
+func UseExistingIamRole(iamDetails *ExistingIamRoleDetails) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingIamRole = iamDetails
 	}
 }
 
 // Supply additional AWS Profiles to integrate
-func AwsTerraformWithSubaccounts(subaccounts ...AwsSubAccount) AwsTerraformModifier {
+func WithSubaccounts(subaccounts ...AwsSubAccount) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.SubAccounts = subaccounts
 	}
@@ -205,26 +219,22 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 	}
 
 	// Render
-	blocks, err := CombineHclBlocks(
-		requiredProviders,
-		awsProvider,
-		laceworkProvider,
-		configModule,
-		cloudTrailModule)
-
-	if err != nil {
-		return "", errors.Wrap(err, "failed to generate aws terraform code")
-	}
-
-	hclBlocks := CreateHclStringOutput(blocks)
+	hclBlocks := lwgenerate.CreateHclStringOutput(
+		lwgenerate.CombineHclBlocks(
+			requiredProviders,
+			awsProvider,
+			laceworkProvider,
+			configModule,
+			cloudTrailModule),
+	)
 	return hclBlocks, nil
 }
 
 func createRequiredProviders() (*hclwrite.Block, error) {
-	return CreateRequiredProviders(
-		NewRequiredProvider("lacework",
-			HclRequiredProviderWithSource("lacework/lacework"),
-			HclRequiredProviderWithVersion("~> 0.3")))
+	return lwgenerate.CreateRequiredProviders(
+		lwgenerate.NewRequiredProvider("lacework",
+			lwgenerate.HclRequiredProviderWithSource("lacework/lacework"),
+			lwgenerate.HclRequiredProviderWithVersion("~> 0.3")))
 }
 
 func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {
@@ -243,7 +253,7 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 			attrs["alias"] = "main"
 		}
 
-		provider, err := NewProvider("aws", HclProviderWithAttributes(attrs)).ToBlock()
+		provider, err := lwgenerate.NewProvider("aws", lwgenerate.HclProviderWithAttributes(attrs)).ToBlock()
 		if err != nil {
 			return nil, err
 		}
@@ -258,7 +268,7 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 				"profile": subaccount.AwsProfile,
 				"region":  subaccount.AwsRegion,
 			}
-			providerBlock, err := NewProvider("aws", HclProviderWithAttributes(attrs)).ToBlock()
+			providerBlock, err := lwgenerate.NewProvider("aws", lwgenerate.HclProviderWithAttributes(attrs)).ToBlock()
 
 			if err != nil {
 				return nil, err
@@ -273,8 +283,8 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 
 func createLaceworkProvider(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, error) {
 	if args.LaceworkProfile != "" {
-		return NewProvider("lacework",
-			HclProviderWithAttributes(map[string]interface{}{"profile": args.LaceworkProfile}),
+		return lwgenerate.NewProvider("lacework",
+			lwgenerate.HclProviderWithAttributes(map[string]interface{}{"profile": args.LaceworkProfile}),
 		).ToBlock()
 	}
 	return nil, nil
@@ -286,16 +296,16 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 
 	blocks := []*hclwrite.Block{}
 	if args.Config {
-		moduleDetails := []HclModuleModifier{}
+		moduleDetails := []lwgenerate.HclModuleModifier{}
 		// Add main account
 		// block := NewModule("aws_config", source, HclModuleWithVersion(version))
 
 		if len(args.SubAccounts) > 0 {
 			moduleDetails = append(moduleDetails,
-				HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
+				lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
 		}
-		moduleBlock, err := NewModule("aws_config", source,
-			append(moduleDetails, HclModuleWithVersion(version))...).ToBlock()
+		moduleBlock, err := lwgenerate.NewModule("aws_config", source,
+			append(moduleDetails, lwgenerate.HclModuleWithVersion(version))...).ToBlock()
 		if err != nil {
 			return nil, err
 		}
@@ -303,10 +313,10 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 
 		// Add sub accounts
 		for _, subaccount := range args.SubAccounts {
-			configModule, err := NewModule(fmt.Sprintf("aws_config_%s", subaccount.AwsProfile),
+			configModule, err := lwgenerate.NewModule(fmt.Sprintf("aws_config_%s", subaccount.AwsProfile),
 				source,
-				HclModuleWithVersion(version),
-				HclModuleWithProviderDetails(map[string]string{
+				lwgenerate.HclModuleWithVersion(version),
+				lwgenerate.HclModuleWithProviderDetails(map[string]string{
 					"aws": fmt.Sprintf("aws.%s", subaccount.AwsProfile),
 				})).ToBlock()
 
@@ -324,7 +334,7 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, error) {
 	if args.Cloudtrail {
 		attributes := map[string]interface{}{}
-		modDetails := []HclModuleModifier{HclModuleWithVersion("~> 0.1")}
+		modDetails := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithVersion("~> 0.1")}
 
 		if args.ForceDestroyS3Bucket && args.ExistingCloudtrailBucketArn == "" {
 			attributes["bucket_force_destroy"] = true
@@ -341,9 +351,9 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 
 		if args.ExistingIamRole == nil && args.Config {
 			attributes["use_existing_iam_role"] = true
-			attributes["iam_role_name"] = CreateSimpleTraversal([]string{"module", "aws_config", "iam_role_name"})
-			attributes["iam_role_arn"] = CreateSimpleTraversal([]string{"module", "aws_config", "iam_role_arn"})
-			attributes["iam_role_external_id"] = CreateSimpleTraversal([]string{"module", "aws_config", "external_id"})
+			attributes["iam_role_name"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_config", "iam_role_name"})
+			attributes["iam_role_arn"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_config", "iam_role_arn"})
+			attributes["iam_role_external_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_config", "external_id"})
 		}
 
 		if args.ExistingIamRole != nil {
@@ -359,14 +369,14 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 		}
 
 		if len(args.SubAccounts) > 0 {
-			modDetails = append(modDetails, HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
+			modDetails = append(modDetails, lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
 		}
 
 		modDetails = append(modDetails,
-			HclModuleWithAttributes(attributes),
+			lwgenerate.HclModuleWithAttributes(attributes),
 		)
 
-		return NewModule("main_cloudtrail", "lacework/cloudtrail/aws", modDetails...).ToBlock()
+		return lwgenerate.NewModule("main_cloudtrail", "lacework/cloudtrail/aws", modDetails...).ToBlock()
 	}
 
 	return nil, nil

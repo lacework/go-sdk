@@ -15,17 +15,10 @@ func exampleModule() {
 	).ToBlock()
 
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Print(err.Error())
 		os.Exit(1)
 	}
-
-	blocks, err := lwgenerate.CombineHclBlocks(data)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	fmt.Println(lwgenerate.CreateHclStringOutput(blocks))
+	fmt.Print(lwgenerate.CreateHclStringOutput(lwgenerate.CombineHclBlocks(data)))
 }
 
 func exampleProvider() {
@@ -33,17 +26,10 @@ func exampleProvider() {
 	data, err := lwgenerate.NewProvider("aws", lwgenerate.HclProviderWithAttributes(attrs)).ToBlock()
 
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Print(err.Error())
 		os.Exit(1)
 	}
-
-	blocks, err := lwgenerate.CombineHclBlocks(data)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	fmt.Println(lwgenerate.CreateHclStringOutput(blocks))
+	fmt.Print(lwgenerate.CreateHclStringOutput(lwgenerate.CombineHclBlocks(data)))
 }
 
 func exampleRequiredProviders() {
@@ -56,17 +42,10 @@ func exampleRequiredProviders() {
 			lwgenerate.HclRequiredProviderWithVersion(">= 2.0.0")))
 
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Print(err.Error())
 		os.Exit(1)
 	}
-
-	blocks, err := lwgenerate.CombineHclBlocks(data)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	fmt.Println(lwgenerate.CreateHclStringOutput(blocks))
+	fmt.Print(lwgenerate.CreateHclStringOutput(lwgenerate.CombineHclBlocks(data)))
 }
 
 func exampleSimpleTraversal() {
@@ -77,17 +56,10 @@ func exampleSimpleTraversal() {
 	).ToBlock()
 
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Print(err.Error())
 		os.Exit(1)
 	}
-
-	blocks, err := lwgenerate.CombineHclBlocks(data)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	fmt.Println(lwgenerate.CreateHclStringOutput(blocks))
+	fmt.Print(lwgenerate.CreateHclStringOutput(lwgenerate.CombineHclBlocks(data)))
 }
 
 func exampleGenericHclBlock() {
@@ -105,17 +77,10 @@ func exampleGenericHclBlock() {
 	)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Print(err.Error())
 		os.Exit(1)
 	}
-
-	blocks, err := lwgenerate.CombineHclBlocks(data)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	fmt.Println(lwgenerate.CreateHclStringOutput(blocks))
+	fmt.Print(lwgenerate.CreateHclStringOutput(lwgenerate.CombineHclBlocks(data)))
 }
 
 func main() {

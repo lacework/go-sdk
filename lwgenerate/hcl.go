@@ -291,10 +291,17 @@ func createMapTraversalTokens(input map[string]string) hclwrite.Tokens {
 func CreateHclStringOutput(blocks []*hclwrite.Block) string {
 	file := hclwrite.NewEmptyFile()
 	body := file.Body()
+	blockCount := len(blocks) - 1
 
-	for _, b := range blocks {
-		body.AppendBlock(b)
-		body.AppendNewline()
+	for i, b := range blocks {
+		if b != nil {
+			body.AppendBlock(b)
+
+			// If this is not the last block, add a new line to provide spacing
+			if i < blockCount {
+				body.AppendNewline()
+			}
+		}
 	}
 	return string(file.Bytes())
 }
@@ -344,7 +351,7 @@ func CreateSimpleTraversal(input []string) hcl.Traversal {
 }
 
 // Simple helper to combine multiple blocks (or slices of blocks) into a single slice to be rendered to string
-func CombineHclBlocks(results ...interface{}) ([]*hclwrite.Block, error) {
+func CombineHclBlocks(results ...interface{}) []*hclwrite.Block {
 	blocks := []*hclwrite.Block{}
 	// Combine all blocks into single flat slice
 	for _, result := range results {
@@ -358,9 +365,9 @@ func CombineHclBlocks(results ...interface{}) ([]*hclwrite.Block, error) {
 				blocks = append(blocks, v...)
 			}
 		default:
-			return nil, errors.New("Unknown type supplied!")
+			continue
 		}
 	}
 
-	return blocks, nil
+	return blocks
 }
