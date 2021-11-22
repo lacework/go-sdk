@@ -308,6 +308,11 @@ Grab a CVE id and feed it to the command:
 				return errors.Wrap(err, "unable to get host assessment with id "+args[0])
 			}
 
+			// @afiune the UI today doesn't display any vulnerability that has been fixed
+			// but the APIs return them, this is causing confusion, to fix this issue we
+			// are filtering all of those "Fixed" vulnerabilities here
+			removeFixedVulnerabilitiesFromAssessment(&response.Assessment)
+
 			if err = buildVulnHostReports(response.Assessment); err != nil {
 				return err
 			}
@@ -610,6 +615,7 @@ func filterHostVulnCVEs(cves []api.HostVulnCVE) ([]api.HostVulnCVE, int, int) {
 
 	for _, cve := range cves {
 		var filteredCves []api.HostVulnPackage
+
 		for _, pkg := range cve.Packages {
 			total++
 			// if the user wants to show only vulnerabilities of active packages
@@ -706,24 +712,16 @@ func buildVulnHostsDetailsTable(filteredCves []api.HostVulnCVE) string {
 			// if the user wants to show only vulnerabilities of active packages
 			// and we don't have any, show a friendly message
 			if len(rows) == 0 {
-				if vulCmdState.Active && vulCmdState.Fixable {
-					mainBldr.WriteString("There are no fixable vulnerabilities with packages actively running in this host.\n")
-				}
-				if vulCmdState.Active {
-					mainBldr.WriteString("There are no vulnerabilities with packages actively running in this host.\n")
-				}
-				if vulCmdState.Active {
-					mainBldr.WriteString("There are no fixable vulnerabilities in this host.\n")
-				}
+				mainBldr.WriteString(buildHostVulnCVEsToTableError())
 			} else {
 				mainBldr.WriteString(renderSimpleTable([]string{
 					"CVE ID", "Severity", "Score", "Package", "Current Version",
 					"Fix Version", "Pgk Status", "Vuln Status"},
 					rows,
 				))
+				mainBldr.WriteString("\n")
 			}
 		}
-		mainBldr.WriteString("\n")
 	}
 
 	if !vulCmdState.Details && !vulCmdState.Active && !vulCmdState.Fixable && !vulCmdState.Packages && vulCmdState.Severity == "" {
@@ -974,6 +972,25 @@ func hostScanPackagesVulnPackagesTable(pkgs filteredPackageTable) [][]string {
 	})
 
 	return out
+}
+
+func removeFixedVulnerabilitiesFromAssessment(assessment *api.HostVulnHostAssessment) {
+	out := []api.HostVulnCVE{}
+
+	for _, cve := range assessment.CVEs {
+		var filteredCves []api.HostVulnPackage
+		for _, pkg := range cve.Packages {
+			if pkg.VulnerabilityStatus == "Fixed" {
+				continue
+			}
+			filteredCves = append(filteredCves, pkg)
+		}
+		cve.Packages = filteredCves
+		if len(cve.Packages) > 0 {
+			out = append(out, cve)
+		}
+	}
+	assessment.CVEs = out
 }
 
 // Build the cli output for vuln host show-assessment
