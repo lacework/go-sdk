@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/lacework/go-sdk/internal/format"
 	homedir "github.com/mitchellh/go-homedir"
@@ -52,7 +53,6 @@ func (c *cliState) InitCache(d ...string) {
 	}
 
 	cache := strings.Join(d, "/")
-	// @afiune: add a way to disable the cache
 	c.Cache = diskv.New(diskv.Options{
 		BasePath:          path.Join(cache, "cache"),
 		AdvancedTransform: CacheTransform,
@@ -95,8 +95,17 @@ func CacheTransform(key string) *diskv.PathKey {
 	if subaccount == "" {
 		subaccount = "standalone"
 	}
+	pathToKey := []string{cli.Account, subaccount, cli.KeyID}
+
+	// if the key contains "/" we need to split the path
+	if strings.Contains(key, "/") {
+		keys := strings.Split(key, "/")
+		pathToKey = append(pathToKey, keys[0:len(keys)-1]...)
+		key = keys[len(keys)-1]
+	}
+
 	return &diskv.PathKey{
-		Path:     []string{cli.Account, subaccount, cli.KeyID},
+		Path:     pathToKey,
 		FileName: key,
 	}
 }
@@ -183,4 +192,100 @@ func structToString(v interface{}) []byte {
 		return []byte{}
 	}
 	return out
+}
+
+// cliAsset is a simple private struct that acks as an envelope for storing
+// assets that has a expiration time into the local cache. The Data field
+// is an interface on purpose to allow developers store any kind of asset,
+// from primitives such as strings, ints, bools, to JSON objects
+type cliAsset struct {
+	Data      interface{} `json:"data"`
+	ExpiresAt time.Time   `json:"expires_at"`
+}
+
+// WriteAssetToCache stores an asset with an expiration time
+//
+// Simple Example: Having a struct named vulnReport
+//
+// ```go
+// cli.WriteAssetToCache("my-report", time.Now().Add(time.Hour * 1), vulnReport{Foo: "bar"})
+// ```
+func (c *cliState) WriteAssetToCache(key string, expiresAt time.Time, data interface{}) {
+	if c.noCache {
+		return
+	}
+
+	if expiresAt.Before(time.Now()) {
+		return // avoid writing assets that are already expired
+	}
+
+	c.Log.Debugw("saving asset",
+		"feature", "cache",
+		"path", key,
+		"data", data,
+		"expires_at", expiresAt,
+	)
+	err := c.Cache.Write(key, structToString(cliAsset{data, expiresAt}))
+	if err != nil {
+		c.Log.Warnw("unable to write asset in cache",
+			"feature", "cache",
+			"error", err.Error(),
+		)
+	}
+}
+
+// ReadCachedAsset tries to reads an asset with an expiration time, if the
+// asset has expired, it returns "true", otherwise it returns "false"
+//
+// Simple Example: Having a struct named vulnReport
+//
+// ```go
+// var report vulnReport
+// if expired := cli.ReadCachedAsset("my-report", &report); !expired {
+//     fmt.Printf("My report: %v\n", report)
+// }
+// ```
+func (c *cliState) ReadCachedAsset(key string, data interface{}) bool {
+	if c.noCache {
+		return true // if the cache is disabled, all assets are treated like expired
+	}
+
+	if dataJSON, err := c.Cache.Read(key); err == nil {
+		var asset cliAsset
+		if err := json.Unmarshal(dataJSON, &asset); err == nil {
+			c.Log.Debugw("asset loaded from cache",
+				"feature", "cache",
+				"path", key,
+				"expires_at", asset.ExpiresAt,
+			)
+
+			// check if the cache expired
+			if time.Now().After(asset.ExpiresAt) {
+				c.Log.Debugw("asset expired, removing from cache",
+					"feature", "cache",
+					"path", key,
+					"time_now", time.Now(),
+					"expires_at", asset.ExpiresAt,
+				)
+				if err := c.Cache.Erase(key); err != nil {
+					c.Log.Warnw("unable to erase asset from cache",
+						"feature", "cache", "path", key,
+					)
+				}
+				return true
+			}
+
+			if err := json.Unmarshal(structToString(asset.Data), &data); err == nil {
+				// we successfully retrieved the asset, which has not expired,
+				// and we cast it to the proper type
+				return false
+			}
+			c.Log.Warnw("unable to cast asset data",
+				"feature", "cache",
+				"error", err.Error(),
+			)
+		}
+	}
+
+	return true
 }
