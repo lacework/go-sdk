@@ -115,10 +115,7 @@ type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 // Basic usage: Initialize a new AwsTerraformModifier struct, with a non-default AWS profile set. Then use generate to
 //              create a string output of the required HCL.
 //
-//   hcl, err := aws.NewAwsTerraform(
-//     "us-east-1",
-//     true,
-//     true,
+//   hcl, err := aws.NewAwsTerraform("us-east-1", true, true,
 //     aws.WithAwsProfile("mycorp-profile")).Generate()
 //
 func NewAwsTerraform(region string, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier) *GenerateAwsTfConfigurationArgs {
@@ -234,7 +231,7 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 	return lwgenerate.CreateRequiredProviders(
 		lwgenerate.NewRequiredProvider("lacework",
 			lwgenerate.HclRequiredProviderWithSource("lacework/lacework"),
-			lwgenerate.HclRequiredProviderWithVersion("~> 0.3")))
+			lwgenerate.HclRequiredProviderWithVersion("~> 0.12.2")))
 }
 
 func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {
@@ -296,16 +293,16 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 
 	blocks := []*hclwrite.Block{}
 	if args.Config {
-		moduleDetails := []lwgenerate.HclModuleModifier{}
 		// Add main account
-		// block := NewModule("aws_config", source, HclModuleWithVersion(version))
-
+		moduleDetails := []lwgenerate.HclModuleModifier{}
 		if len(args.SubAccounts) > 0 {
 			moduleDetails = append(moduleDetails,
 				lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
 		}
+
 		moduleBlock, err := lwgenerate.NewModule("aws_config", source,
 			append(moduleDetails, lwgenerate.HclModuleWithVersion(version))...).ToBlock()
+
 		if err != nil {
 			return nil, err
 		}
