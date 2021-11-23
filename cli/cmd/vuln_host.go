@@ -303,6 +303,7 @@ Grab a CVE id and feed it to the command:
 			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
+
 			response, err := cli.LwApi.Vulnerabilities.Host.GetHostAssessment(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to get host assessment with id "+args[0])
@@ -716,7 +717,7 @@ func buildVulnHostsDetailsTable(filteredCves []api.HostVulnCVE) string {
 			} else {
 				mainBldr.WriteString(renderSimpleTable([]string{
 					"CVE ID", "Severity", "Score", "Package", "Current Version",
-					"Fix Version", "Pgk Status", "Vuln Status"},
+					"Fix Version", "Pkg Status", "Vuln Status"},
 					rows,
 				))
 				mainBldr.WriteString("\n")
