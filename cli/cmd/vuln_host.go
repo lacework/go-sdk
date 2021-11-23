@@ -25,6 +25,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/olekukonko/tablewriter"
@@ -304,12 +305,22 @@ Grab a CVE id and feed it to the command:
 				return err
 			}
 
-			response, err := cli.LwApi.Vulnerabilities.Host.GetHostAssessment(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to get host assessment with id "+args[0])
+			var (
+				assessment api.HostVulnHostAssessment
+				cacheKey   = fmt.Sprintf("host/assessment/%s", args[0])
+			)
+			expired := cli.ReadCachedAsset(cacheKey, &assessment)
+			if expired {
+				response, err := cli.LwApi.Vulnerabilities.Host.GetHostAssessment(args[0])
+				if err != nil {
+					return errors.Wrap(err, "unable to get host assessment with id "+args[0])
+				}
+				assessment = response.Assessment
+
+				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Hour*1), assessment)
 			}
 
-			if err = buildVulnHostReports(response.Assessment); err != nil {
+			if err := buildVulnHostReports(assessment); err != nil {
 				return err
 			}
 
@@ -318,7 +329,7 @@ Grab a CVE id and feed it to the command:
 					"fail_on_severity", vulCmdState.FailOnSeverity,
 					"fail_on_fixable", vulCmdState.FailOnFixable,
 				)
-				assessmentCounts := response.Assessment.VulnerabilityCounts()
+				assessmentCounts := assessment.VulnerabilityCounts()
 				vulnPolicy := NewVulnerabilityPolicyError(
 					&assessmentCounts,
 					vulCmdState.FailOnSeverity,
