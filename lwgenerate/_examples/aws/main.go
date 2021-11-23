@@ -8,7 +8,7 @@ import (
 )
 
 func basic() {
-	hcl, err := aws.NewAwsTerraform("us-east-1", true, true).Generate()
+	hcl, err := aws.NewTerraform("us-east-1", true, true).Generate()
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -19,7 +19,7 @@ func basic() {
 }
 
 func customAwsProfile() {
-	hcl, err := aws.NewAwsTerraform(
+	hcl, err := aws.NewTerraform(
 		"us-east-1",
 		true,
 		true,
@@ -34,7 +34,7 @@ func customAwsProfile() {
 }
 
 func consolidatedTrailWithSubAccounts() {
-	hcl, err := aws.NewAwsTerraform(
+	hcl, err := aws.NewTerraform(
 		"us-east-1",
 		true,
 		true,

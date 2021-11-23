@@ -25,21 +25,21 @@ func reqProviderAndRegion(extraInputs ...string) string {
 }
 
 func TestGenerationCloudTrail(t *testing.T) {
-	hcl, err := NewAwsTerraform("us-east-2", false, true).Generate()
+	hcl, err := NewTerraform("us-east-2", false, true).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportCtWithoutConfig), hcl)
 }
 
 func TestGenerationConfig(t *testing.T) {
-	hcl, err := NewAwsTerraform("us-east-2", true, false).Generate()
+	hcl, err := NewTerraform("us-east-2", true, false).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfig), hcl)
 }
 
 func TestGenerationWithCustomAwsProfile(t *testing.T) {
-	hcl, err := NewAwsTerraform("us-east-2", false, true, WithAwsProfile("myprofile")).Generate()
+	hcl, err := NewTerraform("us-east-2", false, true, WithAwsProfile("myprofile")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(
@@ -50,14 +50,14 @@ func TestGenerationWithCustomAwsProfile(t *testing.T) {
 }
 
 func TestGenerationConfigAndCt(t *testing.T) {
-	hcl, err := NewAwsTerraform("us-east-2", true, true).Generate()
+	hcl, err := NewTerraform("us-east-2", true, true).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfig, moduleImportCtWithConfig), hcl)
 }
 
 func TestGenerationWithLaceworkProvider(t *testing.T) {
-	hcl, err := NewAwsTerraform("us-east-2", false, true, WithLaceworkProfile("test-profile")).Generate()
+	hcl, err := NewTerraform("us-east-2", false, true, WithLaceworkProfile("test-profile")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(laceworkProvider, moduleImportCtWithoutConfig), hcl)
@@ -142,7 +142,7 @@ func TestGenerationCloudtrailExistingRole(t *testing.T) {
 }
 
 func TestConsolidatedCtWithMultipleAccounts(t *testing.T) {
-	data, err := NewAwsTerraform("us-east-2",
+	data, err := NewTerraform("us-east-2",
 		true,
 		true,
 		WithAwsProfile("main"),
@@ -181,17 +181,17 @@ func TestGenerationFailureWithNoRegionSet(t *testing.T) {
 var iamErrorString = "invalid inputs: when using an existing IAM role, existing role ARN, name, and external ID all must be set"
 
 func TestGenerationFailureWithIncompleteExistingIam(t *testing.T) {
-	_, err := NewAwsTerraform("us-east-2", false, true,
+	_, err := NewTerraform("us-east-2", false, true,
 		UseExistingIamRole(&ExistingIamRoleDetails{Arn: "foo"})).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
 
-	_, err = NewAwsTerraform("us-east-2", false, true,
+	_, err = NewTerraform("us-east-2", false, true,
 		UseExistingIamRole(&ExistingIamRoleDetails{Name: "foo"})).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
 
-	_, err = NewAwsTerraform("us-east-2", false, true,
+	_, err = NewTerraform("us-east-2", false, true,
 		UseExistingIamRole(&ExistingIamRoleDetails{ExternalId: "foo"})).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())

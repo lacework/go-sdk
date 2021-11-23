@@ -107,7 +107,7 @@ func (args *GenerateAwsTfConfigurationArgs) validate() error {
 
 type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 
-// NewAwsTerraform returns an instance of the GenerateAwsTfConfigurationArgs struct with the provided region and enabled
+// NewTerraform returns an instance of the GenerateAwsTfConfigurationArgs struct with the provided region and enabled
 // settings (config/cloudtrail).
 //
 // Note: Additional configuration details may be set using modifiers of the AwsTerraformModifier type
@@ -115,10 +115,10 @@ type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 // Basic usage: Initialize a new AwsTerraformModifier struct, with a non-default AWS profile set. Then use generate to
 //              create a string output of the required HCL.
 //
-//   hcl, err := aws.NewAwsTerraform("us-east-1", true, true,
+//   hcl, err := aws.NewTerraform("us-east-1", true, true,
 //     aws.WithAwsProfile("mycorp-profile")).Generate()
 //
-func NewAwsTerraform(region string, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier) *GenerateAwsTfConfigurationArgs {
+func NewTerraform(region string, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier) *GenerateAwsTfConfigurationArgs {
 	config := &GenerateAwsTfConfigurationArgs{AwsRegion: region, Cloudtrail: enableCloudtrail, Config: enableConfig}
 	for _, m := range mods {
 		m(config)
