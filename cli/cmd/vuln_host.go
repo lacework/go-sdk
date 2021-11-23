@@ -309,11 +309,6 @@ Grab a CVE id and feed it to the command:
 				return errors.Wrap(err, "unable to get host assessment with id "+args[0])
 			}
 
-			// @afiune the UI today doesn't display any vulnerability that has been fixed
-			// but the APIs return them, this is causing confusion, to fix this issue we
-			// are filtering all of those "Fixed" vulnerabilities here
-			removeFixedVulnerabilitiesFromAssessment(&response.Assessment)
-
 			if err = buildVulnHostReports(response.Assessment); err != nil {
 				return err
 			}
@@ -555,7 +550,7 @@ func hostVulnPackagesTable(cves []api.HostVulnCVE, withHosts bool) ([][]string, 
 	})
 
 	if len(filteredPackages) > 0 {
-		filteredOutput := fmt.Sprintf("%d of %d package(s) showing \n", len(out), len(aggregatedPackages)+len(filteredPackages))
+		filteredOutput := fmt.Sprintf("%d of %d package(s) showing\n", len(out), len(aggregatedPackages)+len(filteredPackages))
 		return out, filteredOutput
 	}
 
@@ -573,7 +568,7 @@ func filterHostCVEsTable(cves []api.HostVulnCVE) ([]api.HostVulnCVE, string) {
 
 	if filteredCves > 0 {
 		showing := totalCves - filteredCves
-		return out, fmt.Sprintf("\n%d of %d cve(s) showing \n", showing, totalCves)
+		return out, fmt.Sprintf("\n%d of %d cve(s) showing\n", showing, totalCves)
 	}
 
 	return out, ""
@@ -688,7 +683,6 @@ func hostVulnHostDetailsMainReportTable(assessment api.HostVulnHostAssessment) s
 		),
 	)
 
-	mainBldr.WriteString("\n")
 	return mainBldr.String()
 }
 
@@ -698,14 +692,20 @@ func buildVulnHostsDetailsTable(filteredCves []api.HostVulnCVE) string {
 	if vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages || vulCmdState.Active || vulCmdState.Severity != "" {
 		if vulCmdState.Packages {
 			packages, filtered := hostVulnPackagesTable(filteredCves, false)
-			mainBldr.WriteString(
-				renderSimpleTable(
-					[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status"},
-					packages,
-				),
-			)
-			if filtered != "" {
-				mainBldr.WriteString(filtered)
+			// if the user wants to show only vulnerabilities of active packages
+			// and we don't have any, show a friendly message
+			if len(packages) == 0 {
+				mainBldr.WriteString(buildHostVulnCVEsToTableError())
+			} else {
+				mainBldr.WriteString(
+					renderSimpleTable(
+						[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status"},
+						packages,
+					),
+				)
+				if filtered != "" {
+					mainBldr.WriteString(filtered)
+				}
 			}
 		} else {
 			rows := hostVulnCVEsTableForHostView(filteredCves)
@@ -720,22 +720,21 @@ func buildVulnHostsDetailsTable(filteredCves []api.HostVulnCVE) string {
 					"Fix Version", "Pkg Status", "Vuln Status"},
 					rows,
 				))
-				mainBldr.WriteString("\n")
 			}
 		}
 	}
 
 	if !vulCmdState.Details && !vulCmdState.Active && !vulCmdState.Fixable && !vulCmdState.Packages && vulCmdState.Severity == "" {
 		mainBldr.WriteString(
-			"Try adding '--details' to increase details shown about the vulnerability assessment.\n",
+			"\nTry adding '--details' to increase details shown about the vulnerability assessment.\n",
 		)
 	} else if !vulCmdState.Active {
 		mainBldr.WriteString(
-			"Try adding '--active' to only show vulnerabilities of packages actively running.\n",
+			"\nTry adding '--active' to only show vulnerabilities of packages actively running.\n",
 		)
 	} else if !vulCmdState.Fixable {
 		mainBldr.WriteString(
-			"Try adding '--fixable' to only show fixable vulnerabilities.\n",
+			"\nTry adding '--fixable' to only show fixable vulnerabilities.\n",
 		)
 	}
 
@@ -996,17 +995,29 @@ func removeFixedVulnerabilitiesFromAssessment(assessment *api.HostVulnHostAssess
 
 // Build the cli output for vuln host show-assessment
 func buildVulnHostReports(assessment api.HostVulnHostAssessment) error {
-	mainReport := hostVulnHostDetailsMainReportTable(assessment)
-	filteredCves, filtered := filterHostCVEsTable(assessment.CVEs)
+	// @afiune the UI today doesn't display any vulnerability that has been fixed
+	// but the APIs return them, this is causing confusion, to fix this issue we
+	// are filtering all of those "Fixed" vulnerabilities here
+	removeFixedVulnerabilitiesFromAssessment(&assessment)
+
+	hostVulnCounts := assessment.VulnerabilityCounts()
+	if hostVulnCounts.Total == 0 {
+		if cli.JSONOutput() {
+			return cli.OutputJSON(assessment)
+		}
+		cli.OutputHuman("Great news! This host has no vulnerabilities... (time for %s)\n", randomEmoji())
+		return nil
+	}
+
+	var (
+		mainReport             = hostVulnHostDetailsMainReportTable(assessment)
+		filteredCves, filtered = filterHostCVEsTable(assessment.CVEs)
+		detailsReport          = buildVulnHostsDetailsTable(filteredCves)
+	)
 	assessment.CVEs = filteredCves
 
-	detailsReport := buildVulnHostsDetailsTable(filteredCves)
-
 	if cli.JSONOutput() {
-		if err := cli.OutputJSON(assessment); err != nil {
-			return err
-		}
-		return nil
+		return cli.OutputJSON(assessment)
 	} else {
 		cli.OutputHuman(mainReport)
 		cli.OutputHuman(detailsReport)
