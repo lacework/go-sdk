@@ -62,7 +62,7 @@ alertProfile: LW_HE_Files.HE_File_NewViolation
 policies:
   - severity: low
 `
-	policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/lacework-clitest-1.json"
+	policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/account-clitest-1.json"
 )
 
 var (
@@ -171,15 +171,12 @@ func TestPolicyCreateURL(t *testing.T) {
 	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// create (output human)
+	policyID := "$account-clitest-1"
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
-	policyID, err := getPolicyIdFromStdout(out.String())
 	// teardown policy
 	defer LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
 
-	assert.Nil(t, err)
-
-	assert.Contains(t, out.String(),
-		fmt.Sprintf("The policy %s was created.", policyID))
+	assert.Contains(t, out.String(), "clitest-1 was created.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
