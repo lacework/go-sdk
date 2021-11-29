@@ -97,18 +97,18 @@ func (svc *TeamMembersService) Get(guid string, res interface{}) error {
 }
 
 type TeamMemberProps struct {
-	AccountAdmin           bool   `json:"accountAdmin,omitempty"`
-	Company                string `json:"company"`
-	CreatedTime            string `json:"createdTime,omitempty"`
-	FirstName              string `json:"firstName"`
-	JitCreated             bool   `json:"jitCreated,omitempty"`
-	LastLoginTime          string `json:"lastLoginTime,omitempty"`
-	LastName               string `json:"lastName"`
-	LastSessionCreatedTime string `json:"lastSessionCreatedTime,omitempty"`
-	OrgAdmin               bool   `json:"orgAdmin,omitempty"`
-	OrgUser                bool   `json:"orgUser,omitempty"`
-	UpdatedBy              string `json:"updatedBy,omitempty"`
-	UpdatedTime            string `json:"UpdatedTime,omitempty"`
+	AccountAdmin           bool        `json:"accountAdmin,omitempty"`
+	Company                string      `json:"company"`
+	CreatedTime            string      `json:"createdTime,omitempty"`
+	FirstName              string      `json:"firstName"`
+	JitCreated             bool        `json:"jitCreated,omitempty"`
+	LastLoginTime          interface{} `json:"lastLoginTime,omitempty"`
+	LastName               string      `json:"lastName"`
+	LastSessionCreatedTime interface{} `json:"lastSessionCreatedTime,omitempty"`
+	OrgAdmin               bool        `json:"orgAdmin,omitempty"`
+	OrgUser                bool        `json:"orgUser,omitempty"`
+	UpdatedBy              string      `json:"updatedBy,omitempty"`
+	UpdatedTime            interface{} `json:"updatedTime,omitempty"`
 }
 
 type TeamMember struct {
