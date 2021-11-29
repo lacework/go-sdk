@@ -151,7 +151,29 @@ func TestReportRuleDuplicateTypes(t *testing.T) {
 		},
 	)
 
+	reportRule, errFour := api.NewReportRule("rule_name",
+		api.ReportRuleConfig{
+			EmailAlertChannels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
+			Description:        "This is a test report rule",
+			Severities:         api.ReportRuleSeverities{api.ReportRuleSeverityHigh},
+			ResourceGroups:     []string{"TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB"},
+			NotificationTypes: api.ReportRuleNotifications{
+				api.GcpReportRuleNotifications{GcpCis: true},
+				api.AwsReportRuleNotifications{AwsHipaa: true},
+				api.AzureReportRuleNotifications{AzureSoc: false},
+				api.WeeklyEventsReportRuleNotifications{TrendReport: true},
+				api.DailyEventsReportRuleNotifications{GcpAuditTrailEvents: true},
+			},
+		},
+	)
+
 	assert.Error(t, errOne, "notification types contains a duplicate type")
 	assert.Error(t, errTwo, "notification types contains a duplicate type")
 	assert.Error(t, errThree, "notification types contains a duplicate type")
+	assert.NoError(t, errFour, "report rule should not return error")
+	assert.True(t, reportRule.ReportNotificationTypes.AwsHipaa)
+	assert.True(t, reportRule.ReportNotificationTypes.GcpCis)
+	assert.True(t, reportRule.ReportNotificationTypes.TrendReport)
+	assert.True(t, reportRule.ReportNotificationTypes.GcpAuditTrailEvents)
+	assert.False(t, reportRule.ReportNotificationTypes.AzureSoc)
 }
