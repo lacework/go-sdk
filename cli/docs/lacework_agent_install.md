@@ -1,6 +1,12 @@
+---
+title: "lacework agent install"
+slug: lacework_agent_install
+hide_title: true
+---
+
 ## lacework agent install
 
-install the datacollector agent on a remote host
+Install the datacollector agent on a remote host
 
 ### Synopsis
 
@@ -11,21 +17,21 @@ launched to help gather the necessary authentication information to access the r
 
 To authenticate to the remote host with a username and password.
 
-    $ lacework agent install <host> --ssh_username <your-user> --ssh_password <secret>
+    lacework agent install <host> --ssh_username <your-user> --ssh_password <secret>
 
 To authenticate to the remote host with an identity file instead.
 
-    $ lacework agent install <user@host> -i /path/to/your/key
+    lacework agent install <user@host> -i /path/to/your/key
 
 To provide an agent access token of your choice, use the command 'lacework agent token list',
 select a token and pass it to the '--token' flag.
 
-    $ lacework agent install <user@host> -i /path/to/your/key --token <token>
+    lacework agent install <user@host> -i /path/to/your/key --token <token>
 
 To authenticate to the remote host on a non-standard SSH port use the '--ssh_port' flag or
 pass it directly via the argument.
 
-    $ lacework agent install <user@host:port>
+    lacework agent install <user@host:port>
     
 
 ```
@@ -64,5 +70,5 @@ lacework agent install <[user@]host[:port]> [flags]
 
 ### SEE ALSO
 
-* [lacework agent](lacework_agent.md)	 - manage Lacework agents
+* [lacework agent](lacework_agent.md)	 - Manage Lacework agents
 

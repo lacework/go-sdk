@@ -1,6 +1,12 @@
+---
+title: "lacework query delete"
+slug: lacework_query_delete
+hide_title: true
+---
+
 ## lacework query delete
 
-delete a query
+Delete a query
 
 ### Synopsis
 
@@ -38,5 +44,5 @@ lacework query delete <query_id> [flags]
 
 ### SEE ALSO
 
-* [lacework query](lacework_query.md)	 - run and manage queries
+* [lacework query](lacework_query.md)	 - Run and manage queries
 

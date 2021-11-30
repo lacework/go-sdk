@@ -49,7 +49,7 @@ var (
 	// versionCmd represents the version command
 	versionCmd = &cobra.Command{
 		Use:   "version",
-		Short: "print the Lacework CLI version",
+		Short: "Print the Lacework CLI version",
 		Long: `
 Prints out the installed version of the Lacework CLI and checks for newer
 versions available for update.

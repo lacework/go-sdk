@@ -19,8 +19,74 @@
 
 package cmd
 
-import "github.com/spf13/cobra/doc"
+import (
+	"fmt"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
 
-func GenerateMarkdownDocs() {
-	errcheckEXIT(doc.GenMarkdownTree(rootCmd, "../docs"))
+	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
+)
+
+var (
+
+	// docsLink is the custom link used to render internal links
+	docsLink = ""
+
+	// docsCmd is a hidden command that generates automatic documentation in Markdown
+	docsCmd = &cobra.Command{
+		Use:    "docs <directory>",
+		Hidden: true,
+		Short:  "Generate Markdown documentation",
+		Args:   cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			return GenerateMarkdownDocs(args[0])
+		},
+	}
+
+	// headerTemplate adds front matter to generated documentation, this is how
+	// we automatically generate documentation at docs.lacework.com
+	headerTemplate = `---
+title: "%s"
+slug: %s
+hide_title: true
+---
+
+`
+)
+
+func init() {
+	rootCmd.AddCommand(docsCmd)
+	docsCmd.Flags().StringVarP(&docsLink,
+		"link", "l", "", "customize the rendered internal links to the commands")
+}
+
+func GenerateMarkdownDocs(location string) error {
+	// if the location doesn't exist, we will create it for the user
+	if err := os.MkdirAll(location, 0755); err != nil {
+		return err
+	}
+
+	// given a filename, linkHandler is used to customize the rendered internal links
+	// to the commands, only if docsLinks was provided
+	linkHandler := func(name string) string {
+		if docsLink != "" {
+			base := strings.TrimSuffix(name, path.Ext(name))
+			return docsLink + strings.ToLower(base) + "/"
+		}
+		return name
+	}
+
+	// filePrepender uses headerTemplate to prepend front matter to the rendered Markdown
+	filePrepender := func(filename string) string {
+		var (
+			name = filepath.Base(filename)
+			base = strings.TrimSuffix(name, path.Ext(name))
+		)
+		return fmt.Sprintf(headerTemplate, strings.Replace(base, "_", " ", -1), base)
+	}
+
+	return doc.GenMarkdownTreeCustom(rootCmd, location, filePrepender, linkHandler)
 }

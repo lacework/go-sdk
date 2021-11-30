@@ -1,10 +1,12 @@
+---
+title: "lacework agent token list"
+slug: lacework_agent_token_list
+hide_title: true
+---
+
 ## lacework agent token list
 
-list all agent access tokens
-
-### Synopsis
-
-List all agent access tokens.
+List all agent access tokens
 
 ```
 lacework agent token list [flags]
@@ -35,5 +37,5 @@ lacework agent token list [flags]
 
 ### SEE ALSO
 
-* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
+* [lacework agent token](lacework_agent_token.md)	 - Manage agent access tokens
 

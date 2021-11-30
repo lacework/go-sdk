@@ -1,11 +1,19 @@
+---
+title: "lacework alert-rule"
+slug: lacework_alert-rule
+hide_title: true
+---
+
 ## lacework alert-rule
 
-manage alert rules
+Manage alert rules
 
 ### Synopsis
 
 Manage alert rules to route events to the appropriate people or tools.		
+
 An alert rule has three parts:
+
   1. Alert channel(s) that should receive the event notification
   2. Event severity and categories to include
   3. Resource group(s) containing the subset of your environment to consider
@@ -37,8 +45,8 @@ An alert rule has three parts:
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework alert-rule create](lacework_alert-rule_create.md)	 - create a new alert rule
-* [lacework alert-rule delete](lacework_alert-rule_delete.md)	 - delete a alert rule
-* [lacework alert-rule list](lacework_alert-rule_list.md)	 - list all alert rules
-* [lacework alert-rule show](lacework_alert-rule_show.md)	 - show an alert rule by id
+* [lacework alert-rule create](lacework_alert-rule_create.md)	 - Create a new alert rule
+* [lacework alert-rule delete](lacework_alert-rule_delete.md)	 - Delete a alert rule
+* [lacework alert-rule list](lacework_alert-rule_list.md)	 - List all alert rules
+* [lacework alert-rule show](lacework_alert-rule_show.md)	 - Show an alert rule by id
 

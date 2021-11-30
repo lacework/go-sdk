@@ -27,7 +27,7 @@ var (
 	accountCmd = &cobra.Command{
 		Use:     "account",
 		Aliases: []string{"accounts", "acc"},
-		Short:   "manage accounts in an organization (org admins only)",
+		Short:   "Manage accounts in an organization (org admins only)",
 		Long: `Manage accounts inside your Lacework organization.
 
 An organization can contain multiple accounts so you can also manage components
@@ -37,7 +37,7 @@ and can easily switch between them.
 
 To enroll your Lacework account in an organization follow the documentation:
 
-  https://support.lacework.com/hc/en-us/articles/360041727394-Organization-Overview
+  https://docs.lacework.com/organization-overview
     `,
 	}
 
@@ -45,7 +45,7 @@ To enroll your Lacework account in an organization follow the documentation:
 	accountListCmd = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "list all accounts",
+		Short:   "List all accounts",
 		Long:    `List all accounts in your organization.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {

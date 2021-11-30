@@ -54,6 +54,7 @@ integration-only: ## Run integration tests
 	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="\
 		account \
 		agent_token \
+		alert_rules \
 		compliance \
 		configure \
 		event \

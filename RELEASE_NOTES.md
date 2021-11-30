@@ -1,15 +1,16 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.20.0`.
+Another day, another release. These are the release notes for the version `v0.22.0`.
 
 ## Features
-* feat(cli): Manage Alert Rules in Lacework CLI (#597) (Darren)([4d5648c](https://github.com/lacework/go-sdk/commit/4d5648cce2430b670167d3d66c3d8aee860b5f39))
+* feat(cli): cache host vuln assessments for 1 hour (Salim Afiune Maya)([7f50bd2](https://github.com/lacework/go-sdk/commit/7f50bd23654a5566c35ba13e88ad2f4c9c8dafa9))
+* feat(cli): logic to store assets with expiration time (Salim Afiune Maya)([ad920ca](https://github.com/lacework/go-sdk/commit/ad920ca5d638adb4f6331a80550381d8d1b3021d))
+* feat(lwgenerate): Add initial hcl generation support (#611) (Matt Cadorette)([f9e9e78](https://github.com/lacework/go-sdk/commit/f9e9e781b73c9a92415702e052d10fed19a72ac2))
 ## Bug Fixes
-* fix(cli): avoid panic when assessment has NO vulns (#600) (Salim Afiune)([4638c7e](https://github.com/lacework/go-sdk/commit/4638c7e7d6b08e8f9bb123ed897321897a33ab4e))
-* fix: ResourceGroups lastUpdated time format (#599) (Darren)([506954f](https://github.com/lacework/go-sdk/commit/506954fd1451d192a43d2ae1a38fb1e2b6261b4e))
-* fix(cli): making evaluatorId optional (hazedav)([a7da3c0](https://github.com/lacework/go-sdk/commit/a7da3c0bc346ac1db957a3854c04c2c5a6a537c6))
+* fix(cli): PKG typo in host vuln table (Salim Afiune Maya)([21ff81a](https://github.com/lacework/go-sdk/commit/21ff81a762d8c1dd3335bf88f8598ecebacc5686))
+* fix(cli): avoid using "Fixed" host vulnerabilities (Salim Afiune Maya)([49ce7a7](https://github.com/lacework/go-sdk/commit/49ce7a70bca8eb3125c53a22e99c219fa61d3d33))
 ## Other Changes
-* ci: version bump to v0.19.1-dev (Lacework)([e8e36dd](https://github.com/lacework/go-sdk/commit/e8e36ddf314463540288dea6d577a12b5d41456a))
-* test(cli): adds host query integration test file (hazedav)([7be96a7](https://github.com/lacework/go-sdk/commit/7be96a79d2bb3f9df84c259615fe0027110342bf))
+* ci: version bump to v0.21.1-dev (Lacework)([30637bc](https://github.com/lacework/go-sdk/commit/30637bcce5b7aefb164c1ff3587753dbd4b5844d))
+* test(cli): verify host vuln report rendering (Salim Afiune Maya)([b7d72e2](https://github.com/lacework/go-sdk/commit/b7d72e29b14b0987d021ecb03f618bbf3ac779a0))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`

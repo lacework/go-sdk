@@ -1,6 +1,12 @@
+---
+title: "lacework query validate"
+slug: lacework_query_validate
+hide_title: true
+---
+
 ## lacework query validate
 
-validate a query
+Validate a query
 
 ### Synopsis
 
@@ -53,5 +59,5 @@ lacework query validate [flags]
 
 ### SEE ALSO
 
-* [lacework query](lacework_query.md)	 - run and manage queries
+* [lacework query](lacework_query.md)	 - Run and manage queries
 

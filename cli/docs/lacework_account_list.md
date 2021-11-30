@@ -1,6 +1,12 @@
+---
+title: "lacework account list"
+slug: lacework_account_list
+hide_title: true
+---
+
 ## lacework account list
 
-list all accounts
+List all accounts
 
 ### Synopsis
 
@@ -35,5 +41,5 @@ lacework account list [flags]
 
 ### SEE ALSO
 
-* [lacework account](lacework_account.md)	 - manage accounts in an organization (org admins only)
+* [lacework account](lacework_account.md)	 - Manage accounts in an organization (org admins only)
 

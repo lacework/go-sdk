@@ -1,10 +1,16 @@
+---
+title: "lacework resource-group delete"
+slug: lacework_resource-group_delete
+hide_title: true
+---
+
 ## lacework resource-group delete
 
-delete a resource group
+Delete a resource group
 
 ### Synopsis
 
-Delete a single resource group by it's Resource ID.
+Delete a single resource group by it's resource group ID.
 
 ```
 lacework resource-group delete [flags]
@@ -35,5 +41,5 @@ lacework resource-group delete [flags]
 
 ### SEE ALSO
 
-* [lacework resource-group](lacework_resource-group.md)	 - manage resource groups
+* [lacework resource-group](lacework_resource-group.md)	 - Manage resource groups
 

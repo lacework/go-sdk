@@ -1,10 +1,16 @@
+---
+title: "lacework resource-group show"
+slug: lacework_resource-group_show
+hide_title: true
+---
+
 ## lacework resource-group show
 
-get resource group by id
+Get resource group by id
 
 ### Synopsis
 
-Get a single resource group by it's Resource ID.
+Get a single resource group by it's resource group ID.
 
 ```
 lacework resource-group show [flags]
@@ -35,5 +41,5 @@ lacework resource-group show [flags]
 
 ### SEE ALSO
 
-* [lacework resource-group](lacework_resource-group.md)	 - manage resource groups
+* [lacework resource-group](lacework_resource-group.md)	 - Manage resource groups
 

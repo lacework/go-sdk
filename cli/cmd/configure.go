@@ -42,7 +42,7 @@ var (
 	// configureCmd represents the configure command
 	configureCmd = &cobra.Command{
 		Use:   "configure",
-		Short: "configure the Lacework CLI",
+		Short: "Configure the Lacework CLI",
 		Args:  cobra.NoArgs,
 		Long: `Configure settings that the Lacework CLI uses to interact with the Lacework
 platform. These include your Lacework account, API access key and secret.
@@ -69,7 +69,7 @@ the Lacework CLI will create it for you.`,
 
 	configureListCmd = &cobra.Command{
 		Use:   "list",
-		Short: "list all configured profiles at ~/.lacework.toml",
+		Short: "List all configured profiles at ~/.lacework.toml",
 		Args:  cobra.NoArgs,
 		Long: `List all profiles configured into the config file ~/.lacework.toml
 
@@ -95,13 +95,14 @@ export the environment variable:
 
 	configureGetCmd = &cobra.Command{
 		Use:   "show <config_key>",
-		Short: "show current configuration data",
+		Short: "Show current configuration data",
 		Args:  cobra.ExactArgs(1),
 		Long: `Prints the current computed configuration data from the specified configuration
 key. The order of precedence to compute the configuration is flags, environment
 variables, and the configuration file ~/.lacework.toml. 
 
 The available configuration keys are:
+
 * profile
 * account
 * api_secret
@@ -109,7 +110,7 @@ The available configuration keys are:
 
 To show the configuration from a different profile, use the flag --profile.
 
-    $ lacework configure show account --profile my-profile`,
+    lacework configure show account --profile my-profile`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			data, ok := showConfigurationDataFromKey(args[0])
 			if !ok {

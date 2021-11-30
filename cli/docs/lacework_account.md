@@ -1,6 +1,12 @@
+---
+title: "lacework account"
+slug: lacework_account
+hide_title: true
+---
+
 ## lacework account
 
-manage accounts in an organization (org admins only)
+Manage accounts in an organization (org admins only)
 
 ### Synopsis
 
@@ -13,7 +19,7 @@ and can easily switch between them.
 
 To enroll your Lacework account in an organization follow the documentation:
 
-  https://support.lacework.com/hc/en-us/articles/360041727394-Organization-Overview
+  https://docs.lacework.com/organization-overview
     
 
 ### Options
@@ -42,5 +48,5 @@ To enroll your Lacework account in an organization follow the documentation:
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework account list](lacework_account_list.md)	 - list all accounts
+* [lacework account list](lacework_account_list.md)	 - List all accounts
 

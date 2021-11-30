@@ -1,6 +1,12 @@
+---
+title: "lacework query list-sources"
+slug: lacework_query_list-sources
+hide_title: true
+---
+
 ## lacework query list-sources
 
-list Lacework query data sources
+List Lacework query data sources
 
 ### Synopsis
 
@@ -35,5 +41,5 @@ lacework query list-sources [flags]
 
 ### SEE ALSO
 
-* [lacework query](lacework_query.md)	 - run and manage queries
+* [lacework query](lacework_query.md)	 - Run and manage queries
 

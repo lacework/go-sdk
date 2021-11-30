@@ -1,6 +1,12 @@
+---
+title: "lacework compliance aws list-accounts"
+slug: lacework_compliance_aws_list-accounts
+hide_title: true
+---
+
 ## lacework compliance aws list-accounts
 
-list all AWS accounts configured
+List all AWS accounts configured
 
 ### Synopsis
 
@@ -35,5 +41,5 @@ lacework compliance aws list-accounts [flags]
 
 ### SEE ALSO
 
-* [lacework compliance aws](lacework_compliance_aws.md)	 - compliance for AWS
+* [lacework compliance aws](lacework_compliance_aws.md)	 - Compliance for AWS
 

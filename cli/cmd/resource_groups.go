@@ -34,7 +34,7 @@ var (
 	resourceGroupsCommand = &cobra.Command{
 		Use:     "resource-group",
 		Aliases: []string{"resource-groups", "rg"},
-		Short:   "manage resource groups",
+		Short:   "Manage resource groups",
 		Long:    "Manage Lacework-identifiable assets via the use of resource groups.",
 	}
 
@@ -42,7 +42,7 @@ var (
 	resourceGroupsListCommand = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "list all resource groups",
+		Short:   "List all resource groups",
 		Long:    "List all resource groups configured in your Lacework account.",
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -55,7 +55,7 @@ var (
 
 Get started by integrating your resource groups to manage alerting using the command:
 
-    $ lacework resource-group create
+    lacework resource-group create
 
 If you prefer to configure resource groups via the WebUI, log in to your account at:
 
@@ -101,8 +101,8 @@ Then navigate to Settings > Resource Groups.
 	// show command is used to retrieve a lacework resource group by resource id
 	resourceGroupsShowCommand = &cobra.Command{
 		Use:   "show",
-		Short: "get resource group by id",
-		Long:  "Get a single resource group by it's Resource ID.",
+		Short: "Get resource group by id",
+		Long:  "Get a single resource group by it's resource group ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var response api.ResourceGroupResponse
@@ -144,8 +144,8 @@ Then navigate to Settings > Resource Groups.
 	// delete command is used to remove a lacework resource group by resource id
 	resourceGroupsDeleteCommand = &cobra.Command{
 		Use:   "delete",
-		Short: "delete a resource group",
-		Long:  "Delete a single resource group by it's Resource ID.",
+		Short: "Delete a resource group",
+		Long:  "Delete a single resource group by it's resource group ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			err := cli.LwApi.V2.ResourceGroups.Delete(args[0])
@@ -159,7 +159,7 @@ Then navigate to Settings > Resource Groups.
 	// create command is used to create a new lacework resource group
 	resourceGroupsCreateCommand = &cobra.Command{
 		Use:   "create",
-		Short: "create a new resource group",
+		Short: "Create a new resource group",
 		Long:  "Creates a new single resource group.",
 		RunE: func(_ *cobra.Command, args []string) error {
 			if !cli.InteractiveMode() {

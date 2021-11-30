@@ -1,6 +1,12 @@
+---
+title: "lacework resource-group create"
+slug: lacework_resource-group_create
+hide_title: true
+---
+
 ## lacework resource-group create
 
-create a new resource group
+Create a new resource group
 
 ### Synopsis
 
@@ -35,5 +41,5 @@ lacework resource-group create [flags]
 
 ### SEE ALSO
 
-* [lacework resource-group](lacework_resource-group.md)	 - manage resource groups
+* [lacework resource-group](lacework_resource-group.md)	 - Manage resource groups
 

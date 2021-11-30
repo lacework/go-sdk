@@ -1,6 +1,12 @@
+---
+title: "lacework compliance aws"
+slug: lacework_compliance_aws
+hide_title: true
+---
+
 ## lacework compliance aws
 
-compliance for AWS
+Compliance for AWS
 
 ### Synopsis
 
@@ -8,17 +14,17 @@ Manage compliance reports for Amazon Web Services (AWS).
 
 To list all AWS accounts configured in your account:
 
-    $ lacework compliance aws list-accounts
+    lacework compliance aws list-accounts
 
 To get the latest AWS compliance assessment report:
 
-    $ lacework compliance aws get-report <account_id>
+    lacework compliance aws get-report <account_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment:
 
-    $ lacework compliance aws run-assessment <account_id>
+    lacework compliance aws run-assessment <account_id>
 
 
 ### Options
@@ -46,8 +52,8 @@ To run an ad-hoc compliance assessment:
 
 ### SEE ALSO
 
-* [lacework compliance](lacework_compliance.md)	 - manage compliance reports
-* [lacework compliance aws get-report](lacework_compliance_aws_get-report.md)	 - get the latest AWS compliance report
-* [lacework compliance aws list-accounts](lacework_compliance_aws_list-accounts.md)	 - list all AWS accounts configured
-* [lacework compliance aws run-assessment](lacework_compliance_aws_run-assessment.md)	 - run a new AWS compliance report
+* [lacework compliance](lacework_compliance.md)	 - Manage compliance reports
+* [lacework compliance aws get-report](lacework_compliance_aws_get-report.md)	 - Get the latest AWS compliance report
+* [lacework compliance aws list-accounts](lacework_compliance_aws_list-accounts.md)	 - List all AWS accounts configured
+* [lacework compliance aws run-assessment](lacework_compliance_aws_run-assessment.md)	 - Run a new AWS compliance report
 

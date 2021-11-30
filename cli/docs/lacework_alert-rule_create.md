@@ -1,10 +1,12 @@
+---
+title: "lacework alert-rule create"
+slug: lacework_alert-rule_create
+hide_title: true
+---
+
 ## lacework alert-rule create
 
-create a new alert rule
-
-### Synopsis
-
-Creates a new single alert rule.
+Create a new alert rule
 
 ```
 lacework alert-rule create [flags]
@@ -35,5 +37,5 @@ lacework alert-rule create [flags]
 
 ### SEE ALSO
 
-* [lacework alert-rule](lacework_alert-rule.md)	 - manage alert rules
+* [lacework alert-rule](lacework_alert-rule.md)	 - Manage alert rules
 

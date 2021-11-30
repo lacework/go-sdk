@@ -1,6 +1,12 @@
+---
+title: "lacework version"
+slug: lacework_version
+hide_title: true
+---
+
 ## lacework version
 
-print the Lacework CLI version
+Print the Lacework CLI version
 
 ### Synopsis
 

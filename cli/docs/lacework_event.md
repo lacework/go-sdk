@@ -1,6 +1,12 @@
+---
+title: "lacework event"
+slug: lacework_event
+hide_title: true
+---
+
 ## lacework event
 
-inspect Lacework events
+Inspect Lacework events
 
 ### Synopsis
 
@@ -32,7 +38,7 @@ Inspect events reported by the Lacework platform
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework event list](lacework_event_list.md)	 - list all events (default last 7 days)
-* [lacework event open](lacework_event_open.md)	 - open a specified event in a web browser
-* [lacework event show](lacework_event_show.md)	 - show details about a specific event
+* [lacework event list](lacework_event_list.md)	 - List all events (default last 7 days)
+* [lacework event open](lacework_event_open.md)	 - Open a specified event in a web browser
+* [lacework event show](lacework_event_show.md)	 - Show details about a specific event
 

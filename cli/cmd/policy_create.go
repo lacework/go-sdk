@@ -33,24 +33,26 @@ var (
 	// policyCreateCmd represents the policy create command
 	policyCreateCmd = &cobra.Command{
 		Use:   "create",
-		Short: "create a policy",
+		Short: "Create a policy",
 		Long: `Create a policy.
 
 A policy is represented in either JSON or YAML format.
+
 The following attributes are minimally required:
----
-evaluatorId: Cloudtrail
-policyId: lacework-example-1
-policyType: Violation
-queryId: MyQuery
-title: My Policy
-enabled: false
-description: My Policy Description
-remediation: My Policy Remediation
-severity: high
-evalFrequency: Daily
-alertEnabled: false
-alertProfile: LW_CloudTrail_Alerts
+
+    ---
+    evaluatorId: Cloudtrail
+    policyId: lacework-example-1
+    policyType: Violation
+    queryId: MyQuery
+    title: My Policy
+    enabled: false
+    description: My Policy Description
+    remediation: My Policy Remediation
+    severity: high
+    evalFrequency: Daily
+    alertEnabled: false
+    alertProfile: LW_CloudTrail_Alerts
 `,
 		Args: cobra.NoArgs,
 		RunE: createPolicy,

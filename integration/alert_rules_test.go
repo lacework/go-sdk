@@ -1,3 +1,5 @@
+//go:build alert_rules
+
 // Author:: Darren Murray (<darren.murray@lacework.net>)
 // Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0

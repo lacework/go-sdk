@@ -1,6 +1,12 @@
+---
+title: "lacework query show"
+slug: lacework_query_show
+hide_title: true
+---
+
 ## lacework query show
 
-show a query
+Show a query
 
 ### Synopsis
 
@@ -35,5 +41,5 @@ lacework query show <query_id> [flags]
 
 ### SEE ALSO
 
-* [lacework query](lacework_query.md)	 - run and manage queries
+* [lacework query](lacework_query.md)	 - Run and manage queries
 

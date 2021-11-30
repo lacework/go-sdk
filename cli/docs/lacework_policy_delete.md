@@ -1,6 +1,12 @@
+---
+title: "lacework policy delete"
+slug: lacework_policy_delete
+hide_title: true
+---
+
 ## lacework policy delete
 
-delete a policy
+Delete a policy
 
 ### Synopsis
 
@@ -38,5 +44,5 @@ lacework policy delete <policy_id> [flags]
 
 ### SEE ALSO
 
-* [lacework policy](lacework_policy.md)	 - manage policies
+* [lacework policy](lacework_policy.md)	 - Manage policies
 

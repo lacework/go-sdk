@@ -1,6 +1,12 @@
+---
+title: "lacework alert-rule list"
+slug: lacework_alert-rule_list
+hide_title: true
+---
+
 ## lacework alert-rule list
 
-list all alert rules
+List all alert rules
 
 ### Synopsis
 
@@ -35,5 +41,5 @@ lacework alert-rule list [flags]
 
 ### SEE ALSO
 
-* [lacework alert-rule](lacework_alert-rule.md)	 - manage alert rules
+* [lacework alert-rule](lacework_alert-rule.md)	 - Manage alert rules
 
