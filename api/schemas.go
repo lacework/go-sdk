@@ -18,7 +18,7 @@
 
 package api
 
-// SchemaService is the service that retrieves schemas for v2
+// SchemasService is the service that retrieves schemas for v2
 type SchemasService struct {
 	client   *Client
 	Services map[integrationSchema]V2Service
@@ -33,6 +33,7 @@ const (
 	ContainerRegistries
 	CloudAccounts
 	ResourceGroups
+	TeamMembers
 	ReportRules
 )
 

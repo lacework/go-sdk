@@ -112,6 +112,9 @@ const (
 	apiV2ResourceGroupsFromGUID = "v2/ResourceGroups/%s"
 
 	apiV2Datasources = "v2/Datasources"
+
+	apiV2TeamMembers         = "v2/TeamMembers"
+	apiV2TeamMembersFromGUID = "v2/TeamMembers/%s"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
