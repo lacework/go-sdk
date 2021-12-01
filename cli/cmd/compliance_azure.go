@@ -204,7 +204,7 @@ To run an ad-hoc compliance assessment use the command:
 
 			var (
 				report   api.ComplianceAzureReport
-				cacheKey = fmt.Sprintf("compliance/aws/%s/%s/%s",
+				cacheKey = fmt.Sprintf("compliance/azure/%s/%s/%s",
 					config.TenantID, config.SubscriptionID, config.Type)
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)

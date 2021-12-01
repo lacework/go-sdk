@@ -93,11 +93,11 @@ Use the following command to list all available integrations in your account:
 		Short:   "Compliance for Azure Cloud",
 		Long: `Manage compliance reports for Azure Cloud.
 
-To list all Azure Tenants configured in your account:
+To list all Azure tenants configured in your account:
 
     lacework compliance azure list-tenants
 
-To list all Azure Subscriptions from a Tenant, use the command:
+To list all Azure subscriptions from a tenant, use the command:
 
     lacework compliance azure list-subscriptions <tenant_id>
 
@@ -120,9 +120,9 @@ To run an ad-hoc compliance assessment use the command:
 		Short:   "Compliance for Google Cloud",
 		Long: `Manage compliance reports for Google Cloud.
 
-To list all Google Organizations and Projects configured in your account:
+To list all GCP organizations and projects configured in your account:
 
-    lacework compliance google list
+    lacework compliance gcp list
 
 To list all GCP projects from an organization, use the command:
 
