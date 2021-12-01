@@ -116,6 +116,9 @@ const (
 	apiV2TeamMembers         = "v2/TeamMembers"
 	apiV2TeamMembersFromGUID = "v2/TeamMembers/%s"
 	apiV2TeamMembersSearch   = "v2/TeamMembers/search"
+
+	apiV2VulnerabilityExceptions        = "v2/VulnerabilityExceptions"
+	apiV2VulnerabilityExceptionFromGUID = "v2/VulnerabilityExceptions/%s"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

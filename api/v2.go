@@ -24,19 +24,20 @@ type V2Endpoints struct {
 	client *Client
 
 	// Every schema must have its own service
-	UserProfile         *UserProfileService
-	AlertChannels       *AlertChannelsService
-	AlertRules          *AlertRulesService
-	ReportRules         *ReportRulesService
-	CloudAccounts       *CloudAccountsService
-	ContainerRegistries *ContainerRegistriesService
-	ResourceGroups      *ResourceGroupsService
-	AgentAccessTokens   *AgentAccessTokensService
-	Query               *QueryService
-	Policy              *PolicyService
-	Schemas             *SchemasService
-	Datasources         *DatasourcesService
-	TeamMembers         *TeamMembersService
+	UserProfile             *UserProfileService
+	AlertChannels           *AlertChannelsService
+	AlertRules              *AlertRulesService
+	ReportRules             *ReportRulesService
+	CloudAccounts           *CloudAccountsService
+	ContainerRegistries     *ContainerRegistriesService
+	ResourceGroups          *ResourceGroupsService
+	AgentAccessTokens       *AgentAccessTokensService
+	Query                   *QueryService
+	Policy                  *PolicyService
+	Schemas                 *SchemasService
+	Datasources             *DatasourcesService
+	TeamMembers             *TeamMembersService
+	VulnerabilityExceptions *VulnerabilityExceptionsService
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
@@ -54,16 +55,18 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&SchemasService{c, map[integrationSchema]V2Service{}},
 		&DatasourcesService{c},
 		&TeamMembersService{c},
+		&VulnerabilityExceptionsService{c},
 	}
 
 	v2.Schemas.Services = map[integrationSchema]V2Service{
-		AlertChannels:       &AlertChannelsService{c},
-		AlertRules:          &AlertRulesService{c},
-		CloudAccounts:       &CloudAccountsService{c},
-		ContainerRegistries: &ContainerRegistriesService{c},
-		ResourceGroups:      &ResourceGroupsService{c},
-		TeamMembers:         &TeamMembersService{c},
-		ReportRules:         &ReportRulesService{c},
+		AlertChannels:           &AlertChannelsService{c},
+		AlertRules:              &AlertRulesService{c},
+		CloudAccounts:           &CloudAccountsService{c},
+		ContainerRegistries:     &ContainerRegistriesService{c},
+		ResourceGroups:          &ResourceGroupsService{c},
+		TeamMembers:             &TeamMembersService{c},
+		ReportRules:             &ReportRulesService{c},
+		VulnerabilityExceptions: &VulnerabilityExceptionsService{c},
 	}
 	return v2
 }
