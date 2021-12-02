@@ -148,7 +148,7 @@ func (svc *TeamMembersService) Update(tm TeamMember) (res TeamMemberResponse, er
 }
 
 // UpdateOrg updates a single team member at the org-level with the corresponding username
-func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMembersResponse, err error) {
+func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMemberOrgResponse, err error) {
 	if !svc.client.OrgAccess() {
 		return res, errors.New("client configured to manage account-level datasets, use Update()")
 	}

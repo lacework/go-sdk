@@ -343,7 +343,7 @@ func TestTeamMembers_CreateOrg(t *testing.T) {
 		response, err := c.V2.TeamMembers.CreateOrg(tm)
 		assert.NoError(t, err)
 		if assert.NotNil(t, response) {
-			assert.Equal(t, "customerdemo.lacework.net", response.Data.Url)
+			assert.Equal(t, "testing.lacework.net", response.Data.Url)
 			assert.Equal(t, "vatasha.white@lacework.net", response.Data.UserName)
 		}
 	})
@@ -475,7 +475,7 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 		apiPath         = fmt.Sprintf("TeamMembers/%s", teamMemberGuids[0])
 
 		username   = fmt.Sprintf("vatasha.white+%s@lacework.net", teamMemberGuids[0])
-		teamMember = singleMockTeamMembersOrgResponse(teamMemberGuids[0], teamMemberGuids[1], username)
+		teamMember = singleMockTeamMemberOrgUpdateResponse(teamMemberGuids[0], teamMemberGuids[1], username)
 	)
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
@@ -540,7 +540,7 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 		response, err := c.V2.TeamMembers.UpdateOrg(tm)
 		assert.NoError(t, err)
 		if assert.NotNil(t, response) {
-			assert.Equal(t, username, response.Data[0].UserName)
+			assert.Equal(t, username, response.Data.UserName)
 		}
 	})
 }
@@ -874,58 +874,39 @@ func singleMockOrgTeamMemberCreateResponse(username string) string {
 		"orgAccount": true,
 		"orgAdmin": false,
 		"orgUser": true,
-		"url": "customerdemo.lacework.net",
+		"url": "testing.lacework.net",
 		"username": "%s"
 	  }
 	}
 `, username)
 }
 
-func singleMockTeamMembersOrgResponse(userGuid, userGuid2, username string) string {
+func singleMockTeamMemberOrgUpdateResponse(userGuid, userGuid2, username string) string {
 	return fmt.Sprintf(`
-	{
-	  "data": [
-		{
-		  "custGuid": "CUSTOMER_721595854C4272A5AC58B9FAA369C0ABB05564A91DA0E00",
-		  "props": {
-			"accountAdmin": false,
-			"company": "ABC",
-			"createdTime": "2021-12-02T19:08:28.757Z",
-			"firstName": "vatasha updated",
-			"jitCreated": false,
-			"lastLoginTime": 0,
-			"lastName": "white updated",
-			"lastSessionCreatedTime": "2021-12-02T19:08:30.079Z",
-			"orgAdmin": false,
-			"orgUser": true,
-			"updatedBy": "vatasha.white@lacework.net",
-			"updatedTime": "2021-12-02T19:39:34.746Z"
-		  },
-		  "userEnabled": 1,
-		  "userGuid": %q,
-		  "userName": %q
-		},
-		{
-		  "custGuid": "GITOPS_53901D0F22F80387C484022798F21EE97F4C782FBE2E39A00",
-		  "props": {
-			"accountAdmin": false,
-			"company": "ABC",
-			"createdTime": "2021-12-02T19:08:28.935Z",
-			"firstName": "vatasha updated",
-			"jitCreated": false,
-			"lastLoginTime": 0,
-			"lastName": "white updated",
-			"lastSessionCreatedTime": 0,
-			"orgAdmin": false,
-			"orgUser": true,
-			"updatedBy": "vatasha.white@lacework.net",
-			"updatedTime": "2021-12-02T19:39:34.746Z"
-		  },
-		  "userEnabled": 1,
-		  "userGuid": %q,
-		  "userName": %q
-		}
-	  ]
-	}
-	`, userGuid, username, userGuid2, username)
+{
+  "data": {
+    "accounts": [
+      {
+        "accountName": "CUSTOMERDEMO",
+        "admin": true,
+        "custGuid": "CUSTOMER_721595854C4272A5AC58B9FAA369C0ABB05564A91DA0000",
+        "userEnabled": 1,
+        "userGuid": %q
+      },
+      {
+        "accountName": "TECH-ALLY",
+        "admin": true,
+        "custGuid": "TECHALLY_E1300DCD41CE6831AAF04537076CFB295F1ECEE4EE9000",
+        "userEnabled": 1,
+        "userGuid": %q
+      }
+    ],
+    "orgAccount": true,
+    "orgAdmin": false,
+    "orgUser": true,
+    "url": "testing.lacework.net",
+    "username": %q
+  }
+}
+`, userGuid, userGuid2, username)
 }
