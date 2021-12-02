@@ -19,8 +19,10 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 )
 
 type TeamMembersService struct {
@@ -146,7 +148,7 @@ func (svc *TeamMembersService) Update(tm TeamMember) (res TeamMemberResponse, er
 }
 
 // UpdateOrg updates a single team member at the org-level with the corresponding username
-func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMemberOrgResponse, err error) {
+func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMembersResponse, err error) {
 	if !svc.client.OrgAccess() {
 		return res, errors.New("client configured to manage account-level datasets, use Update()")
 	}
@@ -156,12 +158,40 @@ func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMemberOrgRes
 	}
 	var userGuid string
 	tms, err := svc.SearchUsername(tm.UserName)
-	if len(tms.Data) > 0 {
+	if err != nil {
+		return res, err
+	} else if len(tms.Data) > 0 {
 		userGuid = tms.Data[0].UserGuid
 	} else {
 		return res, errors.New("unable to find user with specified username")
 	}
-	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiV2TeamMembersFromGUID, userGuid), tm, &res)
+	patchBody, err  := jsonReader(tm)
+	if err != nil {
+		return res, err
+	}
+
+	req, err := svc.client.NewRequest("PATCH", fmt.Sprintf(apiV2TeamMembersFromGUID, userGuid), patchBody)
+	if err != nil {
+		return res, err
+	}
+
+	response, err := svc.client.Do(req)
+	if err != nil {
+		return res, err
+	}
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		return res, err
+	}
+
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return res, err
+	}
 	return
 }
 

@@ -469,13 +469,14 @@ func TestTeamMember_Update_WithTimeFieldsAsInts(t *testing.T) {
 
 func TestTeamMember_UpdateOrg(t *testing.T) {
 	var (
-		intgGUID   = intgguid.New()
-		intgGUID2  = intgguid.New()
-		teamMember = singleMockTeamMembersOrgResponse(intgGUID, intgGUID2, "vatasha.white+updated@lacework.net")
-		fakeServer = lacework.MockServer()
-		apiPath    = fmt.Sprintf("TeamMembers/%s", intgGUID)
 		allGUIDs        []string
 		teamMemberGuids = generateGuids(&allGUIDs, 2)
+		fakeServer = lacework.MockServer()
+		apiPath    = fmt.Sprintf("TeamMembers/%s", teamMemberGuids[0])
+
+		username = fmt.Sprintf("vatasha.white+%s@lacework.net", teamMemberGuids[0])
+		teamMember = singleMockTeamMembersOrgResponse(teamMemberGuids[0], teamMemberGuids[1], username)
+
 	)
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
@@ -488,7 +489,7 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 				decoder := json.NewDecoder(r.Body)
 				err := decoder.Decode(&body)
 				assert.NoError(t, err)
-				if body.Filters[0].Value == "vatasha.white+updated@lacework.net" {
+				if body.Filters[0].Value == username {
 					teamMembers := []string{
 						generateTeamMembers(teamMemberGuids),
 					}
@@ -510,12 +511,12 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 
 			if assert.NotNil(t, r.Body) {
 				body := httpBodySniffer(r)
-				assert.Contains(t, body, intgGUID, "IntgGUID missing")
+				assert.Contains(t, body, teamMemberGuids[0], "IntgGUID missing")
 				assert.Contains(t, body, "company\":\"Lacework", "missing company")
 				assert.Contains(t, body, "firstName\":\"Vatasha", "missing first name")
 				assert.Contains(t, body, "lastName\":\"White", "missing last name")
 				assert.Contains(t, body, "userEnabled\":1", "missing user enabled")
-				assert.Contains(t, body, "userName\":\"vatasha.white+updated@lacework.net", "missing username")
+				assert.Contains(t, body, fmt.Sprintf("userName\":\"%s", username), "missing username")
 			}
 			fmt.Fprintf(w, teamMember)
 		},
@@ -535,12 +536,12 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 			FirstName:              "Vatasha",
 			LastName:               "White",
 		}
-		tm := api.NewTeamMemberOrg("vatasha.white+updated@lacework.net", props)
-		tm.UserGuid = intgGUID
+		tm := api.NewTeamMemberOrg(username, props)
+		tm.UserGuid = teamMemberGuids[0]
 		response, err := c.V2.TeamMembers.UpdateOrg(tm)
 		assert.NoError(t, err)
 		if assert.NotNil(t, response) {
-			assert.Equal(t, "vatasha.white+updated@lacework.net", response.Data.UserName)
+			assert.Equal(t, username, response.Data[0].UserName)
 		}
 	})
 }
@@ -904,8 +905,8 @@ func singleMockTeamMembersOrgResponse(userGuid, userGuid2, username string) stri
 			"updatedTime": "2021-12-02T19:39:34.746Z"
 		  },
 		  "userEnabled": 1,
-		  "userGuid": %s,
-		  "userName": %s
+		  "userGuid": %q,
+		  "userName": %q
 		},
 		{
 		  "custGuid": "GITOPS_53901D0F22F80387C484022798F21EE97F4C782FBE2E39A00",
@@ -924,8 +925,8 @@ func singleMockTeamMembersOrgResponse(userGuid, userGuid2, username string) stri
 			"updatedTime": "2021-12-02T19:39:34.746Z"
 		  },
 		  "userEnabled": 1,
-		  "userGuid": %s,
-		  "userName": %s
+		  "userGuid": %q,
+		  "userName": %q
 		}
 	  ]
 	}
