@@ -335,9 +335,9 @@ func TestTeamMembers_CreateOrg(t *testing.T) {
 
 	t.Run("when the team member is successfully created", func(t *testing.T) {
 		props := api.TeamMemberProps{
-			Company:                "Lacework",
-			FirstName:              "Vatasha",
-			LastName:               "White",
+			Company:   "Lacework",
+			FirstName: "Vatasha",
+			LastName:  "White",
 		}
 		tm := api.NewTeamMemberOrg("vatasha.white@lacework.net", props)
 		response, err := c.V2.TeamMembers.CreateOrg(tm)
@@ -471,12 +471,11 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 	var (
 		allGUIDs        []string
 		teamMemberGuids = generateGuids(&allGUIDs, 2)
-		fakeServer = lacework.MockServer()
-		apiPath    = fmt.Sprintf("TeamMembers/%s", teamMemberGuids[0])
+		fakeServer      = lacework.MockServer()
+		apiPath         = fmt.Sprintf("TeamMembers/%s", teamMemberGuids[0])
 
-		username = fmt.Sprintf("vatasha.white+%s@lacework.net", teamMemberGuids[0])
+		username   = fmt.Sprintf("vatasha.white+%s@lacework.net", teamMemberGuids[0])
 		teamMember = singleMockTeamMembersOrgResponse(teamMemberGuids[0], teamMemberGuids[1], username)
-
 	)
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
@@ -532,9 +531,9 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 
 	t.Run("when the team member is successfully updated", func(t *testing.T) {
 		props := api.TeamMemberProps{
-			Company:                "Lacework",
-			FirstName:              "Vatasha",
-			LastName:               "White",
+			Company:   "Lacework",
+			FirstName: "Vatasha",
+			LastName:  "White",
 		}
 		tm := api.NewTeamMemberOrg(username, props)
 		tm.UserGuid = teamMemberGuids[0]
@@ -545,7 +544,6 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 		}
 	})
 }
-
 
 func TestTeamMember_Delete(t *testing.T) {
 	var (
@@ -729,9 +727,8 @@ func TestTeamMembers_SearchUsername(t *testing.T) {
 	var (
 		allGUIDs        []string
 		teamMemberGuids = generateGuids(&allGUIDs, 2)
-		fakeServer = lacework.MockServer()
-		username = fmt.Sprintf("vatasha.white+%s@lacework.net", teamMemberGuids[0])
-
+		fakeServer      = lacework.MockServer()
+		username        = fmt.Sprintf("vatasha.white+%s@lacework.net", teamMemberGuids[0])
 	)
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")

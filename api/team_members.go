@@ -81,9 +81,9 @@ func NewTeamMember(username string, props TeamMemberProps) TeamMember {
 //
 func NewTeamMemberOrg(username string, props TeamMemberProps) TeamMemberOrg {
 	return TeamMemberOrg{
-		Props:             props,
-		UserEnabled:       1,
-		UserName:         username,
+		Props:       props,
+		UserEnabled: 1,
+		UserName:    username,
 	}
 }
 
@@ -165,7 +165,7 @@ func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMembersRespo
 	} else {
 		return res, errors.New("unable to find user with specified username")
 	}
-	patchBody, err  := jsonReader(tm)
+	patchBody, err := jsonReader(tm)
 	if err != nil {
 		return res, err
 	}
