@@ -28,7 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAlertRuleRead(t *testing.T) {
+func _TestAlertRuleRead(t *testing.T) {
 	alertRule, createErr := createAlertRuleWithSlackAlertChannel()
 	if createErr != nil {
 		log.Fatal(createErr)
@@ -69,7 +69,7 @@ func TestAlertRuleRead(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertRulesJsonOutput(t *testing.T) {
+func _TestAlertRulesJsonOutput(t *testing.T) {
 	alertRule, createErr := createAlertRuleWithSlackAlertChannel()
 	if createErr != nil {
 		log.Fatal(createErr)
