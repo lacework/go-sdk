@@ -13,6 +13,34 @@ import (
 	"github.com/pkg/errors"
 )
 
+var (
+	// Define question text here so they can be reused in testing
+	QuestionEnableConfig                = "Enable Config Integration?"
+	QuestionEnableCloudtrail            = "Enable Cloudtrail Integration?"
+	QuestionAwsRegion                   = "Specify the AWS region Cloudtrail, SNS, and S3 resources should use:"
+	QuestionConsolidatedCloudtrail      = "Use consolidated Cloudtrail?"
+	QuestionUseExistingCloudtrail       = "Would you like to use an existing Cloudtrail?"
+	QuestionCloudtrailExistingBucketArn = "Specify an existing bucket ARN used for Cloudtrail logs:"
+	QuestionForceDestroyS3Bucket        = "Should the new S3 bucket have force destroy enabled?"
+	QuestionExistingIamRoleName         = "Specify an existing IAM role name for Cloudtrail access"
+	QuestionExistingIamRoleArn          = "Specify an existing IAM role ARN for Cloudtrail access"
+	QuestionExistingIamRoleExtId        = "Specify the external ID to be used with the existing IAM role"
+	QuestionPrimaryAwsAccountProfile    = "Before adding subaccounts, your primary AWS account profile name must be set; which profile should the main account use?"
+	QuestionSubAccountProfileName       = "Supply the profile name for this additional AWS account:"
+	QuestionSubAccountRegion            = "What region should be used for this account?"
+	QuestionSubAccountAddMore           = "Add another AWS account?"
+	QuestionConfigAdvanced              = "Configure advanced integration options?"
+	QuestionAnotherAdvancedOpt          = "Configure another advanced integration option"
+	QuestionCustomizeOutputLocation     = "Provide the location for the output to be written:"
+
+	// select options
+	AdvancedOptDone        = "Done"
+	AdvancedOptCloudTrail  = "Additional Cloudtrail Options"
+	AdvancedOptIamRole     = "Configure Lacework integration with an existing IAM role"
+	AdvancedOptAwsAccounts = "Add Additional AWS Accounts to Lacework"
+	AdvancedOptLocation    = "Customize Output Location"
+)
+
 // survey.Validator for aws ARNs
 //
 // This isn't service/type specific but rather just validates that an ARN was entered that matches valid ARN formats
@@ -36,19 +64,20 @@ func validAwsArnFormat(val interface{}) error {
 	return nil
 }
 
-func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
+func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
 	// Only ask these questions if configure cloudtrail is true
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Confirm{Message: "Use consolidated Cloudtrail?", Default: config.ConsolidatedCloudtrail},
+			Prompt:   &survey.Confirm{Message: QuestionConsolidatedCloudtrail, Default: config.ConsolidatedCloudtrail},
 			Response: &config.ConsolidatedCloudtrail,
 		},
 		{
-			Prompt: &survey.Input{
-				Message: "Specify an existing bucket ARN used for Cloudtrail logs:",
-				Default: config.ExistingCloudtrailBucketArn,
-			},
-			Checks:   []*bool{&config.ConsolidatedCloudtrail},
+			Prompt:   &survey.Confirm{Message: QuestionUseExistingCloudtrail, Default: extraState.UseExistingCloudtrail},
+			Response: &extraState.UseExistingCloudtrail,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionCloudtrailExistingBucketArn, Default: config.ExistingCloudtrailBucketArn},
+			Checks:   []*bool{&extraState.UseExistingCloudtrail},
 			Required: true,
 			Opts:     []survey.AskOpt{survey.WithValidator(validAwsArnFormat)},
 			Response: &config.ExistingCloudtrailBucketArn,
@@ -60,9 +89,7 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 	// If a new bucket is to be created; should the force destroy bit be set?
 	newBucket := config.ExistingCloudtrailBucketArn == ""
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt: &survey.Confirm{
-			Message: "Should the new S3 bucket have force destroy enabled?",
-			Default: config.ForceDestroyS3Bucket},
+		Prompt:   &survey.Confirm{Message: QuestionForceDestroyS3Bucket, Default: config.ForceDestroyS3Bucket},
 		Response: &config.ForceDestroyS3Bucket,
 		Checks:   []*bool{&config.Cloudtrail, &newBucket}}); err != nil {
 		return err
@@ -79,25 +106,17 @@ func promptAwsExistingIamQuestions(config *aws.GenerateAwsTfConfigurationArgs) e
 
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt: &survey.Input{
-				Message: "Specify an existing IAM role name for Cloudtrail access",
-				Default: config.ExistingIamRole.Name},
+			Prompt:   &survey.Input{Message: QuestionExistingIamRoleName, Default: config.ExistingIamRole.Name},
 			Response: &config.ExistingIamRole.Name,
 			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
 		},
 		{
-			Prompt: &survey.Input{
-				Message: "Specify an existing IAM role ARN for Cloudtrail access",
-				Default: config.ExistingIamRole.Arn,
-			},
+			Prompt:   &survey.Input{Message: QuestionExistingIamRoleArn, Default: config.ExistingIamRole.Arn},
 			Response: &config.ExistingIamRole.Arn,
 			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validAwsArnFormat)},
 		},
 		{
-			Prompt: &survey.Input{
-				Message: "Specify the external ID to be used with the existing IAM role",
-				Default: config.ExistingIamRole.ExternalId,
-			},
+			Prompt:   &survey.Input{Message: QuestionExistingIamRoleExtId, Default: config.ExistingIamRole.ExternalId},
 			Response: &config.ExistingIamRole.ExternalId,
 			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
 		}}); err != nil {
@@ -115,7 +134,7 @@ func promptAwsAdditionalAccountQuestions(config *aws.GenerateAwsTfConfigurationA
 	// Determine the profile for the main account
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Input{
-			Message: "Before adding subaccounts, your primary AWS account profile name must be set; which profile should the main account use?",
+			Message: QuestionPrimaryAwsAccountProfile,
 			Default: config.AwsProfile,
 			Help:    "This is the main account where your cloudtrail resources are created",
 		},
@@ -131,12 +150,12 @@ func promptAwsAdditionalAccountQuestions(config *aws.GenerateAwsTfConfigurationA
 		var accountProfileRegion string
 		accountQuestions := []SurveyQuestionWithValidationArgs{
 			{
-				Prompt:   &survey.Input{Message: "Supply the profile name for this additional AWS account:"},
+				Prompt:   &survey.Input{Message: QuestionSubAccountProfileName},
 				Required: true,
 				Response: &accountProfileName,
 			},
 			{
-				Prompt:   &survey.Input{Message: "What region should be used for this account?"},
+				Prompt:   &survey.Input{Message: QuestionSubAccountRegion},
 				Required: true,
 				Response: &accountProfileRegion,
 			},
@@ -151,7 +170,7 @@ func promptAwsAdditionalAccountQuestions(config *aws.GenerateAwsTfConfigurationA
 			aws.AwsSubAccount{AwsProfile: accountProfileName, AwsRegion: accountProfileRegion})
 
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Prompt:   &survey.Confirm{Message: "Add another AWS account?"},
+			Prompt:   &survey.Confirm{Message: QuestionSubAccountAddMore},
 			Response: &askAgain}); err != nil {
 			return err
 		}
@@ -179,10 +198,10 @@ func validPathExists(val interface{}) error {
 	return nil
 }
 
-func promptCustomizeOutputLocation(config *aws.GenerateAwsTfConfigurationArgs, location *string) error {
+func promptCustomizeOutputLocation(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Input{Message: "Provide the location for the output to be written:", Default: *location},
-		Response: location,
+		Prompt:   &survey.Input{Message: QuestionCustomizeOutputLocation, Default: extraState.Output},
+		Response: &extraState.Output,
 		Opts:     []survey.AskOpt{survey.WithValidator(validPathExists)},
 		Required: true,
 	}); err != nil {
@@ -192,26 +211,21 @@ func promptCustomizeOutputLocation(config *aws.GenerateAwsTfConfigurationArgs, l
 	return nil
 }
 
-func askAdvancedOptions(config *aws.GenerateAwsTfConfigurationArgs, outputLocation *string) error {
+func askAdvancedOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
 	answer := ""
-	done := "Done"
-	askCloudTrailOptions := "Additional Cloudtrail Options"
-	askIamRoleOptions := "Configure Lacework integration with an existing IAM role"
-	askAdditionalAwsAccountsOptions := "Add Additional AWS Accounts to Lacework"
-	askCustomizeOutputLocationOptions := "Customize Output Location"
 
 	// Prompt for options
-	for answer != done {
+	for answer != AdvancedOptDone {
 		// Construction of this slice is a bit strange at first look, but the reason for that is because we have to do string
 		// validation to know which option was selected due to how survey works; and doing it by index (also supported) is
 		// difficult when the options are dynamic (which they are)
 		//
 		// Only ask about more accounts if consolidated cloudtrail is setup (matching scenarios doc)
-		options := []string{askCloudTrailOptions, askIamRoleOptions}
+		options := []string{AdvancedOptCloudTrail, AdvancedOptIamRole}
 		if config.ConsolidatedCloudtrail {
-			options = append(options, askAdditionalAwsAccountsOptions)
+			options = append(options, AdvancedOptAwsAccounts)
 		}
-		options = append(options, askCustomizeOutputLocationOptions, done)
+		options = append(options, AdvancedOptLocation, AdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
 				Message: "Which options would you like to enable?",
@@ -224,54 +238,60 @@ func askAdvancedOptions(config *aws.GenerateAwsTfConfigurationArgs, outputLocati
 
 		// Based on response, prompt for actions
 		switch answer {
-		case askCloudTrailOptions:
-			if err := promptAwsCtQuestions(config); err != nil {
+		case AdvancedOptCloudTrail:
+			if err := promptAwsCtQuestions(config, extraState); err != nil {
 				return err
 			}
-		case askIamRoleOptions:
+		case AdvancedOptIamRole:
 			if err := promptAwsExistingIamQuestions(config); err != nil {
 				return err
 			}
-		case askAdditionalAwsAccountsOptions:
+		case AdvancedOptAwsAccounts:
 			if err := promptAwsAdditionalAccountQuestions(config); err != nil {
 				return err
 			}
-		case askCustomizeOutputLocationOptions:
-			if err := promptCustomizeOutputLocation(config, outputLocation); err != nil {
+		case AdvancedOptLocation:
+			if err := promptCustomizeOutputLocation(config, extraState); err != nil {
 				return err
 			}
 		}
 
 		// Re-prompt if not done
 		innerAskAgain := true
-		if answer == done {
+		if answer == AdvancedOptDone {
 			innerAskAgain = false
 		}
 
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Checks:   []*bool{&innerAskAgain},
-			Prompt:   &survey.Confirm{Message: "Configure another advanced integration option", Default: false},
+			Prompt:   &survey.Confirm{Message: QuestionAnotherAdvancedOpt, Default: false},
 			Response: &innerAskAgain,
 		}); err != nil {
 			return err
 		}
 
 		if !innerAskAgain {
-			answer = done
+			answer = AdvancedOptDone
 		}
 	}
 
 	return nil
 }
 
+func configOrCloudtrailEnabled(config *aws.GenerateAwsTfConfigurationArgs) *bool {
+	cloudtrailOrConfigEnabled := config.Cloudtrail || config.Config
+	return &cloudtrailOrConfigEnabled
+}
+
 // entry point for launching a survey to build out the required generation parameters
 func promptAwsGenerate(
 	config *aws.GenerateAwsTfConfigurationArgs,
 	existingIam *aws.ExistingIamRoleDetails,
-	outputLocation *string,
+	extraState *AwsGenerateCommandExtraState,
 ) error {
 	// Cache for later use if generation is abandon
 	defer cli.WriteAssetToCache("iac-aws-generate-params", time.Now().Add(time.Hour*1), config)
+	defer cli.WriteAssetToCache("extra-state", time.Now().Add(time.Hour*1), extraState)
 
 	// Set ExistingIamRole details, if provided as cli flags; otherwise don't initialize
 	if existingIam.Arn != "" ||
@@ -284,35 +304,35 @@ func promptAwsGenerate(
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
-				Prompt:   &survey.Confirm{Message: "Enable Config Integration?", Default: config.Config},
+				Prompt:   &survey.Confirm{Message: QuestionEnableConfig, Default: config.Config},
 				Response: &config.Config,
 			},
 			{
-				Prompt:   &survey.Confirm{Message: "Enable Cloudtrail Integration?", Default: config.Cloudtrail},
+				Prompt:   &survey.Confirm{Message: QuestionEnableCloudtrail, Default: config.Cloudtrail},
 				Response: &config.Cloudtrail,
-			},
-			{
-				Checks: []*bool{&config.Config, &config.Cloudtrail},
-				Prompt: &survey.Input{
-					Message: "Specify the AWS region Cloudtrail, SNS, and S3 resources should use:",
-					Default: config.AwsRegion,
-				},
-				Response: &config.AwsRegion,
-				Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
 			},
 		}); err != nil {
 		return err
 	}
 
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt:   &survey.Input{Message: QuestionAwsRegion, Default: config.AwsRegion},
+		Response: &config.AwsRegion,
+		Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
+		Checks:   []*bool{configOrCloudtrailEnabled(config)},
+	}); err != nil {
+		return err
+	}
+
 	// Validate one of config or cloudtrail was enabled; otherwise error out
 	if !config.Config && !config.Cloudtrail {
-		return errors.New("Must enable cloudtrail or config!")
+		return errors.New("must enable cloudtrail or config")
 	}
 
 	// Find out if the customer wants to specify more advanced features
 	askAdvanced := false
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Confirm{Message: "Configure advanced integration options?", Default: askAdvanced},
+		Prompt:   &survey.Confirm{Message: QuestionConfigAdvanced, Default: askAdvanced},
 		Response: &askAdvanced,
 	}); err != nil {
 		return err
@@ -320,7 +340,7 @@ func promptAwsGenerate(
 
 	// Keep prompting for advanced options until the say done
 	if askAdvanced {
-		if err := askAdvancedOptions(config, outputLocation); err != nil {
+		if err := askAdvancedOptions(config, extraState); err != nil {
 			return err
 		}
 	}

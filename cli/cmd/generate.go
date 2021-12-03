@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/imdario/mergo"
@@ -13,9 +12,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type AwsGenerateCommandExtraState struct {
+	Output                string
+	UseExistingCloudtrail bool
+}
+
 var (
+	QuestionRunTfPlan            = "Run Terraform plan now?"
 	GenerateAwsCommandState      = &aws.GenerateAwsTfConfigurationArgs{}
 	GenerateAwsExistingRoleState = &aws.ExistingIamRoleDetails{}
+	GenerateAwsCommandExtraState = &AwsGenerateCommandExtraState{}
 
 	// iac-generate command is used to create IaC code for various environments
 	generateTfCommand = &cobra.Command{
@@ -93,7 +99,7 @@ var (
 			// Prompt to execute
 			execute := false
 			err = SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-				Prompt:   &survey.Confirm{Default: execute, Message: "Run Terraform plan now?"},
+				Prompt:   &survey.Confirm{Default: execute, Message: QuestionRunTfPlan},
 				Response: &execute,
 			})
 
@@ -120,34 +126,26 @@ var (
 			// Load any cached inputs
 			cachedOptions := &aws.GenerateAwsTfConfigurationArgs{}
 			if ok := cli.ReadCachedAsset("iac-aws-generate-params", &cachedOptions); ok {
-				cli.Log.Debug("loaded previously arguments for AWS iac generation")
+				cli.Log.Debug("loaded previously set values for AWS iac generation")
+			}
+
+			extraState := &AwsGenerateCommandExtraState{}
+			if ok := cli.ReadCachedAsset("extra-state", &extraState); ok {
+				cli.Log.Debug("loaded previously set values for AWS iac generation (extra state)")
 			}
 
 			// Merge cached inputs to current options (current options win)
 			if err := mergo.Merge(GenerateAwsCommandState, cachedOptions); err != nil {
 				return errors.Wrap(err, "failed to load saved options!")
 			}
-
-			// Try to load cached location
-			var outputLocation string
-			if ok := cli.ReadCachedAsset("tfLocation", &outputLocation); !ok {
-				cli.Log.Debug("couldn't load cached output location")
+			if err := mergo.Merge(GenerateAwsCommandExtraState, extraState); err != nil {
+				return errors.Wrap(err, "failed to load saved options!")
 			}
 
 			// Collect and/or confirm parameters
-			err := promptAwsGenerate(GenerateAwsCommandState, GenerateAwsExistingRoleState, &outputLocation)
+			err := promptAwsGenerate(GenerateAwsCommandState, GenerateAwsExistingRoleState, GenerateAwsCommandExtraState)
 			if err != nil {
 				return err
-			}
-
-			// Store location
-			cli.WriteAssetToCache("tfLocation", time.Now().Add(1*time.Hour), outputLocation)
-
-			// reset location if it was updated
-			if outputLocation != "" {
-				if err := cmd.Flags().Set("output", outputLocation); err != nil {
-					return err
-				}
 			}
 
 			return nil
@@ -160,7 +158,8 @@ func init() {
 	rootCmd.AddCommand(generateTfCommand)
 
 	// Add global flags for iac generation
-	generateTfCommand.PersistentFlags().String("output", "", "location to write generated content")
+	generateTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandExtraState.Output, "output", "", "location to write generated content")
 
 	// add flags to sub commands
 	// TODO Share the help with the interactive generation

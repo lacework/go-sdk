@@ -8,6 +8,7 @@ import (
 )
 
 func toggleNonInteractive() {
+	cli.noCache = !cli.noCache
 	cli.nonInteractive = !cli.nonInteractive
 }
 
@@ -19,8 +20,7 @@ func TestGenerateMostBasicArgs(t *testing.T) {
 	data.Cloudtrail = true
 	data.Config = true
 	data.AwsRegion = "us-east-2"
-	output := "/tmp"
-	err := promptAwsGenerate(&data, &aws.ExistingIamRoleDetails{}, &output)
+	err := promptAwsGenerate(&data, &aws.ExistingIamRoleDetails{}, &AwsGenerateCommandExtraState{Output: "/tmp"})
 
 	assert.Nil(t, err)
 }
@@ -30,8 +30,7 @@ func TestMissingValidEntityToConfigure(t *testing.T) {
 	defer toggleNonInteractive()
 
 	data := aws.GenerateAwsTfConfigurationArgs{}
-	output := "/tmp"
-	err := promptAwsGenerate(&data, &aws.ExistingIamRoleDetails{}, &output)
+	err := promptAwsGenerate(&data, &aws.ExistingIamRoleDetails{}, &AwsGenerateCommandExtraState{Output: "/tmp"})
 	assert.Error(t, err)
-	assert.Equal(t, "Must enable cloudtrail or config!", err.Error())
+	assert.Equal(t, "must enable cloudtrail or config", err.Error())
 }

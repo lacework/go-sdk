@@ -49,6 +49,13 @@ test: prepare ## Run all go-sdk tests
 .PHONY: integration
 integration: build-cli-cross-platform integration-only ## Build and run integration tests
 
+.PHONY: integration-generation
+integration-generation: build-cli-cross-platform integration-generation-only ## Build and run integration tests
+
+.PHONY: integration-generation-only
+integration-generation-only: ## Run integration tests
+	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -run "^TestGeneration" -tags="generation"
+
 .PHONY: integration-only
 integration-only: ## Run integration tests
 	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="\
