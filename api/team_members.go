@@ -81,13 +81,13 @@ func NewTeamMember(username string, props TeamMemberProps) TeamMember {
 //
 func NewTeamMemberOrg(username string, props TeamMemberProps) TeamMemberOrg {
 	return TeamMemberOrg{
-		Props:       props,
-		UserEnabled: 1,
-		UserName:    username,
-		OrgAdmin: false,
-		OrgUser: true,
+		Props:             props,
+		UserEnabled:       1,
+		UserName:          username,
+		OrgAdmin:          false,
+		OrgUser:           true,
 		AdminRoleAccounts: []string{},
-		UserRoleAccounts: []string{},
+		UserRoleAccounts:  []string{},
 	}
 }
 
@@ -257,7 +257,7 @@ func (svc *TeamMembersService) SearchUsername(username string) (res TeamMembersR
 }
 
 type TeamMemberProps struct {
-	AccountAdmin           bool        `json:"accountAdmin,omitempty"`
+	AccountAdmin bool `json:"accountAdmin,omitempty"`
 	//Company is empty for patch requests on updateOrg as it cannot be modified
 	Company                string      `json:"company,omitempty"`
 	CreatedTime            string      `json:"createdTime,omitempty"`
