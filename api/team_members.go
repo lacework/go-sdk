@@ -84,6 +84,10 @@ func NewTeamMemberOrg(username string, props TeamMemberProps) TeamMemberOrg {
 		Props:       props,
 		UserEnabled: 1,
 		UserName:    username,
+		OrgAdmin: false,
+		OrgUser: true,
+		AdminRoleAccounts: []string{},
+		UserRoleAccounts: []string{},
 	}
 }
 
@@ -137,13 +141,18 @@ func (svc *TeamMembersService) DeleteOrg(guid string) error {
 // Update updates a single team member at the account-level with the corresponding guid
 func (svc *TeamMembersService) Update(tm TeamMember) (res TeamMemberResponse, err error) {
 	if svc.client.OrgAccess() {
-		return res, errors.New("client configured to manage org-level datasets, use DeleteOrg()")
+		return res, errors.New("client configured to manage org-level datasets, use UpdateOrg()")
 	}
 	if tm.UserGuid == "" {
 		err = errors.New("please specify a guid")
 		return
 	}
-	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiV2TeamMembersFromGUID, tm.UserGuid), tm, &res)
+	userGuid := tm.UserGuid
+	// Omit userGuid for patch requests
+	tm.UserGuid = ""
+	// Omit userName for patch requests as it cannot be modified
+	tm.UserName = ""
+	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiV2TeamMembersFromGUID, userGuid), tm, &res)
 	return
 }
 
@@ -165,6 +174,14 @@ func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMemberOrgRes
 	} else {
 		return res, errors.New("unable to find user with specified username")
 	}
+	// Omit UserGuid from the patch body as it cannot be modified
+	tm.UserGuid = ""
+	// Omit userEnabled field from the patch body as it cannot be modified
+	tm.UserEnabled = 0
+	// Omit userName field from the patch body as it cannot be modified
+	tm.UserName = ""
+	// Omit Company field from the patch body as it cannot be modified
+	tm.Props.Company = ""
 	patchBody, err := jsonReader(tm)
 	if err != nil {
 		return res, err
@@ -227,7 +244,7 @@ func (svc *TeamMembersService) SearchUsername(username string) (res TeamMembersR
 		apiV2TeamMembersSearch,
 		SearchFilter{
 			Filters: []Filter{
-				{
+				Filter{
 					Field:      "userName",
 					Expression: "eq",
 					Value:      username,
@@ -241,7 +258,8 @@ func (svc *TeamMembersService) SearchUsername(username string) (res TeamMembersR
 
 type TeamMemberProps struct {
 	AccountAdmin           bool        `json:"accountAdmin,omitempty"`
-	Company                string      `json:"company"`
+	//Company is empty for patch requests on updateOrg as it cannot be modified
+	Company                string      `json:"company,omitempty"`
 	CreatedTime            string      `json:"createdTime,omitempty"`
 	FirstName              string      `json:"firstName"`
 	JitCreated             bool        `json:"jitCreated,omitempty"`
@@ -260,7 +278,7 @@ type TeamMember struct {
 	Props       TeamMemberProps `json:"props"`
 	UserEnabled int             `json:"userEnabled"`
 	UserGuid    string          `json:"userGuid,omitempty"`
-	UserName    string          `json:"userName"`
+	UserName    string          `json:"userName,omitempty"`
 }
 
 type TeamMemberResponse struct {
@@ -273,14 +291,14 @@ type TeamMembersResponse struct {
 
 // TeamMemberOrg is for an organizational team member
 type TeamMemberOrg struct {
-	AdminRoleAccounts []string        `json:"adminRoleAccounts,omitempty"`
+	AdminRoleAccounts []string        `json:"adminRoleAccounts"`
 	OrgAdmin          bool            `json:"orgAdmin"`
 	OrgUser           bool            `json:"orgUser"`
 	Props             TeamMemberProps `json:"props"`
-	UserEnabled       int             `json:"userEnabled"`
+	UserEnabled       int             `json:"userEnabled,omitempty"`
 	UserGuid          string          `json:"userGuid,omitempty"`
-	UserName          string          `json:"userName"`
-	UserRoleAccounts  []string        `json:"userRoleAccounts,omitempty"`
+	UserName          string          `json:"userName,omitempty"`
+	UserRoleAccounts  []string        `json:"userRoleAccounts"`
 }
 
 type TeamMemberAccount struct {
