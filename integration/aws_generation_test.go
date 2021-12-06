@@ -19,9 +19,9 @@ import (
 )
 
 func expectString(c *expect.Console, str string, runError *error) {
-	_, err := c.Expect(expect.WithTimeout(time.Second), expect.String(str))
+	out, err := c.Expect(expect.WithTimeout(time.Second), expect.String(str))
 	if err != nil {
-		// fmt.Println(out) // To see the errored line, you can enable this and update _ above to out
+		fmt.Println(out) // To see the errored line, you can enable this and update _ above to out
 		*runError = err
 	}
 }
@@ -81,7 +81,7 @@ func TestGenerationSimple(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true, aws.WithAwsProfile("default")).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -134,7 +134,7 @@ func TestGenerationCustomizedOutputLocation(t *testing.T) {
 	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/main.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true, aws.WithAwsProfile("default")).Generate()
 	assert.Equal(t, buildTf, string(result))
 }
 
@@ -170,7 +170,7 @@ func TestGenerationConfigOnly(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, false).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, false, aws.WithAwsProfile("default")).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -210,7 +210,7 @@ func TestGenerationAdvancedOptsDone(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true, aws.WithAwsProfile("default")).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -256,7 +256,8 @@ func TestGenerationAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true, aws.UseConsolidatedCloudtrail(), aws.EnableForceDestroyS3Bucket()).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.UseConsolidatedCloudtrail(), aws.EnableForceDestroyS3Bucket(), aws.WithAwsProfile("default")).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -304,7 +305,8 @@ func TestGenerationAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true, aws.ExistingCloudtrailBucketArn("arn:aws:s3:::bucket_name")).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.ExistingCloudtrailBucketArn("arn:aws:s3:::bucket_name"), aws.WithAwsProfile("default")).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -377,6 +379,70 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// for testing the interaction of the CLI prompts when accounts have been supplied
+func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	region := "us-east-2"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(c, cmd.QuestionEnableConfig, &runError)
+			c.SendLine("y")
+			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			c.SendLine("y")
+			expectString(c, cmd.QuestionAwsRegion, &runError)
+			c.SendLine(region)
+			expectString(c, cmd.QuestionConfigAdvanced, &runError)
+			c.SendLine("y")
+			expectString(c, cmd.AdvancedOptDone, &runError)
+			c.Send("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
+			c.SendLine("\x1B[B")
+			expectString(c, cmd.QuestionPrimaryAwsAccountProfile, &runError)
+			c.SendLine("default")
+			expectString(c, fmt.Sprintf(cmd.QuestionSubAccountReplace, "testaccount:us-east-1, testaccount1:us-east-2"), &runError)
+			c.SendLine("y")
+			expectString(c, cmd.QuestionSubAccountProfileName, &runError)
+			c.SendLine("account1")
+			expectString(c, cmd.QuestionSubAccountRegion, &runError)
+			c.SendLine("us-east-1")
+			expectString(c, cmd.QuestionSubAccountAddMore, &runError)
+			c.SendLine("y")
+			expectString(c, cmd.QuestionSubAccountProfileName, &runError)
+			c.SendLine("account2")
+			expectString(c, cmd.QuestionSubAccountRegion, &runError)
+			c.SendLine("us-east-2")
+			expectString(c, cmd.QuestionSubAccountAddMore, &runError)
+			c.SendLine("n")
+			expectString(c, cmd.QuestionAnotherAdvancedOpt, &runError)
+			c.SendLine("n")
+			expectString(c, cmd.QuestionRunTfPlan, &runError)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"iac",
+		"aws",
+		"--consolidated_cloudtrail",
+		"--aws_subaccounts",
+		"testaccount:us-east-1,testaccount1:us-east-2",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.UseConsolidatedCloudtrail(),
+		aws.WithAwsProfile("default"),
+		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 // Test use existing IAM rolej
 func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
@@ -422,7 +488,9 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true, aws.UseExistingIamRole(aws.NewExistingIamRoleDetails(roleName, roleArn, roleExtId))).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.UseExistingIamRole(aws.NewExistingIamRoleDetails(roleName, roleArn, roleExtId)), aws.WithAwsProfile("default"),
+	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 

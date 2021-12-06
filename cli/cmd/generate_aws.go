@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -29,6 +30,7 @@ var (
 	QuestionSubAccountProfileName       = "Supply the profile name for this additional AWS account:"
 	QuestionSubAccountRegion            = "What region should be used for this account?"
 	QuestionSubAccountAddMore           = "Add another AWS account?"
+	QuestionSubAccountReplace           = "Currently configured AWS subaccounts: %s, replace?"
 	QuestionConfigAdvanced              = "Configure advanced integration options?"
 	QuestionAnotherAdvancedOpt          = "Configure another advanced integration option"
 	QuestionCustomizeOutputLocation     = "Provide the location for the output to be written:"
@@ -136,12 +138,30 @@ func promptAwsAdditionalAccountQuestions(config *aws.GenerateAwsTfConfigurationA
 		Prompt: &survey.Input{
 			Message: QuestionPrimaryAwsAccountProfile,
 			Default: config.AwsProfile,
-			Help:    "This is the main account where your cloudtrail resources are created",
 		},
 		Response: &config.AwsProfile,
 		Required: true,
 	}); err != nil {
 		return nil
+	}
+
+	// If there are existing sub accounts configured (i.e., from the CLI) display them and ask if they want to add more
+	if len(config.SubAccounts) > 0 {
+		subAccountListing := []string{}
+		for _, account := range config.SubAccounts {
+			subAccountListing = append(subAccountListing, fmt.Sprintf("%s:%s", account.AwsProfile, account.AwsRegion))
+		}
+
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Prompt: &survey.Confirm{
+				Message: fmt.Sprintf(
+					QuestionSubAccountReplace,
+					strings.Trim(strings.Join(strings.Fields(fmt.Sprint(subAccountListing)), ", "), "[]"),
+				),
+			},
+			Response: &askAgain}); err != nil {
+			return err
+		}
 	}
 
 	// For each account to add, collect the aws profile and region to use
@@ -175,7 +195,11 @@ func promptAwsAdditionalAccountQuestions(config *aws.GenerateAwsTfConfigurationA
 			return err
 		}
 	}
-	config.SubAccounts = accountDetails
+
+	// If we created new accounts, re-write config
+	if len(accountDetails) > 0 {
+		config.SubAccounts = accountDetails
+	}
 
 	return nil
 }

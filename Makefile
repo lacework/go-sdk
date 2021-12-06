@@ -71,6 +71,7 @@ integration-only: ## Run integration tests
 		policy \
 		query \
 		version \
+		generation \
 		vulnerability"
 
 .PHONY: integration-lql

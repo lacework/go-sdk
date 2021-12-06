@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/imdario/mergo"
@@ -15,6 +17,7 @@ import (
 type AwsGenerateCommandExtraState struct {
 	Output                string
 	UseExistingCloudtrail bool
+	AwsSubAccounts        string
 }
 
 var (
@@ -142,6 +145,28 @@ var (
 				return errors.Wrap(err, "failed to load saved options!")
 			}
 
+			// Parse passed in subaccounts (if any)
+			if GenerateAwsCommandExtraState.AwsSubAccounts != "" {
+				// validate consolidated_cloudtrail is enabled - otherwise this flag cannot be used
+				if ok, _ := cmd.Flags().GetBool("consolidated_cloudtrail"); !ok {
+					return errors.New("aws subaccounts can only be supplied with consolidated cloudtrail enabled")
+				}
+
+				// validate the format of supplied value is correct
+				matchRegEx := `(\w+:\w+(,)?)+`
+				if ok, _ := regexp.MatchString(matchRegEx, GenerateAwsCommandExtraState.AwsSubAccounts); !ok {
+					return errors.New("supplied aws subaccounts in invalid format")
+				}
+
+				awsSubaccounts := []aws.AwsSubAccount{}
+				for _, account := range strings.Split(strings.TrimRight(GenerateAwsCommandExtraState.AwsSubAccounts, ","), ",") {
+					accountDetails := strings.Split(account, ":")
+					awsSubaccounts = append(awsSubaccounts, aws.NewAwsSubAccount(accountDetails[0], accountDetails[1]))
+				}
+
+				GenerateAwsCommandState.SubAccounts = awsSubaccounts
+			}
+
 			// Collect and/or confirm parameters
 			err := promptAwsGenerate(GenerateAwsCommandState, GenerateAwsExistingRoleState, GenerateAwsCommandExtraState)
 			if err != nil {
@@ -170,7 +195,7 @@ func init() {
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.AwsRegion, "aws_region", "", "specify aws region")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.AwsProfile, "aws_profile", "", "specify aws profile")
+		&GenerateAwsCommandState.AwsProfile, "aws_profile", "default", "specify aws profile")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.ExistingCloudtrailBucketArn,
 		"existing_bucket_arn",
@@ -206,6 +231,11 @@ func init() {
 		"force_destroy_s3",
 		false,
 		"enable force destroy s3 bucket")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandExtraState.AwsSubAccounts,
+		"aws_subaccounts",
+		"",
+		"configure additional aws accounts; supplied in CSV format with values of <aws profile>:<region>")
 
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)
