@@ -6,15 +6,13 @@ terraform {
   }
   backend "gcs" {
     bucket = var.storage_bucket_name
-    prefix = "lacework"
+    prefix = var.state_folder
   }
 }
 
 provider "lacework" {}
 provider "aws" {}
-provider "google" {
-  credentials = file("gcp.json")
-}
+provider "google" {}
 provider "azuread" {}
 provider "azurerm" {
   subscription_id = var.az_subscription

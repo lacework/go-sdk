@@ -10,9 +10,15 @@ variable "storage_bucket_name" {
   description = "The name of the gcs where tf state is stored"
 }
 
+variable "state_folder" {
+  type        = string
+  default     = ""
+  description = "The folder inside the gcs where tf state is stored"
+}
+
 variable "org_integration" {
   type        = bool
-  default     = true
+  default     = false
   description = "If set to true, configure an organization level integration"
 }
 
