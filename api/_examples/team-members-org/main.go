@@ -41,6 +41,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	userGuid := response.Data.Accounts[0].UserGuid
+
 	// Update the user
 	tm.Props.FirstName = "Vatasha Updated"
 
@@ -58,7 +60,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Update response: %+v\n", response)
+	fmt.Printf("UpdateOrg response: %+v\n", response)
+
+	tm.UserGuid = userGuid
+
+	response, err = lacework.V2.TeamMembers.UpdateOrgById(tm)
+
+	fmt.Printf("UpdateOrgById response: %+v\n", response)
 
 	err = lacework.V2.TeamMembers.DeleteOrg(tms.Data[0].UserGuid)
 	if err != nil {

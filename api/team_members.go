@@ -221,8 +221,17 @@ func (svc *TeamMembersService) UpdateOrgById(tm TeamMemberOrg) (res TeamMemberOr
 		err = errors.New("please specify a user guid")
 		return
 	}
+	userGuid := tm.UserGuid
+	// Omit UserGuid from the patch body as it cannot be modified
+	tm.UserGuid = ""
+	// Omit userEnabled field from the patch body as it cannot be modified
+	tm.UserEnabled = 0
+	// Omit userName field from the patch body as it cannot be modified
+	tm.UserName = ""
+	// Omit Company field from the patch body as it cannot be modified
+	tm.Props.Company = ""
 
-	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiV2TeamMembersFromGUID, tm.UserGuid), tm, &res)
+	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiV2TeamMembersFromGUID, userGuid), tm, &res)
 	return
 }
 
