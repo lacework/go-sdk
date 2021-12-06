@@ -313,9 +313,11 @@ func promptAwsGenerate(
 	existingIam *aws.ExistingIamRoleDetails,
 	extraState *AwsGenerateCommandExtraState,
 ) error {
-	// Cache for later use if generation is abandon
-	defer cli.WriteAssetToCache("iac-aws-generate-params", time.Now().Add(time.Hour*1), config)
-	defer cli.WriteAssetToCache("extra-state", time.Now().Add(time.Hour*1), extraState)
+	// Cache for later use if generation is abandon and in interactive mode
+	if cli.InteractiveMode() {
+		defer cli.WriteAssetToCache("iac-aws-generate-params", time.Now().Add(time.Hour*1), config)
+		defer cli.WriteAssetToCache("extra-state", time.Now().Add(time.Hour*1), extraState)
+	}
 
 	// Set ExistingIamRole details, if provided as cli flags; otherwise don't initialize
 	if existingIam.Arn != "" ||

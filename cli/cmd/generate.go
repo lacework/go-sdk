@@ -126,23 +126,25 @@ var (
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
-			// Load any cached inputs
-			cachedOptions := &aws.GenerateAwsTfConfigurationArgs{}
-			if ok := cli.ReadCachedAsset("iac-aws-generate-params", &cachedOptions); ok {
-				cli.Log.Debug("loaded previously set values for AWS iac generation")
-			}
+			// Load any cached inputs if interactive
+			if cli.InteractiveMode() {
+				cachedOptions := &aws.GenerateAwsTfConfigurationArgs{}
+				if ok := cli.ReadCachedAsset("iac-aws-generate-params", &cachedOptions); ok {
+					cli.Log.Debug("loaded previously set values for AWS iac generation")
+				}
 
-			extraState := &AwsGenerateCommandExtraState{}
-			if ok := cli.ReadCachedAsset("extra-state", &extraState); ok {
-				cli.Log.Debug("loaded previously set values for AWS iac generation (extra state)")
-			}
+				extraState := &AwsGenerateCommandExtraState{}
+				if ok := cli.ReadCachedAsset("extra-state", &extraState); ok {
+					cli.Log.Debug("loaded previously set values for AWS iac generation (extra state)")
+				}
 
-			// Merge cached inputs to current options (current options win)
-			if err := mergo.Merge(GenerateAwsCommandState, cachedOptions); err != nil {
-				return errors.Wrap(err, "failed to load saved options!")
-			}
-			if err := mergo.Merge(GenerateAwsCommandExtraState, extraState); err != nil {
-				return errors.Wrap(err, "failed to load saved options!")
+				// Merge cached inputs to current options (current options win)
+				if err := mergo.Merge(GenerateAwsCommandState, cachedOptions); err != nil {
+					return errors.Wrap(err, "failed to load saved options!")
+				}
+				if err := mergo.Merge(GenerateAwsCommandExtraState, extraState); err != nil {
+					return errors.Wrap(err, "failed to load saved options!")
+				}
 			}
 
 			// Parse passed in subaccounts (if any)
