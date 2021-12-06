@@ -366,12 +366,10 @@ func TestTeamMember_Update(t *testing.T) {
 
 			if assert.NotNil(t, r.Body) {
 				body := httpBodySniffer(r)
-				assert.Contains(t, body, intgGUID, "IntgGUID missing")
 				assert.Contains(t, body, "company\":\"Lacework", "missing company")
 				assert.Contains(t, body, "firstName\":\"Vatasha", "missing first name")
 				assert.Contains(t, body, "lastName\":\"White", "missing last name")
 				assert.Contains(t, body, "userEnabled\":1", "missing user enabled")
-				assert.Contains(t, body, "userName\":\"vatasha.white+updated@lacework.net", "missing username")
 			}
 			fmt.Fprintf(w, generateTeamMemberResponse(teamMember))
 		},
@@ -425,12 +423,10 @@ func TestTeamMember_Update_WithTimeFieldsAsInts(t *testing.T) {
 
 			if assert.NotNil(t, r.Body) {
 				body := httpBodySniffer(r)
-				assert.Contains(t, body, intgGUID, "IntgGUID missing")
 				assert.Contains(t, body, "company\":\"Lacework", "missing company")
 				assert.Contains(t, body, "firstName\":\"Vatasha", "missing first name")
 				assert.Contains(t, body, "lastName\":\"White", "missing last name")
 				assert.Contains(t, body, "userEnabled\":1", "missing user enabled")
-				assert.Contains(t, body, "userName\":\"vatasha.white+updated@lacework.net", "missing username")
 			}
 			fmt.Fprintf(w, generateTeamMemberResponse(teamMember))
 		},
@@ -510,12 +506,8 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 
 			if assert.NotNil(t, r.Body) {
 				body := httpBodySniffer(r)
-				assert.Contains(t, body, teamMemberGuids[0], "IntgGUID missing")
-				assert.Contains(t, body, "company\":\"Lacework", "missing company")
 				assert.Contains(t, body, "firstName\":\"Vatasha", "missing first name")
 				assert.Contains(t, body, "lastName\":\"White", "missing last name")
-				assert.Contains(t, body, "userEnabled\":1", "missing user enabled")
-				assert.Contains(t, body, fmt.Sprintf("userName\":\"%s", username), "missing username")
 			}
 			fmt.Fprintf(w, teamMember)
 		},
