@@ -202,18 +202,29 @@ To run an ad-hoc compliance assessment use the command:
 				}
 			}
 
-			cli.StartProgress(" Getting compliance report...")
-			response, err := cli.LwApi.Compliance.GetAzureReport(config)
-			cli.StopProgress()
-			if err != nil {
-				return errors.Wrap(err, "unable to get azure compliance report")
+			var (
+				report   api.ComplianceAzureReport
+				cacheKey = fmt.Sprintf("compliance/azure/%s/%s/%s",
+					config.TenantID, config.SubscriptionID, config.Type)
+			)
+			expired := cli.ReadCachedAsset(cacheKey, &report)
+			if expired {
+				cli.StartProgress(" Getting compliance report...")
+				response, err := cli.LwApi.Compliance.GetAzureReport(config)
+				cli.StopProgress()
+				if err != nil {
+					return errors.Wrap(err, "unable to get azure compliance report")
+				}
+
+				if len(response.Data) == 0 {
+					return errors.New("no data found in the report")
+				}
+
+				report = response.Data[0]
+
+				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), report)
 			}
 
-			if len(response.Data) == 0 {
-				return errors.New("there is no data found in the report")
-			}
-
-			report := response.Data[0]
 			filteredOutput := ""
 
 			if complianceFiltersEnabled() {
@@ -238,7 +249,9 @@ To run an ad-hoc compliance assessment use the command:
 				)
 
 				return cli.OutputCSV(
-					[]string{"Report_Type", "Report_Time", "Tenant", "Subscription", "Section", "ID", "Recommendation", "Status", "Severity", "Resource", "Region", "Reason"},
+					[]string{"Report_Type", "Report_Time", "Tenant",
+						"Subscription", "Section", "ID", "Recommendation",
+						"Status", "Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
 			}

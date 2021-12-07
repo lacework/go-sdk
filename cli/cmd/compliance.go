@@ -93,17 +93,17 @@ Use the following command to list all available integrations in your account:
 		Short:   "Compliance for Azure Cloud",
 		Long: `Manage compliance reports for Azure Cloud.
 
-To list all Azure Tenants configured in your account:
+To list all Azure tenants configured in your account:
 
     lacework compliance azure list-tenants
 
-To list all Azure Subscriptions from a Tenant, use the command:
+To list all Azure subscriptions from a tenant, use the command:
 
     lacework compliance azure list-subscriptions <tenant_id>
 
 To get the latest Azure compliance assessment report, use the command:
 
-    lacework compliance azure get-report <tenant_id> <subscriptions_id>
+    lacework compliance azure get-report <tenant_id> <subscription_id>
 
 These reports run on a regular schedule, typically once a day.
 
@@ -120,25 +120,19 @@ To run an ad-hoc compliance assessment use the command:
 		Short:   "Compliance for Google Cloud",
 		Long: `Manage compliance reports for Google Cloud.
 
+To list all GCP organizations and projects configured in your account:
+
+    lacework compliance gcp list
+
+To list all GCP projects from an organization, use the command:
+
+    lacework compliance gcp list-projects <organization_id>
+
 To get the latest GCP compliance assessment report, use the command:
 
     lacework compliance gcp get-report <organization_id> <project_id>
 
 These reports run on a regular schedule, typically once a day.
-
-To find out which GCP organizations/projects are connected to your
-Lacework account, use the following command:
-
-    lacework integrations list --type GCP_CFG
-
-Then, choose one integration, copy the GUID and visualize its details
-using the command:
-
-    lacework integration show <int_guid>
-
-To list all GCP projects from an organization, use the command:
-
-    lacework compliance gcp list-projects <organization_id>
 
 To run an ad-hoc compliance assessment use the command:
 
@@ -355,13 +349,24 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 			mainReport.WriteString(filteredOutput)
 		}
 		mainReport.WriteString("\n")
-		mainReport.WriteString(
-			"Try using '--pdf' to download the report in PDF format.",
-		)
+
+		if compCmdState.Status == "" {
+			mainReport.WriteString(
+				"Try adding '--status non-compliant' to show only non-compliant recommendations.",
+			)
+		} else if compCmdState.Severity == "" {
+			mainReport.WriteString(
+				"Try adding '--severity high' to show only high and critical recommendations.",
+			)
+		} else {
+			mainReport.WriteString(
+				"Try using '--pdf' to download the entire report in PDF format.",
+			)
+		}
 		mainReport.WriteString("\n")
 	} else {
 		mainReport.WriteString(
-			"Try using '--details' to increase details shown about the compliance report.\n",
+			"Try adding '--details' to increase details shown about the compliance report.\n",
 		)
 	}
 	return mainReport.String()
