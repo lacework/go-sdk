@@ -25,31 +25,22 @@ var (
 	GenerateAwsCommandState      = &aws.GenerateAwsTfConfigurationArgs{}
 	GenerateAwsExistingRoleState = &aws.ExistingIamRoleDetails{}
 	GenerateAwsCommandExtraState = &AwsGenerateCommandExtraState{}
+	ValidateSubAccountFlagRegEx  = `(\w+:\w+(,)?)+`
+	CachedAssetIacParams         = "iac-aws-generate-params"
+	CachedAssetAwsExtraState     = "iac-aws-extra-state"
 
 	// iac-generate command is used to create IaC code for various environments
 	generateTfCommand = &cobra.Command{
 		Use:     "iac-generate",
-		Aliases: []string{"iac-generate", "iac"},
-		Short:   "create iac code",
+		Aliases: []string{"iac"},
+		Short:   "Create IaC code",
 		Long:    "Create IaC content for various different cloud environments and configurations",
-		PreRunE: func(cmd *cobra.Command, _ []string) error {
-			// If output location was supplied, validate it exists
-			dirname, err := cmd.Flags().GetString("output")
-			if err == nil {
-				_, err := os.Stat(dirname)
-				if err != nil {
-					return errors.Wrap(err, "could not access specified output location!")
-				}
-			}
-
-			return nil
-		},
 	}
 
 	// aws command is used to generate TF code for aws
 	generateAwsTfCommand = &cobra.Command{
 		Use:   "aws",
-		Short: "generate code for aws environment",
+		Short: "Generate code for aws environment",
 		Long:  "Genereate Terraform code for deploying into a new AWS environment.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Generate TF Code
@@ -126,24 +117,33 @@ var (
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			// Validate output location is OK if supplied
+			dirname, err := cmd.Flags().GetString("output")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateOutputLocation(dirname); err != nil {
+				return err
+			}
+
 			// Load any cached inputs if interactive
 			if cli.InteractiveMode() {
 				cachedOptions := &aws.GenerateAwsTfConfigurationArgs{}
-				if ok := cli.ReadCachedAsset("iac-aws-generate-params", &cachedOptions); ok {
+				if ok := cli.ReadCachedAsset(CachedAssetIacParams, &cachedOptions); ok {
 					cli.Log.Debug("loaded previously set values for AWS iac generation")
 				}
 
 				extraState := &AwsGenerateCommandExtraState{}
-				if ok := cli.ReadCachedAsset("extra-state", &extraState); ok {
+				if ok := cli.ReadCachedAsset(CachedAssetAwsExtraState, &extraState); ok {
 					cli.Log.Debug("loaded previously set values for AWS iac generation (extra state)")
 				}
 
 				// Merge cached inputs to current options (current options win)
 				if err := mergo.Merge(GenerateAwsCommandState, cachedOptions); err != nil {
-					return errors.Wrap(err, "failed to load saved options!")
+					return errors.Wrap(err, "failed to load saved options")
 				}
 				if err := mergo.Merge(GenerateAwsCommandExtraState, extraState); err != nil {
-					return errors.Wrap(err, "failed to load saved options!")
+					return errors.Wrap(err, "failed to load saved options")
 				}
 			}
 
@@ -155,24 +155,23 @@ var (
 				}
 
 				// validate the format of supplied value is correct
-				matchRegEx := `(\w+:\w+(,)?)+`
-				if ok, _ := regexp.MatchString(matchRegEx, GenerateAwsCommandExtraState.AwsSubAccounts); !ok {
+				if ok, _ := regexp.MatchString(ValidateSubAccountFlagRegEx, GenerateAwsCommandExtraState.AwsSubAccounts); !ok {
 					return errors.New("supplied aws subaccounts in invalid format")
 				}
 
-				awsSubaccounts := []aws.AwsSubAccount{}
+				awsSubAccounts := []aws.AwsSubAccount{}
 				for _, account := range strings.Split(strings.TrimRight(GenerateAwsCommandExtraState.AwsSubAccounts, ","), ",") {
 					accountDetails := strings.Split(account, ":")
-					awsSubaccounts = append(awsSubaccounts, aws.NewAwsSubAccount(accountDetails[0], accountDetails[1]))
+					awsSubAccounts = append(awsSubAccounts, aws.NewAwsSubAccount(accountDetails[0], accountDetails[1]))
 				}
 
-				GenerateAwsCommandState.SubAccounts = awsSubaccounts
+				GenerateAwsCommandState.SubAccounts = awsSubAccounts
 			}
 
 			// Collect and/or confirm parameters
-			err := promptAwsGenerate(GenerateAwsCommandState, GenerateAwsExistingRoleState, GenerateAwsCommandExtraState)
+			err = promptAwsGenerate(GenerateAwsCommandState, GenerateAwsExistingRoleState, GenerateAwsCommandExtraState)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "error when collecting/confirming parameters")
 			}
 
 			return nil
@@ -345,4 +344,21 @@ func writeHclOutput(hcl string, cmd *cobra.Command) (string, error) {
 
 	cli.StopProgress()
 	return location, nil
+}
+
+// This function used to validate provided output location exists and is a directory
+func validateOutputLocation(dirname string) error {
+	// If output location was supplied, validate it exists
+	if dirname != "" {
+		outputLocation, err := os.Stat(dirname)
+		if err != nil {
+			return errors.Wrap(err, "could not access specified output location")
+		}
+
+		if !outputLocation.IsDir() {
+			return errors.New("output location must be a directory")
+		}
+	}
+
+	return nil
 }

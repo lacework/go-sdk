@@ -247,10 +247,11 @@ func processTfPlanChangesSummary(tf *tfexec.Terraform) (*tfPlanChangesSummary, e
 
 func TerraformInit(tf *tfexec.Terraform) error {
 	cli.StartProgress("Running terraform init")
-	if err := tf.Init(context.Background(), tfexec.Upgrade(true)); err != nil {
+	err := tf.Init(context.Background(), tfexec.Upgrade(true))
+	cli.StopProgress()
+	if err != nil {
 		return errors.Wrap(err, "failed to execute terraform init")
 	}
-	cli.StopProgress()
 
 	return nil
 }
@@ -262,10 +263,11 @@ func TerraformInit(tf *tfexec.Terraform) error {
 func TerraformExecPlan(tf *tfexec.Terraform) (*tfPlanChangesSummary, error) {
 	// Plan
 	cli.StartProgress("Running terraform plan")
-	if _, err := tf.Plan(context.Background(), tfexec.Out("tfplan.json")); err != nil {
+	_, err := tf.Plan(context.Background(), tfexec.Out("tfplan.json"))
+	cli.StopProgress()
+	if err != nil {
 		return nil, err
 	}
-	cli.StopProgress()
 
 	// Gather changes from plan
 	return processTfPlanChangesSummary(tf)
@@ -278,10 +280,11 @@ func TerraformExecPlan(tf *tfexec.Terraform) (*tfPlanChangesSummary, error) {
 func TerraformExecApply(tf *tfexec.Terraform) error {
 	// Plan
 	cli.StartProgress("Running terraform apply")
-	if err := tf.Apply(context.Background()); err != nil {
+	err := tf.Apply(context.Background())
+	cli.StopProgress()
+	if err != nil {
 		return err
 	}
-	cli.StopProgress()
 
 	return nil
 }
@@ -330,7 +333,8 @@ func provideGuidanceAfterSuccess(workingDir string, laceworkProfile string) {
 	cli.OutputHuman(out.String())
 }
 
-// this helper function is called when existing the Terraform flow without applying to provide guidance on next steps
+// this helper function is called when the entire generation/apply flow is not completed; it provides
+// guidance on how to proceed from the last point of execution
 func provideGuidanceAfterExit(initRun bool, planRun bool, workingDir string, binaryLocation string) {
 	planNote := " and plan output"
 	if !planRun {

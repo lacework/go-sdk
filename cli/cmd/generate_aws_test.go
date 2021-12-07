@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/lacework/go-sdk/lwgenerate/aws"
@@ -33,4 +34,38 @@ func TestMissingValidEntityToConfigure(t *testing.T) {
 	err := promptAwsGenerate(&data, &aws.ExistingIamRoleDetails{}, &AwsGenerateCommandExtraState{Output: "/tmp"})
 	assert.Error(t, err)
 	assert.Equal(t, "must enable cloudtrail or config", err.Error())
+}
+
+func TestArnRegex(t *testing.T) {
+	ok, _ := regexp.MatchString(AwsArnRegex, "invalidarnstring")
+	assert.False(t, ok, "aws arn cannot be an arbitrary string")
+
+	ok, _ = regexp.MatchString(AwsArnRegex, "$#@###$#%^")
+	assert.False(t, ok, "aws arn cannot be an arbitrary string")
+
+	ok, _ = regexp.MatchString(AwsArnRegex, "arn:partition:service:region:account-id:resource-id")
+	assert.True(t, ok, "aws arn do not have to have resource-type supplied")
+
+	ok, _ = regexp.MatchString(AwsArnRegex, "arn:partition:service:region:account-id:resource-type/resource-id")
+	assert.True(t, ok, "aws arn is valid with both /resource-id or :resource-id")
+
+	ok, _ = regexp.MatchString(AwsArnRegex, "arn:partition:service:region:account-id:resource-type:resource-id")
+	assert.True(t, ok, "aws arn is valid with both /resource-id or :resource-id")
+
+	ok, _ = regexp.MatchString(AwsArnRegex, "arn:partition:service:region:account-id:resource-type/*")
+	assert.True(t, ok, "aws arn supports wildcard syntax")
+}
+
+func TestAwsRegionRegex(t *testing.T) {
+	ok, _ := regexp.MatchString(AwsRegionRegex, "invalidarnstring")
+	assert.False(t, ok, "aws region cannot be an arbitrary string")
+
+	ok, _ = regexp.MatchString(AwsRegionRegex, "us-gov-east-1")
+	assert.False(t, ok, "aws gov cloud regions not currently supported")
+
+	ok, _ = regexp.MatchString(AwsRegionRegex, "us-east-1")
+	assert.True(t, ok, "aws region us-east-1 is valid")
+
+	ok, _ = regexp.MatchString(AwsRegionRegex, "ap-northeast-1")
+	assert.True(t, ok, "aws region ap-norteast-1 is valid")
 }

@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -18,9 +16,9 @@ var (
 	// Define question text here so they can be reused in testing
 	QuestionEnableConfig                = "Enable Config Integration?"
 	QuestionEnableCloudtrail            = "Enable Cloudtrail Integration?"
-	QuestionAwsRegion                   = "Specify the AWS region Cloudtrail, SNS, and S3 resources should use:"
+	QuestionAwsRegion                   = "Specify the AWS region to be used by Cloudtrail, SNS, and S3:"
 	QuestionConsolidatedCloudtrail      = "Use consolidated Cloudtrail?"
-	QuestionUseExistingCloudtrail       = "Would you like to use an existing Cloudtrail?"
+	QuestionUseExistingCloudtrail       = "Use an existing Cloudtrail?"
 	QuestionCloudtrailExistingBucketArn = "Specify an existing bucket ARN used for Cloudtrail logs:"
 	QuestionForceDestroyS3Bucket        = "Should the new S3 bucket have force destroy enabled?"
 	QuestionExistingIamRoleName         = "Specify an existing IAM role name for Cloudtrail access"
@@ -37,16 +35,19 @@ var (
 
 	// select options
 	AdvancedOptDone        = "Done"
-	AdvancedOptCloudTrail  = "Additional Cloudtrail Options"
+	AdvancedOptCloudTrail  = "Additional Cloudtrail options"
 	AdvancedOptIamRole     = "Configure Lacework integration with an existing IAM role"
-	AdvancedOptAwsAccounts = "Add Additional AWS Accounts to Lacework"
-	AdvancedOptLocation    = "Customize Output Location"
+	AdvancedOptAwsAccounts = "Add additional AWS Accounts to Lacework"
+	AdvancedOptLocation    = "Customize output location"
+
+	// original source: https://regex101.com/r/pOfxYN/1
+	AwsArnRegex = `^arn:(?P<Partition>[^:\n]*):(?P<Service>[^:\n]*):(?P<Region>[^:\n]*):(?P<AccountID>[^:\n]*):(?P<Ignore>(?P<ResourceType>[^:\/\n]*)[:\/])?(?P<Resource>.*)$`
+	// regex used for validating region input; note intentionally does not match gov cloud
+	AwsRegionRegex = `(us|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d`
 )
 
-// survey.Validator for aws ARNs
-//
-// This isn't service/type specific but rather just validates that an ARN was entered that matches valid ARN formats
-func validAwsArnFormat(val interface{}) error {
+// create survey.Validator for string with regex
+func validateStringWithRegex(val interface{}, regex string, errorString string) error {
 	// the reflect value of the result
 	value := reflect.ValueOf(val)
 
@@ -56,14 +57,28 @@ func validAwsArnFormat(val interface{}) error {
 	}
 
 	// if value doesn't match regex, return invalid arn
-	// original source: https://regex101.com/r/pOfxYN/1
-	matchRegEx := `^arn:(?P<Partition>[^:\n]*):(?P<Service>[^:\n]*):(?P<Region>[^:\n]*):(?P<AccountID>[^:\n]*):(?P<Ignore>(?P<ResourceType>[^:\/\n]*)[:\/])?(?P<Resource>.*)$`
-	ok, _ := regexp.MatchString(matchRegEx, value.String())
+	ok, err := regexp.MatchString(regex, value.String())
+	if err != nil {
+		return errors.Wrap(err, "failed to validate input")
+	}
+
 	if !ok {
-		return errors.New("invalid arn supplied")
+		return errors.New(errorString)
 	}
 
 	return nil
+}
+
+// survey.Validator for aws ARNs
+//
+// This isn't service/type specific but rather just validates that an ARN was entered that matches valid ARN formats
+func validateAwsArnFormat(val interface{}) error {
+	return validateStringWithRegex(val, AwsArnRegex, "invalid arn supplied")
+}
+
+// survey.Validator for aws region
+func validateAwsRegion(val interface{}) error {
+	return validateStringWithRegex(val, AwsRegionRegex, "invalid region supplied")
 }
 
 func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
@@ -81,7 +96,7 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState
 			Prompt:   &survey.Input{Message: QuestionCloudtrailExistingBucketArn, Default: config.ExistingCloudtrailBucketArn},
 			Checks:   []*bool{&extraState.UseExistingCloudtrail},
 			Required: true,
-			Opts:     []survey.AskOpt{survey.WithValidator(validAwsArnFormat)},
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
 			Response: &config.ExistingCloudtrailBucketArn,
 		},
 	}, config.Cloudtrail); err != nil {
@@ -115,7 +130,7 @@ func promptAwsExistingIamQuestions(config *aws.GenerateAwsTfConfigurationArgs) e
 		{
 			Prompt:   &survey.Input{Message: QuestionExistingIamRoleArn, Default: config.ExistingIamRole.Arn},
 			Response: &config.ExistingIamRole.Arn,
-			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validAwsArnFormat)},
+			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validateAwsArnFormat)},
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionExistingIamRoleExtId, Default: config.ExistingIamRole.ExternalId},
@@ -215,8 +230,8 @@ func validPathExists(val interface{}) error {
 	}
 
 	// Test if supplied path exists
-	if _, err := os.Stat(filepath.FromSlash(value.String())); os.IsNotExist(err) {
-		return errors.New(fmt.Sprintf("supplied path %s does not exist!", value.String()))
+	if err := validateOutputLocation(value.String()); err != nil {
+		return err
 	}
 
 	return nil
@@ -315,8 +330,8 @@ func promptAwsGenerate(
 ) error {
 	// Cache for later use if generation is abandon and in interactive mode
 	if cli.InteractiveMode() {
-		defer cli.WriteAssetToCache("iac-aws-generate-params", time.Now().Add(time.Hour*1), config)
-		defer cli.WriteAssetToCache("extra-state", time.Now().Add(time.Hour*1), extraState)
+		defer cli.WriteAssetToCache(CachedAssetIacParams, time.Now().Add(time.Hour*1), config)
+		defer cli.WriteAssetToCache(CachedAssetAwsExtraState, time.Now().Add(time.Hour*1), extraState)
 	}
 
 	// Set ExistingIamRole details, if provided as cli flags; otherwise don't initialize
@@ -344,7 +359,7 @@ func promptAwsGenerate(
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt:   &survey.Input{Message: QuestionAwsRegion, Default: config.AwsRegion},
 		Response: &config.AwsRegion,
-		Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
+		Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validateAwsRegion)},
 		Checks:   []*bool{configOrCloudtrailEnabled(config)},
 	}); err != nil {
 		return err

@@ -39,7 +39,7 @@ func TestGenerationErrorOnNoSelection(t *testing.T) {
 			c.SendLine("n")
 			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
 			c.SendLine("n")
-			expectString(c, "ERROR must enable cloudtrail or config", &runError)
+			expectString(c, "ERROR error when collecting/confirming parameters: must enable cloudtrail or config", &runError)
 		},
 		"iac",
 		"aws",
@@ -49,7 +49,7 @@ func TestGenerationErrorOnNoSelection(t *testing.T) {
 	assert.Nil(t, runError)
 }
 
-// Test barebones geneation with no customization
+// Test barebones generation with no customization
 func TestGenerationSimple(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
