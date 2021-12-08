@@ -328,6 +328,8 @@ func getAlertChannels() ([]string, map[string]string) {
 }
 
 func getResourceGroups() ([]string, map[string]string) {
+	cli.StartProgress("")
+	defer cli.StopProgress()
 	response, err := cli.LwApi.V2.ResourceGroups.List()
 
 	if err != nil {
