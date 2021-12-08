@@ -323,7 +323,7 @@ func promptForTerraformNextSteps(previewShown *bool, data tfPlanChangesSummary) 
 // this helper function is called when terraform flow has been completely executed through apply
 func provideGuidanceAfterSuccess(workingDir string, laceworkProfile string) {
 	out := new(strings.Builder)
-	fmt.Fprintf(out, "Lacework integration was successful! Terraform code saved in %s.\n\n", workingDir)
+	fmt.Fprintf(out, "Lacework integration was successful! Terraform code saved in %s\n\n", workingDir)
 	fmt.Fprintln(out, "Use the Lacework CLI to view integration status:")
 
 	laceworkCmd := "  lacework integration list\n\n"
@@ -344,7 +344,7 @@ func provideGuidanceAfterExit(initRun bool, planRun bool, workingDir string, bin
 	}
 
 	out := new(strings.Builder)
-	fmt.Fprintf(out, "Terraform code%s saved in %s.\n\n", planNote, workingDir)
+	fmt.Fprintf(out, "Terraform code%s saved in %s\n\n", planNote, workingDir)
 	fmt.Fprintln(out, "The generated code can be executed at any point in the future using the following commands:")
 	fmt.Fprintf(out, "  cd %s\n", workingDir)
 
@@ -403,17 +403,11 @@ func TerraformExecutePreRunCheck(outputLocation string) (bool, error) {
 		return true, nil
 	}
 
-	// Determine path of code/state
-	dirname, err := os.UserHomeDir()
+	dirname, err := determineOutputDirPath(outputLocation)
 	if err != nil {
 		return false, err
 	}
-
-	if outputLocation != "" {
-		dirname = outputLocation
-	}
-
-	stateFile := filepath.FromSlash(fmt.Sprintf("%s/%s/terraform.tfstate", dirname, "lacework"))
+	stateFile := filepath.FromSlash(fmt.Sprintf("%s/terraform.tfstate", dirname))
 
 	// If the file doesn't exist, carry on
 	if _, err := os.Stat(stateFile); os.IsNotExist(err) {

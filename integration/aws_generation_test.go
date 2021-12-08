@@ -134,7 +134,7 @@ func TestGenerationCustomizedOutputLocation(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Get result
-	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/main.tf", dir)))
+	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true, aws.WithAwsProfile("default")).Generate()
@@ -521,10 +521,7 @@ func TestGenerationWithExistingTerraform(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	// Create fake main.tf
-	if err := os.Mkdir(filepath.FromSlash(fmt.Sprintf("%s/lacework", dir)), 0755); err != nil {
-		panic(err)
-	}
-	if err := os.WriteFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/main.tf", dir)), []byte{}, 0644); err != nil {
+	if err := os.WriteFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)), []byte{}, 0644); err != nil {
 		panic(err)
 	}
 
@@ -546,7 +543,7 @@ func TestGenerationWithExistingTerraform(t *testing.T) {
 			c.SendLine(dir)
 			expectString(c, cmd.QuestionAnotherAdvancedOpt, &runError)
 			c.SendLine("n")
-			expectString(c, fmt.Sprintf("%s/lacework/main.tf already exists, overwrite?", dir), &runError)
+			expectString(c, fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), &runError)
 			c.SendLine("n")
 		},
 		"cloud",
@@ -555,7 +552,7 @@ func TestGenerationWithExistingTerraform(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	data, err := os.ReadFile(fmt.Sprintf("%s/lacework/main.tf", dir))
+	data, err := os.ReadFile(fmt.Sprintf("%s/main.tf", dir))
 	if err != nil {
 		panic(err)
 	}
@@ -568,9 +565,13 @@ func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...str
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)
 	dir := createDummyTOMLConfig()
+	fmt.Println(dir)
+	homeCache := os.Getenv("HOME")
+	os.Setenv("HOME", dir)
+	defer os.Setenv("HOME", homeCache)
 	defer os.RemoveAll(dir)
-	runGenerationTestFromDir(t, dir, conditions, append(args, "--output", dir)...)
 
+	runGenerationTestFromDir(t, dir, conditions, args...)
 	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/main.tf", dir)))
 	if err != nil {
 		// Assume couldn't be found

@@ -358,6 +358,23 @@ func SurveyMultipleQuestionWithValidation(questions []SurveyQuestionWithValidati
 	return nil
 }
 
+// determineOutputDirPath get output directory location based on how the output location was set
+func determineOutputDirPath(location string) (string, error) {
+	// determine code output path
+	dirname, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	// If location was passed, return that location
+	if location != "" {
+		return filepath.FromSlash(location), nil
+	}
+
+	// If location was not passed, assemble it with lacework from os homedir
+	return filepath.FromSlash(fmt.Sprintf("%s/%s", dirname, "lacework")), nil
+}
+
 // Prompt for confirmation if main.tf already exists; return true to continue
 func writeHclOutputPrecheck(outputLocation string) (bool, error) {
 	// If noninteractive, continue
@@ -365,17 +382,12 @@ func writeHclOutputPrecheck(outputLocation string) (bool, error) {
 		return true, nil
 	}
 
-	// determine code output path
-	dirname, err := os.UserHomeDir()
+	outputDir, err := determineOutputDirPath(outputLocation)
 	if err != nil {
 		return false, err
 	}
 
-	if outputLocation != "" {
-		dirname = outputLocation
-	}
-
-	hclPath := filepath.FromSlash(fmt.Sprintf("%s/%s/main.tf", dirname, "lacework"))
+	hclPath := filepath.FromSlash(fmt.Sprintf("%s/main.tf", outputDir))
 
 	// If the file doesn't exist, carry on
 	if _, err := os.Stat(hclPath); os.IsNotExist(err) {
@@ -397,27 +409,26 @@ func writeHclOutputPrecheck(outputLocation string) (bool, error) {
 // Write HCL output
 func writeHclOutput(hcl string, location string) (string, error) {
 	// Determine write location
-	dirname, err := os.UserHomeDir()
+	dirname, err := determineOutputDirPath(location)
 	if err != nil {
 		return "", err
 	}
-	if location != "" {
-		dirname = location
-	}
 
 	// Create directory, if needed
-	directory := filepath.FromSlash(fmt.Sprintf("%s/%s", dirname, "lacework"))
-	if _, err := os.Stat(directory); os.IsNotExist(err) {
-		err = os.Mkdir(directory, 0700)
-		if err != nil {
-			return "", err
+	if location == "" {
+		directory := filepath.FromSlash(dirname)
+		if _, err := os.Stat(directory); os.IsNotExist(err) {
+			err = os.Mkdir(directory, 0700)
+			if err != nil {
+				return "", err
+			}
 		}
 	}
 
 	// Create HCL file
-	location = fmt.Sprintf("%s/%s/main.tf", dirname, "lacework")
+	outputLocation := filepath.FromSlash(fmt.Sprintf("%s/main.tf", dirname))
 	err = os.WriteFile(
-		filepath.FromSlash(location),
+		filepath.FromSlash(outputLocation),
 		[]byte(hcl),
 		0700,
 	)
@@ -426,7 +437,7 @@ func writeHclOutput(hcl string, location string) (string, error) {
 	}
 
 	cli.StopProgress()
-	return location, nil
+	return outputLocation, nil
 }
 
 // This function used to validate provided output location exists and is a directory
