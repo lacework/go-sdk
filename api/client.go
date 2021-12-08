@@ -217,10 +217,10 @@ func (c *Client) ValidAuth() bool {
 	return c.auth.token != ""
 }
 
-// OrgAccess verifies that the client is managing data at the org level.
+// OrgAccess check if the Org-Access header is set to 'true', if so,
+// the client is configured to manage org level dataset
 func (c *Client) OrgAccess() bool {
-	return c.headers["Org-Access"] == "true" // check if Org-Access is set to true, if so, the client is configured to manage org level dataset
-
+	return c.headers["Org-Access"] == "true"
 }
 
 // newID generates a new client id, this id is useful for logging purposes
