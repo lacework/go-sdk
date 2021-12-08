@@ -85,7 +85,21 @@ var (
 			}
 
 			// Write-out generated code to location specified
-			location, err := writeHclOutput(hcl, cmd)
+			dirname, err := cmd.Flags().GetString("output")
+			if err != nil {
+				return errors.Wrap(err, "failed to parse output location")
+			}
+
+			ok, err := writeHclOutputPrecheck(dirname)
+			if err != nil {
+				return errors.Wrap(err, "failed to validate output location")
+			}
+
+			if !ok {
+				return errors.Wrap(err, "aborting to avoid overwriting existing terraform code")
+			}
+
+			location, err := writeHclOutput(hcl, dirname)
 			if err != nil {
 				return errors.Wrap(err, "failed to write terrraform code to disk")
 			}
@@ -99,6 +113,16 @@ var (
 
 			if err != nil {
 				return errors.Wrap(err, "failed to run terraform execution")
+			}
+
+			// Execution pre-run check
+			ok, err = TerraformExecutePreRunCheck(dirname)
+			if err != nil {
+				return errors.Wrap(err, "failed to check for existing terraform state")
+			}
+
+			if !ok {
+				return errors.Wrap(err, "aborting to avoid overwriting existing terraform state")
 			}
 
 			// Execute
@@ -334,22 +358,54 @@ func SurveyMultipleQuestionWithValidation(questions []SurveyQuestionWithValidati
 	return nil
 }
 
+// Prompt for confirmation if main.tf already exists; return true to continue
+func writeHclOutputPrecheck(outputLocation string) (bool, error) {
+	// If noninteractive, continue
+	if !cli.InteractiveMode() {
+		return true, nil
+	}
+
+	// determine code output path
+	dirname, err := os.UserHomeDir()
+	if err != nil {
+		return false, err
+	}
+
+	if outputLocation != "" {
+		dirname = outputLocation
+	}
+
+	hclPath := filepath.FromSlash(fmt.Sprintf("%s/%s/main.tf", dirname, "lacework"))
+
+	// If the file doesn't exist, carry on
+	if _, err := os.Stat(hclPath); os.IsNotExist(err) {
+		return true, nil
+	}
+
+	// If it does exist; confirm overwrite
+	answer := false
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt:   &survey.Confirm{Message: fmt.Sprintf("%s already exists, overwrite?", hclPath)},
+		Response: &answer,
+	}); err != nil {
+		return false, err
+	}
+
+	return answer, nil
+}
+
 // Write HCL output
-func writeHclOutput(hcl string, cmd *cobra.Command) (string, error) {
-	// Write out
-	var dirname string
-	dirname, err := cmd.Flags().GetString("output")
+func writeHclOutput(hcl string, location string) (string, error) {
+	// Determine write location
+	dirname, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-
-	if dirname == "" {
-		dirname, err = os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
+	if location != "" {
+		dirname = location
 	}
 
+	// Create directory, if needed
 	directory := filepath.FromSlash(fmt.Sprintf("%s/%s", dirname, "lacework"))
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
 		err = os.Mkdir(directory, 0700)
@@ -358,7 +414,8 @@ func writeHclOutput(hcl string, cmd *cobra.Command) (string, error) {
 		}
 	}
 
-	location := fmt.Sprintf("%s/%s/main.tf", dirname, "lacework")
+	// Create HCL file
+	location = fmt.Sprintf("%s/%s/main.tf", dirname, "lacework")
 	err = os.WriteFile(
 		filepath.FromSlash(location),
 		[]byte(hcl),

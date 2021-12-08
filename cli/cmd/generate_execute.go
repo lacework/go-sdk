@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -393,4 +395,39 @@ func TerraformPlanAndExecute(workingDir string) error {
 	provideGuidanceAfterSuccess(tf.WorkingDir(), GenerateAwsCommandState.LaceworkProfile)
 
 	return nil
+}
+
+func TerraformExecutePreRunCheck(outputLocation string) (bool, error) {
+	// If noninteractive, continue
+	if !cli.InteractiveMode() {
+		return true, nil
+	}
+
+	// Determine path of code/state
+	dirname, err := os.UserHomeDir()
+	if err != nil {
+		return false, err
+	}
+
+	if outputLocation != "" {
+		dirname = outputLocation
+	}
+
+	stateFile := filepath.FromSlash(fmt.Sprintf("%s/%s/terraform.tfstate", dirname, "lacework"))
+
+	// If the file doesn't exist, carry on
+	if _, err := os.Stat(stateFile); os.IsNotExist(err) {
+		return true, nil
+	}
+
+	// If it does exist; confirm overwrite
+	answer := false
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt:   &survey.Confirm{Message: fmt.Sprintf("Terraform state file %s already exists, continue?", stateFile)},
+		Response: &answer,
+	}); err != nil {
+		return false, err
+	}
+
+	return answer, nil
 }

@@ -506,6 +506,64 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// Test existing main.tf prompt
+func TestGenerationWithExistingTerraform(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var runError error
+	region := "us-east-2"
+
+	// Tempdir for test
+	dir, err := ioutil.TempDir("", "lacework-cli")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(dir)
+
+	// Create fake main.tf
+	if err := os.Mkdir(filepath.FromSlash(fmt.Sprintf("%s/lacework", dir)), 0755); err != nil {
+		panic(err)
+	}
+	if err := os.WriteFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/main.tf", dir)), []byte{}, 0644); err != nil {
+		panic(err)
+	}
+
+	// Run CLI
+	runGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(c, cmd.QuestionEnableConfig, &runError)
+			c.SendLine("y")
+			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			c.SendLine("y")
+			expectString(c, cmd.QuestionAwsRegion, &runError)
+			c.SendLine(region)
+			expectString(c, cmd.QuestionConfigAdvanced, &runError)
+			c.SendLine("y")
+			expectString(c, cmd.AdvancedOptDone, &runError)
+			c.Send("\x1B[B")
+			c.SendLine("\x1B[B")
+			expectString(c, cmd.QuestionCustomizeOutputLocation, &runError)
+			c.SendLine(dir)
+			expectString(c, cmd.QuestionAnotherAdvancedOpt, &runError)
+			c.SendLine("n")
+			expectString(c, fmt.Sprintf("%s/lacework/main.tf already exists, overwrite?", dir), &runError)
+			c.SendLine("n")
+		},
+		"cloud",
+		"iac",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	data, err := os.ReadFile(fmt.Sprintf("%s/lacework/main.tf", dir))
+	if err != nil {
+		panic(err)
+	}
+
+	assert.Empty(t, data)
+	assert.Nil(t, runError)
+}
+
 func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)
