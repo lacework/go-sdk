@@ -105,7 +105,7 @@ func createAlertRuleWithSlackAlertChannel() (alertRule api.AlertRuleResponse, er
 	}
 
 	for _, channel := range channels.Data {
-		if channel.Name == "#tech-ally-notify" {
+		if channel.Name == "DEFAULT EMAIL" {
 			slackChannel = channel.ID()
 		}
 	}
