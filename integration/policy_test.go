@@ -247,7 +247,7 @@ func TestPolicyCreateStdin(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestPolicyCreateHost(t *testing.T) {
+func _TestPolicyCreateHost(t *testing.T) {
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryHostURL)
 	// teardown
