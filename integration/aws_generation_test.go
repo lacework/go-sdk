@@ -426,8 +426,10 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testin
 		"iac",
 		"aws",
 		"--consolidated_cloudtrail",
-		"--aws_subaccounts",
-		"testaccount:us-east-1,testaccount1:us-east-2",
+		"--aws_subaccount",
+		"testaccount:us-east-1",
+		"--aws_subaccount",
+		"testaccount1:us-east-2",
 	)
 
 	// Ensure CLI ran correctly

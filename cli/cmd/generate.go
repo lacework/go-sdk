@@ -17,7 +17,7 @@ import (
 type AwsGenerateCommandExtraState struct {
 	Output                string
 	UseExistingCloudtrail bool
-	AwsSubAccounts        string
+	AwsSubAccounts        []string
 }
 
 var (
@@ -25,7 +25,7 @@ var (
 	GenerateAwsCommandState      = &aws.GenerateAwsTfConfigurationArgs{}
 	GenerateAwsExistingRoleState = &aws.ExistingIamRoleDetails{}
 	GenerateAwsCommandExtraState = &AwsGenerateCommandExtraState{}
-	ValidateSubAccountFlagRegEx  = `(\w+:\w+(,)?)+`
+	ValidateSubAccountFlagRegex  = fmt.Sprintf(`(?P<Profile>[A-Za-z_0-9-]+):(?P<Region>%s)`, AwsRegionRegex)
 	CachedAssetIacParams         = "iac-aws-generate-params"
 	CachedAssetAwsExtraState     = "iac-aws-extra-state"
 
@@ -126,6 +126,24 @@ var (
 				return err
 			}
 
+			// Validate aws region, if passed
+			region, err := cmd.Flags().GetString("aws_region")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsRegion(region); region != "" && err != nil {
+				return err
+			}
+
+			// Validate cloudtrail bucket arn, if passed
+			arn, err := cmd.Flags().GetString("existing_bucket_arn")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsArnFormat(arn); arn != "" && err != nil {
+				return err
+			}
+
 			// Load any cached inputs if interactive
 			if cli.InteractiveMode() {
 				cachedOptions := &aws.GenerateAwsTfConfigurationArgs{}
@@ -148,23 +166,22 @@ var (
 			}
 
 			// Parse passed in subaccounts (if any)
-			if GenerateAwsCommandExtraState.AwsSubAccounts != "" {
+			if len(GenerateAwsCommandExtraState.AwsSubAccounts) > 0 {
 				// validate consolidated_cloudtrail is enabled - otherwise this flag cannot be used
 				if ok, _ := cmd.Flags().GetBool("consolidated_cloudtrail"); !ok {
 					return errors.New("aws subaccounts can only be supplied with consolidated cloudtrail enabled")
 				}
 
-				// validate the format of supplied value is correct
-				if ok, _ := regexp.MatchString(ValidateSubAccountFlagRegEx, GenerateAwsCommandExtraState.AwsSubAccounts); !ok {
-					return errors.New("supplied aws subaccounts in invalid format")
+				// validate the format of supplied values is correct
+				if err := validateAwsSubAccounts(GenerateAwsCommandExtraState.AwsSubAccounts); err != nil {
+					return err
 				}
 
 				awsSubAccounts := []aws.AwsSubAccount{}
-				for _, account := range strings.Split(strings.TrimRight(GenerateAwsCommandExtraState.AwsSubAccounts, ","), ",") {
+				for _, account := range GenerateAwsCommandExtraState.AwsSubAccounts {
 					accountDetails := strings.Split(account, ":")
 					awsSubAccounts = append(awsSubAccounts, aws.NewAwsSubAccount(accountDetails[0], accountDetails[1]))
 				}
-
 				GenerateAwsCommandState.SubAccounts = awsSubAccounts
 			}
 
@@ -232,11 +249,11 @@ func init() {
 		"force_destroy_s3",
 		false,
 		"enable force destroy s3 bucket")
-	generateAwsTfCommand.PersistentFlags().StringVar(
+	generateAwsTfCommand.PersistentFlags().StringSliceVar(
 		&GenerateAwsCommandExtraState.AwsSubAccounts,
-		"aws_subaccounts",
-		"",
-		"configure additional aws accounts; supplied in CSV format with values of <aws profile>:<region>")
+		"aws_subaccount",
+		[]string{},
+		"configure an additional aws account; value format must be <aws profile>:<region>")
 
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)
@@ -357,6 +374,20 @@ func validateOutputLocation(dirname string) error {
 
 		if !outputLocation.IsDir() {
 			return errors.New("output location must be a directory")
+		}
+	}
+
+	return nil
+}
+
+func validateAwsSubAccounts(subaccounts []string) error {
+	// validate the format of supplied values is correct
+	for _, account := range subaccounts {
+		if ok, err := regexp.MatchString(ValidateSubAccountFlagRegex, account); !ok {
+			if err != nil {
+				return errors.Wrap(err, "failed to validate supplied subaccount format")
+			}
+			return errors.New("supplied aws subaccount in invalid format")
 		}
 	}
 

@@ -69,3 +69,17 @@ func TestAwsRegionRegex(t *testing.T) {
 	ok, _ = regexp.MatchString(AwsRegionRegex, "ap-northeast-1")
 	assert.True(t, ok, "aws region ap-norteast-1 is valid")
 }
+
+func TestAwsSubAccountValidation(t *testing.T) {
+	ret := validateAwsSubAccounts([]string{"invalid"})
+	assert.Error(t, ret, "subaccount can't be arbitrary string")
+
+	ret = validateAwsSubAccounts([]string{"profilename:us-east-1"})
+	assert.Nil(t, ret, "should be valid")
+
+	ret = validateAwsSubAccounts([]string{"profilename:us-east-1", "profile2:ap-southeast-2"})
+	assert.Nil(t, ret, "should be valid")
+
+	ret = validateAwsSubAccounts([]string{"profilename:us-east-1", "invalid"})
+	assert.Error(t, ret, "should can't be arbitrary string")
+}
