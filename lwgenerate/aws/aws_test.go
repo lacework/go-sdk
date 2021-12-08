@@ -146,7 +146,7 @@ func TestConsolidatedCtWithMultipleAccounts(t *testing.T) {
 		true,
 		true,
 		WithAwsProfile("main"),
-		WithSubaccounts(
+		WithSubAccounts(
 			NewAwsSubAccount("subaccount1", "us-east-1"),
 			NewAwsSubAccount("subaccount2", "us-east-2"),
 		),

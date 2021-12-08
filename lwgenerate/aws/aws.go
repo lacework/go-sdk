@@ -19,7 +19,7 @@ type ExistingIamRoleDetails struct {
 	ExternalId string
 }
 
-// Create new existing IAM role details
+// NewExistingIamRoleDetails Create new existing IAM role details
 func NewExistingIamRoleDetails(name string, arn string, externalId string) *ExistingIamRoleDetails {
 	return &ExistingIamRoleDetails{
 		Arn:        arn,
@@ -28,7 +28,7 @@ func NewExistingIamRoleDetails(name string, arn string, externalId string) *Exis
 	}
 }
 
-type AwsSubAccount struct {
+type SubAccount struct {
 	// The name of the AwsProfile to use (in AWS configuration)
 	AwsProfile string
 
@@ -36,12 +36,12 @@ type AwsSubAccount struct {
 	AwsRegion string
 }
 
-// Create a new AWS sub account
+// NewAwsSubAccount Create a new AWS subaccount
 //
 // A subaccount consists of the profile name (which needs to match the executing machines aws configuration) and a
 // region for any new resources to be created in
-func NewAwsSubAccount(profile string, region string) AwsSubAccount {
-	return AwsSubAccount{AwsProfile: profile, AwsRegion: region}
+func NewAwsSubAccount(profile string, region string) SubAccount {
+	return SubAccount{AwsProfile: profile, AwsRegion: region}
 }
 
 type GenerateAwsTfConfigurationArgs struct {
@@ -52,7 +52,7 @@ type GenerateAwsTfConfigurationArgs struct {
 	Config bool
 
 	// Supply an AWS region for where to find the cloudtrail resources
-	// TODO @ipcrm future: support split regions for resources (s3 one place, sns another, etc)
+	// TODO @ipcrm future: support split regions for resources (s3 one place, sns another, etc.)
 	AwsRegion string
 
 	// Supply an AWS Profile name for the main account, only asked if configuring multiple
@@ -75,7 +75,7 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// For AWS Subaccounts in consolidated CT setups
 	// TODO @ipcrm future: what about many individual ct/config integrations together?
-	SubAccounts []AwsSubAccount
+	SubAccounts []SubAccount
 
 	// Lacework Profile to use
 	LaceworkProfile string
@@ -105,7 +105,7 @@ func (args *GenerateAwsTfConfigurationArgs) validate() error {
 	return nil
 }
 
-type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
+type TerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 
 // NewTerraform returns an instance of the GenerateAwsTfConfigurationArgs struct with the provided region and enabled
 // settings (config/cloudtrail).
@@ -118,7 +118,7 @@ type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 //   hcl, err := aws.NewTerraform("us-east-1", true, true,
 //     aws.WithAwsProfile("mycorp-profile")).Generate()
 //
-func NewTerraform(region string, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier) *GenerateAwsTfConfigurationArgs {
+func NewTerraform(region string, enableConfig bool, enableCloudtrail bool, mods ...TerraformModifier) *GenerateAwsTfConfigurationArgs {
 	config := &GenerateAwsTfConfigurationArgs{AwsRegion: region, Cloudtrail: enableCloudtrail, Config: enableConfig}
 	for _, m := range mods {
 		m(config)
@@ -126,57 +126,57 @@ func NewTerraform(region string, enableConfig bool, enableCloudtrail bool, mods 
 	return config
 }
 
-// Set the AWS Profile to utilize for the main AWS provider
-func WithAwsProfile(name string) AwsTerraformModifier {
+// WithAwsProfile Set the AWS Profile to utilize for the main AWS provider
+func WithAwsProfile(name string) TerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.AwsProfile = name
 	}
 }
 
-// Set the Lacework Profile to utilize when integrating
-func WithLaceworkProfile(name string) AwsTerraformModifier {
+// WithLaceworkProfile Set the Lacework Profile to utilize when integrating
+func WithLaceworkProfile(name string) TerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.LaceworkProfile = name
 	}
 }
 
-// Set the bucket ARN of an existing Cloudtrail setup
-func ExistingCloudtrailBucketArn(arn string) AwsTerraformModifier {
+// ExistingCloudtrailBucketArn Set the bucket ARN of an existing Cloudtrail setup
+func ExistingCloudtrailBucketArn(arn string) TerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingCloudtrailBucketArn = arn
 	}
 }
 
-// Set the SNS Topic ARN of an existing Cloudtrail setup
-func ExistingSnsTopicArn(arn string) AwsTerraformModifier {
+// ExistingSnsTopicArn Set the SNS Topic ARN of an existing Cloudtrail setup
+func ExistingSnsTopicArn(arn string) TerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingSnsTopicArn = arn
 	}
 }
 
-// Enable Consolidated Cloudtrail use
-func UseConsolidatedCloudtrail() AwsTerraformModifier {
+// UseConsolidatedCloudtrail Enable Consolidated Cloudtrail use
+func UseConsolidatedCloudtrail() TerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ConsolidatedCloudtrail = true
 	}
 }
 
-// Set the S3 ForceDestroy parameter to true for newly created buckets
-func EnableForceDestroyS3Bucket() AwsTerraformModifier {
+// EnableForceDestroyS3Bucket Set the S3 ForceDestroy parameter to true for newly created buckets
+func EnableForceDestroyS3Bucket() TerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ForceDestroyS3Bucket = true
 	}
 }
 
-// Set an existing IAM role configuration to use with the created Terraform code
-func UseExistingIamRole(iamDetails *ExistingIamRoleDetails) AwsTerraformModifier {
+// UseExistingIamRole Set an existing IAM role configuration to use with the created Terraform code
+func UseExistingIamRole(iamDetails *ExistingIamRoleDetails) TerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingIamRole = iamDetails
 	}
 }
 
-// Supply additional AWS Profiles to integrate
-func WithSubaccounts(subaccounts ...AwsSubAccount) AwsTerraformModifier {
+// WithSubAccounts Supply additional AWS Profiles to integrate
+func WithSubAccounts(subaccounts ...SubAccount) TerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.SubAccounts = subaccounts
 	}
@@ -291,7 +291,7 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 	source := "lacework/config/aws"
 	version := "~> 0.1"
 
-	blocks := []*hclwrite.Block{}
+	var blocks []*hclwrite.Block
 	if args.Config {
 		// Add main account
 		moduleDetails := []lwgenerate.HclModuleModifier{}
@@ -308,7 +308,7 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 		}
 		blocks = append(blocks, moduleBlock)
 
-		// Add sub accounts
+		// Add subaccounts
 		for _, subaccount := range args.SubAccounts {
 			configModule, err := lwgenerate.NewModule(fmt.Sprintf("aws_config_%s", subaccount.AwsProfile),
 				source,

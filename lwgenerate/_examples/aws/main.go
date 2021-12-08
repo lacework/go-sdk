@@ -38,7 +38,7 @@ func consolidatedTrailWithSubAccounts() {
 		"us-east-1",
 		true,
 		true,
-		aws.WithSubaccounts(
+		aws.WithSubAccounts(
 			aws.NewAwsSubAccount("subaccount1", "us-east-2"),
 			aws.NewAwsSubAccount("subaccount2", "us-east-1"),
 		),
