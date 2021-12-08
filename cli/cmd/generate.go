@@ -25,7 +25,7 @@ var (
 	GenerateAwsCommandState      = &aws.GenerateAwsTfConfigurationArgs{}
 	GenerateAwsExistingRoleState = &aws.ExistingIamRoleDetails{}
 	GenerateAwsCommandExtraState = &AwsGenerateCommandExtraState{}
-	ValidateSubAccountFlagRegex  = fmt.Sprintf(`(?P<Profile>[A-Za-z_0-9-]+):(?P<Region>%s)`, AwsRegionRegex)
+	ValidateSubAccountFlagRegex  = fmt.Sprintf(`%s:%s`, AwsProfileRegex, AwsRegionRegex)
 	CachedAssetIacParams         = "iac-aws-generate-params"
 	CachedAssetAwsExtraState     = "iac-aws-extra-state"
 
@@ -126,6 +126,15 @@ var (
 				return err
 			}
 
+			// Validate aws profile, if passed
+			profile, err := cmd.Flags().GetString("aws_profile")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsProfile(profile); profile != "" && err != nil {
+				return err
+			}
+
 			// Validate aws region, if passed
 			region, err := cmd.Flags().GetString("aws_region")
 			if err != nil {
@@ -198,7 +207,7 @@ var (
 
 func init() {
 	// add the iac-generate command
-	rootCmd.AddCommand(generateTfCommand)
+	cloudAccountCommand.AddCommand(generateTfCommand)
 
 	// Add global flags for iac generation
 	generateTfCommand.PersistentFlags().StringVar(

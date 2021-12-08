@@ -43,7 +43,8 @@ var (
 	// original source: https://regex101.com/r/pOfxYN/1
 	AwsArnRegex = `^arn:(?P<Partition>[^:\n]*):(?P<Service>[^:\n]*):(?P<Region>[^:\n]*):(?P<AccountID>[^:\n]*):(?P<Ignore>(?P<ResourceType>[^:\/\n]*)[:\/])?(?P<Resource>.*)$`
 	// regex used for validating region input; note intentionally does not match gov cloud
-	AwsRegionRegex = `(us|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d`
+	AwsRegionRegex  = `(us|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d`
+	AwsProfileRegex = `([A-Za-z_0-9-]+)`
 )
 
 // create survey.Validator for string with regex
@@ -78,7 +79,12 @@ func validateAwsArnFormat(val interface{}) error {
 
 // survey.Validator for aws region
 func validateAwsRegion(val interface{}) error {
-	return validateStringWithRegex(val, AwsRegionRegex, "invalid region supplied")
+	return validateStringWithRegex(val, AwsRegionRegex, "invalid region name supplied")
+}
+
+// survey.Validator for aws profile
+func validateAwsProfile(val interface{}) error {
+	return validateStringWithRegex(val, fmt.Sprintf(`^%s$`, AwsProfileRegex), "invalid profile name supplied")
 }
 
 func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
@@ -154,6 +160,7 @@ func promptAwsAdditionalAccountQuestions(config *aws.GenerateAwsTfConfigurationA
 			Message: QuestionPrimaryAwsAccountProfile,
 			Default: config.AwsProfile,
 		},
+		Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
 		Response: &config.AwsProfile,
 		Required: true,
 	}); err != nil {
@@ -186,11 +193,13 @@ func promptAwsAdditionalAccountQuestions(config *aws.GenerateAwsTfConfigurationA
 		accountQuestions := []SurveyQuestionWithValidationArgs{
 			{
 				Prompt:   &survey.Input{Message: QuestionSubAccountProfileName},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
 				Required: true,
 				Response: &accountProfileName,
 			},
 			{
 				Prompt:   &survey.Input{Message: QuestionSubAccountRegion},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
 				Required: true,
 				Response: &accountProfileRegion,
 			},

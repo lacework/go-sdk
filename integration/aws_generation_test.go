@@ -41,6 +41,7 @@ func TestGenerationErrorOnNoSelection(t *testing.T) {
 			c.SendLine("n")
 			expectString(c, "ERROR error when collecting/confirming parameters: must enable cloudtrail or config", &runError)
 		},
+		"cloud",
 		"iac",
 		"aws",
 	)
@@ -72,6 +73,7 @@ func TestGenerationSimple(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"cloud",
 		"iac",
 		"aws",
 	)
@@ -122,6 +124,7 @@ func TestGenerationCustomizedOutputLocation(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"cloud",
 		"iac",
 		"aws",
 	)
@@ -161,6 +164,7 @@ func TestGenerationConfigOnly(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"cloud",
 		"iac",
 		"aws",
 	)
@@ -201,6 +205,7 @@ func TestGenerationAdvancedOptsDone(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"cloud",
 		"iac",
 		"aws",
 	)
@@ -247,6 +252,7 @@ func TestGenerationAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"cloud",
 		"iac",
 		"aws",
 	)
@@ -296,6 +302,7 @@ func TestGenerationAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"cloud",
 		"iac",
 		"aws",
 	)
@@ -362,6 +369,7 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"cloud",
 		"iac",
 		"aws",
 	)
@@ -423,6 +431,7 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testin
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"cloud",
 		"iac",
 		"aws",
 		"--consolidated_cloudtrail",
@@ -481,7 +490,8 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"iac",
+		"cloud-account",
+		"iac-generate",
 		"aws",
 	)
 
