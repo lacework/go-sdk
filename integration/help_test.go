@@ -156,6 +156,7 @@ Available Commands:
   integration    Manage external integrations
   policy         Manage policies
   query          Run and manage queries
+  report-rule    Manage report rules
   resource-group Manage resource groups
   version        Print the Lacework CLI version
   vulnerability  Container and host vulnerability assessments

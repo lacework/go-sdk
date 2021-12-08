@@ -205,18 +205,36 @@ To run an ad-hoc compliance assessment use the command:
 				}
 			}
 
-			cli.StartProgress(" Getting compliance report...")
-			response, err := cli.LwApi.Compliance.GetGcpReport(config)
-			cli.StopProgress()
-			if err != nil {
-				return errors.Wrap(err, "unable to get gcp compliance report")
+			// diagonals are file separators and therefore we need to clean the organization
+			// ID if it is "n/a" or we will create two directories "n/a/..."
+			orgIDForCache := config.OrganizationID
+			if config.OrganizationID == "n/a" {
+				orgIDForCache = "not_applicable"
 			}
 
-			if len(response.Data) == 0 {
-				return errors.New("there is no data found in the report")
+			var (
+				report   api.ComplianceGcpReport
+				cacheKey = fmt.Sprintf("compliance/google/%s/%s/%s",
+					orgIDForCache, config.ProjectID, config.Type)
+			)
+			expired := cli.ReadCachedAsset(cacheKey, &report)
+			if expired {
+				cli.StartProgress(" Getting compliance report...")
+				response, err := cli.LwApi.Compliance.GetGcpReport(config)
+				cli.StopProgress()
+				if err != nil {
+					return errors.Wrap(err, "unable to get gcp compliance report")
+				}
+
+				if len(response.Data) == 0 {
+					return errors.New("no data found in the report")
+				}
+
+				report = response.Data[0]
+
+				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), report)
 			}
 
-			report := response.Data[0]
 			filteredOutput := ""
 
 			if complianceFiltersEnabled() {
@@ -241,7 +259,9 @@ To run an ad-hoc compliance assessment use the command:
 				)
 
 				return cli.OutputCSV(
-					[]string{"Report_Type", "Report_Time", "Organization", "Project", "Section", "ID", "Recommendation", "Status", "Severity", "Resource", "Region", "Reason"},
+					[]string{"Report_Type", "Report_Time", "Organization",
+						"Project", "Section", "ID", "Recommendation", "Status",
+						"Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
 			}

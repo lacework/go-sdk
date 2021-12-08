@@ -163,18 +163,28 @@ To run an ad-hoc compliance assessment of an AWS account:
 				}
 			}
 
-			cli.StartProgress(" Getting compliance report...")
-			response, err := cli.LwApi.Compliance.GetAwsReport(config)
-			cli.StopProgress()
-			if err != nil {
-				return errors.Wrap(err, "unable to get aws compliance report")
+			var (
+				report   api.ComplianceAwsReport
+				cacheKey = fmt.Sprintf("compliance/aws/%s/%s", config.AccountID, config.Type)
+			)
+			expired := cli.ReadCachedAsset(cacheKey, &report)
+			if expired {
+				cli.StartProgress(" Getting compliance report...")
+				response, err := cli.LwApi.Compliance.GetAwsReport(config)
+				cli.StopProgress()
+				if err != nil {
+					return errors.Wrap(err, "unable to get aws compliance report")
+				}
+
+				if len(response.Data) == 0 {
+					return errors.New("no data found in the report")
+				}
+
+				report = response.Data[0]
+
+				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), report)
 			}
 
-			if len(response.Data) == 0 {
-				return errors.New("there is no data found in the report")
-			}
-
-			report := response.Data[0]
 			filteredOutput := ""
 
 			if complianceFiltersEnabled() {
@@ -197,7 +207,9 @@ To run an ad-hoc compliance assessment of an AWS account:
 				)
 
 				return cli.OutputCSV(
-					[]string{"Report_Type", "Report_Time", "Account", "Section", "ID", "Recommendation", "Status", "Severity", "Resource", "Region", "Reason"},
+					[]string{"Report_Type", "Report_Time", "Account",
+						"Section", "ID", "Recommendation", "Status",
+						"Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
 			}
@@ -220,20 +232,20 @@ To run an ad-hoc compliance assessment of an AWS account:
 	complianceAwsRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <account_id>",
 		Aliases: []string{"run"},
-		Short:   "Run a new AWS compliance report",
+		Short:   "Run a new AWS compliance assessment",
 		Long:    `Run a compliance assessment for the provided AWS account.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			response, err := cli.LwApi.Compliance.RunAwsReport(args[0])
 			if err != nil {
-				return errors.Wrap(err, "unable to run aws compliance report")
+				return errors.Wrap(err, "unable to run aws compliance assessment")
 			}
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(response)
 			}
 
-			cli.OutputHuman("A new AWS compliance report has been initiated.\n")
+			cli.OutputHuman("A new AWS compliance assessment has been initiated.\n")
 			// @afiune not consistent with the other cloud providers
 			for key := range response {
 				cli.OutputHuman("\n")
