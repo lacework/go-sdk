@@ -57,7 +57,7 @@ integration-generation-only: ## Run integration tests
 	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -run "^TestGeneration" -tags="generation"
 
 .PHONY: integration-only
-integration-only: ## Run integration tests
+integration-only: install-tools ## Run integration tests
 	PATH=$(PWD)/bin:${PATH} gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="\
 		account \
 		agent_token \
