@@ -20,9 +20,10 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
+
+	"github.com/pkg/errors"
 )
 
 type TeamMembersService struct {
@@ -166,14 +167,12 @@ func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMemberOrgRes
 		return
 	}
 	var userGuid string
-	tms, err := svc.SearchUsername(tm.UserName)
-	if err != nil {
-		return res, err
-	} else if len(tms.Data) > 0 {
-		userGuid = tms.Data[0].UserGuid
-	} else {
-		return res, errors.New("unable to find user with specified username")
+	tms, errSearch := svc.SearchUsername(tm.UserName)
+	if errSearch != nil || len(tms.Data) == 0 {
+		err = errors.Wrap(err, "unable to find user with specified username")
+		return
 	}
+	userGuid = tms.Data[0].UserGuid
 	// Omit UserGuid from the patch body as it cannot be modified
 	tm.UserGuid = ""
 	// Omit userEnabled field from the patch body as it cannot be modified
@@ -182,32 +181,37 @@ func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMemberOrgRes
 	tm.UserName = ""
 	// Omit Company field from the patch body as it cannot be modified
 	tm.Props.Company = ""
-	patchBody, err := jsonReader(tm)
-	if err != nil {
-		return res, err
+	patchBody, patchErr := jsonReader(tm)
+	if patchErr != nil {
+		err = errors.Wrap(patchErr, "unable to encode team member as JSON")
+		return
 	}
 
-	req, err := svc.client.NewRequest("PATCH", fmt.Sprintf(apiV2TeamMembersFromGUID, userGuid), patchBody)
-	if err != nil {
-		return res, err
+	req, patchReqErr := svc.client.NewRequest("PATCH", fmt.Sprintf(apiV2TeamMembersFromGUID, userGuid), patchBody)
+	if patchReqErr != nil {
+		err = errors.Wrap(patchReqErr, "unable to create patch request")
+		return
 	}
 
-	response, err := svc.client.Do(req)
-	if err != nil {
-		return res, err
+	response, doErr := svc.client.Do(req)
+	if doErr != nil {
+		err = errors.Wrap(doErr, "unable to perform patch request")
+		return
 	}
 
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, bodyErr := ioutil.ReadAll(response.Body)
 
-	if err != nil {
-		return res, err
+	if bodyErr != nil {
+		err = errors.Wrap(bodyErr, "unable to read json body")
+		return
 	}
 
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return res, err
+	unmarshalErr := json.Unmarshal(body, &res)
+	if unmarshalErr != nil {
+		err = errors.Wrap(unmarshalErr, "unable to deserialize response body into team member struct")
+		return
 	}
 	return
 }
