@@ -150,6 +150,7 @@ Available Commands:
   agent          Manage Lacework agents
   alert-rule     Manage alert rules
   api            Helper to call Lacework's API
+  cloud-account  Manage cloud accounts
   compliance     Manage compliance reports
   configure      Configure the Lacework CLI
   event          Inspect Lacework events

@@ -22,6 +22,7 @@ type AwsGenerateCommandExtraState struct {
 
 var (
 	QuestionRunTfPlan            = "Run Terraform plan now?"
+	QuestionUsePreviousCache     = "Previous IaC generation detected, load cached values?"
 	GenerateAwsCommandState      = &aws.GenerateAwsTfConfigurationArgs{}
 	GenerateAwsExistingRoleState = &aws.ExistingIamRoleDetails{}
 	GenerateAwsCommandExtraState = &AwsGenerateCommandExtraState{}
@@ -180,21 +181,39 @@ var (
 			// Load any cached inputs if interactive
 			if cli.InteractiveMode() {
 				cachedOptions := &aws.GenerateAwsTfConfigurationArgs{}
-				if ok := cli.ReadCachedAsset(CachedAssetIacParams, &cachedOptions); ok {
+				iacParamsExpired := cli.ReadCachedAsset(CachedAssetIacParams, &cachedOptions)
+				if iacParamsExpired {
 					cli.Log.Debug("loaded previously set values for AWS iac generation")
 				}
 
 				extraState := &AwsGenerateCommandExtraState{}
-				if ok := cli.ReadCachedAsset(CachedAssetAwsExtraState, &extraState); ok {
+				extraStateParamsExpired := cli.ReadCachedAsset(CachedAssetAwsExtraState, &extraState)
+				if extraStateParamsExpired {
 					cli.Log.Debug("loaded previously set values for AWS iac generation (extra state)")
 				}
 
-				// Merge cached inputs to current options (current options win)
-				if err := mergo.Merge(GenerateAwsCommandState, cachedOptions); err != nil {
-					return errors.Wrap(err, "failed to load saved options")
+				// Determine if previously cached options exists; prompt user if they'd like to continue
+				answer := false
+				if !iacParamsExpired || !extraStateParamsExpired {
+					if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+						Prompt:   &survey.Confirm{Message: QuestionUsePreviousCache, Default: answer},
+						Response: &answer,
+					}); err != nil {
+						return errors.Wrap(err, "failed to load saved options")
+					}
 				}
-				if err := mergo.Merge(GenerateAwsCommandExtraState, extraState); err != nil {
-					return errors.Wrap(err, "failed to load saved options")
+
+				// If the user decides NOT to use the previous values; we won't load them.  However, every time the command runs
+				// we are going to write out new cached values, so if they run it - bail out - and run it again they'll get
+				// reprompted.
+				if answer {
+					// Merge cached inputs to current options (current options win)
+					if err := mergo.Merge(GenerateAwsCommandState, cachedOptions); err != nil {
+						return errors.Wrap(err, "failed to load saved options")
+					}
+					if err := mergo.Merge(GenerateAwsCommandExtraState, extraState); err != nil {
+						return errors.Wrap(err, "failed to load saved options")
+					}
 				}
 			}
 
@@ -221,7 +240,7 @@ var (
 			// Collect and/or confirm parameters
 			err = promptAwsGenerate(GenerateAwsCommandState, GenerateAwsExistingRoleState, GenerateAwsCommandExtraState)
 			if err != nil {
-				return errors.Wrap(err, "error when collecting/confirming parameters")
+				return errors.Wrap(err, "collecting/confirming parameters")
 			}
 
 			return nil

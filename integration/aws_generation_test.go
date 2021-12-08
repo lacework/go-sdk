@@ -39,7 +39,7 @@ func TestGenerationErrorOnNoSelection(t *testing.T) {
 			c.SendLine("n")
 			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
 			c.SendLine("n")
-			expectString(c, "ERROR error when collecting/confirming parameters: must enable cloudtrail or config", &runError)
+			expectString(c, "ERROR collecting/confirming parameters: must enable cloudtrail or config", &runError)
 		},
 		"cloud",
 		"iac",

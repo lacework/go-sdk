@@ -8,9 +8,9 @@ var (
 	// top-level cloud-account command
 	cloudAccountCommand = &cobra.Command{
 		Use:     "cloud-account",
-		Aliases: []string{"cloud", "ca"},
-		Short:   "Manage cloud account(s)",
-		Long:    "Manage cloud account integration with Lacework",
+		Aliases: []string{"cloud-accounts", "cloud", "ca"},
+		Short:   "Manage cloud accounts",
+		Long:    "Manage cloud account integrations with Lacework",
 	}
 )
 
