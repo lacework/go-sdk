@@ -34,7 +34,7 @@ func main() {
 		LastName:  "White",
 	}
 
-	tm := api.NewTeamMemberOrg("vatasha.white+ExampleOrgDemo@lacework.net", tmProps)
+	tm := api.NewTeamMemberOrg("vatasha.white+OrgLevelTeamMember@lacework.net", tmProps)
 
 	response, err := lacework.V2.TeamMembers.CreateOrg(tm)
 	if err != nil {
@@ -46,7 +46,7 @@ func main() {
 	// Update the user
 	tm.Props.FirstName = "Vatasha Updated"
 
-	tms, err := lacework.V2.TeamMembers.SearchUsername("vatasha.white+ExampleOrgDemo@lacework.net")
+	tms, err := lacework.V2.TeamMembers.SearchUsername("vatasha.white+OrgLevelTeamMember@lacework.net")
 	if err != nil {
 		log.Fatal(err)
 	}

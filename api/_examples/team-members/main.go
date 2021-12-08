@@ -27,7 +27,7 @@ func main() {
 		fmt.Printf("%s:%s\n\n", tm.UserGuid, tm.UserName)
 	}
 
-	tms, err := lacework.V2.TeamMembers.SearchUsername("vatasha.white+ExampleDemo@lacework.net")
+	tms, err := lacework.V2.TeamMembers.SearchUsername("vatasha.white+AccountLevelTeamMember@lacework.net")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,7 +44,7 @@ func main() {
 		LastName:  "White",
 	}
 
-	tm := api.NewTeamMember("vatasha.white+exampledemo@lacework.net", tmProps)
+	tm := api.NewTeamMember("vatasha.white+AccountLevelTeamMember@lacework.net", tmProps)
 
 	response, err := lacework.V2.TeamMembers.Create(tm)
 	if err != nil {
