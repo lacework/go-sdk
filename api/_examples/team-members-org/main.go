@@ -44,6 +44,7 @@ func main() {
 	userGuid := response.Data.Accounts[0].UserGuid
 
 	// Update the user
+	tm.UserGuid = userGuid
 	tm.Props.FirstName = "Vatasha Updated"
 
 	tms, err := lacework.V2.TeamMembers.SearchUsername("vatasha.white+OrgLevelTeamMember@lacework.net")
@@ -61,8 +62,6 @@ func main() {
 	}
 
 	fmt.Printf("UpdateOrg response: %+v\n", response)
-
-	tm.UserGuid = userGuid
 
 	response, err = lacework.V2.TeamMembers.UpdateOrgById(tm)
 

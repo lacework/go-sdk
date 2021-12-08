@@ -19,9 +19,7 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/pkg/errors"
 )
@@ -166,54 +164,12 @@ func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMemberOrgRes
 		err = errors.New("please specify a username")
 		return
 	}
-	var userGuid string
 	tms, errSearch := svc.SearchUsername(tm.UserName)
 	if errSearch != nil || len(tms.Data) == 0 {
 		err = errors.Wrap(err, "unable to find user with specified username")
 		return
 	}
-	userGuid = tms.Data[0].UserGuid
-	// Omit UserGuid from the patch body as it cannot be modified
-	tm.UserGuid = ""
-	// Omit userEnabled field from the patch body as it cannot be modified
-	tm.UserEnabled = 0
-	// Omit userName field from the patch body as it cannot be modified
-	tm.UserName = ""
-	// Omit Company field from the patch body as it cannot be modified
-	tm.Props.Company = ""
-	patchBody, patchErr := jsonReader(tm)
-	if patchErr != nil {
-		err = errors.Wrap(patchErr, "unable to encode team member as JSON")
-		return
-	}
-
-	req, patchReqErr := svc.client.NewRequest("PATCH", fmt.Sprintf(apiV2TeamMembersFromGUID, userGuid), patchBody)
-	if patchReqErr != nil {
-		err = errors.Wrap(patchReqErr, "unable to create patch request")
-		return
-	}
-
-	response, doErr := svc.client.Do(req)
-	if doErr != nil {
-		err = errors.Wrap(doErr, "unable to perform patch request")
-		return
-	}
-
-	defer response.Body.Close()
-
-	body, bodyErr := ioutil.ReadAll(response.Body)
-
-	if bodyErr != nil {
-		err = errors.Wrap(bodyErr, "unable to read json body")
-		return
-	}
-
-	unmarshalErr := json.Unmarshal(body, &res)
-	if unmarshalErr != nil {
-		err = errors.Wrap(unmarshalErr, "unable to deserialize response body into team member struct")
-		return
-	}
-	return
+	return svc.UpdateOrgById(tm)
 }
 
 // UpdateOrgById updates a single team member at the org-level with the corresponding guid
