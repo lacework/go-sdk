@@ -5,14 +5,20 @@ go 1.17
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.2
 	github.com/BurntSushi/toml v0.4.1
+	github.com/Masterminds/semver v1.5.0
 	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
 	github.com/briandowns/spinner v1.13.0
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structs v1.1.0
+	github.com/hashicorp/go-version v1.3.0
+	github.com/hashicorp/hc-install v0.2.0
 	github.com/hashicorp/hcl/v2 v2.10.1
+	github.com/hashicorp/terraform-exec v0.15.0
+	github.com/hashicorp/terraform-json v0.13.0
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/honeycombio/libhoney-go v1.15.6
+	github.com/imdario/mergo v0.3.12
 	github.com/kyokomi/emoji/v2 v2.2.8
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.2
@@ -40,6 +46,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
