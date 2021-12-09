@@ -51,3 +51,16 @@ variable "lacework_aws_account_id" {
   default     = ""
   description = "The Lacework AWS account that the IAM role will grant access"
 }
+
+variable "install_sh_url" {
+  description = "URL for install.sh"
+  default     = "https://packages.lacework.net/install.sh"
+}
+
+variable "aws_key_pair_file" {
+  default = "~/.ssh/id_rsa"
+}
+
+variable "aws_key_pair_name" {}
+variable "subnet_id" {}
+variable "security_group_id" {}
