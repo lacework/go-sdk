@@ -158,7 +158,8 @@ func (svc *TeamMembersService) Update(tm TeamMember) (res TeamMemberResponse, er
 // UpdateOrg updates a single team member at the org-level with the corresponding username
 func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMemberOrgResponse, err error) {
 	if !svc.client.OrgAccess() {
-		return res, errors.New("client configured to manage account-level datasets, use Update()")
+		err = errors.New("client configured to manage account-level datasets, use Update()")
+		return
 	}
 	if tm.UserName == "" {
 		err = errors.New("please specify a username")
@@ -169,13 +170,15 @@ func (svc *TeamMembersService) UpdateOrg(tm TeamMemberOrg) (res TeamMemberOrgRes
 		err = errors.Wrap(err, "unable to find user with specified username")
 		return
 	}
+	tm.UserGuid = tms.Data[0].UserGuid
 	return svc.UpdateOrgById(tm)
 }
 
 // UpdateOrgById updates a single team member at the org-level with the corresponding guid
 func (svc *TeamMembersService) UpdateOrgById(tm TeamMemberOrg) (res TeamMemberOrgResponse, err error) {
 	if !svc.client.OrgAccess() {
-		return res, errors.New("client configured to manage account-level datasets, use Update()")
+		err = errors.New("client configured to manage account-level datasets, use Update()")
+		return
 	}
 	if tm.UserGuid == "" {
 		err = errors.New("please specify a user guid")
