@@ -135,3 +135,29 @@ func TestCopyClientWithOptions(t *testing.T) {
 	err = c.RequestDecoder("GET", "endpoint-org-access", nil, v)
 	assert.Nil(t, err)
 }
+
+func TestNewClientWithOrgAccess(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithOrgAccess(),
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, true, c.OrgAccess(), "org access should be set to true")
+
+}
+
+func TestNewClientWithoutOrgAccess(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test")
+	assert.NoError(t, err)
+	assert.Equal(t, false, c.OrgAccess(), "org access should be set to false")
+
+}

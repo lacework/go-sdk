@@ -36,7 +36,7 @@ package api
 //			Returns: []string{"accessToken"},
 //		}
 type SearchFilter struct {
-	TimeFilter `json:"timeFilter"`
+	TimeFilter `json:"timeFilter,omitempty"`
 	Filters    []Filter `json:"filters"`
 	Returns    []string `json:"returns"`
 }
@@ -49,6 +49,6 @@ type Filter struct {
 }
 
 type TimeFilter struct {
-	StartTime string `json:"startTime"`
-	EndTime   string `json:"endTime"`
+	StartTime string `json:"startTime,omitempty"`
+	EndTime   string `json:"endTime,omitempty"`
 }
