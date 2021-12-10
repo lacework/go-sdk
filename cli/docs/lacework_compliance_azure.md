@@ -12,17 +12,17 @@ Compliance for Azure Cloud
 
 Manage compliance reports for Azure Cloud.
 
-To list all Azure Tenants configured in your account:
+To list all Azure tenants configured in your account:
 
     lacework compliance azure list-tenants
 
-To list all Azure Subscriptions from a Tenant, use the command:
+To list all Azure subscriptions from a tenant, use the command:
 
     lacework compliance azure list-subscriptions <tenant_id>
 
 To get the latest Azure compliance assessment report, use the command:
 
-    lacework compliance azure get-report <tenant_id> <subscriptions_id>
+    lacework compliance azure get-report <tenant_id> <subscription_id>
 
 These reports run on a regular schedule, typically once a day.
 

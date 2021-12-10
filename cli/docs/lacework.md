@@ -45,12 +45,14 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework agent](lacework_agent.md)	 - Manage Lacework agents
 * [lacework alert-rule](lacework_alert-rule.md)	 - Manage alert rules
 * [lacework api](lacework_api.md)	 - Helper to call Lacework's API
+* [lacework cloud-account](lacework_cloud-account.md)	 - Manage cloud accounts
 * [lacework compliance](lacework_compliance.md)	 - Manage compliance reports
 * [lacework configure](lacework_configure.md)	 - Configure the Lacework CLI
 * [lacework event](lacework_event.md)	 - Inspect Lacework events
 * [lacework integration](lacework_integration.md)	 - Manage external integrations
 * [lacework policy](lacework_policy.md)	 - Manage policies
 * [lacework query](lacework_query.md)	 - Run and manage queries
+* [lacework report-rule](lacework_report-rule.md)	 - Manage report rules
 * [lacework resource-group](lacework_resource-group.md)	 - Manage resource groups
 * [lacework version](lacework_version.md)	 - Print the Lacework CLI version
 * [lacework vulnerability](lacework_vulnerability.md)	 - Container and host vulnerability assessments
