@@ -6,7 +6,7 @@ hide_title: true
 
 ## lacework compliance aws run-assessment
 
-Run a new AWS compliance report
+Run a new AWS compliance assessment
 
 ### Synopsis
 
