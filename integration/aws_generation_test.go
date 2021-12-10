@@ -565,7 +565,6 @@ func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...str
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)
 	dir := createDummyTOMLConfig()
-	fmt.Println(dir)
 	homeCache := os.Getenv("HOME")
 	os.Setenv("HOME", dir)
 	defer os.Setenv("HOME", homeCache)
