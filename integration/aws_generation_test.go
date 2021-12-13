@@ -19,9 +19,9 @@ import (
 )
 
 func expectString(c *expect.Console, str string, runError *error) {
-	out, err := c.Expect(expect.WithTimeout(time.Second), expect.String(str))
+	_, err := c.Expect(expect.WithTimeout(time.Second), expect.String(str))
 	if err != nil {
-		fmt.Println(out) // To see the errored line, you can enable this and update _ above to out
+		// fmt.Println(out) // To see the errored line, you can enable this and update _ above to out
 		*runError = err
 	}
 }
