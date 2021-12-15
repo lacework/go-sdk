@@ -153,7 +153,7 @@ github.com/mitchellh/go-homedir
 # github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7
 ## explicit
 github.com/mitchellh/go-wordwrap
-# github.com/mitchellh/mapstructure v1.4.2
+# github.com/mitchellh/mapstructure v1.4.3
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
 # github.com/olekukonko/tablewriter v0.0.5

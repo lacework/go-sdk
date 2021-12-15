@@ -21,7 +21,7 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/kyokomi/emoji/v2 v2.2.8
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mitchellh/mapstructure v1.4.2
+	github.com/mitchellh/mapstructure v1.4.3
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/peterbourgon/diskv/v3 v3.0.1
 	github.com/pkg/errors v0.9.1
