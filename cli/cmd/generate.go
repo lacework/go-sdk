@@ -18,6 +18,7 @@ type AwsGenerateCommandExtraState struct {
 	Output                string
 	UseExistingCloudtrail bool
 	AwsSubAccounts        []string
+	TerraformApply        bool
 }
 
 var (
@@ -120,10 +121,9 @@ This command can also be run in noninteractive mode however, only generation is 
 			}
 
 			// Prompt to execute
-			execute := false
 			err = SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-				Prompt:   &survey.Confirm{Default: execute, Message: QuestionRunTfPlan},
-				Response: &execute,
+				Prompt:   &survey.Confirm{Default: GenerateAwsCommandExtraState.TerraformApply, Message: QuestionRunTfPlan},
+				Response: &GenerateAwsCommandExtraState.TerraformApply,
 			})
 
 			if err != nil {
@@ -142,14 +142,14 @@ This command can also be run in noninteractive mode however, only generation is 
 
 			// Execute
 			locationDir := filepath.Dir(location)
-			if execute {
+			if GenerateAwsCommandExtraState.TerraformApply {
 				if err := TerraformPlanAndExecute(locationDir); err != nil {
 					return errors.Wrap(err, "failed to run terraform apply")
 				}
 			}
 
 			// Output where code was generated
-			if !execute {
+			if !GenerateAwsCommandExtraState.TerraformApply {
 				provideGuidanceAfterExit(false, false, locationDir, "terraform")
 			}
 
@@ -320,6 +320,12 @@ func init() {
 		"aws_subaccount",
 		[]string{},
 		"configure an additional aws account; value format must be <aws profile>:<region>")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandExtraState.TerraformApply,
+		"apply",
+		false,
+		"run terraform apply without executing plan or prompting",
+	)
 
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)

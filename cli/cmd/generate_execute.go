@@ -370,30 +370,33 @@ func TerraformPlanAndExecute(workingDir string) error {
 		return err
 	}
 
-	// Write plan
-	changes, err := TerraformExecPlan(tf)
-	if err != nil {
-		return err
-	}
+	// If running in nonInteractive mode, dont run a plan or prompt to proceed; just proceed
+	if !cli.nonInteractive {
+		// Write plan
+		changes, err := TerraformExecPlan(tf)
+		if err != nil {
+			return err
+		}
 
-	// Display changes and determine if apply should proceed
-	proceed, err := DisplayTerraformPlanChanges(tf, *changes)
-	if err != nil {
-		return err
-	}
+		// Display changes and determine if apply should proceed
+		proceed, err := DisplayTerraformPlanChanges(tf, *changes)
+		if err != nil {
+			return err
+		}
 
-	// If not proceed; display guidance on how to continue outside of this session
-	if !proceed {
-		provideGuidanceAfterExit(true, true, tf.WorkingDir(), tf.ExecPath())
-		return nil
+		// If not proceed; display guidance on how to continue outside of this session
+		if !proceed {
+			provideGuidanceAfterExit(true, true, tf.WorkingDir(), tf.ExecPath())
+			return nil
+		}
 	}
 
 	// Apply plan
 	if err := TerraformExecApply(tf); err != nil {
 		return err
 	}
-	provideGuidanceAfterSuccess(tf.WorkingDir(), GenerateAwsCommandState.LaceworkProfile)
 
+	provideGuidanceAfterSuccess(tf.WorkingDir(), GenerateAwsCommandState.LaceworkProfile)
 	return nil
 }
 

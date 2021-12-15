@@ -482,7 +482,7 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 			c.SendLine(roleName)
 			expectString(c, cmd.QuestionExistingIamRoleArn, &runError)
 			c.SendLine(roleArn)
-			expectString(c, cmd.QuestionExistingIamRoleExtId, &runError)
+			expectString(c, cmd.QuestionExistingIamRoleExtID, &runError)
 			c.SendLine(roleExtId)
 			expectString(c, cmd.QuestionAnotherAdvancedOpt, &runError)
 			c.SendLine("n")

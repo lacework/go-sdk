@@ -23,7 +23,7 @@ var (
 	QuestionForceDestroyS3Bucket        = "Should the new S3 bucket have force destroy enabled?"
 	QuestionExistingIamRoleName         = "Specify an existing IAM role name for Cloudtrail access:"
 	QuestionExistingIamRoleArn          = "Specify an existing IAM role ARN for Cloudtrail access:"
-	QuestionExistingIamRoleExtId        = "Specify the external ID to be used with the existing IAM role:"
+	QuestionExistingIamRoleExtID        = "Specify the external ID to be used with the existing IAM role:"
 	QuestionPrimaryAwsAccountProfile    = "Before adding subaccounts, your primary AWS account profile name must be set; which profile should the main account use?"
 	QuestionSubAccountProfileName       = "Supply the profile name for this additional AWS account:"
 	QuestionSubAccountRegion            = "What region should be used for this account?"
@@ -139,7 +139,7 @@ func promptAwsExistingIamQuestions(config *aws.GenerateAwsTfConfigurationArgs) e
 			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validateAwsArnFormat)},
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionExistingIamRoleExtId, Default: config.ExistingIamRole.ExternalId},
+			Prompt:   &survey.Input{Message: QuestionExistingIamRoleExtID, Default: config.ExistingIamRole.ExternalId},
 			Response: &config.ExistingIamRole.ExternalId,
 			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
 		}}); err != nil {
