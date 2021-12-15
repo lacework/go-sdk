@@ -33,7 +33,7 @@ func TestUserFriendlyErrorFromOnDemandCtrVulnScanRepositoryNotFound(t *testing.T
 	if assert.NotNil(t, err) {
 		assert.Contains(t,
 			err.Error(),
-			"container image 'image:tag' not found in registry 'my-registry.example.com'")
+			"container image 'image@tag' not found in registry 'my-registry.example.com'")
 		assert.Contains(t,
 			err.Error(),
 			"To view all container registries configured in your account use the command:")
