@@ -1063,7 +1063,7 @@ To integrate a new container registry use the command:
 		"Could not successfully send scan request to available integrations for given repo and label",
 	) {
 
-		msg := `container image '%s:%s' not found in registry '%s'.
+		msg := `container image '%s@%s' not found in registry '%s'.
 
 This error is likely due to a problem with the container registry integration 
 configured in your account. Verify that the integration was configured with 
