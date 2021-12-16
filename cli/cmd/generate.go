@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/imdario/mergo"
@@ -19,6 +20,17 @@ type AwsGenerateCommandExtraState struct {
 	UseExistingCloudtrail bool
 	AwsSubAccounts        []string
 	TerraformApply        bool
+}
+
+func (a *AwsGenerateCommandExtraState) isEmpty() bool {
+	return a.Output == "" && !a.UseExistingCloudtrail && len(a.AwsSubAccounts) == 0 && !a.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided its not empty
+func (a *AwsGenerateCommandExtraState) writeCache() {
+	if !a.isEmpty() {
+		cli.WriteAssetToCache(CachedAssetAwsExtraState, time.Now().Add(time.Hour*1), a)
+	}
 }
 
 var (

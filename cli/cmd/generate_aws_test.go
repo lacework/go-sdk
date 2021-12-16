@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"regexp"
 	"testing"
 
@@ -82,4 +86,55 @@ func TestAwsSubAccountValidation(t *testing.T) {
 
 	ret = validateAwsSubAccounts([]string{"profilename:us-east-1", "invalid"})
 	assert.Error(t, ret, "should can't be arbitrary string")
+}
+
+func TestGenerationCache(t *testing.T) {
+	t.Run("extra state shouldn't be written if empty", func(t *testing.T) {
+		dir, err := ioutil.TempDir("", "lacework-cli-cache")
+		if err != nil {
+			panic(err)
+		}
+		defer os.RemoveAll(dir)
+		cli.InitCache(dir)
+
+		extraState := &AwsGenerateCommandExtraState{}
+		extraState.writeCache()
+		assert.NoFileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAssetAwsExtraState)))
+	})
+	t.Run("extra state should be written if not empty", func(t *testing.T) {
+		dir, err := ioutil.TempDir("", "lacework-cli-cache")
+		if err != nil {
+			panic(err)
+		}
+		defer os.RemoveAll(dir)
+		cli.InitCache(dir)
+
+		extraState := AwsGenerateCommandExtraState{Output: "/tmp"}
+		extraState.writeCache()
+		assert.FileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAssetAwsExtraState)))
+	})
+	t.Run("iac params should not be cached when empty", func(t *testing.T) {
+		dir, err := ioutil.TempDir("", "lacework-cli-cache")
+		if err != nil {
+			panic(err)
+		}
+		defer os.RemoveAll(dir)
+		cli.InitCache(dir)
+
+		args := aws.GenerateAwsTfConfigurationArgs{AwsProfile: "default"} // Profile is set automatically by the CLI defaults
+		writeAwsGenerationArgsCache(&args)
+		assert.NoFileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAssetIacParams)))
+	})
+	t.Run("iac params should be cached when not empty", func(t *testing.T) {
+		dir, err := ioutil.TempDir("", "lacework-cli-cache")
+		if err != nil {
+			panic(err)
+		}
+		defer os.RemoveAll(dir)
+		cli.InitCache(dir)
+
+		args := aws.GenerateAwsTfConfigurationArgs{AwsProfile: "default", AwsRegion: "us-east-2"} // Profile is set automatically by the CLI defaults
+		writeAwsGenerationArgsCache(&args)
+		assert.FileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAssetIacParams)))
+	})
 }

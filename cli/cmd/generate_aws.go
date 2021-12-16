@@ -331,6 +331,26 @@ func configOrCloudtrailEnabled(config *aws.GenerateAwsTfConfigurationArgs) *bool
 	return &cloudtrailOrConfigEnabled
 }
 
+func awsConfigIsEmpty(g *aws.GenerateAwsTfConfigurationArgs) bool {
+	return (!g.Cloudtrail &&
+		!g.Config &&
+		!g.ConsolidatedCloudtrail &&
+		g.AwsProfile == "default" &&
+		g.AwsRegion == "" &&
+		g.ExistingCloudtrailBucketArn == "" &&
+		g.ExistingIamRole == nil &&
+		g.ExistingSnsTopicArn == "" &&
+		g.LaceworkProfile == "" &&
+		!g.ForceDestroyS3Bucket &&
+		g.SubAccounts == nil)
+}
+
+func writeAwsGenerationArgsCache(a *aws.GenerateAwsTfConfigurationArgs) {
+	if !awsConfigIsEmpty(a) {
+		cli.WriteAssetToCache(CachedAssetIacParams, time.Now().Add(time.Hour*1), a)
+	}
+}
+
 // entry point for launching a survey to build out the required generation parameters
 func promptAwsGenerate(
 	config *aws.GenerateAwsTfConfigurationArgs,
@@ -339,8 +359,8 @@ func promptAwsGenerate(
 ) error {
 	// Cache for later use if generation is abandon and in interactive mode
 	if cli.InteractiveMode() {
-		defer cli.WriteAssetToCache(CachedAssetIacParams, time.Now().Add(time.Hour*1), config)
-		defer cli.WriteAssetToCache(CachedAssetAwsExtraState, time.Now().Add(time.Hour*1), extraState)
+		defer writeAwsGenerationArgsCache(config)
+		defer extraState.writeCache()
 	}
 
 	// Set ExistingIamRole details, if provided as cli flags; otherwise don't initialize
