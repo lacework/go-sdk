@@ -142,3 +142,44 @@ func TestGenerationTfInstallation(t *testing.T) {
 		})
 	}
 }
+
+// Test the feedback given to user after running terraform plan or apply
+func TestGenerationTfExecutionFeedback(t *testing.T) {
+	t.Run("init not run", func(t *testing.T) {
+		out := provideGuidanceAfterExit(false, false, "/place", "/thing/terraform")
+		assert.Equal(t,
+			`Terraform code saved in /place
+
+The generated code can be executed at any point in the future using the following commands:
+  cd /place
+  /thing/terraform init
+  /thing/terraform plan
+  /thing/terraform apply
+
+`, out)
+	})
+	t.Run("init run but no plan executed", func(t *testing.T) {
+		out := provideGuidanceAfterExit(true, false, "/place", "/thing/terraform")
+		assert.Equal(t,
+			`Terraform code saved in /place
+
+The generated code can be executed at any point in the future using the following commands:
+  cd /place
+  /thing/terraform plan
+  /thing/terraform apply
+
+`, out)
+	})
+	t.Run("after plan but exit without running apply", func(t *testing.T) {
+		out := provideGuidanceAfterExit(true, true, "/place", "/thing/terraform")
+		assert.Equal(t,
+			`Terraform code and plan output saved in /place
+
+The generated code can be executed at any point in the future using the following commands:
+  cd /place
+  /thing/terraform plan
+  /thing/terraform apply
+
+`, out)
+	})
+}

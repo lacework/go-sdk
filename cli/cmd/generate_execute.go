@@ -327,7 +327,7 @@ func promptForTerraformNextSteps(previewShown *bool, data TfPlanChangesSummary) 
 }
 
 // this helper function is called when terraform flow has been completely executed through apply
-func provideGuidanceAfterSuccess(workingDir string, laceworkProfile string) {
+func provideGuidanceAfterSuccess(workingDir string, laceworkProfile string) string {
 	out := new(strings.Builder)
 	fmt.Fprintf(out, "Lacework integration was successful! Terraform code saved in %s\n\n", workingDir)
 	fmt.Fprintln(out, "Use the Lacework CLI to view integration status:")
@@ -338,12 +338,12 @@ func provideGuidanceAfterSuccess(workingDir string, laceworkProfile string) {
 	}
 	fmt.Fprint(out, laceworkCmd)
 
-	cli.OutputHuman(out.String())
+	return out.String()
 }
 
 // this helper function is called when the entire generation/apply flow is not completed; it provides
 // guidance on how to proceed from the last point of execution
-func provideGuidanceAfterExit(initRun bool, planRun bool, workingDir string, binaryLocation string) {
+func provideGuidanceAfterExit(initRun bool, planRun bool, workingDir string, binaryLocation string) string {
 	planNote := " and plan output"
 	if !planRun {
 		planNote = ""
@@ -360,7 +360,7 @@ func provideGuidanceAfterExit(initRun bool, planRun bool, workingDir string, bin
 
 	fmt.Fprintf(out, "  %s plan\n", binaryLocation)
 	fmt.Fprintf(out, "  %s apply\n\n", binaryLocation)
-	cli.OutputHuman(out.String())
+	return out.String()
 }
 
 // Execute a terraform plan & execute
@@ -390,7 +390,7 @@ func TerraformPlanAndExecute(workingDir string) error {
 
 	// If not proceed; display guidance on how to continue outside of this session
 	if !proceed {
-		provideGuidanceAfterExit(true, true, tf.WorkingDir(), tf.ExecPath())
+		cli.OutputHuman(provideGuidanceAfterExit(true, true, tf.WorkingDir(), tf.ExecPath()))
 		return nil
 	}
 
@@ -398,7 +398,7 @@ func TerraformPlanAndExecute(workingDir string) error {
 	if err := TerraformExecApply(tf); err != nil {
 		return err
 	}
-	provideGuidanceAfterSuccess(tf.WorkingDir(), GenerateAwsCommandState.LaceworkProfile)
+	cli.OutputHuman(provideGuidanceAfterSuccess(tf.WorkingDir(), GenerateAwsCommandState.LaceworkProfile))
 
 	return nil
 }

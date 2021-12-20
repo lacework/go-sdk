@@ -162,7 +162,7 @@ This command can also be run in noninteractive mode however, only generation is 
 
 			// Output where code was generated
 			if !GenerateAwsCommandExtraState.TerraformApply {
-				provideGuidanceAfterExit(false, false, locationDir, "terraform")
+				cli.OutputHuman(provideGuidanceAfterExit(false, false, locationDir, "terraform"))
 			}
 
 			return nil
