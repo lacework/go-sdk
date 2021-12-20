@@ -206,6 +206,10 @@ func TestGenerationPartialExistingIamValues(t *testing.T) {
 		data := NewExistingIamRoleDetails("", "", "")
 		assert.False(t, data.IsPartial())
 	})
+	t.Run("nil existing iam roles should not be detected as partial", func(t *testing.T) {
+		data := ExistingIamRoleDetails{}
+		assert.False(t, data.IsPartial())
+	})
 	t.Run("completed existing iam roles should not be detected as partial", func(t *testing.T) {
 		data := NewExistingIamRoleDetails("test", "arn:partition:service:region:account-id:resource-id", "foo")
 		assert.False(t, data.IsPartial())

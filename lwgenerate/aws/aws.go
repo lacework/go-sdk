@@ -20,18 +20,22 @@ type ExistingIamRoleDetails struct {
 }
 
 func (e *ExistingIamRoleDetails) IsPartial() bool {
+	// If nil, return false
 	if e == nil {
 		return false
 	}
 
-	data := []string{e.Arn, e.Name, e.ExternalId}
-	keepData := []string{}
-	for _, d := range data {
-		if d != "" {
-			keepData = append(keepData, d)
-		}
+	// If all values are empty, return false
+	if e.Arn == "" && e.Name == "" && e.ExternalId == "" {
+		return false
 	}
-	return len(keepData) > 0 && len(keepData) < 3
+
+	// If all values are populated, return false
+	if e.Arn != "" && e.Name != "" && e.ExternalId != "" {
+		return false
+	}
+
+	return true
 }
 
 // Create new existing IAM role details

@@ -24,7 +24,7 @@ var (
 	installTerraformVersion  = "1.0.11"
 )
 
-type TerraformVersion struct {
+type terraformVersion struct {
 	Version string `json:"terraform_version"`
 }
 
@@ -56,7 +56,7 @@ func LocateOrInstallTerraform(forceInstall bool, workingDir string) (*tfexec.Ter
 		requiredVersion := requiredTerraformVersion
 		constraint, _ := semver.NewConstraint(requiredVersion)
 
-		// Extract tf version
+		// Extract tf version && check for unsupportedExistingVersion
 		out, err := exec.Command("terraform", "--version", "--json").Output()
 		if err != nil {
 			return nil,
@@ -64,34 +64,40 @@ func LocateOrInstallTerraform(forceInstall bool, workingDir string) (*tfexec.Ter
 					err,
 					fmt.Sprintf("failed to collect version from existing terraform install (%s)", execPath))
 		}
-		var data TerraformVersion
+
+		// If this version supports checking the version via --version --json, check if we can use it
+		var data terraformVersion
+		unsupportedVersionCheck := false
 		err = json.Unmarshal(out, &data)
 		if err != nil {
-			return nil,
-				errors.Wrap(
-					err,
-					fmt.Sprintf("failed to parse version from existing terraform install (%s)", execPath))
+			// If this version does not support checking version via  --version --json, report and install new
+			cli.OutputHuman(
+				"Existing Terraform version cannot be used, version doesn't meet requirement %s, installing short lived version\n",
+				requiredVersion)
+			unsupportedVersionCheck = true
 		}
 		cli.Log.Debugf("existing terraform version %s", data.Version)
 
 		// Parse into new semver
-		tfVersion, err := semver.NewVersion(data.Version)
-		if err != nil {
-			return nil,
-				errors.Wrap(
-					err,
-					fmt.Sprintf("version from existing terraform install is invalid (%s)", data.Version))
-		}
+		if !unsupportedVersionCheck {
+			tfVersion, err := semver.NewVersion(data.Version)
+			if err != nil {
+				return nil,
+					errors.Wrap(
+						err,
+						fmt.Sprintf("version from existing terraform install is invalid (%s)", data.Version))
+			}
 
-		// Test if it matches
-		existingVersionOk, _ = constraint.Validate(tfVersion)
-		if !existingVersionOk {
-			cli.OutputHuman(
-				"Existing Terraform version cannot be used, version %s doesn't meet requirement %s, installing short lived version\n",
-				data.Version,
-				requiredVersion)
+			// Test if it matches
+			existingVersionOk, _ = constraint.Validate(tfVersion)
+			if !existingVersionOk {
+				cli.OutputHuman(
+					"Existing Terraform version cannot be used, version %s doesn't meet requirement %s, installing short lived version\n",
+					data.Version,
+					requiredVersion)
+			}
+			cli.Log.Debug("using existing terraform install")
 		}
-		cli.Log.Debug("using existing terraform install")
 	}
 
 	if !existingVersionOk {
@@ -146,7 +152,7 @@ func createOrDestroy(create bool,
 	}
 }
 
-type tfPlanChangesSummary struct {
+type TfPlanChangesSummary struct {
 	plan    *tfjson.Plan
 	create  int
 	deleted int
@@ -157,7 +163,7 @@ type tfPlanChangesSummary struct {
 // used to display the results of a plan
 //
 // returns true if apply should run, false to exit
-func DisplayTerraformPlanChanges(tf *tfexec.Terraform, data tfPlanChangesSummary) (bool, error) {
+func DisplayTerraformPlanChanges(tf *tfexec.Terraform, data TfPlanChangesSummary) (bool, error) {
 	// Prompt for next steps
 	prompt := true
 	previewShown := false
@@ -210,7 +216,7 @@ func DisplayTerraformPlanChanges(tf *tfexec.Terraform, data tfPlanChangesSummary
 	return false, nil
 }
 
-func processTfPlanChangesSummary(tf *tfexec.Terraform) (*tfPlanChangesSummary, error) {
+func processTfPlanChangesSummary(tf *tfexec.Terraform) (*TfPlanChangesSummary, error) {
 	// Extract changes from tf plan
 	cli.StartProgress("Getting terraform plan details")
 	plan, err := tf.ShowPlanFile(context.Background(), "tfplan.json")
@@ -238,7 +244,7 @@ func processTfPlanChangesSummary(tf *tfexec.Terraform) (*tfPlanChangesSummary, e
 		}
 	}
 
-	return &tfPlanChangesSummary{
+	return &TfPlanChangesSummary{
 		plan:    plan,
 		create:  resourceCreate,
 		deleted: resourceDelete,
@@ -262,7 +268,7 @@ func TerraformInit(tf *tfexec.Terraform) error {
 //
 // - Run plan
 // - Get plan file details (returned)
-func TerraformExecPlan(tf *tfexec.Terraform) (*tfPlanChangesSummary, error) {
+func TerraformExecPlan(tf *tfexec.Terraform) (*TfPlanChangesSummary, error) {
 	// Plan
 	cli.StartProgress("Running terraform plan")
 	_, err := tf.Plan(context.Background(), tfexec.Out("tfplan.json"))
@@ -292,7 +298,7 @@ func TerraformExecApply(tf *tfexec.Terraform) error {
 }
 
 // Simple helper to prompt for next steps after TF plan
-func promptForTerraformNextSteps(previewShown *bool, data tfPlanChangesSummary) (int, error) {
+func promptForTerraformNextSteps(previewShown *bool, data TfPlanChangesSummary) (int, error) {
 	options := []string{
 		"Continue with Terraform Apply",
 	}
@@ -370,33 +376,30 @@ func TerraformPlanAndExecute(workingDir string) error {
 		return err
 	}
 
-	// If running in nonInteractive mode, dont run a plan or prompt to proceed; just proceed
-	if !cli.nonInteractive {
-		// Write plan
-		changes, err := TerraformExecPlan(tf)
-		if err != nil {
-			return err
-		}
+	// Write plan
+	changes, err := TerraformExecPlan(tf)
+	if err != nil {
+		return err
+	}
 
-		// Display changes and determine if apply should proceed
-		proceed, err := DisplayTerraformPlanChanges(tf, *changes)
-		if err != nil {
-			return err
-		}
+	// Display changes and determine if apply should proceed
+	proceed, err := DisplayTerraformPlanChanges(tf, *changes)
+	if err != nil {
+		return err
+	}
 
-		// If not proceed; display guidance on how to continue outside of this session
-		if !proceed {
-			provideGuidanceAfterExit(true, true, tf.WorkingDir(), tf.ExecPath())
-			return nil
-		}
+	// If not proceed; display guidance on how to continue outside of this session
+	if !proceed {
+		provideGuidanceAfterExit(true, true, tf.WorkingDir(), tf.ExecPath())
+		return nil
 	}
 
 	// Apply plan
 	if err := TerraformExecApply(tf); err != nil {
 		return err
 	}
-
 	provideGuidanceAfterSuccess(tf.WorkingDir(), GenerateAwsCommandState.LaceworkProfile)
+
 	return nil
 }
 
