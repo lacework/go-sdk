@@ -183,3 +183,25 @@ The generated code can be executed at any point in the future using the followin
 `, out)
 	})
 }
+
+// Test the feedback given after running terraform to completion (success)
+func TestGenerationTfExecutionSuccess(t *testing.T) {
+	t.Run("using default lacework profile", func(t *testing.T) {
+		out := provideGuidanceAfterSuccess("/tmp", "")
+		assert.Equal(t, `Lacework integration was successful! Terraform code saved in /tmp
+
+Use the Lacework CLI to view integration status:
+  lacework integration list
+
+`, out)
+	})
+	t.Run("using custom lacework profile", func(t *testing.T) {
+		out := provideGuidanceAfterSuccess("/tmp", "notdefault")
+		assert.Equal(t, `Lacework integration was successful! Terraform code saved in /tmp
+
+Use the Lacework CLI to view integration status:
+  lacework -p notdefault integration list
+
+`, out)
+	})
+}
