@@ -347,6 +347,10 @@ func awsConfigIsEmpty(g *aws.GenerateAwsTfConfigurationArgs) bool {
 
 func writeAwsGenerationArgsCache(a *aws.GenerateAwsTfConfigurationArgs) {
 	if !awsConfigIsEmpty(a) {
+		// If ExistingIamRole is partially set, don't write this to cache; the values won't work when loaded
+		if a.ExistingIamRole.IsPartial() {
+			a.ExistingIamRole = nil
+		}
 		cli.WriteAssetToCache(CachedAssetIacParams, time.Now().Add(time.Hour*1), a)
 	}
 }
