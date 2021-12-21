@@ -18,6 +18,8 @@ import (
 func TestGenerationTfInstallation(t *testing.T) {
 	if os.Getenv("CI") == "true" {
 		t.Run("forced installation should installed expected version", func(t *testing.T) {
+			toggleNonInteractive()
+			defer toggleNonInteractive()
 			dir, err := ioutil.TempDir("", "tf-install-test")
 			if err != nil {
 				panic(err)
@@ -35,6 +37,8 @@ func TestGenerationTfInstallation(t *testing.T) {
 			assert.NoError(t, err)
 		})
 		t.Run("existing terraform version should be located and used, if version is new enough", func(t *testing.T) {
+			toggleNonInteractive()
+			defer toggleNonInteractive()
 			dir, err := ioutil.TempDir("", "tf-install-test")
 			if err != nil {
 				panic(err)
@@ -67,6 +71,8 @@ func TestGenerationTfInstallation(t *testing.T) {
 			assert.NoError(t, err)
 		})
 		t.Run("installed version of terraform that is too old gets ephemeral installation", func(t *testing.T) {
+			toggleNonInteractive()
+			defer toggleNonInteractive()
 			dir, err := ioutil.TempDir("", "tf-install-test")
 			if err != nil {
 				panic(err)
@@ -104,6 +110,8 @@ func TestGenerationTfInstallation(t *testing.T) {
 			assert.NotEqual(t, installedTempPath, filepath.Dir(tf.ExecPath())) // We shouldn't be using the old version we installed
 		})
 		t.Run("installed version of terraform that is too old to support version checking gets ephemeral installation", func(t *testing.T) {
+			toggleNonInteractive()
+			defer toggleNonInteractive()
 			dir, err := ioutil.TempDir("", "tf-install-test")
 			if err != nil {
 				panic(err)
