@@ -139,22 +139,23 @@ This command can also be run in noninteractive mode however, only generation is 
 			})
 
 			if err != nil {
-				return errors.Wrap(err, "failed to run terraform execution")
-			}
-
-			// Execution pre-run check
-			ok, err = TerraformExecutePreRunCheck(dirname)
-			if err != nil {
-				return errors.Wrap(err, "failed to check for existing terraform state")
-			}
-
-			if !ok {
-				return errors.Wrap(err, "aborting to avoid overwriting existing terraform state")
+				return errors.Wrap(err, "failed to promopt for terraform execution")
 			}
 
 			// Execute
 			locationDir := filepath.Dir(location)
 			if GenerateAwsCommandExtraState.TerraformApply {
+				// Execution pre-run check
+				ok, err = TerraformExecutePreRunCheck(dirname)
+				if err != nil {
+					return errors.Wrap(err, "failed to check for existing terraform state")
+				}
+
+				if !ok {
+					cli.OutputHuman(provideGuidanceAfterExit(false, false, locationDir, "terraform"))
+					return nil
+				}
+
 				if err := TerraformPlanAndExecute(locationDir); err != nil {
 					return errors.Wrap(err, "failed to run terraform apply")
 				}
