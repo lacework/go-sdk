@@ -1,4 +1,4 @@
-//go:build configure || (configure && !linux)
+//go:build configure && windows
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
