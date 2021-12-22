@@ -342,11 +342,11 @@ func promptForTerraformNextSteps(previewShown *bool, data TfPlanChangesSummary) 
 func provideGuidanceAfterSuccess(workingDir string, laceworkProfile string) string {
 	out := new(strings.Builder)
 	fmt.Fprintf(out, "Lacework integration was successful! Terraform code saved in %s\n\n", workingDir)
-	fmt.Fprintln(out, "Use the Lacework CLI to view integration status:")
+	fmt.Fprintln(out, "To view integration status:")
 
-	laceworkCmd := "  lacework integration list\n\n"
+	laceworkCmd := "    lacework integration list\n\n"
 	if laceworkProfile != "" {
-		laceworkCmd = fmt.Sprintf("  lacework -p %s integration list\n\n", laceworkProfile)
+		laceworkCmd = fmt.Sprintf("    lacework -p %s integration list\n\n", laceworkProfile)
 	}
 	fmt.Fprint(out, laceworkCmd)
 
