@@ -160,6 +160,32 @@ type TfPlanChangesSummary struct {
 	replace int
 }
 
+// buildHumanReadablePlannedActions creates a summarized listing of expected changes from Terraform
+func buildHumanReadablePlannedActions(workingDir string, execPath string, data []*tfjson.ResourceChange) string {
+	outputString := strings.Builder{}
+	outputString.WriteString("Resource details: \n")
+
+	for _, c := range data {
+		outputString.WriteString(fmt.Sprintf("  %s.%s will be %s\n", c.Type, c.Name,
+			createOrDestroy(
+				c.Change.Actions.Create(),
+				c.Change.Actions.Delete(),
+				c.Change.Actions.Update(),
+				c.Change.Actions.Read(),
+				c.Change.Actions.NoOp(),
+				c.Change.Actions.Replace(),
+				c.Change.Actions.CreateBeforeDestroy(),
+				c.Change.Actions.DestroyBeforeCreate(),
+			),
+		),
+		)
+	}
+	outputString.WriteString("\n")
+	outputString.WriteString(fmt.Sprintf("More details can be viewed by running:\n\n  cd %s\n  %s show tfplan.json\n", workingDir, execPath))
+	outputString.WriteString("\n")
+	return outputString.String()
+}
+
 // used to display the results of a plan
 //
 // returns true if apply should run, false to exit
@@ -178,25 +204,7 @@ func DisplayTerraformPlanChanges(tf *tfexec.Terraform, data TfPlanChangesSummary
 
 		switch {
 		case id == 1 && !previewShown:
-			cli.OutputHuman("Resource details: \n")
-			for _, c := range data.plan.ResourceChanges {
-				cli.OutputHuman(fmt.Sprintf("  %s.%s will be %s\n", c.Type, c.Name,
-					createOrDestroy(
-						c.Change.Actions.Create(),
-						c.Change.Actions.Delete(),
-						c.Change.Actions.Update(),
-						c.Change.Actions.Read(),
-						c.Change.Actions.NoOp(),
-						c.Change.Actions.Replace(),
-						c.Change.Actions.CreateBeforeDestroy(),
-						c.Change.Actions.DestroyBeforeCreate(),
-					),
-				),
-				)
-			}
-			cli.OutputHuman("\n")
-			cli.OutputHuman("More details can be viewed by running:\n\n  cd %s\n  %s show tfplan.json\n", tf.WorkingDir(), tf.ExecPath())
-			cli.OutputHuman("\n")
+			cli.OutputHuman(buildHumanReadablePlannedActions(tf.WorkingDir(), tf.ExecPath(), data.plan.ResourceChanges))
 		default:
 			answer = id
 			prompt = false
@@ -216,15 +224,7 @@ func DisplayTerraformPlanChanges(tf *tfexec.Terraform, data TfPlanChangesSummary
 	return false, nil
 }
 
-func processTfPlanChangesSummary(tf *tfexec.Terraform) (*TfPlanChangesSummary, error) {
-	// Extract changes from tf plan
-	cli.StartProgress("Getting terraform plan details")
-	plan, err := tf.ShowPlanFile(context.Background(), "tfplan.json")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to inspect terraform plan")
-	}
-	cli.StopProgress()
-
+func parseTfPlanOutput(plan *tfjson.Plan) *TfPlanChangesSummary {
 	// Build output of changes
 	resourceCreate := 0
 	resourceDelete := 0
@@ -234,13 +234,13 @@ func processTfPlanChangesSummary(tf *tfexec.Terraform) (*TfPlanChangesSummary, e
 	for _, c := range plan.ResourceChanges {
 		switch {
 		case c.Change.Actions.Create():
-			resourceCreate += 1
+			resourceCreate++
 		case c.Change.Actions.Delete():
-			resourceDelete += 1
+			resourceDelete++
 		case c.Change.Actions.Update():
-			resourceUpdate += 1
+			resourceUpdate++
 		case c.Change.Actions.Replace():
-			resourceReplace += 1
+			resourceReplace++
 		}
 	}
 
@@ -250,7 +250,19 @@ func processTfPlanChangesSummary(tf *tfexec.Terraform) (*TfPlanChangesSummary, e
 		deleted: resourceDelete,
 		update:  resourceDelete,
 		replace: resourceReplace,
-	}, nil
+	}
+}
+
+func processTfPlanChangesSummary(tf *tfexec.Terraform) (*TfPlanChangesSummary, error) {
+	// Extract changes from tf plan
+	cli.StartProgress("Getting terraform plan details")
+	plan, err := tf.ShowPlanFile(context.Background(), "tfplan.json")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to inspect terraform plan")
+	}
+	cli.StopProgress()
+
+	return parseTfPlanOutput(plan), nil
 }
 
 func TerraformInit(tf *tfexec.Terraform) error {
