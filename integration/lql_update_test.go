@@ -40,7 +40,7 @@ func TestQueryUpdateEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "update")
 	assert.Contains(t, out.String(), "Type a query to update")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to update query: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to update query:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 

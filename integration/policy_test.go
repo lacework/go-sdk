@@ -107,7 +107,7 @@ func TestPolicyCreateEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "create")
 	assert.Contains(t, out.String(), "Type a policy to create")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to create policy: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to create policy:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
@@ -351,7 +351,7 @@ func TestPolicyUpdateEditor(t *testing.T) {
 
 	assert.Contains(t, out.String(), "Type a policy to update")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to update policy: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to update policy:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
