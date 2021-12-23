@@ -1,4 +1,4 @@
-//go:build generation || (!windows && generation)
+//go:build !windows && generation
 
 package integration
 

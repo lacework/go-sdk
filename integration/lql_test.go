@@ -89,14 +89,14 @@ func TestQueryRunEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "run")
 	assert.Contains(t, out.String(), "Type a query to run")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to run query: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to run query:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 
 	// validate_only
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "run", "--validate_only")
 	assert.Contains(t, out.String(), "Type a query to validate")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to validate query: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to validate query:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
