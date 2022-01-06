@@ -197,6 +197,25 @@ func TestGenerationFailureWithIncompleteExistingIam(t *testing.T) {
 	assert.Equal(t, iamErrorString, err.Error())
 }
 
+func TestGenerationPartialExistingIamValues(t *testing.T) {
+	t.Run("partial existing iam roles should be detected", func(t *testing.T) {
+		data := NewExistingIamRoleDetails("test", "", "foo")
+		assert.True(t, data.IsPartial())
+	})
+	t.Run("emtpy existing iam roles should not be detected as partial", func(t *testing.T) {
+		data := NewExistingIamRoleDetails("", "", "")
+		assert.False(t, data.IsPartial())
+	})
+	t.Run("nil existing iam roles should not be detected as partial", func(t *testing.T) {
+		data := ExistingIamRoleDetails{}
+		assert.False(t, data.IsPartial())
+	})
+	t.Run("completed existing iam roles should not be detected as partial", func(t *testing.T) {
+		data := NewExistingIamRoleDetails("test", "arn:partition:service:region:account-id:resource-id", "foo")
+		assert.False(t, data.IsPartial())
+	})
+}
+
 var requiredProviders = `terraform {
   required_providers {
     lacework = {

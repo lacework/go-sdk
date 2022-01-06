@@ -19,6 +19,25 @@ type ExistingIamRoleDetails struct {
 	ExternalId string
 }
 
+func (e *ExistingIamRoleDetails) IsPartial() bool {
+	// If nil, return false
+	if e == nil {
+		return false
+	}
+
+	// If all values are empty, return false
+	if e.Arn == "" && e.Name == "" && e.ExternalId == "" {
+		return false
+	}
+
+	// If all values are populated, return false
+	if e.Arn != "" && e.Name != "" && e.ExternalId != "" {
+		return false
+	}
+
+	return true
+}
+
 // Create new existing IAM role details
 func NewExistingIamRoleDetails(name string, arn string, externalId string) *ExistingIamRoleDetails {
 	return &ExistingIamRoleDetails{

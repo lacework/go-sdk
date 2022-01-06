@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/imdario/mergo"
@@ -18,6 +19,18 @@ type AwsGenerateCommandExtraState struct {
 	Output                string
 	UseExistingCloudtrail bool
 	AwsSubAccounts        []string
+	TerraformApply        bool
+}
+
+func (a *AwsGenerateCommandExtraState) isEmpty() bool {
+	return a.Output == "" && !a.UseExistingCloudtrail && len(a.AwsSubAccounts) == 0 && !a.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided its not empty
+func (a *AwsGenerateCommandExtraState) writeCache() {
+	if !a.isEmpty() {
+		cli.WriteAssetToCache(CachedAssetAwsExtraState, time.Now().Add(time.Hour*1), a)
+	}
 }
 
 var (
@@ -120,37 +133,37 @@ This command can also be run in noninteractive mode however, only generation is 
 			}
 
 			// Prompt to execute
-			execute := false
 			err = SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-				Prompt:   &survey.Confirm{Default: execute, Message: QuestionRunTfPlan},
-				Response: &execute,
+				Prompt:   &survey.Confirm{Default: GenerateAwsCommandExtraState.TerraformApply, Message: QuestionRunTfPlan},
+				Response: &GenerateAwsCommandExtraState.TerraformApply,
 			})
 
 			if err != nil {
-				return errors.Wrap(err, "failed to run terraform execution")
-			}
-
-			// Execution pre-run check
-			ok, err = TerraformExecutePreRunCheck(dirname)
-			if err != nil {
-				return errors.Wrap(err, "failed to check for existing terraform state")
-			}
-
-			if !ok {
-				return errors.Wrap(err, "aborting to avoid overwriting existing terraform state")
+				return errors.Wrap(err, "failed to promopt for terraform execution")
 			}
 
 			// Execute
 			locationDir := filepath.Dir(location)
-			if execute {
+			if GenerateAwsCommandExtraState.TerraformApply {
+				// Execution pre-run check
+				ok, err = TerraformExecutePreRunCheck(dirname)
+				if err != nil {
+					return errors.Wrap(err, "failed to check for existing terraform state")
+				}
+
+				if !ok {
+					cli.OutputHuman(provideGuidanceAfterExit(false, false, locationDir, "terraform"))
+					return nil
+				}
+
 				if err := TerraformPlanAndExecute(locationDir); err != nil {
 					return errors.Wrap(err, "failed to run terraform apply")
 				}
 			}
 
 			// Output where code was generated
-			if !execute {
-				provideGuidanceAfterExit(false, false, locationDir, "terraform")
+			if !GenerateAwsCommandExtraState.TerraformApply {
+				cli.OutputHuman(provideGuidanceAfterExit(false, false, locationDir, "terraform"))
 			}
 
 			return nil
@@ -320,6 +333,12 @@ func init() {
 		"aws_subaccount",
 		[]string{},
 		"configure an additional aws account; value format must be <aws profile>:<region>")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandExtraState.TerraformApply,
+		"apply",
+		false,
+		"run terraform apply without executing plan or prompting",
+	)
 
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)
