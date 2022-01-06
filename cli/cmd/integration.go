@@ -105,19 +105,22 @@ var (
 				return errors.New(msg)
 			}
 
-			integrationType, _ := api.FindIntegrationType(integration.Data[0].Type)
-			var resp api.V2CommonIntegration
-			err = cli.LwApi.V2.Schemas.GetService(integrationType.Schema()).Get(args[0], &resp)
-
-			if err != nil {
-				cli.Log.Debugw("unable to get integration service", "error", err.Error())
-			}
-
-			if resp.Data.State != nil {
-				integration.Data[0].State.Details = resp.Data.State.Details
-			}
 			if cli.JSONOutput() {
 				return cli.OutputJSON(integration.Data[0])
+			}
+
+			integrationType, supported := api.FindIntegrationType(integration.Data[0].Type)
+			if supported {
+				var resp api.V2CommonIntegration
+				err = cli.LwApi.V2.Schemas.GetService(integrationType.Schema()).Get(args[0], &resp)
+
+				if err != nil {
+					cli.Log.Debugw("unable to get integration service", "error", err.Error())
+				}
+
+				if resp.Data.State != nil {
+					integration.Data[0].State.Details = resp.Data.State.Details
+				}
 			}
 
 			cli.OutputHuman(
@@ -126,6 +129,7 @@ var (
 					integrationsToTable(integration.Data),
 				),
 			)
+
 			cli.OutputHuman("\n")
 			cli.OutputHuman(buildIntDetailsTable(integration.Data))
 			return nil
