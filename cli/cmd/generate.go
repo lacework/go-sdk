@@ -38,11 +38,33 @@ var (
 		Long:    "Create IaC content for various different cloud environments and configurations",
 	}
 
+	// Azure command
+	generateAzureTfCommand = &cobra.Command{
+		Use:   "az",
+		Short: "Generate code for azure environment",
+		Long:  "Generate Terraform code for deploying into a new Azure environment.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Generate TF Code
+			cli.StartProgress("Generating Azure Terraform Code...")
+			return nil
+		},
+	}
+	// GCP command
+	generateGcpTfCommand = &cobra.Command{
+		Use:   "gcloud",
+		Short: "Generate code for gcp environment",
+		Long:  "Generate Terraform code for deploying into a new GCP environment.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Generate TF Code
+			cli.StartProgress("Generating GCP Terraform Code...")
+			return nil
+		},
+	}
 	// aws command is used to generate TF code for aws
 	generateAwsTfCommand = &cobra.Command{
 		Use:   "aws",
 		Short: "Generate code for aws environment",
-		Long:  "Genereate Terraform code for deploying into a new AWS environment.",
+		Long:  "Generate Terraform code for deploying into a new AWS environment.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Generate TF Code
 			cli.StartProgress("Generating Terraform Code...")
@@ -309,6 +331,8 @@ func init() {
 
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)
+	generateTfCommand.AddCommand(generateAzureTfCommand)
+	generateTfCommand.AddCommand(generateGcpTfCommand)
 }
 
 type SurveyQuestionWithValidationArgs struct {
