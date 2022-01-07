@@ -33,8 +33,9 @@ const (
 	ContainerRegistries
 	CloudAccounts
 	ResourceGroups
-	TeamMembers
 	ReportRules
+	TeamMembers
+	VulnerabilityExceptions
 )
 
 func (svc *SchemasService) GetService(schemaName integrationSchema) V2Service {
