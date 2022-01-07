@@ -22,6 +22,25 @@ func NewExistingServiceAccountDetails(name string, privateKey string) *ExistingS
 	}
 }
 
+func (e *ExistingServiceAccountDetails) IsPartial() bool {
+	// If nil, return false
+	if e == nil {
+		return false
+	}
+
+	// If all values are empty, return false
+	if e.Name == "" && e.PrivateKey == "" {
+		return false
+	}
+
+	// If all values are populated, return false
+	if e.Name != "" && e.PrivateKey != "" {
+		return false
+	}
+
+	return true
+}
+
 type GenerateGcpTfConfigurationArgs struct {
 	// Should we configure AuditLog integration in LW?
 	AuditLog bool

@@ -30,6 +30,30 @@ func (a *AwsGenerateCommandExtraState) writeCache() {
 	}
 }
 
+type GcpGenerateCommandExtraState struct {
+	Output                     string
+	ConfigureNewBucketSettings bool
+	UseExistingServiceAccount  bool
+	UseExistingBucket          bool
+	UseExistingSink            bool
+	TerraformApply             bool
+}
+
+func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
+	return gcp.Output == "" &&
+		!gcp.UseExistingServiceAccount &&
+		!gcp.UseExistingBucket &&
+		!gcp.UseExistingSink &&
+		!gcp.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (gcp *GcpGenerateCommandExtraState) writeCache() {
+	if !gcp.isEmpty() {
+		cli.WriteAssetToCache(CachedAssetGcpExtraState, time.Now().Add(time.Hour*1), gcp)
+	}
+}
+
 var (
 	QuestionRunTfPlan        = "Run Terraform plan now?"
 	QuestionUsePreviousCache = "Previous IaC generation detected, load cached values?"
@@ -108,8 +132,20 @@ func init() {
 		"run terraform apply without executing plan or prompting",
 	)
 
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.ServiceAccountCredentials,
+		"service_account_credentials",
+		"",
+		"specify a Service Account credentials JSON path (leave blank to make use of google credential ENV vars)")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.BucketRegion,
+		"bucket_region",
+		"",
+		"specify gcp bucket region")
+
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)
+	generateTfCommand.AddCommand(generateGcpTfCommand)
 }
 
 type SurveyQuestionWithValidationArgs struct {

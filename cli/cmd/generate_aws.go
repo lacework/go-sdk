@@ -427,7 +427,7 @@ func promptCustomizeAwsOutputLocation(extraState *AwsGenerateCommandExtraState) 
 	return nil
 }
 
-func askAdvancedOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
+func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
 	answer := ""
 
 	// Prompt for options
@@ -444,7 +444,7 @@ func askAdvancedOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *
 		options = append(options, AwsAdvancedOptLocation, AwsAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
-				Message: "Which options would you like to enable?",
+				Message: "Which options would you like to configure?",
 				Options: options,
 			},
 			Response: &answer,
@@ -582,7 +582,7 @@ func promptAwsGenerate(
 
 	// Keep prompting for advanced options until the say done
 	if askAdvanced {
-		if err := askAdvancedOptions(config, extraState); err != nil {
+		if err := askAdvancedAwsOptions(config, extraState); err != nil {
 			return err
 		}
 	}
