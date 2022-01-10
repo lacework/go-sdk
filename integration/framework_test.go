@@ -162,6 +162,7 @@ func findLaceworkCLIBinary() string {
 
 func createTOMLConfigFromCIvars() string {
 	if os.Getenv("CI_ACCOUNT") == "" ||
+		os.Getenv("CI_V2_ACCOUNT") == "" ||
 		os.Getenv("CI_API_KEY") == "" ||
 		os.Getenv("CI_API_SECRET") == "" {
 		log.Fatal(missingCIEnvironmentVariables())
@@ -174,7 +175,8 @@ func createTOMLConfigFromCIvars() string {
 
 	configFile := filepath.Join(dir, ".lacework.toml")
 	c := []byte(`[default]
-account = '` + os.Getenv("CI_ACCOUNT") + `'
+account = '` + os.Getenv("CI_V2_ACCOUNT") + `'
+subaccount = '` + os.Getenv("CI_ACCOUNT") + `'
 api_key = '` + os.Getenv("CI_API_KEY") + `'
 api_secret = '` + os.Getenv("CI_API_SECRET") + `'
 version = 2
@@ -209,11 +211,13 @@ func createDummyTOMLConfig() string {
 account = 'dummy'
 api_key = 'DUMMY_1234567890abcdefg'
 api_secret = '_superdummysecret'
+version = 2
 
 [test]
 account = 'test.account'
 api_key = 'INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00'
 api_secret = '_00000000000000000000000000000000'
+version = 2
 
 [v2]
 account = 'v2.config'
@@ -226,11 +230,13 @@ version = 2
 account = 'integration'
 api_key = 'INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70'
 api_secret = '_1234abdc00ff11vv22zz33xyz1234abc'
+version = 2
 
 [dev]
 account = 'dev.example'
 api_key = 'DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC000'
 api_secret = '_11111111111111111111111111111111'
+version = 2
 `)
 	err = ioutil.WriteFile(configFile, c, 0644)
 	if err != nil {
@@ -260,11 +266,16 @@ func storeFileInCircleCI(f string) {
 
 func laceworkIntegrationTestClient() (*api.Client, error) {
 	fmt.Println("Setting up host tests")
-	account := os.Getenv("CI_ACCOUNT")
+	account := os.Getenv("CI_V2_ACCOUNT")
+	subaccount := os.Getenv("CI_ACCOUNT")
 	key := os.Getenv("CI_API_KEY")
 	secret := os.Getenv("CI_API_SECRET")
 
-	lacework, err := api.NewClient(account, api.WithApiV2(), api.WithApiKeys(key, secret))
+	lacework, err := api.NewClient(account,
+		api.WithApiKeys(key, secret),
+		api.WithSubaccount(subaccount),
+		api.WithApiV2(),
+	)
 	if err != nil {
 		fmt.Println(err)
 	}
