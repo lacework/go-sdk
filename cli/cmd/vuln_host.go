@@ -300,6 +300,17 @@ To find the machine id from hosts in your environment, use the command:
 Grab a CVE id and feed it to the command:
 
     lacework vulnerability host list-hosts my_cve_id`,
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if vulCmdState.Csv {
+				cli.EnableCSVOutput()
+
+				// when rendering csv output, default to details since there is no output with less verbosity
+				if !vulCmdState.Details && !vulCmdState.Packages {
+					vulCmdState.Details = true
+				}
+			}
+			return nil
+		},
 		RunE: func(c *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
 				return err
@@ -405,6 +416,7 @@ func init() {
 	setCsvFlag(
 		vulHostListCvesCmd.Flags(),
 		vulHostListHostsCmd.Flags(),
+		vulHostShowAssessmentCmd.Flags(),
 	)
 
 	// add online flag to host list-hosts command
@@ -697,10 +709,29 @@ func hostVulnHostDetailsMainReportTable(assessment api.HostVulnHostAssessment) s
 	return mainBldr.String()
 }
 
+func showPackages() bool {
+	return vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages || vulCmdState.Active || vulCmdState.Severity != ""
+}
+
+func buildVulnHostsDetailsTableCSV(filteredCves []api.HostVulnCVE) ([]string, [][]string) {
+	if !showPackages() {
+		return nil, nil
+	}
+
+	if vulCmdState.Packages {
+		packages, _ := hostVulnPackagesTable(filteredCves, false)
+		return []string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status"}, packages
+	}
+
+	rows := hostVulnCVEsTableForHostViewCSV(filteredCves)
+	return []string{"CVE ID", "Severity", "Score", "Package", "Package Namespace", "Current Version",
+		"Fix Version", "Pkg Status", "First Seen", "Last Status Update", "Vuln Status"}, rows
+}
+
 func buildVulnHostsDetailsTable(filteredCves []api.HostVulnCVE) string {
 	mainBldr := &strings.Builder{}
 
-	if vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages || vulCmdState.Active || vulCmdState.Severity != "" {
+	if showPackages() {
 		if vulCmdState.Packages {
 			packages, filtered := hostVulnPackagesTable(filteredCves, false)
 			// if the user wants to show only vulnerabilities of active packages
@@ -750,6 +781,34 @@ func buildVulnHostsDetailsTable(filteredCves []api.HostVulnCVE) string {
 	}
 
 	return mainBldr.String()
+}
+
+func hostVulnCVEsTableForHostViewCSV(cves []api.HostVulnCVE) [][]string {
+	var out [][]string
+	for _, cve := range cves {
+		for _, pkg := range cve.Packages {
+			out = append(out, []string{
+				cve.ID,
+				pkg.Severity,
+				pkg.CvssScore,
+				pkg.Name,
+				pkg.Namespace,
+				pkg.Version,
+				pkg.FixedVersion,
+				pkg.PackageStatus,
+				pkg.FirstSeenTime.UTC().String(),
+				cve.Summary.LastEvaluationTime.UTC().String(),
+				pkg.VulnerabilityStatus,
+			})
+		}
+	}
+
+	// order by severity
+	sort.Slice(out, func(i, j int) bool {
+		return severityOrder(out[i][1]) < severityOrder(out[j][1])
+	})
+
+	return out
 }
 
 func hostVulnCVEsTableForHostView(cves []api.HostVulnCVE) [][]string {
@@ -1021,15 +1080,19 @@ func buildVulnHostReports(assessment api.HostVulnHostAssessment) error {
 	}
 
 	var (
-		mainReport             = hostVulnHostDetailsMainReportTable(assessment)
-		filteredCves, filtered = filterHostCVEsTable(assessment.CVEs)
-		detailsReport          = buildVulnHostsDetailsTable(filteredCves)
+		mainReport                  = hostVulnHostDetailsMainReportTable(assessment)
+		filteredCves, filtered      = filterHostCVEsTable(assessment.CVEs)
+		detailsReport               = buildVulnHostsDetailsTable(filteredCves)
+		csvHeader, csvDetailsReport = buildVulnHostsDetailsTableCSV(filteredCves)
 	)
 	assessment.CVEs = filteredCves
 
-	if cli.JSONOutput() {
+	switch {
+	case cli.JSONOutput():
 		return cli.OutputJSON(assessment)
-	} else {
+	case cli.CSVOutput():
+		return cli.OutputCSV(csvHeader, csvDetailsReport)
+	default:
 		cli.OutputHuman(mainReport)
 		cli.OutputHuman(detailsReport)
 		if filtered != "" {

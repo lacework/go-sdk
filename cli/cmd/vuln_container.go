@@ -145,6 +145,13 @@ pass --start and --end to specify a custom time range. You can also pass --activ
 to filter on active containers in your environment, as well as pass --fixable to
 filter on containers with vulnerabilities that have fixes available.`,
 		Args: cobra.NoArgs,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if vulCmdState.Csv {
+				cli.EnableCSVOutput()
+			}
+
+			return nil
+		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				response api.VulnContainerAssessmentsResponse
@@ -199,20 +206,21 @@ filter on containers with vulnerabilities that have fixes available.`,
 				return cli.OutputJSON(filteredAssessments)
 			}
 
+			// Build data
 			rows := vulAssessmentsToTable(filteredAssessments)
+			headers := []string{"Registry", "Repository", "Last Scan", "Status", "Containers", "Vulnerabilities", "Image Digest"}
 
+			switch {
 			// if the user wants to show only assessments of containers running
 			// and we don't have any, show a friendly message
-			if len(rows) == 0 {
+			case len(rows) == 0:
 				cli.OutputHuman(buildContainerAssessmentsError())
-			} else {
-				cli.OutputHuman(
-					renderSimpleTable(
-						[]string{"Registry", "Repository", "Last Scan", "Status",
-							"Containers", "Vulnerabilities", "Image Digest"},
-						rows,
-					),
-				)
+			case cli.CSVOutput():
+				if err := cli.OutputCSV(headers, rows); err != nil {
+					return errors.Wrap(err, "failed to create csv output")
+				}
+			default:
+				cli.OutputHuman(renderSimpleTable(headers, rows))
 				if !vulCmdState.Active {
 					cli.OutputHuman(
 						"\nTry adding '--active' to only show assessments of containers actively running with vulnerabilities.\n",
@@ -223,6 +231,7 @@ filter on containers with vulnerabilities that have fixes available.`,
 					)
 				}
 			}
+
 			return nil
 		},
 	}
@@ -246,6 +255,18 @@ To request an on-demand vulnerability scan:
 
     lacework vulnerability container scan <registry> <repository> <tag|digest>`,
 		Args: cobra.ExactArgs(1),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if vulCmdState.Csv {
+				cli.EnableCSVOutput()
+
+				// If --details or --packages is not passed, csv outputs nothing; defaulting to --details
+				if !vulCmdState.Details && !vulCmdState.Packages {
+					vulCmdState.Details = true
+				}
+			}
+
+			return nil
+		},
 		RunE: func(c *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
 				return err
@@ -337,6 +358,11 @@ func init() {
 		vulContainerScanCmd.Flags(),
 		vulContainerScanStatusCmd.Flags(),
 		vulContainerShowAssessmentCmd.Flags(),
+	)
+
+	setCsvFlag(
+		vulContainerShowAssessmentCmd.Flags(),
+		vulContainerListAssessmentsCmd.Flags(),
 	)
 
 	vulContainerShowAssessmentCmd.Flags().BoolVar(
@@ -560,6 +586,20 @@ For more information about supported distributions, visit:
 	return nil
 }
 
+func buildVulnerabilityDetailsReportCSV(details vulnerabilityDetailsReport) ([]string, [][]string) {
+	if !(vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled()) {
+		return nil, nil
+	}
+
+	if vulCmdState.Packages {
+		return []string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version"},
+			vulContainerImagePackagesToTable(details.Packages)
+	}
+
+	return []string{"CVE ID", "Severity", "CVSSv2", "CVSSv3", "Package", "Current Version",
+		"Fix Version", "Introduced in Layer"}, vulContainerImageLayersToCSV(details.VulnerabilityDetails)
+}
+
 func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) string {
 	report := &strings.Builder{}
 
@@ -652,6 +692,8 @@ type vulnTable struct {
 	CurrentVersion string
 	FixVersion     string
 	CreatedBy      string
+	CVSSv2Score    float64
+	CVSSv3Score    float64
 }
 
 type filteredImageTable struct {
@@ -772,6 +814,8 @@ func filterVulContainerImageLayers(image *api.VulnContainerImage) filteredImageT
 					CurrentVersion: pkg.Version,
 					FixVersion:     vul.FixVersion,
 					CreatedBy:      createdBy,
+					CVSSv2Score:    vul.CVSSv2Score(),
+					CVSSv3Score:    vul.CVSSv3Score(),
 				})
 
 				filteredPkg.Vulnerabilities = append(filteredPkg.Vulnerabilities, vul)
@@ -790,6 +834,28 @@ func filterVulContainerImageLayers(image *api.VulnContainerImage) filteredImageT
 		TotalVulnerabilitiesShowing: len(vulns),
 		TotalVulnerabilities:        vulnsCount,
 		ImageLayers:                 filteredImageLayers}
+}
+
+func vulContainerImageLayersToCSV(imageTable filteredImageTable) [][]string {
+	var out [][]string
+	for _, vuln := range imageTable.Vulnerabilities {
+		out = append(out, []string{
+			vuln.Name,
+			vuln.Severity,
+			strconv.FormatFloat(vuln.CVSSv2Score, 'f', 1, 64),
+			strconv.FormatFloat(vuln.CVSSv3Score, 'f', 1, 64),
+			vuln.PackageName,
+			vuln.CurrentVersion,
+			vuln.FixVersion,
+			vuln.CreatedBy,
+		})
+	}
+
+	sort.Slice(out, func(i, j int) bool {
+		return severityOrder(out[i][1]) < severityOrder(out[j][1])
+	})
+
+	return out
 }
 
 func vulContainerImageLayersToTable(imageTable filteredImageTable) [][]string {
@@ -969,6 +1035,9 @@ func vulSummaryFromAssessment(assessment *api.VulnContainerAssessmentSummary) (s
 	summary = addToAssessmentSummary(summary, assessment.NumVulnerabilitiesSeverity5, "Info")
 
 	if len(summary) == 0 {
+		if cli.CSVOutput() {
+			return "None", false
+		}
 		return fmt.Sprintf("None! Time for %s", randomEmoji()), false
 	}
 
