@@ -270,7 +270,10 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 			attrs["alias"] = "main"
 		}
 
-		provider, err := lwgenerate.NewProvider("aws", lwgenerate.HclProviderWithAttributes(attrs)).ToBlock()
+		provider, err := lwgenerate.NewProvider(
+			"aws",
+			lwgenerate.HclProviderWithAttributes(attrs),
+		).ToBlock()
 		if err != nil {
 			return nil, err
 		}
@@ -285,7 +288,10 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 				"profile": subaccount.AwsProfile,
 				"region":  subaccount.AwsRegion,
 			}
-			providerBlock, err := lwgenerate.NewProvider("aws", lwgenerate.HclProviderWithAttributes(attrs)).ToBlock()
+			providerBlock, err := lwgenerate.NewProvider(
+				"aws",
+				lwgenerate.HclProviderWithAttributes(attrs),
+			).ToBlock()
 
 			if err != nil {
 				return nil, err
@@ -300,7 +306,8 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 
 func createLaceworkProvider(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, error) {
 	if args.LaceworkProfile != "" {
-		return lwgenerate.NewProvider("lacework",
+		return lwgenerate.NewProvider(
+			"lacework",
 			lwgenerate.HclProviderWithAttributes(map[string]interface{}{"profile": args.LaceworkProfile}),
 		).ToBlock()
 	}
@@ -318,10 +325,10 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 		}
 
 		moduleBlock, err := lwgenerate.NewModule(
-				"aws_config",
-				lwgenerate.AwsConfigSource,
-				append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigVersion))...
-			).ToBlock()
+			"aws_config",
+			lwgenerate.AwsConfigSource,
+			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigVersion))...,
+		).ToBlock()
 
 		if err != nil {
 			return nil, err
@@ -330,7 +337,9 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 
 		// Add sub accounts
 		for _, subaccount := range args.SubAccounts {
-			configModule, err := lwgenerate.NewModule(fmt.Sprintf("aws_config_%s", subaccount.AwsProfile),
+			configModule, err := lwgenerate.NewModule(fmt.Sprintf(
+				"aws_config_%s",
+				subaccount.AwsProfile),
 				lwgenerate.AwsConfigSource,
 				lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigVersion),
 				lwgenerate.HclModuleWithProviderDetails(map[string]string{
@@ -393,7 +402,11 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 			lwgenerate.HclModuleWithAttributes(attributes),
 		)
 
-		return lwgenerate.NewModule("main_cloudtrail", lwgenerate.AwsCloudTrailSource, modDetails...).ToBlock()
+		return lwgenerate.NewModule(
+			"main_cloudtrail",
+			lwgenerate.AwsCloudTrailSource,
+			modDetails...,
+		).ToBlock()
 	}
 
 	return nil, nil

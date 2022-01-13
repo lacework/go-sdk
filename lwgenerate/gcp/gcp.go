@@ -336,9 +336,12 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 
 func createRequiredProviders() (*hclwrite.Block, error) {
 	return lwgenerate.CreateRequiredProviders(
-		lwgenerate.NewRequiredProvider("lacework",
+		lwgenerate.NewRequiredProvider(
+			"lacework",
 			lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
-			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.LaceworkProviderVersion)))
+			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.LaceworkProviderVersion),
+		),
+	)
 }
 
 func createGcpProvider(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
@@ -354,7 +357,10 @@ func createGcpProvider(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block,
 			attrs["project"] = args.GcpProjectId
 		}
 
-		provider, err := lwgenerate.NewProvider("google", lwgenerate.HclProviderWithAttributes(attrs)).ToBlock()
+		provider, err := lwgenerate.NewProvider(
+			"google",
+			lwgenerate.HclProviderWithAttributes(attrs),
+		).ToBlock()
 		if err != nil {
 			return nil, err
 		}
@@ -367,7 +373,8 @@ func createGcpProvider(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block,
 
 func createLaceworkProvider(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, error) {
 	if args.LaceworkProfile != "" {
-		return lwgenerate.NewProvider("lacework",
+		return lwgenerate.NewProvider(
+			"lacework",
 			lwgenerate.HclProviderWithAttributes(map[string]interface{}{"profile": args.LaceworkProfile}),
 		).ToBlock()
 	}
@@ -403,8 +410,11 @@ func createConfig(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, erro
 			lwgenerate.HclModuleWithAttributes(attributes),
 		)
 
-		moduleBlock, err := lwgenerate.NewModule(configModuleName, lwgenerate.GcpConfigSource,
-			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.GcpConfigVersion))...).ToBlock()
+		moduleBlock, err := lwgenerate.NewModule(
+			configModuleName,
+			lwgenerate.GcpConfigSource,
+			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.GcpConfigVersion))...,
+		).ToBlock()
 
 		if err != nil {
 			return nil, err
@@ -500,8 +510,11 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			lwgenerate.HclModuleWithAttributes(attributes),
 		)
 
-		return lwgenerate.NewModule(auditLogModuleName, lwgenerate.GcpAuditLogSource,
-			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.GcpAuditLogVersion))...).ToBlock()
+		return lwgenerate.NewModule(
+			auditLogModuleName,
+			lwgenerate.GcpAuditLogSource,
+			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.GcpAuditLogVersion))...,
+		).ToBlock()
 	}
 
 	return nil, nil
