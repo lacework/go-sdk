@@ -19,6 +19,7 @@
 package api_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -147,6 +148,25 @@ func TestContainerRegistriesGhcrUpdate(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, intgGUID, response.Data.IntgGuid)
 	assert.Equal(t, "ghcr.io", response.Data.Data.RegistryDomain)
+}
+
+func TestContainerRegistriesNewGhcrJson(t *testing.T) {
+	subject := api.NewContainerRegistry("integration_name",
+		api.GhcrContainerRegistry,
+		api.GhcrData{
+			LimitByTag:   []string{"foo"},
+			LimitByLabel: []map[string]string{{"key": "value"}},
+			LimitByRep:   []string{"xyz/name"},
+			LimitNumImg:  15,
+			Credentials: api.GhcrCredentials{
+				Username: "user",
+				Password: "pass",
+				Ssl:      true,
+			},
+		},
+	)
+	jsonOut, _ := json.Marshal(subject)
+	assert.Contains(t, string(jsonOut), "\"nonOsPackageEval\":false")
 }
 
 func singleGhcrContainerRegistry(id string) string {
