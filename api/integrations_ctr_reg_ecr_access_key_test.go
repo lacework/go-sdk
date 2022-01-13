@@ -19,6 +19,7 @@
 package api_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,4 +39,17 @@ func TestIntegrationsNewAwsEcrAccessKeyIntegration(t *testing.T) {
 	assert.Equal(t, api.ContainerRegistryIntegration.String(), subject.Type)
 	assert.Equal(t, api.EcrRegistry.String(), subject.Data.RegistryType)
 	assert.Equal(t, api.AwsEcrAccessKey.String(), subject.Data.AwsAuthType)
+}
+
+func TestIntegrationsNewAwsEcrAccessKeyIntegrationJson(t *testing.T) {
+	subject := api.NewAwsEcrWithAccessKeyIntegration("integration_name",
+		api.AwsEcrDataWithAccessKeyCreds{
+			Credentials: api.AwsEcrAccessKeyCreds{
+				AccessKeyID:     "id",
+				SecretAccessKey: "secret",
+			},
+		},
+	)
+	jsonOut, _ := json.Marshal(subject)
+	assert.Contains(t, string(jsonOut), "\"NON_OS_PACKAGE_EVAL\":false")
 }
