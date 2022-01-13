@@ -2,8 +2,9 @@ package gcp
 
 import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/pkg/errors"
+
+	"github.com/lacework/go-sdk/lwgenerate"
 )
 
 type ExistingServiceAccountDetails struct {
@@ -11,14 +12,14 @@ type ExistingServiceAccountDetails struct {
 	Name string
 
 	// Existing Service Account private key in JSON format, base64 encoded
-	Base64EncodedPrivateKey string
+	PrivateKey string
 }
 
 // NewExistingServiceAccountDetails Create new existing Service Account details
-func NewExistingServiceAccountDetails(name string, base64EncodedPrivateKey string) *ExistingServiceAccountDetails {
+func NewExistingServiceAccountDetails(name string, privateKey string) *ExistingServiceAccountDetails {
 	return &ExistingServiceAccountDetails{
-		Name:                    name,
-		Base64EncodedPrivateKey: base64EncodedPrivateKey,
+		Name:       name,
+		PrivateKey: privateKey,
 	}
 }
 
@@ -81,10 +82,11 @@ type GenerateGcpTfConfigurationArgs struct {
 	EnableUBLA bool
 
 	// Number of days to keep audit logs in Lacework GCS bucket before deleting.
-	// Defaults to -1. Leave default to keep indefinitely.
+	// If left empty the TF will default to -1.
 	LogBucketLifecycleRuleAge int
 
-	// The number of days to keep logs before deleting. Default is 30
+	// The number of days to keep logs before deleting.
+	// If left as 0 the TF will default to 30.
 	LogBucketRetentionDays int
 
 	// If AuditLog is true, give the user the opportunity to name their integration. Defaults to "TF audit_log"
@@ -109,7 +111,7 @@ func (args *GenerateGcpTfConfigurationArgs) validate() error {
 	// Validate existing Service Account values, if set
 	if args.ExistingServiceAccount != nil {
 		if args.ExistingServiceAccount.Name == "" ||
-			args.ExistingServiceAccount.Base64EncodedPrivateKey == "" {
+			args.ExistingServiceAccount.PrivateKey == "" {
 			return errors.New("When using an existing Service Account, existing name, and base64 encoded JSON Private Key fields all must be set")
 		}
 	}
@@ -167,114 +169,114 @@ func WithProjectId(id string) GcpTerraformModifier {
 	}
 }
 
-// UseExistingServiceAccount Set an existing Service Account to be used by the Lacework Integration
-func UseExistingServiceAccount(serviceAccountDetails *ExistingServiceAccountDetails) GcpTerraformModifier {
+// WithExistingServiceAccount Set an existing Service Account to be used by the Lacework Integration
+func WithExistingServiceAccount(serviceAccountDetails *ExistingServiceAccountDetails) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ExistingServiceAccount = serviceAccountDetails
 	}
 }
 
-// UseConfigIntegrationName Set the Config Integration name to be displayed on the Lacework UI
-func UseConfigIntegrationName(name string) GcpTerraformModifier {
+// WithConfigIntegrationName Set the Config Integration name to be displayed on the Lacework UI
+func WithConfigIntegrationName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ConfigIntegrationName = name
 	}
 }
 
-// AuditLogLabels set labels to be applied to ALL newly created AuditLog resources
-func AuditLogLabels(labels map[string]string) GcpTerraformModifier {
+// WithAuditLogLabels set labels to be applied to ALL newly created AuditLog resources
+func WithAuditLogLabels(labels map[string]string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.AuditLogLabels = labels
 	}
 }
 
-// BucketLabels set labels to be applied to the newly created AuditLog Bucket
-func BucketLabels(labels map[string]string) GcpTerraformModifier {
+// WithBucketLabels set labels to be applied to the newly created AuditLog Bucket
+func WithBucketLabels(labels map[string]string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.BucketLabels = labels
 	}
 }
 
-// PubSubSubscriptionLabels set labels to be applied to the newly created AuditLog PubSub
-func PubSubSubscriptionLabels(labels map[string]string) GcpTerraformModifier {
+// WithPubSubSubscriptionLabels set labels to be applied to the newly created AuditLog PubSub
+func WithPubSubSubscriptionLabels(labels map[string]string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.PubSubSubscriptionLabels = labels
 	}
 }
 
-// PubSubTopicLabels set labels to be applied to the newly created AuditLog PubSub Topic
-func PubSubTopicLabels(labels map[string]string) GcpTerraformModifier {
+// WithPubSubTopicLabels set labels to be applied to the newly created AuditLog PubSub Topic
+func WithPubSubTopicLabels(labels map[string]string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.PubSubTopicLabels = labels
 	}
 }
 
-// BucketRegion Set the Region in which the Bucket should be created
-func BucketRegion(region string) GcpTerraformModifier {
+// WithBucketRegion Set the Region in which the Bucket should be created
+func WithBucketRegion(region string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.BucketRegion = region
 	}
 }
 
-// BucketLocation Set the name of the bucket that will receive log objects
-func BucketLocation(location string) GcpTerraformModifier {
+// WithBucketLocation Set the name of the bucket that will receive log objects
+func WithBucketLocation(location string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.BucketLocation = location
 	}
 }
 
-// BucketName Set the Location in which the Bucket should be created
-func BucketName(name string) GcpTerraformModifier {
+// WithBucketName Set the Location in which the Bucket should be created
+func WithBucketName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.BucketName = name
 	}
 }
 
-// ExistingLogBucketName Set the bucket Name of an existing AuditLog Bucket setup
-func ExistingLogBucketName(name string) GcpTerraformModifier {
+// WithExistingLogBucketName Set the bucket Name of an existing AuditLog Bucket setup
+func WithExistingLogBucketName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ExistingLogBucketName = name
 	}
 }
 
-// ExistingLogSinkName Set the Topic ARN of an existing AuditLog setup
-func ExistingLogSinkName(name string) GcpTerraformModifier {
+// WithExistingLogSinkName Set the Topic ARN of an existing AuditLog setup
+func WithExistingLogSinkName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ExistingLogSinkName = name
 	}
 }
 
-// EnableForceDestroyBucket Enable force destroy of the bucket if it has stuff in it
-func EnableForceDestroyBucket() GcpTerraformModifier {
+// WithEnableForceDestroyBucket Enable force destroy of the bucket if it has stuff in it
+func WithEnableForceDestroyBucket() GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.EnableForceDestroyBucket = true
 	}
 }
 
-// EnableUBLA Enable force destroy of the bucket if it has stuff in it
-func EnableUBLA() GcpTerraformModifier {
+// WithEnableUBLA Enable force destroy of the bucket if it has stuff in it
+func WithEnableUBLA() GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.EnableUBLA = true
 	}
 }
 
-// LogBucketLifecycleRuleAge Set the number of days to keep audit logs in Lacework GCS bucket before deleting
+// WithLogBucketLifecycleRuleAge Set the number of days to keep audit logs in Lacework GCS bucket before deleting
 // Defaults to -1. Leave default to keep indefinitely.
-func LogBucketLifecycleRuleAge(age int) GcpTerraformModifier {
+func WithLogBucketLifecycleRuleAge(age int) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.LogBucketLifecycleRuleAge = age
 	}
 }
 
-// LogBucketRetentionDays Set the number of days to keep logs before deleting. Default is 30
-func LogBucketRetentionDays(days int) GcpTerraformModifier {
+// WithLogBucketRetentionDays Set the number of days to keep logs before deleting. Default is 30
+func WithLogBucketRetentionDays(days int) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.LogBucketRetentionDays = days
 	}
 }
 
-// UseAuditLogIntegrationName Set the Config Integration name to be displayed on the Lacework UI
-func UseAuditLogIntegrationName(name string) GcpTerraformModifier {
+// WithAuditLogIntegrationName Set the Config Integration name to be displayed on the Lacework UI
+func WithAuditLogIntegrationName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.AuditLogIntegrationName = name
 	}
@@ -305,7 +307,7 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 
 	configModule, err := createConfig(args)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to generate aws config module")
+		return "", errors.Wrap(err, "failed to generate gcp config module")
 	}
 
 	auditLogModule, err := createAuditLog(args)
@@ -386,7 +388,7 @@ func createConfig(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, erro
 		if args.ExistingServiceAccount != nil {
 			attributes["use_existing_service_account"] = true
 			attributes["service_account_name"] = args.ExistingServiceAccount.Name
-			attributes["service_account_private_key"] = args.ExistingServiceAccount.Base64EncodedPrivateKey
+			attributes["service_account_private_key"] = args.ExistingServiceAccount.PrivateKey
 		}
 
 		if args.ConfigIntegrationName != "" {
@@ -411,7 +413,7 @@ func createConfig(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, erro
 }
 
 func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, error) {
-	source := "lacework/config/gcp"
+	source := "lacework/audit-log/gcp"
 	version := "~> 2.0"
 
 	if args.AuditLog {
@@ -486,7 +488,7 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 		if args.ExistingServiceAccount != nil {
 			attributes["use_existing_service_account"] = true
 			attributes["service_account_name"] = args.ExistingServiceAccount.Name
-			attributes["service_account_private_key"] = args.ExistingServiceAccount.Base64EncodedPrivateKey
+			attributes["service_account_private_key"] = args.ExistingServiceAccount.PrivateKey
 		}
 
 		if args.AuditLogIntegrationName != "" {
