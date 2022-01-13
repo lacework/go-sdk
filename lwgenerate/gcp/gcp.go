@@ -154,6 +154,13 @@ func WithLaceworkProfile(name string) GcpTerraformModifier {
 	}
 }
 
+// WithOrganizationIntegration Set whether we configure as an Organization wide integration
+func WithOrganizationIntegration(enabled bool) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.OrganizationIntegration = enabled
+	}
+}
+
 // WithOrganizationId Set the Lacework organization ID to integrate with for an organization integration
 func WithOrganizationId(id string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
@@ -330,8 +337,8 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 func createRequiredProviders() (*hclwrite.Block, error) {
 	return lwgenerate.CreateRequiredProviders(
 		lwgenerate.NewRequiredProvider("lacework",
-			lwgenerate.HclRequiredProviderWithSource("lacework/lacework"),
-			lwgenerate.HclRequiredProviderWithVersion("~> 0.12.2")))
+			lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
+			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.LaceworkProviderVersion)))
 }
 
 func createGcpProvider(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
@@ -368,9 +375,6 @@ func createLaceworkProvider(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Blo
 }
 
 func createConfig(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
-	source := "lacework/config/gcp"
-	version := "~> 1.0"
-
 	blocks := []*hclwrite.Block{}
 	if args.Config {
 		attributes := map[string]interface{}{}
@@ -399,8 +403,8 @@ func createConfig(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, erro
 			lwgenerate.HclModuleWithAttributes(attributes),
 		)
 
-		moduleBlock, err := lwgenerate.NewModule(configModuleName, source,
-			append(moduleDetails, lwgenerate.HclModuleWithVersion(version))...).ToBlock()
+		moduleBlock, err := lwgenerate.NewModule(configModuleName, lwgenerate.GcpConfigSource,
+			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.GcpConfigVersion))...).ToBlock()
 
 		if err != nil {
 			return nil, err
@@ -413,9 +417,6 @@ func createConfig(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, erro
 }
 
 func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, error) {
-	source := "lacework/audit-log/gcp"
-	version := "~> 2.0"
-
 	if args.AuditLog {
 		attributes := map[string]interface{}{}
 
@@ -499,8 +500,8 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			lwgenerate.HclModuleWithAttributes(attributes),
 		)
 
-		return lwgenerate.NewModule(auditLogModuleName, source,
-			append(moduleDetails, lwgenerate.HclModuleWithVersion(version))...).ToBlock()
+		return lwgenerate.NewModule(auditLogModuleName, lwgenerate.GcpAuditLogSource,
+			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.GcpAuditLogVersion))...).ToBlock()
 	}
 
 	return nil, nil
