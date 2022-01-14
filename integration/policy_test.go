@@ -1,4 +1,4 @@
-// +build policy
+//go:build policy
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
@@ -44,16 +44,29 @@ severity: high
 alertEnabled: false
 alertProfile: LW_CloudTrail_Alerts
 `
+	newHostPolicyYAML string = `---
+evaluatorId:
+policyId: clihosttest-1
+policyType: Violation
+queryId: LW_CLI_Host_Files_IntegrationTest
+title: My Policy Title
+enabled: false
+description: My Policy Description
+remediation: Check yourself...
+severity: high
+alertEnabled: false
+alertProfile: LW_HE_Files.HE_File_NewViolation
+`
 	// nested
 	updatePolicyYAML string = `---
 policies:
   - severity: low
 `
-	policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/lacework-clitest-1.json"
+	policyURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/policy/account-clitest-1.json"
 )
 
 var (
-	policyIDRE *regexp.Regexp = regexp.MustCompile(`([\w-]+-clitest-1)`)
+	policyIDRE *regexp.Regexp = regexp.MustCompile(`([\w-]+-cli.*?test-1)`)
 )
 
 func getPolicyIdFromStdout(s string) (string, error) {
@@ -94,7 +107,7 @@ func TestPolicyCreateEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "create")
 	assert.Contains(t, out.String(), "Type a policy to create")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to create policy: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to create policy:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
@@ -158,15 +171,12 @@ func TestPolicyCreateURL(t *testing.T) {
 	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// create (output human)
+	policyID := "$account-clitest-1"
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
-	policyID, err := getPolicyIdFromStdout(out.String())
 	// teardown policy
 	defer LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
 
-	assert.Nil(t, err)
-
-	assert.Contains(t, out.String(),
-		fmt.Sprintf("The policy %s was created.", policyID))
+	assert.Contains(t, out.String(), "clitest-1 was created.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
@@ -233,6 +243,31 @@ func TestPolicyCreateStdin(t *testing.T) {
 
 	assert.Contains(t, out.String(),
 		fmt.Sprintf("The policy %s was created.", policyID))
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func _TestPolicyCreateHost(t *testing.T) {
+	// setup
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryHostURL)
+	// teardown
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryHostID)
+
+	// get temp file
+	file, err := createTemporaryFile("TestPolicyCreateHost", newHostPolicyYAML)
+	if err != nil {
+		t.FailNow()
+	}
+	defer os.Remove(file.Name())
+
+	// create (output json)
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "create", "-f", file.Name(), "--json")
+
+	policyID, err := getPolicyIdFromStdout(out.String())
+	assert.Nil(t, err)
+	defer LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
+
+	assert.Contains(t, out.String(), `"policyId"`)
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
@@ -316,7 +351,7 @@ func TestPolicyUpdateEditor(t *testing.T) {
 
 	assert.Contains(t, out.String(), "Type a policy to update")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to update policy: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to update policy:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 

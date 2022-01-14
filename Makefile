@@ -4,9 +4,9 @@ ci: lint test fmt-check imports-check integration
 
 # Tooling versions
 GOLANGCILINTVERSION?=1.23.8
-GOIMPORTSVERSION?=v0.1.2
+GOIMPORTSVERSION?=v0.1.8
 GOXVERSION?=v1.0.1
-GOTESTSUMVERSION?=v1.6.4
+GOTESTSUMVERSION?=v1.7.0
 
 CIARTIFACTS?=ci-artifacts
 COVERAGEOUT?=coverage.out
@@ -49,11 +49,19 @@ test: prepare ## Run all go-sdk tests
 .PHONY: integration
 integration: build-cli-cross-platform integration-only ## Build and run integration tests
 
+.PHONY: integration-generation
+integration-generation: build-cli-cross-platform integration-generation-only ## Build and run integration tests
+
+.PHONY: integration-generation-only
+integration-generation-only: ## Run integration tests
+	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -run "^TestGeneration" -tags="generation"
+
 .PHONY: integration-only
-integration-only: ## Run integration tests
-	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="\
+integration-only: install-tools ## Run integration tests
+	PATH=$(PWD)/bin:${PATH} gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="\
 		account \
 		agent_token \
+		alert_rules \
 		compliance \
 		configure \
 		event \
@@ -63,6 +71,7 @@ integration-only: ## Run integration tests
 		policy \
 		query \
 		version \
+		generation \
 		vulnerability"
 
 .PHONY: integration-lql
@@ -70,14 +79,14 @@ integration-lql: build-cli-cross-platform integration-lql-only ## Build and run 
 
 .PHONY: integration-lql-only
 integration-lql-only: ## Run lql integration tests
-	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="query"
+	PATH=$(PWD)/bin:${PATH} gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="query"
 
 .PHONY: integration-policy
 integration-policy: build-cli-cross-platform integration-policy-only ## Build and run lql policy tests
 
 .PHONY: integration-policy-only
 integration-policy-only: ## Run lql policy tests
-	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -tags="policy"
+	PATH=$(PWD)/bin:${PATH} gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="policy"
 
 .PHONY: coverage
 coverage: test ## Output coverage profile information for each function

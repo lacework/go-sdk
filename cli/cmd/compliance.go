@@ -63,7 +63,7 @@ var (
 	complianceCmd = &cobra.Command{
 		Use:     "compliance",
 		Aliases: []string{"comp"},
-		Short:   "manage compliance reports",
+		Short:   "Manage compliance reports",
 		Long: `Manage compliance reports for Google, Azure, or AWS cloud providers.
 
 Lacework cloud security platform provides continuous Compliance monitoring against
@@ -72,7 +72,7 @@ HIPAA benchmark standards.
 
 Get started by integrating one or more cloud accounts using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -82,7 +82,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 Use the following command to list all available integrations in your account:
 
-    $ lacework integrations list
+    lacework integrations list
 `,
 	}
 
@@ -90,26 +90,26 @@ Use the following command to list all available integrations in your account:
 	complianceAzureCmd = &cobra.Command{
 		Use:     "azure",
 		Aliases: []string{"az"},
-		Short:   "compliance for Azure Cloud",
+		Short:   "Compliance for Azure Cloud",
 		Long: `Manage compliance reports for Azure Cloud.
 
-To list all Azure Tenants configured in your account:
+To list all Azure tenants configured in your account:
 
-    $ lacework compliance azure list-tenants
+    lacework compliance azure list-tenants
 
-To list all Azure Subscriptions from a Tenant, use the command:
+To list all Azure subscriptions from a tenant, use the command:
 
-    $ lacework compliance azure list-subscriptions <tenant_id>
+    lacework compliance azure list-subscriptions <tenant_id>
 
 To get the latest Azure compliance assessment report, use the command:
 
-    $ lacework compliance azure get-report <tenant_id> <subscriptions_id>
+    lacework compliance azure get-report <tenant_id> <subscription_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance azure run-assessment <tenant_id>
+    lacework compliance azure run-assessment <tenant_id>
 `,
 	}
 
@@ -117,54 +117,48 @@ To run an ad-hoc compliance assessment use the command:
 	complianceGcpCmd = &cobra.Command{
 		Use:     "google",
 		Aliases: []string{"gcp"},
-		Short:   "compliance for Google Cloud",
+		Short:   "Compliance for Google Cloud",
 		Long: `Manage compliance reports for Google Cloud.
 
-To get the latest GCP compliance assessment report, use the command:
+To list all GCP organizations and projects configured in your account:
 
-    $ lacework compliance gcp get-report <organization_id> <project_id>
-
-These reports run on a regular schedule, typically once a day.
-
-To find out which GCP organizations/projects are connected to your
-Lacework account, use the following command:
-
-    $ lacework integrations list --type GCP_CFG
-
-Then, choose one integration, copy the GUID and visualize its details
-using the command:
-
-    $ lacework integration show <int_guid>
+    lacework compliance gcp list
 
 To list all GCP projects from an organization, use the command:
 
-    $ lacework compliance gcp list-projects <organization_id>
+    lacework compliance gcp list-projects <organization_id>
+
+To get the latest GCP compliance assessment report, use the command:
+
+    lacework compliance gcp get-report <organization_id> <project_id>
+
+These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance gcp run-assessment <org_or_project_id>
+    lacework compliance gcp run-assessment <org_or_project_id>
 `,
 	}
 
 	// complianceAwsCmd represents the aws sub-command inside the compliance command
 	complianceAwsCmd = &cobra.Command{
 		Use:   "aws",
-		Short: "compliance for AWS",
+		Short: "Compliance for AWS",
 		Long: `Manage compliance reports for Amazon Web Services (AWS).
 
 To list all AWS accounts configured in your account:
 
-    $ lacework compliance aws list-accounts
+    lacework compliance aws list-accounts
 
 To get the latest AWS compliance assessment report:
 
-    $ lacework compliance aws get-report <account_id>
+    lacework compliance aws get-report <account_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment:
 
-    $ lacework compliance aws run-assessment <account_id>
+    lacework compliance aws run-assessment <account_id>
 `,
 	}
 )
@@ -185,11 +179,11 @@ func complianceReportSummaryTable(summaries []api.ComplianceSummary) [][]string 
 	}
 	summary := summaries[0]
 	return [][]string{
-		[]string{"Critical", fmt.Sprint(summary.NumSeverity1NonCompliance)},
-		[]string{"High", fmt.Sprint(summary.NumSeverity2NonCompliance)},
-		[]string{"Medium", fmt.Sprint(summary.NumSeverity3NonCompliance)},
-		[]string{"Low", fmt.Sprint(summary.NumSeverity4NonCompliance)},
-		[]string{"Info", fmt.Sprint(summary.NumSeverity5NonCompliance)},
+		{"Critical", fmt.Sprint(summary.NumSeverity1NonCompliance)},
+		{"High", fmt.Sprint(summary.NumSeverity2NonCompliance)},
+		{"Medium", fmt.Sprint(summary.NumSeverity3NonCompliance)},
+		{"Low", fmt.Sprint(summary.NumSeverity4NonCompliance)},
+		{"Info", fmt.Sprint(summary.NumSeverity5NonCompliance)},
 	}
 }
 
@@ -202,7 +196,7 @@ func complianceReportRecommendationsTable(recommendations []api.ComplianceRecomm
 			recommend.Status,
 			recommend.SeverityString(),
 			recommend.Service,
-			fmt.Sprint(recommend.ResourceCount),
+			fmt.Sprint(len(recommend.Violations)),
 			fmt.Sprint(recommend.AssessedResourceCount),
 		})
 	}
@@ -355,13 +349,24 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 			mainReport.WriteString(filteredOutput)
 		}
 		mainReport.WriteString("\n")
-		mainReport.WriteString(
-			"Try using '--pdf' to download the report in PDF format.",
-		)
+
+		if compCmdState.Status == "" {
+			mainReport.WriteString(
+				"Try adding '--status non-compliant' to show only non-compliant recommendations.",
+			)
+		} else if compCmdState.Severity == "" {
+			mainReport.WriteString(
+				"Try adding '--severity high' to show only high and critical recommendations.",
+			)
+		} else {
+			mainReport.WriteString(
+				"Try using '--pdf' to download the entire report in PDF format.",
+			)
+		}
 		mainReport.WriteString("\n")
 	} else {
 		mainReport.WriteString(
-			"Try using '--details' to increase details shown about the compliance report.\n",
+			"Try adding '--details' to increase details shown about the compliance report.\n",
 		)
 	}
 	return mainReport.String()

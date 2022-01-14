@@ -18,7 +18,7 @@
 
 package api
 
-// SchemaService is the service that retrieves schemas for v2
+// SchemasService is the service that retrieves schemas for v2
 type SchemasService struct {
 	client   *Client
 	Services map[integrationSchema]V2Service
@@ -29,9 +29,13 @@ type integrationSchema int
 const (
 	None integrationSchema = iota
 	AlertChannels
+	AlertRules
 	ContainerRegistries
 	CloudAccounts
 	ResourceGroups
+	ReportRules
+	TeamMembers
+	VulnerabilityExceptions
 )
 
 func (svc *SchemasService) GetService(schemaName integrationSchema) V2Service {

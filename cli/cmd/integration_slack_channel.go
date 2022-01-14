@@ -50,14 +50,15 @@ func createSlackAlertChannelIntegration() error {
 		return err
 	}
 
-	slack := api.NewSlackAlertChannel(answers.Name,
-		api.SlackChannelData{
+	slack := api.NewAlertChannel(answers.Name,
+		api.SlackChannelAlertChannelType,
+		api.SlackChannelDataV2{
 			SlackUrl: answers.Url,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateSlackAlertChannel(slack)
+	_, err = cli.LwApi.V2.AlertChannels.Create(slack)
 	cli.StopProgress()
 	return err
 }

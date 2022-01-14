@@ -1,6 +1,12 @@
+---
+title: "lacework access-token"
+slug: lacework_access-token
+hide_title: true
+---
+
 ## lacework access-token
 
-generate temporary API access tokens
+Generate temporary API access tokens
 
 ### Synopsis
 

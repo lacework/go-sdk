@@ -35,7 +35,7 @@ type PolicyService struct {
 var ValidPolicySeverities = []string{"critical", "high", "medium", "low", "info"}
 
 type NewPolicy struct {
-	EvaluatorID   string `json:"evaluatorId" yaml:"evaluatorId"`
+	EvaluatorID   string `json:"evaluatorId,omitempty" yaml:"evaluatorId"`
 	PolicyID      string `json:"policyId" yaml:"policyId" `
 	PolicyType    string `json:"policyType" yaml:"policyType"`
 	QueryID       string `json:"queryId" yaml:"queryId"`

@@ -78,7 +78,7 @@ type AlertChannel interface {
 type alertChannelType int
 
 const (
-	// type that defines a non-existing Alert Channel integration
+	// NoneAlertChannelType type that defines a non-existing Alert Channel integration
 	NoneAlertChannelType alertChannelType = iota
 	EmailUserAlertChannelType
 	SlackChannelAlertChannelType
@@ -87,18 +87,36 @@ const (
 	DatadogAlertChannelType
 	WebhookAlertChannelType
 	VictorOpsAlertChannelType
+	CiscoSparkWebhookAlertChannelType
+	MicrosoftTeamsAlertChannelType
+	GcpPubSubAlertChannelType
+	SplunkHecAlertChannelType
+	ServiceNowRestAlertChannelType
+	NewRelicInsightsAlertChannelType
+	PagerDutyApiAlertChannelType
+	IbmQRadarAlertChannelType
+	JiraAlertChannelType
 )
 
-// AlertChannelTypeTypes is the list of available Alert Channel integration types
+// AlertChannelTypes is the list of available Alert Channel integration types
 var AlertChannelTypes = map[alertChannelType]string{
-	NoneAlertChannelType:         "None",
-	EmailUserAlertChannelType:    "EmailUser",
-	SlackChannelAlertChannelType: "SlackChannel",
-	AwsS3AlertChannelType:        "AwsS3",
-	CloudwatchEbAlertChannelType: "CloudwatchEb",
-	DatadogAlertChannelType:      "Datadog",
-	WebhookAlertChannelType:      "Webhook",
-	VictorOpsAlertChannelType:    "VictorOps",
+	NoneAlertChannelType:              "None",
+	EmailUserAlertChannelType:         "EmailUser",
+	SlackChannelAlertChannelType:      "SlackChannel",
+	AwsS3AlertChannelType:             "AwsS3",
+	CloudwatchEbAlertChannelType:      "CloudwatchEb",
+	DatadogAlertChannelType:           "Datadog",
+	WebhookAlertChannelType:           "Webhook",
+	VictorOpsAlertChannelType:         "VictorOps",
+	CiscoSparkWebhookAlertChannelType: "CiscoSparkWebhook",
+	MicrosoftTeamsAlertChannelType:    "MicrosoftTeams",
+	GcpPubSubAlertChannelType:         "GcpPubsub",
+	SplunkHecAlertChannelType:         "SplunkHec",
+	ServiceNowRestAlertChannelType:    "ServiceNowRest",
+	NewRelicInsightsAlertChannelType:  "NewRelicInsights",
+	PagerDutyApiAlertChannelType:      "PagerDutyApi",
+	IbmQRadarAlertChannelType:         "IbmQradar",
+	JiraAlertChannelType:              "Jira",
 }
 
 // String returns the string representation of a Alert Channel integration type

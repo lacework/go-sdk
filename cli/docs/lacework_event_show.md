@@ -1,6 +1,12 @@
+---
+title: "lacework event show"
+slug: lacework_event_show
+hide_title: true
+---
+
 ## lacework event show
 
-show details about a specific event
+Show details about a specific event
 
 ### Synopsis
 
@@ -35,5 +41,5 @@ lacework event show <event_id> [flags]
 
 ### SEE ALSO
 
-* [lacework event](lacework_event.md)	 - inspect Lacework events
+* [lacework event](lacework_event.md)	 - Inspect Lacework events
 

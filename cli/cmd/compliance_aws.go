@@ -35,7 +35,7 @@ var (
 	complianceAwsListAccountsCmd = &cobra.Command{
 		Use:     "list-accounts",
 		Aliases: []string{"list"},
-		Short:   "list all AWS accounts configured",
+		Short:   "List all AWS accounts configured",
 		Long:    `List all AWS accounts configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -48,7 +48,7 @@ var (
 
 Get started by integrating your AWS accounts to analyze configuration compliance using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -95,24 +95,27 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 			case "CIS":
 				compCmdState.Type = fmt.Sprintf("AWS_%s_S3", compCmdState.Type)
 				return nil
-			case "AWS_CIS_S3", "NIST_800-53_Rev4", "ISO_2700", "HIPAA", "SOC", "PCI":
+			case "SOC_Rev2":
+				compCmdState.Type = fmt.Sprintf("AWS_%s", compCmdState.Type)
+				return nil
+			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2", "PCI":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI")
+				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI")
 			}
 		},
-		Short: "get the latest AWS compliance report",
+		Short: "Get the latest AWS compliance report",
 		Long: `Get the latest compliance assessment report from the provided AWS account, these
 reports run on a regular schedule, typically once a day. The available report formats
 are human-readable (default), json and pdf.
 
 To list all AWS accounts configured in your account:
 
-    $ lacework compliance aws list-accounts
+    lacework compliance aws list-accounts
 
 To run an ad-hoc compliance assessment of an AWS account:
 
-    $ lacework compliance aws run-assessment <account_id>
+    lacework compliance aws run-assessment <account_id>
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -160,18 +163,28 @@ To run an ad-hoc compliance assessment of an AWS account:
 				}
 			}
 
-			cli.StartProgress(" Getting compliance report...")
-			response, err := cli.LwApi.Compliance.GetAwsReport(config)
-			cli.StopProgress()
-			if err != nil {
-				return errors.Wrap(err, "unable to get aws compliance report")
+			var (
+				report   api.ComplianceAwsReport
+				cacheKey = fmt.Sprintf("compliance/aws/%s/%s", config.AccountID, config.Type)
+			)
+			expired := cli.ReadCachedAsset(cacheKey, &report)
+			if expired {
+				cli.StartProgress(" Getting compliance report...")
+				response, err := cli.LwApi.Compliance.GetAwsReport(config)
+				cli.StopProgress()
+				if err != nil {
+					return errors.Wrap(err, "unable to get aws compliance report")
+				}
+
+				if len(response.Data) == 0 {
+					return errors.New("no data found in the report")
+				}
+
+				report = response.Data[0]
+
+				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), report)
 			}
 
-			if len(response.Data) == 0 {
-				return errors.New("there is no data found in the report")
-			}
-
-			report := response.Data[0]
 			filteredOutput := ""
 
 			if complianceFiltersEnabled() {
@@ -194,7 +207,9 @@ To run an ad-hoc compliance assessment of an AWS account:
 				)
 
 				return cli.OutputCSV(
-					[]string{"Report_Type", "Report_Time", "Account", "Section", "ID", "Recommendation", "Status", "Severity", "Resource", "Region", "Reason"},
+					[]string{"Report_Type", "Report_Time", "Account",
+						"Section", "ID", "Recommendation", "Status",
+						"Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
 			}
@@ -217,20 +232,20 @@ To run an ad-hoc compliance assessment of an AWS account:
 	complianceAwsRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <account_id>",
 		Aliases: []string{"run"},
-		Short:   "run a new AWS compliance report",
+		Short:   "Run a new AWS compliance assessment",
 		Long:    `Run a compliance assessment for the provided AWS account.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			response, err := cli.LwApi.Compliance.RunAwsReport(args[0])
 			if err != nil {
-				return errors.Wrap(err, "unable to run aws compliance report")
+				return errors.Wrap(err, "unable to run aws compliance assessment")
 			}
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(response)
 			}
 
-			cli.OutputHuman("A new AWS compliance report has been initiated.\n")
+			cli.OutputHuman("A new AWS compliance assessment has been initiated.\n")
 			// @afiune not consistent with the other cloud providers
 			for key := range response {
 				cli.OutputHuman("\n")
@@ -264,9 +279,9 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI
+	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, AWS_SOC_Rev2, or PCI
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI",
+		"report type to display, supported types: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI",
 	)
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},

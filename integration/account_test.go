@@ -1,4 +1,4 @@
-// +build account
+//go:build account
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2021, Lacework Inc.

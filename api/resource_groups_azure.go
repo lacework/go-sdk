@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
 )
 
@@ -124,18 +125,43 @@ type AzureResourceGroupData struct {
 }
 
 type AzureResourceGroupProps struct {
-	Description   string   `json:"description,omitempty"`
-	Tenant        string   `json:"tenant"`
-	Subscriptions []string `json:"subscriptions"`
-	UpdatedBy     string   `json:"updatedBy,omitempty"`
-	LastUpdated   int      `json:"lastUpdated,omitempty"`
+	Description   string        `json:"description,omitempty"`
+	Tenant        string        `json:"tenant"`
+	Subscriptions []string      `json:"subscriptions"`
+	UpdatedBy     string        `json:"updatedBy,omitempty"`
+	LastUpdated   *lwtime.Epoch `json:"lastUpdated,omitempty"`
 }
 
 // Workaround for props being returned as a json string
 type AzureResourceJsonStringGroupProps struct {
-	Description   string   `json:"DESCRIPTION,omitempty"`
-	Tenant        string   `json:"TENANT"`
-	Subscriptions []string `json:"SUBSCRIPTIONS"`
-	UpdatedBy     string   `json:"UPDATED_BY,omitempty"`
-	LastUpdated   int      `json:"LAST_UPDATED,omitempty"`
+	Description   string        `json:"DESCRIPTION,omitempty"`
+	Tenant        string        `json:"TENANT"`
+	Subscriptions []string      `json:"SUBSCRIPTIONS"`
+	UpdatedBy     string        `json:"UPDATED_BY,omitempty"`
+	LastUpdated   *lwtime.Epoch `json:"LAST_UPDATED,omitempty"`
+}
+
+func (props AzureResourceGroupProps) GetBaseProps() ResourceGroupPropsBase {
+	return ResourceGroupPropsBase{
+		Description: props.Description,
+		UpdatedBy:   props.UpdatedBy,
+		LastUpdated: props.LastUpdated,
+	}
+}
+
+func (props AzureResourceGroupProps) MarshalJSON() ([]byte, error) {
+	res := struct {
+		Description   string   `json:"description,omitempty"`
+		Tenant        string   `json:"tenant"`
+		Subscriptions []string `json:"subscriptions"`
+		UpdatedBy     string   `json:"updatedBy,omitempty"`
+		LastUpdated   string   `json:"lastUpdated,omitempty"`
+	}{
+		Description:   props.Description,
+		Tenant:        props.Tenant,
+		Subscriptions: props.Subscriptions,
+		UpdatedBy:     props.UpdatedBy,
+		LastUpdated:   props.LastUpdated.String(),
+	}
+	return json.Marshal(&res)
 }

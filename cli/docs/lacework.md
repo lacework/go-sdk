@@ -1,3 +1,9 @@
+---
+title: "lacework"
+slug: lacework
+hide_title: true
+---
+
 ## lacework
 
 A tool to manage the Lacework cloud security platform.
@@ -10,7 +16,7 @@ external integrations, vulnerability scans, and other operations.
 
 Start by configuring the Lacework CLI with the command:
 
-    $ lacework configure
+    lacework configure
 
 This will prompt you for your Lacework account and a set of API access keys.
 
@@ -34,17 +40,20 @@ This will prompt you for your Lacework account and a set of API access keys.
 
 ### SEE ALSO
 
-* [lacework access-token](lacework_access-token.md)	 - generate temporary API access tokens
-* [lacework account](lacework_account.md)	 - manage accounts in an organization (org admins only)
-* [lacework agent](lacework_agent.md)	 - manage Lacework agents
-* [lacework api](lacework_api.md)	 - helper to call Lacework's API
-* [lacework compliance](lacework_compliance.md)	 - manage compliance reports
-* [lacework configure](lacework_configure.md)	 - configure the Lacework CLI
-* [lacework event](lacework_event.md)	 - inspect Lacework events
-* [lacework integration](lacework_integration.md)	 - manage external integrations
-* [lacework policy](lacework_policy.md)	 - manage policies
-* [lacework query](lacework_query.md)	 - run and manage queries
-* [lacework resource-group](lacework_resource-group.md)	 - manage resource groups
-* [lacework version](lacework_version.md)	 - print the Lacework CLI version
-* [lacework vulnerability](lacework_vulnerability.md)	 - container and host vulnerability assessments
+* [lacework access-token](lacework_access-token.md)	 - Generate temporary API access tokens
+* [lacework account](lacework_account.md)	 - Manage accounts in an organization (org admins only)
+* [lacework agent](lacework_agent.md)	 - Manage Lacework agents
+* [lacework alert-rule](lacework_alert-rule.md)	 - Manage alert rules
+* [lacework api](lacework_api.md)	 - Helper to call Lacework's API
+* [lacework cloud-account](lacework_cloud-account.md)	 - Manage cloud accounts
+* [lacework compliance](lacework_compliance.md)	 - Manage compliance reports
+* [lacework configure](lacework_configure.md)	 - Configure the Lacework CLI
+* [lacework event](lacework_event.md)	 - Inspect Lacework events
+* [lacework integration](lacework_integration.md)	 - Manage external integrations
+* [lacework policy](lacework_policy.md)	 - Manage policies
+* [lacework query](lacework_query.md)	 - Run and manage queries
+* [lacework report-rule](lacework_report-rule.md)	 - Manage report rules
+* [lacework resource-group](lacework_resource-group.md)	 - Manage resource groups
+* [lacework version](lacework_version.md)	 - Print the Lacework CLI version
+* [lacework vulnerability](lacework_vulnerability.md)	 - Container and host vulnerability assessments
 

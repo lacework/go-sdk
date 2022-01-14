@@ -22,6 +22,7 @@ import (
 	"io/ioutil"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -178,4 +179,96 @@ func TestCacheEndToEnd(t *testing.T) {
 	assert.Nil(t, err)
 	err = cli.Cache.Erase(key)
 	assert.NotNil(t, err)
+}
+
+func TestWriteReadAssetToCache(t *testing.T) {
+	// create a temporal directory for our global cache
+	dir, err := ioutil.TempDir("", "lacework-cli-cache")
+	if err != nil {
+		panic(err)
+	}
+	cli.InitCache(dir)
+
+	t.Run("primitive type: string", func(t *testing.T) {
+		key := "mocks/string_value"
+		expected := "super cool value (string)"
+
+		// write mock asset with an expiration time of 1 hour
+		cli.WriteAssetToCache(key, time.Now().Add(time.Hour*1), expected)
+		assert.FileExists(t, path.Join(dir, "cache", "standalone", key))
+
+		// read asset
+		var value string
+		expired := cli.ReadCachedAsset(key, &value)
+		if assert.False(t, expired) {
+			assert.Equal(t, expected, value)
+		}
+	})
+
+	t.Run("primitive type: bool", func(t *testing.T) {
+		key := "mocks/bool_value"
+		expected := true
+
+		// write mock asset with an expiration time of 5 seconds
+		cli.WriteAssetToCache(key, time.Now().Add(time.Second*5), expected)
+		assert.FileExists(t, path.Join(dir, "cache", "standalone", key))
+
+		// read asset
+		var value bool
+		expired := cli.ReadCachedAsset(key, &value)
+		if assert.False(t, expired) {
+			assert.Equal(t, expected, value)
+		}
+	})
+
+	t.Run("JSON object", func(t *testing.T) {
+		type myMockAsset struct {
+			Name      string `json:"name"`
+			Important bool   `json:"important"`
+		}
+		key := "mock_asset"
+		expiresAt := time.Now().Add(time.Minute * 1)
+		expected := myMockAsset{"foo", true}
+
+		// write mock asset with an expiration time of 1 minute
+		cli.WriteAssetToCache(key, expiresAt, expected)
+		assert.FileExists(t, path.Join(dir, "cache", "standalone", key))
+
+		// read asset
+		var asset myMockAsset
+		expired := cli.ReadCachedAsset(key, &asset)
+		if assert.False(t, expired) {
+			assert.Equal(t, expected, asset)
+		}
+	})
+
+	t.Run("expired cache", func(t *testing.T) {
+		key := "mocked_expired_should_not_exist"
+		notExpected := 123
+
+		// write mock asset with an expiration time of NOW!
+		cli.WriteAssetToCache(key, time.Now(), notExpected)
+		assert.NoFileExists(t, path.Join(dir, "cache", "standalone", key))
+
+		// read asset
+		var value int
+		expired := cli.ReadCachedAsset(key, &value)
+		assert.True(t, expired)
+		assert.NotEqual(t, notExpected, value)
+	})
+
+	t.Run("time before NOW should NOT write asset", func(t *testing.T) {
+		key := "mocked_data"
+		notExpected := "foo"
+
+		// try to write mock asset with an expiration time before NOW!
+		cli.WriteAssetToCache(key, time.Now().Add(time.Duration(-1)*time.Minute), notExpected)
+		assert.NoFileExists(t, path.Join(dir, "cache", "standalone", key))
+
+		// read asset
+		var value string
+		expired := cli.ReadCachedAsset(key, &value)
+		assert.True(t, expired)
+		assert.NotEqual(t, notExpected, value)
+	})
 }

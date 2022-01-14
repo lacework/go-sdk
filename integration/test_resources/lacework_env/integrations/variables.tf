@@ -10,9 +10,15 @@ variable "storage_bucket_name" {
   description = "The name of the gcs where tf state is stored"
 }
 
+variable "state_folder" {
+  type        = string
+  default     = ""
+  description = "The folder inside the gcs where tf state is stored"
+}
+
 variable "org_integration" {
   type        = bool
-  default     = true
+  default     = false
   description = "If set to true, configure an organization level integration"
 }
 
@@ -45,3 +51,16 @@ variable "lacework_aws_account_id" {
   default     = ""
   description = "The Lacework AWS account that the IAM role will grant access"
 }
+
+variable "install_sh_url" {
+  description = "URL for install.sh"
+  default     = "https://packages.lacework.net/install.sh"
+}
+
+variable "aws_key_pair_file" {
+  default = "~/.ssh/id_rsa"
+}
+
+variable "aws_key_pair_name" {}
+variable "subnet_id" {}
+variable "security_group_id" {}

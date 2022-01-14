@@ -1,4 +1,4 @@
-// +build configure configure,!windows
+//go:build configure && !windows
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
@@ -385,7 +385,64 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
   account = "v1.example"
   api_key = "V1CONFIG_KEY"
   api_secret = "_secret"
+
+[v2]
+  account = "v2.example"
+  subaccount = "sub-account"
+  api_key = "V2CONFIG_KEY"
+  api_secret = "_secret"
 `, laceworkTOML, "there is a problem with the generated config")
+
+	t.Run("Reconfigure", func(t *testing.T) {
+		_, laceworkTOML := runConfigureTestFromDir(t, dir,
+			func(c *expect.Console) {
+				c.ExpectString("Account:")
+				c.SendLine("new-account")
+				c.ExpectString("Access Key ID:")
+				c.SendLine("TEST_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+				c.ExpectString("Secret Access Key:")
+				c.SendLine("_oooooooooooooooooooooooooooooooo")
+				c.ExpectString("You are all set!")
+			},
+			"configure", "--profile", "v2",
+		)
+
+		assert.Equal(t, `[default]
+  account = "test.account"
+  api_key = "INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00"
+  api_secret = "_00000000000000000000000000000000"
+  version = 2
+
+[dev]
+  account = "dev.example"
+  api_key = "DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC000"
+  api_secret = "_11111111111111111111111111111111"
+  version = 2
+
+[integration]
+  account = "integration"
+  api_key = "INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70001"
+  api_secret = "_1234abdc00ff11vv22zz33xyz1234abc"
+  version = 2
+
+[new-profile]
+  account = "super-cool-profile"
+  api_key = "TEST_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
+  api_secret = "_uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"
+  version = 2
+
+[v1]
+  account = "v1.example"
+  api_key = "V1CONFIG_KEY"
+  api_secret = "_secret"
+
+[v2]
+  account = "new-account"
+  api_key = "TEST_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  api_secret = "_oooooooooooooooooooooooooooooooo"
+  version = 2
+`, laceworkTOML, "there is a problem with the generated config")
+	})
 }
 
 func TestConfigureCommandErrors(t *testing.T) {

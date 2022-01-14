@@ -1,6 +1,12 @@
+---
+title: "lacework compliance"
+slug: lacework_compliance
+hide_title: true
+---
+
 ## lacework compliance
 
-manage compliance reports
+Manage compliance reports
 
 ### Synopsis
 
@@ -12,7 +18,7 @@ HIPAA benchmark standards.
 
 Get started by integrating one or more cloud accounts using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -22,7 +28,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 Use the following command to list all available integrations in your account:
 
-    $ lacework integrations list
+    lacework integrations list
 
 
 ### Options
@@ -51,7 +57,7 @@ Use the following command to list all available integrations in your account:
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework compliance aws](lacework_compliance_aws.md)	 - compliance for AWS
-* [lacework compliance azure](lacework_compliance_azure.md)	 - compliance for Azure Cloud
-* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
+* [lacework compliance aws](lacework_compliance_aws.md)	 - Compliance for AWS
+* [lacework compliance azure](lacework_compliance_azure.md)	 - Compliance for Azure Cloud
+* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
 

@@ -25,6 +25,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -292,7 +293,12 @@ func (c *cliState) StartProgress(suffix string) {
 		// make sure there is not a spinner already running
 		c.StopProgress()
 
-		c.Log.Debug("starting spinner")
+		// verify that the suffix starts with a space
+		if !strings.HasPrefix(suffix, " ") {
+			suffix = fmt.Sprintf(" %s", suffix)
+		}
+
+		c.Log.Debugw("starting spinner", "suffix", suffix)
 		c.spinner = spinner.New(spinner.CharSets[9], 100*time.Millisecond)
 		c.spinner.Suffix = suffix
 		c.spinner.Start()

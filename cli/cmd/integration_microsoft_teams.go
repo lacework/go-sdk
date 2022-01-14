@@ -50,14 +50,15 @@ func createMicrosoftTeamsChannelIntegration() error {
 		return err
 	}
 
-	teams := api.NewMicrosoftTeamsAlertChannel(answers.Name,
-		api.MicrosoftTeamsChannelData{
-			WebhookURL: answers.WebhookUrl,
+	teams := api.NewAlertChannel(answers.Name,
+		api.MicrosoftTeamsAlertChannelType,
+		api.MicrosoftTeamsData{
+			TeamsURL: answers.WebhookUrl,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateMicrosoftTeamsAlertChannel(teams)
+	_, err = cli.LwApi.V2.AlertChannels.Create(teams)
 	cli.StopProgress()
 	return err
 }

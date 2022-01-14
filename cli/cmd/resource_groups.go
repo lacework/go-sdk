@@ -21,7 +21,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
@@ -35,7 +34,7 @@ var (
 	resourceGroupsCommand = &cobra.Command{
 		Use:     "resource-group",
 		Aliases: []string{"resource-groups", "rg"},
-		Short:   "manage resource groups",
+		Short:   "Manage resource groups",
 		Long:    "Manage Lacework-identifiable assets via the use of resource groups.",
 	}
 
@@ -43,7 +42,7 @@ var (
 	resourceGroupsListCommand = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "list all resource groups",
+		Short:   "List all resource groups",
 		Long:    "List all resource groups configured in your Lacework account.",
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -56,7 +55,7 @@ var (
 
 Get started by integrating your resource groups to manage alerting using the command:
 
-    $ lacework resource-group create
+    lacework resource-group create
 
 If you prefer to configure resource groups via the WebUI, log in to your account at:
 
@@ -70,6 +69,7 @@ Then navigate to Settings > Resource Groups.
 
 			groups := make([]resourceGroup, 0)
 			for _, g := range resourceGroups.Data {
+				props, _ := parsePropsType(g)
 
 				groups = append(groups, resourceGroup{
 					Id:        g.ResourceGuid,
@@ -78,6 +78,7 @@ Then navigate to Settings > Resource Groups.
 					status:    g.Status(),
 					Enabled:   g.Enabled,
 					IsDefault: g.IsDefault,
+					Props:     props,
 				})
 			}
 
@@ -100,8 +101,8 @@ Then navigate to Settings > Resource Groups.
 	// show command is used to retrieve a lacework resource group by resource id
 	resourceGroupsShowCommand = &cobra.Command{
 		Use:   "show",
-		Short: "get resource group by id",
-		Long:  "Get a single resource group by it's Resource ID.",
+		Short: "Get resource group by id",
+		Long:  "Get a single resource group by it's resource group ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var response api.ResourceGroupResponse
@@ -110,7 +111,7 @@ Then navigate to Settings > Resource Groups.
 				return errors.Wrap(err, "unable to get resource group")
 			}
 
-			props, _ := parsePropsType(response)
+			props, _ := parsePropsType(response.Data)
 
 			group := resourceGroup{
 				Id:        response.Data.ResourceGuid,
@@ -143,8 +144,8 @@ Then navigate to Settings > Resource Groups.
 	// delete command is used to remove a lacework resource group by resource id
 	resourceGroupsDeleteCommand = &cobra.Command{
 		Use:   "delete",
-		Short: "delete a resource group",
-		Long:  "Delete a single resource group by it's Resource ID.",
+		Short: "Delete a resource group",
+		Long:  "Delete a single resource group by it's resource group ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			err := cli.LwApi.V2.ResourceGroups.Delete(args[0])
@@ -158,7 +159,7 @@ Then navigate to Settings > Resource Groups.
 	// create command is used to create a new lacework resource group
 	resourceGroupsCreateCommand = &cobra.Command{
 		Use:   "create",
-		Short: "create a new resource group",
+		Short: "Create a new resource group",
 		Long:  "Creates a new single resource group.",
 		RunE: func(_ *cobra.Command, args []string) error {
 			if !cli.InteractiveMode() {
@@ -177,10 +178,10 @@ Then navigate to Settings > Resource Groups.
 )
 
 // parsePropsType converts props json string to interface of resource group props type
-func parsePropsType(response api.ResourceGroupResponse) (interface{}, error) {
-	propsString := response.Data.Props.(string)
+func parsePropsType(response api.ResourceGroupData) (api.ResourceGroupProps, error) {
+	propsString := response.Props.(string)
 
-	switch response.Data.Type {
+	switch response.Type {
 	case api.AwsResourceGroup.String():
 		return unmarshallAwsPropString([]byte(propsString))
 	case api.AzureResourceGroup.String():
@@ -195,7 +196,6 @@ func parsePropsType(response api.ResourceGroupResponse) (interface{}, error) {
 		return unmarshallMachinePropString([]byte(propsString))
 	}
 	return nil, errors.New("Unable to determine resource group props type")
-
 }
 
 func promptCreateResourceGroup() error {
@@ -255,12 +255,12 @@ func buildResourceGroupPropsTable(group resourceGroup) string {
 	)
 }
 
-func determineResourceGroupProps(resType string, props interface{}) [][]string {
+func determineResourceGroupProps(resType string, props api.ResourceGroupProps) [][]string {
 	propsString, err := json.Marshal(props)
 	if err != nil {
 		return [][]string{}
 	}
-	details := setBaseProps(propsString)
+	details := setBaseProps(props)
 
 	switch resType {
 	case api.AwsResourceGroup.String():
@@ -280,20 +280,14 @@ func determineResourceGroupProps(resType string, props interface{}) [][]string {
 	return details
 }
 
-func setBaseProps(props []byte) [][]string {
+func setBaseProps(props api.ResourceGroupProps) [][]string {
 	var (
-		baseProps resourceGroupPropsBase
-		details   [][]string
+		details [][]string
 	)
-
-	err := json.Unmarshal(props, &baseProps)
-	if err != nil {
-		return [][]string{}
-	}
-
-	details = append(details, []string{"DESCRIPTION", baseProps.Description})
-	details = append(details, []string{"UPDATED BY", baseProps.UpdatedBy})
-	details = append(details, []string{"LAST UPDATED", strconv.Itoa(baseProps.LastUpdated)})
+	lastUpdated := props.GetBaseProps().LastUpdated
+	details = append(details, []string{"DESCRIPTION", props.GetBaseProps().Description})
+	details = append(details, []string{"UPDATED BY", props.GetBaseProps().UpdatedBy})
+	details = append(details, []string{"LAST UPDATED", lastUpdated.String()})
 	return details
 }
 
@@ -316,17 +310,11 @@ func IsDefault(isDefault int) string {
 }
 
 type resourceGroup struct {
-	Id        string      `json:"resource_guid"`
-	ResType   string      `json:"type"`
-	Name      string      `json:"name"`
-	Props     interface{} `json:"props"`
-	Enabled   int         `json:"enabled"`
-	IsDefault int         `json:"isDefault"`
+	Id        string                 `json:"resource_guid"`
+	ResType   string                 `json:"type"`
+	Name      string                 `json:"name"`
+	Props     api.ResourceGroupProps `json:"props"`
+	Enabled   int                    `json:"enabled"`
+	IsDefault int                    `json:"isDefault"`
 	status    string
-}
-
-type resourceGroupPropsBase struct {
-	Description string `json:"description"`
-	UpdatedBy   string `json:"updatedBy,omitempty"`
-	LastUpdated int    `json:"lastUpdated,omitempty"`
 }

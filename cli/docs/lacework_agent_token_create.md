@@ -1,10 +1,12 @@
+---
+title: "lacework agent token create"
+slug: lacework_agent_token_create
+hide_title: true
+---
+
 ## lacework agent token create
 
-create a new agent access token
-
-### Synopsis
-
-Create a new agent access token.
+Create a new agent access token
 
 ```
 lacework agent token create <name> [description] [flags]
@@ -35,5 +37,5 @@ lacework agent token create <name> [description] [flags]
 
 ### SEE ALSO
 
-* [lacework agent token](lacework_agent_token.md)	 - manage agent access tokens
+* [lacework agent token](lacework_agent_token.md)	 - Manage agent access tokens
 

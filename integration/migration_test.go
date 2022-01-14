@@ -1,4 +1,4 @@
-// +build migration
+//go:build migration
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2021, Lacework Inc.
@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"testing"
 
@@ -32,7 +33,20 @@ import (
 func TestV2MigrationWithConfigFile(t *testing.T) {
 	// create a temporal directory to use it as our home directory to test
 	// the version_cache mechanism
-	home := createTOMLConfigFromCIvars()
+	home, errDir := ioutil.TempDir("", "lacework-toml")
+	if errDir != nil {
+		panic(errDir)
+	}
+	configFile := filepath.Join(home, ".lacework.toml")
+	c := []byte(`[default]
+account = '` + os.Getenv("CI_ACCOUNT") + `'
+api_key = '` + os.Getenv("CI_API_KEY") + `'
+api_secret = '` + os.Getenv("CI_API_SECRET") + `'
+`)
+	errDir = ioutil.WriteFile(configFile, c, 0644)
+	if errDir != nil {
+		panic(errDir)
+	}
 	defer os.RemoveAll(home)
 
 	out, err, exitcode := LaceworkCLIWithHome(home, "agent", "token", "list")

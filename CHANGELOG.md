@@ -1,3 +1,103 @@
+# v0.23.0
+
+## Features
+* feat(api): CRUD operations for org team member (#628) (vatasha)([80015b9](https://github.com/lacework/go-sdk/commit/80015b9807e3dc541a6e3e3c1b8c726a84995209))
+* feat(cli): generate & execute aws terraform code (#626) (Matt Cadorette)([992bfa6](https://github.com/lacework/go-sdk/commit/992bfa6c3fbd08c302d53bb02a27831278f0a493))
+* feat(cli): Manage Report Rules (#625) (Darren)([890350b](https://github.com/lacework/go-sdk/commit/890350b2b34af6380de15df8d665828bb313776a))
+* feat(cli): add breadcrums to compliance commands (Salim Afiune Maya)([f133971](https://github.com/lacework/go-sdk/commit/f1339716c91f7cdb7d2a4fd64bac9f457cedb6ab))
+* feat(cli): cache compliance reports for 30 minutes (Salim Afiune Maya)([77f82aa](https://github.com/lacework/go-sdk/commit/77f82aad8e39c208afbef6a35ad62e4206fe56ae))
+* feat(api): implement crud operations for team members (#614) (vatasha)([4aa40a2](https://github.com/lacework/go-sdk/commit/4aa40a23ed2c53beeea0bc60a851bf47488b4d52))
+## Bug Fixes
+* fix(cli): make sure progress bar starts with space (#635) (Salim Afiune)([4153f64](https://github.com/lacework/go-sdk/commit/4153f64f071bb85c0718967be4f71a9bd7071e65))
+* fix(cli): fix cache directory for azure comp reports (Salim Afiune Maya)([19be146](https://github.com/lacework/go-sdk/commit/19be1465a3f73f6359c32454863312a407318e6b))
+* fix: report rule notifications (#621) (Darren)([f37b913](https://github.com/lacework/go-sdk/commit/f37b91349c031cf0d92c79a7f4dfc181446e69e3))
+## Other Changes
+* ci: fix test resource Terraform pipeline (#634) (Salim Afiune)([c14756e](https://github.com/lacework/go-sdk/commit/c14756e12c0f051e871e0f7a7aeccd1089cdd875))
+* ci: version bump to v0.22.1-dev (Lacework)([e12f022](https://github.com/lacework/go-sdk/commit/e12f022356992ae477dbbf211f9439dd4b080dce))
+* test(policy): update TestPolicyCreateURL (hazedav)([a89177c](https://github.com/lacework/go-sdk/commit/a89177ce3d82660c8700b555c0596f7a98e53d47))
+* test(policy): adds resource for dynamic accnt (hazedav)([b28d290](https://github.com/lacework/go-sdk/commit/b28d2902aa6d1a557af913c60a0be7a68c3b9895))
+---
+# v0.22.0
+
+## Features
+* feat(cli): cache host vuln assessments for 1 hour (Salim Afiune Maya)([7f50bd2](https://github.com/lacework/go-sdk/commit/7f50bd23654a5566c35ba13e88ad2f4c9c8dafa9))
+* feat(cli): logic to store assets with expiration time (Salim Afiune Maya)([ad920ca](https://github.com/lacework/go-sdk/commit/ad920ca5d638adb4f6331a80550381d8d1b3021d))
+* feat(lwgenerate): Add initial hcl generation support (#611) (Matt Cadorette)([f9e9e78](https://github.com/lacework/go-sdk/commit/f9e9e781b73c9a92415702e052d10fed19a72ac2))
+## Bug Fixes
+* fix(cli): PKG typo in host vuln table (Salim Afiune Maya)([21ff81a](https://github.com/lacework/go-sdk/commit/21ff81a762d8c1dd3335bf88f8598ecebacc5686))
+* fix(cli): avoid using "Fixed" host vulnerabilities (Salim Afiune Maya)([49ce7a7](https://github.com/lacework/go-sdk/commit/49ce7a70bca8eb3125c53a22e99c219fa61d3d33))
+## Other Changes
+* ci: version bump to v0.21.1-dev (Lacework)([30637bc](https://github.com/lacework/go-sdk/commit/30637bcce5b7aefb164c1ff3587753dbd4b5844d))
+* test(cli): verify host vuln report rendering (Salim Afiune Maya)([b7d72e2](https://github.com/lacework/go-sdk/commit/b7d72e29b14b0987d021ecb03f618bbf3ac779a0))
+---
+# v0.21.0
+
+## Features
+* feat: Auto docs generation for the Lacework CLI (#616) (Salim Afiune)([81b7fdb](https://github.com/lacework/go-sdk/commit/81b7fdbf50c1e560277c44be38e9fd2473ca15c7))
+* feat: Filter vuln ctr list-assessments by registry (#609) (Darren)([264b450](https://github.com/lacework/go-sdk/commit/264b4504633267cd6f1929eb39109f6cafb74692))
+* feat(api): Report Rules v2 Service (#607) (Darren)([26e96cc](https://github.com/lacework/go-sdk/commit/26e96cc5c95e5188b6d0b82977371f578eba55e9))
+## Bug Fixes
+* fix(cli): remove sub-account during reconfiguration (#602) (Salim Afiune)([d623afe](https://github.com/lacework/go-sdk/commit/d623afedc2152cbeb7abcd90f87e6d8a475e95a0))
+## Documentation Updates
+* docs: Run make generate-docs (Darren Murray)([b6438a1](https://github.com/lacework/go-sdk/commit/b6438a1595363faa331a1e79c89dab492e8c5e44))
+* docs: Vuln ctr list-assessments registry flag (Darren Murray)([cf32b2f](https://github.com/lacework/go-sdk/commit/cf32b2f41b306fcd18103ec4fae992058de4d273))
+## Other Changes
+* chore: ran make go-vendor with go 1.17 (#615) (Salim Afiune)([432104f](https://github.com/lacework/go-sdk/commit/432104faf0522c58ee404232600714360aa64bea))
+* chore: Update minimum go version -> 1.17 (#612) (Darren)([c6e183c](https://github.com/lacework/go-sdk/commit/c6e183c22d576b11698989a34443e4c4c53d235a))
+* chore(deps): bump github.com/honeycombio/libhoney-go (#605) (dependabot[bot])([7226624](https://github.com/lacework/go-sdk/commit/7226624e163015d12cd5b58042ec552df4ad64ff))
+* chore(cli): Update s3, slack, and cloudwatch alert channels cli commands to point to API v2 (#606) (vatasha)([65887be](https://github.com/lacework/go-sdk/commit/65887be28d97aa2d16b5f528ca2cc227ea7e94fd))
+* ci: add Azure integration as a test resource (#608) (Salim Afiune)([5cab0ef](https://github.com/lacework/go-sdk/commit/5cab0ef1d1435c64fd3eb52c086ee63e756c41ad))
+* ci: Update go conditinal build comment to 1.17 preferred format (#604) (Darren)([a8f90f6](https://github.com/lacework/go-sdk/commit/a8f90f668ac4c9ac7b6eaec7b3720de390d02a5f))
+* ci: version bump to v0.20.1-dev (Lacework)([15761a7](https://github.com/lacework/go-sdk/commit/15761a7f5e6f1cc750f3c1b0911f2dabe7eb3c00))
+* test: Fix failing alert rule test (#603) (Darren)([c1b8ca5](https://github.com/lacework/go-sdk/commit/c1b8ca59b088bda0715562f846ddb05bfee7bfe1))
+---
+# v0.20.0
+
+## Features
+* feat(cli): Manage Alert Rules in Lacework CLI (#597) (Darren)([4d5648c](https://github.com/lacework/go-sdk/commit/4d5648cce2430b670167d3d66c3d8aee860b5f39))
+## Bug Fixes
+* fix(cli): avoid panic when assessment has NO vulns (#600) (Salim Afiune)([4638c7e](https://github.com/lacework/go-sdk/commit/4638c7e7d6b08e8f9bb123ed897321897a33ab4e))
+* fix: ResourceGroups lastUpdated time format (#599) (Darren)([506954f](https://github.com/lacework/go-sdk/commit/506954fd1451d192a43d2ae1a38fb1e2b6261b4e))
+* fix(cli): making evaluatorId optional (hazedav)([a7da3c0](https://github.com/lacework/go-sdk/commit/a7da3c0bc346ac1db957a3854c04c2c5a6a537c6))
+## Other Changes
+* ci: version bump to v0.19.1-dev (Lacework)([e8e36dd](https://github.com/lacework/go-sdk/commit/e8e36ddf314463540288dea6d577a12b5d41456a))
+* test(cli): adds host query integration test file (hazedav)([7be96a7](https://github.com/lacework/go-sdk/commit/7be96a79d2bb3f9df84c259615fe0027110342bf))
+---
+# v0.19.0
+
+## Features
+* feat: AlertRuleSeverities constructor from int slice (#595) (Darren)([637bcab](https://github.com/lacework/go-sdk/commit/637bcabd9f59a3d73cf0c740b58d7cfecb5b0c90))
+* feat(api): Migrate Jira Cloud and Jira Server to API v2 (#590) (vatasha)([15369f3](https://github.com/lacework/go-sdk/commit/15369f35ef472fe8d2bf162e4e0e4d99304413aa))
+## Refactor
+* refactor: Add function to convert string slice to AlertRuleSeverities (#591) (Darren)([b3ae293](https://github.com/lacework/go-sdk/commit/b3ae2931f2a201059909f72b91b79f7c7c20ffc8))
+## Bug Fixes
+* fix(cli): affected resource count in compliance reports (#592) (Salim Afiune)([7dc18d9](https://github.com/lacework/go-sdk/commit/7dc18d9288285ad3196ff3f186641891cda8ec7d))
+## Other Changes
+* ci: version bump to v0.18.1-dev (Lacework)([21b392a](https://github.com/lacework/go-sdk/commit/21b392ad93c6a2f83d003d80125bc3da16feadc4))
+---
+# v0.18.0
+
+## Features
+* feat(cli): unhiding query "sources" cmd (hazedav)([4e2513f](https://github.com/lacework/go-sdk/commit/4e2513fc3ccd4f4b9818378c98f771df9f3a4546))
+* feat(api): Alert Rules v2 service (#583) (Darren)([a549a8c](https://github.com/lacework/go-sdk/commit/a549a8c501e00a42be879d38197fc13a4984c914))
+* feat(cli): Migrate New Relic alert channel to API v2 (#586) (Darren)([6f32767](https://github.com/lacework/go-sdk/commit/6f327671b19e221859bff761e495ba696279bb61))
+* feat(cli): Migrate Pager Duty alert channel to API v2 (#585) (Darren)([68be1ec](https://github.com/lacework/go-sdk/commit/68be1eccbce846810ec35ece9819f99b1c73d5e9))
+* feat(api): Migrate GCP Pub Sub alert channel to API v2 (#581) (vatasha)([7847d3b](https://github.com/lacework/go-sdk/commit/7847d3bddcaf7e2f8174684f25588559db4cdb37))
+* feat(cli): Migrate Ibm QRadar alert channel to API v2 (#584) (Darren)([b2a0cde](https://github.com/lacework/go-sdk/commit/b2a0cde29e8f6400934d9ac4dc40fab4fe1ef513))
+* feat(api): Migrate Service Now alert channel to API v2 (#582) (Darren)([692c8e5](https://github.com/lacework/go-sdk/commit/692c8e58650ed98891cd9202ea273400f51744b3))
+* feat: Migrate Splunk alert channel to V2 (#580) (Darren)([c0c422b](https://github.com/lacework/go-sdk/commit/c0c422b71b7893958c0641c7d75b2401546bfee5))
+* feat(cli): Add support for new GCP and AWS compliance reports (#579) (iancrichardson)([1de409b](https://github.com/lacework/go-sdk/commit/1de409b0aaaa9d20b8b882f04db5dae679157f07))
+* feat(cli): adding lql query data sources (hazedav)([8828823](https://github.com/lacework/go-sdk/commit/882882383471db9b32076e047d9d00ab3d0a37c7))
+* feat(api): Microsoft Teams alert channel APIv2 (Salim Afiune Maya)([57b318e](https://github.com/lacework/go-sdk/commit/57b318e102749c5bd34901f595424671b61c0b1e))
+* feat(api): Migrate Cisco Spark Webhook alert channel to API v2 (#577) (vatasha)([9481999](https://github.com/lacework/go-sdk/commit/9481999f2faeabde3a9085601f5fbfdfee17531c))
+## Refactor
+* refactor(cli): create Microsoft Teams alert channels via APIv2 (Salim Afiune Maya)([74372b8](https://github.com/lacework/go-sdk/commit/74372b8ba1303eeb259799b3d080c0329fb34253))
+## Bug Fixes
+* fix: Splunk ssl (#587) (Darren)([eab94cf](https://github.com/lacework/go-sdk/commit/eab94cf33b16b48cb7fb3146c2aa903a7ae37d7e))
+## Other Changes
+* style: rename TeamsUrl in favor of TeamsURL (Salim Afiune Maya)([bd46e0d](https://github.com/lacework/go-sdk/commit/bd46e0d46c37017834fcd6521ade92d28cb0f9f9))
+* ci: version bump to v0.17.1-dev (Lacework)([9df310c](https://github.com/lacework/go-sdk/commit/9df310c0a20d97b79ecfdf4c6ffe520b87456d93))
+---
 # v0.17.0
 
 ## Features

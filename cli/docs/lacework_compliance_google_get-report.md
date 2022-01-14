@@ -1,6 +1,12 @@
+---
+title: "lacework compliance google get-report"
+slug: lacework_compliance_google_get-report
+hide_title: true
+---
+
 ## lacework compliance google get-report
 
-get the latest GCP compliance report
+Get the latest GCP compliance report
 
 ### Synopsis
 
@@ -9,7 +15,7 @@ typically once a day. The available report formats are human-readable (default),
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance gcp run-assessment <project_id>
+    lacework compliance gcp run-assessment <project_id>
 
 
 ```
@@ -27,7 +33,7 @@ lacework compliance google get-report <organization_id> <project_id> [flags]
       --service strings    filter report details by service (gcp:storage:bucket, gcp:kms:cryptoKey, gcp:project, ...)
       --severity string    filter report details by severity threshold (critical, high, medium, low, info)
       --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
-      --type string        report type to display, supported types: CIS, SOC, or PCI (default "CIS")
+      --type string        report type to display, supported types: CIS, CIS12, K8S, HIPAA, SOC, or PCI (default "CIS")
 ```
 
 ### Options inherited from parent commands
@@ -49,5 +55,5 @@ lacework compliance google get-report <organization_id> <project_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
+* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
 

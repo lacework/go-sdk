@@ -24,21 +24,28 @@ type V2Endpoints struct {
 	client *Client
 
 	// Every schema must have its own service
-	UserProfile         *UserProfileService
-	AlertChannels       *AlertChannelsService
-	CloudAccounts       *CloudAccountsService
-	ContainerRegistries *ContainerRegistriesService
-	ResourceGroups      *ResourceGroupsService
-	AgentAccessTokens   *AgentAccessTokensService
-	Query               *QueryService
-	Policy              *PolicyService
-	Schemas             *SchemasService
+	UserProfile             *UserProfileService
+	AlertChannels           *AlertChannelsService
+	AlertRules              *AlertRulesService
+	ReportRules             *ReportRulesService
+	CloudAccounts           *CloudAccountsService
+	ContainerRegistries     *ContainerRegistriesService
+	ResourceGroups          *ResourceGroupsService
+	AgentAccessTokens       *AgentAccessTokensService
+	Query                   *QueryService
+	Policy                  *PolicyService
+	Schemas                 *SchemasService
+	Datasources             *DatasourcesService
+	TeamMembers             *TeamMembersService
+	VulnerabilityExceptions *VulnerabilityExceptionsService
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
 	v2 := &V2Endpoints{c,
 		&UserProfileService{c},
 		&AlertChannelsService{c},
+		&AlertRulesService{c},
+		&ReportRulesService{c},
 		&CloudAccountsService{c},
 		&ContainerRegistriesService{c},
 		&ResourceGroupsService{c},
@@ -46,13 +53,20 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&QueryService{c},
 		&PolicyService{c},
 		&SchemasService{c, map[integrationSchema]V2Service{}},
+		&DatasourcesService{c},
+		&TeamMembersService{c},
+		&VulnerabilityExceptionsService{c},
 	}
 
 	v2.Schemas.Services = map[integrationSchema]V2Service{
-		AlertChannels:       &AlertChannelsService{c},
-		CloudAccounts:       &CloudAccountsService{c},
-		ContainerRegistries: &ContainerRegistriesService{c},
-		ResourceGroups:      &ResourceGroupsService{c},
+		AlertChannels:           &AlertChannelsService{c},
+		AlertRules:              &AlertRulesService{c},
+		CloudAccounts:           &CloudAccountsService{c},
+		ContainerRegistries:     &ContainerRegistriesService{c},
+		ResourceGroups:          &ResourceGroupsService{c},
+		TeamMembers:             &TeamMembersService{c},
+		ReportRules:             &ReportRulesService{c},
+		VulnerabilityExceptions: &VulnerabilityExceptionsService{c},
 	}
 	return v2
 }

@@ -36,7 +36,7 @@ var (
 	// complianceGcpListCmd represents the list sub-command inside the gcp command
 	complianceGcpListCmd = &cobra.Command{
 		Use:   "list",
-		Short: "list gcp projects and organizations",
+		Short: "List gcp projects and organizations",
 		Long:  `List all GCP projects and organization IDs.`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
@@ -53,7 +53,7 @@ var (
 
 Get started by integrating your GCP to analyze configuration compliance using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -87,16 +87,16 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 	complianceGcpListProjCmd = &cobra.Command{
 		Use:     "list-projects <organization_id>",
 		Aliases: []string{"list-proj"},
-		Short:   "list projects from an organization",
+		Short:   "List projects from an organization",
 		Long: `List all GCP projects from the provided organization ID.
 
 Use the following command to list all GCP integrations in your account:
 
-    $ lacework integrations list --type GCP_CFG
+    lacework integrations list --type GCP_CFG
 
 Then, select one GUID from an integration and visualize its details using the command:
 
-    $ lacework integration show <int_guid>
+    lacework integration show <int_guid>
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -139,22 +139,22 @@ Then, select one GUID from an integration and visualize its details using the co
 			}
 
 			switch compCmdState.Type {
-			case "CIS", "SOC", "PCI":
+			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI":
 				compCmdState.Type = fmt.Sprintf("GCP_%s", compCmdState.Type)
 				return nil
-			case "GCP_CIS", "GCP_SOC", "GCP_PCI":
+			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, SOC, or PCI")
+				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, or PCI")
 			}
 		},
-		Short: "get the latest GCP compliance report",
+		Short: "Get the latest GCP compliance report",
 		Long: `Get the latest compliance assessment report, these reports run on a regular schedule,
 typically once a day. The available report formats are human-readable (default), json and pdf.
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance gcp run-assessment <project_id>
+    lacework compliance gcp run-assessment <project_id>
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -205,18 +205,36 @@ To run an ad-hoc compliance assessment use the command:
 				}
 			}
 
-			cli.StartProgress(" Getting compliance report...")
-			response, err := cli.LwApi.Compliance.GetGcpReport(config)
-			cli.StopProgress()
-			if err != nil {
-				return errors.Wrap(err, "unable to get gcp compliance report")
+			// diagonals are file separators and therefore we need to clean the organization
+			// ID if it is "n/a" or we will create two directories "n/a/..."
+			orgIDForCache := config.OrganizationID
+			if config.OrganizationID == "n/a" {
+				orgIDForCache = "not_applicable"
 			}
 
-			if len(response.Data) == 0 {
-				return errors.New("there is no data found in the report")
+			var (
+				report   api.ComplianceGcpReport
+				cacheKey = fmt.Sprintf("compliance/google/%s/%s/%s",
+					orgIDForCache, config.ProjectID, config.Type)
+			)
+			expired := cli.ReadCachedAsset(cacheKey, &report)
+			if expired {
+				cli.StartProgress(" Getting compliance report...")
+				response, err := cli.LwApi.Compliance.GetGcpReport(config)
+				cli.StopProgress()
+				if err != nil {
+					return errors.Wrap(err, "unable to get gcp compliance report")
+				}
+
+				if len(response.Data) == 0 {
+					return errors.New("no data found in the report")
+				}
+
+				report = response.Data[0]
+
+				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), report)
 			}
 
-			report := response.Data[0]
 			filteredOutput := ""
 
 			if complianceFiltersEnabled() {
@@ -241,7 +259,9 @@ To run an ad-hoc compliance assessment use the command:
 				)
 
 				return cli.OutputCSV(
-					[]string{"Report_Type", "Report_Time", "Organization", "Project", "Section", "ID", "Recommendation", "Status", "Severity", "Resource", "Region", "Reason"},
+					[]string{"Report_Type", "Report_Time", "Organization",
+						"Project", "Section", "ID", "Recommendation", "Status",
+						"Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
 			}
@@ -264,7 +284,7 @@ To run an ad-hoc compliance assessment use the command:
 	complianceGcpRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <org_or_project_id>",
 		Aliases: []string{"run"},
-		Short:   "run a new GCP compliance assessment",
+		Short:   "Run a new GCP compliance assessment",
 		Long:    `Run a compliance assessment for the provided GCP organization or project.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -309,9 +329,9 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// GCP report types: GCP_CIS, GCP_SOC, or GCP_PCI.
+	// GCP report types: GCP_CIS, GCP_CIS12, GCP_K8S, GCP_HIPAA, GCP_SOC, or GCP_PCI.
 	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, SOC, or PCI",
+		"report type to display, supported types: CIS, CIS12, K8S, HIPAA, SOC, or PCI",
 	)
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},

@@ -1,4 +1,4 @@
-// +build query
+//go:build query
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
@@ -41,7 +41,7 @@ func TestQueryValidateEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate")
 	assert.Contains(t, out.String(), "Type a query to validate")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to validate query: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to validate query:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 

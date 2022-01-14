@@ -1,6 +1,12 @@
+---
+title: "lacework configure list"
+slug: lacework_configure_list
+hide_title: true
+---
+
 ## lacework configure list
 
-list all configured profiles at ~/.lacework.toml
+List all configured profiles at ~/.lacework.toml
 
 ### Synopsis
 
@@ -40,5 +46,5 @@ lacework configure list [flags]
 
 ### SEE ALSO
 
-* [lacework configure](lacework_configure.md)	 - configure the Lacework CLI
+* [lacework configure](lacework_configure.md)	 - Configure the Lacework CLI
 

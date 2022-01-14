@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGlobalFlagApiToken(t *testing.T) {
+func _TestGlobalFlagApiToken(t *testing.T) {
 	// generating a token with toml config
 	token, err, exitcode := LaceworkCLIWithTOMLConfig("access-token")
 	assert.Contains(t, token.String(), "_", // @afiune tokens start with "_secret123"

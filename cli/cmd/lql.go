@@ -53,7 +53,7 @@ var (
 	queryCmd = &cobra.Command{
 		Use:     "query",
 		Aliases: []string{"lql", "queries"},
-		Short:   "run and manage queries",
+		Short:   "Run and manage queries",
 		Long: `Run and manage Lacework Query Language (LQL) queries.
 
 To provide customizable specification of datasets, Lacework provides the Lacework
@@ -68,7 +68,7 @@ Lacework ships a set of default LQL queries that are available in your account.
 
 For more information about LQL, visit:
 
-   https://support.lacework.com/hc/en-us/articles/4402301824403-LQL-Overview
+  https://docs.lacework.com/lql-overview
 
 To view all LQL queries in your Lacework account.
 
@@ -82,7 +82,7 @@ To execute a query.
 
     lacework query run <query_id>
 
-** NOTE: LQL syntax may change. **
+**NOTE: LQL syntax may change.**
 `,
 	}
 
@@ -90,7 +90,7 @@ To execute a query.
 	queryRunCmd = &cobra.Command{
 		Aliases: []string{"execute"},
 		Use:     "run [query_id]",
-		Short:   "run a query",
+		Short:   "Run a query",
 		Long: `Run an LQL query via editor:
 
     lacework query run --range today
@@ -103,20 +103,20 @@ Start and End times are required to run a query:
 
 1.  Start and End times must be specified in one of the following formats:
 
-    A. A relative time specifier
-    B. RFC3339 Date and Time
-    C. Epoch time in milliseconds
+    A. A relative time specifier  
+    B. RFC3339 Date and Time  
+    C. Epoch time in milliseconds  
 
 2. Start and End times must be specified in one of the following ways:
 
-    A.  As StartTimeRange and EndTimeRange in the ParamInfo block within the query
-    B.  As start_time_range and end_time_range if specifying JSON
-    C.  As --start and --end CLI flags
+    A. As StartTimeRange and EndTimeRange in the ParamInfo block within the query  
+    B. As start_time_range and end_time_range if specifying JSON  
+    C. As --start and --end CLI flags  
 
 3. Start and End time precedence:
 
-    A.  CLI flags take precedence over JSON specifications
-    B.  JSON specifications take precedence over ParamInfo specifications`,
+    A. CLI flags take precedence over JSON specifications  
+    B. JSON specifications take precedence over ParamInfo specifications  `,
 		Args: cobra.MaximumNArgs(1),
 		RunE: runQuery,
 	}
