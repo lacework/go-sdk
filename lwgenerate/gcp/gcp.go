@@ -2,9 +2,8 @@ package gcp
 
 import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/pkg/errors"
-
 	"github.com/lacework/go-sdk/lwgenerate"
+	"github.com/pkg/errors"
 )
 
 type ExistingServiceAccountDetails struct {
@@ -82,8 +81,9 @@ type GenerateGcpTfConfigurationArgs struct {
 	EnableUBLA bool
 
 	// Number of days to keep audit logs in Lacework GCS bucket before deleting.
-	// If left empty the TF will default to -1.
-	LogBucketLifecycleRuleAge int
+	// If left empty the TF will default to -1
+	// Use pointer *int, so we can verify if the value has been set by the end user
+	LogBucketLifecycleRuleAge *int
 
 	// The number of days to keep logs before deleting.
 	// If left as 0 the TF will default to 30.
@@ -106,6 +106,11 @@ func (args *GenerateGcpTfConfigurationArgs) validate() error {
 	// Validate if this is an organization integration, verify that the organization id has been provided
 	if args.OrganizationIntegration && args.GcpOrganizationId == "" {
 		return errors.New("An Organization ID must be provided for an Organization Integration")
+	}
+
+	// Validate if an organization id has been provided that this is and organization integration
+	if !args.OrganizationIntegration && args.GcpOrganizationId != "" {
+		return errors.New("To provide an Organization ID, Organization Integration must be true")
 	}
 
 	// Validate existing Service Account values, if set
@@ -269,7 +274,8 @@ func WithEnableUBLA() GcpTerraformModifier {
 
 // WithLogBucketLifecycleRuleAge Set the number of days to keep audit logs in Lacework GCS bucket before deleting
 // Defaults to -1. Leave default to keep indefinitely.
-func WithLogBucketLifecycleRuleAge(age int) GcpTerraformModifier {
+func WithLogBucketLifecycleRuleAge(ruleAge int) GcpTerraformModifier {
+	age := &ruleAge
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.LogBucketLifecycleRuleAge = age
 	}
@@ -346,27 +352,25 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 
 func createGcpProvider(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
-	if args.ServiceAccountCredentials != "" || args.GcpProjectId != "" {
-		attrs := map[string]interface{}{}
+	attrs := map[string]interface{}{}
 
-		if args.ServiceAccountCredentials != "" {
-			attrs["credentials"] = args.ServiceAccountCredentials
-		}
-
-		if args.GcpProjectId != "" {
-			attrs["project"] = args.GcpProjectId
-		}
-
-		provider, err := lwgenerate.NewProvider(
-			"google",
-			lwgenerate.HclProviderWithAttributes(attrs),
-		).ToBlock()
-		if err != nil {
-			return nil, err
-		}
-
-		blocks = append(blocks, provider)
+	if args.ServiceAccountCredentials != "" {
+		attrs["credentials"] = args.ServiceAccountCredentials
 	}
+
+	if args.GcpProjectId != "" {
+		attrs["project"] = args.GcpProjectId
+	}
+
+	provider, err := lwgenerate.NewProvider(
+		"google",
+		lwgenerate.HclProviderWithAttributes(attrs),
+	).ToBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	blocks = append(blocks, provider)
 
 	return blocks, nil
 }
@@ -437,20 +441,28 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 		}
 
 		if args.PubSubTopicLabels != nil {
-			attributes["pubsub_topic_labels"] = args.BucketLabels
+			attributes["pubsub_topic_labels"] = args.PubSubTopicLabels
 		}
 
 		if args.ExistingLogBucketName != "" {
 			attributes["existing_bucket_name"] = args.ExistingLogBucketName
 		} else {
-			attributes["lifecycle_rule_age"] = args.LogBucketLifecycleRuleAge
+			if args.LogBucketLifecycleRuleAge == nil {
+				defaultValue := -1
+				args.LogBucketLifecycleRuleAge = &defaultValue
+			}
+			attributes["lifecycle_rule_age"] = *args.LogBucketLifecycleRuleAge
 
 			if args.BucketName != "" {
 				attributes["log_bucket"] = args.BucketName
 			}
 
+			if args.AuditLogLabels != nil {
+				attributes["labels"] = args.AuditLogLabels
+			}
+
 			if args.BucketLabels != nil {
-				attributes["labels"] = args.BucketLabels
+				attributes["bucket_labels"] = args.BucketLabels
 			}
 
 			if args.EnableForceDestroyBucket {
