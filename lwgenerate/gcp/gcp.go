@@ -447,11 +447,9 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 		if args.ExistingLogBucketName != "" {
 			attributes["existing_bucket_name"] = args.ExistingLogBucketName
 		} else {
-			if args.LogBucketLifecycleRuleAge == nil {
-				defaultValue := -1
-				args.LogBucketLifecycleRuleAge = &defaultValue
+			if args.LogBucketLifecycleRuleAge != nil {
+				attributes["lifecycle_rule_age"] = *args.LogBucketLifecycleRuleAge
 			}
-			attributes["lifecycle_rule_age"] = *args.LogBucketLifecycleRuleAge
 
 			if args.BucketName != "" {
 				attributes["log_bucket"] = args.BucketName
