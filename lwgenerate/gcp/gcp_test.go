@@ -1,9 +1,10 @@
-package gcp
+package gcp_test
 
 import (
 	"fmt"
 	"testing"
 
+	"github.com/lacework/go-sdk/lwgenerate/gcp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,16 +25,17 @@ func reqProvider(extraInputs ...string) string {
 }
 
 func TestGenerationProjectLevelAuditLogWithoutConfig(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1")).Generate()
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogWithoutConfig), hcl)
 }
 
 func TestGenerationProjectLevelAuditLogWithoutCredentialsAndProject(t *testing.T) {
-	hcl, err := NewTerraform(false, true).Generate()
+	hcl, err := gcp.NewTerraform(false, true).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(
@@ -44,10 +46,11 @@ func TestGenerationProjectLevelAuditLogWithoutCredentialsAndProject(t *testing.T
 }
 
 func TestGenerationProjectLevelAuditLogWithLaceworkProfile(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithLaceworkProfile("test-profile")).Generate()
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithLaceworkProfile("test-profile"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(
@@ -58,50 +61,54 @@ func TestGenerationProjectLevelAuditLogWithLaceworkProfile(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogCustomIntegrationName(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithAuditLogIntegrationName("custom_integration_name")).Generate()
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithAuditLogIntegrationName("custom_integration_name"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogCustomIntegrationName), hcl)
 }
 
 func TestGenerationProjectLevelAuditLogLabels(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithAuditLogLabels(map[string]string{"key": "value"})).Generate()
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithAuditLogLabels(map[string]string{"key": "value"}),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogLabels), hcl)
 }
 
 func TestGenerationProjectLevelAuditLogBucketLabels(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithBucketLabels(map[string]string{"key": "value"})).Generate()
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithBucketLabels(map[string]string{"key": "value"}),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketLabels), hcl)
 }
 
 func TestGenerationProjectLevelAuditLogPubSubSubscriptionLabels(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithPubSubSubscriptionLabels(map[string]string{"key": "value"})).Generate()
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithPubSubSubscriptionLabels(map[string]string{"key": "value"}),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogPubSubSubscriptionLabels), hcl)
 }
 
 func TestGenerationProjectLevelAuditLogPubSubTopicLabels(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithPubSubTopicLabels(map[string]string{"key": "value"}),
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithPubSubTopicLabels(map[string]string{"key": "value"}),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -109,10 +116,10 @@ func TestGenerationProjectLevelAuditLogPubSubTopicLabels(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogBucketRegion(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithBucketRegion("us-west"),
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithBucketRegion("us-west"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -120,10 +127,10 @@ func TestGenerationProjectLevelAuditLogBucketRegion(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogBucketLocation(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithBucketLocation("us"),
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithBucketLocation("us"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -131,10 +138,10 @@ func TestGenerationProjectLevelAuditLogBucketLocation(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogBucketName(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithBucketName("foo"),
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithBucketName("foo"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -142,10 +149,10 @@ func TestGenerationProjectLevelAuditLogBucketName(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogExistingBucketName(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithExistingLogBucketName("foo"),
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithExistingLogBucketName("foo"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -153,10 +160,10 @@ func TestGenerationProjectLevelAuditLogExistingBucketName(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogExistingLogSinkName(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithExistingLogSinkName("foo"),
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithExistingLogSinkName("foo"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -164,10 +171,10 @@ func TestGenerationProjectLevelAuditLogExistingLogSinkName(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogEnableForceDestroyBucket(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithEnableForceDestroyBucket(),
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithEnableForceDestroyBucket(),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -175,10 +182,10 @@ func TestGenerationProjectLevelAuditLogEnableForceDestroyBucket(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogEnableUBLA(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithEnableUBLA(),
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithEnableUBLA(),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -186,10 +193,10 @@ func TestGenerationProjectLevelAuditLogEnableUBLA(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogBucketLifecycleRuleAge(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithLogBucketLifecycleRuleAge(420),
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithLogBucketLifecycleRuleAge(420),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -197,10 +204,10 @@ func TestGenerationProjectLevelAuditLogBucketLifecycleRuleAge(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogBucketRetentionDays(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithLogBucketRetentionDays(420),
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithLogBucketRetentionDays(420),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -208,125 +215,137 @@ func TestGenerationProjectLevelAuditLogBucketRetentionDays(t *testing.T) {
 }
 
 func TestGenerationOrganizationLevelAuditLogWithoutConfig(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithOrganizationIntegration(true),
-		WithOrganizationId("123456789")).Generate()
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportOrganizationLevelAuditLogWithoutConfig), hcl)
 }
 
 func TestGenerationOrganizationLevelAuditLogCustomIntegrationName(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithOrganizationIntegration(true),
-		WithOrganizationId("123456789"),
-		WithAuditLogIntegrationName("custom_integration_name")).Generate()
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithAuditLogIntegrationName("custom_integration_name"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportOrganizationLevelAuditLogCustomIntegrationName), hcl)
 }
 
 func TestGenerationOrganizationLevelAuditLogNoOrgId(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithOrganizationIntegration(true)).Generate()
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+	).Generate()
 	assert.Empty(t, hcl)
 	assert.EqualError(t, err, "invalid inputs: An Organization ID must be provided for an Organization Integration")
 }
 
 func TestGenerationOrganizationLevelAuditLogNoOrgIntegrationFlag(t *testing.T) {
-	hcl, err := NewTerraform(false, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithOrganizationId("123456789")).Generate()
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationId("123456789"),
+	).Generate()
 	assert.Empty(t, hcl)
 	assert.EqualError(t, err, "invalid inputs: To provide an Organization ID, Organization Integration must be true")
 }
 
 func TestGenerationProjectLevelAuditLogWithConfig(t *testing.T) {
-	hcl, err := NewTerraform(true, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1")).Generate()
+	hcl, err := gcp.NewTerraform(true, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelConfig, moduleImportProjectLevelAuditLogWithConfig), hcl)
 }
 
 func TestGenerationOrganizationLevelAuditLogWithConfig(t *testing.T) {
-	hcl, err := NewTerraform(true, true,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithOrganizationIntegration(true),
-		WithOrganizationId("123456789")).Generate()
+	hcl, err := gcp.NewTerraform(true, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfig, moduleImportOrganizationLevelAuditLogWithConfig), hcl)
 }
 
 func TestGenerationProjectLevelConfig(t *testing.T) {
-	hcl, err := NewTerraform(true, false,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1")).Generate()
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelConfig), hcl)
 }
 
 func TestGenerationProjectLevelConfigExistingSA(t *testing.T) {
-	hcl, err := NewTerraform(true, false,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithExistingServiceAccount(NewExistingServiceAccountDetails("foo", "123456789"))).Generate()
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithExistingServiceAccount(gcp.NewExistingServiceAccountDetails("foo", "123456789")),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelConfigExistingSA), hcl)
 }
 
 func TestGenerationProjectLevelConfigCustomIntegrationName(t *testing.T) {
-	hcl, err := NewTerraform(true, false,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithConfigIntegrationName("custom_integration_name")).Generate()
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithConfigIntegrationName("custom_integration_name"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelConfigCustomIntegrationName), hcl)
 }
 
 func TestGenerationOrganizationLevelConfig(t *testing.T) {
-	hcl, err := NewTerraform(true, false,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithOrganizationIntegration(true),
-		WithOrganizationId("123456789")).Generate()
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfig), hcl)
 }
 
 func TestGenerationOrganizationLevelConfigExistingSA(t *testing.T) {
-	hcl, err := NewTerraform(true, false,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithOrganizationIntegration(true),
-		WithOrganizationId("123456789"),
-		WithExistingServiceAccount(NewExistingServiceAccountDetails("foo", "123456789"))).Generate()
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithExistingServiceAccount(gcp.NewExistingServiceAccountDetails("foo", "123456789")),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfigExistingSA), hcl)
 }
 
 func TestGenerationOrganizationLevelConfigCustomIntegrationName(t *testing.T) {
-	hcl, err := NewTerraform(true, false,
-		WithGcpServiceAccountCredentials("/path/to/credentials"),
-		WithProjectId("project1"),
-		WithOrganizationIntegration(true),
-		WithOrganizationId("123456789"),
-		WithConfigIntegrationName("custom_integration_name")).Generate()
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithConfigIntegrationName("custom_integration_name"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfigCustomIntegrationName), hcl)
