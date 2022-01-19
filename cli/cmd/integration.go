@@ -220,7 +220,7 @@ func promptCreateIntegration() error {
 			Options: []string{
 				"Slack Alert Channel",
 				"Email Alert Channel",
-				"AWS S3 Alert Channel",
+				"Amazon S3 Alert Channel",
 				"Cisco Webex Alert Channel",
 				"Datadog Alert Channel",
 				"GCP PubSub Alert Channel",
@@ -232,7 +232,7 @@ func promptCreateIntegration() error {
 				"QRadar Alert Channel",
 				"Service Now Alert Channel",
 				"PagerDuty Alert Channel",
-				"AWS CloudWatch Alert Channel",
+				"Amazon CloudWatch Alert Channel",
 				"Jira Cloud Alert Channel",
 				"Jira Server Alert Channel",
 				"Docker Hub Registry",
@@ -269,7 +269,7 @@ func promptCreateIntegration() error {
 		return createMicrosoftTeamsChannelIntegration()
 	case "New Relic Insights Alert Channel":
 		return createNewRelicAlertChannelIntegration()
-	case "AWS S3 Alert Channel":
+	case "Amazon S3 Alert Channel":
 		return createAwsS3ChannelIntegration()
 	case "Cisco Webex Alert Channel":
 		return createCiscoWebexChannelIntegration()
@@ -287,7 +287,7 @@ func promptCreateIntegration() error {
 		return createQRadarAlertChannelIntegration()
 	case "Service Now Alert Channel":
 		return createServiceNowAlertChannelIntegration()
-	case "AWS CloudWatch Alert Channel":
+	case "Amazon CloudWatch Alert Channel":
 		return createAwsCloudWatchAlertChannelIntegration()
 	case "Jira Cloud Alert Channel":
 		return createJiraCloudAlertChannelIntegration()
