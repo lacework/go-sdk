@@ -60,7 +60,7 @@ type GhcrData struct {
 	LimitByLabel          []map[string]string `json:"limitByLabel"`
 	LimitByRep            []string            `json:"limitByRep"`
 	LimitNumImg           int                 `json:"limitNumImg"`
-	NonOSPackageEval      bool                `json:"nonOsPackageEval,omitempty"`
+	NonOSPackageEval      bool                `json:"nonOsPackageEval"`
 }
 
 func verifyGhcrContainerRegistry(data interface{}) interface{} {

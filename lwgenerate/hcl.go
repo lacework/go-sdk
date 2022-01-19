@@ -174,6 +174,12 @@ func convertTypeToCty(value interface{}) (cty.Value, error) {
 		return cty.NumberIntVal(int64(v)), nil
 	case bool:
 		return cty.BoolVal(v), nil
+	case map[string]string:
+		valueMap := map[string]cty.Value{}
+		for key, val := range v {
+			valueMap[key] = cty.StringVal(val)
+		}
+		return cty.MapVal(valueMap), nil
 	default:
 		return cty.NilVal, errors.New("unknown attribute value type")
 	}
@@ -204,6 +210,12 @@ func setBlockAttributeValue(block *hclwrite.Block, key string, val interface{}) 
 			data[attrKey] = value
 		}
 		block.Body().SetAttributeValue(key, cty.ObjectVal(data))
+	case map[string]string:
+		value, err := convertTypeToCty(v)
+		if err != nil {
+			return err
+		}
+		block.Body().SetAttributeValue(key, value)
 	default:
 		return errors.New("Unknown type")
 	}
