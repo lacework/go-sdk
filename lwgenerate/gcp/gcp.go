@@ -504,8 +504,12 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 		if args.ExistingServiceAccount == nil && args.Config {
 			attributes["use_existing_service_account"] = true
-			attributes["service_account_name"] = lwgenerate.CreateSimpleTraversal([]string{"module", configModuleName, "service_account_name"})
-			attributes["service_account_private_key"] = lwgenerate.CreateSimpleTraversal([]string{"module", configModuleName, "service_account_private_key"})
+			attributes["service_account_name"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", configModuleName, "service_account_name"},
+			)
+			attributes["service_account_private_key"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", configModuleName, "service_account_private_key"},
+			)
 		}
 
 		if args.ExistingServiceAccount != nil {
