@@ -114,8 +114,8 @@ func (c *cliState) LoadComponents() {
 				&cobra.Command{
 					Use:   cmdName,
 					Short: fmt.Sprintf("%s component", cmd),
-					Run: func(_ *cobra.Command, args []string) {
-						component.RunAndOutput(args, nil)
+					RunE: func(_ *cobra.Command, args []string) error {
+						return component.RunAndOutput(args, nil)
 					},
 					// @dhazekamp how does component communicate Long?
 					// @dhazekamp how does component communicate flags?
