@@ -39,6 +39,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/format"
+	"github.com/lacework/go-sdk/lwcomponent"
 	"github.com/lacework/go-sdk/lwconfig"
 	"github.com/lacework/go-sdk/lwlogger"
 )
@@ -60,7 +61,7 @@ type cliState struct {
 	Log          *zap.SugaredLogger
 	Event        *Honeyvent
 	Cache        *diskv.Diskv
-	LwComponents *LwComponentState
+	LwComponents *lwcomponent.State
 
 	id             string
 	workers        sync.WaitGroup

@@ -23,14 +23,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"os/exec"
 	"path"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/lwcomponent"
 )
 
 var (
@@ -90,21 +90,19 @@ func init() {
 	componentsCmd.AddCommand(componentsDeleteCmd)
 
 	// load components
+	// @afiune log more information about loading components
+	cli.Log.Debugw("loading components")
 	cli.LoadComponents()
 }
 
-// @afiune how do we pass arguments?
-func runComponent(cmd string, args []string) error {
-	c := exec.Command(cmd, args...)
-	c.Env = os.Environ()
-	c.Stdout = os.Stdout
-	c.Stdin = os.Stdin
-	c.Stderr = os.Stderr
-	return c.Run()
-}
-
 func (c *cliState) LoadComponents() {
-	c.LwComponents = loadComponentsFromDirk()
+	state, err := lwcomponent.LoadState()
+	c.LwComponents = state
+	if err != nil {
+		cli.Log.Debugw("unable to load components", "error", err)
+	}
+
+	// @dhazekamp how do we ensure component command names don't overlap with other commands?
 	for _, component := range c.LwComponents.Components {
 		if component.Status == "Installed" && component.CLICommand {
 			var (
@@ -117,63 +115,15 @@ func (c *cliState) LoadComponents() {
 					Use:   cmdName,
 					Short: fmt.Sprintf("%s component", cmd),
 					Run: func(_ *cobra.Command, args []string) {
-						runComponent(cmd, args)
+						component.RunAndOutput(args, nil)
 					},
+					// @dhazekamp how does component communicate Long?
+					// @dhazekamp how does component communicate flags?
+					// @dhazekamp what if the component requires stdin?
 				},
 			)
 		}
 	}
-}
-
-type LwComponentState struct {
-	Version    string      `json:"version"`
-	Components []Component `json:"components"`
-}
-
-type Component struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Version     string `json:"version"`
-	Status      string `json:"status"`
-	//Size ?
-
-	// will this component be accessible via the CLI
-	CLICommand  bool   `json:"cli_command"`
-	CommandName string `json:"command_name"`
-
-	// the component is a binary
-	Binary bool `json:"binary"`
-
-	// the component is a library, only provides content for the CLI or other components
-	Library bool `json:"library"`
-}
-
-func loadComponentsFromDirk() *LwComponentState {
-	state := new(LwComponentState)
-	// @afiune log more information about loading components
-	cli.Log.Debugw("loading components")
-	cacheDir, err := cacheDir()
-	if err != nil {
-		return state
-	}
-
-	componentsFile := path.Join(cacheDir, "components")
-	if fileExists(componentsFile) {
-		componentState, err := ioutil.ReadFile(componentsFile)
-		if err != nil {
-			return state
-		}
-
-		err = json.Unmarshal(componentState, state)
-		if err != nil {
-			cli.Log.Debugw("unable to load components",
-				"file", componentsFile,
-				"error", err,
-			)
-		}
-	}
-
-	return state
 }
 
 func runComponentsList(_ *cobra.Command, _ []string) error {

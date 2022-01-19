@@ -226,6 +226,9 @@ github.com/zclconf/go-cty/cty/function/stdlib
 github.com/zclconf/go-cty/cty/gocty
 github.com/zclconf/go-cty/cty/json
 github.com/zclconf/go-cty/cty/set
+# github.com/zenizh/go-capturer v0.0.0-20211219060012-52ea6c8fed04
+## explicit; go 1.17
+github.com/zenizh/go-capturer
 # go.uber.org/atomic v1.7.0
 ## explicit; go 1.13
 go.uber.org/atomic
