@@ -33,7 +33,7 @@ import (
 var (
 	mockComponent = lwcomponent.Component{
 		Name:        "lacework-mock-component",
-		Description: "This is a mock mock component",
+		Description: "This is a mock component",
 		Version:     "0.1.0",
 		Signature:   "d69669aadfa69e5a212c83d52d9e5ca257f6c8bfedf82f8e34eb9523e27e3a3f",
 		CLICommand:  false,
