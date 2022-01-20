@@ -1,0 +1,12 @@
+{
+	"version": "0.1.0",
+	"components": [
+		{
+			"name": "lacework-content-library",
+			"description": "Lacework Content Library",
+			"version": "0.1.0",
+			"signature": "f35b88ae47f9778061543a33ad6799a0d16adf9af02f7527bdf053d81f9a0607",
+			"binary": true
+		}
+	]
+}
