@@ -61,7 +61,7 @@ func LoadLCL(state lwcomponent.State) (*LaceworkContentLibrary, error) {
 		return index, errors.New("Lacework Content Library is not available")
 	}
 
-	stdout, _, err := component.RunAndReturn([]string{"content.index"}, nil)
+	stdout, _, err := component.RunAndReturn([]string{lclIndexPath}, nil)
 	if err != nil || stdout == "" {
 		return index, errors.Wrap(err, "unable to retrieve index from Lacework Content Library")
 	}
