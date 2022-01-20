@@ -22,10 +22,10 @@ package lwcomponent
 import (
 	"bytes"
 	"crypto/sha256"
+	_ "embed"
 	"encoding/hex"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -37,6 +37,15 @@ import (
 type State struct {
 	Version    string      `json:"version"`
 	Components []Component `json:"components"`
+}
+
+func (s State) GetComponent(name string) *Component {
+	for i := range s.Components {
+		if s.Components[i].Name == name {
+			return &s.Components[i]
+		}
+	}
+	return nil
 }
 
 func cacheDir() (string, error) {
@@ -57,38 +66,45 @@ func fileExists(filename string) bool {
 	return !f.IsDir()
 }
 
+//go:embed state
+var componentState string
+
 // @dhazekamp need to avoid cache poisoning with respect retrieving component signature
 func LoadState() (*State, error) {
 	state := new(State)
 
-	cacheDir, err := cacheDir()
-	if err != nil {
+	if err := json.Unmarshal([]byte(componentState), state); err != nil {
 		return state, err
 	}
-
-	componentsFile := path.Join(cacheDir, "components")
-	if fileExists(componentsFile) {
-		componentState, err := ioutil.ReadFile(componentsFile)
-		if err != nil {
-			return state, err
-		}
-
-		err = json.Unmarshal(componentState, state)
-		if err != nil {
-			return state, err
-		}
-	}
-
 	return state, nil
 }
 
+type ComponentStatus int64
+
+const (
+	Unknown ComponentStatus = iota
+	NotInstalled
+	Installed
+)
+
+func (cs ComponentStatus) String() string {
+	switch cs {
+	case NotInstalled:
+		return "Not Installed"
+	case Installed:
+		return "Installed"
+	default:
+		return "Unknown"
+	}
+}
+
 var baseRunErr string = "unable to run component"
+var cmpntNotFound string = "component does not exist"
 
 type Component struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Version     string `json:"version"`
-	Status      string `json:"status"`
 	Signature   string `json:"signature"`
 	//Size ?
 
@@ -115,9 +131,20 @@ func (cmpnt Component) Path() (string, error) {
 	}
 	cmpntPath := path.Join(cacheDir, cmpnt.Name, cmpnt.Name)
 	if !fileExists(cmpntPath) {
-		return cmpntPath, errors.New("component does not exist")
+		return cmpntPath, errors.New(cmpntNotFound)
 	}
 	return cmpntPath, nil
+}
+
+func (cmpnt Component) Status() ComponentStatus {
+	_, err := cmpnt.Path()
+	if err == nil {
+		return Installed
+	}
+	if err.Error() == cmpntNotFound {
+		return NotInstalled
+	}
+	return Unknown
 }
 
 // @dhazekamp replace sha256 validation with minisign

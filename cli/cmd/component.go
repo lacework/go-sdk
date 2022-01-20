@@ -104,7 +104,7 @@ func (c *cliState) LoadComponents() {
 
 	// @dhazekamp how do we ensure component command names don't overlap with other commands?
 	for _, component := range c.LwComponents.Components {
-		if component.Status == "Installed" && component.CLICommand {
+		if component.Status() == lwcomponent.Installed && component.CLICommand {
 			var (
 				cmd     = component.Name
 				cmdName = component.CommandName
@@ -147,7 +147,7 @@ func componentsToTable() [][]string {
 	out := [][]string{}
 	for _, cdata := range cli.LwComponents.Components {
 		out = append(out, []string{
-			cdata.Status,
+			cdata.Status().String(),
 			cdata.Name,
 			cdata.Description,
 		})
@@ -163,15 +163,8 @@ func runComponentsInstall(_ *cobra.Command, args []string) error {
 
 	componentsFile := path.Join(cacheDir, "components")
 
-	exists := false
-	for i, component := range cli.LwComponents.Components {
-		if component.Name == args[0] {
-			cli.LwComponents.Components[i].Status = "Installed"
-			exists = true
-		}
-	}
-
-	if !exists {
+	component := cli.LwComponents.GetComponent(args[0])
+	if component == nil {
 		return errors.New("component not found. Try running 'lacework component list'")
 	}
 
@@ -202,15 +195,8 @@ func runComponentsDelete(_ *cobra.Command, args []string) error {
 
 	componentsFile := path.Join(cacheDir, "components")
 
-	exists := false
-	for i, component := range cli.LwComponents.Components {
-		if component.Name == args[0] {
-			cli.LwComponents.Components[i].Status = "Not Installed"
-			exists = true
-		}
-	}
-
-	if !exists {
+	component := cli.LwComponents.GetComponent(args[0])
+	if component == nil {
 		return errors.New("component not found. Try running 'lacework component list'")
 	}
 

@@ -34,7 +34,6 @@ var (
 		Name:        "lacework-mock-component",
 		Description: "This is a mock mock component",
 		Version:     "0.1.0",
-		Status:      "installed",
 		Signature:   "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
 		CLICommand:  false,
 		CommandName: "",
