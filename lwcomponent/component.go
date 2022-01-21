@@ -128,7 +128,7 @@ type Component struct {
 	// the component is standalone, should be available in $PATH
 	Standalone bool `json:"standalone"`
 
-	Artifacts []Artifact
+	Artifacts []Artifact `json:"artifacts"`
 }
 
 // @dhazekamp validate component name
