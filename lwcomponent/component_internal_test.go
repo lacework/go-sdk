@@ -34,12 +34,33 @@ var (
 		Name:        "lacework-mock-component",
 		Description: "This is a mock mock component",
 		Version:     "0.1.0",
-		Signature:   "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
 		CLICommand:  false,
 		CommandName: "",
 		Binary:      true,
 		Library:     false,
 		Standalone:  false,
+		Artifacts: []Artifact{
+			Artifact{
+				OS:        "darwin",
+				ARCH:      "amd64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+			},
+			Artifact{
+				OS:        "darwin",
+				ARCH:      "arm64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+			},
+			Artifact{
+				OS:        "linux",
+				ARCH:      "amd64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+			},
+			Artifact{
+				OS:        "linux",
+				ARCH:      "arm64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+			},
+		},
 	}
 )
 
@@ -119,20 +140,95 @@ type isVerifiedTest struct {
 
 var isVerifiedTests = []isVerifiedTest{
 	isVerifiedTest{
+		"Unsupported",
+		Component{Name: "lacework-mock-component"},
+		false,
+		errors.New("unable to verify component: component not supported on this platform"),
+	},
+	isVerifiedTest{
 		"NoSignature",
-		Component{Name: "lacework-mock-component", Signature: ""},
+		Component{
+			Name: "lacework-mock-component",
+			Artifacts: []Artifact{
+				Artifact{
+					OS:   "darwin",
+					ARCH: "amd64",
+				},
+				Artifact{
+					OS:   "darwin",
+					ARCH: "arm64",
+				},
+				Artifact{
+					OS:   "linux",
+					ARCH: "amd64",
+				},
+				Artifact{
+					OS:   "linux",
+					ARCH: "arm64",
+				},
+			},
+		},
 		false,
 		errors.New("unable to verify component: component has no signature"),
 	},
 	isVerifiedTest{
 		"NoPath",
-		Component{Name: "lacework-notexists-component", Signature: "foo", Standalone: true},
+		Component{
+			Name:       "lacework-notexists-component",
+			Standalone: true,
+			Artifacts: []Artifact{
+				Artifact{
+					OS:        "darwin",
+					ARCH:      "amd64",
+					Signature: "foo",
+				},
+				Artifact{
+					OS:        "darwin",
+					ARCH:      "arm64",
+					Signature: "foo",
+				},
+				Artifact{
+					OS:        "linux",
+					ARCH:      "amd64",
+					Signature: "foo",
+				},
+				Artifact{
+					OS:        "linux",
+					ARCH:      "arm64",
+					Signature: "foo",
+				},
+			},
+		},
 		false,
 		errors.New("unable to verify component: component does not exist"),
 	},
 	isVerifiedTest{
 		"Mismatch",
-		Component{Name: "lacework-mock-component", Signature: "foo"},
+		Component{
+			Name: "lacework-mock-component",
+			Artifacts: []Artifact{
+				Artifact{
+					OS:        "darwin",
+					ARCH:      "amd64",
+					Signature: "foo",
+				},
+				Artifact{
+					OS:        "darwin",
+					ARCH:      "arm64",
+					Signature: "foo",
+				},
+				Artifact{
+					OS:        "linux",
+					ARCH:      "amd64",
+					Signature: "foo",
+				},
+				Artifact{
+					OS:        "linux",
+					ARCH:      "arm64",
+					Signature: "foo",
+				},
+			},
+		},
 		false,
 		errors.New("unable to verify component: signature mismatch"),
 	},
@@ -180,7 +276,8 @@ var runTests = []runTest{
 	runTest{
 		Name:      "IsNotVerified",
 		Component: Component{Binary: true},
-		Error:     errors.New("unable to run component: unable to verify component: component has no signature"),
+		Error: errors.New(
+			"unable to run component: unable to verify component: component not supported on this platform"),
 	},
 	runTest{
 		Name:      "OK",
