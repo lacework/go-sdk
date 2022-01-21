@@ -72,19 +72,19 @@ func LoadLCL(state lwcomponent.State) (*LaceworkContentLibrary, error) {
 	index, err := lcl.run(lclIndexPath)
 	if err != nil {
 		return new(LaceworkContentLibrary), errors.Wrap(
-			err, "unable to retrieve index from Lacework Content Library")
+			err, "unable to load Lacework Content Library")
 	}
 
 	if err := json.Unmarshal([]byte(index), lcl); err != nil {
 		return new(LaceworkContentLibrary), errors.Wrap(
-			err, "unable to parse Lacework Content Library index")
+			err, "unable to load Lacework Content Library")
 	}
 	return lcl, nil
 }
 
 func (lcl LaceworkContentLibrary) run(path string) (string, error) {
 	if lcl.Component == nil || lcl.Component.Status() != lwcomponent.Installed {
-		return "", errors.New("Lacework Content Library is not available")
+		return "", errors.New("Lacework Content Library is not installed")
 	}
 	stdout, _, err := lcl.Component.RunAndReturn([]string{path}, nil)
 	return stdout, err
