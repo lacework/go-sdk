@@ -46,7 +46,6 @@ alertProfile: LW_CloudTrail_Alerts
 `
 	newHostPolicyYAML string = `---
 evaluatorId:
-policyId: clihosttest-1
 policyType: Violation
 queryId: LW_CLI_Host_Files_IntegrationTest
 title: My Policy Title
@@ -55,7 +54,7 @@ description: My Policy Description
 remediation: Check yourself...
 severity: high
 alertEnabled: false
-alertProfile: LW_HE_Files.HE_File_NewViolation
+alertProfile: LW_HE_FILES_DEFAULT_PROFILE.HE_File_NewViolation
 `
 	// nested
 	updatePolicyYAML string = `---
@@ -247,7 +246,7 @@ func TestPolicyCreateStdin(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func _TestPolicyCreateHost(t *testing.T) {
+func TestPolicyCreateHost(t *testing.T) {
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryHostURL)
 	// teardown
