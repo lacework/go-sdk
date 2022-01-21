@@ -78,19 +78,17 @@ func listQueries(_ *cobra.Command, args []string) error {
 		queriesResponse, err = cli.LwApi.V2.Query.List()
 	}
 	cli.StopProgress()
+
 	if err != nil {
 		return errors.Wrap(err, "unable to list queries")
 	}
-
 	if len(queriesResponse.Data) == 0 {
 		cli.OutputHuman("There were no queries found.")
 		return nil
 	}
-
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queriesResponse.Data)
 	}
-
 	cli.OutputHuman(
 		renderSimpleTable(
 			[]string{"Query ID", "Owner", "Last Update Time", "Last Update User"},

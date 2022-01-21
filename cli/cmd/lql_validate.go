@@ -69,9 +69,9 @@ func validateQuery(cmd *cobra.Command, _ []string) error {
 		return errors.Wrap(err, lqlValidateUnableMsg)
 	}
 	// parse query
-	newQuery, err := parseQuery(queryString)
+	newQuery, err := api.ParseNewQuery(queryString)
 	if err != nil {
-		return errors.Wrap(err, lqlValidateUnableMsg)
+		return errors.Wrap(queryErrorCrumbs(queryString), lqlValidateUnableMsg)
 	}
 
 	cli.Log.Debugw("validating query", "query", queryString)

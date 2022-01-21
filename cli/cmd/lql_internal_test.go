@@ -47,60 +47,6 @@ queryId: %s
 queryText: %s`, newQuery.EvaluatorID, newQuery.QueryID, newQuery.QueryText)
 )
 
-type parseQueryTest struct {
-	Name     string
-	Input    string
-	Return   error
-	Expected api.NewQuery
-}
-
-var parseQueryTests = []parseQueryTest{
-	parseQueryTest{
-		Name:     "empty-blob",
-		Input:    "",
-		Return:   queryErrorCrumbs(""),
-		Expected: api.NewQuery{},
-	},
-	parseQueryTest{
-		Name:     "junk-blob",
-		Input:    "this is junk",
-		Return:   queryErrorCrumbs("this is junk"),
-		Expected: api.NewQuery{},
-	},
-	parseQueryTest{
-		Name:     "partial-blob",
-		Input:    "{",
-		Return:   queryErrorCrumbs("{"),
-		Expected: api.NewQuery{},
-	},
-	parseQueryTest{
-		Name:     "json-blob",
-		Input:    newQueryJSON,
-		Return:   nil,
-		Expected: newQuery,
-	},
-	parseQueryTest{
-		Name:     "yaml-blob",
-		Input:    newQueryYAML,
-		Return:   nil,
-		Expected: newQuery,
-	},
-}
-
-func TestParseQuery(t *testing.T) {
-	for _, pqt := range parseQueryTests {
-		t.Run(pqt.Name, func(t *testing.T) {
-			actual, err := parseQuery(pqt.Input)
-			if pqt.Return == nil {
-				assert.Equal(t, pqt.Return, err)
-			} else {
-				assert.Equal(t, pqt.Return.Error(), err.Error())
-			}
-			assert.Equal(t, pqt.Expected, actual)
-		})
-	}
-}
-
 type parseQueryTimeTest struct {
 	Name       string
 	Input      string
