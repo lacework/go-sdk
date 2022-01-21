@@ -130,7 +130,9 @@ func TestPolicyCreateFile(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	policyID, err := getPolicyIdFromStdout(out.String())
-	assert.Nil(t, err)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
 
 	// update-url (output human)
 	// ideally we wouldn't specify a policyID here since it's in policyURL
@@ -235,15 +237,16 @@ func TestPolicyCreateStdin(t *testing.T) {
 			fmt.Println(err)
 		}
 	}
-
-	policyID, err := getPolicyIdFromStdout(out.String())
-	assert.Nil(t, err)
-	defer LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
-
 	assert.Contains(t, out.String(),
 		fmt.Sprintf("The policy %s was created.", policyID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	policyID, err := getPolicyIdFromStdout(out.String())
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+	defer LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
 }
 
 func TestPolicyCreateHost(t *testing.T) {
@@ -261,14 +264,15 @@ func TestPolicyCreateHost(t *testing.T) {
 
 	// create (output json)
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "create", "-f", file.Name(), "--json")
-
-	policyID, err := getPolicyIdFromStdout(out.String())
-	assert.Nil(t, err)
-	defer LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
-
 	assert.Contains(t, out.String(), `"policyId"`)
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	policyID, err := getPolicyIdFromStdout(out.String())
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+	defer LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
 }
 
 func TestPolicyListHelp(t *testing.T) {
@@ -384,8 +388,11 @@ func TestPolicyDelete(t *testing.T) {
 
 	// setup policy
 	out, _, _ := LaceworkCLIWithTOMLConfig("policy", "create", "-u", policyURL)
+
 	policyID, err := getPolicyIdFromStdout(out.String())
-	assert.Nil(t, err)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
 
 	// human delete tested by virtue of TestPolicyCreateFile
 
