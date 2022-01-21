@@ -65,7 +65,8 @@ policies:
 )
 
 var (
-	policyIDRE *regexp.Regexp = regexp.MustCompile(`([\w-]+-cli.*?test-1)`)
+	policyIDRE *regexp.Regexp = regexp.MustCompile(
+		`([\w-]+-(?:(?:cli.*?test-1)|(?:default-\d+)))`)
 )
 
 func getPolicyIdFromStdout(s string) (string, error) {
