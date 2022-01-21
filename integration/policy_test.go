@@ -237,8 +237,7 @@ func TestPolicyCreateStdin(t *testing.T) {
 			fmt.Println(err)
 		}
 	}
-	assert.Contains(t, out.String(),
-		fmt.Sprintf("The policy %s was created.", policyID))
+	assert.Contains(t, out.String(), "was created.")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
