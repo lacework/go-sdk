@@ -29,7 +29,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -102,17 +101,12 @@ func (cs ComponentStatus) String() string {
 var baseRunErr string = "unable to run component"
 var cmpntNotFound string = "component does not exist"
 
-type Artifact struct {
-	OS        string `json:"os"`
-	ARCH      string `json:"arch"`
-	Signature string `json:"signature"`
-	//Size ?
-}
-
 type Component struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Version     string `json:"version"`
+	Signature   string `json:"signature"`
+	//Size ?
 
 	// will this component be accessible via the CLI
 	CLICommand bool `json:"cli_command"`
@@ -127,8 +121,6 @@ type Component struct {
 
 	// the component is standalone, should be available in $PATH
 	Standalone bool `json:"standalone"`
-
-	Artifacts []Artifact
 }
 
 // @dhazekamp validate component name
@@ -155,29 +147,14 @@ func (cmpnt Component) Status() ComponentStatus {
 	return Unknown
 }
 
-func (cmpnt Component) GetArtifact() (Artifact, error) {
-	for _, a := range cmpnt.Artifacts {
-		if a.OS == runtime.GOOS && a.ARCH == runtime.GOARCH {
-			return a, nil
-		}
-	}
-	return Artifact{}, errors.New("component not supported on this platform")
-}
-
 // @dhazekamp replace sha256 validation with minisign
 func (cmpnt Component) isVerified() (bool, error) {
-	var baseErr string = "unable to verify component"
+	baseErr := "unable to verify component"
 
-	// get artifact
-	a, err := cmpnt.GetArtifact()
-	if err != nil {
-		return false, errors.Wrap(err, baseErr)
-	}
-	// verify artifact has a signature
-	if a.Signature == "" {
+	// ensure we have a component signature
+	if cmpnt.Signature == "" {
 		return false, errors.Wrap(errors.New("component has no signature"), baseErr)
 	}
-	// get component path
 	cmpntPath, err := cmpnt.Path()
 	if err != nil {
 		return false, errors.Wrap(err, baseErr)
@@ -188,13 +165,14 @@ func (cmpnt Component) isVerified() (bool, error) {
 		return false, errors.Wrap(errors.Wrap(err, "unable to open component"), baseErr)
 	}
 	defer f.Close()
+
 	// hash the component
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
 		return false, errors.Wrap(errors.Wrap(err, "unable to hash component"), baseErr)
 	}
 	// validate the hash
-	if a.Signature != hex.EncodeToString(h.Sum(nil)) {
+	if cmpnt.Signature != hex.EncodeToString(h.Sum(nil)) {
 		return false, errors.Wrap(errors.New("signature mismatch"), baseErr)
 	}
 	return true, nil
