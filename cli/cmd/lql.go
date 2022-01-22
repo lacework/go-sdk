@@ -47,6 +47,7 @@ var (
 		ListFromLibrary   bool
 		ShowFromLibrary   bool
 		CreateFromLibrary string
+		UpdateFromLibrary string
 	}{}
 
 	// queryCmd represents the lql parent command
