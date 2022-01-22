@@ -115,32 +115,23 @@ func (lcl LaceworkContentLibrary) ListQueries() api.QueriesResponse {
 	return api.QueriesResponse{Data: queries}
 }
 
-func (lcl LaceworkContentLibrary) GetQuery(id string) (api.QueryResponse, error) {
-	var response api.QueryResponse
+func (lcl LaceworkContentLibrary) GetNewQuery(id string) (api.NewQuery, error) {
+	var newQuery api.NewQuery
 
 	// get query reference
 	ref, err := lcl.getReferenceForQuery(id)
 	if err != nil {
-		return response, err
+		return newQuery, err
 	}
 	// check query path
 	if ref.Path == "" {
-		return response, errors.New("query exists but is malformed")
+		return newQuery, errors.New("query exists but is malformed")
 	}
 	// get query string
 	queryString, err := lcl.run(ref.Path)
 	if err != nil {
-		return response, err
+		return newQuery, err
 	}
 	// parse query string
-	newQuery, err := api.ParseNewQuery(queryString)
-	if err != nil {
-		return response, queryErrorCrumbs(queryString)
-	}
-	response.Data = api.Query{
-		QueryID:     newQuery.QueryID,
-		QueryText:   newQuery.QueryText,
-		EvaluatorID: newQuery.EvaluatorID,
-	}
-	return response, nil
+	return api.ParseNewQuery(queryString)
 }
