@@ -230,25 +230,25 @@ func TestListQueries(t *testing.T) {
 	assert.Equal(t, len(mockLCL.Queries), len(mockLCL.ListQueries().Data))
 }
 
-type getQueryTest struct {
+type getNewQueryTest struct {
 	Name    string
 	Library cmd.LaceworkContentLibrary
 	QueryID string
 	Error   error
 }
 
-var getQueryTests = []getQueryTest{
-	getQueryTest{
+var getNewQueryTests = []getNewQueryTest{
+	getNewQueryTest{
 		Name:  "NoQueryID",
 		Error: errors.New("query ID must be provided"),
 	},
-	getQueryTest{
+	getNewQueryTest{
 		Name:    "MalformedQuery",
 		Library: malformedLCL,
 		QueryID: "my_query",
 		Error:   errors.New("query exists but is malformed"),
 	},
-	getQueryTest{
+	getNewQueryTest{
 		Name:    "QueryOK",
 		Library: *mockLCL,
 		QueryID: "LW_Custom_AWS_CTA_AuroraPasswordChange",
@@ -256,22 +256,22 @@ var getQueryTests = []getQueryTest{
 	},
 }
 
-func TestGetQuery(t *testing.T) {
+func TestGetNewQuery(t *testing.T) {
 	ept, err := ensureMockLCL(getMockLCLBinaryName())
 	defer removeMockLCL(ept)
 	if err != nil {
 		assert.FailNow(t, err.Error())
 	}
 
-	for _, gqt := range getQueryTests {
-		t.Run(gqt.Name, func(t *testing.T) {
-			actualResponse, actualError := gqt.Library.GetQuery(gqt.QueryID)
+	for _, gnqt := range getNewQueryTests {
+		t.Run(gnqt.Name, func(t *testing.T) {
+			actualNewQuery, actualError := gnqt.Library.GetNewQuery(gnqt.QueryID)
 
-			if gqt.Error != nil {
-				assert.Equal(t, gqt.Error.Error(), actualError.Error())
+			if gnqt.Error != nil {
+				assert.Equal(t, gnqt.Error.Error(), actualError.Error())
 			} else {
 				assert.Nil(t, actualError)
-				assert.Equal(t, gqt.QueryID, actualResponse.Data.QueryID)
+				assert.Equal(t, gnqt.QueryID, actualNewQuery.QueryID)
 			}
 		})
 	}

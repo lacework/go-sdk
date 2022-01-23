@@ -42,7 +42,7 @@ func init() {
 		queryShowCmd.Flags().BoolVarP(
 			&queryCmdState.ListFromLibrary,
 			"library", "l", false,
-			"list queries available in Lacework Content Library",
+			"show query from Lacework Content Library",
 		)
 	}
 }
@@ -50,6 +50,7 @@ func init() {
 func showQuery(_ *cobra.Command, args []string) error {
 	var (
 		lcl           *LaceworkContentLibrary
+		newQuery      api.NewQuery
 		queryResponse api.QueryResponse
 		err           error
 	)
@@ -58,7 +59,12 @@ func showQuery(_ *cobra.Command, args []string) error {
 	cli.StartProgress(" Retrieving query...")
 	if queryCmdState.ListFromLibrary {
 		if lcl, err = LoadLCL(*cli.LwComponents); err == nil {
-			queryResponse, err = lcl.GetQuery(args[0])
+			newQuery, err = lcl.GetNewQuery(args[0])
+			queryResponse.Data = api.Query{
+				QueryID:     newQuery.QueryID,
+				QueryText:   newQuery.QueryText,
+				EvaluatorID: newQuery.EvaluatorID,
+			}
 		}
 	} else {
 		queryResponse, err = cli.LwApi.V2.Query.Get(args[0])

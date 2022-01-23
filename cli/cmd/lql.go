@@ -37,15 +37,16 @@ import (
 
 var (
 	queryCmdState = struct {
-		End             string
-		File            string
-		Repo            bool
-		Range           string
-		Start           string
-		URL             string
-		ValidateOnly    bool
-		ListFromLibrary bool
-		ShowFromLibrary bool
+		End               string
+		File              string
+		Repo              bool
+		Range             string
+		Start             string
+		URL               string
+		ValidateOnly      bool
+		ListFromLibrary   bool
+		ShowFromLibrary   bool
+		CreateFromLibrary string
 	}{}
 
 	// queryCmd represents the lql parent command
