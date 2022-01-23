@@ -19,10 +19,13 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
 
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v3"
 )
 
 type NewQuery struct {
@@ -31,14 +34,34 @@ type NewQuery struct {
 	EvaluatorID string `json:"evaluatorId,omitempty" yaml:"evaluatorId"`
 }
 
+func ParseNewQuery(s string) (NewQuery, error) {
+	var (
+		query NewQuery
+		err   error
+	)
+
+	// valid json
+	if err = json.Unmarshal([]byte(s), &query); err == nil {
+		return query, err
+	}
+	// valid yaml
+	query = NewQuery{}
+	err = yaml.Unmarshal([]byte(s), &query)
+	if err == nil && !reflect.DeepEqual(query, NewQuery{}) { // empty string unmarshals w/o error
+		return query, nil
+	}
+	// invalid query
+	return query, errors.New("unable to parse query")
+}
+
 type UpdateQuery struct {
 	QueryText string `json:"queryText"`
 }
 
 type Query struct {
-	QueryID        string                   `json:"queryId"`
-	QueryText      string                   `json:"queryText"`
-	EvaluatorID    string                   `json:"evaluatorId"`
+	QueryID        string                   `json:"queryId" yaml:"queryId"`
+	QueryText      string                   `json:"queryText" yaml:"queryText"`
+	EvaluatorID    string                   `json:"evaluatorId" yaml:"evaluatorId"`
 	Owner          string                   `json:"owner"`
 	LastUpdateTime string                   `json:"lastUpdateTime"`
 	LastUpdateUser string                   `json:"lastUpdateUser"`

@@ -51,8 +51,9 @@ type LCLPolicy struct {
 }
 
 type LaceworkContentLibrary struct {
-	Queries  map[string]LCLQuery  `json:"queries"`
-	Policies map[string]LCLPolicy `json:"policies"`
+	Component *lwcomponent.Component
+	Queries   map[string]LCLQuery  `json:"queries"`
+	Policies  map[string]LCLPolicy `json:"policies"`
 }
 
 func IsLCLInstalled(state lwcomponent.State) bool {
@@ -65,22 +66,44 @@ func IsLCLInstalled(state lwcomponent.State) bool {
 }
 
 func LoadLCL(state lwcomponent.State) (*LaceworkContentLibrary, error) {
-	index := new(LaceworkContentLibrary)
-	component := state.GetComponent(lclComponentName)
+	lcl := new(LaceworkContentLibrary)
+	lcl.Component = state.GetComponent(lclComponentName)
 
-	if component == nil || component.Status() != lwcomponent.Installed {
-		return index, errors.New("Lacework Content Library is not available")
+	index, err := lcl.run(lclIndexPath)
+	if err != nil {
+		return new(LaceworkContentLibrary), errors.Wrap(
+			err, "unable to load Lacework Content Library")
 	}
 
-	stdout, _, err := component.RunAndReturn([]string{lclIndexPath}, nil)
-	if err != nil || stdout == "" {
-		return index, errors.Wrap(err, "unable to retrieve index from Lacework Content Library")
+	if err := json.Unmarshal([]byte(index), lcl); err != nil {
+		return new(LaceworkContentLibrary), errors.Wrap(
+			err, "unable to load Lacework Content Library")
 	}
+	return lcl, nil
+}
 
-	if err := json.Unmarshal([]byte(stdout), index); err != nil {
-		return index, errors.Wrap(err, "unable to parse Lacework Content Library index")
+func (lcl LaceworkContentLibrary) run(path string) (string, error) {
+	if lcl.Component == nil || lcl.Component.Status() != lwcomponent.Installed {
+		return "", errors.New("Lacework Content Library is not installed")
 	}
-	return index, nil
+	stdout, _, err := lcl.Component.RunAndReturn([]string{path}, nil)
+	return stdout, err
+}
+
+func (lcl LaceworkContentLibrary) getReferenceForQuery(id string) (LCLReference, error) {
+	var ref LCLReference
+
+	if id == "" {
+		return ref, errors.New("query ID must be provided")
+	}
+	if _, ok := lcl.Queries[id]; !ok {
+		return ref, errors.New("query does not exist in library")
+	}
+	if len(lcl.Queries[id].References) < 1 {
+		return ref, errors.New("query exists but is malformed")
+	}
+	ref = lcl.Queries[id].References[0]
+	return ref, nil
 }
 
 func (lcl LaceworkContentLibrary) ListQueries() api.QueriesResponse {
@@ -90,4 +113,34 @@ func (lcl LaceworkContentLibrary) ListQueries() api.QueriesResponse {
 		queries = append(queries, api.Query{QueryID: id})
 	}
 	return api.QueriesResponse{Data: queries}
+}
+
+func (lcl LaceworkContentLibrary) GetQuery(id string) (api.QueryResponse, error) {
+	var response api.QueryResponse
+
+	// get query reference
+	ref, err := lcl.getReferenceForQuery(id)
+	if err != nil {
+		return response, err
+	}
+	// check query path
+	if ref.Path == "" {
+		return response, errors.New("query exists but is malformed")
+	}
+	// get query string
+	queryString, err := lcl.run(ref.Path)
+	if err != nil {
+		return response, err
+	}
+	// parse query string
+	newQuery, err := api.ParseNewQuery(queryString)
+	if err != nil {
+		return response, queryErrorCrumbs(queryString)
+	}
+	response.Data = api.Query{
+		QueryID:     newQuery.QueryID,
+		QueryText:   newQuery.QueryText,
+		EvaluatorID: newQuery.EvaluatorID,
+	}
+	return response, nil
 }

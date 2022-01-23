@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -36,20 +37,40 @@ var (
 
 func init() {
 	queryCmd.AddCommand(queryShowCmd)
+
+	if IsLCLInstalled(*cli.LwComponents) {
+		queryShowCmd.Flags().BoolVarP(
+			&queryCmdState.ListFromLibrary,
+			"library", "l", false,
+			"list queries available in Lacework Content Library",
+		)
+	}
 }
 
 func showQuery(_ *cobra.Command, args []string) error {
+	var (
+		lcl           *LaceworkContentLibrary
+		queryResponse api.QueryResponse
+		err           error
+	)
 	cli.Log.Debugw("retrieving query", "id", args[0])
+
 	cli.StartProgress(" Retrieving query...")
-	queryResponse, err := cli.LwApi.V2.Query.Get(args[0])
+	if queryCmdState.ListFromLibrary {
+		if lcl, err = LoadLCL(*cli.LwComponents); err == nil {
+			queryResponse, err = lcl.GetQuery(args[0])
+		}
+	} else {
+		queryResponse, err = cli.LwApi.V2.Query.Get(args[0])
+	}
 	cli.StopProgress()
+
 	if err != nil {
 		return errors.Wrap(err, "unable to show query")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)
 	}
-
 	cli.OutputHuman(queryResponse.Data.QueryText)
 	return nil
 }

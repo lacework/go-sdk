@@ -67,9 +67,9 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 		return errors.Wrap(err, msg)
 	}
 	// parse query
-	newQuery, err := parseQuery(queryString)
+	newQuery, err := api.ParseNewQuery(queryString)
 	if err != nil {
-		return errors.Wrap(err, msg)
+		return errors.Wrap(queryErrorCrumbs(queryString), msg)
 	}
 	updateQuery := api.UpdateQuery{
 		QueryText: newQuery.QueryText,

@@ -19,12 +19,10 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -32,7 +30,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/lwtime"
@@ -48,6 +45,7 @@ var (
 		URL             string
 		ValidateOnly    bool
 		ListFromLibrary bool
+		ShowFromLibrary bool
 	}{}
 
 	// queryCmd represents the lql parent command
@@ -259,24 +257,6 @@ func inputQueryFromEditor(action string) (query string, err error) {
 	return
 }
 
-func parseQuery(s string) (api.NewQuery, error) {
-	var query api.NewQuery
-	var err error
-
-	// valid json
-	if err = json.Unmarshal([]byte(s), &query); err == nil {
-		return query, err
-	}
-	// valid yaml
-	query = api.NewQuery{}
-	err = yaml.Unmarshal([]byte(s), &query)
-	if err == nil && !reflect.DeepEqual(query, api.NewQuery{}) { // empty string unmarshals w/o error
-		return query, nil
-	}
-	// invalid policy
-	return query, queryErrorCrumbs(s)
-}
-
 func parseQueryTime(s string) (time.Time, error) {
 	// empty
 	if s == "" {
@@ -428,11 +408,11 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 		return
 	}
 	// parse query
-	newQuery, err := parseQuery(queryString)
+	newQuery, err := api.ParseNewQuery(queryString)
 	if err != nil {
+		err = queryErrorCrumbs(queryString)
 		return
 	}
-
 	cli.StartProgress(" Executing query...")
 	defer cli.StopProgress()
 

@@ -21,6 +21,8 @@ package cmd
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
@@ -119,9 +121,9 @@ func createQuery(cmd *cobra.Command, args []string) error {
 		return errors.Wrap(err, msg)
 	}
 	// parse query
-	newQuery, err := parseQuery(queryString)
+	newQuery, err := api.ParseNewQuery(queryString)
 	if err != nil {
-		return errors.Wrap(err, msg)
+		return errors.Wrap(queryErrorCrumbs(queryString), msg)
 	}
 
 	cli.Log.Debugw("creating query", "query", queryString)

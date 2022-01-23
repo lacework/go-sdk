@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-package cmd
+package cmd_test
 
 import (
 	"embed"
@@ -29,6 +29,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/lacework/go-sdk/cli/cmd"
 	"github.com/lacework/go-sdk/lwcomponent"
 )
 
@@ -84,6 +85,15 @@ var (
 	}
 	//go:embed test_resources/lacework-content-library/*
 	mockLCLBinaries embed.FS
+
+	malformedLCL cmd.LaceworkContentLibrary = cmd.LaceworkContentLibrary{
+		Queries: map[string]cmd.LCLQuery{
+			"my_query": cmd.LCLQuery{References: []cmd.LCLReference{
+				cmd.LCLReference{},
+			}},
+		},
+	}
+	mockLCL, _ = cmd.LoadLCL(mockLWComponentState)
 )
 
 type mockLCLPlacementType int64
@@ -143,11 +153,20 @@ func removeMockLCL(ept mockLCLPlacementType) {
 }
 
 func TestLoadLCLNotFound(t *testing.T) {
-	_, err := LoadLCL(*new(lwcomponent.State))
+	state := *new(lwcomponent.State)
+
+	// IsLCLInstalled
+	assert.Equal(t, false, cmd.IsLCLInstalled(state))
+
+	_, err := cmd.LoadLCL(state)
 	if err == nil {
 		assert.NotNil(t, err)
 	} else {
-		assert.Equal(t, "Lacework Content Library is not available", err.Error())
+		assert.Equal(
+			t,
+			"unable to load Lacework Content Library: Lacework Content Library is not installed",
+			err.Error(),
+		)
 	}
 }
 
@@ -158,13 +177,13 @@ func TestLoadLCLNonZero(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	_, err = LoadLCL(nonZeroLWComponentState)
+	_, err = cmd.LoadLCL(nonZeroLWComponentState)
 	if err == nil {
 		assert.NotNil(t, err)
 	} else {
 		assert.Equal(
 			t,
-			"unable to retrieve index from Lacework Content Library: unable to run component: exit status 1",
+			"unable to load Lacework Content Library: unable to run component: exit status 1",
 			err.Error(),
 		)
 	}
@@ -177,13 +196,13 @@ func TestLoadLCLNoParse(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	_, err = LoadLCL(noParseLWComponentState)
+	_, err = cmd.LoadLCL(noParseLWComponentState)
 	if err == nil {
 		assert.NotNil(t, err)
 	} else {
 		assert.Equal(
 			t,
-			"unable to parse Lacework Content Library index: invalid character 'H' looking for beginning of value",
+			"unable to load Lacework Content Library: invalid character 'H' looking for beginning of value",
 			err.Error(),
 		)
 	}
@@ -196,10 +215,64 @@ func TestLoadLCLOK(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	index, err := LoadLCL(mockLWComponentState)
+	// IsLCLInstalled
+	assert.Equal(t, true, cmd.IsLCLInstalled(mockLWComponentState))
+
+	lcl, err := cmd.LoadLCL(mockLWComponentState)
 	assert.Nil(t, err)
-	_, ok := index.Queries["LW_Custom_Host_Activity_PotentialReverseShell"]
+	_, ok := lcl.Queries["LW_Custom_Host_Activity_PotentialReverseShell"]
 	assert.True(t, ok)
-	_, ok = index.Policies["lwcustom-27"]
+	_, ok = lcl.Policies["lwcustom-27"]
 	assert.True(t, ok)
+}
+
+func TestListQueries(t *testing.T) {
+	assert.Equal(t, len(mockLCL.Queries), len(mockLCL.ListQueries().Data))
+}
+
+type getQueryTest struct {
+	Name    string
+	Library cmd.LaceworkContentLibrary
+	QueryID string
+	Error   error
+}
+
+var getQueryTests = []getQueryTest{
+	getQueryTest{
+		Name:  "NoQueryID",
+		Error: errors.New("query ID must be provided"),
+	},
+	getQueryTest{
+		Name:    "MalformedQuery",
+		Library: malformedLCL,
+		QueryID: "my_query",
+		Error:   errors.New("query exists but is malformed"),
+	},
+	getQueryTest{
+		Name:    "QueryOK",
+		Library: *mockLCL,
+		QueryID: "LW_Custom_AWS_CTA_AuroraPasswordChange",
+		Error:   nil,
+	},
+}
+
+func TestGetQuery(t *testing.T) {
+	ept, err := ensureMockLCL(getMockLCLBinaryName())
+	defer removeMockLCL(ept)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	for _, gqt := range getQueryTests {
+		t.Run(gqt.Name, func(t *testing.T) {
+			actualResponse, actualError := gqt.Library.GetQuery(gqt.QueryID)
+
+			if gqt.Error != nil {
+				assert.Equal(t, gqt.Error.Error(), actualError.Error())
+			} else {
+				assert.Nil(t, actualError)
+				assert.Equal(t, gqt.QueryID, actualResponse.Data.QueryID)
+			}
+		})
+	}
 }
