@@ -21,8 +21,10 @@ package cmd
 import (
 	"encoding/json"
 
-	"github.com/lacework/go-sdk/lwcomponent"
 	"github.com/pkg/errors"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwcomponent"
 )
 
 const (
@@ -53,6 +55,15 @@ type LaceworkContentLibrary struct {
 	Policies map[string]LCLPolicy `json:"policies"`
 }
 
+func IsLCLInstalled(state lwcomponent.State) bool {
+	component := state.GetComponent(lclComponentName)
+
+	if component == nil || component.Status() != lwcomponent.Installed {
+		return false
+	}
+	return true
+}
+
 func LoadLCL(state lwcomponent.State) (*LaceworkContentLibrary, error) {
 	index := new(LaceworkContentLibrary)
 	component := state.GetComponent(lclComponentName)
@@ -70,4 +81,13 @@ func LoadLCL(state lwcomponent.State) (*LaceworkContentLibrary, error) {
 		return index, errors.Wrap(err, "unable to parse Lacework Content Library index")
 	}
 	return index, nil
+}
+
+func (lcl LaceworkContentLibrary) ListQueries() api.QueriesResponse {
+	var queries []api.Query
+
+	for id := range lcl.Queries {
+		queries = append(queries, api.Query{QueryID: id})
+	}
+	return api.QueriesResponse{Data: queries}
 }

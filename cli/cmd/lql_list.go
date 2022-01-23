@@ -39,6 +39,14 @@ var (
 
 func init() {
 	queryCmd.AddCommand(queryListCmd)
+
+	if IsLCLInstalled(*cli.LwComponents) {
+		queryListCmd.Flags().BoolVarP(
+			&queryCmdState.ListFromLibrary,
+			"library", "l", false,
+			"list queries available in Lacework Content Library",
+		)
+	}
 }
 
 func queryTable(queryData []api.Query) (out [][]string) {
@@ -54,28 +62,39 @@ func queryTable(queryData []api.Query) (out [][]string) {
 }
 
 func listQueries(_ *cobra.Command, args []string) error {
+	var (
+		lcl             *LaceworkContentLibrary
+		queriesResponse api.QueriesResponse
+		err             error
+	)
 	cli.Log.Debugw("listing queries")
 
 	cli.StartProgress(" Retrieving queries...")
-	queryResponse, err := cli.LwApi.V2.Query.List()
+	if queryCmdState.ListFromLibrary {
+		if lcl, err = LoadLCL(*cli.LwComponents); err == nil {
+			queriesResponse = lcl.ListQueries()
+		}
+	} else {
+		queriesResponse, err = cli.LwApi.V2.Query.List()
+	}
 	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to list queries")
 	}
 
-	if len(queryResponse.Data) == 0 {
+	if len(queriesResponse.Data) == 0 {
 		cli.OutputHuman("There were no queries found.")
 		return nil
 	}
 
 	if cli.JSONOutput() {
-		return cli.OutputJSON(queryResponse.Data)
+		return cli.OutputJSON(queriesResponse.Data)
 	}
 
 	cli.OutputHuman(
 		renderSimpleTable(
 			[]string{"Query ID", "Owner", "Last Update Time", "Last Update User"},
-			queryTable(queryResponse.Data),
+			queryTable(queriesResponse.Data),
 		),
 	)
 	return nil

@@ -40,13 +40,14 @@ import (
 
 var (
 	queryCmdState = struct {
-		End          string
-		File         string
-		Repo         bool
-		Range        string
-		Start        string
-		URL          string
-		ValidateOnly bool
+		End             string
+		File            string
+		Repo            bool
+		Range           string
+		Start           string
+		URL             string
+		ValidateOnly    bool
+		ListFromLibrary bool
 	}{}
 
 	// queryCmd represents the lql parent command
@@ -169,12 +170,6 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 				"file", "f", "",
 				fmt.Sprintf("path to a query to %s", action),
 			)
-			/* repo flag to specify a query from repo
-			cmd.Flags().BoolVarP(
-				&queryCmdState.Repo,
-				"repo", "r", false,
-				fmt.Sprintf("id of a query to %s via active repo", action),
-			)*/
 			// url flag to specify a query from url
 			cmd.Flags().StringVarP(
 				&queryCmdState.URL,
