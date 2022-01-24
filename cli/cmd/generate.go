@@ -54,7 +54,7 @@ var (
 	// aws command is used to generate TF code for aws
 	generateAwsTfCommand = &cobra.Command{
 		Use:   "aws",
-		Short: "Genereate terraform code for deploying into a new AWS environment",
+		Short: "Generate and/or execute Terraform code for AWS integration",
 		Long: `Use this command to generate Terraform code for deploying Lacework into an AWS environment.
 
 By default, this command will function interactively, prompting for the required information to setup the new cloud account. In interactive mode, this command will:
@@ -68,7 +68,7 @@ By default, this command will function interactively, prompting for the required
 	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
 	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
-This command can also be run in noninteractive mode however, only generation is supported at this time.  See help output for more details on supplying required values for generation.
+This command can also be run in noninteractive mode. See help output for more details on supplying required values for generation.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Generate TF Code
