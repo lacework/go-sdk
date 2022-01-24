@@ -19,14 +19,12 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"reflect"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
@@ -66,36 +64,6 @@ func init() {
 	setPolicySourceFlags(policyCreateCmd)
 }
 
-type newPoliciesYAML struct {
-	Policies []api.NewPolicy `yaml:"policies"`
-}
-
-func parseNewPolicy(s string) (api.NewPolicy, error) {
-	var policy api.NewPolicy
-	var err error
-
-	// valid json
-	if err = json.Unmarshal([]byte(s), &policy); err == nil {
-		return policy, err
-	}
-	// nested yaml
-	var policies newPoliciesYAML
-
-	if err = yaml.Unmarshal([]byte(s), &policies); err == nil {
-		if len(policies.Policies) > 0 {
-			return policies.Policies[0], err
-		}
-	}
-	// straight yaml
-	policy = api.NewPolicy{}
-	err = yaml.Unmarshal([]byte(s), &policy)
-	if err == nil && !reflect.DeepEqual(policy, api.NewPolicy{}) { // empty string unmarshals w/o error
-		return policy, nil
-	}
-	// invalid policy
-	return policy, errors.New("policy must be valid JSON or YAML")
-}
-
 func createPolicy(cmd *cobra.Command, _ []string) error {
 	msg := "unable to create policy"
 
@@ -105,7 +73,7 @@ func createPolicy(cmd *cobra.Command, _ []string) error {
 		return errors.Wrap(err, msg)
 	}
 	// parse policy
-	newPolicy, err := parseNewPolicy(policyStr)
+	newPolicy, err := api.ParseNewPolicy(policyStr)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}

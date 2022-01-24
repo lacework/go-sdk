@@ -26,9 +26,24 @@ import (
 )
 
 var (
+	mockPolicyReferences []LCLReference = []LCLReference{
+		LCLReference{
+			ID:   "my_query",
+			Type: "query",
+			Path: "queries/my_query",
+		},
+		LCLReference{
+			ID:   "my_policy",
+			Type: "policy",
+			Path: "policies/my_policy",
+		},
+	}
 	malformedLCL LaceworkContentLibrary = LaceworkContentLibrary{
 		Queries: map[string]LCLQuery{
 			"my_query": LCLQuery{References: []LCLReference{}},
+		},
+		Policies: map[string]LCLPolicy{
+			"my_policy": LCLPolicy{References: []LCLReference{}},
 		},
 	}
 	mockLCL LaceworkContentLibrary = LaceworkContentLibrary{
@@ -43,10 +58,22 @@ var (
 				},
 			},
 		},
+		Policies: map[string]LCLPolicy{
+			"my_policy": LCLPolicy{
+				References: mockPolicyReferences,
+			},
+		},
 	}
 )
 
-type getRefTest struct {
+func TestGetPolicyReference(t *testing.T) {
+	ref, err := getPolicyReference([]LCLReference{})
+	assert.NotNil(t, err)
+	ref, _ = getPolicyReference(mockPolicyReferences)
+	assert.Equal(t, mockPolicyReferences[1], ref)
+}
+
+type getQueryRefTest struct {
 	Name      string
 	Library   LaceworkContentLibrary
 	QueryID   string
@@ -54,23 +81,23 @@ type getRefTest struct {
 	Error     error
 }
 
-var getRefTests = []getRefTest{
-	getRefTest{
+var getQueryRefTests = []getQueryRefTest{
+	getQueryRefTest{
 		Name:  "NoQueryID",
 		Error: errors.New("query ID must be provided"),
 	},
-	getRefTest{
+	getQueryRefTest{
 		Name:    "QueryNotFound",
 		QueryID: "my_query",
 		Error:   errors.New("query does not exist in library"),
 	},
-	getRefTest{
+	getQueryRefTest{
 		Name:    "QueryMalformed",
 		Library: malformedLCL,
 		QueryID: "my_query",
 		Error:   errors.New("query exists but is malformed"),
 	},
-	getRefTest{
+	getQueryRefTest{
 		Name:    "QueryOK",
 		Library: mockLCL,
 		QueryID: "my_query",
@@ -78,16 +105,63 @@ var getRefTests = []getRefTest{
 	},
 }
 
-func TestGetRef(t *testing.T) {
-	for _, grt := range getRefTests {
-		t.Run(grt.Name, func(t *testing.T) {
-			actualRef, actualError := grt.Library.getReferenceForQuery(grt.QueryID)
+func TestGetQueryRef(t *testing.T) {
+	for _, gqrt := range getQueryRefTests {
+		t.Run(gqrt.Name, func(t *testing.T) {
+			actualRef, actualError := gqrt.Library.getReferenceForQuery(gqrt.QueryID)
 
-			if grt.Error != nil {
-				assert.Equal(t, grt.Error.Error(), actualError.Error())
+			if gqrt.Error != nil {
+				assert.Equal(t, gqrt.Error.Error(), actualError.Error())
 			} else {
 				assert.Nil(t, actualError)
-				assert.Equal(t, grt.QueryID, actualRef.ID)
+				assert.Equal(t, gqrt.QueryID, actualRef.ID)
+			}
+		})
+	}
+}
+
+type getPolicyRefsTest struct {
+	Name       string
+	Library    LaceworkContentLibrary
+	PolicyID   string
+	References []LCLReference
+	Error      error
+}
+
+var getPolicyRefsTests = []getPolicyRefsTest{
+	getPolicyRefsTest{
+		Name:  "NoPolicyID",
+		Error: errors.New("policy ID must be provided"),
+	},
+	getPolicyRefsTest{
+		Name:     "PolicyNotFound",
+		PolicyID: "my_policy",
+		Error:    errors.New("policy does not exist in library"),
+	},
+	getPolicyRefsTest{
+		Name:     "PolicyMalformed",
+		Library:  malformedLCL,
+		PolicyID: "my_policy",
+		Error:    errors.New("policy exists but is malformed"),
+	},
+	getPolicyRefsTest{
+		Name:     "PolicyOK",
+		Library:  mockLCL,
+		PolicyID: "my_policy",
+		Error:    nil,
+	},
+}
+
+func TestGetPolicyRefs(t *testing.T) {
+	for _, gprt := range getPolicyRefsTests {
+		t.Run(gprt.Name, func(t *testing.T) {
+			actualRefs, actualError := gprt.Library.getReferencesForPolicy(gprt.PolicyID)
+
+			if gprt.Error != nil {
+				assert.Equal(t, gprt.Error.Error(), actualError.Error())
+			} else {
+				assert.Nil(t, actualError)
+				assert.Equal(t, mockPolicyReferences, actualRefs)
 			}
 		})
 	}
