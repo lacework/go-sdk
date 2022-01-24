@@ -155,6 +155,12 @@ var (
 				cmd.LCLReference{},
 			}},
 		},
+		Policies: map[string]cmd.LCLPolicy{
+			"my_policy": cmd.LCLPolicy{References: []cmd.LCLReference{
+				cmd.LCLReference{},
+				cmd.LCLReference{},
+			}},
+		},
 	}
 	mockLCL, _ = cmd.LoadLCL(mockLWComponentState)
 )
@@ -344,4 +350,51 @@ func TestListPolicies(t *testing.T) {
 	policiesResponse, err := mockLCL.ListPolicies()
 	assert.Nil(t, err)
 	assert.Equal(t, len(mockLCL.Policies), len(policiesResponse.Data))
+}
+
+type getNewPolicyTest struct {
+	Name     string
+	Library  cmd.LaceworkContentLibrary
+	PolicyID string
+	Error    error
+}
+
+var getNewPolicyTests = []getNewPolicyTest{
+	getNewPolicyTest{
+		Name:  "NoPolicyID",
+		Error: errors.New("policy ID must be provided"),
+	},
+	getNewPolicyTest{
+		Name:     "MalformedPolicy",
+		Library:  malformedLCL,
+		PolicyID: "my_policy",
+		Error:    errors.New("policy exists but is malformed"),
+	},
+	getNewPolicyTest{
+		Name:     "PolicyOK",
+		Library:  *mockLCL,
+		PolicyID: "lwcustom-28",
+		Error:    nil,
+	},
+}
+
+func TestGetNewPolicy(t *testing.T) {
+	ept, err := ensureMockLCL(getMockLCLBinaryName())
+	defer removeMockLCL(ept)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	for _, gnpt := range getNewPolicyTests {
+		t.Run(gnpt.Name, func(t *testing.T) {
+			actualNewPolicy, actualError := gnpt.Library.GetNewPolicy(gnpt.PolicyID)
+
+			if gnpt.Error != nil {
+				assert.Equal(t, gnpt.Error.Error(), actualError.Error())
+			} else {
+				assert.Nil(t, actualError)
+				assert.Equal(t, fmt.Sprintf("$account-%s", gnpt.PolicyID), actualNewPolicy.PolicyID)
+			}
+		})
+	}
 }

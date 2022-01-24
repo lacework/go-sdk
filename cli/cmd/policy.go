@@ -42,6 +42,7 @@ var (
 		Severity        string
 		URL             string
 		ListFromLibrary bool
+		ShowFromLibrary bool
 	}{}
 
 	policyTableHeaders = []string{
@@ -132,6 +133,11 @@ func init() {
 			&policyCmdState.ListFromLibrary,
 			"library", "l", false,
 			"list policies available in Lacework Content Library",
+		)
+		policyShowCmd.Flags().BoolVarP(
+			&policyCmdState.ShowFromLibrary,
+			"library", "l", false,
+			"show policy from Lacework Content Library",
 		)
 	}
 
@@ -339,14 +345,42 @@ func listPolicies(_ *cobra.Command, args []string) error {
 }
 
 func showPolicy(_ *cobra.Command, args []string) error {
+	var (
+		lcl            *LaceworkContentLibrary
+		newPolicy      api.NewPolicy
+		policyResponse api.PolicyResponse
+		err            error
+	)
 	cli.Log.Debugw("retrieving policy", "policyID", args[0])
+
 	cli.StartProgress(" Retrieving policy...")
-	policyResponse, err := cli.LwApi.V2.Policy.Get(args[0])
+	if policyCmdState.ShowFromLibrary {
+		if lcl, err = LoadLCL(*cli.LwComponents); err == nil {
+			newPolicy, err = lcl.GetNewPolicy(args[0])
+			policyResponse.Data = api.Policy{
+				EvaluatorID:   newPolicy.EvaluatorID,
+				PolicyID:      newPolicy.PolicyID,
+				PolicyType:    newPolicy.PolicyType,
+				QueryID:       newPolicy.QueryID,
+				Title:         newPolicy.Title,
+				Enabled:       newPolicy.Enabled,
+				Description:   newPolicy.Description,
+				Remediation:   newPolicy.Remediation,
+				Severity:      newPolicy.Severity,
+				Limit:         newPolicy.Limit,
+				EvalFrequency: newPolicy.EvalFrequency,
+				AlertEnabled:  newPolicy.AlertEnabled,
+				AlertProfile:  newPolicy.AlertProfile,
+			}
+		}
+	} else {
+		policyResponse, err = cli.LwApi.V2.Policy.Get(args[0])
+	}
 	cli.StopProgress()
+
 	if err != nil {
 		return errors.Wrap(err, "unable to show policy")
 	}
-
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policyResponse.Data)
 	}
