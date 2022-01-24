@@ -102,8 +102,7 @@ func (lcl LaceworkContentLibrary) getReferenceForQuery(id string) (LCLReference,
 	if len(lcl.Queries[id].References) < 1 {
 		return ref, errors.New("query exists but is malformed")
 	}
-	ref = lcl.Queries[id].References[0]
-	return ref, nil
+	return lcl.Queries[id].References[0], nil
 }
 
 func (lcl LaceworkContentLibrary) ListQueries() api.QueriesResponse {
@@ -134,4 +133,30 @@ func (lcl LaceworkContentLibrary) GetNewQuery(id string) (api.NewQuery, error) {
 	}
 	// parse query string
 	return api.ParseNewQuery(queryString)
+}
+
+func (lcl LaceworkContentLibrary) ListPolicies() (api.PoliciesResponse, error) {
+	var policies []api.Policy
+
+	for policyID := range lcl.Policies {
+		var queryRef LCLReference
+
+		for i := range lcl.Policies[policyID].References {
+			if lcl.Policies[policyID].References[i].Type == "query" {
+				queryRef = lcl.Policies[policyID].References[i]
+				break
+			}
+		}
+		if queryRef.ID == "" {
+			return api.PoliciesResponse{Data: policies}, errors.New(
+				"unable to identify query for one or more policies")
+		}
+		policies = append(policies, api.Policy{
+			PolicyID:    policyID,
+			Title:       lcl.Policies[policyID].Title,
+			Description: lcl.Policies[policyID].Description,
+			QueryID:     queryRef.ID,
+		})
+	}
+	return api.PoliciesResponse{Data: policies}, nil
 }

@@ -35,12 +35,13 @@ import (
 
 var (
 	policyCmdState = struct {
-		AlertEnabled bool
-		Enabled      bool
-		File         string
-		Repo         bool
-		Severity     string
-		URL          string
+		AlertEnabled    bool
+		Enabled         bool
+		File            string
+		Repo            bool
+		Severity        string
+		URL             string
+		ListFromLibrary bool
 	}{}
 
 	policyTableHeaders = []string{
@@ -124,6 +125,15 @@ func init() {
 	policyCmd.AddCommand(policyListCmd)
 	policyCmd.AddCommand(policyShowCmd)
 	policyCmd.AddCommand(policyDeleteCmd)
+
+	// Lacework Content Library
+	if IsLCLInstalled(*cli.LwComponents) {
+		policyListCmd.Flags().BoolVarP(
+			&policyCmdState.ListFromLibrary,
+			"library", "l", false,
+			"list policies available in Lacework Content Library",
+		)
+	}
 
 	// policy list specific flags
 	policyListCmd.Flags().StringVar(
@@ -288,6 +298,11 @@ func policyTable(policies []api.Policy) (out [][]string) {
 }
 
 func listPolicies(_ *cobra.Command, args []string) error {
+	var (
+		lcl              *LaceworkContentLibrary
+		policiesResponse api.PoliciesResponse
+		err              error
+	)
 	cli.Log.Debugw("listing policies")
 
 	if policyCmdState.Severity != "" && !array.ContainsStr(
@@ -300,20 +315,26 @@ func listPolicies(_ *cobra.Command, args []string) error {
 	}
 
 	cli.StartProgress(" Retrieving policies...")
-	policyResponse, err := cli.LwApi.V2.Policy.List()
+	if policyCmdState.ListFromLibrary {
+		if lcl, err = LoadLCL(*cli.LwComponents); err == nil {
+			policiesResponse, err = lcl.ListPolicies()
+		}
+	} else {
+		policiesResponse, err = cli.LwApi.V2.Policy.List()
+	}
 	cli.StopProgress()
+
 	if err != nil {
 		return errors.Wrap(err, "unable to list policies")
 	}
-
 	if cli.JSONOutput() {
-		return cli.OutputJSON(policyResponse.Data)
+		return cli.OutputJSON(policiesResponse.Data)
 	}
-	if len(policyResponse.Data) == 0 {
+	if len(policiesResponse.Data) == 0 {
 		cli.OutputHuman("There were no policies found.")
 		return nil
 	}
-	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policyResponse.Data)))
+	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policiesResponse.Data)))
 	return nil
 }
 
