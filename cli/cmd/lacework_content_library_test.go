@@ -39,12 +39,33 @@ var (
 		Description: "Lacework Content Library",
 		Version:     "0.1.0",
 		// @dhazekamp this only works for darwin-amd64 because we don't have per-package sigs
-		Signature:   "f35b88ae47f9778061543a33ad6799a0d16adf9af02f7527bdf053d81f9a0607",
 		CLICommand:  false,
 		CommandName: "",
 		Binary:      true,
 		Library:     false,
 		Standalone:  false,
+		Artifacts: []lwcomponent.Artifact{
+			lwcomponent.Artifact{
+				OS:        "darwin",
+				ARCH:      "amd64",
+				Signature: "f35b88ae47f9778061543a33ad6799a0d16adf9af02f7527bdf053d81f9a0607",
+			},
+			lwcomponent.Artifact{
+				OS:        "darwin",
+				ARCH:      "arm64",
+				Signature: "1033f26e03deed726311383ea175ad51632af516def4968b4b7fc39ec9a7d815",
+			},
+			lwcomponent.Artifact{
+				OS:        "linux",
+				ARCH:      "amd64",
+				Signature: "5d75c71af8068832cf079ba697df54f2bd1bfdaea20bbe8c022d71ba6e420e10",
+			},
+			lwcomponent.Artifact{
+				OS:        "linux",
+				ARCH:      "arm64",
+				Signature: "854a5e4ed7dd5f4d7c019a849e28da5e7ad944785fbeb37f525f295cb169d971",
+			},
+		},
 	}
 	mockLWComponentState lwcomponent.State = lwcomponent.State{
 		Components: []lwcomponent.Component{
@@ -55,12 +76,33 @@ var (
 		Name:        "lacework-content-library",
 		Description: "Lacework Content Library",
 		Version:     "0.1.0",
-		Signature:   "99032d1fb22b1ea6119f5f728cadae6feddfa62a45a66d52f77558cffd80b7f2",
 		CLICommand:  false,
 		CommandName: "",
 		Binary:      true,
 		Library:     false,
 		Standalone:  false,
+		Artifacts: []lwcomponent.Artifact{
+			lwcomponent.Artifact{
+				OS:        "darwin",
+				ARCH:      "amd64",
+				Signature: "99032d1fb22b1ea6119f5f728cadae6feddfa62a45a66d52f77558cffd80b7f2",
+			},
+			lwcomponent.Artifact{
+				OS:        "darwin",
+				ARCH:      "arm64",
+				Signature: "99032d1fb22b1ea6119f5f728cadae6feddfa62a45a66d52f77558cffd80b7f2",
+			},
+			lwcomponent.Artifact{
+				OS:        "linux",
+				ARCH:      "amd64",
+				Signature: "99032d1fb22b1ea6119f5f728cadae6feddfa62a45a66d52f77558cffd80b7f2",
+			},
+			lwcomponent.Artifact{
+				OS:        "linux",
+				ARCH:      "arm64",
+				Signature: "99032d1fb22b1ea6119f5f728cadae6feddfa62a45a66d52f77558cffd80b7f2",
+			},
+		},
 	}
 	nonZeroLWComponentState lwcomponent.State = lwcomponent.State{
 		Components: []lwcomponent.Component{
@@ -71,12 +113,33 @@ var (
 		Name:        "lacework-content-library",
 		Description: "Lacework Content Library",
 		Version:     "0.1.0",
-		Signature:   "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
 		CLICommand:  false,
 		CommandName: "",
 		Binary:      true,
 		Library:     false,
 		Standalone:  false,
+		Artifacts: []lwcomponent.Artifact{
+			lwcomponent.Artifact{
+				OS:        "darwin",
+				ARCH:      "amd64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+			},
+			lwcomponent.Artifact{
+				OS:        "darwin",
+				ARCH:      "arm64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+			},
+			lwcomponent.Artifact{
+				OS:        "linux",
+				ARCH:      "amd64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+			},
+			lwcomponent.Artifact{
+				OS:        "linux",
+				ARCH:      "arm64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+			},
+		},
 	}
 	noParseLWComponentState lwcomponent.State = lwcomponent.State{
 		Components: []lwcomponent.Component{
