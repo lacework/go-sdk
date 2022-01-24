@@ -68,6 +68,7 @@ integration-only: install-tools ## Run integration tests
 		query \
 		version \
 		generation \
+		team_members \
 		vulnerability"
 
 .PHONY: integration-lql
