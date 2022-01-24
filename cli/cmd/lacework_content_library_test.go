@@ -276,3 +276,9 @@ func TestGetNewQuery(t *testing.T) {
 		})
 	}
 }
+
+func TestListPolicies(t *testing.T) {
+	policiesResponse, err := mockLCL.ListPolicies()
+	assert.Nil(t, err)
+	assert.Equal(t, len(mockLCL.Policies), len(policiesResponse.Data))
+}
