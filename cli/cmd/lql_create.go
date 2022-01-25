@@ -139,6 +139,7 @@ func createQuery(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.Wrap(err, msg)
 		}
+		cli.Log.Debugw("creating query", "query", queryString)
 		// parse query
 		newQuery, err = api.ParseNewQuery(queryString)
 	}
@@ -147,7 +148,6 @@ func createQuery(cmd *cobra.Command, args []string) error {
 		return errors.Wrap(queryErrorCrumbs(queryString), msg)
 	}
 
-	cli.Log.Debugw("creating query", "query", queryString)
 	cli.StartProgress(" Creating query...")
 	create, err := cli.LwApi.V2.Query.Create(newQuery)
 	cli.StopProgress()

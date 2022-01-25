@@ -35,14 +35,15 @@ import (
 
 var (
 	policyCmdState = struct {
-		AlertEnabled    bool
-		Enabled         bool
-		File            string
-		Repo            bool
-		Severity        string
-		URL             string
-		ListFromLibrary bool
-		ShowFromLibrary bool
+		AlertEnabled      bool
+		Enabled           bool
+		File              string
+		Repo              bool
+		Severity          string
+		URL               string
+		ListFromLibrary   bool
+		ShowFromLibrary   bool
+		CreateFromLibrary string
 	}{}
 
 	policyTableHeaders = []string{
