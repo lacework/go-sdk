@@ -352,18 +352,18 @@ func TestListPolicies(t *testing.T) {
 	assert.Equal(t, len(lcl.Policies), len(policiesResponse.Data))
 }
 
-func TestGetNewPolicyNoID(t *testing.T) {
+func TestGetPolicyNoID(t *testing.T) {
 	lcl := cmd.LaceworkContentLibrary{}
-	_, actualError := lcl.GetNewPolicy("")
+	_, actualError := lcl.GetPolicy("")
 	assert.Equal(t, "policy ID must be provided", actualError.Error())
 }
 
-func TestGetNewPolicyMalformed(t *testing.T) {
-	_, actualError := malformedLCL.GetNewPolicy("my_policy")
+func TestGetPolicyMalformed(t *testing.T) {
+	_, actualError := malformedLCL.GetPolicy("my_policy")
 	assert.Equal(t, "policy exists but is malformed", actualError.Error())
 }
 
-func TestGetNewPolicyOK(t *testing.T) {
+func TestGetPolicyOK(t *testing.T) {
 	policyID := "lwcustom-28"
 	ept, err := ensureMockLCL(getMockLCLBinaryName())
 	defer removeMockLCL(ept)
@@ -376,7 +376,7 @@ func TestGetNewPolicyOK(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	actualNewPolicy, actualError := lcl.GetNewPolicy(policyID)
+	actualString, actualError := lcl.GetPolicy(policyID)
 	assert.Nil(t, actualError)
-	assert.Equal(t, fmt.Sprintf("$account-%s", policyID), actualNewPolicy.PolicyID)
+	assert.Contains(t, actualString, fmt.Sprintf("$account-%s", policyID))
 }

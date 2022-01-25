@@ -62,48 +62,30 @@ func init() {
 
 	// policy source specific flags
 	setPolicySourceFlags(policyCreateCmd)
-
-	if IsLCLInstalled(*cli.LwComponents) {
-		policyCreateCmd.Flags().StringVarP(
-			&policyCmdState.CreateFromLibrary,
-			"library", "l", "",
-			"create policy from Lacework Content Library",
-		)
-	}
 }
 
-func createPolicy(cmd *cobra.Command, _ []string) error {
-	var (
-		msg       string = "unable to create policy"
-		lcl       *LaceworkContentLibrary
-		err       error
-		newPolicy api.NewPolicy
-		policyStr string
-	)
+func createPolicy(cmd *cobra.Command, args []string) error {
+	msg := "unable to create policy"
 
-	if policyCmdState.CreateFromLibrary != "" {
-		if lcl, err = LoadLCL(*cli.LwComponents); err == nil {
-			newPolicy, err = lcl.GetNewPolicy(policyCmdState.CreateFromLibrary)
-		}
-	} else {
-		// input policy
-		policyStr, err = inputPolicy(cmd)
-		if err != nil {
-			return errors.Wrap(err, msg)
-		}
-		cli.Log.Debugw("creating policy", "policy", policyStr)
-		// parse policy
-		newPolicy, err = api.ParseNewPolicy(policyStr)
-	}
-
+	// input policy
+	policyString, err := inputPolicy(cmd, args)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
 
+	// parse policy
+	newPolicy, err := api.ParseNewPolicy(policyString)
+	if err != nil {
+		return errors.Wrap(err, msg)
+	}
+
+	// create policy
+	cli.Log.Debugw("creating policy", "policy", policyString)
 	cli.StartProgress(" Creating policy...")
 	createResponse, err := cli.LwApi.V2.Policy.Create(newPolicy)
 	cli.StopProgress()
 
+	// output policy
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}

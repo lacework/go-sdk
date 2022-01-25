@@ -185,23 +185,16 @@ func (lcl LaceworkContentLibrary) ListPolicies() (api.PoliciesResponse, error) {
 	return api.PoliciesResponse{Data: policies}, nil
 }
 
-func (lcl LaceworkContentLibrary) GetNewPolicy(id string) (api.NewPolicy, error) {
-	var newPolicy api.NewPolicy
-
+func (lcl LaceworkContentLibrary) GetPolicy(id string) (string, error) {
 	// get policy references
 	refs, err := lcl.getReferencesForPolicy(id)
 	if err != nil {
-		return newPolicy, err
+		return "", err
 	}
 	ref, err := getPolicyReference(refs)
 	if err != nil || ref.Path == "" {
-		return newPolicy, errors.New("policy exists but is malformed")
+		return "", errors.New("policy exists but is malformed")
 	}
 	// get policy string
-	policyString, err := lcl.run(ref.Path)
-	if err != nil {
-		return newPolicy, err
-	}
-	// parse policy string
-	return api.ParseNewPolicy(policyString)
+	return lcl.run(ref.Path)
 }

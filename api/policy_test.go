@@ -24,7 +24,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
@@ -34,6 +33,7 @@ import (
 var (
 	policyURI = "Policies"
 	policyID  = "my-policy-1"
+
 	newPolicy = api.NewPolicy{
 		EvaluatorID:   "Cloudtrail",
 		PolicyID:      policyID,
@@ -47,59 +47,6 @@ var (
 		EvalFrequency: "Hourly",
 		AlertEnabled:  false,
 		AlertProfile:  "LW_CloudTrail_Alerts",
-	}
-	newPolicyJSON = fmt.Sprintf(`{
-	"evaluatorId": "%s",
-	"policyId": "%s",
-	"policyType": "%s",
-	"queryId": "%s",
-	"title": "%s",
-	"enabled": %t,
-	"description": "%s",
-	"remediation": "%s",
-	"severity": "%s",
-	"evalFrequency": "%s",
-	"alertEnabled": %t,
-	"alertProfile": "%s"
-}`, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
-		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.EvalFrequency,
-		newPolicy.AlertEnabled, newPolicy.AlertProfile)
-	newPolicyYAML = fmt.Sprintf(`---
-evaluatorId: %s
-policyId: %s
-policyType: %s
-queryId: %s
-title: %s
-enabled: %t
-description: %s
-remediation: %s
-severity: %s
-evalFrequency: %s
-alertEnabled: %t
-alertProfile: %s
-`, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
-		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.EvalFrequency,
-		newPolicy.AlertEnabled, newPolicy.AlertProfile)
-	newPolicyNestedYAML = fmt.Sprintf(`---
-policies:
-- evaluatorId: %s
-  policyId: %s
-  policyType: %s
-  queryId: %s
-  title: %s
-  enabled: %t
-  description: %s
-  remediation: %s
-  severity: %s
-  evalFrequency: %s
-  alertEnabled: %t
-  alertProfile: %s
-`, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
-		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.EvalFrequency,
-		newPolicy.AlertEnabled, newPolicy.AlertProfile)
-	updatePolicy = api.UpdatePolicy{
-		PolicyID: policyID,
-		Title:    "My New Policy Title",
 	}
 	policyCreateData = fmt.Sprintf(`{
 	"evaluatorId": "Cloudtrail",
@@ -115,6 +62,11 @@ policies:
 	"alertProfile": "LW_CloudTrail_Alerts",
 	"policyType": "Violation"
 }`, policyID)
+
+	updatePolicyMinimal = api.UpdatePolicy{
+		PolicyID: policyID,
+		Title:    "My New Policy Title",
+	}
 	policyUpdateData = fmt.Sprintf(`{
 	"evaluatorId": "Cloudtrail",
 	"policyId": "%s",
@@ -129,6 +81,7 @@ policies:
 	"alertProfile": "LW_CloudTrail_Alerts",
 	"policyType": "Violation"
 }`, policyID)
+
 	mockPolicyErrorResponse = `{
 	"message": "This is an error message"
 }`
@@ -139,66 +92,6 @@ func mockPolicyDataResponse(data string) string {
 	"data": ` + data + `,
 	"message": "SUCCESS"
 }`
-}
-
-type parseNewPolicyTest struct {
-	Name     string
-	Input    string
-	Return   error
-	Expected api.NewPolicy
-}
-
-var parseNewPolicyTests = []parseNewPolicyTest{
-	parseNewPolicyTest{
-		Name:     "empty-blob",
-		Input:    "",
-		Return:   errors.New("policy must be valid JSON or YAML"),
-		Expected: api.NewPolicy{},
-	},
-	parseNewPolicyTest{
-		Name:     "junk-blob",
-		Input:    "this is junk",
-		Return:   errors.New("policy must be valid JSON or YAML"),
-		Expected: api.NewPolicy{},
-	},
-	parseNewPolicyTest{
-		Name:     "partial-blob",
-		Input:    "{",
-		Return:   errors.New("policy must be valid JSON or YAML"),
-		Expected: api.NewPolicy{},
-	},
-	parseNewPolicyTest{
-		Name:     "json-blob",
-		Input:    newPolicyJSON,
-		Return:   nil,
-		Expected: newPolicy,
-	},
-	parseNewPolicyTest{
-		Name:     "yaml-blob",
-		Input:    newPolicyYAML,
-		Return:   nil,
-		Expected: newPolicy,
-	},
-	parseNewPolicyTest{
-		Name:     "yaml-nested-blob",
-		Input:    newPolicyNestedYAML,
-		Return:   nil,
-		Expected: newPolicy,
-	},
-}
-
-func TestParseNewPolicy(t *testing.T) {
-	for _, pnpt := range parseNewPolicyTests {
-		t.Run(pnpt.Name, func(t *testing.T) {
-			actual, err := api.ParseNewPolicy(pnpt.Input)
-			if pnpt.Return == nil {
-				assert.Equal(t, pnpt.Return, err)
-			} else {
-				assert.Equal(t, pnpt.Return.Error(), err.Error())
-			}
-			assert.Equal(t, pnpt.Expected, actual)
-		})
-	}
 }
 
 func TestPolicyCreateMethod(t *testing.T) {
@@ -361,7 +254,7 @@ func TestPolicyUpdateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Policy.Update(updatePolicy)
+	_, err = c.V2.Policy.Update(updatePolicyMinimal)
 	assert.Nil(t, err)
 }
 
@@ -409,7 +302,7 @@ func TestPolicyUpdateOK(t *testing.T) {
 	updateExpected := api.PolicyResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
 
-	updateActual, err := c.V2.Policy.Update(updatePolicy)
+	updateActual, err := c.V2.Policy.Update(updatePolicyMinimal)
 	assert.Nil(t, err)
 	assert.Equal(t, updateExpected, updateActual)
 }
