@@ -18,7 +18,6 @@ The following attributes are minimally required:
 
     ---
     evaluatorId: Cloudtrail
-    policyId: lacework-example-1
     policyType: Violation
     queryId: MyQuery
     title: My Policy
