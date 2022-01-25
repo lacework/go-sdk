@@ -148,15 +148,6 @@ var (
 	}
 	//go:embed test_resources/lacework-content-library/*
 	mockLCLBinaries embed.FS
-
-	malformedLCL cmd.LaceworkContentLibrary = cmd.LaceworkContentLibrary{
-		Queries: map[string]cmd.LCLQuery{
-			"my_query": cmd.LCLQuery{References: []cmd.LCLReference{
-				cmd.LCLReference{},
-			}},
-		},
-	}
-	mockLCL, _ = cmd.LoadLCL(mockLWComponentState)
 )
 
 type mockLCLPlacementType int64
@@ -290,52 +281,49 @@ func TestLoadLCLOK(t *testing.T) {
 }
 
 func TestListQueries(t *testing.T) {
-	assert.Equal(t, len(mockLCL.Queries), len(mockLCL.ListQueries().Data))
-}
-
-type getNewQueryTest struct {
-	Name    string
-	Library cmd.LaceworkContentLibrary
-	QueryID string
-	Error   error
-}
-
-var getNewQueryTests = []getNewQueryTest{
-	getNewQueryTest{
-		Name:  "NoQueryID",
-		Error: errors.New("query ID must be provided"),
-	},
-	getNewQueryTest{
-		Name:    "MalformedQuery",
-		Library: malformedLCL,
-		QueryID: "my_query",
-		Error:   errors.New("query exists but is malformed"),
-	},
-	getNewQueryTest{
-		Name:    "QueryOK",
-		Library: *mockLCL,
-		QueryID: "LW_Custom_AWS_CTA_AuroraPasswordChange",
-		Error:   nil,
-	},
-}
-
-func TestGetNewQuery(t *testing.T) {
 	ept, err := ensureMockLCL(getMockLCLBinaryName())
 	defer removeMockLCL(ept)
 	if err != nil {
 		assert.FailNow(t, err.Error())
 	}
 
-	for _, gnqt := range getNewQueryTests {
-		t.Run(gnqt.Name, func(t *testing.T) {
-			actualNewQuery, actualError := gnqt.Library.GetNewQuery(gnqt.QueryID)
+	lcl, _ := cmd.LoadLCL(mockLWComponentState)
+	assert.Equal(t, len(lcl.Queries), len(lcl.ListQueries().Data))
+}
 
-			if gnqt.Error != nil {
-				assert.Equal(t, gnqt.Error.Error(), actualError.Error())
-			} else {
-				assert.Nil(t, actualError)
-				assert.Equal(t, gnqt.QueryID, actualNewQuery.QueryID)
-			}
-		})
+func TestGetNewQueryNoID(t *testing.T) {
+	lcl := cmd.LaceworkContentLibrary{}
+	_, actualError := lcl.GetNewQuery("")
+	assert.Equal(t, "query ID must be provided", actualError.Error())
+}
+
+func TestGetNewQueryMalformed(t *testing.T) {
+	malformedLCL := cmd.LaceworkContentLibrary{
+		Queries: map[string]cmd.LCLQuery{
+			"my_query": cmd.LCLQuery{References: []cmd.LCLReference{
+				cmd.LCLReference{},
+			}},
+		},
 	}
+
+	_, actualError := malformedLCL.GetNewQuery("my_query")
+	assert.Equal(t, "query exists but is malformed", actualError.Error())
+}
+
+func TestGetNewQueryOK(t *testing.T) {
+	queryID := "LW_Custom_AWS_CTA_AuroraPasswordChange"
+	ept, err := ensureMockLCL(getMockLCLBinaryName())
+	defer removeMockLCL(ept)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	lcl, err := cmd.LoadLCL(mockLWComponentState)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	actualNewQuery, actualError := lcl.GetNewQuery(queryID)
+	assert.Nil(t, actualError)
+	assert.Equal(t, queryID, actualNewQuery.QueryID)
 }
