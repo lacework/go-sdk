@@ -104,6 +104,36 @@ type UpdatePolicy struct {
 	AlertProfile  string `json:"alertProfile,omitempty" yaml:"alertProfile,omitempty"`
 }
 
+type updatePoliciesYAML struct {
+	Policies []UpdatePolicy `yaml:"policies"`
+}
+
+func ParseUpdatePolicy(s string) (UpdatePolicy, error) {
+	var policy UpdatePolicy
+	var err error
+
+	// valid json
+	if err = json.Unmarshal([]byte(s), &policy); err == nil {
+		return policy, err
+	}
+	// nested yaml
+	var policies updatePoliciesYAML
+
+	if err = yaml.Unmarshal([]byte(s), &policies); err == nil {
+		if len(policies.Policies) > 0 {
+			return policies.Policies[0], err
+		}
+	}
+	// straight yaml
+	policy = UpdatePolicy{}
+	err = yaml.Unmarshal([]byte(s), &policy)
+	if err == nil && !reflect.DeepEqual(policy, UpdatePolicy{}) { // empty string unmarshals w/o error
+		return policy, nil
+	}
+	// invalid policy
+	return policy, errors.New("policy must be valid JSON or YAML")
+}
+
 type Policy struct {
 	EvaluatorID    string `json:"evaluatorId"`
 	PolicyID       string `json:"policyId"`
