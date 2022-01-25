@@ -162,7 +162,6 @@ var (
 			}},
 		},
 	}
-	mockLCL, _ = cmd.LoadLCL(mockLWComponentState)
 )
 
 type mockLCLPlacementType int64
@@ -296,105 +295,88 @@ func TestLoadLCLOK(t *testing.T) {
 }
 
 func TestListQueries(t *testing.T) {
-	assert.Equal(t, len(mockLCL.Queries), len(mockLCL.ListQueries().Data))
-}
-
-type getNewQueryTest struct {
-	Name    string
-	Library cmd.LaceworkContentLibrary
-	QueryID string
-	Error   error
-}
-
-var getNewQueryTests = []getNewQueryTest{
-	getNewQueryTest{
-		Name:  "NoQueryID",
-		Error: errors.New("query ID must be provided"),
-	},
-	getNewQueryTest{
-		Name:    "MalformedQuery",
-		Library: malformedLCL,
-		QueryID: "my_query",
-		Error:   errors.New("query exists but is malformed"),
-	},
-	getNewQueryTest{
-		Name:    "QueryOK",
-		Library: *mockLCL,
-		QueryID: "LW_Custom_AWS_CTA_AuroraPasswordChange",
-		Error:   nil,
-	},
-}
-
-func TestGetNewQuery(t *testing.T) {
 	ept, err := ensureMockLCL(getMockLCLBinaryName())
 	defer removeMockLCL(ept)
 	if err != nil {
 		assert.FailNow(t, err.Error())
 	}
 
-	for _, gnqt := range getNewQueryTests {
-		t.Run(gnqt.Name, func(t *testing.T) {
-			actualNewQuery, actualError := gnqt.Library.GetNewQuery(gnqt.QueryID)
+	lcl, err := cmd.LoadLCL(mockLWComponentState)
+	assert.Nil(t, err)
+	assert.Equal(t, len(lcl.Queries), len(lcl.ListQueries().Data))
+}
 
-			if gnqt.Error != nil {
-				assert.Equal(t, gnqt.Error.Error(), actualError.Error())
-			} else {
-				assert.Nil(t, actualError)
-				assert.Equal(t, gnqt.QueryID, actualNewQuery.QueryID)
-			}
-		})
+func TestGetNewQueryNoID(t *testing.T) {
+	lcl := cmd.LaceworkContentLibrary{}
+	_, actualError := lcl.GetNewQuery("")
+	assert.Equal(t, "query ID must be provided", actualError.Error())
+}
+
+func TestGetNewQueryMalformed(t *testing.T) {
+	_, actualError := malformedLCL.GetNewQuery("my_query")
+	assert.Equal(t, "query exists but is malformed", actualError.Error())
+}
+
+func TestGetNewQueryOK(t *testing.T) {
+	queryID := "LW_Custom_AWS_CTA_AuroraPasswordChange"
+	ept, err := ensureMockLCL(getMockLCLBinaryName())
+	defer removeMockLCL(ept)
+	if err != nil {
+		assert.FailNow(t, err.Error())
 	}
+
+	lcl, err := cmd.LoadLCL(mockLWComponentState)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	actualNewQuery, actualError := lcl.GetNewQuery(queryID)
+	assert.Nil(t, actualError)
+	assert.Equal(t, queryID, actualNewQuery.QueryID)
 }
 
 func TestListPolicies(t *testing.T) {
-	policiesResponse, err := mockLCL.ListPolicies()
-	assert.Nil(t, err)
-	assert.Equal(t, len(mockLCL.Policies), len(policiesResponse.Data))
-}
-
-type getNewPolicyTest struct {
-	Name     string
-	Library  cmd.LaceworkContentLibrary
-	PolicyID string
-	Error    error
-}
-
-var getNewPolicyTests = []getNewPolicyTest{
-	getNewPolicyTest{
-		Name:  "NoPolicyID",
-		Error: errors.New("policy ID must be provided"),
-	},
-	getNewPolicyTest{
-		Name:     "MalformedPolicy",
-		Library:  malformedLCL,
-		PolicyID: "my_policy",
-		Error:    errors.New("policy exists but is malformed"),
-	},
-	getNewPolicyTest{
-		Name:     "PolicyOK",
-		Library:  *mockLCL,
-		PolicyID: "lwcustom-28",
-		Error:    nil,
-	},
-}
-
-func TestGetNewPolicy(t *testing.T) {
 	ept, err := ensureMockLCL(getMockLCLBinaryName())
 	defer removeMockLCL(ept)
 	if err != nil {
 		assert.FailNow(t, err.Error())
 	}
 
-	for _, gnpt := range getNewPolicyTests {
-		t.Run(gnpt.Name, func(t *testing.T) {
-			actualNewPolicy, actualError := gnpt.Library.GetNewPolicy(gnpt.PolicyID)
-
-			if gnpt.Error != nil {
-				assert.Equal(t, gnpt.Error.Error(), actualError.Error())
-			} else {
-				assert.Nil(t, actualError)
-				assert.Equal(t, fmt.Sprintf("$account-%s", gnpt.PolicyID), actualNewPolicy.PolicyID)
-			}
-		})
+	lcl, err := cmd.LoadLCL(mockLWComponentState)
+	if err != nil {
+		assert.FailNow(t, err.Error())
 	}
+
+	policiesResponse, err := lcl.ListPolicies()
+	assert.Nil(t, err)
+	assert.Equal(t, len(lcl.Policies), len(policiesResponse.Data))
+}
+
+func TestGetNewPolicyNoID(t *testing.T) {
+	lcl := cmd.LaceworkContentLibrary{}
+	_, actualError := lcl.GetNewPolicy("")
+	assert.Equal(t, "policy ID must be provided", actualError.Error())
+}
+
+func TestGetNewPolicyMalformed(t *testing.T) {
+	_, actualError := malformedLCL.GetNewPolicy("my_policy")
+	assert.Equal(t, "policy exists but is malformed", actualError.Error())
+}
+
+func TestGetNewPolicyOK(t *testing.T) {
+	policyID := "lwcustom-28"
+	ept, err := ensureMockLCL(getMockLCLBinaryName())
+	defer removeMockLCL(ept)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	lcl, err := cmd.LoadLCL(mockLWComponentState)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	actualNewPolicy, actualError := lcl.GetNewPolicy(policyID)
+	assert.Nil(t, actualError)
+	assert.Equal(t, fmt.Sprintf("$account-%s", policyID), actualNewPolicy.PolicyID)
 }
