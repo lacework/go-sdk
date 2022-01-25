@@ -293,7 +293,7 @@ func TestListQueries(t *testing.T) {
 
 func TestGetNewQueryNoID(t *testing.T) {
 	lcl := cmd.LaceworkContentLibrary{}
-	_, actualError := lcl.GetNewQuery("")
+	_, actualError := lcl.GetQuery("")
 	assert.Equal(t, "query ID must be provided", actualError.Error())
 }
 
@@ -306,7 +306,7 @@ func TestGetNewQueryMalformed(t *testing.T) {
 		},
 	}
 
-	_, actualError := malformedLCL.GetNewQuery("my_query")
+	_, actualError := malformedLCL.GetQuery("my_query")
 	assert.Equal(t, "query exists but is malformed", actualError.Error())
 }
 
@@ -323,7 +323,7 @@ func TestGetNewQueryOK(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	actualNewQuery, actualError := lcl.GetNewQuery(queryID)
+	actualQuery, actualError := lcl.GetQuery(queryID)
 	assert.Nil(t, actualError)
-	assert.Equal(t, queryID, actualNewQuery.QueryID)
+	assert.Contains(t, actualQuery, queryID)
 }

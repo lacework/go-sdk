@@ -37,17 +37,17 @@ import (
 
 var (
 	queryCmdState = struct {
-		End               string
-		File              string
-		Repo              bool
-		Range             string
-		Start             string
-		URL               string
-		ValidateOnly      bool
-		ListFromLibrary   bool
-		ShowFromLibrary   bool
-		CreateFromLibrary string
-		UpdateFromLibrary string
+		End             string
+		File            string
+		Range           string
+		Start           string
+		URL             string
+		ValidateOnly    bool
+		ListFromLibrary bool
+		// show, run from library
+		SRFromLibrary bool
+		// create, update validate from library
+		CUVFromLibrary string
 	}{}
 
 	// queryCmd represents the lql parent command
@@ -130,6 +130,14 @@ func init() {
 	// add sub-commands to the lql command
 	queryCmd.AddCommand(queryRunCmd)
 
+	if IsLCLInstalled(*cli.LwComponents) {
+		queryRunCmd.Flags().BoolVarP(
+			&queryCmdState.SRFromLibrary,
+			"library", "l", false,
+			"show query from Lacework Content Library",
+		)
+	}
+
 	// run specific flags
 	setQuerySourceFlags(queryRunCmd)
 
@@ -181,10 +189,14 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 }
 
 // for commands that take a query as input
-func inputQuery(cmd *cobra.Command) (string, error) {
-	// if running via repo
-	if queryCmdState.Repo {
-		return inputQueryFromRepo()
+func inputQuery(cmd *cobra.Command, args []string) (string, error) {
+	// if running via library (show)
+	if queryCmdState.SRFromLibrary {
+		return inputQueryFromLibrary(args[0])
+	}
+	// if running via library (CU)
+	if queryCmdState.CUVFromLibrary != "" {
+		return inputQueryFromLibrary(queryCmdState.CUVFromLibrary)
 	}
 	// if running via file
 	if queryCmdState.File != "" {
@@ -210,9 +222,15 @@ func inputQuery(cmd *cobra.Command) (string, error) {
 	return inputQueryFromEditor(action)
 }
 
-func inputQueryFromRepo() (query string, err error) {
-	err = errors.New("NotImplementedError")
-	return
+func inputQueryFromLibrary(id string) (string, error) {
+	var (
+		lcl *LaceworkContentLibrary
+		err error
+	)
+	if lcl, err = LoadLCL(*cli.LwComponents); err != nil {
+		return "", err
+	}
+	return lcl.GetQuery(id)
 }
 
 func inputQueryFromFile(filePath string) (string, error) {
@@ -380,7 +398,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	}
 	// adhoc query
 	return outputQueryRunResponse(
-		runAdhocQuery(cmd, queryArgs),
+		runAdhocQuery(cmd, args, queryArgs),
 	)
 }
 
@@ -400,12 +418,12 @@ func runQueryByID(id string, args []api.ExecuteQueryArgument) (
 	return cli.LwApi.V2.Query.ExecuteByID(request)
 }
 
-func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
+func runAdhocQuery(cmd *cobra.Command, cmdArgs []string, queryArgs []api.ExecuteQueryArgument) (
 	response map[string]interface{},
 	err error,
 ) {
 	// input query
-	queryString, err := inputQuery(cmd)
+	queryString, err := inputQuery(cmd, cmdArgs)
 	if err != nil {
 		return
 	}
@@ -424,7 +442,7 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 			QueryText:   newQuery.QueryText,
 			EvaluatorID: newQuery.EvaluatorID,
 		},
-		Arguments: args,
+		Arguments: queryArgs,
 	}
 
 	cli.Log.Debugw("running query", "query", queryString)
