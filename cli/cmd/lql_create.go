@@ -113,7 +113,7 @@ func init() {
 
 	if IsLCLInstalled(*cli.LwComponents) {
 		queryCreateCmd.Flags().StringVarP(
-			&queryCmdState.CreateFromLibrary,
+			&queryCmdState.CUVFromLibrary,
 			"library", "l", "",
 			"create query from Lacework Content Library",
 		)
@@ -121,37 +121,27 @@ func init() {
 }
 
 func createQuery(cmd *cobra.Command, args []string) error {
-	var (
-		msg         string = "unable to create query"
-		lcl         *LaceworkContentLibrary
-		err         error
-		newQuery    api.NewQuery
-		queryString string
-	)
+	msg := "unable to create query"
 
-	if queryCmdState.CreateFromLibrary != "" {
-		if lcl, err = LoadLCL(*cli.LwComponents); err == nil {
-			newQuery, err = lcl.GetNewQuery(queryCmdState.CreateFromLibrary)
-		}
-	} else {
-		// input query
-		queryString, err = inputQuery(cmd)
-		if err != nil {
-			return errors.Wrap(err, msg)
-		}
-		cli.Log.Debugw("creating query", "query", queryString)
-		// parse query
-		newQuery, err = api.ParseNewQuery(queryString)
+	// input query
+	queryString, err := inputQuery(cmd, args)
+	if err != nil {
+		return errors.Wrap(err, msg)
 	}
 
+	// parse query
+	newQuery, err := api.ParseNewQuery(queryString)
 	if err != nil {
 		return errors.Wrap(queryErrorCrumbs(queryString), msg)
 	}
 
+	// create query
+	cli.Log.Debugw("creating query", "query", queryString)
 	cli.StartProgress(" Creating query...")
 	create, err := cli.LwApi.V2.Query.Create(newQuery)
 	cli.StopProgress()
 
+	// output
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}

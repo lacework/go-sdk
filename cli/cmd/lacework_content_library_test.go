@@ -306,18 +306,26 @@ func TestListQueries(t *testing.T) {
 	assert.Equal(t, len(lcl.Queries), len(lcl.ListQueries().Data))
 }
 
-func TestGetNewQueryNoID(t *testing.T) {
+func TestGetQueryNoID(t *testing.T) {
 	lcl := cmd.LaceworkContentLibrary{}
-	_, actualError := lcl.GetNewQuery("")
+	_, actualError := lcl.GetQuery("")
 	assert.Equal(t, "query ID must be provided", actualError.Error())
 }
 
-func TestGetNewQueryMalformed(t *testing.T) {
-	_, actualError := malformedLCL.GetNewQuery("my_query")
+func TestGetQueryMalformed(t *testing.T) {
+	malformedLCL := cmd.LaceworkContentLibrary{
+		Queries: map[string]cmd.LCLQuery{
+			"my_query": cmd.LCLQuery{References: []cmd.LCLReference{
+				cmd.LCLReference{},
+			}},
+		},
+	}
+
+	_, actualError := malformedLCL.GetQuery("my_query")
 	assert.Equal(t, "query exists but is malformed", actualError.Error())
 }
 
-func TestGetNewQueryOK(t *testing.T) {
+func TestGetQueryOK(t *testing.T) {
 	queryID := "LW_Custom_AWS_CTA_AuroraPasswordChange"
 	ept, err := ensureMockLCL(getMockLCLBinaryName())
 	defer removeMockLCL(ept)
@@ -330,9 +338,9 @@ func TestGetNewQueryOK(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	actualNewQuery, actualError := lcl.GetNewQuery(queryID)
+	actualQuery, actualError := lcl.GetQuery(queryID)
 	assert.Nil(t, actualError)
-	assert.Equal(t, queryID, actualNewQuery.QueryID)
+	assert.Contains(t, actualQuery, queryID)
 }
 
 func TestListPolicies(t *testing.T) {

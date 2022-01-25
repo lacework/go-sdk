@@ -40,31 +40,37 @@ func init() {
 
 	if IsLCLInstalled(*cli.LwComponents) {
 		queryShowCmd.Flags().BoolVarP(
-			&queryCmdState.ShowFromLibrary,
+			&queryCmdState.SRFromLibrary,
 			"library", "l", false,
 			"show query from Lacework Content Library",
 		)
 	}
 }
 
-func showQuery(_ *cobra.Command, args []string) error {
+func showQuery(cmd *cobra.Command, args []string) error {
 	var (
-		lcl           *LaceworkContentLibrary
-		newQuery      api.NewQuery
+		msg           string = "unable to show query"
 		queryResponse api.QueryResponse
 		err           error
 	)
-	cli.Log.Debugw("retrieving query", "id", args[0])
 
+	cli.Log.Debugw("retrieving query", "id", args[0])
 	cli.StartProgress(" Retrieving query...")
-	if queryCmdState.ShowFromLibrary {
-		if lcl, err = LoadLCL(*cli.LwComponents); err == nil {
-			newQuery, err = lcl.GetNewQuery(args[0])
-			queryResponse.Data = api.Query{
-				QueryID:     newQuery.QueryID,
-				QueryText:   newQuery.QueryText,
-				EvaluatorID: newQuery.EvaluatorID,
-			}
+	if queryCmdState.SRFromLibrary {
+		// input policy
+		queryString, err := inputQuery(cmd, args)
+		if err != nil {
+			return errors.Wrap(err, msg)
+		}
+		// parse policy
+		newQuery, err := api.ParseNewQuery(queryString)
+		if err != nil {
+			return errors.Wrap(err, msg)
+		}
+		queryResponse.Data = api.Query{
+			QueryID:     newQuery.QueryID,
+			QueryText:   newQuery.QueryText,
+			EvaluatorID: newQuery.EvaluatorID,
 		}
 	} else {
 		queryResponse, err = cli.LwApi.V2.Query.Get(args[0])
@@ -72,7 +78,7 @@ func showQuery(_ *cobra.Command, args []string) error {
 	cli.StopProgress()
 
 	if err != nil {
-		return errors.Wrap(err, "unable to show query")
+		return errors.Wrap(err, msg)
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)

@@ -59,7 +59,7 @@ func init() {
 
 	if IsLCLInstalled(*cli.LwComponents) {
 		queryUpdateCmd.Flags().StringVarP(
-			&queryCmdState.UpdateFromLibrary,
+			&queryCmdState.CUVFromLibrary,
 			"library", "l", "",
 			"update query from Lacework Content Library",
 		)
@@ -67,28 +67,16 @@ func init() {
 }
 
 func updateQuery(cmd *cobra.Command, args []string) error {
-	var (
-		msg         string = "unable to update query"
-		lcl         *LaceworkContentLibrary
-		err         error
-		newQuery    api.NewQuery
-		queryString string
-	)
+	msg := "unable to update query"
 
-	if queryCmdState.UpdateFromLibrary != "" {
-		if lcl, err = LoadLCL(*cli.LwComponents); err == nil {
-			newQuery, err = lcl.GetNewQuery(queryCmdState.UpdateFromLibrary)
-		}
-	} else {
-		// input query
-		queryString, err = inputQuery(cmd)
-		if err != nil {
-			return errors.Wrap(err, msg)
-		}
-		// parse query
-		newQuery, err = api.ParseNewQuery(queryString)
+	// input query
+	queryString, err := inputQuery(cmd, args)
+	if err != nil {
+		return errors.Wrap(err, msg)
 	}
 
+	// parse query
+	newQuery, err := api.ParseNewQuery(queryString)
 	if err != nil {
 		return errors.Wrap(queryErrorCrumbs(queryString), msg)
 	}
@@ -96,11 +84,13 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 		QueryText: newQuery.QueryText,
 	}
 
+	// update query
 	cli.Log.Debugw("updating query", "query", queryString)
 	cli.StartProgress(" Updating query...")
 	update, err := cli.LwApi.V2.Query.Update(newQuery.QueryID, updateQuery)
 	cli.StopProgress()
 
+	// output
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
