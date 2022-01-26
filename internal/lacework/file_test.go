@@ -16,20 +16,21 @@
 // limitations under the License.
 //
 
-package cmd
+package lacework_test
 
 import (
 	"io/ioutil"
 	"os"
 	"testing"
 
+	lwint "github.com/lacework/go-sdk/internal/lacework"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFileExistsWhenFileActuallyExists(t *testing.T) {
 	file, err := ioutil.TempFile("", "bar")
 	if assert.Nil(t, err) {
-		assert.True(t, fileExists(file.Name()))
+		assert.True(t, lwint.FileExists(file.Name()))
 		os.Remove(file.Name())
 	}
 }
@@ -37,11 +38,11 @@ func TestFileExistsWhenFileActuallyExists(t *testing.T) {
 func TestFileExistsWhenFileIsADirectory(t *testing.T) {
 	dir, err := ioutil.TempDir("", "bar")
 	if assert.Nil(t, err) {
-		assert.False(t, fileExists(dir))
+		assert.False(t, lwint.FileExists(dir))
 		os.RemoveAll(dir)
 	}
 }
 
 func TestFileExistsWhenFileDoesNotExists(t *testing.T) {
-	assert.False(t, fileExists("file.name"))
+	assert.False(t, lwint.FileExists("file.name"))
 }

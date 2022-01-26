@@ -32,6 +32,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/lacework/go-sdk/api"
+	lwint "github.com/lacework/go-sdk/internal/lacework"
 )
 
 var SupportedPackageManagers = []string{"dpkg-query", "rpm"} // @afiune can we support yum and apk?
@@ -259,12 +260,12 @@ func (c *cliState) GetOSInfo() (*OS, error) {
 		"arch", runtime.GOARCH,
 	)
 
-	if fileExists(osReleaseFile) {
+	if lwint.FileExists(osReleaseFile) {
 		c.Log.Debugw("parsing os release file", "file", osReleaseFile)
 		return openOsReleaseFile(osReleaseFile)
 	}
 
-	if fileExists(sysReleaseFile) {
+	if lwint.FileExists(sysReleaseFile) {
 		c.Log.Debugw("parsing system release file", "file", sysReleaseFile)
 		return openSystemReleaseFile(sysReleaseFile)
 	}

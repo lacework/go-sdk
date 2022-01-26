@@ -28,6 +28,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
+	lwint "github.com/lacework/go-sdk/internal/lacework"
 	"github.com/lacework/go-sdk/lwconfig"
 )
 
@@ -119,7 +120,7 @@ func (c *cliState) Migrations() (err error) {
 	// if the configuration file does not exist, most likely the user
 	// is executing the CLI via env variables or flags, update feature
 	// field and exit migration
-	if !fileExists(viper.ConfigFileUsed()) {
+	if !lwint.FileExists(viper.ConfigFileUsed()) {
 		c.Log.Debugw("config file not found, skipping profile migration")
 		c.Event.AddFeatureField("config_file", "not_found")
 		return nil
@@ -158,7 +159,7 @@ func createConfigurationBackup() (string, error) {
 		return "", err
 	}
 
-	cacheDir, err := cacheDir()
+	cacheDir, err := lwint.CacheDir()
 	if err != nil {
 		return "", err
 	}

@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2021, Lacework Inc.
+// Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,26 @@
 // limitations under the License.
 //
 
-package cmd
+package lacework
 
-import "os"
+import (
+	"os"
+	"path"
+
+	homedir "github.com/mitchellh/go-homedir"
+)
+
+func CacheDir() (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return path.Join(home, ".config", "lacework"), nil
+}
 
 // fileExists checks if a file exists and is not a directory
-func fileExists(filename string) bool {
+func FileExists(filename string) bool {
 	f, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		return false

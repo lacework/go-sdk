@@ -27,6 +27,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	lwint "github.com/lacework/go-sdk/internal/lacework"
 	"github.com/lacework/go-sdk/lwupdater"
 )
 
@@ -112,13 +113,13 @@ func dailyVersionCheck() error {
 		return nil
 	}
 
-	cacheDir, err := cacheDir()
+	cacheDir, err := lwint.CacheDir()
 	if err != nil {
 		return err
 	}
 
 	cacheFile := path.Join(cacheDir, VersionCacheFile)
-	if !fileExists(cacheFile) {
+	if !lwint.FileExists(cacheFile) {
 		// first time running the daily version check, create directory
 		if err := os.MkdirAll(cacheDir, 0755); err != nil {
 			return err
