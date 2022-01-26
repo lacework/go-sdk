@@ -114,8 +114,6 @@ func TestPolicyCreateEditor(t *testing.T) {
 func TestPolicyCreateFile(t *testing.T) {
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
-	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// get temp file
 	file, err := createTemporaryFile("TestPolicyCreateFile", newPolicyYAML)
@@ -158,10 +156,12 @@ func TestPolicyCreateFile(t *testing.T) {
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	// delete
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "delete", policyID)
+	// force delete
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "delete", policyID, "--force")
 	assert.Contains(t, out.String(),
 		fmt.Sprintf("The policy %s was deleted.", policyID))
+	assert.Contains(t, out.String(),
+		fmt.Sprintf("The query %s was deleted.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
