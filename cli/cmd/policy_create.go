@@ -64,11 +64,11 @@ func init() {
 	setPolicySourceFlags(policyCreateCmd)
 }
 
-func createPolicy(cmd *cobra.Command, args []string) error {
+func createPolicy(cmd *cobra.Command, _ []string) error {
 	msg := "unable to create policy"
 
 	// input policy
-	policyString, err := inputPolicy(cmd, args)
+	policyString, err := inputPolicy(cmd)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}

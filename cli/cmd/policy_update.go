@@ -66,7 +66,7 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 	msg := "unable to update policy"
 
 	// input policy
-	policyString, err := inputPolicy(cmd, args)
+	policyString, err := inputPolicy(cmd)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}

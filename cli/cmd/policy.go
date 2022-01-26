@@ -35,14 +35,12 @@ import (
 
 var (
 	policyCmdState = struct {
-		AlertEnabled    bool
-		Enabled         bool
-		File            string
-		Severity        string
-		URL             string
-		ListFromLibrary bool
-		ShowFromLibrary bool
-		CUFromLibrary   string
+		AlertEnabled  bool
+		Enabled       bool
+		File          string
+		Severity      string
+		URL           string
+		CUFromLibrary string
 	}{}
 
 	policyTableHeaders = []string{
@@ -129,16 +127,6 @@ func init() {
 
 	// Lacework Content Library
 	if IsLCLInstalled(*cli.LwComponents) {
-		policyListCmd.Flags().BoolVarP(
-			&policyCmdState.ListFromLibrary,
-			"library", "l", false,
-			"list policies available in Lacework Content Library",
-		)
-		policyShowCmd.Flags().BoolVarP(
-			&policyCmdState.ShowFromLibrary,
-			"library", "l", false,
-			"show policy from Lacework Content Library",
-		)
 		policyCreateCmd.Flags().StringVarP(
 			&policyCmdState.CUFromLibrary,
 			"library", "l", "",
@@ -197,11 +185,7 @@ func setPolicySourceFlags(cmds ...*cobra.Command) {
 }
 
 // for commands that take a policy as input
-func inputPolicy(cmd *cobra.Command, args []string) (string, error) {
-	// if running via library (show)
-	if policyCmdState.ShowFromLibrary {
-		return inputPolicyFromLibrary(args[0])
-	}
+func inputPolicy(cmd *cobra.Command) (string, error) {
 	// if running via library (CU)
 	if policyCmdState.CUFromLibrary != "" {
 		return inputPolicyFromLibrary(policyCmdState.CUFromLibrary)
@@ -325,11 +309,6 @@ func policyTable(policies []api.Policy) (out [][]string) {
 }
 
 func listPolicies(_ *cobra.Command, args []string) error {
-	var (
-		lcl              *LaceworkContentLibrary
-		policiesResponse api.PoliciesResponse
-		err              error
-	)
 	cli.Log.Debugw("listing policies")
 
 	if policyCmdState.Severity != "" && !array.ContainsStr(
@@ -342,13 +321,7 @@ func listPolicies(_ *cobra.Command, args []string) error {
 	}
 
 	cli.StartProgress(" Retrieving policies...")
-	if policyCmdState.ListFromLibrary {
-		if lcl, err = LoadLCL(*cli.LwComponents); err == nil {
-			policiesResponse, err = lcl.ListPolicies()
-		}
-	} else {
-		policiesResponse, err = cli.LwApi.V2.Policy.List()
-	}
+	policiesResponse, err := cli.LwApi.V2.Policy.List()
 	cli.StopProgress()
 
 	if err != nil {
@@ -374,37 +347,7 @@ func showPolicy(cmd *cobra.Command, args []string) error {
 
 	cli.Log.Debugw("retrieving policy", "policyID", args[0])
 	cli.StartProgress(" Retrieving policy...")
-
-	if policyCmdState.ShowFromLibrary {
-		// input policy
-		policyString, err := inputPolicy(cmd, args)
-		if err != nil {
-			return errors.Wrap(err, msg)
-		}
-		// parse policy
-		newPolicy, err := api.ParseNewPolicy(policyString)
-		if err != nil {
-			return errors.Wrap(err, msg)
-		}
-		policyResponse.Data = api.Policy{
-			EvaluatorID:   newPolicy.EvaluatorID,
-			PolicyID:      newPolicy.PolicyID,
-			PolicyType:    newPolicy.PolicyType,
-			QueryID:       newPolicy.QueryID,
-			Title:         newPolicy.Title,
-			Enabled:       newPolicy.Enabled,
-			Description:   newPolicy.Description,
-			Remediation:   newPolicy.Remediation,
-			Severity:      newPolicy.Severity,
-			Limit:         newPolicy.Limit,
-			EvalFrequency: newPolicy.EvalFrequency,
-			AlertEnabled:  newPolicy.AlertEnabled,
-			AlertProfile:  newPolicy.AlertProfile,
-		}
-	} else {
-		// get policy
-		policyResponse, err = cli.LwApi.V2.Policy.Get(args[0])
-	}
+	policyResponse, err = cli.LwApi.V2.Policy.Get(args[0])
 	cli.StopProgress()
 
 	// output policy
