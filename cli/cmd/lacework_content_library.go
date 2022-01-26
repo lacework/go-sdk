@@ -129,15 +129,6 @@ func (lcl LaceworkContentLibrary) getReferencesForPolicy(id string) ([]LCLRefere
 	return lcl.Policies[id].References, nil
 }
 
-func (lcl LaceworkContentLibrary) ListQueries() api.QueriesResponse {
-	var queries []api.Query
-
-	for id := range lcl.Queries {
-		queries = append(queries, api.Query{QueryID: id})
-	}
-	return api.QueriesResponse{Data: queries}
-}
-
 func (lcl LaceworkContentLibrary) GetQuery(id string) (string, error) {
 	// get query reference
 	ref, err := lcl.getReferenceForQuery(id)

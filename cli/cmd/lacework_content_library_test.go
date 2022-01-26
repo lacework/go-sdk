@@ -294,18 +294,6 @@ func TestLoadLCLOK(t *testing.T) {
 	assert.True(t, ok)
 }
 
-func TestListQueries(t *testing.T) {
-	ept, err := ensureMockLCL(getMockLCLBinaryName())
-	defer removeMockLCL(ept)
-	if err != nil {
-		assert.FailNow(t, err.Error())
-	}
-
-	lcl, err := cmd.LoadLCL(mockLWComponentState)
-	assert.Nil(t, err)
-	assert.Equal(t, len(lcl.Queries), len(lcl.ListQueries().Data))
-}
-
 func TestGetQueryNoID(t *testing.T) {
 	lcl := cmd.LaceworkContentLibrary{}
 	_, actualError := lcl.GetQuery("")
