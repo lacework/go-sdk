@@ -32,16 +32,23 @@ const (
 	lclIndexPath     string = "content.index"
 )
 
+type LCLContentType string
+
+const (
+	LCLQueryType  LCLContentType = "query"
+	LCLPolicyType LCLContentType = "policy"
+)
+
 type LCLReference struct {
-	ID   string `json:"id"`
-	Type string `json:"content_type"`
-	Path string `json:"path"`
-	URI  string `json:"uri"`
+	ID   string         `json:"id"`
+	Type LCLContentType `json:"content_type"`
+	Path string         `json:"path"`
+	URI  string         `json:"uri"`
 }
 
 func getPolicyReference(refs []LCLReference) (LCLReference, error) {
 	for i := range refs {
-		if refs[i].Type == "policy" {
+		if refs[i].Type == LCLPolicyType {
 			return refs[i], nil
 		}
 	}
@@ -129,15 +136,6 @@ func (lcl LaceworkContentLibrary) getReferencesForPolicy(id string) ([]LCLRefere
 	return lcl.Policies[id].References, nil
 }
 
-func (lcl LaceworkContentLibrary) ListQueries() api.QueriesResponse {
-	var queries []api.Query
-
-	for id := range lcl.Queries {
-		queries = append(queries, api.Query{QueryID: id})
-	}
-	return api.QueriesResponse{Data: queries}
-}
-
 func (lcl LaceworkContentLibrary) GetQuery(id string) (string, error) {
 	// get query reference
 	ref, err := lcl.getReferenceForQuery(id)
@@ -159,7 +157,7 @@ func (lcl LaceworkContentLibrary) ListPolicies() (api.PoliciesResponse, error) {
 		var queryRef LCLReference
 
 		for i := range lcl.Policies[policyID].References {
-			if lcl.Policies[policyID].References[i].Type == "query" {
+			if lcl.Policies[policyID].References[i].Type == LCLQueryType {
 				queryRef = lcl.Policies[policyID].References[i]
 				break
 			}

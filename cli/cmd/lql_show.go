@@ -19,7 +19,6 @@
 package cmd
 
 import (
-	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +28,7 @@ var (
 	queryShowCmd = &cobra.Command{
 		Use:   "show <query_id>",
 		Short: "Show a query",
-		Long:  `Show a query.`,
+		Long:  `Show a query in your Lacework account.`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  showQuery,
 	}
@@ -37,52 +36,20 @@ var (
 
 func init() {
 	queryCmd.AddCommand(queryShowCmd)
-
-	if IsLCLInstalled(*cli.LwComponents) {
-		queryShowCmd.Flags().BoolVarP(
-			&queryCmdState.SRFromLibrary,
-			"library", "l", false,
-			"show query from Lacework Content Library",
-		)
-	}
 }
 
-func showQuery(cmd *cobra.Command, args []string) error {
-	var (
-		msg           string = "unable to show query"
-		queryResponse api.QueryResponse
-		err           error
-	)
-
+func showQuery(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving query", "id", args[0])
 	cli.StartProgress(" Retrieving query...")
-	if queryCmdState.SRFromLibrary {
-		// input policy
-		queryString, err := inputQuery(cmd, args)
-		if err != nil {
-			return errors.Wrap(err, msg)
-		}
-		// parse policy
-		newQuery, err := api.ParseNewQuery(queryString)
-		if err != nil {
-			return errors.Wrap(err, msg)
-		}
-		queryResponse.Data = api.Query{
-			QueryID:     newQuery.QueryID,
-			QueryText:   newQuery.QueryText,
-			EvaluatorID: newQuery.EvaluatorID,
-		}
-	} else {
-		queryResponse, err = cli.LwApi.V2.Query.Get(args[0])
-	}
+	queryResponse, err := cli.LwApi.V2.Query.Get(args[0])
 	cli.StopProgress()
-
 	if err != nil {
-		return errors.Wrap(err, msg)
+		return errors.Wrap(err, "unable to show query")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)
 	}
+
 	cli.OutputHuman(queryResponse.Data.QueryText)
 	return nil
 }

@@ -37,15 +37,14 @@ import (
 
 var (
 	queryCmdState = struct {
-		End             string
-		File            string
-		Range           string
-		Start           string
-		URL             string
-		ValidateOnly    bool
-		ListFromLibrary bool
+		End          string
+		File         string
+		Range        string
+		Start        string
+		URL          string
+		ValidateOnly bool
 		// show, run from library
-		SRFromLibrary bool
+		RunFromLibrary bool
 		// create, update validate from library
 		CUVFromLibrary string
 	}{}
@@ -132,9 +131,9 @@ func init() {
 
 	if IsLCLInstalled(*cli.LwComponents) {
 		queryRunCmd.Flags().BoolVarP(
-			&queryCmdState.SRFromLibrary,
+			&queryCmdState.RunFromLibrary,
 			"library", "l", false,
-			"show query from Lacework Content Library",
+			"run query from Lacework Content Library",
 		)
 	}
 
@@ -190,11 +189,7 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 
 // for commands that take a query as input
 func inputQuery(cmd *cobra.Command, args []string) (string, error) {
-	// if running via library (show)
-	if queryCmdState.SRFromLibrary {
-		return inputQueryFromLibrary(args[0])
-	}
-	// if running via library (CU)
+	// if running via library (CUV)
 	if queryCmdState.CUVFromLibrary != "" {
 		return inputQueryFromLibrary(queryCmdState.CUVFromLibrary)
 	}
@@ -344,7 +339,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		start      time.Time
 		end        time.Time
 		msg        string = "unable to run query"
-		hasCmdArgs bool   = len(args) != 0 && args[0] != ""
+		hasCmdArgs bool   = len(args) != 0 && args[0] != "" && !queryCmdState.RunFromLibrary
 	)
 
 	// validate_only w/ query_id
