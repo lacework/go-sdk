@@ -156,8 +156,8 @@ func TestPolicyCreateFile(t *testing.T) {
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	// force delete
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "delete", policyID, "--force")
+	// cascade delete
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "delete", policyID, "--cascade")
 	assert.Contains(t, out.String(),
 		fmt.Sprintf("The policy %s was deleted.", policyID))
 	assert.Contains(t, out.String(),

@@ -45,8 +45,8 @@ func init() {
 	policyCmd.AddCommand(policyDeleteCmd)
 
 	policyDeleteCmd.Flags().BoolVar(
-		&policyCmdState.ForceDelete,
-		"force", false, "delete policy and its associated query",
+		&policyCmdState.CascadeDelete,
+		"cascade", false, "delete policy and its associated query",
 	)
 }
 
@@ -57,7 +57,7 @@ func deletePolicy(_ *cobra.Command, args []string) error {
 		queryID     string
 	)
 
-	if policyCmdState.ForceDelete {
+	if policyCmdState.CascadeDelete {
 		cli.Log.Debugw("retrieving policy", "policyID", args[0])
 		cli.StartProgress(" Retrieving policy...")
 		getResponse, err = cli.LwApi.V2.Policy.Get(args[0])
@@ -81,7 +81,7 @@ func deletePolicy(_ *cobra.Command, args []string) error {
 		fmt.Sprintf("The policy %s was deleted.\n", args[0]),
 	)
 	// delete query
-	if policyCmdState.ForceDelete {
+	if policyCmdState.CascadeDelete {
 		cli.Log.Debugw("deleting query", "id", queryID)
 		cli.StartProgress(" Deleting query...")
 		_, err := cli.LwApi.V2.Query.Delete(queryID)

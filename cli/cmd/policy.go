@@ -36,13 +36,13 @@ import (
 
 var (
 	policyCmdState = struct {
-		AlertEnabled bool
-		Enabled      bool
-		File         string
-		Repo         bool
-		Severity     string
-		URL          string
-		ForceDelete  bool
+		AlertEnabled  bool
+		Enabled       bool
+		File          string
+		Repo          bool
+		Severity      string
+		URL           string
+		CascadeDelete bool
 	}{}
 
 	policyTableHeaders = []string{
