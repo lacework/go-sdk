@@ -292,6 +292,8 @@ func TestLoadLCLOK(t *testing.T) {
 	assert.True(t, ok)
 	_, ok = lcl.Policies["lwcustom-27"]
 	assert.True(t, ok)
+	assert.NotEqual(t, "", lcl.Policies["lwcustom-27"].PolicyID)
+	assert.NotEqual(t, "", lcl.Policies["lwcustom-27"].QueryID)
 }
 
 func TestGetQueryNoID(t *testing.T) {
@@ -329,23 +331,6 @@ func TestGetQueryOK(t *testing.T) {
 	actualQuery, actualError := lcl.GetQuery(queryID)
 	assert.Nil(t, actualError)
 	assert.Contains(t, actualQuery, queryID)
-}
-
-func TestListPolicies(t *testing.T) {
-	ept, err := ensureMockLCL(getMockLCLBinaryName())
-	defer removeMockLCL(ept)
-	if err != nil {
-		assert.FailNow(t, err.Error())
-	}
-
-	lcl, err := cmd.LoadLCL(mockLWComponentState)
-	if err != nil {
-		assert.FailNow(t, err.Error())
-	}
-
-	policiesResponse, err := lcl.ListPolicies()
-	assert.Nil(t, err)
-	assert.Equal(t, len(lcl.Policies), len(policiesResponse.Data))
 }
 
 func TestGetPolicyNoID(t *testing.T) {
