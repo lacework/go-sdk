@@ -134,7 +134,7 @@ func init() {
 		queryRunCmd.Flags().BoolVarP(
 			&queryCmdState.SRFromLibrary,
 			"library", "l", false,
-			"show query from Lacework Content Library",
+			"run query from Lacework Content Library",
 		)
 	}
 
@@ -344,7 +344,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		start      time.Time
 		end        time.Time
 		msg        string = "unable to run query"
-		hasCmdArgs bool   = len(args) != 0 && args[0] != ""
+		hasCmdArgs bool   = len(args) != 0 && args[0] != "" && !queryCmdState.SRFromLibrary
 	)
 
 	// validate_only w/ query_id
