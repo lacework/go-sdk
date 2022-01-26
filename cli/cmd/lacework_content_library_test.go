@@ -148,6 +148,20 @@ var (
 	}
 	//go:embed test_resources/lacework-content-library/*
 	mockLCLBinaries embed.FS
+
+	malformedLCL cmd.LaceworkContentLibrary = cmd.LaceworkContentLibrary{
+		Queries: map[string]cmd.LCLQuery{
+			"my_query": cmd.LCLQuery{References: []cmd.LCLReference{
+				cmd.LCLReference{},
+			}},
+		},
+		Policies: map[string]cmd.LCLPolicy{
+			"my_policy": cmd.LCLPolicy{References: []cmd.LCLReference{
+				cmd.LCLReference{},
+				cmd.LCLReference{},
+			}},
+		},
+	}
 )
 
 type mockLCLPlacementType int64
@@ -287,17 +301,18 @@ func TestListQueries(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	lcl, _ := cmd.LoadLCL(mockLWComponentState)
+	lcl, err := cmd.LoadLCL(mockLWComponentState)
+	assert.Nil(t, err)
 	assert.Equal(t, len(lcl.Queries), len(lcl.ListQueries().Data))
 }
 
-func TestGetNewQueryNoID(t *testing.T) {
+func TestGetQueryNoID(t *testing.T) {
 	lcl := cmd.LaceworkContentLibrary{}
 	_, actualError := lcl.GetQuery("")
 	assert.Equal(t, "query ID must be provided", actualError.Error())
 }
 
-func TestGetNewQueryMalformed(t *testing.T) {
+func TestGetQueryMalformed(t *testing.T) {
 	malformedLCL := cmd.LaceworkContentLibrary{
 		Queries: map[string]cmd.LCLQuery{
 			"my_query": cmd.LCLQuery{References: []cmd.LCLReference{
@@ -310,7 +325,7 @@ func TestGetNewQueryMalformed(t *testing.T) {
 	assert.Equal(t, "query exists but is malformed", actualError.Error())
 }
 
-func TestGetNewQueryOK(t *testing.T) {
+func TestGetQueryOK(t *testing.T) {
 	queryID := "LW_Custom_AWS_CTA_AuroraPasswordChange"
 	ept, err := ensureMockLCL(getMockLCLBinaryName())
 	defer removeMockLCL(ept)
@@ -326,4 +341,50 @@ func TestGetNewQueryOK(t *testing.T) {
 	actualQuery, actualError := lcl.GetQuery(queryID)
 	assert.Nil(t, actualError)
 	assert.Contains(t, actualQuery, queryID)
+}
+
+func TestListPolicies(t *testing.T) {
+	ept, err := ensureMockLCL(getMockLCLBinaryName())
+	defer removeMockLCL(ept)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	lcl, err := cmd.LoadLCL(mockLWComponentState)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	policiesResponse, err := lcl.ListPolicies()
+	assert.Nil(t, err)
+	assert.Equal(t, len(lcl.Policies), len(policiesResponse.Data))
+}
+
+func TestGetPolicyNoID(t *testing.T) {
+	lcl := cmd.LaceworkContentLibrary{}
+	_, actualError := lcl.GetPolicy("")
+	assert.Equal(t, "policy ID must be provided", actualError.Error())
+}
+
+func TestGetPolicyMalformed(t *testing.T) {
+	_, actualError := malformedLCL.GetPolicy("my_policy")
+	assert.Equal(t, "policy exists but is malformed", actualError.Error())
+}
+
+func TestGetPolicyOK(t *testing.T) {
+	policyID := "lwcustom-28"
+	ept, err := ensureMockLCL(getMockLCLBinaryName())
+	defer removeMockLCL(ept)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	lcl, err := cmd.LoadLCL(mockLWComponentState)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	actualString, actualError := lcl.GetPolicy(policyID)
+	assert.Nil(t, actualError)
+	assert.Contains(t, actualString, fmt.Sprintf("$account-%s", policyID))
 }
