@@ -23,7 +23,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/lwcomponent"
 )
 
@@ -60,9 +59,11 @@ type LCLQuery struct {
 }
 
 type LCLPolicy struct {
+	PolicyID    string         `json:"policyId"`
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
 	Tags        []string       `json:"tags"`
+	QueryID     string         `json:"queryId"`
 	References  []LCLReference `json:"references"`
 }
 
@@ -95,6 +96,19 @@ func LoadLCL(state lwcomponent.State) (*LaceworkContentLibrary, error) {
 		return new(LaceworkContentLibrary), errors.Wrap(
 			err, "unable to load Lacework Content Library")
 	}
+
+	for policyID, policy := range lcl.Policies {
+		for i := range policy.References {
+			if policy.References[i].Type == LCLQueryType {
+				policy.QueryID = policy.References[i].ID
+			}
+			if policy.References[i].Type == LCLPolicyType {
+				policy.PolicyID = policy.References[i].ID
+			}
+		}
+		lcl.Policies[policyID] = policy
+	}
+
 	return lcl, nil
 }
 
@@ -148,32 +162,6 @@ func (lcl LaceworkContentLibrary) GetQuery(id string) (string, error) {
 	}
 	// get query string
 	return lcl.run(ref.Path)
-}
-
-func (lcl LaceworkContentLibrary) ListPolicies() (api.PoliciesResponse, error) {
-	var policies []api.Policy
-
-	for policyID := range lcl.Policies {
-		var queryRef LCLReference
-
-		for i := range lcl.Policies[policyID].References {
-			if lcl.Policies[policyID].References[i].Type == LCLQueryType {
-				queryRef = lcl.Policies[policyID].References[i]
-				break
-			}
-		}
-		if queryRef.ID == "" {
-			return api.PoliciesResponse{Data: policies}, errors.New(
-				"unable to identify query for one or more policies")
-		}
-		policies = append(policies, api.Policy{
-			PolicyID:    policyID,
-			Title:       lcl.Policies[policyID].Title,
-			Description: lcl.Policies[policyID].Description,
-			QueryID:     queryRef.ID,
-		})
-	}
-	return api.PoliciesResponse{Data: policies}, nil
 }
 
 func (lcl LaceworkContentLibrary) GetPolicy(id string) (string, error) {
