@@ -63,12 +63,12 @@ func listQueryLibrary(_ *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to list queries")
 	}
+	if cli.JSONOutput() {
+		return cli.OutputJSON(lcl.Queries)
+	}
 	if len(lcl.Queries) == 0 {
 		cli.OutputHuman("There were no queries found.")
 		return nil
-	}
-	if cli.JSONOutput() {
-		return cli.OutputJSON(lcl.Queries)
 	}
 	cli.OutputHuman(
 		renderSimpleTable(
