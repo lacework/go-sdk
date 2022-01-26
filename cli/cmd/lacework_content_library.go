@@ -39,6 +39,15 @@ type LCLReference struct {
 	URI  string `json:"uri"`
 }
 
+func getPolicyReference(refs []LCLReference) (LCLReference, error) {
+	for i := range refs {
+		if refs[i].Type == "policy" {
+			return refs[i], nil
+		}
+	}
+	return LCLReference{}, errors.New("policy reference not found")
+}
+
 type LCLQuery struct {
 	References []LCLReference `json:"references"`
 }
@@ -102,8 +111,22 @@ func (lcl LaceworkContentLibrary) getReferenceForQuery(id string) (LCLReference,
 	if len(lcl.Queries[id].References) < 1 {
 		return ref, errors.New("query exists but is malformed")
 	}
-	ref = lcl.Queries[id].References[0]
-	return ref, nil
+	return lcl.Queries[id].References[0], nil
+}
+
+func (lcl LaceworkContentLibrary) getReferencesForPolicy(id string) ([]LCLReference, error) {
+	var refs []LCLReference
+
+	if id == "" {
+		return refs, errors.New("policy ID must be provided")
+	}
+	if _, ok := lcl.Policies[id]; !ok {
+		return refs, errors.New("policy does not exist in library")
+	}
+	if len(lcl.Policies[id].References) < 2 {
+		return refs, errors.New("policy exists but is malformed")
+	}
+	return lcl.Policies[id].References, nil
 }
 
 func (lcl LaceworkContentLibrary) ListQueries() api.QueriesResponse {
@@ -126,5 +149,45 @@ func (lcl LaceworkContentLibrary) GetQuery(id string) (string, error) {
 		return "", errors.New("query exists but is malformed")
 	}
 	// get query string
+	return lcl.run(ref.Path)
+}
+
+func (lcl LaceworkContentLibrary) ListPolicies() (api.PoliciesResponse, error) {
+	var policies []api.Policy
+
+	for policyID := range lcl.Policies {
+		var queryRef LCLReference
+
+		for i := range lcl.Policies[policyID].References {
+			if lcl.Policies[policyID].References[i].Type == "query" {
+				queryRef = lcl.Policies[policyID].References[i]
+				break
+			}
+		}
+		if queryRef.ID == "" {
+			return api.PoliciesResponse{Data: policies}, errors.New(
+				"unable to identify query for one or more policies")
+		}
+		policies = append(policies, api.Policy{
+			PolicyID:    policyID,
+			Title:       lcl.Policies[policyID].Title,
+			Description: lcl.Policies[policyID].Description,
+			QueryID:     queryRef.ID,
+		})
+	}
+	return api.PoliciesResponse{Data: policies}, nil
+}
+
+func (lcl LaceworkContentLibrary) GetPolicy(id string) (string, error) {
+	// get policy references
+	refs, err := lcl.getReferencesForPolicy(id)
+	if err != nil {
+		return "", err
+	}
+	ref, err := getPolicyReference(refs)
+	if err != nil || ref.Path == "" {
+		return "", errors.New("policy exists but is malformed")
+	}
+	// get policy string
 	return lcl.run(ref.Path)
 }
