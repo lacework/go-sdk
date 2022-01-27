@@ -19,6 +19,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -62,38 +64,88 @@ func init() {
 	setPolicySourceFlags(policyUpdateCmd)
 }
 
+func updateQueryFromLibrary(id string) error {
+	var (
+		queryString string
+		err         error
+		newQuery    api.NewQuery
+	)
+
+	// input query
+	queryString, err = inputQueryFromLibrary(id)
+	if err != nil {
+		return err
+	}
+
+	cli.Log.Debugw("creating query", "query", queryString)
+
+	// parse query
+	newQuery, err = api.ParseNewQuery(queryString)
+	if err != nil {
+		return queryErrorCrumbs(queryString)
+	}
+	updateQuery := api.UpdateQuery{
+		QueryText: newQuery.QueryText,
+	}
+
+	// update query
+	_, err = cli.LwApi.V2.Query.Update(newQuery.QueryID, updateQuery)
+	return err
+}
+
 func updatePolicy(cmd *cobra.Command, args []string) error {
-	msg := "unable to update policy"
+	var (
+		msg          string = "unable to update policy"
+		err          error
+		queryUpdated bool
+	)
 
 	// input policy
 	policyString, err := inputPolicy(cmd)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
+	cli.Log.Debugw("updating policy", "policy", policyString)
 
 	// parse policy
 	updatePolicy, err := api.ParseUpdatePolicy(policyString)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
-
 	// set policy id
 	if len(args) != 0 {
 		updatePolicy.PolicyID = args[0]
 	}
 
 	// update policy
-	cli.Log.Debugw("updating policy", "policy", policyString)
-	cli.StartProgress(" Updating policy...")
+	if policyCmdState.CUFromLibrary == "" {
+		cli.StartProgress(" Updating policy...")
+	} else {
+		cli.StartProgress(" Updating policy and query...")
+	}
 	updateResponse, err := cli.LwApi.V2.Policy.Update(updatePolicy)
-	cli.StopProgress()
-
-	// output policy
 	if err != nil {
+		cli.StopProgress()
 		return errors.Wrap(err, msg)
 	}
+
+	// if updating policy from library
+	if policyCmdState.CUFromLibrary != "" {
+		err = updateQueryFromLibrary(updatePolicy.QueryID)
+		cli.StopProgress()
+
+		if err != nil {
+			return errors.Wrap(err, msg)
+		}
+		queryUpdated = true
+	}
+
+	// output policy
 	if cli.JSONOutput() {
 		return cli.OutputJSON(updateResponse.Data)
+	}
+	if queryUpdated {
+		cli.OutputHuman(fmt.Sprintf("The query %s was updated.\n", updatePolicy.QueryID))
 	}
 	cli.OutputHuman("The policy %s was updated.\n", updateResponse.Data.PolicyID)
 	return nil

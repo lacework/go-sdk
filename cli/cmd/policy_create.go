@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -64,14 +65,45 @@ func init() {
 	setPolicySourceFlags(policyCreateCmd)
 }
 
+func createQueryFromLibrary(id string) error {
+	var (
+		queryString string
+		err         error
+		newQuery    api.NewQuery
+	)
+
+	// input query
+	queryString, err = inputQueryFromLibrary(id)
+	if err != nil {
+		return err
+	}
+
+	cli.Log.Debugw("creating query", "query", queryString)
+
+	// parse query
+	newQuery, err = api.ParseNewQuery(queryString)
+	if err != nil {
+		return queryErrorCrumbs(queryString)
+	}
+
+	// create query
+	_, err = cli.LwApi.V2.Query.Create(newQuery)
+	return err
+}
+
 func createPolicy(cmd *cobra.Command, _ []string) error {
-	msg := "unable to create policy"
+	var (
+		msg         string = "unable to create policy"
+		err         error
+		queryExists bool
+	)
 
 	// input policy
 	policyString, err := inputPolicy(cmd)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
+	cli.Log.Debugw("creating policy", "policy", policyString)
 
 	// parse policy
 	newPolicy, err := api.ParseNewPolicy(policyString)
@@ -79,9 +111,20 @@ func createPolicy(cmd *cobra.Command, _ []string) error {
 		return errors.Wrap(err, msg)
 	}
 
+	// if creating policy from library
+	if policyCmdState.CUFromLibrary != "" {
+		cli.StartProgress(" Creating policy and query...")
+		err = createQueryFromLibrary(newPolicy.QueryID)
+		if err != nil {
+			if queryExists = strings.Contains(err.Error(), "already exists"); !queryExists {
+				return errors.Wrap(err, "unable to create query")
+			}
+		}
+	} else {
+		cli.StartProgress(" Creating policy...")
+	}
+
 	// create policy
-	cli.Log.Debugw("creating policy", "policy", policyString)
-	cli.StartProgress(" Creating policy...")
 	createResponse, err := cli.LwApi.V2.Policy.Create(newPolicy)
 	cli.StopProgress()
 
@@ -91,6 +134,12 @@ func createPolicy(cmd *cobra.Command, _ []string) error {
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(createResponse.Data)
+	}
+	if queryExists {
+		cli.OutputHuman(fmt.Sprintf("The query %s already exists.\n", newPolicy.QueryID))
+	}
+	if policyCmdState.CUFromLibrary != "" {
+		cli.OutputHuman(fmt.Sprintf("The query %s was created.\n", newPolicy.QueryID))
 	}
 	cli.OutputHuman(fmt.Sprintf("The policy %s was created.\n", createResponse.Data.PolicyID))
 	return nil
