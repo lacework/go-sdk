@@ -98,8 +98,10 @@ func (cs ComponentStatus) String() string {
 	}
 }
 
-var baseRunErr string = "unable to run component"
-var cmpntNotFound string = "component does not exist"
+var (
+	baseRunErr    string = "unable to run component"
+	cmpntNotFound string = "component does not exist"
+)
 
 type Component struct {
 	Name        string `json:"name"`
