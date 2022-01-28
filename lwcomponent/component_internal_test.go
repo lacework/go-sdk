@@ -34,7 +34,6 @@ var (
 		Name:        "lacework-mock-component",
 		Description: "This is a mock mock component",
 		Version:     "0.1.0",
-		Status:      "installed",
 		Signature:   "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
 		CLICommand:  false,
 		CommandName: "",
@@ -61,14 +60,14 @@ echo "Hello World!"
 	return componentPath, os.WriteFile(componentPath, []byte(componentData), 0777)
 }
 
-type PathTest struct {
+type pathTest struct {
 	Name      string
 	Component Component
 	Error     error
 }
 
-var PathTests = []PathTest{
-	PathTest{
+var pathTests = []pathTest{
+	pathTest{
 		"NotExists",
 		Component{
 			Name:       "no-such-component",
@@ -77,7 +76,7 @@ var PathTests = []PathTest{
 		},
 		errors.New("component does not exist"),
 	},
-	PathTest{
+	pathTest{
 		"Exists",
 		mockComponent,
 		nil,
@@ -96,7 +95,7 @@ func TestPath(t *testing.T) {
 	}
 	defer os.Remove(componentPath)
 
-	for _, lpt := range PathTests {
+	for _, lpt := range pathTests {
 		t.Run(lpt.Name, func(t *testing.T) {
 			expectedLoc := path.Join(cacheDir, lpt.Component.Name, lpt.Component.Name)
 			actualLoc, actualError := lpt.Component.Path()
@@ -111,33 +110,33 @@ func TestPath(t *testing.T) {
 	}
 }
 
-type IsVerifiedTest struct {
+type isVerifiedTest struct {
 	Name      string
 	Component Component
 	Expected  bool
 	Error     error
 }
 
-var IsVerifiedTests = []IsVerifiedTest{
-	IsVerifiedTest{
+var isVerifiedTests = []isVerifiedTest{
+	isVerifiedTest{
 		"NoSignature",
 		Component{Name: "lacework-mock-component", Signature: ""},
 		false,
 		errors.New("unable to verify component: component has no signature"),
 	},
-	IsVerifiedTest{
+	isVerifiedTest{
 		"NoPath",
 		Component{Name: "lacework-notexists-component", Signature: "foo", Standalone: true},
 		false,
 		errors.New("unable to verify component: component does not exist"),
 	},
-	IsVerifiedTest{
+	isVerifiedTest{
 		"Mismatch",
 		Component{Name: "lacework-mock-component", Signature: "foo"},
 		false,
 		errors.New("unable to verify component: signature mismatch"),
 	},
-	IsVerifiedTest{
+	isVerifiedTest{
 		"Verified",
 		mockComponent,
 		true,
@@ -152,7 +151,7 @@ func TestIsVerified(t *testing.T) {
 	}
 	defer os.Remove(componentPath)
 
-	for _, ivt := range IsVerifiedTests {
+	for _, ivt := range isVerifiedTests {
 		t.Run(ivt.Name, func(t *testing.T) {
 			actualVerified, actualError := ivt.Component.isVerified()
 			assert.Equal(t, ivt.Expected, actualVerified)
@@ -165,30 +164,30 @@ func TestIsVerified(t *testing.T) {
 	}
 }
 
-type RunTest struct {
+type runTest struct {
 	Name      string
 	Component Component
 	Cmd       *exec.Cmd
 	Error     error
 }
 
-var RunTests = []RunTest{
-	RunTest{
+var runTests = []runTest{
+	runTest{
 		Name:      "IsNotBinary",
 		Component: Component{},
 		Error:     errors.New("unable to run component: component is not a binary"),
 	},
-	RunTest{
+	runTest{
 		Name:      "IsNotVerified",
 		Component: Component{Binary: true},
 		Error:     errors.New("unable to run component: unable to verify component: component has no signature"),
 	},
-	RunTest{
+	runTest{
 		Name:      "OK",
 		Component: mockComponent,
 		Error:     nil,
 	},
-	RunTest{
+	runTest{
 		Name:      "Error",
 		Component: mockComponent,
 		Error:     errors.New(`unable to run component: exec: "nosuchcmd": executable file not found in $PATH`),
@@ -202,7 +201,7 @@ func TestRun(t *testing.T) {
 	}
 	defer os.Remove(componentPath)
 
-	for _, rt := range RunTests {
+	for _, rt := range runTests {
 		t.Run(rt.Name, func(t *testing.T) {
 			if rt.Name == "Error" {
 				rt.Cmd = exec.Command("nosuchcmd")

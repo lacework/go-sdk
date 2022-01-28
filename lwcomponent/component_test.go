@@ -33,15 +33,17 @@ import (
 var (
 	mockComponent = lwcomponent.Component{
 		Name:        "lacework-mock-component",
-		Description: "This is a mock mock component",
+		Description: "This is a mock component",
 		Version:     "0.1.0",
-		Status:      "installed",
 		Signature:   "d69669aadfa69e5a212c83d52d9e5ca257f6c8bfedf82f8e34eb9523e27e3a3f",
 		CLICommand:  false,
 		CommandName: "",
 		Binary:      true,
 		Library:     false,
 		Standalone:  false,
+	}
+	mockComponent2 = lwcomponent.Component{
+		Name: "lacework-mock-component2",
 	}
 )
 
@@ -62,6 +64,39 @@ echo "Hello $line!" >&2
 		return componentPath, err
 	}
 	return componentPath, os.WriteFile(componentPath, []byte(componentData), 0777)
+}
+
+func TestLoadState(t *testing.T) {
+	_, err := lwcomponent.LoadState()
+	assert.Nil(t, err)
+}
+
+func TestGetComponent(t *testing.T) {
+	componentPath, err := ensureMockComponent()
+	if err != nil {
+		assert.FailNow(t, "Unable to ensureMockComponent")
+	}
+	defer os.Remove(componentPath)
+
+	tempState := new(lwcomponent.State)
+	tempState.Components = []lwcomponent.Component{
+		mockComponent,
+		mockComponent2,
+	}
+
+	assert.Equal(t, mockComponent, *tempState.GetComponent("lacework-mock-component"))
+	assert.Nil(t, tempState.GetComponent("no-such-component"))
+}
+
+func TestComponentStatus(t *testing.T) {
+	componentPath, err := ensureMockComponent()
+	if err != nil {
+		assert.FailNow(t, "Unable to ensureMockComponent")
+	}
+	defer os.Remove(componentPath)
+
+	assert.Equal(t, "Installed", mockComponent.Status().String())
+	assert.Equal(t, "Not Installed", mockComponent2.Status().String())
 }
 
 type RunAndReturnTest struct {
