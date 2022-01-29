@@ -19,8 +19,6 @@
 package lwlogger_test
 
 import (
-	"bytes"
-	"io"
 	"io/ioutil"
 	"os"
 	"syscall"
@@ -226,33 +224,4 @@ func TestValidLevel(t *testing.T) {
 	assert.True(t, lwlogger.ValidLevel("DEBUG"))
 	assert.True(t, lwlogger.ValidLevel(""))
 	assert.False(t, lwlogger.ValidLevel("FOO"))
-}
-
-// capturer.CaptureOutput executes a function and captures the STDOUT and STDERR,
-// useful to test logging messages
-func capturer.CaptureOutput(f func()) string {
-	r, w, err := os.Pipe()
-	if err != nil {
-		panic(err)
-	}
-
-	stdout := os.Stdout
-	os.Stdout = w
-	defer func() {
-		os.Stdout = stdout
-	}()
-
-	stderr := os.Stderr
-	os.Stderr = w
-	defer func() {
-		os.Stderr = stderr
-	}()
-
-	f()
-	w.Close()
-
-	var buf bytes.Buffer
-	io.Copy(&buf, r)
-
-	return buf.String()
 }
