@@ -19,8 +19,6 @@
 package api_test
 
 import (
-	"bytes"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -30,8 +28,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/lacework"
 	"github.com/lacework/go-sdk/internal/capturer"
+	"github.com/lacework/go-sdk/internal/lacework"
 )
 
 func TestNewClientWithLogLevel(t *testing.T) {
@@ -176,35 +174,6 @@ func testNewClientLogOutput(t *testing.T, out string) {
 	assert.Contains(t, out, "\"log_level\"")
 	assert.Contains(t, out, "\"id\"")
 	assert.Contains(t, out, "\"ts\"")
-}
-
-// capturer.CaptureOutput executes a function and captures the STDOUT and STDERR,
-// useful to test logging messages
-func capturer.CaptureOutput(f func()) string {
-	r, w, err := os.Pipe()
-	if err != nil {
-		panic(err)
-	}
-
-	stdout := os.Stdout
-	os.Stdout = w
-	defer func() {
-		os.Stdout = stdout
-	}()
-
-	stderr := os.Stderr
-	os.Stderr = w
-	defer func() {
-		os.Stderr = stderr
-	}()
-
-	f()
-	w.Close()
-
-	var buf bytes.Buffer
-	io.Copy(&buf, r)
-
-	return buf.String()
 }
 
 func configureNativeGoLoggerAsConsumers(t *testing.T) string {
