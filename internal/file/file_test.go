@@ -16,29 +16,33 @@
 // limitations under the License.
 //
 
-package lacework
+package file_test
 
 import (
+	"io/ioutil"
 	"os"
-	"path"
+	"testing"
 
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/lacework/go-sdk/internal/file"
+	"github.com/stretchr/testify/assert"
 )
 
-func CacheDir() (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		return "", err
+func TestFileExistsWhenFileActuallyExists(t *testing.T) {
+	f, err := ioutil.TempFile("", "bar")
+	if assert.Nil(t, err) {
+		assert.True(t, file.FileExists(f.Name()))
+		os.Remove(f.Name())
 	}
-
-	return path.Join(home, ".config", "lacework"), nil
 }
 
-// fileExists checks if a file exists and is not a directory
-func FileExists(filename string) bool {
-	f, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
+func TestFileExistsWhenFileIsADirectory(t *testing.T) {
+	dir, err := ioutil.TempDir("", "bar")
+	if assert.Nil(t, err) {
+		assert.False(t, file.FileExists(dir))
+		os.RemoveAll(dir)
 	}
-	return !f.IsDir()
+}
+
+func TestFileExistsWhenFileDoesNotExists(t *testing.T) {
+	assert.False(t, file.FileExists("file.name"))
 }

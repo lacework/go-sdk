@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lacework/go-sdk/internal/cache"
 	"github.com/lacework/go-sdk/internal/format"
-	lwint "github.com/lacework/go-sdk/internal/lacework"
 	"github.com/peterbourgon/diskv/v3"
 )
 
@@ -46,7 +46,7 @@ const MaxCacheSize = 1024 * 1024 * 1024
 //
 func (c *cliState) InitCache(d ...string) {
 	if len(d) == 0 {
-		dir, err := lwint.CacheDir()
+		dir, err := cache.CacheDir()
 		if err == nil {
 			d = []string{dir}
 		}

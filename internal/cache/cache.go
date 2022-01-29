@@ -16,33 +16,19 @@
 // limitations under the License.
 //
 
-package lacework_test
+package cache
 
 import (
-	"io/ioutil"
-	"os"
-	"testing"
+	"path"
 
-	lwint "github.com/lacework/go-sdk/internal/lacework"
-	"github.com/stretchr/testify/assert"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
-func TestFileExistsWhenFileActuallyExists(t *testing.T) {
-	file, err := ioutil.TempFile("", "bar")
-	if assert.Nil(t, err) {
-		assert.True(t, lwint.FileExists(file.Name()))
-		os.Remove(file.Name())
+func CacheDir() (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
 	}
-}
 
-func TestFileExistsWhenFileIsADirectory(t *testing.T) {
-	dir, err := ioutil.TempDir("", "bar")
-	if assert.Nil(t, err) {
-		assert.False(t, lwint.FileExists(dir))
-		os.RemoveAll(dir)
-	}
-}
-
-func TestFileExistsWhenFileDoesNotExists(t *testing.T) {
-	assert.False(t, lwint.FileExists("file.name"))
+	return path.Join(home, ".config", "lacework"), nil
 }
