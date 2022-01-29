@@ -31,13 +31,14 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/lacework/go-sdk/internal/capturer"
 )
 
 func TestNewClientWithLogLevel(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	defer fakeServer.Close()
 
-	logOutput := captureOutput(func() {
+	logOutput := capturer.CaptureOutput(func() {
 		c, err := api.NewClient("test",
 			api.WithURL(fakeServer.URL()),
 			api.WithLogLevel("INFO"),
@@ -177,9 +178,9 @@ func testNewClientLogOutput(t *testing.T, out string) {
 	assert.Contains(t, out, "\"ts\"")
 }
 
-// captureOutput executes a function and captures the STDOUT and STDERR,
+// capturer.CaptureOutput executes a function and captures the STDOUT and STDERR,
 // useful to test logging messages
-func captureOutput(f func()) string {
+func capturer.CaptureOutput(f func()) string {
 	r, w, err := os.Pipe()
 	if err != nil {
 		panic(err)

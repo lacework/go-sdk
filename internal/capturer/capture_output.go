@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-package cmd
+package capturer
 
 import (
 	"bytes"
@@ -28,7 +28,7 @@ import (
 
 // captureOutput executes a function and captures the STDOUT and STDERR,
 // useful to test logging messages or human readable output
-func captureOutput(f func()) string {
+func CaptureOutput(f func()) string {
 	r, w, err := os.Pipe()
 	if err != nil {
 		panic(err)
