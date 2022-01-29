@@ -56,7 +56,7 @@ func CaptureOutput(f func()) string {
 	w.Close()
 
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	io.Copy(&buf, r) //nolint
 
 	return buf.String()
 }
