@@ -81,7 +81,7 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate AM provider")
 	}
 
-	laceworkProvider, err := createLaceworkProvider()
+	laceworkProvider, err := createLaceworkAZADModule()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate lacework provider")
 	}
@@ -162,7 +162,7 @@ func createAzureRMProvider() ([]*hclwrite.Block, error) {
 	return blocks, nil
 }
 
-func createLaceworkProvider() ([]*hclwrite.Block, error) {
+func createLaceworkAZADModule() ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 
 	provider, err := lwgenerate.NewModule(
