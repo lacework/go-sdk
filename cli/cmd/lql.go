@@ -19,12 +19,10 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -32,7 +30,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/lwtime"
@@ -42,11 +39,14 @@ var (
 	queryCmdState = struct {
 		End          string
 		File         string
-		Repo         bool
 		Range        string
 		Start        string
 		URL          string
 		ValidateOnly bool
+		// show, run from library
+		RunFromLibrary bool
+		// create, update validate from library
+		CUVFromLibrary string
 	}{}
 
 	// queryCmd represents the lql parent command
@@ -129,6 +129,14 @@ func init() {
 	// add sub-commands to the lql command
 	queryCmd.AddCommand(queryRunCmd)
 
+	if IsLCLInstalled(*cli.LwComponents) {
+		queryRunCmd.Flags().BoolVarP(
+			&queryCmdState.RunFromLibrary,
+			"library", "l", false,
+			"run query from Lacework Content Library",
+		)
+	}
+
 	// run specific flags
 	setQuerySourceFlags(queryRunCmd)
 
@@ -169,12 +177,6 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 				"file", "f", "",
 				fmt.Sprintf("path to a query to %s", action),
 			)
-			/* repo flag to specify a query from repo
-			cmd.Flags().BoolVarP(
-				&queryCmdState.Repo,
-				"repo", "r", false,
-				fmt.Sprintf("id of a query to %s via active repo", action),
-			)*/
 			// url flag to specify a query from url
 			cmd.Flags().StringVarP(
 				&queryCmdState.URL,
@@ -186,10 +188,10 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 }
 
 // for commands that take a query as input
-func inputQuery(cmd *cobra.Command) (string, error) {
-	// if running via repo
-	if queryCmdState.Repo {
-		return inputQueryFromRepo()
+func inputQuery(cmd *cobra.Command, args []string) (string, error) {
+	// if running via library (CUV)
+	if queryCmdState.CUVFromLibrary != "" {
+		return inputQueryFromLibrary(queryCmdState.CUVFromLibrary)
 	}
 	// if running via file
 	if queryCmdState.File != "" {
@@ -215,9 +217,15 @@ func inputQuery(cmd *cobra.Command) (string, error) {
 	return inputQueryFromEditor(action)
 }
 
-func inputQueryFromRepo() (query string, err error) {
-	err = errors.New("NotImplementedError")
-	return
+func inputQueryFromLibrary(id string) (string, error) {
+	var (
+		lcl *LaceworkContentLibrary
+		err error
+	)
+	if lcl, err = LoadLCL(*cli.LwComponents); err != nil {
+		return "", err
+	}
+	return lcl.GetQuery(id)
 }
 
 func inputQueryFromFile(filePath string) (string, error) {
@@ -262,24 +270,6 @@ func inputQueryFromEditor(action string) (query string, err error) {
 	err = survey.AskOne(prompt, &query)
 
 	return
-}
-
-func parseQuery(s string) (api.NewQuery, error) {
-	var query api.NewQuery
-	var err error
-
-	// valid json
-	if err = json.Unmarshal([]byte(s), &query); err == nil {
-		return query, err
-	}
-	// valid yaml
-	query = api.NewQuery{}
-	err = yaml.Unmarshal([]byte(s), &query)
-	if err == nil && !reflect.DeepEqual(query, api.NewQuery{}) { // empty string unmarshals w/o error
-		return query, nil
-	}
-	// invalid policy
-	return query, queryErrorCrumbs(s)
 }
 
 func parseQueryTime(s string) (time.Time, error) {
@@ -349,7 +339,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		start      time.Time
 		end        time.Time
 		msg        string = "unable to run query"
-		hasCmdArgs bool   = len(args) != 0 && args[0] != ""
+		hasCmdArgs bool   = len(args) != 0 && args[0] != "" && !queryCmdState.RunFromLibrary
 	)
 
 	// validate_only w/ query_id
@@ -403,7 +393,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	}
 	// adhoc query
 	return outputQueryRunResponse(
-		runAdhocQuery(cmd, queryArgs),
+		runAdhocQuery(cmd, args, queryArgs),
 	)
 }
 
@@ -423,21 +413,21 @@ func runQueryByID(id string, args []api.ExecuteQueryArgument) (
 	return cli.LwApi.V2.Query.ExecuteByID(request)
 }
 
-func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
+func runAdhocQuery(cmd *cobra.Command, cmdArgs []string, queryArgs []api.ExecuteQueryArgument) (
 	response map[string]interface{},
 	err error,
 ) {
 	// input query
-	queryString, err := inputQuery(cmd)
+	queryString, err := inputQuery(cmd, cmdArgs)
 	if err != nil {
 		return
 	}
 	// parse query
-	newQuery, err := parseQuery(queryString)
+	newQuery, err := api.ParseNewQuery(queryString)
 	if err != nil {
+		err = queryErrorCrumbs(queryString)
 		return
 	}
-
 	cli.StartProgress(" Executing query...")
 	defer cli.StopProgress()
 
@@ -447,7 +437,7 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 			QueryText:   newQuery.QueryText,
 			EvaluatorID: newQuery.EvaluatorID,
 		},
-		Arguments: args,
+		Arguments: queryArgs,
 	}
 
 	cli.Log.Debugw("running query", "query", queryString)

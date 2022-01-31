@@ -25,25 +25,52 @@ import (
 	"path"
 	"testing"
 
+	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	mockComponent = Component{
-		Name:        "lacework-mock-component",
-		Description: "This is a mock mock component",
-		Version:     "0.1.0",
-		Signature:   "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
-		CLICommand:  false,
-		CommandName: "",
-		Binary:      true,
-		Library:     false,
-		Standalone:  false,
+	mockVersion, _ = semver.NewVersion("0.1.0")
+	mockComponent  = Component{
+		Name:          "lacework-mock-component",
+		Description:   "This is a mock mock component",
+		LatestVersion: *mockVersion,
+		CLICommand:    false,
+		CommandName:   "",
+		Binary:        true,
+		Library:       false,
+		Standalone:    false,
+		Artifacts: []Artifact{
+			Artifact{
+				OS:        "darwin",
+				ARCH:      "amd64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+				Version:   *mockVersion,
+			},
+			Artifact{
+				OS:        "darwin",
+				ARCH:      "arm64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+				Version:   *mockVersion,
+			},
+			Artifact{
+				OS:        "linux",
+				ARCH:      "amd64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+				Version:   *mockVersion,
+			},
+			Artifact{
+				OS:        "linux",
+				ARCH:      "arm64",
+				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
+				Version:   *mockVersion,
+			},
+		},
 	}
 )
 
-func ensureMockComponent() (string, error) {
+func ensureMockComponent(version string) (string, error) {
 	componentData := `#!/bin/bash
 echo "Hello World!"
 `
@@ -55,9 +82,17 @@ echo "Hello World!"
 	dir, _ := path.Split(componentPath)
 	err = os.MkdirAll(dir, os.ModePerm)
 	if err != nil {
-		return componentPath, err
+		return "", err
 	}
-	return componentPath, os.WriteFile(componentPath, []byte(componentData), 0777)
+
+	if version != "" {
+		componentVersionPath := path.Join(dir, ".version")
+		os.WriteFile(componentVersionPath, []byte(version), 0666)
+		if err != nil {
+			return "", err
+		}
+	}
+	return dir, os.WriteFile(componentPath, []byte(componentData), 0777)
 }
 
 type pathTest struct {
@@ -89,11 +124,11 @@ func TestPath(t *testing.T) {
 		assert.FailNow(t, "Unable to determine cacheDir")
 	}
 
-	componentPath, err := ensureMockComponent()
+	componentDir, err := ensureMockComponent("")
 	if err != nil {
 		assert.FailNow(t, "Unable to ensureMockComponent")
 	}
-	defer os.Remove(componentPath)
+	defer os.RemoveAll(componentDir)
 
 	for _, lpt := range pathTests {
 		t.Run(lpt.Name, func(t *testing.T) {
@@ -110,49 +145,152 @@ func TestPath(t *testing.T) {
 	}
 }
 
+type getArtifactTest struct {
+	Name      string
+	Component Component
+	Version   string
+	Expected  Artifact
+	Error     error
+}
+
+var getArtifactTests = []getArtifactTest{
+	getArtifactTest{
+		Name:      "NoCurrentVersion",
+		Component: Component{Name: "lacework-mock-component2"},
+		Error:     errors.New("component does not exist"),
+	},
+	getArtifactTest{
+		Name:      "UnsupportedPlatform",
+		Component: Component{Name: "lacework-mock-component"},
+		Version:   "1.0.0",
+		Error:     errors.New("artifact not found"),
+	},
+	getArtifactTest{
+		Name:      "UnsupportedPlatform",
+		Component: mockComponent,
+		Version:   "0.1.0",
+		Error:     nil,
+	},
+}
+
+func TestGetArtifact(t *testing.T) {
+	for _, gat := range getArtifactTests {
+		t.Run(gat.Name, func(t *testing.T) {
+			componentDir, err := ensureMockComponent(gat.Version)
+			if err != nil {
+				assert.FailNow(t, "Unable to ensureMockComponent")
+			}
+			defer os.RemoveAll(componentDir)
+
+			actualArtifact, actualError := gat.Component.getArtifact()
+			if gat.Error != nil {
+				assert.Equal(t, gat.Error.Error(), actualError.Error())
+			} else {
+				assert.Nil(t, actualError)
+				assert.NotEqual(t, "", actualArtifact.Signature)
+			}
+		})
+	}
+}
+
 type isVerifiedTest struct {
 	Name      string
 	Component Component
+	Version   string
 	Expected  bool
 	Error     error
 }
 
 var isVerifiedTests = []isVerifiedTest{
 	isVerifiedTest{
-		"NoSignature",
-		Component{Name: "lacework-mock-component", Signature: ""},
-		false,
-		errors.New("unable to verify component: component has no signature"),
+		Name:      "ArtifactNotFound",
+		Component: Component{Name: "lacework-mock-component"},
+		Version:   "0.1.0",
+		Error: errors.New(
+			"unable to verify component: artifact not found"),
 	},
 	isVerifiedTest{
-		"NoPath",
-		Component{Name: "lacework-notexists-component", Signature: "foo", Standalone: true},
-		false,
-		errors.New("unable to verify component: component does not exist"),
+		Name: "NoSignature",
+		Component: Component{
+			Name: "lacework-mock-component",
+			Artifacts: []Artifact{
+				Artifact{
+					OS:      "darwin",
+					ARCH:    "amd64",
+					Version: *mockVersion,
+				},
+				Artifact{
+					OS:      "darwin",
+					ARCH:    "arm64",
+					Version: *mockVersion,
+				},
+				Artifact{
+					OS:      "linux",
+					ARCH:    "amd64",
+					Version: *mockVersion,
+				},
+				Artifact{
+					OS:      "linux",
+					ARCH:    "arm64",
+					Version: *mockVersion,
+				},
+			},
+		},
+		Version: "0.1.0",
+		Error:   errors.New("component has no signature"),
 	},
 	isVerifiedTest{
-		"Mismatch",
-		Component{Name: "lacework-mock-component", Signature: "foo"},
-		false,
-		errors.New("unable to verify component: signature mismatch"),
+		Name: "Mismatch",
+		Component: Component{
+			Name: "lacework-mock-component",
+			Artifacts: []Artifact{
+				Artifact{
+					OS:        "darwin",
+					ARCH:      "amd64",
+					Signature: "foo",
+					Version:   *mockVersion,
+				},
+				Artifact{
+					OS:        "darwin",
+					ARCH:      "arm64",
+					Signature: "foo",
+					Version:   *mockVersion,
+				},
+				Artifact{
+					OS:        "linux",
+					ARCH:      "amd64",
+					Signature: "foo",
+					Version:   *mockVersion,
+				},
+				Artifact{
+					OS:        "linux",
+					ARCH:      "arm64",
+					Signature: "foo",
+					Version:   *mockVersion,
+				},
+			},
+		},
+		Version: "0.1.0",
+		Error:   errors.New("signature mismatch"),
 	},
 	isVerifiedTest{
-		"Verified",
-		mockComponent,
-		true,
-		nil,
+		Name:      "Verified",
+		Component: mockComponent,
+		Version:   "0.1.0\n",
+		Expected:  true,
+		Error:     nil,
 	},
 }
 
 func TestIsVerified(t *testing.T) {
-	componentPath, err := ensureMockComponent()
-	if err != nil {
-		assert.FailNow(t, "Unable to ensureMockComponent")
-	}
-	defer os.Remove(componentPath)
-
 	for _, ivt := range isVerifiedTests {
 		t.Run(ivt.Name, func(t *testing.T) {
+			componentDir, err := ensureMockComponent(ivt.Version)
+			if err != nil {
+				assert.FailNow(t, "Unable to ensureMockComponent")
+			}
+			defer os.RemoveAll(componentDir)
+
 			actualVerified, actualError := ivt.Component.isVerified()
 			assert.Equal(t, ivt.Expected, actualVerified)
 			if ivt.Error != nil {
@@ -167,6 +305,7 @@ func TestIsVerified(t *testing.T) {
 type runTest struct {
 	Name      string
 	Component Component
+	Version   string
 	Cmd       *exec.Cmd
 	Error     error
 }
@@ -175,34 +314,39 @@ var runTests = []runTest{
 	runTest{
 		Name:      "IsNotBinary",
 		Component: Component{},
+		Version:   "0.1.0",
 		Error:     errors.New("unable to run component: component is not a binary"),
 	},
 	runTest{
 		Name:      "IsNotVerified",
 		Component: Component{Binary: true},
-		Error:     errors.New("unable to run component: unable to verify component: component has no signature"),
+		Version:   "0.1.0",
+		Error: errors.New(
+			"unable to run component: unable to verify component: component does not exist"),
 	},
 	runTest{
 		Name:      "OK",
 		Component: mockComponent,
+		Version:   "0.1.0",
 		Error:     nil,
 	},
 	runTest{
 		Name:      "Error",
 		Component: mockComponent,
+		Version:   "0.1.0",
 		Error:     errors.New(`unable to run component: exec: "nosuchcmd": executable file not found in $PATH`),
 	},
 }
 
 func TestRun(t *testing.T) {
-	componentPath, err := ensureMockComponent()
-	if err != nil {
-		assert.FailNow(t, "Unable to ensureMockComponent")
-	}
-	defer os.Remove(componentPath)
-
 	for _, rt := range runTests {
 		t.Run(rt.Name, func(t *testing.T) {
+			componentDir, err := ensureMockComponent(rt.Version)
+			if err != nil {
+				assert.FailNow(t, "Unable to ensureMockComponent")
+			}
+			defer os.RemoveAll(componentDir)
+
 			if rt.Name == "Error" {
 				rt.Cmd = exec.Command("nosuchcmd")
 			} else {

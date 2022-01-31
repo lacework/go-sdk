@@ -29,7 +29,10 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
+	"strings"
 
+	"github.com/Masterminds/semver"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 )
@@ -103,12 +106,18 @@ var (
 	cmpntNotFound string = "component does not exist"
 )
 
-type Component struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Version     string `json:"version"`
-	Signature   string `json:"signature"`
+type Artifact struct {
+	OS        string         `json:"os"`
+	ARCH      string         `json:"arch"`
+	Signature string         `json:"signature"`
+	Version   semver.Version `json:"version"`
 	//Size ?
+}
+
+type Component struct {
+	Name          string         `json:"name"`
+	Description   string         `json:"description"`
+	LatestVersion semver.Version `json:"version"`
 
 	// will this component be accessible via the CLI
 	CLICommand bool `json:"cli_command"`
@@ -123,6 +132,8 @@ type Component struct {
 
 	// the component is standalone, should be available in $PATH
 	Standalone bool `json:"standalone"`
+
+	Artifacts []Artifact `json:"artifacts"`
 }
 
 // @dhazekamp validate component name
@@ -138,6 +149,40 @@ func (cmpnt Component) Path() (string, error) {
 	return cmpntPath, nil
 }
 
+func (cmpnt Component) CurrentVersion() (*semver.Version, error) {
+	var err error
+
+	cmpntPath, err := cmpnt.Path()
+	if err != nil {
+		return nil, err
+	}
+
+	cmpntDir, _ := path.Split(cmpntPath)
+	cvPath := path.Join(cmpntDir, ".version")
+	if !fileExists(cvPath) {
+		return nil, errors.New("component version file does not exist")
+	}
+
+	dat, err := os.ReadFile(cvPath)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to read component version file")
+	}
+
+	cv, err := semver.NewVersion(strings.TrimSpace(string(dat)))
+	if err != nil {
+		err = errors.New("unable to parse component version")
+	}
+	return cv, err
+}
+
+func (cmpnt Component) UpdateAvailable() bool {
+	cv, err := cmpnt.CurrentVersion()
+	if err != nil {
+		return false
+	}
+	return cmpnt.LatestVersion.GreaterThan(cv)
+}
+
 func (cmpnt Component) Status() ComponentStatus {
 	_, err := cmpnt.Path()
 	if err == nil {
@@ -149,33 +194,53 @@ func (cmpnt Component) Status() ComponentStatus {
 	return Unknown
 }
 
+func (cmpnt Component) getArtifact() (Artifact, error) {
+	cv, err := cmpnt.CurrentVersion()
+	if err != nil {
+		return Artifact{}, err
+	}
+
+	for _, a := range cmpnt.Artifacts {
+		if a.OS == runtime.GOOS && a.ARCH == runtime.GOARCH && a.Version.Equal(cv) {
+			return a, nil
+		}
+	}
+
+	return Artifact{}, errors.New("artifact not found")
+}
+
 // @dhazekamp replace sha256 validation with minisign
 func (cmpnt Component) isVerified() (bool, error) {
 	baseErr := "unable to verify component"
 
-	// ensure we have a component signature
-	if cmpnt.Signature == "" {
-		return false, errors.Wrap(errors.New("component has no signature"), baseErr)
-	}
-	cmpntPath, err := cmpnt.Path()
+	// get artifact
+	a, err := cmpnt.getArtifact()
 	if err != nil {
 		return false, errors.Wrap(err, baseErr)
+	}
+	// verify artifact has a signature
+	if a.Signature == "" {
+		return false, errors.New("component has no signature")
+	}
+	// get component path
+	cmpntPath, err := cmpnt.Path()
+	if err != nil {
+		return false, err
 	}
 	// open the component
 	f, err := os.Open(cmpntPath)
 	if err != nil {
-		return false, errors.Wrap(errors.Wrap(err, "unable to open component"), baseErr)
+		return false, errors.New("unable to open component")
 	}
 	defer f.Close()
-
 	// hash the component
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
-		return false, errors.Wrap(errors.Wrap(err, "unable to hash component"), baseErr)
+		return false, errors.New("unable to hash component")
 	}
 	// validate the hash
-	if cmpnt.Signature != hex.EncodeToString(h.Sum(nil)) {
-		return false, errors.Wrap(errors.New("signature mismatch"), baseErr)
+	if a.Signature != hex.EncodeToString(h.Sum(nil)) {
+		return false, errors.New("signature mismatch")
 	}
 	return true, nil
 }
