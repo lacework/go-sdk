@@ -21,6 +21,8 @@ package cmd
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
@@ -108,34 +110,44 @@ func init() {
 	queryCmd.AddCommand(queryCreateCmd)
 
 	setQuerySourceFlags(queryCreateCmd)
+
+	if IsLCLInstalled(*cli.LwComponents) {
+		queryCreateCmd.Flags().StringVarP(
+			&queryCmdState.CUVFromLibrary,
+			"library", "l", "",
+			"create query from Lacework Content Library",
+		)
+	}
 }
 
 func createQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to create query"
 
 	// input query
-	queryString, err := inputQuery(cmd)
-	if err != nil {
-		return errors.Wrap(err, msg)
-	}
-	// parse query
-	newQuery, err := parseQuery(queryString)
+	queryString, err := inputQuery(cmd, args)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
 
+	// parse query
+	newQuery, err := api.ParseNewQuery(queryString)
+	if err != nil {
+		return errors.Wrap(queryErrorCrumbs(queryString), msg)
+	}
+
+	// create query
 	cli.Log.Debugw("creating query", "query", queryString)
 	cli.StartProgress(" Creating query...")
 	create, err := cli.LwApi.V2.Query.Create(newQuery)
 	cli.StopProgress()
+
+	// output
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
-
 	if cli.JSONOutput() {
 		return cli.OutputJSON(create.Data)
 	}
-
 	cli.OutputHuman("The query %s was created.\n", create.Data.QueryID)
 	return nil
 }

@@ -24,9 +24,11 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -43,6 +45,10 @@ var (
 	"queryId": "%s",
 	"queryText": "%s"
 }`, queryEvaluator, queryID, newQueryText)
+	newQueryYAML = fmt.Sprintf(`---
+evaluatorId: %s
+queryId: %s
+queryText: %s`, newQuery.EvaluatorID, newQuery.QueryID, newQuery.QueryText)
 	lqlErrorReponse = `{ "message": "This is an error message" }`
 )
 
@@ -50,6 +56,60 @@ func mockQueryDataResponse(data string) string {
 	return `{
 	"data": ` + data + `
 }`
+}
+
+type parseNewQueryTest struct {
+	Name     string
+	Input    string
+	Expected api.NewQuery
+	Error    error
+}
+
+var parseNewQueryTests = []parseNewQueryTest{
+	parseNewQueryTest{
+		Name:     "empty-blob",
+		Input:    "",
+		Expected: api.NewQuery{},
+		Error:    errors.New("unable to parse query"),
+	},
+	parseNewQueryTest{
+		Name:     "junk-blob",
+		Input:    "this is junk",
+		Expected: api.NewQuery{},
+		Error:    errors.New("unable to parse query"),
+	},
+	parseNewQueryTest{
+		Name:     "partial-blob",
+		Input:    "{",
+		Expected: api.NewQuery{},
+		Error:    errors.New("unable to parse query"),
+	},
+	parseNewQueryTest{
+		Name:     "json-blob",
+		Input:    newQueryJSON,
+		Expected: newQuery,
+		Error:    nil,
+	},
+	parseNewQueryTest{
+		Name:     "yaml-blob",
+		Input:    newQueryYAML,
+		Expected: newQuery,
+		Error:    nil,
+	},
+}
+
+func TestParseNewQuery(t *testing.T) {
+	for _, pnqt := range parseNewQueryTests {
+		t.Run(pnqt.Name, func(t *testing.T) {
+			actual, err := api.ParseNewQuery(pnqt.Input)
+			if pnqt.Error == nil {
+				assert.Equal(t, pnqt.Error, err)
+			} else {
+				assert.Equal(t, pnqt.Error.Error(), err.Error())
+			}
+			assert.Equal(t, pnqt.Expected, actual)
+		})
+	}
 }
 
 func TestQueryCreateMethod(t *testing.T) {

@@ -10,22 +10,26 @@
 				{
 					"os": "darwin",
 					"arch": "amd64",
-					"signature": "f35b88ae47f9778061543a33ad6799a0d16adf9af02f7527bdf053d81f9a0607"
+					"signature": "f35b88ae47f9778061543a33ad6799a0d16adf9af02f7527bdf053d81f9a0607",
+					"version": "0.1.0"
 				},
 				{
 					"os": "darwin",
 					"arch": "arm64",
-					"signature": "f35b88ae47f9778061543a33ad6799a0d16adf9af02f7527bdf053d81f9a0607"
+					"signature": "1033f26e03deed726311383ea175ad51632af516def4968b4b7fc39ec9a7d815",
+					"version": "0.1.0"
 				},
 				{
 					"os": "linux",
 					"arch": "amd64",
-					"signature": "f35b88ae47f9778061543a33ad6799a0d16adf9af02f7527bdf053d81f9a0607"
+					"signature": "5d75c71af8068832cf079ba697df54f2bd1bfdaea20bbe8c022d71ba6e420e10",
+					"version": "0.1.0"
 				},
 				{
 					"os": "linux",
 					"arch": "arm64",
-					"signature": "f35b88ae47f9778061543a33ad6799a0d16adf9af02f7527bdf053d81f9a0607"
+					"signature": "854a5e4ed7dd5f4d7c019a849e28da5e7ad944785fbeb37f525f295cb169d971",
+					"version": "0.1.0"
 				}
 			]
 		}
