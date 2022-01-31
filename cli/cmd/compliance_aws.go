@@ -43,42 +43,7 @@ var (
 			if err != nil {
 				return errors.Wrap(err, "unable to get aws compliance integrations")
 			}
-			if len(awsIntegrations.Data) == 0 {
-				msg := `There are no AWS accounts configured in your account.
-
-Get started by integrating your AWS accounts to analyze configuration compliance using the command:
-
-    lacework integration create
-
-If you prefer to configure the integration via the WebUI, log in to your account at:
-
-    https://%s.lacework.net
-
-Then navigate to Settings > Integrations > Cloud Accounts.
-`
-				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
-				return nil
-			}
-
-			awsAccounts := make([]string, 0)
-			for _, i := range awsIntegrations.Data {
-				awsAccounts = append(awsAccounts, i.Data.AwsAccountID)
-			}
-
-			if cli.JSONOutput() {
-				jsonOut := struct {
-					Accounts []string `json:"aws_accounts"`
-				}{Accounts: awsAccounts}
-				return cli.OutputJSON(jsonOut)
-			}
-
-			rows := [][]string{}
-			for _, acc := range awsAccounts {
-				rows = append(rows, []string{acc})
-			}
-
-			cli.OutputHuman(renderSimpleTable([]string{"AWS Accounts"}, rows))
-			return nil
+			return cliListAwsAccounts(&awsIntegrations)
 		},
 	}
 
@@ -311,4 +276,57 @@ func complianceAwsReportDetailsTable(report *api.ComplianceAwsReport) [][]string
 		[]string{"Account Alias", report.AccountAlias},
 		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
+}
+
+type awsAccount struct {
+	AccountID string `json:"account_id"`
+	Status    string `json:"status"`
+}
+
+func cliListAwsAccounts(awsIntegrations *api.AwsIntegrationsResponse) error {
+	awsAccounts := make([]awsAccount, 0)
+	jsonOut := struct {
+		Accounts []awsAccount `json:"aws_accounts"`
+	}{Accounts: awsAccounts}
+
+	if awsIntegrations == nil || len(awsIntegrations.Data) == 0 {
+		if cli.JSONOutput() {
+			return cli.OutputJSON(jsonOut)
+		}
+
+		msg := `There are no AWS accounts configured in your account.
+
+Get started by integrating your AWS accounts to analyze configuration compliance using the command:
+
+    lacework integration create
+
+If you prefer to configure the integration via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Cloud Accounts.
+`
+		cli.OutputHuman(msg, cli.Account)
+		return nil
+	}
+
+	for _, i := range awsIntegrations.Data {
+		awsAccounts = append(awsAccounts, awsAccount{
+			AccountID: i.Data.AwsAccountID,
+			Status:    i.Status(),
+		})
+	}
+
+	if cli.JSONOutput() {
+		jsonOut.Accounts = awsAccounts
+		return cli.OutputJSON(jsonOut)
+	}
+
+	rows := [][]string{}
+	for _, acc := range awsAccounts {
+		rows = append(rows, []string{acc.AccountID, acc.Status})
+	}
+
+	cli.OutputHuman(renderSimpleTable([]string{"AWS Account", "Status"}, rows))
+	return nil
 }
