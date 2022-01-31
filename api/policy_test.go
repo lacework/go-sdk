@@ -24,14 +24,16 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
 	policyURI = "Policies"
 	policyID  = "my-policy-1"
+
 	newPolicy = api.NewPolicy{
 		EvaluatorID:   "Cloudtrail",
 		PolicyID:      policyID,
@@ -45,10 +47,6 @@ var (
 		EvalFrequency: "Hourly",
 		AlertEnabled:  false,
 		AlertProfile:  "LW_CloudTrail_Alerts",
-	}
-	updatePolicy = api.UpdatePolicy{
-		PolicyID: policyID,
-		Title:    "My New Policy Title",
 	}
 	policyCreateData = fmt.Sprintf(`{
 	"evaluatorId": "Cloudtrail",
@@ -64,6 +62,11 @@ var (
 	"alertProfile": "LW_CloudTrail_Alerts",
 	"policyType": "Violation"
 }`, policyID)
+
+	updatePolicyMinimal = api.UpdatePolicy{
+		PolicyID: policyID,
+		Title:    "My New Policy Title",
+	}
 	policyUpdateData = fmt.Sprintf(`{
 	"evaluatorId": "Cloudtrail",
 	"policyId": "%s",
@@ -78,6 +81,7 @@ var (
 	"alertProfile": "LW_CloudTrail_Alerts",
 	"policyType": "Violation"
 }`, policyID)
+
 	mockPolicyErrorResponse = `{
 	"message": "This is an error message"
 }`
@@ -250,7 +254,7 @@ func TestPolicyUpdateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.V2.Policy.Update(updatePolicy)
+	_, err = c.V2.Policy.Update(updatePolicyMinimal)
 	assert.Nil(t, err)
 }
 
@@ -298,7 +302,7 @@ func TestPolicyUpdateOK(t *testing.T) {
 	updateExpected := api.PolicyResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
 
-	updateActual, err := c.V2.Policy.Update(updatePolicy)
+	updateActual, err := c.V2.Policy.Update(updatePolicyMinimal)
 	assert.Nil(t, err)
 	assert.Equal(t, updateExpected, updateActual)
 }
