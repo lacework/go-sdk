@@ -110,6 +110,7 @@ func init() {
 
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)
+	generateTfCommand.AddCommand(generateAzureTfCommand)
 }
 
 type SurveyQuestionWithValidationArgs struct {
