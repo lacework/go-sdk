@@ -39,47 +39,12 @@ var (
 		Short: "List gcp projects and organizations",
 		Long:  `List all GCP projects and organization IDs.`,
 		RunE: func(_ *cobra.Command, args []string) error {
-			var (
-				response, err = cli.LwApi.Integrations.ListGcpCfg()
-				rows          [][]string
-			)
-
+			response, err := cli.LwApi.Integrations.ListGcpCfg()
 			if err != nil {
 				return errors.Wrap(err, "unable to list gcp projects/organizations")
 			}
 
-			if len(response.Data) == 0 {
-				msg := `There are no GCP integrations configured in your account.
-
-Get started by integrating your GCP to analyze configuration compliance using the command:
-
-    lacework integration create
-
-If you prefer to configure the integration via the WebUI, log in to your account at:
-
-    https://%s.lacework.net
-
-Then navigate to Settings > Integrations > Cloud Accounts.
-`
-				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
-				return nil
-			}
-
-			gcpProjects := extractGcpProjects(response)
-
-			for _, gcp := range gcpProjects {
-				rows = append(rows, []string{gcp.OrganizationID, gcp.ProjectID})
-			}
-
-			if cli.JSONOutput() {
-				jsonOut := struct {
-					Projects []gcpProject `json:"gcp_projects"`
-				}{Projects: gcpProjects}
-				return cli.OutputJSON(jsonOut)
-			}
-
-			cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID"}, rows))
-			return nil
+			return cliListGcpProjectsAndOrgs(&response)
 		},
 	}
 
@@ -411,7 +376,7 @@ func splitIDAndAlias(text string) (id string, alias string) {
 	return
 }
 
-func getGcpAccounts(orgID string) []gcpProject {
+func getGcpAccounts(orgID, status string) []gcpProject {
 	var accounts []gcpProject
 	projectsResponse, err := cli.LwApi.Compliance.ListGcpProjects(orgID)
 	if err != nil {
@@ -421,7 +386,11 @@ func getGcpAccounts(orgID string) []gcpProject {
 	for _, projects := range projectsResponse.Data {
 		for _, project := range projects.Projects {
 			projectID, _ := splitIDAndAlias(project)
-			accounts = append(accounts, gcpProject{OrganizationID: orgID, ProjectID: projectID})
+			accounts = append(accounts, gcpProject{
+				OrganizationID: orgID,
+				ProjectID:      projectID,
+				Status:         status,
+			})
 		}
 	}
 	return accounts
@@ -440,17 +409,22 @@ type cliComplianceIDAlias struct {
 type gcpProject struct {
 	ProjectID      string `json:"project_id"`
 	OrganizationID string `json:"organization_id"`
+	Status         string `json:"status"`
 }
 
-func extractGcpProjects(response api.GcpIntegrationsResponse) []gcpProject {
+func extractGcpProjects(response *api.GcpIntegrationsResponse) []gcpProject {
 	var gcpAccounts []gcpProject
 
 	for _, gcp := range response.Data {
 		// if organization account, fetch the project ids
 		if gcp.Data.IDType == "ORGANIZATION" {
-			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcp.Data.ID)...)
+			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcp.Data.ID, gcp.Status())...)
 		} else if !containsDuplicateProjectID(gcpAccounts, gcp.Data.ID) {
-			gcpIntegration := gcpProject{OrganizationID: "n/a", ProjectID: gcp.Data.ID}
+			gcpIntegration := gcpProject{
+				OrganizationID: "n/a",
+				ProjectID:      gcp.Data.ID,
+				Status:         gcp.Status(),
+			}
 			gcpAccounts = append(gcpAccounts, gcpIntegration)
 		}
 	}
@@ -475,4 +449,44 @@ func containsDuplicateProjectID(gcpAccounts []gcpProject, projectID string) bool
 		}
 	}
 	return false
+}
+
+func cliListGcpProjectsAndOrgs(response *api.GcpIntegrationsResponse) error {
+	jsonOut := struct {
+		Projects []gcpProject `json:"gcp_projects"`
+	}{Projects: make([]gcpProject, 0)}
+
+	if response == nil || len(response.Data) == 0 {
+		if cli.JSONOutput() {
+			return cli.OutputJSON(jsonOut)
+		}
+
+		msg := `There are no GCP integrations configured in your account.
+
+Get started by integrating your GCP to analyze configuration compliance using the command:
+
+    lacework integration create
+
+If you prefer to configure the integration via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Cloud Accounts.
+`
+		cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
+		return nil
+	}
+
+	if cli.JSONOutput() {
+		jsonOut.Projects = extractGcpProjects(response)
+		return cli.OutputJSON(jsonOut)
+	}
+
+	rows := [][]string{}
+	for _, gcp := range extractGcpProjects(response) {
+		rows = append(rows, []string{gcp.OrganizationID, gcp.ProjectID, gcp.Status})
+	}
+
+	cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID", "Status"}, rows))
+	return nil
 }
