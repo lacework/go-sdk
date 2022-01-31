@@ -19,10 +19,13 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
 
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v3"
 )
 
 // PolicyService is a service that interacts with the Custom Policies
@@ -50,6 +53,36 @@ type NewPolicy struct {
 	AlertProfile  string `json:"alertProfile" yaml:"alertProfile"`
 }
 
+type newPoliciesYAML struct {
+	Policies []NewPolicy `yaml:"policies"`
+}
+
+func ParseNewPolicy(s string) (NewPolicy, error) {
+	var policy NewPolicy
+	var err error
+
+	// valid json
+	if err = json.Unmarshal([]byte(s), &policy); err == nil {
+		return policy, err
+	}
+	// nested yaml
+	var policies newPoliciesYAML
+
+	if err = yaml.Unmarshal([]byte(s), &policies); err == nil {
+		if len(policies.Policies) > 0 {
+			return policies.Policies[0], err
+		}
+	}
+	// straight yaml
+	policy = NewPolicy{}
+	err = yaml.Unmarshal([]byte(s), &policy)
+	if err == nil && !reflect.DeepEqual(policy, NewPolicy{}) { // empty string unmarshals w/o error
+		return policy, nil
+	}
+	// invalid policy
+	return policy, errors.New("policy must be valid JSON or YAML")
+}
+
 /* In order to properly PATCH we need to omit items that aren't specified.
 For booleans and integers Golang will omit zero values false and 0 respectively.
 This would prevent someone from toggling something to disabled or 0 respectively.
@@ -69,6 +102,36 @@ type UpdatePolicy struct {
 	EvalFrequency string `json:"evalFrequency,omitempty" yaml:"evalFrequency,omitempty"`
 	AlertEnabled  *bool  `json:"alertEnabled,omitempty" yaml:"alertEnabled,omitempty"`
 	AlertProfile  string `json:"alertProfile,omitempty" yaml:"alertProfile,omitempty"`
+}
+
+type updatePoliciesYAML struct {
+	Policies []UpdatePolicy `yaml:"policies"`
+}
+
+func ParseUpdatePolicy(s string) (UpdatePolicy, error) {
+	var policy UpdatePolicy
+	var err error
+
+	// valid json
+	if err = json.Unmarshal([]byte(s), &policy); err == nil {
+		return policy, err
+	}
+	// nested yaml
+	var policies updatePoliciesYAML
+
+	if err = yaml.Unmarshal([]byte(s), &policies); err == nil {
+		if len(policies.Policies) > 0 {
+			return policies.Policies[0], err
+		}
+	}
+	// straight yaml
+	policy = UpdatePolicy{}
+	err = yaml.Unmarshal([]byte(s), &policy)
+	if err == nil && !reflect.DeepEqual(policy, UpdatePolicy{}) { // empty string unmarshals w/o error
+		return policy, nil
+	}
+	// invalid policy
+	return policy, errors.New("policy must be valid JSON or YAML")
 }
 
 type Policy struct {
