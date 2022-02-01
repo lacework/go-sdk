@@ -39,10 +39,13 @@ var (
 		Long:    `List all AWS accounts configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			cli.StartProgress(" Fetching compliance information...")
 			awsIntegrations, err := cli.LwApi.Integrations.ListAwsCfg()
+			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get aws compliance integrations")
 			}
+
 			return cliListAwsAccounts(&awsIntegrations)
 		},
 	}
@@ -311,6 +314,10 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 	}
 
 	for _, i := range awsIntegrations.Data {
+		if containsDuplicateAccountID(awsAccounts, i.Data.AwsAccountID) {
+			cli.Log.Warnw("duplicate aws account", "integration_guid", i.IntgGuid, "account", i.Data.AwsAccountID)
+			continue
+		}
 		awsAccounts = append(awsAccounts, awsAccount{
 			AccountID: i.Data.AwsAccountID,
 			Status:    i.Status(),
@@ -329,4 +336,13 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 	cli.OutputHuman(renderSimpleTable([]string{"AWS Account", "Status"}, rows))
 	return nil
+}
+
+func containsDuplicateAccountID(awsAccount []awsAccount, accountID string) bool {
+	for _, value := range awsAccount {
+		if accountID == value.AccountID {
+			return true
+		}
+	}
+	return false
 }

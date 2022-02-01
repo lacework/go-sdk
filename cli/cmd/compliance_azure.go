@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -78,51 +79,19 @@ Use the following command to list all Azure Tenants configured in your account:
 	// complianceAzureListTenantsCmd represents the list-tenants sub-command inside the azure command
 	complianceAzureListTenantsCmd = &cobra.Command{
 		Use:     "list-tenants",
-		Aliases: []string{"list"},
-		Short:   "List all Azure Tenants configured",
-		Long:    `List all Azure Tenants configured in your account.`,
+		Aliases: []string{"list", "ls"},
+		Short:   "List Azure tenants and subscriptions",
+		Long:    `List all Azure tenants and subscriptions configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			cli.StartProgress(" Fetching compliance information...")
 			azureIntegrations, err := cli.LwApi.Integrations.ListAzureCfg()
+			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get azure integrations")
 			}
-			if len(azureIntegrations.Data) == 0 {
-				msg := `There are no Azure Tenants configured in your account.
 
-Get started by integrating your Azure Tenants to analyze configuration compliance using the command:
-
-    lacework integration create
-
-If you prefer to configure the integration via the WebUI, log in to your account at:
-
-    https://%s.lacework.net
-
-Then navigate to Settings > Integrations > Cloud Accounts.
-`
-				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
-				return nil
-			}
-
-			azureTenants := make([]string, 0)
-			for _, i := range azureIntegrations.Data {
-				azureTenants = append(azureTenants, i.Data.TenantID)
-			}
-
-			if cli.JSONOutput() {
-				jsonOut := struct {
-					Tenants []string `json:"azure_tenants"`
-				}{Tenants: azureTenants}
-				return cli.OutputJSON(jsonOut)
-			}
-
-			var rows [][]string
-			for _, tenant := range azureTenants {
-				rows = append(rows, []string{tenant})
-			}
-
-			cli.OutputHuman(renderSimpleTable([]string{"Azure Tenants"}, rows))
-			return nil
+			return cliListTenantsAndSubscriptions(&azureIntegrations)
 		},
 	}
 
@@ -377,4 +346,97 @@ func splitAzureSubscriptionsApiResponse(azInfo api.CompAzureSubscriptions) cliCo
 type cliComplianceAzureInfo struct {
 	Tenant        cliComplianceIDAlias   `json:"tenant"`
 	Subscriptions []cliComplianceIDAlias `json:"subscriptions"`
+}
+
+func cliListTenantsAndSubscriptions(azureIntegrations *api.AzureIntegrationsResponse) error {
+	jsonOut := struct {
+		Subscriptions []azureSubscription `json:"azure_subscriptions"`
+	}{Subscriptions: make([]azureSubscription, 0)}
+
+	if azureIntegrations == nil || len(azureIntegrations.Data) == 0 {
+		if cli.JSONOutput() {
+			return cli.OutputJSON(jsonOut)
+		}
+
+		msg := `There are no Azure Tenants configured in your account.
+
+Get started by integrating your Azure Tenants to analyze configuration compliance using the command:
+
+    lacework integration create
+
+If you prefer to configure the integration via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Cloud Accounts.
+`
+		cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
+		return nil
+	}
+
+	if cli.JSONOutput() {
+		jsonOut.Subscriptions = extractAzureSubscriptions(azureIntegrations)
+		return cli.OutputJSON(jsonOut)
+	}
+
+	var rows [][]string
+	for _, az := range extractAzureSubscriptions(azureIntegrations) {
+		rows = append(rows, []string{az.TenantID, az.SubscriptionID, az.Status})
+	}
+
+	cli.OutputHuman(renderSimpleTable([]string{"Azure Tenant", "Azure Subscription", "Status"}, rows))
+	return nil
+}
+
+type azureSubscription struct {
+	TenantID       string `json:"tenant_id"`
+	SubscriptionID string `json:"subscription_id"`
+	Status         string `json:"status"`
+}
+
+func extractAzureSubscriptions(response *api.AzureIntegrationsResponse) []azureSubscription {
+	var azureSubscriptions []azureSubscription
+
+	if response == nil {
+		return azureSubscriptions
+	}
+
+	for _, gcp := range response.Data {
+		// fetch the subscription ids from tenant id
+		azureSubscriptions = append(azureSubscriptions, getAzureSubscriptions(gcp.Data.TenantID, gcp.Status())...)
+	}
+
+	sort.Slice(azureSubscriptions, func(i, j int) bool {
+		switch strings.Compare(azureSubscriptions[i].TenantID, azureSubscriptions[j].TenantID) {
+		case -1:
+			return true
+		case 1:
+			return false
+		}
+		return azureSubscriptions[i].SubscriptionID < azureSubscriptions[j].SubscriptionID
+	})
+
+	return azureSubscriptions
+}
+
+func getAzureSubscriptions(tenantID, status string) []azureSubscription {
+	var subs []azureSubscription
+	cli.StartProgress(fmt.Sprintf("Fetching compliance information about %s tenant...", tenantID))
+	subsResponse, err := cli.LwApi.Compliance.ListAzureSubscriptions(tenantID)
+	cli.StopProgress()
+	if err != nil {
+		cli.Log.Warn("unable to list azure subscriptions", "tenant_id", tenantID, "error", err.Error())
+		return subs
+	}
+	for _, subsRes := range subsResponse.Data {
+		for _, subRes := range subsRes.Subscriptions {
+			subscriptionID, _ := splitIDAndAlias(subRes)
+			subs = append(subs, azureSubscription{
+				TenantID:       tenantID,
+				SubscriptionID: subscriptionID,
+				Status:         status,
+			})
+		}
+	}
+	return subs
 }

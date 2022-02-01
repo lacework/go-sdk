@@ -39,7 +39,9 @@ var (
 		Short: "List gcp projects and organizations",
 		Long:  `List all GCP projects and organization IDs.`,
 		RunE: func(_ *cobra.Command, args []string) error {
+			cli.StartProgress(" Fetching compliance information...")
 			response, err := cli.LwApi.Integrations.ListGcpCfg()
+			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to list gcp projects/organizations")
 			}
@@ -378,9 +380,12 @@ func splitIDAndAlias(text string) (id string, alias string) {
 
 func getGcpAccounts(orgID, status string) []gcpProject {
 	var accounts []gcpProject
+
+	cli.StartProgress(fmt.Sprintf("Fetching compliance information about %s organization...", orgID))
 	projectsResponse, err := cli.LwApi.Compliance.ListGcpProjects(orgID)
+	cli.StopProgress()
 	if err != nil {
-		cli.Log.Warn("unable to list gcp projects", "org_id", orgID, "error", err.Error())
+		cli.Log.Warnw("unable to list gcp projects", "org_id", orgID, "error", err.Error())
 		return accounts
 	}
 	for _, projects := range projectsResponse.Data {
@@ -419,7 +424,10 @@ func extractGcpProjects(response *api.GcpIntegrationsResponse) []gcpProject {
 		// if organization account, fetch the project ids
 		if gcp.Data.IDType == "ORGANIZATION" {
 			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcp.Data.ID, gcp.Status())...)
-		} else if !containsDuplicateProjectID(gcpAccounts, gcp.Data.ID) {
+		} else if containsDuplicateProjectID(gcpAccounts, gcp.Data.ID) {
+			cli.Log.Warnw("duplicate gcp project", "integration_guid", gcp.IntgGuid, "project", gcp.Data.ID)
+			continue
+		} else {
 			gcpIntegration := gcpProject{
 				OrganizationID: "n/a",
 				ProjectID:      gcp.Data.ID,
