@@ -26,21 +26,23 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
 	policyCmdState = struct {
-		AlertEnabled bool
-		Enabled      bool
-		File         string
-		Repo         bool
-		Severity     string
-		URL          string
+		AlertEnabled  bool
+		Enabled       bool
+		File          string
+		Repo          bool
+		Severity      string
+		URL           string
+		CascadeDelete bool
 	}{}
 
 	policyTableHeaders = []string{
@@ -101,18 +103,6 @@ To view the LQL query associated with the policy, use the query id shown.
 		Long:    `Show details about a single policy.`,
 		Args:    cobra.ExactArgs(1),
 		RunE:    showPolicy,
-	}
-
-	// policyDeleteCmd represents the policy delete command
-	policyDeleteCmd = &cobra.Command{
-		Use:   "delete <policy_id>",
-		Short: "Delete a policy",
-		Long: `Delete a policy by providing the policy id.
-
-Use the command 'lacework policy list' to list the registered policies in
-your Lacework account.`,
-		Args: cobra.ExactArgs(1),
-		RunE: deletePolicy,
 	}
 )
 
@@ -333,24 +323,6 @@ func showPolicy(_ *cobra.Command, args []string) error {
 		renderSimpleTable(policyTableHeaders, policyTable([]api.Policy{policyResponse.Data})))
 	cli.OutputHuman("\n")
 	cli.OutputHuman(buildPolicyDetailsTable(policyResponse.Data))
-	return nil
-}
-
-func deletePolicy(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("deleting policy", "policyID", args[0])
-	cli.StartProgress(" Deleting policy...")
-	deleted, err := cli.LwApi.V2.Policy.Delete(args[0])
-	cli.StopProgress()
-	if err != nil {
-		return errors.Wrap(err, "unable to delete policy")
-	}
-
-	if cli.JSONOutput() {
-		return cli.OutputJSON(deleted)
-	}
-
-	cli.OutputHuman(
-		fmt.Sprintf("The policy %s was deleted.\n", args[0]))
 	return nil
 }
 
