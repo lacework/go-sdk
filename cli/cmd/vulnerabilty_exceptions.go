@@ -91,7 +91,7 @@ Then navigate to Vulnerabilities > Exceptions.
 	// show command is used to retrieve a lacework vulnerability exception by id
 	vulnerabilityExceptionShowCommand = &cobra.Command{
 		Use:   "show",
-		Short: "Get vulnerability exception by id",
+		Short: "Get vulnerability exception by ID",
 		Long:  "Get a single vulnerability exception by it's vulnerability exception ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {

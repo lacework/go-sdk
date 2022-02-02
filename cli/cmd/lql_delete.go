@@ -28,7 +28,7 @@ var (
 	queryDeleteCmd = &cobra.Command{
 		Use:   "delete <query_id>",
 		Short: "Delete a query",
-		Long: `Delete a single LQL query by providing the query id.
+		Long: `Delete a single LQL query by providing the query ID.
 
 Use the command 'lacework query list' to list the available queries in
 your Lacework account.`,
