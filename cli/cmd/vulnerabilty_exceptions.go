@@ -80,7 +80,11 @@ Then navigate to Vulnerabilities > Exceptions.
 				rows = append(rows, []string{vuln.Guid, vuln.ExceptionName, vuln.ExceptionType, vuln.Status()})
 			}
 
-			cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "TYPE", "STATE"}, rows))
+			cli.OutputHuman(renderCustomTable([]string{"GUID", "NAME", "TYPE", "STATE"}, rows,
+				tableFunc(func(t *tablewriter.Table) {
+					t.SetBorder(false)
+					t.SetAutoWrapText(false)
+				})))
 			return nil
 		},
 	}
@@ -105,7 +109,7 @@ Then navigate to Vulnerabilities > Exceptions.
 			var groupCommon [][]string
 			groupCommon = append(groupCommon, []string{vuln.Guid, vuln.ExceptionName, vuln.ExceptionType, vuln.Status()})
 
-			cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "TYPE", "ENABLED"}, groupCommon))
+			cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "TYPE", "STATUS"}, groupCommon))
 			cli.OutputHuman("\n")
 			cli.OutputHuman(buildVulnerabilityExceptionsPropsTable(vuln))
 			return nil
@@ -244,7 +248,7 @@ func promptCreateVulnerabilityException() error {
 }
 
 func vulnerabilityExceptionFixableEnabled(fixable []int) string {
-	if fixable == nil {
+	if fixable == nil || len(fixable) == 0 {
 		return "false"
 	}
 	return strconv.FormatBool(fixable[0] == 1)
