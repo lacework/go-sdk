@@ -165,10 +165,12 @@ func removeMockLCL(ept mockLCLPlacementType) {
 	cmpntPath, _ := mockLCLComponent.Path()
 	dir, _ := path.Split(cmpntPath)
 	cmpntVersionPath := path.Join(dir, ".version")
+	cmpntSignaturePath := path.Join(dir, ".signature")
 
 	if ept == mockLCLReplaced {
 		os.Rename(cmpntPath+".bak", cmpntPath)
 		os.Rename(cmpntVersionPath+".bak", cmpntVersionPath)
+		os.Rename(cmpntSignaturePath+".bak", cmpntSignaturePath)
 		return
 	}
 	os.RemoveAll(dir)
