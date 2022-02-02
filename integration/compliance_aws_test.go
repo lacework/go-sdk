@@ -25,6 +25,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestComplianceAwsList(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "aws", "list",
+	)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "AWS ACCOUNT", "STDOUT changed, please check")
+	assert.Contains(t, out.String(), "STATUS", "STDOUT changed, please check")
+}
+
 func TestComplianceAwsGetReportFilter(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	detailsOutput := "recommendations showing"
