@@ -31,7 +31,7 @@ var (
 	policyDeleteCmd = &cobra.Command{
 		Use:   "delete <policy_id>",
 		Short: "Delete a policy",
-		Long: `Delete a policy by providing the policy id.
+		Long: `Delete a policy by providing the policy ID.
 
 Use the command 'lacework policy list' to list the registered policies in
 your Lacework account.`,
