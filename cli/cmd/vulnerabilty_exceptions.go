@@ -141,12 +141,12 @@ Then navigate to Vulnerabilities > Exceptions.
 				return errors.New("interactive mode is disabled")
 			}
 
-			err := promptCreateVulnerabilityException()
+			vulnID, err := promptCreateVulnerabilityException()
 			if err != nil {
 				return errors.Wrap(err, "unable to create vulnerability exception")
 			}
 
-			cli.OutputHuman("The vulnerability exception was created.\n")
+			cli.OutputHuman("The vulnerability exception created with GUID %s.\n", vulnID)
 			return nil
 		},
 	}
@@ -221,7 +221,7 @@ func setProps(vuln api.VulnerabilityException) [][]string {
 	return details
 }
 
-func promptCreateVulnerabilityException() error {
+func promptCreateVulnerabilityException() (string, error) {
 	var (
 		group  = ""
 		prompt = &survey.Select{
@@ -234,7 +234,7 @@ func promptCreateVulnerabilityException() error {
 		err = survey.AskOne(prompt, &group)
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	switch group {
@@ -243,12 +243,12 @@ func promptCreateVulnerabilityException() error {
 	case "Container":
 		return createContainerVulnerabilityException()
 	default:
-		return errors.New("unknown vulnerability exception type")
+		return "", errors.New("unknown vulnerability exception type")
 	}
 }
 
 func vulnerabilityExceptionFixableEnabled(fixable []int) string {
-	if fixable == nil || len(fixable) == 0 {
+	if len(fixable) == 0 {
 		return "false"
 	}
 	return strconv.FormatBool(fixable[0] == 1)
