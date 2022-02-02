@@ -120,6 +120,10 @@ Then, select one GUID from an integration and visualize its details using the co
 		Long: `Get the latest compliance assessment report, these reports run on a regular schedule,
 typically once a day. The available report formats are human-readable (default), json and pdf.
 
+To list all GCP projects and organizations configured in your account:
+
+    lacework compliance gcp list
+
 To run an ad-hoc compliance assessment use the command:
 
     lacework compliance gcp run-assessment <project_id>
@@ -253,8 +257,12 @@ To run an ad-hoc compliance assessment use the command:
 		Use:     "run-assessment <org_or_project_id>",
 		Aliases: []string{"run"},
 		Short:   "Run a new GCP compliance assessment",
-		Long:    `Run a compliance assessment for the provided GCP organization or project.`,
-		Args:    cobra.ExactArgs(1),
+		Long: `Run a compliance assessment for the provided GCP organization or project.
+
+To list all GCP projects and organizations configured in your account:
+
+    lacework compliance gcp list`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			response, err := cli.LwApi.Compliance.RunGcpReport(args[0])
 			if err != nil {

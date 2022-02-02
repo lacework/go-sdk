@@ -19,12 +19,18 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/lacework"
 )
 
 func TestSplitAzureSubscriptionsApiResponse(t *testing.T) {
@@ -105,34 +111,60 @@ func TestCliListAzureTenantsAndSubscriptionsWithoutData(t *testing.T) {
 	})
 }
 
-/*
-func TestCliListAzureTenantsAndSubscriptionsWithDataEnabled(t *testing.T) {
-	cliOutput := captureOutput(func() {
-		assert.Nil(t, cliListTenantsAndSubscriptions(mockAzureIntegrationsResponse(1)))
-	})
-	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
-	expectedTable := `
-              AZURE TENANT                        AZURE SUBSCRIPTION            STATUS
+func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
+	var (
+		fakeServer = lacework.MockServer()
+		tenantID   = "abc123xy-1234-abcd-a1b2-09876zxy1234"
+	)
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI(
+		"external/compliance/azure/ListSubscriptionsForTenant",
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, mockAzureSubsResponse(tenantID))
+		})
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	cli.LwApi = c
+	cli.NonInteractive()
+	defer func() {
+		cli.LwApi = nil
+		cli.Interactive()
+	}()
+
+	t.Run("enabled", func(t *testing.T) {
+		cliOutput := captureOutput(func() {
+			assert.Nil(t, cliListTenantsAndSubscriptions(mockAzureIntegrationsResponse(tenantID, 1)))
+		})
+		// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
+		expectedTable := `
+              AZURE TENANT                        AZURE SUBSCRIPTION            STATUS   
 ---------------------------------------+--------------------------------------+----------
-  abc123xy-1234-abcd-a1b2-09876zxy1234   ABC123XX-1234-ABCD-1234-ABCD1234XYZZ   Enabled
+  abc123xy-1234-abcd-a1b2-09876zxy1234   ABC123XX-1234-ABCD-1234-ABCD1234XYZZ   Enabled  
 `
-	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
+		assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
+	})
+
+	t.Run("disabled", func(t *testing.T) {
+		cliOutput := captureOutput(func() {
+			assert.Nil(t, cliListTenantsAndSubscriptions(mockAzureIntegrationsResponse(tenantID, 0)))
+		})
+		// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
+		expectedTable := `
+              AZURE TENANT                        AZURE SUBSCRIPTION             STATUS   
+---------------------------------------+--------------------------------------+-----------
+  abc123xy-1234-abcd-a1b2-09876zxy1234   ABC123XX-1234-ABCD-1234-ABCD1234XYZZ   Disabled  
+`
+		assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
+	})
 }
 
-func TestCliListAzureTenantsAndSubscriptionsWithDataDisabled(t *testing.T) {
-	cliOutput := captureOutput(func() {
-		assert.Nil(t, cliListTenantsAndSubscriptions(mockAzureIntegrationsResponse(0)))
-	})
-	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
-	expectedTable := `
-              AZURE TENANT                        AZURE SUBSCRIPTION            STATUS
----------------------------------------+--------------------------------------+----------
-  abc123xy-1234-abcd-a1b2-09876zxy1234   ABC123XX-1234-ABCD-1234-ABCD1234XYZZ   Disabled
-`
-	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
-}
-
-func mockAzureIntegrationsResponse(enabled int) *api.AzureIntegrationsResponse {
+func mockAzureIntegrationsResponse(tenantID string, enabled int) *api.AzureIntegrationsResponse {
 	response := &api.AzureIntegrationsResponse{}
 	err := json.Unmarshal([]byte(`{
   "data": [
@@ -140,7 +172,7 @@ func mockAzureIntegrationsResponse(enabled int) *api.AzureIntegrationsResponse {
       "CREATED_OR_UPDATED_BY": "salim.afiune-maya@lacework.net",
       "CREATED_OR_UPDATED_TIME": "2021-08-02T17:53:24.116Z",
       "DATA": {
-        "TENANT_ID": "abc123xy-1234-abcd-a1b2-09876zxy1234"
+        "TENANT_ID": "`+tenantID+`"
       },
       "ENABLED": `+strconv.Itoa(enabled)+`,
       "INTG_GUID": "MOCK_1234",
@@ -164,4 +196,18 @@ func mockAzureIntegrationsResponse(enabled int) *api.AzureIntegrationsResponse {
 	}
 	return response
 }
-*/
+
+func mockAzureSubsResponse(tenantID string) string {
+	return `{
+  "data": [
+    {
+      "subscriptions": [
+        "ABC123XX-1234-ABCD-1234-ABCD1234XYZZ (Default-account)"
+      ],
+      "tenant": "` + tenantID + ` (Default Directory)"
+    }
+  ],
+  "message": "SUCCESS",
+  "ok": true
+}`
+}

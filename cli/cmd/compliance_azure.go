@@ -118,6 +118,10 @@ Use the following command to list all Azure Tenants configured in your account:
 		Long: `Get the latest Azure compliance assessment report, these reports run on a regular schedule,
 typically once a day. The available report formats are human-readable (default), json and pdf.
 
+To list all Azure tenants and subscriptions configured in your account:
+
+    lacework compliance azure list
+
 To run an ad-hoc compliance assessment use the command:
 
     lacework compliance azure run-assessment <tenant_id>
@@ -244,8 +248,12 @@ To run an ad-hoc compliance assessment use the command:
 		Use:     "run-assessment <tenant_id>",
 		Aliases: []string{"run"},
 		Short:   "Run a new Azure compliance assessment",
-		Long:    `Run a compliance assessment of the provided Azure tenant.`,
-		Args:    cobra.ExactArgs(1),
+		Long: `Run a compliance assessment of the provided Azure tenant.
+
+To list all Azure tenants and subscriptions configured in your account:
+
+    lacework compliance azure list`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			response, err := cli.LwApi.Compliance.RunAzureReport(args[0])
 			if err != nil {
@@ -425,7 +433,7 @@ func getAzureSubscriptions(tenantID, status string) []azureSubscription {
 	subsResponse, err := cli.LwApi.Compliance.ListAzureSubscriptions(tenantID)
 	cli.StopProgress()
 	if err != nil {
-		cli.Log.Warn("unable to list azure subscriptions", "tenant_id", tenantID, "error", err.Error())
+		cli.Log.Warnw("unable to list azure subscriptions", "tenant_id", tenantID, "error", err.Error())
 		return subs
 	}
 	for _, subsRes := range subsResponse.Data {
