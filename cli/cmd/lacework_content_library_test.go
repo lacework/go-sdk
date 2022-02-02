@@ -46,32 +46,6 @@ var (
 		Binary:      true,
 		Library:     false,
 		Standalone:  false,
-		Artifacts: []lwcomponent.Artifact{
-			lwcomponent.Artifact{
-				OS:        "darwin",
-				ARCH:      "amd64",
-				Signature: "f35b88ae47f9778061543a33ad6799a0d16adf9af02f7527bdf053d81f9a0607",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "darwin",
-				ARCH:      "arm64",
-				Signature: "1033f26e03deed726311383ea175ad51632af516def4968b4b7fc39ec9a7d815",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "linux",
-				ARCH:      "amd64",
-				Signature: "5d75c71af8068832cf079ba697df54f2bd1bfdaea20bbe8c022d71ba6e420e10",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "linux",
-				ARCH:      "arm64",
-				Signature: "854a5e4ed7dd5f4d7c019a849e28da5e7ad944785fbeb37f525f295cb169d971",
-				Version:   *mockVersion,
-			},
-		},
 	}
 	mockLWComponentState lwcomponent.State = lwcomponent.State{
 		Components: []lwcomponent.Component{
@@ -87,32 +61,6 @@ var (
 		Binary:        true,
 		Library:       false,
 		Standalone:    false,
-		Artifacts: []lwcomponent.Artifact{
-			lwcomponent.Artifact{
-				OS:        "darwin",
-				ARCH:      "amd64",
-				Signature: "99032d1fb22b1ea6119f5f728cadae6feddfa62a45a66d52f77558cffd80b7f2",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "darwin",
-				ARCH:      "arm64",
-				Signature: "99032d1fb22b1ea6119f5f728cadae6feddfa62a45a66d52f77558cffd80b7f2",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "linux",
-				ARCH:      "amd64",
-				Signature: "99032d1fb22b1ea6119f5f728cadae6feddfa62a45a66d52f77558cffd80b7f2",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "linux",
-				ARCH:      "arm64",
-				Signature: "99032d1fb22b1ea6119f5f728cadae6feddfa62a45a66d52f77558cffd80b7f2",
-				Version:   *mockVersion,
-			},
-		},
 	}
 	nonZeroLWComponentState lwcomponent.State = lwcomponent.State{
 		Components: []lwcomponent.Component{
@@ -128,32 +76,6 @@ var (
 		Binary:        true,
 		Library:       false,
 		Standalone:    false,
-		Artifacts: []lwcomponent.Artifact{
-			lwcomponent.Artifact{
-				OS:        "darwin",
-				ARCH:      "amd64",
-				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "darwin",
-				ARCH:      "arm64",
-				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "linux",
-				ARCH:      "amd64",
-				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "linux",
-				ARCH:      "arm64",
-				Signature: "0df2d5957dd7583361dcc3a888b2ad9e3fa29a413bbf711a572f65348227d898",
-				Version:   *mockVersion,
-			},
-		},
 	}
 	noParseLWComponentState lwcomponent.State = lwcomponent.State{
 		Components: []lwcomponent.Component{
@@ -205,10 +127,12 @@ func ensureMockLCL(b string) (mockLCLPlacementType, error) {
 
 	dir, _ := path.Split(cmpntPath)
 	cmpntVersionPath := path.Join(dir, ".version")
+	cmpntSignaturePath := path.Join(dir, ".signature")
 
 	if mockLCLComponent.Status() == lwcomponent.Installed {
 		os.Rename(cmpntPath, cmpntPath+".bak")
 		os.Rename(cmpntVersionPath, cmpntVersionPath+".bak")
+		os.Rename(cmpntSignaturePath, cmpntSignaturePath+".bak")
 		placementType = mockLCLReplaced
 	} else {
 		placementType = mockLCLPlaced
@@ -221,6 +145,13 @@ func ensureMockLCL(b string) (mockLCLPlacementType, error) {
 		return placementType, err
 	}
 	os.WriteFile(cmpntPath, cmpntBytes, 0777)
+
+	canonSignaturePath := fmt.Sprintf("%s.sig", cmpntBinaryPath)
+	cmpntSignatureBytes, err := mockLCLBinaries.ReadFile(canonSignaturePath)
+	if err != nil {
+		return placementType, err
+	}
+	os.WriteFile(cmpntSignaturePath, cmpntSignatureBytes, 0666)
 
 	return placementType, os.WriteFile(
 		cmpntVersionPath, []byte(mockLCLComponent.LatestVersion.String()), 0666)

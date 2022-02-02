@@ -3,6 +3,7 @@ module github.com/lacework/go-sdk
 go 1.17
 
 require (
+	aead.dev/minisign v0.2.0
 	github.com/AlecAivazis/survey/v2 v2.3.2
 	github.com/BurntSushi/toml v0.4.1
 	github.com/Masterminds/semver v1.5.0
