@@ -78,13 +78,13 @@ Use the following command to list all Azure Tenants configured in your account:
 
 	// complianceAzureListTenantsCmd represents the list-tenants sub-command inside the azure command
 	complianceAzureListTenantsCmd = &cobra.Command{
-		Use:     "list-tenants",
-		Aliases: []string{"list", "ls"},
+		Use:     "list",
+		Aliases: []string{"list-tenants", "ls"},
 		Short:   "List Azure tenants and subscriptions",
 		Long:    `List all Azure tenants and subscriptions configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			cli.StartProgress(" Fetching compliance information...")
+			cli.StartProgress("Fetching list of configured Azure tenants...")
 			azureIntegrations, err := cli.LwApi.Integrations.ListAzureCfg()
 			cli.StopProgress()
 			if err != nil {
@@ -145,7 +145,7 @@ To run an ad-hoc compliance assessment use the command:
 					cli.Account, time.Now().Format("20060102150405"),
 				)
 
-				cli.StartProgress(" Downloading compliance report...")
+				cli.StartProgress("Downloading compliance report...")
 				err := cli.LwApi.Compliance.DownloadAzureReportPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
@@ -178,7 +178,7 @@ To run an ad-hoc compliance assessment use the command:
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
-				cli.StartProgress(" Getting compliance report...")
+				cli.StartProgress("Getting compliance report...")
 				response, err := cli.LwApi.Compliance.GetAzureReport(config)
 				cli.StopProgress()
 				if err != nil {
@@ -421,7 +421,7 @@ func extractAzureSubscriptions(response *api.AzureIntegrationsResponse) []azureS
 
 func getAzureSubscriptions(tenantID, status string) []azureSubscription {
 	var subs []azureSubscription
-	cli.StartProgress(fmt.Sprintf("Fetching compliance information about %s tenant...", tenantID))
+	cli.StartProgress(fmt.Sprintf("Fetching subscriptions from tenant (%s)...", tenantID))
 	subsResponse, err := cli.LwApi.Compliance.ListAzureSubscriptions(tenantID)
 	cli.StopProgress()
 	if err != nil {

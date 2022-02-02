@@ -34,12 +34,12 @@ var (
 	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
 	complianceAwsListAccountsCmd = &cobra.Command{
 		Use:     "list-accounts",
-		Aliases: []string{"list"},
+		Aliases: []string{"list", "ls"},
 		Short:   "List all AWS accounts configured",
 		Long:    `List all AWS accounts configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			cli.StartProgress(" Fetching compliance information...")
+			cli.StartProgress("Fetching list of configured AWS accounts...")
 			awsIntegrations, err := cli.LwApi.Integrations.ListAwsCfg()
 			cli.StopProgress()
 			if err != nil {
@@ -105,7 +105,7 @@ To run an ad-hoc compliance assessment of an AWS account:
 					cli.Account, time.Now().Format("20060102150405"),
 				)
 
-				cli.StartProgress(" Downloading compliance report...")
+				cli.StartProgress("Downloading compliance report...")
 				err := cli.LwApi.Compliance.DownloadAwsReportPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
@@ -137,7 +137,7 @@ To run an ad-hoc compliance assessment of an AWS account:
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
-				cli.StartProgress(" Getting compliance report...")
+				cli.StartProgress("Getting compliance report...")
 				response, err := cli.LwApi.Compliance.GetAwsReport(config)
 				cli.StopProgress()
 				if err != nil {

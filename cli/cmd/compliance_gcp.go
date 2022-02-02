@@ -35,11 +35,12 @@ import (
 var (
 	// complianceGcpListCmd represents the list sub-command inside the gcp command
 	complianceGcpListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "List gcp projects and organizations",
-		Long:  `List all GCP projects and organization IDs.`,
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List gcp projects and organizations",
+		Long:    `List all GCP projects and organization IDs.`,
 		RunE: func(_ *cobra.Command, args []string) error {
-			cli.StartProgress(" Fetching compliance information...")
+			cli.StartProgress("Fetching list of configured GCP projects...")
 			response, err := cli.LwApi.Integrations.ListGcpCfg()
 			cli.StopProgress()
 			if err != nil {
