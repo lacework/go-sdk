@@ -33,7 +33,9 @@ import (
 // TODO(pjm): Can we make the signature format be an argument?
 func verifySignature(rootKey minisign.PublicKey, file, sig []byte) error {
 	h := sha256.New()
-	h.Write(file)
+	if _, err := h.Write(file); err != nil {
+		return errors.New("unable to compute hash for component")
+	}
 
 	var parsedSig minisign.Signature
 	if err := parsedSig.UnmarshalText(sig); err != nil {
