@@ -101,7 +101,7 @@ Then navigate to Settings > Resource Groups.
 	// show command is used to retrieve a lacework resource group by resource id
 	resourceGroupsShowCommand = &cobra.Command{
 		Use:   "show",
-		Short: "Get resource group by id",
+		Short: "Get resource group by ID",
 		Long:  "Get a single resource group by it's resource group ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {

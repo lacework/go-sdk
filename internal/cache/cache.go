@@ -16,47 +16,19 @@
 // limitations under the License.
 //
 
-package cmd
+package cache
 
 import (
-	"bytes"
-	"io"
-	"os"
+	"path"
 
-	"github.com/fatih/color"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
-// captureOutput executes a function and captures the STDOUT and STDERR,
-// useful to test logging messages or human readable output
-func captureOutput(f func()) string {
-	r, w, err := os.Pipe()
+func CacheDir() (string, error) {
+	home, err := homedir.Dir()
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	stdout := os.Stdout
-	os.Stdout = w
-	defer func() {
-		os.Stdout = stdout
-	}()
-
-	colorOut := color.Output
-	color.Output = w
-	defer func() {
-		color.Output = colorOut
-	}()
-
-	stderr := os.Stderr
-	os.Stderr = w
-	defer func() {
-		os.Stderr = stderr
-	}()
-
-	f()
-	w.Close()
-
-	var buf bytes.Buffer
-	io.Copy(&buf, r)
-
-	return buf.String()
+	return path.Join(home, ".config", "lacework"), nil
 }
