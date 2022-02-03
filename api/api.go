@@ -119,6 +119,8 @@ const (
 
 	apiV2VulnerabilityExceptions        = "v2/VulnerabilityExceptions"
 	apiV2VulnerabilityExceptionFromGUID = "v2/VulnerabilityExceptions/%s"
+
+	apiV2EntitiesSearch = "v2/Entities/%s/search"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

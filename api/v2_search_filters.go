@@ -18,6 +18,8 @@
 
 package api
 
+import "time"
+
 // SearchFilter is the representation of an advanced search payload
 // for retrieving information out of the Lacework APIv2 Server
 //
@@ -49,6 +51,6 @@ type Filter struct {
 }
 
 type TimeFilter struct {
-	StartTime string `json:"startTime,omitempty"`
-	EndTime   string `json:"endTime,omitempty"`
+	StartTime time.Time `json:"startTime,omitempty"`
+	EndTime   time.Time `json:"endTime,omitempty"`
 }
