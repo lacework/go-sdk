@@ -42,8 +42,10 @@ var (
 )
 
 func init() {
-	queryCmd.AddCommand(queryListLibraryCmd)
-	queryCmd.AddCommand(queryShowLibraryCmd)
+	if cli.IsLCLInstalled() {
+		queryCmd.AddCommand(queryListLibraryCmd)
+		queryCmd.AddCommand(queryShowLibraryCmd)
+	}
 }
 
 func getListQueryLibraryTable(queries map[string]LCLQuery) (out [][]string) {

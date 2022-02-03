@@ -111,20 +111,21 @@ func createPolicy(cmd *cobra.Command, _ []string) error {
 		return errors.Wrap(err, msg)
 	}
 
-	// if creating policy from library
+	// if creating policy from library also create query
 	if policyCmdState.CUFromLibrary != "" {
-		cli.StartProgress(" Creating policy and query...")
+		cli.StartProgress(" Creating query (then policy)...")
 		err = createQueryFromLibrary(newPolicy.QueryID)
+		cli.StopProgress()
+
 		if err != nil {
 			if queryExists = strings.Contains(err.Error(), "already exists"); !queryExists {
 				return errors.Wrap(err, "unable to create query")
 			}
 		}
-	} else {
-		cli.StartProgress(" Creating policy...")
 	}
 
 	// create policy
+	cli.StartProgress(" Creating policy...")
 	createResponse, err := cli.LwApi.V2.Policy.Create(newPolicy)
 	cli.StopProgress()
 
@@ -135,6 +136,7 @@ func createPolicy(cmd *cobra.Command, _ []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(createResponse.Data)
 	}
+	// if human output mode, creating from library, and query exists
 	if queryExists {
 		cli.OutputHuman(fmt.Sprintf("The query %s already exists.\n", newPolicy.QueryID))
 	}

@@ -117,20 +117,16 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 		updatePolicy.PolicyID = args[0]
 	}
 
-	// update policy
-	if policyCmdState.CUFromLibrary == "" {
-		cli.StartProgress(" Updating policy...")
-	} else {
-		cli.StartProgress(" Updating policy and query...")
-	}
+	cli.StartProgress(" Updating policy...")
 	updateResponse, err := cli.LwApi.V2.Policy.Update(updatePolicy)
+	cli.StopProgress()
+
 	if err != nil {
-		cli.StopProgress()
 		return errors.Wrap(err, msg)
 	}
-
-	// if updating policy from library
+	// if updating policy from library also update query
 	if policyCmdState.CUFromLibrary != "" {
+		cli.StartProgress(" Updating query...")
 		err = updateQueryFromLibrary(updatePolicy.QueryID)
 		cli.StopProgress()
 

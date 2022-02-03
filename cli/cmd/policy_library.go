@@ -47,8 +47,10 @@ var (
 )
 
 func init() {
-	policyCmd.AddCommand(policyListLibraryCmd)
-	policyCmd.AddCommand(policyShowLibraryCmd)
+	if cli.IsLCLInstalled() {
+		policyCmd.AddCommand(policyListLibraryCmd)
+		policyCmd.AddCommand(policyShowLibraryCmd)
+	}
 }
 
 func policyLibraryTable(policies map[string]LCLPolicy) (out [][]string) {
