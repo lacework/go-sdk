@@ -30,6 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/capturer"
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
@@ -92,7 +93,7 @@ func TestSplitAzureSubscriptionsApiResponse(t *testing.T) {
 }
 
 func TestCliListAzureTenantsAndSubscriptionsWithoutData(t *testing.T) {
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, cliListTenantsAndSubscriptions(new(api.AzureIntegrationsResponse)))
 	})
 	assert.Contains(t, cliOutput, "There are no Azure Tenants configured in your account.")
@@ -100,7 +101,7 @@ func TestCliListAzureTenantsAndSubscriptionsWithoutData(t *testing.T) {
 	t.Run("test JSON output", func(t *testing.T) {
 		cli.EnableJSONOutput()
 		defer cli.EnableHumanOutput()
-		cliJSONOutput := captureOutput(func() {
+		cliJSONOutput := capturer.CaptureOutput(func() {
 			assert.Nil(t, cliListTenantsAndSubscriptions(new(api.AzureIntegrationsResponse)))
 		})
 		expectedJSON := `{
@@ -138,7 +139,7 @@ func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
 	}()
 
 	t.Run("enabled", func(t *testing.T) {
-		cliOutput := captureOutput(func() {
+		cliOutput := capturer.CaptureOutput(func() {
 			assert.Nil(t, cliListTenantsAndSubscriptions(mockAzureIntegrationsResponse(tenantID, 1)))
 		})
 		// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
@@ -151,7 +152,7 @@ func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
 	})
 
 	t.Run("disabled", func(t *testing.T) {
-		cliOutput := captureOutput(func() {
+		cliOutput := capturer.CaptureOutput(func() {
 			assert.Nil(t, cliListTenantsAndSubscriptions(mockAzureIntegrationsResponse(tenantID, 0)))
 		})
 		// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
