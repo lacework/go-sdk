@@ -30,6 +30,8 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lacework/go-sdk/internal/cache"
 )
 
 var (
@@ -103,7 +105,7 @@ var pathTests = []pathTest{
 }
 
 func TestPath(t *testing.T) {
-	cacheDir, err := cacheDir()
+	cacheDir, err := cache.CacheDir()
 	if err != nil {
 		assert.FailNow(t, "Unable to determine cacheDir")
 	}

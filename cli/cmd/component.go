@@ -30,6 +30,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/lacework/go-sdk/internal/cache"
 	"github.com/lacework/go-sdk/lwcomponent"
 )
 
@@ -156,7 +157,7 @@ func componentsToTable() [][]string {
 }
 
 func runComponentsInstall(_ *cobra.Command, args []string) error {
-	cacheDir, err := cacheDir()
+	cacheDir, err := cache.CacheDir()
 	if err != nil {
 		return err
 	}
@@ -188,7 +189,7 @@ func runComponentsUpdate(_ *cobra.Command, _ []string) error {
 	return nil
 }
 func runComponentsDelete(_ *cobra.Command, args []string) error {
-	cacheDir, err := cacheDir()
+	cacheDir, err := cache.CacheDir()
 	if err != nil {
 		return err
 	}

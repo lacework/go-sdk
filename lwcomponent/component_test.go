@@ -30,8 +30,8 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	capturer "github.com/zenizh/go-capturer"
 
+	capturer "github.com/lacework/go-sdk/internal/capturer"
 	"github.com/lacework/go-sdk/lwcomponent"
 )
 

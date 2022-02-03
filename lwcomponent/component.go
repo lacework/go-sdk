@@ -32,8 +32,10 @@ import (
 
 	"aead.dev/minisign"
 	"github.com/Masterminds/semver"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+
+	"github.com/lacework/go-sdk/internal/cache"
+	"github.com/lacework/go-sdk/internal/file"
 )
 
 type State struct {
@@ -48,24 +50,6 @@ func (s State) GetComponent(name string) *Component {
 		}
 	}
 	return nil
-}
-
-func cacheDir() (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(home, ".config", "lacework"), nil
-}
-
-// fileExists checks if a file exists and is not a directory
-func fileExists(filename string) bool {
-	f, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !f.IsDir()
 }
 
 var (
@@ -141,12 +125,12 @@ type Component struct {
 
 // @dhazekamp validate component name
 func (cmpnt Component) Path() (string, error) {
-	cacheDir, err := cacheDir()
+	cacheDir, err := cache.CacheDir()
 	if err != nil {
 		return "", err
 	}
 	cmpntPath := path.Join(cacheDir, cmpnt.Name, cmpnt.Name)
-	if !fileExists(cmpntPath) {
+	if !file.FileExists(cmpntPath) {
 		return cmpntPath, errors.New(cmpntNotFound)
 	}
 	return cmpntPath, nil
@@ -160,7 +144,7 @@ func (cmpnt Component) CurrentVersion() (*semver.Version, error) {
 	cmpntDir, _ := path.Split(cmpntPath)
 
 	cvPath := path.Join(cmpntDir, ".version")
-	if !fileExists(cvPath) {
+	if !file.FileExists(cvPath) {
 		return nil, errors.New("component version file does not exist")
 	}
 
@@ -186,7 +170,7 @@ func (cmpnt Component) CurrentSignature() ([]byte, error) {
 	cmpntDir, _ := path.Split(cmpntPath)
 
 	csPath := path.Join(cmpntDir, ".signature")
-	if !fileExists(csPath) {
+	if !file.FileExists(csPath) {
 		return sig, errors.New("component signature file does not exist")
 	}
 
