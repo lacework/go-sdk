@@ -21,17 +21,16 @@ package lwcomponent
 
 import (
 	"bytes"
-	"crypto/sha256"
 	_ "embed"
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 	"strings"
 
+	"aead.dev/minisign"
 	"github.com/Masterminds/semver"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -69,8 +68,12 @@ func fileExists(filename string) bool {
 	return !f.IsDir()
 }
 
-//go:embed state
-var componentState string
+var (
+	//go:embed keys/lwcomponent-root.pub
+	publicKeyBytes []byte
+	//go:embed state
+	componentState string
+)
 
 // @dhazekamp need to avoid cache poisoning with respect retrieving component signature
 func LoadState() (*State, error) {
@@ -133,7 +136,7 @@ type Component struct {
 	// the component is standalone, should be available in $PATH
 	Standalone bool `json:"standalone"`
 
-	Artifacts []Artifact `json:"artifacts"`
+	LatestArtifacts []Artifact `json:"artifacts"`
 }
 
 // @dhazekamp validate component name
@@ -150,14 +153,12 @@ func (cmpnt Component) Path() (string, error) {
 }
 
 func (cmpnt Component) CurrentVersion() (*semver.Version, error) {
-	var err error
-
 	cmpntPath, err := cmpnt.Path()
 	if err != nil {
 		return nil, err
 	}
-
 	cmpntDir, _ := path.Split(cmpntPath)
+
 	cvPath := path.Join(cmpntDir, ".version")
 	if !fileExists(cvPath) {
 		return nil, errors.New("component version file does not exist")
@@ -173,6 +174,33 @@ func (cmpnt Component) CurrentVersion() (*semver.Version, error) {
 		err = errors.New("unable to parse component version")
 	}
 	return cv, err
+}
+
+func (cmpnt Component) CurrentSignature() ([]byte, error) {
+	var sig []byte
+
+	cmpntPath, err := cmpnt.Path()
+	if err != nil {
+		return nil, err
+	}
+	cmpntDir, _ := path.Split(cmpntPath)
+
+	csPath := path.Join(cmpntDir, ".signature")
+	if !fileExists(csPath) {
+		return sig, errors.New("component signature file does not exist")
+	}
+
+	dat, err := os.ReadFile(csPath)
+	if err != nil {
+		return sig, errors.Wrap(err, "unable to read component signature file")
+	}
+
+	// decode artifact signature
+	sig, err = base64.StdEncoding.DecodeString(string(dat))
+	if err != nil {
+		return sig, errors.New("unable to decode component signature")
+	}
+	return sig, nil
 }
 
 func (cmpnt Component) UpdateAvailable() bool {
@@ -194,55 +222,35 @@ func (cmpnt Component) Status() ComponentStatus {
 	return Unknown
 }
 
-func (cmpnt Component) getArtifact() (Artifact, error) {
-	cv, err := cmpnt.CurrentVersion()
-	if err != nil {
-		return Artifact{}, err
-	}
-
-	for _, a := range cmpnt.Artifacts {
-		if a.OS == runtime.GOOS && a.ARCH == runtime.GOARCH && a.Version.Equal(cv) {
-			return a, nil
-		}
-	}
-
-	return Artifact{}, errors.New("artifact not found")
-}
-
-// @dhazekamp replace sha256 validation with minisign
-func (cmpnt Component) isVerified() (bool, error) {
+func (cmpnt Component) isVerified() error {
 	baseErr := "unable to verify component"
 
-	// get artifact
-	a, err := cmpnt.getArtifact()
+	// get component signature
+	sig, err := cmpnt.CurrentSignature()
 	if err != nil {
-		return false, errors.Wrap(err, baseErr)
-	}
-	// verify artifact has a signature
-	if a.Signature == "" {
-		return false, errors.New("component has no signature")
+		return err
 	}
 	// get component path
 	cmpntPath, err := cmpnt.Path()
 	if err != nil {
-		return false, err
+		return err
 	}
 	// open the component
-	f, err := os.Open(cmpntPath)
+	f, err := os.ReadFile(cmpntPath)
 	if err != nil {
-		return false, errors.New("unable to open component")
+		return errors.New("unable to read component file")
 	}
-	defer f.Close()
-	// hash the component
-	h := sha256.New()
-	if _, err := io.Copy(h, f); err != nil {
-		return false, errors.New("unable to hash component")
+	// load public key
+	rootPublicKey := minisign.PublicKey{}
+	if err := rootPublicKey.UnmarshalText(publicKeyBytes); err != nil {
+		return errors.Wrap(err, "unable to load root public key")
 	}
-	// validate the hash
-	if a.Signature != hex.EncodeToString(h.Sum(nil)) {
-		return false, errors.New("signature mismatch")
+	// validate the signature
+	err = verifySignature(rootPublicKey, f, sig)
+	if err != nil {
+		return errors.Wrap(err, baseErr)
 	}
-	return true, nil
+	return nil
 }
 
 func (cmpnt Component) run(cmd *exec.Cmd) error {
@@ -251,7 +259,7 @@ func (cmpnt Component) run(cmd *exec.Cmd) error {
 	}
 
 	// verify component
-	if isVerified, err := cmpnt.isVerified(); !isVerified {
+	if err := cmpnt.isVerified(); err != nil {
 		return errors.Wrap(err, baseRunErr)
 	}
 

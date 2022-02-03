@@ -19,6 +19,8 @@
 package lwcomponent_test
 
 import (
+	_ "embed"
+	"encoding/base64"
 	"io"
 	"os"
 	"path"
@@ -44,67 +46,46 @@ var (
 		Binary:        true,
 		Library:       false,
 		Standalone:    false,
-		Artifacts: []lwcomponent.Artifact{
-			lwcomponent.Artifact{
-				OS:        "darwin",
-				ARCH:      "amd64",
-				Signature: "d69669aadfa69e5a212c83d52d9e5ca257f6c8bfedf82f8e34eb9523e27e3a3f",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "darwin",
-				ARCH:      "arm64",
-				Signature: "d69669aadfa69e5a212c83d52d9e5ca257f6c8bfedf82f8e34eb9523e27e3a3f",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "linux",
-				ARCH:      "amd64",
-				Signature: "d69669aadfa69e5a212c83d52d9e5ca257f6c8bfedf82f8e34eb9523e27e3a3f",
-				Version:   *mockVersion,
-			},
-			lwcomponent.Artifact{
-				OS:        "linux",
-				ARCH:      "arm64",
-				Signature: "d69669aadfa69e5a212c83d52d9e5ca257f6c8bfedf82f8e34eb9523e27e3a3f",
-				Version:   *mockVersion,
-			},
-		},
 	}
 	mockComponent2 = lwcomponent.Component{
 		Name: "lacework-mock-component2",
 	}
+	//go:embed test_resources/hello-world2.sh
+	helloWorld []byte
+	//go:embed test_resources/hello-world2.sig
+	helloWorldSig string
 )
 
-func ensureMockComponent(version string) (string, error) {
-	componentData := `#!/bin/bash
-echo "Hello $1!"
-read line
-echo "Hello $line!" >&2
-`
-
-	componentPath, err := mockComponent.Path()
+func ensureMockComponent(version, signature string) (string, error) {
+	cmpntPath, err := mockComponent.Path()
 	if err.Error() != "component does not exist" {
 		return "", err
 	}
-	dir, _ := path.Split(componentPath)
-	err = os.MkdirAll(dir, os.ModePerm)
+	cmpntDir, _ := path.Split(cmpntPath)
+	err = os.MkdirAll(cmpntDir, os.ModePerm)
 	if err != nil {
 		return "", err
 	}
 
 	if version != "" {
-		componentVersionPath := path.Join(dir, ".version")
-		os.WriteFile(componentVersionPath, []byte(version), 0666)
-		if err != nil {
+		cmpntVersionPath := path.Join(cmpntDir, ".version")
+		if err = os.WriteFile(cmpntVersionPath, []byte(version), 0666); err != nil {
 			return "", err
 		}
 	}
-	return dir, os.WriteFile(componentPath, []byte(componentData), 0777)
+
+	if signature != "" {
+		cmpntSignaturePath := path.Join(cmpntDir, ".signature")
+		if err = os.WriteFile(cmpntSignaturePath, []byte(signature), 0666); err != nil {
+			return "", err
+		}
+	}
+
+	return cmpntDir, os.WriteFile(cmpntPath, helloWorld, 0777)
 }
 
 func TestGetComponent(t *testing.T) {
-	componentDir, err := ensureMockComponent("")
+	componentDir, err := ensureMockComponent("", "")
 	if err != nil {
 		assert.FailNow(t, "Unable to ensureMockComponent")
 	}
@@ -157,7 +138,7 @@ var currentVersionTests = []currentVersionTest{
 func TestCurrentVersion(t *testing.T) {
 	for _, cvt := range currentVersionTests {
 		t.Run(cvt.Name, func(t *testing.T) {
-			componentDir, err := ensureMockComponent(cvt.Version)
+			componentDir, err := ensureMockComponent(cvt.Version, "")
 			if err != nil {
 				assert.FailNow(t, "Unable to ensureMockComponent")
 			}
@@ -167,6 +148,56 @@ func TestCurrentVersion(t *testing.T) {
 			assert.Equal(t, cvt.Expected, actualCV)
 			if cvt.Error != nil {
 				assert.Equal(t, cvt.Error.Error(), actualError.Error())
+			} else {
+				assert.Nil(t, actualError)
+			}
+		})
+	}
+}
+
+type currentSignatureTest struct {
+	Name      string
+	Component lwcomponent.Component
+	Signature string
+	Expected  []byte
+	Error     error
+}
+
+var currentSignatureTests = []currentSignatureTest{
+	currentSignatureTest{
+		Name:      "notfound",
+		Component: mockComponent,
+		Error:     errors.New("component signature file does not exist"),
+	},
+	currentSignatureTest{
+		Name:      "bad",
+		Component: mockComponent,
+		Signature: "-",
+		Expected:  []byte{},
+		Error:     errors.New("unable to decode component signature"),
+	},
+	currentSignatureTest{
+		Name:      "ok",
+		Component: mockComponent,
+		Signature: base64.StdEncoding.EncodeToString([]byte("mysig")),
+		Expected:  []byte("mysig"),
+		Error:     nil,
+	},
+}
+
+func TestCurrentSignature(t *testing.T) {
+	for _, cst := range currentSignatureTests {
+		t.Run(cst.Name, func(t *testing.T) {
+			componentDir, err := ensureMockComponent("", cst.Signature)
+			if err != nil {
+				assert.FailNow(t, "Unable to ensureMockComponent")
+			}
+			defer os.RemoveAll(componentDir)
+
+			actualCV, actualError := cst.Component.CurrentSignature()
+			assert.Equal(t, cst.Expected, actualCV)
+			if cst.Error != nil {
+				assert.Equal(t, cst.Error.Error(), actualError.Error())
 			} else {
 				assert.Nil(t, actualError)
 			}
@@ -202,7 +233,7 @@ var updateAvailableTests = []updateAvailableTest{
 func TestUpdateAvailable(t *testing.T) {
 	for _, uat := range updateAvailableTests {
 		t.Run(uat.Name, func(t *testing.T) {
-			componentDir, err := ensureMockComponent(uat.Version)
+			componentDir, err := ensureMockComponent(uat.Version, "")
 			if err != nil {
 				assert.FailNow(t, "Unable to ensureMockComponent")
 			}
@@ -215,7 +246,7 @@ func TestUpdateAvailable(t *testing.T) {
 }
 
 func TestComponentStatus(t *testing.T) {
-	componentDir, err := ensureMockComponent("")
+	componentDir, err := ensureMockComponent("", "")
 	if err != nil {
 		assert.FailNow(t, "Unable to ensureMockComponent")
 	}
@@ -229,6 +260,7 @@ type RunAndReturnTest struct {
 	Name           string
 	Component      lwcomponent.Component
 	Version        string
+	Signature      string
 	Args           []string
 	Stdin          io.Reader
 	ExpectedStdout string
@@ -241,6 +273,7 @@ var RunAndReturnTests = []RunAndReturnTest{
 		Name:           "OK",
 		Component:      mockComponent,
 		Version:        "1.0.0",
+		Signature:      helloWorldSig,
 		Args:           []string{"World"},
 		Stdin:          strings.NewReader("Error"),
 		ExpectedStdout: "Hello World!\n",
@@ -252,7 +285,7 @@ var RunAndReturnTests = []RunAndReturnTest{
 func TestRunAndReturn(t *testing.T) {
 	for _, rart := range RunAndReturnTests {
 		t.Run(rart.Name, func(t *testing.T) {
-			componentDir, err := ensureMockComponent(rart.Version)
+			componentDir, err := ensureMockComponent(rart.Version, rart.Signature)
 			if err != nil {
 				assert.FailNow(t, "Unable to ensureMockComponent")
 			}
@@ -275,6 +308,7 @@ type RunAndOutputTest struct {
 	Name      string
 	Component lwcomponent.Component
 	Version   string
+	Signature string
 	Args      []string
 	Stdin     io.Reader
 	Expected  string
@@ -286,6 +320,7 @@ var RunAndOutputTests = []RunAndOutputTest{
 		Name:      "OK",
 		Component: mockComponent,
 		Version:   "1.0.0",
+		Signature: helloWorldSig,
 		Args:      []string{"World"},
 		Stdin:     strings.NewReader("Error"),
 		Expected:  "Hello World!\nHello Error!\n",
@@ -296,7 +331,7 @@ var RunAndOutputTests = []RunAndOutputTest{
 func TestRunAndOutput(t *testing.T) {
 	for _, raot := range RunAndOutputTests {
 		t.Run(raot.Name, func(t *testing.T) {
-			componentDir, err := ensureMockComponent(raot.Version)
+			componentDir, err := ensureMockComponent(raot.Version, raot.Signature)
 			if err != nil {
 				assert.FailNow(t, "Unable to ensureMockComponent")
 			}
