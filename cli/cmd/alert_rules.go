@@ -92,7 +92,7 @@ Then navigate to Settings > Alert Rules.
 	// show command is used to retrieve a lacework alert rule by resource id
 	alertRulesShowCommand = &cobra.Command{
 		Use:   "show",
-		Short: "Show an alert rule by id",
+		Short: "Show an alert rule by ID",
 		Long:  "Show a single alert rule by it's ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {

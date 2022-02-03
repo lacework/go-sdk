@@ -16,15 +16,47 @@
 // limitations under the License.
 //
 
-package cmd
+package capturer
 
-import "os"
+import (
+	"bytes"
+	"io"
+	"os"
 
-// fileExists checks if a file exists and is not a directory
-func fileExists(filename string) bool {
-	f, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
+	"github.com/fatih/color"
+)
+
+// captureOutput executes a function and captures the STDOUT and STDERR,
+// useful to test logging messages or human readable output
+func CaptureOutput(f func()) string {
+	r, w, err := os.Pipe()
+	if err != nil {
+		panic(err)
 	}
-	return !f.IsDir()
+
+	stdout := os.Stdout
+	os.Stdout = w
+	defer func() {
+		os.Stdout = stdout
+	}()
+
+	colorOut := color.Output
+	color.Output = w
+	defer func() {
+		color.Output = colorOut
+	}()
+
+	stderr := os.Stderr
+	os.Stderr = w
+	defer func() {
+		os.Stderr = stderr
+	}()
+
+	f()
+	w.Close()
+
+	var buf bytes.Buffer
+	io.Copy(&buf, r) //nolint
+
+	return buf.String()
 }

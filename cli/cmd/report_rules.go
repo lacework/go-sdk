@@ -97,8 +97,8 @@ Then navigate to Settings > Report Rules.
 	// show command is used to retrieve a lacework report rule by guid
 	reportRulesShowCommand = &cobra.Command{
 		Use:   "show",
-		Short: "Show a report rule by id",
-		Long:  "Show a single report rule by it's id.",
+		Short: "Show a report rule by ID",
+		Long:  "Show a single report rule by it's ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var response api.ReportRuleResponse

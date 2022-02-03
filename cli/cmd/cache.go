@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lacework/go-sdk/internal/cache"
 	"github.com/lacework/go-sdk/internal/format"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/peterbourgon/diskv/v3"
 )
 
@@ -46,7 +46,7 @@ const MaxCacheSize = 1024 * 1024 * 1024
 //
 func (c *cliState) InitCache(d ...string) {
 	if len(d) == 0 {
-		dir, err := cacheDir()
+		dir, err := cache.CacheDir()
 		if err == nil {
 			d = []string{dir}
 		}
@@ -116,15 +116,6 @@ func InverseCacheTransform(pathKey *diskv.PathKey) string {
 		return strings.Join(pathKey.Path, "/") + keys[1]
 	}
 	return strings.Join(pathKey.Path, "/") + pathKey.FileName
-}
-
-func cacheDir() (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(home, ".config", "lacework"), nil
 }
 
 func (c *cliState) EraseCachedToken() error {

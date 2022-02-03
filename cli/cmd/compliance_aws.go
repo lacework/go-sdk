@@ -34,51 +34,19 @@ var (
 	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
 	complianceAwsListAccountsCmd = &cobra.Command{
 		Use:     "list-accounts",
-		Aliases: []string{"list"},
+		Aliases: []string{"list", "ls"},
 		Short:   "List all AWS accounts configured",
 		Long:    `List all AWS accounts configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			cli.StartProgress("Fetching list of configured AWS accounts...")
 			awsIntegrations, err := cli.LwApi.Integrations.ListAwsCfg()
+			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get aws compliance integrations")
 			}
-			if len(awsIntegrations.Data) == 0 {
-				msg := `There are no AWS accounts configured in your account.
 
-Get started by integrating your AWS accounts to analyze configuration compliance using the command:
-
-    lacework integration create
-
-If you prefer to configure the integration via the WebUI, log in to your account at:
-
-    https://%s.lacework.net
-
-Then navigate to Settings > Integrations > Cloud Accounts.
-`
-				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
-				return nil
-			}
-
-			awsAccounts := make([]string, 0)
-			for _, i := range awsIntegrations.Data {
-				awsAccounts = append(awsAccounts, i.Data.AwsAccountID)
-			}
-
-			if cli.JSONOutput() {
-				jsonOut := struct {
-					Accounts []string `json:"aws_accounts"`
-				}{Accounts: awsAccounts}
-				return cli.OutputJSON(jsonOut)
-			}
-
-			rows := [][]string{}
-			for _, acc := range awsAccounts {
-				rows = append(rows, []string{acc})
-			}
-
-			cli.OutputHuman(renderSimpleTable([]string{"AWS Accounts"}, rows))
-			return nil
+			return cliListAwsAccounts(&awsIntegrations)
 		},
 	}
 
@@ -137,7 +105,7 @@ To run an ad-hoc compliance assessment of an AWS account:
 					cli.Account, time.Now().Format("20060102150405"),
 				)
 
-				cli.StartProgress(" Downloading compliance report...")
+				cli.StartProgress("Downloading compliance report...")
 				err := cli.LwApi.Compliance.DownloadAwsReportPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
@@ -169,7 +137,7 @@ To run an ad-hoc compliance assessment of an AWS account:
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
-				cli.StartProgress(" Getting compliance report...")
+				cli.StartProgress("Getting compliance report...")
 				response, err := cli.LwApi.Compliance.GetAwsReport(config)
 				cli.StopProgress()
 				if err != nil {
@@ -311,4 +279,70 @@ func complianceAwsReportDetailsTable(report *api.ComplianceAwsReport) [][]string
 		[]string{"Account Alias", report.AccountAlias},
 		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
+}
+
+type awsAccount struct {
+	AccountID string `json:"account_id"`
+	Status    string `json:"status"`
+}
+
+func cliListAwsAccounts(awsIntegrations *api.AwsIntegrationsResponse) error {
+	awsAccounts := make([]awsAccount, 0)
+	jsonOut := struct {
+		Accounts []awsAccount `json:"aws_accounts"`
+	}{Accounts: awsAccounts}
+
+	if awsIntegrations == nil || len(awsIntegrations.Data) == 0 {
+		if cli.JSONOutput() {
+			return cli.OutputJSON(jsonOut)
+		}
+
+		msg := `There are no AWS accounts configured in your account.
+
+Get started by integrating your AWS accounts to analyze configuration compliance using the command:
+
+    lacework integration create
+
+If you prefer to configure the integration via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Cloud Accounts.
+`
+		cli.OutputHuman(msg, cli.Account)
+		return nil
+	}
+
+	for _, i := range awsIntegrations.Data {
+		if containsDuplicateAccountID(awsAccounts, i.Data.AwsAccountID) {
+			cli.Log.Warnw("duplicate aws account", "integration_guid", i.IntgGuid, "account", i.Data.AwsAccountID)
+			continue
+		}
+		awsAccounts = append(awsAccounts, awsAccount{
+			AccountID: i.Data.AwsAccountID,
+			Status:    i.Status(),
+		})
+	}
+
+	if cli.JSONOutput() {
+		jsonOut.Accounts = awsAccounts
+		return cli.OutputJSON(jsonOut)
+	}
+
+	rows := [][]string{}
+	for _, acc := range awsAccounts {
+		rows = append(rows, []string{acc.AccountID, acc.Status})
+	}
+
+	cli.OutputHuman(renderSimpleTable([]string{"AWS Account", "Status"}, rows))
+	return nil
+}
+
+func containsDuplicateAccountID(awsAccount []awsAccount, accountID string) bool {
+	for _, value := range awsAccount {
+		if accountID == value.AccountID {
+			return true
+		}
+	}
+	return false
 }

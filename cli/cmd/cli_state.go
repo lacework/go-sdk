@@ -272,6 +272,12 @@ func (c *cliState) NonInteractive() {
 	c.nonInteractive = true
 }
 
+// Interactive turns on interactive mode, that is, progress bars and spinners
+func (c *cliState) Interactive() {
+	c.Log.Info("turning on interactive mode")
+	c.nonInteractive = false
+}
+
 // NoCache turns off the Lacework CLI caching mechanism, so nothing will be cached
 func (c *cliState) NoCache() {
 	c.Log.Info("turning off caching mechanism")

@@ -24,9 +24,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwtime"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/capturer"
+	"github.com/lacework/go-sdk/lwtime"
 )
 
 func TestListCvesFilterSeverity(t *testing.T) {
@@ -107,7 +109,7 @@ var mockPackageTwo = api.HostVulnPackage{
 }
 
 func TestBuildVulnHostReportsNoVulnerabilities(t *testing.T) {
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(api.HostVulnHostAssessment{}))
 	})
 	assert.Contains(t, cliOutput, "Great news! This host has no vulnerabilities...")
@@ -115,7 +117,7 @@ func TestBuildVulnHostReportsNoVulnerabilities(t *testing.T) {
 	t.Run("test JSON output", func(t *testing.T) {
 		cli.EnableJSONOutput()
 		defer cli.EnableHumanOutput()
-		cliJSONOutput := captureOutput(func() {
+		cliJSONOutput := capturer.CaptureOutput(func() {
 			assert.Nil(t, buildVulnHostReports(api.HostVulnHostAssessment{}))
 		})
 		expectedJSON := `{
@@ -147,7 +149,7 @@ func TestBuildVulnHostReportsNoVulnerabilities(t *testing.T) {
 }
 
 func TestBuildVulnHostReportsWithVulnerabilitiesSummaryOnlyAndNoFilters(t *testing.T) {
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
@@ -175,7 +177,7 @@ func TestBuildVulnHostReportsWithVulnerabilitiesPackagesViewAndNoFilters(t *test
 	vulCmdState.Packages = true
 	defer clearVulnFilters()
 
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
@@ -249,7 +251,7 @@ func TestBuildVulnHostReportsWithVulnerabilitiesPackagesViewWithFilters(t *testi
 	vulCmdState.Severity = "high"
 	defer clearVulnFilters()
 
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
@@ -282,7 +284,7 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersSeverity(t *testing.T
 	vulCmdState.Severity = "high"
 	defer clearVulnFilters()
 
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
@@ -315,7 +317,7 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersActive(t *testing.T) 
 	vulCmdState.Active = true
 	defer clearVulnFilters()
 
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
@@ -357,7 +359,7 @@ func TestBuildCSVVulnHostReportsWithVulnerabilities(t *testing.T) {
 		vulCmdState.Details = false
 	}()
 
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
 	})
 	assert.Equal(t, strings.TrimPrefix(expectedCSVHostDetailsTable, "\n"), cliOutput)
@@ -368,7 +370,7 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersSeverityAndActiveRetu
 	vulCmdState.Active = true
 	defer clearVulnFilters()
 
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
@@ -399,7 +401,7 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFilterReturnsNoVulns(t *test
 	vulCmdState.Severity = "critical"
 	defer clearVulnFilters()
 
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
@@ -477,7 +479,7 @@ CVE Count,Severity,Package,Current Version,Fix Version,Pkg Status
 1,Info,patch,,,
 1,Info,libtasn1-6,,,
 `
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
 	})
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
