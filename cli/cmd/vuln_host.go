@@ -229,8 +229,8 @@ with fixes:
 			}
 			return nil
 		},
-		Short: "List the hosts that contain a specified CVE id in your environment",
-		Long: `List the hosts that contain a specified CVE id in your environment.
+		Short: "List the hosts that contain a specified CVE ID in your environment",
+		Long: `List the hosts that contain a specified CVE ID in your environment.
 
 To list the CVEs found in the hosts of your environment run:
 
