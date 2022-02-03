@@ -83,7 +83,7 @@ func listQuerySources(_ *cobra.Command, args []string) error {
 			getListQuerySourcesTable(datasourcesResponse.Data),
 		),
 	)
-	cli.OutputHuman("Use 'lacework query show-source <datasource_id>' to show details about the data source.\n")
+	cli.OutputHuman("\nUse 'lacework query show-source <datasource_id>' to show details about the data source.\n")
 	return nil
 }
 
