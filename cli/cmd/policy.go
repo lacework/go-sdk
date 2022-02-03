@@ -116,7 +116,7 @@ func init() {
 	policyCmd.AddCommand(policyDeleteCmd)
 
 	// Lacework Content Library
-	if IsLCLInstalled(*cli.LwComponents) {
+	if cli.IsLCLInstalled() {
 		policyCreateCmd.Flags().StringVarP(
 			&policyCmdState.CUFromLibrary,
 			"library", "l", "",
@@ -206,7 +206,7 @@ func inputPolicyFromLibrary(id string) (string, error) {
 		err error
 	)
 
-	if lcl, err = LoadLCL(*cli.LwComponents); err != nil {
+	if lcl, err = cli.LoadLCL(); err != nil {
 		return "", err
 	}
 	return lcl.GetPolicy(id)

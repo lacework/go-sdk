@@ -129,7 +129,7 @@ func init() {
 	// add sub-commands to the lql command
 	queryCmd.AddCommand(queryRunCmd)
 
-	if IsLCLInstalled(*cli.LwComponents) {
+	if cli.IsLCLInstalled() {
 		queryRunCmd.Flags().BoolVarP(
 			&queryCmdState.RunFromLibrary,
 			"library", "l", false,
@@ -222,7 +222,7 @@ func inputQueryFromLibrary(id string) (string, error) {
 		lcl *LaceworkContentLibrary
 		err error
 	)
-	if lcl, err = LoadLCL(*cli.LwComponents); err != nil {
+	if lcl, err = cli.LoadLCL(); err != nil {
 		return "", err
 	}
 	return lcl.GetQuery(id)

@@ -57,7 +57,7 @@ func listQueryLibrary(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("listing queries from library")
 
 	cli.StartProgress(" Retrieving queries...")
-	lcl, err := LoadLCL(*cli.LwComponents)
+	lcl, err := cli.LoadLCL()
 	cli.StopProgress()
 
 	if err != nil {

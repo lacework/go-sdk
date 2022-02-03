@@ -57,7 +57,7 @@ func init() {
 
 	setQuerySourceFlags(queryUpdateCmd)
 
-	if IsLCLInstalled(*cli.LwComponents) {
+	if cli.IsLCLInstalled() {
 		queryUpdateCmd.Flags().StringVarP(
 			&queryCmdState.CUVFromLibrary,
 			"library", "l", "",

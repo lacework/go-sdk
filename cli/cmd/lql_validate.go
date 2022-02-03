@@ -61,7 +61,7 @@ func init() {
 
 	setQuerySourceFlags(queryValidateCmd)
 
-	if IsLCLInstalled(*cli.LwComponents) {
+	if cli.IsLCLInstalled() {
 		queryValidateCmd.Flags().StringVarP(
 			&queryCmdState.CUVFromLibrary,
 			"library", "l", "",

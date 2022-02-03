@@ -92,7 +92,7 @@ func listPoliciesLibrary(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("listing policies from library")
 
 	cli.StartProgress(" Retrieving policies...")
-	lcl, err := LoadLCL(*cli.LwComponents)
+	lcl, err := cli.LoadLCL()
 	cli.StopProgress()
 
 	if err != nil {

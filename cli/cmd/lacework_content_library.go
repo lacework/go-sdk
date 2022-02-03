@@ -73,28 +73,34 @@ type LaceworkContentLibrary struct {
 	Policies  map[string]LCLPolicy `json:"policies"`
 }
 
-func IsLCLInstalled(state lwcomponent.State) bool {
-	component := state.GetComponent(lclComponentName)
+func (c *cliState) IsLCLInstalled() bool {
+	if c.LwComponents == nil {
+		return false
+	}
 
+	component := c.LwComponents.GetComponent(lclComponentName)
 	if component == nil || component.Status() != lwcomponent.Installed {
 		return false
 	}
 	return true
 }
 
-func LoadLCL(state lwcomponent.State) (*LaceworkContentLibrary, error) {
+func (c *cliState) LoadLCL() (*LaceworkContentLibrary, error) {
+	baseErr := "unable to load Lacework Content Library"
 	lcl := new(LaceworkContentLibrary)
-	lcl.Component = state.GetComponent(lclComponentName)
+
+	if c.LwComponents == nil {
+		return lcl, errors.New(baseErr)
+	}
+	lcl.Component = c.LwComponents.GetComponent(lclComponentName)
 
 	index, err := lcl.run(lclIndexPath)
 	if err != nil {
-		return new(LaceworkContentLibrary), errors.Wrap(
-			err, "unable to load Lacework Content Library")
+		return new(LaceworkContentLibrary), errors.Wrap(err, baseErr)
 	}
 
 	if err := json.Unmarshal([]byte(index), lcl); err != nil {
-		return new(LaceworkContentLibrary), errors.Wrap(
-			err, "unable to load Lacework Content Library")
+		return new(LaceworkContentLibrary), errors.Wrap(err, baseErr)
 	}
 
 	for policyID, policy := range lcl.Policies {
