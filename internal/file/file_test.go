@@ -16,32 +16,33 @@
 // limitations under the License.
 //
 
-package cmd
+package file_test
 
 import (
 	"io/ioutil"
 	"os"
 	"testing"
 
+	"github.com/lacework/go-sdk/internal/file"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFileExistsWhenFileActuallyExists(t *testing.T) {
-	file, err := ioutil.TempFile("", "bar")
+	f, err := ioutil.TempFile("", "bar")
 	if assert.Nil(t, err) {
-		assert.True(t, fileExists(file.Name()))
-		os.Remove(file.Name())
+		assert.True(t, file.FileExists(f.Name()))
+		os.Remove(f.Name())
 	}
 }
 
 func TestFileExistsWhenFileIsADirectory(t *testing.T) {
 	dir, err := ioutil.TempDir("", "bar")
 	if assert.Nil(t, err) {
-		assert.False(t, fileExists(dir))
+		assert.False(t, file.FileExists(dir))
 		os.RemoveAll(dir)
 	}
 }
 
 func TestFileExistsWhenFileDoesNotExists(t *testing.T) {
-	assert.False(t, fileExists("file.name"))
+	assert.False(t, file.FileExists("file.name"))
 }

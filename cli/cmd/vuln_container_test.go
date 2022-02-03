@@ -23,9 +23,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/capturer"
 )
 
 func TestUserFriendlyErrorFromOnDemandCtrVulnScanRepositoryNotFound(t *testing.T) {
@@ -89,7 +91,7 @@ func TestBuildCSVVulnCtrReportWithVulnerabilities(t *testing.T) {
 	if err := json.Unmarshal([]byte(rawContainerAssesment), &response); err != nil {
 		panic(err)
 	}
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnContainerAssessmentReports(&response.Data))
 	})
 
