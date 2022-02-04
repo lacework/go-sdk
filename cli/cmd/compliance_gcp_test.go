@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/capturer"
 )
 
 func TestSplitIDAndAlias(t *testing.T) {
@@ -134,7 +135,7 @@ func TestDuplicateGcpAccountCheck(t *testing.T) {
 }
 
 func TestCliListGcpListProjectsAndOrgsWithoutData(t *testing.T) {
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, cliListGcpProjectsAndOrgs(new(api.GcpIntegrationsResponse)))
 	})
 	assert.Contains(t, cliOutput, "There are no GCP integrations configured in your account.")
@@ -142,7 +143,7 @@ func TestCliListGcpListProjectsAndOrgsWithoutData(t *testing.T) {
 	t.Run("test JSON output", func(t *testing.T) {
 		cli.EnableJSONOutput()
 		defer cli.EnableHumanOutput()
-		cliJSONOutput := captureOutput(func() {
+		cliJSONOutput := capturer.CaptureOutput(func() {
 			assert.Nil(t, cliListGcpProjectsAndOrgs(new(api.GcpIntegrationsResponse)))
 		})
 		expectedJSON := `{
@@ -154,7 +155,7 @@ func TestCliListGcpListProjectsAndOrgsWithoutData(t *testing.T) {
 }
 
 func TestCliListGcpListProjectsAndOrgsWithDataEnabled(t *testing.T) {
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, cliListGcpProjectsAndOrgs(mockGcpIntegrationsResponse(1, 1, 1)))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
@@ -169,7 +170,7 @@ func TestCliListGcpListProjectsAndOrgsWithDataEnabled(t *testing.T) {
 }
 
 func TestCliListGcpListProjectsAndOrgsWithDataDisabled(t *testing.T) {
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, cliListGcpProjectsAndOrgs(mockGcpIntegrationsResponse(0, 0, 1)))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!

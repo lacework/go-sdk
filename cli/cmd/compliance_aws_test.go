@@ -25,12 +25,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/capturer"
 )
 
 func TestCliListAwsAccountsWithNoAccounts(t *testing.T) {
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, cliListAwsAccounts(new(api.AwsIntegrationsResponse)))
 	})
 	assert.Contains(t, cliOutput, "There are no AWS accounts configured in your account.")
@@ -38,7 +40,7 @@ func TestCliListAwsAccountsWithNoAccounts(t *testing.T) {
 	t.Run("test JSON output", func(t *testing.T) {
 		cli.EnableJSONOutput()
 		defer cli.EnableHumanOutput()
-		cliJSONOutput := captureOutput(func() {
+		cliJSONOutput := capturer.CaptureOutput(func() {
 			assert.Nil(t, cliListAwsAccounts(new(api.AwsIntegrationsResponse)))
 		})
 		expectedJSON := `{
@@ -50,7 +52,7 @@ func TestCliListAwsAccountsWithNoAccounts(t *testing.T) {
 }
 
 func TestCliListAwsAccountsWithAccountsEnabled(t *testing.T) {
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, cliListAwsAccounts(mockAwsIntegrationsResponse(1, 1)))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
@@ -64,7 +66,7 @@ func TestCliListAwsAccountsWithAccountsEnabled(t *testing.T) {
 }
 
 func TestCliListAwsAccountsWithAccountsDisabled(t *testing.T) {
-	cliOutput := captureOutput(func() {
+	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, cliListAwsAccounts(mockAwsIntegrationsResponse(0, 0)))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
