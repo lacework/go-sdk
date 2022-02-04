@@ -58,6 +58,14 @@ func listAgents(_ *cobra.Command, _ []string) error {
 		return cli.OutputJSON(machines)
 	}
 
+	if len(machines) == 0 {
+		cli.OutputHuman(
+			"There are no agents running in your account.\n\nTry installing one with 'lacework agent install <host>%s'\n",
+			cli.OutputNonDefaultProfileFlag(),
+		)
+		return nil
+	}
+
 	cli.OutputHuman(
 		renderSimpleTable(
 			[]string{"MID", "Short Agent Token", "Hostname", "Name", "IP Address", "External IP", "OS Arch", "Last Checkin"},
