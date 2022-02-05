@@ -27,6 +27,10 @@ import (
 )
 
 func _TestGlobalFlagApiToken(t *testing.T) {
+	if os.Getenv("CI_STANDALONE_ACCOUNT") != "" {
+		t.Skip("skipping organizational account test")
+	}
+
 	// generating a token with toml config
 	token, err, exitcode := LaceworkCLIWithTOMLConfig("access-token")
 	assert.Contains(t, token.String(), "_", // @afiune tokens start with "_secret123"
@@ -39,7 +43,7 @@ func _TestGlobalFlagApiToken(t *testing.T) {
 
 		// running the Lacework CLI without toml config but with the token flag
 		out, err, exitcode := LaceworkCLI("int", "list",
-			"--api_token", strings.Trim(token.String(), "\n"), "--account", os.Getenv("CI_ACCOUNT"))
+			"--api_token", strings.Trim(token.String(), "\n"), "--account", os.Getenv("CI_SUBACCOUNT"))
 		assert.Contains(t, out.String(), "INTEGRATION GUID")
 		assert.Empty(t, err.String(), "STDERR should be empty")
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
