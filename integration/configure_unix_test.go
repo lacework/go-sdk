@@ -90,7 +90,7 @@ func TestConfigureCommandForOrgAdmins(t *testing.T) {
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Account:")
-			c.SendLine(os.Getenv("CI_V2_ACCOUNT"))
+			c.SendLine(os.Getenv("CI_ACCOUNT"))
 			c.ExpectString("Access Key ID:")
 			c.SendLine(os.Getenv("CI_API_KEY"))
 			c.ExpectString("Secret Access Key:")
@@ -99,15 +99,15 @@ func TestConfigureCommandForOrgAdmins(t *testing.T) {
 			c.ExpectString("(Org Admins) Managing a sub-account?")
 			// @afiune this is needed just because we have two accounts that start exactly the same
 			// and so, we need to key in ARROW DOWN to chose the right one.
-			c.SendLine(fmt.Sprintf("%s\x1B[B", os.Getenv("CI_ACCOUNT")))
+			c.SendLine(fmt.Sprintf("%s\x1B[B", os.Getenv("CI_SUBACCOUNT")))
 			c.ExpectString("You are all set!")
 		},
 		"configure",
 	)
 
 	assert.Equal(t, `[default]
-  account = "`+os.Getenv("CI_V2_ACCOUNT")+`"
-  subaccount = "`+os.Getenv("CI_ACCOUNT")+`"
+  account = "`+os.Getenv("CI_ACCOUNT")+`"
+  subaccount = "`+os.Getenv("CI_SUBACCOUNT")+`"
   api_key = "`+os.Getenv("CI_API_KEY")+`"
   api_secret = "`+os.Getenv("CI_API_SECRET")+`"
   version = 2
