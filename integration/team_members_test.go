@@ -57,11 +57,10 @@ func TestCreateTeamMember(t *testing.T) {
 		"tm",
 		"create")
 
-	assert.Equal(t, expectedOutput, strings.TrimSpace(tmResult))
+	assert.Contains(t, expectedOutput, strings.TrimSpace(tmResult))
 }
 
 func TestTeamMemberValidateEmail(t *testing.T) {
-	// Tempdir for test
 	dir, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
 		panic(err)
@@ -78,7 +77,7 @@ func TestTeamMemberValidateEmail(t *testing.T) {
 		"tm",
 		"create")
 
-	assert.Equal(t, "X Sorry, your reply was invalid: not a valid email invalid", strings.TrimSpace(tmResult))
+	assert.Contains(t, "X Sorry, your reply was invalid: not a valid email invalid", strings.TrimSpace(tmResult))
 }
 
 func runTeamMembersTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
