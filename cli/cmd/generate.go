@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -527,22 +526,23 @@ func validateAwsSubAccounts(subaccounts []string) error {
 
 // create survey.Validator for string with regex
 func validateStringWithRegex(val interface{}, regex string, errorString string) error {
-	// the reflect value of the result
-	value := reflect.ValueOf(val)
+	switch value := val.(type) {
 
-	// if the value passed is not a string
-	if value.Kind() != reflect.String {
+	case string:
+		// if value doesn't match regex, return invalid arn
+		ok, err := regexp.MatchString(regex, value)
+		if err != nil {
+			return errors.Wrap(err, "failed to validate input")
+		}
+
+		if !ok {
+			return errors.New(errorString)
+		}
+
+	default:
+		// if the value passed is not a string
 		return errors.New("value must be a string")
-	}
 
-	// if value doesn't match regex, return invalid arn
-	ok, err := regexp.MatchString(regex, value.String())
-	if err != nil {
-		return errors.Wrap(err, "failed to validate input")
-	}
-
-	if !ok {
-		return errors.New(errorString)
 	}
 
 	return nil
@@ -550,17 +550,18 @@ func validateStringWithRegex(val interface{}, regex string, errorString string) 
 
 // Used to test if path supplied for output exists
 func validPathExists(val interface{}) error {
-	// the reflect value of the result
-	value := reflect.ValueOf(val)
+	switch value := val.(type) {
 
-	// if the value passed is not a string
-	if value.Kind() != reflect.String {
+	case string:
+		// Test if supplied path exists
+		if err := validateOutputLocation(value); err != nil {
+			return err
+		}
+
+	default:
+		// if the value passed is not a string
 		return errors.New("value must be a string")
-	}
 
-	// Test if supplied path exists
-	if err := validateOutputLocation(value.String()); err != nil {
-		return err
 	}
 
 	return nil
