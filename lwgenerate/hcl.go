@@ -180,6 +180,22 @@ func convertTypeToCty(value interface{}) (cty.Value, error) {
 			valueMap[key] = cty.StringVal(val)
 		}
 		return cty.MapVal(valueMap), nil
+	case []string:
+		valueSlice := []cty.Value{}
+		for _, s := range v {
+			valueSlice = append(valueSlice, cty.StringVal(s))
+		}
+		return cty.ListVal(valueSlice), nil
+	case []interface{}:
+		valueSlice := []cty.Value{}
+		for _, i := range v {
+			newVal, err := convertTypeToCty(i)
+			if err != nil {
+				return cty.Value{}, err
+			}
+			valueSlice = append(valueSlice, newVal)
+		}
+		return cty.TupleVal(valueSlice), nil
 	default:
 		return cty.NilVal, errors.New("unknown attribute value type")
 	}
@@ -189,7 +205,6 @@ func convertTypeToCty(value interface{}) (cty.Value, error) {
 //
 // hclwrite.Block attributes use cty.Value or can be traversals, this function determines what type of value is being
 // used and builds the block accordingly
-// TODO @ipcrm future support lists
 func setBlockAttributeValue(block *hclwrite.Block, key string, val interface{}) error {
 	switch v := val.(type) {
 	case string, int, bool:
@@ -200,6 +215,18 @@ func setBlockAttributeValue(block *hclwrite.Block, key string, val interface{}) 
 		block.Body().SetAttributeValue(key, value)
 	case hcl.Traversal:
 		block.Body().SetAttributeTraversal(key, v)
+	case []string:
+		value, err := convertTypeToCty(v)
+		if err != nil {
+			return err
+		}
+		block.Body().SetAttributeValue(key, value)
+	case []interface{}:
+		value, err := convertTypeToCty(v)
+		if err != nil {
+			return err
+		}
+		block.Body().SetAttributeValue(key, value)
 	case map[string]interface{}:
 		data := map[string]cty.Value{}
 		for attrKey, attrVal := range v {
@@ -217,7 +244,7 @@ func setBlockAttributeValue(block *hclwrite.Block, key string, val interface{}) 
 		}
 		block.Body().SetAttributeValue(key, value)
 	default:
-		return errors.New("Unknown type")
+		return errors.New("unknown type")
 	}
 
 	return nil

@@ -33,6 +33,8 @@ func TestGenericBlockCreation(t *testing.T) {
 					Name: "value",
 				},
 			},
+			"i": []string{"one", "two", "three"},
+			"j": []interface{}{"one", 2, true},
 		},
 	)
 
@@ -45,6 +47,8 @@ func TestGenericBlockCreation(t *testing.T) {
 	assert.Equal(t, "c=false\n", string(data.Body().GetAttribute("c").BuildTokens(nil).Bytes()))
 	assert.Equal(t, "d={\n  e = true\n  f = 1\n  g = \"bar\"\n}\n", string(data.Body().GetAttribute("d").BuildTokens(nil).Bytes()))
 	assert.Equal(t, "h=module.example.value\n", string(data.Body().GetAttribute("h").BuildTokens(nil).Bytes()))
+	assert.Equal(t, "i=[\"one\", \"two\", \"three\"]\n", string(data.Body().GetAttribute("i").BuildTokens(nil).Bytes()))
+	assert.Equal(t, "j=[\"one\", 2, true]\n", string(data.Body().GetAttribute("j").BuildTokens(nil).Bytes()))
 }
 
 func TestModuleBlock(t *testing.T) {
