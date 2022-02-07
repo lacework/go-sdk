@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -26,7 +27,7 @@ func (a *AwsGenerateCommandExtraState) isEmpty() bool {
 	return a.Output == "" && !a.UseExistingCloudtrail && len(a.AwsSubAccounts) == 0 && !a.TerraformApply
 }
 
-// Flush current state of the struct to disk, provided its not empty
+// Flush current state of the struct to disk, provided it's not empty
 func (a *AwsGenerateCommandExtraState) writeCache() {
 	if !a.isEmpty() {
 		cli.WriteAssetToCache(CachedAssetAwsExtraState, time.Now().Add(time.Hour*1), a)
@@ -34,13 +35,14 @@ func (a *AwsGenerateCommandExtraState) writeCache() {
 }
 
 var (
-	QuestionRunTfPlan            = "Run Terraform plan now?"
-	QuestionUsePreviousCache     = "Previous IaC generation detected, load cached values?"
+	QuestionRunTfPlan        = "Run Terraform plan now?"
+	QuestionUsePreviousCache = "Previous IaC generation detected, load cached values?"
+
 	GenerateAwsCommandState      = &aws.GenerateAwsTfConfigurationArgs{}
 	GenerateAwsExistingRoleState = &aws.ExistingIamRoleDetails{}
 	GenerateAwsCommandExtraState = &AwsGenerateCommandExtraState{}
 	ValidateSubAccountFlagRegex  = fmt.Sprintf(`%s:%s`, AwsProfileRegex, AwsRegionRegex)
-	CachedAssetIacParams         = "iac-aws-generate-params"
+	CachedAwsAssetIacParams      = "iac-aws-generate-params"
 	CachedAssetAwsExtraState     = "iac-aws-extra-state"
 
 	// iac-generate command is used to create IaC code for various environments
@@ -118,7 +120,7 @@ This command can also be run in noninteractive mode. See help output for more de
 				return errors.Wrap(err, "failed to parse output location")
 			}
 
-			ok, err := writeHclOutputPrecheck(dirname)
+			ok, err := writeHclOutputPreCheck(dirname)
 			if err != nil {
 				return errors.Wrap(err, "failed to validate output location")
 			}
@@ -129,7 +131,7 @@ This command can also be run in noninteractive mode. See help output for more de
 
 			location, err := writeHclOutput(hcl, dirname)
 			if err != nil {
-				return errors.Wrap(err, "failed to write terrraform code to disk")
+				return errors.Wrap(err, "failed to write terraform code to disk")
 			}
 
 			// Prompt to execute
@@ -139,7 +141,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			})
 
 			if err != nil {
-				return errors.Wrap(err, "failed to promopt for terraform execution")
+				return errors.Wrap(err, "failed to prompt for terraform execution")
 			}
 
 			// Execute
@@ -208,7 +210,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			// Load any cached inputs if interactive
 			if cli.InteractiveMode() {
 				cachedOptions := &aws.GenerateAwsTfConfigurationArgs{}
-				iacParamsExpired := cli.ReadCachedAsset(CachedAssetIacParams, &cachedOptions)
+				iacParamsExpired := cli.ReadCachedAsset(CachedAwsAssetIacParams, &cachedOptions)
 				if iacParamsExpired {
 					cli.Log.Debug("loaded previously set values for AWS iac generation")
 				}
@@ -223,7 +225,7 @@ This command can also be run in noninteractive mode. See help output for more de
 				answer := false
 				if !iacParamsExpired || !extraStateParamsExpired {
 					if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-						Prompt:   &survey.Confirm{Message: QuestionUsePreviousCache, Default: answer},
+						Prompt:   &survey.Confirm{Message: QuestionUsePreviousCache, Default: false},
 						Response: &answer,
 					}); err != nil {
 						return errors.Wrap(err, "failed to load saved options")
@@ -232,7 +234,7 @@ This command can also be run in noninteractive mode. See help output for more de
 
 				// If the user decides NOT to use the previous values; we won't load them.  However, every time the command runs
 				// we are going to write out new cached values, so if they run it - bail out - and run it again they'll get
-				// reprompted.
+				// re-prompted.
 				if answer {
 					// Merge cached inputs to current options (current options win)
 					if err := mergo.Merge(GenerateAwsCommandState, cachedOptions); err != nil {
@@ -353,7 +355,7 @@ type SurveyQuestionWithValidationArgs struct {
 	Required bool
 }
 
-// Prompt use for question, only if the CLI is in interactive mode
+// SurveyQuestionInteractiveOnly Prompt use for question, only if the CLI is in interactive mode
 func SurveyQuestionInteractiveOnly(question SurveyQuestionWithValidationArgs) error {
 	// Do validations pass?
 	ok := true
@@ -387,7 +389,7 @@ func SurveyQuestionInteractiveOnly(question SurveyQuestionWithValidationArgs) er
 	return nil
 }
 
-// Prompt for many values at once
+// SurveyMultipleQuestionWithValidation Prompt for many values at once
 //
 // checks: If supplied check(s) are true, questions will be asked
 func SurveyMultipleQuestionWithValidation(questions []SurveyQuestionWithValidationArgs, checks ...bool) error {
@@ -427,8 +429,8 @@ func determineOutputDirPath(location string) (string, error) {
 	return filepath.FromSlash(fmt.Sprintf("%s/%s", dirname, "lacework")), nil
 }
 
-// Prompt for confirmation if main.tf already exists; return true to continue
-func writeHclOutputPrecheck(outputLocation string) (bool, error) {
+// writeHclOutputPreCheck Prompt for confirmation if main.tf already exists; return true to continue
+func writeHclOutputPreCheck(outputLocation string) (bool, error) {
 	// If noninteractive, continue
 	if !cli.InteractiveMode() {
 		return true, nil
@@ -458,7 +460,7 @@ func writeHclOutputPrecheck(outputLocation string) (bool, error) {
 	return answer, nil
 }
 
-// Write HCL output
+// writeHclOutput Write HCL output
 func writeHclOutput(hcl string, location string) (string, error) {
 	// Determine write location
 	dirname, err := determineOutputDirPath(location)
@@ -492,7 +494,7 @@ func writeHclOutput(hcl string, location string) (string, error) {
 	return outputLocation, nil
 }
 
-// This function used to validate provided output location exists and is a directory
+// validateOutputLocation This function used to validate provided output location exists and is a directory
 func validateOutputLocation(dirname string) error {
 	// If output location was supplied, validate it exists
 	if dirname != "" {
@@ -518,6 +520,47 @@ func validateAwsSubAccounts(subaccounts []string) error {
 			}
 			return errors.New("supplied aws subaccount in invalid format")
 		}
+	}
+
+	return nil
+}
+
+// create survey.Validator for string with regex
+func validateStringWithRegex(val interface{}, regex string, errorString string) error {
+	// the reflect value of the result
+	value := reflect.ValueOf(val)
+
+	// if the value passed is not a string
+	if value.Kind() != reflect.String {
+		return errors.New("value must be a string")
+	}
+
+	// if value doesn't match regex, return invalid arn
+	ok, err := regexp.MatchString(regex, value.String())
+	if err != nil {
+		return errors.Wrap(err, "failed to validate input")
+	}
+
+	if !ok {
+		return errors.New(errorString)
+	}
+
+	return nil
+}
+
+// Used to test if path supplied for output exists
+func validPathExists(val interface{}) error {
+	// the reflect value of the result
+	value := reflect.ValueOf(val)
+
+	// if the value passed is not a string
+	if value.Kind() != reflect.String {
+		return errors.New("value must be a string")
+	}
+
+	// Test if supplied path exists
+	if err := validateOutputLocation(value.String()); err != nil {
+		return err
 	}
 
 	return nil
