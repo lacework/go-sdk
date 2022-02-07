@@ -1,4 +1,4 @@
-//go:build team_members
+//go:build !windows && team_members
 
 // Author:: Darren Murray (<darren.murray@lacework.net>)
 // Copyright:: Copyright 2022, Lacework Inc.
@@ -32,14 +32,13 @@ import (
 )
 
 func TestCreateTeamMember(t *testing.T) {
-	// Tempdir for test
 	dir, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
 		panic(err)
 	}
 	defer os.RemoveAll(dir)
 
-	tmResult := runTeamMembersTest(t,
+	tmResult, err := runTeamMembersTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Email:")
 			c.SendLine("test.user@email.com")
@@ -53,6 +52,7 @@ func TestCreateTeamMember(t *testing.T) {
 			c.SendLine("N")
 			c.ExpectString("Account Admin?")
 			c.SendLine("N")
+			c.Close()
 		},
 		"tm",
 		"create")
@@ -67,7 +67,7 @@ func TestTeamMemberValidateEmail(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	tmResult := runTeamMembersTest(t,
+	tmResult, err := runTeamMembersTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("Email:")
 			c.SendLine("invalid")
@@ -80,7 +80,7 @@ func TestTeamMemberValidateEmail(t *testing.T) {
 	assert.Contains(t, "X Sorry, your reply was invalid: not a valid email invalid", strings.TrimSpace(tmResult))
 }
 
-func runTeamMembersTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
+func runTeamMembersTest(t *testing.T, conditions func(*expect.Console), args ...string) (string, error) {
 	dir := createDummyTOMLConfig()
 	homeCache := os.Getenv("HOME")
 	os.Setenv("HOME", dir)
@@ -90,10 +90,10 @@ func runTeamMembersTest(t *testing.T, conditions func(*expect.Console), args ...
 	return runTeamMemberTestFromDir(t, dir, conditions, args...)
 }
 
-func runTeamMemberTestFromDir(t *testing.T, dir string, conditions func(*expect.Console), args ...string) string {
+func runTeamMemberTestFromDir(t *testing.T, dir string, conditions func(*expect.Console), args ...string) (string, error) {
 	console, state, err := vt10x.NewVT10XConsole()
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	defer console.Close()
 
@@ -117,7 +117,7 @@ func runTeamMemberTestFromDir(t *testing.T, dir string, conditions func(*expect.
 	console.Tty().Close()
 	<-donec
 
-	return state.String()
+	return state.String(), err
 }
 
 var expectedOutput = `▸ Email:  test.user@email.com                                                   
