@@ -281,6 +281,14 @@ func createAzureADProvider() ([]*hclwrite.Block, error) {
 	return blocks, nil
 }
 
+// In this we need to create a provider block with a  features
+// configuration but with nothing set,  this is as per the
+// Azure examples and is of the format
+//
+//         provider "azurerm" {
+//            features = {}
+//         }
+//
 func createAzureRMProvider() ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 	attrs := map[string]interface{}{}
