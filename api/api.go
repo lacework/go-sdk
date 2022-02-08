@@ -140,6 +140,10 @@ func (c *Client) ApiVersion() string {
 
 // apiPath builds a path by using the current API version
 func (c *Client) apiPath(p string) string {
+	if strings.HasPrefix(p, "/api/v") {
+		return p
+	}
+
 	if strings.HasPrefix(p, "v1") || strings.HasPrefix(p, "v2") {
 		return fmt.Sprintf("/api/%s", p)
 	}

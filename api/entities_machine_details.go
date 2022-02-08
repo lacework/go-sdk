@@ -36,9 +36,40 @@ func (svc *EntitiesService) ListMachineDetails() (response MachineDetailsRespons
 	return
 }
 
+// ListAllMachineDetails iterates over all pages to return all machine details at once
+func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsResponse, err error) {
+	response, err = svc.ListMachineDetails()
+	if err != nil {
+		return
+	}
+
+	allMachineDetails := []MachineDetails{}
+	for {
+		allMachineDetails = append(allMachineDetails, response.Data...)
+
+		pageOk, err := svc.client.V2.NextPage(&response)
+		if err == nil && pageOk {
+			continue
+		}
+		break
+	}
+
+	response.Data = allMachineDetails
+	response.ResetPaging()
+	return
+}
+
 type MachineDetailsResponse struct {
-	Data []MachineDetails `json:"data"`
-	// Pagination V2Pagination `json:"paging"`
+	Data   []MachineDetails `json:"data"`
+	Paging V2Pagination     `json:"paging"`
+}
+
+// Fulfill Pagination interface (look at api/v2.go)
+func (r MachineDetailsResponse) PageInfo() *V2Pagination {
+	return &r.Paging
+}
+func (r *MachineDetailsResponse) ResetPaging() {
+	r.Paging = V2Pagination{}
 }
 
 type MachineDetails struct {

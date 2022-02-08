@@ -40,7 +40,7 @@ var (
 
 func listAgents(_ *cobra.Command, _ []string) error {
 	cli.StartProgress("Fetching list of agents...")
-	response, err := cli.LwApi.V2.Entities.ListMachineDetails()
+	response, err := cli.LwApi.V2.Entities.ListAllMachineDetails()
 	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to list agents via MachineDetails search")

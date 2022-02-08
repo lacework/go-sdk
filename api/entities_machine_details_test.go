@@ -57,6 +57,78 @@ func TestEntities_MachineDetails_Search(t *testing.T) {
 	}
 }
 
+func TestEntities_MachineDetails_List(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Entities/MachineDetails/search",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method, "Search() should be a POST method")
+			fmt.Fprintf(w, mockPaginationResponsePage1())
+		},
+	)
+	fakeServer.MockAPI("NextPage/vuln/containers/abc123",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "NextPage() should be a GET method")
+			fmt.Fprintf(w, mockPaginationResponsePage2())
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response, err := c.V2.Entities.ListMachineDetails()
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	// only one since all pages would be two
+	if assert.Equal(t, 1, len(response.Data)) {
+		assert.Equal(t, "mock-1-hostname", response.Data[0].Hostname)
+		assert.Equal(t,
+			"https://account.lacework.net/api/v2/NextPage/vuln/containers/abc123",
+			response.Paging.Urls.NextPage)
+	}
+}
+
+func TestEntities_MachineDetails_List_All(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Entities/MachineDetails/search",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method, "Search() should be a POST method")
+			fmt.Fprintf(w, mockPaginationResponsePage1())
+		},
+	)
+	fakeServer.MockAPI("NextPage/vuln/containers/abc123",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "NextPage() should be a GET method")
+			fmt.Fprintf(w, mockPaginationResponsePage2())
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response, err := c.V2.Entities.ListAllMachineDetails()
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	if assert.Equal(t, 2, len(response.Data)) {
+		assert.Equal(t, "mock-1-hostname", response.Data[0].Hostname)
+		assert.Equal(t, "mock-2-hostname", response.Data[1].Hostname)
+		assert.Empty(t, response.Paging, "paging should be empty")
+	}
+}
+
 func mockMachineDetailsResponse() string {
 	return `
 {

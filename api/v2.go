@@ -18,6 +18,12 @@
 
 package api
 
+import (
+	"net/url"
+
+	"github.com/pkg/errors"
+)
+
 // V2Endpoints groups all APIv2 endpoints available, they are grouped by
 // schema which matches with our service architecture
 type V2Endpoints struct {
@@ -80,4 +86,73 @@ type V2Service interface {
 
 type V2CommonIntegration struct {
 	Data v2CommonIntegrationData `json:"data"`
+}
+
+type V2Pagination struct {
+	Rows      int `json:"rows"`
+	TotalRows int `json:"totalRows"`
+	Urls      struct {
+		NextPage string `json:"nextPage"`
+	} `json:"urls"`
+}
+
+// Pagination is the interface that structs should implement to be able
+// to use inside the client.V2.NextPage() function
+type Pagination interface {
+	PageInfo() *V2Pagination
+	ResetPaging()
+}
+
+// NextPage
+//
+// Use this function to access the next page from an API v2 endpoint, the provided
+// response must implement the Pagination interface and when it is passed, it will
+// be overwritten, if the response doesn't have paging information this function
+// returns false and not error
+//
+// Usage: To iterate over all pages
+//
+// ```go
+// var (
+// 		response = api.MachineDetailsResponse{}
+// 		err      = client.V2.Entities.Search(&response, api.SearchFilter{})
+// )
+//
+// for {
+// 		// Use information from response.Data
+// 		fmt.Printf("Data from page: %d\n", len(response.Data))
+//
+// 		pageOk, err := client.V2.NextPage(&response)
+// 		if err != nil {
+// 			fmt.Printf("Unable to access next page, error '%s'", err.Error())
+// 			break
+// 		}
+//
+// 		if pageOk {
+// 			continue
+// 		}
+// 		break
+// }
+// ```
+func (v2 *V2Endpoints) NextPage(p Pagination) (bool, error) {
+	if p == nil {
+		return false, nil
+	}
+	pagination := p.PageInfo()
+	if pagination == nil {
+		return false, nil
+	}
+
+	if pagination.Urls.NextPage == "" {
+		return false, nil
+	}
+
+	pageURL, err := url.Parse(pagination.Urls.NextPage)
+	if err != nil {
+		return false, errors.Wrap(err, "unable to part next page url")
+	}
+
+	p.ResetPaging()
+	err = v2.client.RequestDecoder("GET", pageURL.Path, nil, p)
+	return true, err
 }
