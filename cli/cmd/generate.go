@@ -41,7 +41,6 @@ var (
 		Short:   "Create IaC code",
 		Long:    "Create IaC content for various different cloud environments and configurations",
 	}
-
 )
 
 func init() {
