@@ -24,9 +24,9 @@ func main() {
 		// Output: Rows read: 5000
 		// Output: Rows read: 5000
 		// Output: Rows read: 21
-		fmt.Printf("Rows read: %d", response.Paging.Rows)
+		fmt.Printf("Rows read: %d\n", response.Paging.Rows)
 
-		pageOk, err := lacework.V2.NextPage(&response)
+		pageOk, err := lacework.NextPage(&response)
 		if err == nil && pageOk {
 			continue
 		}

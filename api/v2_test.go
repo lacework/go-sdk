@@ -66,7 +66,7 @@ func TestPagination(t *testing.T) {
 	})
 
 	t.Run("Access Page Two", func(t *testing.T) {
-		pageOk, err := c.V2.NextPage(&response)
+		pageOk, err := c.NextPage(&response)
 		if assert.True(t, pageOk) && assert.NoError(t, err) {
 			if assert.Equal(t, 1, len(response.Data)) {
 				assert.Equal(t, "mock-2-hostname", response.Data[0].Hostname)
@@ -75,7 +75,7 @@ func TestPagination(t *testing.T) {
 	})
 
 	t.Run("Access Page Three - should NOT exist", func(t *testing.T) {
-		pageOk, err := c.V2.NextPage(&response)
+		pageOk, err := c.NextPage(&response)
 		assert.False(t, pageOk)
 		assert.NoError(t, err)
 	})
@@ -86,7 +86,7 @@ func TestPagination(t *testing.T) {
 		assert.NoError(t, err)
 		for {
 			listHosts = append(listHosts, response.Data[0].Hostname)
-			pageOk, err := c.V2.NextPage(&response)
+			pageOk, err := c.NextPage(&response)
 			if err != nil {
 				t.Fail()
 				t.Logf("Expected no errors, got '%s'", err.Error())
@@ -126,7 +126,7 @@ func TestPaginationWithoutInfo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 
-	pageOk, err := c.V2.NextPage(&response)
+	pageOk, err := c.NextPage(&response)
 	assert.False(t, pageOk, "a request without paging information should return pageOk false")
 	assert.NoError(t, err, "a request without paging information should not error")
 }

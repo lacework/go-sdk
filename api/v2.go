@@ -22,6 +22,7 @@ import (
 	"net/url"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 // V2Endpoints groups all APIv2 endpoints available, they are grouped by
@@ -97,7 +98,7 @@ type V2Pagination struct {
 }
 
 // Pagination is the interface that structs should implement to be able
-// to use inside the client.V2.NextPage() function
+// to use inside the client.NextPage() function
 type Pagination interface {
 	PageInfo() *V2Pagination
 	ResetPaging()
@@ -122,7 +123,7 @@ type Pagination interface {
 // 		// Use information from response.Data
 // 		fmt.Printf("Data from page: %d\n", len(response.Data))
 //
-// 		pageOk, err := client.V2.NextPage(&response)
+// 		pageOk, err := client.NextPage(&response)
 // 		if err != nil {
 // 			fmt.Printf("Unable to access next page, error '%s'", err.Error())
 // 			break
@@ -134,15 +135,20 @@ type Pagination interface {
 // 		break
 // }
 // ```
-func (v2 *V2Endpoints) NextPage(p Pagination) (bool, error) {
+func (c *Client) NextPage(p Pagination) (bool, error) {
 	if p == nil {
 		return false, nil
 	}
 	pagination := p.PageInfo()
 	if pagination == nil {
+		c.log.Info("pagination information not found")
 		return false, nil
 	}
 
+	c.log.Info("pagination", zap.Int("rows", pagination.Rows),
+		zap.Int("total_rows", pagination.TotalRows),
+		zap.String("next_page", pagination.Urls.NextPage),
+	)
 	if pagination.Urls.NextPage == "" {
 		return false, nil
 	}
@@ -153,6 +159,7 @@ func (v2 *V2Endpoints) NextPage(p Pagination) (bool, error) {
 	}
 
 	p.ResetPaging()
-	err = v2.client.RequestDecoder("GET", pageURL.Path, nil, p)
+	c.log.Info("pagination reset")
+	err = c.RequestDecoder("GET", pageURL.Path, nil, p)
 	return true, err
 }

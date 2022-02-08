@@ -47,7 +47,7 @@ func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsResp
 	for {
 		allMachineDetails = append(allMachineDetails, response.Data...)
 
-		pageOk, err := svc.client.V2.NextPage(&response)
+		pageOk, err := svc.client.NextPage(&response)
 		if err == nil && pageOk {
 			continue
 		}
