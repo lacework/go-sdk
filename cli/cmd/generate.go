@@ -527,7 +527,6 @@ func validateAwsSubAccounts(subaccounts []string) error {
 // create survey.Validator for string with regex
 func validateStringWithRegex(val interface{}, regex string, errorString string) error {
 	switch value := val.(type) {
-
 	case string:
 		// if value doesn't match regex, return invalid arn
 		ok, err := regexp.MatchString(regex, value)
@@ -538,11 +537,9 @@ func validateStringWithRegex(val interface{}, regex string, errorString string) 
 		if !ok {
 			return errors.New(errorString)
 		}
-
 	default:
 		// if the value passed is not a string
 		return errors.New("value must be a string")
-
 	}
 
 	return nil
@@ -551,17 +548,14 @@ func validateStringWithRegex(val interface{}, regex string, errorString string) 
 // Used to test if path supplied for output exists
 func validPathExists(val interface{}) error {
 	switch value := val.(type) {
-
 	case string:
 		// Test if supplied path exists
 		if err := validateOutputLocation(value); err != nil {
 			return err
 		}
-
 	default:
 		// if the value passed is not a string
 		return errors.New("value must be a string")
-
 	}
 
 	return nil
