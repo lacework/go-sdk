@@ -75,8 +75,8 @@ func listAgents(_ *cobra.Command, _ []string) error {
 	return nil
 }
 
-func cleanDuplicateMachine(machines []api.MachineDetails) []api.MachineDetails {
-	var cleanedMachines []api.MachineDetails
+func cleanDuplicateMachine(machines []api.MachineDetailEntity) []api.MachineDetailEntity {
+	var cleanedMachines []api.MachineDetailEntity
 
 	for _, m := range machines {
 		if machineExist(cleanedMachines, m.Mid) {
@@ -88,7 +88,7 @@ func cleanDuplicateMachine(machines []api.MachineDetails) []api.MachineDetails {
 	return cleanedMachines
 }
 
-func machineExist(machines []api.MachineDetails, mid int) bool {
+func machineExist(machines []api.MachineDetailEntity, mid int) bool {
 	for _, m := range machines {
 		if mid == m.Mid {
 			return true
@@ -97,7 +97,7 @@ func machineExist(machines []api.MachineDetails, mid int) bool {
 	return false
 }
 
-func machineDetailsToListAgentTable(machines []api.MachineDetails) [][]string {
+func machineDetailsToListAgentTable(machines []api.MachineDetailEntity) [][]string {
 	out := [][]string{}
 	for _, m := range machines {
 		out = append(out, []string{

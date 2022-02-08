@@ -28,19 +28,36 @@ type EntitiesService struct {
 	client *Client
 }
 
+type entityType int
+
+const (
+	NoneEntityType entityType = iota
+	MachineDetailsEntityType
+	UserEntityType
+)
+
+// EntityTypes is the list of available entity types
+var EntityTypes = map[entityType]string{
+	NoneEntityType:           "None",
+	MachineDetailsEntityType: "MachineDetails",
+	UserEntityType:           "Users",
+}
+
 // Search expects the response and the search filters
 //
 // e.g.
 //
-//   response := api.MachineDetailsResponse{}
+//   response := api.MachineDetailEntityResponse{}
 //   lacework.V2.Entities.Search(response, api.SearchFilter{})
 //
 func (svc *EntitiesService) Search(response interface{}, filters SearchFilter) error {
 	var apiPath string
 
 	switch response.(type) {
-	case *MachineDetailsResponse:
-		apiPath = fmt.Sprintf(apiV2EntitiesSearch, "MachineDetails")
+	case *MachineDetailEntityResponse:
+		apiPath = fmt.Sprintf(apiV2EntitiesSearch, EntityTypes[MachineDetailsEntityType])
+	case *UserEntityResponse:
+		apiPath = fmt.Sprintf(apiV2EntitiesSearch, EntityTypes[UserEntityType])
 	default:
 		return errors.New("missing implementation for the provided entity response")
 	}

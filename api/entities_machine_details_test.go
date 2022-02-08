@@ -48,7 +48,7 @@ func TestEntities_MachineDetails_Search(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	response := api.MachineDetailsResponse{}
+	response := api.MachineDetailEntityResponse{}
 	err = c.V2.Entities.Search(&response, api.SearchFilter{})
 	assert.NoError(t, err)
 	assert.NotNil(t, response)

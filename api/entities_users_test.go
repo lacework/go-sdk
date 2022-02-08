@@ -29,14 +29,14 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestEntities_Search(t *testing.T) {
+func TestEntities_Users_List(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
-	fakeServer.MockAPI("Entities/MachineDetails/search",
+	fakeServer.MockAPI("Entities/Users/search",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method, "Search() should be a POST method")
-			fmt.Fprintf(w, `{"data":[]}`)
+			fmt.Fprintf(w, mockUserEntityResponse())
 		},
 	)
 	defer fakeServer.Close()
@@ -48,22 +48,37 @@ func TestEntities_Search(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	response := api.MachineDetailEntityResponse{}
-	err = c.V2.Entities.Search(&response, api.SearchFilter{})
+	response, err := c.V2.Entities.ListUsers()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
-	assert.Equal(t, 0, len(response.Data))
+	// only one since all pages would be two
+	if assert.Equal(t, 1, len(response.Data)) {
+		assert.Equal(t, "systemd-network", response.Data[0].PrimaryGroupName)
+	}
 }
 
-func TestEntities_SearchUnknownEntity(t *testing.T) {
-	c, err := api.NewClient("test",
-		api.WithApiV2(),
-		api.WithToken("TOKEN"),
-	)
-	assert.NoError(t, err)
-
-	type MockInvalidEntityResponse struct{}
-	response := MockInvalidEntityResponse{}
-	err = c.V2.Entities.Search(&response, api.SearchFilter{})
-	assert.Error(t, err)
+func mockUserEntityResponse() string {
+	return `
+{
+  "data": [
+    {
+      "createdTime": "2022-02-08T10:03:08.459Z",
+      "mid": 51,
+      "otherGroupNames": [
+        "systemd-network"
+      ],
+      "primaryGroupName": "systemd-network",
+      "uid": 100,
+      "username": "systemd-network"
+    }
+  ],
+  "paging": {
+    "rows": 1,
+    "totalRows": 1,
+    "urls": {
+      "nextPage": null
+    }
+  }
+}
+	`
 }

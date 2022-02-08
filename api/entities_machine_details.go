@@ -22,8 +22,8 @@ import (
 	"time"
 )
 
-// ListMachineDetails returns a list of MachineDetails from the last 7 days
-func (svc *EntitiesService) ListMachineDetails() (response MachineDetailsResponse, err error) {
+// ListMachineDetails returns a list of MachineDetailEntity from the last 7 days
+func (svc *EntitiesService) ListMachineDetails() (response MachineDetailEntityResponse, err error) {
 	now := time.Now().UTC()
 	err = svc.Search(&response,
 		SearchFilter{
@@ -37,13 +37,13 @@ func (svc *EntitiesService) ListMachineDetails() (response MachineDetailsRespons
 }
 
 // ListAllMachineDetails iterates over all pages to return all machine details at once
-func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsResponse, err error) {
+func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailEntityResponse, err error) {
 	response, err = svc.ListMachineDetails()
 	if err != nil {
 		return
 	}
 
-	allMachineDetails := []MachineDetails{}
+	allMachineDetails := []MachineDetailEntity{}
 	for {
 		allMachineDetails = append(allMachineDetails, response.Data...)
 
@@ -59,20 +59,20 @@ func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsResp
 	return
 }
 
-type MachineDetailsResponse struct {
-	Data   []MachineDetails `json:"data"`
-	Paging V2Pagination     `json:"paging"`
+type MachineDetailEntityResponse struct {
+	Data   []MachineDetailEntity `json:"data"`
+	Paging V2Pagination          `json:"paging"`
 }
 
 // Fulfill Pagination interface (look at api/v2.go)
-func (r MachineDetailsResponse) PageInfo() *V2Pagination {
+func (r MachineDetailEntityResponse) PageInfo() *V2Pagination {
 	return &r.Paging
 }
-func (r *MachineDetailsResponse) ResetPaging() {
+func (r *MachineDetailEntityResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
 }
 
-type MachineDetails struct {
+type MachineDetailEntity struct {
 	AwsInstanceID string    `json:"awsInstanceId"`
 	AwsZone       string    `json:"awsZone"`
 	CreatedTime   time.Time `json:"createdTime"`
