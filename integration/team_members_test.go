@@ -32,6 +32,8 @@ import (
 )
 
 func TestCreateTeamMember(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
 	dir, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
 		panic(err)
@@ -51,7 +53,6 @@ func TestCreateTeamMember(t *testing.T) {
 			c.ExpectString("Create at Organization Level?")
 			c.SendLine("N")
 			c.ExpectString("Account Admin?")
-			c.SendLine("N")
 			c.Close()
 		},
 		"tm",
@@ -61,6 +62,8 @@ func TestCreateTeamMember(t *testing.T) {
 }
 
 func TestTeamMemberValidateEmail(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
 	dir, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
 		panic(err)
@@ -84,6 +87,7 @@ func runTeamMembersTest(t *testing.T, conditions func(*expect.Console), args ...
 	dir := createDummyTOMLConfig()
 	homeCache := os.Getenv("HOME")
 	os.Setenv("HOME", dir)
+	os.Setenv("api_token", "test")
 	defer os.Setenv("HOME", homeCache)
 	defer os.RemoveAll(dir)
 
