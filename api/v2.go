@@ -115,7 +115,7 @@ type Pagination interface {
 //
 // ```go
 // var (
-// 		response = api.MachineDetailsResponse{}
+// 		response = api.MachineDetailEntityResponse{}
 // 		err      = client.V2.Entities.Search(&response, api.SearchFilter{})
 // )
 //

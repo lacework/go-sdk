@@ -51,7 +51,33 @@ func TestEntities_Users_List(t *testing.T) {
 	response, err := c.V2.Entities.ListUsers()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
-	// only one since all pages would be two
+	if assert.Equal(t, 1, len(response.Data)) {
+		assert.Equal(t, "systemd-network", response.Data[0].PrimaryGroupName)
+	}
+}
+
+func TestEntities_Users_List_All(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Entities/Users/search",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method, "Search() should be a POST method")
+			fmt.Fprintf(w, mockUserEntityResponse())
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response, err := c.V2.Entities.ListAllUsers()
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
 	if assert.Equal(t, 1, len(response.Data)) {
 		assert.Equal(t, "systemd-network", response.Data[0].PrimaryGroupName)
 	}

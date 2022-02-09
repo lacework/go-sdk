@@ -23,7 +23,7 @@ import (
 )
 
 // ListMachineDetails returns a list of MachineDetailEntity from the last 7 days
-func (svc *EntitiesService) ListMachineDetails() (response MachineDetailEntityResponse, err error) {
+func (svc *EntitiesService) ListMachineDetails() (response MachineDetailsEntityResponse, err error) {
 	now := time.Now().UTC()
 	err = svc.Search(&response,
 		SearchFilter{
@@ -37,7 +37,7 @@ func (svc *EntitiesService) ListMachineDetails() (response MachineDetailEntityRe
 }
 
 // ListAllMachineDetails iterates over all pages to return all machine details at once
-func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailEntityResponse, err error) {
+func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsEntityResponse, err error) {
 	response, err = svc.ListMachineDetails()
 	if err != nil {
 		return
@@ -59,16 +59,16 @@ func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailEntit
 	return
 }
 
-type MachineDetailEntityResponse struct {
+type MachineDetailsEntityResponse struct {
 	Data   []MachineDetailEntity `json:"data"`
 	Paging V2Pagination          `json:"paging"`
 }
 
-// Fulfill Pagination interface (look at api/v2.go)
-func (r MachineDetailEntityResponse) PageInfo() *V2Pagination {
+// Fulfill Pageable interface (look at api/v2.go)
+func (r MachineDetailsEntityResponse) PageInfo() *V2Pagination {
 	return &r.Paging
 }
-func (r *MachineDetailEntityResponse) ResetPaging() {
+func (r *MachineDetailsEntityResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
 }
 

@@ -21,7 +21,7 @@ package api
 import "time"
 
 // ListUsers returns a list of UserEntity from the last 7 days
-func (svc *EntitiesService) ListUsers() (response UserEntityResponse, err error) {
+func (svc *EntitiesService) ListUsers() (response UsersEntityResponse, err error) {
 	now := time.Now().UTC()
 	err = svc.Search(&response,
 		SearchFilter{
@@ -34,16 +34,39 @@ func (svc *EntitiesService) ListUsers() (response UserEntityResponse, err error)
 	return
 }
 
-type UserEntityResponse struct {
+// ListAllUsers iterates over all pages to return all user information at once
+func (svc *EntitiesService) ListAllUsers() (response UsersEntityResponse, err error) {
+	response, err = svc.ListUsers()
+	if err != nil {
+		return
+	}
+
+	allUsers := []UserEntity{}
+	for {
+		allUsers = append(allUsers, response.Data...)
+
+		pageOk, err := svc.client.NextPage(&response)
+		if err == nil && pageOk {
+			continue
+		}
+		break
+	}
+
+	response.Data = allUsers
+	response.ResetPaging()
+	return
+}
+
+type UsersEntityResponse struct {
 	Data   []UserEntity `json:"data"`
 	Paging V2Pagination `json:"paging"`
 }
 
 // Fulfill Pagination interface (look at api/v2.go)
-func (r UserEntityResponse) PageInfo() *V2Pagination {
+func (r UsersEntityResponse) PageInfo() *V2Pagination {
 	return &r.Paging
 }
-func (r *UserEntityResponse) ResetPaging() {
+func (r *UsersEntityResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
 }
 

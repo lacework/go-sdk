@@ -28,36 +28,52 @@ type EntitiesService struct {
 	client *Client
 }
 
-type entityType int
+type EntityType int
 
 const (
-	NoneEntityType entityType = iota
+	NoneEntityType EntityType = iota
 	MachineDetailsEntityType
-	UserEntityType
+	UsersEntityType
+	ImagesEntityType
 )
 
 // EntityTypes is the list of available entity types
-var EntityTypes = map[entityType]string{
+var EntityTypes = map[EntityType]string{
 	NoneEntityType:           "None",
 	MachineDetailsEntityType: "MachineDetails",
-	UserEntityType:           "Users",
+	UsersEntityType:          "Users",
+	ImagesEntityType:         "Images",
 }
 
 // Search expects the response and the search filters
 //
 // e.g.
 //
-//   response := api.MachineDetailEntityResponse{}
-//   lacework.V2.Entities.Search(response, api.SearchFilter{})
+//   var (
+//       response = &api.MachineDetailsEntityResponse{}
+//       now      = time.Now().UTC()
+//       filters  = api.SearchFilter{
+//           TimeFilter: api.TimeFilter{
+//               StartTime: now.AddDate(0, 0, -7), // 7 days from ago
+//               EndTime:   now,
+//           },
+//       }
+//   )
+//   lacework.V2.Entities.Search(response, filters)
 //
 func (svc *EntitiesService) Search(response interface{}, filters SearchFilter) error {
 	var apiPath string
 
 	switch response.(type) {
-	case *MachineDetailEntityResponse:
+	case *MachineDetailsEntityResponse:
 		apiPath = fmt.Sprintf(apiV2EntitiesSearch, EntityTypes[MachineDetailsEntityType])
-	case *UserEntityResponse:
-		apiPath = fmt.Sprintf(apiV2EntitiesSearch, EntityTypes[UserEntityType])
+
+	case *UsersEntityResponse:
+		apiPath = fmt.Sprintf(apiV2EntitiesSearch, EntityTypes[UsersEntityType])
+
+	case *ImagesEntityResponse:
+		apiPath = fmt.Sprintf(apiV2EntitiesSearch, EntityTypes[ImagesEntityType])
+
 	default:
 		return errors.New("missing implementation for the provided entity response")
 	}
