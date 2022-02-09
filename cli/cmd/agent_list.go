@@ -21,31 +21,115 @@ package cmd
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
+	agentListCmdState = struct {
+		// The available filters for the agent list command
+		AvailableFilters CmdFilters
+
+		// List of filters to apply to the agent list command
+		Filters []string
+	}{}
+
 	agentListCmd = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   "List all hosts with a running agent",
-		Long:    `List all hosts that have a running agent in your environment.`,
-		RunE:    listAgents,
+		Long: `List all hosts that have a running agent in your environment.
+
+You can use 'key:value' pairs to filter the list of hosts with the --filter flag.
+
+    lacework agent list --filter 'os:Amazon Linux' --filter 'tags.VpcId:vpc-72225916'
+
+**NOTE:** The value can be a regular expression such as 'hostname:db-server.*'
+
+The available keys for this command are:
+` + stringSliceToMarkdownList(agentListCmdState.AvailableFilters.GetFiltersFrom(api.MachineDetailEntity{})),
+		RunE: listAgents,
 	}
 )
 
+func init() {
+	agentListCmd.Flags().StringSliceVar(&agentListCmdState.Filters, "filter", []string{},
+		"filter results by key:value pairs (e.g. 'tags.Name:worker-.*')",
+	)
+}
+
 func listAgents(_ *cobra.Command, _ []string) error {
-	cli.StartProgress("Fetching list of agents...")
-	response, err := cli.LwApi.V2.Entities.ListAllMachineDetails()
+	var (
+		progressMsg = "Fetching list of agents"
+		response    = &api.MachineDetailsEntityResponse{}
+		now         = time.Now().UTC()
+		filters     = api.SearchFilter{
+			TimeFilter: api.TimeFilter{
+				StartTime: now.AddDate(0, 0, -7), // 7 days from ago
+				EndTime:   now,
+			},
+		}
+	)
+
+	if len(agentListCmdState.Filters) != 0 {
+		progressMsg = fmt.Sprintf("%s with filters (%s)", progressMsg, strings.Join(agentListCmdState.Filters, ", "))
+		filters.Filters = []api.Filter{}
+		for _, tag := range agentListCmdState.Filters {
+
+			kv := strings.Split(tag, ":")
+			if len(kv) != 2 {
+				cli.Log.Warnw("malformed tag filter, ignoring",
+					"tag", tag, "expected_format", "key:value",
+				)
+				continue
+			}
+
+			cli.Log.Infow("adding filter", "key", kv[0], "value", kv[1])
+			filters.Filters = append(filters.Filters, api.Filter{
+				Field:      fmt.Sprintf("tags.%s", kv[0]),
+				Expression: "rlike", // @afiune we use rlike to allow user to pass regex
+				Value:      kv[1],
+			})
+		}
+	}
+
+	cli.StartProgress(fmt.Sprintf("%s...", progressMsg))
+	err := cli.LwApi.V2.Entities.Search(response, filters)
 	cli.StopProgress()
 	if err != nil {
+		if strings.Contains(err.Error(), "Invalid field") {
+			return errors.Errorf("the provided filter key is invalid.\n\nThe available keys for this command are:\n%s",
+				stringSliceToMarkdownList(agentListCmdState.AvailableFilters.Filters))
+		}
 		return errors.Wrap(err, "unable to list agents via MachineDetails search")
 	}
 
+	if response.Paging.Urls.NextPage != "" {
+		totalPages := response.Paging.TotalRows / response.Paging.Rows
+
+		all := []api.MachineDetailEntity{}
+		page := 0
+		for {
+			all = append(all, response.Data...)
+
+			cli.StartProgress(fmt.Sprintf("%s [%.0f%%]...", progressMsg, float32(page)/float32(totalPages)*100))
+			pageOk, err := cli.LwApi.NextPage(response)
+			if err == nil && pageOk {
+				page += 1
+				continue
+			}
+			break
+		}
+		response.Data = all
+		response.ResetPaging()
+	}
+
+	cli.StartProgress("Crunching agent data...")
 	// Sort machine details by last time seen
 	sort.Slice(response.Data, func(i, j int) bool {
 		return response.Data[i].CreatedTime.After(response.Data[j].CreatedTime)
@@ -53,16 +137,21 @@ func listAgents(_ *cobra.Command, _ []string) error {
 
 	// clean duplicate machines
 	machines := cleanDuplicateMachine(response.Data)
+	cli.StopProgress()
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(machines)
 	}
 
 	if len(machines) == 0 {
-		cli.OutputHuman(
-			"There are no agents running in your account.\n\nTry installing one with 'lacework agent install <host>%s'\n",
-			cli.OutputNonDefaultProfileFlag(),
-		)
+		if len(agentListCmdState.Filters) != 0 {
+			cli.OutputHuman("No agent found with the provided filter(s).")
+		} else {
+			cli.OutputHuman(
+				"There are no agents running in your account.\n\nTry installing one with 'lacework agent install <host>%s'\n",
+				cli.OutputNonDefaultProfileFlag(),
+			)
+		}
 		return nil
 	}
 
