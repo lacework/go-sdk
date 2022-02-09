@@ -77,7 +77,10 @@ func listAgents(_ *cobra.Command, _ []string) error {
 	)
 
 	if len(agentListCmdState.Filters) != 0 {
-		progressMsg = fmt.Sprintf("%s with filters (%s)", progressMsg, strings.Join(agentListCmdState.Filters, ", "))
+		progressMsg = fmt.Sprintf(
+			"%s with filters (%s)",
+			progressMsg, strings.Join(agentListCmdState.Filters, ", "),
+		)
 		filters.Filters = []api.Filter{}
 		for _, tag := range agentListCmdState.Filters {
 
@@ -91,8 +94,8 @@ func listAgents(_ *cobra.Command, _ []string) error {
 
 			cli.Log.Infow("adding filter", "key", kv[0], "value", kv[1])
 			filters.Filters = append(filters.Filters, api.Filter{
-				Field:      fmt.Sprintf("tags.%s", kv[0]),
-				Expression: "rlike", // @afiune we use rlike to allow user to pass regex
+				Field:      kv[0],
+				Expression: cli.lqlOperator, // @afiune we use rlike to allow user to pass regex
 				Value:      kv[1],
 			})
 		}

@@ -49,7 +49,6 @@ import (
 // )}
 // ```
 type CmdFilters struct {
-	// list of available filters from a command
 	Filters []string
 }
 
