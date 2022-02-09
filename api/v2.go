@@ -97,9 +97,9 @@ type V2Pagination struct {
 	} `json:"urls"`
 }
 
-// Pagination is the interface that structs should implement to be able
-// to use inside the client.NextPage() function
-type Pagination interface {
+// Pageable is the interface that structs should implement to become
+// pageable and be able to use the client.NextPage() function
+type Pageable interface {
 	PageInfo() *V2Pagination
 	ResetPaging()
 }
@@ -107,7 +107,7 @@ type Pagination interface {
 // NextPage
 //
 // Use this function to access the next page from an API v2 endpoint, the provided
-// response must implement the Pagination interface and when it is passed, it will
+// response must implement the Pageable interface and when it is passed, it will
 // be overwritten, if the response doesn't have paging information this function
 // returns false and not error
 //
@@ -135,7 +135,7 @@ type Pagination interface {
 // 		break
 // }
 // ```
-func (c *Client) NextPage(p Pagination) (bool, error) {
+func (c *Client) NextPage(p Pageable) (bool, error) {
 	if p == nil {
 		return false, nil
 	}
