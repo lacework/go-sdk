@@ -43,9 +43,9 @@ func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsEnti
 		return
 	}
 
-	allMachineDetails := []MachineDetailEntity{}
+	all := []MachineDetailEntity{}
 	for {
-		allMachineDetails = append(allMachineDetails, response.Data...)
+		all = append(all, response.Data...)
 
 		pageOk, err := svc.client.NextPage(&response)
 		if err == nil && pageOk {
@@ -54,7 +54,7 @@ func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsEnti
 		break
 	}
 
-	response.Data = allMachineDetails
+	response.Data = all
 	response.ResetPaging()
 	return
 }

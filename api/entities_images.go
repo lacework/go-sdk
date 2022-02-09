@@ -20,8 +20,8 @@ package api
 
 import "time"
 
-// ListUsers returns a list of UserEntity from the last 7 days
-func (svc *EntitiesService) ListUsers() (response UsersEntityResponse, err error) {
+// ListImages returns a list of UserEntity from the last 7 days
+func (svc *EntitiesService) ListImages() (response ImagesEntityResponse, err error) {
 	now := time.Now().UTC()
 	err = svc.Search(&response,
 		SearchFilter{
@@ -34,14 +34,14 @@ func (svc *EntitiesService) ListUsers() (response UsersEntityResponse, err error
 	return
 }
 
-// ListAllUsers iterates over all pages to return all user information at once
-func (svc *EntitiesService) ListAllUsers() (response UsersEntityResponse, err error) {
-	response, err = svc.ListUsers()
+// ListAllImages iterates over all pages to return all images information at once
+func (svc *EntitiesService) ListAllImages() (response ImagesEntityResponse, err error) {
+	response, err = svc.ListImages()
 	if err != nil {
 		return
 	}
 
-	all := []UserEntity{}
+	all := []ImageEntity{}
 	for {
 		all = append(all, response.Data...)
 
@@ -57,24 +57,25 @@ func (svc *EntitiesService) ListAllUsers() (response UsersEntityResponse, err er
 	return
 }
 
-type UsersEntityResponse struct {
-	Data   []UserEntity `json:"data"`
-	Paging V2Pagination `json:"paging"`
+type ImagesEntityResponse struct {
+	Data   []ImageEntity `json:"data"`
+	Paging V2Pagination  `json:"paging"`
 }
 
-// Fulfill Pagination interface (look at api/v2.go)
-func (r UsersEntityResponse) PageInfo() *V2Pagination {
+// Fulfill Pageable interface (look at api/v2.go)
+func (r ImagesEntityResponse) PageInfo() *V2Pagination {
 	return &r.Paging
 }
-func (r *UsersEntityResponse) ResetPaging() {
+func (r *ImagesEntityResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
 }
 
-type UserEntity struct {
-	CreatedTime      time.Time `json:"createdTime"`
-	Mid              int       `json:"mid"`
-	OtherGroupNames  []string  `json:"otherGroupNames"`
-	PrimaryGroupName string    `json:"primaryGroupName"`
-	UID              int       `json:"uid"`
-	Username         string    `json:"username"`
+type ImageEntity struct {
+	ContainerType string    `json:"containerType"`
+	CreatedTime   time.Time `json:"createdTime"`
+	ImageID       string    `json:"imageId"`
+	Mid           int       `json:"mid"`
+	Repo          string    `json:"repo"`
+	Size          int       `json:"size"`
+	Tag           string    `json:"tag"`
 }

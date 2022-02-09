@@ -54,7 +54,7 @@ func TestPagination(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	response := api.MachineDetailEntityResponse{}
+	response := api.MachineDetailsEntityResponse{}
 
 	t.Run("First Request", func(t *testing.T) {
 		err := c.V2.Entities.Search(&response, api.SearchFilter{})
@@ -121,7 +121,7 @@ func TestPaginationWithoutInfo(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	response := api.MachineDetailEntityResponse{}
+	response := api.MachineDetailsEntityResponse{}
 	err = c.V2.Entities.Search(&response, api.SearchFilter{})
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
