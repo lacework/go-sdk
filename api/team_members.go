@@ -216,7 +216,7 @@ func (svc *TeamMembersService) SearchUsername(username string) (res TeamMembersR
 		apiV2TeamMembersSearch,
 		SearchFilter{
 			Filters: []Filter{
-				Filter{
+				{
 					Field:      "userName",
 					Expression: "eq",
 					Value:      username,
