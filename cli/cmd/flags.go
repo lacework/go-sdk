@@ -91,6 +91,17 @@ func getFiltersFrom(T interface{}, prefix string) []string {
 	return filters
 }
 
+// validateKeyValuePairs returns and error if any filter is malformed
+func validateKeyValuePairs(filters []string) error {
+	for _, pair := range filters {
+		kv := strings.Split(pair, ":")
+		if len(kv) != 2 || kv[0] == "" || kv[1] == "" {
+			return errors.Errorf("malformed filter '%s'. Expected format 'key:value'", pair)
+		}
+	}
+	return nil
+}
+
 // stringSliceToMarkdownList display a list of filters in Markdown format.
 //
 // E.g. The list []string{"a","b","c"} will return

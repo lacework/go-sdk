@@ -92,3 +92,32 @@ func TestGetFiltersFrom(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateKeyValuePairs(t *testing.T) {
+	cases := []struct {
+		subjectPairs  []string
+		expectedError string
+	}{
+		// @afiune empty string means nil
+		{[]string{}, ""},
+		{[]string{""}, "malformed filter ''. Expected format 'key:value'"},
+		{[]string{":"}, "malformed filter ':'. Expected format 'key:value'"},
+		{[]string{"foo"}, "malformed filter 'foo'. Expected format 'key:value'"},
+		{[]string{"bar:"}, "malformed filter 'bar:'. Expected format 'key:value'"},
+		{[]string{"valid:filter", "invalid"}, "malformed filter 'invalid'. Expected format 'key:value'"},
+
+		// valid filters
+		{[]string{"valid:filter", "a:b", "x.y.z:foo.*"}, ""},
+	}
+
+	for i, kase := range cases {
+		t.Run(fmt.Sprintf("test case %d", i), func(t *testing.T) {
+			err := validateKeyValuePairs(kase.subjectPairs)
+			if kase.expectedError == "" {
+				assert.NoError(t, err, "we are not validating correctly")
+			} else {
+				assert.EqualErrorf(t, err, kase.expectedError, "we are not validating correctly")
+			}
+		})
+	}
+}

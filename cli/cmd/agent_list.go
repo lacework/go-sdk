@@ -52,7 +52,14 @@ You can use 'key:value' pairs to filter the list of hosts with the --filter flag
 **NOTE:** The value can be a regular expression such as 'hostname:db-server.*'
 
 The available keys for this command are:
-` + stringSliceToMarkdownList(agentListCmdState.AvailableFilters.GetFiltersFrom(api.MachineDetailEntity{})),
+` + stringSliceToMarkdownList(
+			agentListCmdState.AvailableFilters.GetFiltersFrom(
+				api.MachineDetailEntity{},
+			),
+		),
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			return validateKeyValuePairs(agentListCmdState.Filters)
+		},
 		RunE: listAgents,
 	}
 )
@@ -77,22 +84,20 @@ func listAgents(_ *cobra.Command, _ []string) error {
 		}
 	)
 
+	cleanedF := []string{}
 	if len(agentListCmdState.Filters) != 0 {
-		progressMsg = fmt.Sprintf(
-			"%s with filters (%s)",
-			progressMsg, strings.Join(agentListCmdState.Filters, ", "),
-		)
 		filters.Filters = []api.Filter{}
-		for _, tag := range agentListCmdState.Filters {
+		for _, pair := range agentListCmdState.Filters {
 
-			kv := strings.Split(tag, ":")
-			if len(kv) != 2 {
-				cli.Log.Warnw("malformed tag filter, ignoring",
-					"tag", tag, "expected_format", "key:value",
+			kv := strings.Split(pair, ":")
+			if len(kv) != 2 || kv[0] == "" || kv[1] == "" {
+				cli.Log.Warnw("malformed filter, ignoring",
+					"pair", pair, "expected_format", "key:value",
 				)
 				continue
 			}
 
+			cleanedF = append(cleanedF, pair)
 			cli.Log.Infow("adding filter", "key", kv[0], "value", kv[1])
 			filters.Filters = append(filters.Filters, api.Filter{
 				Field:      kv[0],
@@ -100,6 +105,15 @@ func listAgents(_ *cobra.Command, _ []string) error {
 				Value:      kv[1],
 			})
 		}
+
+		if len(cleanedF) != 0 {
+			progressMsg = fmt.Sprintf(
+				"%s with filters (%s)",
+				progressMsg, strings.Join(cleanedF, ", "),
+			)
+		}
+
+		agentListCmdState.Filters = cleanedF
 	}
 
 	cli.StartProgress(fmt.Sprintf("%s...", progressMsg))
