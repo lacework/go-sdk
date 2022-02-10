@@ -113,7 +113,6 @@ func init() {
 	// add sub-commands to the policy command
 	policyCmd.AddCommand(policyListCmd)
 	policyCmd.AddCommand(policyShowCmd)
-	policyCmd.AddCommand(policyDeleteCmd)
 
 	// Lacework Content Library
 	if cli.IsLCLInstalled() {
