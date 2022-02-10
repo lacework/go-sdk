@@ -38,19 +38,19 @@ import "time"
 //			Returns: []string{"accessToken"},
 //		}
 type SearchFilter struct {
-	TimeFilter `json:"timeFilter,omitempty"`
-	Filters    []Filter `json:"filters"`
-	Returns    []string `json:"returns"`
+	*TimeFilter `json:"timeFilter,omitempty"`
+	Filters     []Filter `json:"filters,omitempty"`
+	Returns     []string `json:"returns,omitempty"`
 }
 
 type Filter struct {
-	Expression string   `json:"expression"`
-	Field      string   `json:"field"`
-	Value      string   `json:"value"`
-	Values     []string `json:"values"`
+	Expression string   `json:"expression,omitempty"`
+	Field      string   `json:"field,omitempty"`
+	Value      string   `json:"value,omitempty"`
+	Values     []string `json:"values,omitempty"`
 }
 
 type TimeFilter struct {
-	StartTime time.Time `json:"startTime,omitempty"`
-	EndTime   time.Time `json:"endTime,omitempty"`
+	StartTime *time.Time `json:"startTime,omitempty"`
+	EndTime   *time.Time `json:"endTime,omitempty"`
 }

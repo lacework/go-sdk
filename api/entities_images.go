@@ -23,11 +23,12 @@ import "time"
 // ListImages returns a list of UserEntity from the last 7 days
 func (svc *EntitiesService) ListImages() (response ImagesEntityResponse, err error) {
 	now := time.Now().UTC()
+	before := now.AddDate(0, 0, -7) // 7 days from ago
 	err = svc.Search(&response,
 		SearchFilter{
-			TimeFilter: TimeFilter{
-				StartTime: now.AddDate(0, 0, -7), // 7 days from ago
-				EndTime:   now,
+			TimeFilter: &TimeFilter{
+				StartTime: &before,
+				EndTime:   &now,
 			},
 		},
 	)

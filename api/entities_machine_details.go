@@ -25,11 +25,12 @@ import (
 // ListMachineDetails returns a list of MachineDetailEntity from the last 7 days
 func (svc *EntitiesService) ListMachineDetails() (response MachineDetailsEntityResponse, err error) {
 	now := time.Now().UTC()
+	before := now.AddDate(0, 0, -7) // 7 days from ago
 	err = svc.Search(&response,
 		SearchFilter{
-			TimeFilter: TimeFilter{
-				StartTime: now.AddDate(0, 0, -7), // 7 days from ago
-				EndTime:   now,
+			TimeFilter: &TimeFilter{
+				StartTime: &before,
+				EndTime:   &now,
 			},
 		},
 	)
