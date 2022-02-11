@@ -65,12 +65,6 @@ func getListQuerySourcesTable(datasources []api.Datasource) (out [][]string) {
 
 func listQuerySources(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving LQL data sources")
-
-	tableSettings := tableFunc(func(t *tablewriter.Table) {
-		t.SetAutoWrapText(false)
-		t.SetBorder(false)
-	})
-
 	lqlSourcesUnableMsg := "unable to retrieve LQL data sources"
 	datasourcesResponse, err := cli.LwApi.V2.Datasources.List()
 
@@ -87,7 +81,10 @@ func listQuerySources(_ *cobra.Command, args []string) error {
 		renderCustomTable(
 			[]string{"Datasource", "Description"},
 			getListQuerySourcesTable(datasourcesResponse.Data),
-			tableSettings,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetAutoWrapText(false)
+				t.SetBorder(false)
+			}),
 		),
 	)
 	cli.OutputHuman("\nUse 'lacework query show-source <datasource_id>' to show details about the data source.\n")
