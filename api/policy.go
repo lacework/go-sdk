@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/pkg/errors"
 )
 
@@ -35,19 +36,20 @@ type PolicyService struct {
 var ValidPolicySeverities = []string{"critical", "high", "medium", "low", "info"}
 
 type NewPolicy struct {
-	EvaluatorID   string `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
-	PolicyID      string `json:"policyId,omitempty" yaml:"policyId,omitempty" `
-	PolicyType    string `json:"policyType" yaml:"policyType"`
-	QueryID       string `json:"queryId" yaml:"queryId"`
-	Title         string `json:"title" yaml:"title"`
-	Enabled       bool   `json:"enabled" yaml:"enabled"`
-	Description   string `json:"description" yaml:"description"`
-	Remediation   string `json:"remediation" yaml:"remediation"`
-	Severity      string `json:"severity" yaml:"severity"`
-	Limit         int    `json:"limit,omitempty" yaml:"limit,omitempty"`
-	EvalFrequency string `json:"evalFrequency,omitempty" yaml:"evalFrequency,omitempty"`
-	AlertEnabled  bool   `json:"alertEnabled" yaml:"alertEnabled"`
-	AlertProfile  string `json:"alertProfile" yaml:"alertProfile"`
+	EvaluatorID   string   `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
+	PolicyID      string   `json:"policyId,omitempty" yaml:"policyId,omitempty" `
+	PolicyType    string   `json:"policyType" yaml:"policyType"`
+	QueryID       string   `json:"queryId" yaml:"queryId"`
+	Title         string   `json:"title" yaml:"title"`
+	Enabled       bool     `json:"enabled" yaml:"enabled"`
+	Description   string   `json:"description" yaml:"description"`
+	Remediation   string   `json:"remediation" yaml:"remediation"`
+	Severity      string   `json:"severity" yaml:"severity"`
+	Limit         int      `json:"limit,omitempty" yaml:"limit,omitempty"`
+	EvalFrequency string   `json:"evalFrequency,omitempty" yaml:"evalFrequency,omitempty"`
+	AlertEnabled  bool     `json:"alertEnabled" yaml:"alertEnabled"`
+	AlertProfile  string   `json:"alertProfile" yaml:"alertProfile"`
+	Tags          []string `json:"tags,omitempty" yaml:"tags,omitempty"`
 }
 
 /* In order to properly PATCH we need to omit items that aren't specified.
@@ -56,43 +58,54 @@ This would prevent someone from toggling something to disabled or 0 respectively
 As such we are using pointers instead of primitives for booleans and integers in this struct
 */
 type UpdatePolicy struct {
-	EvaluatorID   string `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
-	PolicyID      string `json:"policyId,omitempty" yaml:"policyId,omitempty"`
-	PolicyType    string `json:"policyType,omitempty" yaml:"policyType,omitempty"`
-	QueryID       string `json:"queryId,omitempty" yaml:"queryId,omitempty"`
-	Title         string `json:"title,omitempty" yaml:"title,omitempty"`
-	Enabled       *bool  `json:"enabled,omitempty" yaml:"enabled,omitempty"`
-	Description   string `json:"description,omitempty" yaml:"description,omitempty"`
-	Remediation   string `json:"remediation,omitempty" yaml:"remediation,omitempty"`
-	Severity      string `json:"severity,omitempty" yaml:"severity,omitempty"`
-	Limit         *int   `json:"limit,omitempty" yaml:"limit,omitempty"`
-	EvalFrequency string `json:"evalFrequency,omitempty" yaml:"evalFrequency,omitempty"`
-	AlertEnabled  *bool  `json:"alertEnabled,omitempty" yaml:"alertEnabled,omitempty"`
-	AlertProfile  string `json:"alertProfile,omitempty" yaml:"alertProfile,omitempty"`
+	EvaluatorID   string   `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
+	PolicyID      string   `json:"policyId,omitempty" yaml:"policyId,omitempty"`
+	PolicyType    string   `json:"policyType,omitempty" yaml:"policyType,omitempty"`
+	QueryID       string   `json:"queryId,omitempty" yaml:"queryId,omitempty"`
+	Title         string   `json:"title,omitempty" yaml:"title,omitempty"`
+	Enabled       *bool    `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Description   string   `json:"description,omitempty" yaml:"description,omitempty"`
+	Remediation   string   `json:"remediation,omitempty" yaml:"remediation,omitempty"`
+	Severity      string   `json:"severity,omitempty" yaml:"severity,omitempty"`
+	Limit         *int     `json:"limit,omitempty" yaml:"limit,omitempty"`
+	EvalFrequency string   `json:"evalFrequency,omitempty" yaml:"evalFrequency,omitempty"`
+	AlertEnabled  *bool    `json:"alertEnabled,omitempty" yaml:"alertEnabled,omitempty"`
+	AlertProfile  string   `json:"alertProfile,omitempty" yaml:"alertProfile,omitempty"`
+	Tags          []string `json:"tags,omitempty" yaml:"tags,omitempty"`
 }
 
 type Policy struct {
-	EvaluatorID    string `json:"evaluatorId"`
-	PolicyID       string `json:"policyId"`
-	PolicyType     string `json:"policyType"`
-	QueryID        string `json:"queryId"`
-	Title          string `json:"title"`
-	Enabled        bool   `json:"enabled"`
-	Description    string `json:"description"`
-	Remediation    string `json:"remediation"`
-	Severity       string `json:"severity"`
-	Limit          int    `json:"limit"`
-	EvalFrequency  string `json:"evalFrequency"`
-	AlertEnabled   bool   `json:"alertEnabled"`
-	AlertProfile   string `json:"alertProfile"`
-	Owner          string `json:"owner"`
-	LastUpdateTime string `json:"lastUpdateTime"`
-	LastUpdateUser string `json:"lastUpdateUser"`
+	EvaluatorID    string   `json:"evaluatorId"`
+	PolicyID       string   `json:"policyId"`
+	PolicyType     string   `json:"policyType"`
+	QueryID        string   `json:"queryId"`
+	Title          string   `json:"title"`
+	Enabled        bool     `json:"enabled"`
+	Description    string   `json:"description"`
+	Remediation    string   `json:"remediation"`
+	Severity       string   `json:"severity"`
+	Limit          int      `json:"limit"`
+	EvalFrequency  string   `json:"evalFrequency"`
+	AlertEnabled   bool     `json:"alertEnabled"`
+	AlertProfile   string   `json:"alertProfile"`
+	Tags           []string `json:"tags"`
+	Owner          string   `json:"owner"`
+	LastUpdateTime string   `json:"lastUpdateTime"`
+	LastUpdateUser string   `json:"lastUpdateUser"`
+}
+
+func (p *Policy) HasTag(t string) bool {
+	return array.ContainsStr(p.Tags, t)
 }
 
 type PolicyResponse struct {
 	Data    Policy `json:"data"`
 	Message string `json:"message"`
+}
+
+type PolicyTagsResponse struct {
+	Data    []string `json:"data"`
+	Message string   `json:"message"`
 }
 
 type PoliciesResponse struct {
@@ -113,6 +126,19 @@ func (svc *PolicyService) List() (
 	err error,
 ) {
 	err = svc.client.RequestDecoder("GET", apiV2Policies, nil, &response)
+	return
+}
+
+func (svc *PolicyService) ListTags() (
+	response PolicyTagsResponse,
+	err error,
+) {
+	err = svc.client.RequestDecoder(
+		"GET",
+		fmt.Sprintf("%s/Tags", apiV2Policies),
+		nil,
+		&response,
+	)
 	return
 }
 

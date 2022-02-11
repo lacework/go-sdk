@@ -41,12 +41,22 @@ var (
 		File          string
 		Repo          bool
 		Severity      string
+		Tag           string
 		URL           string
 		CascadeDelete bool
 	}{}
 
 	policyTableHeaders = []string{
-		"Policy ID", "Evaluator ID", "Severity", "Title", "State", "Alert State", "Frequency", "Query ID"}
+		"Policy ID",
+		"Evaluator ID",
+		"Severity",
+		"Title",
+		"State",
+		"Alert State",
+		"Frequency",
+		"Query ID",
+		"Tags",
+	}
 
 	// policyCmd represents the policy parent command
 	policyCmd = &cobra.Command{
@@ -94,8 +104,16 @@ To view the LQL query associated with the policy, use the query id shown.
 		Args:    cobra.NoArgs,
 		RunE:    listPolicies,
 	}
-
-	// policyListCmd represents the policy list command
+	// policyListTagsCmd represents the policy list command
+	policyListTagsCmd = &cobra.Command{
+		Use:     "list-tags",
+		Aliases: []string{"ls"},
+		Short:   "List policy tags",
+		Long:    `List all tags associated with policies in your Lacework account.`,
+		Args:    cobra.NoArgs,
+		RunE:    listPolicyTags,
+	}
+	// policyShowCmd represents the policy show command
 	policyShowCmd = &cobra.Command{
 		Use:     "show <policy_id>",
 		Aliases: []string{"ls"},
@@ -112,6 +130,7 @@ func init() {
 
 	// add sub-commands to the policy command
 	policyCmd.AddCommand(policyListCmd)
+	policyCmd.AddCommand(policyListTagsCmd)
 	policyCmd.AddCommand(policyShowCmd)
 	policyCmd.AddCommand(policyDeleteCmd)
 
@@ -129,6 +148,10 @@ func init() {
 	policyListCmd.Flags().BoolVar(
 		&policyCmdState.AlertEnabled,
 		"alert_enabled", false, "only show alert_enabled policies",
+	)
+	policyListCmd.Flags().StringVar(
+		&policyCmdState.Tag,
+		"tag", "", "only show policies with the specified tag",
 	)
 }
 
@@ -236,6 +259,32 @@ func inputPolicyFromEditor(action string) (policy string, err error) {
 }
 
 func policyTable(policies []api.Policy) (out [][]string) {
+	for _, policy := range policies {
+		state := "disabled"
+		if policy.Enabled {
+			state = "enabled"
+		}
+		alertState := "disabled"
+		if policy.AlertEnabled {
+			alertState = "enabled"
+		}
+		out = append(out, []string{
+			policy.PolicyID,
+			policy.EvaluatorID,
+			policy.Severity,
+			policy.Title,
+			state,
+			alertState,
+			policy.EvalFrequency,
+			policy.QueryID,
+			strings.Join(policy.Tags, "\n"),
+		})
+	}
+	return
+}
+
+func filterPolicies(policies []api.Policy) []api.Policy {
+	newPolicies := []api.Policy{}
 	sevThreshold, _ := severityToProperTypes(policyCmdState.Severity)
 
 	for _, policy := range policies {
@@ -255,26 +304,13 @@ func policyTable(policies []api.Policy) (out [][]string) {
 		if policyCmdState.AlertEnabled && !policy.AlertEnabled {
 			continue
 		}
-		state := "disabled"
-		if policy.Enabled {
-			state = "enabled"
+		// filter tag
+		if policyCmdState.Tag != "" && !policy.HasTag(policyCmdState.Tag) {
+			continue
 		}
-		alertState := "disabled"
-		if policy.AlertEnabled {
-			alertState = "enabled"
-		}
-		out = append(out, []string{
-			policy.PolicyID,
-			policy.EvaluatorID,
-			policy.Severity,
-			policy.Title,
-			state,
-			alertState,
-			policy.EvalFrequency,
-			policy.QueryID,
-		})
+		newPolicies = append(newPolicies, policy)
 	}
-	return
+	return newPolicies
 }
 
 func listPolicies(_ *cobra.Command, args []string) error {
@@ -296,14 +332,15 @@ func listPolicies(_ *cobra.Command, args []string) error {
 		return errors.Wrap(err, "unable to list policies")
 	}
 
+	policies := filterPolicies(policyResponse.Data)
 	if cli.JSONOutput() {
-		return cli.OutputJSON(policyResponse.Data)
+		return cli.OutputJSON(policies)
 	}
-	if len(policyResponse.Data) == 0 {
+	if len(policies) == 0 {
 		cli.OutputHuman("There were no policies found.")
 		return nil
 	}
-	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policyResponse.Data)))
+	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policies)))
 	return nil
 }
 
@@ -333,6 +370,7 @@ func buildPolicyDetailsTable(policy api.Policy) string {
 		{"POLICY TYPE", policy.PolicyType},
 		{"LIMIT", fmt.Sprintf("%d", policy.Limit)},
 		{"ALERT PROFILE", policy.AlertProfile},
+		{"TAGS", strings.Join(policy.Tags, "\n")},
 		{"OWNER", policy.Owner},
 		{"UPDATED AT", policy.LastUpdateTime},
 		{"UPDATED BY", policy.LastUpdateUser},
@@ -353,4 +391,32 @@ func buildPolicyDetailsTable(policy api.Policy) string {
 			t.SetAutoWrapText(false)
 		}),
 	)
+}
+
+func policyTagsTable(pt []string) (out [][]string) {
+	for _, tag := range pt {
+		out = append(out, []string{tag})
+	}
+	return
+}
+
+func listPolicyTags(_ *cobra.Command, args []string) error {
+	cli.Log.Debugw("listing policy tags")
+
+	cli.StartProgress(" Retrieving policy tags...")
+	policyTagsResponse, err := cli.LwApi.V2.Policy.ListTags()
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to list policy tags")
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(policyTagsResponse.Data)
+	}
+	if len(policyTagsResponse.Data) == 0 {
+		cli.OutputHuman("There were no policy tags found.")
+		return nil
+	}
+	cli.OutputHuman(renderSimpleTable([]string{"Tag"}, policyTagsTable(policyTagsResponse.Data)))
+	return nil
 }
