@@ -24,11 +24,13 @@ import "time"
 // endpoints from the Lacework APIv2 Server
 type v2VulnerabilitiesService struct {
 	client     *Client
+	Hosts      *v2HostVulnerabilityService
 	Containers *v2ContainerVulnerabilityService
 }
 
 func NewV2VulnerabilitiesService(c *Client) *v2VulnerabilitiesService {
 	return &v2VulnerabilitiesService{c,
+		&v2HostVulnerabilityService{c},
 		&v2ContainerVulnerabilityService{c},
 	}
 }
@@ -160,6 +162,147 @@ type VulnerabilityContainer struct {
 		FixedVersion  string `json:"fixed_version"`
 	} `json:"fixInfo"`
 	ImageID   string    `json:"imageId"`
+	Severity  string    `json:"severity"`
+	StartTime time.Time `json:"startTime"`
+	Status    string    `json:"status"`
+	VulnID    string    `json:"vulnId"`
+}
+
+// v2HostVulnerabilityService is a service that interacts with the APIv2
+// vulnerabilities endpoints for hosts
+type v2HostVulnerabilityService struct {
+	client *Client
+}
+
+// SearchLastWeek returns a list of VulnerabilityHost from the last 7 days
+func (svc *v2HostVulnerabilityService) SearchLastWeek() (VulnerabilitiesHostResponse, error) {
+	var (
+		now    = time.Now().UTC()
+		before = now.AddDate(0, 0, -7) // 7 days from ago
+	)
+
+	return svc.Search(SearchFilter{
+		TimeFilter: &TimeFilter{
+			StartTime: &before,
+			EndTime:   &now,
+		},
+	})
+}
+
+// Search returns a list of VulnerabilityHost from the last 7 days
+func (svc *v2HostVulnerabilityService) Search(filters SearchFilter) (
+	response VulnerabilitiesHostResponse, err error,
+) {
+	err = svc.client.RequestEncoderDecoder(
+		"POST", apiV2VulnerabilitiesHostsSearch,
+		filters, &response,
+	)
+	return
+}
+
+// SearchAllPages iterates over all pages and returns a list of VulnerabilityHost
+func (svc *v2HostVulnerabilityService) SearchAllPages(filters SearchFilter) (
+	response VulnerabilitiesHostResponse, err error,
+) {
+	response, err = svc.Search(filters)
+	if err != nil {
+		return
+	}
+
+	var (
+		all    = []VulnerabilityHost{}
+		pageOk bool
+	)
+	for {
+		all = append(all, response.Data...)
+
+		pageOk, err = svc.client.NextPage(&response)
+		if err == nil && pageOk {
+			continue
+		}
+		break
+	}
+
+	response.Data = all
+	response.ResetPaging()
+	return
+}
+
+type VulnerabilitiesHostResponse struct {
+	Data   []VulnerabilityHost `json:"data"`
+	Paging V2Pagination        `json:"paging"`
+}
+
+// Fulfill Pagination interface (look at api/v2.go)
+func (r VulnerabilitiesHostResponse) PageInfo() *V2Pagination {
+	return &r.Paging
+}
+func (r *VulnerabilitiesHostResponse) ResetPaging() {
+	r.Paging = V2Pagination{}
+}
+
+type VulnerabilityHost struct {
+	CveProps struct {
+		CveBatchID  string `json:"cve_batch_id"`
+		Description string `json:"description"`
+		Link        string `json:"link"`
+	} `json:"cveProps"`
+	EndTime time.Time `json:"endTime"`
+	EvalCtx struct {
+		ExceptionProps []interface{} `json:"exception_props"`
+		Hostname       string        `json:"hostname"`
+		McEvalGUID     string        `json:"mc_eval_guid"`
+	} `json:"evalCtx"`
+	FeatureKey struct {
+		Name             string `json:"name"`
+		Namespace        string `json:"namespace"`
+		PackageActive    int    `json:"package_active"`
+		VersionInstalled string `json:"version_installed"`
+	} `json:"featureKey"`
+	FixInfo struct {
+		CompareResult               string `json:"compare_result"`
+		EvalStatus                  string `json:"eval_status"`
+		FixAvailable                string `json:"fix_available"`
+		FixedVersion                string `json:"fixed_version"`
+		FixedVersionComparisonInfos []struct {
+			CurrFixVer                         string `json:"curr_fix_ver"`
+			IsCurrFixVerGreaterThanOtherFixVer string `json:"is_curr_fix_ver_greater_than_other_fix_ver"`
+			OtherFixVer                        string `json:"other_fix_ver"`
+		} `json:"fixed_version_comparison_infos"`
+		FixedVersionComparisonScore int    `json:"fixed_version_comparison_score"`
+		VersionInstalled            string `json:"version_installed"`
+	} `json:"fixInfo"`
+	MachineTags struct {
+		Account                               string `json:"Account"`
+		AmiID                                 string `json:"AmiId"`
+		Env                                   string `json:"Env"`
+		ExternalIP                            string `json:"ExternalIp"`
+		Hostname                              string `json:"Hostname"`
+		InstanceID                            string `json:"InstanceId"`
+		InternalIP                            string `json:"InternalIp"`
+		LwTokenShort                          string `json:"LwTokenShort"`
+		Name                                  string `json:"Name"`
+		SubnetID                              string `json:"SubnetId"`
+		VMInstanceType                        string `json:"VmInstanceType"`
+		VMProvider                            string `json:"VmProvider"`
+		VpcID                                 string `json:"VpcId"`
+		Zone                                  string `json:"Zone"`
+		AlphaEksctlIoNodegroupName            string `json:"alpha.eksctl.io/nodegroup-name"`
+		AlphaEksctlIoNodegroupType            string `json:"alpha.eksctl.io/nodegroup-type"`
+		Arch                                  string `json:"arch"`
+		AwsAutoscalingGroupName               string `json:"aws:autoscaling:groupName"`
+		AwsEc2FleetID                         string `json:"aws:ec2:fleet-id"`
+		AwsEc2LaunchtemplateID                string `json:"aws:ec2launchtemplate:id"`
+		AwsEc2LaunchtemplateVersion           string `json:"aws:ec2launchtemplate:version"`
+		EksClusterName                        string `json:"eks:cluster-name"`
+		EksNodegroupName                      string `json:"eks:nodegroup-name"`
+		K8SIoClusterAutoscalerEnabled         int    `json:"k8s.io/cluster-autoscaler/enabled"`
+		K8SIoClusterAutoscalerTechallySandbox string `json:"k8s.io/cluster-autoscaler/techally-sandbox"`
+		KubernetesIoClusterTechallySandbox    string `json:"kubernetes.io/cluster/techally-sandbox"`
+		LwKubernetesCluster                   string `json:"lw_KubernetesCluster"`
+		Os                                    string `json:"os"`
+	} `json:"machineTags"`
+	Mid       int       `json:"mid"`
 	Severity  string    `json:"severity"`
 	StartTime time.Time `json:"startTime"`
 	Status    string    `json:"status"`
