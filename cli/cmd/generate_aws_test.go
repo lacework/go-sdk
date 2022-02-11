@@ -123,7 +123,7 @@ func TestGenerationCache(t *testing.T) {
 
 		args := aws.GenerateAwsTfConfigurationArgs{AwsProfile: "default"} // Profile is set automatically by the CLI defaults
 		writeAwsGenerationArgsCache(&args)
-		assert.NoFileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAssetIacParams)))
+		assert.NoFileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsAssetIacParams)))
 	})
 	t.Run("iac params should be cached when not empty", func(t *testing.T) {
 		dir, err := ioutil.TempDir("", "lacework-cli-cache")
@@ -135,6 +135,6 @@ func TestGenerationCache(t *testing.T) {
 
 		args := aws.GenerateAwsTfConfigurationArgs{AwsProfile: "default", AwsRegion: "us-east-2"} // Profile is set automatically by the CLI defaults
 		writeAwsGenerationArgsCache(&args)
-		assert.FileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAssetIacParams)))
+		assert.FileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsAssetIacParams)))
 	})
 }

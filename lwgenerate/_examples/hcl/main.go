@@ -73,6 +73,8 @@ func exampleGenericHclBlock() {
 				"one": 1,
 				"two": "a",
 			},
+			"property4": []string{"one", "two", "three"},
+			"property5": []interface{}{"one", 2, true},
 		},
 	)
 

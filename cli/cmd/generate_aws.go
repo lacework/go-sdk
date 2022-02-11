@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"reflect"
-	"regexp"
+	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/imdario/mergo"
+	"github.com/spf13/cobra"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/lwgenerate/aws"
@@ -14,7 +16,7 @@ import (
 
 var (
 	// Define question text here so they can be reused in testing
-	QuestionEnableConfig                = "Enable Config Integration?"
+	QuestionAwsEnableConfig             = "Enable Config Integration?"
 	QuestionEnableCloudtrail            = "Enable Cloudtrail Integration?"
 	QuestionAwsRegion                   = "Specify the AWS region to be used by Cloudtrail, SNS, and S3:"
 	QuestionConsolidatedCloudtrail      = "Use consolidated Cloudtrail?"
@@ -29,46 +31,230 @@ var (
 	QuestionSubAccountRegion            = "What region should be used for this account?"
 	QuestionSubAccountAddMore           = "Add another AWS account?"
 	QuestionSubAccountReplace           = "Currently configured AWS subaccounts: %s, replace?"
-	QuestionConfigAdvanced              = "Configure advanced integration options?"
-	QuestionAnotherAdvancedOpt          = "Configure another advanced integration option"
-	QuestionCustomizeOutputLocation     = "Provide the location for the output to be written:"
+	QuestionAwsConfigAdvanced           = "Configure advanced integration options?"
+	QuestionAwsAnotherAdvancedOpt       = "Configure another advanced integration option"
+	QuestionAwsCustomizeOutputLocation  = "Provide the location for the output to be written:"
 
 	// select options
-	AdvancedOptDone        = "Done"
+	AwsAdvancedOptDone     = "Done"
 	AdvancedOptCloudTrail  = "Additional Cloudtrail options"
 	AdvancedOptIamRole     = "Configure Lacework integration with an existing IAM role"
 	AdvancedOptAwsAccounts = "Add additional AWS Accounts to Lacework"
-	AdvancedOptLocation    = "Customize output location"
+	AwsAdvancedOptLocation = "Customize output location"
 
-	// original source: https://regex101.com/r/pOfxYN/1
+	// AwsArnRegex original source: https://regex101.com/r/pOfxYN/1
 	AwsArnRegex = `^arn:(?P<Partition>[^:\n]*):(?P<Service>[^:\n]*):(?P<Region>[^:\n]*):(?P<AccountID>[^:\n]*):(?P<Ignore>(?P<ResourceType>[^:\/\n]*)[:\/])?(?P<Resource>.*)$`
-	// regex used for validating region input; note intentionally does not match gov cloud
+	// AwsRegionRegex regex used for validating region input; note intentionally does not match gov cloud
 	AwsRegionRegex  = `(us|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d`
 	AwsProfileRegex = `([A-Za-z_0-9-]+)`
+
+	GenerateAwsCommandState      = &aws.GenerateAwsTfConfigurationArgs{}
+	GenerateAwsExistingRoleState = &aws.ExistingIamRoleDetails{}
+	GenerateAwsCommandExtraState = &AwsGenerateCommandExtraState{}
+	ValidateSubAccountFlagRegex  = fmt.Sprintf(`%s:%s`, AwsProfileRegex, AwsRegionRegex)
+	CachedAwsAssetIacParams      = "iac-aws-generate-params"
+	CachedAssetAwsExtraState     = "iac-aws-extra-state"
+
+	// aws command is used to generate TF code for aws
+	generateAwsTfCommand = &cobra.Command{
+		Use:   "aws",
+		Short: "Generate and/or execute Terraform code for AWS integration",
+		Long: `Use this command to generate Terraform code for deploying Lacework into an AWS environment.
+
+By default, this command will function interactively, prompting for the required information to setup the new cloud account. In interactive mode, this command will:
+
+* Prompt for the required information to setup the integration
+* Generate new Terraform code using the inputs
+* Optionally, run the generated Terraform code:
+  * If Terraform is already installed, the version will be confirmed suitable for use
+	* If Terraform is not installed, or the version installed is not suitable, a new version will be installed into a temporary location
+	* Once Terraform is detected or installed, Terraform plan will be executed
+	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
+	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
+
+This command can also be run in noninteractive mode. See help output for more details on supplying required values for generation.
+`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Generate TF Code
+			cli.StartProgress("Generating Terraform Code...")
+
+			// Explicitly set Lacework profile if it was passed in main args
+			if cli.Profile != "default" {
+				GenerateAwsCommandState.LaceworkProfile = cli.Profile
+			}
+
+			// Setup modifiers for NewTerraform constructor
+			mods := []aws.AwsTerraformModifier{
+				aws.WithAwsProfile(GenerateAwsCommandState.AwsProfile),
+				aws.WithLaceworkProfile(GenerateAwsCommandState.LaceworkProfile),
+				aws.ExistingCloudtrailBucketArn(GenerateAwsCommandState.ExistingCloudtrailBucketArn),
+				aws.ExistingSnsTopicArn(GenerateAwsCommandState.ExistingSnsTopicArn),
+				aws.WithSubaccounts(GenerateAwsCommandState.SubAccounts...),
+				aws.UseExistingIamRole(GenerateAwsCommandState.ExistingIamRole),
+			}
+
+			if GenerateAwsCommandState.ForceDestroyS3Bucket {
+				mods = append(mods, aws.EnableForceDestroyS3Bucket())
+			}
+
+			if GenerateAwsCommandState.ConsolidatedCloudtrail {
+				mods = append(mods, aws.UseConsolidatedCloudtrail())
+			}
+
+			// Create new struct
+			data := aws.NewTerraform(
+				GenerateAwsCommandState.AwsRegion,
+				GenerateAwsCommandState.Config,
+				GenerateAwsCommandState.Cloudtrail,
+				mods...)
+
+			// Generate
+			hcl, err := data.Generate()
+			cli.StopProgress()
+
+			if err != nil {
+				return errors.Wrap(err, "failed to generate terraform code")
+			}
+
+			// Write-out generated code to location specified
+			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl)
+			if err != nil {
+				return err
+			}
+
+			// Prompt to execute
+			err = SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+				Prompt:   &survey.Confirm{Default: GenerateAwsCommandExtraState.TerraformApply, Message: QuestionRunTfPlan},
+				Response: &GenerateAwsCommandExtraState.TerraformApply,
+			})
+
+			if err != nil {
+				return errors.Wrap(err, "failed to prompt for terraform execution")
+			}
+
+			// Execute
+			locationDir := filepath.Dir(location)
+			if GenerateAwsCommandExtraState.TerraformApply {
+				// Execution pre-run check
+				err := executionPreRunChecks(dirname, locationDir)
+				if err != nil {
+					return err
+				}
+			}
+
+			// Output where code was generated
+			if !GenerateAwsCommandExtraState.TerraformApply {
+				cli.OutputHuman(provideGuidanceAfterExit(false, false, locationDir, "terraform"))
+			}
+
+			return nil
+		},
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			// Validate output location is OK if supplied
+			dirname, err := cmd.Flags().GetString("output")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateOutputLocation(dirname); err != nil {
+				return err
+			}
+
+			// Validate aws profile, if passed
+			profile, err := cmd.Flags().GetString("aws_profile")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsProfile(profile); profile != "" && err != nil {
+				return err
+			}
+
+			// Validate aws region, if passed
+			region, err := cmd.Flags().GetString("aws_region")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsRegion(region); region != "" && err != nil {
+				return err
+			}
+
+			// Validate cloudtrail bucket arn, if passed
+			arn, err := cmd.Flags().GetString("existing_bucket_arn")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsArnFormat(arn); arn != "" && err != nil {
+				return err
+			}
+
+			// Load any cached inputs if interactive
+			if cli.InteractiveMode() {
+				cachedOptions := &aws.GenerateAwsTfConfigurationArgs{}
+				iacParamsExpired := cli.ReadCachedAsset(CachedAwsAssetIacParams, &cachedOptions)
+				if iacParamsExpired {
+					cli.Log.Debug("loaded previously set values for AWS iac generation")
+				}
+
+				extraState := &AwsGenerateCommandExtraState{}
+				extraStateParamsExpired := cli.ReadCachedAsset(CachedAssetAwsExtraState, &extraState)
+				if extraStateParamsExpired {
+					cli.Log.Debug("loaded previously set values for AWS iac generation (extra state)")
+				}
+
+				// Determine if previously cached options exists; prompt user if they'd like to continue
+				answer := false
+				if !iacParamsExpired || !extraStateParamsExpired {
+					if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+						Prompt:   &survey.Confirm{Message: QuestionUsePreviousCache, Default: false},
+						Response: &answer,
+					}); err != nil {
+						return errors.Wrap(err, "failed to load saved options")
+					}
+				}
+
+				// If the user decides NOT to use the previous values; we won't load them.  However, every time the command runs
+				// we are going to write out new cached values, so if they run it - bail out - and run it again they'll get
+				// re-prompted.
+				if answer {
+					// Merge cached inputs to current options (current options win)
+					if err := mergo.Merge(GenerateAwsCommandState, cachedOptions); err != nil {
+						return errors.Wrap(err, "failed to load saved options")
+					}
+					if err := mergo.Merge(GenerateAwsCommandExtraState, extraState); err != nil {
+						return errors.Wrap(err, "failed to load saved options")
+					}
+				}
+			}
+
+			// Parse passed in subaccounts (if any)
+			if len(GenerateAwsCommandExtraState.AwsSubAccounts) > 0 {
+				// validate consolidated_cloudtrail is enabled - otherwise this flag cannot be used
+				if ok, _ := cmd.Flags().GetBool("consolidated_cloudtrail"); !ok {
+					return errors.New("aws subaccounts can only be supplied with consolidated cloudtrail enabled")
+				}
+
+				// validate the format of supplied values is correct
+				if err := validateAwsSubAccounts(GenerateAwsCommandExtraState.AwsSubAccounts); err != nil {
+					return err
+				}
+
+				awsSubAccounts := []aws.AwsSubAccount{}
+				for _, account := range GenerateAwsCommandExtraState.AwsSubAccounts {
+					accountDetails := strings.Split(account, ":")
+					awsSubAccounts = append(awsSubAccounts, aws.NewAwsSubAccount(accountDetails[0], accountDetails[1]))
+				}
+				GenerateAwsCommandState.SubAccounts = awsSubAccounts
+			}
+
+			// Collect and/or confirm parameters
+			err = promptAwsGenerate(GenerateAwsCommandState, GenerateAwsExistingRoleState, GenerateAwsCommandExtraState)
+			if err != nil {
+				return errors.Wrap(err, "collecting/confirming parameters")
+			}
+
+			return nil
+		},
+	}
 )
-
-// create survey.Validator for string with regex
-func validateStringWithRegex(val interface{}, regex string, errorString string) error {
-	// the reflect value of the result
-	value := reflect.ValueOf(val)
-
-	// if the value passed is not a string
-	if value.Kind() != reflect.String {
-		return errors.New("value must be a string")
-	}
-
-	// if value doesn't match regex, return invalid arn
-	ok, err := regexp.MatchString(regex, value.String())
-	if err != nil {
-		return errors.Wrap(err, "failed to validate input")
-	}
-
-	if !ok {
-		return errors.New(errorString)
-	}
-
-	return nil
-}
 
 // survey.Validator for aws ARNs
 //
@@ -228,27 +414,9 @@ func promptAwsAdditionalAccountQuestions(config *aws.GenerateAwsTfConfigurationA
 	return nil
 }
 
-// Used to test if path supplied for output exists
-func validPathExists(val interface{}) error {
-	// the reflect value of the result
-	value := reflect.ValueOf(val)
-
-	// if the value passed is not a string
-	if value.Kind() != reflect.String {
-		return errors.New("value must be a string")
-	}
-
-	// Test if supplied path exists
-	if err := validateOutputLocation(value.String()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func promptCustomizeOutputLocation(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
+func promptCustomizeAwsOutputLocation(extraState *AwsGenerateCommandExtraState) error {
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Input{Message: QuestionCustomizeOutputLocation, Default: extraState.Output},
+		Prompt:   &survey.Input{Message: QuestionAwsCustomizeOutputLocation, Default: extraState.Output},
 		Response: &extraState.Output,
 		Opts:     []survey.AskOpt{survey.WithValidator(validPathExists)},
 		Required: true,
@@ -263,7 +431,7 @@ func askAdvancedOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *
 	answer := ""
 
 	// Prompt for options
-	for answer != AdvancedOptDone {
+	for answer != AwsAdvancedOptDone {
 		// Construction of this slice is a bit strange at first look, but the reason for that is because we have to do string
 		// validation to know which option was selected due to how survey works; and doing it by index (also supported) is
 		// difficult when the options are dynamic (which they are)
@@ -273,7 +441,7 @@ func askAdvancedOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *
 		if config.ConsolidatedCloudtrail {
 			options = append(options, AdvancedOptAwsAccounts)
 		}
-		options = append(options, AdvancedOptLocation, AdvancedOptDone)
+		options = append(options, AwsAdvancedOptLocation, AwsAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
 				Message: "Which options would you like to enable?",
@@ -298,28 +466,28 @@ func askAdvancedOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *
 			if err := promptAwsAdditionalAccountQuestions(config); err != nil {
 				return err
 			}
-		case AdvancedOptLocation:
-			if err := promptCustomizeOutputLocation(config, extraState); err != nil {
+		case AwsAdvancedOptLocation:
+			if err := promptCustomizeAwsOutputLocation(extraState); err != nil {
 				return err
 			}
 		}
 
 		// Re-prompt if not done
 		innerAskAgain := true
-		if answer == AdvancedOptDone {
+		if answer == AwsAdvancedOptDone {
 			innerAskAgain = false
 		}
 
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Checks:   []*bool{&innerAskAgain},
-			Prompt:   &survey.Confirm{Message: QuestionAnotherAdvancedOpt, Default: false},
+			Prompt:   &survey.Confirm{Message: QuestionAwsAnotherAdvancedOpt, Default: false},
 			Response: &innerAskAgain,
 		}); err != nil {
 			return err
 		}
 
 		if !innerAskAgain {
-			answer = AdvancedOptDone
+			answer = AwsAdvancedOptDone
 		}
 	}
 
@@ -332,7 +500,7 @@ func configOrCloudtrailEnabled(config *aws.GenerateAwsTfConfigurationArgs) *bool
 }
 
 func awsConfigIsEmpty(g *aws.GenerateAwsTfConfigurationArgs) bool {
-	return (!g.Cloudtrail &&
+	return !g.Cloudtrail &&
 		!g.Config &&
 		!g.ConsolidatedCloudtrail &&
 		g.AwsProfile == "default" &&
@@ -342,7 +510,7 @@ func awsConfigIsEmpty(g *aws.GenerateAwsTfConfigurationArgs) bool {
 		g.ExistingSnsTopicArn == "" &&
 		g.LaceworkProfile == "" &&
 		!g.ForceDestroyS3Bucket &&
-		g.SubAccounts == nil)
+		g.SubAccounts == nil
 }
 
 func writeAwsGenerationArgsCache(a *aws.GenerateAwsTfConfigurationArgs) {
@@ -351,7 +519,7 @@ func writeAwsGenerationArgsCache(a *aws.GenerateAwsTfConfigurationArgs) {
 		if a.ExistingIamRole.IsPartial() {
 			a.ExistingIamRole = nil
 		}
-		cli.WriteAssetToCache(CachedAssetIacParams, time.Now().Add(time.Hour*1), a)
+		cli.WriteAssetToCache(CachedAwsAssetIacParams, time.Now().Add(time.Hour*1), a)
 	}
 }
 
@@ -374,11 +542,11 @@ func promptAwsGenerate(
 		config.ExistingIamRole = existingIam
 	}
 
-	// This are the core questions that should be asked.  Region required for provider block
+	// These are the core questions that should be asked.  Region required for provider block
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
-				Prompt:   &survey.Confirm{Message: QuestionEnableConfig, Default: config.Config},
+				Prompt:   &survey.Confirm{Message: QuestionAwsEnableConfig, Default: config.Config},
 				Response: &config.Config,
 			},
 			{
@@ -406,7 +574,7 @@ func promptAwsGenerate(
 	// Find out if the customer wants to specify more advanced features
 	askAdvanced := false
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Confirm{Message: QuestionConfigAdvanced, Default: askAdvanced},
+		Prompt:   &survey.Confirm{Message: QuestionAwsConfigAdvanced, Default: askAdvanced},
 		Response: &askAdvanced,
 	}); err != nil {
 		return err

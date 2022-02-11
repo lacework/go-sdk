@@ -1,3 +1,4 @@
+//
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -162,7 +163,6 @@ func findLaceworkCLIBinary() string {
 
 func createTOMLConfigFromCIvars() string {
 	if os.Getenv("CI_ACCOUNT") == "" ||
-		os.Getenv("CI_V2_ACCOUNT") == "" ||
 		os.Getenv("CI_API_KEY") == "" ||
 		os.Getenv("CI_API_SECRET") == "" {
 		log.Fatal(missingCIEnvironmentVariables())
@@ -175,8 +175,8 @@ func createTOMLConfigFromCIvars() string {
 
 	configFile := filepath.Join(dir, ".lacework.toml")
 	c := []byte(`[default]
-account = '` + os.Getenv("CI_V2_ACCOUNT") + `'
-subaccount = '` + os.Getenv("CI_ACCOUNT") + `'
+account = '` + os.Getenv("CI_ACCOUNT") + `'
+subaccount = '` + os.Getenv("CI_SUBACCOUNT") + `'
 api_key = '` + os.Getenv("CI_API_KEY") + `'
 api_secret = '` + os.Getenv("CI_API_SECRET") + `'
 version = 2
@@ -266,8 +266,8 @@ func storeFileInCircleCI(f string) {
 
 func laceworkIntegrationTestClient() (*api.Client, error) {
 	fmt.Println("Setting up host tests")
-	account := os.Getenv("CI_V2_ACCOUNT")
-	subaccount := os.Getenv("CI_ACCOUNT")
+	account := os.Getenv("CI_ACCOUNT")
+	subaccount := os.Getenv("CI_SUBACCOUNT")
 	key := os.Getenv("CI_API_KEY")
 	secret := os.Getenv("CI_API_SECRET")
 

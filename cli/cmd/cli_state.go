@@ -70,6 +70,7 @@ type cliState struct {
 	csvOutput      bool
 	nonInteractive bool
 	noCache        bool
+	lqlOperator    string
 	profileDetails map[string]interface{}
 	tokenCache     api.TokenData
 }
@@ -77,10 +78,11 @@ type cliState struct {
 // NewDefaultState creates a new cliState with some defaults
 func NewDefaultState() *cliState {
 	c := &cliState{
-		id:         newID(),
-		Profile:    "default",
-		CfgVersion: 2,
-		Log:        lwlogger.New("").Sugar(),
+		id:          newID(),
+		Profile:     "default",
+		lqlOperator: "rlike", // @afiune we use rlike to allow user to pass regex
+		CfgVersion:  2,
+		Log:         lwlogger.New("").Sugar(),
 		JsonF: &prettyjson.Formatter{
 			KeyColor:    color.New(color.FgCyan, color.Bold),
 			StringColor: color.New(color.FgGreen, color.Bold),
@@ -250,6 +252,8 @@ func (c *cliState) NewClient() error {
 		apiOpts = append(apiOpts, api.WithURL(os.Getenv("LW_API_SERVER_URL")))
 	}
 
+	c.LoadLQLOperator()
+
 	client, err := api.NewClient(c.Account, apiOpts...)
 	if err != nil {
 		return errors.Wrap(err, "unable to generate api client")
@@ -259,6 +263,41 @@ func (c *cliState) NewClient() error {
 
 	// cache token
 	return c.WriteCachedToken()
+}
+
+// LoadLQLOperator reads the reserverd environment variable to change the
+// default LQL operator in the CLI for filter flags. Available operators;
+//
+// The `eq` operator allows you to specify a value that the field values
+// of the result must be equal to. The `ne` operator means not equal to.
+//
+// The `in` operator allows you to specify multiple values in the values
+// field of the filters. The field values of the result must match one of
+// the values. The `not_in` operator is the opposite of `in`.
+//
+// The `like` operator allows you to specify a pattern that the field
+// values of the result must match. The `not_like` operator is the
+// opposite of `like`.
+//
+// The `ilike` operator works similar to like but it makes the match case
+// insensitive. The `not_ilike` operator is the opposite of `ilike`.
+//
+// (default) The `rlike` operator matches the specified pattern represented
+// by regular expressions. The `not_rlike` operator is the opposite of `rlike`.
+// (more info on `RLIKE` see https://docs.snowflake.com/en/sql-reference/functions/rlike.html).
+//
+// The `gt` operator allows you to specify a value that the field values of
+// the result must be greater than. The `lt` (less-than) operator is the
+// opposite of `gt`.
+//
+// The `ge` operator allows you to specify a value that the field values of
+// the result must be greater than or equal to. The `le` (less-than-or-equal-to)
+// operator is the opposite of `ge`.
+
+func (c *cliState) LoadLQLOperator() {
+	if os.Getenv("LW_LQL_OPERATOR") != "" {
+		c.lqlOperator = os.Getenv("LW_LQL_OPERATOR")
+	}
 }
 
 // InteractiveMode returns true if the cli is running in interactive mode

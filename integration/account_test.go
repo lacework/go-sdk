@@ -49,7 +49,7 @@ func TestAccountCommandList(t *testing.T) {
 		"STDOUT table headers changed, please check")
 	assert.Contains(t, out.String(), os.Getenv("CI_ACCOUNT"),
 		"STDOUT unable to find account, please check")
-	assert.Contains(t, out.String(), os.Getenv("CI_V2_ACCOUNT"),
+	assert.Contains(t, out.String(), os.Getenv("CI_SUBACCOUNT"),
 		"STDOUT unable to find account, please check")
 	assert.Contains(t, out.String(),
 		"Use '--subaccount <name>' to switch any command to a different account.",

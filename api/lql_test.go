@@ -190,7 +190,7 @@ func TestQueryListMethod(t *testing.T) {
 	fakeServer.MockAPI(
 		"Queries",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "Get should be a GET method")
+			assert.Equal(t, "GET", r.Method, "List should be a GET method")
 			fmt.Fprint(w, "{}")
 		},
 	)
