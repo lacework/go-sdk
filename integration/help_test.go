@@ -159,6 +159,7 @@ Available Commands:
   query                   Run and manage queries
   report-rule             Manage report rules
   resource-group          Manage resource groups
+  team-member             Manage team members
   version                 Print the Lacework CLI version
   vulnerability           Container and host vulnerability assessments
   vulnerability-exception Manage vulnerability exceptions

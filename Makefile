@@ -27,10 +27,6 @@ GOFLAGS=-mod=vendor
 CGO_ENABLED?=0
 export GOFLAGS GO_LDFLAGS CGO_ENABLED
 
-# CI variables
-CI_V2_ACCOUNT?=customerdemo
-export CI_V2_ACCOUNT
-
 .PHONY: help
 help:
 	@echo "-------------------------------------------------------------------"
@@ -72,6 +68,7 @@ integration-only: install-tools ## Run integration tests
 		query \
 		version \
 		generation \
+		team_members \
 		vulnerability"
 
 .PHONY: integration-lql

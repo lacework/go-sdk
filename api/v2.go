@@ -18,6 +18,13 @@
 
 package api
 
+import (
+	"net/url"
+
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
+)
+
 // V2Endpoints groups all APIv2 endpoints available, they are grouped by
 // schema which matches with our service architecture
 type V2Endpoints struct {
@@ -34,6 +41,7 @@ type V2Endpoints struct {
 	AgentAccessTokens       *AgentAccessTokensService
 	Query                   *QueryService
 	Policy                  *PolicyService
+	Entities                *EntitiesService
 	Schemas                 *SchemasService
 	Datasources             *DatasourcesService
 	TeamMembers             *TeamMembersService
@@ -52,6 +60,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&AgentAccessTokensService{c},
 		&QueryService{c},
 		&PolicyService{c},
+		&EntitiesService{c},
 		&SchemasService{c, map[integrationSchema]V2Service{}},
 		&DatasourcesService{c},
 		&TeamMembersService{c},
@@ -78,4 +87,79 @@ type V2Service interface {
 
 type V2CommonIntegration struct {
 	Data v2CommonIntegrationData `json:"data"`
+}
+
+type V2Pagination struct {
+	Rows      int `json:"rows"`
+	TotalRows int `json:"totalRows"`
+	Urls      struct {
+		NextPage string `json:"nextPage"`
+	} `json:"urls"`
+}
+
+// Pageable is the interface that structs should implement to become
+// pageable and be able to use the client.NextPage() function
+type Pageable interface {
+	PageInfo() *V2Pagination
+	ResetPaging()
+}
+
+// NextPage
+//
+// Use this function to access the next page from an API v2 endpoint, the provided
+// response must implement the Pageable interface and when it is passed, it will
+// be overwritten, if the response doesn't have paging information this function
+// returns false and not error
+//
+// Usage: To iterate over all pages
+//
+// ```go
+// var (
+// 		response = api.MachineDetailEntityResponse{}
+// 		err      = client.V2.Entities.Search(&response, api.SearchFilter{})
+// )
+//
+// for {
+// 		// Use information from response.Data
+// 		fmt.Printf("Data from page: %d\n", len(response.Data))
+//
+// 		pageOk, err := client.NextPage(&response)
+// 		if err != nil {
+// 			fmt.Printf("Unable to access next page, error '%s'", err.Error())
+// 			break
+// 		}
+//
+// 		if pageOk {
+// 			continue
+// 		}
+// 		break
+// }
+// ```
+func (c *Client) NextPage(p Pageable) (bool, error) {
+	if p == nil {
+		return false, nil
+	}
+	pagination := p.PageInfo()
+	if pagination == nil {
+		c.log.Info("pagination information not found")
+		return false, nil
+	}
+
+	c.log.Info("pagination", zap.Int("rows", pagination.Rows),
+		zap.Int("total_rows", pagination.TotalRows),
+		zap.String("next_page", pagination.Urls.NextPage),
+	)
+	if pagination.Urls.NextPage == "" {
+		return false, nil
+	}
+
+	pageURL, err := url.Parse(pagination.Urls.NextPage)
+	if err != nil {
+		return false, errors.Wrap(err, "unable to part next page url")
+	}
+
+	p.ResetPaging()
+	c.log.Info("pagination reset")
+	err = c.RequestDecoder("GET", pageURL.Path, nil, p)
+	return true, err
 }

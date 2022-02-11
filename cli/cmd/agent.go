@@ -19,7 +19,6 @@
 package cmd
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
@@ -73,10 +72,11 @@ complete, the old token can safely be disabled without interrupting Lacework ser
 	}
 
 	agentTokenListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "List all agent access tokens",
-		Args:  cobra.NoArgs,
-		RunE:  listAgentTokens,
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List all agent access tokens",
+		Args:    cobra.NoArgs,
+		RunE:    listAgentTokens,
 	}
 
 	agentTokenCreateCmd = &cobra.Command{
@@ -111,15 +111,6 @@ To enable a token:
     lacework agent token update <token> --enable`,
 		Args: cobra.ExactArgs(1),
 		RunE: updateAgentToken,
-	}
-
-	// TODO hidden for now
-	agentListCmd = &cobra.Command{
-		Use:    "list",
-		Short:  "List all hosts with a running agent",
-		Long:   `List all hosts that have a running agent in your environment`,
-		Hidden: true,
-		RunE:   listAgents,
 	}
 
 	// TODO hidden for now
@@ -159,7 +150,12 @@ To authenticate to the remote host on a non-standard SSH port use the '--ssh_por
 pass it directly via the argument.
 
     lacework agent install <user@host:port>
-    `,
+
+To list all active agents in your environment. 
+
+    lacework agent list
+
+NOTE: New agents could take up to an hour to report back to the platform.`,
 		RunE: installRemoteAgent,
 	}
 )
@@ -217,26 +213,6 @@ func init() {
 	agentInstallCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
-}
-
-func listAgents(_ *cobra.Command, _ []string) error {
-	// @afiune POC - This depends on LQL
-	time.Sleep(500 * time.Millisecond)
-	response, err := loadAgents()
-	if err != nil {
-		return errors.Wrap(err, "beta feature not yet supported")
-	}
-	if cli.JSONOutput() {
-		return cli.OutputJSON(response.Data)
-	}
-
-	cli.OutputHuman(
-		renderSimpleTable(
-			[]string{"Hostname", "Name", "IP Address", "External IP", "State", "OS Arch", "Version"},
-			agentsToTable(response.Data),
-		),
-	)
-	return nil
 }
 
 func showAgentToken(_ *cobra.Command, args []string) error {
@@ -345,23 +321,6 @@ func listAgentTokens(_ *cobra.Command, _ []string) error {
 		),
 	)
 	return nil
-}
-
-func agentsToTable(agents []AgentHost) [][]string {
-	out := [][]string{}
-	for _, agent := range agents {
-		out = append(out, []string{
-			agent.MachineHostname,
-			agent.Name,
-			agent.MachineIP,
-			agent.Tags.ExternalIP,
-			agent.Status,
-			fmt.Sprintf("%s/%s", agent.Tags.Os, agent.Tags.Arch),
-			agent.AgentVersion,
-		})
-	}
-
-	return out
 }
 
 func agentTokensToTable(tokens []api.AgentAccessToken) [][]string {

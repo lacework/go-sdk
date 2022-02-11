@@ -43,6 +43,8 @@ remediation: Check yourself...
 severity: high
 alertEnabled: false
 alertProfile: LW_CloudTrail_Alerts
+tags:
+  - fhqwhgads
 `
 	newHostPolicyYAML string = `---
 evaluatorId:
@@ -153,6 +155,24 @@ func TestPolicyCreateFile(t *testing.T) {
 	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--alert_enabled")
 	assert.Contains(t, out.String(), "lacework-global-1")
 	assert.NotContains(t, out.String(), policyID)
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// list tag match
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--tag", "fhqwhgads")
+	assert.Contains(t, out.String(), policyID)
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// list tag non-match
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--tag", "nosuchtag")
+	assert.NotContains(t, out.String(), policyID)
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// list-tags
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("policy", "list-tags")
+	assert.Contains(t, out.String(), "fhqwhgads")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 

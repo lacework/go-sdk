@@ -32,6 +32,9 @@ import (
 var (
 	policyURI = "Policies"
 	policyID  = "my-policy-1"
+	policy    = api.Policy{
+		Tags: []string{"fhqwhgads"},
+	}
 	newPolicy = api.NewPolicy{
 		EvaluatorID:   "Cloudtrail",
 		PolicyID:      policyID,
@@ -88,6 +91,11 @@ func mockPolicyDataResponse(data string) string {
 	"data": ` + data + `,
 	"message": "SUCCESS"
 }`
+}
+
+func TestPolicyHasTags(t *testing.T) {
+	assert.Equal(t, true, policy.HasTag("fhqwhgads"))
+	assert.Equal(t, false, policy.HasTag(""))
 }
 
 func TestPolicyCreateMethod(t *testing.T) {
@@ -230,6 +238,50 @@ func TestPolicyGetNotFound(t *testing.T) {
 
 	_, err = c.V2.Policy.Get("NoSuchPolicy")
 	assert.NotNil(t, err)
+}
+
+func TestPolicyListMethod(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI(
+		"Policies",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "List should be a GET method")
+			fmt.Fprint(w, "{}")
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.V2.Policy.List()
+	assert.Nil(t, err)
+}
+
+func TestPolicyListTagsMethod(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI(
+		"Policies/Tags",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "ListTags should be a GET method")
+			fmt.Fprint(w, "{}")
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.V2.Policy.ListTags()
+	assert.Nil(t, err)
 }
 
 func TestPolicyUpdateMethod(t *testing.T) {
