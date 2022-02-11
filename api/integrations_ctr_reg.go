@@ -152,12 +152,13 @@ type ContainerRegData struct {
 
 	// for GCP_GCR integrations, the registry domain has to be one of:
 	// => [ "gcr.io", "us.gcr.io", "eu.gcr.io", "asia.gcr.io" ]
-	RegistryDomain   string `json:"REGISTRY_DOMAIN" mapstructure:"REGISTRY_DOMAIN"`
-	LimitByTag       string `json:"LIMIT_BY_TAG" mapstructure:"LIMIT_BY_TAG"`
-	LimitByLabel     string `json:"LIMIT_BY_LABEL" mapstructure:"LIMIT_BY_LABEL"`
-	LimitByRep       string `json:"LIMIT_BY_REP,omitempty" mapstructure:"LIMIT_BY_REP"`
-	LimitNumImg      int    `json:"LIMIT_NUM_IMG,omitempty" mapstructure:"LIMIT_NUM_IMG"`
-	NonOSPackageEval bool   `json:"NON_OS_PACKAGE_EVAL" mapstructure:"NON_OS_PACKAGE_EVAL"`
+	RegistryDomain        string `json:"REGISTRY_DOMAIN" mapstructure:"REGISTRY_DOMAIN"`
+	LimitByTag            string `json:"LIMIT_BY_TAG" mapstructure:"LIMIT_BY_TAG"`
+	LimitByLabel          string `json:"LIMIT_BY_LABEL" mapstructure:"LIMIT_BY_LABEL"`
+	LimitByRep            string `json:"LIMIT_BY_REP,omitempty" mapstructure:"LIMIT_BY_REP"`
+	LimitNumImg           int    `json:"LIMIT_NUM_IMG,omitempty" mapstructure:"LIMIT_NUM_IMG"`
+	NonOSPackageEval      bool   `json:"NON_OS_PACKAGE_EVAL" mapstructure:"NON_OS_PACKAGE_EVAL"`
+	RegistryNotifications *bool  `json:"REGISTRY_NOTIFICATIONS,omitempty" mapstructure:"REGISTRY_NOTIFICATIONS"`
 }
 
 type ContainerRegCreds struct {
