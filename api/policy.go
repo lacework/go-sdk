@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/pkg/errors"
 )
 
@@ -94,12 +95,7 @@ type Policy struct {
 }
 
 func (p *Policy) HasTag(t string) bool {
-	for _, v := range p.Tags {
-		if t == v {
-			return true
-		}
-	}
-	return false
+	return array.ContainsStr(p.Tags, t)
 }
 
 type PolicyResponse struct {
