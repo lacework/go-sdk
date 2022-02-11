@@ -47,7 +47,7 @@ func TestQueryPreviewSource(t *testing.T) {
 }
 
 func TestQueryPreviewNoSuchSource(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "preview-source", "NoSuchSource")
+	_, err, exitcode := LaceworkCLIWithTOMLConfig("query", "preview-source", "NoSuchSource")
 	assert.Contains(t, err.String(), "unable to retrieve datasource")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
