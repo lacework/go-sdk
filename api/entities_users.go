@@ -42,11 +42,14 @@ func (svc *EntitiesService) ListAllUsers() (response UsersEntityResponse, err er
 		return
 	}
 
-	all := []UserEntity{}
+	var (
+		all    []UserEntity
+		pageOk bool
+	)
 	for {
 		all = append(all, response.Data...)
 
-		pageOk, err := svc.client.NextPage(&response)
+		pageOk, err = svc.client.NextPage(&response)
 		if err == nil && pageOk {
 			continue
 		}
