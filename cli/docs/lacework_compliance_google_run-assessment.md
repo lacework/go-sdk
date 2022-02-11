@@ -12,6 +12,10 @@ Run a new GCP compliance assessment
 
 Run a compliance assessment for the provided GCP organization or project.
 
+To list all GCP projects and organizations configured in your account:
+
+    lacework compliance gcp list
+
 ```
 lacework compliance google run-assessment <org_or_project_id> [flags]
 ```

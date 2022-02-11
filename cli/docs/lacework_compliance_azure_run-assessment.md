@@ -12,6 +12,10 @@ Run a new Azure compliance assessment
 
 Run a compliance assessment of the provided Azure tenant.
 
+To list all Azure tenants and subscriptions configured in your account:
+
+    lacework compliance azure list
+
 ```
 lacework compliance azure run-assessment <tenant_id> [flags]
 ```

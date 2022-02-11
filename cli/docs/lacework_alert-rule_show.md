@@ -6,7 +6,7 @@ hide_title: true
 
 ## lacework alert-rule show
 
-Show an alert rule by id
+Show an alert rule by ID
 
 ### Synopsis
 
