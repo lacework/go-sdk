@@ -29,6 +29,56 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
+func TestV2Vulnerabilities_Containers_SearchAllPages_EmptyData(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Vulnerabilities/Containers/search",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method, "Search() should be a POST method")
+			fmt.Fprintf(w, mockPaginationEmptyResponse())
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response, err := c.V2.Vulnerabilities.Containers.SearchAllPages(api.SearchFilter{})
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, 0, len(response.Data))
+}
+
+func TestV2Vulnerabilities_Hosts_SearchAllPages_EmptyData(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Vulnerabilities/Hosts/search",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method, "Search() should be a POST method")
+			fmt.Fprintf(w, mockPaginationEmptyResponse())
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response, err := c.V2.Vulnerabilities.Hosts.SearchAllPages(api.SearchFilter{})
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, 0, len(response.Data))
+}
+
 func TestV2Vulnerabilities_Containers_Search(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
@@ -115,6 +165,19 @@ func TestV2Vulnerabilities_Containers_AllPages(t *testing.T) {
 	}
 }
 
+func mockPaginationEmptyResponse() string {
+	return `
+{
+  "data": [],
+  "paging": {
+    "rows": 0,
+    "totalRows": 0,
+    "urls": {
+      "nextPage": null
+    }
+  }
+}`
+}
 func mockVulnerabilitiesContainersResponse() string {
 	return `
 {

@@ -77,7 +77,7 @@ func (svc *v2ContainerVulnerabilityService) SearchAllPages(filters SearchFilter)
 	}
 
 	var (
-		all    = []VulnerabilityContainer{}
+		all    []VulnerabilityContainer
 		pageOk bool
 	)
 	for {
@@ -210,7 +210,7 @@ func (svc *v2HostVulnerabilityService) SearchAllPages(filters SearchFilter) (
 	}
 
 	var (
-		all    = []VulnerabilityHost{}
+		all    []VulnerabilityHost
 		pageOk bool
 	)
 	for {
