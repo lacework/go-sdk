@@ -46,6 +46,7 @@ type V2Endpoints struct {
 	Datasources             *DatasourcesService
 	TeamMembers             *TeamMembersService
 	VulnerabilityExceptions *VulnerabilityExceptionsService
+	Vulnerabilities         *v2VulnerabilitiesService
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
@@ -65,6 +66,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&DatasourcesService{c},
 		&TeamMembersService{c},
 		&VulnerabilityExceptionsService{c},
+		NewV2VulnerabilitiesService(c),
 	}
 
 	v2.Schemas.Services = map[integrationSchema]V2Service{

@@ -42,11 +42,14 @@ func (svc *EntitiesService) ListAllImages() (response ImagesEntityResponse, err 
 		return
 	}
 
-	all := []ImageEntity{}
+	var (
+		all    []ImageEntity
+		pageOk bool
+	)
 	for {
 		all = append(all, response.Data...)
 
-		pageOk, err := svc.client.NextPage(&response)
+		pageOk, err = svc.client.NextPage(&response)
 		if err == nil && pageOk {
 			continue
 		}
