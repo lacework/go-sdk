@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -57,7 +58,12 @@ var (
 
 		// Filter the recommendations table by status
 		Status string
+
+		// output resources affected by recommendationID
+		RecommendationID string
 	}{Type: "CIS"}
+
+	RecommendationIDRegex = "^[A-Z]+[A-Z_]*[0-9]*"
 
 	// complianceCmd represents the compliance command
 	complianceCmd = &cobra.Command{
@@ -434,4 +440,9 @@ func statusToProperTypes(status string) string {
 	default:
 		return "Unknown"
 	}
+}
+
+func validateRecommendationID(s string) bool {
+	match, _ := regexp.MatchString(RecommendationIDRegex, s)
+	return match
 }

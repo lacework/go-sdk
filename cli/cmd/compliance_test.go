@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -237,3 +238,26 @@ var (
 		Violations:            []api.ComplianceViolation{},
 	}
 )
+
+func TestRecommendationIDRegex(t *testing.T) {
+	regexTests := []struct {
+		input    string
+		message  string
+		expected bool
+	}{
+		{input: "invalid", message: "recommendation id must be uppercase", expected: false},
+		{input: "", message: "recommendation id cannot be empty string", expected: false},
+		{input: "44LW_AWS_ELASTICSEARCH_3", message: "recommendation id cannot be start with a number", expected: false},
+		{input: "_LW", message: "recommendation id cannot start with underscore", expected: false},
+		{input: "LW_AWS_ELASTICSEARCH_3", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
+		{input: "LW_AWS_NETWORKING_46", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
+		{input: "AWS_CIS_3_3", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
+	}
+
+	for _, tests := range regexTests {
+		t.Run(tests.message, func(t *testing.T) {
+			result, _ := regexp.MatchString(RecommendationIDRegex, tests.input)
+			assert.Equal(t, tests.expected, result, tests.message)
+		})
+	}
+}

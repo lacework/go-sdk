@@ -52,11 +52,18 @@ var (
 
 	// complianceAwsGetReportCmd represents the get-report sub-command inside the aws command
 	complianceAwsGetReportCmd = &cobra.Command{
-		Use:     "get-report <account_id>",
+		Use:     "get-report <account_id> [recommendation_id]",
 		Aliases: []string{"get"},
-		PreRunE: func(_ *cobra.Command, _ []string) error {
+		PreRunE: func(_ *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
+			}
+
+			if len(args) > 1 {
+				compCmdState.RecommendationID = args[1]
+				if !validateRecommendationID(compCmdState.RecommendationID) {
+					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
+				}
 			}
 
 			switch compCmdState.Type {
@@ -84,8 +91,12 @@ To list all AWS accounts configured in your account:
 To run an ad-hoc compliance assessment of an AWS account:
 
     lacework compliance aws run-assessment <account_id>
+
+To run an show recources affected by a violation:
+
+    lacework compliance aws get-report <account_id> <recommendation_id>
 `,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.RangeArgs(1, 2),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				// clean the AWS account ID if it was provided
@@ -159,7 +170,7 @@ To run an ad-hoc compliance assessment of an AWS account:
 				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
 			}
 
-			if cli.JSONOutput() {
+			if cli.JSONOutput() && compCmdState.RecommendationID == "" {
 				return cli.OutputJSON(report)
 			}
 
@@ -180,6 +191,32 @@ To run an ad-hoc compliance assessment of an AWS account:
 						"Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
+			}
+
+			// if a second arg if provided, we assume it's a recommendation id
+			if compCmdState.RecommendationID != "" {
+				violations := filterResourcesByRecommendationID(report, compCmdState.RecommendationID)
+
+				if len(violations) == 0 {
+					cli.OutputHuman("\nNo resources found affected by '%s'\n", compCmdState.RecommendationID)
+					return nil
+				}
+
+				if cli.JSONOutput() {
+					resourcesJsonOut := struct {
+						Violations []api.ComplianceViolation `json:"violations"`
+					}{violations}
+					return cli.OutputJSON(resourcesJsonOut)
+				}
+
+				cli.OutputHuman(
+					renderSimpleTable(
+						[]string{"Resource", "Region", "Reasons"},
+						violationsToTable(violations),
+					),
+				)
+				cli.OutputHuman("\n%d resources showing affected by `%s`\n", len(violations), compCmdState.RecommendationID)
+				return nil
 			}
 
 			recommendations := complianceReportRecommendationsTable(report.Recommendations)
@@ -228,6 +265,22 @@ To run an ad-hoc compliance assessment of an AWS account:
 		},
 	}
 )
+
+func filterResourcesByRecommendationID(report api.ComplianceAwsReport, recID string) (violations []api.ComplianceViolation) {
+	for _, r := range report.Recommendations {
+		if r.RecID == recID {
+			violations = append(violations, r.Violations...)
+		}
+	}
+	return
+}
+
+func violationsToTable(violations []api.ComplianceViolation) (resourceTable [][]string) {
+	for _, v := range violations {
+		resourceTable = append(resourceTable, []string{v.Resource, v.Region, strings.Join(v.Reasons, ",")})
+	}
+	return
+}
 
 func init() {
 	// add sub-commands to the aws command
@@ -329,7 +382,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 		return cli.OutputJSON(jsonOut)
 	}
 
-	rows := [][]string{}
+	var rows [][]string
 	for _, acc := range awsAccounts {
 		rows = append(rows, []string{acc.AccountID, acc.Status})
 	}
