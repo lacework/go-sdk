@@ -158,7 +158,7 @@ type ContainerRegData struct {
 	LimitByRep       string `json:"LIMIT_BY_REP,omitempty" mapstructure:"LIMIT_BY_REP"`
 	LimitNumImg      int    `json:"LIMIT_NUM_IMG,omitempty" mapstructure:"LIMIT_NUM_IMG"`
 	NonOSPackageEval bool   `json:"NON_OS_PACKAGE_EVAL" mapstructure:"NON_OS_PACKAGE_EVAL"`
-	Notifications    *bool  `json:"REGISTRY_NOTIFICATIONS" mapstructure:"NON_OS_PACKAGE_EVAL"`
+	Notifications    *bool  `json:"REGISTRY_NOTIFICATIONS,omitempty" mapstructure:"NON_OS_PACKAGE_EVAL"`
 }
 
 type ContainerRegCreds struct {
