@@ -41,5 +41,5 @@ Manage Lacework-identifiable assets via the use of resource groups.
 * [lacework resource-group create](lacework_resource-group_create.md)	 - Create a new resource group
 * [lacework resource-group delete](lacework_resource-group_delete.md)	 - Delete a resource group
 * [lacework resource-group list](lacework_resource-group_list.md)	 - List all resource groups
-* [lacework resource-group show](lacework_resource-group_show.md)	 - Get resource group by id
+* [lacework resource-group show](lacework_resource-group_show.md)	 - Get resource group by ID
 

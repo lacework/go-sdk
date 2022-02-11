@@ -23,6 +23,7 @@ lacework policy list [flags]
       --enabled           only show enabled policies
   -h, --help              help for list
       --severity string   filter policies by severity threshold (critical, high, medium, low, info)
+      --tag string        only show policies with the specified tag
 ```
 
 ### Options inherited from parent commands

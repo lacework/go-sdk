@@ -13,6 +13,10 @@ Get the latest Azure compliance report
 Get the latest Azure compliance assessment report, these reports run on a regular schedule,
 typically once a day. The available report formats are human-readable (default), json and pdf.
 
+To list all Azure tenants and subscriptions configured in your account:
+
+    lacework compliance azure list
+
 To run an ad-hoc compliance assessment use the command:
 
     lacework compliance azure run-assessment <tenant_id>
