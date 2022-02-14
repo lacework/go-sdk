@@ -115,3 +115,7 @@ type ComplianceAwsReport struct {
 	Summary         []ComplianceSummary        `json:"summary"`
 	Recommendations []ComplianceRecommendation `json:"recommendations"`
 }
+
+func (aws ComplianceAwsReport) GetComplianceRecommendations() []ComplianceRecommendation {
+	return aws.Recommendations
+}

@@ -193,30 +193,9 @@ To run an show recources affected by a violation:
 				)
 			}
 
-			// if a second arg if provided, we assume it's a recommendation id
+			// If RecommendationID is provided, output resources matching that id
 			if compCmdState.RecommendationID != "" {
-				violations := filterResourcesByRecommendationID(report, compCmdState.RecommendationID)
-
-				if len(violations) == 0 {
-					cli.OutputHuman("\nNo resources found affected by '%s'\n", compCmdState.RecommendationID)
-					return nil
-				}
-
-				if cli.JSONOutput() {
-					resourcesJsonOut := struct {
-						Violations []api.ComplianceViolation `json:"violations"`
-					}{violations}
-					return cli.OutputJSON(resourcesJsonOut)
-				}
-
-				cli.OutputHuman(
-					renderSimpleTable(
-						[]string{"Resource", "Region", "Reasons"},
-						violationsToTable(violations),
-					),
-				)
-				cli.OutputHuman("\n%d resources showing affected by `%s`\n", len(violations), compCmdState.RecommendationID)
-				return nil
+				return outputResourcesByRecommendationID(report)
 			}
 
 			recommendations := complianceReportRecommendationsTable(report.Recommendations)
@@ -266,8 +245,8 @@ To run an show recources affected by a violation:
 	}
 )
 
-func filterResourcesByRecommendationID(report api.ComplianceAwsReport, recID string) (violations []api.ComplianceViolation) {
-	for _, r := range report.Recommendations {
+func filterResourcesByRecommendationID(report api.CloudComplianceReport, recID string) (violations []api.ComplianceViolation) {
+	for _, r := range report.GetComplianceRecommendations() {
 		if r.RecID == recID {
 			violations = append(violations, r.Violations...)
 		}

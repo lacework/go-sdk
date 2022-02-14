@@ -157,3 +157,7 @@ type ComplianceAzureReport struct {
 	Summary          []ComplianceSummary        `json:"summary"`
 	Recommendations  []ComplianceRecommendation `json:"recommendations"`
 }
+
+func (az ComplianceAzureReport) GetComplianceRecommendations() []ComplianceRecommendation {
+	return az.Recommendations
+}

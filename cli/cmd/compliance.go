@@ -446,3 +446,28 @@ func validateRecommendationID(s string) bool {
 	match, _ := regexp.MatchString(RecommendationIDRegex, s)
 	return match
 }
+
+func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
+	violations := filterResourcesByRecommendationID(report, compCmdState.RecommendationID)
+
+	if len(violations) == 0 {
+		cli.OutputHuman("\nNo resources found affected by '%s'\n", compCmdState.RecommendationID)
+		return nil
+	}
+
+	if cli.JSONOutput() {
+		resourcesJsonOut := struct {
+			Violations []api.ComplianceViolation `json:"violations"`
+		}{violations}
+		return cli.OutputJSON(resourcesJsonOut)
+	}
+
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"Resource", "Region", "Reasons"},
+			violationsToTable(violations),
+		),
+	)
+	cli.OutputHuman("\n%d resources showing affected by `%s`\n", len(violations), compCmdState.RecommendationID)
+	return nil
+}

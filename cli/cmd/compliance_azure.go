@@ -126,7 +126,7 @@ To run an ad-hoc compliance assessment use the command:
 
     lacework compliance azure run-assessment <tenant_id>
 `,
-		Args: cobra.ExactArgs(2),
+		Args: cobra.RangeArgs(2, 3),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				// clean tenantID and subscriptionID if they were provided
@@ -204,7 +204,7 @@ To run an ad-hoc compliance assessment use the command:
 				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
 			}
 
-			if cli.JSONOutput() {
+			if cli.JSONOutput() && compCmdState.RecommendationID == "" {
 				return cli.OutputJSON(report)
 			}
 
@@ -227,6 +227,11 @@ To run an ad-hoc compliance assessment use the command:
 						"Status", "Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
+			}
+
+			// If RecommendationID is provided, output resources matching that id
+			if compCmdState.RecommendationID != "" {
+				return outputResourcesByRecommendationID(report)
 			}
 
 			recommendations := complianceReportRecommendationsTable(report.Recommendations)

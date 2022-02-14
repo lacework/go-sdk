@@ -101,9 +101,16 @@ Then, select one GUID from an integration and visualize its details using the co
 	complianceGcpGetReportCmd = &cobra.Command{
 		Use:     "get-report <organization_id> <project_id>",
 		Aliases: []string{"get"},
-		PreRunE: func(_ *cobra.Command, _ []string) error {
+		PreRunE: func(_ *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
+			}
+
+			if len(args) > 1 {
+				compCmdState.RecommendationID = args[1]
+				if !validateRecommendationID(compCmdState.RecommendationID) {
+					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
+				}
 			}
 
 			switch compCmdState.Type {
@@ -128,7 +135,7 @@ To run an ad-hoc compliance assessment use the command:
 
     lacework compliance gcp run-assessment <project_id>
 `,
-		Args: cobra.ExactArgs(2),
+		Args: cobra.RangeArgs(2, 3),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				// clean projectID and orgID if they were provided
@@ -213,7 +220,7 @@ To run an ad-hoc compliance assessment use the command:
 				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
 			}
 
-			if cli.JSONOutput() {
+			if cli.JSONOutput() && compCmdState.RecommendationID == "" {
 				return cli.OutputJSON(report)
 			}
 
@@ -236,6 +243,11 @@ To run an ad-hoc compliance assessment use the command:
 						"Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
+			}
+
+			// If RecommendationID is provided, output resources matching that id
+			if compCmdState.RecommendationID != "" {
+				return outputResourcesByRecommendationID(report)
 			}
 
 			recommendations := complianceReportRecommendationsTable(report.Recommendations)

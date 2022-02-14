@@ -137,3 +137,7 @@ type ComplianceGcpReport struct {
 	Summary          []ComplianceSummary        `json:"summary"`
 	Recommendations  []ComplianceRecommendation `json:"recommendations"`
 }
+
+func (gcp ComplianceGcpReport) GetComplianceRecommendations() []ComplianceRecommendation {
+	return gcp.Recommendations
+}

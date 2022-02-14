@@ -26,6 +26,10 @@ type ComplianceService struct {
 	client *Client
 }
 
+type CloudComplianceReport interface {
+	GetComplianceRecommendations() []ComplianceRecommendation
+}
+
 func (svc *ComplianceService) ListGcpProjects(orgID string) (
 	response compGcpProjectsResponse,
 	err error,
