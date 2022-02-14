@@ -245,22 +245,6 @@ To run an show recources affected by a violation:
 	}
 )
 
-func filterResourcesByRecommendationID(report api.CloudComplianceReport, recID string) (violations []api.ComplianceViolation) {
-	for _, r := range report.GetComplianceRecommendations() {
-		if r.RecID == recID {
-			violations = append(violations, r.Violations...)
-		}
-	}
-	return
-}
-
-func violationsToTable(violations []api.ComplianceViolation) (resourceTable [][]string) {
-	for _, v := range violations {
-		resourceTable = append(resourceTable, []string{v.Resource, v.Region, strings.Join(v.Reasons, ",")})
-	}
-	return
-}
-
 func init() {
 	// add sub-commands to the aws command
 	complianceAwsCmd.AddCommand(complianceAwsGetReportCmd)
