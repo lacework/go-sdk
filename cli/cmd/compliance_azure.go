@@ -99,9 +99,16 @@ Use the following command to list all Azure Tenants configured in your account:
 	complianceAzureGetReportCmd = &cobra.Command{
 		Use:     "get-report <tenant_id> <subscriptions_id>",
 		Aliases: []string{"get"},
-		PreRunE: func(_ *cobra.Command, _ []string) error {
+		PreRunE: func(_ *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
+			}
+
+			if len(args) > 2 {
+				compCmdState.RecommendationID = args[2]
+				if !validateRecommendationID(compCmdState.RecommendationID) {
+					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
+				}
 			}
 
 			switch compCmdState.Type {

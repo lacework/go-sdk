@@ -106,8 +106,8 @@ Then, select one GUID from an integration and visualize its details using the co
 				cli.EnableCSVOutput()
 			}
 
-			if len(args) > 1 {
-				compCmdState.RecommendationID = args[1]
+			if len(args) > 2 {
+				compCmdState.RecommendationID = args[2]
 				if !validateRecommendationID(compCmdState.RecommendationID) {
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
