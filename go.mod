@@ -11,9 +11,9 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structs v1.1.0
 	github.com/hashicorp/go-version v1.4.0
-	github.com/hashicorp/hc-install v0.2.0
+	github.com/hashicorp/hc-install v0.3.1
 	github.com/hashicorp/hcl/v2 v2.11.1
-	github.com/hashicorp/terraform-exec v0.15.0
+	github.com/hashicorp/terraform-exec v0.16.0
 	github.com/hashicorp/terraform-json v0.13.0
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
@@ -30,7 +30,7 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/zclconf/go-cty v1.10.0
-	go.uber.org/zap v1.19.1
+	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
@@ -45,7 +45,7 @@ require (
 	github.com/facebookgo/muster v0.0.0-20150708232844-fd3d7953fd52 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/google/btree v1.0.1 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
+	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
