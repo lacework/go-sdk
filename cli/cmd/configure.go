@@ -73,10 +73,9 @@ the Lacework CLI will create it for you.`,
 		Args:  cobra.NoArgs,
 		Long: `List all profiles configured into the config file ~/.lacework.toml
 
-To switch to a different profile permanently in your current terminal,
-export the environment variable:
+To switch profiles permanently erminal use the command.
 
-    ` + configureListCmdSetProfileEnv,
+    lacework configure switch-profile profile2`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			profiles, err := cli.LoadProfiles()
 			if err != nil {
@@ -89,6 +88,8 @@ export the environment variable:
 					buildProfilesTableContent(cli.Profile, profiles),
 				),
 			)
+
+			cli.OutputHuman("\nTo switch profiles use 'lacework configure switch-profile <profile>'\n")
 			return nil
 		},
 	}
@@ -105,6 +106,7 @@ The available configuration keys are:
 
 * profile
 * account
+* subaccount
 * api_secret
 * api_key
 
@@ -115,7 +117,8 @@ To show the configuration from a different profile, use the flag --profile.
 			data, ok := showConfigurationDataFromKey(args[0])
 			if !ok {
 				// TODO change this to be dynamic
-				return errors.New("unknown configuration key. (available: profile, account, subaccount, api_secret, api_key, version)")
+				return errors.New(
+					"unknown configuration key. (available: profile, account, subaccount, api_secret, api_key, version)")
 			}
 
 			if data != "" {
