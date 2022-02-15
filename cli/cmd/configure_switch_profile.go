@@ -58,7 +58,7 @@ is to export the environment variable:
 				if err := cli.Cache.Write("global/profile", []byte(args[0])); err != nil {
 					return errors.Wrap(err, "unable to switch profile")
 				}
-				cli.OutputHuman("Profile switched to '%s' (no more --profile)\n", args[0])
+				cli.OutputHuman("Profile switched to '%s'.\n", args[0])
 				return nil
 			}
 
