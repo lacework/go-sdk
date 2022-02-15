@@ -27,7 +27,7 @@ type ComplianceService struct {
 }
 
 type CloudComplianceReport interface {
-	GetComplianceRecommendations() []ComplianceRecommendation
+	GetComplianceRecommendation(recommendationID string) ComplianceRecommendation
 }
 
 func (svc *ComplianceService) ListGcpProjects(orgID string) (

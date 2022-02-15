@@ -61,7 +61,7 @@ var (
 
 			if len(args) > 1 {
 				compCmdState.RecommendationID = args[1]
-				if !validateRecommendationID(compCmdState.RecommendationID) {
+				if !validRecommendationID(compCmdState.RecommendationID) {
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
 			}
@@ -92,9 +92,9 @@ To run an ad-hoc compliance assessment of an AWS account:
 
     lacework compliance aws run-assessment <account_id>
 
-To run an show recources affected by a violation:
+To show resources affected by a violation:
 
-    lacework compliance aws get-report <account_id> <recommendation_id>
+    lacework compliance aws get-report <account_id> [recommendation_id]
 `,
 		Args: cobra.RangeArgs(1, 2),
 		RunE: func(_ *cobra.Command, args []string) error {

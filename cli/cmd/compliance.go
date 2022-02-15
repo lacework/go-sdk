@@ -442,16 +442,17 @@ func statusToProperTypes(status string) string {
 	}
 }
 
-func validateRecommendationID(s string) bool {
+func validRecommendationID(s string) bool {
 	match, _ := regexp.MatchString(RecommendationIDRegex, s)
 	return match
 }
 
 func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
-	violations := filterResourcesByRecommendationID(report, compCmdState.RecommendationID)
+	recommendation := report.GetComplianceRecommendation(compCmdState.RecommendationID)
+	violations := recommendation.Violations
 
 	if len(violations) == 0 {
-		cli.OutputHuman("\nNo resources found affected by '%s'\n", compCmdState.RecommendationID)
+		cli.OutputHuman("No resources found affected by '%s'\n", compCmdState.RecommendationID)
 		return nil
 	}
 
@@ -468,17 +469,8 @@ func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
 			violationsToTable(violations),
 		),
 	)
-	cli.OutputHuman("\n%d resources showing affected by `%s`\n", len(violations), compCmdState.RecommendationID)
+	cli.OutputHuman("\n%d resources showing affected by '%s'\n", len(violations), compCmdState.RecommendationID)
 	return nil
-}
-
-func filterResourcesByRecommendationID(report api.CloudComplianceReport, recID string) (violations []api.ComplianceViolation) {
-	for _, r := range report.GetComplianceRecommendations() {
-		if r.RecID == recID {
-			violations = append(violations, r.Violations...)
-		}
-	}
-	return
 }
 
 func violationsToTable(violations []api.ComplianceViolation) (resourceTable [][]string) {

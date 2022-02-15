@@ -106,7 +106,7 @@ Use the following command to list all Azure Tenants configured in your account:
 
 			if len(args) > 2 {
 				compCmdState.RecommendationID = args[2]
-				if !validateRecommendationID(compCmdState.RecommendationID) {
+				if !validRecommendationID(compCmdState.RecommendationID) {
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
 			}
@@ -132,6 +132,10 @@ To list all Azure tenants and subscriptions configured in your account:
 To run an ad-hoc compliance assessment use the command:
 
     lacework compliance azure run-assessment <tenant_id>
+
+To show resources affected by a violation:
+
+    lacework compliance azure get-report <tenant_id> <subscriptions_id> [recommendation_id]
 `,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(_ *cobra.Command, args []string) error {
