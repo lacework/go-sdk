@@ -21,6 +21,7 @@ package cmd
 import (
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -176,6 +177,20 @@ func TestFiltersEnabled(t *testing.T) {
 	clearFilters()
 }
 
+func TestComplianceRecommendationsRecommendationID(t *testing.T) {
+	result := mockComplianceReport.GetComplianceRecommendation("LW_S3_1")
+
+	assert.NotNil(t, result)
+	assert.Equal(t, result.Status, "NonCompliant")
+	assert.Equal(t, result.AssessedResourceCount, 1)
+	assert.Equal(t, result.ResourceCount, 1)
+	assert.Equal(t, result.Category, "S3")
+	assert.Equal(t, len(result.Violations), 1)
+	assert.Equal(t, result.Violations[0].Resource, "arn:aws:s3:::resource-name")
+	assert.Equal(t, result.Violations[0].Region, "us-east-1")
+	assert.Equal(t, result.Violations[0].Reasons[0], "violation reason")
+}
+
 func clearFilters() {
 	compCmdState.Category = []string{}
 	compCmdState.Severity = ""
@@ -195,7 +210,11 @@ var (
 		Status:                "NonCompliant",
 		Suppressions:          []string{},
 		Title:                 "Mock S3",
-		Violations:            []api.ComplianceViolation{},
+		Violations: []api.ComplianceViolation{{
+			Region:   "us-east-1",
+			Resource: "arn:aws:s3:::resource-name",
+			Reasons:  []string{"violation reason"},
+		}},
 	}
 	mockRecommendationTwo = api.ComplianceRecommendation{
 		RecID:                 "AWS_CIS_1_7",
@@ -208,8 +227,11 @@ var (
 		Status:                "Compliant",
 		Suppressions:          []string{},
 		Title:                 "Mock IAM",
-		Violations:            []api.ComplianceViolation{},
-	}
+		Violations: []api.ComplianceViolation{{
+			Region:   "us-east-2",
+			Resource: "arn:aws:s3:::other-resource-name",
+			Reasons:  []string{"other-violation reason"},
+		}}}
 	mockRecommendationThree = api.ComplianceRecommendation{
 		RecID:                 "AWS_CIS_2_2",
 		AssessedResourceCount: 1,
@@ -237,6 +259,16 @@ var (
 		Title:                 "Mock Log Two",
 		Violations:            []api.ComplianceViolation{},
 	}
+
+	mockComplianceReport = api.ComplianceAwsReport{
+		ReportTitle:     "This is a mock Report",
+		ReportType:      "Report Type",
+		ReportTime:      time.Time{},
+		AccountID:       "12345679",
+		AccountAlias:    "alias",
+		Summary:         nil,
+		Recommendations: []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo},
+	}
 )
 
 func TestRecommendationIDRegex(t *testing.T) {
@@ -252,6 +284,11 @@ func TestRecommendationIDRegex(t *testing.T) {
 		{input: "LW_AWS_ELASTICSEARCH_3", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
 		{input: "LW_AWS_NETWORKING_46", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
 		{input: "AWS_CIS_3_3", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
+		{input: "LW_S3_15", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
+		{input: "GCP_CIS12_3_1", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
+		{input: "GCP_CIS12_6_1_1", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
+		{input: "LW_AWS_GENERAL_SECURITY_2", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
+		{input: "Azure_CIS_131_5_1_4", message: "recommendation id must start with uppercase letter, may contain underscores and numbers", expected: true},
 	}
 
 	for _, tests := range regexTests {
