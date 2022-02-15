@@ -68,12 +68,13 @@ the Lacework CLI will create it for you.`,
 	}
 
 	configureListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "List all configured profiles at ~/.lacework.toml",
-		Args:  cobra.NoArgs,
+		Use:     "list",
+		Short:   "List all configured profiles at ~/.lacework.toml",
+		Aliases: []string{"ls"},
+		Args:    cobra.NoArgs,
 		Long: `List all profiles configured into the config file ~/.lacework.toml
 
-To switch profiles permanently erminal use the command.
+To switch profiles permanently use the command.
 
     lacework configure switch-profile profile2`,
 		RunE: func(_ *cobra.Command, _ []string) error {

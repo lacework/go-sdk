@@ -242,6 +242,7 @@ func initConfig() {
 	if p := viper.GetString("profile"); len(p) != 0 {
 		err = cli.SetProfile(p)
 	} else if p, cacheErr := cli.Cache.Read("global/profile"); cacheErr == nil {
+		cli.Log.Debugw("loading profile from cache", "profile", string(p))
 		err = cli.SetProfile(string(p))
 	} else {
 		err = cli.LoadState()

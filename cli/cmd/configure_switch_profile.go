@@ -37,6 +37,7 @@ is to export the environment variable:
     ` + configureListCmdSetProfileEnv,
 		RunE: func(_ *cobra.Command, args []string) error {
 			if args[0] == "default" {
+				cli.Log.Debug("removing global profile cache, going back to default")
 				if err := cli.Cache.Erase("global/profile"); err != nil {
 					return errors.Wrap(err, "unable to switch profile")
 				}
@@ -50,6 +51,10 @@ is to export the environment variable:
 			}
 
 			if _, ok := profiles[args[0]]; ok {
+				cli.Log.Debugw("storing global profile cache",
+					"current_profile", cli.Profile,
+					"new_profile", args[0],
+				)
 				if err := cli.Cache.Write("global/profile", []byte(args[0])); err != nil {
 					return errors.Wrap(err, "unable to switch profile")
 				}
