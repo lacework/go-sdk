@@ -48,5 +48,5 @@ An alert rule has three parts:
 * [lacework alert-rule create](lacework_alert-rule_create.md)	 - Create a new alert rule
 * [lacework alert-rule delete](lacework_alert-rule_delete.md)	 - Delete a alert rule
 * [lacework alert-rule list](lacework_alert-rule_list.md)	 - List all alert rules
-* [lacework alert-rule show](lacework_alert-rule_show.md)	 - Show an alert rule by id
+* [lacework alert-rule show](lacework_alert-rule_show.md)	 - Show an alert rule by ID
 
