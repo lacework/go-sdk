@@ -11,6 +11,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/Masterminds/semver"
+	"github.com/abiosoft/colima/util/terminal"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/releases"
@@ -377,11 +378,15 @@ func provideGuidanceAfterExit(initRun bool, planRun bool, workingDir string, bin
 
 // Execute a terraform plan & execute
 func TerraformPlanAndExecute(workingDir string) error {
+	vw := terminal.NewVerboseWriter(10)
 	// Ensure Terraform is installed
 	tf, err := LocateOrInstallTerraform(false, workingDir)
 	if err != nil {
 		return err
 	}
+
+	tf.SetStdout(vw)
+	tf.SetStderr(vw)
 
 	// Initialize tf project
 	if err := TerraformInit(tf); err != nil {
@@ -393,6 +398,7 @@ func TerraformPlanAndExecute(workingDir string) error {
 	if err != nil {
 		return err
 	}
+	vw.Close()
 
 	// Display changes and determine if apply should proceed
 	proceed, err := DisplayTerraformPlanChanges(tf, *changes)
@@ -410,8 +416,9 @@ func TerraformPlanAndExecute(workingDir string) error {
 	if err := TerraformExecApply(tf); err != nil {
 		return err
 	}
-	cli.OutputHuman(provideGuidanceAfterSuccess(tf.WorkingDir(), GenerateAwsCommandState.LaceworkProfile))
+	vw.Close()
 
+	cli.OutputHuman(provideGuidanceAfterSuccess(tf.WorkingDir(), GenerateAwsCommandState.LaceworkProfile))
 	return nil
 }
 
