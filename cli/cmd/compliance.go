@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -450,17 +451,36 @@ func validRecommendationID(s string) bool {
 func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
 	recommendation := report.GetComplianceRecommendation(compCmdState.RecommendationID)
 	violations := recommendation.Violations
-
-	if len(violations) == 0 {
-		cli.OutputHuman("No resources found affected by '%s'\n", compCmdState.RecommendationID)
-		return nil
-	}
+	affectedResources := len(recommendation.Violations)
 
 	if cli.JSONOutput() {
-		resourcesJsonOut := struct {
-			Violations []api.ComplianceViolation `json:"violations"`
-		}{violations}
-		return cli.OutputJSON(resourcesJsonOut)
+		return cli.OutputJSON(recommendation)
+	}
+
+	cli.OutputHuman(
+		renderCustomTable(
+			[]string{"Summary"},
+			[][]string{
+				{"Severity", recommendation.SeverityString()},
+				{"Service", recommendation.Service},
+				{"Category", recommendation.Category},
+				{"Status", recommendation.Status},
+				{"Assessed Resources", strconv.Itoa(recommendation.AssessedResourceCount)},
+				{"Affected Resources", strconv.Itoa(affectedResources)},
+			},
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+				t.SetCenterSeparator("")
+			}),
+		),
+	)
+
+	if affectedResources == 0 {
+		cli.OutputHuman("\nNo resources found affected by '%s'\n", compCmdState.RecommendationID)
+		return nil
 	}
 
 	cli.OutputHuman(
@@ -469,7 +489,6 @@ func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
 			violationsToTable(violations),
 		),
 	)
-	cli.OutputHuman("\n%d resources showing affected by '%s'\n", len(violations), compCmdState.RecommendationID)
 	return nil
 }
 
