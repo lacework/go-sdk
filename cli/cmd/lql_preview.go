@@ -20,7 +20,6 @@ package cmd
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -32,12 +31,11 @@ import (
 
 var (
 	queryPreviewSourceCmd = &cobra.Command{
-		Hidden: false,
-		Use:    "preview-source <datasource_id>",
-		Short:  "Preview Lacework query data source",
-		Long:   `Preview Lacework query data source.`,
-		Args:   cobra.ExactArgs(1),
-		RunE:   previewQuerySource,
+		Use:   "preview-source <datasource_id>",
+		Short: "Preview Lacework query data source",
+		Long:  `Preview Lacework query data source.`,
+		Args:  cobra.ExactArgs(1),
+		RunE:  previewQuerySource,
 	}
 	queryPreviewSourceTemplate = `CLIAdhocPreview { source { %s } return distinct { %s } }`
 )
@@ -54,7 +52,7 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 	cli.StopProgress()
 
 	if err != nil {
-		return errors.Wrap(err, "unable to retrieve datasource")
+		return errors.Wrap(err, "unable to retrieve data source")
 	}
 
 	// build returns list from datasource fields
@@ -63,14 +61,25 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 		returns = append(returns, ret.Name)
 	}
 	if len(returns) == 0 {
-		return errors.New("unable to parse datasource schema")
+		return errors.New("unable to parse data source schema")
+	}
+
+	// initialize query
+	executeQuery := api.ExecuteQueryRequest{
+		Query: api.ExecuteQuery{
+			QueryText: fmt.Sprintf(
+				queryPreviewSourceTemplate, args[0], strings.Join(returns, ",")),
+		},
+	}
+	if args[0] == "CloudTrailRawEvents" {
+		executeQuery.Query.EvaluatorID = "Cloudtrail"
 	}
 
 	// initialize time attempts
 	timeAttempts := []map[string]string{
-		map[string]string{"start": "-24h", "end": "now"},
-		map[string]string{"start": "-7d", "end": "-24h"},
-		map[string]string{"start": "-30d", "end": "-7d"},
+		{"start": "-24h", "end": "now"},
+		{"start": "-7d", "end": "-24h"},
+		{"start": "-30d", "end": "-7d"},
 	}
 
 	for _, timeAttempt := range timeAttempts {
@@ -88,17 +97,7 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 			},
 		}
 
-		// initialize query
-		executeQuery := api.ExecuteQueryRequest{
-			Query: api.ExecuteQuery{
-				QueryText: fmt.Sprintf(
-					queryPreviewSourceTemplate, args[0], strings.Join(returns, ",")),
-			},
-			Arguments: queryArgs,
-		}
-		if args[0] == "CloudTrailRawEvents" {
-			executeQuery.Query.EvaluatorID = "Cloudtrail"
-		}
+		executeQuery.Arguments = queryArgs
 
 		// execute query
 		cli.Log.Debugw("running query", "query", executeQuery.Query.QueryText)
@@ -106,24 +105,25 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 		response, err := cli.LwApi.V2.Query.Execute(executeQuery)
 		cli.StopProgress()
 		if err != nil {
-			return errors.Wrap(err, "unable to preview datasource")
+			return errors.Wrap(err, "unable to preview data source")
 		}
 
 		// check and output
 		data, ok := response["data"]
 		if !ok {
 			err = errors.New("preview results missing data")
-			return errors.Wrap(err, "unable to preview datasource")
+			return errors.Wrap(err, "unable to preview data source")
 		}
-		if s := reflect.ValueOf(data); s.Kind() != reflect.Slice {
+		if slice, ok := data.([]interface{}); ok {
+			if len(slice) == 0 {
+				continue
+			}
+			return cli.OutputJSON(slice[0])
+		} else {
 			err = errors.New("preview results data is not a slice")
-			return errors.Wrap(err, "unable to preview datasource")
+			return errors.Wrap(err, "unable to preview data source")
 		}
-		if len(data.([]interface{})) == 0 {
-			continue
-		}
-		return cli.OutputJSON(data.([]interface{})[0])
 	}
-	cli.OutputHuman("No results found for datasource")
+	cli.OutputHuman("No results found for data source")
 	return nil
 }
