@@ -29,6 +29,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestConfigureListHelp(t *testing.T) {
+	out, err, exitcode := LaceworkCLI("configure", "list", "--help")
+	assert.Empty(t,
+		err.String(),
+		"STDERR should be empty")
+	assert.Contains(t,
+		out.String(),
+		"To switch profiles permanently use the command.",
+		"STDOUT help message is not correct")
+	assert.Contains(t,
+		out.String(),
+		"lacework configure switch-profile profile2",
+		"STDOUT help message is not correct")
+	assert.Equal(t, 0, exitcode,
+		"EXITCODE is not the expected one")
+}
+
 func TestConfigureCommandNonInteractive(t *testing.T) {
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)

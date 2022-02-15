@@ -65,8 +65,9 @@ Usage:
   lacework configure [command]
 
 Available Commands:
-  list        List all configured profiles at ~/.lacework.toml
-  show        Show current configuration data
+  list           List all configured profiles at ~/.lacework.toml
+  show           Show current configuration data
+  switch-profile Switch between configured profiles
 
 Flags:
   -h, --help               help for configure

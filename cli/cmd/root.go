@@ -233,11 +233,17 @@ func initConfig() {
 		)
 	}
 
+	// initialize cli cache library
+	cli.InitCache()
+
 	// get the profile passed as a parameter or environment variable
 	// if any, set it into the CLI state, that will trigger to load the
 	// state, if no profile was specified just load the default state
 	if p := viper.GetString("profile"); len(p) != 0 {
 		err = cli.SetProfile(p)
+	} else if p, cacheErr := cli.Cache.Read("global/profile"); cacheErr == nil {
+		cli.Log.Debugw("loading profile from cache", "profile", string(p))
+		err = cli.SetProfile(string(p))
 	} else {
 		err = cli.LoadState()
 	}
@@ -254,9 +260,6 @@ func initConfig() {
 			exitwith(err)
 		}
 	}
-
-	// initialize cli cache library
-	cli.InitCache()
 }
 
 // isCommand checks the overall arguments passed to the lacework cli
