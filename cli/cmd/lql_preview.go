@@ -86,7 +86,7 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 		start, _ := lwtime.ParseRelative(timeAttempt["start"])
 		end, _ := lwtime.ParseRelative(timeAttempt["end"])
 
-		queryArgs := []api.ExecuteQueryArgument{
+		executeQuery.Arguments = []api.ExecuteQueryArgument{
 			api.ExecuteQueryArgument{
 				Name:  "StartTimeRange",
 				Value: start.UTC().Format(lwtime.RFC3339Milli),
@@ -96,8 +96,6 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 				Value: end.UTC().Format(lwtime.RFC3339Milli),
 			},
 		}
-
-		executeQuery.Arguments = queryArgs
 
 		// execute query
 		cli.Log.Debugw("running query", "query", executeQuery.Query.QueryText)
