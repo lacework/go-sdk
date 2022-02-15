@@ -19,6 +19,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -39,7 +41,9 @@ is to export the environment variable:
 			if args[0] == "default" {
 				cli.Log.Debug("removing global profile cache, going back to default")
 				if err := cli.Cache.Erase("global/profile"); err != nil {
-					return errors.Wrap(err, "unable to switch profile")
+					if !os.IsNotExist(err) {
+						return errors.Wrap(err, "unable to switch profile")
+					}
 				}
 				cli.OutputHuman("Profile switched back to default.\n")
 				return nil
