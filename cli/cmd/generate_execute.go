@@ -299,7 +299,6 @@ func TerraformExecPlan(tf *tfexec.Terraform) (*TfPlanChangesSummary, error) {
 // - Run plan
 // - Get plan file details (returned)
 func TerraformExecApply(tf *tfexec.Terraform) error {
-	// Plan
 	cli.StartProgress("Running terraform apply")
 	err := tf.Apply(context.Background())
 	cli.StopProgress()
@@ -378,13 +377,13 @@ func provideGuidanceAfterExit(initRun bool, planRun bool, workingDir string, bin
 
 // Execute a terraform plan & execute
 func TerraformPlanAndExecute(workingDir string) error {
-	vw := terminal.NewVerboseWriter(10)
 	// Ensure Terraform is installed
 	tf, err := LocateOrInstallTerraform(false, workingDir)
 	if err != nil {
 		return err
 	}
 
+	vw := terminal.NewVerboseWriter(10)
 	tf.SetStdout(vw)
 	tf.SetStderr(vw)
 
@@ -398,6 +397,7 @@ func TerraformPlanAndExecute(workingDir string) error {
 	if err != nil {
 		return err
 	}
+
 	vw.Close()
 
 	// Display changes and determine if apply should proceed
@@ -411,6 +411,10 @@ func TerraformPlanAndExecute(workingDir string) error {
 		cli.OutputHuman(provideGuidanceAfterExit(true, true, tf.WorkingDir(), tf.ExecPath()))
 		return nil
 	}
+
+	vw = terminal.NewVerboseWriter(10)
+	tf.SetStdout(vw)
+	tf.SetStderr(vw)
 
 	// Apply plan
 	if err := TerraformExecApply(tf); err != nil {
