@@ -133,7 +133,7 @@ To run an ad-hoc compliance assessment use the command:
 
     lacework compliance azure run-assessment <tenant_id>
 
-To show resources affected by a violation:
+To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance azure get-report <tenant_id> <subscriptions_id> [recommendation_id]
 `,

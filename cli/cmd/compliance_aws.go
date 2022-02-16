@@ -92,7 +92,7 @@ To run an ad-hoc compliance assessment of an AWS account:
 
     lacework compliance aws run-assessment <account_id>
 
-To show resources affected by a violation:
+To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance aws get-report <account_id> [recommendation_id]
 `,
