@@ -145,16 +145,16 @@ func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(), "SUMMARY",
 		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "Severity",
+	assert.Contains(t, out.String(), "SEVERITY",
 		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "Service",
+	assert.Contains(t, out.String(), "SERVICE",
 		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "Category",
+	assert.Contains(t, out.String(), "CATEGORY",
 		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "Status",
+	assert.Contains(t, out.String(), "STATUS",
 		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "Assessed Resources ",
+	assert.Contains(t, out.String(), "ASSESSED RESOURCES ",
 		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "Affected Resources",
+	assert.Contains(t, out.String(), "AFFECTED RESOURCES",
 		"STDOUT table headers changed, please check")
 }

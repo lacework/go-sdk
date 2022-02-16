@@ -458,25 +458,28 @@ func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
 	}
 
 	cli.OutputHuman(
-		renderCustomTable(
-			[]string{"Summary"},
-			[][]string{
-				{"Severity", recommendation.SeverityString()},
-				{"Service", recommendation.Service},
-				{"Category", recommendation.Category},
-				{"Status", recommendation.Status},
-				{"Assessed Resources", strconv.Itoa(recommendation.AssessedResourceCount)},
-				{"Affected Resources", strconv.Itoa(affectedResources)},
-			},
-			tableFunc(func(t *tablewriter.Table) {
+		renderOneLineCustomTable("RECOMMENDATION DETAILS",
+			renderCustomTable([]string{},
+				[][]string{
+					{"ID", compCmdState.RecommendationID},
+					{"SEVERITY", recommendation.SeverityString()},
+					{"SERVICE", recommendation.Service},
+					{"CATEGORY", recommendation.Category},
+					{"STATUS", recommendation.Status},
+					{"ASSESSED RESOURCES", strconv.Itoa(recommendation.AssessedResourceCount)},
+					{"AFFECTED RESOURCES", strconv.Itoa(affectedResources)},
+				},
+				tableFunc(func(t *tablewriter.Table) {
+					t.SetBorder(false)
+					t.SetColumnSeparator(" ")
+					t.SetAutoWrapText(false)
+					t.SetAlignment(tablewriter.ALIGN_LEFT)
+				}),
+			), tableFunc(func(t *tablewriter.Table) {
 				t.SetBorder(false)
-				t.SetColumnSeparator(" ")
 				t.SetAutoWrapText(false)
-				t.SetAlignment(tablewriter.ALIGN_LEFT)
-				t.SetCenterSeparator("")
 			}),
-		),
-	)
+		))
 
 	if affectedResources == 0 {
 		cli.OutputHuman("\nNo resources found affected by '%s'\n", compCmdState.RecommendationID)
@@ -485,7 +488,7 @@ func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
 
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"Resource", "Region", "Reasons"},
+			[]string{"AFFECTED RESOURCE", "REGION", "REASON"},
 			violationsToTable(violations),
 		),
 	)
