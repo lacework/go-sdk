@@ -367,7 +367,7 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 			)
 		} else {
 			mainReport.WriteString(
-				"Try using '--pdf' to download the entire report in PDF format.",
+				"Try adding [recommendation_id] to show affected resources.",
 			)
 		}
 		mainReport.WriteString("\n")
