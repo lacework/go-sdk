@@ -62,4 +62,5 @@ lacework configure [flags]
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
 * [lacework configure list](lacework_configure_list.md)	 - List all configured profiles at ~/.lacework.toml
 * [lacework configure show](lacework_configure_show.md)	 - Show current configuration data
+* [lacework configure switch-profile](lacework_configure_switch-profile.md)	 - Switch between configured profiles
 

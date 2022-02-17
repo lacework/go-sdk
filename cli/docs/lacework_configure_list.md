@@ -12,10 +12,9 @@ List all configured profiles at ~/.lacework.toml
 
 List all profiles configured into the config file ~/.lacework.toml
 
-To switch to a different profile permanently in your current terminal,
-export the environment variable:
+To switch profiles permanently use the command.
 
-    export LW_PROFILE="my-profile"
+    lacework configure switch-profile profile2
 
 ```
 lacework configure list [flags]

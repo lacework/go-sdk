@@ -18,6 +18,7 @@ The available configuration keys are:
 
 * profile
 * account
+* subaccount
 * api_secret
 * api_key
 
