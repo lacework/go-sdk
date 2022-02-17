@@ -20,7 +20,9 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -57,7 +59,12 @@ var (
 
 		// Filter the recommendations table by status
 		Status string
+
+		// output resources affected by recommendationID
+		RecommendationID string
 	}{Type: "CIS"}
+
+	RecommendationIDRegex = "^[A-Z]+[A-Z_]*[0-9]*"
 
 	// complianceCmd represents the compliance command
 	complianceCmd = &cobra.Command{
@@ -360,7 +367,7 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 			)
 		} else {
 			mainReport.WriteString(
-				"Try using '--pdf' to download the entire report in PDF format.",
+				"Try adding [recommendation_id] to show affected resources.",
 			)
 		}
 		mainReport.WriteString("\n")
@@ -434,4 +441,63 @@ func statusToProperTypes(status string) string {
 	default:
 		return "Unknown"
 	}
+}
+
+func validRecommendationID(s string) bool {
+	match, _ := regexp.MatchString(RecommendationIDRegex, s)
+	return match
+}
+
+func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
+	recommendation := report.GetComplianceRecommendation(compCmdState.RecommendationID)
+	violations := recommendation.Violations
+	affectedResources := len(recommendation.Violations)
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(recommendation)
+	}
+
+	cli.OutputHuman(
+		renderOneLineCustomTable("RECOMMENDATION DETAILS",
+			renderCustomTable([]string{},
+				[][]string{
+					{"ID", compCmdState.RecommendationID},
+					{"SEVERITY", recommendation.SeverityString()},
+					{"SERVICE", recommendation.Service},
+					{"CATEGORY", recommendation.Category},
+					{"STATUS", recommendation.Status},
+					{"ASSESSED RESOURCES", strconv.Itoa(recommendation.AssessedResourceCount)},
+					{"AFFECTED RESOURCES", strconv.Itoa(affectedResources)},
+				},
+				tableFunc(func(t *tablewriter.Table) {
+					t.SetBorder(false)
+					t.SetColumnSeparator(" ")
+					t.SetAutoWrapText(false)
+					t.SetAlignment(tablewriter.ALIGN_LEFT)
+				}),
+			), tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetAutoWrapText(false)
+			}),
+		))
+
+	if affectedResources == 0 {
+		cli.OutputHuman("\nNo resources found affected by '%s'\n", compCmdState.RecommendationID)
+		return nil
+	}
+
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"AFFECTED RESOURCE", "REGION", "REASON"},
+			violationsToTable(violations),
+		),
+	)
+	return nil
+}
+
+func violationsToTable(violations []api.ComplianceViolation) (resourceTable [][]string) {
+	for _, v := range violations {
+		resourceTable = append(resourceTable, []string{v.Resource, v.Region, strings.Join(v.Reasons, ",")})
+	}
+	return
 }

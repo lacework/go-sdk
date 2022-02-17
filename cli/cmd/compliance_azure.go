@@ -99,9 +99,16 @@ Use the following command to list all Azure Tenants configured in your account:
 	complianceAzureGetReportCmd = &cobra.Command{
 		Use:     "get-report <tenant_id> <subscriptions_id>",
 		Aliases: []string{"get"},
-		PreRunE: func(_ *cobra.Command, _ []string) error {
+		PreRunE: func(_ *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
+			}
+
+			if len(args) > 2 {
+				compCmdState.RecommendationID = args[2]
+				if !validRecommendationID(compCmdState.RecommendationID) {
+					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
+				}
 			}
 
 			switch compCmdState.Type {
@@ -125,8 +132,12 @@ To list all Azure tenants and subscriptions configured in your account:
 To run an ad-hoc compliance assessment use the command:
 
     lacework compliance azure run-assessment <tenant_id>
+
+To show recommendation details and affected resources for a recommendation id:
+
+    lacework compliance azure get-report <tenant_id> <subscriptions_id> [recommendation_id]
 `,
-		Args: cobra.ExactArgs(2),
+		Args: cobra.RangeArgs(2, 3),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				// clean tenantID and subscriptionID if they were provided
@@ -204,7 +215,7 @@ To run an ad-hoc compliance assessment use the command:
 				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
 			}
 
-			if cli.JSONOutput() {
+			if cli.JSONOutput() && compCmdState.RecommendationID == "" {
 				return cli.OutputJSON(report)
 			}
 
@@ -227,6 +238,11 @@ To run an ad-hoc compliance assessment use the command:
 						"Status", "Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
+			}
+
+			// If RecommendationID is provided, output resources matching that id
+			if compCmdState.RecommendationID != "" {
+				return outputResourcesByRecommendationID(report)
 			}
 
 			recommendations := complianceReportRecommendationsTable(report.Recommendations)
