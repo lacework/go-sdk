@@ -143,7 +143,7 @@ func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
 
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-	assert.Contains(t, out.String(), "SUMMARY",
+	assert.Contains(t, out.String(), "RECOMMENDATION DETAILS",
 		"STDOUT table headers changed, please check")
 	assert.Contains(t, out.String(), "SEVERITY",
 		"STDOUT table headers changed, please check")
