@@ -71,6 +71,7 @@ To execute a query.
 * [lacework query delete](lacework_query_delete.md)	 - Delete a query
 * [lacework query list](lacework_query_list.md)	 - List queries
 * [lacework query list-sources](lacework_query_list-sources.md)	 - List Lacework query data sources
+* [lacework query preview-source](lacework_query_preview-source.md)	 - Preview Lacework query data source
 * [lacework query run](lacework_query_run.md)	 - Run a query
 * [lacework query show](lacework_query_show.md)	 - Show a query
 * [lacework query show-source](lacework_query_show-source.md)	 - Show Lacework query data source
