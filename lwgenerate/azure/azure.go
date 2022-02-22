@@ -14,7 +14,7 @@ type GenerateAzureTfConfigurationArgs struct {
 	Config bool
 
 	// Should we create an Active Directory integration
-	AdIntegration bool
+	CreateAdIntegration bool
 
 	// If Config is true, give the user the opportunity to name their integration. Defaults to "TF Config"
 	ConfigIntegrationName string
@@ -52,7 +52,7 @@ type GenerateAzureTfConfigurationArgs struct {
 	// Should we use existing storage account
 	ExistingStorageAccount bool
 
-	// Azure region where the storage account for loggin resides
+	// Azure region where the storage account for logging resides
 	Location string
 }
 
@@ -64,10 +64,8 @@ func (args *GenerateAzureTfConfigurationArgs) validate() error {
 	}
 
 	// Validate that active directory settings are correct
-	if !args.AdIntegration {
-		if args.AdApplicationId == "" || args.AdServicePrincipalId == "" || args.AdApplicationPassword == "" {
-			return errors.New("Active directory details must be set")
-		}
+	if !args.CreateAdIntegration && (args.AdApplicationId == "" || args.AdServicePrincipalId == "" || args.AdApplicationPassword == "") {
+		return errors.New("Active directory details must be set")
 	}
 
 	// Validate the Mangement Group
@@ -92,8 +90,8 @@ type AzureTerraformModifier func(c *GenerateAzureTfConfigurationArgs)
 //
 // Note: Additional configuration details may be set using modifiers of the AzureTerraformModifier type
 //
-func NewTerraform(enableConfig bool, enableActivityLog bool, mods ...AzureTerraformModifier) *GenerateAzureTfConfigurationArgs {
-	config := &GenerateAzureTfConfigurationArgs{ActivityLog: enableActivityLog, Config: enableConfig}
+func NewTerraform(enableConfig bool, enableActivityLog bool, createAdIntegration bool, mods ...AzureTerraformModifier) *GenerateAzureTfConfigurationArgs {
+	config := &GenerateAzureTfConfigurationArgs{ActivityLog: enableActivityLog, Config: enableConfig, CreateAdIntegration: createAdIntegration}
 	for _, m := range mods {
 		m(config)
 	}
@@ -114,10 +112,10 @@ func WithAuditLogIntegrationName(name string) AzureTerraformModifier {
 	}
 }
 
-// WithAdIntegration Set the Config Integration name to be displayed on the Lacework UI
-func WithAdIntegration(enableAdIntegration bool) AzureTerraformModifier {
+// WithCreateAdIntegration Set the Config Integration name to be displayed on the Lacework UI
+func WithCreateAdIntegration(enableAdIntegration bool) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
-		c.AdIntegration = enableAdIntegration
+		c.CreateAdIntegration = enableAdIntegration
 	}
 }
 
@@ -164,9 +162,9 @@ func WithSubscriptionIds(subscriptionIds []string) AzureTerraformModifier {
 	}
 }
 
-// WithAllSubscription Grant read access to ALL subscriptions within
+// WithAllSubscriptions Grant read access to ALL subscriptions within
 // the selected Tenant (overrides 'subscription_ids')
-func WithAllSubscription(allSubscriptions bool) AzureTerraformModifier {
+func WithAllSubscriptions(allSubscriptions bool) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.AllSubscriptions = allSubscriptions
 	}
@@ -315,7 +313,7 @@ func createAzureRMProvider() ([]*hclwrite.Block, error) {
 func createLaceworkAzureADModule(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 
-	if args.AdIntegration {
+	if args.CreateAdIntegration {
 		provider, err := lwgenerate.NewModule(
 			"az_ad_application",
 			lwgenerate.LWAzureADSource,
@@ -342,7 +340,7 @@ func createConfig(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, er
 		}
 
 		// Check if we have created an Active Directory app
-		if args.AdIntegration {
+		if args.CreateAdIntegration {
 			attributes["use_existing_ad_application"] = true
 			attributes["application_id"] = "module.az_ad_application.application_id"
 			attributes["application_password"] = "module.az_ad_application.application_password"
@@ -406,7 +404,7 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 		}
 
 		// Check if we have created an Active Directory integration
-		if args.AdIntegration {
+		if args.CreateAdIntegration {
 			attributes["use_existing_ad_application"] = true
 			attributes["application_id"] = "module.az_ad_application.application_id"
 			attributes["application_password"] = "module.az_ad_application.application_password"

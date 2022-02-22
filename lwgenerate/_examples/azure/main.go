@@ -8,9 +8,7 @@ import (
 )
 
 func ActivityLogWithoutConfig() {
-	hcl, err := azure.NewTerraform(false, true,
-		azure.WithAdIntegration(true),
-	).Generate()
+	hcl, err := azure.NewTerraform(false, true, true).Generate()
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -21,9 +19,7 @@ func ActivityLogWithoutConfig() {
 }
 
 func ActivityLogWithConfig() {
-	hcl, err := azure.NewTerraform(true, true,
-		azure.WithAdIntegration(true),
-	).Generate()
+	hcl, err := azure.NewTerraform(true, true, true).Generate()
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -34,9 +30,7 @@ func ActivityLogWithConfig() {
 }
 
 func ConfigWithoutActivityLog() {
-	hcl, err := azure.NewTerraform(true, false,
-		azure.WithAdIntegration(true),
-	).Generate()
+	hcl, err := azure.NewTerraform(true, false, true).Generate()
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -47,10 +41,9 @@ func ConfigWithoutActivityLog() {
 }
 
 func CustomActiveDirectory() {
-	hcl, err := azure.NewTerraform(true, true,
+	hcl, err := azure.NewTerraform(true, true, false,
 		azure.WithConfigIntegrationName("Test Config Rename"),
 		azure.WithAuditLogIntegrationName("Test Activity Log Rename"),
-		azure.WithAdIntegration(false),
 		azure.WithAdApplicationPassword("AD-Test-Password"),
 		azure.WithAdServicePrincipalId("AD-Test-Principal-ID"),
 		azure.WithAdApplicationId("AD-Test-Application-ID"),
@@ -66,8 +59,7 @@ func CustomActiveDirectory() {
 
 func ActivityLogWithSubscriptionsList() {
 	testIds := []string{"test-id-1", "test-id-2", "test-id-3"}
-	hcl, err := azure.NewTerraform(false, true,
-		azure.WithAdIntegration(true),
+	hcl, err := azure.NewTerraform(false, true, true,
 		azure.WithSubscriptionIds(testIds),
 	).Generate()
 
@@ -81,8 +73,7 @@ func ActivityLogWithSubscriptionsList() {
 
 func ConfigWithSubscriptionsList() {
 	testIds := []string{"test-id-1", "test-id-2", "test-id-3"}
-	hcl, err := azure.NewTerraform(true, false,
-		azure.WithAdIntegration(true),
+	hcl, err := azure.NewTerraform(true, false, true,
 		azure.WithSubscriptionIds(testIds),
 	).Generate()
 
