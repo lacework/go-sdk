@@ -196,7 +196,7 @@ func determineOutputDirPath(location string) (string, error) {
 }
 
 // writeHclOutputPreCheck Prompt for confirmation if main.tf already exists; return true to continue
-func writeHclOutputPreCheck(outputLocation string) (bool, error) {
+func writeHclOutputPreCheck(outputLocation string, filename string) (bool, error) {
 	// If noninteractive, continue
 	if !cli.InteractiveMode() {
 		return true, nil
@@ -207,7 +207,11 @@ func writeHclOutputPreCheck(outputLocation string) (bool, error) {
 		return false, err
 	}
 
-	hclPath := filepath.FromSlash(fmt.Sprintf("%s/main.tf", outputDir))
+	if filename == "" {
+		filename = "main"
+	}
+
+	hclPath := filepath.FromSlash(fmt.Sprintf("%s/%s.tf", outputDir, filename))
 
 	// If the file doesn't exist, carry on
 	if _, err := os.Stat(hclPath); os.IsNotExist(err) {
@@ -227,7 +231,7 @@ func writeHclOutputPreCheck(outputLocation string) (bool, error) {
 }
 
 // writeHclOutput Write HCL output
-func writeHclOutput(hcl string, location string) (string, error) {
+func writeHclOutput(hcl string, location string, filename string) (string, error) {
 	// Determine write location
 	dirname, err := determineOutputDirPath(location)
 	if err != nil {
@@ -245,8 +249,12 @@ func writeHclOutput(hcl string, location string) (string, error) {
 		}
 	}
 
+	if filename == "" {
+		filename = "main"
+	}
+
 	// Create HCL file
-	outputLocation := filepath.FromSlash(fmt.Sprintf("%s/main.tf", dirname))
+	outputLocation := filepath.FromSlash(fmt.Sprintf("%s/%s.tf", dirname, filename))
 	err = os.WriteFile(
 		filepath.FromSlash(outputLocation),
 		[]byte(hcl),
@@ -329,7 +337,7 @@ func validPathExists(val interface{}) error {
 }
 
 // writeGeneratedCodeToLocation Write-out generated code to location specified
-func writeGeneratedCodeToLocation(cmd *cobra.Command, hcl string) (string, string, error) {
+func writeGeneratedCodeToLocation(cmd *cobra.Command, hcl string, cloud string) (string, string, error) {
 	//dirname, ok, location := "", false, ""
 	// Write-out generated code to location specified
 	dirname, err := cmd.Flags().GetString("output")
@@ -337,7 +345,7 @@ func writeGeneratedCodeToLocation(cmd *cobra.Command, hcl string) (string, strin
 		return dirname, "", errors.Wrap(err, "failed to parse output location")
 	}
 
-	ok, err := writeHclOutputPreCheck(dirname)
+	ok, err := writeHclOutputPreCheck(dirname, cloud)
 	if err != nil {
 		return dirname, "", errors.Wrap(err, "failed to validate output location")
 	}
@@ -346,7 +354,7 @@ func writeGeneratedCodeToLocation(cmd *cobra.Command, hcl string) (string, strin
 		return dirname, "", errors.Wrap(err, "aborting to avoid overwriting existing terraform code")
 	}
 
-	location, err := writeHclOutput(hcl, dirname)
+	location, err := writeHclOutput(hcl, dirname, cloud)
 	if err != nil {
 		return dirname, location, errors.Wrap(err, "failed to write terraform code to disk")
 	}
