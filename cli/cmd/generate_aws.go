@@ -117,7 +117,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			}
 
 			// Write-out generated code to location specified
-			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl)
+			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "aws")
 			if err != nil {
 				return err
 			}
@@ -136,7 +136,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			locationDir := filepath.Dir(location)
 			if GenerateAwsCommandExtraState.TerraformApply {
 				// Execution pre-run check
-				err := executionPreRunChecks(dirname, locationDir)
+				err := executionPreRunChecks(dirname, locationDir, "aws")
 				if err != nil {
 					return err
 				}

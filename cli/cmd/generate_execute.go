@@ -40,7 +40,7 @@ func newTf(workingDir string, execPath string) (*tfexec.Terraform, error) {
 	return tf, nil
 }
 
-// Determine if terraform is installed, if that version is new enough, and if not install a new ephemeral binary of the
+// LocateOrInstallTerraform Determine if terraform is installed, if that version is new enough, and if not install a new ephemeral binary of the
 // correct version into tmp location
 //
 // forceInstall: if set always install ephemeral binary
@@ -187,7 +187,7 @@ func buildHumanReadablePlannedActions(workingDir string, execPath string, data [
 	return outputString.String()
 }
 
-// used to display the results of a plan
+// DisplayTerraformPlanChanges used to display the results of a plan
 //
 // returns true if apply should run, false to exit
 func DisplayTerraformPlanChanges(tf *tfexec.Terraform, data TfPlanChangesSummary) (bool, error) {
@@ -277,7 +277,7 @@ func TerraformInit(tf *tfexec.Terraform) error {
 	return nil
 }
 
-// Run terraform plan using the workingDir from *tfexec.Terraform
+// TerraformExecPlan Run terraform plan using the workingDir from *tfexec.Terraform
 //
 // - Run plan
 // - Get plan file details (returned)
@@ -294,7 +294,7 @@ func TerraformExecPlan(tf *tfexec.Terraform) (*TfPlanChangesSummary, error) {
 	return processTfPlanChangesSummary(tf)
 }
 
-// Run terraform apply using the workingDir from *tfexec.Terraform
+// TerraformExecApply Run terraform apply using the workingDir from *tfexec.Terraform
 //
 // - Run plan
 // - Get plan file details (returned)
