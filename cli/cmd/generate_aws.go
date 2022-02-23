@@ -256,6 +256,65 @@ This command can also be run in noninteractive mode. See help output for more de
 	}
 )
 
+func initGenerateAwsTfCommandFlags() {
+	// add flags to sub commands
+	// TODO Share the help with the interactive generation
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.Cloudtrail, "cloudtrail", false, "enable cloudtrail integration")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.Config, "config", false, "enable config integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.AwsRegion, "aws_region", "", "specify aws region")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.AwsProfile, "aws_profile", "default", "specify aws profile")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ExistingCloudtrailBucketArn,
+		"existing_bucket_arn",
+		"",
+		"specify existing cloudtrail s3 bucket ARN")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsExistingRoleState.Arn,
+		"existing_iam_role_arn",
+		"",
+		"specify existing iam role arn to use")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsExistingRoleState.Name,
+		"existing_iam_role_name",
+		"",
+		"specify existing iam role name to use")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsExistingRoleState.ExternalId,
+		"existing_iam_role_externalid",
+		"",
+		"specify existing iam role external_id to use")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ExistingSnsTopicArn,
+		"existing_sns_topic_arn",
+		"",
+		"specify existing sns topic arn")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.ConsolidatedCloudtrail,
+		"consolidated_cloudtrail",
+		false,
+		"use consolidated trail")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.ForceDestroyS3Bucket,
+		"force_destroy_s3",
+		false,
+		"enable force destroy s3 bucket")
+	generateAwsTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAwsCommandExtraState.AwsSubAccounts,
+		"aws_subaccount",
+		[]string{},
+		"configure an additional aws account; value format must be <aws profile>:<region>")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandExtraState.TerraformApply,
+		"apply",
+		false,
+		"run terraform apply without executing plan or prompting",
+	)
+}
+
 // survey.Validator for aws ARNs
 //
 // This isn't service/type specific but rather just validates that an ARN was entered that matches valid ARN formats

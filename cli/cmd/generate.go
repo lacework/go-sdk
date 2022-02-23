@@ -75,73 +75,9 @@ func init() {
 	generateTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandExtraState.Output, "output", "", "location to write generated content")
 
-	// add flags to sub commands
-	// TODO Share the help with the interactive generation
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.Cloudtrail, "cloudtrail", false, "enable cloudtrail integration")
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.Config, "config", false, "enable config integration")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.AwsRegion, "aws_region", "", "specify aws region")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.AwsProfile, "aws_profile", "default", "specify aws profile")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.ExistingCloudtrailBucketArn,
-		"existing_bucket_arn",
-		"",
-		"specify existing cloudtrail s3 bucket ARN")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsExistingRoleState.Arn,
-		"existing_iam_role_arn",
-		"",
-		"specify existing iam role arn to use")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsExistingRoleState.Name,
-		"existing_iam_role_name",
-		"",
-		"specify existing iam role name to use")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsExistingRoleState.ExternalId,
-		"existing_iam_role_externalid",
-		"",
-		"specify existing iam role external_id to use")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.ExistingSnsTopicArn,
-		"existing_sns_topic_arn",
-		"",
-		"specify existing sns topic arn")
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.ConsolidatedCloudtrail,
-		"consolidated_cloudtrail",
-		false,
-		"use consolidated trail")
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.ForceDestroyS3Bucket,
-		"force_destroy_s3",
-		false,
-		"enable force destroy s3 bucket")
-	generateAwsTfCommand.PersistentFlags().StringSliceVar(
-		&GenerateAwsCommandExtraState.AwsSubAccounts,
-		"aws_subaccount",
-		[]string{},
-		"configure an additional aws account; value format must be <aws profile>:<region>")
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandExtraState.TerraformApply,
-		"apply",
-		false,
-		"run terraform apply without executing plan or prompting",
-	)
-
-	generateGcpTfCommand.PersistentFlags().StringVar(
-		&GenerateGcpCommandState.ServiceAccountCredentials,
-		"service_account_credentials",
-		"",
-		"specify a Service Account credentials JSON path (leave blank to make use of google credential ENV vars)")
-	generateGcpTfCommand.PersistentFlags().StringVar(
-		&GenerateGcpCommandState.BucketRegion,
-		"bucket_region",
-		"",
-		"specify gcp bucket region")
+	// Add cloud specific command flags
+	initGenerateAwsTfCommandFlags()
+	initGenerateGcpTfCommandFlags()
 
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)

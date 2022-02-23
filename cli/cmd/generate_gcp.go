@@ -257,6 +257,26 @@ This command can also be run in noninteractive mode. See help output for more de
 	}
 )
 
+func initGenerateGcpTfCommandFlags() {
+	// add flags to sub commands
+	// TODO Share the help with the interactive generation
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.AuditLog, "audit_log", false, "enable audit log integration")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.Config, "config", false, "enable config integration")
+
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.ServiceAccountCredentials,
+		"service_account_credentials",
+		"",
+		"specify a Service Account credentials JSON path (leave blank to make use of google credential ENV vars)")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.BucketRegion,
+		"bucket_region",
+		"",
+		"specify gcp bucket region")
+}
+
 func validateServiceAccountCredentialsFile(credFile string) error {
 	if file.FileExists(credFile) {
 		jsonFile, err := os.Open(credFile)
