@@ -136,7 +136,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			locationDir := filepath.Dir(location)
 			if GenerateAwsCommandExtraState.TerraformApply {
 				// Execution pre-run check
-				err := executionPreRunChecks(dirname, locationDir, "aws")
+				err := executionPreRunChecks(dirname, locationDir)
 				if err != nil {
 					return err
 				}

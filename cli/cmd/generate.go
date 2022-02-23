@@ -365,7 +365,7 @@ func writeGeneratedCodeToLocation(cmd *cobra.Command, hcl string, cloud string) 
 }
 
 // executionPreRunChecks Execution pre-run check
-func executionPreRunChecks(dirname string, locationDir string, cloud string) error {
+func executionPreRunChecks(dirname string, locationDir string) error {
 	ok, err := TerraformExecutePreRunCheck(dirname)
 	if err != nil {
 		return errors.Wrap(err, "failed to check for existing terraform state")
