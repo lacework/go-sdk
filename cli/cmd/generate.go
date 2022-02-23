@@ -196,7 +196,7 @@ func determineOutputDirPath(location string) (string, error) {
 }
 
 // writeHclOutputPreCheck Prompt for confirmation if main.tf already exists; return true to continue
-func writeHclOutputPreCheck(outputLocation string, cloud string) (bool, error) {
+func writeHclOutputPreCheck(outputLocation string, filename string) (bool, error) {
 	// If noninteractive, continue
 	if !cli.InteractiveMode() {
 		return true, nil
@@ -207,12 +207,11 @@ func writeHclOutputPreCheck(outputLocation string, cloud string) (bool, error) {
 		return false, err
 	}
 
-	fileName := cloud
-	if fileName == "" {
-		fileName = "main"
+	if filename == "" {
+		filename = "main"
 	}
 
-	hclPath := filepath.FromSlash(fmt.Sprintf("%s/%s.tf", outputDir, fileName))
+	hclPath := filepath.FromSlash(fmt.Sprintf("%s/%s.tf", outputDir, filename))
 
 	// If the file doesn't exist, carry on
 	if _, err := os.Stat(hclPath); os.IsNotExist(err) {
@@ -232,7 +231,7 @@ func writeHclOutputPreCheck(outputLocation string, cloud string) (bool, error) {
 }
 
 // writeHclOutput Write HCL output
-func writeHclOutput(hcl string, location string, cloud string) (string, error) {
+func writeHclOutput(hcl string, location string, filename string) (string, error) {
 	// Determine write location
 	dirname, err := determineOutputDirPath(location)
 	if err != nil {
@@ -250,13 +249,12 @@ func writeHclOutput(hcl string, location string, cloud string) (string, error) {
 		}
 	}
 
-	fileName := cloud
-	if fileName == "" {
-		fileName = "main"
+	if filename == "" {
+		filename = "main"
 	}
 
 	// Create HCL file
-	outputLocation := filepath.FromSlash(fmt.Sprintf("%s/%s.tf", dirname, fileName))
+	outputLocation := filepath.FromSlash(fmt.Sprintf("%s/%s.tf", dirname, filename))
 	err = os.WriteFile(
 		filepath.FromSlash(outputLocation),
 		[]byte(hcl),
