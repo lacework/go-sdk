@@ -215,7 +215,7 @@ func TestGenerationLocation(t *testing.T) {
 	ActivityLogLocation, fileErr := getFileContent("test-data/activity-log-with-location.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(false, true, true,
-		azure.WithLocation("West US 2"),
+		azure.WithStorageLocation("West US 2"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)

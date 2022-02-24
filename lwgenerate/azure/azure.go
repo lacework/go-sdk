@@ -53,7 +53,7 @@ type GenerateAzureTfConfigurationArgs struct {
 	ExistingStorageAccount bool
 
 	// Azure region where the storage account for logging resides
-	Location string
+	StorageLocation string
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -74,10 +74,8 @@ func (args *GenerateAzureTfConfigurationArgs) validate() error {
 	}
 
 	// Validate Storage Account
-	if args.ExistingStorageAccount {
-		if args.StorageAccountName == "" || args.StorageAccountResourceGroup == "" {
-			return errors.New("When using existing storage account, storage account details must be configured")
-		}
+	if args.ExistingStorageAccount && (args.StorageAccountName == "" || args.StorageAccountResourceGroup == "") {
+		return errors.New("When using existing storage account, storage account details must be configured")
 	}
 
 	return nil
@@ -191,10 +189,10 @@ func WithStorageAccountResourceGroup(storageAccountResourceGroup string) AzureTe
 	}
 }
 
-// WithLocation The Azure region where storage account for logging is
-func WithLocation(location string) AzureTerraformModifier {
+// WithStorageLocation The Azure region where storage account for logging is
+func WithStorageLocation(location string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
-		c.Location = location
+		c.StorageLocation = location
 	}
 }
 
@@ -434,8 +432,8 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 		}
 
 		// Set the location if needed
-		if args.Location != "" {
-			attributes["location"] = args.Location
+		if args.StorageLocation != "" {
+			attributes["location"] = args.StorageLocation
 		}
 
 		moduleDetails = append(moduleDetails,

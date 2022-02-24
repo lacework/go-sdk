@@ -19,7 +19,7 @@ const (
 	HashAzureADProviderSource  = "hashicorp/azuread"
 	HashAzureADProviderVersion = "~> 2.16"
 	HashAzureRMProviderSource  = "hashicorp/azurerm"
-	HashAzureRMProviderVersion = "=2.91.0"
+	HashAzureRMProviderVersion = "~> 2.91.0"
 
 	GcpConfigSource    = "lacework/config/gcp"
 	GcpConfigVersion   = "~> 1.0"
