@@ -115,3 +115,12 @@ type ComplianceAwsReport struct {
 	Summary         []ComplianceSummary        `json:"summary"`
 	Recommendations []ComplianceRecommendation `json:"recommendations"`
 }
+
+func (aws ComplianceAwsReport) GetComplianceRecommendation(recommendationID string) ComplianceRecommendation {
+	for _, r := range aws.Recommendations {
+		if r.RecID == recommendationID {
+			return r
+		}
+	}
+	return ComplianceRecommendation{}
+}

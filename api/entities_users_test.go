@@ -83,6 +83,31 @@ func TestEntities_Users_List_All(t *testing.T) {
 	}
 }
 
+func TestEntities_Users_ListAll_EmptyData(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Entities/Users/search",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method, "Search() should be a POST method")
+			fmt.Fprintf(w, mockPaginationEmptyResponse())
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response, err := c.V2.Entities.ListAllUsers()
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, 0, len(response.Data))
+}
+
 func mockUserEntityResponse() string {
 	return `
 {

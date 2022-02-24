@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -27,7 +28,6 @@ import (
 
 var (
 	queryListSourcesCmd = &cobra.Command{
-		Hidden:  false,
 		Aliases: []string{"sources"},
 		Use:     "list-sources",
 		Short:   "List Lacework query data sources",
@@ -37,7 +37,6 @@ var (
 	}
 
 	queryShowSourceCmd = &cobra.Command{
-		Hidden:  false,
 		Aliases: []string{"describe"},
 		Use:     "show-source <datasource_id>",
 		Short:   "Show Lacework query data source",
@@ -64,7 +63,6 @@ func getListQuerySourcesTable(datasources []api.Datasource) (out [][]string) {
 
 func listQuerySources(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving LQL data sources")
-
 	lqlSourcesUnableMsg := "unable to retrieve LQL data sources"
 	datasourcesResponse, err := cli.LwApi.V2.Datasources.List()
 
@@ -78,9 +76,13 @@ func listQuerySources(_ *cobra.Command, args []string) error {
 		return yikes(lqlSourcesUnableMsg)
 	}
 	cli.OutputHuman(
-		renderSimpleTable(
+		renderCustomTable(
 			[]string{"Datasource", "Description"},
 			getListQuerySourcesTable(datasourcesResponse.Data),
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetAutoWrapText(false)
+				t.SetBorder(false)
+			}),
 		),
 	)
 	cli.OutputHuman("\nUse 'lacework query show-source <datasource_id>' to show details about the data source.\n")

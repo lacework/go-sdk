@@ -17,11 +17,6 @@ if [ ! -f "bin/lacework-cli-linux-amd64" ]; then
   make build-cli-cross-platform
 fi
 
-# Enable docker experimental mode
-log "enabling experimental mode to use/upload docker manifest"
-mkdir -p ~/.docker
-echo '{"experimental": "enabled"}' > ~/.docker/config.json
-
 # Authenticate to dockerhub
 echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
@@ -46,16 +41,6 @@ for dist in "${distros[@]}"; do
   docker push "${repository}:${dist}"
 done
 
-log "creating docker manifest"
-docker manifest create   "${repository}:latest"      \
-                         "${repository}:scratch"     \
-                         "${repository}:ubi-8"       \
-                         "${repository}:centos-8"    \
-                         "${repository}:debian-10"   \
-                         "${repository}:ubuntu-1804" \
-                         "${repository}:amazonlinux-2" --amend
-
-log "pushing docker manifest"
-docker manifest push "${repository}:latest" --purge
+scripts/release_container_manifest.sh
 
 log "All docker containers have been released! (https://hub.docker.com/repository/docker/${repository})"

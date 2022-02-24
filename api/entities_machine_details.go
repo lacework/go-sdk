@@ -44,11 +44,14 @@ func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsEnti
 		return
 	}
 
-	all := []MachineDetailEntity{}
+	var (
+		all    []MachineDetailEntity
+		pageOk bool
+	)
 	for {
 		all = append(all, response.Data...)
 
-		pageOk, err := svc.client.NextPage(&response)
+		pageOk, err = svc.client.NextPage(&response)
 		if err == nil && pageOk {
 			continue
 		}

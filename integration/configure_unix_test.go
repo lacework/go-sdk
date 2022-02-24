@@ -539,8 +539,8 @@ func TestConfigureCommandWithJSONFileFlagError(t *testing.T) {
 		"EXITCODE is not the expected one")
 }
 
-func TestConfigureListHelp(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("configure", "list", "--help")
+func TestConfigureSwitchProfileHelp(t *testing.T) {
+	out, err, exitcode := LaceworkCLI("configure", "switch-profile", "--help")
 	assert.Empty(t,
 		err.String(),
 		"STDERR should be empty")

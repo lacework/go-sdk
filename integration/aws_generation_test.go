@@ -134,7 +134,7 @@ func TestGenerationCustomizedOutputLocation(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Get result
-	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
+	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/aws.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true, aws.WithAwsProfile("default")).Generate()
@@ -506,7 +506,7 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test existing main.tf prompt
+// Test existing aws.tf prompt
 func TestGenerationWithExistingTerraform(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -520,8 +520,8 @@ func TestGenerationWithExistingTerraform(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	// Create fake main.tf
-	if err := os.WriteFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)), []byte{}, 0644); err != nil {
+	// Create fake aws.tf
+	if err := os.WriteFile(filepath.FromSlash(fmt.Sprintf("%s/aws.tf", dir)), []byte{}, 0644); err != nil {
 		panic(err)
 	}
 
@@ -543,7 +543,7 @@ func TestGenerationWithExistingTerraform(t *testing.T) {
 			c.SendLine(dir)
 			expectString(c, cmd.QuestionAwsAnotherAdvancedOpt, &runError)
 			c.SendLine("n")
-			expectString(c, fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), &runError)
+			expectString(c, fmt.Sprintf("%s/aws.tf already exists, overwrite?", dir), &runError)
 			c.SendLine("n")
 		},
 		"cloud",
@@ -552,7 +552,7 @@ func TestGenerationWithExistingTerraform(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	data, err := os.ReadFile(fmt.Sprintf("%s/main.tf", dir))
+	data, err := os.ReadFile(fmt.Sprintf("%s/aws.tf", dir))
 	if err != nil {
 		panic(err)
 	}
@@ -571,7 +571,7 @@ func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...str
 	defer os.RemoveAll(dir)
 
 	runGenerationTestFromDir(t, dir, conditions, args...)
-	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/main.tf", dir)))
+	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/aws.tf", dir)))
 	if err != nil {
 		// Assume couldn't be found
 		return ""

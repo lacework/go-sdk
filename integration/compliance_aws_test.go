@@ -136,3 +136,25 @@ func TestComplianceAwsGetReportTypeAWS_SOC_Rev2(t *testing.T) {
 	assert.Contains(t, out.String(), account,
 		"Account ID in compliance report is not correct")
 }
+
+func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
+	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "AWS_CIS_2_5")
+
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "RECOMMENDATION DETAILS",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "SEVERITY",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "SERVICE",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "CATEGORY",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "STATUS",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "ASSESSED RESOURCES ",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "AFFECTED RESOURCES",
+		"STDOUT table headers changed, please check")
+}

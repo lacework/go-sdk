@@ -6,7 +6,7 @@ hide_title: true
 
 ## lacework resource-group show
 
-Get resource group by id
+Get resource group by ID
 
 ### Synopsis
 

@@ -1,32 +1,21 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.24.0`.
+Another day, another release. These are the release notes for the version `v0.26.0`.
 
 ## Features
-* feat(cli): make policyID optional for policy create (hazedav)([38006bf](https://github.com/lacework/go-sdk/commit/38006bf39a3cae293595e13c6b6bfb9d05936f1d))
-* feat(lwgenerate): Add initial hcl generation support GCP - ALLY-393 (#654) (Ross)([fb34a64](https://github.com/lacework/go-sdk/commit/fb34a64b0ddc71bc2140b42c66fa0f38160e762a))
-* feat(cli): add csv output support to vuln reports (#649) (Matt Cadorette)([c76095e](https://github.com/lacework/go-sdk/commit/c76095e88c60f02c02b449c09ffbeaf2dd5bf1b1))
-* feat(api): Vulnerability Exceptions v2 Service (#627) (Darren)([ef65e23](https://github.com/lacework/go-sdk/commit/ef65e232b7c7c650562db5cded0b3ee31a461a55))
-* feat(cli): add apply flag for aws iac generation & fix cache issues (#642) (Matt Cadorette)([c5014bb](https://github.com/lacework/go-sdk/commit/c5014bb73f1db4977a9500dc4f92e686fa9d1c74))
-## Refactor
-* refactor(test_resources): remove Terraform code dep (#636) (Salim Afiune)([aca0101](https://github.com/lacework/go-sdk/commit/aca01017734598d64526b9a7008fe9171d74fe5c))
-## Bug Fixes
-* fix: expiration time (#656) (Darren)([4726f68](https://github.com/lacework/go-sdk/commit/4726f68ca5731208e140e006c98716aba3d626a3))
-* fix: non_os_package_support omitted from json request when false (#655) (Darren)([c8ab03a](https://github.com/lacework/go-sdk/commit/c8ab03ae4ad1616ef172db3230fd3f1baff6e389))
-* fix: handle unsupported integration types (#645) (Darren)([6c1a5d0](https://github.com/lacework/go-sdk/commit/6c1a5d05f937eaac89893e5cb483e7d6c045e17a))
-* fix(cli): clarify container error message (#643) (Salim Afiune)([74592ff](https://github.com/lacework/go-sdk/commit/74592ff8fadf8f78606c940d347d9024dfbe8a8c))
-## Documentation Updates
-* docs(iac-generation): update aws iac tf command help (#653) (Matt Cadorette)([5c09072](https://github.com/lacework/go-sdk/commit/5c09072b7079f72be40fd154da471755d2eeccc7))
-* docs(cli): Improve iac-generate/aws help message (#638) (Matt Cadorette)([127e221](https://github.com/lacework/go-sdk/commit/127e2212018fb2124b3d15ec2fcdd155e1326533))
+* feat(cli): show resources affected by a compliance recommendation (#697) (Darren)([86f86ee](https://github.com/lacework/go-sdk/commit/86f86eef38840a28be310347f67261ba588a850c))
+* feat(cli): improve user feedback running terraform commands (#706) (Matt Cadorette)([8526d2c](https://github.com/lacework/go-sdk/commit/8526d2ccfb8a48dbc8ac1315d84006aea058822a))
+* feat(cli): add lacework query preview-source (hazedav)([40e8bbb](https://github.com/lacework/go-sdk/commit/40e8bbb03fa3fca6eecac48c24ffca1468821815))
+* feat(cli): switch-profile command (#705) (Salim Afiune)([75237cd](https://github.com/lacework/go-sdk/commit/75237cdb15508c87cad3cc0694e304524a0da3f6))
 ## Other Changes
-* chore(deps): bump github.com/hashicorp/hcl/v2 from 2.10.1 to 2.11.1 (#631) (dependabot[bot])([a82d22b](https://github.com/lacework/go-sdk/commit/a82d22b3a3d3ad6eec69a7d03a45a19e298be893))
-* chore(deps): bump github.com/mitchellh/mapstructure from 1.4.2 to 1.4.3 (#630) (dependabot[bot])([4f08643](https://github.com/lacework/go-sdk/commit/4f0864393b611ce5d6527393ff2e8d5df64cfd24))
-* chore(deps): bump github.com/peterbourgon/diskv/v3 from 3.0.0 to 3.0.1 (#610) (dependabot[bot])([c1792d5](https://github.com/lacework/go-sdk/commit/c1792d51bd563f852cf154a7fdfbf5d7560192e0))
-* chore(deps): Bump GoImports version to v0.1.8 (#633) (Ross)([22f5283](https://github.com/lacework/go-sdk/commit/22f5283a93d0e3552c7343ad7c6104c0f3389ab8))
-* chore(deps): Bump gotestsum version and use instead of go test (#632) (Ross)([7f05f44](https://github.com/lacework/go-sdk/commit/7f05f441ce579a9654e7809d75a7a81845e9b380))
-* ci: test on windows systems  (#648) (Salim Afiune)([70fe066](https://github.com/lacework/go-sdk/commit/70fe0665af92afba20e28af7d1c3319043ba78b1))
-* ci: version bump to v0.23.1-dev (Lacework)([cfc7bc0](https://github.com/lacework/go-sdk/commit/cfc7bc00f6ff515a0f8b64b8d6d6bb6ceb684fc0))
-* test: fix host vuln test (#659) (Darren)([d28ea4c](https://github.com/lacework/go-sdk/commit/d28ea4c366eeca098547efc0c7230f30d9e7a141))
-* test: avoid running v1/v2 migration on every test (#651) (Salim Afiune)([63735c2](https://github.com/lacework/go-sdk/commit/63735c2db0e518ff381eaa8949ff5fc33cfca64b))
+* chore(deps): bump github.com/spf13/cobra from 1.2.1 to 1.3.0 (#647) (dependabot[bot])([2cb15fb](https://github.com/lacework/go-sdk/commit/2cb15fb48186a45064aac0ecce340efcfb2e8de1))
+* chore(deps): bump github.com/spf13/viper from 1.9.0 to 1.10.1 (#644) (dependabot[bot])([5dac81c](https://github.com/lacework/go-sdk/commit/5dac81cfb57b29dc8addcbb32b16f11abeeca836))
+* chore(deps): bump github.com/honeycombio/libhoney-go (#652) (dependabot[bot])([6e5c7bd](https://github.com/lacework/go-sdk/commit/6e5c7bd61c01f1a3d84c9285d0d08d7a2dc6b3ef))
+* chore(deps): bump github.com/hashicorp/terraform-exec (#704) (dependabot[bot])([9767bc8](https://github.com/lacework/go-sdk/commit/9767bc8a1c2531f936e685f0143400017198d6a7))
+* chore(deps): bump go.uber.org/zap from 1.19.1 to 1.21.0 (#700) (dependabot[bot])([b8be0b0](https://github.com/lacework/go-sdk/commit/b8be0b0fef410a5a6179495c7e2a4a44d5e9b3c6))
+* chore(deps): bump github.com/hashicorp/go-version from 1.3.0 to 1.4.0 (#702) (dependabot[bot])([1729f4c](https://github.com/lacework/go-sdk/commit/1729f4cb513d8b32d6a7133f8df72bc3afb1f3a9))
+* chore(deps): bump github.com/briandowns/spinner from 1.13.0 to 1.17.0 (#701) (dependabot[bot])([9d18563](https://github.com/lacework/go-sdk/commit/9d185636fa0fa7c8d46dedae01d349d18d0a60c1))
+* ci(cli): release CentOS end-of-life problem (#699) (Salim Afiune)([4bc4a7c](https://github.com/lacework/go-sdk/commit/4bc4a7ce8c37f1f4f1a21b058fe315ba855687b6))
+* ci: version bump to v0.25.1-dev (Lacework)([20551d1](https://github.com/lacework/go-sdk/commit/20551d1b3b748bedc696d190acb7c13cfffc54e4))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
