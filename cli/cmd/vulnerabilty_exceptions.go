@@ -19,7 +19,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -164,9 +163,10 @@ func init() {
 }
 
 func buildVulnerabilityExceptionsPropsTable(vuln api.VulnerabilityException) string {
+	var sb strings.Builder
 	props := setProps(vuln)
 
-	return renderOneLineCustomTable("VULNERABILITY EXCEPTION PROPS",
+	sb.WriteString(renderOneLineCustomTable("VULNERABILITY EXCEPTION PROPS",
 		renderCustomTable([]string{}, props,
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetBorder(false)
@@ -179,13 +179,43 @@ func buildVulnerabilityExceptionsPropsTable(vuln api.VulnerabilityException) str
 			t.SetBorder(false)
 			t.SetAutoWrapText(false)
 		}),
+	))
+	if vuln.VulnerabilityCriteria.Package != nil {
+		sb.WriteString(buildPackagesTable(vuln.VulnerabilityCriteria.Package))
+	}
+	return sb.String()
+}
+
+func buildPackagesTable(packages []map[string][]string) string {
+	var (
+		details [][]string
+	)
+	for _, p := range packages {
+		for k, v := range p {
+			details = append(details, []string{k, strings.Join(v, ", ")})
+		}
+	}
+
+	return renderOneLineCustomTable("PACKAGES",
+		renderCustomTable(
+			[]string{"NAME", "VERSIONS"},
+			details,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+			}),
+		),
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetColumnSeparator(" ")
+			t.SetAutoWrapText(false)
+		}),
 	)
 }
 
 func setProps(vuln api.VulnerabilityException) [][]string {
-	var (
-		details [][]string
-	)
+	var details [][]string
 	details = append(details, []string{"DESCRIPTION", vuln.Props.Description})
 	details = append(details, []string{"UPDATED BY", vuln.Props.UpdatedBy})
 	details = append(details, []string{"LAST UPDATED", vuln.UpdatedTime})
@@ -209,15 +239,6 @@ func setProps(vuln api.VulnerabilityException) [][]string {
 	details = append(details, []string{"CVES", strings.Join(vuln.VulnerabilityCriteria.Cve, ", ")})
 	details = append(details, []string{"SEVERITIES", strings.Join(vuln.VulnerabilityCriteria.Severity, ", ")})
 
-	if vuln.VulnerabilityCriteria.Package != nil {
-		packages, err := json.Marshal(vuln.VulnerabilityCriteria.Package)
-		if err != nil {
-			packages = []byte{}
-		}
-		details = append(details, []string{"PACKAGES", string(packages)})
-	} else {
-		details = append(details, []string{"PACKAGES", ""})
-	}
 	return details
 }
 

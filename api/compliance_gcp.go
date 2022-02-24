@@ -137,3 +137,12 @@ type ComplianceGcpReport struct {
 	Summary          []ComplianceSummary        `json:"summary"`
 	Recommendations  []ComplianceRecommendation `json:"recommendations"`
 }
+
+func (gcp ComplianceGcpReport) GetComplianceRecommendation(recommendationID string) ComplianceRecommendation {
+	for _, r := range gcp.Recommendations {
+		if r.RecID == recommendationID {
+			return r
+		}
+	}
+	return ComplianceRecommendation{}
+}

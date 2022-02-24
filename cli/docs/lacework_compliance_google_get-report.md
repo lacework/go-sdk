@@ -13,9 +13,17 @@ Get the latest GCP compliance report
 Get the latest compliance assessment report, these reports run on a regular schedule,
 typically once a day. The available report formats are human-readable (default), json and pdf.
 
+To list all GCP projects and organizations configured in your account:
+
+    lacework compliance gcp list
+
 To run an ad-hoc compliance assessment use the command:
 
     lacework compliance gcp run-assessment <project_id>
+
+To show recommendation details and affected resources for a recommendation id:
+
+    lacework compliance gcp get-report <organization_id> <project_id> [recommendation_id]
 
 
 ```

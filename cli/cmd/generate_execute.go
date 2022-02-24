@@ -11,6 +11,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/Masterminds/semver"
+	"github.com/abiosoft/colima/util/terminal"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/releases"
@@ -39,7 +40,7 @@ func newTf(workingDir string, execPath string) (*tfexec.Terraform, error) {
 	return tf, nil
 }
 
-// Determine if terraform is installed, if that version is new enough, and if not install a new ephemeral binary of the
+// LocateOrInstallTerraform Determine if terraform is installed, if that version is new enough, and if not install a new ephemeral binary of the
 // correct version into tmp location
 //
 // forceInstall: if set always install ephemeral binary
@@ -186,7 +187,7 @@ func buildHumanReadablePlannedActions(workingDir string, execPath string, data [
 	return outputString.String()
 }
 
-// used to display the results of a plan
+// DisplayTerraformPlanChanges used to display the results of a plan
 //
 // returns true if apply should run, false to exit
 func DisplayTerraformPlanChanges(tf *tfexec.Terraform, data TfPlanChangesSummary) (bool, error) {
@@ -276,7 +277,7 @@ func TerraformInit(tf *tfexec.Terraform) error {
 	return nil
 }
 
-// Run terraform plan using the workingDir from *tfexec.Terraform
+// TerraformExecPlan Run terraform plan using the workingDir from *tfexec.Terraform
 //
 // - Run plan
 // - Get plan file details (returned)
@@ -293,12 +294,11 @@ func TerraformExecPlan(tf *tfexec.Terraform) (*TfPlanChangesSummary, error) {
 	return processTfPlanChangesSummary(tf)
 }
 
-// Run terraform apply using the workingDir from *tfexec.Terraform
+// TerraformExecApply Run terraform apply using the workingDir from *tfexec.Terraform
 //
 // - Run plan
 // - Get plan file details (returned)
 func TerraformExecApply(tf *tfexec.Terraform) error {
-	// Plan
 	cli.StartProgress("Running terraform apply")
 	err := tf.Apply(context.Background())
 	cli.StopProgress()
@@ -383,6 +383,10 @@ func TerraformPlanAndExecute(workingDir string) error {
 		return err
 	}
 
+	vw := terminal.NewVerboseWriter(10)
+	tf.SetStdout(vw)
+	tf.SetStderr(vw)
+
 	// Initialize tf project
 	if err := TerraformInit(tf); err != nil {
 		return err
@@ -393,6 +397,8 @@ func TerraformPlanAndExecute(workingDir string) error {
 	if err != nil {
 		return err
 	}
+
+	vw.Close()
 
 	// Display changes and determine if apply should proceed
 	proceed, err := DisplayTerraformPlanChanges(tf, *changes)
@@ -406,12 +412,17 @@ func TerraformPlanAndExecute(workingDir string) error {
 		return nil
 	}
 
+	vw = terminal.NewVerboseWriter(10)
+	tf.SetStdout(vw)
+	tf.SetStderr(vw)
+
 	// Apply plan
 	if err := TerraformExecApply(tf); err != nil {
 		return err
 	}
-	cli.OutputHuman(provideGuidanceAfterSuccess(tf.WorkingDir(), GenerateAwsCommandState.LaceworkProfile))
+	vw.Close()
 
+	cli.OutputHuman(provideGuidanceAfterSuccess(tf.WorkingDir(), GenerateAwsCommandState.LaceworkProfile))
 	return nil
 }
 

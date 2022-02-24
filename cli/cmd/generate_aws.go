@@ -117,7 +117,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			}
 
 			// Write-out generated code to location specified
-			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl)
+			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "aws")
 			if err != nil {
 				return err
 			}

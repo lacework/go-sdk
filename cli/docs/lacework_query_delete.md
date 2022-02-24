@@ -10,7 +10,7 @@ Delete a query
 
 ### Synopsis
 
-Delete a single LQL query by providing the query id.
+Delete a single LQL query by providing the query ID.
 
 Use the command 'lacework query list' to list the available queries in
 your Lacework account.

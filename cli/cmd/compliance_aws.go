@@ -52,11 +52,18 @@ var (
 
 	// complianceAwsGetReportCmd represents the get-report sub-command inside the aws command
 	complianceAwsGetReportCmd = &cobra.Command{
-		Use:     "get-report <account_id>",
+		Use:     "get-report <account_id> [recommendation_id]",
 		Aliases: []string{"get"},
-		PreRunE: func(_ *cobra.Command, _ []string) error {
+		PreRunE: func(_ *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
+			}
+
+			if len(args) > 1 {
+				compCmdState.RecommendationID = args[1]
+				if !validRecommendationID(compCmdState.RecommendationID) {
+					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
+				}
 			}
 
 			switch compCmdState.Type {
@@ -84,8 +91,12 @@ To list all AWS accounts configured in your account:
 To run an ad-hoc compliance assessment of an AWS account:
 
     lacework compliance aws run-assessment <account_id>
+
+To show recommendation details and affected resources for a recommendation id:
+
+    lacework compliance aws get-report <account_id> [recommendation_id]
 `,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.RangeArgs(1, 2),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				// clean the AWS account ID if it was provided
@@ -159,7 +170,7 @@ To run an ad-hoc compliance assessment of an AWS account:
 				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
 			}
 
-			if cli.JSONOutput() {
+			if cli.JSONOutput() && compCmdState.RecommendationID == "" {
 				return cli.OutputJSON(report)
 			}
 
@@ -180,6 +191,11 @@ To run an ad-hoc compliance assessment of an AWS account:
 						"Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
+			}
+
+			// If RecommendationID is provided, output resources matching that id
+			if compCmdState.RecommendationID != "" {
+				return outputResourcesByRecommendationID(report)
 			}
 
 			recommendations := complianceReportRecommendationsTable(report.Recommendations)
@@ -329,7 +345,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 		return cli.OutputJSON(jsonOut)
 	}
 
-	rows := [][]string{}
+	var rows [][]string
 	for _, acc := range awsAccounts {
 		rows = append(rows, []string{acc.AccountID, acc.Status})
 	}

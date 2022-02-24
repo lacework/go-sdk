@@ -32,7 +32,12 @@ To authenticate to the remote host on a non-standard SSH port use the '--ssh_por
 pass it directly via the argument.
 
     lacework agent install <user@host:port>
-    
+
+To list all active agents in your environment. 
+
+    lacework agent list
+
+NOTE: New agents could take up to an hour to report back to the platform.
 
 ```
 lacework agent install <[user@]host[:port]> [flags]

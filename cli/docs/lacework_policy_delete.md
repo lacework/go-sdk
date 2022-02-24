@@ -10,7 +10,7 @@ Delete a policy
 
 ### Synopsis
 
-Delete a policy by providing the policy id.
+Delete a policy by providing the policy ID.
 
 Use the command 'lacework policy list' to list the registered policies in
 your Lacework account.
@@ -22,7 +22,8 @@ lacework policy delete <policy_id> [flags]
 ### Options
 
 ```
-  -h, --help   help for delete
+      --cascade   delete policy and its associated query
+  -h, --help      help for delete
 ```
 
 ### Options inherited from parent commands
