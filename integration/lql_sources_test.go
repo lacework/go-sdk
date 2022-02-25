@@ -79,6 +79,7 @@ func TestQueryShowSourceTable(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents")
 	assert.Contains(t, out.String(), "FIELD NAME")
 	assert.Contains(t, out.String(), "INSERT_ID")
+	assert.Contains(t, out.String(), "preview-source")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

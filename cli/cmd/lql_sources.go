@@ -126,5 +126,6 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 			getShowQuerySourceTable(datasourceResponse.Data.ResultSchema),
 		),
 	)
+	cli.OutputHuman("\nUse 'lacework query preview-source <datasource_id>' to see an actual result from the data source.\n")
 	return nil
 }
