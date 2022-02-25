@@ -28,7 +28,6 @@ docker push "${repository}:scratch"
 # the script 'release.sh' inside the 'script/' folder
 distros=(
   ubi-8
-  centos-8
   debian-10
   ubuntu-1804
   amazonlinux-2
