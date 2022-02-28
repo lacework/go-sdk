@@ -27,7 +27,6 @@ mkdir -p ~/.docker
 distros=(
   scratch
   ubi-8
-  centos-8
   debian-10
   ubuntu-1804
   amazonlinux-2
