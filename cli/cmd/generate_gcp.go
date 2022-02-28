@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/imdario/mergo"
@@ -47,8 +48,8 @@ var (
 	QuestionGcpExistingSinkName         = "Specify the existing Sink name"
 
 	GcpAdvancedOptIntegrationName      = "Customize Integration name(s)"
-	QuestionGcpConfigIntegrationName   = "Specify the custom Config integration name:"
-	QuestionGcpAuditLogIntegrationName = "Specify the custom AuditLog integration name:"
+	QuestionGcpConfigIntegrationName   = "Specify a custom Config integration name:"
+	QuestionGcpAuditLogIntegrationName = "Specify a custom AuditLog integration name:"
 
 	QuestionGcpAnotherAdvancedOpt      = "Configure another advanced integration option"
 	GcpAdvancedOptLocation             = "Customize output location"
@@ -110,6 +111,8 @@ This command can also be run in noninteractive mode. See help output for more de
 				gcp.WithExistingLogSinkName(GenerateGcpCommandState.ExistingLogSinkName),
 				gcp.WithAuditLogIntegrationName(GenerateGcpCommandState.AuditLogIntegrationName),
 				gcp.WithLaceworkProfile(GenerateGcpCommandState.LaceworkProfile),
+				gcp.WithLogBucketRetentionDays(GenerateGcpCommandState.LogBucketRetentionDays),
+				gcp.WithLogBucketLifecycleRuleAge(GenerateGcpCommandState.LogBucketLifecycleRuleAge),
 			}
 
 			if GenerateGcpCommandState.OrganizationIntegration {
@@ -122,14 +125,6 @@ This command can also be run in noninteractive mode. See help output for more de
 
 			if GenerateGcpCommandState.EnableUBLA {
 				mods = append(mods, gcp.WithEnableUBLA())
-			}
-
-			if GenerateGcpCommandState.LogBucketLifecycleRuleAge != nil {
-				mods = append(mods, gcp.WithLogBucketLifecycleRuleAge(*GenerateGcpCommandState.LogBucketLifecycleRuleAge))
-			}
-
-			if GenerateGcpCommandState.LogBucketRetentionDays != 0 {
-				mods = append(mods, gcp.WithLogBucketRetentionDays(GenerateGcpCommandState.LogBucketRetentionDays))
 			}
 
 			// Create new struct
@@ -147,7 +142,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			}
 
 			// Write-out generated code to location specified
-			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl)
+			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "gcp")
 			if err != nil {
 				return err
 			}
@@ -189,12 +184,23 @@ This command can also be run in noninteractive mode. See help output for more de
 				return err
 			}
 
+			//// set to nil if LogBucketLifecycleRuleAge value is -9999
+			//// -9999 is a dummy default value used to verify if the user has provided a value
+			//bucketLifecycleRuleAge, err := cmd.Flags().GetInt("bucket_lifecycle_rule_age")
+			//if err != nil {
+			//	return errors.Wrap(err, "failed to load command flags")
+			//}
+			//
+			//if bucketLifecycleRuleAge == 99999 && *GenerateGcpCommandState.LogBucketLifecycleRuleAge == 99999 {
+			//	nilSetter(GenerateGcpCommandState.LogBucketLifecycleRuleAge)
+			//}
+
 			// Validate gcp sa credentials file, if passed
 			gcpSaCredentials, err := cmd.Flags().GetString("service_account_credentials")
 			if err != nil {
 				return errors.Wrap(err, "failed to load command flags")
 			}
-			if err := validateGcpServiceAccountCredentials(gcpSaCredentials); gcpSaCredentials != "" && err != nil {
+			if err := validateServiceAccountCredentialsFile(gcpSaCredentials); gcpSaCredentials != "" && err != nil {
 				return err
 			}
 
@@ -206,6 +212,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			if err := validateGcpRegion(region); region != "" && err != nil {
 				return err
 			}
+
 
 			// Load any cached inputs if interactive
 			if cli.InteractiveMode() {
@@ -261,20 +268,102 @@ func initGenerateGcpTfCommandFlags() {
 	// add flags to sub commands
 	// TODO Share the help with the interactive generation
 	generateGcpTfCommand.PersistentFlags().BoolVar(
-		&GenerateGcpCommandState.AuditLog, "audit_log", false, "enable audit log integration")
+		&GenerateGcpCommandState.AuditLog,
+		"audit_log",
+		false,
+		"enable audit log integration")
 	generateGcpTfCommand.PersistentFlags().BoolVar(
-		&GenerateGcpCommandState.Config, "config", false, "enable config integration")
-
+		&GenerateGcpCommandState.Config,
+		"config",
+		false,
+		"enable config integration")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.ServiceAccountCredentials,
 		"service_account_credentials",
 		"",
 		"specify a Service Account credentials JSON path (leave blank to make use of google credential ENV vars)")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.OrganizationIntegration,
+		"organization_integration",
+		false,
+		"enable organization integration")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.GcpOrganizationId,
+		"organization_id",
+		"",
+		"specify the organization id (only set if organization_integration is set)")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.GcpProjectId,
+		"project_id",
+		"",
+		"specify the project id to be used to provision lacework resources")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpExistingServiceAccountDetails.Name,
+		"existing_service_account_name",
+		"",
+		"specify existing service account name")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpExistingServiceAccountDetails.PrivateKey,
+		"existing_service_account_private_key",
+		"",
+		"specify existing service account key (base64 encoded)")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.ConfigIntegrationName,
+		"config_integration_name",
+		"",
+		"specify a custom config integration name")
+	// TODO: Implement AuditLogLabels, BucketLabels, PubSubSubscriptionLabels & PubSubTopicLabels
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.BucketRegion,
 		"bucket_region",
 		"",
 		"specify gcp bucket region")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.BucketLocation,
+		"bucket_location",
+		"",
+		"specify gcp bucket location")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.BucketName,
+		"bucket_name",
+		"",
+		"specify new bucket name")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.ExistingLogBucketName,
+		"existing_bucket_name",
+		"",
+		"specify existing bucket name")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.ExistingLogSinkName,
+		"existing_sink_name",
+		"",
+		"specify existing sink name")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.EnableForceDestroyBucket,
+		"enable_force_destroy_bucket",
+		false,
+		"enable force bucket destroy")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.EnableUBLA,
+		"enable_ubla",
+		false,
+		"enable universal bucket level access(ubla)")
+	generateGcpTfCommand.PersistentFlags().IntVar(
+		&GenerateGcpCommandState.LogBucketLifecycleRuleAge,
+		"bucket_lifecycle_rule_age",
+		-1,
+		"specify the lifecycle rule age")
+	generateGcpTfCommand.PersistentFlags().IntVar(
+		&GenerateGcpCommandState.LogBucketRetentionDays,
+		"bucket_retention_days",
+		0,
+		"specify the bucket retention days")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.AuditLogIntegrationName,
+		"audit_log_integration_name",
+		"",
+		"specify a custom audit log integration name")
+
 }
 
 func validateServiceAccountCredentialsFile(credFile string) error {
@@ -332,13 +421,46 @@ func validateStringIsBase64(val interface{}) error {
 
 // survey.Validator for gcp region
 func validateGcpRegion(val interface{}) error {
-	return validateStringWithRegex(val, GcpRegionRegex, "invalid region name supplied")
+	switch value := val.(type) {
+	case string:
+		// as this field is optional, it is valid for this field to be empty
+		if value != "" {
+			// if value doesn't match regex, return invalid arn
+			ok, err := regexp.MatchString(GcpRegionRegex, value)
+			if err != nil {
+				return errors.Wrap(err, "failed to validate input")
+			}
+
+			if !ok {
+				return errors.New("invalid region name supplied")
+			}
+		}
+	default:
+		// if the value passed is not a string
+		return errors.New("value must be a string")
+	}
+
+	return nil
 }
 
-// survey.Validator for gcp profile
-func validateGcpServiceAccountCredentials(credentials string) error {
-	return validateServiceAccountCredentialsFile(credentials)
+// survey.Validator for gcp service account credentials
+func validateGcpServiceAccountCredentials(val interface{}) error {
+	switch value := val.(type) {
+	case string:
+		if value == ""{
+			// as this field is optional, it is valid for this field to be empty
+			return nil
+		} else {
+			// if value isn't a valid path, return an error
+			return validateServiceAccountCredentialsFile(value)
+		}
+	default:
+		// if the value passed is not a string
+		return errors.New("value must be a string")
+	}
 }
+
+
 
 func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
 	// Only ask these questions if configure audit log is true
@@ -362,6 +484,10 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 		},
 	}, config.AuditLog)
 
+	if err != nil {
+		return err
+	}
+
 	newBucket := !extraState.UseExistingBucket
 	err = SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
@@ -373,31 +499,27 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpBucketName, Default: config.BucketName},
 			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Required: true,
 			Response: &config.BucketName,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketRegion, Default: config.BucketName},
+			Prompt:   &survey.Input{Message: QuestionGcpBucketRegion, Default: config.BucketRegion},
 			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Required: true,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateGcpRegion)},
 			Response: &config.BucketRegion,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketLocation, Default: config.BucketName},
+			Prompt:   &survey.Input{Message: QuestionGcpBucketLocation, Default: config.BucketLocation},
 			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Required: true,
 			Response: &config.BucketLocation,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketRetention, Default: string(rune(config.LogBucketRetentionDays))},
+			Prompt:   &survey.Input{Message: QuestionGcpBucketRetention, Default: "0"},
 			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Required: true,
 			Response: &config.LogBucketRetentionDays,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketLifecycle, Default: string(rune(*config.LogBucketLifecycleRuleAge))},
+			Prompt:   &survey.Input{Message: QuestionGcpBucketLifecycle, Default: "-1"},
 			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Required: true,
 			Response: &config.LogBucketLifecycleRuleAge,
 		},
 		{
@@ -604,22 +726,32 @@ func promptGcpGenerate(
 				Prompt:   &survey.Confirm{Message: QuestionGcpEnableAuditLog, Default: config.AuditLog},
 				Response: &config.AuditLog,
 			},
+		}); err != nil {
+		return err
+	}
+
+	if err := SurveyMultipleQuestionWithValidation(
+		[]SurveyQuestionWithValidationArgs{
 			{
 				Prompt:   &survey.Confirm{Message: QuestionGcpOrganizationIntegration, Default: config.OrganizationIntegration},
+				Checks:   []*bool{configOrAuditLogEnabled(config)},
 				Response: &config.OrganizationIntegration,
 			},
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpOrganizationID, Default: config.GcpOrganizationId},
-				Checks:   []*bool{&config.OrganizationIntegration},
+				Checks:   []*bool{&config.OrganizationIntegration, configOrAuditLogEnabled(config)},
 				Required: true,
 				Response: &config.GcpOrganizationId,
 			},
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpProjectID, Default: config.GcpProjectId},
+				Checks:   []*bool{configOrAuditLogEnabled(config)},
 				Response: &config.GcpProjectId,
 			},
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpServiceAccountCredsPath, Default: config.ServiceAccountCredentials},
+				Checks:   []*bool{configOrAuditLogEnabled(config)},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateGcpServiceAccountCredentials)},
 				Response: &config.ServiceAccountCredentials,
 			},
 		}); err != nil {

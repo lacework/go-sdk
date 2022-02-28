@@ -101,8 +101,7 @@ type GenerateGcpTfConfigurationArgs struct {
 
 	// Number of days to keep audit logs in Lacework GCS bucket before deleting.
 	// If left empty the TF will default to -1
-	// Use pointer *int, so we can verify if the value has been set by the end user
-	LogBucketLifecycleRuleAge *int
+	LogBucketLifecycleRuleAge int
 
 	// The number of days to keep logs before deleting.
 	// If left as 0 the TF will default to 30.
@@ -294,9 +293,8 @@ func WithEnableUBLA() GcpTerraformModifier {
 // WithLogBucketLifecycleRuleAge Set the number of days to keep audit logs in Lacework GCS bucket before deleting
 // Defaults to -1. Leave default to keep indefinitely.
 func WithLogBucketLifecycleRuleAge(ruleAge int) GcpTerraformModifier {
-	age := &ruleAge
 	return func(c *GenerateGcpTfConfigurationArgs) {
-		c.LogBucketLifecycleRuleAge = age
+		c.LogBucketLifecycleRuleAge = ruleAge
 	}
 }
 
@@ -466,8 +464,8 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 		if args.ExistingLogBucketName != "" {
 			attributes["existing_bucket_name"] = args.ExistingLogBucketName
 		} else {
-			if args.LogBucketLifecycleRuleAge != nil {
-				attributes["lifecycle_rule_age"] = *args.LogBucketLifecycleRuleAge
+			if args.LogBucketLifecycleRuleAge != -1 {
+				attributes["lifecycle_rule_age"] = args.LogBucketLifecycleRuleAge
 			}
 
 			if args.BucketName != "" {
