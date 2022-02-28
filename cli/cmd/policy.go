@@ -132,7 +132,6 @@ func init() {
 	policyCmd.AddCommand(policyListCmd)
 	policyCmd.AddCommand(policyListTagsCmd)
 	policyCmd.AddCommand(policyShowCmd)
-	policyCmd.AddCommand(policyDeleteCmd)
 
 	// policy list specific flags
 	policyListCmd.Flags().StringVar(
