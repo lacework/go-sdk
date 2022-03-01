@@ -23,6 +23,7 @@ import (
 	"embed"
 	"fmt"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -66,18 +67,30 @@ func TestHelpAll(t *testing.T) {
 	commands := getAllCommands(out.String(), [][]string{}, []string{})
 
 	for _, cmd := range commands {
-		filePath := fmt.Sprintf("test_resources/help/%s", strings.Join(cmd, "_"))
+		cmdStr := strings.Join(cmd, "_")
 
-		// run command
-		out, err, exitcode := LaceworkCLI(append([]string{"help"}, cmd...)...)
+		t.Run(cmdStr, func(t *testing.T) {
+			filePath := fmt.Sprintf("test_resources/help/%s", cmdStr)
+			windowsFilePath := fmt.Sprintf("test_resources/help/windows/%s", cmdStr)
 
-		// validate proper execution
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+			// run command
+			out, err, exitcode := LaceworkCLI(append([]string{"help"}, cmd...)...)
 
-		// validate expected output
-		canon, _ := helpCanon.ReadFile(filePath)
-		assert.Equal(t, out.String(), string(canon))
+			// validate proper execution
+			assert.Empty(t, err.String(), "STDERR should be empty")
+			assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+			// validate expected output
+			if runtime.GOOS == "windows" {
+				canon, err := helpCanon.ReadFile(windowsFilePath)
+				if err != nil {
+					assert.Equal(t, out.String(), string(canon))
+					return
+				}
+			}
+			canon, _ := helpCanon.ReadFile(filePath)
+			assert.Equal(t, out.String(), string(canon))
+		})
 	}
 }
 
