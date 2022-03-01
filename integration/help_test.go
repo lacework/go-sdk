@@ -83,13 +83,13 @@ func TestHelpAll(t *testing.T) {
 			// validate expected output
 			if runtime.GOOS == "windows" {
 				canon, err := helpCanon.ReadFile(windowsFilePath)
-				if err != nil {
-					assert.Equal(t, out.String(), string(canon))
+				if err == nil {
+					assert.Equal(t, string(canon), out.String())
 					return
 				}
 			}
 			canon, _ := helpCanon.ReadFile(filePath)
-			assert.Equal(t, out.String(), string(canon))
+			assert.Equal(t, string(canon), out.String())
 		})
 	}
 }
