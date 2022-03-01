@@ -213,7 +213,6 @@ This command can also be run in noninteractive mode. See help output for more de
 				return err
 			}
 
-
 			// Load any cached inputs if interactive
 			if cli.InteractiveMode() {
 				cachedOptions := &gcp.GenerateGcpTfConfigurationArgs{}
@@ -447,7 +446,7 @@ func validateGcpRegion(val interface{}) error {
 func validateGcpServiceAccountCredentials(val interface{}) error {
 	switch value := val.(type) {
 	case string:
-		if value == ""{
+		if value == "" {
 			// as this field is optional, it is valid for this field to be empty
 			return nil
 		} else {
@@ -459,8 +458,6 @@ func validateGcpServiceAccountCredentials(val interface{}) error {
 		return errors.New("value must be a string")
 	}
 }
-
-
 
 func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
 	// Only ask these questions if configure audit log is true
