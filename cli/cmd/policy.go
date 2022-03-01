@@ -48,7 +48,6 @@ var (
 
 	policyTableHeaders = []string{
 		"Policy ID",
-		"Evaluator ID",
 		"Severity",
 		"Title",
 		"State",
@@ -269,7 +268,6 @@ func policyTable(policies []api.Policy) (out [][]string) {
 		}
 		out = append(out, []string{
 			policy.PolicyID,
-			policy.EvaluatorID,
 			policy.Severity,
 			policy.Title,
 			state,

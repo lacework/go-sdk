@@ -32,7 +32,6 @@ import (
 
 const (
 	newPolicyYAML string = `---
-evaluatorId: Cloudtrail
 policyId: clitest-1
 policyType: Violation
 queryId: LW_CLI_AWS_CTA_IntegrationTest

@@ -30,7 +30,6 @@ import (
 
 var (
 	newPolicy = api.NewPolicy{
-		EvaluatorID:  "Cloudtrail",
 		PolicyID:     "lacework-clitest-1",
 		PolicyType:   "Violation",
 		QueryID:      "LW_CLI_AWS_CTA_IntegrationTest",
@@ -44,7 +43,6 @@ var (
 		AlertProfile: "LW_CloudTrail_Alerts",
 	}
 	newPolicyJSON = fmt.Sprintf(`{
-	"evaluatorId": "%s",
 	"policyId": "%s",
 	"policyType": "%s",
 	"queryId": "%s",
@@ -56,11 +54,10 @@ var (
 	"alertEnabled": %t,
 	"alertProfile": "%s",
 	}
-}`, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
+}`, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
 		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.AlertEnabled,
 		newPolicy.AlertProfile)
 	newPolicyYAML = fmt.Sprintf(`---
-evaluatorId: %s
 policyId: %s
 policyType: %s
 queryId: %s
@@ -71,13 +68,12 @@ remediation: %s
 severity: %s
 alertEnabled: %t
 alertProfile: %s
-`, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
+`, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
 		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.AlertEnabled,
 		newPolicy.AlertProfile)
 	newPolicyNestedYAML = fmt.Sprintf(`---
 policies:
-- evaluatorId: %s
-  policyId: %s
+- policyId: %s
   policyType: %s
   queryId: %s
   title: %s
@@ -87,7 +83,7 @@ policies:
   severity: %s
   alertEnabled: %t
   alertProfile: %s
-`, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
+`, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
 		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.AlertEnabled,
 		newPolicy.AlertProfile)
 )

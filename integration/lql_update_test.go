@@ -48,7 +48,7 @@ func TestQueryUpdateFile(t *testing.T) {
 	// get temp file
 	file, err := createTemporaryFile(
 		"TestQueryUpdateFile",
-		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText),
+		fmt.Sprintf(queryJSONTemplate, queryID, queryUpdateText),
 	)
 	if err != nil {
 		t.FailNow()
@@ -76,7 +76,7 @@ func TestQueryUpdateURL(t *testing.T) {
 	// get temp file
 	file, err := createTemporaryFile(
 		"TestQueryUpdateFile",
-		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText),
+		fmt.Sprintf(queryJSONTemplate, queryID, queryUpdateText),
 	)
 	if err != nil {
 		t.FailNow()

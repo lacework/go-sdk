@@ -48,7 +48,7 @@ func TestQueryCreateFile(t *testing.T) {
 	// get temp file
 	file, err := createTemporaryFile(
 		"TestQueryCreateFile",
-		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText),
+		fmt.Sprintf(queryJSONTemplate, queryID, queryText),
 	)
 	if err != nil {
 		t.FailNow()

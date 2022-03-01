@@ -26,7 +26,6 @@ const (
 	queryText         string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID } }"
 	queryUpdateText   string = "LW_CLI_AWS_CTA_IntegrationTest { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
 	queryJSONTemplate string = `{
-	"evaluatorID": "%s",
 	"queryID": "%s",
 	"queryText": "%s"
 }`

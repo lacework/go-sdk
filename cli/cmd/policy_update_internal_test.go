@@ -31,7 +31,6 @@ import (
 var (
 	falsePtr         = false
 	updateTestPolicy = api.UpdatePolicy{
-		EvaluatorID:  "Cloudtrail",
 		PolicyType:   "Violation",
 		QueryID:      "LW_CLI_AWS_CTA_IntegrationTest",
 		Title:        "My Policy Title",
@@ -44,7 +43,6 @@ var (
 		AlertProfile: "LW_CloudTrail_Alerts",
 	}
 	updateTestPolicyJSON = fmt.Sprintf(`{
-	"evaluatorId": "%s",
 	"policyId": "%s",
 	"policyType": "%s",
 	"queryId": "%s",
@@ -55,11 +53,10 @@ var (
 	"severity": "%s",
 	"alertEnabled": %t,
 	"alertProfile": "%s"
-}`, updateTestPolicy.EvaluatorID, updateTestPolicy.PolicyID, updateTestPolicy.PolicyType, updateTestPolicy.QueryID, updateTestPolicy.Title,
+}`, updateTestPolicy.PolicyID, updateTestPolicy.PolicyType, updateTestPolicy.QueryID, updateTestPolicy.Title,
 		false, updateTestPolicy.Description, updateTestPolicy.Remediation, updateTestPolicy.Severity, false,
 		updateTestPolicy.AlertProfile)
 	updatePolicyYAML = fmt.Sprintf(`---
-evaluatorId: %s
 policyId: %s
 policyType: %s
 queryId: %s
@@ -70,13 +67,12 @@ remediation: %s
 severity: %s
 alertEnabled: %t
 alertProfile: %s
-`, updateTestPolicy.EvaluatorID, updateTestPolicy.PolicyID, updateTestPolicy.PolicyType, updateTestPolicy.QueryID, updateTestPolicy.Title,
+`, updateTestPolicy.PolicyID, updateTestPolicy.PolicyType, updateTestPolicy.QueryID, updateTestPolicy.Title,
 		false, updateTestPolicy.Description, updateTestPolicy.Remediation, updateTestPolicy.Severity, false,
 		updateTestPolicy.AlertProfile)
 	updatePolicyNestedYAML = fmt.Sprintf(`---
 policies:
-- evaluatorId: %s
-  policyId: %s
+- policyId: %s
   policyType: %s
   queryId: %s
   title: %s
@@ -86,7 +82,7 @@ policies:
   severity: %s
   alertEnabled: %t
   alertProfile: %s
-`, updateTestPolicy.EvaluatorID, updateTestPolicy.PolicyID, updateTestPolicy.PolicyType, updateTestPolicy.QueryID, updateTestPolicy.Title,
+`, updateTestPolicy.PolicyID, updateTestPolicy.PolicyType, updateTestPolicy.QueryID, updateTestPolicy.Title,
 		false, updateTestPolicy.Description, updateTestPolicy.Remediation, updateTestPolicy.Severity, false,
 		updateTestPolicy.AlertProfile)
 )
