@@ -68,9 +68,10 @@ type LCLPolicy struct {
 }
 
 type LaceworkContentLibrary struct {
-	Component *lwcomponent.Component
-	Queries   map[string]LCLQuery  `json:"queries"`
-	Policies  map[string]LCLPolicy `json:"policies"`
+	Component  *lwcomponent.Component
+	Queries    map[string]LCLQuery  `json:"queries"`
+	Policies   map[string]LCLPolicy `json:"policies"`
+	PolicyTags map[string][]string  `json:"policy_tags"`
 }
 
 func (c *cliState) IsLCLInstalled() bool {
@@ -182,4 +183,24 @@ func (lcl LaceworkContentLibrary) GetPolicy(id string) (string, error) {
 	}
 	// get policy string
 	return lcl.run(ref.Path)
+}
+
+func (lcl LaceworkContentLibrary) GetPoliciesByTag(t string) map[string]LCLPolicy {
+	var (
+		policies  map[string]LCLPolicy = map[string]LCLPolicy{}
+		policyIDs []string
+		ok        bool
+	)
+
+	if policyIDs, ok = lcl.PolicyTags[t]; !ok {
+		return policies
+	}
+
+	for _, policyID := range policyIDs {
+		if lclPolicy, ok := lcl.Policies[policyID]; ok {
+			policies[policyID] = lclPolicy
+		}
+	}
+
+	return policies
 }

@@ -461,3 +461,31 @@ func TestGetPolicyOK(t *testing.T) {
 	assert.Nil(t, actualError)
 	assert.Contains(t, actualString, fmt.Sprintf("$account-%s", policyID))
 }
+
+func TestGetPoliciesByTagMalformed(t *testing.T) {
+	policies := malformedLCL.GetPoliciesByTag("lwredteam")
+	assert.Equal(t, 0, len(policies))
+}
+
+func TestGetPoliciesByTag(t *testing.T) {
+	cli := cliState{LwComponents: &mockLWComponentState}
+
+	ept, err := ensureMockLCL(getMockLCLBinaryName())
+	defer removeMockLCL(ept)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	lcl, err := cli.LoadLCL()
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	// no such tag
+	policies := lcl.GetPoliciesByTag("nosuchtag")
+	assert.Equal(t, 0, len(policies))
+
+	// ok tag
+	policies = lcl.GetPoliciesByTag("lwredteam")
+	assert.Equal(t, 4, len(policies))
+}
