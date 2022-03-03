@@ -20,6 +20,7 @@
 package integration
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
