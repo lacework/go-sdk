@@ -45,6 +45,15 @@ func TestQueryListSourcesTable(t *testing.T) {
 	assert.Contains(t, out.String(), "CloudTrailRawEvents")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// validate sort
+	aRE := regexp.MustCompile("LW_CFG_AWS_EC2_DHCP_OPTIONS")
+	aMatch := aRE.FindStringIndex(out.String())
+
+	zRE := regexp.MustCompile("CloudTrailRawEvents")
+	zMatch := zRE.FindStringIndex(out.String())
+
+	assert.Greater(t, zMatch[0], aMatch[0])
 }
 
 func TestQueryListSourcesJSON(t *testing.T) {

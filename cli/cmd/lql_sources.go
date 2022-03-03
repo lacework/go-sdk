@@ -19,6 +19,8 @@
 package cmd
 
 import (
+	"sort"
+
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -58,6 +60,12 @@ func getListQuerySourcesTable(datasources []api.Datasource) (out [][]string) {
 			source.Description,
 		})
 	}
+
+	// order by Name
+	sort.Slice(out, func(i, j int) bool {
+		return out[i][0] < out[j][0]
+	})
+
 	return
 }
 
