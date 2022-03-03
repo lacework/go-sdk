@@ -184,23 +184,12 @@ This command can also be run in noninteractive mode. See help output for more de
 				return err
 			}
 
-			//// set to nil if LogBucketLifecycleRuleAge value is -9999
-			//// -9999 is a dummy default value used to verify if the user has provided a value
-			//bucketLifecycleRuleAge, err := cmd.Flags().GetInt("bucket_lifecycle_rule_age")
-			//if err != nil {
-			//	return errors.Wrap(err, "failed to load command flags")
-			//}
-			//
-			//if bucketLifecycleRuleAge == 99999 && *GenerateGcpCommandState.LogBucketLifecycleRuleAge == 99999 {
-			//	nilSetter(GenerateGcpCommandState.LogBucketLifecycleRuleAge)
-			//}
-
 			// Validate gcp sa credentials file, if passed
 			gcpSaCredentials, err := cmd.Flags().GetString("service_account_credentials")
 			if err != nil {
 				return errors.Wrap(err, "failed to load command flags")
 			}
-			if err := validateServiceAccountCredentialsFile(gcpSaCredentials); gcpSaCredentials != "" && err != nil {
+			if err := validateServiceAccountCredentialsFile(gcpSaCredentials); err != nil {
 				return err
 			}
 
@@ -209,7 +198,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			if err != nil {
 				return errors.Wrap(err, "failed to load command flags")
 			}
-			if err := validateGcpRegion(region); region != "" && err != nil {
+			if err := validateGcpRegion(region); err != nil {
 				return err
 			}
 
@@ -366,39 +355,54 @@ func initGenerateGcpTfCommandFlags() {
 }
 
 func validateServiceAccountCredentialsFile(credFile string) error {
+	if credFile == "" {
+		return nil
+	}
+
 	if file.FileExists(credFile) {
 		jsonFile, err := os.Open(credFile)
 		// if we os.Open returns an error then handle it
 		if err != nil {
-			return errors.Wrap(err, "Issue opening GCP credentials file")
+			return errors.Wrap(err, "issue opening GCP credentials file")
 		}
 		defer jsonFile.Close()
 
-		byteValue, _ := ioutil.ReadAll(jsonFile)
-
-		var result map[string]interface{}
-		err = json.Unmarshal(byteValue, &result)
+		byteValue, err := ioutil.ReadAll(jsonFile)
 		if err != nil {
-			return errors.Wrap(err, "Unable to parse credentials file.")
+			return errors.Wrap(err, "unable to parse credentials file.")
 		}
-		valid := validateSaCredFileContent(result)
+
+		var credFileContent map[string]interface{}
+		err = json.Unmarshal(byteValue, &credFileContent)
+		if err != nil {
+			return errors.Wrap(err, "unable to parse credentials file.")
+		}
+		credFileContent, valid := validateSaCredFileContent(credFileContent)
 		if !valid {
-			return errors.New("Invalid GCP Service Account credentials file. " +
-				"The private_key and client_email fields MUST be present. private_key must be base64 encoded")
+			return errors.New("invalid GCP Service Account credentials file. " +
+				"The private_key and client_email fields MUST be present.")
 		}
 
 	}
 	return nil
 }
 
-func validateSaCredFileContent(credFileContent map[string]interface{}) bool {
+func validateSaCredFileContent(credFileContent map[string]interface{}) (map[string]interface{}, bool) {
 	if credFileContent["private_key"] != nil && credFileContent["client_email"] != nil {
-		err := validateStringIsBase64(credFileContent["private_key"].(string))
-		if err == nil {
-			return true
+		privateKey, ok := credFileContent["private_key"].(string)
+		if !ok {
+			return credFileContent, false
+		}
+		err := validateStringIsBase64(privateKey)
+		if err != nil {
+			// convert private key to base64 if it isn't already
+			// the private_key in a standard GCP SA credentials file isn't usually base64 encoded
+			privateKey := base64.StdEncoding.EncodeToString([]byte(privateKey))
+			credFileContent["private_key"] = privateKey
+			return credFileContent, true
 		}
 	}
-	return false
+	return credFileContent, false
 }
 
 // create survey.Validator for string is base64
@@ -545,11 +549,7 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 		},
 	}, config.AuditLog)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func promptGcpExistingServiceAccountQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
@@ -558,7 +558,7 @@ func promptGcpExistingServiceAccountQuestions(config *gcp.GenerateGcpTfConfigura
 		config.ExistingServiceAccount = &gcp.ExistingServiceAccountDetails{}
 	}
 
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Prompt:   &survey.Input{Message: QuestionExistingServiceAccountName, Default: config.ExistingServiceAccount.Name},
 			Response: &config.ExistingServiceAccount.Name,
@@ -568,15 +568,13 @@ func promptGcpExistingServiceAccountQuestions(config *gcp.GenerateGcpTfConfigura
 			Prompt:   &survey.Input{Message: QuestionExistingServiceAccountPrivateKey, Default: config.ExistingServiceAccount.PrivateKey},
 			Response: &config.ExistingServiceAccount.PrivateKey,
 			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validateStringIsBase64)},
-		}}); err != nil {
-		return err
-	}
+		}})
 
-	return nil
+	return err
 }
 
 func promptGcpIntegrationNameQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpConfigIntegrationName, Default: config.ConfigIntegrationName},
 			Checks:   []*bool{&config.Config},
@@ -588,24 +586,20 @@ func promptGcpIntegrationNameQuestions(config *gcp.GenerateGcpTfConfigurationArg
 			Checks:   []*bool{&config.AuditLog},
 			Required: true,
 			Response: &config.AuditLogIntegrationName,
-		}}); err != nil {
-		return err
-	}
+		}})
 
-	return nil
+	return err
 }
 
 func promptCustomizeGcpOutputLocation(extraState *GcpGenerateCommandExtraState) error {
-	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt:   &survey.Input{Message: QuestionGcpCustomizeOutputLocation, Default: extraState.Output},
 		Response: &extraState.Output,
 		Opts:     []survey.AskOpt{survey.WithValidator(validPathExists)},
 		Required: true,
-	}); err != nil {
-		return err
-	}
+	})
 
-	return nil
+	return err
 }
 
 func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
@@ -686,7 +680,7 @@ func gcpConfigIsEmpty(g *gcp.GenerateGcpTfConfigurationArgs) bool {
 
 func writeGcpGenerationArgsCache(a *gcp.GenerateGcpTfConfigurationArgs) {
 	if !gcpConfigIsEmpty(a) {
-		// If ExistingIamRole is partially set, don't write this to cache; the values won't work when loaded
+		// If ExistingServiceAccount is partially set, don't write this to cache; the values won't work when loaded
 		if a.ExistingServiceAccount.IsPartial() {
 			a.ExistingServiceAccount = nil
 		}
