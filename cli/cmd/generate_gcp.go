@@ -25,7 +25,7 @@ var (
 	QuestionGcpEnableAuditLog          = "Enable AuditLog Integration?"
 	QuestionGcpOrganizationIntegration = "Organization Integration?"
 	QuestionGcpOrganizationID          = "Specify the GCP Organization ID:"
-	QuestionGcpProjectID               = "Specify the Project ID to be used to provision Lacework resources: (optional)"
+	QuestionGcpProjectID               = "Specify the Project ID to be used to provision Lacework resources:"
 	QuestionGcpServiceAccountCredsPath = "Specify Service Account credentials JSON path: (optional)"
 
 	QuestionGcpConfigureAdvanced             = "Configure advanced integration options?"
@@ -202,6 +202,14 @@ This command can also be run in noninteractive mode. See help output for more de
 				return err
 			}
 
+			projectId, err := cmd.Flags().GetString("project_id")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if projectId == "" {
+				return errors.New("project_id must be provided")
+			}
+
 			// Load any cached inputs if interactive
 			if cli.InteractiveMode() {
 				cachedOptions := &gcp.GenerateGcpTfConfigurationArgs{}
@@ -284,7 +292,7 @@ func initGenerateGcpTfCommandFlags() {
 		&GenerateGcpCommandState.GcpProjectId,
 		"project_id",
 		"",
-		"specify the project id to be used to provision lacework resources")
+		"specify the project id to be used to provision lacework resources (required)")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpExistingServiceAccountDetails.Name,
 		"existing_service_account_name",
@@ -388,9 +396,10 @@ func validateServiceAccountCredentialsFile(credFile string) error {
 			return errors.New("invalid GCP Service Account credentials file. " +
 				"The private_key and client_email fields MUST be present.")
 		}
-
+	} else {
+		return errors.New("provided GCP credentials file does not exist")
 	}
-	return errors.New("provided GCP credentials file does not exist")
+	return nil
 }
 
 func validateSaCredFileContent(credFileContent map[string]interface{}) (map[string]interface{}, bool) {
@@ -730,6 +739,12 @@ func promptGcpGenerate(
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
+				Prompt:   &survey.Input{Message: QuestionGcpProjectID, Default: config.GcpProjectId},
+				Checks:   []*bool{configOrAuditLogEnabled(config)},
+				Required: true,
+				Response: &config.GcpProjectId,
+			},
+			{
 				Prompt:   &survey.Confirm{Message: QuestionGcpOrganizationIntegration, Default: config.OrganizationIntegration},
 				Checks:   []*bool{configOrAuditLogEnabled(config)},
 				Response: &config.OrganizationIntegration,
@@ -739,11 +754,6 @@ func promptGcpGenerate(
 				Checks:   []*bool{&config.OrganizationIntegration, configOrAuditLogEnabled(config)},
 				Required: true,
 				Response: &config.GcpOrganizationId,
-			},
-			{
-				Prompt:   &survey.Input{Message: QuestionGcpProjectID, Default: config.GcpProjectId},
-				Checks:   []*bool{configOrAuditLogEnabled(config)},
-				Response: &config.GcpProjectId,
 			},
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpServiceAccountCredsPath, Default: config.ServiceAccountCredentials},

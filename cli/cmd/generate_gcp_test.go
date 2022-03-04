@@ -120,7 +120,7 @@ func TestValidateSaCredFile(t *testing.T) {
 
 	t.Run("invalid JSON file", func(t *testing.T) {
 		err := validateServiceAccountCredentialsFile("generate_gcp_test_data/invalid_json.json")
-		assert.EqualError(t, err, "unable to parse credentials file.: invalid character '}' looking for beginning of object key string")
+		assert.EqualError(t, err, "unable to parse credentials file: invalid character '}' looking for beginning of object key string")
 	})
 
 	t.Run("non existent JSON file", func(t *testing.T) {
