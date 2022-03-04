@@ -351,6 +351,12 @@ func initGenerateGcpTfCommandFlags() {
 		"audit_log_integration_name",
 		"",
 		"specify a custom audit log integration name")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandExtraState.TerraformApply,
+		"apply",
+		false,
+		"run terraform apply without executing plan or prompting",
+	)
 
 }
 
