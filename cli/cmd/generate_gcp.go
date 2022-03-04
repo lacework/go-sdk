@@ -369,13 +369,13 @@ func validateServiceAccountCredentialsFile(credFile string) error {
 
 		byteValue, err := ioutil.ReadAll(jsonFile)
 		if err != nil {
-			return errors.Wrap(err, "unable to parse credentials file.")
+			return errors.Wrap(err, "unable to parse credentials file")
 		}
 
 		var credFileContent map[string]interface{}
 		err = json.Unmarshal(byteValue, &credFileContent)
 		if err != nil {
-			return errors.Wrap(err, "unable to parse credentials file.")
+			return errors.Wrap(err, "unable to parse credentials file")
 		}
 		credFileContent, valid := validateSaCredFileContent(credFileContent)
 		if !valid {
@@ -384,7 +384,7 @@ func validateServiceAccountCredentialsFile(credFile string) error {
 		}
 
 	}
-	return nil
+	return errors.New("provided GCP credentials file does not exist")
 }
 
 func validateSaCredFileContent(credFileContent map[string]interface{}) (map[string]interface{}, bool) {
