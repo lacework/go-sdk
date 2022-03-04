@@ -104,27 +104,27 @@ func TestGcpGenerationCache(t *testing.T) {
 
 func TestValidateSaCredFile(t *testing.T) {
 	t.Run("JSON credentials file with client_email and private_key is valid", func(t *testing.T) {
-		err := validateServiceAccountCredentialsFile("generate_gcp_test_data/private_key_client_email_valid.json")
+		err := validateServiceAccountCredentialsFile("test_resources/generate_gcp_test_data/private_key_client_email_valid.json")
 		assert.Equal(t, err, nil)
 	})
 
 	t.Run("JSON credentials file without client_email is not  valid", func(t *testing.T) {
-		err := validateServiceAccountCredentialsFile("generate_gcp_test_data/creds_no_client_email.json")
+		err := validateServiceAccountCredentialsFile("test_resources/generate_gcp_test_data/creds_no_client_email.json")
 		assert.EqualError(t, err, "invalid GCP Service Account credentials file. The private_key and client_email fields MUST be present.")
 	})
 
 	t.Run("JSON credentials file without private_key is not valid", func(t *testing.T) {
-		err := validateServiceAccountCredentialsFile("generate_gcp_test_data/creds_no_private_key.json")
+		err := validateServiceAccountCredentialsFile("test_resources/generate_gcp_test_data/creds_no_private_key.json")
 		assert.EqualError(t, err, "invalid GCP Service Account credentials file. The private_key and client_email fields MUST be present.")
 	})
 
 	t.Run("invalid JSON file", func(t *testing.T) {
-		err := validateServiceAccountCredentialsFile("generate_gcp_test_data/invalid_json.json")
+		err := validateServiceAccountCredentialsFile("test_resources/generate_gcp_test_data/invalid_json.json")
 		assert.EqualError(t, err, "unable to parse credentials file: invalid character '}' looking for beginning of object key string")
 	})
 
 	t.Run("non existent JSON file", func(t *testing.T) {
-		err := validateServiceAccountCredentialsFile("generate_gcp_test_data/foo.json")
+		err := validateServiceAccountCredentialsFile("test_resources/generate_gcp_test_data/foo.json")
 		assert.EqualError(t, err, "provided GCP credentials file does not exist")
 	})
 }
