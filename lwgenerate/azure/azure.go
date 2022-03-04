@@ -333,9 +333,9 @@ func createConfig(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, er
 		// Check if we have created an Active Directory app
 		if args.CreateAdIntegration {
 			attributes["use_existing_ad_application"] = true
-			attributes["application_id"] = "module.az_ad_application.application_id"
-			attributes["application_password"] = "module.az_ad_application.application_password"
-			attributes["service_principal_id"] = "module.az_ad_application.service_principal_id"
+			attributes["application_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_id"})
+			attributes["application_password"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_password"})
+			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "service_principal_id"})
 		} else {
 			attributes["use_existing_ad_application"] = true
 			attributes["application_id"] = args.AdApplicationId
@@ -397,9 +397,9 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 		// Check if we have created an Active Directory integration
 		if args.CreateAdIntegration {
 			attributes["use_existing_ad_application"] = true
-			attributes["application_id"] = "module.az_ad_application.application_id"
-			attributes["application_password"] = "module.az_ad_application.application_password"
-			attributes["service_principal_id"] = "module.az_ad_application.service_principal_id"
+			attributes["application_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_id"})
+			attributes["application_password"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_password"})
+			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "service_principal_id"})
 		} else {
 			attributes["use_existing_ad_application"] = true
 			attributes["application_id"] = args.AdApplicationId
