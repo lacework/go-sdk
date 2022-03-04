@@ -313,6 +313,15 @@ func TestPolicyList(t *testing.T) {
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
+	// validate sort
+	aRE := regexp.MustCompile("lacework-global-3")
+	aMatch := aRE.FindStringIndex(out.String())
+
+	zRE := regexp.MustCompile("lacework-global-10")
+	zMatch := zRE.FindStringIndex(out.String())
+
+	assert.Greater(t, zMatch[0], aMatch[0])
+
 	// list (output json)
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--json")
 	assert.Contains(t, out.String(), `"policyId"`)
