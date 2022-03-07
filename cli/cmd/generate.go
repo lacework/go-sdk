@@ -71,10 +71,6 @@ func init() {
 	// add the iac-generate command
 	cloudAccountCommand.AddCommand(generateTfCommand)
 
-	// Add global flags for iac generation
-	generateTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandExtraState.Output, "output", "", "location to write generated content")
-
 	// Add cloud specific command flags
 	initGenerateAwsTfCommandFlags()
 	initGenerateGcpTfCommandFlags()

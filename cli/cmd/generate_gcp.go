@@ -206,7 +206,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			if err != nil {
 				return errors.Wrap(err, "failed to load command flags")
 			}
-			if projectId == "" {
+			if projectId == "" && !cli.InteractiveMode() {
 				return errors.New("project_id must be provided")
 			}
 
@@ -364,6 +364,12 @@ func initGenerateGcpTfCommandFlags() {
 		"apply",
 		false,
 		"run terraform apply without executing plan or prompting",
+	)
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandExtraState.Output,
+		"output",
+		"",
+		"location to write generated content",
 	)
 
 }

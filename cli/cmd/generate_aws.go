@@ -313,6 +313,12 @@ func initGenerateAwsTfCommandFlags() {
 		false,
 		"run terraform apply without executing plan or prompting",
 	)
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandExtraState.Output,
+		"output",
+		"",
+		"location to write generated content",
+	)
 }
 
 // survey.Validator for aws ARNs
