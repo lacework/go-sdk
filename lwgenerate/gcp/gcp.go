@@ -157,6 +157,8 @@ type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 //
 func NewTerraform(enableConfig bool, enableAuditLog bool, mods ...GcpTerraformModifier) *GenerateGcpTfConfigurationArgs {
 	config := &GenerateGcpTfConfigurationArgs{AuditLog: enableAuditLog, Config: enableConfig}
+	// default LogBucketLifecycleRuleAge to -1. This helps us determine if the var has been set by the end user
+	config.LogBucketLifecycleRuleAge = -1
 	for _, m := range mods {
 		m(config)
 	}

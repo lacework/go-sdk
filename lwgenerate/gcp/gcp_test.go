@@ -28,7 +28,6 @@ func TestGenerationProjectLevelAuditLogWithoutConfig(t *testing.T) {
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -36,9 +35,7 @@ func TestGenerationProjectLevelAuditLogWithoutConfig(t *testing.T) {
 }
 
 func TestGenerationProjectLevelAuditLogWithoutCredentialsAndProject(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, true,
-		gcp.WithLogBucketLifecycleRuleAge(-1),
-	).Generate()
+	hcl, err := gcp.NewTerraform(false, true).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(
@@ -53,7 +50,6 @@ func TestGenerationProjectLevelAuditLogWithLaceworkProfile(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithLaceworkProfile("test-profile"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -69,7 +65,6 @@ func TestGenerationProjectLevelAuditLogCustomIntegrationName(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithAuditLogIntegrationName("custom_integration_name"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -81,7 +76,6 @@ func TestGenerationProjectLevelAuditLogLabels(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithAuditLogLabels(map[string]string{"key": "value"}),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -93,7 +87,6 @@ func TestGenerationProjectLevelAuditLogBucketLabels(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithBucketLabels(map[string]string{"key": "value"}),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -105,7 +98,6 @@ func TestGenerationProjectLevelAuditLogPubSubSubscriptionLabels(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithPubSubSubscriptionLabels(map[string]string{"key": "value"}),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -117,7 +109,6 @@ func TestGenerationProjectLevelAuditLogPubSubTopicLabels(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithPubSubTopicLabels(map[string]string{"key": "value"}),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -129,7 +120,6 @@ func TestGenerationProjectLevelAuditLogBucketRegion(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithBucketRegion("us-west"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -141,7 +131,6 @@ func TestGenerationProjectLevelAuditLogBucketLocation(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithBucketLocation("us"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -153,7 +142,6 @@ func TestGenerationProjectLevelAuditLogBucketName(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithBucketName("foo"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -165,7 +153,6 @@ func TestGenerationProjectLevelAuditLogExistingBucketName(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithExistingLogBucketName("foo"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -177,7 +164,6 @@ func TestGenerationProjectLevelAuditLogExistingLogSinkName(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithExistingLogSinkName("foo"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -189,7 +175,6 @@ func TestGenerationProjectLevelAuditLogEnableForceDestroyBucket(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithEnableForceDestroyBucket(),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -201,7 +186,6 @@ func TestGenerationProjectLevelAuditLogEnableUBLA(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithEnableUBLA(),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -224,7 +208,6 @@ func TestGenerationProjectLevelAuditLogBucketRetentionDays(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithLogBucketRetentionDays(420),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -237,7 +220,6 @@ func TestGenerationOrganizationLevelAuditLogWithoutConfig(t *testing.T) {
 		gcp.WithProjectId("project1"),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId("123456789"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -251,7 +233,6 @@ func TestGenerationOrganizationLevelAuditLogCustomIntegrationName(t *testing.T) 
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId("123456789"),
 		gcp.WithAuditLogIntegrationName("custom_integration_name"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -263,7 +244,6 @@ func TestGenerationOrganizationLevelAuditLogNoOrgId(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithOrganizationIntegration(true),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Empty(t, hcl)
 	assert.EqualError(t, err, "invalid inputs: An Organization ID must be provided for an Organization Integration")
@@ -274,7 +254,6 @@ func TestGenerationOrganizationLevelAuditLogNoOrgIntegrationFlag(t *testing.T) {
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithOrganizationId("123456789"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Empty(t, hcl)
 	assert.EqualError(t, err, "invalid inputs: To provide an Organization ID, Organization Integration must be true")
@@ -284,7 +263,6 @@ func TestGenerationProjectLevelAuditLogWithConfig(t *testing.T) {
 	hcl, err := gcp.NewTerraform(true, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -297,7 +275,6 @@ func TestGenerationOrganizationLevelAuditLogWithConfig(t *testing.T) {
 		gcp.WithProjectId("project1"),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId("123456789"),
-		gcp.WithLogBucketLifecycleRuleAge(-1),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
