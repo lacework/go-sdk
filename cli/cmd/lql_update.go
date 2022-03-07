@@ -116,13 +116,17 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
-	updateQuery := api.UpdateQuery{
-		QueryText: newQuery.QueryText,
+
+	// avoid letting the user change the query id
+	if len(args) != 0 && newQuery.QueryID != args[0] {
+		return errors.New("changes to query id not supported")
 	}
 
 	cli.Log.Debugw("updating query", "query", queryString)
 	cli.StartProgress(" Updating query...")
-	update, err := cli.LwApi.V2.Query.Update(newQuery.QueryID, updateQuery)
+	update, err := cli.LwApi.V2.Query.Update(newQuery.QueryID, api.UpdateQuery{
+		QueryText: newQuery.QueryText,
+	})
 	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, msg)
