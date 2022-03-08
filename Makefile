@@ -64,7 +64,6 @@ integration-only: install-tools ## Run integration tests
 		help \
 		integration \
 		migration \
-		query \
 		version \
 		generation \
 		team_members \
