@@ -307,8 +307,6 @@ func createTemporaryFile(name, content string) (*os.File, error) {
 }
 
 func runFakeTerminalTestFromDir(t *testing.T, dir string, conditions func(*expect.Console), args ...string) string {
-	t.Parallel()
-
 	// Multiplex output to a buffer as well for the raw bytes.
 	buf := new(bytes.Buffer)
 

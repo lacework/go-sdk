@@ -396,7 +396,7 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
   subaccount = "sub-account"
   api_key = "V2CONFIG_KEY"
   api_secret = "_secret"
-`, laceworkTOML, "there is a problem with the generated config")
+`, string(laceworkTOML), "there is a problem with the generated config")
 
 	t.Run("Reconfigure", func(t *testing.T) {
 		_ = runFakeTerminalTestFromDir(t, dir,
@@ -451,7 +451,7 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
   api_key = "TEST_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
   api_secret = "_oooooooooooooooooooooooooooooooo"
   version = 2
-`, laceworkTOML, "there is a problem with the generated config")
+`, string(laceworkTOML), "there is a problem with the generated config")
 	})
 }
 
@@ -519,9 +519,11 @@ func runConfigureTest(t *testing.T, conditions func(*expect.Console), args ...st
 	// configuration file is deployed (.lacework.toml)
 	dir, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		t.FailNow()
 	}
 	defer os.RemoveAll(dir)
+
 	state := runFakeTerminalTestFromDir(t, dir, conditions, args...)
 
 	configPath := path.Join(dir, ".lacework.toml")
