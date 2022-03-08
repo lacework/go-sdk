@@ -39,17 +39,17 @@ var (
 	QuestionGcpConfigureNewBucket       = "Configure settings for new Bucket?"
 	QuestionGcpBucketName               = "Specify new Bucket name: (optional)"
 	QuestionGcpBucketRegion             = "Specify the Bucket Region: (optional)"
-	QuestionGcpBucketLocation           = "Specify the Bucket Location:  (optional)"
-	QuestionGcpBucketRetention          = "Specify the Bucket Retention Days:  (optional)"
-	QuestionGcpBucketLifecycle          = "Specify the Bucket Lifecycle Rule Age:  (optional)"
+	QuestionGcpBucketLocation           = "Specify the Bucket Location: (optional)"
+	QuestionGcpBucketRetention          = "Specify the Bucket Retention Days: (optional)"
+	QuestionGcpBucketLifecycle          = "Specify the Bucket Lifecycle Rule Age: (optional)"
 	QuestionGcpEnableUBLA               = "Enable Uniform Bucket Level Access(UBLA)?"
 	QuestionGcpEnableBucketForceDestroy = "Enable Bucket Force Destroy?"
 	QuestionGcpUseExistingSink          = "Use an existing Sink?"
 	QuestionGcpExistingSinkName         = "Specify the existing Sink name"
 
 	GcpAdvancedOptIntegrationName      = "Customize Integration name(s)"
-	QuestionGcpConfigIntegrationName   = "Specify a custom Config integration name:"
-	QuestionGcpAuditLogIntegrationName = "Specify a custom AuditLog integration name:"
+	QuestionGcpConfigIntegrationName   = "Specify a custom Config integration name: (optional)"
+	QuestionGcpAuditLogIntegrationName = "Specify a custom AuditLog integration name: (optional)"
 
 	QuestionGcpAnotherAdvancedOpt      = "Configure another advanced integration option"
 	GcpAdvancedOptLocation             = "Customize output location"
@@ -433,7 +433,7 @@ func validateStringIsBase64(val interface{}) error {
 		// if value isn't base64, return error
 		_, err := base64.StdEncoding.DecodeString(value)
 		if err != nil {
-			return errors.Wrap(err, "provided private key is not base64 encoded")
+			return errors.New("provided private key is not base64 encoded")
 		}
 	default:
 		// if the value passed is not a string
@@ -498,12 +498,6 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 			Required: true,
 			Response: &config.ExistingLogBucketName,
 		},
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpConfigureNewBucket, Default: config.ExistingLogBucketName},
-			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingBucket},
-			Required: true,
-			Response: &config.ExistingLogBucketName,
-		},
 	}, config.AuditLog)
 
 	if err != nil {
@@ -558,13 +552,13 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 		},
 		{
 			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingSink, Default: extraState.UseExistingSink},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
+			Checks:   []*bool{&config.AuditLog},
 			Required: true,
 			Response: &extraState.UseExistingSink,
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpExistingSinkName, Default: config.ExistingLogSinkName},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings, &extraState.UseExistingSink},
+			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingSink},
 			Required: true,
 			Response: &config.ExistingLogSinkName,
 		},
@@ -599,13 +593,11 @@ func promptGcpIntegrationNameQuestions(config *gcp.GenerateGcpTfConfigurationArg
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpConfigIntegrationName, Default: config.ConfigIntegrationName},
 			Checks:   []*bool{&config.Config},
-			Required: true,
 			Response: &config.ConfigIntegrationName,
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpAuditLogIntegrationName, Default: config.AuditLogIntegrationName},
 			Checks:   []*bool{&config.AuditLog},
-			Required: true,
 			Response: &config.AuditLogIntegrationName,
 		}})
 
@@ -777,16 +769,15 @@ func promptGcpGenerate(
 	}
 
 	// Find out if the customer wants to specify more advanced features
-	askAdvanced := false
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Confirm{Message: QuestionGcpConfigureAdvanced, Default: askAdvanced},
-		Response: &askAdvanced,
+		Prompt:   &survey.Confirm{Message: QuestionGcpConfigureAdvanced, Default: extraState.AskAdvanced},
+		Response: &extraState.AskAdvanced,
 	}); err != nil {
 		return err
 	}
 
 	// Keep prompting for advanced options until the say done
-	if askAdvanced {
+	if extraState.AskAdvanced {
 		if err := askAdvancedOptions(config, extraState); err != nil {
 			return err
 		}

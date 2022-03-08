@@ -31,6 +31,7 @@ func (a *AwsGenerateCommandExtraState) writeCache() {
 }
 
 type GcpGenerateCommandExtraState struct {
+	AskAdvanced                bool
 	Output                     string
 	ConfigureNewBucketSettings bool
 	UseExistingServiceAccount  bool
@@ -41,6 +42,7 @@ type GcpGenerateCommandExtraState struct {
 
 func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
 	return gcp.Output == "" &&
+		!gcp.AskAdvanced &&
 		!gcp.UseExistingServiceAccount &&
 		!gcp.UseExistingBucket &&
 		!gcp.UseExistingSink &&
