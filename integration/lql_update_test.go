@@ -122,10 +122,6 @@ func TestQueryUpdateFromIDEditor(t *testing.T) {
 	// teardown
 	defer LaceworkCLIWithHome(dir, "query", "delete", queryID)
 
-	// Use "vi" rather than the default "vim"
-	os.Setenv("EDITOR", "vi")
-	defer os.Setenv("EDITOR", "")
-
 	_ = runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectString(t, c, "Update query")
