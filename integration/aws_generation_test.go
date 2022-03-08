@@ -5,26 +5,15 @@ package integration
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/Netflix/go-expect"
-	"github.com/hinshun/vt10x"
 	"github.com/lacework/go-sdk/cli/cmd"
 	"github.com/lacework/go-sdk/lwgenerate/aws"
 	"github.com/stretchr/testify/assert"
 )
-
-func expectString(c *expect.Console, str string, runError *error) {
-	out, err := c.Expect(expect.WithTimeout(time.Second), expect.String(str))
-	if err != nil {
-		fmt.Println(out) // To see the errored line, you can enable this and update _ above to out
-		*runError = err
-	}
-}
 
 // Test failing due to no selection
 func TestGenerationErrorOnNoSelection(t *testing.T) {
@@ -570,7 +559,7 @@ func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...str
 	defer os.Setenv("HOME", homeCache)
 	defer os.RemoveAll(dir)
 
-	runGenerationTestFromDir(t, dir, conditions, args...)
+	runFakeTerminalTestFromDir(t, dir, conditions, args...)
 	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/aws.tf", dir)))
 	if err != nil {
 		// Assume couldn't be found
@@ -578,33 +567,4 @@ func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...str
 	}
 
 	return string(out)
-}
-
-func runGenerationTestFromDir(t *testing.T, dir string, conditions func(*expect.Console), args ...string) {
-	console, state, err := vt10x.NewVT10XConsole()
-	if err != nil {
-		panic(err)
-	}
-	defer console.Close()
-
-	if os.Getenv("DEBUG") != "" {
-		state.DebugLogger = log.Default()
-	}
-
-	donec := make(chan struct{})
-	go func() {
-		defer close(donec)
-		conditions(console)
-	}()
-
-	cmd := NewLaceworkCLI(dir, nil, args...)
-	cmd.Stdin = console.Tty()
-	cmd.Stdout = console.Tty()
-	cmd.Stderr = console.Tty()
-	err = cmd.Start()
-	assert.Nil(t, err)
-
-	// read the remaining bytes
-	console.Tty().Close()
-	<-donec
 }

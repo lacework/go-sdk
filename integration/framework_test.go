@@ -29,11 +29,18 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"testing"
+	"time"
 
+	"github.com/Netflix/go-expect"
+	"github.com/hinshun/vt10x"
 	"github.com/lacework/go-sdk/api"
-
 	"github.com/lacework/go-sdk/lwupdater"
+	"github.com/stretchr/testify/assert"
 )
+
+// When emulating a terminal, the timeout to wait for output
+var expectStringTimeout = time.Second * 3
 
 // Use this function to execute a real lacework CLI command, under the hood the function
 // will detect the correct binary depending on the running OS and architecture, if you
@@ -297,4 +304,72 @@ func createTemporaryFile(name, content string) (*os.File, error) {
 	file.Close()
 
 	return file, err
+}
+
+func runFakeTerminalTestFromDir(t *testing.T, dir string, conditions func(*expect.Console), args ...string) string {
+	t.Parallel()
+
+	// Multiplex output to a buffer as well for the raw bytes.
+	buf := new(bytes.Buffer)
+
+	console, state, err := vt10x.NewVT10XConsole(expect.WithStdout(buf))
+	if err != nil {
+		panic(err)
+	}
+	defer console.Close()
+
+	if os.Getenv("DEBUG") != "" {
+		state.DebugLogger = log.Default()
+	}
+
+	donec := make(chan struct{})
+	go func() {
+		defer close(donec)
+		conditions(console)
+	}()
+
+	// spawn a new `lacework configure' command
+	cmd := NewLaceworkCLI(dir, nil, args...)
+	cmd.Stdin = console.Tty()
+	cmd.Stdout = console.Tty()
+	cmd.Stderr = console.Tty()
+	err = cmd.Start()
+	assert.Nil(t, err)
+
+	// read the remaining bytes
+	console.Tty().Close()
+	<-donec
+
+	t.Logf("Raw output: %q", buf.String())
+
+	// Dump the terminal's screen.
+	t.Logf(
+		"Terminal output:\n%s",
+		expect.StripTrailingEmptyLines(state.String()),
+	)
+
+	return state.String()
+}
+
+func expectString(c *expect.Console, str string, runError *error) {
+	out, err := c.Expect(
+		expect.WithTimeout(expectStringTimeout),
+		expect.String(str),
+	)
+	if err != nil {
+		fmt.Println(out)
+		*runError = err
+	}
+}
+
+func expectStringE(t *testing.T, c *expect.Console, str string) {
+	out, err := c.Expect(
+		expect.WithTimeout(expectStringTimeout),
+		expect.String(str),
+	)
+	if err != nil {
+		fmt.Println(out)
+		fmt.Println(err)
+		t.FailNow()
+	}
 }
