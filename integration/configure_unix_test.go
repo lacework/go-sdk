@@ -36,13 +36,13 @@ func TestConfigureCommand(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("test-account")
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("_00000000000000000000000000000000")
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 	)
@@ -61,15 +61,15 @@ func TestConfigureCommandForFrankfurtDatacenter(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			// if the full URL was provided we transform it and inform the user
 			c.SendLine("my-account-in.fra.lacework.net")
-			expectStringE(t, c, "Passing full 'lacework.net' domain not required. Using 'my-account-in.fra'")
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Passing full 'lacework.net' domain not required. Using 'my-account-in.fra'")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("FRANK_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC0011")
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("_00000000000000000000000000000000")
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 	)
@@ -87,18 +87,18 @@ func TestConfigureCommandForOrgAdmins(t *testing.T) {
 	}
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine(os.Getenv("CI_ACCOUNT"))
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine(os.Getenv("CI_API_KEY"))
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine(os.Getenv("CI_API_SECRET"))
-			expectStringE(t, c, "Verifying credentials ...")
-			expectStringE(t, c, "(Org Admins) Managing a sub-account?")
+			expectString(t, c, "Verifying credentials ...")
+			expectString(t, c, "(Org Admins) Managing a sub-account?")
 			// @afiune this is needed just because we have two accounts that start exactly the same
 			// and so, we need to key in ARROW DOWN to chose the right one.
 			c.SendLine(fmt.Sprintf("%s\x1B[B", os.Getenv("CI_SUBACCOUNT")))
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 	)
@@ -118,13 +118,13 @@ func TestConfigureCommandWithProfileFlag(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("test-account")
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("_00000000000000000000000000000000")
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure", "--profile", "my-profile",
 	)
@@ -153,13 +153,13 @@ func TestConfigureCommandWithNewJSONFileFlagForStandaloneAccounts(t *testing.T) 
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be auto-populated from the new JSON file
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure", "--json_file", s,
 	)
@@ -189,13 +189,13 @@ func TestConfigureCommandWithNewJSONFileFlagForOrganizationalAccounts(t *testing
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be auto-populated from the new JSON file
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure", "--json_file", s,
 	)
@@ -224,13 +224,13 @@ func TestConfigureCommandWithOldJSONFileFlag(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be auto-populated from the provided --profile flag
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure", "--json_file", s, "--profile", "v1-web-ui-test",
 	)
@@ -257,13 +257,13 @@ func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be loaded from the environment variables
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the environment variables
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the environment variables
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 	)
@@ -283,13 +283,13 @@ func TestConfigureCommandWithAPIkeysFromFlagsWithoutSubaccount(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 		"--account", "from-flags",
@@ -311,13 +311,13 @@ func TestConfigureCommandWithAPIkeysFromFlagsWithSubaccount(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 		"--account", "from-flags",
@@ -346,13 +346,13 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
 
 	_ = runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("super-cool-profile")
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("TEST_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("_uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure", "--profile", "new-profile",
 	)
@@ -401,13 +401,13 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
 	t.Run("Reconfigure", func(t *testing.T) {
 		_ = runFakeTerminalTestFromDir(t, dir,
 			func(c *expect.Console) {
-				expectStringE(t, c, "Account:")
+				expectString(t, c, "Account:")
 				c.SendLine("new-account")
-				expectStringE(t, c, "Access Key ID:")
+				expectString(t, c, "Access Key ID:")
 				c.SendLine("TEST_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-				expectStringE(t, c, "Secret Access Key:")
+				expectString(t, c, "Secret Access Key:")
 				c.SendLine("_oooooooooooooooooooooooooooooooo")
-				expectStringE(t, c, "You are all set!")
+				expectString(t, c, "You are all set!")
 			},
 			"configure", "--profile", "v2",
 		)
@@ -461,21 +461,21 @@ func TestConfigureCommandErrors(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("")
-			expectStringE(t, c, "The account subdomain of URL is required")
+			expectString(t, c, "The account subdomain of URL is required")
 			// if the full URL was provided we transform it and inform the user
 			c.SendLine("https://my-account.lacework.net")
-			expectStringE(t, c, "Passing full 'lacework.net' domain not required. Using 'my-account'")
-			expectStringE(t, c, "Access Key ID:")
+			expectString(t, c, "Passing full 'lacework.net' domain not required. Using 'my-account'")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("")
-			expectStringE(t, c, "The API access key id must have more than 55 characters")
+			expectString(t, c, "The API access key id must have more than 55 characters")
 			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
-			expectStringE(t, c, "Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("")
-			expectStringE(t, c, "The API secret access key must have more than 30 characters")
+			expectString(t, c, "The API secret access key must have more than 30 characters")
 			c.SendLine("_00000000000000000000000000000000")
-			expectStringE(t, c, "You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 	)

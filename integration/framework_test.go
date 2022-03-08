@@ -349,18 +349,7 @@ func runFakeTerminalTestFromDir(t *testing.T, dir string, conditions func(*expec
 	return state.String()
 }
 
-func expectString(c *expect.Console, str string, runError *error) {
-	out, err := c.Expect(
-		expect.WithTimeout(expectStringTimeout),
-		expect.String(str),
-	)
-	if err != nil {
-		fmt.Println(out)
-		*runError = err
-	}
-}
-
-func expectStringE(t *testing.T, c *expect.Console, str string) {
+func expectString(t *testing.T, c *expect.Console, str string) {
 	out, err := c.Expect(
 		expect.WithTimeout(expectStringTimeout),
 		expect.String(str),

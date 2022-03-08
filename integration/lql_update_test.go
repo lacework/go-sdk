@@ -124,14 +124,14 @@ func TestQueryUpdateFromIDEditor(t *testing.T) {
 
 	_ = runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			expectStringE(t, c, "Update query")
+			expectString(t, c, "Update query")
 			c.SendLine("")
 			time.Sleep(time.Millisecond)
 			// Move to line number 4 and add comment "--- Updated from CLI Editor"
 			c.Send("4Go--- Updated from CLI Editor\x1b")
 			c.SendLine(":wq!") // save and close
 			time.Sleep(time.Millisecond)
-			expectStringE(t, c,
+			expectString(t, c,
 				fmt.Sprintf("The query %s was updated.", queryID))
 		},
 		"query", "update", queryID,
