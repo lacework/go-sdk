@@ -22,13 +22,11 @@ package integration
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"testing"
 
 	"github.com/Netflix/go-expect"
-	"github.com/hinshun/vt10x"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,13 +36,13 @@ func TestConfigureCommand(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("test-account")
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("_00000000000000000000000000000000")
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 	)
@@ -63,15 +61,15 @@ func TestConfigureCommandForFrankfurtDatacenter(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			// if the full URL was provided we transform it and inform the user
 			c.SendLine("my-account-in.fra.lacework.net")
-			c.ExpectString("Passing full 'lacework.net' domain not required. Using 'my-account-in.fra'")
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Passing full 'lacework.net' domain not required. Using 'my-account-in.fra'")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("FRANK_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC0011")
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("_00000000000000000000000000000000")
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 	)
@@ -89,18 +87,18 @@ func TestConfigureCommandForOrgAdmins(t *testing.T) {
 	}
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine(os.Getenv("CI_ACCOUNT"))
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine(os.Getenv("CI_API_KEY"))
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine(os.Getenv("CI_API_SECRET"))
-			c.ExpectString("Verifying credentials ...")
-			c.ExpectString("(Org Admins) Managing a sub-account?")
+			expectString(t, c, "Verifying credentials ...")
+			expectString(t, c, "(Org Admins) Managing a sub-account?")
 			// @afiune this is needed just because we have two accounts that start exactly the same
 			// and so, we need to key in ARROW DOWN to chose the right one.
 			c.SendLine(fmt.Sprintf("%s\x1B[B", os.Getenv("CI_SUBACCOUNT")))
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 	)
@@ -120,13 +118,13 @@ func TestConfigureCommandWithProfileFlag(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("test-account")
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("_00000000000000000000000000000000")
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure", "--profile", "my-profile",
 	)
@@ -155,13 +153,13 @@ func TestConfigureCommandWithNewJSONFileFlagForStandaloneAccounts(t *testing.T) 
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be auto-populated from the new JSON file
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure", "--json_file", s,
 	)
@@ -191,13 +189,13 @@ func TestConfigureCommandWithNewJSONFileFlagForOrganizationalAccounts(t *testing
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be auto-populated from the new JSON file
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure", "--json_file", s,
 	)
@@ -226,13 +224,13 @@ func TestConfigureCommandWithOldJSONFileFlag(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be auto-populated from the provided --profile flag
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the JSON file
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure", "--json_file", s, "--profile", "v1-web-ui-test",
 	)
@@ -259,13 +257,13 @@ func TestConfigureCommandWithEnvironmentVariables(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be loaded from the environment variables
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the environment variables
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the environment variables
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 	)
@@ -285,13 +283,13 @@ func TestConfigureCommandWithAPIkeysFromFlagsWithoutSubaccount(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 		"--account", "from-flags",
@@ -313,13 +311,13 @@ func TestConfigureCommandWithAPIkeysFromFlagsWithSubaccount(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("") // using the default, which should be loaded from the provided flags
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 		"--account", "from-flags",
@@ -344,18 +342,25 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
 	dir := createTOMLConfig()
 	defer os.RemoveAll(dir)
 
-	_, laceworkTOML := runConfigureTestFromDir(t, dir,
+	configPath := path.Join(dir, ".lacework.toml")
+
+	_ = runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("super-cool-profile")
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("TEST_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("_uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure", "--profile", "new-profile",
 	)
+
+	// assert.Contains(t, state, "You are all set!", "you are not all set, check configure cmd")
+	assert.FileExists(t, configPath, "the configuration file is missing")
+	laceworkTOML, err := ioutil.ReadFile(configPath)
+	assert.Nil(t, err)
 
 	assert.Equal(t, `[default]
   account = "test.account"
@@ -391,21 +396,26 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
   subaccount = "sub-account"
   api_key = "V2CONFIG_KEY"
   api_secret = "_secret"
-`, laceworkTOML, "there is a problem with the generated config")
+`, string(laceworkTOML), "there is a problem with the generated config")
 
 	t.Run("Reconfigure", func(t *testing.T) {
-		_, laceworkTOML := runConfigureTestFromDir(t, dir,
+		_ = runFakeTerminalTestFromDir(t, dir,
 			func(c *expect.Console) {
-				c.ExpectString("Account:")
+				expectString(t, c, "Account:")
 				c.SendLine("new-account")
-				c.ExpectString("Access Key ID:")
+				expectString(t, c, "Access Key ID:")
 				c.SendLine("TEST_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-				c.ExpectString("Secret Access Key:")
+				expectString(t, c, "Secret Access Key:")
 				c.SendLine("_oooooooooooooooooooooooooooooooo")
-				c.ExpectString("You are all set!")
+				expectString(t, c, "You are all set!")
 			},
 			"configure", "--profile", "v2",
 		)
+
+		// assert.Contains(t, state, "You are all set!", "you are not all set, check configure cmd")
+		assert.FileExists(t, configPath, "the configuration file is missing")
+		laceworkTOML, err := ioutil.ReadFile(configPath)
+		assert.Nil(t, err)
 
 		assert.Equal(t, `[default]
   account = "test.account"
@@ -441,7 +451,7 @@ func TestConfigureCommandWithExistingConfigAndMultiProfile(t *testing.T) {
   api_key = "TEST_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
   api_secret = "_oooooooooooooooooooooooooooooooo"
   version = 2
-`, laceworkTOML, "there is a problem with the generated config")
+`, string(laceworkTOML), "there is a problem with the generated config")
 	})
 }
 
@@ -451,21 +461,21 @@ func TestConfigureCommandErrors(t *testing.T) {
 
 	_, laceworkTOML := runConfigureTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("Account:")
+			expectString(t, c, "Account:")
 			c.SendLine("")
-			c.ExpectString("The account subdomain of URL is required")
+			expectString(t, c, "The account subdomain of URL is required")
 			// if the full URL was provided we transform it and inform the user
 			c.SendLine("https://my-account.lacework.net")
-			c.ExpectString("Passing full 'lacework.net' domain not required. Using 'my-account'")
-			c.ExpectString("Access Key ID:")
+			expectString(t, c, "Passing full 'lacework.net' domain not required. Using 'my-account'")
+			expectString(t, c, "Access Key ID:")
 			c.SendLine("")
-			c.ExpectString("The API access key id must have more than 55 characters")
+			expectString(t, c, "The API access key id must have more than 55 characters")
 			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
-			c.ExpectString("Secret Access Key:")
+			expectString(t, c, "Secret Access Key:")
 			c.SendLine("")
-			c.ExpectString("The API secret access key must have more than 30 characters")
+			expectString(t, c, "The API secret access key must have more than 30 characters")
 			c.SendLine("_00000000000000000000000000000000")
-			c.ExpectString("You are all set!")
+			expectString(t, c, "You are all set!")
 		},
 		"configure",
 	)
@@ -476,54 +486,6 @@ func TestConfigureCommandErrors(t *testing.T) {
   api_secret = "_00000000000000000000000000000000"
   version = 2
 `, laceworkTOML, "there is a problem with the generated config")
-}
-
-func runConfigureTest(t *testing.T, conditions func(*expect.Console), args ...string) (string, string) {
-	// create a temporal directory where we will check that the
-	// configuration file is deployed (.lacework.toml)
-	dir, err := ioutil.TempDir("", "lacework-cli")
-	if err != nil {
-		panic(err)
-	}
-	defer os.RemoveAll(dir)
-	return runConfigureTestFromDir(t, dir, conditions, args...)
-}
-
-func runConfigureTestFromDir(t *testing.T, dir string, conditions func(*expect.Console), args ...string) (string, string) {
-	console, state, err := vt10x.NewVT10XConsole()
-	if err != nil {
-		panic(err)
-	}
-	defer console.Close()
-
-	if os.Getenv("DEBUG") != "" {
-		state.DebugLogger = log.Default()
-	}
-
-	donec := make(chan struct{})
-	go func() {
-		defer close(donec)
-		conditions(console)
-	}()
-
-	// spawn a new `lacework configure' command
-	cmd := NewLaceworkCLI(dir, nil, args...)
-	cmd.Stdin = console.Tty()
-	cmd.Stdout = console.Tty()
-	cmd.Stderr = console.Tty()
-	err = cmd.Start()
-	assert.Nil(t, err)
-
-	// read the remaining bytes
-	console.Tty().Close()
-	<-donec
-
-	configPath := path.Join(dir, ".lacework.toml")
-	assert.Contains(t, state.String(), "You are all set!", "you are not all set, check configure cmd")
-	assert.FileExists(t, configPath, "the configuration file is missing")
-	laceworkTOML, err := ioutil.ReadFile(configPath)
-	assert.Nil(t, err)
-	return state.String(), string(laceworkTOML)
 }
 
 func TestConfigureCommandWithJSONFileFlagError(t *testing.T) {
@@ -550,4 +512,24 @@ func TestConfigureSwitchProfileHelp(t *testing.T) {
 		"STDOUT the environment variable in the help message is not correct")
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
+}
+
+func runConfigureTest(t *testing.T, conditions func(*expect.Console), args ...string) (string, string) {
+	// create a temporal directory where we will check that the
+	// configuration file is deployed (.lacework.toml)
+	dir, err := ioutil.TempDir("", "lacework-cli")
+	if err != nil {
+		fmt.Println(err)
+		t.FailNow()
+	}
+	defer os.RemoveAll(dir)
+
+	state := runFakeTerminalTestFromDir(t, dir, conditions, args...)
+
+	configPath := path.Join(dir, ".lacework.toml")
+	assert.Contains(t, state, "You are all set!", "you are not all set, check configure cmd")
+	assert.FileExists(t, configPath, "the configuration file is missing")
+	laceworkTOML, err := ioutil.ReadFile(configPath)
+	assert.Nil(t, err)
+	return state, string(laceworkTOML)
 }

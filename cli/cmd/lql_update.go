@@ -19,8 +19,12 @@
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 
 	"github.com/lacework/go-sdk/api"
 )
@@ -28,12 +32,14 @@ import (
 var (
 	// queryUpdateCmd represents the lql update command
 	queryUpdateCmd = &cobra.Command{
-		Use:   "update",
+		Use:   "update [query_id]",
 		Short: "Update a query",
+		Args:  cobra.RangeArgs(0, 1),
 		Long: `
 There are multiple ways you can update a query:
 
   * Typing the query into your default editor (via $EDITOR)
+  * Passing a query id to load it into your default editor
   * From a local file on disk using the flag '--file'
   * From a URL using the flag '--url'
 
@@ -46,7 +52,6 @@ To launch your default editor and update a query.
 
     lacework query update
 `,
-		Args: cobra.NoArgs,
 		RunE: updateQuery,
 	}
 )
@@ -61,23 +66,67 @@ func init() {
 func updateQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to update query"
 
-	// input query
-	queryString, err := inputQuery(cmd)
-	if err != nil {
-		return errors.Wrap(err, msg)
+	var (
+		queryString string
+		err         error
+	)
+
+	if len(args) != 0 {
+		// query id via argument
+		cli.StartProgress("Retrieving query...")
+		queryRes, err := cli.LwApi.V2.Query.Get(args[0])
+		cli.StopProgress()
+		if err != nil {
+			return errors.Wrap(err, "unable to load query from your account")
+		}
+
+		queryYaml, err := yaml.Marshal(&api.NewQuery{
+			QueryID:     queryRes.Data.QueryID,
+			QueryText:   queryRes.Data.QueryText,
+			EvaluatorID: queryRes.Data.EvaluatorID,
+		})
+		if err != nil {
+			return errors.Wrap(err, msg)
+		}
+
+		prompt := &survey.Editor{
+			Message:       fmt.Sprintf("Update query %s", args[0]),
+			Default:       string(queryYaml),
+			HideDefault:   true,
+			AppendDefault: true,
+			FileName:      "query*.yaml",
+		}
+		var queryStr string
+		err = survey.AskOne(prompt, &queryStr)
+		if err != nil {
+			return errors.Wrap(err, msg)
+		}
+
+		queryString = queryStr
+	} else {
+		// input query
+		queryString, err = inputQuery(cmd)
+		if err != nil {
+			return errors.Wrap(err, msg)
+		}
 	}
+
 	// parse query
 	newQuery, err := parseQuery(queryString)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
-	updateQuery := api.UpdateQuery{
-		QueryText: newQuery.QueryText,
+
+	// avoid letting the user change the query id
+	if len(args) != 0 && newQuery.QueryID != args[0] {
+		return errors.New("changes to query id not supported")
 	}
 
 	cli.Log.Debugw("updating query", "query", queryString)
 	cli.StartProgress(" Updating query...")
-	update, err := cli.LwApi.V2.Query.Update(newQuery.QueryID, updateQuery)
+	update, err := cli.LwApi.V2.Query.Update(newQuery.QueryID, api.UpdateQuery{
+		QueryText: newQuery.QueryText,
+	})
 	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, msg)
