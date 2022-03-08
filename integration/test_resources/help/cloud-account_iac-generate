@@ -8,10 +8,10 @@ Aliases:
 
 Available Commands:
   aws         Generate and/or execute Terraform code for AWS integration
+  gcp         Generate and/or execute Terraform code for GCP integration
 
 Flags:
-  -h, --help            help for iac-generate
-      --output string   location to write generated content
+  -h, --help   help for iac-generate
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

@@ -31,6 +31,7 @@ Flags:
       --existing_sns_topic_arn string         specify existing sns topic arn
       --force_destroy_s3                      enable force destroy s3 bucket
   -h, --help                                  help for aws
+      --output string                         location to write generated content
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
@@ -43,6 +44,5 @@ Global Flags:
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
       --organization        access organization level data sets (org admins only)
-      --output string       location to write generated content
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
