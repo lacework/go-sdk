@@ -60,6 +60,8 @@ integration-only: install-tools ## Run integration tests
 		alert_rules \
 		compliance \
 		configure \
+		query \
+		policy \
 		event \
 		help \
 		integration \
