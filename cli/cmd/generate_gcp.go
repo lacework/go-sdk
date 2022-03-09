@@ -71,18 +71,20 @@ var (
 		Short: "Generate and/or execute Terraform code for GCP integration",
 		Long: `Use this command to generate Terraform code for deploying Lacework into an GCP environment.
 
-By default, this command will function interactively, prompting for the required information to setup the new cloud account. In interactive mode, this command will:
+By default, this command interactively prompts for the required information to setup the new cloud account. 
+In interactive mode, this command will:
 
 * Prompt for the required information to setup the integration
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
-  * If Terraform is already installed, the version will be confirmed suitable for use
-	* If Terraform is not installed, or the version installed is not suitable, a new version will be installed into a temporary location
+  * If Terraform is already installed, the version is verified as compatible for use
+	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
 	* Once Terraform is detected or installed, Terraform plan will be executed
 	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
 	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
-This command can also be run in noninteractive mode. See help output for more details on supplying required values for generation.
+This command can also be run in noninteractive mode. 
+See help output for more details on the parameter value(s) required for Terraform code generation.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Generate TF Code
