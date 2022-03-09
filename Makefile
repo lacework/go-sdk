@@ -12,7 +12,7 @@ CIARTIFACTS?=ci-artifacts
 COVERAGEOUT?=coverage.out
 COVERAGEHTML?=coverage.html
 PACKAGENAME?=lacework-cli
-CLINAME?=lacework-dev
+CLINAME?=lacework
 # Honeycomb variables
 HONEYDATASET?=lacework-cli-dev
 # => HONEYAPIKEY should be exported on every developers workstation or else events
