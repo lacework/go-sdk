@@ -107,7 +107,7 @@ func TestQueryUpdateFromIDEditor(t *testing.T) {
 	// get temp file
 	file, err := createTemporaryFile(
 		"TestQueryUpdateFromIDEditor",
-		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryUpdateText),
+		fmt.Sprintf(queryJSONTemplate, queryID, queryUpdateText),
 	)
 	if err != nil {
 		t.FailNow()
