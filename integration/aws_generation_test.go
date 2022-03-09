@@ -5,49 +5,34 @@ package integration
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/Netflix/go-expect"
-	"github.com/hinshun/vt10x"
 	"github.com/lacework/go-sdk/cli/cmd"
 	"github.com/lacework/go-sdk/lwgenerate/aws"
 	"github.com/stretchr/testify/assert"
 )
 
-func expectString(c *expect.Console, str string, runError *error) {
-	out, err := c.Expect(expect.WithTimeout(time.Second), expect.String(str))
-	if err != nil {
-		fmt.Println(out) // To see the errored line, you can enable this and update _ above to out
-		*runError = err
-	}
-}
-
 // Test failing due to no selection
 func TestGenerationErrorOnNoSelection(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
-	var runError error
 
 	// Run CLI
 	runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("n")
-			expectString(c, "ERROR collecting/confirming parameters: must enable cloudtrail or config", &runError)
+			expectString(t, c, "ERROR collecting/confirming parameters: must enable cloudtrail or config")
 		},
 		"cloud",
 		"iac",
 		"aws",
 	)
-
-	// Ensure CLI errored properly
-	assert.Nil(t, runError)
 }
 
 // Test barebones generation with no customization
@@ -55,21 +40,20 @@ func TestGenerationSimple(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 	region := "us-east-2"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionAwsRegion, &runError)
+			expectString(t, c, cmd.QuestionAwsRegion)
 			c.SendLine(region)
-			expectString(c, cmd.QuestionAwsConfigAdvanced, &runError)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionRunTfPlan, &runError)
+			expectString(t, c, cmd.QuestionRunTfPlan)
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
@@ -79,7 +63,6 @@ func TestGenerationSimple(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
@@ -92,7 +75,6 @@ func TestGenerationCustomizedOutputLocation(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 	region := "us-east-2"
 
 	// Tempdir for test
@@ -105,22 +87,22 @@ func TestGenerationCustomizedOutputLocation(t *testing.T) {
 	// Run CLI
 	runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionAwsRegion, &runError)
+			expectString(t, c, cmd.QuestionAwsRegion)
 			c.SendLine(region)
-			expectString(c, cmd.QuestionAwsConfigAdvanced, &runError)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
-			expectString(c, cmd.AwsAdvancedOptDone, &runError)
+			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
-			expectString(c, cmd.QuestionAwsCustomizeOutputLocation, &runError)
+			expectString(t, c, cmd.QuestionAwsCustomizeOutputLocation)
 			c.SendLine(dir)
-			expectString(c, cmd.QuestionAwsAnotherAdvancedOpt, &runError)
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionRunTfPlan, &runError)
+			expectString(t, c, cmd.QuestionRunTfPlan)
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
@@ -130,7 +112,6 @@ func TestGenerationCustomizedOutputLocation(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Get result
@@ -146,21 +127,20 @@ func TestGenerationConfigOnly(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 	region := "us-east-2"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionAwsRegion, &runError)
+			expectString(t, c, cmd.QuestionAwsRegion)
 			c.SendLine(region)
-			expectString(c, cmd.QuestionAwsConfigAdvanced, &runError)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionRunTfPlan, &runError)
+			expectString(t, c, cmd.QuestionRunTfPlan)
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
@@ -170,7 +150,6 @@ func TestGenerationConfigOnly(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
@@ -183,25 +162,24 @@ func TestGenerationAdvancedOptsDone(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 	region := "us-east-2"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionAwsRegion, &runError)
+			expectString(t, c, cmd.QuestionAwsRegion)
 			c.SendLine(region)
-			expectString(c, cmd.QuestionAwsConfigAdvanced, &runError)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
-			expectString(c, cmd.AwsAdvancedOptDone, &runError)
+			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
-			expectString(c, cmd.QuestionRunTfPlan, &runError)
+			expectString(t, c, cmd.QuestionRunTfPlan)
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
@@ -211,7 +189,6 @@ func TestGenerationAdvancedOptsDone(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
@@ -224,31 +201,30 @@ func TestGenerationAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 	region := "us-east-2"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionAwsRegion, &runError)
+			expectString(t, c, cmd.QuestionAwsRegion)
 			c.SendLine(region)
-			expectString(c, cmd.QuestionAwsConfigAdvanced, &runError)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
-			expectString(c, cmd.AwsAdvancedOptDone, &runError)
+			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.SendLine("")
-			expectString(c, cmd.QuestionConsolidatedCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionUseExistingCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionForceDestroyS3Bucket, &runError)
+			expectString(t, c, cmd.QuestionForceDestroyS3Bucket)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionAwsAnotherAdvancedOpt, &runError)
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionRunTfPlan, &runError)
+			expectString(t, c, cmd.QuestionRunTfPlan)
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
@@ -258,7 +234,6 @@ func TestGenerationAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
@@ -272,33 +247,32 @@ func TestGenerationAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 	region := "us-east-2"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionAwsRegion, &runError)
+			expectString(t, c, cmd.QuestionAwsRegion)
 			c.SendLine(region)
-			expectString(c, cmd.QuestionAwsConfigAdvanced, &runError)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
-			expectString(c, cmd.AwsAdvancedOptDone, &runError)
+			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.SendLine("")
-			expectString(c, cmd.QuestionConsolidatedCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionUseExistingCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionCloudtrailExistingBucketArn, &runError)
+			expectString(t, c, cmd.QuestionCloudtrailExistingBucketArn)
 			c.SendLine("notright") // test our validator is working
-			expectString(c, "invalid arn supplied", &runError)
+			expectString(t, c, "invalid arn supplied")
 			c.SendLine("arn:aws:s3:::bucket_name")
-			expectString(c, cmd.QuestionAwsAnotherAdvancedOpt, &runError)
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionRunTfPlan, &runError)
+			expectString(t, c, cmd.QuestionRunTfPlan)
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
@@ -308,7 +282,6 @@ func TestGenerationAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
@@ -322,50 +295,49 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 	region := "us-east-2"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionAwsRegion, &runError)
+			expectString(t, c, cmd.QuestionAwsRegion)
 			c.SendLine(region)
-			expectString(c, cmd.QuestionAwsConfigAdvanced, &runError)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
-			expectString(c, cmd.AwsAdvancedOptDone, &runError)
+			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.SendLine("")
-			expectString(c, cmd.QuestionConsolidatedCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionUseExistingCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionForceDestroyS3Bucket, &runError)
+			expectString(t, c, cmd.QuestionForceDestroyS3Bucket)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionAwsAnotherAdvancedOpt, &runError)
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("y")
-			expectString(c, cmd.AwsAdvancedOptDone, &runError)
+			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.Send("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
 			c.SendLine("\x1B[B")
-			expectString(c, cmd.QuestionPrimaryAwsAccountProfile, &runError)
+			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
 			c.SendLine("default")
-			expectString(c, cmd.QuestionSubAccountProfileName, &runError)
+			expectString(t, c, cmd.QuestionSubAccountProfileName)
 			c.SendLine("account1")
-			expectString(c, cmd.QuestionSubAccountRegion, &runError)
+			expectString(t, c, cmd.QuestionSubAccountRegion)
 			c.SendLine("us-east-1")
-			expectString(c, cmd.QuestionSubAccountAddMore, &runError)
+			expectString(t, c, cmd.QuestionSubAccountAddMore)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionSubAccountProfileName, &runError)
+			expectString(t, c, cmd.QuestionSubAccountProfileName)
 			c.SendLine("account2")
-			expectString(c, cmd.QuestionSubAccountRegion, &runError)
+			expectString(t, c, cmd.QuestionSubAccountRegion)
 			c.SendLine("us-east-2")
-			expectString(c, cmd.QuestionSubAccountAddMore, &runError)
+			expectString(t, c, cmd.QuestionSubAccountAddMore)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionAwsAnotherAdvancedOpt, &runError)
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionRunTfPlan, &runError)
+			expectString(t, c, cmd.QuestionRunTfPlan)
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
@@ -375,7 +347,6 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
@@ -392,42 +363,41 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testin
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 	region := "us-east-2"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionAwsRegion, &runError)
+			expectString(t, c, cmd.QuestionAwsRegion)
 			c.SendLine(region)
-			expectString(c, cmd.QuestionAwsConfigAdvanced, &runError)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
-			expectString(c, cmd.AwsAdvancedOptDone, &runError)
+			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.Send("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
 			c.SendLine("\x1B[B")
-			expectString(c, cmd.QuestionPrimaryAwsAccountProfile, &runError)
+			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
 			c.SendLine("default")
-			expectString(c, fmt.Sprintf(cmd.QuestionSubAccountReplace, "testaccount:us-east-1, testaccount1:us-east-2"), &runError)
+			expectString(t, c, fmt.Sprintf(cmd.QuestionSubAccountReplace, "testaccount:us-east-1, testaccount1:us-east-2"))
 			c.SendLine("y")
-			expectString(c, cmd.QuestionSubAccountProfileName, &runError)
+			expectString(t, c, cmd.QuestionSubAccountProfileName)
 			c.SendLine("account1")
-			expectString(c, cmd.QuestionSubAccountRegion, &runError)
+			expectString(t, c, cmd.QuestionSubAccountRegion)
 			c.SendLine("us-east-1")
-			expectString(c, cmd.QuestionSubAccountAddMore, &runError)
+			expectString(t, c, cmd.QuestionSubAccountAddMore)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionSubAccountProfileName, &runError)
+			expectString(t, c, cmd.QuestionSubAccountProfileName)
 			c.SendLine("account2")
-			expectString(c, cmd.QuestionSubAccountRegion, &runError)
+			expectString(t, c, cmd.QuestionSubAccountRegion)
 			c.SendLine("us-east-2")
-			expectString(c, cmd.QuestionSubAccountAddMore, &runError)
+			expectString(t, c, cmd.QuestionSubAccountAddMore)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionAwsAnotherAdvancedOpt, &runError)
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionRunTfPlan, &runError)
+			expectString(t, c, cmd.QuestionRunTfPlan)
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
@@ -442,7 +412,6 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testin
 	)
 
 	// Ensure CLI ran correctly
-	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
@@ -459,7 +428,6 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 	region := "us-east-2"
 	roleName := "test-iamrole"
 	roleArn := "arn:aws:iam::123456789012:role/application_abc/component_xyz/abc_role"
@@ -468,25 +436,25 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionAwsRegion, &runError)
+			expectString(t, c, cmd.QuestionAwsRegion)
 			c.SendLine(region)
-			expectString(c, cmd.QuestionAwsConfigAdvanced, &runError)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
-			expectString(c, cmd.AwsAdvancedOptDone, &runError)
+			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.SendLine("\x1B[B") // Down arrow once and return
-			expectString(c, cmd.QuestionExistingIamRoleName, &runError)
+			expectString(t, c, cmd.QuestionExistingIamRoleName)
 			c.SendLine(roleName)
-			expectString(c, cmd.QuestionExistingIamRoleArn, &runError)
+			expectString(t, c, cmd.QuestionExistingIamRoleArn)
 			c.SendLine(roleArn)
-			expectString(c, cmd.QuestionExistingIamRoleExtID, &runError)
+			expectString(t, c, cmd.QuestionExistingIamRoleExtID)
 			c.SendLine(roleExtId)
-			expectString(c, cmd.QuestionAwsAnotherAdvancedOpt, &runError)
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
-			expectString(c, cmd.QuestionRunTfPlan, &runError)
+			expectString(t, c, cmd.QuestionRunTfPlan)
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
@@ -496,7 +464,6 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
@@ -510,7 +477,6 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 func TestGenerationWithExistingTerraform(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
-	var runError error
 	region := "us-east-2"
 
 	// Tempdir for test
@@ -528,22 +494,22 @@ func TestGenerationWithExistingTerraform(t *testing.T) {
 	// Run CLI
 	runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(c, cmd.QuestionAwsEnableConfig, &runError)
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionEnableCloudtrail, &runError)
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
 			c.SendLine("y")
-			expectString(c, cmd.QuestionAwsRegion, &runError)
+			expectString(t, c, cmd.QuestionAwsRegion)
 			c.SendLine(region)
-			expectString(c, cmd.QuestionAwsConfigAdvanced, &runError)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
-			expectString(c, cmd.AwsAdvancedOptDone, &runError)
+			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
-			expectString(c, cmd.QuestionAwsCustomizeOutputLocation, &runError)
+			expectString(t, c, cmd.QuestionAwsCustomizeOutputLocation)
 			c.SendLine(dir)
-			expectString(c, cmd.QuestionAwsAnotherAdvancedOpt, &runError)
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
-			expectString(c, fmt.Sprintf("%s/aws.tf already exists, overwrite?", dir), &runError)
+			expectString(t, c, fmt.Sprintf("%s/aws.tf already exists, overwrite?", dir))
 			c.SendLine("n")
 		},
 		"cloud",
@@ -558,7 +524,6 @@ func TestGenerationWithExistingTerraform(t *testing.T) {
 	}
 
 	assert.Empty(t, data)
-	assert.Nil(t, runError)
 }
 
 func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
@@ -570,7 +535,7 @@ func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...str
 	defer os.Setenv("HOME", homeCache)
 	defer os.RemoveAll(dir)
 
-	runGenerationTestFromDir(t, dir, conditions, args...)
+	runFakeTerminalTestFromDir(t, dir, conditions, args...)
 	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/aws.tf", dir)))
 	if err != nil {
 		// Assume couldn't be found
@@ -578,33 +543,4 @@ func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...str
 	}
 
 	return string(out)
-}
-
-func runGenerationTestFromDir(t *testing.T, dir string, conditions func(*expect.Console), args ...string) {
-	console, state, err := vt10x.NewVT10XConsole()
-	if err != nil {
-		panic(err)
-	}
-	defer console.Close()
-
-	if os.Getenv("DEBUG") != "" {
-		state.DebugLogger = log.Default()
-	}
-
-	donec := make(chan struct{})
-	go func() {
-		defer close(donec)
-		conditions(console)
-	}()
-
-	cmd := NewLaceworkCLI(dir, nil, args...)
-	cmd.Stdin = console.Tty()
-	cmd.Stdout = console.Tty()
-	cmd.Stderr = console.Tty()
-	err = cmd.Start()
-	assert.Nil(t, err)
-
-	// read the remaining bytes
-	console.Tty().Close()
-	<-donec
 }
