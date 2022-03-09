@@ -18,7 +18,6 @@ To launch your default editor and create a new query.
 The following example comes from Lacework's implementation of a policy query:
 
     ---
-    evaluatorId: Cloudtrail
     queryId: LW_Global_AWS_CTA_AccessKeyDeleted
     queryText: |-
       LW_Global_AWS_CTA_AccessKeyDeleted {
