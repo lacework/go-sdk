@@ -93,7 +93,7 @@ type GenerateGcpTfConfigurationArgs struct {
 	// Existing Sink Name
 	ExistingLogSinkName string
 
-	// Should we force destroy the bucket if it has stuff in it? (only relevant on new AuditLog creation)
+	// Should we force destroy the bucket if it has stuff in it? (only relevant on new Audit Log creation)
 	EnableForceDestroyBucket bool
 
 	// Boolean for enabling Uniform Bucket Level Access on the audit log bucket. Defaults to False
@@ -215,28 +215,28 @@ func WithConfigIntegrationName(name string) GcpTerraformModifier {
 	}
 }
 
-// WithAuditLogLabels set labels to be applied to ALL newly created AuditLog resources
+// WithAuditLogLabels set labels to be applied to ALL newly created Audit Log resources
 func WithAuditLogLabels(labels map[string]string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.AuditLogLabels = labels
 	}
 }
 
-// WithBucketLabels set labels to be applied to the newly created AuditLog Bucket
+// WithBucketLabels set labels to be applied to the newly created Audit Log Bucket
 func WithBucketLabels(labels map[string]string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.BucketLabels = labels
 	}
 }
 
-// WithPubSubSubscriptionLabels set labels to be applied to the newly created AuditLog PubSub
+// WithPubSubSubscriptionLabels set labels to be applied to the newly created Audit Log PubSub
 func WithPubSubSubscriptionLabels(labels map[string]string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.PubSubSubscriptionLabels = labels
 	}
 }
 
-// WithPubSubTopicLabels set labels to be applied to the newly created AuditLog PubSub Topic
+// WithPubSubTopicLabels set labels to be applied to the newly created Audit Log PubSub Topic
 func WithPubSubTopicLabels(labels map[string]string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.PubSubTopicLabels = labels
@@ -264,14 +264,14 @@ func WithBucketName(name string) GcpTerraformModifier {
 	}
 }
 
-// WithExistingLogBucketName Set the bucket Name of an existing AuditLog Bucket setup
+// WithExistingLogBucketName Set the bucket Name of an existing Audit Log Bucket setup
 func WithExistingLogBucketName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ExistingLogBucketName = name
 	}
 }
 
-// WithExistingLogSinkName Set the Topic ARN of an existing AuditLog setup
+// WithExistingLogSinkName Set the Topic ARN of an existing Audit Log setup
 func WithExistingLogSinkName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ExistingLogSinkName = name

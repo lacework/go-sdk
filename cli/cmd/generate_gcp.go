@@ -21,35 +21,35 @@ import (
 
 var (
 	// Define question text here to be reused in testing
-	QuestionGcpEnableConfig            = "Enable Config Integration?"
-	QuestionGcpEnableAuditLog          = "Enable AuditLog Integration?"
-	QuestionGcpOrganizationIntegration = "Organization Integration?"
-	QuestionGcpOrganizationID          = "Specify the GCP Organization ID:"
-	QuestionGcpProjectID               = "Specify the Project ID to be used to provision Lacework resources:"
-	QuestionGcpServiceAccountCredsPath = "Specify Service Account credentials JSON path: (optional)"
+	QuestionGcpEnableConfig            = "Enable Config integration?"
+	QuestionGcpEnableAuditLog          = "Enable Audit Log integration?"
+	QuestionGcpOrganizationIntegration = "Organization integration?"
+	QuestionGcpOrganizationID          = "Specify the GCP organization ID:"
+	QuestionGcpProjectID               = "Specify the project ID to be used to provision Lacework resources:"
+	QuestionGcpServiceAccountCredsPath = "Specify service account credentials JSON path: (optional)"
 
 	QuestionGcpConfigureAdvanced             = "Configure advanced integration options?"
-	GcpAdvancedOptExistingServiceAccount     = "Configure & use existing Service Account"
-	QuestionExistingServiceAccountName       = "Specify an existing Service Account name:"
-	QuestionExistingServiceAccountPrivateKey = "Specify an existing Service Account Private key (base64 encoded):"
+	GcpAdvancedOptExistingServiceAccount     = "Configure & use existing service account"
+	QuestionExistingServiceAccountName       = "Specify an existing service account name:"
+	QuestionExistingServiceAccountPrivateKey = "Specify an existing service account private key (base64 encoded):"
 
-	GcpAdvancedOptAuditLog              = "Configure additional AuditLog options"
-	QuestionGcpUseExistingBucket        = "Use an existing Bucket?"
-	QuestionGcpExistingBucketName       = "Specify an existing Bucket name:"
-	QuestionGcpConfigureNewBucket       = "Configure settings for new Bucket?"
-	QuestionGcpBucketName               = "Specify new Bucket name: (optional)"
-	QuestionGcpBucketRegion             = "Specify the Bucket Region: (optional)"
-	QuestionGcpBucketLocation           = "Specify the Bucket Location: (optional)"
-	QuestionGcpBucketRetention          = "Specify the Bucket Retention Days: (optional)"
-	QuestionGcpBucketLifecycle          = "Specify the Bucket Lifecycle Rule Age: (optional)"
-	QuestionGcpEnableUBLA               = "Enable Uniform Bucket Level Access(UBLA)?"
-	QuestionGcpEnableBucketForceDestroy = "Enable Bucket Force Destroy?"
-	QuestionGcpUseExistingSink          = "Use an existing Sink?"
-	QuestionGcpExistingSinkName         = "Specify the existing Sink name"
+	GcpAdvancedOptAuditLog              = "Configure additional Audit Log options"
+	QuestionGcpUseExistingBucket        = "Use an existing bucket?"
+	QuestionGcpExistingBucketName       = "Specify an existing bucket name:"
+	QuestionGcpConfigureNewBucket       = "Configure settings for new bucket?"
+	QuestionGcpBucketName               = "Specify new bucket name: (optional)"
+	QuestionGcpBucketRegion             = "Specify the bucket region: (optional)"
+	QuestionGcpBucketLocation           = "Specify the bucket location: (optional)"
+	QuestionGcpBucketRetention          = "Specify the bucket retention days: (optional)"
+	QuestionGcpBucketLifecycle          = "Specify the bucket lifecycle rule age: (optional)"
+	QuestionGcpEnableUBLA               = "Enable uniform bucket level access(UBLA)?"
+	QuestionGcpEnableBucketForceDestroy = "Enable bucket force destroy?"
+	QuestionGcpUseExistingSink          = "Use an existing sink?"
+	QuestionGcpExistingSinkName         = "Specify the existing sink name"
 
-	GcpAdvancedOptIntegrationName      = "Customize Integration name(s)"
+	GcpAdvancedOptIntegrationName      = "Customize integration name(s)"
 	QuestionGcpConfigIntegrationName   = "Specify a custom Config integration name: (optional)"
-	QuestionGcpAuditLogIntegrationName = "Specify a custom AuditLog integration name: (optional)"
+	QuestionGcpAuditLogIntegrationName = "Specify a custom Audit Log integration name: (optional)"
 
 	QuestionGcpAnotherAdvancedOpt      = "Configure another advanced integration option"
 	GcpAdvancedOptLocation             = "Customize output location"
@@ -277,7 +277,7 @@ func initGenerateGcpTfCommandFlags() {
 		&GenerateGcpCommandState.ServiceAccountCredentials,
 		"service_account_credentials",
 		"",
-		"specify a Service Account credentials JSON path (leave blank to make use of google credential ENV vars)")
+		"specify service account credentials JSON file path (leave blank to make use of google credential ENV vars)")
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandState.OrganizationIntegration,
 		"organization_integration",
@@ -302,7 +302,7 @@ func initGenerateGcpTfCommandFlags() {
 		&GenerateGcpExistingServiceAccountDetails.PrivateKey,
 		"existing_service_account_private_key",
 		"",
-		"specify existing service account key (base64 encoded)")
+		"specify existing service account private key (base64 encoded)")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.ConfigIntegrationName,
 		"config_integration_name",
@@ -313,12 +313,12 @@ func initGenerateGcpTfCommandFlags() {
 		&GenerateGcpCommandState.BucketRegion,
 		"bucket_region",
 		"",
-		"specify gcp bucket region")
+		"specify bucket region")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.BucketLocation,
 		"bucket_location",
 		"",
-		"specify gcp bucket location")
+		"specify bucket location")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.BucketName,
 		"bucket_name",
