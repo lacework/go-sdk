@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
@@ -37,6 +36,8 @@ var (
 	QuestionStorageAccountName          = "Specify existing Storage Account name"
 	QuestionStorageAccountResourceGroup = "Specify existing Storage Account Resource Group"
 
+	QuestionStorageLocation = "Specify Azure region where Storage Account for logging resides "
+
 	// Subscriptions
 	QuestionEnableAllSubscriptions = "Enable all subscriptions?"
 	QuestionSubscriptionIds        = "Specify list of subscription ids to enable logging"
@@ -54,6 +55,7 @@ var (
 	AzureStorageGroup          = "Configure Storage Group"
 	AzureUserIntegrationNames  = "Configure user integration names"
 	AzureAdvancedOptLocation   = "Customize output location"
+	AzureRegionStorage         = "Customize Azure region for Storage Account"
 
 	GenerateAzureCommandState      = &azure.GenerateAzureTfConfigurationArgs{}
 	GenerateAzureCommandExtraState = &AzureGenerateCommandExtraState{}
@@ -431,12 +433,6 @@ func promptAzureStorageAccountQuestions(config *azure.GenerateAzureTfConfigurati
 			Response: &config.ExistingStorageAccount,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionAwsRegion, Default: config.StorageLocation},
-			Checks:   []*bool{&config.ExistingStorageAccount},
-			Required: true,
-			Response: &config.StorageLocation,
-		},
-		{
 			Prompt:   &survey.Input{Message: QuestionStorageAccountName, Default: config.StorageAccountName},
 			Checks:   []*bool{&config.ExistingStorageAccount},
 			Required: true,
@@ -528,13 +524,30 @@ func promptCustomizeAzureOutputLocation(extraState *AzureGenerateCommandExtraSta
 
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Input{Message: AzureAdvancedOptLocation, Default: extraState.Output},
+			Prompt:   &survey.Input{Message: QuestionAzureCustomizeOutputLocation, Default: extraState.Output},
 			Response: &extraState.Output,
 		},
 	}); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func promptCustomizeAzureLoggingRegion(config *azure.GenerateAzureTfConfigurationArgs) error {
+	var region string
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Input{Message: QuestionStorageLocation, Default: config.StorageLocation},
+			Response: &region,
+		},
+	}); err != nil {
+		return err
+	}
+	if err := validateStorageLocation(region); err != nil {
+		return err
+	}
+	config.StorageLocation = region
 	return nil
 }
 
@@ -550,7 +563,7 @@ func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, ext
 		if !config.CreateAdIntegration {
 			options = append(options, AdvancedAdIntegration)
 		}
-		options = append(options, AzureAdvancedOptLocation, AzureAdvancedOptDone)
+		options = append(options, AzureAdvancedOptLocation, AzureRegionStorage, AzureAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
 				Message: "Which options would you like to enable?",
@@ -581,6 +594,10 @@ func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, ext
 			}
 		case AdvancedAdIntegration:
 			if err := promptAzureAdIntegrationQuestions(config); err != nil {
+				return err
+			}
+		case AzureRegionStorage:
+			if err := promptCustomizeAzureLoggingRegion(config); err != nil {
 				return err
 			}
 		case AzureAdvancedOptLocation:
@@ -618,7 +635,6 @@ func azureConfigIsEmpty(config *azure.GenerateAzureTfConfigurationArgs) bool {
 
 func allSubscriptionsDisabled(config *azure.GenerateAzureTfConfigurationArgs) *bool {
 	allSubscriptionsDisabled := !config.AllSubscriptions
-	fmt.Println("allSubscriptionsDisabled => ", allSubscriptionsDisabled)
 	return &allSubscriptionsDisabled
 }
 
