@@ -163,7 +163,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			locationDir := filepath.Dir(location)
 			if GenerateGcpCommandExtraState.TerraformApply {
 				// Execution pre-run check
-				err := executionPreRunChecks(dirname, locationDir)
+				err := executionPreRunChecks(dirname, locationDir, "gcp")
 				if err != nil {
 					return err
 				}

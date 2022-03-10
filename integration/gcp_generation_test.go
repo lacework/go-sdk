@@ -767,7 +767,7 @@ func TestGenerationCustomizedOutputLocationGcp(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Get result
-	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/gcp.tf", dir)))
+	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := gcp.NewTerraform(true, true,
@@ -825,7 +825,7 @@ func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test existing gcp.tf prompt
+// Test existing main.tf prompt
 func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -839,8 +839,8 @@ func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	// Create fake gcp.tf
-	if err := os.WriteFile(filepath.FromSlash(fmt.Sprintf("%s/gcp.tf", dir)), []byte{}, 0644); err != nil {
+	// Create fake main.tf
+	if err := os.WriteFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)), []byte{}, 0644); err != nil {
 		panic(err)
 	}
 
@@ -868,7 +868,7 @@ func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 			c.SendLine(dir)
 			expectStringGcp(c, cmd.QuestionGcpAnotherAdvancedOpt, &runError)
 			c.SendLine("n")
-			expectStringGcp(c, fmt.Sprintf("%s/gcp.tf already exists, overwrite?", dir), &runError)
+			expectStringGcp(c, fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), &runError)
 			c.SendLine("n")
 		},
 		"cloud",
@@ -877,7 +877,7 @@ func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	data, err := os.ReadFile(fmt.Sprintf("%s/gcp.tf", dir))
+	data, err := os.ReadFile(fmt.Sprintf("%s/main.tf", dir))
 	if err != nil {
 		panic(err)
 	}
@@ -896,7 +896,7 @@ func runGcpGenerateTest(t *testing.T, conditions func(*expect.Console), args ...
 	defer os.RemoveAll(dir)
 
 	runGenerationTestFromDir(t, dir, conditions, args...)
-	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/gcp.tf", dir)))
+	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/gcp/main.tf", dir)))
 	if err != nil {
 		// Assume couldn't be found
 		return ""

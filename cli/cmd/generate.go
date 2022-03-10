@@ -149,7 +149,7 @@ func SurveyMultipleQuestionWithValidation(questions []SurveyQuestionWithValidati
 }
 
 // determineOutputDirPath get output directory location based on how the output location was set
-func determineOutputDirPath(location string) (string, error) {
+func determineOutputDirPath(location string, cloud string) (string, error) {
 	// determine code output path
 	dirname, err := os.UserHomeDir()
 	if err != nil {
@@ -162,26 +162,22 @@ func determineOutputDirPath(location string) (string, error) {
 	}
 
 	// If location was not passed, assemble it with lacework from os homedir
-	return filepath.FromSlash(fmt.Sprintf("%s/%s", dirname, "lacework")), nil
+	return filepath.FromSlash(fmt.Sprintf("%s/%s/%s", dirname, "lacework", cloud)), nil
 }
 
 // writeHclOutputPreCheck Prompt for confirmation if main.tf already exists; return true to continue
-func writeHclOutputPreCheck(outputLocation string, filename string) (bool, error) {
+func writeHclOutputPreCheck(outputLocation string, cloud string) (bool, error) {
 	// If noninteractive, continue
 	if !cli.InteractiveMode() {
 		return true, nil
 	}
 
-	outputDir, err := determineOutputDirPath(outputLocation)
+	outputDir, err := determineOutputDirPath(outputLocation, cloud)
 	if err != nil {
 		return false, err
 	}
 
-	if filename == "" {
-		filename = "main"
-	}
-
-	hclPath := filepath.FromSlash(fmt.Sprintf("%s/%s.tf", outputDir, filename))
+	hclPath := filepath.FromSlash(fmt.Sprintf("%s/main.tf", outputDir))
 
 	// If the file doesn't exist, carry on
 	if _, err := os.Stat(hclPath); os.IsNotExist(err) {
@@ -201,9 +197,9 @@ func writeHclOutputPreCheck(outputLocation string, filename string) (bool, error
 }
 
 // writeHclOutput Write HCL output
-func writeHclOutput(hcl string, location string, filename string) (string, error) {
+func writeHclOutput(hcl string, location string, cloud string) (string, error) {
 	// Determine write location
-	dirname, err := determineOutputDirPath(location)
+	dirname, err := determineOutputDirPath(location, cloud)
 	if err != nil {
 		return "", err
 	}
@@ -212,19 +208,15 @@ func writeHclOutput(hcl string, location string, filename string) (string, error
 	if location == "" {
 		directory := filepath.FromSlash(dirname)
 		if _, err := os.Stat(directory); os.IsNotExist(err) {
-			err = os.Mkdir(directory, 0700)
+			err = os.MkdirAll(directory, 0700)
 			if err != nil {
 				return "", err
 			}
 		}
 	}
 
-	if filename == "" {
-		filename = "main"
-	}
-
 	// Create HCL file
-	outputLocation := filepath.FromSlash(fmt.Sprintf("%s/%s.tf", dirname, filename))
+	outputLocation := filepath.FromSlash(fmt.Sprintf("%s/main.tf", dirname))
 	err = os.WriteFile(
 		filepath.FromSlash(outputLocation),
 		[]byte(hcl),
@@ -333,8 +325,8 @@ func writeGeneratedCodeToLocation(cmd *cobra.Command, hcl string, cloud string) 
 }
 
 // executionPreRunChecks Execution pre-run check
-func executionPreRunChecks(dirname string, locationDir string) error {
-	ok, err := TerraformExecutePreRunCheck(dirname)
+func executionPreRunChecks(dirname string, locationDir string, cloud string) error {
+	ok, err := TerraformExecutePreRunCheck(dirname, cloud)
 	if err != nil {
 		return errors.Wrap(err, "failed to check for existing terraform state")
 	}

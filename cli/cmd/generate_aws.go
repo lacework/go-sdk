@@ -138,7 +138,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			locationDir := filepath.Dir(location)
 			if GenerateAwsCommandExtraState.TerraformApply {
 				// Execution pre-run check
-				err := executionPreRunChecks(dirname, locationDir)
+				err := executionPreRunChecks(dirname, locationDir, "aws")
 				if err != nil {
 					return err
 				}
