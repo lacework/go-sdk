@@ -192,6 +192,7 @@ locally you need to setup the following environment variables and use the direct
 `make integration`, an example of the command you can use is:
 ```
 CI_ACCOUNT="<YOUR_ACCOUNT>" \
+  CI_V1_ACCOUNT="<YOUR_V1_CONFIG_ACCOUNT>" \
   CI_SUBACCOUNT="<YOUR_SUBACCOUNT_IF_ANY>" \
   CI_API_KEY="<YOUR_API_KEY>" \
   CI_API_SECRET="<YOUR_API_SECRET>" \
@@ -201,7 +202,35 @@ This is a list of all environment variables used in the running the integration 
 
 | Environment Variable | Description |
 |----------------------|-------------|
+|`CI_ACCOUNT="<YOUR_ACCOUNT>"` | account subdomain of URL (i.e. `<ACCOUNT>.lacework.net`)|
+|`CI_V1_ACCOUNT="<YOUR_V1_CONFIG_ACCOUNT>"` | for standalone accounts use the same as `CI_ACCOUNT`, for organizations
+use `CI_SUBACCOUNT`|
+|`CI_SUBACCOUNT="<YOUR_ACCOUNT>"` | (orgs only) a sub-account|
+|`CI_API_KEY="<YOUR_ACCOUNT>"` | API access key id|
+|`CI_API_SECRET="<YOUR_ACCOUNT>"` | API secret access key|
 |`LW_INT_TEST_AWS_ACC="<secret>"`|AWS Account for integration tests|
+|`CI_STANDALONE_ACCOUNT=<bool>`|set to `true` if the Lacework account is not an organization|
+
+#### Running Specific Integration Tests (RegEx)
+
+When working on new tests or existing tests, you can use a regex to run
+only specific integration tests. For example, to run only the tests related
+to the command `lacework query update` use the command:
+
+```
+make integration regex=TestQueryUpdate
+```
+
+**Note that it is a best practice to follow a naming convention where we name
+test functions after their actual commands so that we can use these patterns.**
+
+This command will match the regex `TestQueryUpdate*` and will execute any integration
+test that matches that pattern. For more information about what regular expressions you
+can use, visit https://pkg.go.dev/cmd/go#hdr-Testing_flags.
+
+**TIP:** If you are NOT modifying the CLI code and instead, you are only updating
+the integration tests, you can use the directive `make integration-only` instead to
+avoid rebuilding the CLI binary.
 
 ### Telemetry via Honeycomb
 
