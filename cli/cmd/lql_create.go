@@ -50,7 +50,7 @@ The following example comes from Lacework's implementation of a policy query:
     ---
     queryId: LW_Global_AWS_CTA_AccessKeyDeleted
     queryText: |-
-      LW_Global_AWS_CTA_AccessKeyDeleted {
+      {
           source {
               CloudTrailRawEvents
           }
