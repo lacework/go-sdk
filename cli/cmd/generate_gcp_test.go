@@ -19,25 +19,25 @@ func toggleGcpNonInteractive() {
 }
 
 func TestGenerateMostBasicGcpArgs(t *testing.T) {
-	toggleNonInteractive()
-	defer toggleNonInteractive()
+	toggleGcpNonInteractive()
+	defer toggleGcpNonInteractive()
 
 	data := gcp.GenerateGcpTfConfigurationArgs{}
 	data.AuditLog = true
-	data.Config = true
+	data.Configuration = true
 	err := promptGcpGenerate(&data, &gcp.ExistingServiceAccountDetails{}, &GcpGenerateCommandExtraState{Output: "/tmp"})
 
 	assert.Nil(t, err)
 }
 
 func TestMissingValidGcpEntityToConfigure(t *testing.T) {
-	toggleNonInteractive()
-	defer toggleNonInteractive()
+	toggleGcpNonInteractive()
+	defer toggleGcpNonInteractive()
 
 	data := gcp.GenerateGcpTfConfigurationArgs{}
 	err := promptGcpGenerate(&data, &gcp.ExistingServiceAccountDetails{}, &GcpGenerateCommandExtraState{Output: "/tmp"})
 	assert.Error(t, err)
-	assert.Equal(t, "must enable audit log or config", err.Error())
+	assert.Equal(t, "must enable audit log or configuration", err.Error())
 }
 
 func TestGcpBucketRegionRegex(t *testing.T) {

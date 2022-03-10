@@ -23,11 +23,11 @@ func TestGenerationErrorOnNoSelectionGcp(t *testing.T) {
 	// Run CLI
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("n")
-			expectString(t, c, "ERROR collecting/confirming parameters: must enable audit log or config")
+			expectString(t, c, "ERROR collecting/confirming parameters: must enable audit log or configuration")
 		},
 		"cloud",
 		"iac",
@@ -45,7 +45,7 @@ func TestGenerationSimpleGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -76,7 +76,7 @@ func TestGenerationSimpleGcp(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test config only generation
+// Test configuration only generation
 func TestGenerationConfigOnlyGcp(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -86,7 +86,7 @@ func TestGenerationConfigOnlyGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("n")
@@ -127,7 +127,7 @@ func TestGenerationAuditlogOnlyGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -158,7 +158,7 @@ func TestGenerationAuditlogOnlyGcp(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test organization integration. config & auditlog
+// Test organization integration. configuration & audit log
 func TestOrganizationIntegrationConfigAndAuditLogGcp(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -169,7 +169,7 @@ func TestOrganizationIntegrationConfigAndAuditLogGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -231,7 +231,7 @@ func TestGenerationSACredsGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -273,7 +273,7 @@ func TestGenerationAdvancedAuditLogOptsExistingBucketGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -326,7 +326,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketNotConfiguredGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -378,7 +378,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -448,7 +448,7 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -518,7 +518,7 @@ func TestGenerationAdvancedOptsUseExistingSA(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -563,8 +563,8 @@ func TestGenerationAdvancedOptsUseExistingSA(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test custom config integration name
-func TestGenerationCustomizedConfigIntegrationNameGcp(t *testing.T) {
+// Test custom configuration integration name
+func TestGenerationCustomizedConfigurationIntegrationNameGcp(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -573,7 +573,7 @@ func TestGenerationCustomizedConfigIntegrationNameGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -589,8 +589,8 @@ func TestGenerationCustomizedConfigIntegrationNameGcp(t *testing.T) {
 			// This is key down x2 in ANSI
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
-			expectString(t, c, cmd.QuestionGcpConfigIntegrationName)
-			c.SendLine("customConfigIntegrationName")
+			expectString(t, c, cmd.QuestionGcpConfigurationIntegrationName)
+			c.SendLine("customConfigurationIntegrationName")
 			expectString(t, c, cmd.QuestionGcpAuditLogIntegrationName)
 			c.SendLine("")
 			expectString(t, c, cmd.QuestionGcpAnotherAdvancedOpt)
@@ -610,7 +610,7 @@ func TestGenerationCustomizedConfigIntegrationNameGcp(t *testing.T) {
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := gcp.NewTerraform(true, true,
 		gcp.WithProjectId("project-1"),
-		gcp.WithConfigIntegrationName("customConfigIntegrationName"),
+		gcp.WithConfigurationIntegrationName("customConfigurationIntegrationName"),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
@@ -632,7 +632,7 @@ func TestGenerationCustomizedAuditlogIntegrationNameGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -648,7 +648,7 @@ func TestGenerationCustomizedAuditlogIntegrationNameGcp(t *testing.T) {
 			// This is key down x2 in ANSI
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
-			expectString(t, c, cmd.QuestionGcpConfigIntegrationName)
+			expectString(t, c, cmd.QuestionGcpConfigurationIntegrationName)
 			c.SendLine("")
 			expectString(t, c, cmd.QuestionGcpAuditLogIntegrationName)
 			c.SendLine("customAuditlogIntegrationName")
@@ -691,7 +691,7 @@ func TestGenerationCustomizedOutputLocationGcp(t *testing.T) {
 	// Run CLI
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -744,7 +744,7 @@ func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")
@@ -802,7 +802,7 @@ func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 	// Run CLI
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfig)
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
 			c.SendLine("y")

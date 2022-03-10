@@ -21,7 +21,7 @@ import (
 
 var (
 	// Define question text here to be reused in testing
-	QuestionGcpEnableConfig            = "Enable Config integration?"
+	QuestionGcpEnableConfiguration     = "Enable configuration integration?"
 	QuestionGcpEnableAuditLog          = "Enable Audit Log integration?"
 	QuestionGcpOrganizationIntegration = "Organization integration?"
 	QuestionGcpOrganizationID          = "Specify the GCP organization ID:"
@@ -47,9 +47,9 @@ var (
 	QuestionGcpUseExistingSink          = "Use an existing sink?"
 	QuestionGcpExistingSinkName         = "Specify the existing sink name"
 
-	GcpAdvancedOptIntegrationName      = "Customize integration name(s)"
-	QuestionGcpConfigIntegrationName   = "Specify a custom Config integration name: (optional)"
-	QuestionGcpAuditLogIntegrationName = "Specify a custom Audit Log integration name: (optional)"
+	GcpAdvancedOptIntegrationName           = "Customize integration name(s)"
+	QuestionGcpConfigurationIntegrationName = "Specify a custom configuration integration name: (optional)"
+	QuestionGcpAuditLogIntegrationName      = "Specify a custom Audit Log integration name: (optional)"
 
 	QuestionGcpAnotherAdvancedOpt      = "Configure another advanced integration option"
 	GcpAdvancedOptLocation             = "Customize output location"
@@ -71,7 +71,7 @@ var (
 		Short: "Generate and/or execute Terraform code for GCP integration",
 		Long: `Use this command to generate Terraform code for deploying Lacework into an GCP environment.
 
-By default, this command interactively prompts for the required information to setup the new cloud account. 
+By default, this command interactively prompts for the required information to setup the new cloud account.
 In interactive mode, this command will:
 
 * Prompt for the required information to setup the integration
@@ -83,7 +83,7 @@ In interactive mode, this command will:
 	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
 	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
-This command can also be run in noninteractive mode. 
+This command can also be run in noninteractive mode.
 See help output for more details on the parameter value(s) required for Terraform code generation.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -101,7 +101,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithOrganizationId(GenerateGcpCommandState.GcpOrganizationId),
 				gcp.WithProjectId(GenerateGcpCommandState.GcpProjectId),
 				gcp.WithExistingServiceAccount(GenerateGcpCommandState.ExistingServiceAccount),
-				gcp.WithConfigIntegrationName(GenerateGcpCommandState.ConfigIntegrationName),
+				gcp.WithConfigurationIntegrationName(GenerateGcpCommandState.ConfigurationIntegrationName),
 				gcp.WithAuditLogLabels(GenerateGcpCommandState.AuditLogLabels),
 				gcp.WithBucketLabels(GenerateGcpCommandState.BucketLabels),
 				gcp.WithPubSubSubscriptionLabels(GenerateGcpCommandState.PubSubSubscriptionLabels),
@@ -131,7 +131,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 
 			// Create new struct
 			data := gcp.NewTerraform(
-				GenerateGcpCommandState.Config,
+				GenerateGcpCommandState.Configuration,
 				GenerateGcpCommandState.AuditLog,
 				mods...)
 
@@ -271,10 +271,10 @@ func initGenerateGcpTfCommandFlags() {
 		false,
 		"enable audit log integration")
 	generateGcpTfCommand.PersistentFlags().BoolVar(
-		&GenerateGcpCommandState.Config,
-		"config",
+		&GenerateGcpCommandState.Configuration,
+		"configuration",
 		false,
-		"enable config integration")
+		"enable configuration integration")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.ServiceAccountCredentials,
 		"service_account_credentials",
@@ -306,10 +306,10 @@ func initGenerateGcpTfCommandFlags() {
 		"",
 		"specify existing service account private key (base64 encoded)")
 	generateGcpTfCommand.PersistentFlags().StringVar(
-		&GenerateGcpCommandState.ConfigIntegrationName,
-		"config_integration_name",
+		&GenerateGcpCommandState.ConfigurationIntegrationName,
+		"configuration_integration_name",
 		"",
-		"specify a custom config integration name")
+		"specify a custom configuration integration name")
 	// TODO: Implement AuditLogLabels, BucketLabels, PubSubSubscriptionLabels & PubSubTopicLabels
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.BucketRegion,
@@ -593,9 +593,9 @@ func promptGcpExistingServiceAccountQuestions(config *gcp.GenerateGcpTfConfigura
 func promptGcpIntegrationNameQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
 	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpConfigIntegrationName, Default: config.ConfigIntegrationName},
-			Checks:   []*bool{&config.Config},
-			Response: &config.ConfigIntegrationName,
+			Prompt:   &survey.Input{Message: QuestionGcpConfigurationIntegrationName, Default: config.ConfigurationIntegrationName},
+			Checks:   []*bool{&config.Configuration},
+			Response: &config.ConfigurationIntegrationName,
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpAuditLogIntegrationName, Default: config.AuditLogIntegrationName},
@@ -680,14 +680,14 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 	return nil
 }
 
-func configOrAuditLogEnabled(config *gcp.GenerateGcpTfConfigurationArgs) *bool {
-	auditLogOrConfigEnabled := config.AuditLog || config.Config
-	return &auditLogOrConfigEnabled
+func configurationOrAuditLogEnabled(config *gcp.GenerateGcpTfConfigurationArgs) *bool {
+	auditLogOrConfigurationEnabled := config.AuditLog || config.Configuration
+	return &auditLogOrConfigurationEnabled
 }
 
 func gcpConfigIsEmpty(g *gcp.GenerateGcpTfConfigurationArgs) bool {
 	return !g.AuditLog &&
-		!g.Config &&
+		!g.Configuration &&
 		g.ServiceAccountCredentials == "" &&
 		g.GcpOrganizationId == "" &&
 		g.LaceworkProfile == ""
@@ -725,8 +725,8 @@ func promptGcpGenerate(
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
-				Prompt:   &survey.Confirm{Message: QuestionGcpEnableConfig, Default: config.Config},
-				Response: &config.Config,
+				Prompt:   &survey.Confirm{Message: QuestionGcpEnableConfiguration, Default: config.Configuration},
+				Response: &config.Configuration,
 			},
 			{
 				Prompt:   &survey.Confirm{Message: QuestionGcpEnableAuditLog, Default: config.AuditLog},
@@ -740,24 +740,24 @@ func promptGcpGenerate(
 		[]SurveyQuestionWithValidationArgs{
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpProjectID, Default: config.GcpProjectId},
-				Checks:   []*bool{configOrAuditLogEnabled(config)},
+				Checks:   []*bool{configurationOrAuditLogEnabled(config)},
 				Required: true,
 				Response: &config.GcpProjectId,
 			},
 			{
 				Prompt:   &survey.Confirm{Message: QuestionGcpOrganizationIntegration, Default: config.OrganizationIntegration},
-				Checks:   []*bool{configOrAuditLogEnabled(config)},
+				Checks:   []*bool{configurationOrAuditLogEnabled(config)},
 				Response: &config.OrganizationIntegration,
 			},
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpOrganizationID, Default: config.GcpOrganizationId},
-				Checks:   []*bool{&config.OrganizationIntegration, configOrAuditLogEnabled(config)},
+				Checks:   []*bool{&config.OrganizationIntegration, configurationOrAuditLogEnabled(config)},
 				Required: true,
 				Response: &config.GcpOrganizationId,
 			},
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpServiceAccountCredsPath, Default: config.ServiceAccountCredentials},
-				Checks:   []*bool{configOrAuditLogEnabled(config)},
+				Checks:   []*bool{configurationOrAuditLogEnabled(config)},
 				Opts:     []survey.AskOpt{survey.WithValidator(validateGcpServiceAccountCredentials)},
 				Response: &config.ServiceAccountCredentials,
 			},
@@ -765,9 +765,9 @@ func promptGcpGenerate(
 		return err
 	}
 
-	// Validate one of config or audit log was enabled; otherwise error out
-	if !config.Config && !config.AuditLog {
-		return errors.New("must enable audit log or config")
+	// Validate one of configuration or audit log was enabled; otherwise error out
+	if !config.Configuration && !config.AuditLog {
+		return errors.New("must enable audit log or configuration")
 	}
 
 	// Find out if the customer wants to specify more advanced features

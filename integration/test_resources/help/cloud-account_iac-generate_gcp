@@ -23,24 +23,24 @@ Flags:
       --audit_log                                     enable audit log integration
       --audit_log_integration_name string             specify a custom audit log integration name
       --bucket_lifecycle_rule_age int                 specify the lifecycle rule age (default -1)
-      --bucket_location string                        specify gcp bucket location
+      --bucket_location string                        specify bucket location
       --bucket_name string                            specify new bucket name
-      --bucket_region string                          specify gcp bucket region
+      --bucket_region string                          specify bucket region
       --bucket_retention_days int                     specify the bucket retention days
-      --config                                        enable config integration
-      --config_integration_name string                specify a custom config integration name
+      --configuration                                 enable configuration integration
+      --configuration_integration_name string         specify a custom configuration integration name
       --enable_force_destroy_bucket                   enable force bucket destroy
       --enable_ubla                                   enable universal bucket level access(ubla)
       --existing_bucket_name string                   specify existing bucket name
       --existing_service_account_name string          specify existing service account name
-      --existing_service_account_private_key string   specify existing service account key (base64 encoded)
+      --existing_service_account_private_key string   specify existing service account private key (base64 encoded)
       --existing_sink_name string                     specify existing sink name
   -h, --help                                          help for gcp
       --organization_id string                        specify the organization id (only set if organization_integration is set)
       --organization_integration                      enable organization integration
       --output string                                 location to write generated content
       --project_id string                             specify the project id to be used to provision lacework resources (required)
-      --service_account_credentials string            specify a Service Account credentials JSON path (leave blank to make use of google credential ENV vars)
+      --service_account_credentials string            specify service account credentials JSON file path (leave blank to make use of google credential ENV vars)
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

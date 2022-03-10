@@ -46,7 +46,7 @@ type GenerateGcpTfConfigurationArgs struct {
 	AuditLog bool
 
 	// Should we configure CSPM integration in LW?
-	Config bool
+	Configuration bool
 
 	// Path to service account credentials to be used by Terraform
 	ServiceAccountCredentials string
@@ -63,8 +63,8 @@ type GenerateGcpTfConfigurationArgs struct {
 	// Optionally supply existing Service Account Details
 	ExistingServiceAccount *ExistingServiceAccountDetails
 
-	// If Config is true, give the user the opportunity to name their integration. Defaults to "TF Config"
-	ConfigIntegrationName string
+	// If Configuration is true, give the user the opportunity to name their integration. Defaults to "TF Config"
+	ConfigurationIntegrationName string
 
 	// Set of labels which will be added to the resources managed by the module
 	AuditLogLabels map[string]string
@@ -117,8 +117,8 @@ type GenerateGcpTfConfigurationArgs struct {
 // Ensure all combinations of inputs are valid for supported spec
 func (args *GenerateGcpTfConfigurationArgs) validate() error {
 	// Validate one of config or audit log was enabled; otherwise error out
-	if !args.AuditLog && !args.Config {
-		return errors.New("audit log or config integration must be enabled")
+	if !args.AuditLog && !args.Configuration {
+		return errors.New("audit log or configuration integration must be enabled")
 	}
 
 	// Validate if this is an organization integration, verify that the organization id has been provided
@@ -145,7 +145,7 @@ func (args *GenerateGcpTfConfigurationArgs) validate() error {
 type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 
 // NewTerraform returns an instance of the GenerateGcpTfConfigurationArgs struct with the provided enabled
-// settings (config/audit log).
+// settings (configuration/audit log).
 //
 // Note: Additional configuration details may be set using modifiers of the GcpTerraformModifier type
 //
@@ -156,7 +156,7 @@ type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 //     gcp.WithGcpServiceAccountCredentials("/path/to/sa/credentials.json")).Generate()
 //
 func NewTerraform(enableConfig bool, enableAuditLog bool, mods ...GcpTerraformModifier) *GenerateGcpTfConfigurationArgs {
-	config := &GenerateGcpTfConfigurationArgs{AuditLog: enableAuditLog, Config: enableConfig}
+	config := &GenerateGcpTfConfigurationArgs{AuditLog: enableAuditLog, Configuration: enableConfig}
 	// default LogBucketLifecycleRuleAge to -1. This helps us determine if the var has been set by the end user
 	config.LogBucketLifecycleRuleAge = -1
 	for _, m := range mods {
@@ -208,10 +208,10 @@ func WithExistingServiceAccount(serviceAccountDetails *ExistingServiceAccountDet
 	}
 }
 
-// WithConfigIntegrationName Set the Config Integration name to be displayed on the Lacework UI
-func WithConfigIntegrationName(name string) GcpTerraformModifier {
+// WithConfigurationIntegrationName Set the Config Integration name to be displayed on the Lacework UI
+func WithConfigurationIntegrationName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
-		c.ConfigIntegrationName = name
+		c.ConfigurationIntegrationName = name
 	}
 }
 
@@ -337,9 +337,9 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate lacework provider")
 	}
 
-	configModule, err := createConfig(args)
+	configurationModule, err := createConfiguration(args)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to generate gcp config module")
+		return "", errors.Wrap(err, "failed to generate gcp configuration module")
 	}
 
 	auditLogModule, err := createAuditLog(args)
@@ -353,7 +353,7 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 			requiredProviders,
 			gcpProvider,
 			laceworkProvider,
-			configModule,
+			configurationModule,
 			auditLogModule),
 	)
 	return hclBlocks, nil
@@ -404,17 +404,17 @@ func createLaceworkProvider(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Blo
 	return nil, nil
 }
 
-func createConfig(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
+func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
-	if args.Config {
+	if args.Configuration {
 		attributes := map[string]interface{}{}
 		moduleDetails := []lwgenerate.HclModuleModifier{}
 
 		// default to using the project level module
-		configModuleName := "gcp_project_level_config"
+		configurationModuleName := "gcp_project_level_config"
 		if args.OrganizationIntegration {
 			// if organization integration is true, override configModuleName to use the organization level module
-			configModuleName = "gcp_organization_level_config"
+			configurationModuleName = "gcp_organization_level_config"
 			attributes["org_integration"] = args.OrganizationIntegration
 			attributes["organization_id"] = args.GcpOrganizationId
 		}
@@ -425,8 +425,8 @@ func createConfig(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, erro
 			attributes["service_account_private_key"] = args.ExistingServiceAccount.PrivateKey
 		}
 
-		if args.ConfigIntegrationName != "" {
-			attributes["lacework_integration_name"] = args.ConfigIntegrationName
+		if args.ConfigurationIntegrationName != "" {
+			attributes["lacework_integration_name"] = args.ConfigurationIntegrationName
 		}
 
 		moduleDetails = append(moduleDetails,
@@ -434,7 +434,7 @@ func createConfig(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, erro
 		)
 
 		moduleBlock, err := lwgenerate.NewModule(
-			configModuleName,
+			configurationModuleName,
 			lwgenerate.GcpConfigSource,
 			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.GcpConfigVersion))...,
 		).ToBlock()
@@ -510,22 +510,22 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 		// default to using the project level module
 		auditLogModuleName := "gcp_project_audit_log"
 		// default to using the project level module
-		configModuleName := "gcp_project_level_config"
+		configurationModuleName := "gcp_project_level_config"
 		if args.OrganizationIntegration {
 			// if organization integration is true, override configModuleName to use the organization level module
-			configModuleName = "gcp_organization_level_config"
+			configurationModuleName = "gcp_organization_level_config"
 			auditLogModuleName = "gcp_organization_level_audit_log"
 			attributes["org_integration"] = args.OrganizationIntegration
 			attributes["organization_id"] = args.GcpOrganizationId
 		}
 
-		if args.ExistingServiceAccount == nil && args.Config {
+		if args.ExistingServiceAccount == nil && args.Configuration {
 			attributes["use_existing_service_account"] = true
 			attributes["service_account_name"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", configModuleName, "service_account_name"},
+				[]string{"module", configurationModuleName, "service_account_name"},
 			)
 			attributes["service_account_private_key"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", configModuleName, "service_account_private_key"},
+				[]string{"module", configurationModuleName, "service_account_private_key"},
 			)
 		}
 

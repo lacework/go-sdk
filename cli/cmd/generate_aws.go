@@ -61,7 +61,7 @@ var (
 		Short: "Generate and/or execute Terraform code for AWS integration",
 		Long: `Use this command to generate Terraform code for deploying Lacework into an AWS environment.
 
-By default, this command interactively prompts for the required information to setup the new cloud account. 
+By default, this command interactively prompts for the required information to setup the new cloud account.
 In interactive mode, this command will:
 
 * Prompt for the required information to setup the integration
@@ -73,7 +73,7 @@ In interactive mode, this command will:
 	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
 	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
-This command can also be run in noninteractive mode. 
+This command can also be run in noninteractive mode.
 See help output for more details on the parameter value(s) required for Terraform code generation.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
