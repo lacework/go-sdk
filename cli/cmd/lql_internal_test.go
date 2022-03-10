@@ -32,19 +32,16 @@ import (
 
 var (
 	newQuery = api.NewQuery{
-		EvaluatorID: "Cloudtrail",
-		QueryID:     "my_lql",
-		QueryText:   `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`,
+		QueryID:   "my_lql",
+		QueryText: `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`,
 	}
 	newQueryJSON = fmt.Sprintf(`{
-	"evaluatorId": "%s",
 	"queryId": "%s",
 	"queryText": "%s"
-	}`, newQuery.EvaluatorID, newQuery.QueryID, newQuery.QueryText)
+	}`, newQuery.QueryID, newQuery.QueryText)
 	newQueryYAML = fmt.Sprintf(`---
-evaluatorId: %s
 queryId: %s
-queryText: %s`, newQuery.EvaluatorID, newQuery.QueryID, newQuery.QueryText)
+queryText: %s`, newQuery.QueryID, newQuery.QueryText)
 )
 
 type parseQueryTest struct {
