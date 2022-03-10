@@ -509,7 +509,7 @@ func TestGenerationWithExistingTerraform(t *testing.T) {
 			c.SendLine(dir)
 			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
-			expectString(t, fmt.Sprintf("%s/main.tf already exists, overwrite?", dir))
+			expectString(t, c, fmt.Sprintf("%s/main.tf already exists, overwrite?", dir))
 			c.SendLine("n")
 		},
 		"cloud",
