@@ -259,7 +259,7 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	//assert.Nil(t, runError)
+	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
