@@ -168,7 +168,7 @@ var (
 				azure.WithManagementGroup(GenerateAzureCommandState.ManagementGroup),
 				azure.WithExistingStorageAccount(GenerateAzureCommandState.ExistingStorageAccount),
 				azure.WithStorageLocation(GenerateAzureCommandState.StorageLocation),
-				azure.WithAuditLogIntegrationName(GenerateAzureCommandState.ActivityLogIntegrationName),
+				azure.WithActivityLogIntegrationName(GenerateAzureCommandState.ActivityLogIntegrationName),
 				azure.WithConfigIntegrationName(GenerateAzureCommandState.ConfigIntegrationName),
 			}
 
@@ -241,7 +241,7 @@ var (
 			}
 
 			// Output where code was generated
-			if !GenerateAwsCommandExtraState.TerraformApply {
+			if !GenerateAzureCommandExtraState.TerraformApply {
 				cli.OutputHuman(provideGuidanceAfterExit(false, false, locationDir, "terraform"))
 			}
 
@@ -270,7 +270,7 @@ var (
 			// Load any cached inputs if interactive
 			if cli.InteractiveMode() {
 				cachedOptions := &azure.GenerateAzureTfConfigurationArgs{}
-				iacParamsExpired := cli.ReadCachedAsset(CachedAwsAssetIacParams, &cachedOptions)
+				iacParamsExpired := cli.ReadCachedAsset(CachedAzureAssetIacParams, &cachedOptions)
 				if iacParamsExpired {
 					cli.Log.Debug("loaded previously set values for Azure iac generation")
 				}
@@ -402,6 +402,12 @@ func initGenerateAzureTfCommandFlags() {
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandExtraState.TerraformApply, "terraform-apply", false, "run terraform apply for the generated hcl")
 
+	generateAzureTfCommand.PersistentFlags().StringVar(
+		&GenerateAzureCommandExtraState.Output,
+		"output",
+		"",
+		"location to write generated content",
+	)
 }
 
 func promptAzureIntegrationNameQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
@@ -609,7 +615,7 @@ func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, ext
 
 		// Re-prompt if not done
 		innerAskAgain := true
-		if answer == AwsAdvancedOptDone {
+		if answer == AzureAdvancedOptDone {
 			innerAskAgain = false
 		}
 
@@ -622,7 +628,7 @@ func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, ext
 		}
 
 		if !innerAskAgain {
-			answer = AwsAdvancedOptDone
+			answer = AzureAdvancedOptDone
 		}
 	}
 

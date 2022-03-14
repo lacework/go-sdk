@@ -103,8 +103,8 @@ func WithConfigIntegrationName(name string) AzureTerraformModifier {
 	}
 }
 
-// WithAuditLogIntegrationName Set the Audit Log Integration name to be displayed on the Lacework UI
-func WithAuditLogIntegrationName(name string) AzureTerraformModifier {
+// WithActivirtLogIntegrationName Set the Activity Log Integration name to be displayed on the Lacework UI
+func WithActivityLogIntegrationName(name string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.ActivityLogIntegrationName = name
 	}
