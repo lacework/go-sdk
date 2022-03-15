@@ -314,7 +314,6 @@ It looks like you attempted to submit a query in JSON format.
 Please validate that the JSON is formatted properly and adheres to the following schema:
 
 {
-    "evaluatorId": "Cloudtrail",
     "queryId": "MyLQL",
     "queryText": "MyLQL { source { CloudTrailRawEvents } filter { EVENT_SOURCE = 's3.amazonaws.com' } return { INSERT_ID } }"
 }
@@ -326,7 +325,6 @@ Please validate that the JSON is formatted properly and adheres to the following
 It looks like you attempted to submit a query in YAML format.
 Please validate that the text adheres to the following schema:
 
-evaluatorId: Cloudtrail
 queryId: MyLQL
 queryText: |-
   MyLQL {

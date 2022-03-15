@@ -69,7 +69,7 @@ integration-only: install-tools ## Run integration tests
 		version \
 		generation \
 		team_members \
-		vulnerability"
+		vulnerability" -run=$(regex)
 
 .PHONY: integration-lql
 integration-lql: build-cli-cross-platform integration-lql-only ## Build and run lql integration tests

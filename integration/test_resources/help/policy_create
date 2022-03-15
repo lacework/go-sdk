@@ -5,7 +5,6 @@ A policy is represented in either JSON or YAML format.
 The following attributes are minimally required:
 
     ---
-    evaluatorId: Cloudtrail
     policyType: Violation
     queryId: MyQuery
     title: My Policy
