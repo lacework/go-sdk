@@ -16,9 +16,9 @@ import (
 var (
 	// Define question text here so they can be reused in testing
 	QuestionAzureEnableConfig = "Enable Azure Config Integration?"
-	QuestionAzureConfigName   = "Specify Name of the Config"
+	QuestionAzureConfigName   = "Specify custom Config integration name: (optional)"
 	QuestionEnableActivityLog = "Enable Azure Activity Log Integration?"
-	QuestionActivityLogName   = "Specify name of the Activity Log"
+	QuestionActivityLogName   = "Specify custom Activity Log integration name: (optional"
 
 	QuestionAzureAnotherAdvancedOpt      = "Configure another advanced integration option"
 	QuestionAzureConfigAdvanced          = "Configure advanced integration options?"
@@ -31,7 +31,7 @@ var (
 	QuestionADServicePrincpleId = "Specify the Service Principle ID of an existing Active Directory application"
 
 	// Storage Account
-	QuestionUseExistingStorageAccount   = "Enable use of existing Storage Account?"
+	QuestionUseExistingStorageAccount   = "Use an existing Storage Account?"
 	QuestionAzureRegion                 = "Specify the Azure region to be used by Storage Account logging"
 	QuestionStorageAccountName          = "Specify existing Storage Account name"
 	QuestionStorageAccountResourceGroup = "Specify existing Storage Account Resource Group"
@@ -43,19 +43,19 @@ var (
 	QuestionSubscriptionIds        = "Specify list of subscription ids to enable logging"
 
 	// Management Group
-	QuestionEnableManagementGroup = "Enable Management Group level?"
+	QuestionEnableManagementGroup = "Enable Management Group level Integration?"
 	QuestionManagementGroupId     = "Specify Management Group ID"
 
 	// Select options
 	AzureAdvancedOptDone       = "Done"
-	AdvancedAdIntegration      = "Configure Lacework integration with an existing Active Directory"
-	AzureExistingStorageAcount = "Configure Existing storage account"
-	AzureSubscriptions         = "Configure Subscriptions"
-	AzureManagmentGroup        = "Configure Management Group"
-	AzureStorageGroup          = "Configure Storage Group"
-	AzureUserIntegrationNames  = "Configure user integration names"
-	AzureAdvancedOptLocation   = "Customize output location"
-	AzureRegionStorage         = "Customize Azure region for Storage Account"
+	AdvancedAdIntegration      = "Configure Lacework integration with an existing Active Directory (optional)"
+	AzureExistingStorageAcount = "Configure Storage Account (optional)"
+	AzureSubscriptions         = "Configure Subscriptions (optional)"
+	AzureManagmentGroup        = "Configure Management Group (optional)"
+	AzureStorageGroup          = "Configure Storage Group (optional)"
+	AzureUserIntegrationNames  = "Customize integration name(s)"
+	AzureAdvancedOptLocation   = "Customize output location (optional)"
+	AzureRegionStorage         = "Customize Azure region for Storage Account (optional)"
 
 	GenerateAzureCommandState      = &azure.GenerateAzureTfConfigurationArgs{}
 	GenerateAzureCommandExtraState = &AzureGenerateCommandExtraState{}
@@ -222,7 +222,7 @@ var (
 			if !GenerateAzureCommandExtraState.TerraformApply {
 				err = SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 					Prompt:   &survey.Confirm{Default: GenerateAzureCommandExtraState.TerraformApply, Message: QuestionRunTfPlan},
-					Response: &GenerateAwsCommandExtraState.TerraformApply,
+					Response: &GenerateAzureCommandExtraState.TerraformApply,
 				})
 
 				if err != nil {
@@ -327,7 +327,10 @@ func validateStorageLocation(location string) error {
 func initGenerateAzureTfCommandFlags() {
 	// Azure sub-command flags
 	generateAzureTfCommand.PersistentFlags().BoolVar(
-		&GenerateAzureCommandState.ActivityLog, "activity_log", false, "enable active log integration")
+		&GenerateAzureCommandState.ActivityLog,
+		"activity_log",
+		false,
+		"enable active log integration")
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.ActivityLogIntegrationName,
@@ -336,36 +339,53 @@ func initGenerateAzureTfCommandFlags() {
 		"specify name of activity log, if none given will default to TF activity log")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
-		&GenerateAzureCommandState.Config, "config", false, "enable config integration")
+		&GenerateAzureCommandState.Config,
+		"config",
+		false,
+		"enable config integration")
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.ConfigIntegrationName,
 		"config_name",
 		"",
-		"specify name of config, if none given will default to TF config")
+		"specify a custom config integration name")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
-		&GenerateAzureCommandState.CreateAdIntegration, "ad_create", true, "create new active directory integration")
+		&GenerateAzureCommandState.CreateAdIntegration,
+		"ad_create",
+		true,
+		"create new active directory integration")
+
 	generateAzureTfCommand.PersistentFlags().BoolVar(
-		&GenerateAzureCommandState.ManagementGroup, "mgmt_group", false, "use management rather than subscriptions")
+		&GenerateAzureCommandState.ManagementGroup,
+		"mgmt_group",
+		false,
+		"management group level integration")
+
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.ManagementGroupId,
 		"mgmt_group_id",
 		"",
-		"specify managment group id")
+		"specify management group id. Required if mgmt_group provided")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
-		&GenerateAzureCommandState.ExistingStorageAccount, "existing_storage", false, "use existing storage account")
+		&GenerateAzureCommandState.ExistingStorageAccount,
+		"existing_storage",
+		false,
+		"use existing storage account")
+
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.StorageAccountName,
-		"strg_account_name",
+		"storage_account_name",
 		"",
 		"specify storage account name")
+
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.StorageAccountResourceGroup,
 		"strg_res_group",
 		"",
 		"specify storage resource group")
+
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.StorageLocation,
 		"location",
@@ -373,7 +393,10 @@ func initGenerateAzureTfCommandFlags() {
 		"specify azure region where storage account logging resides")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
-		&GenerateAzureCommandState.AllSubscriptions, "all_subs", false, "grant read access to ALL subscriptions within Tenant")
+		&GenerateAzureCommandState.AllSubscriptions,
+		"all_subs",
+		false,
+		"grant read access to ALL subscriptions within Tenant (overrides `subscription ids`)")
 
 	generateAzureTfCommand.PersistentFlags().StringSliceVar(
 		&GenerateAzureCommandState.SubscriptionIds,
@@ -385,22 +408,25 @@ func initGenerateAzureTfCommandFlags() {
 		&GenerateAzureCommandState.AdApplicationPassword,
 		"ad_pass",
 		"",
-		"password for an already existing active directory application")
+		"existing active directory application password")
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.AdApplicationId,
 		"ad_id",
 		"",
-		"id for an already existing active directory application")
+		"existing active directory application id")
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.AdServicePrincipalId,
 		"ad_pid",
 		"",
-		"principle id for an already existing active directory application")
+		"existing active directory application service principle id")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
-		&GenerateAzureCommandExtraState.TerraformApply, "terraform-apply", false, "run terraform apply for the generated hcl")
+		&GenerateAzureCommandExtraState.TerraformApply,
+		"terraform-apply",
+		false,
+		"run terraform apply for the generated hcl")
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandExtraState.Output,
@@ -416,13 +442,11 @@ func promptAzureIntegrationNameQuestions(config *azure.GenerateAzureTfConfigurat
 		{
 			Prompt:   &survey.Input{Message: QuestionAzureConfigName, Default: config.ConfigIntegrationName},
 			Checks:   []*bool{&config.Config},
-			Required: true,
 			Response: &config.ConfigIntegrationName,
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionActivityLogName, Default: config.ActivityLogIntegrationName},
 			Checks:   []*bool{&config.ActivityLog},
-			Required: true,
 			Response: &config.ActivityLogIntegrationName,
 		},
 	}); err != nil {
@@ -564,12 +588,23 @@ func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, ext
 	for answer != AzureAdvancedOptDone {
 
 		// Set the initial options
-		options := []string{AzureUserIntegrationNames, AzureExistingStorageAcount, AzureSubscriptions, AzureManagmentGroup}
+		options := []string{AzureUserIntegrationNames, AzureExistingStorageAcount, AzureSubscriptions}
 		// Only ask about Active Directory information if one was requested to be created
 		if !config.CreateAdIntegration {
 			options = append(options, AdvancedAdIntegration)
 		}
-		options = append(options, AzureAdvancedOptLocation, AzureRegionStorage, AzureAdvancedOptDone)
+
+		// Only show Region Storage options in the case of Activity Log integration
+		if config.ActivityLog {
+			options = append(options, AzureRegionStorage)
+		}
+
+		// Only show management options in the case of Config integration
+		if config.Config {
+			options = append(options, AzureManagmentGroup)
+		}
+
+		options = append(options, AzureAdvancedOptLocation, AzureAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
 				Message: "Which options would you like to enable?",

@@ -1,3 +1,5 @@
+//go:build !windows && generation
+
 package integration
 
 import (
@@ -113,6 +115,7 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
 			c.SendLine("y")
 			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
+			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.Send("\x1B[B")
@@ -234,8 +237,7 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
 			c.SendLine("y")
 
-			expectAzureString(c, cmd.AzureRegionStorage, &runError)
-			c.Send("\x1B[B")
+			expectAzureString(c, cmd.AzureAdvancedOptLocation, &runError)
 			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
@@ -441,6 +443,7 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
 			c.SendLine("y")
 			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
+			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.Send("\x1B[B")
@@ -855,8 +858,6 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 			c.SendLine("y")
 
 			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
