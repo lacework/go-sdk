@@ -15,12 +15,12 @@ To launch your default editor and create a new query.
 
     lacework lql create
 
-The following example comes from Lacework's implementation of a policy query:
+The following example comes from Lacework's implementation of a query:
 
     ---
     queryId: LW_Global_AWS_CTA_AccessKeyDeleted
     queryText: |-
-      LW_Global_AWS_CTA_AccessKeyDeleted {
+      {
           source {
               CloudTrailRawEvents
           }
@@ -37,12 +37,11 @@ The following example comes from Lacework's implementation of a policy query:
           }
       }
 
-Identifier of the query that executes while running the policy
-
-This query specifies an identifier named 'LW_Global_AWS_CTA_AccessKeyDeleted'.
-Policy evaluation uses this dataset (along with the filters) to identify AWS
-CloudTrail events that signify that an IAM access key was deleted. The query
-is delimited by '{ }' and contains three sections:
+A query is represented using JSON or YAML markup and must specify both 'queryId'
+and 'queryText' keys.  The above query uses YAML, specifies an identifier of
+'LW_Global_AWS_CTA_AccessKeyDeleted', and identifies AWS CloudTrail events signifying
+that an IAM access key was deleted.  The queryText is expressed in Lacework Query
+Language (LQL) syntax which is delimited by '{ }' and contains three sections:
 
   * Source data is specified in the 'source' clause. The source of data is the
   'CloudTrailRawEvents' dataset. LQL queries generally refer to other datasets,

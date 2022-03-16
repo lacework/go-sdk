@@ -315,7 +315,7 @@ Please validate that the JSON is formatted properly and adheres to the following
 
 {
     "queryId": "MyLQL",
-    "queryText": "MyLQL { source { CloudTrailRawEvents } filter { EVENT_SOURCE = 's3.amazonaws.com' } return { INSERT_ID } }"
+    "queryText": "{ source { CloudTrailRawEvents } filter { EVENT_SOURCE = 's3.amazonaws.com' } return { INSERT_ID } }"
 }
 `)
 	}
@@ -327,7 +327,7 @@ Please validate that the text adheres to the following schema:
 
 queryId: MyLQL
 queryText: |-
-  MyLQL {
+  {
       source {
           CloudTrailRawEvents
       }
