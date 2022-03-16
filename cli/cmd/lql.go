@@ -328,7 +328,7 @@ Please validate that the text adheres to the following schema:
 queryId: MyLQL
 queryText: |-
   {
-	source {
+	  source {
           CloudTrailRawEvents
       }
       filter {
