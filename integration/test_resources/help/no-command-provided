@@ -19,6 +19,7 @@ Available Commands:
   api                     Helper to call Lacework's API
   cloud-account           Manage cloud accounts
   compliance              Manage compliance reports
+  component               Manage components
   configure               Configure the Lacework CLI
   event                   Inspect Lacework events
   integration             Manage external integrations

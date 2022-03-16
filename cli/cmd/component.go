@@ -41,7 +41,7 @@ var (
 	componentsCmd = &cobra.Command{
 		Use:     "component",
 		Aliases: []string{"components"},
-		Short:   "manage components",
+		Short:   "Manage components",
 		Long:    `Manage components to extend your experience with the Lacework platform`,
 	}
 
