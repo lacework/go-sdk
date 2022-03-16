@@ -120,7 +120,7 @@ func (c *cliState) LoadComponents() {
 					Use:   cmdName,
 					Short: fmt.Sprintf("%s component", cmd),
 					Run: func(_ *cobra.Command, args []string) {
-						runComponent(cmd, args)
+						_ = runComponent(cmd, args)
 					},
 				},
 			)
