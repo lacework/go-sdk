@@ -1,27 +1,32 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.26.0`.
+Another day, another release. These are the release notes for the version `v0.27.0`.
 
 ## Features
-* feat(cli): show resources affected by a compliance recommendation (#697) (Darren)([86f86ee](https://github.com/lacework/go-sdk/commit/86f86eef38840a28be310347f67261ba588a850c))
-* feat(cli): improve user feedback running terraform commands (#706) (Matt Cadorette)([8526d2c](https://github.com/lacework/go-sdk/commit/8526d2ccfb8a48dbc8ac1315d84006aea058822a))
-* feat(cli): add lacework query preview-source (hazedav)([40e8bbb](https://github.com/lacework/go-sdk/commit/40e8bbb03fa3fca6eecac48c24ffca1468821815))
-* feat(cli): switch-profile command (#705) (Salim Afiune)([75237cd](https://github.com/lacework/go-sdk/commit/75237cdb15508c87cad3cc0694e304524a0da3f6))
+* feat(cli): update query by loading it from the platform (#721) (Salim Afiune)([2f68adb](https://github.com/lacework/go-sdk/commit/2f68adbac8e63946f3f8e6bf6a92a5837ca8fed4))
+* feat(cli): sort query and policy list output (hazedav)([68de649](https://github.com/lacework/go-sdk/commit/68de649549139b292d90ed41da87e0e902b12048))
+* feat(cli): Add breadcrumb for "query show-source" (hazedav)([062421c](https://github.com/lacework/go-sdk/commit/062421ccfbbd25e06ffffa930338f5fe4afddafa))
+* feat(lwgenerate): Add initial hcl generation support Azure - ALLY-394 (#682) (djmctavish)([66845d2](https://github.com/lacework/go-sdk/commit/66845d264ee2570ed7f7592e5a7e5af1cb517e3b))
+## Refactor
+* refactor(cli): further deprecate evaluatorId (hazedav)([7a63eca](https://github.com/lacework/go-sdk/commit/7a63ecae49c82583f2dc1cd7f8c4d38f381ce571))
+* refactor(cli): Create cloud specific TF file (#712) (Ross)([3f9e0d8](https://github.com/lacework/go-sdk/commit/3f9e0d847404026b753d676a8f2f75f5096361e7))
+* refactor(cli): vulnerability_expections packages human readable output (#711) (Darren)([c37afbf](https://github.com/lacework/go-sdk/commit/c37afbfd70d9d7f8cfcabbdf6e78b3a6ce89c3d7))
+## Bug Fixes
+* fix: use online machine for testing (#722) (chi-dev-2021)([e960b64](https://github.com/lacework/go-sdk/commit/e960b6437df33495287c32799d408839de8c3dae))
+* fix(cli): delete listed twice on help (hazedav)([d606f9d](https://github.com/lacework/go-sdk/commit/d606f9d9d9531ccb94897086a93197d81c1e2d67))
 ## Other Changes
-* chore(deps): bump github.com/spf13/cobra from 1.2.1 to 1.3.0 (#647) (dependabot[bot])([2cb15fb](https://github.com/lacework/go-sdk/commit/2cb15fb48186a45064aac0ecce340efcfb2e8de1))
-* chore(deps): bump github.com/spf13/viper from 1.9.0 to 1.10.1 (#644) (dependabot[bot])([5dac81c](https://github.com/lacework/go-sdk/commit/5dac81cfb57b29dc8addcbb32b16f11abeeca836))
-* chore(deps): bump github.com/honeycombio/libhoney-go (#652) (dependabot[bot])([6e5c7bd](https://github.com/lacework/go-sdk/commit/6e5c7bd61c01f1a3d84c9285d0d08d7a2dc6b3ef))
-* chore(deps): bump github.com/hashicorp/terraform-exec (#704) (dependabot[bot])([9767bc8](https://github.com/lacework/go-sdk/commit/9767bc8a1c2531f936e685f0143400017198d6a7))
-* chore(deps): bump go.uber.org/zap from 1.19.1 to 1.21.0 (#700) (dependabot[bot])([b8be0b0](https://github.com/lacework/go-sdk/commit/b8be0b0fef410a5a6179495c7e2a4a44d5e9b3c6))
-* chore(deps): bump github.com/hashicorp/go-version from 1.3.0 to 1.4.0 (#702) (dependabot[bot])([1729f4c](https://github.com/lacework/go-sdk/commit/1729f4cb513d8b32d6a7133f8df72bc3afb1f3a9))
-* chore(deps): bump github.com/briandowns/spinner from 1.13.0 to 1.17.0 (#701) (dependabot[bot])([9d18563](https://github.com/lacework/go-sdk/commit/9d185636fa0fa7c8d46dedae01d349d18d0a60c1))
-* ci(cli): release CentOS end-of-life problem (#699) (Salim Afiune)([4bc4a7c](https://github.com/lacework/go-sdk/commit/4bc4a7ce8c37f1f4f1a21b058fe315ba855687b6))
-* ci: version bump to v0.25.1-dev (Lacework)([20551d1](https://github.com/lacework/go-sdk/commit/20551d1b3b748bedc696d190acb7c13cfffc54e4))
+* chore(cli): run regex of integration test (#729) (Salim Afiune)([03d55cf](https://github.com/lacework/go-sdk/commit/03d55cf3025cdac9f3a0ed047bba2db3ec465ba3))
+* build: deprecate centos-8 images (#709) (Salim Afiune)([5636bdd](https://github.com/lacework/go-sdk/commit/5636bdd699e10870da75dbd21be6d4a3ea64155c))
+* ci: fix release pipeline (#730) (Darren)([6470a4a](https://github.com/lacework/go-sdk/commit/6470a4a12588681149d0c59a1cd27fb4a7f88a1b))
+* ci: version bump to v0.26.1-dev (Lacework)([dccd3f5](https://github.com/lacework/go-sdk/commit/dccd3f5cad014dfdfa26040cf1f4af936ca15ce3))
+* test(windows): fix TestQueryUpdateFromIDEditor (#728) (Salim Afiune)([424c939](https://github.com/lacework/go-sdk/commit/424c939f7aedd0b623b652965798903298ddf50a))
+* test(integration): fix finding host id (#725) (Salim Afiune)([4e246d9](https://github.com/lacework/go-sdk/commit/4e246d972a1e0683b0f14a95340189668a368ba6))
+* test(lql): disable policies tests (hazedav)([2647565](https://github.com/lacework/go-sdk/commit/2647565a354c33b46329b01e5db2172f836c0d04))
+* test(cli): add comprehensive help text testing (#715) (hazedav)([b38c696](https://github.com/lacework/go-sdk/commit/b38c69625edc6561f2b0da0c455d5d30d04f7177))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
 * `docker pull lacework/lacework-cli:scratch`
 * `docker pull lacework/lacework-cli:ubi-8`
-* `docker pull lacework/lacework-cli:centos-8`
 * `docker pull lacework/lacework-cli:debian-10`
 * `docker pull lacework/lacework-cli:ubuntu-1804`
 * `docker pull lacework/lacework-cli:amazonlinux-2`

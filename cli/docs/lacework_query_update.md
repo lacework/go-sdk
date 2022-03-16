@@ -14,6 +14,7 @@ Update a query
 There are multiple ways you can update a query:
 
   * Typing the query into your default editor (via $EDITOR)
+  * Passing a query id to load it into your default editor
   * From a local file on disk using the flag '--file'
   * From a URL using the flag '--url'
 
@@ -28,7 +29,7 @@ To launch your default editor and update a query.
 
 
 ```
-lacework query update [flags]
+lacework query update [query_id] [flags]
 ```
 
 ### Options
