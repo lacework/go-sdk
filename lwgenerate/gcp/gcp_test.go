@@ -31,7 +31,7 @@ func TestGenerationProjectLevelAuditLogWithoutConfig(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogWithoutConfig), hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogWithoutConfiguration), hcl)
 }
 
 func TestGenerationProjectLevelAuditLogWithoutCredentialsAndProject(t *testing.T) {
@@ -40,7 +40,7 @@ func TestGenerationProjectLevelAuditLogWithoutCredentialsAndProject(t *testing.T
 	assert.NotNil(t, hcl)
 	assert.Equal(
 		t,
-		fmt.Sprintf("%s\n%s\n%s", requiredProviders, gcpProviderWithoutCredentialsAndProject, moduleImportProjectLevelAuditLogWithoutConfig),
+		fmt.Sprintf("%s\n%s\n%s", requiredProviders, gcpProviderWithoutCredentialsAndProject, moduleImportProjectLevelAuditLogWithoutConfiguration),
 		hcl,
 	)
 }
@@ -55,7 +55,7 @@ func TestGenerationProjectLevelAuditLogWithLaceworkProfile(t *testing.T) {
 	assert.NotNil(t, hcl)
 	assert.Equal(
 		t,
-		fmt.Sprintf("%s\n%s\n%s\n%s", requiredProviders, gcpProviderWithCredentials, laceworkProvider, moduleImportProjectLevelAuditLogWithoutConfig),
+		fmt.Sprintf("%s\n%s\n%s\n%s", requiredProviders, gcpProviderWithCredentials, laceworkProvider, moduleImportProjectLevelAuditLogWithoutConfiguration),
 		hcl,
 	)
 }
@@ -223,7 +223,7 @@ func TestGenerationOrganizationLevelAuditLogWithoutConfig(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportOrganizationLevelAuditLogWithoutConfig), hcl)
+	assert.Equal(t, reqProvider(moduleImportOrganizationLevelAuditLogWithoutConfiguration), hcl)
 }
 
 func TestGenerationOrganizationLevelAuditLogCustomIntegrationName(t *testing.T) {
@@ -259,14 +259,14 @@ func TestGenerationOrganizationLevelAuditLogNoOrgIntegrationFlag(t *testing.T) {
 	assert.EqualError(t, err, "invalid inputs: To provide an Organization ID, Organization Integration must be true")
 }
 
-func TestGenerationProjectLevelAuditLogWithConfig(t *testing.T) {
+func TestGenerationProjectLevelAuditLogWithConfiguration(t *testing.T) {
 	hcl, err := gcp.NewTerraform(true, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelConfig, moduleImportProjectLevelAuditLogWithConfig), hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelConfiguration, moduleImportProjectLevelAuditLogWithConfiguration), hcl)
 }
 
 func TestGenerationOrganizationLevelAuditLogWithConfig(t *testing.T) {
@@ -278,20 +278,20 @@ func TestGenerationOrganizationLevelAuditLogWithConfig(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfig, moduleImportOrganizationLevelAuditLogWithConfig), hcl)
+	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfiguration, moduleImportOrganizationLevelAuditLogWithConfiguration), hcl)
 }
 
-func TestGenerationProjectLevelConfig(t *testing.T) {
+func TestGenerationProjectLevelConfiguration(t *testing.T) {
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelConfig), hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelConfiguration), hcl)
 }
 
-func TestGenerationProjectLevelConfigExistingSA(t *testing.T) {
+func TestGenerationProjectLevelConfigurationExistingSA(t *testing.T) {
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -299,21 +299,21 @@ func TestGenerationProjectLevelConfigExistingSA(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelConfigExistingSA), hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelConfigurationExistingSA), hcl)
 }
 
-func TestGenerationProjectLevelConfigCustomIntegrationName(t *testing.T) {
+func TestGenerationProjectLevelConfigurationCustomIntegrationName(t *testing.T) {
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
-		gcp.WithConfigIntegrationName("custom_integration_name"),
+		gcp.WithConfigurationIntegrationName("custom_integration_name"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelConfigCustomIntegrationName), hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelConfigurationCustomIntegrationName), hcl)
 }
 
-func TestGenerationOrganizationLevelConfig(t *testing.T) {
+func TestGenerationOrganizationLevelConfiguration(t *testing.T) {
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -322,10 +322,10 @@ func TestGenerationOrganizationLevelConfig(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfig), hcl)
+	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfiguration), hcl)
 }
 
-func TestGenerationOrganizationLevelConfigExistingSA(t *testing.T) {
+func TestGenerationOrganizationLevelConfigurationExistingSA(t *testing.T) {
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -335,20 +335,20 @@ func TestGenerationOrganizationLevelConfigExistingSA(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfigExistingSA), hcl)
+	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfigurationExistingSA), hcl)
 }
 
-func TestGenerationOrganizationLevelConfigCustomIntegrationName(t *testing.T) {
+func TestGenerationOrganizationLevelConfigurationCustomIntegrationName(t *testing.T) {
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId("123456789"),
-		gcp.WithConfigIntegrationName("custom_integration_name"),
+		gcp.WithConfigurationIntegrationName("custom_integration_name"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfigCustomIntegrationName), hcl)
+	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfigurationCustomIntegrationName), hcl)
 }
 
 var requiredProviders = `terraform {
@@ -376,7 +376,7 @@ var laceworkProvider = `provider "lacework" {
 }
 `
 
-var moduleImportProjectLevelAuditLogWithConfig = `module "gcp_project_audit_log" {
+var moduleImportProjectLevelAuditLogWithConfiguration = `module "gcp_project_audit_log" {
   source                       = "lacework/audit-log/gcp"
   version                      = "~> 2.0"
   service_account_name         = module.gcp_project_level_config.service_account_name
@@ -385,7 +385,7 @@ var moduleImportProjectLevelAuditLogWithConfig = `module "gcp_project_audit_log"
 }
 `
 
-var moduleImportProjectLevelAuditLogWithoutConfig = `module "gcp_project_audit_log" {
+var moduleImportProjectLevelAuditLogWithoutConfiguration = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
   version = "~> 2.0"
 }
@@ -497,7 +497,7 @@ var moduleImportProjectLevelAuditLogBucketRetentionDays = `module "gcp_project_a
 }
 `
 
-var moduleImportOrganizationLevelAuditLogWithConfig = `module "gcp_organization_level_audit_log" {
+var moduleImportOrganizationLevelAuditLogWithConfiguration = `module "gcp_organization_level_audit_log" {
   source                       = "lacework/audit-log/gcp"
   version                      = "~> 2.0"
   org_integration              = true
@@ -508,7 +508,7 @@ var moduleImportOrganizationLevelAuditLogWithConfig = `module "gcp_organization_
 }
 `
 
-var moduleImportOrganizationLevelAuditLogWithoutConfig = `module "gcp_organization_level_audit_log" {
+var moduleImportOrganizationLevelAuditLogWithoutConfiguration = `module "gcp_organization_level_audit_log" {
   source          = "lacework/audit-log/gcp"
   version         = "~> 2.0"
   org_integration = true
@@ -525,13 +525,13 @@ var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_or
 }
 `
 
-var moduleImportProjectLevelConfig = `module "gcp_project_level_config" {
+var moduleImportProjectLevelConfiguration = `module "gcp_project_level_config" {
   source  = "lacework/config/gcp"
   version = "~> 1.0"
 }
 `
 
-var moduleImportProjectLevelConfigExistingSA = `module "gcp_project_level_config" {
+var moduleImportProjectLevelConfigurationExistingSA = `module "gcp_project_level_config" {
   source                       = "lacework/config/gcp"
   version                      = "~> 1.0"
   service_account_name         = "foo"
@@ -540,14 +540,14 @@ var moduleImportProjectLevelConfigExistingSA = `module "gcp_project_level_config
 }
 `
 
-var moduleImportProjectLevelConfigCustomIntegrationName = `module "gcp_project_level_config" {
+var moduleImportProjectLevelConfigurationCustomIntegrationName = `module "gcp_project_level_config" {
   source                    = "lacework/config/gcp"
   version                   = "~> 1.0"
   lacework_integration_name = "custom_integration_name"
 }
 `
 
-var moduleImportOrganizationLevelConfig = `module "gcp_organization_level_config" {
+var moduleImportOrganizationLevelConfiguration = `module "gcp_organization_level_config" {
   source          = "lacework/config/gcp"
   version         = "~> 1.0"
   org_integration = true
@@ -555,7 +555,7 @@ var moduleImportOrganizationLevelConfig = `module "gcp_organization_level_config
 }
 `
 
-var moduleImportOrganizationLevelConfigExistingSA = `module "gcp_organization_level_config" {
+var moduleImportOrganizationLevelConfigurationExistingSA = `module "gcp_organization_level_config" {
   source                       = "lacework/config/gcp"
   version                      = "~> 1.0"
   org_integration              = true
@@ -566,7 +566,7 @@ var moduleImportOrganizationLevelConfigExistingSA = `module "gcp_organization_le
 }
 `
 
-var moduleImportOrganizationLevelConfigCustomIntegrationName = `module "gcp_organization_level_config" {
+var moduleImportOrganizationLevelConfigurationCustomIntegrationName = `module "gcp_organization_level_config" {
   source                    = "lacework/config/gcp"
   version                   = "~> 1.0"
   lacework_integration_name = "custom_integration_name"
