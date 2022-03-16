@@ -339,7 +339,7 @@ func TestPolicyBadSeverity(t *testing.T) {
 func TestPolicySeverityCritical(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list", "--severity", "critical")
 	assert.Contains(t, out.String(), "lacework-global-8")
-	assert.NotContains(t, out.String(), "lacework-global-1")
+	assert.NotContains(t, out.String(), "high")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
