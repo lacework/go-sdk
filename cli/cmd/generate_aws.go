@@ -61,18 +61,20 @@ var (
 		Short: "Generate and/or execute Terraform code for AWS integration",
 		Long: `Use this command to generate Terraform code for deploying Lacework into an AWS environment.
 
-By default, this command will function interactively, prompting for the required information to setup the new cloud account. In interactive mode, this command will:
+By default, this command interactively prompts for the required information to setup the new cloud account.
+In interactive mode, this command will:
 
 * Prompt for the required information to setup the integration
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
-  * If Terraform is already installed, the version will be confirmed suitable for use
-	* If Terraform is not installed, or the version installed is not suitable, a new version will be installed into a temporary location
+  * If Terraform is already installed, the version is verified as compatible for use
+	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
 	* Once Terraform is detected or installed, Terraform plan will be executed
 	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
 	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
-This command can also be run in noninteractive mode. See help output for more details on supplying required values for generation.
+This command can also be run in noninteractive mode.
+See help output for more details on the parameter value(s) required for Terraform code generation.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Generate TF Code
@@ -136,7 +138,7 @@ This command can also be run in noninteractive mode. See help output for more de
 			locationDir := filepath.Dir(location)
 			if GenerateAwsCommandExtraState.TerraformApply {
 				// Execution pre-run check
-				err := executionPreRunChecks(dirname, locationDir)
+				err := executionPreRunChecks(dirname, locationDir, "aws")
 				if err != nil {
 					return err
 				}
@@ -255,6 +257,71 @@ This command can also be run in noninteractive mode. See help output for more de
 		},
 	}
 )
+
+func initGenerateAwsTfCommandFlags() {
+	// add flags to sub commands
+	// TODO Share the help with the interactive generation
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.Cloudtrail, "cloudtrail", false, "enable cloudtrail integration")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.Config, "config", false, "enable config integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.AwsRegion, "aws_region", "", "specify aws region")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.AwsProfile, "aws_profile", "default", "specify aws profile")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ExistingCloudtrailBucketArn,
+		"existing_bucket_arn",
+		"",
+		"specify existing cloudtrail s3 bucket ARN")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsExistingRoleState.Arn,
+		"existing_iam_role_arn",
+		"",
+		"specify existing iam role arn to use")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsExistingRoleState.Name,
+		"existing_iam_role_name",
+		"",
+		"specify existing iam role name to use")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsExistingRoleState.ExternalId,
+		"existing_iam_role_externalid",
+		"",
+		"specify existing iam role external_id to use")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ExistingSnsTopicArn,
+		"existing_sns_topic_arn",
+		"",
+		"specify existing sns topic arn")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.ConsolidatedCloudtrail,
+		"consolidated_cloudtrail",
+		false,
+		"use consolidated trail")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.ForceDestroyS3Bucket,
+		"force_destroy_s3",
+		false,
+		"enable force destroy s3 bucket")
+	generateAwsTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAwsCommandExtraState.AwsSubAccounts,
+		"aws_subaccount",
+		[]string{},
+		"configure an additional aws account; value format must be <aws profile>:<region>")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandExtraState.TerraformApply,
+		"apply",
+		false,
+		"run terraform apply without executing plan or prompting",
+	)
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandExtraState.Output,
+		"output",
+		"",
+		"location to write generated content",
+	)
+}
 
 // survey.Validator for aws ARNs
 //
@@ -427,7 +494,7 @@ func promptCustomizeAwsOutputLocation(extraState *AwsGenerateCommandExtraState) 
 	return nil
 }
 
-func askAdvancedOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
+func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
 	answer := ""
 
 	// Prompt for options
@@ -444,7 +511,7 @@ func askAdvancedOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *
 		options = append(options, AwsAdvancedOptLocation, AwsAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
-				Message: "Which options would you like to enable?",
+				Message: "Which options would you like to configure?",
 				Options: options,
 			},
 			Response: &answer,
@@ -582,7 +649,7 @@ func promptAwsGenerate(
 
 	// Keep prompting for advanced options until the say done
 	if askAdvanced {
-		if err := askAdvancedOptions(config, extraState); err != nil {
+		if err := askAdvancedAwsOptions(config, extraState); err != nil {
 			return err
 		}
 	}

@@ -426,13 +426,13 @@ func TerraformPlanAndExecute(workingDir string) error {
 	return nil
 }
 
-func TerraformExecutePreRunCheck(outputLocation string) (bool, error) {
+func TerraformExecutePreRunCheck(outputLocation string, cloud string) (bool, error) {
 	// If noninteractive, continue
 	if !cli.InteractiveMode() {
 		return true, nil
 	}
 
-	dirname, err := determineOutputDirPath(outputLocation)
+	dirname, err := determineOutputDirPath(outputLocation, cloud)
 	if err != nil {
 		return false, err
 	}

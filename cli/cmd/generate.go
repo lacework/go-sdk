@@ -30,6 +30,32 @@ func (a *AwsGenerateCommandExtraState) writeCache() {
 	}
 }
 
+type GcpGenerateCommandExtraState struct {
+	AskAdvanced                bool
+	Output                     string
+	ConfigureNewBucketSettings bool
+	UseExistingServiceAccount  bool
+	UseExistingBucket          bool
+	UseExistingSink            bool
+	TerraformApply             bool
+}
+
+func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
+	return gcp.Output == "" &&
+		!gcp.AskAdvanced &&
+		!gcp.UseExistingServiceAccount &&
+		!gcp.UseExistingBucket &&
+		!gcp.UseExistingSink &&
+		!gcp.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (gcp *GcpGenerateCommandExtraState) writeCache() {
+	if !gcp.isEmpty() {
+		cli.WriteAssetToCache(CachedAssetGcpExtraState, time.Now().Add(time.Hour*1), gcp)
+	}
+}
+
 var (
 	QuestionRunTfPlan        = "Run Terraform plan now?"
 	QuestionUsePreviousCache = "Previous IaC generation detected, load cached values?"
@@ -47,69 +73,13 @@ func init() {
 	// add the iac-generate command
 	cloudAccountCommand.AddCommand(generateTfCommand)
 
-	// Add global flags for iac generation
-	generateTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandExtraState.Output, "output", "", "location to write generated content")
-
-	// add flags to sub commands
-	// TODO Share the help with the interactive generation
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.Cloudtrail, "cloudtrail", false, "enable cloudtrail integration")
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.Config, "config", false, "enable config integration")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.AwsRegion, "aws_region", "", "specify aws region")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.AwsProfile, "aws_profile", "default", "specify aws profile")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.ExistingCloudtrailBucketArn,
-		"existing_bucket_arn",
-		"",
-		"specify existing cloudtrail s3 bucket ARN")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsExistingRoleState.Arn,
-		"existing_iam_role_arn",
-		"",
-		"specify existing iam role arn to use")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsExistingRoleState.Name,
-		"existing_iam_role_name",
-		"",
-		"specify existing iam role name to use")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsExistingRoleState.ExternalId,
-		"existing_iam_role_externalid",
-		"",
-		"specify existing iam role external_id to use")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.ExistingSnsTopicArn,
-		"existing_sns_topic_arn",
-		"",
-		"specify existing sns topic arn")
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.ConsolidatedCloudtrail,
-		"consolidated_cloudtrail",
-		false,
-		"use consolidated trail")
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.ForceDestroyS3Bucket,
-		"force_destroy_s3",
-		false,
-		"enable force destroy s3 bucket")
-	generateAwsTfCommand.PersistentFlags().StringSliceVar(
-		&GenerateAwsCommandExtraState.AwsSubAccounts,
-		"aws_subaccount",
-		[]string{},
-		"configure an additional aws account; value format must be <aws profile>:<region>")
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandExtraState.TerraformApply,
-		"apply",
-		false,
-		"run terraform apply without executing plan or prompting",
-	)
+	// Add cloud specific command flags
+	initGenerateAwsTfCommandFlags()
+	initGenerateGcpTfCommandFlags()
 
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)
+	generateTfCommand.AddCommand(generateGcpTfCommand)
 }
 
 type SurveyQuestionWithValidationArgs struct {
@@ -179,7 +149,7 @@ func SurveyMultipleQuestionWithValidation(questions []SurveyQuestionWithValidati
 }
 
 // determineOutputDirPath get output directory location based on how the output location was set
-func determineOutputDirPath(location string) (string, error) {
+func determineOutputDirPath(location string, cloud string) (string, error) {
 	// determine code output path
 	dirname, err := os.UserHomeDir()
 	if err != nil {
@@ -192,26 +162,22 @@ func determineOutputDirPath(location string) (string, error) {
 	}
 
 	// If location was not passed, assemble it with lacework from os homedir
-	return filepath.FromSlash(fmt.Sprintf("%s/%s", dirname, "lacework")), nil
+	return filepath.FromSlash(fmt.Sprintf("%s/%s/%s", dirname, "lacework", cloud)), nil
 }
 
 // writeHclOutputPreCheck Prompt for confirmation if main.tf already exists; return true to continue
-func writeHclOutputPreCheck(outputLocation string, filename string) (bool, error) {
+func writeHclOutputPreCheck(outputLocation string, cloud string) (bool, error) {
 	// If noninteractive, continue
 	if !cli.InteractiveMode() {
 		return true, nil
 	}
 
-	outputDir, err := determineOutputDirPath(outputLocation)
+	outputDir, err := determineOutputDirPath(outputLocation, cloud)
 	if err != nil {
 		return false, err
 	}
 
-	if filename == "" {
-		filename = "main"
-	}
-
-	hclPath := filepath.FromSlash(fmt.Sprintf("%s/%s.tf", outputDir, filename))
+	hclPath := filepath.FromSlash(fmt.Sprintf("%s/main.tf", outputDir))
 
 	// If the file doesn't exist, carry on
 	if _, err := os.Stat(hclPath); os.IsNotExist(err) {
@@ -231,9 +197,9 @@ func writeHclOutputPreCheck(outputLocation string, filename string) (bool, error
 }
 
 // writeHclOutput Write HCL output
-func writeHclOutput(hcl string, location string, filename string) (string, error) {
+func writeHclOutput(hcl string, location string, cloud string) (string, error) {
 	// Determine write location
-	dirname, err := determineOutputDirPath(location)
+	dirname, err := determineOutputDirPath(location, cloud)
 	if err != nil {
 		return "", err
 	}
@@ -242,19 +208,15 @@ func writeHclOutput(hcl string, location string, filename string) (string, error
 	if location == "" {
 		directory := filepath.FromSlash(dirname)
 		if _, err := os.Stat(directory); os.IsNotExist(err) {
-			err = os.Mkdir(directory, 0700)
+			err = os.MkdirAll(directory, 0700)
 			if err != nil {
 				return "", err
 			}
 		}
 	}
 
-	if filename == "" {
-		filename = "main"
-	}
-
 	// Create HCL file
-	outputLocation := filepath.FromSlash(fmt.Sprintf("%s/%s.tf", dirname, filename))
+	outputLocation := filepath.FromSlash(fmt.Sprintf("%s/main.tf", dirname))
 	err = os.WriteFile(
 		filepath.FromSlash(outputLocation),
 		[]byte(hcl),
@@ -363,8 +325,8 @@ func writeGeneratedCodeToLocation(cmd *cobra.Command, hcl string, cloud string) 
 }
 
 // executionPreRunChecks Execution pre-run check
-func executionPreRunChecks(dirname string, locationDir string) error {
-	ok, err := TerraformExecutePreRunCheck(dirname)
+func executionPreRunChecks(dirname string, locationDir string, cloud string) error {
+	ok, err := TerraformExecutePreRunCheck(dirname, cloud)
 	if err != nil {
 		return errors.Wrap(err, "failed to check for existing terraform state")
 	}
