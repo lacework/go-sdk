@@ -53,6 +53,9 @@ func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
 func (gcp *GcpGenerateCommandExtraState) writeCache() {
 	if !gcp.isEmpty() {
 		cli.WriteAssetToCache(CachedAssetGcpExtraState, time.Now().Add(time.Hour*1), gcp)
+	}
+}
+
 type AzureGenerateCommandExtraState struct {
 	Output         string
 	TerraformApply bool
@@ -89,15 +92,12 @@ func init() {
 	// Add cloud specific command flags
 	initGenerateAwsTfCommandFlags()
 	initGenerateGcpTfCommandFlags()
-
-	// add flags to the azure command
 	initGenerateAzureTfCommandFlags()
 
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)
 	generateTfCommand.AddCommand(generateGcpTfCommand)
 	generateTfCommand.AddCommand(generateAzureTfCommand)
-
 }
 
 type SurveyQuestionWithValidationArgs struct {

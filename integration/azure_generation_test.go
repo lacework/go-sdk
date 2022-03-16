@@ -5,7 +5,6 @@ package integration
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +12,6 @@ import (
 	"time"
 
 	"github.com/Netflix/go-expect"
-	"github.com/hinshun/vt10x"
 	"github.com/lacework/go-sdk/cli/cmd"
 	"github.com/lacework/go-sdk/lwgenerate/azure"
 	"github.com/stretchr/testify/assert"
@@ -136,7 +134,7 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Get result
-	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/azure.tf", dir)))
+	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(true, true, true).Generate()
@@ -412,7 +410,7 @@ func TestGenerationAzureAdvancedOptsDone(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test existing azure.tf prompt
+// Test existing main.tf prompt
 func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -426,8 +424,8 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 	}
 	//defer os.RemoveAll(dir)
 
-	// Create fake azure.tf
-	if err := os.WriteFile(filepath.FromSlash(fmt.Sprintf("%s/azure.tf", dir)), []byte{}, 0644); err != nil {
+	// Create fake main.tf
+	if err := os.WriteFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)), []byte{}, 0644); err != nil {
 		panic(err)
 	}
 
@@ -450,7 +448,7 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 			c.SendLine("\x1B[B")
 			expectAzureString(c, cmd.QuestionAzureCustomizeOutputLocation, &runError)
 			c.SendLine(dir)
-			expectAzureString(c, fmt.Sprintf("%s/azure.tf already exists, overwrite?", dir), &runError)
+			expectAzureString(c, fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), &runError)
 			c.SendLine("n")
 
 			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
@@ -463,7 +461,7 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 	)
 
 	// Ensure CLI ran correctly
-	data, err := os.ReadFile(fmt.Sprintf("%s/azure.tf", dir))
+	data, err := os.ReadFile(fmt.Sprintf("%s/main.tf", dir))
 	if err != nil {
 		panic(err)
 	}
@@ -896,41 +894,12 @@ func runGenerateAzureTest(t *testing.T, conditions func(*expect.Console), args .
 	defer os.Setenv("HOME", homeCache)
 	defer os.RemoveAll(dir)
 
-	runGenerationAzureTestFromDir(t, dir, conditions, args...)
-	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/azure.tf", dir)))
+	runFakeTerminalTestFromDir(t, dir, conditions, args...)
+	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/azure/main.tf", dir)))
 	if err != nil {
 		// Assume couldn't be found
 		return ""
 	}
 
 	return string(out)
-}
-
-func runGenerationAzureTestFromDir(t *testing.T, dir string, conditions func(*expect.Console), args ...string) {
-	console, state, err := vt10x.NewVT10XConsole()
-	if err != nil {
-		panic(err)
-	}
-	defer console.Close()
-
-	if os.Getenv("DEBUG") != "" {
-		state.DebugLogger = log.Default()
-	}
-
-	donec := make(chan struct{})
-	go func() {
-		defer close(donec)
-		conditions(console)
-	}()
-
-	cmd := NewLaceworkCLI(dir, nil, args...)
-	cmd.Stdin = console.Tty()
-	cmd.Stdout = console.Tty()
-	cmd.Stderr = console.Tty()
-	err = cmd.Start()
-	assert.Nil(t, err)
-
-	// read the remaining bytes
-	console.Tty().Close()
-	<-donec
 }

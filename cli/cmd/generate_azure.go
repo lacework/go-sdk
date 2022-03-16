@@ -234,7 +234,7 @@ var (
 			locationDir := filepath.Dir(location)
 			if GenerateAzureCommandExtraState.TerraformApply {
 				// Execution pre-run check
-				err := executionPreRunChecks(dirname, locationDir)
+				err := executionPreRunChecks(dirname, locationDir, "azure")
 				if err != nil {
 					return err
 				}
