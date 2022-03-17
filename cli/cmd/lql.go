@@ -188,7 +188,7 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 }
 
 // for commands that take a query as input
-func inputQuery(cmd *cobra.Command, args []string) (string, error) {
+func inputQuery(cmd *cobra.Command) (string, error) {
 	// if running via library (CUV)
 	if queryCmdState.CUVFromLibrary != "" {
 		return inputQueryFromLibrary(queryCmdState.CUVFromLibrary)
@@ -391,7 +391,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	}
 	// adhoc query
 	return outputQueryRunResponse(
-		runAdhocQuery(cmd, args, queryArgs),
+		runAdhocQuery(cmd, queryArgs),
 	)
 }
 
@@ -411,12 +411,12 @@ func runQueryByID(id string, args []api.ExecuteQueryArgument) (
 	return cli.LwApi.V2.Query.ExecuteByID(request)
 }
 
-func runAdhocQuery(cmd *cobra.Command, cmdArgs []string, queryArgs []api.ExecuteQueryArgument) (
+func runAdhocQuery(cmd *cobra.Command, queryArgs []api.ExecuteQueryArgument) (
 	response map[string]interface{},
 	err error,
 ) {
 	// input query
-	queryString, err := inputQuery(cmd, cmdArgs)
+	queryString, err := inputQuery(cmd)
 	if err != nil {
 		return
 	}

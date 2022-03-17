@@ -122,7 +122,7 @@ func createQuery(cmd *cobra.Command, args []string) error {
 	msg := "unable to create query"
 
 	// input query
-	queryString, err := inputQuery(cmd, args)
+	queryString, err := inputQuery(cmd)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
