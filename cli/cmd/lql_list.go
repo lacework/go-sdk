@@ -19,6 +19,8 @@
 package cmd
 
 import (
+	"sort"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -50,6 +52,12 @@ func queryTable(queryData []api.Query) (out [][]string) {
 			query.LastUpdateUser,
 		})
 	}
+
+	// order by ID
+	sort.Slice(out, func(i, j int) bool {
+		return out[i][0] < out[j][0]
+	})
+
 	return
 }
 

@@ -27,7 +27,7 @@ import (
 func TestComplianceAzureListTenants(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "az", "list-tenants")
 	assert.Contains(t, out.String(),
-		"There are no Azure Tenants configured in your account.",
+		"Fetching list of configured Azure tenants",
 		"STDOUT changed, please check")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	assert.Empty(t, err.String(), "STDERR should be empty")

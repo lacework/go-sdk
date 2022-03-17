@@ -71,9 +71,6 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 				queryPreviewSourceTemplate, args[0], strings.Join(returns, ",")),
 		},
 	}
-	if args[0] == "CloudTrailRawEvents" {
-		executeQuery.Query.EvaluatorID = "Cloudtrail"
-	}
 
 	// initialize time attempts
 	timeAttempts := []map[string]string{

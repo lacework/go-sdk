@@ -32,7 +32,6 @@ import (
 
 const (
 	newPolicyYAML string = `---
-evaluatorId: Cloudtrail
 policyId: clitest-1
 policyType: Violation
 queryId: LW_CLI_AWS_CTA_IntegrationTest
@@ -313,6 +312,15 @@ func TestPolicyList(t *testing.T) {
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
+	// validate sort
+	aRE := regexp.MustCompile("lacework-global-3")
+	aMatch := aRE.FindStringIndex(out.String())
+
+	zRE := regexp.MustCompile("lacework-global-10")
+	zMatch := zRE.FindStringIndex(out.String())
+
+	assert.Greater(t, zMatch[0], aMatch[0])
+
 	// list (output json)
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--json")
 	assert.Contains(t, out.String(), `"policyId"`)
@@ -331,7 +339,7 @@ func TestPolicyBadSeverity(t *testing.T) {
 func TestPolicySeverityCritical(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list", "--severity", "critical")
 	assert.Contains(t, out.String(), "lacework-global-8")
-	assert.NotContains(t, out.String(), "lacework-global-1")
+	assert.NotContains(t, out.String(), "high")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

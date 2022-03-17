@@ -31,7 +31,7 @@ import (
 type NewQuery struct {
 	QueryID     string `json:"queryId" yaml:"queryId"`
 	QueryText   string `json:"queryText" yaml:"queryText"`
-	EvaluatorID string `json:"evaluatorId,omitempty" yaml:"evaluatorId"`
+	EvaluatorID string `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
 }
 
 func ParseNewQuery(s string) (NewQuery, error) {

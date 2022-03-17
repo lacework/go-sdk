@@ -30,7 +30,6 @@ import (
 
 var (
 	newPolicyJSON = fmt.Sprintf(`{
-	"evaluatorId": "%s",
 	"policyId": "%s",
 	"policyType": "%s",
 	"queryId": "%s",
@@ -42,12 +41,11 @@ var (
 	"evalFrequency": "%s",
 	"alertEnabled": %t,
 	"alertProfile": "%s"
-}`, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
+}`, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
 		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.EvalFrequency,
 		newPolicy.AlertEnabled, newPolicy.AlertProfile)
 
 	newPolicyYAML = fmt.Sprintf(`---
-evaluatorId: %s
 policyId: %s
 policyType: %s
 queryId: %s
@@ -59,14 +57,13 @@ severity: %s
 evalFrequency: %s
 alertEnabled: %t
 alertProfile: %s
-`, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
+`, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
 		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.EvalFrequency,
 		newPolicy.AlertEnabled, newPolicy.AlertProfile)
 
 	newPolicyNestedYAML = fmt.Sprintf(`---
 policies:
-- evaluatorId: %s
-  policyId: %s
+- policyId: %s
   policyType: %s
   queryId: %s
   title: %s
@@ -77,14 +74,13 @@ policies:
   evalFrequency: %s
   alertEnabled: %t
   alertProfile: %s
-`, newPolicy.EvaluatorID, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
+`, newPolicy.PolicyID, newPolicy.PolicyType, newPolicy.QueryID, newPolicy.Title,
 		newPolicy.Enabled, newPolicy.Description, newPolicy.Remediation, newPolicy.Severity, newPolicy.EvalFrequency,
 		newPolicy.AlertEnabled, newPolicy.AlertProfile)
 
 	falsePtr = false
 
 	updatePolicy = api.UpdatePolicy{
-		EvaluatorID:  "Cloudtrail",
 		PolicyType:   "Violation",
 		QueryID:      "LW_CLI_AWS_CTA_IntegrationTest",
 		Title:        "My Policy Title",
@@ -98,7 +94,6 @@ policies:
 	}
 
 	updatePolicyJSON = fmt.Sprintf(`{
-	"evaluatorId": "%s",
 	"policyId": "%s",
 	"policyType": "%s",
 	"queryId": "%s",
@@ -109,12 +104,11 @@ policies:
 	"severity": "%s",
 	"alertEnabled": %t,
 	"alertProfile": "%s"
-}`, updatePolicy.EvaluatorID, updatePolicy.PolicyID, updatePolicy.PolicyType, updatePolicy.QueryID, updatePolicy.Title,
+}`, updatePolicy.PolicyID, updatePolicy.PolicyType, updatePolicy.QueryID, updatePolicy.Title,
 		false, updatePolicy.Description, updatePolicy.Remediation, updatePolicy.Severity, false,
 		updatePolicy.AlertProfile)
 
 	updatePolicyYAML = fmt.Sprintf(`---
-evaluatorId: %s
 policyId: %s
 policyType: %s
 queryId: %s
@@ -125,14 +119,13 @@ remediation: %s
 severity: %s
 alertEnabled: %t
 alertProfile: %s
-`, updatePolicy.EvaluatorID, updatePolicy.PolicyID, updatePolicy.PolicyType, updatePolicy.QueryID, updatePolicy.Title,
+`, updatePolicy.PolicyID, updatePolicy.PolicyType, updatePolicy.QueryID, updatePolicy.Title,
 		false, updatePolicy.Description, updatePolicy.Remediation, updatePolicy.Severity, false,
 		updatePolicy.AlertProfile)
 
 	updatePolicyNestedYAML = fmt.Sprintf(`---
 policies:
-- evaluatorId: %s
-  policyId: %s
+- policyId: %s
   policyType: %s
   queryId: %s
   title: %s
@@ -142,7 +135,7 @@ policies:
   severity: %s
   alertEnabled: %t
   alertProfile: %s
-`, updatePolicy.EvaluatorID, updatePolicy.PolicyID, updatePolicy.PolicyType, updatePolicy.QueryID, updatePolicy.Title,
+`, updatePolicy.PolicyID, updatePolicy.PolicyType, updatePolicy.QueryID, updatePolicy.Title,
 		false, updatePolicy.Description, updatePolicy.Remediation, updatePolicy.Severity, false,
 		updatePolicy.AlertProfile)
 )

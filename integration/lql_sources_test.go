@@ -20,6 +20,7 @@
 package integration
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,6 +46,15 @@ func TestQueryListSourcesTable(t *testing.T) {
 	assert.Contains(t, out.String(), "CloudTrailRawEvents")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// validate sort
+	aRE := regexp.MustCompile("CloudTrailRawEvents")
+	aMatch := aRE.FindStringIndex(out.String())
+
+	zRE := regexp.MustCompile("LW_CFG_AWS_EC2_DHCP_OPTIONS")
+	zMatch := zRE.FindStringIndex(out.String())
+
+	assert.Greater(t, zMatch[0], aMatch[0])
 }
 
 func TestQueryListSourcesJSON(t *testing.T) {
@@ -79,6 +89,7 @@ func TestQueryShowSourceTable(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents")
 	assert.Contains(t, out.String(), "FIELD NAME")
 	assert.Contains(t, out.String(), "INSERT_ID")
+	assert.Contains(t, out.String(), "preview-source")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

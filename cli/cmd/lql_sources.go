@@ -19,6 +19,8 @@
 package cmd
 
 import (
+	"sort"
+
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -58,6 +60,12 @@ func getListQuerySourcesTable(datasources []api.Datasource) (out [][]string) {
 			source.Description,
 		})
 	}
+
+	// order by Name
+	sort.Slice(out, func(i, j int) bool {
+		return out[i][0] < out[j][0]
+	})
+
 	return
 }
 
@@ -126,5 +134,6 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 			getShowQuerySourceTable(datasourceResponse.Data.ResultSchema),
 		),
 	)
+	cli.OutputHuman("\nUse 'lacework query preview-source <datasource_id>' to see an actual result from the data source.\n")
 	return nil
 }

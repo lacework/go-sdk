@@ -152,7 +152,7 @@ func TestQueryRunFile(t *testing.T) {
 	// get temp file
 	file, err := createTemporaryFile(
 		"TestQueryRunFile",
-		fmt.Sprintf(queryJSONTemplate, evaluatorID, queryID, queryText))
+		fmt.Sprintf(queryJSONTemplate, queryID, queryText))
 	if err != nil {
 		t.FailNow()
 	}
