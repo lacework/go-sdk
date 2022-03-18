@@ -31,6 +31,8 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/lacework/go-sdk/api"
 )
@@ -523,7 +525,7 @@ func hostVulnPackagesTable(cves []api.HostVulnCVE, withHosts bool) ([][]string, 
 		for _, pkg := range cve.Packages {
 			pack := packageTable{
 				cveCount:       1,
-				severity:       strings.Title(pkg.Severity),
+				severity:       cases.Title(language.English).String(pkg.Severity),
 				packageName:    pkg.Name,
 				currentVersion: pkg.Version,
 				fixVersion:     pkg.FixedVersion,
@@ -1004,7 +1006,7 @@ func filterHostScanPackagesVulnPackages(vulns []api.HostScanPackageVulnDetails) 
 	for _, vuln := range vulns {
 		pack := packageTable{
 			cveCount:       1,
-			severity:       strings.Title(vuln.Severity),
+			severity:       cases.Title(language.English).String(vuln.Severity),
 			packageName:    vuln.OsPkgInfo.Pkg,
 			currentVersion: vuln.OsPkgInfo.PkgVer,
 		}
