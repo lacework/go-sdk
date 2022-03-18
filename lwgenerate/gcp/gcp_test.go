@@ -355,7 +355,7 @@ var requiredProviders = `terraform {
   required_providers {
     lacework = {
       source  = "lacework/lacework"
-      version = "~> 0.12.2"
+      version = "~> 0.16"
     }
   }
 }
