@@ -38,7 +38,6 @@ var (
 		Tags: []string{"fhqwhgads"},
 	}
 	newPolicy = api.NewPolicy{
-		EvaluatorID:   "Cloudtrail",
 		PolicyID:      policyID,
 		PolicyType:    "Violation",
 		QueryID:       "MyExampleQuery",
@@ -52,7 +51,6 @@ var (
 		AlertProfile:  "LW_CloudTrail_Alerts",
 	}
 	policyCreateData = fmt.Sprintf(`{
-	"evaluatorId": "Cloudtrail",
 	"policyId": "%s",
 	"title": "My Policy Title",
 	"enabled": false,
@@ -71,7 +69,6 @@ var (
 		Title:    "My New Policy Title",
 	}
 	policyUpdateData = fmt.Sprintf(`{
-	"evaluatorId": "Cloudtrail",
 	"policyId": "%s",
 	"title": "My New Policy Title",
 	"enabled": false,

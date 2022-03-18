@@ -42,8 +42,7 @@ var (
 	}
 	executeQuery = api.ExecuteQueryRequest{
 		Query: api.ExecuteQuery{
-			QueryText:   newQueryText,
-			EvaluatorID: queryEvaluator,
+			QueryText: newQueryText,
 		},
 		Arguments: executeQueryArguments,
 	}

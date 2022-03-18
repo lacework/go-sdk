@@ -182,7 +182,6 @@ func showPolicyLibrary(_ *cobra.Command, args []string) error {
 	// parse policy
 	newPolicy, err = api.ParseNewPolicy(policyString)
 	policyResponse.Data = api.Policy{
-		EvaluatorID:   newPolicy.EvaluatorID,
 		PolicyID:      newPolicy.PolicyID,
 		PolicyType:    newPolicy.PolicyType,
 		QueryID:       newPolicy.QueryID,

@@ -19,7 +19,6 @@
 package cmd
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -35,13 +34,6 @@ var (
 		QueryID:   "my_lql",
 		QueryText: `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`,
 	}
-	newQueryJSON = fmt.Sprintf(`{
-	"queryId": "%s",
-	"queryText": "%s"
-	}`, newQuery.QueryID, newQuery.QueryText)
-	newQueryYAML = fmt.Sprintf(`---
-queryId: %s
-queryText: %s`, newQuery.QueryID, newQuery.QueryText)
 )
 
 type parseQueryTimeTest struct {

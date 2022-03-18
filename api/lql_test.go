@@ -32,23 +32,19 @@ import (
 )
 
 var (
-	queryEvaluator = "Cloudtrail"
-	queryID        = "my_lql"
-	newQueryText   = `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`
-	newQuery       = api.NewQuery{
-		EvaluatorID: queryEvaluator,
-		QueryID:     queryID,
-		QueryText:   newQueryText,
+	queryID      = "my_lql"
+	newQueryText = `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`
+	newQuery     = api.NewQuery{
+		QueryID:   queryID,
+		QueryText: newQueryText,
 	}
 	newQueryJSON = fmt.Sprintf(`{
-	"evaluatorId": "%s",
 	"queryId": "%s",
 	"queryText": "%s"
-}`, queryEvaluator, queryID, newQueryText)
+}`, queryID, newQueryText)
 	newQueryYAML = fmt.Sprintf(`---
-evaluatorId: %s
 queryId: %s
-queryText: %s`, newQuery.EvaluatorID, newQuery.QueryID, newQuery.QueryText)
+queryText: %s`, newQuery.QueryID, newQuery.QueryText)
 	lqlErrorReponse = `{ "message": "This is an error message" }`
 )
 
