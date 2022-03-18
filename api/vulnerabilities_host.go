@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/lacework/go-sdk/lwtime"
+	"github.com/pkg/errors"
 )
 
 // HostVulnerabilityService is a service that interacts with the vulnerabilities
@@ -67,6 +68,10 @@ func (svc *HostVulnerabilityService) ListHostsWithCVE(id string) (
 	response hostVulnListHostsResponse,
 	err error,
 ) {
+	if id == "" {
+		err = errors.New("CVE id cannot be empty")
+		return
+	}
 	apiPath := fmt.Sprintf(apiVulnerabilitiesListHostsWithCveID, id)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
