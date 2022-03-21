@@ -3,7 +3,7 @@ default: ci
 ci: lint test fmt-check imports-check integration
 
 # Tooling versions
-GOLANGCILINTVERSION?=1.23.8
+GOLANGCILINTVERSION?=1.45.0
 GOIMPORTSVERSION?=v0.1.8
 GOXVERSION?=v1.0.1
 GOTESTSUMVERSION?=v1.7.0
