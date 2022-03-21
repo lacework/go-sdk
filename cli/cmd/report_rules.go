@@ -27,11 +27,12 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/structs"
+	"github.com/lacework/go-sdk/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/lacework/go-sdk/api"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var (
@@ -220,8 +221,7 @@ func buildReportRuleDetailsTable(rule api.ReportRule) string {
 	sort.Strings(keys)
 
 	for _, key := range keys {
-		enabled := strings.Title(strconv.FormatBool(notifcationsMap[key]))
-		notifications = append(notifications, []string{key, enabled})
+		notifications = append(notifications, []string{key, cases.Title(language.English).String(strconv.FormatBool(notifcationsMap[key]))})
 	}
 
 	detailsTable.WriteString(renderCustomTable([]string{"NOTIFICATION TYPES", "ENABLED"}, notifications,
