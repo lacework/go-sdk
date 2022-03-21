@@ -53,7 +53,11 @@ func TestQueryList(t *testing.T) {
 	zRE := regexp.MustCompile("LW_Global_AWS_CTA_NewCustomerMasterKey")
 	zMatch := zRE.FindStringIndex(out.String())
 
-	assert.Greater(t, zMatch[0], aMatch[0])
+	if len(zMatch) == 0 || len(aMatch) == 0 {
+		t.FailNow()
+	} else {
+		assert.Greater(t, zMatch[0], aMatch[0])
+	}
 
 	// list json
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "list", "--json")

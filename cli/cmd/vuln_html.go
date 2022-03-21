@@ -29,6 +29,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/databox"
@@ -340,7 +342,7 @@ func vulContainerImageLayersToHTML(image *api.VulnContainerImage) []htmlVuln {
 
 				newHtmlVuln := htmlVuln{
 					CVE:               vul.Name,
-					Severity:          strings.Title(vul.Severity),
+					Severity:          cases.Title(language.English).String(vul.Severity),
 					SeverityHTMLClass: vul.Severity,
 					PkgName:           pkg.Name,
 					PkgVersion:        pkg.Version,

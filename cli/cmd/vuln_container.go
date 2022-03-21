@@ -29,6 +29,8 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
@@ -728,7 +730,7 @@ func filterVulnContainerImagePackages(image *api.VulnContainerImage) filteredPac
 			for _, vul := range pkg.Vulnerabilities {
 				pack := packageTable{
 					cveCount:       1,
-					severity:       strings.Title(vul.Severity),
+					severity:       cases.Title(language.English).String(vul.Severity),
 					packageName:    pkg.Name,
 					currentVersion: pkg.Version,
 					fixVersion:     vul.FixVersion,
@@ -809,7 +811,7 @@ func filterVulContainerImageLayers(image *api.VulnContainerImage) filteredImageT
 
 				vulns = append(vulns, vulnTable{
 					Name:           vul.Name,
-					Severity:       strings.Title(vul.Severity),
+					Severity:       cases.Title(language.English).String(vul.Severity),
 					PackageName:    pkg.Name,
 					CurrentVersion: pkg.Version,
 					FixVersion:     vul.FixVersion,
