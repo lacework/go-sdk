@@ -119,7 +119,7 @@ func (c *cliState) LoadLCL() (*LaceworkContentLibrary, error) {
 	return lcl, nil
 }
 
-func (lcl LaceworkContentLibrary) run(path string) (string, error) {
+func (lcl *LaceworkContentLibrary) run(path string) (string, error) {
 	if lcl.Component == nil || lcl.Component.Status() != lwcomponent.Installed {
 		return "", errors.New("Lacework Content Library is not installed")
 	}
@@ -127,7 +127,7 @@ func (lcl LaceworkContentLibrary) run(path string) (string, error) {
 	return stdout, err
 }
 
-func (lcl LaceworkContentLibrary) getReferenceForQuery(id string) (LCLReference, error) {
+func (lcl *LaceworkContentLibrary) getReferenceForQuery(id string) (LCLReference, error) {
 	var ref LCLReference
 
 	if id == "" {
@@ -142,7 +142,7 @@ func (lcl LaceworkContentLibrary) getReferenceForQuery(id string) (LCLReference,
 	return lcl.Queries[id].References[0], nil
 }
 
-func (lcl LaceworkContentLibrary) getReferencesForPolicy(id string) ([]LCLReference, error) {
+func (lcl *LaceworkContentLibrary) getReferencesForPolicy(id string) ([]LCLReference, error) {
 	var refs []LCLReference
 
 	if id == "" {
@@ -157,7 +157,7 @@ func (lcl LaceworkContentLibrary) getReferencesForPolicy(id string) ([]LCLRefere
 	return lcl.Policies[id].References, nil
 }
 
-func (lcl LaceworkContentLibrary) GetQuery(id string) (string, error) {
+func (lcl *LaceworkContentLibrary) GetQuery(id string) (string, error) {
 	// get query reference
 	ref, err := lcl.getReferenceForQuery(id)
 	if err != nil {
@@ -171,7 +171,7 @@ func (lcl LaceworkContentLibrary) GetQuery(id string) (string, error) {
 	return lcl.run(ref.Path)
 }
 
-func (lcl LaceworkContentLibrary) GetPolicy(id string) (string, error) {
+func (lcl *LaceworkContentLibrary) GetPolicy(id string) (string, error) {
 	// get policy references
 	refs, err := lcl.getReferencesForPolicy(id)
 	if err != nil {
@@ -185,7 +185,7 @@ func (lcl LaceworkContentLibrary) GetPolicy(id string) (string, error) {
 	return lcl.run(ref.Path)
 }
 
-func (lcl LaceworkContentLibrary) GetPoliciesByTag(t string) map[string]LCLPolicy {
+func (lcl *LaceworkContentLibrary) GetPoliciesByTag(t string) map[string]LCLPolicy {
 	var (
 		policies  map[string]LCLPolicy = map[string]LCLPolicy{}
 		policyIDs []string
