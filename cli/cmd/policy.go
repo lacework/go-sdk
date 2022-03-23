@@ -290,11 +290,11 @@ func sortPolicyTable(out [][]string, policyIDIndex int) {
 		// both regexes must have proper lengths since we'll be using...
 		// ...direct access from here on out
 		if iMatch == nil || jMatch == nil || len(iMatch) != 3 || len(jMatch) != 3 {
-			return out[i][0] < out[j][0]
+			return out[i][policyIDIndex] < out[j][policyIDIndex]
 		}
 		// if string portions aren't the same
 		if iMatch[1] != jMatch[1] {
-			return out[i][0] < out[j][0]
+			return out[i][policyIDIndex] < out[j][policyIDIndex]
 		}
 		// if string portions are the same; compare based on ints
 		// no error checking needed for Atoi since use regexp \d+
