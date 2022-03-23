@@ -20,7 +20,6 @@
 package integration
 
 const (
-	evaluatorID       string = "Cloudtrail"
 	queryID           string = "LW_CLI_AWS_CTA_IntegrationTest"
 	queryHostID       string = "LW_CLI_Host_Files_IntegrationTest"
 	queryText         string = "{ source { CloudTrailRawEvents } return { INSERT_ID } }"
