@@ -29,11 +29,6 @@ func main() {
 		support := "Unsupported"
 		switch account.Type {
 		case api.AwsCtSqsCloudAccount.String():
-			//case api.AwsCfgCloudAccount:
-			//case api.GcpCfgCloudAccount:
-			//case api.GcpAtSesCloudAccount:
-			support = "Supported"
-		case api.AwsEksAuditCloudAccount.String():
 			support = "Supported"
 		}
 
@@ -87,26 +82,4 @@ func main() {
 
 	// Output: AwsCtSqs Cloud Account created: THE-INTEGRATION-GUID
 	fmt.Printf("Cloud Account created: %s", awsCtSqsResponse.Data.IntgGuid)
-
-	awsEksAuditData := api.AwsEksAuditData{
-		Credentials: api.AwsEksAuditCredentials{
-			RoleArn:    "arn:aws:iam::123456789000:role/lw-iam-b8c91298",
-			ExternalID: "abc123",
-		},
-		SnsArn: "arn:aws:sns:us-west-2:0123456789:foo-lacework-eks:00777777-ab77-1234-a123-a12ab1d12c1d",
-	}
-
-	awsEksAuditCloudAccount := api.NewCloudAccount(
-		"cloud-from-golang",
-		api.AwsEksAuditCloudAccount,
-		awsEksAuditData,
-	)
-
-	awsEksAuditResponse, err := orgLwClient.V2.CloudAccounts.Create(awsEksAuditCloudAccount)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Output: AwsEksAudit Cloud Account created: THE-INTEGRATION-GUID
-	fmt.Printf("Cloud Account created: %s", awsEksAuditResponse.Data.IntgGuid)
 }

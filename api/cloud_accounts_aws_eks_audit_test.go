@@ -30,56 +30,6 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestCloudAccountsNewAwsEksAuditWithCustomTemplateFile(t *testing.T) {
-	accountMappingJSON := []byte(`{
-    "defaultLaceworkAccountAws": "lw_account_1",
-    "integration_mappings": {
-      "lw_account_2": {
-        "aws_accounts": [
-          "234556677",
-          "774564564"
-        ]
-      },
-      "lw_account_3": {
-        "aws_accounts": [
-          "553453453",
-          "934534535"
-        ]
-      }
-    }
-  }`)
-	awsCtSqsData := api.AwsCtSqsData{
-		QueueUrl: "https://sqs.us-west-2.amazonaws.com/123456789000/lw",
-		Credentials: api.AwsCtSqsCredentials{
-			RoleArn:    "arn:foo:bar",
-			ExternalID: "0123456789",
-		},
-	}
-	awsCtSqsData.EncodeAccountMappingFile(accountMappingJSON)
-
-	subject := api.NewCloudAccount("integration_name", api.AwsCtSqsCloudAccount, awsCtSqsData)
-	assert.Equal(t, api.AwsCtSqsCloudAccount.String(), subject.Type)
-
-	// casting the data interface{} to type AwsCtSqsData
-	subjectData := subject.Data.(api.AwsCtSqsData)
-
-	assert.Contains(t,
-		subjectData.AccountMappingFile,
-		"data:application/json;name=i.json;base64,",
-		"check the custom_template_file encoder",
-	)
-	accountMapping, err := subjectData.DecodeAccountMappingFile()
-	assert.Nil(t, err)
-	assert.Equal(t, accountMappingJSON, accountMapping)
-
-	// When there is no custom account mapping file, this function should
-	// return an empty string to match the pattern
-	subjectData.AccountMappingFile = ""
-	accountMapping, err = subjectData.DecodeAccountMappingFile()
-	assert.Nil(t, err)
-	assert.Empty(t, accountMapping)
-}
-
 func TestCloudAccountsAwsEksAuditGet(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
