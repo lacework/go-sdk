@@ -29,9 +29,6 @@ func main() {
 		support := "Unsupported"
 		switch account.Type {
 		case api.AwsCtSqsCloudAccount.String():
-			//case api.AwsCfgCloudAccount:
-			//case api.GcpCfgCloudAccount:
-			//case api.GcpAtSesCloudAccount:
 			support = "Supported"
 		}
 
@@ -63,7 +60,7 @@ func main() {
                               }
                             }`))
 
-	myCloudAccount := api.NewCloudAccount(
+	awsCtSqsCloudAccount := api.NewCloudAccount(
 		"cloud-from-golang",
 		api.AwsCtSqsCloudAccount,
 		awsCtSqsData,
@@ -78,11 +75,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	response, err := orgLwClient.V2.CloudAccounts.Create(myCloudAccount)
+	awsCtSqsResponse, err := orgLwClient.V2.CloudAccounts.Create(awsCtSqsCloudAccount)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Output: Cloud Account created: THE-INTEGRATION-GUID
-	fmt.Printf("Cloud Account created: %s", response.Data.IntgGuid)
+	// Output: AwsCtSqs Cloud Account created: THE-INTEGRATION-GUID
+	fmt.Printf("Cloud Account created: %s", awsCtSqsResponse.Data.IntgGuid)
 }
