@@ -28,6 +28,9 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var (
@@ -279,6 +282,7 @@ func policySyncOpsDetails(psos []PolicySyncOperation) string {
 		ops             = []string{"Operation details:"}
 		detailTemplate  = "  %s %s will be %sd."
 		validOperations = []string{"policy-create", "policy-update", "query-create", "query-update"}
+		caser           = cases.Title(language.Und)
 	)
 
 	for _, pso := range psos {
@@ -290,7 +294,7 @@ func policySyncOpsDetails(psos []PolicySyncOperation) string {
 
 		ops = append(ops, fmt.Sprintf(
 			detailTemplate,
-			strings.Title(pso.ContentType),
+			caser.String(pso.ContentType),
 			pso.ID,
 			pso.Operation,
 		))
