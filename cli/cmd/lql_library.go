@@ -19,6 +19,8 @@
 package cmd
 
 import (
+	"sort"
+
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -52,6 +54,10 @@ func getListQueryLibraryTable(queries map[string]LCLQuery) (out [][]string) {
 	for id := range queries {
 		out = append(out, []string{id})
 	}
+	// order by ID
+	sort.Slice(out, func(i, j int) bool {
+		return out[i][0] < out[j][0]
+	})
 	return
 }
 

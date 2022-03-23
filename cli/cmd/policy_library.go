@@ -100,6 +100,7 @@ func policyLibraryTable(policies map[string]LCLPolicy) (out [][]string) {
 			strings.Join(policy.Tags, "\n"),
 		})
 	}
+	sortPolicyTable(out, 0)
 	return
 }
 
