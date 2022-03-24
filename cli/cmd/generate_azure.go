@@ -15,10 +15,10 @@ import (
 
 var (
 	// Define question text here so they can be reused in testing
-	QuestionAzureEnableConfig = "Enable Azure Config Integration?"
-	QuestionAzureConfigName   = "Specify custom Config integration name: (optional)"
+	QuestionAzureEnableConfig = "Enable Azure configuration integration?"
+	QuestionAzureConfigName   = "Specify custom configuration integration name: (optional)"
 	QuestionEnableActivityLog = "Enable Azure Activity Log Integration?"
-	QuestionActivityLogName   = "Specify custom Activity Log integration name: (optional"
+	QuestionActivityLogName   = "Specify custom Activity Log integration name: (optional)"
 
 	QuestionAzureAnotherAdvancedOpt      = "Configure another advanced integration option"
 	QuestionAzureConfigAdvanced          = "Configure advanced integration options?"
@@ -143,20 +143,21 @@ var (
 
 	// Azure command used to generate TF code for azure
 	generateAzureTfCommand = &cobra.Command{
-		Use:   "az",
-		Short: "Generate and/or execute Terraform code for Azure integration",
+		Use:     "azure",
+		Aliases: []string{"az"},
+		Short:   "Generate and/or execute Terraform code for Azure integration",
 		Long: `Use this command to generate Terraform code for deploying Lacework into new Azure environment.
 
-		By default, this command will function interactively, prompting for the required information to setup the new cloud account. In interactive mode, this command will:
+By default, this command will function interactively, prompting for the required information to setup the new cloud account. In interactive mode, this command will:
 		
-		* Prompt for the required information to setup the integration
-		* Generate new Terraform code using the inputs
-		* Optionally, run the generated Terraform code:
-		  * If Terraform is already installed, the version will be confirmed suitable for use
-			* If Terraform is not installed, or the version installed is not suitable, a new version will be installed into a temporary location
-			* Once Terraform is detected or installed, Terraform plan will be executed
-			* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
-			* If confirmed, Terraform apply will be run, completing the setup of the cloud account
+* Prompt for the required information to setup the integration
+* Generate new Terraform code using the inputs
+* Optionally, run the generated Terraform code:
+  * If Terraform is already installed, the version will be confirmed suitable for use
+	* If Terraform is not installed, or the version installed is not suitable, a new version will be installed into a temporary location
+	* Once Terraform is detected or installed, Terraform plan will be executed
+	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
+	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Generate TF Code
@@ -334,21 +335,21 @@ func initGenerateAzureTfCommandFlags() {
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.ActivityLogIntegrationName,
-		"activity_name",
+		"activity_log_integration_name",
 		"",
-		"specify name of activity log, if none given will default to TF activity log")
+		"specify a custom activity log integration name")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.Config,
 		"config",
 		false,
-		"enable config integration")
+		"enable configuration integration")
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.ConfigIntegrationName,
 		"config_name",
 		"",
-		"specify a custom config integration name")
+		"specify a custom configuration integration name")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.CreateAdIntegration,
@@ -358,13 +359,13 @@ func initGenerateAzureTfCommandFlags() {
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.ManagementGroup,
-		"mgmt_group",
+		"management_group",
 		false,
 		"management group level integration")
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.ManagementGroupId,
-		"mgmt_group_id",
+		"management_group_id",
 		"",
 		"specify management group id. Required if mgmt_group provided")
 
@@ -394,7 +395,7 @@ func initGenerateAzureTfCommandFlags() {
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.AllSubscriptions,
-		"all_subs",
+		"all_subscriptions",
 		false,
 		"grant read access to ALL subscriptions within Tenant (overrides `subscription ids`)")
 
@@ -588,7 +589,7 @@ func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, ext
 	for answer != AzureAdvancedOptDone {
 
 		// Set the initial options
-		options := []string{AzureUserIntegrationNames, AzureExistingStorageAcount, AzureSubscriptions}
+		options := []string{AzureUserIntegrationNames, AzureSubscriptions}
 		// Only ask about Active Directory information if one was requested to be created
 		if !config.CreateAdIntegration {
 			options = append(options, AdvancedAdIntegration)
@@ -597,6 +598,7 @@ func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, ext
 		// Only show Region Storage options in the case of Activity Log integration
 		if config.ActivityLog {
 			options = append(options, AzureRegionStorage)
+			options = append(options, AzureExistingStorageAcount)
 		}
 
 		// Only show management options in the case of Config integration

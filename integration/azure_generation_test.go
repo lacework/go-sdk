@@ -28,6 +28,7 @@ func expectAzureString(c *expect.Console, str string, runError *error) {
 // Test failing due to no selection
 func TestGenerationAzureErrorOnNoSelection(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
+	os.Setenv("LW_CLI_BIN", "lacework")
 	defer os.Setenv("LW_NOCACHE", "")
 	var runError error
 
@@ -236,7 +237,6 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 			c.SendLine("y")
 
 			expectAzureString(c, cmd.AzureAdvancedOptLocation, &runError)
-			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
 
@@ -490,7 +490,6 @@ func TestGenerationAzureConfigAllSubs(t *testing.T) {
 			c.SendLine("y")
 
 			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
 
 			expectAzureString(c, cmd.QuestionEnableAllSubscriptions, &runError)
@@ -540,7 +539,6 @@ func TestGenerationAzureConfigMgmntGroup(t *testing.T) {
 
 			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
 			c.Send("\x1B[B")
-			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
 
 			expectAzureString(c, cmd.QuestionEnableManagementGroup, &runError)
@@ -571,62 +569,6 @@ func TestGenerationAzureConfigMgmntGroup(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test generate Config with storage account
-func TestGenerationAzureConfigStorageAccount(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	var runError error
-	var storageAccountName string = "test-storage-account-name"
-	var storageResourceGrp string = "test-storage-account-resource-group"
-
-	// Run CLI
-	tfResult := runGenerateAzureTest(t,
-		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
-
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.SendLine("\x1B[B")
-
-			expectAzureString(c, cmd.QuestionUseExistingStorageAccount, &runError)
-			c.SendLine("y")
-
-			expectAzureString(c, cmd.QuestionStorageAccountName, &runError)
-			c.SendLine(storageAccountName)
-			expectAzureString(c, cmd.QuestionStorageAccountResourceGroup, &runError)
-			c.SendLine(storageResourceGrp)
-
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
-			final, _ = c.ExpectEOF()
-		},
-		"cloud",
-		"iac",
-		"az",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Nil(t, runError)
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, false, true,
-		azure.WithExistingStorageAccount(true),
-		azure.WithStorageAccountName(storageAccountName),
-		azure.WithStorageAccountResourceGroup(storageResourceGrp),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
 // Test generate Config log with subscription ids
 func TestGenerationAzureConfigSubs(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
@@ -648,7 +590,6 @@ func TestGenerationAzureConfigSubs(t *testing.T) {
 			c.SendLine("y")
 
 			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
 
 			expectAzureString(c, cmd.QuestionEnableAllSubscriptions, &runError)
@@ -700,7 +641,6 @@ func TestGenerationAzureActivityLogSubs(t *testing.T) {
 			c.SendLine("y")
 
 			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
 
 			expectAzureString(c, cmd.QuestionEnableAllSubscriptions, &runError)
@@ -753,6 +693,8 @@ func TestGenerationAzureActivityLogStorageAccount(t *testing.T) {
 			c.SendLine("y")
 
 			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
+			c.Send("\x1B[B")
+			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
 
 			expectAzureString(c, cmd.QuestionUseExistingStorageAccount, &runError)
@@ -807,7 +749,6 @@ func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 			c.SendLine("y")
 
 			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
 
 			expectAzureString(c, cmd.QuestionEnableAllSubscriptions, &runError)
@@ -856,7 +797,6 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 			c.SendLine("y")
 
 			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
 
