@@ -28,7 +28,6 @@ func expectAzureString(c *expect.Console, str string, runError *error) {
 // Test failing due to no selection
 func TestGenerationAzureErrorOnNoSelection(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
-	os.Setenv("LW_CLI_BIN", "lacework")
 	defer os.Setenv("LW_NOCACHE", "")
 	var runError error
 
