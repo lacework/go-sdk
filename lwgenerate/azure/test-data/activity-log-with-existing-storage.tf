@@ -27,9 +27,9 @@ module "az_ad_application" {
 module "az_activity_log" {
   source                         = "lacework/activity-log/azure"
   version                        = "~> 1.0"
-  application_id                 = "module.az_ad_application.application_id"
-  application_password           = "module.az_ad_application.application_password"
-  service_principal_id           = "module.az_ad_application.service_principal_id"
+  application_id                 = module.az_ad_application.application_id
+  application_password           = module.az_ad_application.application_password
+  service_principal_id           = module.az_ad_application.service_principal_id
   storage_account_name           = "Test-Storage-Account-Name"
   storage_account_resource_group = "Test-Storage-Account-Resource-Group"
   use_existing_ad_application    = true

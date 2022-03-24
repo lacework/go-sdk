@@ -27,10 +27,10 @@ module "az_ad_application" {
 module "az_config" {
   source                      = "lacework/config/azure"
   version                     = "~> 1.0"
-  application_id              = "module.az_ad_application.application_id"
-  application_password        = "module.az_ad_application.application_password"
+  application_id              = module.az_ad_application.application_id
+  application_password        = module.az_ad_application.application_password
   management_group_id         = "test-management-group-1"
-  service_principal_id        = "module.az_ad_application.service_principal_id"
+  service_principal_id        = module.az_ad_application.service_principal_id
   use_existing_ad_application = true
   use_management_group        = true
 }
