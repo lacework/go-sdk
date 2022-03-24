@@ -168,6 +168,7 @@ By default, this command will function interactively, prompting for the required
 				azure.WithAllSubscriptions(GenerateAzureCommandState.AllSubscriptions),
 				azure.WithManagementGroup(GenerateAzureCommandState.ManagementGroup),
 				azure.WithExistingStorageAccount(GenerateAzureCommandState.ExistingStorageAccount),
+				azure.WithStorageAccountName(GenerateAzureCommandState.StorageAccountName),
 				azure.WithStorageLocation(GenerateAzureCommandState.StorageLocation),
 				azure.WithActivityLogIntegrationName(GenerateAzureCommandState.ActivityLogIntegrationName),
 				azure.WithConfigIntegrationName(GenerateAzureCommandState.ConfigIntegrationName),
@@ -194,7 +195,6 @@ By default, this command will function interactively, prompting for the required
 
 			// Check storage account
 			if GenerateAzureCommandState.ExistingStorageAccount {
-				mods = append(mods, azure.WithStorageAccountName(GenerateAzureCommandState.StorageAccountName))
 				mods = append(mods, azure.WithStorageAccountResourceGroup(GenerateAzureCommandState.StorageAccountResourceGroup))
 			}
 
@@ -465,7 +465,6 @@ func promptAzureStorageAccountQuestions(config *azure.GenerateAzureTfConfigurati
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionStorageAccountName, Default: config.StorageAccountName},
-			Checks:   []*bool{&config.ExistingStorageAccount},
 			Required: true,
 			Response: &config.StorageAccountName,
 		},
@@ -699,15 +698,15 @@ func promptAzureGenerate(config *azure.GenerateAzureTfConfigurationArgs, extraSt
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
-				Prompt:   &survey.Confirm{Message: QuestionAzureEnableConfig, Default: true},
+				Prompt:   &survey.Confirm{Message: QuestionAzureEnableConfig, Default: false},
 				Response: &config.Config,
 			},
 			{
-				Prompt:   &survey.Confirm{Message: QuestionEnableActivityLog, Default: true},
+				Prompt:   &survey.Confirm{Message: QuestionEnableActivityLog, Default: false},
 				Response: &config.ActivityLog,
 			},
 			{
-				Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: true},
+				Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: false},
 				Response: &config.CreateAdIntegration,
 			},
 		}); err != nil {

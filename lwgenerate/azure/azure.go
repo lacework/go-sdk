@@ -417,10 +417,14 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 			attributes["all_subscriptions"] = args.AllSubscriptions
 		}
 
+		// Set storage account name, if set
+		if args.StorageAccountName != "" {
+			attributes["storage_account_name"] = args.StorageAccountName
+		}
+
 		// Set storage info if existing storage flag is set
 		if args.ExistingStorageAccount {
 			attributes["use_existing_storage_account"] = args.ExistingStorageAccount
-			attributes["storage_account_name"] = args.StorageAccountName
 			attributes["storage_account_resource_group"] = args.StorageAccountResourceGroup
 		}
 
