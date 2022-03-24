@@ -341,13 +341,13 @@ func initGenerateAzureTfCommandFlags() {
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.Config,
-		"config",
+		"configuration",
 		false,
 		"enable configuration integration")
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.ConfigIntegrationName,
-		"config_name",
+		"configuration_name",
 		"",
 		"specify a custom configuration integration name")
 
@@ -383,7 +383,7 @@ func initGenerateAzureTfCommandFlags() {
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.StorageAccountResourceGroup,
-		"strg_res_group",
+		"storage_resource_group",
 		"",
 		"specify storage resource group")
 
@@ -401,7 +401,7 @@ func initGenerateAzureTfCommandFlags() {
 
 	generateAzureTfCommand.PersistentFlags().StringSliceVar(
 		&GenerateAzureCommandState.SubscriptionIds,
-		"sub_ids",
+		"subscription_ids",
 		[]string{},
 		`list of subscriptions to grant read access; format is id1,id2,id3`)
 
