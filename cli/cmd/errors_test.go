@@ -82,6 +82,14 @@ func TestVulnerabilityPolicyErrorShouldNotFailOnSeverityCriticalFailOnFixable(t 
 	assert.True(t, mockPolicy.Compliant(), "policy should be compliant")
 }
 
+func TestVulnerabilityPolicyErrorShouldNotFailOnSeverityCriticalFailWithNoVulns(t *testing.T) {
+	mockAssessment := mockVulnAssessment{"unknown", "unknown", 0}
+	mockPolicy := NewVulnerabilityPolicyError(&mockAssessment, "critical", false)
+
+	assert.False(t, mockPolicy.NonCompliant(), "policy should be compliant")
+	assert.True(t, mockPolicy.Compliant(), "policy should be compliant")
+}
+
 func TestVulnerabilityPolicyErrorShouldNotFailOnFixable(t *testing.T) {
 	mockAssessment := mockVulnAssessment{"medium", "", 0}
 	mockPolicy := NewVulnerabilityPolicyError(&mockAssessment, "", true)
