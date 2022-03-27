@@ -20,6 +20,8 @@ package api
 
 import (
 	"fmt"
+
+	"github.com/lacework/go-sdk/lwtime"
 )
 
 // AgentsService is a service that interacts with the Agent Access Tokens
@@ -96,7 +98,7 @@ type AgentTokensResponse struct {
 type AgentToken struct {
 	AccessToken     string           `json:"ACCESS_TOKEN"`
 	Account         string           `json:"ACCOUNT"`
-	LastUpdatedTime *Json16DigitTime `json:"LAST_UPDATED_TIME"`
+	LastUpdatedTime *lwtime.Epoch    `json:"LAST_UPDATED_TIME"`
 	Props           *AgentTokenProps `json:"PROPS,omitempty"`
 	TokenAlias      string           `json:"TOKEN_ALIAS"`
 	Enabled         string           `json:"TOKEN_ENABLED"`
@@ -128,6 +130,6 @@ type AgentTokenRequest struct {
 }
 
 type AgentTokenProps struct {
-	CreatedTime *Json16DigitTime `json:"CREATED_TIME,omitempty"`
-	Description string           `json:"DESCRIPTION,omitempty"`
+	CreatedTime *lwtime.Epoch `json:"CREATED_TIME,omitempty"`
+	Description string        `json:"DESCRIPTION,omitempty"`
 }

@@ -19,6 +19,8 @@
 package cmd
 
 import (
+	"sort"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -26,48 +28,62 @@ import (
 )
 
 var (
-	// lqlListCmd represents the lql list command
-	lqlListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "list LQL queries",
-		Long:  `List LQL queries.`,
-		Args:  cobra.NoArgs,
-		RunE:  listQueries,
+	// queryListCmd represents the lql list command
+	queryListCmd = &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List queries",
+		Long:    `List all LQL queries in your Lacework account.`,
+		Args:    cobra.NoArgs,
+		RunE:    listQueries,
 	}
 )
 
 func init() {
-	lqlCmd.AddCommand(lqlListCmd)
+	queryCmd.AddCommand(queryListCmd)
 }
 
-func queryIDTable(queryData []api.LQLQuery) (out [][]string) {
-	for _, lqlQuery := range queryData {
+func queryTable(queryData []api.Query) (out [][]string) {
+	for _, query := range queryData {
 		out = append(out, []string{
-			lqlQuery.ID,
+			query.QueryID,
+			query.Owner,
+			query.LastUpdateTime,
+			query.LastUpdateUser,
 		})
 	}
+
+	// order by ID
+	sort.Slice(out, func(i, j int) bool {
+		return out[i][0] < out[j][0]
+	})
+
 	return
 }
 
 func listQueries(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("listing LQL queries")
+	cli.Log.Debugw("listing queries")
 
-	queryResponse, err := cli.LwApi.LQL.GetQueries()
-
+	cli.StartProgress(" Retrieving queries...")
+	queryResponse, err := cli.LwApi.V2.Query.List()
+	cli.StopProgress()
 	if err != nil {
-		return errors.Wrap(err, "unable to list LQL queries")
+		return errors.Wrap(err, "unable to list queries")
 	}
-	if cli.JSONOutput() {
-		return cli.OutputJSON(queryResponse.Data)
-	}
+
 	if len(queryResponse.Data) == 0 {
 		cli.OutputHuman("There were no queries found.")
 		return nil
 	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(queryResponse.Data)
+	}
+
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"Query ID"},
-			queryIDTable(queryResponse.Data),
+			[]string{"Query ID", "Owner", "Last Update Time", "Last Update User"},
+			queryTable(queryResponse.Data),
 		),
 	)
 	return nil

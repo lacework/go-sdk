@@ -20,8 +20,11 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -56,13 +59,18 @@ var (
 
 		// Filter the recommendations table by status
 		Status string
+
+		// output resources affected by recommendationID
+		RecommendationID string
 	}{Type: "CIS"}
+
+	RecommendationIDRegex = "^[A-Z]+[A-Z_]*[0-9]*"
 
 	// complianceCmd represents the compliance command
 	complianceCmd = &cobra.Command{
 		Use:     "compliance",
 		Aliases: []string{"comp"},
-		Short:   "manage compliance reports",
+		Short:   "Manage compliance reports",
 		Long: `Manage compliance reports for Google, Azure, or AWS cloud providers.
 
 Lacework cloud security platform provides continuous Compliance monitoring against
@@ -71,7 +79,7 @@ HIPAA benchmark standards.
 
 Get started by integrating one or more cloud accounts using the command:
 
-    $ lacework integration create
+    lacework integration create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -81,7 +89,7 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 Use the following command to list all available integrations in your account:
 
-    $ lacework integrations list
+    lacework integrations list
 `,
 	}
 
@@ -89,26 +97,26 @@ Use the following command to list all available integrations in your account:
 	complianceAzureCmd = &cobra.Command{
 		Use:     "azure",
 		Aliases: []string{"az"},
-		Short:   "compliance for Azure Cloud",
+		Short:   "Compliance for Azure Cloud",
 		Long: `Manage compliance reports for Azure Cloud.
 
-To list all Azure Tenants configured in your account:
+To list all Azure tenants configured in your account:
 
-    $ lacework compliance azure list-tenants
+    lacework compliance azure list-tenants
 
-To list all Azure Subscriptions from a Tenant, use the command:
+To list all Azure subscriptions from a tenant, use the command:
 
-    $ lacework compliance azure list-subscriptions <tenant_id>
+    lacework compliance azure list-subscriptions <tenant_id>
 
 To get the latest Azure compliance assessment report, use the command:
 
-    $ lacework compliance azure get-report <tenant_id> <subscriptions_id>
+    lacework compliance azure get-report <tenant_id> <subscription_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance azure run-assessment <tenant_id>
+    lacework compliance azure run-assessment <tenant_id>
 `,
 	}
 
@@ -116,54 +124,48 @@ To run an ad-hoc compliance assessment use the command:
 	complianceGcpCmd = &cobra.Command{
 		Use:     "google",
 		Aliases: []string{"gcp"},
-		Short:   "compliance for Google Cloud",
+		Short:   "Compliance for Google Cloud",
 		Long: `Manage compliance reports for Google Cloud.
 
-To get the latest GCP compliance assessment report, use the command:
+To list all GCP organizations and projects configured in your account:
 
-    $ lacework compliance gcp get-report <organization_id> <project_id>
-
-These reports run on a regular schedule, typically once a day.
-
-To find out which GCP organizations/projects are connected to your
-Lacework account, use the following command:
-
-    $ lacework integrations list --type GCP_CFG
-
-Then, choose one integration, copy the GUID and visualize its details
-using the command:
-
-    $ lacework integration show <int_guid>
+    lacework compliance gcp list
 
 To list all GCP projects from an organization, use the command:
 
-    $ lacework compliance gcp list-projects <organization_id>
+    lacework compliance gcp list-projects <organization_id>
+
+To get the latest GCP compliance assessment report, use the command:
+
+    lacework compliance gcp get-report <organization_id> <project_id>
+
+These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment use the command:
 
-    $ lacework compliance gcp run-assessment <org_or_project_id>
+    lacework compliance gcp run-assessment <org_or_project_id>
 `,
 	}
 
 	// complianceAwsCmd represents the aws sub-command inside the compliance command
 	complianceAwsCmd = &cobra.Command{
 		Use:   "aws",
-		Short: "compliance for AWS",
+		Short: "Compliance for AWS",
 		Long: `Manage compliance reports for Amazon Web Services (AWS).
 
 To list all AWS accounts configured in your account:
 
-    $ lacework compliance aws list-accounts
+    lacework compliance aws list-accounts
 
 To get the latest AWS compliance assessment report:
 
-    $ lacework compliance aws get-report <account_id>
+    lacework compliance aws get-report <account_id>
 
 These reports run on a regular schedule, typically once a day.
 
 To run an ad-hoc compliance assessment:
 
-    $ lacework compliance aws run-assessment <account_id>
+    lacework compliance aws run-assessment <account_id>
 `,
 	}
 )
@@ -184,11 +186,11 @@ func complianceReportSummaryTable(summaries []api.ComplianceSummary) [][]string 
 	}
 	summary := summaries[0]
 	return [][]string{
-		[]string{"Critical", fmt.Sprint(summary.NumSeverity1NonCompliance)},
-		[]string{"High", fmt.Sprint(summary.NumSeverity2NonCompliance)},
-		[]string{"Medium", fmt.Sprint(summary.NumSeverity3NonCompliance)},
-		[]string{"Low", fmt.Sprint(summary.NumSeverity4NonCompliance)},
-		[]string{"Info", fmt.Sprint(summary.NumSeverity5NonCompliance)},
+		{"Critical", fmt.Sprint(summary.NumSeverity1NonCompliance)},
+		{"High", fmt.Sprint(summary.NumSeverity2NonCompliance)},
+		{"Medium", fmt.Sprint(summary.NumSeverity3NonCompliance)},
+		{"Low", fmt.Sprint(summary.NumSeverity4NonCompliance)},
+		{"Info", fmt.Sprint(summary.NumSeverity5NonCompliance)},
 	}
 }
 
@@ -201,9 +203,102 @@ func complianceReportRecommendationsTable(recommendations []api.ComplianceRecomm
 			recommend.Status,
 			recommend.SeverityString(),
 			recommend.Service,
-			fmt.Sprint(recommend.ResourceCount),
+			fmt.Sprint(len(recommend.Violations)),
 			fmt.Sprint(recommend.AssessedResourceCount),
 		})
+	}
+
+	sort.Slice(out, func(i, j int) bool {
+		return severityOrder(out[i][3]) < severityOrder(out[j][3])
+	})
+
+	return out
+}
+
+type complianceCSVReportDetails struct {
+	// For clouds with tenant models, supply tenant ID
+	TenantID string
+
+	// For clouds with tenant models, supply tenant name/alias
+	TenantName string
+
+	// Supply the account id for the cloud enviornment
+	AccountID string
+
+	// Supply the account name/alias for the cloud enviornment, if available
+	AccountName string
+
+	// The type of report being rendered
+	ReportType string
+
+	// The time of the report execution
+	ReportTime time.Time
+
+	// Recommendations
+	Recommendations []api.ComplianceRecommendation
+}
+
+func (c complianceCSVReportDetails) GetAccountDetails() []string {
+	accountAlias := c.AccountID
+	if c.AccountName != "" {
+		accountAlias = fmt.Sprintf("%s(%s)", c.AccountName, c.AccountID)
+	}
+
+	tenantAlias := c.TenantID
+	if c.TenantName != "" {
+		tenantAlias = fmt.Sprintf("%s(%s)", c.TenantName, c.TenantID)
+	}
+	out := []string{}
+	if tenantAlias != "" {
+		out = append(out, tenantAlias)
+	}
+
+	if accountAlias != "" {
+		out = append(out, accountAlias)
+	}
+	return out
+}
+
+func (c complianceCSVReportDetails) GetReportMetaData() []string {
+	return append([]string{c.ReportType, c.ReportTime.Format(time.RFC3339)}, c.GetAccountDetails()...)
+}
+
+func (c complianceCSVReportDetails) SortRecommendations() {
+	sort.Slice(c.Recommendations, func(i, j int) bool {
+		return c.Recommendations[i].Category < c.Recommendations[j].Category
+	})
+
+}
+
+func complianceCSVReportRecommendationsTable(details *complianceCSVReportDetails) [][]string {
+	details.SortRecommendations()
+	out := [][]string{}
+
+	for _, recommendation := range details.Recommendations {
+		for _, suppression := range recommendation.Suppressions {
+			out = append(out,
+				append(details.GetReportMetaData(),
+					recommendation.Category,
+					recommendation.RecID,
+					recommendation.Title,
+					"Suppressed",
+					recommendation.SeverityString(),
+					suppression,
+					"",
+					""))
+		}
+		for _, violation := range recommendation.Violations {
+			out = append(out,
+				append(details.GetReportMetaData(),
+					recommendation.Category,
+					recommendation.RecID,
+					recommendation.Title,
+					recommendation.Status,
+					recommendation.SeverityString(),
+					violation.Resource,
+					violation.Region,
+					strings.Join(violation.Reasons, ",")))
+		}
 	}
 
 	sort.Slice(out, func(i, j int) bool {
@@ -261,13 +356,24 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 			mainReport.WriteString(filteredOutput)
 		}
 		mainReport.WriteString("\n")
-		mainReport.WriteString(
-			"Try using '--pdf' to download the report in PDF format.",
-		)
+
+		if compCmdState.Status == "" {
+			mainReport.WriteString(
+				"Try adding '--status non-compliant' to show only non-compliant recommendations.",
+			)
+		} else if compCmdState.Severity == "" {
+			mainReport.WriteString(
+				"Try adding '--severity high' to show only high and critical recommendations.",
+			)
+		} else {
+			mainReport.WriteString(
+				"Try adding [recommendation_id] to show affected resources.",
+			)
+		}
 		mainReport.WriteString("\n")
 	} else {
 		mainReport.WriteString(
-			"Try using '--details' to increase details shown about the compliance report.\n",
+			"Try adding '--details' to increase details shown about the compliance report.\n",
 		)
 	}
 	return mainReport.String()
@@ -335,4 +441,63 @@ func statusToProperTypes(status string) string {
 	default:
 		return "Unknown"
 	}
+}
+
+func validRecommendationID(s string) bool {
+	match, _ := regexp.MatchString(RecommendationIDRegex, s)
+	return match
+}
+
+func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
+	recommendation := report.GetComplianceRecommendation(compCmdState.RecommendationID)
+	violations := recommendation.Violations
+	affectedResources := len(recommendation.Violations)
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(recommendation)
+	}
+
+	cli.OutputHuman(
+		renderOneLineCustomTable("RECOMMENDATION DETAILS",
+			renderCustomTable([]string{},
+				[][]string{
+					{"ID", compCmdState.RecommendationID},
+					{"SEVERITY", recommendation.SeverityString()},
+					{"SERVICE", recommendation.Service},
+					{"CATEGORY", recommendation.Category},
+					{"STATUS", recommendation.Status},
+					{"ASSESSED RESOURCES", strconv.Itoa(recommendation.AssessedResourceCount)},
+					{"AFFECTED RESOURCES", strconv.Itoa(affectedResources)},
+				},
+				tableFunc(func(t *tablewriter.Table) {
+					t.SetBorder(false)
+					t.SetColumnSeparator(" ")
+					t.SetAutoWrapText(false)
+					t.SetAlignment(tablewriter.ALIGN_LEFT)
+				}),
+			), tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetAutoWrapText(false)
+			}),
+		))
+
+	if affectedResources == 0 {
+		cli.OutputHuman("\nNo resources found affected by '%s'\n", compCmdState.RecommendationID)
+		return nil
+	}
+
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"AFFECTED RESOURCE", "REGION", "REASON"},
+			violationsToTable(violations),
+		),
+	)
+	return nil
+}
+
+func violationsToTable(violations []api.ComplianceViolation) (resourceTable [][]string) {
+	for _, v := range violations {
+		resourceTable = append(resourceTable, []string{v.Resource, v.Region, strings.Join(v.Reasons, ",")})
+	}
+	return
 }

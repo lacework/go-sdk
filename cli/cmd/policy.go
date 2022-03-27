@@ -22,109 +22,109 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
 	policyCmdState = struct {
-		AlertEnabled bool
-		Enabled      bool
-		File         string
-		Repo         bool
-		Severity     string
-		URL          string
+		AlertEnabled  bool
+		Enabled       bool
+		File          string
+		Repo          bool
+		Severity      string
+		Tag           string
+		URL           string
+		CascadeDelete bool
 	}{}
+
+	policyTableHeaders = []string{
+		"Policy ID",
+		"Severity",
+		"Title",
+		"State",
+		"Alert State",
+		"Frequency",
+		"Query ID",
+		"Tags",
+	}
 
 	// policyCmd represents the policy parent command
 	policyCmd = &cobra.Command{
-		Hidden: true,
-		Use:    "policy",
-		Short:  "manage policies",
-		Long: `Manage policies.
+		Use:     "policy",
+		Aliases: []string{"policies"},
+		Short:   "Manage policies",
+		Long: `Manage policies in your Lacework account.
 
-NOTE: This feature is not yet available!`,
-	}
+A policy is a mechanism used to add annotated metadata to a Lacework query for improving
+the context of alerts, reports, and information displayed in the Lacework Console.
 
-	// policyCreateCmd represents the policy create command
-	policyCreateCmd = &cobra.Command{
-		Use:   "create",
-		Short: "create a policy",
-		Long: `Create a policy.
+A policy also facilitates the scheduled execution of a Lacework query
 
-A policy is represented in JSON format.
-The following attributes are minimally required:
-{
-    "policy_id": "lacework-example-1",
-    "title": "My Policy",
-    "enabled": false,
-    "lql_id": "MyQuery",
-    "severity": "high",
-    "description": "My Policy Description",
-    "remediation": "My Policy Remediation"
-}`,
-		Args: cobra.NoArgs,
-		RunE: createPolicy,
+A query is a mechanism used to interactively request information from a specific
+curated dataset. A query has a defined structure for authoring detections.
+
+Lacework ships a set of default LQL policies that are available in your account.
+
+Limitations:
+  * The maximum number of records that each policy will return is 1000
+  * The maximum number of API calls is 120 per hour for ad-hoc LQL query executions
+
+To view all the policies in your Lacework account.
+
+    lacework policy ls
+
+To view more details about a single policy.
+
+    lacework policy show <policy_id>
+
+To view the LQL query associated with the policy, use the query id shown.
+
+    lacework query show <query_id>
+
+**NOTE: LQL syntax may change.**
+`,
 	}
 
 	// policyListCmd represents the policy list command
 	policyListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "list policies",
-		Long:  `List policies.`,
-		Args:  cobra.NoArgs,
-		RunE:  listPolicies,
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List policies",
+		Long:    `List all the registered policies in your Lacework account.`,
+		Args:    cobra.NoArgs,
+		RunE:    listPolicies,
 	}
-
-	// policyListCmd represents the policy list command
+	// policyListTagsCmd represents the policy list command
+	policyListTagsCmd = &cobra.Command{
+		Use:     "list-tags",
+		Aliases: []string{"ls"},
+		Short:   "List policy tags",
+		Long:    `List all tags associated with policies in your Lacework account.`,
+		Args:    cobra.NoArgs,
+		RunE:    listPolicyTags,
+	}
+	// policyShowCmd represents the policy show command
 	policyShowCmd = &cobra.Command{
-		Use:   "show <policy_id>",
-		Short: "show policy",
-		Long:  `Show policy.`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  showPolicy,
+		Use:     "show <policy_id>",
+		Aliases: []string{"ls"},
+		Short:   "Show policy",
+		Long:    `Show details about a single policy.`,
+		Args:    cobra.ExactArgs(1),
+		RunE:    showPolicy,
 	}
-
-	// policyUpdateCmd represents the policy update command
-	policyUpdateCmd = &cobra.Command{
-		Use:   "update [policy_id]",
-		Short: "update a policy",
-		Long: `Update a policy.
-
-A policy identifier is required to update a policy.
-
-A policy identifier can be specified via:
-1.  A policy update command argument
-
-	lacework policy update my-policy-1
-
-2. The policy update payload
-
-{
-	"policy_id": "my-policy-1",
-	"severity": "critical"
-}
-
-A policy identifier specifed via command argument will always take precedence over
-a policy identifer specified via payload.`,
-		Args: cobra.MaximumNArgs(1),
-		RunE: updatePolicy,
-	}
-
-	// policyDeleteCmd represents the policy delete command
-	policyDeleteCmd = &cobra.Command{
-		Use:   "delete <policy_id>",
-		Short: "delete a policy",
-		Long:  `Delete a policy.`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  deletePolicy,
-	}
+	policyIDIntRE = regexp.MustCompile(`^(.*-)(\d+)$`)
 )
 
 func init() {
@@ -132,15 +132,9 @@ func init() {
 	rootCmd.AddCommand(policyCmd)
 
 	// add sub-commands to the policy command
-	policyCmd.AddCommand(policyCreateCmd)
 	policyCmd.AddCommand(policyListCmd)
+	policyCmd.AddCommand(policyListTagsCmd)
 	policyCmd.AddCommand(policyShowCmd)
-	policyCmd.AddCommand(policyUpdateCmd)
-	policyCmd.AddCommand(policyDeleteCmd)
-
-	// policy source specific flags
-	setPolicySourceFlags(policyCreateCmd)
-	setPolicySourceFlags(policyUpdateCmd)
 
 	// policy list specific flags
 	policyListCmd.Flags().StringVar(
@@ -156,6 +150,10 @@ func init() {
 	policyListCmd.Flags().BoolVar(
 		&policyCmdState.AlertEnabled,
 		"alert_enabled", false, "only show alert_enabled policies",
+	)
+	policyListCmd.Flags().StringVar(
+		&policyCmdState.Tag,
+		"tag", "", "only show policies with the specified tag",
 	)
 }
 
@@ -200,6 +198,13 @@ func inputPolicy(cmd *cobra.Command) (string, error) {
 	// if running via URL
 	if policyCmdState.URL != "" {
 		return inputPolicyFromURL(policyCmdState.URL)
+	}
+	stat, err := os.Stdin.Stat()
+	if err != nil {
+		cli.Log.Debugw("error retrieving stdin mode", "error", err.Error())
+	} else if (stat.Mode() & os.ModeCharDevice) == 0 {
+		bytes, err := ioutil.ReadAll(os.Stdin)
+		return string(bytes), err
 	}
 	// if running via editor
 	action := strings.Split(cmd.Use, " ")[0]
@@ -255,34 +260,53 @@ func inputPolicyFromEditor(action string) (policy string, err error) {
 	return
 }
 
-func createPolicy(cmd *cobra.Command, _ []string) error {
-	policy, err := inputPolicy(cmd)
-	if err != nil {
-		return errors.Wrap(err, "unable to create policy")
-	}
+func policyTable(policies []api.Policy) (out [][]string) {
+	for _, policy := range policies {
+		state := "disabled"
+		if policy.Enabled {
+			state = "enabled"
+		}
+		alertState := "disabled"
+		if policy.AlertEnabled {
+			alertState = "enabled"
+		}
+		out = append(out, []string{
+			policy.PolicyID,
+			policy.Severity,
+			policy.Title,
+			state,
+			alertState,
+			policy.EvalFrequency,
+			policy.QueryID,
+			strings.Join(policy.Tags, "\n"),
+		})
 
-	cli.Log.Debugw("creating policy", "policy", policy)
-
-	var create api.PolicyResponse
-	if create, err = cli.LwApi.Policy.Create(policy); err != nil {
-		return errors.Wrap(err, "unable to create policy")
-
+		// order by ID (special handling for policy ID numbers)
+		sort.Slice(out, func(i, j int) bool {
+			iMatch := policyIDIntRE.FindStringSubmatch(out[i][0])
+			jMatch := policyIDIntRE.FindStringSubmatch(out[j][0])
+			// both regexes must match
+			// both regexes must have proper lengths since we'll be using...
+			// ...direct access from here on out
+			if iMatch == nil || jMatch == nil || len(iMatch) != 3 || len(jMatch) != 3 {
+				return out[i][0] < out[j][0]
+			}
+			// if string portions aren't the same
+			if iMatch[1] != jMatch[1] {
+				return out[i][0] < out[j][0]
+			}
+			// if string portions are the same; compare based on ints
+			// no error checking needed for Atoi since use regexp \d+
+			iNum, _ := strconv.Atoi(iMatch[2])
+			jNum, _ := strconv.Atoi(jMatch[2])
+			return iNum < jNum
+		})
 	}
-
-	if cli.JSONOutput() {
-		return cli.OutputJSON(create.Data)
-	}
-	var policyID string
-	if len(create.Data) > 0 {
-		policyID = create.Data[0].ID
-	}
-	cli.OutputHuman(fmt.Sprintf("Policy (%s) created successfully.\n", policyID))
-	return nil
+	return
 }
 
-var policyTableHeaders = []string{"Policy ID", "Severity", "Title", "Enabled", "Alert Enabled", "Frequency", "Query ID"}
-
-func policyTable(policies []api.Policy) (out [][]string) {
+func filterPolicies(policies []api.Policy) []api.Policy {
+	newPolicies := []api.Policy{}
 	sevThreshold, _ := severityToProperTypes(policyCmdState.Severity)
 
 	for _, policy := range policies {
@@ -302,17 +326,13 @@ func policyTable(policies []api.Policy) (out [][]string) {
 		if policyCmdState.AlertEnabled && !policy.AlertEnabled {
 			continue
 		}
-		out = append(out, []string{
-			policy.ID,
-			policy.Severity,
-			policy.Title,
-			strconv.FormatBool(policy.Enabled),
-			strconv.FormatBool(policy.AlertEnabled),
-			policy.Frequency,
-			policy.QueryID,
-		})
+		// filter tag
+		if policyCmdState.Tag != "" && !policy.HasTag(policyCmdState.Tag) {
+			continue
+		}
+		newPolicies = append(newPolicies, policy)
 	}
-	return
+	return newPolicies
 }
 
 func listPolicies(_ *cobra.Command, args []string) error {
@@ -327,26 +347,30 @@ func listPolicies(_ *cobra.Command, args []string) error {
 		)
 	}
 
-	policyResponse, err := cli.LwApi.Policy.GetAll()
+	cli.StartProgress(" Retrieving policies...")
+	policyResponse, err := cli.LwApi.V2.Policy.List()
+	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to list policies")
 	}
 
+	policies := filterPolicies(policyResponse.Data)
 	if cli.JSONOutput() {
-		return cli.OutputJSON(policyResponse.Data)
+		return cli.OutputJSON(policies)
 	}
-	if len(policyResponse.Data) == 0 {
+	if len(policies) == 0 {
 		cli.OutputHuman("There were no policies found.")
 		return nil
 	}
-	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policyResponse.Data)))
+	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policies)))
 	return nil
 }
 
 func showPolicy(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving policy", "policyID", args[0])
-
-	policyResponse, err := cli.LwApi.Policy.GetByID(args[0])
+	cli.StartProgress(" Retrieving policy...")
+	policyResponse, err := cli.LwApi.V2.Policy.Get(args[0])
+	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to show policy")
 	}
@@ -354,57 +378,73 @@ func showPolicy(_ *cobra.Command, args []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policyResponse.Data)
 	}
-	if len(policyResponse.Data) == 0 {
-		return yikes("unable to show policy")
-	}
-	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policyResponse.Data)))
-	return nil
-}
-
-func updatePolicy(cmd *cobra.Command, args []string) error {
-	var policyID string
-	if len(args) != 0 {
-		policyID = args[0]
-	}
-
-	policy, err := inputPolicy(cmd)
-	if err != nil {
-		return errors.Wrap(err, "unable to update policy")
-	}
-
-	cli.Log.Debugw("updating policy",
-		"policyID", policyID,
-		"policy", policy,
-	)
-
-	var update api.PolicyResponse
-	if update, err = cli.LwApi.Policy.Update(policyID, policy); err != nil {
-		return errors.Wrap(err, "unable to update policy")
-
-	}
-
-	if cli.JSONOutput() {
-		return cli.OutputJSON(update.Data)
-	}
-	if len(update.Data) > 0 {
-		policyID = update.Data[0].ID
-	}
-	cli.OutputHuman(fmt.Sprintf("Policy (%s) updated successfully.\n", policyID))
-	return nil
-}
-
-func deletePolicy(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("deleting policy", "policyID", args[0])
-
-	delete, err := cli.LwApi.Policy.Delete(args[0])
-	if err != nil {
-		return errors.Wrap(err, "unable to delete policy")
-	}
-
-	if cli.JSONOutput() {
-		return cli.OutputJSON(delete)
-	}
 	cli.OutputHuman(
-		fmt.Sprintf("Policy (%s) deleted successfully.\n", args[0]))
+		renderSimpleTable(policyTableHeaders, policyTable([]api.Policy{policyResponse.Data})))
+	cli.OutputHuman("\n")
+	cli.OutputHuman(buildPolicyDetailsTable(policyResponse.Data))
+	return nil
+}
+
+func buildPolicyDetailsTable(policy api.Policy) string {
+	details := [][]string{
+		{"DESCRIPTION", policy.Description},
+		{"REMEDIATION", policy.Remediation},
+		{"POLICY TYPE", policy.PolicyType},
+		{"LIMIT", fmt.Sprintf("%d", policy.Limit)},
+		{"ALERT PROFILE", policy.AlertProfile},
+		{"TAGS", strings.Join(policy.Tags, "\n")},
+		{"OWNER", policy.Owner},
+		{"UPDATED AT", policy.LastUpdateTime},
+		{"UPDATED BY", policy.LastUpdateUser},
+		{"EVALUATION FREQUENCY", policy.EvalFrequency},
+	}
+
+	return renderOneLineCustomTable("POLICY DETAILS",
+		renderCustomTable([]string{}, details,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+			}),
+		),
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetAutoWrapText(false)
+		}),
+	)
+}
+
+func policyTagsTable(pt []string) (out [][]string) {
+	for _, tag := range pt {
+		out = append(out, []string{tag})
+	}
+
+	// order by Tag
+	sort.Slice(out, func(i, j int) bool {
+		return out[i][0] < out[j][0]
+	})
+
+	return
+}
+
+func listPolicyTags(_ *cobra.Command, args []string) error {
+	cli.Log.Debugw("listing policy tags")
+
+	cli.StartProgress(" Retrieving policy tags...")
+	policyTagsResponse, err := cli.LwApi.V2.Policy.ListTags()
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to list policy tags")
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(policyTagsResponse.Data)
+	}
+	if len(policyTagsResponse.Data) == 0 {
+		cli.OutputHuman("There were no policy tags found.")
+		return nil
+	}
+	cli.OutputHuman(renderSimpleTable([]string{"Tag"}, policyTagsTable(policyTagsResponse.Data)))
 	return nil
 }

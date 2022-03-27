@@ -1,6 +1,12 @@
+---
+title: "lacework configure"
+slug: lacework_configure
+hide_title: true
+---
+
 ## lacework configure
 
-configure the Lacework CLI
+Configure the Lacework CLI
 
 ### Synopsis
 
@@ -40,10 +46,13 @@ lacework configure [flags]
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
       --debug               turn on debug logging
       --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
 ```
@@ -51,6 +60,7 @@ lacework configure [flags]
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework configure list](lacework_configure_list.md)	 - list all configured profiles at ~/.lacework.toml
-* [lacework configure show](lacework_configure_show.md)	 - show current configuration data
+* [lacework configure list](lacework_configure_list.md)	 - List all configured profiles at ~/.lacework.toml
+* [lacework configure show](lacework_configure_show.md)	 - Show current configuration data
+* [lacework configure switch-profile](lacework_configure_switch-profile.md)	 - Switch between configured profiles
 

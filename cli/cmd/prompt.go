@@ -28,17 +28,3 @@ func promptRequiredStringLen(size int, err string) func(interface{}) error {
 		return nil
 	}
 }
-
-// @afiune add unit tests
-func formatSecret(nToShow int, secret string) string {
-	secretSize := len(secret)
-	if secretSize <= nToShow {
-		return secret
-	}
-
-	var chars = []byte(secret)
-	for i := 0; i < (secretSize - nToShow); i++ {
-		chars[i] = '*'
-	}
-	return string(chars)
-}

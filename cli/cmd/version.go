@@ -24,10 +24,11 @@ import (
 	"path"
 	"time"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/lacework/go-sdk/internal/cache"
+	"github.com/lacework/go-sdk/internal/file"
 	"github.com/lacework/go-sdk/lwupdater"
 )
 
@@ -50,7 +51,7 @@ var (
 	// versionCmd represents the version command
 	versionCmd = &cobra.Command{
 		Use:   "version",
-		Short: "print the Lacework CLI version",
+		Short: "Print the Lacework CLI version",
 		Long: `
 Prints out the installed version of the Lacework CLI and checks for newer
 versions available for update.
@@ -102,15 +103,6 @@ func versionCheck() (*lwupdater.Version, error) {
 	return sdk, nil
 }
 
-func versionCacheDir() (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(home, ".config", "lacework"), nil
-}
-
 // dailyVersionCheck will execute a version check on a daily basis, the function uses
 // the file ~/.config/lacework/version_cache to track the last check time
 func dailyVersionCheck() error {
@@ -118,13 +110,17 @@ func dailyVersionCheck() error {
 		return nil
 	}
 
-	cacheDir, err := versionCacheDir()
+	if !cli.InteractiveMode() {
+		return nil
+	}
+
+	cacheDir, err := cache.CacheDir()
 	if err != nil {
 		return err
 	}
 
 	cacheFile := path.Join(cacheDir, VersionCacheFile)
-	if !fileExists(cacheFile) {
+	if !file.FileExists(cacheFile) {
 		// first time running the daily version check, create directory
 		if err := os.MkdirAll(cacheDir, 0755); err != nil {
 			return err

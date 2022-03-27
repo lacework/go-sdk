@@ -1,10 +1,20 @@
+---
+title: "lacework compliance google run-assessment"
+slug: lacework_compliance_google_run-assessment
+hide_title: true
+---
+
 ## lacework compliance google run-assessment
 
-run a new GCP compliance assessment
+Run a new GCP compliance assessment
 
 ### Synopsis
 
 Run a compliance assessment for the provided GCP organization or project.
+
+To list all GCP projects and organizations configured in your account:
+
+    lacework compliance gcp list
 
 ```
 lacework compliance google run-assessment <org_or_project_id> [flags]
@@ -22,15 +32,18 @@ lacework compliance google run-assessment <org_or_project_id> [flags]
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
       --debug               turn on debug logging
       --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
 ```
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - compliance for Google Cloud
+* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
 

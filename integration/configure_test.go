@@ -1,4 +1,5 @@
-//
+//go:build configure
+
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -27,6 +28,23 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestConfigureListHelp(t *testing.T) {
+	out, err, exitcode := LaceworkCLI("configure", "list", "--help")
+	assert.Empty(t,
+		err.String(),
+		"STDERR should be empty")
+	assert.Contains(t,
+		out.String(),
+		"To switch profiles permanently use the command.",
+		"STDOUT help message is not correct")
+	assert.Contains(t,
+		out.String(),
+		"lacework configure switch-profile profile2",
+		"STDOUT help message is not correct")
+	assert.Equal(t, 0, exitcode,
+		"EXITCODE is not the expected one")
+}
 
 func TestConfigureCommandNonInteractive(t *testing.T) {
 	// create a temporal directory where we will check that the
@@ -108,6 +126,12 @@ version = 2
 account = 'v1.example'
 api_key = 'V1CONFIG_KEY'
 api_secret = '_secret'
+
+[v2]
+account = 'v2.example'
+api_key = 'V2CONFIG_KEY'
+api_secret = '_secret'
+subaccount = 'sub-account'
 `)
 	err = ioutil.WriteFile(configFile, c, 0644)
 	if err != nil {

@@ -1,6 +1,12 @@
+---
+title: "lacework event list"
+slug: lacework_event_list
+hide_title: true
+---
+
 ## lacework event list
 
-list all events (default last 7 days)
+List all events (default last 7 days)
 
 ### Synopsis
 
@@ -13,7 +19,7 @@ Additionally, pass --days to list events for a specified number of days.
 For example, to list all events from the last day with severity medium and above
 (Critical, High and Medium) run:
 
-    $ lacework events list --severity medium --days 1
+    lacework events list --severity medium --days 1
 
 ```
 lacework event list [flags]
@@ -35,15 +41,18 @@ lacework event list [flags]
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
       --debug               turn on debug logging
       --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
       --nocolor             turn off colors
       --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
 ```
 
 ### SEE ALSO
 
-* [lacework event](lacework_event.md)	 - inspect Lacework events
+* [lacework event](lacework_event.md)	 - Inspect Lacework events
 

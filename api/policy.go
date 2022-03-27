@@ -19,10 +19,10 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/pkg/errors"
 )
 
@@ -35,93 +35,161 @@ type PolicyService struct {
 // ValidPolicySeverities is a list of all valid policy severities
 var ValidPolicySeverities = []string{"critical", "high", "medium", "low", "info"}
 
-type PolicyResponse struct {
-	Data    []Policy `json:"data"`
-	Ok      bool     `json:"ok"`
-	Message string   `json:"message"`
+type NewPolicy struct {
+	EvaluatorID   string   `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
+	PolicyID      string   `json:"policyId,omitempty" yaml:"policyId,omitempty" `
+	PolicyType    string   `json:"policyType" yaml:"policyType"`
+	QueryID       string   `json:"queryId" yaml:"queryId"`
+	Title         string   `json:"title" yaml:"title"`
+	Enabled       bool     `json:"enabled" yaml:"enabled"`
+	Description   string   `json:"description" yaml:"description"`
+	Remediation   string   `json:"remediation" yaml:"remediation"`
+	Severity      string   `json:"severity" yaml:"severity"`
+	Limit         int      `json:"limit,omitempty" yaml:"limit,omitempty"`
+	EvalFrequency string   `json:"evalFrequency,omitempty" yaml:"evalFrequency,omitempty"`
+	AlertEnabled  bool     `json:"alertEnabled" yaml:"alertEnabled"`
+	AlertProfile  string   `json:"alertProfile" yaml:"alertProfile"`
+	Tags          []string `json:"tags,omitempty" yaml:"tags,omitempty"`
+}
+
+/* In order to properly PATCH we need to omit items that aren't specified.
+For booleans and integers Golang will omit zero values false and 0 respectively.
+This would prevent someone from toggling something to disabled or 0 respectively.
+As such we are using pointers instead of primitives for booleans and integers in this struct
+*/
+type UpdatePolicy struct {
+	EvaluatorID   string   `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
+	PolicyID      string   `json:"policyId,omitempty" yaml:"policyId,omitempty"`
+	PolicyType    string   `json:"policyType,omitempty" yaml:"policyType,omitempty"`
+	QueryID       string   `json:"queryId,omitempty" yaml:"queryId,omitempty"`
+	Title         string   `json:"title,omitempty" yaml:"title,omitempty"`
+	Enabled       *bool    `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Description   string   `json:"description,omitempty" yaml:"description,omitempty"`
+	Remediation   string   `json:"remediation,omitempty" yaml:"remediation,omitempty"`
+	Severity      string   `json:"severity,omitempty" yaml:"severity,omitempty"`
+	Limit         *int     `json:"limit,omitempty" yaml:"limit,omitempty"`
+	EvalFrequency string   `json:"evalFrequency,omitempty" yaml:"evalFrequency,omitempty"`
+	AlertEnabled  *bool    `json:"alertEnabled,omitempty" yaml:"alertEnabled,omitempty"`
+	AlertProfile  string   `json:"alertProfile,omitempty" yaml:"alertProfile,omitempty"`
+	Tags          []string `json:"tags,omitempty" yaml:"tags,omitempty"`
 }
 
 type Policy struct {
-	ID           string `json:"policy_id"`
-	Title        string `json:"title"`
-	Enabled      bool   `json:"enabled"`
-	AlertEnabled bool   `json:"alert_enabled"`
-	Frequency    string `json:"eval_frequency"`
-	Severity     string `json:"severity"`
-	QueryID      string `json:"lql_id"`
+	EvaluatorID    string   `json:"evaluatorId"`
+	PolicyID       string   `json:"policyId"`
+	PolicyType     string   `json:"policyType"`
+	QueryID        string   `json:"queryId"`
+	Title          string   `json:"title"`
+	Enabled        bool     `json:"enabled"`
+	Description    string   `json:"description"`
+	Remediation    string   `json:"remediation"`
+	Severity       string   `json:"severity"`
+	Limit          int      `json:"limit"`
+	EvalFrequency  string   `json:"evalFrequency"`
+	AlertEnabled   bool     `json:"alertEnabled"`
+	AlertProfile   string   `json:"alertProfile"`
+	Tags           []string `json:"tags"`
+	Owner          string   `json:"owner"`
+	LastUpdateTime string   `json:"lastUpdateTime"`
+	LastUpdateUser string   `json:"lastUpdateUser"`
 }
 
-func (svc *PolicyService) Create(policy string) (
+func (p *Policy) HasTag(t string) bool {
+	return array.ContainsStr(p.Tags, t)
+}
+
+type PolicyResponse struct {
+	Data    Policy `json:"data"`
+	Message string `json:"message"`
+}
+
+type PolicyTagsResponse struct {
+	Data    []string `json:"data"`
+	Message string   `json:"message"`
+}
+
+type PoliciesResponse struct {
+	Data    []Policy `json:"data"`
+	Message string   `json:"message"`
+}
+
+func (svc *PolicyService) Create(np NewPolicy) (
 	response PolicyResponse,
 	err error,
 ) {
-	var p map[string]interface{}
-	if err = json.Unmarshal([]byte(policy), &p); err != nil {
-		return
-	}
-	err = svc.client.RequestEncoderDecoder("POST", apiPolicy, p, &response)
+	err = svc.client.RequestEncoderDecoder("POST", apiV2Policies, np, &response)
 	return
 }
 
-func (svc *PolicyService) GetAll() (PolicyResponse, error) {
-	return svc.GetByID("")
-}
-
-func (svc *PolicyService) GetByID(policyID string) (
-	response PolicyResponse,
+func (svc *PolicyService) List() (
+	response PoliciesResponse,
 	err error,
 ) {
-	uri := apiPolicy
-
-	if policyID != "" {
-		uri += "?POLICY_ID=" + url.QueryEscape(policyID)
-	}
-
-	err = svc.client.RequestDecoder("GET", uri, nil, &response)
+	err = svc.client.RequestDecoder("GET", apiV2Policies, nil, &response)
 	return
 }
 
-func (svc *PolicyService) Update(policyID, policy string) (
+func (svc *PolicyService) ListTags() (
+	response PolicyTagsResponse,
+	err error,
+) {
+	err = svc.client.RequestDecoder(
+		"GET",
+		fmt.Sprintf("%s/Tags", apiV2Policies),
+		nil,
+		&response,
+	)
+	return
+}
+
+func (svc *PolicyService) Get(policyID string) (
 	response PolicyResponse,
 	err error,
 ) {
-	var p map[string]interface{}
-	if err = json.Unmarshal([]byte(policy), &p); err != nil {
-		return
-	}
-
-	// retreive policyID from payload and delete it
-	if payloadPolicyID, ok := p["policy_id"]; ok {
-		delete(p, "policy_id")
-		// if policyID is unset, take from the payload
-		if policyID == "" {
-			policyID = fmt.Sprintf("%v", payloadPolicyID)
-		}
-	}
-
-	// if policyID is still not specified; error
 	if policyID == "" {
 		err = errors.New("policy ID must be provided")
 		return
 	}
+	err = svc.client.RequestDecoder(
+		"GET",
+		fmt.Sprintf("%s/%s", apiV2Policies, url.QueryEscape(policyID)),
+		nil,
+		&response,
+	)
+	return
+}
 
-	uri := fmt.Sprintf("%s?POLICY_ID=%s", apiPolicy, url.QueryEscape(policyID))
-	err = svc.client.RequestEncoderDecoder("PATCH", uri, p, &response)
+func (svc *PolicyService) Update(up UpdatePolicy) (
+	response PolicyResponse,
+	err error,
+) {
+	if up.PolicyID == "" {
+		err = errors.New("policy ID must be provided")
+		return
+	}
+	var policyID = up.PolicyID
+	up.PolicyID = "" // omit this for PATCH
+
+	err = svc.client.RequestEncoderDecoder(
+		"PATCH",
+		fmt.Sprintf("%s/%s", apiV2Policies, url.QueryEscape(policyID)),
+		up,
+		&response,
+	)
 	return
 }
 
 func (svc *PolicyService) Delete(policyID string) (
-	response map[string]interface{}, // endpoint currently 204's so no response content
+	response PolicyResponse,
 	err error,
 ) {
 	if policyID == "" {
 		err = errors.New("policy ID must be provided")
 		return
 	}
-
 	err = svc.client.RequestDecoder(
 		"DELETE",
-		fmt.Sprintf("%s?POLICY_ID=%s", apiPolicy, url.QueryEscape(policyID)),
+		fmt.Sprintf("%s/%s", apiV2Policies, url.QueryEscape(policyID)),
 		nil,
 		&response,
 	)

@@ -19,12 +19,17 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/capturer"
 )
 
 func TestSplitIDAndAlias(t *testing.T) {
@@ -114,4 +119,139 @@ func TestSplitGcpProjectsApiResponse(t *testing.T) {
 			)
 		})
 	}
+}
+
+func TestDuplicateGcpAccountCheck(t *testing.T) {
+	gcpOne := gcpProject{OrganizationID: "n/a", ProjectID: "1"}
+	gcpTwo := gcpProject{OrganizationID: "n/a", ProjectID: "2"}
+	gcpThree := gcpProject{OrganizationID: "n/a", ProjectID: "3"}
+	mockGcpAccounts := []gcpProject{gcpOne, gcpTwo, gcpThree}
+
+	duplicate := containsDuplicateProjectID(mockGcpAccounts, "1")
+	different := containsDuplicateProjectID(mockGcpAccounts, "4")
+
+	assert.True(t, duplicate)
+	assert.False(t, different)
+}
+
+func TestCliListGcpListProjectsAndOrgsWithoutData(t *testing.T) {
+	cliOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, cliListGcpProjectsAndOrgs(new(api.GcpIntegrationsResponse)))
+	})
+	assert.Contains(t, cliOutput, "There are no GCP integrations configured in your account.")
+
+	t.Run("test JSON output", func(t *testing.T) {
+		cli.EnableJSONOutput()
+		defer cli.EnableHumanOutput()
+		cliJSONOutput := capturer.CaptureOutput(func() {
+			assert.Nil(t, cliListGcpProjectsAndOrgs(new(api.GcpIntegrationsResponse)))
+		})
+		expectedJSON := `{
+  "gcp_projects": []
+}
+`
+		assert.Equal(t, expectedJSON, cliJSONOutput)
+	})
+}
+
+func TestCliListGcpListProjectsAndOrgsWithDataEnabled(t *testing.T) {
+	cliOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, cliListGcpProjectsAndOrgs(mockGcpIntegrationsResponse(1, 1, 1)))
+	})
+	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
+	expectedTable := `
+  ORGANIZATION ID           PROJECT ID            STATUS   
+------------------+-----------------------------+----------
+  n/a               gcr-jenkins-sandbox-274317    Enabled  
+  n/a               techally-hipstershop-275821   Enabled  
+  n/a               techally-test                 Enabled  
+`
+	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
+}
+
+func TestCliListGcpListProjectsAndOrgsWithDataDisabled(t *testing.T) {
+	cliOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, cliListGcpProjectsAndOrgs(mockGcpIntegrationsResponse(0, 0, 1)))
+	})
+	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
+	expectedTable := `
+  ORGANIZATION ID           PROJECT ID             STATUS   
+------------------+-----------------------------+-----------
+  n/a               gcr-jenkins-sandbox-274317    Disabled  
+  n/a               techally-hipstershop-275821   Disabled  
+  n/a               techally-test                 Enabled   
+`
+	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
+}
+
+func mockGcpIntegrationsResponse(proj1Enabled, proj2Enabled, proj3Enabled int) *api.GcpIntegrationsResponse {
+	response := &api.GcpIntegrationsResponse{}
+	err := json.Unmarshal([]byte(`{
+  "data": [
+    {
+      "CREATED_OR_UPDATED_BY": "salim.afiunemaya@lacework.net",
+      "CREATED_OR_UPDATED_TIME": "2021-06-01T18:03:19.031Z",
+      "DATA": {
+        "ID": "techally-hipstershop-275821",
+        "ID_TYPE": "PROJECT"
+      },
+      "ENABLED": `+strconv.Itoa(proj1Enabled)+`,
+      "INTG_GUID": "MOCK_1232",
+      "IS_ORG": 0,
+      "NAME": "TF Hipstershop",
+      "STATE": {
+        "lastSuccessfulTime": "2022-Jan-31 14:24:56 UTC",
+        "lastUpdatedTime": "2022-Jan-31 14:24:56 UTC",
+        "ok": true
+      },
+      "TYPE": "GCP_CFG",
+      "TYPE_NAME": "GCP Compliance"
+    },
+    {
+      "CREATED_OR_UPDATED_BY": "salim.afiunemaya@lacework.net",
+      "CREATED_OR_UPDATED_TIME": "2020-09-17T17:13:48.393Z",
+      "DATA": {
+        "ID": "gcr-jenkins-sandbox-274317",
+        "ID_TYPE": "PROJECT"
+      },
+      "ENABLED": `+strconv.Itoa(proj2Enabled)+`,
+      "INTG_GUID": "MOCK_1233",
+      "IS_ORG": 0,
+      "NAME": "TF Sandbox",
+      "STATE": {
+        "lastSuccessfulTime": "2022-Jan-31 14:24:56 UTC",
+        "lastUpdatedTime": "2022-Jan-31 14:24:56 UTC",
+        "ok": true
+      },
+      "TYPE": "GCP_CFG",
+      "TYPE_NAME": "GCP Compliance"
+    },
+    {
+      "CREATED_OR_UPDATED_BY": "darren.murray@lacework.net",
+      "CREATED_OR_UPDATED_TIME": "2021-11-12T11:08:34.923Z",
+      "DATA": {
+        "ID": "techally-test",
+        "ID_TYPE": "PROJECT"
+      },
+      "ENABLED": `+strconv.Itoa(proj3Enabled)+`,
+      "INTG_GUID": "MOCK_1234",
+      "IS_ORG": 0,
+      "NAME": "techally-test-cfg",
+      "STATE": {
+        "lastSuccessfulTime": "2022-Jan-31 14:24:56 UTC",
+        "lastUpdatedTime": "2022-Jan-31 14:24:56 UTC",
+        "ok": true
+      },
+      "TYPE": "GCP_CFG",
+      "TYPE_NAME": "GCP Compliance"
+    }
+  ],
+  "message": "SUCCESS",
+  "ok": true
+}
+`), response)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return response
 }

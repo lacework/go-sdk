@@ -21,20 +21,24 @@ package cmd
 import (
 	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	prettyjson "github.com/hokaccha/go-prettyjson"
+	"github.com/peterbourgon/diskv/v3"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/format"
 	"github.com/lacework/go-sdk/lwconfig"
 	"github.com/lacework/go-sdk/lwlogger"
 )
@@ -55,6 +59,7 @@ type cliState struct {
 	JsonF *prettyjson.Formatter
 	Log   *zap.SugaredLogger
 	Event *Honeyvent
+	Cache *diskv.Diskv
 
 	id             string
 	workers        sync.WaitGroup
@@ -62,15 +67,20 @@ type cliState struct {
 	jsonOutput     bool
 	csvOutput      bool
 	nonInteractive bool
+	noCache        bool
+	lqlOperator    string
 	profileDetails map[string]interface{}
+	tokenCache     api.TokenData
 }
 
 // NewDefaultState creates a new cliState with some defaults
 func NewDefaultState() *cliState {
 	c := &cliState{
-		id:      newID(),
-		Profile: "default",
-		Log:     lwlogger.New("").Sugar(),
+		id:          newID(),
+		Profile:     "default",
+		lqlOperator: "rlike", // @afiune we use rlike to allow user to pass regex
+		CfgVersion:  2,
+		Log:         lwlogger.New("").Sugar(),
 		JsonF: &prettyjson.Formatter{
 			KeyColor:    color.New(color.FgCyan, color.Bold),
 			StringColor: color.New(color.FgGreen, color.Bold),
@@ -131,18 +141,23 @@ func (c *cliState) LoadState() error {
 		}
 	}
 
+	c.Token = c.extractValueString("api_token")
 	c.KeyID = c.extractValueString("api_key")
 	c.Secret = c.extractValueString("api_secret")
 	c.Account = c.extractValueString("account")
 	c.Subaccount = c.extractValueString("subaccount")
-	c.CfgVersion = c.extractValueInt("version")
+	version := c.extractValueInt("version")
+	if version > 2 {
+		c.CfgVersion = version
+	}
 
 	c.Log.Debugw("state loaded",
 		"profile", c.Profile,
 		"account", c.Account,
 		"subaccount", c.Subaccount,
+		"api_token", format.Secret(4, c.Token),
 		"api_key", c.KeyID,
-		"api_secret", c.Secret,
+		"api_secret", format.Secret(4, c.Secret),
 		"config_version", c.CfgVersion,
 	)
 
@@ -165,6 +180,12 @@ func (c *cliState) LoadProfiles() (lwconfig.Profiles, error) {
 // if not, it throws an error with breadcrumbs to help the user configure the CLI
 func (c *cliState) VerifySettings() error {
 	c.Log.Debugw("verifying config", "version", c.CfgVersion)
+
+	// Token from cache
+	if c.Token != "" && c.Account != "" {
+		return nil
+	}
+
 	if c.Profile == "" ||
 		c.Account == "" ||
 		c.Secret == "" ||
@@ -179,6 +200,12 @@ func (c *cliState) VerifySettings() error {
 
 // NewClient creates and stores a new Lacework API client to be used by the CLI
 func (c *cliState) NewClient() error {
+	// @afiune load token from cache only if the token has not been already
+	// provided by env variables or flags. Example: lacework --api_token foo
+	if c.Token == "" {
+		c.ReadCachedToken()
+	}
+
 	err := c.VerifySettings()
 	if err != nil {
 		return err
@@ -196,9 +223,34 @@ func (c *cliState) NewClient() error {
 		apiOpts = append(apiOpts, api.WithApiV2())
 	}
 
+	if c.OrgLevel {
+		c.Log.Debug("accessing organization level data sets")
+		apiOpts = append(apiOpts, api.WithOrgAccess())
+	}
+
+	if c.tokenCache.Token != "" {
+		apiOpts = append(apiOpts,
+			api.WithTokenAndExpiration(c.Token, c.tokenCache.ExpiresAt))
+	} else if c.Token != "" {
+		apiOpts = append(apiOpts, api.WithToken(c.Token))
+	}
+
+	apiOpts = append(apiOpts,
+		api.WithLifecycleCallbacks(api.LifecycleCallbacks{
+			TokenExpiredCallback: cli.EraseCachedToken,
+			RequestCallback: func(httpCode int, _ http.Header) error {
+				if httpCode == 403 {
+					return c.Cache.Erase("token")
+				}
+				return nil
+			},
+		}))
+
 	if os.Getenv("LW_API_SERVER_URL") != "" {
 		apiOpts = append(apiOpts, api.WithURL(os.Getenv("LW_API_SERVER_URL")))
 	}
+
+	c.LoadLQLOperator()
 
 	client, err := api.NewClient(c.Account, apiOpts...)
 	if err != nil {
@@ -206,7 +258,44 @@ func (c *cliState) NewClient() error {
 	}
 
 	c.LwApi = client
-	return nil
+
+	// cache token
+	return c.WriteCachedToken()
+}
+
+// LoadLQLOperator reads the reserverd environment variable to change the
+// default LQL operator in the CLI for filter flags. Available operators;
+//
+// The `eq` operator allows you to specify a value that the field values
+// of the result must be equal to. The `ne` operator means not equal to.
+//
+// The `in` operator allows you to specify multiple values in the values
+// field of the filters. The field values of the result must match one of
+// the values. The `not_in` operator is the opposite of `in`.
+//
+// The `like` operator allows you to specify a pattern that the field
+// values of the result must match. The `not_like` operator is the
+// opposite of `like`.
+//
+// The `ilike` operator works similar to like but it makes the match case
+// insensitive. The `not_ilike` operator is the opposite of `ilike`.
+//
+// (default) The `rlike` operator matches the specified pattern represented
+// by regular expressions. The `not_rlike` operator is the opposite of `rlike`.
+// (more info on `RLIKE` see https://docs.snowflake.com/en/sql-reference/functions/rlike.html).
+//
+// The `gt` operator allows you to specify a value that the field values of
+// the result must be greater than. The `lt` (less-than) operator is the
+// opposite of `gt`.
+//
+// The `ge` operator allows you to specify a value that the field values of
+// the result must be greater than or equal to. The `le` (less-than-or-equal-to)
+// operator is the opposite of `ge`.
+
+func (c *cliState) LoadLQLOperator() {
+	if os.Getenv("LW_LQL_OPERATOR") != "" {
+		c.lqlOperator = os.Getenv("LW_LQL_OPERATOR")
+	}
 }
 
 // InteractiveMode returns true if the cli is running in interactive mode
@@ -218,6 +307,18 @@ func (c *cliState) InteractiveMode() bool {
 func (c *cliState) NonInteractive() {
 	c.Log.Info("turning off interactive mode")
 	c.nonInteractive = true
+}
+
+// Interactive turns on interactive mode, that is, progress bars and spinners
+func (c *cliState) Interactive() {
+	c.Log.Info("turning on interactive mode")
+	c.nonInteractive = false
+}
+
+// NoCache turns off the Lacework CLI caching mechanism, so nothing will be cached
+func (c *cliState) NoCache() {
+	c.Log.Info("turning off caching mechanism")
+	c.noCache = true
 }
 
 // StartProgress starts a new progress spinner with the provider suffix and stores it
@@ -236,7 +337,12 @@ func (c *cliState) StartProgress(suffix string) {
 		// make sure there is not a spinner already running
 		c.StopProgress()
 
-		c.Log.Debug("starting spinner")
+		// verify that the suffix starts with a space
+		if !strings.HasPrefix(suffix, " ") {
+			suffix = fmt.Sprintf(" %s", suffix)
+		}
+
+		c.Log.Debugw("starting spinner", "suffix", suffix)
 		c.spinner = spinner.New(spinner.CharSets[9], 100*time.Millisecond)
 		c.spinner.Suffix = suffix
 		c.spinner.Start()
@@ -299,6 +405,11 @@ func (c *cliState) CSVOutput() bool {
 // loadStateFromViper loads parameters and environment variables
 // coming from viper into the CLI state
 func (c *cliState) loadStateFromViper() {
+	if v := viper.GetString("api_token"); v != "" {
+		c.Token = v
+		c.Log.Debugw("state updated", "api_token", format.Secret(4, c.Token))
+	}
+
 	if v := viper.GetString("api_key"); v != "" {
 		c.KeyID = v
 		c.Log.Debugw("state updated", "api_key", c.KeyID)
@@ -306,7 +417,7 @@ func (c *cliState) loadStateFromViper() {
 
 	if v := viper.GetString("api_secret"); v != "" {
 		c.Secret = v
-		c.Log.Debugw("state updated", "api_secret", c.Secret)
+		c.Log.Debugw("state updated", "api_secret", format.Secret(4, c.Secret))
 	}
 
 	if v := viper.GetString("account"); v != "" {
@@ -317,6 +428,11 @@ func (c *cliState) loadStateFromViper() {
 	if v := viper.GetString("subaccount"); v != "" {
 		c.Subaccount = v
 		c.Log.Debugw("state updated", "subaccount", c.Subaccount)
+	}
+
+	if viper.GetBool("organization") {
+		c.OrgLevel = true
+		c.Log.Debugw("state updated", "organization", "true")
 	}
 }
 

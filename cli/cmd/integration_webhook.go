@@ -50,14 +50,15 @@ func createWebhookIntegration() error {
 		return err
 	}
 
-	webhook := api.NewWebhookAlertChannel(answers.Name,
-		api.WebhookChannelData{
+	webhook := api.NewAlertChannel(answers.Name,
+		api.WebhookAlertChannelType,
+		api.WebhookDataV2{
 			WebhookUrl: answers.Url,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateWebhookAlertChannel(webhook)
+	_, err = cli.LwApi.V2.AlertChannels.Create(webhook)
 	cli.StopProgress()
 	return err
 }

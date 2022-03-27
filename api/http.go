@@ -52,8 +52,15 @@ func (c *Client) NewRequest(method string, apiURL string, body io.Reader) (*http
 	if apiURL == apiTokens {
 		headers["X-LW-UAKS"] = c.auth.secret
 	} else {
-		// verify that the client has a token or token is not expired, if not, try to generate one
+		// verify that the client has a token or token is not expired,
+		// if not, try to generate one
 		if c.auth.token == "" || c.TokenExpired() {
+			// run token expired callback
+			if c.callbacks.TokenExpiredCallback != nil && c.TokenExpired() {
+				if err := c.callbacks.TokenExpiredCallback(); err != nil {
+					c.log.Info("token expired callback failure", zap.String("error", err.Error()))
+				}
+			}
 			if _, err = c.GenerateToken(); err != nil {
 				return nil, err
 			}
@@ -99,6 +106,7 @@ func (c *Client) DoDecoder(req *http.Request, v interface{}) (*http.Response, er
 	if err != nil {
 		return nil, err
 	}
+
 	// optimized return for HTTP 204 as there's nothing to decode onto v
 	if res.StatusCode == http.StatusNoContent {
 		return res, nil
@@ -166,6 +174,14 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 			zap.String("body", c.httpResponseBodySniffer(response)),
 		)
 	}
+
+	// run request callback
+	if call := c.callbacks.RequestCallback; call != nil && response != nil {
+		if err := call(response.StatusCode, response.Header); err != nil {
+			c.log.Info("request callback failure", zap.String("error", err.Error()))
+		}
+	}
+
 	return response, err
 }
 

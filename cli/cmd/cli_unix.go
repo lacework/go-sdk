@@ -1,4 +1,5 @@
-// +build !windows
+//go:build !windows
+
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
@@ -26,22 +27,60 @@ import (
 )
 
 // used by configure.go
-var configureListCmdSetProfileEnv = `$ export LW_PROFILE="my-profile"`
+var configureListCmdSetProfileEnv = `export LW_PROFILE="my-profile"`
 
 // promptIconsFuncs configures the prompt icons for Unix systems
 var promptIconsFunc = func(icons *survey.IconSet) {
 	icons.Question.Text = "▸"
 }
 
+// Env variables found in GCP, AWS and Azure cloudshell.
+// Used to determine if cli is running on cloudshell.
+const (
+	gcpCloudEnv   = "CLOUD_SHELL"
+	awsCloudEnv   = "AWS_EXECUTION_ENV"
+	AzureCloudEnv = "POWERSHELL_DISTRIBUTION_CHANNEL"
+)
+
 // UpdateCommand returns the command that a user should run to update the cli
 // to the latest available version (unix specific command)
 func (c *cliState) UpdateCommand() string {
 	if os.Getenv(HomebrewInstall) != "" {
 		return `
-  $ brew upgrade lacework-cli
+  brew upgrade lacework-cli
+`
+	}
+
+	if isCloudShell() {
+		return `
+  curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash -s -- -d $HOME/bin
 `
 	}
 	return `
-  $ curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
+  curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
 `
+}
+
+// isCloudShell uses env variables specific to GCP, AWS and Azure
+// to determine if the Lacework CLI is running on cloudshell
+func isCloudShell() bool {
+	return isAwsCloudShell() || isGcpCloudShell() || isAzureCloudShell()
+}
+
+// isAzureCloudShell uses the native env variable POWERSHELL_DISTRIBUTION_CHANNEL="CloudShell"
+// to determine if the Lacework CLI is running on Azure cloudshell
+func isAzureCloudShell() bool {
+	return os.Getenv(AzureCloudEnv) == "CloudShell"
+}
+
+// isGcpCloudShell uses the native env variable CLOUD_SHELL=true
+// to determine if the Lacework CLI is running on GCP cloudshell
+func isGcpCloudShell() bool {
+	return os.Getenv(gcpCloudEnv) == "true"
+}
+
+// isAwsCloudShell uses the native env variable AWS_EXECUTION_ENV="Cloudshell"
+// to determine if the Lacework CLI is running on AWS cloudshell
+func isAwsCloudShell() bool {
+	return os.Getenv(awsCloudEnv) == "Cloudshell"
 }

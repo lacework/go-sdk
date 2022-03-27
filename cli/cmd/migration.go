@@ -28,6 +28,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
+	"github.com/lacework/go-sdk/internal/cache"
+	"github.com/lacework/go-sdk/internal/file"
 	"github.com/lacework/go-sdk/lwconfig"
 )
 
@@ -38,12 +40,10 @@ const ConfigBackupDir = "cfg_backups"
 // if a configuration file does not exist, it will only update
 // the CLI state to the appropriate parameters
 func (c *cliState) Migrations() (err error) {
-	if !needMigration() {
-		return nil
-	}
-
 	c.Log.Debugw("executing v2 migration")
 	c.Event.Feature = featMigrateConfigV2
+	c.CfgVersion = 0
+
 	defer func() {
 		if err == nil {
 			c.SendHoneyvent()
@@ -56,6 +56,11 @@ func (c *cliState) Migrations() (err error) {
 		c.Event.Subaccount = c.Subaccount
 		c.Event.CfgVersion = c.CfgVersion
 	}()
+
+	err = c.NewClient()
+	if err != nil {
+		return
+	}
 
 	err = c.VerifySettings()
 	if err != nil {
@@ -84,12 +89,21 @@ func (c *cliState) Migrations() (err error) {
 
 		// if the user is accessing a sub-account, that is, if the current
 		// account is different from the primary account name, set it as
-		// a what it is, the sub-account
+		// what it is, the sub-account
 		if primaryAccount != c.Account {
 			c.Log.Debugw("updating account settings for APIv2",
 				"old_account", c.Account,
 				"new_account", primaryAccount,
 			)
+
+			// ALLY-541: Frankfurt accounts will have the account as 'account.fra',
+			//           we need to remove the .fra domain to use it as a subaccount
+			if strings.Contains(c.Account, ".") {
+				c.Log.Debugw("subaccount needs cleanup", "subaccount", c.Account)
+				accSplit := strings.Split(c.Account, ".")
+				c.Account = accSplit[0]
+			}
+
 			c.Subaccount = c.Account
 			c.Account = primaryAccount
 
@@ -107,7 +121,7 @@ func (c *cliState) Migrations() (err error) {
 	// if the configuration file does not exist, most likely the user
 	// is executing the CLI via env variables or flags, update feature
 	// field and exit migration
-	if !fileExists(viper.ConfigFileUsed()) {
+	if !file.FileExists(viper.ConfigFileUsed()) {
 		c.Log.Debugw("config file not found, skipping profile migration")
 		c.Event.AddFeatureField("config_file", "not_found")
 		return nil
@@ -146,7 +160,7 @@ func createConfigurationBackup() (string, error) {
 		return "", err
 	}
 
-	cacheDir, err := versionCacheDir()
+	cacheDir, err := cache.CacheDir()
 	if err != nil {
 		return "", err
 	}
@@ -161,8 +175,4 @@ func createConfigurationBackup() (string, error) {
 			time.Now().Format("20060102150405"), newID()),
 	)
 	return backupCfgPath, lwconfig.StoreAt(backupCfgPath, profiles)
-}
-
-func needMigration() bool {
-	return cli.CfgVersion != 2 // &&
 }

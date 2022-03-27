@@ -18,7 +18,7 @@
 
 package api
 
-import "github.com/lacework/go-sdk/internal/domain"
+import "github.com/lacework/go-sdk/lwdomain"
 
 // AccountService is a service that interacts with Account related
 // endpoints from the Lacework Server
@@ -44,6 +44,6 @@ type accountOrganizationInfoResponse struct {
 }
 
 func (r accountOrganizationInfoResponse) AccountName() string {
-	d, _ := domain.New(r.OrgAccountURL)
+	d, _ := lwdomain.New(r.OrgAccountURL)
 	return d.String()
 }

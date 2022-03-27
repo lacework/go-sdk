@@ -30,8 +30,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/lacework/go-sdk/internal/domain"
+	"github.com/lacework/go-sdk/internal/format"
 	"github.com/lacework/go-sdk/lwconfig"
+	"github.com/lacework/go-sdk/lwdomain"
 )
 
 var (
@@ -41,7 +42,7 @@ var (
 	// configureCmd represents the configure command
 	configureCmd = &cobra.Command{
 		Use:   "configure",
-		Short: "configure the Lacework CLI",
+		Short: "Configure the Lacework CLI",
 		Args:  cobra.NoArgs,
 		Long: `Configure settings that the Lacework CLI uses to interact with the Lacework
 platform. These include your Lacework account, API access key and secret.
@@ -67,15 +68,15 @@ the Lacework CLI will create it for you.`,
 	}
 
 	configureListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "list all configured profiles at ~/.lacework.toml",
-		Args:  cobra.NoArgs,
+		Use:     "list",
+		Short:   "List all configured profiles at ~/.lacework.toml",
+		Aliases: []string{"ls"},
+		Args:    cobra.NoArgs,
 		Long: `List all profiles configured into the config file ~/.lacework.toml
 
-To switch to a different profile permanently in your current terminal,
-export the environment variable:
+To switch profiles permanently use the command.
 
-    ` + configureListCmdSetProfileEnv,
+    lacework configure switch-profile profile2`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			profiles, err := cli.LoadProfiles()
 			if err != nil {
@@ -88,32 +89,37 @@ export the environment variable:
 					buildProfilesTableContent(cli.Profile, profiles),
 				),
 			)
+
+			cli.OutputHuman("\nTo switch profiles use 'lacework configure switch-profile <profile>'\n")
 			return nil
 		},
 	}
 
 	configureGetCmd = &cobra.Command{
 		Use:   "show <config_key>",
-		Short: "show current configuration data",
+		Short: "Show current configuration data",
 		Args:  cobra.ExactArgs(1),
 		Long: `Prints the current computed configuration data from the specified configuration
 key. The order of precedence to compute the configuration is flags, environment
 variables, and the configuration file ~/.lacework.toml. 
 
 The available configuration keys are:
+
 * profile
 * account
+* subaccount
 * api_secret
 * api_key
 
 To show the configuration from a different profile, use the flag --profile.
 
-    $ lacework configure show account --profile my-profile`,
+    lacework configure show account --profile my-profile`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			data, ok := showConfigurationDataFromKey(args[0])
 			if !ok {
 				// TODO change this to be dynamic
-				return errors.New("unknown configuration key. (available: profile, account, subaccount, api_secret, api_key, version)")
+				return errors.New(
+					"unknown configuration key. (available: profile, account, subaccount, api_secret, api_key, version)")
 			}
 
 			if data != "" {
@@ -192,10 +198,15 @@ func runConfigureSetup() error {
 		// before trying to detect if the account is organizational or not, and to
 		// check if there are sub-accounts, we need to update the CLI settings
 		cli.Log.Debug("storing interactive information into the cli state")
-		cli.Account = newProfile.Account
-		cli.Subaccount = newProfile.Subaccount
 		cli.Secret = newProfile.ApiSecret
 		cli.KeyID = newProfile.ApiKey
+		if cli.Account != newProfile.Account {
+			// if the account provided by the interactive prompt is different,
+			// we need to remove the previous sub-account since it's a reconfiguration
+			cli.Account = newProfile.Account
+			cli.Subaccount = ""
+			newProfile.Subaccount = ""
+		}
 
 		// generate a new API client to connect and check for sub-accounts
 		if err := cli.NewClient(); err != nil {
@@ -205,14 +216,12 @@ func runConfigureSetup() error {
 		// get sub-accounts from organizational accounts
 		subaccount, err := getSubAccountForOrgAdmins()
 		if err != nil {
-			return err
-		}
-
-		// only configure the subaccount if it is not empty
-		if subaccount != "" {
+			// We do NOT error here since API v2 is sending 500 errors
+			// for mortal users, we need to fix this on the server side
+			cli.Log.Warnw("unable to get sub-accounts for org admins", "error", err)
+		} else {
 			newProfile.Subaccount = subaccount
 		}
-
 		cli.OutputHuman("\n")
 	}
 
@@ -243,7 +252,7 @@ func promptConfigureSetup(newProfile *lwconfig.Profile) error {
 				answer, ok := ans.(string)
 				if ok && strings.Contains(answer, ".lacework.net") {
 
-					d, err := domain.New(answer)
+					d, err := lwdomain.New(answer)
 					if err != nil {
 						cli.Log.Warn(err)
 						return answer
@@ -283,7 +292,7 @@ func promptConfigureSetup(newProfile *lwconfig.Profile) error {
 
 	secretMessage := "Secret Access Key:"
 	if len(cli.Secret) != 0 {
-		secretMessage = fmt.Sprintf("Secret Access Key: (%s)", formatSecret(4, cli.Secret))
+		secretMessage = fmt.Sprintf("Secret Access Key: (%s)", format.Secret(4, cli.Secret))
 	}
 	secretQuest.Prompt = &survey.Password{
 		Message: secretMessage,
@@ -308,12 +317,7 @@ func getSubAccountForOrgAdmins() (string, error) {
 	user, err := cli.LwApi.V2.UserProfile.Get()
 	cli.StopProgress()
 	if err != nil {
-		cli.Log.Warnw("unable to access UserProfile endpoint",
-			"error", err,
-		)
-		// We do NOT error here since API v2 is sending 500 errors
-		// for mortal users, we need to fix this on the server side
-		return "", nil
+		return "", errors.Wrap(err, "unable to access UserProfile endpoint")
 	}
 
 	// We only ask for the sub-account if the account is an organizational account
@@ -371,7 +375,7 @@ func loadUIJsonFile(file string) error {
 	cli.Subaccount = strings.ToLower(auth.SubAccount)
 
 	if auth.Account != "" {
-		d, err := domain.New(auth.Account)
+		d, err := lwdomain.New(auth.Account)
 		if err != nil {
 			return err
 		}
@@ -389,7 +393,7 @@ func buildProfilesTableContent(current string, profiles lwconfig.Profiles) [][]s
 			creds.Account,
 			creds.Subaccount,
 			creds.ApiKey,
-			formatSecret(4, creds.ApiSecret),
+			format.Secret(4, creds.ApiSecret),
 			fmt.Sprintf("%d", creds.Version),
 		})
 	}

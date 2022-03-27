@@ -1,5 +1,5 @@
-// +build !linux
-//
+//go:build configure && windows
+
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -38,14 +38,14 @@ func TestConfigureCommandWithJSONFileFlagError(t *testing.T) {
 		"EXITCODE is not the expected one")
 }
 
-func TestConfigureListHelp(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("configure", "list", "--help")
+func TestConfigureSwitchProfileHelp(t *testing.T) {
+	out, err, exitcode := LaceworkCLI("configure", "switch-profile", "--help")
 	assert.Empty(t,
 		err.String(),
 		"STDERR should be empty")
 	assert.Contains(t,
 		out.String(),
-		`C:\> $env:LW_PROFILE = 'my-profile'`,
+		`$env:LW_PROFILE = 'my-profile'`,
 		"STDOUT the environment variable in the help message is not correct")
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")

@@ -19,8 +19,6 @@
 package lwlogger_test
 
 import (
-	"bytes"
-	"io"
 	"io/ioutil"
 	"os"
 	"syscall"
@@ -29,12 +27,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 
+	"github.com/lacework/go-sdk/internal/capturer"
 	"github.com/lacework/go-sdk/lwlogger"
 )
 
 func TestLoggerNew(t *testing.T) {
 	// by default we do not log an INFO or DEBUG, only ERROR
-	logOutput := captureOutput(func() {
+	logOutput := capturer.CaptureOutput(func() {
 		lwL := lwlogger.New("")
 		lwL.Info("interesting info")
 		lwL.Debug("we are debugging")
@@ -69,7 +68,7 @@ func TestLoggerNew(t *testing.T) {
 
 func TestLoggerNewINFO(t *testing.T) {
 	// switching to INFO will show ERRORS and INFO logs
-	logOutput := captureOutput(func() {
+	logOutput := capturer.CaptureOutput(func() {
 		lwL := lwlogger.New("INFO")
 		lwL.Info("interesting info")
 		lwL.Debug("we are debugging")
@@ -110,7 +109,7 @@ func TestLoggerNewINFO(t *testing.T) {
 
 func TestLoggerNewDEBUG(t *testing.T) {
 	// switching to DEBUG will show INFO, DEBUG and ERRORS messages
-	logOutput := captureOutput(func() {
+	logOutput := capturer.CaptureOutput(func() {
 		lwL := lwlogger.New("DEBUG")
 		lwL.Info("interesting info")
 		lwL.Debug("we are debugging")
@@ -160,7 +159,7 @@ func TestLoggerNewLogEnv(t *testing.T) {
 	os.Setenv(lwlogger.LogLevelEnv, "DEBUG")
 	defer os.Setenv(lwlogger.LogLevelEnv, "")
 
-	logOutput := captureOutput(func() {
+	logOutput := capturer.CaptureOutput(func() {
 		lwL := lwlogger.New("")
 		lwL.Info("interesting info")
 		lwL.Debug("we are debugging")
@@ -179,7 +178,7 @@ func TestLoggerNewLogFormatEnv(t *testing.T) {
 	os.Setenv(lwlogger.LogFormatEnv, "CONSOLE")
 	defer os.Setenv(lwlogger.LogFormatEnv, "")
 
-	logOutput := captureOutput(func() {
+	logOutput := capturer.CaptureOutput(func() {
 		lwL := lwlogger.New("DEBUG")
 		lwL.Info("interesting info")
 		lwL.Debug("we are debugging")
@@ -208,7 +207,7 @@ func TestLoggerNewWithWriter(t *testing.T) {
 }
 
 func TestLoggerNewWithOptions(t *testing.T) {
-	logOutput := captureOutput(func() {
+	logOutput := capturer.CaptureOutput(func() {
 		lwL := lwlogger.New("DEBUG",
 			zap.Fields(zap.Field(zap.String("my_field", "awesome"))),
 		)
@@ -225,33 +224,4 @@ func TestValidLevel(t *testing.T) {
 	assert.True(t, lwlogger.ValidLevel("DEBUG"))
 	assert.True(t, lwlogger.ValidLevel(""))
 	assert.False(t, lwlogger.ValidLevel("FOO"))
-}
-
-// captureOutput executes a function and captures the STDOUT and STDERR,
-// useful to test logging messages
-func captureOutput(f func()) string {
-	r, w, err := os.Pipe()
-	if err != nil {
-		panic(err)
-	}
-
-	stdout := os.Stdout
-	os.Stdout = w
-	defer func() {
-		os.Stdout = stdout
-	}()
-
-	stderr := os.Stderr
-	os.Stderr = w
-	defer func() {
-		os.Stderr = stderr
-	}()
-
-	f()
-	w.Close()
-
-	var buf bytes.Buffer
-	io.Copy(&buf, r)
-
-	return buf.String()
 }

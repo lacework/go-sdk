@@ -69,16 +69,17 @@ func createQRadarAlertChannelIntegration() error {
 		return err
 	}
 
-	qradar := api.NewQRadarAlertChannel(answers.Name,
-		api.QRadarChannelData{
-			HostURL:           answers.HostURL,
-			HostPort:          answers.HostPort,
-			CommunicationType: commType,
+	qradar := api.NewAlertChannel(answers.Name,
+		api.IbmQRadarAlertChannelType,
+		api.IbmQRadarDataV2{
+			HostURL:        answers.HostURL,
+			HostPort:       answers.HostPort,
+			QRadarCommType: commType,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateQRadarAlertChannel(qradar)
+	_, err = cli.LwApi.V2.AlertChannels.Create(qradar)
 	cli.StopProgress()
 	return err
 }

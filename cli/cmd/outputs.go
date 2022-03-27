@@ -61,7 +61,7 @@ func (c *cliState) OutputJSONString(s string) error {
 func (c *cliState) FormatJSONString(s string) (string, error) {
 	pretty, err := c.JsonF.Format([]byte(strings.Trim(s, "'")))
 	if err != nil {
-		c.Log.Debugw("unable to pretty print JSON string", "raw", s)
+		c.Log.Debugw("unable to pretty print JSON string", "raw", s, "error", err.Error())
 		return "", err
 	}
 	return string(pretty), nil
@@ -107,4 +107,11 @@ func (c *cliState) OutputCSV(headers []string, data [][]string) error {
 
 	fmt.Fprint(os.Stdout, csv)
 	return nil
+}
+
+func (c *cliState) OutputNonDefaultProfileFlag() string {
+	if c.Profile != "default" {
+		return fmt.Sprintf(" --profile %s", c.Profile)
+	}
+	return ""
 }

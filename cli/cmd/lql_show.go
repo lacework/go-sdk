@@ -24,34 +24,32 @@ import (
 )
 
 var (
-	// lqlShowCmd represents the lql show command
-	lqlShowCmd = &cobra.Command{
+	// queryShowCmd represents the lql show command
+	queryShowCmd = &cobra.Command{
 		Use:   "show <query_id>",
-		Short: "show an LQL query",
-		Long:  `Show an LQL query.`,
+		Short: "Show a query",
+		Long:  `Show a query.`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  showQuery,
 	}
 )
 
 func init() {
-	lqlCmd.AddCommand(lqlShowCmd)
+	queryCmd.AddCommand(queryShowCmd)
 }
 
 func showQuery(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("retrieving LQL query", "queryID", args[0])
-
-	queryResponse, err := cli.LwApi.LQL.GetQueryByID(args[0])
-
+	cli.Log.Debugw("retrieving query", "id", args[0])
+	cli.StartProgress(" Retrieving query...")
+	queryResponse, err := cli.LwApi.V2.Query.Get(args[0])
+	cli.StopProgress()
 	if err != nil {
-		return errors.Wrap(err, "unable to show LQL query")
+		return errors.Wrap(err, "unable to show query")
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)
 	}
-	if len(queryResponse.Data) == 0 {
-		return yikes("unable to show LQL query")
-	}
-	cli.OutputHuman(queryResponse.Data[0].QueryText)
+
+	cli.OutputHuman(queryResponse.Data.QueryText)
 	return nil
 }

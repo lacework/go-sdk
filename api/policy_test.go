@@ -30,56 +30,77 @@ import (
 )
 
 var (
-	policyURI = "external/lqlPolicies"
+	policyURI = "Policies"
 	policyID  = "my-policy-1"
-	policyStr = `{
-	"policy_id": "my-policy-1",
+	policy    = api.Policy{
+		Tags: []string{"fhqwhgads"},
+	}
+	newPolicy = api.NewPolicy{
+		EvaluatorID:   "Cloudtrail",
+		PolicyID:      policyID,
+		PolicyType:    "Violation",
+		QueryID:       "MyExampleQuery",
+		Title:         "My Policy Title",
+		Enabled:       false,
+		Description:   "My Policy Description",
+		Remediation:   "Check yourself...",
+		Severity:      "high",
+		EvalFrequency: "Hourly",
+		AlertEnabled:  false,
+		AlertProfile:  "LW_CloudTrail_Alerts",
+	}
+	updatePolicy = api.UpdatePolicy{
+		PolicyID: policyID,
+		Title:    "My New Policy Title",
+	}
+	policyCreateData = fmt.Sprintf(`{
+	"evaluatorId": "Cloudtrail",
+	"policyId": "%s",
 	"title": "My Policy Title",
 	"enabled": false,
-	"lql_id": "MyExampleQuery",
-	"severity": "high",
 	"description": "My Policy Description",
-	"remediation": "Check yourself..."
+	"remediation": "Check yourself...",
+	"severity": "high",
+	"evalFrequency": "Hourly",
+	"limit": 1000,
+	"alertEnabled": false,
+	"alertProfile": "LW_CloudTrail_Alerts",
+	"policyType": "Violation"
+}`, policyID)
+	policyUpdateData = fmt.Sprintf(`{
+	"evaluatorId": "Cloudtrail",
+	"policyId": "%s",
+	"title": "My New Policy Title",
+	"enabled": false,
+	"description": "My Policy Description",
+	"remediation": "Check yourself...",
+	"severity": "high",
+	"evalFrequency": "Hourly",
+	"limit": 1000,
+	"alertEnabled": false,
+	"alertProfile": "LW_CloudTrail_Alerts",
+	"policyType": "Violation"
+}`, policyID)
+	mockPolicyErrorResponse = `{
+	"message": "This is an error message"
 }`
-	policyCreateData = `[
-	{
-		"policy_id": "my-policy-1",
-		"title": "My Policy Title",
-		"enabled": false,
-		"description": "My Policy Description",
-		"remediation": "Check yourself...",
-		"severity": "2",
-		"eval_frequency": "Hourly",
-		"limit": 1000,
-		"alert_enabled": false,
-		"alert_profile": "LW_CloudTrail_Alerts",
-		"policy_type": "Violation"
-	}
-]`
-	policyAlreadyExistsError = mockPolicyDataResponse(
-		`{ "message": "{\"error\":\"Error: Cannot create rule my-policy-1 because it already exists in database.\"}" }`,
-		"false",
-	)
-	policyUnableToLocateError = mockPolicyDataResponse(
-		`{ "message": "{\"error\":\"Error: Unable to locate policy foo, please double check the policy exists and has not already been deleted.\"}" }`,
-		"false",
-	)
-	policyUpdateError = mockPolicyDataResponse(
-		`{ "message": "Severity field only accept value [critical, 1, high, 2, medium, 3, low, 4, info, 5]" }`,
-		"false",
-	)
 )
 
-func mockPolicyDataResponse(data string, ok string) string {
+func mockPolicyDataResponse(data string) string {
 	return `{
 	"data": ` + data + `,
-	"ok": ` + ok + `,
 	"message": "SUCCESS"
 }`
 }
 
+func TestPolicyHasTags(t *testing.T) {
+	assert.Equal(t, true, policy.HasTag("fhqwhgads"))
+	assert.Equal(t, false, policy.HasTag(""))
+}
+
 func TestPolicyCreateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
@@ -95,34 +116,15 @@ func TestPolicyCreateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Create(policyStr)
+	_, err = c.V2.Policy.Create(api.NewPolicy{})
 	assert.Nil(t, err)
-}
-
-func TestPolicyCreateBadInput(t *testing.T) {
-	fakeServer := lacework.MockServer()
-	fakeServer.MockAPI(
-		policyURI,
-		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "{}")
-		},
-	)
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	_, err = c.Policy.Create("")
-	assert.Equal(t, "unexpected end of JSON input", err.Error())
 }
 
 func TestPolicyCreateOK(t *testing.T) {
-	mockResponse := mockPolicyDataResponse(policyCreateData, "true")
+	mockResponse := mockPolicyDataResponse(policyCreateData)
 
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
@@ -140,17 +142,18 @@ func TestPolicyCreateOK(t *testing.T) {
 	createExpected := api.PolicyResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
 
-	createActual, err := c.Policy.Create("{}")
+	createActual, err := c.V2.Policy.Create(newPolicy)
 	assert.Nil(t, err)
 	assert.Equal(t, createExpected, createActual)
 }
 
 func TestPolicyCreateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, policyAlreadyExistsError, http.StatusBadRequest)
+			http.Error(w, mockPolicyErrorResponse, http.StatusBadRequest)
 		},
 	)
 	defer fakeServer.Close()
@@ -161,14 +164,15 @@ func TestPolicyCreateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Create(policyStr)
+	_, err = c.V2.Policy.Create(api.NewPolicy{})
 	assert.NotNil(t, err)
 }
 
-func TestPolicyGetByIDMethod(t *testing.T) {
+func TestPolicyGetMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "List should be a GET method")
 			fmt.Fprint(w, "{}")
@@ -182,16 +186,17 @@ func TestPolicyGetByIDMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.GetByID(policyID)
+	_, err = c.V2.Policy.Get(policyID)
 	assert.Nil(t, err)
 }
 
-func TestPolicyGetByIDOK(t *testing.T) {
-	mockResponse := mockPolicyDataResponse(policyCreateData, "true")
+func TestPolicyGetOK(t *testing.T) {
+	mockResponse := mockPolicyDataResponse(policyCreateData)
 
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -208,18 +213,19 @@ func TestPolicyGetByIDOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &getExpected)
 
 	var getActual api.PolicyResponse
-	getActual, err = c.Policy.GetByID(policyID)
+	getActual, err = c.V2.Policy.Get(policyID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, getExpected, getActual)
 }
 
-func TestPolicyGetByIDNotFound(t *testing.T) {
+func TestPolicyGetNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, policyUnableToLocateError, http.StatusBadRequest)
+			http.Error(w, mockPolicyErrorResponse, http.StatusBadRequest)
 		},
 	)
 	defer fakeServer.Close()
@@ -230,14 +236,59 @@ func TestPolicyGetByIDNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.GetByID("NoSuchPolicy")
+	_, err = c.V2.Policy.Get("NoSuchPolicy")
 	assert.NotNil(t, err)
+}
+
+func TestPolicyListMethod(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI(
+		"Policies",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "List should be a GET method")
+			fmt.Fprint(w, "{}")
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.V2.Policy.List()
+	assert.Nil(t, err)
+}
+
+func TestPolicyListTagsMethod(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI(
+		"Policies/Tags",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "ListTags should be a GET method")
+			fmt.Fprint(w, "{}")
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.V2.Policy.ListTags()
+	assert.Nil(t, err)
 }
 
 func TestPolicyUpdateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "PATCH", r.Method, "Update should be a PATCH method")
 			fmt.Fprint(w, "{}")
@@ -251,14 +302,15 @@ func TestPolicyUpdateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Update(policyID, policyStr)
+	_, err = c.V2.Policy.Update(updatePolicy)
 	assert.Nil(t, err)
 }
 
-func TestPolicyUpdateNoPolicyID(t *testing.T) {
+func TestPolicyUpdateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -271,37 +323,18 @@ func TestPolicyUpdateNoPolicyID(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Update("", "{}")
+	_, err = c.V2.Policy.Update(api.UpdatePolicy{})
 	assert.Equal(t, "policy ID must be provided", err.Error())
-}
-
-func TestPolicyUpdatePolicyIDFromPayload(t *testing.T) {
-	fakeServer := lacework.MockServer()
-	fakeServer.MockAPI(
-		policyURI,
-		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "{}")
-		},
-	)
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	_, err = c.Policy.Update("", `{"policy_id": "my-policy-1"}`)
-	assert.Nil(t, err)
 }
 
 func TestPolicyUpdateOK(t *testing.T) {
 	// policy create and update data are same-same
-	mockResponse := mockPolicyDataResponse(policyCreateData, "true")
+	mockResponse := mockPolicyDataResponse(policyUpdateData)
 
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -317,17 +350,18 @@ func TestPolicyUpdateOK(t *testing.T) {
 	updateExpected := api.PolicyResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
 
-	updateActual, err := c.Policy.Update(policyID, `{"severity": "high"}`)
+	updateActual, err := c.V2.Policy.Update(updatePolicy)
 	assert.Nil(t, err)
 	assert.Equal(t, updateExpected, updateActual)
 }
 
 func TestPolicyUpdateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, policyUpdateError, http.StatusBadRequest)
+			http.Error(w, mockPolicyErrorResponse, http.StatusBadRequest)
 		},
 	)
 	defer fakeServer.Close()
@@ -338,14 +372,15 @@ func TestPolicyUpdateError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Create(policyStr)
+	_, err = c.V2.Policy.Update(api.UpdatePolicy{})
 	assert.NotNil(t, err)
 }
 
 func TestPolicyDeleteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "DELETE", r.Method, "Delete should be a DELETE method")
 			fmt.Fprint(w, "{}")
@@ -359,14 +394,15 @@ func TestPolicyDeleteMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Delete("my-policy-1")
+	_, err = c.V2.Policy.Delete(policyID)
 	assert.Nil(t, err)
 }
 
 func TestPolicyDeleteBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -379,18 +415,18 @@ func TestPolicyDeleteBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Delete("")
+	_, err = c.V2.Policy.Delete("")
 	assert.Equal(t, "policy ID must be provided", err.Error())
 }
 
 func TestPolicyDeleteOK(t *testing.T) {
-	mockResponse := "{}"
-
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, mockResponse)
+			// send the headers with a 204 response code.
+			w.WriteHeader(http.StatusNoContent)
 		},
 	)
 	defer fakeServer.Close()
@@ -401,20 +437,17 @@ func TestPolicyDeleteOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	var deleteExpected map[string]interface{}
-	_ = json.Unmarshal([]byte(mockResponse), &deleteExpected)
-
-	deleteActual, err := c.Policy.Delete("my-policy-1")
+	_, err = c.V2.Policy.Delete(policyID)
 	assert.Nil(t, err)
-	assert.Equal(t, deleteExpected, deleteActual)
 }
 
 func TestPolicyDeleteError(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		policyURI,
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, policyUnableToLocateError, http.StatusBadRequest)
+			http.Error(w, mockPolicyErrorResponse, http.StatusBadRequest)
 		},
 	)
 	defer fakeServer.Close()
@@ -425,6 +458,6 @@ func TestPolicyDeleteError(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.Policy.Delete("no-such-policy")
+	_, err = c.V2.Policy.Delete("no-such-policy")
 	assert.NotNil(t, err)
 }

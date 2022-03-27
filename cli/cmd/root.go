@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -46,18 +47,18 @@ external integrations, vulnerability scans, and other operations.
 
 Start by configuring the Lacework CLI with the command:
 
-    $ lacework configure
+    lacework configure
 
 This will prompt you for your Lacework account and a set of API access keys.`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			cli.Log.Debugw("updating honeyvent", "dataset", HoneyDataset)
 			cli.Event.Command = cmd.CommandPath()
 			cli.Event.Args = args
-			// TODO @afiune how do we send flags?
+			cli.Event.Flags = parseFlags(os.Args[1:])
 			cli.SendHoneyvent()
 
 			switch cmd.Use {
-			case "help [command]", "configure", "version", "generate-pkg-manifest":
+			case "help [command]", "configure", "version", "docs <directory>", "generate-pkg-manifest":
 				return nil
 			default:
 				// @afiune no need to create a client for any configure command
@@ -66,11 +67,16 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 				}
 
 				if err := cli.NewClient(); err != nil {
-					return err
+					if !strings.Contains(err.Error(), "Invalid Account") {
+						return err
+					}
+
+					if err := cli.Migrations(); err != nil {
+						return err
+					}
 				}
 
-				// @afiune execute any necessary migration, if any
-				return cli.Migrations()
+				return nil
 			}
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
@@ -128,6 +134,9 @@ func init() {
 	rootCmd.PersistentFlags().Bool("nocolor", false,
 		"turn off colors",
 	)
+	rootCmd.PersistentFlags().Bool("nocache", false,
+		"turn off caching",
+	)
 	rootCmd.PersistentFlags().Bool("noninteractive", false,
 		"turn off interactive mode (disable spinners, prompts, etc.)",
 	)
@@ -143,22 +152,31 @@ func init() {
 	rootCmd.PersistentFlags().StringP("api_secret", "s", "",
 		"secret access key",
 	)
+	rootCmd.PersistentFlags().String("api_token", "",
+		"access token (replaces the use of api_key and api_secret)",
+	)
 	rootCmd.PersistentFlags().StringP("account", "a", "",
 		"account subdomain of URL (i.e. <ACCOUNT>.lacework.net)",
 	)
 	rootCmd.PersistentFlags().String("subaccount", "",
 		"sub-account name inside your organization (org admins only)",
 	)
+	rootCmd.PersistentFlags().Bool("organization", false,
+		"access organization level data sets (org admins only)",
+	)
 
 	errcheckWARN(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
 	errcheckWARN(viper.BindPFlag("nocolor", rootCmd.PersistentFlags().Lookup("nocolor")))
+	errcheckWARN(viper.BindPFlag("nocache", rootCmd.PersistentFlags().Lookup("nocache")))
 	errcheckWARN(viper.BindPFlag("noninteractive", rootCmd.PersistentFlags().Lookup("noninteractive")))
 	errcheckWARN(viper.BindPFlag("json", rootCmd.PersistentFlags().Lookup("json")))
 	errcheckWARN(viper.BindPFlag("profile", rootCmd.PersistentFlags().Lookup("profile")))
 	errcheckWARN(viper.BindPFlag("account", rootCmd.PersistentFlags().Lookup("account")))
 	errcheckWARN(viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api_key")))
 	errcheckWARN(viper.BindPFlag("api_secret", rootCmd.PersistentFlags().Lookup("api_secret")))
+	errcheckWARN(viper.BindPFlag("api_token", rootCmd.PersistentFlags().Lookup("api_token")))
 	errcheckWARN(viper.BindPFlag("subaccount", rootCmd.PersistentFlags().Lookup("subaccount")))
+	errcheckWARN(viper.BindPFlag("organization", rootCmd.PersistentFlags().Lookup("organization")))
 }
 
 // initConfig reads in config file and ENV variables if set
@@ -191,18 +209,12 @@ func initConfig() {
 		cli.NonInteractive()
 	}
 
-	if viper.GetBool("json") {
-		cli.EnableJSONOutput()
+	if viper.GetBool("nocache") {
+		cli.NoCache()
 	}
 
-	// by default the cli logs are going to be visualized in
-	// a console format unless the user wants the opposite
-	if os.Getenv("LW_LOG_FORMAT") == "" {
-		if cli.JSONOutput() {
-			os.Setenv("LW_LOG_FORMAT", "JSON")
-		} else {
-			os.Setenv("LW_LOG_FORMAT", "CONSOLE")
-		}
+	if viper.GetBool("json") {
+		cli.EnableJSONOutput()
 	}
 
 	// try to read config file
@@ -221,11 +233,17 @@ func initConfig() {
 		)
 	}
 
+	// initialize cli cache library
+	cli.InitCache()
+
 	// get the profile passed as a parameter or environment variable
 	// if any, set it into the CLI state, that will trigger to load the
 	// state, if no profile was specified just load the default state
 	if p := viper.GetString("profile"); len(p) != 0 {
 		err = cli.SetProfile(p)
+	} else if p, cacheErr := cli.Cache.Read("global/profile"); cacheErr == nil {
+		cli.Log.Debugw("loading profile from cache", "profile", string(p))
+		err = cli.SetProfile(string(p))
 	} else {
 		err = cli.LoadState()
 	}

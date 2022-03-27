@@ -1,0 +1,6 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/centos-6.10"
+  config.vm.synced_folder "../../../bin", "/devcli"
+  config.vm.provision "shell", inline: "ln -s /devcli/lacework-cli-linux-amd64 /home/vagrant/lacework"
+end
+

@@ -34,84 +34,69 @@ var (
 	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
 	complianceAwsListAccountsCmd = &cobra.Command{
 		Use:     "list-accounts",
-		Aliases: []string{"list"},
-		Short:   "list all AWS accounts configured",
+		Aliases: []string{"list", "ls"},
+		Short:   "List all AWS accounts configured",
 		Long:    `List all AWS accounts configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			cli.StartProgress("Fetching list of configured AWS accounts...")
 			awsIntegrations, err := cli.LwApi.Integrations.ListAwsCfg()
+			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get aws compliance integrations")
 			}
-			if len(awsIntegrations.Data) == 0 {
-				msg := `There are no AWS accounts configured in your account.
 
-Get started by integrating your AWS accounts to analyze configuration compliance using the command:
-
-    $ lacework integration create
-
-If you prefer to configure the integration via the WebUI, log in to your account at:
-
-    https://%s.lacework.net
-
-Then navigate to Settings > Integrations > Cloud Accounts.
-`
-				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
-				return nil
-			}
-
-			awsAccounts := make([]string, 0)
-			for _, i := range awsIntegrations.Data {
-				awsAccounts = append(awsAccounts, i.Data.AwsAccountID)
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(awsAccounts)
-			}
-
-			rows := [][]string{}
-			for _, acc := range awsAccounts {
-				rows = append(rows, []string{acc})
-			}
-
-			cli.OutputHuman(renderSimpleTable([]string{"AWS Accounts"}, rows))
-			return nil
+			return cliListAwsAccounts(&awsIntegrations)
 		},
 	}
 
 	// complianceAwsGetReportCmd represents the get-report sub-command inside the aws command
 	complianceAwsGetReportCmd = &cobra.Command{
-		Use:     "get-report <account_id>",
+		Use:     "get-report <account_id> [recommendation_id]",
 		Aliases: []string{"get"},
-		PreRunE: func(_ *cobra.Command, _ []string) error {
+		PreRunE: func(_ *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
+			}
+
+			if len(args) > 1 {
+				compCmdState.RecommendationID = args[1]
+				if !validRecommendationID(compCmdState.RecommendationID) {
+					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
+				}
 			}
 
 			switch compCmdState.Type {
 			case "CIS":
 				compCmdState.Type = fmt.Sprintf("AWS_%s_S3", compCmdState.Type)
 				return nil
-			case "AWS_CIS_S3", "NIST_800-53_Rev4", "ISO_2700", "HIPAA", "SOC", "PCI":
+			case "SOC_Rev2":
+				compCmdState.Type = fmt.Sprintf("AWS_%s", compCmdState.Type)
+				return nil
+			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2", "PCI":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI")
+				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI")
 			}
 		},
-		Short: "get the latest AWS compliance report",
+		Short: "Get the latest AWS compliance report",
 		Long: `Get the latest compliance assessment report from the provided AWS account, these
 reports run on a regular schedule, typically once a day. The available report formats
 are human-readable (default), json and pdf.
 
 To list all AWS accounts configured in your account:
 
-    $ lacework compliance aws list-accounts
+    lacework compliance aws list-accounts
 
 To run an ad-hoc compliance assessment of an AWS account:
 
-    $ lacework compliance aws run-assessment <account_id>
+    lacework compliance aws run-assessment <account_id>
+
+To show recommendation details and affected resources for a recommendation id:
+
+    lacework compliance aws get-report <account_id> [recommendation_id]
 `,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.RangeArgs(1, 2),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				// clean the AWS account ID if it was provided
@@ -131,7 +116,7 @@ To run an ad-hoc compliance assessment of an AWS account:
 					cli.Account, time.Now().Format("20060102150405"),
 				)
 
-				cli.StartProgress(" Downloading compliance report...")
+				cli.StartProgress("Downloading compliance report...")
 				err := cli.LwApi.Compliance.DownloadAwsReportPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
@@ -157,36 +142,63 @@ To run an ad-hoc compliance assessment of an AWS account:
 				}
 			}
 
-			cli.StartProgress(" Getting compliance report...")
-			response, err := cli.LwApi.Compliance.GetAwsReport(config)
-			cli.StopProgress()
-			if err != nil {
-				return errors.Wrap(err, "unable to get aws compliance report")
+			var (
+				report   api.ComplianceAwsReport
+				cacheKey = fmt.Sprintf("compliance/aws/%s/%s", config.AccountID, config.Type)
+			)
+			expired := cli.ReadCachedAsset(cacheKey, &report)
+			if expired {
+				cli.StartProgress("Getting compliance report...")
+				response, err := cli.LwApi.Compliance.GetAwsReport(config)
+				cli.StopProgress()
+				if err != nil {
+					return errors.Wrap(err, "unable to get aws compliance report")
+				}
+
+				if len(response.Data) == 0 {
+					return errors.New("no data found in the report")
+				}
+
+				report = response.Data[0]
+
+				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), report)
 			}
 
-			if len(response.Data) == 0 {
-				return errors.New("there is no data found in the report")
-			}
-
-			report := response.Data[0]
 			filteredOutput := ""
 
 			if complianceFiltersEnabled() {
 				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
 			}
 
-			if cli.JSONOutput() {
+			if cli.JSONOutput() && compCmdState.RecommendationID == "" {
 				return cli.OutputJSON(report)
 			}
 
-			recommendations := complianceReportRecommendationsTable(report.Recommendations)
 			if cli.CSVOutput() {
+				recommendations := complianceCSVReportRecommendationsTable(
+					&complianceCSVReportDetails{
+						AccountName:     report.AccountID,
+						AccountID:       report.AccountID,
+						ReportType:      report.ReportType,
+						ReportTime:      report.ReportTime,
+						Recommendations: report.Recommendations,
+					},
+				)
+
 				return cli.OutputCSV(
-					[]string{"ID", "Recommendation", "Status", "Severity", "Service", "Affected", "Assessed"},
+					[]string{"Report_Type", "Report_Time", "Account",
+						"Section", "ID", "Recommendation", "Status",
+						"Severity", "Resource", "Region", "Reason"},
 					recommendations,
 				)
 			}
 
+			// If RecommendationID is provided, output resources matching that id
+			if compCmdState.RecommendationID != "" {
+				return outputResourcesByRecommendationID(report)
+			}
+
+			recommendations := complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman("\n")
 			cli.OutputHuman(
 				buildComplianceReportTable(
@@ -204,20 +216,20 @@ To run an ad-hoc compliance assessment of an AWS account:
 	complianceAwsRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <account_id>",
 		Aliases: []string{"run"},
-		Short:   "run a new AWS compliance report",
+		Short:   "Run a new AWS compliance assessment",
 		Long:    `Run a compliance assessment for the provided AWS account.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			response, err := cli.LwApi.Compliance.RunAwsReport(args[0])
 			if err != nil {
-				return errors.Wrap(err, "unable to run aws compliance report")
+				return errors.Wrap(err, "unable to run aws compliance assessment")
 			}
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(response)
 			}
 
-			cli.OutputHuman("A new AWS compliance report has been initiated.\n")
+			cli.OutputHuman("A new AWS compliance assessment has been initiated.\n")
 			// @afiune not consistent with the other cloud providers
 			for key := range response {
 				cli.OutputHuman("\n")
@@ -251,9 +263,9 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI
+	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, AWS_SOC_Rev2, or PCI
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, NIST_800-53_Rev4, ISO_2700, HIPAA, SOC, or PCI",
+		"report type to display, supported types: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI",
 	)
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
@@ -283,4 +295,70 @@ func complianceAwsReportDetailsTable(report *api.ComplianceAwsReport) [][]string
 		[]string{"Account Alias", report.AccountAlias},
 		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
+}
+
+type awsAccount struct {
+	AccountID string `json:"account_id"`
+	Status    string `json:"status"`
+}
+
+func cliListAwsAccounts(awsIntegrations *api.AwsIntegrationsResponse) error {
+	awsAccounts := make([]awsAccount, 0)
+	jsonOut := struct {
+		Accounts []awsAccount `json:"aws_accounts"`
+	}{Accounts: awsAccounts}
+
+	if awsIntegrations == nil || len(awsIntegrations.Data) == 0 {
+		if cli.JSONOutput() {
+			return cli.OutputJSON(jsonOut)
+		}
+
+		msg := `There are no AWS accounts configured in your account.
+
+Get started by integrating your AWS accounts to analyze configuration compliance using the command:
+
+    lacework integration create
+
+If you prefer to configure the integration via the WebUI, log in to your account at:
+
+    https://%s.lacework.net
+
+Then navigate to Settings > Integrations > Cloud Accounts.
+`
+		cli.OutputHuman(msg, cli.Account)
+		return nil
+	}
+
+	for _, i := range awsIntegrations.Data {
+		if containsDuplicateAccountID(awsAccounts, i.Data.AwsAccountID) {
+			cli.Log.Warnw("duplicate aws account", "integration_guid", i.IntgGuid, "account", i.Data.AwsAccountID)
+			continue
+		}
+		awsAccounts = append(awsAccounts, awsAccount{
+			AccountID: i.Data.AwsAccountID,
+			Status:    i.Status(),
+		})
+	}
+
+	if cli.JSONOutput() {
+		jsonOut.Accounts = awsAccounts
+		return cli.OutputJSON(jsonOut)
+	}
+
+	var rows [][]string
+	for _, acc := range awsAccounts {
+		rows = append(rows, []string{acc.AccountID, acc.Status})
+	}
+
+	cli.OutputHuman(renderSimpleTable([]string{"AWS Account", "Status"}, rows))
+	return nil
+}
+
+func containsDuplicateAccountID(awsAccount []awsAccount, accountID string) bool {
+	for _, value := range awsAccount {
+		if accountID == value.AccountID {
+			return true
+		}
+	}
+	return false
 }

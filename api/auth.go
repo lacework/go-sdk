@@ -23,6 +23,8 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+
+	"github.com/lacework/go-sdk/internal/format"
 )
 
 const DefaultTokenExpiryTime = 3600
@@ -46,7 +48,7 @@ func WithApiKeys(id, secret string) Option {
 
 		c.log.Debug("setting up auth",
 			zap.String("key", id),
-			zap.String("secret", secret),
+			zap.String("secret", format.Secret(4, secret)),
 		)
 		c.auth.keyID = id
 		c.auth.secret = secret
@@ -70,9 +72,23 @@ func WithTokenFromKeys(id, secret string) Option {
 // WithToken sets the token used to authenticate the API requests
 func WithToken(token string) Option {
 	return clientFunc(func(c *Client) error {
-		c.log.Debug("setting up auth", zap.String("token", token))
+		c.log.Debug("setting up auth", zap.String("token", format.Secret(4, token)))
 		c.auth.token = token
-		c.auth.expiresAt = time.Now().Add(DefaultTokenExpiryTime * time.Second)
+		c.auth.expiresAt = time.Now().UTC().Add(DefaultTokenExpiryTime * time.Second)
+		return nil
+	})
+}
+
+// WithTokenAndExpiration sets the token used to authenticate the API requests
+// and additionally configures the expiration of the token
+func WithTokenAndExpiration(token string, expiration time.Time) Option {
+	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up auth",
+			zap.String("token", format.Secret(4, token)),
+			zap.Time("expires_at", expiration),
+		)
+		c.auth.token = token
+		c.auth.expiresAt = expiration.UTC()
 		return nil
 	})
 }
@@ -81,15 +97,14 @@ func WithToken(token string) Option {
 func WithExpirationTime(t int) Option {
 	return clientFunc(func(c *Client) error {
 		c.log.Debug("setting up auth", zap.Int("expiration", t))
-
 		c.auth.expiration = t
-		c.auth.expiresAt = time.Now().Add(time.Duration(t) * time.Second)
+		c.auth.expiresAt = time.Now().UTC().Add(time.Duration(t) * time.Second)
 		return nil
 	})
 }
 
 func (c *Client) TokenExpired() bool {
-	return time.Until(c.auth.expiresAt) <= 0
+	return c.auth.expiresAt.Sub(time.Now().UTC()) <= 0
 }
 
 // GenerateToken generates a new access token
@@ -118,20 +133,23 @@ func (c *Client) GenerateToken() (*TokenData, error) {
 		defer res.Body.Close()
 	default:
 		// we default to v1
-		var tokenResponse TokenResponse
-		res, err := c.DoDecoder(request, &tokenResponse)
+		var tokenV1 TokenV1Response
+		res, err := c.DoDecoder(request, &tokenV1)
 		if err != nil {
 			return nil, err
 		}
 		defer res.Body.Close()
 
-		tokenData.Token = tokenResponse.Token()
-		tokenData.ExpiresAt = tokenResponse.ExpiresAt()
+		tokenData.Token = tokenV1.Token()
+		tokenData.ExpiresAt = tokenV1.ExpiresAt()
 	}
 
-	c.log.Debug("storing token", zap.Reflect("data", tokenData))
+	c.log.Debug("storing token",
+		zap.String("token", format.Secret(4, tokenData.Token)),
+		zap.Time("expires_at", tokenData.ExpiresAt),
+	)
 	c.auth.token = tokenData.Token
-	c.auth.expiresAt, err = time.Parse(time.RFC3339, tokenData.ExpiresAt)
+	c.auth.expiresAt = tokenData.ExpiresAt
 	if err != nil {
 		c.log.Error("failed to parse token expiration response", zap.Error(err))
 	}
@@ -142,46 +160,53 @@ func (c *Client) GenerateToken() (*TokenData, error) {
 func (c *Client) GenerateTokenWithKeys(keyID, secretKey string) (*TokenData, error) {
 	c.log.Debug("setting up auth",
 		zap.String("key", keyID),
-		zap.String("secret", secretKey),
+		zap.String("secret", format.Secret(4, secretKey)),
 	)
 	c.auth.keyID = keyID
 	c.auth.secret = secretKey
 	return c.GenerateToken()
 }
 
-type TokenResponse struct {
-	Data    []TokenData `json:"data"`
-	Ok      bool        `json:"ok"`
-	Message string      `json:"message"`
+type tokenRequest struct {
+	KeyID      string `json:"keyId"`
+	ExpiryTime int    `json:"expiryTime"`
 }
 
-func (tr TokenResponse) Token() string {
-	if len(tr.Data) > 0 {
-		// @afiune how do we handle cases where there is more than one token
-		return tr.Data[0].Token
-	}
-
-	return ""
-}
-
-func (tr TokenResponse) ExpiresAt() string {
-	if len(tr.Data) > 0 {
-		// @afiune how do we handle cases where there is more than one token
-		expiresAtTime, err := time.Parse("Jan 02 2006 15:04", tr.Data[0].ExpiresAt)
-		if err == nil {
-			return expiresAtTime.Format(time.RFC3339)
-		}
-	}
-
-	return ""
-}
-
+// APIv2
 type TokenData struct {
+	ExpiresAt time.Time `json:"expiresAt"`
+	Token     string    `json:"token"`
+}
+
+// APIv1
+type TokenV1Data struct {
 	ExpiresAt string `json:"expiresAt"`
 	Token     string `json:"token"`
 }
 
-type tokenRequest struct {
-	KeyID      string `json:"keyId"`
-	ExpiryTime int    `json:"expiryTime"`
+type TokenV1Response struct {
+	Data    []TokenV1Data `json:"data"`
+	Ok      bool          `json:"ok"`
+	Message string        `json:"message"`
+}
+
+// Soon-To-Be-Deprecated
+func (v1 TokenV1Response) Token() string {
+	if len(v1.Data) > 0 {
+		return v1.Data[0].Token
+	}
+
+	return ""
+}
+
+// Soon-To-Be-Deprecated
+func (v1 TokenV1Response) ExpiresAt() time.Time {
+	if len(v1.Data) > 0 {
+		expiresAtTime, err := time.Parse("Jan 02 2006 15:04", v1.Data[0].ExpiresAt)
+		if err == nil {
+			return expiresAtTime
+		}
+	}
+
+	return time.Now().UTC()
 }

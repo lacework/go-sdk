@@ -34,7 +34,7 @@ var (
 	// accessTokenCmd represents the access-token command
 	accessTokenCmd = &cobra.Command{
 		Use:   "access-token",
-		Short: "generate temporary API access tokens",
+		Short: "Generate temporary API access tokens",
 		Long: `Generates a temporary API access token that can be used to access the
 Lacework API. The token will be valid for the duration that you specify.`,
 		Args: cobra.NoArgs,
@@ -67,6 +67,7 @@ func generateAccessToken(_ *cobra.Command, args []string) error {
 		// if the duration is different from the default,
 		// regenerate the lacework api client
 		client, err := api.NewClient(cli.Account,
+			api.WithApiV2(),
 			api.WithLogLevel(cli.LogLevel),
 			api.WithExpirationTime(durationSeconds),
 			api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
@@ -79,6 +80,15 @@ func generateAccessToken(_ *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.Wrap(err, "unable to generate access token")
 		}
+	}
+
+	// cache new token
+	err = cli.Cache.Write("token", structToString(response))
+	if err != nil {
+		cli.Log.Warnw("unable to write token in cache",
+			"feature", "cache",
+			"error", err.Error(),
+		)
 	}
 
 	if cli.JSONOutput() {

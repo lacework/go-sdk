@@ -19,9 +19,13 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/lacework/go-sdk/cli/cmd"
 )
 
 func main() {
-	cmd.GenerateMarkdownDocs()
+	if err := cmd.GenerateMarkdownDocs("../docs"); err != nil {
+		fmt.Println(err)
+	}
 }

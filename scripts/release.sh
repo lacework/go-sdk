@@ -16,12 +16,11 @@ readonly package_name=lacework-cli
 readonly binary_name=lacework
 readonly docker_org=lacework
 readonly git_user="Lacework Inc."
-readonly git_email="ops+releng@lacework.net"
+readonly git_email="tech-ally@lacework.net"
 readonly docker_tags=(
   latest
   scratch
   ubi-8
-  centos-8
   debian-10
   ubuntu-1804
   amazonlinux-2
@@ -250,9 +249,10 @@ push_release() {
   if [ "$CI" != "" ]; then
     git config --global user.email $git_email
     git config --global user.name $git_user
+    git config --global user.signingkey $GPG_SIGNING_KEY
   fi
   git checkout -B release
-  git commit -am "release: v$_version_no_tag"
+  git commit -sS -am "release: v$_version_no_tag"
   git push origin release -f
 }
 
@@ -359,11 +359,14 @@ bump_version() {
   fi
 
   log "commiting and pushing the vertion bump to github"
-  git config --global user.email $git_email
-  git config --global user.name $git_user
+  if [ "$CI" != "" ]; then
+    git config --global user.email $git_email
+    git config --global user.name $git_user
+    git config --global user.signingkey $GPG_SIGNING_KEY
+  fi
   git add VERSION
   git add api/version.go # file genereted by scripts/version_updater.sh
-  git commit -m "version bump to v$VERSION"
+  git commit -sS -m "ci: version bump to v$VERSION"
   git push origin main
 }
 

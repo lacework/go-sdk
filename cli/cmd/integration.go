@@ -19,7 +19,9 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/mitchellh/mapstructure"
@@ -38,14 +40,14 @@ var (
 	integrationCmd = &cobra.Command{
 		Use:     "integration",
 		Aliases: []string{"integrations", "int"},
-		Short:   "manage external integrations",
+		Short:   "Manage external integrations",
 		Long:    `Manage external integrations with the Lacework platform`,
 	}
 
 	// integrationListCmd represents the list sub-command inside the integration command
 	integrationListCmd = &cobra.Command{
 		Use:   "list",
-		Short: "list all available external integrations",
+		Short: "List all available external integrations",
 		Args:  cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			var (
@@ -92,12 +94,9 @@ var (
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			integration, err := cli.LwApi.Integrations.Get(args[0])
+
 			if err != nil {
 				return errors.Wrap(err, "unable to get integration")
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(integration.Data)
 			}
 
 			if len(integration.Data) == 0 {
@@ -106,12 +105,31 @@ var (
 				return errors.New(msg)
 			}
 
+			if cli.JSONOutput() {
+				return cli.OutputJSON(integration.Data[0])
+			}
+
+			integrationType, supported := api.FindIntegrationType(integration.Data[0].Type)
+			if supported {
+				var resp api.V2CommonIntegration
+				err = cli.LwApi.V2.Schemas.GetService(integrationType.Schema()).Get(args[0], &resp)
+
+				if err != nil {
+					cli.Log.Debugw("unable to get integration service", "error", err.Error())
+				}
+
+				if resp.Data.State != nil {
+					integration.Data[0].State.Details = resp.Data.State.Details
+				}
+			}
+
 			cli.OutputHuman(
 				renderSimpleTable(
 					[]string{"Integration GUID", "Name", "Type", "Status", "State"},
 					integrationsToTable(integration.Data),
 				),
 			)
+
 			cli.OutputHuman("\n")
 			cli.OutputHuman(buildIntDetailsTable(integration.Data))
 			return nil
@@ -121,7 +139,7 @@ var (
 	// integrationCreateCmd represents the create sub-command inside the integration command
 	integrationCreateCmd = &cobra.Command{
 		Use:   "create",
-		Short: "create an external integrations",
+		Short: "Create an external integrations",
 		Args:  cobra.NoArgs,
 		Long:  `Creates an external integration in your account through an interactive session.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -143,7 +161,7 @@ var (
 	integrationUpdateCmd = &cobra.Command{
 		Use:    "update",
 		Hidden: true,
-		Short:  "update an external integrations",
+		Short:  "Update an external integrations",
 		Args:   cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return nil
@@ -153,9 +171,10 @@ var (
 	// integrationDeleteCmd represents the delete sub-command inside the integration command
 	integrationDeleteCmd = &cobra.Command{
 		Use:   "delete <int_guid>",
-		Short: "delete an external integrations",
-		Long: `Delete an external integration by providing its integration GUID. Integration
-GUIDs can be found by using the 'lacework integration list' command.`,
+		Short: "Delete an external integrations",
+		Long: `Delete an external integration by providing an integration GUID.
+
+Integration GUIDs can be found by using the 'lacework integration list' command.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			cli.Log.Info("deleting integration", "int_guid", args[0])
@@ -200,7 +219,8 @@ func promptCreateIntegration() error {
 			Message: "Choose an integration type to create: ",
 			Options: []string{
 				"Slack Alert Channel",
-				"AWS S3 Alert Channel",
+				"Email Alert Channel",
+				"Amazon S3 Alert Channel",
 				"Cisco Webex Alert Channel",
 				"Datadog Alert Channel",
 				"GCP PubSub Alert Channel",
@@ -212,13 +232,15 @@ func promptCreateIntegration() error {
 				"QRadar Alert Channel",
 				"Service Now Alert Channel",
 				"PagerDuty Alert Channel",
-				"AWS CloudWatch Alert Channel",
+				"Amazon CloudWatch Alert Channel",
 				"Jira Cloud Alert Channel",
 				"Jira Server Alert Channel",
 				"Docker Hub Registry",
 				"Docker V2 Registry",
 				"Amazon Container Registry (ECR)",
 				"Google Container Registry (GCR)",
+				"Google Artifact Registry (GAR)",
+				"Github Container Registry (GHCR)",
 				"AWS Config",
 				"AWS CloudTrail",
 				"AWS Config (US GovCloud)",
@@ -239,13 +261,15 @@ func promptCreateIntegration() error {
 	switch integration {
 	case "Slack Alert Channel":
 		return createSlackAlertChannelIntegration()
+	case "Email Alert Channel":
+		return createEmailAlertChannelIntegration()
 	case "GCP PubSub Alert Channel":
 		return createGcpPubSubChannelIntegration()
 	case "Microsoft Teams Alert Channel":
 		return createMicrosoftTeamsChannelIntegration()
 	case "New Relic Insights Alert Channel":
 		return createNewRelicAlertChannelIntegration()
-	case "AWS S3 Alert Channel":
+	case "Amazon S3 Alert Channel":
 		return createAwsS3ChannelIntegration()
 	case "Cisco Webex Alert Channel":
 		return createCiscoWebexChannelIntegration()
@@ -263,7 +287,7 @@ func promptCreateIntegration() error {
 		return createQRadarAlertChannelIntegration()
 	case "Service Now Alert Channel":
 		return createServiceNowAlertChannelIntegration()
-	case "AWS CloudWatch Alert Channel":
+	case "Amazon CloudWatch Alert Channel":
 		return createAwsCloudWatchAlertChannelIntegration()
 	case "Jira Cloud Alert Channel":
 		return createJiraCloudAlertChannelIntegration()
@@ -275,6 +299,10 @@ func promptCreateIntegration() error {
 		return createDockerV2Integration()
 	case "Amazon Container Registry (ECR)":
 		return createAwsEcrIntegration()
+	case "Google Artifact Registry (GAR)":
+		return createGarIntegration()
+	case "Github Container Registry (GHCR)":
+		return createGhcrIntegration()
 	case "Google Container Registry (GCR)":
 		return createGcrIntegration()
 	case "AWS Config":
@@ -330,6 +358,7 @@ func buildIntDetailsTable(integrations []api.RawIntegration) string {
 				t.SetBorder(false)
 				t.SetColumnSeparator(" ")
 				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
 			}),
 		),
 		tableFunc(func(t *tablewriter.Table) {
@@ -341,10 +370,26 @@ func buildIntDetailsTable(integrations []api.RawIntegration) string {
 
 func buildIntegrationState(state *api.IntegrationState) [][]string {
 	if state != nil {
-		return [][]string{
-			[]string{"STATE UPDATED AT", state.LastUpdatedTime},
-			[]string{"LAST SUCCESSFUL STATE", state.LastSuccessfulTime},
+		details := [][]string{
+			{"STATE UPDATED AT", state.LastUpdatedTime},
+			{"LAST SUCCESSFUL STATE", state.LastSuccessfulTime},
 		}
+
+		if len(state.Details) != 0 {
+			detailsStr, err := json.Marshal(state.Details)
+			if err != nil {
+				cli.Log.Debugw("unable to marshall state details", "error", err.Error())
+				return details
+			}
+
+			detailsJSON, err := cli.FormatJSONString(string(detailsStr))
+			if err != nil {
+				cli.Log.Debugw("unable to json format state details", "error", err.Error())
+				return details
+			}
+			details = append(details, []string{"STATE DETAILS", detailsJSON})
+		}
+		return details
 	}
 
 	return [][]string{}
@@ -367,11 +412,11 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"LEVEL", iData.IDType},
-			[]string{"ORG/PROJECT ID", iData.ID},
-			[]string{"CLIENT ID", iData.Credentials.ClientID},
-			[]string{"CLIENT EMAIL", iData.Credentials.ClientEmail},
-			[]string{"PRIVATE KEY ID", iData.Credentials.PrivateKeyID},
+			{"LEVEL", iData.IDType},
+			{"ORG/PROJECT ID", iData.ID},
+			{"CLIENT ID", iData.Credentials.ClientID},
+			{"CLIENT EMAIL", iData.Credentials.ClientEmail},
+			{"PRIVATE KEY ID", iData.Credentials.PrivateKeyID},
 		}
 		if iData.SubscriptionName != "" {
 			return append(out, []string{"SUBSCRIPTION NAME", iData.SubscriptionName})
@@ -392,8 +437,8 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"ROLE ARN", iData.Credentials.RoleArn},
-			[]string{"EXTERNAL ID", iData.Credentials.ExternalID},
+			{"ROLE ARN", iData.Credentials.RoleArn},
+			{"EXTERNAL ID", iData.Credentials.ExternalID},
 		}
 		if iData.QueueUrl != "" {
 			out = append(out, []string{"QUEUE URL", iData.QueueUrl})
@@ -432,9 +477,9 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"CLIENT ID", iData.Credentials.ClientID},
-			[]string{"CLIENT SECRET", iData.Credentials.ClientSecret},
-			[]string{"TENANT ID", iData.TenantID},
+			{"CLIENT ID", iData.Credentials.ClientID},
+			{"CLIENT SECRET", iData.Credentials.ClientSecret},
+			{"TENANT ID", iData.TenantID},
 		}
 		if iData.QueueUrl != "" {
 			return append(out, []string{"QUEUE URL", iData.QueueUrl})
@@ -454,7 +499,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"SLACK URL", iData.SlackUrl},
+			{"SLACK URL", iData.SlackUrl},
 		}
 
 		return out
@@ -471,9 +516,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			)
 			break
 		}
-		out := [][]string{
-			[]string{"WEBHOOK URL", iData.WebhookUrl},
-		}
+		out := [][]string{{"WEBHOOK URL", iData.WebhookUrl}}
 
 		return out
 
@@ -490,7 +533,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"WEBHOOK URL", iData.WebhookURL},
+			{"WEBHOOK URL", iData.WebhookURL},
 		}
 
 		return out
@@ -508,12 +551,12 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"CHANNEL", iData.Channel},
-			[]string{"HEC TOKEN", iData.HecToken},
-			[]string{"HOST", iData.Host},
-			[]string{"PORT", fmt.Sprintf("%d", iData.Port)},
-			[]string{"INDEX", iData.EventData.Index},
-			[]string{"SOURCE", iData.EventData.Source},
+			{"CHANNEL", iData.Channel},
+			{"HEC TOKEN", iData.HecToken},
+			{"HOST", iData.Host},
+			{"PORT", fmt.Sprintf("%d", iData.Port)},
+			{"INDEX", iData.EventData.Index},
+			{"SOURCE", iData.EventData.Source},
 		}
 		if iData.Ssl {
 			out = append(out, []string{"SSL", "ENABLE"})
@@ -550,11 +593,11 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			tmplStrPretty = templateString
 		}
 		out := [][]string{
-			[]string{"INSTANCE URL", iData.InstanceURL},
-			[]string{"USERNAME", iData.Username},
-			[]string{"PASSWORD", iData.Password},
-			[]string{"CUSTOM TEMPLATE FILE", tmplStrPretty},
-			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+			{"INSTANCE URL", iData.InstanceURL},
+			{"USERNAME", iData.Username},
+			{"PASSWORD", iData.Password},
+			{"CUSTOM TEMPLATE FILE", tmplStrPretty},
+			{"ISSUE GROUPING", iData.IssueGrouping},
 		}
 
 		return out
@@ -572,9 +615,9 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"ROLE ARN", iData.Credentials.RoleArn},
-			[]string{"BUCKET ARN", iData.Credentials.BucketArn},
-			[]string{"EXTERNAL ID", iData.Credentials.ExternalID},
+			{"ROLE ARN", iData.Credentials.RoleArn},
+			{"BUCKET ARN", iData.Credentials.BucketArn},
+			{"EXTERNAL ID", iData.Credentials.ExternalID},
 		}
 
 		return out
@@ -592,9 +635,9 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"HOST PORT", fmt.Sprint(iData.HostPort)},
-			[]string{"HOST URL", iData.HostURL},
-			[]string{"COMMUNICATION TYPE", string(iData.CommunicationType)},
+			{"HOST PORT", fmt.Sprint(iData.HostPort)},
+			{"HOST URL", iData.HostURL},
+			{"COMMUNICATION TYPE", string(iData.CommunicationType)},
 		}
 
 		return out
@@ -612,7 +655,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"WEBHOOK URL", iData.WebhookURL},
+			{"WEBHOOK URL", iData.WebhookURL},
 		}
 
 		return out
@@ -630,8 +673,8 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"ACCOUNT ID", fmt.Sprint(iData.AccountID)},
-			[]string{"INSERT API KEY", iData.InsertKey},
+			{"ACCOUNT ID", fmt.Sprint(iData.AccountID)},
+			{"INSERT API KEY", iData.InsertKey},
 		}
 
 		return out
@@ -649,9 +692,9 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"DATADOG SITE", string(iData.DatadogSite)},
-			[]string{"DATADOG SERVICE", string(iData.DatadogService)},
-			[]string{"API KEY", iData.ApiKey},
+			{"DATADOG SITE", string(iData.DatadogSite)},
+			{"DATADOG SERVICE", string(iData.DatadogService)},
+			{"API KEY", iData.ApiKey},
 		}
 
 		return out
@@ -669,12 +712,12 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"PROJECT ID", iData.ProjectID},
-			[]string{"TOPIC ID", iData.TopicID},
-			[]string{"CLIENT ID", iData.Credentials.ClientID},
-			[]string{"CLIENT EMAIL", iData.Credentials.ClientEmail},
-			[]string{"PRIVATE_KEY_ID", iData.Credentials.PrivateKeyID},
-			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+			{"PROJECT ID", iData.ProjectID},
+			{"TOPIC ID", iData.TopicID},
+			{"CLIENT ID", iData.Credentials.ClientID},
+			{"CLIENT EMAIL", iData.Credentials.ClientEmail},
+			{"PRIVATE_KEY_ID", iData.Credentials.PrivateKeyID},
+			{"ISSUE GROUPING", iData.IssueGrouping},
 		}
 
 		return out
@@ -691,9 +734,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			)
 			break
 		}
-		out := [][]string{
-			[]string{"WEBHOOK URL", iData.WebhookURL},
-		}
+		out := [][]string{{"WEBHOOK URL", iData.WebhookURL}}
 
 		return out
 
@@ -710,8 +751,8 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"EVENT BUS ARN", iData.EventBusArn},
-			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+			{"EVENT BUS ARN", iData.EventBusArn},
+			{"ISSUE GROUPING", iData.IssueGrouping},
 		}
 
 		return out
@@ -729,19 +770,20 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"REGISTRY TYPE", iData.RegistryType},
-			[]string{"REGISTRY DOMAIN", iData.RegistryDomain},
-			[]string{"LIMIT BY TAG", iData.LimitByTag},
-			[]string{"LIMIT BY LABEL", iData.LimitByLabel},
-			[]string{"LIMIT BY REPOSITORY", iData.LimitByRep},
-			[]string{"LIMIT NUM IMAGES PER REPO", fmt.Sprintf("%d", iData.LimitNumImg)},
+			{"REGISTRY TYPE", iData.RegistryType},
+			{"REGISTRY DOMAIN", iData.RegistryDomain},
+			{"LIMIT BY TAG", iData.LimitByTag},
+			{"LIMIT BY LABEL", iData.LimitByLabel},
+			{"LIMIT BY REPOSITORY", iData.LimitByRep},
+			{"LIMIT NUM IMAGES PER REPO", fmt.Sprintf("%d", iData.LimitNumImg)},
 		}
 
 		switch iData.RegistryType {
 		case api.DockerHubRegistry.String():
 			out = append(out, []string{"USERNAME", iData.Credentials.Username})
 			out = append(out, []string{"PASSWORD", iData.Credentials.Password})
-		case api.DockerV2Registry.String():
+		case api.GhcrContainerRegistry.String(),
+			api.DockerV2Registry.String():
 			out = append(out, []string{"USERNAME", iData.Credentials.Username})
 			out = append(out, []string{"PASSWORD", iData.Credentials.Password})
 			if iData.Credentials.SSL {
@@ -749,7 +791,8 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			} else {
 				out = append(out, []string{"SSL", "DISABLE"})
 			}
-		case api.GcrRegistry.String():
+		case api.GcpGarContainerRegistry.String(),
+			api.GcrRegistry.String():
 			out = append(out, []string{"CLIENT ID", iData.Credentials.ClientID})
 			out = append(out, []string{"CLIENT EMAIL", iData.Credentials.ClientEmail})
 			out = append(out, []string{"PRIVATE KEY ID", iData.Credentials.PrivateKeyID})
@@ -814,11 +857,25 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			break
 		}
 		out := [][]string{
-			[]string{"INTEGRATION KEY", iData.IntegrationKey},
-			[]string{"ISSUE GROUPING", iData.IssueGrouping},
+			{"INTEGRATION KEY", iData.IntegrationKey},
+			{"ISSUE GROUPING", iData.IssueGrouping},
 		}
 
 		return out
+
+	case api.EmailIntegration.String():
+		// Use v2 endpoint for Email Alert Channel
+		emailAlertChan, err := cli.LwApi.V2.AlertChannels.GetEmailUser(raw.IntgGuid)
+		if err != nil {
+			cli.Log.Debugw("unable to get EmailUser Alert Channel (v2)",
+				"error", err.Error(),
+			)
+			break
+		}
+		return [][]string{
+			{"RECIPIENTS",
+				strings.Join(emailAlertChan.Data.Data.ChannelProps.Recipients, "\n")},
+		}
 
 	case api.JiraIntegration.String():
 
@@ -848,13 +905,13 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			tmplStrPretty = templateString
 		}
 		out := [][]string{
-			[]string{"JIRA INTEGRATION TYPE", iData.JiraType},
-			[]string{"JIRA URL", iData.JiraUrl},
-			[]string{"PROJECT KEY", iData.ProjectID},
-			[]string{"USERNAME", iData.Username},
-			[]string{"ISSUE TYPE", iData.IssueType},
-			[]string{"ISSUE GROUPING", iData.IssueGrouping},
-			[]string{"CUSTOM TEMPLATE FILE", tmplStrPretty},
+			{"JIRA INTEGRATION TYPE", iData.JiraType},
+			{"JIRA URL", iData.JiraUrl},
+			{"PROJECT KEY", iData.ProjectID},
+			{"USERNAME", iData.Username},
+			{"ISSUE TYPE", iData.IssueType},
+			{"ISSUE GROUPING", iData.IssueGrouping},
+			{"CUSTOM TEMPLATE FILE", tmplStrPretty},
 		}
 
 		return out

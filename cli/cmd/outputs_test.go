@@ -73,3 +73,16 @@ func TestCSVDataCleanup(t *testing.T) {
 	data := csvCleanData([]string{"KEY\n HEADER\n VALUE", "VALUE,TEST\n"})
 	assert.NotContains(t, strings.Join(data, ""), "\n", "data is not being cleaned up properly")
 }
+
+func TestOutputNonDefaultProfileFlag(t *testing.T) {
+	// test with the default profile
+	assert.Equal(t, "", cli.OutputNonDefaultProfileFlag())
+
+	// test with a test profile
+	cli.Profile = "my-test"
+	defer func() {
+		cli.Profile = "default"
+	}()
+
+	assert.Equal(t, " --profile my-test", cli.OutputNonDefaultProfileFlag())
+}

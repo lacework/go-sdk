@@ -20,9 +20,10 @@ package api
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
+
+	"github.com/lacework/go-sdk/lwtime"
 
 	"github.com/pkg/errors"
 
@@ -203,6 +204,10 @@ type VulnContainerAssessment struct {
 }
 
 func (report *VulnContainerAssessment) VulnFixableCount(severity string) int32 {
+	if report.Image == nil || report.Image.ImageLayers == nil {
+		return 0
+	}
+
 	severity = strings.ToLower(severity)
 	if !array.ContainsStr(ValidVulnSeverities, severity) {
 		return 0
@@ -373,87 +378,27 @@ type VulnContainerAssessmentsResponse struct {
 	Message     string                           `json:"message"`
 }
 
-// time type to parse the returned 16 digit time in milliseconds
-type Json16DigitTime time.Time
-
-// imeplement Marshal and Unmarshal interfaces
-func (self *Json16DigitTime) UnmarshalJSON(b []byte) error {
-	ms, _ := strconv.Atoi(string(b))
-	t := time.Unix(0, int64(ms)*int64(time.Millisecond))
-	*self = Json16DigitTime(t)
-	return nil
-}
-
-func (self Json16DigitTime) MarshalJSON() ([]byte, error) {
-	// @afiune we might have problems changing the location :(
-	return self.ToTime().UTC().MarshalJSON()
-}
-
-// A few format functions for printing and manipulating the custom date
-func (self Json16DigitTime) ToTime() time.Time {
-	return time.Time(self)
-}
-func (self Json16DigitTime) Format(s string) string {
-	return self.ToTime().Format(s)
-}
-func (self Json16DigitTime) UTC() time.Time {
-	return self.ToTime().UTC()
-}
-
-// time type to parse the returned time with nano format
-//
-// Example:
-//
-// "START_TIME":"2020-08-20T01:00:00+0000"
-type NanoTime time.Time
-
-func (self *NanoTime) UnmarshalJSON(b []byte) (err error) {
-	s := string(b)
-	t, err := time.Parse(time.RFC3339Nano, s[1:len(s)-1])
-	if err != nil {
-		t, err = time.Parse("2006-01-02T15:04:05.999999999Z0700", s[1:len(s)-1])
-	}
-	*self = NanoTime(t)
-	return
-}
-
-func (self NanoTime) MarshalJSON() ([]byte, error) {
-	// @afiune we might have problems changing the location :(
-	return self.ToTime().UTC().MarshalJSON()
-}
-
-// A few format functions for printing and manipulating the custom date
-func (self NanoTime) ToTime() time.Time {
-	return time.Time(self)
-}
-func (self NanoTime) Format(s string) string {
-	return self.ToTime().Format(s)
-}
-func (self NanoTime) UTC() time.Time {
-	return self.ToTime().UTC()
-}
-
 type VulnContainerAssessmentSummary struct {
-	EvalGuid                    string   `json:"eval_guid"`
-	EvalStatus                  string   `json:"eval_status"`
-	EvalType                    string   `json:"eval_type"`
-	ImageCreatedTime            NanoTime `json:"image_created_time"`
-	ImageDigest                 string   `json:"image_digest"`
-	ImageID                     string   `json:"image_id"`
-	ImageNamespace              string   `json:"image_namespace"`
-	ImageRegistry               string   `json:"image_registry"`
-	ImageRepo                   string   `json:"image_repo"`
-	ImageScanErrorMsg           string   `json:"image_scan_error_msg"`
-	ImageScanStatus             string   `json:"image_scan_status"`
-	ImageScanTime               NanoTime `json:"image_scan_time"`
-	ImageSize                   string   `json:"image_size"`
-	ImageTags                   []string `json:"image_tags"`
-	NdvContainers               string   `json:"ndv_containers"`
-	NumFixes                    string   `json:"num_fixes"`
-	NumVulnerabilitiesSeverity1 string   `json:"num_vulnerabilities_severity_1"`
-	NumVulnerabilitiesSeverity2 string   `json:"num_vulnerabilities_severity_2"`
-	NumVulnerabilitiesSeverity3 string   `json:"num_vulnerabilities_severity_3"`
-	NumVulnerabilitiesSeverity4 string   `json:"num_vulnerabilities_severity_4"`
-	NumVulnerabilitiesSeverity5 string   `json:"num_vulnerabilities_severity_5"`
-	StartTime                   NanoTime `json:"start_time"`
+	EvalGuid                    string          `json:"eval_guid"`
+	EvalStatus                  string          `json:"eval_status"`
+	EvalType                    string          `json:"eval_type"`
+	ImageCreatedTime            lwtime.NanoTime `json:"image_created_time"`
+	ImageDigest                 string          `json:"image_digest"`
+	ImageID                     string          `json:"image_id"`
+	ImageNamespace              string          `json:"image_namespace"`
+	ImageRegistry               string          `json:"image_registry"`
+	ImageRepo                   string          `json:"image_repo"`
+	ImageScanErrorMsg           string          `json:"image_scan_error_msg"`
+	ImageScanStatus             string          `json:"image_scan_status"`
+	ImageScanTime               lwtime.NanoTime `json:"image_scan_time"`
+	ImageSize                   string          `json:"image_size"`
+	ImageTags                   []string        `json:"image_tags"`
+	NdvContainers               string          `json:"ndv_containers"`
+	NumFixes                    string          `json:"num_fixes"`
+	NumVulnerabilitiesSeverity1 string          `json:"num_vulnerabilities_severity_1"`
+	NumVulnerabilitiesSeverity2 string          `json:"num_vulnerabilities_severity_2"`
+	NumVulnerabilitiesSeverity3 string          `json:"num_vulnerabilities_severity_3"`
+	NumVulnerabilitiesSeverity4 string          `json:"num_vulnerabilities_severity_4"`
+	NumVulnerabilitiesSeverity5 string          `json:"num_vulnerabilities_severity_5"`
+	StartTime                   lwtime.NanoTime `json:"start_time"`
 }

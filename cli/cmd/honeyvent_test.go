@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"testing"
@@ -132,4 +133,35 @@ func TestSendHoneyventAccountToLower(t *testing.T) {
 	// after submitting the honeyvent, the global
 	// event struct should be resetted
 	assert.Equal(t, "all-lower-or-all-upper", cli.Event.Account)
+}
+
+func TestParseFlags(t *testing.T) {
+	cases := []struct {
+		args          []string
+		expectedFlags []string
+	}{
+		{args: []string{},
+			expectedFlags: []string(nil)},
+		// no flags, just commands
+		{args: []string{"int", "list"},
+			expectedFlags: []string(nil)},
+		// only flags
+		{args: []string{"-a", "--foo", "-b", "--bar", "-l"},
+			expectedFlags: []string{"-a", "--foo", "-b", "--bar", "-l"}},
+		// mixing commands, flags
+		{args: []string{"agent", "token", "list", "--account", "myaccount", "--debug"},
+			expectedFlags: []string{"--account", "--debug"}},
+		// lots of things
+		{args: []string{"command", "--flag", "subcmd", "--debug", "arg1", "--json", "arg2", "--noninteractive"},
+			expectedFlags: []string{"--flag", "--debug", "--json", "--noninteractive"}},
+
+		// invalid flag
+		{args: []string{"-"},
+			expectedFlags: []string(nil)},
+	}
+	for i, kase := range cases {
+		t.Run(fmt.Sprintf("test case %d", i), func(t *testing.T) {
+			assert.Equal(t, kase.expectedFlags, parseFlags(kase.args))
+		})
+	}
 }

@@ -1,9 +1,0 @@
-{
-	"policy_id": "my-policy-1",
-	"title": "My Policy Title",
-	"enabled": false,
-	"lql_id": "MyLQL",
-	"severity": "high",
-	"description": "My Policy Description",
-	"remediation": "Check yourself..."
-}

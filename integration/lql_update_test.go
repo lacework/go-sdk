@@ -1,4 +1,5 @@
-//
+//go:build query
+
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -20,102 +21,82 @@ package integration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQueryUpdateHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-	out, err, exitcode := LaceworkCLI("help", "query", "update")
-	assert.Contains(t, out.String(), "lacework query update [flags]")
-	assert.Contains(t, out.String(), "-f, --file string")
-	assert.Contains(t, out.String(), "-u, --url string")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
-
 func TestQueryUpdateEditor(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "update")
 	assert.Contains(t, out.String(), "Type a query to update")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to update LQL query: EOF")
+	assert.Contains(t, err.String(), "ERROR unable to update query:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestQueryUpdateFile(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
-	file, err := ioutil.TempFile("", "TestUpdateFile")
+	file, err := createTemporaryFile(
+		"TestQueryUpdateFile",
+		fmt.Sprintf(queryJSONTemplate, queryID, queryUpdateText),
+	)
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
 
-	// write-to and close file
-	_, err = file.Write([]byte(lqlQueryUpdate))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
-
 	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// update
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "update", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) updated successfully.", lqlQueryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("The query %s was updated.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", lqlQueryID)
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", queryID)
 	assert.Contains(t, out.String(), "INSERT_TIME")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestQueryUpdateURL(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// get temp file
-	file, err := ioutil.TempFile("", "TestUpdateURL")
+	file, err := createTemporaryFile(
+		"TestQueryUpdateFile",
+		fmt.Sprintf(queryJSONTemplate, queryID, queryUpdateText),
+	)
 	if err != nil {
 		t.FailNow()
 	}
 	defer os.Remove(file.Name())
 
-	// write-to and close file
-	_, err = file.Write([]byte(lqlQueryUpdate))
-	if err != nil {
-		t.FailNow()
-	}
-	file.Close()
-
 	// setup
-	LaceworkCLIWithTOMLConfig("query", "create", "-u", lqlQueryURL)
+	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
-	defer LaceworkCLIWithTOMLConfig("query", "delete", lqlQueryID)
+	defer LaceworkCLIWithTOMLConfig("query", "delete", queryID)
 
 	// update
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "update", "-f", file.Name())
-	assert.Contains(t, out.String(), fmt.Sprintf("LQL query (%s) updated successfully.", lqlQueryID))
+	assert.Contains(t, out.String(), fmt.Sprintf("The query %s was updated.", queryID))
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", lqlQueryID)
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("query", "show", queryID)
 	assert.Contains(t, out.String(), "INSERT_TIME")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestQueryUpdateFromIDNotFound(t *testing.T) {
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "update", "ID_NOT_FOUND", "--noninteractive")
+
+	assert.Empty(t, out.String(), "STDOUT should be empty") // added --noninteractive to avoid polluting STDOUT
+	assert.Contains(t, stderr.String(), "unable to load query from your account")
+	assert.Contains(t, stderr.String(), "/api/v2/Queries/ID_NOT_FOUND")
+	assert.Contains(t, stderr.String(), "Query id ID_NOT_FOUND not found")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }

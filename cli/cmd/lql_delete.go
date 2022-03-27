@@ -19,40 +19,39 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 var (
-	// lqlDeleteCmd represents the lql delete command
-	lqlDeleteCmd = &cobra.Command{
+	// queryDeleteCmd represents the lql delete command
+	queryDeleteCmd = &cobra.Command{
 		Use:   "delete <query_id>",
-		Short: "delete an LQL query",
-		Long:  `Delete an LQL query.`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  deleteQuery,
+		Short: "Delete a query",
+		Long: `Delete a single LQL query by providing the query ID.
+
+Use the command 'lacework query list' to list the available queries in
+your Lacework account.`,
+		Args: cobra.ExactArgs(1),
+		RunE: deleteQuery,
 	}
 )
 
 func init() {
 	// add sub-commands to the lql command
-	lqlCmd.AddCommand(lqlDeleteCmd)
+	queryCmd.AddCommand(queryDeleteCmd)
 }
 
 func deleteQuery(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("deleting LQL query", "queryID", args[0])
+	cli.Log.Debugw("deleting query", "id", args[0])
 
-	delete, err := cli.LwApi.LQL.DeleteQuery(args[0])
-
+	cli.StartProgress(" Deleting query...")
+	_, err := cli.LwApi.V2.Query.Delete(args[0])
+	cli.StopProgress()
 	if err != nil {
-		return errors.Wrap(err, "unable to delete LQL query")
+		return errors.Wrap(err, "unable to delete query")
 	}
-	if cli.JSONOutput() {
-		return cli.OutputJSON(delete.Message)
-	}
-	cli.OutputHuman(
-		fmt.Sprintf("LQL query (%s) deleted successfully.\n", delete.Message.ID))
+
+	cli.OutputHuman("The query %s was deleted.\n", args[0])
 	return nil
 }

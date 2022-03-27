@@ -1,4 +1,5 @@
-//
+//go:build help
+
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -19,78 +20,78 @@
 package integration
 
 import (
+	"embed"
+	"fmt"
+	"regexp"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHelpCommand(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("help")
-	assert.Contains(t,
-		out.String(),
-		"Use \"lacework [command] --help\" for more information about a command.",
-		"STDOUT bottom message doesn't match")
-	assert.Empty(t,
-		err.String(),
-		"STDERR should be empty")
-	assert.Equal(t, 0, exitcode,
-		"EXITCODE is not the expected one")
+var (
+	availableCommandsBlobRE = regexp.MustCompile(`(?ims)^Available Commands:.*?^\s*$`)
+	availableCommandRE      = regexp.MustCompile(`(?im)^\s+([\w-]+)`)
+	//go:embed test_resources/help/*
+	helpCanon embed.FS
+)
+
+func getAllCommands(in string, commands [][]string, working []string) [][]string {
+	availableCommandBlob := availableCommandsBlobRE.FindString(in)
+	availableCommands := availableCommandRE.FindAllStringSubmatch(availableCommandBlob, -1)
+
+	for _, match := range availableCommands {
+		cmd := match[1]
+
+		// push + add item
+		this_working := append(working, cmd)
+		commands = append(commands, this_working)
+
+		// get output
+		out, _, _ := LaceworkCLI(append([]string{"help"}, this_working...)...)
+
+		// recurse
+		commands = getAllCommands(out.String(), commands, this_working)
+	}
+
+	return commands
 }
 
-func TestHelpCommandForConfigureCommand(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("help", "configure")
-	assert.Equal(t,
-		`Configure settings that the Lacework CLI uses to interact with the Lacework
-platform. These include your Lacework account, API access key and secret.
+func TestHelpAll(t *testing.T) {
+	out, _, exitcode := LaceworkCLI("help")
+	if exitcode != 0 {
+		assert.FailNow(t, "Something went terribly wrong")
+	}
 
-To create a set of API keys, log in to your Lacework account via WebUI and
-navigate to Settings > API Keys and click + Create New. Enter a name for
-the key and an optional description, then click Save. To get the secret key,
-download the generated API key file.
+	commands := getAllCommands(out.String(), [][]string{}, []string{})
 
-Use the flag --json_file to preload the downloaded API key file.
+	for _, cmd := range commands {
+		cmdStr := strings.Join(cmd, "_")
 
-If this command is run with no flags, the Lacework CLI will store all
-settings under the default profile. The information in the default profile
-is used any time you run a Lacework CLI command that doesn't explicitly
-specify a profile to use.
+		t.Run(cmdStr, func(t *testing.T) {
+			filePath := fmt.Sprintf("test_resources/help/%s", cmdStr)
+			windowsFilePath := fmt.Sprintf("test_resources/help/windows/%s", cmdStr)
 
-You can configure multiple profiles by using the --profile flag. If a
-config file does not exist (the default location is ~/.lacework.toml),
-the Lacework CLI will create it for you.
+			// run command
+			out, err, exitcode := LaceworkCLI(append([]string{"help"}, cmd...)...)
 
-Usage:
-  lacework configure [flags]
-  lacework configure [command]
+			// validate proper execution
+			assert.Empty(t, err.String(), "STDERR should be empty")
+			assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-Available Commands:
-  list        list all configured profiles at ~/.lacework.toml
-  show        show current configuration data
-
-Flags:
-  -h, --help               help for configure
-  -j, --json_file string   loads the API key JSON file downloaded from the WebUI
-
-Global Flags:
-  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
-  -k, --api_key string      access key id
-  -s, --api_secret string   secret access key
-      --debug               turn on debug logging
-      --json                switch commands output from human-readable to json format
-      --nocolor             turn off colors
-      --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
-  -p, --profile string      switch between profiles configured at ~/.lacework.toml
-      --subaccount string   sub-account name inside your organization (org admins only)
-
-Use "lacework configure [command] --help" for more information about a command.
-`,
-		out.String(),
-		"the configure help message changed, please update")
-	assert.Empty(t,
-		err.String(),
-		"STDERR should be empty")
-	assert.Equal(t, 0, exitcode,
-		"EXITCODE is not the expected one")
+			// validate expected output
+			if runtime.GOOS == "windows" {
+				canon, err := helpCanon.ReadFile(windowsFilePath)
+				if err == nil {
+					assert.Equal(t, string(canon), out.String())
+					return
+				}
+			}
+			canon, _ := helpCanon.ReadFile(filePath)
+			assert.Equal(t, string(canon), out.String())
+		})
+	}
 }
 
 func TestHelpCommandDisplayHelpFromUnknownCommand(t *testing.T) {
@@ -126,44 +127,9 @@ func TestCommandDoesNotExist(t *testing.T) {
 
 func TestNoCommandProvided(t *testing.T) {
 	out, err, exitcode := LaceworkCLI()
+	canon, _ := helpCanon.ReadFile("test_resources/help/no-command-provided")
 	assert.Equal(t,
-		`The Lacework Command Line Interface is a tool that helps you manage the
-Lacework cloud security platform. Use it to manage compliance reports,
-external integrations, vulnerability scans, and other operations.
-
-Start by configuring the Lacework CLI with the command:
-
-    $ lacework configure
-
-This will prompt you for your Lacework account and a set of API access keys.
-
-Usage:
-  lacework [command]
-
-Available Commands:
-  access-token  generate temporary API access tokens
-  agent         manage Lacework agents
-  api           helper to call Lacework's API
-  compliance    manage compliance reports
-  configure     configure the Lacework CLI
-  event         inspect Lacework events
-  integration   manage external integrations
-  version       print the Lacework CLI version
-  vulnerability container and host vulnerability assessments
-
-Flags:
-  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
-  -k, --api_key string      access key id
-  -s, --api_secret string   secret access key
-      --debug               turn on debug logging
-      --json                switch commands output from human-readable to json format
-      --nocolor             turn off colors
-      --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
-  -p, --profile string      switch between profiles configured at ~/.lacework.toml
-      --subaccount string   sub-account name inside your organization (org admins only)
-
-Use "lacework [command] --help" for more information about a command.
-`,
+		string(canon),
 		out.String(),
 		"the main help message changed, please update")
 	assert.Empty(t,

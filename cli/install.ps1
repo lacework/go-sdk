@@ -18,8 +18,8 @@ param (
 
 $ErrorActionPreference="stop"
 
-Set-Variable GithubReleasesRootUrl -Option ReadOnly -value "https://github.com/lacework/go-sdk/releases"
-Set-Variable PackageName -Option ReadOnly -value "lacework-cli-windows-amd64.exe.zip"
+Set-Variable GithubReleasesRootUrl -Option ReadOnly -value "https://github.com/lacework/go-sdk/releases" -Force
+Set-Variable PackageName -Option ReadOnly -value "lacework-cli-windows-amd64.exe.zip" -Force
 
 Function Get-File($url, $dst) {
     Write-Host "Downloading $url"
@@ -101,7 +101,18 @@ Function Install-Lacework-CLI {
     $env:PATH = New-PathString -StartingPath $env:PATH -Path $laceworkPath
     $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
     $machinePath = New-PathString -StartingPath $machinePath -Path $laceworkPath
-    [System.Environment]::SetEnvironmentVariable("PATH", $machinePath, "Machine")
+
+    $isAdmin = $false
+    try {
+        $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+        $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    } finally {
+        if ($isAdmin) {
+            [System.Environment]::SetEnvironmentVariable("PATH", $machinePath, "Machine")
+        } else {
+            [System.Environment]::SetEnvironmentVariable("PATH", $machinePath, "User")
+        }
+    }
 }
 
 Function New-PathString([string]$StartingPath, [string]$Path) {

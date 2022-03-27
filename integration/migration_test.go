@@ -1,4 +1,5 @@
-//
+//go:build migration
+
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -22,6 +23,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"testing"
 
@@ -29,9 +31,25 @@ import (
 )
 
 func TestV2MigrationWithConfigFile(t *testing.T) {
+	if os.Getenv("CI_STANDALONE_ACCOUNT") != "" || os.Getenv("CI_V1_ACCOUNT") == "" {
+		t.Skip("skipping organizational account test")
+	}
 	// create a temporal directory to use it as our home directory to test
 	// the version_cache mechanism
-	home := createTOMLConfigFromCIvars()
+	home, errDir := ioutil.TempDir("", "lacework-toml")
+	if errDir != nil {
+		panic(errDir)
+	}
+	configFile := filepath.Join(home, ".lacework.toml")
+	c := []byte(`[default]
+account = '` + os.Getenv("CI_V1_ACCOUNT") + `'
+api_key = '` + os.Getenv("CI_API_KEY") + `'
+api_secret = '` + os.Getenv("CI_API_SECRET") + `'
+`)
+	errDir = ioutil.WriteFile(configFile, c, 0644)
+	if errDir != nil {
+		panic(errDir)
+	}
 	defer os.RemoveAll(home)
 
 	out, err, exitcode := LaceworkCLIWithHome(home, "agent", "token", "list")
@@ -67,7 +85,8 @@ func TestV2MigrationWithConfigFile(t *testing.T) {
 			if assert.Nil(t, err) {
 				laceworkTOMLString := string(laceworkTOML)
 				assert.Contains(t, laceworkTOMLString, "account", "there is a problem with the v2 migrated config")
-				assert.Contains(t, laceworkTOMLString, "subaccount", "there is a problem with the v2 migrated config") // only for our tech-ally account
+				// only for our tech-ally account
+				assert.Contains(t, laceworkTOMLString, "subaccount", "there is a problem with the v2 migrated config")
 				assert.Contains(t, laceworkTOMLString, "api_key", "there is a problem with the v2 migrated config")
 				assert.Contains(t, laceworkTOMLString, "api_secret", "there is a problem with the v2 migrated config")
 				assert.Contains(t, laceworkTOMLString, "version = 2", "there is a problem with the v2 migrated config")
@@ -77,6 +96,9 @@ func TestV2MigrationWithConfigFile(t *testing.T) {
 }
 
 func TestV2MigrationWithFlagsOrEnvVariables(t *testing.T) {
+	if os.Getenv("CI_STANDALONE_ACCOUNT") != "" || os.Getenv("CI_V1_ACCOUNT") == "" {
+		t.Skip("skipping organizational account test")
+	}
 	home, errDir := ioutil.TempDir("", "lacework-cli")
 	if errDir != nil {
 		panic(errDir)
@@ -84,7 +106,7 @@ func TestV2MigrationWithFlagsOrEnvVariables(t *testing.T) {
 	defer os.RemoveAll(home)
 
 	out, err, exitcode := LaceworkCLIWithHome(home, "agent", "token", "list",
-		"-a", os.Getenv("CI_ACCOUNT"), "-k", os.Getenv("CI_API_KEY"), "-s", os.Getenv("CI_API_SECRET"),
+		"-a", os.Getenv("CI_V1_ACCOUNT"), "-k", os.Getenv("CI_API_KEY"), "-s", os.Getenv("CI_API_SECRET"),
 	)
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")

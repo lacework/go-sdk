@@ -1,4 +1,5 @@
-//
+//go:build query
+
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -19,16 +20,12 @@
 package integration
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQueryShowHelp(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	out, err, exitcode := LaceworkCLI("help", "query", "show")
 	assert.Contains(t, out.String(), "lacework query show <query_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -36,10 +33,6 @@ func TestQueryShowHelp(t *testing.T) {
 }
 
 func TestQueryShowNoInput(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "show")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")
@@ -47,9 +40,5 @@ func TestQueryShowNoInput(t *testing.T) {
 }
 
 func TestQueryShow(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
 	// tested by virtue of TestQueryCreateFile
-	return
 }

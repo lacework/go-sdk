@@ -1,0 +1,11 @@
+{
+  "type": "service_account",
+  "project_id": "lacework",
+  "private_key_id": "79bbb8a7db6f499871be5e6e77eeedbad258bfc6",
+  "client_id": "123456789",
+  "client_email": "test_email@lacework.iam.gserviceaccount.com",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/test_email%40lacework.iam.gserviceaccount.com"
+}

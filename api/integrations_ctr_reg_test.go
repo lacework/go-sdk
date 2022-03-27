@@ -19,6 +19,7 @@
 package api_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,11 +34,12 @@ func TestIntegrationsNewContainerRegIntegration(t *testing.T) {
 				Username: "techally",
 				Password: "secret",
 			},
-			RegistryType:   api.DockerHubRegistry.String(),
-			RegistryDomain: "index.docker.io",
-			LimitByTag:     "*",
-			LimitByLabel:   "*",
-			LimitNumImg:    5,
+			RegistryType:     api.DockerHubRegistry.String(),
+			RegistryDomain:   "index.docker.io",
+			LimitByTag:       "*",
+			LimitByLabel:     "*",
+			LimitNumImg:      5,
+			NonOSPackageEval: true,
 		},
 	)
 	assert.Equal(t, api.ContainerRegistryIntegration.String(), subject.Type)
@@ -84,4 +86,22 @@ func TestIntegrationsNewGcrRegistryIntegration(t *testing.T) {
 	)
 	assert.Equal(t, api.ContainerRegistryIntegration.String(), subject.Type)
 	assert.Equal(t, api.GcrRegistry.String(), subject.Data.RegistryType)
+}
+
+func TestIntegrationsNewContainerRegIntegrationJson(t *testing.T) {
+	subject := api.NewContainerRegIntegration("integration_name",
+		api.ContainerRegData{
+			Credentials: api.ContainerRegCreds{
+				Username: "techally",
+				Password: "secret",
+			},
+			RegistryType:   api.DockerHubRegistry.String(),
+			RegistryDomain: "index.docker.io",
+			LimitByTag:     "*",
+			LimitByLabel:   "*",
+			LimitNumImg:    5,
+		},
+	)
+	jsonOut, _ := json.Marshal(subject)
+	assert.Contains(t, string(jsonOut), "\"NON_OS_PACKAGE_EVAL\":false")
 }

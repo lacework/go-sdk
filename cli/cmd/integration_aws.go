@@ -108,9 +108,9 @@ func createAwsCloudTrailIntegration() error {
 		return err
 	}
 
-	aws := api.AwsIntegrationData{
+	awsCtSqsData := api.AwsCtSqsData{
 		QueueUrl: answers.QueueUrl,
-		Credentials: &api.AwsCrossAccountCreds{
+		Credentials: api.AwsCtSqsCredentials{
 			RoleArn:    answers.RoleArn,
 			ExternalID: answers.ExternalID,
 		},
@@ -118,7 +118,7 @@ func createAwsCloudTrailIntegration() error {
 	// ask the user if they would like to configure an Account Mapping
 	mapping := false
 	err = survey.AskOne(&survey.Confirm{
-		Message: "Configure an Account Mapping File?",
+		Message: "Configure an Account Mapping File? (org admins only)",
 	}, &mapping)
 
 	if err != nil {
@@ -137,19 +137,31 @@ func createAwsCloudTrailIntegration() error {
 			return err
 		}
 
-		aws.EncodeAccountMappingFile([]byte(content))
+		awsCtSqsData.EncodeAccountMappingFile([]byte(content))
 	}
 
-	awsCT := api.NewAwsCloudTrailIntegration(answers.Name, aws)
-
-	// if the user provided an account mapping file, means that it is
-	// trying to create an organization level integration
-	if mapping {
-		awsCT.IsOrg = 1
-	}
+	awsCtSqs := api.NewCloudAccount(answers.Name, api.AwsCtSqsCloudAccount, awsCtSqsData)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAws(awsCT)
-	cli.StopProgress()
+	defer cli.StopProgress()
+
+	// if the user didn't provide an account mapping file,
+	// we just create the integration with a regular request
+	if !mapping {
+		_, err = cli.LwApi.V2.CloudAccounts.Create(awsCtSqs)
+		return err
+	}
+
+	// but if it did provide one, then we need to elevate
+	// the user to the Organization level because Account
+	// Mappings are only allowed at that level, so we
+	// copy the client to make it an org client
+	orgLwClient, err := api.CopyClient(cli.LwApi,
+		api.WithOrgAccess(),
+	)
+	if err != nil {
+		return err
+	}
+	_, err = orgLwClient.V2.CloudAccounts.Create(awsCtSqs)
 	return err
 }

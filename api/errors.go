@@ -32,8 +32,9 @@ type errorResponse struct {
 }
 
 type apiErrorResponse struct {
-	Ok   bool `json:"ok"`
-	Data struct {
+	Ok        bool   `json:"ok"`
+	V2Message string `json:"message"`
+	Data      struct {
 		Message       string `json:"message"`
 		StatusMessage string `json:"statusMessage"`
 		ErrorMsg      string `json:"ErrorMsg"`
@@ -43,11 +44,14 @@ type apiErrorResponse struct {
 // Message extracts the message from an api error response
 func (r *apiErrorResponse) Message() string {
 	if r != nil {
+		if r.Data.ErrorMsg != "" {
+			return r.Data.ErrorMsg
+		}
 		if r.Data.Message != "" {
 			return r.Data.Message
 		}
-		if r.Data.ErrorMsg != "" {
-			return r.Data.ErrorMsg
+		if r.V2Message != "" && r.V2Message != "SUCCESS" {
+			return r.V2Message
 		}
 		if r.Data.StatusMessage != "" {
 			return r.Data.StatusMessage

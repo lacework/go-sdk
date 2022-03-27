@@ -19,8 +19,6 @@
 package cmd
 
 import (
-	"fmt"
-	"sort"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
@@ -38,7 +36,9 @@ var (
 		TokenUpdateDesc     string
 		InstallForce        bool
 		InstallSshUser      string
+		InstallSshPort      int
 		InstallAgentToken   string
+		InstallTrustHostKey bool
 		InstallPassword     string
 		InstallIdentityFile string
 	}{}
@@ -47,7 +47,7 @@ var (
 
 	agentCmd = &cobra.Command{
 		Use:   "agent",
-		Short: "manage Lacework agents",
+		Short: "Manage Lacework agents",
 		Long: `Manage agents and agent access tokens in your account.
 
 To analyze application, host, and user behavior, Lacework uses a lightweight agent,
@@ -56,13 +56,13 @@ agent requires minimal system resources and runs on most 64-bit Linux distributi
 
 For a complete list of supported operating systems, visit:
 
-    https://support.lacework.com/hc/en-us/articles/360005230014-Supported-Operating-Systems`,
+  https://docs.lacework.com/supported-operating-systems`,
 	}
 
 	agentTokenCmd = &cobra.Command{
 		Use:     "token",
 		Aliases: []string{"tokens"},
-		Short:   "manage agent access tokens",
+		Short:   "Manage agent access tokens",
 		Long: `Manage agent access tokens in your account.
 
 Agent tokens should be treated as secret and not published. A token uniquely identifies
@@ -72,62 +72,51 @@ complete, the old token can safely be disabled without interrupting Lacework ser
 	}
 
 	agentTokenListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "list all agent access tokens",
-		Long:  `List all agent access tokens.`,
-		Args:  cobra.NoArgs,
-		RunE:  listAgentTokens,
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List all agent access tokens",
+		Args:    cobra.NoArgs,
+		RunE:    listAgentTokens,
 	}
 
 	agentTokenCreateCmd = &cobra.Command{
 		Use:   "create <name> [description]",
-		Short: "create a new agent access token",
-		Long:  `Create a new agent access token.`,
+		Short: "Create a new agent access token",
 		Args:  cobra.RangeArgs(1, 2),
 		RunE:  createAgentToken,
 	}
 
 	agentTokenShowCmd = &cobra.Command{
 		Use:   "show <token>",
-		Short: "show details about an agent access token",
-		Long:  `Show details about an agent access token.`,
+		Short: "Show details about an agent access token",
 		Args:  cobra.ExactArgs(1),
 		RunE:  showAgentToken,
 	}
 
 	agentTokenUpdateCmd = &cobra.Command{
 		Use:   "update <token>",
-		Short: "update an agent access token",
+		Short: "Update an agent access token",
 		Long: `Update an agent access token.
 
 To update the token name and description:
 
-    $ lacework agent token update <token> --name dev --description "k8s deployment for dev"
+    lacework agent token update <token> --name dev --description "k8s deployment for dev"
 
 To disable a token:
 
-    $ lacework agent token update <token> --disable
+    lacework agent token update <token> --disable
 
 To enable a token:
 
-    $ lacework agent token update <token> --enable`,
+    lacework agent token update <token> --enable`,
 		Args: cobra.ExactArgs(1),
 		RunE: updateAgentToken,
 	}
 
 	// TODO hidden for now
-	agentListCmd = &cobra.Command{
-		Use:    "list",
-		Short:  "list all hosts with a running agent",
-		Long:   `List all hosts that have a running agent in your environment`,
-		Hidden: true,
-		RunE:   listAgents,
-	}
-
-	// TODO hidden for now
 	agentGenerateCmd = &cobra.Command{
 		Use:    "generate",
-		Short:  "generate agent deployment scripts",
+		Short:  "Generate agent deployment scripts",
 		Long:   `TBA`,
 		Hidden: true,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -136,8 +125,8 @@ To enable a token:
 	}
 
 	agentInstallCmd = &cobra.Command{
-		Use:   "install <[user@]host>",
-		Short: "install the datacollector agent on a remote host",
+		Use:   "install <[user@]host[:port]>",
+		Short: "Install the datacollector agent on a remote host",
 		Args:  cobra.ExactArgs(1),
 		Long: `For single host installation of the Lacework agent via Secure Shell (SSH).
 
@@ -146,17 +135,27 @@ launched to help gather the necessary authentication information to access the r
 
 To authenticate to the remote host with a username and password.
 
-    $ lacework agent install <host> --ssh_username <your-user> --ssh_password <secret>
+    lacework agent install <host> --ssh_username <your-user> --ssh_password <secret>
 
 To authenticate to the remote host with an identity file instead.
 
-    $ lacework agent install <user@host> -i /path/to/your/key
+    lacework agent install <user@host> -i /path/to/your/key
 
 To provide an agent access token of your choice, use the command 'lacework agent token list',
 select a token and pass it to the '--token' flag.
 
-    $ lacework agent install <user@host> -i /path/to/your/key --token <token>
-    `,
+    lacework agent install <user@host> -i /path/to/your/key --token <token>
+
+To authenticate to the remote host on a non-standard SSH port use the '--ssh_port' flag or
+pass it directly via the argument.
+
+    lacework agent install <user@host:port>
+
+To list all active agents in your environment. 
+
+    lacework agent list
+
+NOTE: New agents could take up to an hour to report back to the platform.`,
 		RunE: installRemoteAgent,
 	}
 )
@@ -202,56 +201,31 @@ func init() {
 	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
 		"ssh_username", "", "username to login with",
 	)
+	agentInstallCmd.Flags().IntVar(&agentCmdState.InstallSshPort,
+		"ssh_port", 22, "port to connect to on the remote host",
+	)
 	agentInstallCmd.Flags().BoolVar(&agentCmdState.InstallForce,
 		"force", false, "override any pre-installed agent",
 	)
 	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
 		"token", "", "agent access token",
 	)
-}
-
-func listAgents(_ *cobra.Command, _ []string) error {
-	// @afiune POC - This depends on LQL
-	time.Sleep(500 * time.Millisecond)
-	response, err := loadAgents()
-	if err != nil {
-		return errors.Wrap(err, "beta feature not yet supported")
-	}
-	if cli.JSONOutput() {
-		return cli.OutputJSON(response.Data)
-	}
-
-	cli.OutputHuman(
-		renderSimpleTable(
-			[]string{"Hostname", "Name", "IP Address", "External IP", "Status", "OS Arch", "Version"},
-			agentsToTable(response.Data),
-		),
+	agentInstallCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
+		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
-	return nil
 }
 
 func showAgentToken(_ *cobra.Command, args []string) error {
-	response, err := cli.LwApi.Agents.GetToken(args[0])
+	response, err := cli.LwApi.V2.AgentAccessTokens.Get(args[0])
 	if err != nil {
 		return errors.Wrap(err, "unable to get agent access token")
 	}
 
-	if len(response.Data) == 0 {
-		return errors.New(`unable to create agent access token
-
-The platform did not return any token in the response body, this is very
-unlikely to happen but, hey it happened. Please help us improve the
-Lacework CLI by reporting this issue at:
-
-  https://support.lacework.com/hc/en-us/requests/new
-`)
-	}
-
 	if cli.JSONOutput() {
-		return cli.OutputJSON(response.Data[0])
+		return cli.OutputJSON(response.Data)
 	}
 
-	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data[0]))
+	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data))
 	return nil
 }
 
@@ -261,15 +235,15 @@ func updateAgentToken(_ *cobra.Command, args []string) error {
 	}
 
 	// read the current state
-	response, err := cli.LwApi.Agents.GetToken(args[0])
+	response, err := cli.LwApi.V2.AgentAccessTokens.Get(args[0])
 	if err != nil {
 		return errors.Wrap(err, "unable to get agent access token")
 	}
-	actual := response.Data[0]
-	updated := api.AgentTokenRequest{
+	actual := response.Data
+	updated := api.AgentAccessTokenRequest{
 		TokenAlias: actual.TokenAlias,
-		Enabled:    actual.EnabledInt(),
-		Props: &api.AgentTokenProps{
+		Enabled:    actual.Enabled,
+		Props: &api.AgentAccessTokenProps{
 			CreatedTime: actual.Props.CreatedTime,
 		},
 	}
@@ -290,27 +264,16 @@ func updateAgentToken(_ *cobra.Command, args []string) error {
 		updated.Props.Description = agentCmdState.TokenUpdateDesc
 	}
 
-	response, err = cli.LwApi.Agents.UpdateToken(args[0], updated)
+	response, err = cli.LwApi.V2.AgentAccessTokens.Update(args[0], updated)
 	if err != nil {
 		return errors.Wrap(err, "unable to update the agent access token")
 	}
 
-	if len(response.Data) == 0 {
-		return errors.New(`unable to update the agent access token
-
-The platform did not return any token in the response body, this is very
-unlikely to happen but, hey it happened. Please help us improve the
-Lacework CLI by reporting this issue at:
-
-  https://support.lacework.com/hc/en-us/requests/new
-`)
-	}
-
 	if cli.JSONOutput() {
-		return cli.OutputJSON(response.Data[0])
+		return cli.OutputJSON(response.Data)
 	}
 
-	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data[0]))
+	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data))
 	return nil
 }
 
@@ -320,38 +283,30 @@ func createAgentToken(_ *cobra.Command, args []string) error {
 		desc = args[1]
 	}
 
-	response, err := cli.LwApi.Agents.CreateToken(args[0], desc)
+	response, err := cli.LwApi.V2.AgentAccessTokens.Create(args[0], desc)
 	if err != nil {
 		return errors.Wrap(err, "unable to create agent access token")
 	}
 
-	if len(response.Data) == 0 {
-		return errors.New(`unable to create agent access token
-
-The platform did not return any token in the response body, this is very
-unlikely to happen but, hey it happened. Please help us improve the
-Lacework CLI by reporting this issue at:
-
-  https://support.lacework.com/hc/en-us/requests/new
-`)
-	}
-
 	if cli.JSONOutput() {
-		return cli.OutputJSON(response.Data[0])
+		return cli.OutputJSON(response.Data)
 	}
 
-	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data[0]))
+	cli.OutputHuman(buildAgentTokenDetailsTable(response.Data))
 	return nil
 }
 
 func listAgentTokens(_ *cobra.Command, _ []string) error {
-	response, err := cli.LwApi.Agents.ListTokens()
+	response, err := cli.LwApi.V2.AgentAccessTokens.List()
 	if err != nil {
 		return errors.Wrap(err, "unable to list agent access token")
 	}
 
 	if len(response.Data) == 0 {
-		cli.OutputHuman("There are no agent access tokens. Try creating one with 'lacework agent token create'\n")
+		cli.OutputHuman(
+			"There are no agent access tokens. Try creating one with 'lacework agent token create%s'\n",
+			cli.OutputNonDefaultProfileFlag(),
+		)
 		return nil
 	}
 
@@ -361,59 +316,35 @@ func listAgentTokens(_ *cobra.Command, _ []string) error {
 
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"Token", "Name", "Status"},
+			[]string{"Token", "Name", "State"},
 			agentTokensToTable(response.Data),
 		),
 	)
 	return nil
 }
 
-func agentsToTable(agents []AgentHost) [][]string {
-	out := [][]string{}
-	for _, agent := range agents {
-		out = append(out, []string{
-			agent.MachineHostname,
-			agent.Name,
-			agent.MachineIP,
-			agent.Tags.ExternalIP,
-			agent.Status,
-			fmt.Sprintf("%s/%s", agent.Tags.Os, agent.Tags.Arch),
-			agent.AgentVersion,
-		})
-	}
-
-	// order by severity
-	sort.Slice(out, func(i, j int) bool {
-		return out[i][1] < out[j][1]
-	})
-
-	return out
-}
-
-func agentTokensToTable(tokens []api.AgentToken) [][]string {
+func agentTokensToTable(tokens []api.AgentAccessToken) [][]string {
 	out := [][]string{}
 	for _, token := range tokens {
 		out = append(out, []string{
 			token.AccessToken,
 			token.TokenAlias,
-			token.PrettyStatus(),
+			token.PrettyState(),
 		})
 	}
 	return out
 }
 
-func buildAgentTokenDetailsTable(token api.AgentToken) string {
-	return renderOneLineCustomTable("Agent Token Details",
+func buildAgentTokenDetailsTable(token api.AgentAccessToken) string {
+	return renderOneLineCustomTable("Agent Access Token Details",
 		renderSimpleTable([]string{},
 			[][]string{
-				[]string{"TOKEN", token.AccessToken},
-				[]string{"NAME", token.TokenAlias},
-				[]string{"DESCRIPTION", token.Props.Description},
-				[]string{"ACCOUNT", token.Account},
-				[]string{"VERSION", token.Version},
-				[]string{"STATUS", token.PrettyStatus()},
-				[]string{"CREATED AT", token.Props.CreatedTime.Format(time.RFC3339)},
-				[]string{"UPDATED AT", token.LastUpdatedTime.Format(time.RFC3339)},
+				{"TOKEN", token.AccessToken},
+				{"NAME", token.TokenAlias},
+				{"DESCRIPTION", token.Props.Description},
+				{"VERSION", token.Version},
+				{"STATE", token.PrettyState()},
+				{"CREATED AT", token.Props.CreatedTime.Format(time.RFC3339)},
 			},
 		),
 		tableFunc(func(t *tablewriter.Table) {

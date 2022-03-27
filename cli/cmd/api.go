@@ -38,10 +38,10 @@ var (
 	// apiCmd represents the api command
 	apiCmd = &cobra.Command{
 		Use:   "api <method> <path>",
-		Short: "helper to call Lacework's API",
+		Short: "Helper to call Lacework's API",
 		Long: `Use this command as a helper to call any available Lacework API v1 & v2 endpoint.
 
-== For APIv1 ==
+### For APIv1
 
 To list all integrations configured in your account:
 
@@ -51,13 +51,13 @@ For a complete list of available API v1 endpoints visit:
 
     https://<ACCOUNT>.lacework.net/api/v1/external/docs
 
-== For APIv2 ==
+### For APIv2
 
 To list all available Lacework schema types:
 
     lacework api get /v2/schemas
 
-For a complete list of available API v1 endpoints visit:
+For a complete list of available API v2 endpoints visit:
 
     https://<ACCOUNT>.lacework.net/api/v2/docs
 `,

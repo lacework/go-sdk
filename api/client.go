@@ -43,13 +43,13 @@ type Client struct {
 	c          *http.Client
 	log        *zap.Logger
 	headers    map[string]string
+	callbacks  LifecycleCallbacks
 
 	Account         *AccountService
 	Agents          *AgentsService
 	Compliance      *ComplianceService
 	Events          *EventsService
 	Integrations    *IntegrationsService
-	LQL             *LQLService
 	Policy          *PolicyService
 	Vulnerabilities *VulnerabilitiesService
 
@@ -102,8 +102,6 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	c.Compliance = &ComplianceService{c}
 	c.Events = &EventsService{c}
 	c.Integrations = &IntegrationsService{c}
-	c.LQL = &LQLService{c}
-	c.Policy = &PolicyService{c}
 	c.Vulnerabilities = NewVulnerabilityService(c)
 	c.V2 = NewV2Endpoints(c)
 
@@ -123,6 +121,34 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		zap.Int("timeout", c.auth.expiration),
 	)
 	return c, nil
+}
+
+// CopyClient generates a copy of the provider Lacework API Go client
+//
+// Example of basic usage
+//
+//   client, err := api.NewClient("demo")
+//   if err == nil {
+//       client.Integrations.List()
+//   }
+//
+//   clientCopy, err := api.CopyClient(client, api.WithOrgAccess())
+//   if err == nil {
+//       clientCopy.Integrations.List()
+//   }
+func CopyClient(origin *Client, opts ...Option) (*Client, error) {
+	dest := new(Client)
+	*dest = *origin
+
+	// no client should have the same ID
+	dest.id = newID()
+
+	for _, opt := range opts {
+		if err := opt.apply(dest); err != nil {
+			return dest, err
+		}
+	}
+	return dest, nil
 }
 
 // WithSubaccount sets a subaccount into an API client
@@ -172,6 +198,15 @@ func WithHeader(header, value string) Option {
 	})
 }
 
+// WithOrgAccess sets the Org-Access Header to access the organization level data sets
+func WithOrgAccess() Option {
+	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up header", zap.String("Org-Access", "true"))
+		c.headers["Org-Access"] = "true"
+		return nil
+	})
+}
+
 // URL returns the base url configured
 func (c *Client) URL() string {
 	return c.baseURL.String()
@@ -180,6 +215,12 @@ func (c *Client) URL() string {
 // ValidAuth verifies that the client has valid authentication
 func (c *Client) ValidAuth() bool {
 	return c.auth.token != ""
+}
+
+// OrgAccess check if the Org-Access header is set to 'true', if so,
+// the client is configured to manage org level dataset
+func (c *Client) OrgAccess() bool {
+	return c.headers["Org-Access"] == "true"
 }
 
 // newID generates a new client id, this id is useful for logging purposes

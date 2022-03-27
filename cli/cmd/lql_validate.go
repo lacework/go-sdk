@@ -21,49 +21,81 @@ package cmd
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 const (
-	lqlValidateUnableMsg string = "unable to validate LQL query"
+	lqlValidateUnableMsg string = "unable to validate query"
 )
 
 var (
-	// lqlValidateCmd represents the lql validate command
-	lqlValidateCmd = &cobra.Command{
-		Use:   "validate [query_id]",
-		Short: "validate an LQL query",
-		Long:  `Validate an LQL query.`,
-		Args:  cobra.MaximumNArgs(1),
-		RunE:  validateQuery,
+	// queryValidateCmd represents the lql validate command
+	queryValidateCmd = &cobra.Command{
+		Use:   "validate",
+		Short: "Validate a query",
+		Long: `Use this command to validate a single LQL query before creating it.
+
+There are multiple ways you can validate a query:
+
+  * Typing the query into your default editor (via $EDITOR)
+  * From a local file on disk using the flag '--file'
+  * From a URL using the flag '--url'
+
+There are also multiple formats you can use to define a query:
+
+  * Javascript Object Notation (JSON)
+  * YAML Ain't Markup Language (YAML)
+
+To launch your default editor and validate a query.
+
+    lacework query validate
+`,
+		Args: cobra.NoArgs,
+		RunE: validateQuery,
 	}
 )
 
 func init() {
-	lqlCmd.AddCommand(lqlValidateCmd)
+	queryCmd.AddCommand(queryValidateCmd)
 
-	setQuerySourceFlags(lqlValidateCmd)
+	setQuerySourceFlags(queryValidateCmd)
 }
 
-func validateQuery(cmd *cobra.Command, args []string) error {
-	query, err := inputQuery(cmd, args)
+func validateQuery(cmd *cobra.Command, _ []string) error {
+	// input query
+	queryString, err := inputQuery(cmd)
 	if err != nil {
 		return errors.Wrap(err, lqlValidateUnableMsg)
 	}
-	return compileQueryAndOutput(query)
-}
-
-func compileQueryAndOutput(query string) error {
-	cli.Log.Debugw("validating LQL query", "query", query)
-
-	compile, err := cli.LwApi.LQL.CompileQuery(query)
-
+	// parse query
+	newQuery, err := parseQuery(queryString)
 	if err != nil {
-		err = queryErrorCrumbs(query, err)
 		return errors.Wrap(err, lqlValidateUnableMsg)
 	}
+
+	cli.Log.Debugw("validating query", "query", queryString)
+
+	return validateQueryAndOutput(newQuery)
+}
+
+func validateQueryAndOutput(nq api.NewQuery) error {
+	vq := api.ValidateQuery{
+		QueryText:   nq.QueryText,
+		EvaluatorID: nq.EvaluatorID,
+	}
+
+	cli.StartProgress(" Validating query...")
+	validate, err := cli.LwApi.V2.Query.Validate(vq)
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, lqlValidateUnableMsg)
+	}
+
 	if cli.JSONOutput() {
-		return cli.OutputJSON(compile.Data)
+		return cli.OutputJSON(validate.Data)
 	}
-	cli.OutputHuman("LQL query validated successfully.\n")
+
+	cli.OutputHuman("Query validated successfully. Time for %s\n", randomEmoji())
 	return nil
 }

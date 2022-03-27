@@ -157,3 +157,12 @@ type ComplianceAzureReport struct {
 	Summary          []ComplianceSummary        `json:"summary"`
 	Recommendations  []ComplianceRecommendation `json:"recommendations"`
 }
+
+func (az ComplianceAzureReport) GetComplianceRecommendation(recommendationID string) ComplianceRecommendation {
+	for _, r := range az.Recommendations {
+		if r.RecID == recommendationID {
+			return r
+		}
+	}
+	return ComplianceRecommendation{}
+}

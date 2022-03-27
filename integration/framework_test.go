@@ -21,6 +21,7 @@ package integration
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -28,9 +29,18 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"testing"
+	"time"
 
+	"github.com/Netflix/go-expect"
+	"github.com/hinshun/vt10x"
+	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/lwupdater"
+	"github.com/stretchr/testify/assert"
 )
+
+// When emulating a terminal, the timeout to wait for output
+var expectStringTimeout = time.Second * 3
 
 // Use this function to execute a real lacework CLI command, under the hood the function
 // will detect the correct binary depending on the running OS and architecture, if you
@@ -80,9 +90,10 @@ func LaceworkCLIWithHome(dir string, args ...string) (bytes.Buffer, bytes.Buffer
 	return runLaceworkCLI(dir, args...)
 }
 
-func NewLaceworkCLI(workingDir string, args ...string) *exec.Cmd {
+func NewLaceworkCLI(workingDir string, stdin io.Reader, args ...string) *exec.Cmd {
 	cmd := exec.Command(findLaceworkCLIBinary(), args...)
 	cmd.Env = os.Environ()
+	cmd.Stdin = stdin
 	if len(workingDir) != 0 {
 		cmd.Dir = workingDir
 		env := append(os.Environ(), fmt.Sprintf("HOME=%s", workingDir))
@@ -119,24 +130,29 @@ func disableTestingUpdaterEnv() {
 }
 
 func runLaceworkCLI(workingDir string, args ...string) (stdout bytes.Buffer, stderr bytes.Buffer, exitcode int) {
-	cmd := NewLaceworkCLI(workingDir, args...)
+	cmd := NewLaceworkCLI(workingDir, nil, args...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	exitcode = 0
-	if err := cmd.Run(); err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			exitcode = exitError.ExitCode()
-		} else {
-			exitcode = 999
-			fmt.Println(stderr)
-			if _, err := stderr.WriteString(err.Error()); err != nil {
-				// @afiune we should never get here but if we do, lets print the error
-				fmt.Println(err)
-			}
+	exitcode, err := runLaceworkCLIFromCmd(cmd)
+	if exitcode == 999 {
+		fmt.Println(stderr)
+		if _, err := stderr.WriteString(err.Error()); err != nil {
+			// @afiune we should never get here but if we do, lets print the error
+			fmt.Println(err)
 		}
 	}
 	return
+}
+
+func runLaceworkCLIFromCmd(cmd *exec.Cmd) (int, error) {
+	if err := cmd.Run(); err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return exitError.ExitCode(), err
+		}
+		return 999, err
+	}
+	return 0, nil
 }
 
 func findLaceworkCLIBinary() string {
@@ -167,8 +183,10 @@ func createTOMLConfigFromCIvars() string {
 	configFile := filepath.Join(dir, ".lacework.toml")
 	c := []byte(`[default]
 account = '` + os.Getenv("CI_ACCOUNT") + `'
+subaccount = '` + os.Getenv("CI_SUBACCOUNT") + `'
 api_key = '` + os.Getenv("CI_API_KEY") + `'
 api_secret = '` + os.Getenv("CI_API_SECRET") + `'
+version = 2
 `)
 	err = ioutil.WriteFile(configFile, c, 0644)
 	if err != nil {
@@ -200,11 +218,13 @@ func createDummyTOMLConfig() string {
 account = 'dummy'
 api_key = 'DUMMY_1234567890abcdefg'
 api_secret = '_superdummysecret'
+version = 2
 
 [test]
 account = 'test.account'
 api_key = 'INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00'
 api_secret = '_00000000000000000000000000000000'
+version = 2
 
 [v2]
 account = 'v2.config'
@@ -217,11 +237,13 @@ version = 2
 account = 'integration'
 api_key = 'INTEGRATION_3DF1234AABBCCDD5678XXYYZZ1234ABC8BEC6500DC70'
 api_secret = '_1234abdc00ff11vv22zz33xyz1234abc'
+version = 2
 
 [dev]
 account = 'dev.example'
 api_key = 'DEVDEV_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC000'
 api_secret = '_11111111111111111111111111111111'
+version = 2
 `)
 	err = ioutil.WriteFile(configFile, c, 0644)
 	if err != nil {
@@ -246,5 +268,95 @@ func storeFileInCircleCI(f string) {
 		if err != nil {
 			fmt.Println(err)
 		}
+	}
+}
+
+func laceworkIntegrationTestClient() (*api.Client, error) {
+	fmt.Println("Setting up host tests")
+	account := os.Getenv("CI_ACCOUNT")
+	subaccount := os.Getenv("CI_SUBACCOUNT")
+	key := os.Getenv("CI_API_KEY")
+	secret := os.Getenv("CI_API_SECRET")
+
+	lacework, err := api.NewClient(account,
+		api.WithApiKeys(key, secret),
+		api.WithSubaccount(subaccount),
+		api.WithApiV2(),
+	)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return lacework, err
+}
+
+func createTemporaryFile(name, content string) (*os.File, error) {
+	// get temp file
+	file, err := ioutil.TempFile("", name)
+	if err != nil {
+		return nil, err
+	}
+
+	// write-to and close file
+	_, err = file.Write([]byte(content))
+	if err != nil {
+		return nil, err
+	}
+	file.Close()
+
+	return file, err
+}
+
+func runFakeTerminalTestFromDir(t *testing.T, dir string, conditions func(*expect.Console), args ...string) string {
+	// Multiplex output to a buffer as well for the raw bytes.
+	buf := new(bytes.Buffer)
+
+	console, state, err := vt10x.NewVT10XConsole(expect.WithStdout(buf))
+	if err != nil {
+		panic(err)
+	}
+	defer console.Close()
+
+	if os.Getenv("DEBUG") != "" {
+		state.DebugLogger = log.Default()
+	}
+
+	donec := make(chan struct{})
+	go func() {
+		defer close(donec)
+		conditions(console)
+	}()
+
+	// spawn a new `lacework configure' command
+	cmd := NewLaceworkCLI(dir, nil, args...)
+	cmd.Stdin = console.Tty()
+	cmd.Stdout = console.Tty()
+	cmd.Stderr = console.Tty()
+	err = cmd.Start()
+	assert.Nil(t, err)
+
+	// read the remaining bytes
+	console.Tty().Close()
+	<-donec
+
+	t.Logf("Raw output: %q", buf.String())
+
+	// Dump the terminal's screen.
+	t.Logf(
+		"Terminal output:\n%s",
+		expect.StripTrailingEmptyLines(state.String()),
+	)
+
+	return state.String()
+}
+
+func expectString(t *testing.T, c *expect.Console, str string) {
+	out, err := c.Expect(
+		expect.WithTimeout(expectStringTimeout),
+		expect.String(str),
+	)
+	if err != nil {
+		fmt.Println(out)
+		fmt.Println(err)
+		t.FailNow()
 	}
 }

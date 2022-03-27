@@ -1,4 +1,5 @@
-//
+//go:build compliance
+
 // Author:: Darren Murray (<darren.murray@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -23,6 +24,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestComplianceAwsList(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "aws", "list",
+	)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "AWS ACCOUNT", "STDOUT changed, please check")
+	assert.Contains(t, out.String(), "STATUS", "STDOUT changed, please check")
+}
 
 func TestComplianceAwsGetReportFilter(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
@@ -110,4 +122,39 @@ func TestComplianceAwsGetReportAccountIDWithAlias(t *testing.T) {
 	assert.Contains(t, err.String(),
 		"AWS_ACCOUNT_ID=account-id&",
 		"STDERR changed, please check")
+}
+
+func TestComplianceAwsGetReportTypeAWS_SOC_Rev2(t *testing.T) {
+	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", "AWS_SOC_Rev2")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "AWS_SOC_Rev2",
+		"STDOUT report type missing or something else is going on, please check")
+	assert.Contains(t, out.String(), "Report Type",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), account,
+		"Account ID in compliance report is not correct")
+}
+
+func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
+	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "AWS_CIS_2_5")
+
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "RECOMMENDATION DETAILS",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "SEVERITY",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "SERVICE",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "CATEGORY",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "STATUS",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "ASSESSED RESOURCES ",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "AFFECTED RESOURCES",
+		"STDOUT table headers changed, please check")
 }

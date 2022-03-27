@@ -63,8 +63,13 @@ func createGcrIntegration() error {
 		},
 		{
 			Name:     "private_key",
-			Prompt:   &survey.Input{Message: "Private Key:"},
+			Prompt:   &survey.Editor{Message: "Enter properly formatted Private Key:"},
 			Validate: survey.Required,
+		},
+		{
+			Name: "non_os_package_support",
+			Prompt: &survey.Confirm{
+				Message: "Enable scanning for Non-OS packages: "},
 		},
 		{
 			Name: "limit_tag",
@@ -95,16 +100,17 @@ func createGcrIntegration() error {
 	}
 
 	answers := struct {
-		Name           string
-		Domain         string
-		ClientID       string `survey:"client_id"`
-		PrivateKeyID   string `survey:"private_key_id"`
-		ClientEmail    string `survey:"client_email"`
-		PrivateKey     string `survey:"private_key"`
-		LimitTag       string `survey:"limit_tag"`
-		LimitLabel     string `survey:"limit_label"`
-		LimitRepos     string `survey:"limit_repos"`
-		LimitMaxImages string `survey:"limit_max_images"`
+		Name                string
+		Domain              string
+		ClientID            string `survey:"client_id"`
+		PrivateKeyID        string `survey:"private_key_id"`
+		ClientEmail         string `survey:"client_email"`
+		PrivateKey          string `survey:"private_key"`
+		NonOSPackageSupport bool   `survey:"non_os_package_support"`
+		LimitTag            string `survey:"limit_tag"`
+		LimitLabel          string `survey:"limit_label"`
+		LimitRepos          string `survey:"limit_repos"`
+		LimitMaxImages      string `survey:"limit_max_images"`
 	}{}
 
 	err := survey.Ask(questions, &answers,
@@ -132,11 +138,12 @@ func createGcrIntegration() error {
 				PrivateKey:   answers.PrivateKey,
 				PrivateKeyID: answers.PrivateKeyID,
 			},
-			RegistryDomain: answers.Domain,
-			LimitByTag:     answers.LimitTag,
-			LimitByLabel:   answers.LimitLabel,
-			LimitByRep:     answers.LimitRepos,
-			LimitNumImg:    limitMaxImages,
+			RegistryDomain:   answers.Domain,
+			NonOSPackageEval: answers.NonOSPackageSupport,
+			LimitByTag:       answers.LimitTag,
+			LimitByLabel:     answers.LimitLabel,
+			LimitByRep:       answers.LimitRepos,
+			LimitNumImg:      limitMaxImages,
 		},
 	)
 

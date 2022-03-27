@@ -29,10 +29,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLQLUpdateMethod(t *testing.T) {
+var (
+	updateQueryText = `my_lql { source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }`
+	updateQuery     = api.UpdateQuery{
+		QueryText: newQueryText,
+	}
+	updateQueryJSON = fmt.Sprintf(`{
+	"evaluatorId": "%s",
+	"queryId": "%s",
+	"queryText": "%s"
+}`, queryEvaluator, queryID, updateQueryText)
+)
+
+func TestQueryUpdateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "PATCH", r.Method, "Update should be a PATCH method")
 			fmt.Fprint(w, "{}")
@@ -46,14 +59,15 @@ func TestLQLUpdateMethod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.UpdateQuery(lqlQueryStr)
+	_, err = c.V2.Query.Update(queryID, updateQuery)
 	assert.Nil(t, err)
 }
 
-func TestLQLUpdateBadInput(t *testing.T) {
+func TestQueryUpdateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "{}")
 		},
@@ -66,19 +80,17 @@ func TestLQLUpdateBadInput(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.UpdateQuery("")
-	assert.Equal(t, api.LQLQueryTranslateError, err.Error())
+	_, err = c.V2.Query.Update("", api.UpdateQuery{})
+	assert.Equal(t, "query ID must be provided", err.Error())
 }
 
-func TestLQLUpdateOK(t *testing.T) {
-	mockResponse := mockLQLMessageResponse(
-		fmt.Sprintf(`"lqlUpdated": "%s"`, lqlQueryID),
-		"true",
-	)
+func TestQueryUpdateOK(t *testing.T) {
+	mockResponse := mockQueryDataResponse(updateQueryJSON)
 
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -91,22 +103,23 @@ func TestLQLUpdateOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	updateExpected := api.LQLUpdateResponse{}
+	updateExpected := api.QueryResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &updateExpected)
 
-	var updateActual api.LQLUpdateResponse
-	updateActual, err = c.LQL.UpdateQuery(lqlQueryStr)
+	var updateActual api.QueryResponse
+	updateActual, err = c.V2.Query.Update(queryID, updateQuery)
 	assert.Nil(t, err)
 
 	assert.Equal(t, updateExpected, updateActual)
 }
 
-func TestLQLUpdateNotFound(t *testing.T) {
+func TestQueryUpdateNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/lql/compile",
+		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, lqlUnableResponse, http.StatusBadRequest)
+			http.Error(w, lqlErrorReponse, http.StatusBadRequest)
 		},
 	)
 	defer fakeServer.Close()
@@ -117,6 +130,6 @@ func TestLQLUpdateNotFound(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = c.LQL.UpdateQuery(lqlQueryStr)
+	_, err = c.V2.Query.Update(queryID, updateQuery)
 	assert.NotNil(t, err)
 }

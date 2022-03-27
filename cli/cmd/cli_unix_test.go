@@ -1,4 +1,5 @@
-// +build !windows
+//go:build !windows
+
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
@@ -36,5 +37,23 @@ func TestCliStateUpdateCommand(t *testing.T) {
 		os.Setenv("LW_HOMEBREW_INSTALL", "1")
 		defer os.Setenv("LW_HOMEBREW_INSTALL", "")
 		assert.Contains(t, cli.UpdateCommand(), "brew upgrade lacework-cli")
+	})
+
+	t.Run("Gcp CloudShell Installation", func(t *testing.T) {
+		os.Setenv("CLOUD_SHELL", "true")
+		defer os.Setenv("CLOUD_SHELL", "")
+		assert.Contains(t, cli.UpdateCommand(), "curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash -s -- -d $HOME/bin")
+	})
+
+	t.Run("Aws CloudShell Installation", func(t *testing.T) {
+		os.Setenv("AWS_EXECUTION_ENV", "Cloudshell")
+		defer os.Setenv("AWS_EXECUTION_ENV", "")
+		assert.Contains(t, cli.UpdateCommand(), "curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash -s -- -d $HOME/bin")
+	})
+
+	t.Run("Azure CloudShell Installation", func(t *testing.T) {
+		os.Setenv("POWERSHELL_DISTRIBUTION_CHANNEL", "CloudShell")
+		defer os.Setenv("POWERSHELL_DISTRIBUTION_CHANNEL", "")
+		assert.Contains(t, cli.UpdateCommand(), "curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash -s -- -d $HOME/bin")
 	})
 }

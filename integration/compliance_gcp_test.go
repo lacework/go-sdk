@@ -1,4 +1,5 @@
-//
+//go:build compliance
+
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -37,4 +38,16 @@ func TestComplianceGoogleGetReportOrgAndProjectWithAlias(t *testing.T) {
 	assert.Contains(t, err.String(),
 		"GCP_ORG_ID=org-id&GCP_PROJ_ID=proj-id&",
 		"STDERR changed, please check")
+}
+
+func TestComplianceGoogleList(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "gcp", "list",
+	)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "PROJECT ID", "STDOUT changed, please check")
+	assert.Contains(t, out.String(), "ORGANIZATION ID", "STDOUT changed, please check")
+	assert.Contains(t, out.String(), "STATUS", "STDOUT changed, please check")
 }
