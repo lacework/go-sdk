@@ -20,25 +20,10 @@
 package integration
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func TestQueryListSourcesAliases(t *testing.T) {
-	// lacework query sources
-	out, err, exitcode := LaceworkCLI("help", "query", "sources")
-	assert.Contains(t, out.String(), "lacework query list-sources [flags]")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-
-	// lacework query list-sources
-	out, err, exitcode = LaceworkCLI("help", "query", "list-sources")
-	assert.Contains(t, out.String(), "lacework query list-sources [flags]")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
 
 func TestQueryListSourcesTable(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources")
@@ -53,18 +38,6 @@ func TestQueryListSourcesJSON(t *testing.T) {
 	assert.Contains(t, out.String(), "[")
 	assert.Contains(t, out.String(), `"CloudTrailRawEvents"`)
 	assert.Contains(t, out.String(), "]")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
-
-func TestQueryShowSourceHelp(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("help", "query", "describe")
-	assert.Contains(t, out.String(), "lacework query show-source <datasource_id> [flags]")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-
-	out, err, exitcode = LaceworkCLI("help", "query", "show-source")
-	assert.Contains(t, out.String(), "lacework query show-source <datasource_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

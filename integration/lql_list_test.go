@@ -20,18 +20,10 @@
 package integration
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func TestQueryListHelp(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("help", "query", "list")
-	assert.Contains(t, out.String(), "lacework query list [flags]")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
 
 func TestQueryList(t *testing.T) {
 	// setup
