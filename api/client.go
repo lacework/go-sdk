@@ -51,6 +51,7 @@ type Client struct {
 	Events          *EventsService
 	Integrations    *IntegrationsService
 	Policy          *PolicyService
+	Recommendations *RecommendationsService
 	Vulnerabilities *VulnerabilitiesService
 
 	V2 *V2Endpoints
@@ -102,6 +103,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	c.Compliance = &ComplianceService{c}
 	c.Events = &EventsService{c}
 	c.Integrations = &IntegrationsService{c}
+	c.Recommendations = &RecommendationsService{c}
 	c.Vulnerabilities = NewVulnerabilityService(c)
 	c.V2 = NewV2Endpoints(c)
 
