@@ -53,7 +53,7 @@ func init() {
 	queryCmd.AddCommand(queryShowSourceCmd)
 }
 
-func getListQuerySourcesTable(datasources []api.Datasource) (out [][]string) {
+func querySourcesTable(datasources []api.Datasource) (out [][]string) {
 	for _, source := range datasources {
 		out = append(out, []string{
 			source.Name,
@@ -86,7 +86,7 @@ func listQuerySources(_ *cobra.Command, args []string) error {
 	cli.OutputHuman(
 		renderCustomTable(
 			[]string{"Datasource", "Description"},
-			getListQuerySourcesTable(datasourcesResponse.Data),
+			querySourcesTable(datasourcesResponse.Data),
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetAutoWrapText(false)
 				t.SetBorder(false)
@@ -124,7 +124,7 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 	cli.OutputHuman(
 		renderSimpleTable(
 			[]string{"Datasource", "Description"},
-			getListQuerySourcesTable([]api.Datasource{datasourceResponse.Data}),
+			querySourcesTable([]api.Datasource{datasourceResponse.Data}),
 		),
 	)
 	cli.OutputHuman("\n")
