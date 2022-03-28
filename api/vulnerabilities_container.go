@@ -204,6 +204,10 @@ type VulnContainerAssessment struct {
 }
 
 func (report *VulnContainerAssessment) VulnFixableCount(severity string) int32 {
+	if report.Image == nil || report.Image.ImageLayers == nil {
+		return 0
+	}
+
 	severity = strings.ToLower(severity)
 	if !array.ContainsStr(ValidVulnSeverities, severity) {
 		return 0

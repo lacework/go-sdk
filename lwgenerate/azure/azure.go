@@ -103,17 +103,10 @@ func WithConfigIntegrationName(name string) AzureTerraformModifier {
 	}
 }
 
-// WithAuditLogIntegrationName Set the Config Integration name to be displayed on the Lacework UI
-func WithAuditLogIntegrationName(name string) AzureTerraformModifier {
+// WithActivityLogIntegrationName Set the Activity Log Integration name to be displayed on the Lacework UI
+func WithActivityLogIntegrationName(name string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.ActivityLogIntegrationName = name
-	}
-}
-
-// WithCreateAdIntegration Set the Config Integration name to be displayed on the Lacework UI
-func WithCreateAdIntegration(enableAdIntegration bool) AzureTerraformModifier {
-	return func(c *GenerateAzureTfConfigurationArgs) {
-		c.CreateAdIntegration = enableAdIntegration
 	}
 }
 
@@ -340,9 +333,9 @@ func createConfig(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, er
 		// Check if we have created an Active Directory app
 		if args.CreateAdIntegration {
 			attributes["use_existing_ad_application"] = true
-			attributes["application_id"] = "module.az_ad_application.application_id"
-			attributes["application_password"] = "module.az_ad_application.application_password"
-			attributes["service_principal_id"] = "module.az_ad_application.service_principal_id"
+			attributes["application_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_id"})
+			attributes["application_password"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_password"})
+			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "service_principal_id"})
 		} else {
 			attributes["use_existing_ad_application"] = true
 			attributes["application_id"] = args.AdApplicationId
@@ -404,9 +397,9 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 		// Check if we have created an Active Directory integration
 		if args.CreateAdIntegration {
 			attributes["use_existing_ad_application"] = true
-			attributes["application_id"] = "module.az_ad_application.application_id"
-			attributes["application_password"] = "module.az_ad_application.application_password"
-			attributes["service_principal_id"] = "module.az_ad_application.service_principal_id"
+			attributes["application_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_id"})
+			attributes["application_password"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_password"})
+			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "service_principal_id"})
 		} else {
 			attributes["use_existing_ad_application"] = true
 			attributes["application_id"] = args.AdApplicationId
@@ -424,10 +417,14 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 			attributes["all_subscriptions"] = args.AllSubscriptions
 		}
 
+		// Set storage account name, if set
+		if args.StorageAccountName != "" {
+			attributes["storage_account_name"] = args.StorageAccountName
+		}
+
 		// Set storage info if existing storage flag is set
 		if args.ExistingStorageAccount {
 			attributes["use_existing_storage_account"] = args.ExistingStorageAccount
-			attributes["storage_account_name"] = args.StorageAccountName
 			attributes["storage_account_resource_group"] = args.StorageAccountResourceGroup
 		}
 

@@ -56,6 +56,22 @@ func (gcp *GcpGenerateCommandExtraState) writeCache() {
 	}
 }
 
+type AzureGenerateCommandExtraState struct {
+	Output         string
+	TerraformApply bool
+}
+
+func (a *AzureGenerateCommandExtraState) isEmpty() bool {
+	return a.Output == "" && !a.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (a *AzureGenerateCommandExtraState) writeCache() {
+	if !a.isEmpty() {
+		cli.WriteAssetToCache(CachedAzureAssetExtraState, time.Now().Add(time.Hour*1), a)
+	}
+}
+
 var (
 	QuestionRunTfPlan        = "Run Terraform plan now?"
 	QuestionUsePreviousCache = "Previous IaC generation detected, load cached values?"
@@ -76,10 +92,12 @@ func init() {
 	// Add cloud specific command flags
 	initGenerateAwsTfCommandFlags()
 	initGenerateGcpTfCommandFlags()
+	initGenerateAzureTfCommandFlags()
 
 	// add sub-commands to the iac-generate command
 	generateTfCommand.AddCommand(generateAwsTfCommand)
 	generateTfCommand.AddCommand(generateGcpTfCommand)
+	generateTfCommand.AddCommand(generateAzureTfCommand)
 }
 
 type SurveyQuestionWithValidationArgs struct {

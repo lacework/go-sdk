@@ -65,7 +65,7 @@ func TestGenerationRenamedActivityLog(t *testing.T) {
 	RenamedActivityLog, fileErr := getFileContent("test-data/renamed_activity_log.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(false, true, true,
-		azure.WithAuditLogIntegrationName("Test Activity Log Rename"),
+		azure.WithActivityLogIntegrationName("Test Activity Log Rename"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -77,7 +77,7 @@ func TestGenerationRenamedConfigAndActivityLog(t *testing.T) {
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(true, true, true,
 		azure.WithConfigIntegrationName("Test Config Rename"),
-		azure.WithAuditLogIntegrationName("Test Activity Log Rename"),
+		azure.WithActivityLogIntegrationName("Test Activity Log Rename"),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -87,7 +87,7 @@ func TestGenerationRenamedConfigAndActivityLog(t *testing.T) {
 func TestGenerationNoActiveDirectorySettings(t *testing.T) {
 	hcl, err := azure.NewTerraform(true, true, false,
 		azure.WithConfigIntegrationName("Test Config Rename"),
-		azure.WithAuditLogIntegrationName("Test Activity Log Rename"),
+		azure.WithActivityLogIntegrationName("Test Activity Log Rename"),
 	).Generate()
 	assert.True(t, strings.Contains(errors.Unwrap(err).Error(), "invalid inputs"))
 	assert.Empty(t, hcl)
@@ -98,7 +98,7 @@ func TestGenerationCustomActiveDirectory(t *testing.T) {
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(true, true, false,
 		azure.WithConfigIntegrationName("Test Config Rename"),
-		azure.WithAuditLogIntegrationName("Test Activity Log Rename"),
+		azure.WithActivityLogIntegrationName("Test Activity Log Rename"),
 		azure.WithAdApplicationPassword("AD-Test-Password"),
 		azure.WithAdServicePrincipalId("AD-Test-Principal-ID"),
 		azure.WithAdApplicationId("AD-Test-Application-ID"),
