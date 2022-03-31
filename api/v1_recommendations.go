@@ -24,31 +24,31 @@ import "fmt"
 // endpoints from the Lacework Server
 type RecommendationsServiceV1 struct {
 	client *Client
-	Aws    recommendationService
-	Azure  recommendationService
-	Gcp    recommendationService
+	Aws    recommendationServiceV1
+	Azure  recommendationServiceV1
+	Gcp    recommendationServiceV1
 }
 
-type recommendationService interface {
+type recommendationServiceV1 interface {
 	List() ([]RecommendationV1, error)
 	Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error)
 }
 
-type RecommendationType string
+type RecommendationTypeV1 string
 
 const (
-	AwsRecommendation   RecommendationType = "aws"
-	AzureRecommendation RecommendationType = "azure"
-	GcpRecommendation   RecommendationType = "gcp"
+	AwsRecommendation   RecommendationTypeV1 = "aws"
+	AzureRecommendation RecommendationTypeV1 = "azure"
+	GcpRecommendation   RecommendationTypeV1 = "gcp"
 )
 
-func (svc *RecommendationsServiceV1) list(cloudType RecommendationType) ([]RecommendationV1, error) {
+func (svc *RecommendationsServiceV1) list(cloudType RecommendationTypeV1) ([]RecommendationV1, error) {
 	var response RecommendationResponseV1
 	err := svc.client.RequestDecoder("GET", fmt.Sprintf(apiRecommendations, cloudType), nil, &response)
 	return response.RecommendationList(), err
 }
 
-func (svc *RecommendationsServiceV1) patch(cloudType RecommendationType, recommendations RecommendationStateV1) (
+func (svc *RecommendationsServiceV1) patch(cloudType RecommendationTypeV1, recommendations RecommendationStateV1) (
 	response RecommendationResponseV1,
 	err error,
 ) {
