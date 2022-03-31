@@ -98,7 +98,7 @@ coverage-html: test ## Generate HTML representation of coverage profile
 .PHONY: coverage-ci
 coverage-ci: test ## Generate HTML coverage output for ci pipeline.
 	mkdir -p $(CIARTIFACTS)
-	go tool cover -html=$(COVERAGEOUT) -o "$(CIARTIFACTS)/$(COVERAGEHTML)".PHONY: coverage-ci
+	go tool cover -html=$(COVERAGEOUT) -o "$(CIARTIFACTS)/$(COVERAGEHTML)"
 
 .PHONY: test-go-junit-ci
 test-go-junit-ci:  ## Generate go test report output for ci pipeline.
