@@ -78,6 +78,8 @@ const (
 
 	apiAccountOrganizationInfo = "v1/external/account/organizationInfo"
 
+	apiRecommendations = "v1/external/recommendations/%s"
+
 	// API v2 Endpoints
 	//
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
