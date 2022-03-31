@@ -103,7 +103,10 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	c.Compliance = &ComplianceService{c}
 	c.Events = &EventsService{c}
 	c.Integrations = &IntegrationsService{c}
-	c.Recommendations = &RecommendationsServiceV1{c}
+	c.Recommendations = &RecommendationsServiceV1{c,
+		&AwsRecommendationsV1{c},
+		&AzureRecommendationsV1{c},
+		&GcpRecommendationsV1{c}}
 	c.Vulnerabilities = NewVulnerabilityService(c)
 	c.V2 = NewV2Endpoints(c)
 

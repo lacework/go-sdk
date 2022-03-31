@@ -18,7 +18,7 @@ func main() {
 
 	// List all Aws recommendations
 	fmt.Println("\n AWS Recommendations\n ------------------")
-	res, err := lacework.Recommendations.AwsList()
+	res, err := lacework.Recommendations.Aws.List()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func main() {
 
 	// List all Gcp recommendations
 	fmt.Println("\n GCP Recommendations\n ------------------")
-	res, err = lacework.Recommendations.GcpList()
+	res, err = lacework.Recommendations.Gcp.List()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func main() {
 
 	// List all Azure recommendations
 	fmt.Println("\n Azure Recommendations\n ------------------")
-	res, err = lacework.Recommendations.AzureList()
+	res, err = lacework.Recommendations.Azure.List()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,13 +50,13 @@ func main() {
 	}
 
 	// Enable/Disable a single RecommendationV1
-	response, err := lacework.Recommendations.PatchAws(api.RecommendationStateV1{"LW_S3_1": "disable"})
+	response, err := lacework.Recommendations.Aws.Patch(api.RecommendationStateV1{"LW_S3_1": "disable"})
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Recommendations Patched: %v", response.Data[0])
 
-	response, err = lacework.Recommendations.PatchAws(api.RecommendationStateV1{"LW_S3_1": "enable"})
+	response, err = lacework.Recommendations.Aws.Patch(api.RecommendationStateV1{"LW_S3_1": "enable"})
 	if err != nil {
 		log.Fatal(err)
 	}

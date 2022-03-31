@@ -52,7 +52,7 @@ func TestRecommendationsAwsList(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Recommendations.AwsList()
+	response, err := c.Recommendations.Aws.List()
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response))
@@ -84,7 +84,7 @@ func TestRecommendationsAwsPatch(t *testing.T) {
 
 	recommendationPatch := api.RecommendationStateV1{"LW_S3_1": "disable"}
 
-	response, err := c.Recommendations.PatchAws(recommendationPatch)
+	response, err := c.Recommendations.Aws.Patch(recommendationPatch)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	for k, v := range response.Data[0] {

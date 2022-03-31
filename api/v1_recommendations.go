@@ -24,6 +24,14 @@ import "fmt"
 // endpoints from the Lacework Server
 type RecommendationsServiceV1 struct {
 	client *Client
+	Aws    recommendationService
+	Azure  recommendationService
+	Gcp    recommendationService
+}
+
+type recommendationService interface {
+	List() ([]RecommendationV1, error)
+	Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error)
 }
 
 type RecommendationType string
@@ -33,30 +41,6 @@ const (
 	AzureRecommendation RecommendationType = "azure"
 	GcpRecommendation   RecommendationType = "gcp"
 )
-
-func (svc *RecommendationsServiceV1) AwsList() ([]RecommendationV1, error) {
-	return svc.list(AwsRecommendation)
-}
-
-func (svc *RecommendationsServiceV1) AzureList() ([]RecommendationV1, error) {
-	return svc.list(AzureRecommendation)
-}
-
-func (svc *RecommendationsServiceV1) GcpList() ([]RecommendationV1, error) {
-	return svc.list(GcpRecommendation)
-}
-
-func (svc *RecommendationsServiceV1) PatchAws(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
-	return svc.patch(AwsRecommendation, recommendations)
-}
-
-func (svc *RecommendationsServiceV1) PatchAzure(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
-	return svc.patch(AzureRecommendation, recommendations)
-}
-
-func (svc *RecommendationsServiceV1) PatchGcp(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
-	return svc.patch(GcpRecommendation, recommendations)
-}
 
 func (svc *RecommendationsServiceV1) list(cloudType RecommendationType) ([]RecommendationV1, error) {
 	var response RecommendationResponseV1
