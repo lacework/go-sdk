@@ -49,14 +49,14 @@ func main() {
 		fmt.Printf("%s: %t \n", rec.ID, rec.State)
 	}
 
-	// Enable/Disable a single Recommendation
-	response, err := lacework.Recommendations.PatchAws(api.RecommendationState{"LW_S3_1": "disable"})
+	// Enable/Disable a single RecommendationV1
+	response, err := lacework.Recommendations.PatchAws(api.RecommendationStateV1{"LW_S3_1": "disable"})
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Recommendations Patched: %v", response.Data[0])
 
-	response, err = lacework.Recommendations.PatchAws(api.RecommendationState{"LW_S3_1": "enable"})
+	response, err = lacework.Recommendations.PatchAws(api.RecommendationStateV1{"LW_S3_1": "enable"})
 	if err != nil {
 		log.Fatal(err)
 	}

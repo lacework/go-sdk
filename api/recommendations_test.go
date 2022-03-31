@@ -82,7 +82,7 @@ func TestRecommendationsAwsPatch(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	recommendationPatch := api.RecommendationState{"LW_S3_1": "disable"}
+	recommendationPatch := api.RecommendationStateV1{"LW_S3_1": "disable"}
 
 	response, err := c.Recommendations.PatchAws(recommendationPatch)
 	assert.Nil(t, err)

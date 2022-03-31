@@ -20,9 +20,9 @@ package api
 
 import "fmt"
 
-// RecommendationsService is a service that interacts with the Recommendations
+// RecommendationsServiceV1 is a service that interacts with the V1 Recommendations
 // endpoints from the Lacework Server
-type RecommendationsService struct {
+type RecommendationsServiceV1 struct {
 	client *Client
 }
 
@@ -34,67 +34,67 @@ const (
 	GcpRecommendation   RecommendationType = "gcp"
 )
 
-func (svc *RecommendationsService) AwsList() ([]Recommendation, error) {
+func (svc *RecommendationsServiceV1) AwsList() ([]RecommendationV1, error) {
 	return svc.list(AwsRecommendation)
 }
 
-func (svc *RecommendationsService) AzureList() ([]Recommendation, error) {
+func (svc *RecommendationsServiceV1) AzureList() ([]RecommendationV1, error) {
 	return svc.list(AzureRecommendation)
 }
 
-func (svc *RecommendationsService) GcpList() ([]Recommendation, error) {
+func (svc *RecommendationsServiceV1) GcpList() ([]RecommendationV1, error) {
 	return svc.list(GcpRecommendation)
 }
 
-func (svc *RecommendationsService) PatchAws(recommendations RecommendationState) (response RecommendationResponse, err error) {
+func (svc *RecommendationsServiceV1) PatchAws(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
 	return svc.patch(AwsRecommendation, recommendations)
 }
 
-func (svc *RecommendationsService) PatchAzure(recommendations RecommendationState) (response RecommendationResponse, err error) {
+func (svc *RecommendationsServiceV1) PatchAzure(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
 	return svc.patch(AzureRecommendation, recommendations)
 }
 
-func (svc *RecommendationsService) PatchGcp(recommendations RecommendationState) (response RecommendationResponse, err error) {
+func (svc *RecommendationsServiceV1) PatchGcp(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
 	return svc.patch(GcpRecommendation, recommendations)
 }
 
-func (svc *RecommendationsService) list(cloudType RecommendationType) ([]Recommendation, error) {
-	var response RecommendationResponse
+func (svc *RecommendationsServiceV1) list(cloudType RecommendationType) ([]RecommendationV1, error) {
+	var response RecommendationResponseV1
 	err := svc.client.RequestDecoder("GET", fmt.Sprintf(apiRecommendations, cloudType), nil, &response)
 	return response.RecommendationList(), err
 }
 
-func (svc *RecommendationsService) patch(cloudType RecommendationType, recommendations RecommendationState) (
-	response RecommendationResponse,
+func (svc *RecommendationsServiceV1) patch(cloudType RecommendationType, recommendations RecommendationStateV1) (
+	response RecommendationResponseV1,
 	err error,
 ) {
 	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiRecommendations, cloudType), recommendations, &response)
 	return
 }
 
-type RecommendationState map[string]string
+type RecommendationStateV1 map[string]string
 
-type RecommendationData map[string]RecommendationEnabled
+type RecommendationDataV1 map[string]RecommendationEnabledV1
 
-type Recommendation struct {
+type RecommendationV1 struct {
 	ID    string
 	State bool
 }
 
-type RecommendationEnabled struct {
+type RecommendationEnabledV1 struct {
 	Enabled bool `json:"enabled"`
 }
 
-type RecommendationResponse struct {
-	Data    []RecommendationData `json:"data"`
-	Ok      bool                 `json:"ok"`
-	Message string               `json:"message"`
+type RecommendationResponseV1 struct {
+	Data    []RecommendationDataV1 `json:"data"`
+	Ok      bool                   `json:"ok"`
+	Message string                 `json:"message"`
 }
 
-func (res *RecommendationResponse) RecommendationList() (recommendations []Recommendation) {
+func (res *RecommendationResponseV1) RecommendationList() (recommendations []RecommendationV1) {
 	if len(res.Data) > 0 {
 		for k, v := range res.Data[0] {
-			recommendations = append(recommendations, Recommendation{k, v.Enabled})
+			recommendations = append(recommendations, RecommendationV1{k, v.Enabled})
 		}
 	}
 	return
