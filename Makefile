@@ -100,8 +100,14 @@ coverage-ci: test ## Generate HTML coverage output for ci pipeline.
 	mkdir -p $(CIARTIFACTS)
 	go tool cover -html=$(COVERAGEOUT) -o "$(CIARTIFACTS)/$(COVERAGEHTML)"
 
+.PHONY: install-go-junit
+install-go-junit: ## Install go-junit-report tool for outputting tests in xml junit format. Used in ci pipeline
+ifeq (, $(shell which go-junit-report))
+	GOFLAGS=-mod=readonly go install github.com/jstemmer/go-junit-report@$(GOJUNITVERSION)
+endif
+
 .PHONY: test-go-junit-ci
-test-go-junit-ci:  ## Generate go test report output for ci pipeline.
+test-go-junit-ci: install-go-junit ## Generate go test report output for ci pipeline.
 	mkdir -p $(CIARTIFACTS)
 	go test ./... -v 2>&1 | go-junit-report > "$(CIARTIFACTS)/$(GOJUNITOUT)"
 
@@ -175,9 +181,6 @@ ifeq (, $(shell which gox))
 endif
 ifeq (, $(shell which gotestsum))
 	GOFLAGS=-mod=readonly go install gotest.tools/gotestsum@$(GOTESTSUMVERSION)
-endif
-ifeq (, $(shell which gotestsum))
-	GOFLAGS=-mod=readonly go install github.com/jstemmer/go-junit-report@$(GOJUNITVERSION)
 endif
 
 .PHONY: git-env
