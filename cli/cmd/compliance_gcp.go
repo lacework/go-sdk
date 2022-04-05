@@ -114,13 +114,16 @@ Then, select one GUID from an integration and visualize its details using the co
 			}
 
 			switch compCmdState.Type {
-			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI":
+			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI", "ISO_27001", "PCI_Rev2", "SOC_Rev2", "HIPAA_Rev2", "NIST_CSF",
+				"NIST_800_53_REV4", "NIST_800_171_REV2":
 				compCmdState.Type = fmt.Sprintf("GCP_%s", compCmdState.Type)
 				return nil
-			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI":
+			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI", "GCP_ISO_27001", "GCP_PCI_Rev2", "GCP_SOC_Rev2",
+				"GCP_HIPAA_Rev2", "GCP_GCP_NIST_CSF", "GCP_NIST_800_53_REV4", "GCP_NIST_800_171_REV2":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, or PCI")
+				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, ISO_27001, PCI, PCI_Rev2, SOC_Rev2, " +
+					"HIPAA_Rev2, NIST_CSF, NIST_800_53_REV4 or NIST_800_171_REV2")
 			}
 		},
 		Short: "Get the latest GCP compliance report",
