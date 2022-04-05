@@ -45,7 +45,7 @@ func (svc *AwsRecommendationsV1) GetReport(reportType string) (response []Recomm
 	if len(awsCfg.Data) == 0 {
 		return []RecommendationV1{}, errors.Wrap(err, "unable to find an AWS cloud account integration")
 	}
-	
+
 	accountID := awsCfg.Data[0].Data.GetAccountID()
 
 	cfg := ComplianceAwsReportConfig{AccountID: accountID, Type: reportType}
@@ -66,6 +66,9 @@ func (svc *AwsRecommendationsV1) GetReport(reportType string) (response []Recomm
 
 	// fetch all aws recommendations
 	allRecommendations, err := svc.client.Recommendations.Aws.List()
+	if err != nil {
+		return []RecommendationV1{}, err
+	}
 	filteredRecommendations := filterRecommendations(allRecommendations, schema)
 	return filteredRecommendations, nil
 }
