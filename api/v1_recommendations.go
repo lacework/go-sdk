@@ -36,7 +36,7 @@ type RecommendationsServiceV1 struct {
 type recommendationServiceV1 interface {
 	List() ([]RecommendationV1, error)
 	Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error)
-	GetReport(reportType string) (response []RecommendationV1, err error)
+	GetReport(reportType string) ([]RecommendationV1, error)
 }
 
 type RecommendationTypeV1 string

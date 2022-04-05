@@ -40,6 +40,9 @@ func (svc *GcpRecommendationsV1) GetReport(reportType string) (response []Recomm
 	if err != nil {
 		return []RecommendationV1{}, err
 	}
+
+	// cis1.3 is off by default, so we won't be able to fetch previous reports.
+	
 	if len(gcpCfg.Data) == 0 {
 		return []RecommendationV1{}, errors.Wrap(err, "unable to find a GCP cloud account integration")
 	}

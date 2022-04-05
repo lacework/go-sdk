@@ -19,7 +19,10 @@
 package api
 
 import (
-	"github.com/pkg/errors"
+	"encoding/json"
+	"errors"
+
+	"github.com/lacework/go-sdk/internal/databox"
 )
 
 // AwsRecommendationsV1 is a service that interacts with the V1 Recommendations
@@ -37,32 +40,24 @@ func (svc *AwsRecommendationsV1) Patch(recommendations RecommendationStateV1) (r
 }
 
 // GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct. Scoped to Lacework Account/Subaccount
-func (svc *AwsRecommendationsV1) GetReport(reportType string) (response []RecommendationV1, err error) {
-	awsCfg, err := svc.client.Integrations.ListAwsCfg()
+func (svc *AwsRecommendationsV1) GetReport(reportType string) ([]RecommendationV1, error) {
+	report := struct {
+		Ids []string `json:"recommendation_ids"`
+	}{}
+	
+	schemaBytes, ok := databox.Get("/reports/aws/cis.json")
+	if !ok {
+		return []RecommendationV1{}, errors.New(
+			"compliance report schema not found",
+		)
+	}
+
+	err := json.Unmarshal(schemaBytes, &report)
 	if err != nil {
 		return []RecommendationV1{}, err
 	}
-	if len(awsCfg.Data) == 0 {
-		return []RecommendationV1{}, errors.Wrap(err, "unable to find an AWS cloud account integration")
-	}
 
-	accountID := awsCfg.Data[0].Data.GetAccountID()
-
-	cfg := ComplianceAwsReportConfig{AccountID: accountID, Type: reportType}
-
-	var res complianceAwsReportResponse
-	res, err = svc.client.Compliance.GetAwsReport(cfg)
-	if err != nil {
-		return []RecommendationV1{}, err
-	}
-
-	var recommendationIDs []string
-
-	for _, rec := range res.Data[0].Recommendations {
-		recommendationIDs = append(recommendationIDs, rec.RecID)
-	}
-
-	schema := ReportSchema{res.Data[0].ReportType, recommendationIDs}
+	schema := ReportSchema{reportType, report.Ids}
 
 	// fetch all aws recommendations
 	allRecommendations, err := svc.client.Recommendations.Aws.List()

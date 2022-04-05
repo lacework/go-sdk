@@ -254,21 +254,18 @@ To show recommendation details and affected resources for a recommendation id:
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS":
-				args[0] = fmt.Sprintf("AWS_%s_S3", compCmdState.Type)
+				args[0] = fmt.Sprintf("AWS_%s_S3", args[0])
 				return nil
-			case "SOC_Rev2":
-				args[0] = fmt.Sprintf("AWS_%s", compCmdState.Type)
-				return nil
-			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2", "PCI":
+			case "AWS_CIS_S3":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI")
+				return errors.New("CIS is the only supported report type")
 			}
 		},
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 
-			schema, err := fetchCachedAwsComplianceReportSchema(args[0])
+			schema, err := fetchAwsComplianceReportSchema(args[0])
 			if err != nil {
 				return err
 			}
@@ -295,21 +292,18 @@ To show recommendation details and affected resources for a recommendation id:
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS":
-				args[0] = fmt.Sprintf("AWS_%s_S3", compCmdState.Type)
+				args[0] = fmt.Sprintf("AWS_%s_S3", args[0])
 				return nil
-			case "SOC_Rev2":
-				args[0] = fmt.Sprintf("AWS_%s", compCmdState.Type)
-				return nil
-			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2", "PCI":
+			case "AWS_CIS_S3":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI")
+				return errors.New("CIS is the only supported report type")
 			}
 		},
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var rows [][]string
-			report, err := fetchCachedAwsComplianceReportSchema(args[0])
+			report, err := fetchAwsComplianceReportSchema(args[0])
 
 			if err != nil {
 				return err
@@ -460,23 +454,17 @@ func containsDuplicateAccountID(awsAccount []awsAccount, accountID string) bool 
 	return false
 }
 
-func fetchCachedAwsComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
-	var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", reportType)
-
-	expired := cli.ReadCachedAsset(cacheKey, &response)
-	if expired {
-		cli.StartProgress("Fetching compliance report schema...")
-		response, err = cli.LwApi.Recommendations.Aws.GetReport(reportType)
-		cli.StopProgress()
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to get AWS compliance report schema")
-		}
-
-		if len(response) == 0 {
-			return nil, errors.New("no data found in the report")
-		}
-
-		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response)
+func fetchAwsComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
+	cli.StartProgress("Fetching compliance report schema...")
+	response, err = cli.LwApi.Recommendations.Aws.GetReport(reportType)
+	cli.StopProgress()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get AWS compliance report schema")
 	}
+
+	if len(response) == 0 {
+		return nil, errors.New("no data found in the report")
+	}
+
 	return
 }
