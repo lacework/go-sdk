@@ -476,7 +476,8 @@ func fetchCachedAwsComplianceReportSchema(reportType string) (response []api.Rec
 			return nil, errors.New("no data found in the report")
 		}
 
-		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response)
+		// Set 1 week expiry, compliance report schemas are unlikely to change often
+		cli.WriteAssetToCache(cacheKey, time.Now().AddDate(0, 0, 7), response)
 	}
 	return
 }
