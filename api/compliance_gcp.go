@@ -38,7 +38,7 @@ func (svc *ComplianceService) GetGcpReport(config ComplianceGcpReportConfig) (
 	err error,
 ) {
 	if config.OrganizationID == "" || config.ProjectID == "" {
-		err = errors.New("organization_id and project_id is required")
+		err = errors.New("organization_id and project_are required")
 		return
 	}
 	apiPath := fmt.Sprintf(apiComplianceGcpLatestReport, config.OrganizationID, config.ProjectID)
@@ -55,7 +55,7 @@ func (svc *ComplianceService) GetGcpReport(config ComplianceGcpReportConfig) (
 
 func (svc *ComplianceService) DownloadGcpReportPDF(filepath string, config ComplianceGcpReportConfig) error {
 	if config.OrganizationID == "" || config.ProjectID == "" {
-		return errors.New("organization_id and project_id is required")
+		return errors.New("organization_id and project_id are required")
 	}
 
 	apiPath := fmt.Sprintf(apiComplianceGcpLatestReport, config.OrganizationID, config.ProjectID)

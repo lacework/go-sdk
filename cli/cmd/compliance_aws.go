@@ -281,7 +281,7 @@ To show recommendation details and affected resources for a recommendation id:
 				cli.OutputHuman(out)
 			}
 
-			//_, err = cli.LwApi.Recommendations.Aws.Patch(schema.SetState(false))
+			// _, err = cli.LwApi.Recommendations.Aws.Patch(patchReq)
 			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
 			return nil
 		},
@@ -469,7 +469,7 @@ func fetchCachedAwsComplianceReportSchema(reportType string) (response []api.Rec
 		response, err = cli.LwApi.Recommendations.Aws.GetReport(reportType)
 		cli.StopProgress()
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to get aws compliance report schema")
+			return nil, errors.Wrap(err, "unable to get AWS compliance report schema")
 		}
 
 		if len(response) == 0 {

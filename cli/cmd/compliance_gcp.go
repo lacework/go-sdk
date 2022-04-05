@@ -22,9 +22,11 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -300,6 +302,90 @@ To list all GCP projects and organizations configured in your account:
 			return nil
 		},
 	}
+	// complianceGcpDisableReportCmd represents the disable-report sub-command inside the aws command
+	// experimental feature
+	complianceGcpDisableReportCmd = &cobra.Command{
+		Use:     "disable-report <report_type>",
+		Aliases: []string{"disable"},
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI":
+				args[0] = fmt.Sprintf("GCP_%s", args[0])
+				return nil
+			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI":
+				return nil
+			default:
+				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, or PCI")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+
+			schema, err := fetchCachedGcpComplianceReportSchema(args[0])
+			if err != nil {
+				return err
+			}
+
+			// set state of all recommendations in this report to disabled
+			patchReq := api.NewRecommendationV1State(schema, false)
+
+			for k, v := range patchReq {
+				out := fmt.Sprintf("%s: %v \n", k, v)
+				cli.OutputHuman(out)
+			}
+
+			// _, err = cli.LwApi.Recommendations.Gcp.Patch(patchReq)
+			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
+			return nil
+		},
+	}
+
+	// complianceGcpReportStatusCmd represents the report-status sub-command inside the aws command
+	// experimental feature
+	complianceGcpReportStatusCmd = &cobra.Command{
+		Use:     "report-status <report_type>",
+		Aliases: []string{"status"},
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI":
+				args[0] = fmt.Sprintf("GCP_%s", args[0])
+				return nil
+			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI":
+				return nil
+			default:
+				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, or PCI")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			var rows [][]string
+			report, err := fetchCachedGcpComplianceReportSchema(args[0])
+
+			if err != nil {
+				return err
+			}
+
+			for _, r := range report {
+				rows = append(rows, []string{r.ID, strconv.FormatBool(r.State)})
+			}
+
+			cli.OutputHuman(renderOneLineCustomTable(args[0],
+				renderCustomTable([]string{}, rows,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator(" ")
+						t.SetAutoWrapText(false)
+						t.SetAlignment(tablewriter.ALIGN_LEFT)
+					}),
+				),
+				tableFunc(func(t *tablewriter.Table) {
+					t.SetBorder(false)
+					t.SetAutoWrapText(false)
+				}),
+			))
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -308,6 +394,10 @@ func init() {
 	complianceGcpCmd.AddCommand(complianceGcpListProjCmd)
 	complianceGcpCmd.AddCommand(complianceGcpRunAssessmentCmd)
 	complianceGcpCmd.AddCommand(complianceGcpGetReportCmd)
+
+	// Experimental Commands
+	complianceGcpCmd.AddCommand(complianceGcpReportStatusCmd)
+	complianceGcpCmd.AddCommand(complianceGcpDisableReportCmd)
 
 	complianceGcpGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
@@ -522,4 +612,25 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 	cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID", "Status"}, rows))
 	return nil
+}
+
+func fetchCachedGcpComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
+	var cacheKey = fmt.Sprintf("compliance/gcp/schema/%s", reportType)
+
+	expired := cli.ReadCachedAsset(cacheKey, &response)
+	if expired {
+		cli.StartProgress("Fetching compliance report schema...")
+		response, err = cli.LwApi.Recommendations.Gcp.GetReport(reportType)
+		cli.StopProgress()
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to get GCP compliance report schema")
+		}
+
+		if len(response) == 0 {
+			return nil, errors.New("no data found in the report")
+		}
+
+		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response)
+	}
+	return
 }
