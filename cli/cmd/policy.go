@@ -42,10 +42,10 @@ var (
 		AlertEnabled  bool
 		Enabled       bool
 		File          string
-		Repo          bool
 		Severity      string
 		Tag           string
 		URL           string
+		CUFromLibrary string
 		CascadeDelete bool
 	}{}
 
@@ -136,6 +136,20 @@ func init() {
 	policyCmd.AddCommand(policyListTagsCmd)
 	policyCmd.AddCommand(policyShowCmd)
 
+	// Lacework Content Library
+	if cli.IsLCLInstalled() {
+		policyCreateCmd.Flags().StringVarP(
+			&policyCmdState.CUFromLibrary,
+			"library", "l", "",
+			"create policy from Lacework Content Library",
+		)
+		policyUpdateCmd.Flags().StringVarP(
+			&policyCmdState.CUFromLibrary,
+			"library", "l", "",
+			"update policy from Lacework Content Library",
+		)
+	}
+
 	// policy list specific flags
 	policyListCmd.Flags().StringVar(
 		&policyCmdState.Severity,
@@ -187,9 +201,9 @@ func setPolicySourceFlags(cmds ...*cobra.Command) {
 
 // for commands that take a policy as input
 func inputPolicy(cmd *cobra.Command) (string, error) {
-	// if running via repo
-	if policyCmdState.Repo {
-		return inputPolicyFromRepo()
+	// if running via library (CU)
+	if policyCmdState.CUFromLibrary != "" {
+		return inputPolicyFromLibrary(policyCmdState.CUFromLibrary)
 	}
 	// if running via file
 	if policyCmdState.File != "" {
@@ -211,9 +225,16 @@ func inputPolicy(cmd *cobra.Command) (string, error) {
 	return inputPolicyFromEditor(action)
 }
 
-func inputPolicyFromRepo() (policy string, err error) {
-	err = errors.New("NotImplementedError")
-	return
+func inputPolicyFromLibrary(id string) (string, error) {
+	var (
+		lcl *LaceworkContentLibrary
+		err error
+	)
+
+	if lcl, err = cli.LoadLCL(); err != nil {
+		return "", err
+	}
+	return lcl.GetPolicy(id)
 }
 
 func inputPolicyFromFile(filePath string) (string, error) {
@@ -260,6 +281,29 @@ func inputPolicyFromEditor(action string) (policy string, err error) {
 	return
 }
 
+func sortPolicyTable(out [][]string, policyIDIndex int) {
+	// order by ID (special handling for policy ID numbers)
+	sort.Slice(out, func(i, j int) bool {
+		iMatch := policyIDIntRE.FindStringSubmatch(out[i][policyIDIndex])
+		jMatch := policyIDIntRE.FindStringSubmatch(out[j][policyIDIndex])
+		// both regexes must match
+		// both regexes must have proper lengths since we'll be using...
+		// ...direct access from here on out
+		if iMatch == nil || jMatch == nil || len(iMatch) != 3 || len(jMatch) != 3 {
+			return out[i][policyIDIndex] < out[j][policyIDIndex]
+		}
+		// if string portions aren't the same
+		if iMatch[1] != jMatch[1] {
+			return out[i][policyIDIndex] < out[j][policyIDIndex]
+		}
+		// if string portions are the same; compare based on ints
+		// no error checking needed for Atoi since use regexp \d+
+		iNum, _ := strconv.Atoi(iMatch[2])
+		jNum, _ := strconv.Atoi(jMatch[2])
+		return iNum < jNum
+	})
+}
+
 func policyTable(policies []api.Policy) (out [][]string) {
 	for _, policy := range policies {
 		state := "disabled"
@@ -280,28 +324,9 @@ func policyTable(policies []api.Policy) (out [][]string) {
 			policy.QueryID,
 			strings.Join(policy.Tags, "\n"),
 		})
-
-		// order by ID (special handling for policy ID numbers)
-		sort.Slice(out, func(i, j int) bool {
-			iMatch := policyIDIntRE.FindStringSubmatch(out[i][0])
-			jMatch := policyIDIntRE.FindStringSubmatch(out[j][0])
-			// both regexes must match
-			// both regexes must have proper lengths since we'll be using...
-			// ...direct access from here on out
-			if iMatch == nil || jMatch == nil || len(iMatch) != 3 || len(jMatch) != 3 {
-				return out[i][0] < out[j][0]
-			}
-			// if string portions aren't the same
-			if iMatch[1] != jMatch[1] {
-				return out[i][0] < out[j][0]
-			}
-			// if string portions are the same; compare based on ints
-			// no error checking needed for Atoi since use regexp \d+
-			iNum, _ := strconv.Atoi(iMatch[2])
-			jNum, _ := strconv.Atoi(jMatch[2])
-			return iNum < jNum
-		})
 	}
+	sortPolicyTable(out, 0)
+
 	return
 }
 
@@ -348,13 +373,14 @@ func listPolicies(_ *cobra.Command, args []string) error {
 	}
 
 	cli.StartProgress(" Retrieving policies...")
-	policyResponse, err := cli.LwApi.V2.Policy.List()
+	policiesResponse, err := cli.LwApi.V2.Policy.List()
 	cli.StopProgress()
+
 	if err != nil {
 		return errors.Wrap(err, "unable to list policies")
 	}
 
-	policies := filterPolicies(policyResponse.Data)
+	policies := filterPolicies(policiesResponse.Data)
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policies)
 	}
@@ -366,15 +392,22 @@ func listPolicies(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func showPolicy(_ *cobra.Command, args []string) error {
+func showPolicy(cmd *cobra.Command, args []string) error {
+	var (
+		msg            string = "unable to show policy"
+		policyResponse api.PolicyResponse
+		err            error
+	)
+
 	cli.Log.Debugw("retrieving policy", "policyID", args[0])
 	cli.StartProgress(" Retrieving policy...")
-	policyResponse, err := cli.LwApi.V2.Policy.Get(args[0])
+	policyResponse, err = cli.LwApi.V2.Policy.Get(args[0])
 	cli.StopProgress()
-	if err != nil {
-		return errors.Wrap(err, "unable to show policy")
-	}
 
+	// output policy
+	if err != nil {
+		return errors.Wrap(err, msg)
+	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policyResponse.Data)
 	}

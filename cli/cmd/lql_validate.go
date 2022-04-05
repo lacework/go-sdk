@@ -60,18 +60,26 @@ func init() {
 	queryCmd.AddCommand(queryValidateCmd)
 
 	setQuerySourceFlags(queryValidateCmd)
+
+	if cli.IsLCLInstalled() {
+		queryValidateCmd.Flags().StringVarP(
+			&queryCmdState.CUVFromLibrary,
+			"library", "l", "",
+			"validate query from Lacework Content Library",
+		)
+	}
 }
 
-func validateQuery(cmd *cobra.Command, _ []string) error {
+func validateQuery(cmd *cobra.Command, args []string) error {
 	// input query
 	queryString, err := inputQuery(cmd)
 	if err != nil {
 		return errors.Wrap(err, lqlValidateUnableMsg)
 	}
 	// parse query
-	newQuery, err := parseQuery(queryString)
+	newQuery, err := api.ParseNewQuery(queryString)
 	if err != nil {
-		return errors.Wrap(err, lqlValidateUnableMsg)
+		return errors.Wrap(queryErrorCrumbs(queryString), lqlValidateUnableMsg)
 	}
 
 	cli.Log.Debugw("validating query", "query", queryString)
