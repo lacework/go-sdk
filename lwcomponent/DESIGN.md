@@ -9,10 +9,10 @@ for adopting a new model to deliver tools and libraries to Lacework users.
 ## Motivation
 
 The Lacework CLI was designed with the goal of providing fast, accurate, and actionable insights into
-the Lacework platform. The first release [v0.1.0](https://github.com/lacework/go-sdk/releases/tag/v0.1.0) was on March 27, 2020, and since then, the Lacework CLI
-has been broadly adopted. A year later, Lacework released a couple more binaries, and today, it is clear
-to us that we will adopt this model of releasing separate binaries for more products and services in the
-future.
+the Lacework platform. The first release [v0.1.0](https://github.com/lacework/go-sdk/releases/tag/v0.1.0)
+was on March 27, 2020, and since then, the Lacework CLI has been broadly adopted. A year later, Lacework
+released a couple more binaries, and today, it is clear to us that we will adopt this model of releasing
+separate binaries for more products and services in the future.
 
 This model of modular binaries is flexible and will allow us to release features faster to our users,
 but it also lacks a cohesive ecosystem, an easy way for users to discover, install, configure and
@@ -32,8 +32,8 @@ This design also aims to:
 
 * Unify the installation and configuration of tools provided by Lacework
 * Help users discover new tools from new Lacework products
-* Provide the same experience for managing components
-* Allows users to create new tools to enhance security workflows
+* Provide the same experience to manage tools in the Lacework ecosystem
+* Allow users to create new tools to enhance security workflows
 * Make it easy to manage and distribute libraries and content
 
 ## High-level Diagram
@@ -42,33 +42,43 @@ This design also aims to:
 
 ## What Are Components?
 
-A component can be a command-line tool, a set of Lacework commands, or a package that contains dependencies
-used by another Lacework component.
+A component can be a command-line tool, a new command that extends the Lacework CLI, or a library that
+contains files used by another Lacework component.
 
 ### Component Specifications
 
 Every component should follow the following specifications:
 
+| Name           | Type               | Description
+| ------         | ---------          | -----------------------------------------------------------------------
+| `name`         | `string`           | The name of the component
+| `description`  | `string`           | A long description that describes the purpose of the component
+| `type`         | `enum(Type)`       | The component type (read more about types here)
+| `version`      | `string`           | The version of the component in semantic format (`MAJOR.MINOR.PATCH`) |
+| `artifacts`    | `array(Artifact)`  | List of artifacts that the component supports
+| `dependencies` | `array(Component)` | A list of components that the component depends on
 
-| Name           | Type               | Description                                                                                                                  |
-| ------         | ---------          | -------------------------------------------------------------                                                                |
-| `name`         | `string`           | The name of the component                                                                                                    |
-| `description`  | `string`           | A long description of the purpose of the component                                                                           |
-| `type`         | `enum(Type)`       | The component type (read more about types here)                                                                              |
-| `version`      | `string`           | The version of the component in semantic format (`MAJOR.MINOR.PATCH`) (different from the overall components specifications) |
-| `size`         | `int64`            | The component size in bytes                                                                                                  |
-| `checksum`     | `string`           | SHA256 (256-bit) checksums of the component                                                                                  |
-| `download_url` | `string`           | The URL from where to download the component                                                                                 |
-| `dependencies` | `array(Component)` | A list of components that the component depends on                                                                           |
+#### Component Artifact
 
-These specifications should not be hardcoded, they should be designed to be extensible since they will change as we
-expand the usage and purpose of these components.
+A component could run on multiple platforms. Every component has a list of artifacts. An `Artifact` is the actual
+component for specific platforms. The specification of an artifact is:
 
-The specifications from all registered components will be provided by a new components service which will have
-a semantic version (`MAJOR.MINOR.PATCH`) so that when the specifications change, a new version will be released
-and our users will get notified.
+| Name           | Type               | Description
+| ------         | ---------          | -------------------------------------------------------------
+| `os`           | `string`           | The operating system (`darwin`, `linux`, `windows`)
+| `arch`         | `string`           | The artifact architecture (`amd64`, `386`, `arm64`)
+| `size`         | `int64`            | The artifact size in bytes
+| `signature`    | `string`           | GPG signature of the artifact
+| `url` | `string`           | The URL from where to download the component artifact
 
-### Components Internal Service
+These specifications are designed to be extensible since they will change as we expand the usage and purpose of
+these components.
+
+The specification of all components will be provided by a new service (`cdk-store`) which will have a semantic
+version (`MAJOR.MINOR.PATCH`) that indicates the version of the specifications. If the specifications change, a
+new version will be released and our users will get notified.
+
+### Components Internal Service (`cdk-store`)
 
 We should have a very lightweight service that will be the single source of truth of all available Lacework components,
 this service should fulfill the following use cases:
@@ -83,26 +93,23 @@ this service should fulfill the following use cases:
 
 A component synchronization is a task that the internal components' service does to verify the latest version of one
 or multiple components, when there is a new version of a component, this task updates the description, version, size,
-checksum, and dependencies of the component.
+signature, and dependencies of the component.
 
 Note that changing the type of the component is discouraged.
 
-### Signature And File Checksum
+### Component Signature
 
-As a security company, we need to ensure that any binary we install on our users' workstation is coming from us, the
-installation and upgrade process will have a requirement that every component should be signed with Lacework's PGP
-key, if the downloaded component doesn't match the PGP signature, we should delete the downloaded binary and
-notify the user.
-
-A second safety we should have is to check the SHA256 (256-bit) checksums of the downloaded binary or compressed file
-which should match with the one provided by (APIs) the new components internal service.
+As a security company, we need to ensure that any artifact we install on the users' workstation is coming from us, the
+execution, installation, and upgrade process will have a requirement that every component should be signed with Lacework's
+PGP key, if the downloaded component doesn't match the PGP signature, we should delete the downloaded binary and notify
+the user.
 
 ### Create A New Component 
 
 To create a new component, we need to define the following things:
 
-* Define the component type (binary, commands, or content)
-* For binary components, have cross-platform binaries (support windows, linux and osx)
+* Define the component type (`BINARY`, `COMMAND`, or `LIBRARY`)
+* For binary components, provide cross-platform binaries and signatures (support `windows`, `linux`, `darwin`)
 * Automate the release process via CD pipelines
 * Make the first release of the new component
 * Add the component to our components internal service (this is when users will discover the new component)
@@ -114,10 +121,10 @@ During the installation and upgrade of these types of components, we need to giv
 copyright and permissions statement.
 
 One example of a third-party tool we use today is [Terraform](https://github.com/hashicorp/terraform), which allows
-Laceworks' users to follow the GitOps methodology by configures their Lacework accounts as code.
+Laceworks' users to follow the GitOps methodology to describe their Lacework accounts as code.
 
 Lacework believes in a growing open-source community, we envision the adoption of other third-party tools that will
-help our users to improve their security postures when they complement it with the Lacework platform.
+help our users improve their security postures.
 
 ## Deprecations
 
