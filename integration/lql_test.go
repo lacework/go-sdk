@@ -42,7 +42,7 @@ func cleanAndCreateQuery(id string, args ...string) (bytes.Buffer, bytes.Buffer,
 
 func TestQueryAliases(t *testing.T) {
 	// lacework query
-	out, err, exitcode := LaceworkCLI("help", "query")
+	out, err, exitcode := LaceworkCLI("help", "queries")
 	assert.Contains(t, out.String(), "lacework query [command]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -58,28 +58,14 @@ func TestQueryBase(t *testing.T) {
 	out, err, exitcode := LaceworkCLI("query")
 	assert.Contains(t, out.String(), "create")
 	assert.Contains(t, out.String(), "delete")
-	//assert.Contains(t, out.String(), "describe")
 	assert.Contains(t, out.String(), "list")
-	//assert.Contains(t, out.String(), "list-sources")
+	assert.Contains(t, out.String(), "list-sources")
+	assert.Contains(t, out.String(), "preview-source")
 	assert.Contains(t, out.String(), "run")
 	assert.Contains(t, out.String(), "show")
+	assert.Contains(t, out.String(), "show-source")
 	assert.Contains(t, out.String(), "update")
 	assert.Contains(t, out.String(), "validate")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
-
-func TestQueryRunHelp(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("help", "query", "run")
-	assert.Contains(t, out.String(), "lacework query run [query_id] [flags]")
-	assert.Contains(t, out.String(), "--end string")
-	assert.Contains(t, out.String(), `end time for query (default "now")`)
-	assert.Contains(t, out.String(), "-f, --file string")
-	assert.Contains(t, out.String(), "--start string")
-	assert.Contains(t, out.String(), `start time for query (default "@d")`)
-	assert.Contains(t, out.String(), "--range string")
-	assert.Contains(t, out.String(), "-u, --url string")
-	assert.Contains(t, out.String(), "--validate_only")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

@@ -14,8 +14,9 @@
 
 ## Before getting started
 
-Read the [README.md](https://github.com/lacework/go-sdk/blob/main/README.md), the [development documentation](https://github.com/lacework/go-sdk/tree/main/cli#development) 
-and the Lacework CLI documentation on the [wiki](https://github.com/lacework/go-sdk/wiki/CLI-Documentation).
+Read the [README.md](https://github.com/lacework/go-sdk/blob/main/README.md), the
+[development documentation](https://github.com/lacework/go-sdk/tree/main/cli#development) 
+and the [Lacework CLI documentation](https://docs.lacework.com/cli).
 
 
 ## How to contribute

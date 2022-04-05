@@ -85,12 +85,14 @@ const (
 	// type that defines a non-existing Cloud Account integration
 	NoneCloudAccount cloudAccountType = iota
 	AwsCtSqsCloudAccount
+	AwsEksAuditCloudAccount
 )
 
 // CloudAccountTypes is the list of available Cloud Account integration types
 var CloudAccountTypes = map[cloudAccountType]string{
-	NoneCloudAccount:     "None",
-	AwsCtSqsCloudAccount: "AwsCtSqs",
+	NoneCloudAccount:        "None",
+	AwsCtSqsCloudAccount:    "AwsCtSqs",
+	AwsEksAuditCloudAccount: "AwsEksAudit",
 }
 
 // String returns the string representation of a Cloud Account integration type

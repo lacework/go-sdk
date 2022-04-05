@@ -48,7 +48,7 @@ lacework query run [query_id] [flags]
   -f, --file string     path to a query to run
   -h, --help            help for run
       --range string    natural time range for query
-      --start string    start time for query (default "@d")
+      --start string    start time for query (default "-24h")
   -u, --url string      url to a query to run
       --validate_only   validate query only (do not run)
 ```

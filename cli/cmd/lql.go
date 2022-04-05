@@ -150,7 +150,7 @@ func init() {
 	// start time flag
 	queryRunCmd.Flags().StringVarP(
 		&queryCmdState.Start,
-		"start", "", "@d",
+		"start", "", "-24h",
 		"start time for query",
 	)
 	// end time flag

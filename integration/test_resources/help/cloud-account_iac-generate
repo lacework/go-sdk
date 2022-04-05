@@ -8,6 +8,7 @@ Aliases:
 
 Available Commands:
   aws         Generate and/or execute Terraform code for AWS integration
+  azure       Generate and/or execute Terraform code for Azure integration
   gcp         Generate and/or execute Terraform code for GCP integration
 
 Flags:
