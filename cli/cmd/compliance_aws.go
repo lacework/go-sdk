@@ -20,9 +20,11 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -243,6 +245,97 @@ To show recommendation details and affected resources for a recommendation id:
 			return nil
 		},
 	}
+
+	// complianceAwsDisableReportCmd represents the disable-report sub-command inside the aws command
+	// experimental feature
+	complianceAwsDisableReportCmd = &cobra.Command{
+		Use:     "disable-report <report_type>",
+		Aliases: []string{"disable"},
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS":
+				args[0] = fmt.Sprintf("AWS_%s_S3", compCmdState.Type)
+				return nil
+			case "SOC_Rev2":
+				args[0] = fmt.Sprintf("AWS_%s", compCmdState.Type)
+				return nil
+			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2", "PCI":
+				return nil
+			default:
+				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+
+			schema, err := fetchCachedAwsComplianceReportSchema(args[0])
+			if err != nil {
+				return err
+			}
+
+			// set state of all recommendations in this report to disabled
+			patchReq := api.NewRecommendationV1State(schema, false)
+
+			for k, v := range patchReq {
+				out := fmt.Sprintf("%s: %v \n", k, v)
+				cli.OutputHuman(out)
+			}
+
+			//_, err = cli.LwApi.Recommendations.Aws.Patch(schema.SetState(false))
+			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
+			return nil
+		},
+	}
+
+	// complianceAwsReportStatusCmd represents the report-status sub-command inside the aws command
+	// experimental feature
+	complianceAwsReportStatusCmd = &cobra.Command{
+		Use:     "report-status <report_type>",
+		Aliases: []string{"status"},
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS":
+				args[0] = fmt.Sprintf("AWS_%s_S3", compCmdState.Type)
+				return nil
+			case "SOC_Rev2":
+				args[0] = fmt.Sprintf("AWS_%s", compCmdState.Type)
+				return nil
+			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2", "PCI":
+				return nil
+			default:
+				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			var rows [][]string
+			report, err := fetchCachedAwsComplianceReportSchema(args[0])
+
+			if err != nil {
+				return err
+			}
+
+			for _, r := range report {
+				rows = append(rows, []string{r.ID, strconv.FormatBool(r.State)})
+			}
+
+			cli.OutputHuman(renderOneLineCustomTable(args[0],
+				renderCustomTable([]string{}, rows,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator(" ")
+						t.SetAutoWrapText(false)
+						t.SetAlignment(tablewriter.ALIGN_LEFT)
+					}),
+				),
+				tableFunc(func(t *tablewriter.Table) {
+					t.SetBorder(false)
+					t.SetAutoWrapText(false)
+				}),
+			))
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -250,6 +343,10 @@ func init() {
 	complianceAwsCmd.AddCommand(complianceAwsGetReportCmd)
 	complianceAwsCmd.AddCommand(complianceAwsListAccountsCmd)
 	complianceAwsCmd.AddCommand(complianceAwsRunAssessmentCmd)
+
+	// Experimental Commands
+	complianceAwsCmd.AddCommand(complianceAwsReportStatusCmd)
+	complianceAwsCmd.AddCommand(complianceAwsDisableReportCmd)
 
 	complianceAwsGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
@@ -361,4 +458,25 @@ func containsDuplicateAccountID(awsAccount []awsAccount, accountID string) bool 
 		}
 	}
 	return false
+}
+
+func fetchCachedAwsComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
+	var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", reportType)
+
+	expired := cli.ReadCachedAsset(cacheKey, &response)
+	if expired {
+		cli.StartProgress("Fetching compliance report schema...")
+		response, err = cli.LwApi.Recommendations.Aws.GetReport(reportType)
+		cli.StopProgress()
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to get aws compliance report schema")
+		}
+
+		if len(response) == 0 {
+			return nil, errors.New("no data found in the report")
+		}
+
+		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response)
+	}
+	return
 }

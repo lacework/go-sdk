@@ -31,3 +31,7 @@ func (svc *AzureRecommendationsV1) List() ([]RecommendationV1, error) {
 func (svc *AzureRecommendationsV1) Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
 	return svc.client.Recommendations.patch(AzureRecommendation, recommendations)
 }
+
+func (svc *AzureRecommendationsV1) GetReport(reportType string) (response []RecommendationV1, err error) {
+	return []RecommendationV1{}, nil
+}

@@ -31,3 +31,7 @@ func (svc *GcpRecommendationsV1) List() ([]RecommendationV1, error) {
 func (svc *GcpRecommendationsV1) Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
 	return svc.client.Recommendations.patch(GcpRecommendation, recommendations)
 }
+
+func (svc *GcpRecommendationsV1) GetReport(reportType string) (response []RecommendationV1, err error) {
+	return []RecommendationV1{}, nil
+}

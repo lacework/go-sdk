@@ -18,7 +18,11 @@
 
 package api
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/lacework/go-sdk/internal/array"
+)
 
 // RecommendationsServiceV1 is a service that interacts with the V1 Recommendations
 // endpoints from the Lacework Server
@@ -32,6 +36,7 @@ type RecommendationsServiceV1 struct {
 type recommendationServiceV1 interface {
 	List() ([]RecommendationV1, error)
 	Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error)
+	GetReport(reportType string) (response []RecommendationV1, err error)
 }
 
 type RecommendationTypeV1 string
@@ -82,4 +87,45 @@ func (res *RecommendationResponseV1) RecommendationList() (recommendations []Rec
 		}
 	}
 	return
+}
+
+type ReportSchema struct {
+	Name              string   `json:"name"`
+	RecommendationIDs []string `json:"recommendationIDs"`
+}
+
+func NewRecommendationV1State(recommendations []RecommendationV1, state bool) RecommendationStateV1 {
+	request := make(map[string]string)
+	for _, rec := range recommendations {
+		if state {
+			request[rec.ID] = "enable"
+
+		} else {
+			request[rec.ID] = "disable"
+		}
+	}
+	return request
+}
+
+// ReportStatus This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct.
+func (res *RecommendationResponseV1) ReportStatus() map[string]bool {
+	var recommendations = make(map[string]bool)
+
+	for _, rec := range res.RecommendationList() {
+		recommendations[rec.ID] = rec.State
+	}
+
+	return recommendations
+}
+
+// filterRecommendations This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct.
+func filterRecommendations(allRecommendations []RecommendationV1, schema ReportSchema) []RecommendationV1 {
+	var recommendations []RecommendationV1
+
+	for _, rec := range allRecommendations {
+		if array.ContainsStr(schema.RecommendationIDs, rec.ID) {
+			recommendations = append(recommendations, rec)
+		}
+	}
+	return recommendations
 }
