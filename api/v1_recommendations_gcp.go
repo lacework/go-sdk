@@ -47,10 +47,11 @@ func (svc *GcpRecommendationsV1) GetReport(reportType string) (response []Recomm
 	var projectID = gcpCfg.Data[0].Data.ID
 	var orgID = "n/a"
 
-	if gcpCfg.Data[0].Data.IDType == "ORGANIZATION" {
-		// TODO get all gcp projects for org
-		// cli/cmd/compliance_gcp.go:496
-	}
+	// TODO get all gcp projects for org
+	// cli/cmd/compliance_gcp.go:496
+	//if gcpCfg.Data[0].Data.IDType == "ORGANIZATION" {
+	//
+	//}
 
 	cfg := ComplianceGcpReportConfig{
 		OrganizationID: orgID,
