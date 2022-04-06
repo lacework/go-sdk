@@ -19,8 +19,11 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+
+	"github.com/lacework/go-sdk/internal/databox"
 )
 
 // GcpRecommendationsV1 is a service that interacts with the V1 Recommendations
@@ -28,9 +31,6 @@ import (
 type GcpRecommendationsV1 struct {
 	client *Client
 }
-
-const gcpCIS = "GCP_CIS_\\w+"
-const gcpCIS12 = "GCP_CIS12_\\w+"
 
 func (svc *GcpRecommendationsV1) List() ([]RecommendationV1, error) {
 	return svc.client.Recommendations.list(GcpRecommendation)
@@ -42,18 +42,45 @@ func (svc *GcpRecommendationsV1) Patch(recommendations RecommendationStateV1) (R
 
 // GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct. Scoped to Lacework Account/Subaccount
 func (svc *GcpRecommendationsV1) GetReport(reportType string) ([]RecommendationV1, error) {
-	// fetch all gcp recommendations
-	recommendations, err := svc.client.Recommendations.Gcp.List()
+	var (
+		schemaBytes []byte
+		ok          bool
+	)
+	report := struct {
+		Ids []string `json:"recommendation_ids"`
+	}{}
+
+	switch reportType {
+	case "GCP_CIS":
+		schemaBytes, ok = databox.Get("/reports/gcp/cis.json")
+		if !ok {
+			return []RecommendationV1{}, errors.New(
+				"compliance report schema not found",
+			)
+		}
+	case "GCP_CIS12":
+		schemaBytes, ok = databox.Get("/reports/gcp/cis_12.json")
+		if !ok {
+			return []RecommendationV1{}, errors.New(
+				"compliance report schema not found",
+			)
+		}
+	default:
+		return nil, errors.New(fmt.Sprintf("unable to find recommendations for report type %s", reportType))
+	}
+
+	err := json.Unmarshal(schemaBytes, &report)
 	if err != nil {
 		return []RecommendationV1{}, err
 	}
 
-	switch reportType {
-	case "GCP_CIS":
-		return matchRecommendations(recommendations, gcpCIS), nil
-	case "GCP_CIS12":
-		return matchRecommendations(recommendations, gcpCIS12), nil
-	default:
-		return nil, errors.New(fmt.Sprintf("unable to find recommendations for report type %s", reportType))
+	schema := ReportSchema{reportType, report.Ids}
+
+	// fetch all azure recommendations
+	allRecommendations, err := svc.client.Recommendations.Gcp.List()
+	if err != nil {
+		return []RecommendationV1{}, err
 	}
+	filteredRecommendations := filterRecommendations(allRecommendations, schema)
+	return filteredRecommendations, nil
 }
