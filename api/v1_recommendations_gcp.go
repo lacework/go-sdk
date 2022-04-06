@@ -21,7 +21,6 @@ package api
 import (
 	"errors"
 	"fmt"
-	"strings"
 )
 
 // GcpRecommendationsV1 is a service that interacts with the V1 Recommendations
@@ -30,8 +29,8 @@ type GcpRecommendationsV1 struct {
 	client *Client
 }
 
-const gcpCIS = "GCP_CIS_"
-const gcpCIS12 = "GCP_CIS12_"
+const gcpCIS = "GCP_CIS_\\w+"
+const gcpCIS12 = "GCP_CIS12_\\w+"
 
 func (svc *GcpRecommendationsV1) List() ([]RecommendationV1, error) {
 	return svc.client.Recommendations.list(GcpRecommendation)
@@ -57,14 +56,4 @@ func (svc *GcpRecommendationsV1) GetReport(reportType string) ([]RecommendationV
 	default:
 		return nil, errors.New(fmt.Sprintf("unable to find recommendations for report type %s", reportType))
 	}
-}
-
-func matchRecommendations(allRecommendations []RecommendationV1, prefix string) []RecommendationV1 {
-	var recommendations []RecommendationV1
-	for _, rec := range allRecommendations {
-		if strings.HasPrefix(rec.ID, prefix) {
-			recommendations = append(recommendations, rec)
-		}
-	}
-	return recommendations
 }

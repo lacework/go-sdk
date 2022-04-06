@@ -20,6 +20,7 @@ package api
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/lacework/go-sdk/internal/array"
 )
@@ -124,6 +125,16 @@ func filterRecommendations(allRecommendations []RecommendationV1, schema ReportS
 
 	for _, rec := range allRecommendations {
 		if array.ContainsStr(schema.RecommendationIDs, rec.ID) {
+			recommendations = append(recommendations, rec)
+		}
+	}
+	return recommendations
+}
+
+func matchRecommendations(allRecommendations []RecommendationV1, regex string) []RecommendationV1 {
+	var recommendations []RecommendationV1
+	for _, rec := range allRecommendations {
+		if ok, _ := regexp.MatchString(regex, rec.ID); ok {
 			recommendations = append(recommendations, rec)
 		}
 	}

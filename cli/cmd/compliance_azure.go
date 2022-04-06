@@ -21,9 +21,11 @@ package cmd
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -291,6 +293,91 @@ To list all Azure tenants and subscriptions configured in your account:
 			return nil
 		},
 	}
+	// complianceAzureDisableReportCmd represents the disable-report sub-command inside the azure command
+	// experimental feature
+	complianceAzureDisableReportCmd = &cobra.Command{
+		Use:     "disable-report <report_type>",
+		Aliases: []string{"disable"},
+		Hidden:  true,
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS":
+				args[0] = fmt.Sprintf("AWS_%s_S3", args[0])
+				return nil
+			case "AWS_CIS_S3":
+				return nil
+			default:
+				return errors.New("CIS is the only supported report type")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+
+			schema, err := fetchCachedAzureComplianceReportSchema(args[0])
+			if err != nil {
+				return err
+			}
+
+			// set state of all recommendations in this report to disabled
+			patchReq := api.NewRecommendationV1State(schema, false)
+
+			for k, v := range patchReq {
+				out := fmt.Sprintf("%s: %v \n", k, v)
+				cli.OutputHuman(out)
+			}
+
+			// _, err = cli.LwApi.Recommendations.Azure.Patch(patchReq)
+			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
+			return nil
+		},
+	}
+
+	// complianceAzureReportStatusCmd represents the report-status sub-command inside the azure command
+	// experimental feature
+	complianceAzureReportStatusCmd = &cobra.Command{
+		Use:     "report-status <report_type>",
+		Aliases: []string{"status"},
+		Hidden:  true,
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS", "CIS_131":
+				args[0] = fmt.Sprintf("AZURE_%s", args[0])
+				return nil
+			case "AZURE_CIS", "AZURE_CIS_131":
+				return nil
+			default:
+				return errors.New("supported report type are CIS or CIS_131")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			var rows [][]string
+			report, err := fetchCachedAzureComplianceReportSchema(args[0])
+			if err != nil {
+				return err
+			}
+
+			for _, r := range report {
+				rows = append(rows, []string{r.ID, strconv.FormatBool(r.State)})
+			}
+
+			cli.OutputHuman(renderOneLineCustomTable(args[0],
+				renderCustomTable([]string{}, rows,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator(" ")
+						t.SetAutoWrapText(false)
+						t.SetAlignment(tablewriter.ALIGN_LEFT)
+					}),
+				),
+				tableFunc(func(t *tablewriter.Table) {
+					t.SetBorder(false)
+					t.SetAutoWrapText(false)
+				}),
+			))
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -299,6 +386,10 @@ func init() {
 	complianceAzureCmd.AddCommand(complianceAzureListTenantsCmd)
 	complianceAzureCmd.AddCommand(complianceAzureGetReportCmd)
 	complianceAzureCmd.AddCommand(complianceAzureRunAssessmentCmd)
+
+	// Experimental Commands
+	complianceAzureCmd.AddCommand(complianceAzureReportStatusCmd)
+	complianceAzureCmd.AddCommand(complianceAzureDisableReportCmd)
 
 	complianceAzureGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
@@ -463,4 +554,25 @@ func getAzureSubscriptions(tenantID, status string) []azureSubscription {
 		}
 	}
 	return subs
+}
+
+func fetchCachedAzureComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
+	var cacheKey = fmt.Sprintf("compliance/azure/schema/%s", reportType)
+
+	expired := cli.ReadCachedAsset(cacheKey, &response)
+	if expired {
+		cli.StartProgress("Fetching compliance report schema...")
+		response, err = cli.LwApi.Recommendations.Azure.GetReport(reportType)
+		cli.StopProgress()
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to get Azure compliance report schema")
+		}
+
+		if len(response) == 0 {
+			return nil, errors.New("no data found in the report")
+		}
+
+		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response)
+	}
+	return
 }
