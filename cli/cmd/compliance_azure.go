@@ -315,18 +315,15 @@ To list all Azure tenants and subscriptions configured in your account:
 
 			schema, err := fetchCachedAzureComplianceReportSchema(args[0])
 			if err != nil {
-				return err
+				return errors.Wrap(err, "unable to fetch azure compliance report schema")
 			}
 
 			// set state of all recommendations in this report to disabled
 			patchReq := api.NewRecommendationV1State(schema, false)
-
-			for k, v := range patchReq {
-				out := fmt.Sprintf("%s: %v \n", k, v)
-				cli.OutputHuman(out)
+			_, err = cli.LwApi.Recommendations.Azure.Patch(patchReq)
+			if err != nil {
+				return errors.Wrap(err, "unable to patch azure recommendations")
 			}
-
-			// _, err = cli.LwApi.Recommendations.Azure.Patch(patchReq)
 			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
 			return nil
 		},
@@ -354,7 +351,11 @@ To list all Azure tenants and subscriptions configured in your account:
 			var rows [][]string
 			report, err := fetchCachedAzureComplianceReportSchema(args[0])
 			if err != nil {
-				return err
+				return errors.Wrap(err, "unable to fetch azure compliance report schema")
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(api.NewRecommendationV1(report))
 			}
 
 			for _, r := range report {

@@ -107,6 +107,19 @@ func NewRecommendationV1State(recommendations []RecommendationV1, state bool) Re
 	return request
 }
 
+func NewRecommendationV1(recommendations []RecommendationV1) RecommendationStateV1 {
+	request := make(map[string]string)
+	for _, rec := range recommendations {
+		if rec.State {
+			request[rec.ID] = "enable"
+
+		} else {
+			request[rec.ID] = "disable"
+		}
+	}
+	return request
+}
+
 // ReportStatus This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct.
 func (res *RecommendationResponseV1) ReportStatus() map[string]bool {
 	var recommendations = make(map[string]bool)

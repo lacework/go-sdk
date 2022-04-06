@@ -324,18 +324,15 @@ To list all GCP projects and organizations configured in your account:
 
 			schema, err := fetchCachedGcpComplianceReportSchema(args[0])
 			if err != nil {
-				return err
+				return errors.Wrap(err, "unable to fetch gcp compliance report schema")
 			}
 
 			// set state of all recommendations in this report to disabled
 			patchReq := api.NewRecommendationV1State(schema, false)
-
-			for k, v := range patchReq {
-				out := fmt.Sprintf("%s: %v \n", k, v)
-				cli.OutputHuman(out)
+			_, err = cli.LwApi.Recommendations.Gcp.Patch(patchReq)
+			if err != nil {
+				return errors.Wrap(err, "unable to patch gcp recommendations")
 			}
-
-			// _, err = cli.LwApi.Recommendations.Gcp.Patch(patchReq)
 			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
 			return nil
 		},
@@ -362,9 +359,12 @@ To list all GCP projects and organizations configured in your account:
 		RunE: func(_ *cobra.Command, args []string) error {
 			var rows [][]string
 			report, err := fetchCachedGcpComplianceReportSchema(args[0])
-
 			if err != nil {
-				return err
+				return errors.Wrap(err, "unable to fetch gcp compliance report schema")
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(api.NewRecommendationV1(report))
 			}
 
 			for _, r := range report {

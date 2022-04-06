@@ -268,18 +268,15 @@ To show recommendation details and affected resources for a recommendation id:
 
 			schema, err := fetchCachedAwsComplianceReportSchema(args[0])
 			if err != nil {
-				return err
+				return errors.Wrap(err, "unable to aws azure compliance report schema")
 			}
 
 			// set state of all recommendations in this report to disabled
 			patchReq := api.NewRecommendationV1State(schema, false)
-
-			for k, v := range patchReq {
-				out := fmt.Sprintf("%s: %v \n", k, v)
-				cli.OutputHuman(out)
+			_, err = cli.LwApi.Recommendations.Aws.Patch(patchReq)
+			if err != nil {
+				return errors.Wrap(err, "unable to patch gcp recommendations")
 			}
-
-			// _, err = cli.LwApi.Recommendations.Aws.Patch(patchReq)
 			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
 			return nil
 		},
@@ -307,7 +304,11 @@ To show recommendation details and affected resources for a recommendation id:
 			var rows [][]string
 			report, err := fetchCachedAwsComplianceReportSchema(args[0])
 			if err != nil {
-				return err
+				return errors.Wrap(err, "unable to aws azure compliance report schema")
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(api.NewRecommendationV1(report))
 			}
 
 			for _, r := range report {
