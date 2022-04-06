@@ -251,6 +251,7 @@ To show recommendation details and affected resources for a recommendation id:
 	complianceAwsDisableReportCmd = &cobra.Command{
 		Use:     "disable-report <report_type>",
 		Aliases: []string{"disable"},
+		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS":
@@ -265,7 +266,7 @@ To show recommendation details and affected resources for a recommendation id:
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 
-			schema, err := fetchAwsComplianceReportSchema(args[0])
+			schema, err := fetchCachedAwsComplianceReportSchema(args[0])
 			if err != nil {
 				return err
 			}
@@ -289,6 +290,7 @@ To show recommendation details and affected resources for a recommendation id:
 	complianceAwsReportStatusCmd = &cobra.Command{
 		Use:     "report-status <report_type>",
 		Aliases: []string{"status"},
+		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS":
@@ -303,8 +305,7 @@ To show recommendation details and affected resources for a recommendation id:
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var rows [][]string
-			report, err := fetchAwsComplianceReportSchema(args[0])
-
+			report, err := fetchCachedAwsComplianceReportSchema(args[0])
 			if err != nil {
 				return err
 			}
@@ -454,17 +455,22 @@ func containsDuplicateAccountID(awsAccount []awsAccount, accountID string) bool 
 	return false
 }
 
-func fetchAwsComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
-	cli.StartProgress("Fetching compliance report schema...")
-	response, err = cli.LwApi.Recommendations.Aws.GetReport(reportType)
-	cli.StopProgress()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get AWS compliance report schema")
-	}
+func fetchCachedAwsComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
+	var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", reportType)
+	expired := cli.ReadCachedAsset(cacheKey, &response)
+	if expired {
+		cli.StartProgress("Fetching compliance report schema...")
+		response, err = cli.LwApi.Recommendations.Aws.GetReport(reportType)
+		cli.StopProgress()
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to get aws compliance report schema")
+		}
+		if len(response) == 0 {
+			return nil, errors.New("no data found in the report")
+		}
 
-	if len(response) == 0 {
-		return nil, errors.New("no data found in the report")
+		// write previous state to cache, allowing for revert to previous state
+		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response)
 	}
-
 	return
 }

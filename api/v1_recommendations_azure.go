@@ -24,6 +24,9 @@ type AzureRecommendationsV1 struct {
 	client *Client
 }
 
+const azureCIS = "Azure_CIS"
+const azureCIS131 = "Azure_CIS_131"
+
 func (svc *AzureRecommendationsV1) List() ([]RecommendationV1, error) {
 	return svc.client.Recommendations.list(AzureRecommendation)
 }

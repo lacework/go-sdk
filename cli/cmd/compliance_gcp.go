@@ -307,6 +307,7 @@ To list all GCP projects and organizations configured in your account:
 	complianceGcpDisableReportCmd = &cobra.Command{
 		Use:     "disable-report <report_type>",
 		Aliases: []string{"disable"},
+		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI":
@@ -345,6 +346,7 @@ To list all GCP projects and organizations configured in your account:
 	complianceGcpReportStatusCmd = &cobra.Command{
 		Use:     "report-status <report_type>",
 		Aliases: []string{"status"},
+		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI":

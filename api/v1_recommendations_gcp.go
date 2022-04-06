@@ -18,13 +18,20 @@
 
 package api
 
-import "github.com/pkg/errors"
+import (
+	"errors"
+	"fmt"
+	"strings"
+)
 
 // GcpRecommendationsV1 is a service that interacts with the V1 Recommendations
 // endpoints from the Lacework Server
 type GcpRecommendationsV1 struct {
 	client *Client
 }
+
+const gcpCIS = "GCP_CIS_"
+const gcpCIS12 = "GCP_CIS12_"
 
 func (svc *GcpRecommendationsV1) List() ([]RecommendationV1, error) {
 	return svc.client.Recommendations.list(GcpRecommendation)
@@ -35,52 +42,29 @@ func (svc *GcpRecommendationsV1) Patch(recommendations RecommendationStateV1) (r
 }
 
 // GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct. Scoped to Lacework Account/Subaccount
-func (svc *GcpRecommendationsV1) GetReport(reportType string) (response []RecommendationV1, err error) {
-	gcpCfg, err := svc.client.Integrations.ListGcpCfg()
-	if err != nil {
-		return []RecommendationV1{}, err
-	}
-
-	// cis1.3 is off by default, so we won't be able to fetch previous reports.
-	
-	if len(gcpCfg.Data) == 0 {
-		return []RecommendationV1{}, errors.Wrap(err, "unable to find a GCP cloud account integration")
-	}
-
-	var projectID = gcpCfg.Data[0].Data.ID
-	var orgID = "n/a"
-
-	// TODO get all gcp projects for org
-	// cli/cmd/compliance_gcp.go:496
-	//if gcpCfg.Data[0].Data.IDType == "ORGANIZATION" {
-	//
-	//}
-
-	cfg := ComplianceGcpReportConfig{
-		OrganizationID: orgID,
-		ProjectID:      projectID,
-		Type:           reportType,
-	}
-
-	var res complianceGcpReportResponse
-	res, err = svc.client.Compliance.GetGcpReport(cfg)
-	if err != nil {
-		return []RecommendationV1{}, err
-	}
-
-	var recommendationIDs []string
-
-	for _, rec := range res.Data[0].Recommendations {
-		recommendationIDs = append(recommendationIDs, rec.RecID)
-	}
-
-	schema := ReportSchema{res.Data[0].ReportType, recommendationIDs}
-
+func (svc *GcpRecommendationsV1) GetReport(reportType string) ([]RecommendationV1, error) {
 	// fetch all gcp recommendations
-	allRecommendations, err := svc.client.Recommendations.Gcp.List()
+	recommendations, err := svc.client.Recommendations.Gcp.List()
 	if err != nil {
 		return []RecommendationV1{}, err
 	}
-	filteredRecommendations := filterRecommendations(allRecommendations, schema)
-	return filteredRecommendations, nil
+
+	switch reportType {
+	case "GCP_CIS":
+		return matchRecommendations(recommendations, gcpCIS), nil
+	case "GCP_CIS12":
+		return matchRecommendations(recommendations, gcpCIS12), nil
+	default:
+		return nil, errors.New(fmt.Sprintf("unable to find recommendations for report type %s", reportType))
+	}
+}
+
+func matchRecommendations(allRecommendations []RecommendationV1, prefix string) []RecommendationV1 {
+	var recommendations []RecommendationV1
+	for _, rec := range allRecommendations {
+		if strings.HasPrefix(rec.ID, prefix) {
+			recommendations = append(recommendations, rec)
+		}
+	}
+	return recommendations
 }
