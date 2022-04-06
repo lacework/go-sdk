@@ -66,7 +66,7 @@ func (svc *GcpRecommendationsV1) GetReport(reportType string) ([]RecommendationV
 			)
 		}
 	default:
-		return nil, errors.New(fmt.Sprintf("unable to find recommendations for report type %s", reportType))
+		return nil, fmt.Errorf("unable to find recommendations for report type %s", reportType)
 	}
 
 	err := json.Unmarshal(schemaBytes, &report)

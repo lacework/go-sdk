@@ -32,9 +32,6 @@ type AzureRecommendationsV1 struct {
 	client *Client
 }
 
-const azureCIS = "Azure_CIS_(?!131)\\w+"
-const azureCIS131 = "Azure_CIS_131\\w+"
-
 func (svc *AzureRecommendationsV1) List() ([]RecommendationV1, error) {
 	return svc.client.Recommendations.list(AzureRecommendation)
 }
@@ -69,7 +66,7 @@ func (svc *AzureRecommendationsV1) GetReport(reportType string) ([]Recommendatio
 			)
 		}
 	default:
-		return nil, errors.New(fmt.Sprintf("unable to find recommendations for report type %s", reportType))
+		return nil, fmt.Errorf("unable to find recommendations for report type %s", reportType)
 	}
 
 	err := json.Unmarshal(schemaBytes, &report)
