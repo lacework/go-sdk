@@ -35,7 +35,7 @@ func (svc *AwsRecommendationsV1) List() ([]RecommendationV1, error) {
 	return svc.client.Recommendations.list(AwsRecommendation)
 }
 
-func (svc *AwsRecommendationsV1) Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
+func (svc *AwsRecommendationsV1) Patch(recommendations RecommendationStateV1) (RecommendationResponseV1, error) {
 	return svc.client.Recommendations.patch(AwsRecommendation, recommendations)
 }
 
@@ -44,7 +44,7 @@ func (svc *AwsRecommendationsV1) GetReport(reportType string) ([]RecommendationV
 	report := struct {
 		Ids []string `json:"recommendation_ids"`
 	}{}
-	
+
 	schemaBytes, ok := databox.Get("/reports/aws/cis.json")
 	if !ok {
 		return []RecommendationV1{}, errors.New(

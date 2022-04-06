@@ -39,7 +39,7 @@ func (svc *AzureRecommendationsV1) List() ([]RecommendationV1, error) {
 	return svc.client.Recommendations.list(AzureRecommendation)
 }
 
-func (svc *AzureRecommendationsV1) Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
+func (svc *AzureRecommendationsV1) Patch(recommendations RecommendationStateV1) (RecommendationResponseV1, error) {
 	return svc.client.Recommendations.patch(AzureRecommendation, recommendations)
 }
 

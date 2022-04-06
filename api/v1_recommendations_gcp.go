@@ -36,7 +36,7 @@ func (svc *GcpRecommendationsV1) List() ([]RecommendationV1, error) {
 	return svc.client.Recommendations.list(GcpRecommendation)
 }
 
-func (svc *GcpRecommendationsV1) Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
+func (svc *GcpRecommendationsV1) Patch(recommendations RecommendationStateV1) (RecommendationResponseV1, error) {
 	return svc.client.Recommendations.patch(GcpRecommendation, recommendations)
 }
 
