@@ -320,10 +320,13 @@ To list all Azure tenants and subscriptions configured in your account:
 
 			// set state of all recommendations in this report to disabled
 			patchReq := api.NewRecommendationV1State(schema, false)
-			_, err = cli.LwApi.Recommendations.Azure.Patch(patchReq)
+			response, err := cli.LwApi.Recommendations.Azure.Patch(patchReq)
 			if err != nil {
 				return errors.Wrap(err, "unable to patch azure recommendations")
 			}
+
+			var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", args[0])
+			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
 			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
 			return nil
 		},
