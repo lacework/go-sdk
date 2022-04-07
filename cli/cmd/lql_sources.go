@@ -108,6 +108,19 @@ func getShowQuerySourceTable(resultSchema []api.DatasourceSchema) (out [][]strin
 	return
 }
 
+func getShowQuerySourceRelationshipsTable(relationships []api.DatasourceRelationship) (out [][]string) {
+	for _, relationship := range relationships {
+		out = append(out, []string{
+			relationship.Name,
+			relationship.From,
+			relationship.To,
+			relationship.ToCardinality,
+			relationship.Description,
+		})
+	}
+	return
+}
+
 func showQuerySource(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving datasource", "id", args[0])
 
@@ -132,6 +145,13 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 		renderSimpleTable(
 			[]string{"Field Name", "Data Type", "Description"},
 			getShowQuerySourceTable(datasourceResponse.Data.ResultSchema),
+		),
+	)
+	cli.OutputHuman("\n")
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"Relationship Name", "From", "To", "Cardinality", "Description"},
+			getShowQuerySourceRelationshipsTable(datasourceResponse.Data.SourceRelationships),
 		),
 	)
 	cli.OutputHuman("\nUse 'lacework query preview-source <datasource_id>' to see an actual result from the data source.\n")
