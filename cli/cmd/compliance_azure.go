@@ -301,10 +301,10 @@ To list all Azure tenants and subscriptions configured in your account:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS":
-				args[0] = fmt.Sprintf("AWS_%s_S3", args[0])
+			case "CIS", "CIS_131":
+				args[0] = fmt.Sprintf("AZURE_%s", args[0])
 				return nil
-			case "AWS_CIS_S3":
+			case "AZURE_CIS", "AZURE_CIS_131":
 				return nil
 			default:
 				return errors.New("CIS is the only supported report type")

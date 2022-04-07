@@ -268,14 +268,14 @@ To show recommendation details and affected resources for a recommendation id:
 
 			schema, err := fetchCachedAwsComplianceReportSchema(args[0])
 			if err != nil {
-				return errors.Wrap(err, "unable to aws azure compliance report schema")
+				return errors.Wrap(err, "unable to get Aws compliance report schema")
 			}
 
 			// set state of all recommendations in this report to disabled
 			patchReq := api.NewRecommendationV1State(schema, false)
 			response, err := cli.LwApi.Recommendations.Aws.Patch(patchReq)
 			if err != nil {
-				return errors.Wrap(err, "unable to patch gcp recommendations")
+				return errors.Wrap(err, "unable to patch Aws recommendations")
 			}
 
 			var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", args[0])
@@ -307,7 +307,7 @@ To show recommendation details and affected resources for a recommendation id:
 			var rows [][]string
 			report, err := fetchCachedAwsComplianceReportSchema(args[0])
 			if err != nil {
-				return errors.Wrap(err, "unable to aws azure compliance report schema")
+				return errors.Wrap(err, "unable to get Aws compliance report schema")
 			}
 
 			if cli.JSONOutput() {

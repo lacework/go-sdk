@@ -310,13 +310,13 @@ To list all GCP projects and organizations configured in your account:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI":
+			case "CIS", "CIS12":
 				args[0] = fmt.Sprintf("GCP_%s", args[0])
 				return nil
-			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI":
+			case "GCP_CIS", "GCP_CIS12":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, or PCI")
+				return errors.New("supported report types are: CIS, CIS12")
 			}
 		},
 		Args: cobra.ExactArgs(1),
@@ -349,13 +349,13 @@ To list all GCP projects and organizations configured in your account:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI":
+			case "CIS", "CIS12":
 				args[0] = fmt.Sprintf("GCP_%s", args[0])
 				return nil
-			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI":
+			case "GCP_CIS", "GCP_CIS12":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, or PCI")
+				return errors.New("supported report types are: CIS, CIS12")
 			}
 		},
 		Args: cobra.ExactArgs(1),
