@@ -91,7 +91,7 @@ Then navigate to Settings > Alert Rules.
 	}
 	// show command is used to retrieve a lacework alert rule by resource id
 	alertRulesShowCommand = &cobra.Command{
-		Use:   "show",
+		Use:   "show <alert_rule_id>",
 		Short: "Show an alert rule by ID",
 		Long:  "Show a single alert rule by it's ID.",
 		Args:  cobra.ExactArgs(1),
@@ -120,7 +120,7 @@ Then navigate to Settings > Alert Rules.
 
 	// delete command is used to remove a lacework alert rule by resource id
 	alertRulesDeleteCommand = &cobra.Command{
-		Use:   "delete",
+		Use:   "delete <alert_rule_id>",
 		Short: "Delete a alert rule",
 		Long:  "Delete a single alert rule by it's ID.",
 		Args:  cobra.ExactArgs(1),
