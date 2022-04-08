@@ -310,14 +310,14 @@ To list all GCP projects and organizations configured in your account:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			//todo: add cis1_0
-			case "CIS", "CIS_1_0":
-				args[0] = fmt.Sprintf("GCP_%s", args[0])
+			case "CIS", "CIS_1_0", "GCP_CIS":
+				args[0] = "CIS_1_0"
 				return nil
-			case "GCP_CIS", "GCP_CIS12":
+			case "CIS_1_2", "GCP_CIS12":
+				args[0] = "CIS_1_2"
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, CIS12")
+				return errors.New("supported report types are: CIS_1_0, CIS_1_2")
 			}
 		},
 		Args: cobra.ExactArgs(1),
@@ -330,19 +330,21 @@ To list all GCP projects and organizations configured in your account:
 
 			// set state of all recommendations in this report to disabled
 			patchReq := api.NewRecommendationV1State(schema, false)
+			cli.StartProgress("disabling recommendations...")
 			response, err := cli.LwApi.Recommendations.Gcp.Patch(patchReq)
+			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to patch gcp recommendations")
 			}
 
 			var cacheKey = fmt.Sprintf("compliance/gcp/schema/%s", args[0])
 			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
-			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
+			cli.OutputHuman("All recommendations for report %s have been disabled\n", args[0])
 			return nil
 		},
 	}
 
-	// complianceGcpDisableReportCmd represents the disable-report sub-command inside the aws command
+	// complianceGcpEnableReportCmd represents the enable-report sub-command inside the aws command
 	// experimental feature
 	complianceGcpEnableReportCmd = &cobra.Command{
 		Use:     "disable-report <report_type>",
@@ -350,13 +352,14 @@ To list all GCP projects and organizations configured in your account:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS", "CIS12":
-				args[0] = fmt.Sprintf("GCP_%s", args[0])
+			case "CIS", "CIS_1_0", "GCP_CIS":
+				args[0] = "CIS_1_0"
 				return nil
-			case "GCP_CIS", "GCP_CIS12":
+			case "CIS_1_2", "GCP_CIS12":
+				args[0] = "CIS_1_2"
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, CIS12")
+				return errors.New("supported report types are: CIS_1_0, CIS_1_2")
 			}
 		},
 		Args: cobra.ExactArgs(1),
@@ -367,16 +370,18 @@ To list all GCP projects and organizations configured in your account:
 				return errors.Wrap(err, "unable to fetch gcp compliance report schema")
 			}
 
-			// set state of all recommendations in this report to disabled
+			// set state of all recommendations in this report to enabled
 			patchReq := api.NewRecommendationV1State(schema, false)
+			cli.StartProgress("enabling recommendations...")
 			response, err := cli.LwApi.Recommendations.Gcp.Patch(patchReq)
+			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to patch gcp recommendations")
 			}
 
 			var cacheKey = fmt.Sprintf("compliance/gcp/schema/%s", args[0])
 			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
-			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
+			cli.OutputHuman("All recommendations for report %s have been enabled\n", args[0])
 			return nil
 		},
 	}

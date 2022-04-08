@@ -321,14 +321,16 @@ To list all Azure tenants and subscriptions configured in your account:
 
 			// set state of all recommendations in this report to disabled
 			patchReq := api.NewRecommendationV1State(schema, false)
+			cli.StartProgress("disabling recommendations...")
 			response, err := cli.LwApi.Recommendations.Azure.Patch(patchReq)
+			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to patch azure recommendations")
 			}
 
 			var cacheKey = fmt.Sprintf("compliance/azure/schema/%s", args[0])
 			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
-			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
+			cli.OutputHuman("All recommendations for report %s have been disabled\n", args[0])
 			return nil
 		},
 	}
@@ -361,14 +363,16 @@ To list all Azure tenants and subscriptions configured in your account:
 
 			// set state of all recommendations in this report to enabled
 			patchReq := api.NewRecommendationV1State(schema, true)
+			cli.StartProgress("enabling recommendations...")
 			response, err := cli.LwApi.Recommendations.Azure.Patch(patchReq)
+			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to patch azure recommendations")
 			}
 
 			var cacheKey = fmt.Sprintf("compliance/azure/schema/%s", args[0])
 			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
-			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been enabled\n", args[0]))
+			cli.OutputHuman("All recommendations for report %s have been enabled\n", args[0])
 			return nil
 		},
 	}
