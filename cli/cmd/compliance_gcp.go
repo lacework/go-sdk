@@ -308,6 +308,16 @@ To list all GCP projects and organizations configured in your account:
 		Use:     "disable-report <report_type>",
 		Aliases: []string{"disable"},
 		Hidden:  true,
+		Short:   "Disable all recommendations for a given report type",
+		Long: `Disable all recommendations for a given report type.
+Supported report types are: CIS_1_0, CIS_1_2
+
+To show the current status of recommendations in a report run:
+	lacework compliance gcp status CIS_1_2
+
+To disable all recommendations for CIS_1_1 report run:
+	lacework compliance gcp disable CIS_1_2
+`,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS", "CIS_1_0", "GCP_CIS":
@@ -347,9 +357,19 @@ To list all GCP projects and organizations configured in your account:
 	// complianceGcpEnableReportCmd represents the enable-report sub-command inside the aws command
 	// experimental feature
 	complianceGcpEnableReportCmd = &cobra.Command{
-		Use:     "disable-report <report_type>",
-		Aliases: []string{"disable"},
-		Hidden:  true,
+		Use:     "enable-report <report_type>",
+		Aliases: []string{"enable"},
+		Short:   "Enable all recommendations for a given report type",
+		Long: `Enable all recommendations for a given report type.
+Supported report types are: CIS_1_0, CIS_1_2
+
+To show the current status of recommendations in a report run:
+	lacework compliance gcp status CIS_1_2
+
+To enable all recommendations for CIS_1_1 report run:
+	lacework compliance gcp enable CIS_1_2
+`,
+		Hidden: true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS", "CIS_1_0", "GCP_CIS":
@@ -392,6 +412,16 @@ To list all GCP projects and organizations configured in your account:
 		Use:     "report-status <report_type>",
 		Aliases: []string{"status"},
 		Hidden:  true,
+		Short:   "Show the status of recommendations for a given report type",
+		Long: `Show the status of recommendations for a given report type.
+Supported report types are: CIS_1_0, CIS_1_2
+
+To show the current status of recommendations in a report run:
+	lacework compliance gcp status CIS_1_2
+
+The output from status with the --json flag can be used in the body of PATCH api/v1/external/recommendations/gcp
+	lacework compliance gcp status CIS_1_2 --json
+`,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS", "CIS_1_0", "GCP_CIS":
