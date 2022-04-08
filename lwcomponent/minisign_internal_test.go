@@ -83,7 +83,7 @@ func TestVerifySignature(t *testing.T) {
 	for _, vst := range verifySignatureTests {
 		t.Run(vst.Name, func(t *testing.T) {
 			rootPublicKey := minisign.PublicKey{}
-			if err := rootPublicKey.UnmarshalText(publicKeyBytes); err != nil {
+			if err := rootPublicKey.UnmarshalText([]byte(publicKey)); err != nil {
 				assert.FailNow(t, err.Error())
 			}
 

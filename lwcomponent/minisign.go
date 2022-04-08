@@ -29,6 +29,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Lacework's public key
+const publicKey = "RWTcmYcv9P0yMqHghe1Fu4gg65yoBuZCY7r02rD0N7o2XSK5Jq9h1Quk"
+
 // Verify will verify a two-level signature.
 // TODO(pjm): Can we make the signature format be an argument?
 func verifySignature(rootKey minisign.PublicKey, file, sig []byte) error {

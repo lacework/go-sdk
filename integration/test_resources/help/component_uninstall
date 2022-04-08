@@ -1,10 +1,13 @@
-Delete an existing component
+Uninstall an existing component
 
 Usage:
-  lacework component delete [flags]
+  lacework component uninstall <component> [flags]
+
+Aliases:
+  uninstall, delete, remove, rm
 
 Flags:
-  -h, --help   help for delete
+  -h, --help   help for uninstall
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

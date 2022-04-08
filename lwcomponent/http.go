@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2021, Lacework Inc.
+// Copyright:: Copyright 2022, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,20 +16,28 @@
 // limitations under the License.
 //
 
-package file
+package lwcomponent
 
 import (
+	"io"
+	"net/http"
 	"os"
 )
 
-// FileExists checks if a file exists and is not a directory
-func FileExists(filename string) bool {
-	f, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
+// downloadFile is an internal helper that downloads a file to the provided file path
+func downloadFile(filepath string, url string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
 	}
-	if f == nil {
-		return false
+	defer resp.Body.Close()
+
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
 	}
-	return !f.IsDir()
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	return err
 }

@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2021, Lacework Inc.
+// Copyright:: Copyright 2022, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,20 +16,30 @@
 // limitations under the License.
 //
 
-package file
+package lwcomponent
 
-import (
-	"os"
+type Status int
+
+const (
+	UnknownStatus Status = iota
+	NotInstalled
+	Installed
+	UpdateAvailable
 )
 
-// FileExists checks if a file exists and is not a directory
-func FileExists(filename string) bool {
-	f, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
+func (cs Status) String() string {
+	switch cs {
+	case NotInstalled:
+		return "Not Installed"
+	case Installed:
+		return "Installed"
+	case UpdateAvailable:
+		return "Update Available"
+	default:
+		return "Unknown"
 	}
-	if f == nil {
-		return false
-	}
-	return !f.IsDir()
+}
+
+func (c Component) IsInstalled() bool {
+	return c.Status() == Installed
 }

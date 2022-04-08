@@ -19,18 +19,13 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"path"
-	"time"
+	"os"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/lacework/go-sdk/internal/cache"
 	"github.com/lacework/go-sdk/lwcomponent"
 )
 
@@ -43,7 +38,7 @@ var (
 		Long:    `Manage components to extend your experience with the Lacework platform`,
 	}
 
-	// componentsListCmd represents the azure sub-command inside the components command
+	// componentsListCmd represents the list sub-command inside the components command
 	componentsListCmd = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
@@ -52,31 +47,32 @@ var (
 		RunE:    runComponentsList,
 	}
 
-	// componentsInstallCmd represents the gcp sub-command inside the components command
+	// componentsInstallCmd represents the install sub-command inside the components command
 	componentsInstallCmd = &cobra.Command{
-		Use:   "install",
+		Use:   "install <component>",
 		Short: "install a new component",
 		Long:  `Install a new component`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  runComponentsInstall,
 	}
 
-	// componentsUpdateCmd represents the aws sub-command inside the components command
+	// componentsUpdateCmd represents the update sub-command inside the components command
 	componentsUpdateCmd = &cobra.Command{
-		Use:   "update",
+		Use:   "update <component>",
 		Short: "update an existing component",
 		Long:  `Update an existing component`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  runComponentsUpdate,
 	}
 
-	// componentsDeleteCmd represents the aws sub-command inside the components command
-	componentsDeleteCmd = &cobra.Command{
-		Use:   "delete",
-		Short: "delete an existing component",
-		Long:  `Delete an existing component`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  runComponentsDelete,
+	// componentsUninstallCmd represents the uninstall sub-command inside the components command
+	componentsUninstallCmd = &cobra.Command{
+		Use:     "uninstall <component>",
+		Aliases: []string{"delete", "remove", "rm"},
+		Short:   "uninstall an existing component",
+		Long:    `Uninstall an existing component`,
+		Args:    cobra.ExactArgs(1),
+		RunE:    runComponentsDelete,
 	}
 )
 
@@ -88,49 +84,95 @@ func init() {
 	componentsCmd.AddCommand(componentsListCmd)
 	componentsCmd.AddCommand(componentsInstallCmd)
 	componentsCmd.AddCommand(componentsUpdateCmd)
-	componentsCmd.AddCommand(componentsDeleteCmd)
+	componentsCmd.AddCommand(componentsUninstallCmd)
 
-	// load components
-	// @afiune log more information about loading components
-	cli.Log.Debugw("loading components")
+	// load components dynamically
 	cli.LoadComponents()
 }
 
+// hasInstalledCommands is used inside the cobra template for generating the usage
+// of commands, it returns true if there are installed commands via the CDK
+func hasInstalledCommands() bool {
+	return cli.installedCmd
+}
+
+// isComponent is used inside the cobra template for generating the usage of
+// commands, it needs the annotations of the command and it will return true
+// if the command was installed from the CDK
+func isComponent(annotations map[string]string) bool {
+	t, found := annotations["type"]
+	if found && t == "component" {
+		return true
+	}
+	return false
+}
+
+// LoadComponents reads the local components state and loads all installed components
+// of type `CLI_COMMAND` dynamically into the root command of the CLI (`rootCmd`)
 func (c *cliState) LoadComponents() {
-	state, err := lwcomponent.LoadState()
-	c.LwComponents = state
-	if err != nil {
-		cli.Log.Debugw("unable to load components", "error", err)
+	c.Log.Debugw("loading local components")
+	state, err := lwcomponent.LocalState()
+	if err != nil || state == nil {
+		c.Log.Debugw("unable to load components", "error", err)
+		return
 	}
 
+	c.LwComponents = state
+
 	// @dhazekamp how do we ensure component command names don't overlap with other commands?
+
 	for _, component := range c.LwComponents.Components {
-		if component.Status() == lwcomponent.Installed && component.CLICommand {
-			var (
-				cmd     = component.Name
-				cmdName = component.CommandName
+		if component.IsInstalled() && component.IsCommandType() {
+			c.installedCmd = true
+
+			ver, err := component.CurrentVersion()
+			if err != nil {
+				c.Log.Warnw("unable to load dynamic cli command",
+					"component", component.Name,
+					"error", err.Error(),
+				)
+				continue
+			}
+
+			c.Log.Debugw("loading dynamic cli command",
+				"component", component.Name, "version", ver,
 			)
-			cli.Log.Debugw("loading cli command", "component", cmd, "command_name", cmdName)
 			rootCmd.AddCommand(
 				&cobra.Command{
-					Use:   cmdName,
-					Short: fmt.Sprintf("%s component", cmd),
+					// @afiune strip `lw-` from component?
+					Use: component.Name,
+					// @afiune should we build this or add it as component specification
+					Short:       fmt.Sprintf("component %s", component.Name),
+					Long:        component.Description,
+					Annotations: map[string]string{"type": "component"},
+					Version:     ver.String(),
 					RunE: func(_ *cobra.Command, args []string) error {
-						return component.RunAndOutput(args, nil)
+						// @afiune what if the component needs other env variables
+						return component.RunAndOutput(args, c.envs()...)
 					},
-					// @dhazekamp how does component communicate Long?
 					// @dhazekamp how does component communicate flags?
-					// @dhazekamp what if the component requires stdin?
 				},
 			)
 		}
 	}
 }
+func runComponentsList(_ *cobra.Command, _ []string) (err error) {
+	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
+	if err != nil {
+		err = errors.Wrap(err, "unable to list components")
+		return
+	}
 
-func runComponentsList(_ *cobra.Command, _ []string) error {
+	if len(cli.LwComponents.Components) == 0 {
+		msg := "There are no components available, " +
+			"come back later or contact support. (version: %s)\n"
+		cli.OutputHuman(fmt.Sprintf(msg, cli.LwComponents.Version))
+		return
+	}
+
 	cli.OutputHuman(
 		renderCustomTable(
-			[]string{"Status", "Name", "Description"},
+			[]string{"Status", "Name", "Version", "Description"},
 			componentsToTable(),
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetBorder(false)
@@ -140,8 +182,9 @@ func runComponentsList(_ *cobra.Command, _ []string) error {
 			}),
 		),
 	)
+
 	cli.OutputHuman("\nComponents version: %s\n", cli.LwComponents.Version)
-	return nil
+	return
 }
 
 func componentsToTable() [][]string {
@@ -150,70 +193,116 @@ func componentsToTable() [][]string {
 		out = append(out, []string{
 			cdata.Status().String(),
 			cdata.Name,
+			cdata.LatestVersion.String(),
 			cdata.Description,
 		})
 	}
 	return out
 }
 
-func runComponentsInstall(_ *cobra.Command, args []string) error {
-	cacheDir, err := cache.CacheDir()
+func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
+	// @afiune maybe move the state to the cache and fetch if it if has expired
+	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
 	if err != nil {
-		return err
+		err = errors.Wrap(err, "unable to load components")
+		return
 	}
-
-	componentsFile := path.Join(cacheDir, "components")
 
 	component := cli.LwComponents.GetComponent(args[0])
 	if component == nil {
-		return errors.New("component not found. Try running 'lacework component list'")
+		err = errors.New("component not found. Try running 'lacework component list'")
+		return
 	}
 
-	buf := new(bytes.Buffer)
-	if err := json.NewEncoder(buf).Encode(cli.LwComponents); err != nil {
-		return err
-	}
-
-	if err := ioutil.WriteFile(componentsFile, buf.Bytes(), 0644); err != nil {
-		return err
-	}
-
-	cli.StartProgress(" Installing component...")
-	time.Sleep(5 * time.Second)
+	cli.StartProgress(fmt.Sprintf("Installing component %s...", component.Name))
+	err = cli.LwComponents.Install(args[0])
 	cli.StopProgress()
+	if err != nil {
+		err = errors.Wrap(err, "unable to install component")
+		return
+	}
 
 	cli.OutputHuman("The component %s was installed.\n", args[0])
-	return nil
+	return
 }
-func runComponentsUpdate(_ *cobra.Command, _ []string) error {
-	return nil
-}
-func runComponentsDelete(_ *cobra.Command, args []string) error {
-	cacheDir, err := cache.CacheDir()
+
+func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
+	// @afiune maybe move the state to the cache and fetch if it if has expired
+	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
+	if err != nil {
+		err = errors.Wrap(err, "unable to load components")
+		return
+	}
+
+	component := cli.LwComponents.GetComponent(args[0])
+	if component == nil {
+		err = errors.New("component not found. Try running 'lacework component list'")
+		return
+	}
+	// @afiune end boilerplate load components
+	update, err := component.UpdateAvailable()
 	if err != nil {
 		return err
 	}
 
-	componentsFile := path.Join(cacheDir, "components")
+	if !update {
+		cli.OutputHuman(
+			"You are running the latest version of the component %s.\n", args[0],
+		)
+		return nil
+	}
+
+	cli.StartProgress(fmt.Sprintf("Updating component %s...", component.Name))
+	err = cli.LwComponents.Install(args[0])
+	cli.StopProgress()
+	if err != nil {
+		err = errors.Wrap(err, "unable to update component")
+		return
+	}
+
+	cli.OutputHuman("The component %s was updated.\n", args[0])
+	return
+}
+
+func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
+	// @afiune maybe move the state to the cache and fetch if it if has expired
+	// @afiune DO WE NEED THIS? It should already be loaded
+	cli.LwComponents, err = lwcomponent.LocalState()
+	if err != nil {
+		err = errors.Wrap(err, "unable to load components")
+		return
+	}
 
 	component := cli.LwComponents.GetComponent(args[0])
 	if component == nil {
-		return errors.New("component not found. Try running 'lacework component list'")
+		err = errors.New("component not found. Try running 'lacework component list'")
+		return
 	}
 
-	buf := new(bytes.Buffer)
-	if err := json.NewEncoder(buf).Encode(cli.LwComponents); err != nil {
-		return err
+	if component.Status() != lwcomponent.Installed {
+		err = errors.Errorf(
+			"component not installed. Try running 'lacework component install %s'",
+			args[0],
+		)
+		return
 	}
 
-	if err := ioutil.WriteFile(componentsFile, buf.Bytes(), 0644); err != nil {
-		return err
+	cli.StartProgress("Deleting component...")
+	defer cli.StopProgress()
+
+	cPath, err := component.RootPath()
+	if err != nil {
+		err = errors.Wrap(err, "unable to delete component")
+		return
 	}
 
-	cli.StartProgress(" Deleting component...")
-	time.Sleep(5 * time.Second)
+	err = os.RemoveAll(cPath)
+	if err != nil {
+		err = errors.Wrap(err, "unable to delete component")
+		return
+	}
+
 	cli.StopProgress()
-
 	cli.OutputHuman("The component %s was deleted.\n", args[0])
-	return nil
+	return
 }
