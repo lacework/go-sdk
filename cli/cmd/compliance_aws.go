@@ -268,19 +268,58 @@ To show recommendation details and affected resources for a recommendation id:
 
 			schema, err := fetchCachedAwsComplianceReportSchema(args[0])
 			if err != nil {
-				return errors.Wrap(err, "unable to get Aws compliance report schema")
+				return errors.Wrap(err, "unable to get aws compliance report schema")
 			}
 
 			// set state of all recommendations in this report to disabled
 			patchReq := api.NewRecommendationV1State(schema, false)
 			response, err := cli.LwApi.Recommendations.Aws.Patch(patchReq)
 			if err != nil {
-				return errors.Wrap(err, "unable to patch Aws recommendations")
+				return errors.Wrap(err, "unable to patch aws recommendations")
 			}
 
 			var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", args[0])
 			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
 			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
+			return nil
+		},
+	}
+
+	// complianceAwsEnableReportCmd represents the enable-report sub-command inside the aws command
+	// experimental feature
+	complianceAwsEnableReportCmd = &cobra.Command{
+		Use:     "enable-report <report_type>",
+		Aliases: []string{"enable"},
+		Hidden:  true,
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS":
+				args[0] = fmt.Sprintf("AWS_%s_S3", args[0])
+				return nil
+			case "AWS_CIS_S3":
+				return nil
+			default:
+				return errors.New("CIS is the only supported report type")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+
+			schema, err := fetchCachedAwsComplianceReportSchema(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unable to get aws compliance report schema")
+			}
+
+			// set state of all recommendations in this report to enabled
+			patchReq := api.NewRecommendationV1State(schema, true)
+			response, err := cli.LwApi.Recommendations.Aws.Patch(patchReq)
+			if err != nil {
+				return errors.Wrap(err, "unable to patch aws recommendations")
+			}
+
+			var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", args[0])
+			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
+			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been enabled\n", args[0]))
 			return nil
 		},
 	}
@@ -346,6 +385,7 @@ func init() {
 	// Experimental Commands
 	complianceAwsCmd.AddCommand(complianceAwsReportStatusCmd)
 	complianceAwsCmd.AddCommand(complianceAwsDisableReportCmd)
+	complianceAwsCmd.AddCommand(complianceAwsEnableReportCmd)
 
 	complianceAwsGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",

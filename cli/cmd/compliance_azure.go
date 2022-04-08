@@ -307,7 +307,7 @@ To list all Azure tenants and subscriptions configured in your account:
 			case "AZURE_CIS", "AZURE_CIS_131":
 				return nil
 			default:
-				return errors.New("CIS is the only supported report type")
+				return errors.New("supported report types are AZURE_CIS and AZURE_CIS_131")
 			}
 		},
 		Args: cobra.ExactArgs(1),
@@ -325,9 +325,48 @@ To list all Azure tenants and subscriptions configured in your account:
 				return errors.Wrap(err, "unable to patch azure recommendations")
 			}
 
-			var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", args[0])
+			var cacheKey = fmt.Sprintf("compliance/azure/schema/%s", args[0])
 			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
 			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
+			return nil
+		},
+	}
+
+	// complianceAzureEnableReportCmd represents the enable-report sub-command inside the azure command
+	// experimental feature
+	complianceAzureEnableReportCmd = &cobra.Command{
+		Use:     "enable-report <report_type>",
+		Aliases: []string{"enable"},
+		Hidden:  true,
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS", "CIS_131":
+				args[0] = fmt.Sprintf("AZURE_%s", args[0])
+				return nil
+			case "AZURE_CIS", "AZURE_CIS_131":
+				return nil
+			default:
+				return errors.New("CIS is the only supported report type")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+
+			schema, err := fetchCachedAzureComplianceReportSchema(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unable to fetch azure compliance report schema")
+			}
+
+			// set state of all recommendations in this report to enabled
+			patchReq := api.NewRecommendationV1State(schema, true)
+			response, err := cli.LwApi.Recommendations.Azure.Patch(patchReq)
+			if err != nil {
+				return errors.Wrap(err, "unable to patch azure recommendations")
+			}
+
+			var cacheKey = fmt.Sprintf("compliance/azure/schema/%s", args[0])
+			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
+			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been enabled\n", args[0]))
 			return nil
 		},
 	}
@@ -394,6 +433,7 @@ func init() {
 	// Experimental Commands
 	complianceAzureCmd.AddCommand(complianceAzureReportStatusCmd)
 	complianceAzureCmd.AddCommand(complianceAzureDisableReportCmd)
+	complianceAzureCmd.AddCommand(complianceAzureEnableReportCmd)
 
 	complianceAzureGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
