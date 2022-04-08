@@ -50,7 +50,7 @@ func TestRecommendationsGcpCISGetReport(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Recommendations.Gcp.GetReport("GCP_CIS")
+	response, err := c.Recommendations.Gcp.GetReport("CIS_1_0")
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response))
@@ -81,7 +81,7 @@ func TestRecommendationsGcpCIS12GetReport(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Recommendations.Gcp.GetReport("GCP_CIS12")
+	response, err := c.Recommendations.Gcp.GetReport("CIS_1_2")
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response))

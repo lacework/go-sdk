@@ -50,7 +50,7 @@ func TestRecommendationsAzureCISGetReport(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Recommendations.Azure.GetReport("AZURE_CIS")
+	response, err := c.Recommendations.Azure.GetReport("CIS_1_0")
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response))
@@ -81,7 +81,7 @@ func TestRecommendationsAzureCIS131GetReport(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Recommendations.Azure.GetReport("AZURE_CIS_131")
+	response, err := c.Recommendations.Azure.GetReport("CIS_1_3_1")
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response))

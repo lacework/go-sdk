@@ -50,7 +50,7 @@ func TestRecommendationsAwsGetReport(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Recommendations.Aws.GetReport("AWS_CIS_S3")
+	response, err := c.Recommendations.Aws.GetReport("CIS_1_1")
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response))
