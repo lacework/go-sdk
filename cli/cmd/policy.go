@@ -260,6 +260,29 @@ func inputPolicyFromEditor(action string) (policy string, err error) {
 	return
 }
 
+func sortPolicyTable(out [][]string, policyIDIndex int) {
+	// order by ID (special handling for policy ID numbers)
+	sort.Slice(out, func(i, j int) bool {
+		iMatch := policyIDIntRE.FindStringSubmatch(out[i][policyIDIndex])
+		jMatch := policyIDIntRE.FindStringSubmatch(out[j][policyIDIndex])
+		// both regexes must match
+		// both regexes must have proper lengths since we'll be using...
+		// ...direct access from here on out
+		if iMatch == nil || jMatch == nil || len(iMatch) != 3 || len(jMatch) != 3 {
+			return out[i][policyIDIndex] < out[j][policyIDIndex]
+		}
+		// if string portions aren't the same
+		if iMatch[1] != jMatch[1] {
+			return out[i][policyIDIndex] < out[j][policyIDIndex]
+		}
+		// if string portions are the same; compare based on ints
+		// no error checking needed for Atoi since use regexp \d+
+		iNum, _ := strconv.Atoi(iMatch[2])
+		jNum, _ := strconv.Atoi(jMatch[2])
+		return iNum < jNum
+	})
+}
+
 func policyTable(policies []api.Policy) (out [][]string) {
 	for _, policy := range policies {
 		state := "disabled"
@@ -280,28 +303,9 @@ func policyTable(policies []api.Policy) (out [][]string) {
 			policy.QueryID,
 			strings.Join(policy.Tags, "\n"),
 		})
-
-		// order by ID (special handling for policy ID numbers)
-		sort.Slice(out, func(i, j int) bool {
-			iMatch := policyIDIntRE.FindStringSubmatch(out[i][0])
-			jMatch := policyIDIntRE.FindStringSubmatch(out[j][0])
-			// both regexes must match
-			// both regexes must have proper lengths since we'll be using...
-			// ...direct access from here on out
-			if iMatch == nil || jMatch == nil || len(iMatch) != 3 || len(jMatch) != 3 {
-				return out[i][0] < out[j][0]
-			}
-			// if string portions aren't the same
-			if iMatch[1] != jMatch[1] {
-				return out[i][0] < out[j][0]
-			}
-			// if string portions are the same; compare based on ints
-			// no error checking needed for Atoi since use regexp \d+
-			iNum, _ := strconv.Atoi(iMatch[2])
-			jNum, _ := strconv.Atoi(jMatch[2])
-			return iNum < jNum
-		})
 	}
+	sortPolicyTable(out, 0)
+
 	return
 }
 
