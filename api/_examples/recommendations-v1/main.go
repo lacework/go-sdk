@@ -61,4 +61,24 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Printf("Recommendations Patched: %v", response.Data)
+
+	// List all Recommendation IDs for a given report type
+	reportSchema, err := lacework.Recommendations.Aws.GetReport("AWS_CIS_S3")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%s Report Schema \n ---------------------------- \n%v\n", "AWS_CIS_S3", reportSchema)
+
+	// Enable/Disable all recommendations of a given report type
+	enableAll := api.NewRecommendationV1State(reportSchema, true)
+
+	response, err = lacework.Recommendations.Aws.Patch(enableAll)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("\nEnabled Recommendations \n ---------------------------- \n")
+	for k, v := range enableAll {
+		fmt.Printf("%s:%s \n", k, v)
+	}
 }

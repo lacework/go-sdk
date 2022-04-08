@@ -23,24 +23,22 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/lacework/go-sdk/internal/lacework"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestRecommendationsAwsList(t *testing.T) {
+func TestRecommendationsGcpCISGetReport(t *testing.T) {
 	var (
-		expectedLen = 161
+		expectedLen = 63
 		fakeServer  = lacework.MockServer()
 	)
 
 	fakeServer.MockToken("TOKEN")
-	fakeServer.MockAPI("external/recommendations/aws",
+	fakeServer.MockAPI("external/recommendations/gcp",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "List() should be a GET method")
-			Recommendations := generateRecommendations()
+			assert.Equal(t, "GET", r.Method, "GetReport() should be a GET method")
+			Recommendations := listGcpRecommendations()
 			fmt.Fprintf(w, Recommendations)
 		},
 	)
@@ -52,7 +50,7 @@ func TestRecommendationsAwsList(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.Recommendations.Aws.List()
+	response, err := c.Recommendations.Gcp.GetReport("CIS_1_0")
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response))
@@ -61,17 +59,18 @@ func TestRecommendationsAwsList(t *testing.T) {
 	}
 }
 
-func TestRecommendationsAwsPatch(t *testing.T) {
+func TestRecommendationsGcpCIS12GetReport(t *testing.T) {
 	var (
-		fakeServer = lacework.MockServer()
+		expectedLen = 83
+		fakeServer  = lacework.MockServer()
 	)
 
 	fakeServer.MockToken("TOKEN")
-	fakeServer.MockAPI("external/recommendations/aws",
+	fakeServer.MockAPI("external/recommendations/gcp",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "PATCH", r.Method, "AwsPatch() should be a PATCH method")
-			PatchResponse := generateRecommendationsPatchResponse()
-			fmt.Fprintf(w, PatchResponse)
+			assert.Equal(t, "GET", r.Method, "GetReport() should be a GET method")
+			Recommendations := listGcpRecommendations()
+			fmt.Fprintf(w, Recommendations)
 		},
 	)
 	defer fakeServer.Close()
@@ -82,525 +81,510 @@ func TestRecommendationsAwsPatch(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	recommendationPatch := api.RecommendationStateV1{"LW_S3_1": "disable"}
-
-	response, err := c.Recommendations.Aws.Patch(recommendationPatch)
+	response, err := c.Recommendations.Gcp.GetReport("CIS_1_2")
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
-	for k, v := range response.Data[0] {
-		assert.Equal(t, k, "LW_S3_1")
-		assert.False(t, v.Enabled)
+	assert.Equal(t, expectedLen, len(response))
+	for _, rec := range response {
+		assert.NotEmpty(t, rec.ID)
 	}
-	recList := response.RecommendationList()
-	assert.Equal(t, 1, len(recList))
-	assert.Equal(t, "LW_S3_1", recList[0].ID)
-	assert.False(t, recList[0].State)
 }
 
-func generateRecommendations() string {
-	return listRecommendations()
-}
-
-func generateRecommendationsPatchResponse() string {
+func listGcpRecommendations() string {
 	return `{
     "data": [
         {
-            "LW_S3_1": {
-                "enabled": false
-            }
-        }
-    ],
-    "ok": true,
-    "message": "SUCCESS"
-}`
-}
-
-func listRecommendations() string {
-	return `{
-    "data": [
-        {
-            "LW_AWS_NETWORKING_15": {
+            "GCP_CIS12_6_2_1": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_14": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_17": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_16": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_19": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_18": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_11": {
-                "enabled": true
-            },
-            "LW_S3_18": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_10": {
-                "enabled": true
-            },
-            "LW_S3_19": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_13": {
-                "enabled": true
-            },
-            "LW_S3_16": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_12": {
-                "enabled": true
-            },
-            "LW_S3_17": {
+            "GCP_K8S_1_10": {
                 "enabled": false
             },
-            "AWS_CIS_1_22": {
-                "enabled": true
-            },
-            "LW_S3_14": {
-                "enabled": true
-            },
-            "AWS_CIS_1_23": {
-                "enabled": true
-            },
-            "LW_S3_15": {
-                "enabled": true
-            },
-            "AWS_CIS_1_20": {
-                "enabled": true
-            },
-            "LW_S3_12": {
+            "GCP_K8S_1_12": {
                 "enabled": false
             },
-            "AWS_CIS_1_21": {
-                "enabled": true
-            },
-            "LW_S3_13": {
+            "GCP_K8S_1_11": {
                 "enabled": false
             },
-            "LW_S3_10": {
-                "enabled": true
-            },
-            "LW_S3_11": {
-                "enabled": true
-            },
-            "AWS_CIS_1_24": {
-                "enabled": true
-            },
-            "LW_S3_1": {
-                "enabled": true
-            },
-            "LW_S3_2": {
-                "enabled": true
-            },
-            "LW_S3_3": {
-                "enabled": true
-            },
-            "LW_S3_4": {
-                "enabled": true
-            },
-            "LW_S3_5": {
-                "enabled": true
-            },
-            "LW_S3_6": {
+            "GCP_K8S_1_14": {
                 "enabled": false
             },
-            "LW_S3_7": {
-                "enabled": true
-            },
-            "LW_S3_8": {
-                "enabled": true
-            },
-            "LW_S3_9": {
+            "GCP_K8S_1_13": {
                 "enabled": false
             },
-            "AWS_CIS_2_8": {
-                "enabled": true
-            },
-            "AWS_CIS_2_7": {
-                "enabled": true
-            },
-            "AWS_CIS_2_6": {
-                "enabled": true
-            },
-            "AWS_CIS_2_5": {
-                "enabled": true
-            },
-            "AWS_CIS_2_4": {
+            "GCP_K8S_1_16": {
                 "enabled": false
             },
-            "AWS_CIS_2_3": {
-                "enabled": true
-            },
-            "AWS_CIS_2_2": {
-                "enabled": true
-            },
-            "AWS_CIS_2_1": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_1": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_2": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_3": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_4": {
-                "enabled": true
-            },
-            "AWS_CIS_2_9": {
-                "enabled": true
-            },
-            "LW_S3_21": {
+            "GCP_K8S_1_15": {
                 "enabled": false
             },
-            "LW_S3_20": {
-                "enabled": true
-            },
-            "LW_AWS_RDS_1": {
+            "GCP_K8S_1_18": {
                 "enabled": false
             },
-            "LW_AWS_NETWORKING_37": {
-                "enabled": true
-            },
-            "LW_AWS_SERVERLESS_5": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_36": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_39": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_38": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_31": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_30": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_33": {
-                "enabled": true
-            },
-            "LW_AWS_SERVERLESS_1": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_32": {
-                "enabled": true
-            },
-            "LW_AWS_SERVERLESS_2": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_35": {
-                "enabled": true
-            },
-            "LW_AWS_SERVERLESS_3": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_34": {
-                "enabled": true
-            },
-            "LW_AWS_SERVERLESS_4": {
+            "GCP_K8S_1_2": {
                 "enabled": false
             },
-            "AWS_CIS_3_7": {
+            "GCP_K8S_1_17": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_26": {
-                "enabled": true
-            },
-            "AWS_CIS_3_6": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_25": {
-                "enabled": true
-            },
-            "AWS_CIS_3_5": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_28": {
-                "enabled": true
-            },
-            "AWS_CIS_3_4": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_27": {
-                "enabled": true
-            },
-            "AWS_CIS_3_3": {
-                "enabled": true
-            },
-            "AWS_CIS_3_2": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_29": {
-                "enabled": true
-            },
-            "AWS_CIS_3_1": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_20": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_22": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_21": {
-                "enabled": true
-            },
-            "AWS_CIS_3_9": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_24": {
-                "enabled": true
-            },
-            "AWS_CIS_3_8": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_23": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_13": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_14": {
+            "GCP_K8S_1_3": {
                 "enabled": false
             },
-            "LW_AWS_IAM_11": {
+            "GCP_K8S_1_4": {
                 "enabled": true
             },
-            "LW_AWS_IAM_12": {
+            "GCP_K8S_1_5": {
+                "enabled": true
+            },
+            "GCP_K8S_1_6": {
                 "enabled": false
             },
-            "LW_AWS_NETWORKING_51": {
+            "GCP_K8S_1_7": {
                 "enabled": false
             },
-            "LW_AWS_NETWORKING_50": {
+            "GCP_K8S_1_8": {
                 "enabled": false
             },
-            "AWS_CIS_3_10": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_2": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_3": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_1": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_6": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_7": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_4": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_5": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_8": {
-                "enabled": true
-            },
-            "LW_AWS_IAM_9": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_48": {
-                "enabled": true
-            },
-            "AWS_CIS_4_5": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_47": {
-                "enabled": true
-            },
-            "AWS_CIS_4_4": {
-                "enabled": true
-            },
-            "LW_AWS_NETWORKING_49": {
+            "GCP_K8S_1_9": {
                 "enabled": false
             },
-            "AWS_CIS_4_2": {
+            "GCP_CIS_4_1": {
                 "enabled": true
             },
-            "AWS_CIS_4_1": {
+            "GCP_CIS_4_3": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_40": {
+            "GCP_CIS_4_2": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_42": {
+            "GCP_CIS_4_5": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_41": {
+            "GCP_CIS_4_4": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_44": {
+            "GCP_CIS_4_6": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_43": {
+            "GCP_CIS_1_10": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_46": {
+            "GCP_CIS12_2_12": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_45": {
+            "GCP_CIS_1_11": {
                 "enabled": true
             },
-            "AWS_CIS_3_14": {
+            "GCP_CIS12_2_11": {
                 "enabled": true
             },
-            "AWS_CIS_3_13": {
+            "GCP_CIS12_2_10": {
                 "enabled": true
             },
-            "AWS_CIS_3_12": {
+            "GCP_CIS_1_12": {
                 "enabled": true
             },
-            "AWS_CIS_3_11": {
+            "GCP_CIS_1_13": {
                 "enabled": true
             },
-            "AWS_CIS_3_15": {
+            "GCP_CIS12_1_5": {
                 "enabled": true
             },
-            "LW_AWS_GENERAL_SECURITY_4": {
+            "GCP_CIS12_5_2": {
                 "enabled": true
             },
-            "LW_AWS_GENERAL_SECURITY_5": {
+            "GCP_CIS12_6_2_5": {
                 "enabled": true
             },
-            "LW_AWS_GENERAL_SECURITY_2": {
+            "GCP_CIS12_1_4": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_2_4": {
+                "enabled": true
+            },
+            "GCP_CIS12_1_3": {
                 "enabled": false
             },
-            "LW_AWS_GENERAL_SECURITY_3": {
+            "GCP_CIS12_6_2_3": {
                 "enabled": true
             },
-            "LW_AWS_GENERAL_SECURITY_8": {
+            "GCP_CIS12_1_2": {
                 "enabled": true
             },
-            "LW_AWS_GENERAL_SECURITY_6": {
+            "GCP_CIS12_6_2_2": {
                 "enabled": true
             },
-            "LW_AWS_GENERAL_SECURITY_7": {
+            "GCP_CIS12_1_9": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_9": {
+            "GCP_CIS12_6_2_9": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_5": {
+            "GCP_CIS12_1_8": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_6": {
+            "GCP_CIS12_6_2_8": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_7": {
+            "GCP_CIS12_1_7": {
                 "enabled": true
             },
-            "LW_AWS_NETWORKING_8": {
+            "GCP_CIS12_6_2_7": {
                 "enabled": true
             },
-            "LW_AWS_ELASTICSEARCH_3": {
+            "GCP_CIS12_1_6": {
                 "enabled": true
             },
-            "LW_AWS_ELASTICSEARCH_2": {
-                "enabled": true
-            },
-            "LW_AWS_ELASTICSEARCH_1": {
-                "enabled": true
-            },
-            "LW_AWS_ELASTICSEARCH_4": {
-                "enabled": true
-            },
-            "AWS_CIS_1_9": {
+            "GCP_CIS12_5_1": {
                 "enabled": false
             },
-            "LW_AWS_MONGODB_4": {
+            "GCP_CIS12_6_2_6": {
                 "enabled": true
             },
-            "AWS_CIS_1_8": {
+            "GCP_CIS12_1_1": {
+                "enabled": false
+            },
+            "GCP_CIS12_3_10": {
+                "enabled": false
+            },
+            "GCP_CIS12_6_1_2": {
                 "enabled": true
             },
-            "LW_AWS_MONGODB_3": {
+            "GCP_CIS12_6_1_1": {
+                "enabled": false
+            },
+            "GCP_CIS_3_2": {
                 "enabled": true
             },
-            "AWS_CIS_1_7": {
+            "GCP_CIS_7_11": {
                 "enabled": true
             },
-            "LW_AWS_MONGODB_6": {
+            "GCP_CIS_3_1": {
                 "enabled": true
             },
-            "AWS_CIS_1_6": {
+            "GCP_CIS_7_10": {
                 "enabled": true
             },
-            "LW_AWS_MONGODB_5": {
+            "GCP_CIS_3_4": {
                 "enabled": true
             },
-            "AWS_CIS_1_5": {
+            "GCP_CIS_7_13": {
                 "enabled": true
             },
-            "AWS_CIS_1_4": {
+            "GCP_CIS_3_3": {
                 "enabled": true
             },
-            "AWS_CIS_1_3": {
+            "GCP_CIS_7_12": {
                 "enabled": true
             },
-            "AWS_CIS_1_2": {
+            "GCP_CIS_3_6": {
                 "enabled": true
             },
-            "AWS_CIS_1_11": {
+            "GCP_CIS_7_2": {
                 "enabled": true
             },
-            "AWS_CIS_1_12": {
+            "GCP_CIS_3_5": {
                 "enabled": true
             },
-            "AWS_CIS_1_10": {
+            "GCP_CIS_7_1": {
                 "enabled": true
             },
-            "AWS_CIS_1_15": {
+            "GCP_CIS_3_8": {
                 "enabled": true
             },
-            "AWS_CIS_1_16": {
+            "GCP_CIS_7_4": {
                 "enabled": true
             },
-            "AWS_CIS_1_13": {
+            "GCP_CIS_3_7": {
                 "enabled": true
             },
-            "AWS_CIS_1_14": {
+            "GCP_CIS_7_3": {
                 "enabled": true
             },
-            "AWS_CIS_1_1": {
+            "GCP_K8S_1_1": {
+                "enabled": false
+            },
+            "GCP_CIS_7_18": {
                 "enabled": true
             },
-            "AWS_CIS_1_19": {
+            "GCP_CIS12_2_9": {
                 "enabled": true
             },
-            "LW_AWS_IAM_10": {
+            "GCP_CIS12_6_5": {
+                "enabled": false
+            },
+            "GCP_CIS_7_15": {
                 "enabled": true
             },
-            "AWS_CIS_1_17": {
+            "GCP_CIS12_6_6": {
+                "enabled": false
+            },
+            "GCP_CIS_7_14": {
                 "enabled": true
             },
-            "LW_AWS_GENERAL_SECURITY_1": {
+            "GCP_CIS12_6_7": {
                 "enabled": true
             },
-            "LW_AWS_MONGODB_2": {
+            "GCP_CIS_7_17": {
                 "enabled": true
             },
-            "LW_AWS_MONGODB_1": {
+            "GCP_CIS_7_16": {
                 "enabled": true
+            },
+            "GCP_CIS12_2_4": {
+                "enabled": false
+            },
+            "GCP_CIS12_2_3": {
+                "enabled": true
+            },
+            "GCP_CIS12_2_2": {
+                "enabled": true
+            },
+            "GCP_CIS12_2_1": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_1_3": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_4": {
+                "enabled": false
+            },
+            "GCP_CIS12_2_8": {
+                "enabled": true
+            },
+            "GCP_CIS12_2_7": {
+                "enabled": true
+            },
+            "GCP_CIS12_2_6": {
+                "enabled": true
+            },
+            "GCP_CIS12_2_5": {
+                "enabled": true
+            },
+            "GCP_CIS_7_6": {
+                "enabled": true
+            },
+            "GCP_CIS_7_5": {
+                "enabled": true
+            },
+            "GCP_CIS_7_8": {
+                "enabled": true
+            },
+            "GCP_CIS_7_7": {
+                "enabled": true
+            },
+            "GCP_CIS_7_9": {
+                "enabled": true
+            },
+            "GCP_CIS12_1_12": {
+                "enabled": true
+            },
+            "GCP_CIS_2_11": {
+                "enabled": true
+            },
+            "GCP_CIS12_1_11": {
+                "enabled": true
+            },
+            "GCP_CIS12_1_10": {
+                "enabled": true
+            },
+            "GCP_CIS_2_10": {
+                "enabled": true
+            },
+            "GCP_CIS12_1_15": {
+                "enabled": true
+            },
+            "GCP_CIS12_1_14": {
+                "enabled": true
+            },
+            "GCP_CIS12_1_13": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_2_10": {
+                "enabled": true
+            },
+            "GCP_CIS_2_3": {
+                "enabled": true
+            },
+            "GCP_CIS_2_2": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_2_12": {
+                "enabled": true
+            },
+            "GCP_CIS_2_5": {
+                "enabled": true
+            },
+            "GCP_CIS_6_1": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_2_11": {
+                "enabled": true
+            },
+            "GCP_CIS_2_4": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_2_14": {
+                "enabled": true
+            },
+            "GCP_CIS_2_7": {
+                "enabled": true
+            },
+            "GCP_CIS_6_3": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_2_13": {
+                "enabled": true
+            },
+            "GCP_CIS_2_6": {
+                "enabled": true
+            },
+            "GCP_CIS_6_2": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_2_16": {
+                "enabled": true
+            },
+            "GCP_CIS_2_9": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_2_15": {
+                "enabled": true
+            },
+            "GCP_CIS_2_8": {
+                "enabled": true
+            },
+            "GCP_CIS_6_4": {
+                "enabled": true
+            },
+            "GCP_CIS12_3_8": {
+                "enabled": true
+            },
+            "GCP_CIS12_3_9": {
+                "enabled": false
+            },
+            "GCP_CIS_2_1": {
+                "enabled": true
+            },
+            "GCP_CIS12_3_4": {
+                "enabled": true
+            },
+            "GCP_CIS12_3_5": {
+                "enabled": true
+            },
+            "GCP_CIS12_7_1": {
+                "enabled": true
+            },
+            "GCP_CIS12_3_6": {
+                "enabled": false
+            },
+            "GCP_CIS12_7_2": {
+                "enabled": true
+            },
+            "GCP_CIS12_3_7": {
+                "enabled": false
+            },
+            "GCP_CIS12_7_3": {
+                "enabled": true
+            },
+            "GCP_CIS12_3_1": {
+                "enabled": true
+            },
+            "GCP_CIS12_3_2": {
+                "enabled": true
+            },
+            "GCP_CIS12_3_3": {
+                "enabled": false
+            },
+            "GCP_CIS_1_4": {
+                "enabled": true
+            },
+            "GCP_CIS_1_3": {
+                "enabled": true
+            },
+            "GCP_CIS12_4_10": {
+                "enabled": false
+            },
+            "GCP_CIS_1_6": {
+                "enabled": true
+            },
+            "GCP_CIS_5_2": {
+                "enabled": true
+            },
+            "GCP_CIS12_4_11": {
+                "enabled": false
+            },
+            "GCP_CIS_1_5": {
+                "enabled": true
+            },
+            "GCP_CIS_5_1": {
+                "enabled": true
+            },
+            "GCP_CIS_1_8": {
+                "enabled": true
+            },
+            "GCP_CIS_1_7": {
+                "enabled": true
+            },
+            "GCP_CIS_5_3": {
+                "enabled": true
+            },
+            "GCP_CIS_1_9": {
+                "enabled": true
+            },
+            "GCP_CIS12_4_7": {
+                "enabled": false
+            },
+            "GCP_CIS12_4_8": {
+                "enabled": false
+            },
+            "GCP_CIS12_4_9": {
+                "enabled": true
+            },
+            "GCP_CIS_1_2": {
+                "enabled": true
+            },
+            "GCP_CIS_1_1": {
+                "enabled": true
+            },
+            "GCP_CIS12_4_3": {
+                "enabled": false
+            },
+            "GCP_CIS12_6_3_4": {
+                "enabled": true
+            },
+            "GCP_CIS12_4_4": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_3_3": {
+                "enabled": true
+            },
+            "GCP_CIS12_4_5": {
+                "enabled": false
+            },
+            "GCP_CIS12_6_3_2": {
+                "enabled": true
+            },
+            "GCP_CIS12_4_6": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_3_1": {
+                "enabled": true
+            },
+            "GCP_CIS12_6_3_7": {
+                "enabled": true
+            },
+            "GCP_CIS12_4_1": {
+                "enabled": false
+            },
+            "GCP_CIS12_6_3_6": {
+                "enabled": true
+            },
+            "GCP_CIS12_4_2": {
+                "enabled": false
+            },
+            "GCP_CIS12_6_3_5": {
+                "enabled": false
             }
         }
     ],
