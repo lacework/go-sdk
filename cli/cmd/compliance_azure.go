@@ -301,13 +301,14 @@ To list all Azure tenants and subscriptions configured in your account:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS", "CIS_131":
-				args[0] = fmt.Sprintf("AZURE_%s", args[0])
+			case "CIS", "CIS_1_0", "AZURE_CIS":
+				args[0] = "CIS_1_0"
 				return nil
-			case "AZURE_CIS", "AZURE_CIS_131":
+			case "CIS_1_3_1", "AZURE_CIS_131":
+				args[0] = "CIS_1_3_1"
 				return nil
 			default:
-				return errors.New("supported report types are AZURE_CIS and AZURE_CIS_131")
+				return errors.New("supported report types are: CIS_1_0, CIS_1_3_1")
 			}
 		},
 		Args: cobra.ExactArgs(1),
@@ -340,13 +341,14 @@ To list all Azure tenants and subscriptions configured in your account:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS", "CIS_131":
-				args[0] = fmt.Sprintf("AZURE_%s", args[0])
+			case "CIS", "CIS_1_0", "AZURE_CIS":
+				args[0] = "CIS_1_0"
 				return nil
-			case "AZURE_CIS", "AZURE_CIS_131":
+			case "CIS_1_3_1", "AZURE_CIS_131":
+				args[0] = "CIS_1_3_1"
 				return nil
 			default:
-				return errors.New("CIS is the only supported report type")
+				return errors.New("supported report types are: CIS_1_0, CIS_1_3_1")
 			}
 		},
 		Args: cobra.ExactArgs(1),
@@ -379,13 +381,14 @@ To list all Azure tenants and subscriptions configured in your account:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS", "CIS_131":
-				args[0] = fmt.Sprintf("AZURE_%s", args[0])
+			case "CIS", "CIS_1_0", "AZURE_CIS":
+				args[0] = "CIS_1_0"
 				return nil
-			case "AZURE_CIS", "AZURE_CIS_131":
+			case "CIS_1_3_1", "AZURE_CIS_131":
+				args[0] = "CIS_1_3_1"
 				return nil
 			default:
-				return errors.New("supported report type are CIS or CIS_131")
+				return errors.New("supported report types are: CIS_1_0, CIS_1_3_1")
 			}
 		},
 		Args: cobra.ExactArgs(1),

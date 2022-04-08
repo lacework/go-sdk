@@ -254,13 +254,11 @@ To show recommendation details and affected resources for a recommendation id:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS":
-				args[0] = fmt.Sprintf("AWS_%s_S3", args[0])
-				return nil
-			case "AWS_CIS_S3":
+			case "CIS", "CIS_1_1", "AWS_CIS_S3":
+				args[0] = "CIS_1_1"
 				return nil
 			default:
-				return errors.New("CIS is the only supported report type")
+				return errors.New("CIS_1_1 is the only supported report type")
 			}
 		},
 		Args: cobra.ExactArgs(1),
@@ -278,7 +276,7 @@ To show recommendation details and affected resources for a recommendation id:
 				return errors.Wrap(err, "unable to patch aws recommendations")
 			}
 
-			var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", args[0])
+			var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", "CIS_1_1")
 			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
 			cli.OutputHuman(fmt.Sprintf("All recommendations for report %s have been disabled\n", args[0]))
 			return nil
@@ -293,13 +291,11 @@ To show recommendation details and affected resources for a recommendation id:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS":
-				args[0] = fmt.Sprintf("AWS_%s_S3", args[0])
-				return nil
-			case "AWS_CIS_S3":
+			case "CIS", "CIS_1_1", "AWS_CIS_S3":
+				args[0] = "CIS_1_1"
 				return nil
 			default:
-				return errors.New("CIS is the only supported report type")
+				return errors.New("CIS_1_1 is the only supported report type")
 			}
 		},
 		Args: cobra.ExactArgs(1),
@@ -332,13 +328,11 @@ To show recommendation details and affected resources for a recommendation id:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS":
-				args[0] = fmt.Sprintf("AWS_%s_S3", args[0])
-				return nil
-			case "AWS_CIS_S3":
+			case "CIS", "CIS_1_1", "AWS_CIS_S3":
+				args[0] = "CIS_1_1"
 				return nil
 			default:
-				return errors.New("CIS is the only supported report type")
+				return errors.New("CIS_1_1 is the only supported report type")
 			}
 		},
 		Args: cobra.ExactArgs(1),

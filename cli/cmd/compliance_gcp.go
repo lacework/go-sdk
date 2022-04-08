@@ -310,7 +310,8 @@ To list all GCP projects and organizations configured in your account:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS", "CIS12":
+			//todo: add cis1_0
+			case "CIS", "CIS_1_0":
 				args[0] = fmt.Sprintf("GCP_%s", args[0])
 				return nil
 			case "GCP_CIS", "GCP_CIS12":
@@ -388,13 +389,14 @@ To list all GCP projects and organizations configured in your account:
 		Hidden:  true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
-			case "CIS", "CIS12":
-				args[0] = fmt.Sprintf("GCP_%s", args[0])
+			case "CIS", "CIS_1_0", "GCP_CIS":
+				args[0] = "CIS_1_0"
 				return nil
-			case "GCP_CIS", "GCP_CIS12":
+			case "CIS_1_2", "GCP_CIS12":
+				args[0] = "CIS_1_2"
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, CIS12")
+				return errors.New("supported report types are: CIS_1_0, CIS_1_2")
 			}
 		},
 		Args: cobra.ExactArgs(1),

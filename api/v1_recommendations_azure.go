@@ -51,14 +51,14 @@ func (svc *AzureRecommendationsV1) GetReport(reportType string) ([]Recommendatio
 	}{}
 
 	switch reportType {
-	case "AZURE_CIS":
+	case "CIS_1_0":
 		schemaBytes, ok = databox.Get("/reports/azure/cis.json")
 		if !ok {
 			return []RecommendationV1{}, errors.New(
 				"compliance report schema not found",
 			)
 		}
-	case "AZURE_CIS_131":
+	case "CIS_1_3_1":
 		schemaBytes, ok = databox.Get("/reports/azure/cis_131.json")
 		if !ok {
 			return []RecommendationV1{}, errors.New(

@@ -51,14 +51,14 @@ func (svc *GcpRecommendationsV1) GetReport(reportType string) ([]RecommendationV
 	}{}
 
 	switch reportType {
-	case "GCP_CIS":
+	case "CIS_1_0":
 		schemaBytes, ok = databox.Get("/reports/gcp/cis.json")
 		if !ok {
 			return []RecommendationV1{}, errors.New(
 				"compliance report schema not found",
 			)
 		}
-	case "GCP_CIS12":
+	case "CIS_1_2":
 		schemaBytes, ok = databox.Get("/reports/gcp/cis_12.json")
 		if !ok {
 			return []RecommendationV1{}, errors.New(
