@@ -3,7 +3,7 @@ default: ci
 ci: lint test fmt-check imports-check integration
 
 # Tooling versions
-GOLANGCILINTVERSION?=1.45.0
+GOLANGCILINTVERSION?=1.45.2
 GOIMPORTSVERSION?=v0.1.8
 GOXVERSION?=v1.0.1
 GOTESTSUMVERSION?=v1.7.0
@@ -181,6 +181,21 @@ ifeq (, $(shell which gox))
 endif
 ifeq (, $(shell which gotestsum))
 	GOFLAGS=-mod=readonly go install gotest.tools/gotestsum@$(GOTESTSUMVERSION)
+endif
+
+.PHONY: uninstall-tools
+uninstall-tools: ## Uninstall go indirect dependencies
+ifneq (, $(shell which golangci-lint))
+	rm $(shell go env GOPATH)/bin/golangci-lint
+endif
+ifneq (, $(shell which goimports))
+	rm $(shell go env GOPATH)/bin/goimports
+endif
+ifneq (, $(shell which gox))
+	rm $(shell go env GOPATH)/bin/gox
+endif
+ifneq (, $(shell which gotestsum))
+	rm $(shell go env GOPATH)/bin/gotestsum
 endif
 
 .PHONY: git-env
