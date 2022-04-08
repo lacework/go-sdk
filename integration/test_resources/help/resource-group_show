@@ -1,7 +1,7 @@
 Get a single resource group by it's resource group ID.
 
 Usage:
-  lacework resource-group show [flags]
+  lacework resource-group show <resource_group_id> [flags]
 
 Flags:
   -h, --help   help for show

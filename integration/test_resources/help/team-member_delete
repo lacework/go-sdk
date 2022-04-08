@@ -1,7 +1,7 @@
 Delete a single team member by it's ID.
 
 Usage:
-  lacework team-member delete [flags]
+  lacework team-member delete <team_member_id> [flags]
 
 Flags:
   -h, --help   help for delete
