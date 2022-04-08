@@ -442,6 +442,7 @@ func init() {
 	// Experimental Commands
 	complianceGcpCmd.AddCommand(complianceGcpReportStatusCmd)
 	complianceGcpCmd.AddCommand(complianceGcpDisableReportCmd)
+	complianceGcpCmd.AddCommand(complianceGcpEnableReportCmd)
 
 	complianceGcpGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
