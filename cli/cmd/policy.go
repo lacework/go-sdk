@@ -128,7 +128,7 @@ To view the LQL query associated with the policy, use the query id shown.
 	// This is an experimental command.
 	// policyDisableTagCmd represents the policy disable-policy command
 	policyDisableTagCmd = &cobra.Command{
-		Use:     "disable-policy <policy_id>",
+		Use:     "disable-policy [policy_id]",
 		Hidden:  true,
 		Aliases: []string{"disable"},
 		Args:    cobra.RangeArgs(0, 1),
@@ -140,6 +140,23 @@ To view the LQL query associated with the policy, use the query id shown.
 		},
 		RunE: disablePolicy,
 	}
+
+	// This is an experimental command.
+	// policyEnableTagCmd represents the policy enable-policy command
+	policyEnableTagCmd = &cobra.Command{
+		Use:     "enable-policy [policy_id]",
+		Hidden:  true,
+		Aliases: []string{"enable"},
+		Args:    cobra.RangeArgs(0, 1),
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			if len(args) > 0 && policyCmdState.Tag != "" {
+				return errors.New("'--tag' flag may not be use in conjunction with 'policy_id' arg")
+			}
+			return nil
+		},
+		RunE: enablePolicy,
+	}
+
 	policyIDIntRE = regexp.MustCompile(`^(.*-)(\d+)$`)
 )
 
@@ -154,6 +171,7 @@ func init() {
 
 	// experimental commands
 	policyCmd.AddCommand(policyDisableTagCmd)
+	policyCmd.AddCommand(policyEnableTagCmd)
 
 	// policy list specific flags
 	policyListCmd.Flags().StringVar(
@@ -178,6 +196,11 @@ func init() {
 	policyDisableTagCmd.Flags().StringVar(
 		&policyCmdState.Tag,
 		"tag", "", "disable all policies with the specified tag",
+	)
+
+	policyEnableTagCmd.Flags().StringVar(
+		&policyCmdState.Tag,
+		"tag", "", "enable all policies with the specified tag",
 	)
 }
 
@@ -492,6 +515,25 @@ func disablePolicy(_ *cobra.Command, args []string) error {
 	return nil
 }
 
+func enablePolicy(_ *cobra.Command, args []string) error {
+	state := true
+	if len(args) > 0 {
+		policy := api.UpdatePolicy{PolicyID: args[0], Enabled: &state}
+		// todo: should alerts be disabled/enabled?
+		//policy.AlertEnabled = &policyState
+		_, err := cli.LwApi.V2.Policy.Update(policy)
+		if err != nil {
+			return err
+		}
+	}
+
+	// if tag is provided enable all policies matching
+	if policyCmdState.Tag != "" {
+		return setPolicyStateByTag(policyCmdState.Tag, state)
+	}
+	return nil
+}
+
 func setPolicyStateByTag(tag string, policyState bool) error {
 	msg := "disable"
 	if policyState {
@@ -512,7 +554,7 @@ func setPolicyStateByTag(tag string, policyState bool) error {
 	)
 
 	for _, p := range policyTagsResponse.Data {
-		if p.HasTag(tag) && p.Enabled {
+		if p.HasTag(tag) && p.Enabled != policyState {
 			matchingPolicies = append(matchingPolicies, p)
 		}
 	}
