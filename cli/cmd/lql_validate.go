@@ -63,7 +63,7 @@ func init() {
 
 	if cli.IsLCLInstalled() {
 		queryValidateCmd.Flags().StringVarP(
-			&queryCmdState.CUVFromLibrary,
+			&queryCmdState.CURVFromLibrary,
 			"library", "l", "",
 			"validate query from Lacework Content Library",
 		)
