@@ -271,7 +271,7 @@ queryText: |-
           --- Add query filter(s), if any. If not, remove this block.
       }
       return {
-          --- List fields to return from the selected source. Use 'lacework query show-source <datasource>'
+          --- List fields to return from the selected source. Use 'lacework query describe <datasource>'.
       }
   }`
 		prompt.HideDefault = true

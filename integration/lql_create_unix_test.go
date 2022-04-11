@@ -76,7 +76,7 @@ func TestQueryCreateFromEditor(t *testing.T) {
 			"STDOUT changed, please update")
 		assert.Contains(t,
 			stdout.String(),
-			"--- ",
+			"--- List fields to return from the selected source. Use 'lacework query describe <datasource>'.",
 			"STDOUT changed, please update")
 		assert.Contains(t, stdout.String(), "CloudTrailRawEvents", "STDOUT changed, please update")
 		assert.Contains(t, stdout.String(), "EVENT_NAME like 'GetBucket%'", "STDOUT changed, please update")
