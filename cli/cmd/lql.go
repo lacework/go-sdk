@@ -257,10 +257,28 @@ func inputQueryFromURL(url string) (query string, err error) {
 func inputQueryFromEditor(action string) (query string, err error) {
 	prompt := &survey.Editor{
 		Message:  fmt.Sprintf("Type a query to %s", action),
-		FileName: "query*.lql",
+		FileName: "query*.yaml",
 	}
-	err = survey.AskOne(prompt, &query)
 
+	if action == "create" {
+		prompt.Default = `queryId: YourQueryID
+queryText: |-
+  {
+      source {
+          --- Select a datasource. To list all available datasources use 'lacework query sources'.
+      }
+      filter {
+          --- Add query filter(s), if any. If not, remove this block.
+      }
+      return {
+          --- List fields to return from the selected source. Use 'lacework query describe <datasource>'.
+      }
+  }`
+		prompt.HideDefault = true
+		prompt.AppendDefault = true
+	}
+
+	err = survey.AskOne(prompt, &query)
 	return
 }
 

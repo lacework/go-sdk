@@ -78,8 +78,3 @@ func TestQueryCreateFile(t *testing.T) {
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
-
-func TestQueryCreateURL(t *testing.T) {
-	// This is tested by virtue of setup in other tests
-	return
-}
