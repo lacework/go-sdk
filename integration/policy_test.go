@@ -429,3 +429,19 @@ func TestPolicyDelete(t *testing.T) {
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
+
+func TestPolicyDisableEnable(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "disable", "lacework-global-1")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
+	assert.Contains(t, out.String(), "disabled")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "enable", "lacework-global-1")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
+	assert.Contains(t, out.String(), "enabled")
+}

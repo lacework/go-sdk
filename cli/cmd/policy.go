@@ -126,12 +126,23 @@ To view the LQL query associated with the policy, use the query id shown.
 	}
 
 	// This is an experimental command.
-	// policyDisableTagCmd represents the policy disable-policy command
+	// policyDisableTagCmd represents the policy disable command
 	policyDisableTagCmd = &cobra.Command{
-		Use:     "disable-policy [policy_id]",
-		Hidden:  true,
-		Aliases: []string{"disable"},
-		Args:    cobra.RangeArgs(0, 1),
+		Use:    "disable [policy_id]",
+		Hidden: true,
+		Short:  "Disable Policies",
+		Long: `Disable Policies by ID or all policies matching a tag.
+
+To disable a single policy by it's ID:
+	lacework policy disable lacework-policy-id
+
+To disable all policies for Aws CIS 1.4.0:
+	lacework policy disable --tag framework:cis-aws-1-4-0
+
+To disable all policies for Gcp CIS 1.3.0:
+	lacework policy disable --tag framework:cis-gcp-1-3-0
+.`,
+		Args: cobra.RangeArgs(0, 1),
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			if len(args) > 0 && policyCmdState.Tag != "" {
 				return errors.New("'--tag' flag may not be use in conjunction with 'policy_id' arg")
@@ -142,12 +153,23 @@ To view the LQL query associated with the policy, use the query id shown.
 	}
 
 	// This is an experimental command.
-	// policyEnableTagCmd represents the policy enable-policy command
+	// policyEnableTagCmd represents the policy enable command
 	policyEnableTagCmd = &cobra.Command{
-		Use:     "enable-policy [policy_id]",
-		Hidden:  true,
-		Aliases: []string{"enable"},
-		Args:    cobra.RangeArgs(0, 1),
+		Use:    "enable [policy_id]",
+		Hidden: true,
+		Short:  "Enable Policies",
+		Long: `Enable Policies by ID or all policies matching a tag.
+
+To enable a single policy by it's ID:
+	lacework policy enable lacework-policy-id
+
+To enable all policies for Aws CIS 1.4.0:
+	lacework policy enable --tag framework:cis-aws-1-4-0
+
+To enable all policies for Gcp CIS 1.3.0:
+	lacework policy enable --tag framework:cis-gcp-1-3-0
+.`,
+		Args: cobra.RangeArgs(0, 1),
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			if len(args) > 0 && policyCmdState.Tag != "" {
 				return errors.New("'--tag' flag may not be use in conjunction with 'policy_id' arg")
@@ -500,8 +522,6 @@ func disablePolicy(_ *cobra.Command, args []string) error {
 	state := false
 	if len(args) > 0 {
 		policy := api.UpdatePolicy{PolicyID: args[0], Enabled: &state}
-		// todo: should alerts be disabled/enabled?
-		//policy.AlertEnabled = &policyState
 		_, err := cli.LwApi.V2.Policy.Update(policy)
 		if err != nil {
 			return err
@@ -519,8 +539,6 @@ func enablePolicy(_ *cobra.Command, args []string) error {
 	state := true
 	if len(args) > 0 {
 		policy := api.UpdatePolicy{PolicyID: args[0], Enabled: &state}
-		// todo: should alerts be disabled/enabled?
-		//policy.AlertEnabled = &policyState
 		_, err := cli.LwApi.V2.Policy.Update(policy)
 		if err != nil {
 			return err
@@ -567,8 +585,6 @@ func setPolicyStateByTag(tag string, policyState bool) error {
 	for i, p := range matchingPolicies {
 		cli.StartProgress(fmt.Sprintf(" %sing policies %d/%d (%s)...", strings.TrimSuffix(msg, "e"), i+1, len(matchingPolicies), p.PolicyID))
 		policy := api.UpdatePolicy{PolicyID: p.PolicyID, Enabled: &policyState}
-		// todo: should alerts be disabled/enabled?
-		//policy.AlertEnabled = &policyState
 		resp, err := cli.LwApi.V2.Policy.Update(policy)
 		if err != nil {
 			if len(policiesUpdated) > 0 {
