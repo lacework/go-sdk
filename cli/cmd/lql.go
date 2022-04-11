@@ -265,13 +265,13 @@ func inputQueryFromEditor(action string) (query string, err error) {
 queryText: |-
   {
       source {
-          // Select a datasource. To list all available datasources use 'lacework query sources'.
+          --- Select a datasource. To list all available datasources use 'lacework query sources'.
       }
       filter {
-          // Add query filter(s), if any. If not, remove this block.
+          --- Add query filter(s), if any. If not, remove this block.
       }
       return {
-          // List fields to return from the selected source. Use 'lacework query show-source <datasource>'
+          --- List fields to return from the selected source. Use 'lacework query show-source <datasource>'
       }
   }`
 		prompt.HideDefault = true
