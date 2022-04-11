@@ -81,7 +81,7 @@ var (
 		Description:   "Lacework Content Library",
 		LatestVersion: *mockVersion,
 		// @dhazekamp this only works for darwin-amd64 because we don't have per-package sigs
-		Type: lwcomponent.BinaryType.String(),
+		Type: lwcomponent.BinaryType,
 	}
 	mockLWComponentState lwcomponent.State = lwcomponent.State{
 		Components: []lwcomponent.Component{
@@ -92,7 +92,7 @@ var (
 		Name:          "lacework-content-library",
 		Description:   "Lacework Content Library",
 		LatestVersion: *mockVersion,
-		Type:          lwcomponent.BinaryType.String(),
+		Type:          lwcomponent.BinaryType,
 	}
 	nonZeroLWComponentState lwcomponent.State = lwcomponent.State{
 		Components: []lwcomponent.Component{
@@ -103,7 +103,7 @@ var (
 		Name:          "lacework-content-library",
 		Description:   "Lacework Content Library",
 		LatestVersion: *mockVersion,
-		Type:          lwcomponent.BinaryType.String(),
+		Type:          lwcomponent.BinaryType,
 	}
 	noParseLWComponentState lwcomponent.State = lwcomponent.State{
 		Components: []lwcomponent.Component{

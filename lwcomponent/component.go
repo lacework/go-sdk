@@ -199,11 +199,9 @@ type Artifact struct {
 }
 
 type Component struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	// @afiune if we switch the Type field to Type,
-	// we need to implement our own JSON marshaler
-	Type          string         `json:"type"`
+	Name          string         `json:"name"`
+	Description   string         `json:"description"`
+	Type          Type           `json:"type"`
 	LatestVersion semver.Version `json:"version"`
 	Artifacts     []Artifact     `json:"artifacts"`
 

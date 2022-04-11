@@ -18,42 +18,27 @@
 
 package lwcomponent
 
-type Type int
+type Type string
 
 const (
-	UnknownType Type = iota
+	EmptyType Type = ""
 
 	// the component is a binary
-	BinaryType
+	BinaryType = "BINARY"
 
 	// will this component be accessible via the CLI
-	CommandType
+	CommandType = "CLI_COMMAND"
 
 	// the component is a library, only provides content for the CLI or other components
-	LibraryType
+	LibraryType = "LIBRARY"
 
 	// the component is standalone, should be available in $PATH
-	StandaloneType
+	StandaloneType = "STANDALONE"
 )
-
-func (ct Type) String() string {
-	switch ct {
-	case BinaryType:
-		return "BINARY"
-	case CommandType:
-		return "CLI_COMMAND"
-	case LibraryType:
-		return "LIBRARY"
-	case StandaloneType:
-		return "STANDALONE"
-	default:
-		return "UNKNOWN"
-	}
-}
 
 func (c Component) IsExecutable() bool {
 	switch c.Type {
-	case BinaryType.String(), CommandType.String():
+	case BinaryType, CommandType:
 		return true
 	default:
 		return false
@@ -61,5 +46,5 @@ func (c Component) IsExecutable() bool {
 }
 
 func (c Component) IsCommandType() bool {
-	return c.Type == CommandType.String()
+	return c.Type == CommandType
 }
