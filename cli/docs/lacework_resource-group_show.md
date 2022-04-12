@@ -13,7 +13,7 @@ Get resource group by ID
 Get a single resource group by it's resource group ID.
 
 ```
-lacework resource-group show [flags]
+lacework resource-group show <resource_group_id> [flags]
 ```
 
 ### Options
