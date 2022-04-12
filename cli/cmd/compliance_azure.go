@@ -298,7 +298,6 @@ To list all Azure tenants and subscriptions configured in your account:
 	complianceAzureDisableReportCmd = &cobra.Command{
 		Use:     "disable-report <report_type>",
 		Aliases: []string{"disable"},
-		Hidden:  true,
 		Short:   "Disable all recommendations for a given report type",
 		Long: `Disable all recommendations for a given report type.
 Supported report types are: CIS_1_0, CIS_1_3_1
@@ -306,7 +305,7 @@ Supported report types are: CIS_1_0, CIS_1_3_1
 To show the current status of recommendations in a report run:
 	lacework compliance azure status CIS_1_3_1
 
-To disable all recommendations for CIS_1_1 report run:
+To disable all recommendations for CIS_1_3_1 report run:
 	lacework compliance azure disable CIS_1_3_1
 `,
 		PreRunE: func(_ *cobra.Command, args []string) error {
@@ -350,7 +349,6 @@ To disable all recommendations for CIS_1_1 report run:
 	complianceAzureEnableReportCmd = &cobra.Command{
 		Use:     "enable-report <report_type>",
 		Aliases: []string{"enable"},
-		Hidden:  true,
 		Short:   "Enable all recommendations for a given report type",
 		Long: `Enable all recommendations for a given report type.
 Supported report types are: CIS_1_0, CIS_1_3_1
@@ -358,7 +356,7 @@ Supported report types are: CIS_1_0, CIS_1_3_1
 To show the current status of recommendations in a report run:
 	lacework compliance azure status CIS_1_3_1
 
-To enable all recommendations for CIS_1_1 report run:
+To enable all recommendations for CIS_1_3_1 report run:
 	lacework compliance azure enable CIS_1_3_1
 `,
 		PreRunE: func(_ *cobra.Command, args []string) error {
@@ -402,7 +400,6 @@ To enable all recommendations for CIS_1_1 report run:
 	complianceAzureReportStatusCmd = &cobra.Command{
 		Use:     "report-status <report_type>",
 		Aliases: []string{"status"},
-		Hidden:  true,
 		Short:   "Show the status of recommendations for a given report type",
 		Long: `Show the status of recommendations for a given report type.
 Supported report types are: CIS_1_0, CIS_1_3_1

@@ -251,7 +251,6 @@ To show recommendation details and affected resources for a recommendation id:
 	complianceAwsDisableReportCmd = &cobra.Command{
 		Use:     "disable-report <report_type>",
 		Aliases: []string{"disable"},
-		Hidden:  true,
 		Short:   "Disable all recommendations for a given report type",
 		Long: `Disable all recommendations for a given report type.
 Supported report types are CIS_1_1
@@ -310,7 +309,6 @@ To show the current status of recommendations in a report run:
 To enable all recommendations for CIS_1_1 report run:
 	lacework compliance aws enable CIS_1_1
 `,
-		Hidden: true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS", "CIS_1_1", "AWS_CIS_S3":
@@ -359,7 +357,6 @@ To show the current status of recommendations in a report run:
 The output from status with the --json flag can be used in the body of PATCH api/v1/external/recommendations/aws
 	lacework compliance aws status CIS_1_1 --json
 `,
-		Hidden: true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS", "CIS_1_1", "AWS_CIS_S3":

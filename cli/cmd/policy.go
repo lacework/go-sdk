@@ -128,9 +128,8 @@ To view the LQL query associated with the policy, use the query id shown.
 	// This is an experimental command.
 	// policyDisableTagCmd represents the policy disable command
 	policyDisableTagCmd = &cobra.Command{
-		Use:    "disable [policy_id]",
-		Hidden: true,
-		Short:  "Disable Policies",
+		Use:   "disable [policy_id]",
+		Short: "Disable Policies",
 		Long: `Disable Policies by ID or all policies matching a tag.
 
 To disable a single policy by it's ID:
@@ -155,9 +154,8 @@ To disable all policies for Gcp CIS 1.3.0:
 	// This is an experimental command.
 	// policyEnableTagCmd represents the policy enable command
 	policyEnableTagCmd = &cobra.Command{
-		Use:    "enable [policy_id]",
-		Hidden: true,
-		Short:  "Enable Policies",
+		Use:   "enable [policy_id]",
+		Short: "Enable Policies",
 		Long: `Enable Policies by ID or all policies matching a tag.
 
 To enable a single policy by it's ID:
