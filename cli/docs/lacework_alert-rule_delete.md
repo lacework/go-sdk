@@ -13,7 +13,7 @@ Delete a alert rule
 Delete a single alert rule by it's ID.
 
 ```
-lacework alert-rule delete [flags]
+lacework alert-rule delete <alert_rule_id> [flags]
 ```
 
 ### Options

@@ -13,7 +13,7 @@ Delete a resource group
 Delete a single resource group by it's resource group ID.
 
 ```
-lacework resource-group delete [flags]
+lacework resource-group delete <resource_group_id> [flags]
 ```
 
 ### Options
