@@ -1,4 +1,4 @@
-# github.com/AlecAivazis/survey/v2 v2.3.2
+# github.com/AlecAivazis/survey/v2 v2.3.4
 ## explicit; go 1.13
 github.com/AlecAivazis/survey/v2
 github.com/AlecAivazis/survey/v2/core
@@ -10,8 +10,8 @@ github.com/BurntSushi/toml/internal
 # github.com/Masterminds/semver v1.5.0
 ## explicit
 github.com/Masterminds/semver
-# github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
-## explicit
+# github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2
+## explicit; go 1.13
 github.com/Netflix/go-expect
 # github.com/abiosoft/colima v0.3.4
 ## explicit; go 1.17
@@ -28,6 +28,9 @@ github.com/briandowns/spinner
 # github.com/cpuguy83/go-md2man/v2 v2.0.1
 ## explicit; go 1.11
 github.com/cpuguy83/go-md2man/v2/md2man
+# github.com/creack/pty v1.1.17
+## explicit; go 1.13
+github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -102,8 +105,8 @@ github.com/hashicorp/terraform-exec/tfexec
 # github.com/hashicorp/terraform-json v0.13.0
 ## explicit; go 1.13
 github.com/hashicorp/terraform-json
-# github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
-## explicit
+# github.com/hinshun/vt10x v0.0.0-20220119200601-820417d04eec
+## explicit; go 1.14
 github.com/hinshun/vt10x
 # github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 ## explicit
@@ -129,9 +132,6 @@ github.com/klauspost/compress/huff0
 github.com/klauspost/compress/internal/snapref
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
-# github.com/kr/pty v1.1.8 => github.com/creack/pty v1.1.7
-## explicit
-github.com/kr/pty
 # github.com/kyokomi/emoji/v2 v2.2.9
 ## explicit; go 1.14
 github.com/kyokomi/emoji/v2

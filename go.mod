@@ -3,10 +3,10 @@ module github.com/lacework/go-sdk
 go 1.18
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.2
+	github.com/AlecAivazis/survey/v2 v2.3.4
 	github.com/BurntSushi/toml v1.1.0
 	github.com/Masterminds/semver v1.5.0
-	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
+	github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2
 	github.com/abiosoft/colima v0.3.4
 	github.com/briandowns/spinner v1.17.0
 	github.com/fatih/color v1.13.0
@@ -16,7 +16,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/terraform-exec v0.16.0
 	github.com/hashicorp/terraform-json v0.13.0
-	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
+	github.com/hinshun/vt10x v0.0.0-20220119200601-820417d04eec
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/honeycombio/libhoney-go v1.15.8
 	github.com/imdario/mergo v0.3.12
@@ -42,6 +42,7 @@ require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/creack/pty v1.1.17 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/facebookgo/limitgroup v0.0.0-20150612190941-6abd8d71ec01 // indirect
@@ -54,7 +55,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
-	github.com/kr/pty v1.1.8 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
