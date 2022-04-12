@@ -18,8 +18,11 @@ Usage:
   lacework compliance aws [command]
 
 Available Commands:
+  disable-report Disable all recommendations for a given report type
+  enable-report  Enable all recommendations for a given report type
   get-report     Get the latest AWS compliance report
   list-accounts  List all AWS accounts configured
+  report-status  Show the status of recommendations for a given report type
   run-assessment Run a new AWS compliance assessment
 
 Flags:

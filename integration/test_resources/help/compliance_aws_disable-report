@@ -1,21 +1,20 @@
-Disable Policies by ID or all policies matching a tag.
+Disable all recommendations for a given report type.
+Supported report types are CIS_1_1
 
-To disable a single policy by it's ID:
-	lacework policy disable lacework-policy-id
+To show the current status of recommendations in a report run:
+	lacework compliance aws status CIS_1_1
 
-To disable all policies for Aws CIS 1.4.0:
-	lacework policy disable --tag framework:cis-aws-1-4-0
-
-To disable all policies for Gcp CIS 1.3.0:
-	lacework policy disable --tag framework:cis-gcp-1-3-0
-.
+To disable all recommendations for CIS_1_1 report run:
+	lacework compliance aws disable CIS_1_1
 
 Usage:
-  lacework policy disable [policy_id] [flags]
+  lacework compliance aws disable-report <report_type> [flags]
+
+Aliases:
+  disable-report, disable
 
 Flags:
-  -h, --help         help for disable
-      --tag string   disable all policies with the specified tag
+  -h, --help   help for disable-report
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

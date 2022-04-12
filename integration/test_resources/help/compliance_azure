@@ -25,9 +25,12 @@ Aliases:
   azure, az
 
 Available Commands:
+  disable-report     Disable all recommendations for a given report type
+  enable-report      Enable all recommendations for a given report type
   get-report         Get the latest Azure compliance report
   list               List Azure tenants and subscriptions
   list-subscriptions List subscriptions from tenant
+  report-status      Show the status of recommendations for a given report type
   run-assessment     Run a new Azure compliance assessment
 
 Flags:
