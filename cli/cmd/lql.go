@@ -120,6 +120,19 @@ Start and End times are required to run a query:
     A. CLI flags take precedence over JSON specifications  
     B. JSON specifications take precedence over ParamInfo specifications  `,
 		Args: cobra.MaximumNArgs(1),
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if queryCmdState.FailOnCount != "" {
+				var co failon.CountOperation
+				if err := co.Parse(queryCmdState.FailOnCount); err != nil {
+					return err
+				}
+
+				if _, err := co.IsFail(0); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
 		RunE: runQuery,
 	}
 )
@@ -354,6 +367,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		err        error
 		start      time.Time
 		end        time.Time
+		response   api.ExecuteQueryResponse
 		msg        string = "unable to run query"
 		hasCmdArgs bool   = len(args) != 0 && args[0] != ""
 	)
@@ -389,20 +403,6 @@ func runQuery(cmd *cobra.Command, args []string) error {
 			return errors.Wrap(err, msg)
 		}
 	}
-	// fail_on_count pre
-	var co failon.CountOperation
-
-	if queryCmdState.FailOnCount != "" {
-		err = co.Parse(queryCmdState.FailOnCount)
-		if err != nil {
-			return err
-		}
-
-		_, err = co.IsFail(0)
-		if err != nil {
-			return err
-		}
-	}
 
 	queryArgs := []api.ExecuteQueryArgument{
 		api.ExecuteQueryArgument{
@@ -415,14 +415,39 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		},
 	}
 
-	// query by id
 	if hasCmdArgs {
-		response, err := runQueryByID(args[0], queryArgs)
-		return outputQueryRunResponse(response, err, co)
+		// query by id
+		response, err = runQueryByID(args[0], queryArgs)
+	} else {
+		// adhoc query
+		response, err = runAdhocQuery(cmd, queryArgs)
 	}
-	// adhoc query
-	response, err := runAdhocQuery(cmd, queryArgs)
-	return outputQueryRunResponse(response, err, co)
+
+	if err != nil {
+		return errors.Wrap(err, "unable to run query")
+	}
+
+	// output
+	if err = cli.OutputJSON(response.Data); err != nil {
+		return err
+	}
+
+	// fail_on_count post
+	if queryCmdState.FailOnCount != "" {
+		cli.Log.Infow("enforce failure flag(s)",
+			"fail_on_count", queryCmdState.FailOnCount,
+		)
+
+		queryPolicy := NewQueryPolicyError(
+			queryCmdState.FailOnCount,
+			len(response.Data),
+		)
+		if queryPolicy.NonCompliant() {
+			cmd.SilenceUsage = true
+			return queryPolicy
+		}
+	}
+	return nil
 }
 
 func runQueryByID(id string, args []api.ExecuteQueryArgument) (
@@ -471,31 +496,4 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 	cli.Log.Debugw("running query", "query", queryString)
 	response, err = cli.LwApi.V2.Query.Execute(executeQuery)
 	return
-}
-
-func outputQueryRunResponse(
-	response api.ExecuteQueryResponse,
-	err error,
-	co failon.CountOperation,
-) error {
-	msg := "unable to run query"
-
-	if err != nil {
-		return errors.Wrap(err, msg)
-	}
-	// output
-	if err = cli.OutputJSON(response.Data); err != nil {
-		return err
-	}
-	// fail_on_count post
-	if queryCmdState.FailOnCount != "" {
-		isFail, err := co.IsFail(len(response.Data))
-		if err != nil {
-			return err
-		}
-		if isFail {
-			os.Exit(9)
-		}
-	}
-	return nil
 }

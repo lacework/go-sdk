@@ -1,7 +1,6 @@
 package failon
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -21,13 +20,12 @@ func (co *CountOperation) Parse(s string) error {
 
 	s = strings.TrimSpace(s)
 
-	var op_parts []string
-	if op_parts = re.FindStringSubmatch(s); s == "" || op_parts == nil {
-		return errors.New(
-			fmt.Sprintf("count operation (%s) is invalid", s))
+	var opParts []string
+	if opParts = re.FindStringSubmatch(s); s == "" || opParts == nil {
+		return errors.Errorf("count operation (%s) is invalid", s)
 	}
-	co.num, _ = strconv.Atoi(op_parts[2])
-	co.operator = op_parts[1]
+	co.num, _ = strconv.Atoi(opParts[2])
+	co.operator = opParts[1]
 	return nil
 }
 
@@ -45,6 +43,7 @@ func (co CountOperation) IsFail(count int) (bool, error) {
 		return count == co.num, nil
 	case "!=":
 		return count != co.num, nil
+	default:
+		return true, errors.Errorf("count operation (%s) is invalid", co.operator)
 	}
-	return true, errors.New(fmt.Sprintf("count operation (%s) is invalid", co.operator))
 }
