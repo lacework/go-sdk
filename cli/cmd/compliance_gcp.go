@@ -309,6 +309,7 @@ To list all GCP projects and organizations configured in your account:
 	// experimental feature
 	complianceGcpDisableReportCmd = &cobra.Command{
 		Use:     "disable-report <report_type>",
+		Hidden:  true,
 		Aliases: []string{"disable"},
 		Short:   "Disable all recommendations for a given report type",
 		Long: `Disable all recommendations for a given report type.
@@ -360,6 +361,7 @@ To disable all recommendations for CIS_1_2 report run:
 	// experimental feature
 	complianceGcpEnableReportCmd = &cobra.Command{
 		Use:     "enable-report <report_type>",
+		Hidden:  true,
 		Aliases: []string{"enable"},
 		Short:   "Enable all recommendations for a given report type",
 		Long: `Enable all recommendations for a given report type.
@@ -411,6 +413,7 @@ To enable all recommendations for CIS_1_2 report run:
 	// experimental feature
 	complianceGcpReportStatusCmd = &cobra.Command{
 		Use:     "report-status <report_type>",
+		Hidden:  true,
 		Aliases: []string{"status"},
 		Short:   "Show the status of recommendations for a given report type",
 		Long: `Show the status of recommendations for a given report type.

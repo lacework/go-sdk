@@ -250,6 +250,7 @@ To show recommendation details and affected resources for a recommendation id:
 	// experimental feature
 	complianceAwsDisableReportCmd = &cobra.Command{
 		Use:     "disable-report <report_type>",
+		Hidden:  true,
 		Aliases: []string{"disable"},
 		Short:   "Disable all recommendations for a given report type",
 		Long: `Disable all recommendations for a given report type.
@@ -298,6 +299,7 @@ To disable all recommendations for CIS_1_1 report run:
 	// experimental feature
 	complianceAwsEnableReportCmd = &cobra.Command{
 		Use:     "enable-report <report_type>",
+		Hidden:  true,
 		Aliases: []string{"enable"},
 		Short:   "Enable all recommendations for a given report type",
 		Long: `Enable all recommendations for a given report type.
@@ -346,6 +348,7 @@ To enable all recommendations for CIS_1_1 report run:
 	// experimental feature
 	complianceAwsReportStatusCmd = &cobra.Command{
 		Use:     "report-status <report_type>",
+		Hidden:  true,
 		Aliases: []string{"status"},
 		Short:   "Show the status of recommendations for a given report type",
 		Long: `Show the status of recommendations for a given report type.
