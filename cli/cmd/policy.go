@@ -143,7 +143,8 @@ To disable all policies for Aws CIS 1.4.0:
 To disable all policies for Gcp CIS 1.3.0:
 
 	lacework policy disable --tag framework:cis-gcp-1-3-0
-.`,
+
+`,
 		Args: cobra.RangeArgs(0, 1),
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			if len(args) > 0 && policyCmdState.Tag != "" {
@@ -172,7 +173,8 @@ To enable all policies for Aws CIS 1.4.0:
 To enable all policies for Gcp CIS 1.3.0:
 
 	lacework policy enable --tag framework:cis-gcp-1-3-0
-.`,
+
+`,
 		Args: cobra.RangeArgs(0, 1),
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			if len(args) > 0 && policyCmdState.Tag != "" {
