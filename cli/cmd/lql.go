@@ -43,10 +43,8 @@ var (
 		Start        string
 		URL          string
 		ValidateOnly bool
-		// show, run from library
-		RunFromLibrary bool
 		// create, update validate from library
-		CUVFromLibrary string
+		CURVFromLibrary string
 	}{}
 
 	// queryCmd represents the lql parent command
@@ -130,9 +128,9 @@ func init() {
 	queryCmd.AddCommand(queryRunCmd)
 
 	if cli.IsLCLInstalled() {
-		queryRunCmd.Flags().BoolVarP(
-			&queryCmdState.RunFromLibrary,
-			"library", "l", false,
+		queryRunCmd.Flags().StringVarP(
+			&queryCmdState.CURVFromLibrary,
+			"library", "l", "",
 			"run query from Lacework Content Library",
 		)
 	}
@@ -190,8 +188,8 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 // for commands that take a query as input
 func inputQuery(cmd *cobra.Command) (string, error) {
 	// if running via library (CUV)
-	if queryCmdState.CUVFromLibrary != "" {
-		return inputQueryFromLibrary(queryCmdState.CUVFromLibrary)
+	if queryCmdState.CURVFromLibrary != "" {
+		return inputQueryFromLibrary(queryCmdState.CURVFromLibrary)
 	}
 	// if running via file
 	if queryCmdState.File != "" {
@@ -337,13 +335,35 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		start      time.Time
 		end        time.Time
 		msg        string = "unable to run query"
-		hasCmdArgs bool   = len(args) != 0 && args[0] != "" && !queryCmdState.RunFromLibrary
+		hasCmdArgs bool   = len(args) != 0 && args[0] != ""
 	)
 
-	// validate_only w/ query_id
-	if queryCmdState.ValidateOnly && hasCmdArgs {
-		return errors.New("flag --validate_only unavailable when specifying query_id argument")
+	// check use of <query_id> with other flags
+	if hasCmdArgs {
+		var naFlag string
+
+		if queryCmdState.File != "" {
+			naFlag = "file"
+		}
+		if queryCmdState.CURVFromLibrary != "" {
+			naFlag = "library"
+		}
+		if queryCmdState.URL != "" {
+			naFlag = "url"
+		}
+		if queryCmdState.ValidateOnly {
+			naFlag = "validate_only"
+		}
+		if naFlag != "" {
+			return errors.New(
+				fmt.Sprintf(
+					"flag --%s not applicable when specifying query_id argument",
+					naFlag,
+				),
+			)
+		}
 	}
+
 	// validate_only
 	if queryCmdState.ValidateOnly {
 		return validateQuery(cmd, args)

@@ -111,7 +111,7 @@ func init() {
 
 	if cli.IsLCLInstalled() {
 		queryCreateCmd.Flags().StringVarP(
-			&queryCmdState.CUVFromLibrary,
+			&queryCmdState.CURVFromLibrary,
 			"library", "l", "",
 			"create query from Lacework Content Library",
 		)

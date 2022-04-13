@@ -64,7 +64,7 @@ func init() {
 
 	if cli.IsLCLInstalled() {
 		queryUpdateCmd.Flags().StringVarP(
-			&queryCmdState.CUVFromLibrary,
+			&queryCmdState.CURVFromLibrary,
 			"library", "l", "",
 			"update query from Lacework Content Library",
 		)
