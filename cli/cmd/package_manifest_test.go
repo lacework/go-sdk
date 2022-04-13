@@ -225,6 +225,10 @@ func TestMergeHostVulnScanPkgManifestResponses(t *testing.T) {
 	}
 }
 
+func TestIsEsmEnabled(t *testing.T) {
+	assert.False(t, cli.IsEsmEnabled())
+}
+
 func TestParseOsRelease(t *testing.T) {
 	file, err := ioutil.TempFile("", "os-release")
 	assert.Nil(t, err)
