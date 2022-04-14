@@ -228,8 +228,8 @@ func TestAlertProfileUpdate(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	alertProfile := api.AlertProfileUpdate{
-		Alerts: []api.AlertProfileAlert{{Name: "HE_File_Violation",
+	alertProfile := api.AlertProfile{
+		Alerts: []api.AlertTemplate{{Name: "HE_File_Violation",
 			EventName:   "LW Host Entity File Violation Alert",
 			Description: "{{_OCCURRENCE}} Violation for file {{PATH}} on machine {{MID}}",
 			Subject:     "{{_OCCURRENCE}} violation detected for file {{PATH}} on machine {{MID}}"},
@@ -240,7 +240,7 @@ func TestAlertProfileUpdate(t *testing.T) {
 	assert.Equal(t, "{{_OCCURRENCE}} Violation for file {{PATH}} on machine {{MID}}", alertProfile.Alerts[0].Description, "an alert profile description should match")
 	assert.Equal(t, "{{_OCCURRENCE}} violation detected for file {{PATH}} on machine {{MID}}", alertProfile.Alerts[0].Subject, "an alert profile subject should match")
 
-	response, err := c.V2.Alert.Profiles.Update("LW_PROFILE_EXAMPLE", alertProfile)
+	response, err := c.V2.Alert.Profiles.Update("LW_PROFILE_EXAMPLE", alertProfile.Alerts)
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, "LW_PROFILE_EXAMPLE", response.Data.Guid)
