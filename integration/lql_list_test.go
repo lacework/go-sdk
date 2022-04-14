@@ -34,13 +34,13 @@ func TestQueryList(t *testing.T) {
 	// list human
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "list")
 	assert.Contains(t, out.String(), "QUERY ID")
-	assert.Contains(t, out.String(), "LW_CLI_AWS_CTA_IntegrationTest")
+	assert.Contains(t, out.String(), "CLI_AWS_CTA_IntegrationTest")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// list json
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "list", "--json")
-	assert.Contains(t, out.String(), `"LW_CLI_AWS_CTA_IntegrationTest"`)
+	assert.Contains(t, out.String(), `"CLI_AWS_CTA_IntegrationTest"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

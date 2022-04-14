@@ -32,7 +32,7 @@ var (
 	falsePtr         = false
 	updateTestPolicy = api.UpdatePolicy{
 		PolicyType:   "Violation",
-		QueryID:      "LW_CLI_AWS_CTA_IntegrationTest",
+		QueryID:      "CLI_AWS_CTA_IntegrationTest",
 		Title:        "My Policy Title",
 		Enabled:      &falsePtr,
 		Description:  "My Policy Description",
