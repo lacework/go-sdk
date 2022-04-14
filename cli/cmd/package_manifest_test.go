@@ -225,8 +225,25 @@ func TestMergeHostVulnScanPkgManifestResponses(t *testing.T) {
 	}
 }
 
-func TestIsEsmEnabled(t *testing.T) {
+func TestIsEsmEnabledWhenIsNotEnabled(t *testing.T) {
 	assert.False(t, cli.IsEsmEnabled())
+}
+
+func TestIsEsmEnabledWhenIsActuallyEnabled(t *testing.T) {
+	file, err := ioutil.TempFile("", "ubuntu-advantage-status-json")
+	assert.Nil(t, err)
+	_, err = file.WriteString(mockUbuntuUAStatusFile)
+	assert.Nil(t, err)
+
+	procUAStatusFile = file.Name()
+
+	defer func() {
+		os.Remove(file.Name())
+		// rollback
+		procUAStatusFile = "/proc/1/root/var/lib/ubuntu-advantage/status.json"
+	}()
+
+	assert.True(t, cli.IsEsmEnabled())
 }
 
 func TestParseOsRelease(t *testing.T) {
@@ -274,4 +291,111 @@ PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-poli
 VERSION_CODENAME=bionic
 UBUNTU_CODENAME=bionic
 `
+	mockUbuntuUAStatusFile = `{
+  "execution_details": "No Ubuntu Advantage operations are running",
+  "machine_id": "abc123",
+  "origin": "free",
+  "_doc": "Content provided in json response is currently considered Experimental and may change",
+  "account": {
+    "name": "test@lacework.net",
+    "id": "abc123",
+    "external_account_ids": [],
+    "created_at": "2022-01-25T23:06:47+00:00"
+  },
+  "expires": "9999-12-31T00:00:00+00:00",
+  "execution_status": "inactive",
+  "version": "27.2.2~16.04.1",
+  "notices": [],
+  "_schema_version": "0.1",
+  "config_path": "/etc/ubuntu-advantage/uaclient.conf",
+  "attached": true,
+  "services": [
+    {
+      "entitled": "yes",
+      "description_override": null,
+      "name": "cc-eal",
+      "status_details": "CC EAL2 is not configured",
+      "description": "Common Criteria EAL2 Provisioning Packages",
+      "status": "disabled",
+      "available": "yes"
+    },
+    {
+      "entitled": "yes",
+      "description_override": null,
+      "name": "cis",
+      "status_details": "CIS Audit is not configured",
+      "description": "Center for Internet Security Audit Tools",
+      "status": "disabled",
+      "available": "yes"
+    },
+    {
+      "entitled": "no",
+      "description_override": null,
+      "name": "esm-apps",
+      "status_details": "",
+      "description": "UA Apps: Extended Security Maintenance (ESM)",
+      "status": "—",
+      "available": "yes"
+    },
+    {
+      "entitled": "yes",
+      "description_override": null,
+      "name": "esm-infra",
+      "status_details": "UA Infra: ESM is active",
+      "description": "UA Infra: Extended Security Maintenance (ESM)",
+      "status": "enabled",
+      "available": "yes"
+    },
+    {
+      "entitled": "yes",
+      "description_override": null,
+      "name": "fips",
+      "status_details": "FIPS is not configured",
+      "description": "NIST-certified core packages",
+      "status": "disabled",
+      "available": "yes"
+    },
+    {
+      "entitled": "yes",
+      "description_override": null,
+      "name": "fips-updates",
+      "status_details": "FIPS Updates is not configured",
+      "description": "NIST-certified core packages with priority security updates",
+      "status": "disabled",
+      "available": "yes"
+    },
+    {
+      "entitled": "yes",
+      "description_override": null,
+      "name": "livepatch",
+      "status_details": "",
+      "description": "Canonical Livepatch service",
+      "status": "enabled",
+      "available": "yes"
+    }
+  ],
+  "contract": {
+    "products": [
+      "free"
+    ],
+    "name": "test@lacework.net",
+    "id": "abc123",
+    "tech_support_level": "n/a",
+    "created_at": "2022-01-25T23:06:47+00:00"
+  },
+  "config": {
+    "security_url": "https://ubuntu.com/security",
+    "data_dir": "/var/lib/ubuntu-advantage",
+    "ua_config": {
+      "apt_http_proxy": null,
+      "https_proxy": null,
+      "http_proxy": null,
+      "apt_https_proxy": null
+    },
+    "log_level": "debug",
+    "log_file": "/var/log/ubuntu-advantage.log",
+    "contract_url": "https://contracts.canonical.com"
+  },
+  "effective": "2022-01-25T23:06:47+00:00"
+}`
 )
