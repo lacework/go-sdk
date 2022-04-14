@@ -24,11 +24,23 @@ import (
 	"github.com/pkg/errors"
 )
 
+type v2alertProfilesService struct {
+	client    *Client
+	Profiles  *alertProfilesService
+	Templates *alertTemplatesService
+}
+
+func NewV2AlertProfilesService(c *Client) *v2alertProfilesService {
+	return &v2alertProfilesService{c,
+		&alertProfilesService{c},
+		&alertTemplatesService{c},
+	}
+}
+
 // AlertProfilesService is the service that interacts with
 // the AlertProfiles schema from the Lacework APIv2 Server
-type AlertProfilesService struct {
-	client    *Client
-	Templates AlertTemplatesService
+type alertProfilesService struct {
+	client *Client
 }
 
 // NewAlertProfile returns an instance of the AlertProfileConfig struct
@@ -42,15 +54,17 @@ type AlertProfilesService struct {
 //   }
 //
 //   alertProfile := api.NewAlertProfile(
-//		"Foo",
-//		api.AlertProfileConfig{
-// 		...
+//		"CUSTOM_PROFILE_NAME",
+// 		"LW_HE_FILES_DEFAULT_PROFILE"
+//		[]api.AlertTemplate{{
+//		...
+//		}
 //     },
 //   )
 //
-//   client.V2.AlertProfiles.Create(AlertProfile)
+//   client.V2.Alert.Profiles.Create(AlertProfile)
 //
-func NewAlertProfile(id string, extends string, alerts []AlertProfileAlert) AlertProfileConfig {
+func NewAlertProfile(id string, extends string, alerts []AlertTemplate) AlertProfileConfig {
 	profile := AlertProfileConfig{
 		Guid:    id,
 		Extends: extends,
@@ -60,13 +74,13 @@ func NewAlertProfile(id string, extends string, alerts []AlertProfileAlert) Aler
 }
 
 // List returns a list of Alert Profiles
-func (svc *AlertProfilesService) List() (response AlertProfilesResponse, err error) {
+func (svc *alertProfilesService) List() (response AlertProfilesResponse, err error) {
 	err = svc.client.RequestDecoder("GET", apiV2AlertProfiles, nil, &response)
 	return
 }
 
 // Create creates a single Alert Profile
-func (svc *AlertProfilesService) Create(profile AlertProfileConfig) (
+func (svc *alertProfilesService) Create(profile AlertProfileConfig) (
 	response AlertProfileResponse,
 	err error,
 ) {
@@ -75,7 +89,7 @@ func (svc *AlertProfilesService) Create(profile AlertProfileConfig) (
 }
 
 // Delete deletes a Alert Profile that matches the provided guid
-func (svc *AlertProfilesService) Delete(guid string) error {
+func (svc *alertProfilesService) Delete(guid string) error {
 	if guid == "" {
 		return errors.New("specify an intgGuid")
 	}
@@ -89,7 +103,7 @@ func (svc *AlertProfilesService) Delete(guid string) error {
 }
 
 // Update updates a single Alert Profile of the provided guid.
-func (svc *AlertProfilesService) Update(guid string, data AlertProfileUpdate) (
+func (svc *alertProfilesService) Update(guid string, data []AlertTemplate) (
 	response AlertProfileResponse,
 	err error,
 ) {
@@ -97,13 +111,14 @@ func (svc *AlertProfilesService) Update(guid string, data AlertProfileUpdate) (
 		err = errors.New("specify a Guid")
 		return
 	}
+	body := alertTemplatesUpdate{data}
 	apiPath := fmt.Sprintf(apiV2AlertProfileFromGUID, guid)
-	err = svc.client.RequestEncoderDecoder("PATCH", apiPath, data, &response)
+	err = svc.client.RequestEncoderDecoder("PATCH", apiPath, body, &response)
 	return
 }
 
 // Get returns a raw response of the Alert Profile with the matching guid.
-func (svc *AlertProfilesService) Get(guid string, response interface{}) error {
+func (svc *alertProfilesService) Get(guid string, response interface{}) error {
 	if guid == "" {
 		return errors.New("specify a Guid")
 	}
@@ -116,13 +131,13 @@ type AlertProfile struct {
 	Extends         string                        `json:"extends"`
 	Fields          []AlertProfileField           `json:"fields,omitempty"`
 	DescriptionKeys []AlertProfileDescriptionKeys `json:"descriptionKeys,omitempty"`
-	Alerts          []AlertProfileAlert           `json:"alerts"`
+	Alerts          []AlertTemplate               `json:"alerts"`
 }
 
 type AlertProfileConfig struct {
-	Guid    string              `json:"alertProfileId"`
-	Extends string              `json:"extends"`
-	Alerts  []AlertProfileAlert `json:"alerts"`
+	Guid    string          `json:"alertProfileId"`
+	Extends string          `json:"extends"`
+	Alerts  []AlertTemplate `json:"alerts"`
 }
 
 type AlertProfileField struct {
@@ -132,17 +147,6 @@ type AlertProfileField struct {
 type AlertProfileDescriptionKeys struct {
 	Name string `json:"name"`
 	Spec string `json:"spec"`
-}
-
-type AlertProfileAlert struct {
-	Name        string `json:"name"`
-	EventName   string `json:"eventName"`
-	Description string `json:"description"`
-	Subject     string `json:"subject"`
-}
-
-type AlertProfileUpdate struct {
-	Alerts []AlertProfileAlert `json:"alerts"`
 }
 
 type AlertProfileResponse struct {

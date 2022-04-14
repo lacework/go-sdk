@@ -33,7 +33,7 @@ type V2Endpoints struct {
 	// Every schema must have its own service
 	UserProfile             *UserProfileService
 	AlertChannels           *AlertChannelsService
-	AlertProfiles           *AlertProfilesService
+	Alert                   *v2alertProfilesService
 	AlertRules              *AlertRulesService
 	ReportRules             *ReportRulesService
 	CloudAccounts           *CloudAccountsService
@@ -54,7 +54,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 	v2 := &V2Endpoints{c,
 		&UserProfileService{c},
 		&AlertChannelsService{c},
-		&AlertProfilesService{c, AlertTemplatesService{c}},
+		NewV2AlertProfilesService(c),
 		&AlertRulesService{c},
 		&ReportRulesService{c},
 		&CloudAccountsService{c},
@@ -73,7 +73,6 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 
 	v2.Schemas.Services = map[integrationSchema]V2Service{
 		AlertChannels:           &AlertChannelsService{c},
-		AlertProfiles:           &AlertProfilesService{c, AlertTemplatesService{c}},
 		AlertRules:              &AlertRulesService{c},
 		CloudAccounts:           &CloudAccountsService{c},
 		ContainerRegistries:     &ContainerRegistriesService{c},

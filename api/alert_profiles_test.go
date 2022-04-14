@@ -66,7 +66,7 @@ func TestAlertProfilesGet(t *testing.T) {
 
 	t.Run("when alert profile exists", func(t *testing.T) {
 		var response api.AlertProfileResponse
-		err := c.V2.AlertProfiles.Get(guid, &response)
+		err := c.V2.Alert.Profiles.Get(guid, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, "LW_PROFILE_EXAMPLE", response.Data.Guid)
@@ -79,7 +79,7 @@ func TestAlertProfilesGet(t *testing.T) {
 
 	t.Run("when alert profile does NOT exist", func(t *testing.T) {
 		var response api.AlertProfileResponse
-		err := c.V2.AlertProfiles.Get("UNKNOWN_INTG_GUID", response)
+		err := c.V2.Alert.Profiles.Get("UNKNOWN_INTG_GUID", response)
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/AlertProfiles/UNKNOWN_INTG_GUID")
@@ -134,7 +134,7 @@ func TestAlertProfilesDelete(t *testing.T) {
 
 	t.Run("verify alert profile exists", func(t *testing.T) {
 		var response api.AlertProfileResponse
-		err := c.V2.AlertProfiles.Get(guid, &response)
+		err := c.V2.Alert.Profiles.Get(guid, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, "LW_PROFILE_EXAMPLE", response.Data.Guid)
@@ -146,11 +146,11 @@ func TestAlertProfilesDelete(t *testing.T) {
 	})
 
 	t.Run("when alert profile has been deleted", func(t *testing.T) {
-		err := c.V2.AlertProfiles.Delete(guid)
+		err := c.V2.Alert.Profiles.Delete(guid)
 		assert.Nil(t, err)
 
 		var response api.AlertProfileResponse
-		err = c.V2.AlertProfiles.Get(guid, &response)
+		err = c.V2.Alert.Profiles.Get(guid, &response)
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/AlertProfiles/LW_")
@@ -191,7 +191,7 @@ func TestAlertProfilesList(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.AlertProfiles.List()
+	response, err := c.V2.Alert.Profiles.List()
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response.Data))
@@ -240,7 +240,7 @@ func TestAlertProfileUpdate(t *testing.T) {
 	assert.Equal(t, "{{_OCCURRENCE}} Violation for file {{PATH}} on machine {{MID}}", alertProfile.Alerts[0].Description, "an alert profile description should match")
 	assert.Equal(t, "{{_OCCURRENCE}} violation detected for file {{PATH}} on machine {{MID}}", alertProfile.Alerts[0].Subject, "an alert profile subject should match")
 
-	response, err := c.V2.AlertProfiles.Update("LW_PROFILE_EXAMPLE", alertProfile)
+	response, err := c.V2.Alert.Profiles.Update("LW_PROFILE_EXAMPLE", alertProfile)
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, "LW_PROFILE_EXAMPLE", response.Data.Guid)

@@ -20,11 +20,11 @@ package api
 
 import "fmt"
 
-type AlertTemplatesService struct {
+type alertTemplatesService struct {
 	client *Client
 }
 
-func (svc *AlertTemplatesService) Create(alertProfileID string, template AlertProfileAlert) (
+func (svc *alertTemplatesService) Create(alertProfileID string, template AlertTemplate) (
 	response AlertProfileResponse,
 	err error,
 ) {
@@ -33,16 +33,17 @@ func (svc *AlertTemplatesService) Create(alertProfileID string, template AlertPr
 	return
 }
 
-func (svc *AlertTemplatesService) Update(alertProfileID string, alertTemplateID string, template AlertProfileUpdate) (
+func (svc *alertTemplatesService) Update(alertProfileID string, template AlertTemplate) (
 	response AlertProfileResponse,
 	err error,
 ) {
-	apiPath := fmt.Sprintf(apiV2AlertTemplatesFromGUID, alertProfileID, alertTemplateID)
-	err = svc.client.RequestEncoderDecoder("POST", apiPath, template, &response)
+	body := alertTemplateUpdate{template.EventName, template.Description, template.Subject}
+	apiPath := fmt.Sprintf(apiV2AlertTemplatesFromGUID, alertProfileID, template.Name)
+	err = svc.client.RequestEncoderDecoder("POST", apiPath, body, &response)
 	return
 }
 
-func (svc *AlertTemplatesService) Delete(alertProfileID string, alertTemplateID string) (
+func (svc *alertTemplatesService) Delete(alertProfileID string, alertTemplateID string) (
 	err error,
 ) {
 	apiPath := fmt.Sprintf(apiV2AlertTemplatesFromGUID, alertProfileID, alertTemplateID)
@@ -50,8 +51,19 @@ func (svc *AlertTemplatesService) Delete(alertProfileID string, alertTemplateID 
 	return
 }
 
-type AlertTemplateUpdate struct {
+type AlertTemplate struct {
+	Name        string `json:"name"`
 	EventName   string `json:"eventName"`
 	Description string `json:"description"`
 	Subject     string `json:"subject"`
+}
+
+type alertTemplatesUpdate struct {
+	Alerts []AlertTemplate `json:"alerts"`
+}
+
+type alertTemplateUpdate struct {
+	EventName   string `json:"eventName,omitempty"`
+	Description string `json:"description,omitempty"`
+	Subject     string `json:"subject,omitempty"`
 }

@@ -18,7 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	res, err := lacework.V2.AlertProfiles.List()
+	res, err := lacework.V2.Alert.Profiles.List()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	var profileRes api.AlertProfileResponse
-	err = lacework.V2.AlertProfiles.Get(res.Data[0].Guid, profileRes)
+	err = lacework.V2.Alert.Profiles.Get(res.Data[0].Guid, profileRes)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,13 +37,13 @@ func main() {
 
 	profile := api.NewAlertProfile("CUSTOM_PROFILE_EXAMPLE",
 		"LW_HE_FILES_DEFAULT_PROFILE",
-		[]api.AlertProfileAlert{{Name: "HE_File_Violation",
+		[]api.AlertTemplate{{Name: "HE_File_Violation",
 			EventName:   "LW Host Entity File Violation Alert",
 			Description: "{{_OCCURRENCE}} Violation for file {{PATH}} on machine {{MID}}",
 			Subject:     "{{_OCCURRENCE}} violation detected for file {{PATH}} on machine {{MID}}"},
 		})
 
-	response, err := lacework.V2.AlertProfiles.Create(profile)
+	response, err := lacework.V2.Alert.Profiles.Create(profile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func main() {
 	// Output: Alert Profile created: GUID
 	fmt.Printf("Alert Profile created: %s", response.Data.Guid)
 
-	err = lacework.V2.AlertProfiles.Delete(response.Data.Guid)
+	err = lacework.V2.Alert.Profiles.Delete(response.Data.Guid)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,14 +60,14 @@ func main() {
 	fmt.Println("Alert Profile deleted")
 
 	// create an alert template
-	alertTemplate := api.AlertProfileAlert{
+	alertTemplate := api.AlertTemplate{
 		Name:        "Alert Template",
 		EventName:   "My Example Alert",
 		Description: "This is a test alert template",
 		Subject:     "Violation for Testing",
 	}
 
-	templateResponse, err := lacework.V2.AlertProfiles.Templates.Create(response.Data.Guid, alertTemplate)
+	templateResponse, err := lacework.V2.Alert.Templates.Create(response.Data.Guid, alertTemplate)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,7 +75,7 @@ func main() {
 	// Output: Alert Template created: GUID
 	fmt.Printf("Alert Template created: %s", templateResponse.Data.Guid)
 
-	err = lacework.V2.AlertProfiles.Templates.Delete(response.Data.Guid, templateResponse.Data.Guid)
+	err = lacework.V2.Alert.Templates.Delete(response.Data.Guid, templateResponse.Data.Guid)
 	if err != nil {
 		log.Fatal(err)
 	}
