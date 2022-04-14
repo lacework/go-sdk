@@ -48,7 +48,7 @@ tags:
 	newHostPolicyYAML string = `---
 evaluatorId:
 policyType: Violation
-queryId: CLI_HOST_Files_IntegrationTest
+queryId: CLI_Host_Files_IntegrationTest
 title: My Policy Title
 enabled: false
 description: My Policy Description
