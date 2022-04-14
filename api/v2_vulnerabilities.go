@@ -83,8 +83,12 @@ func (svc *v2ContainerVulnerabilityService) SearchAllPages(filters SearchFilter)
 	for {
 		all = append(all, response.Data...)
 
-		pageOk, err = svc.client.NextPage(&response)
+		newResponse := VulnerabilitiesContainersResponse{
+			Paging: response.Paging,
+		}
+		pageOk, err = svc.client.NextPage(&newResponse)
 		if err == nil && pageOk {
+			response = newResponse
 			continue
 		}
 		break
