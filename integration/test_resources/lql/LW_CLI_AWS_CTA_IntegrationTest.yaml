@@ -1,10 +1,10 @@
 ---
 evaluatorId: Cloudtrail
-queryId: LW_CLI_AWS_CTA_IntegrationTest
+queryId: CLI_AWS_CTA_IntegrationTest
 queryText: |-
   --- This query produces a web (github) hosted object for "lacework query" integration testing
   --- Specifically: TestQueryRunURL
-  LW_CLI_AWS_CTA_IntegrationTest {
+  CLI_AWS_CTA_IntegrationTest {
       source {
           CloudTrailRawEvents
       }

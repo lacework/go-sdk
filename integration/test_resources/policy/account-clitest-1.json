@@ -2,7 +2,7 @@
 	"evaluatorId": "Cloudtrail",
 	"policyId": "$account-clitest-1",
 	"policyType": "Violation",
-	"queryId": "LW_CLI_AWS_CTA_IntegrationTest",
+	"queryId": "CLI_AWS_CTA_IntegrationTest",
 	"title": "My Policy Title",
 	"enabled": false,
 	"description": "My Policy Description",
