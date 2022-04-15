@@ -147,13 +147,17 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 			getShowQuerySourceTable(datasourceResponse.Data.ResultSchema),
 		),
 	)
-	cli.OutputHuman("\n")
-	cli.OutputHuman(
-		renderSimpleTable(
-			[]string{"Relationship Name", "From", "To", "Cardinality", "Description"},
-			getShowQuerySourceRelationshipsTable(datasourceResponse.Data.SourceRelationships),
-		),
-	)
+	// if source relationships exist
+	if len(datasourceResponse.Data.SourceRelationships) > 0 {
+		cli.OutputHuman("\n")
+		cli.OutputHuman(
+			renderSimpleTable(
+				[]string{"Relationship Name", "From", "To", "Cardinality", "Description"},
+				getShowQuerySourceRelationshipsTable(datasourceResponse.Data.SourceRelationships),
+			),
+		)
+	}
+	// breadcrumb
 	cli.OutputHuman("\nUse 'lacework query preview-source <datasource_id>' to see an actual result from the data source.\n")
 	return nil
 }

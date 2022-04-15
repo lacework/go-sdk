@@ -55,6 +55,13 @@ func TestQueryShowSourceTable(t *testing.T) {
 	assert.Contains(t, out.String(), "FIELD NAME")
 	assert.Contains(t, out.String(), "INSERT_ID")
 	assert.Contains(t, out.String(), "preview-source")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	// no relationships
+	assert.NotContains(t, out.String(), "RELATIONSHIP NAME")
+
+	// relationships
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "LW_HE_FILES")
 	assert.Contains(t, out.String(), "RELATIONSHIP NAME")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
