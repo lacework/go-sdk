@@ -34,7 +34,7 @@ const (
 	newPolicyYAML string = `---
 policyId: clitest-1
 policyType: Violation
-queryId: LW_CLI_AWS_CTA_IntegrationTest
+queryId: CLI_AWS_CTA_IntegrationTest
 title: My Policy Title
 enabled: false
 description: My Policy Description
@@ -48,7 +48,7 @@ tags:
 	newHostPolicyYAML string = `---
 evaluatorId:
 policyType: Violation
-queryId: LW_CLI_Host_Files_IntegrationTest
+queryId: CLI_Host_Files_IntegrationTest
 title: My Policy Title
 enabled: false
 description: My Policy Description
