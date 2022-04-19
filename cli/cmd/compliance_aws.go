@@ -250,8 +250,8 @@ To show recommendation details and affected resources for a recommendation id:
 	// experimental feature
 	complianceAwsDisableReportCmd = &cobra.Command{
 		Use:     "disable-report <report_type>",
-		Aliases: []string{"disable"},
 		Hidden:  true,
+		Aliases: []string{"disable"},
 		Short:   "Disable all recommendations for a given report type",
 		Long: `Disable all recommendations for a given report type.
 Supported report types are CIS_1_1
@@ -299,6 +299,7 @@ To disable all recommendations for CIS_1_1 report run:
 	// experimental feature
 	complianceAwsEnableReportCmd = &cobra.Command{
 		Use:     "enable-report <report_type>",
+		Hidden:  true,
 		Aliases: []string{"enable"},
 		Short:   "Enable all recommendations for a given report type",
 		Long: `Enable all recommendations for a given report type.
@@ -310,7 +311,6 @@ To show the current status of recommendations in a report run:
 To enable all recommendations for CIS_1_1 report run:
 	lacework compliance aws enable CIS_1_1
 `,
-		Hidden: true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS", "CIS_1_1", "AWS_CIS_S3":
@@ -348,6 +348,7 @@ To enable all recommendations for CIS_1_1 report run:
 	// experimental feature
 	complianceAwsReportStatusCmd = &cobra.Command{
 		Use:     "report-status <report_type>",
+		Hidden:  true,
 		Aliases: []string{"status"},
 		Short:   "Show the status of recommendations for a given report type",
 		Long: `Show the status of recommendations for a given report type.
@@ -359,7 +360,6 @@ To show the current status of recommendations in a report run:
 The output from status with the --json flag can be used in the body of PATCH api/v1/external/recommendations/aws
 	lacework compliance aws status CIS_1_1 --json
 `,
-		Hidden: true,
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			switch args[0] {
 			case "CIS", "CIS_1_1", "AWS_CIS_S3":

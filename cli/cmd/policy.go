@@ -128,20 +128,23 @@ To view the LQL query associated with the policy, use the query id shown.
 	// This is an experimental command.
 	// policyDisableTagCmd represents the policy disable command
 	policyDisableTagCmd = &cobra.Command{
-		Use:    "disable [policy_id]",
-		Hidden: true,
-		Short:  "Disable Policies",
+		Use:   "disable [policy_id]",
+		Short: "Disable Policies",
 		Long: `Disable Policies by ID or all policies matching a tag.
 
 To disable a single policy by it's ID:
+
 	lacework policy disable lacework-policy-id
 
 To disable all policies for Aws CIS 1.4.0:
+
 	lacework policy disable --tag framework:cis-aws-1-4-0
 
 To disable all policies for Gcp CIS 1.3.0:
+
 	lacework policy disable --tag framework:cis-gcp-1-3-0
-.`,
+
+`,
 		Args: cobra.RangeArgs(0, 1),
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			if len(args) > 0 && policyCmdState.Tag != "" {
@@ -155,20 +158,23 @@ To disable all policies for Gcp CIS 1.3.0:
 	// This is an experimental command.
 	// policyEnableTagCmd represents the policy enable command
 	policyEnableTagCmd = &cobra.Command{
-		Use:    "enable [policy_id]",
-		Hidden: true,
-		Short:  "Enable Policies",
+		Use:   "enable [policy_id]",
+		Short: "Enable Policies",
 		Long: `Enable Policies by ID or all policies matching a tag.
 
 To enable a single policy by it's ID:
+
 	lacework policy enable lacework-policy-id
 
 To enable all policies for Aws CIS 1.4.0:
+
 	lacework policy enable --tag framework:cis-aws-1-4-0
 
 To enable all policies for Gcp CIS 1.3.0:
+
 	lacework policy enable --tag framework:cis-gcp-1-3-0
-.`,
+
+`,
 		Args: cobra.RangeArgs(0, 1),
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			if len(args) > 0 && policyCmdState.Tag != "" {
