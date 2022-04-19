@@ -92,6 +92,12 @@ const (
 	apiV2AlertChannelFromGUID = "v2/AlertChannels/%s"
 	apiV2AlertChannelTest     = "v2/AlertChannels/%s/test"
 
+	apiV2AlertProfiles        = "v2/AlertProfiles"
+	apiV2AlertProfileFromGUID = "v2/AlertProfiles/%s"
+
+	apiV2AlertTemplates         = "v2/AlertProfiles/%s/AlertTemplates"
+	apiV2AlertTemplatesFromGUID = "v2/AlertProfiles/%s/AlertTemplates/%s"
+
 	apiV2AlertRules        = "v2/AlertRules"
 	apiV2AlertRuleFromGUID = "v2/AlertRules/%s"
 
