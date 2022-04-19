@@ -40,11 +40,7 @@ var (
 		Name:          "lacework-mock-component",
 		Description:   "This is a mock mock component",
 		LatestVersion: *mockVersion,
-		CLICommand:    false,
-		CommandName:   "",
-		Binary:        true,
-		Library:       false,
-		Standalone:    false,
+		Type:          "BINARY",
 	}
 	//go:embed test_resources/hello-world.sh
 	helloWorld []byte
@@ -55,7 +51,7 @@ var (
 
 func ensureMockComponent(version, signature string) (string, error) {
 	cmpntPath, err := mockComponent.Path()
-	if err.Error() != "component does not exist" {
+	if err.Error() != "component not found on disk" {
 		return "", err
 	}
 	cmpntDir, _ := path.Split(cmpntPath)
@@ -91,11 +87,10 @@ var pathTests = []pathTest{
 	pathTest{
 		"NotExists",
 		Component{
-			Name:       "no-such-component",
-			Binary:     true,
-			Standalone: false,
+			Name: "no-such-component",
+			Type: "STANDALONE",
 		},
-		errors.New("component does not exist"),
+		errors.New("component not found on disk"),
 	},
 	pathTest{
 		"Exists",
@@ -112,13 +107,13 @@ func TestPath(t *testing.T) {
 
 	componentDir, err := ensureMockComponent("", "")
 	if err != nil {
-		assert.FailNow(t, "Unable to ensureMockComponent")
+		assert.FailNowf(t, "Unable to ensureMockComponent.", "Error: %s", err.Error())
 	}
 	defer os.RemoveAll(componentDir)
 
 	for _, lpt := range pathTests {
 		t.Run(lpt.Name, func(t *testing.T) {
-			expectedLoc := path.Join(cacheDir, lpt.Component.Name, lpt.Component.Name)
+			expectedLoc := path.Join(cacheDir, "components", lpt.Component.Name, lpt.Component.Name)
 			actualLoc, actualError := lpt.Component.Path()
 
 			assert.Equal(t, actualLoc, expectedLoc)
@@ -155,7 +150,7 @@ var isVerifiedTests = []isVerifiedTest{
 		},
 		Version:   "0.1.0",
 		Signature: base64.StdEncoding.EncodeToString([]byte("blah blah blah")),
-		Error:     errors.New("unable to verify component: unable to parse signature"),
+		Error:     errors.New("unable to parse signature"),
 	},
 	isVerifiedTest{
 		Name:      "Verified",
@@ -197,15 +192,15 @@ type runTest struct {
 var runTests = []runTest{
 	runTest{
 		Name:      "IsNotBinary",
-		Component: Component{},
+		Component: Component{Name: "IsNotBinary"},
 		Version:   "0.1.0",
-		Error:     errors.New("unable to run component: component is not a binary"),
+		Error:     errors.New("unable to run component: component IsNotBinary is not a binary"),
 	},
 	runTest{
 		Name:      "IsNotVerified",
-		Component: Component{Binary: true},
+		Component: Component{Name: "IsNotVerified", Type: "BINARY"},
 		Version:   "0.1.0",
-		Error:     errors.New("unable to run component: component does not exist"),
+		Error:     errors.New("unable to run component: component signature file does not exist"),
 	},
 	runTest{
 		Name:      "OK",

@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2021, Lacework Inc.
+// Copyright:: Copyright 2022, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,20 +16,19 @@
 // limitations under the License.
 //
 
-package file
+package lwcomponent
 
-import (
-	"os"
-)
+// A library component provides one or more files that other components use
+type Library interface {
 
-// FileExists checks if a file exists and is not a directory
-func FileExists(filename string) bool {
-	f, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	if f == nil {
-		return false
-	}
-	return !f.IsDir()
+	// Install downloads the library and deploys the files and index
+	Install() error
+
+	// Index returns the index of files that the library contains
+	Index() []string
+
+	// GetFile returns the content of one file from the library
+	GetFile(string) ([]byte, error)
 }
+
+// @hazekamp figure out LibraryComponent (if component is a library how do we interact with it)

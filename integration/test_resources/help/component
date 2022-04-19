@@ -7,9 +7,9 @@ Aliases:
   component, components
 
 Available Commands:
-  delete      delete an existing component
   install     install a new component
   list        list all components
+  uninstall   uninstall an existing component
   update      update an existing component
 
 Flags:

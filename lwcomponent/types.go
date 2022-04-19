@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2021, Lacework Inc.
+// Copyright:: Copyright 2022, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,20 +16,35 @@
 // limitations under the License.
 //
 
-package file
+package lwcomponent
 
-import (
-	"os"
+type Type string
+
+const (
+	EmptyType Type = ""
+
+	// the component is a binary
+	BinaryType = "BINARY"
+
+	// will this component be accessible via the CLI
+	CommandType = "CLI_COMMAND"
+
+	// the component is a library, only provides content for the CLI or other components
+	LibraryType = "LIBRARY"
+
+	// the component is standalone, should be available in $PATH
+	StandaloneType = "STANDALONE"
 )
 
-// FileExists checks if a file exists and is not a directory
-func FileExists(filename string) bool {
-	f, err := os.Stat(filename)
-	if os.IsNotExist(err) {
+func (c Component) IsExecutable() bool {
+	switch c.Type {
+	case BinaryType, CommandType:
+		return true
+	default:
 		return false
 	}
-	if f == nil {
-		return false
-	}
-	return !f.IsDir()
+}
+
+func (c Component) IsCommandType() bool {
+	return c.Type == CommandType
 }

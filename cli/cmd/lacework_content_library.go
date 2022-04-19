@@ -75,7 +75,9 @@ type LaceworkContentLibrary struct {
 }
 
 func (c *cliState) IsLCLInstalled() bool {
-	if c.LwComponents == nil {
+	var err error
+	c.LwComponents, err = lwcomponent.LocalState()
+	if err != nil || c.LwComponents == nil {
 		return false
 	}
 

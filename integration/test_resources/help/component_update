@@ -1,7 +1,7 @@
 Update an existing component
 
 Usage:
-  lacework component update [flags]
+  lacework component update <component> [flags]
 
 Flags:
   -h, --help   help for update

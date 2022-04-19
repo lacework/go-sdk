@@ -1,7 +1,7 @@
 Install a new component
 
 Usage:
-  lacework component install [flags]
+  lacework component install <component> [flags]
 
 Flags:
   -h, --help   help for install
