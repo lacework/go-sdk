@@ -20,8 +20,8 @@
 package integration
 
 const (
-	queryID           string = "LW_CLI_AWS_CTA_IntegrationTest"
-	queryHostID       string = "LW_CLI_Host_Files_IntegrationTest"
+	queryID           string = "CLI_AWS_CTA_IntegrationTest"
+	queryHostID       string = "CLI_Host_Files_IntegrationTest"
 	queryText         string = "{ source { CloudTrailRawEvents } return { INSERT_ID } }"
 	queryUpdateText   string = "{ source { CloudTrailRawEvents } return { INSERT_ID, INSERT_TIME } }"
 	queryJSONTemplate string = `{
