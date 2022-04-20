@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2021, Lacework Inc.
+// Copyright:: Copyright 2022, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ var (
 	// componentsCmd represents the components command
 	componentsCmd = &cobra.Command{
 		Use:     "component",
+		Hidden:  true,
 		Aliases: []string{"components"},
 		Short:   "Manage components",
 		Long:    `Manage components to extend your experience with the Lacework platform`,
@@ -42,15 +43,15 @@ var (
 	componentsListCmd = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "list all components",
-		Long:    `List all components`,
+		Short:   "List all components",
+		Long:    `List all available components and their current state`,
 		RunE:    runComponentsList,
 	}
 
 	// componentsInstallCmd represents the install sub-command inside the components command
 	componentsInstallCmd = &cobra.Command{
 		Use:   "install <component>",
-		Short: "install a new component",
+		Short: "Install a new component",
 		Long:  `Install a new component`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  runComponentsInstall,
@@ -59,7 +60,7 @@ var (
 	// componentsUpdateCmd represents the update sub-command inside the components command
 	componentsUpdateCmd = &cobra.Command{
 		Use:   "update <component>",
-		Short: "update an existing component",
+		Short: "Update an existing component",
 		Long:  `Update an existing component`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  runComponentsUpdate,
@@ -69,7 +70,7 @@ var (
 	componentsUninstallCmd = &cobra.Command{
 		Use:     "uninstall <component>",
 		Aliases: []string{"delete", "remove", "rm"},
-		Short:   "uninstall an existing component",
+		Short:   "Uninstall an existing component",
 		Long:    `Uninstall an existing component`,
 		Args:    cobra.ExactArgs(1),
 		RunE:    runComponentsDelete,
@@ -142,15 +143,17 @@ func (c *cliState) LoadComponents() {
 					// @afiune strip `lw-` from component?
 					Use: component.Name,
 					// @afiune should we build this or add it as component specification
-					Short:       fmt.Sprintf("component %s", component.Name),
-					Long:        component.Description,
-					Annotations: map[string]string{"type": "component"},
-					Version:     ver.String(),
-					RunE: func(_ *cobra.Command, args []string) error {
+					Short:                 fmt.Sprintf("component %s", component.Name),
+					Long:                  component.Description,
+					Annotations:           map[string]string{"type": "component"},
+					Version:               ver.String(),
+					DisableFlagParsing:    true,
+					DisableFlagsInUseLine: true,
+					RunE: func(cmd *cobra.Command, args []string) error {
+						cli.Log.Debugw("running component", "component", cmd.Use, "args", args)
 						// @afiune what if the component needs other env variables
 						return component.RunAndOutput(args, c.envs()...)
 					},
-					// @dhazekamp how does component communicate flags?
 				},
 			)
 		}
