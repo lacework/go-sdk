@@ -1,7 +1,7 @@
 Delete a single resource group by it's resource group ID.
 
 Usage:
-  lacework resource-group delete [flags]
+  lacework resource-group delete <resource_group_id> [flags]
 
 Flags:
   -h, --help   help for delete

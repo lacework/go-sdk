@@ -20,7 +20,9 @@ package cmd
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
@@ -43,10 +45,11 @@ type OS struct {
 }
 
 var (
-	osReleaseFile  = "/etc/os-release"
-	sysReleaseFile = "/etc/system-release"
-	rexNameFromID  = regexp.MustCompile(`^ID=(.*)$`)
-	rexVersionID   = regexp.MustCompile(`^VERSION_ID=(.*)$`)
+	procUAStatusFile = "/proc/1/root/var/lib/ubuntu-advantage/status.json"
+	osReleaseFile    = "/etc/os-release"
+	sysReleaseFile   = "/etc/system-release"
+	rexNameFromID    = regexp.MustCompile(`^ID=(.*)$`)
+	rexVersionID     = regexp.MustCompile(`^VERSION_ID=(.*)$`)
 )
 
 func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
@@ -73,6 +76,14 @@ func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
 	if err != nil {
 		return manifest, err
 	}
+
+	if osInfo.Name == "ubuntu" {
+		// ESM support
+		if c.IsEsmEnabled() {
+			osInfo.Version += "esm"
+		}
+	}
+
 	c.Event.AddFeatureField("os", osInfo.Name)
 	c.Event.AddFeatureField("os_ver", osInfo.Version)
 
@@ -250,6 +261,45 @@ func (c *cliState) detectActiveKernel() (string, bool) {
 		return "", false
 	}
 	return strings.TrimSuffix(string(kernel), "\n"), true
+}
+
+func (c *cliState) IsEsmEnabled() bool {
+	type uaStatusFile struct {
+		SchemaVersion string `json:"_schema_version,omitempty"`
+		Status        string `json:"execution_status,omitempty"`
+		Services      []struct {
+			Name   string `json:"name,omitempty"`
+			Status string `json:"status,omitempty"`
+		} `json:"services,omitempty"`
+	}
+
+	if file.FileExists(procUAStatusFile) {
+		c.Log.Debugw("detecting ubuntu ESM support", "file", procUAStatusFile)
+		uaStatusBytes, err := ioutil.ReadFile(procUAStatusFile)
+		if err != nil {
+			c.Log.Warnw("unable to read UA status file", "error", err)
+			return false
+		}
+
+		var uaStatus uaStatusFile
+		if err = json.Unmarshal(uaStatusBytes, &uaStatus); err != nil {
+			c.Log.Warnw("unable to unmarshal UA status file", "error", err)
+			return false
+		}
+
+		for _, svc := range uaStatus.Services {
+			if strings.Contains(svc.Name, "esm") && svc.Status == "enabled" {
+				c.Log.Debug("ESM is enabled")
+				return true
+			}
+		}
+
+		c.Log.Debug("no UA service enabled")
+		return false
+	}
+
+	c.Log.Warnw("unable to detect ubuntu ESM support, file not found", "file", procUAStatusFile)
+	return false
 }
 
 func (c *cliState) GetOSInfo() (*OS, error) {

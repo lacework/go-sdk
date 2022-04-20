@@ -20,18 +20,10 @@
 package integration
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func TestQueryListHelp(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("help", "query", "list")
-	assert.Contains(t, out.String(), "lacework query list [flags]")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
 
 func TestQueryList(t *testing.T) {
 	// setup
@@ -42,26 +34,13 @@ func TestQueryList(t *testing.T) {
 	// list human
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "list")
 	assert.Contains(t, out.String(), "QUERY ID")
-	assert.Contains(t, out.String(), "LW_CLI_AWS_CTA_IntegrationTest")
+	assert.Contains(t, out.String(), "CLI_AWS_CTA_IntegrationTest")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	// validate sort
-	aRE := regexp.MustCompile("LW_Global_AWS_CTA_AccessKeyDeleted")
-	aMatch := aRE.FindStringIndex(out.String())
-
-	zRE := regexp.MustCompile("LW_Global_AWS_CTA_NewCustomerMasterKey")
-	zMatch := zRE.FindStringIndex(out.String())
-
-	if len(zMatch) == 0 || len(aMatch) == 0 {
-		t.FailNow()
-	} else {
-		assert.Greater(t, zMatch[0], aMatch[0])
-	}
-
 	// list json
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("query", "list", "--json")
-	assert.Contains(t, out.String(), `"LW_CLI_AWS_CTA_IntegrationTest"`)
+	assert.Contains(t, out.String(), `"CLI_AWS_CTA_IntegrationTest"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

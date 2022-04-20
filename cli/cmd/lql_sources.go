@@ -53,7 +53,7 @@ func init() {
 	queryCmd.AddCommand(queryShowSourceCmd)
 }
 
-func getListQuerySourcesTable(datasources []api.Datasource) (out [][]string) {
+func querySourcesTable(datasources []api.Datasource) (out [][]string) {
 	for _, source := range datasources {
 		out = append(out, []string{
 			source.Name,
@@ -86,7 +86,7 @@ func listQuerySources(_ *cobra.Command, args []string) error {
 	cli.OutputHuman(
 		renderCustomTable(
 			[]string{"Datasource", "Description"},
-			getListQuerySourcesTable(datasourcesResponse.Data),
+			querySourcesTable(datasourcesResponse.Data),
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetAutoWrapText(false)
 				t.SetBorder(false)
@@ -108,6 +108,19 @@ func getShowQuerySourceTable(resultSchema []api.DatasourceSchema) (out [][]strin
 	return
 }
 
+func getShowQuerySourceRelationshipsTable(relationships []api.DatasourceRelationship) (out [][]string) {
+	for _, relationship := range relationships {
+		out = append(out, []string{
+			relationship.Name,
+			relationship.From,
+			relationship.To,
+			relationship.ToCardinality,
+			relationship.Description,
+		})
+	}
+	return
+}
+
 func showQuerySource(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving datasource", "id", args[0])
 
@@ -124,7 +137,7 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 	cli.OutputHuman(
 		renderSimpleTable(
 			[]string{"Datasource", "Description"},
-			getListQuerySourcesTable([]api.Datasource{datasourceResponse.Data}),
+			querySourcesTable([]api.Datasource{datasourceResponse.Data}),
 		),
 	)
 	cli.OutputHuman("\n")
@@ -134,6 +147,17 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 			getShowQuerySourceTable(datasourceResponse.Data.ResultSchema),
 		),
 	)
+	// if source relationships exist
+	if len(datasourceResponse.Data.SourceRelationships) > 0 {
+		cli.OutputHuman("\n")
+		cli.OutputHuman(
+			renderSimpleTable(
+				[]string{"Relationship Name", "From", "To", "Cardinality", "Description"},
+				getShowQuerySourceRelationshipsTable(datasourceResponse.Data.SourceRelationships),
+			),
+		)
+	}
+	// breadcrumb
 	cli.OutputHuman("\nUse 'lacework query preview-source <datasource_id>' to see an actual result from the data source.\n")
 	return nil
 }

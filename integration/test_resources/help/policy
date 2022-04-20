@@ -37,6 +37,8 @@ Aliases:
 Available Commands:
   create      Create a policy
   delete      Delete a policy
+  disable     Disable Policies
+  enable      Enable Policies
   list        List policies
   list-tags   List policy tags
   show        Show policy

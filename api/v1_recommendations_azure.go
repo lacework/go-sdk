@@ -18,6 +18,14 @@
 
 package api
 
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+
+	"github.com/lacework/go-sdk/internal/databox"
+)
+
 // AzureRecommendationsV1 is a service that interacts with the V1 Recommendations
 // endpoints from the Lacework Server
 type AzureRecommendationsV1 struct {
@@ -28,6 +36,51 @@ func (svc *AzureRecommendationsV1) List() ([]RecommendationV1, error) {
 	return svc.client.Recommendations.list(AzureRecommendation)
 }
 
-func (svc *AzureRecommendationsV1) Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
+func (svc *AzureRecommendationsV1) Patch(recommendations RecommendationStateV1) (RecommendationResponseV1, error) {
 	return svc.client.Recommendations.patch(AzureRecommendation, recommendations)
+}
+
+// GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct. Scoped to Lacework Account/Subaccount
+func (svc *AzureRecommendationsV1) GetReport(reportType string) ([]RecommendationV1, error) {
+	var (
+		schemaBytes []byte
+		ok          bool
+	)
+	report := struct {
+		Ids []string `json:"recommendation_ids"`
+	}{}
+
+	switch reportType {
+	case "CIS_1_0":
+		schemaBytes, ok = databox.Get("/reports/azure/cis.json")
+		if !ok {
+			return []RecommendationV1{}, errors.New(
+				"compliance report schema not found",
+			)
+		}
+	case "CIS_1_3_1":
+		schemaBytes, ok = databox.Get("/reports/azure/cis_131.json")
+		if !ok {
+			return []RecommendationV1{}, errors.New(
+				"compliance report schema not found",
+			)
+		}
+	default:
+		return nil, fmt.Errorf("unable to find recommendations for report type %s", reportType)
+	}
+
+	err := json.Unmarshal(schemaBytes, &report)
+	if err != nil {
+		return []RecommendationV1{}, err
+	}
+
+	schema := ReportSchema{reportType, report.Ids}
+
+	// fetch all azure recommendations
+	allRecommendations, err := svc.client.Recommendations.Azure.List()
+	if err != nil {
+		return []RecommendationV1{}, err
+	}
+	filteredRecommendations := filterRecommendations(allRecommendations, schema)
+	return filteredRecommendations, nil
 }

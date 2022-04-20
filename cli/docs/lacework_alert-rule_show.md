@@ -13,7 +13,7 @@ Show an alert rule by ID
 Show a single alert rule by it's ID.
 
 ```
-lacework alert-rule show [flags]
+lacework alert-rule show <alert_rule_id> [flags]
 ```
 
 ### Options

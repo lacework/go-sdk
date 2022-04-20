@@ -39,7 +39,7 @@ func TestRecommendationsAwsList(t *testing.T) {
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("external/recommendations/aws",
 		func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "GET", r.Method, "AwsList() should be a GET method")
+			assert.Equal(t, "GET", r.Method, "List() should be a GET method")
 			Recommendations := generateRecommendations()
 			fmt.Fprintf(w, Recommendations)
 		},
@@ -98,7 +98,7 @@ func TestRecommendationsAwsPatch(t *testing.T) {
 }
 
 func generateRecommendations() string {
-	return ListRecommendations()
+	return listRecommendations()
 }
 
 func generateRecommendationsPatchResponse() string {
@@ -115,7 +115,7 @@ func generateRecommendationsPatchResponse() string {
 }`
 }
 
-func ListRecommendations() string {
+func listRecommendations() string {
 	return `{
     "data": [
         {

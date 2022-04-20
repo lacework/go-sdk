@@ -28,6 +28,6 @@ const (
 	"queryID": "%s",
 	"queryText": "%s"
 }`
-	queryURL     string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/LW_CLI_AWS_CTA_IntegrationTest.yaml"
-	queryHostURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/LW_CLI_Host_Files_IntegrationTest.yaml"
+	queryURL     string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/CLI_AWS_CTA_IntegrationTest.yaml"
+	queryHostURL string = "https://raw.githubusercontent.com/lacework/go-sdk/main/integration/test_resources/lql/CLI_Host_Files_IntegrationTest.yaml"
 )

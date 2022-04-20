@@ -18,6 +18,13 @@
 
 package api
 
+import (
+	"encoding/json"
+	"errors"
+
+	"github.com/lacework/go-sdk/internal/databox"
+)
+
 // AwsRecommendationsV1 is a service that interacts with the V1 Recommendations
 // endpoints from the Lacework Server
 type AwsRecommendationsV1 struct {
@@ -28,6 +35,35 @@ func (svc *AwsRecommendationsV1) List() ([]RecommendationV1, error) {
 	return svc.client.Recommendations.list(AwsRecommendation)
 }
 
-func (svc *AwsRecommendationsV1) Patch(recommendations RecommendationStateV1) (response RecommendationResponseV1, err error) {
+func (svc *AwsRecommendationsV1) Patch(recommendations RecommendationStateV1) (RecommendationResponseV1, error) {
 	return svc.client.Recommendations.patch(AwsRecommendation, recommendations)
+}
+
+// GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct. Scoped to Lacework Account/Subaccount
+func (svc *AwsRecommendationsV1) GetReport(reportType string) ([]RecommendationV1, error) {
+	report := struct {
+		Ids []string `json:"recommendation_ids"`
+	}{}
+
+	schemaBytes, ok := databox.Get("/reports/aws/cis.json")
+	if !ok {
+		return []RecommendationV1{}, errors.New(
+			"compliance report schema not found",
+		)
+	}
+
+	err := json.Unmarshal(schemaBytes, &report)
+	if err != nil {
+		return []RecommendationV1{}, err
+	}
+
+	schema := ReportSchema{reportType, report.Ids}
+
+	// fetch all aws recommendations
+	allRecommendations, err := svc.client.Recommendations.Aws.List()
+	if err != nil {
+		return []RecommendationV1{}, err
+	}
+	filteredRecommendations := filterRecommendations(allRecommendations, schema)
+	return filteredRecommendations, nil
 }

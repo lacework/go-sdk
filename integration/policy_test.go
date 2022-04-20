@@ -34,7 +34,7 @@ const (
 	newPolicyYAML string = `---
 policyId: clitest-1
 policyType: Violation
-queryId: LW_CLI_AWS_CTA_IntegrationTest
+queryId: CLI_AWS_CTA_IntegrationTest
 title: My Policy Title
 enabled: false
 description: My Policy Description
@@ -47,7 +47,7 @@ tags:
 `
 	newHostPolicyYAML string = `---
 policyType: Violation
-queryId: LW_CLI_Host_Files_IntegrationTest
+queryId: CLI_Host_Files_IntegrationTest
 title: My Policy Title
 enabled: false
 description: My Policy Description
@@ -311,15 +311,6 @@ func TestPolicyList(t *testing.T) {
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	// validate sort
-	aRE := regexp.MustCompile("lacework-global-3")
-	aMatch := aRE.FindStringIndex(out.String())
-
-	zRE := regexp.MustCompile("lacework-global-10")
-	zMatch := zRE.FindStringIndex(out.String())
-
-	assert.Greater(t, zMatch[0], aMatch[0])
-
 	// list (output json)
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "list", "--json")
 	assert.Contains(t, out.String(), `"policyId"`)
@@ -427,4 +418,20 @@ func TestPolicyDelete(t *testing.T) {
 	_, stderr, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete", policyID, "--json")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestPolicyDisableEnable(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "disable", "lacework-global-1")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
+	assert.Contains(t, out.String(), "disabled")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "enable", "lacework-global-1")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
+	assert.Contains(t, out.String(), "enabled")
 }

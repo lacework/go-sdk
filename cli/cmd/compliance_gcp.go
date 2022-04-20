@@ -22,9 +22,11 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -114,13 +116,16 @@ Then, select one GUID from an integration and visualize its details using the co
 			}
 
 			switch compCmdState.Type {
-			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI":
+			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI", "ISO_27001", "PCI_Rev2", "SOC_Rev2", "HIPAA_Rev2", "NIST_CSF",
+				"NIST_800_53_REV4", "NIST_800_171_REV2":
 				compCmdState.Type = fmt.Sprintf("GCP_%s", compCmdState.Type)
 				return nil
-			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI":
+			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI", "GCP_ISO_27001", "GCP_PCI_Rev2", "GCP_SOC_Rev2",
+				"GCP_HIPAA_Rev2", "GCP_GCP_NIST_CSF", "GCP_NIST_800_53_REV4", "GCP_NIST_800_171_REV2":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, or PCI")
+				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, ISO_27001, PCI, PCI_Rev2, SOC_Rev2, " +
+					"HIPAA_Rev2, NIST_CSF, NIST_800_53_REV4 or NIST_800_171_REV2")
 			}
 		},
 		Short: "Get the latest GCP compliance report",
@@ -300,6 +305,171 @@ To list all GCP projects and organizations configured in your account:
 			return nil
 		},
 	}
+	// complianceGcpDisableReportCmd represents the disable-report sub-command inside the aws command
+	// experimental feature
+	complianceGcpDisableReportCmd = &cobra.Command{
+		Use:     "disable-report <report_type>",
+		Hidden:  true,
+		Aliases: []string{"disable"},
+		Short:   "Disable all recommendations for a given report type",
+		Long: `Disable all recommendations for a given report type.
+Supported report types are: CIS_1_0, CIS_1_2
+
+To show the current status of recommendations in a report run:
+	lacework compliance gcp status CIS_1_2
+
+To disable all recommendations for CIS_1_2 report run:
+	lacework compliance gcp disable CIS_1_2
+`,
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS", "CIS_1_0", "GCP_CIS":
+				args[0] = "CIS_1_0"
+				return nil
+			case "CIS_1_2", "GCP_CIS12":
+				args[0] = "CIS_1_2"
+				return nil
+			default:
+				return errors.New("supported report types are: CIS_1_0, CIS_1_2")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+
+			schema, err := fetchCachedGcpComplianceReportSchema(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unable to fetch gcp compliance report schema")
+			}
+
+			// set state of all recommendations in this report to disabled
+			patchReq := api.NewRecommendationV1State(schema, false)
+			cli.StartProgress("disabling recommendations...")
+			response, err := cli.LwApi.Recommendations.Gcp.Patch(patchReq)
+			cli.StopProgress()
+			if err != nil {
+				return errors.Wrap(err, "unable to patch gcp recommendations")
+			}
+
+			var cacheKey = fmt.Sprintf("compliance/gcp/schema/%s", args[0])
+			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
+			cli.OutputHuman("All recommendations for report %s have been disabled\n", args[0])
+			return nil
+		},
+	}
+
+	// complianceGcpEnableReportCmd represents the enable-report sub-command inside the aws command
+	// experimental feature
+	complianceGcpEnableReportCmd = &cobra.Command{
+		Use:     "enable-report <report_type>",
+		Hidden:  true,
+		Aliases: []string{"enable"},
+		Short:   "Enable all recommendations for a given report type",
+		Long: `Enable all recommendations for a given report type.
+Supported report types are: CIS_1_0, CIS_1_2
+
+To show the current status of recommendations in a report run:
+	lacework compliance gcp status CIS_1_2
+
+To enable all recommendations for CIS_1_2 report run:
+	lacework compliance gcp enable CIS_1_2
+`,
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS", "CIS_1_0", "GCP_CIS":
+				args[0] = "CIS_1_0"
+				return nil
+			case "CIS_1_2", "GCP_CIS12":
+				args[0] = "CIS_1_2"
+				return nil
+			default:
+				return errors.New("supported report types are: CIS_1_0, CIS_1_2")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+
+			schema, err := fetchCachedGcpComplianceReportSchema(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unable to fetch gcp compliance report schema")
+			}
+
+			// set state of all recommendations in this report to enabled
+			patchReq := api.NewRecommendationV1State(schema, false)
+			cli.StartProgress("enabling recommendations...")
+			response, err := cli.LwApi.Recommendations.Gcp.Patch(patchReq)
+			cli.StopProgress()
+			if err != nil {
+				return errors.Wrap(err, "unable to patch gcp recommendations")
+			}
+
+			var cacheKey = fmt.Sprintf("compliance/gcp/schema/%s", args[0])
+			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
+			cli.OutputHuman("All recommendations for report %s have been enabled\n", args[0])
+			return nil
+		},
+	}
+
+	// complianceGcpReportStatusCmd represents the report-status sub-command inside the aws command
+	// experimental feature
+	complianceGcpReportStatusCmd = &cobra.Command{
+		Use:     "report-status <report_type>",
+		Hidden:  true,
+		Aliases: []string{"status"},
+		Short:   "Show the status of recommendations for a given report type",
+		Long: `Show the status of recommendations for a given report type.
+Supported report types are: CIS_1_0, CIS_1_2
+
+To show the current status of recommendations in a report run:
+	lacework compliance gcp status CIS_1_2
+
+The output from status with the --json flag can be used in the body of PATCH api/v1/external/recommendations/gcp
+	lacework compliance gcp status CIS_1_2 --json
+`,
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			switch args[0] {
+			case "CIS", "CIS_1_0", "GCP_CIS":
+				args[0] = "CIS_1_0"
+				return nil
+			case "CIS_1_2", "GCP_CIS12":
+				args[0] = "CIS_1_2"
+				return nil
+			default:
+				return errors.New("supported report types are: CIS_1_0, CIS_1_2")
+			}
+		},
+		Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			var rows [][]string
+			report, err := fetchCachedGcpComplianceReportSchema(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unable to fetch gcp compliance report schema")
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(api.NewRecommendationV1(report))
+			}
+
+			for _, r := range report {
+				rows = append(rows, []string{r.ID, strconv.FormatBool(r.State)})
+			}
+
+			cli.OutputHuman(renderOneLineCustomTable(args[0],
+				renderCustomTable([]string{}, rows,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator(" ")
+						t.SetAutoWrapText(false)
+						t.SetAlignment(tablewriter.ALIGN_LEFT)
+					}),
+				),
+				tableFunc(func(t *tablewriter.Table) {
+					t.SetBorder(false)
+					t.SetAutoWrapText(false)
+				}),
+			))
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -308,6 +478,11 @@ func init() {
 	complianceGcpCmd.AddCommand(complianceGcpListProjCmd)
 	complianceGcpCmd.AddCommand(complianceGcpRunAssessmentCmd)
 	complianceGcpCmd.AddCommand(complianceGcpGetReportCmd)
+
+	// Experimental Commands
+	complianceGcpCmd.AddCommand(complianceGcpReportStatusCmd)
+	complianceGcpCmd.AddCommand(complianceGcpDisableReportCmd)
+	complianceGcpCmd.AddCommand(complianceGcpEnableReportCmd)
 
 	complianceGcpGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
@@ -522,4 +697,25 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 	cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID", "Status"}, rows))
 	return nil
+}
+
+func fetchCachedGcpComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
+	var cacheKey = fmt.Sprintf("compliance/gcp/schema/%s", reportType)
+
+	expired := cli.ReadCachedAsset(cacheKey, &response)
+	if expired {
+		cli.StartProgress("Fetching compliance report schema...")
+		response, err = cli.LwApi.Recommendations.Gcp.GetReport(reportType)
+		cli.StopProgress()
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to get GCP compliance report schema")
+		}
+
+		if len(response) == 0 {
+			return nil, errors.New("no data found in the report")
+		}
+
+		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response)
+	}
+	return
 }
