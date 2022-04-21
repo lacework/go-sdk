@@ -122,7 +122,17 @@ To view the LQL query associated with the policy, use the query id shown.
 		Short:   "Show policy",
 		Long:    `Show details about a single policy.`,
 		Args:    cobra.ExactArgs(1),
-		RunE:    showPolicy,
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			b, err := cmd.Flags().GetBool("yaml")
+			if err != nil {
+				return errors.Wrap(err, "unable to parse --yaml flag")
+			}
+			if b {
+				cli.EnableYAMLOutput()
+			}
+			return nil
+		},
+		RunE: showPolicy,
 	}
 
 	// This is an experimental command.
@@ -196,6 +206,10 @@ func init() {
 	policyCmd.AddCommand(policyListCmd)
 	policyCmd.AddCommand(policyListTagsCmd)
 	policyCmd.AddCommand(policyShowCmd)
+
+	policyShowCmd.Flags().Bool(
+		"yaml", false, "output query in YAML format",
+	)
 
 	// experimental commands
 	policyCmd.AddCommand(policyDisableTagCmd)
@@ -457,6 +471,25 @@ func showPolicy(_ *cobra.Command, args []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policyResponse.Data)
 	}
+
+	if cli.YAMLOutput() {
+		return cli.OutputYAML(&api.NewPolicy{
+			PolicyID:      policyResponse.Data.PolicyID,
+			PolicyType:    policyResponse.Data.PolicyType,
+			QueryID:       policyResponse.Data.QueryID,
+			Title:         policyResponse.Data.Title,
+			Enabled:       policyResponse.Data.Enabled,
+			Description:   policyResponse.Data.Description,
+			Remediation:   policyResponse.Data.Remediation,
+			Severity:      policyResponse.Data.Severity,
+			Limit:         policyResponse.Data.Limit,
+			EvalFrequency: policyResponse.Data.EvalFrequency,
+			AlertEnabled:  policyResponse.Data.AlertEnabled,
+			AlertProfile:  policyResponse.Data.AlertProfile,
+			Tags:          policyResponse.Data.Tags,
+		})
+	}
+
 	cli.OutputHuman(
 		renderSimpleTable(policyTableHeaders, policyTable([]api.Policy{policyResponse.Data})))
 	cli.OutputHuman("\n")

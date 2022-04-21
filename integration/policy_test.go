@@ -343,19 +343,29 @@ func TestPolicyShowHelp(t *testing.T) {
 }
 
 func TestPolicyShow(t *testing.T) {
-	// show (output)
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
-	assert.Contains(t, out.String(), "POLICY ID")
-	assert.Contains(t, out.String(), "lacework-global-1")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	t.Run("Human Output", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
+		assert.Contains(t, out.String(), "POLICY ID")
+		assert.Contains(t, out.String(), "lacework-global-1")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	})
 
-	// show (output json)
-	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1", "--json")
-	assert.Contains(t, out.String(), `"policyId"`)
-	assert.Contains(t, out.String(), `"lacework-global-1"`)
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	t.Run("JSON Output", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1", "--json")
+		assert.Contains(t, out.String(), `"policyId"`)
+		assert.Contains(t, out.String(), `"lacework-global-1"`)
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	})
+
+	t.Run("YAML Output", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1", "--yaml")
+		assert.Contains(t, out.String(), `policyId: lacework-global-1`)
+		assert.Contains(t, out.String(), `remediation: |-`)
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	})
 }
 
 func TestPolicyUpdateHelp(t *testing.T) {

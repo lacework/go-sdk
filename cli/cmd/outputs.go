@@ -26,6 +26,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
 )
 
 // OutputJSON will print out the JSON representation of the provided data
@@ -118,4 +119,15 @@ func (c *cliState) OutputNonDefaultProfileFlag() string {
 		return fmt.Sprintf(" --profile %s", c.Profile)
 	}
 	return ""
+}
+
+// OutputYAML will print out the YAML representation of the provided data
+func (c *cliState) OutputYAML(v interface{}) error {
+	y, err := yaml.Marshal(v)
+	if err != nil {
+		c.Log.Debugw("unable to pretty print YAML object", "raw", v)
+		return err
+	}
+	fmt.Fprint(os.Stdout, string(y))
+	return nil
 }
