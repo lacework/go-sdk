@@ -69,6 +69,8 @@ To view the LQL query associated with the policy, use the query id shown.
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
 * [lacework policy create](lacework_policy_create.md)	 - Create a policy
 * [lacework policy delete](lacework_policy_delete.md)	 - Delete a policy
+* [lacework policy disable](lacework_policy_disable.md)	 - Disable Policies
+* [lacework policy enable](lacework_policy_enable.md)	 - Enable Policies
 * [lacework policy list](lacework_policy_list.md)	 - List policies
 * [lacework policy list-tags](lacework_policy_list-tags.md)	 - List policy tags
 * [lacework policy show](lacework_policy_show.md)	 - Show policy

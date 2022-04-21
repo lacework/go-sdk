@@ -1,22 +1,21 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.31.0`.
+Another day, another release. These are the release notes for the version `v0.32.0`.
 
 ## Features
-* feat(cli): disable/enable policies by tag (#758) (Darren)([3a45a01](https://github.com/lacework/go-sdk/commit/3a45a0186ca908920f2383c2eec2c7c7db6e17bf))
-* feat(cli): default template when creating LQL queries (#761) (Salim Afiune)([4bb9c19](https://github.com/lacework/go-sdk/commit/4bb9c1930b64e3e080ee44fc71028276bb44d8d8))
-* feat(cli): disable/enable all <report-type> compliance command (#755) (Darren)([e694304](https://github.com/lacework/go-sdk/commit/e69430484c93245919b2e48e264dc3c24d6a7297))
-* feat(cli): adds lql datasource relationships (#759) (hazedav)([4b1fc27](https://github.com/lacework/go-sdk/commit/4b1fc271db940d5272cd652f5b65d06e061af874))
-* feat(api): Recommendations v1 Service (#751) (Darren)([253cc38](https://github.com/lacework/go-sdk/commit/253cc38420ec9a6423aec2dc57958255eb1e5cf9))
-## Refactor
-* refactor(cli): inefficient policy sort (hazedav)([9a35ff6](https://github.com/lacework/go-sdk/commit/9a35ff665acd795f7a713b470d6603771f060beb))
+* feat(cli): output query & policy in YAML 📝 (#775) (Salim Afiune)([9173efe](https://github.com/lacework/go-sdk/commit/9173efef1603bb204ac998c7d8ed4a65a10bcdc8))
+* feat(api): AlertProfiles v2 service (#765) (Darren)([683ceca](https://github.com/lacework/go-sdk/commit/683ceca0c99971c9cde7371e3fc5cbd24adb9d33))
+* feat(cli): ubuntu ESM support (#768) (Salim Afiune)([7527e83](https://github.com/lacework/go-sdk/commit/7527e834cb15f246839fd984f73e4885949a9fea))
 ## Bug Fixes
-* fix(cli): command arguments (#760) (Salim Afiune)([574dfc1](https://github.com/lacework/go-sdk/commit/574dfc1dbb8eb066ca3e8668ed72be58731b0ff3))
-* fix: add missing gcp compliance report types to get-report command (#756) (Darren)([c05a07f](https://github.com/lacework/go-sdk/commit/c05a07ff0664164d8e4d53009c4e2af6e2451c27))
+* fix(cli): only display datasource relationships when avail (hazedav)([c9589ed](https://github.com/lacework/go-sdk/commit/c9589ed5abbac73511f829fb9b69571cc795ed60))
+## Documentation Updates
+* docs: enable policy enable/disable help text. (#766) (Darren)([768cfbf](https://github.com/lacework/go-sdk/commit/768cfbf4125f1f79b9801674dc7f9a4ca8fe0365))
 ## Other Changes
-* chore(deps): bump github.com/kyokomi/emoji/v2 from 2.2.8 to 2.2.9 (#724) (dependabot[bot])([717a725](https://github.com/lacework/go-sdk/commit/717a725edfdb205701456bd6f960b1b0a3788988))
-* chore(deps): bump github.com/spf13/cobra from 1.3.0 to 1.4.0 (#733) (dependabot[bot])([d1531ee](https://github.com/lacework/go-sdk/commit/d1531eef51e37966bc39e002d0589d400c548990))
-* ci: add make cmd for output go tests in junit format (#754) (Darren)([f3d0324](https://github.com/lacework/go-sdk/commit/f3d032431bea1770ab8b731a5aefef23ab1c4594))
-* ci: version bump to v0.30.1-dev (Lacework)([5cfe47a](https://github.com/lacework/go-sdk/commit/5cfe47a62c3c650cb35e879528614aa8155f9ac8))
+* chore(deps): bump github.com/BurntSushi/toml from 0.4.1 to 1.1.0 (#763) (dependabot[bot])([a3b6c5b](https://github.com/lacework/go-sdk/commit/a3b6c5b34bdd7272a2fc93267536865b37339330))
+* chore(deps): bump github.com/stretchr/testify from 1.7.0 to 1.7.1 (#740) (dependabot[bot])([db6541c](https://github.com/lacework/go-sdk/commit/db6541c0e32ae343629e01644971fdb2620d2404))
+* chore(deps): bump github.com/abiosoft/colima from 0.3.2 to 0.3.4 (#723) (dependabot[bot])([b9bef2a](https://github.com/lacework/go-sdk/commit/b9bef2a4c57abfdc89ed5660e0f9250e755ef149))
+* ci: version bump to v0.31.1-dev (Lacework)([7868fe7](https://github.com/lacework/go-sdk/commit/7868fe791cdf4a8cf2e574776798175f573a2939))
+* test(lql): fix case issue with host tests (hazedav)([30d7d7b](https://github.com/lacework/go-sdk/commit/30d7d7b77fb477a81361b0eca4d18eaed637f596))
+* test: rename LW_CLI_ -> CLI_ (#769) (Darren)([5cfedda](https://github.com/lacework/go-sdk/commit/5cfedda359d2cba7d17a25f1eecc55207989ab67))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
