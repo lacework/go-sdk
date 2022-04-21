@@ -20,6 +20,7 @@
 package integration
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -39,6 +40,13 @@ func TestQueryShowNoInput(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestQueryShow(t *testing.T) {
-	// tested by virtue of TestQueryCreateFile
+func TestQueryShowYAML(t *testing.T) {
+	queryIdFromPlatform := "LW_Global_AWS_CTA_AccessKeyDeleted"
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
+		"query", "show", queryIdFromPlatform, "--yaml")
+	assert.Contains(t, out.String(), fmt.Sprintf("queryId: %s", queryIdFromPlatform))
+	assert.Contains(t, out.String(), "queryText: |-")
+	assert.Contains(t, out.String(), "INSERT_ID")
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

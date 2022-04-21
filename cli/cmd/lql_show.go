@@ -21,6 +21,9 @@ package cmd
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
@@ -36,6 +39,11 @@ var (
 
 func init() {
 	queryCmd.AddCommand(queryShowCmd)
+
+	queryShowCmd.Flags().BoolVar(
+		&queryCmdState.YAML,
+		"yaml", false, "output query in YAML format",
+	)
 }
 
 func showQuery(_ *cobra.Command, args []string) error {
@@ -50,6 +58,18 @@ func showQuery(_ *cobra.Command, args []string) error {
 		return cli.OutputJSON(queryResponse.Data)
 	}
 
-	cli.OutputHuman(queryResponse.Data.QueryText)
+	if queryCmdState.YAML {
+		queryYaml, err := yaml.Marshal(&api.NewQuery{
+			QueryID:   queryResponse.Data.QueryID,
+			QueryText: queryResponse.Data.QueryText,
+		})
+		if err != nil {
+			return errors.Wrap(err, "unable to format query in YAML format")
+		}
+		cli.OutputHuman(string(queryYaml))
+	} else {
+		cli.OutputHuman(queryResponse.Data.QueryText)
+	}
+
 	return nil
 }
