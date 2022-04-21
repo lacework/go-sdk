@@ -65,6 +65,7 @@ type cliState struct {
 	workers        sync.WaitGroup
 	spinner        *spinner.Spinner
 	jsonOutput     bool
+	yamlOutput     bool
 	csvOutput      bool
 	nonInteractive bool
 	noCache        bool
@@ -375,6 +376,12 @@ func (c *cliState) EnableJSONOutput() {
 	c.jsonOutput = true
 }
 
+// EnableYAMLOutput enables the cli to display YAML output
+func (c *cliState) EnableYAMLOutput() {
+	c.Log.Info("switch output to yaml format")
+	c.yamlOutput = true
+}
+
 // EnableJSONOutput enables the cli to display human readable output
 func (c *cliState) EnableHumanOutput() {
 	c.Log.Info("switch output to human format")
@@ -392,9 +399,14 @@ func (c *cliState) JSONOutput() bool {
 	return c.jsonOutput
 }
 
+// YAMLOutput returns true if the cli is configured to display YAML output
+func (c *cliState) YAMLOutput() bool {
+	return c.yamlOutput
+}
+
 // HumanOutput returns true if the cli is configured to display human readable output
 func (c *cliState) HumanOutput() bool {
-	return !c.jsonOutput && !c.csvOutput
+	return !c.jsonOutput && !c.csvOutput && !c.yamlOutput
 }
 
 // CSVOutput returns true if the cli is configured to display csv output

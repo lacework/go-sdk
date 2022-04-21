@@ -47,9 +47,6 @@ var (
 		Start        string
 		URL          string
 		ValidateOnly bool
-
-		// output query in YAML format
-		YAML bool
 	}{}
 
 	// queryCmd represents the lql parent command

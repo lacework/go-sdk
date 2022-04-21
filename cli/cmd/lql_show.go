@@ -21,7 +21,6 @@ package cmd
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/lacework/go-sdk/api"
 )
@@ -33,15 +32,24 @@ var (
 		Short: "Show a query",
 		Long:  `Show a query.`,
 		Args:  cobra.ExactArgs(1),
-		RunE:  showQuery,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			b, err := cmd.Flags().GetBool("yaml")
+			if err != nil {
+				return errors.Wrap(err, "unable to parse --yaml flag")
+			}
+			if b {
+				cli.EnableYAMLOutput()
+			}
+			return nil
+		},
+		RunE: showQuery,
 	}
 )
 
 func init() {
 	queryCmd.AddCommand(queryShowCmd)
 
-	queryShowCmd.Flags().BoolVar(
-		&queryCmdState.YAML,
+	queryShowCmd.Flags().Bool(
 		"yaml", false, "output query in YAML format",
 	)
 }
@@ -54,22 +62,18 @@ func showQuery(_ *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to show query")
 	}
+
 	if cli.JSONOutput() {
 		return cli.OutputJSON(queryResponse.Data)
 	}
 
-	if queryCmdState.YAML {
-		queryYaml, err := yaml.Marshal(&api.NewQuery{
+	if cli.YAMLOutput() {
+		return cli.OutputYAML(&api.NewQuery{
 			QueryID:   queryResponse.Data.QueryID,
 			QueryText: queryResponse.Data.QueryText,
 		})
-		if err != nil {
-			return errors.Wrap(err, "unable to format query in YAML format")
-		}
-		cli.OutputHuman(string(queryYaml))
-	} else {
-		cli.OutputHuman(queryResponse.Data.QueryText)
 	}
 
+	cli.OutputHuman(queryResponse.Data.QueryText)
 	return nil
 }
