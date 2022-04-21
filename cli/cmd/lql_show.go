@@ -32,7 +32,7 @@ var (
 		Short: "Show a query",
 		Long:  `Show a query.`,
 		Args:  cobra.ExactArgs(1),
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			b, err := cmd.Flags().GetBool("yaml")
 			if err != nil {
 				return errors.Wrap(err, "unable to parse --yaml flag")
