@@ -220,7 +220,7 @@ func (svc *v2HostVulnerabilityService) SearchAllPages(filters SearchFilter) (
 	for {
 		all = append(all, response.Data...)
 
-		newResponse := VulnerabilitiesContainersResponse{
+		newResponse := VulnerabilitiesHostResponse{
 			Paging: response.Paging,
 		}
 		pageOk, err = svc.client.NextPage(&newResponse)
