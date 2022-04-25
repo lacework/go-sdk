@@ -269,7 +269,7 @@ func initGenerateAwsTfCommandFlags() {
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.AwsRegion, "aws_region", "", "specify aws region")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.AwsProfile, "aws_profile", "default", "specify aws profile")
+		&GenerateAwsCommandState.AwsProfile, "aws_profile", "", "specify aws profile")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.ExistingCloudtrailBucketArn,
 		"existing_bucket_arn",
@@ -571,7 +571,7 @@ func awsConfigIsEmpty(g *aws.GenerateAwsTfConfigurationArgs) bool {
 	return !g.Cloudtrail &&
 		!g.Config &&
 		!g.ConsolidatedCloudtrail &&
-		g.AwsProfile == "default" &&
+		g.AwsProfile == "" &&
 		g.AwsRegion == "" &&
 		g.ExistingCloudtrailBucketArn == "" &&
 		g.ExistingIamRole == nil &&
