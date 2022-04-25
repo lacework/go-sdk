@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -273,6 +274,14 @@ To disable all recommendations for CIS_1_1 report run:
 		},
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			// prompt for changes
+			proceed, err := complianceAwsDisableReportDisplayChanges()
+			if err != nil {
+				return errors.Wrap(err, "unable to confirm disable")
+			}
+			if !proceed {
+				return nil
+			}
 
 			schema, err := fetchCachedAwsComplianceReportSchema(args[0])
 			if err != nil {
@@ -449,6 +458,45 @@ func init() {
 		fmt.Sprintf("filter report details by status (%s)",
 			strings.Join(api.ValidComplianceStatus, ", ")),
 	)
+}
+
+// Simple helper to prompt for approval after disable request
+func complianceAwsDisableReportCmdPrompt() (int, error) {
+	message := `WARNING! Disabling all recommendations for CIS_1_1 will disable the following reports and its corresponding compliance alerts:
+AWS CIS Benchmark and S3 Report
+AWS HIPAA Report
+AWS ISO 27001:2013 Report
+AWS NIST 800-171 Report
+AWS NIST 800-53 Report
+AWS PCI DSS Report
+AWS SOC 2 Report
+AWS SOC 2 Report Rev2
+
+Would you like to proceed?
+`
+	options := []string{
+		"Proceed with disable",
+		"Quit",
+	}
+
+	var answer int
+	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt: &survey.Select{
+			Message: message,
+			Options: options,
+		},
+		Response: &answer,
+	})
+
+	return answer, err
+}
+
+func complianceAwsDisableReportDisplayChanges() (bool, error) {
+	answer, err := complianceAwsDisableReportCmdPrompt()
+	if err != nil {
+		return false, err
+	}
+	return answer == 0, nil
 }
 
 func complianceAwsReportDetailsTable(report *api.ComplianceAwsReport) [][]string {
