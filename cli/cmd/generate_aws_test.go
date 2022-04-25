@@ -121,7 +121,7 @@ func TestGenerationCache(t *testing.T) {
 		defer os.RemoveAll(dir)
 		cli.InitCache(dir)
 
-		args := aws.GenerateAwsTfConfigurationArgs{AwsProfile: "default"} // Profile is set automatically by the CLI defaults
+		args := aws.GenerateAwsTfConfigurationArgs{}
 		writeAwsGenerationArgsCache(&args)
 		assert.NoFileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsAssetIacParams)))
 	})
@@ -133,7 +133,7 @@ func TestGenerationCache(t *testing.T) {
 		defer os.RemoveAll(dir)
 		cli.InitCache(dir)
 
-		args := aws.GenerateAwsTfConfigurationArgs{AwsProfile: "default", AwsRegion: "us-east-2"} // Profile is set automatically by the CLI defaults
+		args := aws.GenerateAwsTfConfigurationArgs{AwsRegion: "us-east-2"}
 		writeAwsGenerationArgsCache(&args)
 		assert.FileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsAssetIacParams)))
 	})
