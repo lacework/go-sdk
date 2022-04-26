@@ -506,14 +506,16 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 		//
 		// Only ask about more accounts if consolidated cloudtrail is setup (matching scenarios doc)
 		var options []string
-		if config.ConsolidatedCloudtrail {
-			options = append(options, AdvancedOptAwsAccounts)
-		}
 
 		// Only show Advanced CloudTrail options if CloudTrail integration is set to true
 		if config.Cloudtrail {
 			options = append(options, AdvancedOptCloudTrail)
 		}
+
+		if config.ConsolidatedCloudtrail {
+			options = append(options, AdvancedOptAwsAccounts)
+		}
+
 		options = append(options, AdvancedOptIamRole, AwsAdvancedOptLocation, AwsAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{

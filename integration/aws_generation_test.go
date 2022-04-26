@@ -319,8 +319,7 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.Send("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
-			c.SendLine("\x1B[B")
+			c.SendLine("\x1B[B") // Down arrow once and enter on the submenu to add subaccounts
 			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
 			c.SendLine("default")
 			expectString(t, c, cmd.QuestionSubAccountProfileName)
@@ -377,8 +376,7 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testin
 			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.Send("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
-			c.SendLine("\x1B[B")
+			c.SendLine("\x1B[B") // Down arrow once and enter on the submenu to add subaccounts
 			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
 			c.SendLine("default")
 			expectString(t, c, fmt.Sprintf(cmd.QuestionSubAccountReplace, "testaccount:us-east-1, testaccount1:us-east-2"))
