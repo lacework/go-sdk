@@ -423,7 +423,7 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testin
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test use existing IAM rolej
+// Test use existing IAM role
 func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")

@@ -82,7 +82,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			cli.StartProgress("Generating Terraform Code...")
 
 			// Explicitly set Lacework profile if it was passed in main args
-			if cli.Profile != "" {
+			if cli.Profile != "default" {
 				GenerateAwsCommandState.LaceworkProfile = cli.Profile
 			}
 
