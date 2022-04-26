@@ -625,9 +625,14 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 		// Construction of this slice is a bit strange at first look, but the reason for that is because we have to do string
 		// validation to know which option was selected due to how survey works; and doing it by index (also supported) is
 		// difficult when the options are dynamic (which they are)
-		options := []string{GcpAdvancedOptAuditLog, GcpAdvancedOptExistingServiceAccount, GcpAdvancedOptIntegrationName}
+		var options []string
 
-		options = append(options, GcpAdvancedOptLocation, GcpAdvancedOptDone)
+		// Only show Advanced AuditLog options if AuditLog integration is set to true
+		if config.AuditLog {
+			options = append(options, GcpAdvancedOptAuditLog)
+		}
+
+		options = append(options, GcpAdvancedOptExistingServiceAccount, GcpAdvancedOptIntegrationName, GcpAdvancedOptLocation, GcpAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
 				Message: "Which options would you like to configure?",

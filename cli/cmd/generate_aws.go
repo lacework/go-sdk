@@ -82,7 +82,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			cli.StartProgress("Generating Terraform Code...")
 
 			// Explicitly set Lacework profile if it was passed in main args
-			if cli.Profile != "default" {
+			if cli.Profile != "" {
 				GenerateAwsCommandState.LaceworkProfile = cli.Profile
 			}
 
@@ -505,11 +505,16 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 		// difficult when the options are dynamic (which they are)
 		//
 		// Only ask about more accounts if consolidated cloudtrail is setup (matching scenarios doc)
-		options := []string{AdvancedOptCloudTrail, AdvancedOptIamRole}
+		var options []string
 		if config.ConsolidatedCloudtrail {
 			options = append(options, AdvancedOptAwsAccounts)
 		}
-		options = append(options, AwsAdvancedOptLocation, AwsAdvancedOptDone)
+
+		// Only show Advanced CloudTrail options if CloudTrail integration is set to true
+		if config.Cloudtrail {
+			options = append(options, AdvancedOptCloudTrail)
+		}
+		options = append(options, AdvancedOptIamRole, AwsAdvancedOptLocation, AwsAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
 				Message: "Which options would you like to configure?",
