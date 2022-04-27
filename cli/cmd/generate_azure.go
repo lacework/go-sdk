@@ -354,7 +354,7 @@ func initGenerateAzureTfCommandFlags() {
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.CreateAdIntegration,
 		"ad_create",
-		true,
+		false,
 		"create new active directory integration")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
