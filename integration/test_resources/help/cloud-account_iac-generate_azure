@@ -20,7 +20,7 @@ Aliases:
 Flags:
       --activity_log                           enable active log integration
       --activity_log_integration_name string   specify a custom activity log integration name
-      --ad_create                              create new active directory integration (default true)
+      --ad_create                              create new active directory integration
       --ad_id string                           existing active directory application id
       --ad_pass string                         existing active directory application password
       --ad_pid string                          existing active directory application service principle id
