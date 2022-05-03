@@ -182,10 +182,10 @@ func TestCloudAccountsDelete(t *testing.T) {
 
 func TestCloudAccountsList(t *testing.T) {
 	var (
-		awsIntgGUIDs   = []string{intgguid.New(), intgguid.New(), intgguid.New()}
+		awsIntgGUIDs        = []string{intgguid.New(), intgguid.New(), intgguid.New()}
 		awsEksAuditLogGUIDs = []string{intgguid.New()}
-		azureIntgGUIDs = []string{intgguid.New(), intgguid.New()}
-		gcpIntgGUIDs   = []string{
+		azureIntgGUIDs      = []string{intgguid.New(), intgguid.New()}
+		gcpIntgGUIDs        = []string{
 			intgguid.New(), intgguid.New(), intgguid.New(), intgguid.New(),
 		}
 		allGUIDs    = append(awsEksAuditLogGUIDs, append(azureIntgGUIDs, append(gcpIntgGUIDs, awsIntgGUIDs...)...)...)
@@ -231,9 +231,9 @@ func TestCloudAccountsList(t *testing.T) {
 
 func TestCloudAccountsListByType(t *testing.T) {
 	var (
-		awsIntgGUIDs   = []string{intgguid.New(), intgguid.New(), intgguid.New()}
-		expectedLen = len(awsIntgGUIDs)
-		fakeServer  = lacework.MockServer()
+		awsIntgGUIDs = []string{intgguid.New(), intgguid.New(), intgguid.New()}
+		expectedLen  = len(awsIntgGUIDs)
+		fakeServer   = lacework.MockServer()
 	)
 	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")

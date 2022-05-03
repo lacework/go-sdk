@@ -47,7 +47,7 @@ var (
 			}
 
 			if len(cloudAccounts.Data) == 0 {
-				cli.OutputHuman("There was no cloud account found.\n")
+				cli.OutputHuman("No cloud accounts found.\n")
 				return nil
 			}
 

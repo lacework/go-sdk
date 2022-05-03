@@ -84,15 +84,29 @@ type cloudAccountType int
 const (
 	// type that defines a non-existing Cloud Account integration
 	NoneCloudAccount cloudAccountType = iota
+	AwsCfgCloudAccount
 	AwsCtSqsCloudAccount
 	AwsEksAuditCloudAccount
+	AwsUsGovCfgCloudAccount
+	AwsUsGovCtSqsCloudAccount
+	AzureAlSeqCloudAccount
+	AzureCfgCloudAccount
+	GcpAtSesCloudAccount
+	GcpCfgCloudAccount
 )
 
 // CloudAccountTypes is the list of available Cloud Account integration types
 var CloudAccountTypes = map[cloudAccountType]string{
-	NoneCloudAccount:        "None",
-	AwsCtSqsCloudAccount:    "AwsCtSqs",
-	AwsEksAuditCloudAccount: "AwsEksAudit",
+	NoneCloudAccount:          "None",
+	AwsCfgCloudAccount:        "AwsCfg",
+	AwsCtSqsCloudAccount:      "AwsCtSqs",
+	AwsEksAuditCloudAccount:   "AwsEksAudit",
+	AwsUsGovCfgCloudAccount:   "AwsUsGovCfg",
+	AwsUsGovCtSqsCloudAccount: "AwsUsGovCtSqs",
+	AzureAlSeqCloudAccount:    "AzureAlSeq",
+	AzureCfgCloudAccount:      "AzureCfg",
+	GcpAtSesCloudAccount:      "GcpAtSes",
+	GcpCfgCloudAccount:        "GcpCfg",
 }
 
 // String returns the string representation of a Cloud Account integration type
@@ -188,8 +202,22 @@ type v2CommonIntegrationData struct {
 	State                *V2IntegrationState `json:"state,omitempty"`
 }
 
-func (common v2CommonIntegrationData) ID() string {
-	return common.IntgGuid
+func (c v2CommonIntegrationData) ID() string {
+	return c.IntgGuid
+}
+
+func (c v2CommonIntegrationData) Status() string {
+	if c.Enabled == 1 {
+		return "Enabled"
+	}
+	return "Disabled"
+}
+
+func (c v2CommonIntegrationData) StateString() string {
+	if c.State != nil && c.State.Ok {
+		return "Ok"
+	}
+	return "Check"
 }
 
 type V2IntegrationState struct {
@@ -222,18 +250,4 @@ func (svc *CloudAccountsService) update(guid string, data interface{}, response 
 func (svc *CloudAccountsService) listByType(caType cloudAccountType, response interface{}) error {
 	apiPath := fmt.Sprintf(apiV2CloudAccountsByType, caType.String())
 	return svc.client.RequestDecoder("GET", apiPath, nil, &response)
-}
-
-func (c v2CommonIntegrationData) Status() string {
-	if c.Enabled == 1 {
-		return "Enabled"
-	}
-	return "Disabled"
-}
-
-func (c v2CommonIntegrationData) StateString() string {
-	if c.State != nil && c.State.Ok {
-		return "Ok"
-	}
-	return "Check"
 }
