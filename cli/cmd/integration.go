@@ -139,7 +139,7 @@ var (
 	// integrationCreateCmd represents the create sub-command inside the integration command
 	integrationCreateCmd = &cobra.Command{
 		Use:   "create",
-		Short: "Create an external integrations",
+		Short: "Create an external integration",
 		Args:  cobra.NoArgs,
 		Long:  `Creates an external integration in your account through an interactive session.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -161,7 +161,7 @@ var (
 	integrationUpdateCmd = &cobra.Command{
 		Use:    "update",
 		Hidden: true,
-		Short:  "Update an external integrations",
+		Short:  "Update an external integration",
 		Args:   cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return nil
@@ -171,7 +171,7 @@ var (
 	// integrationDeleteCmd represents the delete sub-command inside the integration command
 	integrationDeleteCmd = &cobra.Command{
 		Use:   "delete <int_guid>",
-		Short: "Delete an external integrations",
+		Short: "Delete an external integration",
 		Long: `Delete an external integration by providing an integration GUID.
 
 Integration GUIDs can be found by using the 'lacework integration list' command.`,

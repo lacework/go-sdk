@@ -117,6 +117,13 @@ func (svc *CloudAccountsService) List() (response CloudAccountsResponse, err err
 	return
 }
 
+// ListByType lists the cloud accounts from the provided type that are available
+// on the Lacework Server
+func (svc *CloudAccountsService) ListByType(caType cloudAccountType) (response CloudAccountsResponse, err error) {
+	err = svc.listByType(caType, &response)
+	return
+}
+
 // Create creates a single Cloud Account integration
 func (svc *CloudAccountsService) Create(integration CloudAccountRaw) (
 	response CloudAccountResponse,
@@ -210,4 +217,23 @@ func (svc *CloudAccountsService) update(guid string, data interface{}, response 
 	}
 	apiPath := fmt.Sprintf(apiV2CloudAccountFromGUID, guid)
 	return svc.client.RequestEncoderDecoder("PATCH", apiPath, data, response)
+}
+
+func (svc *CloudAccountsService) listByType(caType cloudAccountType, response interface{}) error {
+	apiPath := fmt.Sprintf(apiV2CloudAccountsByType, caType.String())
+	return svc.client.RequestDecoder("GET", apiPath, nil, &response)
+}
+
+func (c v2CommonIntegrationData) Status() string {
+	if c.Enabled == 1 {
+		return "Enabled"
+	}
+	return "Disabled"
+}
+
+func (c v2CommonIntegrationData) StateString() string {
+	if c.State != nil && c.State.Ok {
+		return "Ok"
+	}
+	return "Check"
 }
