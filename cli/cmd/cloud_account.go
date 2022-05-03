@@ -53,7 +53,7 @@ var (
 
 			cli.OutputHuman(
 				renderSimpleTable(
-					[]string{"Integration GUID", "Name", "Type", "Status", "State"},
+					[]string{"Cloud Account Integration GUID", "Name", "Type", "Status", "State"},
 					cloudAccountsToTable(cloudAccounts.Data),
 				),
 			)
