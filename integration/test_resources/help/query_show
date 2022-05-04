@@ -5,6 +5,7 @@ Usage:
 
 Flags:
   -h, --help   help for show
+      --yaml   output query in YAML format
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

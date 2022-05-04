@@ -122,7 +122,17 @@ To view the LQL query associated with the policy, use the query id shown.
 		Short:   "Show policy",
 		Long:    `Show details about a single policy.`,
 		Args:    cobra.ExactArgs(1),
-		RunE:    showPolicy,
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			b, err := cmd.Flags().GetBool("yaml")
+			if err != nil {
+				return errors.Wrap(err, "unable to parse --yaml flag")
+			}
+			if b {
+				cli.EnableYAMLOutput()
+			}
+			return nil
+		},
+		RunE: showPolicy,
 	}
 
 	// This is an experimental command.
@@ -196,6 +206,9 @@ func init() {
 	policyCmd.AddCommand(policyListCmd)
 	policyCmd.AddCommand(policyListTagsCmd)
 	policyCmd.AddCommand(policyShowCmd)
+	// experimental commands
+	policyCmd.AddCommand(policyDisableTagCmd)
+	policyCmd.AddCommand(policyEnableTagCmd)
 
 	// Lacework Content Library
 	if cli.IsLCLInstalled() {
@@ -210,10 +223,6 @@ func init() {
 			"update policy from Lacework Content Library",
 		)
 	}
-
-	// experimental commands
-	policyCmd.AddCommand(policyDisableTagCmd)
-	policyCmd.AddCommand(policyEnableTagCmd)
 
 	// policy list specific flags
 	policyListCmd.Flags().StringVar(
@@ -234,12 +243,16 @@ func init() {
 		&policyCmdState.Tag,
 		"tag", "", "only show policies with the specified tag",
 	)
-
+	// policy show specific flags
+	policyShowCmd.Flags().Bool(
+		"yaml", false, "output query in YAML format",
+	)
+	// policy disable specific flags
 	policyDisableTagCmd.Flags().StringVar(
 		&policyCmdState.Tag,
 		"tag", "", "disable all policies with the specified tag",
 	)
-
+	// policy enable specific flags
 	policyEnableTagCmd.Flags().StringVar(
 		&policyCmdState.Tag,
 		"tag", "", "enable all policies with the specified tag",
@@ -486,6 +499,25 @@ func showPolicy(cmd *cobra.Command, args []string) error {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policyResponse.Data)
 	}
+
+	if cli.YAMLOutput() {
+		return cli.OutputYAML(&api.NewPolicy{
+			PolicyID:      policyResponse.Data.PolicyID,
+			PolicyType:    policyResponse.Data.PolicyType,
+			QueryID:       policyResponse.Data.QueryID,
+			Title:         policyResponse.Data.Title,
+			Enabled:       policyResponse.Data.Enabled,
+			Description:   policyResponse.Data.Description,
+			Remediation:   policyResponse.Data.Remediation,
+			Severity:      policyResponse.Data.Severity,
+			Limit:         policyResponse.Data.Limit,
+			EvalFrequency: policyResponse.Data.EvalFrequency,
+			AlertEnabled:  policyResponse.Data.AlertEnabled,
+			AlertProfile:  policyResponse.Data.AlertProfile,
+			Tags:          policyResponse.Data.Tags,
+		})
+	}
+
 	cli.OutputHuman(
 		renderSimpleTable(policyTableHeaders, policyTable([]api.Policy{policyResponse.Data})))
 	cli.OutputHuman("\n")

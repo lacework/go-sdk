@@ -20,7 +20,7 @@ Usage:
 
 Flags:
       --apply                                 run terraform apply without executing plan or prompting
-      --aws_profile string                    specify aws profile (default "default")
+      --aws_profile string                    specify aws profile
       --aws_region string                     specify aws region
       --aws_subaccount strings                configure an additional aws account; value format must be <aws profile>:<region>
       --cloudtrail                            enable cloudtrail integration
