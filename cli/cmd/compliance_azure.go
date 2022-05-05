@@ -25,6 +25,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -323,6 +324,14 @@ To disable all recommendations for CIS_1_3_1 report run:
 		},
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			// prompt for changes
+			proceed, err := complianceAzureDisableReportDisplayChanges(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unable to confirm disable")
+			}
+			if !proceed {
+				return nil
+			}
 
 			schema, err := fetchCachedAzureComplianceReportSchema(args[0])
 			if err != nil {
@@ -506,6 +515,58 @@ func init() {
 		fmt.Sprintf("filter report details by status (%s)",
 			strings.Join(api.ValidComplianceStatus, ", ")),
 	)
+}
+
+// Simple helper to prompt for approval after disable request
+func complianceAzureDisableReportCmdPrompt(arg string) (int, error) {
+	var message string
+	switch arg {
+	case "CIS", "CIS_1_0", "AZURE_CIS":
+		message = `WARNING! Disabling all recommendations for CIS_1_0 will disable the following reports and its corresponding compliance alerts:
+ AWS CIS Benchmark
+ PCI Benchmark
+ SOC 2 Report
+
+ Would you like to proceed?
+ `
+	case "CIS_1_3_1", "AZURE_CIS_131":
+		message = `WARNING! Disabling all recommendations for CIS_1_3_1 will disable the following reports and its corresponding compliance alerts:
+ CIS Benchmark 1.3.1
+ PCI Benchmark Rev2
+ SOC 2 Report Rev2
+ HIPAA Report
+ ISO27001 Report (+ couple CIS 1.0 controls)
+ NIST 800-171 rev2 Report
+ NIST 800-53 rev5 Report
+ NIST CSF rev2 Report
+
+ Would you like to proceed?
+ `
+	}
+
+	options := []string{
+		"Proceed with disable",
+		"Quit",
+	}
+
+	var answer int
+	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt: &survey.Select{
+			Message: message,
+			Options: options,
+		},
+		Response: &answer,
+	})
+
+	return answer, err
+}
+
+func complianceAzureDisableReportDisplayChanges(arg string) (bool, error) {
+	answer, err := complianceAzureDisableReportCmdPrompt(arg)
+	if err != nil {
+		return false, err
+	}
+	return answer == 0, nil
 }
 
 func complianceAzureReportDetailsTable(report *api.ComplianceAzureReport) [][]string {
