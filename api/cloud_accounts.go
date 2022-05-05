@@ -155,7 +155,7 @@ func (svc *CloudAccountsService) Delete(guid string) error {
 
 	return svc.client.RequestDecoder(
 		"DELETE",
-		fmt.Sprintf(apiV2CloudAccountFromGUID, guid),
+		fmt.Sprintf(apiV2CloudAccountsWithParam, guid),
 		nil,
 		nil,
 	)
@@ -235,7 +235,7 @@ func (svc *CloudAccountsService) get(guid string, response interface{}) error {
 	if guid == "" {
 		return errors.New("specify an intgGuid")
 	}
-	apiPath := fmt.Sprintf(apiV2CloudAccountFromGUID, guid)
+	apiPath := fmt.Sprintf(apiV2CloudAccountsWithParam, guid)
 	return svc.client.RequestDecoder("GET", apiPath, nil, response)
 }
 
@@ -243,11 +243,11 @@ func (svc *CloudAccountsService) update(guid string, data interface{}, response 
 	if guid == "" {
 		return errors.New("specify an intgGuid")
 	}
-	apiPath := fmt.Sprintf(apiV2CloudAccountFromGUID, guid)
+	apiPath := fmt.Sprintf(apiV2CloudAccountsWithParam, guid)
 	return svc.client.RequestEncoderDecoder("PATCH", apiPath, data, response)
 }
 
 func (svc *CloudAccountsService) listByType(caType cloudAccountType, response interface{}) error {
-	apiPath := fmt.Sprintf(apiV2CloudAccountsByType, caType.String())
+	apiPath := fmt.Sprintf(apiV2CloudAccountsWithParam, caType.String())
 	return svc.client.RequestDecoder("GET", apiPath, nil, &response)
 }

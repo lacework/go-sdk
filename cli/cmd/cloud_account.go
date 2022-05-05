@@ -42,13 +42,13 @@ var (
 				return errors.Wrap(err, "unable to get cloud accounts")
 			}
 
-			if cli.JSONOutput() {
-				return cli.OutputJSON(cloudAccounts.Data)
-			}
-
 			if len(cloudAccounts.Data) == 0 {
 				cli.OutputHuman("No cloud accounts found.\n")
 				return nil
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(cloudAccounts.Data)
 			}
 
 			cli.OutputHuman(

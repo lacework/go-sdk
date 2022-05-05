@@ -101,9 +101,8 @@ const (
 	apiV2AlertRules        = "v2/AlertRules"
 	apiV2AlertRuleFromGUID = "v2/AlertRules/%s"
 
-	apiV2CloudAccounts        = "v2/CloudAccounts"
-	apiV2CloudAccountsByType  = "v2/CloudAccounts/%s"
-	apiV2CloudAccountFromGUID = "v2/CloudAccounts/%s"
+	apiV2CloudAccounts          = "v2/CloudAccounts"
+	apiV2CloudAccountsWithParam = "v2/CloudAccounts/%s"
 
 	apiV2AgentAccessTokens       = "v2/AgentAccessTokens"
 	apiV2AgentAccessTokensSearch = "v2/AgentAccessTokens/search"
