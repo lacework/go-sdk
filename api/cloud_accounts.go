@@ -134,7 +134,7 @@ func (svc *CloudAccountsService) List() (response CloudAccountsResponse, err err
 // ListByType lists the cloud accounts from the provided type that are available
 // on the Lacework Server
 func (svc *CloudAccountsService) ListByType(caType cloudAccountType) (response CloudAccountsResponse, err error) {
-	err = svc.listByType(caType, &response)
+	err = svc.get(caType.String(), &response)
 	return
 }
 
@@ -170,6 +170,9 @@ func (svc *CloudAccountsService) Delete(guid string) error {
 //
 //    Where <Type> is the Cloud Account integration type.
 func (svc *CloudAccountsService) Get(guid string, response interface{}) error {
+	if guid == "" {
+		return errors.New("specify an intgGuid")
+	}
 	return svc.get(guid, &response)
 }
 
@@ -231,11 +234,8 @@ func (svc *CloudAccountsService) create(data interface{}, response interface{}) 
 	return svc.client.RequestEncoderDecoder("POST", apiV2CloudAccounts, data, response)
 }
 
-func (svc *CloudAccountsService) get(guid string, response interface{}) error {
-	if guid == "" {
-		return errors.New("specify an intgGuid")
-	}
-	apiPath := fmt.Sprintf(apiV2CloudAccountsWithParam, guid)
+func (svc *CloudAccountsService) get(param string, response interface{}) error {
+	apiPath := fmt.Sprintf(apiV2CloudAccountsWithParam, param)
 	return svc.client.RequestDecoder("GET", apiPath, nil, response)
 }
 
@@ -245,9 +245,4 @@ func (svc *CloudAccountsService) update(guid string, data interface{}, response 
 	}
 	apiPath := fmt.Sprintf(apiV2CloudAccountsWithParam, guid)
 	return svc.client.RequestEncoderDecoder("PATCH", apiPath, data, response)
-}
-
-func (svc *CloudAccountsService) listByType(caType cloudAccountType, response interface{}) error {
-	apiPath := fmt.Sprintf(apiV2CloudAccountsWithParam, caType.String())
-	return svc.client.RequestDecoder("GET", apiPath, nil, &response)
 }
