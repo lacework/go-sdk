@@ -1,19 +1,27 @@
-Manage cloud account integrations with Lacework
+---
+title: "lacework cloud-account list"
+slug: lacework_cloud-account_list
+hide_title: true
+---
 
-Usage:
-  lacework cloud-account [command]
+## lacework cloud-account list
 
-Aliases:
-  cloud-account, cloud-accounts, cloud, ca
+List all available cloud account integrations
 
-Available Commands:
-  iac-generate Create IaC code
-  list         List all available cloud account integrations
+```
+lacework cloud-account list [flags]
+```
 
-Flags:
-  -h, --help   help for cloud-account
+### Options
 
-Global Flags:
+```
+  -h, --help          help for list
+  -t, --type string   list all cloud accounts of a specific type
+```
+
+### Options inherited from parent commands
+
+```
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
@@ -26,5 +34,9 @@ Global Flags:
       --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
+```
 
-Use "lacework cloud-account [command] --help" for more information about a command.
+### SEE ALSO
+
+* [lacework cloud-account](lacework_cloud-account.md)	 - Manage cloud accounts
+

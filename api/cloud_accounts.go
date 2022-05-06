@@ -84,15 +84,29 @@ type cloudAccountType int
 const (
 	// type that defines a non-existing Cloud Account integration
 	NoneCloudAccount cloudAccountType = iota
+	AwsCfgCloudAccount
 	AwsCtSqsCloudAccount
 	AwsEksAuditCloudAccount
+	AwsUsGovCfgCloudAccount
+	AwsUsGovCtSqsCloudAccount
+	AzureAlSeqCloudAccount
+	AzureCfgCloudAccount
+	GcpAtSesCloudAccount
+	GcpCfgCloudAccount
 )
 
 // CloudAccountTypes is the list of available Cloud Account integration types
 var CloudAccountTypes = map[cloudAccountType]string{
-	NoneCloudAccount:        "None",
-	AwsCtSqsCloudAccount:    "AwsCtSqs",
-	AwsEksAuditCloudAccount: "AwsEksAudit",
+	NoneCloudAccount:          "None",
+	AwsCfgCloudAccount:        "AwsCfg",
+	AwsCtSqsCloudAccount:      "AwsCtSqs",
+	AwsEksAuditCloudAccount:   "AwsEksAudit",
+	AwsUsGovCfgCloudAccount:   "AwsUsGovCfg",
+	AwsUsGovCtSqsCloudAccount: "AwsUsGovCtSqs",
+	AzureAlSeqCloudAccount:    "AzureAlSeq",
+	AzureCfgCloudAccount:      "AzureCfg",
+	GcpAtSesCloudAccount:      "GcpAtSes",
+	GcpCfgCloudAccount:        "GcpCfg",
 }
 
 // String returns the string representation of a Cloud Account integration type
@@ -117,6 +131,13 @@ func (svc *CloudAccountsService) List() (response CloudAccountsResponse, err err
 	return
 }
 
+// ListByType lists the cloud accounts from the provided type that are available
+// on the Lacework Server
+func (svc *CloudAccountsService) ListByType(caType cloudAccountType) (response CloudAccountsResponse, err error) {
+	err = svc.get(caType.String(), &response)
+	return
+}
+
 // Create creates a single Cloud Account integration
 func (svc *CloudAccountsService) Create(integration CloudAccountRaw) (
 	response CloudAccountResponse,
@@ -134,7 +155,7 @@ func (svc *CloudAccountsService) Delete(guid string) error {
 
 	return svc.client.RequestDecoder(
 		"DELETE",
-		fmt.Sprintf(apiV2CloudAccountFromGUID, guid),
+		fmt.Sprintf(apiV2CloudAccountsWithParam, guid),
 		nil,
 		nil,
 	)
@@ -149,6 +170,9 @@ func (svc *CloudAccountsService) Delete(guid string) error {
 //
 //    Where <Type> is the Cloud Account integration type.
 func (svc *CloudAccountsService) Get(guid string, response interface{}) error {
+	if guid == "" {
+		return errors.New("specify an intgGuid")
+	}
 	return svc.get(guid, &response)
 }
 
@@ -181,8 +205,22 @@ type v2CommonIntegrationData struct {
 	State                *V2IntegrationState `json:"state,omitempty"`
 }
 
-func (common v2CommonIntegrationData) ID() string {
-	return common.IntgGuid
+func (c v2CommonIntegrationData) ID() string {
+	return c.IntgGuid
+}
+
+func (c v2CommonIntegrationData) Status() string {
+	if c.Enabled == 1 {
+		return "Enabled"
+	}
+	return "Disabled"
+}
+
+func (c v2CommonIntegrationData) StateString() string {
+	if c.State != nil && c.State.Ok {
+		return "Ok"
+	}
+	return "Check"
 }
 
 type V2IntegrationState struct {
@@ -196,11 +234,8 @@ func (svc *CloudAccountsService) create(data interface{}, response interface{}) 
 	return svc.client.RequestEncoderDecoder("POST", apiV2CloudAccounts, data, response)
 }
 
-func (svc *CloudAccountsService) get(guid string, response interface{}) error {
-	if guid == "" {
-		return errors.New("specify an intgGuid")
-	}
-	apiPath := fmt.Sprintf(apiV2CloudAccountFromGUID, guid)
+func (svc *CloudAccountsService) get(param string, response interface{}) error {
+	apiPath := fmt.Sprintf(apiV2CloudAccountsWithParam, param)
 	return svc.client.RequestDecoder("GET", apiPath, nil, response)
 }
 
@@ -208,6 +243,6 @@ func (svc *CloudAccountsService) update(guid string, data interface{}, response 
 	if guid == "" {
 		return errors.New("specify an intgGuid")
 	}
-	apiPath := fmt.Sprintf(apiV2CloudAccountFromGUID, guid)
+	apiPath := fmt.Sprintf(apiV2CloudAccountsWithParam, guid)
 	return svc.client.RequestEncoderDecoder("PATCH", apiPath, data, response)
 }
