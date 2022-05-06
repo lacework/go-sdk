@@ -523,7 +523,7 @@ func complianceAzureDisableReportCmdPrompt(arg string) (int, error) {
 	switch arg {
 	case "CIS", "CIS_1_0", "AZURE_CIS":
 		message = `WARNING! Disabling all recommendations for CIS_1_0 will disable the following reports and its corresponding compliance alerts:
- AWS CIS Benchmark
+ AZURE CIS Benchmark
  PCI Benchmark
  SOC 2 Report
 
@@ -531,7 +531,7 @@ func complianceAzureDisableReportCmdPrompt(arg string) (int, error) {
  `
 	case "CIS_1_3_1", "AZURE_CIS_131":
 		message = `WARNING! Disabling all recommendations for CIS_1_3_1 will disable the following reports and its corresponding compliance alerts:
- CIS Benchmark 1.3.1
+ AZURE CIS Benchmark 1.3.1
  PCI Benchmark Rev2
  SOC 2 Report Rev2
  HIPAA Report
