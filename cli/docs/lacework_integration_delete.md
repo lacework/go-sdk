@@ -6,7 +6,7 @@ hide_title: true
 
 ## lacework integration delete
 
-Delete an external integrations
+Delete an external integration
 
 ### Synopsis
 

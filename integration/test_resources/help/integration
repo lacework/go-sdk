@@ -7,8 +7,8 @@ Aliases:
   integration, integrations, int
 
 Available Commands:
-  create      Create an external integrations
-  delete      Delete an external integrations
+  create      Create an external integration
+  delete      Delete an external integration
   list        List all available external integrations
   show        Show details about a specific external integration
 

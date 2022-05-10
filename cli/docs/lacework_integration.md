@@ -38,8 +38,8 @@ Manage external integrations with the Lacework platform
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework integration create](lacework_integration_create.md)	 - Create an external integrations
-* [lacework integration delete](lacework_integration_delete.md)	 - Delete an external integrations
+* [lacework integration create](lacework_integration_create.md)	 - Create an external integration
+* [lacework integration delete](lacework_integration_delete.md)	 - Delete an external integration
 * [lacework integration list](lacework_integration_list.md)	 - List all available external integrations
 * [lacework integration show](lacework_integration_show.md)	 - Show details about a specific external integration
 
