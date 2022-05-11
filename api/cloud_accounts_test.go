@@ -263,7 +263,6 @@ func TestCloudAccountsListByType(t *testing.T) {
 	response, err := c.V2.CloudAccounts.ListByType(caType)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
-	print(response.Data)
 	assert.Equal(t, expectedLen, len(response.Data))
 	for _, d := range response.Data {
 		assert.Contains(t, awsIntgGUIDs, d.IntgGuid)
