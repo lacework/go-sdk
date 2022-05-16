@@ -7,7 +7,7 @@ require (
 	github.com/BurntSushi/toml v1.1.0
 	github.com/Masterminds/semver v1.5.0
 	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
-	github.com/abiosoft/colima v0.3.4
+	github.com/abiosoft/colima v0.4.1
 	github.com/briandowns/spinner v1.17.0
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structs v1.1.0
@@ -32,7 +32,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/zclconf/go-cty v1.10.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/text v0.3.7
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
