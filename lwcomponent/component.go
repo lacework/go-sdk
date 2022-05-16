@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -77,7 +77,7 @@ func LocalState() (*State, error) {
 		return state, err
 	}
 
-	stateFile := path.Join(componentsFile, "state")
+	stateFile := filepath.Join(componentsFile, "state")
 
 	stateBytes, err := ioutil.ReadFile(stateFile)
 	if err != nil {
@@ -109,7 +109,7 @@ func (s State) WriteState() error {
 		return err
 	}
 
-	stateFile := path.Join(dir, "state")
+	stateFile := filepath.Join(dir, "state")
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(s); err != nil {
 		return err
@@ -128,7 +128,7 @@ func Dir() (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "unable to locate components directory")
 	}
-	return path.Join(cacheDir, "components"), nil
+	return filepath.Join(cacheDir, "components"), nil
 }
 
 func (s State) Install(name string) error {
@@ -154,7 +154,13 @@ func (s State) Install(name string) error {
 		return errors.New("unsupported platform")
 	}
 
-	err = downloadFile(path.Join(rPath, component.Name), artifact.URL)
+	path, err := component.Path()
+	// it is ok if the component is not found yet
+	if err != nil && !IsNotFound(err) {
+		return err
+	}
+
+	err = downloadFile(path, artifact.URL)
 	if err != nil {
 		return errors.Wrap(err, "unable to download component artifact")
 	}
@@ -162,7 +168,7 @@ func (s State) Install(name string) error {
 	// @afiune check 1) cross-platform and 2) correct permissions
 	// if the file has permissions already, can we avoid this?
 	if component.IsExecutable() {
-		if err := os.Chmod(path.Join(rPath, component.Name), 0744); err != nil {
+		if err := os.Chmod(path, 0744); err != nil {
 			return errors.Wrap(err, "unable to make component executable")
 		}
 	}
@@ -186,8 +192,7 @@ func (s State) Install(name string) error {
 }
 
 var (
-	baseRunErr    string = "unable to run component"
-	cmpntNotFound string = "component not found on disk"
+	baseRunErr string = "unable to run component"
 )
 
 type Artifact struct {
@@ -216,7 +221,7 @@ func (c Component) RootPath() (string, error) {
 		return "", err
 	}
 
-	return path.Join(dir, c.Name), nil
+	return filepath.Join(dir, c.Name), nil
 }
 
 // Path returns the path to the component ("RootPath()/{name}")
@@ -228,11 +233,15 @@ func (c Component) Path() (string, error) {
 
 	// @afiune maybe component/version/bin
 	// but why would we want older versions?
-	cPath := path.Join(dir, c.Name)
+	cPath := filepath.Join(dir, c.Name)
+	if runtime.GOOS == "windows" {
+		cPath += ".exe"
+	}
+
 	if file.FileExists(cPath) {
 		return cPath, nil
 	}
-	return cPath, errors.New(cmpntNotFound)
+	return cPath, ErrComponentNotFound
 }
 
 // CurrentVersion returns the current installed version of the component
@@ -242,7 +251,7 @@ func (c Component) CurrentVersion() (*semver.Version, error) {
 		return nil, err
 	}
 
-	cvPath := path.Join(dir, ".version")
+	cvPath := filepath.Join(dir, ".version")
 	if !file.FileExists(cvPath) {
 		// @afiune help the user fix this issue with a better error message
 		return nil, errors.New("component version file does not exist")
@@ -269,7 +278,7 @@ func (c Component) SignatureFromDisk() ([]byte, error) {
 		return nil, err
 	}
 
-	csPath := path.Join(dir, ".signature")
+	csPath := filepath.Join(dir, ".signature")
 	if !file.FileExists(csPath) {
 		return sig, errors.New("component signature file does not exist")
 	}
@@ -294,7 +303,7 @@ func (c Component) WriteSignature(signature []byte) error {
 		return err
 	}
 
-	cvPath := path.Join(dir, ".signature")
+	cvPath := filepath.Join(dir, ".signature")
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
 	}
@@ -309,7 +318,7 @@ func (c Component) WriteVersion() error {
 		return err
 	}
 
-	cvPath := path.Join(dir, ".version")
+	cvPath := filepath.Join(dir, ".version")
 
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
@@ -340,7 +349,7 @@ func (c Component) Status() Status {
 		}
 		return Installed
 	}
-	if err.Error() == cmpntNotFound {
+	if IsNotFound(err) {
 		return NotInstalled
 	}
 	return UnknownStatus
