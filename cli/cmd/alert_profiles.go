@@ -36,11 +36,10 @@ var (
 		Use:     "alert-profile",
 		Aliases: []string{"alert-profiles", "ap"},
 		Short:   "Manage alert profiles",
-		Long: `Manage alert profiles to define how your LQL queries get consumed into alerts.		
+		Long: `Manage alert profiles to define how your LQL queries get consumed into alerts
 
-An alert profile consists of the name of the new profile, the name of existing alert profile 
-from which this new profile extends and a list of alert templates.
-`,
+An alert profile consists of the name of the new profile, the name of an existing profile from which
+the new profile extends and a list of alert templates`,
 	}
 
 	// list command is used to list all lacework alert profiles

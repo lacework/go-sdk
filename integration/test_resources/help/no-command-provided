@@ -15,6 +15,7 @@ Available Commands:
   access-token            Generate temporary API access tokens
   account                 Manage accounts in an organization (org admins only)
   agent                   Manage Lacework agents
+  alert-profile           Manage alert profiles
   alert-rule              Manage alert rules
   api                     Helper to call Lacework's API
   cloud-account           Manage cloud accounts
