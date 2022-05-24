@@ -1,7 +1,7 @@
 Manage alert profiles to define how your LQL queries get consumed into alerts
 
 An alert profile consists of the name of the new profile, the name of an existing profile from which
-the new profile extends and a list of alert templates
+the new profile extends, and a list of alert templates.
 
 Usage:
   lacework alert-profile [command]

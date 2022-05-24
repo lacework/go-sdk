@@ -1,4 +1,4 @@
-Delete a single alert profile by it's ID.
+Delete a single alert profile by its ID.
 
 Usage:
   lacework alert-profile delete <alert_profile_id> [flags]

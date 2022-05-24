@@ -1,4 +1,4 @@
-Show a single alert profile by it's ID.
+Show a single alert profile by its ID.
 
 Usage:
   lacework alert-profile show <alert_profile_id> [flags]
