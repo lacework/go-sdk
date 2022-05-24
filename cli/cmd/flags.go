@@ -72,6 +72,11 @@ func getFiltersFrom(T interface{}, prefix string) []string {
 
 		// only use a field if it has a 'json' tag
 		if fieldJSON, ok := rt.Field(i).Tag.Lookup("json"); ok {
+			// split fieldJSON by comma to handle omitempty/omitzero modifiers
+			fieldJSONSlice := strings.Split(fieldJSON, ",")
+			if len(fieldJSONSlice) > 0 {
+				fieldJSON = fieldJSONSlice[0]
+			}
 
 			// if there is any prefix, we need to append it to the JSON field
 			if prefix != "" {
