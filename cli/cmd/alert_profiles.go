@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -36,10 +37,10 @@ var (
 		Use:     "alert-profile",
 		Aliases: []string{"alert-profiles", "ap"},
 		Short:   "Manage alert profiles",
-		Long: `Manage alert profiles to define how your LQL queries get consumed into alerts
+		Long: `Manage alert profiles to define how your LQL queries get consumed into alerts.
 
 An alert profile consists of the name of the new profile, the name of an existing profile from which
-the new profile extends and a list of alert templates`,
+the new profile extends, and a list of alert templates.`,
 	}
 
 	// list command is used to list all lacework alert profiles
@@ -78,6 +79,9 @@ Then navigate to Settings > Alert Profiles.
 			for _, profile := range alertProfiles.Data {
 				rows = append(rows, []string{profile.Guid, profile.Extends})
 			}
+			sort.Slice(rows, func(i, j int) bool {
+				return rows[i][0] < rows[j][0]
+			})
 
 			cli.OutputHuman(renderSimpleTable([]string{"ID", "EXTENDS"}, rows))
 			return nil
@@ -88,7 +92,7 @@ Then navigate to Settings > Alert Profiles.
 		Use:     "show <alert_profile_id>",
 		Short:   "Show an alert profile by ID",
 		Aliases: []string{"get"},
-		Long:    "Show a single alert profile by it's ID.",
+		Long:    "Show a single alert profile by its ID.",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var response api.AlertProfileResponse
@@ -104,7 +108,7 @@ Then navigate to Settings > Alert Profiles.
 			alertProfile := response.Data
 			var headers [][]string
 			headers = append(headers, []string{alertProfile.Guid, alertProfile.Extends})
-			cli.OutputHuman(renderSimpleTable([]string{"ID", "EXTENDS"}, headers))
+			cli.OutputHuman(renderSimpleTable([]string{"ALERT PROFILE ID", "EXTENDS"}, headers))
 			cli.OutputHuman("\n")
 			cli.OutputHuman(buildAlertProfileDetailsTable(alertProfile))
 
@@ -112,18 +116,18 @@ Then navigate to Settings > Alert Profiles.
 		},
 	}
 
-	// delete command is used to remove a lacework alert profile by resource id
+	// delete command is used to remove a lacework alert profile by id
 	alertProfilesDeleteCommand = &cobra.Command{
 		Use:   "delete <alert_profile_id>",
 		Short: "Delete a alert profile",
-		Long:  "Delete a single alert profile by it's ID.",
+		Long:  "Delete a single alert profile by its ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			err := cli.LwApi.V2.Alert.Profiles.Delete(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to delete alert profile")
 			}
-			cli.OutputHuman(fmt.Sprintf("The alert profile with GUID %s was deleted \n", args[0]))
+			cli.OutputHuman("The alert profile with GUID %s was deleted \n", args[0])
 			return nil
 		},
 	}
@@ -142,7 +146,7 @@ Then navigate to Settings > Alert Profiles.
 				return errors.Wrap(err, "unable to create alert profile")
 			}
 
-			cli.OutputHuman(fmt.Sprintf("The alert profile was created with GUID %s \n", response.Data.Guid))
+			cli.OutputHuman(fmt.Sprintf("The alert profile was created with ID %s \n", response.Data.Guid))
 			return nil
 		},
 	}
@@ -177,43 +181,40 @@ func buildAlertProfileDetailsTable(profile api.AlertProfile) string {
 	),
 	)
 
-	if len(profile.DescriptionKeys) > 0 {
-		var keys [][]string
-		for _, key := range profile.DescriptionKeys {
-			keys = append(keys, []string{key.Name, key.Spec})
-		}
-		detailsTable.WriteString(renderOneLineCustomTable("DESCRIPTION KEYS",
-			renderSimpleTable([]string{"NAME", "SPEC"}, keys),
-			tableFunc(func(t *tablewriter.Table) {
-				t.SetBorder(false)
-				t.SetAutoWrapText(false)
-			}),
-		),
-		)
-		detailsTable.WriteString("\n")
-	}
-
 	if len(profile.Fields) > 0 {
-		var fields [][]string
+		var fields []string
 		for _, f := range profile.Fields {
-			fields = append(fields, []string{f.Name})
+			fields = append(fields, f.Name)
 		}
-		detailsTable.WriteString(renderOneLineCustomTable("FIELDS",
-			renderSimpleTable([]string{"NAME"}, fields),
+
+		detailsTable.WriteString(renderOneLineCustomTable("FIELDS", "",
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetBorder(false)
 				t.SetAutoWrapText(false)
+				// format field names into even rows
+				rowWidth := 10
+				var j int
+				for i := 0; i < len(fields); i += rowWidth {
+					j += rowWidth
+					if j > len(fields) {
+						j = len(fields)
+					}
+					t.Append([]string{strings.Join(fields[i:j], ", ")})
+				}
 			}),
-		),
-		)
-		detailsTable.WriteString("\n")
+		))
+		detailsTable.WriteString("\nFields can be used inside an alert template subject or description by enclosing in double brackets. For example: '{{FIELD_NAME}}'\n")
 	}
 
 	return detailsTable.String()
 }
 
 func promptCreateAlertProfile() (api.AlertProfileResponse, error) {
-	profileList := getAlertProfiles()
+	profileResponse, err := cli.LwApi.V2.Alert.Profiles.List()
+	if err != nil {
+		return api.AlertProfileResponse{}, err
+	}
+	profileList := filterAlertProfiles(profileResponse)
 
 	questions := []*survey.Question{
 		{
@@ -236,7 +237,7 @@ func promptCreateAlertProfile() (api.AlertProfileResponse, error) {
 		Extends string `json:"extends"`
 	}{}
 
-	err := survey.Ask(questions, &answers,
+	err = survey.Ask(questions, &answers,
 		survey.WithIcons(promptIconsFunc),
 	)
 	if err != nil {
@@ -318,12 +319,7 @@ func promptAddAlertTemplate() api.AlertTemplate {
 	}
 }
 
-func getAlertProfiles() []string {
-	response, err := cli.LwApi.V2.Alert.Profiles.List()
-
-	if err != nil {
-		return nil
-	}
+func filterAlertProfiles(response api.AlertProfilesResponse) []string {
 	var profiles = make([]string, 0)
 	for _, p := range response.Data {
 		// profiles can only extend from 'LW_' profiles with >= 1 alert template
@@ -331,6 +327,10 @@ func getAlertProfiles() []string {
 			profiles = append(profiles, p.Guid)
 		}
 	}
+
+	sort.Slice(profiles, func(i, j int) bool {
+		return profiles[i] < profiles[j]
+	})
 
 	return profiles
 }

@@ -30,6 +30,12 @@ func TestBuildAlertProfilesTable(t *testing.T) {
 	assert.Equal(t, alertProfileDetails, alertProfileOutput)
 }
 
+func TestFilterAlertProfiles(t *testing.T) {
+	filtered := filterAlertProfiles(mockAlertProfileResponse)
+	assert.Equal(t, len(filtered), 1)
+	assert.Equal(t, filtered[0], "LW_1")
+}
+
 var (
 	mockAlertProfile = api.AlertProfile{
 		Guid:    "LW_HE_FILES_DEFAULT_PROFILE",
@@ -132,76 +138,46 @@ var (
                             Alert                            for file {{PATH}} on machine     detected for file {{PATH}} on     
                                                              {{MID}}                          machine {{MID}}                   
                                                                                                                                 
-                  DESCRIPTION KEYS                   
------------------------------------------------------
-           NAME                    SPEC              
-  ----------------------+--------------------------  
-    MID                   {{MID}}                    
-    _OCCURRENCE           {{_OCCURRENCE}}            
-    _POLICY_ID            {{_POLICY_ID}}             
-    OWNER_USERNAME        {{OWNER_USERNAME}}         
-    _POLICY_TITLE         {{_POLICY_TITLE}}          
-    FILE_NAME             {{FILE_NAME}}              
-    FILE_MODIFIED_TIME    {{FILE_MODIFIED_TIME}}     
-    HARD_LINK_COUNT       {{HARD_LINK_COUNT}}        
-    LINK_ABS_DEST_PATH    {{LINK_ABS_DEST_PATH}}     
-    FILE_TYPE             {{FILE_TYPE}}              
-    IS_LINK               {{IS_LINK}}                
-    OWNER_GID             {{OWNER_GID}}              
-    INODE                 {{INODE}}                  
-    METADATA_HASH         {{METADATA_HASH}}          
-    BLOCK_COUNT           {{BLOCK_COUNT}}            
-    _PRIMARY_TAG          {{_PRIMARY_TAG}}           
-    FILE_ACCESSED_TIME    {{FILE_ACCESSED_TIME}}     
-    OWNER_UID             {{OWNER_UID}}              
-    FILEDATA_HASH         {{FILEDATA_HASH}}          
-    PATH                  {{PATH}}                   
-    SIZE                  {{SIZE}}                   
-    FILE_CREATED_TIME     {{FILE_CREATED_TIME}}      
-    BLOCK_SIZE            {{BLOCK_SIZE}}             
-    RECORD_CREATED_TIME   {{RECORD_CREATED_TIME}}    
-    FILE_PERMISSIONS      {{FILE_PERMISSIONS}}       
-    _POLICY_DESCRIPTION   {{_POLICY_DESCRIPTION}}    
-    LINK_DEST_PATH        {{LINK_DEST_PATH}}         
-                                                     
+                                                                      FIELDS                                                                       
+---------------------------------------------------------------------------------------------------------------------------------------------------
+  FILE_ACCESSED_TIME, INODE, HARD_LINK_COUNT, MID, SIZE, RECORD_CREATED_TIME, BLOCK_COUNT, _EVENT_COUNT, _POLICY_ID, _SEVERITY                     
+  FILE_NAME, _OCCURRENCE, LINK_DEST_PATH, OWNER_GID, _SEVERITY, OWNER_USERNAME, FILE_TYPE, METADATA_HASH, OWNER_UID, _PRIMARY_TAG                  
+  PATH, _POLICY_DESCRIPTION, IS_LINK, BLOCK_SIZE, _RISK, FILE_PERMISSIONS, LINK_ABS_DEST_PATH, _POLICY_TITLE, _POLICY_SEVERITY, FILE_CREATED_TIME  
+  FILE_MODIFIED_TIME, FILEDATA_HASH                                                                                                                
+                                                                                                                                                   
 
-          FIELDS           
----------------------------
-           NAME            
-  -----------------------  
-    FILE_ACCESSED_TIME     
-    INODE                  
-    HARD_LINK_COUNT        
-    MID                    
-    SIZE                   
-    RECORD_CREATED_TIME    
-    BLOCK_COUNT            
-    _EVENT_COUNT           
-    _POLICY_ID             
-    _SEVERITY              
-    FILE_NAME              
-    _OCCURRENCE            
-    LINK_DEST_PATH         
-    OWNER_GID              
-    _SEVERITY              
-    OWNER_USERNAME         
-    FILE_TYPE              
-    METADATA_HASH          
-    OWNER_UID              
-    _PRIMARY_TAG           
-    PATH                   
-    _POLICY_DESCRIPTION    
-    IS_LINK                
-    BLOCK_SIZE             
-    _RISK                  
-    FILE_PERMISSIONS       
-    LINK_ABS_DEST_PATH     
-    _POLICY_TITLE          
-    _POLICY_SEVERITY       
-    FILE_CREATED_TIME      
-    FILE_MODIFIED_TIME     
-    FILEDATA_HASH          
-                           
-
+Fields can be used inside an alert template subject or description by enclosing in double brackets. For example: '{{FIELD_NAME}}'
 `
 )
+
+var mockAlertProfileResponse = api.AlertProfilesResponse{
+	Data: []api.AlertProfile{{
+		Guid:            "CUSTOM_1",
+		Extends:         "LW_BASE",
+		Fields:          nil,
+		DescriptionKeys: nil,
+		Alerts: []api.AlertTemplate{{
+			Name:        "TestAlert1",
+			EventName:   "TestEvent",
+			Description: "",
+			Subject:     "",
+		}},
+	}, {
+		Guid:            "CUSTOM_2",
+		Extends:         "LW_BASE",
+		Fields:          nil,
+		DescriptionKeys: nil,
+		Alerts:          nil},
+		{
+			Guid:            "LW_1",
+			Extends:         "LW_BASE",
+			Fields:          nil,
+			DescriptionKeys: nil,
+			Alerts: []api.AlertTemplate{{
+				Name:        "TestAlert1",
+				EventName:   "TestEvent",
+				Description: "",
+				Subject:     "",
+			}},
+		}},
+}
