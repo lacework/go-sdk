@@ -481,6 +481,9 @@ func policySyncExecuteChanges(lcl *LaceworkContentLibrary, psos []PolicySyncOper
 				if err != nil {
 					return errors.Wrap(err, msg)
 				}
+				// remove state from policies we're updating
+				updatePolicy.Enabled = nil
+				updatePolicy.AlertEnabled = nil
 
 				cli.StartProgress(" Updating policy...")
 				updateResponse, err := cli.LwApi.V2.Policy.Update(updatePolicy)
