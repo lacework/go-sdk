@@ -46,6 +46,13 @@ func TestFileExistsWhenFileIsADirectory(t *testing.T) {
 }
 
 func TestFileExistsButWeDontHavePermissions(t *testing.T) {
+	// @afiune don't run it in Codefresh since the pipeline runs as root
+	// and root has access to all files and directories
+	if os.Getenv("CI") != "" {
+		t.Skip("skipping since CI runs as root, and root has permissions")
+		return
+	}
+
 	dir, err := ioutil.TempDir("", "root")
 
 	// create a directory that we can't read
