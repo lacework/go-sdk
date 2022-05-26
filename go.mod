@@ -8,7 +8,7 @@ require (
 	github.com/BurntSushi/toml v1.1.0
 	github.com/Masterminds/semver v1.5.0
 	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
-	github.com/abiosoft/colima v0.4.1
+	github.com/abiosoft/colima v0.4.2
 	github.com/briandowns/spinner v1.17.0
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structs v1.1.0

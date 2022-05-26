@@ -21,6 +21,7 @@ package file_test
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/lacework/go-sdk/internal/file"
@@ -37,8 +38,30 @@ func TestFileExistsWhenFileActuallyExists(t *testing.T) {
 
 func TestFileExistsWhenFileIsADirectory(t *testing.T) {
 	dir, err := ioutil.TempDir("", "bar")
+
 	if assert.Nil(t, err) {
 		assert.False(t, file.FileExists(dir))
+		os.RemoveAll(dir)
+	}
+}
+
+func TestFileExistsButWeDontHavePermissions(t *testing.T) {
+	// @afiune don't run it in Codefresh since the pipeline runs as root
+	// and root has access to all files and directories
+	if os.Getenv("CI") != "" {
+		t.Skip("skipping since CI runs as root, and root has permissions")
+		return
+	}
+
+	dir, err := ioutil.TempDir("", "root")
+
+	// create a directory that we can't read
+	os.Mkdir(path.Join(dir, "protected"), 0700)
+	os.WriteFile(path.Join(dir, "protected", "bubulubu"), []byte("data"), 0644)
+	os.Chmod(path.Join(dir, "protected"), 0000)
+
+	if assert.Nil(t, err) {
+		assert.False(t, file.FileExists(path.Join(dir, "protected", "bubulubu")))
 		os.RemoveAll(dir)
 	}
 }

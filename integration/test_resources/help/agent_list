@@ -17,21 +17,38 @@ The available keys for this command are:
     * mid
     * os
     * osVersion
-    * tags.Account
-    * tags.AmiId
+    * tags.arch
     * tags.ExternalIp
     * tags.Hostname
-    * tags.Name
     * tags.InstanceId
     * tags.InternalIp
     * tags.LwTokenShort
-    * tags.SubnetId
+    * tags.os
     * tags.VmInstanceType
     * tags.VmProvider
-    * tags.VpcId
     * tags.Zone
-    * tags.arch
-    * tags.os
+    * tags.Account
+    * tags.AmiId
+    * tags.Name
+    * tags.SubnetId
+    * tags.VpcId
+    * tags.Cluster
+    * tags.cluster-location
+    * tags.cluster-name
+    * tags.cluster-uid
+    * tags.created-by
+    * tags.enable-oslogin
+    * tags.Env
+    * tags.GCEtags
+    * tags.gci-ensure-gke-docker
+    * tags.gci-update-strategy
+    * tags.google-compute-enable-pcid
+    * tags.InstanceName
+    * tags.InstanceTemplate
+    * tags.kube-labels
+    * tags.lw_KubernetesCluster
+    * tags.NumericProjectId
+    * tags.ProjectId
 
 Usage:
   lacework agent list [flags]
