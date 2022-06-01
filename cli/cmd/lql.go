@@ -428,8 +428,13 @@ func runQueryByID(id string, args []api.ExecuteQueryArgument) (
 	error,
 ) {
 	cli.Log.Debugw("running query", "query", id)
-
-	cli.StartProgress(" Executing query...")
+	msg := "Executing query"
+	startTime, startErr := time.Parse(time.RFC3339, args[0].Value)
+	endTime, endErr := time.Parse(time.RFC3339, args[1].Value)
+	if startErr == nil && endErr == nil {
+		msg = fmt.Sprintf("%s in the time range %s - %s", msg, startTime.Format("2006-Jan-2 15:04:05 MST"), endTime.Format("2006-Jan-2 15:04:05 MST"))
+	}
+	cli.StartProgress(msg)
 	defer cli.StopProgress()
 
 	request := api.ExecuteQueryByIDRequest{
@@ -454,7 +459,13 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 		return
 	}
 
-	cli.StartProgress(" Executing query...")
+	msg := "Executing query"
+	startTime, startErr := time.Parse(time.RFC3339, args[0].Value)
+	endTime, endErr := time.Parse(time.RFC3339, args[1].Value)
+	if startErr == nil && endErr == nil {
+		msg = fmt.Sprintf("%s in the time range %s - %s", msg, startTime.Format("2006-Jan-2 15:04:05 MST"), endTime.Format("2006-Jan-2 15:04:05 MST"))
+	}
+	cli.StartProgress(msg)
 	defer cli.StopProgress()
 
 	// execute query
