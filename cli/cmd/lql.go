@@ -402,11 +402,11 @@ func runQuery(cmd *cobra.Command, args []string) error {
 
 	queryArgs := []api.ExecuteQueryArgument{
 		api.ExecuteQueryArgument{
-			Name:  "StartTimeRange",
+			Name:  api.QueryStartTimeRange,
 			Value: start.UTC().Format(lwtime.RFC3339Milli),
 		},
 		api.ExecuteQueryArgument{
-			Name:  "EndTimeRange",
+			Name:  api.QueryEndTimeRange,
 			Value: end.UTC().Format(lwtime.RFC3339Milli),
 		},
 	}
@@ -479,9 +479,9 @@ func getRunStartProgressMessage(args []api.ExecuteQueryArgument) string {
 	)
 	for _, arg := range args {
 		switch arg.Name {
-		case "StartTimeRange":
+		case api.QueryStartTimeRange:
 			startTime, startErr = time.Parse(time.RFC3339, arg.Value)
-		case "EndTimeRange":
+		case api.QueryEndTimeRange:
 			endTime, endErr = time.Parse(time.RFC3339, arg.Value)
 		}
 	}

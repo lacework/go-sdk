@@ -204,7 +204,7 @@ func TestRunStartProgressMessage(t *testing.T) {
 					assert.FailNow(t, startErr.Error())
 				}
 				args = append(args, api.ExecuteQueryArgument{
-					Name:  "StartTimeRange",
+					Name:  api.QueryStartTimeRange,
 					Value: startTime.UTC().Format(lwtime.RFC3339Milli),
 				})
 			}
@@ -214,7 +214,7 @@ func TestRunStartProgressMessage(t *testing.T) {
 					assert.FailNow(t, endErr.Error())
 				}
 				args = append(args, api.ExecuteQueryArgument{
-					Name:  "EndTimeRange",
+					Name:  api.QueryEndTimeRange,
 					Value: endTime.UTC().Format(lwtime.RFC3339Milli),
 				})
 			}
