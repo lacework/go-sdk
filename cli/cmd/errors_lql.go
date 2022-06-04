@@ -44,12 +44,12 @@ func NewQueryPolicyError(failonCount string, count int) *queryPolicyError {
 
 // Example of an error message sent to the end-user:
 //
-// ERROR ENFORCE POLICY: query matched fail_on_count expression [count:5] [expr:!=0] (exit code: 9)
+// ERROR (FAIL-ON): query matched fail_on_count expression [count:5] [expr:!=0] (exit code: 9)
 func (e *queryPolicyError) Error() string {
 	if e.ExitCode == 0 {
 		return ""
 	}
-	return fmt.Sprintf("ENFORCE POLICY: %s (exit code: %d)", e.Message, e.ExitCode)
+	return fmt.Sprintf("(FAIL-ON): %s (exit code: %d)", e.Message, e.ExitCode)
 }
 
 func (e *queryPolicyError) Unwrap() error {
