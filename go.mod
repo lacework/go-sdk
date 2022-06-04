@@ -4,15 +4,15 @@ go 1.18
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.2
-	github.com/BurntSushi/toml v0.4.1
+	github.com/BurntSushi/toml v1.1.0
 	github.com/Masterminds/semver v1.5.0
 	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
-	github.com/abiosoft/colima v0.3.2
+	github.com/abiosoft/colima v0.4.2
 	github.com/briandowns/spinner v1.17.0
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structs v1.1.0
 	github.com/hashicorp/go-version v1.4.0
-	github.com/hashicorp/hc-install v0.3.1
+	github.com/hashicorp/hc-install v0.3.2
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/terraform-exec v0.16.0
 	github.com/hashicorp/terraform-json v0.13.0
@@ -20,19 +20,19 @@ require (
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/honeycombio/libhoney-go v1.15.8
 	github.com/imdario/mergo v0.3.12
-	github.com/kyokomi/emoji/v2 v2.2.8
+	github.com/kyokomi/emoji/v2 v2.2.9
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/peterbourgon/diskv/v3 v3.0.1
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v1.3.0
+	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.10.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	github.com/zclconf/go-cty v1.10.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/text v0.3.7
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
@@ -48,7 +48,7 @@ require (
 	github.com/facebookgo/muster v0.0.0-20150708232844-fd3d7953fd52 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/google/btree v1.0.1 // indirect
-	github.com/google/go-cmp v0.5.7 // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect

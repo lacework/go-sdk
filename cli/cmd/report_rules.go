@@ -97,7 +97,7 @@ Then navigate to Settings > Report Rules.
 	}
 	// show command is used to retrieve a lacework report rule by guid
 	reportRulesShowCommand = &cobra.Command{
-		Use:   "show",
+		Use:   "show <report_rule_id>",
 		Short: "Show a report rule by ID",
 		Long:  "Show a single report rule by it's ID.",
 		Args:  cobra.ExactArgs(1),
@@ -131,7 +131,7 @@ Then navigate to Settings > Report Rules.
 
 	// delete command is used to remove a lacework report rule by id
 	reportRulesDeleteCommand = &cobra.Command{
-		Use:   "delete",
+		Use:   "delete <report_rule_id>",
 		Short: "Delete a report rule",
 		Long:  "Delete a single report rule by it's ID.",
 		Args:  cobra.ExactArgs(1),

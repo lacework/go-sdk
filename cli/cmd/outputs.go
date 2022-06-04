@@ -26,6 +26,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
 )
 
 // OutputJSON will print out the JSON representation of the provided data
@@ -39,11 +40,15 @@ func (c *cliState) OutputJSON(v interface{}) error {
 	return nil
 }
 
-// OutputHumanRead will print out the provided message if the cli state is
+// OutputHuman will print out the provided message if the cli state is
 // configured to talk to humans, to switch to json format use --json
 func (c *cliState) OutputHuman(format string, a ...interface{}) {
 	if c.HumanOutput() {
-		fmt.Fprintf(os.Stdout, format, a...)
+		if len(a) == 0 {
+			fmt.Fprint(os.Stdout, format)
+		} else {
+			fmt.Fprintf(os.Stdout, format, a...)
+		}
 	}
 }
 
@@ -114,4 +119,15 @@ func (c *cliState) OutputNonDefaultProfileFlag() string {
 		return fmt.Sprintf(" --profile %s", c.Profile)
 	}
 	return ""
+}
+
+// OutputYAML will print out the YAML representation of the provided data
+func (c *cliState) OutputYAML(v interface{}) error {
+	y, err := yaml.Marshal(v)
+	if err != nil {
+		c.Log.Debugw("unable to pretty print YAML object", "raw", v)
+		return err
+	}
+	fmt.Fprint(os.Stdout, string(y))
+	return nil
 }

@@ -1,7 +1,7 @@
 Show a single alert rule by it's ID.
 
 Usage:
-  lacework alert-rule show [flags]
+  lacework alert-rule show <alert_rule_id> [flags]
 
 Flags:
   -h, --help   help for show

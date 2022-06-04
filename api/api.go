@@ -78,6 +78,8 @@ const (
 
 	apiAccountOrganizationInfo = "v1/external/account/organizationInfo"
 
+	apiRecommendations = "v1/external/recommendations/%s"
+
 	// API v2 Endpoints
 	//
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
@@ -90,11 +92,17 @@ const (
 	apiV2AlertChannelFromGUID = "v2/AlertChannels/%s"
 	apiV2AlertChannelTest     = "v2/AlertChannels/%s/test"
 
+	apiV2AlertProfiles        = "v2/AlertProfiles"
+	apiV2AlertProfileFromGUID = "v2/AlertProfiles/%s"
+
+	apiV2AlertTemplates         = "v2/AlertProfiles/%s/AlertTemplates"
+	apiV2AlertTemplatesFromGUID = "v2/AlertProfiles/%s/AlertTemplates/%s"
+
 	apiV2AlertRules        = "v2/AlertRules"
 	apiV2AlertRuleFromGUID = "v2/AlertRules/%s"
 
-	apiV2CloudAccounts        = "v2/CloudAccounts"
-	apiV2CloudAccountFromGUID = "v2/CloudAccounts/%s"
+	apiV2CloudAccounts          = "v2/CloudAccounts"
+	apiV2CloudAccountsWithParam = "v2/CloudAccounts/%s"
 
 	apiV2AgentAccessTokens       = "v2/AgentAccessTokens"
 	apiV2AgentAccessTokensSearch = "v2/AgentAccessTokens/search"

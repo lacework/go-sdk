@@ -88,7 +88,7 @@ Then navigate to Settings > Team Members.
 	}
 	// show command is used to retrieve a lacework team member by guid
 	teamMembersShowCommand = &cobra.Command{
-		Use:   "show",
+		Use:   "show <team_member_id>",
 		Short: "Show a team member by id",
 		Long:  "Show a single team member by it's id.",
 		Args:  cobra.ExactArgs(1),
@@ -119,7 +119,7 @@ Then navigate to Settings > Team Members.
 
 	// delete command is used to remove a lacework team member by id
 	teamMembersDeleteCommand = &cobra.Command{
-		Use:   "delete",
+		Use:   "delete <team_member_id>",
 		Short: "Delete a team member",
 		Long:  "Delete a single team member by it's ID.",
 		Args:  cobra.ExactArgs(1),

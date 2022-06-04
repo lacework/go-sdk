@@ -89,20 +89,42 @@ type MachineDetailEntity struct {
 	Os            string    `json:"os"`
 	OsVersion     string    `json:"osVersion"`
 	Tags          struct {
-		Account        string `json:"Account"`
-		AmiID          string `json:"AmiId"`
-		ExternalIP     string `json:"ExternalIp"`
-		Hostname       string `json:"Hostname"`
-		Name           string `json:"Name"`
-		InstanceID     string `json:"InstanceId"`
-		InternalIP     string `json:"InternalIp"`
-		LwTokenShort   string `json:"LwTokenShort"`
-		SubnetID       string `json:"SubnetId"`
-		VMInstanceType string `json:"VmInstanceType"`
-		VMProvider     string `json:"VmProvider"`
-		VpcID          string `json:"VpcId"`
-		Zone           string `json:"Zone"`
-		Arch           string `json:"arch"`
-		Os             string `json:"os"`
+		// Shared Tags
+		Arch           string `json:"arch,omitempty"`
+		ExternalIP     string `json:"ExternalIp,omitempty"`
+		Hostname       string `json:"Hostname,omitempty"`
+		InstanceID     string `json:"InstanceId,omitempty"`
+		InternalIP     string `json:"InternalIp,omitempty"`
+		LwTokenShort   string `json:"LwTokenShort,omitempty"`
+		Os             string `json:"os,omitempty"`
+		VMInstanceType string `json:"VmInstanceType,omitempty"`
+		VMProvider     string `json:"VmProvider,omitempty"`
+		Zone           string `json:"Zone,omitempty"`
+
+		// AWS Tags
+		Account  string `json:"Account,omitempty"`
+		AmiID    string `json:"AmiId,omitempty"`
+		Name     string `json:"Name,omitempty"`
+		SubnetID string `json:"SubnetId,omitempty"`
+		VpcID    string `json:"VpcId,omitempty"`
+
+		// GCP Tags
+		Cluster                 string `json:"Cluster,omitempty"`
+		ClusterLocation         string `json:"cluster-location,omitempty"`
+		ClusterName             string `json:"cluster-name,omitempty"`
+		ClusterUID              string `json:"cluster-uid,omitempty"`
+		CreatedBy               string `json:"created-by,omitempty"`
+		EnableOSLogin           string `json:"enable-oslogin,omitempty"`
+		Env                     string `json:"Env,omitempty"`
+		GCEtags                 string `json:"GCEtags,omitempty"`
+		GCIEnsureGKEDocker      string `json:"gci-ensure-gke-docker,omitempty"`
+		GCIUpdateStrategy       string `json:"gci-update-strategy,omitempty"`
+		GoogleComputeEnablePCID string `json:"google-compute-enable-pcid,omitempty"`
+		InstanceName            string `json:"InstanceName,omitempty"`
+		InstanceTemplate        string `json:"InstanceTemplate,omitempty"`
+		KubeLabels              string `json:"kube-labels,omitempty"`
+		LWKubernetesCluster     string `json:"lw_KubernetesCluster,omitempty"`
+		NumericProjectID        string `json:"NumericProjectId,omitempty"`
+		ProjectID               string `json:"ProjectId,omitempty"`
 	} `json:"tags"`
 }

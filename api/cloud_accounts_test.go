@@ -182,12 +182,13 @@ func TestCloudAccountsDelete(t *testing.T) {
 
 func TestCloudAccountsList(t *testing.T) {
 	var (
-		awsIntgGUIDs   = []string{intgguid.New(), intgguid.New(), intgguid.New()}
-		azureIntgGUIDs = []string{intgguid.New(), intgguid.New()}
-		gcpIntgGUIDs   = []string{
+		awsIntgGUIDs        = []string{intgguid.New(), intgguid.New(), intgguid.New()}
+		awsEksAuditLogGUIDs = []string{intgguid.New()}
+		azureIntgGUIDs      = []string{intgguid.New(), intgguid.New()}
+		gcpIntgGUIDs        = []string{
 			intgguid.New(), intgguid.New(), intgguid.New(), intgguid.New(),
 		}
-		allGUIDs    = append(azureIntgGUIDs, append(gcpIntgGUIDs, awsIntgGUIDs...)...)
+		allGUIDs    = append(awsEksAuditLogGUIDs, append(azureIntgGUIDs, append(gcpIntgGUIDs, awsIntgGUIDs...)...)...)
 		expectedLen = len(allGUIDs)
 		fakeServer  = lacework.MockServer()
 	)
@@ -198,6 +199,7 @@ func TestCloudAccountsList(t *testing.T) {
 			assert.Equal(t, "GET", r.Method, "List() should be a GET method")
 			cloudAccounts := []string{
 				generateCloudAccounts(awsIntgGUIDs, "AwsCtSqs"),
+				generateCloudAccounts(awsEksAuditLogGUIDs, "AwsEksAudit"),
 				// TODO @afiune come back here and update these Cloud Accounts types when they exist
 				generateCloudAccounts(gcpIntgGUIDs, "AwsCtSqs"),   // "GcpCfg"),
 				generateCloudAccounts(azureIntgGUIDs, "AwsCtSqs"), // "AzureAlSeq"),
@@ -227,12 +229,54 @@ func TestCloudAccountsList(t *testing.T) {
 	}
 }
 
+func TestCloudAccountsListByType(t *testing.T) {
+	var (
+		awsIntgGUIDs = []string{intgguid.New(), intgguid.New(), intgguid.New()}
+		expectedLen  = len(awsIntgGUIDs)
+		fakeServer   = lacework.MockServer()
+	)
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("CloudAccounts/AwsCtSqs",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "List() should be a GET method")
+			cloudAccounts := []string{
+				generateCloudAccounts(awsIntgGUIDs, "AwsCtSqs"),
+			}
+			fmt.Fprintf(w,
+				generateCloudAccountsResponse(
+					strings.Join(cloudAccounts, ", "),
+				),
+			)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	caType, _ := api.FindCloudAccountType("AwsCtSqs")
+	response, err := c.V2.CloudAccounts.ListByType(caType)
+	assert.Nil(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, expectedLen, len(response.Data))
+	for _, d := range response.Data {
+		assert.Contains(t, awsIntgGUIDs, d.IntgGuid)
+	}
+}
+
 func generateCloudAccounts(guids []string, iType string) string {
 	cloudAccounts := make([]string, len(guids))
 	for i, guid := range guids {
 		switch iType {
 		case api.AwsCtSqsCloudAccount.String():
 			cloudAccounts[i] = singleAwsCtSqsCloudAccount(guid)
+		case api.AwsEksAuditCloudAccount.String():
+			cloudAccounts[i] = singleAwsEksAuditCloudAccount(guid)
 			// TODO @afiune come back here and update these Cloud Accounts types
 			// when they exist
 			//case api.AwsCfgCloudAccount.String():

@@ -8,6 +8,7 @@ Aliases:
 
 Available Commands:
   iac-generate Create IaC code
+  list         List all available cloud account integrations
 
 Flags:
   -h, --help   help for cloud-account

@@ -66,7 +66,7 @@ func TestGenerationSimple(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true, aws.WithAwsProfile("default")).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -118,7 +118,7 @@ func TestGenerationCustomizedOutputLocation(t *testing.T) {
 	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true, aws.WithAwsProfile("default")).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true).Generate()
 	assert.Equal(t, buildTf, string(result))
 }
 
@@ -153,7 +153,7 @@ func TestGenerationConfigOnly(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, false, aws.WithAwsProfile("default")).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, false).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -192,7 +192,7 @@ func TestGenerationAdvancedOptsDone(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true, aws.WithAwsProfile("default")).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -238,7 +238,7 @@ func TestGenerationAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
-		aws.UseConsolidatedCloudtrail(), aws.EnableForceDestroyS3Bucket(), aws.WithAwsProfile("default")).Generate()
+		aws.UseConsolidatedCloudtrail(), aws.EnableForceDestroyS3Bucket()).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -286,7 +286,7 @@ func TestGenerationAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
-		aws.ExistingCloudtrailBucketArn("arn:aws:s3:::bucket_name"), aws.WithAwsProfile("default")).Generate()
+		aws.ExistingCloudtrailBucketArn("arn:aws:s3:::bucket_name")).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -319,8 +319,7 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.Send("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
-			c.SendLine("\x1B[B")
+			c.SendLine("\x1B[B") // Down arrow once and enter on the submenu to add subaccounts
 			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
 			c.SendLine("default")
 			expectString(t, c, cmd.QuestionSubAccountProfileName)
@@ -377,8 +376,7 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testin
 			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.Send("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
-			c.SendLine("\x1B[B")
+			c.SendLine("\x1B[B") // Down arrow once and enter on the submenu to add subaccounts
 			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
 			c.SendLine("default")
 			expectString(t, c, fmt.Sprintf(cmd.QuestionSubAccountReplace, "testaccount:us-east-1, testaccount1:us-east-2"))
@@ -423,7 +421,7 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testin
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test use existing IAM rolej
+// Test use existing IAM role
 func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -468,7 +466,7 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
-		aws.UseExistingIamRole(aws.NewExistingIamRoleDetails(roleName, roleArn, roleExtId)), aws.WithAwsProfile("default"),
+		aws.UseExistingIamRole(aws.NewExistingIamRoleDetails(roleName, roleArn, roleExtId)),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }

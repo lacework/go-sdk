@@ -146,56 +146,56 @@ func NewTerraform(region string, enableConfig bool, enableCloudtrail bool, mods 
 	return config
 }
 
-// Set the AWS Profile to utilize for the main AWS provider
+// WithAwsProfile Set the AWS Profile to utilize for the main AWS provider
 func WithAwsProfile(name string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.AwsProfile = name
 	}
 }
 
-// Set the Lacework Profile to utilize when integrating
+// WithLaceworkProfile Set the Lacework Profile to utilize when integrating
 func WithLaceworkProfile(name string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.LaceworkProfile = name
 	}
 }
 
-// Set the bucket ARN of an existing Cloudtrail setup
+// ExistingCloudtrailBucketArn Set the bucket ARN of an existing Cloudtrail setup
 func ExistingCloudtrailBucketArn(arn string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingCloudtrailBucketArn = arn
 	}
 }
 
-// Set the SNS Topic ARN of an existing Cloudtrail setup
+// ExistingSnsTopicArn Set the SNS Topic ARN of an existing Cloudtrail setup
 func ExistingSnsTopicArn(arn string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingSnsTopicArn = arn
 	}
 }
 
-// Enable Consolidated Cloudtrail use
+// UseConsolidatedCloudtrail Enable Consolidated Cloudtrail use
 func UseConsolidatedCloudtrail() AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ConsolidatedCloudtrail = true
 	}
 }
 
-// Set the S3 ForceDestroy parameter to true for newly created buckets
+// EnableForceDestroyS3Bucket Set the S3 ForceDestroy parameter to true for newly created buckets
 func EnableForceDestroyS3Bucket() AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ForceDestroyS3Bucket = true
 	}
 }
 
-// Set an existing IAM role configuration to use with the created Terraform code
+// UseExistingIamRole Set an existing IAM role configuration to use with the created Terraform code
 func UseExistingIamRole(iamDetails *ExistingIamRoleDetails) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingIamRole = iamDetails
 	}
 }
 
-// Supply additional AWS Profiles to integrate
+// WithSubaccounts Supply additional AWS Profiles to integrate
 func WithSubaccounts(subaccounts ...AwsSubAccount) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.SubAccounts = subaccounts

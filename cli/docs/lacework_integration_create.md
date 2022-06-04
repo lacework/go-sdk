@@ -6,7 +6,7 @@ hide_title: true
 
 ## lacework integration create
 
-Create an external integrations
+Create an external integration
 
 ### Synopsis
 

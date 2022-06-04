@@ -7,10 +7,12 @@ GOLANGCILINTVERSION?=1.45.0
 GOIMPORTSVERSION?=v0.1.8
 GOXVERSION?=v1.0.1
 GOTESTSUMVERSION?=v1.7.0
+GOJUNITVERSION?=v1.0.0
 
 CIARTIFACTS?=ci-artifacts
 COVERAGEOUT?=coverage.out
 COVERAGEHTML?=coverage.html
+GOJUNITOUT?=go-junit.xml
 PACKAGENAME?=lacework-cli
 CLINAME?=lacework
 # Honeycomb variables
@@ -97,6 +99,17 @@ coverage-html: test ## Generate HTML representation of coverage profile
 coverage-ci: test ## Generate HTML coverage output for ci pipeline.
 	mkdir -p $(CIARTIFACTS)
 	go tool cover -html=$(COVERAGEOUT) -o "$(CIARTIFACTS)/$(COVERAGEHTML)"
+
+.PHONY: install-go-junit
+install-go-junit: ## Install go-junit-report tool for outputting tests in xml junit format. Used in ci pipeline
+ifeq (, $(shell which go-junit-report))
+	GOFLAGS=-mod=readonly go install github.com/jstemmer/go-junit-report@$(GOJUNITVERSION)
+endif
+
+.PHONY: test-go-junit-ci
+test-go-junit-ci: install-go-junit ## Generate go test report output for ci pipeline.
+	mkdir -p $(CIARTIFACTS)
+	go test ./... -v 2>&1 | go-junit-report > "$(CIARTIFACTS)/$(GOJUNITOUT)"
 
 .PHONY: go-vendor
 go-vendor: ## Runs go mod tidy, vendor and verify to cleanup, copy and verify dependencies

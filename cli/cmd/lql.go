@@ -278,10 +278,28 @@ func inputQueryFromURL(url string) (query string, err error) {
 func inputQueryFromEditor(action string) (query string, err error) {
 	prompt := &survey.Editor{
 		Message:  fmt.Sprintf("Type a query to %s", action),
-		FileName: "query*.lql",
+		FileName: "query*.yaml",
 	}
-	err = survey.AskOne(prompt, &query)
 
+	if action == "create" {
+		prompt.Default = `queryId: YourQueryID
+queryText: |-
+  {
+      source {
+          --- Select a datasource. To list all available datasources use 'lacework query sources'.
+      }
+      filter {
+          --- Add query filter(s), if any. If not, remove this block.
+      }
+      return {
+          --- List fields to return from the selected source. Use 'lacework query describe <datasource>'.
+      }
+  }`
+		prompt.HideDefault = true
+		prompt.AppendDefault = true
+	}
+
+	err = survey.AskOne(prompt, &query)
 	return
 }
 
@@ -455,8 +473,13 @@ func runQueryByID(id string, args []api.ExecuteQueryArgument) (
 	error,
 ) {
 	cli.Log.Debugw("running query", "query", id)
-
-	cli.StartProgress(" Executing query...")
+	msg := "Executing query"
+	startTime, startErr := time.Parse(time.RFC3339, args[0].Value)
+	endTime, endErr := time.Parse(time.RFC3339, args[1].Value)
+	if startErr == nil && endErr == nil {
+		msg = fmt.Sprintf("%s in the time range %s - %s", msg, startTime.Format("2006-Jan-2 15:04:05 MST"), endTime.Format("2006-Jan-2 15:04:05 MST"))
+	}
+	cli.StartProgress(msg)
 	defer cli.StopProgress()
 
 	request := api.ExecuteQueryByIDRequest{
@@ -481,7 +504,13 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 		return
 	}
 
-	cli.StartProgress(" Executing query...")
+	msg := "Executing query"
+	startTime, startErr := time.Parse(time.RFC3339, args[0].Value)
+	endTime, endErr := time.Parse(time.RFC3339, args[1].Value)
+	if startErr == nil && endErr == nil {
+		msg = fmt.Sprintf("%s in the time range %s - %s", msg, startTime.Format("2006-Jan-2 15:04:05 MST"), endTime.Format("2006-Jan-2 15:04:05 MST"))
+	}
+	cli.StartProgress(msg)
 	defer cli.StopProgress()
 
 	// execute query

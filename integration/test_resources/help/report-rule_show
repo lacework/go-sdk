@@ -1,7 +1,7 @@
 Show a single report rule by it's ID.
 
 Usage:
-  lacework report-rule show [flags]
+  lacework report-rule show <report_rule_id> [flags]
 
 Flags:
   -h, --help   help for show

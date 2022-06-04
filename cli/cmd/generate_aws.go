@@ -269,7 +269,7 @@ func initGenerateAwsTfCommandFlags() {
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.AwsRegion, "aws_region", "", "specify aws region")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.AwsProfile, "aws_profile", "default", "specify aws profile")
+		&GenerateAwsCommandState.AwsProfile, "aws_profile", "", "specify aws profile")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.ExistingCloudtrailBucketArn,
 		"existing_bucket_arn",
@@ -505,11 +505,18 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 		// difficult when the options are dynamic (which they are)
 		//
 		// Only ask about more accounts if consolidated cloudtrail is setup (matching scenarios doc)
-		options := []string{AdvancedOptCloudTrail, AdvancedOptIamRole}
+		var options []string
+
+		// Only show Advanced CloudTrail options if CloudTrail integration is set to true
+		if config.Cloudtrail {
+			options = append(options, AdvancedOptCloudTrail)
+		}
+
 		if config.ConsolidatedCloudtrail {
 			options = append(options, AdvancedOptAwsAccounts)
 		}
-		options = append(options, AwsAdvancedOptLocation, AwsAdvancedOptDone)
+
+		options = append(options, AdvancedOptIamRole, AwsAdvancedOptLocation, AwsAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
 				Message: "Which options would you like to configure?",
@@ -571,7 +578,7 @@ func awsConfigIsEmpty(g *aws.GenerateAwsTfConfigurationArgs) bool {
 	return !g.Cloudtrail &&
 		!g.Config &&
 		!g.ConsolidatedCloudtrail &&
-		g.AwsProfile == "default" &&
+		g.AwsProfile == "" &&
 		g.AwsRegion == "" &&
 		g.ExistingCloudtrailBucketArn == "" &&
 		g.ExistingIamRole == nil &&

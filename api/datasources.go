@@ -36,15 +36,24 @@ type DatasourceResponse struct {
 }
 
 type Datasource struct {
-	Name         string             `json:"name"`
-	Description  string             `json:"description"`
-	ResultSchema []DatasourceSchema `json:"resultSchema"`
+	Name                string                   `json:"name"`
+	Description         string                   `json:"description"`
+	ResultSchema        []DatasourceSchema       `json:"resultSchema"`
+	SourceRelationships []DatasourceRelationship `json:"sourceRelationships"`
 }
 
 type DatasourceSchema struct {
 	Name        string `json:"name"`
 	DataType    string `json:"dataType"`
 	Description string `json:"description"`
+}
+
+type DatasourceRelationship struct {
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	From          string `json:"from"`
+	To            string `json:"to"`
+	ToCardinality string `json:"toCardinality"`
 }
 
 // DatasourcesService is a service that interacts with the Datasources

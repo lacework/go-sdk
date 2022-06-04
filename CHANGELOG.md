@@ -1,3 +1,73 @@
+# v0.34.0
+
+## Features
+* feat: Add support for APIv2 CloudAccounts List (#784) (Ross)([563d1da](https://github.com/lacework/go-sdk/commit/563d1da63b7eae5f7e7691117787570d2d0e8cfc))
+* feat(cli): add gcp compliance report disable warning (#787) (Ross)([0cc3734](https://github.com/lacework/go-sdk/commit/0cc373442eff0bc970b10d5eabfde0296ba699a1))
+* feat(cli): add azure compliance report disable warning (#786) (Ross)([a028ecb](https://github.com/lacework/go-sdk/commit/a028ecb3b6a5a5e61f82464c9ef83226dd393227))
+## Bug Fixes
+* fix(test): Fix TestCloudAccountsListByType unit test failure (#788) (Ross)([48fb4c7](https://github.com/lacework/go-sdk/commit/48fb4c78d6f2d47c353341c0d47978fcefa25651))
+* fix(api): add newResponse for function SearchAllPages (#770) (aircraft-cerier)([474a163](https://github.com/lacework/go-sdk/commit/474a16396b30d70b934a07839891436c3cef6643))
+* fix(cli): Remove Additional Cloudtrail/AuditLog options when Cloudtrail/AuditLog Integration is set to No (#782) (Ross)([c9d7f48](https://github.com/lacework/go-sdk/commit/c9d7f48572e028be691e7b984b52208681cfad5a))
+## Other Changes
+* ci: version bump to v0.33.1-dev (Lacework)([3b3aacf](https://github.com/lacework/go-sdk/commit/3b3aacf9e8075d39532980b063e2083c9e0dc88a))
+---
+# v0.33.0
+
+## Features
+* feat(cli): add compliance report disable warning (#778) (hazedav)([ae2ffb7](https://github.com/lacework/go-sdk/commit/ae2ffb7cb065b9be2c9dee33985deed0ac7f7e20))
+## Bug Fixes
+* fix(cli): Remove aws profile "default" (#777) (Ross)([e47ea55](https://github.com/lacework/go-sdk/commit/e47ea553fce260597d8262288c18d7d913422473))
+## Other Changes
+* ci: version bump to v0.32.1-dev (Lacework)([209ec0a](https://github.com/lacework/go-sdk/commit/209ec0ac86cac33b8ecab6998da9b09e10b96b12))
+---
+# v0.32.0
+
+## Features
+* feat(cli): output query & policy in YAML 📝 (#775) (Salim Afiune)([9173efe](https://github.com/lacework/go-sdk/commit/9173efef1603bb204ac998c7d8ed4a65a10bcdc8))
+* feat(api): AlertProfiles v2 service (#765) (Darren)([683ceca](https://github.com/lacework/go-sdk/commit/683ceca0c99971c9cde7371e3fc5cbd24adb9d33))
+* feat(cli): ubuntu ESM support (#768) (Salim Afiune)([7527e83](https://github.com/lacework/go-sdk/commit/7527e834cb15f246839fd984f73e4885949a9fea))
+## Bug Fixes
+* fix(cli): only display datasource relationships when avail (hazedav)([c9589ed](https://github.com/lacework/go-sdk/commit/c9589ed5abbac73511f829fb9b69571cc795ed60))
+## Documentation Updates
+* docs: enable policy enable/disable help text. (#766) (Darren)([768cfbf](https://github.com/lacework/go-sdk/commit/768cfbf4125f1f79b9801674dc7f9a4ca8fe0365))
+## Other Changes
+* chore(deps): bump github.com/BurntSushi/toml from 0.4.1 to 1.1.0 (#763) (dependabot[bot])([a3b6c5b](https://github.com/lacework/go-sdk/commit/a3b6c5b34bdd7272a2fc93267536865b37339330))
+* chore(deps): bump github.com/stretchr/testify from 1.7.0 to 1.7.1 (#740) (dependabot[bot])([db6541c](https://github.com/lacework/go-sdk/commit/db6541c0e32ae343629e01644971fdb2620d2404))
+* chore(deps): bump github.com/abiosoft/colima from 0.3.2 to 0.3.4 (#723) (dependabot[bot])([b9bef2a](https://github.com/lacework/go-sdk/commit/b9bef2a4c57abfdc89ed5660e0f9250e755ef149))
+* ci: version bump to v0.31.1-dev (Lacework)([7868fe7](https://github.com/lacework/go-sdk/commit/7868fe791cdf4a8cf2e574776798175f573a2939))
+* test(lql): fix case issue with host tests (hazedav)([30d7d7b](https://github.com/lacework/go-sdk/commit/30d7d7b77fb477a81361b0eca4d18eaed637f596))
+* test: rename LW_CLI_ -> CLI_ (#769) (Darren)([5cfedda](https://github.com/lacework/go-sdk/commit/5cfedda359d2cba7d17a25f1eecc55207989ab67))
+---
+# v0.31.0
+
+## Features
+* feat(cli): disable/enable policies by tag (#758) (Darren)([3a45a01](https://github.com/lacework/go-sdk/commit/3a45a0186ca908920f2383c2eec2c7c7db6e17bf))
+* feat(cli): default template when creating LQL queries (#761) (Salim Afiune)([4bb9c19](https://github.com/lacework/go-sdk/commit/4bb9c1930b64e3e080ee44fc71028276bb44d8d8))
+* feat(cli): disable/enable all <report-type> compliance command (#755) (Darren)([e694304](https://github.com/lacework/go-sdk/commit/e69430484c93245919b2e48e264dc3c24d6a7297))
+* feat(cli): adds lql datasource relationships (#759) (hazedav)([4b1fc27](https://github.com/lacework/go-sdk/commit/4b1fc271db940d5272cd652f5b65d06e061af874))
+* feat(api): Recommendations v1 Service (#751) (Darren)([253cc38](https://github.com/lacework/go-sdk/commit/253cc38420ec9a6423aec2dc57958255eb1e5cf9))
+## Refactor
+* refactor(cli): inefficient policy sort (hazedav)([9a35ff6](https://github.com/lacework/go-sdk/commit/9a35ff665acd795f7a713b470d6603771f060beb))
+## Bug Fixes
+* fix(cli): command arguments (#760) (Salim Afiune)([574dfc1](https://github.com/lacework/go-sdk/commit/574dfc1dbb8eb066ca3e8668ed72be58731b0ff3))
+* fix: add missing gcp compliance report types to get-report command (#756) (Darren)([c05a07f](https://github.com/lacework/go-sdk/commit/c05a07ff0664164d8e4d53009c4e2af6e2451c27))
+## Other Changes
+* chore(deps): bump github.com/kyokomi/emoji/v2 from 2.2.8 to 2.2.9 (#724) (dependabot[bot])([717a725](https://github.com/lacework/go-sdk/commit/717a725edfdb205701456bd6f960b1b0a3788988))
+* chore(deps): bump github.com/spf13/cobra from 1.3.0 to 1.4.0 (#733) (dependabot[bot])([d1531ee](https://github.com/lacework/go-sdk/commit/d1531eef51e37966bc39e002d0589d400c548990))
+* ci: add make cmd for output go tests in junit format (#754) (Darren)([f3d0324](https://github.com/lacework/go-sdk/commit/f3d032431bea1770ab8b731a5aefef23ab1c4594))
+* ci: version bump to v0.30.1-dev (Lacework)([5cfe47a](https://github.com/lacework/go-sdk/commit/5cfe47a62c3c650cb35e879528614aa8155f9ac8))
+---
+# v0.30.0
+
+## Features
+* feat(lql): more suitable default for lql run (hazedav)([73a7132](https://github.com/lacework/go-sdk/commit/73a7132765125f0d2370aef36fa4c8039c1c0cdd))
+* feat(cli/cmd): CLI survey code for azure - ALLY-394 (#720) (djmctavish)([73f8b0c](https://github.com/lacework/go-sdk/commit/73f8b0c83eaf6c67728f871cc3f4e4544c851ba7))
+## Bug Fixes
+* fix: fix fail_on_severity when no vulns are found (#750) (Darren)([479869f](https://github.com/lacework/go-sdk/commit/479869f95ae1c6d15b9108a59fcf36d77d448c4b))
+## Other Changes
+* chore: deprecate CLI Wiki (#739) (Salim Afiune)([eeb6478](https://github.com/lacework/go-sdk/commit/eeb64783f2224c397e61d5d3fe4fd93523e1fc1f))
+* ci: version bump to v0.29.1-dev (Lacework)([fc74684](https://github.com/lacework/go-sdk/commit/fc74684e5143e7a01158f876d28e8a9773c8d2e6))
+---
 # v0.29.0
 
 ## Features

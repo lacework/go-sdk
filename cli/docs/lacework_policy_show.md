@@ -20,6 +20,7 @@ lacework policy show <policy_id> [flags]
 
 ```
   -h, --help   help for show
+      --yaml   output query in YAML format
 ```
 
 ### Options inherited from parent commands

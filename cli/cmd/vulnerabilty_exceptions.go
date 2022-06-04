@@ -89,7 +89,7 @@ Then navigate to Vulnerabilities > Exceptions.
 	}
 	// show command is used to retrieve a lacework vulnerability exception by id
 	vulnerabilityExceptionShowCommand = &cobra.Command{
-		Use:   "show",
+		Use:   "show <exception_id>",
 		Short: "Get vulnerability exception by ID",
 		Long:  "Get a single vulnerability exception by it's vulnerability exception ID.",
 		Args:  cobra.ExactArgs(1),
@@ -117,7 +117,7 @@ Then navigate to Vulnerabilities > Exceptions.
 
 	// delete command is used to remove a lacework vulnerability exception by id
 	vulnerabilityExceptionDeleteCommand = &cobra.Command{
-		Use:   "delete",
+		Use:   "delete <exception_id>",
 		Short: "Delete a vulnerability exception",
 		Long:  "Delete a single vulnerability exception by it's vulnerability exception ID.",
 		Args:  cobra.ExactArgs(1),
