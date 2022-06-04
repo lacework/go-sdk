@@ -54,12 +54,12 @@ func NewVulnerabilityPolicyError(
 
 // Example of an error message sent to the end-user:
 //
-// ERROR ENFORCE POLICY: fixable vulnerabilities found with threshold 'critical' (exit code: 9)
+// ERROR (FAIL-ON): fixable vulnerabilities found with threshold 'critical' (exit code: 9)
 func (e *vulnerabilityPolicyError) Error() string {
 	if e.ExitCode == 0 {
 		return ""
 	}
-	return fmt.Sprintf("ENFORCE POLICY: %s (exit code: %d)", e.Message, e.ExitCode)
+	return fmt.Sprintf("(FAIL-ON): %s (exit code: %d)", e.Message, e.ExitCode)
 }
 
 func (e *vulnerabilityPolicyError) Unwrap() error {
