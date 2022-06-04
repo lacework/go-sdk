@@ -54,9 +54,12 @@ type ExecuteQueryByIDRequest struct {
 	Arguments []ExecuteQueryArgument `json:"arguments"`
 }
 
-func validateQueryArguments(args []ExecuteQueryArgument) (err error) {
-	var hasStart, hasEnd bool
-	var start, end time.Time
+func validateQueryArguments(args []ExecuteQueryArgument) error {
+	var (
+		hasStart, hasEnd bool
+		start, end       time.Time
+		err              error
+	)
 
 	for _, arg := range args {
 		if arg.Name == QueryStartTimeRange {
