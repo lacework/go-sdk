@@ -85,11 +85,11 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 
 		executeQuery.Arguments = []api.ExecuteQueryArgument{
 			api.ExecuteQueryArgument{
-				Name:  "StartTimeRange",
+				Name:  api.QueryStartTimeRange,
 				Value: start.UTC().Format(lwtime.RFC3339Milli),
 			},
 			api.ExecuteQueryArgument{
-				Name:  "EndTimeRange",
+				Name:  api.QueryEndTimeRange,
 				Value: end.UTC().Format(lwtime.RFC3339Milli),
 			},
 		}
