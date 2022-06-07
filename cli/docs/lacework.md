@@ -43,6 +43,7 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework access-token](lacework_access-token.md)	 - Generate temporary API access tokens
 * [lacework account](lacework_account.md)	 - Manage accounts in an organization (org admins only)
 * [lacework agent](lacework_agent.md)	 - Manage Lacework agents
+* [lacework alert-profile](lacework_alert-profile.md)	 - Manage alert profiles
 * [lacework alert-rule](lacework_alert-rule.md)	 - Manage alert rules
 * [lacework api](lacework_api.md)	 - Helper to call Lacework's API
 * [lacework cloud-account](lacework_cloud-account.md)	 - Manage cloud accounts
