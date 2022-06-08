@@ -31,7 +31,7 @@ func TestVulnerabilityPolicyErrorFailOnFixable(t *testing.T) {
 	if assert.Truef(t, mockPolicy.NonCompliant(), "policy should not be compliant") {
 		assert.Equal(t, 9, mockPolicy.ExitCode)
 		assert.Equal(t,
-			"ENFORCE POLICY: fixable vulnerabilities found (exit code: 9)",
+			"(FAIL-ON): fixable vulnerabilities found (exit code: 9)",
 			mockPolicy.Error(),
 		)
 		assert.Falsef(t, mockPolicy.Compliant(), "policy should not be compliant")
@@ -45,7 +45,7 @@ func TestVulnerabilityPolicyErrorFailOnSeverityWithFixable(t *testing.T) {
 	if assert.Truef(t, mockPolicy.NonCompliant(), "policy should not be compliant") {
 		assert.Equal(t, 9, mockPolicy.ExitCode)
 		assert.Equal(t,
-			"ENFORCE POLICY: fixable vulnerabilities found with threshold 'high' (exit code: 9)",
+			"(FAIL-ON): fixable vulnerabilities found with threshold 'high' (exit code: 9)",
 			mockPolicy.Error(),
 		)
 		assert.Falsef(t, mockPolicy.Compliant(), "policy should not be compliant")
@@ -59,7 +59,7 @@ func TestVulnerabilityPolicyErrorFailOnSeverityHigh(t *testing.T) {
 	if assert.Truef(t, mockPolicy.NonCompliant(), "policy should not be compliant") {
 		assert.Equal(t, 9, mockPolicy.ExitCode)
 		assert.Equal(t,
-			"ENFORCE POLICY: vulnerabilities found with threshold 'high' (exit code: 9)",
+			"(FAIL-ON): vulnerabilities found with threshold 'high' (exit code: 9)",
 			mockPolicy.Error(),
 		)
 		assert.Falsef(t, mockPolicy.Compliant(), "policy should not be compliant")

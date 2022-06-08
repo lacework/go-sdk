@@ -412,11 +412,11 @@ func runQuery(cmd *cobra.Command, args []string) error {
 
 	queryArgs := []api.ExecuteQueryArgument{
 		api.ExecuteQueryArgument{
-			Name:  "StartTimeRange",
+			Name:  api.QueryStartTimeRange,
 			Value: start.UTC().Format(lwtime.RFC3339Milli),
 		},
 		api.ExecuteQueryArgument{
-			Name:  "EndTimeRange",
+			Name:  api.QueryEndTimeRange,
 			Value: end.UTC().Format(lwtime.RFC3339Milli),
 		},
 	}
@@ -439,7 +439,7 @@ func runQueryByID(id string, args []api.ExecuteQueryArgument) (
 ) {
 	cli.Log.Debugw("running query", "query", id)
 
-	cli.StartProgress(" Executing query...")
+	cli.StartProgress(getRunStartProgressMessage(args))
 	defer cli.StopProgress()
 
 	request := api.ExecuteQueryByIDRequest{
@@ -449,7 +449,7 @@ func runQueryByID(id string, args []api.ExecuteQueryArgument) (
 	return cli.LwApi.V2.Query.ExecuteByID(request)
 }
 
-func runAdhocQuery(cmd *cobra.Command, queryArgs []api.ExecuteQueryArgument) (
+func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 	response map[string]interface{},
 	err error,
 ) {
@@ -464,7 +464,8 @@ func runAdhocQuery(cmd *cobra.Command, queryArgs []api.ExecuteQueryArgument) (
 		err = queryErrorCrumbs(queryString)
 		return
 	}
-	cli.StartProgress(" Executing query...")
+
+	cli.StartProgress(getRunStartProgressMessage(args))
 	defer cli.StopProgress()
 
 	// execute query
@@ -473,12 +474,39 @@ func runAdhocQuery(cmd *cobra.Command, queryArgs []api.ExecuteQueryArgument) (
 			QueryText:   newQuery.QueryText,
 			EvaluatorID: newQuery.EvaluatorID,
 		},
-		Arguments: queryArgs,
+		Arguments: args,
 	}
 
 	cli.Log.Debugw("running query", "query", queryString)
 	response, err = cli.LwApi.V2.Query.Execute(executeQuery)
 	return
+}
+
+func getRunStartProgressMessage(args []api.ExecuteQueryArgument) string {
+	var (
+		startTime, endTime time.Time
+		startErr           error = errors.New("StartTimeRange not present in ExecuteQueryArgument list")
+		endErr             error = errors.New("EndTimeRange not present in ExecuteQueryArgument list")
+	)
+	for _, arg := range args {
+		switch arg.Name {
+		case api.QueryStartTimeRange:
+			startTime, startErr = time.Parse(time.RFC3339, arg.Value)
+		case api.QueryEndTimeRange:
+			endTime, endErr = time.Parse(time.RFC3339, arg.Value)
+		}
+	}
+
+	msg := "Executing query"
+	if startErr == nil && endErr == nil {
+		msg = fmt.Sprintf(
+			"%s in the time range %s - %s",
+			msg,
+			startTime.Format("2006-Jan-2 15:04:05 MST"),
+			endTime.Format("2006-Jan-2 15:04:05 MST"),
+		)
+	}
+	return msg
 }
 
 func outputQueryRunResponse(response map[string]interface{}, err error) error {

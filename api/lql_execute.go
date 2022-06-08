@@ -32,9 +32,16 @@ type ExecuteQuery struct {
 	EvaluatorID string `json:"evaluatorId,omitempty"`
 }
 
+type ExecuteQueryArgumentName string
+
+const (
+	QueryStartTimeRange ExecuteQueryArgumentName = "StartTimeRange"
+	QueryEndTimeRange   ExecuteQueryArgumentName = "EndTimeRange"
+)
+
 type ExecuteQueryArgument struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name  ExecuteQueryArgumentName `json:"name"`
+	Value string                   `json:"value"`
 }
 
 type ExecuteQueryRequest struct {
@@ -47,12 +54,15 @@ type ExecuteQueryByIDRequest struct {
 	Arguments []ExecuteQueryArgument `json:"arguments"`
 }
 
-func validateQueryArguments(args []ExecuteQueryArgument) (err error) {
-	var hasStart, hasEnd bool
-	var start, end time.Time
+func validateQueryArguments(args []ExecuteQueryArgument) error {
+	var (
+		hasStart, hasEnd bool
+		start, end       time.Time
+		err              error
+	)
 
 	for _, arg := range args {
-		if arg.Name == "StartTimeRange" {
+		if arg.Name == QueryStartTimeRange {
 			hasStart = true
 			start, err = validateQueryTimeString(arg.Value)
 		}
@@ -60,7 +70,7 @@ func validateQueryArguments(args []ExecuteQueryArgument) (err error) {
 			return errors.Wrap(err, "invalid StartTimeRange argument")
 		}
 
-		if arg.Name == "EndTimeRange" {
+		if arg.Name == QueryEndTimeRange {
 			hasEnd = true
 			end, err = validateQueryTimeString(arg.Value)
 		}

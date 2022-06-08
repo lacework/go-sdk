@@ -43,7 +43,7 @@ var validateQueryArgumentsTests = []validateQueryArgumentsTest{
 	validateQueryArgumentsTest{
 		name: "start-bad",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: "StartTimeRange", Value: ""},
+			ExecuteQueryArgument{Name: QueryStartTimeRange, Value: ""},
 		},
 		retrn: errors.New(
 			`invalid StartTimeRange argument: parsing time "" as "2006-01-02T15:04:05.000Z": cannot parse "" as "2006"`),
@@ -51,7 +51,7 @@ var validateQueryArgumentsTests = []validateQueryArgumentsTest{
 	validateQueryArgumentsTest{
 		name: "start-nonutc",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: "StartTimeRange", Value: "2021-07-11T00:00:00.123Z07:00"},
+			ExecuteQueryArgument{Name: QueryStartTimeRange, Value: "2021-07-11T00:00:00.123Z07:00"},
 		},
 		retrn: errors.New(
 			`invalid StartTimeRange argument: parsing time "2021-07-11T00:00:00.123Z07:00": extra text: "07:00"`),
@@ -59,7 +59,7 @@ var validateQueryArgumentsTests = []validateQueryArgumentsTest{
 	validateQueryArgumentsTest{
 		name: "start-good",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: "StartTimeRange", Value: "2021-07-12T00:00:00.000Z"},
+			ExecuteQueryArgument{Name: QueryStartTimeRange, Value: "2021-07-12T00:00:00.000Z"},
 		},
 		retrn: nil,
 	},
@@ -81,7 +81,7 @@ var validateQueryArgumentsTests = []validateQueryArgumentsTest{
 	validateQueryArgumentsTest{
 		name: "range-bad",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: "StartTimeRange", Value: "2021-07-13T00:00:00.000Z"},
+			ExecuteQueryArgument{Name: QueryStartTimeRange, Value: "2021-07-13T00:00:00.000Z"},
 			ExecuteQueryArgument{Name: "EndTimeRange", Value: "2021-07-12T00:00:00.000Z"},
 		},
 		retrn: errors.New(
@@ -90,7 +90,7 @@ var validateQueryArgumentsTests = []validateQueryArgumentsTest{
 	validateQueryArgumentsTest{
 		name: "range-good",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: "StartTimeRange", Value: "2021-07-12T00:00:00.000Z"},
+			ExecuteQueryArgument{Name: QueryStartTimeRange, Value: "2021-07-12T00:00:00.000Z"},
 			ExecuteQueryArgument{Name: "EndTimeRange", Value: "2021-07-13T00:00:00.000Z"},
 		},
 		retrn: nil,

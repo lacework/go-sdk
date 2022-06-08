@@ -98,3 +98,66 @@ func TestParseQueryTime(t *testing.T) {
 		})
 	}
 }
+
+type getRunStartProgressMessageTest struct {
+	Name                string
+	StartTime           string
+	EndTime             string
+	ReferenceTimeFormat string
+	Return              string
+}
+
+var (
+	getRunStartProgressMessageTests = []getRunStartProgressMessageTest{
+		{
+			Name:                "no-start",
+			EndTime:             "2006-02-02T15:04:05-07:00",
+			ReferenceTimeFormat: time.RFC3339,
+			Return:              "Executing query",
+		},
+		{
+			Name:                "no-end",
+			StartTime:           "2006-02-02T15:04:05-07:00",
+			ReferenceTimeFormat: time.RFC3339,
+			Return:              "Executing query",
+		},
+		{
+			Name:                "basic",
+			StartTime:           "2006-02-02T15:04:05-07:00",
+			EndTime:             "2006-02-03T15:04:05-07:00",
+			ReferenceTimeFormat: time.RFC3339,
+			Return:              "Executing query in the time range 2006-Feb-2 22:04:05 UTC - 2006-Feb-3 22:04:05 UTC",
+		},
+	}
+)
+
+func TestRunStartProgressMessage(t *testing.T) {
+	for _, grspmt := range getRunStartProgressMessageTests {
+		t.Run(grspmt.Name, func(t *testing.T) {
+			args := []api.ExecuteQueryArgument{}
+
+			if grspmt.StartTime != "" {
+				startTime, startErr := time.Parse(grspmt.ReferenceTimeFormat, grspmt.StartTime)
+				if startErr != nil {
+					assert.FailNow(t, startErr.Error())
+				}
+				args = append(args, api.ExecuteQueryArgument{
+					Name:  api.QueryStartTimeRange,
+					Value: startTime.UTC().Format(lwtime.RFC3339Milli),
+				})
+			}
+			if grspmt.EndTime != "" {
+				endTime, endErr := time.Parse(grspmt.ReferenceTimeFormat, grspmt.EndTime)
+				if endErr != nil {
+					assert.FailNow(t, endErr.Error())
+				}
+				args = append(args, api.ExecuteQueryArgument{
+					Name:  api.QueryEndTimeRange,
+					Value: endTime.UTC().Format(lwtime.RFC3339Milli),
+				})
+			}
+
+			assert.Equal(t, grspmt.Return, getRunStartProgressMessage(args))
+		})
+	}
+}
