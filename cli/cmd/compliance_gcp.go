@@ -403,7 +403,7 @@ To enable all recommendations for CIS_1_2 report run:
 			}
 
 			// set state of all recommendations in this report to enabled
-			patchReq := api.NewRecommendationV1State(schema, false)
+			patchReq := api.NewRecommendationV1State(schema, true)
 			cli.StartProgress("enabling recommendations...")
 			response, err := cli.LwApi.Recommendations.Gcp.Patch(patchReq)
 			cli.StopProgress()
