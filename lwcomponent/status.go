@@ -40,6 +40,12 @@ func (cs Status) String() string {
 	}
 }
 
+// IsInstalled returns true if the component is installed on disk
 func (c Component) IsInstalled() bool {
-	return c.Status() == Installed
+	switch c.Status() {
+	case Installed, UpdateAvailable:
+		return true
+	default:
+		return false
+	}
 }

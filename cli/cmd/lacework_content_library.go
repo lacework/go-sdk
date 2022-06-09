@@ -81,21 +81,28 @@ func (c *cliState) IsLCLInstalled() bool {
 		return false
 	}
 
-	component := c.LwComponents.GetComponent(lclComponentName)
-	if component == nil || component.Status() != lwcomponent.Installed {
-		return false
+	component, found := c.LwComponents.GetComponent(lclComponentName)
+	if found && component.IsInstalled() {
+		return true
 	}
-	return true
+	return false
 }
 
 func (c *cliState) LoadLCL() (*LaceworkContentLibrary, error) {
-	baseErr := "unable to load Lacework Content Library"
-	lcl := new(LaceworkContentLibrary)
+	var (
+		baseErr = "unable to load Lacework Content Library"
+		lcl     = new(LaceworkContentLibrary)
+		found   bool
+	)
 
 	if c.LwComponents == nil {
 		return lcl, errors.New(baseErr)
 	}
-	lcl.Component = c.LwComponents.GetComponent(lclComponentName)
+
+	lcl.Component, found = c.LwComponents.GetComponent(lclComponentName)
+	if !found {
+		return lcl, errors.Wrap(errors.New("component not installed"), baseErr)
+	}
 
 	index, err := lcl.run(lclIndexPath)
 	if err != nil {
@@ -122,7 +129,7 @@ func (c *cliState) LoadLCL() (*LaceworkContentLibrary, error) {
 }
 
 func (lcl *LaceworkContentLibrary) run(path string) (string, error) {
-	if lcl.Component == nil || lcl.Component.Status() != lwcomponent.Installed {
+	if lcl.Component == nil || !lcl.Component.IsInstalled() {
 		return "", errors.New("Lacework Content Library is not installed")
 	}
 	stdout, _, err := lcl.Component.RunAndReturn([]string{path}, nil)

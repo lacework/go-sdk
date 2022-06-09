@@ -211,8 +211,8 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	component := cli.LwComponents.GetComponent(args[0])
-	if component == nil {
+	component, found := cli.LwComponents.GetComponent(args[0])
+	if !found {
 		err = errors.New("component not found. Try running 'lacework component list'")
 		return
 	}
@@ -237,8 +237,8 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	component := cli.LwComponents.GetComponent(args[0])
-	if component == nil {
+	component, found := cli.LwComponents.GetComponent(args[0])
+	if !found {
 		err = errors.New("component not found. Try running 'lacework component list'")
 		return
 	}
@@ -276,13 +276,13 @@ func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	component := cli.LwComponents.GetComponent(args[0])
-	if component == nil {
+	component, found := cli.LwComponents.GetComponent(args[0])
+	if !found {
 		err = errors.New("component not found. Try running 'lacework component list'")
 		return
 	}
 
-	if component.Status() != lwcomponent.Installed {
+	if !component.IsInstalled() {
 		err = errors.Errorf(
 			"component not installed. Try running 'lacework component install %s'",
 			args[0],
