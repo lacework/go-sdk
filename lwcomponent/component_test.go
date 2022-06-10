@@ -95,8 +95,15 @@ func TestGetComponent(t *testing.T) {
 		mockComponent2,
 	}
 
-	assert.Equal(t, mockComponent, *tempState.GetComponent("lacework-mock-component"))
-	assert.Nil(t, tempState.GetComponent("no-such-component"))
+	subjectComponent, found := tempState.GetComponent("lacework-mock-component")
+	if assert.True(t, found) {
+		assert.Equal(t, mockComponent, *subjectComponent)
+	}
+
+	subjectComponent, found = tempState.GetComponent("no-such-component")
+	if assert.False(t, found) {
+		assert.Nil(t, subjectComponent)
+	}
 }
 
 func TestLoadState(t *testing.T) {

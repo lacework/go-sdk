@@ -311,7 +311,7 @@ func TestLoadLCLNotFound(t *testing.T) {
 	_, err := cli.LoadLCL()
 	assert.Equal(
 		t,
-		"unable to load Lacework Content Library: Lacework Content Library is not installed",
+		"unable to load Lacework Content Library: component not installed",
 		err.Error(),
 	)
 }

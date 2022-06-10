@@ -87,15 +87,23 @@ func LocalState() (*State, error) {
 	return state, err
 }
 
-// GetComponent returns the pointer of a component, if the component does not
-// exit, this function will return `nil`
-func (s State) GetComponent(name string) *Component {
+// GetComponent returns the pointer of a component, if the component is not
+// found, this function will return a `nil` pointer and `false`
+//
+// Usage:
+// ```go
+// component, found := s.GetComponent(name)
+// if !found {
+//   fmt.Println("Component %s not found", name)
+// }
+// ```
+func (s State) GetComponent(name string) (*Component, bool) {
 	for i := range s.Components {
 		if s.Components[i].Name == name {
-			return &s.Components[i]
+			return &s.Components[i], true
 		}
 	}
-	return nil
+	return nil, false
 }
 
 // WriteState stores the components state to disk
@@ -132,8 +140,8 @@ func Dir() (string, error) {
 }
 
 func (s State) Install(name string) error {
-	component := s.GetComponent(name)
-	if component == nil {
+	component, found := s.GetComponent(name)
+	if !found {
 		return errors.New("component not found")
 	}
 
