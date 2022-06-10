@@ -1,0 +1,10 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "gusztavvargadr/windows-server"
+  config.vm.synced_folder "../../../bin", "/devcli"
+  config.vm.provision "shell",
+    inline: "New-Item -ItemType SymbolicLink -Target \"C:/devcli/lacework-cli-windows-amd64.exe\" -Path \"C:/Users/vagrant/lacework.exe\""
+
+  config.vm.provider "virtualbox" do |v|
+    v.gui = true
+  end
+end

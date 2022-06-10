@@ -41,6 +41,7 @@ var (
 		InstallTrustHostKey bool
 		InstallPassword     string
 		InstallIdentityFile string
+		WinRM               bool
 	}{}
 
 	defaultSshIdentityKey = "~/.ssh/id_rsa"
@@ -196,7 +197,7 @@ func init() {
 		"identity (private key) for public key authentication",
 	)
 	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallPassword,
-		"ssh_password", "", "password for authentication",
+		"winrm_password", "", "password for authentication",
 	)
 	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
 		"ssh_username", "", "username to login with",
@@ -212,6 +213,9 @@ func init() {
 	)
 	agentInstallCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
+	)
+	agentInstallCmd.Flags().BoolVar(&agentCmdState.WinRM,
+		"winrm", false, "install a windows agent over WinRM protocol",
 	)
 }
 

@@ -19,13 +19,16 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"net"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/masterzen/winrm"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -35,7 +38,10 @@ import (
 )
 
 // Official download url for installing Lacework agents
-const agentInstallDownloadURL = "https://packages.lacework.net/install.sh"
+const (
+	linuxAgentInstallDownloadURL   = "https://packages.lacework.net/install.sh"
+	windowsAgentInstallDownloadURL = "https://updates.lacework.net/windows/preGA-0.5.0.2151/LWDataCollector.msi"
+)
 
 func installRemoteAgent(_ *cobra.Command, args []string) error {
 	var (
@@ -61,6 +67,22 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 			return errors.Wrap(err, "invalid port")
 		}
 		port = p
+	}
+
+	token := agentCmdState.InstallAgentToken
+	if token == "" {
+		// user didn't provide an agent token
+		cli.Log.Debugw("agent token not provided")
+		var err error
+		token, err = selectAgentAccessToken()
+		if err != nil {
+			return err
+		}
+	}
+
+	if agentCmdState.WinRM {
+		cli.Log.Debugw("installing windows agent", "user", user, "host", host)
+		return installWindowsAgent(user, host, token, port)
 	}
 
 	cli.Log.Debugw("creating runner", "user", user, "host", host)
@@ -125,17 +147,7 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	token := agentCmdState.InstallAgentToken
-	if token == "" {
-		// user didn't provide an agent token
-		cli.Log.Debugw("agent token not provided")
-		var err error
-		token, err = selectAgentAccessToken()
-		if err != nil {
-			return err
-		}
-	}
-	cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+	cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", linuxAgentInstallDownloadURL, token)
 	return runInstallCommandOnRemoteHost(runner, cmd)
 }
 
@@ -167,7 +179,7 @@ func runInstallCommandOnRemoteHost(runner *lwrunner.Runner, cmd string) error {
 func isAgentInstalledOnRemoteHost(runner *lwrunner.Runner) error {
 	agentVersionCmd := "sudo sh -c \"/var/lib/lacework/datacollector -v\""
 
-	cli.StartProgress(" Verifying previous agent installations...")
+	cli.StartProgress("Verifying previous agent installations...")
 	cli.Log.Debugw("exec remote command", "cmd", agentVersionCmd)
 	stdout, stderr, err := runner.Exec(agentVersionCmd)
 	cli.StopProgress()
@@ -195,7 +207,7 @@ func isAgentInstalledOnRemoteHost(runner *lwrunner.Runner) error {
 func verifyAccessToRemoteHost(runner *lwrunner.Runner) error {
 	accessCmd := "echo we-are-in"
 
-	cli.StartProgress(" Verifying access to the remote host...")
+	cli.StartProgress("Verifying access to the remote host...")
 	cli.Log.Debugw("exec remote command", "cmd", accessCmd)
 	stdout, stderr, err := runner.Exec(accessCmd)
 	cli.StopProgress()
@@ -376,4 +388,62 @@ func formatRunnerError(stdout, stderr bytes.Buffer, err error) error {
 	}
 
 	return errors.Wrap(err, formatted)
+}
+
+func installWindowsAgent(user, host, token string, port int) error {
+	endpoint := winrm.NewEndpoint(host, port, false, false, nil, nil, nil, 5*time.Minute)
+	client, err := winrm.NewClient(endpoint, user, agentCmdState.InstallPassword)
+	if err != nil {
+		return err
+	}
+
+	cli.StartProgress("Verifying access to the remote host...")
+	defer cli.StopProgress()
+	_, stderr, code, err := client.RunPSWithString("echo we-are-in", "")
+	if err != nil || code != 0 {
+		return errors.Wrap(err,
+			fmt.Sprintf("unable to access the remote host via WinRM transport.\n\nexitcode: %d\nstderr: %s",
+				code, stderr))
+	}
+
+	cli.StartProgress(fmt.Sprintf("Downloading Windows agent installer (%s) ...", windowsAgentInstallDownloadURL))
+	// @afiune create a temporal directory and store the MSI there
+	downloadMSI := `$msi_dest="C:/Users/vagrant/LWDataCollector.msi"
+	$wc = New-Object System.Net.WebClient
+	$wc.DownloadFile("` + windowsAgentInstallDownloadURL + `", $msi_dest)`
+	_, stderr, code, err = client.RunPSWithString(downloadMSI, "")
+	if err != nil || code != 0 {
+		return errors.Wrap(err,
+			fmt.Sprintf("unable to access the remote host via WinRM transport.\n\nexitcode: %d\nstderr: %s",
+				code, stderr))
+	}
+
+	cli.StartProgress("Installing Lacework Windows agent...")
+	installAgent := `Start-Process msiexec.exe -Wait -ArgumentList '/i C:\Users\vagrant\LWDataCollector.msi ACCESSTOKEN=` +
+		token + ` SERVERURL=https://api.lacework.net /qn'`
+	_, stderr, code, err = client.RunPSWithString(installAgent, "")
+	if err != nil || code != 0 {
+		return errors.Wrap(err,
+			fmt.Sprintf("unable to access the remote host via WinRM transport.\n\nexitcode: %d\nstderr: %s",
+				code, stderr))
+	}
+
+	// stdout, stderr, code, err = client.RunPSWithString("ls C:\\Windows\\System32\\drivers\\lwdcs.sys", "")
+	cli.StartProgress("Verifying installation ...")
+	var (
+		stderrBuf    bytes.Buffer
+		stdoutBuf    bytes.Buffer
+		stderrWriter = bufio.NewWriter(&stderrBuf)
+		stdoutWriter = bufio.NewWriter(&stdoutBuf)
+	)
+	code, err = client.Run("sc query lwdatacollector", stdoutWriter, stderrWriter)
+	if err != nil || code != 0 {
+		return errors.Wrap(err,
+			fmt.Sprintf("unable to access the remote host via WinRM transport.\n\nexitcode: %d\nstdout: %s\nstderr: %s",
+				code, stdoutBuf.String(), stderrBuf.String()))
+	}
+	cli.StopProgress()
+	cli.OutputHuman(stdoutBuf.String())
+	cli.OutputHuman("\nLacework agent installed successfully on host %s\n", host)
+	return nil
 }
