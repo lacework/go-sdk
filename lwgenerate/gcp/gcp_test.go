@@ -515,7 +515,6 @@ var moduleImportOrganizationLevelAuditLogWithoutConfiguration = `module "gcp_org
   organization_id = "123456789"
 }
 `
-
 var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_organization_level_audit_log" {
   source                    = "lacework/audit-log/gcp"
   version                   = "~> 2.0"
@@ -527,13 +526,13 @@ var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_or
 
 var moduleImportProjectLevelConfiguration = `module "gcp_project_level_config" {
   source  = "lacework/config/gcp"
-  version = "~> 1.0"
+  version = "~> 2.0"
 }
 `
 
 var moduleImportProjectLevelConfigurationExistingSA = `module "gcp_project_level_config" {
   source                       = "lacework/config/gcp"
-  version                      = "~> 1.0"
+  version                      = "~> 2.0"
   service_account_name         = "foo"
   service_account_private_key  = "123456789"
   use_existing_service_account = true
@@ -542,14 +541,14 @@ var moduleImportProjectLevelConfigurationExistingSA = `module "gcp_project_level
 
 var moduleImportProjectLevelConfigurationCustomIntegrationName = `module "gcp_project_level_config" {
   source                    = "lacework/config/gcp"
-  version                   = "~> 1.0"
+  version                   = "~> 2.0"
   lacework_integration_name = "custom_integration_name"
 }
 `
 
 var moduleImportOrganizationLevelConfiguration = `module "gcp_organization_level_config" {
   source          = "lacework/config/gcp"
-  version         = "~> 1.0"
+  version         = "~> 2.0"
   org_integration = true
   organization_id = "123456789"
 }
@@ -557,7 +556,7 @@ var moduleImportOrganizationLevelConfiguration = `module "gcp_organization_level
 
 var moduleImportOrganizationLevelConfigurationExistingSA = `module "gcp_organization_level_config" {
   source                       = "lacework/config/gcp"
-  version                      = "~> 1.0"
+  version                      = "~> 2.0"
   org_integration              = true
   organization_id              = "123456789"
   service_account_name         = "foo"
@@ -568,7 +567,7 @@ var moduleImportOrganizationLevelConfigurationExistingSA = `module "gcp_organiza
 
 var moduleImportOrganizationLevelConfigurationCustomIntegrationName = `module "gcp_organization_level_config" {
   source                    = "lacework/config/gcp"
-  version                   = "~> 1.0"
+  version                   = "~> 2.0"
   lacework_integration_name = "custom_integration_name"
   org_integration           = true
   organization_id           = "123456789"
