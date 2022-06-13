@@ -40,20 +40,6 @@ func cleanAndCreateQuery(id string, args ...string) (bytes.Buffer, bytes.Buffer,
 	return LaceworkCLIWithTOMLConfig(args...)
 }
 
-func TestQueryAliases(t *testing.T) {
-	// lacework query
-	out, err, exitcode := LaceworkCLI("help", "queries")
-	assert.Contains(t, out.String(), "lacework query [command]")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-
-	// lacework lql
-	out, err, exitcode = LaceworkCLI("help", "lql")
-	assert.Contains(t, out.String(), "lacework query [command]")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
-
 func TestQueryBase(t *testing.T) {
 	out, err, exitcode := LaceworkCLI("query")
 	assert.Contains(t, out.String(), "create")
@@ -98,9 +84,19 @@ func TestQueryRunID(t *testing.T) {
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
-	// validate_only
+	// bad - file
+	_, err, exitcode = LaceworkCLIWithTOMLConfig("query", "run", queryID, "--file", "foo")
+	assert.Contains(t, err.String(), "ERROR flag --file not applicable when specifying query_id argument")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+
+	// bad - url
+	_, err, exitcode = LaceworkCLIWithTOMLConfig("query", "run", queryID, "--url", "foo")
+	assert.Contains(t, err.String(), "ERROR flag --url not applicable when specifying query_id argument")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+
+	// bad - validate_only
 	_, err, exitcode = LaceworkCLIWithTOMLConfig("query", "run", queryID, "--validate_only")
-	assert.Contains(t, err.String(), "ERROR flag --validate_only unavailable when specifying query_id argument")
+	assert.Contains(t, err.String(), "ERROR flag --validate_only not applicable when specifying query_id argument")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 

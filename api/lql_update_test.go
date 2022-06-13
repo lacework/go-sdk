@@ -35,10 +35,9 @@ var (
 		QueryText: newQueryText,
 	}
 	updateQueryJSON = fmt.Sprintf(`{
-	"evaluatorId": "%s",
 	"queryId": "%s",
 	"queryText": "%s"
-}`, queryEvaluator, queryID, updateQueryText)
+}`, queryID, updateQueryText)
 )
 
 func TestQueryUpdateMethod(t *testing.T) {

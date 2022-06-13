@@ -32,18 +32,17 @@ import (
 var (
 	executeQueryArguments = []api.ExecuteQueryArgument{
 		api.ExecuteQueryArgument{
-			Name:  "StartTimeRange",
+			Name:  api.QueryStartTimeRange,
 			Value: "2021-07-11T00:00:00.000Z",
 		},
 		api.ExecuteQueryArgument{
-			Name:  "EndTimeRange",
+			Name:  api.QueryEndTimeRange,
 			Value: "2021-07-12T00:00:00.000Z",
 		},
 	}
 	executeQuery = api.ExecuteQueryRequest{
 		Query: api.ExecuteQuery{
-			QueryText:   newQueryText,
-			EvaluatorID: queryEvaluator,
+			QueryText: newQueryText,
 		},
 		Arguments: executeQueryArguments,
 	}

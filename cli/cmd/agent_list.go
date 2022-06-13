@@ -163,7 +163,7 @@ func listAgents(_ *cobra.Command, _ []string) error {
 
 	if len(machines) == 0 {
 		if len(agentListCmdState.Filters) != 0 {
-			cli.OutputHuman("No agent found with the provided filter(s).")
+			cli.OutputHuman("No agent found with the provided filter(s).\n")
 		} else {
 			cli.OutputHuman(
 				"There are no agents running in your account.\n\nTry installing one with 'lacework agent install <host>%s'\n",

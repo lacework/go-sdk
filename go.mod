@@ -3,6 +3,7 @@ module github.com/lacework/go-sdk
 go 1.18
 
 require (
+	aead.dev/minisign v0.2.0
 	github.com/AlecAivazis/survey/v2 v2.3.2
 	github.com/BurntSushi/toml v1.1.0
 	github.com/Masterminds/semver v1.5.0
@@ -11,10 +12,10 @@ require (
 	github.com/briandowns/spinner v1.17.0
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structs v1.1.0
-	github.com/hashicorp/go-version v1.4.0
+	github.com/hashicorp/go-version v1.5.0
 	github.com/hashicorp/hc-install v0.3.2
-	github.com/hashicorp/hcl/v2 v2.11.1
-	github.com/hashicorp/terraform-exec v0.16.0
+	github.com/hashicorp/hcl/v2 v2.12.0
+	github.com/hashicorp/terraform-exec v0.16.1
 	github.com/hashicorp/terraform-json v0.13.0
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
@@ -29,13 +30,13 @@ require (
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.10.1
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	github.com/zclconf/go-cty v1.10.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/text v0.3.7
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

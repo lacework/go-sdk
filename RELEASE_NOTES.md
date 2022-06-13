@@ -1,16 +1,15 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.34.0`.
+Another day, another release. These are the release notes for the version `v0.35.1`.
 
-## Features
-* feat: Add support for APIv2 CloudAccounts List (#784) (Ross)([563d1da](https://github.com/lacework/go-sdk/commit/563d1da63b7eae5f7e7691117787570d2d0e8cfc))
-* feat(cli): add gcp compliance report disable warning (#787) (Ross)([0cc3734](https://github.com/lacework/go-sdk/commit/0cc373442eff0bc970b10d5eabfde0296ba699a1))
-* feat(cli): add azure compliance report disable warning (#786) (Ross)([a028ecb](https://github.com/lacework/go-sdk/commit/a028ecb3b6a5a5e61f82464c9ef83226dd393227))
 ## Bug Fixes
-* fix(test): Fix TestCloudAccountsListByType unit test failure (#788) (Ross)([48fb4c7](https://github.com/lacework/go-sdk/commit/48fb4c78d6f2d47c353341c0d47978fcefa25651))
-* fix(api): add newResponse for function SearchAllPages (#770) (aircraft-cerier)([474a163](https://github.com/lacework/go-sdk/commit/474a16396b30d70b934a07839891436c3cef6643))
-* fix(cli): Remove Additional Cloudtrail/AuditLog options when Cloudtrail/AuditLog Integration is set to No (#782) (Ross)([c9d7f48](https://github.com/lacework/go-sdk/commit/c9d7f48572e028be691e7b984b52208681cfad5a))
+* fix: expiration time format (#811) (Darren)([521b7ac](https://github.com/lacework/go-sdk/commit/521b7ac7e3836669db704566b450e86800818e9e))
+* fix(cli): compliance gcp enable command (#813) (Darren)([0a931a8](https://github.com/lacework/go-sdk/commit/0a931a8a70eff44aa228afb8495777a31f984b9b))
 ## Other Changes
-* ci: version bump to v0.33.1-dev (Lacework)([3b3aacf](https://github.com/lacework/go-sdk/commit/3b3aacf9e8075d39532980b063e2083c9e0dc88a))
+* style(cli): add missing carrier return (#816) (Salim Afiune)([ca37520](https://github.com/lacework/go-sdk/commit/ca37520f3f05c21f06ea49221f53895ecf3029ed))
+* chore(deps): bump github.com/hashicorp/hcl/v2 from 2.11.1 to 2.12.0 (#780) (dependabot[bot])([9471ffd](https://github.com/lacework/go-sdk/commit/9471ffd3657e82ceb4958143220668ddb2e3a30d))
+* chore(deps): bump github.com/stretchr/testify from 1.7.1 to 1.7.2 (#806) (dependabot[bot])([d936875](https://github.com/lacework/go-sdk/commit/d9368757d23cc2eb83dda67a81b5260852d16da9))
+* chore(lwgenerate): bump GCP config module to ~> 2.0 (#814) (Salim Afiune)([913740b](https://github.com/lacework/go-sdk/commit/913740b86e5fd8dcd3c69eceb944c7b86273535f))
+* ci: version bump to v0.35.1-dev (Lacework)([7efab5f](https://github.com/lacework/go-sdk/commit/7efab5f1d7a7c2595c7408a5b39d59ecd8fc7462))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`

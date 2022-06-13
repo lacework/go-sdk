@@ -19,7 +19,6 @@
 package cmd
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -35,68 +34,7 @@ var (
 		QueryID:   "my_lql",
 		QueryText: `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`,
 	}
-	newQueryJSON = fmt.Sprintf(`{
-	"queryId": "%s",
-	"queryText": "%s"
-	}`, newQuery.QueryID, newQuery.QueryText)
-	newQueryYAML = fmt.Sprintf(`---
-queryId: %s
-queryText: %s`, newQuery.QueryID, newQuery.QueryText)
 )
-
-type parseQueryTest struct {
-	Name     string
-	Input    string
-	Return   error
-	Expected api.NewQuery
-}
-
-var parseQueryTests = []parseQueryTest{
-	parseQueryTest{
-		Name:     "empty-blob",
-		Input:    "",
-		Return:   queryErrorCrumbs(""),
-		Expected: api.NewQuery{},
-	},
-	parseQueryTest{
-		Name:     "junk-blob",
-		Input:    "this is junk",
-		Return:   queryErrorCrumbs("this is junk"),
-		Expected: api.NewQuery{},
-	},
-	parseQueryTest{
-		Name:     "partial-blob",
-		Input:    "{",
-		Return:   queryErrorCrumbs("{"),
-		Expected: api.NewQuery{},
-	},
-	parseQueryTest{
-		Name:     "json-blob",
-		Input:    newQueryJSON,
-		Return:   nil,
-		Expected: newQuery,
-	},
-	parseQueryTest{
-		Name:     "yaml-blob",
-		Input:    newQueryYAML,
-		Return:   nil,
-		Expected: newQuery,
-	},
-}
-
-func TestParseQuery(t *testing.T) {
-	for _, pqt := range parseQueryTests {
-		t.Run(pqt.Name, func(t *testing.T) {
-			actual, err := parseQuery(pqt.Input)
-			if pqt.Return == nil {
-				assert.Equal(t, pqt.Return, err)
-			} else {
-				assert.Equal(t, pqt.Return.Error(), err.Error())
-			}
-			assert.Equal(t, pqt.Expected, actual)
-		})
-	}
-}
 
 type parseQueryTimeTest struct {
 	Name       string
@@ -157,6 +95,69 @@ func TestParseQueryTime(t *testing.T) {
 				assert.Equal(t, pqtt.ReturnErr.Error(), err.Error())
 			}
 			assert.Equal(t, pqtt.ReturnTime, outTime.UTC().Format(time.RFC3339))
+		})
+	}
+}
+
+type getRunStartProgressMessageTest struct {
+	Name                string
+	StartTime           string
+	EndTime             string
+	ReferenceTimeFormat string
+	Return              string
+}
+
+var (
+	getRunStartProgressMessageTests = []getRunStartProgressMessageTest{
+		{
+			Name:                "no-start",
+			EndTime:             "2006-02-02T15:04:05-07:00",
+			ReferenceTimeFormat: time.RFC3339,
+			Return:              "Executing query",
+		},
+		{
+			Name:                "no-end",
+			StartTime:           "2006-02-02T15:04:05-07:00",
+			ReferenceTimeFormat: time.RFC3339,
+			Return:              "Executing query",
+		},
+		{
+			Name:                "basic",
+			StartTime:           "2006-02-02T15:04:05-07:00",
+			EndTime:             "2006-02-03T15:04:05-07:00",
+			ReferenceTimeFormat: time.RFC3339,
+			Return:              "Executing query in the time range 2006-Feb-2 22:04:05 UTC - 2006-Feb-3 22:04:05 UTC",
+		},
+	}
+)
+
+func TestRunStartProgressMessage(t *testing.T) {
+	for _, grspmt := range getRunStartProgressMessageTests {
+		t.Run(grspmt.Name, func(t *testing.T) {
+			args := []api.ExecuteQueryArgument{}
+
+			if grspmt.StartTime != "" {
+				startTime, startErr := time.Parse(grspmt.ReferenceTimeFormat, grspmt.StartTime)
+				if startErr != nil {
+					assert.FailNow(t, startErr.Error())
+				}
+				args = append(args, api.ExecuteQueryArgument{
+					Name:  api.QueryStartTimeRange,
+					Value: startTime.UTC().Format(lwtime.RFC3339Milli),
+				})
+			}
+			if grspmt.EndTime != "" {
+				endTime, endErr := time.Parse(grspmt.ReferenceTimeFormat, grspmt.EndTime)
+				if endErr != nil {
+					assert.FailNow(t, endErr.Error())
+				}
+				args = append(args, api.ExecuteQueryArgument{
+					Name:  api.QueryEndTimeRange,
+					Value: endTime.UTC().Format(lwtime.RFC3339Milli),
+				})
+			}
+
+			assert.Equal(t, grspmt.Return, getRunStartProgressMessage(args))
 		})
 	}
 }

@@ -31,8 +31,7 @@ import (
 
 var (
 	validateQuery = api.ValidateQuery{
-		EvaluatorID: queryEvaluator,
-		QueryText:   newQueryText,
+		QueryText: newQueryText,
 	}
 )
 

@@ -46,7 +46,6 @@ tags:
   - fhqwhgads
 `
 	newHostPolicyYAML string = `---
-evaluatorId:
 policyType: Violation
 queryId: CLI_Host_Files_IntegrationTest
 title: My Policy Title

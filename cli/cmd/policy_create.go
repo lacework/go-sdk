@@ -19,14 +19,13 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"reflect"
+	"strings"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
@@ -65,59 +64,83 @@ func init() {
 	setPolicySourceFlags(policyCreateCmd)
 }
 
-type newPoliciesYAML struct {
-	Policies []api.NewPolicy `yaml:"policies"`
-}
+func createQueryFromLibrary(id string) error {
+	var (
+		queryString string
+		err         error
+		newQuery    api.NewQuery
+	)
 
-func parseNewPolicy(s string) (api.NewPolicy, error) {
-	var policy api.NewPolicy
-	var err error
+	// input query
+	queryString, err = inputQueryFromLibrary(id)
+	if err != nil {
+		return err
+	}
 
-	// valid json
-	if err = json.Unmarshal([]byte(s), &policy); err == nil {
-		return policy, err
-	}
-	// nested yaml
-	var policies newPoliciesYAML
+	cli.Log.Debugw("creating query", "query", queryString)
 
-	if err = yaml.Unmarshal([]byte(s), &policies); err == nil {
-		if len(policies.Policies) > 0 {
-			return policies.Policies[0], err
-		}
+	// parse query
+	newQuery, err = api.ParseNewQuery(queryString)
+	if err != nil {
+		return queryErrorCrumbs(queryString)
 	}
-	// straight yaml
-	policy = api.NewPolicy{}
-	err = yaml.Unmarshal([]byte(s), &policy)
-	if err == nil && !reflect.DeepEqual(policy, api.NewPolicy{}) { // empty string unmarshals w/o error
-		return policy, nil
-	}
-	// invalid policy
-	return policy, errors.New("policy must be valid JSON or YAML")
+
+	// create query
+	_, err = cli.LwApi.V2.Query.Create(newQuery)
+	return err
 }
 
 func createPolicy(cmd *cobra.Command, _ []string) error {
-	msg := "unable to create policy"
+	var (
+		msg         string = "unable to create policy"
+		err         error
+		queryExists bool
+	)
 
 	// input policy
-	policyStr, err := inputPolicy(cmd)
+	policyString, err := inputPolicy(cmd)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
+	cli.Log.Debugw("creating policy", "policy", policyString)
+
 	// parse policy
-	newPolicy, err := parseNewPolicy(policyStr)
+	newPolicy, err := api.ParseNewPolicy(policyString)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
 
-	cli.Log.Debugw("creating policy", "policy", policyStr)
+	// if creating policy from library also create query
+	if policyCmdState.CUFromLibrary != "" {
+		cli.StartProgress(" Creating query (then policy)...")
+		err = createQueryFromLibrary(newPolicy.QueryID)
+		cli.StopProgress()
+
+		if err != nil {
+			if queryExists = strings.Contains(err.Error(), "already exists"); !queryExists {
+				return errors.Wrap(err, "unable to create query")
+			}
+		}
+	}
+
+	// create policy
 	cli.StartProgress(" Creating policy...")
 	createResponse, err := cli.LwApi.V2.Policy.Create(newPolicy)
 	cli.StopProgress()
+
+	// output policy
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
 	if cli.JSONOutput() {
 		return cli.OutputJSON(createResponse.Data)
+	}
+	// if human output mode, creating from library, and query exists
+	if queryExists {
+		cli.OutputHuman(fmt.Sprintf("The query %s already exists.\n", newPolicy.QueryID))
+	}
+	if policyCmdState.CUFromLibrary != "" {
+		cli.OutputHuman(fmt.Sprintf("The query %s was created.\n", newPolicy.QueryID))
 	}
 	cli.OutputHuman(fmt.Sprintf("The policy %s was created.\n", createResponse.Data.PolicyID))
 	return nil

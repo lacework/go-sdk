@@ -39,6 +39,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/format"
+	"github.com/lacework/go-sdk/lwcomponent"
 	"github.com/lacework/go-sdk/lwconfig"
 	"github.com/lacework/go-sdk/lwlogger"
 )
@@ -55,11 +56,12 @@ type cliState struct {
 	OrgLevel   bool
 	CfgVersion int
 
-	LwApi *api.Client
-	JsonF *prettyjson.Formatter
-	Log   *zap.SugaredLogger
-	Event *Honeyvent
-	Cache *diskv.Diskv
+	LwApi        *api.Client
+	JsonF        *prettyjson.Formatter
+	Log          *zap.SugaredLogger
+	Event        *Honeyvent
+	Cache        *diskv.Diskv
+	LwComponents *lwcomponent.State
 
 	id             string
 	workers        sync.WaitGroup
@@ -72,6 +74,7 @@ type cliState struct {
 	lqlOperator    string
 	profileDetails map[string]interface{}
 	tokenCache     api.TokenData
+	installedCmd   bool
 }
 
 // NewDefaultState creates a new cliState with some defaults
@@ -412,6 +415,16 @@ func (c *cliState) HumanOutput() bool {
 // CSVOutput returns true if the cli is configured to display csv output
 func (c *cliState) CSVOutput() bool {
 	return c.csvOutput
+}
+
+func (c *cliState) envs() []string {
+	return []string{
+		fmt.Sprintf("LW_ACCOUNT=%s", c.Account),
+		fmt.Sprintf("LW_SUBACCOUNT=%s", c.Subaccount),
+		fmt.Sprintf("LW_API_KEY=%s", c.KeyID),
+		fmt.Sprintf("LW_API_SECRET=%s", c.Secret),
+		fmt.Sprintf("LW_TOKEN=%s", c.Token),
+	}
 }
 
 // loadStateFromViper loads parameters and environment variables

@@ -222,17 +222,19 @@ func setProps(vuln api.VulnerabilityException) [][]string {
 	details = append(details, []string{"CREATED", vuln.CreatedTime})
 	details = append(details, []string{"REASON", vuln.ExceptionReason})
 
-	if vuln.ExceptionType == api.VulnerabilityExceptionTypeHost.String() {
-		details = append(details, []string{"NAMESPACES", strings.Join(vuln.ResourceScope.Namespace, ", ")})
-		details = append(details, []string{"HOSTNAMES", strings.Join(vuln.ResourceScope.Hostname, ", ")})
-		details = append(details, []string{"EXTERNAL IPS", strings.Join(vuln.ResourceScope.ExternalIP, ",")})
-		details = append(details, []string{"CLUSTER NAMES", strings.Join(vuln.ResourceScope.ClusterName, ", ")})
-	} else if vuln.ExceptionType == api.VulnerabilityExceptionTypeContainer.String() {
-		details = append(details, []string{"NAMESPACES", strings.Join(vuln.ResourceScope.Namespace, ", ")})
-		details = append(details, []string{"IMAGE IDS", strings.Join(vuln.ResourceScope.ImageID, ", ")})
-		details = append(details, []string{"IMAGE TAGS", strings.Join(vuln.ResourceScope.ImageTag, ", ")})
-		details = append(details, []string{"REGISTRIES", strings.Join(vuln.ResourceScope.Registry, ", ")})
-		details = append(details, []string{"REPOSITORIES", strings.Join(vuln.ResourceScope.Repository, ", ")})
+	if vuln.ResourceScope != nil {
+		if vuln.ExceptionType == api.VulnerabilityExceptionTypeHost.String() {
+			details = append(details, []string{"NAMESPACES", strings.Join(vuln.ResourceScope.Namespace, ", ")})
+			details = append(details, []string{"HOSTNAMES", strings.Join(vuln.ResourceScope.Hostname, ", ")})
+			details = append(details, []string{"EXTERNAL IPS", strings.Join(vuln.ResourceScope.ExternalIP, ",")})
+			details = append(details, []string{"CLUSTER NAMES", strings.Join(vuln.ResourceScope.ClusterName, ", ")})
+		} else if vuln.ExceptionType == api.VulnerabilityExceptionTypeContainer.String() {
+			details = append(details, []string{"NAMESPACES", strings.Join(vuln.ResourceScope.Namespace, ", ")})
+			details = append(details, []string{"IMAGE IDS", strings.Join(vuln.ResourceScope.ImageID, ", ")})
+			details = append(details, []string{"IMAGE TAGS", strings.Join(vuln.ResourceScope.ImageTag, ", ")})
+			details = append(details, []string{"REGISTRIES", strings.Join(vuln.ResourceScope.Registry, ", ")})
+			details = append(details, []string{"REPOSITORIES", strings.Join(vuln.ResourceScope.Repository, ", ")})
+		}
 	}
 
 	details = append(details, []string{"FIXABLE", vulnerabilityExceptionFixableEnabled(vuln.VulnerabilityCriteria.Fixable)})
