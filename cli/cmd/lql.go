@@ -553,18 +553,3 @@ func getRunStartProgressMessage(args []api.ExecuteQueryArgument) string {
 	}
 	return msg
 }
-
-func outputQueryRunResponse(response map[string]interface{}, err error) error {
-	msg := "unable to run query"
-
-	if err != nil {
-		return errors.Wrap(err, msg)
-	}
-	if data, ok := response["data"]; ok {
-		return cli.OutputJSON(data)
-	}
-	if err := cli.OutputJSON(response); err != nil {
-		return errors.Wrap(err, "unable to format json response")
-	}
-	return nil
-}
