@@ -30,7 +30,7 @@ var (
 	queryShowCmd = &cobra.Command{
 		Use:   "show <query_id>",
 		Short: "Show a query",
-		Long:  `Show a query.`,
+		Long:  `Show a query in your Lacework account.`,
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			b, err := cmd.Flags().GetBool("yaml")
@@ -56,9 +56,11 @@ func init() {
 
 func showQuery(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("retrieving query", "id", args[0])
+
 	cli.StartProgress(" Retrieving query...")
 	queryResponse, err := cli.LwApi.V2.Query.Get(args[0])
 	cli.StopProgress()
+
 	if err != nil {
 		return errors.Wrap(err, "unable to show query")
 	}

@@ -19,12 +19,10 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -32,7 +30,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/lwtime"
@@ -42,11 +39,12 @@ var (
 	queryCmdState = struct {
 		End          string
 		File         string
-		Repo         bool
 		Range        string
 		Start        string
 		URL          string
 		ValidateOnly bool
+		// create, update validate from library
+		CURVFromLibrary string
 	}{}
 
 	// queryCmd represents the lql parent command
@@ -129,6 +127,14 @@ func init() {
 	// add sub-commands to the lql command
 	queryCmd.AddCommand(queryRunCmd)
 
+	if cli.IsLCLInstalled() {
+		queryRunCmd.Flags().StringVarP(
+			&queryCmdState.CURVFromLibrary,
+			"library", "l", "",
+			"run query from Lacework Content Library",
+		)
+	}
+
 	// run specific flags
 	setQuerySourceFlags(queryRunCmd)
 
@@ -169,12 +175,6 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 				"file", "f", "",
 				fmt.Sprintf("path to a query to %s", action),
 			)
-			/* repo flag to specify a query from repo
-			cmd.Flags().BoolVarP(
-				&queryCmdState.Repo,
-				"repo", "r", false,
-				fmt.Sprintf("id of a query to %s via active repo", action),
-			)*/
 			// url flag to specify a query from url
 			cmd.Flags().StringVarP(
 				&queryCmdState.URL,
@@ -187,9 +187,9 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 
 // for commands that take a query as input
 func inputQuery(cmd *cobra.Command) (string, error) {
-	// if running via repo
-	if queryCmdState.Repo {
-		return inputQueryFromRepo()
+	// if running via library (CUV)
+	if queryCmdState.CURVFromLibrary != "" {
+		return inputQueryFromLibrary(queryCmdState.CURVFromLibrary)
 	}
 	// if running via file
 	if queryCmdState.File != "" {
@@ -215,9 +215,15 @@ func inputQuery(cmd *cobra.Command) (string, error) {
 	return inputQueryFromEditor(action)
 }
 
-func inputQueryFromRepo() (query string, err error) {
-	err = errors.New("NotImplementedError")
-	return
+func inputQueryFromLibrary(id string) (string, error) {
+	var (
+		lcl *LaceworkContentLibrary
+		err error
+	)
+	if lcl, err = cli.LoadLCL(); err != nil {
+		return "", err
+	}
+	return lcl.GetQuery(id)
 }
 
 func inputQueryFromFile(filePath string) (string, error) {
@@ -280,24 +286,6 @@ queryText: |-
 
 	err = survey.AskOne(prompt, &query)
 	return
-}
-
-func parseQuery(s string) (api.NewQuery, error) {
-	var query api.NewQuery
-	var err error
-
-	// valid json
-	if err = json.Unmarshal([]byte(s), &query); err == nil {
-		return query, err
-	}
-	// valid yaml
-	query = api.NewQuery{}
-	err = yaml.Unmarshal([]byte(s), &query)
-	if err == nil && !reflect.DeepEqual(query, api.NewQuery{}) { // empty string unmarshals w/o error
-		return query, nil
-	}
-	// invalid policy
-	return query, queryErrorCrumbs(s)
 }
 
 func parseQueryTime(s string) (time.Time, error) {
@@ -368,10 +356,32 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		hasCmdArgs bool   = len(args) != 0 && args[0] != ""
 	)
 
-	// validate_only w/ query_id
-	if queryCmdState.ValidateOnly && hasCmdArgs {
-		return errors.New("flag --validate_only unavailable when specifying query_id argument")
+	// check use of <query_id> with other flags
+	if hasCmdArgs {
+		var naFlag string
+
+		if queryCmdState.File != "" {
+			naFlag = "file"
+		}
+		if queryCmdState.CURVFromLibrary != "" {
+			naFlag = "library"
+		}
+		if queryCmdState.URL != "" {
+			naFlag = "url"
+		}
+		if queryCmdState.ValidateOnly {
+			naFlag = "validate_only"
+		}
+		if naFlag != "" {
+			return errors.New(
+				fmt.Sprintf(
+					"flag --%s not applicable when specifying query_id argument",
+					naFlag,
+				),
+			)
+		}
 	}
+
 	// validate_only
 	if queryCmdState.ValidateOnly {
 		return validateQuery(cmd, args)
@@ -449,8 +459,9 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 		return
 	}
 	// parse query
-	newQuery, err := parseQuery(queryString)
+	newQuery, err := api.ParseNewQuery(queryString)
 	if err != nil {
+		err = queryErrorCrumbs(queryString)
 		return
 	}
 
