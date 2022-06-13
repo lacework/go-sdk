@@ -115,7 +115,7 @@ github.com/hokaccha/go-prettyjson
 ## explicit; go 1.14
 github.com/honeycombio/libhoney-go
 github.com/honeycombio/libhoney-go/transmission
-# github.com/imdario/mergo v0.3.12
+# github.com/imdario/mergo v0.3.13
 ## explicit; go 1.13
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
