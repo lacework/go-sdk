@@ -172,10 +172,6 @@ func TestQueryRunURL(t *testing.T) {
 }
 
 func TestQueryRunFailOnBadInput(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	_, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--fail_on_count", "!30")
 	assert.Contains(t, err.String(), "ERROR count operation (!30) is invalid")
@@ -183,10 +179,6 @@ func TestQueryRunFailOnBadInput(t *testing.T) {
 }
 
 func TestQueryRunFailOnPos(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--fail_on_count", "=1")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
@@ -195,10 +187,6 @@ func TestQueryRunFailOnPos(t *testing.T) {
 }
 
 func TestQueryRunFailOnNeg(t *testing.T) {
-	if os.Getenv("CI_BETA") == "" {
-		t.Skip("skipping test in production mode")
-	}
-
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--fail_on_count", ">1")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)

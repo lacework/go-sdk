@@ -181,7 +181,7 @@ func init() {
 	queryRunCmd.Flags().StringVarP(
 		&queryCmdState.FailOnCount,
 		"fail_on_count", "", "",
-		"fail if the query matches the fail_on_count expression",
+		"fail if the results from a query match the provided expression",
 	)
 }
 
