@@ -180,15 +180,15 @@ func TestQueryRunFailOnBadInput(t *testing.T) {
 
 func TestQueryRunFailOnPos(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
-		"query", "run", "-u", queryURL, "--fail_on_count", "=1")
+		"query", "run", "-u", queryURL, "--fail_on_count", ">1")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
-	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Contains(t, out.String(), "ERROR (FAIL-ON): query matched fail_on_count expression")
 	assert.Equal(t, 9, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestQueryRunFailOnNeg(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
-		"query", "run", "-u", queryURL, "--fail_on_count", ">1")
+		"query", "run", "-u", queryURL, "--fail_on_count", "=0")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
