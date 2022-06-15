@@ -54,6 +54,12 @@ type ExecuteQueryByIDRequest struct {
 	Arguments []ExecuteQueryArgument `json:"arguments"`
 }
 
+type ExecuteQueryResponse struct {
+	Data    []interface{} `json:"data"`
+	Ok      bool          `json:"ok"`
+	Message string        `json:"message"`
+}
+
 func validateQueryArguments(args []ExecuteQueryArgument) error {
 	var (
 		hasStart, hasEnd bool
@@ -100,7 +106,7 @@ func validateQueryRange(start, end time.Time) (err error) {
 }
 
 func (svc *QueryService) Execute(request ExecuteQueryRequest) (
-	response map[string]interface{},
+	response ExecuteQueryResponse,
 	err error,
 ) {
 	if err = validateQueryArguments(request.Arguments); err != nil {
@@ -111,7 +117,7 @@ func (svc *QueryService) Execute(request ExecuteQueryRequest) (
 }
 
 func (svc *QueryService) ExecuteByID(request ExecuteQueryByIDRequest) (
-	response map[string]interface{},
+	response ExecuteQueryResponse,
 	err error,
 ) {
 	if request.QueryID == "" {

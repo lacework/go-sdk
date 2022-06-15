@@ -101,9 +101,13 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() (err error) {
 	defer func() {
-		var e *vulnerabilityPolicyError
-		if errors.As(err, &e) {
-			exitwithCode(e, e.ExitCode)
+		var vpe *vulnerabilityPolicyError
+		if errors.As(err, &vpe) {
+			exitwithCode(vpe, vpe.ExitCode)
+		}
+		var qfe *queryFailonError
+		if errors.As(err, &qfe) {
+			exitwithCode(qfe, qfe.ExitCode)
 		}
 	}()
 	defer cli.Wait()

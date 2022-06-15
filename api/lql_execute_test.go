@@ -98,10 +98,10 @@ func TestQueryExecuteOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	var runExpected map[string]interface{}
+	var runExpected api.ExecuteQueryResponse
 	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
 
-	var runActual map[string]interface{}
+	var runActual api.ExecuteQueryResponse
 	runActual, err = c.V2.Query.Execute(executeQuery)
 	assert.Nil(t, err)
 
@@ -170,10 +170,10 @@ func TestQueryExecuteByIDOK(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	var runExpected map[string]interface{}
+	var runExpected api.ExecuteQueryResponse
 	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
 
-	var runActual map[string]interface{}
+	var runActual api.ExecuteQueryResponse
 	runActual, err = c.V2.Query.ExecuteByID(executeQueryByID)
 	assert.Nil(t, err)
 
