@@ -64,7 +64,11 @@ func TestCloudAccountsGcpGkeAuditProjectLevelGet(t *testing.T) {
 	assert.Empty(t, response.Data.Data.Credentials.PrivateKey)
 	assert.Equal(t, "Project", response.Data.Data.IntegrationType)
 	assert.Equal(t, "ProjectMcProjectFace", response.Data.Data.ProjectId)
-	assert.Equal(t, "SubscribeyMcSubscribeFace", response.Data.Data.SubscriptionName)
+	assert.Equal(
+		t,
+		"projects/ProjectMcProjectFace/subscriptions/SubscribeyMcSubscribeFace",
+		response.Data.Data.SubscriptionName,
+	)
 }
 
 func TestCloudAccountsGcpGkeAuditOrganizationLevelGet(t *testing.T) {
@@ -102,7 +106,11 @@ func TestCloudAccountsGcpGkeAuditOrganizationLevelGet(t *testing.T) {
 	assert.Equal(t, "Project", response.Data.Data.IntegrationType)
 	assert.Equal(t, "OrgMcOrgFace", response.Data.Data.OrganizationId)
 	assert.Equal(t, "ProjectMcProjectFace", response.Data.Data.ProjectId)
-	assert.Equal(t, "SubscribeyMcSubscribeFace", response.Data.Data.SubscriptionName)
+	assert.Equal(
+		t,
+		"projects/ProjectMcProjectFace/subscriptions/SubscribeyMcSubscribeFace",
+		response.Data.Data.SubscriptionName,
+	)
 }
 
 func TestCloudAccountsGcpGkeAuditProjectLevelUpdate(t *testing.T) {
@@ -125,8 +133,8 @@ func TestCloudAccountsGcpGkeAuditProjectLevelUpdate(t *testing.T) {
 			assert.Contains(t, body, "GcpGkeAudit", "wrong cloud account type")
 			assert.Contains(t, body, "ross.moles@lacework.net", "wrong client email")
 			assert.Contains(t, body, "0123456789", "wrong client email")
-			assert.Contains(t, body, "\"integrationType\": Project", "wrong integration type")
-			assert.Contains(t, body, "projectId\": ProjectMcProjectFace", "wrong project id")
+			assert.Contains(t, body, "\"integrationType\":\"Project", "wrong integration type")
+			assert.Contains(t, body, "projectId\":\"ProjectMcProjectFace", "wrong project id")
 			assert.Contains(
 				t,
 				body,
@@ -156,8 +164,8 @@ func TestCloudAccountsGcpGkeAuditProjectLevelUpdate(t *testing.T) {
 			},
 			IntegrationType: "Project",
 			ProjectId:       "ProjectMcProjectFace",
-			SubscriptionName: "projects/ProjectMcProjectFace/subscriptions" +
-				"/NotTheSubscriptionYouAreLookingFor",
+			SubscriptionName: "projects/ProjectMcProjectFace/subscriptions/" +
+				"SubscribeyMcSubscribeFace",
 		},
 	)
 	assert.Equal(t, "integration_name", cloudAccount.Name, "GcpGkeAudit cloud account name mismatch")
@@ -170,7 +178,7 @@ func TestCloudAccountsGcpGkeAuditProjectLevelUpdate(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, intgGUID, response.Data.IntgGuid)
 	assert.Equal(t,
-		"projects/ProjectMcProjectFace/subscriptions/NotTheSubscriptionYouAreLookingFor",
+		"projects/ProjectMcProjectFace/subscriptions/SubscribeyMcSubscribeFace",
 		response.Data.Data.SubscriptionName)
 }
 
