@@ -182,7 +182,7 @@ func TestQueryRunFailOnPos(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--fail_on_count", ">1")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
-	assert.Contains(t, out.String(), "ERROR (FAIL-ON): query matched fail_on_count expression")
+	assert.Contains(t, err.String(), "ERROR (FAIL-ON): query matched fail_on_count expression")
 	assert.Equal(t, 9, exitcode, "EXITCODE is not the expected one")
 }
 
