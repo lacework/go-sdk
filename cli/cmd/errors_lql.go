@@ -24,7 +24,7 @@ import (
 	"github.com/lacework/go-sdk/internal/failon"
 )
 
-type queryPolicyError struct {
+type queryFailonError struct {
 	ExitCode    int
 	Message     string
 	Err         error
@@ -32,8 +32,8 @@ type queryPolicyError struct {
 	Count       int
 }
 
-func NewQueryPolicyError(failonCount string, count int) *queryPolicyError {
-	return &queryPolicyError{
+func NewQueryFailonError(failonCount string, count int) *queryFailonError {
+	return &queryFailonError{
 		FailonCount: failonCount,
 		Count:       count,
 		// we use a default exit code that might change
@@ -45,29 +45,29 @@ func NewQueryPolicyError(failonCount string, count int) *queryPolicyError {
 // Example of an error message sent to the end-user:
 //
 // ERROR (FAIL-ON): query matched fail_on_count expression [count:5] [expr:!=0] (exit code: 9)
-func (e *queryPolicyError) Error() string {
+func (e *queryFailonError) Error() string {
 	if e.ExitCode == 0 {
 		return ""
 	}
 	return fmt.Sprintf("(FAIL-ON): %s (exit code: %d)", e.Message, e.ExitCode)
 }
 
-func (e *queryPolicyError) Unwrap() error {
+func (e *queryFailonError) Unwrap() error {
 	return e.Err
 }
 
-func (e *queryPolicyError) NonCompliant() bool {
+func (e *queryFailonError) NonCompliant() bool {
 	return !e.validate()
 }
 
-func (e *queryPolicyError) Compliant() bool {
+func (e *queryFailonError) Compliant() bool {
 	return e.validate()
 }
 
 // validate returns true if the error query is compliant, that is,
 // when the provided count doesn't match the provided fail on count
 // expression. It returns false if the query count matches
-func (e *queryPolicyError) validate() bool {
+func (e *queryFailonError) validate() bool {
 	cli.Log.Debugw("validating policy",
 		"count", e.Count,
 		"fail_on_count", e.FailonCount,
@@ -95,7 +95,7 @@ func (e *queryPolicyError) validate() bool {
 		return false
 	}
 
-	e.Message = "Compliant policy"
+	e.Message = "Compliant query"
 	e.ExitCode = 0
 	return true
 }

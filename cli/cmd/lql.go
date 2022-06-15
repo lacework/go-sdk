@@ -466,13 +466,14 @@ func runQuery(cmd *cobra.Command, args []string) error {
 			"fail_on_count", queryCmdState.FailOnCount,
 		)
 
-		queryPolicy := NewQueryPolicyError(
+		queryFailonError := NewQueryFailonError(
 			queryCmdState.FailOnCount,
 			len(response.Data),
 		)
-		if queryPolicy.NonCompliant() {
+		fmt.Println(queryFailonError.ExitCode)
+		if queryFailonError.NonCompliant() {
 			cmd.SilenceUsage = true
-			return queryPolicy
+			return queryFailonError
 		}
 	}
 	return nil
