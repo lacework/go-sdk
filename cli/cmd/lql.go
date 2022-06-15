@@ -470,7 +470,6 @@ func runQuery(cmd *cobra.Command, args []string) error {
 			queryCmdState.FailOnCount,
 			len(response.Data),
 		)
-		fmt.Println(queryFailonError.ExitCode)
 		if queryFailonError.NonCompliant() {
 			cmd.SilenceUsage = true
 			return queryFailonError
