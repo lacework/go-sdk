@@ -44,13 +44,14 @@ lacework query run [query_id] [flags]
 ### Options
 
 ```
-      --end string      end time for query (default "now")
-  -f, --file string     path to a query to run
-  -h, --help            help for run
-      --range string    natural time range for query
-      --start string    start time for query (default "-24h")
-  -u, --url string      url to a query to run
-      --validate_only   validate query only (do not run)
+      --end string             end time for query (default "now")
+      --fail_on_count string   fail if the results from a query match the provided expression
+  -f, --file string            path to a query to run
+  -h, --help                   help for run
+      --range string           natural time range for query
+      --start string           start time for query (default "-24h")
+  -u, --url string             url to a query to run
+      --validate_only          validate query only (do not run)
 ```
 
 ### Options inherited from parent commands
