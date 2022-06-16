@@ -93,6 +93,7 @@ const (
 	AzureCfgCloudAccount
 	GcpAtSesCloudAccount
 	GcpCfgCloudAccount
+	GcpGkeAuditCloudAccount
 )
 
 // CloudAccountTypes is the list of available Cloud Account integration types
@@ -107,6 +108,7 @@ var CloudAccountTypes = map[cloudAccountType]string{
 	AzureCfgCloudAccount:      "AzureCfg",
 	GcpAtSesCloudAccount:      "GcpAtSes",
 	GcpCfgCloudAccount:        "GcpCfg",
+	GcpGkeAuditCloudAccount:   "GcpGkeAudit",
 }
 
 // String returns the string representation of a Cloud Account integration type
