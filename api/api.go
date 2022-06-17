@@ -108,6 +108,9 @@ const (
 	apiV2AgentAccessTokensSearch = "v2/AgentAccessTokens/search"
 	apiV2AgentAccessTokenFromID  = "v2/AgentAccessTokens/%s"
 
+	apiV2PolicyExceptions                = "v2/Exceptions?policyId=%s"
+	apiV2PolicyExceptionsFromExceptionID = "v2/Exceptions/%s?policyId=%s"
+
 	apiV2Policies        = "v2/Policies"
 	apiV2Queries         = "v2/Queries"
 	apiV2QueriesExecute  = "v2/Queries/execute"
