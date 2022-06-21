@@ -141,18 +141,24 @@ func (c *cliState) LoadComponents() {
 			rootCmd.AddCommand(
 				&cobra.Command{
 					// @afiune strip `lw-` from component?
-					Use: component.Name,
-					// @afiune should we build this or add it as component specification
-					Short:                 fmt.Sprintf("component %s", component.Name),
-					Long:                  component.Description,
+					Use:                   component.Name,
+					Short:                 component.Description,
 					Annotations:           map[string]string{"type": "component"},
 					Version:               ver.String(),
 					DisableFlagParsing:    true,
 					DisableFlagsInUseLine: true,
 					RunE: func(cmd *cobra.Command, args []string) error {
 						cli.Log.Debugw("running component", "component", cmd.Use, "args", args)
-						// @afiune what if the component needs other env variables
-						return component.RunAndOutput(args, c.envs()...)
+						f, ok := cli.LwComponents.GetComponent(cmd.Use)
+						if ok {
+							// @afiune what if the component needs other env variables
+							return f.RunAndOutput(args, c.envs()...)
+						}
+
+						// We will land here only if we couldn't run the component, which is not
+						// possible since we are adding the components dynamically, still if it
+						// happens, let the user know that we would love to hear their feedback
+						return errors.New("something went pretty wrong here, contact support@lacework.net")
 					},
 				},
 			)
