@@ -32,7 +32,14 @@ import (
 // PolicyService is a service that interacts with the Custom Policies
 // endpoints from the Lacework Server
 type PolicyService struct {
-	client *Client
+	client     *Client
+	Exceptions *policyExceptionsService
+}
+
+func NewV2PolicyService(c *Client) *PolicyService {
+	return &PolicyService{c,
+		&policyExceptionsService{c},
+	}
 }
 
 // ValidPolicySeverities is a list of all valid policy severities
