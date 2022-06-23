@@ -16,7 +16,7 @@ require (
 	github.com/hashicorp/hc-install v0.3.2
 	github.com/hashicorp/hcl/v2 v2.12.0
 	github.com/hashicorp/terraform-exec v0.16.1
-	github.com/hashicorp/terraform-json v0.13.0
+	github.com/hashicorp/terraform-json v0.14.0
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/honeycombio/libhoney-go v1.15.8

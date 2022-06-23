@@ -102,7 +102,7 @@ github.com/hashicorp/hcl/v2/hclwrite
 ## explicit; go 1.17
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
-# github.com/hashicorp/terraform-json v0.13.0
+# github.com/hashicorp/terraform-json v0.14.0
 ## explicit; go 1.13
 github.com/hashicorp/terraform-json
 # github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
