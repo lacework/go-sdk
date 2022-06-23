@@ -152,7 +152,9 @@ func (c *cliState) LoadComponents() {
 						f, ok := cli.LwComponents.GetComponent(cmd.Use)
 						if ok {
 							// @afiune what if the component needs other env variables
-							return f.RunAndOutput(args, c.envs()...)
+							envs := []string{fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use)}
+							envs = append(envs, c.envs()...)
+							return f.RunAndOutput(args, envs...)
 						}
 
 						// We will land here only if we couldn't run the component, which is not
