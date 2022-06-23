@@ -68,7 +68,7 @@ func TestPolicyExceptionsGet(t *testing.T) {
 
 	t.Run("when policy exception exists", func(t *testing.T) {
 		var response api.PolicyExceptionResponse
-		err := c.V2.PolicyExceptions.Get(policyID, exceptionID, &response)
+		err := c.V2.Policy.Exceptions.Get(policyID, exceptionID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, exceptionID, response.Data.ExceptionID)
@@ -82,7 +82,7 @@ func TestPolicyExceptionsGet(t *testing.T) {
 
 	t.Run("when policy exception does NOT exist", func(t *testing.T) {
 		var response api.PolicyExceptionResponse
-		err := c.V2.PolicyExceptions.Get("UNKNOWN_POLICY_ID", "UNKNOWN_EXCEPTION_ID", response)
+		err := c.V2.Policy.Exceptions.Get("UNKNOWN_POLICY_ID", "UNKNOWN_EXCEPTION_ID", response)
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/Exceptions/UNKNOWN_EXCEPTION_ID")
@@ -138,7 +138,7 @@ func TestPolicyExceptionsDelete(t *testing.T) {
 
 	t.Run("verify policy exception exists", func(t *testing.T) {
 		var response api.PolicyExceptionResponse
-		err := c.V2.PolicyExceptions.Get(policyID, exceptionID, &response)
+		err := c.V2.Policy.Exceptions.Get(policyID, exceptionID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
 			assert.Equal(t, "exception description", response.Data.Description)
@@ -150,11 +150,11 @@ func TestPolicyExceptionsDelete(t *testing.T) {
 	})
 
 	t.Run("when policy exception has been deleted", func(t *testing.T) {
-		err := c.V2.PolicyExceptions.Delete(policyID, exceptionID)
+		err := c.V2.Policy.Exceptions.Delete(policyID, exceptionID)
 		assert.Nil(t, err)
 
 		var response api.PolicyExceptionResponse
-		err = c.V2.PolicyExceptions.Get(policyID, exceptionID, &response)
+		err = c.V2.Policy.Exceptions.Get(policyID, exceptionID, &response)
 		assert.Empty(t, response)
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/Exceptions/")
@@ -196,7 +196,7 @@ func TestPolicyExceptionsList(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.PolicyExceptions.List(policyID)
+	response, err := c.V2.Policy.Exceptions.List(policyID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response.Data))
@@ -244,7 +244,7 @@ func TestPolicyExceptionUpdate(t *testing.T) {
 	assert.Equal(t, "*", policyException.Constraints[0].FieldValues[0], "policy exception field values mismatch")
 	policyException.ExceptionID = exceptionID
 
-	response, err := c.V2.PolicyExceptions.Update(policyID, policyException)
+	response, err := c.V2.Policy.Exceptions.Update(policyID, policyException)
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, exceptionID, response.Data.ExceptionID)

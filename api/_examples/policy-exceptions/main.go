@@ -19,7 +19,7 @@ func main() {
 	}
 
 	policyID := "lacework-global-39"
-	res, err := lacework.V2.PolicyExceptions.List(policyID)
+	res, err := lacework.V2.Policy.Exceptions.List(policyID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func main() {
 		Constraints: []api.PolicyExceptionConstraint{{FieldKey: "accountIds", FieldValues: []string{"*"}}},
 	}
 
-	response, err := lacework.V2.PolicyExceptions.Create(policyID, myPolicyException)
+	response, err := lacework.V2.Policy.Exceptions.Create(policyID, myPolicyException)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func main() {
 	// Output: Policy Exception created: ID
 	fmt.Printf("Policy Exception created: %s", response.Data)
 
-	err = lacework.V2.PolicyExceptions.Delete(policyID, response.Data.ExceptionID)
+	err = lacework.V2.Policy.Exceptions.Delete(policyID, response.Data.ExceptionID)
 	if err != nil {
 		log.Fatal(err)
 	}

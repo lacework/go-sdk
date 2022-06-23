@@ -23,14 +23,14 @@ import (
 	"fmt"
 )
 
-// PolicyExceptionsService is the service that interacts with
+// policyExceptionsService is the service that interacts with
 // the Exceptions schema from the Lacework APIv2 Server
-type PolicyExceptionsService struct {
+type policyExceptionsService struct {
 	client *Client
 }
 
 // List returns a list of the Policy Exceptions for a policy ID.
-func (svc PolicyExceptionsService) List(policyID string) (response PolicyExceptionsResponse, err error) {
+func (svc policyExceptionsService) List(policyID string) (response PolicyExceptionsResponse, err error) {
 	if policyID == "" {
 		return response, errors.New("specify a policy ID")
 	}
@@ -39,7 +39,7 @@ func (svc PolicyExceptionsService) List(policyID string) (response PolicyExcepti
 }
 
 // Get returns a raw response of the Policy Exception with the matching policy ID and exception ID.
-func (svc PolicyExceptionsService) Get(policyID string, exceptionID string, response interface{}) error {
+func (svc policyExceptionsService) Get(policyID string, exceptionID string, response interface{}) error {
 	if exceptionID == "" || policyID == "" {
 		return errors.New("specify exception and policy IDs")
 	}
@@ -47,7 +47,7 @@ func (svc PolicyExceptionsService) Get(policyID string, exceptionID string, resp
 	return svc.client.RequestDecoder("GET", apiPath, nil, &response)
 }
 
-func (svc PolicyExceptionsService) Delete(policyID string, exceptionID string) error {
+func (svc policyExceptionsService) Delete(policyID string, exceptionID string) error {
 	if exceptionID == "" || policyID == "" {
 		return errors.New("specify exception and policy IDs")
 	}
@@ -61,7 +61,7 @@ func (svc PolicyExceptionsService) Delete(policyID string, exceptionID string) e
 }
 
 // Create creates a single Policy Exception
-func (svc *PolicyExceptionsService) Create(policyID string, policy PolicyException) (
+func (svc *policyExceptionsService) Create(policyID string, policy PolicyException) (
 	response PolicyExceptionResponse,
 	err error,
 ) {
@@ -74,7 +74,7 @@ func (svc *PolicyExceptionsService) Create(policyID string, policy PolicyExcepti
 }
 
 // Update updates a single Policy Exception
-func (svc PolicyExceptionsService) Update(policyID string, exception PolicyException) (response PolicyExceptionResponse, err error) {
+func (svc policyExceptionsService) Update(policyID string, exception PolicyException) (response PolicyExceptionResponse, err error) {
 	if exception.ExceptionID == "" || policyID == "" {
 		return response, errors.New("specify exception and policy IDs")
 	}
