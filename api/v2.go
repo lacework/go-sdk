@@ -62,7 +62,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&ResourceGroupsService{c},
 		&AgentAccessTokensService{c},
 		&QueryService{c},
-		&PolicyService{c},
+		NewV2PolicyService(c),
 		&EntitiesService{c},
 		&SchemasService{c, map[integrationSchema]V2Service{}},
 		&DatasourcesService{c},

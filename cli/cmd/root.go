@@ -101,9 +101,13 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() (err error) {
 	defer func() {
-		var e *vulnerabilityPolicyError
-		if errors.As(err, &e) {
-			exitwithCode(e, e.ExitCode)
+		switch err.(type) {
+		case *vulnerabilityPolicyError:
+			vpe := err.(*vulnerabilityPolicyError)
+			exitwithCode(vpe, vpe.ExitCode)
+		case *queryFailonError:
+			qfe := err.(*queryFailonError)
+			exitwithCode(qfe, qfe.ExitCode)
 		}
 	}()
 	defer cli.Wait()
@@ -177,6 +181,40 @@ func init() {
 	errcheckWARN(viper.BindPFlag("api_token", rootCmd.PersistentFlags().Lookup("api_token")))
 	errcheckWARN(viper.BindPFlag("subaccount", rootCmd.PersistentFlags().Lookup("subaccount")))
 	errcheckWARN(viper.BindPFlag("organization", rootCmd.PersistentFlags().Lookup("organization")))
+
+	cobra.AddTemplateFunc("isComponent", isComponent)
+	cobra.AddTemplateFunc("hasInstalledCommands", hasInstalledCommands)
+	rootCmd.SetUsageTemplate(usageTemplate())
+}
+
+func usageTemplate() string {
+	return `Usage:{{if .Runnable}}
+  {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+  {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
+
+Aliases:
+  {{.NameAndAliases}}{{end}}{{if .HasExample}}
+
+Examples:
+{{.Example}}{{end}}{{if .HasAvailableSubCommands}}
+
+Available Commands:{{range .Commands}}{{if not (isComponent .Annotations)}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{end}}{{if (and hasInstalledCommands (not .HasParent))}}
+
+Commands from components:{{range .Commands}}{{if isComponent .Annotations}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+
+Flags:
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+
+Global Flags:
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+
+Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
+  {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
+
+Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
+`
 }
 
 // initConfig reads in config file and ENV variables if set

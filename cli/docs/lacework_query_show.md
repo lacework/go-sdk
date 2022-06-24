@@ -10,7 +10,7 @@ Show a query
 
 ### Synopsis
 
-Show a query.
+Show a query in your Lacework account.
 
 ```
 lacework query show <query_id> [flags]

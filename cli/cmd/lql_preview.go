@@ -103,21 +103,10 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 			return errors.Wrap(err, "unable to preview data source")
 		}
 
-		// check and output
-		data, ok := response["data"]
-		if !ok {
-			err = errors.New("preview results missing data")
-			return errors.Wrap(err, "unable to preview data source")
+		if len(response.Data) == 0 {
+			continue
 		}
-		if slice, ok := data.([]interface{}); ok {
-			if len(slice) == 0 {
-				continue
-			}
-			return cli.OutputJSON(slice[0])
-		} else {
-			err = errors.New("preview results data is not a slice")
-			return errors.Wrap(err, "unable to preview data source")
-		}
+		return cli.OutputJSON(response.Data[0])
 	}
 	cli.OutputHuman("No results found for data source")
 	return nil

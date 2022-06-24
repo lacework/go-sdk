@@ -19,13 +19,12 @@
 package cmd
 
 import (
-	"encoding/json"
-	"reflect"
+	"fmt"
 
-	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+
+	"github.com/lacework/go-sdk/api"
 )
 
 var (
@@ -65,46 +64,51 @@ func init() {
 	setPolicySourceFlags(policyUpdateCmd)
 }
 
-type updatePoliciesYAML struct {
-	Policies []api.UpdatePolicy `yaml:"policies"`
-}
+func updateQueryFromLibrary(id string) error {
+	var (
+		queryString string
+		err         error
+		newQuery    api.NewQuery
+	)
 
-func parseUpdatePolicy(s string) (api.UpdatePolicy, error) {
-	var policy api.UpdatePolicy
-	var err error
+	// input query
+	queryString, err = inputQueryFromLibrary(id)
+	if err != nil {
+		return err
+	}
 
-	// valid json
-	if err = json.Unmarshal([]byte(s), &policy); err == nil {
-		return policy, err
-	}
-	// nested yaml
-	var policies updatePoliciesYAML
+	cli.Log.Debugw("creating query", "query", queryString)
 
-	if err = yaml.Unmarshal([]byte(s), &policies); err == nil {
-		if len(policies.Policies) > 0 {
-			return policies.Policies[0], err
-		}
+	// parse query
+	newQuery, err = api.ParseNewQuery(queryString)
+	if err != nil {
+		return queryErrorCrumbs(queryString)
 	}
-	// straight yaml
-	policy = api.UpdatePolicy{}
-	err = yaml.Unmarshal([]byte(s), &policy)
-	if err == nil && !reflect.DeepEqual(policy, api.UpdatePolicy{}) { // empty string unmarshals w/o error
-		return policy, nil
+	updateQuery := api.UpdateQuery{
+		QueryText: newQuery.QueryText,
 	}
-	// invalid policy
-	return policy, errors.New("policy must be valid JSON or YAML")
+
+	// update query
+	_, err = cli.LwApi.V2.Query.Update(newQuery.QueryID, updateQuery)
+	return err
 }
 
 func updatePolicy(cmd *cobra.Command, args []string) error {
-	msg := "unable to update policy"
+	var (
+		msg          string = "unable to update policy"
+		err          error
+		queryUpdated bool
+	)
 
 	// input policy
-	policyStr, err := inputPolicy(cmd)
+	policyString, err := inputPolicy(cmd)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
+	cli.Log.Debugw("updating policy", "policy", policyString)
+
 	// parse policy
-	updatePolicy, err := parseUpdatePolicy(policyStr)
+	updatePolicy, err := api.ParseUpdatePolicy(policyString)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
@@ -113,15 +117,31 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 		updatePolicy.PolicyID = args[0]
 	}
 
-	cli.Log.Debugw("updating policy", "policy", policyStr)
 	cli.StartProgress(" Updating policy...")
 	updateResponse, err := cli.LwApi.V2.Policy.Update(updatePolicy)
 	cli.StopProgress()
+
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
+	// if updating policy from library also update query
+	if policyCmdState.CUFromLibrary != "" {
+		cli.StartProgress(" Updating query...")
+		err = updateQueryFromLibrary(updatePolicy.QueryID)
+		cli.StopProgress()
+
+		if err != nil {
+			return errors.Wrap(err, msg)
+		}
+		queryUpdated = true
+	}
+
+	// output policy
 	if cli.JSONOutput() {
 		return cli.OutputJSON(updateResponse.Data)
+	}
+	if queryUpdated {
+		cli.OutputHuman(fmt.Sprintf("The query %s was updated.\n", updatePolicy.QueryID))
 	}
 	cli.OutputHuman("The policy %s was updated.\n", updateResponse.Data.PolicyID)
 	return nil

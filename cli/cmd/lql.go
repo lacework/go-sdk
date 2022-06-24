@@ -19,12 +19,10 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -32,9 +30,9 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/failon"
 	"github.com/lacework/go-sdk/lwtime"
 )
 
@@ -42,11 +40,13 @@ var (
 	queryCmdState = struct {
 		End          string
 		File         string
-		Repo         bool
 		Range        string
 		Start        string
 		URL          string
 		ValidateOnly bool
+		FailOnCount  string
+		// create, update validate from library
+		CURVFromLibrary string
 	}{}
 
 	// queryCmd represents the lql parent command
@@ -118,6 +118,19 @@ Start and End times are required to run a query:
     A. CLI flags take precedence over JSON specifications  
     B. JSON specifications take precedence over ParamInfo specifications  `,
 		Args: cobra.MaximumNArgs(1),
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if queryCmdState.FailOnCount != "" {
+				var co failon.CountOperation
+				if err := co.Parse(queryCmdState.FailOnCount); err != nil {
+					return err
+				}
+
+				if _, err := co.IsFail(0); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
 		RunE: runQuery,
 	}
 )
@@ -128,6 +141,14 @@ func init() {
 
 	// add sub-commands to the lql command
 	queryCmd.AddCommand(queryRunCmd)
+
+	if cli.IsLCLInstalled() {
+		queryRunCmd.Flags().StringVarP(
+			&queryCmdState.CURVFromLibrary,
+			"library", "l", "",
+			"run query from Lacework Content Library",
+		)
+	}
 
 	// run specific flags
 	setQuerySourceFlags(queryRunCmd)
@@ -156,6 +177,12 @@ func init() {
 		"validate_only", "", false,
 		"validate query only (do not run)",
 	)
+	// fail on count
+	queryRunCmd.Flags().StringVarP(
+		&queryCmdState.FailOnCount,
+		"fail_on_count", "", "",
+		"fail if the results from a query match the provided expression",
+	)
 }
 
 func setQuerySourceFlags(cmds ...*cobra.Command) {
@@ -169,12 +196,6 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 				"file", "f", "",
 				fmt.Sprintf("path to a query to %s", action),
 			)
-			/* repo flag to specify a query from repo
-			cmd.Flags().BoolVarP(
-				&queryCmdState.Repo,
-				"repo", "r", false,
-				fmt.Sprintf("id of a query to %s via active repo", action),
-			)*/
 			// url flag to specify a query from url
 			cmd.Flags().StringVarP(
 				&queryCmdState.URL,
@@ -187,9 +208,9 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 
 // for commands that take a query as input
 func inputQuery(cmd *cobra.Command) (string, error) {
-	// if running via repo
-	if queryCmdState.Repo {
-		return inputQueryFromRepo()
+	// if running via library (CUV)
+	if queryCmdState.CURVFromLibrary != "" {
+		return inputQueryFromLibrary(queryCmdState.CURVFromLibrary)
 	}
 	// if running via file
 	if queryCmdState.File != "" {
@@ -215,9 +236,15 @@ func inputQuery(cmd *cobra.Command) (string, error) {
 	return inputQueryFromEditor(action)
 }
 
-func inputQueryFromRepo() (query string, err error) {
-	err = errors.New("NotImplementedError")
-	return
+func inputQueryFromLibrary(id string) (string, error) {
+	var (
+		lcl *LaceworkContentLibrary
+		err error
+	)
+	if lcl, err = cli.LoadLCL(); err != nil {
+		return "", err
+	}
+	return lcl.GetQuery(id)
 }
 
 func inputQueryFromFile(filePath string) (string, error) {
@@ -280,24 +307,6 @@ queryText: |-
 
 	err = survey.AskOne(prompt, &query)
 	return
-}
-
-func parseQuery(s string) (api.NewQuery, error) {
-	var query api.NewQuery
-	var err error
-
-	// valid json
-	if err = json.Unmarshal([]byte(s), &query); err == nil {
-		return query, err
-	}
-	// valid yaml
-	query = api.NewQuery{}
-	err = yaml.Unmarshal([]byte(s), &query)
-	if err == nil && !reflect.DeepEqual(query, api.NewQuery{}) { // empty string unmarshals w/o error
-		return query, nil
-	}
-	// invalid policy
-	return query, queryErrorCrumbs(s)
 }
 
 func parseQueryTime(s string) (time.Time, error) {
@@ -364,14 +373,37 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		err        error
 		start      time.Time
 		end        time.Time
+		response   api.ExecuteQueryResponse
 		msg        string = "unable to run query"
 		hasCmdArgs bool   = len(args) != 0 && args[0] != ""
 	)
 
-	// validate_only w/ query_id
-	if queryCmdState.ValidateOnly && hasCmdArgs {
-		return errors.New("flag --validate_only unavailable when specifying query_id argument")
+	// check use of <query_id> with other flags
+	if hasCmdArgs {
+		var naFlag string
+
+		if queryCmdState.File != "" {
+			naFlag = "file"
+		}
+		if queryCmdState.CURVFromLibrary != "" {
+			naFlag = "library"
+		}
+		if queryCmdState.URL != "" {
+			naFlag = "url"
+		}
+		if queryCmdState.ValidateOnly {
+			naFlag = "validate_only"
+		}
+		if naFlag != "" {
+			return errors.New(
+				fmt.Sprintf(
+					"flag --%s not applicable when specifying query_id argument",
+					naFlag,
+				),
+			)
+		}
 	}
+
 	// validate_only
 	if queryCmdState.ValidateOnly {
 		return validateQuery(cmd, args)
@@ -411,20 +443,43 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		},
 	}
 
-	// query by id
 	if hasCmdArgs {
-		return outputQueryRunResponse(
-			runQueryByID(args[0], queryArgs),
-		)
+		// query by id
+		response, err = runQueryByID(args[0], queryArgs)
+	} else {
+		// adhoc query
+		response, err = runAdhocQuery(cmd, queryArgs)
 	}
-	// adhoc query
-	return outputQueryRunResponse(
-		runAdhocQuery(cmd, queryArgs),
-	)
+
+	if err != nil {
+		return errors.Wrap(err, "unable to run query")
+	}
+
+	// output
+	if err = cli.OutputJSON(response.Data); err != nil {
+		return err
+	}
+
+	// fail_on_count post
+	if queryCmdState.FailOnCount != "" {
+		cli.Log.Infow("enforce failure flag(s)",
+			"fail_on_count", queryCmdState.FailOnCount,
+		)
+
+		queryFailonError := NewQueryFailonError(
+			queryCmdState.FailOnCount,
+			len(response.Data),
+		)
+		if queryFailonError.NonCompliant() {
+			cmd.SilenceUsage = true
+			return queryFailonError
+		}
+	}
+	return nil
 }
 
 func runQueryByID(id string, args []api.ExecuteQueryArgument) (
-	map[string]interface{},
+	api.ExecuteQueryResponse,
 	error,
 ) {
 	cli.Log.Debugw("running query", "query", id)
@@ -440,7 +495,7 @@ func runQueryByID(id string, args []api.ExecuteQueryArgument) (
 }
 
 func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
-	response map[string]interface{},
+	response api.ExecuteQueryResponse,
 	err error,
 ) {
 	// input query
@@ -449,8 +504,9 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 		return
 	}
 	// parse query
-	newQuery, err := parseQuery(queryString)
+	newQuery, err := api.ParseNewQuery(queryString)
 	if err != nil {
+		err = queryErrorCrumbs(queryString)
 		return
 	}
 
@@ -496,19 +552,4 @@ func getRunStartProgressMessage(args []api.ExecuteQueryArgument) string {
 		)
 	}
 	return msg
-}
-
-func outputQueryRunResponse(response map[string]interface{}, err error) error {
-	msg := "unable to run query"
-
-	if err != nil {
-		return errors.Wrap(err, msg)
-	}
-	if data, ok := response["data"]; ok {
-		return cli.OutputJSON(data)
-	}
-	if err := cli.OutputJSON(response); err != nil {
-		return errors.Wrap(err, "unable to format json response")
-	}
-	return nil
 }
