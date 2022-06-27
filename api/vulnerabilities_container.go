@@ -292,7 +292,7 @@ type VulnContainerImageLayer struct {
 
 type VulnContainerPackage struct {
 	Name            string                   `json:"name"`
-	Namespace       string                   `json:"namescape"`
+	Namespace       string                   `json:"namespace"`
 	Version         string                   `json:"version"`
 	Vulnerabilities []ContainerVulnerability `json:"vulnerabilities"`
 
