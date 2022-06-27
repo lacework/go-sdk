@@ -57,6 +57,6 @@ type GcpGkeAuditData struct {
 type GcpGkeAuditCredentials struct {
 	ClientId     string `json:"clientId"`
 	ClientEmail  string `json:"clientEmail"`
-	PrivateKeyId string `json:"PrivateKeyID"`
-	PrivateKey   string `json:"PrivateKey"`
+	PrivateKeyId string `json:"privateKeyId"`
+	PrivateKey   string `json:"privateKey"`
 }
