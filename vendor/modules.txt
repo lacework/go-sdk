@@ -68,7 +68,7 @@ github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-version v1.5.0
 ## explicit
 github.com/hashicorp/go-version
-# github.com/hashicorp/hc-install v0.3.2
+# github.com/hashicorp/hc-install v0.4.0
 ## explicit; go 1.16
 github.com/hashicorp/hc-install/internal/build
 github.com/hashicorp/hc-install/internal/httpclient
@@ -98,7 +98,7 @@ github.com/hashicorp/hcl/v2
 github.com/hashicorp/hcl/v2/ext/customdecode
 github.com/hashicorp/hcl/v2/hclsyntax
 github.com/hashicorp/hcl/v2/hclwrite
-# github.com/hashicorp/terraform-exec v0.16.1
+# github.com/hashicorp/terraform-exec v0.17.1
 ## explicit; go 1.17
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
