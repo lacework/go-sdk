@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>lacework-cli</id>
+        <title>Lacework CLI</title>
+        <version>${version}</version>
+        <authors>Lacework</authors>
+        <owners>Salim Afiune Maya, Darren Murray</owners>
+        <summary>Install the Lacework command line tool.</summary>
+        <description>Manage your Lacework installation with the Lacework CLI.
+        </description>
+        <projectUrl>https://github.com/lacework/go-sdk</projectUrl>
+        <tags>lacework cli cloud security</tags>
+        <copyright>Lacework</copyright>
+        <licenseUrl>https://raw.githubusercontent.com/lacework/go-sdk/main/LICENSE</licenseUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <iconUrl>https://github.com/lacework/go-sdk/scripts/chocolatey/lacework.png</iconUrl>
+        <packageSourceUrl>https://github.com/lacework/go-sdk</packageSourceUrl>
+        <docsUrl>https://docs.lacework.com/cli/</docsUrl>
+        <bugTrackerUrl>https://github.com/lacework/go-sdk/issues</bugTrackerUrl>
+        <projectSourceUrl>https://github.com/lacework/go-sdk</projectSourceUrl>
+        <releaseNotes>https://github.com/lacework/go-sdk/releases</releaseNotes>
+    </metadata>
+    <files>
+        <file src="tools\*.*" target="tools"/>
+    </files>
+</package>
+
+
