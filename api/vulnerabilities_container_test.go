@@ -227,6 +227,9 @@ func TestVulnerabilitiesReportFromID(t *testing.T) {
 		assert.Equal(t, expectedScore, response.Data.Image.
 			ImageLayers[0].Packages[0].
 			Vulnerabilities[0].CVSSv3Score())
+
+		assert.Equal(t, "centos:8", response.Data.Image.
+			ImageLayers[0].Packages[0].Namespace)
 	}
 }
 
