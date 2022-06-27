@@ -37,6 +37,12 @@ func (svc *EntitiesService) ListMachineDetails() (response MachineDetailsEntityR
 	return
 }
 
+// ListMachineDetailsWithFilters returns a list of UserEntity based on a user defined filter
+func (svc *EntitiesService) ListMachineDetailsWithFilters(filters SearchFilter) (response MachineDetailsEntityResponse, err error) {
+	err = svc.Search(&response, filters)
+	return
+}
+
 // ListAllMachineDetails iterates over all pages to return all machine details at once
 func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsEntityResponse, err error) {
 	response, err = svc.ListMachineDetails()
@@ -48,6 +54,33 @@ func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsEnti
 		all    []MachineDetailEntity
 		pageOk bool
 	)
+	for {
+		all = append(all, response.Data...)
+
+		pageOk, err = svc.client.NextPage(&response)
+		if err == nil && pageOk {
+			continue
+		}
+		break
+	}
+
+	response.Data = all
+	response.ResetPaging()
+	return
+}
+
+// ListAllMachineDetailsWithFilters iterates over all pages to return all machine details at once based on a user defined filter
+func (svc *EntitiesService) ListAllMachineDetailsWithFilters(filters SearchFilter) (response MachineDetailsEntityResponse, err error) {
+	response, err = svc.ListMachineDetailsWithFilters(filters)
+	if err != nil {
+		return
+	}
+
+	var (
+		all    []MachineDetailEntity
+		pageOk bool
+	)
+
 	for {
 		all = append(all, response.Data...)
 
