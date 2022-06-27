@@ -13,7 +13,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structs v1.1.0
 	github.com/hashicorp/go-version v1.5.0
-	github.com/hashicorp/hc-install v0.3.2
+	github.com/hashicorp/hc-install v0.4.0
 	github.com/hashicorp/hcl/v2 v2.12.0
 	github.com/hashicorp/terraform-exec v0.16.1
 	github.com/hashicorp/terraform-json v0.14.0
