@@ -311,15 +311,30 @@ func inputPolicy(cmd *cobra.Command, args ...string) (string, error) {
 	// if running via editor
 	action := strings.Split(cmd.Use, " ")[0]
 
-	policyJson, err := fetchExistingPolicy(args[0])
+	if action == "create" {
+		return inputPolicyFromEditor(action, "")
+	}
+
+	policyJson, err := fetchExistingPolicy(args)
 	if err != nil {
 		return "", err
 	}
-
 	return inputPolicyFromEditor(action, policyJson)
+
 }
 
-func fetchExistingPolicy(policyID string) (string, error) {
+func fetchExistingPolicy(args []string) (string, error) {
+	var policyID string
+
+	if len(args) > 0 {
+		policyID = args[0]
+	} else {
+		err := promptSetPolicyID(&policyID)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	cli.StartProgress(fmt.Sprintf(" Retrieving policy %s ...", policyID))
 	policy, err := cli.LwApi.V2.Policy.Get(policyID)
 	cli.StopProgress()
@@ -392,6 +407,17 @@ func inputPolicyFromEditor(action string, policyJson string) (policy string, err
 	err = survey.AskOne(prompt, &policy)
 
 	return
+}
+
+func promptSetPolicyID(policyID *string) error {
+	err := survey.AskOne(&survey.Input{
+		Message: "Policy ID to update:",
+	}, &policyID, survey.WithValidator(survey.Required))
+	if err != nil {
+		return errors.Wrap(err, "unable to ask for policy ID")
+	}
+
+	return nil
 }
 
 func sortPolicyTable(out [][]string, policyIDIndex int) {
