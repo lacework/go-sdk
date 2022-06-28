@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -29,12 +30,11 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
@@ -288,7 +288,7 @@ func setPolicySourceFlags(cmds ...*cobra.Command) {
 }
 
 // for commands that take a policy as input
-func inputPolicy(cmd *cobra.Command) (string, error) {
+func inputPolicy(cmd *cobra.Command, args ...string) (string, error) {
 	// if running via library (CU)
 	if policyCmdState.CUFromLibrary != "" {
 		return inputPolicyFromLibrary(policyCmdState.CUFromLibrary)
@@ -310,7 +310,28 @@ func inputPolicy(cmd *cobra.Command) (string, error) {
 	}
 	// if running via editor
 	action := strings.Split(cmd.Use, " ")[0]
-	return inputPolicyFromEditor(action)
+
+	policyJson, err := fetchExistingPolicy(args[0])
+	if err != nil {
+		return "", err
+	}
+
+	return inputPolicyFromEditor(action, policyJson)
+}
+
+func fetchExistingPolicy(policyID string) (string, error) {
+	cli.StartProgress(fmt.Sprintf(" Retrieving policy %s ...", policyID))
+	policy, err := cli.LwApi.V2.Policy.Get(policyID)
+	cli.StopProgress()
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("unable to retrieve %s", policyID))
+	}
+
+	policyJson, err := json.Marshal(policy.Data)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("unable to json marshall %s", policyID))
+	}
+	return string(policyJson), nil
 }
 
 func inputPolicyFromLibrary(id string) (string, error) {
@@ -359,11 +380,15 @@ func inputPolicyFromURL(url string) (policy string, err error) {
 	return
 }
 
-func inputPolicyFromEditor(action string) (policy string, err error) {
+func inputPolicyFromEditor(action string, policyJson string) (policy string, err error) {
 	prompt := &survey.Editor{
-		Message:  fmt.Sprintf("Type a policy to %s", action),
-		FileName: "policy*.json",
+		Message:       fmt.Sprintf("Use the editor to %s your policy", action),
+		FileName:      "policy*.json",
+		HideDefault:   true,
+		AppendDefault: true,
+		Default:       policyJson,
 	}
+
 	err = survey.AskOne(prompt, &policy)
 
 	return

@@ -98,10 +98,14 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 		msg          string = "unable to update policy"
 		err          error
 		queryUpdated bool
+		policyID     string
 	)
 
+	if len(args) != 0 {
+		policyID = args[0]
+	}
 	// input policy
-	policyString, err := inputPolicy(cmd)
+	policyString, err := inputPolicy(cmd, policyID)
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
@@ -114,7 +118,7 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 	}
 	// set policy id
 	if len(args) != 0 {
-		updatePolicy.PolicyID = args[0]
+		updatePolicy.PolicyID = policyID
 	}
 
 	cli.StartProgress(" Updating policy...")
