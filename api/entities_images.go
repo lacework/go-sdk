@@ -35,6 +35,12 @@ func (svc *EntitiesService) ListImages() (response ImagesEntityResponse, err err
 	return
 }
 
+// ListImagesWithFilters returns a list of UserEntity based on a user defined filter
+func (svc *EntitiesService) ListImagesWithFilters(filters SearchFilter) (response ImagesEntityResponse, err error) {
+	err = svc.Search(&response, filters)
+	return
+}
+
 // ListAllImages iterates over all pages to return all images information at once
 func (svc *EntitiesService) ListAllImages() (response ImagesEntityResponse, err error) {
 	response, err = svc.ListImages()
@@ -46,6 +52,33 @@ func (svc *EntitiesService) ListAllImages() (response ImagesEntityResponse, err 
 		all    []ImageEntity
 		pageOk bool
 	)
+	for {
+		all = append(all, response.Data...)
+
+		pageOk, err = svc.client.NextPage(&response)
+		if err == nil && pageOk {
+			continue
+		}
+		break
+	}
+
+	response.Data = all
+	response.ResetPaging()
+	return
+}
+
+// ListAllImagesWithFilters iterates over all pages to return all images information at once based on a user defined filter
+func (svc *EntitiesService) ListAllImagesWithFilters(filters SearchFilter) (response ImagesEntityResponse, err error) {
+	response, err = svc.ListImagesWithFilters(filters)
+	if err != nil {
+		return
+	}
+
+	var (
+		all    []ImageEntity
+		pageOk bool
+	)
+
 	for {
 		all = append(all, response.Data...)
 
