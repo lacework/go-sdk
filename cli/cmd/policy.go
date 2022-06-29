@@ -19,7 +19,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -35,6 +34,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -315,11 +315,11 @@ func inputPolicy(cmd *cobra.Command, args ...string) (string, error) {
 		return inputPolicyFromEditor(action, "")
 	}
 
-	policyJson, err := fetchExistingPolicy(args)
+	policyYaml, err := fetchExistingPolicy(args)
 	if err != nil {
 		return "", err
 	}
-	return inputPolicyFromEditor(action, policyJson)
+	return inputPolicyFromEditor(action, policyYaml)
 
 }
 
@@ -342,11 +342,11 @@ func fetchExistingPolicy(args []string) (string, error) {
 		return "", errors.Wrap(err, fmt.Sprintf("unable to retrieve %s", policyID))
 	}
 
-	policyJson, err := json.Marshal(policy.Data)
+	policyYaml, err := yaml.Marshal(policy.Data)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("unable to json marshall %s", policyID))
+		return "", errors.Wrap(err, fmt.Sprintf("unable to yaml marshall %s", policyID))
 	}
-	return string(policyJson), nil
+	return string(policyYaml), nil
 }
 
 func inputPolicyFromLibrary(id string) (string, error) {
@@ -395,17 +395,16 @@ func inputPolicyFromURL(url string) (policy string, err error) {
 	return
 }
 
-func inputPolicyFromEditor(action string, policyJson string) (policy string, err error) {
+func inputPolicyFromEditor(action string, policyYaml string) (policy string, err error) {
 	prompt := &survey.Editor{
 		Message:       fmt.Sprintf("Use the editor to %s your policy", action),
-		FileName:      "policy*.json",
+		FileName:      "policy*.yaml",
 		HideDefault:   true,
 		AppendDefault: true,
-		Default:       policyJson,
+		Default:       policyYaml,
 	}
 
 	err = survey.AskOne(prompt, &policy)
-
 	return
 }
 
