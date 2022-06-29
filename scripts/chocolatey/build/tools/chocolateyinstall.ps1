@@ -139,7 +139,7 @@ Function Install-Lacework-CLI
     }
 
     ## set Chocolatey env var
-    [System.Environment]::SetEnvironmentVariable("LW_CHOCOLATEY_INSTALL", 1)
+    [System.Environment]::SetEnvironmentVariable("LW_CHOCOLATEY_INSTALL", 1, "Machine")
 }
 
 Function New-PathString([string]$StartingPath, [string]$Path)
