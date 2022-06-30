@@ -50,6 +50,10 @@ const (
 	// install method was via homebrew package manager
 	HomebrewInstall = "LW_HOMEBREW_INSTALL"
 
+	// ChocolateyInstall is an environment variable that denotes the
+	// install method was via chocolatey package manager
+	ChocolateyInstall = "LW_CHOCOLATEY_INSTALL"
+
 	// List of Features
 	//
 	// A feature within the Lacework CLI is any functionality that
@@ -216,6 +220,10 @@ func (e *Honeyvent) AddFeatureField(key string, value interface{}) {
 func installMethod() string {
 	if os.Getenv(HomebrewInstall) != "" {
 		return "HOMEBREW"
+	}
+
+	if os.Getenv(ChocolateyInstall) != "" {
+		return "CHOCOLATEY"
 	}
 	return ""
 }

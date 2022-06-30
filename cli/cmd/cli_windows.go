@@ -18,7 +18,11 @@
 
 package cmd
 
-import "github.com/AlecAivazis/survey/v2"
+import (
+	"os"
+
+	"github.com/AlecAivazis/survey/v2"
+)
 
 // used by configure.go
 var configureListCmdSetProfileEnv = `$env:LW_PROFILE = 'my-profile'`
@@ -31,6 +35,12 @@ var promptIconsFunc = func(icons *survey.IconSet) {
 // UpdateCommand returns the command that a user should run to update the cli
 // to the latest available version (windows specific command)
 func (c *cliState) UpdateCommand() string {
+	if os.Getenv(ChocolateyInstall) != "" {
+		return `
+  choco upgrade lacework-cli
+`
+	}
+
 	return `
   Set-ExecutionPolicy Bypass -Scope Process -Force;
   iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.ps1'))
