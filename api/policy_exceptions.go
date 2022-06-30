@@ -104,6 +104,6 @@ type PolicyException struct {
 }
 
 type PolicyExceptionConstraint struct {
-	FieldKey    string   `json:"fieldKey"`
-	FieldValues []string `json:"fieldValues"`
+	FieldKey    string `json:"fieldKey"`
+	FieldValues []any  `json:"fieldValues"`
 }
