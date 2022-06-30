@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -29,6 +30,7 @@ import (
 
 	"github.com/lacework/go-sdk/internal/cache"
 	"github.com/lacework/go-sdk/internal/file"
+	"github.com/lacework/go-sdk/lwcomponent"
 	"github.com/lacework/go-sdk/lwupdater"
 )
 
@@ -59,18 +61,43 @@ versions available for update.
 Set the environment variable 'LW_UPDATES_DISABLE=1' to avoid checking for updates.`,
 		Args: cobra.NoArgs,
 		Run: func(_ *cobra.Command, _ []string) {
+			componentVerionsOutput := &strings.Builder{}
+			if cli.LwComponents != nil {
+				for _, component := range cli.LwComponents.Components {
+					if component.IsInstalled() {
+						v, err := component.CurrentVersion()
+						if err == nil {
+							componentVerionsOutput.WriteString(
+								fmt.Sprintf(" > %s v%s\n", component.Name, v.String()),
+							)
+							continue
+						}
+						cli.Log.Errorw("unable to determine component version",
+							"error", err.Error(), "component", component.Name,
+						)
+					}
+				}
+			}
+
 			if cli.JSONOutput() {
-				errcheckEXIT(
-					cli.OutputJSONString(
-						fmt.Sprintf(
-							`{"version":"v%s","git_sha":"%s","build_time":"%s"}`,
-							Version, GitSHA, BuildTime,
-						),
-					),
-				)
+				vJSON := versionJSON{
+					Version:   fmt.Sprintf("v%s", Version),
+					GitSHA:    GitSHA,
+					BuildTime: BuildTime,
+				}
+
+				if componentVerionsOutput.String() != "" {
+					vJSON.CDK = cli.LwComponents
+				}
+
+				errcheckEXIT(cli.OutputJSON(vJSON))
 				return
 			}
+
 			cli.OutputHuman("lacework v%s (sha:%s) (time:%s)\n", Version, GitSHA, BuildTime)
+			if componentVerionsOutput.String() != "" {
+				cli.OutputHuman("\nComponents:\n\n%s", componentVerionsOutput.String())
+			}
 
 			// check the latest version of the cli
 			if _, err := versionCheck(); err != nil {
@@ -183,4 +210,11 @@ func dailyVersionCheck() error {
 		"next_check_time", versionCache.LastCheckTime.AddDate(0, 0, 1))
 
 	return nil
+}
+
+type versionJSON struct {
+	Version   string             `json:"version"`
+	GitSHA    string             `json:"git_sha"`
+	BuildTime string             `json:"build_time"`
+	CDK       *lwcomponent.State `json:"cdk,omitempty"`
 }
