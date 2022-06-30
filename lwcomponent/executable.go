@@ -45,8 +45,9 @@ func (c Component) RunAndOutput(args []string, envs ...string) error {
 	return c.run(cmd)
 }
 
-// RunAndReturn runs the command and returns its standard output and standard error
-func (c Component) RunAndReturn(args []string, stdin io.Reader) (
+// RunAndReturn runs the command and returns its standard output and standard error,
+// the provided environment variables will be accessible by the component
+func (c Component) RunAndReturn(args []string, stdin io.Reader, envs ...string) (
 	stdout string,
 	stderr string,
 	err error,
@@ -61,10 +62,7 @@ func (c Component) RunAndReturn(args []string, stdin io.Reader) (
 
 	cmd := exec.Command(loc, args...)
 	cmd.Env = os.Environ()
-	// @afiune a number of components might need to have access to the Lacework API
-	// we need to figure out a way to pass credentials to the component
-	// cmd.Env = append(cmd.Env, fmt.Sprintf("LW_ACCOUNT=%s", account))
-	// cmd.Env = append(cmd.Env, fmt.Sprintf("LW_TOKEN=%s", token))
+	cmd.Env = append(cmd.Env, envs...)
 	cmd.Stdin = stdin
 	cmd.Stdout = &outBuff
 	cmd.Stderr = &errBuff
