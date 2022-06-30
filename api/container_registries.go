@@ -71,6 +71,8 @@ func NewContainerRegistry(name string, regType containerRegistryType, data inter
 		reg.Data = verifyGcpGarContainerRegistry(data)
 	case GhcrContainerRegistry:
 		reg.Data = verifyGhcrContainerRegistry(data)
+	case InlineScannerContainerRegistry:
+		reg.Data = verifyInlineScannerContainerRegistry(data)
 	default:
 		reg.Data = data
 	}
@@ -95,13 +97,15 @@ const (
 	NoneContainerRegistry containerRegistryType = iota
 	GcpGarContainerRegistry
 	GhcrContainerRegistry
+	InlineScannerContainerRegistry
 )
 
 // ContainerRegistryTypes is the list of available Container Registry integration types
 var ContainerRegistryTypes = map[containerRegistryType]string{
-	NoneContainerRegistry:   "None",
-	GcpGarContainerRegistry: "GCP_GAR",
-	GhcrContainerRegistry:   "GHCR",
+	NoneContainerRegistry:          "None",
+	GcpGarContainerRegistry:        "GCP_GAR",
+	GhcrContainerRegistry:          "GHCR",
+	InlineScannerContainerRegistry: "INLINE_SCANNER",
 }
 
 // String returns the string representation of a Container Registry integration type
