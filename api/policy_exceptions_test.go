@@ -237,7 +237,7 @@ func TestPolicyExceptionUpdate(t *testing.T) {
 
 	policyException := api.PolicyException{
 		Description: "exception description",
-		Constraints: []api.PolicyExceptionConstraint{{FieldKey: "accountIds", FieldValues: []string{"*"}}},
+		Constraints: []api.PolicyExceptionConstraint{{FieldKey: "accountIds", FieldValues: []any{"*"}}},
 	}
 	assert.Equal(t, "exception description", policyException.Description, "policy exception description mismatch")
 	assert.Equal(t, "accountIds", policyException.Constraints[0].FieldKey, "policy exception field key mismatch")
