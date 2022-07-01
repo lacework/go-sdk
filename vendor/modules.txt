@@ -68,7 +68,7 @@ github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-version v1.5.0
 ## explicit
 github.com/hashicorp/go-version
-# github.com/hashicorp/hc-install v0.3.2
+# github.com/hashicorp/hc-install v0.4.0
 ## explicit; go 1.16
 github.com/hashicorp/hc-install/internal/build
 github.com/hashicorp/hc-install/internal/httpclient
