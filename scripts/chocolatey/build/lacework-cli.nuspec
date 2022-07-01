@@ -7,16 +7,21 @@
         <version>${version}</version>
         <authors>Lacework</authors>
         <owners>Salim Afiune Maya, Darren Murray</owners>
-        <summary>Install the Lacework command line tool.</summary>
-        <description>
-        Manage your Lacework installation with the Lacework CLI.
+        <summary>A tool to manage the Lacework cloud security platform.</summary>
+        <description>The Lacework CLI is an [open source project](https://github.com/lacework/go-sdk/tree/main/cli) written in Golang and released as separate binaries for Linux, macOS, and, yes, even Windows! Additionally, all releases of the CLI are published as [Docker containers to Docker Hub](https://hub.docker.com/r/lacework/lacework-cli) for various platforms with the intended purpose of integrating with CI/CD automation pipelines.
+
+Lacework as a platform provides a set of robust APIs for configuring accounts within the platform, as well as accessing
+data from accounts. The Lacework CLI provides an interface to those APIs with the goal of providing fast, accurate, and
+actionable insights into the platform.
+
+For more details, go to https://docs.lacework.com/cli
         </description>
         <projectUrl>https://github.com/lacework/go-sdk</projectUrl>
         <tags>lacework cli cloud security</tags>
         <copyright>Lacework</copyright>
         <licenseUrl>https://raw.githubusercontent.com/lacework/go-sdk/main/LICENSE</licenseUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <iconUrl>https://github.com/lacework/go-sdk/scripts/chocolatey/lacework.png</iconUrl>
+        <iconUrl>https://raw.githubusercontent.com/lacework/go-sdk/main/scripts/chocolatey/lacework.png</iconUrl>
         <packageSourceUrl>https://github.com/lacework/go-sdk</packageSourceUrl>
         <docsUrl>https://docs.lacework.com/cli/</docsUrl>
         <bugTrackerUrl>https://github.com/lacework/go-sdk/issues</bugTrackerUrl>
@@ -27,5 +32,3 @@
         <file src="tools\*.*" target="tools"/>
     </files>
 </package>
-
-
