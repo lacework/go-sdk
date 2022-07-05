@@ -16,7 +16,7 @@ github.com/Masterminds/semver
 # github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
 ## explicit
 github.com/Netflix/go-expect
-# github.com/abiosoft/colima v0.4.2
+# github.com/abiosoft/colima v0.4.4
 ## explicit; go 1.18
 github.com/abiosoft/colima/util/terminal
 # github.com/agext/levenshtein v1.2.1
@@ -65,7 +65,7 @@ github.com/google/go-cmp/cmp/internal/value
 # github.com/hashicorp/go-cleanhttp v0.5.2
 ## explicit; go 1.13
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-version v1.5.0
+# github.com/hashicorp/go-version v1.6.0
 ## explicit
 github.com/hashicorp/go-version
 # github.com/hashicorp/hc-install v0.4.0
