@@ -74,7 +74,7 @@ func listAgents(_ *cobra.Command, _ []string) error {
 	var (
 		progressMsg = "Fetching list of agents"
 		response    = &api.MachineDetailsEntityResponse{}
-		now         = time.Now().UTC()
+		now         = time.Now().UTC().Add(-1 * time.Minute)
 		before      = now.AddDate(0, 0, -7) // 7 days from ago
 		filters     = api.SearchFilter{
 			TimeFilter: &api.TimeFilter{
