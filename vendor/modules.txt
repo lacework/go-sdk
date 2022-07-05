@@ -98,7 +98,7 @@ github.com/hashicorp/hcl/v2
 github.com/hashicorp/hcl/v2/ext/customdecode
 github.com/hashicorp/hcl/v2/hclsyntax
 github.com/hashicorp/hcl/v2/hclwrite
-# github.com/hashicorp/terraform-exec v0.17.1
+# github.com/hashicorp/terraform-exec v0.17.2
 ## explicit; go 1.17
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
