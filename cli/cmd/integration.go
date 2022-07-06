@@ -241,6 +241,7 @@ func promptCreateIntegration() error {
 				"Google Container Registry (GCR)",
 				"Google Artifact Registry (GAR)",
 				"Github Container Registry (GHCR)",
+				"Inline Scanner Container Registry",
 				"AWS Config",
 				"AWS CloudTrail",
 				"AWS Config (US GovCloud)",
@@ -301,6 +302,8 @@ func promptCreateIntegration() error {
 		return createAwsEcrIntegration()
 	case "Google Artifact Registry (GAR)":
 		return createGarIntegration()
+	case "Inline Scanner Container Registry":
+		return createInlineScannerIntegration()
 	case "Github Container Registry (GHCR)":
 		return createGhcrIntegration()
 	case "Google Container Registry (GCR)":
@@ -779,6 +782,22 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 		}
 
 		switch iData.RegistryType {
+		case api.InlineScannerContainerRegistry.String():
+			inlineScanner, err := cli.LwApi.V2.ContainerRegistries.GetInlineScanner(raw.IntgGuid)
+			if err != nil {
+				cli.Log.Debugw("unable to decode integration data",
+					"integration_type", raw.Type,
+					"registry_type", iData.RegistryType,
+					"raw_data", raw.Data,
+					"error", err,
+				)
+				break
+			}
+			out = [][]string{
+				{"SERVER TOKEN", inlineScanner.Data.ServerToken.Token},
+				{"IDENTIFIER TAGS", castMapStringSliceToString(inlineScanner.Data.Data.IdentifierTag)},
+				{"LIMIT NUM SCANS", fmt.Sprintf("%d", inlineScanner.Data.Data.LimitNumScan)},
+			}
 		case api.DockerHubRegistry.String():
 			out = append(out, []string{"USERNAME", iData.Credentials.Username})
 			out = append(out, []string{"PASSWORD", iData.Credentials.Password})

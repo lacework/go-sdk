@@ -19,10 +19,22 @@
 package cmd
 
 import (
+	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 )
+
+func castMapStringSliceToString(m []map[string]string) string {
+	b := new(bytes.Buffer)
+	for _, s := range m {
+		for key, value := range s {
+			fmt.Fprintf(b, "%s=%s, ", key, value)
+		}
+	}
+	return b.String()
+}
 
 func castStringToLimitByLabel(labels string) []map[string]string {
 	out := make([]map[string]string, 0)

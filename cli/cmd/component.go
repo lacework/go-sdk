@@ -233,6 +233,18 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 		return
 	}
 
+	cli.StartProgress(fmt.Sprintf("Configuring component %s...", component.Name))
+
+	// component life cycle: initialize
+	stdout, stderr, errCmd := component.RunAndReturn([]string{"cdk-init"}, nil, cli.envs()...)
+	if errCmd != nil {
+		cli.Log.Warnw("component life cycle",
+			"error", errCmd.Error(), "stdout", stdout, "stderr", stderr)
+	} else {
+		cli.Log.Infow("component life cycle", "stdout", stdout, "stderr", stderr)
+	}
+
+	cli.StopProgress()
 	cli.OutputHuman("The component %s was installed.\n", args[0])
 	return
 }
