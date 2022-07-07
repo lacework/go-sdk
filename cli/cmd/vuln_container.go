@@ -626,7 +626,7 @@ func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) st
 			report.WriteString(
 				renderCustomTable(
 					[]string{"CVE ID", "Severity", "Package", "Current Version",
-						"Fix Version", "Introduced in Layer"},
+						"Fix Version", "Introduced in Layer", "Status"},
 					vulnImageTable,
 					tableFunc(func(t *tablewriter.Table) {
 						t.SetBorder(false)
@@ -696,6 +696,7 @@ type vulnTable struct {
 	CreatedBy      string
 	CVSSv2Score    float64
 	CVSSv3Score    float64
+	Status         string
 }
 
 type filteredImageTable struct {
@@ -818,6 +819,7 @@ func filterVulContainerImageLayers(image *api.VulnContainerImage) filteredImageT
 					CreatedBy:      createdBy,
 					CVSSv2Score:    vul.CVSSv2Score(),
 					CVSSv3Score:    vul.CVSSv3Score(),
+					Status:         vul.Status,
 				})
 
 				filteredPkg.Vulnerabilities = append(filteredPkg.Vulnerabilities, vul)
@@ -870,6 +872,7 @@ func vulContainerImageLayersToTable(imageTable filteredImageTable) [][]string {
 			vuln.CurrentVersion,
 			vuln.FixVersion,
 			vuln.CreatedBy,
+			vuln.Status,
 		})
 	}
 
