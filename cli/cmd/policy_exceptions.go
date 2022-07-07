@@ -24,26 +24,27 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 var (
 	// policyExceptionCmd represents the policy parent command
 	policyExceptionCmd = &cobra.Command{
 		Use:     "policy-exception",
-		Aliases: []string{"policy-exceptions", "pe"},
+		Aliases: []string{"policy-exceptions", "pe", "px"},
 		Short:   "Manage policy exceptions",
-		Long: `Manage policies in your Lacework account.
+		Long: `Manage policy exceptions in your Lacework account.
 
 A policy exception is used to exclude .... from a policy
 
 To view all the policies in your Lacework account.
 
-    lacework policy ls
+    lacework policy list
 `,
 	}
 
@@ -52,7 +53,7 @@ To view all the policies in your Lacework account.
 		Use:     "list <policy-id>",
 		Aliases: []string{"ls"},
 		Short:   "List policy exceptions",
-		Long: `List all of the policy exceptions in your Lacework account.
+		Long: `List all of the policy exceptions from the provided policy ID.
 
 To list the exceptions for a single policy, provide the policy id argument:
 
@@ -70,7 +71,7 @@ To list the exceptions for a single policy, provide the policy id argument:
 
 To show details of a policy exception, run the show command with policy id and exception id arguments:
 	
-	lacework policy-exception show <policy-id> <exception-id>`,
+	lacework policy-exception show <policy_id> <exception_id>`,
 		Args: cobra.ExactArgs(2),
 		RunE: showPolicyException,
 	}
