@@ -22,6 +22,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 // NewAwsIntegration returns an instance of AwsIntegration with the provided
@@ -111,6 +113,21 @@ func (svc *IntegrationsService) DeleteAws(guid string) (
 func (svc *IntegrationsService) ListAwsCfg() (response AwsIntegrationsResponse, err error) {
 	err = svc.listByType(AwsCfgIntegration, &response)
 	return
+}
+
+// AwsAccountIDs retrieves a string slice of aws account ids
+func (svc *IntegrationsService) AwsAccountIDs() ([]string, error) {
+	var response AwsIntegrationsResponse
+	err := svc.listByType(AwsCfgIntegration, &response)
+	if err != nil {
+		return []string{}, nil
+	}
+
+	var accountIds []string
+	for _, acc := range response.Data {
+		accountIds = append(accountIds, acc.Data.AwsAccountID)
+	}
+	return array.Unique(accountIds), nil
 }
 
 // ListAwsCloudTrail lists the AWS_CT_SQS external integrations available on the Lacework Server
