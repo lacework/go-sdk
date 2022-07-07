@@ -40,8 +40,6 @@ var (
 		Short:   "Manage policy exceptions",
 		Long: `Manage policy exceptions in your Lacework account.
 
-A policy exception is used to exclude .... from a policy
-
 To view all the policies in your Lacework account.
 
     lacework policy list
@@ -67,13 +65,9 @@ To list the exceptions for a single policy, provide the policy id argument:
 		Use:     "show <policy-id> <exception-id>",
 		Aliases: []string{"get"},
 		Short:   "Show policy exception details",
-		Long: `Show the details of a policy exception. 
-
-To show details of a policy exception, run the show command with policy id and exception id arguments:
-	
-	lacework policy-exception show <policy_id> <exception_id>`,
-		Args: cobra.ExactArgs(2),
-		RunE: showPolicyException,
+		Long:    `Show the details of a policy exception.`,
+		Args:    cobra.ExactArgs(2),
+		RunE:    showPolicyException,
 	}
 
 	// policyExceptionDeleteCmd represents the policy exception delete command
@@ -99,7 +93,11 @@ To remove a policy exception, run the delete command with policy id and exceptio
 
 To create a new policy exception, run the create command:
 
-	lacework policy-exception create [policy-id]`,
+	lacework policy-exception create [policy-id]
+
+If the command is run without providing the policy-id, 
+a list of policies will be displayed in the interactive prompt.
+`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: createPolicyException,
 	}
