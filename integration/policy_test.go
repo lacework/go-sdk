@@ -388,8 +388,8 @@ func TestPolicyUpdateEditor(t *testing.T) {
 func TestPolicyUpdateEditorNoID(t *testing.T) {
 	// update
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "update")
-
-	assert.Contains(t, out.String(), "Policy ID to update:")
+	
+	assert.Contains(t, out.String(), "Type a policy to update")
 	assert.Contains(t, err.String(), "ERROR unable to update policy:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
