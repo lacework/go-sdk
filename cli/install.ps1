@@ -94,10 +94,9 @@ Function Assert-Shasum($archive) {
 
 Function Install-Lacework-CLI {
     $laceworkPath = Join-Path $env:ProgramData Lacework
-    if (Test-Path $laceworkPath) { Remove-Item $laceworkPath -Recurse -Force }
-    New-Item $laceworkPath -ItemType Directory | Out-Null
+    if (-not (Test-Path $laceworkPath)) { New-Item $laceworkPath -ItemType Directory | Out-Null }
     $exe = (Get-ChildItem (Join-Path ($workdir) "bin"))
-    Copy-Item "$($exe.FullName)" $laceworkPath
+    Copy-Item "$($exe.FullName)" $laceworkPath -Force
     $env:PATH = New-PathString -StartingPath $env:PATH -Path $laceworkPath
     $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
     $machinePath = New-PathString -StartingPath $machinePath -Path $laceworkPath
