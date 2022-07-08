@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	lclComponentName string = "lacework-content-library"
+	lclComponentName string = "content-library"
 	lclIndexPath     string = "content.index"
 )
 
