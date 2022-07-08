@@ -24,6 +24,7 @@ Available Commands:
   event                   Inspect Lacework events
   integration             Manage external integrations
   policy                  Manage policies
+  policy-exception        Manage policy exceptions
   query                   Run and manage queries
   report-rule             Manage report rules
   resource-group          Manage resource groups

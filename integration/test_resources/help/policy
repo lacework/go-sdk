@@ -1,4 +1,4 @@
-Manage policies in your Lacework account.
+policyManage policies in your Lacework account.
 
 A policy is a mechanism used to add annotated metadata to a Lacework query for improving
 the context of alerts, reports, and information displayed in the Lacework Console.

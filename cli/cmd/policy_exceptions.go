@@ -48,21 +48,21 @@ To view all the policies in your Lacework account.
 
 	// policyExceptionListCmd represents the policy exception list command
 	policyExceptionListCmd = &cobra.Command{
-		Use:     "list <policy-id>",
+		Use:     "list <policy_id>",
 		Aliases: []string{"ls"},
 		Short:   "List policy exceptions",
 		Long: `List all of the policy exceptions from the provided policy ID.
 
 To list the exceptions for a single policy, provide the policy id argument:
 
-	lacework policy-exception list [lacework-policy-id]`,
+	lacework policy-exception list <lacework_policy_id>`,
 		Args: cobra.ExactArgs(1),
 		RunE: listPolicyExceptions,
 	}
 
 	// policyExceptionShowCmd represents the policy exception show command
 	policyExceptionShowCmd = &cobra.Command{
-		Use:     "show <policy-id> <exception-id>",
+		Use:     "show <policy_id> <exception_id>",
 		Aliases: []string{"get"},
 		Short:   "Show policy exception details",
 		Long:    `Show the details of a policy exception.`,
@@ -72,30 +72,30 @@ To list the exceptions for a single policy, provide the policy id argument:
 
 	// policyExceptionDeleteCmd represents the policy exception delete command
 	policyExceptionDeleteCmd = &cobra.Command{
-		Use:     "delete <policy-id> <exception-id>",
+		Use:     "delete <policy_id> <exception_id>",
 		Aliases: []string{"rm"},
 		Short:   "Delete a policy exception",
 		Long: `Delete a policy exception. 
 
 To remove a policy exception, run the delete command with policy id and exception id arguments:
 
-	lacework policy-exception delete <policy-id> <exception-id>`,
+	lacework policy-exception delete <policy_id> <exception_id>`,
 		Args: cobra.ExactArgs(2),
 		RunE: deletePolicyException,
 	}
 
 	// policyExceptionCreateCmd represents the policy exception create command
 	policyExceptionCreateCmd = &cobra.Command{
-		Use:     "create [policy-id]",
+		Use:     "create [policy_id]",
 		Aliases: []string{"rm"},
 		Short:   "Create a policy exception",
 		Long: `Create a new policy exception. 
 
 To create a new policy exception, run the create command:
 
-	lacework policy-exception create [policy-id]
+	lacework policy-exception create [policy_id]
 
-If the command is run without providing the policy-id, 
+If the command is run without providing the policy_id, 
 a list of policies will be displayed in the interactive prompt.
 `,
 		Args: cobra.MaximumNArgs(1),
