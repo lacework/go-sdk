@@ -406,6 +406,9 @@ func promptAddExceptionConstraintAwsAccountsList() ([]any, error) {
 	cli.StartProgress(" Retrieving aws accounts...")
 	accountIds, err := cli.LwApi.Integrations.AwsAccountIDs()
 	cli.StopProgress()
+	if err != nil {
+		return nil, err
+	}
 
 	err = survey.AskOne(&survey.MultiSelect{Message: "Select Aws Accounts:", Options: accountIds}, &fieldValues)
 	if err != nil {
