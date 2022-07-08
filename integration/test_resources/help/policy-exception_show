@@ -1,7 +1,7 @@
 Show the details of a policy exception.
 
 Usage:
-  lacework policy-exception show <policy-id> <exception-id> [flags]
+  lacework policy-exception show <policy_id> <exception_id> [flags]
 
 Aliases:
   show, get
