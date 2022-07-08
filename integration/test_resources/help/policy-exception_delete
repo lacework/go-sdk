@@ -1,4 +1,4 @@
-Delete a policy exception.
+Delete a policy exception. 
 
 To remove a policy exception, run the delete command with policy id and exception id arguments:
 
