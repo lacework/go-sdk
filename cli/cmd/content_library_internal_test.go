@@ -77,7 +77,7 @@ var (
 
 	mockVersion, _                         = semver.NewVersion("0.1.0")
 	mockLCLComponent lwcomponent.Component = lwcomponent.Component{
-		Name:          "lacework-content-library",
+		Name:          "content-library",
 		Description:   "Lacework Content Library",
 		LatestVersion: *mockVersion,
 		// @dhazekamp this only works for darwin-amd64 because we don't have per-package sigs
@@ -89,7 +89,7 @@ var (
 		},
 	}
 	nonZeroLCLComponent lwcomponent.Component = lwcomponent.Component{
-		Name:          "lacework-content-library",
+		Name:          "content-library",
 		Description:   "Lacework Content Library",
 		LatestVersion: *mockVersion,
 		Type:          lwcomponent.BinaryType,
@@ -100,7 +100,7 @@ var (
 		},
 	}
 	noParseLCLComponent lwcomponent.Component = lwcomponent.Component{
-		Name:          "lacework-content-library",
+		Name:          "content-library",
 		Description:   "Lacework Content Library",
 		LatestVersion: *mockVersion,
 		Type:          lwcomponent.BinaryType,
@@ -110,7 +110,7 @@ var (
 			noParseLCLComponent,
 		},
 	}
-	//go:embed test_resources/lacework-content-library/*
+	//go:embed test_resources/content-library/*
 	mockLCLBinaries embed.FS
 )
 
@@ -254,7 +254,7 @@ func ensureMockLCL(b string) (mockLCLPlacementType, error) {
 		os.MkdirAll(dir, os.ModePerm)
 	}
 
-	cmpntBinaryPath := fmt.Sprintf("test_resources/lacework-content-library/%s", b)
+	cmpntBinaryPath := fmt.Sprintf("test_resources/content-library/%s", b)
 	cmpntBytes, err := mockLCLBinaries.ReadFile(cmpntBinaryPath)
 	if err != nil {
 		return placementType, err
@@ -319,7 +319,7 @@ func TestLoadLCLNotFound(t *testing.T) {
 func TestLoadLCLNonZero(t *testing.T) {
 	cli := cliState{LwComponents: &nonZeroLWComponentState}
 
-	ept, err := ensureMockLCL("lacework-content-library-nonzero.sh")
+	ept, err := ensureMockLCL("content-library-nonzero.sh")
 	defer removeMockLCL(ept)
 	if err != nil {
 		assert.FailNow(t, err.Error())
@@ -340,7 +340,7 @@ func TestLoadLCLNonZero(t *testing.T) {
 func TestLoadLCLNoParse(t *testing.T) {
 	cli := cliState{LwComponents: &noParseLWComponentState}
 
-	ept, err := ensureMockLCL("lacework-content-library-noparse.sh")
+	ept, err := ensureMockLCL("content-library-noparse.sh")
 	defer removeMockLCL(ept)
 	if err != nil {
 		assert.FailNow(t, err.Error())
