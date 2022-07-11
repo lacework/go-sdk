@@ -316,6 +316,7 @@ type ContainerVulnerability struct {
 	Link        string                 `json:"link"`
 	FixVersion  string                 `json:"fix_version"`
 	Metadata    map[string]interface{} `json:"metadata"`
+	Status      string                 `json:"status"`
 }
 
 // traverseMetadata will try to extract an interface from the nested tree of key

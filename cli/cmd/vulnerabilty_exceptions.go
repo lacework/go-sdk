@@ -32,6 +32,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const CveRegex = `(?i)CVE-\d{4}-\d{4,7}`
+const AlasRegex = `(?i)ALAS(2?)-\d{4}-\d{3,7}`
+
 var (
 	// vulnerability-exceptions command is used to manage lacework vulnerability exceptions
 	vulnerabilityExceptionCommand = &cobra.Command{
@@ -343,17 +346,18 @@ func transformVulnerabilityExceptionPackages(packages string) []api.Vulnerabilit
 
 func validateCveFormat() survey.Validator {
 	return func(val interface{}) error {
-		cveRegEx, _ := regexp.Compile(`(?i)CVE-\d{4}-\d{4,7}`)
+		cveRegEx, _ := regexp.Compile(CveRegex)
+		alasRegEx, _ := regexp.Compile(AlasRegex)
 		if list, ok := val.([]core.OptionAnswer); ok {
 			for _, i := range list {
-				if !cveRegEx.MatchString(i.Value) {
-					return fmt.Errorf("CVE format is invalid. Please format corretly eg: CVE-2014-0001")
+				if !cveRegEx.MatchString(i.Value) && !alasRegEx.MatchString(i.Value) {
+					return fmt.Errorf("CVE format is invalid. Please format corretly eg: CVE-2014-0001, ALAS2-2022-1788")
 				}
 			}
 		} else {
 			value := val.(string)
-			if !cveRegEx.MatchString(value) {
-				return fmt.Errorf("CVE format is invalid. Please format corretly eg: CVE-2014-0001")
+			if !cveRegEx.MatchString(value) && !alasRegEx.MatchString(value) {
+				return fmt.Errorf("CVE format is invalid. Please format corretly eg: CVE-2014-0001,  ALAS2-2022-1788")
 			}
 		}
 		return nil
