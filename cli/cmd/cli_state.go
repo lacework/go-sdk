@@ -423,7 +423,7 @@ func (c *cliState) envs() []string {
 		fmt.Sprintf("LW_SUBACCOUNT=%s", c.Subaccount),
 		fmt.Sprintf("LW_API_KEY=%s", c.KeyID),
 		fmt.Sprintf("LW_API_SECRET=%s", c.Secret),
-		fmt.Sprintf("LW_TOKEN=%s", c.Token),
+		fmt.Sprintf("LW_API_TOKEN=%s", c.Token),
 	}
 }
 
