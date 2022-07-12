@@ -29,12 +29,12 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -101,8 +101,8 @@ To view the LQL query associated with the policy, use the query id shown.
 	policyListCmd = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "List policies",
-		Long:    `List all the registered policies in your Lacework account.`,
+		Short:   "List all policies",
+		Long:    `List all registered policies in your Lacework account.`,
 		Args:    cobra.NoArgs,
 		RunE:    listPolicies,
 	}
@@ -119,8 +119,8 @@ To view the LQL query associated with the policy, use the query id shown.
 	policyShowCmd = &cobra.Command{
 		Use:     "show <policy_id>",
 		Aliases: []string{"ls"},
-		Short:   "Show policy",
-		Long:    `Show details about a single policy.`,
+		Short:   "Show details about a policy",
+		Long:    `Show details about the provided policy ID.`,
 		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			b, err := cmd.Flags().GetBool("yaml")
@@ -139,8 +139,8 @@ To view the LQL query associated with the policy, use the query id shown.
 	// policyDisableTagCmd represents the policy disable command
 	policyDisableTagCmd = &cobra.Command{
 		Use:   "disable [policy_id]",
-		Short: "Disable Policies",
-		Long: `Disable Policies by ID or all policies matching a tag.
+		Short: "Disable policies",
+		Long: `Disable policies by ID or all policies matching a tag.
 
 To disable a single policy by it's ID:
 
@@ -153,7 +153,6 @@ To disable all policies for Aws CIS 1.4.0:
 To disable all policies for Gcp CIS 1.3.0:
 
 	lacework policy disable --tag framework:cis-gcp-1-3-0
-
 `,
 		Args: cobra.RangeArgs(0, 1),
 		PreRunE: func(_ *cobra.Command, args []string) error {
@@ -169,8 +168,8 @@ To disable all policies for Gcp CIS 1.3.0:
 	// policyEnableTagCmd represents the policy enable command
 	policyEnableTagCmd = &cobra.Command{
 		Use:   "enable [policy_id]",
-		Short: "Enable Policies",
-		Long: `Enable Policies by ID or all policies matching a tag.
+		Short: "Enable policies",
+		Long: `Enable policies by ID or all policies matching a tag.
 
 To enable a single policy by it's ID:
 
@@ -288,7 +287,7 @@ func setPolicySourceFlags(cmds ...*cobra.Command) {
 }
 
 // for commands that take a policy as input
-func inputPolicy(cmd *cobra.Command) (string, error) {
+func inputPolicy(cmd *cobra.Command, args ...string) (string, error) {
 	// if running via library (CU)
 	if policyCmdState.CUFromLibrary != "" {
 		return inputPolicyFromLibrary(policyCmdState.CUFromLibrary)
@@ -310,7 +309,42 @@ func inputPolicy(cmd *cobra.Command) (string, error) {
 	}
 	// if running via editor
 	action := strings.Split(cmd.Use, " ")[0]
-	return inputPolicyFromEditor(action)
+
+	if action == "create" {
+		return inputPolicyFromEditor(action, "")
+	}
+
+	policyYaml, err := fetchExistingPolicy(args)
+	if err != nil {
+		return "", err
+	}
+	return inputPolicyFromEditor(action, policyYaml)
+
+}
+
+func fetchExistingPolicy(args []string) (string, error) {
+	var policyID string
+
+	if len(args) > 0 && len(args[0]) > 0 {
+		policyID = args[0]
+	} else {
+		if err := promptSetPolicyID(&policyID); err != nil {
+			return "", err
+		}
+	}
+
+	cli.StartProgress(fmt.Sprintf("Retrieving policy '%s'...", policyID))
+	policy, err := cli.LwApi.V2.Policy.Get(policyID)
+	cli.StopProgress()
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("unable to retrieve %s", policyID))
+	}
+
+	policyYaml, err := yaml.Marshal(policy.Data)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("unable to yaml marshall %s", policyID))
+	}
+	return string(policyYaml), nil
 }
 
 func inputPolicyFromLibrary(id string) (string, error) {
@@ -359,14 +393,36 @@ func inputPolicyFromURL(url string) (policy string, err error) {
 	return
 }
 
-func inputPolicyFromEditor(action string) (policy string, err error) {
+func inputPolicyFromEditor(action string, policyYaml string) (policy string, err error) {
 	prompt := &survey.Editor{
-		Message:  fmt.Sprintf("Type a policy to %s", action),
-		FileName: "policy*.json",
+		Message:       fmt.Sprintf("Use the editor to %s your policy", action),
+		FileName:      "policy*.yaml",
+		HideDefault:   true,
+		AppendDefault: true,
+		Default:       policyYaml,
 	}
-	err = survey.AskOne(prompt, &policy)
 
+	err = survey.AskOne(prompt, &policy)
 	return
+}
+
+func promptSetPolicyID(policyID *string) error {
+	cli.StartProgress("Retrieving policies...")
+	policiesResponse, err := cli.LwApi.V2.Policy.List()
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to retrieve policies to select")
+	}
+
+	var policyIds []string
+	for _, policy := range policiesResponse.Data {
+		policyIds = append(policyIds, policy.PolicyID)
+	}
+
+	return survey.AskOne(&survey.Select{
+		Message: "Select policy to update:",
+		Options: policyIds,
+	}, policyID)
 }
 
 func sortPolicyTable(out [][]string, policyIDIndex int) {
@@ -460,7 +516,7 @@ func listPolicies(_ *cobra.Command, args []string) error {
 		)
 	}
 
-	cli.StartProgress(" Retrieving policies...")
+	cli.StartProgress("Retrieving policies...")
 	policiesResponse, err := cli.LwApi.V2.Policy.List()
 	cli.StopProgress()
 
@@ -488,7 +544,7 @@ func showPolicy(cmd *cobra.Command, args []string) error {
 	)
 
 	cli.Log.Debugw("retrieving policy", "policyID", args[0])
-	cli.StartProgress(" Retrieving policy...")
+	cli.StartProgress("Retrieving policy...")
 	policyResponse, err = cli.LwApi.V2.Policy.Get(args[0])
 	cli.StopProgress()
 
@@ -571,7 +627,7 @@ func policyTagsTable(pt []string) (out [][]string) {
 func listPolicyTags(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("listing policy tags")
 
-	cli.StartProgress(" Retrieving policy tags...")
+	cli.StartProgress("Retrieving policy tags...")
 	policyTagsResponse, err := cli.LwApi.V2.Policy.ListTags()
 	cli.StopProgress()
 	if err != nil {
@@ -629,7 +685,7 @@ func setPolicyStateByTag(tag string, policyState bool) error {
 		msg = "enable"
 	}
 
-	cli.StartProgress(" Retrieving policies...")
+	cli.StartProgress("Retrieving policies...")
 	policyTagsResponse, err := cli.LwApi.V2.Policy.List()
 	cli.StopProgress()
 

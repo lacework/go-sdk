@@ -1,4 +1,4 @@
-Disable Policies by ID or all policies matching a tag.
+Disable policies by ID or all policies matching a tag.
 
 To disable a single policy by it's ID:
 

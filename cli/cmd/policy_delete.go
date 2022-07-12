@@ -59,7 +59,7 @@ func deletePolicy(_ *cobra.Command, args []string) error {
 
 	if policyCmdState.CascadeDelete {
 		cli.Log.Debugw("retrieving policy", "policyID", args[0])
-		cli.StartProgress(" Retrieving policy...")
+		cli.StartProgress("Retrieving policy...")
 		getResponse, err = cli.LwApi.V2.Policy.Get(args[0])
 		cli.StopProgress()
 

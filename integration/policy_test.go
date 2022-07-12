@@ -105,7 +105,7 @@ func TestPolicyCreateHelp(t *testing.T) {
 func TestPolicyCreateEditor(t *testing.T) {
 	// create
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "create")
-	assert.Contains(t, out.String(), "Type a policy to create")
+	assert.Contains(t, out.String(), "Use the editor to create your policy")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
 	assert.Contains(t, err.String(), "ERROR unable to create policy:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
@@ -378,10 +378,22 @@ func TestPolicyUpdateHelp(t *testing.T) {
 
 func TestPolicyUpdateEditor(t *testing.T) {
 	// update
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "update", "lacework-global-39")
+
+	assert.Contains(t, out.String(), "Retrieving policy 'lacework-global-39'...")
+	assert.Contains(t, out.String(), "[Enter to launch editor]")
+	assert.Contains(t, err.String(), "ERROR unable to update policy:")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestPolicyUpdateEditorNoID(t *testing.T) {
+	// update
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "update")
 
-	assert.Contains(t, out.String(), "Type a policy to update")
-	assert.Contains(t, out.String(), "[Enter to launch editor]")
+	// we retrieve all policies so that the customer can select one
+	assert.Contains(t, out.String(), "Retrieving policies...")
+	// show a select menu
+	assert.Contains(t, out.String(), "Select policy to update")
 	assert.Contains(t, err.String(), "ERROR unable to update policy:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }

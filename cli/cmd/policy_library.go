@@ -133,7 +133,7 @@ func buildPolicyLibraryDetailsTable(policy api.Policy) string {
 func listPoliciesLibrary(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("listing policies from library")
 
-	cli.StartProgress(" Retrieving policies...")
+	cli.StartProgress("Retrieving policies...")
 	lcl, err := cli.LoadLCL()
 	cli.StopProgress()
 
@@ -177,7 +177,7 @@ func showPolicyLibrary(_ *cobra.Command, args []string) error {
 	)
 	cli.Log.Debugw("retrieving policy", "id", args[0])
 
-	cli.StartProgress(" Retrieving policy...")
+	cli.StartProgress("Retrieving policy...")
 	// input policy
 	if policyString, err = inputPolicyFromLibrary(args[0]); err != nil {
 		cli.StopProgress()
@@ -224,7 +224,7 @@ type PolicySyncOperation struct {
 func getPolicySyncOperations(policies map[string]LCLPolicy) ([]PolicySyncOperation, error) {
 	policyOps := []PolicySyncOperation{}
 
-	cli.StartProgress(" Retrieving platform policies...")
+	cli.StartProgress("Retrieving platform policies...")
 	policiesResponse, err := cli.LwApi.V2.Policy.List()
 	cli.StopProgress()
 
@@ -236,7 +236,7 @@ func getPolicySyncOperations(policies map[string]LCLPolicy) ([]PolicySyncOperati
 		platformPolicyIDs[i] = policy.PolicyID
 	}
 
-	cli.StartProgress(" Retrieving platform queires...")
+	cli.StartProgress("Retrieving platform queires...")
 	queryResponse, err := cli.LwApi.V2.Query.List()
 	cli.StopProgress()
 
@@ -512,7 +512,7 @@ func syncPolicyLibrary(_ *cobra.Command, args []string) error {
 	}
 
 	// load content library
-	cli.StartProgress(" Retrieving library policies...")
+	cli.StartProgress("Retrieving library policies...")
 	lcl, err := cli.LoadLCL()
 	cli.StopProgress()
 
