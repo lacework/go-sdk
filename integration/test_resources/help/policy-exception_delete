@@ -2,7 +2,7 @@ Delete a policy exception.
 
 To remove a policy exception, run the delete command with policy id and exception id arguments:
 
-	lacework policy-exception delete <policy_id> <exception_id>
+    lacework policy-exception delete <policy_id> <exception_id>
 
 Usage:
   lacework policy-exception delete <policy_id> <exception_id> [flags]

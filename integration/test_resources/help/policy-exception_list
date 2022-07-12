@@ -1,9 +1,5 @@
 List all of the policy exceptions from the provided policy ID.
 
-To list the exceptions for a single policy, provide the policy id argument:
-
-	lacework policy-exception list <lacework_policy_id>
-
 Usage:
   lacework policy-exception list <policy_id> [flags]
 

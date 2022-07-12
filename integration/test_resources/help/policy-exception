@@ -13,8 +13,8 @@ Aliases:
 Available Commands:
   create      Create a policy exception
   delete      Delete a policy exception
-  list        List policy exceptions
-  show        Show policy exception details
+  list        List all exceptions from a single policy
+  show        Show details about a policy exception
 
 Flags:
   -h, --help   help for policy-exception

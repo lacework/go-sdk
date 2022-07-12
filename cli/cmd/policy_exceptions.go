@@ -50,21 +50,17 @@ To view all the policies in your Lacework account.
 	policyExceptionListCmd = &cobra.Command{
 		Use:     "list <policy_id>",
 		Aliases: []string{"ls"},
-		Short:   "List policy exceptions",
-		Long: `List all of the policy exceptions from the provided policy ID.
-
-To list the exceptions for a single policy, provide the policy id argument:
-
-	lacework policy-exception list <lacework_policy_id>`,
-		Args: cobra.ExactArgs(1),
-		RunE: listPolicyExceptions,
+		Short:   "List all exceptions from a single policy",
+		Long:    `List all of the policy exceptions from the provided policy ID.`,
+		Args:    cobra.ExactArgs(1),
+		RunE:    listPolicyExceptions,
 	}
 
 	// policyExceptionShowCmd represents the policy exception show command
 	policyExceptionShowCmd = &cobra.Command{
 		Use:     "show <policy_id> <exception_id>",
 		Aliases: []string{"get"},
-		Short:   "Show policy exception details",
+		Short:   "Show details about a policy exception",
 		Long:    `Show the details of a policy exception.`,
 		Args:    cobra.ExactArgs(2),
 		RunE:    showPolicyException,
@@ -79,7 +75,7 @@ To list the exceptions for a single policy, provide the policy id argument:
 
 To remove a policy exception, run the delete command with policy id and exception id arguments:
 
-	lacework policy-exception delete <policy_id> <exception_id>`,
+    lacework policy-exception delete <policy_id> <exception_id>`,
 		Args: cobra.ExactArgs(2),
 		RunE: deletePolicyException,
 	}
@@ -91,12 +87,12 @@ To remove a policy exception, run the delete command with policy id and exceptio
 		Short:   "Create a policy exception",
 		Long: `Create a new policy exception. 
 
-To create a new policy exception, run the create command:
+To create a new policy exception, run the command:
 
-	lacework policy-exception create [policy_id]
+    lacework policy-exception create [policy_id]
 
-If the command is run without providing the policy_id, 
-a list of policies will be displayed in the interactive prompt.
+If the command is run without providing the policy_id, a
+list of policies will be displayed in an interactive prompt.
 `,
 		Args: cobra.MaximumNArgs(1),
 		RunE: createPolicyException,
@@ -117,13 +113,16 @@ func init() {
 func listPolicyExceptions(_ *cobra.Command, args []string) error {
 	var policyExceptions [][]string
 	if len(args) > 0 {
-		cli.StartProgress(" Retrieving policy exceptions...")
+		cli.StartProgress(fmt.Sprintf(
+			"Retrieving policy exceptions from policy id '%s'...", args[0],
+		))
 		policyExceptionResponse, err := cli.LwApi.V2.Policy.Exceptions.List(args[0])
 		cli.StopProgress()
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("unable to list policy exceptions for id %s", args[0]))
+			return errors.Wrapf(err, "unable to list policy exceptions for id %s", args[0])
 		}
-		policyExceptions = append(policyExceptions, policyExceptionTable(policyExceptionResponse.Data, args[0])...)
+		policyExceptions = append(policyExceptions,
+			policyExceptionTable(policyExceptionResponse.Data, args[0])...)
 	}
 
 	if cli.JSONOutput() {
@@ -140,11 +139,13 @@ func listPolicyExceptions(_ *cobra.Command, args []string) error {
 
 func showPolicyException(_ *cobra.Command, args []string) error {
 	var policyException api.PolicyExceptionResponse
-	cli.StartProgress(" Fetching policy exception...")
+	cli.StartProgress(fmt.Sprintf(
+		"Fetching policy exception '%s' from policy '%s'...", args[0], args[1],
+	))
 	err := cli.LwApi.V2.Policy.Exceptions.Get(args[0], args[1], &policyException)
 	cli.StopProgress()
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("unable to fetch policy exception for id %s", args[0]))
+		return errors.Wrapf(err, "unable to fetch policy exception for id %s", args[0])
 	}
 
 	if cli.JSONOutput() {
@@ -156,14 +157,16 @@ func showPolicyException(_ *cobra.Command, args []string) error {
 }
 
 func deletePolicyException(_ *cobra.Command, args []string) error {
-	cli.StartProgress(" Deleting policy exception...")
+	cli.StartProgress(fmt.Sprintf(
+		"Deleting policy exception '%s' from policy '%s'...", args[0], args[1],
+	))
 	err := cli.LwApi.V2.Policy.Exceptions.Delete(args[0], args[1])
 	cli.StopProgress()
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("unable to remove policy exception for id %s", args[0]))
+		return errors.Wrapf(err, "unable to remove policy exception for id %s", args[0])
 	}
 
-	cli.OutputHuman("Policy Exception %s %s deleted\n", args[0], args[1])
+	cli.OutputHuman("Policy exception '%s' deleted from policy '%s'\n", args[0], args[1])
 	return nil
 }
 
@@ -174,7 +177,10 @@ func createPolicyException(_ *cobra.Command, args []string) error {
 		return errors.Wrap(err, "unable to create policy exception")
 	}
 
-	cli.OutputHuman("New Policy Exception %s %s created \n", policyID, res.Data.ExceptionID)
+	cli.OutputHuman(
+		"The policy exception '%s' was created for policy '%s' \n",
+		res.Data.ExceptionID, policyID,
+	)
 	return nil
 }
 
@@ -189,11 +195,11 @@ func promptCreatePolicyException(args []string) (api.PolicyExceptionResponse, st
 	if len(args) > 0 {
 		policy, err = cli.LwApi.V2.Policy.Get(args[0])
 		if err != nil {
-			return api.PolicyExceptionResponse{}, "", errors.Wrap(err, fmt.Sprintf("invalid policy id %s", args[0]))
+			return api.PolicyExceptionResponse{}, "", errors.Wrapf(err, "invalid policy id %s", args[0])
 		}
 		policyID = policy.Data.PolicyID
 	} else {
-		cli.StartProgress(" Retrieving list of policies...")
+		cli.StartProgress("Retrieving list of policies...")
 		policies, err := cli.LwApi.V2.Policy.List()
 		cli.StopProgress()
 		if err != nil {
@@ -210,7 +216,7 @@ func promptCreatePolicyException(args []string) (api.PolicyExceptionResponse, st
 		}
 		policy, err = cli.LwApi.V2.Policy.Get(policyID)
 		if err != nil {
-			return api.PolicyExceptionResponse{}, "", errors.Wrap(err, fmt.Sprintf("invalid policy id %s", policyID))
+			return api.PolicyExceptionResponse{}, "", errors.Wrapf(err, "invalid policy id %s", policyID)
 		}
 	}
 
@@ -251,7 +257,7 @@ func promptCreatePolicyException(args []string) (api.PolicyExceptionResponse, st
 	}
 	exception := api.PolicyException{Description: answers.Description, Constraints: constraints}
 
-	cli.StartProgress(" Creating policy exception ...")
+	cli.StartProgress("Creating policy exception ...")
 	response, err := cli.LwApi.V2.Policy.Exceptions.Create(policyID, exception)
 
 	cli.StopProgress()
@@ -403,7 +409,7 @@ func promptAddExceptionConstraintAwsAccountsList() ([]any, error) {
 		fieldValues []string
 	)
 
-	cli.StartProgress(" Retrieving aws accounts...")
+	cli.StartProgress("Retrieving aws accounts...")
 	accountIds, err := cli.LwApi.Integrations.AwsAccountIDs()
 	cli.StopProgress()
 	if err != nil {
