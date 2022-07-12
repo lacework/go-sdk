@@ -380,6 +380,7 @@ func TestPolicyUpdateEditor(t *testing.T) {
 	// update
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "update", "lacework-global-39")
 
+	assert.Contains(t, out.String(), "Retrieving policy 'lacework-global-39'...")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
 	assert.Contains(t, err.String(), "ERROR unable to update policy:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
@@ -389,7 +390,10 @@ func TestPolicyUpdateEditorNoID(t *testing.T) {
 	// update
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "update")
 
-	assert.Contains(t, out.String(), "Retrieving policy  ...")
+	// we retrieve all policies so that the customer can select one
+	assert.Contains(t, out.String(), "Retrieving policies...")
+	// show a select menu
+	assert.Contains(t, out.String(), "Select policy to update")
 	assert.Contains(t, err.String(), "ERROR unable to update policy:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }

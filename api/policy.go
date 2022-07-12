@@ -145,23 +145,23 @@ func ParseUpdatePolicy(s string) (UpdatePolicy, error) {
 }
 
 type Policy struct {
-	EvaluatorID    string   `json:"evaluatorId"`
-	PolicyID       string   `json:"policyId"`
-	PolicyType     string   `json:"policyType"`
-	QueryID        string   `json:"queryId"`
-	Title          string   `json:"title"`
-	Enabled        bool     `json:"enabled"`
-	Description    string   `json:"description"`
-	Remediation    string   `json:"remediation"`
-	Severity       string   `json:"severity"`
-	Limit          int      `json:"limit"`
-	EvalFrequency  string   `json:"evalFrequency"`
-	AlertEnabled   bool     `json:"alertEnabled"`
-	AlertProfile   string   `json:"alertProfile"`
-	Tags           []string `json:"tags"`
-	Owner          string   `json:"owner"`
-	LastUpdateTime string   `json:"lastUpdateTime"`
-	LastUpdateUser string   `json:"lastUpdateUser"`
+	EvaluatorID    string   `json:"evaluatorId" yaml:"evaluatorId"`
+	PolicyID       string   `json:"policyId" yaml:"policyId"`
+	PolicyType     string   `json:"policyType" yaml:"-"`
+	QueryID        string   `json:"queryId" yaml:"queryId"`
+	Title          string   `json:"title" yaml:"title"`
+	Enabled        bool     `json:"enabled" yaml:"enabled"`
+	Description    string   `json:"description" yaml:"description"`
+	Remediation    string   `json:"remediation" yaml:"remediation"`
+	Severity       string   `json:"severity" yaml:"severity"`
+	Limit          int      `json:"limit" yaml:"limit"`
+	EvalFrequency  string   `json:"evalFrequency" yaml:"evalFrequency"`
+	AlertEnabled   bool     `json:"alertEnabled" yaml:"alertEnabled"`
+	AlertProfile   string   `json:"alertProfile" yaml:"alertProfile"`
+	Tags           []string `json:"tags" yaml:"tags"`
+	Owner          string   `json:"owner" yaml:"-"`
+	LastUpdateTime string   `json:"lastUpdateTime" yaml:"-"`
+	LastUpdateUser string   `json:"lastUpdateUser" yaml:"-"`
 }
 
 func (p *Policy) HasTag(t string) bool {

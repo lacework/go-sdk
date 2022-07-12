@@ -1,4 +1,4 @@
-Show details about a single policy.
+Show details about the provided policy ID.
 
 Usage:
   lacework policy show <policy_id> [flags]

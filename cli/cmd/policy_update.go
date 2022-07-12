@@ -101,7 +101,7 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 		policyID     string
 	)
 
-	if len(args) != 0 {
+	if len(args) != 0 && len(args[0]) != 0 {
 		policyID = args[0]
 	}
 	// input policy
@@ -116,12 +116,12 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
-	// set policy id
-	if len(args) != 0 {
+	// set policy id if not already set
+	if policyID != "" && updatePolicy.PolicyID == "" {
 		updatePolicy.PolicyID = policyID
 	}
 
-	cli.StartProgress(" Updating policy...")
+	cli.StartProgress("Updating policy...")
 	updateResponse, err := cli.LwApi.V2.Policy.Update(updatePolicy)
 	cli.StopProgress()
 
@@ -130,7 +130,7 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 	}
 	// if updating policy from library also update query
 	if policyCmdState.CUFromLibrary != "" {
-		cli.StartProgress(" Updating query...")
+		cli.StartProgress("Updating query...")
 		err = updateQueryFromLibrary(updatePolicy.QueryID)
 		cli.StopProgress()
 

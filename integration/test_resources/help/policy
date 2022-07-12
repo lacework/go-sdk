@@ -37,11 +37,11 @@ Aliases:
 Available Commands:
   create      Create a policy
   delete      Delete a policy
-  disable     Disable Policies
-  enable      Enable Policies
-  list        List policies
+  disable     Disable policies
+  enable      Enable policies
+  list        List all policies
   list-tags   List policy tags
-  show        Show policy
+  show        Show details about a policy
   update      Update a policy
 
 Flags:
