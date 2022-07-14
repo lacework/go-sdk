@@ -23,6 +23,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/fatih/color"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -241,6 +242,8 @@ func initConfig() {
 	if viper.GetBool("nocolor") {
 		cli.Log.Info("turning off colors")
 		cli.JsonF.DisabledColor = true
+		color.NoColor = true
+		os.Setenv("NO_COLOR", "true")
 	}
 
 	if viper.GetBool("noninteractive") {

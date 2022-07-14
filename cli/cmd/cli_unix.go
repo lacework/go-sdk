@@ -24,6 +24,7 @@ import (
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/fatih/color"
 )
 
 // used by configure.go
@@ -33,6 +34,12 @@ var configureListCmdSetProfileEnv = `export LW_PROFILE="my-profile"`
 var promptIconsFunc = func(icons *survey.IconSet) {
 	icons.Question.Text = "▸"
 }
+
+// A variety of colorized icons used throughout the code
+var (
+	successIcon = color.HiGreenString("✓")
+	failureIcon = color.HiRedString("✖") //nolint
+)
 
 // Env variables found in GCP, AWS and Azure cloudshell.
 // Used to determine if cli is running on cloudshell.

@@ -40,14 +40,20 @@ func (c *cliState) OutputJSON(v interface{}) error {
 	return nil
 }
 
+// OutputChecklist prints out a message with an icon formatted as a checklist,
+// note that all strings should come already colorized
+func (c *cliState) OutputChecklist(icon, message string, a ...interface{}) {
+	c.OutputHuman(fmt.Sprintf(" [%s] %s", icon, message), a...)
+}
+
 // OutputHuman will print out the provided message if the cli state is
 // configured to talk to humans, to switch to json format use --json
 func (c *cliState) OutputHuman(format string, a ...interface{}) {
 	if c.HumanOutput() {
 		if len(a) == 0 {
-			fmt.Fprint(os.Stdout, format)
+			fmt.Fprint(color.Output, format)
 		} else {
-			fmt.Fprintf(os.Stdout, format, a...)
+			fmt.Fprintf(color.Output, format, a...)
 		}
 	}
 }

@@ -22,6 +22,7 @@ import (
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/fatih/color"
 )
 
 // used by configure.go
@@ -31,6 +32,12 @@ var configureListCmdSetProfileEnv = `$env:LW_PROFILE = 'my-profile'`
 var promptIconsFunc = func(icons *survey.IconSet) {
 	icons.Question.Text = ">"
 }
+
+// A variety of colorized icons used throughout the code
+var (
+	successIcon = color.HiGreenString("√")
+	failureIcon = color.HiRedString("×") //nolint
+)
 
 // UpdateCommand returns the command that a user should run to update the cli
 // to the latest available version (windows specific command)
