@@ -169,7 +169,9 @@ func (c *cliState) LoadComponents() {
 	}
 }
 func runComponentsList(_ *cobra.Command, _ []string) (err error) {
+	cli.StartProgress("Loading components state...")
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
+	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to list components")
 		return
@@ -223,8 +225,10 @@ func componentsToTable() [][]string {
 }
 
 func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
+	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
+	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to load components")
 		return
@@ -264,8 +268,10 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 }
 
 func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
+	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
+	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to load components")
 		return
@@ -327,9 +333,11 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 }
 
 func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
+	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired
 	// @afiune DO WE NEED THIS? It should already be loaded
 	cli.LwComponents, err = lwcomponent.LocalState()
+	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to load components")
 		return
