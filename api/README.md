@@ -57,4 +57,4 @@ func main() {
 }
 ```
 
-Look at the [examples/](examples/) folder for more examples.
+Look at the [_examples/](_examples/) folder for more examples.
