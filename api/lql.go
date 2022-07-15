@@ -29,9 +29,8 @@ import (
 )
 
 type NewQuery struct {
-	QueryID     string `json:"queryId" yaml:"queryId"`
-	QueryText   string `json:"queryText" yaml:"queryText"`
-	EvaluatorID string `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
+	QueryID   string `json:"queryId" yaml:"queryId"`
+	QueryText string `json:"queryText" yaml:"queryText"`
 }
 
 func ParseNewQuery(s string) (NewQuery, error) {
@@ -61,7 +60,6 @@ type UpdateQuery struct {
 type Query struct {
 	QueryID        string                   `json:"queryId" yaml:"queryId"`
 	QueryText      string                   `json:"queryText" yaml:"queryText"`
-	EvaluatorID    string                   `json:"evaluatorId" yaml:"evaluatorId"`
 	Owner          string                   `json:"owner"`
 	LastUpdateTime string                   `json:"lastUpdateTime"`
 	LastUpdateUser string                   `json:"lastUpdateUser"`

@@ -516,8 +516,7 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 	// execute query
 	executeQuery := api.ExecuteQueryRequest{
 		Query: api.ExecuteQuery{
-			QueryText:   newQuery.QueryText,
-			EvaluatorID: newQuery.EvaluatorID,
+			QueryText: newQuery.QueryText,
 		},
 		Arguments: args,
 	}

@@ -89,9 +89,8 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 		}
 
 		queryYaml, err := yaml.Marshal(&api.NewQuery{
-			QueryID:     queryRes.Data.QueryID,
-			QueryText:   queryRes.Data.QueryText,
-			EvaluatorID: queryRes.Data.EvaluatorID,
+			QueryID:   queryRes.Data.QueryID,
+			QueryText: queryRes.Data.QueryText,
 		})
 		if err != nil {
 			return errors.Wrap(err, msg)
