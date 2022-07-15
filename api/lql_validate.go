@@ -19,8 +19,7 @@
 package api
 
 type ValidateQuery struct {
-	QueryText   string `json:"queryText"`
-	EvaluatorID string `json:"evaluatorId,omitempty"`
+	QueryText string `json:"queryText"`
 }
 
 func (svc *QueryService) Validate(vq ValidateQuery) (
