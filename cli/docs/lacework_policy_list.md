@@ -6,11 +6,11 @@ hide_title: true
 
 ## lacework policy list
 
-List policies
+List all policies
 
 ### Synopsis
 
-List all the registered policies in your Lacework account.
+List all registered policies in your Lacework account.
 
 ```
 lacework policy list [flags]
