@@ -52,6 +52,7 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework event](lacework_event.md)	 - Inspect Lacework events
 * [lacework integration](lacework_integration.md)	 - Manage external integrations
 * [lacework policy](lacework_policy.md)	 - Manage policies
+* [lacework policy-exception](lacework_policy-exception.md)	 - Manage policy exceptions
 * [lacework query](lacework_query.md)	 - Run and manage queries
 * [lacework report-rule](lacework_report-rule.md)	 - Manage report rules
 * [lacework resource-group](lacework_resource-group.md)	 - Manage resource groups

@@ -6,11 +6,11 @@ hide_title: true
 
 ## lacework policy show
 
-Show policy
+Show details about a policy
 
 ### Synopsis
 
-Show details about a single policy.
+Show details about the provided policy ID.
 
 ```
 lacework policy show <policy_id> [flags]
