@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -168,7 +169,9 @@ func (c *cliState) LoadComponents() {
 	}
 }
 func runComponentsList(_ *cobra.Command, _ []string) (err error) {
+	cli.StartProgress("Loading components state...")
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
+	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to list components")
 		return
@@ -201,8 +204,18 @@ func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 func componentsToTable() [][]string {
 	out := [][]string{}
 	for _, cdata := range cli.LwComponents.Components {
+		var colorize *color.Color
+		switch cdata.Status() {
+		case lwcomponent.NotInstalled:
+			colorize = color.New(color.FgWhite, color.Bold)
+		case lwcomponent.Installed:
+			colorize = color.New(color.FgGreen, color.Bold)
+		case lwcomponent.UpdateAvailable:
+			colorize = color.New(color.FgYellow, color.Bold)
+		}
+
 		out = append(out, []string{
-			cdata.Status().String(),
+			colorize.Sprintf(cdata.Status().String()),
 			cdata.Name,
 			cdata.LatestVersion.String(),
 			cdata.Description,
@@ -212,8 +225,10 @@ func componentsToTable() [][]string {
 }
 
 func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
+	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
+	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to load components")
 		return
@@ -232,9 +247,10 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 		err = errors.Wrap(err, "unable to install component")
 		return
 	}
+	cli.OutputChecklist(successIcon, "Component %s installed\n", color.HiYellowString(component.Name))
+	cli.OutputChecklist(successIcon, "Signature verified\n")
 
 	cli.StartProgress(fmt.Sprintf("Configuring component %s...", component.Name))
-
 	// component life cycle: initialize
 	stdout, stderr, errCmd := component.RunAndReturn([]string{"cdk-init"}, nil, cli.envs()...)
 	if errCmd != nil {
@@ -243,15 +259,19 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 	} else {
 		cli.Log.Infow("component life cycle", "stdout", stdout, "stderr", stderr)
 	}
-
 	cli.StopProgress()
-	cli.OutputHuman("The component %s was installed.\n", args[0])
+
+	cli.OutputChecklist(successIcon, "Component configured\n")
+	cli.OutputHuman("\nInstallation completed.\n")
+	// @afiune print breadcrumbs of what to do with this component
 	return
 }
 
 func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
+	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
+	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to load components")
 		return
@@ -275,6 +295,11 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 		return nil
 	}
 
+	currentVersion, err := component.CurrentVersion()
+	if err != nil {
+		return err
+	}
+
 	cli.StartProgress(fmt.Sprintf("Updating component %s...", component.Name))
 	err = cli.LwComponents.Install(args[0])
 	cli.StopProgress()
@@ -282,15 +307,37 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 		err = errors.Wrap(err, "unable to update component")
 		return
 	}
+	cli.OutputChecklist(successIcon, "Component %s updated to %s\n",
+		color.HiYellowString(component.Name),
+		color.HiCyanString(fmt.Sprintf("v%s", component.LatestVersion.String())))
+	cli.OutputChecklist(successIcon, "Signature verified\n")
 
-	cli.OutputHuman("The component %s was updated.\n", args[0])
+	cli.StartProgress(fmt.Sprintf("Reconfiguring %s component...", component.Name))
+	// component life cycle: reconfigure
+	stdout, stderr, errCmd := component.RunAndReturn(
+		[]string{"cdk-reconfigure", currentVersion.String(), component.LatestVersion.String()},
+		nil, cli.envs()...)
+	if errCmd != nil {
+		cli.Log.Warnw("component life cycle",
+			"error", errCmd.Error(), "stdout", stdout, "stderr", stderr)
+	} else {
+		cli.Log.Infow("component life cycle", "stdout", stdout, "stderr", stderr)
+	}
+	cli.StopProgress()
+
+	cli.OutputChecklist(successIcon, "Component reconfigured\n")
+	cli.OutputHuman("\nUpdate completed.\n")
+	// @afiune display update breadcrumbs
+	// maybe tell the user whats new on this version?
 	return
 }
 
 func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
+	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired
 	// @afiune DO WE NEED THIS? It should already be loaded
 	cli.LwComponents, err = lwcomponent.LocalState()
+	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to load components")
 		return
@@ -310,6 +357,19 @@ func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
 		return
 	}
 
+	cli.StartProgress("Cleaning component data...")
+	// component life cycle: remove
+	stdout, stderr, errCmd := component.RunAndReturn([]string{"cdk-remove"}, nil, cli.envs()...)
+	if errCmd != nil {
+		cli.Log.Warnw("component life cycle",
+			"error", errCmd.Error(), "stdout", stdout, "stderr", stderr)
+	} else {
+		cli.Log.Infow("component life cycle", "stdout", stdout, "stderr", stderr)
+	}
+	cli.StopProgress()
+
+	cli.OutputChecklist(successIcon, "Component data removed\n")
+
 	cli.StartProgress("Deleting component...")
 	defer cli.StopProgress()
 
@@ -326,6 +386,10 @@ func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
 	}
 
 	cli.StopProgress()
-	cli.OutputHuman("The component %s was deleted.\n", args[0])
+
+	cli.OutputChecklist(successIcon, "Component %s deleted\n", color.HiYellowString(component.Name))
+	cli.OutputHuman("\n- We will do better next time.\n")
+	cli.OutputHuman("\nDo you want to provide feedback?\n")
+	cli.OutputHuman("Reach out to us at %s\n", color.HiCyanString("support@lacework.net"))
 	return
 }
