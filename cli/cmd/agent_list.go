@@ -54,7 +54,7 @@ You can use 'key:value' pairs to filter the list of hosts with the --filter flag
 The available keys for this command are:
 ` + stringSliceToMarkdownList(
 			agentListCmdState.AvailableFilters.GetFiltersFrom(
-				api.MachineDetailEntity{},
+				api.AgentInfo{},
 			),
 		),
 		PreRunE: func(_ *cobra.Command, _ []string) error {
@@ -73,7 +73,7 @@ func init() {
 func listAgents(_ *cobra.Command, _ []string) error {
 	var (
 		progressMsg = "Fetching list of agents"
-		response    = &api.MachineDetailsEntityResponse{}
+		response    = &api.AgentInfoResponse{}
 		now         = time.Now().UTC().Add(-1 * time.Minute)
 		before      = now.AddDate(0, 0, -7) // 7 days from ago
 		filters     = api.SearchFilter{
@@ -117,20 +117,20 @@ func listAgents(_ *cobra.Command, _ []string) error {
 	}
 
 	cli.StartProgress(fmt.Sprintf("%s...", progressMsg))
-	err := cli.LwApi.V2.Entities.Search(response, filters)
+	err := cli.LwApi.V2.AgentAccessTokens.Search(response, filters)
 	cli.StopProgress()
 	if err != nil {
 		if strings.Contains(err.Error(), "Invalid field") {
 			return errors.Errorf("the provided filter key is invalid.\n\nThe available keys for this command are:\n%s",
 				stringSliceToMarkdownList(agentListCmdState.AvailableFilters.Filters))
 		}
-		return errors.Wrap(err, "unable to list agents via MachineDetails search")
+		return errors.Wrap(err, "unable to list agents via AgentInfo search")
 	}
 
 	if response.Paging.Urls.NextPage != "" {
 		totalPages := response.Paging.TotalRows / response.Paging.Rows
 
-		all := []api.MachineDetailEntity{}
+		all := []api.AgentInfo{}
 		page := 0
 		for {
 			all = append(all, response.Data...)
@@ -175,15 +175,15 @@ func listAgents(_ *cobra.Command, _ []string) error {
 
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"MID", "Short Agent Token", "Hostname", "Name", "IP Address", "External IP", "OS Arch", "Last Checkin"},
-			machineDetailsToListAgentTable(machines),
+			[]string{"MID", "Short Agent Token", "Hostname", "Name", "Status", "IP Address", "External IP", "OS Arch", "Last Checkin"},
+			agentInfoToListAgentTable(machines),
 		),
 	)
 	return nil
 }
 
-func cleanDuplicateMachine(machines []api.MachineDetailEntity) []api.MachineDetailEntity {
-	var cleanedMachines []api.MachineDetailEntity
+func cleanDuplicateMachine(machines []api.AgentInfo) []api.AgentInfo {
+	var cleanedMachines []api.AgentInfo
 
 	for _, m := range machines {
 		if machineExist(cleanedMachines, m.Mid) {
@@ -195,7 +195,7 @@ func cleanDuplicateMachine(machines []api.MachineDetailEntity) []api.MachineDeta
 	return cleanedMachines
 }
 
-func machineExist(machines []api.MachineDetailEntity, mid int) bool {
+func machineExist(machines []api.AgentInfo, mid int) bool {
 	for _, m := range machines {
 		if mid == m.Mid {
 			return true
@@ -204,7 +204,7 @@ func machineExist(machines []api.MachineDetailEntity, mid int) bool {
 	return false
 }
 
-func machineDetailsToListAgentTable(machines []api.MachineDetailEntity) [][]string {
+func agentInfoToListAgentTable(machines []api.AgentInfo) [][]string {
 	out := [][]string{}
 	for _, m := range machines {
 		out = append(out, []string{
@@ -212,6 +212,7 @@ func machineDetailsToListAgentTable(machines []api.MachineDetailEntity) [][]stri
 			m.Tags.LwTokenShort,
 			m.Hostname,
 			m.Tags.Name,
+			m.Status,
 			m.Tags.InternalIP,
 			m.Tags.ExternalIP,
 			fmt.Sprintf("%s/%s", m.Tags.Os, m.Tags.Arch),
