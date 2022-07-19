@@ -46,7 +46,6 @@ func NewV2PolicyService(c *Client) *PolicyService {
 var ValidPolicySeverities = []string{"critical", "high", "medium", "low", "info"}
 
 type NewPolicy struct {
-	EvaluatorID   string   `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
 	PolicyID      string   `json:"policyId,omitempty" yaml:"policyId,omitempty" `
 	PolicyType    string   `json:"policyType" yaml:"policyType"`
 	QueryID       string   `json:"queryId" yaml:"queryId"`
@@ -98,7 +97,6 @@ This would prevent someone from toggling something to disabled or 0 respectively
 As such we are using pointers instead of primitives for booleans and integers in this struct
 */
 type UpdatePolicy struct {
-	EvaluatorID   string   `json:"evaluatorId,omitempty" yaml:"evaluatorId,omitempty"`
 	PolicyID      string   `json:"policyId,omitempty" yaml:"policyId,omitempty"`
 	PolicyType    string   `json:"policyType,omitempty" yaml:"policyType,omitempty"`
 	QueryID       string   `json:"queryId,omitempty" yaml:"queryId,omitempty"`
@@ -145,7 +143,6 @@ func ParseUpdatePolicy(s string) (UpdatePolicy, error) {
 }
 
 type Policy struct {
-	EvaluatorID    string   `json:"evaluatorId" yaml:"evaluatorId"`
 	PolicyID       string   `json:"policyId" yaml:"policyId"`
 	PolicyType     string   `json:"policyType" yaml:"-"`
 	QueryID        string   `json:"queryId" yaml:"queryId"`
