@@ -98,8 +98,6 @@ Function Install-Lacework-CLI {
     $exe = (Get-ChildItem (Join-Path ($workdir) "bin"))
     Copy-Item "$($exe.FullName)" $laceworkPath -Force
     $env:PATH = New-PathString -StartingPath $env:PATH -Path $laceworkPath
-    $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
-    $machinePath = New-PathString -StartingPath $machinePath -Path $laceworkPath
 
     $isAdmin = $false
     try {
@@ -107,9 +105,13 @@ Function Install-Lacework-CLI {
         $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     } finally {
         if ($isAdmin) {
+            $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
+            $machinePath = New-PathString -StartingPath $machinePath -Path $laceworkPath
             [System.Environment]::SetEnvironmentVariable("PATH", $machinePath, "Machine")
         } else {
-            [System.Environment]::SetEnvironmentVariable("PATH", $machinePath, "User")
+            $userPath = [System.Environment]::GetEnvironmentVariable("PATH", "User")
+            $userPath = New-PathString -StartingPath $userPath -Path $laceworkPath
+            [System.Environment]::SetEnvironmentVariable("PATH", $userPath, "User")
         }
     }
 }
