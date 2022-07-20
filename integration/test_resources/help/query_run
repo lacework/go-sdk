@@ -36,6 +36,7 @@ Flags:
       --fail_on_count string   fail if the results from a query match the provided expression
   -f, --file string            path to a query to run
   -h, --help                   help for run
+      --limit int              result limit for query (default 0)
       --range string           natural time range for query
       --start string           start time for query (default "-24h")
   -u, --url string             url to a query to run

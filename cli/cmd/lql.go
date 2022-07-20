@@ -40,6 +40,7 @@ var (
 	queryCmdState = struct {
 		End          string
 		File         string
+		Limit        int
 		Range        string
 		Start        string
 		URL          string
@@ -119,6 +120,11 @@ Start and End times are required to run a query:
     B. JSON specifications take precedence over ParamInfo specifications  `,
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(_ *cobra.Command, _ []string) error {
+			// default is 0 hence the '< 0' comparison
+			if queryCmdState.Limit < 0 {
+				return errors.New("limit must be at least 1")
+			}
+
 			if queryCmdState.FailOnCount != "" {
 				var co failon.CountOperation
 				if err := co.Parse(queryCmdState.FailOnCount); err != nil {
@@ -153,34 +159,41 @@ func init() {
 	// run specific flags
 	setQuerySourceFlags(queryRunCmd)
 
-	// since time flag
-	queryRunCmd.Flags().StringVarP(
+	// limit flag
+	queryRunCmd.Flags().IntVar(
+		&queryCmdState.Limit,
+		"limit", 0,
+		"result limit for query (default 0)",
+	)
+
+	// range time flag
+	queryRunCmd.Flags().StringVar(
 		&queryCmdState.Range,
-		"range", "", "",
+		"range", "",
 		"natural time range for query",
 	)
 
 	// start time flag
-	queryRunCmd.Flags().StringVarP(
+	queryRunCmd.Flags().StringVar(
 		&queryCmdState.Start,
-		"start", "", "-24h",
+		"start", "-24h",
 		"start time for query",
 	)
 	// end time flag
-	queryRunCmd.Flags().StringVarP(
+	queryRunCmd.Flags().StringVar(
 		&queryCmdState.End,
-		"end", "", "now",
+		"end", "now",
 		"end time for query",
 	)
-	queryRunCmd.Flags().BoolVarP(
+	queryRunCmd.Flags().BoolVar(
 		&queryCmdState.ValidateOnly,
-		"validate_only", "", false,
+		"validate_only", false,
 		"validate query only (do not run)",
 	)
 	// fail on count
-	queryRunCmd.Flags().StringVarP(
+	queryRunCmd.Flags().StringVar(
 		&queryCmdState.FailOnCount,
-		"fail_on_count", "", "",
+		"fail_on_count", "",
 		"fail if the results from a query match the provided expression",
 	)
 }
@@ -433,11 +446,11 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	}
 
 	queryArgs := []api.ExecuteQueryArgument{
-		api.ExecuteQueryArgument{
+		{
 			Name:  api.QueryStartTimeRange,
 			Value: start.UTC().Format(lwtime.RFC3339Milli),
 		},
-		api.ExecuteQueryArgument{
+		{
 			Name:  api.QueryEndTimeRange,
 			Value: end.UTC().Format(lwtime.RFC3339Milli),
 		},
@@ -487,8 +500,15 @@ func runQueryByID(id string, args []api.ExecuteQueryArgument) (
 	cli.StartProgress(getRunStartProgressMessage(args))
 	defer cli.StopProgress()
 
+	opts := api.ExecuteQueryOptions{}
+	// only add limit if > 0
+	if queryCmdState.Limit > 0 {
+		opts.Limit = &queryCmdState.Limit
+	}
+
 	request := api.ExecuteQueryByIDRequest{
 		QueryID:   id,
+		Options:   opts,
 		Arguments: args,
 	}
 	return cli.LwApi.V2.Query.ExecuteByID(request)
@@ -510,6 +530,12 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 		return
 	}
 
+	opts := api.ExecuteQueryOptions{}
+	// only add limit if > 0
+	if queryCmdState.Limit > 0 {
+		opts.Limit = &queryCmdState.Limit
+	}
+
 	cli.StartProgress(getRunStartProgressMessage(args))
 	defer cli.StopProgress()
 
@@ -518,6 +544,7 @@ func runAdhocQuery(cmd *cobra.Command, args []api.ExecuteQueryArgument) (
 		Query: api.ExecuteQuery{
 			QueryText: newQuery.QueryText,
 		},
+		Options:   opts,
 		Arguments: args,
 	}
 
