@@ -148,18 +148,18 @@ func TestQueryRunFile(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 
 	// run (explicit times / options)
-	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
-		"query", "run", "-f", file.Name(), "--start", queryStart, "--end", queryEnd, "--limit", 1, "--json")
-	assert.Contains(t, out.String(), `"INSERT_ID"`)
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig(
+		"query", "run", "-f", file.Name(), "--start", queryStart, "--end", queryEnd, "--limit", "1", "--json")
 
 	// check limit
 	var results []interface{}
-	err := json.Unmarshal(out.String(), &results)
+	err = json.Unmarshal(out.Bytes(), &results)
 	if err != nil {
 		assert.FailNow(t, err.Error())
 	}
 	assert.Equal(t, 1, len(results))
 
+	assert.Contains(t, out.String(), `"INSERT_ID"`)
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
