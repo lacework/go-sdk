@@ -103,20 +103,19 @@ Start and End times are required to run a query:
 
 1.  Start and End times must be specified in one of the following formats:
 
-    A. A relative time specifier  
-    B. RFC3339 Date and Time  
-    C. Epoch time in milliseconds  
+    A. A relative time specifier
+    B. RFC3339 Date and Time
+    C. Epoch time in milliseconds
 
 2. Start and End times must be specified in one of the following ways:
 
-    A. As StartTimeRange and EndTimeRange in the ParamInfo block within the query  
-    B. As start_time_range and end_time_range if specifying JSON  
-    C. As --start and --end CLI flags  
+    A. As StartTimeRange and EndTimeRange in the ParamInfo block within the query
+    B. As start_time_range and end_time_range if specifying JSON
+    C. As --start and --end CLI flags
 
 3. Start and End time precedence:
 
-    A. CLI flags take precedence over JSON specifications  
-    B. JSON specifications take precedence over ParamInfo specifications  `,
+    A. CLI flags take precedence over JSON specifications`,
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			if queryCmdState.FailOnCount != "" {
@@ -181,7 +180,7 @@ func init() {
 	queryRunCmd.Flags().StringVarP(
 		&queryCmdState.FailOnCount,
 		"fail_on_count", "", "",
-		"fail if the results from a query match the provided expression",
+		"fail if the results from a query match the provided expression (e.g. '>0')",
 	)
 }
 
