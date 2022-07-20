@@ -96,8 +96,15 @@ Function Install-Lacework-CLI {
     $laceworkPath = Join-Path $env:ProgramData Lacework
     if (-not (Test-Path $laceworkPath)) { New-Item $laceworkPath -ItemType Directory | Out-Null }
     $exe = (Get-ChildItem (Join-Path ($workdir) "bin"))
-    Copy-Item "$($exe.FullName)" $laceworkPath -Force
     $env:PATH = New-PathString -StartingPath $env:PATH -Path $laceworkPath
+
+    try {
+        Copy-Item "$($exe.FullName)" $laceworkPath -Force
+    }
+    catch {
+        $exeOwner = Get-Acl (Join-Path $laceworkPath "lacework.exe") | Select-Object Owner
+        Write-Error "Unable to install the Lacework CLI. The executable is owned by $exeOwner"
+    }
 
     $isAdmin = $false
     try {
@@ -122,8 +129,7 @@ Function New-PathString([string]$StartingPath, [string]$Path) {
             [string[]]$PathCollection = "$path;$StartingPath" -split ';'
             $Path = ($PathCollection |
                     Select-Object -Unique |
-                    Where-Object {-not [string]::IsNullOrEmpty($_.trim())} |
-                    Where-Object {Test-Path "$_"}
+                    Where-Object {-not [string]::IsNullOrEmpty($_.trim())}
             ) -join ';'
         }
         $path
