@@ -109,16 +109,19 @@ Function Assert-Shasum($archive)
 Function Install-Lacework-CLI
 {
     $laceworkPath = Join-Path $env:ProgramData Lacework
-    if (Test-Path $laceworkPath)
-    {
-        Remove-Item $laceworkPath -Recurse -Force
-    }
-    New-Item $laceworkPath -ItemType Directory | Out-Null
+    if (-not (Test-Path $laceworkPath)) { New-Item $laceworkPath -ItemType Directory | Out-Null }
     $exe = (Get-ChildItem (Join-Path ($workdir) "bin"))
-    Copy-Item "$( $exe.FullName )" $laceworkPath
     $env:PATH = New-PathString -StartingPath $env:PATH -Path $laceworkPath
-    $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
-    $machinePath = New-PathString -StartingPath $machinePath -Path $laceworkPath
+
+    try
+    {
+        Copy-Item "$($exe.FullName)" $laceworkPath -Force
+    }
+    catch
+    {
+        $exeOwner = Get-Acl (Join-Path $laceworkPath "lacework.exe") | Select-Object Owner
+        Write-Error "Unable to install the Lacework CLI. The executable is owned by $exeOwner"
+    }
 
     $isAdmin = $false
     try
@@ -130,16 +133,23 @@ Function Install-Lacework-CLI
     {
         if ($isAdmin)
         {
+            $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
+            $machinePath = New-PathString -StartingPath $machinePath -Path $laceworkPath
             [System.Environment]::SetEnvironmentVariable("PATH", $machinePath, "Machine")
+
+            ## Set Chocolatey environment variable
+            [System.Environment]::SetEnvironmentVariable("LW_CHOCOLATEY_INSTALL", 1, "Machine")
         }
         else
         {
-            [System.Environment]::SetEnvironmentVariable("PATH", $machinePath, "User")
+            $userPath = [System.Environment]::GetEnvironmentVariable("PATH", "User")
+            $userPath = New-PathString -StartingPath $userPath -Path $laceworkPath
+            [System.Environment]::SetEnvironmentVariable("PATH", $userPath, "User")
+
+            ## Set Chocolatey environment variable
+            [System.Environment]::SetEnvironmentVariable("LW_CHOCOLATEY_INSTALL", 1, "Machine")
         }
     }
-
-    ## set Chocolatey env var
-    [System.Environment]::SetEnvironmentVariable("LW_CHOCOLATEY_INSTALL", 1, "Machine")
 }
 
 Function New-PathString([string]$StartingPath, [string]$Path)
@@ -151,8 +161,7 @@ Function New-PathString([string]$StartingPath, [string]$Path)
             [string[]]$PathCollection = "$path;$StartingPath" -split ';'
             $Path = ($PathCollection |
                     Select-Object -Unique |
-                    Where-Object { -not [string]::IsNullOrEmpty($_.trim()) } |
-                    Where-Object { Test-Path "$_" }
+                    Where-Object { -not [string]::IsNullOrEmpty($_.trim()) }
             ) -join ';'
         }
         $path
