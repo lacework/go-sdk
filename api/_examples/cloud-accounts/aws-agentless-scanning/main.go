@@ -26,7 +26,7 @@ func main() {
 	for _, account := range res.Data {
 		support := "Unsupported"
 		switch account.Type {
-		case api.awsSidekickCloudAccount.String():
+		case api.AwsSidekickCloudAccount.String():
 			support = "Supported"
 		}
 
@@ -41,8 +41,8 @@ func main() {
 	}
 
 	awsAgentlessScanningAccount := api.NewCloudAccount(
-		fmt.Sprintf("%s-from-golang", api.awsSidekickCloudAccount.String()),
-		api.awsSidekickCloudAccount,
+		fmt.Sprintf("%s-from-golang", api.AwsSidekickCloudAccount.String()),
+		api.AwsSidekickCloudAccount,
 		awsAgentlessScanningData,
 	)
 
