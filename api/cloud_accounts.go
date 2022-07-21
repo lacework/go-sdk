@@ -87,7 +87,7 @@ const (
 	AwsCfgCloudAccount
 	AwsCtSqsCloudAccount
 	AwsEksAuditCloudAccount
-	AwsAgentlessScanningCloudAccount
+	awsSidekickCloudAccount
 	AwsUsGovCfgCloudAccount
 	AwsUsGovCtSqsCloudAccount
 	AzureAlSeqCloudAccount
@@ -103,7 +103,7 @@ var CloudAccountTypes = map[cloudAccountType]string{
 	AwsCfgCloudAccount:               "AwsCfg",
 	AwsCtSqsCloudAccount:             "AwsCtSqs",
 	AwsEksAuditCloudAccount:          "AwsEksAudit",
-	AwsAgentlessScanningCloudAccount: "AwsSidekick",
+	awsSidekickCloudAccount: "AwsSidekick",
 	AwsUsGovCfgCloudAccount:          "AwsUsGovCfg",
 	AwsUsGovCtSqsCloudAccount:        "AwsUsGovCtSqs",
 	AzureAlSeqCloudAccount:           "AzureAlSeq",
