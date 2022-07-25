@@ -34,6 +34,14 @@ func TestNewClient(t *testing.T) {
 	c, err := api.NewClient("test")
 	if assert.Nil(t, err) {
 		assert.Equal(t, "v1", c.ApiVersion(), "default API version should be v1")
+		assert.Equal(t, "https://test.lacework.net", c.URL(), "domain does not match")
+	}
+}
+
+func TestNewClientFullDomainURL(t *testing.T) {
+	c, err := api.NewClient("account.lacework.net")
+	if assert.Nil(t, err) {
+		assert.Equal(t, "https://account.lacework.net", c.URL(), "domain should be detected and correctly configured")
 	}
 }
 
