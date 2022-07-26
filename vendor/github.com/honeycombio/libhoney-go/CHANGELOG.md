@@ -1,5 +1,32 @@
 # libhoney Changelog
 
+## 1.16.0 2022-07-13
+
+There were several v2 releases that were unusable because they were incomplete according to Go's semantic versioning strategy.
+Changes that appeared in those unusable v2 releases are consolidated into this minor release.
+
+### ⚠️ Breaking Changes ⚠️
+
+Minimum Go version required is 1.14
+
+### Enhancements
+
+- Update default dataset name for non-classic API keys (#170) | [@MikeGoldsmith](https://github.com/MikeGoldsmith)
+- Add support to retrieve team and environment (#183) | [@MikeGoldsmith](https://github.com/MikeGoldsmith)
+
+### Maintenance
+
+- maint: drop support for go before 1.14 (#164) | [lizthegrey](https://github.com/lizthegrey)
+- maint: add go 1.18 to CI (#172) | [@vreynolds](https://github.com/vreynolds)
+- Fix race condition in test and other test bugs (#162) | [@kentquirk](https://github.com/kentquirk)
+- Update examples (#184) | [@vreynolds](https://github.com/vreynolds)
+- Build example app during CI test phase (#179) | [@MikeGoldsmith](https://github.com/MikeGoldsmith)
+- Bump github.com/stretchr/testify from 1.6.1 to 1.8.0 (#111, #174, #181) | [dependabot](https://github.com/dependabot)
+- Bump github.com/klauspost/compress from 1.13.6 to 1.15.7 (#175, #177, #180, #182) | [dependabot](https://github.com/dependabot)
+- Bump github.com/DataDog/zstd from 1.5.0 to 1.5.2 (#178) | [dependabot](https://github.com/dependabot)
+
+## 1.15.8 2022-01-05
+
 ### Fixed
 
 - Pass bytes.Reader to http.Request, clean up pooledReader (#159) | | [lizthegrey](https://github.com/lizthegrey)
