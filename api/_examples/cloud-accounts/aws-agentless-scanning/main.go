@@ -46,7 +46,7 @@ func main() {
 		awsSidekickData,
 	)
 
-	awsSidekickResponse, err := lacework.V2.CloudAccounts.Create(awsSidekickAccount)
+	awsSidekickResponse, err := lacework.V2.CloudAccounts.CreateAwsSidekick(awsSidekickAccount)
 	if err != nil {
 		log.Fatal(err)
 	}

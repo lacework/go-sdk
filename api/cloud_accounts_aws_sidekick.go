@@ -27,6 +27,15 @@ func (svc *CloudAccountsService) GetAwsSidekick(guid string) (
 	return
 }
 
+// CreateAwsSidekick creates an AwsSidekick Cloud Account integration
+func (svc *CloudAccountsService) CreateAwsSidekick(data CloudAccount) (
+	response AwsSidekickResponse,
+	err error,
+) {
+	err = svc.create(data, &response)
+	return
+}
+
 // UpdateAwsSidekick updates a single AwsSidekick integration on the Lacework Server
 func (svc *CloudAccountsService) UpdateAwsSidekick(data CloudAccount) (
 	response AwsSidekickResponse,
@@ -42,12 +51,18 @@ type AwsSidekickResponse struct {
 
 type AwsSidekick struct {
 	v2CommonIntegrationData
+	awsSidekickToken `json:"serverToken"`
 	Data AwsSidekickData `json:"data"`
+}
+
+type awsSidekickToken struct {
+	ServerToken         string     `json:"serverToken"`
+	Uri                 string              `json:"uri"`
 }
 
 type AwsSidekickData struct {
 	//QueryText represents an lql json string
-	QueryText string `json:"queryText"`
+	QueryText string `json:"queryText,omitempty"`
 
 	//ScanFrequency in hours, 24 == 24 hours
 	ScanFrequency int `json:"scanFrequency"`
