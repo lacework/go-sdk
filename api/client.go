@@ -24,8 +24,10 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/lacework/go-sdk/lwdomain"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -78,6 +80,15 @@ func (fn clientFunc) apply(c *Client) error {
 func NewClient(account string, opts ...Option) (*Client, error) {
 	if account == "" {
 		return nil, errors.New("account cannot be empty")
+	}
+
+	// verify if the user provided the full qualified domain name
+	if strings.Contains(account, ".lacework.net") {
+		domain, err := lwdomain.New(account)
+		if err != nil {
+			return nil, err
+		}
+		account = domain.Account
 	}
 
 	baseURL, err := url.Parse(fmt.Sprintf("https://%s.lacework.net", account))
