@@ -18,34 +18,34 @@
 
 package api
 
-// GetAwsAgentlessScanning gets a single AwsAgentlessScanning integration matching the provided integration guid
-func (svc *CloudAccountsService) GetAwsAgentlessScanning(guid string) (
-	response AwsAgentlessScanningResponse,
+// GetAwsSidekick gets a single AwsSidekick integration matching the provided integration guid
+func (svc *CloudAccountsService) GetAwsSidekick(guid string) (
+	response AwsSidekickResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateAwsAgentlessScanning updates a single AwsAgentlessScanning integration on the Lacework Server
-func (svc *CloudAccountsService) UpdateAwsAgentlessScanning(data CloudAccount) (
-	response AwsAgentlessScanningResponse,
+// UpdateAwsSidekick updates a single AwsSidekick integration on the Lacework Server
+func (svc *CloudAccountsService) UpdateAwsSidekick(data CloudAccount) (
+	response AwsSidekickResponse,
 	err error,
 ) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type AwsAgentlessScanningResponse struct {
-	Data AwsAgentlessScanning `json:"data"`
+type AwsSidekickResponse struct {
+	Data AwsSidekick `json:"data"`
 }
 
-type AwsAgentlessScanning struct {
+type AwsSidekick struct {
 	v2CommonIntegrationData
-	Data AwsAgentlessScanningData `json:"data"`
+	Data AwsSidekickData `json:"data"`
 }
 
-type AwsAgentlessScanningData struct {
+type AwsSidekickData struct {
 	//QueryText represents an lql json string
 	QueryText string `json:"queryText"`
 

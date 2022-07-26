@@ -34,23 +34,23 @@ func main() {
 		fmt.Printf("%s:%s:%s\n", account.IntgGuid, account.Type, support)
 	}
 
-	awsAgentlessScanningData := api.AwsAgentlessScanningData{
+	awsSidekickData := api.AwsSidekickData{
 		ScanFrequency:           24,
 		ScanContainers:          true,
 		ScanHostVulnerabilities: true,
 	}
 
-	awsAgentlessScanningAccount := api.NewCloudAccount(
+	awsSidekickAccount := api.NewCloudAccount(
 		fmt.Sprintf("%s-from-golang", api.AwsSidekickCloudAccount.String()),
 		api.AwsSidekickCloudAccount,
-		awsAgentlessScanningData,
+		awsSidekickData,
 	)
 
-	awsAgentlessScanningResponse, err := lacework.V2.CloudAccounts.Create(awsAgentlessScanningAccount)
+	awsSidekickResponse, err := lacework.V2.CloudAccounts.Create(awsSidekickAccount)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Output: AwsAgentlessScanning Cloud Account created: THE-INTEGRATION-GUID
-	fmt.Printf("Cloud Account created: %s", awsAgentlessScanningResponse.Data.IntgGuid)
+	// Output: AwsSidekick Cloud Account created: THE-INTEGRATION-GUID
+	fmt.Printf("Cloud Account created: %s", awsSidekickResponse.Data.IntgGuid)
 }
