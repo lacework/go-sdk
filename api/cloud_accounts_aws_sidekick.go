@@ -52,12 +52,12 @@ type AwsSidekickResponse struct {
 type AwsSidekick struct {
 	v2CommonIntegrationData
 	awsSidekickToken `json:"serverToken"`
-	Data AwsSidekickData `json:"data"`
+	Data             AwsSidekickData `json:"data"`
 }
 
 type awsSidekickToken struct {
-	ServerToken         string     `json:"serverToken"`
-	Uri                 string              `json:"uri"`
+	ServerToken string `json:"serverToken"`
+	Uri         string `json:"uri"`
 }
 
 type AwsSidekickData struct {
