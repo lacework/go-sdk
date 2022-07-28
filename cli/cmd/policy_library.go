@@ -236,7 +236,7 @@ func getPolicySyncOperations(policies map[string]LCLPolicy) ([]PolicySyncOperati
 		platformPolicyIDs[i] = policy.PolicyID
 	}
 
-	cli.StartProgress("Retrieving platform queires...")
+	cli.StartProgress("Retrieving platform queries...")
 	queryResponse, err := cli.LwApi.V2.Query.List()
 	cli.StopProgress()
 

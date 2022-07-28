@@ -73,7 +73,7 @@ To view all the policies in your Lacework account.
 		Short:   "Delete a policy exception",
 		Long: `Delete a policy exception. 
 
-To remove a policy exception, run the delete command with policy id and exception id arguments:
+To remove a policy exception, run the delete command with policy ID and exception ID arguments:
 
     lacework policy-exception delete <policy_id> <exception_id>`,
 		Args: cobra.ExactArgs(2),
@@ -91,8 +91,8 @@ To create a new policy exception, run the command:
 
     lacework policy-exception create [policy_id]
 
-If the command is run without providing the policy_id, a
-list of policies will be displayed in an interactive prompt.
+If you run the command without providing the policy_id, a
+list of policies is displayed in an interactive prompt.
 `,
 		Args: cobra.MaximumNArgs(1),
 		RunE: createPolicyException,
@@ -114,12 +114,12 @@ func listPolicyExceptions(_ *cobra.Command, args []string) error {
 	var policyExceptions [][]string
 	if len(args) > 0 {
 		cli.StartProgress(fmt.Sprintf(
-			"Retrieving policy exceptions from policy id '%s'...", args[0],
+			"Retrieving policy exceptions from policy ID '%s'...", args[0],
 		))
 		policyExceptionResponse, err := cli.LwApi.V2.Policy.Exceptions.List(args[0])
 		cli.StopProgress()
 		if err != nil {
-			return errors.Wrapf(err, "unable to list policy exceptions for id %s", args[0])
+			return errors.Wrapf(err, "unable to list policy exceptions for ID %s", args[0])
 		}
 		policyExceptions = append(policyExceptions,
 			policyExceptionTable(policyExceptionResponse.Data, args[0])...)
@@ -145,7 +145,7 @@ func showPolicyException(_ *cobra.Command, args []string) error {
 	err := cli.LwApi.V2.Policy.Exceptions.Get(args[0], args[1], &policyException)
 	cli.StopProgress()
 	if err != nil {
-		return errors.Wrapf(err, "unable to fetch policy exception for id %s", args[0])
+		return errors.Wrapf(err, "unable to fetch policy exception for ID %s", args[0])
 	}
 
 	if cli.JSONOutput() {
@@ -163,7 +163,7 @@ func deletePolicyException(_ *cobra.Command, args []string) error {
 	err := cli.LwApi.V2.Policy.Exceptions.Delete(args[0], args[1])
 	cli.StopProgress()
 	if err != nil {
-		return errors.Wrapf(err, "unable to remove policy exception for id %s", args[0])
+		return errors.Wrapf(err, "unable to remove policy exception for ID %s", args[0])
 	}
 
 	cli.OutputHuman("Policy exception '%s' deleted from policy '%s'\n", args[0], args[1])
@@ -195,7 +195,7 @@ func promptCreatePolicyException(args []string) (api.PolicyExceptionResponse, st
 	if len(args) > 0 {
 		policy, err = cli.LwApi.V2.Policy.Get(args[0])
 		if err != nil {
-			return api.PolicyExceptionResponse{}, "", errors.Wrapf(err, "invalid policy id %s", args[0])
+			return api.PolicyExceptionResponse{}, "", errors.Wrapf(err, "invalid policy ID %s", args[0])
 		}
 		policyID = policy.Data.PolicyID
 	} else {
@@ -216,7 +216,7 @@ func promptCreatePolicyException(args []string) (api.PolicyExceptionResponse, st
 		}
 		policy, err = cli.LwApi.V2.Policy.Get(policyID)
 		if err != nil {
-			return api.PolicyExceptionResponse{}, "", errors.Wrapf(err, "invalid policy id %s", policyID)
+			return api.PolicyExceptionResponse{}, "", errors.Wrapf(err, "invalid policy ID %s", policyID)
 		}
 	}
 
@@ -313,11 +313,11 @@ func policyExceptionDetailsTable(policyException api.PolicyException, policyID s
 }
 
 func promptAddExceptionConstraint(policy api.Policy) api.PolicyExceptionConstraint {
-	help := "Visit the lacework docs to see exception criteria https://docs.lacework.com/aws-compliance-policy-exceptions-criteria"
+	help := "See Lacework documentation for exception criteria https://docs.lacework.com/aws-compliance-policy-exceptions-criteria"
 	msg := ""
 	switch {
 	case array.ContainsStr(policy.Tags, "domain:AWS"):
-		msg = "Valid constraint keys for aws polices are 'accountIds', 'resourceNames', 'regionNames' and 'resourceTags'`\n"
+		msg = "Valid constraint keys for AWS polices are 'accountIds', 'resourceNames', 'regionNames' and 'resourceTags'`\n"
 	}
 
 	questions := []*survey.Question{
@@ -409,14 +409,14 @@ func promptAddExceptionConstraintAwsAccountsList() ([]any, error) {
 		fieldValues []string
 	)
 
-	cli.StartProgress("Retrieving aws accounts...")
+	cli.StartProgress("Retrieving AWS accounts...")
 	accountIds, err := cli.LwApi.Integrations.AwsAccountIDs()
 	cli.StopProgress()
 	if err != nil {
 		return nil, err
 	}
 
-	err = survey.AskOne(&survey.MultiSelect{Message: "Select Aws Accounts:", Options: accountIds}, &fieldValues)
+	err = survey.AskOne(&survey.MultiSelect{Message: "Select AWS Accounts:", Options: accountIds}, &fieldValues)
 	if err != nil {
 		return nil, err
 	}
