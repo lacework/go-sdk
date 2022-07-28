@@ -43,10 +43,10 @@ The following attributes are minimally required:
     title: My Policy
     enabled: false
     policyType: Violation
-    queryId: MyQuery
     alertEnabled: false
     alertProfile: Alert_Profile_ID.Alert_Template_Name
     evalFrequency: Daily
+    queryId: MyQuery
     severity: high
     description: My Policy Description
     remediation: My Policy Remediation

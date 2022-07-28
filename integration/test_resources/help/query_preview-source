@@ -1,4 +1,4 @@
-Preview Lacework query data source.
+Preview Lacework query datasource.
 
 Usage:
   lacework query preview-source <datasource_id> [flags]

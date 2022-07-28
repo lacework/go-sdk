@@ -1,4 +1,4 @@
-Show Lacework query data source.
+Show Lacework query datasource.
 
 Usage:
   lacework query show-source <datasource_id> [flags]
