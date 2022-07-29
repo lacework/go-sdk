@@ -49,7 +49,7 @@ A policy identifier can be specified via:
         "severity": "critical"
     }
 
-A policy identifier specifed via command argument will always take precedence over
+A policy identifier specified via command argument always takes precedence over
 a policy identifer specified via payload.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: updatePolicy,

@@ -39,7 +39,7 @@ var (
 		Short:   "Manage alert profiles",
 		Long: `Manage alert profiles to define how your LQL queries get consumed into alerts.
 
-An alert profile consists of the name of the new profile, the name of an existing profile from which
+An alert profile consists of the ID of the new profile, the ID of an existing profile that
 the new profile extends, and a list of alert templates.`,
 	}
 
@@ -58,15 +58,15 @@ the new profile extends, and a list of alert templates.`,
 			if len(alertProfiles.Data) == 0 {
 				msg := `There are no alert profiles configured in your account.
 
-Get started by integrating your alert profiles to manage alerting using the command:
+To manage alerting, integrate alert profiles using the command:
 
     lacework alert-profile create
 
-If you prefer to configure alert profiles via the WebUI, log in to your account at:
+To integrate alert profiles via the Lacework Console, log in to your account at:
 
     https://%s.lacework.net
 
-Then navigate to Settings > Alert Profiles.
+Then go to Settings > Alert Profiles.
 `
 				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
 				return nil
@@ -119,7 +119,7 @@ Then navigate to Settings > Alert Profiles.
 	// delete command is used to remove a lacework alert profile by id
 	alertProfilesDeleteCommand = &cobra.Command{
 		Use:   "delete <alert_profile_id>",
-		Short: "Delete a alert profile",
+		Short: "Delete an alert profile",
 		Long:  "Delete a single alert profile by its ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -203,7 +203,7 @@ func buildAlertProfileDetailsTable(profile api.AlertProfile) string {
 				}
 			}),
 		))
-		detailsTable.WriteString("\nFields can be used inside an alert template subject or description by enclosing in double brackets. For example: '{{FIELD_NAME}}'\n")
+		detailsTable.WriteString("\nUse a field inside an alert template subject or description by enclosing it in double brackets. For example: '{{FIELD_NAME}}'\n")
 	}
 
 	return detailsTable.String()
@@ -225,7 +225,7 @@ func promptCreateAlertProfile() (api.AlertProfileResponse, error) {
 		{
 			Name: "extends",
 			Prompt: &survey.Select{
-				Message: "Select an alert profile to extend from:",
+				Message: "Select an alert profile to extend:",
 				Options: profileList,
 			},
 			Validate: survey.Required,
@@ -245,7 +245,7 @@ func promptCreateAlertProfile() (api.AlertProfileResponse, error) {
 	}
 
 	if strings.HasPrefix(answers.Name, "LW_") {
-		return api.AlertProfileResponse{}, errors.New("profile name prefix 'LW_' is reserved for Lacework defined profiles")
+		return api.AlertProfileResponse{}, errors.New("profile name prefix 'LW_' is reserved for Lacework-defined profiles")
 	}
 
 	var templates []api.AlertTemplate

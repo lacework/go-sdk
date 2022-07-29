@@ -146,7 +146,7 @@ var (
   FILE_MODIFIED_TIME, FILEDATA_HASH                                                                                                                
                                                                                                                                                    
 
-Fields can be used inside an alert template subject or description by enclosing in double brackets. For example: '{{FIELD_NAME}}'
+Use a field inside an alert template subject or description by enclosing it in double brackets. For example: '{{FIELD_NAME}}'
 `
 )
 

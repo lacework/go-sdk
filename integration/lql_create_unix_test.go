@@ -68,7 +68,7 @@ func TestQueryCreateFromEditor(t *testing.T) {
 			"STDERR should be empty")
 		assert.Contains(t,
 			stdout.String(),
-			"--- Select a datasource. To list all available datasources use 'lacework query sources'.",
+			"--- Select a datasource. To list all available datasources, use 'lacework query sources'.",
 			"STDOUT changed, please update")
 		assert.Contains(t,
 			stdout.String(),

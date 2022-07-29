@@ -39,7 +39,7 @@ var (
 There are multiple ways you can update a query:
 
   * Typing the query into your default editor (via $EDITOR)
-  * Passing a query id to load it into your default editor
+  * Passing a query ID to load it into your default editor
   * From a local file on disk using the flag '--file'
   * From a URL using the flag '--url'
 
@@ -126,7 +126,7 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 
 	// avoid letting the user change the query id
 	if len(args) != 0 && newQuery.QueryID != args[0] {
-		return errors.New("changes to query id not supported")
+		return errors.New("changes to query ID not supported")
 	}
 
 	// update query

@@ -32,8 +32,8 @@ var (
 	queryListSourcesCmd = &cobra.Command{
 		Aliases: []string{"sources"},
 		Use:     "list-sources",
-		Short:   "List Lacework query data sources",
-		Long:    `List Lacework query data sources.`,
+		Short:   "List Lacework query datasources",
+		Long:    `List Lacework query datasources.`,
 		Args:    cobra.NoArgs,
 		RunE:    listQuerySources,
 	}
@@ -41,8 +41,8 @@ var (
 	queryShowSourceCmd = &cobra.Command{
 		Aliases: []string{"describe"},
 		Use:     "show-source <datasource_id>",
-		Short:   "Show Lacework query data source",
-		Long:    `Show Lacework query data source.`,
+		Short:   "Show Lacework query datasource",
+		Long:    `Show Lacework query datasource.`,
 		Args:    cobra.ExactArgs(1),
 		RunE:    showQuerySource,
 	}
@@ -70,8 +70,8 @@ func querySourcesTable(datasources []api.Datasource) (out [][]string) {
 }
 
 func listQuerySources(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("retrieving LQL data sources")
-	lqlSourcesUnableMsg := "unable to retrieve LQL data sources"
+	cli.Log.Debugw("retrieving LQL datasources")
+	lqlSourcesUnableMsg := "unable to retrieve LQL datasources"
 	datasourcesResponse, err := cli.LwApi.V2.Datasources.List()
 
 	if err != nil {
@@ -93,7 +93,7 @@ func listQuerySources(_ *cobra.Command, args []string) error {
 			}),
 		),
 	)
-	cli.OutputHuman("\nUse 'lacework query show-source <datasource_id>' to show details about the data source.\n")
+	cli.OutputHuman("\nUse 'lacework query show-source <datasource_id>' to show details about the datasource.\n")
 	return nil
 }
 
@@ -158,6 +158,6 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 		)
 	}
 	// breadcrumb
-	cli.OutputHuman("\nUse 'lacework query preview-source <datasource_id>' to see an actual result from the data source.\n")
+	cli.OutputHuman("\nUse 'lacework query preview-source <datasource_id>' to see an actual result from the datasource.\n")
 	return nil
 }
