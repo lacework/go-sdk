@@ -211,12 +211,20 @@ type Artifact struct {
 	//Size ?
 }
 
+// Components should leave a trail/crumb after installation or update,
+// these messages will be shown by the Lacework CLI
+type Breadcrumbs struct {
+	InstallationMessage string `json:"installationMessage,omitempty"`
+	UpdateMessage       string `json:"updateMessage,omitempty"`
+}
+
 type Component struct {
 	Name          string         `json:"name"`
 	Description   string         `json:"description"`
 	Type          Type           `json:"type"`
 	LatestVersion semver.Version `json:"version"`
 	Artifacts     []Artifact     `json:"artifacts"`
+	Breadcrumbs   Breadcrumbs    `json:"breadcrumbs,omitempty"`
 
 	// @dhazekamp command_name required when CLICommand is true?
 	CommandName string `json:"command_name"`
