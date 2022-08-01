@@ -64,12 +64,16 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 		return errors.New("unable to parse datasource schema")
 	}
 
+	// initialize limit
+	limit := 1
+
 	// initialize query
 	executeQuery := api.ExecuteQueryRequest{
 		Query: api.ExecuteQuery{
 			QueryText: fmt.Sprintf(
 				queryPreviewSourceTemplate, args[0], strings.Join(returns, ",")),
 		},
+		Options: api.ExecuteQueryOptions{Limit: &limit},
 	}
 
 	// initialize time attempts
@@ -84,11 +88,11 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 		end, _ := lwtime.ParseRelative(timeAttempt["end"])
 
 		executeQuery.Arguments = []api.ExecuteQueryArgument{
-			api.ExecuteQueryArgument{
+			{
 				Name:  api.QueryStartTimeRange,
 				Value: start.UTC().Format(lwtime.RFC3339Milli),
 			},
-			api.ExecuteQueryArgument{
+			{
 				Name:  api.QueryEndTimeRange,
 				Value: end.UTC().Format(lwtime.RFC3339Milli),
 			},
