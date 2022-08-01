@@ -1,6 +1,6 @@
 Manage alert profiles to define how your LQL queries get consumed into alerts.
 
-An alert profile consists of the name of the new profile, the name of an existing profile from which
+An alert profile consists of the ID of the new profile, the ID of an existing profile that
 the new profile extends, and a list of alert templates.
 
 Usage:
@@ -11,7 +11,7 @@ Aliases:
 
 Available Commands:
   create      Create a new alert profile
-  delete      Delete a alert profile
+  delete      Delete an alert profile
   list        List all alert profiles
   show        Show an alert profile by ID
 

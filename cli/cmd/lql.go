@@ -57,13 +57,9 @@ var (
 		Short:   "Run and manage queries",
 		Long: `Run and manage Lacework Query Language (LQL) queries.
 
-To provide customizable specification of datasets, Lacework provides the Lacework
-Query Language (LQL). LQL is a human-readable text syntax for specifying selection,
-filtering, and manipulation of data.
-
-Currently, Lacework has introduced LQL for configuration of AWS CloudTrail policies
-and queries. This means you can use LQL to customize AWS CloudTrail policies only.
-For all other policies, use the previous existing methods.
+LQL is a SQL-like query language for specifying the selection, filtering, and 
+manipulation of data. Queries let you interactively request information from 
+specified curated datasources.
 
 Lacework ships a set of default LQL queries that are available in your account.
 
@@ -83,7 +79,7 @@ To execute a query.
 
     lacework query run <query_id>
 
-**NOTE: LQL syntax may change.**
+**Note: LQL syntax may change.**
 `,
 	}
 
@@ -100,15 +96,15 @@ Run a query via ID (uses active profile):
 
     lacework query run MyQuery --start "-1w@w" --end "@w"
 
-Start and End times are required to run a query:
+Start and end times are required to run a query:
 
-1.  Start and End times must be specified in one of the following formats:
+1.  Specify start and end times in one of the following formats:
 
     A. A relative time specifier
-    B. RFC3339 Date and Time
+    B. RFC3339 date and time
     C. Epoch time in milliseconds
 
-2. Start and End times must be specified in one of the following ways:
+2. Specify start and end times in one of the following ways:
 
     A. As StartTimeRange and EndTimeRange in the ParamInfo block within the query
     B. As start_time_range and end_time_range if specifying JSON
@@ -304,7 +300,7 @@ func inputQueryFromEditor(action string) (query string, err error) {
 queryText: |-
   {
       source {
-          --- Select a datasource. To list all available datasources use 'lacework query sources'.
+          --- Select a datasource. To list all available datasources, use 'lacework query sources'.
       }
       filter {
           --- Add query filter(s), if any. If not, remove this block.
@@ -350,7 +346,7 @@ func queryErrorCrumbs(q string) error {
 		return errors.New(`invalid query
 
 It looks like you attempted to submit a query in JSON format.
-Please validate that the JSON is formatted properly and adheres to the following schema:
+Verify that the JSON is formatted properly and adheres to the following schema:
 
 {
     "queryId": "MyLQL",
@@ -362,7 +358,7 @@ Please validate that the JSON is formatted properly and adheres to the following
 	return errors.New(`invalid query
 	
 It looks like you attempted to submit a query in YAML format.
-Please validate that the text adheres to the following schema:
+Verify that the text adheres to the following schema:
 
 queryId: MyLQL
 queryText: |-

@@ -1,4 +1,4 @@
-List Lacework query data sources.
+List Lacework query datasources.
 
 Usage:
   lacework query list-sources [flags]

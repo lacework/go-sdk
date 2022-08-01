@@ -4,8 +4,8 @@ To create a new policy exception, run the command:
 
     lacework policy-exception create [policy_id]
 
-If the command is run without providing the policy_id, a
-list of policies will be displayed in an interactive prompt.
+If you run the command without providing the policy_id, a
+list of policies is displayed in an interactive prompt.
 
 Usage:
   lacework policy-exception create [policy_id] [flags]

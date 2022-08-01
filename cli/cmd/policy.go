@@ -67,19 +67,19 @@ var (
 		Short:   "Manage policies",
 		Long: `Manage policies in your Lacework account.
 
-A policy is a mechanism used to add annotated metadata to a Lacework query for improving
-the context of alerts, reports, and information displayed in the Lacework Console.
+Policies add annotated metadata to queries for improving the context of alerts,
+reports, and information displayed in the Lacework Console.
 
-A policy also facilitates the scheduled execution of a Lacework query
+Policies also facilitate the scheduled execution of Lacework queries.
 
-A query is a mechanism used to interactively request information from a specific
-curated dataset. A query has a defined structure for authoring detections.
+Queries let you interactively request information from specified
+curated datasources. Queries have a defined structure for authoring detections.
 
 Lacework ships a set of default LQL policies that are available in your account.
 
 Limitations:
   * The maximum number of records that each policy will return is 1000
-  * The maximum number of API calls is 120 per hour for ad-hoc LQL query executions
+  * The maximum number of API calls is 120 per hour for on-demand LQL query executions
 
 To view all the policies in your Lacework account.
 
@@ -89,11 +89,11 @@ To view more details about a single policy.
 
     lacework policy show <policy_id>
 
-To view the LQL query associated with the policy, use the query id shown.
+To view the LQL query associated with the policy, use the query ID.
 
     lacework query show <query_id>
 
-**NOTE: LQL syntax may change.**
+**Note: LQL syntax may change.**
 `,
 	}
 
@@ -142,15 +142,15 @@ To view the LQL query associated with the policy, use the query id shown.
 		Short: "Disable policies",
 		Long: `Disable policies by ID or all policies matching a tag.
 
-To disable a single policy by it's ID:
+To disable a single policy by its ID:
 
 	lacework policy disable lacework-policy-id
 
-To disable all policies for Aws CIS 1.4.0:
+To disable all policies for AWS CIS 1.4.0:
 
 	lacework policy disable --tag framework:cis-aws-1-4-0
 
-To disable all policies for Gcp CIS 1.3.0:
+To disable all policies for GCP CIS 1.3.0:
 
 	lacework policy disable --tag framework:cis-gcp-1-3-0
 `,
@@ -171,15 +171,15 @@ To disable all policies for Gcp CIS 1.3.0:
 		Short: "Enable policies",
 		Long: `Enable policies by ID or all policies matching a tag.
 
-To enable a single policy by it's ID:
+To enable a single policy by its ID:
 
 	lacework policy enable lacework-policy-id
 
-To enable all policies for Aws CIS 1.4.0:
+To enable all policies for AWS CIS 1.4.0:
 
 	lacework policy enable --tag framework:cis-aws-1-4-0
 
-To enable all policies for Gcp CIS 1.3.0:
+To enable all policies for GCP CIS 1.3.0:
 
 	lacework policy enable --tag framework:cis-gcp-1-3-0
 
