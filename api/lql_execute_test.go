@@ -26,7 +26,6 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -156,9 +155,6 @@ func TestQueryExecuteBad(t *testing.T) {
 	var runExpected api.ExecuteQueryResponse
 	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
 
-	_, err = c.V2.Query.Execute(executeQueryBadOptions)
-	assert.NotNil(t, err)
-
 	_, err = c.V2.Query.Execute(executeQueryBadArguments)
 	assert.NotNil(t, err)
 }
@@ -257,9 +253,6 @@ func TestQueryExecuteByIDBad(t *testing.T) {
 	var runExpected api.ExecuteQueryResponse
 	_ = json.Unmarshal([]byte(mockResponse), &runExpected)
 
-	_, err = c.V2.Query.Execute(executeQueryBadOptions)
-	assert.NotNil(t, err)
-
 	_, err = c.V2.Query.Execute(executeQueryBadArguments)
 	assert.NotNil(t, err)
 }
@@ -283,46 +276,4 @@ func TestQueryExecuteByIDError(t *testing.T) {
 
 	_, err = c.V2.Query.ExecuteByID(api.ExecuteQueryByIDRequest{})
 	assert.NotNil(t, err)
-}
-
-type validateOptionsTest struct {
-	name  string
-	limit *int
-	retrn error
-}
-
-var validateOptionsTests = []validateOptionsTest{
-	{
-		name:  "nil",
-		retrn: nil,
-	},
-	{
-		name:  "0",
-		limit: &limitZero,
-		retrn: errors.New("limit must be at least 1"),
-	},
-	{
-		name:  "-1",
-		limit: &limitNeg,
-		retrn: errors.New("limit must be at least 1"),
-	},
-	{
-		name:  "1",
-		limit: &limitOne,
-		retrn: nil,
-	},
-}
-
-func TestValidateOptions(t *testing.T) {
-	for _, vot := range validateOptionsTests {
-		t.Run(vot.name, func(t *testing.T) {
-			eqo := api.ExecuteQueryOptions{Limit: vot.limit}
-			err := eqo.Validate()
-			if vot.retrn == nil || err == nil {
-				assert.Equal(t, vot.retrn, err)
-				return
-			}
-			assert.Equal(t, vot.retrn.Error(), err.Error())
-		})
-	}
 }

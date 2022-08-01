@@ -42,16 +42,6 @@ type ExecuteQueryOptions struct {
 	Limit *int `json:"limit,omitempty"`
 }
 
-func (eqo ExecuteQueryOptions) Validate() error {
-	if eqo.Limit == nil {
-		return nil
-	}
-	if *eqo.Limit >= 1 {
-		return nil
-	}
-	return errors.New("limit must be at least 1")
-}
-
 type ExecuteQueryArgument struct {
 	Name  ExecuteQueryArgumentName `json:"name"`
 	Value string                   `json:"value"`
@@ -124,9 +114,6 @@ func (svc *QueryService) Execute(request ExecuteQueryRequest) (
 	response ExecuteQueryResponse,
 	err error,
 ) {
-	if err = request.Options.Validate(); err != nil {
-		return
-	}
 	if err = validateQueryArguments(request.Arguments); err != nil {
 		return
 	}
@@ -145,9 +132,6 @@ func (svc *QueryService) ExecuteByID(request ExecuteQueryByIDRequest) (
 	queryID := request.QueryID
 	request.QueryID = "" // omit for POST
 
-	if err = request.Options.Validate(); err != nil {
-		return
-	}
 	if err = validateQueryArguments(request.Arguments); err != nil {
 		return
 	}
