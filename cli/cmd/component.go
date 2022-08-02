@@ -177,6 +177,10 @@ func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 		return
 	}
 
+	if cli.JSONOutput() {
+		return cli.OutputJSON(cli.LwComponents)
+	}
+
 	if len(cli.LwComponents.Components) == 0 {
 		msg := "There are no components available, " +
 			"come back later or contact support. (version: %s)\n"
