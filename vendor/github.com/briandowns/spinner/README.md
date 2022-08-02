@@ -1,6 +1,6 @@
 # Spinner
 
-[![GoDoc](https://godoc.org/github.com/briandowns/spinner?status.svg)](https://godoc.org/github.com/briandowns/spinner) [![Build Status](https://travis-ci.org/briandowns/spinner.svg?branch=master)](https://travis-ci.org/briandowns/spinner)
+[![GoDoc](https://godoc.org/github.com/briandowns/spinner?status.svg)](https://godoc.org/github.com/briandowns/spinner) [![CircleCI](https://circleci.com/gh/briandowns/spinner.svg?style=svg)](https://circleci.com/gh/briandowns/spinner)
 
 spinner is a simple package to add a spinner / progress indicator to any terminal application. Examples can be found below as well as full examples in the examples directory.
 
@@ -15,6 +15,9 @@ go get github.com/briandowns/spinner
 ```
 
 ## Available Character Sets
+
+90 Character Sets. Some examples below:
+
 (Numbered by their slice index)
 
 | index | character set                                                                                                                                                                                                                                                                             | sample gif                 |
@@ -151,7 +154,7 @@ You can specify both the background and foreground color, as well as additional 
 s.Color("red", "bold") // Set the spinner color to a bold red
 ```
 
-Or to set the background to black, the foreground to a bold red:
+To set the background to black, the foreground to a bold red:
 
 ```Go
 s.Color("bgBlack", "bold", "fgRed")
@@ -159,7 +162,7 @@ s.Color("bgBlack", "bold", "fgRed")
 
 Below is the full color and attribute list:
 
-```
+```Go
 // default colors
 red
 black
