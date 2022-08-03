@@ -1,7 +1,7 @@
-Update an existing alert profile
+Update an the alert template for an existing alert profile
 
 Usage:
-  lacework alert-profile update [flags]
+  lacework alert-profile update [alert_profile_id] [flags]
 
 Flags:
   -h, --help   help for update
