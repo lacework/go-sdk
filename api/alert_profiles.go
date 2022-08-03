@@ -127,32 +127,32 @@ func (svc *alertProfilesService) Get(guid string, response interface{}) error {
 }
 
 type AlertProfile struct {
-	Guid            string                        `json:"alertProfileId,omitempty"`
-	Extends         string                        `json:"extends"`
-	Fields          []AlertProfileField           `json:"fields,omitempty"`
-	DescriptionKeys []AlertProfileDescriptionKeys `json:"descriptionKeys,omitempty"`
-	Alerts          []AlertTemplate               `json:"alerts"`
+	Guid            string                        `json:"alertProfileId,omitempty" yaml:"alertProfileId,omitempty"`
+	Extends         string                        `json:"extends" yaml:"extends"`
+	Fields          []AlertProfileField           `json:"fields,omitempty" yaml:"fields,omitempty"`
+	DescriptionKeys []AlertProfileDescriptionKeys `json:"descriptionKeys,omitempty" yaml:"descriptionKeys,omitempty"`
+	Alerts          []AlertTemplate               `json:"alerts" yaml:"alerts"`
 }
 
 type AlertProfileConfig struct {
-	Guid    string          `json:"alertProfileId"`
-	Extends string          `json:"extends"`
-	Alerts  []AlertTemplate `json:"alerts"`
+	Guid    string          `json:"alertProfileId" yaml:"alertProfileId"`
+	Extends string          `json:"extends" yaml:"extends"`
+	Alerts  []AlertTemplate `json:"alerts" yaml:"alerts"`
 }
 
 type AlertProfileField struct {
-	Name string `json:"name"`
+	Name string `json:"name" yaml:"name"`
 }
 
 type AlertProfileDescriptionKeys struct {
-	Name string `json:"name"`
-	Spec string `json:"spec"`
+	Name string `json:"name" yaml:"name"`
+	Spec string `json:"spec" yaml:"spec"`
 }
 
 type AlertProfileResponse struct {
-	Data AlertProfile `json:"data"`
+	Data AlertProfile `json:"data" yaml:"data"`
 }
 
 type AlertProfilesResponse struct {
-	Data []AlertProfile `json:"data"`
+	Data []AlertProfile `json:"data" yaml:"data"`
 }

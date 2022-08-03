@@ -27,6 +27,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	"github.com/lacework/go-sdk/api"
 )
@@ -150,6 +151,25 @@ Then go to Settings > Alert Profiles.
 			return nil
 		},
 	}
+
+	// update command is used to update an existing lacework alert profile
+	alertProfilesUpdateCommand = &cobra.Command{
+		Use:   "update",
+		Short: "Update an existing alert profile",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			if !cli.InteractiveMode() {
+				return errors.New("interactive mode is disabled")
+			}
+			response, err := promptUpdateAlertProfile(args)
+			if err != nil {
+				return errors.Wrapf(err, "unable to update alert profile %s", response.Data.Guid)
+			}
+
+			cli.OutputHuman(fmt.Sprintf("The alert profile %s was updated \n", response.Data.Guid))
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -160,6 +180,7 @@ func init() {
 	alertProfilesCommand.AddCommand(alertProfilesListCommand)
 	alertProfilesCommand.AddCommand(alertProfilesShowCommand)
 	alertProfilesCommand.AddCommand(alertProfilesCreateCommand)
+	alertProfilesCommand.AddCommand(alertProfilesUpdateCommand)
 	alertProfilesCommand.AddCommand(alertProfilesDeleteCommand)
 }
 
@@ -207,6 +228,105 @@ func buildAlertProfileDetailsTable(profile api.AlertProfile) string {
 	}
 
 	return detailsTable.String()
+}
+
+func promptUpdateAlertProfile(args []string) (api.AlertProfileResponse, error) {
+	var (
+		msg       = "unable to update alert profile"
+		profileID string
+		err       error
+	)
+	if len(args) == 0 {
+		profileID, err = promptSelectProfile()
+		if err != nil {
+			return api.AlertProfileResponse{}, errors.Wrap(err, msg)
+		}
+	} else {
+		profileID = args[0]
+	}
+
+	var existingProfile api.AlertProfileResponse
+	cli.StartProgress("Retrieving alert profile...")
+	err = cli.LwApi.V2.Alert.Profiles.Get(profileID, &existingProfile)
+	cli.StopProgress()
+	if err != nil {
+		return api.AlertProfileResponse{}, errors.Wrap(err, msg)
+	}
+
+	if err != nil {
+		return api.AlertProfileResponse{}, err
+	}
+
+	queryYaml, err := yaml.Marshal(existingProfile.Data.Alerts)
+	if err != nil {
+		return api.AlertProfileResponse{}, errors.Wrap(err, msg)
+	}
+
+	prompt := &survey.Editor{
+		Message:       fmt.Sprintf("Update alert templates for profile %s", profileID),
+		Default:       string(queryYaml),
+		HideDefault:   true,
+		AppendDefault: true,
+		FileName:      "templates*.yaml",
+	}
+	var templatesString string
+	err = survey.AskOne(prompt, &templatesString)
+	if err != nil {
+		return api.AlertProfileResponse{}, errors.Wrap(err, msg)
+	}
+
+	var templates []api.AlertTemplate
+	err = yaml.Unmarshal([]byte(templatesString), &templates)
+	if err != nil {
+		return api.AlertProfileResponse{}, errors.Wrap(err, msg)
+	}
+
+	cli.StartProgress(" Updating alert profile...")
+	response, err := cli.LwApi.V2.Alert.Profiles.Update(profileID, templates)
+
+	cli.StopProgress()
+	return response, err
+}
+
+func promptSelectProfile() (string, error) {
+	profileResponse, err := cli.LwApi.V2.Alert.Profiles.List()
+	if err != nil {
+		return "", err
+	}
+	var profileList = make([]string, 0)
+	for _, p := range profileResponse.Data {
+		if len(p.Alerts) >= 1 {
+			profileList = append(profileList, p.Guid)
+		}
+	}
+
+	sort.Slice(profileList, func(i, j int) bool {
+		return profileList[i] < profileList[j]
+	})
+
+	questions := []*survey.Question{
+		{
+			Name: "profile",
+			Prompt: &survey.Select{
+				Message: "Select an alert profile to update:",
+				Options: profileList,
+			},
+			Validate: survey.Required,
+		},
+	}
+
+	answers := struct {
+		Profile string `json:"profile"`
+	}{}
+
+	err = survey.Ask(questions, &answers,
+		survey.WithIcons(promptIconsFunc),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return answers.Profile, nil
 }
 
 func promptCreateAlertProfile() (api.AlertProfileResponse, error) {
