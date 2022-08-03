@@ -54,7 +54,7 @@ func (svc *alertTemplatesService) Delete(alertProfileID string, alertTemplateID 
 type AlertTemplate struct {
 	Name        string `json:"name" yaml:"name"`
 	EventName   string `json:"eventName" yaml:"eventName"`
-	Description string `json:"description"yaml:"description"`
+	Description string `json:"description" yaml:"description"`
 	Subject     string `json:"subject" yaml:"subject"`
 }
 
