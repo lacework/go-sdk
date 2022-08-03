@@ -154,8 +154,8 @@ Then go to Settings > Alert Profiles.
 
 	// update command is used to update an existing lacework alert profile
 	alertProfilesUpdateCommand = &cobra.Command{
-		Use:   "update",
-		Short: "Update an existing alert profile",
+		Use:   "update [alert_profile_id]",
+		Short: "Update an the alert template for an existing alert profile",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			if !cli.InteractiveMode() {
@@ -163,10 +163,10 @@ Then go to Settings > Alert Profiles.
 			}
 			response, err := promptUpdateAlertProfile(args)
 			if err != nil {
-				return errors.Wrapf(err, "unable to update alert profile %s", response.Data.Guid)
+				return err
 			}
 
-			cli.OutputHuman(fmt.Sprintf("The alert profile %s was updated \n", response.Data.Guid))
+			cli.OutputHuman("The alert profile %s was updated \n", response.Data.Guid)
 			return nil
 		},
 	}
@@ -253,10 +253,6 @@ func promptUpdateAlertProfile(args []string) (api.AlertProfileResponse, error) {
 		return api.AlertProfileResponse{}, errors.Wrap(err, msg)
 	}
 
-	if err != nil {
-		return api.AlertProfileResponse{}, err
-	}
-
 	queryYaml, err := yaml.Marshal(existingProfile.Data.Alerts)
 	if err != nil {
 		return api.AlertProfileResponse{}, errors.Wrap(err, msg)
@@ -293,16 +289,7 @@ func promptSelectProfile() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	var profileList = make([]string, 0)
-	for _, p := range profileResponse.Data {
-		if len(p.Alerts) >= 1 {
-			profileList = append(profileList, p.Guid)
-		}
-	}
-
-	sort.Slice(profileList, func(i, j int) bool {
-		return profileList[i] < profileList[j]
-	})
+	var profileList = filterAlertProfiles(profileResponse)
 
 	questions := []*survey.Question{
 		{
