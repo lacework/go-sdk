@@ -71,6 +71,7 @@ integration-only: install-tools ## Run integration tests
 		version \
 		generation \
 		team_members \
+		component \
 		vulnerability" -run=$(regex)
 
 .PHONY: integration-lql
