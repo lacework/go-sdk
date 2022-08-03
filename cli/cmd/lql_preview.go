@@ -112,6 +112,6 @@ func previewQuerySource(_ *cobra.Command, args []string) error {
 		}
 		return cli.OutputJSON(response.Data[0])
 	}
-	cli.OutputHuman("No results found for datasource")
+	cli.OutputHuman("No results found for datasource\n")
 	return nil
 }
