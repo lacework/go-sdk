@@ -2,9 +2,13 @@ List all hosts that have a running agent in your environment.
 
 You can use 'key:value' pairs to filter the list of hosts with the --filter flag.
 
-    lacework agent list --filter 'os:Amazon Linux' --filter 'tags.VpcId:vpc-72225916'
+    lacework agent list --filter 'os:Linux' --filter 'tags.VpcId:vpc-72225916'
 
 **NOTE:** The value can be a regular expression such as 'hostname:db-server.*'
+
+To filter hosts with a running agent version '5.8.0'.
+
+    lacework agent list --filter 'agentVersion:5.8.0.*' --filter 'status:ACTIVE'
 
 The available keys for this command are:
     * agentVersion
@@ -54,7 +58,7 @@ Aliases:
   list, ls
 
 Flags:
-      --filter strings   filter results by key:value pairs (e.g. 'tags.Name:worker-.*')
+      --filter strings   filter results by key:value pairs (e.g. 'hostname:db-server.*')
   -h, --help             help for list
 
 Global Flags:
