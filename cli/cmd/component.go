@@ -177,6 +177,10 @@ func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 		return
 	}
 
+	if cli.JSONOutput() {
+		return cli.OutputJSON(cli.LwComponents)
+	}
+
 	if len(cli.LwComponents.Components) == 0 {
 		msg := "There are no components available, " +
 			"come back later or contact support. (version: %s)\n"
@@ -263,7 +267,11 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 
 	cli.OutputChecklist(successIcon, "Component configured\n")
 	cli.OutputHuman("\nInstallation completed.\n")
-	// @afiune print breadcrumbs of what to do with this component
+
+	if component.Breadcrumbs.InstallationMessage != "" {
+		cli.OutputHuman("\n")
+		cli.OutputHuman(component.Breadcrumbs.InstallationMessage)
+	}
 	return
 }
 
@@ -327,8 +335,11 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 
 	cli.OutputChecklist(successIcon, "Component reconfigured\n")
 	cli.OutputHuman("\nUpdate completed.\n")
-	// @afiune display update breadcrumbs
-	// maybe tell the user whats new on this version?
+
+	if component.Breadcrumbs.UpdateMessage != "" {
+		cli.OutputHuman("\n")
+		cli.OutputHuman(component.Breadcrumbs.UpdateMessage)
+	}
 	return
 }
 
