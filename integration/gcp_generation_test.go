@@ -340,7 +340,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketNotConfiguredGcp(t *testing.T) {
 			c.SendLine("y")
 			expectString(t, c, cmd.GcpAdvancedOptAuditLog)
 			// This is key forward x1 in ANSI
-			c.SendLine(ansi.Forward)
+			c.SendLine("\x1B[C")
 			expectString(t, c, cmd.QuestionGcpUseExistingBucket)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpConfigureNewBucket)
@@ -392,7 +392,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 			c.SendLine("y")
 			expectString(t, c, cmd.GcpAdvancedOptAuditLog)
 			// This is key forward x1 in ANSI
-			c.SendLine(ansi.Forward)
+			c.SendLine("\x1B[C")
 			expectString(t, c, cmd.QuestionGcpUseExistingBucket)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpConfigureNewBucket)
@@ -462,7 +462,7 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 			c.SendLine("y")
 			expectString(t, c, cmd.GcpAdvancedOptAuditLog)
 			// This is key forward x1 in ANSI
-			c.SendLine(ansi.Forward)
+			c.SendLine("\x1B[C")
 			expectString(t, c, cmd.QuestionGcpUseExistingBucket)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpConfigureNewBucket)

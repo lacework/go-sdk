@@ -41,8 +41,6 @@ func TestAlertProfileUpdateEditor(t *testing.T) {
 
 // CUSTOM_CUSTOMER_DEMO_GCP
 func TestAlertProfileUpdate(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
 	dir, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
 		panic(err)
@@ -52,7 +50,7 @@ func TestAlertProfileUpdate(t *testing.T) {
 	tmResult, err := runAlertProfileTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("? Update alert templates for profile CUSTOM_CUSTOMER_DEMO_GCP [Enter to launch editor] ")
-			c.SendLine("\x1B[u")
+			c.SendLine("")
 			time.Sleep(time.Millisecond)
 			c.SendLine(":wq!") // save and close
 			time.Sleep(time.Millisecond)
