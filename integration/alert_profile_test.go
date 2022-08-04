@@ -62,7 +62,7 @@ func TestAlertProfileUpdate(t *testing.T) {
 }
 
 func runAlertProfileTest(t *testing.T, conditions func(*expect.Console), args ...string) (string, error) {
-	dir := createDummyTOMLConfig()
+	dir := createTOMLConfigFromCIvars()
 	homeCache := os.Getenv("HOME")
 	os.Setenv("HOME", dir)
 	os.Setenv("api_token", "test")
