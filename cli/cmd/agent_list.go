@@ -175,7 +175,10 @@ func listAgents(_ *cobra.Command, _ []string) error {
 
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"MID", "Short Agent Token", "Hostname", "Name", "Status", "IP Address", "External IP", "OS Arch", "Last Checkin"},
+			[]string{
+				"MID", "Status", "Agent Version", "Hostname", "Name",
+				"Internal IP", "External IP", "OS Arch", "Last Check-in", "Created Time",
+			},
 			agentInfoToListAgentTable(machines),
 		),
 	)
@@ -209,15 +212,22 @@ func agentInfoToListAgentTable(machines []api.AgentInfo) [][]string {
 	for _, m := range machines {
 		out = append(out, []string{
 			fmt.Sprintf("%d", m.Mid),
-			m.Tags.LwTokenShort,
+			m.Status,
+			m.AgentVersion,
 			m.Hostname,
 			m.Tags.Name,
-			m.Status,
 			m.Tags.InternalIP,
 			m.Tags.ExternalIP,
 			fmt.Sprintf("%s/%s", m.Tags.Os, m.Tags.Arch),
+			m.LastUpdate.Format(time.RFC3339),
 			m.CreatedTime.Format(time.RFC3339),
 		})
 	}
+
+	// Sort agents by status
+	sort.Slice(out, func(i, j int) bool {
+		return out[i][1] < out[j][1]
+	})
+
 	return out
 }

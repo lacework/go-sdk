@@ -192,7 +192,7 @@ type AgentInfo struct {
 	CreatedTime  time.Time `json:"createdTime"`
 	Hostname     string    `json:"hostname"`
 	IpAddr       string    `json:"ipAddr"`
-	LastUpdate   string    `json:"lastUpdate"`
+	LastUpdate   time.Time `json:"lastUpdate"`
 	Mid          int       `json:"mid"`
 	Mode         string    `json:"mode"`
 	Os           string    `json:"os"`

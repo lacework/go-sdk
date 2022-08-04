@@ -7,16 +7,13 @@ You can use 'key:value' pairs to filter the list of hosts with the --filter flag
 **NOTE:** The value can be a regular expression such as 'hostname:db-server.*'
 
 The available keys for this command are:
-    * awsInstanceId
-    * awsZone
-    * domain
+    * agentVersion
     * hostname
-    * kernel
-    * kernelRelease
-    * kernelVersion
+    * ipAddr
     * mid
+    * mode
     * os
-    * osVersion
+    * status
     * tags.arch
     * tags.ExternalIp
     * tags.Hostname
