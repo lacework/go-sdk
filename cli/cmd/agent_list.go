@@ -208,6 +208,11 @@ func machineExist(machines []api.AgentInfo, mid int) bool {
 }
 
 func agentInfoToListAgentTable(machines []api.AgentInfo) [][]string {
+	// Sort agents by last check-in time
+	sort.Slice(machines, func(i, j int) bool {
+		return machines[i].LastUpdate.After(machines[j].LastUpdate)
+	})
+
 	out := [][]string{}
 	for _, m := range machines {
 		out = append(out, []string{
@@ -223,11 +228,6 @@ func agentInfoToListAgentTable(machines []api.AgentInfo) [][]string {
 			m.CreatedTime.Format(time.RFC3339),
 		})
 	}
-
-	// Sort agents by status
-	sort.Slice(out, func(i, j int) bool {
-		return out[i][1] < out[j][1]
-	})
 
 	return out
 }
