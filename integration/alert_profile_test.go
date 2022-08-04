@@ -58,7 +58,7 @@ func TestAlertProfileUpdate(t *testing.T) {
 		},
 		"ap", "update", "CUSTOM_CUSTOMER_DEMO_GCP")
 
-	assert.Contains(t, expectedOutput, strings.TrimSpace(tmResult))
+	assert.Contains(t, "The alert profile CUSTOM_CUSTOMER_DEMO_GCP was updated", strings.TrimSpace(tmResult))
 }
 
 func runAlertProfileTest(t *testing.T, conditions func(*expect.Console), args ...string) (string, error) {
@@ -101,5 +101,3 @@ func runAlertProfileTestFromDir(t *testing.T, dir string, conditions func(*expec
 
 	return state.String(), err
 }
-
-var expectedOutput = ``
