@@ -1,4 +1,4 @@
-//go:build !windows && team_members
+//go:build !windows && team_member
 
 // Author:: Darren Murray (<darren.murray@lacework.net>)
 // Copyright:: Copyright 2022, Lacework Inc.

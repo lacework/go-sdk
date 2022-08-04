@@ -59,7 +59,8 @@ integration-only: install-tools ## Run integration tests
 	PATH="$(PWD)/bin:${PATH}" gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="\
 		account \
 		agent_token \
-		alert_rules \
+		alert_rule \
+		alert_profile \
 		compliance \
 		configure \
 		query \
@@ -70,7 +71,7 @@ integration-only: install-tools ## Run integration tests
 		migration \
 		version \
 		generation \
-		team_members \
+		team_member \
 		vulnerability" -run=$(regex)
 
 .PHONY: integration-lql
