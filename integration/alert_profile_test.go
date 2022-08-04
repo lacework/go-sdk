@@ -50,7 +50,7 @@ func TestAlertProfileUpdate(t *testing.T) {
 	tmResult, err := runAlertProfileTest(t,
 		func(c *expect.Console) {
 			c.ExpectString("? Update alert templates for profile CUSTOM_CUSTOMER_DEMO_GCP [Enter to launch editor] ")
-			c.SendLine("")
+			c.SendLine("\x1b")
 			time.Sleep(time.Millisecond)
 			c.SendLine(":wq!") // save and close
 			time.Sleep(time.Millisecond)
