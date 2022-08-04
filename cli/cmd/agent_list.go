@@ -47,14 +47,18 @@ var (
 
 You can use 'key:value' pairs to filter the list of hosts with the --filter flag.
 
-    lacework agent list --filter 'os:Amazon Linux' --filter 'tags.VpcId:vpc-72225916'
+    lacework agent list --filter 'os:Linux' --filter 'tags.VpcId:vpc-72225916'
 
 **NOTE:** The value can be a regular expression such as 'hostname:db-server.*'
+
+To filter hosts with a running agent version '5.8.0'.
+
+    lacework agent list --filter 'agentVersion:5.8.0.*' --filter 'status:ACTIVE'
 
 The available keys for this command are:
 ` + stringSliceToMarkdownList(
 			agentListCmdState.AvailableFilters.GetFiltersFrom(
-				api.MachineDetailEntity{},
+				api.AgentInfo{},
 			),
 		),
 		PreRunE: func(_ *cobra.Command, _ []string) error {
@@ -66,14 +70,14 @@ The available keys for this command are:
 
 func init() {
 	agentListCmd.Flags().StringSliceVar(&agentListCmdState.Filters, "filter", []string{},
-		"filter results by key:value pairs (e.g. 'tags.Name:worker-.*')",
+		"filter results by key:value pairs (e.g. 'hostname:db-server.*')",
 	)
 }
 
 func listAgents(_ *cobra.Command, _ []string) error {
 	var (
 		progressMsg = "Fetching list of agents"
-		response    = &api.MachineDetailsEntityResponse{}
+		response    = &api.AgentInfoResponse{}
 		now         = time.Now().UTC().Add(-1 * time.Minute)
 		before      = now.AddDate(0, 0, -7) // 7 days from ago
 		filters     = api.SearchFilter{
@@ -117,23 +121,25 @@ func listAgents(_ *cobra.Command, _ []string) error {
 	}
 
 	cli.StartProgress(fmt.Sprintf("%s...", progressMsg))
-	err := cli.LwApi.V2.Entities.Search(response, filters)
+	err := cli.LwApi.V2.AgentInfo.Search(response, filters)
 	cli.StopProgress()
 	if err != nil {
 		if strings.Contains(err.Error(), "Invalid field") {
 			return errors.Errorf("the provided filter key is invalid.\n\nThe available keys for this command are:\n%s",
 				stringSliceToMarkdownList(agentListCmdState.AvailableFilters.Filters))
 		}
-		return errors.Wrap(err, "unable to list agents via MachineDetails search")
+		return errors.Wrap(err, "unable to list agents via AgentInfo search")
 	}
+
+	agents := response.Data
 
 	if response.Paging.Urls.NextPage != "" {
 		totalPages := response.Paging.TotalRows / response.Paging.Rows
 
-		all := []api.MachineDetailEntity{}
+		agents = []api.AgentInfo{}
 		page := 0
 		for {
-			all = append(all, response.Data...)
+			agents = append(agents, response.Data...)
 
 			cli.StartProgress(fmt.Sprintf("%s [%.0f%%]...", progressMsg, float32(page)/float32(totalPages)*100))
 			pageOk, err := cli.LwApi.NextPage(response)
@@ -143,27 +149,24 @@ func listAgents(_ *cobra.Command, _ []string) error {
 			}
 			break
 		}
-		response.Data = all
+		response.Data = agents
 		response.ResetPaging()
 	}
 
 	cli.StartProgress("Crunching agent data...")
-	// Sort machine details by last time seen
-	sort.Slice(response.Data, func(i, j int) bool {
-		return response.Data[i].CreatedTime.After(response.Data[j].CreatedTime)
+	// Sort agents by last updated time (last time they check-in)
+	sort.Slice(agents, func(i, j int) bool {
+		return agents[i].LastUpdate.After(agents[j].LastUpdate)
 	})
-
-	// clean duplicate machines
-	machines := cleanDuplicateMachine(response.Data)
 	cli.StopProgress()
 
 	if cli.JSONOutput() {
-		return cli.OutputJSON(machines)
+		return cli.OutputJSON(agents)
 	}
 
-	if len(machines) == 0 {
+	if len(agents) == 0 {
 		if len(agentListCmdState.Filters) != 0 {
-			cli.OutputHuman("No agent found with the provided filter(s).\n")
+			cli.OutputHuman("No agents found with the provided filter(s).\n")
 		} else {
 			cli.OutputHuman(
 				"There are no agents running in your account.\n\nTry installing one with 'lacework agent install <host>%s'\n",
@@ -175,48 +178,64 @@ func listAgents(_ *cobra.Command, _ []string) error {
 
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"MID", "Short Agent Token", "Hostname", "Name", "IP Address", "External IP", "OS Arch", "Last Checkin"},
-			machineDetailsToListAgentTable(machines),
+			[]string{
+				"MID", "Status", "Agent Version", "Hostname", "Name",
+				"Internal IP", "External IP", "OS Arch", "Last Check-in", "Created Time",
+			},
+			agentInfoToListAgentTable(agents),
 		),
 	)
+
+	// breadcrumbs
+	if len(agentListCmdState.Filters) == 0 {
+		cli.OutputHuman("\nTry adding '--filter status:ACTIVE' to show only active agents.\n")
+	} else if hasWindowsAgents(agents) && !agentListFiltersContains("os") {
+		cli.OutputHuman("\nTry adding '--filter os:Windows' to show only windows agents.\n")
+	} else if !hasWindowsAgents(agents) && !agentListFiltersContains("agentVersion") {
+		cli.OutputHuman("\nTry adding '--filter \"agentVersion:5.8.0.*\"' to show agents with version '5.8.0'.\n")
+	}
 	return nil
 }
 
-func cleanDuplicateMachine(machines []api.MachineDetailEntity) []api.MachineDetailEntity {
-	var cleanedMachines []api.MachineDetailEntity
-
-	for _, m := range machines {
-		if machineExist(cleanedMachines, m.Mid) {
-			continue
-		}
-		cleanedMachines = append(cleanedMachines, m)
+func agentInfoToListAgentTable(agents []api.AgentInfo) [][]string {
+	out := [][]string{}
+	for _, a := range agents {
+		out = append(out, []string{
+			fmt.Sprintf("%d", a.Mid),
+			a.Status,
+			a.AgentVersion,
+			a.Hostname,
+			a.Tags.Name,
+			a.Tags.InternalIP,
+			a.Tags.ExternalIP,
+			fmt.Sprintf("%s/%s", a.Tags.Os, a.Tags.Arch),
+			a.LastUpdate.Format(time.RFC3339),
+			a.CreatedTime.Format(time.RFC3339),
+		})
 	}
 
-	return cleanedMachines
+	return out
 }
 
-func machineExist(machines []api.MachineDetailEntity, mid int) bool {
-	for _, m := range machines {
-		if mid == m.Mid {
-			return true
+// agentListFiltersContains returns true if one of filters passed to this function
+// matches the filters provided to the 'agent list' command
+func agentListFiltersContains(filters ...string) bool {
+	for _, cmdFilter := range agentListCmdState.Filters {
+		for _, expectedFilter := range filters {
+			if strings.Contains(cmdFilter, expectedFilter) {
+				return true
+			}
 		}
 	}
 	return false
 }
 
-func machineDetailsToListAgentTable(machines []api.MachineDetailEntity) [][]string {
-	out := [][]string{}
-	for _, m := range machines {
-		out = append(out, []string{
-			fmt.Sprintf("%d", m.Mid),
-			m.Tags.LwTokenShort,
-			m.Hostname,
-			m.Tags.Name,
-			m.Tags.InternalIP,
-			m.Tags.ExternalIP,
-			fmt.Sprintf("%s/%s", m.Tags.Os, m.Tags.Arch),
-			m.CreatedTime.Format(time.RFC3339),
-		})
+// hasWindowsAgents returns true if there the user has windows agents
+func hasWindowsAgents(agents []api.AgentInfo) bool {
+	for _, a := range agents {
+		if a.Os == "Windows" {
+			return true
+		}
 	}
-	return out
+	return false
 }

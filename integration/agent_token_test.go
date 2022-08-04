@@ -1,4 +1,4 @@
-//go:build agent_token
+//go:build agent
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
