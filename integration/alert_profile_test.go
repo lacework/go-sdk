@@ -54,6 +54,7 @@ func TestAlertProfileUpdate(t *testing.T) {
 			time.Sleep(time.Millisecond)
 			c.SendLine(":wq!") // save and close
 			time.Sleep(time.Millisecond)
+			c.SendLine("\x1b")
 			c.Close()
 		},
 		"ap", "update", "CUSTOM_CUSTOMER_DEMO_GCP")
