@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -77,12 +78,17 @@ func Check(project, current string) (*Version, error) {
 		return new(Version), err
 	}
 
+	outdated := false
+	if !strings.Contains(current, "dev") && current != release.TagName {
+		outdated = true
+	}
+
 	return &Version{
 		Project:        project,
 		CurrentVersion: current,
 		LatestVersion:  release.TagName,
 		LastCheckTime:  time.Now(),
-		Outdated:       current != release.TagName,
+		Outdated:       outdated,
 	}, nil
 }
 

@@ -51,6 +51,14 @@ func TestCheck(t *testing.T) {
 	}
 }
 
+func TestCheckSkipDevVersions(t *testing.T) {
+	info, err := lwupdater.Check("go-sdk", "1.30.9-dev")
+	if assert.Nil(t, err) {
+		assert.Equal(t, "1.30.9-dev", info.CurrentVersion)
+		assert.False(t, info.Outdated)
+	}
+}
+
 func TestCheckDisabled(t *testing.T) {
 	// disable the updater
 	os.Setenv(lwupdater.DisableEnv, "1")
