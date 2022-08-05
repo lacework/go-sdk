@@ -6,11 +6,11 @@ hide_title: true
 
 ## lacework query show-source
 
-Show Lacework query data source
+Show Lacework query datasource
 
 ### Synopsis
 
-Show Lacework query data source.
+Show Lacework query datasource.
 
 ```
 lacework query show-source <datasource_id> [flags]
