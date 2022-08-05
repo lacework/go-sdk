@@ -155,7 +155,7 @@ Then go to Settings > Alert Profiles.
 	// update command is used to update an existing lacework alert profile
 	alertProfilesUpdateCommand = &cobra.Command{
 		Use:   "update [alert_profile_id]",
-		Short: "Update an the alert template for an existing alert profile",
+		Short: "Update alert templates from an existing alert profile",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			if !cli.InteractiveMode() {
@@ -279,7 +279,6 @@ func promptUpdateAlertProfile(args []string) (api.AlertProfileResponse, error) {
 
 	cli.StartProgress(" Updating alert profile...")
 	response, err := cli.LwApi.V2.Alert.Profiles.Update(profileID, templates)
-
 	cli.StopProgress()
 	return response, err
 }
