@@ -18,15 +18,15 @@ Run a query via ID (uses active profile):
 
     lacework query run MyQuery --start "-1w@w" --end "@w"
 
-Start and End times are required to run a query:
+Start and end times are required to run a query:
 
-1.  Start and End times must be specified in one of the following formats:
+1.  Specify start and end times in one of the following formats:
 
     A. A relative time specifier
-    B. RFC3339 Date and Time
+    B. RFC3339 date and time
     C. Epoch time in milliseconds
 
-2. Start and End times must be specified in one of the following ways:
+2. Specify start and end times in one of the following ways:
 
     A. As StartTimeRange and EndTimeRange in the ParamInfo block within the query
     B. As start_time_range and end_time_range if specifying JSON
@@ -47,6 +47,7 @@ lacework query run [query_id] [flags]
       --fail_on_count string   fail if the results from a query match the provided expression (e.g. '>0')
   -f, --file string            path to a query to run
   -h, --help                   help for run
+      --limit int              result limit for query (default 0)
       --range string           natural time range for query
       --start string           start time for query (default "-24h")
   -u, --url string             url to a query to run

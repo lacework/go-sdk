@@ -12,13 +12,9 @@ Run and manage queries
 
 Run and manage Lacework Query Language (LQL) queries.
 
-To provide customizable specification of datasets, Lacework provides the Lacework
-Query Language (LQL). LQL is a human-readable text syntax for specifying selection,
-filtering, and manipulation of data.
-
-Currently, Lacework has introduced LQL for configuration of AWS CloudTrail policies
-and queries. This means you can use LQL to customize AWS CloudTrail policies only.
-For all other policies, use the previous existing methods.
+LQL is a SQL-like query language for specifying the selection, filtering, and 
+manipulation of data. Queries let you interactively request information from 
+specified curated datasources.
 
 Lacework ships a set of default LQL queries that are available in your account.
 
@@ -38,7 +34,7 @@ To execute a query.
 
     lacework query run <query_id>
 
-**NOTE: LQL syntax may change.**
+**Note: LQL syntax may change.**
 
 
 ### Options
@@ -70,11 +66,11 @@ To execute a query.
 * [lacework query create](lacework_query_create.md)	 - Create a query
 * [lacework query delete](lacework_query_delete.md)	 - Delete a query
 * [lacework query list](lacework_query_list.md)	 - List queries
-* [lacework query list-sources](lacework_query_list-sources.md)	 - List Lacework query data sources
-* [lacework query preview-source](lacework_query_preview-source.md)	 - Preview Lacework query data source
+* [lacework query list-sources](lacework_query_list-sources.md)	 - List Lacework query datasources
+* [lacework query preview-source](lacework_query_preview-source.md)	 - Preview Lacework query datasource
 * [lacework query run](lacework_query_run.md)	 - Run a query
 * [lacework query show](lacework_query_show.md)	 - Show a query
-* [lacework query show-source](lacework_query_show-source.md)	 - Show Lacework query data source
+* [lacework query show-source](lacework_query_show-source.md)	 - Show Lacework query datasource
 * [lacework query update](lacework_query_update.md)	 - Update a query
 * [lacework query validate](lacework_query_validate.md)	 - Validate a query
 

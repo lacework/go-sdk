@@ -6,11 +6,11 @@ hide_title: true
 
 ## lacework query list-sources
 
-List Lacework query data sources
+List Lacework query datasources
 
 ### Synopsis
 
-List Lacework query data sources.
+List Lacework query datasources.
 
 ```
 lacework query list-sources [flags]
