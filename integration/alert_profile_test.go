@@ -23,8 +23,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
-	"testing"
+		"testing"
 	"time"
 
 	"github.com/Netflix/go-expect"
@@ -47,19 +46,20 @@ func TestAlertProfileUpdate(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	tmResult, err := runAlertProfileTest(t,
+	runAlertProfileTest(t,
 		func(c *expect.Console) {
-			c.ExpectString("? Update alert templates for profile CUSTOM_CUSTOMER_DEMO_GCP [Enter to launch editor] ")
+			time.Sleep(time.Second)
+			c.Expect(expect.WithTimeout(time.Second), expect.String("Update alert templates for profile CUSTOM_CUSTOMER_DEMO_GCP"))
+			time.Sleep(time.Millisecond)
 			c.SendLine("\x1b")
 			time.Sleep(time.Millisecond)
 			c.SendLine(":wq!") // save and close
 			time.Sleep(time.Millisecond)
 			c.SendLine("\x1b")
+			c.ExpectString("The alert profile CUSTOM_CUSTOMER_DEMO_GCP was updated")
 			c.Close()
 		},
 		"ap", "update", "CUSTOM_CUSTOMER_DEMO_GCP")
-
-	assert.Contains(t, "The alert profile CUSTOM_CUSTOMER_DEMO_GCP was updated", strings.TrimSpace(tmResult))
 }
 
 func runAlertProfileTest(t *testing.T, conditions func(*expect.Console), args ...string) (string, error) {
