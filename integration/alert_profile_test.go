@@ -23,7 +23,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-		"testing"
+	"testing"
 	"time"
 
 	"github.com/Netflix/go-expect"
