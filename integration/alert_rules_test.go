@@ -1,4 +1,4 @@
-//go:build alert_rules
+//go:build alert_rule
 
 // Author:: Darren Murray (<darren.murray@lacework.net>)
 // Copyright:: Copyright 2021, Lacework Inc.
