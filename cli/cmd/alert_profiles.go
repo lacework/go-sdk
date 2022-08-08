@@ -288,7 +288,7 @@ func promptSelectProfile() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	var profileList = filterAlertProfiles(profileResponse)
+	var profileList = filterAlertProfilesByDefault(profileResponse)
 
 	questions := []*survey.Question{
 		{
@@ -423,6 +423,21 @@ func promptAddAlertTemplate() api.AlertTemplate {
 		Description: answers.Description,
 		Subject:     answers.Subject,
 	}
+}
+
+func filterAlertProfilesByDefault(response api.AlertProfilesResponse) []string {
+	var profiles = make([]string, 0)
+	for _, p := range response.Data {
+		if !strings.HasPrefix(p.Guid, "LW_") && len(p.Alerts) >= 1 {
+			profiles = append(profiles, p.Guid)
+		}
+	}
+
+	sort.Slice(profiles, func(i, j int) bool {
+		return profiles[i] < profiles[j]
+	})
+
+	return profiles
 }
 
 func filterAlertProfiles(response api.AlertProfilesResponse) []string {
