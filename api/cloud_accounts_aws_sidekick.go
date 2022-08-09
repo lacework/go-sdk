@@ -69,4 +69,13 @@ type AwsSidekickData struct {
 
 	ScanContainers          bool `json:"scanContainers"`
 	ScanHostVulnerabilities bool `json:"scanHostVulnerabilities"`
+
+	AccountID         string                             `json:"awsAccountId,omitempty"`
+	BucketArn         string                             `json:"bucketArn,omitempty"`
+	CrossAccountCreds AwsSidekickCrossAccountCredentials `json:"crossAccountCredentials"`
+}
+
+type AwsSidekickCrossAccountCredentials struct {
+	RoleArn    string `json:"roleArn,omitempty"`
+	ExternalID string `json:"externalId,omitempty"`
 }
