@@ -36,6 +36,14 @@ func main() {
 	getResponse, _ := lacework.V2.DataExportRules.Get(createResponse.Data.ID)
 	fmt.Printf("Retrieved rule: %s\n", getResponse.Data.ID)
 
+	createResponse.Data.Filter.Name = "export-rule-created-by-golang-updated"
+
+	updateResponse, err := lacework.V2.DataExportRules.Update(createResponse.Data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Updated rule: %s\n", updateResponse.Data.ID)
+
 	searchResponse, err := lacework.V2.DataExportRules.Search(api.SearchFilter{
 		Filters: []api.Filter{{
 			Expression: "like",

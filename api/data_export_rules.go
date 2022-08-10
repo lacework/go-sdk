@@ -87,6 +87,22 @@ func (svc *DataExportRulesService) Create(rule DataExportRule) (response DataExp
 	return
 }
 
+// Update updates a Data Export Rule that matches the provided guid
+func (svc *DataExportRulesService) Update(rule DataExportRule) (response DataExportRuleResponse,
+	err error,
+) {
+	if rule.ID == "" {
+		err = errors.New("specify a Guid")
+		return
+	}
+	apiPath := fmt.Sprintf(apiV2DataExportRulesFromGUID, rule.ID)
+	rule.ID = ""
+	rule.Filter.UpdatedTime = ""
+	rule.Filter.CreatedBy = ""
+	err = svc.client.RequestEncoderDecoder("PATCH", apiPath, rule, &response)
+	return
+}
+
 // Delete deletes a Data Export Rule that matches the provided guid
 func (svc *DataExportRulesService) Delete(guid string) error {
 	if guid == "" {
