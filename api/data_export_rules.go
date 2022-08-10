@@ -42,7 +42,7 @@ type DataExportRuleResponse struct {
 
 type DataExportRule struct {
 	ID     string               `json:"mcGuid,omitempty"`
-	Filter DataExportRuleFilter `json:"filter"`
+	Filter DataExportRuleFilter `json:"filters"`
 	Type   string               `json:"type"`
 	IDs    []string             `json:"intgGuidList"`
 }
