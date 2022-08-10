@@ -126,6 +126,10 @@ const (
 
 	apiV2Datasources = "v2/Datasources"
 
+	apiV2DataExportRules         = "v2/DataExportRules"
+	apiV2DataExportRulesFromGUID = "v2/DataExportRules/%s"
+	apiV2DataExportRulesSearch   = "v2/DataExportRules/search"
+
 	apiV2TeamMembers         = "v2/TeamMembers"
 	apiV2TeamMembersFromGUID = "v2/TeamMembers/%s"
 	apiV2TeamMembersSearch   = "v2/TeamMembers/search"
