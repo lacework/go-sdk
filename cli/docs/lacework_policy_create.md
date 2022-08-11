@@ -17,16 +17,16 @@ A policy is represented in either JSON or YAML format.
 The following attributes are minimally required:
 
     ---
-    policyType: Violation
-    queryId: MyQuery
     title: My Policy
     enabled: false
+    policyType: Violation
+    alertEnabled: false
+    alertProfile: Alert_Profile_ID.Alert_Template_Name
+    evalFrequency: Daily
+    queryId: MyQuery
+    severity: high
     description: My Policy Description
     remediation: My Policy Remediation
-    severity: high
-    evalFrequency: Daily
-    alertEnabled: false
-    alertProfile: LW_CloudTrail_Alerts
 
 
 ```

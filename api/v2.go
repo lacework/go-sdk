@@ -40,11 +40,13 @@ type V2Endpoints struct {
 	ContainerRegistries     *ContainerRegistriesService
 	ResourceGroups          *ResourceGroupsService
 	AgentAccessTokens       *AgentAccessTokensService
+	AgentInfo               *AgentInfoService
 	Query                   *QueryService
 	Policy                  *PolicyService
 	Entities                *EntitiesService
 	Schemas                 *SchemasService
 	Datasources             *DatasourcesService
+	DataExportRules         *DataExportRulesService
 	TeamMembers             *TeamMembersService
 	VulnerabilityExceptions *VulnerabilityExceptionsService
 	Vulnerabilities         *v2VulnerabilitiesService
@@ -61,11 +63,13 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&ContainerRegistriesService{c},
 		&ResourceGroupsService{c},
 		&AgentAccessTokensService{c},
+		&AgentInfoService{c},
 		&QueryService{c},
 		NewV2PolicyService(c),
 		&EntitiesService{c},
 		&SchemasService{c, map[integrationSchema]V2Service{}},
 		&DatasourcesService{c},
+		&DataExportRulesService{c},
 		&TeamMembersService{c},
 		&VulnerabilityExceptionsService{c},
 		NewV2VulnerabilitiesService(c),

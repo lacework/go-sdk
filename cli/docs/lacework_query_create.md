@@ -27,49 +27,54 @@ To launch your default editor and create a new query.
 
     lacework lql create
 
-The following example comes from Lacework's implementation of a query:
+The following example checks for unrestricted ingress to TCP port 445:
 
     ---
-    queryId: LW_Global_AWS_CTA_AccessKeyDeleted
+    queryId: LW_Custom_UnrestrictedIngressToTCP445
     queryText: |-
       {
           source {
-              CloudTrailRawEvents
+              LW_CFG_AWS_EC2_SECURITY_GROUPS a,
+              array_to_rows(a.RESOURCE_CONFIG:IpPermissions) as (ip_permissions),
+              array_to_rows(ip_permissions:IpRanges) as (ip_ranges)
           }
           filter {
-              EVENT_SOURCE = 'iam.amazonaws.com'
-              and EVENT_NAME = 'DeleteAccessKey'
-              and ERROR_CODE is null
+              ip_permissions:IpProtocol = 'tcp'
+              and ip_permissions:FromPort = 445
+              and ip_permissions:ToPort = 445
+              and ip_ranges:CidrIp = '0.0.0.0/0'
           }
           return distinct {
-              INSERT_ID,
-              INSERT_TIME,
-              EVENT_TIME,
-              EVENT
+              ACCOUNT_ALIAS,
+              ACCOUNT_ID,
+              ARN as RESOURCE_KEY,
+              RESOURCE_REGION,
+              RESOURCE_TYPE,
+              SERVICE
           }
       }
 
 A query is represented using JSON or YAML markup and must specify both 'queryId'
-and 'queryText' keys.  The above query uses YAML, specifies an identifier of
-'LW_Global_AWS_CTA_AccessKeyDeleted', and identifies AWS CloudTrail events signifying
-that an IAM access key was deleted.  The queryText is expressed in Lacework Query
+and 'queryText' keys. The above query uses YAML, specifies an identifier of
+'LW_Custom_UnrestrictedIngressToTCP445', and identifies AWS EC2 security groups with
+unrestricted access to TCP port 445. The queryText is expressed in Lacework Query
 Language (LQL) syntax which is delimited by '{ }' and contains three sections:
 
   * Source data is specified in the 'source' clause. The source of data is the
-  'CloudTrailRawEvents' dataset. LQL queries generally refer to other datasets,
-  and customizable policies always target a suitable dataset.
+  'LW_CFG_AWS_EC2_SECURITY_GROUPS' datasource. LQL queries generally refer to other 
+  datasources, and customizable policies always target a suitable datasource.
 
   * Records of interest are specified by the 'filter' clause. In the example, the
-  records available in 'CloudTrailRawEvents' are filtered for those whose source
-  is 'iam.amazonaws.com', whose event name is 'DeleteAccessKey', and that do not
-  have any error code. The syntax for this filtering expression strongly resembles SQL.
+  records available in 'LW_CFG_AWS_EC2_SECURITY_GROUPS' are filtered for those whose IP
+  protocol is 'tcp', whose from and to port is '445', and CidrIP is '0.0.0.0/0'.
+  The syntax for this filtering expression strongly resembles SQL.
 
   * The fields this query exposes are listed in the 'return' clause. Because there
   may be unwanted duplicates among result records when Lacework composes them from
   just these four columns, the distinct modifier is added. This behaves like a SQL
   'SELECT DISTINCT'. Each returned column in this case is just a field that is present
-  in 'CloudTrailRawEvents', but we can compose results by manipulating strings, dates,
-  JSON and numbers as well.
+  in 'LW_CFG_AWS_EC2_SECURITY_GROUPS', but you can compose results by manipulating strings, 
+  dates, JSON and numbers as well.
 
 The resulting dataset is shaped like a table. The table's columns are named with the
 names of the columns selected. If desired, you could alias them to other names as well.

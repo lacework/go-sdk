@@ -38,6 +38,10 @@ const (
 	QueryEndTimeRange   ExecuteQueryArgumentName = "EndTimeRange"
 )
 
+type ExecuteQueryOptions struct {
+	Limit *int `json:"limit,omitempty"`
+}
+
 type ExecuteQueryArgument struct {
 	Name  ExecuteQueryArgumentName `json:"name"`
 	Value string                   `json:"value"`
@@ -45,11 +49,13 @@ type ExecuteQueryArgument struct {
 
 type ExecuteQueryRequest struct {
 	Query     ExecuteQuery           `json:"query"`
+	Options   ExecuteQueryOptions    `json:"options"`
 	Arguments []ExecuteQueryArgument `json:"arguments"`
 }
 
 type ExecuteQueryByIDRequest struct {
 	QueryID   string                 `json:"queryId,omitempty"`
+	Options   ExecuteQueryOptions    `json:"options"`
 	Arguments []ExecuteQueryArgument `json:"arguments"`
 }
 

@@ -1,30 +1,12 @@
----
-title: "lacework query show-source"
-slug: lacework_query_show-source
-hide_title: true
----
+Update alert templates from an existing alert profile
 
-## lacework query show-source
+Usage:
+  lacework alert-profile update [alert_profile_id] [flags]
 
-Show Lacework query datasource
+Flags:
+  -h, --help   help for update
 
-### Synopsis
-
-Show Lacework query datasource.
-
-```
-lacework query show-source <datasource_id> [flags]
-```
-
-### Options
-
-```
-  -h, --help   help for show-source
-```
-
-### Options inherited from parent commands
-
-```
+Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
@@ -37,9 +19,3 @@ lacework query show-source <datasource_id> [flags]
       --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
-```
-
-### SEE ALSO
-
-* [lacework query](lacework_query.md)	 - Run and manage queries
-

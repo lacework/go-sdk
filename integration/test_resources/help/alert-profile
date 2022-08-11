@@ -14,6 +14,7 @@ Available Commands:
   delete      Delete an alert profile
   list        List all alert profiles
   show        Show an alert profile by ID
+  update      Update alert templates from an existing alert profile
 
 Flags:
   -h, --help   help for alert-profile

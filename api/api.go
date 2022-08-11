@@ -108,6 +108,8 @@ const (
 	apiV2AgentAccessTokensSearch = "v2/AgentAccessTokens/search"
 	apiV2AgentAccessTokenFromID  = "v2/AgentAccessTokens/%s"
 
+	apiV2AgentInfoSearch = "v2/AgentInfo/search"
+
 	apiV2PolicyExceptions                = "v2/Exceptions?policyId=%s"
 	apiV2PolicyExceptionsFromExceptionID = "v2/Exceptions/%s?policyId=%s"
 
@@ -123,6 +125,10 @@ const (
 	apiV2ResourceGroupsFromGUID = "v2/ResourceGroups/%s"
 
 	apiV2Datasources = "v2/Datasources"
+
+	apiV2DataExportRules         = "v2/DataExportRules"
+	apiV2DataExportRulesFromGUID = "v2/DataExportRules/%s"
+	apiV2DataExportRulesSearch   = "v2/DataExportRules/search"
 
 	apiV2TeamMembers         = "v2/TeamMembers"
 	apiV2TeamMembersFromGUID = "v2/TeamMembers/%s"

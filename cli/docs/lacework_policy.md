@@ -12,19 +12,19 @@ Manage policies
 
 Manage policies in your Lacework account.
 
-A policy is a mechanism used to add annotated metadata to a Lacework query for improving
-the context of alerts, reports, and information displayed in the Lacework Console.
+Policies add annotated metadata to queries for improving the context of alerts,
+reports, and information displayed in the Lacework Console.
 
-A policy also facilitates the scheduled execution of a Lacework query
+Policies also facilitate the scheduled execution of Lacework queries.
 
-A query is a mechanism used to interactively request information from a specific
-curated dataset. A query has a defined structure for authoring detections.
+Queries let you interactively request information from specified
+curated datasources. Queries have a defined structure for authoring detections.
 
 Lacework ships a set of default LQL policies that are available in your account.
 
 Limitations:
   * The maximum number of records that each policy will return is 1000
-  * The maximum number of API calls is 120 per hour for ad-hoc LQL query executions
+  * The maximum number of API calls is 120 per hour for on-demand LQL query executions
 
 To view all the policies in your Lacework account.
 
@@ -34,11 +34,11 @@ To view more details about a single policy.
 
     lacework policy show <policy_id>
 
-To view the LQL query associated with the policy, use the query id shown.
+To view the LQL query associated with the policy, use the query ID.
 
     lacework query show <query_id>
 
-**NOTE: LQL syntax may change.**
+**Note: LQL syntax may change.**
 
 
 ### Options

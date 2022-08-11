@@ -34,64 +34,64 @@ type validateQueryArgumentsTest struct {
 }
 
 var validateQueryArgumentsTests = []validateQueryArgumentsTest{
-	validateQueryArgumentsTest{
+	{
 		name:      "empty",
 		arguments: []ExecuteQueryArgument{},
 		retrn:     nil,
 		//retrn: errors.New(`parsing time "" as "2006-01-02T15:04:05.000Z07:00": cannot parse "" as "2006"`),
 	},
-	validateQueryArgumentsTest{
+	{
 		name: "start-bad",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: QueryStartTimeRange, Value: ""},
+			{Name: QueryStartTimeRange, Value: ""},
 		},
 		retrn: errors.New(
 			`invalid StartTimeRange argument: parsing time "" as "2006-01-02T15:04:05.000Z": cannot parse "" as "2006"`),
 	},
-	validateQueryArgumentsTest{
+	{
 		name: "start-nonutc",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: QueryStartTimeRange, Value: "2021-07-11T00:00:00.123Z07:00"},
+			{Name: QueryStartTimeRange, Value: "2021-07-11T00:00:00.123Z07:00"},
 		},
 		retrn: errors.New(
 			`invalid StartTimeRange argument: parsing time "2021-07-11T00:00:00.123Z07:00": extra text: "07:00"`),
 	},
-	validateQueryArgumentsTest{
+	{
 		name: "start-good",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: QueryStartTimeRange, Value: "2021-07-12T00:00:00.000Z"},
+			{Name: QueryStartTimeRange, Value: "2021-07-12T00:00:00.000Z"},
 		},
 		retrn: nil,
 	},
-	validateQueryArgumentsTest{
+	{
 		name: "end-bad",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: "EndTimeRange", Value: ""},
+			{Name: "EndTimeRange", Value: ""},
 		},
 		retrn: errors.New(
 			`invalid EndTimeRange argument: parsing time "" as "2006-01-02T15:04:05.000Z": cannot parse "" as "2006"`),
 	},
-	validateQueryArgumentsTest{
+	{
 		name: "end-good",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: "EndTimeRange", Value: "2021-07-12T00:00:00.000Z"},
+			{Name: "EndTimeRange", Value: "2021-07-12T00:00:00.000Z"},
 		},
 		retrn: nil,
 	},
-	validateQueryArgumentsTest{
+	{
 		name: "range-bad",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: QueryStartTimeRange, Value: "2021-07-13T00:00:00.000Z"},
-			ExecuteQueryArgument{Name: "EndTimeRange", Value: "2021-07-12T00:00:00.000Z"},
+			{Name: QueryStartTimeRange, Value: "2021-07-13T00:00:00.000Z"},
+			{Name: "EndTimeRange", Value: "2021-07-12T00:00:00.000Z"},
 		},
 		retrn: errors.New(
 			"date range should have a start time before the end time"),
 	},
-	validateQueryArgumentsTest{
+	{
 		name: "range-good",
 		arguments: []ExecuteQueryArgument{
-			ExecuteQueryArgument{Name: QueryStartTimeRange, Value: "2021-07-12T00:00:00.000Z"},
-			ExecuteQueryArgument{Name: "EndTimeRange", Value: "2021-07-13T00:00:00.000Z"},
+			{Name: QueryStartTimeRange, Value: "2021-07-12T00:00:00.000Z"},
+			{Name: "EndTimeRange", Value: "2021-07-13T00:00:00.000Z"},
 		},
 		retrn: nil,
 	},
@@ -118,31 +118,31 @@ type validateQueryRangeTest struct {
 }
 
 var validateQueryRangeTests = []validateQueryRangeTest{
-	validateQueryRangeTest{
+	{
 		name:           "ok",
 		startTimeRange: time.Unix(0, 0),
 		endTimeRange:   time.Unix(1, 0),
 		retrn:          nil,
 	},
-	validateQueryRangeTest{
+	{
 		name:           "empty-start",
 		startTimeRange: time.Time{},
 		endTimeRange:   time.Unix(1, 0),
 		retrn:          nil,
 	},
-	validateQueryRangeTest{
+	{
 		name:           "empty-end",
 		startTimeRange: time.Unix(1, 0),
 		endTimeRange:   time.Time{},
 		retrn:          errors.New("date range should have a start time before the end time"),
 	},
-	validateQueryRangeTest{
+	{
 		name:           "start-after-end",
 		startTimeRange: time.Unix(1717333947, 0),
 		endTimeRange:   time.Unix(1617333947, 0),
 		retrn:          errors.New("date range should have a start time before the end time"),
 	},
-	validateQueryRangeTest{
+	{
 		name:           "start-equal-end",
 		startTimeRange: time.Unix(1617333947, 0),
 		endTimeRange:   time.Unix(1617333947, 0),
