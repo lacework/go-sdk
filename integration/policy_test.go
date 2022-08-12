@@ -361,7 +361,7 @@ func TestPolicyShow(t *testing.T) {
 	t.Run("YAML Output", func(t *testing.T) {
 		out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1", "--yaml")
 		assert.Contains(t, out.String(), `policyId: lacework-global-1`)
-		assert.Contains(t, out.String(), `remediation: |-`)
+		assert.Contains(t, out.String(), `remediation:`)
 		assert.Empty(t, err.String(), "STDERR should be empty")
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	})
