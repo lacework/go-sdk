@@ -98,8 +98,8 @@ func TestCloudAccountsAwsCfgUpdate(t *testing.T) {
 			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
 			assert.Contains(t, body, "integration_name", "cloud account name is missing")
 			assert.Contains(t, body, "AwsCfg", "wrong cloud account type")
-			assert.Contains(t, body, "arn:incorrect:rolearn", "wrong role arn")
-			assert.Contains(t, body, "abc123", "wrong external ID")
+			assert.Contains(t, body, "arn:foo:bar", "wrong role arn")
+			assert.Contains(t, body, "0123456789", "wrong external ID")
 			assert.Contains(t, body, "enabled\":1", "cloud account is not enabled")
 		}
 
@@ -118,7 +118,7 @@ func TestCloudAccountsAwsCfgUpdate(t *testing.T) {
 		api.AwsCfgData{
 			Credentials: api.AwsCfgCredentials{
 				RoleArn:    "arn:foo:bar",
-				ExternalID: "abc123",
+				ExternalID: "0123456789",
 			},
 		},
 	)
@@ -132,7 +132,7 @@ func TestCloudAccountsAwsCfgUpdate(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, intgGUID, response.Data.IntgGuid)
 	assert.Equal(t, "arn:foo:bar", response.Data.Data.Credentials.RoleArn)
-	assert.Equal(t, "abc123", response.Data.Data.Credentials.ExternalID)
+	assert.Equal(t, "0123456789", response.Data.Data.Credentials.ExternalID)
 }
 
 func singleAwsCfgCloudAccount(id string) string {
