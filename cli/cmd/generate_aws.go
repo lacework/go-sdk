@@ -18,9 +18,9 @@ var (
 	// Define question text here so they can be reused in testing
 	QuestionAwsEnableConfig             = "Enable configuration integration?"
 	QuestionCustomizeConfigName         = "Customize Config integration name?"
-    QuestionConfigName                  = "Specify name of config integration (optional)"
-    QuestionEnableCloudtrail            = "Enable CloudTrail integration?"
-    QuestionCloudtrailName              = "Specify name of cloudtrail integration (optional)"
+	QuestionConfigName                  = "Specify name of config integration (optional)"
+	QuestionEnableCloudtrail            = "Enable CloudTrail integration?"
+	QuestionCloudtrailName              = "Specify name of cloudtrail integration (optional)"
 	QuestionAwsRegion                   = "Specify the AWS region to be used by CloudTrail, SNS, and S3:"
 	QuestionConsolidatedCloudtrail      = "Use consolidated CloudTrail?"
 	QuestionUseExistingCloudtrail       = "Use an existing CloudTrail?"
@@ -31,31 +31,31 @@ var (
 	QuestionExistingIamRoleExtID        = "Specify the external ID to be used with the existing IAM role:"
 	QuestionPrimaryAwsAccountProfile    = "Before adding sub-accounts, your primary AWS account profile name must be set;" +
 		" which profile should the main account use?"
-	QuestionSubAccountProfileName       = "Supply the profile name for this additional AWS account:"
-	QuestionSubAccountRegion            = "What region should be used for this account?"
-	QuestionSubAccountAddMore           = "Add another AWS account?"
-	QuestionSubAccountReplace           = "Currently configured AWS sub-accounts: %s, replace?"
-	QuestionAwsConfigAdvanced           = "Configure advanced integration options?"
-	QuestionAwsAnotherAdvancedOpt       = "Configure another advanced integration option"
-	QuestionAwsCustomizeOutputLocation  = "Provide the location for the output to be written:"
+	QuestionSubAccountProfileName      = "Supply the profile name for this additional AWS account:"
+	QuestionSubAccountRegion           = "What region should be used for this account?"
+	QuestionSubAccountAddMore          = "Add another AWS account?"
+	QuestionSubAccountReplace          = "Currently configured AWS sub-accounts: %s, replace?"
+	QuestionAwsConfigAdvanced          = "Configure advanced integration options?"
+	QuestionAwsAnotherAdvancedOpt      = "Configure another advanced integration option"
+	QuestionAwsCustomizeOutputLocation = "Provide the location for the output to be written:"
 
 	// S3 Bucket Questions
-	QuestionBucketEnableEncryption      = "Enable S3 bucket encryption when creating bucket"
-	QuestionBucketSseKeyArn             = "Specify existing KMS encryption key arn for S3 bucket (optional)"
-	QuestionBucketName                  = "Specify name when creating S3 bucket (optional)"
+	QuestionBucketEnableEncryption = "Enable S3 bucket encryption when creating bucket"
+	QuestionBucketSseKeyArn        = "Specify existing KMS encryption key arn for S3 bucket (optional)"
+	QuestionBucketName             = "Specify name when creating S3 bucket (optional)"
 
 	// SNS Topic Questions
-	QuestionsUseExistingSNSTopic        = "Use an existing SNS topic?"
-	QuestionSnsTopicArn                 = "Specify existing SNS topic arn"
-	QuestionSnsEnableEncryption         = "Enable encryption on SNS topic when creating?"
-    QuestionSnsEncryptionKeyArn         = "Specify existing KMS encryption key arn for SNS topic (optional)"
-    QuestionSnsTopicName                = "Specify SNS topic name if creating new one (optional)"
-    
+	QuestionsUseExistingSNSTopic = "Use an existing SNS topic?"
+	QuestionSnsTopicArn          = "Specify existing SNS topic arn"
+	QuestionSnsEnableEncryption  = "Enable encryption on SNS topic when creating?"
+	QuestionSnsEncryptionKeyArn  = "Specify existing KMS encryption key arn for SNS topic (optional)"
+	QuestionSnsTopicName         = "Specify SNS topic name if creating new one (optional)"
+
 	// SQS Queue Questions
-	QuestionSqsEnableEncryption        = "Enable encryption on SQS queue when creating"
-    QuestionSqsEncryptionKeyArn        = "Specify existing KMS encryption key arn for SQS queue (optional)"
-    QuestionSqsQueueName               = "Specify SQS queue name when creating (optional)"     
-	
+	QuestionSqsEnableEncryption = "Enable encryption on SQS queue when creating"
+	QuestionSqsEncryptionKeyArn = "Specify existing KMS encryption key arn for SQS queue (optional)"
+	QuestionSqsQueueName        = "Specify SQS queue name when creating (optional)"
+
 	// select options
 	AwsAdvancedOptDone     = "Done"
 	AdvancedOptCloudTrail  = "Additional CloudTrail options"
@@ -134,7 +134,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			if GenerateAwsCommandState.ConsolidatedCloudtrail {
 				mods = append(mods, aws.UseConsolidatedCloudtrail())
 			}
-            
+
 			// Create new struct
 			data := aws.NewTerraform(
 				GenerateAwsCommandState.AwsRegion,
@@ -303,50 +303,50 @@ func initGenerateAwsTfCommandFlags() {
 	// add flags to sub commands
 	// TODO Share the help with the interactive generation
 	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.Cloudtrail, 
-		"cloudtrail", 
-		false, 
+		&GenerateAwsCommandState.Cloudtrail,
+		"cloudtrail",
+		false,
 		"enable cloudtrail integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.CloudtrailName,
 		"cloudtrail_name",
 		"",
-		"specify name of cloudtrail integration")			
+		"specify name of cloudtrail integration")
 	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.Config, 
-		"config", 
-		false, 
+		&GenerateAwsCommandState.Config,
+		"config",
+		false,
 		"enable config integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.ConfigName,
 		"config_name",
 		"",
-		"specify name of config integration")				
+		"specify name of config integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.AwsRegion, 
-		"aws_region", 
-		"", 
+		&GenerateAwsCommandState.AwsRegion,
+		"aws_region",
+		"",
 		"specify aws region")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.AwsProfile, 
-		"aws_profile", 
-		"", 
+		&GenerateAwsCommandState.AwsProfile,
+		"aws_profile",
+		"",
 		"specify aws profile")
 	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.BucketEncryptionEnabled, 
-		"bucket_encryption_enabled", 
-		true, 
-		"enable S3 bucket encryption when creating bucket")	
+		&GenerateAwsCommandState.BucketEncryptionEnabled,
+		"bucket_encryption_enabled",
+		true,
+		"enable S3 bucket encryption when creating bucket")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.BucketName,
 		"bucket_name",
 		"",
-		"specify bucket name when creating bucket")		
+		"specify bucket name when creating bucket")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.BucketSseKeyArn,
 		"bucket_sse_key_arn",
 		"",
-		"specify existing KMS encryption key arn for bucket")			
+		"specify existing KMS encryption key arn for bucket")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.ExistingCloudtrailBucketArn,
 		"existing_bucket_arn",
@@ -376,7 +376,7 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandState.ConsolidatedCloudtrail,
 		"consolidated_cloudtrail",
 		false,
-		"use consolidated trail")		
+		"use consolidated trail")
 	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.ForceDestroyS3Bucket,
 		"force_destroy_s3",
@@ -400,35 +400,35 @@ func initGenerateAwsTfCommandFlags() {
 		"location to write generated content",
 	)
 	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.SnsEncryptionEnabled, 
-		"sns_encryption_enabled", 
-		true, 
-		"enable encryption on sns topic when creating one")	
+		&GenerateAwsCommandState.SnsEncryptionEnabled,
+		"sns_encryption_enabled",
+		true,
+		"enable encryption on sns topic when creating one")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.SnsEncryptionKeyArn,
 		"sns_encryption_key_arn",
 		"",
-		"specify existing KMS encryption key arn for SNS topic")			
+		"specify existing KMS encryption key arn for SNS topic")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.SnsTopicName,
 		"sns_topic_name",
 		"",
-		"specify sns topic name if creating new one")		
+		"specify sns topic name if creating new one")
 	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.SqsEncryptionEnabled, 
-		"sqs_encryption_enabled", 
-		true, 
-		"enable encryption on sqs queue when creating")	
+		&GenerateAwsCommandState.SqsEncryptionEnabled,
+		"sqs_encryption_enabled",
+		true,
+		"enable encryption on sqs queue when creating")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.SqsEncryptionKeyArn,
 		"sqs_encryption_key_arn",
 		"",
-		"specify existing KMS encryption key arn for SQS queue")			
+		"specify existing KMS encryption key arn for SQS queue")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.SqsQueueName,
 		"sqs_queue_name",
 		"",
-		"specify sqs queue name if creating new one")				
+		"specify sqs queue name if creating new one")
 }
 
 // survey.Validator for aws ARNs
@@ -485,38 +485,38 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState
 		},
 	}, config.Cloudtrail); err != nil {
 		return err
-    }
+	}
 
 	// If a new bucket is to be created; should the force destroy bit be set?
 	newBucket := config.ExistingCloudtrailBucketArn == ""
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-		    Prompt:   &survey.Confirm{Message: QuestionForceDestroyS3Bucket, Default: config.ForceDestroyS3Bucket},
-		    Response: &config.ForceDestroyS3Bucket,
-		    Checks:   []*bool{&config.Cloudtrail, &newBucket},
+			Prompt:   &survey.Confirm{Message: QuestionForceDestroyS3Bucket, Default: config.ForceDestroyS3Bucket},
+			Response: &config.ForceDestroyS3Bucket,
+			Checks:   []*bool{&config.Cloudtrail, &newBucket},
 		},
-	    // If new bucket created, allow user to optionally name the bucket		
+		// If new bucket created, allow user to optionally name the bucket
 		{
-		    Prompt:   &survey.Input{Message: QuestionBucketName, Default: config.BucketName},
-		    Response: &config.BucketName,
-		    Checks:   []*bool{&config.Cloudtrail, &newBucket},
+			Prompt:   &survey.Input{Message: QuestionBucketName, Default: config.BucketName},
+			Response: &config.BucketName,
+			Checks:   []*bool{&config.Cloudtrail, &newBucket},
 		},
-	    // If new bucket created, should this have encryption enabled
+		// If new bucket created, should this have encryption enabled
 		{
-		    Prompt:   &survey.Confirm{Message: QuestionBucketEnableEncryption, Default: config.BucketEncryptionEnabled},
-		    Response: &config.BucketEncryptionEnabled,
-		    Checks:   []*bool{&config.Cloudtrail, &newBucket},
+			Prompt:   &survey.Confirm{Message: QuestionBucketEnableEncryption, Default: config.BucketEncryptionEnabled},
+			Response: &config.BucketEncryptionEnabled,
+			Checks:   []*bool{&config.Cloudtrail, &newBucket},
 		},
 		// Allow the user to set the SSE Key ARN if required
 		{
-		    Prompt:   &survey.Input{Message: QuestionBucketSseKeyArn, Default: config.BucketSseKeyArn},
-		    Response: &config.BucketSseKeyArn,
+			Prompt:   &survey.Input{Message: QuestionBucketSseKeyArn, Default: config.BucketSseKeyArn},
+			Response: &config.BucketSseKeyArn,
 			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
-		    Checks:   []*bool{&config.Cloudtrail, &newBucket, &config.BucketEncryptionEnabled},
+			Checks:   []*bool{&config.Cloudtrail, &newBucket, &config.BucketEncryptionEnabled},
 		},
 	}, config.Cloudtrail); err != nil {
 		return err
-    }	
+	}
 	// SNS Options
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
@@ -536,57 +536,57 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState
 	// If a new SNS Topic is to be created
 	newTopic := config.ExistingSnsTopicArn == ""
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-	    // If new topic created, allow user to optionally name the topic		
+		// If new topic created, allow user to optionally name the topic
 		{
-		    Prompt:   &survey.Input{Message: QuestionSnsTopicName, Default: config.SnsTopicName},
-		    Response: &config.SnsTopicName,
-		    Checks:   []*bool{&config.Cloudtrail, &newTopic},
+			Prompt:   &survey.Input{Message: QuestionSnsTopicName, Default: config.SnsTopicName},
+			Response: &config.SnsTopicName,
+			Checks:   []*bool{&config.Cloudtrail, &newTopic},
 		},
-	    // If new bucket created, should this have encryption enabled
+		// If new bucket created, should this have encryption enabled
 		{
-		    Prompt:   &survey.Confirm{Message: QuestionSnsEnableEncryption, Default: config.SnsEncryptionEnabled},
-		    Response: &config.SnsEncryptionEnabled,
-		    Checks:   []*bool{&config.Cloudtrail, &newTopic},
+			Prompt:   &survey.Confirm{Message: QuestionSnsEnableEncryption, Default: config.SnsEncryptionEnabled},
+			Response: &config.SnsEncryptionEnabled,
+			Checks:   []*bool{&config.Cloudtrail, &newTopic},
 		},
 		// Allow the user to set the SSE Key ARN if required
 		{
-		    Prompt:   &survey.Input{Message: QuestionSnsEncryptionKeyArn, Default: config.SnsEncryptionKeyArn},
-		    Response: &config.SnsEncryptionKeyArn,
+			Prompt:   &survey.Input{Message: QuestionSnsEncryptionKeyArn, Default: config.SnsEncryptionKeyArn},
+			Response: &config.SnsEncryptionKeyArn,
 			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
-		    Checks:   []*bool{&config.Cloudtrail, &newTopic, &config.SnsEncryptionEnabled},
+			Checks:   []*bool{&config.Cloudtrail, &newTopic, &config.SnsEncryptionEnabled},
 		},
 	}, config.Cloudtrail); err != nil {
 		return err
-    }	 
+	}
 	// SQS Options
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-	    // New queue created, allow user to optionally name the queue		
+		// New queue created, allow user to optionally name the queue
 		{
-		    Prompt:   &survey.Input{Message: QuestionSqsQueueName, Default: config.SqsQueueName},
-		    Response: &config.SqsQueueName,
-		    Checks:   []*bool{&config.Cloudtrail},
+			Prompt:   &survey.Input{Message: QuestionSqsQueueName, Default: config.SqsQueueName},
+			Response: &config.SqsQueueName,
+			Checks:   []*bool{&config.Cloudtrail},
 		},
-	    // New queue created, should this have encryption enabled
+		// New queue created, should this have encryption enabled
 		{
-		    Prompt:   &survey.Confirm{Message: QuestionSqsEnableEncryption, Default: config.SqsEncryptionEnabled},
-		    Response: &config.SqsEncryptionEnabled,
-		    Checks:   []*bool{&config.Cloudtrail},
+			Prompt:   &survey.Confirm{Message: QuestionSqsEnableEncryption, Default: config.SqsEncryptionEnabled},
+			Response: &config.SqsEncryptionEnabled,
+			Checks:   []*bool{&config.Cloudtrail},
 		},
 		// Allow the user to set the SSE Key ARN if required
 		{
-		    Prompt:   &survey.Input{Message: QuestionSqsEncryptionKeyArn, Default: config.SqsEncryptionKeyArn},
-		    Response: &config.SqsEncryptionKeyArn,
+			Prompt:   &survey.Input{Message: QuestionSqsEncryptionKeyArn, Default: config.SqsEncryptionKeyArn},
+			Response: &config.SqsEncryptionKeyArn,
 			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
-		    Checks:   []*bool{&config.Cloudtrail, &config.SqsEncryptionEnabled},
+			Checks:   []*bool{&config.Cloudtrail, &config.SqsEncryptionEnabled},
 		},
 	}, config.Cloudtrail); err != nil {
 		return err
-    }	
+	}
 
 	return nil
 }
 
-func existingCloudTrailDisabled(extraState *AwsGenerateCommandExtraState) *bool {	
+func existingCloudTrailDisabled(extraState *AwsGenerateCommandExtraState) *bool {
 	existingCloudTrailDisabled := !extraState.UseExistingCloudtrail
 	return &existingCloudTrailDisabled
 }
@@ -733,10 +733,10 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 		// difficult when the options are dynamic (which they are)
 		//
 		// Only ask about more accounts if consolidated cloudtrail is setup (matching scenarios doc)
-		// Scenario document suggests that this is no longer the case and that 
+		// Scenario document suggests that this is no longer the case and that
 		// we can have other accounts even if we only have Config integration (Scenario 7)
 		var options []string
-         
+
 		// Determine if user specified name for Config is potentially required
 		if config.Config {
 			options = append(options, QuestionCustomizeConfigName)
@@ -747,7 +747,7 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 			options = append(options, AdvancedOptCloudTrail)
 		}
 
-		// Scenario document suggests that this is no longer the case and that 
+		// Scenario document suggests that this is no longer the case and that
 		// we can have other accounts even if we only have Config integration (Scenario 7)
 		//if config.ConsolidatedCloudtrail {
 		options = append(options, AdvancedOptAwsAccounts)

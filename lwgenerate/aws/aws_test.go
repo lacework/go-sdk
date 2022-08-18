@@ -105,7 +105,7 @@ func TestGenerationCloudtrailSnsWithEncryption(t *testing.T) {
 	snsTopicName := "sns-topic-name"
 	snsEncryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
 	hcl, err := NewTerraform("us-east-2", false, true,
-	    WithSnsTopicName(snsTopicName),
+		WithSnsTopicName(snsTopicName),
 		WithSnsEncryptionEnabled(true),
 		WithSnsEncryptionKeyArn(snsEncryptionArn),
 	).Generate()
@@ -117,7 +117,7 @@ func TestGenerationCloudtrailSnsWithEncryption(t *testing.T) {
 func TestGenerationCloudtrailSnsWithNoEncryption(t *testing.T) {
 	snsTopicName := "sns-topic-name"
 	hcl, err := NewTerraform("us-east-2", false, true,
-	    WithSnsTopicName(snsTopicName),
+		WithSnsTopicName(snsTopicName),
 		WithSnsEncryptionEnabled(false),
 	).Generate()
 	assert.Nil(t, err)
@@ -128,7 +128,7 @@ func TestGenerationCloudtrailSnsWithNoEncryption(t *testing.T) {
 func TestGenerationCloudtrailSnsWithEncrytptionNotSet(t *testing.T) {
 	snsTopicName := "sns-topic-name"
 	hcl, err := NewTerraform("us-east-2", false, true,
-	    WithSnsTopicName(snsTopicName),
+		WithSnsTopicName(snsTopicName),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -139,7 +139,7 @@ func TestGenerationCloudtrailSqsWithEncryption(t *testing.T) {
 	ssqQueueName := "sqs-queue-name"
 	sqsEncryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
 	hcl, err := NewTerraform("us-east-2", false, true,
-	    WithSqsQueueName(ssqQueueName),
+		WithSqsQueueName(ssqQueueName),
 		WithSqsEncryptionEnabled(true),
 		WithSqsEncryptionKeyArn(sqsEncryptionArn),
 	).Generate()
@@ -151,7 +151,7 @@ func TestGenerationCloudtrailSqsWithEncryption(t *testing.T) {
 func TestGenerationCloudtrailSqsWithNoEncryption(t *testing.T) {
 	ssqQueueName := "sqs-queue-name"
 	hcl, err := NewTerraform("us-east-2", false, true,
-	    WithSqsQueueName(ssqQueueName),
+		WithSqsQueueName(ssqQueueName),
 		WithSqsEncryptionEnabled(false),
 	).Generate()
 	assert.Nil(t, err)
@@ -162,7 +162,7 @@ func TestGenerationCloudtrailSqsWithNoEncryption(t *testing.T) {
 func TestGenerationCloudtrailSqsWithWithEncryptionNotSet(t *testing.T) {
 	ssqQueueName := "sqs-queue-name"
 	hcl, err := NewTerraform("us-east-2", false, true,
-	    WithSqsQueueName(ssqQueueName),
+		WithSqsQueueName(ssqQueueName),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -170,20 +170,20 @@ func TestGenerationCloudtrailSqsWithWithEncryptionNotSet(t *testing.T) {
 }
 
 func TestGenerationCloudtrailAllEncryptionElementsSet(t *testing.T) {
-    cloudTrailName := "cloudtrail-name"
-	s3BucketName   := "s3-bucket-name"
-	snsTopicName   := "sns-topic-name"
-	ssqQueueName   := "sqs-queue-name"
-	encryptionArn  := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
+	cloudTrailName := "cloudtrail-name"
+	s3BucketName := "s3-bucket-name"
+	snsTopicName := "sns-topic-name"
+	ssqQueueName := "sqs-queue-name"
+	encryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
 	hcl, err := NewTerraform("us-east-2", false, true,
-	    WithCloudtrailName(cloudTrailName),
-	    WithBucketName(s3BucketName),
+		WithCloudtrailName(cloudTrailName),
+		WithBucketName(s3BucketName),
 		WithBucketEncryptionEnabled(true),
 		WithBucketSSEKeyArn(encryptionArn),
 		WithSnsTopicName(snsTopicName),
 		WithSnsEncryptionEnabled(true),
 		WithSnsEncryptionKeyArn(encryptionArn),
-	    WithSqsQueueName(ssqQueueName),
+		WithSqsQueueName(ssqQueueName),
 		WithSqsEncryptionEnabled(true),
 		WithSqsEncryptionKeyArn(encryptionArn),
 	).Generate()
@@ -364,7 +364,7 @@ var moduleImportCtWithSnsNoConfigEncryptionNotSet = `module "main_cloudtrail" {
   sns_topic_name = "sns-topic-name"
 }
 `
-	
+
 var moduleImportCtWithSqsWithoutConfig = `module "main_cloudtrail" {
   source                 = "lacework/cloudtrail/aws"
   version                = "~> 2.0"
@@ -400,7 +400,6 @@ var moduleImportCtWithAllEncryptionSet = `module "main_cloudtrail" {
   sqs_queue_name         = "sqs-queue-name"
 }
 `
-
 
 var moduleImportCtWithoutConfig = `module "main_cloudtrail" {
   source  = "lacework/cloudtrail/aws"

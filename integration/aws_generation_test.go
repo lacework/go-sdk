@@ -283,7 +283,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
-		aws.UseConsolidatedCloudtrail(), 
+		aws.UseConsolidatedCloudtrail(),
 		aws.EnableForceDestroyS3Bucket(),
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithSnsEncryptionEnabled(true),
@@ -336,7 +336,7 @@ func TestGenerationAwsAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
 			c.SendLine("")
-            //
+			//
 			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionRunTfPlan)
@@ -361,7 +361,6 @@ func TestGenerationAwsAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-
 // Test using consolidated cloudtrail with subaccounts
 func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
@@ -383,7 +382,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.SendLine("\x1B[B")
 			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
-			c.SendLine("y")			
+			c.SendLine("y")
 			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionCloudtrailName)
@@ -644,7 +643,7 @@ func TestGenerationAwsAdvancedOptsUseExistingElements(t *testing.T) {
 	var final string
 	region := "us-east-2"
 	bucketArn := "arn:aws:s3:::bucket-name"
-    topicArn  := "arn:aws:sns:us-east-2:249446771485:topic-name"
+	topicArn := "arn:aws:sns:us-east-2:249446771485:topic-name"
 	queueName := "sqs-queue-name"
 
 	// Run CLI
@@ -679,7 +678,7 @@ func TestGenerationAwsAdvancedOptsUseExistingElements(t *testing.T) {
 			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")			
+			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
 		"cloud-account",
@@ -706,8 +705,8 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 	region := "us-east-2"
-	kmsArn    := "arn:aws:kms:us-west-2:249446771485:key/203a7566-41eb-42dc-8cc3-51800a87defe"
-    trailName := "cloudtrail-integration-name"
+	kmsArn := "arn:aws:kms:us-west-2:249446771485:key/203a7566-41eb-42dc-8cc3-51800a87defe"
+	trailName := "cloudtrail-integration-name"
 	bucketName := "s3-bucket-name"
 	topicName := "sns-topic-name"
 	queueName := "sqs-queue-name"
@@ -760,7 +759,7 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")			
+			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
 		"cloud-account",
