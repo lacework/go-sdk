@@ -15,6 +15,7 @@ import (
 type AwsGenerateCommandExtraState struct {
 	Output                string
 	UseExistingCloudtrail bool
+	UseExistingSNSTopic   bool
 	AwsSubAccounts        []string
 	TerraformApply        bool
 }

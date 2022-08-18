@@ -16,7 +16,7 @@ import (
 )
 
 // Test failing due to no selection
-func TestGenerationErrorOnNoSelection(t *testing.T) {
+func TestGenerationAwsErrorOnNoSelection(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 
@@ -36,7 +36,7 @@ func TestGenerationErrorOnNoSelection(t *testing.T) {
 }
 
 // Test barebones generation with no customization
-func TestGenerationSimple(t *testing.T) {
+func TestGenerationAwsSimple(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -66,12 +66,16 @@ func TestGenerationSimple(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSqsEncryptionEnabled(true),
+	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
 // Test customized output location
-func TestGenerationCustomizedOutputLocation(t *testing.T) {
+func TestGenerationAwsCustomizedOutputLocation(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -97,6 +101,8 @@ func TestGenerationCustomizedOutputLocation(t *testing.T) {
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
 			c.Send("\x1B[B")
+			c.Send("\x1B[B")
+			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
 			expectString(t, c, cmd.QuestionAwsCustomizeOutputLocation)
 			c.SendLine(dir)
@@ -118,12 +124,16 @@ func TestGenerationCustomizedOutputLocation(t *testing.T) {
 	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSqsEncryptionEnabled(true),
+	).Generate()
 	assert.Equal(t, buildTf, string(result))
 }
 
 // Test config only generation
-func TestGenerationConfigOnly(t *testing.T) {
+func TestGenerationAwsConfigOnly(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -153,12 +163,16 @@ func TestGenerationConfigOnly(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, false).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, false,
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSqsEncryptionEnabled(true),
+	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
 // Test Bailing out of Advanced Options
-func TestGenerationAdvancedOptsDone(t *testing.T) {
+func TestGenerationAwsAdvancedOptsDone(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -176,6 +190,8 @@ func TestGenerationAdvancedOptsDone(t *testing.T) {
 			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
+			c.Send("\x1B[B")
+			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
@@ -192,12 +208,16 @@ func TestGenerationAdvancedOptsDone(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true).Generate()
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSqsEncryptionEnabled(true),
+	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
 // Test enabling consolidated trail and force destroy s3
-func TestGenerationAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
+func TestGenerationAwsAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -215,13 +235,38 @@ func TestGenerationAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("")
+			c.SendLine("\x1B[B")
 			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
 			c.SendLine("n")
+			expectString(t, c, cmd.QuestionCloudtrailName)
+			c.SendLine("")
+			// S3 Bucket Questions
 			expectString(t, c, cmd.QuestionForceDestroyS3Bucket)
 			c.SendLine("y")
+			expectString(t, c, cmd.QuestionBucketName)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionBucketEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionBucketSseKeyArn)
+			c.SendLine("")
+			// SNS Topic Questions
+			expectString(t, c, cmd.QuestionsUseExistingSNSTopic)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionSnsTopicName)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionSnsEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSnsEncryptionKeyArn)
+			c.SendLine("")
+			// SQS Questions
+			expectString(t, c, cmd.QuestionSqsQueueName)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionSqsEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
+			c.SendLine("")
 			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionRunTfPlan)
@@ -238,12 +283,17 @@ func TestGenerationAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
-		aws.UseConsolidatedCloudtrail(), aws.EnableForceDestroyS3Bucket()).Generate()
+		aws.UseConsolidatedCloudtrail(), 
+		aws.EnableForceDestroyS3Bucket(),
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSqsEncryptionEnabled(true),
+	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
 // Test use existing cloudtrail
-func TestGenerationAdvancedOptsUseExistingCloudtrail(t *testing.T) {
+func TestGenerationAwsAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -261,7 +311,7 @@ func TestGenerationAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("")
+			c.SendLine("\x1B[B")
 			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
@@ -270,6 +320,23 @@ func TestGenerationAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 			c.SendLine("notright") // test our validator is working
 			expectString(t, c, "invalid arn supplied")
 			c.SendLine("arn:aws:s3:::bucket_name")
+			// SNS Topic Questions
+			expectString(t, c, cmd.QuestionsUseExistingSNSTopic)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionSnsTopicName)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionSnsEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSnsEncryptionKeyArn)
+			c.SendLine("")
+			// SQS Questions
+			expectString(t, c, cmd.QuestionSqsQueueName)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionSqsEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
+			c.SendLine("")
+            //
 			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionRunTfPlan)
@@ -286,12 +353,17 @@ func TestGenerationAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
-		aws.ExistingCloudtrailBucketArn("arn:aws:s3:::bucket_name")).Generate()
+		aws.ExistingCloudtrailBucketArn("arn:aws:s3:::bucket_name"),
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSqsEncryptionEnabled(true),
+	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
+
 // Test using consolidated cloudtrail with subaccounts
-func TestGenerationAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
+func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -309,17 +381,43 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("")
+			c.SendLine("\x1B[B")
 			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
-			c.SendLine("y")
+			c.SendLine("y")			
 			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
 			c.SendLine("n")
+			expectString(t, c, cmd.QuestionCloudtrailName)
+			c.SendLine("")
 			expectString(t, c, cmd.QuestionForceDestroyS3Bucket)
 			c.SendLine("n")
+			expectString(t, c, cmd.QuestionBucketName)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionBucketEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionBucketSseKeyArn)
+			c.SendLine("")
+			// SNS Topic Questions
+			expectString(t, c, cmd.QuestionsUseExistingSNSTopic)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionSnsTopicName)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionSnsEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSnsEncryptionKeyArn)
+			c.SendLine("")
+			// SQS Questions
+			expectString(t, c, cmd.QuestionSqsQueueName)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionSqsEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
+			c.SendLine("")
+			//
 			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("\x1B[B") // Down arrow once and enter on the submenu to add subaccounts
+			c.Send("\x1B[B")
+			c.SendLine("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
 			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
 			c.SendLine("default")
 			expectString(t, c, cmd.QuestionSubAccountProfileName)
@@ -353,12 +451,71 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 		aws.UseConsolidatedCloudtrail(),
 		aws.WithAwsProfile("default"),
 		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSqsEncryptionEnabled(true),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test using Config with subaccounts
+func TestGenerationAwsAdvancedOptsConfigWithSubAccounts(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	region := "us-east-2"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionAwsRegion)
+			c.SendLine(region)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
+			c.SendLine("y")
+			expectString(t, c, cmd.AwsAdvancedOptDone)
+			c.SendLine("\x1B[B")
+			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
+			c.SendLine("default")
+			expectString(t, c, cmd.QuestionSubAccountProfileName)
+			c.SendLine("account1")
+			expectString(t, c, cmd.QuestionSubAccountRegion)
+			c.SendLine("us-east-1")
+			expectString(t, c, cmd.QuestionSubAccountAddMore)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSubAccountProfileName)
+			c.SendLine("account2")
+			expectString(t, c, cmd.QuestionSubAccountRegion)
+			c.SendLine("us-east-2")
+			expectString(t, c, cmd.QuestionSubAccountAddMore)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(region, true, false,
+		aws.WithAwsProfile("default"),
+		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
 // for testing the interaction of the CLI prompts when accounts have been supplied
-func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testing.T) {
+func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -376,7 +533,8 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testin
 			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("\x1B[B") // Down arrow once and enter on the submenu to add subaccounts
+			c.Send("\x1B[B")
+			c.SendLine("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
 			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
 			c.SendLine("default")
 			expectString(t, c, fmt.Sprintf(cmd.QuestionSubAccountReplace, "testaccount:us-east-1, testaccount1:us-east-2"))
@@ -417,12 +575,15 @@ func TestGenerationAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testin
 		aws.UseConsolidatedCloudtrail(),
 		aws.WithAwsProfile("default"),
 		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSqsEncryptionEnabled(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
 // Test use existing IAM role
-func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
+func TestGenerationAwsAdvancedOptsUseExistingIAM(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -443,6 +604,8 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
+			c.Send("\x1B[B")
+			c.Send("\x1B[B")
 			c.SendLine("\x1B[B") // Down arrow once and return
 			expectString(t, c, cmd.QuestionExistingIamRoleName)
 			c.SendLine(roleName)
@@ -467,12 +630,166 @@ func TestGenerationAdvancedOptsUseExistingIAM(t *testing.T) {
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
 		aws.UseExistingIamRole(aws.NewExistingIamRoleDetails(roleName, roleArn, roleExtId)),
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSqsEncryptionEnabled(true),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test use of existing Cloudtrail S3 Bucket, SNS topic and SQS Queue
+func TestGenerationAwsAdvancedOptsUseExistingElements(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	region := "us-east-2"
+	bucketArn := "arn:aws:s3:::bucket-name"
+    topicArn  := "arn:aws:sns:us-east-2:249446771485:topic-name"
+	queueName := "sqs-queue-name"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionAwsRegion)
+			c.SendLine(region)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
+			c.SendLine("y")
+			expectString(t, c, cmd.AwsAdvancedOptDone)
+			c.SendLine("\x1B[B") // Down arrow once and return
+			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionCloudtrailExistingBucketArn)
+			c.SendLine(bucketArn)
+			expectString(t, c, cmd.QuestionsUseExistingSNSTopic)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSnsTopicArn)
+			c.SendLine(topicArn)
+			expectString(t, c, cmd.QuestionSqsQueueName)
+			c.SendLine(queueName)
+			expectString(t, c, cmd.QuestionSqsEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")			
+			final, _ = c.ExpectEOF()
+		},
+		"cloud-account",
+		"iac-generate",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.ExistingCloudtrailBucketArn(bucketArn),
+		aws.ExistingSnsTopicArn(topicArn),
+		aws.WithSqsEncryptionEnabled(true),
+		aws.WithSqsQueueName(queueName),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test use of creating S3 Bucket, SNS topic and SQS Queue
+func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	region := "us-east-2"
+	kmsArn    := "arn:aws:kms:us-west-2:249446771485:key/203a7566-41eb-42dc-8cc3-51800a87defe"
+    trailName := "cloudtrail-integration-name"
+	bucketName := "s3-bucket-name"
+	topicName := "sns-topic-name"
+	queueName := "sqs-queue-name"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionAwsRegion)
+			c.SendLine(region)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
+			c.SendLine("y")
+			expectString(t, c, cmd.AwsAdvancedOptDone)
+			c.SendLine("\x1B[B") // Down arrow once and return
+			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionCloudtrailName)
+			c.SendLine(trailName)
+			// S3 Questions
+			expectString(t, c, cmd.QuestionForceDestroyS3Bucket)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionBucketName)
+			c.SendLine(bucketName)
+			expectString(t, c, cmd.QuestionBucketEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionBucketSseKeyArn)
+			c.SendLine(kmsArn)
+			// SNS Topic Questions
+			expectString(t, c, cmd.QuestionsUseExistingSNSTopic)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionSnsTopicName)
+			c.SendLine(topicName)
+			expectString(t, c, cmd.QuestionSnsEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSnsEncryptionKeyArn)
+			c.SendLine(kmsArn)
+			// SQS Questions
+			expectString(t, c, cmd.QuestionSqsQueueName)
+			c.SendLine(queueName)
+			expectString(t, c, cmd.QuestionSqsEnableEncryption)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
+			c.SendLine(kmsArn)
+			//
+			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")			
+			final, _ = c.ExpectEOF()
+		},
+		"cloud-account",
+		"iac-generate",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.WithCloudtrailName(trailName),
+		aws.EnableForceDestroyS3Bucket(),
+		aws.WithBucketName(bucketName),
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithBucketSSEKeyArn(kmsArn),
+		aws.WithSnsTopicName(topicName),
+		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSnsEncryptionKeyArn(kmsArn),
+		aws.WithSqsQueueName(queueName),
+		aws.WithSqsEncryptionEnabled(true),
+		aws.WithSqsEncryptionKeyArn(kmsArn),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
 // Test existing main.tf prompt
-func TestGenerationWithExistingTerraform(t *testing.T) {
+func TestGenerationAwsWithExistingTerraform(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	region := "us-east-2"
@@ -501,6 +818,8 @@ func TestGenerationWithExistingTerraform(t *testing.T) {
 			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
 			c.SendLine("y")
 			expectString(t, c, cmd.AwsAdvancedOptDone)
+			c.Send("\x1B[B")
+			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.SendLine("\x1B[B")
 			expectString(t, c, cmd.QuestionAwsCustomizeOutputLocation)

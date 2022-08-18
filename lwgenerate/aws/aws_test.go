@@ -101,6 +101,97 @@ func TestGenerationCloudtrailExistingSns(t *testing.T) {
 		string(data.Body().GetAttribute("use_existing_sns_topic").BuildTokens(nil).Bytes()))
 }
 
+func TestGenerationCloudtrailSnsWithEncryption(t *testing.T) {
+	snsTopicName := "sns-topic-name"
+	snsEncryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
+	hcl, err := NewTerraform("us-east-2", false, true,
+	    WithSnsTopicName(snsTopicName),
+		WithSnsEncryptionEnabled(true),
+		WithSnsEncryptionKeyArn(snsEncryptionArn),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportCtWithSnsWithoutConfig), hcl)
+}
+
+func TestGenerationCloudtrailSnsWithNoEncryption(t *testing.T) {
+	snsTopicName := "sns-topic-name"
+	hcl, err := NewTerraform("us-east-2", false, true,
+	    WithSnsTopicName(snsTopicName),
+		WithSnsEncryptionEnabled(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportCtWithSnsNoConfigNoEncryption), hcl)
+}
+
+func TestGenerationCloudtrailSnsWithEncrytptionNotSet(t *testing.T) {
+	snsTopicName := "sns-topic-name"
+	hcl, err := NewTerraform("us-east-2", false, true,
+	    WithSnsTopicName(snsTopicName),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportCtWithSnsNoConfigEncryptionNotSet), hcl)
+}
+
+func TestGenerationCloudtrailSqsWithEncryption(t *testing.T) {
+	ssqQueueName := "sqs-queue-name"
+	sqsEncryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
+	hcl, err := NewTerraform("us-east-2", false, true,
+	    WithSqsQueueName(ssqQueueName),
+		WithSqsEncryptionEnabled(true),
+		WithSqsEncryptionKeyArn(sqsEncryptionArn),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportCtWithSqsWithoutConfig), hcl)
+}
+
+func TestGenerationCloudtrailSqsWithNoEncryption(t *testing.T) {
+	ssqQueueName := "sqs-queue-name"
+	hcl, err := NewTerraform("us-east-2", false, true,
+	    WithSqsQueueName(ssqQueueName),
+		WithSqsEncryptionEnabled(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportCtWithSqsNoConfigNoEncryption), hcl)
+}
+
+func TestGenerationCloudtrailSqsWithWithEncryptionNotSet(t *testing.T) {
+	ssqQueueName := "sqs-queue-name"
+	hcl, err := NewTerraform("us-east-2", false, true,
+	    WithSqsQueueName(ssqQueueName),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportCtWithSqsNoConfigEncryptionNotSet), hcl)
+}
+
+func TestGenerationCloudtrailAllEncryptionElementsSet(t *testing.T) {
+    cloudTrailName := "cloudtrail-name"
+	s3BucketName   := "s3-bucket-name"
+	snsTopicName   := "sns-topic-name"
+	ssqQueueName   := "sqs-queue-name"
+	encryptionArn  := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
+	hcl, err := NewTerraform("us-east-2", false, true,
+	    WithCloudtrailName(cloudTrailName),
+	    WithBucketName(s3BucketName),
+		WithBucketEncryptionEnabled(true),
+		WithBucketSSEKeyArn(encryptionArn),
+		WithSnsTopicName(snsTopicName),
+		WithSnsEncryptionEnabled(true),
+		WithSnsEncryptionKeyArn(encryptionArn),
+	    WithSqsQueueName(ssqQueueName),
+		WithSqsEncryptionEnabled(true),
+		WithSqsEncryptionKeyArn(encryptionArn),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportCtWithAllEncryptionSet), hcl)
+}
+
 func TestGenerationCloudtrailExistingBucket(t *testing.T) {
 	existingBucketArn := "arn:aws:s3:::test-bucket-12345"
 	data, err := createCloudtrail(&GenerateAwsTfConfigurationArgs{
@@ -251,6 +342,65 @@ var moduleImportCtWithConfig = `module "main_cloudtrail" {
   use_existing_iam_role = true
 }
 `
+
+var moduleImportCtWithSnsWithoutConfig = `module "main_cloudtrail" {
+  source                 = "lacework/cloudtrail/aws"
+  version                = "~> 2.0"
+  sns_encryption_key_arn = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
+  sns_topic_name         = "sns-topic-name"
+}
+`
+
+var moduleImportCtWithSnsNoConfigNoEncryption = `module "main_cloudtrail" {
+  source                  = "lacework/cloudtrail/aws"
+  version                 = "~> 2.0"
+  sns_encryption_enabled  = false
+  sns_topic_name          = "sns-topic-name"
+}
+`
+var moduleImportCtWithSnsNoConfigEncryptionNotSet = `module "main_cloudtrail" {
+  source         = "lacework/cloudtrail/aws"
+  version        = "~> 2.0"
+  sns_topic_name = "sns-topic-name"
+}
+`
+	
+var moduleImportCtWithSqsWithoutConfig = `module "main_cloudtrail" {
+  source                 = "lacework/cloudtrail/aws"
+  version                = "~> 2.0"
+  sqs_encryption_key_arn = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
+  sqs_queue_name         = "sqs-queue-name"
+}
+`
+
+var moduleImportCtWithSqsNoConfigNoEncryption = `module "main_cloudtrail" {
+  source                  = "lacework/cloudtrail/aws"
+  version                 = "~> 2.0"
+  sqs_encryption_enabled  = false
+  sqs_queue_name          = "sqs-queue-name"
+}
+`
+
+var moduleImportCtWithSqsNoConfigEncryptionNotSet = `module "main_cloudtrail" {
+  source         = "lacework/cloudtrail/aws"
+  version        = "~> 2.0"
+  sqs_queue_name = "sqs-queue-name"
+}
+`
+
+var moduleImportCtWithAllEncryptionSet = `module "main_cloudtrail" {
+  source                 = "lacework/cloudtrail/aws"
+  version                = "~> 2.0"
+  bucket_name            = "s3-bucket-name"
+  bucket_sse_key_arn     = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
+  cloudtrail_name        = "cloudtrail-name"
+  sns_encryption_key_arn = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
+  sns_topic_name         = "sns-topic-name"
+  sqs_encryption_key_arn = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
+  sqs_queue_name         = "sqs-queue-name"
+}
+`
+
 
 var moduleImportCtWithoutConfig = `module "main_cloudtrail" {
   source  = "lacework/cloudtrail/aws"
