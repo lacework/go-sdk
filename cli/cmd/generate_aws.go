@@ -351,7 +351,7 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandState.ExistingCloudtrailBucketArn,
 		"existing_bucket_arn",
 		"",
-		"specify existing cloudtrail s3 bucket ARN")
+		"specify existing cloudtrail S3 bucket ARN")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsExistingRoleState.Arn,
 		"existing_iam_role_arn",
@@ -371,7 +371,7 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandState.ExistingSnsTopicArn,
 		"existing_sns_topic_arn",
 		"",
-		"specify existing sns topic arn")
+		"specify existing SNS topic arn")
 	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.ConsolidatedCloudtrail,
 		"consolidated_cloudtrail",
@@ -381,7 +381,7 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandState.ForceDestroyS3Bucket,
 		"force_destroy_s3",
 		false,
-		"enable force destroy s3 bucket")
+		"enable force destroy S3 bucket")
 	generateAwsTfCommand.PersistentFlags().StringSliceVar(
 		&GenerateAwsCommandExtraState.AwsSubAccounts,
 		"aws_subaccount",
@@ -403,7 +403,7 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandState.SnsEncryptionEnabled,
 		"sns_encryption_enabled",
 		true,
-		"enable encryption on sns topic when creating one")
+		"enable encryption on SNS topic when creating one")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.SnsEncryptionKeyArn,
 		"sns_encryption_key_arn",
@@ -413,12 +413,12 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandState.SnsTopicName,
 		"sns_topic_name",
 		"",
-		"specify sns topic name if creating new one")
+		"specify SNS topic name if creating new one")
 	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.SqsEncryptionEnabled,
 		"sqs_encryption_enabled",
 		true,
-		"enable encryption on sqs queue when creating")
+		"enable encryption on SQS queue when creating")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.SqsEncryptionKeyArn,
 		"sqs_encryption_key_arn",
@@ -428,7 +428,7 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandState.SqsQueueName,
 		"sqs_queue_name",
 		"",
-		"specify sqs queue name if creating new one")
+		"specify SQS queue name if creating new one")
 }
 
 // survey.Validator for aws ARNs
