@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"testing"
 	"time"
 
@@ -35,6 +36,10 @@ import (
 // To test the daily version check we need to set the environment
 // variable CI_TEST_LWUPDATER=1 so that the framework does not disable it
 func TestDailyVersionCheckEndToEnd(t *testing.T) {
+	if strings.Contains(Version(t), "-dev") {
+		t.Skip("skipping daily version check, running on dev version. (version contains '-dev')")
+	}
+
 	enableTestingUpdaterEnv()
 	defer disableTestingUpdaterEnv()
 
@@ -123,10 +128,9 @@ func TestVersionCommand(t *testing.T) {
 	out, errB, exitcode := LaceworkCLIWithTOMLConfig("version")
 	assert.Empty(t, errB.String())
 	assert.Equal(t, 0, exitcode)
-	assert.Contains(t, out.String(),
-		"A newer version of the Lacework CLI is available! The latest version is v",
-		"version update message should be displayed",
-	)
+	assert.Contains(t, out.String(), "lacework v")
+	assert.Contains(t, out.String(), "(sha:")
+	assert.Contains(t, out.String(), "(time:")
 }
 
 func TestDailyVersionCheckShouldNotRunWhenInNonInteractiveMode(t *testing.T) {

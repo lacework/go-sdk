@@ -155,6 +155,15 @@ func runLaceworkCLIFromCmd(cmd *exec.Cmd) (int, error) {
 	return 0, nil
 }
 
+func Version(t *testing.T) string {
+	repoVersion, err := ioutil.ReadFile("../VERSION")
+	if err != nil {
+		t.Logf("Unable to read VERSION file, error: '%s'", err.Error())
+		t.Fail()
+	}
+	return string(repoVersion)
+}
+
 func findLaceworkCLIBinary() string {
 	if bin := os.Getenv("LW_CLI_BIN"); bin != "" {
 		return bin
