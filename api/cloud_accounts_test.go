@@ -183,12 +183,13 @@ func TestCloudAccountsDelete(t *testing.T) {
 func TestCloudAccountsList(t *testing.T) {
 	var (
 		awsIntgGUIDs        = []string{intgguid.New(), intgguid.New(), intgguid.New()}
+		awsCfgGUIDs         = []string{intgguid.New(), intgguid.New(), intgguid.New()}
 		awsEksAuditLogGUIDs = []string{intgguid.New()}
 		azureIntgGUIDs      = []string{intgguid.New(), intgguid.New()}
 		gcpIntgGUIDs        = []string{
 			intgguid.New(), intgguid.New(), intgguid.New(), intgguid.New(),
 		}
-		allGUIDs    = append(awsEksAuditLogGUIDs, append(azureIntgGUIDs, append(gcpIntgGUIDs, awsIntgGUIDs...)...)...)
+		allGUIDs    = append(awsEksAuditLogGUIDs, append(azureIntgGUIDs, append(awsCfgGUIDs, append(gcpIntgGUIDs, awsIntgGUIDs...)...)...)...)
 		expectedLen = len(allGUIDs)
 		fakeServer  = lacework.MockServer()
 	)
@@ -201,6 +202,7 @@ func TestCloudAccountsList(t *testing.T) {
 				generateCloudAccounts(awsIntgGUIDs, "AwsCtSqs"),
 				generateCloudAccounts(awsEksAuditLogGUIDs, "AwsEksAudit"),
 				// TODO @afiune come back here and update these Cloud Accounts types when they exist
+				generateCloudAccounts(awsCfgGUIDs, "AwsCfg"),
 				generateCloudAccounts(gcpIntgGUIDs, "AwsCtSqs"),   // "GcpCfg"),
 				generateCloudAccounts(azureIntgGUIDs, "AwsCtSqs"), // "AzureAlSeq"),
 			}
@@ -277,10 +279,8 @@ func generateCloudAccounts(guids []string, iType string) string {
 			cloudAccounts[i] = singleAwsCtSqsCloudAccount(guid)
 		case api.AwsEksAuditCloudAccount.String():
 			cloudAccounts[i] = singleAwsEksAuditCloudAccount(guid)
-			// TODO @afiune come back here and update these Cloud Accounts types
-			// when they exist
-			//case api.AwsCfgCloudAccount.String():
-			//cloudAccounts[i] = singleAwsCfgCloudAccount(guid)
+		case api.AwsCfgCloudAccount.String():
+			cloudAccounts[i] = singleAwsCfgCloudAccount(guid)
 		}
 	}
 	return strings.Join(cloudAccounts, ", ")
