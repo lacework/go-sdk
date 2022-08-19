@@ -270,12 +270,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 
 			// Parse passed in subaccounts (if any)
 			if len(GenerateAwsCommandExtraState.AwsSubAccounts) > 0 {
-				// validate consolidated_cloudtrail is enabled - otherwise this flag cannot be used
-				//if ok, _ := cmd.Flags().GetBool("consolidated_cloudtrail"); !ok {
-				//	return errors.New("aws subaccounts can only be supplied with consolidated cloudtrail enabled")
-				//}
-
-				// validate the format of supplied values is correct
+				// Validate the format of supplied values is correct
 				if err := validateAwsSubAccounts(GenerateAwsCommandExtraState.AwsSubAccounts); err != nil {
 					return err
 				}
