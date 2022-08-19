@@ -68,8 +68,14 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Should we configure Cloudtrail integration in LW?
 	Cloudtrail bool
 
+	// Optional name for CloudTrail
+	CloudtrailName string
+
 	// Should we configure CSPM integration in LW?
 	Config bool
+
+	// Optional name for config
+	ConfigName string
 
 	// Supply an AWS region for where to find the cloudtrail resources
 	// TODO @ipcrm future: support split regions for resources (s3 one place, sns another, etc)
@@ -92,6 +98,48 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// Should we force destroy the bucket if it has stuff in it? (only relevant on new Cloudtrail creation)
 	ForceDestroyS3Bucket bool
+
+	// Enable encryption of bucket if it is created
+	BucketEncryptionEnabled bool
+
+	// Indicates that the Bucket Encryption flag has been actively set
+	// this is needed to show this it was set actively to false, rather
+	// than default value for bool
+	BucketEncryptionEnabledSet bool
+
+	// Optional name of bucket if creating a new one
+	BucketName string
+
+	// Arn of the KMS encryption key for S3, required when bucket encryption in enabled
+	BucketSseKeyArn string
+
+	// SNS Topic name if creating one and not using an existing one
+	SnsTopicName string
+
+	// Enable encryption of SNS if it is created
+	SnsEncryptionEnabled bool
+
+	// Indicates that the SNS Encryption flag has been actively set
+	// this is needed to show this it was set actively to false, rather
+	// than default value for bool
+	SnsEncryptionEnabledSet bool
+
+	// Arn of the KMS encryption key for SNS, required when SNS encryption in enabled
+	SnsEncryptionKeyArn string
+
+	// SSQ Queue name if creating one and not using an existing one
+	SqsQueueName string
+
+	// Enable encryption of SQS if it is created
+	SqsEncryptionEnabled bool
+
+	// Indicates that the SQS Encryption flag has been actively set
+	// this is needed to show this it was set actively to false, rather
+	// than default value for bool
+	SqsEncryptionEnabledSet bool
+
+	// Arn of the KMS encryption key for SQS, required when SQS encryption in enabled
+	SqsEncryptionKeyArn string
 
 	// For AWS Subaccounts in consolidated CT setups
 	// TODO @ipcrm future: what about many individual ct/config integrations together?
@@ -199,6 +247,86 @@ func UseExistingIamRole(iamDetails *ExistingIamRoleDetails) AwsTerraformModifier
 func WithSubaccounts(subaccounts ...AwsSubAccount) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.SubAccounts = subaccounts
+	}
+}
+
+// WithCloudtrailName add optional name for CloudTrail integration
+func WithCloudtrailName(cloudtrailName string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.CloudtrailName = cloudtrailName
+	}
+}
+
+// WithConfigName add optional name for Config intergration
+func WithConfigName(configName string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ConfigName = configName
+	}
+}
+
+// WithBucketName add bucket name for CloudTrail integration
+func WithBucketName(bucketName string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.BucketName = bucketName
+	}
+}
+
+// WithBucketEncryptionEnabled Enable encryption on a newly created bucket
+func WithBucketEncryptionEnabled(enableBucketEncryption bool) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.BucketEncryptionEnabled = enableBucketEncryption
+		c.BucketEncryptionEnabledSet = true
+	}
+}
+
+// WithBucketSSEKeyArn Set existing KMS encryption key arn for bucket
+func WithBucketSSEKeyArn(bucketSseKeyArn string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.BucketSseKeyArn = bucketSseKeyArn
+	}
+}
+
+// WithSnsTopicName Set SNS Topic Name if creating new one
+func WithSnsTopicName(snsTopicName string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.SnsTopicName = snsTopicName
+	}
+}
+
+// WithSnsEncryptionEnabled Enable encryption on SNS Topic when created
+func WithSnsEncryptionEnabled(snsEncryptionEnabled bool) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.SnsEncryptionEnabled = snsEncryptionEnabled
+		c.SnsEncryptionEnabledSet = true
+	}
+}
+
+// WithSnsEncryptionKeyArn Set existing KMS encryption key arn for SNS topic
+func WithSnsEncryptionKeyArn(snsEncryptionKeyArn string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.SnsEncryptionKeyArn = snsEncryptionKeyArn
+	}
+}
+
+//WithSqsQueueName Set SQS Queue Name if creating new one
+func WithSqsQueueName(sqsQueueName string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.SqsQueueName = sqsQueueName
+	}
+}
+
+// WithSqsEncryptionEnabled Enable encryption on SQS queue when created
+func WithSqsEncryptionEnabled(sqsEncryptionEnabled bool) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.SqsEncryptionEnabled = sqsEncryptionEnabled
+		c.SqsEncryptionEnabledSet = true
+	}
+}
+
+// WithSqsEncryptionKeyArn Set existing KMS encryption key arn for SQS queue
+func WithSqsEncryptionKeyArn(ssqEncryptionKeyArn string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.SqsEncryptionKeyArn = ssqEncryptionKeyArn
 	}
 }
 
@@ -361,20 +489,64 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 	if args.Cloudtrail {
 		attributes := map[string]interface{}{}
 		modDetails := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithVersion(lwgenerate.AwsCloudTrailVersion)}
-
-		if args.ForceDestroyS3Bucket && args.ExistingCloudtrailBucketArn == "" {
-			attributes["bucket_force_destroy"] = true
-		}
-
 		if args.ConsolidatedCloudtrail {
 			attributes["consolidated_trail"] = true
 		}
-
+		if args.CloudtrailName != "" {
+			attributes["cloudtrail_name"] = args.CloudtrailName
+		}
+		// S3 Bucket attributes
+		if args.ExistingCloudtrailBucketArn != "" {
+			attributes["use_existing_cloudtrail"] = true
+			attributes["bucket_arn"] = args.ExistingCloudtrailBucketArn
+		} else {
+			if args.ForceDestroyS3Bucket {
+				attributes["bucket_force_destroy"] = true
+			}
+			if args.BucketName != "" {
+				attributes["bucket_name"] = args.BucketName
+			}
+			if args.BucketEncryptionEnabledSet {
+				if args.BucketEncryptionEnabled {
+					if args.BucketSseKeyArn != "" {
+						attributes["bucket_sse_key_arn"] = args.BucketSseKeyArn
+					}
+				} else {
+					attributes["bucket_encryption_enabled"] = false
+				}
+			}
+		}
+		// SNS Attributes
 		if args.ExistingSnsTopicArn != "" {
 			attributes["use_existing_sns_topic"] = true
 			attributes["sns_topic_arn"] = args.ExistingSnsTopicArn
+		} else {
+			if args.SnsTopicName != "" {
+				attributes["sns_topic_name"] = args.SnsTopicName
+			}
+			if args.SnsEncryptionEnabledSet {
+				if args.SnsEncryptionEnabled {
+					if args.SnsEncryptionKeyArn != "" {
+						attributes["sns_encryption_key_arn"] = args.SnsEncryptionKeyArn
+					}
+				} else {
+					attributes["sns_encryption_enabled "] = false
+				}
+			}
 		}
-
+		// SQS Attributes
+		if args.SqsQueueName != "" {
+			attributes["sqs_queue_name"] = args.SqsQueueName
+		}
+		if args.SqsEncryptionEnabledSet {
+			if args.SqsEncryptionEnabled {
+				if args.SqsEncryptionKeyArn != "" {
+					attributes["sqs_encryption_key_arn"] = args.SqsEncryptionKeyArn
+				}
+			} else {
+				attributes["sqs_encryption_enabled "] = false
+			}
+		}
 		if args.ExistingIamRole == nil && args.Config {
 			attributes["use_existing_iam_role"] = true
 			attributes["iam_role_name"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_config", "iam_role_name"})
@@ -387,11 +559,6 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 			attributes["iam_role_name"] = args.ExistingIamRole.Name
 			attributes["iam_role_arn"] = args.ExistingIamRole.Arn
 			attributes["iam_role_external_id"] = args.ExistingIamRole.ExternalId
-		}
-
-		if args.ExistingCloudtrailBucketArn != "" {
-			attributes["use_existing_cloudtrail"] = true
-			attributes["bucket_arn"] = args.ExistingCloudtrailBucketArn
 		}
 
 		if len(args.SubAccounts) > 0 {

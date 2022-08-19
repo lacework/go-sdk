@@ -23,17 +23,28 @@ Flags:
       --aws_profile string                    specify aws profile
       --aws_region string                     specify aws region
       --aws_subaccount strings                configure an additional aws account; value format must be <aws profile>:<region>
+      --bucket_encryption_enabled             enable S3 bucket encryption when creating bucket (default true)
+      --bucket_name string                    specify bucket name when creating bucket
+      --bucket_sse_key_arn string             specify existing KMS encryption key arn for bucket
       --cloudtrail                            enable cloudtrail integration
+      --cloudtrail_name string                specify name of cloudtrail integration
       --config                                enable config integration
+      --config_name string                    specify name of config integration
       --consolidated_cloudtrail               use consolidated trail
-      --existing_bucket_arn string            specify existing cloudtrail s3 bucket ARN
+      --existing_bucket_arn string            specify existing cloudtrail S3 bucket ARN
       --existing_iam_role_arn string          specify existing iam role arn to use
       --existing_iam_role_externalid string   specify existing iam role external_id to use
       --existing_iam_role_name string         specify existing iam role name to use
-      --existing_sns_topic_arn string         specify existing sns topic arn
-      --force_destroy_s3                      enable force destroy s3 bucket
+      --existing_sns_topic_arn string         specify existing SNS topic arn
+      --force_destroy_s3                      enable force destroy S3 bucket
   -h, --help                                  help for aws
       --output string                         location to write generated content
+      --sns_encryption_enabled                enable encryption on SNS topic when creating one (default true)
+      --sns_encryption_key_arn string         specify existing KMS encryption key arn for SNS topic
+      --sns_topic_name string                 specify SNS topic name if creating new one
+      --sqs_encryption_enabled                enable encryption on SQS queue when creating (default true)
+      --sqs_encryption_key_arn string         specify existing KMS encryption key arn for SQS queue
+      --sqs_queue_name string                 specify SQS queue name if creating new one
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
