@@ -49,6 +49,7 @@ type DataExportRule struct {
 
 type DataExportRuleFilter struct {
 	Name            string   `json:"name"`
+	Description     string   `json:"description"`
 	CreatedBy       string   `json:"createdOrUpdatedBy,omitempty"`
 	UpdatedTime     string   `json:"createdOrUpdatedTime,omitempty"`
 	Enabled         int      `json:"enabled"`
