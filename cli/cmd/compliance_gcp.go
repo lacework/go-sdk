@@ -103,7 +103,7 @@ Then, select one GUID from an integration and visualize its details using the co
 	// complianceGcpGetReportCmd represents the get-report sub-command inside the gcp command
 	complianceGcpGetReportCmd = &cobra.Command{
 		Use:     "get-report <organization_id> <project_id>",
-		Aliases: []string{"get"},
+		Aliases: []string{"get", "show"},
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()

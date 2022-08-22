@@ -56,7 +56,7 @@ var (
 	// complianceAwsGetReportCmd represents the get-report sub-command inside the aws command
 	complianceAwsGetReportCmd = &cobra.Command{
 		Use:     "get-report <account_id> [recommendation_id]",
-		Aliases: []string{"get"},
+		Aliases: []string{"get", "show"},
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
@@ -411,6 +411,77 @@ The output from status with the --json flag can be used in the body of PATCH api
 			return nil
 		},
 	}
+
+	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
+	complianceAwsSearchCmd = &cobra.Command{
+		Use:   "search <resource_arn>",
+		Short: "Search for all known violations of a given resource arn",
+		Long:  `Search for all known violations of a given resource arn.`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			cli.StartProgress(fmt.Sprintf(" searching accounts for resource %s...", args[0]))
+			var (
+				now                                   = time.Now().UTC()
+				before                                = now.AddDate(0, 0, -7) // last 7 days
+				awsComplianceEvaluationSearchResponse api.ComplianceEvaluationAwsResponse
+				filter                                = api.ComplianceEvaluationSearch{
+					SearchFilter: api.SearchFilter{
+						Filters: []api.Filter{{
+							Expression: "eq",
+							Field:      "resource",
+							Value:      args[0],
+						}},
+						TimeFilter: &api.TimeFilter{
+							StartTime: &before,
+							EndTime:   &now,
+						},
+					},
+					Dataset: api.AwsComplianceEvaluationDataset,
+				}
+			)
+			err := cli.LwApi.V2.ComplianceEvaluations.Search(&awsComplianceEvaluationSearchResponse, filter)
+			cli.StopProgress()
+			if err != nil {
+				return err
+			}
+
+			if len(awsComplianceEvaluationSearchResponse.Data) == 0 {
+				cli.OutputHuman("No results found.\n")
+				return nil
+			}
+
+			var recommendationIDs []string
+			var uniqueRecommendations []api.ComplianceEvaluationAws
+
+			for _, recommend := range awsComplianceEvaluationSearchResponse.Data {
+				if !array.ContainsStr(recommendationIDs, recommend.Id) {
+					recommendationIDs = append(recommendationIDs, recommend.Id)
+					uniqueRecommendations = append(uniqueRecommendations, recommend)
+				}
+			}
+
+			// output table
+			var out [][]string
+			for _, recommend := range uniqueRecommendations {
+				out = append(out, []string{
+					recommend.Id,
+					recommend.Account.AccountId,
+					recommend.Reason,
+					recommend.Severity,
+					recommend.Status,
+				})
+			}
+
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"RECOMMENDATION ID", "ACCOUNT ID", "REASON", "SEVERITY", "STATUS"},
+					out,
+				),
+			)
+
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -418,6 +489,7 @@ func init() {
 	complianceAwsCmd.AddCommand(complianceAwsGetReportCmd)
 	complianceAwsCmd.AddCommand(complianceAwsListAccountsCmd)
 	complianceAwsCmd.AddCommand(complianceAwsRunAssessmentCmd)
+	complianceAwsCmd.AddCommand(complianceAwsSearchCmd)
 
 	// Experimental Commands
 	complianceAwsCmd.AddCommand(complianceAwsReportStatusCmd)
