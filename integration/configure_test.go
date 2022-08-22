@@ -57,9 +57,9 @@ func TestConfigureCommandNonInteractive(t *testing.T) {
 	defer os.RemoveAll(home)
 	out, errB, exitcode := LaceworkCLIWithHome(home, "configure",
 		"--noninteractive",
-		"-a", "my-account",
-		"-k", "my-key",
-		"-s", "my-secret",
+		"-a", "my-account.lacework.net",
+		"-k", "my-key-000000000000000000000000000000000000000000000000",
+		"-s", "my-secret-00000000000000000000",
 		"--subaccount", "my-sub-account",
 	)
 
@@ -78,10 +78,64 @@ func TestConfigureCommandNonInteractive(t *testing.T) {
 	assert.Equal(t, `[default]
   account = "my-account"
   subaccount = "my-sub-account"
-  api_key = "my-key"
-  api_secret = "my-secret"
+  api_key = "my-key-000000000000000000000000000000000000000000000000"
+  api_secret = "my-secret-00000000000000000000"
   version = 2
 `, string(laceworkTOML), "there is a problem with the generated config")
+}
+
+func TestConfigureCommandNonInteractiveFailures(t *testing.T) {
+	home, err := ioutil.TempDir("", "lacework-cli")
+	if err != nil {
+		panic(err)
+	}
+
+	defer os.RemoveAll(home)
+
+	tests := []struct {
+		account    string
+		api_key    string
+		api_secret string
+		desc       string
+	}{
+		{
+			"my-account",
+			"my-key-000000000000000000000000000000000000000000000000",
+			"my-secret-00000000000000000000",
+			"Domain not found",
+		},
+		{
+			"my-account.wiz.net",
+			"my-key-000000000000000000000000000000000000000000000000",
+			"my-secret-00000000000000000000",
+			"Domain invalid",
+		},
+		{
+			"my-account.lacework.net",
+			"my-key-00000000000000000000000000000000000000000000000",
+			"my-secret-00000000000000000000",
+			"api_key length less than 55 characters",
+		},
+		{
+			"my-account.lacework.net",
+			"my-key-000000000000000000000000000000000000000000000000",
+			"my-secret-0000000000000000000",
+			"api_secret length less than 30",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			_, _, errno := LaceworkCLIWithHome(home, "configure",
+				"--noninteractive",
+				"-a", tc.account,
+				"-k", tc.api_key,
+				"-s", tc.api_secret,
+				"--subaccount", "my-sub-account",
+			)
+			assert.True(t, errno != 0, tc.desc)
+		})
+	}
 }
 
 func createJSONFileLikeWebUI(content string) string {

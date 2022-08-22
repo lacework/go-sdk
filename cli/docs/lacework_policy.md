@@ -50,7 +50,7 @@ To view the LQL query associated with the policy, use the query ID.
 ### Options inherited from parent commands
 
 ```
-  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+  -a, --account string      account URL (i.e. <ACCOUNT>[.CUSTER][.corp].lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
       --api_token string    access token (replaces the use of api_key and api_secret)

@@ -223,10 +223,10 @@ func runConfigureSetup() error {
 			newProfile.Subaccount = subaccount
 		}
 		cli.OutputHuman("\n")
-	}
-
-	if err := newProfile.Verify(); err != nil {
-		return errors.Wrap(err, "unable to configure the command-line")
+	} else {
+		if err := newProfile.Verify(); err != nil {
+			return errors.Wrap(err, "unable to configure the command-line")
+		}
 	}
 
 	if err := lwconfig.StoreProfileAt(viper.ConfigFileUsed(), cli.Profile, newProfile); err != nil {
@@ -373,13 +373,8 @@ func loadUIJsonFile(file string) error {
 	cli.KeyID = auth.KeyID
 	cli.Secret = auth.Secret
 	cli.Subaccount = strings.ToLower(auth.SubAccount)
-
 	if auth.Account != "" {
-		d, err := lwdomain.New(auth.Account)
-		if err != nil {
-			return err
-		}
-		cli.Account = d.String()
+		cli.Account = auth.Account
 	}
 
 	return nil

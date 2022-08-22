@@ -161,7 +161,7 @@ func init() {
 		"access token (replaces the use of api_key and api_secret)",
 	)
 	rootCmd.PersistentFlags().StringP("account", "a", "",
-		"account subdomain of URL (i.e. <ACCOUNT>.lacework.net)",
+		"account URL (i.e. <ACCOUNT>[.CUSTER][.corp].lacework.net)",
 	)
 	rootCmd.PersistentFlags().String("subaccount", "",
 		"sub-account name inside your organization (org admins only)",

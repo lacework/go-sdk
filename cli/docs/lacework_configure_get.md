@@ -20,7 +20,7 @@ lacework configure get [flags]
 ### Options inherited from parent commands
 
 ```
-  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+  -a, --account string      account URL (i.e. <ACCOUNT>[.CUSTER][.corp].lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
       --debug               turn on debug logging

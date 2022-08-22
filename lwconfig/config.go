@@ -25,6 +25,8 @@ import (
 	"os"
 	"path"
 
+	"github.com/lacework/go-sdk/lwdomain"
+
 	"github.com/BurntSushi/toml"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -66,12 +68,30 @@ func (p *Profile) Verify() error {
 	if p.Account == "" {
 		return errors.New("account missing")
 	}
+
+	d, err := lwdomain.New(p.Account)
+	if err != nil {
+		return errors.Wrap(err, "account")
+	}
+	p.Account = d.String()
+
 	if p.ApiKey == "" {
 		return errors.New("api_key missing")
 	}
+
+	if len(p.ApiKey) < 55 {
+		return errors.New("api_key must have more than 55 characters")
+	}
+
 	if p.ApiSecret == "" {
 		return errors.New("api_secret missing")
 	}
+
+	if len(p.ApiSecret) < 30 {
+
+		return errors.New("api_secret must have more than 30 characters")
+	}
+
 	return nil
 }
 
