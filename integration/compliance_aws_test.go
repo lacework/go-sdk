@@ -164,16 +164,6 @@ func TestComplianceAwsSearch(t *testing.T) {
 		"compliance", "aws", "search", "example",
 	)
 	assert.Empty(t, err.String(), "STDERR should be empty")
-
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-	assert.Contains(t, out.String(), "No results found.", "STDOUT changed, please check")
-}
-
-func TestComplianceAwsSearch(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig(
-		"compliance", "aws", "search", "example",
-	)
-	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(), "No results found.", "STDOUT changed, please check")
 }
