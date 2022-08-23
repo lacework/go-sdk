@@ -163,7 +163,7 @@ install-cli: build-cli-cross-platform ## Build and install the Lacework CLI bina
 ifeq (x86_64, $(shell uname -m))
 	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-amd64 /usr/local/bin/$(CLINAME)
 else
-	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-386 /usr/local/bin/$(CLINAME)
+	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m) /usr/local/bin/$(CLINAME)
 endif
 	@echo "\nThe lacework cli has been installed at /usr/local/bin"
 

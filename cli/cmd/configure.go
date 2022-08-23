@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -177,6 +178,14 @@ func runConfigureSetup() error {
 		err := loadUIJsonFile(configureJsonFile)
 		if err != nil {
 			return errors.Wrap(err, "unable to load keys from the provided json file")
+		}
+	} else {
+		if match, _ := regexp.MatchString(".lacework.net", cli.Account); match {
+			d, err := lwdomain.New(cli.Account)
+			if err != nil {
+				return errors.Wrap(err, "unable to configure the command-line: account")
+			}
+			cli.Account = d.String()
 		}
 	}
 
@@ -373,7 +382,6 @@ func loadUIJsonFile(file string) error {
 	cli.KeyID = auth.KeyID
 	cli.Secret = auth.Secret
 	cli.Subaccount = strings.ToLower(auth.SubAccount)
-
 	if auth.Account != "" {
 		d, err := lwdomain.New(auth.Account)
 		if err != nil {

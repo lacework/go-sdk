@@ -66,12 +66,24 @@ func (p *Profile) Verify() error {
 	if p.Account == "" {
 		return errors.New("account missing")
 	}
+
 	if p.ApiKey == "" {
 		return errors.New("api_key missing")
 	}
+
+	if len(p.ApiKey) < 55 {
+		return errors.New("api_key must have more than 55 characters")
+	}
+
 	if p.ApiSecret == "" {
 		return errors.New("api_secret missing")
 	}
+
+	if len(p.ApiSecret) < 30 {
+
+		return errors.New("api_secret must have more than 30 characters")
+	}
+
 	return nil
 }
 
