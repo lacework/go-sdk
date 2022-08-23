@@ -18,7 +18,7 @@ Usage:
   lacework compliance aws get-report <account_id> [recommendation_id] [flags]
 
 Aliases:
-  get-report, get
+  get-report, get, show
 
 Flags:
       --category strings   filter report details by category (identity-and-access-management, s3, logging...)
