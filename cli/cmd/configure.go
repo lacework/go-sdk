@@ -279,8 +279,8 @@ func promptConfigureSetup(newProfile *lwconfig.Profile) error {
 				Message: "Access Key ID:",
 				Default: cli.KeyID,
 			},
-			Validate: promptRequiredStringLen(55,
-				"The API access key id must have more than 55 characters.",
+			Validate: promptRequiredStringLen(lwconfig.ApiKeyMinLength,
+				fmt.Sprintf("The API access key id must have more than %d characters.", lwconfig.ApiKeyMinLength),
 			),
 		},
 	}
@@ -289,11 +289,11 @@ func promptConfigureSetup(newProfile *lwconfig.Profile) error {
 		Name: "api_secret",
 		Validate: func(input interface{}) error {
 			str, ok := input.(string)
-			if !ok || len(str) < 30 {
+			if !ok || len(str) < lwconfig.ApiSecretMinLength {
 				if len(str) == 0 && len(cli.Secret) != 0 {
 					return nil
 				}
-				return errors.New("The API secret access key must have more than 30 characters.")
+				return errors.New(fmt.Sprintf("The API secret access key must have more than %d characters.", lwconfig.ApiSecretMinLength))
 			}
 			return nil
 		},

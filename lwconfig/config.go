@@ -21,6 +21,7 @@ package lwconfig
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -61,27 +62,47 @@ type Profile struct {
 	Version    int    `toml:"version,omitzero"`
 }
 
+const (
+	ApiKeyMinLength    = 55
+	ApiSecretMinLength = 30
+)
+
 // Verify will return an error is there is one required setting missing
 func (p *Profile) Verify() error {
 	if p.Account == "" {
 		return errors.New("account missing")
 	}
 
+	if err := p.verifyApiKey(); err != nil {
+		return err
+	}
+
+	if err := p.verifyApiSecret(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Profile) verifyApiKey() error {
 	if p.ApiKey == "" {
 		return errors.New("api_key missing")
 	}
 
-	if len(p.ApiKey) < 55 {
-		return errors.New("api_key must have more than 55 characters")
+	if len(p.ApiKey) < ApiKeyMinLength {
+		return errors.New(fmt.Sprintf("api_key must have more than %d characters", ApiKeyMinLength))
 	}
 
+	return nil
+}
+
+func (p *Profile) verifyApiSecret() error {
 	if p.ApiSecret == "" {
 		return errors.New("api_secret missing")
 	}
 
-	if len(p.ApiSecret) < 30 {
-
-		return errors.New("api_secret must have more than 30 characters")
+	if len(p.ApiSecret) < ApiSecretMinLength {
+		return errors.New(fmt.Sprintf("api_secret must have more than %d characters", ApiSecretMinLength))
 	}
 
 	return nil
