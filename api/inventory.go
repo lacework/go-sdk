@@ -45,7 +45,7 @@ const AwsInventoryDataset inventoryDataset = "AwsCompliance"
 //		  Dataset: api.AwsComplianceEvaluationDataset,
 //	  }
 //  )
-//   lacework.V2.Inventory.Search(response, filters)
+//   lacework.V2.Inventory.Search(&awsInventorySearchResponse, filters)
 //
 func (svc *InventoryService) Search(response interface{}, filters InventorySearch) error {
 	return svc.client.RequestEncoderDecoder("POST", apiV2InventorySearch, filters, response)

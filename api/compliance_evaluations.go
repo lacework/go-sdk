@@ -43,7 +43,7 @@ const AwsComplianceEvaluationDataset complianceEvaluationDataset = "AwsComplianc
 //		  Dataset: api.AwsComplianceEvaluationDataset,
 //	  }
 //  )
-//   lacework.V2.ComplianceEvaluation.Search(response, filters)
+//   lacework.V2.ComplianceEvaluation.Search(&awsComplianceEvaluationSearchResponse, filters)
 //
 func (svc *ComplianceEvaluationService) Search(response interface{}, filters ComplianceEvaluationSearch) error {
 	return svc.client.RequestEncoderDecoder("POST", apiV2ComplianceEvaluationsSearch, filters, response)
