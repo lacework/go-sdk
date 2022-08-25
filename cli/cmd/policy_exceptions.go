@@ -423,7 +423,9 @@ func promptAddExceptionConstraintAwsAccountsList() ([]any, error) {
 	}
 
 	for _, ca := range accounts.Data {
-		accountIds = append(accountIds, ca.Data.(api.AwsCfgData).AwsAccountID)
+		if val, ok := ca.Data.(api.AwsCfgData); ok {
+			accountIds = append(accountIds, val.AwsAccountID)
+		}
 	}
 
 	err = survey.AskOne(&survey.MultiSelect{Message: "Select AWS Accounts:", Options: array.Unique(accountIds)}, &fieldValues)
