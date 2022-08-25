@@ -165,8 +165,7 @@ func TestComplianceAwsSearchEmpty(t *testing.T) {
 	)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-	assert.Contains(t, out.String(), "Resource example not found. To learn how to configure Lacework with Aws "+
-		"see https://docs.lacework.com/onboarding/category/integrate-lacework-with-aws ", "STDOUT changed, please check")
+	assert.Contains(t, out.String(), "Resource example not found.", "STDOUT changed, please check")
 }
 
 func TestComplianceAwsSearch(t *testing.T) {
