@@ -53,7 +53,7 @@ type DataExportRuleFilter struct {
 	CreatedBy       string   `json:"createdOrUpdatedBy,omitempty"`
 	UpdatedTime     string   `json:"createdOrUpdatedTime,omitempty"`
 	Enabled         int      `json:"enabled"`
-	ProfileVersions []string `json:"profileVersions"`
+	ProfileVersions []string `json:"profileVersions,omitempty"`
 }
 
 // List returns a list of Data Export Rules
