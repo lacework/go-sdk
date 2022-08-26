@@ -371,7 +371,7 @@ func initGenerateGcpTfCommandFlags() {
 		&GenerateGcpCommandExtraState.Output,
 		"output",
 		"",
-		"location to write generated content",
+		"location to write generated content (default is ~/lacework/gcp)",
 	)
 
 }

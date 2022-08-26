@@ -433,7 +433,7 @@ func initGenerateAzureTfCommandFlags() {
 		&GenerateAzureCommandExtraState.Output,
 		"output",
 		"",
-		"location to write generated content",
+		"location to write generated content (default is ~/lacework/azure)",
 	)
 }
 
