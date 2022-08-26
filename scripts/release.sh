@@ -56,7 +56,8 @@ COMMANDS:
     prepare    Generates release notes, updates version and CHANGELOG.md
     verify     Check if the release is ready to be applied
     trigger    Trigger a release by creating a git tag
-    publish    Builds binaries, shasums and creates a Github tag like 'v0.1.0'
+    publish    Download binaries, generate shasums and creates a Github tag like 'v0.1.0'
+    build      Builds binaries and upload them to s3
 USAGE
 }
 
@@ -67,6 +68,9 @@ main() {
       ;;
     publish)
       publish_release
+      ;;
+    build)
+     build_artifacts
       ;;
     verify)
       verify_release
@@ -138,10 +142,16 @@ prepare_release() {
   open_pull_request
 }
 
-publish_release() {
-  log "releasing v$VERSION"
+build_artifacts() {
+  log "building artifacts for v$VERSION"
   clean_cache
   build_cli_cross_platform
+  upload_artifacts
+}
+
+publish_release() {
+  log "releasing v$VERSION"
+  download_artifacts
   compress_targets
   generate_shasums
   create_release
@@ -150,6 +160,28 @@ publish_release() {
 cli_generate_files() {
   make generate-docs
   make generate-databox
+}
+
+download_artifacts() {
+  log "downloading signed artifacts for v$VERSION"
+  aws s3 sync "s3://lacework-cli/builds/v${VERSION}/signed" bin/signed
+
+  while [ ! -n "$(ls -1 bin/signed 2>/dev/null)"  ]; do
+    log "waiting for signed artifacts..."
+    sleep 5
+    aws s3 sync "s3://lacework-cli/builds/v${VERSION}/signed" bin/signed
+  done
+
+  # sync everything
+  aws s3 sync "s3://lacework-cli/builds/v${VERSION}" bin/
+
+  log "moving signed/ artifacts to bin/ directory"
+  mv bin/signed/lacework* bin/.
+}
+
+upload_artifacts() {
+  log "uploading artifacts for v$VERSION"
+  aws s3 sync bin/ "s3://lacework-cli/builds/v$VERSION"
 }
 
 update_changelog() {
@@ -378,6 +410,9 @@ clean_cache() {
 build_cli_cross_platform() {
   log "building cross-platform binaries"
   make build-cli-cross-platform
+  log "creating signed/ folder"
+  mkdir -p bin/signed
+  touch bin/signed/.keeper
 }
 
 generate_shasums() {
