@@ -407,16 +407,28 @@ func promptAddExceptionConstraintAwsAccountsList() ([]any, error) {
 	var (
 		values      []any
 		fieldValues []string
+		accountIds  []string
 	)
 
 	cli.StartProgress("Retrieving AWS accounts...")
-	accountIds, err := cli.LwApi.Integrations.AwsAccountIDs()
+	accounts, err := cli.LwApi.V2.CloudAccounts.ListByType(api.AwsCfgCloudAccount)
 	cli.StopProgress()
+
 	if err != nil {
 		return nil, err
 	}
 
-	err = survey.AskOne(&survey.MultiSelect{Message: "Select AWS Accounts:", Options: accountIds}, &fieldValues)
+	if len(accounts.Data) == 0 {
+		return nil, errors.New("no aws cloud accounts found")
+	}
+
+	for _, ca := range accounts.Data {
+		if val, ok := ca.Data.(api.AwsCfgData); ok {
+			accountIds = append(accountIds, val.AwsAccountID)
+		}
+	}
+
+	err = survey.AskOne(&survey.MultiSelect{Message: "Select AWS Accounts:", Options: array.Unique(accountIds)}, &fieldValues)
 	if err != nil {
 		return nil, err
 	}
