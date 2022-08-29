@@ -419,7 +419,7 @@ The output from status with the --json flag can be used in the body of PATCH api
 		Long:  `Search for all known violations of a given resource arn.`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			cli.StartProgress(fmt.Sprintf(" Searching accounts for resource %s...", args[0]))
+			cli.StartProgress(fmt.Sprintf("Searching accounts for resource '%s'...", args[0]))
 			var (
 				now                        = time.Now().UTC()
 				before                     = now.AddDate(0, 0, -7) // last 7 days
@@ -444,7 +444,7 @@ The output from status with the --json flag can be used in the body of PATCH api
 			cli.StopProgress()
 
 			if len(awsInventorySearchResponse.Data) == 0 {
-				cli.OutputHuman("Resource %s not found. To learn how to configure Lacework with Aws visit "+
+				cli.OutputHuman("Resource '%s' not found.\n\nTo learn how to configure Lacework with AWS visit "+
 					"https://docs.lacework.com/onboarding/category/integrate-lacework-with-aws \n", args[0])
 				return nil
 			}
@@ -453,7 +453,7 @@ The output from status with the --json flag can be used in the body of PATCH api
 				return err
 			}
 
-			cli.StartProgress(fmt.Sprintf(" Searching for compliance violations for %s...", args[0]))
+			cli.StartProgress(fmt.Sprintf("Searching for compliance violations for '%s'...", args[0]))
 			var (
 				awsComplianceEvaluationSearchResponse api.ComplianceEvaluationAwsResponse
 				complianceFilter                      = api.ComplianceEvaluationSearch{
@@ -488,7 +488,7 @@ The output from status with the --json flag can be used in the body of PATCH api
 			}
 
 			if len(uniqueRecommendations) == 0 {
-				cli.OutputHuman("No violations found. Time for %s.\n", randomEmoji())
+				cli.OutputHuman("No violations found. Time for %s\n", randomEmoji())
 				return nil
 			}
 
