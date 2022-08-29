@@ -1,27 +1,26 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v0.40.0`.
+Another day, another release. These are the release notes for the version `v0.41.0`.
 
 ## Features
-* feat(cli): alert-profile update cmd (#879) (Darren)([d8024e5](https://github.com/lacework/go-sdk/commit/d8024e5aad8ea7e240d2be2a65680351678034ce))
-* feat(cdk): leave breadcrumbs after installation and update (#876) (Salim Afiune)([d16cc15](https://github.com/lacework/go-sdk/commit/d16cc153cc6483dd20e05bfd3035f5a0445ef17a))
-* feat(lql): add limit option (hazedav)([d598def](https://github.com/lacework/go-sdk/commit/d598deff17ae4b644cc655c084e96fa6b5d70ad4))
-* feat: add cloud account integration aws agentless scanning (#870) (Darren)([8807a97](https://github.com/lacework/go-sdk/commit/8807a97ac04a9d2637947a6b74b5f6bfd148e91e))
+* feat(cli): aws compliance search command (#893) (Darren)([5c665cb](https://github.com/lacework/go-sdk/commit/5c665cba2bc0d7f89c669d6096d3f60932eb8d2d))
+* feat(cli): Addition of extra AWS terraform options (#890) (djmctavish)([de34097](https://github.com/lacework/go-sdk/commit/de34097c80f239e51335a33655ef89f35f5b7c06))
+* feat(api): add v2 AwsCfg (#889) (Darren)([53bd1ca](https://github.com/lacework/go-sdk/commit/53bd1ca21bd5d6e4893397ffad14403154f184d9))
+* feat: DataExportRule service (#887) (Darren)([9c6ca08](https://github.com/lacework/go-sdk/commit/9c6ca082f9ae0131bb2c3b0d65aec9fb51b4e6b6))
+* feat: add credentials to sidekick data (#886) (Darren)([3311753](https://github.com/lacework/go-sdk/commit/331175320a594ef4a4646cf2ebdd5b8c06eee407))
 ## Refactor
-* refactor: use v2/AgentInfo for agents list command (#866) (Darren)([06531ed](https://github.com/lacework/go-sdk/commit/06531ed7ebcc8fba41d95dd998aa2e8d0125aa7c))
+* refactor(cli): migrate fetch accountIds in policy exception to API v2 (#896) (Darren)([510a41f](https://github.com/lacework/go-sdk/commit/510a41f0bdb6ba9e8d3df24db55c691ce0349fa0))
 ## Bug Fixes
-* fix(lql): add line break when no preview found (#880) (hazedav)([83a1216](https://github.com/lacework/go-sdk/commit/83a1216a20162af5fdc4c30c5f0572d65a773e64))
-* fix(cdk): JSON output for 'component list' command (#878) (Salim Afiune)([a1dc162](https://github.com/lacework/go-sdk/commit/a1dc162441b5ac849010dc87b5a09fbce3f13d16))
-* fix(api): detect FQDN as account in api.NewClient() (#872) (Salim Afiune)([6e14d57](https://github.com/lacework/go-sdk/commit/6e14d577fc28f6e5b4eabbda0fe5f08d080e4473))
-* fix: vulnerabilty_exception fixable parameter omit when unset (#863) (Darren)([f517e0e](https://github.com/lacework/go-sdk/commit/f517e0e48fe6cf0ac8f05d59d65c25dc4dbb7ddd))
-* fix(install.ps1): modify User $Path correctly (#869) (Salim Afiune)([73c69f7](https://github.com/lacework/go-sdk/commit/73c69f74a4215799f9826d14badaa5214150ba97))
+* fix: omitempty profileVersions field (#897) (Darren)([2170edb](https://github.com/lacework/go-sdk/commit/2170edb47e5353597149c6208fedbe7604fd7a4f))
+* fix(cli): account flag domain fix (#895) (jonathan stewart)([ed892dc](https://github.com/lacework/go-sdk/commit/ed892dc23bbef80eda97985ad1fc9c385ace4260))
+* fix: add description field to dataexportrules (#891) (Darren)([0531907](https://github.com/lacework/go-sdk/commit/05319072e362cfc258b9555c52953138a62d9953))
+* fix(lwupdater): avoid comparing dev versions (#881) (Salim Afiune)([a8f9ee4](https://github.com/lacework/go-sdk/commit/a8f9ee444c9899768b57fe510308878e2d6aa13c))
+* fix: alert profile filter (#883) (Darren)([91e979a](https://github.com/lacework/go-sdk/commit/91e979a12156c5fced9fa9cf7490d6499ff87bb9))
 ## Documentation Updates
-* docs(cli): update help message from LPP commands (#873) (lacework-aaronscheiber)([810d005](https://github.com/lacework/go-sdk/commit/810d0056decf864ab8cd522c2f571475b825a76b))
-* docs(cli): updating help for query run (#864) (hazedav)([8953d19](https://github.com/lacework/go-sdk/commit/8953d19f8538b6247f0018d66777ed891eb50c51))
+* docs(cli): display IaC default output location (#898) (sthetland)([139da68](https://github.com/lacework/go-sdk/commit/139da68fb6ec1033b1ecefe8a8295e08e955404e))
 ## Other Changes
-* chore(deps): bump github.com/honeycombio/libhoney-go (#867) (dependabot[bot])([e77d133](https://github.com/lacework/go-sdk/commit/e77d133e3d7564de0fae979b08d8fbfe05221cf4))
-* chore(deps): bump github.com/BurntSushi/toml from 1.1.0 to 1.2.0 (#871) (dependabot[bot])([fa69c24](https://github.com/lacework/go-sdk/commit/fa69c24b079e09ac4012a8beca22947cc01ce686))
-* chore(lql): fully remove evaluatorId (#865) (hazedav)([1112f55](https://github.com/lacework/go-sdk/commit/1112f55c47577591d94cd7719ab66c07f51f21e4))
-* ci: version bump to v0.39.1-dev (Lacework)([23827ee](https://github.com/lacework/go-sdk/commit/23827ee45a92c9c23784af1e61967eff6ef9dae9))
+* build(cli): sign Lacework CLI artifacts (#899) (Salim Afiune)([dcc4605](https://github.com/lacework/go-sdk/commit/dcc460567947f316d7eeb7dcda2406813cf83dc3))
+* ci: fix policy test (#888) (Salim Afiune)([294f99b](https://github.com/lacework/go-sdk/commit/294f99b9e9767aea33450b561a46e78231f1bf4a))
+* ci: version bump to v0.40.1-dev (Lacework)([599d7ff](https://github.com/lacework/go-sdk/commit/599d7ff61c0a21c961862d633d11f9c450cfc471))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
