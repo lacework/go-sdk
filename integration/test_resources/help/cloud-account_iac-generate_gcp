@@ -38,7 +38,7 @@ Flags:
   -h, --help                                          help for gcp
       --organization_id string                        specify the organization id (only set if organization_integration is set)
       --organization_integration                      enable organization integration
-      --output string                                 location to write generated content
+      --output string                                 location to write generated content (default is ~/lacework/gcp)
       --project_id string                             specify the project id to be used to provision lacework resources (required)
       --service_account_credentials string            specify service account credentials JSON file path (leave blank to make use of google credential ENV vars)
 

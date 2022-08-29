@@ -392,7 +392,7 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandExtraState.Output,
 		"output",
 		"",
-		"location to write generated content",
+		"location to write generated content (default is ~/lacework/aws)",
 	)
 	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.SnsEncryptionEnabled,
