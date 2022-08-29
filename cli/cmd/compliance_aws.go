@@ -56,7 +56,7 @@ var (
 	// complianceAwsGetReportCmd represents the get-report sub-command inside the aws command
 	complianceAwsGetReportCmd = &cobra.Command{
 		Use:     "get-report <account_id> [recommendation_id]",
-		Aliases: []string{"get"},
+		Aliases: []string{"get", "show"},
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
@@ -411,6 +411,109 @@ The output from status with the --json flag can be used in the body of PATCH api
 			return nil
 		},
 	}
+
+	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
+	complianceAwsSearchCmd = &cobra.Command{
+		Use:   "search <resource_arn>",
+		Short: "Search for all known violations of a given resource arn",
+		Long:  `Search for all known violations of a given resource arn.`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			cli.StartProgress(fmt.Sprintf("Searching accounts for resource '%s'...", args[0]))
+			var (
+				now                        = time.Now().UTC()
+				before                     = now.AddDate(0, 0, -7) // last 7 days
+				awsInventorySearchResponse api.InventoryAwsResponse
+				filter                     = api.InventorySearch{
+					SearchFilter: api.SearchFilter{
+						Filters: []api.Filter{{
+							Expression: "eq",
+							Field:      "urn",
+							Value:      args[0],
+						}},
+						TimeFilter: &api.TimeFilter{
+							StartTime: &before,
+							EndTime:   &now,
+						},
+					},
+					Dataset: api.AwsInventoryDataset,
+					Csp:     api.AwsInventoryType,
+				}
+			)
+			err := cli.LwApi.V2.Inventory.Search(&awsInventorySearchResponse, filter)
+			cli.StopProgress()
+
+			if len(awsInventorySearchResponse.Data) == 0 {
+				cli.OutputHuman("Resource '%s' not found.\n\nTo learn how to configure Lacework with AWS visit "+
+					"https://docs.lacework.com/onboarding/category/integrate-lacework-with-aws \n", args[0])
+				return nil
+			}
+			cli.StopProgress()
+			if err != nil {
+				return err
+			}
+
+			cli.StartProgress(fmt.Sprintf("Searching for compliance violations for '%s'...", args[0]))
+			var (
+				awsComplianceEvaluationSearchResponse api.ComplianceEvaluationAwsResponse
+				complianceFilter                      = api.ComplianceEvaluationSearch{
+					SearchFilter: api.SearchFilter{
+						Filters: []api.Filter{{
+							Expression: "eq",
+							Field:      "resource",
+							Value:      args[0],
+						}},
+						TimeFilter: &api.TimeFilter{
+							StartTime: &before,
+							EndTime:   &now,
+						},
+					},
+					Dataset: api.AwsComplianceEvaluationDataset,
+				}
+			)
+			err = cli.LwApi.V2.ComplianceEvaluations.Search(&awsComplianceEvaluationSearchResponse, complianceFilter)
+			cli.StopProgress()
+			if err != nil {
+				return err
+			}
+
+			var recommendationIDs []string
+			var uniqueRecommendations []api.ComplianceEvaluationAws
+
+			for _, recommend := range awsComplianceEvaluationSearchResponse.Data {
+				if !array.ContainsStr(recommendationIDs, recommend.Id) {
+					recommendationIDs = append(recommendationIDs, recommend.Id)
+					uniqueRecommendations = append(uniqueRecommendations, recommend)
+				}
+			}
+
+			if len(uniqueRecommendations) == 0 {
+				cli.OutputHuman("No violations found. Time for %s\n", randomEmoji())
+				return nil
+			}
+
+			// output table
+			var out [][]string
+			for _, recommend := range uniqueRecommendations {
+				out = append(out, []string{
+					recommend.Id,
+					recommend.Account.AccountId,
+					recommend.Reason,
+					recommend.Severity,
+					recommend.Status,
+				})
+			}
+
+			cli.OutputHuman(
+				renderSimpleTable(
+					[]string{"RECOMMENDATION ID", "ACCOUNT ID", "REASON", "SEVERITY", "STATUS"},
+					out,
+				),
+			)
+
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -418,6 +521,7 @@ func init() {
 	complianceAwsCmd.AddCommand(complianceAwsGetReportCmd)
 	complianceAwsCmd.AddCommand(complianceAwsListAccountsCmd)
 	complianceAwsCmd.AddCommand(complianceAwsRunAssessmentCmd)
+	complianceAwsCmd.AddCommand(complianceAwsSearchCmd)
 
 	// Experimental Commands
 	complianceAwsCmd.AddCommand(complianceAwsReportStatusCmd)

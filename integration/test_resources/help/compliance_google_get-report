@@ -17,7 +17,7 @@ Usage:
   lacework compliance google get-report <organization_id> <project_id> [flags]
 
 Aliases:
-  get-report, get
+  get-report, get, show
 
 Flags:
       --category strings   filter report details by category (storage, networking, identity-and-access-management, ...)

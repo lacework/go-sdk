@@ -41,6 +41,8 @@ type V2Endpoints struct {
 	ResourceGroups          *ResourceGroupsService
 	AgentAccessTokens       *AgentAccessTokensService
 	AgentInfo               *AgentInfoService
+	Inventory               *InventoryService
+	ComplianceEvaluations   *ComplianceEvaluationService
 	Query                   *QueryService
 	Policy                  *PolicyService
 	Entities                *EntitiesService
@@ -64,6 +66,8 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&ResourceGroupsService{c},
 		&AgentAccessTokensService{c},
 		&AgentInfoService{c},
+		&InventoryService{c},
+		&ComplianceEvaluationService{c},
 		&QueryService{c},
 		NewV2PolicyService(c),
 		&EntitiesService{c},

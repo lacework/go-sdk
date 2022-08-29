@@ -158,3 +158,29 @@ func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
 	assert.Contains(t, out.String(), "AFFECTED RESOURCES",
 		"STDOUT table headers changed, please check")
 }
+
+func TestComplianceAwsSearchEmpty(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "aws", "search", "example",
+	)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "Resource 'example' not found.", "STDOUT changed, please check")
+}
+
+func TestComplianceAwsSearch(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "aws", "search", "arn:aws:s3:::tech-ally-test",
+	)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	assert.Contains(t, out.String(), "RECOMMENDATION ID", "table headers missing")
+	assert.Contains(t, out.String(), "ACCOUNT ID", "table headers missing")
+	assert.Contains(t, out.String(), "REASON", "table headers missing")
+	assert.Contains(t, out.String(), "SEVERITY", "table headers missing")
+	assert.Contains(t, out.String(), "STATUS", "table headers missing")
+
+	assert.Contains(t, out.String(), "LW_S3_12", "recommendation id missing")
+	assert.Contains(t, out.String(), "S3 bucket does not have MFA", "reason missing")
+}

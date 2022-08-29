@@ -17,7 +17,7 @@ Usage:
   lacework compliance azure get-report <tenant_id> <subscriptions_id> [flags]
 
 Aliases:
-  get-report, get
+  get-report, get, show
 
 Flags:
       --category strings   filter report details by category (networking, storage, ...)
