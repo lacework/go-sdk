@@ -166,7 +166,7 @@ download_artifacts() {
   log "downloading signed artifacts for v$VERSION"
   aws s3 sync "s3://lacework-cli/builds/v${VERSION}/signed" bin/signed
 
-  while [ ! -n "$(ls -1 bin/signed 2>/dev/null)"  ]; do
+  while [ ! -n "$(ls -1 bin/signed/.completed 2>/dev/null)"  ]; do
     log "waiting for signed artifacts..."
     sleep 5
     aws s3 sync "s3://lacework-cli/builds/v${VERSION}/signed" bin/signed
