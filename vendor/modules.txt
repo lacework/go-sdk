@@ -136,7 +136,7 @@ github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/kr/pty v1.1.8 => github.com/creack/pty v1.1.7
 ## explicit
 github.com/kr/pty
-# github.com/kyokomi/emoji/v2 v2.2.9
+# github.com/kyokomi/emoji/v2 v2.2.10
 ## explicit; go 1.14
 github.com/kyokomi/emoji/v2
 # github.com/magiconair/properties v1.8.6
