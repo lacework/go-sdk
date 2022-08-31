@@ -264,9 +264,9 @@ func promptCreateCloudAccount() error {
 	case "GCP Audit Log":
 		return createGcpAuditLogIntegration()
 	case "Azure Config":
-		return createAzureConfigIntegration() // Todo update v1 to v2
+		return createAzureConfigIntegration()
 	case "Azure Activity Log":
-		return createAzureActivityLogIntegration() // Todo update v1 to v2
+		return createAzureActivityLogIntegration()
 	default:
 		return errors.New("unknown cloud account type")
 	}

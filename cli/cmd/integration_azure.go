@@ -62,10 +62,11 @@ func createAzureConfigIntegration() error {
 		return err
 	}
 
-	azure := api.NewAzureCfgIntegration(answers.Name,
-		api.AzureIntegrationData{
+	azure := api.NewCloudAccount(answers.Name,
+		api.AzureCfgCloudAccount,
+		api.AzCfgData{
 			TenantID: answers.TenantID,
-			Credentials: api.AzureIntegrationCreds{
+			Credentials: api.AzCfgCredentials{
 				ClientID:     answers.ClientID,
 				ClientSecret: answers.ClientSecret,
 			},
@@ -73,7 +74,7 @@ func createAzureConfigIntegration() error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAzure(azure)
+	_, err = cli.LwApi.V2.CloudAccounts.Create(azure)
 	cli.StopProgress()
 	return err
 }
@@ -122,11 +123,12 @@ func createAzureActivityLogIntegration() error {
 		return err
 	}
 
-	azure := api.NewAzureActivityLogIntegration(answers.Name,
-		api.AzureIntegrationData{
+	azure := api.NewCloudAccount(answers.Name,
+		api.AzureAlSeqCloudAccount,
+		api.AzAlData{
 			QueueUrl: answers.QueueUrl,
 			TenantID: answers.TenantID,
-			Credentials: api.AzureIntegrationCreds{
+			Credentials: api.AzAlCredentials{
 				ClientID:     answers.ClientID,
 				ClientSecret: answers.ClientSecret,
 			},
@@ -134,7 +136,7 @@ func createAzureActivityLogIntegration() error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAzure(azure)
+	_, err = cli.LwApi.V2.CloudAccounts.Create(azure)
 	cli.StopProgress()
 	return err
 }
