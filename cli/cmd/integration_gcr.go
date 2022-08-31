@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 
@@ -130,9 +131,10 @@ func createGcrIntegration() error {
 		limitMaxImages = 5
 	}
 
-	gcr := api.NewGcrRegistryIntegration(answers.Name,
-		api.ContainerRegData{
-			Credentials: api.ContainerRegCreds{
+	gcr := api.NewContainerRegistry(answers.Name,
+		api.GcpGcrContainerRegistry,
+		api.GcpGcrData{
+			Credentials: api.GcpCredentialsV2{
 				ClientEmail:  answers.ClientEmail,
 				ClientID:     answers.ClientID,
 				PrivateKey:   answers.PrivateKey,
@@ -140,15 +142,15 @@ func createGcrIntegration() error {
 			},
 			RegistryDomain:   answers.Domain,
 			NonOSPackageEval: answers.NonOSPackageSupport,
-			LimitByTag:       answers.LimitTag,
-			LimitByLabel:     answers.LimitLabel,
-			LimitByRep:       answers.LimitRepos,
+			LimitByTag:       strings.Split(answers.LimitTag, "\n"),
+			LimitByLabel:     castStringToLimitByLabel(answers.LimitLabel),
+			LimitByRep:       strings.Split(answers.LimitRepos, "\n"),
 			LimitNumImg:      limitMaxImages,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateContainerRegistry(gcr)
+	_, err = cli.LwApi.V2.ContainerRegistries.Create(gcr)
 	cli.StopProgress()
 	return err
 }

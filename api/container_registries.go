@@ -75,6 +75,12 @@ func NewContainerRegistry(name string, regType containerRegistryType, data inter
 		reg.Data = verifyInlineScannerContainerRegistry(data)
 	case AwsEcrContainerRegistry:
 		reg.Data = verifyAwsEcrContainerRegistry(data)
+	case DockerhubContainerRegistry:
+		reg.Data = verifyDockerhubContainerRegistry(data)
+	case DockerhubV2ContainerRegistry:
+		reg.Data = verifyDockerhubV2ContainerRegistry(data)
+	case GcpGcrContainerRegistry:
+		reg.Data = verifyGcpGcrContainerRegistry(data)
 	default:
 		reg.Data = data
 	}
@@ -101,6 +107,9 @@ const (
 	GhcrContainerRegistry
 	InlineScannerContainerRegistry
 	AwsEcrContainerRegistry
+	DockerhubContainerRegistry
+	DockerhubV2ContainerRegistry
+	GcpGcrContainerRegistry
 )
 
 // ContainerRegistryTypes is the list of available Container Registry integration types
@@ -110,6 +119,9 @@ var ContainerRegistryTypes = map[containerRegistryType]string{
 	GhcrContainerRegistry:          "GHCR",
 	InlineScannerContainerRegistry: "INLINE_SCANNER",
 	AwsEcrContainerRegistry:        "AWS_ECR",
+	DockerhubContainerRegistry:     "DOCKERHUB",
+	DockerhubV2ContainerRegistry:   "V2_REGISTRY",
+	GcpGcrContainerRegistry:        "GCP_GCR",
 }
 
 // String returns the string representation of a Container Registry integration type

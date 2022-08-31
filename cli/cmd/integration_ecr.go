@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
@@ -138,25 +139,24 @@ func createAwsEcrIntegration() error {
 			return err
 		}
 
-		ecr := api.NewAwsEcrWithCrossAccountIntegration(answers.Name,
-			api.AwsEcrDataWithCrossAccountCreds{
-				Credentials: api.AwsCrossAccountCreds{
+		ecr := api.NewContainerRegistry(answers.Name,
+			api.AwsEcrContainerRegistry,
+			api.AwsEcrData{
+				Credentials: api.EcrCredentials{
 					RoleArn:    ecrAuthAnswers.RoleArn,
 					ExternalID: ecrAuthAnswers.ExternalID,
 				},
-				AwsEcrCommonData: api.AwsEcrCommonData{
-					RegistryDomain:   answers.Domain,
-					NonOSPackageEval: answers.NonOSPackageSupport,
-					LimitByTag:       answers.LimitTag,
-					LimitByLabel:     answers.LimitLabel,
-					LimitByRep:       answers.LimitRepos,
-					LimitNumImg:      limitMaxImages,
-				},
+				RegistryDomain:   answers.Domain,
+				NonOSPackageEval: answers.NonOSPackageSupport,
+				LimitByTag:       strings.Split(answers.LimitTag, "\n"),
+				LimitByLabel:     castStringToLimitByLabel(answers.LimitLabel),
+				LimitByRep:       strings.Split(answers.LimitRepos, "\n"),
+				LimitNumImg:      limitMaxImages,
 			},
 		)
 
 		cli.StartProgress(" Creating integration...")
-		_, err = cli.LwApi.Integrations.CreateAwsEcrWithCrossAccount(ecr)
+		_, err = cli.LwApi.V2.ContainerRegistries.Create(ecr)
 		cli.StopProgress()
 		return err
 
@@ -186,24 +186,23 @@ func createAwsEcrIntegration() error {
 			return err
 		}
 
-		ecr := api.NewAwsEcrWithAccessKeyIntegration(answers.Name,
-			api.AwsEcrDataWithAccessKeyCreds{
-				Credentials: api.AwsEcrAccessKeyCreds{
+		ecr := api.NewContainerRegistry(answers.Name,
+			api.AwsEcrContainerRegistry,
+			api.AwsEcrData{
+				Credentials: api.EcrCredentials{
 					AccessKeyID:     ecrAuthAnswers.AccessKeyID,
 					SecretAccessKey: ecrAuthAnswers.SecretAccessKey,
 				},
-				AwsEcrCommonData: api.AwsEcrCommonData{
-					RegistryDomain: answers.Domain,
-					LimitByTag:     answers.LimitTag,
-					LimitByLabel:   answers.LimitLabel,
-					LimitByRep:     answers.LimitRepos,
-					LimitNumImg:    limitMaxImages,
-				},
+				RegistryDomain: answers.Domain,
+				LimitByTag:     strings.Split(answers.LimitTag, "\n"),
+				LimitByLabel:   castStringToLimitByLabel(answers.LimitLabel),
+				LimitByRep:     strings.Split(answers.LimitRepos, "\n"),
+				LimitNumImg:    limitMaxImages,
 			},
 		)
 
 		cli.StartProgress(" Creating integration...")
-		_, err = cli.LwApi.Integrations.CreateAwsEcrWithAccessKey(ecr)
+		_, err = cli.LwApi.V2.ContainerRegistries.Create(ecr)
 		cli.StopProgress()
 		return err
 

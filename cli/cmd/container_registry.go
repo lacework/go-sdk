@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -123,7 +124,16 @@ func containerRegistryShow(_ *cobra.Command, args []string) error {
 }
 
 func containerRegistryCreate(_ *cobra.Command, args []string) error {
-	// Todo: container registry create
+	if !cli.InteractiveMode() {
+		return errors.New("interactive mode is disabled")
+	}
+
+	err := promptCreateContainerRegistry()
+	if err != nil {
+		return errors.Wrap(err, "unable to create integration")
+	}
+
+	cli.OutputHuman("The integration was created.\n")
 	return nil
 }
 
@@ -136,4 +146,45 @@ func containerRegistryDelete(_ *cobra.Command, args []string) error {
 	}
 	cli.OutputHuman("The container registry %s was deleted.\n", args[0])
 	return nil
+}
+
+func promptCreateContainerRegistry() error {
+	var (
+		integration = ""
+		prompt      = &survey.Select{
+			Message: "Choose a container registry type to create: ",
+			Options: []string{
+				"Docker Hub Registry",
+				"Docker V2 Registry",
+				"Amazon Container Registry (ECR)",
+				"Google Container Registry (GCR)",
+				"Google Artifact Registry (GAR)",
+				"Github Container Registry (GHCR)",
+				"Inline Scanner Container Registry",
+			},
+		}
+		err = survey.AskOne(prompt, &integration)
+	)
+	if err != nil {
+		return err
+	}
+
+	switch integration {
+	case "Docker Hub Registry":
+		return createDockerHubIntegration()
+	case "Docker V2 Registry":
+		return createDockerV2Integration()
+	case "Amazon Container Registry (ECR)":
+		return createAwsEcrIntegration()
+	case "Google Artifact Registry (GAR)":
+		return createGarIntegration()
+	case "Inline Scanner Container Registry":
+		return createInlineScannerIntegration()
+	case "Github Container Registry (GHCR)":
+		return createGhcrIntegration()
+	case "Google Container Registry (GCR)":
+		return createGcrIntegration()
+	default:
+		return errors.New("unknown container registry type")
+	}
 }

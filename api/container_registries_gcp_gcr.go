@@ -18,41 +18,41 @@
 
 package api
 
-// GetAwsEcr gets a single AwsEcr integration matching the
+// GetGcpGcr gets a single GcpGcr integration matching the
 // provided integration guid
-func (svc *ContainerRegistriesService) GetAwsEcr(guid string) (
-	response AwsEcrIntegrationResponse,
+func (svc *ContainerRegistriesService) GetGcpGcr(guid string) (
+	response GcpGcrIntegrationResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateAwsEcr updates a single AwsEcr integration on the Lacework Server
-func (svc *ContainerRegistriesService) UpdateAwsEcr(data ContainerRegistry) (
-	response AwsEcrIntegrationResponse,
+// UpdateGcpGcr updates a single GcpGcr integration on the Lacework Server
+func (svc *ContainerRegistriesService) UpdateGcpGcr(data ContainerRegistry) (
+	response GcpGcrIntegrationResponse,
 	err error,
 ) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type AwsEcrIntegrationResponse struct {
-	Data AwsEcrIntegration `json:"data"`
+type GcpGcrIntegrationResponse struct {
+	Data GcpGcrIntegration `json:"data"`
 }
 
-type AwsEcrIntegration struct {
+type GcpGcrIntegration struct {
 	v2CommonIntegrationData
-	Data AwsEcrData `json:"data"`
+	Data GcpGcrData `json:"data"`
 }
 
-func (reg AwsEcrIntegration) ContainerRegistryType() containerRegistryType {
+func (reg GcpGcrIntegration) ContainerRegistryType() containerRegistryType {
 	t, _ := FindContainerRegistryType(reg.Data.RegistryType)
 	return t
 }
 
-type AwsEcrData struct {
-	Credentials      EcrCredentials      `json:"credentials"`
+type GcpGcrData struct {
+	Credentials      GcpCredentialsV2    `json:"credentials"`
 	RegistryDomain   string              `json:"registryDomain"`
 	RegistryType     string              `json:"registryType"`
 	LimitByTag       []string            `json:"limitByTag"`
@@ -62,17 +62,10 @@ type AwsEcrData struct {
 	NonOSPackageEval bool                `json:"nonOsPackageEval"`
 }
 
-func verifyAwsEcrContainerRegistry(data interface{}) interface{} {
-	if ecr, ok := data.(AwsEcrData); ok {
-		ecr.RegistryType = AwsEcrContainerRegistry.String()
-		return ecr
+func verifyGcpGcrContainerRegistry(data interface{}) interface{} {
+	if gar, ok := data.(GcpGcrData); ok {
+		gar.RegistryType = GcpGcrContainerRegistry.String()
+		return gar
 	}
 	return data
-}
-
-type EcrCredentials struct {
-	RoleArn         string `json:"roleArn,omitempty"`
-	ExternalID      string `json:"externalId,omitempty"`
-	AccessKeyID     string `json:"accessKeyId,omitempty"`
-	SecretAccessKey string `json:"secretAccessKey,omitempty"`
 }
