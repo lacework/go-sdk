@@ -62,18 +62,18 @@ func createAwsGovCloudConfigIntegration() error {
 		return err
 	}
 
-	awsCfg := api.NewAwsIntegration(answers.Name,
-		api.AwsGovCloudCfgIntegration,
-		api.AwsIntegrationData{
-			GovCloudCredentials: &api.AwsGovCloudCreds{
-				AccountID:       answers.AccountID,
+	awsCfg := api.NewCloudAccount(answers.Name,
+		api.AwsUsGovCfgCloudAccount,
+		api.AwsGovCfgData{
+			Credentials: api.AwsGovCfgCredentials{
+				AwsAccountID:    answers.AccountID,
 				AccessKeyID:     answers.AccessKeyID,
 				SecretAccessKey: answers.SecretAccessKey,
 			},
 		},
 	)
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAws(awsCfg)
+	_, err = cli.LwApi.V2.CloudAccounts.Create(awsCfg)
 	cli.StopProgress()
 	return err
 }
@@ -122,19 +122,19 @@ func createAwsGovCloudCTIntegration() error {
 		return err
 	}
 
-	awsCfg := api.NewAwsIntegration(answers.Name,
-		api.AwsGovCloudCTIntegration,
-		api.AwsIntegrationData{
+	awsCfg := api.NewCloudAccount(answers.Name,
+		api.AwsUsGovCtSqsCloudAccount,
+		api.AwsGovCtData{
 			QueueUrl: answers.QueueUrl,
-			GovCloudCredentials: &api.AwsGovCloudCreds{
-				AccountID:       answers.AccountID,
+			Credentials: api.AwsGovCtCredentials{
+				AwsAccountID:    answers.AccountID,
 				AccessKeyID:     answers.AccessKeyID,
 				SecretAccessKey: answers.SecretAccessKey,
 			},
 		},
 	)
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAws(awsCfg)
+	_, err = cli.LwApi.V2.CloudAccounts.Create(awsCfg)
 	cli.StopProgress()
 	return err
 }

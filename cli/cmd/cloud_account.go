@@ -3,6 +3,7 @@ package cmd
 import (
 	"strings"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/format"
 	"github.com/olekukonko/tablewriter"
@@ -158,11 +159,6 @@ func cloudAccountShow(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func cloudAccountCreate(_ *cobra.Command, args []string) error {
-	// Todo: cloud accounts create
-	return nil
-}
-
 func buildDetailsTable(integration api.V2RawType) string {
 	var details [][]string
 	caMap := integration.GetData().(map[string]interface{})
@@ -216,4 +212,62 @@ func buildDetailsTable(integration api.V2RawType) string {
 			t.SetAutoWrapText(false)
 		}),
 	)
+}
+
+func cloudAccountCreate(_ *cobra.Command, _ []string) error {
+	if !cli.InteractiveMode() {
+		return errors.New("interactive mode is disabled")
+	}
+
+	err := promptCreateCloudAccount()
+	if err != nil {
+		return errors.Wrap(err, "unable to create integration")
+	}
+
+	cli.OutputHuman("The integration was created.\n")
+	return nil
+}
+
+func promptCreateCloudAccount() error {
+	var (
+		integration = ""
+		prompt      = &survey.Select{
+			Message: "Choose a cloud account type to create: ",
+			Options: []string{
+				"AWS Config",
+				"AWS CloudTrail",
+				"AWS Config (US GovCloud)",
+				"AWS CloudTrail (US GovCloud)",
+				"GCP Config",
+				"GCP Audit Log",
+				"Azure Config",
+				"Azure Activity Log",
+			},
+		}
+		err = survey.AskOne(prompt, &integration)
+	)
+	if err != nil {
+		return err
+	}
+
+	switch integration {
+	case "AWS Config":
+		return createAwsConfigIntegration()
+	case "AWS CloudTrail":
+		return createAwsCloudTrailIntegration()
+	case "AWS GovCloud Config":
+		return createAwsGovCloudConfigIntegration()
+	case "AWS GovCloud CloudTrail":
+		return createAwsGovCloudCTIntegration()
+	case "GCP Config":
+		return createGcpConfigIntegration() // Todo update v1 to v2
+	case "GCP Audit Log":
+		return createGcpAuditLogIntegration() // Todo update v1 to v2
+	case "Azure Config":
+		return createAzureConfigIntegration() // Todo update v1 to v2
+	case "Azure Activity Log":
+		return createAzureActivityLogIntegration() // Todo update v1 to v2
+	default:
+		return errors.New("unknown cloud account type")
+	}
 }

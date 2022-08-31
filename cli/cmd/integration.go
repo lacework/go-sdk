@@ -38,10 +38,11 @@ var (
 
 	// integrationCmd represents the integration command
 	integrationCmd = &cobra.Command{
-		Use:     "integration",
-		Aliases: []string{"integrations", "int"},
-		Short:   "Manage external integrations",
-		Long:    `Manage external integrations with the Lacework platform`,
+		Use:        "integration",
+		Aliases:    []string{"integrations", "int"},
+		Deprecated: "This command is deprecated. Use 'cloud-accounts', 'container-registries' or 'alert-channels'",
+		Short:      "Manage external integrations",
+		Long:       `Manage external integrations with the Lacework platform`,
 	}
 
 	// integrationListCmd represents the list sub-command inside the integration command
