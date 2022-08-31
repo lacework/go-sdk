@@ -86,11 +86,12 @@ func createGcpConfigIntegration() error {
 		return err
 	}
 
-	gcp := api.NewGcpCfgIntegration(answers.Name,
-		api.GcpIntegrationData{
+	gcp := api.NewCloudAccount(answers.Name,
+		api.GcpCfgCloudAccount,
+		api.GcpCfgData{
 			ID:     answers.OrgProjectID,
 			IDType: answers.IntegrationLevel,
-			Credentials: api.GcpCredentials{
+			Credentials: api.GcpCfgCredentials{
 				ClientID:     answers.ClientID,
 				ClientEmail:  answers.ClientEmail,
 				PrivateKeyID: answers.PrivateKeyID,
@@ -100,7 +101,7 @@ func createGcpConfigIntegration() error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateGcp(gcp)
+	_, err = cli.LwApi.V2.CloudAccounts.Create(gcp)
 	cli.StopProgress()
 	return err
 }
@@ -173,12 +174,13 @@ func createGcpAuditLogIntegration() error {
 		return err
 	}
 
-	gcp := api.NewGcpAuditLogIntegration(answers.Name,
-		api.GcpIntegrationData{
+	gcp := api.NewCloudAccount(answers.Name,
+		api.GcpAtSesCloudAccount,
+		api.GcpAtSesData{
 			ID:               answers.OrgProjectID,
 			IDType:           answers.IntegrationLevel,
 			SubscriptionName: answers.SubscriptionName,
-			Credentials: api.GcpCredentials{
+			Credentials: api.GcpAtSesCredentials{
 				ClientID:     answers.ClientID,
 				ClientEmail:  answers.ClientEmail,
 				PrivateKeyID: answers.PrivateKeyID,
@@ -188,7 +190,7 @@ func createGcpAuditLogIntegration() error {
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateGcp(gcp)
+	_, err = cli.LwApi.V2.CloudAccounts.Create(gcp)
 	cli.StopProgress()
 	return err
 }

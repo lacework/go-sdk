@@ -260,9 +260,9 @@ func promptCreateCloudAccount() error {
 	case "AWS GovCloud CloudTrail":
 		return createAwsGovCloudCTIntegration()
 	case "GCP Config":
-		return createGcpConfigIntegration() // Todo update v1 to v2
+		return createGcpConfigIntegration()
 	case "GCP Audit Log":
-		return createGcpAuditLogIntegration() // Todo update v1 to v2
+		return createGcpAuditLogIntegration()
 	case "Azure Config":
 		return createAzureConfigIntegration() // Todo update v1 to v2
 	case "Azure Activity Log":
