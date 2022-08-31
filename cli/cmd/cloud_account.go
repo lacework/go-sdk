@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/format"
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -20,45 +24,37 @@ var (
 
 	// cloudAccountsListCmd represents the list sub-command inside the cloud accounts command
 	cloudAccountListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "List all available cloud account integrations",
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List all available cloud account integrations",
+		Args:    cobra.NoArgs,
+		RunE:    cloudAccountList,
+	}
+
+	// cloudAccountShowCmd represents the show sub-command inside the cloud accounts command
+	cloudAccountShowCmd = &cobra.Command{
+		Use:     "show",
+		Aliases: []string{"get"},
+		Short:   "Show a single cloud account integration",
+		Args:    cobra.ExactArgs(1),
+		RunE:    cloudAccountShow,
+	}
+
+	// cloudAccountCreateCmd represents the show sub-command inside the cloud accounts command
+	cloudAccountCreateCmd = &cobra.Command{
+		Use:   "create",
+		Short: "Create a new cloud account integration",
 		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			var (
-				cloudAccounts api.CloudAccountsResponse
-				err           error
-			)
+		RunE:  cloudAccountCreate,
+	}
 
-			if cloudAccountType != "" {
-				caType, found := api.FindCloudAccountType(cloudAccountType)
-				if !found {
-					return errors.Errorf("unknown cloud account type '%s'", cloudAccountType)
-				}
-				cloudAccounts, err = cli.LwApi.V2.CloudAccounts.ListByType(caType)
-			} else {
-				cloudAccounts, err = cli.LwApi.V2.CloudAccounts.List()
-			}
-			if err != nil {
-				return errors.Wrap(err, "unable to get cloud accounts")
-			}
-
-			if len(cloudAccounts.Data) == 0 {
-				cli.OutputHuman("No cloud accounts found.\n")
-				return nil
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(cloudAccounts.Data)
-			}
-
-			cli.OutputHuman(
-				renderSimpleTable(
-					[]string{"Cloud Account Integration GUID", "Name", "Type", "Status", "State"},
-					cloudAccountsToTable(cloudAccounts.Data),
-				),
-			)
-			return nil
-		},
+	// cloudAccountDeleteCmd represents the delete sub-command inside the cloud accounts command
+	cloudAccountDeleteCmd = &cobra.Command{
+		Use:     "delete",
+		Aliases: []string{"rm"},
+		Short:   "Delete a cloud account integration",
+		Args:    cobra.ExactArgs(1),
+		RunE:    cloudAccountDelete,
 	}
 )
 
@@ -66,6 +62,9 @@ func init() {
 	// add the cloud-account command
 	rootCmd.AddCommand(cloudAccountCommand)
 	cloudAccountCommand.AddCommand(cloudAccountListCmd)
+	cloudAccountCommand.AddCommand(cloudAccountShowCmd)
+	cloudAccountCommand.AddCommand(cloudAccountDeleteCmd)
+	cloudAccountCommand.AddCommand(cloudAccountCreateCmd)
 
 	// add type flag to cloud accounts list command
 	cloudAccountListCmd.Flags().StringVarP(&cloudAccountType,
@@ -85,4 +84,136 @@ func cloudAccountsToTable(integrations []api.CloudAccountRaw) [][]string {
 		})
 	}
 	return out
+}
+
+func cloudAccountList(_ *cobra.Command, _ []string) error {
+	var (
+		cloudAccounts api.CloudAccountsResponse
+		err           error
+	)
+
+	if cloudAccountType != "" {
+		caType, found := api.FindCloudAccountType(cloudAccountType)
+		if !found {
+			return errors.Errorf("unknown cloud account type '%s'", cloudAccountType)
+		}
+		cloudAccounts, err = cli.LwApi.V2.CloudAccounts.ListByType(caType)
+	} else {
+		cloudAccounts, err = cli.LwApi.V2.CloudAccounts.List()
+	}
+	if err != nil {
+		return errors.Wrap(err, "unable to get cloud accounts")
+	}
+
+	if len(cloudAccounts.Data) == 0 {
+		cli.OutputHuman("No cloud accounts found.\n")
+		return nil
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(cloudAccounts.Data)
+	}
+
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"Cloud Account Integration GUID", "Name", "Type", "Status", "State"},
+			cloudAccountsToTable(cloudAccounts.Data),
+		),
+	)
+	return nil
+}
+
+func cloudAccountDelete(_ *cobra.Command, args []string) error {
+	cli.StartProgress(" Deleting cloud account...")
+	err := cli.LwApi.V2.CloudAccounts.Delete(args[0])
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to delete cloud account")
+	}
+	cli.OutputHuman("The cloud account %s was deleted.\n", args[0])
+	return nil
+}
+
+func cloudAccountShow(_ *cobra.Command, args []string) error {
+	var (
+		cloudAccount api.CloudAccountResponse
+		out          [][]string
+	)
+	cli.StartProgress(" Fetching cloud account...")
+	err := cli.LwApi.V2.CloudAccounts.Get(args[0], &cloudAccount)
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to retrieve cloud account")
+	}
+
+	out = append(out, []string{cloudAccount.Data.IntgGuid,
+		cloudAccount.Data.Name,
+		cloudAccount.Data.Type,
+		cloudAccount.Data.Status(),
+		cloudAccount.Data.StateString()})
+
+	cli.OutputHuman(renderSimpleTable([]string{"Cloud Account GUID", "Name", "Type", "Status", "State"}, out))
+	cli.OutputHuman("\n")
+	cli.OutputHuman(buildDetailsTable(cloudAccount.Data))
+	return nil
+}
+
+func cloudAccountCreate(_ *cobra.Command, args []string) error {
+	// Todo: cloud accounts create
+	return nil
+}
+
+func buildDetailsTable(integration api.V2RawType) string {
+	var details [][]string
+	caMap := integration.GetData().(map[string]interface{})
+
+	for k, v := range caMap {
+		if val, ok := v.(string); ok {
+			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), val})
+		}
+
+		//nested
+		if valMap, ok := v.(map[string]interface{}); ok {
+			for i, j := range valMap {
+				if val, ok := j.(string); ok {
+					details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(i)), val})
+				}
+			}
+		}
+	}
+
+	//common
+	details = append(details, []string{"UPDATED AT", integration.GetCommon().CreatedOrUpdatedTime})
+	details = append(details, []string{"UPDATED BY", integration.GetCommon().CreatedOrUpdatedBy})
+	if integration.GetCommon().State != nil {
+		details = append(details, []string{"STATE UPDATED AT", integration.GetCommon().State.LastUpdatedTime.String()})
+		details = append(details, []string{"LAST SUCCESSFUL STATE", integration.GetCommon().State.LastSuccessfulTime.String()})
+
+		for k, v := range integration.GetCommon().State.Details {
+			if val, ok := v.(string); ok {
+				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), format.Truncate(val, 50)})
+			}
+
+			if val, ok := v.([]any); ok {
+				for _, i := range val {
+					details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), format.Truncate(i.(string), 50)})
+				}
+			}
+		}
+	}
+
+	return renderOneLineCustomTable("DETAILS",
+		renderCustomTable([]string{}, details,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+			}),
+		),
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetAutoWrapText(false)
+		}),
+	)
 }

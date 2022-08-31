@@ -174,6 +174,14 @@ type ContainerRegistryRaw struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
+func (reg ContainerRegistryRaw) GetData() any {
+	return reg.Data
+}
+
+func (reg ContainerRegistryRaw) GetCommon() v2CommonIntegrationData {
+	return reg.v2CommonIntegrationData
+}
+
 func (reg ContainerRegistryRaw) ContainerRegistryType() containerRegistryType {
 	if casting, ok := reg.Data.(map[string]interface{}); ok {
 		if regType, exist := casting["registryType"]; exist {

@@ -16,33 +16,37 @@ var (
 
 	// containerRegistriesListCmd represents the list sub-command inside the container registries command
 	containerRegistryListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "List all available container registry integrations",
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List all available container registry integrations",
+		Args:    cobra.NoArgs,
+		RunE:    containerRegistryList,
+	}
+
+	// containerRegistryShowCmd represents the show sub-command inside the container registry command
+	containerRegistryShowCmd = &cobra.Command{
+		Use:     "show",
+		Aliases: []string{"get"},
+		Short:   "Show a single container registry integration",
+		Args:    cobra.ExactArgs(1),
+		RunE:    containerRegistryShow,
+	}
+
+	// containerRegistryCreateCmd represents the show sub-command inside the container registries command
+	containerRegistryCreateCmd = &cobra.Command{
+		Use:   "create",
+		Short: "Create a new container registry integration",
 		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			containerRegistries, err := cli.LwApi.V2.ContainerRegistries.List()
+		RunE:  containerRegistryCreate,
+	}
 
-			if err != nil {
-				return errors.Wrap(err, "unable to get container registries")
-			}
-
-			if len(containerRegistries.Data) == 0 {
-				cli.OutputHuman("No container registries found.\n")
-				return nil
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(containerRegistries.Data)
-			}
-
-			cli.OutputHuman(
-				renderSimpleTable(
-					[]string{"container registry GUID", "Name", "Type", "Status", "State"},
-					containerRegistriesToTable(containerRegistries.Data),
-				),
-			)
-			return nil
-		},
+	// containerRegistryDeleteCmd represents the delete sub-command inside the container registries command
+	containerRegistryDeleteCmd = &cobra.Command{
+		Use:     "delete",
+		Aliases: []string{"rm"},
+		Short:   "Delete a container registry integration",
+		Args:    cobra.ExactArgs(1),
+		RunE:    containerRegistryDelete,
 	}
 )
 
@@ -50,6 +54,9 @@ func init() {
 	// add the container-registry command
 	rootCmd.AddCommand(containerRegistryCommand)
 	containerRegistryCommand.AddCommand(containerRegistryListCmd)
+	containerRegistryCommand.AddCommand(containerRegistryShowCmd)
+	containerRegistryCommand.AddCommand(containerRegistryCreateCmd)
+	containerRegistryCommand.AddCommand(containerRegistryDeleteCmd)
 }
 
 func containerRegistriesToTable(integrations []api.ContainerRegistryRaw) [][]string {
@@ -64,4 +71,69 @@ func containerRegistriesToTable(integrations []api.ContainerRegistryRaw) [][]str
 		})
 	}
 	return out
+}
+
+func containerRegistryList(_ *cobra.Command, _ []string) error {
+	containerRegistries, err := cli.LwApi.V2.ContainerRegistries.List()
+
+	if err != nil {
+		return errors.Wrap(err, "unable to get container registries")
+	}
+
+	if len(containerRegistries.Data) == 0 {
+		cli.OutputHuman("No container registries found.\n")
+		return nil
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(containerRegistries.Data)
+	}
+
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"container registry GUID", "Name", "Type", "Status", "State"},
+			containerRegistriesToTable(containerRegistries.Data),
+		),
+	)
+	return nil
+}
+
+func containerRegistryShow(_ *cobra.Command, args []string) error {
+	var (
+		containerRegistry api.ContainerRegistryResponse
+		out               [][]string
+	)
+	cli.StartProgress(" Fetching container registry...")
+	err := cli.LwApi.V2.ContainerRegistries.Get(args[0], &containerRegistry)
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to retrieve container registry")
+	}
+
+	out = append(out, []string{containerRegistry.Data.IntgGuid,
+		containerRegistry.Data.Name,
+		containerRegistry.Data.Type,
+		containerRegistry.Data.Status(),
+		containerRegistry.Data.StateString()})
+
+	cli.OutputHuman(renderSimpleTable([]string{"Container Registry GUID", "Name", "Type", "Status", "State"}, out))
+	cli.OutputHuman("\n")
+	cli.OutputHuman(buildDetailsTable(containerRegistry.Data))
+	return nil
+}
+
+func containerRegistryCreate(_ *cobra.Command, args []string) error {
+	// Todo: container registry create
+	return nil
+}
+
+func containerRegistryDelete(_ *cobra.Command, args []string) error {
+	cli.StartProgress(" Deleting container registry...")
+	err := cli.LwApi.V2.ContainerRegistries.Delete(args[0])
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to delete container registry")
+	}
+	cli.OutputHuman("The container registry %s was deleted.\n", args[0])
+	return nil
 }

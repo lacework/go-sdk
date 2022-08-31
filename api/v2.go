@@ -97,6 +97,11 @@ type V2CommonIntegration struct {
 	Data v2CommonIntegrationData `json:"data"`
 }
 
+type V2RawType interface {
+	GetData() any
+	GetCommon() v2CommonIntegrationData
+}
+
 type V2Pagination struct {
 	Rows      int `json:"rows"`
 	TotalRows int `json:"totalRows"`
