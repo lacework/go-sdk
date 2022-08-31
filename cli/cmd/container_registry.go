@@ -123,7 +123,7 @@ func containerRegistryShow(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func containerRegistryCreate(_ *cobra.Command, args []string) error {
+func containerRegistryCreate(_ *cobra.Command, _ []string) error {
 	if !cli.InteractiveMode() {
 		return errors.New("interactive mode is disabled")
 	}

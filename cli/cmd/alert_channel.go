@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -122,8 +123,17 @@ func alertChannelShow(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func alertChannelCreate(_ *cobra.Command, args []string) error {
-	// Todo: alert channel create
+func alertChannelCreate(_ *cobra.Command, _ []string) error {
+	if !cli.InteractiveMode() {
+		return errors.New("interactive mode is disabled")
+	}
+
+	err := promptCreateAlertChannel()
+	if err != nil {
+		return errors.Wrap(err, "unable to create integration")
+	}
+
+	cli.OutputHuman("The integration was created.\n")
 	return nil
 }
 
@@ -136,4 +146,75 @@ func alertChannelDelete(_ *cobra.Command, args []string) error {
 	}
 	cli.OutputHuman("The alert channel %s was deleted.\n", args[0])
 	return nil
+}
+
+func promptCreateAlertChannel() error {
+	var (
+		integration = ""
+		prompt      = &survey.Select{
+			Message: "Choose an integration type to create: ",
+			Options: []string{
+				"Slack Alert Channel",
+				"Email Alert Channel",
+				"Amazon S3 Alert Channel",
+				"Cisco Webex Alert Channel",
+				"Datadog Alert Channel",
+				"GCP PubSub Alert Channel",
+				"Microsoft Teams Alert Channel",
+				"New Relic Insights Alert Channel",
+				"Webhook Alert Channel",
+				"VictorOps Alert Channel",
+				"Splunk Alert Channel",
+				"QRadar Alert Channel",
+				"Service Now Alert Channel",
+				"PagerDuty Alert Channel",
+				"Amazon CloudWatch Alert Channel",
+				"Jira Cloud Alert Channel",
+				"Jira Server Alert Channel",
+			},
+		}
+		err = survey.AskOne(prompt, &integration)
+	)
+	if err != nil {
+		return err
+	}
+
+	switch integration {
+	case "Slack Alert Channel":
+		return createSlackAlertChannelIntegration()
+	case "Email Alert Channel":
+		return createEmailAlertChannelIntegration()
+	case "GCP PubSub Alert Channel":
+		return createGcpPubSubChannelIntegration()
+	case "Microsoft Teams Alert Channel":
+		return createMicrosoftTeamsChannelIntegration()
+	case "New Relic Insights Alert Channel":
+		return createNewRelicAlertChannelIntegration()
+	case "Amazon S3 Alert Channel":
+		return createAwsS3ChannelIntegration()
+	case "Cisco Webex Alert Channel":
+		return createCiscoWebexChannelIntegration()
+	case "Datadog Alert Channel":
+		return createDatadogIntegration()
+	case "Webhook Alert Channel":
+		return createWebhookIntegration()
+	case "VictorOps Alert Channel":
+		return createVictorOpsChannelIntegration()
+	case "Splunk Alert Channel":
+		return createSplunkIntegration()
+	case "PagerDuty Alert Channel":
+		return createPagerDutyAlertChannelIntegration()
+	case "QRadar Alert Channel":
+		return createQRadarAlertChannelIntegration()
+	case "Service Now Alert Channel":
+		return createServiceNowAlertChannelIntegration()
+	case "Amazon CloudWatch Alert Channel":
+		return createAwsCloudWatchAlertChannelIntegration()
+	case "Jira Cloud Alert Channel":
+		return createJiraCloudAlertChannelIntegration()
+	case "Jira Server Alert Channel":
+		return createJiraServerAlertChannelIntegration()
+	default:
+		return errors.New("unknown integration type")
+	}
 }
