@@ -32,7 +32,7 @@ $packageArgs = @{
     checksumType64 = 'sha256'
 }
 
-Install-ChocolateyPackage @packageArgs
+Install-ChocolateyZipPackage @packageArgs
 
 
 Function Set-Environment-Variables
