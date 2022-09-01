@@ -77,8 +77,6 @@ const (
 	// cli.SendHoneyvent()
 	// ```
 	//
-	// Polling mechanism feature
-	featPollCtrScan = "poll_ctr_scan"
 
 	// Daily version check feature
 	featDailyVerCheck = "daily_check"

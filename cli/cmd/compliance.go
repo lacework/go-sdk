@@ -206,7 +206,7 @@ func complianceReportRecommendationsTable(recommendations []api.RecommendationV2
 	}
 
 	sort.Slice(out, func(i, j int) bool {
-		return severityOrder(out[i][3]) < severityOrder(out[j][3])
+		return api.SeverityOrder(out[i][3]) < api.SeverityOrder(out[j][3])
 	})
 
 	return out
@@ -299,7 +299,7 @@ func complianceCSVReportRecommendationsTable(details *complianceCSVReportDetails
 	}
 
 	sort.Slice(out, func(i, j int) bool {
-		return severityOrder(out[i][3]) < severityOrder(out[j][3])
+		return api.SeverityOrder(out[i][3]) < api.SeverityOrder(out[j][3])
 	})
 
 	return out

@@ -27,6 +27,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"golang.org/x/text/cases"
@@ -265,21 +266,16 @@ func calcHtmlBarChartTextX(severity string, htmlData vulnImageAssessmentHtml) st
 	return fmt.Sprintf("%f%%", x)
 }
 
-func generateVulnAssessmentHTML(assessment *api.VulnContainerAssessment) error {
-	// @afiune today, the backend doesn't return any information about the container
-	// image if there are NO vulnerabilities, therefore, we are not able to render
-	// an HTML file without this data (we skip it)
-	if assessment.Image == nil {
-		cli.Log.Infow("unable to render assessment in HTML format", "assessment", assessment)
-		return nil
-	}
-
+func generateVulnAssessmentHTML(response api.VulnerabilitiesContainersResponse) error {
+	assessment := response.Data
 	htmlTemplate, ok := databox.Get("vuln_assessment.html")
 	if !ok {
 		return errors.New(
 			"html template not found, this is most likely a mistake on us, please report it to support.lacework.com.",
 		)
 	}
+
+	headerInfo := assessment[0]
 
 	var (
 		buff    = &bytes.Buffer{}
@@ -293,23 +289,23 @@ func generateVulnAssessmentHTML(assessment *api.VulnContainerAssessment) error {
 		tmpl     = template.Must(template.New("vuln_assessment").Funcs(funcMap).Parse(string(htmlTemplate)))
 		htmlData = vulnImageAssessmentHtml{
 			Account:     cli.Account,
-			Repository:  assessment.Image.ImageInfo.Repository,
-			ID:          assessment.Image.ImageInfo.ImageID,
-			Digest:      assessment.Image.ImageInfo.ImageDigest,
-			CreatedTime: assessment.Image.ImageInfo.CreatedTime,
-			Size:        byteCountBinary(assessment.Image.ImageInfo.Size),
-			Tags:        assessment.Image.ImageInfo.Tags,
+			Repository:  headerInfo.EvalCtx.ImageInfo.Repo,
+			ID:          headerInfo.EvalCtx.ImageInfo.ID,
+			Digest:      headerInfo.EvalCtx.ImageInfo.Digest,
+			CreatedTime: time.UnixMilli(headerInfo.EvalCtx.ImageInfo.CreatedTime).Format(time.RFC3339),
+			Size:        byteCountBinary(headerInfo.EvalCtx.ImageInfo.Size),
+			Tags:        headerInfo.EvalCtx.ImageInfo.Tags,
 
-			TotalVulnerabilities:    assessment.TotalVulnerabilities,
-			CriticalVulnerabilities: assessment.CriticalVulnerabilities,
-			HighVulnerabilities:     assessment.HighVulnerabilities,
-			MediumVulnerabilities:   assessment.MediumVulnerabilities,
-			LowVulnerabilities:      assessment.LowVulnerabilities,
-			InfoVulnerabilities:     assessment.InfoVulnerabilities,
-			FixableVulnerabilities:  assessment.FixableVulnerabilities,
+			TotalVulnerabilities:    int32(response.TotalVulnerabilities()),
+			CriticalVulnerabilities: response.CriticalVulnerabilities(),
+			HighVulnerabilities:     response.HighVulnerabilities(),
+			MediumVulnerabilities:   response.MediumVulnerabilities(),
+			LowVulnerabilities:      response.LowVulnerabilities(),
+			InfoVulnerabilities:     response.InfoVulnerabilities(),
+			FixableVulnerabilities:  response.TotalFixableVulnerabilities(),
 
-			TableHeight:     magicTableInitialHeight + (assessment.TotalVulnerabilities * magicTableHeightMultiplier),
-			Vulnerabilities: vulContainerImageLayersToHTML(assessment.Image),
+			TableHeight:     magicTableInitialHeight + (int32(response.TotalVulnerabilities()) * magicTableHeightMultiplier),
+			Vulnerabilities: vulContainerImageLayersToHTML(assessment),
 		}
 		outputHTML = fmt.Sprintf("%s-%s.html",
 			strings.ReplaceAll(htmlData.Repository, "/", "-"),
@@ -328,49 +324,43 @@ func generateVulnAssessmentHTML(assessment *api.VulnContainerAssessment) error {
 	return nil
 }
 
-func vulContainerImageLayersToHTML(image *api.VulnContainerImage) []htmlVuln {
-	if image == nil {
-		return []htmlVuln{}
-	}
-
+func vulContainerImageLayersToHTML(image []api.VulnerabilityContainer) []htmlVuln {
 	var vulns = []htmlVuln{}
-	for _, layer := range image.ImageLayers {
-		for _, pkg := range layer.Packages {
-			for _, vul := range pkg.Vulnerabilities {
-				space := regexp.MustCompile(`\s+`)
-				layerCreatedBy := space.ReplaceAllString(layer.CreatedBy, " ")
+	for _, i := range image {
+		space := regexp.MustCompile(`\s+`)
+		// Todo(v2): CreatedBy does not exist in v2
+		layerCreatedBy := space.ReplaceAllString("", " ")
 
-				newHtmlVuln := htmlVuln{
-					CVE:               vul.Name,
-					Severity:          cases.Title(language.English).String(vul.Severity),
-					SeverityHTMLClass: vul.Severity,
-					PkgName:           pkg.Name,
-					PkgVersion:        pkg.Version,
-					PkgFixed:          vul.FixVersion,
-					Layer:             layerCreatedBy,
-				}
-
-				if score := vul.CVSSv3Score(); score != 0 {
-					// CVSSv3
-					newHtmlVuln.V3Score = score
-					newHtmlVuln.UseV3Score = true
-				} else if score = vul.CVSSv2Score(); score != 0 {
-					// CVSSv2
-					newHtmlVuln.V2Score = score
-					newHtmlVuln.UseV2Score = true
-				} else {
-					// N/A
-					newHtmlVuln.UseNoScore = true
-				}
-
-				vulns = append(vulns, newHtmlVuln)
-			}
+		newHtmlVuln := htmlVuln{
+			CVE:               i.VulnID,
+			Severity:          cases.Title(language.English).String(i.Severity),
+			SeverityHTMLClass: i.Severity,
+			PkgName:           i.FeatureKey.Name,
+			PkgVersion:        i.FeatureKey.Version,
+			PkgFixed:          i.FixInfo.FixedVersion,
+			Layer:             layerCreatedBy,
 		}
+
+		// Todo(v2): CVSSv3Score does not exist in v2
+		//if score := vul.CVSSv3Score(); score != 0 {
+		//	// CVSSv3
+		//	newHtmlVuln.V3Score = score
+		//	newHtmlVuln.UseV3Score = true
+		//} else if score = vul.CVSSv2Score(); score != 0 {
+		//	// CVSSv2
+		//	newHtmlVuln.V2Score = score
+		//	newHtmlVuln.UseV2Score = true
+		//} else {
+		//	// N/A
+		//	newHtmlVuln.UseNoScore = true
+		//}
+
+		vulns = append(vulns, newHtmlVuln)
 	}
 
 	// order by severity
 	sort.Slice(vulns, func(i, j int) bool {
-		return severityOrder(vulns[i].Severity) < severityOrder(vulns[j].Severity)
+		return api.SeverityOrder(vulns[i].Severity) < api.SeverityOrder(vulns[j].Severity)
 	})
 
 	// add the row height after ordering
