@@ -21,7 +21,7 @@ For more details, go to https://docs.lacework.com/cli
         <copyright>Lacework</copyright>
         <licenseUrl>https://raw.githubusercontent.com/lacework/go-sdk/main/LICENSE</licenseUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <iconUrl>https://raw.githubusercontent.com/lacework/go-sdk/main/scripts/chocolatey/lacework.png</iconUrl>
+        <iconUrl>https://cdn.statically.io/gh/lacework/go-sdk/main/scripts/chocolatey/lacework.png</iconUrl>
         <packageSourceUrl>https://github.com/lacework/go-sdk</packageSourceUrl>
         <docsUrl>https://docs.lacework.com/cli/</docsUrl>
         <bugTrackerUrl>https://github.com/lacework/go-sdk/issues</bugTrackerUrl>
