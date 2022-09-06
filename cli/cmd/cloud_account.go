@@ -117,7 +117,7 @@ func cloudAccountList(_ *cobra.Command, _ []string) error {
 
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"Cloud Account Integration GUID", "Name", "Type", "Status", "State"},
+			[]string{"Cloud Account GUID", "Name", "Type", "Status", "State"},
 			cloudAccountsToTable(cloudAccounts.Data),
 		),
 	)
