@@ -60,6 +60,7 @@ type AwsEcrData struct {
 	LimitByRep       []string            `json:"limitByRep"`
 	LimitNumImg      int                 `json:"limitNumImg"`
 	NonOSPackageEval bool                `json:"nonOsPackageEval"`
+	AwsAuthType      string              `json:"awsAuthType"`
 }
 
 func verifyAwsEcrContainerRegistry(data interface{}) interface{} {
