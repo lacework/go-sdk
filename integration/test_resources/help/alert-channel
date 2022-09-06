@@ -1,20 +1,19 @@
-Manage cloud account integrations with Lacework
+Manage alert channels integrations with Lacework
 
 Usage:
-  lacework cloud-account [command]
+  lacework alert-channel [command]
 
 Aliases:
-  cloud-account, cloud-accounts, cloud, ca
+  alert-channel, alert-channels, ac
 
 Available Commands:
-  create       Create a new cloud account integration
-  delete       Delete a cloud account integration
-  iac-generate Create IaC code
-  list         List all available cloud account integrations
-  show         Show a single cloud account integration
+  create      Create a new alert channel integration
+  delete      Delete a alert channel integration
+  list        List all available alert channel integrations
+  show        Show a single alert channel integration
 
 Flags:
-  -h, --help   help for cloud-account
+  -h, --help   help for alert-channel
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
@@ -30,4 +29,4 @@ Global Flags:
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
 
-Use "lacework cloud-account [command] --help" for more information about a command.
+Use "lacework alert-channel [command] --help" for more information about a command.

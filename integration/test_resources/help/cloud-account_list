@@ -3,6 +3,9 @@ List all available cloud account integrations
 Usage:
   lacework cloud-account list [flags]
 
+Aliases:
+  list, ls
+
 Flags:
   -h, --help          help for list
   -t, --type string   list all cloud accounts of a specific type
