@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"encoding/json"
+	"strconv"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -164,17 +166,25 @@ func buildDetailsTable(integration api.V2RawType) string {
 	caMap := integration.GetData().(map[string]interface{})
 
 	for k, v := range caMap {
-		if val, ok := v.(string); ok {
+		switch val := v.(type) {
+		case int:
+			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.Itoa(val)})
+		case float64:
+			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.FormatFloat(val, 'f', -1, 64)})
+		case string:
 			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), val})
-		}
-
-		//nested
-		if valMap, ok := v.(map[string]interface{}); ok {
-			for i, j := range valMap {
-				if val, ok := j.(string); ok {
-					details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(i)), val})
+		case map[string]any:
+			for i, j := range val {
+				if v, ok := j.(string); ok {
+					details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(i)), v})
 				}
 			}
+		case []any:
+			var values []string
+			for _, i := range val {
+				values = append(values, i.(string))
+			}
+			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strings.Join(values, ",")})
 		}
 	}
 
@@ -185,17 +195,27 @@ func buildDetailsTable(integration api.V2RawType) string {
 		details = append(details, []string{"STATE UPDATED AT", integration.GetCommon().State.LastUpdatedTime.UTC().Format("2006-Jan-2 15:04:05 MST")})
 		details = append(details, []string{"LAST SUCCESSFUL STATE", integration.GetCommon().State.LastSuccessfulTime.UTC().Format("2006-Jan-2 15:04:05 MST")})
 
-		for k, v := range integration.GetCommon().State.Details {
-			if val, ok := v.(string); ok {
-				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), val})
-			}
+		//output state details as a json string
 
-			if val, ok := v.([]any); ok {
-				for _, i := range val {
-					details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), i.(string)})
-				}
+		jsonState, err := json.Marshal(integration.GetCommon().State.Details)
+		if err == nil {
+			detailsJSON, err := cli.FormatJSONString(string(jsonState))
+			if err == nil {
+				details = append(details, []string{"STATE DETAILS", detailsJSON})
 			}
 		}
+
+		//for k, v := range integration.GetCommon().State.Details {
+		//	if val, ok := v.(string); ok {
+		//		details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), val})
+		//	}
+		//
+		//	if val, ok := v.([]any); ok {
+		//		for _, i := range val {
+		//			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), i.(string)})
+		//		}
+		//	}
+		//}
 	}
 
 	return renderOneLineCustomTable("DETAILS",
