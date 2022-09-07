@@ -178,12 +178,13 @@ func buildDetailsTable(integration api.V2RawType) string {
 		}
 	}
 
+	//updatedAt, _ := time.Parse(integration.GetCommon().CreatedOrUpdatedTime, time.RFC3339)
 	//common
-	details = append(details, []string{"UPDATED AT", integration.GetCommon().CreatedOrUpdatedTime})
+	details = append(details, []string{"UPDATED AT", integration.GetCommon().CreatedOrUpdatedTime.UTC().Format("2006-Jan-2 15:04:05 MST")})
 	details = append(details, []string{"UPDATED BY", integration.GetCommon().CreatedOrUpdatedBy})
 	if integration.GetCommon().State != nil {
-		details = append(details, []string{"STATE UPDATED AT", integration.GetCommon().State.LastUpdatedTime.String()})
-		details = append(details, []string{"LAST SUCCESSFUL STATE", integration.GetCommon().State.LastSuccessfulTime.String()})
+		details = append(details, []string{"STATE UPDATED AT", integration.GetCommon().State.LastUpdatedTime.UTC().Format("2006-Jan-2 15:04:05 MST")})
+		details = append(details, []string{"LAST SUCCESSFUL STATE", integration.GetCommon().State.LastSuccessfulTime.UTC().Format("2006-Jan-2 15:04:05 MST")})
 
 		for k, v := range integration.GetCommon().State.Details {
 			if val, ok := v.(string); ok {
