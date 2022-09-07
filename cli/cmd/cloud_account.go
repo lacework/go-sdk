@@ -178,7 +178,6 @@ func buildDetailsTable(integration api.V2RawType) string {
 		}
 	}
 
-	//updatedAt, _ := time.Parse(integration.GetCommon().CreatedOrUpdatedTime, time.RFC3339)
 	//common
 	details = append(details, []string{"UPDATED AT", integration.GetCommon().CreatedOrUpdatedTime.UTC().Format("2006-Jan-2 15:04:05 MST")})
 	details = append(details, []string{"UPDATED BY", integration.GetCommon().CreatedOrUpdatedBy})
