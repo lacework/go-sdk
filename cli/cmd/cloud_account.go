@@ -204,18 +204,6 @@ func buildDetailsTable(integration api.V2RawType) string {
 				details = append(details, []string{"STATE DETAILS", detailsJSON})
 			}
 		}
-
-		//for k, v := range integration.GetCommon().State.Details {
-		//	if val, ok := v.(string); ok {
-		//		details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), val})
-		//	}
-		//
-		//	if val, ok := v.([]any); ok {
-		//		for _, i := range val {
-		//			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), i.(string)})
-		//		}
-		//	}
-		//}
 	}
 
 	return renderOneLineCustomTable("DETAILS",
