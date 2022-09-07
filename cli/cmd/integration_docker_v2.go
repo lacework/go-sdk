@@ -96,7 +96,7 @@ func createDockerV2Integration() error {
 			Credentials: api.DockerhubV2Credentials{
 				Username: answers.Username,
 				Password: answers.Password,
-				Ssl:      answers.SSL,
+				SSL:      answers.SSL,
 			},
 			RegistryDomain:   answers.Domain,
 			NonOSPackageEval: answers.NonOSPackageSupport,

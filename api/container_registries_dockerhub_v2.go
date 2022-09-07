@@ -74,5 +74,5 @@ func verifyDockerhubV2ContainerRegistry(data interface{}) interface{} {
 type DockerhubV2Credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Ssl      bool   `json:"ssl"`
+	SSL      bool   `json:"ssl"`
 }

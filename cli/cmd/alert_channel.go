@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"time"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
@@ -104,7 +106,8 @@ func alertChannelShow(_ *cobra.Command, args []string) error {
 		alertChannel api.AlertChannelResponse
 		out          [][]string
 	)
-	cli.StartProgress(" Fetching alert channel...")
+	cli.StartProgress("Fetching alert channel...")
+	time.Sleep(time.Second * 3)
 	err := cli.LwApi.V2.AlertChannels.Get(args[0], &alertChannel)
 	cli.StopProgress()
 	if err != nil {
@@ -154,23 +157,23 @@ func promptCreateAlertChannel() error {
 		prompt      = &survey.Select{
 			Message: "Choose an integration type to create: ",
 			Options: []string{
-				"Slack Alert Channel",
-				"Email Alert Channel",
-				"Amazon S3 Alert Channel",
-				"Cisco Webex Alert Channel",
-				"Datadog Alert Channel",
-				"GCP PubSub Alert Channel",
-				"Microsoft Teams Alert Channel",
-				"New Relic Insights Alert Channel",
-				"Webhook Alert Channel",
-				"VictorOps Alert Channel",
-				"Splunk Alert Channel",
-				"QRadar Alert Channel",
-				"Service Now Alert Channel",
-				"PagerDuty Alert Channel",
-				"Amazon CloudWatch Alert Channel",
-				"Jira Cloud Alert Channel",
-				"Jira Server Alert Channel",
+				"Slack",
+				"Email",
+				"Amazon S3",
+				"Cisco Webex",
+				"Datadog",
+				"GCP PubSub",
+				"Microsoft Teams",
+				"New Relic Insights",
+				"Webhook",
+				"VictorOps",
+				"Splunk",
+				"QRadar",
+				"Service Now",
+				"PagerDuty",
+				"Amazon CloudWatch",
+				"Jira Cloud",
+				"Jira Server",
 			},
 		}
 		err = survey.AskOne(prompt, &integration)
@@ -180,39 +183,39 @@ func promptCreateAlertChannel() error {
 	}
 
 	switch integration {
-	case "Slack Alert Channel":
+	case "Slack":
 		return createSlackAlertChannelIntegration()
-	case "Email Alert Channel":
+	case "Email":
 		return createEmailAlertChannelIntegration()
-	case "GCP PubSub Alert Channel":
+	case "GCP PubSub":
 		return createGcpPubSubChannelIntegration()
-	case "Microsoft Teams Alert Channel":
+	case "Microsoft Teams":
 		return createMicrosoftTeamsChannelIntegration()
-	case "New Relic Insights Alert Channel":
+	case "New Relic Insights":
 		return createNewRelicAlertChannelIntegration()
-	case "Amazon S3 Alert Channel":
+	case "Amazon S3":
 		return createAwsS3ChannelIntegration()
-	case "Cisco Webex Alert Channel":
+	case "Cisco Webex":
 		return createCiscoWebexChannelIntegration()
-	case "Datadog Alert Channel":
+	case "Datadog":
 		return createDatadogIntegration()
-	case "Webhook Alert Channel":
+	case "Webhook":
 		return createWebhookIntegration()
-	case "VictorOps Alert Channel":
+	case "VictorOps":
 		return createVictorOpsChannelIntegration()
-	case "Splunk Alert Channel":
+	case "Splunk":
 		return createSplunkIntegration()
-	case "PagerDuty Alert Channel":
+	case "PagerDuty":
 		return createPagerDutyAlertChannelIntegration()
-	case "QRadar Alert Channel":
+	case "QRadar":
 		return createQRadarAlertChannelIntegration()
-	case "Service Now Alert Channel":
+	case "Service Now":
 		return createServiceNowAlertChannelIntegration()
-	case "Amazon CloudWatch Alert Channel":
+	case "Amazon CloudWatch":
 		return createAwsCloudWatchAlertChannelIntegration()
-	case "Jira Cloud Alert Channel":
+	case "Jira Cloud":
 		return createJiraCloudAlertChannelIntegration()
-	case "Jira Server Alert Channel":
+	case "Jira Server":
 		return createJiraServerAlertChannelIntegration()
 	default:
 		return errors.New("unknown integration type")

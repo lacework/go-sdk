@@ -187,12 +187,12 @@ func buildDetailsTable(integration api.V2RawType) string {
 
 		for k, v := range integration.GetCommon().State.Details {
 			if val, ok := v.(string); ok {
-				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), format.Truncate(val, 50)})
+				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), val})
 			}
 
 			if val, ok := v.([]any); ok {
 				for _, i := range val {
-					details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), format.Truncate(i.(string), 50)})
+					details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), i.(string)})
 				}
 			}
 		}
