@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/lacework/go-sdk/internal/format"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -189,11 +191,11 @@ func buildDetailsTable(integration api.V2RawType) string {
 	}
 
 	//common
-	details = append(details, []string{"UPDATED AT", integration.GetCommon().CreatedOrUpdatedTime.UTC().Format("2006-Jan-2 15:04:05 MST")})
+	details = append(details, []string{"UPDATED AT", integration.GetCommon().CreatedOrUpdatedTime})
 	details = append(details, []string{"UPDATED BY", integration.GetCommon().CreatedOrUpdatedBy})
 	if integration.GetCommon().State != nil {
-		details = append(details, []string{"STATE UPDATED AT", integration.GetCommon().State.LastUpdatedTime.UTC().Format("2006-Jan-2 15:04:05 MST")})
-		details = append(details, []string{"LAST SUCCESSFUL STATE", integration.GetCommon().State.LastSuccessfulTime.UTC().Format("2006-Jan-2 15:04:05 MST")})
+		details = append(details, []string{"STATE UPDATED AT", integration.GetCommon().State.LastUpdatedTime.Format(time.RFC3339)})
+		details = append(details, []string{"LAST SUCCESSFUL STATE", integration.GetCommon().State.LastSuccessfulTime.Format(time.RFC3339)})
 
 		//output state details as a json string
 
@@ -206,6 +208,7 @@ func buildDetailsTable(integration api.V2RawType) string {
 		}
 	}
 
+	array.Sort2D(details)
 	return renderOneLineCustomTable("DETAILS",
 		renderCustomTable([]string{}, details,
 			tableFunc(func(t *tablewriter.Table) {

@@ -20,7 +20,6 @@ package api
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -210,7 +209,7 @@ type CloudAccountsResponse struct {
 type v2CommonIntegrationData struct {
 	IntgGuid             string              `json:"intgGuid,omitempty"`
 	Name                 string              `json:"name"`
-	CreatedOrUpdatedTime time.Time           `json:"createdOrUpdatedTime,omitempty"`
+	CreatedOrUpdatedTime string              `json:"createdOrUpdatedTime,omitempty"`
 	CreatedOrUpdatedBy   string              `json:"createdOrUpdatedBy,omitempty"`
 	Type                 string              `json:"type"`
 	Enabled              int                 `json:"enabled"`
