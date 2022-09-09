@@ -157,6 +157,10 @@ func cloudAccountShow(_ *cobra.Command, args []string) error {
 		cloudAccount.Data.Status(),
 		cloudAccount.Data.StateString()})
 
+	if cli.JSONOutput() {
+		return cli.OutputJSON(cloudAccount.Data)
+	}
+
 	cli.OutputHuman(renderSimpleTable([]string{"Cloud Account GUID", "Name", "Type", "Status", "State"}, out))
 	cli.OutputHuman("\n")
 	cli.OutputHuman(buildDetailsTable(cloudAccount.Data))
@@ -165,28 +169,28 @@ func cloudAccountShow(_ *cobra.Command, args []string) error {
 
 func buildDetailsTable(integration api.V2RawType) string {
 	var details [][]string
-	caMap := integration.GetData().(map[string]interface{})
-
-	for k, v := range caMap {
-		switch val := v.(type) {
-		case int:
-			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.Itoa(val)})
-		case float64:
-			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.FormatFloat(val, 'f', -1, 64)})
-		case string:
-			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), val})
-		case map[string]any:
-			for i, j := range val {
-				if v, ok := j.(string); ok {
-					details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(i)), v})
+	if caMap, ok := integration.GetData().(map[string]interface{}); ok {
+		for k, v := range caMap {
+			switch val := v.(type) {
+			case int:
+				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.Itoa(val)})
+			case float64:
+				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.FormatFloat(val, 'f', -1, 64)})
+			case string:
+				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), val})
+			case map[string]any:
+				for i, j := range val {
+					if v, ok := j.(string); ok {
+						details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(i)), v})
+					}
 				}
+			case []any:
+				var values []string
+				for _, i := range val {
+					values = append(values, i.(string))
+				}
+				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strings.Join(values, ",")})
 			}
-		case []any:
-			var values []string
-			for _, i := range val {
-				values = append(values, i.(string))
-			}
-			details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strings.Join(values, ",")})
 		}
 	}
 
@@ -223,6 +227,7 @@ func buildDetailsTable(integration api.V2RawType) string {
 			t.SetAutoWrapText(false)
 		}),
 	)
+
 }
 
 func cloudAccountCreate(_ *cobra.Command, _ []string) error {

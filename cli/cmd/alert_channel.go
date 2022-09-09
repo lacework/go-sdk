@@ -114,6 +114,10 @@ func alertChannelShow(_ *cobra.Command, args []string) error {
 		return errors.Wrap(err, "unable to retrieve alert channel")
 	}
 
+	if cli.JSONOutput() {
+		return cli.OutputJSON(alertChannel.Data)
+	}
+
 	out = append(out, []string{alertChannel.Data.IntgGuid,
 		alertChannel.Data.Name,
 		alertChannel.Data.Type,
