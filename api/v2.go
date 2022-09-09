@@ -46,6 +46,7 @@ type V2Endpoints struct {
 	Query                   *QueryService
 	Policy                  *PolicyService
 	Entities                *EntitiesService
+	Events                  *EventService
 	Schemas                 *SchemasService
 	Datasources             *DatasourcesService
 	DataExportRules         *DataExportRulesService
@@ -71,6 +72,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&QueryService{c},
 		NewV2PolicyService(c),
 		&EntitiesService{c},
+		&EventService{c},
 		&SchemasService{c, map[integrationSchema]V2Service{}},
 		&DatasourcesService{c},
 		&DataExportRulesService{c},

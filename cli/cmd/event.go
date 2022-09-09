@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"os/exec"
 	"runtime"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -76,8 +75,9 @@ For example, to list all events from the last day with severity medium and above
 		RunE: func(_ *cobra.Command, _ []string) error {
 
 			var (
-				response api.EventsResponse
+				response api.EventResponse
 				err      error
+				filter   api.SearchFilter
 			)
 
 			if eventsCmdState.Severity != "" {
@@ -97,19 +97,40 @@ For example, to list all events from the last day with severity medium and above
 				cli.Log.Infow("requesting list of events from custom time range",
 					"start_time", start, "end_time", end,
 				)
-				response, err = cli.LwApi.Events.ListDateRange(start, end)
-			} else if eventsCmdState.Days != 0 {
-				end := time.Now()
-				start := end.Add(time.Hour * 24 * time.Duration(eventsCmdState.Days) * -1)
 
-				cli.Log.Infow("requesting list of events from specific days",
-					"days", eventsCmdState.Days, "start_time", start, "end_time", end,
-				)
-				response, err = cli.LwApi.Events.ListDateRange(start, end)
+				filter = api.SearchFilter{
+					TimeFilter: &api.TimeFilter{
+						StartTime: &start,
+						EndTime:   &end,
+					},
+				}
+
+			} else if eventsCmdState.Days != 0 {
+				now := time.Now().UTC()
+				before := now.AddDate(0, 0, eventsCmdState.Days*-1)
+				filter = api.SearchFilter{
+					TimeFilter: &api.TimeFilter{
+						StartTime: &before,
+						EndTime:   &now,
+					},
+				}
+				cli.Log.Infow("searching for events from the last %d days", eventsCmdState.Days)
 			} else {
 				cli.Log.Info("requesting list of events from the last 7 days")
-				response, err = cli.LwApi.Events.List()
+				now := time.Now().UTC()
+				before := now.AddDate(0, 0, -7) // last 7 days
+				filter = api.SearchFilter{
+					TimeFilter: &api.TimeFilter{
+						StartTime: &before,
+						EndTime:   &now,
+					},
+				}
 			}
+
+			cli.StartProgress(fmt.Sprintf("Searching for events in the date range %s-%s...",
+				filter.StartTime.Format(time.RFC3339), filter.EndTime.Format(time.RFC3339)))
+			response, err = cli.LwApi.V2.Events.Search(filter)
+			cli.StopProgress()
 
 			if err != nil {
 				return errors.Wrap(err, "unable to get events")
@@ -117,44 +138,33 @@ For example, to list all events from the last day with severity medium and above
 
 			cli.Log.Debugw("events", "raw", response)
 
-			// filter events by severity, if the user didn't specify a severity
-			// the funtion will return it back without modifications
-			events := filterEventsWithSeverity(response.Events)
-
-			// Sort the events by severity
-			sort.Slice(events, func(i, j int) bool {
-				return events[i].Severity < events[j].Severity
-			})
+			// filter unique events
+			events := filterUniqueEvents(response.Data)
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(events)
 			}
 
-			if len(events) == 0 {
-				if eventsCmdState.Severity != "" {
-					cli.OutputHuman("There are no events with the specified severity.\n")
-				} else {
-					cli.OutputHuman("There are no events in your account in the specified time range.\n")
-				}
-				return nil
-			}
-
 			cli.OutputHuman(
 				renderSimpleTable(
-					[]string{"Event ID", "Type", "Severity", "Start Time", "End Time"},
+					[]string{"Event ID", "Type", "Src Type", "Start Time", "End Time"},
 					eventsToTable(events),
 				),
 			)
+
+			cli.OutputHuman("To view details of an event, run 'lacework alerts show <event_id>'\n")
 			return nil
 		},
 	}
 
 	// eventShowCmd represents the show sub-command inside the event command
 	eventShowCmd = &cobra.Command{
-		Use:   "show <event_id>",
-		Short: "Show details about a specific event",
-		Long:  "Show details about a specific event.",
-		Args:  cobra.ExactArgs(1),
+		Use:        "show <event_id>",
+		Short:      "Show details about a specific event",
+		Long:       "Show details about a specific event.",
+		Hidden:     true,
+		Deprecated: "This command is deprecated. Use 'lacework alerts show <event_id>' instead",
+		Args:       cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			cli.Log.Infow("requesting event details", "event_id", args[0])
 			response, err := cli.LwApi.Events.Details(args[0])
@@ -277,13 +287,13 @@ func eventsTableOptions() tableOption {
 	})
 }
 
-func eventsToTable(events []api.Event) [][]string {
+func eventsToTable(events []api.V2Event) [][]string {
 	out := [][]string{}
 	for _, event := range events {
 		out = append(out, []string{
-			event.EventID,
+			strconv.Itoa(event.Id),
 			event.EventType,
-			event.SeverityString(),
+			event.SrcType,
 			event.StartTime.UTC().Format(time.RFC3339),
 			event.EndTime.UTC().Format(time.RFC3339),
 		})
@@ -812,23 +822,15 @@ func eventMachineEntitiesTable(machines []api.EventMachineEntity) string {
 	)
 }
 
-func filterEventsWithSeverity(events []api.Event) []api.Event {
-	if eventsCmdState.Severity == "" {
-		return events
-	}
-
-	sevThreshold, sevString := severityToProperTypes(eventsCmdState.Severity)
-	cli.Log.Debugw("filtering events", "threshold", sevThreshold, "severity", sevString)
-	eFiltered := []api.Event{}
-	for _, event := range events {
-		eventSeverity, _ := severityToProperTypes(event.Severity)
-		if eventSeverity <= sevThreshold {
-			eFiltered = append(eFiltered, event)
+func filterUniqueEvents(events []api.V2Event) (uniqueEvents []api.V2Event) {
+	var eventIDs []int
+	for _, ev := range events {
+		if !array.ContainsInt(eventIDs, ev.Id) {
+			eventIDs = append(eventIDs, ev.Id)
+			uniqueEvents = append(uniqueEvents, ev)
 		}
 	}
-
-	cli.Log.Debugw("filtered events", "events", eFiltered)
-	return eFiltered
+	return
 }
 
 func severityToProperTypes(severity string) (int, string) {
