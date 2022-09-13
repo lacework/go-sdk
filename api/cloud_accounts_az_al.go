@@ -18,41 +18,41 @@
 
 package api
 
-// GetAzAl gets a single AzAl integration matching the
+// GetAzureAlSeq gets a single AzureAlSeq integration matching the
 // provided integration guid
-func (svc *CloudAccountsService) GetAzAl(guid string) (
-	response AzAlIntegrationResponse,
+func (svc *CloudAccountsService) GetAzureAlSeq(guid string) (
+	response AzureAlSeqIntegrationResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateAzAl updates a single AzAl integration on the Lacework Server
-func (svc *CloudAccountsService) UpdateAzAl(data CloudAccount) (
-	response AzAlIntegrationResponse,
+// UpdateAzureAlSeq updates a single AzureAlSeq integration on the Lacework Server
+func (svc *CloudAccountsService) UpdateAzureAlSeq(data CloudAccount) (
+	response AzureAlSeqIntegrationResponse,
 	err error,
 ) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type AzAlIntegrationResponse struct {
-	Data AzAl `json:"data"`
+type AzureAlSeqIntegrationResponse struct {
+	Data AzureAlSeq `json:"data"`
 }
 
-type AzAl struct {
+type AzureAlSeq struct {
 	v2CommonIntegrationData
-	Data AzAlData `json:"data"`
+	Data AzureAlSeqData `json:"data"`
 }
 
-type AzAlData struct {
-	Credentials AzAlCredentials `json:"crossAccountCredentials"`
-	TenantID    string          `json:"tenantId"`
-	QueueUrl    string          `json:"queueUrl"`
+type AzureAlSeqData struct {
+	Credentials AzureAlSeqCredentials `json:"credentials"`
+	TenantID    string                `json:"tenantId"`
+	QueueUrl    string                `json:"queueUrl"`
 }
 
-type AzAlCredentials struct {
+type AzureAlSeqCredentials struct {
 	ClientID     string `json:"clientId"`
 	ClientSecret string `json:"clientSecret"`
 }

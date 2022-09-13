@@ -64,8 +64,8 @@ func createAwsGovCloudConfigIntegration() error {
 
 	awsCfg := api.NewCloudAccount(answers.Name,
 		api.AwsUsGovCfgCloudAccount,
-		api.AwsGovCfgData{
-			Credentials: api.AwsGovCfgCredentials{
+		api.AwsUsGovCfgData{
+			Credentials: api.AwsUsGovCfgCredentials{
 				AwsAccountID:    answers.AccountID,
 				AccessKeyID:     answers.AccessKeyID,
 				SecretAccessKey: answers.SecretAccessKey,
@@ -124,9 +124,9 @@ func createAwsGovCloudCTIntegration() error {
 
 	awsCfg := api.NewCloudAccount(answers.Name,
 		api.AwsUsGovCtSqsCloudAccount,
-		api.AwsGovCtData{
+		api.AwsUsGovCtSqsData{
 			QueueUrl: answers.QueueUrl,
-			Credentials: api.AwsGovCtCredentials{
+			Credentials: api.AwsUsGovCtSqsCredentials{
 				AwsAccountID:    answers.AccountID,
 				AccessKeyID:     answers.AccessKeyID,
 				SecretAccessKey: answers.SecretAccessKey,

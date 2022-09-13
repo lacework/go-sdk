@@ -18,40 +18,40 @@
 
 package api
 
-// GetAzCfg gets a single AzCfg integration matching the
+// GetAzureCfg gets a single AzureCfg integration matching the
 // provided integration guid
-func (svc *CloudAccountsService) GetAzCfg(guid string) (
-	response AzCfgIntegrationResponse,
+func (svc *CloudAccountsService) GetAzureCfg(guid string) (
+	response AzureCfgIntegrationResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateAzCfg updates a single AzCfg integration on the Lacework Server
-func (svc *CloudAccountsService) UpdateAzCfg(data CloudAccount) (
-	response AzCfgIntegrationResponse,
+// UpdateAzureCfg updates a single AzureCfg integration on the Lacework Server
+func (svc *CloudAccountsService) UpdateAzureCfg(data CloudAccount) (
+	response AzureCfgIntegrationResponse,
 	err error,
 ) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type AzCfgIntegrationResponse struct {
-	Data AzCfg `json:"data"`
+type AzureCfgIntegrationResponse struct {
+	Data AzureCfg `json:"data"`
 }
 
-type AzCfg struct {
+type AzureCfg struct {
 	v2CommonIntegrationData
-	Data AzCfgData `json:"data"`
+	Data AzureCfgData `json:"data"`
 }
 
-type AzCfgData struct {
-	Credentials AzCfgCredentials `json:"crossAccountCredentials"`
-	TenantID    string           `json:"tenantId"`
+type AzureCfgData struct {
+	Credentials AzureCfgCredentials `json:"credentials"`
+	TenantID    string              `json:"tenantId"`
 }
 
-type AzCfgCredentials struct {
+type AzureCfgCredentials struct {
 	ClientID     string `json:"clientId"`
 	ClientSecret string `json:"clientSecret"`
 }

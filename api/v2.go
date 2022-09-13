@@ -97,6 +97,9 @@ type V2CommonIntegration struct {
 	Data v2CommonIntegrationData `json:"data"`
 }
 
+// V2RawType is the interface that should be implemented when
+// a struct is a response that contains v2CommonIntegrationData.
+// This include AlertChannelRaw, CloudAccountRaw, ContainerRegistryRaw
 type V2RawType interface {
 	GetData() any
 	GetCommon() v2CommonIntegrationData

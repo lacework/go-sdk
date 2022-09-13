@@ -18,41 +18,41 @@
 
 package api
 
-// GetAwsGovCt gets a single AwsGovCt integration matching the
+// GetAwsUsGovCtSqs gets a single AwsUsGovCtSqs integration matching the
 // provided integration guid
-func (svc *CloudAccountsService) GetAwsGovCt(guid string) (
-	response AwsGovCtIntegrationResponse,
+func (svc *CloudAccountsService) GetAwsUsGovCtSqs(guid string) (
+	response AwsUsGovCtSqsIntegrationResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateAwsGovCt updates a single AwsGovCt integration on the Lacework Server
-func (svc *CloudAccountsService) UpdateAwsGovCt(data CloudAccount) (
-	response AwsGovCtIntegrationResponse,
+// UpdateAwsUsGovCtSqs updates a single AwsUsGovCtSqs integration on the Lacework Server
+func (svc *CloudAccountsService) UpdateAwsUsGovCtSqs(data CloudAccount) (
+	response AwsUsGovCtSqsIntegrationResponse,
 	err error,
 ) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type AwsGovCtIntegrationResponse struct {
-	Data AwsGovCt `json:"data"`
+type AwsUsGovCtSqsIntegrationResponse struct {
+	Data AwsUsGovCtSqs `json:"data"`
 }
 
-type AwsGovCt struct {
+type AwsUsGovCtSqs struct {
 	v2CommonIntegrationData
-	Data AwsGovCtData `json:"data"`
+	Data AwsUsGovCtSqsData `json:"data"`
 }
 
-type AwsGovCtData struct {
-	Credentials AwsGovCtCredentials `json:"accessKeyCredentials"`
-	QueueUrl    string              `json:"queueUrl"`
+type AwsUsGovCtSqsData struct {
+	Credentials AwsUsGovCtSqsCredentials `json:"accessKeyCredentials"`
+	QueueUrl    string                   `json:"queueUrl"`
 }
 
-type AwsGovCtCredentials struct {
-	AwsAccountID    string `json:"awsAccountId"`
+type AwsUsGovCtSqsCredentials struct {
+	AwsAccountID    string `json:"accountId"`
 	AccessKeyID     string `json:"accessKeyId"`
 	SecretAccessKey string `json:"secretAccessKey"`
 }

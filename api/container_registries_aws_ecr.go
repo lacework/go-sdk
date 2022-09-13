@@ -52,15 +52,16 @@ func (reg AwsEcrIntegration) ContainerRegistryType() containerRegistryType {
 }
 
 type AwsEcrData struct {
-	Credentials      EcrCredentials      `json:"credentials"`
-	RegistryDomain   string              `json:"registryDomain"`
-	RegistryType     string              `json:"registryType"`
-	LimitByTag       []string            `json:"limitByTag"`
-	LimitByLabel     []map[string]string `json:"limitByLabel"`
-	LimitByRep       []string            `json:"limitByRep"`
-	LimitNumImg      int                 `json:"limitNumImg"`
-	NonOSPackageEval bool                `json:"nonOsPackageEval"`
-	AwsAuthType      string              `json:"awsAuthType"`
+	CrossAccountCredentials *AwsEcCrossAccountCredentials `json:"crossAccountCredentials,omitempty"`
+	AccessKeyCredentials    *AwsEcrAccessKeyCredentials   `json:"accessKeyCredentials,omitempty"`
+	RegistryDomain          string                        `json:"registryDomain"`
+	RegistryType            string                        `json:"registryType"`
+	LimitByTag              []string                      `json:"limitByTag"`
+	LimitByLabel            []map[string]string           `json:"limitByLabel"`
+	LimitByRep              []string                      `json:"limitByRep"`
+	LimitNumImg             int                           `json:"limitNumImg"`
+	NonOSPackageEval        bool                          `json:"nonOsPackageEval"`
+	AwsAuthType             string                        `json:"awsAuthType"`
 }
 
 func verifyAwsEcrContainerRegistry(data interface{}) interface{} {
@@ -71,9 +72,12 @@ func verifyAwsEcrContainerRegistry(data interface{}) interface{} {
 	return data
 }
 
-type EcrCredentials struct {
-	RoleArn         string `json:"roleArn,omitempty"`
-	ExternalID      string `json:"externalId,omitempty"`
+type AwsEcrAccessKeyCredentials struct {
 	AccessKeyID     string `json:"accessKeyId,omitempty"`
 	SecretAccessKey string `json:"secretAccessKey,omitempty"`
+}
+
+type AwsEcCrossAccountCredentials struct {
+	RoleArn    string `json:"roleArn,omitempty"`
+	ExternalID string `json:"externalId,omitempty"`
 }

@@ -77,9 +77,9 @@ func init() {
 	)
 }
 
-func cloudAccountsToTable(integrations []api.CloudAccountRaw) [][]string {
+func cloudAccountsToTable(cloudAccounts []api.CloudAccountRaw) [][]string {
 	var out [][]string
-	for _, cadata := range integrations {
+	for _, cadata := range cloudAccounts {
 		out = append(out, []string{
 			cadata.IntgGuid,
 			cadata.Name,
@@ -110,13 +110,13 @@ func cloudAccountList(_ *cobra.Command, _ []string) error {
 		return errors.Wrap(err, "unable to get cloud accounts")
 	}
 
+	if cli.JSONOutput() {
+		return cli.OutputJSON(cloudAccounts.Data)
+	}
+
 	if len(cloudAccounts.Data) == 0 {
 		cli.OutputHuman("No cloud accounts found.\n")
 		return nil
-	}
-
-	if cli.JSONOutput() {
-		return cli.OutputJSON(cloudAccounts.Data)
 	}
 
 	cli.OutputHuman(
@@ -202,7 +202,6 @@ func buildDetailsTable(integration api.V2RawType) string {
 		details = append(details, []string{"LAST SUCCESSFUL STATE", integration.GetCommon().State.LastSuccessfulTime.Format(time.RFC3339)})
 
 		//output state details as a json string
-
 		jsonState, err := json.Marshal(integration.GetCommon().State.Details)
 		if err == nil {
 			detailsJSON, err := cli.FormatJSONString(string(jsonState))
@@ -237,17 +236,17 @@ func cloudAccountCreate(_ *cobra.Command, _ []string) error {
 
 	err := promptCreateCloudAccount()
 	if err != nil {
-		return errors.Wrap(err, "unable to create integration")
+		return errors.Wrap(err, "unable to create cloud account")
 	}
 
-	cli.OutputHuman("The integration was created.\n")
+	cli.OutputHuman("The cloud account was created.\n")
 	return nil
 }
 
 func promptCreateCloudAccount() error {
 	var (
-		integration = ""
-		prompt      = &survey.Select{
+		cloudAccount = ""
+		prompt       = &survey.Select{
 			Message: "Choose a cloud account type to create: ",
 			Options: []string{
 				"AWS Config",
@@ -260,13 +259,13 @@ func promptCreateCloudAccount() error {
 				"Azure Activity Log",
 			},
 		}
-		err = survey.AskOne(prompt, &integration)
+		err = survey.AskOne(prompt, &cloudAccount)
 	)
 	if err != nil {
 		return err
 	}
 
-	switch integration {
+	switch cloudAccount {
 	case "AWS Config":
 		return createAwsConfigIntegration()
 	case "AWS CloudTrail":

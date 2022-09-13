@@ -55,11 +55,6 @@ func createDockerHubIntegration() error {
 				Message: "Enable registry notifications: "},
 		},
 		{
-			Name: "ssl",
-			Prompt: &survey.Confirm{
-				Message: "Enable SSL: "},
-		},
-		{
 			Name: "limit_tag",
 			Prompt: &survey.Input{
 				Message: "Limit by Tag: ",
@@ -92,7 +87,6 @@ func createDockerHubIntegration() error {
 		Username            string
 		Password            string
 		LimitTag            string `survey:"limit_tag"`
-		Ssl                 bool   `survey:"ssl"`
 		Notifications       bool   `survey:"notifications"`
 		LimitLabel          string `survey:"limit_label"`
 		LimitRepos          string `survey:"limit_repos"`
@@ -123,7 +117,6 @@ func createDockerHubIntegration() error {
 			Credentials: api.DockerhubCredentials{
 				Username: answers.Username,
 				Password: answers.Password,
-				Ssl:      answers.Ssl,
 			},
 			NonOSPackageEval:      answers.NonOSPackageSupport,
 			RegistryNotifications: answers.Notifications,

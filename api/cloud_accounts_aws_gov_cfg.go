@@ -18,40 +18,40 @@
 
 package api
 
-// GetAwsGovCfg gets a single AwsGovCfg integration matching the
+// GetAwsUsGovCfg gets a single AwsUsGovCfg integration matching the
 // provided integration guid
-func (svc *CloudAccountsService) GetAwsGovCfg(guid string) (
-	response AwsGovCfgIntegrationResponse,
+func (svc *CloudAccountsService) GetAwsUsGovCfg(guid string) (
+	response AwsUsGovCfgIntegrationResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateAwsGovCfg updates a single AwsGovCfg integration on the Lacework Server
-func (svc *CloudAccountsService) UpdateAwsGovCfg(data CloudAccount) (
-	response AwsGovCfgIntegrationResponse,
+// UpdateAwsUsGovCfg updates a single AwsUsGovCfg integration on the Lacework Server
+func (svc *CloudAccountsService) UpdateAwsUsGovCfg(data CloudAccount) (
+	response AwsUsGovCfgIntegrationResponse,
 	err error,
 ) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type AwsGovCfgIntegrationResponse struct {
-	Data AwsGovCfg `json:"data"`
+type AwsUsGovCfgIntegrationResponse struct {
+	Data AwsUsGovCfg `json:"data"`
 }
 
-type AwsGovCfg struct {
+type AwsUsGovCfg struct {
 	v2CommonIntegrationData
-	Data AwsGovCfgData `json:"data"`
+	Data AwsUsGovCfgData `json:"data"`
 }
 
-type AwsGovCfgData struct {
-	Credentials AwsGovCfgCredentials `json:"accessKeyCredentials"`
+type AwsUsGovCfgData struct {
+	Credentials AwsUsGovCfgCredentials `json:"accessKeyCredentials"`
 }
 
-type AwsGovCfgCredentials struct {
-	AwsAccountID    string `json:"awsAccountId"`
+type AwsUsGovCfgCredentials struct {
+	AwsAccountID    string `json:"accountId"`
 	AccessKeyID     string `json:"accessKeyId"`
 	SecretAccessKey string `json:"secretAccessKey"`
 }

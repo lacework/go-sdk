@@ -1,4 +1,4 @@
-Manage container registries integrations with Lacework
+Manage container registry integrations with Lacework
 
 Usage:
   lacework container-registry [command]

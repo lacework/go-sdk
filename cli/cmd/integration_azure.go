@@ -64,9 +64,9 @@ func createAzureConfigIntegration() error {
 
 	azure := api.NewCloudAccount(answers.Name,
 		api.AzureCfgCloudAccount,
-		api.AzCfgData{
+		api.AzureCfgData{
 			TenantID: answers.TenantID,
-			Credentials: api.AzCfgCredentials{
+			Credentials: api.AzureCfgCredentials{
 				ClientID:     answers.ClientID,
 				ClientSecret: answers.ClientSecret,
 			},
@@ -125,10 +125,10 @@ func createAzureActivityLogIntegration() error {
 
 	azure := api.NewCloudAccount(answers.Name,
 		api.AzureAlSeqCloudAccount,
-		api.AzAlData{
+		api.AzureAlSeqData{
 			QueueUrl: answers.QueueUrl,
 			TenantID: answers.TenantID,
-			Credentials: api.AzAlCredentials{
+			Credentials: api.AzureAlSeqCredentials{
 				ClientID:     answers.ClientID,
 				ClientSecret: answers.ClientSecret,
 			},

@@ -12,7 +12,7 @@ var (
 		Use:     "container-registry",
 		Aliases: []string{"container-registries", "cr"},
 		Short:   "Manage container registries",
-		Long:    "Manage container registries integrations with Lacework",
+		Long:    "Manage container registry integrations with Lacework",
 	}
 
 	// containerRegistriesListCmd represents the list sub-command inside the container registries command
@@ -60,9 +60,9 @@ func init() {
 	containerRegistryCommand.AddCommand(containerRegistryDeleteCmd)
 }
 
-func containerRegistriesToTable(integrations []api.ContainerRegistryRaw) [][]string {
+func containerRegistriesToTable(containerRegistries []api.ContainerRegistryRaw) [][]string {
 	var out [][]string
-	for _, cadata := range integrations {
+	for _, cadata := range containerRegistries {
 		out = append(out, []string{
 			cadata.IntgGuid,
 			cadata.Name,
@@ -81,13 +81,13 @@ func containerRegistryList(_ *cobra.Command, _ []string) error {
 		return errors.Wrap(err, "unable to get container registries")
 	}
 
+	if cli.JSONOutput() {
+		return cli.OutputJSON(containerRegistries.Data)
+	}
+
 	if len(containerRegistries.Data) == 0 {
 		cli.OutputHuman("No container registries found.\n")
 		return nil
-	}
-
-	if cli.JSONOutput() {
-		return cli.OutputJSON(containerRegistries.Data)
 	}
 
 	cli.OutputHuman(
@@ -134,10 +134,10 @@ func containerRegistryCreate(_ *cobra.Command, _ []string) error {
 
 	err := promptCreateContainerRegistry()
 	if err != nil {
-		return errors.Wrap(err, "unable to create integration")
+		return errors.Wrap(err, "unable to create container registry")
 	}
 
-	cli.OutputHuman("The integration was created.\n")
+	cli.OutputHuman("The container registry was created.\n")
 	return nil
 }
 
@@ -154,8 +154,8 @@ func containerRegistryDelete(_ *cobra.Command, args []string) error {
 
 func promptCreateContainerRegistry() error {
 	var (
-		integration = ""
-		prompt      = &survey.Select{
+		containerRegistry = ""
+		prompt            = &survey.Select{
 			Message: "Choose a container registry type to create: ",
 			Options: []string{
 				"Docker Hub Registry",
@@ -167,13 +167,13 @@ func promptCreateContainerRegistry() error {
 				"Inline Scanner Container Registry",
 			},
 		}
-		err = survey.AskOne(prompt, &integration)
+		err = survey.AskOne(prompt, &containerRegistry)
 	)
 	if err != nil {
 		return err
 	}
 
-	switch integration {
+	switch containerRegistry {
 	case "Docker Hub Registry":
 		return createDockerHubIntegration()
 	case "Docker V2 Registry":

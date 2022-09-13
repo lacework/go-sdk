@@ -62,9 +62,9 @@ func init() {
 	alertChannelCommand.AddCommand(alertChannelDeleteCmd)
 }
 
-func alertChannelsToTable(integrations []api.AlertChannelRaw) [][]string {
+func alertChannelsToTable(alertChannels []api.AlertChannelRaw) [][]string {
 	var out [][]string
-	for _, cadata := range integrations {
+	for _, cadata := range alertChannels {
 		out = append(out, []string{
 			cadata.IntgGuid,
 			cadata.Name,
@@ -83,13 +83,13 @@ func alertChannelList(_ *cobra.Command, _ []string) error {
 		return errors.Wrap(err, "unable to get alert channels")
 	}
 
+	if cli.JSONOutput() {
+		return cli.OutputJSON(alertChannels.Data)
+	}
+
 	if len(alertChannels.Data) == 0 {
 		cli.OutputHuman("No alert channels found.\n")
 		return nil
-	}
-
-	if cli.JSONOutput() {
-		return cli.OutputJSON(alertChannels.Data)
 	}
 
 	cli.OutputHuman(
@@ -137,10 +137,10 @@ func alertChannelCreate(_ *cobra.Command, _ []string) error {
 
 	err := promptCreateAlertChannel()
 	if err != nil {
-		return errors.Wrap(err, "unable to create integration")
+		return errors.Wrap(err, "unable to create alert channel")
 	}
 
-	cli.OutputHuman("The integration was created.\n")
+	cli.OutputHuman("The alert channel was created.\n")
 	return nil
 }
 
@@ -157,9 +157,9 @@ func alertChannelDelete(_ *cobra.Command, args []string) error {
 
 func promptCreateAlertChannel() error {
 	var (
-		integration = ""
-		prompt      = &survey.Select{
-			Message: "Choose an integration type to create: ",
+		alertChannel = ""
+		prompt       = &survey.Select{
+			Message: "Choose an alert channel type to create: ",
 			Options: []string{
 				"Slack",
 				"Email",
@@ -180,13 +180,13 @@ func promptCreateAlertChannel() error {
 				"Jira Server",
 			},
 		}
-		err = survey.AskOne(prompt, &integration)
+		err = survey.AskOne(prompt, &alertChannel)
 	)
 	if err != nil {
 		return err
 	}
 
-	switch integration {
+	switch alertChannel {
 	case "Slack":
 		return createSlackAlertChannelIntegration()
 	case "Email":
@@ -222,6 +222,6 @@ func promptCreateAlertChannel() error {
 	case "Jira Server":
 		return createJiraServerAlertChannelIntegration()
 	default:
-		return errors.New("unknown integration type")
+		return errors.New("unknown alert channel type")
 	}
 }

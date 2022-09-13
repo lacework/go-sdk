@@ -142,7 +142,7 @@ func createAwsEcrIntegration() error {
 		ecr := api.NewContainerRegistry(answers.Name,
 			api.AwsEcrContainerRegistry,
 			api.AwsEcrData{
-				Credentials: api.EcrCredentials{
+				CrossAccountCredentials: &api.AwsEcCrossAccountCredentials{
 					RoleArn:    ecrAuthAnswers.RoleArn,
 					ExternalID: ecrAuthAnswers.ExternalID,
 				},
@@ -189,7 +189,7 @@ func createAwsEcrIntegration() error {
 		ecr := api.NewContainerRegistry(answers.Name,
 			api.AwsEcrContainerRegistry,
 			api.AwsEcrData{
-				Credentials: api.EcrCredentials{
+				AccessKeyCredentials: &api.AwsEcrAccessKeyCredentials{
 					AccessKeyID:     ecrAuthAnswers.AccessKeyID,
 					SecretAccessKey: ecrAuthAnswers.SecretAccessKey,
 				},
