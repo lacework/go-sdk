@@ -26,6 +26,9 @@ import (
 )
 
 func TestAlertChannelShow(t *testing.T) {
+	if !alertChannelExists() {
+		t.Skip("Alert Channel does not exist")
+	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("ac", "show", "TECHALLY_E839836BC385C452E68B3CA7EB45BA0E7BDA39CCF65673A")
 	// Summary Table
 	assert.Contains(t, out.String(), "ALERT CHANNEL GUID",
@@ -79,4 +82,14 @@ func TestAlertChannelList(t *testing.T) {
 		"STDERR should be empty")
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
+}
+
+func alertChannelExists() bool {
+	lw, err := laceworkIntegrationTestClient()
+	resp, err := lw.V2.AlertChannels.GetAwsS3("TECHALLY_E839836BC385C452E68B3CA7EB45BA0E7BDA39CCF65673A")
+	if err != nil {
+		return false
+	}
+	name := resp.Data.Name
+	return name != ""
 }
