@@ -29,42 +29,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestContainerRegistriesAwsEcrRoleGet(t *testing.T) {
-	var (
-		intgGUID   = intgguid.New()
-		apiPath    = fmt.Sprintf("ContainerRegistries/%s", intgGUID)
-		fakeServer = lacework.MockServer()
-	)
-	fakeServer.UseApiV2()
-	fakeServer.MockToken("TOKEN")
-	defer fakeServer.Close()
-
-	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method, "GetAwsEcr() should be a GET method")
-		fmt.Fprintf(w, generateContainerRegistryResponse(singleAwsEcrRoleContainerRegistry(intgGUID)))
-	})
-
-	c, err := api.NewClient("test",
-		api.WithApiV2(),
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-	assert.Nil(t, err)
-
-	response, err := c.V2.ContainerRegistries.GetAwsEcr(intgGUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, intgGUID, response.Data.IntgGuid)
-	assert.Equal(t, "aws-ecr-iam-role", response.Data.Name)
-	assert.True(t, response.Data.State.Ok)
-	assert.Equal(t, "arn:aws:iam::12345678:role/test", response.Data.Data.CrossAccountCredentials.RoleArn)
-	assert.Equal(t, "ABCD1234567", response.Data.Data.CrossAccountCredentials.ExternalID)
-	assert.Equal(t, "AWS_IAM", response.Data.Data.AwsAuthType)
-	assert.Equal(t, "AWS_ECR", response.Data.Data.RegistryType)
-	assert.Equal(t, "AWS_IAM", response.Data.Data.AwsAuthType)
-	assert.Equal(t, "12345678.dkr.ecr.us-east-1.amazonaws.com", response.Data.Data.RegistryDomain)
-}
-
 func TestContainerRegistriesAwsEcrAccessKeyGet(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
@@ -87,7 +51,7 @@ func TestContainerRegistriesAwsEcrAccessKeyGet(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.ContainerRegistries.GetAwsEcr(intgGUID)
+	response, err := c.V2.ContainerRegistries.GetAwsEcrAccessKey(intgGUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, intgGUID, response.Data.IntgGuid)
@@ -143,45 +107,4 @@ func singleAwsEcrAccessKeyContainerRegistry(id string) string {
             "nonOsPackageEval": true
         }
 }`, id)
-}
-
-func singleAwsEcrRoleContainerRegistry(id string) string {
-	return fmt.Sprintf(`{
-        "createdOrUpdatedBy": "test@lacework.net",
-        "createdOrUpdatedTime": "2021-09-28T09:16:57.092Z",
-        "enabled": 1,
-        "intgGuid": %q,
-        "isOrg": 0,
-        "name": "aws-ecr-iam-role",
-        "props": {
-            "tags": "AWS_ECR"
-        },
-        "state": {
-            "ok": true,
-            "lastUpdatedTime": 1663067362457,
-            "lastSuccessfulTime": 1663067362457,
-            "details": {
-                "errorMap": {
-                    "tech-ally": {
-                        "errors": []
-                    }
-                }
-            }
-        },
-        "type": "ContVulnCfg",
-        "data": {
-            "crossAccountCredentials": {
-                "roleArn": "arn:aws:iam::12345678:role/test",
-                "externalId": "ABCD1234567"
-            },
-            "awsAuthType": "AWS_IAM",
-            "registryType": "AWS_ECR",
-            "registryDomain": "12345678.dkr.ecr.us-east-1.amazonaws.com",
-            "limitNumImg": 5,
-            "limitByTag": [],
-            "limitByLabel": [],
-            "limitByRep": [],
-            "nonOsPackageEval": true
-        }
-    }`, id)
 }

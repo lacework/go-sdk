@@ -18,42 +18,41 @@
 
 package api
 
-// GetAwsEcr gets a single AwsEcr integration matching the
+// GetAwsEcrIamRole gets a single AwsEcr with Iam Role credentials integration matching the
 // provided integration guid
-func (svc *ContainerRegistriesService) GetAwsEcr(guid string) (
-	response AwsEcrIntegrationResponse,
+func (svc *ContainerRegistriesService) GetAwsEcrIamRole(guid string) (
+	response AwsEcrIamRoleIntegrationResponse,
 	err error,
 ) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateAwsEcr updates a single AwsEcr integration on the Lacework Server
-func (svc *ContainerRegistriesService) UpdateAwsEcr(data ContainerRegistry) (
-	response AwsEcrIntegrationResponse,
+// UpdateAwsEcrIamRole updates a single AwsEcr with Iam Role credentials integration on the Lacework Server
+func (svc *ContainerRegistriesService) UpdateAwsEcrIamRole(data ContainerRegistry) (
+	response AwsEcrIamRoleIntegrationResponse,
 	err error,
 ) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
 
-type AwsEcrIntegrationResponse struct {
-	Data AwsEcrIntegration `json:"data"`
+type AwsEcrIamRoleIntegrationResponse struct {
+	Data AwsEcrIamRoleIntegration `json:"data"`
 }
 
-type AwsEcrIntegration struct {
+type AwsEcrIamRoleIntegration struct {
 	v2CommonIntegrationData
-	Data AwsEcrData `json:"data"`
+	Data AwsEcrIamRoleData `json:"data"`
 }
 
-func (reg AwsEcrIntegration) ContainerRegistryType() containerRegistryType {
+func (reg AwsEcrIamRoleIntegration) ContainerRegistryType() containerRegistryType {
 	t, _ := FindContainerRegistryType(reg.Data.RegistryType)
 	return t
 }
 
-type AwsEcrData struct {
-	CrossAccountCredentials *AwsEcCrossAccountCredentials `json:"crossAccountCredentials,omitempty"`
-	AccessKeyCredentials    *AwsEcrAccessKeyCredentials   `json:"accessKeyCredentials,omitempty"`
+type AwsEcrIamRoleData struct {
+	CrossAccountCredentials AwsEcrCrossAccountCredentials `json:"crossAccountCredentials,omitempty"`
 	RegistryDomain          string                        `json:"registryDomain"`
 	RegistryType            string                        `json:"registryType"`
 	LimitByTag              []string                      `json:"limitByTag"`
@@ -64,20 +63,7 @@ type AwsEcrData struct {
 	AwsAuthType             string                        `json:"awsAuthType"`
 }
 
-func verifyAwsEcrContainerRegistry(data interface{}) interface{} {
-	if ecr, ok := data.(AwsEcrData); ok {
-		ecr.RegistryType = AwsEcrContainerRegistry.String()
-		return ecr
-	}
-	return data
-}
-
-type AwsEcrAccessKeyCredentials struct {
-	AccessKeyID     string `json:"accessKeyId,omitempty"`
-	SecretAccessKey string `json:"secretAccessKey,omitempty"`
-}
-
-type AwsEcCrossAccountCredentials struct {
+type AwsEcrCrossAccountCredentials struct {
 	RoleArn    string `json:"roleArn,omitempty"`
 	ExternalID string `json:"externalId,omitempty"`
 }

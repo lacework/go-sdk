@@ -21,24 +21,6 @@ package api
 // This file has the abstraction of the Lacework APIs to manage integrations
 // of type AWS_ECR using CROSS_ACCOUNT_CREDENTIALS as Authentication Method
 
-type ecrAuthType int
-
-const (
-	AwsEcrIAM ecrAuthType = iota
-	AwsEcrAccessKey
-)
-
-// AwsEcrAuthTypes is the list of available ECR auth types
-var AwsEcrAuthTypes = map[ecrAuthType]string{
-	AwsEcrIAM:       "AWS_IAM",
-	AwsEcrAccessKey: "AWS_ACCESS_KEY",
-}
-
-// String returns the string representation of an ECR auth type
-func (i ecrAuthType) String() string {
-	return AwsEcrAuthTypes[i]
-}
-
 func NewAwsEcrWithCrossAccountIntegration(name string, data AwsEcrDataWithCrossAccountCreds) AwsEcrWithCrossAccountIntegration {
 	data.RegistryType = EcrRegistry.String()
 	data.AwsAuthType = AwsEcrIAM.String()
