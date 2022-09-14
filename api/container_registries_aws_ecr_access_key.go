@@ -96,8 +96,3 @@ type AwsEcrAccessKeyCredentials struct {
 	AccessKeyID     string `json:"accessKeyId,omitempty"`
 	SecretAccessKey string `json:"secretAccessKey,omitempty"`
 }
-
-type AwsEcCrossAccountCredentials struct {
-	RoleArn    string `json:"roleArn,omitempty"`
-	ExternalID string `json:"externalId,omitempty"`
-}
