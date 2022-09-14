@@ -24,5 +24,5 @@ const (
 	GcpConfigSource    = "lacework/config/gcp"
 	GcpConfigVersion   = "~> 2.0"
 	GcpAuditLogSource  = "lacework/audit-log/gcp"
-	GcpAuditLogVersion = "~> 2.0"
+	GcpAuditLogVersion = "~> 3.0"
 )
