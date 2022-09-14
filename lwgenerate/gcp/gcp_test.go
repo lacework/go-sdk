@@ -126,28 +126,6 @@ func TestGenerationProjectLevelAuditLogBucketRegion(t *testing.T) {
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketRegion), hcl)
 }
 
-func TestGenerationProjectLevelAuditLogBucketLocation(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, true,
-		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
-		gcp.WithProjectId("project1"),
-		gcp.WithBucketLocation("us"),
-	).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketLocation), hcl)
-}
-
-func TestGenerationProjectLevelAuditLogBucketName(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, true,
-		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
-		gcp.WithProjectId("project1"),
-		gcp.WithBucketName("foo"),
-	).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketName), hcl)
-}
-
 func TestGenerationProjectLevelAuditLogExistingBucketName(t *testing.T) {
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -212,17 +190,6 @@ func TestGenerationProjectLevelAuditLogBucketLifecycleRuleAge(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketLifecycleRuleAge), hcl)
-}
-
-func TestGenerationProjectLevelAuditLogBucketRetentionDays(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, true,
-		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
-		gcp.WithProjectId("project1"),
-		gcp.WithLogBucketRetentionDays(420),
-	).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketRetentionDays), hcl)
 }
 
 func TestGenerationOrganizationLevelAuditLogWithoutConfig(t *testing.T) {
@@ -362,6 +329,401 @@ func TestGenerationOrganizationLevelConfigurationCustomIntegrationName(t *testin
 	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfigurationCustomIntegrationName), hcl)
 }
 
+func TestGenerationProjectLevelAuditLogCustomBucketName(t *testing.T) {
+	expect := `module "gcp_project_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  custom_bucket_name = "bucket"
+}
+`
+
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithCustomBucketName("bucket"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationProjectLevelAuditLogCustomFilter(t *testing.T) {
+	expect := `module "gcp_project_audit_log" {
+  source        = "lacework/audit-log/gcp"
+  version       = "~> 3.0"
+  custom_filter = "custom-filter"
+}
+`
+
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithCustomFilter("custom-filter"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationProjectLevelAuditLogGoogleWorkspaceFilter(t *testing.T) {
+	expect := `module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 3.0"
+}
+`
+
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithGoogleWorkspaceFilter(true),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+
+	expect = `module "gcp_project_audit_log" {
+  source                  = "lacework/audit-log/gcp"
+  version                 = "~> 3.0"
+  google_workspace_filter = false
+}
+`
+
+	hcl, err = gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithGoogleWorkspaceFilter(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationProjectLevelAuditLogK8sFilter(t *testing.T) {
+	expect := `module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 3.0"
+}
+`
+
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithK8sFilter(true),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+
+	expect = `module "gcp_project_audit_log" {
+  source     = "lacework/audit-log/gcp"
+  version    = "~> 3.0"
+  k8s_filter = false
+}
+`
+
+	hcl, err = gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithK8sFilter(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationOrganizationLevelAuditLogFoldersToInclude(t *testing.T) {
+	expect := `module "gcp_organization_level_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  folders_to_include = ["abc", "def"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithFoldersToInclude([]string{"abc", "abc", "def", "def"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationOrganizationLevelAuditLogFoldersToExclude(t *testing.T) {
+	expect := `module "gcp_organization_level_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  folders_to_exclude = ["abc", "def"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithFoldersToExclude([]string{"abc", "def"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsSolo(t *testing.T) {
+	expect := `module "gcp_organization_level_audit_log" {
+  source          = "lacework/audit-log/gcp"
+  version         = "~> 3.0"
+  org_integration = true
+  organization_id = "123456789"
+}
+`
+
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithIncludeRootProjects(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsFalse(t *testing.T) {
+	expect := `module "gcp_organization_level_audit_log" {
+  source                = "lacework/audit-log/gcp"
+  version               = "~> 3.0"
+  folders_to_exclude    = ["abc"]
+  include_root_projects = false
+  org_integration       = true
+  organization_id       = "123456789"
+}
+`
+
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithIncludeRootProjects(false),
+		gcp.WithFoldersToExclude([]string{"abc"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsTrue(t *testing.T) {
+	expect := `module "gcp_organization_level_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  folders_to_exclude = ["abc"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`
+
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithIncludeRootProjects(true),
+		gcp.WithFoldersToExclude([]string{"abc"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationProjectLevelAuditLogPrefix(t *testing.T) {
+	expect := `module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 3.0"
+  prefix  = "rar"
+}
+`
+
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithPrefix("rar"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationProjectLevelAuditLogWaitTime(t *testing.T) {
+	expect := `module "gcp_project_audit_log" {
+  source    = "lacework/audit-log/gcp"
+  version   = "~> 3.0"
+  wait_time = "30s"
+}
+`
+
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithWaitTime("30s"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationOrganizationLevelConfigurationFoldersToInclude(t *testing.T) {
+	expect := `module "gcp_organization_level_config" {
+  source             = "lacework/config/gcp"
+  version            = "~> 2.3"
+  folders_to_include = ["abc", "def"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`
+
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithFoldersToInclude([]string{"abc", "abc", "def", "def"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationOrganizationLevelConfigurationFoldersToExclude(t *testing.T) {
+	expect := `module "gcp_organization_level_config" {
+  source             = "lacework/config/gcp"
+  version            = "~> 2.3"
+  folders_to_exclude = ["abc", "def"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`
+
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithFoldersToExclude([]string{"abc", "def"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationOrganizationLevelConfigurationIncludeRootProjectsSolo(t *testing.T) {
+	expect := `module "gcp_organization_level_config" {
+  source          = "lacework/config/gcp"
+  version         = "~> 2.3"
+  org_integration = true
+  organization_id = "123456789"
+}
+`
+
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithIncludeRootProjects(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationOrganizationLevelConfigurationIncludeRootProjectsFalse(t *testing.T) {
+	expect := `module "gcp_organization_level_config" {
+  source                = "lacework/config/gcp"
+  version               = "~> 2.3"
+  folders_to_exclude    = ["abc"]
+  include_root_projects = false
+  org_integration       = true
+  organization_id       = "123456789"
+}
+`
+
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithIncludeRootProjects(false),
+		gcp.WithFoldersToExclude([]string{"abc"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationOrganizationLevelConfigurationIncludeRootProjectsTrue(t *testing.T) {
+	expect := `module "gcp_organization_level_config" {
+  source             = "lacework/config/gcp"
+  version            = "~> 2.3"
+  folders_to_exclude = ["abc"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`
+
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithIncludeRootProjects(true),
+		gcp.WithFoldersToExclude([]string{"abc"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationProjectLevelConfigurationPrefix(t *testing.T) {
+	expect := `module "gcp_project_level_config" {
+  source  = "lacework/config/gcp"
+  version = "~> 2.3"
+  prefix  = "rar"
+}
+`
+
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithPrefix("rar"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
+func TestGenerationProjectConfigurationLogWaitTime(t *testing.T) {
+	expect := `module "gcp_project_level_config" {
+  source    = "lacework/config/gcp"
+  version   = "~> 2.3"
+  wait_time = "30s"
+}
+`
+	hcl, err := gcp.NewTerraform(true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithWaitTime("30s"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(expect), hcl)
+}
+
 var requiredProviders = `terraform {
   required_providers {
     lacework = {
@@ -389,7 +751,7 @@ var laceworkProvider = `provider "lacework" {
 
 var moduleImportProjectLevelAuditLogWithConfiguration = `module "gcp_project_audit_log" {
   source                       = "lacework/audit-log/gcp"
-  version                      = "~> 2.0"
+  version                      = "~> 3.0"
   service_account_name         = module.gcp_project_level_config.service_account_name
   service_account_private_key  = module.gcp_project_level_config.service_account_private_key
   use_existing_service_account = true
@@ -398,20 +760,20 @@ var moduleImportProjectLevelAuditLogWithConfiguration = `module "gcp_project_aud
 
 var moduleImportProjectLevelAuditLogWithoutConfiguration = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
 }
 `
 
 var moduleImportProjectLevelAuditLogCustomIntegrationName = `module "gcp_project_audit_log" {
   source                    = "lacework/audit-log/gcp"
-  version                   = "~> 2.0"
+  version                   = "~> 3.0"
   lacework_integration_name = "custom_integration_name"
 }
 `
 
 var moduleImportProjectLevelAuditLogLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
   labels = {
     key = "value"
   }
@@ -420,7 +782,7 @@ var moduleImportProjectLevelAuditLogLabels = `module "gcp_project_audit_log" {
 
 var moduleImportProjectLevelAuditLogBucketLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
   bucket_labels = {
     key = "value"
   }
@@ -429,7 +791,7 @@ var moduleImportProjectLevelAuditLogBucketLabels = `module "gcp_project_audit_lo
 
 var moduleImportProjectLevelAuditLogPubSubSubscriptionLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
   pubsub_subscription_labels = {
     key = "value"
   }
@@ -438,7 +800,7 @@ var moduleImportProjectLevelAuditLogPubSubSubscriptionLabels = `module "gcp_proj
 
 var moduleImportProjectLevelAuditLogPubSubTopicLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
   pubsub_topic_labels = {
     key = "value"
   }
@@ -447,76 +809,55 @@ var moduleImportProjectLevelAuditLogPubSubTopicLabels = `module "gcp_project_aud
 
 var moduleImportProjectLevelAuditLogBucketRegion = `module "gcp_project_audit_log" {
   source        = "lacework/audit-log/gcp"
-  version       = "~> 2.0"
+  version       = "~> 3.0"
   bucket_region = "us-west"
-}
-`
-
-var moduleImportProjectLevelAuditLogBucketLocation = `module "gcp_project_audit_log" {
-  source              = "lacework/audit-log/gcp"
-  version             = "~> 2.0"
-  log_bucket_location = "us"
-}
-`
-
-var moduleImportProjectLevelAuditLogBucketName = `module "gcp_project_audit_log" {
-  source     = "lacework/audit-log/gcp"
-  version    = "~> 2.0"
-  log_bucket = "foo"
 }
 `
 
 var moduleImportProjectLevelAuditLogExistingBucketName = `module "gcp_project_audit_log" {
   source               = "lacework/audit-log/gcp"
-  version              = "~> 2.0"
+  version              = "~> 3.0"
   existing_bucket_name = "foo"
 }
 `
 
 var moduleImportProjectLevelAuditLogExistingLogSinkName = `module "gcp_project_audit_log" {
   source             = "lacework/audit-log/gcp"
-  version            = "~> 2.0"
+  version            = "~> 3.0"
   existing_sink_name = "foo"
 }
 `
 
 var moduleImportProjectLevelAuditLogEnableForceDestroyBucket = `module "gcp_project_audit_log" {
   source               = "lacework/audit-log/gcp"
-  version              = "~> 2.0"
+  version              = "~> 3.0"
   bucket_force_destroy = true
 }
 `
 
 var moduleImportProjectLevelAuditLogEnableUBLA = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
 }
 `
 
 var moduleImportProjectLevelAuditLogDisableUBLA = `module "gcp_project_audit_log" {
   source      = "lacework/audit-log/gcp"
-  version     = "~> 2.0"
+  version     = "~> 3.0"
   enable_ubla = false
 }
 `
 
 var moduleImportProjectLevelAuditLogBucketLifecycleRuleAge = `module "gcp_project_audit_log" {
   source             = "lacework/audit-log/gcp"
-  version            = "~> 2.0"
+  version            = "~> 3.0"
   lifecycle_rule_age = 420
-}
-`
-
-var moduleImportProjectLevelAuditLogBucketRetentionDays = `module "gcp_project_audit_log" {
-  source                    = "lacework/audit-log/gcp"
-  version                   = "~> 2.0"
-  log_bucket_retention_days = 420
 }
 `
 
 var moduleImportOrganizationLevelAuditLogWithConfiguration = `module "gcp_organization_level_audit_log" {
   source                       = "lacework/audit-log/gcp"
-  version                      = "~> 2.0"
+  version                      = "~> 3.0"
   org_integration              = true
   organization_id              = "123456789"
   service_account_name         = module.gcp_organization_level_config.service_account_name
@@ -527,14 +868,14 @@ var moduleImportOrganizationLevelAuditLogWithConfiguration = `module "gcp_organi
 
 var moduleImportOrganizationLevelAuditLogWithoutConfiguration = `module "gcp_organization_level_audit_log" {
   source          = "lacework/audit-log/gcp"
-  version         = "~> 2.0"
+  version         = "~> 3.0"
   org_integration = true
   organization_id = "123456789"
 }
 `
 var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_organization_level_audit_log" {
   source                    = "lacework/audit-log/gcp"
-  version                   = "~> 2.0"
+  version                   = "~> 3.0"
   lacework_integration_name = "custom_integration_name"
   org_integration           = true
   organization_id           = "123456789"
@@ -543,13 +884,13 @@ var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_or
 
 var moduleImportProjectLevelConfiguration = `module "gcp_project_level_config" {
   source  = "lacework/config/gcp"
-  version = "~> 2.0"
+  version = "~> 2.3"
 }
 `
 
 var moduleImportProjectLevelConfigurationExistingSA = `module "gcp_project_level_config" {
   source                       = "lacework/config/gcp"
-  version                      = "~> 2.0"
+  version                      = "~> 2.3"
   service_account_name         = "foo"
   service_account_private_key  = "123456789"
   use_existing_service_account = true
@@ -558,14 +899,14 @@ var moduleImportProjectLevelConfigurationExistingSA = `module "gcp_project_level
 
 var moduleImportProjectLevelConfigurationCustomIntegrationName = `module "gcp_project_level_config" {
   source                    = "lacework/config/gcp"
-  version                   = "~> 2.0"
+  version                   = "~> 2.3"
   lacework_integration_name = "custom_integration_name"
 }
 `
 
 var moduleImportOrganizationLevelConfiguration = `module "gcp_organization_level_config" {
   source          = "lacework/config/gcp"
-  version         = "~> 2.0"
+  version         = "~> 2.3"
   org_integration = true
   organization_id = "123456789"
 }
@@ -573,7 +914,7 @@ var moduleImportOrganizationLevelConfiguration = `module "gcp_organization_level
 
 var moduleImportOrganizationLevelConfigurationExistingSA = `module "gcp_organization_level_config" {
   source                       = "lacework/config/gcp"
-  version                      = "~> 2.0"
+  version                      = "~> 2.3"
   org_integration              = true
   organization_id              = "123456789"
   service_account_name         = "foo"
@@ -584,7 +925,7 @@ var moduleImportOrganizationLevelConfigurationExistingSA = `module "gcp_organiza
 
 var moduleImportOrganizationLevelConfigurationCustomIntegrationName = `module "gcp_organization_level_config" {
   source                    = "lacework/config/gcp"
-  version                   = "~> 2.0"
+  version                   = "~> 2.3"
   lacework_integration_name = "custom_integration_name"
   org_integration           = true
   organization_id           = "123456789"

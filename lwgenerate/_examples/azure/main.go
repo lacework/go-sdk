@@ -43,7 +43,7 @@ func ConfigWithoutActivityLog() {
 func CustomActiveDirectory() {
 	hcl, err := azure.NewTerraform(true, true, false,
 		azure.WithConfigIntegrationName("Test Config Rename"),
-		azure.WithAuditLogIntegrationName("Test Activity Log Rename"),
+		azure.WithActivityLogIntegrationName("Test Activity Log Rename"),
 		azure.WithAdApplicationPassword("AD-Test-Password"),
 		azure.WithAdServicePrincipalId("AD-Test-Principal-ID"),
 		azure.WithAdApplicationId("AD-Test-Application-ID"),
