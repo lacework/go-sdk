@@ -141,8 +141,9 @@ const (
 	apiV2TeamMembersFromGUID = "v2/TeamMembers/%s"
 	apiV2TeamMembersSearch   = "v2/TeamMembers/search"
 
-	apiV2VulnerabilitiesContainersSearch = "v2/Vulnerabilities/Containers/search"
-	apiV2VulnerabilitiesHostsSearch      = "v2/Vulnerabilities/Hosts/search"
+	apiV2VulnerabilitiesContainersSearch     = "v2/Vulnerabilities/Containers/search"
+	apiV2VulnerabilitiesHostsSearch          = "v2/Vulnerabilities/Hosts/search"
+	apiV2VulnerabilitiesSoftwarePackagesScan = "v2/Vulnerabilities/SoftwarePackages/scan"
 
 	apiV2VulnerabilityExceptions        = "v2/VulnerabilityExceptions"
 	apiV2VulnerabilityExceptionFromGUID = "v2/VulnerabilityExceptions/%s"

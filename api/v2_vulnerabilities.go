@@ -18,20 +18,25 @@
 
 package api
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 // v2VulnerabilitiesService is a service that interacts with the Vulnerabilities
 // endpoints from the Lacework APIv2 Server
 type v2VulnerabilitiesService struct {
-	client     *Client
-	Hosts      *v2HostVulnerabilityService
-	Containers *v2ContainerVulnerabilityService
+	client           *Client
+	Hosts            *v2HostVulnerabilityService
+	Containers       *v2ContainerVulnerabilityService
+	SoftwarePackages *v2SoftwarePackagesVulnerabilityService
 }
 
 func NewV2VulnerabilitiesService(c *Client) *v2VulnerabilitiesService {
 	return &v2VulnerabilitiesService{c,
 		&v2HostVulnerabilityService{c},
 		&v2ContainerVulnerabilityService{c},
+		&v2SoftwarePackagesVulnerabilityService{c},
 	}
 }
 
@@ -251,9 +256,10 @@ func (r *VulnerabilitiesHostResponse) ResetPaging() {
 
 type VulnerabilityHost struct {
 	CveProps struct {
-		CveBatchID  string `json:"cve_batch_id"`
-		Description string `json:"description"`
-		Link        string `json:"link"`
+		CveBatchID  string                     `json:"cve_batch_id"`
+		Description string                     `json:"description"`
+		Link        string                     `json:"link"`
+		Metadata    *VulnerabilityHostMetadata `json:"metadata,omitempty"`
 	} `json:"cveProps"`
 	EndTime time.Time `json:"endTime"`
 	EvalCtx struct {
@@ -310,9 +316,106 @@ type VulnerabilityHost struct {
 		LwKubernetesCluster                   string `json:"lw_KubernetesCluster"`
 		Os                                    string `json:"os"`
 	} `json:"machineTags"`
-	Mid       int       `json:"mid"`
-	Severity  string    `json:"severity"`
-	StartTime time.Time `json:"startTime"`
-	Status    string    `json:"status"`
-	VulnID    string    `json:"vulnId"`
+	Props     VulnerabilityHostProps `json:"props"`
+	Mid       int                    `json:"mid"`
+	Severity  string                 `json:"severity"`
+	StartTime time.Time              `json:"startTime"`
+	Status    string                 `json:"status"`
+	VulnID    string                 `json:"vulnId"`
+}
+
+func (v *VulnerabilityHost) PackageActive() string {
+	if v.FeatureKey.PackageActive == 0 {
+		return ""
+	}
+	return "ACTIVE"
+}
+
+func (v *VulnerabilityHost) CvssV2() (cvssV2Score string) {
+	if v.CveProps.Metadata != nil {
+		score := v.CveProps.Metadata.NVD.CVSSv2.Score
+		cvssV2Score = strconv.FormatFloat(score, 'f', 1, 64)
+	}
+	return
+}
+
+func (v *VulnerabilityHost) CvssV3() (cvssV3Score string) {
+	if v.CveProps.Metadata != nil {
+		score := v.CveProps.Metadata.NVD.CVSSv3.Score
+		cvssV3Score = strconv.FormatFloat(score, 'f', 1, 64)
+	}
+	return
+}
+
+type VulnerabilityHostMetadata struct {
+	NVD struct {
+		CVSSv2 struct {
+			PublishedDateTime string  `json:"PublishedDateTime"`
+			Score             float64 `json:"Score"`
+			Vectors           string  `json:"Vectors"`
+		} `json:"CVSSv2"`
+		CVSSv3 struct {
+			ExploitabilityScore float64 `json:"ExploitabilityScore"`
+			ImpactScore         float64 `json:"ImpactScore"`
+			Score               float64 `json:"Score"`
+			Vectors             string  `json:"Vectors"`
+		} `json:"CVSSv3"`
+	} `json:"NVD"`
+}
+
+type VulnerabilityHostProps struct {
+	FirstTimeSeen   *time.Time `json:"first_time_seen,omitempty"`
+	IsDailyJob      int        `json:"isDailyJob,omitempty"`
+	LastUpdatedTime *time.Time `json:"last_updated_time,omitempty"`
+}
+
+func (v *VulnerabilityHost) HasFix() bool {
+	return v.FixInfo.FixAvailable == "1"
+}
+
+func (hosts *VulnerabilitiesHostResponse) VulnerabilityCounts() HostVulnCounts {
+	var hostCounts = HostVulnCounts{}
+
+	// remove duplicates before count.
+	for _, h := range hosts.Data {
+		switch h.Severity {
+		case "Critical":
+			hostCounts.Critical++
+			hostCounts.Total++
+			if h.HasFix() {
+				hostCounts.CritFixable++
+				hostCounts.TotalFixable++
+			}
+		case "High":
+			hostCounts.High++
+			hostCounts.Total++
+			if h.HasFix() {
+				hostCounts.HighFixable++
+				hostCounts.TotalFixable++
+			}
+		case "Medium":
+			hostCounts.Medium++
+			hostCounts.Total++
+			if h.HasFix() {
+				hostCounts.MedFixable++
+				hostCounts.TotalFixable++
+			}
+		case "Low":
+			hostCounts.Low++
+			hostCounts.Total++
+			if h.HasFix() {
+				hostCounts.LowFixable++
+				hostCounts.TotalFixable++
+			}
+		default:
+			hostCounts.Info++
+			hostCounts.Total++
+			if h.HasFix() {
+				hostCounts.InfoFixable++
+				hostCounts.TotalFixable++
+			}
+		}
+	}
+
+	return hostCounts
 }
