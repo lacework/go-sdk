@@ -81,12 +81,6 @@ type GenerateGcpTfConfigurationArgs struct {
 	// Supply a GCP region for the new bucket. EU/US/ASIA
 	BucketRegion string
 
-	// Supply a GCP location for the new bucket. Defaults to global
-	BucketLocation string
-
-	// Supply a name for the new bucket
-	BucketName string
-
 	// Existing Bucket Name
 	ExistingLogBucketName string
 
@@ -102,10 +96,6 @@ type GenerateGcpTfConfigurationArgs struct {
 	// Number of days to keep audit logs in Lacework GCS bucket before deleting.
 	// If left empty the TF will default to -1
 	LogBucketLifecycleRuleAge int
-
-	// The number of days to keep logs before deleting.
-	// If left as 0 the TF will default to 30.
-	LogBucketRetentionDays int
 
 	// If AuditLog is true, give the user the opportunity to name their integration. Defaults to "TF audit_log"
 	AuditLogIntegrationName string
@@ -250,20 +240,6 @@ func WithBucketRegion(region string) GcpTerraformModifier {
 	}
 }
 
-// WithBucketLocation Set the name of the bucket that will receive log objects
-func WithBucketLocation(location string) GcpTerraformModifier {
-	return func(c *GenerateGcpTfConfigurationArgs) {
-		c.BucketLocation = location
-	}
-}
-
-// WithBucketName Set the Location in which the Bucket should be created
-func WithBucketName(name string) GcpTerraformModifier {
-	return func(c *GenerateGcpTfConfigurationArgs) {
-		c.BucketName = name
-	}
-}
-
 // WithExistingLogBucketName Set the bucket Name of an existing Audit Log Bucket setup
 func WithExistingLogBucketName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
@@ -297,13 +273,6 @@ func WithEnableUBLA() GcpTerraformModifier {
 func WithLogBucketLifecycleRuleAge(ruleAge int) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.LogBucketLifecycleRuleAge = ruleAge
-	}
-}
-
-// WithLogBucketRetentionDays Set the number of days to keep logs before deleting. Default is 30
-func WithLogBucketRetentionDays(days int) GcpTerraformModifier {
-	return func(c *GenerateGcpTfConfigurationArgs) {
-		c.LogBucketRetentionDays = days
 	}
 }
 
@@ -470,10 +439,6 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 				attributes["lifecycle_rule_age"] = args.LogBucketLifecycleRuleAge
 			}
 
-			if args.BucketName != "" {
-				attributes["log_bucket"] = args.BucketName
-			}
-
 			if args.AuditLogLabels != nil {
 				attributes["labels"] = args.AuditLogLabels
 			}
@@ -492,14 +457,6 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 			if args.BucketRegion != "" {
 				attributes["bucket_region"] = args.BucketRegion
-			}
-
-			if args.BucketLocation != "" {
-				attributes["log_bucket_location"] = args.BucketLocation
-			}
-
-			if args.LogBucketRetentionDays != 0 {
-				attributes["log_bucket_retention_days"] = args.LogBucketRetentionDays
 			}
 		}
 

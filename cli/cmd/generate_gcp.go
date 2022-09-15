@@ -37,10 +37,7 @@ var (
 	QuestionGcpUseExistingBucket        = "Use an existing bucket?"
 	QuestionGcpExistingBucketName       = "Specify an existing bucket name:"
 	QuestionGcpConfigureNewBucket       = "Configure settings for new bucket?"
-	QuestionGcpBucketName               = "Specify new bucket name: (optional)"
 	QuestionGcpBucketRegion             = "Specify the bucket region: (optional)"
-	QuestionGcpBucketLocation           = "Specify the bucket location: (optional)"
-	QuestionGcpBucketRetention          = "Specify the bucket retention days: (optional)"
 	QuestionGcpBucketLifecycle          = "Specify the bucket lifecycle rule age: (optional)"
 	QuestionGcpEnableUBLA               = "Enable uniform bucket level access(UBLA)?"
 	QuestionGcpEnableBucketForceDestroy = "Enable bucket force destroy?"
@@ -107,13 +104,10 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithPubSubSubscriptionLabels(GenerateGcpCommandState.PubSubSubscriptionLabels),
 				gcp.WithPubSubTopicLabels(GenerateGcpCommandState.PubSubTopicLabels),
 				gcp.WithBucketRegion(GenerateGcpCommandState.BucketRegion),
-				gcp.WithBucketLocation(GenerateGcpCommandState.BucketLocation),
-				gcp.WithBucketName(GenerateGcpCommandState.BucketName),
 				gcp.WithExistingLogBucketName(GenerateGcpCommandState.ExistingLogBucketName),
 				gcp.WithExistingLogSinkName(GenerateGcpCommandState.ExistingLogSinkName),
 				gcp.WithAuditLogIntegrationName(GenerateGcpCommandState.AuditLogIntegrationName),
 				gcp.WithLaceworkProfile(GenerateGcpCommandState.LaceworkProfile),
-				gcp.WithLogBucketRetentionDays(GenerateGcpCommandState.LogBucketRetentionDays),
 				gcp.WithLogBucketLifecycleRuleAge(GenerateGcpCommandState.LogBucketLifecycleRuleAge),
 			}
 
@@ -317,16 +311,6 @@ func initGenerateGcpTfCommandFlags() {
 		"",
 		"specify bucket region")
 	generateGcpTfCommand.PersistentFlags().StringVar(
-		&GenerateGcpCommandState.BucketLocation,
-		"bucket_location",
-		"",
-		"specify bucket location")
-	generateGcpTfCommand.PersistentFlags().StringVar(
-		&GenerateGcpCommandState.BucketName,
-		"bucket_name",
-		"",
-		"specify new bucket name")
-	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.ExistingLogBucketName,
 		"existing_bucket_name",
 		"",
@@ -351,11 +335,6 @@ func initGenerateGcpTfCommandFlags() {
 		"bucket_lifecycle_rule_age",
 		-1,
 		"specify the lifecycle rule age")
-	generateGcpTfCommand.PersistentFlags().IntVar(
-		&GenerateGcpCommandState.LogBucketRetentionDays,
-		"bucket_retention_days",
-		0,
-		"specify the bucket retention days")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.AuditLogIntegrationName,
 		"audit_log_integration_name",
@@ -515,25 +494,10 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 			Response: &extraState.ConfigureNewBucketSettings,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketName, Default: config.BucketName},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Response: &config.BucketName,
-		},
-		{
 			Prompt:   &survey.Input{Message: QuestionGcpBucketRegion, Default: config.BucketRegion},
 			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
 			Opts:     []survey.AskOpt{survey.WithValidator(validateGcpRegion)},
 			Response: &config.BucketRegion,
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketLocation, Default: config.BucketLocation},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Response: &config.BucketLocation,
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketRetention, Default: "0"},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Response: &config.LogBucketRetentionDays,
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpBucketLifecycle, Default: "-1"},

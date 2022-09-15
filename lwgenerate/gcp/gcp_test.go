@@ -126,28 +126,6 @@ func TestGenerationProjectLevelAuditLogBucketRegion(t *testing.T) {
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketRegion), hcl)
 }
 
-func TestGenerationProjectLevelAuditLogBucketLocation(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, true,
-		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
-		gcp.WithProjectId("project1"),
-		gcp.WithBucketLocation("us"),
-	).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketLocation), hcl)
-}
-
-func TestGenerationProjectLevelAuditLogBucketName(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, true,
-		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
-		gcp.WithProjectId("project1"),
-		gcp.WithBucketName("foo"),
-	).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketName), hcl)
-}
-
 func TestGenerationProjectLevelAuditLogExistingBucketName(t *testing.T) {
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -201,17 +179,6 @@ func TestGenerationProjectLevelAuditLogBucketLifecycleRuleAge(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketLifecycleRuleAge), hcl)
-}
-
-func TestGenerationProjectLevelAuditLogBucketRetentionDays(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, true,
-		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
-		gcp.WithProjectId("project1"),
-		gcp.WithLogBucketRetentionDays(420),
-	).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketRetentionDays), hcl)
 }
 
 func TestGenerationOrganizationLevelAuditLogWithoutConfig(t *testing.T) {
@@ -378,7 +345,7 @@ var laceworkProvider = `provider "lacework" {
 
 var moduleImportProjectLevelAuditLogWithConfiguration = `module "gcp_project_audit_log" {
   source                       = "lacework/audit-log/gcp"
-  version                      = "~> 2.0"
+  version                      = "~> 3.0"
   service_account_name         = module.gcp_project_level_config.service_account_name
   service_account_private_key  = module.gcp_project_level_config.service_account_private_key
   use_existing_service_account = true
@@ -387,20 +354,20 @@ var moduleImportProjectLevelAuditLogWithConfiguration = `module "gcp_project_aud
 
 var moduleImportProjectLevelAuditLogWithoutConfiguration = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
 }
 `
 
 var moduleImportProjectLevelAuditLogCustomIntegrationName = `module "gcp_project_audit_log" {
   source                    = "lacework/audit-log/gcp"
-  version                   = "~> 2.0"
+  version                   = "~> 3.0"
   lacework_integration_name = "custom_integration_name"
 }
 `
 
 var moduleImportProjectLevelAuditLogLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
   labels = {
     key = "value"
   }
@@ -409,7 +376,7 @@ var moduleImportProjectLevelAuditLogLabels = `module "gcp_project_audit_log" {
 
 var moduleImportProjectLevelAuditLogBucketLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
   bucket_labels = {
     key = "value"
   }
@@ -418,7 +385,7 @@ var moduleImportProjectLevelAuditLogBucketLabels = `module "gcp_project_audit_lo
 
 var moduleImportProjectLevelAuditLogPubSubSubscriptionLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
   pubsub_subscription_labels = {
     key = "value"
   }
@@ -427,7 +394,7 @@ var moduleImportProjectLevelAuditLogPubSubSubscriptionLabels = `module "gcp_proj
 
 var moduleImportProjectLevelAuditLogPubSubTopicLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 2.0"
+  version = "~> 3.0"
   pubsub_topic_labels = {
     key = "value"
   }
@@ -436,70 +403,49 @@ var moduleImportProjectLevelAuditLogPubSubTopicLabels = `module "gcp_project_aud
 
 var moduleImportProjectLevelAuditLogBucketRegion = `module "gcp_project_audit_log" {
   source        = "lacework/audit-log/gcp"
-  version       = "~> 2.0"
+  version       = "~> 3.0"
   bucket_region = "us-west"
-}
-`
-
-var moduleImportProjectLevelAuditLogBucketLocation = `module "gcp_project_audit_log" {
-  source              = "lacework/audit-log/gcp"
-  version             = "~> 2.0"
-  log_bucket_location = "us"
-}
-`
-
-var moduleImportProjectLevelAuditLogBucketName = `module "gcp_project_audit_log" {
-  source     = "lacework/audit-log/gcp"
-  version    = "~> 2.0"
-  log_bucket = "foo"
 }
 `
 
 var moduleImportProjectLevelAuditLogExistingBucketName = `module "gcp_project_audit_log" {
   source               = "lacework/audit-log/gcp"
-  version              = "~> 2.0"
+  version              = "~> 3.0"
   existing_bucket_name = "foo"
 }
 `
 
 var moduleImportProjectLevelAuditLogExistingLogSinkName = `module "gcp_project_audit_log" {
   source             = "lacework/audit-log/gcp"
-  version            = "~> 2.0"
+  version            = "~> 3.0"
   existing_sink_name = "foo"
 }
 `
 
 var moduleImportProjectLevelAuditLogEnableForceDestroyBucket = `module "gcp_project_audit_log" {
   source               = "lacework/audit-log/gcp"
-  version              = "~> 2.0"
+  version              = "~> 3.0"
   bucket_force_destroy = true
 }
 `
 
 var moduleImportProjectLevelAuditLogEnableUBLA = `module "gcp_project_audit_log" {
   source      = "lacework/audit-log/gcp"
-  version     = "~> 2.0"
+  version     = "~> 3.0"
   enable_ubla = true
 }
 `
 
 var moduleImportProjectLevelAuditLogBucketLifecycleRuleAge = `module "gcp_project_audit_log" {
   source             = "lacework/audit-log/gcp"
-  version            = "~> 2.0"
+  version            = "~> 3.0"
   lifecycle_rule_age = 420
-}
-`
-
-var moduleImportProjectLevelAuditLogBucketRetentionDays = `module "gcp_project_audit_log" {
-  source                    = "lacework/audit-log/gcp"
-  version                   = "~> 2.0"
-  log_bucket_retention_days = 420
 }
 `
 
 var moduleImportOrganizationLevelAuditLogWithConfiguration = `module "gcp_organization_level_audit_log" {
   source                       = "lacework/audit-log/gcp"
-  version                      = "~> 2.0"
+  version                      = "~> 3.0"
   org_integration              = true
   organization_id              = "123456789"
   service_account_name         = module.gcp_organization_level_config.service_account_name
@@ -510,14 +456,14 @@ var moduleImportOrganizationLevelAuditLogWithConfiguration = `module "gcp_organi
 
 var moduleImportOrganizationLevelAuditLogWithoutConfiguration = `module "gcp_organization_level_audit_log" {
   source          = "lacework/audit-log/gcp"
-  version         = "~> 2.0"
+  version         = "~> 3.0"
   org_integration = true
   organization_id = "123456789"
 }
 `
 var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_organization_level_audit_log" {
   source                    = "lacework/audit-log/gcp"
-  version                   = "~> 2.0"
+  version                   = "~> 3.0"
   lacework_integration_name = "custom_integration_name"
   org_integration           = true
   organization_id           = "123456789"

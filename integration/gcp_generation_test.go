@@ -397,14 +397,8 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpConfigureNewBucket)
 			c.SendLine("y")
-			expectString(t, c, cmd.QuestionGcpBucketName)
-			c.SendLine("newBucketMcBucketFace")
 			expectString(t, c, cmd.QuestionGcpBucketRegion)
 			c.SendLine("us-west1")
-			expectString(t, c, cmd.QuestionGcpBucketLocation)
-			c.SendLine("us")
-			expectString(t, c, cmd.QuestionGcpBucketRetention)
-			c.SendLine("10")
 			expectString(t, c, cmd.QuestionGcpBucketLifecycle)
 			c.SendLine("420")
 			expectString(t, c, cmd.QuestionGcpEnableUBLA)
@@ -428,10 +422,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := gcp.NewTerraform(true, true,
 		gcp.WithProjectId("project-1"),
-		gcp.WithBucketName("newBucketMcBucketFace"),
 		gcp.WithBucketRegion("us-west1"),
-		gcp.WithBucketLocation("us"),
-		gcp.WithLogBucketRetentionDays(10),
 		gcp.WithLogBucketLifecycleRuleAge(420),
 		gcp.WithEnableUBLA(),
 	).Generate()
@@ -467,14 +458,8 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpConfigureNewBucket)
 			c.SendLine("y")
-			expectString(t, c, cmd.QuestionGcpBucketName)
-			c.SendLine("newBucketMcBucketFace")
 			expectString(t, c, cmd.QuestionGcpBucketRegion)
 			c.SendLine("us-west1")
-			expectString(t, c, cmd.QuestionGcpBucketLocation)
-			c.SendLine("us")
-			expectString(t, c, cmd.QuestionGcpBucketRetention)
-			c.SendLine("10")
 			expectString(t, c, cmd.QuestionGcpBucketLifecycle)
 			c.SendLine("420")
 			expectString(t, c, cmd.QuestionGcpEnableUBLA)
@@ -498,10 +483,7 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := gcp.NewTerraform(true, true,
 		gcp.WithProjectId("project-1"),
-		gcp.WithBucketName("newBucketMcBucketFace"),
 		gcp.WithBucketRegion("us-west1"),
-		gcp.WithBucketLocation("us"),
-		gcp.WithLogBucketRetentionDays(10),
 		gcp.WithLogBucketLifecycleRuleAge(420),
 		gcp.WithEnableUBLA(),
 	).Generate()
