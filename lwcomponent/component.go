@@ -64,9 +64,34 @@ func LoadState(client *api.Client) (*State, error) {
 			return s, err
 		}
 
+		s.loadDevComponent()
+
 		return s, s.WriteState()
 	}
 	return nil, errors.New("invalid api client")
+}
+
+// loadDevComponent will load a component that is under development,
+// developers need to export the environment variable 'LW_CDK_DEV_COMPONENT'
+func (s *State) loadDevComponent() {
+	if devComponent := os.Getenv("LW_CDK_DEV_COMPONENT"); devComponent != "" {
+		for i := range s.Components {
+			if s.Components[i].Name == devComponent {
+				// existing component being developed
+				if err := s.Components[i].loadDevSpecs(); err != nil {
+					s.Components[i].Description = err.Error()
+				}
+				return
+			}
+		}
+
+		// component is not yet defined, add it to the state
+		dev := Component{Name: devComponent}
+		if err := dev.loadDevSpecs(); err != nil {
+			dev.Description = err.Error()
+		}
+		s.Components = append(s.Components, dev)
+	}
 }
 
 // LocalState loads the state from the local storage ("Dir()/state")
@@ -148,6 +173,14 @@ func (s State) Install(name string) error {
 	rPath, err := component.RootPath()
 	if err != nil {
 		return err
+	}
+
+	// verify development mode
+	if component.underDevelopment() {
+		p, _ := component.Path() // @afiune we don't care if the component exists or not
+		msg := "components under development can't be installed.\n\n" +
+			"Deploy the component manually at '" + p + "'"
+		return errors.New(msg)
 	}
 
 	// @afiune verify if component is in latest
@@ -262,6 +295,12 @@ func (c Component) Path() (string, error) {
 
 // CurrentVersion returns the current installed version of the component
 func (c Component) CurrentVersion() (*semver.Version, error) {
+	// development mode, avoid loading the current version,
+	// return latest which is what's inside the '.dev' specs
+	if c.underDevelopment() {
+		return &c.LatestVersion, nil
+	}
+
 	dir, err := c.RootPath()
 	if err != nil {
 		return nil, err
@@ -381,7 +420,54 @@ func (c Component) ArtifactForRunningHost() (*Artifact, bool) {
 	return nil, false
 }
 
+// loadDevSpecs will lookup for the '.dev' specs file under the
+// component root path to load it into the component itself
+func (c *Component) loadDevSpecs() error {
+	dir, err := c.RootPath()
+	if err != nil {
+		return errors.New("unable to detect RootPath")
+	}
+
+	devSpecs := filepath.Join(dir, ".dev")
+	if file.FileExists(devSpecs) {
+		devSpecsBytes, err := ioutil.ReadFile(devSpecs)
+		if err != nil {
+			return errors.Errorf("unable to read %s file", devSpecs)
+		}
+		err = json.Unmarshal(devSpecsBytes, c)
+		if err != nil {
+			return errors.Errorf("unable to unmarshal %s file", devSpecs)
+		}
+	} else {
+		return errors.Errorf("create dev specs file '%s'", devSpecs)
+	}
+
+	return nil
+}
+
+// underDevelopment returns true if the component is under development
+// that is, if the component root path has the '.dev' specs file or, if
+// the environment variable 'LW_CDK_DEV_COMPONENT' matches the component name
+func (c Component) underDevelopment() bool {
+	if os.Getenv("LW_CDK_DEV_COMPONENT") == c.Name {
+		return true
+	}
+
+	dir, err := c.RootPath()
+	if err != nil {
+		return false
+	}
+
+	return file.FileExists(filepath.Join(dir, ".dev"))
+}
+
+// isVerified checks if the component has a valid signature
 func (c Component) isVerified() error {
+	// development mode, avoid verifying
+	if c.underDevelopment() {
+		return nil
+	}
+
 	// get component signature
 	sig, err := c.SignatureFromDisk()
 	if err != nil {
