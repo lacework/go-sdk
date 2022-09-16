@@ -60,10 +60,12 @@ integration-only: install-tools ## Run integration tests
 		account \
 		agent_token \
 		alert_rule \
+		alert_channel \
 		alert_profile \
 		agent \
 		compliance \
 		configure \
+		container_registry \
 		query \
 		policy \
 		event \

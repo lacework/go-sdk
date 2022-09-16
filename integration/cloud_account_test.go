@@ -53,7 +53,7 @@ func TestCloudAccountCommandAliases(t *testing.T) {
 
 func _TestCloudAccountCommandList(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("cloud-account", "list")
-	assert.Contains(t, out.String(), "CLOUD ACCOUNT INTEGRATION GUID",
+	assert.Contains(t, out.String(), "CLOUD ACCOUNT GUID",
 		"STDOUT table headers changed, please check")
 	assert.Contains(t, out.String(), "NAME",
 		"STDOUT table headers changed, please check")
@@ -72,7 +72,7 @@ func _TestCloudAccountCommandList(t *testing.T) {
 
 func _TestCloudAccountCommandListWithTypeFlag(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("cloud-account", "list", "--type", "AWS_CFG")
-	assert.Contains(t, out.String(), "CLOUD ACCOUNT INTEGRATION GUID",
+	assert.Contains(t, out.String(), "CLOUD ACCOUNT GUID",
 		"STDOUT table headers changed, please check")
 	assert.Contains(t, out.String(), "NAME",
 		"STDOUT table headers changed, please check")
@@ -99,5 +99,65 @@ func _TestCloudAccountCommandListWithTypeFlagErrorUnknownType(t *testing.T) {
 		"ERROR unknown cloud account type 'FOO_BAR'",
 		"STDERR should contain the unknown type")
 	assert.Equal(t, 1, exitcode,
+		"EXITCODE is not the expected one")
+}
+
+func TestCloudAccountShow(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("cloud-account", "show", "TECHALLY_948AB76C4F809D5CBE4C92BB38F6EBFD9F413694FD85C75")
+	// Summary Table
+	assert.Contains(t, out.String(), "CLOUD ACCOUNT GUID",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "NAME",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "TYPE",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "STATUS",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "STATE",
+		"STDOUT table headers changed, please check")
+
+	// Details Table
+	assert.Contains(t, out.String(), "CLIENT EMAIL",
+		"STDOUT details headers changed, please check")
+	assert.Contains(t, out.String(), "PRIVATE KEY ID",
+		"STDOUT details headers changed, please check")
+	assert.Contains(t, out.String(), "PRIVATE KEY",
+		"STDOUT details headers changed, please check")
+	assert.Contains(t, out.String(), "CLIENT ID",
+		"STDOUT details headers changed, please check")
+	assert.Contains(t, out.String(), "INTEGRATION TYPE",
+		"STDOUT details headers changed, please check")
+	assert.Contains(t, out.String(), "PROJECT ID",
+		"STDOUT details headers changed, please check")
+	assert.Contains(t, out.String(), "SUBSCRIPTION NAME ",
+		"STDOUT details headers changed, please check")
+	assert.Contains(t, out.String(), "UPDATED AT",
+		"STDOUT details headers changed, please check")
+	assert.Contains(t, out.String(), "UPDATED BY",
+		"STDOUT details headers changed, please check")
+
+	assert.Empty(t,
+		err.String(),
+		"STDERR should be empty")
+	assert.Equal(t, 0, exitcode,
+		"EXITCODE is not the expected one")
+}
+
+func TestCloudAccountList(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("ca", "list")
+	assert.Contains(t, out.String(), "CLOUD ACCOUNT GUID",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "NAME",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "TYPE",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "STATUS",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "STATE",
+		"STDOUT table headers changed, please check")
+	assert.Empty(t,
+		err.String(),
+		"STDERR should be empty")
+	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
 }

@@ -19,6 +19,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/AlecAivazis/survey/v2"
 
 	"github.com/lacework/go-sdk/api"
@@ -88,22 +90,23 @@ func createDockerV2Integration() error {
 		return err
 	}
 
-	docker := api.NewDockerV2RegistryIntegration(answers.Name,
-		api.ContainerRegData{
-			Credentials: api.ContainerRegCreds{
+	docker := api.NewContainerRegistry(answers.Name,
+		api.DockerhubV2ContainerRegistry,
+		api.DockerhubV2Data{
+			Credentials: api.DockerhubV2Credentials{
 				Username: answers.Username,
 				Password: answers.Password,
 				SSL:      answers.SSL,
 			},
 			RegistryDomain:   answers.Domain,
 			NonOSPackageEval: answers.NonOSPackageSupport,
-			LimitByTag:       answers.LimitTag,
-			LimitByLabel:     answers.LimitLabel,
+			LimitByTag:       strings.Split(answers.LimitTag, "\n"),
+			LimitByLabel:     castStringToLimitByLabel(answers.LimitLabel),
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateContainerRegistry(docker)
+	_, err = cli.LwApi.V2.ContainerRegistries.Create(docker)
 	cli.StopProgress()
 	return err
 }

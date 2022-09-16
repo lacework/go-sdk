@@ -191,6 +191,14 @@ type AlertChannelRaw struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
+func (alert AlertChannelRaw) GetData() any {
+	return alert.Data
+}
+
+func (alert AlertChannelRaw) GetCommon() v2CommonIntegrationData {
+	return alert.v2CommonIntegrationData
+}
+
 func (alert AlertChannelRaw) AlertChannelType() alertChannelType {
 	t, _ := FindAlertChannelType(alert.Type)
 	return t

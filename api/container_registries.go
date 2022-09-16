@@ -73,6 +73,14 @@ func NewContainerRegistry(name string, regType containerRegistryType, data inter
 		reg.Data = verifyGhcrContainerRegistry(data)
 	case InlineScannerContainerRegistry:
 		reg.Data = verifyInlineScannerContainerRegistry(data)
+	case AwsEcrContainerRegistry:
+		reg.Data = verifyAwsEcrContainerRegistry(data)
+	case DockerhubContainerRegistry:
+		reg.Data = verifyDockerhubContainerRegistry(data)
+	case DockerhubV2ContainerRegistry:
+		reg.Data = verifyDockerhubV2ContainerRegistry(data)
+	case GcpGcrContainerRegistry:
+		reg.Data = verifyGcpGcrContainerRegistry(data)
 	default:
 		reg.Data = data
 	}
@@ -98,6 +106,10 @@ const (
 	GcpGarContainerRegistry
 	GhcrContainerRegistry
 	InlineScannerContainerRegistry
+	AwsEcrContainerRegistry
+	DockerhubContainerRegistry
+	DockerhubV2ContainerRegistry
+	GcpGcrContainerRegistry
 )
 
 // ContainerRegistryTypes is the list of available Container Registry integration types
@@ -106,6 +118,10 @@ var ContainerRegistryTypes = map[containerRegistryType]string{
 	GcpGarContainerRegistry:        "GCP_GAR",
 	GhcrContainerRegistry:          "GHCR",
 	InlineScannerContainerRegistry: "INLINE_SCANNER",
+	AwsEcrContainerRegistry:        "AWS_ECR",
+	DockerhubContainerRegistry:     "DOCKERHUB",
+	DockerhubV2ContainerRegistry:   "V2_REGISTRY",
+	GcpGcrContainerRegistry:        "GCP_GCR",
 }
 
 // String returns the string representation of a Container Registry integration type
@@ -168,6 +184,14 @@ func (svc *ContainerRegistriesService) Get(guid string, response interface{}) er
 type ContainerRegistryRaw struct {
 	v2CommonIntegrationData
 	Data interface{} `json:"data,omitempty"`
+}
+
+func (reg ContainerRegistryRaw) GetData() any {
+	return reg.Data
+}
+
+func (reg ContainerRegistryRaw) GetCommon() v2CommonIntegrationData {
+	return reg.v2CommonIntegrationData
 }
 
 func (reg ContainerRegistryRaw) ContainerRegistryType() containerRegistryType {

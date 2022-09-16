@@ -185,6 +185,14 @@ type CloudAccountRaw struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
+func (cloud CloudAccountRaw) GetData() any {
+	return cloud.Data
+}
+
+func (cloud CloudAccountRaw) GetCommon() v2CommonIntegrationData {
+	return cloud.v2CommonIntegrationData
+}
+
 func (cloud CloudAccountRaw) CloudAccountType() cloudAccountType {
 	t, _ := FindCloudAccountType(cloud.Type)
 	return t

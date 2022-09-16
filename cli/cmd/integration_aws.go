@@ -56,16 +56,17 @@ func createAwsConfigIntegration() error {
 		return err
 	}
 
-	awsCfg := api.NewAwsCfgIntegration(answers.Name,
-		api.AwsIntegrationData{
-			Credentials: &api.AwsCrossAccountCreds{
+	awsCfg := api.NewCloudAccount(answers.Name,
+		api.AwsCfgCloudAccount,
+		api.AwsCfgData{
+			Credentials: api.AwsCfgCredentials{
 				RoleArn:    answers.RoleArn,
 				ExternalID: answers.ExternalID,
 			},
 		},
 	)
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateAws(awsCfg)
+	_, err = cli.LwApi.V2.CloudAccounts.Create(awsCfg)
 	cli.StopProgress()
 	return err
 }

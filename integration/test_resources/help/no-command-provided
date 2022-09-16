@@ -15,14 +15,15 @@ Available Commands:
   access-token            Generate temporary API access tokens
   account                 Manage accounts in an organization (org admins only)
   agent                   Manage Lacework agents
+  alert-channel           Manage alert channels
   alert-profile           Manage alert profiles
   alert-rule              Manage alert rules
   api                     Helper to call Lacework's API
   cloud-account           Manage cloud accounts
   compliance              Manage compliance reports
   configure               Configure the Lacework CLI
+  container-registry      Manage container registries
   event                   Inspect Lacework events
-  integration             Manage external integrations
   policy                  Manage policies
   policy-exception        Manage policy exceptions
   query                   Run and manage queries

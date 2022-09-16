@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 
@@ -47,6 +48,11 @@ func createDockerHubIntegration() error {
 			Name: "non_os_package_support",
 			Prompt: &survey.Confirm{
 				Message: "Enable scanning for Non-OS packages: "},
+		},
+		{
+			Name: "notifications",
+			Prompt: &survey.Confirm{
+				Message: "Enable registry notifications: "},
 		},
 		{
 			Name: "limit_tag",
@@ -81,6 +87,7 @@ func createDockerHubIntegration() error {
 		Username            string
 		Password            string
 		LimitTag            string `survey:"limit_tag"`
+		Notifications       bool   `survey:"notifications"`
 		LimitLabel          string `survey:"limit_label"`
 		LimitRepos          string `survey:"limit_repos"`
 		LimitMaxImages      string `survey:"limit_max_images"`
@@ -104,22 +111,25 @@ func createDockerHubIntegration() error {
 		limitMaxImages = 5
 	}
 
-	docker := api.NewDockerHubRegistryIntegration(answers.Name,
-		api.ContainerRegData{
-			Credentials: api.ContainerRegCreds{
+	docker := api.NewContainerRegistry(answers.Name,
+		api.DockerhubContainerRegistry,
+		api.DockerhubData{
+			Credentials: api.DockerhubCredentials{
 				Username: answers.Username,
 				Password: answers.Password,
 			},
-			NonOSPackageEval: answers.NonOSPackageSupport,
-			LimitByTag:       answers.LimitTag,
-			LimitByLabel:     answers.LimitLabel,
-			LimitByRep:       answers.LimitRepos,
-			LimitNumImg:      limitMaxImages,
+			NonOSPackageEval:      answers.NonOSPackageSupport,
+			RegistryNotifications: answers.Notifications,
+
+			LimitByTag:   strings.Split(answers.LimitTag, "\n"),
+			LimitByLabel: castStringToLimitByLabel(answers.LimitLabel),
+			LimitByRep:   strings.Split(answers.LimitRepos, "\n"),
+			LimitNumImg:  limitMaxImages,
 		},
 	)
 
 	cli.StartProgress(" Creating integration...")
-	_, err = cli.LwApi.Integrations.CreateContainerRegistry(docker)
+	_, err = cli.LwApi.V2.ContainerRegistries.Create(docker)
 	cli.StopProgress()
 	return err
 }
