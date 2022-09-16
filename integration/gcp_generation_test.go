@@ -822,6 +822,198 @@ func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 	assert.Empty(t, data)
 }
 
+func TestGenerationAuditlogFolders(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	projectId := "project-1"
+	organizationId := "org-1"
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpProjectID)
+			c.SendLine(projectId)
+			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpOrganizationID)
+			c.SendLine(organizationId)
+			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"gcp",
+		"--folders_to_include", "folder/abc",
+		"--folders_to_include", "folder/def",
+		"--folders_to_include", "folder/abc",
+		"--folders_to_exclude", "folder/abc",
+		"--folders_to_exclude", "folder/def",
+	)
+
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := gcp.NewTerraform(false, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId(organizationId),
+		gcp.WithFoldersToExclude([]string{"folder/abc", "folder/def"}),
+		gcp.WithFoldersToInclude([]string{"folder/abc", "folder/abc", "folder/def"}),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAuditlogFoldersShorthand(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	projectId := "project-1"
+	organizationId := "org-1"
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpProjectID)
+			c.SendLine(projectId)
+			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpOrganizationID)
+			c.SendLine(organizationId)
+			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"gcp",
+		"-i", "folder/abc",
+		"-i", "folder/abc",
+		"-i", "folder/def",
+		"-e", "folder/abc",
+		"-e", "folder/def",
+	)
+
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := gcp.NewTerraform(false, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId(organizationId),
+		gcp.WithFoldersToExclude([]string{"folder/abc", "folder/def"}),
+		gcp.WithFoldersToInclude([]string{"folder/abc", "folder/abc", "folder/def"}),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAuditlogIncludeRootProjects(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	projectId := "project-1"
+	organizationId := "org-1"
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpProjectID)
+			c.SendLine(projectId)
+			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpOrganizationID)
+			c.SendLine(organizationId)
+			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"gcp",
+		"--folders_to_exclude",
+		"folder/abc",
+		"--include_root_projects",
+	)
+
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := gcp.NewTerraform(false, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId(organizationId),
+		gcp.WithFoldersToExclude([]string{"folder/abc"}),
+		gcp.WithIncludeRootProjects(true),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAuditlogIncludeRootProjectsFalse(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	projectId := "project-1"
+	organizationId := "org-1"
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpProjectID)
+			c.SendLine(projectId)
+			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpOrganizationID)
+			c.SendLine(organizationId)
+			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"gcp",
+		"--folders_to_exclude",
+		"folder/abc",
+		"--include_root_projects=false",
+	)
+
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := gcp.NewTerraform(false, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId(organizationId),
+		gcp.WithFoldersToExclude([]string{"folder/abc"}),
+		gcp.WithIncludeRootProjects(false),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 func runGcpGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)

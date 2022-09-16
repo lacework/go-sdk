@@ -318,6 +318,73 @@ func TestGenerationOrganizationLevelConfigurationCustomIntegrationName(t *testin
 	assert.Equal(t, reqProvider(moduleImportOrganizationLevelConfigurationCustomIntegrationName), hcl)
 }
 
+func TestGenerationOrganizationLevelAuditLogFoldersToInclude(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithFoldersToInclude([]string{"abc", "abc", "def", "def"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportOrganizationLevelAuditLogFoldersToInclude), hcl)
+}
+
+func TestGenerationOrganizationLevelAuditLogFoldersToExclude(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithFoldersToExclude([]string{"abc", "def"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportOrganizationLevelAuditLogFoldersToExclude), hcl)
+}
+
+func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsSolo(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithIncludeRootProjects(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportOrganizationLevelAuditLogIncludeRootProjectsSolo), hcl)
+}
+
+func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsFalse(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithIncludeRootProjects(false),
+		gcp.WithFoldersToExclude([]string{"abc"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportOrganizationLevelAuditLogIncludeRootProjectsFalse), hcl)
+}
+
+func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsTrue(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithIncludeRootProjects(true),
+		gcp.WithFoldersToExclude([]string{"abc"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportOrganizationLevelAuditLogIncludeRootProjectsTrue), hcl)
+}
+
 var requiredProviders = `terraform {
   required_providers {
     lacework = {
@@ -517,5 +584,50 @@ var moduleImportOrganizationLevelConfigurationCustomIntegrationName = `module "g
   lacework_integration_name = "custom_integration_name"
   org_integration           = true
   organization_id           = "123456789"
+}
+`
+
+var moduleImportOrganizationLevelAuditLogFoldersToInclude = `module "gcp_organization_level_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  folders_to_include = ["abc", "def"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`
+
+var moduleImportOrganizationLevelAuditLogFoldersToExclude = `module "gcp_organization_level_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  folders_to_exclude = ["abc", "def"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`
+
+var moduleImportOrganizationLevelAuditLogIncludeRootProjectsSolo = `module "gcp_organization_level_audit_log" {
+  source          = "lacework/audit-log/gcp"
+  version         = "~> 3.0"
+  org_integration = true
+  organization_id = "123456789"
+}
+`
+
+var moduleImportOrganizationLevelAuditLogIncludeRootProjectsFalse = `module "gcp_organization_level_audit_log" {
+  source                = "lacework/audit-log/gcp"
+  version               = "~> 3.0"
+  folders_to_exclude    = ["abc"]
+  include_root_projects = false
+  org_integration       = true
+  organization_id       = "123456789"
+}
+`
+
+var moduleImportOrganizationLevelAuditLogIncludeRootProjectsTrue = `module "gcp_organization_level_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  folders_to_exclude = ["abc"]
+  org_integration    = true
+  organization_id    = "123456789"
 }
 `

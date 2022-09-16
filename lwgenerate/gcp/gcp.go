@@ -1,6 +1,8 @@
 package gcp
 
 import (
+	"sort"
+
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/pkg/errors"
@@ -102,6 +104,12 @@ type GenerateGcpTfConfigurationArgs struct {
 
 	// Lacework Profile to use
 	LaceworkProfile string
+
+	FoldersToInclude []string
+
+	FoldersToExclude []string
+
+	IncludeRootProjects bool
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -146,7 +154,7 @@ type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 //     gcp.WithGcpServiceAccountCredentials("/path/to/sa/credentials.json")).Generate()
 //
 func NewTerraform(enableConfig bool, enableAuditLog bool, mods ...GcpTerraformModifier) *GenerateGcpTfConfigurationArgs {
-	config := &GenerateGcpTfConfigurationArgs{AuditLog: enableAuditLog, Configuration: enableConfig}
+	config := &GenerateGcpTfConfigurationArgs{AuditLog: enableAuditLog, Configuration: enableConfig, IncludeRootProjects: true}
 	// default LogBucketLifecycleRuleAge to -1. This helps us determine if the var has been set by the end user
 	config.LogBucketLifecycleRuleAge = -1
 	for _, m := range mods {
@@ -280,6 +288,24 @@ func WithLogBucketLifecycleRuleAge(ruleAge int) GcpTerraformModifier {
 func WithAuditLogIntegrationName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.AuditLogIntegrationName = name
+	}
+}
+
+func WithFoldersToInclude(folders []string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.FoldersToInclude = folders
+	}
+}
+
+func WithFoldersToExclude(folders []string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.FoldersToExclude = folders
+	}
+}
+
+func WithIncludeRootProjects(include bool) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.IncludeRootProjects = include
 	}
 }
 
@@ -474,6 +500,38 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			auditLogModuleName = "gcp_organization_level_audit_log"
 			attributes["org_integration"] = args.OrganizationIntegration
 			attributes["organization_id"] = args.GcpOrganizationId
+
+			if len(args.FoldersToInclude) > 0 {
+				// set struct boiler plate
+				set := make(map[string]string)
+
+				for _, f := range args.FoldersToInclude {
+					set[f] = ""
+				}
+
+				folders := make([]string, len(set))
+
+				i := 0
+				for key := range set {
+					folders[i] = key
+					i++
+				}
+
+				sort.Strings(folders)
+
+				attributes["folders_to_include"] = folders
+			}
+
+			if len(args.FoldersToExclude) > 0 {
+				sort.Strings(args.FoldersToExclude)
+
+				attributes["folders_to_exclude"] = args.FoldersToExclude
+
+				// Default true in gcp-audit-log TF module
+				if args.IncludeRootProjects != true {
+					attributes["include_root_projects"] = args.IncludeRootProjects
+				}
+			}
 		}
 
 		if args.ExistingServiceAccount == nil && args.Configuration {

@@ -109,6 +109,8 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithAuditLogIntegrationName(GenerateGcpCommandState.AuditLogIntegrationName),
 				gcp.WithLaceworkProfile(GenerateGcpCommandState.LaceworkProfile),
 				gcp.WithLogBucketLifecycleRuleAge(GenerateGcpCommandState.LogBucketLifecycleRuleAge),
+				gcp.WithFoldersToInclude(GenerateGcpCommandState.FoldersToInclude),
+				gcp.WithFoldersToExclude(GenerateGcpCommandState.FoldersToExclude),
 			}
 
 			if GenerateGcpCommandState.OrganizationIntegration {
@@ -121,6 +123,10 @@ See help output for more details on the parameter value(s) required for Terrafor
 
 			if GenerateGcpCommandState.EnableUBLA {
 				mods = append(mods, gcp.WithEnableUBLA())
+			}
+
+			if len(GenerateGcpCommandState.FoldersToExclude) > 0 {
+				mods = append(mods, gcp.WithIncludeRootProjects(GenerateGcpCommandState.IncludeRootProjects))
 			}
 
 			// Create new struct
@@ -340,6 +346,23 @@ func initGenerateGcpTfCommandFlags() {
 		"audit_log_integration_name",
 		"",
 		"specify a custom audit log integration name")
+	generateGcpTfCommand.PersistentFlags().StringArrayVarP(
+		&GenerateGcpCommandState.FoldersToExclude,
+		"folders_to_exclude",
+		"e",
+		[]string{},
+		"List of root folders to exclude in an organization-level integration")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.IncludeRootProjects,
+		"include_root_projects",
+		true,
+		"Disables logic that includes root-level projects if excluding folders")
+	generateGcpTfCommand.PersistentFlags().StringArrayVarP(
+		&GenerateGcpCommandState.FoldersToInclude,
+		"folders_to_include",
+		"i",
+		[]string{},
+		"List of root folders to include in an organization-level integration")
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandExtraState.TerraformApply,
 		"apply",
