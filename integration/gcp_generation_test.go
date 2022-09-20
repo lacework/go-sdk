@@ -294,6 +294,10 @@ func TestGenerationAdvancedAuditLogOptsExistingBucketGcp(t *testing.T) {
 			c.SendLine("bucketMcBucketFace")
 			expectString(t, c, cmd.QuestionGcpUseExistingSink)
 			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpPrefix)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpWaitTime)
+			c.SendLine("")
 			expectString(t, c, cmd.QuestionGcpAnotherAdvancedOpt)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionRunTfPlan)
@@ -347,6 +351,10 @@ func TestGenerationAdvancedAuditLogOptsNewBucketNotConfiguredGcp(t *testing.T) {
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpUseExistingSink)
 			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpPrefix)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpWaitTime)
+			c.SendLine("")
 			expectString(t, c, cmd.QuestionGcpAnotherAdvancedOpt)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionRunTfPlan)
@@ -408,6 +416,10 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpUseExistingSink)
 			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpPrefix)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpWaitTime)
+			c.SendLine("")
 			expectString(t, c, cmd.QuestionGcpAnotherAdvancedOpt)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionRunTfPlan)
@@ -472,6 +484,10 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpUseExistingSink)
 			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpPrefix)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpWaitTime)
+			c.SendLine("")
 			expectString(t, c, cmd.QuestionGcpAnotherAdvancedOpt)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionRunTfPlan)
@@ -492,6 +508,64 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 		gcp.WithBucketRegion("us-west1"),
 		gcp.WithLogBucketLifecycleRuleAge(420),
 		gcp.WithEnableUBLA(),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAdvancedAuditLogOpts(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	projectId := "project-1"
+	prefix := "my-prefix-"
+	waitTime := "30s"
+
+	// Run CLI
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpProjectID)
+			c.SendLine(projectId)
+			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
+			c.SendLine("y")
+			expectString(t, c, cmd.GcpAdvancedOptAuditLog)
+			// This is key forward x1 in ANSI
+			c.SendLine("\x1B[C")
+			expectString(t, c, cmd.QuestionGcpUseExistingBucket)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpExistingBucketName)
+			c.SendLine("bucketMcBucketFace")
+			expectString(t, c, cmd.QuestionGcpUseExistingSink)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpPrefix)
+			c.SendLine(prefix)
+			expectString(t, c, cmd.QuestionGcpWaitTime)
+			c.SendLine(waitTime)
+			expectString(t, c, cmd.QuestionGcpAnotherAdvancedOpt)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"gcp",
+	)
+
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := gcp.NewTerraform(false, true,
+		gcp.WithProjectId("project-1"),
+		gcp.WithExistingLogBucketName("bucketMcBucketFace"),
+		gcp.WithPrefix(prefix),
+		gcp.WithWaitTime(waitTime),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
@@ -1084,7 +1158,6 @@ func TestGenerationAuditlogFiltersTrue(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 	projectId := "project-1"
-	organizationId := "org-1"
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
@@ -1095,9 +1168,7 @@ func TestGenerationAuditlogFiltersTrue(t *testing.T) {
 			expectString(t, c, cmd.QuestionGcpProjectID)
 			c.SendLine(projectId)
 			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionGcpOrganizationID)
-			c.SendLine(organizationId)
+			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
 			c.SendLine("")
 			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
@@ -1117,8 +1188,6 @@ func TestGenerationAuditlogFiltersTrue(t *testing.T) {
 
 	buildTf, _ := gcp.NewTerraform(false, true,
 		gcp.WithProjectId(projectId),
-		gcp.WithOrganizationIntegration(true),
-		gcp.WithOrganizationId(organizationId),
 		gcp.WithGoogleWorkspaceFilter(true),
 		gcp.WithK8sFilter(true),
 	).Generate()
@@ -1130,7 +1199,6 @@ func TestGenerationAuditlogFiltersFalse(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 	projectId := "project-1"
-	organizationId := "org-1"
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
@@ -1141,9 +1209,7 @@ func TestGenerationAuditlogFiltersFalse(t *testing.T) {
 			expectString(t, c, cmd.QuestionGcpProjectID)
 			c.SendLine(projectId)
 			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionGcpOrganizationID)
-			c.SendLine(organizationId)
+			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
 			c.SendLine("")
 			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
@@ -1163,8 +1229,6 @@ func TestGenerationAuditlogFiltersFalse(t *testing.T) {
 
 	buildTf, _ := gcp.NewTerraform(false, true,
 		gcp.WithProjectId(projectId),
-		gcp.WithOrganizationIntegration(true),
-		gcp.WithOrganizationId(organizationId),
 		gcp.WithGoogleWorkspaceFilter(false),
 		gcp.WithK8sFilter(false),
 	).Generate()

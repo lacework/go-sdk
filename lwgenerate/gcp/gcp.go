@@ -118,6 +118,10 @@ type GenerateGcpTfConfigurationArgs struct {
 	GoogleWorkspaceFilter bool
 
 	K8sFilter bool
+
+	Prefix string
+
+	WaitTime string
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -338,6 +342,18 @@ func WithGoogleWorkspaceFilter(filter bool) GcpTerraformModifier {
 func WithK8sFilter(filter bool) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.K8sFilter = filter
+	}
+}
+
+func WithPrefix(prefix string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.Prefix = prefix
+	}
+}
+
+func WithWaitTime(waitTime string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.WaitTime = waitTime
 	}
 }
 
@@ -602,6 +618,14 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 		// Default true in gcp-audit-log TF module
 		if args.K8sFilter != true {
 			attributes["k8s_filter"] = args.K8sFilter
+		}
+
+		if args.Prefix != "" {
+			attributes["prefix"] = args.Prefix
+		}
+
+		if args.WaitTime != "" {
+			attributes["wait_time"] = args.WaitTime
 		}
 
 		moduleDetails = append(moduleDetails,

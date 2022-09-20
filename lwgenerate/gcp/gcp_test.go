@@ -447,6 +447,28 @@ func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsTrue(t *testing.T
 	assert.Equal(t, reqProvider(moduleImportOrganizationLevelAuditLogIncludeRootProjectsTrue), hcl)
 }
 
+func TestGenerationProjectLevelAuditLogPrefix(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithPrefix("rar"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogPrefix), hcl)
+}
+
+func TestGenerationProjectLevelAuditLogWaitTime(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithWaitTime("30s"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogWaitTime), hcl)
+}
+
 var requiredProviders = `terraform {
   required_providers {
     lacework = {
@@ -731,5 +753,19 @@ var moduleImportOrganizationLevelAuditLogIncludeRootProjectsTrue = `module "gcp_
   folders_to_exclude = ["abc"]
   org_integration    = true
   organization_id    = "123456789"
+}
+`
+
+var moduleImportProjectLevelAuditLogPrefix = `module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 3.0"
+  prefix  = "rar"
+}
+`
+
+var moduleImportProjectLevelAuditLogWaitTime = `module "gcp_project_audit_log" {
+  source    = "lacework/audit-log/gcp"
+  version   = "~> 3.0"
+  wait_time = "30s"
 }
 `

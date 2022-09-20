@@ -44,6 +44,8 @@ var (
 	QuestionGcpEnableBucketForceDestroy = "Enable bucket force destroy?"
 	QuestionGcpUseExistingSink          = "Use an existing sink?"
 	QuestionGcpExistingSinkName         = "Specify the existing sink name"
+	QuestionGcpPrefix                   = "Specify prefix to be used with generated resources: (optional)"
+	QuestionGcpWaitTime                 = "Specify the amount of time to wait before the next resource is provisioned: (optional)"
 
 	GcpAdvancedOptIntegrationName           = "Customize integration name(s)"
 	QuestionGcpConfigurationIntegrationName = "Specify a custom configuration integration name: (optional)"
@@ -120,6 +122,8 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithCustomFilter(GenerateGcpCommandState.CustomFilter),
 				gcp.WithGoogleWorkspaceFilter(GenerateGcpCommandState.GoogleWorkspaceFilter),
 				gcp.WithK8sFilter(GenerateGcpCommandState.K8sFilter),
+				gcp.WithPrefix(GenerateGcpCommandState.Prefix),
+				gcp.WithWaitTime(GenerateGcpCommandState.WaitTime),
 			}
 
 			if GenerateGcpCommandState.OrganizationIntegration {
@@ -371,6 +375,16 @@ func initGenerateGcpTfCommandFlags() {
 		true,
 		"filter out GKE logs from GCP Audit Log sinks")
 	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.Prefix,
+		"prefix",
+		"",
+		"prefix that will be used at the beginning of every generated resource")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.WaitTime,
+		"wait_time",
+		"",
+		"amount of time to wait before the next resource is provisioned")
+	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.AuditLogIntegrationName,
 		"audit_log_integration_name",
 		"",
@@ -584,6 +598,16 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingSink},
 			Required: true,
 			Response: &config.ExistingLogSinkName,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpPrefix, Default: config.Prefix},
+			Checks:   []*bool{&config.AuditLog},
+			Response: &config.Prefix,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpWaitTime, Default: config.WaitTime},
+			Checks:   []*bool{&config.AuditLog},
+			Response: &config.WaitTime,
 		},
 	}, config.AuditLog)
 
