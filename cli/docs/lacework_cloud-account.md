@@ -38,6 +38,9 @@ Manage cloud account integrations with Lacework
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework cloud-account create](lacework_cloud-account_create.md)	 - Create a new cloud account integration
+* [lacework cloud-account delete](lacework_cloud-account_delete.md)	 - Delete a cloud account integration
 * [lacework cloud-account iac-generate](lacework_cloud-account_iac-generate.md)	 - Create IaC code
 * [lacework cloud-account list](lacework_cloud-account_list.md)	 - List all available cloud account integrations
+* [lacework cloud-account show](lacework_cloud-account_show.md)	 - Show a single cloud account integration
 
