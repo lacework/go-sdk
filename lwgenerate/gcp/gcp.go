@@ -80,6 +80,8 @@ type GenerateGcpTfConfigurationArgs struct {
 	// Set of labels which will be added to the topic
 	PubSubTopicLabels map[string]string
 
+	CustomBucketName string
+
 	// Supply a GCP region for the new bucket. EU/US/ASIA
 	BucketRegion string
 
@@ -110,6 +112,12 @@ type GenerateGcpTfConfigurationArgs struct {
 	FoldersToExclude []string
 
 	IncludeRootProjects bool
+
+	CustomFilter string
+
+	GoogleWorkspaceFilter bool
+
+	K8sFilter bool
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -154,7 +162,7 @@ type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 //     gcp.WithGcpServiceAccountCredentials("/path/to/sa/credentials.json")).Generate()
 //
 func NewTerraform(enableConfig bool, enableAuditLog bool, mods ...GcpTerraformModifier) *GenerateGcpTfConfigurationArgs {
-	config := &GenerateGcpTfConfigurationArgs{AuditLog: enableAuditLog, Configuration: enableConfig, IncludeRootProjects: true}
+	config := &GenerateGcpTfConfigurationArgs{AuditLog: enableAuditLog, Configuration: enableConfig, IncludeRootProjects: true, GoogleWorkspaceFilter: true, K8sFilter: true}
 	// default LogBucketLifecycleRuleAge to -1. This helps us determine if the var has been set by the end user
 	config.LogBucketLifecycleRuleAge = -1
 	for _, m := range mods {
@@ -241,6 +249,12 @@ func WithPubSubTopicLabels(labels map[string]string) GcpTerraformModifier {
 	}
 }
 
+func WithCustomBucketName(name string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.CustomBucketName = name
+	}
+}
+
 // WithBucketRegion Set the Region in which the Bucket should be created
 func WithBucketRegion(region string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
@@ -306,6 +320,24 @@ func WithFoldersToExclude(folders []string) GcpTerraformModifier {
 func WithIncludeRootProjects(include bool) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.IncludeRootProjects = include
+	}
+}
+
+func WithCustomFilter(filter string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.CustomFilter = filter
+	}
+}
+
+func WithGoogleWorkspaceFilter(filter bool) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.GoogleWorkspaceFilter = filter
+	}
+}
+
+func WithK8sFilter(filter bool) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.K8sFilter = filter
 	}
 }
 
@@ -481,6 +513,10 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 				attributes["enable_ubla"] = true
 			}
 
+			if args.CustomBucketName != "" {
+				attributes["custom_bucket_name"] = args.CustomBucketName
+			}
+
 			if args.BucketRegion != "" {
 				attributes["bucket_region"] = args.BucketRegion
 			}
@@ -552,6 +588,20 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 		if args.AuditLogIntegrationName != "" {
 			attributes["lacework_integration_name"] = args.AuditLogIntegrationName
+		}
+
+		if args.CustomFilter != "" {
+			attributes["custom_filter"] = args.CustomFilter
+		}
+
+		// Default true in gcp-audit-log TF module
+		if args.GoogleWorkspaceFilter != true {
+			attributes["google_workspace_filter"] = args.GoogleWorkspaceFilter
+		}
+
+		// Default true in gcp-audit-log TF module
+		if args.K8sFilter != true {
+			attributes["k8s_filter"] = args.K8sFilter
 		}
 
 		moduleDetails = append(moduleDetails,

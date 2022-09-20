@@ -181,6 +181,68 @@ func TestGenerationProjectLevelAuditLogBucketLifecycleRuleAge(t *testing.T) {
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogBucketLifecycleRuleAge), hcl)
 }
 
+func TestGenerationProjectLevelAuditLogCustomBucketName(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithCustomBucketName("bucket"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogCustomBucketName), hcl)
+}
+
+func TestGenerationProjectLevelAuditLogCustomFilter(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithCustomFilter("custom-filter"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogCustomFilter), hcl)
+}
+
+func TestGenerationProjectLevelAuditLogGoogleWorkspaceFilter(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithGoogleWorkspaceFilter(true),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogGoogleWorkspaceFilter), hcl)
+
+	hcl, err = gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithGoogleWorkspaceFilter(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogGoogleWorkspaceFilterFalse), hcl)
+}
+
+func TestGenerationProjectLevelAuditLogK8sFilter(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithK8sFilter(true),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogK8sFilter), hcl)
+
+	hcl, err = gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithK8sFilter(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogK8sFilterFalse), hcl)
+}
+
 func TestGenerationOrganizationLevelAuditLogWithoutConfig(t *testing.T) {
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -507,6 +569,46 @@ var moduleImportProjectLevelAuditLogBucketLifecycleRuleAge = `module "gcp_projec
   source             = "lacework/audit-log/gcp"
   version            = "~> 3.0"
   lifecycle_rule_age = 420
+}
+`
+
+var moduleImportProjectLevelAuditLogCustomBucketName = `module "gcp_project_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  custom_bucket_name = "bucket"
+}
+`
+
+var moduleImportProjectLevelAuditLogCustomFilter = `module "gcp_project_audit_log" {
+  source        = "lacework/audit-log/gcp"
+  version       = "~> 3.0"
+  custom_filter = "custom-filter"
+}
+`
+
+var moduleImportProjectLevelAuditLogGoogleWorkspaceFilter = `module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 3.0"
+}
+`
+
+var moduleImportProjectLevelAuditLogGoogleWorkspaceFilterFalse = `module "gcp_project_audit_log" {
+  source                  = "lacework/audit-log/gcp"
+  version                 = "~> 3.0"
+  google_workspace_filter = false
+}
+`
+
+var moduleImportProjectLevelAuditLogK8sFilter = `module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 3.0"
+}
+`
+
+var moduleImportProjectLevelAuditLogK8sFilterFalse = `module "gcp_project_audit_log" {
+  source     = "lacework/audit-log/gcp"
+  version    = "~> 3.0"
+  k8s_filter = false
 }
 `
 

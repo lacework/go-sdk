@@ -38,6 +38,7 @@ var (
 	QuestionGcpExistingBucketName       = "Specify an existing bucket name:"
 	QuestionGcpConfigureNewBucket       = "Configure settings for new bucket?"
 	QuestionGcpBucketRegion             = "Specify the bucket region: (optional)"
+	QuestionGcpCustomBucketName         = "Specify a custom bucket name: (optional)"
 	QuestionGcpBucketLifecycle          = "Specify the bucket lifecycle rule age: (optional)"
 	QuestionGcpEnableUBLA               = "Enable uniform bucket level access(UBLA)?"
 	QuestionGcpEnableBucketForceDestroy = "Enable bucket force destroy?"
@@ -51,6 +52,10 @@ var (
 	QuestionGcpAnotherAdvancedOpt      = "Configure another advanced integration option"
 	GcpAdvancedOptLocation             = "Customize output location"
 	QuestionGcpCustomizeOutputLocation = "Provide the location for the output to be written:"
+	GcpAdvancedFilters                 = "Customize filters"
+	QuestionGcpCustomFilter            = "Specify a custom filter which will supersede all other filter options"
+	QuestionGcpGoogleWorkspaceFilter   = "Filter out Google Workspace login logs from GCP Audit Log sinks?"
+	QuestionGcpK8sFilter               = "Filter out GKE logs from GCP Audit Log sinks?"
 	GcpAdvancedOptDone                 = "Done"
 
 	// GcpRegionRegex regex used for validating region input
@@ -103,6 +108,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithBucketLabels(GenerateGcpCommandState.BucketLabels),
 				gcp.WithPubSubSubscriptionLabels(GenerateGcpCommandState.PubSubSubscriptionLabels),
 				gcp.WithPubSubTopicLabels(GenerateGcpCommandState.PubSubTopicLabels),
+				gcp.WithCustomBucketName(GenerateGcpCommandState.CustomBucketName),
 				gcp.WithBucketRegion(GenerateGcpCommandState.BucketRegion),
 				gcp.WithExistingLogBucketName(GenerateGcpCommandState.ExistingLogBucketName),
 				gcp.WithExistingLogSinkName(GenerateGcpCommandState.ExistingLogSinkName),
@@ -111,6 +117,9 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithLogBucketLifecycleRuleAge(GenerateGcpCommandState.LogBucketLifecycleRuleAge),
 				gcp.WithFoldersToInclude(GenerateGcpCommandState.FoldersToInclude),
 				gcp.WithFoldersToExclude(GenerateGcpCommandState.FoldersToExclude),
+				gcp.WithCustomFilter(GenerateGcpCommandState.CustomFilter),
+				gcp.WithGoogleWorkspaceFilter(GenerateGcpCommandState.GoogleWorkspaceFilter),
+				gcp.WithK8sFilter(GenerateGcpCommandState.K8sFilter),
 			}
 
 			if GenerateGcpCommandState.OrganizationIntegration {
@@ -310,6 +319,11 @@ func initGenerateGcpTfCommandFlags() {
 		"configuration_integration_name",
 		"",
 		"specify a custom configuration integration name")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.CustomBucketName,
+		"custom_bucket_name",
+		"",
+		"override prefix based storage bucket name generation with a custom name")
 	// TODO: Implement AuditLogLabels, BucketLabels, PubSubSubscriptionLabels & PubSubTopicLabels
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.BucketRegion,
@@ -342,6 +356,21 @@ func initGenerateGcpTfCommandFlags() {
 		-1,
 		"specify the lifecycle rule age")
 	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.CustomFilter,
+		"custom_filter",
+		"",
+		"customer defined Audit Log filter which will supersede all other filter options when defined")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.GoogleWorkspaceFilter,
+		"google_workspace_filter",
+		true,
+		"filter out Google Workspace login logs from GCP Audit Log sinks")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.K8sFilter,
+		"k8s_filter",
+		true,
+		"filter out GKE logs from GCP Audit Log sinks")
+	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.AuditLogIntegrationName,
 		"audit_log_integration_name",
 		"",
@@ -362,7 +391,7 @@ func initGenerateGcpTfCommandFlags() {
 		"folders_to_include",
 		"i",
 		[]string{},
-		"List of root folders to include in an organization-level integration")
+		"list of root folders to include in an organization-level integration")
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandExtraState.TerraformApply,
 		"apply",
@@ -523,6 +552,11 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 			Response: &config.BucketRegion,
 		},
 		{
+			Prompt:   &survey.Input{Message: QuestionGcpCustomBucketName, Default: config.CustomBucketName},
+			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
+			Response: &config.CustomBucketName,
+		},
+		{
 			Prompt:   &survey.Input{Message: QuestionGcpBucketLifecycle, Default: "-1"},
 			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
 			Response: &config.LogBucketLifecycleRuleAge,
@@ -604,6 +638,25 @@ func promptCustomizeGcpOutputLocation(extraState *GcpGenerateCommandExtraState) 
 	return err
 }
 
+func promptCustomizeGcpFilters(config *gcp.GenerateGcpTfConfigurationArgs) error {
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpCustomFilter, Default: config.CustomFilter},
+			Response: &config.CustomFilter,
+		},
+		{
+			Prompt:   &survey.Confirm{Message: QuestionGcpGoogleWorkspaceFilter, Default: config.GoogleWorkspaceFilter},
+			Response: &config.GoogleWorkspaceFilter,
+		},
+		{
+			Prompt:   &survey.Confirm{Message: QuestionGcpK8sFilter, Default: config.K8sFilter},
+			Response: &config.K8sFilter,
+		},
+	})
+
+	return err
+}
+
 func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
 	answer := ""
 
@@ -619,7 +672,7 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 			options = append(options, GcpAdvancedOptAuditLog)
 		}
 
-		options = append(options, GcpAdvancedOptExistingServiceAccount, GcpAdvancedOptIntegrationName, GcpAdvancedOptLocation, GcpAdvancedOptDone)
+		options = append(options, GcpAdvancedOptExistingServiceAccount, GcpAdvancedOptIntegrationName, GcpAdvancedOptLocation, GcpAdvancedFilters, GcpAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
 				Message: "Which options would you like to configure?",
@@ -646,6 +699,10 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 			}
 		case GcpAdvancedOptLocation:
 			if err := promptCustomizeGcpOutputLocation(extraState); err != nil {
+				return err
+			}
+		case GcpAdvancedFilters:
+			if err := promptCustomizeGcpFilters(config); err != nil {
 				return err
 			}
 		}

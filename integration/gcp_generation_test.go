@@ -374,6 +374,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 	projectId := "project-1"
+	bucketName := "my-new-bucket"
 
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
@@ -399,6 +400,8 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpBucketRegion)
 			c.SendLine("us-west1")
+			expectString(t, c, cmd.QuestionGcpCustomBucketName)
+			c.SendLine(bucketName)
 			expectString(t, c, cmd.QuestionGcpBucketLifecycle)
 			c.SendLine("420")
 			expectString(t, c, cmd.QuestionGcpEnableUBLA)
@@ -423,6 +426,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 	buildTf, _ := gcp.NewTerraform(true, true,
 		gcp.WithProjectId("project-1"),
 		gcp.WithBucketRegion("us-west1"),
+		gcp.WithCustomBucketName(bucketName),
 		gcp.WithLogBucketLifecycleRuleAge(420),
 		gcp.WithEnableUBLA(),
 	).Generate()
@@ -460,6 +464,8 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 			c.SendLine("y")
 			expectString(t, c, cmd.QuestionGcpBucketRegion)
 			c.SendLine("us-west1")
+			expectString(t, c, cmd.QuestionGcpCustomBucketName)
+			c.SendLine("")
 			expectString(t, c, cmd.QuestionGcpBucketLifecycle)
 			c.SendLine("420")
 			expectString(t, c, cmd.QuestionGcpEnableUBLA)
@@ -716,6 +722,64 @@ func TestGenerationCustomizedOutputLocationGcp(t *testing.T) {
 	assert.Equal(t, buildTf, string(result))
 }
 
+func TestGenerationAdvancedFilters(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	projectId := "project-1"
+	customFilter := "my-custom-filter"
+
+	// Run CLI
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpProjectID)
+			c.SendLine(projectId)
+			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
+			c.SendLine("y")
+			expectString(t, c, cmd.GcpAdvancedOptAuditLog)
+			// This is key down x4 in ANSI
+			c.Send("\x1B[B")
+			c.Send("\x1B[B")
+			c.Send("\x1B[B")
+			c.SendLine("\x1B[B")
+			expectString(t, c, cmd.QuestionGcpCustomFilter)
+			c.SendLine(customFilter)
+			expectString(t, c, cmd.QuestionGcpGoogleWorkspaceFilter)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpK8sFilter)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpAnotherAdvancedOpt)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"gcp",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := gcp.NewTerraform(true, true,
+		gcp.WithProjectId("project-1"),
+		gcp.WithCustomFilter(customFilter),
+		gcp.WithGoogleWorkspaceFilter(false),
+		gcp.WithK8sFilter(false),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 // Test Bailing out of Advanced Options
 func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
@@ -739,7 +803,8 @@ func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
 			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
 			c.SendLine("y")
 			expectString(t, c, cmd.GcpAdvancedOptAuditLog)
-			// This is key down x3 in ANSI
+			// This is key down x5 in ANSI
+			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.Send("\x1B[B")
 			c.Send("\x1B[B")
@@ -1010,6 +1075,98 @@ func TestGenerationAuditlogIncludeRootProjectsFalse(t *testing.T) {
 		gcp.WithOrganizationId(organizationId),
 		gcp.WithFoldersToExclude([]string{"folder/abc"}),
 		gcp.WithIncludeRootProjects(false),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAuditlogFiltersTrue(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	projectId := "project-1"
+	organizationId := "org-1"
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpProjectID)
+			c.SendLine(projectId)
+			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpOrganizationID)
+			c.SendLine(organizationId)
+			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"gcp",
+		"--google_workspace_filter",
+		"--k8s_filter",
+	)
+
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := gcp.NewTerraform(false, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId(organizationId),
+		gcp.WithGoogleWorkspaceFilter(true),
+		gcp.WithK8sFilter(true),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAuditlogFiltersFalse(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	projectId := "project-1"
+	organizationId := "org-1"
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpProjectID)
+			c.SendLine(projectId)
+			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpOrganizationID)
+			c.SendLine(organizationId)
+			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"gcp",
+		"--google_workspace_filter=false",
+		"--k8s_filter=false",
+	)
+
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := gcp.NewTerraform(false, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId(organizationId),
+		gcp.WithGoogleWorkspaceFilter(false),
+		gcp.WithK8sFilter(false),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
