@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"testing"
 
 	"github.com/lacework/go-sdk/api"
@@ -72,11 +73,13 @@ var (
 		QueryID:   queryID,
 		Arguments: executeQueryArguments,
 	}
-	executeQueryData = `[
+	pidHash          = 5644915113269064637
+	executeQueryData = fmt.Sprintf(`[
 	{
-		"INSERT_ID": "35308423"
+		"INSERT_ID": "35308423",
+		"PID_HASH": %d
 	}
-]`
+]`, pidHash)
 	limitZero = 0
 	limitNeg  = -1
 	limitOne  = 1
@@ -131,6 +134,9 @@ func TestQueryExecuteOK(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, runExpected, runActual)
+	// test unmarshal of large integer
+	dataActual := runActual.Data[0].(map[string]interface{})
+	assert.Equal(t, json.Number(strconv.Itoa(pidHash)), dataActual["PID_HASH"])
 }
 
 func TestQueryExecuteBad(t *testing.T) {
