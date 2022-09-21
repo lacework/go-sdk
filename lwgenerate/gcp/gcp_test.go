@@ -185,11 +185,22 @@ func TestGenerationProjectLevelAuditLogEnableUBLA(t *testing.T) {
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
-		gcp.WithEnableUBLA(),
+		gcp.WithEnableUBLA(true),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogEnableUBLA), hcl)
+}
+
+func TestGenerationProjectLevelAuditLogDisableUBLA(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithEnableUBLA(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProvider(moduleImportProjectLevelAuditLogDisableUBLA), hcl)
 }
 
 func TestGenerationProjectLevelAuditLogBucketLifecycleRuleAge(t *testing.T) {
@@ -477,9 +488,15 @@ var moduleImportProjectLevelAuditLogEnableForceDestroyBucket = `module "gcp_proj
 `
 
 var moduleImportProjectLevelAuditLogEnableUBLA = `module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 2.0"
+}
+`
+
+var moduleImportProjectLevelAuditLogDisableUBLA = `module "gcp_project_audit_log" {
   source      = "lacework/audit-log/gcp"
   version     = "~> 2.0"
-  enable_ubla = true
+  enable_ubla = false
 }
 `
 

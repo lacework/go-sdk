@@ -115,6 +115,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithLaceworkProfile(GenerateGcpCommandState.LaceworkProfile),
 				gcp.WithLogBucketRetentionDays(GenerateGcpCommandState.LogBucketRetentionDays),
 				gcp.WithLogBucketLifecycleRuleAge(GenerateGcpCommandState.LogBucketLifecycleRuleAge),
+				gcp.WithEnableUBLA(GenerateGcpCommandState.EnableUBLA),
 			}
 
 			if GenerateGcpCommandState.OrganizationIntegration {
@@ -123,10 +124,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 
 			if GenerateGcpCommandState.EnableForceDestroyBucket {
 				mods = append(mods, gcp.WithEnableForceDestroyBucket())
-			}
-
-			if GenerateGcpCommandState.EnableUBLA {
-				mods = append(mods, gcp.WithEnableUBLA())
 			}
 
 			// Create new struct
@@ -344,7 +341,7 @@ func initGenerateGcpTfCommandFlags() {
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandState.EnableUBLA,
 		"enable_ubla",
-		false,
+		true,
 		"enable universal bucket level access(ubla)")
 	generateGcpTfCommand.PersistentFlags().IntVar(
 		&GenerateGcpCommandState.LogBucketLifecycleRuleAge,
