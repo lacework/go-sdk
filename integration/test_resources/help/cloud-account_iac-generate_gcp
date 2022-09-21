@@ -30,7 +30,7 @@ Flags:
       --configuration                                 enable configuration integration
       --configuration_integration_name string         specify a custom configuration integration name
       --enable_force_destroy_bucket                   enable force bucket destroy
-      --enable_ubla                                   enable universal bucket level access(ubla)
+      --enable_ubla                                   enable universal bucket level access(ubla) (default true)
       --existing_bucket_name string                   specify existing bucket name
       --existing_service_account_name string          specify existing service account name
       --existing_service_account_private_key string   specify existing service account private key (base64 encoded)
