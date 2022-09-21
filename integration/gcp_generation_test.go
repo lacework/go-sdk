@@ -158,6 +158,84 @@ func TestGenerationAuditlogOnlyGcp(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+func TestGenerationAuditlogEnableUBLA(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	projectId := "project-1"
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpProjectID)
+			c.SendLine(projectId)
+			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"gcp",
+		"--enable_ubla",
+	)
+
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := gcp.NewTerraform(false, true,
+		gcp.WithProjectId("project-1"),
+		gcp.WithEnableUBLA(true),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAuditlogDisableUBLA(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	projectId := "project-1"
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionGcpProjectID)
+			c.SendLine(projectId)
+			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
+			c.SendLine("")
+			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"cloud",
+		"iac",
+		"gcp",
+		"--enable_ubla=false",
+	)
+
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := gcp.NewTerraform(false, true,
+		gcp.WithProjectId("project-1"),
+		gcp.WithEnableUBLA(false),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 // Test organization integration. configuration & audit log
 func TestOrganizationIntegrationConfigAndAuditLogGcp(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
@@ -433,7 +511,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 		gcp.WithBucketLocation("us"),
 		gcp.WithLogBucketRetentionDays(10),
 		gcp.WithLogBucketLifecycleRuleAge(420),
-		gcp.WithEnableUBLA(),
+		gcp.WithEnableUBLA(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
@@ -478,7 +556,7 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 			expectString(t, c, cmd.QuestionGcpBucketLifecycle)
 			c.SendLine("420")
 			expectString(t, c, cmd.QuestionGcpEnableUBLA)
-			c.SendLine("y")
+			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpUseExistingSink)
 			c.SendLine("n")
 			expectString(t, c, cmd.QuestionGcpAnotherAdvancedOpt)
@@ -503,7 +581,7 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 		gcp.WithBucketLocation("us"),
 		gcp.WithLogBucketRetentionDays(10),
 		gcp.WithLogBucketLifecycleRuleAge(420),
-		gcp.WithEnableUBLA(),
+		gcp.WithEnableUBLA(false),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }

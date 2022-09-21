@@ -156,7 +156,7 @@ type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 //     gcp.WithGcpServiceAccountCredentials("/path/to/sa/credentials.json")).Generate()
 //
 func NewTerraform(enableConfig bool, enableAuditLog bool, mods ...GcpTerraformModifier) *GenerateGcpTfConfigurationArgs {
-	config := &GenerateGcpTfConfigurationArgs{AuditLog: enableAuditLog, Configuration: enableConfig}
+	config := &GenerateGcpTfConfigurationArgs{AuditLog: enableAuditLog, Configuration: enableConfig, EnableUBLA: true}
 	// default LogBucketLifecycleRuleAge to -1. This helps us determine if the var has been set by the end user
 	config.LogBucketLifecycleRuleAge = -1
 	for _, m := range mods {
@@ -286,9 +286,9 @@ func WithEnableForceDestroyBucket() GcpTerraformModifier {
 }
 
 // WithEnableUBLA Enable force destroy of the bucket if it has stuff in it
-func WithEnableUBLA() GcpTerraformModifier {
+func WithEnableUBLA(enable bool) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
-		c.EnableUBLA = true
+		c.EnableUBLA = enable
 	}
 }
 
@@ -486,8 +486,9 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 				attributes["bucket_force_destroy"] = true
 			}
 
-			if args.EnableUBLA {
-				attributes["enable_ubla"] = true
+			// Default true in gcp-audit-log TF module
+			if args.EnableUBLA != true {
+				attributes["enable_ubla"] = args.EnableUBLA
 			}
 
 			if args.BucketRegion != "" {
