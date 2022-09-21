@@ -75,8 +75,9 @@ integration-only: install-tools ## Run integration tests
 		version \
 		generation \
 		team_member \
-		component \
-		vulnerability" -run=$(regex)
+		component" -run=$(regex)
+		# Disable vulnerability tests until https://lacework.atlassian.net/browse/RAIN-37563 is resolved
+		#vulnerability"
 
 .PHONY: integration-lql
 integration-lql: build-cli-cross-platform integration-lql-only ## Build and run lql integration tests
