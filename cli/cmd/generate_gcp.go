@@ -52,7 +52,7 @@ var (
 	QuestionGcpAnotherAdvancedOpt      = "Configure another advanced integration option"
 	GcpAdvancedOptLocation             = "Customize output location"
 	QuestionGcpCustomizeOutputLocation = "Provide the location for the output to be written:"
-	QuestionGcpCustomFilter            = "Specify a custom filter which will supersede all other filter options"
+	QuestionGcpCustomFilter            = "Specify a custom Audit Log filter which will supersede all other filter options"
 	QuestionGcpGoogleWorkspaceFilter   = "Filter out Google Workspace login logs from GCP Audit Log sinks?"
 	QuestionGcpK8sFilter               = "Filter out GKE logs from GCP Audit Log sinks?"
 	GcpAdvancedOptDone                 = "Done"
@@ -388,7 +388,7 @@ func initGenerateGcpTfCommandFlags() {
 		"folders_to_exclude",
 		"e",
 		[]string{},
-		"List of root folders to exclude in an organization-level integration")
+		"List of root folders to exclude for an organization-level integration")
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandState.IncludeRootProjects,
 		"include_root_projects",
@@ -399,7 +399,7 @@ func initGenerateGcpTfCommandFlags() {
 		"folders_to_include",
 		"i",
 		[]string{},
-		"list of root folders to include in an organization-level integration")
+		"list of root folders to include for an organization-level integration")
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandExtraState.TerraformApply,
 		"apply",

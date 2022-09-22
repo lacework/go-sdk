@@ -34,8 +34,8 @@ Flags:
       --existing_service_account_name string          specify existing service account name
       --existing_service_account_private_key string   specify existing service account private key (base64 encoded)
       --existing_sink_name string                     specify existing sink name
-  -e, --folders_to_exclude stringArray                List of root folders to exclude in an organization-level integration
-  -i, --folders_to_include stringArray                list of root folders to include in an organization-level integration
+  -e, --folders_to_exclude stringArray                List of root folders to exclude for an organization-level integration
+  -i, --folders_to_include stringArray                list of root folders to include for an organization-level integration
       --google_workspace_filter                       filter out Google Workspace login logs from GCP Audit Log sinks (default true)
   -h, --help                                          help for gcp
       --include_root_projects                         Disables logic that includes root-level projects if excluding folders (default true)
