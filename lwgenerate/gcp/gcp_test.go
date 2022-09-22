@@ -330,13 +330,6 @@ func TestGenerationOrganizationLevelConfigurationCustomIntegrationName(t *testin
 }
 
 func TestGenerationProjectLevelAuditLogCustomBucketName(t *testing.T) {
-	expect := `module "gcp_project_audit_log" {
-  source             = "lacework/audit-log/gcp"
-  version            = "~> 3.0"
-  custom_bucket_name = "bucket"
-}
-`
-
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -344,17 +337,15 @@ func TestGenerationProjectLevelAuditLogCustomBucketName(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_project_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  custom_bucket_name = "bucket"
+}
+`))
 }
 
 func TestGenerationProjectLevelAuditLogCustomFilter(t *testing.T) {
-	expect := `module "gcp_project_audit_log" {
-  source        = "lacework/audit-log/gcp"
-  version       = "~> 3.0"
-  custom_filter = "custom-filter"
-}
-`
-
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -362,16 +353,15 @@ func TestGenerationProjectLevelAuditLogCustomFilter(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_project_audit_log" {
+  source        = "lacework/audit-log/gcp"
+  version       = "~> 3.0"
+  custom_filter = "custom-filter"
+}
+`))
 }
 
 func TestGenerationProjectLevelAuditLogGoogleWorkspaceFilter(t *testing.T) {
-	expect := `module "gcp_project_audit_log" {
-  source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
-}
-`
-
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -379,14 +369,11 @@ func TestGenerationProjectLevelAuditLogGoogleWorkspaceFilter(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
-
-	expect = `module "gcp_project_audit_log" {
-  source                  = "lacework/audit-log/gcp"
-  version                 = "~> 3.0"
-  google_workspace_filter = false
+	assert.Equal(t, hcl, reqProvider(`module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 3.0"
 }
-`
+`))
 
 	hcl, err = gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -395,16 +382,15 @@ func TestGenerationProjectLevelAuditLogGoogleWorkspaceFilter(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_project_audit_log" {
+  source                  = "lacework/audit-log/gcp"
+  version                 = "~> 3.0"
+  google_workspace_filter = false
+}
+`))
 }
 
 func TestGenerationProjectLevelAuditLogK8sFilter(t *testing.T) {
-	expect := `module "gcp_project_audit_log" {
-  source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
-}
-`
-
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -412,14 +398,11 @@ func TestGenerationProjectLevelAuditLogK8sFilter(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
-
-	expect = `module "gcp_project_audit_log" {
-  source     = "lacework/audit-log/gcp"
-  version    = "~> 3.0"
-  k8s_filter = false
+	assert.Equal(t, hcl, reqProvider(`module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 3.0"
 }
-`
+`))
 
 	hcl, err = gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -428,18 +411,15 @@ func TestGenerationProjectLevelAuditLogK8sFilter(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_project_audit_log" {
+  source     = "lacework/audit-log/gcp"
+  version    = "~> 3.0"
+  k8s_filter = false
+}
+`))
 }
 
 func TestGenerationOrganizationLevelAuditLogFoldersToInclude(t *testing.T) {
-	expect := `module "gcp_organization_level_audit_log" {
-  source             = "lacework/audit-log/gcp"
-  version            = "~> 3.0"
-  folders_to_include = ["abc", "def"]
-  org_integration    = true
-  organization_id    = "123456789"
-}
-`
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -449,18 +429,17 @@ func TestGenerationOrganizationLevelAuditLogFoldersToInclude(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
-}
-
-func TestGenerationOrganizationLevelAuditLogFoldersToExclude(t *testing.T) {
-	expect := `module "gcp_organization_level_audit_log" {
+	assert.Equal(t, hcl, reqProvider(`module "gcp_organization_level_audit_log" {
   source             = "lacework/audit-log/gcp"
   version            = "~> 3.0"
-  folders_to_exclude = ["abc", "def"]
+  folders_to_include = ["abc", "def"]
   org_integration    = true
   organization_id    = "123456789"
 }
-`
+`))
+}
+
+func TestGenerationOrganizationLevelAuditLogFoldersToExclude(t *testing.T) {
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -470,18 +449,17 @@ func TestGenerationOrganizationLevelAuditLogFoldersToExclude(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_organization_level_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  folders_to_exclude = ["abc", "def"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`))
 }
 
 func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsSolo(t *testing.T) {
-	expect := `module "gcp_organization_level_audit_log" {
-  source          = "lacework/audit-log/gcp"
-  version         = "~> 3.0"
-  org_integration = true
-  organization_id = "123456789"
-}
-`
-
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -491,11 +469,27 @@ func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsSolo(t *testing.T
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_organization_level_audit_log" {
+  source          = "lacework/audit-log/gcp"
+  version         = "~> 3.0"
+  org_integration = true
+  organization_id = "123456789"
+}
+`))
 }
 
 func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsFalse(t *testing.T) {
-	expect := `module "gcp_organization_level_audit_log" {
+	hcl, err := gcp.NewTerraform(false, true,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId("project1"),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId("123456789"),
+		gcp.WithIncludeRootProjects(false),
+		gcp.WithFoldersToExclude([]string{"abc"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_organization_level_audit_log" {
   source                = "lacework/audit-log/gcp"
   version               = "~> 3.0"
   folders_to_exclude    = ["abc"]
@@ -503,31 +497,10 @@ func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsFalse(t *testing.
   org_integration       = true
   organization_id       = "123456789"
 }
-`
-
-	hcl, err := gcp.NewTerraform(false, true,
-		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
-		gcp.WithProjectId("project1"),
-		gcp.WithOrganizationIntegration(true),
-		gcp.WithOrganizationId("123456789"),
-		gcp.WithIncludeRootProjects(false),
-		gcp.WithFoldersToExclude([]string{"abc"}),
-	).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+`))
 }
 
 func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsTrue(t *testing.T) {
-	expect := `module "gcp_organization_level_audit_log" {
-  source             = "lacework/audit-log/gcp"
-  version            = "~> 3.0"
-  folders_to_exclude = ["abc"]
-  org_integration    = true
-  organization_id    = "123456789"
-}
-`
-
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -538,17 +511,17 @@ func TestGenerationOrganizationLevelAuditLogIncludeRootProjectsTrue(t *testing.T
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_organization_level_audit_log" {
+  source             = "lacework/audit-log/gcp"
+  version            = "~> 3.0"
+  folders_to_exclude = ["abc"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`))
 }
 
 func TestGenerationProjectLevelAuditLogPrefix(t *testing.T) {
-	expect := `module "gcp_project_audit_log" {
-  source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
-  prefix  = "rar"
-}
-`
-
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -556,17 +529,15 @@ func TestGenerationProjectLevelAuditLogPrefix(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 3.0"
+  prefix  = "rar"
+}
+`))
 }
 
 func TestGenerationProjectLevelAuditLogWaitTime(t *testing.T) {
-	expect := `module "gcp_project_audit_log" {
-  source    = "lacework/audit-log/gcp"
-  version   = "~> 3.0"
-  wait_time = "30s"
-}
-`
-
 	hcl, err := gcp.NewTerraform(false, true,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -574,19 +545,15 @@ func TestGenerationProjectLevelAuditLogWaitTime(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_project_audit_log" {
+  source    = "lacework/audit-log/gcp"
+  version   = "~> 3.0"
+  wait_time = "30s"
+}
+`))
 }
 
 func TestGenerationOrganizationLevelConfigurationFoldersToInclude(t *testing.T) {
-	expect := `module "gcp_organization_level_config" {
-  source             = "lacework/config/gcp"
-  version            = "~> 2.3"
-  folders_to_include = ["abc", "def"]
-  org_integration    = true
-  organization_id    = "123456789"
-}
-`
-
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -596,19 +563,17 @@ func TestGenerationOrganizationLevelConfigurationFoldersToInclude(t *testing.T) 
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
-}
-
-func TestGenerationOrganizationLevelConfigurationFoldersToExclude(t *testing.T) {
-	expect := `module "gcp_organization_level_config" {
+	assert.Equal(t, hcl, reqProvider(`module "gcp_organization_level_config" {
   source             = "lacework/config/gcp"
   version            = "~> 2.3"
-  folders_to_exclude = ["abc", "def"]
+  folders_to_include = ["abc", "def"]
   org_integration    = true
   organization_id    = "123456789"
 }
-`
+`))
+}
 
+func TestGenerationOrganizationLevelConfigurationFoldersToExclude(t *testing.T) {
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -618,18 +583,17 @@ func TestGenerationOrganizationLevelConfigurationFoldersToExclude(t *testing.T) 
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_organization_level_config" {
+  source             = "lacework/config/gcp"
+  version            = "~> 2.3"
+  folders_to_exclude = ["abc", "def"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`))
 }
 
 func TestGenerationOrganizationLevelConfigurationIncludeRootProjectsSolo(t *testing.T) {
-	expect := `module "gcp_organization_level_config" {
-  source          = "lacework/config/gcp"
-  version         = "~> 2.3"
-  org_integration = true
-  organization_id = "123456789"
-}
-`
-
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -639,20 +603,16 @@ func TestGenerationOrganizationLevelConfigurationIncludeRootProjectsSolo(t *test
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_organization_level_config" {
+  source          = "lacework/config/gcp"
+  version         = "~> 2.3"
+  org_integration = true
+  organization_id = "123456789"
+}
+`))
 }
 
 func TestGenerationOrganizationLevelConfigurationIncludeRootProjectsFalse(t *testing.T) {
-	expect := `module "gcp_organization_level_config" {
-  source                = "lacework/config/gcp"
-  version               = "~> 2.3"
-  folders_to_exclude    = ["abc"]
-  include_root_projects = false
-  org_integration       = true
-  organization_id       = "123456789"
-}
-`
-
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -663,19 +623,18 @@ func TestGenerationOrganizationLevelConfigurationIncludeRootProjectsFalse(t *tes
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_organization_level_config" {
+  source                = "lacework/config/gcp"
+  version               = "~> 2.3"
+  folders_to_exclude    = ["abc"]
+  include_root_projects = false
+  org_integration       = true
+  organization_id       = "123456789"
+}
+`))
 }
 
 func TestGenerationOrganizationLevelConfigurationIncludeRootProjectsTrue(t *testing.T) {
-	expect := `module "gcp_organization_level_config" {
-  source             = "lacework/config/gcp"
-  version            = "~> 2.3"
-  folders_to_exclude = ["abc"]
-  org_integration    = true
-  organization_id    = "123456789"
-}
-`
-
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -686,17 +645,17 @@ func TestGenerationOrganizationLevelConfigurationIncludeRootProjectsTrue(t *test
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_organization_level_config" {
+  source             = "lacework/config/gcp"
+  version            = "~> 2.3"
+  folders_to_exclude = ["abc"]
+  org_integration    = true
+  organization_id    = "123456789"
+}
+`))
 }
 
 func TestGenerationProjectLevelConfigurationPrefix(t *testing.T) {
-	expect := `module "gcp_project_level_config" {
-  source  = "lacework/config/gcp"
-  version = "~> 2.3"
-  prefix  = "rar"
-}
-`
-
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -704,16 +663,15 @@ func TestGenerationProjectLevelConfigurationPrefix(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_project_level_config" {
+  source  = "lacework/config/gcp"
+  version = "~> 2.3"
+  prefix  = "rar"
+}
+`))
 }
 
 func TestGenerationProjectConfigurationLogWaitTime(t *testing.T) {
-	expect := `module "gcp_project_level_config" {
-  source    = "lacework/config/gcp"
-  version   = "~> 2.3"
-  wait_time = "30s"
-}
-`
 	hcl, err := gcp.NewTerraform(true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId("project1"),
@@ -721,7 +679,12 @@ func TestGenerationProjectConfigurationLogWaitTime(t *testing.T) {
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProvider(expect), hcl)
+	assert.Equal(t, hcl, reqProvider(`module "gcp_project_level_config" {
+  source    = "lacework/config/gcp"
+  version   = "~> 2.3"
+  wait_time = "30s"
+}
+`))
 }
 
 var requiredProviders = `terraform {

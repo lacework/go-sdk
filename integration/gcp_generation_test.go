@@ -24,14 +24,19 @@ type MsgRsp struct {
 	message      string
 	response     string
 	skipResponse bool
+	menuItems    int
 }
 
 func msgRsp(message string, response string) MsgRsp {
-	return MsgRsp{message, response, false}
+	return MsgRsp{message, response, false, 0}
 }
 
 func msgOnly(message string) MsgRsp {
-	return MsgRsp{message, "", true}
+	return MsgRsp{message, "", true, 0}
+}
+
+func msgMenu(message string, count int) MsgRsp {
+	return MsgRsp{message, "", true, count}
 }
 
 func cliExpectations(t *testing.T, c *expect.Console, m []MsgRsp) {
@@ -41,15 +46,13 @@ func cliExpectations(t *testing.T, c *expect.Console, m []MsgRsp) {
 		if !e.skipResponse {
 			c.SendLine(e.response)
 		}
-	}
-}
 
-func menuSelect(t *testing.T, c *expect.Console, count int) {
-	for i := 0; i < count-1; i++ {
-		c.Send("\x1B[B")
-	}
-	if count > 0 {
-		c.SendLine("\x1B[B")
+		if e.menuItems > 0 {
+			for i := 0; i < e.menuItems-1; i++ {
+				c.Send("\x1B[B")
+			}
+			c.SendLine("\x1B[B")
+		}
 	}
 }
 
@@ -184,20 +187,15 @@ func TestGenerationAuditlogEnableUBLA(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionGcpProjectID)
-			c.SendLine(projectId)
-			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			cliExpectations(t, c, []MsgRsp{
+				msgRsp(cmd.QuestionGcpEnableConfiguration, "n"),
+				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
+				msgRsp(cmd.QuestionGcpProjectID, projectId),
+				msgRsp(cmd.QuestionGcpOrganizationIntegration, "n"),
+				msgRsp(cmd.QuestionGcpServiceAccountCredsPath, ""),
+				msgRsp(cmd.QuestionGcpConfigureAdvanced, "n"),
+				msgRsp(cmd.QuestionRunTfPlan, "n"),
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"cloud",
@@ -223,20 +221,15 @@ func TestGenerationAuditlogDisableUBLA(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionGcpEnableConfiguration)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionGcpEnableAuditLog)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionGcpProjectID)
-			c.SendLine(projectId)
-			expectString(t, c, cmd.QuestionGcpOrganizationIntegration)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionGcpServiceAccountCredsPath)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionGcpConfigureAdvanced)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			cliExpectations(t, c, []MsgRsp{
+				msgRsp(cmd.QuestionGcpEnableConfiguration, "n"),
+				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
+				msgRsp(cmd.QuestionGcpProjectID, projectId),
+				msgRsp(cmd.QuestionGcpOrganizationIntegration, "n"),
+				msgRsp(cmd.QuestionGcpServiceAccountCredsPath, ""),
+				msgRsp(cmd.QuestionGcpConfigureAdvanced, "n"),
+				msgRsp(cmd.QuestionRunTfPlan, "n"),
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"cloud",
@@ -625,12 +618,7 @@ func TestGenerationAdvancedOptsUseExistingSA(t *testing.T) {
 				msgRsp(cmd.QuestionGcpOrganizationIntegration, "n"),
 				msgRsp(cmd.QuestionGcpServiceAccountCredsPath, ""),
 				msgRsp(cmd.QuestionGcpConfigureAdvanced, "y"),
-				msgOnly(cmd.GcpAdvancedOptAuditLog),
-			})
-
-			menuSelect(t, c, 1)
-
-			cliExpectations(t, c, []MsgRsp{
+				msgMenu(cmd.GcpAdvancedOptAuditLog, 1),
 				msgRsp(cmd.QuestionExistingServiceAccountName, "SA_1"),
 				msgRsp(cmd.QuestionExistingServiceAccountPrivateKey, "cGFzc3dvcmRNY1Bhc3N3b3JkRmFjZQ=="),
 				msgRsp(cmd.QuestionGcpAnotherAdvancedOpt, "n"),
@@ -671,12 +659,7 @@ func TestGenerationCustomizedConfigurationIntegrationNameGcp(t *testing.T) {
 				msgRsp(cmd.QuestionGcpOrganizationIntegration, "n"),
 				msgRsp(cmd.QuestionGcpServiceAccountCredsPath, ""),
 				msgRsp(cmd.QuestionGcpConfigureAdvanced, "y"),
-				msgOnly(cmd.GcpAdvancedOptAuditLog),
-			})
-
-			menuSelect(t, c, 2)
-
-			cliExpectations(t, c, []MsgRsp{
+				msgMenu(cmd.GcpAdvancedOptAuditLog, 2),
 				msgRsp(cmd.QuestionGcpConfigurationIntegrationName, "customConfigurationIntegrationName"),
 				msgRsp(cmd.QuestionGcpAuditLogIntegrationName, ""),
 				msgRsp(cmd.QuestionGcpAnotherAdvancedOpt, "n"),
@@ -723,10 +706,7 @@ func TestGenerationCustomizedAuditlogIntegrationNameGcp(t *testing.T) {
 				msgRsp(cmd.QuestionGcpOrganizationIntegration, "n"),
 				msgRsp(cmd.QuestionGcpServiceAccountCredsPath, ""),
 				msgRsp(cmd.QuestionGcpConfigureAdvanced, "y"),
-				msgOnly(cmd.GcpAdvancedOptAuditLog),
-			})
-			menuSelect(t, c, 2)
-			cliExpectations(t, c, []MsgRsp{
+				msgMenu(cmd.GcpAdvancedOptAuditLog, 2),
 				msgRsp(cmd.QuestionGcpConfigurationIntegrationName, ""),
 				msgRsp(cmd.QuestionGcpAuditLogIntegrationName, "customAuditlogIntegrationName"),
 				msgRsp(cmd.QuestionGcpAnotherAdvancedOpt, "n"),
@@ -770,11 +750,7 @@ func TestGenerationCustomizedOutputLocationGcp(t *testing.T) {
 				msgRsp(cmd.QuestionGcpOrganizationIntegration, "n"),
 				msgRsp(cmd.QuestionGcpServiceAccountCredsPath, ""),
 				msgRsp(cmd.QuestionGcpConfigureAdvanced, "y"),
-				msgOnly(cmd.GcpAdvancedOptAuditLog),
-			})
-
-			menuSelect(t, c, 3)
-			cliExpectations(t, c, []MsgRsp{
+				msgMenu(cmd.GcpAdvancedOptAuditLog, 3),
 				msgRsp(cmd.QuestionGcpCustomizeOutputLocation, dir),
 				msgRsp(cmd.QuestionGcpAnotherAdvancedOpt, "n"),
 				msgRsp(cmd.QuestionRunTfPlan, "n"),
@@ -811,10 +787,7 @@ func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
 				msgRsp(cmd.QuestionGcpOrganizationIntegration, "n"),
 				msgRsp(cmd.QuestionGcpServiceAccountCredsPath, ""),
 				msgRsp(cmd.QuestionGcpConfigureAdvanced, "y"),
-				msgOnly(cmd.GcpAdvancedOptAuditLog),
-			})
-			menuSelect(t, c, 4)
-			cliExpectations(t, c, []MsgRsp{
+				msgMenu(cmd.GcpAdvancedOptAuditLog, 4),
 				msgRsp(cmd.QuestionRunTfPlan, "n"),
 			})
 			final, _ = c.ExpectEOF()
@@ -846,10 +819,7 @@ func TestGenerationAdvancedOptsDoneGcpConfiguration(t *testing.T) {
 				msgRsp(cmd.QuestionGcpOrganizationIntegration, "n"),
 				msgRsp(cmd.QuestionGcpServiceAccountCredsPath, ""),
 				msgRsp(cmd.QuestionGcpConfigureAdvanced, "y"),
-				msgOnly(cmd.GcpAdvancedOptExistingServiceAccount),
-			})
-			menuSelect(t, c, 3)
-			cliExpectations(t, c, []MsgRsp{
+				msgMenu(cmd.GcpAdvancedOptExistingServiceAccount, 3),
 				msgRsp(cmd.QuestionRunTfPlan, "n"),
 			})
 			final, _ = c.ExpectEOF()
@@ -893,10 +863,7 @@ func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 				msgRsp(cmd.QuestionGcpOrganizationIntegration, "n"),
 				msgRsp(cmd.QuestionGcpServiceAccountCredsPath, ""),
 				msgRsp(cmd.QuestionGcpConfigureAdvanced, "y"),
-				msgOnly(cmd.GcpAdvancedOptAuditLog),
-			})
-			menuSelect(t, c, 3)
-			cliExpectations(t, c, []MsgRsp{
+				msgMenu(cmd.GcpAdvancedOptAuditLog, 3),
 				msgRsp(cmd.QuestionGcpCustomizeOutputLocation, dir),
 				msgRsp(cmd.QuestionGcpAnotherAdvancedOpt, "n"),
 				msgRsp(fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), "n"),
