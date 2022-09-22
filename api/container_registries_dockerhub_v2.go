@@ -55,7 +55,7 @@ type DockerhubV2Data struct {
 	Credentials           DockerhubV2Credentials `json:"credentials"`
 	RegistryDomain        string                 `json:"registryDomain"`
 	RegistryType          string                 `json:"registryType"`
-	RegistryNotifications bool                   `json:"registryNotifications"`
+	RegistryNotifications *bool                  `json:"registryNotifications"`
 	LimitByTag            []string               `json:"limitByTag"`
 	LimitByLabel          []map[string]string    `json:"limitByLabel"`
 	LimitByRep            []string               `json:"limitByRep"`
