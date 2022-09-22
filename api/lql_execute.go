@@ -19,6 +19,8 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"time"
@@ -59,10 +61,22 @@ type ExecuteQueryByIDRequest struct {
 	Arguments []ExecuteQueryArgument `json:"arguments"`
 }
 
+type ExecuteQueryData []interface{}
+
+func (d *ExecuteQueryData) UnmarshalJSON(data []byte) error {
+	type Alias ExecuteQueryData
+
+	temp := (*Alias)(d)
+	reader := bytes.NewReader(data)
+	decoder := json.NewDecoder(reader)
+	decoder.UseNumber()
+	return decoder.Decode(temp)
+}
+
 type ExecuteQueryResponse struct {
-	Data    []interface{} `json:"data"`
-	Ok      bool          `json:"ok"`
-	Message string        `json:"message"`
+	Data    ExecuteQueryData `json:"data"`
+	Ok      bool             `json:"ok"`
+	Message string           `json:"message"`
 }
 
 func validateQueryArguments(args []ExecuteQueryArgument) error {
