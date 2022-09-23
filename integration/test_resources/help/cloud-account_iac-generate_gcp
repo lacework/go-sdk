@@ -27,7 +27,7 @@ Flags:
       --configuration                                 enable configuration integration
       --configuration_integration_name string         specify a custom configuration integration name
       --custom_bucket_name string                     override prefix based storage bucket name generation with a custom name
-      --custom_filter string                          customer defined Audit Log filter which will supersede all other filter options when defined
+      --custom_filter string                          Audit Log filter which supersedes all other filter options when defined
       --enable_force_destroy_bucket                   enable force bucket destroy
       --enable_ubla                                   enable universal bucket level access(ubla) (default true)
       --existing_bucket_name string                   specify existing bucket name
