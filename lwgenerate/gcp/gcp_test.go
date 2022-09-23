@@ -2,8 +2,9 @@ package gcp_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/lwgenerate/gcp"
 )
