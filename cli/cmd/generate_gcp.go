@@ -53,8 +53,6 @@ var (
 	GcpAdvancedOptLocation             = "Customize output location"
 	QuestionGcpCustomizeOutputLocation = "Provide the location for the output to be written:"
 	QuestionGcpCustomFilter            = "Specify a custom Audit Log filter which supersedes all other filter options"
-	QuestionGcpGoogleWorkspaceFilter   = "Filter out Google Workspace login logs from GCP Audit Log sinks?"
-	QuestionGcpK8sFilter               = "Filter out GKE logs from GCP Audit Log sinks?"
 	GcpAdvancedOptDone                 = "Done"
 
 	// GcpRegionRegex regex used for validating region input
@@ -597,16 +595,6 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 			Prompt:   &survey.Input{Message: QuestionGcpCustomFilter, Default: config.CustomFilter},
 			Checks:   []*bool{&config.AuditLog},
 			Response: &config.CustomFilter,
-		},
-		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpGoogleWorkspaceFilter, Default: config.GoogleWorkspaceFilter},
-			Checks:   []*bool{&config.AuditLog},
-			Response: &config.GoogleWorkspaceFilter,
-		},
-		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpK8sFilter, Default: config.K8sFilter},
-			Checks:   []*bool{&config.AuditLog},
-			Response: &config.K8sFilter,
 		},
 	}, config.AuditLog)
 

@@ -1,9 +1,9 @@
 package gcp
 
 import (
-	"sort"
-
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/internal/set"
 	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/pkg/errors"
 )
@@ -454,27 +454,6 @@ func createLaceworkProvider(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Blo
 	return nil, nil
 }
 
-func sortedStringSet(list []string) []string {
-	// TODO: Find me a home
-	_map := make(map[string]string)
-
-	for _, f := range list {
-		_map[f] = ""
-	}
-
-	set := make([]string, len(_map))
-
-	i := 0
-	for key := range _map {
-		set[i] = key
-		i++
-	}
-
-	sort.Strings(set)
-
-	return set
-}
-
 func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 	if args.Configuration {
@@ -490,11 +469,11 @@ func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Bloc
 			attributes["organization_id"] = args.GcpOrganizationId
 
 			if len(args.FoldersToInclude) > 0 {
-				attributes["folders_to_include"] = sortedStringSet(args.FoldersToInclude)
+				attributes["folders_to_include"] = array.SortStrings(set.StringSlice(args.FoldersToInclude))
 			}
 
 			if len(args.FoldersToExclude) > 0 {
-				attributes["folders_to_exclude"] = sortedStringSet(args.FoldersToExclude)
+				attributes["folders_to_exclude"] = array.SortStrings(set.StringSlice(args.FoldersToExclude))
 
 				// Default true in gcp-audit-log TF module
 				if args.IncludeRootProjects != true {
@@ -604,11 +583,11 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			attributes["organization_id"] = args.GcpOrganizationId
 
 			if len(args.FoldersToInclude) > 0 {
-				attributes["folders_to_include"] = sortedStringSet(args.FoldersToInclude)
+				attributes["folders_to_include"] = array.SortStrings(set.StringSlice(args.FoldersToInclude))
 			}
 
 			if len(args.FoldersToExclude) > 0 {
-				attributes["folders_to_exclude"] = sortedStringSet(args.FoldersToExclude)
+				attributes["folders_to_exclude"] = array.SortStrings(set.StringSlice(args.FoldersToExclude))
 
 				// Default true in gcp-audit-log TF module
 				if args.IncludeRootProjects != true {

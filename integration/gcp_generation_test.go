@@ -20,42 +20,6 @@ const (
 	projectId      = "project-1"
 )
 
-type MsgRsp struct {
-	message      string
-	response     string
-	skipResponse bool
-	menuItems    int
-}
-
-func msgRsp(message string, response string) MsgRsp {
-	return MsgRsp{message, response, false, 0}
-}
-
-func msgOnly(message string) MsgRsp {
-	return MsgRsp{message, "", true, 0}
-}
-
-func msgMenu(message string, count int) MsgRsp {
-	return MsgRsp{message, "", true, count}
-}
-
-func cliExpectations(t *testing.T, c *expect.Console, m []MsgRsp) {
-	for _, e := range m {
-		expectString(t, c, e.message)
-
-		if !e.skipResponse {
-			c.SendLine(e.response)
-		}
-
-		if e.menuItems > 0 {
-			for i := 0; i < e.menuItems-1; i++ {
-				c.Send("\x1B[B")
-			}
-			c.SendLine("\x1B[B")
-		}
-	}
-}
-
 func assertTerraformSaved(t *testing.T, message string) {
 	assert.Contains(t, message, "Terraform code saved in")
 }
@@ -68,7 +32,7 @@ func TestGenerationErrorOnNoSelectionGcp(t *testing.T) {
 	// Run CLI
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "n"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "n"),
 				msgOnly("ERROR collecting/confirming parameters: must enable audit log or configuration"),
@@ -88,7 +52,7 @@ func TestGenerationSimpleGcp(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -121,7 +85,7 @@ func TestGenerationConfigOnlyGcp(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "n"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -154,7 +118,7 @@ func TestGenerationAuditlogOnlyGcp(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "n"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -187,7 +151,7 @@ func TestGenerationAuditlogEnableUBLA(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "n"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -221,7 +185,7 @@ func TestGenerationAuditlogDisableUBLA(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "n"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -255,7 +219,7 @@ func TestOrganizationIntegrationConfigAndAuditLogGcp(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -292,7 +256,7 @@ func TestGeneratePrefixAndWait(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -349,7 +313,7 @@ func TestGenerationSACredsGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -383,7 +347,7 @@ func TestGenerationAdvancedAuditLogOptsExistingBucketGcp(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -395,8 +359,6 @@ func TestGenerationAdvancedAuditLogOptsExistingBucketGcp(t *testing.T) {
 				msgRsp(cmd.QuestionGcpExistingBucketName, "bucketMcBucketFace"),
 				msgRsp(cmd.QuestionGcpUseExistingSink, "n"),
 				msgRsp(cmd.QuestionGcpCustomFilter, ""),
-				msgRsp(cmd.QuestionGcpGoogleWorkspaceFilter, ""),
-				msgRsp(cmd.QuestionGcpK8sFilter, ""),
 				msgRsp(cmd.QuestionGcpAnotherAdvancedOpt, "n"),
 				msgRsp(cmd.QuestionRunTfPlan, "n"),
 			})
@@ -426,7 +388,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketNotConfiguredGcp(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -438,8 +400,6 @@ func TestGenerationAdvancedAuditLogOptsNewBucketNotConfiguredGcp(t *testing.T) {
 				msgRsp(cmd.QuestionGcpConfigureNewBucket, "n"),
 				msgRsp(cmd.QuestionGcpUseExistingSink, "n"),
 				msgRsp(cmd.QuestionGcpCustomFilter, ""),
-				msgRsp(cmd.QuestionGcpGoogleWorkspaceFilter, ""),
-				msgRsp(cmd.QuestionGcpK8sFilter, ""),
 				msgRsp(cmd.QuestionGcpAnotherAdvancedOpt, "n"),
 				msgRsp(cmd.QuestionRunTfPlan, "n"),
 			})
@@ -469,7 +429,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -485,8 +445,6 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 				msgRsp(cmd.QuestionGcpEnableUBLA, "y"),
 				msgRsp(cmd.QuestionGcpUseExistingSink, "n"),
 				msgRsp(cmd.QuestionGcpCustomFilter, ""),
-				msgRsp(cmd.QuestionGcpGoogleWorkspaceFilter, ""),
-				msgRsp(cmd.QuestionGcpK8sFilter, ""),
 				msgRsp(cmd.QuestionGcpAnotherAdvancedOpt, "n"),
 				msgRsp(cmd.QuestionRunTfPlan, "n"),
 			})
@@ -520,7 +478,7 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -536,8 +494,6 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 				msgRsp(cmd.QuestionGcpEnableUBLA, "y"),
 				msgRsp(cmd.QuestionGcpUseExistingSink, "n"),
 				msgRsp(cmd.QuestionGcpCustomFilter, ""),
-				msgRsp(cmd.QuestionGcpGoogleWorkspaceFilter, ""),
-				msgRsp(cmd.QuestionGcpK8sFilter, ""),
 				msgRsp(cmd.QuestionGcpAnotherAdvancedOpt, "n"),
 				msgRsp(cmd.QuestionRunTfPlan, "n"),
 			})
@@ -569,7 +525,7 @@ func TestGenerationAdvancedAuditLogOpts(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "n"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -581,8 +537,6 @@ func TestGenerationAdvancedAuditLogOpts(t *testing.T) {
 				msgRsp(cmd.QuestionGcpExistingBucketName, "bucketMcBucketFace"),
 				msgRsp(cmd.QuestionGcpUseExistingSink, "n"),
 				msgRsp(cmd.QuestionGcpCustomFilter, filter),
-				msgRsp(cmd.QuestionGcpGoogleWorkspaceFilter, ""),
-				msgRsp(cmd.QuestionGcpK8sFilter, ""),
 				msgRsp(cmd.QuestionGcpAnotherAdvancedOpt, "n"),
 				msgRsp(cmd.QuestionRunTfPlan, "n"),
 			})
@@ -611,7 +565,7 @@ func TestGenerationAdvancedOptsUseExistingSA(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -652,7 +606,7 @@ func TestGenerationCustomizedConfigurationIntegrationNameGcp(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -699,7 +653,7 @@ func TestGenerationCustomizedAuditlogIntegrationNameGcp(t *testing.T) {
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -743,7 +697,7 @@ func TestGenerationCustomizedOutputLocationGcp(t *testing.T) {
 
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -780,7 +734,7 @@ func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -812,7 +766,7 @@ func TestGenerationAdvancedOptsDoneGcpConfiguration(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "n"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -856,7 +810,7 @@ func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -890,7 +844,7 @@ func TestGenerationFolders(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -931,7 +885,7 @@ func TestGenerationFoldersShorthand(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -972,7 +926,7 @@ func TestGenerationIncludeRootProjects(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -1011,7 +965,7 @@ func TestGenerationIncludeRootProjectsFalse(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -1050,7 +1004,7 @@ func TestGenerationAuditLogFiltersTrue(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "n"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
@@ -1085,7 +1039,7 @@ func TestGenerationAuditlogFiltersFalse(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			cliExpectations(t, c, []MsgRsp{
+			expectsCliOutput(t, c, []MsgRsp{
 				msgRsp(cmd.QuestionGcpEnableConfiguration, "n"),
 				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
 				msgRsp(cmd.QuestionGcpProjectID, projectId),
