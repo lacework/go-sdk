@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 var _ io.WriteCloser = (*verboseWriter)(nil)
@@ -133,9 +133,16 @@ func (v *verboseWriter) updateTerm() error {
 	}
 	v.lastUpdate = time.Now().UTC()
 
-	w, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	w, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
 		return fmt.Errorf("error getting terminal size: %w", err)
+	}
+	// A width of zero would result in a division by zero panic when computing overflow
+	// in printScreen. Therefore, set it to a safe - even though probably wrong - value.
+	// We use <= 0 here because negative values are guaranteed to lead to unexpected
+	// results, even if they don't cause panics.
+	if w <= 0 {
+		w = 80
 	}
 	v.termWidth = w
 
