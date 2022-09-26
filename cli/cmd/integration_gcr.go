@@ -144,7 +144,7 @@ func createGcrIntegration() error {
 			NonOSPackageEval: answers.NonOSPackageSupport,
 			LimitByTag:       strings.Split(answers.LimitTag, "\n"),
 			LimitByLabel:     castStringToLimitByLabel(answers.LimitLabel),
-			LimitByRep:       strings.Split(answers.LimitRepos, "\n"),
+			LimitByRepo:      strings.Split(answers.LimitRepos, "\n"),
 			LimitNumImg:      limitMaxImages,
 		},
 	)
