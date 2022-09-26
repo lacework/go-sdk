@@ -1,10 +1,6 @@
 package cmd
 
 import (
-	"encoding/base64"
-	"encoding/json"
-	"io/ioutil"
-	"os"
 	"regexp"
 	"time"
 
@@ -14,7 +10,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
-	"github.com/lacework/go-sdk/internal/file"
 	"github.com/lacework/go-sdk/lwgenerate/gcp"
 )
 
@@ -62,6 +57,8 @@ var (
 	GenerateGcpCommandExtraState             = &GcpGenerateCommandExtraState{}
 	CachedGcpAssetIacParams                  = "iac-gcp-generate-params"
 	CachedAssetGcpExtraState                 = "iac-gcp-extra-state"
+
+	InvalidProjectIDMessage = "invalid GCP project ID.  It must be 6 to 30 lowercase ASCII letters, digits, or hyphens. It must start with a letter. Trailing hyphens are prohibited. Example: tokyo-rain-123"
 
 	// gcp command is used to generate TF code for gcp
 	generateGcpTfCommand = &cobra.Command{
@@ -194,8 +191,11 @@ See help output for more details on the parameter value(s) required for Terrafor
 			if err != nil {
 				return errors.Wrap(err, "failed to load command flags")
 			}
-			if err := validateServiceAccountCredentialsFile(gcpSaCredentials); err != nil {
-				return err
+
+			if gcpSaCredentials != "" {
+				if err := gcp.ValidateServiceAccountCredentialsFile(gcpSaCredentials); err != nil {
+					return err
+				}
 			}
 
 			// Validate gcp region, if passed
@@ -437,75 +437,6 @@ func initGenerateGcpTfCommandFlags() {
 
 }
 
-func validateServiceAccountCredentialsFile(credFile string) error {
-	if credFile == "" {
-		return nil
-	}
-
-	if file.FileExists(credFile) {
-		jsonFile, err := os.Open(credFile)
-		// if we os.Open returns an error then handle it
-		if err != nil {
-			return errors.Wrap(err, "issue opening GCP credentials file")
-		}
-		defer jsonFile.Close()
-
-		byteValue, err := ioutil.ReadAll(jsonFile)
-		if err != nil {
-			return errors.Wrap(err, "unable to parse credentials file")
-		}
-
-		var credFileContent map[string]interface{}
-		err = json.Unmarshal(byteValue, &credFileContent)
-		if err != nil {
-			return errors.Wrap(err, "unable to parse credentials file")
-		}
-		credFileContent, valid := validateSaCredFileContent(credFileContent)
-		if !valid {
-			return errors.New("invalid GCP Service Account credentials file. " +
-				"The private_key and client_email fields MUST be present.")
-		}
-	} else {
-		return errors.New("provided GCP credentials file does not exist")
-	}
-	return nil
-}
-
-func validateSaCredFileContent(credFileContent map[string]interface{}) (map[string]interface{}, bool) {
-	if credFileContent["private_key"] != nil && credFileContent["client_email"] != nil {
-		privateKey, ok := credFileContent["private_key"].(string)
-		if !ok {
-			return credFileContent, false
-		}
-		err := validateStringIsBase64(privateKey)
-		if err != nil {
-			// convert private key to base64 if it isn't already
-			// the private_key in a standard GCP SA credentials file isn't usually base64 encoded
-			privateKey := base64.StdEncoding.EncodeToString([]byte(privateKey))
-			credFileContent["private_key"] = privateKey
-			return credFileContent, true
-		}
-	}
-	return credFileContent, false
-}
-
-// create survey.Validator for string is base64
-func validateStringIsBase64(val interface{}) error {
-	switch value := val.(type) {
-	case string:
-		// if value isn't base64, return error
-		_, err := base64.StdEncoding.DecodeString(value)
-		if err != nil {
-			return errors.New("provided private key is not base64 encoded")
-		}
-	default:
-		// if the value passed is not a string
-		return errors.New("value must be a string")
-	}
-
-	return nil
-}
-
 // survey.Validator for gcp region
 func validateGcpRegion(val interface{}) error {
 	switch value := val.(type) {
@@ -528,23 +459,6 @@ func validateGcpRegion(val interface{}) error {
 	}
 
 	return nil
-}
-
-// survey.Validator for gcp service account credentials
-func validateGcpServiceAccountCredentials(val interface{}) error {
-	switch value := val.(type) {
-	case string:
-		if value == "" {
-			// as this field is optional, it is valid for this field to be empty
-			return nil
-		} else {
-			// if value isn't a valid path, return an error
-			return validateServiceAccountCredentialsFile(value)
-		}
-	default:
-		// if the value passed is not a string
-		return errors.New("value must be a string")
-	}
 }
 
 func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
@@ -640,7 +554,7 @@ func promptGcpExistingServiceAccountQuestions(config *gcp.GenerateGcpTfConfigura
 		{
 			Prompt:   &survey.Input{Message: QuestionExistingServiceAccountPrivateKey, Default: config.ExistingServiceAccount.PrivateKey},
 			Response: &config.ExistingServiceAccount.PrivateKey,
-			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validateStringIsBase64)},
+			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(gcp.ValidateStringIsBase64)},
 		}})
 
 	return err
@@ -802,6 +716,7 @@ func promptGcpGenerate(
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpProjectID, Default: config.GcpProjectId},
 				Checks:   []*bool{configurationOrAuditLogEnabled(config)},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateGcpProjectId)},
 				Required: true,
 				Response: &config.GcpProjectId,
 			},
@@ -819,7 +734,7 @@ func promptGcpGenerate(
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpServiceAccountCredsPath, Default: config.ServiceAccountCredentials},
 				Checks:   []*bool{configurationOrAuditLogEnabled(config)},
-				Opts:     []survey.AskOpt{survey.WithValidator(validateGcpServiceAccountCredentials)},
+				Opts:     []survey.AskOpt{survey.WithValidator(gcp.ValidateServiceAccountCredentials)},
 				Response: &config.ServiceAccountCredentials,
 			},
 		}); err != nil {
@@ -844,6 +759,25 @@ func promptGcpGenerate(
 		if err := askAdvancedOptions(config, extraState); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func validateGcpProjectId(val interface{}) error {
+	switch value := val.(type) {
+
+	case string:
+		match, err := regexp.MatchString("(^[a-z][a-z0-9-]{4,28}[a-z0-9]$|^$)", value)
+		if err != nil {
+			return err
+		}
+
+		if !match {
+			return errors.New(InvalidProjectIDMessage)
+		}
+	default:
+		return errors.New("value must be a string")
 	}
 
 	return nil

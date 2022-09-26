@@ -22,9 +22,3 @@ func Sort2D(slice [][]string) {
 		})
 	}
 }
-
-func SortStrings(slice []string) []string {
-	sort.Strings(slice)
-
-	return slice
-}
