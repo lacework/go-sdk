@@ -1,4 +1,4 @@
-package set
+package unique
 
 func StringSlice(slice []string) []string {
 	_map := make(map[string]string)
