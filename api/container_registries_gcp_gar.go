@@ -55,9 +55,9 @@ type GcpGarData struct {
 	Credentials      GcpCredentialsV2    `json:"credentials"`
 	RegistryDomain   string              `json:"registryDomain"`
 	RegistryType     string              `json:"registryType"` // always "GCP_GAR"
-	LimitByTag       []string            `json:"limitByTag"`
-	LimitByLabel     []map[string]string `json:"limitByLabel"`
-	LimitByRep       []string            `json:"limitByRep"`
+	LimitByTag       []string            `json:"limitByTag,omitempty"`
+	LimitByLabel     []map[string]string `json:"limitByLabel,omitempty"`
+	LimitByRep       []string            `json:"limitByRep,omitempty"`
 	LimitNumImg      int                 `json:"limitNumImg"`
 	NonOSPackageEval bool                `json:"nonOsPackageEval"`
 }
