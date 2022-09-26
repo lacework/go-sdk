@@ -57,7 +57,7 @@ type GcpGcrData struct {
 	RegistryType     string              `json:"registryType"`
 	LimitByTag       []string            `json:"limitByTag,omitempty"`
 	LimitByLabel     []map[string]string `json:"limitByLabel,omitempty"`
-	LimitByRep       []string            `json:"limitByRep,omitempty"`
+	LimitByRepo      []string            `json:"limitByRepo,omitempty"`
 	LimitNumImg      int                 `json:"limitNumImg"`
 	NonOSPackageEval bool                `json:"nonOsPackageEval"`
 }
