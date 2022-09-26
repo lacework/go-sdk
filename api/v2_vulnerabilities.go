@@ -419,3 +419,9 @@ func (hosts *VulnerabilitiesHostResponse) VulnerabilityCounts() HostVulnCounts {
 
 	return hostCounts
 }
+
+type VulnCveSummary struct {
+	Host      VulnerabilityHost
+	Count     int
+	Hostnames []string
+}

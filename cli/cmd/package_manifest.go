@@ -537,23 +537,6 @@ func fanOutHostScans(manifests ...*api.VulnerabilitiesPackageManifest) (api.Vuln
 func mergeHostVulnScanPkgManifestResponses(to, from *api.VulnerabilitySoftwarePackagesResponse) {
 	// append vulnerabilities from -> to
 	to.Data = append(to.Data, from.Data...)
-
-	// Todo(v2): this is no longer relevant
-	// requests should always return an ok state
-	//to.Ok = from.Ok
-
-	// store the message from the response only if it is NOT empty
-	// and it is different from the previous response (to)
-	//if to.Message == "" {
-	//	to.Message = from.Message
-	//	return
-	//}
-
-	// concatenate messages "to,from" response only if they
-	// are NOT empty and they are different from each other
-	//if from.Message != "" && from.Message != to.Message {
-	//	to.Message = fmt.Sprintf("%s,%s", to.Message, from.Message)
-	//}
 }
 
 func (c *cliState) triggerHostVulnScan(manifest *api.VulnerabilitiesPackageManifest,
