@@ -723,7 +723,7 @@ func filterHostVulnCVEs(cves map[string]api.VulnCveSummary) (map[string]api.Vuln
 		cve := c.Host
 		total++
 		// if the user wants to show only vulnerabilities of active packages
-		if vulCmdState.Active && cve.Status == "" {
+		if vulCmdState.Active && cve.Status != "Active" {
 			filtered++
 			continue
 		}
@@ -801,10 +801,13 @@ func buildVulnHostsDetailsTableCSV(filteredCves map[string]api.VulnCveSummary) (
 
 	if vulCmdState.Packages {
 		packages, _ := hostVulnPackagesTable(filteredCves, false)
+		array.Sort2DDescending(packages)
+		// order by cve count
 		return []string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status"}, packages
 	}
 
 	rows := hostVulnCVEsTableForHostViewCSV(filteredCves)
+	array.Sort2DDescending(rows)
 	return []string{"CVE ID", "Severity", "Score", "Package", "Package Namespace", "Current Version",
 		"Fix Version", "Pkg Status", "First Seen", "Last Status Update", "Vuln Status"}, rows
 }
@@ -815,6 +818,8 @@ func buildVulnHostsDetailsTable(filteredCves map[string]api.VulnCveSummary) stri
 	if showPackages() {
 		if vulCmdState.Packages {
 			packages, filtered := hostVulnPackagesTable(filteredCves, false)
+			array.Sort2DDescending(packages)
+
 			// if the user wants to show only vulnerabilities of active packages
 			// and we don't have any, show a friendly message
 			if len(packages) == 0 {
@@ -832,7 +837,7 @@ func buildVulnHostsDetailsTable(filteredCves map[string]api.VulnCveSummary) stri
 			}
 		} else {
 			rows := hostVulnCVEsTableForHostView(filteredCves)
-
+			array.Sort2DDescending(rows)
 			// if the user wants to show only vulnerabilities of active packages
 			// and we don't have any, show a friendly message
 			if len(rows) == 0 {

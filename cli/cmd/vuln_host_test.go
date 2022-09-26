@@ -111,8 +111,8 @@ func TestBuildVulnHostReportsWithVulnerabilitiesSummaryOnlyAndNoFilters(t *testi
     Machine ID   51                 SEVERITY   COUNT   FIXABLE    
     Hostname     host-mock        -----------+-------+----------  
     External IP  mock               Critical       0         0    
-    Internal IP  mock               High           0         0    
-    Os           linux              Medium         4         2    
+    Internal IP  mock               High           1         0    
+    Os           linux              Medium         3         2    
     Arch         arm64              Low            4         2    
     Namespace    ubuntu:18.04       Info          14         0    
     Provider     AWS                                              
@@ -139,8 +139,8 @@ func TestBuildVulnHostReportsWithVulnerabilitiesPackagesViewAndNoFilters(t *test
     Machine ID   51                 SEVERITY   COUNT   FIXABLE    
     Hostname     host-mock        -----------+-------+----------  
     External IP  mock               Critical       0         0    
-    Internal IP  mock               High           0         0    
-    Os           linux              Medium         4         2    
+    Internal IP  mock               High           1         0    
+    Os           linux              Medium         3         2    
     Arch         arm64              Low            4         2    
     Namespace    ubuntu:18.04       Info          14         0    
     Provider     AWS                                              
@@ -149,15 +149,15 @@ func TestBuildVulnHostReportsWithVulnerabilitiesPackagesViewAndNoFilters(t *test
                                                                   
   CVE COUNT   SEVERITY     PACKAGE            CURRENT VERSION                  FIX VERSION            PKG STATUS  
 ------------+----------+--------------+------------------------------+------------------------------+-------------
-  1           Medium     ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   1:2017.3.23-2ubuntu0.18.04.4               
-  2           Medium     ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                                              
-  1           Medium     ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   7.58.0-2ubuntu3.18                         
-  1           Low        ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   3.6.9-1~18.04ubuntu1.8                     
   2           Low        ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                                              
+  1           Medium     ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   7.58.0-2ubuntu3.18                         
+  1           Medium     ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   1:2017.3.23-2ubuntu0.18.04.4               
+  1           Medium     ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                                              
   1           Low        ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   4.4.18-2ubuntu1.3                          
+  1           Low        ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   3.6.9-1~18.04ubuntu1.8                     
+  1           High       ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                                              
 
 Try adding '--active' to only show vulnerabilities of packages actively running.
-
 `
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
@@ -175,23 +175,23 @@ func TestBuildVulnHostReportsWithVulnerabilitiesPackagesViewWithFilters(t *testi
           HOST DETAILS                   VULNERABILITIES          
 --------------------------------+---------------------------------
     Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     ip-10-0-1-48     -----------+-------+----------  
-    External IP  1.2.3.4            Critical       0         0    
-    Internal IP  10.0.1.1           High           1         1    
-    Os           linux              Medium        42        38    
-    Arch         arm64              Low           34         5    
-    Namespace    ubuntu:18.04       Info           3         0    
+    Hostname     host-mock        -----------+-------+----------  
+    External IP  mock               Critical       0         0    
+    Internal IP  mock               High           1         0    
+    Os           linux              Medium         3         2    
+    Arch         arm64              Low            4         2    
+    Namespace    ubuntu:18.04       Info          14         0    
     Provider     AWS                                              
     Instance ID  i-mock                                           
     AMI          ami-mock                                         
                                                                   
-  CVE COUNT   SEVERITY   PACKAGE   CURRENT VERSION          FIX VERSION          PKG STATUS  
-------------+----------+---------+-----------------+---------------------------+-------------
-  1           High       openssl                     1.1.1-1ubuntu2.1~18.04.13               
+  CVE COUNT   SEVERITY     PACKAGE            CURRENT VERSION          FIX VERSION   PKG STATUS  
+------------+----------+--------------+------------------------------+-------------+-------------
+  1           High       ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                             
 
 Try adding '--active' to only show vulnerabilities of packages actively running.
 
-1 of 80 cve(s) showing
+1 of 8 cve(s) showing
 `
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
@@ -208,23 +208,23 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersSeverity(t *testing.T
           HOST DETAILS                   VULNERABILITIES          
 --------------------------------+---------------------------------
     Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     ip-10-0-1-48     -----------+-------+----------  
-    External IP  1.2.3.4            Critical       0         0    
-    Internal IP  10.0.1.1           High           1         1    
-    Os           linux              Medium        42        38    
-    Arch         arm64              Low           34         5    
-    Namespace    ubuntu:18.04       Info           3         0    
+    Hostname     host-mock        -----------+-------+----------  
+    External IP  mock               Critical       0         0    
+    Internal IP  mock               High           1         0    
+    Os           linux              Medium         3         2    
+    Arch         arm64              Low            4         2    
+    Namespace    ubuntu:18.04       Info          14         0    
     Provider     AWS                                              
     Instance ID  i-mock                                           
     AMI          ami-mock                                         
                                                                   
-     CVE ID       SEVERITY   SCORE   PACKAGE   CURRENT VERSION          FIX VERSION          PKG STATUS   VULN STATUS  
-----------------+----------+-------+---------+-----------------+---------------------------+------------+--------------
-  CVE-2021-3711   High       9.8     openssl                     1.1.1-1ubuntu2.1~18.04.13                Active       
+      CVE ID       SEVERITY   CVSSV2   CVSSV3    PACKAGE          CURRENT VERSION          FIX VERSION   PKG STATUS   VULN STATUS  
+-----------------+----------+--------+--------+-----------+------------------------------+-------------+------------+--------------
+  CVE-2022-33741   High       3.6      7.1      linux-aws   1:2017.3.23-2ubuntu0.18.04.2                              Reopened     
 
 Try adding '--active' to only show vulnerabilities of packages actively running.
 
-1 of 80 cve(s) showing
+1 of 8 cve(s) showing
 `
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
@@ -241,27 +241,29 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersActive(t *testing.T) 
           HOST DETAILS                   VULNERABILITIES          
 --------------------------------+---------------------------------
     Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     ip-10-0-1-48     -----------+-------+----------  
-    External IP  1.2.3.4            Critical       0         0    
-    Internal IP  10.0.1.1           High           1         1    
-    Os           linux              Medium        42        38    
-    Arch         arm64              Low           34         5    
-    Namespace    ubuntu:18.04       Info           3         0    
+    Hostname     host-mock        -----------+-------+----------  
+    External IP  mock               Critical       0         0    
+    Internal IP  mock               High           1         0    
+    Os           linux              Medium         3         2    
+    Arch         arm64              Low            4         2    
+    Namespace    ubuntu:18.04       Info          14         0    
     Provider     AWS                                              
     Instance ID  i-mock                                           
     AMI          ami-mock                                         
                                                                   
-      CVE ID       SEVERITY   SCORE   PACKAGE   CURRENT VERSION   FIX VERSION   PKG STATUS   VULN STATUS  
------------------+----------+-------+---------+-----------------+-------------+------------+--------------
-  CVE-2021-31879   Medium     6.1     wget                                      ACTIVE       Active       
-  CVE-2019-17042   Low        9.8     rsyslog                                   ACTIVE       Active       
-  CVE-2020-13776   Low        6.7     systemd                                   ACTIVE       Active       
-  CVE-2019-17041   Low        9.8     rsyslog                                   ACTIVE       Active       
-  CVE-2020-35512   Low        7.8     dbus                                      ACTIVE       Active       
+      CVE ID       SEVERITY   CVSSV2   CVSSV3    PACKAGE           CURRENT VERSION                  FIX VERSION            PKG STATUS   VULN STATUS  
+-----------------+----------+--------+--------+------------+------------------------------+------------------------------+------------+--------------
+  CVE-2022-30787   Medium     4.6      6.7      ntfs-3g      1:2017.3.23-2ubuntu0.18.04.2   1:2017.3.23-2ubuntu0.18.04.4                Active       
+  CVE-2022-27782   Medium     5.0      7.5      curl         1:2017.3.23-2ubuntu0.18.04.2   7.58.0-2ubuntu3.18                          Active       
+  CVE-2022-2129    Low        6.8      7.8      vim          1:2017.3.23-2ubuntu0.18.04.2                                               Active       
+  CVE-2022-0351    Medium     4.6      7.8      vim          1:2017.3.23-2ubuntu0.18.04.2                                               Active       
+  CVE-2020-13988   Low        5.0      7.5      open-iscsi   1:2017.3.23-2ubuntu0.18.04.2                                               Active       
+  CVE-2019-18276   Low        7.2      7.8      bash         1:2017.3.23-2ubuntu0.18.04.2   4.4.18-2ubuntu1.3                           Active       
+  CVE-2015-20107   Low        10.0     9.8      python3.6    1:2017.3.23-2ubuntu0.18.04.2   3.6.9-1~18.04ubuntu1.8                      Active       
 
 Try adding '--fixable' to only show fixable vulnerabilities.
 
-5 of 80 cve(s) showing
+7 of 8 cve(s) showing
 `
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
@@ -294,12 +296,12 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersSeverityAndActiveRetu
           HOST DETAILS                   VULNERABILITIES          
 --------------------------------+---------------------------------
     Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     ip-10-0-1-48     -----------+-------+----------  
-    External IP  1.2.3.4            Critical       0         0    
-    Internal IP  10.0.1.1           High           1         1    
-    Os           linux              Medium        42        38    
-    Arch         arm64              Low           34         5    
-    Namespace    ubuntu:18.04       Info           3         0    
+    Hostname     host-mock        -----------+-------+----------  
+    External IP  mock               Critical       0         0    
+    Internal IP  mock               High           1         0    
+    Os           linux              Medium         3         2    
+    Arch         arm64              Low            4         2    
+    Namespace    ubuntu:18.04       Info          14         0    
     Provider     AWS                                              
     Instance ID  i-mock                                           
     AMI          ami-mock                                         
@@ -308,7 +310,7 @@ There are no high vulnerabilities of packages actively running in your environme
 
 Try adding '--fixable' to only show fixable vulnerabilities.
 
-0 of 80 cve(s) showing
+0 of 8 cve(s) showing
 `
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
@@ -325,12 +327,12 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFilterReturnsNoVulns(t *test
           HOST DETAILS                   VULNERABILITIES          
 --------------------------------+---------------------------------
     Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     ip-10-0-1-48     -----------+-------+----------  
-    External IP  1.2.3.4            Critical       0         0    
-    Internal IP  10.0.1.1           High           1         1    
-    Os           linux              Medium        42        38    
-    Arch         arm64              Low           34         5    
-    Namespace    ubuntu:18.04       Info           3         0    
+    Hostname     host-mock        -----------+-------+----------  
+    External IP  mock               Critical       0         0    
+    Internal IP  mock               High           1         0    
+    Os           linux              Medium         3         2    
+    Arch         arm64              Low            4         2    
+    Namespace    ubuntu:18.04       Info          14         0    
     Provider     AWS                                              
     Instance ID  i-mock                                           
     AMI          ami-mock                                         
@@ -339,7 +341,7 @@ There are no critical vulnerabilities in your environment.
 
 Try adding '--active' to only show vulnerabilities of packages actively running.
 
-0 of 80 cve(s) showing
+0 of 8 cve(s) showing
 `
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
@@ -351,49 +353,13 @@ func TestBuildCSVVulnHostReportsWithVulnerabilitiesPackagesViewAndNoFilters(t *t
 	defer func() { cli.csvOutput = false }()
 	expected := `
 CVE Count,Severity,Package,Current Version,Fix Version,Pkg Status
-1,High,openssl,,1.1.1-1ubuntu2.1~18.04.13,
-2,Medium,vim,,2:8.0.1453-1ubuntu1.6,
-1,Medium,wget,,,ACTIVE
-2,Medium,apport,,2.20.9-0ubuntu7.26,
-1,Medium,libgcrypt20,,1.8.1-4ubuntu1.3,
-1,Medium,cloud-init,,21.1-19-gbad84ad4-0ubuntu1~18.04.1,
-2,Medium,curl,,7.58.0-2ubuntu3.15,
-1,Medium,squashfs-tools,,1:4.3-6ubuntu0.18.04.4,
-1,Medium,apparmor,,,
-1,Medium,cpio,,2.12+dfsg-6ubuntu0.18.04.4,
-2,Medium,vim,,2:8.0.1453-1ubuntu1.7,
-2,Medium,curl,,7.58.0-2ubuntu3.14,
-1,Medium,squashfs-tools,,1:4.3-6ubuntu0.18.04.3,
-1,Medium,openssl,,1.1.1-1ubuntu2.1~18.04.13,
-21,Medium,ntfs-3g,,1:2017.3.23-2ubuntu0.18.04.3,
-2,Medium,snapd,,,
-1,Medium,git,,1:2.17.1-1ubuntu0.9,
-1,Low,tcpdump,,,
-1,Low,vim,,2:8.0.1453-1ubuntu1.7,
-1,Low,git,,,
-3,Low,open-iscsi,,,
-1,Low,fuse,,,
-1,Low,dbus,,,ACTIVE
-2,Low,binutils,,2.30-21ubuntu1~18.04.7,
-1,Low,curl,,7.58.0-2ubuntu3.14,
-1,Low,cron,,,
-1,Low,systemd,,,ACTIVE
-1,Low,libgcrypt20,,1.8.1-4ubuntu1.3,
-6,Low,binutils,,,
-1,Low,iptables,,,
-1,Low,vim,,,
-1,Low,byobu,,,
-1,Low,xdg-user-dirs,,,
-3,Low,python3.6,,,
-2,Low,rsyslog,,,ACTIVE
-1,Low,snapd,,,
-1,Low,bash,,,
-1,Low,policykit-1,,,
-1,Low,coreutils,,,
-1,Low,accountsservice,,,
-1,Info,binutils,,,
-1,Info,patch,,,
-1,Info,libtasn1-6,,,
+2,Low,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,
+1,Medium,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,7.58.0-2ubuntu3.18,
+1,Medium,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,1:2017.3.23-2ubuntu0.18.04.4,
+1,Medium,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,
+1,Low,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,4.4.18-2ubuntu1.3,
+1,Low,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,3.6.9-1~18.04ubuntu1.8,
+1,High,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,
 `
 	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
@@ -632,9 +598,9 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
                 "isDailyJob": 1,
                 "last_updated_time": "2022-09-17T03:00:00.000Z"
             },
-            "severity": "Medium",
+            "severity": "High",
             "startTime": "2022-09-23T03:00:00.000Z",
-            "status": "Active",
+            "status": "Reopened",
             "vulnId": "CVE-2022-33741"
         },
         {
@@ -1553,84 +1519,12 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
 
 var expectedCSVHostDetailsTable = `
 CVE ID,Severity,Score,Package,Package Namespace,Current Version,Fix Version,Pkg Status,First Seen,Last Status Update,Vuln Status
-CVE-2021-3711,High,9.8,openssl,ubuntu:18.04,,1.1.1-1ubuntu2.1~18.04.13,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-40153,Medium,8.1,squashfs-tools,ubuntu:18.04,,1:4.3-6ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39253,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39254,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-35267,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3710,Medium,5.5,apport,ubuntu:18.04,,2.20.9-0ubuntu7.26,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-41072,Medium,8.1,squashfs-tools,ubuntu:18.04,,1:4.3-6ubuntu0.18.04.4,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3429,Medium,0,cloud-init,ubuntu:18.04,,21.1-19-gbad84ad4-0ubuntu1~18.04.1,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Reopened
-CVE-2021-35269,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-31879,Medium,6.1,wget,ubuntu:18.04,,,ACTIVE,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-33287,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-35268,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-40528,Medium,5.9,libgcrypt20,ubuntu:18.04,,1.8.1-4ubuntu1.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39260,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-38185,Medium,7.8,cpio,ubuntu:18.04,,2.12+dfsg-6ubuntu0.18.04.4,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-33285,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3927,Medium,7.8,vim,ubuntu:18.04,,2:8.0.1453-1ubuntu1.7,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-22946,Medium,7.5,curl,ubuntu:18.04,,7.58.0-2ubuntu3.15,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39251,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39258,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-22947,Medium,5.9,curl,ubuntu:18.04,,7.58.0-2ubuntu3.15,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-22924,Medium,3.7,curl,ubuntu:18.04,,7.58.0-2ubuntu3.14,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3712,Medium,7.4,openssl,ubuntu:18.04,,1.1.1-1ubuntu2.1~18.04.13,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39261,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3796,Medium,7.3,vim,ubuntu:18.04,,2:8.0.1453-1ubuntu1.6,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3709,Medium,5.5,apport,ubuntu:18.04,,2.20.9-0ubuntu7.26,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39259,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-35266,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2019-11840,Medium,5.9,snapd,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39257,Medium,5.5,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3928,Medium,7.8,vim,ubuntu:18.04,,2:8.0.1453-1ubuntu1.7,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39262,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3778,Medium,7.8,vim,ubuntu:18.04,,2:8.0.1453-1ubuntu1.6,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2016-1585,Medium,9.8,apparmor,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39252,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-33286,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3155,Medium,0,snapd,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39256,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-40330,Medium,7.5,git,ubuntu:18.04,,1:2.17.1-1ubuntu0.9,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-22925,Medium,5.3,curl,ubuntu:18.04,,7.58.0-2ubuntu3.14,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39255,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-39263,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-33289,Medium,7.8,ntfs-3g,ubuntu:18.04,,1:2017.3.23-2ubuntu0.18.04.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2020-35512,Low,7.8,dbus,ubuntu:18.04,,,ACTIVE,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2019-9072,Low,5.5,binutils,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-22898,Low,3.1,curl,ubuntu:18.04,,7.58.0-2ubuntu3.14,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2012-6655,Low,3.3,accountsservice,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2020-13987,Low,7.5,open-iscsi,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2018-1000021,Low,8.8,git,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2020-16592,Low,5.5,binutils,ubuntu:18.04,,2.30-21ubuntu1~18.04.7,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-33560,Low,7.5,libgcrypt20,ubuntu:18.04,,1.8.1-4ubuntu1.3,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3903,Low,7.8,vim,ubuntu:18.04,,2:8.0.1453-1ubuntu1.7,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2019-1010204,Low,5.5,binutils,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2020-8037,Low,7.5,tcpdump,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3426,Low,5.7,python3.6,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2017-1000382,Low,5.5,vim,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2020-17437,Low,8.2,open-iscsi,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2019-7306,Low,7.5,byobu,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2018-10906,Low,7.8,fuse,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2017-15131,Low,7.8,xdg-user-dirs,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-3487,Low,6.5,binutils,ubuntu:18.04,,2.30-21ubuntu1~18.04.7,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-20197,Low,6.3,binutils,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2019-17041,Low,9.8,rsyslog,ubuntu:18.04,,,ACTIVE,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2018-20673,Low,5.5,binutils,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2017-9525,Low,6.7,cron,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2020-13776,Low,6.7,systemd,ubuntu:18.04,,,ACTIVE,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2017-18207,Low,6.5,python3.6,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2021-23336,Low,5.9,python3.6,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2019-17042,Low,9.8,rsyslog,ubuntu:18.04,,,ACTIVE,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2017-3204,Low,8.1,snapd,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2016-2568,Low,7.8,policykit-1,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2019-18276,Low,7.8,bash,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2016-2781,Low,6.5,coreutils,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2012-2663,Low,7.5,iptables,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2017-13716,Low,5.5,binutils,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2020-13988,Low,7.5,open-iscsi,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2019-9076,Low,5.5,binutils,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2018-20657,Info,7.5,binutils,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2018-6952,Info,7.5,patch,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
-CVE-2018-1000654,Info,5.5,libtasn1-6,ubuntu:18.04,,,,0001-01-01 00:00:00 +0000 UTC,1970-01-01 00:00:00 +0000 UTC,Active
+CVE-2022-33741,High,3.6,7.1,linux-aws,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2022-09-16 03:00:00 +0000 UTC,2022-09-17 03:00:00 +0000 UTC,
+CVE-2022-30787,Medium,4.6,6.7,ntfs-3g,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,1:2017.3.23-2ubuntu0.18.04.4,,2022-06-08 03:00:00 +0000 UTC,2022-06-09 03:00:00 +0000 UTC,
+CVE-2022-27782,Medium,5.0,7.5,curl,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,7.58.0-2ubuntu3.18,,2022-05-12 03:00:00 +0000 UTC,2022-05-13 03:00:00 +0000 UTC,
+CVE-2022-2129,Low,6.8,7.8,vim,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2022-07-20 03:00:00 +0000 UTC,2022-07-21 03:00:00 +0000 UTC,
+CVE-2022-0351,Medium,4.6,7.8,vim,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2022-01-30 03:00:00 +0000 UTC,2022-01-31 03:00:00 +0000 UTC,
+CVE-2020-13988,Low,5.0,7.5,open-iscsi,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2021-01-23 03:00:00 +0000 UTC,2021-01-24 03:00:00 +0000 UTC,
+CVE-2019-18276,Low,7.2,7.8,bash,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,4.4.18-2ubuntu1.3,,2021-01-05 11:00:00 +0000 UTC,2021-01-06 03:00:00 +0000 UTC,
+CVE-2015-20107,Low,10.0,9.8,python3.6,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,3.6.9-1~18.04ubuntu1.8,,2022-04-16 03:00:00 +0000 UTC,2022-04-17 03:00:00 +0000 UTC,
 `
