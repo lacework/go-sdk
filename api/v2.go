@@ -44,6 +44,7 @@ type V2Endpoints struct {
 	Inventory               *InventoryService
 	ComplianceEvaluations   *ComplianceEvaluationService
 	Query                   *QueryService
+	OrganizationInfo        *OrganizationInfoService
 	Policy                  *PolicyService
 	Entities                *EntitiesService
 	Schemas                 *SchemasService
@@ -69,6 +70,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&InventoryService{c},
 		&ComplianceEvaluationService{c},
 		&QueryService{c},
+		&OrganizationInfoService{c},
 		NewV2PolicyService(c),
 		&EntitiesService{c},
 		&SchemasService{c, map[integrationSchema]V2Service{}},
