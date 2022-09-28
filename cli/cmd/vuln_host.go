@@ -655,11 +655,6 @@ func hostVulnPackagesTable(cves map[string]api.VulnCveSummary, withHosts bool) (
 		out = append(out, output)
 	}
 
-	// order by severity
-	sort.Slice(out, func(i, j int) bool {
-		return severityOrder(out[i][1]) < severityOrder(out[j][1])
-	})
-
 	if len(filteredPackages) > 0 {
 		filteredOutput := fmt.Sprintf("%d of %d package(s) showing\n", len(out), len(aggregatedPackages)+len(filteredPackages))
 		return out, filteredOutput
@@ -801,13 +796,17 @@ func buildVulnHostsDetailsTableCSV(filteredCves map[string]api.VulnCveSummary) (
 
 	if vulCmdState.Packages {
 		packages, _ := hostVulnPackagesTable(filteredCves, false)
-		array.Sort2DDescending(packages)
+		sort.Slice(packages, func(i, j int) bool {
+			return severityOrder(packages[i][1]) < severityOrder(packages[j][1])
+		})
 		// order by cve count
 		return []string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status"}, packages
 	}
 
 	rows := hostVulnCVEsTableForHostViewCSV(filteredCves)
-	array.Sort2DDescending(rows)
+	sort.Slice(rows, func(i, j int) bool {
+		return severityOrder(rows[i][1]) < severityOrder(rows[j][1])
+	})
 	return []string{"CVE ID", "Severity", "Score", "Package", "Package Namespace", "Current Version",
 		"Fix Version", "Pkg Status", "First Seen", "Last Status Update", "Vuln Status"}, rows
 }
@@ -818,8 +817,10 @@ func buildVulnHostsDetailsTable(filteredCves map[string]api.VulnCveSummary) stri
 	if showPackages() {
 		if vulCmdState.Packages {
 			packages, filtered := hostVulnPackagesTable(filteredCves, false)
-			array.Sort2DDescending(packages)
-
+			// order by severity
+			sort.Slice(packages, func(i, j int) bool {
+				return severityOrder(packages[i][1]) < severityOrder(packages[j][1])
+			})
 			// if the user wants to show only vulnerabilities of active packages
 			// and we don't have any, show a friendly message
 			if len(packages) == 0 {
@@ -837,7 +838,9 @@ func buildVulnHostsDetailsTable(filteredCves map[string]api.VulnCveSummary) stri
 			}
 		} else {
 			rows := hostVulnCVEsTableForHostView(filteredCves)
-			array.Sort2DDescending(rows)
+			sort.Slice(rows, func(i, j int) bool {
+				return severityOrder(rows[i][1]) < severityOrder(rows[j][1])
+			})
 			// if the user wants to show only vulnerabilities of active packages
 			// and we don't have any, show a friendly message
 			if len(rows) == 0 {
