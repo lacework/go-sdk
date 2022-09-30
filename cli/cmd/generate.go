@@ -5,100 +5,26 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-type AwsGenerateCommandExtraState struct {
-	Output                string
-	UseExistingCloudtrail bool
-	UseExistingSNSTopic   bool
-	AwsSubAccounts        []string
-	TerraformApply        bool
-}
-
-func (a *AwsGenerateCommandExtraState) isEmpty() bool {
-	return a.Output == "" && !a.UseExistingCloudtrail && len(a.AwsSubAccounts) == 0 && !a.TerraformApply
-}
-
-// Flush current state of the struct to disk, provided it's not empty
-func (a *AwsGenerateCommandExtraState) writeCache() {
-	if !a.isEmpty() {
-		cli.WriteAssetToCache(CachedAssetAwsExtraState, time.Now().Add(time.Hour*1), a)
-	}
-}
-
-type GcpGenerateCommandExtraState struct {
-	AskAdvanced                bool
-	Output                     string
-	ConfigureNewBucketSettings bool
-	UseExistingServiceAccount  bool
-	UseExistingBucket          bool
-	UseExistingSink            bool
-	TerraformApply             bool
-}
-
-func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
-	return gcp.Output == "" &&
-		!gcp.AskAdvanced &&
-		!gcp.UseExistingServiceAccount &&
-		!gcp.UseExistingBucket &&
-		!gcp.UseExistingSink &&
-		!gcp.TerraformApply
-}
-
-// Flush current state of the struct to disk, provided it's not empty
-func (gcp *GcpGenerateCommandExtraState) writeCache() {
-	if !gcp.isEmpty() {
-		cli.WriteAssetToCache(CachedAssetGcpExtraState, time.Now().Add(time.Hour*1), gcp)
-	}
-}
-
-type AzureGenerateCommandExtraState struct {
-	Output         string
-	TerraformApply bool
-}
-
-func (a *AzureGenerateCommandExtraState) isEmpty() bool {
-	return a.Output == "" && !a.TerraformApply
-}
-
-// Flush current state of the struct to disk, provided it's not empty
-func (a *AzureGenerateCommandExtraState) writeCache() {
-	if !a.isEmpty() {
-		cli.WriteAssetToCache(CachedAzureAssetExtraState, time.Now().Add(time.Hour*1), a)
-	}
-}
-
 var (
 	QuestionRunTfPlan        = "Run Terraform plan now?"
 	QuestionUsePreviousCache = "Previous IaC generation detected, load cached values?"
 
-	// iac-generate command is used to create IaC code for various environments
 	generateTfCommand = &cobra.Command{
-		Use:     "iac-generate",
-		Aliases: []string{"iac"},
+		Use:     "generate",
+		Aliases: []string{"gen"},
 		Short:   "Create IaC code",
 		Long:    "Create IaC content for various different cloud environments and configurations",
 	}
 )
 
 func init() {
-	// add the iac-generate command
-	cloudAccountCommand.AddCommand(generateTfCommand)
-
-	// Add cloud specific command flags
-	initGenerateAwsTfCommandFlags()
-	initGenerateGcpTfCommandFlags()
-	initGenerateAzureTfCommandFlags()
-
-	// add sub-commands to the iac-generate command
-	generateTfCommand.AddCommand(generateAwsTfCommand)
-	generateTfCommand.AddCommand(generateGcpTfCommand)
-	generateTfCommand.AddCommand(generateAzureTfCommand)
+	rootCmd.AddCommand(generateTfCommand)
 }
 
 type SurveyQuestionWithValidationArgs struct {

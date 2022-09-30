@@ -42,8 +42,8 @@ func TestGenerationAzureErrorOnNoSelection(t *testing.T) {
 			c.SendLine("n")
 			expectAzureString(c, "ERROR collecting/confirming parameters: must enable activity log or config", &runError)
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -73,8 +73,8 @@ func TestGenerationAzureSimple(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -124,8 +124,8 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -163,8 +163,8 @@ func TestGenerationAzureConfigOnly(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -199,8 +199,8 @@ func TestGenerationAzureActivityLogOnly(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -252,8 +252,8 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -302,8 +302,8 @@ func TestGenerationAzureNamedConfig(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -350,8 +350,8 @@ func TestGenerationAzureNamedActivityLog(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -395,8 +395,8 @@ func TestGenerationAzureAdvancedOptsDone(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -454,8 +454,8 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 			c.SendLine("n")
 			_, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -500,8 +500,8 @@ func TestGenerationAzureConfigAllSubs(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -551,8 +551,8 @@ func TestGenerationAzureConfigMgmntGroup(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -603,8 +603,8 @@ func TestGenerationAzureConfigSubs(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -654,8 +654,8 @@ func TestGenerationAzureActivityLogSubs(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -710,8 +710,8 @@ func TestGenerationAzureActivityLogStorageAccount(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -759,8 +759,8 @@ func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
@@ -808,8 +808,8 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"az",
 	)
 
