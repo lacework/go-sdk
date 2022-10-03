@@ -32,7 +32,7 @@ require (
 	github.com/spf13/viper v1.13.0
 	github.com/stretchr/testify v1.8.0
 	github.com/zclconf/go-cty v1.11.0
-	go.uber.org/zap v1.21.0
+	go.uber.org/zap v1.23.0
 	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
 	golang.org/x/text v0.3.7
 	gopkg.in/yaml.v2 v2.4.0
