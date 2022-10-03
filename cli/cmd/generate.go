@@ -18,8 +18,8 @@ var (
 	generateTfCommand = &cobra.Command{
 		Use:     "generate",
 		Aliases: []string{"gen"},
-		Short:   "Create IaC code",
-		Long:    "Create IaC content for various different cloud environments and configurations",
+		Short:   "Generate Lacework integration IaC",
+		Long:    "Generate Lacework integration IaC content",
 	}
 )
 

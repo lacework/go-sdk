@@ -1,4 +1,4 @@
-Create IaC content for various different cloud environments and configurations
+Generate Lacework integration IaC content
 
 Usage:
   lacework generate [command]
@@ -7,7 +7,7 @@ Aliases:
   generate, gen
 
 Available Commands:
-  cloud-account Create IaC code
+  cloud-account Generate Lacework integration IaC
 
 Flags:
   -h, --help   help for generate

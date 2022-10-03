@@ -1,4 +1,4 @@
-Create IaC content for various different cloud environments
+Generate Lacework integration IaC for cloud environment(s)
 
 Usage:
   lacework generate cloud-account [command]

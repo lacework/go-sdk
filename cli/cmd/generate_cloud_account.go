@@ -6,8 +6,8 @@ var (
 	generateCloudAccountCommand = &cobra.Command{
 		Use:     "cloud-account",
 		Aliases: []string{"cloud", "ca"},
-		Short:   "Create IaC code",
-		Long:    "Create IaC content for various different cloud environments",
+		Short:   "Generate Lacework integration IaC",
+		Long:    "Generate Lacework integration IaC for cloud environment(s)",
 	}
 )
 

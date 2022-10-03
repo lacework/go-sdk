@@ -24,7 +24,7 @@ Available Commands:
   configure               Configure the Lacework CLI
   container-registry      Manage container registries
   event                   Inspect Lacework events
-  generate                Create IaC code
+  generate                Generate Lacework integration IaC
   policy                  Manage policies
   policy-exception        Manage policy exceptions
   query                   Run and manage queries
