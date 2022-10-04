@@ -14,9 +14,10 @@ var (
 func init() {
 	generateTfCommand.AddCommand(generateCloudAccountCommand)
 
-	initGenerateAwsTfCommandFlags()
-	initGenerateGcpTfCommandFlags()
-	initGenerateAzureTfCommandFlags()
+	// Uncomment when `cloud-account iac-generate` removed
+	//	initGenerateAwsTfCommandFlags()
+	//	initGenerateGcpTfCommandFlags()
+	//	initGenerateAzureTfCommandFlags()
 
 	generateCloudAccountCommand.AddCommand(generateAwsTfCommand)
 	generateCloudAccountCommand.AddCommand(generateGcpTfCommand)

@@ -15,6 +15,15 @@ var (
 	QuestionRunTfPlan        = "Run Terraform plan now?"
 	QuestionUsePreviousCache = "Previous IaC generation detected, load cached values?"
 
+	iacGenerateTfCommand = &cobra.Command{
+		Use:        "iac-generate",
+		Aliases:    []string{"iac"},
+		Short:      "Create IaC code",
+		Long:       "Create IaC content for various different cloud environments and configurations",
+		Deprecated: "This command is deprecated. Use 'generate'.",
+		Hidden:     true,
+	}
+
 	generateTfCommand = &cobra.Command{
 		Use:     "generate",
 		Aliases: []string{"gen"},
@@ -25,6 +34,15 @@ var (
 
 func init() {
 	rootCmd.AddCommand(generateTfCommand)
+
+	//Deprecated
+	cloudAccountCommand.AddCommand(iacGenerateTfCommand)
+	initGenerateAwsTfCommandFlags()
+	initGenerateGcpTfCommandFlags()
+	initGenerateAzureTfCommandFlags()
+	iacGenerateTfCommand.AddCommand(generateAwsTfCommand)
+	iacGenerateTfCommand.AddCommand(generateGcpTfCommand)
+	iacGenerateTfCommand.AddCommand(generateAzureTfCommand)
 }
 
 type SurveyQuestionWithValidationArgs struct {
