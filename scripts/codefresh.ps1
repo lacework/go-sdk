@@ -19,4 +19,6 @@ gox -output="bin/lacework-cli-{{.OS}}-{{.Arch}}" -os="windows" -arch="amd64 386"
 
 Write-Host "Running integrations tests."
 $env:Path += ";$pwd\bin"
-gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="account agent_token alert_rules compliance configure event help integration migration policy query version generation vulnerability"
+
+# Disable vulnerability tests until https://lacework.atlassian.net/browse/RAIN-37563 is resolved
+gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="account agent_token alert_rules compliance configure event help integration migration policy query version generation"
