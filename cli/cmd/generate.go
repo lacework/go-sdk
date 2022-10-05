@@ -27,8 +27,12 @@ var (
 	generateTfCommand = &cobra.Command{
 		Use:     "generate",
 		Aliases: []string{"gen"},
-		Short:   "Generate Lacework integration IaC",
-		Long:    "Generate Lacework integration IaC content",
+		Short:   "Generate code to onboard your account",
+		Long: `Generate code to onboard your account and deploy Lacework into various cloud environments.
+
+This command will create Terraform HCL, Infrastructure as Code, with the option of running 
+Terraform and deploying Lacework into AWS, Azure, or GCP.
+`,
 	}
 )
 
