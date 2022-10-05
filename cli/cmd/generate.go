@@ -30,7 +30,7 @@ var (
 		Short:   "Generate code to onboard your account",
 		Long: `Generate code to onboard your account and deploy Lacework into various cloud environments.
 
-This command will create Terraform HCL, Infrastructure as Code, with the option of running
+This command creates Terraform HCL, Infrastructure as Code, with the option of running
 Terraform and deploying Lacework into AWS, Azure, or GCP.
 `,
 	}
