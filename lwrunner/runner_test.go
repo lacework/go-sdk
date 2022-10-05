@@ -19,6 +19,8 @@
 package lwrunner_test
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"io/ioutil"
 	"net"
 	"os"
@@ -109,6 +111,34 @@ func TestDefaultIdentityFilePathEnvVariable(t *testing.T) {
 	if assert.Nil(t, err) {
 		assert.Equal(t, subject, expected)
 	}
+}
+
+func TestLwRunnerAddKnownHost(t *testing.T) {
+	mockHome, err := ioutil.TempDir("", "lwrunner")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(mockHome)
+
+	netAddr := mockNetAddr{}
+	// generate test RSA keypair in SSH format
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	assert.NoError(t, err)
+	rsaPub := priv.PublicKey
+	sshPub, err := ssh.NewPublicKey(&rsaPub)
+	assert.NoError(t, err)
+	subject := lwrunner.AddKnownHost("mock-test", netAddr, sshPub,
+		path.Join(mockHome, ".ssh", "known_hosts"))
+	assert.NoError(t, subject)
+}
+
+type mockNetAddr struct{}
+
+func (m mockNetAddr) Network() string {
+	return "tcp"
+}
+func (m mockNetAddr) String() string {
+	return "1.1.1.1"
 }
 
 func TestLwRunnerDefaultKnownHosts(t *testing.T) {
