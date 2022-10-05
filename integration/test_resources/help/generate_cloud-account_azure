@@ -12,7 +12,7 @@ By default, this command will function interactively, prompting for the required
 	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
 Usage:
-  lacework cloud-account iac-generate azure [flags]
+  lacework generate cloud-account azure [flags]
 
 Aliases:
   azure, az

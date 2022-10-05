@@ -38,8 +38,8 @@ func TestGenerationErrorOnNoSelectionGcp(t *testing.T) {
 				msgOnly("ERROR collecting/confirming parameters: must enable audit log or configuration"),
 			})
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 }
@@ -64,8 +64,8 @@ func TestGenerationSimpleGcp(t *testing.T) {
 
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -97,8 +97,8 @@ func TestGenerationConfigOnlyGcp(t *testing.T) {
 
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -130,8 +130,8 @@ func TestGenerationAuditlogOnlyGcp(t *testing.T) {
 
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -162,8 +162,8 @@ func TestGenerationAuditlogEnableUBLA(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 		"--enable_ubla",
 	)
@@ -196,8 +196,8 @@ func TestGenerationAuditlogDisableUBLA(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 		"--enable_ubla=false",
 	)
@@ -232,8 +232,8 @@ func TestOrganizationIntegrationConfigAndAuditLogGcp(t *testing.T) {
 
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -268,8 +268,8 @@ func TestGeneratePrefixAndWait(t *testing.T) {
 
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 		"--prefix",
 		prefix,
@@ -325,8 +325,8 @@ func TestGenerationSACredsGcp(t *testing.T) {
 
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -366,8 +366,8 @@ func TestGenerationAdvancedAuditLogOptsExistingBucketGcp(t *testing.T) {
 			final, _ = c.ExpectEOF()
 
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -406,8 +406,8 @@ func TestGenerationAdvancedAuditLogOptsNewBucketNotConfiguredGcp(t *testing.T) {
 
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -450,8 +450,8 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -499,8 +499,8 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -542,8 +542,8 @@ func TestGenerationAdvancedAuditLogOpts(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -580,8 +580,8 @@ func TestGenerationAdvancedOptsUseExistingSA(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -621,8 +621,8 @@ func TestGenerationCustomizedConfigurationIntegrationNameGcp(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -668,8 +668,8 @@ func TestGenerationCustomizedAuditlogIntegrationNameGcp(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -711,8 +711,8 @@ func TestGenerationCustomizedOutputLocationGcp(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -746,8 +746,8 @@ func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -778,8 +778,8 @@ func TestGenerationAdvancedOptsDoneGcpConfiguration(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -823,8 +823,8 @@ func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 				msgRsp(fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), "n"),
 			})
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 	)
 
@@ -856,8 +856,8 @@ func TestGenerationFolders(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 		"--folders_to_include", "folder/abc",
 		"--folders_to_include", "folder/def",
@@ -897,8 +897,8 @@ func TestGenerationFoldersShorthand(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 		"-i", "folder/abc",
 		"-i", "folder/abc",
@@ -938,8 +938,8 @@ func TestGenerationIncludeRootProjects(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 		"--folders_to_exclude",
 		"folder/abc",
@@ -977,8 +977,8 @@ func TestGenerationIncludeRootProjectsFalse(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 		"--folders_to_exclude",
 		"folder/abc",
@@ -1015,8 +1015,8 @@ func TestGenerationAuditLogFiltersTrue(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 		"--google_workspace_filter",
 		"--k8s_filter",
@@ -1050,8 +1050,8 @@ func TestGenerationAuditlogFiltersFalse(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"gcp",
 		"--google_workspace_filter=false",
 		"--k8s_filter=false",

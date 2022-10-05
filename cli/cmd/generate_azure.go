@@ -318,6 +318,22 @@ By default, this command will function interactively, prompting for the required
 	}
 )
 
+type AzureGenerateCommandExtraState struct {
+	Output         string
+	TerraformApply bool
+}
+
+func (a *AzureGenerateCommandExtraState) isEmpty() bool {
+	return a.Output == "" && !a.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (a *AzureGenerateCommandExtraState) writeCache() {
+	if !a.isEmpty() {
+		cli.WriteAssetToCache(CachedAzureAssetExtraState, time.Now().Add(time.Hour*1), a)
+	}
+}
+
 func validateStorageLocation(location string) error {
 	if !validStorageLocations[location] {
 		return errors.New("invalid storage location supplied")

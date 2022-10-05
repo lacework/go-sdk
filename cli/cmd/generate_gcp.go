@@ -267,6 +267,32 @@ See help output for more details on the parameter value(s) required for Terrafor
 	}
 )
 
+type GcpGenerateCommandExtraState struct {
+	AskAdvanced                bool
+	Output                     string
+	ConfigureNewBucketSettings bool
+	UseExistingServiceAccount  bool
+	UseExistingBucket          bool
+	UseExistingSink            bool
+	TerraformApply             bool
+}
+
+func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
+	return gcp.Output == "" &&
+		!gcp.AskAdvanced &&
+		!gcp.UseExistingServiceAccount &&
+		!gcp.UseExistingBucket &&
+		!gcp.UseExistingSink &&
+		!gcp.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (gcp *GcpGenerateCommandExtraState) writeCache() {
+	if !gcp.isEmpty() {
+		cli.WriteAssetToCache(CachedAssetGcpExtraState, time.Now().Add(time.Hour*1), gcp)
+	}
+}
+
 func initGenerateGcpTfCommandFlags() {
 	// add flags to sub commands
 	// TODO Share the help with the interactive generation

@@ -29,8 +29,8 @@ func TestGenerationAwsErrorOnNoSelection(t *testing.T) {
 			c.SendLine("n")
 			expectString(t, c, "ERROR collecting/confirming parameters: must enable cloudtrail or config")
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 	)
 }
@@ -57,8 +57,8 @@ func TestGenerationAwsSimple(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 	)
 
@@ -112,8 +112,8 @@ func TestGenerationAwsCustomizedOutputLocation(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 	)
 
@@ -154,8 +154,8 @@ func TestGenerationAwsConfigOnly(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 	)
 
@@ -199,8 +199,8 @@ func TestGenerationAwsAdvancedOptsDone(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 	)
 
@@ -273,8 +273,8 @@ func TestGenerationAwsAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 	)
 
@@ -343,8 +343,8 @@ func TestGenerationAwsAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 	)
 
@@ -437,8 +437,8 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 	)
 
@@ -497,8 +497,8 @@ func TestGenerationAwsAdvancedOptsConfigWithSubAccounts(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 	)
 
@@ -556,8 +556,8 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *tes
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 		"--consolidated_cloudtrail",
 		"--aws_subaccount",
@@ -618,8 +618,8 @@ func TestGenerationAwsAdvancedOptsUseExistingIAM(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"generate",
 		"cloud-account",
-		"iac-generate",
 		"aws",
 	)
 
@@ -681,8 +681,8 @@ func TestGenerationAwsAdvancedOptsUseExistingElements(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"generate",
 		"cloud-account",
-		"iac-generate",
 		"aws",
 	)
 
@@ -762,8 +762,8 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 			c.SendLine("n")
 			final, _ = c.ExpectEOF()
 		},
+		"generate",
 		"cloud-account",
-		"iac-generate",
 		"aws",
 	)
 
@@ -828,8 +828,8 @@ func TestGenerationAwsWithExistingTerraform(t *testing.T) {
 			expectString(t, c, fmt.Sprintf("%s/main.tf already exists, overwrite?", dir))
 			c.SendLine("n")
 		},
-		"cloud",
-		"iac",
+		"generate",
+		"cloud-account",
 		"aws",
 	)
 

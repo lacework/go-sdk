@@ -294,6 +294,25 @@ See help output for more details on the parameter value(s) required for Terrafor
 	}
 )
 
+type AwsGenerateCommandExtraState struct {
+	Output                string
+	UseExistingCloudtrail bool
+	UseExistingSNSTopic   bool
+	AwsSubAccounts        []string
+	TerraformApply        bool
+}
+
+func (a *AwsGenerateCommandExtraState) isEmpty() bool {
+	return a.Output == "" && !a.UseExistingCloudtrail && len(a.AwsSubAccounts) == 0 && !a.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (a *AwsGenerateCommandExtraState) writeCache() {
+	if !a.isEmpty() {
+		cli.WriteAssetToCache(CachedAssetAwsExtraState, time.Now().Add(time.Hour*1), a)
+	}
+}
+
 func initGenerateAwsTfCommandFlags() {
 	// add flags to sub commands
 	// TODO Share the help with the interactive generation
