@@ -236,7 +236,7 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersActive(t *testing.T) 
 	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
 	})
-	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
+	// NOTE (@afiune): We purposely leave trailing spaces in this table, we need them!
 	expectedTable := `
           HOST DETAILS                   VULNERABILITIES          
 --------------------------------+---------------------------------
@@ -254,12 +254,12 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersActive(t *testing.T) 
       CVE ID       SEVERITY   CVSSV2   CVSSV3    PACKAGE           CURRENT VERSION                  FIX VERSION            PKG STATUS   VULN STATUS  
 -----------------+----------+--------+--------+------------+------------------------------+------------------------------+------------+--------------
   CVE-2022-30787   Medium     4.6      6.7      ntfs-3g      1:2017.3.23-2ubuntu0.18.04.2   1:2017.3.23-2ubuntu0.18.04.4                Active       
-  CVE-2022-27782   Medium     5.0      7.5      curl         1:2017.3.23-2ubuntu0.18.04.2   7.58.0-2ubuntu3.18                          Active       
   CVE-2022-0351    Medium     4.6      7.8      vim          1:2017.3.23-2ubuntu0.18.04.2                                               Active       
+  CVE-2022-27782   Medium     5.0      7.5      curl         1:2017.3.23-2ubuntu0.18.04.2   7.58.0-2ubuntu3.18                          Active       
+  CVE-2019-18276   Low        7.2      7.8      bash         1:2017.3.23-2ubuntu0.18.04.2   4.4.18-2ubuntu1.3                           Active       
+  CVE-2020-13988   Low        5.0      7.5      open-iscsi   1:2017.3.23-2ubuntu0.18.04.2                                               Active       
   CVE-2022-2129    Low        6.8      7.8      vim          1:2017.3.23-2ubuntu0.18.04.2                                               Active       
   CVE-2015-20107   Low        10.0     9.8      python3.6    1:2017.3.23-2ubuntu0.18.04.2   3.6.9-1~18.04ubuntu1.8                      Active       
-  CVE-2020-13988   Low        5.0      7.5      open-iscsi   1:2017.3.23-2ubuntu0.18.04.2                                               Active       
-  CVE-2019-18276   Low        7.2      7.8      bash         1:2017.3.23-2ubuntu0.18.04.2   4.4.18-2ubuntu1.3                           Active       
 
 Try adding '--fixable' to only show fixable vulnerabilities.
 

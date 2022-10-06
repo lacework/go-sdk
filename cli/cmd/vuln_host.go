@@ -941,9 +941,17 @@ func hostVulnCVEsTableForHostViewCSV(cves map[string]api.VulnCveSummary) [][]str
 }
 
 func hostVulnCVEsTableForHostView(summary map[string]api.VulnCveSummary) [][]string {
-	var out [][]string
-	for _, sum := range summary {
-		host := sum.Host
+	var (
+		out      [][]string
+		cveSlice []api.VulnerabilityHost
+	)
+
+	for _, cve := range summary {
+		cveSlice = append(cveSlice, cve.Host)
+	}
+	sortVulnHosts(cveSlice)
+
+	for _, host := range cveSlice {
 		out = append(out, []string{
 			host.VulnID,
 			host.Severity,
