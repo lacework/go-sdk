@@ -601,15 +601,35 @@ func aggregatePackagesWithHosts(slice []packageTable, s packageTable, host bool,
 	return append(slice, s)
 }
 
+func sortVulnHosts(slice []api.VulnerabilityHost) {
+	for range slice {
+		sort.Slice(slice[:], func(i, j int) bool {
+			switch strings.Compare(slice[i].VulnID, slice[j].VulnID) {
+			case -1:
+				return true
+			case 1:
+				return false
+			default:
+				return false
+			}
+		})
+	}
+}
+
 func hostVulnPackagesTable(cves map[string]api.VulnCveSummary, withHosts bool) ([][]string, string) {
 	var (
 		out                [][]string
 		filteredPackages   []packageTable
 		aggregatedPackages []packageTable
+		cveSlice           []api.VulnerabilityHost
 	)
 
 	for _, cve := range cves {
-		host := cve.Host
+		cveSlice = append(cveSlice, cve.Host)
+	}
+	sortVulnHosts(cveSlice)
+
+	for _, host := range cveSlice {
 		pack := packageTable{
 			cveCount:       1,
 			severity:       cases.Title(language.English).String(host.Severity),
@@ -817,7 +837,6 @@ func buildVulnHostsDetailsTable(filteredCves map[string]api.VulnCveSummary) stri
 	if showPackages() {
 		if vulCmdState.Packages {
 			packages, filtered := hostVulnPackagesTable(filteredCves, false)
-			// order by severity
 			sort.Slice(packages, func(i, j int) bool {
 				return severityOrder(packages[i][1]) < severityOrder(packages[j][1])
 			})
@@ -873,9 +892,17 @@ func buildVulnHostsDetailsTable(filteredCves map[string]api.VulnCveSummary) stri
 }
 
 func hostVulnCVEsTableForHostViewCSV(cves map[string]api.VulnCveSummary) [][]string {
-	var out [][]string
+	var (
+		out      [][]string
+		cveSlice []api.VulnerabilityHost
+	)
+
 	for _, cve := range cves {
-		host := cve.Host
+		cveSlice = append(cveSlice, cve.Host)
+	}
+	sortVulnHosts(cveSlice)
+
+	for _, host := range cveSlice {
 		var (
 			firstSeen   string
 			lastUpdated string

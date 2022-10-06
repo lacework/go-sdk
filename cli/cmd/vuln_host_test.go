@@ -149,13 +149,13 @@ func TestBuildVulnHostReportsWithVulnerabilitiesPackagesViewAndNoFilters(t *test
                                                                   
   CVE COUNT   SEVERITY     PACKAGE            CURRENT VERSION                  FIX VERSION            PKG STATUS  
 ------------+----------+--------------+------------------------------+------------------------------+-------------
-  2           Low        ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                                              
+  1           High       ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                                              
+  1           Medium     ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                                              
   1           Medium     ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   7.58.0-2ubuntu3.18                         
   1           Medium     ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   1:2017.3.23-2ubuntu0.18.04.4               
-  1           Medium     ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                                              
   1           Low        ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   4.4.18-2ubuntu1.3                          
+  2           Low        ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                                              
   1           Low        ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2   3.6.9-1~18.04ubuntu1.8                     
-  1           High       ubuntu:18.04   1:2017.3.23-2ubuntu0.18.04.2                                              
 
 Try adding '--active' to only show vulnerabilities of packages actively running.
 `
@@ -255,11 +255,11 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersActive(t *testing.T) 
 -----------------+----------+--------+--------+------------+------------------------------+------------------------------+------------+--------------
   CVE-2022-30787   Medium     4.6      6.7      ntfs-3g      1:2017.3.23-2ubuntu0.18.04.2   1:2017.3.23-2ubuntu0.18.04.4                Active       
   CVE-2022-27782   Medium     5.0      7.5      curl         1:2017.3.23-2ubuntu0.18.04.2   7.58.0-2ubuntu3.18                          Active       
-  CVE-2022-2129    Low        6.8      7.8      vim          1:2017.3.23-2ubuntu0.18.04.2                                               Active       
   CVE-2022-0351    Medium     4.6      7.8      vim          1:2017.3.23-2ubuntu0.18.04.2                                               Active       
+  CVE-2022-2129    Low        6.8      7.8      vim          1:2017.3.23-2ubuntu0.18.04.2                                               Active       
+  CVE-2015-20107   Low        10.0     9.8      python3.6    1:2017.3.23-2ubuntu0.18.04.2   3.6.9-1~18.04ubuntu1.8                      Active       
   CVE-2020-13988   Low        5.0      7.5      open-iscsi   1:2017.3.23-2ubuntu0.18.04.2                                               Active       
   CVE-2019-18276   Low        7.2      7.8      bash         1:2017.3.23-2ubuntu0.18.04.2   4.4.18-2ubuntu1.3                           Active       
-  CVE-2015-20107   Low        10.0     9.8      python3.6    1:2017.3.23-2ubuntu0.18.04.2   3.6.9-1~18.04ubuntu1.8                      Active       
 
 Try adding '--fixable' to only show fixable vulnerabilities.
 
@@ -353,13 +353,13 @@ func TestBuildCSVVulnHostReportsWithVulnerabilitiesPackagesViewAndNoFilters(t *t
 	defer func() { cli.csvOutput = false }()
 	expected := `
 CVE Count,Severity,Package,Current Version,Fix Version,Pkg Status
-2,Low,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,
+1,High,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,
+1,Medium,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,
 1,Medium,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,7.58.0-2ubuntu3.18,
 1,Medium,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,1:2017.3.23-2ubuntu0.18.04.4,
-1,Medium,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,
 1,Low,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,4.4.18-2ubuntu1.3,
+2,Low,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,
 1,Low,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,3.6.9-1~18.04ubuntu1.8,
-1,High,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,
 `
 	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, buildVulnHostReports(mockHostVulnerabilityAssessment()))
@@ -1521,10 +1521,10 @@ var expectedCSVHostDetailsTable = `
 CVE ID,Severity,Score,Package,Package Namespace,Current Version,Fix Version,Pkg Status,First Seen,Last Status Update,Vuln Status
 CVE-2022-33741,High,3.6,7.1,linux-aws,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2022-09-16 03:00:00 +0000 UTC,2022-09-17 03:00:00 +0000 UTC,
 CVE-2022-30787,Medium,4.6,6.7,ntfs-3g,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,1:2017.3.23-2ubuntu0.18.04.4,,2022-06-08 03:00:00 +0000 UTC,2022-06-09 03:00:00 +0000 UTC,
-CVE-2022-27782,Medium,5.0,7.5,curl,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,7.58.0-2ubuntu3.18,,2022-05-12 03:00:00 +0000 UTC,2022-05-13 03:00:00 +0000 UTC,
-CVE-2022-2129,Low,6.8,7.8,vim,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2022-07-20 03:00:00 +0000 UTC,2022-07-21 03:00:00 +0000 UTC,
 CVE-2022-0351,Medium,4.6,7.8,vim,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2022-01-30 03:00:00 +0000 UTC,2022-01-31 03:00:00 +0000 UTC,
+CVE-2022-27782,Medium,5.0,7.5,curl,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,7.58.0-2ubuntu3.18,,2022-05-12 03:00:00 +0000 UTC,2022-05-13 03:00:00 +0000 UTC,
 CVE-2020-13988,Low,5.0,7.5,open-iscsi,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2021-01-23 03:00:00 +0000 UTC,2021-01-24 03:00:00 +0000 UTC,
-CVE-2019-18276,Low,7.2,7.8,bash,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,4.4.18-2ubuntu1.3,,2021-01-05 11:00:00 +0000 UTC,2021-01-06 03:00:00 +0000 UTC,
+CVE-2022-2129,Low,6.8,7.8,vim,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2022-07-20 03:00:00 +0000 UTC,2022-07-21 03:00:00 +0000 UTC,
 CVE-2015-20107,Low,10.0,9.8,python3.6,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,3.6.9-1~18.04ubuntu1.8,,2022-04-16 03:00:00 +0000 UTC,2022-04-17 03:00:00 +0000 UTC,
+CVE-2019-18276,Low,7.2,7.8,bash,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,4.4.18-2ubuntu1.3,,2021-01-05 11:00:00 +0000 UTC,2021-01-06 03:00:00 +0000 UTC,
 `
