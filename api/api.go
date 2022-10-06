@@ -125,9 +125,6 @@ const (
 	apiV2Reports               = "v2/Reports?primaryQueryId=%s&format=%s&reportType=%s"
 	apiV2ReportsSecondaryQuery = "v2/Reports?primaryQueryId=%s&secondaryQueryId=%s&format=%s&reportType=%s"
 
-	apiV2ReportDefinitions         = "v2/ReportDefinitions"
-	apiV2ReportDefinitionsFromGUID = "v2/ReportDefinitions/%s"
-
 	apiV2ReportRules        = "v2/ReportRules"
 	apiV2ReportRuleFromGUID = "v2/ReportRules/%s"
 
