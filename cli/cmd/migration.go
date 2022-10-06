@@ -67,10 +67,11 @@ func (c *cliState) Migrations() (err error) {
 		return err
 	}
 
-	orgInfo, err := c.LwApi.Account.GetOrganizationInfo()
+	resp, err := c.LwApi.V2.OrganizationInfo.Get()
 	if err != nil {
 		return err
 	}
+	orgInfo := resp.Data[0]
 
 	// set new v2 config version and notify our feature event
 	c.CfgVersion = 2
