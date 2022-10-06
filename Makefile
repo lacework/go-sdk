@@ -73,7 +73,6 @@ integration-only: install-tools ## Run integration tests
 		event \
 		help \
 		integration \
-		migration \
 		version \
 		generation \
 		compliance \
