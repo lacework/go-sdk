@@ -1039,7 +1039,7 @@ func filterHostScanPackagesVulnDetails(vulns []api.VulnerabilitySoftwarePackage)
 	out := make([]api.VulnerabilitySoftwarePackage, 0)
 
 	for _, vuln := range vulns {
-		if vulCmdState.Fixable && vuln.HasFix() {
+		if vulCmdState.Fixable && !vuln.HasFix() {
 			continue
 		}
 
