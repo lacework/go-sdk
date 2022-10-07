@@ -19,6 +19,8 @@
 package lwrunner_test
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"io/ioutil"
 	"net"
 	"os"
@@ -109,6 +111,83 @@ func TestDefaultIdentityFilePathEnvVariable(t *testing.T) {
 	if assert.Nil(t, err) {
 		assert.Equal(t, subject, expected)
 	}
+}
+
+func TestLwRunnerAddKnownHostNoSSHDir(t *testing.T) {
+	mockHome, err := ioutil.TempDir("", "lwrunner")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(mockHome)
+
+	knownFile := path.Join(mockHome, ".ssh", "known_hosts")
+	netAddr := mockNetAddr{}
+	// generate test RSA keypair in SSH format
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	assert.NoError(t, err)
+	rsaPub := priv.PublicKey
+	sshPub, err := ssh.NewPublicKey(&rsaPub)
+	assert.NoError(t, err)
+
+	// Add known host to mocked home directory
+	subject := lwrunner.AddKnownHost("mock-test", netAddr, sshPub, knownFile)
+	assert.NoError(t, subject)
+
+	// Check the known host file
+	content, err := ioutil.ReadFile(knownFile)
+	assert.NoError(t, err)
+	assert.Contains(t, string(content), "mock-test")
+
+	// Try again, it should work
+	// Add known host to mocked home directory
+	subject = lwrunner.AddKnownHost("second-time", netAddr, sshPub, knownFile)
+	assert.NoError(t, subject)
+
+	// Check the known host file
+	content, err = ioutil.ReadFile(knownFile)
+	assert.NoError(t, err)
+	assert.Contains(t, string(content), "second-time")
+}
+
+func TestLwRunnerAddKnownWithSSHDir(t *testing.T) {
+	mockHome, err := ioutil.TempDir("", "lwrunner")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(mockHome)
+
+	// Mock that the ~/.ssh dir exists
+	err = os.Mkdir(path.Join(mockHome, ".ssh"), 0700)
+	if err != nil {
+		panic(err)
+	}
+
+	knownFile := path.Join(mockHome, ".ssh", "known_hosts")
+	netAddr := mockNetAddr{}
+	// generate test RSA keypair in SSH format
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	assert.NoError(t, err)
+	rsaPub := priv.PublicKey
+	sshPub, err := ssh.NewPublicKey(&rsaPub)
+	assert.NoError(t, err)
+
+	// Add known host to mocked home directory
+	subject := lwrunner.AddKnownHost("mock-test", netAddr, sshPub, knownFile)
+	assert.NoError(t, subject)
+
+	// Check the known host file
+	content, err := ioutil.ReadFile(knownFile)
+	assert.NoError(t, err)
+	assert.Contains(t, string(content), "mock-test")
+}
+
+type mockNetAddr struct{}
+
+func (m mockNetAddr) Network() string {
+	return "tcp"
+}
+func (m mockNetAddr) String() string {
+	return "1.1.1.1"
 }
 
 func TestLwRunnerDefaultKnownHosts(t *testing.T) {
