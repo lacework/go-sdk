@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -151,7 +150,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			}
 
 			// Write-out generated code to location specified
-			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "aws")
+			dirname, _, err := writeGeneratedCodeToLocation(cmd, hcl, "aws")
 			if err != nil {
 				return err
 			}
@@ -166,8 +165,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				return errors.Wrap(err, "failed to prompt for terraform execution")
 			}
 
-			// Execute
-			locationDir := filepath.Dir(location)
+			locationDir, _ := determineOutputDirPath(dirname, "aws")
 			if GenerateAwsCommandExtraState.TerraformApply {
 				// Execution pre-run check
 				err := executionPreRunChecks(dirname, locationDir, "aws")

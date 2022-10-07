@@ -824,6 +824,129 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+func TestGenerationAzureOverwrite(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+
+	dir := createDummyTOMLConfig()
+	defer os.RemoveAll(dir)
+
+	homeCache := os.Getenv("HOME")
+	os.Setenv("HOME", dir)
+	defer os.Setenv("HOME", homeCache)
+
+	runFakeTerminalTestFromDir(t, dir,
+		func(c *expect.Console) {
+			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
+			c.SendLine("n")
+			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"az",
+	)
+
+	assert.Contains(t, final, fmt.Sprintf("cd %s/lacework/azure", dir))
+
+	runFakeTerminalTestFromDir(t, dir,
+		func(c *expect.Console) {
+			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
+			c.SendLine("n")
+			expectString(t, c, "already exists, overwrite?")
+			c.SendLine("n")
+			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"az",
+	)
+
+	assert.Contains(t, final, fmt.Sprintf("cd %s/lacework/azure", dir))
+}
+
+func TestGenerationAzureOverwriteOutput(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+
+	dir := createDummyTOMLConfig()
+	defer os.RemoveAll(dir)
+
+	output_dir := createDummyTOMLConfig()
+	defer os.RemoveAll(output_dir)
+
+	homeCache := os.Getenv("HOME")
+	os.Setenv("HOME", dir)
+	defer os.Setenv("HOME", homeCache)
+
+	runFakeTerminalTestFromDir(t, dir,
+		func(c *expect.Console) {
+			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
+			c.SendLine("n")
+			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"az",
+		"--output",
+		output_dir,
+	)
+
+	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
+
+	runFakeTerminalTestFromDir(t, dir,
+		func(c *expect.Console) {
+			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
+			c.SendLine("n")
+			expectString(t, c, "already exists, overwrite?")
+			c.SendLine("n")
+			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"az",
+		"--output",
+		output_dir,
+	)
+
+	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
+}
+
 func runGenerateAzureTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)

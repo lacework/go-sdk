@@ -842,6 +842,128 @@ func TestGenerationAwsWithExistingTerraform(t *testing.T) {
 	assert.Empty(t, data)
 }
 
+func TestGenerationAwsOverwrite(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	region := "us-east-2"
+
+	dir := createDummyTOMLConfig()
+	homeCache := os.Getenv("HOME")
+	os.Setenv("HOME", dir)
+	defer os.Setenv("HOME", homeCache)
+	defer os.RemoveAll(dir)
+
+	runFakeTerminalTestFromDir(t, dir,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionAwsRegion)
+			c.SendLine(region)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	assert.Contains(t, final, fmt.Sprintf("cd %s/lacework/aws", dir))
+
+	runFakeTerminalTestFromDir(t, dir,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionAwsRegion)
+			c.SendLine(region)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
+			c.SendLine("n")
+			expectString(t, c, "already exists, overwrite?")
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	assert.Contains(t, final, fmt.Sprintf("cd %s/lacework/aws", dir))
+}
+
+func TestGenerationAwsOverwriteOutput(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	region := "us-east-2"
+
+	dir := createDummyTOMLConfig()
+	defer os.RemoveAll(dir)
+
+	homeCache := os.Getenv("HOME")
+	os.Setenv("HOME", dir)
+	defer os.Setenv("HOME", homeCache)
+
+	output_dir := createDummyTOMLConfig()
+	defer os.RemoveAll(output_dir)
+
+	runFakeTerminalTestFromDir(t, dir,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionAwsRegion)
+			c.SendLine(region)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+		"--output",
+		output_dir,
+	)
+
+	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
+
+	runFakeTerminalTestFromDir(t, dir,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionAwsRegion)
+			c.SendLine(region)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
+			c.SendLine("n")
+			expectString(t, c, "already exists, overwrite?")
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+		"--output",
+		output_dir,
+	)
+
+	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
+}
+
 func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)
