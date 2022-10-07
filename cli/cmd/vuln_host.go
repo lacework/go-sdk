@@ -211,7 +211,7 @@ with fixes:
 				return err
 			}
 
-			cli.StartProgress("Fetching CVEs...")
+			cli.StartProgress("Fetching CVEs in your environment...")
 			response, err := cli.LwApi.V2.Vulnerabilities.Hosts.SearchAllPages(api.SearchFilter{})
 			cli.StopProgress()
 			if err != nil {
@@ -328,7 +328,7 @@ Grab a CVE id and feed it to the command:
 					Value:      args[0],
 				}}}
 
-				cli.StartProgress(fmt.Sprintf("searching for machine with id %s...", args[0]))
+				cli.StartProgress(fmt.Sprintf("Searching for machine with id %s...", args[0]))
 				err := cli.LwApi.V2.Entities.Search(&machineDetailsResponse, filter)
 				cli.StopProgress()
 
@@ -341,7 +341,7 @@ Grab a CVE id and feed it to the command:
 					return nil
 				}
 
-				cli.StartProgress("fetching host vulnerabilities...")
+				cli.StartProgress("Fetching host vulnerabilities...")
 				response, err := cli.LwApi.V2.Vulnerabilities.Hosts.Search(filter)
 				if err != nil {
 					return errors.Wrapf(err, "unable to get host assessment with id %s", args[0])
@@ -571,8 +571,18 @@ func severitySummary(severities []string, fixable int) string {
 		}
 	}
 
-	for k, v := range sevSummaries {
-		summary.WriteString(fmt.Sprintf("%d %s", v, k))
+	var keys []string
+	for k, _ := range sevSummaries {
+		keys = append(keys, k)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		return severityOrder(keys[i]) < severityOrder(keys[j])
+	})
+
+	for _, k := range keys {
+		v := sevSummaries[k]
+		summary.WriteString(fmt.Sprintf(" %d %s", v, k))
 	}
 
 	if fixable != 0 {
