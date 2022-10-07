@@ -35,7 +35,7 @@ func TestListCvesFilterSeverity(t *testing.T) {
 	vulCmdState.Severity = "critical"
 	defer clearVulnFilters()
 
-	mockCves := map[string]api.VulnCveSummary{"TestVulnOne": mockCveOne, "TestVulnTwo": mockCveTwo}
+	mockCves := map[string]VulnCveSummary{"TestVulnOne": mockCveOne, "TestVulnTwo": mockCveTwo}
 	result, output := filterHostCVEsTable(mockCves)
 
 	assert.Equal(t, len(result), 1)
@@ -47,7 +47,7 @@ func TestShowAssessmentFilterSeverityWithPackages(t *testing.T) {
 	vulCmdState.Packages = true
 	defer clearVulnFilters()
 
-	mockCves := map[string]api.VulnCveSummary{"TestVulnOne": mockCveOne, "TestVulnTwo": mockCveTwo}
+	mockCves := map[string]VulnCveSummary{"TestVulnOne": mockCveOne, "TestVulnTwo": mockCveTwo}
 	result, output := hostVulnPackagesTable(mockCves, true)
 
 	assert.Equal(t, len(result), 1)
@@ -60,7 +60,7 @@ func clearVulnFilters() {
 	vulCmdState.Active = false
 }
 
-var mockCveOne = api.VulnCveSummary{
+var mockCveOne = VulnCveSummary{
 	Host: api.VulnerabilityHost{
 		Props:     api.VulnerabilityHostProps{},
 		Mid:       1,
@@ -71,7 +71,7 @@ var mockCveOne = api.VulnCveSummary{
 	},
 }
 
-var mockCveTwo = api.VulnCveSummary{
+var mockCveTwo = VulnCveSummary{
 	Host: api.VulnerabilityHost{
 		Props:     api.VulnerabilityHostProps{},
 		Mid:       1,

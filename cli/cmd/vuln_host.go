@@ -514,8 +514,8 @@ func hostsSummary(hosts []api.VulnerabilityHost) map[int]vulnSummary {
 	return uniqueHosts
 }
 
-func cvesSummary(hosts []api.VulnerabilityHost) map[string]api.VulnCveSummary {
-	uniqueCves := make(map[string]api.VulnCveSummary)
+func cvesSummary(hosts []api.VulnerabilityHost) map[string]VulnCveSummary {
+	uniqueCves := make(map[string]VulnCveSummary)
 	for _, host := range hosts {
 		if host.VulnID == "" {
 			continue
@@ -531,7 +531,7 @@ func cvesSummary(hosts []api.VulnerabilityHost) map[string]api.VulnCveSummary {
 			uniqueCves[host.VulnID] = v
 			continue
 		}
-		sum := api.VulnCveSummary{Host: host, Count: 1}
+		sum := VulnCveSummary{Host: host, Count: 1}
 		sum.Hostnames = append(sum.Hostnames, sum.Host.EvalCtx.Hostname)
 		uniqueCves[host.VulnID] = sum
 	}
@@ -626,7 +626,7 @@ func sortVulnHosts(slice []api.VulnerabilityHost) {
 	}
 }
 
-func hostVulnPackagesTable(cves map[string]api.VulnCveSummary, withHosts bool) ([][]string, string) {
+func hostVulnPackagesTable(cves map[string]VulnCveSummary, withHosts bool) ([][]string, string) {
 	var (
 		out                [][]string
 		filteredPackages   []packageTable
@@ -693,8 +693,8 @@ func hostVulnPackagesTable(cves map[string]api.VulnCveSummary, withHosts bool) (
 	return out, ""
 }
 
-func filterHostCVEsTable(cves map[string]api.VulnCveSummary) (map[string]api.VulnCveSummary, string) {
-	var out map[string]api.VulnCveSummary
+func filterHostCVEsTable(cves map[string]VulnCveSummary) (map[string]VulnCveSummary, string) {
+	var out map[string]VulnCveSummary
 	var filteredCves = 0
 	var totalCves = 0
 
@@ -710,7 +710,7 @@ func filterHostCVEsTable(cves map[string]api.VulnCveSummary) (map[string]api.Vul
 	return out, ""
 }
 
-func hostVulnCVEsTable(hostSummary map[string]api.VulnCveSummary) [][]string {
+func hostVulnCVEsTable(hostSummary map[string]VulnCveSummary) [][]string {
 	var out [][]string
 	for _, sum := range hostSummary {
 		host := sum.Host
@@ -737,11 +737,11 @@ func hostVulnCVEsTable(hostSummary map[string]api.VulnCveSummary) [][]string {
 	return out
 }
 
-func filterHostVulnCVEs(cves map[string]api.VulnCveSummary) (map[string]api.VulnCveSummary, int, int) {
+func filterHostVulnCVEs(cves map[string]VulnCveSummary) (map[string]VulnCveSummary, int, int) {
 	var (
 		filtered = 0
 		total    = 0
-		out      = make(map[string]api.VulnCveSummary)
+		out      = make(map[string]VulnCveSummary)
 	)
 
 	for _, c := range cves {
@@ -819,7 +819,7 @@ func showPackages() bool {
 	return vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages || vulCmdState.Active || vulCmdState.Severity != ""
 }
 
-func buildVulnHostsDetailsTableCSV(filteredCves map[string]api.VulnCveSummary) ([]string, [][]string) {
+func buildVulnHostsDetailsTableCSV(filteredCves map[string]VulnCveSummary) ([]string, [][]string) {
 	if !showPackages() {
 		return nil, nil
 	}
@@ -841,7 +841,7 @@ func buildVulnHostsDetailsTableCSV(filteredCves map[string]api.VulnCveSummary) (
 		"Fix Version", "Pkg Status", "First Seen", "Last Status Update", "Vuln Status"}, rows
 }
 
-func buildVulnHostsDetailsTable(filteredCves map[string]api.VulnCveSummary) string {
+func buildVulnHostsDetailsTable(filteredCves map[string]VulnCveSummary) string {
 	mainBldr := &strings.Builder{}
 
 	if showPackages() {
@@ -901,7 +901,7 @@ func buildVulnHostsDetailsTable(filteredCves map[string]api.VulnCveSummary) stri
 	return mainBldr.String()
 }
 
-func hostVulnCVEsTableForHostViewCSV(cves map[string]api.VulnCveSummary) [][]string {
+func hostVulnCVEsTableForHostViewCSV(cves map[string]VulnCveSummary) [][]string {
 	var (
 		out      [][]string
 		cveSlice []api.VulnerabilityHost
@@ -950,7 +950,7 @@ func hostVulnCVEsTableForHostViewCSV(cves map[string]api.VulnCveSummary) [][]str
 	return out
 }
 
-func hostVulnCVEsTableForHostView(summary map[string]api.VulnCveSummary) [][]string {
+func hostVulnCVEsTableForHostView(summary map[string]VulnCveSummary) [][]string {
 	var (
 		out      [][]string
 		cveSlice []api.VulnerabilityHost
@@ -1205,7 +1205,7 @@ func buildVulnHostReports(response api.VulnerabilitiesHostResponse) error {
 
 	switch {
 	case cli.JSONOutput():
-		return cli.OutputJSON(response.Data)
+		return cli.OutputJSON(summaryToHostList(filteredCves))
 	case cli.CSVOutput():
 		return cli.OutputCSV(csvHeader, csvDetailsReport)
 	default:
@@ -1216,6 +1216,13 @@ func buildVulnHostReports(response api.VulnerabilitiesHostResponse) error {
 		}
 		return nil
 	}
+}
+
+func summaryToHostList(sum map[string]VulnCveSummary) (hosts []api.VulnerabilityHost) {
+	for _, v := range sum {
+		hosts = append(hosts, v.Host)
+	}
+	return
 }
 
 // Build the cli output for vuln host list-cves
@@ -1229,7 +1236,8 @@ func buildListCVEReports(cves []api.VulnerabilityHost) error {
 				return err
 			}
 		} else {
-			if err := cli.OutputJSON(uniqueCves); err != nil {
+			// fix here too
+			if err := cli.OutputJSON(summaryToHostList(uniqueCves)); err != nil {
 				return err
 			}
 		}
@@ -1329,4 +1337,10 @@ type vulnSummary struct {
 	severity []string
 	fixable  int
 	count    int
+}
+
+type VulnCveSummary struct {
+	Host      api.VulnerabilityHost
+	Count     int
+	Hostnames []string
 }
