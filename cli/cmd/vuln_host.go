@@ -315,7 +315,7 @@ Grab a CVE id and feed it to the command:
 
 			var (
 				assessment api.VulnerabilitiesHostResponse
-				cacheKey   = fmt.Sprintf("host/assessment/%s", args[0])
+				cacheKey   = fmt.Sprintf("host/assessment/v2/%s", args[0])
 			)
 
 			expired := cli.ReadCachedAsset(cacheKey, &assessment)
