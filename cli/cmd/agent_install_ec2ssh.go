@@ -65,7 +65,7 @@ The environment should contain AWS credentials in the following variables:
 )
 
 func init() {
-	// 'agent install ssh' flags
+	// 'agent install ec2-ssh' flags
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallTagKey,
 		"tag_key", "", "only install agents on infra with this tag key",
 	)

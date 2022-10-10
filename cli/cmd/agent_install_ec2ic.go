@@ -44,6 +44,10 @@ To filter by instance tag key:
 
     lacework agent install ec2ic --infra_tag_key TagName
 
+To explicitly specify the username for all SSH logins:
+
+    lacework agent install ec2ic --ssh_username <your-user>
+
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
@@ -67,6 +71,9 @@ func init() {
 	)
 	agentInstallAWSEC2ICCmd.Flags().StringSliceVarP(&agentCmdState.InstallIncludeRegions,
 		"include_regions", "r", []string{}, "list of regions to filter on",
+	)
+	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
+		"ssh_username", "", "username to login with",
 	)
 }
 
