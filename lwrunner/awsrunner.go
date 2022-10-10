@@ -24,11 +24,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2instanceconnect"
+	"github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -41,14 +40,11 @@ type AWSRunner struct {
 
 func NewAWSRunner(amiImageId, host, region, availabilityZone, instanceID string, callback ssh.HostKeyCallback) (*AWSRunner, error) {
 	// Look up the AMI name of the runner
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	svc := ec2.New(ec2.Options{
-		Credentials: cfg.Credentials,
-		Region:      region,
-	})
+	svc := ec2.NewFromConfig(cfg)
 	input := ec2.DescribeImagesInput{
 		ImageIds: []string{
 			amiImageId,
@@ -117,13 +113,12 @@ func (run AWSRunner) SendAndUseIdentityFile() error {
 // First checks to make sure the instance is still running.
 func (run AWSRunner) SendPublicKey(pubBytes []byte) error {
 	// Send public key
-	sess := session.Must(session.NewSession(
-		&aws.Config{
-			Region:                        aws.String(run.Region),
-			CredentialsChainVerboseErrors: aws.Bool(true),
-		},
-	))
-	svc := ec2instanceconnect.New(sess)
+	cfg, err := config.LoadDefaultConfig(context.Background())
+	if err != nil {
+		return err
+	}
+	cfg.Region = run.Region
+	svc := ec2instanceconnect.NewFromConfig(cfg)
 
 	input := &ec2instanceconnect.SendSSHPublicKeyInput{
 		AvailabilityZone: &run.AvailabilityZone,
@@ -132,7 +127,7 @@ func (run AWSRunner) SendPublicKey(pubBytes []byte) error {
 		SSHPublicKey:     aws.String(string(pubBytes)),
 	}
 
-	_, err := svc.SendSSHPublicKey(input)
+	_, err = svc.SendSSHPublicKey(context.Background(), input)
 	if err != nil {
 		return err
 	}
