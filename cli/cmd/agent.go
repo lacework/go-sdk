@@ -164,24 +164,24 @@ NOTE: New agents could take up to an hour to report back to the platform.`,
 
 	agentInstallAWSEC2ICCmd = &cobra.Command{
 		Use:   "ec2ic",
-		Short: "Use EC2InstanceConnect to install the datacollector agent on all remote AWS hosts",
+		Short: "Use EC2InstanceConnect to securely connect to EC2 instances",
 		RunE:  installAWSEC2IC,
-		Long: `This command installs the agent on all remote AWS EC2 hosts in your account
+		Long: `This command installs the agent on all EC2 instances in an AWS account
 using EC2InstanceConnect.
 
-To only install on instances in a specified list of regions:
+To filter by one or more regions:
 
 	lacework agent install ec2ic --include_regions us-west-2 us-east-2
 
-To filter by AWS tag:
+To filter by instance tag:
 
     lacework agent install ec2ic --infra_tag TagName TagValue
 
-To filter by AWS tag key:
+To filter by instance tag key:
 
 	lacework agent install ec2ic --infra_tag_key TagName
 
-The environment should contain AWS credentials in the following variables:
+AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - AWS_SESSION_TOKEN (optional)`,
@@ -189,30 +189,31 @@ The environment should contain AWS credentials in the following variables:
 
 	agentInstallAWSSSHCmd = &cobra.Command{
 		Use:   "ec2-ssh",
-		Short: "Provide and use SSH authentication to install the datacollector agent on all remote AWS hosts",
-		Long: `This command installs the agent on all remote AWS EC2 hosts in your account
-using existing SSH authentication.
+		Short: "Use SSH to securely connect to EC2 instances",
+		Long: `This command installs the agent on all EC2 instances in an AWS account
+using SSH.
 
-To only install on instances in a specified list of regions:
+To filter by one or more regions:
 
 	lacework agent install ec2-ssh --include_regions us-west-2 us-east-2
 
-To filter by AWS tag:
+To filter by instance tag:
 
     lacework agent install ec2-ssh --infra_tag TagName TagValue
 
-To filter by AWS tag key:
+To filter by instance tag key:
 
 	lacework agent install ec2-ssh --infra_tag_key TagName
 
 You will need to provide an SSH authentication method. This authentication method
-should work for all instances that your tag or region filters select.
+should work for all instances that your tag or region filters select. Instances must
+be routable from your local host.
 
-To authenticate to your selected hosts with a username and password:
+To authenticate using username and password:
 
     lacework agent install ec2-ssh --ssh_username <your-user> --ssh_password <secret>
 
-To authenticate to your selected hosts with an identity file instead:
+To authenticate using an identity file:
 
     lacework agent install ec2-ssh -i /path/to/your/key
 
@@ -304,7 +305,7 @@ func init() {
 		"infra_tag_key", "", "only install agents on infra with this tag key set",
 	)
 	agentInstallAWSSSHCmd.Flags().StringArrayVar(&agentCmdState.CTFInfraTag,
-		"infra_tag", []string{}, "only install agents on infra with this tag",
+		"infra_tag", []string{}, "only select instances with this tag",
 	)
 	agentInstallAWSSSHCmd.Flags().StringVarP(&agentCmdState.InstallIdentityFile,
 		"identity_file", "i", defaultSshIdentityKey,

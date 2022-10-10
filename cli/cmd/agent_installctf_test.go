@@ -34,7 +34,7 @@ import (
 // `aws-vault exec default -- go test -run TestAwsEC2ICFindRunnersToCapture`
 // If AWS credentials are already present in the shell environment, only use:
 // `go test -run TestAwsEC2ICFindRunnersToCapture`
-func TestAwsEC2ICFindRunnersToCapture(t *testing.T) {
+func TestAwsEC2ICDescribeInstances(t *testing.T) {
 	if _, ok := os.LookupEnv("AWS_SECRET_ACCESS_KEY"); !ok {
 		t.Skip("aws credentials not found in environment, skipping test")
 	}
@@ -44,7 +44,7 @@ func TestAwsEC2ICFindRunnersToCapture(t *testing.T) {
 	agentCmdState.CTFInfraTagKey = "CaptureTheFlagPlayer"
 	cli.NonInteractive()
 
-	runners, err := awsFindRunnersToCapture()
+	runners, err := awsDescribeInstances()
 	assert.NoError(t, err)
 
 	wg := new(sync.WaitGroup)

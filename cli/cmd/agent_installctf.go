@@ -32,7 +32,7 @@ import (
 )
 
 func installAWSSSH(_ *cobra.Command, args []string) error {
-	runners, err := awsFindRunnersToCapture()
+	runners, err := awsDescribeInstances()
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 }
 
 func installAWSEC2IC(_ *cobra.Command, args []string) error {
-	runners, err := awsFindRunnersToCapture()
+	runners, err := awsDescribeInstances()
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func awsFindRunnersToCapture() ([]*lwrunner.AWSRunner, error) {
+func awsDescribeInstances() ([]*lwrunner.AWSRunner, error) {
 	regions, err := awsFindRegions()
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func awsFindRunnersToCapture() ([]*lwrunner.AWSRunner, error) {
 
 	allRunners := []*lwrunner.AWSRunner{}
 	for _, region := range regions {
-		regionRunners, err := awsFindRunnersInRegion(*region.RegionName)
+		regionRunners, err := awsRegionDescribeInstances(*region.RegionName)
 		if err != nil {
 			return nil, err
 		}
@@ -181,7 +181,7 @@ func awsFindRegions() ([]types.Region, error) {
 	return output.Regions, nil
 }
 
-func awsFindRunnersInRegion(region string) ([]*lwrunner.AWSRunner, error) {
+func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 	var (
 		tagKey = agentCmdState.CTFInfraTagKey
 		tag    = agentCmdState.CTFInfraTag
