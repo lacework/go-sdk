@@ -162,34 +162,24 @@ NOTE: New agents could take up to an hour to report back to the platform.`,
 		RunE: installRemoteAgent,
 	}
 
-	agentCTFCmd = &cobra.Command{
-		Use:   "ctf",
-		Short: "Install the datacollector agent on all remote hosts",
-	}
-
-	agentCTFAWSCmd = &cobra.Command{
-		Use:   "aws",
-		Short: "Install the datacollector agent on all remote AWS hosts",
-	}
-
-	agentCTFAWSEC2ICCmd = &cobra.Command{
+	agentInstallAWSEC2ICCmd = &cobra.Command{
 		Use:   "ec2ic",
 		Short: "Use EC2InstanceConnect to install the datacollector agent on all remote AWS hosts",
-		RunE:  awsCaptureTheFlagEC2IC,
+		RunE:  installAWSEC2IC,
 		Long: `This command installs the agent on all remote AWS EC2 hosts in your account
 using EC2InstanceConnect.
 
 To only install on instances in a specified list of regions:
 
-	lacework agent ctf aws ec2ic --include_regions us-west-2 us-east-2
+	lacework agent install ec2ic --include_regions us-west-2 us-east-2
 
 To filter by AWS tag:
 
-    lacework agent ctf aws ec2ic --infra_tag TagName TagValue
+    lacework agent install ec2ic --infra_tag TagName TagValue
 
 To filter by AWS tag key:
 
-	lacework agent ctf aws ec2ic --infra_tag_key TagName
+	lacework agent install ec2ic --infra_tag_key TagName
 
 The environment should contain AWS credentials in the following variables:
 - AWS_ACCESS_KEY_ID
@@ -197,40 +187,40 @@ The environment should contain AWS credentials in the following variables:
 - AWS_SESSION_TOKEN (optional)`,
 	}
 
-	agentCTFAWSSSHCmd = &cobra.Command{
-		Use:   "ssh",
+	agentInstallAWSSSHCmd = &cobra.Command{
+		Use:   "ec2-ssh",
 		Short: "Provide and use SSH authentication to install the datacollector agent on all remote AWS hosts",
 		Long: `This command installs the agent on all remote AWS EC2 hosts in your account
 using existing SSH authentication.
 
 To only install on instances in a specified list of regions:
 
-	lacework agent ctf aws ssh --include_regions us-west-2 us-east-2
+	lacework agent install ec2-ssh --include_regions us-west-2 us-east-2
 
 To filter by AWS tag:
 
-    lacework agent ctf aws ec2ic --infra_tag TagName TagValue
+    lacework agent install ec2-ssh --infra_tag TagName TagValue
 
 To filter by AWS tag key:
 
-	lacework agent ctf aws ec2ic --infra_tag_key TagName
+	lacework agent install ec2-ssh --infra_tag_key TagName
 
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select.
 
 To authenticate to your selected hosts with a username and password:
 
-    lacework agent ctf aws ssh --ssh_username <your-user> --ssh_password <secret>
+    lacework agent install ec2-ssh --ssh_username <your-user> --ssh_password <secret>
 
 To authenticate to your selected hosts with an identity file instead:
 
-    lacework agent ctf aws ssh -i /path/to/your/key
+    lacework agent install ec2-ssh -i /path/to/your/key
 
 The environment should contain AWS credentials in the following variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - AWS_SESSION_TOKEN (optional)`,
-		RunE: awsCaptureTheFlagSSH,
+		RunE: installAWSSSH,
 	}
 )
 
@@ -243,7 +233,6 @@ func init() {
 	agentCmd.AddCommand(agentInstallCmd)
 	agentCmd.AddCommand(agentGenerateCmd)
 	agentCmd.AddCommand(agentListCmd)
-	agentCmd.AddCommand(agentCTFCmd)
 
 	// add the list sub-command to the 'agent token' cmd
 	agentTokenCmd.AddCommand(agentTokenListCmd)
@@ -251,12 +240,9 @@ func init() {
 	agentTokenCmd.AddCommand(agentTokenShowCmd)
 	agentTokenCmd.AddCommand(agentTokenUpdateCmd)
 
-	// add sub-commands to the 'agent ctf' cmd for different cloud providers
-	agentCTFCmd.AddCommand(agentCTFAWSCmd)
-
-	// add sub-commands to the 'agent ctf aws' command for different install methods
-	agentCTFAWSCmd.AddCommand(agentCTFAWSEC2ICCmd)
-	agentCTFAWSCmd.AddCommand(agentCTFAWSSSHCmd)
+	// add sub-commands to the 'agent install' command for different install methods
+	agentInstallCmd.AddCommand(agentInstallAWSEC2ICCmd)
+	agentInstallCmd.AddCommand(agentInstallAWSSSHCmd)
 
 	// 'agent token update' flags
 	agentTokenUpdateCmd.Flags().BoolVar(&agentCmdState.TokenUpdateEnable,
@@ -297,49 +283,49 @@ func init() {
 	)
 
 	// 'agent ctf aws ec2ic' flags
-	agentCTFAWSEC2ICCmd.Flags().StringVar(&agentCmdState.CTFInfraTagKey,
+	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.CTFInfraTagKey,
 		"infra_tag_key", "", "only install agents on infra with this tag key set",
 	)
-	agentCTFAWSEC2ICCmd.Flags().StringArrayVar(&agentCmdState.CTFInfraTag,
+	agentInstallAWSEC2ICCmd.Flags().StringArrayVar(&agentCmdState.CTFInfraTag,
 		"infra_tag", []string{}, "only install agents on infra with this tag",
 	)
-	agentCTFAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
+	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
 		"token", "", "agent access token",
 	)
-	agentCTFAWSEC2ICCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
+	agentInstallAWSEC2ICCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
-	agentCTFAWSEC2ICCmd.Flags().StringArrayVarP(&agentCmdState.CTFIncludeRegions,
+	agentInstallAWSEC2ICCmd.Flags().StringArrayVarP(&agentCmdState.CTFIncludeRegions,
 		"include_regions", "r", []string{}, "list of regions to filter on",
 	)
 
 	// 'agent ctf aws ssh' flags
-	agentCTFAWSSSHCmd.Flags().StringVar(&agentCmdState.CTFInfraTagKey,
+	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.CTFInfraTagKey,
 		"infra_tag_key", "", "only install agents on infra with this tag key set",
 	)
-	agentCTFAWSSSHCmd.Flags().StringArrayVar(&agentCmdState.CTFInfraTag,
+	agentInstallAWSSSHCmd.Flags().StringArrayVar(&agentCmdState.CTFInfraTag,
 		"infra_tag", []string{}, "only install agents on infra with this tag",
 	)
-	agentCTFAWSSSHCmd.Flags().StringVarP(&agentCmdState.InstallIdentityFile,
+	agentInstallAWSSSHCmd.Flags().StringVarP(&agentCmdState.InstallIdentityFile,
 		"identity_file", "i", defaultSshIdentityKey,
 		"identity (private key) for public key authentication",
 	)
-	agentCTFAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
+	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
 		"token", "", "agent access token",
 	)
-	agentCTFAWSSSHCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
+	agentInstallAWSSSHCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
-	agentCTFAWSSSHCmd.Flags().StringArrayVarP(&agentCmdState.CTFIncludeRegions,
+	agentInstallAWSSSHCmd.Flags().StringArrayVarP(&agentCmdState.CTFIncludeRegions,
 		"include_regions", "r", []string{}, "list of regions to filter on",
 	)
-	agentCTFAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallPassword,
+	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallPassword,
 		"ssh_password", "", "password for authentication",
 	)
-	agentCTFAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
+	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
 		"ssh_username", "", "username to login with",
 	)
-	agentCTFAWSSSHCmd.Flags().IntVar(&agentCmdState.InstallSshPort,
+	agentInstallAWSSSHCmd.Flags().IntVar(&agentCmdState.InstallSshPort,
 		"ssh_port", 22, "port to connect to on the remote host",
 	)
 }

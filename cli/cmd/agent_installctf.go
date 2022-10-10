@@ -31,7 +31,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func awsCaptureTheFlagSSH(_ *cobra.Command, args []string) error {
+func installAWSSSH(_ *cobra.Command, args []string) error {
 	runners, err := awsFindRunnersToCapture()
 	if err != nil {
 		return err
@@ -80,7 +80,7 @@ func awsCaptureTheFlagSSH(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func awsCaptureTheFlagEC2IC(_ *cobra.Command, args []string) error {
+func installAWSEC2IC(_ *cobra.Command, args []string) error {
 	runners, err := awsFindRunnersToCapture()
 	if err != nil {
 		return err
