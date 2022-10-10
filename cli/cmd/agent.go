@@ -282,53 +282,6 @@ func init() {
 	agentInstallCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
-
-	// 'agent ctf aws ec2ic' flags
-	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.CTFInfraTagKey,
-		"tag_key", "", "only install agents on infra with this tag key set",
-	)
-	agentInstallAWSEC2ICCmd.Flags().StringArrayVar(&agentCmdState.CTFInfraTag,
-		"tag", []string{}, "only install agents on infra with this tag",
-	)
-	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
-		"token", "", "agent access token",
-	)
-	agentInstallAWSEC2ICCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
-		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
-	)
-	agentInstallAWSEC2ICCmd.Flags().StringArrayVarP(&agentCmdState.CTFIncludeRegions,
-		"include_regions", "r", []string{}, "list of regions to filter on",
-	)
-
-	// 'agent ctf aws ssh' flags
-	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.CTFInfraTagKey,
-		"tag_key", "", "only install agents on infra with this tag key",
-	)
-	agentInstallAWSSSHCmd.Flags().StringArrayVar(&agentCmdState.CTFInfraTag,
-		"tag", []string{}, "only select instances with this tag",
-	)
-	agentInstallAWSSSHCmd.Flags().StringVarP(&agentCmdState.InstallIdentityFile,
-		"identity_file", "i", defaultSshIdentityKey,
-		"identity (private key) for public key authentication",
-	)
-	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
-		"token", "", "agent access token",
-	)
-	agentInstallAWSSSHCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
-		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
-	)
-	agentInstallAWSSSHCmd.Flags().StringArrayVarP(&agentCmdState.CTFIncludeRegions,
-		"include_regions", "r", []string{}, "list of regions to filter on",
-	)
-	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallPassword,
-		"ssh_password", "", "password for authentication",
-	)
-	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
-		"ssh_username", "", "username to login with",
-	)
-	agentInstallAWSSSHCmd.Flags().IntVar(&agentCmdState.InstallSshPort,
-		"ssh_port", 22, "port to connect to on the remote host",
-	)
 }
 
 func showAgentToken(_ *cobra.Command, args []string) error {
