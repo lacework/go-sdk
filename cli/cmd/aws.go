@@ -53,11 +53,11 @@ func awsDescribeInstances() ([]*lwrunner.AWSRunner, error) {
 func awsFindRegions() ([]types.Region, error) {
 	// Describe all regions that are enabled for the account
 	var filters []types.Filter
-	if len(agentCmdState.CTFIncludeRegions) > 0 {
+	if len(agentCmdState.InstallIncludeRegions) > 0 {
 		filters = []types.Filter{
 			{
 				Name:   aws.String("region-name"),
-				Values: agentCmdState.CTFIncludeRegions,
+				Values: agentCmdState.InstallIncludeRegions,
 			},
 		}
 	}
@@ -88,8 +88,8 @@ func awsFindRegions() ([]types.Region, error) {
 
 func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 	var (
-		tagKey = agentCmdState.CTFInfraTagKey
-		tag    = agentCmdState.CTFInfraTag
+		tagKey = agentCmdState.InstallTagKey
+		tag    = agentCmdState.InstallTag
 	)
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {

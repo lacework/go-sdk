@@ -30,20 +30,20 @@ import (
 
 var (
 	agentCmdState = struct {
-		TokenUpdateEnable   bool
-		TokenUpdateDisable  bool
-		TokenUpdateName     string
-		TokenUpdateDesc     string
-		InstallForce        bool
-		InstallSshUser      string
-		InstallSshPort      int
-		InstallAgentToken   string
-		InstallTrustHostKey bool
-		InstallPassword     string
-		InstallIdentityFile string
-		CTFInfraTagKey      string
-		CTFInfraTag         []string
-		CTFIncludeRegions   []string
+		TokenUpdateEnable     bool
+		TokenUpdateDisable    bool
+		TokenUpdateName       string
+		TokenUpdateDesc       string
+		InstallForce          bool
+		InstallSshUser        string
+		InstallSshPort        int
+		InstallAgentToken     string
+		InstallTrustHostKey   bool
+		InstallPassword       string
+		InstallIdentityFile   string
+		InstallTagKey         string
+		InstallTag            []string
+		InstallIncludeRegions []string
 	}{}
 
 	defaultSshIdentityKey = "~/.ssh/id_rsa"
@@ -160,68 +160,6 @@ To list all active agents in your environment.
 
 NOTE: New agents could take up to an hour to report back to the platform.`,
 		RunE: installRemoteAgent,
-	}
-
-	agentInstallAWSEC2ICCmd = &cobra.Command{
-		Use:   "ec2ic",
-		Short: "Use EC2InstanceConnect to securely connect to EC2 instances",
-		RunE:  installAWSEC2IC,
-		Long: `This command installs the agent on all EC2 instances in an AWS account
-using EC2InstanceConnect.
-
-To filter by one or more regions:
-
-    lacework agent install ec2ic --include_regions us-west-2 us-east-2
-
-To filter by instance tag:
-
-    lacework agent install ec2ic --infra_tag TagName TagValue
-
-To filter by instance tag key:
-
-    lacework agent install ec2ic --infra_tag_key TagName
-
-AWS credentials are read from the following environment variables:
-- AWS_ACCESS_KEY_ID
-- AWS_SECRET_ACCESS_KEY
-- AWS_SESSION_TOKEN (optional)`,
-	}
-
-	agentInstallAWSSSHCmd = &cobra.Command{
-		Use:   "ec2-ssh",
-		Short: "Use SSH to securely connect to EC2 instances",
-		Long: `This command installs the agent on all EC2 instances in an AWS account
-using SSH.
-
-To filter by one or more regions:
-
-    lacework agent install ec2-ssh --include_regions us-west-2 us-east-2
-
-To filter by instance tag:
-
-    lacework agent install ec2-ssh --infra_tag TagName TagValue
-
-To filter by instance tag key:
-
-    lacework agent install ec2-ssh --infra_tag_key TagName
-
-You will need to provide an SSH authentication method. This authentication method
-should work for all instances that your tag or region filters select. Instances must
-be routable from your local host.
-
-To authenticate using username and password:
-
-    lacework agent install ec2-ssh --ssh_username <your-user> --ssh_password <secret>
-
-To authenticate using an identity file:
-
-    lacework agent install ec2-ssh -i /path/to/your/key
-
-The environment should contain AWS credentials in the following variables:
-- AWS_ACCESS_KEY_ID
-- AWS_SECRET_ACCESS_KEY
-- AWS_SESSION_TOKEN (optional)`,
-		RunE: installAWSSSH,
 	}
 )
 

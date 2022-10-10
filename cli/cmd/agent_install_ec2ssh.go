@@ -25,12 +25,51 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	agentInstallAWSSSHCmd = &cobra.Command{
+		Use:   "ec2-ssh",
+		Short: "Use SSH to securely connect to EC2 instances",
+		Long: `This command installs the agent on all EC2 instances in an AWS account
+using SSH.
+
+To filter by one or more regions:
+
+    lacework agent install ec2-ssh --include_regions us-west-2 us-east-2
+
+To filter by instance tag:
+
+    lacework agent install ec2-ssh --infra_tag TagName TagValue
+
+To filter by instance tag key:
+
+    lacework agent install ec2-ssh --infra_tag_key TagName
+
+You will need to provide an SSH authentication method. This authentication method
+should work for all instances that your tag or region filters select. Instances must
+be routable from your local host.
+
+To authenticate using username and password:
+
+    lacework agent install ec2-ssh --ssh_username <your-user> --ssh_password <secret>
+
+To authenticate using an identity file:
+
+    lacework agent install ec2-ssh -i /path/to/your/key
+
+The environment should contain AWS credentials in the following variables:
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- AWS_SESSION_TOKEN (optional)`,
+		RunE: installAWSSSH,
+	}
+)
+
 func init() {
 	// 'agent install ssh' flags
-	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.CTFInfraTagKey,
+	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallTagKey,
 		"tag_key", "", "only install agents on infra with this tag key",
 	)
-	agentInstallAWSSSHCmd.Flags().StringSliceVar(&agentCmdState.CTFInfraTag,
+	agentInstallAWSSSHCmd.Flags().StringSliceVar(&agentCmdState.InstallTag,
 		"tag", []string{}, "only select instances with this tag",
 	)
 	agentInstallAWSSSHCmd.Flags().StringVarP(&agentCmdState.InstallIdentityFile,
@@ -43,7 +82,7 @@ func init() {
 	agentInstallAWSSSHCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
-	agentInstallAWSSSHCmd.Flags().StringSliceVarP(&agentCmdState.CTFIncludeRegions,
+	agentInstallAWSSSHCmd.Flags().StringSliceVarP(&agentCmdState.InstallIncludeRegions,
 		"include_regions", "r", []string{}, "list of regions to filter on",
 	)
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallPassword,

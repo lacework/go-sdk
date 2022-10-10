@@ -24,12 +24,39 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	agentInstallAWSEC2ICCmd = &cobra.Command{
+		Use:   "ec2ic",
+		Short: "Use EC2InstanceConnect to securely connect to EC2 instances",
+		RunE:  installAWSEC2IC,
+		Long: `This command installs the agent on all EC2 instances in an AWS account
+using EC2InstanceConnect.
+
+To filter by one or more regions:
+
+    lacework agent install ec2ic --include_regions us-west-2,us-east-2
+
+To filter by instance tag:
+
+    lacework agent install ec2ic --infra_tag TagName,TagValue
+
+To filter by instance tag key:
+
+    lacework agent install ec2ic --infra_tag_key TagName
+
+AWS credentials are read from the following environment variables:
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- AWS_SESSION_TOKEN (optional)`,
+	}
+)
+
 func init() {
 	// 'agent install ec2ic' flags
-	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.CTFInfraTagKey,
+	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallTagKey,
 		"tag_key", "", "only install agents on infra with this tag key set",
 	)
-	agentInstallAWSEC2ICCmd.Flags().StringSliceVar(&agentCmdState.CTFInfraTag,
+	agentInstallAWSEC2ICCmd.Flags().StringSliceVar(&agentCmdState.InstallTag,
 		"tag", []string{}, "only install agents on infra with this tag",
 	)
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
@@ -38,7 +65,7 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
-	agentInstallAWSEC2ICCmd.Flags().StringSliceVarP(&agentCmdState.CTFIncludeRegions,
+	agentInstallAWSEC2ICCmd.Flags().StringSliceVarP(&agentCmdState.InstallIncludeRegions,
 		"include_regions", "r", []string{}, "list of regions to filter on",
 	)
 }
@@ -50,12 +77,7 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 	}
 
 	for _, runner := range runners {
-		cli.Log.Debugw("runner: ", "runner", runner)
-		cli.Log.Debugw("runner user: ", "user", runner.Runner.User)
-		cli.Log.Debugw("runner region: ", "region", runner.Region)
-		cli.Log.Debugw("runner az: ", "az", runner.AvailabilityZone)
-		cli.Log.Debugw("runner instance ID: ", "instance ID", runner.InstanceID)
-		cli.Log.Debugw("runner: ", "runner hostname", runner.Runner.Hostname)
+		cli.Log.Debugw("runner info: ", "user", runner.Runner.User, "region", runner.Region, "az", runner.AvailabilityZone, "instance ID", runner.InstanceID, "hostname", runner.Runner.Hostname)
 		err := runner.SendAndUseIdentityFile()
 		if err != nil {
 			cli.Log.Debugw("ec2ic failed", "err", err)

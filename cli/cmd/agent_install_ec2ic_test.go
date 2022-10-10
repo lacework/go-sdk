@@ -41,7 +41,7 @@ func TestAwsEC2ICDescribeInstances(t *testing.T) {
 
 	cli.LogLevel = "DEBUG"
 	agentCmdState.InstallTrustHostKey = true
-	agentCmdState.CTFInfraTagKey = "CaptureTheFlagPlayer"
+	agentCmdState.InstallTagKey = "CaptureTheFlagPlayer"
 	cli.NonInteractive()
 
 	runners, err := awsDescribeInstances()
