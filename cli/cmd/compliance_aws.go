@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -43,13 +44,13 @@ var (
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			cli.StartProgress("Fetching list of configured AWS accounts...")
-			awsIntegrations, err := cli.LwApi.Integrations.ListAwsCfg()
+			awsIntegrations, err := cli.LwApi.V2.CloudAccounts.ListByType(api.AwsCfgCloudAccount)
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get aws compliance integrations")
 			}
 
-			return cliListAwsAccounts(&awsIntegrations)
+			return cliListAwsAccounts(awsIntegrations)
 		},
 	}
 
@@ -120,6 +121,7 @@ To show recommendation details and affected resources for a recommendation id:
 				)
 
 				cli.StartProgress("Downloading compliance report...")
+				// Todo(v2): replace with v2
 				err := cli.LwApi.Compliance.DownloadAwsReportPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
@@ -152,6 +154,7 @@ To show recommendation details and affected resources for a recommendation id:
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
 				cli.StartProgress("Getting compliance report...")
+				// Todo(v2): replace with v2
 				response, err := cli.LwApi.Compliance.GetAwsReport(config)
 				cli.StopProgress()
 				if err != nil {
@@ -223,6 +226,7 @@ To show recommendation details and affected resources for a recommendation id:
 		Long:    `Run a compliance assessment for the provided AWS account.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			// Todo(v2): replace with v2
 			response, err := cli.LwApi.Compliance.RunAwsReport(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to run aws compliance assessment")
@@ -291,6 +295,8 @@ To disable all recommendations for CIS_1_1 report run:
 			// set state of all recommendations in this report to disabled
 			patchReq := api.NewRecommendationV1State(schema, false)
 			cli.StartProgress("disabling recommendations...")
+
+			// Todo(v2): replace with v2
 			response, err := cli.LwApi.Recommendations.Aws.Patch(patchReq)
 			cli.StopProgress()
 			if err != nil {
@@ -340,6 +346,7 @@ To enable all recommendations for CIS_1_1 report run:
 			// set state of all recommendations in this report to enabled
 			patchReq := api.NewRecommendationV1State(schema, true)
 			cli.StartProgress("enabling recommendations...")
+			// Todo(v2): replace with v2
 			response, err := cli.LwApi.Recommendations.Aws.Patch(patchReq)
 			cli.StopProgress()
 			if err != nil {
@@ -618,18 +625,19 @@ type awsAccount struct {
 	Status    string `json:"status"`
 }
 
-func cliListAwsAccounts(awsIntegrations *api.AwsIntegrationsResponse) error {
+func cliListAwsAccounts(awsIntegrations api.CloudAccountsResponse) error {
+	var msg string
 	awsAccounts := make([]awsAccount, 0)
 	jsonOut := struct {
 		Accounts []awsAccount `json:"aws_accounts"`
 	}{Accounts: awsAccounts}
 
-	if awsIntegrations == nil || len(awsIntegrations.Data) == 0 {
+	if len(awsIntegrations.Data) == 0 {
 		if cli.JSONOutput() {
 			return cli.OutputJSON(jsonOut)
 		}
 
-		msg := `There are no AWS accounts configured in your account.
+		msg = `There are no AWS accounts configured in your account.
 
 Get started by integrating your AWS accounts to analyze configuration compliance using the command:
 
@@ -645,15 +653,36 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 		return nil
 	}
 
-	for _, i := range awsIntegrations.Data {
-		if containsDuplicateAccountID(awsAccounts, i.Data.AwsAccountID) {
-			cli.Log.Warnw("duplicate aws account", "integration_guid", i.IntgGuid, "account", i.Data.AwsAccountID)
-			continue
+	for _, integration := range awsIntegrations.Data {
+		var awsCfg api.AwsCfgData
+		jsonInt, err := json.Marshal(integration.Data)
+		if err == nil {
+			err = json.Unmarshal(jsonInt, &awsCfg)
+			if err != nil {
+				continue
+			}
+			if containsDuplicateAccountID(awsAccounts, awsCfg.AwsAccountID) {
+				cli.Log.Warnw("duplicate aws account", "integration_guid", integration.IntgGuid, "account", awsCfg.AwsAccountID)
+				continue
+			}
+
+			if awsCfg.AwsAccountID == "" {
+				if integration.IntgGuid != "" {
+					msg = fmt.Sprintf(`
+Unable to retrieve Aws Account ID for %s. 
+Edit & Save this cloud account in the Lacework UI to refresh the integration. %s
+`,
+						integration.IntgGuid, fmt.Sprintf("https://%s.lacework.net/ui/investigation/settings/cloudaccounts/%s", cli.Account, integration.IntgGuid))
+
+				}
+				continue
+			}
+
+			awsAccounts = append(awsAccounts, awsAccount{
+				AccountID: awsCfg.AwsAccountID,
+				Status:    integration.Status(),
+			})
 		}
-		awsAccounts = append(awsAccounts, awsAccount{
-			AccountID: i.Data.AwsAccountID,
-			Status:    i.Status(),
-		})
 	}
 
 	if cli.JSONOutput() {
@@ -667,6 +696,9 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 	}
 
 	cli.OutputHuman(renderSimpleTable([]string{"AWS Account", "Status"}, rows))
+	if msg != "" {
+		cli.OutputHuman(msg)
+	}
 	return nil
 }
 
@@ -684,6 +716,7 @@ func fetchCachedAwsComplianceReportSchema(reportType string) (response []api.Rec
 	expired := cli.ReadCachedAsset(cacheKey, &response)
 	if expired {
 		cli.StartProgress("Fetching compliance report schema...")
+		// Todo(v2): replace with v2.
 		response, err = cli.LwApi.Recommendations.Aws.GetReport(reportType)
 		cli.StopProgress()
 		if err != nil {
