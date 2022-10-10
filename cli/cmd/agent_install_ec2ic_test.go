@@ -31,9 +31,9 @@ import (
 // Requires AWS credentials in the shell environment
 // Lists runners, sends keys, attempts to connect
 // Example command to run:
-// `aws-vault exec default -- go test -run TestAwsEC2ICFindRunnersToCapture`
+// `aws-vault exec default -- go test -run TestAwsEC2ICDescribeInstances`
 // If AWS credentials are already present in the shell environment, only use:
-// `go test -run TestAwsEC2ICFindRunnersToCapture`
+// `go test -run TestAwsEC2ICDescribeInstances`
 func TestAwsEC2ICDescribeInstances(t *testing.T) {
 	if _, ok := os.LookupEnv("AWS_SECRET_ACCESS_KEY"); !ok {
 		t.Skip("aws credentials not found in environment, skipping test")
