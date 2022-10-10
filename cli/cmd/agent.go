@@ -171,7 +171,7 @@ using EC2InstanceConnect.
 
 To filter by one or more regions:
 
-	lacework agent install ec2ic --include_regions us-west-2 us-east-2
+    lacework agent install ec2ic --include_regions us-west-2 us-east-2
 
 To filter by instance tag:
 
@@ -179,7 +179,7 @@ To filter by instance tag:
 
 To filter by instance tag key:
 
-	lacework agent install ec2ic --infra_tag_key TagName
+    lacework agent install ec2ic --infra_tag_key TagName
 
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
@@ -195,7 +195,7 @@ using SSH.
 
 To filter by one or more regions:
 
-	lacework agent install ec2-ssh --include_regions us-west-2 us-east-2
+    lacework agent install ec2-ssh --include_regions us-west-2 us-east-2
 
 To filter by instance tag:
 
@@ -203,7 +203,7 @@ To filter by instance tag:
 
 To filter by instance tag key:
 
-	lacework agent install ec2-ssh --infra_tag_key TagName
+    lacework agent install ec2-ssh --infra_tag_key TagName
 
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select. Instances must
