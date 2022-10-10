@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -214,7 +213,7 @@ By default, this command will function interactively, prompting for the required
 			}
 
 			// Write-out generated code to location specified
-			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "azure")
+			dirname, _, err := writeGeneratedCodeToLocation(cmd, hcl, "azure")
 			if err != nil {
 				return err
 			}
@@ -231,8 +230,7 @@ By default, this command will function interactively, prompting for the required
 				}
 			}
 
-			// Execute
-			locationDir := filepath.Dir(location)
+			locationDir, _ := determineOutputDirPath(dirname, "azure")
 			if GenerateAzureCommandExtraState.TerraformApply {
 				// Execution pre-run check
 				err := executionPreRunChecks(dirname, locationDir, "azure")
@@ -317,6 +315,22 @@ By default, this command will function interactively, prompting for the required
 		},
 	}
 )
+
+type AzureGenerateCommandExtraState struct {
+	Output         string
+	TerraformApply bool
+}
+
+func (a *AzureGenerateCommandExtraState) isEmpty() bool {
+	return a.Output == "" && !a.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (a *AzureGenerateCommandExtraState) writeCache() {
+	if !a.isEmpty() {
+		cli.WriteAssetToCache(CachedAzureAssetExtraState, time.Now().Add(time.Hour*1), a)
+	}
+}
 
 func validateStorageLocation(location string) error {
 	if !validStorageLocations[location] {

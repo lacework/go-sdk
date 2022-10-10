@@ -16,7 +16,7 @@ This command can also be run in noninteractive mode.
 See help output for more details on the parameter value(s) required for Terraform code generation.
 
 Usage:
-  lacework cloud-account iac-generate aws [flags]
+  lacework generate cloud-account aws [flags]
 
 Flags:
       --apply                                 run terraform apply without executing plan or prompting

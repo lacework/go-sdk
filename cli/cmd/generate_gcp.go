@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"regexp"
 	"time"
 
@@ -37,10 +36,8 @@ var (
 	QuestionGcpUseExistingBucket        = "Use an existing bucket?"
 	QuestionGcpExistingBucketName       = "Specify an existing bucket name:"
 	QuestionGcpConfigureNewBucket       = "Configure settings for new bucket?"
-	QuestionGcpBucketName               = "Specify new bucket name: (optional)"
 	QuestionGcpBucketRegion             = "Specify the bucket region: (optional)"
-	QuestionGcpBucketLocation           = "Specify the bucket location: (optional)"
-	QuestionGcpBucketRetention          = "Specify the bucket retention days: (optional)"
+	QuestionGcpCustomBucketName         = "Specify a custom bucket name: (optional)"
 	QuestionGcpBucketLifecycle          = "Specify the bucket lifecycle rule age: (optional)"
 	QuestionGcpEnableUBLA               = "Enable uniform bucket level access(UBLA)?"
 	QuestionGcpEnableBucketForceDestroy = "Enable bucket force destroy?"
@@ -54,6 +51,7 @@ var (
 	QuestionGcpAnotherAdvancedOpt      = "Configure another advanced integration option"
 	GcpAdvancedOptLocation             = "Customize output location"
 	QuestionGcpCustomizeOutputLocation = "Provide the location for the output to be written:"
+	QuestionGcpCustomFilter            = "Specify a custom Audit Log filter which supersedes all other filter options"
 	GcpAdvancedOptDone                 = "Done"
 
 	// GcpRegionRegex regex used for validating region input
@@ -106,15 +104,21 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithBucketLabels(GenerateGcpCommandState.BucketLabels),
 				gcp.WithPubSubSubscriptionLabels(GenerateGcpCommandState.PubSubSubscriptionLabels),
 				gcp.WithPubSubTopicLabels(GenerateGcpCommandState.PubSubTopicLabels),
+				gcp.WithCustomBucketName(GenerateGcpCommandState.CustomBucketName),
 				gcp.WithBucketRegion(GenerateGcpCommandState.BucketRegion),
-				gcp.WithBucketLocation(GenerateGcpCommandState.BucketLocation),
-				gcp.WithBucketName(GenerateGcpCommandState.BucketName),
 				gcp.WithExistingLogBucketName(GenerateGcpCommandState.ExistingLogBucketName),
 				gcp.WithExistingLogSinkName(GenerateGcpCommandState.ExistingLogSinkName),
 				gcp.WithAuditLogIntegrationName(GenerateGcpCommandState.AuditLogIntegrationName),
 				gcp.WithLaceworkProfile(GenerateGcpCommandState.LaceworkProfile),
-				gcp.WithLogBucketRetentionDays(GenerateGcpCommandState.LogBucketRetentionDays),
 				gcp.WithLogBucketLifecycleRuleAge(GenerateGcpCommandState.LogBucketLifecycleRuleAge),
+				gcp.WithFoldersToInclude(GenerateGcpCommandState.FoldersToInclude),
+				gcp.WithFoldersToExclude(GenerateGcpCommandState.FoldersToExclude),
+				gcp.WithCustomFilter(GenerateGcpCommandState.CustomFilter),
+				gcp.WithGoogleWorkspaceFilter(GenerateGcpCommandState.GoogleWorkspaceFilter),
+				gcp.WithK8sFilter(GenerateGcpCommandState.K8sFilter),
+				gcp.WithPrefix(GenerateGcpCommandState.Prefix),
+				gcp.WithWaitTime(GenerateGcpCommandState.WaitTime),
+				gcp.WithEnableUBLA(GenerateGcpCommandState.EnableUBLA),
 			}
 
 			if GenerateGcpCommandState.OrganizationIntegration {
@@ -125,8 +129,8 @@ See help output for more details on the parameter value(s) required for Terrafor
 				mods = append(mods, gcp.WithEnableForceDestroyBucket())
 			}
 
-			if GenerateGcpCommandState.EnableUBLA {
-				mods = append(mods, gcp.WithEnableUBLA())
+			if len(GenerateGcpCommandState.FoldersToExclude) > 0 {
+				mods = append(mods, gcp.WithIncludeRootProjects(GenerateGcpCommandState.IncludeRootProjects))
 			}
 
 			// Create new struct
@@ -144,7 +148,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			}
 
 			// Write-out generated code to location specified
-			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "gcp")
+			dirname, _, err := writeGeneratedCodeToLocation(cmd, hcl, "gcp")
 			if err != nil {
 				return err
 			}
@@ -159,8 +163,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				return errors.Wrap(err, "failed to prompt for terraform execution")
 			}
 
-			// Execute
-			locationDir := filepath.Dir(location)
+			locationDir, _ := determineOutputDirPath(dirname, "gcp")
 			if GenerateGcpCommandExtraState.TerraformApply {
 				// Execution pre-run check
 				err := executionPreRunChecks(dirname, locationDir, "gcp")
@@ -262,6 +265,32 @@ See help output for more details on the parameter value(s) required for Terrafor
 	}
 )
 
+type GcpGenerateCommandExtraState struct {
+	AskAdvanced                bool
+	Output                     string
+	ConfigureNewBucketSettings bool
+	UseExistingServiceAccount  bool
+	UseExistingBucket          bool
+	UseExistingSink            bool
+	TerraformApply             bool
+}
+
+func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
+	return gcp.Output == "" &&
+		!gcp.AskAdvanced &&
+		!gcp.UseExistingServiceAccount &&
+		!gcp.UseExistingBucket &&
+		!gcp.UseExistingSink &&
+		!gcp.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (gcp *GcpGenerateCommandExtraState) writeCache() {
+	if !gcp.isEmpty() {
+		cli.WriteAssetToCache(CachedAssetGcpExtraState, time.Now().Add(time.Hour*1), gcp)
+	}
+}
+
 func initGenerateGcpTfCommandFlags() {
 	// add flags to sub commands
 	// TODO Share the help with the interactive generation
@@ -310,22 +339,17 @@ func initGenerateGcpTfCommandFlags() {
 		"configuration_integration_name",
 		"",
 		"specify a custom configuration integration name")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.CustomBucketName,
+		"custom_bucket_name",
+		"",
+		"override prefix based storage bucket name generation with a custom name")
 	// TODO: Implement AuditLogLabels, BucketLabels, PubSubSubscriptionLabels & PubSubTopicLabels
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.BucketRegion,
 		"bucket_region",
 		"",
 		"specify bucket region")
-	generateGcpTfCommand.PersistentFlags().StringVar(
-		&GenerateGcpCommandState.BucketLocation,
-		"bucket_location",
-		"",
-		"specify bucket location")
-	generateGcpTfCommand.PersistentFlags().StringVar(
-		&GenerateGcpCommandState.BucketName,
-		"bucket_name",
-		"",
-		"specify new bucket name")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.ExistingLogBucketName,
 		"existing_bucket_name",
@@ -344,23 +368,60 @@ func initGenerateGcpTfCommandFlags() {
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandState.EnableUBLA,
 		"enable_ubla",
-		false,
+		true,
 		"enable universal bucket level access(ubla)")
 	generateGcpTfCommand.PersistentFlags().IntVar(
 		&GenerateGcpCommandState.LogBucketLifecycleRuleAge,
 		"bucket_lifecycle_rule_age",
 		-1,
 		"specify the lifecycle rule age")
-	generateGcpTfCommand.PersistentFlags().IntVar(
-		&GenerateGcpCommandState.LogBucketRetentionDays,
-		"bucket_retention_days",
-		0,
-		"specify the bucket retention days")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.CustomFilter,
+		"custom_filter",
+		"",
+		"Audit Log filter which supersedes all other filter options when defined")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.GoogleWorkspaceFilter,
+		"google_workspace_filter",
+		true,
+		"filter out Google Workspace login logs from GCP Audit Log sinks")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.K8sFilter,
+		"k8s_filter",
+		true,
+		"filter out GKE logs from GCP Audit Log sinks")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.Prefix,
+		"prefix",
+		"",
+		"prefix that will be used at the beginning of every generated resource")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.WaitTime,
+		"wait_time",
+		"",
+		"amount of time to wait before the next resource is provisioned")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.AuditLogIntegrationName,
 		"audit_log_integration_name",
 		"",
 		"specify a custom audit log integration name")
+	generateGcpTfCommand.PersistentFlags().StringArrayVarP(
+		&GenerateGcpCommandState.FoldersToExclude,
+		"folders_to_exclude",
+		"e",
+		[]string{},
+		"List of root folders to exclude for an organization-level integration")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.IncludeRootProjects,
+		"include_root_projects",
+		true,
+		"Disables logic that includes root-level projects if excluding folders")
+	generateGcpTfCommand.PersistentFlags().StringArrayVarP(
+		&GenerateGcpCommandState.FoldersToInclude,
+		"folders_to_include",
+		"i",
+		[]string{},
+		"list of root folders to include for an organization-level integration")
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandExtraState.TerraformApply,
 		"apply",
@@ -515,25 +576,15 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 			Response: &extraState.ConfigureNewBucketSettings,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketName, Default: config.BucketName},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Response: &config.BucketName,
-		},
-		{
 			Prompt:   &survey.Input{Message: QuestionGcpBucketRegion, Default: config.BucketRegion},
 			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
 			Opts:     []survey.AskOpt{survey.WithValidator(validateGcpRegion)},
 			Response: &config.BucketRegion,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketLocation, Default: config.BucketLocation},
+			Prompt:   &survey.Input{Message: QuestionGcpCustomBucketName, Default: config.CustomBucketName},
 			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Response: &config.BucketLocation,
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketRetention, Default: "0"},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Response: &config.LogBucketRetentionDays,
+			Response: &config.CustomBucketName,
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpBucketLifecycle, Default: "-1"},
@@ -563,6 +614,11 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingSink},
 			Required: true,
 			Response: &config.ExistingLogSinkName,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpCustomFilter, Default: config.CustomFilter},
+			Checks:   []*bool{&config.AuditLog},
+			Response: &config.CustomFilter,
 		},
 	}, config.AuditLog)
 

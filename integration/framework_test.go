@@ -369,3 +369,39 @@ func expectString(t *testing.T, c *expect.Console, str string) {
 		t.FailNow()
 	}
 }
+
+type MsgRsp struct {
+	message      string
+	response     string
+	skipResponse bool
+	menuItems    int
+}
+
+func msgRsp(message string, response string) MsgRsp {
+	return MsgRsp{message, response, false, 0}
+}
+
+func msgOnly(message string) MsgRsp {
+	return MsgRsp{message, "", true, 0}
+}
+
+func msgMenu(message string, count int) MsgRsp {
+	return MsgRsp{message, "", true, count}
+}
+
+func expectsCliOutput(t *testing.T, c *expect.Console, m []MsgRsp) {
+	for _, e := range m {
+		expectString(t, c, e.message)
+
+		if !e.skipResponse {
+			c.SendLine(e.response)
+		}
+
+		if e.menuItems > 0 {
+			for i := 0; i < e.menuItems-1; i++ {
+				c.Send("\x1B[B")
+			}
+			c.SendLine("\x1B[B")
+		}
+	}
+}

@@ -1,16 +1,15 @@
-Manage cloud account integrations with Lacework
+Generate Lacework integration IaC for cloud environment(s)
 
 Usage:
-  lacework cloud-account [command]
+  lacework generate cloud-account [command]
 
 Aliases:
-  cloud-account, cloud-accounts, cloud, ca
+  cloud-account, cloud, ca
 
 Available Commands:
-  create       Create a new cloud account integration
-  delete       Delete a cloud account integration
-  list         List all available cloud account integrations
-  show         Show a single cloud account integration
+  aws         Generate and/or execute Terraform code for AWS integration
+  azure       Generate and/or execute Terraform code for Azure integration
+  gcp         Generate and/or execute Terraform code for GCP integration
 
 Flags:
   -h, --help   help for cloud-account
@@ -29,4 +28,4 @@ Global Flags:
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
 
-Use "lacework cloud-account [command] --help" for more information about a command.
+Use "lacework generate cloud-account [command] --help" for more information about a command.

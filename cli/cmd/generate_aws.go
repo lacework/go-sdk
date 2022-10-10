@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -151,7 +150,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			}
 
 			// Write-out generated code to location specified
-			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "aws")
+			dirname, _, err := writeGeneratedCodeToLocation(cmd, hcl, "aws")
 			if err != nil {
 				return err
 			}
@@ -166,8 +165,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				return errors.Wrap(err, "failed to prompt for terraform execution")
 			}
 
-			// Execute
-			locationDir := filepath.Dir(location)
+			locationDir, _ := determineOutputDirPath(dirname, "aws")
 			if GenerateAwsCommandExtraState.TerraformApply {
 				// Execution pre-run check
 				err := executionPreRunChecks(dirname, locationDir, "aws")
@@ -293,6 +291,25 @@ See help output for more details on the parameter value(s) required for Terrafor
 		},
 	}
 )
+
+type AwsGenerateCommandExtraState struct {
+	Output                string
+	UseExistingCloudtrail bool
+	UseExistingSNSTopic   bool
+	AwsSubAccounts        []string
+	TerraformApply        bool
+}
+
+func (a *AwsGenerateCommandExtraState) isEmpty() bool {
+	return a.Output == "" && !a.UseExistingCloudtrail && len(a.AwsSubAccounts) == 0 && !a.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (a *AwsGenerateCommandExtraState) writeCache() {
+	if !a.isEmpty() {
+		cli.WriteAssetToCache(CachedAssetAwsExtraState, time.Now().Add(time.Hour*1), a)
+	}
+}
 
 func initGenerateAwsTfCommandFlags() {
 	// add flags to sub commands

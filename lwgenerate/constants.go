@@ -22,7 +22,7 @@ const (
 	HashAzureRMProviderVersion = "~> 2.91.0"
 
 	GcpConfigSource    = "lacework/config/gcp"
-	GcpConfigVersion   = "~> 2.0"
+	GcpConfigVersion   = "~> 2.3"
 	GcpAuditLogSource  = "lacework/audit-log/gcp"
-	GcpAuditLogVersion = "~> 2.0"
+	GcpAuditLogVersion = "~> 3.0"
 )
