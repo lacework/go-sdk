@@ -285,10 +285,10 @@ func init() {
 
 	// 'agent ctf aws ec2ic' flags
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.CTFInfraTagKey,
-		"infra_tag_key", "", "only install agents on infra with this tag key set",
+		"tag_key", "", "only install agents on infra with this tag key set",
 	)
 	agentInstallAWSEC2ICCmd.Flags().StringArrayVar(&agentCmdState.CTFInfraTag,
-		"infra_tag", []string{}, "only install agents on infra with this tag",
+		"tag", []string{}, "only install agents on infra with this tag",
 	)
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
 		"token", "", "agent access token",
@@ -302,10 +302,10 @@ func init() {
 
 	// 'agent ctf aws ssh' flags
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.CTFInfraTagKey,
-		"infra_tag_key", "", "only install agents on infra with this tag key set",
+		"tag_key", "", "only install agents on infra with this tag key",
 	)
 	agentInstallAWSSSHCmd.Flags().StringArrayVar(&agentCmdState.CTFInfraTag,
-		"infra_tag", []string{}, "only select instances with this tag",
+		"tag", []string{}, "only select instances with this tag",
 	)
 	agentInstallAWSSSHCmd.Flags().StringVarP(&agentCmdState.InstallIdentityFile,
 		"identity_file", "i", defaultSshIdentityKey,
