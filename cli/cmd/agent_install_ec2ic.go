@@ -29,8 +29,7 @@ var (
 		Use:   "ec2ic",
 		Short: "Use EC2InstanceConnect to securely connect to EC2 instances",
 		RunE:  installAWSEC2IC,
-		Long: `This command installs the agent on all EC2 instances in an AWS account
-using EC2InstanceConnect.
+		Long: `This command installs the agent on all EC2 instances in an AWS account using EC2InstanceConnect.
 
 To filter by one or more regions:
 
@@ -38,11 +37,11 @@ To filter by one or more regions:
 
 To filter by instance tag:
 
-    lacework agent install ec2ic --infra_tag TagName,TagValue
+    lacework agent install ec2ic --tag TagName,TagValue
 
 To filter by instance tag key:
 
-    lacework agent install ec2ic --infra_tag_key TagName
+    lacework agent install ec2ic --tag_key TagName
 
 To explicitly specify the username for all SSH logins:
 
@@ -52,6 +51,7 @@ AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - AWS_SESSION_TOKEN (optional)
+- AWS_REGION (optional)
 
 This command will automatically add hosts with successful connections to
 '~/.ssh/known_hosts' unless specified with '--no_trust_host_key'.`,

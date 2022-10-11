@@ -34,15 +34,15 @@ using SSH.
 
 To filter by one or more regions:
 
-    lacework agent install ec2-ssh --include_regions us-west-2 us-east-2
+    lacework agent install ec2-ssh --include_regions us-west-2,us-east-2
 
 To filter by instance tag:
 
-    lacework agent install ec2-ssh --infra_tag TagName TagValue
+    lacework agent install ec2-ssh --tag TagName,TagValue
 
 To filter by instance tag key:
 
-    lacework agent install ec2-ssh --infra_tag_key TagName
+    lacework agent install ec2-ssh --tag_key TagName
 
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select. Instances must
@@ -60,6 +60,7 @@ The environment should contain AWS credentials in the following variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - AWS_SESSION_TOKEN (optional),
+- AWS_REGION (optional)
 
 This command will automatically add hosts with successful connections to
 '~/.ssh/known_hosts' unless specified with '--no_trust_host_key'.`,
