@@ -317,6 +317,7 @@ By default, this command will function interactively, prompting for the required
 )
 
 type AzureGenerateCommandExtraState struct {
+	AskAdvanced    bool
 	Output         string
 	TerraformApply bool
 }
@@ -712,15 +713,15 @@ func promptAzureGenerate(config *azure.GenerateAzureTfConfigurationArgs, extraSt
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
-				Prompt:   &survey.Confirm{Message: QuestionAzureEnableConfig, Default: false},
+				Prompt:   &survey.Confirm{Message: QuestionAzureEnableConfig, Default: config.Config},
 				Response: &config.Config,
 			},
 			{
-				Prompt:   &survey.Confirm{Message: QuestionEnableActivityLog, Default: false},
+				Prompt:   &survey.Confirm{Message: QuestionEnableActivityLog, Default: config.ActivityLog},
 				Response: &config.ActivityLog,
 			},
 			{
-				Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: false},
+				Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: config.CreateAdIntegration},
 				Response: &config.CreateAdIntegration,
 			},
 		}); err != nil {
@@ -733,16 +734,15 @@ func promptAzureGenerate(config *azure.GenerateAzureTfConfigurationArgs, extraSt
 	}
 
 	// Find out if the customer wants to specify more advanced features
-	askAdvanced := false
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Confirm{Message: QuestionAzureConfigAdvanced, Default: askAdvanced},
-		Response: &askAdvanced,
+		Prompt:   &survey.Confirm{Message: QuestionAzureConfigAdvanced, Default: extraState.AskAdvanced},
+		Response: &extraState.AskAdvanced,
 	}); err != nil {
 		return err
 	}
 
 	// Keep prompting for advanced options until the say done
-	if askAdvanced {
+	if extraState.AskAdvanced {
 		if err := askAdvancedAzureOptions(config, extraState); err != nil {
 			return err
 		}
