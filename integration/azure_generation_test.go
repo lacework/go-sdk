@@ -947,6 +947,43 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
 }
 
+func TestGenerationAzureLaceworkProfile(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	azProfile := "v2"
+
+	tfResult := runGenerateAzureTest(t,
+		func(c *expect.Console) {
+			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
+			c.SendLine("y")
+			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
+			c.SendLine("n")
+			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"az",
+		"--profile",
+		azProfile,
+	)
+
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := azure.NewTerraform(true, true, true,
+		azure.WithLaceworkProfile(azProfile),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 func runGenerateAzureTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)

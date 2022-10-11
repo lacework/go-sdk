@@ -964,6 +964,44 @@ func TestGenerationAwsOverwriteOutput(t *testing.T) {
 	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
 }
 
+func TestGenerationAwsLaceworkProfile(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	region := "us-west-2"
+	awsProfile := "v2"
+
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionAwsRegion)
+			c.SendLine(region)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+		"--profile",
+		awsProfile,
+	)
+
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.WithLaceworkProfile(awsProfile),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)
