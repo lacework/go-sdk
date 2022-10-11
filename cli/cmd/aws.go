@@ -30,7 +30,7 @@ import (
 )
 
 func awsDescribeInstances() ([]*lwrunner.AWSRunner, error) {
-	regions, err := awsFindRegions()
+	regions, err := awsDescribeRegions()
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func awsDescribeInstances() ([]*lwrunner.AWSRunner, error) {
 // awsFindRegions queries the AWS API to list all the regions that
 // are enabled for the user's AWS account. Use the "include_regions"
 // command-line flag to only get regions in this list.
-func awsFindRegions() ([]types.Region, error) {
+func awsDescribeRegions() ([]types.Region, error) {
 	// Describe all regions that are enabled for the account
 	var filters []types.Filter
 	if len(agentCmdState.InstallIncludeRegions) > 0 {
@@ -64,7 +64,7 @@ func awsFindRegions() ([]types.Region, error) {
 	input := &ec2.DescribeRegionsInput{
 		Filters: filters,
 	}
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func awsFindRegions() ([]types.Region, error) {
 		Region:      region,
 	})
 
-	output, err := svc.DescribeRegions(context.TODO(), input)
+	output, err := svc.DescribeRegions(context.Background(), input)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 		tagKey = agentCmdState.InstallTagKey
 		tag    = agentCmdState.InstallTag
 	)
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 	input := &ec2.DescribeInstancesInput{
 		Filters: filters,
 	}
-	result, err := svc.DescribeInstances(context.TODO(), input)
+	result, err := svc.DescribeInstances(context.Background(), input)
 	if err != nil {
 		return nil, err
 	}
