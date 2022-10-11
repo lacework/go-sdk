@@ -62,9 +62,9 @@ var (
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
 			}
-
 			if len(args) > 1 {
 				compCmdState.RecommendationID = args[1]
+				// Todo(v2): Is this still valid for v2
 				if !validRecommendationID(compCmdState.RecommendationID) {
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
@@ -77,10 +77,14 @@ var (
 			case "SOC_Rev2":
 				compCmdState.Type = fmt.Sprintf("AWS_%s", compCmdState.Type)
 				return nil
-			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2", "PCI":
+			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2",
+				"PCI", "AWS_CIS_14", "AWS_CMMC_1.02", "AWS_HIPAA", "AWS_ISO_27001:2013", "AWS_NIST_CSF", "AWS_NIST_800-171_rev2",
+				"AWS_NIST_800-53_rev5", "AWS_PCI_DSS_3.2.1", "AWS_SOC_2", "LW_AWS_SEC_ADD_1_0":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI")
+				return errors.New(`supported report types are: AWS_CIS_S3', 'NIST_800-53_Rev4', 'NIST_800-171_Rev2', 
+'ISO_2700', 'HIPAA', 'SOC', 'AWS_SOC_Rev2', 'PCI', 'AWS_CIS_14', 'AWS_CMMC_1.02', 'AWS_HIPAA', 'AWS_ISO_27001:2013', 
+'AWS_NIST_CSF', 'AWS_NIST_800-171_rev2', 'AWS_NIST_800-53_rev5', 'AWS_PCI_DSS_3.2.1', 'AWS_SOC_2', 'LW_AWS_SEC_ADD_1_0'`)
 			}
 		},
 		Short: "Get the latest AWS compliance report",
@@ -106,7 +110,7 @@ To show recommendation details and affected resources for a recommendation id:
 				// clean the AWS account ID if it was provided
 				// with an Alias in between parentheses
 				awsAccountID, _ = splitIDAndAlias(args[0])
-				config          = api.ComplianceAwsReportConfig{
+				config          = api.AwsReportConfig{
 					AccountID: awsAccountID,
 					Type:      compCmdState.Type,
 				}
@@ -121,8 +125,7 @@ To show recommendation details and affected resources for a recommendation id:
 				)
 
 				cli.StartProgress("Downloading compliance report...")
-				// Todo(v2): replace with v2
-				err := cli.LwApi.Compliance.DownloadAwsReportPDF(pdfName, config)
+				err := cli.LwApi.V2.Reports.Aws.DownloadPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get aws pdf compliance report")
@@ -148,14 +151,13 @@ To show recommendation details and affected resources for a recommendation id:
 			}
 
 			var (
-				report   api.ComplianceAwsReport
+				report   api.AwsReport
 				cacheKey = fmt.Sprintf("compliance/aws/%s/%s", config.AccountID, config.Type)
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
 				cli.StartProgress("Getting compliance report...")
-				// Todo(v2): replace with v2
-				response, err := cli.LwApi.Compliance.GetAwsReport(config)
+				response, err := cli.LwApi.V2.Reports.Aws.Get(config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get aws compliance report")
@@ -610,7 +612,7 @@ func complianceAwsDisableReportDisplayChanges() (bool, error) {
 	return answer == 0, nil
 }
 
-func complianceAwsReportDetailsTable(report *api.ComplianceAwsReport) [][]string {
+func complianceAwsReportDetailsTable(report *api.AwsReport) [][]string {
 	return [][]string{
 		[]string{"Report Type", report.ReportType},
 		[]string{"Report Title", report.ReportTitle},
@@ -626,7 +628,7 @@ type awsAccount struct {
 }
 
 func cliListAwsAccounts(awsIntegrations api.CloudAccountsResponse) error {
-	var msg string
+	msg := &strings.Builder{}
 	awsAccounts := make([]awsAccount, 0)
 	jsonOut := struct {
 		Accounts []awsAccount `json:"aws_accounts"`
@@ -637,7 +639,7 @@ func cliListAwsAccounts(awsIntegrations api.CloudAccountsResponse) error {
 			return cli.OutputJSON(jsonOut)
 		}
 
-		msg = `There are no AWS accounts configured in your account.
+		msg.WriteString(`There are no AWS accounts configured in your account.
 
 Get started by integrating your AWS accounts to analyze configuration compliance using the command:
 
@@ -648,8 +650,8 @@ If you prefer to configure the integration via the WebUI, log in to your account
     https://%s.lacework.net
 
 Then navigate to Settings > Integrations > Cloud Accounts.
-`
-		cli.OutputHuman(msg, cli.Account)
+`)
+		cli.OutputHuman(msg.String(), cli.Account)
 		return nil
 	}
 
@@ -668,12 +670,11 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 
 			if awsCfg.AwsAccountID == "" {
 				if integration.IntgGuid != "" {
-					msg = fmt.Sprintf(`
+					msg.WriteString(fmt.Sprintf(`
 Unable to retrieve Aws Account ID for %s. 
 Edit & Save this cloud account in the Lacework UI to refresh the integration. %s
 `,
-						integration.IntgGuid, fmt.Sprintf("https://%s.lacework.net/ui/investigation/settings/cloudaccounts/%s", cli.Account, integration.IntgGuid))
-
+						integration.IntgGuid, fmt.Sprintf("https://%s.lacework.net/ui/investigation/settings/cloudaccounts/%s", cli.Account, integration.IntgGuid)))
 				}
 				continue
 			}
@@ -696,8 +697,8 @@ Edit & Save this cloud account in the Lacework UI to refresh the integration. %s
 	}
 
 	cli.OutputHuman(renderSimpleTable([]string{"AWS Account", "Status"}, rows))
-	if msg != "" {
-		cli.OutputHuman(msg)
+	if msg.String() != "" {
+		cli.OutputHuman(msg.String())
 	}
 	return nil
 }
@@ -712,12 +713,14 @@ func containsDuplicateAccountID(awsAccount []awsAccount, accountID string) bool 
 }
 
 func fetchCachedAwsComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
+	// Todo(v2): update cache key
 	var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", reportType)
 	expired := cli.ReadCachedAsset(cacheKey, &response)
 	if expired {
 		cli.StartProgress("Fetching compliance report schema...")
 		// Todo(v2): replace with v2.
 		response, err = cli.LwApi.Recommendations.Aws.GetReport(reportType)
+		//response, err := cli.LwApi.V2.Reports.Aws.Get(reportType)
 		cli.StopProgress()
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to get aws compliance report schema")

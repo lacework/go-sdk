@@ -152,7 +152,7 @@ To show recommendation details and affected resources for a recommendation id:
 				// with an Alias in between parentheses
 				orgID, _     = splitIDAndAlias(args[0])
 				projectID, _ = splitIDAndAlias(args[1])
-				config       = api.ComplianceGcpReportConfig{
+				config       = api.GcpReportConfig{
 					OrganizationID: orgID,
 					ProjectID:      projectID,
 					Type:           compCmdState.Type,
@@ -169,7 +169,7 @@ To show recommendation details and affected resources for a recommendation id:
 				)
 
 				cli.StartProgress(" Downloading compliance report...")
-				err := cli.LwApi.Compliance.DownloadGcpReportPDF(pdfName, config)
+				err := cli.LwApi.V2.Reports.Gcp.DownloadPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get gcp pdf compliance report")
@@ -202,14 +202,14 @@ To show recommendation details and affected resources for a recommendation id:
 			}
 
 			var (
-				report   api.ComplianceGcpReport
+				report   api.GcpReport
 				cacheKey = fmt.Sprintf("compliance/google/%s/%s/%s",
 					orgIDForCache, config.ProjectID, config.Type)
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
 				cli.StartProgress(" Getting compliance report...")
-				response, err := cli.LwApi.Compliance.GetGcpReport(config)
+				response, err := cli.LwApi.V2.Reports.Gcp.Get(config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get gcp compliance report")
@@ -582,7 +582,7 @@ func complianceGcpDisableReportDisplayChanges(arg string) (bool, error) {
 	return answer == 0, nil
 }
 
-func complianceGcpReportDetailsTable(report *api.ComplianceGcpReport) [][]string {
+func complianceGcpReportDetailsTable(report *api.GcpReport) [][]string {
 	return [][]string{
 		[]string{"Report Type", report.ReportType},
 		[]string{"Report Title", report.ReportTitle},

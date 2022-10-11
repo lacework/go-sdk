@@ -122,6 +122,8 @@ const (
 	apiV2QueriesExecute  = "v2/Queries/execute"
 	apiV2QueriesValidate = "v2/Queries/validate"
 
+	apiV2Reports = "v2/Reports?primaryQueryId=%s&format=%s&reportType=%s"
+
 	apiV2ReportRules        = "v2/ReportRules"
 	apiV2ReportRuleFromGUID = "v2/ReportRules/%s"
 

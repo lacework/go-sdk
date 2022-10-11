@@ -147,7 +147,7 @@ To show recommendation details and affected resources for a recommendation id:
 				// with an Alias in between parentheses
 				tenantID, _       = splitIDAndAlias(args[0])
 				subscriptionID, _ = splitIDAndAlias(args[1])
-				config            = api.ComplianceAzureReportConfig{
+				config            = api.AzureReportConfig{
 					TenantID:       tenantID,
 					SubscriptionID: subscriptionID,
 					Type:           compCmdState.Type,
@@ -164,7 +164,8 @@ To show recommendation details and affected resources for a recommendation id:
 				)
 
 				cli.StartProgress("Downloading compliance report...")
-				err := cli.LwApi.Compliance.DownloadAzureReportPDF(pdfName, config)
+				//Todo(v2): migrate to v2
+				err := cli.LwApi.V2.Reports.Azure.DownloadPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get azure pdf compliance report")
@@ -190,14 +191,14 @@ To show recommendation details and affected resources for a recommendation id:
 			}
 
 			var (
-				report   api.ComplianceAzureReport
+				report   api.AzureReport
 				cacheKey = fmt.Sprintf("compliance/azure/%s/%s/%s",
 					config.TenantID, config.SubscriptionID, config.Type)
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
 				cli.StartProgress("Getting compliance report...")
-				response, err := cli.LwApi.Compliance.GetAzureReport(config)
+				response, err := cli.LwApi.V2.Reports.Azure.Get(config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get azure compliance report")
@@ -569,7 +570,7 @@ func complianceAzureDisableReportDisplayChanges(arg string) (bool, error) {
 	return answer == 0, nil
 }
 
-func complianceAzureReportDetailsTable(report *api.ComplianceAzureReport) [][]string {
+func complianceAzureReportDetailsTable(report *api.AzureReport) [][]string {
 	return [][]string{
 		[]string{"Report Type", report.ReportType},
 		[]string{"Report Title", report.ReportTitle},
