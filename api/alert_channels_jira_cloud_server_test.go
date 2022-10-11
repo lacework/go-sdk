@@ -296,3 +296,14 @@ func singleJiraServerAlertChannel(id string) string {
 	}
 	`, id)
 }
+
+func TestJiraGroupings(t *testing.T) {
+	surveyGroupings := []int{}
+	for _, s := range api.JiraIssueGroupingsSurvey {
+		surveyGroupings = append(surveyGroupings, int(s))
+	}
+
+	for i := range api.JiraIssueGroupings {
+		assert.Contains(t, surveyGroupings, int(i))
+	}
+}

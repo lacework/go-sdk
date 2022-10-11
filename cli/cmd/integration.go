@@ -297,9 +297,9 @@ func promptCreateIntegration() error {
 	case "Amazon CloudWatch Alert Channel":
 		return createAwsCloudWatchAlertChannelIntegration()
 	case "Jira Cloud Alert Channel":
-		return createJiraCloudAlertChannelIntegration()
+		return createJiraAlertChannelIntegration(api.JiraCloudAlertType)
 	case "Jira Server Alert Channel":
-		return createJiraServerAlertChannelIntegration()
+		return createJiraAlertChannelIntegration(api.JiraServerAlertType)
 	case "Docker Hub Registry":
 		return createDockerHubIntegration()
 	case "Docker V2 Registry":
