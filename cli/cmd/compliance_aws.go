@@ -220,6 +220,7 @@ To show recommendation details and affected resources for a recommendation id:
 		},
 	}
 
+	// Todo(v2): deprecate??
 	// complianceAwsRunAssessmentCmd represents the run-assessment sub-command inside the aws command
 	complianceAwsRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <account_id>",
@@ -298,7 +299,6 @@ To disable all recommendations for CIS_1_1 report run:
 			patchReq := api.NewRecommendationV1State(schema, false)
 			cli.StartProgress("disabling recommendations...")
 
-			// Todo(v2): replace with v2
 			response, err := cli.LwApi.Recommendations.Aws.Patch(patchReq)
 			cli.StopProgress()
 			if err != nil {
@@ -348,7 +348,6 @@ To enable all recommendations for CIS_1_1 report run:
 			// set state of all recommendations in this report to enabled
 			patchReq := api.NewRecommendationV1State(schema, true)
 			cli.StartProgress("enabling recommendations...")
-			// Todo(v2): replace with v2
 			response, err := cli.LwApi.Recommendations.Aws.Patch(patchReq)
 			cli.StopProgress()
 			if err != nil {
@@ -713,14 +712,11 @@ func containsDuplicateAccountID(awsAccount []awsAccount, accountID string) bool 
 }
 
 func fetchCachedAwsComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
-	// Todo(v2): update cache key
 	var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", reportType)
 	expired := cli.ReadCachedAsset(cacheKey, &response)
 	if expired {
 		cli.StartProgress("Fetching compliance report schema...")
-		// Todo(v2): replace with v2.
 		response, err = cli.LwApi.Recommendations.Aws.GetReport(reportType)
-		//response, err := cli.LwApi.V2.Reports.Aws.Get(reportType)
 		cli.StopProgress()
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to get aws compliance report schema")

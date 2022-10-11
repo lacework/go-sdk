@@ -274,6 +274,7 @@ To show recommendation details and affected resources for a recommendation id:
 		},
 	}
 
+	// Todo(v2): deprecate??
 	// complianceGcpRunAssessmentCmd represents the run-assessment sub-command inside the gcp command
 	complianceGcpRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <org_or_project_id>",

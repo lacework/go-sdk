@@ -164,7 +164,6 @@ To show recommendation details and affected resources for a recommendation id:
 				)
 
 				cli.StartProgress("Downloading compliance report...")
-				//Todo(v2): migrate to v2
 				err := cli.LwApi.V2.Reports.Azure.DownloadPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
@@ -263,6 +262,7 @@ To show recommendation details and affected resources for a recommendation id:
 		},
 	}
 
+	// Todo(v2): deprecate??
 	// complianceAzureRunAssessmentCmd represents the run-assessment sub-command inside the azure command
 	complianceAzureRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <tenant_id>",
