@@ -293,6 +293,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 )
 
 type AwsGenerateCommandExtraState struct {
+	AskAdvanced           bool
 	Output                string
 	UseExistingCloudtrail bool
 	UseExistingSNSTopic   bool
@@ -301,7 +302,7 @@ type AwsGenerateCommandExtraState struct {
 }
 
 func (a *AwsGenerateCommandExtraState) isEmpty() bool {
-	return a.Output == "" && !a.UseExistingCloudtrail && len(a.AwsSubAccounts) == 0 && !a.TerraformApply
+	return a.Output == "" && !a.UseExistingCloudtrail && len(a.AwsSubAccounts) == 0 && !a.TerraformApply && !a.AskAdvanced
 }
 
 // Flush current state of the struct to disk, provided it's not empty
@@ -900,16 +901,15 @@ func promptAwsGenerate(
 	}
 
 	// Find out if the customer wants to specify more advanced features
-	askAdvanced := false
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Confirm{Message: QuestionAwsConfigAdvanced, Default: askAdvanced},
-		Response: &askAdvanced,
+		Prompt:   &survey.Confirm{Message: QuestionAwsConfigAdvanced, Default: extraState.AskAdvanced},
+		Response: &extraState.AskAdvanced,
 	}); err != nil {
 		return err
 	}
 
 	// Keep prompting for advanced options until the say done
-	if askAdvanced {
+	if extraState.AskAdvanced {
 		if err := askAdvancedAwsOptions(config, extraState); err != nil {
 			return err
 		}
