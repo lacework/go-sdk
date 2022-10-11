@@ -161,6 +161,11 @@ To list all active agents in your environment.
 NOTE: New agents could take up to an hour to report back to the platform.`,
 		RunE: installRemoteAgent,
 	}
+
+	agentAWSInstallCmd = &cobra.Command{
+		Use:   "aws-install",
+		Short: "Install the datacollector agent on all remote AWS hosts",
+	}
 )
 
 func init() {
@@ -172,6 +177,7 @@ func init() {
 	agentCmd.AddCommand(agentInstallCmd)
 	agentCmd.AddCommand(agentGenerateCmd)
 	agentCmd.AddCommand(agentListCmd)
+	agentCmd.AddCommand(agentAWSInstallCmd)
 
 	// add the list sub-command to the 'agent token' cmd
 	agentTokenCmd.AddCommand(agentTokenListCmd)
@@ -179,9 +185,9 @@ func init() {
 	agentTokenCmd.AddCommand(agentTokenShowCmd)
 	agentTokenCmd.AddCommand(agentTokenUpdateCmd)
 
-	// add sub-commands to the 'agent install' command for different install methods
-	agentInstallCmd.AddCommand(agentInstallAWSEC2ICCmd)
-	agentInstallCmd.AddCommand(agentInstallAWSSSHCmd)
+	// add sub-commands to the 'agent aws-install' command for different install methods
+	agentAWSInstallCmd.AddCommand(agentInstallAWSEC2ICCmd)
+	agentAWSInstallCmd.AddCommand(agentInstallAWSSSHCmd)
 
 	// 'agent token update' flags
 	agentTokenUpdateCmd.Flags().BoolVar(&agentCmdState.TokenUpdateEnable,
