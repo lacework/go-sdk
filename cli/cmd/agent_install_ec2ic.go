@@ -20,8 +20,9 @@ package cmd
 
 import (
 	"fmt"
+	"sync"
 
-	"github.com/pkg/errors"
+	"github.com/lacework/go-sdk/lwrunner"
 	"github.com/spf13/cobra"
 )
 
@@ -88,40 +89,37 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
+	wg := new(sync.WaitGroup)
 	for _, runner := range runners {
-		cli.Log.Debugw("runner info: ", "user", runner.Runner.User, "region", runner.Region, "az", runner.AvailabilityZone, "instance ID", runner.InstanceID, "hostname", runner.Runner.Hostname)
-		err := runner.SendAndUseIdentityFile()
-		if err != nil {
-			cli.Log.Debugw("ec2ic failed", "err", err)
-			continue
-		}
-
-		if err := verifyAccessToRemoteHost(&runner.Runner); err != nil {
-			cli.Log.Debugw("verifyAccessToRemoteHost failed")
-			return err
-		}
-
-		if alreadyInstalled := isAgentInstalledOnRemoteHost(&runner.Runner); alreadyInstalled != nil {
-			cli.Log.Debugw("agent already installed on host, skipping")
-			continue
-		}
-
-		token := agentCmdState.InstallAgentToken
-		if token == "" {
-			// user didn't provide an agent token
-			cli.Log.Debugw("agent token not provided")
-			var err error
-			token, err = selectAgentAccessToken()
+		wg.Add(1)
+		go func(runner *lwrunner.AWSRunner) {
+			cli.Log.Debugw("runner info: ", "user", runner.Runner.User, "region", runner.Region, "az", runner.AvailabilityZone, "instance ID", runner.InstanceID, "hostname", runner.Runner.Hostname)
+			err := runner.SendAndUseIdentityFile()
 			if err != nil {
-				return err
+				cli.Log.Debugw("ec2ic key send failed", "err", err, "runner", runner.InstanceID)
 			}
-		}
-		cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
-		err = runInstallCommandOnRemoteHost(&runner.Runner, cmd)
-		if err != nil {
-			return errors.Wrap(err, "runInstallCommandOnRemoteHost failed for instance "+runner.InstanceID)
-		}
+
+			if err := verifyAccessToRemoteHost(&runner.Runner); err != nil {
+				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "runner", runner.InstanceID)
+			}
+
+			if alreadyInstalled := isAgentInstalledOnRemoteHost(&runner.Runner); alreadyInstalled != nil {
+				cli.Log.Debugw("agent already installed on host, skipping", "runner", runner.InstanceID)
+			}
+
+			token := agentCmdState.InstallAgentToken
+			if token == "" {
+				cli.Log.Warnw("agent token not provided", "runner", runner.InstanceID)
+			}
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+			err = runInstallCommandOnRemoteHost(&runner.Runner, cmd)
+			if err != nil {
+				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", runner.InstanceID)
+			}
+			wg.Done()
+		}(runner)
 	}
+	wg.Wait()
 
 	return nil
 }

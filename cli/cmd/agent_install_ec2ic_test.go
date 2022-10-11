@@ -69,3 +69,17 @@ func TestAwsEC2ICDescribeInstances(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func TestAwsInstallEC2IC(t *testing.T) {
+	if _, ok := os.LookupEnv("AWS_SECRET_ACCESS_KEY"); !ok {
+		t.Skip("aws credentials not found in environment, skipping test")
+	}
+
+	cli.LogLevel = "DEBUG"
+	agentCmdState.InstallTrustHostKey = true
+	agentCmdState.InstallTagKey = "CaptureTheFlagPlayer"
+	cli.NonInteractive()
+
+	err := installAWSEC2IC(nil, nil)
+	assert.NoError(t, err)
+}
