@@ -80,7 +80,7 @@ func init() {
 	)
 }
 
-func installAWSEC2IC(_ *cobra.Command, args []string) error {
+func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 	runners, err := awsDescribeInstances()
 	if err != nil {
 		return err
