@@ -12,6 +12,7 @@ Usage:
   lacework agent [command]
 
 Available Commands:
+  aws-install Install the datacollector agent on all remote AWS hosts
   install     Install the datacollector agent on a remote host
   list        List all hosts with a running agent
   token       Manage agent access tokens
