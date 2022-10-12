@@ -20,8 +20,8 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -33,7 +33,7 @@ import (
 
 func TestCliListAwsAccountsWithNoAccounts(t *testing.T) {
 	cliOutput := capturer.CaptureOutput(func() {
-		assert.Nil(t, cliListAwsAccounts(new(api.AwsIntegrationsResponse)))
+		assert.Nil(t, cliListAwsAccounts(api.CloudAccountsResponse{}))
 	})
 	assert.Contains(t, cliOutput, "There are no AWS accounts configured in your account.")
 
@@ -41,7 +41,7 @@ func TestCliListAwsAccountsWithNoAccounts(t *testing.T) {
 		cli.EnableJSONOutput()
 		defer cli.EnableHumanOutput()
 		cliJSONOutput := capturer.CaptureOutput(func() {
-			assert.Nil(t, cliListAwsAccounts(new(api.AwsIntegrationsResponse)))
+			assert.Nil(t, cliListAwsAccounts(api.CloudAccountsResponse{}))
 		})
 		expectedJSON := `{
   "aws_accounts": []
@@ -79,53 +79,72 @@ func TestCliListAwsAccountsWithAccountsDisabled(t *testing.T) {
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
 
-func mockAwsIntegrationsResponse(acc1Enabled, acc2Enabled int) *api.AwsIntegrationsResponse {
-	response := &api.AwsIntegrationsResponse{}
-	err := json.Unmarshal([]byte(`{
+func mockAwsIntegrationsResponse(acc1Enabled, acc2Enabled int) api.CloudAccountsResponse {
+	response := &api.CloudAccountsResponse{}
+	err := json.Unmarshal([]byte(fmt.Sprintf(`{
   "data": [
-    {
-      "CREATED_OR_UPDATED_BY": "salim.afiunemaya@lacework.net",
-      "CREATED_OR_UPDATED_TIME": "2021-10-25T15:18:47.945Z",
-      "DATA": {
-        "AWS_ACCOUNT_ID": "123456789012"
-      },
-      "ENABLED": `+strconv.Itoa(acc1Enabled)+`,
-      "INTG_GUID": "MOCK_1233",
-      "IS_ORG": 0,
-      "NAME": "TF config",
-      "STATE": {
-        "lastSuccessfulTime": "2022-Jan-31 16:08:54 UTC",
-        "lastUpdatedTime": "2022-Jan-31 16:08:54 UTC",
-        "ok": true
-      },
-      "TYPE": "AWS_CFG",
-      "TYPE_NAME": "AWS Config"
-    },
-    {
-      "CREATED_OR_UPDATED_BY": "vatasha.white@lacework.net",
-      "CREATED_OR_UPDATED_TIME": "2022-01-13T20:32:59.954Z",
-      "DATA": {
-        "AWS_ACCOUNT_ID": "098765432109"
-      },
-      "ENABLED": `+strconv.Itoa(acc2Enabled)+`,
-      "INTG_GUID": "MOCK_1234",
-      "IS_ORG": 0,
-      "NAME": "TF config",
-      "STATE": {
-        "lastSuccessfulTime": "2022-Jan-31 16:47:04 UTC",
-        "lastUpdatedTime": "2022-Jan-31 16:47:04 UTC",
-        "ok": true
-      },
-      "TYPE": "AWS_CFG",
-      "TYPE_NAME": "AWS Config"
-    }
-  ],
-  "message": "SUCCESS",
-  "ok": true
+            {
+            "createdOrUpdatedBy": "darren.murray@lacework.net",
+            "createdOrUpdatedTime": "2022-10-10T12:09:26.632Z",
+            "enabled": %d,
+            "intgGuid": "TECHALLY_8A871E4B35CE58D475DA63152BFE2ADCE319B9EB577C012",
+            "isOrg": 0,
+            "name": "TF config",
+            "state": {
+                "ok": true,
+                "lastUpdatedTime": 1665506555870,
+                "lastSuccessfulTime": 1665506555870,
+                "details": {
+                    "complianceOpsDeniedAccess": [
+                        "GetBucketAcl",
+                        "GetBucketLogging",
+                        "GetKeyRotationStatus"
+                    ]
+                }
+            },
+            "type": "AwsCfg",
+            "data": {
+                "crossAccountCredentials": {
+                    "roleArn": "arn:aws:iam::12345678:role/lacework-test",
+                    "externalId": "abcdefg"
+                },
+                "awsAccountId": "12345678"
+            }
+        },
+
+            {
+            "createdOrUpdatedBy": "darren.murray@lacework.net",
+            "createdOrUpdatedTime": "2022-10-10T12:09:26.632Z",
+            "enabled": %d,
+            "intgGuid": "TECHALLY_8A871E4B35CE58D475DA63152BFE2ADCE319B9EB577C013",
+            "isOrg": 0,
+            "name": "TF config 2",
+            "state": {
+                "ok": true,
+                "lastUpdatedTime": 1665506555870,
+                "lastSuccessfulTime": 1665506555870,
+                "details": {
+                    "complianceOpsDeniedAccess": [
+                        "GetBucketAcl",
+                        "GetBucketLogging",
+                        "GetKeyRotationStatus"
+                    ]
+                }
+            },
+            "type": "AwsCfg",
+            "data": {
+                "crossAccountCredentials": {
+                    "roleArn": "arn:aws:iam::12345678:role/lacework-test",
+                    "externalId": "abcdefg"
+                },
+                "awsAccountId": "12345678"
+            }
+        }
+  ]
 }
-`), response)
+`, acc1Enabled, acc2Enabled)), response)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return response
+	return *response
 }
