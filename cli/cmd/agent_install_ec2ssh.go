@@ -28,6 +28,7 @@ import (
 var (
 	agentInstallAWSSSHCmd = &cobra.Command{
 		Use:   "ec2-ssh",
+		Args:  cobra.NoArgs,
 		Short: "Use SSH to securely connect to EC2 instances",
 		Long: `This command installs the agent on all EC2 instances in an AWS account
 using SSH.
@@ -63,7 +64,7 @@ The environment should contain AWS credentials in the following variables:
 - AWS_REGION (optional)
 
 This command will automatically add hosts with successful connections to
-'~/.ssh/known_hosts' unless specified with '--no_trust_host_key'.`,
+'~/.ssh/known_hosts' unless specified with '--trust_host_key=false'.`,
 		RunE: installAWSSSH,
 	}
 )
@@ -84,7 +85,7 @@ func init() {
 		"token", "", "agent access token",
 	)
 	agentInstallAWSSSHCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
-		"no_trust_host_key", true, "do not automatically add host keys to the ~/.ssh/known_hosts file",
+		"trust_host_key", true, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
 	agentInstallAWSSSHCmd.Flags().StringSliceVarP(&agentCmdState.InstallIncludeRegions,
 		"include_regions", "r", []string{}, "list of regions to filter on",
@@ -100,14 +101,20 @@ func init() {
 	)
 }
 
-func installAWSSSH(_ *cobra.Command, args []string) error {
+func installAWSSSH(_ *cobra.Command, _ []string) error {
 	runners, err := awsDescribeInstances()
 	if err != nil {
 		return err
 	}
 
 	for _, runner := range runners {
-		cli.Log.Debugw("runner info: ", "user", runner.Runner.User, "region", runner.Region, "az", runner.AvailabilityZone, "instance ID", runner.InstanceID, "hostname", runner.Runner.Hostname)
+		cli.Log.Debugw("runner info: ",
+			"user", runner.Runner.User,
+			"region", runner.Region,
+			"az", runner.AvailabilityZone,
+			"instance ID", runner.InstanceID,
+			"hostname", runner.Runner.Hostname,
+		)
 
 		err := runner.Runner.UseIdentityFile(agentCmdState.InstallIdentityFile)
 		if err != nil {
@@ -136,8 +143,7 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 		cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 		err = runInstallCommandOnRemoteHost(&runner.Runner, cmd)
 		if err != nil {
-			cli.Log.Debugw("runInstallCommandOnRemoteHost failed")
-			return err
+			return errors.Wrap(err, "runInstallCommandOnRemoteHost failed for instance "+runner.InstanceID)
 		}
 	}
 

@@ -27,6 +27,7 @@ import (
 var (
 	agentInstallAWSEC2ICCmd = &cobra.Command{
 		Use:   "ec2ic",
+		Args:  cobra.NoArgs,
 		Short: "Use EC2InstanceConnect to securely connect to EC2 instances",
 		RunE:  installAWSEC2IC,
 		Long: `This command installs the agent on all EC2 instances in an AWS account using EC2InstanceConnect.
@@ -54,7 +55,7 @@ AWS credentials are read from the following environment variables:
 - AWS_REGION (optional)
 
 This command will automatically add hosts with successful connections to
-'~/.ssh/known_hosts' unless specified with '--no_trust_host_key'.`,
+'~/.ssh/known_hosts' unless specified with '--trust_host_key=false'.`,
 	}
 )
 
@@ -70,7 +71,7 @@ func init() {
 		"token", "", "agent access token",
 	)
 	agentInstallAWSEC2ICCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
-		"no_trust_host_key", true, "do not automatically add host keys to the ~/.ssh/known_hosts file",
+		"trust_host_key", true, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
 	agentInstallAWSEC2ICCmd.Flags().StringSliceVarP(&agentCmdState.InstallIncludeRegions,
 		"include_regions", "r", []string{}, "list of regions to filter on",

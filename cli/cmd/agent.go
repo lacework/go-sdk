@@ -164,6 +164,7 @@ NOTE: New agents could take up to an hour to report back to the platform.`,
 
 	agentAWSInstallCmd = &cobra.Command{
 		Use:   "aws-install",
+		Args:  cobra.NoArgs,
 		Short: "Install the datacollector agent on all remote AWS hosts",
 	}
 )

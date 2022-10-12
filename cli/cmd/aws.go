@@ -142,9 +142,19 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 	for _, reservation := range result.Reservations {
 		for _, instance := range reservation.Instances {
 			if instance.PublicIpAddress != nil && instance.State.Name == "running" {
-				cli.Log.Debugw("found runner", "public ip address", *instance.PublicIpAddress, "instance state name", instance.State.Name)
+				cli.Log.Debugw("found runner",
+					"public ip address", *instance.PublicIpAddress,
+					"instance state name", instance.State.Name,
+				)
 
-				runner, err := lwrunner.NewAWSRunner(*instance.ImageId, *instance.PublicIpAddress, region, *instance.Placement.AvailabilityZone, *instance.InstanceId, verifyHostCallback)
+				runner, err := lwrunner.NewAWSRunner(
+					*instance.ImageId,
+					*instance.PublicIpAddress,
+					region,
+					*instance.Placement.AvailabilityZone,
+					*instance.InstanceId,
+					verifyHostCallback,
+				)
 				if err != nil {
 					cli.Log.Debugw("error identifying runner", "error", err, "instance ID", *instance.InstanceId)
 					continue
