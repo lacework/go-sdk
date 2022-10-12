@@ -1,0 +1,64 @@
+This command installs the agent on all EC2 instances in an AWS account
+using SSH.
+
+To filter by one or more regions:
+
+    lacework agent install ec2-ssh --include_regions us-west-2,us-east-2
+
+To filter by instance tag:
+
+    lacework agent install ec2-ssh --tag TagName,TagValue
+
+To filter by instance tag key:
+
+    lacework agent install ec2-ssh --tag_key TagName
+
+You will need to provide an SSH authentication method. This authentication method
+should work for all instances that your tag or region filters select. Instances must
+be routable from your local host.
+
+To authenticate using username and password:
+
+    lacework agent install ec2-ssh --ssh_username <your-user> --ssh_password <secret>
+
+To authenticate using an identity file:
+
+    lacework agent install ec2-ssh -i /path/to/your/key
+
+The environment should contain AWS credentials in the following variables:
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- AWS_SESSION_TOKEN (optional),
+- AWS_REGION (optional)
+
+This command will automatically add hosts with successful connections to
+'~/.ssh/known_hosts' unless specified with '--trust_host_key=false'.
+
+Usage:
+  lacework agent aws-install ec2-ssh [flags]
+
+Flags:
+  -h, --help                      help for ec2-ssh
+  -i, --identity_file string      identity (private key) for public key authentication (default "~/.ssh/id_rsa")
+  -r, --include_regions strings   list of regions to filter on
+      --ssh_password string       password for authentication
+      --ssh_port int              port to connect to on the remote host (default 22)
+      --ssh_username string       username to login with
+      --tag strings               only select instances with this tag
+      --tag_key string            only install agents on infra with this tag key
+      --token string              agent access token
+      --trust_host_key            automatically add host keys to the ~/.ssh/known_hosts file (default true)
+
+Global Flags:
+  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+  -k, --api_key string      access key id
+  -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
+      --debug               turn on debug logging
+      --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
+      --nocolor             turn off colors
+      --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
+  -p, --profile string      switch between profiles configured at ~/.lacework.toml
+      --subaccount string   sub-account name inside your organization (org admins only)
