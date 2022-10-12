@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -118,8 +119,7 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 		cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 		err = runInstallCommandOnRemoteHost(&runner.Runner, cmd)
 		if err != nil {
-			cli.Log.Debugw("runInstallCommandOnRemoteHost failed")
-			return err
+			return errors.Wrap(err, "runInstallCommandOnRemoteHost failed for instance "+runner.InstanceID)
 		}
 	}
 
