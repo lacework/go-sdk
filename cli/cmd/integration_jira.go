@@ -64,7 +64,7 @@ func createJiraAlertChannelIntegration(jiraType string) error {
 			Prompt: &survey.Confirm{
 				Message: "Would you like a bidirectional integration?",
 				Default: false,
-				// Help:    "See https://docs.lacework.com/onboarding/jira#bidirectional-integration for more detail.",
+				Help:    "See https://docs.lacework.com/onboarding/jira#bidirectional-integration for more detail.",
 			},
 			Validate: survey.Required,
 		},
