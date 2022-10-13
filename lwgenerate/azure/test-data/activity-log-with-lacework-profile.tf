@@ -15,6 +15,10 @@ terraform {
   }
 }
 
+provider "lacework" {
+  profile = "test-profile"
+}
+
 provider "azuread" {
 }
 
@@ -28,22 +32,11 @@ module "az_ad_application" {
   version = "~> 1.0"
 }
 
-module "az_config" {
-  source                      = "lacework/config/azure"
-  version                     = "~> 1.0"
-  application_id              = module.az_ad_application.application_id
-  application_password        = module.az_ad_application.application_password
-  lacework_integration_name   = "Test Config Rename"
-  service_principal_id        = module.az_ad_application.service_principal_id
-  use_existing_ad_application = true
-}
-
 module "az_activity_log" {
   source                      = "lacework/activity-log/azure"
   version                     = "~> 1.0"
   application_id              = module.az_ad_application.application_id
   application_password        = module.az_ad_application.application_password
-  lacework_integration_name   = "Test Activity Log Rename"
   service_principal_id        = module.az_ad_application.service_principal_id
   use_existing_ad_application = true
 }

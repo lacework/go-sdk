@@ -1209,6 +1209,42 @@ func TestGenerationGcpOverwriteOutput(t *testing.T) {
 	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
 }
 
+func TestGenerationGcpLaceworkProfile(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	gcpProfile := "v2"
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"gcp",
+		"--profile",
+		gcpProfile,
+	)
+
+	assertTerraformSaved(t, final)
+
+	buildTf, _ := gcp.NewTerraform(true, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithLaceworkProfile(gcpProfile),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 func runGcpGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)
