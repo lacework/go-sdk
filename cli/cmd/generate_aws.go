@@ -414,12 +414,12 @@ func initGenerateAwsTfCommandFlags() {
 	)
 	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.SnsEncryptionEnabled,
-		"sns_encryption_enabled",
+		"sns_topic_encryption_enabled",
 		true,
 		"enable encryption on SNS topic when creating one")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.SnsEncryptionKeyArn,
-		"sns_encryption_key_arn",
+		"sns_topic_encryption_key_arn",
 		"",
 		"specify existing KMS encryption key arn for SNS topic")
 	generateAwsTfCommand.PersistentFlags().StringVar(

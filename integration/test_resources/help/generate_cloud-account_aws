@@ -39,8 +39,8 @@ Flags:
       --force_destroy_s3                      enable force destroy S3 bucket
   -h, --help                                  help for aws
       --output string                         location to write generated content (default is ~/lacework/aws)
-      --sns_encryption_enabled                enable encryption on SNS topic when creating one (default true)
-      --sns_encryption_key_arn string         specify existing KMS encryption key arn for SNS topic
+      --sns_topic_encryption_enabled          enable encryption on SNS topic when creating one (default true)
+      --sns_topic_encryption_key_arn string   specify existing KMS encryption key arn for SNS topic
       --sns_topic_name string                 specify SNS topic name if creating new one
       --sqs_encryption_enabled                enable encryption on SQS queue when creating (default true)
       --sqs_encryption_key_arn string         specify existing KMS encryption key arn for SQS queue

@@ -527,10 +527,10 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 			if args.SnsEncryptionEnabledSet {
 				if args.SnsEncryptionEnabled {
 					if args.SnsEncryptionKeyArn != "" {
-						attributes["sns_encryption_key_arn"] = args.SnsEncryptionKeyArn
+						attributes["sns_topic_encryption_key_arn"] = args.SnsEncryptionKeyArn
 					}
 				} else {
-					attributes["sns_encryption_enabled "] = false
+					attributes["sns_topic_encryption_enabled "] = false
 				}
 			}
 		}
