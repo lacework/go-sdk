@@ -1217,14 +1217,14 @@ func TestGenerationGcpLaceworkProfile(t *testing.T) {
 
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRsp{
-				msgRsp(cmd.QuestionGcpEnableConfiguration, "y"),
-				msgRsp(cmd.QuestionGcpEnableAuditLog, "y"),
-				msgRsp(cmd.QuestionGcpProjectID, projectId),
-				msgRsp(cmd.QuestionGcpOrganizationIntegration, "n"),
-				msgRsp(cmd.QuestionGcpServiceAccountCredsPath, ""),
-				msgRsp(cmd.QuestionGcpConfigureAdvanced, "n"),
-				msgRsp(cmd.QuestionRunTfPlan, "n"),
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
 			final, _ = c.ExpectEOF()
