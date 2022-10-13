@@ -21,6 +21,7 @@ package lwcomponent_test
 import (
 	_ "embed"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -401,4 +402,44 @@ func TestRunAndOutput(t *testing.T) {
 			assert.Equal(t, raot.Expected, actual)
 		})
 	}
+}
+
+func TestJSON(t *testing.T) {
+	mockComponentString := `{
+    "name": "lacework-mock-component3",
+    "description": "This is a description",
+    "type": "CLI_COMMAND",
+    "artifacts": [
+        {
+            "os": "darwin",
+            "arch": "amd64",
+            "signature": "abcdef0123456789"
+        }
+    ],
+    "breadcrumbs": {
+        "installationMessage": "Install me",
+        "updateMessage": "Update me"
+    },
+    "version": "0.1.2"
+}`
+
+	var c lwcomponent.Component
+	err := json.Unmarshal([]byte(mockComponentString), &c)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	cBytes, err := json.MarshalIndent(c, "", "    ")
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+	fmt.Print(string(cBytes))
+	assert.Equal(t, mockComponentString, string(cBytes))
+
+	cBytes, err = json.MarshalIndent(&c, "", "    ")
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+	fmt.Print(string(cBytes))
+	assert.Equal(t, mockComponentString, string(cBytes))
 }
