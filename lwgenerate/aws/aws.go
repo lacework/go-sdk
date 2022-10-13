@@ -117,7 +117,7 @@ type GenerateAwsTfConfigurationArgs struct {
 	SnsTopicName string
 
 	// Enable encryption of SNS if it is created
-	SnsEncryptionEnabled bool
+	SnsTopicEncryptionEnabled bool
 
 	// Indicates that the SNS Encryption flag has been actively set
 	// this is needed to show this it was set actively to false, rather
@@ -125,7 +125,7 @@ type GenerateAwsTfConfigurationArgs struct {
 	SnsEncryptionEnabledSet bool
 
 	// Arn of the KMS encryption key for SNS, required when SNS encryption in enabled
-	SnsEncryptionKeyArn string
+	SnsTopicEncryptionKeyArn string
 
 	// SSQ Queue name if creating one and not using an existing one
 	SqsQueueName string
@@ -293,18 +293,18 @@ func WithSnsTopicName(snsTopicName string) AwsTerraformModifier {
 	}
 }
 
-// WithSnsEncryptionEnabled Enable encryption on SNS Topic when created
-func WithSnsEncryptionEnabled(snsEncryptionEnabled bool) AwsTerraformModifier {
+// WithSnsTopicEncryptionEnabled Enable encryption on SNS Topic when created
+func WithSnsTopicEncryptionEnabled(snsTopicEncryptionEnabled bool) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
-		c.SnsEncryptionEnabled = snsEncryptionEnabled
+		c.SnsTopicEncryptionEnabled = snsTopicEncryptionEnabled
 		c.SnsEncryptionEnabledSet = true
 	}
 }
 
-// WithSnsEncryptionKeyArn Set existing KMS encryption key arn for SNS topic
-func WithSnsEncryptionKeyArn(snsEncryptionKeyArn string) AwsTerraformModifier {
+// WithSnsTopicEncryptionKeyArn Set existing KMS encryption key arn for SNS topic
+func WithSnsTopicEncryptionKeyArn(snsTopicEncryptionKeyArn string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
-		c.SnsEncryptionKeyArn = snsEncryptionKeyArn
+		c.SnsTopicEncryptionKeyArn = snsTopicEncryptionKeyArn
 	}
 }
 
@@ -525,9 +525,9 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 				attributes["sns_topic_name"] = args.SnsTopicName
 			}
 			if args.SnsEncryptionEnabledSet {
-				if args.SnsEncryptionEnabled {
-					if args.SnsEncryptionKeyArn != "" {
-						attributes["sns_topic_encryption_key_arn"] = args.SnsEncryptionKeyArn
+				if args.SnsTopicEncryptionEnabled {
+					if args.SnsTopicEncryptionKeyArn != "" {
+						attributes["sns_topic_encryption_key_arn"] = args.SnsTopicEncryptionKeyArn
 					}
 				} else {
 					attributes["sns_topic_encryption_enabled "] = false

@@ -119,8 +119,8 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithBucketEncryptionEnabled(GenerateAwsCommandState.BucketEncryptionEnabled),
 				aws.WithBucketSSEKeyArn(GenerateAwsCommandState.BucketSseKeyArn),
 				aws.WithSnsTopicName(GenerateAwsCommandState.SnsTopicName),
-				aws.WithSnsEncryptionEnabled(GenerateAwsCommandState.SnsEncryptionEnabled),
-				aws.WithSnsEncryptionKeyArn(GenerateAwsCommandState.SnsEncryptionKeyArn),
+				aws.WithSnsTopicEncryptionEnabled(GenerateAwsCommandState.SnsTopicEncryptionEnabled),
+				aws.WithSnsTopicEncryptionKeyArn(GenerateAwsCommandState.SnsTopicEncryptionKeyArn),
 				aws.WithSqsQueueName(GenerateAwsCommandState.SqsQueueName),
 				aws.WithSqsEncryptionEnabled(GenerateAwsCommandState.SqsEncryptionEnabled),
 				aws.WithSqsEncryptionKeyArn(GenerateAwsCommandState.SqsEncryptionKeyArn),
@@ -413,12 +413,12 @@ func initGenerateAwsTfCommandFlags() {
 		"location to write generated content (default is ~/lacework/aws)",
 	)
 	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.SnsEncryptionEnabled,
+		&GenerateAwsCommandState.SnsTopicEncryptionEnabled,
 		"sns_topic_encryption_enabled",
 		true,
 		"enable encryption on SNS topic when creating one")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.SnsEncryptionKeyArn,
+		&GenerateAwsCommandState.SnsTopicEncryptionKeyArn,
 		"sns_topic_encryption_key_arn",
 		"",
 		"specify existing KMS encryption key arn for SNS topic")
@@ -557,16 +557,16 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState
 		},
 		// If new bucket created, should this have encryption enabled
 		{
-			Prompt:   &survey.Confirm{Message: QuestionSnsEnableEncryption, Default: config.SnsEncryptionEnabled},
-			Response: &config.SnsEncryptionEnabled,
+			Prompt:   &survey.Confirm{Message: QuestionSnsEnableEncryption, Default: config.SnsTopicEncryptionEnabled},
+			Response: &config.SnsTopicEncryptionEnabled,
 			Checks:   []*bool{&config.Cloudtrail, &newTopic},
 		},
 		// Allow the user to set the SSE Key ARN if required
 		{
-			Prompt:   &survey.Input{Message: QuestionSnsEncryptionKeyArn, Default: config.SnsEncryptionKeyArn},
-			Response: &config.SnsEncryptionKeyArn,
+			Prompt:   &survey.Input{Message: QuestionSnsEncryptionKeyArn, Default: config.SnsTopicEncryptionKeyArn},
+			Response: &config.SnsTopicEncryptionKeyArn,
 			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
-			Checks:   []*bool{&config.Cloudtrail, &newTopic, &config.SnsEncryptionEnabled},
+			Checks:   []*bool{&config.Cloudtrail, &newTopic, &config.SnsTopicEncryptionEnabled},
 		},
 	}, config.Cloudtrail); err != nil {
 		return err

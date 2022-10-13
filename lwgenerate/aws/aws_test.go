@@ -106,8 +106,8 @@ func TestGenerationCloudtrailSnsWithEncryption(t *testing.T) {
 	snsEncryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
 	hcl, err := NewTerraform("us-east-2", false, true,
 		WithSnsTopicName(snsTopicName),
-		WithSnsEncryptionEnabled(true),
-		WithSnsEncryptionKeyArn(snsEncryptionArn),
+		WithSnsTopicEncryptionEnabled(true),
+		WithSnsTopicEncryptionKeyArn(snsEncryptionArn),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -118,7 +118,7 @@ func TestGenerationCloudtrailSnsWithNoEncryption(t *testing.T) {
 	snsTopicName := "sns-topic-name"
 	hcl, err := NewTerraform("us-east-2", false, true,
 		WithSnsTopicName(snsTopicName),
-		WithSnsEncryptionEnabled(false),
+		WithSnsTopicEncryptionEnabled(false),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -181,8 +181,8 @@ func TestGenerationCloudtrailAllEncryptionElementsSet(t *testing.T) {
 		WithBucketEncryptionEnabled(true),
 		WithBucketSSEKeyArn(encryptionArn),
 		WithSnsTopicName(snsTopicName),
-		WithSnsEncryptionEnabled(true),
-		WithSnsEncryptionKeyArn(encryptionArn),
+		WithSnsTopicEncryptionEnabled(true),
+		WithSnsTopicEncryptionKeyArn(encryptionArn),
 		WithSqsQueueName(ssqQueueName),
 		WithSqsEncryptionEnabled(true),
 		WithSqsEncryptionKeyArn(encryptionArn),
