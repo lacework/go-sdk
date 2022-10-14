@@ -47,7 +47,7 @@ func awsDescribeInstances() ([]*lwrunner.AWSRunner, error) {
 	return allRunners, nil
 }
 
-// awsFindRegions queries the AWS API to list all the regions that
+// awsDescribeRegions queries the AWS API to list all the regions that
 // are enabled for the user's AWS account. Use the "include_regions"
 // command-line flag to only get regions in this list.
 func awsDescribeRegions() ([]types.Region, error) {

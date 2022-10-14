@@ -4,8 +4,8 @@ Usage:
   lacework agent aws-install [command]
 
 Available Commands:
-  ec2-ssh     Use SSH to securely connect to EC2 instances
   ec2ic       Use EC2InstanceConnect to securely connect to EC2 instances
+  ec2ssh      Use SSH to securely connect to EC2 instances
 
 Flags:
   -h, --help   help for aws-install
