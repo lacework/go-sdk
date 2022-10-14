@@ -35,19 +35,19 @@ var (
 
 To filter by one or more regions:
 
-    lacework agent install ec2ic --include_regions us-west-2,us-east-2
+    lacework agent aws-install ec2ic --include_regions us-west-2,us-east-2
 
 To filter by instance tag:
 
-    lacework agent install ec2ic --tag TagName,TagValue
+    lacework agent aws-install ec2ic --tag TagName,TagValue
 
 To filter by instance tag key:
 
-    lacework agent install ec2ic --tag_key TagName
+    lacework agent aws-install ec2ic --tag_key TagName
 
 To explicitly specify the username for all SSH logins:
 
-    lacework agent install ec2ic --ssh_username <your-user>
+    lacework agent aws-install ec2ic --ssh_username <your-user>
 
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID

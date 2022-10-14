@@ -27,7 +27,7 @@ import (
 
 var (
 	agentInstallAWSSSHCmd = &cobra.Command{
-		Use:   "ec2-ssh",
+		Use:   "ec2ssh",
 		Args:  cobra.NoArgs,
 		Short: "Use SSH to securely connect to EC2 instances",
 		Long: `This command installs the agent on all EC2 instances in an AWS account
@@ -35,15 +35,15 @@ using SSH.
 
 To filter by one or more regions:
 
-    lacework agent install ec2-ssh --include_regions us-west-2,us-east-2
+    lacework agent aws-install ec2ssh --include_regions us-west-2,us-east-2
 
 To filter by instance tag:
 
-    lacework agent install ec2-ssh --tag TagName,TagValue
+    lacework agent aws-install ec2ssh --tag TagName,TagValue
 
 To filter by instance tag key:
 
-    lacework agent install ec2-ssh --tag_key TagName
+    lacework agent aws-install ec2ssh --tag_key TagName
 
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select. Instances must
@@ -51,11 +51,11 @@ be routable from your local host.
 
 To authenticate using username and password:
 
-    lacework agent install ec2-ssh --ssh_username <your-user> --ssh_password <secret>
+    lacework agent aws-install ec2ssh --ssh_username <your-user> --ssh_password <secret>
 
 To authenticate using an identity file:
 
-    lacework agent install ec2-ssh -i /path/to/your/key
+    lacework agent aws-install ec2ssh -i /path/to/your/key
 
 The environment should contain AWS credentials in the following variables:
 - AWS_ACCESS_KEY_ID
