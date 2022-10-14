@@ -239,7 +239,7 @@ var (
 type Artifact struct {
 	OS        string `json:"os"`
 	ARCH      string `json:"arch"`
-	URL       string `json:"url"`
+	URL       string `json:"url,omitempty"`
 	Signature string `json:"signature"`
 	//Size ?
 }
@@ -255,12 +255,45 @@ type Component struct {
 	Name          string         `json:"name"`
 	Description   string         `json:"description"`
 	Type          Type           `json:"type"`
-	LatestVersion semver.Version `json:"version"`
+	LatestVersion semver.Version `json:"-"`
 	Artifacts     []Artifact     `json:"artifacts"`
 	Breadcrumbs   Breadcrumbs    `json:"breadcrumbs,omitempty"`
 
 	// @dhazekamp command_name required when CLICommand is true?
-	CommandName string `json:"command_name"`
+	CommandName string `json:"command_name,omitempty"`
+}
+
+func (c *Component) UnmarshalJSON(data []byte) error {
+	type ComponentAlias Component
+	type T struct {
+		*ComponentAlias     `json:",inline"`
+		LatestVersionString string `json:"version"`
+	}
+
+	temp := &T{ComponentAlias: (*ComponentAlias)(c)}
+	err := json.Unmarshal(data, temp)
+	if err != nil {
+		return err
+	}
+
+	latestVersion, err := semver.NewVersion(temp.LatestVersionString)
+	if err != nil {
+		return err
+	}
+	c.LatestVersion = *latestVersion
+
+	return nil
+}
+
+func (c Component) MarshalJSON() ([]byte, error) {
+	type ComponentAlias Component
+	type T struct {
+		ComponentAlias      `json:",inline"`
+		LatestVersionString string `json:"version"`
+	}
+
+	obj := &T{ComponentAlias: (ComponentAlias)(c), LatestVersionString: c.LatestVersion.String()}
+	return json.Marshal(obj)
 }
 
 // RootPath returns the component's root path ("Dir()/{name}")
