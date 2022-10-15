@@ -83,7 +83,7 @@ func init() {
 		"identity (private key) for public key authentication",
 	)
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
-		"token", "", "agent access token",
+		"token", "", "agent access token (mandatory)",
 	)
 	agentInstallAWSSSHCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", true, "automatically add host keys to the ~/.ssh/known_hosts file",
