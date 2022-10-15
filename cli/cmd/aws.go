@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"sync"
 
@@ -216,4 +217,70 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 	return runners, nil
 }
 
-func awsInstallOnRunners(useIdentityFileFn func(lwrunner.AWSRunner) error)
+func awsInstallOnRunners(name string, useIdentityFileFn func(runner *lwrunner.Runner, file string) error, file string) error {
+	runners, err := awsDescribeInstances()
+	if err != nil {
+		return err
+	}
+
+	wg := new(sync.WaitGroup)
+	cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
+	for _, runner := range runners {
+		wg.Add(1)
+
+		// In order to use `cl.Execute()`, the input func() must not take any arguments.
+		// Copy the runner info to dedicated variable in the goroutine to prevent race overwrite
+		runnerCopyWg := new(sync.WaitGroup)
+		runnerCopyWg.Add(1)
+
+		cl.Execute(func() {
+			threadRunner := *runner
+			runnerCopyWg.Done()
+			cli.Log.Debugw("runner info: ",
+				"user", threadRunner.Runner.User,
+				"region", threadRunner.Region,
+				"az", threadRunner.AvailabilityZone,
+				"instance ID", threadRunner.InstanceID,
+				"hostname", threadRunner.Runner.Hostname,
+			)
+			err := useIdentityFileFn(&threadRunner, file)
+			if err != nil {
+				cli.Log.Debugw("key use failed", "name", name, "err", err, "runner", threadRunner.InstanceID)
+			}
+
+			if err := verifyAccessToRemoteHost(&threadRunner.Runner); err != nil {
+				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
+			}
+
+			if alreadyInstalled := isAgentInstalledOnRemoteHost(&threadRunner.Runner); alreadyInstalled != nil {
+				cli.Log.Debugw("agent already installed on host, skipping", "runner", threadRunner.InstanceID)
+			}
+
+			token := agentCmdState.InstallAgentToken
+			if token == "" {
+				cli.Log.Warnw("agent token not provided", "runner", threadRunner.InstanceID)
+			}
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
+			if err != nil {
+				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
+			}
+			if threadRunner != *runner {
+				cli.Log.Debugw("mutated runner", "threadRunner", threadRunner, "runner", runner)
+				fmt.Println("mutated runner", threadRunner, runner)
+			}
+			wg.Done()
+		})
+		runnerCopyWg.Wait()
+	}
+	fmt.Println("before wg.Wait()")
+	wg.Wait()
+	fmt.Println("before cl.WaitAndClose()")
+	err = cl.WaitAndClose()
+	fmt.Println("after cl.WaitAndClose()")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -34,13 +34,18 @@ import (
 	"golang.org/x/crypto/ssh/knownhosts"
 )
 
-type Runner struct {
+type Runner interface {
+	New() *Runner
+	Exec() (stdout bytes.Buffer, stderr bytes.Buffer, err error)
+}
+
+type GenericRunner struct {
 	Hostname string
 	Port     int
 	*ssh.ClientConfig
 }
 
-func New(user, host string, callback ssh.HostKeyCallback) *Runner {
+func New(user, host string, callback ssh.HostKeyCallback) *GenericRunner {
 	if os.Getenv("LW_SSH_USER") != "" {
 		user = os.Getenv("LW_SSH_USER")
 	}
@@ -50,7 +55,7 @@ func New(user, host string, callback ssh.HostKeyCallback) *Runner {
 		callback = defaultCallback
 	}
 
-	return &Runner{
+	return &GenericRunner{
 		host,
 		22,
 		&ssh.ClientConfig{

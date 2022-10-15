@@ -87,7 +87,7 @@ func NewAWSRunner(amiImageId, host, region, availabilityZone, instanceID string,
 	}, nil
 }
 
-func (run AWSRunner) SendAndUseIdentityFile() error {
+func SendAndUseIdentityFile(run *AWSRunner, _ string) error {
 	pubBytes, privBytes, err := GetKeyBytes()
 	if err != nil {
 		return err

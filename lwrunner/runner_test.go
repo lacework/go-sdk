@@ -83,7 +83,7 @@ func TestLwRunnerUseIdentityFile(t *testing.T) {
 	assert.Equal(t, "ec2-user", subject.User)
 	assert.Equal(t, "host.example.com:22", subject.Address())
 
-	err := subject.UseIdentityFile("file-not-found")
+	err := lwrunner.UseIdentityFile(subject, "file-not-found")
 	assert.NotNil(t, err)
 }
 
