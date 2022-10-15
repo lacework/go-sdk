@@ -215,5 +215,3 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 
 	return runners, nil
 }
-
-func awsInstallOnRunners(useIdentityFileFn func(lwrunner.AWSRunner) error)

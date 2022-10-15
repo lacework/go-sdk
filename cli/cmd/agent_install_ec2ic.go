@@ -134,17 +134,13 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 			}
 			if threadRunner != *runner {
 				cli.Log.Debugw("mutated runner", "threadRunner", threadRunner, "runner", runner)
-				fmt.Println("mutated runner", threadRunner, runner)
 			}
 			wg.Done()
 		})
 		runnerCopyWg.Wait()
 	}
-	fmt.Println("before wg.Wait()")
 	wg.Wait()
-	fmt.Println("before cl.WaitAndClose()")
 	cl.WaitAndClose()
-	fmt.Println("after cl.WaitAndClose()")
 
 	return nil
 }
