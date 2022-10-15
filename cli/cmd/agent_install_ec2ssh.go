@@ -100,7 +100,7 @@ func init() {
 	agentInstallAWSSSHCmd.Flags().IntVar(&agentCmdState.InstallSshPort,
 		"ssh_port", 22, "port to connect to on the remote host",
 	)
-	agentInstallAWSSSHCmd.Flags().IntVarP(&agentCmdState.InstallMaxParallelism, "max_parallelism", "p", 5, "maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal")
+	agentInstallAWSSSHCmd.Flags().IntVarP(&agentCmdState.InstallMaxParallelism, "max_parallelism", "n", 50, "maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal")
 }
 
 func installAWSSSH(_ *cobra.Command, _ []string) error {

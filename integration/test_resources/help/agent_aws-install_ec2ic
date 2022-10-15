@@ -31,6 +31,7 @@ Usage:
 Flags:
   -h, --help                      help for ec2ic
   -r, --include_regions strings   list of regions to filter on
+  -n, --max_parallelism int       maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
       --ssh_username string       username to login with
       --tag strings               only install agents on infra with this tag
       --tag_key string            only install agents on infra with this tag key set

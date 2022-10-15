@@ -81,7 +81,7 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
 		"ssh_username", "", "username to login with",
 	)
-	agentInstallAWSEC2ICCmd.Flags().IntVarP(&agentCmdState.InstallMaxParallelism, "max_parallelism", "p", 5, "maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal")
+	agentInstallAWSEC2ICCmd.Flags().IntVarP(&agentCmdState.InstallMaxParallelism, "max_parallelism", "n", 50, "maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal")
 }
 
 func installAWSEC2IC(_ *cobra.Command, _ []string) error {
