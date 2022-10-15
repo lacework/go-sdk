@@ -26,6 +26,7 @@ require (
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/honeycombio/libhoney-go v1.17.0
 	github.com/imdario/mergo v0.3.13
+	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 	github.com/kyokomi/emoji/v2 v2.2.10
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.5.0

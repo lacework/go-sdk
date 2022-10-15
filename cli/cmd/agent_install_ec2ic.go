@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/lacework/go-sdk/lwrunner"
+	"github.com/korovkin/limiter"
 	"github.com/spf13/cobra"
 )
 
@@ -81,6 +81,7 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
 		"ssh_username", "", "username to login with",
 	)
+	agentInstallAWSEC2ICCmd.Flags().IntVarP(&agentCmdState.InstallMaxParallelism, "max_parallelism", "p", 5, "maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal")
 }
 
 func installAWSEC2IC(_ *cobra.Command, _ []string) error {
@@ -90,36 +91,60 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 	}
 
 	wg := new(sync.WaitGroup)
+	cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
 	for _, runner := range runners {
 		wg.Add(1)
-		go func(runner *lwrunner.AWSRunner) {
-			cli.Log.Debugw("runner info: ", "user", runner.Runner.User, "region", runner.Region, "az", runner.AvailabilityZone, "instance ID", runner.InstanceID, "hostname", runner.Runner.Hostname)
-			err := runner.SendAndUseIdentityFile()
+
+		// In order to use `cl.Execute()`, the input func() must not take any arguments.
+		// Copy the runner info to dedicated variable in the goroutine to prevent race overwrite
+		runnerCopyWg := new(sync.WaitGroup)
+		runnerCopyWg.Add(1)
+
+		cl.Execute(func() {
+			threadRunner := *runner
+			runnerCopyWg.Done()
+			cli.Log.Debugw("runner info: ",
+				"user", threadRunner.Runner.User,
+				"region", threadRunner.Region,
+				"az", threadRunner.AvailabilityZone,
+				"instance ID", threadRunner.InstanceID,
+				"hostname", threadRunner.Runner.Hostname,
+			)
+			err := threadRunner.SendAndUseIdentityFile()
 			if err != nil {
-				cli.Log.Debugw("ec2ic key send failed", "err", err, "runner", runner.InstanceID)
+				cli.Log.Debugw("ec2ic key send failed", "err", err, "runner", threadRunner.InstanceID)
 			}
 
-			if err := verifyAccessToRemoteHost(&runner.Runner); err != nil {
-				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "runner", runner.InstanceID)
+			if err := verifyAccessToRemoteHost(&threadRunner.Runner); err != nil {
+				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
 			}
 
-			if alreadyInstalled := isAgentInstalledOnRemoteHost(&runner.Runner); alreadyInstalled != nil {
-				cli.Log.Debugw("agent already installed on host, skipping", "runner", runner.InstanceID)
+			if alreadyInstalled := isAgentInstalledOnRemoteHost(&threadRunner.Runner); alreadyInstalled != nil {
+				cli.Log.Debugw("agent already installed on host, skipping", "runner", threadRunner.InstanceID)
 			}
 
 			token := agentCmdState.InstallAgentToken
 			if token == "" {
-				cli.Log.Warnw("agent token not provided", "runner", runner.InstanceID)
+				cli.Log.Warnw("agent token not provided", "runner", threadRunner.InstanceID)
 			}
 			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
-			err = runInstallCommandOnRemoteHost(&runner.Runner, cmd)
+			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
-				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", runner.InstanceID)
+				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
+			}
+			if threadRunner != *runner {
+				cli.Log.Debugw("mutated runner", "threadRunner", threadRunner, "runner", runner)
+				fmt.Println("mutated runner", threadRunner, runner)
 			}
 			wg.Done()
-		}(runner)
+		})
+		runnerCopyWg.Wait()
 	}
+	fmt.Println("before wg.Wait()")
 	wg.Wait()
+	fmt.Println("before cl.WaitAndClose()")
+	cl.WaitAndClose()
+	fmt.Println("after cl.WaitAndClose()")
 
 	return nil
 }

@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/korovkin/limiter"
 	"github.com/lacework/go-sdk/lwrunner"
 	"github.com/spf13/cobra"
 )
@@ -100,6 +101,7 @@ func init() {
 	agentInstallAWSSSHCmd.Flags().IntVar(&agentCmdState.InstallSshPort,
 		"ssh_port", 22, "port to connect to on the remote host",
 	)
+	agentInstallAWSSSHCmd.Flags().IntVarP(&agentCmdState.InstallMaxParallelism, "max_parallelism", "p", 5, "maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal")
 }
 
 func installAWSSSH(_ *cobra.Command, _ []string) error {
@@ -109,9 +111,10 @@ func installAWSSSH(_ *cobra.Command, _ []string) error {
 	}
 
 	wg := new(sync.WaitGroup)
+	cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
 	for _, runner := range runners {
 		wg.Add(1)
-		go func(runner *lwrunner.AWSRunner) {
+		cl.Execute(func() {
 			cli.Log.Debugw("runner info: ",
 				"user", runner.Runner.User,
 				"region", runner.Region,
@@ -120,7 +123,7 @@ func installAWSSSH(_ *cobra.Command, _ []string) error {
 				"hostname", runner.Runner.Hostname,
 			)
 
-			err := runner.Runner.UseIdentityFile(agentCmdState.InstallIdentityFile)
+			err := lwrunner.UseIdentityFile(&runner.Runner, agentCmdState.InstallIdentityFile)
 			if err != nil {
 				cli.Log.Warnw("unable to use provided identity file", "err", err, "runner", runner.InstanceID)
 			}
@@ -143,9 +146,13 @@ func installAWSSSH(_ *cobra.Command, _ []string) error {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "runner", runner.InstanceID)
 			}
 			wg.Done()
-		}(runner)
+		})
 	}
 	wg.Wait()
+	err = cl.WaitAndClose()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

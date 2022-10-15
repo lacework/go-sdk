@@ -84,7 +84,7 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 
 	if agentCmdState.InstallIdentityFile != defaultSshIdentityKey {
 		cli.Log.Debugw("ssh settings", "identity_file", agentCmdState.InstallIdentityFile)
-		err := runner.UseIdentityFile(agentCmdState.InstallIdentityFile)
+		err := lwrunner.UseIdentityFile(runner, agentCmdState.InstallIdentityFile)
 		if err != nil {
 			return errors.Wrap(err, "unable to use provided identity file")
 		}
@@ -105,7 +105,7 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 			return err
 		}
 
-		err = runner.UseIdentityFile(identityFile)
+		err = lwrunner.UseIdentityFile(runner, identityFile)
 		if err != nil {
 			cli.Log.Debugw("unable to use default identity file", "error", err)
 
@@ -346,7 +346,7 @@ func askForAuthenticationDetails(runner *lwrunner.Runner) error {
 			return errors.Wrap(err, "unable to ask for identity file")
 		}
 
-		err = runner.UseIdentityFile(identityFile)
+		err = lwrunner.UseIdentityFile(runner, identityFile)
 		if err != nil {
 			return errors.Wrap(err, "unable to use provided identity file")
 		}

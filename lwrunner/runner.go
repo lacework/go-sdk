@@ -61,7 +61,7 @@ func New(user, host string, callback ssh.HostKeyCallback) *Runner {
 	}
 }
 
-func (run Runner) UseIdentityFile(file string) error {
+func UseIdentityFile(run *Runner, file string) error {
 	signer, err := newSignerFromFile(file)
 	if err != nil {
 		return err

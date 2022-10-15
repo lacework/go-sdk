@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/korovkin/limiter"
 	"github.com/lacework/go-sdk/lwrunner"
 )
 
@@ -141,6 +142,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 
 	runners := []*lwrunner.AWSRunner{}
 	producerWg := new(sync.WaitGroup)
+	cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
 	runnerCh := make(chan *lwrunner.AWSRunner)
 
 	// We have multiple producers of runners and a single consumer.
@@ -170,27 +172,36 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 				}
 
 				producerWg.Add(1)
-				go func(instance types.Instance) {
+
+				// In order to use `cl.Execute()`, the input func() must not take any arguments.
+				// Copy the runner info to dedicated variable in the goroutine
+				instanceCopyWg := new(sync.WaitGroup)
+				instanceCopyWg.Add(1)
+
+				cl.Execute(func() {
+					threadInstance := instance
+					instanceCopyWg.Done()
 					cli.Log.Debugw("found runner",
-						"public ip address", *instance.PublicIpAddress,
-						"instance state name", instance.State.Name,
+						"public ip address", *threadInstance.PublicIpAddress,
+						"instance state name", threadInstance.State.Name,
 					)
 
 					runner, err := lwrunner.NewAWSRunner(
-						*instance.ImageId,
-						*instance.PublicIpAddress,
+						*threadInstance.ImageId,
+						*threadInstance.PublicIpAddress,
 						region,
-						*instance.Placement.AvailabilityZone,
-						*instance.InstanceId,
+						*threadInstance.Placement.AvailabilityZone,
+						*threadInstance.InstanceId,
 						verifyHostCallback,
 					)
 					if err != nil {
-						cli.Log.Debugw("error identifying runner", "error", err, "instance ID", *instance.InstanceId)
+						cli.Log.Debugw("error identifying runner", "error", err, "instance ID", *threadInstance.InstanceId)
 					}
 
 					runnerCh <- runner
 					producerWg.Done()
-				}(instance)
+				})
+				instanceCopyWg.Wait()
 			}
 		}
 	}
@@ -198,8 +209,11 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 	// Wait for the producers to finish, then close the channel they're writing to,
 	// then wait for the consumer to finish
 	producerWg.Wait()
+	cl.WaitAndClose()
 	close(runnerCh)
 	consumerWg.Wait()
 
 	return runners, nil
 }
+
+func awsInstallOnRunners(useIdentityFileFn func(lwrunner.AWSRunner) error)
