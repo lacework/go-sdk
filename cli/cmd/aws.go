@@ -178,7 +178,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 				instanceCopyWg := new(sync.WaitGroup)
 				instanceCopyWg.Add(1)
 
-				cl.Execute(func() {
+				_, err := cl.Execute(func() {
 					threadInstance := instance
 					instanceCopyWg.Done()
 					cli.Log.Debugw("found runner",
@@ -202,12 +202,15 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 					producerWg.Done()
 				})
 				instanceCopyWg.Wait()
+				if err != nil { // this value of error will only be non-nil if the goroutine failed to start
+					return nil, err
+				}
 			}
 		}
 	}
 
-	// Wait for the producers to finish, then close the channel they're writing to,
-	// then wait for the consumer to finish
+	// Wait for the producers to finish, then close the producer thread pool,
+	// then close the channel they're writing to, then wait for the consumer to finish
 	producerWg.Wait()
 	cl.WaitAndClose()
 	close(runnerCh)

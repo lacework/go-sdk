@@ -100,7 +100,7 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 		runnerCopyWg := new(sync.WaitGroup)
 		runnerCopyWg.Add(1)
 
-		cl.Execute(func() {
+		_, err := cl.Execute(func() {
 			threadRunner := *runner
 			runnerCopyWg.Done()
 			cli.Log.Debugw("runner info: ",
@@ -138,6 +138,9 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 			wg.Done()
 		})
 		runnerCopyWg.Wait()
+		if err != nil { // this value of error will only be non-nil if the goroutine failed to start
+			return err
+		}
 	}
 	wg.Wait()
 	cl.WaitAndClose()
