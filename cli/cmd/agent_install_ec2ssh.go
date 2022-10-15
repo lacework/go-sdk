@@ -145,7 +145,7 @@ func installAWSSSH(_ *cobra.Command, _ []string) error {
 
 			token := agentCmdState.InstallAgentToken
 			if token == "" {
-				cli.Log.Debugw("agent token not provided", "threadRunner", threadRunner.InstanceID)
+				cli.Log.Warnw("agent token not provided", "threadRunner", threadRunner.InstanceID)
 			}
 			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
