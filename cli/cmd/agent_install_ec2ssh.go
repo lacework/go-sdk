@@ -70,7 +70,7 @@ This command will automatically add hosts with successful connections to
 )
 
 func init() {
-	// 'agent install ec2-ssh' flags
+	// 'agent install ec2ssh' flags
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallTagKey,
 		"tag_key", "", "only install agents on infra with this tag key",
 	)
@@ -82,7 +82,7 @@ func init() {
 		"identity (private key) for public key authentication",
 	)
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
-		"token", "", "agent access token",
+		"token", "", "agent access token (mandatory)",
 	)
 	agentInstallAWSSSHCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", true, "automatically add host keys to the ~/.ssh/known_hosts file",
