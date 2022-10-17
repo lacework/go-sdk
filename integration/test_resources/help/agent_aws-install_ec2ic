@@ -35,7 +35,7 @@ Flags:
       --ssh_username string       username to login with
       --tag strings               only install agents on infra with this tag
       --tag_key string            only install agents on infra with this tag key set
-      --token string              agent access token (mandatory)
+      --token string              agent access token
       --trust_host_key            automatically add host keys to the ~/.ssh/known_hosts file (default true)
 
 Global Flags:

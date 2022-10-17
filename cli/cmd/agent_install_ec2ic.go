@@ -70,7 +70,7 @@ func init() {
 		"tag", []string{}, "only install agents on infra with this tag",
 	)
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
-		"token", "", "agent access token (mandatory)",
+		"token", "", "agent access token",
 	)
 	agentInstallAWSEC2ICCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", true, "automatically add host keys to the ~/.ssh/known_hosts file",
