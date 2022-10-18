@@ -145,6 +145,11 @@ func listAlert(_ *cobra.Command, _ []string) error {
 		return cli.OutputJSON(listResponse.Data)
 	}
 
+	if len(listResponse.Data) == 0 {
+		cli.OutputHuman("There are no alerts in your account in the specified time range.\n")
+		return nil
+	}
+
 	cli.OutputHuman(
 		renderCustomTable(
 			[]string{"Alert ID", "Name", "Severity", "Start Time", "End Time", "Status"},
