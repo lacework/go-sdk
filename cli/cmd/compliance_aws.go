@@ -61,7 +61,6 @@ var (
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
 			}
-
 			if len(args) > 1 {
 				compCmdState.RecommendationID = args[1]
 				if !validRecommendationID(compCmdState.RecommendationID) {
@@ -76,10 +75,14 @@ var (
 			case "SOC_Rev2":
 				compCmdState.Type = fmt.Sprintf("AWS_%s", compCmdState.Type)
 				return nil
-			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2", "PCI":
+			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2",
+				"PCI", "AWS_CIS_14", "AWS_CMMC_1.02", "AWS_HIPAA", "AWS_ISO_27001:2013", "AWS_NIST_CSF", "AWS_NIST_800-171_rev2",
+				"AWS_NIST_800-53_rev5", "AWS_PCI_DSS_3.2.1", "AWS_SOC_2", "LW_AWS_SEC_ADD_1_0":
 				return nil
 			default:
-				return errors.New("supported report types are: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI")
+				return errors.New(`supported report types are: AWS_CIS_S3', 'NIST_800-53_Rev4', 'NIST_800-171_Rev2', 
+'ISO_2700', 'HIPAA', 'SOC', 'AWS_SOC_Rev2', 'PCI', 'AWS_CIS_14', 'AWS_CMMC_1.02', 'AWS_HIPAA', 'AWS_ISO_27001:2013', 
+'AWS_NIST_CSF', 'AWS_NIST_800-171_rev2', 'AWS_NIST_800-53_rev5', 'AWS_PCI_DSS_3.2.1', 'AWS_SOC_2', 'LW_AWS_SEC_ADD_1_0'`)
 			}
 		},
 		Short: "Get the latest AWS compliance report",
@@ -101,13 +104,18 @@ To show recommendation details and affected resources for a recommendation id:
 `,
 		Args: cobra.RangeArgs(1, 2),
 		RunE: func(_ *cobra.Command, args []string) error {
+			reportType, err := api.NewAwsReportType(compCmdState.Type)
+			if err != nil {
+				return errors.Errorf("invalid report type %q", compCmdState.Type)
+			}
+
 			var (
 				// clean the AWS account ID if it was provided
 				// with an Alias in between parentheses
 				awsAccountID, _ = splitIDAndAlias(args[0])
-				config          = api.ComplianceAwsReportConfig{
+				config          = api.AwsReportConfig{
 					AccountID: awsAccountID,
-					Type:      compCmdState.Type,
+					Type:      reportType,
 				}
 			)
 
@@ -120,7 +128,7 @@ To show recommendation details and affected resources for a recommendation id:
 				)
 
 				cli.StartProgress("Downloading compliance report...")
-				err := cli.LwApi.Compliance.DownloadAwsReportPDF(pdfName, config)
+				err := cli.LwApi.V2.Reports.Aws.DownloadPDF(pdfName, config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get aws pdf compliance report")
@@ -146,13 +154,13 @@ To show recommendation details and affected resources for a recommendation id:
 			}
 
 			var (
-				report   api.ComplianceAwsReport
-				cacheKey = fmt.Sprintf("compliance/aws/%s/%s", config.AccountID, config.Type)
+				report   api.AwsReport
+				cacheKey = fmt.Sprintf("compliance/aws/v2/%s/%s", config.AccountID, config.Type)
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
 				cli.StartProgress("Getting compliance report...")
-				response, err := cli.LwApi.Compliance.GetAwsReport(config)
+				response, err := cli.LwApi.V2.Reports.Aws.Get(config)
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to get aws compliance report")
@@ -215,6 +223,7 @@ To show recommendation details and affected resources for a recommendation id:
 		},
 	}
 
+	// Todo(v2): deprecate??
 	// complianceAwsRunAssessmentCmd represents the run-assessment sub-command inside the aws command
 	complianceAwsRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <account_id>",
@@ -223,6 +232,7 @@ To show recommendation details and affected resources for a recommendation id:
 		Long:    `Run a compliance assessment for the provided AWS account.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			// Todo(v2): replace with v2
 			response, err := cli.LwApi.Compliance.RunAwsReport(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to run aws compliance assessment")
@@ -603,7 +613,7 @@ func complianceAwsDisableReportDisplayChanges() (bool, error) {
 	return answer == 0, nil
 }
 
-func complianceAwsReportDetailsTable(report *api.ComplianceAwsReport) [][]string {
+func complianceAwsReportDetailsTable(report *api.AwsReport) [][]string {
 	return [][]string{
 		[]string{"Report Type", report.ReportType},
 		[]string{"Report Title", report.ReportTitle},
