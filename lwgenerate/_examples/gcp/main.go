@@ -90,8 +90,8 @@ func configOnly() {
 
 func auditLogOnly() {
 	hcl, err := gcp.NewTerraform(
-		true,
 		false,
+		true,
 		gcp.WithProjectId("example_project"),
 		gcp.WithGcpServiceAccountCredentials("path/to/service/account/creds.json"),
 	).Generate()

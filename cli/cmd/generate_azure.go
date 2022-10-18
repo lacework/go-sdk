@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -163,8 +162,13 @@ By default, this command will function interactively, prompting for the required
 			// Generate TF Code
 			cli.StartProgress("Generating Azure Terraform Code...")
 
+			if cli.Profile != "default" {
+				GenerateAzureCommandState.LaceworkProfile = cli.Profile
+			}
+
 			// Setup modifiers for NewTerraform constructor
 			mods := []azure.AzureTerraformModifier{
+				azure.WithLaceworkProfile(GenerateAzureCommandState.LaceworkProfile),
 				azure.WithAllSubscriptions(GenerateAzureCommandState.AllSubscriptions),
 				azure.WithManagementGroup(GenerateAzureCommandState.ManagementGroup),
 				azure.WithExistingStorageAccount(GenerateAzureCommandState.ExistingStorageAccount),
@@ -214,7 +218,7 @@ By default, this command will function interactively, prompting for the required
 			}
 
 			// Write-out generated code to location specified
-			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "azure")
+			dirname, _, err := writeGeneratedCodeToLocation(cmd, hcl, "azure")
 			if err != nil {
 				return err
 			}
@@ -231,8 +235,7 @@ By default, this command will function interactively, prompting for the required
 				}
 			}
 
-			// Execute
-			locationDir := filepath.Dir(location)
+			locationDir, _ := determineOutputDirPath(dirname, "azure")
 			if GenerateAzureCommandExtraState.TerraformApply {
 				// Execution pre-run check
 				err := executionPreRunChecks(dirname, locationDir, "azure")
@@ -317,6 +320,23 @@ By default, this command will function interactively, prompting for the required
 		},
 	}
 )
+
+type AzureGenerateCommandExtraState struct {
+	AskAdvanced    bool
+	Output         string
+	TerraformApply bool
+}
+
+func (a *AzureGenerateCommandExtraState) isEmpty() bool {
+	return a.Output == "" && !a.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (a *AzureGenerateCommandExtraState) writeCache() {
+	if !a.isEmpty() {
+		cli.WriteAssetToCache(CachedAzureAssetExtraState, time.Now().Add(time.Hour*1), a)
+	}
+}
 
 func validateStorageLocation(location string) error {
 	if !validStorageLocations[location] {
@@ -672,7 +692,7 @@ func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, ext
 }
 
 func azureConfigIsEmpty(config *azure.GenerateAzureTfConfigurationArgs) bool {
-	return !config.Config && !config.ActivityLog
+	return !config.Config && !config.ActivityLog && config.LaceworkProfile == ""
 }
 
 func allSubscriptionsDisabled(config *azure.GenerateAzureTfConfigurationArgs) *bool {
@@ -698,15 +718,15 @@ func promptAzureGenerate(config *azure.GenerateAzureTfConfigurationArgs, extraSt
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
-				Prompt:   &survey.Confirm{Message: QuestionAzureEnableConfig, Default: false},
+				Prompt:   &survey.Confirm{Message: QuestionAzureEnableConfig, Default: config.Config},
 				Response: &config.Config,
 			},
 			{
-				Prompt:   &survey.Confirm{Message: QuestionEnableActivityLog, Default: false},
+				Prompt:   &survey.Confirm{Message: QuestionEnableActivityLog, Default: config.ActivityLog},
 				Response: &config.ActivityLog,
 			},
 			{
-				Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: false},
+				Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: config.CreateAdIntegration},
 				Response: &config.CreateAdIntegration,
 			},
 		}); err != nil {
@@ -719,16 +739,15 @@ func promptAzureGenerate(config *azure.GenerateAzureTfConfigurationArgs, extraSt
 	}
 
 	// Find out if the customer wants to specify more advanced features
-	askAdvanced := false
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Confirm{Message: QuestionAzureConfigAdvanced, Default: askAdvanced},
-		Response: &askAdvanced,
+		Prompt:   &survey.Confirm{Message: QuestionAzureConfigAdvanced, Default: extraState.AskAdvanced},
+		Response: &extraState.AskAdvanced,
 	}); err != nil {
 		return err
 	}
 
 	// Keep prompting for advanced options until the say done
-	if askAdvanced {
+	if extraState.AskAdvanced {
 		if err := askAdvancedAzureOptions(config, extraState); err != nil {
 			return err
 		}

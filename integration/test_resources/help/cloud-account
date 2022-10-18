@@ -9,7 +9,6 @@ Aliases:
 Available Commands:
   create       Create a new cloud account integration
   delete       Delete a cloud account integration
-  iac-generate Create IaC code
   list         List all available cloud account integrations
   show         Show a single cloud account integration
 

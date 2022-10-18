@@ -28,6 +28,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/lacework/go-sdk/internal/file"
 	homedir "github.com/mitchellh/go-homedir"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
@@ -126,6 +127,12 @@ func AddKnownHost(host string, remote net.Addr, key ssh.PublicKey, knownFile str
 		}
 
 		knownFile = path
+	}
+
+	if !file.FileExists(knownFile) {
+		if err := os.MkdirAll(path.Dir(knownFile), 0700); err != nil {
+			return err
+		}
 	}
 
 	f, err := os.OpenFile(knownFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)

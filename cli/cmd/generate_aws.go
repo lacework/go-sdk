@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -120,8 +119,8 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithBucketEncryptionEnabled(GenerateAwsCommandState.BucketEncryptionEnabled),
 				aws.WithBucketSSEKeyArn(GenerateAwsCommandState.BucketSseKeyArn),
 				aws.WithSnsTopicName(GenerateAwsCommandState.SnsTopicName),
-				aws.WithSnsEncryptionEnabled(GenerateAwsCommandState.SnsEncryptionEnabled),
-				aws.WithSnsEncryptionKeyArn(GenerateAwsCommandState.SnsEncryptionKeyArn),
+				aws.WithSnsTopicEncryptionEnabled(GenerateAwsCommandState.SnsTopicEncryptionEnabled),
+				aws.WithSnsTopicEncryptionKeyArn(GenerateAwsCommandState.SnsTopicEncryptionKeyArn),
 				aws.WithSqsQueueName(GenerateAwsCommandState.SqsQueueName),
 				aws.WithSqsEncryptionEnabled(GenerateAwsCommandState.SqsEncryptionEnabled),
 				aws.WithSqsEncryptionKeyArn(GenerateAwsCommandState.SqsEncryptionKeyArn),
@@ -151,7 +150,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			}
 
 			// Write-out generated code to location specified
-			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "aws")
+			dirname, _, err := writeGeneratedCodeToLocation(cmd, hcl, "aws")
 			if err != nil {
 				return err
 			}
@@ -166,8 +165,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				return errors.Wrap(err, "failed to prompt for terraform execution")
 			}
 
-			// Execute
-			locationDir := filepath.Dir(location)
+			locationDir, _ := determineOutputDirPath(dirname, "aws")
 			if GenerateAwsCommandExtraState.TerraformApply {
 				// Execution pre-run check
 				err := executionPreRunChecks(dirname, locationDir, "aws")
@@ -294,6 +292,26 @@ See help output for more details on the parameter value(s) required for Terrafor
 	}
 )
 
+type AwsGenerateCommandExtraState struct {
+	AskAdvanced           bool
+	Output                string
+	UseExistingCloudtrail bool
+	UseExistingSNSTopic   bool
+	AwsSubAccounts        []string
+	TerraformApply        bool
+}
+
+func (a *AwsGenerateCommandExtraState) isEmpty() bool {
+	return a.Output == "" && !a.UseExistingCloudtrail && len(a.AwsSubAccounts) == 0 && !a.TerraformApply && !a.AskAdvanced
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (a *AwsGenerateCommandExtraState) writeCache() {
+	if !a.isEmpty() {
+		cli.WriteAssetToCache(CachedAssetAwsExtraState, time.Now().Add(time.Hour*1), a)
+	}
+}
+
 func initGenerateAwsTfCommandFlags() {
 	// add flags to sub commands
 	// TODO Share the help with the interactive generation
@@ -395,13 +413,13 @@ func initGenerateAwsTfCommandFlags() {
 		"location to write generated content (default is ~/lacework/aws)",
 	)
 	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.SnsEncryptionEnabled,
-		"sns_encryption_enabled",
+		&GenerateAwsCommandState.SnsTopicEncryptionEnabled,
+		"sns_topic_encryption_enabled",
 		true,
 		"enable encryption on SNS topic when creating one")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.SnsEncryptionKeyArn,
-		"sns_encryption_key_arn",
+		&GenerateAwsCommandState.SnsTopicEncryptionKeyArn,
+		"sns_topic_encryption_key_arn",
 		"",
 		"specify existing KMS encryption key arn for SNS topic")
 	generateAwsTfCommand.PersistentFlags().StringVar(
@@ -539,16 +557,16 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState
 		},
 		// If new bucket created, should this have encryption enabled
 		{
-			Prompt:   &survey.Confirm{Message: QuestionSnsEnableEncryption, Default: config.SnsEncryptionEnabled},
-			Response: &config.SnsEncryptionEnabled,
+			Prompt:   &survey.Confirm{Message: QuestionSnsEnableEncryption, Default: config.SnsTopicEncryptionEnabled},
+			Response: &config.SnsTopicEncryptionEnabled,
 			Checks:   []*bool{&config.Cloudtrail, &newTopic},
 		},
 		// Allow the user to set the SSE Key ARN if required
 		{
-			Prompt:   &survey.Input{Message: QuestionSnsEncryptionKeyArn, Default: config.SnsEncryptionKeyArn},
-			Response: &config.SnsEncryptionKeyArn,
+			Prompt:   &survey.Input{Message: QuestionSnsEncryptionKeyArn, Default: config.SnsTopicEncryptionKeyArn},
+			Response: &config.SnsTopicEncryptionKeyArn,
 			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
-			Checks:   []*bool{&config.Cloudtrail, &newTopic, &config.SnsEncryptionEnabled},
+			Checks:   []*bool{&config.Cloudtrail, &newTopic, &config.SnsTopicEncryptionEnabled},
 		},
 	}, config.Cloudtrail); err != nil {
 		return err
@@ -883,16 +901,15 @@ func promptAwsGenerate(
 	}
 
 	// Find out if the customer wants to specify more advanced features
-	askAdvanced := false
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Confirm{Message: QuestionAwsConfigAdvanced, Default: askAdvanced},
-		Response: &askAdvanced,
+		Prompt:   &survey.Confirm{Message: QuestionAwsConfigAdvanced, Default: extraState.AskAdvanced},
+		Response: &extraState.AskAdvanced,
 	}); err != nil {
 		return err
 	}
 
 	// Keep prompting for advanced options until the say done
-	if askAdvanced {
+	if extraState.AskAdvanced {
 		if err := askAdvancedAwsOptions(config, extraState); err != nil {
 			return err
 		}

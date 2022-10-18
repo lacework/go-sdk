@@ -370,38 +370,46 @@ func expectString(t *testing.T, c *expect.Console, str string) {
 	}
 }
 
+type MsgRspHandler interface {
+	handle(t *testing.T, c *expect.Console)
+}
+
+type MsgOnly struct {
+	message string
+}
+
+func (m MsgOnly) handle(t *testing.T, c *expect.Console) {
+	expectString(t, c, m.message)
+}
+
+type MsgMenu struct {
+	message string
+	count   int
+}
+
+func (m MsgMenu) handle(t *testing.T, c *expect.Console) {
+	expectString(t, c, m.message)
+
+	for i := 0; i < m.count; i++ {
+		c.Send("\x1B[B")
+	}
+
+	c.SendLine("")
+}
+
 type MsgRsp struct {
-	message      string
-	response     string
-	skipResponse bool
-	menuItems    int
+	message  string
+	response string
 }
 
-func msgRsp(message string, response string) MsgRsp {
-	return MsgRsp{message, response, false, 0}
+func (m MsgRsp) handle(t *testing.T, c *expect.Console) {
+	expectString(t, c, m.message)
+
+	c.SendLine(m.response)
 }
 
-func msgOnly(message string) MsgRsp {
-	return MsgRsp{message, "", true, 0}
-}
-
-func msgMenu(message string, count int) MsgRsp {
-	return MsgRsp{message, "", true, count}
-}
-
-func expectsCliOutput(t *testing.T, c *expect.Console, m []MsgRsp) {
-	for _, e := range m {
-		expectString(t, c, e.message)
-
-		if !e.skipResponse {
-			c.SendLine(e.response)
-		}
-
-		if e.menuItems > 0 {
-			for i := 0; i < e.menuItems-1; i++ {
-				c.Send("\x1B[B")
-			}
-			c.SendLine("\x1B[B")
-		}
+func expectsCliOutput(t *testing.T, c *expect.Console, m []MsgRspHandler) {
+	for _, elm := range m {
+		elm.handle(t, c)
 	}
 }

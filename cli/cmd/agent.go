@@ -30,17 +30,20 @@ import (
 
 var (
 	agentCmdState = struct {
-		TokenUpdateEnable   bool
-		TokenUpdateDisable  bool
-		TokenUpdateName     string
-		TokenUpdateDesc     string
-		InstallForce        bool
-		InstallSshUser      string
-		InstallSshPort      int
-		InstallAgentToken   string
-		InstallTrustHostKey bool
-		InstallPassword     string
-		InstallIdentityFile string
+		TokenUpdateEnable     bool
+		TokenUpdateDisable    bool
+		TokenUpdateName       string
+		TokenUpdateDesc       string
+		InstallForce          bool
+		InstallSshUser        string
+		InstallSshPort        int
+		InstallAgentToken     string
+		InstallTrustHostKey   bool
+		InstallPassword       string
+		InstallIdentityFile   string
+		InstallTagKey         string
+		InstallTag            []string
+		InstallIncludeRegions []string
 	}{}
 
 	defaultSshIdentityKey = "~/.ssh/id_rsa"
@@ -158,6 +161,12 @@ To list all active agents in your environment.
 NOTE: New agents could take up to an hour to report back to the platform.`,
 		RunE: installRemoteAgent,
 	}
+
+	agentAWSInstallCmd = &cobra.Command{
+		Use:   "aws-install",
+		Args:  cobra.NoArgs,
+		Short: "Install the datacollector agent on all remote AWS hosts",
+	}
 )
 
 func init() {
@@ -169,12 +178,17 @@ func init() {
 	agentCmd.AddCommand(agentInstallCmd)
 	agentCmd.AddCommand(agentGenerateCmd)
 	agentCmd.AddCommand(agentListCmd)
+	agentCmd.AddCommand(agentAWSInstallCmd)
 
 	// add the list sub-command to the 'agent token' cmd
 	agentTokenCmd.AddCommand(agentTokenListCmd)
 	agentTokenCmd.AddCommand(agentTokenCreateCmd)
 	agentTokenCmd.AddCommand(agentTokenShowCmd)
 	agentTokenCmd.AddCommand(agentTokenUpdateCmd)
+
+	// add sub-commands to the 'agent aws-install' command for different install methods
+	agentAWSInstallCmd.AddCommand(agentInstallAWSEC2ICCmd)
+	agentAWSInstallCmd.AddCommand(agentInstallAWSSSHCmd)
 
 	// 'agent token update' flags
 	agentTokenUpdateCmd.Flags().BoolVar(&agentCmdState.TokenUpdateEnable,
