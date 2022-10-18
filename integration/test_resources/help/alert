@@ -28,8 +28,10 @@ Aliases:
   alert, alerts
 
 Available Commands:
-  close       Close an alert.
-  comment     Add a comment.
+  close       Close an alert
+  comment     Add a comment
+  list        List all alerts
+  open        Open a specified alert in a web browser
 
 Flags:
   -h, --help   help for alert

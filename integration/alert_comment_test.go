@@ -20,19 +20,22 @@
 package integration
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAlertCommentMissingArg(t *testing.T) {
-	_, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment")
+	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "accepts 1 arg(s), received 0")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestAlertCommentBadID(t *testing.T) {
-	_, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment", "me")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment", "me")
+	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "alert ID must be a number")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
@@ -45,12 +48,15 @@ func TestAlertComment(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-/* need list to get a valid alert id
 func TestAlertCommentInline(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig(
-		"alert", "comment", "12345", "-c", "everything is awesome")
-	assert.Contains(t, out.String(), "was successfully closed")
-	assert.Empty(t, err.String(), "STDERR should be empty")
+	id, err := popAlert()
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
+		"alert", "comment", strconv.Itoa(id), "-c", "everything is awesome")
+	assert.Contains(t, out.String(), "Comment added successfully")
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
-*/

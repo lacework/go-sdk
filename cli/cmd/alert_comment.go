@@ -26,10 +26,10 @@ import (
 )
 
 var (
-	// alertCommentCmd represents the lql validate command
+	// alertCommentCmd represents the alert comment command
 	alertCommentCmd = &cobra.Command{
 		Use:   "comment <alert_id>",
-		Short: "Add a comment.",
+		Short: "Add a comment",
 		Long: `Post a user comment on an alert's timeline .
 
 Comments may be provided inline or via editor.
@@ -50,7 +50,7 @@ func init() {
 	)
 }
 
-func commentAlert(cmd *cobra.Command, args []string) error {
+func commentAlert(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("commenting on alert", "alert", args[0])
 
 	id, err := strconv.Atoi(args[0])
