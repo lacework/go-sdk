@@ -32,8 +32,15 @@ const (
 	AlertCloseReasonExpected
 )
 
+// String returns the string representation of an Alert closure reason
+func (i alertCloseReason) String() string {
+	return AlertCloseReasons[i]
+}
+
+type alertCloseReasons map[alertCloseReason]string
+
 // AlertCloseReasons is the list of available Alert closure reasons
-var AlertCloseReasons = map[alertCloseReason]string{
+var AlertCloseReasons = alertCloseReasons{
 	AlertCloseReasonOther:         "Other",
 	AlertCloseReasonFalsePositive: "False positive",
 	AlertCloseReasonNotEnoughInfo: "Not enough information",
@@ -41,9 +48,18 @@ var AlertCloseReasons = map[alertCloseReason]string{
 	AlertCloseReasonExpected:      "Expected because of routine testing",
 }
 
-// String returns the string representation of an Alert closure reason
-func (i alertCloseReason) String() string {
-	return AlertCloseReasons[i]
+func (acr alertCloseReasons) GetOrderedReasonStrings() []string {
+	reasons := []string{}
+	i := 0
+	for {
+		if r, ok := acr[alertCloseReason(i)]; ok {
+			reasons = append(reasons, r)
+			i++
+			continue
+		}
+		break
+	}
+	return reasons
 }
 
 type AlertCloseRequest struct {
