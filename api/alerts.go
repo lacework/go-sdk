@@ -20,6 +20,7 @@ package api
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/lacework/go-sdk/lwtime"
@@ -63,8 +64,17 @@ type Alert struct {
 	Reachability  string             `json:"reachability"`
 }
 
+type Alerts []Alert
+
+func (a Alerts) SortDescending() []Alert {
+	sort.Slice(a, func(i, j int) bool {
+		return a[i].ID > a[j].ID
+	})
+	return a
+}
+
 type AlertsResponse struct {
-	Data []Alert `json:"data"`
+	Data Alerts `json:"data"`
 }
 
 func (svc *AlertsService) List() (

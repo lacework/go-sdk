@@ -205,3 +205,12 @@ func TestAlertsListByTimeError(t *testing.T) {
 	_, err = c.V2.Alerts.ListByTime(time.Now(), time.Now())
 	assert.NotNil(t, err)
 }
+
+func TestAlertsSortDescending(t *testing.T) {
+	alerts := api.Alerts{
+		{ID: 1},
+		{ID: 2},
+	}
+	alerts = alerts.SortDescending()
+	assert.Equal(t, 2, alerts[0].ID)
+}

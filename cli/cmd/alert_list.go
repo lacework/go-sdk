@@ -81,8 +81,9 @@ func init() {
 	)
 }
 
-func alertListTable(alerts []api.Alert) (out [][]string) {
-	for _, alert := range alerts {
+func alertListTable(alerts api.Alerts) (out [][]string) {
+
+	for _, alert := range alerts.SortDescending() {
 		out = append(out, []string{
 			strconv.Itoa(alert.ID),
 			alert.Name,
