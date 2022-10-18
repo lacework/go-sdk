@@ -2,6 +2,7 @@ package lwgenerate
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/hashicorp/hcl/v2"
@@ -64,7 +65,7 @@ func (p *HclProvider) ToBlock() (*hclwrite.Block, error) {
 
 type HclProviderModifier func(p *HclProvider)
 
-// Create a new HCL Provider
+// NewProvider Create a new HCL Provider
 func NewProvider(name string, mods ...HclProviderModifier) *HclProvider {
 	provider := &HclProvider{name: name}
 	for _, m := range mods {
@@ -100,7 +101,7 @@ type HclModule struct {
 
 type HclModuleModifier func(p *HclModule)
 
-// Create a provider statement in the HCL output
+// NewModule Create a provider statement in the HCL output
 func NewModule(name string, source string, mods ...HclModuleModifier) *HclModule {
 	module := &HclModule{name: name, source: source}
 	for _, m := range mods {
@@ -109,31 +110,32 @@ func NewModule(name string, source string, mods ...HclModuleModifier) *HclModule
 	return module
 }
 
-// Used to set parameters within the module usage
+// HclModuleWithAttributes Used to set parameters within the module usage
 func HclModuleWithAttributes(attrs map[string]interface{}) HclModuleModifier {
 	return func(p *HclModule) {
 		p.attributes = attrs
 	}
 }
 
-// Used to set the version of a module source to use
+// HclModuleWithVersion Used to set the version of a module source to use
 func HclModuleWithVersion(version string) HclModuleModifier {
 	return func(p *HclModule) {
 		p.version = version
 	}
 }
 
-// Used to provide additional provider details to a given module.
+// HclModuleWithProviderDetails Used to provide additional provider details to a given module.
 //
 // Note: The values supplied become traversals
-//   e.g. https://www.terraform.io/docs/language/modules/develop/providers.html#passing-providers-explicitly
+//
+//	e.g. https://www.terraform.io/docs/language/modules/develop/providers.html#passing-providers-explicitly
 func HclModuleWithProviderDetails(providerDetails map[string]string) HclModuleModifier {
 	return func(p *HclModule) {
 		p.providerDetails = providerDetails
 	}
 }
 
-// Create hclwrite.Block for module
+// ToBlock Create hclwrite.Block for module
 func (m *HclModule) ToBlock() (*hclwrite.Block, error) {
 	if m.attributes == nil {
 		m.attributes = make(map[string]interface{})
@@ -154,12 +156,63 @@ func (m *HclModule) ToBlock() (*hclwrite.Block, error) {
 		return nil, err
 	}
 
+	return block, nil
+}
+
+// ToResourceBlock Create hclwrite.Block for resource
+func (m *HclResource) ToResourceBlock() (*hclwrite.Block, error) {
+	if m.attributes == nil {
+		m.attributes = make(map[string]interface{})
+	}
+
+	block, err := HclCreateGenericBlock(
+		"resource",
+		[]string{m.name},
+		m.attributes,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	if m.providerDetails != nil {
 		block.Body().AppendNewline()
 		block.Body().SetAttributeRaw("providers", createMapTraversalTokens(m.providerDetails))
 	}
 
 	return block, nil
+}
+
+type HclResource struct {
+	// Required, resource name
+	name string
+
+	// Optional. Extra properties for this resource.  Can supply string, bool, int, or map[string]interface{} as values
+	attributes map[string]interface{}
+
+	// Optional.  Provider details to override defaults.  These values must be supplied as strings, and raw values will be
+	// accepted.  Unfortunately map[string]hcl.Traversal is not a format that is supported by hclwrite.SetAttributeValue
+	// today so we must work around it (https://github.com/hashicorp/hcl/issues/347).
+	providerDetails map[string]string
+}
+
+type HclResourceModifier func(p *HclResource)
+
+// NewResource Create a provider statement in the HCL output
+func NewResource(name string, mods ...HclResourceModifier) *HclResource {
+	resource := &HclResource{name: name}
+	for _, m := range mods {
+		m(resource)
+	}
+	return resource
+}
+
+// HclResourceWithAttributesAndProviderDetails Used to set parameters within the resource usage
+func HclResourceWithAttributesAndProviderDetails(attrs map[string]interface{},
+	providerDetails map[string]string) HclResourceModifier {
+	return func(p *HclResource) {
+		p.attributes = attrs
+		p.providerDetails = providerDetails
+	}
 }
 
 // Convert standard value types to cty.Value
@@ -203,8 +256,8 @@ func convertTypeToCty(value interface{}) (cty.Value, error) {
 
 // Used to set block attribute values based on attribute value interface type
 //
-// hclwrite.Block attributes use cty.Value or can be traversals, this function determines what type of value is being
-// used and builds the block accordingly
+// hclwrite.Block attributes use cty.Value, hclwrite.Tokens or can be traversals, this function
+// determines what type of value is being used and builds the block accordingly
 func setBlockAttributeValue(block *hclwrite.Block, key string, val interface{}) error {
 	switch v := val.(type) {
 	case string, int, bool:
@@ -243,14 +296,16 @@ func setBlockAttributeValue(block *hclwrite.Block, key string, val interface{}) 
 			return err
 		}
 		block.Body().SetAttributeValue(key, value)
+	case hclwrite.Tokens:
+		block.Body().SetAttributeRaw(key, v)
 	default:
-		return errors.New("unknown type")
+		return errors.New(fmt.Sprintf("setBlockAttributeValue: unknown type for key: %s", key))
 	}
 
 	return nil
 }
 
-// Helper to create various types of new hclwrite.Block using generic inputs
+// HclCreateGenericBlock Helper to create various types of new hclwrite.Block using generic inputs
 func HclCreateGenericBlock(hcltype string, labels []string, attr map[string]interface{}) (*hclwrite.Block, error) {
 	block := hclwrite.NewBlock(hcltype, labels)
 
@@ -298,7 +353,7 @@ func HclCreateGenericBlock(hcltype string, labels []string, attr map[string]inte
 // SetAttributeValue won't work
 func createMapTraversalTokens(input map[string]string) hclwrite.Tokens {
 	// Sort input
-	keys := []string{}
+	var keys []string
 	for k := range input {
 		keys = append(keys, k)
 	}
@@ -326,7 +381,7 @@ func createMapTraversalTokens(input map[string]string) hclwrite.Tokens {
 	return tokens
 }
 
-// Convert blocks to a string
+// CreateHclStringOutput Convert blocks to a string
 func CreateHclStringOutput(blocks []*hclwrite.Block) string {
 	file := hclwrite.NewEmptyFile()
 	body := file.Body()
@@ -345,7 +400,7 @@ func CreateHclStringOutput(blocks []*hclwrite.Block) string {
 	return string(file.Bytes())
 }
 
-// Create required providers block
+// CreateRequiredProviders Create required providers block
 func CreateRequiredProviders(providers ...*HclRequiredProvider) (*hclwrite.Block, error) {
 	block, err := HclCreateGenericBlock("terraform", nil, nil)
 	if err != nil {
@@ -373,23 +428,23 @@ func CreateRequiredProviders(providers ...*HclRequiredProvider) (*hclwrite.Block
 	return block, nil
 }
 
-// helper to create a hcl.Traversal in the order of supplied []string
+// CreateSimpleTraversal helper to create a hcl.Traversal in the order of supplied []string
 //
 // e.g. []string{"a", "b", "c"} as input results in traversal having value a.b.c
 func CreateSimpleTraversal(input []string) hcl.Traversal {
-	traversers := []hcl.Traverser{}
+	var traverser []hcl.Traverser
 
 	for i, val := range input {
 		if i == 0 {
-			traversers = append(traversers, hcl.TraverseRoot{Name: val})
+			traverser = append(traverser, hcl.TraverseRoot{Name: val})
 		} else {
-			traversers = append(traversers, hcl.TraverseAttr{Name: val})
+			traverser = append(traverser, hcl.TraverseAttr{Name: val})
 		}
 	}
-	return traversers
+	return traverser
 }
 
-// Simple helper to combine multiple blocks (or slices of blocks) into a single slice to be rendered to string
+// CombineHclBlocks Simple helper to combine multiple blocks (or slices of blocks) into a single slice to be rendered to string
 func CombineHclBlocks(results ...interface{}) []*hclwrite.Block {
 	blocks := []*hclwrite.Block{}
 	// Combine all blocks into single flat slice

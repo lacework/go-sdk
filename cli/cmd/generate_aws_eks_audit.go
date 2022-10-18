@@ -1,0 +1,894 @@
+package cmd
+
+import (
+	"fmt"
+	"github.com/lacework/go-sdk/lwgenerate/aws_eks_audit"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/imdario/mergo"
+	"github.com/spf13/cobra"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
+)
+
+var (
+	// Define question text here, so they can be reused in testing
+	QuestionEksAuditRegionClusterReplace = "Currently configured regions: %s, replace?"
+	QuestionEksAuditRegion               = "Specify the AWS region:"
+	QuestionEksAuditAdditionalRegion     = "Configure another AWS region?"
+	QuestionEksAuditRegionClusters       = "Specify the list of clusters in region to ingest EKS Audit Logs:"
+
+	QuestionEksAuditConfigureAdvanced = "Configure advanced integration options?"
+
+	// S3 Bucket Questions
+	EksAuditConfigureBucket              = "Configure bucket settings?"
+	QuestionEksAuditBucketVersioning     = "Should access versioning be enabled for the new bucket?"
+	QuestionEksAuditMfaDeleteS3Bucket    = "Should MFA object deletion be required for the new bucket?"
+	QuestionEksAuditForceDestroyS3Bucket = "Should force destroy be enabled for the new bucket?"
+	QuestionEksAuditBucketEncryption     = "Should encryption be enabled for the new bucket?"
+	QuestionEksAuditBucketSseAlgorithm   = "Specify the bucket SSE Algorithm:"
+	QuestionEksAuditBucketKeyArn         = "Specify the bucket existing SSE KMS key ARN: (optional)"
+	QuestionEksAuditBucketLifecycle      = "Specify the bucket lifecycle expiration days: (optional)"
+	QuestionEksAuditKmsKeyRotation       = "Should the kms key have rotation enabled?"
+	QuestionEksAuditKmsKeyDeletionDays   = "Specify the kms key deletion days: (optional)"
+
+	// SNS Topic Questions
+	QuestionEksAuditConfigureSns        = "Configure SNS settings"
+	QuestionEksAuditSnsEnableEncryption = "Enable encryption on SNS topic when creating?"
+	QuestionEksAuditSnsEncryptionKeyArn = "Specify existing KMS encryption key arn for SNS topic (optional)"
+
+	// Cloudwatch IAM Questions
+	EksAuditExistingCwIamRole        = "Configure & use existing Cloudwatch IAM role"
+	QuestionEksAuditExistingCwIamArn = "Specify an existing Cloudwatch IAM role ARN:"
+
+	// Firehose Questions
+	EksAuditConfigureFh                = "Configure Firehose IAM settings"
+	QuestionEksAuditExistingFhIamRole  = "Use existing Firehose IAM role?"
+	QuestionEksAuditExistingFhIamArn   = "Specify an existing Firehose IAM role ARN:"
+	QuestionEksAuditFhEnableEncryption = "Enable encryption on Firehose when creating?"
+	QuestionEksAuditFhEncryptionKeyArn = "Specify existing KMS encryption key arn for Firehose (optional)"
+
+	// Cross Account IAM Questions
+	EksAuditExistingCaIamRole          = "Configure & use existing Cross Account IAM role"
+	QuestionEksAuditExistingCaIamArn   = "Specify an existing Cross Account IAM role ARN:"
+	QuestionEksAuditExistingCaIamExtID = "Specify the external ID to be used with the existing IAM role:"
+
+	QuestionEksAuditAnotherAdvancedOpt      = "Configure another advanced integration option"
+	QuestionEksAuditCustomizeOutputLocation = "Provide the location for the output to be written:"
+	EksAuditIntegrationNameOpt              = "Customize integration name"
+	QuestionEksAuditCustomIntegrationName   = "Specify a custom integration name: (optional)"
+
+	// select options
+	EksAuditAdvancedOptDone     = "Done"
+	EksAuditAdvancedOptLocation = "Customize output location"
+
+	// AwsEksAuditRegionRegex regex used for validating region input; note intentionally does not match gov cloud
+	AwsEksAuditRegionRegex = `(us|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d`
+
+	GenerateAwsEksAuditCommandState      = &aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs{}
+	GenerateAwsEksAuditCommandExtraState = &AwsEksAuditGenerateCommandExtraState{}
+	GenerateAwsEksAuditExistingRoleState = &aws_eks_audit.ExistingCrossAccountIamRoleDetails{}
+	CachedAssetAwsEksAuditIacParams      = "iac-aws-eks-audit-generate-params"
+	CachedAssetAwsEksAuditExtraState     = "iac-aws-eks-audit-extra-state"
+
+	// aws-eks-audit-log command is used to generate TF code for aws-eks-audit-log
+	generateAwsEksAuditTfCommand = &cobra.Command{
+		Use:   "eks",
+		Short: "Generate and/or execute Terraform code for EKS integration",
+		Long: `Use this command to generate Terraform code for deploying Lacework into an EKS
+environment.
+
+By default, this command interactively prompts for the required information to setup the new cloud account.
+In interactive mode, this command will:
+
+* Prompt for the required information to setup the integration
+* Generate new Terraform code using the inputs
+* Optionally, run the generated Terraform code:
+  * If Terraform is already installed, the version is verified as compatible for use
+	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
+	* Once Terraform is detected or installed, Terraform plan will be executed
+	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
+	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
+
+This command can also be run in noninteractive mode.
+See help output for more details on the parameter value(s) required for Terraform code generation.
+`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Generate TF Code
+			cli.StartProgress("Generating Terraform Code...")
+
+			// Explicitly set Lacework profile if it was passed in main args
+			if cli.Profile != "default" {
+				GenerateAwsEksAuditCommandState.LaceworkProfile = cli.Profile
+			}
+
+			// Setup modifiers for NewTerraform constructor
+			mods := []aws_eks_audit.AwsEksAuditTerraformModifier{
+				aws_eks_audit.WithAwsProfile(GenerateAwsEksAuditCommandState.AwsProfile),
+				aws_eks_audit.WithBucketLifecycleExpirationDays(GenerateAwsEksAuditCommandState.BucketLifecycleExpirationDays),
+				aws_eks_audit.WithBucketSseAlgorithm(GenerateAwsEksAuditCommandState.BucketSseAlgorithm),
+				aws_eks_audit.WithBucketSseKeyArn(GenerateAwsEksAuditCommandState.BucketSseKeyArn),
+				aws_eks_audit.WithEksAuditIntegrationName(GenerateAwsEksAuditCommandState.EksAuditIntegrationName),
+				aws_eks_audit.WithExistingCloudWatchIamRoleArn(GenerateAwsEksAuditCommandState.ExistingCloudWatchIamRoleArn),
+				aws_eks_audit.WithExistingCrossAccountIamRole(GenerateAwsEksAuditCommandState.ExistingCrossAccountIamRole),
+				aws_eks_audit.WithExistingFirehoseIamRoleArn(GenerateAwsEksAuditCommandState.ExistingFirehoseIamRoleArn),
+				aws_eks_audit.WithFilterPattern(GenerateAwsEksAuditCommandState.FilterPattern),
+				aws_eks_audit.WithFirehoseEncryptionKeyArn(GenerateAwsEksAuditCommandState.FirehoseEncryptionKeyArn),
+				aws_eks_audit.WithKmsKeyDeletionDays(GenerateAwsEksAuditCommandState.KmsKeyDeletionDays),
+				aws_eks_audit.WithPrefix(GenerateAwsEksAuditCommandState.Prefix),
+				aws_eks_audit.WithRegionClusterMap(GenerateAwsEksAuditCommandState.ParsedRegionClusterMap),
+				aws_eks_audit.WithClusterRegionList(GenerateAwsEksAuditCommandState.ParsedRegionList),
+				aws_eks_audit.WithSnsTopicEncryptionKeyArn(GenerateAwsEksAuditCommandState.SnsTopicEncryptionKeyArn),
+				aws_eks_audit.WithLaceworkProfile(GenerateAwsEksAuditCommandState.LaceworkProfile),
+			}
+
+			if GenerateAwsEksAuditCommandState.BucketEnableEncryption {
+				mods = append(mods, aws_eks_audit.EnableBucketEncryption())
+			}
+
+			if GenerateAwsEksAuditCommandState.BucketEnableMfaDelete {
+				mods = append(mods, aws_eks_audit.EnableBucketMfaDelete())
+			}
+
+			if GenerateAwsEksAuditCommandState.BucketForceDestroy {
+				mods = append(mods, aws_eks_audit.EnableBucketForceDestroy())
+			}
+
+			if GenerateAwsEksAuditCommandState.BucketVersioning {
+				mods = append(mods, aws_eks_audit.EnableBucketVersioning())
+			}
+
+			if GenerateAwsEksAuditCommandState.FirehoseEncryptionEnabled {
+				mods = append(mods, aws_eks_audit.EnableFirehoseEncryption())
+			}
+
+			if GenerateAwsEksAuditCommandState.KmsKeyMultiRegion {
+				mods = append(mods, aws_eks_audit.EnableKmsKeyMultiRegion())
+			}
+
+			if GenerateAwsEksAuditCommandState.KmsKeyRotation {
+				mods = append(mods, aws_eks_audit.EnableKmsKeyRotation())
+			}
+
+			if GenerateAwsEksAuditCommandState.SnsTopicEncryptionEnabled {
+				mods = append(mods, aws_eks_audit.EnableSnsTopicEncryption())
+			}
+
+			// Create new struct
+			data := aws_eks_audit.NewTerraform(mods...)
+
+			// Generate
+			hcl, err := data.Generate()
+			cli.StopProgress()
+
+			if err != nil {
+				return errors.Wrap(err, "failed to generate terraform code")
+			}
+
+			// Write-out generated code to location specified
+			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "aws_eks_audit")
+			if err != nil {
+				return err
+			}
+
+			// Prompt to execute
+			err = SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+				Prompt:   &survey.Confirm{Default: GenerateAwsEksAuditCommandExtraState.TerraformApply, Message: QuestionRunTfPlan},
+				Response: &GenerateAwsEksAuditCommandExtraState.TerraformApply,
+			})
+
+			if err != nil {
+				return errors.Wrap(err, "failed to prompt for terraform execution")
+			}
+
+			// Execute
+			locationDir := filepath.Dir(location)
+			if GenerateAwsEksAuditCommandExtraState.TerraformApply {
+				// Execution pre-run check
+				err := executionPreRunChecks(dirname, locationDir, "aws_eks_audit")
+				if err != nil {
+					return err
+				}
+			}
+
+			// Output where code was generated
+			if !GenerateAwsEksAuditCommandExtraState.TerraformApply {
+				cli.OutputHuman(provideGuidanceAfterExit(false, false, locationDir, "terraform"))
+			}
+
+			return nil
+		},
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			// Validate output location is OK if supplied
+			dirname, err := cmd.Flags().GetString("output")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateOutputLocation(dirname); err != nil {
+				return err
+			}
+
+			// Validate aws profile, if passed
+			profile, err := cmd.Flags().GetString("aws_profile")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsProfile(profile); profile != "" && err != nil {
+				return err
+			}
+
+			// Validate bucket sse key arn, if passed
+			bucketSseKeyArn, err := cmd.Flags().GetString("bucket_sse_key_arn")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsArnFormat(bucketSseKeyArn); bucketSseKeyArn != "" && err != nil {
+				return err
+			}
+
+			// Validate firehose key arn, if passed
+			firehoseKeyArn, err := cmd.Flags().GetString("firehose_encryption_key_arn")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsArnFormat(firehoseKeyArn); firehoseKeyArn != "" && err != nil {
+				return err
+			}
+
+			// Validate sns topic key arn, if passed
+			snsKeyArn, err := cmd.Flags().GetString("sns_topic_encryption_key_arn")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsArnFormat(snsKeyArn); snsKeyArn != "" && err != nil {
+				return err
+			}
+
+			// Load any cached inputs if interactive
+			if cli.InteractiveMode() {
+				cachedOptions := &aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs{}
+				iacParamsExpired := cli.ReadCachedAsset(CachedAssetAwsEksAuditIacParams, &cachedOptions)
+				if iacParamsExpired {
+					cli.Log.Debug("loaded previously set values for AWS EKS Audit iac generation")
+				}
+
+				extraState := &AwsEksAuditGenerateCommandExtraState{}
+				extraStateParamsExpired := cli.ReadCachedAsset(CachedAssetAwsEksAuditExtraState, &extraState)
+				if extraStateParamsExpired {
+					cli.Log.Debug("loaded previously set values for AWS EKS Audit iac generation (extra state)")
+				}
+
+				// Determine if previously cached options exists; prompt user if they'd like to continue
+				answer := false
+				if !iacParamsExpired || !extraStateParamsExpired {
+					if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+						Prompt:   &survey.Confirm{Message: QuestionUsePreviousCache, Default: false},
+						Response: &answer,
+					}); err != nil {
+						return errors.Wrap(err, "failed to load saved options")
+					}
+				}
+
+				// If the user decides NOT to use the previous values; we won't load them.  However, every time the command runs
+				// we are going to write out new cached values, so if they run it - bail out - and run it again they'll get
+				// re-prompted.
+				if answer {
+					// Merge cached inputs to current options (current options win)
+					if err := mergo.Merge(GenerateAwsEksAuditCommandState, cachedOptions); err != nil {
+						return errors.Wrap(err, "failed to load saved options")
+					}
+					if err := mergo.Merge(GenerateAwsEksAuditCommandExtraState, extraState); err != nil {
+						return errors.Wrap(err, "failed to load saved options")
+					}
+				}
+			}
+
+			// Parse regions passed as part of the region cluster map
+			if len(GenerateAwsEksAuditCommandState.RegionClusterMap) > 0 {
+				// validate the format of supplied values is correct
+				for key := range GenerateAwsEksAuditCommandState.RegionClusterMap {
+					if err := validateStringWithRegex(key, AwsEksAuditRegionRegex, "invalid region name supplied"); err != nil {
+						return err
+					}
+				}
+
+				var awsParsedRegionClusterMap map[string][]string
+				var regionsList []string
+				for region, clusters := range GenerateAwsEksAuditCommandState.RegionClusterMap {
+					parsedClusters := strings.Split(clusters, ",")
+					// append regions List
+					regionsList = append(GenerateAwsEksAuditCommandState.ParsedRegionList, region)
+					awsParsedRegionClusterMap[region] = append(awsParsedRegionClusterMap[region], parsedClusters...)
+				}
+				GenerateAwsEksAuditCommandState.ParsedRegionList = regionsList
+				GenerateAwsEksAuditCommandState.ParsedRegionClusterMap = awsParsedRegionClusterMap
+			}
+
+			if len(GenerateAwsEksAuditCommandState.ParsedRegionList) > 1 {
+				GenerateAwsEksAuditCommandState.KmsKeyMultiRegion = true
+			}
+
+			// Collect and/or confirm parameters
+			err = promptAwsEksAuditGenerate(GenerateAwsEksAuditCommandState, GenerateAwsEksAuditExistingRoleState,
+				GenerateAwsEksAuditCommandExtraState)
+			if err != nil {
+				return errors.Wrap(err, "collecting/confirming parameters")
+			}
+
+			return nil
+		},
+	}
+)
+
+type AwsEksAuditGenerateCommandExtraState struct {
+	AskAdvanced             bool
+	Output                  string
+	ConfigureBucketSettings bool
+	UseExistingKmsKey       bool
+	TerraformApply          bool
+}
+
+func (eks *AwsEksAuditGenerateCommandExtraState) isEmpty() bool {
+	return eks.Output == "" &&
+		!eks.AskAdvanced &&
+		!eks.ConfigureBucketSettings &&
+		!eks.UseExistingKmsKey &&
+		!eks.TerraformApply
+}
+
+// Flush current state of the struct to disk, provided it's not empty
+func (eks *AwsEksAuditGenerateCommandExtraState) writeCache() {
+	if !eks.isEmpty() {
+		cli.WriteAssetToCache(CachedAssetAwsEksAuditExtraState, time.Now().Add(time.Hour*1), eks)
+	}
+}
+
+func initGenerateAwsEksAuditTfCommandFlags() {
+	// add flags to sub commands
+	// TODO Share the help with the interactive generation
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.AwsProfile, "aws_profile", "", "specify aws profile")
+	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsEksAuditCommandState.BucketEnableMfaDelete,
+		"enable_mfa_delete_s3",
+		false,
+		"enable mfa delete on s3 bucket")
+	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsEksAuditCommandState.BucketEnableEncryption,
+		"disable_encryption_s3",
+		false,
+		"disable encryption on s3 bucket")
+	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsEksAuditCommandState.BucketForceDestroy,
+		"enable_force_destroy",
+		false,
+		"enable force destroy s3 bucket")
+	generateAwsEksAuditTfCommand.PersistentFlags().IntVar(
+		&GenerateAwsEksAuditCommandState.BucketLifecycleExpirationDays,
+		"bucket_lifecycle_exp_days",
+		0,
+		"specify the s3 bucket lifecycle expiration days")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.BucketSseAlgorithm,
+		"bucket_sse_algorithm",
+		"",
+		"specify the encryption algorithm to use for S3 bucket server-side encryption")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.BucketSseKeyArn,
+		"bucket_sse_key_arn",
+		"",
+		"specify the kms key arn to be used for s3. (required when bucket_sse_algorithm is aws:kms & using an existing kms key)")
+	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsEksAuditCommandState.BucketVersioning,
+		"disable_bucket_versioning",
+		false,
+		"disable s3 bucket versioning")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.EksAuditIntegrationName,
+		"integration_name",
+		"",
+		"specify the name of the eks audit integration")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.ExistingCloudWatchIamRoleArn,
+		"existing_cw_iam_role_arn",
+		"",
+		"specify existing cloudwatch iam role arn to use")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditExistingRoleState.Arn,
+		"existing_ca_iam_role_arn",
+		"",
+		"specify existing cross account iam role arn to use")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditExistingRoleState.ExternalId,
+		"existing_ca_iam_role_external_id",
+		"",
+		"specify existing cross account iam role external_id to use")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.ExistingFirehoseIamRoleArn,
+		"existing_firehose_iam_role_arn",
+		"",
+		"specify existing firehose iam role arn to use")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.FilterPattern,
+		"custom_filter_pattern",
+		"",
+		"specify a custom cloudwatch log filter pattern")
+	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsEksAuditCommandState.FirehoseEncryptionEnabled,
+		"disable_firehose_encryption",
+		false,
+		"disable firehose encryption")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.FirehoseEncryptionKeyArn,
+		"firehose_encryption_key_arn",
+		"",
+		"specify the kms key arn to be used with the Firehose")
+	generateAwsEksAuditTfCommand.PersistentFlags().IntVar(
+		&GenerateAwsEksAuditCommandState.KmsKeyDeletionDays,
+		"kms_key_deletion_days",
+		30,
+		"specify the waiting period, specified in number of days")
+	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsEksAuditCommandState.KmsKeyRotation,
+		"disable_kms_key_rotation",
+		false,
+		"disable automatic kms key rotation")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.Prefix,
+		"prefix",
+		"",
+		"specify the prefix that will be used at the beginning of every generated resource")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringToStringVar(
+		&GenerateAwsEksAuditCommandState.RegionClusterMap,
+		"region_cluster_map",
+		map[string]string{},
+		"configure aws regions and eks clusters; value format must be <region>:\"cluster,list\",<region>:\"cluster,list\"")
+	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsEksAuditCommandState.SnsTopicEncryptionEnabled,
+		"disable_sns_topic_encryption",
+		false,
+		"disable encryption on the sns topic")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.SnsTopicEncryptionKeyArn,
+		"sns_topic_encryption_key_arn",
+		"",
+		"specify the kms key arn to be used with the sns topic")
+	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsEksAuditCommandExtraState.TerraformApply,
+		"apply",
+		false,
+		"run terraform apply without executing plan or prompting",
+	)
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandExtraState.Output,
+		"output",
+		"",
+		"location to write generated content",
+	)
+}
+
+func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs) error {
+
+	// Only ask these questions if configure bucket is true
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Confirm{Message: QuestionEksAuditBucketVersioning, Default: config.BucketVersioning},
+			Response: &config.BucketVersioning,
+		},
+		{
+			Prompt:   &survey.Confirm{Message: QuestionEksAuditMfaDeleteS3Bucket, Default: config.BucketEnableMfaDelete},
+			Response: &config.BucketEnableMfaDelete,
+		},
+		{
+			Prompt:   &survey.Confirm{Message: QuestionEksAuditForceDestroyS3Bucket, Default: config.BucketForceDestroy},
+			Response: &config.BucketForceDestroy,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionEksAuditBucketLifecycle, Default: "0"},
+			Opts:     []survey.AskOpt{},
+			Response: &config.BucketLifecycleExpirationDays,
+		},
+		{
+			Prompt:   &survey.Confirm{Message: QuestionEksAuditBucketEncryption, Default: config.BucketEnableEncryption},
+			Response: &config.BucketEnableEncryption,
+		},
+	}); err != nil {
+		return err
+	}
+
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt:   &survey.Input{Message: QuestionEksAuditBucketSseAlgorithm},
+		Checks:   []*bool{&config.BucketEnableEncryption},
+		Required: true,
+		Opts:     []survey.AskOpt{},
+		Response: &config.BucketSseAlgorithm,
+	}); err != nil {
+		return err
+	}
+
+	isKms := config.BucketSseAlgorithm == "aws:kms"
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt:   &survey.Input{Message: QuestionEksAuditBucketKeyArn},
+		Checks:   []*bool{&config.BucketEnableEncryption, &isKms},
+		Required: true,
+		Opts:     []survey.AskOpt{},
+		Response: &config.BucketSseKeyArn,
+	}); err != nil {
+		return err
+	}
+
+	newKmsKey := config.BucketEnableEncryption && len(config.BucketSseKeyArn) == 0
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Input{Message: QuestionEksAuditKmsKeyRotation},
+			Checks:   []*bool{&config.BucketEnableEncryption, &newKmsKey},
+			Required: true,
+			Opts:     []survey.AskOpt{},
+			Response: &config.BucketSseKeyArn,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionEksAuditKmsKeyDeletionDays, Default: "30"},
+			Checks:   []*bool{&config.BucketEnableEncryption, &newKmsKey},
+			Opts:     []survey.AskOpt{},
+			Response: &config.KmsKeyDeletionDays,
+		},
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func promptAwsEksAuditExistingCrossAccountIamQuestions(input *aws_eks_audit.
+	GenerateAwsEksAuditTfConfigurationArgs) error {
+	// ensure struct is initialized
+	if input.ExistingCrossAccountIamRole == nil {
+		input.ExistingCrossAccountIamRole = &aws_eks_audit.ExistingCrossAccountIamRoleDetails{}
+	}
+
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Input{Message: QuestionEksAuditExistingCaIamArn, Default: input.ExistingCrossAccountIamRole.Arn},
+			Response: &input.ExistingCrossAccountIamRole.Arn,
+			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validateAwsArnFormat)},
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionEksAuditExistingCaIamExtID, Default: input.ExistingCrossAccountIamRole.ExternalId},
+			Response: &input.ExistingCrossAccountIamRole.ExternalId,
+			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
+		}})
+	return err
+}
+
+func promptAwsEksAuditFirehoseQuestions(input *aws_eks_audit.
+	GenerateAwsEksAuditTfConfigurationArgs) error {
+
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt: &survey.Confirm{
+			Message: QuestionEksAuditExistingFhIamRole,
+			Default: input.ExistingFirehoseIam,
+		},
+		Opts:     []survey.AskOpt{},
+		Response: &input.ExistingFirehoseIam,
+		Required: false,
+	}); err != nil {
+		return err
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt: &survey.Input{
+				Message: QuestionEksAuditExistingFhIamArn,
+				Default: input.ExistingFirehoseIamRoleArn,
+			},
+			Checks:   []*bool{&input.ExistingFirehoseIam},
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
+			Response: &input.ExistingFirehoseIamRoleArn,
+			Required: true,
+		},
+		{
+			Prompt: &survey.Confirm{
+				Message: QuestionEksAuditFhEnableEncryption,
+				Default: input.FirehoseEncryptionEnabled,
+			},
+			Opts:     []survey.AskOpt{},
+			Response: &input.FirehoseEncryptionEnabled,
+			Required: true,
+		},
+	}); err != nil {
+		return err
+	}
+
+	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt: &survey.Input{
+			Message: QuestionEksAuditFhEncryptionKeyArn,
+			Default: input.FirehoseEncryptionKeyArn,
+		},
+		Checks:   []*bool{&input.FirehoseEncryptionEnabled},
+		Opts:     []survey.AskOpt{},
+		Response: &input.FirehoseEncryptionKeyArn,
+	})
+	return err
+}
+
+func promptAwsEksAuditExistingCloudwatchIamQuestions(input *aws_eks_audit.
+	GenerateAwsEksAuditTfConfigurationArgs) error {
+
+	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt: &survey.Input{
+			Message: QuestionEksAuditExistingCwIamArn,
+			Default: input.ExistingCloudWatchIamRoleArn,
+		},
+		Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
+		Response: &input.ExistingCloudWatchIamRoleArn,
+		Required: true,
+	})
+	return err
+}
+
+func promptAwsEksAuditSnsQuestions(input *aws_eks_audit.
+	GenerateAwsEksAuditTfConfigurationArgs) error {
+
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt: &survey.Confirm{
+			Message: QuestionEksAuditSnsEnableEncryption,
+			Default: input.SnsTopicEncryptionEnabled,
+		},
+		Opts:     []survey.AskOpt{},
+		Response: &input.SnsTopicEncryptionEnabled,
+		Required: true,
+	}); err != nil {
+		return err
+	}
+
+	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt: &survey.Input{
+			Message: QuestionEksAuditSnsEncryptionKeyArn,
+			Default: input.SnsTopicEncryptionKeyArn,
+		},
+		Checks:   []*bool{&input.SnsTopicEncryptionEnabled},
+		Opts:     []survey.AskOpt{},
+		Response: &input.SnsTopicEncryptionKeyArn,
+	})
+	return err
+}
+
+func promptAwsEksAuditCustomIntegrationName(input *aws_eks_audit.
+	GenerateAwsEksAuditTfConfigurationArgs) error {
+
+	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt: &survey.Input{
+			Message: QuestionEksAuditCustomIntegrationName,
+			Default: input.EksAuditIntegrationName,
+		},
+		Opts:     []survey.AskOpt{},
+		Response: &input.EksAuditIntegrationName,
+	})
+	return err
+}
+
+func promptAwsEksAuditAdditionalClusterRegionQuestions(config *aws_eks_audit.
+	GenerateAwsEksAuditTfConfigurationArgs) error {
+	// For each region, collect which clusters to integrate with
+	regionClusters := make(map[string][]string)
+	var regionsList []string
+	askAgain := true
+
+	// If there are existing region clusters configured (i.e., from the CLI) display them and ask if they want to add more
+	if len(config.ParsedRegionClusterMap) > 0 {
+		for k := range config.ParsedRegionClusterMap {
+			regionsList = append(regionsList, k)
+		}
+
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Prompt: &survey.Confirm{
+				Message: fmt.Sprintf(
+					QuestionEksAuditRegionClusterReplace,
+					strings.Trim(strings.Join(strings.Fields(fmt.Sprint(regionsList)), ", "), "[]"),
+				),
+			},
+			Response: &askAgain}); err != nil {
+			return err
+		}
+	}
+
+	// For each region to add, collect the list of clusters to integrate with
+	for askAgain {
+		var awsEksAuditRegion string
+		var awsEksAuditRegionClusters string
+		regionClustersQuestions := []SurveyQuestionWithValidationArgs{
+			{
+				Prompt:   &survey.Input{Message: QuestionEksAuditRegion},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
+				Required: true,
+				Response: &awsEksAuditRegion,
+			},
+			{
+				Prompt:   &survey.Input{Message: QuestionEksAuditRegionClusters},
+				Opts:     []survey.AskOpt{},
+				Required: true,
+				Response: &awsEksAuditRegionClusters,
+			},
+		}
+
+		if err := SurveyMultipleQuestionWithValidation(regionClustersQuestions); err != nil {
+			return err
+		}
+
+		// append region clusters in case the user has input a region more than once
+		regionClusters[awsEksAuditRegion] = append(regionClusters[awsEksAuditRegion], strings.Split(awsEksAuditRegionClusters, ",")...)
+
+		// append regions to Parsed Region List
+		regionsList = append(config.ParsedRegionList, awsEksAuditRegion)
+
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Prompt:   &survey.Confirm{Message: QuestionEksAuditAdditionalRegion},
+			Response: &askAgain}); err != nil {
+			return err
+		}
+	}
+	config.ParsedRegionList = regionsList
+	config.ParsedRegionClusterMap = regionClusters
+
+	return nil
+}
+
+func promptCustomizeEksAuditOutputLocation(extraState *AwsEksAuditGenerateCommandExtraState) error {
+	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt: &survey.Input{Message: QuestionEksAuditCustomizeOutputLocation,
+			Default: extraState.Output},
+		Response: &extraState.Output,
+		Opts:     []survey.AskOpt{survey.WithValidator(validPathExists)},
+		Required: true,
+	})
+
+	return err
+}
+
+func askAdvancedEksAuditOptions(config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs,
+	extraState *AwsEksAuditGenerateCommandExtraState) error {
+	answer := ""
+
+	// Prompt for options
+	for answer != AwsAdvancedOptDone {
+		// Construction of this slice is a bit strange at first look, but the reason for that is because we have to do string
+		// validation to know which option was selected due to how survey works; and doing it by index (also supported) is
+		// difficult when the options are dynamic (which they are)
+		//
+		// Only ask about more accounts if consolidated cloudtrail is set up (matching scenario's doc)
+		var options []string
+
+		options = append(options,
+			EksAuditConfigureBucket,
+			EksAuditExistingCaIamRole,
+			EksAuditConfigureFh,
+			EksAuditExistingCwIamRole,
+			EksAuditIntegrationNameOpt,
+			QuestionEksAuditConfigureSns,
+			EksAuditAdvancedOptLocation,
+			EksAuditAdvancedOptDone)
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Prompt: &survey.Select{
+				Message: "Which options would you like to configure?",
+				Options: options,
+			},
+			Response: &answer,
+		}); err != nil {
+			return err
+		}
+
+		// Based on response, prompt for actions
+		switch answer {
+		case EksAuditConfigureBucket:
+			if err := promptAwsEksAuditBucketQuestions(config); err != nil {
+				return err
+			}
+		case EksAuditExistingCaIamRole:
+			if err := promptAwsEksAuditExistingCrossAccountIamQuestions(config); err != nil {
+				return err
+			}
+		case EksAuditConfigureFh:
+			if err := promptAwsEksAuditFirehoseQuestions(config); err != nil {
+				return err
+			}
+		case EksAuditExistingCwIamRole:
+			if err := promptAwsEksAuditExistingCloudwatchIamQuestions(config); err != nil {
+				return err
+			}
+		case QuestionEksAuditConfigureSns:
+			if err := promptAwsEksAuditSnsQuestions(config); err != nil {
+				return err
+			}
+		case EksAuditIntegrationNameOpt:
+			if err := promptAwsEksAuditCustomIntegrationName(config); err != nil {
+				return err
+			}
+		case EksAuditAdvancedOptLocation:
+			if err := promptCustomizeEksAuditOutputLocation(extraState); err != nil {
+				return err
+			}
+		}
+
+		// Re-prompt if not done
+		innerAskAgain := true
+		if answer == EksAuditAdvancedOptDone {
+			innerAskAgain = false
+		}
+
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Checks:   []*bool{&innerAskAgain},
+			Prompt:   &survey.Confirm{Message: QuestionEksAuditAnotherAdvancedOpt, Default: false},
+			Response: &innerAskAgain,
+		}); err != nil {
+			return err
+		}
+
+		if !innerAskAgain {
+			answer = AwsAdvancedOptDone
+		}
+	}
+
+	return nil
+}
+
+func eksAuditConfigIsEmpty(g *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs) bool {
+	return g.AwsProfile == "" &&
+		len(g.ParsedRegionClusterMap) == 0 &&
+		g.ExistingCrossAccountIamRole == nil &&
+		g.LaceworkProfile == ""
+}
+
+func writeAwsEksAuditGenerationArgsCache(a *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs) {
+	if !eksAuditConfigIsEmpty(a) {
+		// If ExistingIamRole is partially set, don't write this to cache; the values won't work when loaded
+		if a.ExistingCrossAccountIamRole.IsPartial() {
+			a.ExistingCrossAccountIamRole = nil
+		}
+		cli.WriteAssetToCache(CachedAwsAssetIacParams, time.Now().Add(time.Hour*1), a)
+	}
+}
+
+// entry point for launching a survey to build out the required generation parameters
+func promptAwsEksAuditGenerate(
+	config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs,
+	existingIam *aws_eks_audit.ExistingCrossAccountIamRoleDetails,
+	extraState *AwsEksAuditGenerateCommandExtraState,
+) error {
+	// Cache for later use if generation is abandon and in interactive mode
+	if cli.InteractiveMode() {
+		defer writeAwsEksAuditGenerationArgsCache(config)
+		defer extraState.writeCache()
+	}
+
+	// Set ExistingCrossAccountIamRole details, if provided as cli flags; otherwise don't initialize
+	if existingIam.Arn != "" ||
+		existingIam.ExternalId != "" {
+		config.ExistingCrossAccountIamRole = existingIam
+	}
+
+	// These are the core questions that should be asked.
+	if err := promptAwsEksAuditAdditionalClusterRegionQuestions(config); err != nil {
+		return err
+	}
+
+	// Find out if the customer wants to specify more advanced features
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt: &survey.Confirm{Message: QuestionEksAuditConfigureAdvanced,
+			Default: extraState.AskAdvanced},
+		Response: &extraState.AskAdvanced,
+	}); err != nil {
+		return err
+	}
+
+	// Keep prompting for advanced options until the say done
+	if extraState.AskAdvanced {
+		if err := askAdvancedEksAuditOptions(config, extraState); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
