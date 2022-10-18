@@ -1,3 +1,5 @@
+Command "event" is deprecated, Please use 'lacework alert list' instead.
+
 List all events for the last 7 days by default, or pass --start and --end to
 specify a custom time period. You can also pass --serverity to filter by a
 severity threshold.

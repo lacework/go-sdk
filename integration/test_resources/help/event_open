@@ -1,3 +1,5 @@
+Command "event" is deprecated, Please use 'lacework alert open' instead.
+
 Open a specified event in a web browser.
 
 Usage:
