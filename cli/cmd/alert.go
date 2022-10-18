@@ -86,7 +86,7 @@ func init() {
 
 // Generates a URL similar to:
 //   => https://account.lacework.net/ui/investigation/monitor/AlertInbox/123/details
-func alertLinkBuilder(id int) string {
+func alertLinkBuilder(id int) string { // nolint
 	return fmt.Sprintf("https://%s.lacework.net/ui/investigation/monitor/AlertInbox/%d/details", cli.Account, id)
 }
 
