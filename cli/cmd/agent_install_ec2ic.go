@@ -78,7 +78,7 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
 		"ssh_username", "", "username to login with",
 	)
-	agentInstallAWSSSHCmd.Flags().IntVarP(
+	agentInstallAWSEC2ICCmd.Flags().IntVarP(
 		&agentCmdState.InstallMaxParallelism,
 		"max_parallelism",
 		"n",
