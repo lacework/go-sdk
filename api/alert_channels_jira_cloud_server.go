@@ -27,19 +27,19 @@ import (
 type jiraIssueGrouping int
 
 const (
-	NoJiraIssueGrouping jiraIssueGrouping = iota
+	NoneJiraIssueGrouping jiraIssueGrouping = iota
 	EventsJiraIssueGrouping
 	ResourcesJiraIssueGrouping
 )
 
 var JiraIssueGroupings = map[jiraIssueGrouping]string{
-	NoJiraIssueGrouping:        "",
+	NoneJiraIssueGrouping:      "",
 	EventsJiraIssueGrouping:    "Events",
 	ResourcesJiraIssueGrouping: "Resources",
 }
 
 var JiraIssueGroupingsSurvey = map[string]jiraIssueGrouping{
-	"None":      NoJiraIssueGrouping,
+	"None":      NoneJiraIssueGrouping,
 	"Events":    EventsJiraIssueGrouping,
 	"Resources": ResourcesJiraIssueGrouping,
 }
