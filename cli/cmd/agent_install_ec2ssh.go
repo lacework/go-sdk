@@ -20,8 +20,9 @@ package cmd
 
 import (
 	"fmt"
+	"sync"
 
-	"github.com/pkg/errors"
+	"github.com/gammazero/workerpool"
 	"github.com/spf13/cobra"
 )
 
@@ -96,6 +97,13 @@ func init() {
 	agentInstallAWSSSHCmd.Flags().IntVar(&agentCmdState.InstallSshPort,
 		"ssh_port", 22, "port to connect to on the remote host",
 	)
+	agentInstallAWSSSHCmd.Flags().IntVarP(
+		&agentCmdState.InstallMaxParallelism,
+		"max_parallelism",
+		"n",
+		50,
+		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
+	)
 }
 
 func installAWSSSH(_ *cobra.Command, args []string) error {
@@ -104,44 +112,59 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 		return err
 	}
 
+	wg := new(sync.WaitGroup)
+	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
 	for _, runner := range runners {
-		cli.Log.Debugw("runner info: ",
-			"user", runner.Runner.User,
-			"region", runner.Region,
-			"az", runner.AvailabilityZone,
-			"instance ID", runner.InstanceID,
-			"hostname", runner.Runner.Hostname,
-		)
+		wg.Add(1)
 
-		err := runner.Runner.UseIdentityFile(agentCmdState.InstallIdentityFile)
-		if err != nil {
-			return errors.Wrap(err, "unable to use provided identity file")
-		}
+		// In order to use `cl.Execute()`, the input func() must not take any arguments.
+		// Copy the runner info to dedicated variable in the goroutine to prevent race overwrite
+		runnerCopyWg := new(sync.WaitGroup)
+		runnerCopyWg.Add(1)
 
-		if err := verifyAccessToRemoteHost(&runner.Runner); err != nil {
-			return errors.Wrap(err, "verifyAccessToRemoteHost failed")
-		}
+		wp.Submit(func() {
+			threadRunner := *runner
+			runnerCopyWg.Done()
+			cli.Log.Debugw("threadRunner info: ",
+				"user", threadRunner.Runner.User,
+				"region", threadRunner.Region,
+				"az", threadRunner.AvailabilityZone,
+				"instance_id", threadRunner.InstanceID,
+				"hostname", threadRunner.Runner.Hostname,
+			)
 
-		if alreadyInstalled := isAgentInstalledOnRemoteHost(&runner.Runner); alreadyInstalled != nil {
-			cli.Log.Debugw("agent already installed on host, skipping")
-			continue
-		}
-
-		var token string
-		if len(args) <= 0 || args[0] == "" {
-			// user didn't provide an agent token
+			err := threadRunner.Runner.UseIdentityFile(agentCmdState.InstallIdentityFile)
 			if err != nil {
-				return errors.Wrap(err, "agent token not provided")
+				cli.Log.Warnw("unable to use provided identity file", "err", err, "thread_runner", threadRunner.InstanceID)
 			}
-		} else {
-			token = args[0]
-		}
-		cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
-		err = runInstallCommandOnRemoteHost(&runner.Runner, cmd)
-		if err != nil {
-			return errors.Wrap(err, "runInstallCommandOnRemoteHost failed for instance "+runner.InstanceID)
-		}
+
+			if err := verifyAccessToRemoteHost(&threadRunner.Runner); err != nil {
+				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "thread_runner", threadRunner.InstanceID)
+			}
+
+			if alreadyInstalled := isAgentInstalledOnRemoteHost(&threadRunner.Runner); alreadyInstalled != nil {
+				cli.Log.Debugw("agent already installed on host, skipping", "thread_runner", threadRunner.InstanceID)
+			}
+
+			var token string
+			if len(args) <= 0 || args[0] == "" {
+				// user didn't provide an agent token
+				cli.Log.Warnw("agent token not provided", "thread_runner", threadRunner.InstanceID)
+			} else {
+				token = args[0]
+			}
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
+			if err != nil {
+				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "thread_runner", threadRunner.InstanceID)
+			}
+			wg.Done()
+		})
+		runnerCopyWg.Wait()
 	}
+
+	wg.Wait()
+	wp.StopWait()
 
 	return nil
 }
