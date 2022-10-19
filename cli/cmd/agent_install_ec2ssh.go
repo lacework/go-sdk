@@ -161,9 +161,10 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 			wg.Done()
 		})
 		runnerCopyWg.Wait()
-		wg.Wait()
-		wp.StopWait()
 	}
+
+	wg.Wait()
+	wp.StopWait()
 
 	return nil
 }
