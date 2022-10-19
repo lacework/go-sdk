@@ -33,7 +33,7 @@ type AlertTimelineUser struct {
 }
 
 type AlertTimelineNewIntegrationContext struct {
-	AlertID                string `json:"alertId"`
+	AlertID                int    `json:"alertId"`
 	LastSyncTime           string `json:"lastSyncTime"`
 	AlertIntegrationStatus string `json:"alertIntegrationStatus"`
 	Status                 string `json:"status"`

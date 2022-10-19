@@ -66,7 +66,7 @@ type Alert struct {
 
 type Alerts []Alert
 
-func (a Alerts) SortDescending() []Alert {
+func (a Alerts) SortDescending() Alerts {
 	sort.Slice(a, func(i, j int) bool {
 		return a[i].ID > a[j].ID
 	})
