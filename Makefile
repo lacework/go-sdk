@@ -63,7 +63,6 @@ integration-only: install-tools ## Run integration tests
 		alert_channel \
 		alert_profile \
 		agent \
-		compliance \
 		configure \
 		container_registry \
 		query \
@@ -76,6 +75,8 @@ integration-only: install-tools ## Run integration tests
 		generation \
 		team_member \
 		component" -run=$(regex)
+		# Disable compliance
+		#compliance \
 		# Disable vulnerability tests until https://lacework.atlassian.net/browse/RAIN-37563 is resolved
 		#vulnerability"
 
