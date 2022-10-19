@@ -167,7 +167,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 				)
 
 				if err != nil {
-					cli.Log.Debugw("error identifying runner", "error", err, "instance ID", *instance.InstanceId)
+					cli.Log.Debugw("error identifying runner", "error", err, "instance_id", *instance.InstanceId)
 					continue
 				}
 
@@ -195,7 +195,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 						verifyHostCallback,
 					)
 					if err != nil {
-						cli.Log.Debugw("error identifying runner", "error", err, "instance ID", *threadInstance.InstanceId)
+						cli.Log.Debugw("error identifying runner", "error", err, "instance_id", *threadInstance.InstanceId)
 					}
 
 					runnerCh <- runner
