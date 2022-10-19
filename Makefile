@@ -63,7 +63,6 @@ integration-only: install-tools ## Run integration tests
 		alert_channel \
 		alert_profile \
 		agent \
-		compliance \
 		configure \
 		container_registry \
 		query \
@@ -76,6 +75,8 @@ integration-only: install-tools ## Run integration tests
 		generation \
 		team_member \
 		component" -run=$(regex)
+		# Disable compliance
+		#compliance \
 		# Disable vulnerability tests until https://lacework.atlassian.net/browse/RAIN-37563 is resolved
 		#vulnerability"
 
@@ -165,6 +166,8 @@ test-resources: ## *CI ONLY* Prepares CI test containers
 install-cli: build-cli-cross-platform ## Build and install the Lacework CLI binary at /usr/local/bin/lacework
 ifeq (x86_64, $(shell uname -m))
 	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-amd64 /usr/local/bin/$(CLINAME)
+else ifeq (arm64, $(shell uname -m))
+	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-arm64 /usr/local/bin/$(CLINAME)
 else
 	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-386 /usr/local/bin/$(CLINAME)
 endif

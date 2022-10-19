@@ -88,6 +88,7 @@ const (
 	AwsCtSqsCloudAccount
 	AwsEksAuditCloudAccount
 	AwsSidekickCloudAccount
+	AwsSidekickOrgCloudAccount
 	AwsUsGovCfgCloudAccount
 	AwsUsGovCtSqsCloudAccount
 	AzureAlSeqCloudAccount
@@ -99,18 +100,19 @@ const (
 
 // CloudAccountTypes is the list of available Cloud Account integration types
 var CloudAccountTypes = map[cloudAccountType]string{
-	NoneCloudAccount:          "None",
-	AwsCfgCloudAccount:        "AwsCfg",
-	AwsCtSqsCloudAccount:      "AwsCtSqs",
-	AwsEksAuditCloudAccount:   "AwsEksAudit",
-	AwsSidekickCloudAccount:   "AwsSidekick",
-	AwsUsGovCfgCloudAccount:   "AwsUsGovCfg",
-	AwsUsGovCtSqsCloudAccount: "AwsUsGovCtSqs",
-	AzureAlSeqCloudAccount:    "AzureAlSeq",
-	AzureCfgCloudAccount:      "AzureCfg",
-	GcpAtSesCloudAccount:      "GcpAtSes",
-	GcpCfgCloudAccount:        "GcpCfg",
-	GcpGkeAuditCloudAccount:   "GcpGkeAudit",
+	NoneCloudAccount:           "None",
+	AwsCfgCloudAccount:         "AwsCfg",
+	AwsCtSqsCloudAccount:       "AwsCtSqs",
+	AwsEksAuditCloudAccount:    "AwsEksAudit",
+	AwsSidekickCloudAccount:    "AwsSidekick",
+	AwsSidekickOrgCloudAccount: "AwsSidekickOrg",
+	AwsUsGovCfgCloudAccount:    "AwsUsGovCfg",
+	AwsUsGovCtSqsCloudAccount:  "AwsUsGovCtSqs",
+	AzureAlSeqCloudAccount:     "AzureAlSeq",
+	AzureCfgCloudAccount:       "AzureCfg",
+	GcpAtSesCloudAccount:       "GcpAtSes",
+	GcpCfgCloudAccount:         "GcpCfg",
+	GcpGkeAuditCloudAccount:    "GcpGkeAudit",
 }
 
 // String returns the string representation of a Cloud Account integration type

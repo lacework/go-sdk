@@ -28,27 +28,27 @@ import (
 
 var (
 	agentInstallAWSEC2ICCmd = &cobra.Command{
-		Use:   "ec2ic",
-		Args:  cobra.NoArgs,
+		Use:   "ec2ic <token>",
+		Args:  cobra.ExactArgs(1),
 		Short: "Use EC2InstanceConnect to securely connect to EC2 instances",
 		RunE:  installAWSEC2IC,
 		Long: `This command installs the agent on all EC2 instances in an AWS account using EC2InstanceConnect.
 
 To filter by one or more regions:
 
-    lacework agent aws-install ec2ic --include_regions us-west-2,us-east-2
+    lacework agent aws-install ec2ic <token> --include_regions us-west-2,us-east-2
 
 To filter by instance tag:
 
-    lacework agent aws-install ec2ic --tag TagName,TagValue
+    lacework agent aws-install ec2ic <token> --tag TagName,TagValue
 
 To filter by instance tag key:
 
-    lacework agent aws-install ec2ic --tag_key TagName
+    lacework agent aws-install ec2ic <token> --tag_key TagName
 
 To explicitly specify the username for all SSH logins:
 
-    lacework agent aws-install ec2ic --ssh_username <your-user>
+    lacework agent aws-install ec2ic <token> --ssh_username <your-user>
 
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
@@ -69,9 +69,6 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().StringSliceVar(&agentCmdState.InstallTag,
 		"tag", []string{}, "only install agents on infra with this tag",
 	)
-	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
-		"token", "", "agent access token (mandatory)",
-	)
 	agentInstallAWSEC2ICCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", true, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
@@ -84,7 +81,7 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().IntVarP(&agentCmdState.InstallMaxParallelism, "max_parallelism", "n", 50, "maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal")
 }
 
-func installAWSEC2IC(_ *cobra.Command, _ []string) error {
+func installAWSEC2IC(_ *cobra.Command, args []string) error {
 	runners, err := awsDescribeInstances()
 	if err != nil {
 		return err
@@ -123,9 +120,12 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 				cli.Log.Debugw("agent already installed on host, skipping", "runner", threadRunner.InstanceID)
 			}
 
-			token := agentCmdState.InstallAgentToken
-			if token == "" {
+			var token string
+			if len(args) <= 0 || args[0] == "" {
+				// user didn't provide an agent token
 				cli.Log.Warnw("agent token not provided", "runner", threadRunner.InstanceID)
+			} else {
+				token = args[0]
 			}
 			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
