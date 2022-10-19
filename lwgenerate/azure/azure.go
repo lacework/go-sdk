@@ -54,6 +54,8 @@ type GenerateAzureTfConfigurationArgs struct {
 
 	// Azure region where the storage account for logging resides
 	StorageLocation string
+
+	LaceworkProfile string
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -189,6 +191,12 @@ func WithStorageLocation(location string) AzureTerraformModifier {
 	}
 }
 
+func WithLaceworkProfile(name string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.LaceworkProfile = name
+	}
+}
+
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
@@ -202,6 +210,11 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
 
+	laceworkProvider, err := createLaceworkProvider(args)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to generate lacework provider")
+	}
+
 	azureADProvider, err := createAzureADProvider()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate AD provider")
@@ -212,9 +225,9 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate AM provider")
 	}
 
-	laceworkProvider, err := createLaceworkAzureADModule(args)
+	laceworkADProvider, err := createLaceworkAzureADModule(args)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to generate lacework provider")
+		return "", errors.Wrap(err, "failed to generate lacework Azure AD provider")
 	}
 
 	configModule, err := createConfig(args)
@@ -231,9 +244,10 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 	hclBlocks := lwgenerate.CreateHclStringOutput(
 		lwgenerate.CombineHclBlocks(
 			requiredProviders,
+			laceworkProvider,
 			azureADProvider,
 			azureRMProvider,
-			laceworkProvider,
+			laceworkADProvider,
 			configModule,
 			activityLogModule),
 	)
@@ -242,6 +256,11 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 
 func createRequiredProviders() (*hclwrite.Block, error) {
 	return lwgenerate.CreateRequiredProviders(
+		lwgenerate.NewRequiredProvider(
+			"lacework",
+			lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
+			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.LaceworkProviderVersion),
+		),
 		lwgenerate.NewRequiredProvider(
 			"azuread",
 			lwgenerate.HclRequiredProviderWithSource(lwgenerate.HashAzureADProviderSource),
@@ -253,6 +272,16 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.HashAzureRMProviderVersion),
 		),
 	)
+}
+
+func createLaceworkProvider(args *GenerateAzureTfConfigurationArgs) (*hclwrite.Block, error) {
+	if args.LaceworkProfile != "" {
+		return lwgenerate.NewProvider(
+			"lacework",
+			lwgenerate.HclProviderWithAttributes(map[string]interface{}{"profile": args.LaceworkProfile}),
+		).ToBlock()
+	}
+	return nil, nil
 }
 
 func createAzureADProvider() ([]*hclwrite.Block, error) {

@@ -1,8 +1,9 @@
 package gcp
 
 import (
+	"sort"
+
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/lacework/go-sdk/internal/array"
 	"github.com/lacework/go-sdk/internal/unique"
 	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/pkg/errors"
@@ -133,19 +134,19 @@ func (args *GenerateGcpTfConfigurationArgs) validate() error {
 
 	// Validate if this is an organization integration, verify that the organization id has been provided
 	if args.OrganizationIntegration && args.GcpOrganizationId == "" {
-		return errors.New("An Organization ID must be provided for an Organization Integration")
+		return errors.New("an Organization ID must be provided for an Organization Integration")
 	}
 
 	// Validate if an organization id has been provided that this is and organization integration
 	if !args.OrganizationIntegration && args.GcpOrganizationId != "" {
-		return errors.New("To provide an Organization ID, Organization Integration must be true")
+		return errors.New("to provide an Organization ID, Organization Integration must be true")
 	}
 
 	// Validate existing Service Account values, if set
 	if args.ExistingServiceAccount != nil {
 		if args.ExistingServiceAccount.Name == "" ||
 			args.ExistingServiceAccount.PrivateKey == "" {
-			return errors.New("When using an existing Service Account, existing name, and base64 encoded JSON Private Key fields all must be set")
+			return errors.New("when using an existing Service Account, existing name, and base64 encoded JSON Private Key fields all must be set")
 		}
 	}
 
@@ -377,12 +378,12 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
 
-	gcpProvider, err := createGcpProvider(args)
+	gcpProvider, err := createGcpProvider(args.ServiceAccountCredentials, args.GcpProjectId)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate gcp provider")
 	}
 
-	laceworkProvider, err := createLaceworkProvider(args)
+	laceworkProvider, err := createLaceworkProvider(args.LaceworkProfile)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate lacework provider")
 	}
@@ -419,16 +420,25 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 	)
 }
 
-func createGcpProvider(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
-	blocks := []*hclwrite.Block{}
+func createLaceworkProvider(laceworkProfile string) (*hclwrite.Block, error) {
+	if laceworkProfile != "" {
+		return lwgenerate.NewProvider(
+			"lacework",
+			lwgenerate.HclProviderWithAttributes(map[string]interface{}{"profile": laceworkProfile}),
+		).ToBlock()
+	}
+	return nil, nil
+}
+
+func createGcpProvider(serviceAccountCredentials string, projectId string) ([]*hclwrite.Block, error) {
 	attrs := map[string]interface{}{}
 
-	if args.ServiceAccountCredentials != "" {
-		attrs["credentials"] = args.ServiceAccountCredentials
+	if serviceAccountCredentials != "" {
+		attrs["credentials"] = serviceAccountCredentials
 	}
 
-	if args.GcpProjectId != "" {
-		attrs["project"] = args.GcpProjectId
+	if projectId != "" {
+		attrs["project"] = projectId
 	}
 
 	provider, err := lwgenerate.NewProvider(
@@ -439,19 +449,9 @@ func createGcpProvider(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block,
 		return nil, err
 	}
 
-	blocks = append(blocks, provider)
+	blocks := []*hclwrite.Block{provider}
 
 	return blocks, nil
-}
-
-func createLaceworkProvider(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, error) {
-	if args.LaceworkProfile != "" {
-		return lwgenerate.NewProvider(
-			"lacework",
-			lwgenerate.HclProviderWithAttributes(map[string]interface{}{"profile": args.LaceworkProfile}),
-		).ToBlock()
-	}
-	return nil, nil
 }
 
 func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
@@ -469,11 +469,15 @@ func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Bloc
 			attributes["organization_id"] = args.GcpOrganizationId
 
 			if len(args.FoldersToInclude) > 0 {
-				attributes["folders_to_include"] = array.SortStrings(unique.StringSlice(args.FoldersToInclude))
+				set := unique.StringSlice(args.FoldersToInclude)
+				sort.Strings(set)
+				attributes["folders_to_include"] = set
 			}
 
 			if len(args.FoldersToExclude) > 0 {
-				attributes["folders_to_exclude"] = array.SortStrings(unique.StringSlice(args.FoldersToExclude))
+				set := unique.StringSlice(args.FoldersToExclude)
+				sort.Strings(set)
+				attributes["folders_to_exclude"] = set
 
 				// Default true in gcp-audit-log TF module
 				if args.IncludeRootProjects != true {
@@ -583,11 +587,15 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			attributes["organization_id"] = args.GcpOrganizationId
 
 			if len(args.FoldersToInclude) > 0 {
-				attributes["folders_to_include"] = array.SortStrings(unique.StringSlice(args.FoldersToInclude))
+				set := unique.StringSlice(args.FoldersToInclude)
+				sort.Strings(set)
+				attributes["folders_to_include"] = set
 			}
 
 			if len(args.FoldersToExclude) > 0 {
-				attributes["folders_to_exclude"] = array.SortStrings(unique.StringSlice(args.FoldersToExclude))
+				set := unique.StringSlice(args.FoldersToExclude)
+				sort.Strings(set)
+				attributes["folders_to_exclude"] = set
 
 				// Default true in gcp-audit-log TF module
 				if args.IncludeRootProjects != true {

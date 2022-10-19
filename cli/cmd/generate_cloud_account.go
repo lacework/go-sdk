@@ -6,8 +6,12 @@ var (
 	generateCloudAccountCommand = &cobra.Command{
 		Use:     "cloud-account",
 		Aliases: []string{"cloud", "ca"},
-		Short:   "Generate Lacework integration IaC",
-		Long:    "Generate Lacework integration IaC for cloud environment(s)",
+		Short:   "Generate cloud integration IaC",
+		Long: `Generate cloud-account IaC to deploy Lacework into a cloud environment.
+
+This command creates Infrastructure as Code (IaC) in the form of Terraform HCL, with the option of running
+Terraform and deploying Lacework into AWS, Azure, or GCP.
+`,
 	}
 )
 

@@ -221,3 +221,13 @@ func TestGenerationLocation(t *testing.T) {
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogLocation, hcl)
 }
+
+func TestGenerationWithLaceworkProvider(t *testing.T) {
+	laceworkProfile, fileErr := getFileContent("test-data/activity-log-with-lacework-profile.tf")
+	assert.Nil(t, fileErr)
+
+	hcl, err := azure.NewTerraform(false, true, true, azure.WithLaceworkProfile("test-profile")).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, laceworkProfile, hcl)
+}

@@ -102,29 +102,53 @@ func TestGcpGenerationCache(t *testing.T) {
 	})
 }
 
-func TestValidateSaCredFile(t *testing.T) {
-	t.Run("JSON credentials file with client_email and private_key is valid", func(t *testing.T) {
-		err := validateServiceAccountCredentialsFile("test_resources/generate_gcp_test_data/private_key_client_email_valid.json")
-		assert.Equal(t, err, nil)
-	})
+func TestValidateGcpProjectId(t *testing.T) {
+	tests := []struct {
+		input string
+		error bool
+		desc  string
+	}{
+		{
+			"valid123-1",
+			false,
+			"Valid project ID",
+		},
+		{
+			"test1",
+			true,
+			"Too short",
+		},
+		{
+			"1invalid-1",
+			true,
+			"Starts with digit",
+		},
+		{
+			"-k1",
+			true,
+			"Starts with hyphen",
+		},
+		{
+			"long-invalid-123456789-invalid1",
+			true,
+			"Too long",
+		},
+		{
+			"invalid-123$",
+			true,
+			"Invalid character",
+		},
+	}
 
-	t.Run("JSON credentials file without client_email is not  valid", func(t *testing.T) {
-		err := validateServiceAccountCredentialsFile("test_resources/generate_gcp_test_data/creds_no_client_email.json")
-		assert.EqualError(t, err, "invalid GCP Service Account credentials file. The private_key and client_email fields MUST be present.")
-	})
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			err := validateGcpProjectId(tc.input)
 
-	t.Run("JSON credentials file without private_key is not valid", func(t *testing.T) {
-		err := validateServiceAccountCredentialsFile("test_resources/generate_gcp_test_data/creds_no_private_key.json")
-		assert.EqualError(t, err, "invalid GCP Service Account credentials file. The private_key and client_email fields MUST be present.")
-	})
-
-	t.Run("invalid JSON file", func(t *testing.T) {
-		err := validateServiceAccountCredentialsFile("test_resources/generate_gcp_test_data/invalid_json.json")
-		assert.EqualError(t, err, "unable to parse credentials file: invalid character '}' looking for beginning of object key string")
-	})
-
-	t.Run("non existent JSON file", func(t *testing.T) {
-		err := validateServiceAccountCredentialsFile("test_resources/generate_gcp_test_data/foo.json")
-		assert.EqualError(t, err, "provided GCP credentials file does not exist")
-	})
+			if tc.error {
+				assert.Error(t, err, "Expected error")
+			} else {
+				assert.Nil(t, err, "Expected no error")
+			}
+		})
+	}
 }

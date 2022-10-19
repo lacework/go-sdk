@@ -1,6 +1,6 @@
 Generate code to onboard your account and deploy Lacework into various cloud environments.
 
-This command creates Terraform HCL, Infrastructure as Code, with the option of running
+This command creates Infrastructure as Code (IaC) in the form of Terraform HCL, with the option of running
 Terraform and deploying Lacework into AWS, Azure, or GCP.
 
 Usage:
@@ -10,7 +10,8 @@ Aliases:
   generate, gen
 
 Available Commands:
-  cloud-account Generate Lacework integration IaC
+  cloud-account Generate cloud integration IaC
+  k8s           Generate Kubernetes integration IaC
 
 Flags:
   -h, --help   help for generate

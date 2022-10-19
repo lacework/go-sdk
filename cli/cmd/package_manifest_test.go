@@ -162,7 +162,7 @@ func TestFanOutHostScans(t *testing.T) {
 	subject, err = fanOutHostScans(&api.PackageManifest{})
 	if assert.NotNil(t, err) {
 		assert.Contains(t, err.Error(),
-			"[403] Unauthorized Access", // intentional error since we are mocking the api token
+			"[403] User not authorized.", // intentional error since we are mocking the api token
 		)
 	}
 	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)

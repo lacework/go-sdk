@@ -162,8 +162,13 @@ By default, this command will function interactively, prompting for the required
 			// Generate TF Code
 			cli.StartProgress("Generating Azure Terraform Code...")
 
+			if cli.Profile != "default" {
+				GenerateAzureCommandState.LaceworkProfile = cli.Profile
+			}
+
 			// Setup modifiers for NewTerraform constructor
 			mods := []azure.AzureTerraformModifier{
+				azure.WithLaceworkProfile(GenerateAzureCommandState.LaceworkProfile),
 				azure.WithAllSubscriptions(GenerateAzureCommandState.AllSubscriptions),
 				azure.WithManagementGroup(GenerateAzureCommandState.ManagementGroup),
 				azure.WithExistingStorageAccount(GenerateAzureCommandState.ExistingStorageAccount),
@@ -687,7 +692,7 @@ func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, ext
 }
 
 func azureConfigIsEmpty(config *azure.GenerateAzureTfConfigurationArgs) bool {
-	return !config.Config && !config.ActivityLog
+	return !config.Config && !config.ActivityLog && config.LaceworkProfile == ""
 }
 
 func allSubscriptionsDisabled(config *azure.GenerateAzureTfConfigurationArgs) *bool {

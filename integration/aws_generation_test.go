@@ -68,7 +68,7 @@ func TestGenerationAwsSimple(t *testing.T) {
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
 		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -126,7 +126,7 @@ func TestGenerationAwsCustomizedOutputLocation(t *testing.T) {
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
 		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
 	).Generate()
 	assert.Equal(t, buildTf, string(result))
@@ -165,7 +165,7 @@ func TestGenerationAwsConfigOnly(t *testing.T) {
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, false,
 		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -210,7 +210,7 @@ func TestGenerationAwsAdvancedOptsDone(t *testing.T) {
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
 		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -286,7 +286,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 		aws.UseConsolidatedCloudtrail(),
 		aws.EnableForceDestroyS3Bucket(),
 		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -355,7 +355,7 @@ func TestGenerationAwsAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 	buildTf, _ := aws.NewTerraform(region, true, true,
 		aws.ExistingCloudtrailBucketArn("arn:aws:s3:::bucket_name"),
 		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -451,7 +451,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 		aws.WithAwsProfile("default"),
 		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
 		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -575,7 +575,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *tes
 		aws.WithAwsProfile("default"),
 		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
 		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -630,7 +630,7 @@ func TestGenerationAwsAdvancedOptsUseExistingIAM(t *testing.T) {
 	buildTf, _ := aws.NewTerraform(region, true, true,
 		aws.UseExistingIamRole(aws.NewExistingIamRoleDetails(roleName, roleArn, roleExtId)),
 		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -778,8 +778,8 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithBucketSSEKeyArn(kmsArn),
 		aws.WithSnsTopicName(topicName),
-		aws.WithSnsEncryptionEnabled(true),
-		aws.WithSnsEncryptionKeyArn(kmsArn),
+		aws.WithSnsTopicEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionKeyArn(kmsArn),
 		aws.WithSqsQueueName(queueName),
 		aws.WithSqsEncryptionEnabled(true),
 		aws.WithSqsEncryptionKeyArn(kmsArn),
@@ -962,6 +962,44 @@ func TestGenerationAwsOverwriteOutput(t *testing.T) {
 	)
 
 	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
+}
+
+func TestGenerationAwsLaceworkProfile(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	region := "us-west-2"
+	awsProfile := "v2"
+
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, cmd.QuestionAwsEnableConfig)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionEnableCloudtrail)
+			c.SendLine("y")
+			expectString(t, c, cmd.QuestionAwsRegion)
+			c.SendLine(region)
+			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
+			c.SendLine("n")
+			expectString(t, c, cmd.QuestionRunTfPlan)
+			c.SendLine("n")
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+		"--profile",
+		awsProfile,
+	)
+
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := aws.NewTerraform(region, true, true,
+		aws.WithLaceworkProfile(awsProfile),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
 }
 
 func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
