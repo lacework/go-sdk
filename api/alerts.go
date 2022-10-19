@@ -64,7 +64,16 @@ type Alert struct {
 }
 
 type AlertsResponse struct {
-	Data []Alert `json:"data"`
+	Data   []Alert      `json:"data"`
+	Paging V2Pagination `json:"paging"`
+}
+
+// Fulfill Pageable interface (look at api/v2.go)
+func (r AlertsResponse) PageInfo() *V2Pagination {
+	return &r.Paging
+}
+func (r *AlertsResponse) ResetPaging() {
+	r.Paging = V2Pagination{}
 }
 
 func (svc *AlertsService) List() (
