@@ -133,8 +133,6 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 			} else {
 				token = args[0]
 			}
-			if token == "" {
-			}
 			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
