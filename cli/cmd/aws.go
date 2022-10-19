@@ -27,7 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/korovkin/limiter"
+	"github.com/gammazero/workerpool"
 	"github.com/lacework/go-sdk/lwrunner"
 )
 
@@ -142,7 +142,8 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 
 	runners := []*lwrunner.AWSRunner{}
 	producerWg := new(sync.WaitGroup)
-	cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
+	// cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
+	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
 	runnerCh := make(chan *lwrunner.AWSRunner)
 
 	// We have multiple producers of runners and a single consumer.
@@ -178,7 +179,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 				instanceCopyWg := new(sync.WaitGroup)
 				instanceCopyWg.Add(1)
 
-				_, err := cl.Execute(func() {
+				wp.Submit(func() {
 					threadInstance := instance
 					instanceCopyWg.Done()
 					cli.Log.Debugw("found runner",
@@ -202,9 +203,6 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 					producerWg.Done()
 				})
 				instanceCopyWg.Wait()
-				if err != nil { // this value of error will only be non-nil if the goroutine failed to start
-					return nil, err
-				}
 			}
 		}
 	}
@@ -212,7 +210,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 	// Wait for the producers to finish, then close the producer thread pool,
 	// then close the channel they're writing to, then wait for the consumer to finish
 	producerWg.Wait()
-	cl.WaitAndClose()
+	wp.StopWait()
 	close(runnerCh)
 	consumerWg.Wait()
 

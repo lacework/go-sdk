@@ -157,6 +157,12 @@ github.com/fatih/structs
 # github.com/fsnotify/fsnotify v1.5.4
 ## explicit; go 1.16
 github.com/fsnotify/fsnotify
+# github.com/gammazero/deque v0.2.0
+## explicit; go 1.18
+github.com/gammazero/deque
+# github.com/gammazero/workerpool v1.1.3
+## explicit; go 1.18
+github.com/gammazero/workerpool
 # github.com/google/btree v1.0.1
 ## explicit; go 1.12
 github.com/google/btree
@@ -241,9 +247,6 @@ github.com/klauspost/compress/internal/cpuinfo
 github.com/klauspost/compress/internal/snapref
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
-# github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
-## explicit; go 1.17
-github.com/korovkin/limiter
 # github.com/kr/pty v1.1.8 => github.com/creack/pty v1.1.7
 ## explicit
 github.com/kr/pty

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/korovkin/limiter"
+	"github.com/gammazero/workerpool"
 	"github.com/spf13/cobra"
 )
 
@@ -94,7 +94,7 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 	}
 
 	wg := new(sync.WaitGroup)
-	cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
+	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
 	for _, runner := range runners {
 		wg.Add(1)
 
@@ -103,7 +103,7 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 		runnerCopyWg := new(sync.WaitGroup)
 		runnerCopyWg.Add(1)
 
-		_, err := cl.Execute(func() {
+		wp.Submit(func() {
 			threadRunner := *runner
 			runnerCopyWg.Done()
 			cli.Log.Debugw("runner info: ",
@@ -146,12 +146,9 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 			wg.Done()
 		})
 		runnerCopyWg.Wait()
-		if err != nil { // this value of error will only be non-nil if the goroutine failed to start
-			return err
-		}
 	}
 	wg.Wait()
-	cl.WaitAndClose()
+	wp.StopWait()
 
 	return nil
 }
