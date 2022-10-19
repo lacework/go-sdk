@@ -17,6 +17,7 @@ require (
 	github.com/briandowns/spinner v1.17.0
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structs v1.1.0
+	github.com/gammazero/workerpool v1.1.3
 	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/hc-install v0.4.0
 	github.com/hashicorp/hcl/v2 v2.14.1
@@ -26,7 +27,6 @@ require (
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/honeycombio/libhoney-go v1.17.0
 	github.com/imdario/mergo v0.3.13
-	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 	github.com/kyokomi/emoji/v2 v2.2.10
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.5.0
@@ -64,6 +64,7 @@ require (
 	github.com/facebookgo/limitgroup v0.0.0-20150612190941-6abd8d71ec01 // indirect
 	github.com/facebookgo/muster v0.0.0-20150708232844-fd3d7953fd52 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/gammazero/deque v0.2.0 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect

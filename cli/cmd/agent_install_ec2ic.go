@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/korovkin/limiter"
+	"github.com/gammazero/workerpool"
 	"github.com/spf13/cobra"
 )
 
@@ -78,7 +78,13 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
 		"ssh_username", "", "username to login with",
 	)
-	agentInstallAWSEC2ICCmd.Flags().IntVarP(&agentCmdState.InstallMaxParallelism, "max_parallelism", "n", 50, "maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal")
+	agentInstallAWSSSHCmd.Flags().IntVarP(
+		&agentCmdState.InstallMaxParallelism,
+		"max_parallelism",
+		"n",
+		50,
+		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
+	)
 }
 
 func installAWSEC2IC(_ *cobra.Command, args []string) error {
@@ -88,7 +94,7 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 	}
 
 	wg := new(sync.WaitGroup)
-	cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
+	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
 	for _, runner := range runners {
 		wg.Add(1)
 
@@ -97,14 +103,14 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 		runnerCopyWg := new(sync.WaitGroup)
 		runnerCopyWg.Add(1)
 
-		_, err := cl.Execute(func() {
+		wp.Submit(func() {
 			threadRunner := *runner
 			runnerCopyWg.Done()
 			cli.Log.Debugw("runner info: ",
 				"user", threadRunner.Runner.User,
 				"region", threadRunner.Region,
 				"az", threadRunner.AvailabilityZone,
-				"instance ID", threadRunner.InstanceID,
+				"instance_id", threadRunner.InstanceID,
 				"hostname", threadRunner.Runner.Hostname,
 			)
 			err := threadRunner.SendAndUseIdentityFile()
@@ -127,23 +133,22 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 			} else {
 				token = args[0]
 			}
+			if token == "" {
+			}
 			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
 			}
 			if threadRunner != *runner {
-				cli.Log.Debugw("mutated runner", "threadRunner", threadRunner, "runner", runner)
+				cli.Log.Debugw("mutated runner", "thread_runner", threadRunner, "runner", runner)
 			}
 			wg.Done()
 		})
 		runnerCopyWg.Wait()
-		if err != nil { // this value of error will only be non-nil if the goroutine failed to start
-			return err
-		}
 	}
 	wg.Wait()
-	cl.WaitAndClose()
+	wp.StopWait()
 
 	return nil
 }

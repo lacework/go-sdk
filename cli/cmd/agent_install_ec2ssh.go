@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/korovkin/limiter"
+	"github.com/gammazero/workerpool"
 	"github.com/spf13/cobra"
 )
 
@@ -97,7 +97,13 @@ func init() {
 	agentInstallAWSSSHCmd.Flags().IntVar(&agentCmdState.InstallSshPort,
 		"ssh_port", 22, "port to connect to on the remote host",
 	)
-	agentInstallAWSSSHCmd.Flags().IntVarP(&agentCmdState.InstallMaxParallelism, "max_parallelism", "n", 50, "maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal")
+	agentInstallAWSSSHCmd.Flags().IntVarP(
+		&agentCmdState.InstallMaxParallelism,
+		"max_parallelism",
+		"n",
+		50,
+		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
+	)
 }
 
 func installAWSSSH(_ *cobra.Command, args []string) error {
@@ -107,7 +113,7 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 	}
 
 	wg := new(sync.WaitGroup)
-	cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
+	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
 	for _, runner := range runners {
 		wg.Add(1)
 
@@ -116,56 +122,49 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 		runnerCopyWg := new(sync.WaitGroup)
 		runnerCopyWg.Add(1)
 
-		_, err := cl.Execute(func() {
+		wp.Submit(func() {
 			threadRunner := *runner
 			runnerCopyWg.Done()
 			cli.Log.Debugw("threadRunner info: ",
 				"user", threadRunner.Runner.User,
 				"region", threadRunner.Region,
 				"az", threadRunner.AvailabilityZone,
-				"instance ID", threadRunner.InstanceID,
+				"instance_id", threadRunner.InstanceID,
 				"hostname", threadRunner.Runner.Hostname,
 			)
 
 			err := threadRunner.Runner.UseIdentityFile(agentCmdState.InstallIdentityFile)
 			if err != nil {
-				cli.Log.Warnw("unable to use provided identity file", "err", err, "threadRunner", threadRunner.InstanceID)
+				cli.Log.Warnw("unable to use provided identity file", "err", err, "thread_runner", threadRunner.InstanceID)
 			}
 
 			if err := verifyAccessToRemoteHost(&threadRunner.Runner); err != nil {
-				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "threadRunner", threadRunner.InstanceID)
+				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "thread_runner", threadRunner.InstanceID)
 			}
 
 			if alreadyInstalled := isAgentInstalledOnRemoteHost(&threadRunner.Runner); alreadyInstalled != nil {
-				cli.Log.Debugw("agent already installed on host, skipping", "threadRunner", threadRunner.InstanceID)
+				cli.Log.Debugw("agent already installed on host, skipping", "thread_runner", threadRunner.InstanceID)
 			}
 
 			var token string
 			if len(args) <= 0 || args[0] == "" {
 				// user didn't provide an agent token
-				cli.Log.Warnw("agent token not provided", "threadRunner", threadRunner.InstanceID)
+				cli.Log.Warnw("agent token not provided", "thread_runner", threadRunner.InstanceID)
 			} else {
 				token = args[0]
 			}
 			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
-				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "threadRunner", threadRunner.InstanceID)
+				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "thread_runner", threadRunner.InstanceID)
 			}
 			wg.Done()
 		})
 		runnerCopyWg.Wait()
-		if err != nil { // this value of error will only be non-nil if the goroutine failed to start
-			return err
-		}
-		wg.Wait()
-		err = cl.WaitAndClose()
-		if err != nil {
-			return err
-		}
-
-		return nil
 	}
+
+	wg.Wait()
+	wp.StopWait()
 
 	return nil
 }
