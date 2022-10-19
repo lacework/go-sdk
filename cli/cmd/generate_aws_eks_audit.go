@@ -16,10 +16,13 @@ import (
 
 var (
 	// Define question text here, so they can be reused in testing
-	QuestionEksAuditRegionClusterReplace = "Currently configured regions: %s, replace?"
-	QuestionEksAuditRegion               = "Specify the AWS region:"
-	QuestionEksAuditAdditionalRegion     = "Configure another AWS region?"
-	QuestionEksAuditRegionClusters       = "Specify the list of clusters in region to ingest EKS Audit Logs:"
+	QuestionEksAuditMultiRegion          = "Integrate cluster(s) in more than one region?"
+	QuestionEksAuditRegionClusterCurrent = "Currently configured regions & clusters: %s. " +
+		"Configure additional?"
+	QuestionEksAuditRegion         = "Specify AWS region:"
+	QuestionEksAuditRegionClusters = "Specify a comma seperated list of clusters in region" +
+		" to ingest EKS Audit Logs:"
+	QuestionEksAuditAdditionalRegion = "Configure another AWS region?"
 
 	QuestionEksAuditConfigureAdvanced = "Configure advanced integration options?"
 
@@ -29,8 +32,8 @@ var (
 	QuestionEksAuditMfaDeleteS3Bucket    = "Should MFA object deletion be required for the new bucket?"
 	QuestionEksAuditForceDestroyS3Bucket = "Should force destroy be enabled for the new bucket?"
 	QuestionEksAuditBucketEncryption     = "Should encryption be enabled for the new bucket?"
-	QuestionEksAuditBucketSseAlgorithm   = "Specify the bucket SSE Algorithm:"
-	QuestionEksAuditBucketKeyArn         = "Specify the bucket existing SSE KMS key ARN: (optional)"
+	QuestionEksAuditBucketSseAlgorithm   = "Specify the bucket SSE Algorithm: (optional)"
+	QuestionEksAuditBucketKeyArn         = "Specify the bucket existing SSE KMS key ARN:"
 	QuestionEksAuditBucketLifecycle      = "Specify the bucket lifecycle expiration days: (optional)"
 	QuestionEksAuditKmsKeyRotation       = "Should the kms key have rotation enabled?"
 	QuestionEksAuditKmsKeyDeletionDays   = "Specify the kms key deletion days: (optional)"
@@ -45,7 +48,7 @@ var (
 	QuestionEksAuditExistingCwIamArn = "Specify an existing Cloudwatch IAM role ARN:"
 
 	// Firehose Questions
-	EksAuditConfigureFh                = "Configure Firehose IAM settings"
+	EksAuditConfigureFh                = "Configure Firehose settings"
 	QuestionEksAuditExistingFhIamRole  = "Use existing Firehose IAM role?"
 	QuestionEksAuditExistingFhIamArn   = "Specify an existing Firehose IAM role ARN:"
 	QuestionEksAuditFhEnableEncryption = "Enable encryption on Firehose when creating?"
@@ -119,8 +122,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws_eks_audit.WithFirehoseEncryptionKeyArn(GenerateAwsEksAuditCommandState.FirehoseEncryptionKeyArn),
 				aws_eks_audit.WithKmsKeyDeletionDays(GenerateAwsEksAuditCommandState.KmsKeyDeletionDays),
 				aws_eks_audit.WithPrefix(GenerateAwsEksAuditCommandState.Prefix),
-				aws_eks_audit.WithRegionClusterMap(GenerateAwsEksAuditCommandState.ParsedRegionClusterMap),
-				aws_eks_audit.WithClusterRegionList(GenerateAwsEksAuditCommandState.ParsedRegionList),
+				aws_eks_audit.WithParsedRegionClusterMap(GenerateAwsEksAuditCommandState.ParsedRegionClusterMap),
 				aws_eks_audit.WithSnsTopicEncryptionKeyArn(GenerateAwsEksAuditCommandState.SnsTopicEncryptionKeyArn),
 				aws_eks_audit.WithLaceworkProfile(GenerateAwsEksAuditCommandState.LaceworkProfile),
 			}
@@ -251,12 +253,14 @@ See help output for more details on the parameter value(s) required for Terrafor
 			if cli.InteractiveMode() {
 				cachedOptions := &aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs{}
 				iacParamsExpired := cli.ReadCachedAsset(CachedAssetAwsEksAuditIacParams, &cachedOptions)
+				cli.Log.Debug(fmt.Sprintf("iacParamsExpired: %s", iacParamsExpired))
 				if iacParamsExpired {
 					cli.Log.Debug("loaded previously set values for AWS EKS Audit iac generation")
 				}
 
 				extraState := &AwsEksAuditGenerateCommandExtraState{}
 				extraStateParamsExpired := cli.ReadCachedAsset(CachedAssetAwsEksAuditExtraState, &extraState)
+				cli.Log.Debug(fmt.Sprintf("extraStateParamsExpired: %s", extraStateParamsExpired))
 				if extraStateParamsExpired {
 					cli.Log.Debug("loaded previously set values for AWS EKS Audit iac generation (extra state)")
 				}
@@ -289,25 +293,22 @@ See help output for more details on the parameter value(s) required for Terrafor
 			// Parse regions passed as part of the region cluster map
 			if len(GenerateAwsEksAuditCommandState.RegionClusterMap) > 0 {
 				// validate the format of supplied values is correct
-				for key := range GenerateAwsEksAuditCommandState.RegionClusterMap {
-					if err := validateStringWithRegex(key, AwsEksAuditRegionRegex, "invalid region name supplied"); err != nil {
-						return err
-					}
-				}
 
 				var awsParsedRegionClusterMap map[string][]string
-				var regionsList []string
 				for region, clusters := range GenerateAwsEksAuditCommandState.RegionClusterMap {
+					// verify each region is a valid aws region
+					if err := validateStringWithRegex(region, AwsEksAuditRegionRegex,
+						"invalid region name supplied"); err != nil {
+						return err
+					}
+					// parse the cluster comma seperated string into a list of clusters
 					parsedClusters := strings.Split(clusters, ",")
-					// append regions List
-					regionsList = append(GenerateAwsEksAuditCommandState.ParsedRegionList, region)
 					awsParsedRegionClusterMap[region] = append(awsParsedRegionClusterMap[region], parsedClusters...)
 				}
-				GenerateAwsEksAuditCommandState.ParsedRegionList = regionsList
 				GenerateAwsEksAuditCommandState.ParsedRegionClusterMap = awsParsedRegionClusterMap
 			}
 
-			if len(GenerateAwsEksAuditCommandState.ParsedRegionList) > 1 {
+			if len(GenerateAwsEksAuditCommandState.ParsedRegionClusterMap) > 1 {
 				GenerateAwsEksAuditCommandState.KmsKeyMultiRegion = true
 			}
 
@@ -328,6 +329,7 @@ type AwsEksAuditGenerateCommandExtraState struct {
 	Output                  string
 	ConfigureBucketSettings bool
 	UseExistingKmsKey       bool
+	MultiRegion             bool
 	TerraformApply          bool
 }
 
@@ -502,18 +504,15 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt:   &survey.Input{Message: QuestionEksAuditBucketSseAlgorithm},
 		Checks:   []*bool{&config.BucketEnableEncryption},
-		Required: true,
 		Opts:     []survey.AskOpt{},
 		Response: &config.BucketSseAlgorithm,
 	}); err != nil {
 		return err
 	}
 
-	isKms := config.BucketSseAlgorithm == "aws:kms"
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt:   &survey.Input{Message: QuestionEksAuditBucketKeyArn},
-		Checks:   []*bool{&config.BucketEnableEncryption, &isKms},
-		Required: true,
+		Checks:   []*bool{&config.BucketEnableEncryption},
 		Opts:     []survey.AskOpt{},
 		Response: &config.BucketSseKeyArn,
 	}); err != nil {
@@ -523,11 +522,11 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 	newKmsKey := config.BucketEnableEncryption && len(config.BucketSseKeyArn) == 0
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Input{Message: QuestionEksAuditKmsKeyRotation},
+			Prompt:   &survey.Confirm{Message: QuestionEksAuditKmsKeyRotation},
 			Checks:   []*bool{&config.BucketEnableEncryption, &newKmsKey},
 			Required: true,
 			Opts:     []survey.AskOpt{},
-			Response: &config.BucketSseKeyArn,
+			Response: &config.KmsKeyRotation,
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionEksAuditKmsKeyDeletionDays, Default: "30"},
@@ -543,7 +542,7 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 }
 
 func promptAwsEksAuditExistingCrossAccountIamQuestions(input *aws_eks_audit.
-	GenerateAwsEksAuditTfConfigurationArgs) error {
+GenerateAwsEksAuditTfConfigurationArgs) error {
 	// ensure struct is initialized
 	if input.ExistingCrossAccountIamRole == nil {
 		input.ExistingCrossAccountIamRole = &aws_eks_audit.ExistingCrossAccountIamRoleDetails{}
@@ -564,7 +563,7 @@ func promptAwsEksAuditExistingCrossAccountIamQuestions(input *aws_eks_audit.
 }
 
 func promptAwsEksAuditFirehoseQuestions(input *aws_eks_audit.
-	GenerateAwsEksAuditTfConfigurationArgs) error {
+GenerateAwsEksAuditTfConfigurationArgs) error {
 
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Confirm{
@@ -615,7 +614,7 @@ func promptAwsEksAuditFirehoseQuestions(input *aws_eks_audit.
 }
 
 func promptAwsEksAuditExistingCloudwatchIamQuestions(input *aws_eks_audit.
-	GenerateAwsEksAuditTfConfigurationArgs) error {
+GenerateAwsEksAuditTfConfigurationArgs) error {
 
 	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Input{
@@ -630,7 +629,7 @@ func promptAwsEksAuditExistingCloudwatchIamQuestions(input *aws_eks_audit.
 }
 
 func promptAwsEksAuditSnsQuestions(input *aws_eks_audit.
-	GenerateAwsEksAuditTfConfigurationArgs) error {
+GenerateAwsEksAuditTfConfigurationArgs) error {
 
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Confirm{
@@ -657,7 +656,7 @@ func promptAwsEksAuditSnsQuestions(input *aws_eks_audit.
 }
 
 func promptAwsEksAuditCustomIntegrationName(input *aws_eks_audit.
-	GenerateAwsEksAuditTfConfigurationArgs) error {
+GenerateAwsEksAuditTfConfigurationArgs) error {
 
 	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Input{
@@ -670,29 +669,49 @@ func promptAwsEksAuditCustomIntegrationName(input *aws_eks_audit.
 	return err
 }
 
-func promptAwsEksAuditAdditionalClusterRegionQuestions(config *aws_eks_audit.
-	GenerateAwsEksAuditTfConfigurationArgs) error {
+func promptAwsEksAuditAdditionalClusterRegionQuestions(
+	config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs,
+	extraState *AwsEksAuditGenerateCommandExtraState,
+) error {
 	// For each region, collect which clusters to integrate with
 	regionClusters := make(map[string][]string)
-	var regionsList []string
 	askAgain := true
 
 	// If there are existing region clusters configured (i.e., from the CLI) display them and ask if they want to add more
 	if len(config.ParsedRegionClusterMap) > 0 {
-		for k := range config.ParsedRegionClusterMap {
-			regionsList = append(regionsList, k)
-		}
-
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Confirm{
 				Message: fmt.Sprintf(
-					QuestionEksAuditRegionClusterReplace,
-					strings.Trim(strings.Join(strings.Fields(fmt.Sprint(regionsList)), ", "), "[]"),
+					QuestionEksAuditRegionClusterCurrent,
+					config.ParsedRegionClusterMap,
 				),
 			},
 			Response: &askAgain}); err != nil {
 			return err
 		}
+	}
+
+	// If only 1 region has been configured and the user wishes to add more clusters,
+	// ask if they want this be to multi region
+	if len(config.ParsedRegionClusterMap) <= 1 && askAgain {
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Prompt: &survey.Confirm{
+				Message: QuestionEksAuditMultiRegion,
+				Default: extraState.MultiRegion,
+			},
+			Checks:   []*bool{&askAgain},
+			Opts:     []survey.AskOpt{},
+			Required: true,
+			Response: &extraState.MultiRegion,
+		}); err != nil {
+			return err
+		}
+	}
+
+	// If we already have more than 1 region, don't bother asking the user if it's
+	// multi region and instead just set MultiRegion to true
+	if len(config.ParsedRegionClusterMap) > 1 {
+		extraState.MultiRegion = true
 	}
 
 	// For each region to add, collect the list of clusters to integrate with
@@ -721,17 +740,21 @@ func promptAwsEksAuditAdditionalClusterRegionQuestions(config *aws_eks_audit.
 		// append region clusters in case the user has input a region more than once
 		regionClusters[awsEksAuditRegion] = append(regionClusters[awsEksAuditRegion], strings.Split(awsEksAuditRegionClusters, ",")...)
 
-		// append regions to Parsed Region List
-		regionsList = append(config.ParsedRegionList, awsEksAuditRegion)
-
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt:   &survey.Confirm{Message: QuestionEksAuditAdditionalRegion},
+			Checks:   []*bool{&extraState.MultiRegion},
 			Response: &askAgain}); err != nil {
 			return err
 		}
+
+		if !extraState.MultiRegion {
+			askAgain = false
+		}
 	}
-	config.ParsedRegionList = regionsList
-	config.ParsedRegionClusterMap = regionClusters
+
+	if len(regionClusters) >= 1 {
+		config.ParsedRegionClusterMap = regionClusters
+	}
 
 	return nil
 }
@@ -847,17 +870,13 @@ func writeAwsEksAuditGenerationArgsCache(a *aws_eks_audit.GenerateAwsEksAuditTfC
 		if a.ExistingCrossAccountIamRole.IsPartial() {
 			a.ExistingCrossAccountIamRole = nil
 		}
-		cli.WriteAssetToCache(CachedAwsAssetIacParams, time.Now().Add(time.Hour*1), a)
+		cli.WriteAssetToCache(CachedAssetAwsEksAuditIacParams, time.Now().Add(time.Hour*1), a)
 	}
 }
 
 // entry point for launching a survey to build out the required generation parameters
-func promptAwsEksAuditGenerate(
-	config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs,
-	existingIam *aws_eks_audit.ExistingCrossAccountIamRoleDetails,
-	extraState *AwsEksAuditGenerateCommandExtraState,
-) error {
-	// Cache for later use if generation is abandon and in interactive mode
+func promptAwsEksAuditGenerate(config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs, existingIam *aws_eks_audit.ExistingCrossAccountIamRoleDetails, extraState *AwsEksAuditGenerateCommandExtraState) error {
+	// Cache for later use if generation is abandoned and in interactive mode
 	if cli.InteractiveMode() {
 		defer writeAwsEksAuditGenerationArgsCache(config)
 		defer extraState.writeCache()
@@ -870,7 +889,7 @@ func promptAwsEksAuditGenerate(
 	}
 
 	// These are the core questions that should be asked.
-	if err := promptAwsEksAuditAdditionalClusterRegionQuestions(config); err != nil {
+	if err := promptAwsEksAuditAdditionalClusterRegionQuestions(config, extraState); err != nil {
 		return err
 	}
 

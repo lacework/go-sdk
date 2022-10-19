@@ -113,9 +113,6 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	// Parsed version of RegionClusterMap
 	ParsedRegionClusterMap map[string][]string
 
-	// Parsed list of Regions passed in by the user from RegionClusterMap
-	ParsedRegionList []string
-
 	// Should encryption be enabled for the sns topic? Defaults to true
 	SnsTopicEncryptionEnabled bool
 
@@ -301,19 +298,11 @@ func WithPrefix(prefix string) AwsEksAuditTerraformModifier {
 	}
 }
 
-// WithRegionClusterMap Set the region cluster map.
+// WithParsedRegionClusterMap Set the region cluster map.
 // This is a list of clusters per AWS region
-func WithRegionClusterMap(regionClusterMap map[string][]string) AwsEksAuditTerraformModifier {
+func WithParsedRegionClusterMap(regionClusterMap map[string][]string) AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
 		c.ParsedRegionClusterMap = regionClusterMap
-	}
-}
-
-// WithClusterRegionList Set the cluster region list.
-// This is a list of all the aws regions
-func WithClusterRegionList(regionClusterList []string) AwsEksAuditTerraformModifier {
-	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.ParsedRegionList = regionClusterList
 	}
 }
 
@@ -387,8 +376,8 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 
 func createAwsProvider(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	var blocks []*hclwrite.Block
-	if len(args.ParsedRegionList) >= 1 {
-		for _, region := range args.ParsedRegionList {
+	if len(args.ParsedRegionClusterMap) >= 1 {
+		for region := range args.ParsedRegionClusterMap {
 			attrs := map[string]interface{}{
 				"alias":  region,
 				"region": region,
@@ -404,8 +393,8 @@ func createAwsProvider(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrit
 
 			blocks = append(blocks, providerBlock)
 		}
-	} else if len(args.ParsedRegionList) == 1 {
-		for _, region := range args.ParsedRegionList {
+	} else if len(args.ParsedRegionClusterMap) == 1 {
+		for region := range args.ParsedRegionClusterMap {
 			attrs := map[string]interface{}{
 				"region": region,
 			}
@@ -563,12 +552,14 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 			})
 
 			lwCwSubscriptionFilter, err := lwgenerate.NewResource(
+				"aws_cloudwatch_log_subscription_filter",
 				fmt.Sprintf(
 					"lw_cw_subscription_filter_%s",
 					region),
-				lwgenerate.HclResourceWithAttributesAndProviderDetails(resourceAttrs, map[string]string{
-					"aws": fmt.Sprintf("aws.%s", region),
-				}),
+				lwgenerate.HclResourceWithAttributesAndProviderDetails(
+					resourceAttrs,
+					[]string{fmt.Sprintf("aws.%s", region)},
+				),
 			).ToResourceBlock()
 
 			if err != nil {
@@ -580,7 +571,8 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 	} else if len(args.ParsedRegionClusterMap) > 0 {
 		// set no_cw_subscription_filter to false if we have only 1 region in the ParsedRegionClusterMap
 		moduleAttrs["no_cw_subscription_filter"] = false
-		for _, clusters := range args.ParsedRegionClusterMap {
+		for region, clusters := range args.ParsedRegionClusterMap {
+			regionList = append(regionList, region)
 			moduleAttrs["cluster_names"] = clusters
 		}
 	}

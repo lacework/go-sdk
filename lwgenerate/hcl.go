@@ -167,7 +167,7 @@ func (m *HclResource) ToResourceBlock() (*hclwrite.Block, error) {
 
 	block, err := HclCreateGenericBlock(
 		"resource",
-		[]string{m.name},
+		[]string{m.rType, m.name},
 		m.attributes,
 	)
 	if err != nil {
@@ -176,13 +176,16 @@ func (m *HclResource) ToResourceBlock() (*hclwrite.Block, error) {
 
 	if m.providerDetails != nil {
 		block.Body().AppendNewline()
-		block.Body().SetAttributeRaw("providers", createMapTraversalTokens(m.providerDetails))
+		block.Body().SetAttributeTraversal("provider", CreateSimpleTraversal(m.providerDetails))
 	}
 
 	return block, nil
 }
 
 type HclResource struct {
+	// Required, resourceType
+	rType string
+
 	// Required, resource name
 	name string
 
@@ -192,14 +195,14 @@ type HclResource struct {
 	// Optional.  Provider details to override defaults.  These values must be supplied as strings, and raw values will be
 	// accepted.  Unfortunately map[string]hcl.Traversal is not a format that is supported by hclwrite.SetAttributeValue
 	// today so we must work around it (https://github.com/hashicorp/hcl/issues/347).
-	providerDetails map[string]string
+	providerDetails []string
 }
 
 type HclResourceModifier func(p *HclResource)
 
 // NewResource Create a provider statement in the HCL output
-func NewResource(name string, mods ...HclResourceModifier) *HclResource {
-	resource := &HclResource{name: name}
+func NewResource(rType string, name string, mods ...HclResourceModifier) *HclResource {
+	resource := &HclResource{rType: rType, name: name}
 	for _, m := range mods {
 		m(resource)
 	}
@@ -208,7 +211,7 @@ func NewResource(name string, mods ...HclResourceModifier) *HclResource {
 
 // HclResourceWithAttributesAndProviderDetails Used to set parameters within the resource usage
 func HclResourceWithAttributesAndProviderDetails(attrs map[string]interface{},
-	providerDetails map[string]string) HclResourceModifier {
+	providerDetails []string) HclResourceModifier {
 	return func(p *HclResource) {
 		p.attributes = attrs
 		p.providerDetails = providerDetails
