@@ -139,7 +139,7 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
 			}
 			if threadRunner != *runner {
-				cli.Log.Debugw("mutated runner", "threadRunner", threadRunner, "runner", runner)
+				cli.Log.Debugw("mutated runner", "thread_runner", threadRunner, "runner", runner)
 			}
 			wg.Done()
 		})

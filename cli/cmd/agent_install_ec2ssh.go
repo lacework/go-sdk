@@ -138,25 +138,25 @@ func installAWSSSH(_ *cobra.Command, _ []string) error {
 
 			err := threadRunner.Runner.UseIdentityFile(agentCmdState.InstallIdentityFile)
 			if err != nil {
-				cli.Log.Warnw("unable to use provided identity file", "err", err, "threadRunner", threadRunner.InstanceID)
+				cli.Log.Warnw("unable to use provided identity file", "err", err, "thread_runner", threadRunner.InstanceID)
 			}
 
 			if err := verifyAccessToRemoteHost(&threadRunner.Runner); err != nil {
-				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "threadRunner", threadRunner.InstanceID)
+				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "thread_runner", threadRunner.InstanceID)
 			}
 
 			if alreadyInstalled := isAgentInstalledOnRemoteHost(&threadRunner.Runner); alreadyInstalled != nil {
-				cli.Log.Debugw("agent already installed on host, skipping", "threadRunner", threadRunner.InstanceID)
+				cli.Log.Debugw("agent already installed on host, skipping", "thread_runner", threadRunner.InstanceID)
 			}
 
 			token := agentCmdState.InstallAgentToken
 			if token == "" {
-				cli.Log.Warnw("agent token not provided", "threadRunner", threadRunner.InstanceID)
+				cli.Log.Warnw("agent token not provided", "thread_runner", threadRunner.InstanceID)
 			}
 			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
-				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "threadRunner", threadRunner.InstanceID)
+				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "thread_runner", threadRunner.InstanceID)
 			}
 			wg.Done()
 		})
