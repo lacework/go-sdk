@@ -3,15 +3,15 @@ using SSH.
 
 To filter by one or more regions:
 
-    lacework agent aws-install ec2ssh --include_regions us-west-2,us-east-2
+    lacework agent aws-install ec2ssh <token> --include_regions us-west-2,us-east-2
 
 To filter by instance tag:
 
-    lacework agent aws-install ec2ssh --tag TagName,TagValue
+    lacework agent aws-install ec2ssh <token> --tag TagName,TagValue
 
 To filter by instance tag key:
 
-    lacework agent aws-install ec2ssh --tag_key TagName
+    lacework agent aws-install ec2ssh <token> --tag_key TagName
 
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select. Instances must
@@ -19,11 +19,11 @@ be routable from your local host.
 
 To authenticate using username and password:
 
-    lacework agent aws-install ec2ssh --ssh_username <your-user> --ssh_password <secret>
+    lacework agent aws-install ec2ssh <token> --ssh_username <your-user> --ssh_password <secret>
 
 To authenticate using an identity file:
 
-    lacework agent aws-install ec2ssh -i /path/to/your/key
+    lacework agent aws-install ec2ssh <token> -i /path/to/your/key
 
 The environment should contain AWS credentials in the following variables:
 - AWS_ACCESS_KEY_ID
@@ -35,7 +35,7 @@ This command will automatically add hosts with successful connections to
 '~/.ssh/known_hosts' unless specified with '--trust_host_key=false'.
 
 Usage:
-  lacework agent aws-install ec2ssh [flags]
+  lacework agent aws-install ec2ssh <token> [flags]
 
 Flags:
   -h, --help                      help for ec2ssh
@@ -47,7 +47,6 @@ Flags:
       --ssh_username string       username to login with
       --tag strings               only select instances with this tag
       --tag_key string            only install agents on infra with this tag key
-      --token string              agent access token
       --trust_host_key            automatically add host keys to the ~/.ssh/known_hosts file (default true)
 
 Global Flags:

@@ -44,6 +44,7 @@ func NewAWSRunner(amiImageId, host, region, availabilityZone, instanceID string,
 	if err != nil {
 		return nil, err
 	}
+	cfg.Region = region
 	svc := ec2.NewFromConfig(cfg)
 	input := ec2.DescribeImagesInput{
 		ImageIds: []string{
