@@ -302,7 +302,7 @@ func setBlockAttributeValue(block *hclwrite.Block, key string, val interface{}) 
 	case hclwrite.Tokens:
 		block.Body().SetAttributeRaw(key, v)
 	default:
-		return errors.New(fmt.Sprintf("setBlockAttributeValue: unknown type for key: %s", key))
+		return fmt.Errorf("setBlockAttributeValue: unknown type for key: %s", key)
 	}
 
 	return nil
@@ -354,7 +354,7 @@ func HclCreateGenericBlock(hcltype string, labels []string, attr map[string]inte
 
 // Create tokens for map of traversals.  Used as a workaround for writing complex types where the built-in
 // SetAttributeValue won't work
-func createMapTraversalTokens(input map[string]string) hclwrite.Tokens {
+func createMapTraversalTokens(input map[string]string) hclwrite.Tokens { //nolint:unused
 	// Sort input
 	var keys []string
 	for k := range input {

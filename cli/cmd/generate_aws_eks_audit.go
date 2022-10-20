@@ -253,14 +253,12 @@ See help output for more details on the parameter value(s) required for Terrafor
 			if cli.InteractiveMode() {
 				cachedOptions := &aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs{}
 				iacParamsExpired := cli.ReadCachedAsset(CachedAssetAwsEksAuditIacParams, &cachedOptions)
-				cli.Log.Debug(fmt.Sprintf("iacParamsExpired: %s", iacParamsExpired))
 				if iacParamsExpired {
 					cli.Log.Debug("loaded previously set values for AWS EKS Audit iac generation")
 				}
 
 				extraState := &AwsEksAuditGenerateCommandExtraState{}
 				extraStateParamsExpired := cli.ReadCachedAsset(CachedAssetAwsEksAuditExtraState, &extraState)
-				cli.Log.Debug(fmt.Sprintf("extraStateParamsExpired: %s", extraStateParamsExpired))
 				if extraStateParamsExpired {
 					cli.Log.Debug("loaded previously set values for AWS EKS Audit iac generation (extra state)")
 				}
@@ -294,7 +292,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			if len(GenerateAwsEksAuditCommandState.RegionClusterMap) > 0 {
 				// validate the format of supplied values is correct
 
-				var awsParsedRegionClusterMap map[string][]string
+				awsParsedRegionClusterMap := make(map[string][]string)
 				for region, clusters := range GenerateAwsEksAuditCommandState.RegionClusterMap {
 					// verify each region is a valid aws region
 					if err := validateStringWithRegex(region, AwsEksAuditRegionRegex,
@@ -542,7 +540,7 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 }
 
 func promptAwsEksAuditExistingCrossAccountIamQuestions(input *aws_eks_audit.
-GenerateAwsEksAuditTfConfigurationArgs) error {
+	GenerateAwsEksAuditTfConfigurationArgs) error {
 	// ensure struct is initialized
 	if input.ExistingCrossAccountIamRole == nil {
 		input.ExistingCrossAccountIamRole = &aws_eks_audit.ExistingCrossAccountIamRoleDetails{}
@@ -563,7 +561,7 @@ GenerateAwsEksAuditTfConfigurationArgs) error {
 }
 
 func promptAwsEksAuditFirehoseQuestions(input *aws_eks_audit.
-GenerateAwsEksAuditTfConfigurationArgs) error {
+	GenerateAwsEksAuditTfConfigurationArgs) error {
 
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Confirm{
@@ -614,7 +612,7 @@ GenerateAwsEksAuditTfConfigurationArgs) error {
 }
 
 func promptAwsEksAuditExistingCloudwatchIamQuestions(input *aws_eks_audit.
-GenerateAwsEksAuditTfConfigurationArgs) error {
+	GenerateAwsEksAuditTfConfigurationArgs) error {
 
 	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Input{
@@ -629,7 +627,7 @@ GenerateAwsEksAuditTfConfigurationArgs) error {
 }
 
 func promptAwsEksAuditSnsQuestions(input *aws_eks_audit.
-GenerateAwsEksAuditTfConfigurationArgs) error {
+	GenerateAwsEksAuditTfConfigurationArgs) error {
 
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Confirm{
@@ -656,7 +654,7 @@ GenerateAwsEksAuditTfConfigurationArgs) error {
 }
 
 func promptAwsEksAuditCustomIntegrationName(input *aws_eks_audit.
-GenerateAwsEksAuditTfConfigurationArgs) error {
+	GenerateAwsEksAuditTfConfigurationArgs) error {
 
 	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Input{
