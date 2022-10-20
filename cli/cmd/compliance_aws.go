@@ -223,7 +223,6 @@ To show recommendation details and affected resources for a recommendation id:
 		},
 	}
 
-	// Todo(v2): deprecate??
 	// complianceAwsRunAssessmentCmd represents the run-assessment sub-command inside the aws command
 	complianceAwsRunAssessmentCmd = &cobra.Command{
 		Use:     "run-assessment <account_id>",
@@ -232,7 +231,6 @@ To show recommendation details and affected resources for a recommendation id:
 		Long:    `Run a compliance assessment for the provided AWS account.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			// Todo(v2): replace with v2
 			response, err := cli.LwApi.Compliance.RunAwsReport(args[0])
 			if err != nil {
 				return errors.Wrap(err, "unable to run aws compliance assessment")
