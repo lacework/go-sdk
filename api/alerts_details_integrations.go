@@ -22,10 +22,39 @@ import (
 	"fmt"
 )
 
+type AlertIntegrationChannelState struct {
+	Ok                 bool                   `json:"ok"`
+	LastUpdatedTime    int                    `json:"lastUpdatedTime"`
+	LastSuccessfulTime int                    `json:"lastSuccessfulTime"`
+	Details            map[string]interface{} `json:"details,omitempty"`
+}
+
 type AlertIntegrationChannel struct {
-	commonIntegrationData
-	EnvironmentGUID string                 `json:"ENV_GUID"`
-	Data            map[string]interface{} `json:"DATA"`
+	IntgGuid             string                       `json:"INTG_GUID,omitempty"`
+	Name                 string                       `json:"NAME"`
+	CreatedOrUpdatedTime string                       `json:"CREATED_OR_UPDATED_TIME,omitempty"`
+	CreatedOrUpdatedBy   string                       `json:"CREATED_OR_UPDATED_BY,omitempty"`
+	Type                 string                       `json:"TYPE"`
+	Enabled              int                          `json:"ENABLED"`
+	State                AlertIntegrationChannelState `json:"STATE,omitempty"`
+	IsOrg                int                          `json:"IS_ORG,omitempty"`
+	TypeName             string                       `json:"TYPE_NAME,omitempty"`
+	EnvironmentGUID      string                       `json:"ENV_GUID"`
+	Data                 map[string]interface{}       `json:"DATA"`
+}
+
+func (c AlertIntegrationChannel) Status() string {
+	if c.Enabled == 1 {
+		return "Enabled"
+	}
+	return "Disabled"
+}
+
+func (c AlertIntegrationChannel) StateString() string {
+	if c.State.Ok {
+		return "Ok"
+	}
+	return "Check"
 }
 
 type AlertIntegrationContext struct {

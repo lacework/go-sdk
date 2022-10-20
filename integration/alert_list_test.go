@@ -21,6 +21,7 @@ package integration
 
 import (
 	"encoding/json"
+	"strconv"
 	"testing"
 
 	"github.com/lacework/go-sdk/api"
@@ -28,28 +29,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func popAlert() (int, error) {
-	var alerts []api.Alert
+func popAlert() (string, error) {
+	var alerts api.Alerts
 
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--json")
 	if stderr.String() != "" {
-		return 0, errors.New(stderr.String())
+		return "-1", errors.New(stderr.String())
 	}
 	if exitcode != 0 {
-		return 0, errors.New("non-zero exit code")
+		return "-1", errors.New("non-zero exit code")
 	}
 
 	err := json.Unmarshal(out.Bytes(), &alerts)
 	if err != nil {
-		return 0, err
+		return "-1", err
 	}
 
-	for _, a := range alerts {
+	for _, a := range alerts.SortDescending() {
 		if a.Status == "Open" {
-			return a.ID, nil
+			return strconv.Itoa(a.ID), nil
 		}
 	}
-	return 0, errors.New("no open alerts found")
+	return "-1", errors.New("no open alerts found")
 }
 
 func TestAlertListBadRange(t *testing.T) {
@@ -73,9 +74,11 @@ func TestAlertListBadEnd(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertList(t *testing.T) {
+func TestAlertListHuman(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list")
 	assert.Contains(t, out.String(), "ALERT ID")
+	// breadcrumb
+	assert.Contains(t, out.String(), "lacework alert show <alert_id>")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

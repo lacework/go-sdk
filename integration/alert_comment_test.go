@@ -20,11 +20,16 @@
 package integration
 
 import (
-	"strconv"
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func makeComment(id string) (bytes.Buffer, bytes.Buffer, int) {
+	return LaceworkCLIWithTOMLConfig(
+		"alert", "comment", id, "-c", "everything is awesome...cause go-sdk is here")
+}
 
 func TestAlertCommentMissingArg(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment")
@@ -54,8 +59,7 @@ func TestAlertCommentInline(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
-		"alert", "comment", strconv.Itoa(id), "-c", "everything is awesome")
+	out, stderr, exitcode := makeComment(id)
 	assert.Contains(t, out.String(), "Comment added successfully")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")

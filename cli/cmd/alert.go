@@ -34,6 +34,7 @@ var (
 		End     string
 		Range   string
 		Reason  int
+		Scope   string
 		Start   string
 	}{}
 

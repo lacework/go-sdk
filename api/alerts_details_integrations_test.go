@@ -98,7 +98,7 @@ func TestAlertsGetIntegrationsMethod(t *testing.T) {
 }
 
 func TestAlertsGetIntegrationsOK(t *testing.T) {
-	mockResponse := alertInvestigationJSON
+	mockResponse := alertIntegrationsJSON
 
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()

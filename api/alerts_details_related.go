@@ -20,6 +20,7 @@ package api
 
 import (
 	"fmt"
+	"sort"
 )
 
 type RelatedAlert struct {
@@ -33,8 +34,17 @@ type RelatedAlert struct {
 	EndTime   string    `json:"endTime"`
 }
 
+type RelatedAlerts []RelatedAlert
+
 type RelatedAlertsResponse struct {
-	Data []RelatedAlert `json:"data"`
+	Data RelatedAlerts `json:"data"`
+}
+
+func (ra RelatedAlerts) SortRankDescending() RelatedAlerts {
+	sort.Slice(ra, func(i, j int) bool {
+		return ra[i].Rank > ra[j].Rank
+	})
+	return ra
 }
 
 func (svc *AlertsService) GetRelatedAlerts(id int) (

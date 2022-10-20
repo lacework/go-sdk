@@ -20,7 +20,6 @@
 package integration
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -61,7 +60,7 @@ func TestAlertCloseInline(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
-		"alert", "close", strconv.Itoa(id), "-r", "1", "-c", "everything is awesome")
+		"alert", "close", id, "-r", "1", "-c", "everything is awesome")
 	assert.Contains(t, out.String(), "was successfully closed")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")

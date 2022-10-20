@@ -82,7 +82,6 @@ func init() {
 }
 
 func alertListTable(alerts api.Alerts) (out [][]string) {
-
 	for _, alert := range alerts.SortDescending() {
 		out = append(out, []string{
 			strconv.Itoa(alert.ID),
@@ -95,6 +94,19 @@ func alertListTable(alerts api.Alerts) (out [][]string) {
 	}
 
 	return
+}
+
+func renderAlertListTable(alerts api.Alerts) {
+	cli.OutputHuman(
+		renderCustomTable(
+			[]string{"Alert ID", "Name", "Severity", "Start Time", "End Time", "Status"},
+			alertListTable(alerts),
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetAutoWrapText(false)
+				t.SetBorder(false)
+			}),
+		),
+	)
 }
 
 func listAlert(_ *cobra.Command, _ []string) error {
@@ -150,16 +162,9 @@ func listAlert(_ *cobra.Command, _ []string) error {
 		cli.OutputHuman("There are no alerts in your account in the specified time range.\n")
 		return nil
 	}
+	renderAlertListTable(listResponse.Data)
 
-	cli.OutputHuman(
-		renderCustomTable(
-			[]string{"Alert ID", "Name", "Severity", "Start Time", "End Time", "Status"},
-			alertListTable(listResponse.Data),
-			tableFunc(func(t *tablewriter.Table) {
-				t.SetAutoWrapText(false)
-				t.SetBorder(false)
-			}),
-		),
-	)
+	// breadcrumb
+	cli.OutputHuman("\nUse 'lacework alert show <alert_id>' to see details for a specific alert.\n")
 	return nil
 }
