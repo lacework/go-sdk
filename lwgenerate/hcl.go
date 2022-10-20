@@ -156,6 +156,11 @@ func (m *HclModule) ToBlock() (*hclwrite.Block, error) {
 		return nil, err
 	}
 
+	if m.providerDetails != nil {
+		block.Body().AppendNewline()
+		block.Body().SetAttributeRaw("providers", createMapTraversalTokens(m.providerDetails))
+	}
+
 	return block, nil
 }
 
