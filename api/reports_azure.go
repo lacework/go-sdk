@@ -79,7 +79,7 @@ func (svc *azureReportsService) Get(reportCfg AzureReportConfig) (response Azure
 		return AzureReportResponse{}, errors.New("specify an account id")
 	}
 
-	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.TenantID, reportCfg.SubscriptionID, "json", reportCfg.Type)
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.TenantID, reportCfg.SubscriptionID, "json", reportCfg.Type.String())
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }

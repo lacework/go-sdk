@@ -81,7 +81,7 @@ func (svc *gcpReportsService) Get(reportCfg GcpReportConfig) (response GcpReport
 		return GcpReportResponse{}, errors.New("project id and org id are required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.ProjectID, reportCfg.OrganizationID, "json", reportCfg.Type)
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.OrganizationID, reportCfg.ProjectID, "json", reportCfg.Type.String())
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
