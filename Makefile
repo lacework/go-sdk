@@ -73,10 +73,9 @@ integration-only: install-tools ## Run integration tests
 		migration \
 		version \
 		generation \
+		compliance \
 		team_member \
 		component" -run=$(regex)
-		# Disable compliance
-		#compliance \
 		# Disable vulnerability tests until https://lacework.atlassian.net/browse/RAIN-37563 is resolved
 		#vulnerability"
 
