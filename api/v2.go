@@ -19,6 +19,7 @@
 package api
 
 import (
+	"fmt"
 	"net/url"
 
 	"github.com/pkg/errors"
@@ -179,9 +180,14 @@ func (c *Client) NextPage(p Pageable) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "unable to part next page url")
 	}
+	// some NextPage values have query parameters which should be concatenated
+	path := pageURL.Path
+	if len(pageURL.Query()) > 0 {
+		path += fmt.Sprintf("?%s", pageURL.Query().Encode())
+	}
 
 	p.ResetPaging()
 	c.log.Info("pagination reset")
-	err = c.RequestDecoder("GET", pageURL.Path, nil, p)
+	err = c.RequestDecoder("GET", path, nil, p)
 	return true, err
 }
