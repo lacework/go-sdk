@@ -2,6 +2,7 @@ package aws_eks_audit
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/lacework/go-sdk/lwgenerate"

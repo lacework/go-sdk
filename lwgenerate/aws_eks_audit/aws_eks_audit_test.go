@@ -57,6 +57,41 @@ func TestGenerationEksFailureSingleRegionNoClusters(t *testing.T) {
 	assert.Equal(t, "invalid inputs: At least one cluster must be supplied per region", err.Error())
 }
 
+func TestGenerationEksEnableBucketForceDestroy(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		EnableBucketForceDestroy(),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "bucket_force_destroy=true")
+}
+
+func TestGenerationEksWithValidBucketLifecycleExpirationDays(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithBucketLifecycleExpirationDays(10),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "bucket_lifecycle_expiration_days=10")
+}
+
+func TestGenerationEksWithInvalidBucketLifecycleExpirationDays(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithBucketLifecycleExpirationDays(-1),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.NotContains(t, hcl, "bucket_lifecycle_expiration_days")
+}
+
 func TestGenerationEksBucketWithNoBucketVersioning(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
@@ -268,6 +303,53 @@ func TestGenerationPartialExistingCrossAccountIamValues(t *testing.T) {
 	})
 }
 
+func TestGenerationEksWithValidKmsKeyDeletionDays(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithKmsKeyDeletionDays(10),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "kms_key_deletion_days=10")
+}
+
+func TestGenerationEksWithInvalidKmsKeyDeletionDays(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithKmsKeyDeletionDays(6),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.NotContains(t, hcl, "kms_key_deletion_days")
+}
+
+func TestGenerationEksEnableKmsKeyMultiRegion(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		EnableKmsKeyMultiRegion(),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "kms_key_multi_region=true")
+}
+
+func TestGenerationEksEnableKmsKeyRotation(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		EnableKmsKeyRotation(),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "kms_key_rotation=true")
+}
+
 var requiredProviders = `terraform {
   required_providers {
     lacework = {
@@ -275,16 +357,6 @@ var requiredProviders = `terraform {
       version = "~> 0.26"
     }
   }
-}
-`
-
-var awsProvider = `provider "aws" {
-  region = "us-east-1"
-}
-`
-
-var laceworkProvider = `provider "lacework" {
-  profile = "test-profile"
 }
 `
 

@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lacework/go-sdk/lwgenerate/aws_eks_audit"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/lacework/go-sdk/lwgenerate/aws_eks_audit"
 
 	"github.com/imdario/mergo"
 	"github.com/spf13/cobra"
