@@ -143,8 +143,8 @@ See help output for more details on the parameter value(s) required for Terrafor
 				mods = append(mods, aws_eks_audit.EnableBucketVersioning())
 			}
 
-			if GenerateAwsEksAuditCommandState.FirehoseEncryptionEnabled {
-				mods = append(mods, aws_eks_audit.EnableFirehoseEncryption())
+			if GenerateAwsEksAuditCommandState.FirehoseEncryptionDisabled {
+				mods = append(mods, aws_eks_audit.DisableFirehoseEncryption())
 			}
 
 			if GenerateAwsEksAuditCommandState.KmsKeyMultiRegion {
@@ -155,8 +155,8 @@ See help output for more details on the parameter value(s) required for Terrafor
 				mods = append(mods, aws_eks_audit.EnableKmsKeyRotation())
 			}
 
-			if GenerateAwsEksAuditCommandState.SnsTopicEncryptionEnabled {
-				mods = append(mods, aws_eks_audit.EnableSnsTopicEncryption())
+			if GenerateAwsEksAuditCommandState.SnsTopicEncryptionDisabled {
+				mods = append(mods, aws_eks_audit.DisableSnsTopicEncryption())
 			}
 
 			// Create new struct

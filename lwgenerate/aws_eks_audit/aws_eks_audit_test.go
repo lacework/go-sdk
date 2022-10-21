@@ -1,35 +1,247 @@
 package aws_eks_audit
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 // Helper for combining string expected values
-//func reqProviderAndRegion(extraInputs ...string) string {
-//	base := requiredProviders + "\n" + awsProvider
-//	countInputs := len(extraInputs)
-//	for i, e := range extraInputs {
-//		if i < countInputs {
-//			base = base + "\n" + e
-//		}
-//
-//		if i >= countInputs {
-//			base = base + e
-//		}
-//	}
-//	return base
-//}
+func reqProviderAndRegion(extraInputs ...string) string {
+	base := requiredProviders
+	countInputs := len(extraInputs)
+	for i, e := range extraInputs {
+		if i < countInputs {
+			base = base + "\n" + e
+		}
 
-func TestGenerationCloudTrail(t *testing.T) {
-	clusterMap := make(map[string][]string)
-	regionOne := []string{"cluster1", "cluster2"}
-	regionTwo := []string{"cluster3"}
-	clusterMap["us-east-1"] = regionOne
-	clusterMap["us-east-2"] = regionTwo
-	hcl, err := NewTerraform(WithRegionClusterMap(clusterMap)).Generate()
-	print(hcl)
-	assert.Nil(t, err)
-
+		if i >= countInputs {
+			base = base + e
+		}
+	}
+	return base
 }
+
+func TestGenerationEksSingleRegion(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap)).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleSingleRegionBasic), hcl)
+}
+
+func TestGenerationEksMultiRegion(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	clusterMap["us-east-2"] = []string{"cluster3"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap)).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(multiRegionBasic), hcl)
+}
+
+func TestGenerationEksFailureWithNoOptionsSet(t *testing.T) {
+	data := &GenerateAwsEksAuditTfConfigurationArgs{}
+	_, err := data.Generate()
+	assert.Error(t, err)
+	assert.Equal(t, "invalid inputs: At least one region with a list of cluster(s) must be set", err.Error())
+}
+
+func TestGenerationEksFailureSingleRegionNoClusters(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{}
+	_, err := NewTerraform(WithParsedRegionClusterMap(clusterMap)).Generate()
+	assert.Error(t, err)
+	assert.Equal(t, "invalid inputs: At least one cluster must be supplied per region", err.Error())
+}
+
+func TestGenerationEksFirehoseWithNoEncryption(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		DisableFirehoseEncryption(),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "kinesis_firehose_encryption_enabled=false")
+}
+
+func TestGenerationEksFirehoseWithNoEncryptionAndKeyArn(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		DisableFirehoseEncryption(),
+		WithFirehoseEncryptionKeyArn("arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "kinesis_firehose_encryption_enabled=false")
+	assert.NotContains(t, hcl, "kinesis_firehose_key_arn")
+}
+
+func TestGenerationEksWithFirehoseEncryptionKeyArn(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithFirehoseEncryptionKeyArn("arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl,
+		"kinesis_firehose_key_arn=\"arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903\"")
+}
+
+func TestGenerationEksSnsWithNoEncryption(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		DisableSnsTopicEncryption(),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "sns_topic_encryption_enabled=false")
+}
+
+func TestGenerationEksSnsWithNoEncryptionAndKeyArn(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		DisableSnsTopicEncryption(),
+		WithSnsTopicEncryptionKeyArn("arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "sns_topic_encryption_enabled=false")
+	assert.NotContains(t, hcl, "sns_topic_key_arn")
+}
+
+func TestGenerationEksWithSnsTopicEncryptionKeyArn(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithSnsTopicEncryptionKeyArn("arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl,
+		"sns_topic_key_arn=\"arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903\"")
+}
+
+var iamErrorString = "invalid inputs: when using an existing cross account IAM role, existing role ARN and external ID all must be set"
+
+func TestGenerationFailureWithIncompleteExistingIam(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	_, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithExistingCrossAccountIamRole(&ExistingCrossAccountIamRoleDetails{Arn: "foo"})).Generate()
+	assert.Error(t, err)
+	assert.Equal(t, iamErrorString, err.Error())
+
+	_, err = NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithExistingCrossAccountIamRole(&ExistingCrossAccountIamRoleDetails{ExternalId: "foo"})).Generate()
+	assert.Error(t, err)
+	assert.Equal(t, iamErrorString, err.Error())
+}
+
+func TestGenerationPartialExistingIamValues(t *testing.T) {
+	t.Run("partial existing iam roles should be detected", func(t *testing.T) {
+		data := NewExistingCrossAccountIamRoleDetails("test", "")
+		assert.True(t, data.IsPartial())
+	})
+	t.Run("emtpy existing iam roles should not be detected as partial", func(t *testing.T) {
+		data := NewExistingCrossAccountIamRoleDetails("", "")
+		assert.False(t, data.IsPartial())
+	})
+	t.Run("nil existing iam roles should not be detected as partial", func(t *testing.T) {
+		data := ExistingCrossAccountIamRoleDetails{}
+		assert.False(t, data.IsPartial())
+	})
+	t.Run("completed existing iam roles should not be detected as partial", func(t *testing.T) {
+		data := NewExistingCrossAccountIamRoleDetails(
+			"arn:partition:service:region:account-id:resource-id", "test")
+		assert.False(t, data.IsPartial())
+	})
+}
+
+var requiredProviders = `terraform {
+  required_providers {
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 0.26"
+    }
+  }
+}
+`
+
+var awsProvider = `provider "aws" {
+  region = "us-east-1"
+}
+`
+
+var laceworkProvider = `provider "lacework" {
+  profile = "test-profile"
+}
+`
+
+var moduleSingleRegionBasic = `provider "aws" {
+  region = "us-east-1"
+}
+
+module "aws_eks_audit_log" {
+  source                    = "lacework/eks-audit-log/aws"
+  version                   = "~> 0.4"
+  cloudwatch_regions        = ["us-east-1"]
+  cluster_names             = ["cluster1", "cluster2"]
+  no_cw_subscription_filter = false
+}
+`
+
+var multiRegionBasic = `provider "aws" {
+  alias  = "us-east-1"
+  region = "us-east-1"
+}
+
+provider "aws" {
+  alias  = "us-east-2"
+  region = "us-east-2"
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "lw_cw_subscription_filter_us-east-1" {
+  depends_on      = [module.aws_eks_audit_log]
+  destination_arn = module.aws_eks_audit_log.firehose_arn
+  filter_pattern  = module.aws_eks_audit_log.filter_pattern
+  for_each        = toset(["cluster1", "cluster2"])
+  log_group_name  = "/aws/eks/${each.value}/cluster"
+  name            = "${module.aws_eks_audit_log.filter_prefix}-${each.value}"
+  role_arn        = module.aws_eks_audit_log.cloudwatch_iam_role_arn
+
+  provider = aws.us-east-1
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "lw_cw_subscription_filter_us-east-2" {
+  depends_on      = [module.aws_eks_audit_log]
+  destination_arn = module.aws_eks_audit_log.firehose_arn
+  filter_pattern  = module.aws_eks_audit_log.filter_pattern
+  for_each        = toset(["cluster3"])
+  log_group_name  = "/aws/eks/${each.value}/cluster"
+  name            = "${module.aws_eks_audit_log.filter_prefix}-${each.value}"
+  role_arn        = module.aws_eks_audit_log.cloudwatch_iam_role_arn
+
+  provider = aws.us-east-2
+}
+
+module "aws_eks_audit_log" {
+  source                    = "lacework/eks-audit-log/aws"
+  version                   = "~> 0.4"
+  cloudwatch_regions        = ["us-east-1", "us-east-2"]
+  no_cw_subscription_filter = true
+}
+`

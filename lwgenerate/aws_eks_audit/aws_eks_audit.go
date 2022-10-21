@@ -89,8 +89,9 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	// The Cloudwatch Log Subscription Filter pattern
 	FilterPattern string
 
-	// Should encryption be enabled on the created firehose? Defaults to true.
-	FirehoseEncryptionEnabled bool
+	// Should encryption be disabled on the created firehose?
+	// This will set kinesis_firehose_encryption_enabled which defaults to true
+	FirehoseEncryptionDisabled bool
 
 	// The ARN of an existing KMS encryption key to be used for the Kinesis Firehose
 	FirehoseEncryptionKeyArn string
@@ -113,8 +114,9 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	// Parsed version of RegionClusterMap
 	ParsedRegionClusterMap map[string][]string
 
-	// Should encryption be enabled for the sns topic? Defaults to true
-	SnsTopicEncryptionEnabled bool
+	// Should encryption be disabled for the sns topic?
+	// This will set sns_topic_encryption_enabled which defaults to true
+	SnsTopicEncryptionDisabled bool
 
 	// The ARN of an existing KMS encryption key to be used for the SNS topic
 	SnsTopicEncryptionKeyArn string
@@ -129,6 +131,13 @@ func (args *GenerateAwsEksAuditTfConfigurationArgs) validate() error {
 	// Validate that at least one region with clusters was set
 	if len(args.ParsedRegionClusterMap) == 0 {
 		return errors.New("At least one region with a list of cluster(s) must be set")
+	}
+
+	// Validate, at least 1 cluster must be supplied per region
+	for _, clusters := range args.ParsedRegionClusterMap {
+		if len(clusters) == 0 {
+			return errors.New("At least one cluster must be supplied per region")
+		}
 	}
 
 	// Validate existing role IAM values, if set
@@ -255,10 +264,10 @@ func WithFilterPattern(pattern string) AwsEksAuditTerraformModifier {
 	}
 }
 
-// EnableFirehoseEncryption Set the firehose encryption parameter to true for newly created firehose
-func EnableFirehoseEncryption() AwsEksAuditTerraformModifier {
+// DisableFirehoseEncryption Set the firehose encryption parameter to true for newly created firehose
+func DisableFirehoseEncryption() AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.FirehoseEncryptionEnabled = true
+		c.FirehoseEncryptionDisabled = true
 	}
 }
 
@@ -306,10 +315,10 @@ func WithParsedRegionClusterMap(regionClusterMap map[string][]string) AwsEksAudi
 	}
 }
 
-// EnableSnsTopicEncryption Set whether encryption should be enabled for the sns topic
-func EnableSnsTopicEncryption() AwsEksAuditTerraformModifier {
+// DisableSnsTopicEncryption Set whether encryption should be enabled for the sns topic
+func DisableSnsTopicEncryption() AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.SnsTopicEncryptionEnabled = true
+		c.SnsTopicEncryptionDisabled = true
 	}
 }
 
@@ -376,7 +385,7 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 
 func createAwsProvider(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	var blocks []*hclwrite.Block
-	if len(args.ParsedRegionClusterMap) >= 1 {
+	if len(args.ParsedRegionClusterMap) > 1 {
 		for region := range args.ParsedRegionClusterMap {
 			attrs := map[string]interface{}{
 				"alias":  region,
@@ -474,11 +483,11 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["filter_pattern"] = args.FilterPattern
 	}
 
-	if args.FirehoseEncryptionEnabled {
-		moduleAttrs["kinesis_firehose_encryption_enabled"] = true
+	if args.FirehoseEncryptionDisabled {
+		moduleAttrs["kinesis_firehose_encryption_enabled"] = false
 	}
 
-	if args.FirehoseEncryptionKeyArn != "" && args.FirehoseEncryptionEnabled {
+	if args.FirehoseEncryptionKeyArn != "" && !args.FirehoseEncryptionDisabled {
 		moduleAttrs["kinesis_firehose_key_arn"] = args.FirehoseEncryptionKeyArn
 	}
 
@@ -494,11 +503,11 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["kms_key_rotation"] = true
 	}
 
-	if args.SnsTopicEncryptionEnabled {
-		moduleAttrs["sns_topic_encryption_enabled"] = true
+	if args.SnsTopicEncryptionDisabled {
+		moduleAttrs["sns_topic_encryption_enabled"] = false
 	}
 
-	if args.SnsTopicEncryptionKeyArn != "" && args.SnsTopicEncryptionEnabled {
+	if args.SnsTopicEncryptionKeyArn != "" && !args.SnsTopicEncryptionDisabled {
 		moduleAttrs["sns_topic_key_arn"] = args.SnsTopicEncryptionKeyArn
 	}
 
