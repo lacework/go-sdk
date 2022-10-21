@@ -60,9 +60,7 @@ func (reg InlineScannerIntegration) ContainerRegistryType() containerRegistryTyp
 type InlineScannerData struct {
 	RegistryType  string              `json:"registryType"` // always "INLINE_SCANNER"
 	IdentifierTag []map[string]string `json:"identifierTag"`
-	// @afiune reported bug
-	// > https://lacework.atlassian.net/browse/RAIN-33574
-	LimitNumScan int `json:"limitNumScan,omitempty"`
+	LimitNumScan  string              `json:"limitNumScan,omitempty"`
 }
 
 func verifyInlineScannerContainerRegistry(data interface{}) interface{} {
