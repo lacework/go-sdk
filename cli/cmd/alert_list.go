@@ -148,7 +148,7 @@ func listAlert(_ *cobra.Command, _ []string) error {
 			end.Format("2006-Jan-2 15:04:05 MST"),
 		),
 	)
-	listResponse, err := cli.LwApi.V2.Alerts.ListByTime(start, end)
+	listResponse, err := cli.LwApi.V2.Alerts.ListAllByTime(start, end)
 	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, msg)

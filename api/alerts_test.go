@@ -32,8 +32,8 @@ import (
 
 var alertsJSON = `{
     "paging": {
-        "rows": 412,
-        "totalRows": 412,
+        "rows": 1,
+        "totalRows": 1,
         "urls": {
             "nextPage": null
         }
@@ -41,6 +41,74 @@ var alertsJSON = `{
     "data": [
         {
             "alertId": 967278,
+            "startTime": "2022-09-29T16:00:00.000Z",
+            "alertType": "CloudActivityLogIngestionFailed",
+            "severity": "High",
+            "reachability": "UnknownReachability",
+            "derivedFields": {
+                "category": "Policy",
+                "sub_category": "Platform",
+                "source": ""
+            },
+            "endTime": "2022-09-29T17:00:00.000Z",
+            "lastUserUpdatedTime": "0",
+            "status": "Open",
+            "alertName": "Clone of Cloud Activity log ingestion failure detected",
+            "alertInfo": {
+                "subject": "Clone of Cloud Activity log ingestion failure detected",
+                "description": "New integration failure detected for kiki-intg-2 (and 3 more)"
+            },
+            "policyId": "CUSTOM_PLATFORM_130",
+            "alertSource": "UnknownAlertSource"
+        }
+	]
+}`
+
+var alertsPage1JSON = `{
+    "paging": {
+        "rows": 1,
+        "totalRows": 2,
+        "urls": {
+            "nextPage": "%s"
+        }
+    },
+    "data": [
+        {
+            "alertId": 967278,
+            "startTime": "2022-09-29T16:00:00.000Z",
+            "alertType": "CloudActivityLogIngestionFailed",
+            "severity": "High",
+            "reachability": "UnknownReachability",
+            "derivedFields": {
+                "category": "Policy",
+                "sub_category": "Platform",
+                "source": ""
+            },
+            "endTime": "2022-09-29T17:00:00.000Z",
+            "lastUserUpdatedTime": "0",
+            "status": "Open",
+            "alertName": "Clone of Cloud Activity log ingestion failure detected",
+            "alertInfo": {
+                "subject": "Clone of Cloud Activity log ingestion failure detected",
+                "description": "New integration failure detected for kiki-intg-2 (and 3 more)"
+            },
+            "policyId": "CUSTOM_PLATFORM_130",
+            "alertSource": "UnknownAlertSource"
+        }
+	]
+}`
+
+var alertsPage2JSON = `{
+    "paging": {
+        "rows": 1,
+        "totalRows": 2,
+        "urls": {
+            "nextPage": null
+        }
+    },
+    "data": [
+        {
+            "alertId": 967279,
             "startTime": "2022-09-29T16:00:00.000Z",
             "alertType": "CloudActivityLogIngestionFailed",
             "severity": "High",
@@ -114,6 +182,42 @@ func TestAlertsListOK(t *testing.T) {
 	assert.Equal(t, listExpected, listActual)
 }
 
+func TestAlertsListAllOK(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+
+	nextPage := fmt.Sprintf(
+		"%s/api/v2/Alerts/nextPage",
+		fakeServer.URL(),
+	)
+	mockResponse := fmt.Sprintf(alertsPage1JSON, nextPage)
+
+	fakeServer.MockAPI(
+		"Alerts",
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, mockResponse)
+		},
+	)
+	fakeServer.MockAPI(
+		"Alerts/nextPage",
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, alertsPage2JSON)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	var listActual api.AlertsResponse
+	listActual, err = c.V2.Alerts.ListAll()
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(listActual.Data))
+}
+
 func TestAlertsListError(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
@@ -183,6 +287,42 @@ func TestAlertsListByTimeOK(t *testing.T) {
 	listActual, err = c.V2.Alerts.ListByTime(time.Now(), time.Now())
 	assert.Nil(t, err)
 	assert.Equal(t, listExpected, listActual)
+}
+
+func TestAlertsListAllByTimeOK(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+
+	nextPage := fmt.Sprintf(
+		"%s/api/v2/Alerts/nextPage",
+		fakeServer.URL(),
+	)
+	mockResponse := fmt.Sprintf(alertsPage1JSON, nextPage)
+
+	fakeServer.MockAPI(
+		"Alerts",
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, mockResponse)
+		},
+	)
+	fakeServer.MockAPI(
+		"Alerts/nextPage",
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, alertsPage2JSON)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	var listActual api.AlertsResponse
+	listActual, err = c.V2.Alerts.ListAllByTime(time.Now(), time.Now())
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(listActual.Data))
 }
 
 func TestAlertsListByTimeError(t *testing.T) {
