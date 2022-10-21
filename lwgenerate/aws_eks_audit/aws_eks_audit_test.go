@@ -57,6 +57,73 @@ func TestGenerationEksFailureSingleRegionNoClusters(t *testing.T) {
 	assert.Equal(t, "invalid inputs: At least one cluster must be supplied per region", err.Error())
 }
 
+func TestGenerationEksBucketWithNoBucketVersioning(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		DisableBucketVersioning(),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "bucket_versioning_enabled=false")
+}
+
+func TestGenerationEksBucketWithNoBucketVersioningMfaDeleteEnabled(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		DisableBucketVersioning(),
+		EnableBucketMfaDelete(),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "bucket_versioning_enabled=false")
+	assert.NotContains(t, hcl, "bucket_enable_mfa_delete")
+}
+
+func TestGenerationEksBucketWithNoEncryption(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		DisableBucketEncryption(),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "bucket_encryption_enabled=false")
+}
+
+func TestGenerationEksBucketWithNoEncryptionAndKeyArn(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		DisableBucketEncryption(),
+		WithBucketSseKeyArn("arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "bucket_encryption_enabled=false")
+	assert.NotContains(t, hcl, "bucket_key_arn")
+}
+
+func TestGenerationEksWithBucketEncryptionKeyArnAndWithBucketSseAlgorithm(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithBucketSseKeyArn("arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"),
+		WithBucketSseAlgorithm("aws:kms"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl,
+		"bucket_key_arn=\"arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903\"")
+	assert.Contains(t, strippedHcl, "bucket_sse_algorithm=\"aws:kms\"")
+}
+
 func TestGenerationEksFirehoseWithNoEncryption(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
@@ -135,9 +202,39 @@ func TestGenerationEksWithSnsTopicEncryptionKeyArn(t *testing.T) {
 		"sns_topic_key_arn=\"arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903\"")
 }
 
+func TestGenerationEksWithExistingCloudWatchIamRoleArn(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithExistingCloudWatchIamRoleArn("arn:aws:iam::249446771485:role/2537e820-cloudwatch-role"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl,
+		"cloudwatch_iam_role_arn=\"arn:aws:iam::249446771485:role/2537e820-cloudwatch-role\"")
+	assert.Contains(t, strippedHcl,
+		"use_existing_cloudwatch_iam_role=true")
+}
+
+func TestGenerationEksWithExistingFirehoseIamRoleArn(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		WithExistingFirehoseIamRoleArn("arn:aws:iam::249446771485:role/2537e820-firehose-role"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl,
+		"firehose_iam_role_arn=\"arn:aws:iam::249446771485:role/2537e820-firehose-role\"")
+	assert.Contains(t, strippedHcl,
+		"use_existing_firehose_iam_role=true")
+}
+
 var iamErrorString = "invalid inputs: when using an existing cross account IAM role, existing role ARN and external ID all must be set"
 
-func TestGenerationFailureWithIncompleteExistingIam(t *testing.T) {
+func TestGenerationFailureWithIncompleteExistingCrossAccountIam(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	_, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
@@ -151,7 +248,7 @@ func TestGenerationFailureWithIncompleteExistingIam(t *testing.T) {
 	assert.Equal(t, iamErrorString, err.Error())
 }
 
-func TestGenerationPartialExistingIamValues(t *testing.T) {
+func TestGenerationPartialExistingCrossAccountIamValues(t *testing.T) {
 	t.Run("partial existing iam roles should be detected", func(t *testing.T) {
 		data := NewExistingCrossAccountIamRoleDetails("test", "")
 		assert.True(t, data.IsPartial())

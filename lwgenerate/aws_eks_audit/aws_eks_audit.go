@@ -52,8 +52,8 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	// Should we require MFA for object deletion?
 	BucketEnableMfaDelete bool
 
-	// Should we enable bucket encryption?
-	BucketEnableEncryption bool
+	// Should we disable bucket encryption?
+	BucketDisableEncryption bool
 
 	// Should we force destroy the bucket if it has stuff in it?
 	BucketForceDestroy bool
@@ -69,7 +69,7 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	BucketSseKeyArn string
 
 	// Should we enable bucket versioning?
-	BucketVersioning bool
+	DisableBucketVersioning bool
 
 	// The name of the AWS EKS Audit Log integration in Lacework. Defaults to "TF AWS EKS Audit Log"
 	EksAuditIntegrationName string
@@ -185,10 +185,10 @@ func EnableBucketMfaDelete() AwsEksAuditTerraformModifier {
 	}
 }
 
-// EnableBucketEncryption Set the S3 Encryption parameter to true for newly created buckets
-func EnableBucketEncryption() AwsEksAuditTerraformModifier {
+// DisableBucketEncryption Set the S3 Encryption parameter to true for newly created buckets
+func DisableBucketEncryption() AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.BucketEnableEncryption = true
+		c.BucketDisableEncryption = true
 	}
 }
 
@@ -221,10 +221,10 @@ func WithBucketSseKeyArn(arn string) AwsEksAuditTerraformModifier {
 	}
 }
 
-// EnableBucketVersioning Set the S3 Bucket versioning parameter to true for newly created buckets
-func EnableBucketVersioning() AwsEksAuditTerraformModifier {
+// DisableBucketVersioning Set the S3 Bucket versioning parameter to true for newly created buckets
+func DisableBucketVersioning() AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.BucketVersioning = true
+		c.DisableBucketVersioning = true
 	}
 }
 
@@ -439,12 +439,12 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 	resourceAttrs := map[string]interface{}{}
 	moduleDetails := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithVersion(lwgenerate.AwsEksAuditVersion)}
 
-	if args.BucketEnableMfaDelete {
+	if args.BucketEnableMfaDelete && !args.DisableBucketVersioning {
 		moduleAttrs["bucket_enable_mfa_delete"] = true
 	}
 
-	if args.BucketEnableEncryption {
-		moduleAttrs["bucket_encryption_enabled"] = true
+	if args.BucketDisableEncryption {
+		moduleAttrs["bucket_encryption_enabled"] = false
 	}
 
 	if args.BucketForceDestroy {
@@ -455,12 +455,16 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["bucket_lifecycle_expiration_days"] = args.BucketLifecycleExpirationDays
 	}
 
-	if args.BucketSseAlgorithm != "" && args.BucketEnableEncryption {
+	if args.BucketSseAlgorithm != "" && !args.BucketDisableEncryption {
 		moduleAttrs["bucket_sse_algorithm"] = args.BucketSseAlgorithm
 	}
 
-	if args.BucketSseKeyArn != "" && args.BucketEnableEncryption {
-		moduleAttrs["bucket_key_arn"] = args.BucketSseAlgorithm
+	if args.DisableBucketVersioning {
+		moduleAttrs["bucket_versioning_enabled"] = false
+	}
+
+	if args.BucketSseKeyArn != "" && !args.BucketDisableEncryption {
+		moduleAttrs["bucket_key_arn"] = args.BucketSseKeyArn
 	}
 
 	if args.ExistingCloudWatchIamRoleArn != "" {
