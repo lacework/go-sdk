@@ -448,7 +448,7 @@ The output from status with the --json flag can be used in the body of PATCH api
 					Csp:     api.AwsInventoryType,
 				}
 			)
-			err := cli.LwApi.V2.Inventory.WindowedSearch(&awsInventorySearchResponse, filter, 7, 92)
+			err := api.WindowedSearch(cli.LwApi.V2.Inventory.Search, 7, 92, &awsInventorySearchResponse, &filter)
 			cli.StopProgress()
 
 			if len(awsInventorySearchResponse.Data) == 0 {
@@ -479,7 +479,8 @@ The output from status with the --json flag can be used in the body of PATCH api
 					Dataset: api.AwsComplianceEvaluationDataset,
 				}
 			)
-			err = cli.LwApi.V2.ComplianceEvaluations.WindowedSearch(&awsComplianceEvaluationSearchResponse, complianceFilter, 7, 92)
+
+			err = api.WindowedSearch(cli.LwApi.V2.ComplianceEvaluations.Search, 7, 92, &awsComplianceEvaluationSearchResponse, &complianceFilter)
 			cli.StopProgress()
 			if err != nil {
 				return err

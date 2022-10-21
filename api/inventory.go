@@ -18,6 +18,8 @@
 
 package api
 
+import "time"
+
 type InventoryService struct {
 	client *Client
 }
@@ -47,7 +49,7 @@ const AwsInventoryDataset inventoryDataset = "AwsCompliance"
 //  )
 //   lacework.V2.Inventory.Search(&awsInventorySearchResponse, filters)
 //
-func (svc *InventoryService) Search(response interface{}, filters InventorySearch) error {
+func (svc *InventoryService) Search(response interface{}, filters SearchableFilter) error {
 	return svc.client.RequestEncoderDecoder("POST", apiV2InventorySearch, filters, response)
 }
 
@@ -57,29 +59,14 @@ type InventorySearch struct {
 	Dataset inventoryDataset `json:"dataset"`
 }
 
-// WindowedSearch performs a new search of a specific time frame size,
-// until response data is found or the max searchable days is reached
-func (svc *InventoryService) WindowedSearch(response *InventoryAwsResponse, filter InventorySearch, size int, max int) error {
-	for i := 0; i < max; i += size {
-		err := svc.Search(&response, filter)
-		if err != nil {
-			return err
-		}
-		if len(response.Data) != 0 {
-			return nil
-		}
+func (i InventorySearch) GetTimeFilter() *TimeFilter {
+	return i.TimeFilter
+}
 
-		//adjust window
-		newStart := filter.StartTime.AddDate(0, 0, -size)
-		newEnd := filter.EndTime.AddDate(0, 0, -size)
+func (i InventorySearch) SetStartTime(time *time.Time) {
+	i.TimeFilter.StartTime = time
+}
 
-		// ensure we do not go over the max allowed searchable days
-		rem := (i - max) % size
-		if rem > 0 {
-			newEnd = filter.EndTime.AddDate(0, 0, -rem)
-		}
-		filter.TimeFilter.StartTime = &newStart
-		filter.TimeFilter.EndTime = &newEnd
-	}
-	return nil
+func (i InventorySearch) SetEndTime(time *time.Time) {
+	i.TimeFilter.EndTime = time
 }

@@ -54,3 +54,42 @@ type TimeFilter struct {
 	StartTime *time.Time `json:"startTime,omitempty"`
 	EndTime   *time.Time `json:"endTime,omitempty"`
 }
+
+type SearchResponse interface {
+	GetDataLength() int
+}
+
+type SearchableFilter interface {
+	GetTimeFilter() *TimeFilter
+	SetStartTime(*time.Time)
+	SetEndTime(*time.Time)
+}
+
+type search func(response interface{}, filters SearchableFilter) error
+
+// WindowedSearch performs a new search of a specific time frame size,
+// until response data is found or the max searchable days is reached
+func WindowedSearch(fn search, size int, max int, response SearchResponse, filter SearchableFilter) error {
+	for i := 0; i < max; i += size {
+		err := fn(&response, filter)
+		if err != nil {
+			return err
+		}
+		if response.GetDataLength() != 0 {
+			return nil
+		}
+
+		//adjust window
+		newStart := filter.GetTimeFilter().StartTime.AddDate(0, 0, -size)
+		newEnd := filter.GetTimeFilter().EndTime.AddDate(0, 0, -size)
+
+		// ensure we do not go over the max allowed searchable days
+		rem := (i - max) % size
+		if rem > 0 {
+			newEnd = filter.GetTimeFilter().EndTime.AddDate(0, 0, -rem)
+		}
+		filter.SetStartTime(&newStart)
+		filter.SetEndTime(&newEnd)
+	}
+	return nil
+}

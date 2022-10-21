@@ -18,6 +18,8 @@
 
 package api
 
+import "time"
+
 type ComplianceEvaluationService struct {
 	client *Client
 }
@@ -45,38 +47,23 @@ const AwsComplianceEvaluationDataset complianceEvaluationDataset = "AwsComplianc
 //  )
 //   lacework.V2.ComplianceEvaluation.Search(&awsComplianceEvaluationSearchResponse, filters)
 //
-func (svc *ComplianceEvaluationService) Search(response interface{}, filters ComplianceEvaluationSearch) error {
+func (svc *ComplianceEvaluationService) Search(response interface{}, filters SearchableFilter) error {
 	return svc.client.RequestEncoderDecoder("POST", apiV2ComplianceEvaluationsSearch, filters, response)
+}
+
+func (c *ComplianceEvaluationSearch) GetTimeFilter() *TimeFilter {
+	return c.TimeFilter
+}
+
+func (c *ComplianceEvaluationSearch) SetStartTime(t *time.Time) {
+	c.TimeFilter.StartTime = t
+}
+
+func (c *ComplianceEvaluationSearch) SetEndTime(t *time.Time) {
+	c.TimeFilter.EndTime = t
 }
 
 type ComplianceEvaluationSearch struct {
 	SearchFilter
 	Dataset complianceEvaluationDataset `json:"dataset"`
-}
-
-// WindowedSearch performs a new search of a specific time frame size,
-// until response data is found or the max searchable days is reached
-func (svc *ComplianceEvaluationService) WindowedSearch(response *ComplianceEvaluationAwsResponse, filter ComplianceEvaluationSearch, size int, max int) error {
-	for i := 0; i < max; i += size {
-		err := svc.Search(&response, filter)
-		if err != nil {
-			return err
-		}
-		if len(response.Data) != 0 {
-			return nil
-		}
-
-		//adjust window
-		newStart := filter.StartTime.AddDate(0, 0, -size)
-		newEnd := filter.EndTime.AddDate(0, 0, -size)
-
-		// ensure we do not go over the max allowed searchable days
-		rem := (i - max) % size
-		if rem > 0 {
-			newEnd = filter.EndTime.AddDate(0, 0, -rem)
-		}
-		filter.TimeFilter.StartTime = &newStart
-		filter.TimeFilter.EndTime = &newEnd
-	}
-	return nil
 }
