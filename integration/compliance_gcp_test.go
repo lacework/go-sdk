@@ -33,10 +33,7 @@ func TestComplianceGoogleGetReportOrgAndProjectWithAlias(t *testing.T) {
 		"Getting compliance report...",
 		"STDOUT changed, please check")
 	assert.Contains(t, err.String(),
-		"unable to get gcp compliance report",
-		"STDERR changed, please check")
-	assert.Contains(t, err.String(),
-		"GCP_ORG_ID=org-id&GCP_PROJ_ID=proj-id&",
+		"no data found in the report",
 		"STDERR changed, please check")
 }
 

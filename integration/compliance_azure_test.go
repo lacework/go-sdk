@@ -42,9 +42,6 @@ func TestComplianceAzureGetReportTenantAndSubscriptionWithAlias(t *testing.T) {
 		"Getting compliance report...",
 		"STDOUT changed, please check")
 	assert.Contains(t, err.String(),
-		"unable to get azure compliance report",
-		"STDERR changed, please check")
-	assert.Contains(t, err.String(),
-		"AZURE_SUBS_ID=subscription-id&AZURE_TENANT_ID=tenant-id&",
+		"no data found in the report",
 		"STDERR changed, please check")
 }

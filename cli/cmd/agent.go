@@ -44,6 +44,7 @@ var (
 		InstallTagKey         string
 		InstallTag            []string
 		InstallIncludeRegions []string
+		InstallMaxParallelism int
 	}{}
 
 	defaultSshIdentityKey = "~/.ssh/id_rsa"

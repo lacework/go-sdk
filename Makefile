@@ -3,11 +3,11 @@ default: ci
 ci: lint test fmt-check imports-check integration
 
 # Tooling versions
-GOLANGCILINTVERSION?=1.45.2
-GOIMPORTSVERSION?=v0.1.8
+GOLANGCILINTVERSION?=1.50.0
+GOIMPORTSVERSION?=v0.1.12
 GOXVERSION?=v1.0.1
-GOTESTSUMVERSION?=v1.7.0
-GOJUNITVERSION?=v1.0.0
+GOTESTSUMVERSION?=v1.8.2
+GOJUNITVERSION?=v2.0.0
 
 CIARTIFACTS?=ci-artifacts
 COVERAGEOUT?=coverage.out
@@ -73,10 +73,9 @@ integration-only: install-tools ## Run integration tests
 		migration \
 		version \
 		generation \
+		compliance \
 		team_member \
 		component" -run=$(regex)
-		# Disable compliance
-		#compliance \
 		# Disable vulnerability tests until https://lacework.atlassian.net/browse/RAIN-37563 is resolved
 		#vulnerability"
 
