@@ -47,6 +47,58 @@ func (svc *ReportDefinitionsService) Get(reportDefinitionGuid string) (response 
 	return
 }
 
+// Create a ReportDefinition report definition
+//
+// Example:
+//	myReport := api.ReportDefinitionConfig{
+//		ReportName:    "My Custom Report",
+//		ReportType:    "COMPLIANCE",
+//		SubReportType: "AWS",
+//		Sections: []api.ReportDefinitionSection{
+//			{
+//				Category: "Cust",
+//				Title:    "My Custom Category",
+//				Policies: []string{"AWS_CIS_2_6"},
+//			}
+//		},
+//		AlertChannels:    []string{"myAlertChannel"},
+//		DistributionType: "csv",
+//		Frequency:        "weekly",
+//	}
+//
+//	newReport, err := lacework.V2.ReportDefinitions.Create(api.NewReportDefinition(myReport))
+//
+func (svc *ReportDefinitionsService) Create(reportDefintion ReportDefinition) (response ReportDefinitionResponse, err error) {
+	err = svc.client.RequestEncoderDecoder("POST", apiV2ResourceGroups, reportDefintion, &response)
+	return
+}
+
+// NewReportDefinition creates a new report definition for Create function
+func NewReportDefinition(cfg ReportDefinitionConfig) ReportDefinition {
+	return ReportDefinition{
+		ReportName:              cfg.ReportName,
+		ReportType:              cfg.ReportType,
+		SubReportType:           cfg.SubReportType,
+		ReportDefinitionDetails: ReportDefinitionDetails{cfg.Sections, cfg.Overrides},
+		Props:                   cfg.Props,
+		DistributionType:        cfg.DistributionType,
+		AlertChannels:           cfg.AlertChannels,
+		Frequency:               cfg.Frequency,
+	}
+}
+
+type ReportDefinitionConfig struct {
+	ReportName       string                      `json:"reportName"`
+	ReportType       string                      `json:"reportType"`
+	SubReportType    string                      `json:"subReportType"`
+	Sections         []ReportDefinitionSection   `json:"sections"`
+	Overrides        []ReportDefinitionOverrides `json:"overrides"`
+	Props            ReportDefinitionProps       `json:"props"`
+	AlertChannels    []string                    `json:"alertChannels"`
+	DistributionType string                      `json:"distributionType"`
+	Frequency        string                      `json:"frequency"`
+}
+
 type ReportDefinitionsResponse struct {
 	Data []ReportDefinition `json:"data"`
 }
@@ -56,23 +108,26 @@ type ReportDefinitionResponse struct {
 }
 
 type ReportDefinition struct {
-	ReportDefinitionGuid    string                  `json:"reportDefinitionGuid"`
+	ReportDefinitionGuid    string                  `json:"reportDefinitionGuid,omitempty"`
 	ReportName              string                  `json:"reportName"`
-	DisplayName             string                  `json:"displayName"`
+	DisplayName             string                  `json:"displayName,omitempty"`
 	ReportType              string                  `json:"reportType"`
 	ReportNotificationType  string                  `json:"reportNotificationType"`
 	SubReportType           string                  `json:"subReportType"`
 	ReportDefinitionDetails ReportDefinitionDetails `json:"reportDefinition"`
 	Props                   ReportDefinitionProps   `json:"props"`
-	Version                 int                     `json:"version"`
-	CreatedBy               string                  `json:"createdBy"`
-	CreatedTime             time.Time               `json:"createdTime"`
-	Enabled                 int                     `json:"enabled"`
+	DistributionType        string                  `json:"distributionType"`
+	AlertChannels           []string                `json:"alertChannels,omitempty"`
+	Frequency               string                  `json:"frequency,omitempty"`
+	Version                 int                     `json:"version,omitempty"`
+	CreatedBy               string                  `json:"createdBy,omitempty"`
+	CreatedTime             *time.Time              `json:"createdTime,omitempty"`
+	Enabled                 int                     `json:"enabled,omitempty"`
 }
 
 type ReportDefinitionDetails struct {
-	Sections  []ReportDefinitionSection `json:"sections"`
-	Overrides []ReportDefinitionSection `json:"overrides"`
+	Sections  []ReportDefinitionSection   `json:"sections"`
+	Overrides []ReportDefinitionOverrides `json:"overrides,omitempty"`
 }
 
 type ReportDefinitionOverrides struct {
@@ -87,6 +142,8 @@ type ReportDefinitionSection struct {
 }
 
 type ReportDefinitionProps struct {
-	Engine       string `json:"engine"`
-	ReleaseLabel string `json:"releaseLabel"`
+	Engine         string   `json:"engine,omitempty"`
+	ReleaseLabel   string   `json:"releaseLabel,omitempty"`
+	ResourceGroups []string `json:"resourceGroups,omitempty"`
+	Integrations   []string `json:"integrations,omitempty"`
 }

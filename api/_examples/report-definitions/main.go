@@ -35,4 +35,26 @@ func main() {
 	}
 
 	fmt.Printf("Retrieved my custom report: %q", report.Data.ReportName)
+
+	// Create a new custom report definition
+	myReport := api.ReportDefinitionConfig{
+		ReportName:    "My Custom Report",
+		ReportType:    "COMPLIANCE",
+		SubReportType: "AWS",
+		Sections: []api.ReportDefinitionSection{
+			{Category: "Cust",
+				Title:    "My Custom Category",
+				Policies: []string{"AWS_CIS_2_6"},
+			}},
+		AlertChannels:    []string{"myAlertChannel"},
+		DistributionType: "csv",
+		Frequency:        "weekly",
+	}
+
+	newReport, err := lacework.V2.ReportDefinitions.Create(api.NewReportDefinition(myReport))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Create my new custom report: %q", newReport.Data.ReportName)
 }
