@@ -1,3 +1,35 @@
+# v1.63.3 (2022-10-24)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.63.2 (2022-10-21)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.63.1 (2022-10-06)
+
+* No change notes available for this release.
+
+# v1.63.0 (2022-10-04)
+
+* **Feature**: Added EnableNetworkAddressUsageMetrics flag for ModifyVpcAttribute, DescribeVpcAttribute APIs.
+
+# v1.62.0 (2022-10-03)
+
+* **Feature**: Adding an imdsSupport attribute to EC2 AMIs
+
+# v1.61.0 (2022-09-29)
+
+* **Feature**: u-3tb1 instances are powered by Intel Xeon Platinum 8176M (Skylake) processors and are purpose-built to run large in-memory databases.
+
+# v1.60.0 (2022-09-23)
+
+* **Feature**: Letting external AWS customers provide ImageId as a Launch Template override in FleetLaunchTemplateOverridesRequest
+
+# v1.59.0 (2022-09-22)
+
+* **Feature**: Documentation updates for Amazon EC2.
+
 # v1.58.0 (2022-09-20)
 
 * **Feature**: This release adds support for blocked paths to Amazon VPC Reachability Analyzer.
