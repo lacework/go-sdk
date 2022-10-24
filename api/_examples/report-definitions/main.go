@@ -18,6 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// List all report definitions
 	reportTypes, err := lacework.V2.ReportDefinitions.List()
 	if err != nil {
 		log.Fatal(err)
@@ -26,4 +27,12 @@ func main() {
 	for _, report := range reportTypes.Data {
 		fmt.Println(report.ReportName)
 	}
+
+	// Get the details of a single report definition
+	report, err := lacework.V2.ReportDefinitions.Get("exampleID")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Retrieved my custom report: %q", report.Data.ReportName)
 }
