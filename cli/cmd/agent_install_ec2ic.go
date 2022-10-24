@@ -20,34 +20,35 @@ package cmd
 
 import (
 	"fmt"
+	"sync"
 
-	"github.com/pkg/errors"
+	"github.com/gammazero/workerpool"
 	"github.com/spf13/cobra"
 )
 
 var (
 	agentInstallAWSEC2ICCmd = &cobra.Command{
-		Use:   "ec2ic",
-		Args:  cobra.NoArgs,
+		Use:   "ec2ic <token>",
+		Args:  cobra.ExactArgs(1),
 		Short: "Use EC2InstanceConnect to securely connect to EC2 instances",
 		RunE:  installAWSEC2IC,
 		Long: `This command installs the agent on all EC2 instances in an AWS account using EC2InstanceConnect.
 
 To filter by one or more regions:
 
-    lacework agent aws-install ec2ic --include_regions us-west-2,us-east-2
+    lacework agent aws-install ec2ic <token> --include_regions us-west-2,us-east-2
 
 To filter by instance tag:
 
-    lacework agent aws-install ec2ic --tag TagName,TagValue
+    lacework agent aws-install ec2ic <token> --tag TagName,TagValue
 
 To filter by instance tag key:
 
-    lacework agent aws-install ec2ic --tag_key TagName
+    lacework agent aws-install ec2ic <token> --tag_key TagName
 
 To explicitly specify the username for all SSH logins:
 
-    lacework agent aws-install ec2ic --ssh_username <your-user>
+    lacework agent aws-install ec2ic <token> --ssh_username <your-user>
 
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
@@ -68,9 +69,6 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().StringSliceVar(&agentCmdState.InstallTag,
 		"tag", []string{}, "only install agents on infra with this tag",
 	)
-	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
-		"token", "", "agent access token",
-	)
 	agentInstallAWSEC2ICCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", true, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
@@ -80,48 +78,75 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
 		"ssh_username", "", "username to login with",
 	)
+	agentInstallAWSEC2ICCmd.Flags().IntVarP(
+		&agentCmdState.InstallMaxParallelism,
+		"max_parallelism",
+		"n",
+		50,
+		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
+	)
 }
 
-func installAWSEC2IC(_ *cobra.Command, _ []string) error {
+func installAWSEC2IC(_ *cobra.Command, args []string) error {
 	runners, err := awsDescribeInstances()
 	if err != nil {
 		return err
 	}
 
+	wg := new(sync.WaitGroup)
+	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
 	for _, runner := range runners {
-		cli.Log.Debugw("runner info: ", "user", runner.Runner.User, "region", runner.Region, "az", runner.AvailabilityZone, "instance ID", runner.InstanceID, "hostname", runner.Runner.Hostname)
-		err := runner.SendAndUseIdentityFile()
-		if err != nil {
-			cli.Log.Debugw("ec2ic failed", "err", err)
-			continue
-		}
+		wg.Add(1)
 
-		if err := verifyAccessToRemoteHost(&runner.Runner); err != nil {
-			cli.Log.Debugw("verifyAccessToRemoteHost failed")
-			return err
-		}
+		// In order to use `cl.Execute()`, the input func() must not take any arguments.
+		// Copy the runner info to dedicated variable in the goroutine to prevent race overwrite
+		runnerCopyWg := new(sync.WaitGroup)
+		runnerCopyWg.Add(1)
 
-		if alreadyInstalled := isAgentInstalledOnRemoteHost(&runner.Runner); alreadyInstalled != nil {
-			cli.Log.Debugw("agent already installed on host, skipping")
-			continue
-		}
-
-		token := agentCmdState.InstallAgentToken
-		if token == "" {
-			// user didn't provide an agent token
-			cli.Log.Debugw("agent token not provided")
-			var err error
-			token, err = selectAgentAccessToken()
+		wp.Submit(func() {
+			threadRunner := *runner
+			runnerCopyWg.Done()
+			cli.Log.Debugw("runner info: ",
+				"user", threadRunner.Runner.User,
+				"region", threadRunner.Region,
+				"az", threadRunner.AvailabilityZone,
+				"instance_id", threadRunner.InstanceID,
+				"hostname", threadRunner.Runner.Hostname,
+			)
+			err := threadRunner.SendAndUseIdentityFile()
 			if err != nil {
-				return err
+				cli.Log.Debugw("ec2ic key send failed", "err", err, "runner", threadRunner.InstanceID)
 			}
-		}
-		cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
-		err = runInstallCommandOnRemoteHost(&runner.Runner, cmd)
-		if err != nil {
-			return errors.Wrap(err, "runInstallCommandOnRemoteHost failed for instance "+runner.InstanceID)
-		}
+
+			if err := verifyAccessToRemoteHost(&threadRunner.Runner); err != nil {
+				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
+			}
+
+			if alreadyInstalled := isAgentInstalledOnRemoteHost(&threadRunner.Runner); alreadyInstalled != nil {
+				cli.Log.Debugw("agent already installed on host, skipping", "runner", threadRunner.InstanceID)
+			}
+
+			var token string
+			if len(args) <= 0 || args[0] == "" {
+				// user didn't provide an agent token
+				cli.Log.Warnw("agent token not provided", "runner", threadRunner.InstanceID)
+			} else {
+				token = args[0]
+			}
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
+			if err != nil {
+				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
+			}
+			if threadRunner != *runner {
+				cli.Log.Debugw("mutated runner", "thread_runner", threadRunner, "runner", runner)
+			}
+			wg.Done()
+		})
+		runnerCopyWg.Wait()
 	}
+	wg.Wait()
+	wp.StopWait()
 
 	return nil
 }
