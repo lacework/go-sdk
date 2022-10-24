@@ -19,7 +19,10 @@
 package api
 
 import (
+	"fmt"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // ReportDefinitionsService is a service that interacts with the ReportDefinitions
@@ -29,29 +32,52 @@ type ReportDefinitionsService struct {
 }
 
 // List returns a ReportDefinitionResponse
-func (svc *ReportDefinitionsService) List() (response ReportDefinitionResponse, err error) {
+func (svc *ReportDefinitionsService) List() (response ReportDefinitionsResponse, err error) {
 	err = svc.client.RequestDecoder("GET", apiV2ReportDefinitions, nil, &response)
 	return
 }
 
-type ReportDefinitionResponse struct {
+// Get returns a ReportDefinitionResponse
+func (svc *ReportDefinitionsService) Get(reportDefinitionGuid string) (response ReportDefinitionResponse, err error) {
+	if reportDefinitionGuid == "" {
+		return ReportDefinitionResponse{}, errors.New("specify a report definition guid")
+	}
+	apiPath := fmt.Sprintf(apiV2ReportDefinitionsFromGUID, reportDefinitionGuid)
+	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
+	return
+}
+
+type ReportDefinitionsResponse struct {
 	Data []ReportDefinition `json:"data"`
 }
+
+type ReportDefinitionResponse struct {
+	Data ReportDefinition `json:"data"`
+}
+
 type ReportDefinition struct {
-	ReportDefinitionGuid   string `json:"reportDefinitionGuid"`
-	ReportName             string `json:"reportName"`
-	DisplayName            string `json:"displayName"`
-	ReportType             string `json:"reportType"`
-	ReportNotificationType string `json:"reportNotificationType"`
-	SubReportType          string `json:"subReportType"`
-	ReportDefinition       struct {
-		Sections []ReportDefinitionSection `json:"sections"`
-	} `json:"reportDefinition"`
-	Props       ReportDefinitionProps `json:"props"`
-	Version     int                   `json:"version"`
-	CreatedBy   string                `json:"createdBy"`
-	CreatedTime time.Time             `json:"createdTime"`
-	Enabled     int                   `json:"enabled"`
+	ReportDefinitionGuid    string                  `json:"reportDefinitionGuid"`
+	ReportName              string                  `json:"reportName"`
+	DisplayName             string                  `json:"displayName"`
+	ReportType              string                  `json:"reportType"`
+	ReportNotificationType  string                  `json:"reportNotificationType"`
+	SubReportType           string                  `json:"subReportType"`
+	ReportDefinitionDetails ReportDefinitionDetails `json:"reportDefinition"`
+	Props                   ReportDefinitionProps   `json:"props"`
+	Version                 int                     `json:"version"`
+	CreatedBy               string                  `json:"createdBy"`
+	CreatedTime             time.Time               `json:"createdTime"`
+	Enabled                 int                     `json:"enabled"`
+}
+
+type ReportDefinitionDetails struct {
+	Sections  []ReportDefinitionSection `json:"sections"`
+	Overrides []ReportDefinitionSection `json:"overrides"`
+}
+
+type ReportDefinitionOverrides struct {
+	Policy string `json:"policy"`
+	Title  string `json:"title"`
 }
 
 type ReportDefinitionSection struct {
