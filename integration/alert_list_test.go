@@ -32,7 +32,7 @@ import (
 func popAlert() (string, error) {
 	var alerts api.Alerts
 
-	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--json")
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--status", "Open", "--json")
 	if stderr.String() != "" {
 		return "-1", errors.New(stderr.String())
 	}
@@ -46,9 +46,7 @@ func popAlert() (string, error) {
 	}
 
 	for _, a := range alerts.SortDescending() {
-		if a.Status == "Open" {
-			return strconv.Itoa(a.ID), nil
-		}
+		return strconv.Itoa(a.ID), nil
 	}
 	return "-1", errors.New("no open alerts found")
 }
@@ -95,4 +93,39 @@ func TestAlertListNone(t *testing.T) {
 	assert.Contains(t, out.String(), "There are no alerts in your account in the specified time range.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestAlertListSeverityBad(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--severity", "foo")
+	assert.Empty(t, out.String(), "STDOUT should be empty")
+	assert.Contains(t, err.String(), "ERROR unable to list alerts: the severity (foo) is not valid, use one of (critical, high, medium, low, info)")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestAlertListSeverityAll(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--severity", "info")
+	assert.Contains(t, out.String(), "Low")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestAlertListStatusBad(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--status", "foo")
+	assert.Empty(t, out.String(), "STDOUT should be empty")
+	assert.Contains(t, err.String(), "ERROR unable to list alerts: the status (foo) is not valid, use one of (Open, Closed)")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestAlertListStatusOpen(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--status", "Open")
+	assert.Contains(t, out.String(), "Open")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestAlertListTypeBad(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--type", "foo")
+	assert.Contains(t, out.String(), "There are no alerts in your account in the specified time range.")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }

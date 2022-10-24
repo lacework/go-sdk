@@ -21,9 +21,11 @@ package cmd
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/lacework/go-sdk/lwtime"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -51,8 +53,33 @@ Start and end times may be specified in one of the following formats:
     A. A relative time specifier
     B. RFC3339 date and time
     C. Epoch time in milliseconds
+
+To list open "NewViolations" alerts of any severity.
+
+	lacework alert ls --status Open --severity Info --type NewViolations
 `,
 		Args: cobra.NoArgs,
+		PreRunE: func(_ *cobra.Command, args []string) error {
+			// validate severity
+			if alertCmdState.Severity != "" && !array.ContainsStr(
+				api.ValidAlertSeverities, alertCmdState.Severity) {
+				return errors.Wrap(
+					errors.New(fmt.Sprintf("the severity (%s) is not valid, use one of (%s)",
+						alertCmdState.Severity, strings.Join(api.ValidAlertSeverities, ", "))),
+					"unable to list alerts",
+				)
+			}
+			// validate status
+			if alertCmdState.Status != "" && !array.ContainsStr(
+				api.ValidAlertStatuses, alertCmdState.Status) {
+				return errors.Wrap(
+					errors.New(fmt.Sprintf("the status (%s) is not valid, use one of (%s)",
+						alertCmdState.Status, strings.Join(api.ValidAlertStatuses, ", "))),
+					"unable to list alerts",
+				)
+			}
+			return nil
+		},
 		RunE: listAlert,
 	}
 )
@@ -64,27 +91,68 @@ func init() {
 	alertListCmd.Flags().StringVar(
 		&alertCmdState.Range,
 		"range", "",
-		"natural time range for query",
+		"natural time range for alerts",
 	)
 
 	// start time flag
 	alertListCmd.Flags().StringVar(
 		&alertCmdState.Start,
 		"start", "-24h",
-		"start time for query",
+		"start time for alerts",
 	)
 	// end time flag
 	alertListCmd.Flags().StringVar(
 		&alertCmdState.End,
 		"end", "now",
-		"end time for query",
+		"end time for alerts",
+	)
+
+	// severity flag
+	alertListCmd.Flags().StringVar(
+		&alertCmdState.Severity,
+		"severity", "medium",
+		fmt.Sprintf(
+			"filter alerts by severity threshold (%s)",
+			strings.Join(api.ValidAlertSeverities, ", "),
+		),
+	)
+
+	// status flag
+	alertListCmd.Flags().StringVar(
+		&alertCmdState.Status,
+		"status", "",
+		fmt.Sprintf(
+			"filter alerts by status (%s)",
+			strings.Join(api.ValidAlertStatuses, ", "),
+		),
+	)
+
+	// type flag
+	alertListCmd.Flags().StringVar(
+		&alertCmdState.Type,
+		"type", "",
+		"filter alerts by type",
 	)
 }
 
 func alertListTable(alerts api.Alerts) (out [][]string) {
+	sevThreshold, _ := severityToProperTypes(alertCmdState.Severity)
+
 	for _, alert := range alerts.SortDescending() {
+		// filter severity if desired
+		if sevThreshold > 0 {
+			alertSeverity, _ := severityToProperTypes(
+				strings.ToLower(alert.Severity),
+			)
+
+			if alertSeverity > sevThreshold {
+				continue
+			}
+		}
+
 		out = append(out, []string{
 			strconv.Itoa(alert.ID),
+			alert.Type,
 			alert.Name,
 			alert.Severity,
 			alert.StartTime,
@@ -99,7 +167,7 @@ func alertListTable(alerts api.Alerts) (out [][]string) {
 func renderAlertListTable(alerts api.Alerts) {
 	cli.OutputHuman(
 		renderCustomTable(
-			[]string{"Alert ID", "Name", "Severity", "Start Time", "End Time", "Status"},
+			[]string{"Alert ID", "Type", "Name", "Severity", "Start Time", "End Time", "Status"},
 			alertListTable(alerts),
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetAutoWrapText(false)
@@ -118,6 +186,7 @@ func listAlert(_ *cobra.Command, _ []string) error {
 		end   time.Time
 		msg   string = "unable to list alerts"
 	)
+
 	// use of if/else intentional here based on logic paths for determining start and end time.Time values
 	// if cli user has specified a range we use ParseNatural which gives us start and end time.Time values
 	// otherwise we need to convert alertCmdState start and end strings to time.Time values using parseQueryTime
@@ -141,6 +210,24 @@ func listAlert(_ *cobra.Command, _ []string) error {
 		}
 	}
 
+	filters := []api.Filter{}
+
+	if alertCmdState.Status != "" {
+		filters = append(filters, api.Filter{
+			Expression: "eq",
+			Field:      string(api.AlertsFilterFieldStatus),
+			Value:      alertCmdState.Status,
+		})
+	}
+
+	if alertCmdState.Type != "" {
+		filters = append(filters, api.Filter{
+			Expression: "eq",
+			Field:      string(api.AlertsFilterFieldType),
+			Value:      alertCmdState.Type,
+		})
+	}
+
 	cli.StartProgress(
 		fmt.Sprintf(
 			" Fetching alerts in the time range %s - %s...",
@@ -148,7 +235,12 @@ func listAlert(_ *cobra.Command, _ []string) error {
 			end.Format("2006-Jan-2 15:04:05 MST"),
 		),
 	)
-	listResponse, err := cli.LwApi.V2.Alerts.ListAllByTime(start, end)
+	var searchRequest = api.SearchFilter{
+		TimeFilter: &api.TimeFilter{StartTime: &start, EndTime: &end},
+		Filters:    filters,
+	}
+
+	listResponse, err := cli.LwApi.V2.Alerts.SearchAll(searchRequest)
 	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, msg)

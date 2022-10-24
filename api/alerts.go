@@ -32,6 +32,12 @@ type AlertsService struct {
 	client *Client
 }
 
+// ValidAlertSeverities is a list of all valid alert severities
+var ValidAlertSeverities = []string{"critical", "high", "medium", "low", "info"}
+
+// ValidAlertStatuses is a list of all valid alert statuses
+var ValidAlertStatuses = []string{"Open", "Closed"}
+
 type AlertInfo struct {
 	Subject     string `json:"subject"`
 	Description string `json:"description"`
