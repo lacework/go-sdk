@@ -75,7 +75,7 @@ const (
 	GCP_CIS13
 )
 
-// Get returns a raw response of the Alert Profile with the matching guid.
+// Get returns a GcpReportResponse
 func (svc *gcpReportsService) Get(reportCfg GcpReportConfig) (response GcpReportResponse, err error) {
 	if reportCfg.ProjectID == "" || reportCfg.OrganizationID == "" {
 		return GcpReportResponse{}, errors.New("project id and org id are required")

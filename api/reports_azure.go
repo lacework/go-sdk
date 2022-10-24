@@ -73,7 +73,7 @@ const (
 	AZURE_HIPAA
 )
 
-// Get returns a raw response of the Alert Profile with the matching guid.
+// Get returns an AzureReportResponse
 func (svc *azureReportsService) Get(reportCfg AzureReportConfig) (response AzureReportResponse, err error) {
 	if reportCfg.SubscriptionID == "" {
 		return AzureReportResponse{}, errors.New("specify an account id")
