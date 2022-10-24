@@ -131,6 +131,52 @@ func TestPaginationWithoutInfo(t *testing.T) {
 	assert.NoError(t, err, "a request without paging information should not error")
 }
 
+func TestPaginationQuery(t *testing.T) {
+
+	var mockResponse = `{
+  "paging": {
+      "rows": 1,
+      "totalRows": 2,
+      "urls": {
+          "nextPage": "Entities/MachineDetails/eeee==?startTime=2022-10-13T20:23:28.316Z&endTime=2022-10-19T20:23:28.316Z"
+      }
+  }
+}`
+
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Entities/MachineDetails/search",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method, "Search() should be a POST method")
+			fmt.Fprintf(w, mockResponse)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response := api.MachineDetailsEntityResponse{}
+	err = c.V2.Entities.Search(&response, api.SearchFilter{})
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	var all []api.MachineDetailEntity
+	for {
+		all = append(all, response.Data...)
+
+		_, err = c.NextPage(&response)
+		assert.Contains(t, err.Error(), "?endTime")
+		return
+	}
+}
+
 // @afiune this response should have 5000 machine details but we don't really care
 // that much about it since this test is testing the information from the "paging" field
 func mockPaginationResponsePage1() string {
