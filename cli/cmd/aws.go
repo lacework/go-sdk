@@ -21,11 +21,13 @@ package cmd
 import (
 	"context"
 	"os"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/gammazero/workerpool"
 	"github.com/lacework/go-sdk/lwrunner"
 )
 
@@ -139,6 +141,24 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 	}
 
 	runners := []*lwrunner.AWSRunner{}
+	producerWg := new(sync.WaitGroup)
+	// cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
+	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
+	runnerCh := make(chan *lwrunner.AWSRunner)
+
+	// We have multiple producers of runners and a single consumer.
+	// This goroutine acts as the consumer and reads from a channel into
+	// a slice. Pass a pointer to this slice and wait for this goroutine
+	// to finish before returning the memory pointed to.
+	consumerWg := new(sync.WaitGroup)
+	consumerWg.Add(1)
+	go func(runners *[]*lwrunner.AWSRunner) {
+		for runner := range runnerCh {
+			*runners = append(*runners, runner)
+		}
+		consumerWg.Done()
+	}(&runners)
+
 	for _, reservation := range result.Reservations {
 		for _, instance := range reservation.Instances {
 			if instance.PublicIpAddress != nil && instance.State.Name == "running" {
@@ -147,23 +167,52 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 					"instance state name", instance.State.Name,
 				)
 
-				runner, err := lwrunner.NewAWSRunner(
-					*instance.ImageId,
-					*instance.PublicIpAddress,
-					region,
-					*instance.Placement.AvailabilityZone,
-					*instance.InstanceId,
-					verifyHostCallback,
-				)
 				if err != nil {
-					cli.Log.Debugw("error identifying runner", "error", err, "instance ID", *instance.InstanceId)
+					cli.Log.Debugw("error identifying runner", "error", err, "instance_id", *instance.InstanceId)
 					continue
 				}
 
-				runners = append(runners, runner)
+				producerWg.Add(1)
+
+				// In order to use `cl.Execute()`, the input func() must not take any arguments.
+				// Copy the runner info to dedicated variable in the goroutine
+				instanceCopyWg := new(sync.WaitGroup)
+				instanceCopyWg.Add(1)
+
+				wp.Submit(func() {
+					threadInstance := instance
+					instanceCopyWg.Done()
+					cli.Log.Debugw("found runner",
+						"public ip address", *threadInstance.PublicIpAddress,
+						"instance state name", threadInstance.State.Name,
+					)
+
+					runner, err := lwrunner.NewAWSRunner(
+						*threadInstance.ImageId,
+						*threadInstance.PublicIpAddress,
+						region,
+						*threadInstance.Placement.AvailabilityZone,
+						*threadInstance.InstanceId,
+						verifyHostCallback,
+					)
+					if err != nil {
+						cli.Log.Debugw("error identifying runner", "error", err, "instance_id", *threadInstance.InstanceId)
+					}
+
+					runnerCh <- runner
+					producerWg.Done()
+				})
+				instanceCopyWg.Wait()
 			}
 		}
 	}
+
+	// Wait for the producers to finish, then close the producer thread pool,
+	// then close the channel they're writing to, then wait for the consumer to finish
+	producerWg.Wait()
+	wp.StopWait()
+	close(runnerCh)
+	consumerWg.Wait()
 
 	return runners, nil
 }

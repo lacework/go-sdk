@@ -29,7 +29,7 @@ import (
 )
 
 func TestComplianceRecommendationsFilterNoResults(t *testing.T) {
-	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Category = []string{"monitoring"}
 	result, output := filterRecommendations(mockRecommendations)
@@ -40,7 +40,7 @@ func TestComplianceRecommendationsFilterNoResults(t *testing.T) {
 }
 
 func TestComplianceRecommendationsFilterOnCategory(t *testing.T) {
-	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Category = []string{"identity-and-access-management"}
 	result, output := filterRecommendations(mockRecommendations)
@@ -51,7 +51,7 @@ func TestComplianceRecommendationsFilterOnCategory(t *testing.T) {
 }
 
 func TestComplianceRecommendationsFilterOnService(t *testing.T) {
-	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Service = []string{"aws:cloudtrail"}
 	result, output := filterRecommendations(mockRecommendations)
@@ -63,7 +63,7 @@ func TestComplianceRecommendationsFilterOnService(t *testing.T) {
 
 // Severity returns everything above the specified threshold eg. "low" returns low, medium, high, critical
 func TestComplianceRecommendationsFilterOnSeverityLow(t *testing.T) {
-	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Severity = "low"
 	result, output := filterRecommendations(mockRecommendations)
@@ -74,7 +74,7 @@ func TestComplianceRecommendationsFilterOnSeverityLow(t *testing.T) {
 }
 
 func TestComplianceRecommendationsFilterOnSeverityMedium(t *testing.T) {
-	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Severity = "medium"
 	result, output := filterRecommendations(mockRecommendations)
@@ -85,7 +85,7 @@ func TestComplianceRecommendationsFilterOnSeverityMedium(t *testing.T) {
 }
 
 func TestComplianceRecommendationsFilterOnSeverityCritical(t *testing.T) {
-	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Severity = "critical"
 	result, output := filterRecommendations(mockRecommendations)
@@ -96,7 +96,7 @@ func TestComplianceRecommendationsFilterOnSeverityCritical(t *testing.T) {
 }
 
 func TestComplianceRecommendationsFilterOnStatus(t *testing.T) {
-	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Status = "non-compliant"
 	result, output := filterRecommendations(mockRecommendations)
@@ -107,7 +107,7 @@ func TestComplianceRecommendationsFilterOnStatus(t *testing.T) {
 }
 
 func TestComplianceRecommendationsFilterMultiple(t *testing.T) {
-	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Severity = "high"
 	compCmdState.Status = "non-compliant"
@@ -120,7 +120,7 @@ func TestComplianceRecommendationsFilterMultiple(t *testing.T) {
 }
 
 func TestComplianceRecommendationsFilterMultipleCategories(t *testing.T) {
-	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Category = []string{"s3", "logging"}
 
@@ -132,7 +132,7 @@ func TestComplianceRecommendationsFilterMultipleCategories(t *testing.T) {
 }
 
 func TestComplianceRecommendationsFilterMultipleServices(t *testing.T) {
-	mockRecommendations := []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo,
+	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Service = []string{"aws:s3", "aws:iam"}
 
@@ -199,7 +199,7 @@ func clearFilters() {
 }
 
 var (
-	mockRecommendationOne = api.ComplianceRecommendation{
+	mockRecommendationOne = api.RecommendationV2{
 		RecID:                 "LW_S3_1",
 		AssessedResourceCount: 1,
 		ResourceCount:         1,
@@ -210,13 +210,13 @@ var (
 		Status:                "NonCompliant",
 		Suppressions:          []string{},
 		Title:                 "Mock S3",
-		Violations: []api.ComplianceViolation{{
+		Violations: []api.ComplianceViolationV2{{
 			Region:   "us-east-1",
 			Resource: "arn:aws:s3:::resource-name",
 			Reasons:  []string{"violation reason"},
 		}},
 	}
-	mockRecommendationTwo = api.ComplianceRecommendation{
+	mockRecommendationTwo = api.RecommendationV2{
 		RecID:                 "AWS_CIS_1_7",
 		AssessedResourceCount: 1,
 		ResourceCount:         1,
@@ -227,12 +227,12 @@ var (
 		Status:                "Compliant",
 		Suppressions:          []string{},
 		Title:                 "Mock IAM",
-		Violations: []api.ComplianceViolation{{
+		Violations: []api.ComplianceViolationV2{{
 			Region:   "us-east-2",
 			Resource: "arn:aws:s3:::other-resource-name",
 			Reasons:  []string{"other-violation reason"},
 		}}}
-	mockRecommendationThree = api.ComplianceRecommendation{
+	mockRecommendationThree = api.RecommendationV2{
 		RecID:                 "AWS_CIS_2_2",
 		AssessedResourceCount: 1,
 		ResourceCount:         1,
@@ -243,10 +243,10 @@ var (
 		Status:                "NonCompliant",
 		Suppressions:          []string{},
 		Title:                 "Mock Log One",
-		Violations:            []api.ComplianceViolation{},
+		Violations:            []api.ComplianceViolationV2{},
 	}
 
-	mockRecommendationFour = api.ComplianceRecommendation{
+	mockRecommendationFour = api.RecommendationV2{
 		RecID:                 "AWS_CIS_2_2",
 		AssessedResourceCount: 1,
 		ResourceCount:         1,
@@ -257,17 +257,17 @@ var (
 		Status:                "Compliant",
 		Suppressions:          []string{},
 		Title:                 "Mock Log Two",
-		Violations:            []api.ComplianceViolation{},
+		Violations:            []api.ComplianceViolationV2{},
 	}
 
-	mockComplianceReport = api.ComplianceAwsReport{
+	mockComplianceReport = api.AwsReport{
 		ReportTitle:     "This is a mock Report",
 		ReportType:      "Report Type",
 		ReportTime:      time.Time{},
 		AccountID:       "12345679",
 		AccountAlias:    "alias",
 		Summary:         nil,
-		Recommendations: []api.ComplianceRecommendation{mockRecommendationOne, mockRecommendationTwo},
+		Recommendations: []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo},
 	}
 )
 

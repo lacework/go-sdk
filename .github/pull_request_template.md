@@ -28,7 +28,7 @@
 
 <!--
   How exactly did you verify that your PR solves the issue you wanted to solve?
-  Include any other relevant information such as how to use the new fuctionality, screenshots, etc.
+  Include any other relevant information such as how to use the new functionality, screenshots, etc.
 -->
 
 ## Issue
