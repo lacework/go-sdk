@@ -51,8 +51,7 @@ var AlertCloseReasons = alertCloseReasons{
 func (acr alertCloseReasons) GetOrderedReasonStrings() []string {
 	reasons := []string{}
 	for i := 0; i < len(acr); i++ {
-		r, _ := acr[alertCloseReason(i)]
-		reasons = append(reasons, r)
+		reasons = append(reasons, acr[alertCloseReason(i)])
 	}
 	return reasons
 }

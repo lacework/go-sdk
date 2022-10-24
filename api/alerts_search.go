@@ -21,9 +21,9 @@ package api
 type alertsFilterField string
 
 const (
-	AlertsFilterFieldType     = "alertType"
-	AlertsFilterFieldSeverity = "severity"
-	AlertsFilterFieldStatus   = "status"
+	AlertsFilterFieldType     alertsFilterField = "alertType"
+	AlertsFilterFieldSeverity alertsFilterField = "severity"
+	AlertsFilterFieldStatus   alertsFilterField = "status"
 )
 
 func (svc *AlertsService) Search(filter SearchFilter) (
