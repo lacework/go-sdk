@@ -180,7 +180,7 @@ func init() {
 	complianceCmd.AddCommand(complianceGcpCmd)
 }
 
-func complianceReportSummaryTable(summaries []api.ComplianceSummary) [][]string {
+func complianceReportSummaryTable(summaries []api.ReportSummary) [][]string {
 	if len(summaries) == 0 {
 		return [][]string{}
 	}
@@ -194,7 +194,7 @@ func complianceReportSummaryTable(summaries []api.ComplianceSummary) [][]string 
 	}
 }
 
-func complianceReportRecommendationsTable(recommendations []api.ComplianceRecommendation) [][]string {
+func complianceReportRecommendationsTable(recommendations []api.RecommendationV2) [][]string {
 	out := [][]string{}
 	for _, recommend := range recommendations {
 		out = append(out, []string{
@@ -235,7 +235,7 @@ type complianceCSVReportDetails struct {
 	ReportTime time.Time
 
 	// Recommendations
-	Recommendations []api.ComplianceRecommendation
+	Recommendations []api.RecommendationV2
 }
 
 func (c complianceCSVReportDetails) GetAccountDetails() []string {
@@ -379,8 +379,8 @@ func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable
 	return mainReport.String()
 }
 
-func filterRecommendations(recommendations []api.ComplianceRecommendation) ([]api.ComplianceRecommendation, string) {
-	var filtered []api.ComplianceRecommendation
+func filterRecommendations(recommendations []api.RecommendationV2) ([]api.RecommendationV2, string) {
+	var filtered []api.RecommendationV2
 	for _, r := range recommendations {
 		if matchRecommendationsFilters(r) {
 			filtered = append(filtered, r)
@@ -394,7 +394,7 @@ func filterRecommendations(recommendations []api.ComplianceRecommendation) ([]ap
 	return filtered, fmt.Sprintf("%v of %v recommendations showing \n", len(filtered), len(recommendations))
 }
 
-func matchRecommendationsFilters(r api.ComplianceRecommendation) bool {
+func matchRecommendationsFilters(r api.RecommendationV2) bool {
 	var results []bool
 
 	// severity returns specified threshold and above
@@ -448,7 +448,7 @@ func validRecommendationID(s string) bool {
 	return match
 }
 
-func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
+func outputResourcesByRecommendationID(report api.CloudComplianceReportV2) error {
 	recommendation := report.GetComplianceRecommendation(compCmdState.RecommendationID)
 	violations := recommendation.Violations
 	affectedResources := len(recommendation.Violations)
@@ -495,7 +495,7 @@ func outputResourcesByRecommendationID(report api.CloudComplianceReport) error {
 	return nil
 }
 
-func violationsToTable(violations []api.ComplianceViolation) (resourceTable [][]string) {
+func violationsToTable(violations []api.ComplianceViolationV2) (resourceTable [][]string) {
 	for _, v := range violations {
 		resourceTable = append(resourceTable, []string{v.Resource, v.Region, strings.Join(v.Reasons, ",")})
 	}
