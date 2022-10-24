@@ -14,6 +14,10 @@ Start and end times may be specified in one of the following formats:
     B. RFC3339 date and time
     C. Epoch time in milliseconds
 
+To list open "NewViolations" alerts of high or critical severity.
+
+    lacework alert ls --status Open --severity high --type NewViolations
+
 Usage:
   lacework alert list [flags]
 
@@ -21,10 +25,13 @@ Aliases:
   list, ls
 
 Flags:
-      --end string     end time for query (default "now")
-  -h, --help           help for list
-      --range string   natural time range for query
-      --start string   start time for query (default "-24h")
+      --end string        end time for alerts (default "now")
+  -h, --help              help for list
+      --range string      natural time range for alerts
+      --severity string   filter alerts by severity threshold (critical, high, medium, low, info)
+      --start string      start time for alerts (default "-24h")
+      --status string     filter alerts by status (Open, Closed)
+      --type string       filter alerts by type
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

@@ -54,9 +54,9 @@ Start and end times may be specified in one of the following formats:
     B. RFC3339 date and time
     C. Epoch time in milliseconds
 
-To list open "NewViolations" alerts of any severity.
+To list open "NewViolations" alerts of high or critical severity.
 
-	lacework alert ls --status Open --severity Info --type NewViolations
+    lacework alert ls --status Open --severity high --type NewViolations
 `,
 		Args: cobra.NoArgs,
 		PreRunE: func(_ *cobra.Command, args []string) error {
@@ -110,7 +110,7 @@ func init() {
 	// severity flag
 	alertListCmd.Flags().StringVar(
 		&alertCmdState.Severity,
-		"severity", "medium",
+		"severity", "",
 		fmt.Sprintf(
 			"filter alerts by severity threshold (%s)",
 			strings.Join(api.ValidAlertSeverities, ", "),
