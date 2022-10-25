@@ -149,9 +149,9 @@ const (
 
 	apiV2EntitiesSearch = "v2/Entities/%s/search"
 
-	apiV2Alerts       = "v2/Alerts"
-	apiV2AlertsByTime = "v2/Alerts?startTime=%s&endTime=%s"
-	//apiV2AlertsSearch  = "v2/Alerts/search"
+	apiV2Alerts        = "v2/Alerts"
+	apiV2AlertsByTime  = "v2/Alerts?startTime=%s&endTime=%s"
+	apiV2AlertsSearch  = "v2/Alerts/search"
 	apiV2AlertsDetails = "v2/Alerts/%d?scope=%s"
 	apiV2AlertsComment = "v2/Alerts/%d/comment"
 	apiV2AlertsClose   = "v2/Alerts/%d/close"

@@ -30,12 +30,15 @@ import (
 
 var (
 	alertCmdState = struct {
-		Comment string
-		End     string
-		Range   string
-		Reason  int
-		Scope   string
-		Start   string
+		Comment  string
+		End      string
+		Range    string
+		Reason   int
+		Scope    string
+		Severity string
+		Status   string
+		Start    string
+		Type     string
 	}{}
 
 	// alertCmd represents the alert parent command
