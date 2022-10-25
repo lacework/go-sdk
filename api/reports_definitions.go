@@ -67,10 +67,29 @@ func (svc *ReportDefinitionsService) Get(reportDefinitionGuid string) (response 
 //	}
 //
 //	newReport, err := lacework.V2.ReportDefinitions.Create(api.NewReportDefinition(myReport))
-//
-func (svc *ReportDefinitionsService) Create(reportDefintion ReportDefinition) (response ReportDefinitionResponse, err error) {
-	err = svc.client.RequestEncoderDecoder("POST", apiV2ResourceGroups, reportDefintion, &response)
+func (svc *ReportDefinitionsService) Create(reportDefinition ReportDefinition) (response ReportDefinitionResponse, err error) {
+	err = svc.client.RequestEncoderDecoder("POST", apiV2ReportDefinitions, reportDefinition, &response)
 	return
+}
+
+// Update an existing report definition
+func (svc *ReportDefinitionsService) Update(guid string, reportDefinition ReportDefinition) (response ReportDefinitionResponse, err error) {
+	if guid == "" {
+		return ReportDefinitionResponse{}, errors.New("specify a report definition guid")
+	}
+	reportDefinition.UpdateType = "Update"
+
+	err = svc.client.RequestEncoderDecoder("PUT", apiV2ReportDefinitionsFromGUID, reportDefinition, &response)
+	return
+}
+
+// Delete a ReportDefinition
+func (svc *ReportDefinitionsService) Delete(guid string) error {
+	if guid == "" {
+		return errors.New("specify a report definition guid")
+	}
+
+	return svc.client.RequestDecoder("DELETE", fmt.Sprintf(apiV2ReportDefinitionsFromGUID, guid), nil, nil)
 }
 
 // NewReportDefinition creates a new report definition for Create function
@@ -97,6 +116,7 @@ type ReportDefinitionConfig struct {
 	AlertChannels    []string                    `json:"alertChannels"`
 	DistributionType string                      `json:"distributionType"`
 	Frequency        string                      `json:"frequency"`
+	UpdateType       string                      `json:"updateType,omitempty"`
 }
 
 type ReportDefinitionsResponse struct {
@@ -112,7 +132,7 @@ type ReportDefinition struct {
 	ReportName              string                  `json:"reportName"`
 	DisplayName             string                  `json:"displayName,omitempty"`
 	ReportType              string                  `json:"reportType"`
-	ReportNotificationType  string                  `json:"reportNotificationType"`
+	ReportNotificationType  string                  `json:"reportNotificationType,omitempty"`
 	SubReportType           string                  `json:"subReportType"`
 	ReportDefinitionDetails ReportDefinitionDetails `json:"reportDefinition"`
 	Props                   ReportDefinitionProps   `json:"props"`
@@ -120,6 +140,7 @@ type ReportDefinition struct {
 	AlertChannels           []string                `json:"alertChannels,omitempty"`
 	Frequency               string                  `json:"frequency,omitempty"`
 	Version                 int                     `json:"version,omitempty"`
+	UpdateType              string                  `json:"updateType,omitempty"`
 	CreatedBy               string                  `json:"createdBy,omitempty"`
 	CreatedTime             *time.Time              `json:"createdTime,omitempty"`
 	Enabled                 int                     `json:"enabled,omitempty"`
