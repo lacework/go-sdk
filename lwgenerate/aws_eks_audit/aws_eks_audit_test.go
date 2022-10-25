@@ -96,7 +96,7 @@ func TestGenerationEksBucketWithNoBucketVersioning(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		DisableBucketVersioning(),
+		EnableBucketVersioning(false),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -108,7 +108,7 @@ func TestGenerationEksBucketWithNoBucketVersioningMfaDeleteEnabled(t *testing.T)
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		DisableBucketVersioning(),
+		EnableBucketVersioning(false),
 		EnableBucketMfaDelete(),
 	).Generate()
 	assert.Nil(t, err)
@@ -122,7 +122,7 @@ func TestGenerationEksBucketWithNoEncryption(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		DisableBucketEncryption(),
+		EnableBucketEncryption(false),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -134,7 +134,7 @@ func TestGenerationEksBucketWithNoEncryptionAndKeyArn(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		DisableBucketEncryption(),
+		EnableBucketEncryption(false),
 		WithBucketSseKeyArn("arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"),
 	).Generate()
 	assert.Nil(t, err)
@@ -163,7 +163,7 @@ func TestGenerationEksFirehoseWithNoEncryption(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		DisableFirehoseEncryption(),
+		EnableFirehoseEncryption(false),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -175,7 +175,7 @@ func TestGenerationEksFirehoseWithNoEncryptionAndKeyArn(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		DisableFirehoseEncryption(),
+		EnableFirehoseEncryption(false),
 		WithFirehoseEncryptionKeyArn("arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"),
 	).Generate()
 	assert.Nil(t, err)
@@ -202,7 +202,7 @@ func TestGenerationEksSnsWithNoEncryption(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		DisableSnsTopicEncryption(),
+		EnableSnsTopicEncryption(false),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
@@ -214,7 +214,7 @@ func TestGenerationEksSnsWithNoEncryptionAndKeyArn(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		DisableSnsTopicEncryption(),
+		EnableSnsTopicEncryption(false),
 		WithSnsTopicEncryptionKeyArn("arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"),
 	).Generate()
 	assert.Nil(t, err)
@@ -326,28 +326,50 @@ func TestGenerationEksWithInvalidKmsKeyDeletionDays(t *testing.T) {
 	assert.NotContains(t, hcl, "kms_key_deletion_days")
 }
 
-func TestGenerationEksEnableKmsKeyMultiRegion(t *testing.T) {
+func TestGenerationEksEnableKmsKeyMultiRegionTrue(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		EnableKmsKeyMultiRegion(),
+		EnableKmsKeyMultiRegion(true),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	strippedHcl := strings.ReplaceAll(hcl, " ", "")
-	assert.Contains(t, strippedHcl, "kms_key_multi_region=true")
+	assert.NotContains(t, hcl, "kms_key_multi_region")
 }
 
-func TestGenerationEksEnableKmsKeyRotation(t *testing.T) {
+func TestGenerationEksEnableKmsKeyMultiRegionFalse(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		EnableKmsKeyRotation(),
+		EnableKmsKeyMultiRegion(false),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	strippedHcl := strings.ReplaceAll(hcl, " ", "")
-	assert.Contains(t, strippedHcl, "kms_key_rotation=true")
+	assert.Contains(t, strippedHcl, "kms_key_multi_region=false")
+}
+
+func TestGenerationEksEnableKmsKeyRotationTrue(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		EnableKmsKeyRotation(true),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.NotContains(t, hcl, "kms_key_rotation")
+}
+
+func TestGenerationEksEnableKmsKeyRotationFalse(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		EnableKmsKeyRotation(false),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "kms_key_rotation=false")
 }
 
 var requiredProviders = `terraform {

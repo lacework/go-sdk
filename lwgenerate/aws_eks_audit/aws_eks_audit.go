@@ -53,8 +53,8 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	// Should we require MFA for object deletion?
 	BucketEnableMfaDelete bool
 
-	// Should we disable bucket encryption?
-	BucketDisableEncryption bool
+	// Should we enable bucket encryption?
+	BucketEnableEncryption bool
 
 	// Should we force destroy the bucket if it has stuff in it?
 	BucketForceDestroy bool
@@ -70,7 +70,7 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	BucketSseKeyArn string
 
 	// Should we enable bucket versioning?
-	DisableBucketVersioning bool
+	BucketVersioning bool
 
 	// The name of the AWS EKS Audit Log integration in Lacework. Defaults to "TF AWS EKS Audit Log"
 	EksAuditIntegrationName string
@@ -90,10 +90,8 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	// The Cloudwatch Log Subscription Filter pattern
 	FilterPattern string
 
-	// Should encryption be disabled on the created firehose?
-	// This will set kinesis_firehose_encryption_enabled which defaults to true
-	FirehoseEncryptionDisabled bool
-
+	// Should encryption be enabled on the created firehose? Defaults to true.
+	FirehoseEncryptionEnabled bool
 	// The ARN of an existing KMS encryption key to be used for the Kinesis Firehose
 	FirehoseEncryptionKeyArn string
 
@@ -115,9 +113,8 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	// Parsed version of RegionClusterMap
 	ParsedRegionClusterMap map[string][]string
 
-	// Should encryption be disabled for the sns topic?
-	// This will set sns_topic_encryption_enabled which defaults to true
-	SnsTopicEncryptionDisabled bool
+	// Should encryption be enabled for the sns topic? Defaults to true
+	SnsTopicEncryptionEnabled bool
 
 	// The ARN of an existing KMS encryption key to be used for the SNS topic
 	SnsTopicEncryptionKeyArn string
@@ -165,7 +162,14 @@ type AwsEksAuditTerraformModifier func(c *GenerateAwsEksAuditTfConfigurationArgs
 //	hcl, err := aws.NewTerraform({"us-east-1": ["cluster1", "cluster2"], "us-east-2": ["cluster3"]}
 //	  aws.WithAwsProfile("mycorp-profile")).Generate()
 func NewTerraform(mods ...AwsEksAuditTerraformModifier) *GenerateAwsEksAuditTfConfigurationArgs {
-	config := &GenerateAwsEksAuditTfConfigurationArgs{}
+	config := &GenerateAwsEksAuditTfConfigurationArgs{
+		BucketVersioning:          true,
+		BucketEnableEncryption:    true,
+		FirehoseEncryptionEnabled: true,
+		KmsKeyMultiRegion:         true,
+		KmsKeyRotation:            true,
+		SnsTopicEncryptionEnabled: true,
+	}
 	for _, m := range mods {
 		m(config)
 	}
@@ -186,10 +190,10 @@ func EnableBucketMfaDelete() AwsEksAuditTerraformModifier {
 	}
 }
 
-// DisableBucketEncryption Set the S3 Encryption parameter to true for newly created buckets
-func DisableBucketEncryption() AwsEksAuditTerraformModifier {
+// EnableBucketEncryption Set the S3 Encryption parameter to true for newly created buckets
+func EnableBucketEncryption(enable bool) AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.BucketDisableEncryption = true
+		c.BucketEnableEncryption = enable
 	}
 }
 
@@ -222,10 +226,10 @@ func WithBucketSseKeyArn(arn string) AwsEksAuditTerraformModifier {
 	}
 }
 
-// DisableBucketVersioning Set the S3 Bucket versioning parameter to true for newly created buckets
-func DisableBucketVersioning() AwsEksAuditTerraformModifier {
+// EnableBucketVersioning Set the S3 Bucket versioning parameter to true for newly created buckets
+func EnableBucketVersioning(enable bool) AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.DisableBucketVersioning = true
+		c.BucketVersioning = enable
 	}
 }
 
@@ -265,10 +269,10 @@ func WithFilterPattern(pattern string) AwsEksAuditTerraformModifier {
 	}
 }
 
-// DisableFirehoseEncryption Set the firehose encryption parameter to true for newly created firehose
-func DisableFirehoseEncryption() AwsEksAuditTerraformModifier {
+// EnableFirehoseEncryption Set the firehose encryption parameter to true for newly created firehose
+func EnableFirehoseEncryption(enable bool) AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.FirehoseEncryptionDisabled = true
+		c.FirehoseEncryptionEnabled = enable
 	}
 }
 
@@ -288,16 +292,16 @@ func WithKmsKeyDeletionDays(days int) AwsEksAuditTerraformModifier {
 }
 
 // EnableKmsKeyMultiRegion Set whether the KMS key is a multi-region or regional key
-func EnableKmsKeyMultiRegion() AwsEksAuditTerraformModifier {
+func EnableKmsKeyMultiRegion(enable bool) AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.KmsKeyMultiRegion = true
+		c.KmsKeyMultiRegion = enable
 	}
 }
 
 // EnableKmsKeyRotation Set KMS automatic key rotation to true
-func EnableKmsKeyRotation() AwsEksAuditTerraformModifier {
+func EnableKmsKeyRotation(enable bool) AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.KmsKeyRotation = true
+		c.KmsKeyRotation = enable
 	}
 }
 
@@ -316,10 +320,10 @@ func WithParsedRegionClusterMap(regionClusterMap map[string][]string) AwsEksAudi
 	}
 }
 
-// DisableSnsTopicEncryption Set whether encryption should be enabled for the sns topic
-func DisableSnsTopicEncryption() AwsEksAuditTerraformModifier {
+// EnableSnsTopicEncryption Set whether encryption should be enabled for the sns topic
+func EnableSnsTopicEncryption(enable bool) AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.SnsTopicEncryptionDisabled = true
+		c.SnsTopicEncryptionEnabled = enable
 	}
 }
 
@@ -447,12 +451,12 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 	resourceAttrs := map[string]interface{}{}
 	moduleDetails := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithVersion(lwgenerate.AwsEksAuditVersion)}
 
-	if args.BucketEnableMfaDelete && !args.DisableBucketVersioning {
+	if args.BucketEnableMfaDelete && args.BucketVersioning {
 		moduleAttrs["bucket_enable_mfa_delete"] = true
 	}
 
-	if args.BucketDisableEncryption {
-		moduleAttrs["bucket_encryption_enabled"] = false
+	if args.BucketEnableEncryption != true {
+		moduleAttrs["bucket_encryption_enabled"] = args.BucketEnableEncryption
 	}
 
 	if args.BucketForceDestroy {
@@ -463,15 +467,15 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["bucket_lifecycle_expiration_days"] = args.BucketLifecycleExpirationDays
 	}
 
-	if args.BucketSseAlgorithm != "" && !args.BucketDisableEncryption {
+	if args.BucketSseAlgorithm != "" && args.BucketEnableEncryption {
 		moduleAttrs["bucket_sse_algorithm"] = args.BucketSseAlgorithm
 	}
 
-	if args.DisableBucketVersioning {
-		moduleAttrs["bucket_versioning_enabled"] = false
+	if args.BucketVersioning != true {
+		moduleAttrs["bucket_versioning_enabled"] = args.BucketVersioning
 	}
 
-	if args.BucketSseKeyArn != "" && !args.BucketDisableEncryption {
+	if args.BucketSseKeyArn != "" && args.BucketEnableEncryption {
 		moduleAttrs["bucket_key_arn"] = args.BucketSseKeyArn
 	}
 
@@ -495,11 +499,11 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["filter_pattern"] = args.FilterPattern
 	}
 
-	if args.FirehoseEncryptionDisabled {
-		moduleAttrs["kinesis_firehose_encryption_enabled"] = false
+	if args.FirehoseEncryptionEnabled != true {
+		moduleAttrs["kinesis_firehose_encryption_enabled"] = args.FirehoseEncryptionEnabled
 	}
 
-	if args.FirehoseEncryptionKeyArn != "" && !args.FirehoseEncryptionDisabled {
+	if args.FirehoseEncryptionKeyArn != "" && args.FirehoseEncryptionEnabled {
 		moduleAttrs["kinesis_firehose_key_arn"] = args.FirehoseEncryptionKeyArn
 	}
 
@@ -507,19 +511,19 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["kms_key_deletion_days"] = args.KmsKeyDeletionDays
 	}
 
-	if args.KmsKeyMultiRegion {
-		moduleAttrs["kms_key_multi_region"] = true
+	if args.KmsKeyMultiRegion != true {
+		moduleAttrs["kms_key_multi_region"] = args.KmsKeyMultiRegion
 	}
 
-	if args.KmsKeyRotation {
-		moduleAttrs["kms_key_rotation"] = true
+	if args.KmsKeyRotation != true {
+		moduleAttrs["kms_key_rotation"] = args.KmsKeyRotation
 	}
 
-	if args.SnsTopicEncryptionDisabled {
-		moduleAttrs["sns_topic_encryption_enabled"] = false
+	if args.SnsTopicEncryptionEnabled != true {
+		moduleAttrs["sns_topic_encryption_enabled"] = args.SnsTopicEncryptionEnabled
 	}
 
-	if args.SnsTopicEncryptionKeyArn != "" && !args.SnsTopicEncryptionDisabled {
+	if args.SnsTopicEncryptionKeyArn != "" && args.SnsTopicEncryptionEnabled {
 		moduleAttrs["sns_topic_key_arn"] = args.SnsTopicEncryptionKeyArn
 	}
 

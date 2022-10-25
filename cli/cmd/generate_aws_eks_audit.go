@@ -28,10 +28,10 @@ var (
 
 	// S3 Bucket Questions
 	EksAuditConfigureBucket              = "Configure bucket settings?"
-	QuestionEksAuditBucketVersioning     = "Disable access versioning on the new bucket?"
+	QuestionEksAuditBucketVersioning     = "Enable access versioning on the new bucket?"
 	QuestionEksAuditMfaDeleteS3Bucket    = "Should MFA object deletion be required for the new bucket?"
 	QuestionEksAuditForceDestroyS3Bucket = "Should force destroy be enabled for the new bucket?"
-	QuestionEksAuditBucketEncryption     = "Disable encryption for the new bucket?"
+	QuestionEksAuditBucketEncryption     = "Enable encryption for the new bucket?"
 	QuestionEksAuditBucketSseAlgorithm   = "Specify the bucket SSE Algorithm: (optional)"
 	QuestionEksAuditBucketKeyArn         = "Specify the bucket existing SSE KMS key ARN:"
 	QuestionEksAuditBucketLifecycle      = "Specify the bucket lifecycle expiration days: (optional)"
@@ -39,20 +39,20 @@ var (
 	QuestionEksAuditKmsKeyDeletionDays   = "Specify the kms key deletion days: (optional)"
 
 	// SNS Topic Questions
-	QuestionEksAuditConfigureSns         = "Configure SNS settings"
-	QuestionEksAuditSnsDisableEncryption = "Disable encryption on SNS topic when creating?"
-	QuestionEksAuditSnsEncryptionKeyArn  = "Specify existing KMS encryption key arn for SNS topic (optional)"
+	QuestionEksAuditConfigureSns        = "Configure SNS settings"
+	QuestionEksAuditSnsEncryption       = "Enable encryption on SNS topic when creating?"
+	QuestionEksAuditSnsEncryptionKeyArn = "Specify existing KMS encryption key arn for SNS topic (optional)"
 
 	// Cloudwatch IAM Questions
 	EksAuditExistingCwIamRole        = "Configure & use existing Cloudwatch IAM role"
 	QuestionEksAuditExistingCwIamArn = "Specify an existing Cloudwatch IAM role ARN:"
 
 	// Firehose Questions
-	EksAuditConfigureFh                 = "Configure Firehose settings"
-	QuestionEksAuditExistingFhIamRole   = "Use existing Firehose IAM role?"
-	QuestionEksAuditExistingFhIamArn    = "Specify an existing Firehose IAM role ARN:"
-	QuestionEksAuditFhDisableEncryption = "Disable encryption on Firehose when creating?"
-	QuestionEksAuditFhEncryptionKeyArn  = "Specify existing KMS encryption key arn for Firehose (optional)"
+	EksAuditConfigureFh                = "Configure Firehose settings"
+	QuestionEksAuditExistingFhIamRole  = "Use existing Firehose IAM role?"
+	QuestionEksAuditExistingFhIamArn   = "Specify an existing Firehose IAM role ARN:"
+	QuestionEksAuditFhEncryption       = "Enable encryption on Firehose when creating?"
+	QuestionEksAuditFhEncryptionKeyArn = "Specify existing KMS encryption key arn for Firehose (optional)"
 
 	// Cross Account IAM Questions
 	EksAuditExistingCaIamRole          = "Configure & use existing Cross Account IAM role"
@@ -125,10 +125,13 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws_eks_audit.WithParsedRegionClusterMap(GenerateAwsEksAuditCommandState.ParsedRegionClusterMap),
 				aws_eks_audit.WithSnsTopicEncryptionKeyArn(GenerateAwsEksAuditCommandState.SnsTopicEncryptionKeyArn),
 				aws_eks_audit.WithLaceworkProfile(GenerateAwsEksAuditCommandState.LaceworkProfile),
-			}
-
-			if GenerateAwsEksAuditCommandState.BucketDisableEncryption {
-				mods = append(mods, aws_eks_audit.DisableBucketEncryption())
+				aws_eks_audit.EnableBucketEncryption(GenerateAwsEksAuditCommandState.BucketEnableEncryption),
+				aws_eks_audit.EnableBucketVersioning(GenerateAwsEksAuditCommandState.BucketVersioning),
+				aws_eks_audit.EnableFirehoseEncryption(GenerateAwsEksAuditCommandState.FirehoseEncryptionEnabled),
+				aws_eks_audit.EnableSnsTopicEncryption(GenerateAwsEksAuditCommandState.SnsTopicEncryptionEnabled),
+				aws_eks_audit.EnableBucketVersioning(GenerateAwsEksAuditCommandState.BucketVersioning),
+				aws_eks_audit.EnableKmsKeyMultiRegion(GenerateAwsEksAuditCommandState.KmsKeyMultiRegion),
+				aws_eks_audit.EnableKmsKeyRotation(GenerateAwsEksAuditCommandState.KmsKeyRotation),
 			}
 
 			if GenerateAwsEksAuditCommandState.BucketEnableMfaDelete {
@@ -137,26 +140,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 
 			if GenerateAwsEksAuditCommandState.BucketForceDestroy {
 				mods = append(mods, aws_eks_audit.EnableBucketForceDestroy())
-			}
-
-			if GenerateAwsEksAuditCommandState.DisableBucketVersioning {
-				mods = append(mods, aws_eks_audit.DisableBucketVersioning())
-			}
-
-			if GenerateAwsEksAuditCommandState.FirehoseEncryptionDisabled {
-				mods = append(mods, aws_eks_audit.DisableFirehoseEncryption())
-			}
-
-			if GenerateAwsEksAuditCommandState.KmsKeyMultiRegion {
-				mods = append(mods, aws_eks_audit.EnableKmsKeyMultiRegion())
-			}
-
-			if GenerateAwsEksAuditCommandState.KmsKeyRotation {
-				mods = append(mods, aws_eks_audit.EnableKmsKeyRotation())
-			}
-
-			if GenerateAwsEksAuditCommandState.SnsTopicEncryptionDisabled {
-				mods = append(mods, aws_eks_audit.DisableSnsTopicEncryption())
 			}
 
 			// Create new struct
@@ -306,8 +289,8 @@ See help output for more details on the parameter value(s) required for Terrafor
 				GenerateAwsEksAuditCommandState.ParsedRegionClusterMap = awsParsedRegionClusterMap
 			}
 
-			if len(GenerateAwsEksAuditCommandState.ParsedRegionClusterMap) > 1 {
-				GenerateAwsEksAuditCommandState.KmsKeyMultiRegion = true
+			if len(GenerateAwsEksAuditCommandState.ParsedRegionClusterMap) <= 1 {
+				GenerateAwsEksAuditCommandState.KmsKeyMultiRegion = false
 			}
 
 			// Collect and/or confirm parameters
@@ -357,10 +340,10 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		false,
 		"enable mfa delete on s3 bucket. Requires bucket versioning.")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsEksAuditCommandState.BucketDisableEncryption,
-		"disable_encryption_s3",
+		&GenerateAwsEksAuditCommandState.BucketEnableEncryption,
+		"enable_encryption_s3",
 		true,
-		"disable encryption on s3 bucket")
+		"enable encryption on s3 bucket")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.BucketForceDestroy,
 		"enable_force_destroy",
@@ -382,10 +365,10 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		"",
 		"specify the kms key arn to be used for s3. (required when bucket_sse_algorithm is aws:kms & using an existing kms key)")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsEksAuditCommandState.DisableBucketVersioning,
-		"disable_bucket_versioning",
-		false,
-		"disable s3 bucket versioning")
+		&GenerateAwsEksAuditCommandState.BucketVersioning,
+		"enable_bucket_versioning",
+		true,
+		"enable s3 bucket versioning")
 	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsEksAuditCommandState.EksAuditIntegrationName,
 		"integration_name",
@@ -417,10 +400,10 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		"",
 		"specify a custom cloudwatch log filter pattern")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsEksAuditCommandState.FirehoseEncryptionDisabled,
-		"disable_firehose_encryption",
+		&GenerateAwsEksAuditCommandState.FirehoseEncryptionEnabled,
+		"enable_firehose_encryption",
 		true,
-		"disable firehose encryption")
+		"enable firehose encryption")
 	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsEksAuditCommandState.FirehoseEncryptionKeyArn,
 		"firehose_encryption_key_arn",
@@ -433,9 +416,9 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		"specify the waiting period, specified in number of days")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.KmsKeyRotation,
-		"disable_kms_key_rotation",
-		false,
-		"disable automatic kms key rotation")
+		"enable_kms_key_rotation",
+		true,
+		"enable automatic kms key rotation")
 	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsEksAuditCommandState.Prefix,
 		"prefix",
@@ -447,10 +430,10 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		map[string]string{},
 		"configure aws regions and eks clusters; value format must be <region>:\"cluster,list\",<region>:\"cluster,list\"")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsEksAuditCommandState.SnsTopicEncryptionDisabled,
-		"disable_sns_topic_encryption",
+		&GenerateAwsEksAuditCommandState.SnsTopicEncryptionEnabled,
+		"enable_sns_topic_encryption",
 		true,
-		"disable encryption on the sns topic")
+		"enable encryption on the sns topic")
 	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsEksAuditCommandState.SnsTopicEncryptionKeyArn,
 		"sns_topic_encryption_key_arn",
@@ -474,8 +457,8 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 	// Only ask these questions if configure bucket is true
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Confirm{Message: QuestionEksAuditBucketVersioning, Default: config.DisableBucketVersioning},
-			Response: &config.DisableBucketVersioning,
+			Prompt:   &survey.Confirm{Message: QuestionEksAuditBucketVersioning, Default: config.BucketVersioning},
+			Response: &config.BucketVersioning,
 		},
 		{
 			Prompt:   &survey.Confirm{Message: QuestionEksAuditMfaDeleteS3Bucket, Default: config.BucketEnableMfaDelete},
@@ -493,17 +476,16 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 		},
 		{
 			Prompt: &survey.Confirm{Message: QuestionEksAuditBucketEncryption,
-				Default: config.BucketDisableEncryption},
-			Response: &config.BucketDisableEncryption,
+				Default: config.BucketEnableEncryption},
+			Response: &config.BucketEnableEncryption,
 		},
 	}); err != nil {
 		return err
 	}
 
-	bucketEnableEncryption := !config.BucketDisableEncryption
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt:   &survey.Input{Message: QuestionEksAuditBucketSseAlgorithm},
-		Checks:   []*bool{&bucketEnableEncryption},
+		Checks:   []*bool{&config.BucketEnableEncryption},
 		Opts:     []survey.AskOpt{},
 		Response: &config.BucketSseAlgorithm,
 	}); err != nil {
@@ -512,25 +494,25 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt:   &survey.Input{Message: QuestionEksAuditBucketKeyArn},
-		Checks:   []*bool{&bucketEnableEncryption},
+		Checks:   []*bool{&config.BucketEnableEncryption},
 		Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
 		Response: &config.BucketSseKeyArn,
 	}); err != nil {
 		return err
 	}
 
-	newKmsKey := bucketEnableEncryption && len(config.BucketSseKeyArn) == 0
+	newKmsKey := config.BucketEnableEncryption && len(config.BucketSseKeyArn) == 0
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Prompt:   &survey.Confirm{Message: QuestionEksAuditKmsKeyRotation},
-			Checks:   []*bool{&bucketEnableEncryption, &newKmsKey},
+			Checks:   []*bool{&config.BucketEnableEncryption, &newKmsKey},
 			Required: true,
 			Opts:     []survey.AskOpt{},
 			Response: &config.KmsKeyRotation,
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionEksAuditKmsKeyDeletionDays, Default: "30"},
-			Checks:   []*bool{&bucketEnableEncryption, &newKmsKey},
+			Checks:   []*bool{&config.BucketEnableEncryption, &newKmsKey},
 			Opts:     []survey.AskOpt{},
 			Response: &config.KmsKeyDeletionDays,
 		},
@@ -590,24 +572,23 @@ func promptAwsEksAuditFirehoseQuestions(input *aws_eks_audit.
 		},
 		{
 			Prompt: &survey.Confirm{
-				Message: QuestionEksAuditFhDisableEncryption,
-				Default: input.FirehoseEncryptionDisabled,
+				Message: QuestionEksAuditFhEncryption,
+				Default: input.FirehoseEncryptionEnabled,
 			},
 			Opts:     []survey.AskOpt{},
-			Response: &input.FirehoseEncryptionDisabled,
+			Response: &input.FirehoseEncryptionEnabled,
 			Required: true,
 		},
 	}); err != nil {
 		return err
 	}
 
-	firehoseEncryptionEnabled := !input.FirehoseEncryptionDisabled
 	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Input{
 			Message: QuestionEksAuditFhEncryptionKeyArn,
 			Default: input.FirehoseEncryptionKeyArn,
 		},
-		Checks:   []*bool{&firehoseEncryptionEnabled},
+		Checks:   []*bool{&input.FirehoseEncryptionEnabled},
 		Opts:     []survey.AskOpt{},
 		Response: &input.FirehoseEncryptionKeyArn,
 	})
@@ -634,23 +615,22 @@ func promptAwsEksAuditSnsQuestions(input *aws_eks_audit.
 
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Confirm{
-			Message: QuestionEksAuditSnsDisableEncryption,
-			Default: input.SnsTopicEncryptionDisabled,
+			Message: QuestionEksAuditSnsEncryption,
+			Default: input.SnsTopicEncryptionEnabled,
 		},
 		Opts:     []survey.AskOpt{},
-		Response: &input.SnsTopicEncryptionDisabled,
+		Response: &input.SnsTopicEncryptionEnabled,
 		Required: true,
 	}); err != nil {
 		return err
 	}
 
-	snsTopicEncryptionEnabled := !input.SnsTopicEncryptionDisabled
 	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Input{
 			Message: QuestionEksAuditSnsEncryptionKeyArn,
 			Default: input.SnsTopicEncryptionKeyArn,
 		},
-		Checks:   []*bool{&snsTopicEncryptionEnabled},
+		Checks:   []*bool{&input.SnsTopicEncryptionEnabled},
 		Opts:     []survey.AskOpt{},
 		Response: &input.SnsTopicEncryptionKeyArn,
 	})
