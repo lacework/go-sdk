@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -172,7 +171,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			}
 
 			// Write-out generated code to location specified
-			dirname, location, err := writeGeneratedCodeToLocation(cmd, hcl, "aws_eks_audit")
+			dirname, _, err := writeGeneratedCodeToLocation(cmd, hcl, "aws_eks_audit")
 			if err != nil {
 				return err
 			}
@@ -188,7 +187,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			}
 
 			// Execute
-			locationDir := filepath.Dir(location)
+			locationDir, _ := determineOutputDirPath(dirname, "aws_eks_audit")
 			if GenerateAwsEksAuditCommandExtraState.TerraformApply {
 				// Execution pre-run check
 				err := executionPreRunChecks(dirname, locationDir, "aws_eks_audit")
@@ -472,7 +471,6 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 }
 
 func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs) error {
-
 	// Only ask these questions if configure bucket is true
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
@@ -488,7 +486,8 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 			Response: &config.BucketForceDestroy,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionEksAuditBucketLifecycle, Default: "0"},
+			Prompt: &survey.Input{Message: QuestionEksAuditBucketLifecycle,
+				Default: string(rune(config.BucketLifecycleExpirationDays))},
 			Opts:     []survey.AskOpt{},
 			Response: &config.BucketLifecycleExpirationDays,
 		},
@@ -514,7 +513,7 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt:   &survey.Input{Message: QuestionEksAuditBucketKeyArn},
 		Checks:   []*bool{&bucketEnableEncryption},
-		Opts:     []survey.AskOpt{},
+		Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
 		Response: &config.BucketSseKeyArn,
 	}); err != nil {
 		return err
@@ -677,8 +676,11 @@ func promptAwsEksAuditAdditionalClusterRegionQuestions(
 	extraState *AwsEksAuditGenerateCommandExtraState,
 ) error {
 	// For each region, collect which clusters to integrate with
-	regionClusters := make(map[string][]string)
 	askAgain := true
+
+	if config.ParsedRegionClusterMap == nil {
+		config.ParsedRegionClusterMap = make(map[string][]string)
+	}
 
 	// If there are existing region clusters configured (i.e., from the CLI) display them and ask if they want to add more
 	if len(config.ParsedRegionClusterMap) > 0 {
@@ -694,9 +696,15 @@ func promptAwsEksAuditAdditionalClusterRegionQuestions(
 		}
 	}
 
+	// If we already have more than 1 region, don't bother asking the user if it's
+	// multi region and instead just set MultiRegion to true
+	if len(config.ParsedRegionClusterMap) > 1 {
+		extraState.MultiRegion = true
+	}
+
 	// If only 1 region has been configured and the user wishes to add more clusters,
 	// ask if they want this be to multi region
-	if len(config.ParsedRegionClusterMap) <= 1 && askAgain {
+	if len(config.ParsedRegionClusterMap) <= 1 && askAgain && !extraState.MultiRegion {
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Confirm{
 				Message: QuestionEksAuditMultiRegion,
@@ -709,12 +717,6 @@ func promptAwsEksAuditAdditionalClusterRegionQuestions(
 		}); err != nil {
 			return err
 		}
-	}
-
-	// If we already have more than 1 region, don't bother asking the user if it's
-	// multi region and instead just set MultiRegion to true
-	if len(config.ParsedRegionClusterMap) > 1 {
-		extraState.MultiRegion = true
 	}
 
 	// For each region to add, collect the list of clusters to integrate with
@@ -741,7 +743,7 @@ func promptAwsEksAuditAdditionalClusterRegionQuestions(
 		}
 
 		// append region clusters in case the user has input a region more than once
-		regionClusters[awsEksAuditRegion] = append(regionClusters[awsEksAuditRegion], strings.Split(awsEksAuditRegionClusters, ",")...)
+		config.ParsedRegionClusterMap[awsEksAuditRegion] = append(config.ParsedRegionClusterMap[awsEksAuditRegion], strings.Split(awsEksAuditRegionClusters, ",")...)
 
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt:   &survey.Confirm{Message: QuestionEksAuditAdditionalRegion},
@@ -753,10 +755,6 @@ func promptAwsEksAuditAdditionalClusterRegionQuestions(
 		if !extraState.MultiRegion {
 			askAgain = false
 		}
-	}
-
-	if len(regionClusters) >= 1 {
-		config.ParsedRegionClusterMap = regionClusters
 	}
 
 	return nil

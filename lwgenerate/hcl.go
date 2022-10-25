@@ -359,7 +359,7 @@ func HclCreateGenericBlock(hcltype string, labels []string, attr map[string]inte
 
 // Create tokens for map of traversals.  Used as a workaround for writing complex types where the built-in
 // SetAttributeValue won't work
-func createMapTraversalTokens(input map[string]string) hclwrite.Tokens { //nolint:unused
+func createMapTraversalTokens(input map[string]string) hclwrite.Tokens {
 	// Sort input
 	var keys []string
 	for k := range input {

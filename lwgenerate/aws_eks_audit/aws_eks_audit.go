@@ -386,6 +386,8 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 
 func createAwsProvider(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	var blocks []*hclwrite.Block
+	// if more than 1 region has been supplied we need to add an aws provider with
+	// an alias for each region
 	if len(args.ParsedRegionClusterMap) > 1 {
 		for region := range args.ParsedRegionClusterMap {
 			attrs := map[string]interface{}{
@@ -403,7 +405,12 @@ func createAwsProvider(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrit
 
 			blocks = append(blocks, providerBlock)
 		}
-	} else if len(args.ParsedRegionClusterMap) == 1 {
+
+	}
+
+	// if only 1 region has been supplied we only need to create a single aws provider
+	// this provider shouldn't have an alias
+	if len(args.ParsedRegionClusterMap) == 1 {
 		for region := range args.ParsedRegionClusterMap {
 			attrs := map[string]interface{}{
 				"region": region,
