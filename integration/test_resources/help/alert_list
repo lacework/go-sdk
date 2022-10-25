@@ -14,7 +14,7 @@ Start and end times may be specified in one of the following formats:
     B. RFC3339 date and time
     C. Epoch time in milliseconds
 
-To list open "NewViolations" alerts of high or critical severity.
+To list open alerts of type "NewViolations" with high or critical severity.
 
     lacework alert ls --status Open --severity high --type NewViolations
 
