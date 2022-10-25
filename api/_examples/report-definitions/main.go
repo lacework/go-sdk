@@ -29,12 +29,12 @@ func main() {
 	}
 
 	// Get the details of a single report definition
-	report, err := lacework.V2.ReportDefinitions.Get("exampleID")
+	report, err := lacework.V2.ReportDefinitions.Get("107D750D552D999F6621084BB26D8070F49897D83EC39C205D2F6347")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Retrieved my custom report: %q", report.Data.ReportName)
+	fmt.Printf("Retrieved my report: %q", report.Data.ReportName)
 
 	// Create a new custom report definition
 	myReport := api.ReportDefinitionConfig{
@@ -57,4 +57,22 @@ func main() {
 	}
 
 	fmt.Printf("Create my new custom report: %q", newReport.Data.ReportName)
+
+	// Update an existing Report Definition
+	myReport.ReportName = "Updated Report Name"
+	updatedReport, err := lacework.V2.ReportDefinitions.Update(newReport.Data.ReportDefinitionGuid, api.NewReportDefinition(myReport))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Updated existing report: %q", updatedReport.Data.ReportName)
+
+	// Delete a report
+	err = lacework.V2.ReportDefinitions.Delete(updatedReport.Data.ReportDefinitionGuid)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Deleted report: %q", updatedReport.Data.ReportName)
+
 }
