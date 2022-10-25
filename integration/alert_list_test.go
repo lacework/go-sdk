@@ -102,9 +102,13 @@ func TestAlertListSeverityBad(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertListSeverityAll(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--severity", "info")
-	assert.Contains(t, out.String(), "Low")
+func TestAlertListSeverityHighAndCritical(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--severity", "high", "--range", "last week")
+	assert.Contains(t, out.String(), "Critical")
+	assert.Contains(t, out.String(), "High")
+	assert.NotContains(t, out.String(), "Low")
+	assert.NotContains(t, out.String(), "Medium")
+	assert.NotContains(t, out.String(), "Info")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
