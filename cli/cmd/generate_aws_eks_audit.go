@@ -289,10 +289,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 				GenerateAwsEksAuditCommandState.ParsedRegionClusterMap = awsParsedRegionClusterMap
 			}
 
-			if len(GenerateAwsEksAuditCommandState.ParsedRegionClusterMap) <= 1 {
-				GenerateAwsEksAuditCommandState.KmsKeyMultiRegion = false
-			}
-
 			// Collect and/or confirm parameters
 			err = promptAwsEksAuditGenerate(GenerateAwsEksAuditCommandState, GenerateAwsEksAuditExistingRoleState,
 				GenerateAwsEksAuditCommandExtraState)
@@ -412,7 +408,7 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 	generateAwsEksAuditTfCommand.PersistentFlags().IntVar(
 		&GenerateAwsEksAuditCommandState.KmsKeyDeletionDays,
 		"kms_key_deletion_days",
-		30,
+		0,
 		"specify the waiting period, specified in number of days")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.KmsKeyRotation,
@@ -511,7 +507,7 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 			Response: &config.KmsKeyRotation,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionEksAuditKmsKeyDeletionDays, Default: "30"},
+			Prompt:   &survey.Input{Message: QuestionEksAuditKmsKeyDeletionDays, Default: "0"},
 			Checks:   []*bool{&config.BucketEnableEncryption, &newKmsKey},
 			Opts:     []survey.AskOpt{},
 			Response: &config.KmsKeyDeletionDays,

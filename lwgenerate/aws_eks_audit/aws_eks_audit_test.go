@@ -326,9 +326,22 @@ func TestGenerationEksWithInvalidKmsKeyDeletionDays(t *testing.T) {
 	assert.NotContains(t, hcl, "kms_key_deletion_days")
 }
 
-func TestGenerationEksEnableKmsKeyMultiRegionTrue(t *testing.T) {
+func TestGenerationEksEnableKmsKeyMultiRegionTrueWithSingleRegion(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		EnableKmsKeyMultiRegion(true),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "kms_key_multi_region=false")
+}
+
+func TestGenerationEksEnableKmsKeyMultiRegionTrueWithMultiRegion(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	clusterMap["us-east-2"] = []string{"cluster3"}
 	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
 		EnableKmsKeyMultiRegion(true),
 	).Generate()
@@ -391,6 +404,7 @@ module "aws_eks_audit_log" {
   version                   = "~> 0.4"
   cloudwatch_regions        = ["us-east-1"]
   cluster_names             = ["cluster1", "cluster2"]
+  kms_key_multi_region      = false
   no_cw_subscription_filter = false
 }
 `

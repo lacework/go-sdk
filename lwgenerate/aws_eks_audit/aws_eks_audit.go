@@ -415,6 +415,8 @@ func createAwsProvider(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrit
 	// if only 1 region has been supplied we only need to create a single aws provider
 	// this provider shouldn't have an alias
 	if len(args.ParsedRegionClusterMap) == 1 {
+		// set kms key multi region to false if only 1 region is supplied
+		args.KmsKeyMultiRegion = false
 		for region := range args.ParsedRegionClusterMap {
 			attrs := map[string]interface{}{
 				"region": region,
