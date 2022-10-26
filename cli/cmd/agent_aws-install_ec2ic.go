@@ -62,7 +62,7 @@ This command will automatically add hosts with successful connections to
 )
 
 func init() {
-	// 'agent install ec2ic' flags
+	// 'agent aws-install ec2ic' flags
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallTagKey,
 		"tag_key", "", "only install agents on infra with this tag key set",
 	)

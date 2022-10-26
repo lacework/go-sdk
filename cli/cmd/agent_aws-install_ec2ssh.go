@@ -71,7 +71,7 @@ This command will automatically add hosts with successful connections to
 )
 
 func init() {
-	// 'agent install ec2ssh' flags
+	// 'agent aws-install ec2ssh' flags
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallTagKey,
 		"tag_key", "", "only install agents on infra with this tag key",
 	)
