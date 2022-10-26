@@ -572,7 +572,7 @@ func severitySummary(severities []string, fixable int) string {
 	}
 
 	var keys []string
-	for k, _ := range sevSummaries {
+	for k := range sevSummaries {
 		keys = append(keys, k)
 	}
 
@@ -1336,7 +1336,6 @@ type vulnSummary struct {
 	host     api.VulnerabilityHost
 	severity []string
 	fixable  int
-	count    int
 }
 
 type VulnCveSummary struct {
