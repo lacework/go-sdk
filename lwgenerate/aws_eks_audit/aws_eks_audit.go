@@ -455,7 +455,7 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["bucket_enable_mfa_delete"] = true
 	}
 
-	if args.BucketEnableEncryption != true {
+	if !args.BucketEnableEncryption {
 		moduleAttrs["bucket_encryption_enabled"] = args.BucketEnableEncryption
 	}
 
@@ -471,7 +471,7 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["bucket_sse_algorithm"] = args.BucketSseAlgorithm
 	}
 
-	if args.BucketVersioning != true {
+	if !args.BucketVersioning {
 		moduleAttrs["bucket_versioning_enabled"] = args.BucketVersioning
 	}
 
@@ -499,7 +499,7 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["filter_pattern"] = args.FilterPattern
 	}
 
-	if args.FirehoseEncryptionEnabled != true {
+	if !args.FirehoseEncryptionEnabled {
 		moduleAttrs["kinesis_firehose_encryption_enabled"] = args.FirehoseEncryptionEnabled
 	}
 
@@ -511,15 +511,15 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["kms_key_deletion_days"] = args.KmsKeyDeletionDays
 	}
 
-	if args.KmsKeyMultiRegion != true {
+	if !args.KmsKeyMultiRegion {
 		moduleAttrs["kms_key_multi_region"] = args.KmsKeyMultiRegion
 	}
 
-	if args.KmsKeyRotation != true {
+	if !args.KmsKeyRotation {
 		moduleAttrs["kms_key_rotation"] = args.KmsKeyRotation
 	}
 
-	if args.SnsTopicEncryptionEnabled != true {
+	if !args.SnsTopicEncryptionEnabled {
 		moduleAttrs["sns_topic_encryption_enabled"] = args.SnsTopicEncryptionEnabled
 	}
 
