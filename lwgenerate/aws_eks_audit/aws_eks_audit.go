@@ -2,12 +2,12 @@ package aws_eks_audit
 
 import (
 	"fmt"
-
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/pkg/errors"
 	"github.com/zclconf/go-cty/cty"
+	"sort"
 )
 
 type ExistingCrossAccountIamRoleDetails struct {
@@ -112,6 +112,9 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 
 	// Parsed version of RegionClusterMap
 	ParsedRegionClusterMap map[string][]string
+
+	// Parsed Regions list
+	ParsedRegionsList []string
 
 	// Should encryption be enabled for the sns topic? Defaults to true
 	SnsTopicEncryptionEnabled bool
@@ -355,6 +358,8 @@ func (args *GenerateAwsEksAuditTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
 
+	populateParsedRegionsList(args)
+
 	awsProvider, err := createAwsProvider(args)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate aws provider")
@@ -388,12 +393,25 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.LaceworkProviderVersion)))
 }
 
+func populateParsedRegionsList(args *GenerateAwsEksAuditTfConfigurationArgs) {
+	for region := range args.ParsedRegionClusterMap {
+		// append each region to args.ParsedRegionsList this will be used to sort the keys
+		// of the map and ensure ordering
+		args.ParsedRegionsList = append(args.ParsedRegionsList, region)
+
+		// This sorted list will be used to ensure order when retrieving from the ParsedRegionClusterMap
+		sort.Strings(args.ParsedRegionsList)
+	}
+}
+
 func createAwsProvider(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	var blocks []*hclwrite.Block
 	// if more than 1 region has been supplied we need to add an aws provider with
 	// an alias for each region
-	if len(args.ParsedRegionClusterMap) > 1 {
-		for region := range args.ParsedRegionClusterMap {
+	if len(args.ParsedRegionsList) > 1 {
+		for i := range args.ParsedRegionsList {
+			region := args.ParsedRegionsList[i]
+
 			attrs := map[string]interface{}{
 				"alias":  region,
 				"region": region,
@@ -414,10 +432,11 @@ func createAwsProvider(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrit
 
 	// if only 1 region has been supplied we only need to create a single aws provider
 	// this provider shouldn't have an alias
-	if len(args.ParsedRegionClusterMap) == 1 {
+	if len(args.ParsedRegionsList) == 1 {
 		// set kms key multi region to false if only 1 region is supplied
 		args.KmsKeyMultiRegion = false
-		for region := range args.ParsedRegionClusterMap {
+		for i := range args.ParsedRegionsList {
+			region := args.ParsedRegionsList[i]
 			attrs := map[string]interface{}{
 				"region": region,
 			}
@@ -529,15 +548,14 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 		moduleAttrs["sns_topic_key_arn"] = args.SnsTopicEncryptionKeyArn
 	}
 
-	var regionList []string
-
-	if len(args.ParsedRegionClusterMap) > 1 {
+	if len(args.ParsedRegionsList) > 1 {
 		// set no_cw_subscription_filter if we have more than 1 region in the ParsedRegionClusterMap
 		moduleAttrs["no_cw_subscription_filter"] = true
 
 		// Add aws_cloudwatch_log_subscription_filter(s) resource per region
-		for region, clusters := range args.ParsedRegionClusterMap {
-			regionList = append(regionList, region)
+		for i := range args.ParsedRegionsList {
+			region := args.ParsedRegionsList[i]
+			clusters := args.ParsedRegionClusterMap[region]
 
 			// create hcl tokens for each cluster and create a token array to be added to our hcl
 			//tuple. (we are unable to add the for loop inside the call to TokensForTuple)
@@ -595,16 +613,17 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 
 			blocks = append(blocks, lwCwSubscriptionFilter)
 		}
-	} else if len(args.ParsedRegionClusterMap) > 0 {
+	} else if len(args.ParsedRegionsList) > 0 {
 		// set no_cw_subscription_filter to false if we have only 1 region in the ParsedRegionClusterMap
 		moduleAttrs["no_cw_subscription_filter"] = false
-		for region, clusters := range args.ParsedRegionClusterMap {
-			regionList = append(regionList, region)
+		for i := range args.ParsedRegionsList {
+			region := args.ParsedRegionsList[i]
+			clusters := args.ParsedRegionClusterMap[region]
 			moduleAttrs["cluster_names"] = clusters
 		}
 	}
 
-	moduleAttrs["cloudwatch_regions"] = regionList
+	moduleAttrs["cloudwatch_regions"] = args.ParsedRegionsList
 
 	moduleDetails = append(moduleDetails,
 		lwgenerate.HclModuleWithAttributes(moduleAttrs),

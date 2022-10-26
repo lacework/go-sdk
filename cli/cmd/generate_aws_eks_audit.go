@@ -130,7 +130,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws_eks_audit.EnableFirehoseEncryption(GenerateAwsEksAuditCommandState.FirehoseEncryptionEnabled),
 				aws_eks_audit.EnableSnsTopicEncryption(GenerateAwsEksAuditCommandState.SnsTopicEncryptionEnabled),
 				aws_eks_audit.EnableBucketVersioning(GenerateAwsEksAuditCommandState.BucketVersioning),
-				aws_eks_audit.EnableKmsKeyMultiRegion(GenerateAwsEksAuditCommandState.KmsKeyMultiRegion),
 				aws_eks_audit.EnableKmsKeyRotation(GenerateAwsEksAuditCommandState.KmsKeyRotation),
 			}
 
