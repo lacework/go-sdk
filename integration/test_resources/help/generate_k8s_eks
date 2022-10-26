@@ -26,13 +26,13 @@ Flags:
       --bucket_sse_algorithm string               specify the encryption algorithm to use for S3 bucket server-side encryption
       --bucket_sse_key_arn string                 specify the kms key arn to be used for s3. (required when bucket_sse_algorithm is aws:kms & using an existing kms key)
       --custom_filter_pattern string              specify a custom cloudwatch log filter pattern
-      --disable_bucket_versioning                 disable s3 bucket versioning
-      --disable_encryption_s3                     disable encryption on s3 bucket (default true)
-      --disable_firehose_encryption               disable firehose encryption (default true)
-      --disable_kms_key_rotation                  disable automatic kms key rotation
-      --disable_sns_topic_encryption              disable encryption on the sns topic (default true)
+      --enable_bucket_versioning                  enable s3 bucket versioning (default true)
+      --enable_encryption_s3                      enable encryption on s3 bucket (default true)
+      --enable_firehose_encryption                enable firehose encryption (default true)
       --enable_force_destroy                      enable force destroy s3 bucket
+      --enable_kms_key_rotation                   enable automatic kms key rotation (default true)
       --enable_mfa_delete_s3                      enable mfa delete on s3 bucket. Requires bucket versioning.
+      --enable_sns_topic_encryption               enable encryption on the sns topic (default true)
       --existing_ca_iam_role_arn string           specify existing cross account iam role arn to use
       --existing_ca_iam_role_external_id string   specify existing cross account iam role external_id to use
       --existing_cw_iam_role_arn string           specify existing cloudwatch iam role arn to use
