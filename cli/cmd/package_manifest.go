@@ -52,7 +52,7 @@ var (
 	rexVersionID     = regexp.MustCompile(`^VERSION_ID=(.*)$`)
 )
 
-func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
+func (c *cliState) GeneratePackageManifest() (*api.VulnerabilitiesPackageManifest, error) {
 	var (
 		err   error
 		start = time.Now()
@@ -71,7 +71,7 @@ func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
 
 	c.Event.Feature = featGenPkgManifest
 
-	manifest := new(api.PackageManifest)
+	manifest := new(api.VulnerabilitiesPackageManifest)
 	osInfo, err := c.GetOSInfo()
 	if err != nil {
 		return manifest, err
@@ -171,7 +171,7 @@ func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
 		}
 
 		manifest.OsPkgInfoList = append(manifest.OsPkgInfoList,
-			api.OsPkgInfo{
+			api.VulnerabilitiesOsPkgInfo{
 				Os:     osInfo.Name,
 				OsVer:  osInfo.Version,
 				Pkg:    pkgDetail[0],
@@ -185,7 +185,7 @@ func (c *cliState) GeneratePackageManifest() (*api.PackageManifest, error) {
 	return c.removeInactivePackagesFromManifest(manifest, manager), nil
 }
 
-func (c *cliState) removeInactivePackagesFromManifest(manifest *api.PackageManifest, manager string) *api.PackageManifest {
+func (c *cliState) removeInactivePackagesFromManifest(manifest *api.VulnerabilitiesPackageManifest, manager string) *api.VulnerabilitiesPackageManifest {
 	// Detect Active Kernel
 	//
 	// The default behavior of most linux distros is to keep the last N kernel packages
@@ -202,7 +202,7 @@ func (c *cliState) removeInactivePackagesFromManifest(manifest *api.PackageManif
 		return manifest
 	}
 
-	newManifest := new(api.PackageManifest)
+	newManifest := new(api.VulnerabilitiesPackageManifest)
 	for i, pkg := range manifest.OsPkgInfoList {
 
 		switch manager {
@@ -445,16 +445,16 @@ func removeEpochFromPkgVersion(pkgVer string) string {
 // split the provided package_manifest into chucks, if the manifest
 // is smaller than the provided chunk size, it will return the manifest
 // as an array without modifications
-func splitPackageManifest(manifest *api.PackageManifest, chunks int) []*api.PackageManifest {
+func splitPackageManifest(manifest *api.VulnerabilitiesPackageManifest, chunks int) []*api.VulnerabilitiesPackageManifest {
 	if len(manifest.OsPkgInfoList) <= chunks {
-		return []*api.PackageManifest{manifest}
+		return []*api.VulnerabilitiesPackageManifest{manifest}
 	}
 
-	var batches []*api.PackageManifest
+	var batches []*api.VulnerabilitiesPackageManifest
 	for i := 0; i < len(manifest.OsPkgInfoList); i += chunks {
 		batch := manifest.OsPkgInfoList[i:min(i+chunks, len(manifest.OsPkgInfoList))]
 		cli.Log.Infow("manifest batch", "total_packages", len(batch))
-		batches = append(batches, &api.PackageManifest{OsPkgInfoList: batch})
+		batches = append(batches, &api.VulnerabilitiesPackageManifest{OsPkgInfoList: batch})
 	}
 	return batches
 }
@@ -467,12 +467,12 @@ func min(a, b int) int {
 }
 
 // fan-out a number of package manifests into multiple requests all at once
-func fanOutHostScans(manifests ...*api.PackageManifest) (api.HostVulnScanPkgManifestResponse, error) {
+func fanOutHostScans(manifests ...*api.VulnerabilitiesPackageManifest) (api.VulnerabilitySoftwarePackagesResponse, error) {
 	var (
-		resCh    = make(chan api.HostVulnScanPkgManifestResponse)
+		resCh    = make(chan api.VulnerabilitySoftwarePackagesResponse)
 		errCh    = make(chan error)
 		workers  = len(manifests)
-		fanInRes = api.HostVulnScanPkgManifestResponse{}
+		fanInRes = api.VulnerabilitySoftwarePackagesResponse{}
 	)
 
 	// disallow more than 10 workers which are 10 calls all at once,
@@ -526,7 +526,7 @@ func fanOutHostScans(manifests ...*api.PackageManifest) (api.HostVulnScanPkgMani
 		case res := <-resCh:
 			// processing scan
 			cli.Log.Infow("processing worker response", "n", processed+1)
-			cli.Event.AddFeatureField(fmt.Sprintf("worker%d_total_vulns", processed), len(res.Vulns))
+			cli.Event.AddFeatureField(fmt.Sprintf("worker%d_total_vulns", processed), len(res.Data))
 			mergeHostVulnScanPkgManifestResponses(&fanInRes, &res)
 		}
 	}
@@ -534,32 +534,16 @@ func fanOutHostScans(manifests ...*api.PackageManifest) (api.HostVulnScanPkgMani
 	return fanInRes, nil
 }
 
-func mergeHostVulnScanPkgManifestResponses(to, from *api.HostVulnScanPkgManifestResponse) {
+func mergeHostVulnScanPkgManifestResponses(to, from *api.VulnerabilitySoftwarePackagesResponse) {
 	// append vulnerabilities from -> to
-	to.Vulns = append(to.Vulns, from.Vulns...)
-
-	// requests should always return an ok state
-	to.Ok = from.Ok
-
-	// store the message from the response only if it is NOT empty
-	// and it is different from the previous response (to)
-	if to.Message == "" {
-		to.Message = from.Message
-		return
-	}
-
-	// concatenate messages "to,from" response only if they
-	// are NOT empty and they are different from each other
-	if from.Message != "" && from.Message != to.Message {
-		to.Message = fmt.Sprintf("%s,%s", to.Message, from.Message)
-	}
+	to.Data = append(to.Data, from.Data...)
 }
 
-func (c *cliState) triggerHostVulnScan(manifest *api.PackageManifest,
-	resCh chan<- api.HostVulnScanPkgManifestResponse,
+func (c *cliState) triggerHostVulnScan(manifest *api.VulnerabilitiesPackageManifest,
+	resCh chan<- api.VulnerabilitySoftwarePackagesResponse,
 	errCh chan<- error,
 ) {
-	response, err := c.LwApi.Vulnerabilities.Host.Scan(manifest)
+	response, err := c.LwApi.V2.Vulnerabilities.SoftwarePackages.Scan(*manifest)
 	if err != nil {
 		errCh <- err
 		return
