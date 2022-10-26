@@ -27,7 +27,7 @@ var (
 	QuestionEksAuditConfigureAdvanced = "Configure advanced integration options?"
 
 	// S3 Bucket Questions
-	EksAuditConfigureBucket              = "Configure bucket settings?"
+	EksAuditConfigureBucket              = "Configure bucket settings"
 	QuestionEksAuditBucketVersioning     = "Enable access versioning on the new bucket?"
 	QuestionEksAuditMfaDeleteS3Bucket    = "Should MFA object deletion be required for the new bucket?"
 	QuestionEksAuditForceDestroyS3Bucket = "Should force destroy be enabled for the new bucket?"
