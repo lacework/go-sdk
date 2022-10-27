@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -31,15 +32,16 @@ var (
 	QuestionEksAuditBucketVersioning     = "Enable access versioning on the new bucket?"
 	QuestionEksAuditMfaDeleteS3Bucket    = "Should MFA object deletion be required for the new bucket?"
 	QuestionEksAuditForceDestroyS3Bucket = "Should force destroy be enabled for the new bucket?"
+	QuestionEksAuditBucketLifecycle      = "Specify the bucket lifecycle expiration days: (optional)"
 	QuestionEksAuditBucketEncryption     = "Enable encryption for the new bucket?"
 	QuestionEksAuditBucketSseAlgorithm   = "Specify the bucket SSE Algorithm: (optional)"
+	QuestionEksAuditBucketExistingKey    = "Use existing KMS key?"
 	QuestionEksAuditBucketKeyArn         = "Specify the bucket existing SSE KMS key ARN:"
-	QuestionEksAuditBucketLifecycle      = "Specify the bucket lifecycle expiration days: (optional)"
 	QuestionEksAuditKmsKeyRotation       = "Should the kms key have rotation enabled?"
 	QuestionEksAuditKmsKeyDeletionDays   = "Specify the kms key deletion days: (optional)"
 
 	// SNS Topic Questions
-	QuestionEksAuditConfigureSns        = "Configure SNS settings"
+	EksAuditConfigureSns                = "Configure SNS settings"
 	QuestionEksAuditSnsEncryption       = "Enable encryption on SNS topic when creating?"
 	QuestionEksAuditSnsEncryptionKeyArn = "Specify existing KMS encryption key arn for SNS topic (optional)"
 
@@ -59,14 +61,16 @@ var (
 	QuestionEksAuditExistingCaIamArn   = "Specify an existing Cross Account IAM role ARN:"
 	QuestionEksAuditExistingCaIamExtID = "Specify the external ID to be used with the existing IAM role:"
 
-	QuestionEksAuditAnotherAdvancedOpt      = "Configure another advanced integration option"
-	QuestionEksAuditCustomizeOutputLocation = "Provide the location for the output to be written:"
-	EksAuditIntegrationNameOpt              = "Customize integration name"
-	QuestionEksAuditCustomIntegrationName   = "Specify a custom integration name: (optional)"
+	// Customize integration name
+	EksAuditIntegrationNameOpt            = "Customize integration name"
+	QuestionEksAuditCustomIntegrationName = "Specify a custom integration name: (optional)"
 
-	// select options
-	EksAuditAdvancedOptDone     = "Done"
-	EksAuditAdvancedOptLocation = "Customize output location"
+	// Customize output location
+	EksAuditAdvancedOptLocation             = "Customize output location"
+	QuestionEksAuditCustomizeOutputLocation = "Provide the location for the output to be written:"
+
+	QuestionEksAuditAnotherAdvancedOpt = "Configure another advanced integration option"
+	EksAuditAdvancedOptDone            = "Done"
 
 	// AwsEksAuditRegionRegex regex used for validating region input; note intentionally does not match gov cloud
 	AwsEksAuditRegionRegex = `(us|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d`
@@ -448,6 +452,21 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 	)
 }
 
+// Validate the response is of type int
+func validateResponseTypeInt(val interface{}) error {
+	switch value := val.(type) {
+	case string:
+		if _, err := strconv.Atoi(value); err != nil {
+			// if the value passed is not of type int
+			return errors.New("value must be a number")
+		}
+	default:
+		// if the value passed is not a string
+		return errors.New("value must be a string")
+	}
+	return nil
+}
+
 func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs) error {
 	// Only ask these questions if configure bucket is true
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
@@ -464,16 +483,19 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 			Response: &config.BucketForceDestroy,
 		},
 		{
-			Prompt: &survey.Input{Message: QuestionEksAuditBucketLifecycle,
-				Default: string(rune(config.BucketLifecycleExpirationDays))},
-			Opts:     []survey.AskOpt{},
-			Response: &config.BucketLifecycleExpirationDays,
-		},
-		{
 			Prompt: &survey.Confirm{Message: QuestionEksAuditBucketEncryption,
 				Default: config.BucketEnableEncryption},
 			Response: &config.BucketEnableEncryption,
 		},
+	}); err != nil {
+		return err
+	}
+
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt:   &survey.Confirm{Message: QuestionEksAuditBucketExistingKey},
+		Checks:   []*bool{&config.BucketEnableEncryption},
+		Opts:     []survey.AskOpt{},
+		Response: &config.ExistingBucketKmsKey,
 	}); err != nil {
 		return err
 	}
@@ -489,14 +511,14 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt:   &survey.Input{Message: QuestionEksAuditBucketKeyArn},
-		Checks:   []*bool{&config.BucketEnableEncryption},
+		Checks:   []*bool{&config.BucketEnableEncryption, &config.ExistingBucketKmsKey},
 		Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
 		Response: &config.BucketSseKeyArn,
 	}); err != nil {
 		return err
 	}
 
-	newKmsKey := config.BucketEnableEncryption && len(config.BucketSseKeyArn) == 0
+	newKmsKey := config.BucketEnableEncryption && !config.ExistingBucketKmsKey
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Prompt:   &survey.Confirm{Message: QuestionEksAuditKmsKeyRotation},
@@ -506,10 +528,15 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 			Response: &config.KmsKeyRotation,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionEksAuditKmsKeyDeletionDays, Default: "0"},
+			Prompt:   &survey.Input{Message: QuestionEksAuditKmsKeyDeletionDays, Default: strconv.Itoa(config.KmsKeyDeletionDays)},
 			Checks:   []*bool{&config.BucketEnableEncryption, &newKmsKey},
-			Opts:     []survey.AskOpt{},
+			Opts:     []survey.AskOpt{survey.WithValidator(validateResponseTypeInt)},
 			Response: &config.KmsKeyDeletionDays,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionEksAuditBucketLifecycle, Default: strconv.Itoa(config.BucketLifecycleExpirationDays)},
+			Opts:     []survey.AskOpt{survey.WithValidator(validateResponseTypeInt)},
+			Response: &config.BucketLifecycleExpirationDays,
 		},
 	}); err != nil {
 		return err
@@ -765,8 +792,8 @@ func askAdvancedEksAuditOptions(config *aws_eks_audit.GenerateAwsEksAuditTfConfi
 			EksAuditExistingCaIamRole,
 			EksAuditConfigureFh,
 			EksAuditExistingCwIamRole,
+			EksAuditConfigureSns,
 			EksAuditIntegrationNameOpt,
-			QuestionEksAuditConfigureSns,
 			EksAuditAdvancedOptLocation,
 			EksAuditAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
@@ -797,7 +824,7 @@ func askAdvancedEksAuditOptions(config *aws_eks_audit.GenerateAwsEksAuditTfConfi
 			if err := promptAwsEksAuditExistingCloudwatchIamQuestions(config); err != nil {
 				return err
 			}
-		case QuestionEksAuditConfigureSns:
+		case EksAuditConfigureSns:
 			if err := promptAwsEksAuditSnsQuestions(config); err != nil {
 				return err
 			}
