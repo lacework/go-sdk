@@ -251,11 +251,9 @@ func filterCLIFlagsFromComponentArgs(args []string, globalFlags []*pflag.Flag) (
 				case "bool":
 					isArg = false
 					cliFlags = append(cliFlags, arg)
-					break
 				case "string":
 					isArg = false
 					stringFlag = arg
-					break
 				}
 			}
 		}
