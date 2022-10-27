@@ -7,7 +7,7 @@ import (
 )
 
 func TestReportDefintionsList(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("report-definitions", "list")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "list")
 	// assert response contains table headers
 	assert.Contains(t, out.String(), "GUID")
 	assert.Contains(t, out.String(), "NAME")
@@ -19,7 +19,7 @@ func TestReportDefintionsList(t *testing.T) {
 }
 
 func TestReportDefintionsListJson(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("report-definitions", "list", "--json")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "list", "--json")
 	// assert response contains json fields
 	assert.Contains(t, out.String(), "\"data\"")
 	assert.Contains(t, out.String(), "\"createdBy\"")
@@ -33,7 +33,7 @@ func TestReportDefintionsListJson(t *testing.T) {
 }
 
 func TestReportDefintionsShow(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("report-definitions", "show", "FC86105C0B6C8549F55104CBEE2FAAB6EF056C313DE87351BDBC3C79", "--json")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "show", "FC86105C0B6C8549F55104CBEE2FAAB6EF056C313DE87351BDBC3C79", "--json")
 	// assert response contains table headers
 	assert.Contains(t, out.String(), "GUID")
 	assert.Contains(t, out.String(), "NAME")
@@ -48,7 +48,7 @@ func TestReportDefintionsShow(t *testing.T) {
 }
 
 func TestReportDefintionsShowJson(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("report-definitions", "show", "FC86105C0B6C8549F55104CBEE2FAAB6EF056C313DE87351BDBC3C79", "--json")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "show", "FC86105C0B6C8549F55104CBEE2FAAB6EF056C313DE87351BDBC3C79", "--json")
 	// assert response contains json fields
 	assert.Contains(t, out.String(), "\"data\"")
 	assert.Contains(t, out.String(), "\"createdBy\"")
