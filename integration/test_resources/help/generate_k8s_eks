@@ -40,7 +40,7 @@ Flags:
       --firehose_encryption_key_arn string        specify the kms key arn to be used with the Firehose
   -h, --help                                      help for eks
       --integration_name string                   specify the name of the eks audit integration
-      --kms_key_deletion_days int                 specify the waiting period, specified in number of days (default 30)
+      --kms_key_deletion_days int                 specify the waiting period, specified in number of days
       --output string                             location to write generated content
       --prefix string                             specify the prefix that will be used at the beginning of every generated resource
       --region_cluster_map stringToString         configure aws regions and eks clusters; value format must be <region>:"cluster,list",<region>:"cluster,list" (default [])
