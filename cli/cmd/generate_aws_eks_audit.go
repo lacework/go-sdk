@@ -425,9 +425,10 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		"specify the prefix that will be used at the beginning of every generated resource")
 	generateAwsEksAuditTfCommand.PersistentFlags().StringToStringVar(
 		&GenerateAwsEksAuditCommandState.RegionClusterMap,
-		"region_cluster_map",
+		"region_clusters",
 		map[string]string{},
-		"configure aws regions and eks clusters; value format must be <region>:\"cluster,list\",<region>:\"cluster,list\"")
+		"configure eks clusters per aws region; To configure multiple regions pass the flag"+
+			" multiple times. Example format:  --region_clusters <region>=\"cluster,list\"")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.SnsTopicEncryptionEnabled,
 		"enable_sns_topic_encryption",

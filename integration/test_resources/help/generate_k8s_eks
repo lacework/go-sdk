@@ -43,7 +43,7 @@ Flags:
       --kms_key_deletion_days int                 specify the waiting period, specified in number of days
       --output string                             location to write generated content
       --prefix string                             specify the prefix that will be used at the beginning of every generated resource
-      --region_cluster_map stringToString         configure aws regions and eks clusters; value format must be <region>:"cluster,list",<region>:"cluster,list" (default [])
+      --region_clusters stringToString            configure eks clusters per aws region; To configure multiple regions pass the flag multiple times. Example format:  --region_clusters <region>="cluster,list" (default [])
       --sns_topic_encryption_key_arn string       specify the kms key arn to be used with the sns topic
 
 Global Flags:
