@@ -548,9 +548,11 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, AWS_SOC_Rev2, or PCI
+	// AWS report types
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI",
+		"report type to display, supported types: AWS_CIS_14, AWS_CIS_S3, NIST_800-53_Rev4, NIST_800-171_Rev2, "+
+			"ISO_2700, HIPAA, SOC, AWS_SOC_Rev2, PCI, AWS_CIS_14, AWS_CMMC_1.02, AWS_HIPAA, "+
+			"AWS_ISO_27001:2013, AWS_NIST_CSF, AWS_NIST_800-171_rev2, AWS_NIST_800-53_rev5, AWS_PCI_DSS_3.2.1, AWS_SOC_2, LW_AWS_SEC_ADD_1_0",
 	)
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},

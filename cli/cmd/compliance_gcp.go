@@ -510,9 +510,10 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// GCP report types: GCP_CIS, GCP_CIS12, GCP_K8S, GCP_HIPAA, GCP_SOC, or GCP_PCI.
+	// GCP report types
 	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, CIS12, K8S, HIPAA, SOC, or PCI",
+		"report type to display, supported types: CIS, CIS12, K8S, HIPAA, SOC, ISO_27001, PCI, PCI_Rev2, "+
+			"SOC_Rev2, HIPAA_Rev2, NIST_CSF, NIST_800_53_REV4 or NIST_800_171_REV2 (default \"CIS\")",
 	)
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
