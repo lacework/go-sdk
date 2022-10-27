@@ -19,7 +19,6 @@
 package cmd
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -60,7 +59,7 @@ Get started by configuring your report definitions using the command:
 
     lacework report-definition create
 `
-				cli.OutputHuman(fmt.Sprintf(msg, cli.Account))
+				cli.OutputHuman(msg, cli.Account)
 				return nil
 			}
 			if cli.JSONOutput() {
