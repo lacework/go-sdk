@@ -7,4 +7,4 @@
 package api
 
 // Version is the semver coming from the VERSION file
-const Version = "0.43.1-dev"
+const Version = "1.0.0-dev"
