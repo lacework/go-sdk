@@ -2,12 +2,13 @@ package aws_eks_audit
 
 import (
 	"fmt"
+	"sort"
+
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/pkg/errors"
 	"github.com/zclconf/go-cty/cty"
-	"sort"
 )
 
 type ExistingCrossAccountIamRoleDetails struct {
@@ -65,6 +66,9 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	// The encryption algorithm to use for S3 bucket server-side encryption
 	BucketSseAlgorithm string
 
+	// Should we use an existing KMS key for the bucket?
+	ExistingBucketKmsKey bool
+
 	// The ARN of the KMS encryption key to be used for S3
 	// (Required when bucket_sse_algorithm is aws:kms and using an existing kms key)
 	BucketSseKeyArn string
@@ -92,6 +96,7 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 
 	// Should encryption be enabled on the created firehose? Defaults to true.
 	FirehoseEncryptionEnabled bool
+
 	// The ARN of an existing KMS encryption key to be used for the Kinesis Firehose
 	FirehoseEncryptionKeyArn string
 
