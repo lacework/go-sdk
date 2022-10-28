@@ -136,7 +136,7 @@ func (args *GenerateAwsEksAuditTfConfigurationArgs) validate() error {
 
 	// Validate that at least one region with clusters was set
 	if len(args.ParsedRegionClusterMap) == 0 {
-		return errors.New("At least one region with a list of cluster(s) must be set")
+		return errors.New("At least one region with a list of clusters must be set")
 	}
 
 	// Validate, at least 1 cluster must be supplied per region

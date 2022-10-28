@@ -1,20 +1,20 @@
 Use this command to generate Terraform code for deploying Lacework into an EKS
 environment.
 
-By default, this command interactively prompts for the required information to setup the new cloud account.
+By default, this command interactively prompts for the required information to set up the new cloud account.
 In interactive mode, this command will:
 
-* Prompt for the required information to setup the integration
+* Prompt for the required information to set up the integration
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
   * If Terraform is already installed, the version is verified as compatible for use
-	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
-	* Once Terraform is detected or installed, Terraform plan will be executed
-	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
-	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
+  * If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
+  * Once Terraform is detected or installed, the Terraform plan is executed
+  * The command prompts you with the outcome of the plan and allows you to view more details or continue with Terraform apply
+  * If confirmed, Terraform apply runs, completing the setup of the cloud account
 
 This command can also be run in noninteractive mode.
-See help output for more details on the parameter value(s) required for Terraform code generation.
+See help output for more details on the parameter values required for Terraform code generation.
 
 Usage:
   lacework generate k8s eks [flags]
@@ -40,10 +40,10 @@ Flags:
       --firehose_encryption_key_arn string        specify the kms key arn to be used with the Firehose
   -h, --help                                      help for eks
       --integration_name string                   specify the name of the eks audit integration
-      --kms_key_deletion_days int                 specify the waiting period, specified in number of days
+      --kms_key_deletion_days int                 specify the kms waiting period before deletion, in number of days
       --output string                             location to write generated content
       --prefix string                             specify the prefix that will be used at the beginning of every generated resource
-      --region_clusters stringToString            configure eks clusters per aws region; To configure multiple regions pass the flag multiple times. Example format:  --region_clusters <region>="cluster,list" (default [])
+      --region_clusters stringToString            configure eks clusters per aws region. To configure multiple regions pass the flag multiple times. Example format:  --region_clusters <region>="cluster,list" (default [])
       --sns_topic_encryption_key_arn string       specify the kms key arn to be used with the sns topic
 
 Global Flags:

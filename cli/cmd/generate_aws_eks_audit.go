@@ -17,11 +17,11 @@ import (
 
 var (
 	// Define question text here, so they can be reused in testing
-	QuestionEksAuditMultiRegion          = "Integrate cluster(s) in more than one region?"
-	QuestionEksAuditRegionClusterCurrent = "Currently configured regions & clusters: %s. " +
+	QuestionEksAuditMultiRegion          = "Integrate clusters in more than one region?"
+	QuestionEksAuditRegionClusterCurrent = "Currently configured regions and clusters: %s. " +
 		"Configure additional?"
 	QuestionEksAuditRegion         = "Specify AWS region:"
-	QuestionEksAuditRegionClusters = "Specify a comma seperated list of clusters in region" +
+	QuestionEksAuditRegionClusters = "Specify a comma-seperated list of clusters in region" +
 		" to ingest EKS Audit Logs:"
 	QuestionEksAuditAdditionalRegion = "Configure another AWS region?"
 
@@ -37,16 +37,16 @@ var (
 	QuestionEksAuditBucketSseAlgorithm   = "Specify the bucket SSE Algorithm: (optional)"
 	QuestionEksAuditBucketExistingKey    = "Use existing KMS key?"
 	QuestionEksAuditBucketKeyArn         = "Specify the bucket existing SSE KMS key ARN:"
-	QuestionEksAuditKmsKeyRotation       = "Should the kms key have rotation enabled?"
-	QuestionEksAuditKmsKeyDeletionDays   = "Specify the kms key deletion days: (optional)"
+	QuestionEksAuditKmsKeyRotation       = "Should the KMS key have rotation enabled?"
+	QuestionEksAuditKmsKeyDeletionDays   = "Specify the KMS key deletion days: (optional)"
 
 	// SNS Topic Questions
 	EksAuditConfigureSns                = "Configure SNS settings"
 	QuestionEksAuditSnsEncryption       = "Enable encryption on SNS topic when creating?"
-	QuestionEksAuditSnsEncryptionKeyArn = "Specify existing KMS encryption key arn for SNS topic (optional)"
+	QuestionEksAuditSnsEncryptionKeyArn = "Specify existing KMS encryption key ARN for SNS topic (optional)"
 
 	// Cloudwatch IAM Questions
-	EksAuditExistingCwIamRole        = "Configure & use existing Cloudwatch IAM role"
+	EksAuditExistingCwIamRole        = "Configure and use existing Cloudwatch IAM role"
 	QuestionEksAuditExistingCwIamArn = "Specify an existing Cloudwatch IAM role ARN:"
 
 	// Firehose Questions
@@ -54,10 +54,10 @@ var (
 	QuestionEksAuditExistingFhIamRole  = "Use existing Firehose IAM role?"
 	QuestionEksAuditExistingFhIamArn   = "Specify an existing Firehose IAM role ARN:"
 	QuestionEksAuditFhEncryption       = "Enable encryption on Firehose when creating?"
-	QuestionEksAuditFhEncryptionKeyArn = "Specify existing KMS encryption key arn for Firehose (optional)"
+	QuestionEksAuditFhEncryptionKeyArn = "Specify existing KMS encryption key ARN for Firehose (optional)"
 
 	// Cross Account IAM Questions
-	EksAuditExistingCaIamRole          = "Configure & use existing Cross Account IAM role"
+	EksAuditExistingCaIamRole          = "Configure and use existing Cross Account IAM role"
 	QuestionEksAuditExistingCaIamArn   = "Specify an existing Cross Account IAM role ARN:"
 	QuestionEksAuditExistingCaIamExtID = "Specify the external ID to be used with the existing IAM role:"
 
@@ -88,20 +88,20 @@ var (
 		Long: `Use this command to generate Terraform code for deploying Lacework into an EKS
 environment.
 
-By default, this command interactively prompts for the required information to setup the new cloud account.
+By default, this command interactively prompts for the required information to set up the new cloud account.
 In interactive mode, this command will:
 
-* Prompt for the required information to setup the integration
+* Prompt for the required information to set up the integration
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
   * If Terraform is already installed, the version is verified as compatible for use
-	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
-	* Once Terraform is detected or installed, Terraform plan will be executed
-	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
-	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
+  * If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
+  * Once Terraform is detected or installed, the Terraform plan is executed
+  * The command prompts you with the outcome of the plan and allows you to view more details or continue with Terraform apply
+  * If confirmed, Terraform apply runs, completing the setup of the cloud account
 
 This command can also be run in noninteractive mode.
-See help output for more details on the parameter value(s) required for Terraform code generation.
+See help output for more details on the parameter values required for Terraform code generation.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Generate TF Code
@@ -208,7 +208,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				return err
 			}
 
-			// Validate bucket sse key arn, if passed
+			// Validate bucket sse key ARN, if passed
 			bucketSseKeyArn, err := cmd.Flags().GetString("bucket_sse_key_arn")
 			if err != nil {
 				return errors.Wrap(err, "failed to load command flags")
@@ -217,7 +217,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				return err
 			}
 
-			// Validate firehose key arn, if passed
+			// Validate firehose key ARN, if passed
 			firehoseKeyArn, err := cmd.Flags().GetString("firehose_encryption_key_arn")
 			if err != nil {
 				return errors.Wrap(err, "failed to load command flags")
@@ -226,7 +226,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				return err
 			}
 
-			// Validate sns topic key arn, if passed
+			// Validate sns topic key ARN, if passed
 			snsKeyArn, err := cmd.Flags().GetString("sns_topic_encryption_key_arn")
 			if err != nil {
 				return errors.Wrap(err, "failed to load command flags")
@@ -240,13 +240,13 @@ See help output for more details on the parameter value(s) required for Terrafor
 				cachedOptions := &aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs{}
 				iacParamsExpired := cli.ReadCachedAsset(CachedAssetAwsEksAuditIacParams, &cachedOptions)
 				if iacParamsExpired {
-					cli.Log.Debug("loaded previously set values for AWS EKS Audit iac generation")
+					cli.Log.Debug("loaded previously set values for AWS EKS Audit IAC generation")
 				}
 
 				extraState := &AwsEksAuditGenerateCommandExtraState{}
 				extraStateParamsExpired := cli.ReadCachedAsset(CachedAssetAwsEksAuditExtraState, &extraState)
 				if extraStateParamsExpired {
-					cli.Log.Debug("loaded previously set values for AWS EKS Audit iac generation (extra state)")
+					cli.Log.Debug("loaded previously set values for AWS EKS Audit IAC generation (extra state)")
 				}
 
 				// Determine if previously cached options exists; prompt user if they'd like to continue
@@ -285,7 +285,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 						"invalid region name supplied"); err != nil {
 						return err
 					}
-					// parse the cluster comma seperated string into a list of clusters
+					// parse the cluster comma-seperated string into a list of clusters
 					parsedClusters := strings.Split(clusters, ",")
 					awsParsedRegionClusterMap[region] = append(awsParsedRegionClusterMap[region], parsedClusters...)
 				}
@@ -412,7 +412,7 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		&GenerateAwsEksAuditCommandState.KmsKeyDeletionDays,
 		"kms_key_deletion_days",
 		0,
-		"specify the waiting period, specified in number of days")
+		"specify the kms waiting period before deletion, in number of days")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.KmsKeyRotation,
 		"enable_kms_key_rotation",
@@ -427,7 +427,7 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		&GenerateAwsEksAuditCommandState.RegionClusterMap,
 		"region_clusters",
 		map[string]string{},
-		"configure eks clusters per aws region; To configure multiple regions pass the flag"+
+		"configure eks clusters per aws region. To configure multiple regions pass the flag"+
 			" multiple times. Example format:  --region_clusters <region>=\"cluster,list\"")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.SnsTopicEncryptionEnabled,

@@ -46,7 +46,7 @@ func TestGenerationEksFailureWithNoOptionsSet(t *testing.T) {
 	data := &GenerateAwsEksAuditTfConfigurationArgs{}
 	_, err := data.Generate()
 	assert.Error(t, err)
-	assert.Equal(t, "invalid inputs: At least one region with a list of cluster(s) must be set", err.Error())
+	assert.Equal(t, "invalid inputs: At least one region with a list of clusters must be set", err.Error())
 }
 
 func TestGenerationEksFailureSingleRegionNoClusters(t *testing.T) {
