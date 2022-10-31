@@ -142,7 +142,6 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 
 	runners := []*lwrunner.AWSRunner{}
 	producerWg := new(sync.WaitGroup)
-	// cl := limiter.NewConcurrencyLimiter(agentCmdState.InstallMaxParallelism)
 	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
 	runnerCh := make(chan *lwrunner.AWSRunner)
 
@@ -174,7 +173,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 
 				producerWg.Add(1)
 
-				// In order to use `cl.Execute()`, the input func() must not take any arguments.
+				// In order to use `wp.Submit()`, the input func() must not take any arguments.
 				// Copy the runner info to dedicated variable in the goroutine
 				instanceCopyWg := new(sync.WaitGroup)
 				instanceCopyWg.Add(1)
@@ -197,9 +196,10 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 					)
 					if err != nil {
 						cli.Log.Debugw("error identifying runner", "error", err, "instance_id", *threadInstance.InstanceId)
+					} else {
+						runnerCh <- runner
 					}
 
-					runnerCh <- runner
 					producerWg.Done()
 				})
 				instanceCopyWg.Wait()

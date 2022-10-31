@@ -63,7 +63,8 @@ func NewAWSRunner(amiImageId, host, region, availabilityZone, instanceID string,
 	var user string
 	if strings.Contains(*result.Images[0].Name, "ubuntu") {
 		user = "ubuntu"
-	} else if strings.Contains(*result.Images[0].Name, "amazon_linux") {
+	} else if strings.Contains(*result.Images[0].Name, "amazon_linux") ||
+		strings.Contains(*result.Images[0].Name, "amzn2-ami") {
 		user = "ec2-user"
 	} else {
 		return nil, fmt.Errorf("expected either Ubuntu or Amazon Linux 2 AMI, got AMI %s", *result.Images[0].Name)
