@@ -47,42 +47,6 @@ func (svc *ReportDefinitionsService) Get(reportDefinitionGuid string) (response 
 	return
 }
 
-// Create a ReportDefinition report definition
-//
-// Example:
-//	myReport := api.ReportDefinitionConfig{
-//		ReportName:    "My Custom Report",
-//		ReportType:    "COMPLIANCE",
-//		SubReportType: "AWS",
-//		Sections: []api.ReportDefinitionSection{
-//			{
-//				Category: "Cust",
-//				Title:    "My Custom Category",
-//				Policies: []string{"AWS_CIS_2_6"},
-//			}
-//		},
-//		AlertChannels:    []string{"myAlertChannel"},
-//		DistributionType: "csv",
-//		Frequency:        "weekly",
-//	}
-//
-//	newReport, err := lacework.V2.ReportDefinitions.Create(api.NewReportDefinition(myReport))
-func (svc *ReportDefinitionsService) Create(reportDefinition ReportDefinition) (response ReportDefinitionResponse, err error) {
-	err = svc.client.RequestEncoderDecoder("POST", apiV2ReportDefinitions, reportDefinition, &response)
-	return
-}
-
-// Update an existing report definition
-func (svc *ReportDefinitionsService) Update(guid string, reportDefinition ReportDefinition) (response ReportDefinitionResponse, err error) {
-	if guid == "" {
-		return ReportDefinitionResponse{}, errors.New("specify a report definition guid")
-	}
-	reportDefinition.UpdateType = "Update"
-
-	err = svc.client.RequestEncoderDecoder("PUT", apiV2ReportDefinitionsFromGUID, reportDefinition, &response)
-	return
-}
-
 // Delete a ReportDefinition
 func (svc *ReportDefinitionsService) Delete(guid string) error {
 	if guid == "" {
