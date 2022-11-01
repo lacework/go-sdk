@@ -36,43 +36,11 @@ func main() {
 
 	fmt.Printf("Retrieved my report: %q", report.Data.ReportName)
 
-	// Create a new custom report definition
-	myReport := api.ReportDefinitionConfig{
-		ReportName:    "My Custom Report",
-		ReportType:    "COMPLIANCE",
-		SubReportType: "AWS",
-		Sections: []api.ReportDefinitionSection{
-			{Category: "Cust",
-				Title:    "My Custom Category",
-				Policies: []string{"AWS_CIS_2_6"},
-			}},
-		AlertChannels:    []string{"myAlertChannel"},
-		DistributionType: "csv",
-		Frequency:        "weekly",
-	}
-
-	newReport, err := lacework.V2.ReportDefinitions.Create(api.NewReportDefinition(myReport))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Create my new custom report: %q", newReport.Data.ReportName)
-
-	// Update an existing Report Definition
-	myReport.ReportName = "Updated Report Name"
-	updatedReport, err := lacework.V2.ReportDefinitions.Update(newReport.Data.ReportDefinitionGuid, api.NewReportDefinition(myReport))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Updated existing report: %q", updatedReport.Data.ReportName)
-
 	// Delete a report
-	err = lacework.V2.ReportDefinitions.Delete(updatedReport.Data.ReportDefinitionGuid)
+	err = lacework.V2.ReportDefinitions.Delete(report.Data.ReportDefinitionGuid)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Deleted report: %q", updatedReport.Data.ReportName)
-
+	fmt.Printf("Deleted report: %q", report.Data.ReportName)
 }
