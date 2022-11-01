@@ -35,6 +35,10 @@ import (
 )
 
 var (
+	compAzCmdState = struct {
+		Type string
+	}{Type: "AZURE_CIS_131"}
+
 	// complianceAzureListSubsCmd represents the list-subscriptions sub-command inside the azure command
 	complianceAzureListSubsCmd = &cobra.Command{
 		Use:     "list-subscriptions <tenant_id>",
@@ -113,15 +117,15 @@ Use the following command to list all Azure Tenants configured in your account:
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
 			}
-
-			switch compCmdState.Type {
-			case "CIS", "SOC", "PCI":
-				compCmdState.Type = fmt.Sprintf("AZURE_%s", compCmdState.Type)
+			
+			validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAzure)
+			if err != nil {
+				return errors.Wrap(err, "unable to retrieve valid report types")
+			}
+			if array.ContainsStr(validTypes, compAzCmdState.Type) {
 				return nil
-			case "AZURE_CIS", "AZURE_SOC", "AZURE_PCI":
-				return nil
-			default:
-				return errors.New("supported report types are: CIS, SOC, or PCI")
+			} else {
+				return errors.Errorf("supported report types are: %s", strings.Join(validTypes, ", "))
 			}
 		},
 		Short: "Get the latest Azure compliance report",
@@ -142,9 +146,9 @@ To show recommendation details and affected resources for a recommendation id:
 `,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(_ *cobra.Command, args []string) error {
-			reportType, err := api.NewAzureReportType(compCmdState.Type)
+			reportType, err := api.NewAzureReportType(compAzCmdState.Type)
 			if err != nil {
-				return errors.Errorf("invalid report type %q", compCmdState.Type)
+				return errors.Errorf("invalid report type %q", compAzCmdState.Type)
 			}
 
 			var (
@@ -498,9 +502,10 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// Azure report types: AZURE_CIS, AZURE_SOC, or AZURE_PCI
-	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, SOC, or PCI",
+	// Azure report types: AZURE_CIS_131, AZURE_NIST_800_171_REV2, AZURE_NIST_800_53_REV5, AZURE_NIST_CSF,
+	//AZURE_PCI, AZURE_SOC_Rev2, AZURE_ISO_27001, AZURE_SOC, AZURE_HIPAA, AZURE_CIS, AZURE_PCI_Rev2
+	complianceAzureGetReportCmd.Flags().StringVar(&compAzCmdState.Type, "type", "AZURE_CIS_131",
+		"report type to display, run 'lacework report-definitions list' for valid types",
 	)
 
 	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},

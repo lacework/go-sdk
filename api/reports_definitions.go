@@ -31,6 +31,10 @@ type ReportDefinitionsService struct {
 	client *Client
 }
 
+const ReportDefinitionNotificationTypeAws = "AWS"
+const ReportDefinitionNotificationTypeGcp = "GCP"
+const ReportDefinitionNotificationTypeAzure = "Azure"
+
 // List returns a ReportDefinitionResponse
 func (svc *ReportDefinitionsService) List() (response ReportDefinitionsResponse, err error) {
 	err = svc.client.RequestDecoder("GET", apiV2ReportDefinitions, nil, &response)

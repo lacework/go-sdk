@@ -28,12 +28,16 @@ Available Commands:
   policy                  Manage policies
   policy-exception        Manage policy exceptions
   query                   Run and manage queries
+  report-definition       Manage report definitions
   report-rule             Manage report rules
   resource-group          Manage resource groups
   team-member             Manage team members
   version                 Print the Lacework CLI version
   vulnerability           Container and host vulnerability assessments
   vulnerability-exception Manage vulnerability exceptions
+
+Commands from components:
+  iac                     Infrastructure as Code (IaC) scanner
 
 Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
