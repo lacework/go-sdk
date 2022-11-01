@@ -19,6 +19,7 @@
 package api
 
 import (
+	"fmt"
 	"net/url"
 
 	"github.com/pkg/errors"
@@ -45,6 +46,7 @@ type V2Endpoints struct {
 	ComplianceEvaluations   *ComplianceEvaluationService
 	Query                   *QueryService
 	Policy                  *PolicyService
+	Reports                 *ReportsService
 	Entities                *EntitiesService
 	Schemas                 *SchemasService
 	Datasources             *DatasourcesService
@@ -70,6 +72,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&ComplianceEvaluationService{c},
 		&QueryService{c},
 		NewV2PolicyService(c),
+		NewReportsService(c),
 		&EntitiesService{c},
 		&SchemasService{c, map[integrationSchema]V2Service{}},
 		&DatasourcesService{c},
@@ -177,9 +180,14 @@ func (c *Client) NextPage(p Pageable) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "unable to part next page url")
 	}
+	// some NextPage values have query parameters which should be concatenated
+	path := pageURL.Path
+	if len(pageURL.Query()) > 0 {
+		path += fmt.Sprintf("?%s", pageURL.Query().Encode())
+	}
 
 	p.ResetPaging()
 	c.log.Info("pagination reset")
-	err = c.RequestDecoder("GET", pageURL.Path, nil, p)
+	err = c.RequestDecoder("GET", path, nil, p)
 	return true, err
 }

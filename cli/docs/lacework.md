@@ -52,6 +52,7 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework configure](lacework_configure.md)	 - Configure the Lacework CLI
 * [lacework container-registry](lacework_container-registry.md)	 - Manage container registries
 * [lacework event](lacework_event.md)	 - Inspect Lacework events
+* [lacework generate](lacework_generate.md)	 - Generate code to onboard your account
 * [lacework policy](lacework_policy.md)	 - Manage policies
 * [lacework policy-exception](lacework_policy-exception.md)	 - Manage policy exceptions
 * [lacework query](lacework_query.md)	 - Run and manage queries

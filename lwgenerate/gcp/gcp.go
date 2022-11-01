@@ -161,11 +161,11 @@ type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 // Note: Additional configuration details may be set using modifiers of the GcpTerraformModifier type
 //
 // Basic usage: Initialize a new GcpTerraformModifier struct, with GCP service account credentials. Then use generate to
-//              create a string output of the required HCL.
 //
-//   hcl, err := gcp.NewTerraform(true, true,
-//     gcp.WithGcpServiceAccountCredentials("/path/to/sa/credentials.json")).Generate()
+//	           create a string output of the required HCL.
 //
+//	hcl, err := gcp.NewTerraform(true, true,
+//	  gcp.WithGcpServiceAccountCredentials("/path/to/sa/credentials.json")).Generate()
 func NewTerraform(enableConfig bool, enableAuditLog bool, mods ...GcpTerraformModifier) *GenerateGcpTfConfigurationArgs {
 	config := &GenerateGcpTfConfigurationArgs{
 		AuditLog:              enableAuditLog,
@@ -480,7 +480,7 @@ func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Bloc
 				attributes["folders_to_exclude"] = set
 
 				// Default true in gcp-audit-log TF module
-				if args.IncludeRootProjects != true {
+				if !args.IncludeRootProjects {
 					attributes["include_root_projects"] = args.IncludeRootProjects
 				}
 			}
@@ -558,7 +558,7 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			}
 
 			// Default true in gcp-audit-log TF module
-			if args.EnableUBLA != true {
+			if !args.EnableUBLA {
 				attributes["enable_ubla"] = args.EnableUBLA
 			}
 
@@ -598,7 +598,7 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 				attributes["folders_to_exclude"] = set
 
 				// Default true in gcp-audit-log TF module
-				if args.IncludeRootProjects != true {
+				if !args.IncludeRootProjects {
 					attributes["include_root_projects"] = args.IncludeRootProjects
 				}
 			}
@@ -629,12 +629,12 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 		}
 
 		// Default true in gcp-audit-log TF module
-		if args.GoogleWorkspaceFilter != true {
+		if !args.GoogleWorkspaceFilter {
 			attributes["google_workspace_filter"] = args.GoogleWorkspaceFilter
 		}
 
 		// Default true in gcp-audit-log TF module
-		if args.K8sFilter != true {
+		if !args.K8sFilter {
 			attributes["k8s_filter"] = args.K8sFilter
 		}
 
