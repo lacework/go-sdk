@@ -5,7 +5,7 @@ Use a custom time range by suppling a range flag...
 
     lacework alert ls --range "last 7 days"
 
-...Or by specifing start and end flags.
+Or by specifying start and end flags.
 
     lacework alert ls --start "-7d@d" --end "now"
 
