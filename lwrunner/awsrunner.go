@@ -66,12 +66,10 @@ func NewAWSRunner(amiImageId, host, region, availabilityZone, instanceID string,
 	} else if strings.Contains(*result.Images[0].Name, "amazon_linux") ||
 		strings.Contains(*result.Images[0].Name, "amzn2-ami") {
 		user = "ec2-user"
+	} else if os.Getenv("LW_SSH_USER") != "" {
+		user = os.Getenv("LW_SSH_USER")
 	} else {
 		return nil, fmt.Errorf("expected either Ubuntu or Amazon Linux 2 AMI, got AMI %s", *result.Images[0].Name)
-	}
-
-	if os.Getenv("LW_SSH_USER") != "" {
-		user = os.Getenv("LW_SSH_USER")
 	}
 
 	defaultCallback, err := DefaultKnownHosts()
