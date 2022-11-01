@@ -21,7 +21,6 @@ package cmd
 import (
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -53,12 +52,7 @@ var (
 				return errors.Wrap(err, "unable to get report definitions")
 			}
 			if len(reportDefinitions.Data) == 0 {
-				msg := `There are no report definitions configured in your account.
-
-Get started by configuring your report definitions using the command:
-
-    lacework report-definition create
-`
+				msg := `There are no report definitions configured in your account.`
 				cli.OutputHuman(msg, cli.Account)
 				return nil
 			}
@@ -125,26 +119,6 @@ Get started by configuring your report definitions using the command:
 			return nil
 		},
 	}
-
-	// create command is used to create a new lacework report definition
-	reportDefinitionsCreateCommand = &cobra.Command{
-		Use:   "create",
-		Short: "Create a new report definition",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, args []string) error {
-			if !cli.InteractiveMode() {
-				return errors.New("interactive mode is disabled")
-			}
-
-			response, err := promptCreateReportDefinition()
-			if err != nil {
-				return errors.Wrap(err, "unable to create report definition")
-			}
-
-			cli.OutputHuman("The report definition was created with GUID %s\n", response.Data.ReportDefinitionGuid)
-			return nil
-		},
-	}
 )
 
 func init() {
@@ -154,7 +128,6 @@ func init() {
 	// add sub-commands to the report-definition command
 	reportDefinitionsCommand.AddCommand(reportDefinitionsListCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsShowCommand)
-	reportDefinitionsCommand.AddCommand(reportDefinitionsCreateCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsDeleteCommand)
 }
 
@@ -211,37 +184,4 @@ func buildReportDefinitionDetailsTable(definition api.ReportDefinition) string {
 	}
 
 	return detailsTable.String()
-}
-
-func promptCreateReportDefinition() (api.ReportDefinitionResponse, error) {
-
-	questions := []*survey.Question{
-		{
-			Name:     "name",
-			Prompt:   &survey.Input{Message: "Name: "},
-			Validate: survey.Required,
-		},
-	}
-
-	answers := struct {
-		Name string
-	}{}
-
-	err := survey.Ask(questions, &answers,
-		survey.WithIcons(promptIconsFunc),
-	)
-	if err != nil {
-		return api.ReportDefinitionResponse{}, err
-	}
-
-	reportDefinition := api.NewReportDefinition(api.ReportDefinitionConfig{})
-
-	if err != nil {
-		return api.ReportDefinitionResponse{}, err
-	}
-
-	cli.StartProgress(" Creating report definition...")
-	defer cli.StopProgress()
-
-	return cli.LwApi.V2.ReportDefinitions.Create(reportDefinition)
 }
