@@ -82,8 +82,17 @@ func (c Component) run(cmd *exec.Cmd) error {
 		}
 
 		if err := cmd.Run(); err != nil {
-			return errors.Wrap(err, baseRunErr)
+			// default to -1 in case we can't get the actual exit code, which
+			// is better than returning an error with exit code 0 (default int)
+			exitCode := -1
+
+			if exitError, ok := err.(*exec.ExitError); ok {
+				exitCode = exitError.ExitCode()
+			}
+
+			return &RunError{Err: err, Message: baseRunErr, ExitCode: exitCode}
 		}
+
 		return nil
 	}
 
