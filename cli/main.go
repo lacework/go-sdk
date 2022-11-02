@@ -23,18 +23,10 @@ import (
 	"os"
 
 	"github.com/lacework/go-sdk/cli/cmd"
-	"github.com/lacework/go-sdk/lwcomponent"
 )
 
 func main() {
 	if err := cmd.Execute(); err != nil {
-		if componentError, ok := err.(*lwcomponent.RunError); ok {
-			// by default, all our components should display the error
-			// to the end user, which is why we don't output it, but we
-			// still exit the main program with the exit code from the component
-			os.Exit(componentError.ExitCode)
-		}
-
 		fmt.Fprintf(os.Stderr, "ERROR %s\n", err)
 		os.Exit(1)
 	}
