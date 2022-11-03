@@ -51,9 +51,11 @@ var (
 			if err != nil {
 				return errors.Wrap(err, "unable to get report definitions")
 			}
+
+			reportDefinitions.Data = []api.ReportDefinition{}
+
 			if len(reportDefinitions.Data) == 0 {
-				msg := `There are no report definitions configured in your account.`
-				cli.OutputHuman(msg, cli.Account)
+				cli.OutputHuman("There are no report definitions configured in your account.\n")
 				return nil
 			}
 			if cli.JSONOutput() {
@@ -62,7 +64,8 @@ var (
 
 			var rows [][]string
 			for _, definition := range reportDefinitions.Data {
-				rows = append(rows, []string{definition.ReportDefinitionGuid, definition.ReportName, definition.ReportType, definition.SubReportType})
+				rows = append(rows, []string{definition.ReportDefinitionGuid, definition.ReportName,
+					definition.ReportType, definition.SubReportType})
 			}
 
 			cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "TYPE", "SUB-TYPE"}, rows))
@@ -77,13 +80,12 @@ var (
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			cli.StartProgress(" Fetching report definition...")
-
 			response, err := cli.LwApi.V2.ReportDefinitions.Get(args[0])
+			cli.StopProgress()
+
 			if err != nil {
-				cli.StopProgress()
 				return errors.Wrap(err, "unable to get report definition")
 			}
-			cli.StopProgress()
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(response)
@@ -91,7 +93,8 @@ var (
 
 			reportDefinition := response.Data
 			headers := [][]string{
-				[]string{reportDefinition.ReportDefinitionGuid, reportDefinition.ReportName, reportDefinition.ReportType, reportDefinition.SubReportType},
+				{reportDefinition.ReportDefinitionGuid, reportDefinition.ReportName, reportDefinition.ReportType,
+					reportDefinition.SubReportType},
 			}
 
 			cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "TYPE", "SUB-TYPE"}, headers))
