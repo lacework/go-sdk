@@ -33,6 +33,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/lwseverity"
 )
 
 var (
@@ -263,7 +264,8 @@ func init() {
 }
 
 // Generates a URL similar to:
-//   => https://account.lacework.net/ui/investigate/recents/EventDossier-123
+//
+//	=> https://account.lacework.net/ui/investigate/recents/EventDossier-123
 func eventLinkBuilder(id string) string {
 	return fmt.Sprintf("https://%s.lacework.net/ui/investigation/recents/EventDossier-%s", cli.Account, id)
 }
@@ -821,11 +823,11 @@ func filterEventsWithSeverity(events []api.Event) []api.Event {
 		return events
 	}
 
-	sevThreshold, sevString := severityToProperTypes(eventsCmdState.Severity)
+	sevThreshold, sevString := lwseverity.SeverityToProperTypes(eventsCmdState.Severity)
 	cli.Log.Debugw("filtering events", "threshold", sevThreshold, "severity", sevString)
 	eFiltered := []api.Event{}
 	for _, event := range events {
-		eventSeverity, _ := severityToProperTypes(event.Severity)
+		eventSeverity, _ := lwseverity.SeverityToProperTypes(event.Severity)
 		if eventSeverity <= sevThreshold {
 			eFiltered = append(eFiltered, event)
 		}
@@ -833,21 +835,4 @@ func filterEventsWithSeverity(events []api.Event) []api.Event {
 
 	cli.Log.Debugw("filtered events", "events", eFiltered)
 	return eFiltered
-}
-
-func severityToProperTypes(severity string) (int, string) {
-	switch strings.ToLower(severity) {
-	case "1", "critical":
-		return 1, "Critical"
-	case "2", "high":
-		return 2, "High"
-	case "3", "medium":
-		return 3, "Medium"
-	case "4", "low":
-		return 4, "Low"
-	case "5", "info":
-		return 5, "Info"
-	default:
-		return 0, "Unknown"
-	}
 }
