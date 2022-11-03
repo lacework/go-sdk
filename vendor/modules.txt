@@ -36,7 +36,7 @@ github.com/aws/aws-sdk-go/internal/ini
 github.com/aws/aws-sdk-go/internal/sdkio
 github.com/aws/aws-sdk-go/internal/shareddefaults
 github.com/aws/aws-sdk-go/internal/sync/singleflight
-# github.com/aws/aws-sdk-go-v2 v1.16.16
+# github.com/aws/aws-sdk-go-v2 v1.17.1
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2
 github.com/aws/aws-sdk-go-v2/aws
@@ -73,16 +73,16 @@ github.com/aws/aws-sdk-go-v2/credentials/stscreds
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds/internal/config
-# github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.23
+# github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.25
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/internal/configsources
-# github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.17
+# github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.19
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2
 # github.com/aws/aws-sdk-go-v2/internal/ini v1.3.24
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/internal/ini
-# github.com/aws/aws-sdk-go-v2/service/ec2 v1.58.0
+# github.com/aws/aws-sdk-go-v2/service/ec2 v1.65.0
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/service/ec2
 github.com/aws/aws-sdk-go-v2/service/ec2/internal/endpoints
@@ -92,7 +92,7 @@ github.com/aws/aws-sdk-go-v2/service/ec2/types
 github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect
 github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect/internal/endpoints
 github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect/types
-# github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.17
+# github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url
 # github.com/aws/aws-sdk-go-v2/service/sso v1.11.23
@@ -110,7 +110,7 @@ github.com/aws/aws-sdk-go-v2/service/ssooidc/types
 github.com/aws/aws-sdk-go-v2/service/sts
 github.com/aws/aws-sdk-go-v2/service/sts/internal/endpoints
 github.com/aws/aws-sdk-go-v2/service/sts/types
-# github.com/aws/smithy-go v1.13.3
+# github.com/aws/smithy-go v1.13.4
 ## explicit; go 1.15
 github.com/aws/smithy-go
 github.com/aws/smithy-go/auth/bearer
