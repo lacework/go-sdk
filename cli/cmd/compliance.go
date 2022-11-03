@@ -400,7 +400,7 @@ func matchRecommendationsFilters(r api.RecommendationV2) bool {
 
 	// severity returns specified threshold and above
 	if compCmdState.Severity != "" {
-		sevThreshold, _ := lwseverity.SeverityToProperTypes(compCmdState.Severity)
+		sevThreshold, _ := lwseverity.Normalize(compCmdState.Severity)
 		results = append(results, r.Severity <= sevThreshold)
 	}
 

@@ -1064,8 +1064,8 @@ func addToAssessmentSummary(text []string, num, severity string) []string {
 }
 
 func filterSeverity(severity string, threshold string) bool {
-	thresholdValue, _ := lwseverity.SeverityToProperTypes(threshold)
-	severityValue, _ := lwseverity.SeverityToProperTypes(severity)
+	thresholdValue, _ := lwseverity.Normalize(threshold)
+	severityValue, _ := lwseverity.Normalize(severity)
 	return severityValue > thresholdValue
 }
 
