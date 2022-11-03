@@ -819,11 +819,11 @@ func filterEventsWithSeverity(events []api.Event) []api.Event {
 		return events
 	}
 
-	sevThreshold, sevString := lwseverity.SeverityToProperTypes(eventsCmdState.Severity)
+	sevThreshold, sevString := lwseverity.Normalize(eventsCmdState.Severity)
 	cli.Log.Debugw("filtering events", "threshold", sevThreshold, "severity", sevString)
 	eFiltered := []api.Event{}
 	for _, event := range events {
-		eventSeverity, _ := lwseverity.SeverityToProperTypes(event.Severity)
+		eventSeverity, _ := lwseverity.Normalize(event.Severity)
 		if eventSeverity <= sevThreshold {
 			eFiltered = append(eFiltered, event)
 		}

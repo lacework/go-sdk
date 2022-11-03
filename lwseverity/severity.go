@@ -24,6 +24,55 @@ import (
 	"strings"
 )
 
+type severity int
+
+const (
+	// Unknown severity
+	Unknown severity = iota
+	// Critical severity
+	Critical
+	// High severity
+	High
+	// Medium severity
+	Medium
+	// Low severity
+	Low
+	// Informational severity
+	Info
+)
+
+var severities = map[severity]string{
+	Unknown:  "Unknown",
+	Critical: "Critical",
+	High:     "High",
+	Medium:   "Medium",
+	Low:      "Low",
+	Info:     "Info",
+}
+
+// Get severity as a string type
+func (s severity) String() string {
+	return severities[s]
+}
+
+// Initialize a severity from string
+func NewSeverity(s string) severity {
+	switch strings.ToLower(s) {
+	case "1", "critical":
+		return Critical
+	case "2", "high":
+		return High
+	case "3", "medium":
+		return Medium
+	case "4", "low":
+		return Low
+	case "5", "info":
+		return Info
+	default:
+		return Unknown
+	}
+}
+
 type Severity interface {
 	GetSeverity() string
 }
@@ -36,21 +85,9 @@ type Severity interface {
 // Low Severity           => 4, "Low"
 // Informational Severity => 5, "Info"
 // Unknown Severity       => 0, "Unknown"
-func SeverityToProperTypes(severity string) (int, string) {
-	switch strings.ToLower(severity) {
-	case "1", "critical":
-		return 1, "Critical"
-	case "2", "high":
-		return 2, "High"
-	case "3", "medium":
-		return 3, "Medium"
-	case "4", "low":
-		return 4, "Low"
-	case "5", "info":
-		return 5, "Info"
-	default:
-		return 0, "Unknown"
-	}
+func Normalize(s string) (int, string) {
+	severity := NewSeverity(s)
+	return int(severity), severity.String()
 }
 
 // Returns true if the first severity not as critical as the second severity
@@ -63,8 +100,8 @@ func SeverityToProperTypes(severity string) (int, string) {
 // "unknown" is more critical than "medium" (false)
 // "medium" is not as critical as "unknown" (true)
 func NotAsCritical(first, second string) bool {
-	sevFirst, _ := SeverityToProperTypes(first)
-	sevSecond, _ := SeverityToProperTypes(second)
+	sevFirst, _ := Normalize(first)
+	sevSecond, _ := Normalize(second)
 	return sevFirst > sevSecond
 }
 
@@ -79,7 +116,7 @@ func NotAsCritical(first, second string) bool {
 // invalid (unknown) severity should NOT be filtered for * threshold
 // all severities should NOT be filtered for an invalid (unknown) threshold
 func ShouldFilter(severity, threshold string) bool {
-	sevThreshold, _ := SeverityToProperTypes(threshold)
+	sevThreshold, _ := Normalize(threshold)
 	if sevThreshold == 0 {
 		return false
 	}
@@ -89,8 +126,8 @@ func ShouldFilter(severity, threshold string) bool {
 // Sort a slice of Severity interfaces from critical -> info
 func SortSlice[S Severity](s []S) {
 	sort.Slice(s, func(i, j int) bool {
-		sevI, _ := SeverityToProperTypes(s[i].GetSeverity())
-		sevJ, _ := SeverityToProperTypes(s[j].GetSeverity())
+		sevI, _ := Normalize(s[i].GetSeverity())
+		sevJ, _ := Normalize(s[j].GetSeverity())
 		return sevI < sevJ
 	})
 }
@@ -98,8 +135,8 @@ func SortSlice[S Severity](s []S) {
 // Sort a slice of Severity interfaces from info -> critical
 func SortSliceA[S Severity](s []S) {
 	sort.Slice(s, func(i, j int) bool {
-		sevI, _ := SeverityToProperTypes(s[i].GetSeverity())
-		sevJ, _ := SeverityToProperTypes(s[j].GetSeverity())
+		sevI, _ := Normalize(s[i].GetSeverity())
+		sevJ, _ := Normalize(s[j].GetSeverity())
 		return sevI > sevJ
 	})
 }

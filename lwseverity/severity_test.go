@@ -7,27 +7,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type severityToProperTypeTest struct {
+type normalizeTest struct {
 	Input       string
 	ExpectedInt int
 	ExpectedStr string
 }
 
-var severityToProperTypeTests = []severityToProperTypeTest{
+var normalizeTests = []normalizeTest{
 	{Input: "critical", ExpectedInt: 1, ExpectedStr: "Critical"},
 	{Input: "high", ExpectedInt: 2, ExpectedStr: "High"},
 	{Input: "medium", ExpectedInt: 3, ExpectedStr: "Medium"},
 	{Input: "low", ExpectedInt: 4, ExpectedStr: "Low"},
 	{Input: "info", ExpectedInt: 5, ExpectedStr: "Info"},
-	{Input: "unkbnown", ExpectedInt: 0, ExpectedStr: "Unknown"},
+	{Input: "unknown", ExpectedInt: 0, ExpectedStr: "Unknown"},
+	{Input: "foo", ExpectedInt: 0, ExpectedStr: "Unknown"},
 }
 
-func TestSeverityToProperTypes(t *testing.T) {
-	for _, stptt := range severityToProperTypeTests {
-		t.Run(stptt.Input, func(t *testing.T) {
-			actualInt, actualStr := lwseverity.SeverityToProperTypes(stptt.Input)
-			assert.Equal(t, stptt.ExpectedInt, actualInt)
-			assert.Equal(t, stptt.ExpectedStr, actualStr)
+func TestNormalize(t *testing.T) {
+	for _, nt := range normalizeTests {
+		t.Run(nt.Input, func(t *testing.T) {
+			actualInt, actualStr := lwseverity.Normalize(nt.Input)
+			assert.Equal(t, nt.ExpectedInt, actualInt)
+			assert.Equal(t, nt.ExpectedStr, actualStr)
 		})
 	}
 }

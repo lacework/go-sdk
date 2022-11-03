@@ -79,9 +79,9 @@ func (e *vulnerabilityPolicyError) Compliant() bool {
 // that is, when the provided assessment doesn't meet the
 // thresholds. It returns false if the policy is NOT compliant
 func (e *vulnerabilityPolicyError) validate() bool {
-	severityRating, _ := lwseverity.SeverityToProperTypes(e.SeverityRating)
-	fixableSeverityRating, _ := lwseverity.SeverityToProperTypes(e.FixableSeverityRating)
-	threshold, _ := lwseverity.SeverityToProperTypes(e.FailOnSeverity)
+	severityRating, _ := lwseverity.Normalize(e.SeverityRating)
+	fixableSeverityRating, _ := lwseverity.Normalize(e.FixableSeverityRating)
+	threshold, _ := lwseverity.Normalize(e.FailOnSeverity)
 
 	cli.Log.Debugw("validating policy",
 		"severity_rating", severityRating,
