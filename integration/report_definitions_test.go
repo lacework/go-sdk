@@ -1,10 +1,13 @@
 package integration
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+var testReportDefinitionID = ""
 
 func TestReportDefintionsList(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "list")
@@ -33,7 +36,11 @@ func TestReportDefintionsListJson(t *testing.T) {
 }
 
 func TestReportDefintionsShow(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "show", "FC86105C0B6C8549F55104CBEE2FAAB6EF056C313DE87351BDBC3C79", "--json")
+	if testReportDefinitionID == "" {
+		t.Skip("skipping test. No report definition found")
+	}
+
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "show", testReportDefinitionID, "--json")
 	// assert response contains table headers
 	assert.Contains(t, out.String(), "GUID")
 	assert.Contains(t, out.String(), "NAME")
@@ -48,7 +55,11 @@ func TestReportDefintionsShow(t *testing.T) {
 }
 
 func TestReportDefintionsShowJson(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "show", "FC86105C0B6C8549F55104CBEE2FAAB6EF056C313DE87351BDBC3C79", "--json")
+	if testReportDefinitionID == "" {
+		t.Skip("skipping test. No report definition found")
+	}
+
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "show", testReportDefinitionID, "--json")
 	// assert response contains json fields
 	assert.Contains(t, out.String(), "\"data\"")
 	assert.Contains(t, out.String(), "\"createdBy\"")
@@ -59,7 +70,7 @@ func TestReportDefintionsShowJson(t *testing.T) {
 	// assert response contains json data
 	assert.Contains(t, out.String(), reportDefinitionDetailsJson)
 	assert.Contains(t, out.String(), "lacework-global-34")
-	assert.Contains(t, out.String(), "\"FC86105C0B6C8549F55104CBEE2FAAB6EF056C313DE87351BDBC3C79\"")
+	assert.Contains(t, out.String(), fmt.Sprintf("\"%s\"", testReportDefinitionID))
 
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
