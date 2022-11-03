@@ -36,9 +36,6 @@ Available Commands:
   vulnerability           Container and host vulnerability assessments
   vulnerability-exception Manage vulnerability exceptions
 
-Commands from components:
-  iac                     Infrastructure as Code (IaC) scanner
-
 Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
   -k, --api_key string      access key id
