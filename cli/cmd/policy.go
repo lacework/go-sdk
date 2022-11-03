@@ -31,6 +31,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -476,16 +477,11 @@ func policyTable(policies []api.Policy) (out [][]string) {
 
 func filterPolicies(policies []api.Policy) []api.Policy {
 	newPolicies := []api.Policy{}
-	sevThreshold, _ := severityToProperTypes(policyCmdState.Severity)
 
 	for _, policy := range policies {
 		// filter severity if desired
-		if sevThreshold > 0 {
-			policySeverity, _ := severityToProperTypes(policy.Severity)
-
-			if policySeverity > sevThreshold {
-				continue
-			}
+		if lwseverity.ShouldFilter(policy.Severity, policyCmdState.Severity) {
+			continue
 		}
 		// filter enabled=false if requesting "enabled-only"
 		if policyCmdState.Enabled && !policy.Enabled {

@@ -34,6 +34,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/lwseverity"
 )
 
 var (
@@ -1063,8 +1064,8 @@ func addToAssessmentSummary(text []string, num, severity string) []string {
 }
 
 func filterSeverity(severity string, threshold string) bool {
-	thresholdValue, _ := severityToProperTypes(threshold)
-	severityValue, _ := severityToProperTypes(severity)
+	thresholdValue, _ := lwseverity.SeverityToProperTypes(threshold)
+	severityValue, _ := lwseverity.SeverityToProperTypes(severity)
 	return severityValue > thresholdValue
 }
 

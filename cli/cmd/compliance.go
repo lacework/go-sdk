@@ -31,6 +31,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/lwseverity"
 )
 
 var (
@@ -399,7 +400,7 @@ func matchRecommendationsFilters(r api.RecommendationV2) bool {
 
 	// severity returns specified threshold and above
 	if compCmdState.Severity != "" {
-		sevThreshold, _ := severityToProperTypes(compCmdState.Severity)
+		sevThreshold, _ := lwseverity.SeverityToProperTypes(compCmdState.Severity)
 		results = append(results, r.Severity <= sevThreshold)
 	}
 
