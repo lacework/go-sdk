@@ -117,7 +117,7 @@ Use the following command to list all Azure Tenants configured in your account:
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
 			}
-			
+
 			validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAzure)
 			if err != nil {
 				return errors.Wrap(err, "unable to retrieve valid report types")
