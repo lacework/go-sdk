@@ -1,6 +1,4 @@
-Manage report definitions to route reports to one or more email alert channels.
-
-A report definition has four parts:
+Manage report definitions to configure the data retrieval and layout information for a report.
 
 Usage:
   lacework report-definition [command]
