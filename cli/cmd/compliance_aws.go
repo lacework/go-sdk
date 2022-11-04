@@ -25,13 +25,12 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/olekukonko/tablewriter"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
 	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 var (
