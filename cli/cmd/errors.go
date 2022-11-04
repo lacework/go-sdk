@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/pkg/errors"
 )
 
@@ -78,9 +79,9 @@ func (e *vulnerabilityPolicyError) Compliant() bool {
 // that is, when the provided assessment doesn't meet the
 // thresholds. It returns false if the policy is NOT compliant
 func (e *vulnerabilityPolicyError) validate() bool {
-	severityRating, _ := severityToProperTypes(e.SeverityRating)
-	fixableSeverityRating, _ := severityToProperTypes(e.FixableSeverityRating)
-	threshold, _ := severityToProperTypes(e.FailOnSeverity)
+	severityRating, _ := lwseverity.Normalize(e.SeverityRating)
+	fixableSeverityRating, _ := lwseverity.Normalize(e.FixableSeverityRating)
+	threshold, _ := lwseverity.Normalize(e.FailOnSeverity)
 
 	cli.Log.Debugw("validating policy",
 		"severity_rating", severityRating,

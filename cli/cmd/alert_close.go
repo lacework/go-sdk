@@ -33,10 +33,10 @@ const (
 )
 
 var (
-	// alertCloseCmd represents the lql validate command
+	// alertCloseCmd represents the alert close command
 	alertCloseCmd = &cobra.Command{
 		Use:   "close <alert_id>",
-		Short: "Close an alert.",
+		Short: "Close an alert",
 		Long: `Use this command to change the status of an alert to closed.
 
 The reason for closing the alert must be provided from the following options:
@@ -107,7 +107,7 @@ func inputComment() (comment string, err error) {
 	return
 }
 
-func closeAlert(cmd *cobra.Command, args []string) error {
+func closeAlert(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("closing alert", "alert", args[0])
 
 	id, err := strconv.Atoi(args[0])

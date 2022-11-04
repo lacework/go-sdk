@@ -26,13 +26,15 @@ import (
 )
 
 func TestAlertCloseMissingArg(t *testing.T) {
-	_, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "close")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "close")
+	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "accepts 1 arg(s), received 0")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestAlertCloseBadID(t *testing.T) {
-	_, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "close", "me")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "close", "me")
+	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "alert ID must be a number")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
@@ -52,12 +54,20 @@ func TestAlertCloseReasonInline(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-/* need list to get a valid alert id
-func TestAlertCloseAllInline(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig(
-		"alert", "close", "12345", "-r", "1", "-c", "everything is awesome")
+func TestAlertCloseInline(t *testing.T) {
+	id, err := popAlert()
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
+		"alert", "close", id, "-r", "1", "-c", "everything is awesome")
 	assert.Contains(t, out.String(), "was successfully closed")
-	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// list closed
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig("alert", "list", "--status", "Closed")
+	assert.Contains(t, out.String(), id)
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
-*/

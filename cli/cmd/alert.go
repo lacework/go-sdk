@@ -19,16 +19,30 @@
 package cmd
 
 import (
+	"fmt"
+	"net/url"
+	"os/exec"
+	"runtime"
+	"strconv"
+
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 var (
 	alertCmdState = struct {
-		Comment string
-		Reason  int
+		Comment  string
+		End      string
+		Range    string
+		Reason   int
+		Scope    string
+		Severity string
+		Status   string
+		Start    string
+		Type     string
 	}{}
 
-	// alertCmd represents the lql parent command
+	// alertCmd represents the alert parent command
 	alertCmd = &cobra.Command{
 		Use:     "alert",
 		Aliases: []string{"alerts"},
@@ -57,9 +71,74 @@ To close an alert.
     lacework alert close <alert_id>
 `,
 	}
+
+	alertOpenCmd = &cobra.Command{
+		Use:   "open <alert_id>",
+		Short: "Open a specified alert in a web browser",
+		Long:  `Open a specified alert in a web browser.`,
+		Args:  cobra.ExactArgs(1),
+		RunE:  openAlert,
+	}
 )
 
 func init() {
-	// add the lql command
+	// add the alert command
 	rootCmd.AddCommand(alertCmd)
+
+	// add the alert open command
+	alertCmd.AddCommand(alertOpenCmd)
+}
+
+// Generates a URL similar to:
+//
+//	=> https://account.lacework.net/ui/investigation/monitor/AlertInbox/123/details?accountName=subaccount
+func alertLinkBuilder(id int) string { // nolint
+	u, err := url.Parse(
+		fmt.Sprintf(
+			"https://%s.lacework.net/ui/investigation/monitor/AlertInbox/%d/details",
+			cli.Account,
+			id,
+		),
+	)
+	if err != nil {
+		return ""
+	}
+
+	q := u.Query()
+	if cli.Subaccount != "" {
+		q.Set("accountName", cli.Subaccount)
+	}
+	if r := q.Encode(); r != "" {
+		u.RawQuery = r
+	}
+	return u.String()
+}
+
+func openAlert(_ *cobra.Command, args []string) error {
+	cli.Log.Debugw("opening alert", "alert", args[0])
+
+	_, err := strconv.Atoi(args[0])
+	if err != nil {
+		return errors.New("alert ID must be a number")
+	}
+
+	// ALLY-1233: Need to switch to alertLinkBuilder when new Alerting UI becomes generally available
+	//url := alertLinkBuilder(id)
+	url := eventLinkBuilder(args[0])
+
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		err = fmt.Errorf("unsupported platform\n\nNavigate to %s", url)
+	}
+	if err != nil {
+		return errors.Wrap(err, "unable to open web browser")
+	}
+
+	return nil
 }
