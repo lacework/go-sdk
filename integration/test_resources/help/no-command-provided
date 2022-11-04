@@ -28,6 +28,7 @@ Available Commands:
   policy                  Manage policies
   policy-exception        Manage policy exceptions
   query                   Run and manage queries
+  report-definition       Manage report definitions
   report-rule             Manage report rules
   resource-group          Manage resource groups
   team-member             Manage team members
