@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
 	"os/exec"
 	"runtime"
 	"strconv"
@@ -89,9 +90,28 @@ func init() {
 }
 
 // Generates a URL similar to:
-//   => https://account.lacework.net/ui/investigation/monitor/AlertInbox/123/details
+//
+//	=> https://account.lacework.net/ui/investigation/monitor/AlertInbox/123/details?accountName=subaccount
 func alertLinkBuilder(id int) string { // nolint
-	return fmt.Sprintf("https://%s.lacework.net/ui/investigation/monitor/AlertInbox/%d/details", cli.Account, id)
+	u, err := url.Parse(
+		fmt.Sprintf(
+			"https://%s.lacework.net/ui/investigation/monitor/AlertInbox/%d/details",
+			cli.Account,
+			id,
+		),
+	)
+	if err != nil {
+		return ""
+	}
+
+	q := u.Query()
+	if cli.Subaccount != "" {
+		q.Set("accountName", cli.Subaccount)
+	}
+	if r := q.Encode(); r != "" {
+		u.RawQuery = r
+	}
+	return u.String()
 }
 
 func openAlert(_ *cobra.Command, args []string) error {
@@ -103,6 +123,7 @@ func openAlert(_ *cobra.Command, args []string) error {
 	}
 
 	// ALLY-1233: Need to switch to alertLinkBuilder when new Alerting UI becomes generally available
+	//url := alertLinkBuilder(id)
 	url := eventLinkBuilder(args[0])
 
 	switch runtime.GOOS {
