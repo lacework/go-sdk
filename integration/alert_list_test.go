@@ -45,7 +45,8 @@ func popAlert() (string, error) {
 		return "-1", err
 	}
 
-	for _, a := range alerts.SortDescending() {
+	alerts.SortByID()
+	for _, a := range alerts {
 		return strconv.Itoa(a.ID), nil
 	}
 	return "-1", errors.New("no open alerts found")

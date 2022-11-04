@@ -346,11 +346,11 @@ func TestAlertsListByTimeError(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestAlertsSortDescending(t *testing.T) {
+func TestAlertsSortByID(t *testing.T) {
 	alerts := api.Alerts{
 		{ID: 1},
 		{ID: 2},
 	}
-	alerts = alerts.SortDescending()
+	alerts.SortByID()
 	assert.Equal(t, 2, alerts[0].ID)
 }
