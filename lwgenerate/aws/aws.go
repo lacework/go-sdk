@@ -39,7 +39,7 @@ func (e *ExistingIamRoleDetails) IsPartial() bool {
 	return true
 }
 
-// Create new existing IAM role details
+// NewExistingIamRoleDetails Create new existing IAM role details
 func NewExistingIamRoleDetails(name string, arn string, externalId string) *ExistingIamRoleDetails {
 	return &ExistingIamRoleDetails{
 		Arn:        arn,
@@ -181,11 +181,11 @@ type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 // Note: Additional configuration details may be set using modifiers of the AwsTerraformModifier type
 //
 // Basic usage: Initialize a new AwsTerraformModifier struct, with a non-default AWS profile set. Then use generate to
-//              create a string output of the required HCL.
 //
-//   hcl, err := aws.NewTerraform("us-east-1", true, true,
-//     aws.WithAwsProfile("mycorp-profile")).Generate()
+//	           create a string output of the required HCL.
 //
+//	hcl, err := aws.NewTerraform("us-east-1", true, true,
+//	  aws.WithAwsProfile("mycorp-profile")).Generate()
 func NewTerraform(region string, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier) *GenerateAwsTfConfigurationArgs {
 	config := &GenerateAwsTfConfigurationArgs{AwsRegion: region, Cloudtrail: enableCloudtrail, Config: enableConfig}
 	for _, m := range mods {
@@ -257,7 +257,7 @@ func WithCloudtrailName(cloudtrailName string) AwsTerraformModifier {
 	}
 }
 
-// WithConfigName add optional name for Config intergration
+// WithConfigName add optional name for Config integration
 func WithConfigName(configName string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ConfigName = configName
@@ -308,7 +308,7 @@ func WithSnsTopicEncryptionKeyArn(snsTopicEncryptionKeyArn string) AwsTerraformM
 	}
 }
 
-//WithSqsQueueName Set SQS Queue Name if creating new one
+// WithSqsQueueName Set SQS Queue Name if creating new one
 func WithSqsQueueName(sqsQueueName string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.SqsQueueName = sqsQueueName

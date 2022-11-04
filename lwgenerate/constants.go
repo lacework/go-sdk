@@ -8,6 +8,8 @@ const (
 	AwsConfigVersion     = "~> 0.5"
 	AwsCloudTrailSource  = "lacework/cloudtrail/aws"
 	AwsCloudTrailVersion = "~> 2.0"
+	AwsEksAuditSource    = "lacework/eks-audit-log/aws"
+	AwsEksAuditVersion   = "~> 0.4"
 
 	LWAzureConfigSource       = "lacework/config/azure"
 	LWAzureConfigVersion      = "~> 1.0"
