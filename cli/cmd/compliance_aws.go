@@ -35,6 +35,10 @@ import (
 )
 
 var (
+	compAwsCmdState = struct {
+		Type string
+	}{Type: "AWS_CIS_14"}
+
 	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
 	complianceAwsListAccountsCmd = &cobra.Command{
 		Use:     "list-accounts",
@@ -69,21 +73,14 @@ var (
 				}
 			}
 
-			switch compCmdState.Type {
-			case "CIS":
-				compCmdState.Type = fmt.Sprintf("AWS_%s_S3", compCmdState.Type)
+			validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAws)
+			if err != nil {
+				return errors.Wrap(err, "unable to retrieve valid report types")
+			}
+			if array.ContainsStr(validTypes, compAwsCmdState.Type) {
 				return nil
-			case "SOC_Rev2":
-				compCmdState.Type = fmt.Sprintf("AWS_%s", compCmdState.Type)
-				return nil
-			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2",
-				"PCI", "AWS_CIS_14", "AWS_CMMC_1.02", "AWS_HIPAA", "AWS_ISO_27001:2013", "AWS_NIST_CSF", "AWS_NIST_800-171_rev2",
-				"AWS_NIST_800-53_rev5", "AWS_PCI_DSS_3.2.1", "AWS_SOC_2", "LW_AWS_SEC_ADD_1_0":
-				return nil
-			default:
-				return errors.New(`supported report types are: AWS_CIS_S3', 'NIST_800-53_Rev4', 'NIST_800-171_Rev2', 
-'ISO_2700', 'HIPAA', 'SOC', 'AWS_SOC_Rev2', 'PCI', 'AWS_CIS_14', 'AWS_CMMC_1.02', 'AWS_HIPAA', 'AWS_ISO_27001:2013', 
-'AWS_NIST_CSF', 'AWS_NIST_800-171_rev2', 'AWS_NIST_800-53_rev5', 'AWS_PCI_DSS_3.2.1', 'AWS_SOC_2', 'LW_AWS_SEC_ADD_1_0'`)
+			} else {
+				return errors.Errorf(`supported report types are: %s'`, strings.Join(validTypes, ", "))
 			}
 		},
 		Short: "Get the latest AWS compliance report",
@@ -105,9 +102,9 @@ To show recommendation details and affected resources for a recommendation id:
 `,
 		Args: cobra.RangeArgs(1, 2),
 		RunE: func(_ *cobra.Command, args []string) error {
-			reportType, err := api.NewAwsReportType(compCmdState.Type)
+			reportType, err := api.NewAwsReportType(compAwsCmdState.Type)
 			if err != nil {
-				return errors.Errorf("invalid report type %q", compCmdState.Type)
+				return errors.Errorf("invalid report type %q", compAwsCmdState.Type)
 			}
 
 			var (
@@ -550,9 +547,12 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, AWS_SOC_Rev2, or PCI
-	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI",
+	// AWS report types: AWS_NIST_CSF, AWS_NIST_800-53_rev5, AWS_HIPAA, NIST_800-53_Rev4, LW_AWS_SEC_ADD_1_0,
+	//AWS_SOC_Rev2, AWS_PCI_DSS_3.2.1, AWS_CIS_S3, ISO_2700, SOC, AWS_CSA_CCM_4_0_5, PCI, AWS_Cyber_Essentials_2_2,
+	//AWS_ISO_27001:2013, AWS_CIS_14, AWS_CMMC_1.02, HIPAA, AWS_SOC_2, AWS_CIS_1_4_ISO_IEC_27002_2022, NIST_800-171_Rev2,
+	//AWS_NIST_800-171_rev2'
+	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.Type, "type", "AWS_CIS_14",
+		"report type to display, run 'lacework report-definitions list' for valid types",
 	)
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},

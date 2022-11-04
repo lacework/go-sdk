@@ -29,7 +29,7 @@ Flags:
       --service strings    filter report details by service (aws:s3, aws:iam, aws:cloudtrail, ...)
       --severity string    filter report details by severity threshold (critical, high, medium, low, info)
       --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
-      --type string        report type to display, supported types: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI (default "CIS")
+      --type string        report type to display, run 'lacework report-definitions list' for valid types (default "AWS_CIS_14")
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

@@ -37,6 +37,10 @@ import (
 )
 
 var (
+	compGcpCmdState = struct {
+		Type string
+	}{Type: "GCP_CIS13"}
+
 	// complianceGcpListCmd represents the list sub-command inside the gcp command
 	complianceGcpListCmd = &cobra.Command{
 		Use:     "list",
@@ -117,17 +121,14 @@ Then, select one GUID from an integration and visualize its details using the co
 				}
 			}
 
-			switch compCmdState.Type {
-			case "CIS", "CIS12", "K8S", "HIPAA", "SOC", "PCI", "ISO_27001", "PCI_Rev2", "SOC_Rev2", "HIPAA_Rev2", "NIST_CSF",
-				"NIST_800_53_REV4", "NIST_800_171_REV2":
-				compCmdState.Type = fmt.Sprintf("GCP_%s", compCmdState.Type)
+			validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeGcp)
+			if err != nil {
+				return errors.Wrap(err, "unable to retrieve valid report types")
+			}
+			if array.ContainsStr(validTypes, compGcpCmdState.Type) {
 				return nil
-			case "GCP_CIS", "GCP_CIS12", "GCP_K8S", "GCP_HIPAA", "GCP_SOC", "GCP_PCI", "GCP_ISO_27001", "GCP_PCI_Rev2", "GCP_SOC_Rev2",
-				"GCP_HIPAA_Rev2", "GCP_GCP_NIST_CSF", "GCP_NIST_800_53_REV4", "GCP_NIST_800_171_REV2":
-				return nil
-			default:
-				return errors.New("supported report types are: CIS, CIS12, K8S, HIPAA, SOC, ISO_27001, PCI, PCI_Rev2, SOC_Rev2, " +
-					"HIPAA_Rev2, NIST_CSF, NIST_800_53_REV4 or NIST_800_171_REV2")
+			} else {
+				return errors.Errorf("supported report types are: %s", strings.Join(validTypes, ", "))
 			}
 		},
 		Short: "Get the latest GCP compliance report",
@@ -148,9 +149,9 @@ To show recommendation details and affected resources for a recommendation id:
 `,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(_ *cobra.Command, args []string) error {
-			reportType, err := api.NewGcpReportType(compCmdState.Type)
+			reportType, err := api.NewGcpReportType(compGcpCmdState.Type)
 			if err != nil {
-				return errors.Errorf("invalid report type %q", compCmdState.Type)
+				return errors.Errorf("invalid report type %q", compGcpCmdState.Type)
 			}
 
 			var (
@@ -511,9 +512,12 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// GCP report types: GCP_CIS, GCP_CIS12, GCP_K8S, GCP_HIPAA, GCP_SOC, or GCP_PCI.
-	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, CIS12, K8S, HIPAA, SOC, or PCI",
+	// GCP report types: GCP_ISO_27001_2013, GCP_NIST_800_171_REV2, GCP_CMMC_1_02, GCP_PCI_DSS_3_2_1, GCP_PCI_Rev2,
+	//GCP_NIST_CSF, GCP_CIS13, GCP_HIPAA_2013, GCP_CIS12, GCP_CIS, GCP_SOC_2, GCP_ISO_27001, GCP_NIST_800_53_REV4,
+	//GCP_CIS_1_3_0_NIST_800_53_rev5, GCP_CIS_1_3_0_NIST_CSF, GCP_HIPAA, GCP_HIPAA_Rev2, GCP_CIS_1_3_0_NIST_800_171_rev2,
+	//GCP_SOC, GCP_K8S, GCP_SOC_Rev2, GCP_PCI
+	complianceGcpGetReportCmd.Flags().StringVar(&compGcpCmdState.Type, "type", "GCP_CIS13",
+		"report type to display, run 'lacework report-definitions list' for valid types",
 	)
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
