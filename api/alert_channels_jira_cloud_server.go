@@ -24,6 +24,34 @@ import (
 	"strings"
 )
 
+type jiraIssueGrouping int
+
+const (
+	NoneJiraIssueGrouping jiraIssueGrouping = iota
+	EventsJiraIssueGrouping
+	ResourcesJiraIssueGrouping
+)
+
+var JiraIssueGroupings = map[jiraIssueGrouping]string{
+	NoneJiraIssueGrouping:      "",
+	EventsJiraIssueGrouping:    "Events",
+	ResourcesJiraIssueGrouping: "Resources",
+}
+
+var JiraIssueGroupingsSurvey = map[string]jiraIssueGrouping{
+	"None":      NoneJiraIssueGrouping,
+	"Events":    EventsJiraIssueGrouping,
+	"Resources": ResourcesJiraIssueGrouping,
+}
+
+func (i jiraIssueGrouping) String() string {
+	return JiraIssueGroupings[i]
+}
+
+const (
+	BidirectionalJiraConfiguration = "Bidirectional"
+)
+
 // GetJira gets a single instance of a Jira Cloud or Jira Server alert channel with the corresponding guid
 func (svc *AlertChannelsService) GetJira(guid string) (response JiraAlertChannelResponseV2, err error) {
 	err = svc.get(guid, &response)
@@ -45,7 +73,8 @@ type JiraDataV2 struct {
 	JiraUrl            string `json:"jiraUrl"`
 	ProjectID          string `json:"projectId"`
 	Username           string `json:"username"`
-	Password           string `json:"password,omitempty"` // used for Jira Server
+	Password           string `json:"password,omitempty"`            // used for Jira Server
+	Configuration      string `json:"bidirectionalConfig,omitempty"` // used for bidirectional integration
 }
 
 type JiraAlertChannelV2 struct {

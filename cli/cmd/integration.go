@@ -297,9 +297,9 @@ func promptCreateIntegration() error {
 	case "Amazon CloudWatch Alert Channel":
 		return createAwsCloudWatchAlertChannelIntegration()
 	case "Jira Cloud Alert Channel":
-		return createJiraCloudAlertChannelIntegration()
+		return createJiraAlertChannelIntegration(api.JiraCloudAlertType)
 	case "Jira Server Alert Channel":
-		return createJiraServerAlertChannelIntegration()
+		return createJiraAlertChannelIntegration(api.JiraServerAlertType)
 	case "Docker Hub Registry":
 		return createDockerHubIntegration()
 	case "Docker V2 Registry":
@@ -802,7 +802,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			out = [][]string{
 				{"SERVER TOKEN", inlineScanner.Data.ServerToken.Token},
 				{"IDENTIFIER TAGS", castMapStringSliceToString(inlineScanner.Data.Data.IdentifierTag)},
-				{"LIMIT NUM SCANS", fmt.Sprintf("%d", inlineScanner.Data.Data.LimitNumScan)},
+				{"LIMIT NUM SCANS", inlineScanner.Data.Data.LimitNumScan},
 			}
 		case api.DockerHubRegistry.String():
 			out = append(out, []string{"USERNAME", iData.Credentials.Username})
