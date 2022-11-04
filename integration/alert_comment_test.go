@@ -66,7 +66,7 @@ func TestAlertCommentInline(t *testing.T) {
 }
 
 func TestAlertCommentDoesNotExist(t *testing.T) {
-	out, stderr, exitcode := makeComment("123456789101112")
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment", "123456789101112")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, stderr.String(), "alert 123456789101112 does not exist")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")

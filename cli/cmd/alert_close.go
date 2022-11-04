@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -113,6 +114,16 @@ func closeAlert(_ *cobra.Command, args []string) error {
 	id, err := strconv.Atoi(args[0])
 	if err != nil {
 		return errors.New("alert ID must be a number")
+	}
+
+	// if comment is not supplied inline
+	// validate that the alert exists
+	if alertCmdState.Comment == "" || alertCmdState.Reason == ReasonUnset {
+		exists, err := cli.LwApi.V2.Alerts.Exists(id)
+		// if we are very certain the alert doesn't exist
+		if !exists && err == nil {
+			return errors.New(fmt.Sprintf("alert %d does not exist", id))
+		}
 	}
 
 	reason, err := inputReason()
