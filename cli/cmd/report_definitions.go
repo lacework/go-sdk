@@ -51,7 +51,7 @@ var (
 			if err != nil {
 				return errors.Wrap(err, "unable to get report definitions")
 			}
-			
+
 			if len(reportDefinitions.Data) == 0 {
 				cli.OutputHuman("There are no report definitions configured in your account.\n")
 				return nil
