@@ -23,6 +23,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/lacework/go-sdk/lwtime"
 )
 
@@ -70,13 +71,22 @@ type Alert struct {
 	Reachability  string             `json:"reachability"`
 }
 
+func (a Alert) GetSeverity() string {
+	return a.Severity
+}
+
 type Alerts []Alert
 
-func (a Alerts) SortDescending() Alerts {
+// Sort by alert ID descending
+func (a Alerts) SortByID() {
 	sort.Slice(a, func(i, j int) bool {
 		return a[i].ID > a[j].ID
 	})
-	return a
+}
+
+// Sort by alert severity descending (from critical -> low)
+func (a Alerts) SortBySeverity() {
+	lwseverity.SortSlice(a)
 }
 
 type AlertsResponse struct {

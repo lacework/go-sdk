@@ -26,6 +26,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/lacework/go-sdk/lwtime"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -136,18 +137,13 @@ func init() {
 }
 
 func alertListTable(alerts api.Alerts) (out [][]string) {
-	sevThreshold, _ := severityToProperTypes(alertCmdState.Severity)
+	alerts.SortByID()
+	alerts.SortBySeverity()
 
-	for _, alert := range alerts.SortDescending() {
+	for _, alert := range alerts {
 		// filter severity if desired
-		if sevThreshold > 0 {
-			alertSeverity, _ := severityToProperTypes(
-				strings.ToLower(alert.Severity),
-			)
-
-			if alertSeverity > sevThreshold {
-				continue
-			}
+		if lwseverity.ShouldFilter(alert.Severity, alertCmdState.Severity) {
+			continue
 		}
 
 		out = append(out, []string{
