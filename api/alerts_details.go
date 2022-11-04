@@ -20,6 +20,7 @@ package api
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/pkg/errors"
 )
@@ -87,4 +88,23 @@ func (svc *AlertsService) GetDetails(id int) (
 		&response,
 	)
 	return
+}
+
+func (svc *AlertsService) Exists(id int) (bool, error) {
+	var response AlertDetailsResponse
+	err := svc.client.RequestDecoder(
+		"GET",
+		fmt.Sprintf(apiV2AlertsDetails, id, AlertDetailsScope),
+		nil,
+		&response,
+	)
+
+	if err == nil {
+		return true, nil
+	}
+	errResponse, ok := err.(*errorResponse)
+	if ok && errResponse.Response.StatusCode == http.StatusNotFound {
+		return false, nil
+	}
+	return false, err
 }
