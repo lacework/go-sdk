@@ -29,14 +29,52 @@ func TestComponentList(t *testing.T) {
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(),
-		"There are no components available, come back later or contact support.",
-		"STDOUT changed, maybe there are now components in production?")
+		"Loading components state...",
+		"STDOUT changed, please check")
+
+	assert.Contains(t, out.String(), "STATUS",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "NAME",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "VERSION",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), "DESCRIPTION",
+		"STDOUT table headers changed, please check")
+
+	assert.Contains(t, out.String(), "Not Installed",
+		"STDOUT our first component is not found, why?")
+	assert.Contains(t, out.String(), "iac",
+		"STDOUT our first component is not found, why?")
 }
 
 func TestComponentListJSON(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("component", "list", "--json")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-	assert.Contains(t, out.String(), "\"components\": []",
-		"JSON changed, maybe there are now components in production?")
+
+	expectedJsonKeys := []string{
+		"\"components\"",
+		"\"artifacts\"",
+		"\"breadcrumbs\"",
+		"\"installationMessage\"",
+		"\"description\"",
+		"\"name\"",
+		"\"type\"",
+		"\"version\"",
+		"\"arch\"",
+		"\"os\"",
+		"\"url\"",
+		"\"signature\"",
+	}
+	t.Run("verify json keys", func(t *testing.T) {
+		for _, header := range expectedJsonKeys {
+			assert.Contains(t, out.String(), header,
+				"STDOUT json keys changed, please check")
+		}
+	})
+
+	assert.Contains(t, out.String(), "\"name\": \"iac\"",
+		"missing IaC component in JSON output")
+	assert.Contains(t, out.String(), "\"type\": \"CLI_COMMAND\"",
+		"missing IaC component in JSON output")
 }

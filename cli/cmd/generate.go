@@ -228,7 +228,7 @@ func validateAwsSubAccounts(subaccounts []string) error {
 	return nil
 }
 
-// create survey.Validator for string with regex
+// validateStringWithRegex create survey.Validator for string with regex
 func validateStringWithRegex(val interface{}, regex string, errorString string) error {
 	switch value := val.(type) {
 	case string:
