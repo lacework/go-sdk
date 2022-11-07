@@ -71,7 +71,7 @@ func TestAlertCloseInline(t *testing.T) {
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
 		"alert", "close", id, "-r", "1", "-c", "everything is awesome")
 	assert.Contains(t, out.String(), "Are you sure you want to close alert")
-	assert.Empty(t, stderr.String(), "unable to confirm alert close attempt: EOF")
+	assert.Contains(t, stderr.String(), "unable to confirm alert close attempt: EOF")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 
 	// close
