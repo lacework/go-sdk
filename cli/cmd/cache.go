@@ -43,7 +43,6 @@ const MaxCacheSize = 1024 * 1024 * 1024
 // cli.Cache.Write("data", []byte("cool update"))     // Update
 // cli.Cache.Erase("data")                            // Delete
 // ```
-//
 func (c *cliState) InitCache(d ...string) {
 	if len(d) == 0 {
 		dir, err := cache.CacheDir()
@@ -151,7 +150,7 @@ func (c *cliState) WriteCachedToken() error {
 		return nil
 	}
 
-	if c.Token == "" {
+	if c.Token == "" || c.tokenCache.ExpiresAt.Before(time.Now().Add(-10*time.Second)) {
 		response, err := c.LwApi.GenerateToken()
 		if err != nil {
 			return err
@@ -232,9 +231,11 @@ func (c *cliState) WriteAssetToCache(key string, expiresAt time.Time, data inter
 //
 // ```go
 // var report vulnReport
-// if expired := cli.ReadCachedAsset("my-report", &report); !expired {
-//     fmt.Printf("My report: %v\n", report)
-// }
+//
+//	if expired := cli.ReadCachedAsset("my-report", &report); !expired {
+//	    fmt.Printf("My report: %v\n", report)
+//	}
+//
 // ```
 func (c *cliState) ReadCachedAsset(key string, data interface{}) bool {
 	if c.noCache {
