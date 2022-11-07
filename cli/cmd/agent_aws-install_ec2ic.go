@@ -104,12 +104,10 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 		runnerCopyWg.Add(1)
 
 		wp.Submit(func() {
-			cli.Log.Debugw("before defer wg.Done()")
 			defer wg.Done()
 
 			threadRunner := *runner
 			runnerCopyWg.Done()
-			cli.Log.Debugw("after runnerCopyWg.Done()")
 
 			cli.Log.Debugw("runner info: ",
 				"user", threadRunner.Runner.User,
