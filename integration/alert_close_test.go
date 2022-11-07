@@ -40,17 +40,25 @@ func TestAlertCloseBadID(t *testing.T) {
 }
 
 func TestAlertCloseReasonSurvey(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "close", "12345")
+	id, err := popAlert()
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "close", id)
 	assert.Contains(t, out.String(), "[Use arrows to move, type to filter]")
-	assert.Contains(t, err.String(), "unable to process alert close reason: EOF")
+	assert.Contains(t, stderr.String(), "unable to process alert close reason: EOF")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
 func TestAlertCloseReasonInline(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "close", "12345", "-r", "1")
+	id, err := popAlert()
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "close", id, "-r", "1")
 	assert.Contains(t, out.String(), "Type a comment")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "unable to process alert close comment: EOF")
+	assert.Contains(t, stderr.String(), "unable to process alert close comment: EOF")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
@@ -59,9 +67,17 @@ func TestAlertCloseInline(t *testing.T) {
 	if err != nil {
 		assert.FailNow(t, err.Error())
 	}
+	// verify
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
 		"alert", "close", id, "-r", "1", "-c", "everything is awesome")
-	assert.Contains(t, out.String(), "was successfully closed")
+	assert.Contains(t, out.String(), "Are you sure you want to close alert")
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// close
+	out, stderr, exitcode = LaceworkCLIWithTOMLConfig(
+		"alert", "close", id, "-r", "1", "-c", "everything is awesome", "--noninteractive")
+	assert.Contains(t, out.String(), "Are you sure you want to close alert")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
@@ -76,5 +92,5 @@ func TestAlertCloseDoesNotExist(t *testing.T) {
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "close", "123456789101112")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, stderr.String(), "alert 123456789101112 does not exist")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }

@@ -46,10 +46,14 @@ func TestAlertCommentBadID(t *testing.T) {
 }
 
 func TestAlertComment(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment", "12345")
+	id, err := popAlert()
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment", id)
 	assert.Contains(t, out.String(), "Type a comment")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "unable to process alert comment: EOF")
+	assert.Contains(t, stderr.String(), "unable to process alert comment: EOF")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
@@ -69,5 +73,5 @@ func TestAlertCommentDoesNotExist(t *testing.T) {
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment", "123456789101112")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, stderr.String(), "alert 123456789101112 does not exist")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }

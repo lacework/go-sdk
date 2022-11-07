@@ -53,7 +53,8 @@ Reasons may be provided inline or via prompt.
 If you choose Other, a comment is required and should contain a brief explanation of why the alert is closed.
 Comments may be provided inline or via editor.
 
-**Note: A closed alert cannot be reopened.**
+**Note: A closed alert cannot be reopened. You will be prompted to confirm closure of the alert.  
+This prompt can be bypassed with the --noninteractive flag**
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: closeAlert,
@@ -134,6 +135,20 @@ func closeAlert(_ *cobra.Command, args []string) error {
 	comment, err := inputComment()
 	if err != nil {
 		return errors.Wrap(err, "unable to process alert close comment")
+	}
+
+	// ask user to confirm
+	if !cli.nonInteractive {
+		var confirm bool
+		prompt := &survey.Confirm{
+			Message: fmt.Sprintf(
+				"Are you sure you want to close alert %d.  Alerts cannot be reopend.", id),
+			Default: false,
+		}
+		err = survey.AskOne(prompt, &confirm)
+		if !confirm {
+			return nil
+		}
 	}
 
 	request := api.AlertCloseRequest{

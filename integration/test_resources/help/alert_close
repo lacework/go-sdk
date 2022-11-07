@@ -13,7 +13,8 @@ Reasons may be provided inline or via prompt.
 If you choose Other, a comment is required and should contain a brief explanation of why the alert is closed.
 Comments may be provided inline or via editor.
 
-**Note: A closed alert cannot be reopened.**
+**Note: A closed alert cannot be reopened. You will be prompted to confirm closure of the alert.  
+This prompt can be bypassed with the --noninteractive flag**
 
 Usage:
   lacework alert close <alert_id> [flags]
