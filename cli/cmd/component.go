@@ -22,12 +22,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/lacework/go-sdk/lwcomponent"
 )
@@ -158,16 +160,40 @@ func (c *cliState) LoadComponents() {
 					Short:                 component.Description,
 					Annotations:           map[string]string{"type": "component"},
 					Version:               ver.String(),
+					SilenceUsage:          true,
 					DisableFlagParsing:    true,
 					DisableFlagsInUseLine: true,
 					RunE: func(cmd *cobra.Command, args []string) error {
-						cli.Log.Debugw("running component", "component", cmd.Use, "args", args)
+						globalFlags := []*pflag.Flag{}
+						cmd.Flags().VisitAll(func(f *pflag.Flag) {
+							// At runtime, we visit all global flags defined at the root command
+							// and we essentially make a slice of the flag names with their shorthand
+							// so that we can remove them all from the raw arguments (`args`)
+							globalFlags = append(globalFlags, f)
+						})
+
+						// Use the list of global CLI flags to filter the provided arguments and return
+						// the filteres arguments to pass to the underlying component and the real list
+						// of CLI flags. The later is used to parse and then run the global CLI init func
+						filteredArgs, filteredCLIFlags := filterCLIFlagsFromComponentArgs(args, globalFlags)
+
+						// Parse all global CLI flags provided (filtered) by the user, then run the global
+						// CLI init function to initialize our logger, api client, and other global config
+						err := cmd.Flags().Parse(filteredCLIFlags)
+						initConfig() // @afiune NOTE we purposely run this func first and then check the err
+						if err != nil {
+							cli.Log.Debugw("unable to parse global flags",
+								"provided_flags", filteredCLIFlags, "error", err)
+						}
+
+						cli.Log.Debugw("running component", "component", cmd.Use,
+							"args", filteredArgs, "cli_flags", filteredCLIFlags)
 						f, ok := cli.LwComponents.GetComponent(cmd.Use)
 						if ok {
 							// @afiune what if the component needs other env variables
 							envs := []string{fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use)}
 							envs = append(envs, c.envs()...)
-							return f.RunAndOutput(args, envs...)
+							return f.RunAndOutput(filteredArgs, envs...)
 						}
 
 						// We will land here only if we couldn't run the component, which is not
@@ -180,6 +206,67 @@ func (c *cliState) LoadComponents() {
 		}
 	}
 }
+
+// filterCLIFlagsFromComponentArgs uses the arguments provided by the user and
+// the list of global CLI flags to return the real list of component arguments
+// and the real list of CLI flags provided as arguments
+func filterCLIFlagsFromComponentArgs(args []string, globalFlags []*pflag.Flag) (
+	componentArgs []string, cliFlags []string,
+) {
+
+	// this variable is used to store a flag of type `string` so that we can check
+	// the next argument and pass it as the value of the flag
+	stringFlag := ""
+
+	for _, arg := range args {
+
+		// if the stringFlag variable is not empty it means that the current argument
+		// is the value of the provided string flag, add it, empty it and move on
+		if stringFlag != "" {
+			cliFlags = append(cliFlags, stringFlag, arg) // add the flag and value
+			stringFlag = ""                              // empty the flag
+			continue                                     // move to the next argument
+		}
+
+		// assume the argument is an argument unless it is a flag
+		isArg := true
+
+		// flags must have a prefix of `--` or `-`, if the argument has that prefix it
+		// means that it could be a flag, strip it and compare it with all global flags
+		argFlag := strings.TrimPrefix(strings.TrimPrefix(arg, "--"), "-")
+
+		for _, flag := range globalFlags {
+			if flag == nil { // avoid panics trying to access pointer
+				continue
+			}
+
+			if flag.Name == argFlag || flag.Shorthand == argFlag {
+				// the argument is indeed a flag
+
+				if flag.Value == nil { // avoid panics trying to access interface
+					continue
+				}
+
+				switch flag.Value.Type() { // check the type
+				case "bool":
+					isArg = false
+					cliFlags = append(cliFlags, arg)
+				case "string":
+					isArg = false
+					stringFlag = arg
+				}
+			}
+		}
+
+		if isArg {
+			// the argument is actually an argument
+			componentArgs = append(componentArgs, arg)
+		}
+	}
+
+	return
+}
+
 func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 	cli.StartProgress("Loading components state...")
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)

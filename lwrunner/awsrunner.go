@@ -61,7 +61,10 @@ func NewAWSRunner(amiImageId, host, region, availabilityZone, instanceID string,
 
 	// Heuristically assign SSH username based on AMI name
 	var user string
-	if strings.Contains(*result.Images[0].Name, "ubuntu") {
+	imageName := *result.Images[0].Name
+	if os.Getenv("LW_SSH_USER") != "" {
+		user = os.Getenv("LW_SSH_USER")
+	} else if strings.Contains(imageName, "ubuntu") {
 		user = "ubuntu"
 	} else if strings.Contains(*result.Images[0].Name, "amazon_linux") ||
 		strings.Contains(*result.Images[0].Name, "amzn2-ami") {
@@ -69,7 +72,7 @@ func NewAWSRunner(amiImageId, host, region, availabilityZone, instanceID string,
 	} else if os.Getenv("LW_SSH_USER") != "" {
 		user = os.Getenv("LW_SSH_USER")
 	} else {
-		return nil, fmt.Errorf("expected either Ubuntu or Amazon Linux 2 AMI, got AMI %s", *result.Images[0].Name)
+		return nil, fmt.Errorf("expected either Ubuntu or Amazon Linux 2 AMI, got AMI %s", imageName)
 	}
 
 	defaultCallback, err := DefaultKnownHosts()

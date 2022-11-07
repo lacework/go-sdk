@@ -49,20 +49,19 @@ var expectStringTimeout = time.Second * 3
 //
 // example:
 //
-//  func TestHelpCommand(t *testing.T) {
-//    out, err, exitcode := LaceworkCLI("help")
+//	func TestHelpCommand(t *testing.T) {
+//	  out, err, exitcode := LaceworkCLI("help")
 //
-//    assert.Contains(t,
-//      out.String(),
-//      "Use \"lacework [command] --help\" for more information about a command.",
-//      "STDOUT doesn't match")
-//    assert.Empty(t,
-//      err.String(),
-//      "STDERR should be empty")
-//    assert.Equal(t, 0, exitcode,
-//      "EXITCODE is not the expected one")
-//  }
-//
+//	  assert.Contains(t,
+//	    out.String(),
+//	    "Use \"lacework [command] --help\" for more information about a command.",
+//	    "STDOUT doesn't match")
+//	  assert.Empty(t,
+//	    err.String(),
+//	    "STDERR should be empty")
+//	  assert.Equal(t, 0, exitcode,
+//	    "EXITCODE is not the expected one")
+//	}
 func LaceworkCLI(args ...string) (bytes.Buffer, bytes.Buffer, int) {
 	dir, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
@@ -113,12 +112,12 @@ func NewLaceworkCLI(workingDir string, stdin io.Reader, args ...string) *exec.Cm
 //
 // Example:
 //
-// func TestUpdaterExample(t *testing.T) {
-//   enableTestingUpdaterEnv()
-//   defer disableTestingUpdaterEnv()
+//	func TestUpdaterExample(t *testing.T) {
+//	  enableTestingUpdaterEnv()
+//	  defer disableTestingUpdaterEnv()
 //
-//   // exacute an updater test
-// }
+//	  // exacute an updater test
+//	}
 var ciTestingUpdaterEnv = "CI_TEST_LWUPDATER"
 
 func enableTestingUpdaterEnv() {

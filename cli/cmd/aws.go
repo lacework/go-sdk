@@ -114,7 +114,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 
 	// Filter for instances where a tag key exists
 	if tagKey != "" {
-		cli.Log.Debugw("found tagKey", "tagKey", tagKey)
+		cli.Log.Debugw("looking for tagKey", "tagKey", tagKey, "region", region)
 		filters = append(filters, types.Filter{
 			Name: aws.String("tag-key"),
 			Values: []string{
@@ -125,7 +125,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 
 	// Filter for instances where certain tags exist
 	if len(tag) > 0 {
-		cli.Log.Debugw("found tags", "tag length", len(tag), "tags", tag)
+		cli.Log.Debugw("looking for tags", "tag length", len(tag), "tags", tag, "region", region)
 		filters = append(filters, types.Filter{
 			Name:   aws.String("tag:" + tag[0]),
 			Values: tag[1:],
@@ -137,6 +137,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 	}
 	result, err := svc.DescribeInstances(context.Background(), input)
 	if err != nil {
+		cli.Log.Debugw("error with describing instances", "input", input)
 		return nil, err
 	}
 
@@ -158,6 +159,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 		consumerWg.Done()
 	}(&runners)
 
+	cli.Log.Debugw("iterating over runners", "region", region)
 	for _, reservation := range result.Reservations {
 		for _, instance := range reservation.Instances {
 			if instance.PublicIpAddress != nil && instance.State.Name == "running" {
@@ -179,6 +181,8 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 				instanceCopyWg.Add(1)
 
 				wp.Submit(func() {
+					defer producerWg.Done()
+
 					threadInstance := instance
 					instanceCopyWg.Done()
 					cli.Log.Debugw("found runner",
@@ -199,8 +203,6 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 					} else {
 						runnerCh <- runner
 					}
-
-					producerWg.Done()
 				})
 				instanceCopyWg.Wait()
 			}

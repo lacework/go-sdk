@@ -18,5 +18,7 @@ func init() {
 	generateTfCommand.AddCommand(generateK8sCommand)
 
 	initGenerateGkeTfCommandFlags()
+	initGenerateAwsEksAuditTfCommandFlags()
 	generateK8sCommand.AddCommand(generateGkeTfCommand)
+	generateK8sCommand.AddCommand(generateAwsEksAuditTfCommand)
 }
