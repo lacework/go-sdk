@@ -146,6 +146,9 @@ func closeAlert(_ *cobra.Command, args []string) error {
 			Default: false,
 		}
 		err = survey.AskOne(prompt, &confirm)
+		if err != nil {
+			return err
+		}
 		if !confirm {
 			return nil
 		}
