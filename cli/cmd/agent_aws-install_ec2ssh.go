@@ -117,12 +117,14 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 	for _, runner := range runners {
 		wg.Add(1)
 
-		// In order to use `cl.Execute()`, the input func() must not take any arguments.
+		// In order to use `wp.Submit()`, the input func() must not take any arguments.
 		// Copy the runner info to dedicated variable in the goroutine to prevent race overwrite
 		runnerCopyWg := new(sync.WaitGroup)
 		runnerCopyWg.Add(1)
 
 		wp.Submit(func() {
+			defer wg.Done()
+
 			threadRunner := *runner
 			runnerCopyWg.Done()
 			cli.Log.Debugw("threadRunner info: ",
@@ -136,14 +138,17 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 			err := threadRunner.Runner.UseIdentityFile(agentCmdState.InstallIdentityFile)
 			if err != nil {
 				cli.Log.Warnw("unable to use provided identity file", "err", err, "thread_runner", threadRunner.InstanceID)
+				return
 			}
 
 			if err := verifyAccessToRemoteHost(&threadRunner.Runner); err != nil {
 				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "thread_runner", threadRunner.InstanceID)
+				return
 			}
 
 			if alreadyInstalled := isAgentInstalledOnRemoteHost(&threadRunner.Runner); alreadyInstalled != nil {
 				cli.Log.Debugw("agent already installed on host, skipping", "thread_runner", threadRunner.InstanceID)
+				return
 			}
 
 			var token string
@@ -158,7 +163,9 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "thread_runner", threadRunner.InstanceID)
 			}
-			wg.Done()
+			if threadRunner != *runner {
+				cli.Log.Debugw("mutated runner", "thread_runner", threadRunner, "runner", runner)
+			}
 		})
 		runnerCopyWg.Wait()
 	}

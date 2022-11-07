@@ -179,6 +179,8 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 				instanceCopyWg.Add(1)
 
 				wp.Submit(func() {
+					defer producerWg.Done()
+
 					threadInstance := instance
 					instanceCopyWg.Done()
 					cli.Log.Debugw("found runner",
@@ -199,8 +201,6 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 					} else {
 						runnerCh <- runner
 					}
-
-					producerWg.Done()
 				})
 				instanceCopyWg.Wait()
 			}
