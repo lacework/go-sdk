@@ -283,6 +283,36 @@ type AddressAttribute struct {
 	noSmithyDocumentSerde
 }
 
+// Details on the Elastic IP address transfer. For more information, see Transfer
+// Elastic IP addresses
+// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro)
+// in the Amazon Virtual Private Cloud User Guide.
+type AddressTransfer struct {
+
+	// The Elastic IP address transfer status.
+	AddressTransferStatus AddressTransferStatus
+
+	// The allocation ID of an Elastic IP address.
+	AllocationId *string
+
+	// The Elastic IP address being transferred.
+	PublicIp *string
+
+	// The ID of the account that you want to transfer the Elastic IP address to.
+	TransferAccountId *string
+
+	// The timestamp when the Elastic IP address transfer was accepted.
+	TransferOfferAcceptedTimestamp *time.Time
+
+	// The timestamp when the Elastic IP address transfer expired. When the source
+	// account starts the transfer, the transfer account has seven hours to allocate
+	// the Elastic IP address to complete the transfer, or the Elastic IP address will
+	// return to its original owner.
+	TransferOfferExpirationTimestamp *time.Time
+
+	noSmithyDocumentSerde
+}
+
 // Describes a principal.
 type AllowedPrincipal struct {
 
@@ -3867,6 +3897,10 @@ type FleetLaunchTemplateOverrides struct {
 	// The Availability Zone in which to launch the instances.
 	AvailabilityZone *string
 
+	// The ID of the AMI. An AMI is required to launch an instance. The AMI ID must be
+	// specified here or in the launch template.
+	ImageId *string
+
 	// The attributes for the instance types. When you specify instance attributes,
 	// Amazon EC2 will identify instance types with those attributes. If you specify
 	// InstanceRequirements, you can't specify InstanceType.
@@ -3912,6 +3946,10 @@ type FleetLaunchTemplateOverridesRequest struct {
 
 	// The Availability Zone in which to launch the instances.
 	AvailabilityZone *string
+
+	// The ID of the AMI. An AMI is required to launch an instance. The AMI ID must be
+	// specified here or in the launch template.
+	ImageId *string
 
 	// The attributes for the instance types. When you specify instance attributes,
 	// Amazon EC2 will identify instance types with those attributes. If you specify
@@ -3961,7 +3999,7 @@ type FleetLaunchTemplateOverridesRequest struct {
 // template in the request, but not both. For information about launch templates,
 // see Launch an instance from a launch template
 // (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html)
-// in the Amazon EC2 User Guide for Linux Instances.
+// in the Amazon EC2 User Guide.
 type FleetLaunchTemplateSpecification struct {
 
 	// The ID of the launch template. You must specify the LaunchTemplateId or the
@@ -4731,6 +4769,15 @@ type Image struct {
 
 	// The type of image.
 	ImageType ImageTypeValues
+
+	// If v2.0, it indicates that IMDSv2 is specified in the AMI. Instances launched
+	// from this AMI will have HttpTokens automatically set to required so that, by
+	// default, the instance requires that IMDSv2 is used when requesting instance
+	// metadata. In addition, HttpPutResponseHopLimit is set to 2. For more
+	// information, see Configure the AMI
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-IMDS-new-instances.html#configure-IMDS-new-instances-ami-configuration)
+	// in the Amazon Elastic Compute Cloud User Guide.
+	ImdsSupport ImdsSupportValues
 
 	// The kernel associated with the image, if any. Only applicable for machine
 	// images.
@@ -5705,7 +5752,7 @@ type InstanceNetworkInterface struct {
 	// The description.
 	Description *string
 
-	// One or more security groups.
+	// The security groups.
 	Groups []GroupIdentifier
 
 	// The type of network interface. Valid values: interface | efa | trunk
@@ -5714,7 +5761,7 @@ type InstanceNetworkInterface struct {
 	// The IPv4 delegated prefixes that are assigned to the network interface.
 	Ipv4Prefixes []InstanceIpv4Prefix
 
-	// One or more IPv6 addresses associated with the network interface.
+	// The IPv6 addresses associated with the network interface.
 	Ipv6Addresses []InstanceIpv6Address
 
 	// The IPv6 delegated prefixes that are assigned to the network interface.
@@ -5735,7 +5782,7 @@ type InstanceNetworkInterface struct {
 	// The IPv4 address of the network interface within the subnet.
 	PrivateIpAddress *string
 
-	// One or more private IPv4 addresses associated with the network interface.
+	// The private IPv4 addresses associated with the network interface.
 	PrivateIpAddresses []InstancePrivateIpAddress
 
 	// Indicates whether source/destination checking is enabled.
@@ -5842,8 +5889,8 @@ type InstanceNetworkInterfaceSpecification struct {
 	// network interface. You cannot use this option if you use the Ipv4Prefix option.
 	Ipv4PrefixCount *int32
 
-	// One or more IPv4 delegated prefixes to be assigned to the network interface. You
-	// cannot use this option if you use the Ipv4PrefixCount option.
+	// The IPv4 delegated prefixes to be assigned to the network interface. You cannot
+	// use this option if you use the Ipv4PrefixCount option.
 	Ipv4Prefixes []Ipv4PrefixSpecificationRequest
 
 	// A number of IPv6 addresses to assign to the network interface. Amazon EC2
@@ -5853,18 +5900,18 @@ type InstanceNetworkInterfaceSpecification struct {
 	// launch.
 	Ipv6AddressCount *int32
 
-	// One or more IPv6 addresses to assign to the network interface. You cannot
-	// specify this option and the option to assign a number of IPv6 addresses in the
-	// same request. You cannot specify this option if you've specified a minimum
-	// number of instances to launch.
+	// The IPv6 addresses to assign to the network interface. You cannot specify this
+	// option and the option to assign a number of IPv6 addresses in the same request.
+	// You cannot specify this option if you've specified a minimum number of instances
+	// to launch.
 	Ipv6Addresses []InstanceIpv6Address
 
 	// The number of IPv6 delegated prefixes to be automatically assigned to the
 	// network interface. You cannot use this option if you use the Ipv6Prefix option.
 	Ipv6PrefixCount *int32
 
-	// One or more IPv6 delegated prefixes to be assigned to the network interface. You
-	// cannot use this option if you use the Ipv6PrefixCount option.
+	// The IPv6 delegated prefixes to be assigned to the network interface. You cannot
+	// use this option if you use the Ipv6PrefixCount option.
 	Ipv6Prefixes []Ipv6PrefixSpecificationRequest
 
 	// The index of the network card. Some instance types support multiple network
@@ -5889,9 +5936,9 @@ type InstanceNetworkInterfaceSpecification struct {
 	// request.
 	PrivateIpAddress *string
 
-	// One or more private IPv4 addresses to assign to the network interface. Only one
-	// private IPv4 address can be designated as primary. You cannot specify this
-	// option if you're launching more than one instance in a RunInstances
+	// The private IPv4 addresses to assign to the network interface. Only one private
+	// IPv4 address can be designated as primary. You cannot specify this option if
+	// you're launching more than one instance in a RunInstances
 	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_RunInstances.html)
 	// request.
 	PrivateIpAddresses []PrivateIpAddressSpecification
@@ -5934,10 +5981,22 @@ type InstancePrivateIpAddress struct {
 // Amazon EC2 will identify instance types with these attributes. When you specify
 // multiple attributes, you get instance types that satisfy all of the specified
 // attributes. If you specify multiple values for an attribute, you get instance
-// types that satisfy any of the specified values. You must specify VCpuCount and
-// MemoryMiB. All other attributes are optional. Any unspecified optional attribute
-// is set to its default. For more information, see Attribute-based instance type
-// selection for EC2 Fleet
+// types that satisfy any of the specified values. To limit the list of instance
+// types from which Amazon EC2 can identify matching instance types, you can use
+// one of the following parameters, but not both in the same request:
+//
+// *
+// AllowedInstanceTypes - The instance types to include in the list. All other
+// instance types are ignored, even if they match your specified attributes.
+//
+// *
+// ExcludedInstanceTypes - The instance types to exclude from the list, even if
+// they match your specified attributes.
+//
+// You must specify VCpuCount and MemoryMiB.
+// All other attributes are optional. Any unspecified optional attribute is set to
+// its default. For more information, see Attribute-based instance type selection
+// for EC2 Fleet
 // (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-attribute-based-instance-type-selection.html),
 // Attribute-based instance type selection for Spot Fleet
 // (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-attribute-based-instance-type-selection.html),
@@ -5990,7 +6049,7 @@ type InstanceRequirements struct {
 	// * For instance types with Xilinx VU9P FPGAs,
 	// specify vu9p.
 	//
-	// * For instance types with Amazon Web Services Inferentia GPUs,
+	// * For instance types with Amazon Web Services Inferentia chips,
 	// specify inferentia.
 	//
 	// * For instance types with NVIDIA GRID K520 GPUs, specify
@@ -6016,6 +6075,17 @@ type InstanceRequirements struct {
 	//
 	// Default: Any accelerator type
 	AcceleratorTypes []AcceleratorType
+
+	// The instance types to apply your specified attributes against. All other
+	// instance types are ignored, even if they match your specified attributes. You
+	// can use strings with one or more wild cards, represented by an asterisk (*), to
+	// allow an instance type, size, or generation. The following are examples:
+	// m5.8xlarge, c5*.*, m5a.*, r*, *3*. For example, if you specify c5*,Amazon EC2
+	// will allow the entire C5 instance family, which includes all C5a and C5n
+	// instance types. If you specify m5a.*, Amazon EC2 will allow all the M5a instance
+	// types, but not the M5n instance types. If you specify AllowedInstanceTypes, you
+	// can't specify ExcludedInstanceTypes. Default: All instance types
+	AllowedInstanceTypes []string
 
 	// Indicates whether bare metal instance types must be included, excluded, or
 	// required.
@@ -6075,7 +6145,8 @@ type InstanceRequirements struct {
 	// example, if you specify c5*,Amazon EC2 will exclude the entire C5 instance
 	// family, which includes all C5a and C5n instance types. If you specify m5a.*,
 	// Amazon EC2 will exclude all the M5a instance types, but not the M5n instance
-	// types. Default: No excluded instance types
+	// types. If you specify ExcludedInstanceTypes, you can't specify
+	// AllowedInstanceTypes. Default: No excluded instance types
 	ExcludedInstanceTypes []string
 
 	// Indicates whether current or previous generation instance types are included.
@@ -6122,6 +6193,10 @@ type InstanceRequirements struct {
 
 	// The minimum and maximum amount of memory, in MiB.
 	MemoryMiB *MemoryMiB
+
+	// The minimum and maximum amount of network bandwidth, in gigabits per second
+	// (Gbps). Default: No minimum or maximum limits
+	NetworkBandwidthGbps *NetworkBandwidthGbps
 
 	// The minimum and maximum number of network interfaces. Default: No minimum or
 	// maximum limits
@@ -6179,10 +6254,22 @@ type InstanceRequirements struct {
 // Amazon EC2 will identify instance types with these attributes. When you specify
 // multiple attributes, you get instance types that satisfy all of the specified
 // attributes. If you specify multiple values for an attribute, you get instance
-// types that satisfy any of the specified values. You must specify VCpuCount and
-// MemoryMiB. All other attributes are optional. Any unspecified optional attribute
-// is set to its default. For more information, see Attribute-based instance type
-// selection for EC2 Fleet
+// types that satisfy any of the specified values. To limit the list of instance
+// types from which Amazon EC2 can identify matching instance types, you can use
+// one of the following parameters, but not both in the same request:
+//
+// *
+// AllowedInstanceTypes - The instance types to include in the list. All other
+// instance types are ignored, even if they match your specified attributes.
+//
+// *
+// ExcludedInstanceTypes - The instance types to exclude from the list, even if
+// they match your specified attributes.
+//
+// You must specify VCpuCount and MemoryMiB.
+// All other attributes are optional. Any unspecified optional attribute is set to
+// its default. For more information, see Attribute-based instance type selection
+// for EC2 Fleet
 // (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-attribute-based-instance-type-selection.html),
 // Attribute-based instance type selection for Spot Fleet
 // (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-attribute-based-instance-type-selection.html),
@@ -6245,7 +6332,7 @@ type InstanceRequirementsRequest struct {
 	// * For instance types with Xilinx VU9P FPGAs,
 	// specify  vu9p.
 	//
-	// * For instance types with Amazon Web Services Inferentia GPUs,
+	// * For instance types with Amazon Web Services Inferentia chips,
 	// specify inferentia.
 	//
 	// * For instance types with NVIDIA GRID K520 GPUs, specify
@@ -6271,6 +6358,17 @@ type InstanceRequirementsRequest struct {
 	//
 	// Default: Any accelerator type
 	AcceleratorTypes []AcceleratorType
+
+	// The instance types to apply your specified attributes against. All other
+	// instance types are ignored, even if they match your specified attributes. You
+	// can use strings with one or more wild cards, represented by an asterisk (*), to
+	// allow an instance type, size, or generation. The following are examples:
+	// m5.8xlarge, c5*.*, m5a.*, r*, *3*. For example, if you specify c5*,Amazon EC2
+	// will allow the entire C5 instance family, which includes all C5a and C5n
+	// instance types. If you specify m5a.*, Amazon EC2 will allow all the M5a instance
+	// types, but not the M5n instance types. If you specify AllowedInstanceTypes, you
+	// can't specify ExcludedInstanceTypes. Default: All instance types
+	AllowedInstanceTypes []string
 
 	// Indicates whether bare metal instance types must be included, excluded, or
 	// required.
@@ -6330,7 +6428,8 @@ type InstanceRequirementsRequest struct {
 	// example, if you specify c5*,Amazon EC2 will exclude the entire C5 instance
 	// family, which includes all C5a and C5n instance types. If you specify m5a.*,
 	// Amazon EC2 will exclude all the M5a instance types, but not the M5n instance
-	// types. Default: No excluded instance types
+	// types. If you specify ExcludedInstanceTypes, you can't specify
+	// AllowedInstanceTypes. Default: No excluded instance types
 	ExcludedInstanceTypes []string
 
 	// Indicates whether current or previous generation instance types are included.
@@ -6374,6 +6473,10 @@ type InstanceRequirementsRequest struct {
 	// The minimum and maximum amount of memory per vCPU, in GiB. Default: No minimum
 	// or maximum limits
 	MemoryGiBPerVCpu *MemoryGiBPerVCpuRequest
+
+	// The minimum and maximum amount of network bandwidth, in gigabits per second
+	// (Gbps). Default: No minimum or maximum limits
+	NetworkBandwidthGbps *NetworkBandwidthGbpsRequest
 
 	// The minimum and maximum number of network interfaces. Default: No minimum or
 	// maximum limits
@@ -6449,6 +6552,10 @@ type InstanceSpecification struct {
 	// Excludes the root volume from being snapshotted.
 	ExcludeBootVolume *bool
 
+	// The IDs of the data (non-root) volumes to exclude from the multi-volume snapshot
+	// set. If you specify the ID of the root volume, the request fails. To exclude the
+	// root volume, use ExcludeBootVolume. You can specify up to 40 volume IDs per
+	// request.
 	ExcludeDataVolumeIds []string
 
 	// The instance to specify which volumes should be snapshotted.
@@ -7319,7 +7426,7 @@ type Ipv4PrefixSpecificationRequest struct {
 // Information about the IPv4 delegated prefixes assigned to a network interface.
 type Ipv4PrefixSpecificationResponse struct {
 
-	// One or more IPv4 delegated prefixes assigned to the network interface.
+	// The IPv4 delegated prefixes assigned to the network interface.
 	Ipv4Prefix *string
 
 	noSmithyDocumentSerde
@@ -7385,7 +7492,7 @@ type Ipv6PrefixSpecificationRequest struct {
 // Information about the IPv6 delegated prefixes assigned to a network interface.
 type Ipv6PrefixSpecificationResponse struct {
 
-	// One or more IPv6 delegated prefixes assigned to the network interface.
+	// The IPv6 delegated prefixes assigned to the network interface.
 	Ipv6Prefix *string
 
 	noSmithyDocumentSerde
@@ -8931,7 +9038,9 @@ type ModifyTransitGatewayOptions struct {
 
 	// A private Autonomous System Number (ASN) for the Amazon side of a BGP session.
 	// The range is 64512 to 65534 for 16-bit ASNs and 4200000000 to 4294967294 for
-	// 32-bit ASNs.
+	// 32-bit ASNs. The modify ASN operation is not allowed on a transit gateway with
+	// active BGP sessions. You must first delete all transit gateway attachments that
+	// have BGP configured prior to modifying the ASN on the transit gateway.
 	AmazonSideAsn *int64
 
 	// The ID of the default association route table.
@@ -9104,9 +9213,9 @@ type Monitoring struct {
 	noSmithyDocumentSerde
 }
 
-// Describes the status of a moving Elastic IP address. We are retiring EC2-Classic
-// on August 15, 2022. We recommend that you migrate from EC2-Classic to a VPC. For
-// more information, see Migrate from EC2-Classic to a VPC
+// Describes the status of a moving Elastic IP address. We are retiring
+// EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more
+// information, see Migrate from EC2-Classic to a VPC
 // (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html) in the
 // Amazon Elastic Compute Cloud User Guide.
 type MovingAddressStatus struct {
@@ -9298,6 +9407,48 @@ type NetworkAclEntry struct {
 	// The rule number for the entry. ACL entries are processed in ascending order by
 	// rule number.
 	RuleNumber *int32
+
+	noSmithyDocumentSerde
+}
+
+// The minimum and maximum amount of network bandwidth, in gigabits per second
+// (Gbps). Setting the minimum bandwidth does not guarantee that your instance will
+// achieve the minimum bandwidth. Amazon EC2 will identify instance types that
+// support the specified minimum bandwidth, but the actual bandwidth of your
+// instance might go below the specified minimum at times. For more information,
+// see Available instance bandwidth
+// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-network-bandwidth.html#available-instance-bandwidth)
+// in the Amazon EC2 User Guide.
+type NetworkBandwidthGbps struct {
+
+	// The maximum amount of network bandwidth, in Gbps. If this parameter is not
+	// specified, there is no maximum limit.
+	Max *float64
+
+	// The minimum amount of network bandwidth, in Gbps. If this parameter is not
+	// specified, there is no minimum limit.
+	Min *float64
+
+	noSmithyDocumentSerde
+}
+
+// The minimum and maximum amount of network bandwidth, in gigabits per second
+// (Gbps). Setting the minimum bandwidth does not guarantee that your instance will
+// achieve the minimum bandwidth. Amazon EC2 will identify instance types that
+// support the specified minimum bandwidth, but the actual bandwidth of your
+// instance might go below the specified minimum at times. For more information,
+// see Available instance bandwidth
+// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-network-bandwidth.html#available-instance-bandwidth)
+// in the Amazon EC2 User Guide.
+type NetworkBandwidthGbpsRequest struct {
+
+	// The maximum amount of network bandwidth, in Gbps. To specify no maximum limit,
+	// omit this parameter.
+	Max *float64
+
+	// The minimum amount of network bandwidth, in Gbps. To specify no minimum limit,
+	// omit this parameter.
+	Min *float64
 
 	noSmithyDocumentSerde
 }
@@ -10542,7 +10693,7 @@ type PrivateIpAddressSpecification struct {
 	// Only one IPv4 address can be designated as primary.
 	Primary *bool
 
-	// The private IPv4 addresses.
+	// The private IPv4 address.
 	PrivateIpAddress *string
 
 	noSmithyDocumentSerde
@@ -10820,11 +10971,21 @@ type ReplaceRootVolumeTask struct {
 	// The time the task completed.
 	CompleteTime *string
 
+	// Indicates whether the original root volume is to be deleted after the root
+	// volume replacement task completes.
+	DeleteReplacedRootVolume *bool
+
+	// The ID of the AMI used to create the replacement root volume.
+	ImageId *string
+
 	// The ID of the instance for which the root volume replacement task was created.
 	InstanceId *string
 
 	// The ID of the root volume replacement task.
 	ReplaceRootVolumeTaskId *string
+
+	// The ID of the snapshot used to create the replacement root volume.
+	SnapshotId *string
 
 	// The time the task was started.
 	StartTime *string
@@ -10958,7 +11119,7 @@ type RequestLaunchTemplateData struct {
 
 	// The instance type. For more information, see Instance types
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html) in the
-	// Amazon Elastic Compute Cloud User Guide. If you specify InstanceTypes, you can't
+	// Amazon Elastic Compute Cloud User Guide. If you specify InstanceType, you can't
 	// specify InstanceRequirements.
 	InstanceType InstanceType
 
@@ -13000,9 +13161,8 @@ type SpotFleetRequestConfigData struct {
 	// that grants the Spot Fleet the permission to request, launch, terminate, and tag
 	// instances on your behalf. For more information, see Spot Fleet prerequisites
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-requests.html#spot-fleet-prerequisites)
-	// in the Amazon EC2 User Guide for Linux Instances. Spot Fleet can terminate Spot
-	// Instances on your behalf when you cancel its Spot Fleet request using
-	// CancelSpotFleetRequests
+	// in the Amazon EC2 User Guide. Spot Fleet can terminate Spot Instances on your
+	// behalf when you cancel its Spot Fleet request using CancelSpotFleetRequests
 	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CancelSpotFleetRequests)
 	// or when the Spot Fleet request expires, if you set
 	// TerminateInstancesWithExpiration.
@@ -13023,18 +13183,18 @@ type SpotFleetRequestConfigData struct {
 	// across the Spot Instance pools specified by the Spot Fleet launch configuration.
 	// For more information, see Allocation strategies for Spot Instances
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-allocation-strategy.html)
-	// in the Amazon EC2 User Guide for Linux Instances. lowestPrice - Spot Fleet
-	// launches instances from the lowest-price Spot Instance pool that has available
-	// capacity. If the cheapest pool doesn't have available capacity, the Spot
-	// Instances come from the next cheapest pool that has available capacity. If a
-	// pool runs out of capacity before fulfilling your desired capacity, Spot Fleet
-	// will continue to fulfill your request by drawing from the next cheapest pool. To
-	// ensure that your desired capacity is met, you might receive Spot Instances from
-	// several pools. diversified - Spot Fleet launches instances from all of the Spot
-	// Instance pools that you specify. capacityOptimized (recommended) - Spot Fleet
-	// launches instances from Spot Instance pools with optimal capacity for the number
-	// of instances that are launching. To give certain instance types a higher chance
-	// of launching first, use capacityOptimizedPrioritized. Set a priority for each
+	// in the Amazon EC2 User Guide. lowestPrice - Spot Fleet launches instances from
+	// the lowest-price Spot Instance pool that has available capacity. If the cheapest
+	// pool doesn't have available capacity, the Spot Instances come from the next
+	// cheapest pool that has available capacity. If a pool runs out of capacity before
+	// fulfilling your desired capacity, Spot Fleet will continue to fulfill your
+	// request by drawing from the next cheapest pool. To ensure that your desired
+	// capacity is met, you might receive Spot Instances from several pools.
+	// diversified - Spot Fleet launches instances from all of the Spot Instance pools
+	// that you specify. capacityOptimized (recommended) - Spot Fleet launches
+	// instances from Spot Instance pools with optimal capacity for the number of
+	// instances that are launching. To give certain instance types a higher chance of
+	// launching first, use capacityOptimizedPrioritized. Set a priority for each
 	// instance type by using the Priority parameter for LaunchTemplateOverrides. You
 	// can assign the same priority to different LaunchTemplateOverrides. EC2
 	// implements the priorities on a best-effort basis, but optimizes for capacity
@@ -15455,10 +15615,10 @@ type UserData struct {
 }
 
 // Describes a security group and Amazon Web Services account ID pair. We are
-// retiring EC2-Classic on August 15, 2022. We recommend that you migrate from
-// EC2-Classic to a VPC. For more information, see Migrate from EC2-Classic to a
-// VPC (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html) in
-// the Amazon Elastic Compute Cloud User Guide.
+// retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC.
+// For more information, see Migrate from EC2-Classic to a VPC
+// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html) in the
+// Amazon Elastic Compute Cloud User Guide.
 type UserIdGroupPair struct {
 
 	// A description for the security group rule that references this user ID group
