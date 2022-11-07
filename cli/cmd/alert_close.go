@@ -147,7 +147,7 @@ func closeAlert(_ *cobra.Command, args []string) error {
 		}
 		err = survey.AskOne(prompt, &confirm)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "unable to confirm alert close attempt")
 		}
 		if !confirm {
 			return nil
