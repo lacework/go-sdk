@@ -20,8 +20,10 @@ package api
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
+	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/lacework/go-sdk/lwtime"
 )
 
@@ -30,6 +32,12 @@ import (
 type AlertsService struct {
 	client *Client
 }
+
+// ValidAlertSeverities is a list of all valid alert severities
+var ValidAlertSeverities = []string{"critical", "high", "medium", "low", "info"}
+
+// ValidAlertStatuses is a list of all valid alert statuses
+var ValidAlertStatuses = []string{"Open", "Closed"}
 
 type AlertInfo struct {
 	Subject     string `json:"subject"`
@@ -63,15 +71,64 @@ type Alert struct {
 	Reachability  string             `json:"reachability"`
 }
 
-type AlertsResponse struct {
-	Data []Alert `json:"data"`
+func (a Alert) GetSeverity() string {
+	return a.Severity
 }
 
-func (svc *AlertsService) List() (
-	response AlertsResponse,
-	err error,
-) {
+type Alerts []Alert
+
+// Sort by alert ID descending
+func (a Alerts) SortByID() {
+	sort.Slice(a, func(i, j int) bool {
+		return a[i].ID > a[j].ID
+	})
+}
+
+// Sort by alert severity descending (from critical -> low)
+func (a Alerts) SortBySeverity() {
+	lwseverity.SortSlice(a)
+}
+
+type AlertsResponse struct {
+	Data   Alerts       `json:"data"`
+	Paging V2Pagination `json:"paging"`
+}
+
+// Fulfill Pageable interface (look at api/v2.go)
+func (r AlertsResponse) PageInfo() *V2Pagination {
+	return &r.Paging
+}
+func (r *AlertsResponse) ResetPaging() {
+	r.Paging = V2Pagination{}
+}
+
+func (svc *AlertsService) List() (response AlertsResponse, err error) {
 	err = svc.client.RequestDecoder("GET", apiV2Alerts, nil, &response)
+	return
+}
+
+func (svc *AlertsService) ListAll() (response AlertsResponse, err error) {
+	response, err = svc.List()
+	if err != nil {
+		return
+	}
+
+	var (
+		all    Alerts
+		pageOk bool
+	)
+	for {
+		all = append(all, response.Data...)
+
+		pageOk, err = svc.client.NextPage(&response)
+		if err == nil && pageOk {
+			continue
+		}
+		break
+	}
+
+	response.Data = all
+	response.ResetPaging()
 	return
 }
 
@@ -89,5 +146,33 @@ func (svc *AlertsService) ListByTime(start, end time.Time) (
 		nil,
 		&response,
 	)
+	return
+}
+
+func (svc *AlertsService) ListAllByTime(start, end time.Time) (
+	response AlertsResponse,
+	err error,
+) {
+	response, err = svc.ListByTime(start, end)
+	if err != nil {
+		return
+	}
+
+	var (
+		all    Alerts
+		pageOk bool
+	)
+	for {
+		all = append(all, response.Data...)
+
+		pageOk, err = svc.client.NextPage(&response)
+		if err == nil && pageOk {
+			continue
+		}
+		break
+	}
+
+	response.Data = all
+	response.ResetPaging()
 	return
 }
