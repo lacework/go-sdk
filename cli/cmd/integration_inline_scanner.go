@@ -67,7 +67,7 @@ func createInlineScannerIntegration() error {
 		cli.Log.Warnw("unable to convert limit_num_scan, using default",
 			"error", err,
 			"input", answers.LimitNumScan,
-			"default", "5",
+			"default", "60",
 		)
 		limitNumScan = 60
 	}
@@ -76,7 +76,7 @@ func createInlineScannerIntegration() error {
 		api.InlineScannerContainerRegistry,
 		api.InlineScannerData{
 			IdentifierTag: castStringToLimitByLabel(answers.IdentifierTag),
-			LimitNumScan:  limitNumScan,
+			LimitNumScan:  strconv.Itoa(limitNumScan),
 		},
 	)
 

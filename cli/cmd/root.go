@@ -29,6 +29,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/lacework/go-sdk/lwcomponent"
 	"github.com/lacework/go-sdk/lwlogger"
 )
 
@@ -107,6 +108,11 @@ func Execute() (err error) {
 			exitwithCode(err, err.ExitCode)
 		case *queryFailonError:
 			exitwithCode(err, err.ExitCode)
+		case *lwcomponent.RunError:
+			// by default, all our components should display the error to
+			// the end user, which is why we don't output it, but we still
+			// exit the main program with the exit code from the component
+			os.Exit(err.ExitCode)
 		}
 	}()
 	defer cli.Wait()

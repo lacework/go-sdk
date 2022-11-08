@@ -240,6 +240,10 @@ func filterCLIFlagsFromComponentArgs(args []string, globalFlags []*pflag.Flag) (
 				continue
 			}
 
+			if flag.Name == "help" || flag.Shorthand == "h" { // pass -h, --help flags as component arguments
+				continue
+			}
+
 			if flag.Name == argFlag || flag.Shorthand == argFlag {
 				// the argument is indeed a flag
 

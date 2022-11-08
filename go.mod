@@ -8,7 +8,7 @@ require (
 	github.com/BurntSushi/toml v1.2.0
 	github.com/Masterminds/semver v1.5.0
 	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
-	github.com/abiosoft/colima v0.4.5
+	github.com/abiosoft/colima v0.4.6
 	github.com/aws/aws-sdk-go v1.44.114
 	github.com/aws/aws-sdk-go-v2 v1.16.16
 	github.com/aws/aws-sdk-go-v2/config v1.17.7
