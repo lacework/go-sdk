@@ -59,18 +59,27 @@ func NewAWSRunner(amiImageId, host, region, availabilityZone, instanceID string,
 		return nil, fmt.Errorf("expected to find only one AMI")
 	}
 
-	// Heuristically assign SSH username based on AMI name
-	var user string
-	if strings.Contains(*result.Images[0].Name, "ubuntu") {
-		user = "ubuntu"
-	} else if strings.Contains(*result.Images[0].Name, "amazon_linux") {
-		user = "ec2-user"
-	} else {
-		return nil, fmt.Errorf("expected either Ubuntu or Amazon Linux 2 AMI, got AMI %s", *result.Images[0].Name)
+	// Lookup table for heuristically determining SSH username based on AMI
+	usernameLUT := []func(string) (bool, string){
+		func(_ string) (bool, string) { return os.Getenv("LW_SSH_USER") != "", os.Getenv("LW_SSH_USER") },
+		func(imageName string) (bool, string) { return strings.Contains(imageName, "ubuntu"), "ubuntu" },
+		func(imageName string) (bool, string) {
+			return strings.Contains(imageName, "amazon_linux"), "amazon_linux"
+		},
+		func(imageName string) (bool, string) { return strings.Contains(imageName, "amzn2-ami"), "amzn2-ami" },
 	}
 
-	if os.Getenv("LW_SSH_USER") != "" {
-		user = os.Getenv("LW_SSH_USER")
+	// Heuristically assign SSH username based on AMI name
+	user := ""
+	imageName := *result.Images[0].Name // this array is guaranteed to have length 1
+	for _, matchFn := range usernameLUT {
+		if match, foundName := matchFn(imageName); match {
+			user = foundName
+			break
+		}
+	}
+	if user == "" { // no matching AMI found, return an error
+		return nil, fmt.Errorf("expected either Ubuntu or Amazon Linux 2 AMI, got AMI %s", imageName)
 	}
 
 	defaultCallback, err := DefaultKnownHosts()
