@@ -218,9 +218,9 @@ func promptCreateAlertChannel() error {
 	case "Amazon CloudWatch":
 		return createAwsCloudWatchAlertChannelIntegration()
 	case "Jira Cloud":
-		return createJiraCloudAlertChannelIntegration()
+		return createJiraAlertChannelIntegration(api.JiraCloudAlertType)
 	case "Jira Server":
-		return createJiraServerAlertChannelIntegration()
+		return createJiraAlertChannelIntegration(api.JiraServerAlertType)
 	default:
 		return errors.New("unknown alert channel type")
 	}

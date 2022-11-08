@@ -424,6 +424,12 @@ func (c *cliState) envs() []string {
 		fmt.Sprintf("LW_API_KEY=%s", c.KeyID),
 		fmt.Sprintf("LW_API_SECRET=%s", c.Secret),
 		fmt.Sprintf("LW_API_TOKEN=%s", c.Token),
+		fmt.Sprintf("LW_ORGANIZATION=%v", c.OrgLevel),
+		fmt.Sprintf("LW_NONINTERACTIVE=%v", c.nonInteractive),
+		fmt.Sprintf("LW_NOCACHE=%v", c.noCache),
+		fmt.Sprintf("LW_NOCOLOR=%s", os.Getenv("NO_COLOR")),
+		fmt.Sprintf("LW_LOG=%s", c.LogLevel),
+		fmt.Sprintf("LW_JSON=%v", c.jsonOutput),
 	}
 }
 

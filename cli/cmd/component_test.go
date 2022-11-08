@@ -29,6 +29,7 @@ import (
 var mockedGlobalFlags = []*pflag.Flag{
 	&pflag.Flag{Name: "profile", Shorthand: "p", Value: &mockStringFlagValue{}},
 	&pflag.Flag{Name: "debug", Shorthand: "", Value: &mockBoolFlagValue{}},
+	&pflag.Flag{Name: "help", Shorthand: "-h", Value: &mockBoolFlagValue{}},
 	&pflag.Flag{Name: "nocolor", Shorthand: "", Value: &mockBoolFlagValue{}},
 	&pflag.Flag{Name: "nocache", Shorthand: "", Value: &mockBoolFlagValue{}},
 	&pflag.Flag{Name: "noninteractive", Shorthand: "", Value: &mockBoolFlagValue{}},
@@ -61,14 +62,20 @@ func TestComponentFilterCLIFlagsFromComponentArgs(t *testing.T) {
 			[]string(nil), []string{"--profile", "p2", "--debug"}},
 
 		{"args that have both arguments and global flags should split them correctly",
-			[]string{"--profile", "p2", "iac", "terraform-scan", "--verbose", "--debug"}, mockedGlobalFlags,
+			[]string{"--profile", "p2", "iac", "terraform-scan", "--verbose", "--debug"},
+			mockedGlobalFlags,
 			[]string{"iac", "terraform-scan", "--verbose"}, []string{"--profile", "p2", "--debug"}},
 
 		{"complex args and flags with component commands and flags should split them correctly",
-			[]string{"comp-cmd", "--nocolor", "--comp-flag", "comp-subcommand", "--comp-flag2", "-c", "-p", "foo"},
+			[]string{"comp-cmd", "--nocolor", "--comp-flag",
+				"comp-subcommand", "--comp-flag2", "-c", "-p", "foo"},
 			mockedGlobalFlags,
 			[]string{"comp-cmd", "--comp-flag", "comp-subcommand", "--comp-flag2", "-c"},
 			[]string{"--nocolor", "-p", "foo"}},
+
+		{"-h or --help should not be consider a flag but instead a component argument",
+			[]string{"iac", "terraform-scan", "--help"}, mockedGlobalFlags,
+			[]string{"iac", "terraform-scan", "--help"}, []string(nil)},
 	}
 
 	for _, kase := range cases {
