@@ -180,10 +180,20 @@ func (c *cliState) LoadComponents() {
 						// Parse all global CLI flags provided (filtered) by the user, then run the global
 						// CLI init function to initialize our logger, api client, and other global config
 						err := cmd.Flags().Parse(filteredCLIFlags)
-						initConfig() // @afiune NOTE we purposely run this func first and then check the err
+
+						// We call initConfig() again after global flags have been parsed.
+						initConfig()
+
 						if err != nil {
 							cli.Log.Debugw("unable to parse global flags",
 								"provided_flags", filteredCLIFlags, "error", err)
+						}
+
+						// The root command's persistent pre-run will have created a client
+						// without having parsed command line args.  So get it again with
+						// the correct configuration
+						if err := cli.NewClient(); err != nil {
+							return err
 						}
 
 						cli.Log.Debugw("running component", "component", cmd.Use,
