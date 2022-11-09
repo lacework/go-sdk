@@ -47,9 +47,9 @@ To filter by instance tag key:
 
     lacework agent aws-install ec2ssh --tag_key TagName
 
-To provide an agent access token of your choice, use the command 'lacework agent token list',
-select a token and pass it to the '--token' flag. This flag must be selected if the
-'--noninteractive' flag is set.
+To provide an existing access token, use the '--token' flag. This flag is required
+when running non-interactively ('--noninteractive' flag). The interactive command
+'lacework agent token list' can be used to query existing tokens.
 
     lacework agent aws-install ec2ic --token <token>
 
@@ -128,7 +128,7 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 				return err
 			}
 		} else {
-			return errors.New("user did not provide or interactively select an agent token")
+			return errors.New("--token flag is required when --noninteractive flag is set")
 		}
 	}
 
