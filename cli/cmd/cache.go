@@ -145,12 +145,21 @@ func (c *cliState) ReadCachedToken() {
 	}
 }
 
+// return true if the cached token is expired or will expire within
+// the eminent duration (i.e. 10 seconds)
+func (c *cliState) cachedTokenExpiryEminent() bool {
+	eminentDuration := -10 * time.Second
+	// only consider the tokenCache expiry time if we actually have a cached token
+	return c.tokenCache.Token != "" && c.tokenCache.ExpiresAt.Before(time.Now().Add(eminentDuration))
+}
+
 func (c *cliState) WriteCachedToken() error {
 	if c.noCache {
 		return nil
 	}
-
-	if c.Token == "" || c.tokenCache.ExpiresAt.Before(time.Now().Add(-10*time.Second)) {
+	// if we don't have a token or the cached token expiry is eminent
+	// then attempt to refresh it...
+	if c.Token == "" || c.cachedTokenExpiryEminent() {
 		response, err := c.LwApi.GenerateToken()
 		if err != nil {
 			return err
