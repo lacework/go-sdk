@@ -111,7 +111,9 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 		} else {
 			return errors.New("user did not provide or interactively select an agent token")
 		}
-	}
+	// m := tea.model{
+	// 	progress: progress.New(progress.WithDefaultGradient()),
+	// }
 
 	runners, err := awsDescribeInstances()
 	if err != nil {
@@ -172,4 +174,8 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 	wp.StopWait()
 
 	return nil
+}
+
+type model struct {
+	progress progress.Model
 }
