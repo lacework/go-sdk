@@ -128,7 +128,7 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 				return err
 			}
 		} else {
-			return errors.New("user did not provide or interactively select an agent token")
+			return errors.New("--token flag is required when --noninteractive flag is set")
 		}
 	}
 
