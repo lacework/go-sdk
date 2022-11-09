@@ -137,6 +137,10 @@ func init() {
 	// initialize cobra
 	cobra.OnInitialize(initConfig)
 
+	// Note - do not add new global flags without considering the consequences
+	// on components.  These global flags will be consumed by the CLI and
+	// NOT passed onto a component.  A new global flag runs the risk of not
+	// allowing a component to accept a flag that it previously was expecting.
 	rootCmd.PersistentFlags().Bool("debug", false,
 		"turn on debug logging",
 	)
