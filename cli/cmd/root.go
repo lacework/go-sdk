@@ -33,6 +33,19 @@ import (
 	"github.com/lacework/go-sdk/lwlogger"
 )
 
+func rootPersistentPreRunE() error {
+	if err := cli.NewClient(); err != nil {
+		if !strings.Contains(err.Error(), "Invalid Account") {
+			return err
+		}
+
+		if err := cli.Migrations(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 var (
 	// the global cli state with defaults
 	cli = NewDefaultState()
@@ -67,18 +80,12 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 				if cmd.HasParent() && cmd.Parent().Use == "configure" {
 					return nil
 				}
-
-				if err := cli.NewClient(); err != nil {
-					if !strings.Contains(err.Error(), "Invalid Account") {
-						return err
-					}
-
-					if err := cli.Migrations(); err != nil {
-						return err
-					}
+				// @dhazekamp no need to create a client for any component command
+				// this will be handled via the components RunE
+				if isComponent(cmd.Annotations) {
+					return nil
 				}
-
-				return nil
+				return rootPersistentPreRunE()
 			}
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
