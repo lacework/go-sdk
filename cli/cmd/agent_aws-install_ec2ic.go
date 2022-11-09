@@ -23,32 +23,39 @@ import (
 	"sync"
 
 	"github.com/gammazero/workerpool"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 var (
 	agentInstallAWSEC2ICCmd = &cobra.Command{
-		Use:   "ec2ic <token>",
-		Args:  cobra.ExactArgs(1),
+		Use:   "ec2ic",
+		Args:  cobra.NoArgs,
 		Short: "Use EC2InstanceConnect to securely connect to EC2 instances",
 		RunE:  installAWSEC2IC,
 		Long: `This command installs the agent on all EC2 instances in an AWS account using EC2InstanceConnect.
 
 To filter by one or more regions:
 
-    lacework agent aws-install ec2ic <token> --include_regions us-west-2,us-east-2
+    lacework agent aws-install ec2ic --include_regions us-west-2,us-east-2
 
 To filter by instance tag:
 
-    lacework agent aws-install ec2ic <token> --tag TagName,TagValue
+    lacework agent aws-install ec2ic --tag TagName,TagValue
 
 To filter by instance tag key:
 
-    lacework agent aws-install ec2ic <token> --tag_key TagName
+    lacework agent aws-install ec2ic --tag_key TagName
 
 To explicitly specify the username for all SSH logins:
 
-    lacework agent aws-install ec2ic <token> --ssh_username <your-user>
+    lacework agent aws-install ec2ic --ssh_username <your-user>
+
+To provide an agent access token of your choice, use the command 'lacework agent token list',
+select a token and pass it to the '--token' flag. This flag must be selected if the
+'--noninteractive' flag is set.
+
+    lacework agent aws-install ec2ic --token <token>
 
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
@@ -78,6 +85,9 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallSshUser,
 		"ssh_username", "", "username to login with",
 	)
+	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
+		"token", "", "agent access token",
+	)
 	agentInstallAWSEC2ICCmd.Flags().IntVarP(
 		&agentCmdState.InstallMaxParallelism,
 		"max_parallelism",
@@ -87,7 +97,22 @@ func init() {
 	)
 }
 
-func installAWSEC2IC(_ *cobra.Command, args []string) error {
+func installAWSEC2IC(_ *cobra.Command, _ []string) error {
+	token := agentCmdState.InstallAgentToken
+	if token == "" {
+		if cli.InteractiveMode() {
+			// user didn't provide an agent token
+			cli.Log.Debugw("agent token not provided, asking user to select one now")
+			var err error
+			token, err = selectAgentAccessToken()
+			if err != nil {
+				return err
+			}
+		} else {
+			return errors.New("user did not provide or interactively select an agent token")
+		}
+	}
+
 	runners, err := awsDescribeInstances()
 	if err != nil {
 		return err
@@ -132,13 +157,6 @@ func installAWSEC2IC(_ *cobra.Command, args []string) error {
 				return
 			}
 
-			var token string
-			if len(args) <= 0 || args[0] == "" {
-				// user didn't provide an agent token
-				cli.Log.Warnw("agent token not provided", "runner", threadRunner.InstanceID)
-			} else {
-				token = args[0]
-			}
 			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {

@@ -23,28 +23,35 @@ import (
 	"sync"
 
 	"github.com/gammazero/workerpool"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 var (
 	agentInstallAWSSSHCmd = &cobra.Command{
-		Use:   "ec2ssh <token>",
-		Args:  cobra.ExactArgs(1),
+		Use:   "ec2ssh",
+		Args:  cobra.NoArgs,
 		Short: "Use SSH to securely connect to EC2 instances",
 		Long: `This command installs the agent on all EC2 instances in an AWS account
 using SSH.
 
 To filter by one or more regions:
 
-    lacework agent aws-install ec2ssh <token> --include_regions us-west-2,us-east-2
+    lacework agent aws-install ec2ssh --include_regions us-west-2,us-east-2
 
 To filter by instance tag:
 
-    lacework agent aws-install ec2ssh <token> --tag TagName,TagValue
+    lacework agent aws-install ec2ssh --tag TagName,TagValue
 
 To filter by instance tag key:
 
-    lacework agent aws-install ec2ssh <token> --tag_key TagName
+    lacework agent aws-install ec2ssh --tag_key TagName
+
+To provide an agent access token of your choice, use the command 'lacework agent token list',
+select a token and pass it to the '--token' flag. This flag must be selected if the
+'--noninteractive' flag is set.
+
+    lacework agent aws-install ec2ic --token <token>
 
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select. Instances must
@@ -52,11 +59,11 @@ be routable from your local host.
 
 To authenticate using username and password:
 
-    lacework agent aws-install ec2ssh <token> --ssh_username <your-user> --ssh_password <secret>
+    lacework agent aws-install ec2ssh --ssh_username <your-user> --ssh_password <secret>
 
 To authenticate using an identity file:
 
-    lacework agent aws-install ec2ssh <token> -i /path/to/your/key
+    lacework agent aws-install ec2ssh -i /path/to/your/key
 
 The environment should contain AWS credentials in the following variables:
 - AWS_ACCESS_KEY_ID
@@ -97,6 +104,9 @@ func init() {
 	agentInstallAWSSSHCmd.Flags().IntVar(&agentCmdState.InstallSshPort,
 		"ssh_port", 22, "port to connect to on the remote host",
 	)
+	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
+		"token", "", "agent access token",
+	)
 	agentInstallAWSSSHCmd.Flags().IntVarP(
 		&agentCmdState.InstallMaxParallelism,
 		"max_parallelism",
@@ -107,6 +117,21 @@ func init() {
 }
 
 func installAWSSSH(_ *cobra.Command, args []string) error {
+	token := agentCmdState.InstallAgentToken
+	if token == "" {
+		if cli.InteractiveMode() {
+			// user didn't provide an agent token
+			cli.Log.Debugw("agent token not provided, asking user to select one now")
+			var err error
+			token, err = selectAgentAccessToken()
+			if err != nil {
+				return err
+			}
+		} else {
+			return errors.New("user did not provide or interactively select an agent token")
+		}
+	}
+
 	runners, err := awsDescribeInstances()
 	if err != nil {
 		return err
@@ -151,13 +176,6 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 				return
 			}
 
-			var token string
-			if len(args) <= 0 || args[0] == "" {
-				// user didn't provide an agent token
-				cli.Log.Warnw("agent token not provided", "thread_runner", threadRunner.InstanceID)
-			} else {
-				token = args[0]
-			}
 			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
