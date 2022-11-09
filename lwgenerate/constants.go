@@ -2,7 +2,7 @@ package lwgenerate
 
 const (
 	LaceworkProviderSource  = "lacework/lacework"
-	LaceworkProviderVersion = "~> 0.26"
+	LaceworkProviderVersion = "~> 1.0"
 
 	AwsConfigSource      = "lacework/config/aws"
 	AwsConfigVersion     = "~> 0.5"
