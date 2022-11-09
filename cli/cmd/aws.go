@@ -192,6 +192,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 
 					runner, err := lwrunner.NewAWSRunner(
 						*threadInstance.ImageId,
+						agentCmdState.InstallSshUser,
 						*threadInstance.PublicIpAddress,
 						region,
 						*threadInstance.Placement.AvailabilityZone,
