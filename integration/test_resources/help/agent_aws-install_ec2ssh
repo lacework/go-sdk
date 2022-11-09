@@ -14,8 +14,8 @@ To filter by instance tag key:
     lacework agent aws-install ec2ssh --tag_key TagName
 
 To provide an existing access token, use the '--token' flag. This flag is required
-when running non-interactively (`--noninteractive` flag). The interactive command
-`lacework agent token list` can be used to query existing tokens.
+when running non-interactively ('--noninteractive' flag). The interactive command
+'lacework agent token list' can be used to query existing tokens.
 
     lacework agent aws-install ec2ic --token <token>
 
