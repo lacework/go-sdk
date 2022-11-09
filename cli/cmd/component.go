@@ -34,6 +34,8 @@ import (
 	"github.com/lacework/go-sdk/lwcomponent"
 )
 
+const componentTypeAnnotation string = "component"
+
 var (
 	// componentsCmd represents the components command
 	componentsCmd = &cobra.Command{
@@ -117,7 +119,7 @@ func hasInstalledCommands() bool {
 // if the command was installed from the CDK
 func isComponent(annotations map[string]string) bool {
 	t, found := annotations["type"]
-	if found && t == "component" {
+	if found && t == componentTypeAnnotation {
 		return true
 	}
 	return false
@@ -158,7 +160,7 @@ func (c *cliState) LoadComponents() {
 					// @afiune strip `lw-` from component?
 					Use:                   component.Name,
 					Short:                 component.Description,
-					Annotations:           map[string]string{"type": "component"},
+					Annotations:           map[string]string{"type": componentTypeAnnotation},
 					Version:               ver.String(),
 					SilenceUsage:          true,
 					DisableFlagParsing:    true,
@@ -189,10 +191,9 @@ func (c *cliState) LoadComponents() {
 								"provided_flags", filteredCLIFlags, "error", err)
 						}
 
-						// The root command's persistent pre-run will have created a client
-						// without having parsed command line args.  So get it again with
-						// the correct configuration
-						if err := cli.NewClient(); err != nil {
+						// The root command's persistent pre-run will not have created
+						// a client or done migrations
+						if err := rootPersistentPreRunE(); err != nil {
 							return err
 						}
 
