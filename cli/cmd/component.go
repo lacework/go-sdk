@@ -164,35 +164,15 @@ func (c *cliState) LoadComponents() {
 					DisableFlagParsing:    true,
 					DisableFlagsInUseLine: true,
 					RunE: func(cmd *cobra.Command, args []string) error {
-
-						// Split args into those handled by the CLI and those
-						// we pass to the component
-						argParser := componentArgParser{}
-						argParser.parseArgs(cmd.Flags(), args)
-						err := cmd.Flags().Parse(argParser.cliArgs)
-
-						// We call initConfig() again after global flags have been parsed.
-						initConfig()
-
-						if err != nil {
-							cli.Log.Debugw("unable to parse global flags",
-								"provided_flags", argParser.cliArgs, "error", err)
-						}
-
-						// The root command's persistent pre-run will not have created
-						// a client or done migrations
-						if err := rootPersistentPreRunE(); err != nil {
-							return err
-						}
-
 						cli.Log.Debugw("running component", "component", cmd.Use,
-							"args", argParser.componentArgs, "cli_flags", argParser.cliArgs)
+							"args", cli.componentParser.componentArgs,
+							"cli_flags", cli.componentParser.cliArgs)
 						f, ok := cli.LwComponents.GetComponent(cmd.Use)
 						if ok {
 							// @afiune what if the component needs other env variables
 							envs := []string{fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use)}
 							envs = append(envs, c.envs()...)
-							return f.RunAndOutput(argParser.componentArgs, envs...)
+							return f.RunAndOutput(cli.componentParser.componentArgs, envs...)
 						}
 
 						// We will land here only if we couldn't run the component, which is not

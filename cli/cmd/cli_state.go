@@ -63,18 +63,19 @@ type cliState struct {
 	Cache        *diskv.Diskv
 	LwComponents *lwcomponent.State
 
-	id             string
-	workers        sync.WaitGroup
-	spinner        *spinner.Spinner
-	jsonOutput     bool
-	yamlOutput     bool
-	csvOutput      bool
-	nonInteractive bool
-	noCache        bool
-	lqlOperator    string
-	profileDetails map[string]interface{}
-	tokenCache     api.TokenData
-	installedCmd   bool
+	id              string
+	workers         sync.WaitGroup
+	spinner         *spinner.Spinner
+	jsonOutput      bool
+	yamlOutput      bool
+	csvOutput       bool
+	nonInteractive  bool
+	noCache         bool
+	lqlOperator     string
+	profileDetails  map[string]interface{}
+	tokenCache      api.TokenData
+	installedCmd    bool
+	componentParser componentArgParser
 }
 
 // NewDefaultState creates a new cliState with some defaults
@@ -430,6 +431,10 @@ func (c *cliState) envs() []string {
 		fmt.Sprintf("LW_NOCOLOR=%s", os.Getenv("NO_COLOR")),
 		fmt.Sprintf("LW_LOG=%s", c.LogLevel),
 		fmt.Sprintf("LW_JSON=%v", c.jsonOutput),
+
+		// Sends tracing information
+		fmt.Sprintf("LW_HONEYVENT_TRACE_ID=%s", c.Event.TraceID),
+		fmt.Sprintf("LW_HONEYVENT_PARENT_ID=%s", c.Event.SpanID),
 	}
 }
 
