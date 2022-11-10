@@ -121,6 +121,7 @@ func componentPersistentPreRun(cmd *cobra.Command, args []string) error {
 	initConfig()
 
 	if err != nil {
+		cli.Event.Error = err.Error()
 		cli.Log.Debugw("unable to parse global flags", "error", err,
 			"provided_flags", cli.componentParser.cliArgs)
 	}
