@@ -1,0 +1,53 @@
+//
+// Author:: Salim Afiune Maya (<afiune@lacework.net>)
+// Copyright:: Copyright 2022, Lacework Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+syntax = "proto3";
+
+// defines the go package that will be generated with protoc
+option go_package = "lacework/go-sdk/cli/cdk";
+
+package cdk;
+
+// CDK service definition
+service CDK {
+  // Sends a ping -> pong between server and client
+  //    Component -> CDK Server
+  rpc Ping(PingRequest) returns (PongReply) {}
+
+  // Sends a Honeyvent
+  rpc Honeyvent(HoneyventRequest) returns (Reply) {}
+}
+
+message PingRequest {
+  string component_name = 1;
+}
+
+message PongReply {
+  string message = 1;
+}
+
+// Reply is a generic reply for for rpc definitions that only requires
+// acknowledgement of the remote procedure
+message Reply {}
+
+message HoneyventRequest {
+  string feature = 1;
+  map<string, string> feature_data = 2;
+  string error = 3;
+  int64 duration_ms = 4;
+}

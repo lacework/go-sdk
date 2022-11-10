@@ -143,9 +143,8 @@ func (c *cliState) LoadComponents() {
 
 			ver, err := component.CurrentVersion()
 			if err != nil {
-				c.Log.Warnw("unable to load dynamic cli command",
-					"component", component.Name,
-					"error", err.Error(),
+				c.Log.Errorw("unable to load dynamic cli command",
+					"component", component.Name, "error", err,
 				)
 				continue
 			}
@@ -155,7 +154,6 @@ func (c *cliState) LoadComponents() {
 			)
 			rootCmd.AddCommand(
 				&cobra.Command{
-					// @afiune strip `lw-` from component?
 					Use:                   component.Name,
 					Short:                 component.Description,
 					Annotations:           map[string]string{"type": componentTypeAnnotation},
@@ -164,15 +162,24 @@ func (c *cliState) LoadComponents() {
 					DisableFlagParsing:    true,
 					DisableFlagsInUseLine: true,
 					RunE: func(cmd *cobra.Command, args []string) error {
-						cli.Log.Debugw("running component", "component", cmd.Use,
-							"args", cli.componentParser.componentArgs,
-							"cli_flags", cli.componentParser.cliArgs)
-						f, ok := cli.LwComponents.GetComponent(cmd.Use)
+						go func() {
+							// Start the gRPC server for components to communicate back
+							if err := c.Serve(c.GrpcTarget()); err != nil {
+								c.Log.Errorw("couldn't serve gRPC server", "error", err)
+							}
+						}()
+
+						c.Log.Debugw("running component", "component", cmd.Use,
+							"args", c.componentParser.componentArgs,
+							"cli_flags", c.componentParser.cliArgs)
+						f, ok := c.LwComponents.GetComponent(cmd.Use)
 						if ok {
-							// @afiune what if the component needs other env variables
-							envs := []string{fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use)}
+							envs := []string{
+								fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use),
+								fmt.Sprintf("LW_CDK_TARGET=%s", c.GrpcTarget()),
+							}
 							envs = append(envs, c.envs()...)
-							return f.RunAndOutput(cli.componentParser.componentArgs, envs...)
+							return f.RunAndOutput(c.componentParser.componentArgs, envs...)
 						}
 
 						// We will land here only if we couldn't run the component, which is not

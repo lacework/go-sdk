@@ -162,6 +162,12 @@ generate-docs: ## *CI ONLY* Generates documentation
 test-resources: ## *CI ONLY* Prepares CI test containers
 	scripts/prepare_test_resources.sh all
 
+.PHONY: protoc
+protoc: ## Generates code from proto files inside 'cli/cdk'
+	protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    cli/cdk/*.proto
+
 .PHONY: install-cli
 install-cli: build-cli-cross-platform ## Build and install the Lacework CLI binary at /usr/local/bin/lacework
 ifeq (x86_64, $(shell uname -m))

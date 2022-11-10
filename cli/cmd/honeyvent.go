@@ -20,11 +20,13 @@ package cmd
 
 import (
 	"os"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
 
 	"github.com/honeycombio/libhoney-go"
+	"github.com/lacework/go-sdk/lwdomain"
 )
 
 var (
@@ -173,10 +175,18 @@ func (c *cliState) SendHoneyvent() {
 	}
 
 	// Lacework accounts are NOT case-sensitive but some users configure them
-	// in uppercase and other in lowercase, therefore we will normalize all
+	// in uppercase and others in lowercase, therefore we will normalize all
 	// account to be lowercase so that we don't see different accounts in
 	// Honeycomb.
 	c.Event.Account = strings.ToLower(c.Event.Account)
+
+	// Detect if the account has the full domain, if so, subtract the account
+	if match, _ := regexp.MatchString(".lacework.net", c.Account); match {
+		d, err := lwdomain.New(c.Account)
+		if err == nil {
+			c.Event.Account = strings.ToLower(d.String())
+		}
+	}
 
 	c.Log.Debugw("new honeyvent", "dataset", HoneyDataset,
 		"trace_id", c.Event.TraceID,
