@@ -297,6 +297,9 @@ open_pull_request() {
   curl -XPOST -H "Authorization: token $GITHUB_TOKEN" --data  "@$_body" \
         https://api.github.com/repos/${org_name}/${project_name}/pulls > $_pr
 
+  # @afiune just to debug the issue where the field `html_url` comes as `null`
+  echo "$_pr" | jq .
+
   _pr_url=$(jq .html_url $_pr)
   log ""
   log "It is time to review the release!"
