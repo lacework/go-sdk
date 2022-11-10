@@ -32,7 +32,10 @@ import (
 	"github.com/lacework/go-sdk/lwcomponent"
 )
 
-const componentTypeAnnotation string = "component"
+const (
+	componentTypeAnnotation string = "component"
+	grpcPort                int    = 1234
+)
 
 var (
 	// componentsCmd represents the components command
@@ -143,9 +146,8 @@ func (c *cliState) LoadComponents() {
 
 			ver, err := component.CurrentVersion()
 			if err != nil {
-				c.Log.Warnw("unable to load dynamic cli command",
-					"component", component.Name,
-					"error", err.Error(),
+				c.Log.Errorw("unable to load dynamic cli command",
+					"component", component.Name, "error", err,
 				)
 				continue
 			}
@@ -164,13 +166,21 @@ func (c *cliState) LoadComponents() {
 					DisableFlagParsing:    true,
 					DisableFlagsInUseLine: true,
 					RunE: func(cmd *cobra.Command, args []string) error {
+						go func() {
+							if err := lwcomponent.Serve(grpcPort, cli.LogLevel); err != nil {
+								cli.Log.Errorw("couldn't serve gRPC server", "error", err)
+							}
+						}()
+
 						cli.Log.Debugw("running component", "component", cmd.Use,
 							"args", cli.componentParser.componentArgs,
 							"cli_flags", cli.componentParser.cliArgs)
 						f, ok := cli.LwComponents.GetComponent(cmd.Use)
 						if ok {
-							// @afiune what if the component needs other env variables
-							envs := []string{fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use)}
+							envs := []string{
+								fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use),
+								fmt.Sprintf("LW_CDK_SERVER_PORT=%d", grpcPort),
+							}
 							envs = append(envs, c.envs()...)
 							return f.RunAndOutput(cli.componentParser.componentArgs, envs...)
 						}
