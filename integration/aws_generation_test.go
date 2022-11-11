@@ -23,11 +23,11 @@ func TestGenerationAwsErrorOnNoSelection(t *testing.T) {
 	// Run CLI
 	runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("n")
-			expectString(t, c, "ERROR collecting/confirming parameters: must enable cloudtrail or config")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
+				MsgOnly{"ERROR collecting/confirming parameters: must enable cloudtrail or config"},
+			})
 		},
 		"generate",
 		"cloud-account",
@@ -45,16 +45,13 @@ func TestGenerationAwsSimple(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -91,25 +88,16 @@ func TestGenerationAwsCustomizedOutputLocation(t *testing.T) {
 	// Run CLI
 	runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B")
-			expectString(t, c, cmd.QuestionAwsCustomizeOutputLocation)
-			c.SendLine(dir)
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 4},
+				MsgRsp{cmd.QuestionAwsCustomizeOutputLocation, dir},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -142,16 +130,13 @@ func TestGenerationAwsConfigOnly(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -181,22 +166,14 @@ func TestGenerationAwsAdvancedOptsDone(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 5},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -226,51 +203,32 @@ func TestGenerationAwsAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("\x1B[B")
-			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionCloudtrailName)
-			c.SendLine("")
-			// S3 Bucket Questions
-			expectString(t, c, cmd.QuestionForceDestroyS3Bucket)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionBucketName)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionBucketEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionBucketSseKeyArn)
-			c.SendLine("")
-			// SNS Topic Questions
-			expectString(t, c, cmd.QuestionsUseExistingSNSTopic)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionSnsTopicName)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionSnsEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSnsEncryptionKeyArn)
-			c.SendLine("")
-			// SQS Questions
-			expectString(t, c, cmd.QuestionSqsQueueName)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionSqsEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "y"},
+				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
+				MsgRsp{cmd.QuestionCloudtrailName, ""},
+				// S3 Bucket Questions
+				MsgRsp{cmd.QuestionForceDestroyS3Bucket, "y"},
+				MsgRsp{cmd.QuestionBucketName, ""},
+				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
+				// SNS Topic Questions
+				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
+				MsgRsp{cmd.QuestionSnsTopicName, ""},
+				MsgRsp{cmd.QuestionSnsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
+				// SQS Questions
+				MsgRsp{cmd.QuestionSqsQueueName, ""},
+				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -302,45 +260,28 @@ func TestGenerationAwsAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("\x1B[B")
-			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionCloudtrailExistingBucketArn)
-			c.SendLine("notright") // test our validator is working
-			expectString(t, c, "invalid arn supplied")
-			c.SendLine("arn:aws:s3:::bucket_name")
-			// SNS Topic Questions
-			expectString(t, c, cmd.QuestionsUseExistingSNSTopic)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionSnsTopicName)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionSnsEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSnsEncryptionKeyArn)
-			c.SendLine("")
-			// SQS Questions
-			expectString(t, c, cmd.QuestionSqsQueueName)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionSqsEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
-			c.SendLine("")
-			//
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
+				MsgRsp{cmd.QuestionUseExistingCloudtrail, "y"},
+				MsgRsp{cmd.QuestionCloudtrailExistingBucketArn, "notright"},
+				MsgRsp{"invalid arn supplied", "arn:aws:s3:::bucket_name"},
+				// SNS Topic Questions
+				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
+				MsgRsp{cmd.QuestionSnsTopicName, ""},
+				MsgRsp{cmd.QuestionSnsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
+				// SQS Questions
+				MsgRsp{cmd.QuestionSqsQueueName, ""},
+				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -371,70 +312,40 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("\x1B[B")
-			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionCloudtrailName)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionForceDestroyS3Bucket)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionBucketName)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionBucketEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionBucketSseKeyArn)
-			c.SendLine("")
-			// SNS Topic Questions
-			expectString(t, c, cmd.QuestionsUseExistingSNSTopic)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionSnsTopicName)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionSnsEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSnsEncryptionKeyArn)
-			c.SendLine("")
-			// SQS Questions
-			expectString(t, c, cmd.QuestionSqsQueueName)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionSqsEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
-			c.SendLine("")
-			//
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
-			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
-			c.SendLine("default")
-			expectString(t, c, cmd.QuestionSubAccountProfileName)
-			c.SendLine("account1")
-			expectString(t, c, cmd.QuestionSubAccountRegion)
-			c.SendLine("us-east-1")
-			expectString(t, c, cmd.QuestionSubAccountAddMore)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSubAccountProfileName)
-			c.SendLine("account2")
-			expectString(t, c, cmd.QuestionSubAccountRegion)
-			c.SendLine("us-east-2")
-			expectString(t, c, cmd.QuestionSubAccountAddMore)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "y"},
+				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
+				MsgRsp{cmd.QuestionCloudtrailName, ""},
+				MsgRsp{cmd.QuestionForceDestroyS3Bucket, "n"},
+				MsgRsp{cmd.QuestionBucketName, ""},
+				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
+				// SNS Topic Questions
+				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
+				MsgRsp{cmd.QuestionSnsTopicName, ""},
+				MsgRsp{cmd.QuestionSnsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
+				// SQS Questions
+				MsgRsp{cmd.QuestionSqsQueueName, ""},
+				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 2},
+				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "default"},
+				MsgRsp{cmd.QuestionSubAccountProfileName, "account1"},
+				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-1"},
+				MsgRsp{cmd.QuestionSubAccountAddMore, "y"},
+				MsgRsp{cmd.QuestionSubAccountProfileName, "account2"},
+				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionSubAccountAddMore, "n"},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -467,34 +378,22 @@ func TestGenerationAwsAdvancedOptsConfigWithSubAccounts(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("\x1B[B")
-			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
-			c.SendLine("default")
-			expectString(t, c, cmd.QuestionSubAccountProfileName)
-			c.SendLine("account1")
-			expectString(t, c, cmd.QuestionSubAccountRegion)
-			c.SendLine("us-east-1")
-			expectString(t, c, cmd.QuestionSubAccountAddMore)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSubAccountProfileName)
-			c.SendLine("account2")
-			expectString(t, c, cmd.QuestionSubAccountRegion)
-			c.SendLine("us-east-2")
-			expectString(t, c, cmd.QuestionSubAccountAddMore)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "default"},
+				MsgRsp{cmd.QuestionSubAccountProfileName, "account1"},
+				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-1"},
+				MsgRsp{cmd.QuestionSubAccountAddMore, "y"},
+				MsgRsp{cmd.QuestionSubAccountProfileName, "account2"},
+				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionSubAccountAddMore, "n"},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -523,37 +422,23 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *tes
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B") // Down arrow twice and enter on the submenu to add subaccounts
-			expectString(t, c, cmd.QuestionPrimaryAwsAccountProfile)
-			c.SendLine("default")
-			expectString(t, c, fmt.Sprintf(cmd.QuestionSubAccountReplace, "testaccount:us-east-1, testaccount1:us-east-2"))
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSubAccountProfileName)
-			c.SendLine("account1")
-			expectString(t, c, cmd.QuestionSubAccountRegion)
-			c.SendLine("us-east-1")
-			expectString(t, c, cmd.QuestionSubAccountAddMore)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSubAccountProfileName)
-			c.SendLine("account2")
-			expectString(t, c, cmd.QuestionSubAccountRegion)
-			c.SendLine("us-east-2")
-			expectString(t, c, cmd.QuestionSubAccountAddMore)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 2},
+				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "default"},
+				MsgRsp{fmt.Sprintf(cmd.QuestionSubAccountReplace, "testaccount:us-east-1, testaccount1:us-east-2"), "y"},
+				MsgRsp{cmd.QuestionSubAccountProfileName, "account1"},
+				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-1"},
+				MsgRsp{cmd.QuestionSubAccountAddMore, "y"},
+				MsgRsp{cmd.QuestionSubAccountProfileName, "account2"},
+				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionSubAccountAddMore, "n"},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -594,28 +479,18 @@ func TestGenerationAwsAdvancedOptsUseExistingIAM(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B") // Down arrow once and return
-			expectString(t, c, cmd.QuestionExistingIamRoleName)
-			c.SendLine(roleName)
-			expectString(t, c, cmd.QuestionExistingIamRoleArn)
-			c.SendLine(roleArn)
-			expectString(t, c, cmd.QuestionExistingIamRoleExtID)
-			c.SendLine(roleExtId)
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 3},
+				MsgRsp{cmd.QuestionExistingIamRoleName, roleName},
+				MsgRsp{cmd.QuestionExistingIamRoleArn, roleArn},
+				MsgRsp{cmd.QuestionExistingIamRoleExtID, roleExtId},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -649,36 +524,23 @@ func TestGenerationAwsAdvancedOptsUseExistingElements(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("\x1B[B") // Down arrow once and return
-			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionCloudtrailExistingBucketArn)
-			c.SendLine(bucketArn)
-			expectString(t, c, cmd.QuestionsUseExistingSNSTopic)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSnsTopicArn)
-			c.SendLine(topicArn)
-			expectString(t, c, cmd.QuestionSqsQueueName)
-			c.SendLine(queueName)
-			expectString(t, c, cmd.QuestionSqsEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
-			c.SendLine("")
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
+				MsgRsp{cmd.QuestionUseExistingCloudtrail, "y"},
+				MsgRsp{cmd.QuestionCloudtrailExistingBucketArn, bucketArn},
+				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "y"},
+				MsgRsp{cmd.QuestionSnsTopicArn, topicArn},
+				MsgRsp{cmd.QuestionSqsQueueName, queueName},
+				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -714,52 +576,32 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.SendLine("\x1B[B") // Down arrow once and return
-			expectString(t, c, cmd.QuestionConsolidatedCloudtrail)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionUseExistingCloudtrail)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionCloudtrailName)
-			c.SendLine(trailName)
-			// S3 Questions
-			expectString(t, c, cmd.QuestionForceDestroyS3Bucket)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionBucketName)
-			c.SendLine(bucketName)
-			expectString(t, c, cmd.QuestionBucketEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionBucketSseKeyArn)
-			c.SendLine(kmsArn)
-			// SNS Topic Questions
-			expectString(t, c, cmd.QuestionsUseExistingSNSTopic)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionSnsTopicName)
-			c.SendLine(topicName)
-			expectString(t, c, cmd.QuestionSnsEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSnsEncryptionKeyArn)
-			c.SendLine(kmsArn)
-			// SQS Questions
-			expectString(t, c, cmd.QuestionSqsQueueName)
-			c.SendLine(queueName)
-			expectString(t, c, cmd.QuestionSqsEnableEncryption)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionSqsEncryptionKeyArn)
-			c.SendLine(kmsArn)
-			//
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
+				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
+				MsgRsp{cmd.QuestionCloudtrailName, trailName},
+				// S3 Questions
+				MsgRsp{cmd.QuestionForceDestroyS3Bucket, "y"},
+				MsgRsp{cmd.QuestionBucketName, bucketName},
+				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionBucketSseKeyArn, kmsArn},
+				// SNS Topic Questions
+				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
+				MsgRsp{cmd.QuestionSnsTopicName, topicName},
+				MsgRsp{cmd.QuestionSnsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, kmsArn},
+				// SQS Questions
+				MsgRsp{cmd.QuestionSqsQueueName, queueName},
+				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, kmsArn},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -808,25 +650,16 @@ func TestGenerationAwsWithExistingTerraform(t *testing.T) {
 	// Run CLI
 	runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("y")
-			expectString(t, c, cmd.AwsAdvancedOptDone)
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B")
-			expectString(t, c, cmd.QuestionAwsCustomizeOutputLocation)
-			c.SendLine(dir)
-			expectString(t, c, cmd.QuestionAwsAnotherAdvancedOpt)
-			c.SendLine("n")
-			expectString(t, c, fmt.Sprintf("%s/main.tf already exists, overwrite?", dir))
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 4},
+				MsgRsp{cmd.QuestionAwsCustomizeOutputLocation, dir},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), "n"},
+			})
 		},
 		"generate",
 		"cloud-account",
@@ -856,16 +689,13 @@ func TestGenerationAwsOverwrite(t *testing.T) {
 
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -877,18 +707,14 @@ func TestGenerationAwsOverwrite(t *testing.T) {
 
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("n")
-			expectString(t, c, "already exists, overwrite?")
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
+				MsgRsp{"already exists, overwrite?", "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -917,16 +743,13 @@ func TestGenerationAwsOverwriteOutput(t *testing.T) {
 
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -940,18 +763,14 @@ func TestGenerationAwsOverwriteOutput(t *testing.T) {
 
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("n")
-			expectString(t, c, "already exists, overwrite?")
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
+				MsgRsp{"already exists, overwrite?", "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -974,16 +793,14 @@ func TestGenerationAwsLaceworkProfile(t *testing.T) {
 
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectString(t, c, cmd.QuestionAwsEnableConfig)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionEnableCloudtrail)
-			c.SendLine("y")
-			expectString(t, c, cmd.QuestionAwsRegion)
-			c.SendLine(region)
-			expectString(t, c, cmd.QuestionAwsConfigAdvanced)
-			c.SendLine("n")
-			expectString(t, c, cmd.QuestionRunTfPlan)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
