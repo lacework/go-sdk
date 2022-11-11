@@ -33,19 +33,6 @@ import (
 	"github.com/lacework/go-sdk/lwlogger"
 )
 
-func rootPersistentPreRunE() error {
-	if err := cli.NewClient(); err != nil {
-		if !strings.Contains(err.Error(), "Invalid Account") {
-			return err
-		}
-
-		if err := cli.Migrations(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 var (
 	// the global cli state with defaults
 	cli = NewDefaultState()
@@ -66,27 +53,10 @@ Start by configuring the Lacework CLI with the command:
 
 This will prompt you for your Lacework account and a set of API access keys.`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			cli.Log.Debugw("updating honeyvent", "dataset", HoneyDataset)
-			cli.Event.Command = cmd.CommandPath()
-			cli.Event.Args = args
-			cli.Event.Flags = parseFlags(os.Args[1:])
-			cli.SendHoneyvent()
-
-			switch cmd.Use {
-			case "help [command]", "configure", "version", "docs <directory>", "generate-pkg-manifest":
-				return nil
-			default:
-				// @afiune no need to create a client for any configure command
-				if cmd.HasParent() && cmd.Parent().Use == "configure" {
-					return nil
-				}
-				// @dhazekamp no need to create a client for any component command
-				// this will be handled via the components RunE
-				if isComponent(cmd.Annotations) {
-					return nil
-				}
-				return rootPersistentPreRunE()
+			if isComponent(cmd.Annotations) {
+				return componentPersistentPreRun(cmd, args)
 			}
+			return cliPersistentPreRun(cmd, args)
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
 			// skip daily version check if the user is running the version command
@@ -105,6 +75,61 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 		},
 	}
 )
+
+func cliPersistentPreRun(cmd *cobra.Command, args []string) error {
+	cli.Log.Debugw("updating honeyvent", "dataset", HoneyDataset)
+	cli.Event.Command = cmd.CommandPath()
+	cli.Event.Args = args
+	cli.Event.Flags = parseFlags(os.Args[1:])
+	cli.SendHoneyvent()
+
+	switch cmd.Use {
+	case "help [command]", "configure", "version", "docs <directory>", "generate-pkg-manifest":
+		return nil
+	default:
+		// @afiune no need to create a client for any configure command
+		if cmd.HasParent() && cmd.Parent().Use == "configure" {
+			return nil
+		}
+		if err := cli.NewClient(); err != nil {
+			if !strings.Contains(err.Error(), "Invalid Account") {
+				return err
+			}
+
+			if err := cli.Migrations(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func componentPersistentPreRun(cmd *cobra.Command, args []string) error {
+	cli.Event.Command = cmd.CommandPath()
+	cli.Event.Component = cmd.Use
+	cli.Event.Flags = parseFlags(os.Args[1:])
+	defer cli.SendHoneyvent()
+
+	// For components, we disable flag parsing, therefore we
+	// split args into those handled by the CLI and those
+	// we pass to the component manually
+	cli.componentParser.parseArgs(cmd.Flags(), args)
+	cli.Event.Args = cli.componentParser.componentArgs
+	err := cmd.Flags().Parse(cli.componentParser.cliArgs)
+
+	// We call initConfig() again after global flags have been parsed.
+	initConfig()
+
+	if err != nil {
+		cli.Event.Error = err.Error()
+		cli.Log.Debugw("unable to parse global flags", "error", err,
+			"provided_flags", cli.componentParser.cliArgs)
+	}
+
+	cli.Log.Debugw("honeyvent updated", "dataset", HoneyDataset)
+
+	return cli.NewClient()
+}
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -280,7 +305,6 @@ func initConfig() {
 			cli.Log.Debugw("configuration file not found")
 		} else {
 			// the config file was found but another error was produced
-			errcheckWARN(rootCmd.Help())
 			exitwith(errors.Wrap(err, "unable to read in config file ~/.lacework.toml"))
 		}
 	} else {
