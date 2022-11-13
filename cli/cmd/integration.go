@@ -21,6 +21,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -248,6 +249,7 @@ func promptCreateIntegration() error {
 				"Google Artifact Registry (GAR)",
 				"Github Container Registry (GHCR)",
 				"Inline Scanner Container Registry",
+				"Proxy Scanner Container Registry",
 				"AWS Config",
 				"AWS CloudTrail",
 				"AWS Config (US GovCloud)",
@@ -310,6 +312,8 @@ func promptCreateIntegration() error {
 		return createGarIntegration()
 	case "Inline Scanner Container Registry":
 		return createInlineScannerIntegration()
+	case "Proxy Scanner Container Registry":
+		return createProxyScannerIntegration()
 	case "Github Container Registry (GHCR)":
 		return createGhcrIntegration()
 	case "Google Container Registry (GCR)":
@@ -803,6 +807,24 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 				{"SERVER TOKEN", inlineScanner.Data.ServerToken.Token},
 				{"IDENTIFIER TAGS", castMapStringSliceToString(inlineScanner.Data.Data.IdentifierTag)},
 				{"LIMIT NUM SCANS", inlineScanner.Data.Data.LimitNumScan},
+			}
+		case api.ProxyScannerContainerRegistry.String():
+			proxyScanner, err := cli.LwApi.V2.ContainerRegistries.GetProxyScanner(raw.IntgGuid)
+			if err != nil {
+				cli.Log.Debugw("unable to decode integration data",
+					"integration_type", raw.Type,
+					"registry_type", iData.RegistryType,
+					"raw_data", raw.Data,
+					"error", err,
+				)
+				break
+			}
+			out = [][]string{
+				{"SERVER TOKEN", proxyScanner.Data.ServerToken.Token},
+				{"LIMIT BY TAG", castMapStringSliceToString(proxyScanner.Data.Data.LimitByTag)},
+				{"LIMIT BY REP", castMapStringSliceToString(proxyScanner.Data.Data.LimitByRep)},
+				{"LIMIT BY LABEL", castMapStringSliceToString(proxyScanner.Data.Data.LimitByLabel)},
+				{"LIMIT NUM IMAGES", strconv.Itoa(proxyScanner.Data.Data.LimitNumImg)},
 			}
 		case api.DockerHubRegistry.String():
 			out = append(out, []string{"USERNAME", iData.Credentials.Username})
