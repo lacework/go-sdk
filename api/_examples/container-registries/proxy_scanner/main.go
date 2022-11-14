@@ -56,6 +56,7 @@ func main() {
 		log.Fatal(errGet)
 	}
 	fmt.Printf("Found proxy scanner guid: %s", proxyScannerGetResponse.Data.IntgGuid)
+	fmt.Printf("Created inline scanner server token: %s", proxyScannerCreateResponse.Data.ServerToken.ServerToken)
 
 	// delete created proxy scanner
 	errDelete := lacework.V2.ContainerRegistries.Delete(
