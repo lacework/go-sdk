@@ -44,6 +44,7 @@ var (
 		InstallTagKey         string
 		InstallTag            []string
 		InstallIncludeRegions []string
+		InstallOrgId          string
 		InstallMaxParallelism int
 	}{}
 
@@ -190,6 +191,9 @@ func init() {
 	// add sub-commands to the 'agent aws-install' command for different install methods
 	agentAWSInstallCmd.AddCommand(agentInstallAWSEC2ICCmd)
 	agentAWSInstallCmd.AddCommand(agentInstallAWSSSHCmd)
+
+	// add sub-commands to the 'agent gcp-install' command for different install methods
+	agentGCPInstallCmd.AddCommand(agentInstallGCPOSLCmd)
 
 	// 'agent token update' flags
 	agentTokenUpdateCmd.Flags().BoolVar(&agentCmdState.TokenUpdateEnable,
