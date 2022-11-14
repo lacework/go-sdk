@@ -43,20 +43,25 @@ func createProxyScannerIntegration() error {
 		},
 		{
 			Name: "limit_label",
-			Prompt: &survey.Input{
-				Message: "Limit by Label: ",
+			Prompt: &survey.Multiline{
+				Message: "List of 'key:value' labels:",
 				Default: "*",
 			},
 		},
 		{
-			Name:   "limit_repos",
-			Prompt: &survey.Input{Message: "Limit by Repository: "},
+			Name: "limit_repos",
+			Prompt: &survey.Input{
+				Message: "Limit by Repository: ",
+				Default: "*",
+			},
 		},
 		{
 			Name: "limit_max_images",
 			Prompt: &survey.Select{
 				Message: "Limit Number of Images per Repo: ",
-				Options: []string{"5", "10", "15"},
+				Options: []string{
+					"5", "10", "15",
+				},
 			},
 			Validate: survey.Required,
 		},
