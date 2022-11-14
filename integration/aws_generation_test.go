@@ -15,6 +15,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	awsPath = "/lacework/aws/"
+)
+
 // Test failing due to no selection
 func TestGenerationAwsErrorOnNoSelection(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
@@ -820,20 +824,23 @@ func TestGenerationAwsLaceworkProfile(t *testing.T) {
 }
 
 func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
-	// create a temporal directory where we will check that the
-	// configuration file is deployed (.lacework.toml)
-	dir := createDummyTOMLConfig()
-	homeCache := os.Getenv("HOME")
-	os.Setenv("HOME", dir)
-	defer os.Setenv("HOME", homeCache)
-	defer os.RemoveAll(dir)
+	os.Setenv("HOME", tfPath)
 
-	runFakeTerminalTestFromDir(t, dir, conditions, args...)
-	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/aws/main.tf", dir)))
+	hcl_path := filepath.Join(tfPath, awsPath, "main.tf")
+
+	runFakeTerminalTestFromDir(t, tfPath, conditions, args...)
+	out, err := ioutil.ReadFile(hcl_path)
 	if err != nil {
-		// Assume couldn't be found
-		return ""
+		return fmt.Sprintf("main.tf not found: %s", err)
 	}
+
+	t.Cleanup(func() {
+		os.Remove(hcl_path)
+	})
+
+	result := terraformValidate(filepath.Join(tfPath, awsPath))
+
+	assert.True(t, result.Valid)
 
 	return string(out)
 }

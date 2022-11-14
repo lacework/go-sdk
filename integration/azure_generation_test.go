@@ -17,6 +17,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	azurePath = "/lacework/azure/"
+)
+
 func expectAzureString(c *expect.Console, str string, runError *error) {
 	out, err := c.Expect(expect.WithTimeout(time.Second), expect.String(str))
 	if err != nil {
@@ -848,20 +852,23 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 }
 
 func runGenerateAzureTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
-	// create a temporal directory where we will check that the
-	// configuration file is deployed (.lacework.toml)
-	dir := createDummyTOMLConfig()
-	homeCache := os.Getenv("HOME")
-	os.Setenv("HOME", dir)
-	defer os.Setenv("HOME", homeCache)
-	defer os.RemoveAll(dir)
+	os.Setenv("HOME", tfPath)
 
-	runFakeTerminalTestFromDir(t, dir, conditions, args...)
-	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/azure/main.tf", dir)))
+	hcl_path := filepath.Join(tfPath, azurePath, "main.tf")
+
+	runFakeTerminalTestFromDir(t, tfPath, conditions, args...)
+	out, err := ioutil.ReadFile(hcl_path)
 	if err != nil {
-		// Assume couldn't be found
-		return ""
+		return fmt.Sprintf("main.tf not found: %s", err)
 	}
+
+	t.Cleanup(func() {
+		os.Remove(hcl_path)
+	})
+
+	result := terraformValidate(filepath.Join(tfPath, azurePath))
+
+	assert.True(t, result.Valid)
 
 	return string(out)
 }
