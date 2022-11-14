@@ -803,7 +803,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 				break
 			}
 			out = [][]string{
-				{"SERVER TOKEN", inlineScanner.Data.ServerToken.Token},
+				{"SERVER TOKEN", inlineScanner.Data.ServerToken.ServerToken},
 				{"IDENTIFIER TAGS", castMapStringSliceToString(inlineScanner.Data.Data.IdentifierTag)},
 				{"LIMIT NUM SCANS", inlineScanner.Data.Data.LimitNumScan},
 			}
@@ -819,7 +819,7 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 				break
 			}
 			out = [][]string{
-				{"SERVER TOKEN", proxyScanner.Data.ServerToken.Token},
+				{"SERVER TOKEN", proxyScanner.Data.ServerToken.ServerToken},
 			}
 		case api.DockerHubRegistry.String():
 			out = append(out, []string{"USERNAME", iData.Credentials.Username})
