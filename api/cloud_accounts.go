@@ -211,14 +211,15 @@ type CloudAccountsResponse struct {
 }
 
 type v2CommonIntegrationData struct {
-	IntgGuid             string              `json:"intgGuid,omitempty"`
-	Name                 string              `json:"name"`
-	CreatedOrUpdatedTime string              `json:"createdOrUpdatedTime,omitempty"`
-	CreatedOrUpdatedBy   string              `json:"createdOrUpdatedBy,omitempty"`
-	Type                 string              `json:"type"`
-	Enabled              int                 `json:"enabled"`
-	IsOrg                int                 `json:"isOrg,omitempty"`
-	State                *V2IntegrationState `json:"state,omitempty"`
+	IntgGuid             string                    `json:"intgGuid,omitempty"`
+	Name                 string                    `json:"name"`
+	CreatedOrUpdatedTime string                    `json:"createdOrUpdatedTime,omitempty"`
+	CreatedOrUpdatedBy   string                    `json:"createdOrUpdatedBy,omitempty"`
+	Type                 string                    `json:"type"`
+	Enabled              int                       `json:"enabled"`
+	IsOrg                int                       `json:"isOrg,omitempty"`
+	State                *V2IntegrationState       `json:"state,omitempty"`
+	ServerToken          *V2IntegrationServerToken `json:"serverToken,omitempty"`
 }
 
 func (c v2CommonIntegrationData) ID() string {
@@ -244,6 +245,11 @@ type V2IntegrationState struct {
 	Details            map[string]interface{} `json:"details"`
 	LastUpdatedTime    lwtime.Epoch           `json:"lastUpdatedTime"`
 	LastSuccessfulTime lwtime.Epoch           `json:"lastSuccessfulTime"`
+}
+
+type V2IntegrationServerToken struct {
+	ServerToken string `json:"serverToken"`
+	Uri         string `json:"uri"`
 }
 
 func (svc *CloudAccountsService) create(data interface{}, response interface{}) error {
