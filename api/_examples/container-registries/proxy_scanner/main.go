@@ -19,13 +19,14 @@ func main() {
 	}
 
 	// setup proxy scanner data
-	repositoriesLimit := make([]map[string]string, 0)
-	tagsLimit := make([]map[string]string, 0)
+	repositoriesLimit := make([]string, 0)
+	tagsLimit := make([]string, 0)
 	labelLimit := make([]map[string]string, 0)
+	limitByImg := 5
 
 	proxyScannerData := api.ProxyScannerData{
 		RegistryType: api.ProxyScannerContainerRegistry.String(),
-		LimitNumImg:  5,
+		LimitNumImg:  limitByImg,
 		LimitByRep:   repositoriesLimit,
 		LimitByTag:   tagsLimit,
 		LimitByLabel: labelLimit,
@@ -45,6 +46,7 @@ func main() {
 		log.Fatal(errCreate)
 	}
 	fmt.Printf("Created proxy scanner guid: %s", proxyScannerCreateResponse.Data.IntgGuid)
+	fmt.Printf("Created inline scanner token: %s", proxyScannerCreateResponse.Data.ServerToken.ServerToken)
 
 	// get created proxy scanner
 	proxyScannerGetResponse, errGet := lacework.V2.ContainerRegistries.GetProxyScanner(
