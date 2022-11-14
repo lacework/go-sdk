@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -187,7 +188,15 @@ func buildDetailsTable(integration api.V2RawType) string {
 			case []any:
 				var values []string
 				for _, i := range val {
-					values = append(values, i.(string))
+					if _, ok := i.(string); ok {
+						values = append(values, i.(string))
+					} else if _, ok := i.(map[string]interface{}); ok {
+						for m, n := range i.(map[string]interface{}) {
+							values = append(values, fmt.Sprintf("%s:%s", m, n))
+						}
+					} else {
+						cli.OutputHuman("[WARN] Unknown type %T for key %s\n", i, k)
+					}
 				}
 				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strings.Join(values, ",")})
 			}
