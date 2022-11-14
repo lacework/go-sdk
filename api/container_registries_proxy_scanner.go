@@ -59,10 +59,10 @@ func (reg ProxyScannerIntegration) ContainerRegistryType() containerRegistryType
 
 type ProxyScannerData struct {
 	RegistryType string              `json:"registryType"` // always "PROXY_SCANNER"
-	LimitNumImg  int                 `json:"limitNumImg"`
-	LimitByRep   []map[string]string `json:"limitByRep"`
-	LimitByTag   []map[string]string `json:"limitByTag"`
+	LimitByTag   []string            `json:"limitByTag"`
 	LimitByLabel []map[string]string `json:"limitByLabel"`
+	LimitByRep   []string            `json:"limitByRep"`
+	LimitNumImg  int                 `json:"limitNumImg"`
 }
 
 func verifyProxyScannerContainerRegistry(data interface{}) interface{} {

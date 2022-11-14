@@ -21,7 +21,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -821,10 +820,6 @@ func reflectIntegrationData(raw api.RawIntegration) [][]string {
 			}
 			out = [][]string{
 				{"SERVER TOKEN", proxyScanner.Data.ServerToken.Token},
-				{"LIMIT BY TAG", castMapStringSliceToString(proxyScanner.Data.Data.LimitByTag)},
-				{"LIMIT BY REP", castMapStringSliceToString(proxyScanner.Data.Data.LimitByRep)},
-				{"LIMIT BY LABEL", castMapStringSliceToString(proxyScanner.Data.Data.LimitByLabel)},
-				{"LIMIT NUM IMAGES", strconv.Itoa(proxyScanner.Data.Data.LimitNumImg)},
 			}
 		case api.DockerHubRegistry.String():
 			out = append(out, []string{"USERNAME", iData.Credentials.Username})
