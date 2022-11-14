@@ -38,18 +38,19 @@ func (svc *ContainerRegistriesService) UpdateInlineScanner(data ContainerRegistr
 }
 
 type InlineScannerIntegrationResponse struct {
-	Data InlineScannerIntegration `json:"data"`
+	Data        InlineScannerIntegration  `json:"data"`
+	ServerToken *InlineScannerServerToken `json:"serverToken"`
 }
 
 type InlineScannerIntegration struct {
 	v2CommonIntegrationData
-	Data        InlineScannerData        `json:"data"`
-	ServerToken InlineScannerServerToken `json:"serverToken"`
+	Data        InlineScannerData         `json:"data"`
+	ServerToken *InlineScannerServerToken `json:"serverToken"`
 }
 
 type InlineScannerServerToken struct {
-	Token string `json:"serverToken"`
-	URI   string `json:"uri"`
+	ServerToken string `json:"serverToken"`
+	URI         string `json:"uri"`
 }
 
 func (reg InlineScannerIntegration) ContainerRegistryType() containerRegistryType {
