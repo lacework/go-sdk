@@ -41,6 +41,7 @@ func main() {
 		log.Fatal(errCreate)
 	}
 	fmt.Printf("Created inline scanner guid: %s", inlineScannerCreateResponse.Data.IntgGuid)
+	fmt.Printf("Created inline scanner server token: %s", inlineScannerCreateResponse.Data.ServerToken.ServerToken)
 
 	// get created inline scanner
 	inlineScannerGetResponse, errGet := lacework.V2.ContainerRegistries.GetInlineScanner(
@@ -50,6 +51,7 @@ func main() {
 		log.Fatal(errGet)
 	}
 	fmt.Printf("Found inline scanner guid: %s", inlineScannerGetResponse.Data.IntgGuid)
+	fmt.Printf("Found inline scanner token: %s", inlineScannerGetResponse.Data.ServerToken)
 
 	// delete created inline scanner
 	errDelete := lacework.V2.ContainerRegistries.Delete(
