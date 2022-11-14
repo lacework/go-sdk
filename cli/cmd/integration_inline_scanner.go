@@ -36,17 +36,23 @@ func createInlineScannerIntegration() error {
 		{
 			Name: "identifier_tag",
 			Prompt: &survey.Multiline{
-				Message: "List of 'key:value' tags:"},
+				Message: "List of 'key:value' tags:",
+				Default: "*",
+			},
 		},
 		{
 			Name: "limit_num_scan",
-			Prompt: &survey.Input{
+			Prompt: &survey.Select{
 				Message: "Limit number of scans: ",
 				Default: "60",
+				Options: []string{
+					"5", "10", "15",
+					"20", "25", "30",
+					"35", "40", "45",
+					"50", "55", "60",
+				},
 			},
-			Validate: promptRequiredInt(
-				"The limit must be a number.",
-			),
+			Validate: survey.Required,
 		},
 	}
 
