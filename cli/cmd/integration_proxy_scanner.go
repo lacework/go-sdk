@@ -44,8 +44,8 @@ func createProxyScannerIntegration() error {
 	}
 
 	// default values
-	repositoriesLimit := make([]map[string]string, 0)
-	tagsLimit := make([]map[string]string, 0)
+	repositoriesLimit := make([]string, 0)
+	tagsLimit := make([]string, 0)
 	labelLimit := make([]map[string]string, 0)
 	limitNumScan := 5
 
