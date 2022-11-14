@@ -38,18 +38,19 @@ func (svc *ContainerRegistriesService) UpdateProxyScanner(data ContainerRegistry
 }
 
 type ProxyScannerIntegrationResponse struct {
-	Data ProxyScannerIntegration `json:"data"`
+	Data        ProxyScannerIntegration  `json:"data"`
+	ServerToken *ProxyScannerServerToken `json:"serverToken"`
 }
 
 type ProxyScannerIntegration struct {
 	v2CommonIntegrationData
-	Data        ProxyScannerData        `json:"data"`
-	ServerToken ProxyScannerServerToken `json:"serverToken"`
+	Data        ProxyScannerData         `json:"data"`
+	ServerToken *ProxyScannerServerToken `json:"serverToken"`
 }
 
 type ProxyScannerServerToken struct {
-	Token string `json:"serverToken"`
-	URI   string `json:"uri"`
+	ServerToken string `json:"serverToken"`
+	URI         string `json:"uri"`
 }
 
 func (reg ProxyScannerIntegration) ContainerRegistryType() containerRegistryType {
