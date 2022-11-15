@@ -129,3 +129,12 @@ func TestSort(t *testing.T) {
 	lwseverity.SortSliceA(m)
 	assert.Equal(t, expected, m)
 }
+
+func TestIsValid(t *testing.T) {
+	assert.Equal(t, true, lwseverity.IsValid("Critical"))
+	assert.Equal(t, false, lwseverity.IsValid("JackBauer"))
+}
+
+func TestValidSeveritiesString(t *testing.T) {
+	assert.Equal(t, "critical, high, medium, low, info", lwseverity.ValidSeverities.String())
+}
