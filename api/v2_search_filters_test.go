@@ -10,7 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestWindowedSearch test
+// TestWindowedSearch test basic functionality of windowedSearch
+// windowed search takes a function of type search and filter that implements
+// searchable filter
 func TestWindowedSearch(t *testing.T) {
 	var (
 		now          = time.Now().UTC()
@@ -47,7 +49,7 @@ func TestWindowedSearch(t *testing.T) {
 // TestWindowedSearchMaxHistory test max history is not exceeded
 func TestWindowedSearchMaxHistory(t *testing.T) {
 	var (
-		// set max history and window size. searchCounter should not exceed 2
+		// set max history and window size. searchCounter should not exceed 1
 		maxWindow    = 5
 		maxHistory   = 10
 		now          = time.Now().UTC()
@@ -109,7 +111,7 @@ func TestWindowedSearchHistoryRemainder(t *testing.T) {
 		maxWindow    = 3
 		maxHistory   = 5
 		now          = time.Now().UTC()
-		before       = now.AddDate(0, 0, -3) // last 7 days
+		before       = now.AddDate(0, 0, -3) // last 3 days
 		testResponse mockSearchResponse
 		filter       = mockSearchFilter{
 			SearchFilter: api.SearchFilter{
