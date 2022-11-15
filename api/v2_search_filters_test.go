@@ -33,7 +33,7 @@ func TestWindowedSearch(t *testing.T) {
 			Value: "MOCK",
 		}
 	)
-
+	searchCounter = 0
 	err := api.WindowedSearch(mockSearch, api.V2ApiMaxSearchWindow, api.V2ApiMaxSearchHistory, &testResponse, &filter)
 	assert.NoError(t, err)
 	assert.Equal(t, searchCounter, 3)
@@ -66,6 +66,7 @@ func TestWindowedSearchMaxHistory(t *testing.T) {
 		}
 	)
 
+	searchCounter = 0
 	err := api.WindowedSearch(mockSearch, maxWindow, maxHistory, &testResponse, &filter)
 	assert.NoError(t, err)
 
@@ -124,6 +125,7 @@ func TestWindowedSearchHistoryRemainder(t *testing.T) {
 		}
 	)
 
+	searchCounter = 0
 	err := api.WindowedSearch(mockSearch, maxWindow, maxHistory, &testResponse, &filter)
 	assert.NoError(t, err)
 
@@ -157,7 +159,7 @@ func mockSearch(response interface{}, filters api.SearchableFilter) error {
 	return nil
 }
 
-var searchCounter = 0
+var searchCounter int
 
 type mockSearchResponse struct {
 	Data []mockSearchResponseData `json:"data"`
