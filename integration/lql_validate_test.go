@@ -28,15 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQueryValidateHelp(t *testing.T) {
-	out, err, exitcode := LaceworkCLI("help", "query", "validate")
-	assert.Contains(t, out.String(), "lacework query validate [flags]")
-	assert.Contains(t, out.String(), "-f, --file string")
-	assert.Contains(t, out.String(), "-u, --url string")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
-
 func TestQueryValidateEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate")
 	assert.Contains(t, out.String(), "Type a query to validate")

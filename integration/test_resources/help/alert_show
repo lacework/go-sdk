@@ -1,23 +1,27 @@
-List all events for the last 7 days by default, or pass --start and --end to
-specify a custom time period. You can also pass --serverity to filter by a
-severity threshold.
+Show details about a specific alert.
 
-Additionally, pass --days to list events for a specified number of days.
+There are different types of alert details that can be shown to assist
+with alert investigation. These types are referred to as alert detail scopes.
 
-For example, to list all events from the last day with severity medium and above
-(Critical, High and Medium) run:
+The following alert detail scopes are available:
 
-    lacework events list --severity medium --days 1
+  * Details (default)
+  * Investigation
+  * Events
+  * RelatedAlerts
+  * Integrations
+  * Timeline
+
+View an alert's timeline details:
+
+  lacework alert show <alert_id> --scope Timeline
 
 Usage:
-  lacework event list [flags]
+  lacework alert show <alert_id> [flags]
 
 Flags:
-      --days int          list events for specified number of days (max: 7 days)
-      --end string        end of the time range in UTC (format: yyyy-MM-ddTHH:mm:ssZ)
-  -h, --help              help for list
-      --severity string   filter events by severity threshold (critical, high, medium, low, info)
-      --start string      start of the time range in UTC (format: yyyy-MM-ddTHH:mm:ssZ)
+  -h, --help           help for show
+      --scope string   type of alert details to show (default "Details")
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
