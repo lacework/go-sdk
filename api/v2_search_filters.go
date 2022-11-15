@@ -18,7 +18,11 @@
 
 package api
 
-import "time"
+import (
+	"errors"
+	"math"
+	"time"
+)
 
 // SearchFilter is the representation of an advanced search payload
 // for retrieving information out of the Lacework APIv2 Server
@@ -65,12 +69,30 @@ type SearchableFilter interface {
 	SetEndTime(*time.Time)
 }
 
+// V2ApiMaxSearchHistory defines the maximum number of days in the past api v2 allows to be searched
+const V2ApiMaxSearchHistory = 92 //days
+
+// V2ApiMaxSearchWindow defines the maximum number of days in a single request api v2 allows to be searched
+const V2ApiMaxSearchWindow = 7 //days
+
 type search func(response interface{}, filters SearchableFilter) error
 
 // WindowedSearch performs a new search of a specific time frame size,
 // until response data is found or the max searchable days is reached
 func WindowedSearch(fn search, size int, max int, response SearchResponse, filter SearchableFilter) error {
-	for i := 0; i < max; i += size {
+	if size > max {
+		return errors.New("window size cannot be greater than max history")
+	}
+
+	// if start and end time are the same, adjust the windows
+	timeDifference := int(math.RoundToEven(filter.GetTimeFilter().EndTime.Sub(*filter.GetTimeFilter().StartTime).Hours() / 24))
+
+	if timeDifference == 0 {
+		newStart := filter.GetTimeFilter().StartTime.AddDate(0, 0, -size)
+		filter.SetStartTime(&newStart)
+	}
+
+	for i := timeDifference; i < max; i += size {
 		err := fn(&response, filter)
 		if err != nil {
 			return err
@@ -79,14 +101,14 @@ func WindowedSearch(fn search, size int, max int, response SearchResponse, filte
 			return nil
 		}
 
-		//adjust window
+		// adjust window
 		newStart := filter.GetTimeFilter().StartTime.AddDate(0, 0, -size)
 		newEnd := filter.GetTimeFilter().EndTime.AddDate(0, 0, -size)
 
 		// ensure we do not go over the max allowed searchable days
-		rem := (i - max) % size
+		rem := (max - i) % size
 		if rem > 0 {
-			newEnd = filter.GetTimeFilter().EndTime.AddDate(0, 0, -rem)
+			newStart = filter.GetTimeFilter().StartTime.AddDate(0, 0, -rem)
 		}
 		filter.SetStartTime(&newStart)
 		filter.SetEndTime(&newEnd)
