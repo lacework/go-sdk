@@ -70,16 +70,16 @@ type SearchableFilter interface {
 }
 
 // V2ApiMaxSearchHistoryDays defines the maximum number of days in the past api v2 allows to be searched
-const V2ApiMaxSearchHistoryDays = 92 //days
+const V2ApiMaxSearchHistoryDays = 92
 
 // V2ApiMaxSearchWindowDays defines the maximum number of days in a single request api v2 allows to be searched
-const V2ApiMaxSearchWindowDays = 7 //days
+const V2ApiMaxSearchWindowDays = 7
 
 type search func(response interface{}, filters SearchableFilter) error
 
-// WindowedSearch performs a new search of a specific time frame size,
+// WindowedSearchFirst performs a new search of a specific time frame size,
 // until response data is found or the max searchable days is reached
-func WindowedSearch(fn search, size int, max int, response SearchResponse, filter SearchableFilter) error {
+func WindowedSearchFirst(fn search, size int, max int, response SearchResponse, filter SearchableFilter) error {
 	if size > max {
 		return errors.New("window size cannot be greater than max history")
 	}

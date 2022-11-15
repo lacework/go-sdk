@@ -34,7 +34,7 @@ func TestWindowedSearch(t *testing.T) {
 		}
 	)
 	searchCounter = 0
-	err := api.WindowedSearch(mockSearch, api.V2ApiMaxSearchWindowDays, api.V2ApiMaxSearchHistoryDays, &testResponse, &filter)
+	err := api.WindowedSearchFirst(mockSearch, api.V2ApiMaxSearchWindowDays, api.V2ApiMaxSearchHistoryDays, &testResponse, &filter)
 	assert.NoError(t, err)
 	assert.Equal(t, searchCounter, 3)
 	assert.NotEmpty(t, testResponse.Data)
@@ -67,7 +67,7 @@ func TestWindowedSearchMaxHistory(t *testing.T) {
 	)
 
 	searchCounter = 0
-	err := api.WindowedSearch(mockSearch, maxWindow, maxHistory, &testResponse, &filter)
+	err := api.WindowedSearchFirst(mockSearch, maxWindow, maxHistory, &testResponse, &filter)
 	assert.NoError(t, err)
 
 	// search counter should equal 1. No data is found in search
@@ -100,7 +100,7 @@ func TestWindowedSearchHistory(t *testing.T) {
 		}
 	)
 
-	err := api.WindowedSearch(mockSearch, maxWindow, maxHistory, &testResponse, &filter)
+	err := api.WindowedSearchFirst(mockSearch, maxWindow, maxHistory, &testResponse, &filter)
 	assert.ErrorContains(t, err, "window size cannot be greater than max history")
 }
 
@@ -126,7 +126,7 @@ func TestWindowedSearchHistoryRemainder(t *testing.T) {
 	)
 
 	searchCounter = 0
-	err := api.WindowedSearch(mockSearch, maxWindow, maxHistory, &testResponse, &filter)
+	err := api.WindowedSearchFirst(mockSearch, maxWindow, maxHistory, &testResponse, &filter)
 	assert.NoError(t, err)
 
 	// search counter should equal 1. No data is found in search
