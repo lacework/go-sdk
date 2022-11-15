@@ -20,18 +20,28 @@ func assertEksAuditTerraformSaved(t *testing.T, message string) {
 	assert.Contains(t, message, "Terraform code saved in")
 }
 
-func runEksAuditGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
-	dir := createDummyTOMLConfig()
-	homeCache := os.Getenv("HOME")
-	os.Setenv("HOME", dir)
-	defer os.Setenv("HOME", homeCache)
-	defer os.RemoveAll(dir)
+const (
+	eksPath = "/lacework/aws_eks_audit/"
+)
 
-	runFakeTerminalTestFromDir(t, dir, conditions, args...)
-	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/aws_eks_audit/main.tf", dir)))
+func runEksAuditGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
+	os.Setenv("HOME", tfPath)
+
+	hcl_path := filepath.Join(tfPath, eksPath, "main.tf")
+
+	runFakeTerminalTestFromDir(t, tfPath, conditions, args...)
+	out, err := ioutil.ReadFile(hcl_path)
 	if err != nil {
-		return ""
+		return fmt.Sprintf("main.tf not found: %s", err)
 	}
+
+	t.Cleanup(func() {
+		os.Remove(hcl_path)
+	})
+
+	result := terraformValidate(filepath.Join(tfPath, eksPath))
+
+	assert.True(t, result.Valid)
 
 	return string(out)
 }
