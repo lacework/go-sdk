@@ -80,7 +80,7 @@ func TestWindowedSearchMaxHistory(t *testing.T) {
 }
 
 // TestWindowedSearchMaxHistory test max window is greater than history
-// only 1 search should be performed
+// returns error
 func TestWindowedSearchHistory(t *testing.T) {
 	var (
 		// set max history and window size. Window cannot exceed history size
