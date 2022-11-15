@@ -69,11 +69,11 @@ type SearchableFilter interface {
 	SetEndTime(*time.Time)
 }
 
-// V2ApiMaxSearchHistory defines the maximum number of days in the past api v2 allows to be searched
-const V2ApiMaxSearchHistory = 92 //days
+// V2ApiMaxSearchHistoryDays defines the maximum number of days in the past api v2 allows to be searched
+const V2ApiMaxSearchHistoryDays = 92 //days
 
-// V2ApiMaxSearchWindow defines the maximum number of days in a single request api v2 allows to be searched
-const V2ApiMaxSearchWindow = 7 //days
+// V2ApiMaxSearchWindowDays defines the maximum number of days in a single request api v2 allows to be searched
+const V2ApiMaxSearchWindowDays = 7 //days
 
 type search func(response interface{}, filters SearchableFilter) error
 

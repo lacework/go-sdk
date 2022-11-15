@@ -34,7 +34,7 @@ func TestWindowedSearch(t *testing.T) {
 		}
 	)
 	searchCounter = 0
-	err := api.WindowedSearch(mockSearch, api.V2ApiMaxSearchWindow, api.V2ApiMaxSearchHistory, &testResponse, &filter)
+	err := api.WindowedSearch(mockSearch, api.V2ApiMaxSearchWindowDays, api.V2ApiMaxSearchHistoryDays, &testResponse, &filter)
 	assert.NoError(t, err)
 	assert.Equal(t, searchCounter, 3)
 	assert.NotEmpty(t, testResponse.Data)
@@ -43,7 +43,7 @@ func TestWindowedSearch(t *testing.T) {
 
 	// startTime from current Date should be less than max history
 	timeDifference := int(math.RoundToEven(time.Now().Sub(*filter.GetTimeFilter().StartTime).Hours() / 24))
-	assert.Less(t, timeDifference, api.V2ApiMaxSearchHistory)
+	assert.Less(t, timeDifference, api.V2ApiMaxSearchHistoryDays)
 }
 
 // TestWindowedSearchMaxHistory test max history is not exceeded
