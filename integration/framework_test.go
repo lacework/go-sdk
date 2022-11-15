@@ -470,7 +470,7 @@ func terraformValidate(dir string) *tfjson.ValidateOutput {
 
 	validateOutput, err := tf.Validate(context.Background())
 	if err != nil {
-		log.Fatalf("error running Show: %s", err)
+		log.Fatalf("error running Validate: %s", err)
 	}
 
 	return validateOutput
