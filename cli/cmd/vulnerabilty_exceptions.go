@@ -27,6 +27,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/core"
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -368,14 +369,14 @@ func validateSeverities() survey.Validator {
 	return func(val interface{}) error {
 		if list, ok := val.([]core.OptionAnswer); ok {
 			for _, i := range list {
-				match := strings.Contains(strings.Join(api.ValidEventSeverities, ", "), strings.ToLower(i.Value))
+				match := strings.Contains(lwseverity.ValidSeverities.String(), strings.ToLower(i.Value))
 				if !match {
 					return fmt.Errorf("severity '%s' is invalid. Must be one of 'Critical', 'High', 'Medium', 'Low', 'Info'", i.Value)
 				}
 			}
 		} else {
 			value := val.(core.OptionAnswer).Value
-			match := strings.Contains(strings.Join(api.ValidEventSeverities, ", "), strings.ToLower(value))
+			match := strings.Contains(lwseverity.ValidSeverities.String(), strings.ToLower(value))
 			if !match {
 				return fmt.Errorf("severity '%s' is invalid. Must be one of 'Critical', 'High', 'Medium', 'Low', 'Info'", value)
 			}

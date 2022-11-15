@@ -32,6 +32,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/lwseverity"
 )
 
 var (
@@ -180,9 +181,9 @@ To show recommendation details and affected resources for a recommendation id:
 			}
 
 			if compCmdState.Severity != "" {
-				if !array.ContainsStr(api.ValidEventSeverities, compCmdState.Severity) {
+				if !lwseverity.IsValid(compCmdState.Severity) {
 					return errors.Errorf("the severity %s is not valid, use one of %s",
-						compCmdState.Severity, strings.Join(api.ValidEventSeverities, ", "),
+						compCmdState.Severity, lwseverity.ValidSeverities.String(),
 					)
 				}
 			}
@@ -513,7 +514,7 @@ func init() {
 
 	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Severity, "severity", "",
 		fmt.Sprintf("filter report details by severity threshold (%s)",
-			strings.Join(api.ValidEventSeverities, ", ")),
+			lwseverity.ValidSeverities.String()),
 	)
 
 	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",
