@@ -45,8 +45,8 @@ func main() {
 	if errCreate != nil {
 		log.Fatal(errCreate)
 	}
-	fmt.Printf("Created proxy scanner guid: %s", proxyScannerCreateResponse.Data.IntgGuid)
-	fmt.Printf("Created inline scanner server token: %s", proxyScannerCreateResponse.Data.ServerToken.ServerToken)
+	fmt.Printf("Created proxy scanner guid: %s\n", proxyScannerCreateResponse.Data.IntgGuid)
+	fmt.Printf("Created inline scanner server token: %s\n", proxyScannerCreateResponse.Data.ServerToken.ServerToken)
 
 	// get created proxy scanner
 	proxyScannerGetResponse, errGet := lacework.V2.ContainerRegistries.GetProxyScanner(
@@ -55,8 +55,8 @@ func main() {
 	if errGet != nil {
 		log.Fatal(errGet)
 	}
-	fmt.Printf("Found proxy scanner guid: %s", proxyScannerGetResponse.Data.IntgGuid)
-	fmt.Printf("Created inline scanner server token: %s", proxyScannerCreateResponse.Data.ServerToken.ServerToken)
+	fmt.Printf("Found proxy scanner guid: %s\n", proxyScannerGetResponse.Data.IntgGuid)
+	fmt.Printf("Created inline scanner server token: %s\n", proxyScannerCreateResponse.Data.ServerToken.ServerToken)
 
 	// delete created proxy scanner
 	errDelete := lacework.V2.ContainerRegistries.Delete(
@@ -65,5 +65,5 @@ func main() {
 	if errDelete != nil {
 		log.Fatal(errDelete)
 	}
-	fmt.Printf("Deleted proxy scanner guid: %s", proxyScannerCreateResponse.Data.IntgGuid)
+	fmt.Printf("Deleted proxy scanner guid: %s\n", proxyScannerCreateResponse.Data.IntgGuid)
 }
