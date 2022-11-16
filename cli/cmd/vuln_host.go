@@ -665,6 +665,7 @@ func hostVulnPackagesTable(cves map[string]VulnCveSummary, withHosts bool) ([][]
 				continue
 			}
 		}
+		// add all packages that have not been filtered
 		aggregatedPackages = aggregatePackagesWithHosts(aggregatedPackages, pack, withHosts, false)
 	}
 
@@ -1225,16 +1226,16 @@ func summaryToHostList(sum map[string]VulnCveSummary) (hosts []api.Vulnerability
 // Build the cli output for vuln host list-cves
 func buildListCVEReports(cves []api.VulnerabilityHost) error {
 	uniqueCves := cvesSummary(cves)
-	uniqueCves, filtered := filterHostCVEsTable(uniqueCves)
+	filteredCves, filtered := filterHostCVEsTable(uniqueCves)
 
 	if cli.JSONOutput() {
-		if uniqueCves == nil {
+		if filteredCves == nil {
 			if err := cli.OutputJSON(buildHostVulnCVEsToTableError()); err != nil {
 				return err
 			}
 		} else {
 			// fix here too
-			if err := cli.OutputJSON(summaryToHostList(uniqueCves)); err != nil {
+			if err := cli.OutputJSON(summaryToHostList(filteredCves)); err != nil {
 				return err
 			}
 		}
@@ -1250,29 +1251,20 @@ func buildListCVEReports(cves []api.VulnerabilityHost) error {
 		return nil
 	}
 
+	// packages output.
 	if vulCmdState.Packages {
-		packages, filtered := hostVulnPackagesTable(uniqueCves, true)
-
+		packages, filteredPackages := hostVulnPackagesTable(uniqueCves, true)
 		if cli.CSVOutput() {
 			return cli.OutputCSV(
 				[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
 				packages,
 			)
 		}
-
-		cli.OutputHuman(
-			renderSimpleTable(
-				[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
-				packages,
-			),
-		)
-		if filtered != "" {
-			cli.OutputHuman(filtered)
-		}
+		vulnListCvesPackagesOutput(packages, filteredPackages)
 		return nil
 	}
 
-	rows := hostVulnCVEsTable(uniqueCves)
+	rows := hostVulnCVEsTable(filteredCves)
 	// if the user wants to show only online or
 	// offline hosts, show a friendly message
 	if len(rows) == 0 {
@@ -1310,6 +1302,18 @@ func buildListCVEReports(cves []api.VulnerabilityHost) error {
 		)
 	}
 	return nil
+}
+
+func vulnListCvesPackagesOutput(packages [][]string, filteredPackagesMsg string) {
+	cli.OutputHuman(
+		renderSimpleTable(
+			[]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts"},
+			packages,
+		),
+	)
+	if filteredPackagesMsg != "" {
+		cli.OutputHuman(filteredPackagesMsg)
+	}
 }
 
 // Build the cli output for vuln host scan-package-manifest
