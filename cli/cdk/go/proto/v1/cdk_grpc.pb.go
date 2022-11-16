@@ -39,7 +39,7 @@ func NewCDKClient(cc grpc.ClientConnInterface) CDKClient {
 
 func (c *cDKClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongReply, error) {
 	out := new(PongReply)
-	err := c.cc.Invoke(ctx, "/cdk.CDK/Ping", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cdk.v1.CDK/Ping", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (c *cDKClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.Call
 
 func (c *cDKClient) Honeyvent(ctx context.Context, in *HoneyventRequest, opts ...grpc.CallOption) (*Reply, error) {
 	out := new(Reply)
-	err := c.cc.Invoke(ctx, "/cdk.CDK/Honeyvent", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cdk.v1.CDK/Honeyvent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func _CDK_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cdk.CDK/Ping",
+		FullMethod: "/cdk.v1.CDK/Ping",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CDKServer).Ping(ctx, req.(*PingRequest))
@@ -118,7 +118,7 @@ func _CDK_Honeyvent_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cdk.CDK/Honeyvent",
+		FullMethod: "/cdk.v1.CDK/Honeyvent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CDKServer).Honeyvent(ctx, req.(*HoneyventRequest))
@@ -130,7 +130,7 @@ func _CDK_Honeyvent_Handler(srv interface{}, ctx context.Context, dec func(inter
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var CDK_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "cdk.CDK",
+	ServiceName: "cdk.v1.CDK",
 	HandlerType: (*CDKServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

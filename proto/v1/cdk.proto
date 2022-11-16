@@ -21,7 +21,7 @@ syntax = "proto3";
 // defines the go package that will be generated with protoc
 option go_package = "lacework/go-sdk/cli/cdk/proto/v1;cdk";
 
-package cdk;
+package cdk.v1;
 
 // CDK service definition
 service CDK {
