@@ -210,6 +210,10 @@ func (reg ContainerRegistryRaw) GetData() any {
 	return reg.Data
 }
 
+func (reg ContainerRegistryRaw) GetProps() any {
+	return reg.Props
+}
+
 func (reg ContainerRegistryRaw) GetCommon() v2CommonIntegrationData {
 	return reg.v2CommonIntegrationData
 }

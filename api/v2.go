@@ -109,6 +109,7 @@ type V2CommonIntegration struct {
 // This include AlertChannelRaw, CloudAccountRaw, ContainerRegistryRaw
 type V2RawType interface {
 	GetData() any
+	GetProps() any
 	GetCommon() v2CommonIntegrationData
 }
 
