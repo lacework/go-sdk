@@ -137,11 +137,11 @@ fmt: ## Runs and applies go formatting changes
 
 .PHONY: fmt-check
 fmt-check: ## Lists formatting issues
-	@test -z $(shell gofmt -l $(shell go list -f {{.Dir}} ./...))
+	@test -z $(shell gofmt -l $(shell go list -f {{.Dir}} ./...) | grep -v proto)
 
 .PHONY: imports-check
 imports-check: ## Lists imports issues
-	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./...))
+	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./...) | grep -v proto)
 
 .PHONY: build-cli-cross-platform
 build-cli-cross-platform: ## Compiles the Lacework CLI for all supported platforms
@@ -164,11 +164,15 @@ generate-docs: ## *CI ONLY* Generates documentation
 test-resources: ## *CI ONLY* Prepares CI test containers
 	scripts/prepare_test_resources.sh all
 
-.PHONY: protoc
-protoc: install-tools ## Generates code from proto files inside 'cli/cdk'
-	protoc --go_out=./cli/cdk --go_opt=paths=source_relative \
-    --go-grpc_out=./cli/cdk --go-grpc_opt=paths=source_relative \
-    proto/v1/*.proto
+.PHONY: protoc-go
+protoc-go: install-tools ## Generates code from proto files inside 'cli/cdk'
+	protoc --go_out=./cli/cdk/go --go_opt=paths=source_relative \
+		--go-grpc_out=./cli/cdk/go --go-grpc_opt=paths=source_relative \
+		proto/v1/*.proto
+
+protoc-python: install-tools
+	python3 -m grpc_tools.protoc -I. --python_out=./cli/cdk/python \
+		--grpc_python_out=./cli/cdk/python proto/v1/*.proto
 
 .PHONY: install-cli
 install-cli: build-cli-cross-platform ## Build and install the Lacework CLI binary at /usr/local/bin/lacework
