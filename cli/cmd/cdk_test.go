@@ -39,12 +39,9 @@ func TestCDKServer(t *testing.T) {
 		defer conn.Close()
 	}
 
-	// wait for the gRPC server to come online
-	time.Sleep(time.Millisecond * 500)
-
 	var (
 		cdkClient   = cdk.NewCDKClient(conn)
-		ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	)
 	defer cancel()
 

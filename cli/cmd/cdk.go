@@ -117,6 +117,6 @@ func (c *cliState) Serve(target string) error {
 // connections and listeners.
 func (c *cliState) Stop() {
 	if c.cdkServer != nil {
-		c.cdkServer.Stop()
+		c.cdkServer.GracefulStop()
 	}
 }
