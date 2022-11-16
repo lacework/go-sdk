@@ -26,7 +26,6 @@ import (
 	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -40,21 +39,8 @@ func TestCDKServer(t *testing.T) {
 		defer conn.Close()
 	}
 
-	i := 0
-	for {
-		if conn.GetState() == connectivity.Ready {
-			break
-		}
-
-		if i >= 5 {
-			t.Errorf("gRPC server was never ready (state:%s)",
-				conn.GetState().String())
-			break
-		}
-		time.Sleep(time.Second)
-		i++
-	}
-	assert.Equal(t, conn.GetState(), connectivity.Ready)
+	// wait for the gRPC server to come online
+	time.Sleep(time.Millisecond * 500)
 
 	var (
 		cdkClient   = cdk.NewCDKClient(conn)
