@@ -23,8 +23,8 @@ option go_package = "lacework/go-sdk/cli/cdk/proto/v1;cdk";
 
 package cdk.v1;
 
-// CDK service definition
-service CDK {
+// Core service definition
+service Core {
   // Sends a ping -> pong between server and client
   //    Component -> CDK Server
   rpc Ping(PingRequest) returns (PongReply) {}

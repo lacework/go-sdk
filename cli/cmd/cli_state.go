@@ -79,8 +79,9 @@ type cliState struct {
 	installedCmd    bool
 	componentParser componentArgParser
 
-	// Implement proto service defined at 'cli/cdk'
-	cdk.UnimplementedCDKServer
+	// Implements core proto service
+	cdk.UnimplementedCoreServer
+
 	// Allows only one gRPC Server
 	cdkServer *grpc.Server
 }

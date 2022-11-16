@@ -33,6 +33,9 @@ func TestCDKServer(t *testing.T) {
 	go cli.Serve(defaultGrpcTarget)
 	defer cli.Stop()
 
+	// wait for the gRPC server to come online
+	time.Sleep(time.Millisecond * 200)
+
 	conn, err := grpc.Dial(defaultGrpcTarget,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if assert.Nil(t, err) {
@@ -40,7 +43,7 @@ func TestCDKServer(t *testing.T) {
 	}
 
 	var (
-		cdkClient   = cdk.NewCDKClient(conn)
+		cdkClient   = cdk.NewCoreClient(conn)
 		ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	)
 	defer cancel()

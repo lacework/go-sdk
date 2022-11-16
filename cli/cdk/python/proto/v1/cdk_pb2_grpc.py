@@ -5,8 +5,8 @@ import grpc
 from proto.v1 import cdk_pb2 as proto_dot_v1_dot_cdk__pb2
 
 
-class CDKStub(object):
-    """CDK service definition
+class CoreStub(object):
+    """Core service definition
     """
 
     def __init__(self, channel):
@@ -16,19 +16,19 @@ class CDKStub(object):
             channel: A grpc.Channel.
         """
         self.Ping = channel.unary_unary(
-                '/cdk.v1.CDK/Ping',
+                '/cdk.v1.Core/Ping',
                 request_serializer=proto_dot_v1_dot_cdk__pb2.PingRequest.SerializeToString,
                 response_deserializer=proto_dot_v1_dot_cdk__pb2.PongReply.FromString,
                 )
         self.Honeyvent = channel.unary_unary(
-                '/cdk.v1.CDK/Honeyvent',
+                '/cdk.v1.Core/Honeyvent',
                 request_serializer=proto_dot_v1_dot_cdk__pb2.HoneyventRequest.SerializeToString,
                 response_deserializer=proto_dot_v1_dot_cdk__pb2.Reply.FromString,
                 )
 
 
-class CDKServicer(object):
-    """CDK service definition
+class CoreServicer(object):
+    """Core service definition
     """
 
     def Ping(self, request, context):
@@ -47,7 +47,7 @@ class CDKServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_CDKServicer_to_server(servicer, server):
+def add_CoreServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Ping': grpc.unary_unary_rpc_method_handler(
                     servicer.Ping,
@@ -61,13 +61,13 @@ def add_CDKServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'cdk.v1.CDK', rpc_method_handlers)
+            'cdk.v1.Core', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
  # This class is part of an EXPERIMENTAL API.
-class CDK(object):
-    """CDK service definition
+class Core(object):
+    """Core service definition
     """
 
     @staticmethod
@@ -81,7 +81,7 @@ class CDK(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/cdk.v1.CDK/Ping',
+        return grpc.experimental.unary_unary(request, target, '/cdk.v1.Core/Ping',
             proto_dot_v1_dot_cdk__pb2.PingRequest.SerializeToString,
             proto_dot_v1_dot_cdk__pb2.PongReply.FromString,
             options, channel_credentials,
@@ -98,7 +98,7 @@ class CDK(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/cdk.v1.CDK/Honeyvent',
+        return grpc.experimental.unary_unary(request, target, '/cdk.v1.Core/Honeyvent',
             proto_dot_v1_dot_cdk__pb2.HoneyventRequest.SerializeToString,
             proto_dot_v1_dot_cdk__pb2.Reply.FromString,
             options, channel_credentials,

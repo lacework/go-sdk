@@ -176,7 +176,6 @@ func (c *cliState) LoadComponents() {
 						if ok {
 							envs := []string{
 								fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use),
-								fmt.Sprintf("LW_CDK_TARGET=%s", c.GrpcTarget()),
 							}
 							envs = append(envs, c.envs()...)
 							return f.RunAndOutput(c.componentParser.componentArgs, envs...)

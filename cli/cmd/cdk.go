@@ -29,6 +29,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// default gRPC target if not specified via LW_CDK_TARGET
 const defaultGrpcTarget string = "localhost:1123"
 
 // envs are all the environment variables passed to CDK components
@@ -45,6 +46,7 @@ func (c *cliState) envs() []string {
 		fmt.Sprintf("LW_NOCOLOR=%s", os.Getenv("NO_COLOR")),
 		fmt.Sprintf("LW_LOG=%s", c.LogLevel),
 		fmt.Sprintf("LW_JSON=%v", c.jsonOutput),
+		fmt.Sprintf("LW_CDK_TARGET=%s", c.GrpcTarget()),
 	}
 }
 
@@ -102,8 +104,8 @@ func (c *cliState) Serve(target string) error {
 		return errors.Wrap(err, "failed to listen")
 	}
 
-	c.cdkServer = grpc.NewServer()
-	cdk.RegisterCDKServer(c.cdkServer, c)
+	c.cdkServer = grpc.NewServer() // guardrails-disable-line
+	cdk.RegisterCoreServer(c.cdkServer, c)
 
 	c.Log.Infow("gRPC server started", "address", lis.Addr())
 	if err := c.cdkServer.Serve(lis); err != nil {

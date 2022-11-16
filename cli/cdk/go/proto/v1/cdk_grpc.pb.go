@@ -18,10 +18,10 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// CDKClient is the client API for CDK service.
+// CoreClient is the client API for Core service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type CDKClient interface {
+type CoreClient interface {
 	// Sends a ping -> pong between server and client
 	//    Component -> CDK Server
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongReply, error)
@@ -29,117 +29,117 @@ type CDKClient interface {
 	Honeyvent(ctx context.Context, in *HoneyventRequest, opts ...grpc.CallOption) (*Reply, error)
 }
 
-type cDKClient struct {
+type coreClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewCDKClient(cc grpc.ClientConnInterface) CDKClient {
-	return &cDKClient{cc}
+func NewCoreClient(cc grpc.ClientConnInterface) CoreClient {
+	return &coreClient{cc}
 }
 
-func (c *cDKClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongReply, error) {
+func (c *coreClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongReply, error) {
 	out := new(PongReply)
-	err := c.cc.Invoke(ctx, "/cdk.v1.CDK/Ping", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cdk.v1.Core/Ping", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *cDKClient) Honeyvent(ctx context.Context, in *HoneyventRequest, opts ...grpc.CallOption) (*Reply, error) {
+func (c *coreClient) Honeyvent(ctx context.Context, in *HoneyventRequest, opts ...grpc.CallOption) (*Reply, error) {
 	out := new(Reply)
-	err := c.cc.Invoke(ctx, "/cdk.v1.CDK/Honeyvent", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cdk.v1.Core/Honeyvent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// CDKServer is the server API for CDK service.
-// All implementations must embed UnimplementedCDKServer
+// CoreServer is the server API for Core service.
+// All implementations must embed UnimplementedCoreServer
 // for forward compatibility
-type CDKServer interface {
+type CoreServer interface {
 	// Sends a ping -> pong between server and client
 	//    Component -> CDK Server
 	Ping(context.Context, *PingRequest) (*PongReply, error)
 	// Sends a Honeyvent
 	Honeyvent(context.Context, *HoneyventRequest) (*Reply, error)
-	mustEmbedUnimplementedCDKServer()
+	mustEmbedUnimplementedCoreServer()
 }
 
-// UnimplementedCDKServer must be embedded to have forward compatible implementations.
-type UnimplementedCDKServer struct {
+// UnimplementedCoreServer must be embedded to have forward compatible implementations.
+type UnimplementedCoreServer struct {
 }
 
-func (UnimplementedCDKServer) Ping(context.Context, *PingRequest) (*PongReply, error) {
+func (UnimplementedCoreServer) Ping(context.Context, *PingRequest) (*PongReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
-func (UnimplementedCDKServer) Honeyvent(context.Context, *HoneyventRequest) (*Reply, error) {
+func (UnimplementedCoreServer) Honeyvent(context.Context, *HoneyventRequest) (*Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Honeyvent not implemented")
 }
-func (UnimplementedCDKServer) mustEmbedUnimplementedCDKServer() {}
+func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
-// UnsafeCDKServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to CDKServer will
+// UnsafeCoreServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CoreServer will
 // result in compilation errors.
-type UnsafeCDKServer interface {
-	mustEmbedUnimplementedCDKServer()
+type UnsafeCoreServer interface {
+	mustEmbedUnimplementedCoreServer()
 }
 
-func RegisterCDKServer(s grpc.ServiceRegistrar, srv CDKServer) {
-	s.RegisterService(&CDK_ServiceDesc, srv)
+func RegisterCoreServer(s grpc.ServiceRegistrar, srv CoreServer) {
+	s.RegisterService(&Core_ServiceDesc, srv)
 }
 
-func _CDK_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Core_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PingRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CDKServer).Ping(ctx, in)
+		return srv.(CoreServer).Ping(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cdk.v1.CDK/Ping",
+		FullMethod: "/cdk.v1.Core/Ping",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CDKServer).Ping(ctx, req.(*PingRequest))
+		return srv.(CoreServer).Ping(ctx, req.(*PingRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CDK_Honeyvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Core_Honeyvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HoneyventRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CDKServer).Honeyvent(ctx, in)
+		return srv.(CoreServer).Honeyvent(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cdk.v1.CDK/Honeyvent",
+		FullMethod: "/cdk.v1.Core/Honeyvent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CDKServer).Honeyvent(ctx, req.(*HoneyventRequest))
+		return srv.(CoreServer).Honeyvent(ctx, req.(*HoneyventRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// CDK_ServiceDesc is the grpc.ServiceDesc for CDK service.
+// Core_ServiceDesc is the grpc.ServiceDesc for Core service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var CDK_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "cdk.v1.CDK",
-	HandlerType: (*CDKServer)(nil),
+var Core_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "cdk.v1.Core",
+	HandlerType: (*CoreServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Ping",
-			Handler:    _CDK_Ping_Handler,
+			Handler:    _Core_Ping_Handler,
 		},
 		{
 			MethodName: "Honeyvent",
-			Handler:    _CDK_Honeyvent_Handler,
+			Handler:    _Core_Honeyvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

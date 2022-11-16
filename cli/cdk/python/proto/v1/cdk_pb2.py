@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12proto/v1/cdk.proto\x12\x06\x63\x64k.v1\"%\n\x0bPingRequest\x12\x16\n\x0e\x63omponent_name\x18\x01 \x01(\t\"\x1c\n\tPongReply\x12\x0f\n\x07message\x18\x01 \x01(\t\"\x07\n\x05Reply\"\xbc\x01\n\x10HoneyventRequest\x12\x0f\n\x07\x66\x65\x61ture\x18\x01 \x01(\t\x12?\n\x0c\x66\x65\x61ture_data\x18\x02 \x03(\x0b\x32).cdk.v1.HoneyventRequest.FeatureDataEntry\x12\r\n\x05\x65rror\x18\x03 \x01(\t\x12\x13\n\x0b\x64uration_ms\x18\x04 \x01(\x03\x1a\x32\n\x10\x46\x65\x61tureDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x32o\n\x03\x43\x44K\x12\x30\n\x04Ping\x12\x13.cdk.v1.PingRequest\x1a\x11.cdk.v1.PongReply\"\x00\x12\x36\n\tHoneyvent\x12\x18.cdk.v1.HoneyventRequest\x1a\r.cdk.v1.Reply\"\x00\x42&Z$lacework/go-sdk/cli/cdk/proto/v1;cdkb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12proto/v1/cdk.proto\x12\x06\x63\x64k.v1\"%\n\x0bPingRequest\x12\x16\n\x0e\x63omponent_name\x18\x01 \x01(\t\"\x1c\n\tPongReply\x12\x0f\n\x07message\x18\x01 \x01(\t\"\x07\n\x05Reply\"\xbc\x01\n\x10HoneyventRequest\x12\x0f\n\x07\x66\x65\x61ture\x18\x01 \x01(\t\x12?\n\x0c\x66\x65\x61ture_data\x18\x02 \x03(\x0b\x32).cdk.v1.HoneyventRequest.FeatureDataEntry\x12\r\n\x05\x65rror\x18\x03 \x01(\t\x12\x13\n\x0b\x64uration_ms\x18\x04 \x01(\x03\x1a\x32\n\x10\x46\x65\x61tureDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x32p\n\x04\x43ore\x12\x30\n\x04Ping\x12\x13.cdk.v1.PingRequest\x1a\x11.cdk.v1.PongReply\"\x00\x12\x36\n\tHoneyvent\x12\x18.cdk.v1.HoneyventRequest\x1a\r.cdk.v1.Reply\"\x00\x42&Z$lacework/go-sdk/cli/cdk/proto/v1;cdkb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.v1.cdk_pb2', globals())
@@ -33,6 +33,6 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _HONEYVENTREQUEST._serialized_end=297
   _HONEYVENTREQUEST_FEATUREDATAENTRY._serialized_start=247
   _HONEYVENTREQUEST_FEATUREDATAENTRY._serialized_end=297
-  _CDK._serialized_start=299
-  _CDK._serialized_end=410
+  _CORE._serialized_start=299
+  _CORE._serialized_end=411
 # @@protoc_insertion_point(module_scope)
