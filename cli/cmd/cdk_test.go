@@ -23,7 +23,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lacework/go-sdk/cli/cdk"
+	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

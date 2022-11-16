@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.21.9
-// source: cli/cdk/cdk.proto
+// source: proto/v1/cdk.proto
 
 package cdk
 
@@ -143,5 +143,5 @@ var CDK_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "cli/cdk/cdk.proto",
+	Metadata: "proto/v1/cdk.proto",
 }

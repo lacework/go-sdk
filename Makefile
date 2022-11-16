@@ -8,6 +8,8 @@ GOIMPORTSVERSION?=v0.1.12
 GOXVERSION?=v1.0.1
 GOTESTSUMVERSION?=v1.8.2
 GOJUNITVERSION?=v2.0.0
+PROTOCGENGOVERSION?=@v1.28
+PROTOCGENGOGRPCVERSION?=@v1.2
 
 CIARTIFACTS?=ci-artifacts
 COVERAGEOUT?=coverage.out
@@ -163,10 +165,10 @@ test-resources: ## *CI ONLY* Prepares CI test containers
 	scripts/prepare_test_resources.sh all
 
 .PHONY: protoc
-protoc: ## Generates code from proto files inside 'cli/cdk'
-	protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    cli/cdk/*.proto
+protoc: install-tools ## Generates code from proto files inside 'cli/cdk'
+	protoc --go_out=./cli/cdk --go_opt=paths=source_relative \
+    --go-grpc_out=./cli/cdk --go-grpc_opt=paths=source_relative \
+    proto/v1/*.proto
 
 .PHONY: install-cli
 install-cli: build-cli-cross-platform ## Build and install the Lacework CLI binary at /usr/local/bin/lacework
@@ -196,6 +198,12 @@ ifeq (, $(shell which gox))
 endif
 ifeq (, $(shell which gotestsum))
 	GOFLAGS=-mod=readonly go install gotest.tools/gotestsum@$(GOTESTSUMVERSION)
+endif
+ifeq (, $(shell which protoc-gen-go))
+	GOFLAGS=-mod=readonly go install google.golang.org/protobuf/cmd/protoc-gen-go@$(PROTOCGENGOVERSION)
+endif
+ifeq (, $(shell which protoc-gen-go-grpc))
+	GOFLAGS=-mod=readonly go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$(PROTOCGENGOGRPCVERSION)
 endif
 
 .PHONY: uninstall-tools

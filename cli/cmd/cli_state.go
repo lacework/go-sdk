@@ -39,7 +39,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/cli/cdk"
+	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
 	"github.com/lacework/go-sdk/internal/format"
 	"github.com/lacework/go-sdk/lwcomponent"
 	"github.com/lacework/go-sdk/lwconfig"

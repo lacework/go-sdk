@@ -19,7 +19,7 @@
 syntax = "proto3";
 
 // defines the go package that will be generated with protoc
-option go_package = "lacework/go-sdk/cli/cdk";
+option go_package = "lacework/go-sdk/cli/cdk/proto/v1;cdk";
 
 package cdk;
 
@@ -51,3 +51,4 @@ message HoneyventRequest {
   string error = 3;
   int64 duration_ms = 4;
 }
+

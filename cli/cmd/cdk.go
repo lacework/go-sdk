@@ -24,7 +24,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/lacework/go-sdk/cli/cdk"
+	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
