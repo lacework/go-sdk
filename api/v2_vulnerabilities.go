@@ -331,20 +331,20 @@ func (v *VulnerabilityHost) PackageActive() string {
 	return "ACTIVE"
 }
 
-func (v *VulnerabilityHost) CvssV2() (cvssV2Score string) {
-	if v.CveProps.Metadata != nil {
-		score := v.CveProps.Metadata.NVD.CVSSv2.Score
-		cvssV2Score = strconv.FormatFloat(score, 'f', 1, 64)
+func (v *VulnerabilityHost) CvssV2() string {
+	if v.CveProps.Metadata == nil {
+		return "0"
 	}
-	return
+	score := v.CveProps.Metadata.NVD.CVSSv2.Score
+	return strconv.FormatFloat(score, 'f', 1, 64)
 }
 
-func (v *VulnerabilityHost) CvssV3() (cvssV3Score string) {
-	if v.CveProps.Metadata != nil {
-		score := v.CveProps.Metadata.NVD.CVSSv3.Score
-		cvssV3Score = strconv.FormatFloat(score, 'f', 1, 64)
+func (v *VulnerabilityHost) CvssV3() string {
+	if v.CveProps.Metadata == nil {
+		return "0"
 	}
-	return
+	score := v.CveProps.Metadata.NVD.CVSSv3.Score
+	return strconv.FormatFloat(score, 'f', 1, 64)
 }
 
 type VulnerabilityHostMetadata struct {

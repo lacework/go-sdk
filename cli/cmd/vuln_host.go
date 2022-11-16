@@ -643,7 +643,7 @@ func hostVulnPackagesTable(cves map[string]VulnCveSummary, withHosts bool) ([][]
 		pack := packageTable{
 			cveCount:       1,
 			severity:       cases.Title(language.English).String(host.Severity),
-			packageName:    host.FeatureKey.Namespace,
+			packageName:    host.FeatureKey.Name,
 			currentVersion: host.FeatureKey.VersionInstalled,
 			fixVersion:     host.FixInfo.FixedVersion,
 			packageStatus:  host.PackageActive(),
@@ -748,7 +748,7 @@ func filterHostVulnCVEs(cves map[string]VulnCveSummary) (map[string]VulnCveSumma
 		cve := c.Host
 		total++
 		// if the user wants to show only vulnerabilities of active packages
-		if vulCmdState.Active && cve.Status != "Active" {
+		if vulCmdState.Active && cve.PackageActive() == "" {
 			filtered++
 			continue
 		}
