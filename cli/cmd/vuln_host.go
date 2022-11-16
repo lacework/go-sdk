@@ -593,11 +593,8 @@ func severitySummary(severities []string, fixable int) string {
 
 func aggregatePackagesWithHosts(slice []packageTable, s packageTable, host bool, hasFix bool) []packageTable {
 	for i, item := range slice {
-		if item.packageName == s.packageName &&
-			item.currentVersion == s.currentVersion &&
-			item.severity == s.severity &&
-			item.fixVersion == s.fixVersion &&
-			item.packageStatus == s.packageStatus {
+		// if packages are the same, group together
+		if item.equals(s) {
 			slice[i].cveCount++
 			if host {
 				slice[i].hostCount++

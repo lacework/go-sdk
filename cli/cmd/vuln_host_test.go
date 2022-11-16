@@ -150,13 +150,12 @@ func TestBuildVulnHostReportsWithVulnerabilitiesPackagesViewAndNoFilters(t *test
   CVE COUNT   SEVERITY    PACKAGE           CURRENT VERSION                  FIX VERSION            PKG STATUS  
 ------------+----------+------------+------------------------------+------------------------------+-------------
   1           High       linux-aws    1:2017.3.23-2ubuntu0.18.04.2                                              
-  1           Medium     ntfs-3g      1:2017.3.23-2ubuntu0.18.04.2   1:2017.3.23-2ubuntu0.18.04.4               
-  1           Medium     vim          1:2017.3.23-2ubuntu0.18.04.2                                              
+  2           Medium     vim          1:2017.3.23-2ubuntu0.18.04.2                                              
   1           Medium     curl         1:2017.3.23-2ubuntu0.18.04.2   7.58.0-2ubuntu3.18                         
-  1           Low        open-iscsi   1:2017.3.23-2ubuntu0.18.04.2                                              
-  1           Low        vim          1:2017.3.23-2ubuntu0.18.04.2                                              
-  1           Low        python3.6    1:2017.3.23-2ubuntu0.18.04.2   3.6.9-1~18.04ubuntu1.8                     
+  1           Medium     ntfs-3g      1:2017.3.23-2ubuntu0.18.04.2   1:2017.3.23-2ubuntu0.18.04.4               
   1           Low        bash         1:2017.3.23-2ubuntu0.18.04.2   4.4.18-2ubuntu1.3              ACTIVE      
+  1           Low        open-iscsi   1:2017.3.23-2ubuntu0.18.04.2                                              
+  1           Low        python3.6    1:2017.3.23-2ubuntu0.18.04.2   3.6.9-1~18.04ubuntu1.8                     
 
 Try adding '--active' to only show vulnerabilities of packages actively running.
 `
