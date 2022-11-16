@@ -187,12 +187,23 @@ func (svc *ContainerRegistriesService) Get(guid string, response interface{}) er
 
 type ContainerRegistryRaw struct {
 	v2CommonIntegrationData
-	Data        interface{}   `json:"data,omitempty"`
-	ServerToken V2ServerToken `json:"serverToken,omitempty"`
+	Data        interface{}         `json:"data,omitempty"`
+	ServerToken *V2ServerToken      `json:"serverToken,omitempty"`
+	Props       *V2IntegrationProps `json:"props,omitempty"`
 }
 type V2ServerToken struct {
 	ServerToken string `json:"serverToken"`
 	Uri         string `json:"uri"`
+}
+
+type V2IntegrationProps struct {
+	PolicyEvaluation *V2IntegrationPropsPolicyEvaluation `json:"policyEvaluation"`
+	Tags             string                              `json:"tags"`
+}
+
+type V2IntegrationPropsPolicyEvaluation struct {
+	Evaluate    bool     `json:"evaluate"`
+	PolicyGuids []string `json:"policyGuids,omitempty"`
 }
 
 func (reg ContainerRegistryRaw) GetData() any {
