@@ -187,9 +187,8 @@ func (svc *ContainerRegistriesService) Get(guid string, response interface{}) er
 
 type ContainerRegistryRaw struct {
 	v2CommonIntegrationData
-	Data        interface{}         `json:"data,omitempty"`
-	ServerToken *V2ServerToken      `json:"serverToken,omitempty"`
-	Props       *V2IntegrationProps `json:"props,omitempty"`
+	Data        interface{}    `json:"data,omitempty"`
+	ServerToken *V2ServerToken `json:"serverToken,omitempty"`
 }
 type V2ServerToken struct {
 	ServerToken string `json:"serverToken"`
