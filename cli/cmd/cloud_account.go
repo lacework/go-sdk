@@ -170,6 +170,7 @@ func cloudAccountShow(_ *cobra.Command, args []string) error {
 
 func buildDetailsTable(integration api.V2RawType) string {
 	var details [][]string
+
 	if caMap, ok := integration.GetData().(map[string]interface{}); ok {
 		for k, v := range caMap {
 			switch val := v.(type) {
@@ -183,6 +184,8 @@ func buildDetailsTable(integration api.V2RawType) string {
 				for i, j := range val {
 					if v, ok := j.(string); ok {
 						details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(i)), v})
+					} else {
+						cli.Log.Warn("unable to build table details, unknown type", "type", i, "key", k)
 					}
 				}
 			case []any:
@@ -200,6 +203,51 @@ func buildDetailsTable(integration api.V2RawType) string {
 				}
 				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strings.Join(values, ",")})
 			}
+		}
+	}
+
+	if caMap, ok := integration.GetProps().(map[string]interface{}); ok {
+		for k, v := range caMap {
+			switch val := v.(type) {
+			case int:
+				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.Itoa(val)})
+			case float64:
+				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.FormatFloat(val, 'f', -1, 64)})
+			case string:
+				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), val})
+			case map[string]any:
+				for i, j := range val {
+					if v, ok := j.(string); ok {
+						details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(i)), v})
+					} else if v, ok := j.(bool); ok {
+						details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(i)), strconv.FormatBool(v)})
+					} else if v, ok := j.([]interface{}); ok {
+						s := make([]string, len(v))
+						for i, n := range v {
+							s[i] = fmt.Sprint(n)
+						}
+						details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strings.Join(s, ",")})
+					} else {
+						cli.OutputHuman("Type: %T\n", j)
+						cli.Log.Info("unable to build table details, unknown type", "type", j, "key", k)
+					}
+				}
+			case []any:
+				var values []string
+				for _, i := range val {
+					if _, ok := i.(string); ok {
+						values = append(values, i.(string))
+					} else if _, ok := i.(map[string]interface{}); ok {
+						for m, n := range i.(map[string]interface{}) {
+							values = append(values, fmt.Sprintf("%s:%s", m, n))
+						}
+					} else {
+						cli.Log.Warn("unable to build table details, unknown type", "type", i, "key", k)
+					}
+				}
+				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strings.Join(values, ",")})
+			}
+
 		}
 	}
 

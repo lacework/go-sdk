@@ -115,7 +115,8 @@ func containerRegistryShow(_ *cobra.Command, args []string) error {
 		containerRegistry.Data.Name,
 		containerRegistry.Data.Type,
 		containerRegistry.Data.Status(),
-		containerRegistry.Data.StateString()})
+		containerRegistry.Data.StateString(),
+	})
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(containerRegistry.Data)
@@ -124,6 +125,7 @@ func containerRegistryShow(_ *cobra.Command, args []string) error {
 	cli.OutputHuman(renderSimpleTable([]string{"Container Registry GUID", "Name", "Type", "Status", "State"}, out))
 	cli.OutputHuman("\n")
 	cli.OutputHuman(buildDetailsTable(containerRegistry.Data))
+
 	return nil
 }
 
