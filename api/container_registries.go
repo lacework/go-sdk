@@ -189,6 +189,7 @@ type ContainerRegistryRaw struct {
 	v2CommonIntegrationData
 	Data        interface{}    `json:"data,omitempty"`
 	ServerToken *V2ServerToken `json:"serverToken,omitempty"`
+	Props       interface{}    `json:"props,omitempty"`
 }
 type V2ServerToken struct {
 	ServerToken string `json:"serverToken"`
