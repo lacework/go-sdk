@@ -195,7 +195,7 @@ func buildDetailsTable(integration api.V2RawType) string {
 							values = append(values, fmt.Sprintf("%s:%s", m, n))
 						}
 					} else {
-						cli.OutputHuman("[WARN] Unknown type %T for key %s\n", i, k)
+						cli.Log.Warn("unable to build table details, unknown type", "type", i, "key", k)
 					}
 				}
 				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strings.Join(values, ",")})
