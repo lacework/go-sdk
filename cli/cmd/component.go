@@ -34,6 +34,11 @@ import (
 
 const componentTypeAnnotation string = "component"
 
+var cdkDevState = struct {
+	Type        string
+	Description string
+}{}
+
 var (
 	// componentsCmd represents the components command
 	componentsCmd = &cobra.Command{
@@ -101,6 +106,22 @@ func init() {
 	componentsCmd.AddCommand(componentsUpdateCmd)
 	componentsCmd.AddCommand(componentsUninstallCmd)
 	componentsCmd.AddCommand(componentsDevModeCmd)
+
+	componentsDevModeCmd.Flags().StringVar(
+		&cdkDevState.Type,
+		"type", "",
+		fmt.Sprintf("component type (%s, %s, %s)",
+			lwcomponent.BinaryType,
+			lwcomponent.CommandType,
+			lwcomponent.LibraryType,
+		),
+	)
+
+	componentsDevModeCmd.Flags().StringVar(
+		&cdkDevState.Description,
+		"description", "",
+		"component description",
+	)
 
 	// load components dynamically
 	cli.LoadComponents()
@@ -455,31 +476,36 @@ func runComponentsDevMode(_ *cobra.Command, args []string) error {
 			color.HiYellowString(component.Name))
 
 		var (
-			cType   string
 			helpMsg = fmt.Sprintf("What are these component types ?\n"+
 				"\n'%s' - A regular standalone-binary (this component type is not accessible via the CLI)"+
 				"\n'%s' - A binary accessible via the Lacework CLI (Users will run 'lacework <COMPONENT_NAME>')"+
 				"\n'%s' - A library that only provides content for the CLI or other components\n",
 				lwcomponent.BinaryType, lwcomponent.CommandType, lwcomponent.LibraryType)
 		)
-		if err := survey.AskOne(&survey.Select{
-			Message: "Select the type of component you are developing:",
-			Help:    helpMsg,
-			Options: []string{
-				lwcomponent.BinaryType,
-				lwcomponent.CommandType,
-				lwcomponent.LibraryType,
-			},
-		}, &cType); err != nil {
-			return err
+		if cdkDevState.Type == "" {
+			if err := survey.AskOne(&survey.Select{
+				Message: "Select the type of component you are developing:",
+				Help:    helpMsg,
+				Options: []string{
+					lwcomponent.BinaryType,
+					lwcomponent.CommandType,
+					lwcomponent.LibraryType,
+				},
+			}, &cdkDevState.Type); err != nil {
+				return err
+			}
 		}
 
-		component.Type = lwcomponent.Type(cType)
+		component.Type = lwcomponent.Type(cdkDevState.Type)
 
-		if err := survey.AskOne(&survey.Input{
-			Message: "What is this component about? (component description):",
-		}, &component.Description); err != nil {
-			return err
+		if cdkDevState.Description == "" {
+			if err := survey.AskOne(&survey.Input{
+				Message: "What is this component about? (component description):",
+			}, &component.Description); err != nil {
+				return err
+			}
+		} else {
+			component.Description = cdkDevState.Description
 		}
 	}
 

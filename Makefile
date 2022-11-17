@@ -164,6 +164,24 @@ generate-docs: ## *CI ONLY* Generates documentation
 test-resources: ## *CI ONLY* Prepares CI test containers
 	scripts/prepare_test_resources.sh all
 
+go-component-from := integration/test_resources/cdk/go-component/bin/go-component
+go-component-to := ~/.config/lacework/components/go-component/go-component
+
+.PHONY: cdk-go-component
+cdk-go-component: install-cli ## Creates a go-component for development
+	scripts/prepare_test_resources.sh go_component
+	lacework component dev go-component \
+		--type CLI_COMMAND --noninteractive \
+		--description 'A go-component for development'
+ifeq (x86_64, $(shell uname -m))
+	cp $(go-component-from)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-amd64 $(go-component-to)
+else ifeq (arm64, $(shell uname -m))
+	cp $(go-component-from)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-arm64 $(go-component-to)
+else
+	cp $(go-component-from)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-386 $(go-component-to)
+endif
+	lacework component list
+
 .PHONY: protoc-go
 protoc-go: install-tools ## Generates code from proto files inside 'cli/cdk'
 	protoc --go_out=./cli/cdk/go --go_opt=paths=source_relative \

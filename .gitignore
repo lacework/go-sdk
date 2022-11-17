@@ -10,7 +10,7 @@ coverage.html
 circleci-artifacts/
 
 # for building binary files
-bin/
+/bin/
 # cli binary if built there
 cli/cli
 

@@ -19,7 +19,9 @@
 package file
 
 import (
+	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 // FileExists checks if a file exists and is not a directory
@@ -32,4 +34,23 @@ func FileExists(filename string) bool {
 		return false
 	}
 	return !f.IsDir()
+}
+
+// Copy a file
+func Copy(src, dst string) error {
+	srcAbs, err := filepath.Abs(src)
+	if err != nil {
+		return err
+	}
+	dstAbs, err := filepath.Abs(dst)
+	if err != nil {
+		return err
+	}
+
+	input, err := ioutil.ReadFile(srcAbs) // guardrails-disable-line
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(dstAbs, input, 0644)
 }
