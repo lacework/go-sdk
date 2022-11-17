@@ -27,6 +27,10 @@ import (
 
 type severity int
 
+func (s severity) GetSeverity() string {
+	return s.String()
+}
+
 const (
 	// Unknown severity
 	Unknown severity = iota
