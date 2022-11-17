@@ -115,10 +115,12 @@ func (c *cliState) Serve(target string) error {
 	return nil
 }
 
-// Stop will stop the CDK gRPC server. It immediately closes all open
-// connections and listeners.
+// Stop will stop the CDK gRPC server gracefully. It stops the server from
+// accepting new connections and RPCs and blocks until all the pending RPCs
+// are finished.
 func (c *cliState) Stop() {
 	if c.cdkServer != nil {
+		c.Log.Info("stopping gRPC server")
 		c.cdkServer.GracefulStop()
 	}
 }

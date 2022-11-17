@@ -152,6 +152,9 @@ func (c *cliState) Wait() {
 
 	// flush any pending calls to Honeycomb
 	libhoney.Close()
+
+	// stop gRPC server gracefully
+	c.Stop()
 }
 
 // SendHoneyvent is used throughout the CLI to send Honeyvents, these events

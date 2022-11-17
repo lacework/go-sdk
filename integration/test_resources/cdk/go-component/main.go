@@ -47,10 +47,11 @@ func help() error {
 
 func app() error {
 	// connect to the Lacework CDK server
-	cdkClient, err := Connect()
+	cdkClient, grpcConn, err := Connect()
 	if err != nil {
 		return err
 	}
+	defer grpcConn.Close()
 
 	// create a client to access Lacework APIs
 	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"),

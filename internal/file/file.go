@@ -52,5 +52,5 @@ func Copy(src, dst string) error {
 		return err
 	}
 
-	return ioutil.WriteFile(dstAbs, input, 0644)
+	return ioutil.WriteFile(dstAbs, input, 0755)
 }

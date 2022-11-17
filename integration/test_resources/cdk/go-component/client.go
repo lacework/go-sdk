@@ -30,7 +30,7 @@ import (
 )
 
 // Connect to the CDK server
-func Connect() (cdk.CoreClient, error) {
+func Connect() (cdk.CoreClient, *grpc.ClientConn, error) {
 	// Set up a connection to the CDK server
 	log.Infow("connecting to gRPC server", "address", os.Getenv("LW_CDK_TARGET"))
 	conn, err := grpc.Dial(os.Getenv("LW_CDK_TARGET"),
@@ -38,9 +38,8 @@ func Connect() (cdk.CoreClient, error) {
 		// connecting to the server running on the same machine
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not connect")
+		return nil, nil, errors.Wrap(err, "could not connect")
 	}
-	defer conn.Close()
 
 	var (
 		cdkClient   = cdk.NewCoreClient(conn)
@@ -53,9 +52,9 @@ func Connect() (cdk.CoreClient, error) {
 		ComponentName: os.Getenv("LW_COMPONENT_NAME"),
 	})
 	if err != nil {
-		return cdkClient, errors.Wrap(err, "could not ping")
+		return cdkClient, conn, errors.Wrap(err, "could not ping")
 	}
 	log.Debugw("response", "from", "cdk.v1.Core/Ping", "message", reply.GetMessage())
 
-	return cdkClient, nil
+	return cdkClient, conn, nil
 }

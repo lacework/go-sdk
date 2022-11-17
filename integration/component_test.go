@@ -96,6 +96,12 @@ func TestComponentDevModeGolang(t *testing.T) {
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 		assert.NotContains(t, out.String(), cName,
 			"the test component should not be here already, check!")
+
+		out, err, exitcode = LaceworkCLIWithHome(dir, cName)
+		assert.Empty(t, out.String(), "STDOUT should be empty")
+		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+		assert.NotContains(t, out.String(), cName,
+			fmt.Sprintf("ERROR unknown command \"%s\"", cName))
 	})
 
 	t.Run("enter dev-mode", func(t *testing.T) {
@@ -142,6 +148,29 @@ func TestComponentDevModeGolang(t *testing.T) {
 			"the test component SHOULD be installed, check!")
 		assert.Contains(t, out.String(), "(dev-mode) A Go component for testing",
 			"the test component SHOULD match descriptiohn, check!")
+	})
+
+	t.Run("execute component", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, cName)
+		assert.Empty(t, out.String(), "STDOUT should be empty")
+		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, err.String(),
+			fmt.Sprintf("ERROR This is a dummy %s for testing", cName),
+			"go component changed? Or something is wrong, check!")
+
+		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "run")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), "Running...",
+			"go component changed? Or something is wrong, check!")
+		assert.Contains(t, out.String(), "Highest Severity:",
+			"go component changed? Or something is wrong, check!")
+
+		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "fail")
+		assert.Empty(t, out.String(), "STDOUT should be empty")
+		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, err.String(), "ERROR Purposely failing...",
+			"go component changed? Or something is wrong, check!")
 	})
 
 	t.Run("global help should show component", func(t *testing.T) {
