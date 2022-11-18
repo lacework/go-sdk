@@ -45,6 +45,7 @@ func (p *componentArgParser) parseArgs(globalFlags *pflag.FlagSet, args []string
 			p.componentArgs = append(p.componentArgs, s)
 			continue
 		}
+
 		if len(s) == 0 || s[0] != '-' || len(s) == 1 {
 			// not a flag, passthrough
 			p.componentArgs = append(p.componentArgs, s)
@@ -145,7 +146,7 @@ func (p *componentArgParser) parseShortArg(flags *pflag.FlagSet, s string, args 
 			p.cliArgs = append(p.cliArgs, s)
 		} else if len(shorthands) > 1 {
 			// '-farg'
-			p.cliArgs = append(p.cliArgs, s)
+			p.componentArgs = append(p.componentArgs, s)
 			return args
 		} else if len(args) > 0 {
 			// '-f arg'
