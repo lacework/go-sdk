@@ -47,10 +47,13 @@ func TestComponentArgs(t *testing.T) {
 			[]string{"-a", "qan", "--profile", "foo"},
 		},
 		{
-			[]string{
-				"iac", "org", "--help",
-			},
 			[]string{"iac", "org", "--help"},
+			[]string{"iac", "org", "--help"},
+			[]string{},
+		},
+		{
+			[]string{"component", "-source", "iam"},
+			[]string{"component", "-source", "iam"},
 			[]string{},
 		},
 		{
