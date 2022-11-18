@@ -43,9 +43,9 @@ type ProxyScannerIntegrationResponse struct {
 
 type ProxyScannerIntegration struct {
 	v2CommonIntegrationData
-	Data        ProxyScannerData   `json:"data"`
-	ServerToken V2ServerToken      `json:"serverToken"`
-	Props       V2IntegrationProps `json:"props"`
+	Data        ProxyScannerData `json:"data"`
+	ServerToken V2ServerToken    `json:"serverToken"`
+	Props       interface{}      `json:"props,omitempty"` // null
 }
 
 func (reg ProxyScannerIntegration) ContainerRegistryType() containerRegistryType {

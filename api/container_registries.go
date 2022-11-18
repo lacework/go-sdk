@@ -278,3 +278,11 @@ func (svc *ContainerRegistriesService) update(guid string, data interface{}, res
 	apiPath := fmt.Sprintf(apiV2ContainerRegistryFromGUID, guid)
 	return svc.client.RequestEncoderDecoder("PATCH", apiPath, data, response)
 }
+
+func (svc *ContainerRegistriesService) mapPolicy(guid string, data interface{}, response interface{}) error {
+	if guid == "" {
+		return errors.New("specify an intgGuid")
+	}
+	apiPath := fmt.Sprintf(apiV2ContainerRegistryMapPolicies, guid)
+	return svc.client.RequestEncoderDecoder("POST", apiPath, data, response)
+}

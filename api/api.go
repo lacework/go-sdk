@@ -45,8 +45,9 @@ const (
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
 	apiV2UserProfile = "v2/UserProfile"
 
-	apiV2ContainerRegistries       = "v2/ContainerRegistries"
-	apiV2ContainerRegistryFromGUID = "v2/ContainerRegistries/%s"
+	apiV2ContainerRegistries          = "v2/ContainerRegistries"
+	apiV2ContainerRegistryFromGUID    = "v2/ContainerRegistries/%s"
+	apiV2ContainerRegistryMapPolicies = "v2/ContainerRegistries/%s/mapPolicies"
 
 	apiV2AlertChannels        = "v2/AlertChannels"
 	apiV2AlertChannelFromGUID = "v2/AlertChannels/%s"
