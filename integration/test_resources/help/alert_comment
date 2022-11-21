@@ -1,10 +1,13 @@
-Open a specified event in a web browser.
+Post a user comment on an alert's timeline .
+
+Comments may be provided inline or via editor.
 
 Usage:
-  lacework event open <event_id> [flags]
+  lacework alert comment <alert_id> [flags]
 
 Flags:
-  -h, --help   help for open
+  -c, --comment string   a comment to add to the alert
+  -h, --help             help for comment
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

@@ -19,6 +19,7 @@ import (
 const (
 	gkeOrgId  = "org-1"
 	gkeProjId = "project-1"
+	gkePath   = "/lacework/gke/"
 )
 
 func assertGkeTerraformSaved(t *testing.T, message string) {
@@ -26,17 +27,23 @@ func assertGkeTerraformSaved(t *testing.T, message string) {
 }
 
 func runGkeGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
-	dir := createDummyTOMLConfig()
-	homeCache := os.Getenv("HOME")
-	os.Setenv("HOME", dir)
-	defer os.Setenv("HOME", homeCache)
-	defer os.RemoveAll(dir)
+	os.Setenv("HOME", tfPath)
 
-	runFakeTerminalTestFromDir(t, dir, conditions, args...)
-	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/gke/main.tf", dir)))
+	hcl_path := filepath.Join(tfPath, gkePath, "main.tf")
+
+	runFakeTerminalTestFromDir(t, tfPath, conditions, args...)
+	out, err := ioutil.ReadFile(hcl_path)
 	if err != nil {
-		return ""
+		return fmt.Sprintf("main.tf not found: %s", err)
 	}
+
+	t.Cleanup(func() {
+		os.Remove(hcl_path)
+	})
+
+	result := terraformValidate(filepath.Join(tfPath, gkePath))
+
+	assert.True(t, result.Valid)
 
 	return string(out)
 }

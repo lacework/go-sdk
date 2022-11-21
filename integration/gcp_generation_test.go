@@ -18,6 +18,7 @@ import (
 const (
 	organizationId = "org-1"
 	projectId      = "project-1"
+	gcpPath        = "/lacework/gcp/"
 )
 
 func assertTerraformSaved(t *testing.T, message string) {
@@ -297,7 +298,6 @@ func TestGenerationSACredsGcp(t *testing.T) {
 			"client_email": "test_email@lacework.iam.gserviceaccount.com"
 	}`)
 
-	// Tempdir for test
 	dir, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
 		panic(err)
@@ -638,13 +638,6 @@ func TestGenerationCustomizedAuditlogIntegrationNameGcp(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 
-	// Tempdir for test
-	dir, err := ioutil.TempDir("", "lacework-cli")
-	if err != nil {
-		panic(err)
-	}
-	defer os.RemoveAll(dir)
-
 	// Run CLI
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
@@ -683,7 +676,6 @@ func TestGenerationCustomizedOutputLocationGcp(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 
-	// Tempdir for test
 	dir, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
 		panic(err)
@@ -1101,10 +1093,9 @@ func TestGenerationGcpOverwrite(t *testing.T) {
 	var final string
 
 	dir := createDummyTOMLConfig()
-	homeCache := os.Getenv("HOME")
-	os.Setenv("HOME", dir)
-	defer os.Setenv("HOME", homeCache)
 	defer os.RemoveAll(dir)
+
+	os.Setenv("HOME", dir)
 
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
@@ -1156,9 +1147,7 @@ func TestGenerationGcpOverwriteOutput(t *testing.T) {
 	dir := createDummyTOMLConfig()
 	defer os.RemoveAll(dir)
 
-	homeCache := os.Getenv("HOME")
 	os.Setenv("HOME", dir)
-	defer os.Setenv("HOME", homeCache)
 
 	output_dir := createDummyTOMLConfig()
 	defer os.RemoveAll(output_dir)
@@ -1246,20 +1235,21 @@ func TestGenerationGcpLaceworkProfile(t *testing.T) {
 }
 
 func runGcpGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
-	// create a temporal directory where we will check that the
-	// configuration file is deployed (.lacework.toml)
-	dir := createDummyTOMLConfig()
-	homeCache := os.Getenv("HOME")
-	os.Setenv("HOME", dir)
-	defer os.Setenv("HOME", homeCache)
-	defer os.RemoveAll(dir)
+	os.Setenv("HOME", tfPath)
 
-	runFakeTerminalTestFromDir(t, dir, conditions, args...)
-	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/gcp/main.tf", dir)))
+	runFakeTerminalTestFromDir(t, tfPath, conditions, args...)
+	out, err := ioutil.ReadFile(filepath.Join(tfPath, gcpPath, "main.tf"))
 	if err != nil {
-		// Assume couldn't be found
-		return ""
+		return fmt.Sprintf("main.tf not found: %s", err)
 	}
+
+	t.Cleanup(func() {
+		os.Remove(filepath.Join(tfPath, gcpPath, "main.tf"))
+	})
+
+	result := terraformValidate(filepath.Join(tfPath, gcpPath))
+
+	assert.True(t, result.Valid)
 
 	return string(out)
 }

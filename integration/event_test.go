@@ -27,20 +27,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEventCommandAliases(t *testing.T) {
-	// lacework event
-	out, err, exitcode := LaceworkCLI("help", "event")
-	assert.Contains(t, out.String(), "lacework event [command]")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-
-	// lacework events
-	out, err, exitcode = LaceworkCLI("help", "events")
-	assert.Contains(t, out.String(), "lacework event [command]")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-}
-
 func TestEventCommandList(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list")
 	assert.Contains(t, out.String(), "EVENT ID",
@@ -53,9 +39,7 @@ func TestEventCommandList(t *testing.T) {
 		"STDOUT table headers changed, please check")
 	assert.Contains(t, out.String(), "END TIME",
 		"STDOUT table headers changed, please check")
-	assert.Empty(t,
-		err.String(),
-		"STDERR should be empty")
+	assert.Contains(t, err.String(), `Command "list" is deprecated, please use 'lacework alert list' instead.`)
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
 }
@@ -65,9 +49,7 @@ func TestEventCommandList4Days(t *testing.T) {
 	// wouldn't the ML learn it and then become a known behavior? uhmmm
 	// for now we will just check that we have the headers :wink:
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--days", "4")
-	assert.Empty(t,
-		err.String(),
-		"STDERR should be empty")
+	assert.Contains(t, err.String(), `Command "list" is deprecated, please use 'lacework alert list' instead.`)
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
 
@@ -104,9 +86,7 @@ func TestEventCommandListTimeRange(t *testing.T) {
 	)
 
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--start", from.Format(time.RFC3339), "--end", now.Format(time.RFC3339))
-	assert.Empty(t,
-		err.String(),
-		"STDERR should be empty")
+	assert.Contains(t, err.String(), `Command "list" is deprecated, please use 'lacework alert list' instead.`)
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
 
@@ -140,9 +120,7 @@ func TestEventCommandOpenError(t *testing.T) {
 func TestEventCommandListSeverityWithJsonFlag(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("event", "list", "--severity", "high", "--json")
 	severities := []string{"\"severity\": 3", "\"severity\": 4", "\"severity\": 5"}
-	assert.Empty(t,
-		err.String(),
-		"STDERR should be empty")
+	assert.Contains(t, err.String(), `Command "list" is deprecated, please use 'lacework alert list' instead.`)
 	assert.Equal(t, 0, exitcode,
 		"EXITCODE is not the expected one")
 	assert.NotContains(t, severities, out.String(),

@@ -23,6 +23,10 @@ type InventoryAwsResponse struct {
 	Paging V2Pagination   `json:"paging"`
 }
 
+func (r InventoryAwsResponse) GetDataLength() int {
+	return len(r.Data)
+}
+
 func (r InventoryAwsResponse) PageInfo() *V2Pagination {
 	return &r.Paging
 }

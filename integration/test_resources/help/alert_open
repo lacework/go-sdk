@@ -1,10 +1,10 @@
-Show details about a specific event.
+Open a specified alert in a web browser.
 
 Usage:
-  lacework event show <event_id> [flags]
+  lacework alert open <alert_id> [flags]
 
 Flags:
-  -h, --help   help for show
+  -h, --help   help for open
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

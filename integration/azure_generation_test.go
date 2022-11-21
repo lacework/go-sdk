@@ -17,6 +17,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	azurePath = "/lacework/azure/"
+)
+
 func expectAzureString(c *expect.Console, str string, runError *error) {
 	out, err := c.Expect(expect.WithTimeout(time.Second), expect.String(str))
 	if err != nil {
@@ -34,13 +38,12 @@ func TestGenerationAzureErrorOnNoSelection(t *testing.T) {
 	// Run CLI
 	runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("n")
-			expectAzureString(c, "ERROR collecting/confirming parameters: must enable activity log or config", &runError)
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "n"},
+				MsgOnly{"ERROR collecting/confirming parameters: must enable activity log or config"},
+			})
 		},
 		"generate",
 		"cloud-account",
@@ -61,16 +64,13 @@ func TestGenerationAzureSimple(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -104,24 +104,15 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 	// Run CLI
 	runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B")
-			expectAzureString(c, cmd.QuestionAzureCustomizeOutputLocation, &runError)
-			c.SendLine(dir)
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
+				MsgMenu{cmd.AzureAdvancedOptDone, 5},
+				MsgRsp{cmd.QuestionAzureCustomizeOutputLocation, dir},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -151,16 +142,13 @@ func TestGenerationAzureConfigOnly(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -187,16 +175,13 @@ func TestGenerationAzureActivityLogOnly(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -226,30 +211,18 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
-
-			expectAzureString(c, cmd.AzureAdvancedOptLocation, &runError)
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B")
-
-			expectAzureString(c, cmd.QuestionADApplicationPass, &runError)
-			c.SendLine(pass)
-			expectAzureString(c, cmd.QuestionADApplicationId, &runError)
-			c.SendLine(applicationId)
-			expectAzureString(c, cmd.QuestionADServicePrincpleId, &runError)
-			c.SendLine(principalId)
-
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "n"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
+				MsgMenu{cmd.AzureAdvancedOptLocation, 2},
+				MsgRsp{cmd.QuestionADApplicationPass, pass},
+				MsgRsp{cmd.QuestionADApplicationId, applicationId},
+				MsgRsp{cmd.QuestionADServicePrincpleId, principalId},
+				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -281,25 +254,19 @@ func TestGenerationAzureNamedConfig(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.SendLine("")
+				MsgMenu{cmd.AzureAdvancedOptDone, 0},
 
-			expectAzureString(c, cmd.QuestionAzureConfigName, &runError)
-			c.SendLine(configName)
+				MsgRsp{cmd.QuestionAzureConfigName, configName},
 
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -329,25 +296,19 @@ func TestGenerationAzureNamedActivityLog(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.SendLine("")
+				MsgMenu{cmd.AzureAdvancedOptDone, 0},
 
-			expectAzureString(c, cmd.QuestionActivityLogName, &runError)
-			c.SendLine(activityName)
+				MsgRsp{cmd.QuestionActivityLogName, activityName},
 
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -375,24 +336,15 @@ func TestGenerationAzureAdvancedOptsDone(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgMenu{cmd.AzureAdvancedOptDone, 6},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -431,27 +383,17 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 	// Run CLI
 	runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B")
-			expectAzureString(c, cmd.QuestionAzureCustomizeOutputLocation, &runError)
-			c.SendLine(dir)
-			expectAzureString(c, fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
+				MsgMenu{cmd.AzureAdvancedOptDone, 5},
+				MsgRsp{cmd.QuestionAzureCustomizeOutputLocation, dir},
+				MsgRsp{fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), "n"},
 
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			_, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -479,25 +421,17 @@ func TestGenerationAzureConfigAllSubs(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
+				MsgMenu{cmd.AzureAdvancedOptDone, 1},
+				MsgRsp{cmd.QuestionEnableAllSubscriptions, "y"},
 
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.SendLine("\x1B[B")
-
-			expectAzureString(c, cmd.QuestionEnableAllSubscriptions, &runError)
-			c.SendLine("y")
-
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -527,28 +461,19 @@ func TestGenerationAzureConfigMgmntGroup(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B")
+				MsgMenu{cmd.AzureAdvancedOptDone, 2},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "y"},
+				MsgRsp{cmd.QuestionManagementGroupId, mgmtGrpId},
 
-			expectAzureString(c, cmd.QuestionEnableManagementGroup, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionManagementGroupId, &runError)
-			c.SendLine(mgmtGrpId)
-
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -579,28 +504,20 @@ func TestGenerationAzureConfigSubs(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.SendLine("\x1B[B")
+				MsgMenu{cmd.AzureAdvancedOptDone, 1},
 
-			expectAzureString(c, cmd.QuestionEnableAllSubscriptions, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionEnableAllSubscriptions, "n"},
 
-			expectAzureString(c, cmd.QuestionSubscriptionIds, &runError)
-			c.SendLine(strings.Join(testIds[:], ","))
-
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionSubscriptionIds, strings.Join(testIds[:], ",")},
+				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -630,28 +547,20 @@ func TestGenerationAzureActivityLogSubs(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.SendLine("\x1B[B")
+				MsgMenu{cmd.AzureAdvancedOptDone, 1},
+				MsgRsp{cmd.QuestionEnableAllSubscriptions, "n"},
 
-			expectAzureString(c, cmd.QuestionEnableAllSubscriptions, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionSubscriptionIds, strings.Join(testIds[:], ",")},
 
-			expectAzureString(c, cmd.QuestionSubscriptionIds, &runError)
-			c.SendLine(strings.Join(testIds[:], ","))
-
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -682,32 +591,22 @@ func TestGenerationAzureActivityLogStorageAccount(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B")
+				MsgMenu{cmd.AzureAdvancedOptDone, 3},
 
-			expectAzureString(c, cmd.QuestionUseExistingStorageAccount, &runError)
-			c.SendLine("y")
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "y"},
 
-			expectAzureString(c, cmd.QuestionStorageAccountName, &runError)
-			c.SendLine(storageAccountName)
-			expectAzureString(c, cmd.QuestionStorageAccountResourceGroup, &runError)
-			c.SendLine(storageResourceGrp)
+				MsgRsp{cmd.QuestionStorageAccountName, storageAccountName},
+				MsgRsp{cmd.QuestionStorageAccountResourceGroup, storageResourceGrp},
 
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -738,25 +637,19 @@ func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.SendLine("\x1B[B")
+				MsgMenu{cmd.AzureAdvancedOptDone, 1},
 
-			expectAzureString(c, cmd.QuestionEnableAllSubscriptions, &runError)
-			c.SendLine("y")
+				MsgRsp{cmd.QuestionEnableAllSubscriptions, "y"},
 
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -786,26 +679,19 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("y")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
-			expectAzureString(c, cmd.AzureAdvancedOptDone, &runError)
-			c.Send("\x1B[B")
-			c.SendLine("\x1B[B")
+				MsgMenu{cmd.AzureAdvancedOptDone, 2},
 
-			expectAzureString(c, cmd.QuestionStorageLocation, &runError)
-			c.SendLine(region)
+				MsgRsp{cmd.QuestionStorageLocation, region},
 
-			expectAzureString(c, cmd.QuestionAzureAnotherAdvancedOpt, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -828,7 +714,6 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 
 	dir := createDummyTOMLConfig()
 	defer os.RemoveAll(dir)
@@ -839,16 +724,13 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -860,18 +742,14 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("n")
-			expectString(t, c, "already exists, overwrite?")
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
+				MsgRsp{"already exists, overwrite?", "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -886,7 +764,6 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	var runError error
 
 	dir := createDummyTOMLConfig()
 	defer os.RemoveAll(dir)
@@ -900,16 +777,13 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -923,18 +797,14 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("n")
-			expectString(t, c, "already exists, overwrite?")
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
+				MsgRsp{"already exists, overwrite?", "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -956,16 +826,13 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 
 	tfResult := runGenerateAzureTest(t,
 		func(c *expect.Console) {
-			expectAzureString(c, cmd.QuestionAzureEnableConfig, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableActivityLog, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionEnableAdIntegration, &runError)
-			c.SendLine("y")
-			expectAzureString(c, cmd.QuestionAzureConfigAdvanced, &runError)
-			c.SendLine("n")
-			expectAzureString(c, cmd.QuestionRunTfPlan, &runError)
-			c.SendLine("n")
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
@@ -985,20 +852,23 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 }
 
 func runGenerateAzureTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
-	// create a temporal directory where we will check that the
-	// configuration file is deployed (.lacework.toml)
-	dir := createDummyTOMLConfig()
-	homeCache := os.Getenv("HOME")
-	os.Setenv("HOME", dir)
-	defer os.Setenv("HOME", homeCache)
-	defer os.RemoveAll(dir)
+	os.Setenv("HOME", tfPath)
 
-	runFakeTerminalTestFromDir(t, dir, conditions, args...)
-	out, err := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/lacework/azure/main.tf", dir)))
+	hcl_path := filepath.Join(tfPath, azurePath, "main.tf")
+
+	runFakeTerminalTestFromDir(t, tfPath, conditions, args...)
+	out, err := ioutil.ReadFile(hcl_path)
 	if err != nil {
-		// Assume couldn't be found
-		return ""
+		return fmt.Sprintf("main.tf not found: %s", err)
 	}
+
+	t.Cleanup(func() {
+		os.Remove(hcl_path)
+	})
+
+	result := terraformValidate(filepath.Join(tfPath, azurePath))
+
+	assert.True(t, result.Valid)
 
 	return string(out)
 }
