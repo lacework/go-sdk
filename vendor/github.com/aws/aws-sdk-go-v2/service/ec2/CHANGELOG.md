@@ -1,3 +1,75 @@
+# v1.72.0 (2022-11-18)
+
+* **Feature**: This release adds support for copying an Amazon Machine Image's tags when copying an AMI.
+
+# v1.71.0 (2022-11-17)
+
+* **Feature**: This release adds a new optional parameter "privateIpAddress" for the CreateNatGateway API. PrivateIPAddress will allow customers to select a custom Private IPv4 address instead of having it be auto-assigned.
+
+# v1.70.1 (2022-11-16)
+
+* No change notes available for this release.
+
+# v1.70.0 (2022-11-10)
+
+* **Feature**: This release adds a new price capacity optimized allocation strategy for Spot Instances to help customers optimize provisioning of Spot Instances via EC2 Auto Scaling, EC2 Fleet, and Spot Fleet. It allocates Spot Instances based on both spare capacity availability and Spot Instance price.
+
+# v1.69.0 (2022-11-09)
+
+* **Feature**: Amazon EC2 Trn1 instances, powered by AWS Trainium chips, are purpose built for high-performance deep learning training. u-24tb1.112xlarge and u-18tb1.112xlarge High Memory instances are purpose-built to run large in-memory databases.
+
+# v1.68.0 (2022-11-08)
+
+* **Feature**: This release enables sharing of EC2 Placement Groups across accounts and within AWS Organizations using Resource Access Manager
+
+# v1.67.0 (2022-11-07)
+
+* **Feature**: This release adds support for two new attributes for attribute-based instance type selection - NetworkBandwidthGbps and AllowedInstanceTypes.
+
+# v1.66.0 (2022-11-04)
+
+* **Feature**: This release adds API support for the recipient of an AMI account share to remove shared AMI launch permissions.
+
+# v1.65.0 (2022-10-31)
+
+* **Feature**: Elastic IP transfer is a new Amazon VPC feature that allows you to transfer your Elastic IP addresses from one AWS Account to another.
+
+# v1.64.0 (2022-10-27)
+
+* **Feature**: Feature supports the replacement of instance root volume using an updated AMI without requiring customers to stop their instance.
+
+# v1.63.3 (2022-10-24)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.63.2 (2022-10-21)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.63.1 (2022-10-06)
+
+* No change notes available for this release.
+
+# v1.63.0 (2022-10-04)
+
+* **Feature**: Added EnableNetworkAddressUsageMetrics flag for ModifyVpcAttribute, DescribeVpcAttribute APIs.
+
+# v1.62.0 (2022-10-03)
+
+* **Feature**: Adding an imdsSupport attribute to EC2 AMIs
+
+# v1.61.0 (2022-09-29)
+
+* **Feature**: u-3tb1 instances are powered by Intel Xeon Platinum 8176M (Skylake) processors and are purpose-built to run large in-memory databases.
+
+# v1.60.0 (2022-09-23)
+
+* **Feature**: Letting external AWS customers provide ImageId as a Launch Template override in FleetLaunchTemplateOverridesRequest
+
+# v1.59.0 (2022-09-22)
+
+* **Feature**: Documentation updates for Amazon EC2.
+
 # v1.58.0 (2022-09-20)
 
 * **Feature**: This release adds support for blocked paths to Amazon VPC Reachability Analyzer.
