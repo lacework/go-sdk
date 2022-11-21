@@ -20,7 +20,6 @@ package lwrunner
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	oslogin "cloud.google.com/go/oslogin/apiv1"
@@ -100,7 +99,6 @@ func (run GCPRunner) SendPublicKey(pubBytes []byte) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("ImportSshPublicKey resp: %v\n", *resp)
 
 	// Get login info from the OSLogin profile for our SSH login
 	posixAccounts := resp.LoginProfile.GetPosixAccounts()
