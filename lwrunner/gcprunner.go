@@ -31,12 +31,13 @@ import (
 
 type GCPRunner struct {
 	Runner           Runner
+	ParentUsername   string
 	ProjectID        string
 	AvailabilityZone string
 	InstanceID       string
 }
 
-func NewGCPRunner(host, availabilityZone, instanceID, projectID string, callback ssh.HostKeyCallback) (*GCPRunner, error) {
+func NewGCPRunner(host, parentUsername, projectID, availabilityZone, instanceID string, callback ssh.HostKeyCallback) (*GCPRunner, error) {
 	defaultCallback, err := DefaultKnownHosts()
 	if err == nil && callback == nil {
 		callback = defaultCallback
@@ -46,6 +47,7 @@ func NewGCPRunner(host, availabilityZone, instanceID, projectID string, callback
 
 	return &GCPRunner{
 		*runner,
+		parentUsername,
 		projectID,
 		availabilityZone,
 		instanceID,
@@ -92,7 +94,7 @@ func (run GCPRunner) SendPublicKey(pubBytes []byte) error {
 	req := &osloginpb.ImportSshPublicKeyRequest{
 		Parent:       "users/oslogin-account@lw-agent-team.iam.gserviceaccount.com",
 		SshPublicKey: key,
-		ProjectId:    "lw-agent-team",
+		ProjectId:    run.ProjectID,
 	}
 	resp, err := c.ImportSshPublicKey(ctx, req)
 	if err != nil {

@@ -44,6 +44,7 @@ var (
 		InstallTagKey         string
 		InstallTag            []string
 		InstallIncludeRegions []string
+		InstallParentUsername string
 		InstallProjectId      string
 		InstallMaxParallelism int
 	}{}
@@ -187,6 +188,7 @@ func init() {
 	agentCmd.AddCommand(agentGenerateCmd)
 	agentCmd.AddCommand(agentListCmd)
 	agentCmd.AddCommand(agentAWSInstallCmd)
+	agentCmd.AddCommand(agentGCPInstallCmd)
 
 	// add the list sub-command to the 'agent token' cmd
 	agentTokenCmd.AddCommand(agentTokenListCmd)

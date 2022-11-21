@@ -53,13 +53,25 @@ func init() {
 		"max_parallelism",
 		"n",
 		50,
-		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
+		"maximum number of workers executing GCP API calls, set if rate limits are lower or higher than normal",
+	)
+	agentInstallGCPOSLCmd.Flags().StringVar(
+		&agentCmdState.InstallParentUsername,
+		"parent_username",
+		"",
+		"Username of the GCP IAM user associated with your credentials, in the format `users/...`",
 	)
 	agentInstallGCPOSLCmd.Flags().StringVar(
 		&agentCmdState.InstallProjectId,
-		"org_id",
+		"project_id",
 		"",
-		"ID of the GCP organization, set if credentials do not provide",
+		"ID of the GCP project, set if metadata server does not provide",
+	)
+	agentInstallGCPOSLCmd.Flags().StringVar(
+		&agentCmdState.InstallAgentToken,
+		"token",
+		"",
+		"agent access token",
 	)
 }
 
@@ -88,7 +100,7 @@ func installGCPOSL(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("could not find project ID, no metadata server (%v) and ID not passed as flag", err)
 	}
 
-	runners, err := gcpDescribeInstancesInProject(projectID)
+	runners, err := gcpDescribeInstancesInProject(agentCmdState.InstallParentUsername, projectID)
 	if err != nil {
 		return err
 	}

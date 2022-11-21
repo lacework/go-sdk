@@ -28,7 +28,7 @@ import (
 	"github.com/lacework/go-sdk/lwrunner"
 )
 
-func gcpDescribeInstancesInProject(projectID string) ([]*lwrunner.GCPRunner, error) {
+func gcpDescribeInstancesInProject(parentUsername, projectID string) ([]*lwrunner.GCPRunner, error) {
 	discoveredInstances, err := instances.EnumerateInstancesInProject(context.Background(), nil, "", projectID)
 	if err != nil {
 		return nil, err
@@ -39,9 +39,10 @@ func gcpDescribeInstancesInProject(projectID string) ([]*lwrunner.GCPRunner, err
 	for _, instance := range discoveredInstances {
 		runner, err := lwrunner.NewGCPRunner(
 			instance.PublicIP,
+			parentUsername,
+			projectID,
 			instance.Zone,
 			instance.InstanceID,
-			projectID,
 			verifyHostCallback,
 		)
 		if err != nil {
