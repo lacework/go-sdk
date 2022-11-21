@@ -25,18 +25,51 @@ import (
 
 	"cloud.google.com/go/compute/metadata"
 	instances "github.com/lacework/go-sdk/lwcloud/gcp/resources/instances"
+	resources "github.com/lacework/go-sdk/lwcloud/gcp/resources/models"
 	"github.com/lacework/go-sdk/lwrunner"
 )
 
+// gcpDescribeInstancesInProject takes a GCP project ID and the username of an IAM username in the
+// project associated with the credentials in use as input, and outputs a list of GCP instances
+// in the project. It reads the flag value `InstallIncludeRegions` if populated to filter on regions,
+// and the flag values `InstallTag` and `InstallTagKey` if populated to filter on tag.
 func gcpDescribeInstancesInProject(parentUsername, projectID string) ([]*lwrunner.GCPRunner, error) {
-	discoveredInstances, err := instances.EnumerateInstancesInProject(context.Background(), nil, "", projectID)
-	if err != nil {
-		return nil, err
+	var discoveredInstances []resources.InstanceDetails
+	var err error
+
+	// Filter instances by region, if provided as CLI flag value
+	if len(agentCmdState.InstallIncludeRegions) > 0 {
+		for _, region := range agentCmdState.InstallIncludeRegions {
+			discoveredInstances, err = instances.EnumerateInstancesInProject(context.Background(), nil, region, projectID)
+			if err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		discoveredInstances, err = instances.EnumerateInstancesInProject(context.Background(), nil, "", projectID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	runners := []*lwrunner.GCPRunner{}
 
 	for _, instance := range discoveredInstances {
+		// Filter instances by tag and tag key, if provided as CLI flag values
+		if len(agentCmdState.InstallTag) == 2 {
+			if tagVal, ok := instance.Tags[agentCmdState.InstallTag[0]]; ok { // is tag key present?
+				if tagVal != agentCmdState.InstallTag[1] { // does tag value match?
+					continue // skip this instance if filter tag key and value are not present
+				}
+			} else { // tag key was not present, skip
+				continue
+			}
+		}
+		if agentCmdState.InstallTagKey != "" {
+			if _, ok := instance.Tags[agentCmdState.InstallTagKey]; !ok {
+				continue // skip this instance if filter tag key is not present
+			}
+		}
 		runner, err := lwrunner.NewGCPRunner(
 			instance.PublicIP,
 			parentUsername,
