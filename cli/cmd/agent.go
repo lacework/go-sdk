@@ -44,7 +44,6 @@ var (
 		InstallTagKey         string
 		InstallTag            []string
 		InstallIncludeRegions []string
-		InstallParentUsername string
 		InstallProjectId      string
 		InstallMaxParallelism int
 	}{}

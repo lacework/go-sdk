@@ -30,7 +30,7 @@ import (
 var (
 	agentInstallGCPOSLCmd = &cobra.Command{
 		Use:   "osl",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(1),
 		Short: "Use OSLogin to securely connect to GCE instances",
 		RunE:  installGCPOSL,
 		Long: `This command installs the agent on all GCE instances in a GCP organization using OSLogin.
@@ -56,12 +56,6 @@ func init() {
 		"maximum number of workers executing GCP API calls, set if rate limits are lower or higher than normal",
 	)
 	agentInstallGCPOSLCmd.Flags().StringVar(
-		&agentCmdState.InstallParentUsername,
-		"parent_username",
-		"",
-		"Username of the GCP IAM user associated with your credentials, in the format `users/...`",
-	)
-	agentInstallGCPOSLCmd.Flags().StringVar(
 		&agentCmdState.InstallProjectId,
 		"project_id",
 		"",
@@ -75,7 +69,7 @@ func init() {
 	)
 }
 
-func installGCPOSL(_ *cobra.Command, _ []string) error {
+func installGCPOSL(_ *cobra.Command, args []string) error {
 	token := agentCmdState.InstallAgentToken
 	if token == "" {
 		if cli.InteractiveMode() {
@@ -100,7 +94,7 @@ func installGCPOSL(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("could not find project ID, no metadata server (%v) and ID not passed as flag", err)
 	}
 
-	runners, err := gcpDescribeInstancesInProject(agentCmdState.InstallParentUsername, projectID)
+	runners, err := gcpDescribeInstancesInProject(args[0], projectID)
 	if err != nil {
 		return err
 	}
