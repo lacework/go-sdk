@@ -44,6 +44,7 @@ var (
 		InstallTagKey         string
 		InstallTag            []string
 		InstallIncludeRegions []string
+		InstallProjectId      string
 		InstallMaxParallelism int
 	}{}
 
@@ -168,6 +169,12 @@ NOTE: New agents could take up to an hour to report back to the platform.`,
 		Args:  cobra.NoArgs,
 		Short: "Install the datacollector agent on all remote AWS hosts",
 	}
+
+	agentGCPInstallCmd = &cobra.Command{
+		Use:   "gcp-install",
+		Args:  cobra.NoArgs,
+		Short: "Install the datacollector agent on all remote GCE hosts",
+	}
 )
 
 func init() {
@@ -180,6 +187,7 @@ func init() {
 	agentCmd.AddCommand(agentGenerateCmd)
 	agentCmd.AddCommand(agentListCmd)
 	agentCmd.AddCommand(agentAWSInstallCmd)
+	agentCmd.AddCommand(agentGCPInstallCmd)
 
 	// add the list sub-command to the 'agent token' cmd
 	agentTokenCmd.AddCommand(agentTokenListCmd)
@@ -190,6 +198,9 @@ func init() {
 	// add sub-commands to the 'agent aws-install' command for different install methods
 	agentAWSInstallCmd.AddCommand(agentInstallAWSEC2ICCmd)
 	agentAWSInstallCmd.AddCommand(agentInstallAWSSSHCmd)
+
+	// add sub-commands to the 'agent gcp-install' command for different install methods
+	agentGCPInstallCmd.AddCommand(agentInstallGCPOSLCmd)
 
 	// 'agent token update' flags
 	agentTokenUpdateCmd.Flags().BoolVar(&agentCmdState.TokenUpdateEnable,
