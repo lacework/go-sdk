@@ -92,7 +92,7 @@ func (run GCPRunner) SendPublicKey(pubBytes []byte) error {
 	}
 
 	req := &osloginpb.ImportSshPublicKeyRequest{
-		Parent:       "users/oslogin-account@lw-agent-team.iam.gserviceaccount.com",
+		Parent:       run.ParentUsername,
 		SshPublicKey: key,
 		ProjectId:    run.ProjectID,
 	}
