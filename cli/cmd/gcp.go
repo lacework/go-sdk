@@ -20,34 +20,47 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
+	"cloud.google.com/go/compute/metadata"
 	instances "github.com/lacework/go-sdk/lwcloud/gcp/resources/instances"
 	"github.com/lacework/go-sdk/lwrunner"
 )
 
-func gcpDescribeInstances(orgID string) ([]*lwrunner.GCPRunner, error) {
-	discoveredInstances, err := instances.EnumerateInstancesInOrg(context.Background(), nil, "", "", nil, nil)
+func gcpDescribeInstancesInProject(projectID string) ([]*lwrunner.GCPRunner, error) {
+	discoveredInstances, err := instances.EnumerateInstancesInProject(context.Background(), nil, "", projectID)
 	if err != nil {
 		return nil, err
 	}
 
 	runners := []*lwrunner.GCPRunner{}
 
-	for projectName, projectInstances := range discoveredInstances {
-		for _, instance := range projectInstances {
-			runner, err := lwrunner.NewGCPRunner(
-				instance.PublicIP,
-				instance.Zone,
-				instance.InstanceID,
-				projectName,
-				verifyHostCallback,
-			)
-			if err != nil {
-				return nil, err
-			}
-			runners = append(runners, runner)
+	for _, instance := range discoveredInstances {
+		runner, err := lwrunner.NewGCPRunner(
+			instance.PublicIP,
+			instance.Zone,
+			instance.InstanceID,
+			projectID,
+			verifyHostCallback,
+		)
+		if err != nil {
+			return nil, err
 		}
+		runners = append(runners, runner)
 	}
 
 	return runners, nil
+}
+
+func gcpGetProjectIDFromMetadataServer() (string, error) {
+	client := metadata.NewClient(&http.Client{})
+
+	projectID, err := client.ProjectID()
+	if err != nil {
+		err = fmt.Errorf("cannot get project details due to %s", err.Error())
+		return "", err
+	}
+
+	return projectID, nil
 }

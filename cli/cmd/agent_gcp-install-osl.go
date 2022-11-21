@@ -56,7 +56,7 @@ func init() {
 		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
 	)
 	agentInstallGCPOSLCmd.Flags().StringVar(
-		&agentCmdState.InstallOrgId,
+		&agentCmdState.InstallProjectId,
 		"org_id",
 		"",
 		"ID of the GCP organization, set if credentials do not provide",
@@ -79,8 +79,16 @@ func installGCPOSL(_ *cobra.Command, _ []string) error {
 		}
 	}
 
-	// TODO BEFORE MERGE try first to read org ID from GCP credentials
-	runners, err := gcpDescribeInstances(agentCmdState.InstallOrgId)
+	var projectID string
+	if agentCmdState.InstallProjectId != "" {
+		projectID = agentCmdState.InstallProjectId // prioritize CLI flag
+	} else if mdProjID, err := gcpGetProjectIDFromMetadataServer(); mdProjID != "" && err == nil {
+		projectID = mdProjID // if flag not passed, check the metadata server
+	} else {
+		return fmt.Errorf("could not find project ID, no metadata server (%v) and ID not passed as flag", err)
+	}
+
+	runners, err := gcpDescribeInstancesInProject(projectID)
 	if err != nil {
 		return err
 	}

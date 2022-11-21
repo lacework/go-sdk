@@ -5,6 +5,7 @@ go 1.18
 require (
 	aead.dev/minisign v0.2.0
 	cloud.google.com/go/compute v1.12.1
+	cloud.google.com/go/compute/metadata v0.2.1
 	cloud.google.com/go/oslogin v1.7.0
 	cloud.google.com/go/resourcemanager v1.3.0
 	github.com/AlecAivazis/survey/v2 v2.3.2
@@ -52,7 +53,6 @@ require (
 
 require (
 	cloud.google.com/go v0.105.0 // indirect
-	cloud.google.com/go/compute/metadata v0.2.1 // indirect
 	cloud.google.com/go/longrunning v0.1.1 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
@@ -77,6 +77,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.6.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect

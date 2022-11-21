@@ -44,7 +44,7 @@ var (
 		InstallTagKey         string
 		InstallTag            []string
 		InstallIncludeRegions []string
-		InstallOrgId          string
+		InstallProjectId      string
 		InstallMaxParallelism int
 	}{}
 
@@ -168,6 +168,12 @@ NOTE: New agents could take up to an hour to report back to the platform.`,
 		Use:   "aws-install",
 		Args:  cobra.NoArgs,
 		Short: "Install the datacollector agent on all remote AWS hosts",
+	}
+
+	agentGCPInstallCmd = &cobra.Command{
+		Use:   "gcp-install",
+		Args:  cobra.NoArgs,
+		Short: "Install the datacollector agent on all remote GCE hosts",
 	}
 )
 
