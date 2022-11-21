@@ -18,6 +18,8 @@
 
 package api
 
+import "time"
+
 type InventoryService struct {
 	client *Client
 }
@@ -47,7 +49,7 @@ const AwsInventoryDataset inventoryDataset = "AwsCompliance"
 //  )
 //   lacework.V2.Inventory.Search(&awsInventorySearchResponse, filters)
 //
-func (svc *InventoryService) Search(response interface{}, filters InventorySearch) error {
+func (svc *InventoryService) Search(response interface{}, filters SearchableFilter) error {
 	return svc.client.RequestEncoderDecoder("POST", apiV2InventorySearch, filters, response)
 }
 
@@ -55,4 +57,16 @@ type InventorySearch struct {
 	SearchFilter
 	Csp     inventoryType    `json:"csp"`
 	Dataset inventoryDataset `json:"dataset"`
+}
+
+func (i InventorySearch) GetTimeFilter() *TimeFilter {
+	return i.TimeFilter
+}
+
+func (i InventorySearch) SetStartTime(time *time.Time) {
+	i.TimeFilter.StartTime = time
+}
+
+func (i InventorySearch) SetEndTime(time *time.Time) {
+	i.TimeFilter.EndTime = time
 }
