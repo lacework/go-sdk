@@ -45,19 +45,19 @@ This command will automatically add hosts with successful connections to
 
 func init() {
 	// 'agent gcp-install osl' flags
-	agentInstallAWSEC2ICCmd.Flags().StringVar(
+	agentInstallGCPOSLCmd.Flags().StringVar(
 		&agentCmdState.InstallTagKey,
 		"tag_key",
 		"",
 		"only install agents on infra with this tag key set",
 	)
-	agentInstallAWSEC2ICCmd.Flags().StringSliceVar(
+	agentInstallGCPOSLCmd.Flags().StringSliceVar(
 		&agentCmdState.InstallTag,
 		"tag",
 		[]string{},
 		"only install agents on infra with this tag",
 	)
-	agentInstallAWSEC2ICCmd.Flags().StringSliceVarP(
+	agentInstallGCPOSLCmd.Flags().StringSliceVarP(
 		&agentCmdState.InstallIncludeRegions,
 		"include_regions",
 		"r",
