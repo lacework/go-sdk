@@ -211,9 +211,6 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/uuid v1.3.0
-## explicit
-github.com/google/uuid
 # github.com/googleapis/enterprise-certificate-proxy v0.2.0
 ## explicit; go 1.18
 github.com/googleapis/enterprise-certificate-proxy/client
@@ -504,11 +501,9 @@ golang.org/x/text/unicode/norm
 golang.org/x/text/width
 # google.golang.org/api v0.102.0
 ## explicit; go 1.19
-google.golang.org/api/cloudresourcemanager/v1beta1
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
 google.golang.org/api/internal
-google.golang.org/api/internal/gensupport
 google.golang.org/api/internal/impersonate
 google.golang.org/api/internal/third_party/uritemplates
 google.golang.org/api/iterator
