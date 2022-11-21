@@ -26,9 +26,9 @@ import (
 	folders "github.com/lacework/go-sdk/lwcloud/gcp/resources/folders"
 
 	resourcemanager "cloud.google.com/go/resourcemanager/apiv3"
+	resourcemanagerpb "cloud.google.com/go/resourcemanager/apiv3/resourcemanagerpb"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-	resourcemanagerpb "google.golang.org/genproto/googleapis/cloud/resourcemanager/v3"
 )
 
 type ProjectInfo struct {

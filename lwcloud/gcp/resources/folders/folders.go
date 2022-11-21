@@ -27,7 +27,7 @@ import (
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 
-	resourcemanagerpb "google.golang.org/genproto/googleapis/cloud/resourcemanager/v3"
+	resourcemanagerpb "cloud.google.com/go/resourcemanager/apiv3/resourcemanagerpb"
 )
 
 type FolderInfo struct {
