@@ -35,7 +35,25 @@ var (
 		RunE:  installGCPOSL,
 		Long: `This command installs the agent on all GCE instances in a GCP organization using OSLogin.
 
-GCP credentials are read from the following environment variables:
+To filter by one or more regions:
+
+    lacework agent gcp-install osl --include_regions us-west1,europe-west2
+
+To filter by instance tag:
+
+    lacework agent gcp-install osl --tag TagName,TagValue
+
+To filter by instance tag key:
+
+    lacework agent gcp-install osl --tag_key TagName
+
+To provide an agent access token of your choice, use the command 'lacework agent token list',
+select a token and pass it to the '--token' flag. This flag must be selected if the
+'--noninteractive' flag is set.
+
+    lacework agent gcp-install osl --token <token>
+
+GCP credentials are read using the following environment variables:
 - GOOGLE_APPLICATION_CREDENTIALS
 
 This command will automatically add hosts with successful connections to
