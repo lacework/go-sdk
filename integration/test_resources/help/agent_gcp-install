@@ -1,25 +1,13 @@
-Manage agents and agent access tokens in your account.
-
-To analyze application, host, and user behavior, Lacework uses a lightweight agent,
-which securely forwards collected metadata to the Lacework cloud for analysis. The
-agent requires minimal system resources and runs on most 64-bit Linux distributions.
-
-For a complete list of supported operating systems, visit:
-
-  https://docs.lacework.com/supported-operating-systems
+Install the datacollector agent on all remote GCE hosts
 
 Usage:
-  lacework agent [command]
+  lacework agent gcp-install [command]
 
 Available Commands:
-  aws-install Install the datacollector agent on all remote AWS hosts
-  gcp-install Install the datacollector agent on all remote GCE hosts
-  install     Install the datacollector agent on a remote host
-  list        List all hosts with a running agent
-  token       Manage agent access tokens
+  osl         Use OSLogin to securely connect to GCE instances
 
 Flags:
-  -h, --help   help for agent
+  -h, --help   help for gcp-install
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
@@ -35,4 +23,4 @@ Global Flags:
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
 
-Use "lacework agent [command] --help" for more information about a command.
+Use "lacework agent gcp-install [command] --help" for more information about a command.
