@@ -45,8 +45,30 @@ This command will automatically add hosts with successful connections to
 
 func init() {
 	// 'agent gcp-install osl' flags
-	agentInstallGCPOSLCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
-		"trust_host_key", true, "automatically add host keys to the ~/.ssh/known_hosts file",
+	agentInstallAWSEC2ICCmd.Flags().StringVar(
+		&agentCmdState.InstallTagKey,
+		"tag_key",
+		"",
+		"only install agents on infra with this tag key set",
+	)
+	agentInstallAWSEC2ICCmd.Flags().StringSliceVar(
+		&agentCmdState.InstallTag,
+		"tag",
+		[]string{},
+		"only install agents on infra with this tag",
+	)
+	agentInstallAWSEC2ICCmd.Flags().StringSliceVarP(
+		&agentCmdState.InstallIncludeRegions,
+		"include_regions",
+		"r",
+		[]string{},
+		"list of regions to filter on",
+	)
+	agentInstallGCPOSLCmd.Flags().BoolVar(
+		&agentCmdState.InstallTrustHostKey,
+		"trust_host_key",
+		true,
+		"automatically add host keys to the ~/.ssh/known_hosts file",
 	)
 	agentInstallGCPOSLCmd.Flags().IntVarP(
 		&agentCmdState.InstallMaxParallelism,
