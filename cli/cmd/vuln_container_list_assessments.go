@@ -84,14 +84,10 @@ filter on containers with vulnerabilities that have fixes available.`,
 				return nil
 			}
 
-			if len(assessments) >= 500000 {
-				partialResultMsg = "Partial result set displayed due to too many results returned."
-			}
-
 			// apply vuln ctr list-assessment filters (--registries, --repositories, --fixable)
-			//if vulnCtrListAssessmentFiltersEnabled() {
-			//	assessments = applyVulnCtrFilters(assessments)
-			//}
+			if vulnCtrListAssessmentFiltersEnabled() {
+				assessments = applyVulnCtrFilters(assessments)
+			}
 
 			//todo(v2): json output
 			//if cli.JSONOutput() {
@@ -136,30 +132,32 @@ func vulnCtrListAssessmentFiltersEnabled() bool {
 	return len(vulCmdState.Repositories) > 0 || len(vulCmdState.Registries) > 0 || vulCmdState.Fixable
 }
 
-func applyVulnCtrFilters(assessments []vulnCtrAssessment) []vulnCtrAssessment {
-	var filtered []vulnCtrAssessment
+func applyVulnCtrFilters(assessments []vulnerabilityAssessmentSummary) (filtered []vulnerabilityAssessmentSummary) {
 	for _, a := range assessments {
 		switch {
 		case len(vulCmdState.Repositories) > 0:
-			if filterAssessmentsByRepositories(a) {
-				filtered = append(filtered, a)
+			if !array.ContainsStr(vulCmdState.Repositories, a.repository) {
+				continue
 			}
 		case len(vulCmdState.Registries) > 0:
-			if filterAssessmentsByRegistries(a) {
-				filtered = append(filtered, a)
+			if !array.ContainsStr(vulCmdState.Registries, a.registry) {
+				continue
 			}
 		case vulCmdState.Fixable:
-			if filterAssessmentsByFixable(a) {
-				filtered = append(filtered, a)
+			var vulns []vulnerabilityCtrSummary
+			for _, v := range a.cves {
+				if v.fixable != 0 {
+					vulns = append(vulns, v)
+				}
+				a.cves = vulns
 			}
 		}
+		filtered = append(filtered, a)
 	}
-
-	return filtered
+	return
 }
 
 func listVulnCtrAssessments(registries []string, filter api.SearchFilter) (assessments []vulnerabilityAssessmentSummary, err error) {
-	//	var responseList []api.VulnerabilityContainer
 	var ctrMap = map[string][]api.VulnerabilityContainer{}
 	// for each ctr registry perform a search
 	for _, registry := range registries {
@@ -173,14 +171,12 @@ func listVulnCtrAssessments(registries []string, filter api.SearchFilter) (asses
 		if err != nil {
 			return assessments, errors.Wrap(err, "unable to get assessments")
 		}
-		//responseList = append(responseList, response.Data...)
 		if len(response.Data) != 0 {
 			ctrMap[registry] = response.Data
 		}
 	}
 
 	for _, v := range ctrMap {
-		// todo(v2): consider also passing registry into here buildVulnCtrAssessmentSummary(...)
 		assessments = append(assessments, buildVulnCtrAssessmentSummary(v)...)
 	}
 
@@ -197,6 +193,14 @@ type vulnerabilityAssessmentSummary struct {
 	severityList    []string
 	scanTime        time.Time
 	fixableCount    int
+	cves            []vulnerabilityCtrSummary
+}
+
+type vulnerabilityCtrSummary struct {
+	id       string
+	pkg      string
+	fixable  int
+	severity string
 }
 
 func (v vulnerabilityAssessmentSummary) Status() string {
@@ -227,10 +231,11 @@ func buildVulnCtrAssessmentSummary(assessments []api.VulnerabilityContainer) (un
 			summary.statusList = append(imageMap[i].statusList, a.Status)
 
 			// check duplicate cves
-			vulnKey := fmt.Sprintf("%s-%s", a.VulnID, a.FeatureKey.Name, a.FeatureKey)
+			vulnKey := fmt.Sprintf("%s-%s", a.VulnID, a.FeatureKey.Name)
 			if !array.ContainsStr(imageMap[i].vulnerabilities, vulnKey) && a.VulnID != "" {
 				summary.vulnerabilities = append(imageMap[i].vulnerabilities, vulnKey)
 				summary.severityList = append(imageMap[i].severityList, a.Severity)
+				summary.cves = append(imageMap[i].cves, vulnerabilityCtrSummary{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity})
 				if a.FixInfo.FixAvailable != 0 {
 					summary.fixableCount++
 				}
@@ -252,6 +257,7 @@ func buildVulnCtrAssessmentSummary(assessments []api.VulnerabilityContainer) (un
 			[]string{a.Severity},
 			a.StartTime,
 			fixableCount,
+			[]vulnerabilityCtrSummary{{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity}},
 		}
 	}
 
@@ -259,47 +265,7 @@ func buildVulnCtrAssessmentSummary(assessments []api.VulnerabilityContainer) (un
 	for _, v := range imageMap {
 		uniqueAssessments = append(uniqueAssessments, v)
 	}
-	// If any of the assessments statusList is vulnerable, then the ctr status is vulnerable
 	return
-}
-
-func filterAssessmentsByRepositories(assessment vulnCtrAssessment) bool {
-	if len(vulCmdState.Repositories) == 0 {
-		return false
-	}
-
-	for _, repo := range vulCmdState.Repositories {
-		if strings.Contains(assessment.image.Repo, repo) {
-			return true
-		}
-	}
-	return false
-}
-
-func filterAssessmentsByRegistries(assessment vulnCtrAssessment) bool {
-	if len(vulCmdState.Registries) == 0 {
-		return false
-	}
-
-	for _, repo := range vulCmdState.Registries {
-		if strings.Contains(assessment.image.Registry, repo) {
-			return true
-		}
-	}
-	return false
-}
-
-func filterAssessmentsByFixable(assessment vulnCtrAssessment) bool {
-	if !vulCmdState.Fixable {
-		return false
-	}
-
-	for _, a := range assessment.ctrs {
-		if a.FixInfo.FixAvailable != 0 {
-			return true
-		}
-	}
-	return false
 }
 
 func buildContainerAssessmentsError() string {
@@ -341,17 +307,22 @@ func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummar
 
 	for _, ctr := range assessments {
 		severities := []string{}
-		if array.ContainsStr(ctr.statusList, "VULNERABLE") {
-			severities = append(severities, ctr.severityList...)
+		fixableCount := 0
+		for _, cve := range ctr.cves {
+			severities = append(severities, cve.severity)
+			if cve.fixable != 0 {
+				fixableCount++
+			}
 		}
 
 		summaryString := severityCtrSummary(severities, ctr.fixableCount)
 
 		out = append(out, assessmentOutput{
-			imageRegistry:     ctr.registry,
-			imageRepo:         ctr.repository,
-			startTime:         ctr.scanTime.UTC().Format(time.RFC3339),
-			imageScanStatus:   ctr.Status(),
+			imageRegistry:   ctr.registry,
+			imageRepo:       ctr.repository,
+			startTime:       ctr.scanTime.UTC().Format(time.RFC3339),
+			imageScanStatus: ctr.Status(),
+			//todo(v2): containers
 			ndvContainers:     "1",
 			assessmentSummary: summaryString,
 			imageDigest:       ctr.digest,
