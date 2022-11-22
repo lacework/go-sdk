@@ -39,13 +39,13 @@ To filter by one or more regions:
 
     lacework agent gcp-install osl --include_regions us-west1,europe-west2
 
-To filter by instance tag:
+To filter by instance metadata:
 
-    lacework agent gcp-install osl --tag TagName,TagValue
+    lacework agent gcp-install osl --metadata MetadataKey,MetadataValue
 
-To filter by instance tag key:
+To filter by instance metadata key:
 
-    lacework agent gcp-install osl --tag_key TagName
+    lacework agent gcp-install osl --metadata_key MetadataKey
 
 To provide an agent access token of your choice, use the command 'lacework agent token list',
 select a token and pass it to the '--token' flag. This flag must be selected if the
@@ -65,15 +65,15 @@ func init() {
 	// 'agent gcp-install osl' flags
 	agentInstallGCPOSLCmd.Flags().StringVar(
 		&agentCmdState.InstallTagKey,
-		"tag_key",
+		"metadata_key",
 		"",
-		"only install agents on infra with this tag key set",
+		"only install agents on infra with this metadata key set",
 	)
 	agentInstallGCPOSLCmd.Flags().StringSliceVar(
 		&agentCmdState.InstallTag,
-		"tag",
+		"metadata",
 		[]string{},
-		"only install agents on infra with this tag",
+		"only install agents on infra with this metadata",
 	)
 	agentInstallGCPOSLCmd.Flags().StringSliceVarP(
 		&agentCmdState.InstallIncludeRegions,
@@ -157,7 +157,7 @@ func installGCPOSL(_ *cobra.Command, args []string) error {
 
 			cli.Log.Debugw("runner info: ",
 				"user", threadRunner.Runner.User,
-				"az", threadRunner.AvailabilityZone,
+				"zone", threadRunner.AvailabilityZone,
 				"instance_id", threadRunner.InstanceID,
 				"hostname", threadRunner.Runner.Hostname,
 			)
