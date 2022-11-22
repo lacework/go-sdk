@@ -110,15 +110,17 @@ operation of the Lacework CLI.
 |`LW_TELEMETRY_DISABLE=1`|disable sending telemetry data|
 |`LW_PROFILE="<name>"`|switch between profiles configured at `~/.lacework.toml`|
 |`LW_ACCOUNT="<account>"`|account subdomain of URL (i.e. `<ACCOUNT>.lacework.net`)|
+|`LW_SUBACCOUNT="<subaccount>"`|sub-account name inside your organization|
 |`LW_API_KEY="<key>"`|API access key id|
 |`LW_API_SECRET="<secret>"`|API secret access key|
+|`LW_CDK_TARGET="<localhost:port>"`|address to dial the CDK server|
 
 ## Basic Usage
 A few basic commands are:
 
-1) List all integration in your account:
+1) List all cloud account integrations in your account:
 ```bash
-lacework integrations list
+lacework cloud-account list
 ```
 2) List all events from the last 7 days in your account:
 ```bash
@@ -128,14 +130,14 @@ lacework events list
 ```bash
 lacework vulnerability container scan index.docker.io lacework/lacework-cli latest
 ```
-4) Use the `api` command to access Lacework's RestfulAPI, for example,
-to look at the SCHEMA of the `WEBHOOK` integration:
+4) Use the `api` command to access Lacework API, for example,
+to list all available SCHEMAS in API v2:
 ```bash
-lacework api get /external/integrations/schema/WEBHOOK
+lacework api get /schemas
 ```
 
 ## CLI Documentation
-For more CLI documentation, see https://github.com/lacework/go-sdk/wiki/CLI-Documentation.
+For more CLI documentation, see http://docs.lacework.com/cli
 
 ## Development
 

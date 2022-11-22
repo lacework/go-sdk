@@ -36,8 +36,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 
 	"github.com/lacework/go-sdk/api"
+	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
 	"github.com/lacework/go-sdk/internal/format"
 	"github.com/lacework/go-sdk/lwcomponent"
 	"github.com/lacework/go-sdk/lwconfig"
@@ -76,6 +78,12 @@ type cliState struct {
 	tokenCache      api.TokenData
 	installedCmd    bool
 	componentParser componentArgParser
+
+	// Implements core proto service
+	cdk.UnimplementedCoreServer
+
+	// Allows only one gRPC Server
+	cdkServer *grpc.Server
 }
 
 // NewDefaultState creates a new cliState with some defaults
@@ -416,26 +424,6 @@ func (c *cliState) HumanOutput() bool {
 // CSVOutput returns true if the cli is configured to display csv output
 func (c *cliState) CSVOutput() bool {
 	return c.csvOutput
-}
-
-func (c *cliState) envs() []string {
-	return []string{
-		fmt.Sprintf("LW_ACCOUNT=%s", c.Account),
-		fmt.Sprintf("LW_SUBACCOUNT=%s", c.Subaccount),
-		fmt.Sprintf("LW_API_KEY=%s", c.KeyID),
-		fmt.Sprintf("LW_API_SECRET=%s", c.Secret),
-		fmt.Sprintf("LW_API_TOKEN=%s", c.Token),
-		fmt.Sprintf("LW_ORGANIZATION=%v", c.OrgLevel),
-		fmt.Sprintf("LW_NONINTERACTIVE=%v", c.nonInteractive),
-		fmt.Sprintf("LW_NOCACHE=%v", c.noCache),
-		fmt.Sprintf("LW_NOCOLOR=%s", os.Getenv("NO_COLOR")),
-		fmt.Sprintf("LW_LOG=%s", c.LogLevel),
-		fmt.Sprintf("LW_JSON=%v", c.jsonOutput),
-
-		// Sends tracing information
-		fmt.Sprintf("LW_HONEYVENT_TRACE_ID=%s", c.Event.TraceID),
-		fmt.Sprintf("LW_HONEYVENT_PARENT_ID=%s", c.Event.SpanID),
-	}
 }
 
 // loadStateFromViper loads parameters and environment variables
