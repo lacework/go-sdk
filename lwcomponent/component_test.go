@@ -433,13 +433,11 @@ func TestJSON(t *testing.T) {
 	if err != nil {
 		assert.FailNow(t, err.Error())
 	}
-	fmt.Print(string(cBytes))
 	assert.Equal(t, mockComponentString, string(cBytes))
 
 	cBytes, err = json.MarshalIndent(&c, "", "    ")
 	if err != nil {
 		assert.FailNow(t, err.Error())
 	}
-	fmt.Print(string(cBytes))
 	assert.Equal(t, mockComponentString, string(cBytes))
 }
