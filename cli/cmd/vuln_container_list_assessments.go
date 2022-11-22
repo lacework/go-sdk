@@ -42,9 +42,8 @@ filter on containers with vulnerabilities that have fixes available.`,
 				partialResultMsg string
 			)
 
-			// todo(v2): fix caching
-			//expired := cli.ReadCachedAsset(cacheKey, &assessments)
-			if true {
+			expired := cli.ReadCachedAsset(cacheKey, &assessments)
+			if expired {
 				// before starting the search find all ctr reg
 				cli.StartProgress("Fetching container registries...")
 				registries, err := getContainerRegistries()
@@ -89,7 +88,6 @@ filter on containers with vulnerabilities that have fixes available.`,
 				assessments = applyVulnCtrFilters(assessments)
 			}
 
-			//todo(v2): json output
 			if cli.JSONOutput() {
 				return cli.OutputJSON(assessments)
 			}
@@ -97,6 +95,9 @@ filter on containers with vulnerabilities that have fixes available.`,
 			// Build table output
 			assessmentOutput := assessmentSummaryToOutputFormat(assessments)
 			rows := vulAssessmentsToTable(assessmentOutput)
+
+			array.Sort2D(rows)
+
 			headers := []string{"Registry", "Repository", "Last Scan", "Status", "Vulnerabilities", "Image Digest"}
 
 			switch {
@@ -187,7 +188,7 @@ type vulnerabilityAssessmentSummary struct {
 	ScanTime        time.Time                 `json:"scan_time"`
 	Cves            []vulnerabilityCtrSummary `json:"cves"`
 	vulnerabilities []string
-	statusList      []string
+	StatusList      []string `json:"status_list"`
 	fixableCount    int
 }
 
@@ -199,7 +200,7 @@ type vulnerabilityCtrSummary struct {
 }
 
 func (v vulnerabilityAssessmentSummary) Status() string {
-	if array.ContainsStr(v.statusList, "VULNERABLE") {
+	if array.ContainsStr(v.StatusList, "VULNERABLE") {
 		return "VULNERABLE"
 	}
 	return "GOOD"
@@ -207,15 +208,8 @@ func (v vulnerabilityAssessmentSummary) Status() string {
 
 func buildVulnCtrAssessmentSummary(assessments []api.VulnerabilityContainer) (uniqueAssessments []vulnerabilityAssessmentSummary) {
 	var (
-		imageIDs []string
 		imageMap = map[string]vulnerabilityAssessmentSummary{}
 	)
-
-	// find unique image ids
-	for _, a := range assessments {
-		imageIDs = append(imageIDs, a.ImageID)
-	}
-	//	uniqueImageIDs := array.Unique(imageIDs)
 
 	// build a map for our assessments per image
 	for _, a := range assessments {
@@ -223,7 +217,7 @@ func buildVulnCtrAssessmentSummary(assessments []api.VulnerabilityContainer) (un
 		if _, ok := imageMap[i]; ok {
 			// if the image id assessment has already been added, then append the vulnerabilities
 			summary := imageMap[i]
-			summary.statusList = append(imageMap[i].statusList, a.Status)
+			summary.StatusList = append(imageMap[i].StatusList, a.Status)
 
 			// check duplicate cves
 			vulnKey := fmt.Sprintf("%s-%s", a.VulnID, a.FeatureKey.Name)
@@ -397,7 +391,8 @@ func vulAssessmentsToTable(assessments []assessmentOutput) [][]string {
 			assessment.imageRepo,
 			assessment.startTime,
 			assessment.imageScanStatus,
-			assessment.ndvContainers,
+			//todo(v2): active containers blocked by RAIN-43538
+			//assessment.ndvContainers,
 			assessment.assessmentSummary,
 			assessment.imageDigest,
 		})
