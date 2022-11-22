@@ -684,7 +684,7 @@ func extractAzureSubscriptions(response api.CloudAccountsResponse) []azureSubscr
 		if err != nil {
 			continue
 		}
-		
+
 		err = json.Unmarshal(azJson, &azureData)
 		if err != nil {
 			continue
