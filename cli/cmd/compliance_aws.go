@@ -48,7 +48,6 @@ var (
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			cli.StartProgress("Fetching list of configured AWS accounts...")
-			// todo(v2) migrate
 			awsAccounts, err := cli.LwApi.V2.CloudAccounts.ListByType(api.AwsCfgCloudAccount)
 			cli.StopProgress()
 			if err != nil {
