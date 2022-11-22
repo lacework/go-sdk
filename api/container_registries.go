@@ -189,29 +189,14 @@ type ContainerRegistryRaw struct {
 	v2CommonIntegrationData
 	Data        interface{}    `json:"data,omitempty"`
 	ServerToken *V2ServerToken `json:"serverToken,omitempty"`
-	Props       interface{}    `json:"props,omitempty"`
 }
 type V2ServerToken struct {
 	ServerToken string `json:"serverToken"`
 	Uri         string `json:"uri"`
 }
 
-type V2IntegrationProps struct {
-	PolicyEvaluation *V2IntegrationPropsPolicyEvaluation `json:"policyEvaluation"`
-	Tags             string                              `json:"tags"`
-}
-
-type V2IntegrationPropsPolicyEvaluation struct {
-	Evaluate    bool     `json:"evaluate"`
-	PolicyGuids []string `json:"policyGuids,omitempty"`
-}
-
 func (reg ContainerRegistryRaw) GetData() any {
 	return reg.Data
-}
-
-func (reg ContainerRegistryRaw) GetProps() any {
-	return reg.Props
 }
 
 func (reg ContainerRegistryRaw) GetCommon() v2CommonIntegrationData {
@@ -277,12 +262,4 @@ func (svc *ContainerRegistriesService) update(guid string, data interface{}, res
 	}
 	apiPath := fmt.Sprintf(apiV2ContainerRegistryFromGUID, guid)
 	return svc.client.RequestEncoderDecoder("PATCH", apiPath, data, response)
-}
-
-func (svc *ContainerRegistriesService) mapPolicy(guid string, data interface{}, response interface{}) error {
-	if guid == "" {
-		return errors.New("specify an intgGuid")
-	}
-	apiPath := fmt.Sprintf(apiV2ContainerRegistryMapPolicies, guid)
-	return svc.client.RequestEncoderDecoder("POST", apiPath, data, response)
 }
