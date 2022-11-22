@@ -88,6 +88,11 @@ func NewGcpAuditLogIntegration(name string, data GcpIntegrationData) GcpIntegrat
 	return NewGcpIntegration(name, GcpAuditLogIntegration, data)
 }
 
+// NewGcpSidekickIntegration returns an instance of GcpSidekick of type GCP_SIDEKICK
+func NewGcpSidekickIntegration(name string, data GcpIntegrationData) GcpIntegration {
+	return NewGcpIntegration(name, GcpSidekickIntegration, data)
+}
+
 // CreateGcp creates a single Gcp integration on the Lacework Server
 func (svc *IntegrationsService) CreateGcp(data GcpIntegration) (
 	response GcpIntegrationsResponse,
@@ -135,6 +140,12 @@ func (svc *IntegrationsService) ListGcpCfg() (response GcpIntegrationsResponse, 
 // ListGcpAuditLog lists the GCP_AT_SES external integrations available on the Lacework Server
 func (svc *IntegrationsService) ListGcpAuditLog() (response GcpIntegrationsResponse, err error) {
 	err = svc.listByType(GcpAuditLogIntegration, &response)
+	return
+}
+
+// ListGcpSidekick lists the GCP_SIDEKICK external integrations available on the Lacework Server
+func (svc *IntegrationsService) ListGcpSidekick() (response GcpIntegrationsResponse, err error) {
+	err = svc.listByType(GcpSidekickIntegration, &response)
 	return
 }
 

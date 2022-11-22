@@ -61,6 +61,9 @@ const (
 	// GCP Pub Sub alert channel integration type
 	GcpPubSubChannelIntegration
 
+	// GCP sidekick integration type
+	GcpSidekickIntegration
+
 	// New Relic Insights alert channel integration type
 	NewRelicChannelIntegration
 
@@ -128,6 +131,7 @@ var IntegrationTypes = map[integrationType]integration{
 	GcpCfgIntegration:                {"GCP_CFG", CloudAccounts},
 	GcpAuditLogIntegration:           {"GCP_AT_SES", CloudAccounts},
 	GcpPubSubChannelIntegration:      {"GCP_PUBSUB", AlertChannels},
+	GcpSidekickIntegration:           {"GCP_SIDEKICK", CloudAccounts},
 	NewRelicChannelIntegration:       {"NEW_RELIC_INSIGHTS", AlertChannels},
 	AzureCfgIntegration:              {"AZURE_CFG", CloudAccounts},
 	AzureActivityLogIntegration:      {"AZURE_AL_SEQ", CloudAccounts},
