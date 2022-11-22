@@ -57,6 +57,11 @@ func gcpDescribeInstancesInProject(parentUsername, projectID string) ([]*lwrunne
 	runners := []*lwrunner.GCPRunner{}
 
 	for _, instance := range discoveredInstances {
+		// Filter out instances that are not in the RUNNING state
+		if instance.State != "RUNNING" {
+			continue
+		}
+
 		// Filter instances by tag and tag key, if provided as CLI flag values
 		// NB that tags are another name for GCP "metadata"
 		if len(agentCmdState.InstallTag) == 2 {
