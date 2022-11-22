@@ -42,39 +42,42 @@ var (
 
 	// complianceAzureListSubsCmd represents the list-subscriptions sub-command inside the azure command
 	complianceAzureListSubsCmd = &cobra.Command{
-		Use:     "list-subscriptions <tenant_id>",
+		Use:     "list-subscriptions",
 		Aliases: []string{"list-subs"},
-		Short:   "List subscriptions from tenant",
-		Long: `List all Azure subscriptions from the provided Tenant ID.
+		Short:   "List subscriptions",
+		Long: `List all Azure subscriptions.
 
 Use the following command to list all Azure Tenants configured in your account:
 
     lacework compliance az list`,
-		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
+		Args: cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
 			var (
-				tenantID, _   = splitIDAndAlias(args[0])
-				response, err = cli.LwApi.Compliance.ListAzureSubscriptions(tenantID)
+				response, err             = cli.LwApi.V2.Configs.Azure.List()
+				cliCompAzureSubscriptions []cliComplianceAzureInfo
 			)
 			if err != nil {
 				return errors.Wrap(err, "unable to list azure subscriptions")
 			}
 
 			if len(response.Data) == 0 {
-				return errors.New("no data found for the provided tenant")
+				cli.OutputHuman("there are no azure integrations configure in your account")
+				return nil
 			}
 
-			// ALLY-431 Workaround to split the subscription ID and subscription Alias
-			// ultimately, we need to fix this in the API response
-			cliCompAzureSubscriptions := splitAzureSubscriptionsApiResponse(response.Data[0])
+			for _, az := range response.Data {
+				cliCompAzureSubscriptions = append(cliCompAzureSubscriptions, splitAzureSubscriptionsApiResponse(az))
+			}
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(cliCompAzureSubscriptions)
 			}
 
 			rows := [][]string{}
-			for _, subscription := range cliCompAzureSubscriptions.Subscriptions {
-				rows = append(rows, []string{subscription.ID, subscription.Alias})
+			for _, subscriptionList := range cliCompAzureSubscriptions {
+				for _, subscription := range subscriptionList.Subscriptions {
+					rows = append(rows, []string{subscription.ID, subscription.Alias})
+				}
 			}
 
 			cli.OutputHuman(renderSimpleTable(
@@ -595,9 +598,7 @@ func complianceAzureReportDetailsTable(report *api.AzureReport) [][]string {
 	}
 }
 
-// ALLY-431 Workaround to split the Subscription ID and Subscription Alias
-// ultimately, we need to fix this in the API response
-func splitAzureSubscriptionsApiResponse(azInfo api.CompAzureSubscriptions) cliComplianceAzureInfo {
+func splitAzureSubscriptionsApiResponse(azInfo api.AzureConfigData) cliComplianceAzureInfo {
 	var (
 		tenantID, tenantAlias = splitIDAndAlias(azInfo.Tenant)
 		cliAzureInfo          = cliComplianceAzureInfo{
