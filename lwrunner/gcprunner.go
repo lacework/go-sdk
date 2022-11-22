@@ -76,6 +76,7 @@ func (run GCPRunner) SendAndUseIdentityFile() error {
 		if _, err = ssh.Dial("tcp", run.Runner.Address(), run.Runner.ClientConfig); err == nil {
 			return nil
 		}
+		fmt.Println("retry #", i, "current time", time.Now())
 		time.Sleep(time.Second)
 	}
 	return fmt.Errorf("could not connect to host successfully after %d tries with err %v", retries, err)
