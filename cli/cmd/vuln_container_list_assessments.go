@@ -97,7 +97,7 @@ filter on containers with vulnerabilities that have fixes available.`,
 			// Build table output
 			assessmentOutput := assessmentSummaryToOutputFormat(assessments)
 			rows := vulAssessmentsToTable(assessmentOutput)
-			headers := []string{"Registry", "Repository", "Last Scan", "Status", "Containers", "Vulnerabilities", "Image Digest"}
+			headers := []string{"Registry", "Repository", "Last Scan", "Status", "Vulnerabilities", "Image Digest"}
 
 			switch {
 			// if the user wants to show only assessments of containers running
@@ -316,7 +316,7 @@ func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummar
 			imageRepo:       ctr.Repository,
 			startTime:       ctr.ScanTime.UTC().Format(time.RFC3339),
 			imageScanStatus: ctr.Status(),
-			//todo(v2): containers
+			//todo(v2): adding active containers blocked by RAIN-43538
 			ndvContainers:     "1",
 			assessmentSummary: summaryString,
 			imageDigest:       ctr.Digest,
