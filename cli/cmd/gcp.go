@@ -91,8 +91,10 @@ func gcpDescribeInstancesInProject(parentUsername, projectID string) ([]*lwrunne
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println(runner)
 		runners = append(runners, runner)
 	}
+	fmt.Println(runners)
 	cli.Log.Debugw("filtered list of runners", "runners", runners)
 
 	return runners, nil
