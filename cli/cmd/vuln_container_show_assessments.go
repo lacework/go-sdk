@@ -161,7 +161,8 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 	assessment := response.Data
 	if len(assessment) == 0 {
 		if cli.JSONOutput() {
-			return cli.OutputJSON(assessment)
+			// if no assessments are found return empty array
+			return cli.OutputJSON([]any{})
 		}
 		cli.OutputHuman("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
 		return nil
@@ -183,6 +184,10 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 			return err
 		}
 	default:
+		if len(response.Data) == 0 {
+			cli.OutputHuman("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
+			return nil
+		}
 		summaryReport := buildVulnerabilitySummaryReportTable(response)
 		detailsReport := buildVulnerabilityDetailsReportTable(details)
 		cli.OutputHuman(buildVulnContainerAssessmentReportTable(summaryReport, detailsReport))
