@@ -70,9 +70,9 @@ func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
 
 	expected := `
 Registry,Repository,Last Scan,Status,Vulnerabilities,Image Digest
-index.docker.io,techalll-test/test-cli,2022-11-21T18:33:28Z,VULNERABLE,1 Medium 1 Fixable,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a
-gcr.io,techally-test-2/exservice,2022-11-21T19:21:57Z,GOOD,None! Time for 🌮 ,sha256:12b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
-gcr.io,techally-test-2/exservice,2022-11-21T19:21:57Z,VULNERABLE,1 High 1 Fixable,sha256:15b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
+index.docker.io,techally-test/test-cli,2022-11-21T18:33:28Z,VULNERABLE,1 Medium 1 Fixable,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a
+gcr.io,techally-test-4/exservice,2022-11-21T19:21:57Z,VULNERABLE,1 High 1 Fixable,sha256:15b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
+gcr.io,techally-test-2/exservice,2022-11-21T19:21:57Z,VULNERABLE,1 Critical,sha256:12b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
 `
 
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), csv)
@@ -96,9 +96,9 @@ func TestBuildCSVVulnCtrReportWithVulnerabilities(t *testing.T) {
 
 	expected := `
 CVE ID,Severity,CVSSv2,CVSSv3,Package,Current Version,Fix Version,Introduced in Layer
+CVE-2020-12345,Critical,0.0,0.0,example-2,1.2.0,,apk add --no-cache ca-certificates
 CVE-2020-12345,High,0.0,0.0,example-4,1.0.0,1.31.1-r11,apk add --no-cache ca-certificates
 CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,example introduced in layer
-,,0.0,0.0,example-2,1.2.0,,apk add --no-cache ca-certificates
 `
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
 }
@@ -165,7 +165,7 @@ var rawListAssessments = `
                     "digest": "sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a",
                     "id": "sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
                     "registry": "index.docker.io",
-                    "repo": "techalll-test/test-cli",
+                    "repo": "techally-test/test-cli",
                     "scan_created_time": 1669055600,
                     "size": 360608563,
                     "status": "Success",
@@ -277,7 +277,9 @@ var rawListAssessments = `
             },
             "imageId": "sha256:7652596622b05043763f962cff30edf01f6ea1ba29374f1703dda759dc9ff3a1",
             "startTime": "2022-11-21T19:21:57.765Z",
-            "status": "GOOD"
+            "status": "VULNERABLE",
+            "severity": "Critical",
+            "vulnId": "CVE-2020-12345"
         },
         {
             "evalCtx": {
@@ -291,7 +293,7 @@ var rawListAssessments = `
                     "digest": "sha256:15b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123",
                     "id": "sha256:1252596622b05043763f962gff30adf01f6ea1ba29374f1703dda759dc9ab3a1",
                     "registry": "gcr.io",
-                    "repo": "techally-test-2/exservice",
+                    "repo": "techally-test-4/exservice",
                     "scan_created_time": 1636768856,
                     "size": 14933503,
                     "status": "Success",

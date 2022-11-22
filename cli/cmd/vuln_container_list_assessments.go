@@ -94,11 +94,7 @@ filter on containers with vulnerabilities that have fixes available.`,
 			// Build table output
 			assessmentOutput := assessmentSummaryToOutputFormat(assessments)
 			rows := vulAssessmentsToTable(assessmentOutput)
-
-			array.Sort2D(rows)
-
 			headers := []string{"Registry", "Repository", "Last Scan", "Status", "Vulnerabilities", "Image Digest"}
-
 			switch {
 			// if the user wants to show only assessments of containers running
 			// and we don't have any, show a friendly message
@@ -291,6 +287,10 @@ func buildContainerAssessmentsError() string {
 // assessmentSummaryToOutputFormat builds assessmentOutput from the raw response
 func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummary) []assessmentOutput {
 	var out []assessmentOutput
+
+	sort.Slice(assessments, func(i, j int) bool {
+		return assessments[i].Repository > assessments[j].Repository
+	})
 
 	for _, ctr := range assessments {
 		severities := []string{}
