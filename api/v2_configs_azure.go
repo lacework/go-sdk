@@ -18,6 +18,8 @@
 
 package api
 
+import "fmt"
+
 // v2AzureConfigService is a service that interacts with the APIv2
 // vulnerabilities endpoints for hosts
 type v2AzureConfigService struct {
@@ -27,6 +29,16 @@ type v2AzureConfigService struct {
 // List returns a list of Azure tenants and subscriptions
 func (svc *v2AzureConfigService) List() (response AzureConfigsResponse, err error) {
 	err = svc.client.RequestDecoder("GET", apiV2ConfigsAzure, nil, &response)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// ListSubscriptions returns a list of Azure subscriptions for a given tenant
+func (svc *v2AzureConfigService) ListSubscriptions(tenantID string) (response AzureConfigsResponse, err error) {
+	err = svc.client.RequestDecoder("GET", fmt.Sprintf(apiV2ConfigsAzureSubscriptions, tenantID), nil, &response)
 	if err != nil {
 		return
 	}

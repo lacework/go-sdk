@@ -117,8 +117,10 @@ const (
 
 	apiV2ComplianceEvaluationsSearch = "v2/Configs/ComplianceEvaluations/search"
 
-	apiV2ConfigsAzure = "v2/Configs/AzureSubscriptions"
-	apiV2ConfigsGcp   = "v2/Configs/GcpProjects"
+	apiV2ConfigsAzure              = "v2/Configs/AzureSubscriptions"
+	apiV2ConfigsAzureSubscriptions = "v2/Configs/AzureSubscriptions?tenantId=%s"
+	apiV2ConfigsGcp                = "v2/Configs/GcpProjects"
+	apiV2ConfigsGcpProjects        = "v2/Configs/GcpProjects?orgId=%s"
 
 	apiV2Policies        = "v2/Policies"
 	apiV2Queries         = "v2/Queries"
