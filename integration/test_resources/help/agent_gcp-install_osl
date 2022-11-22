@@ -4,13 +4,13 @@ To filter by one or more regions:
 
     lacework agent gcp-install osl --include_regions us-west1,europe-west2
 
-To filter by instance tag:
+To filter by instance metadata:
 
-    lacework agent gcp-install osl --tag TagName,TagValue
+    lacework agent gcp-install osl --metadata MetadataKey,MetadataValue
 
-To filter by instance tag key:
+To filter by instance metadata key:
 
-    lacework agent gcp-install osl --tag_key TagName
+    lacework agent gcp-install osl --metadata_key MetadataKey
 
 To provide an agent access token of your choice, use the command 'lacework agent token list',
 select a token and pass it to the '--token' flag. This flag must be selected if the
@@ -32,8 +32,8 @@ Flags:
   -r, --include_regions strings   list of regions to filter on
   -n, --max_parallelism int       maximum number of workers executing GCP API calls, set if rate limits are lower or higher than normal (default 50)
       --project_id string         ID of the GCP project, set if metadata server does not provide
-      --tag strings               only install agents on infra with this tag
-      --tag_key string            only install agents on infra with this tag key set
+      --metadata strings          only install agents on infra with this metadata
+      --metadata_key string       only install agents on infra with this metadata key set
       --token string              agent access token
       --trust_host_key            automatically add host keys to the ~/.ssh/known_hosts file (default true)
 

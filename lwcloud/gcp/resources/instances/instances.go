@@ -101,6 +101,8 @@ func EnumerateInstancesInProject(ctx context.Context, clientOption option.Client
 
 				privateIp, externalIp, vpcId := getNetworkInfo(instance.GetNetworkInterfaces(), tags)
 
+				md := getMetadata(instance.GetMetadata())
+
 				instanceInfo := models.InstanceDetails{
 					InstanceID: instanceIdStr,
 					Type:       instance.GetMachineType(),
@@ -115,7 +117,7 @@ func EnumerateInstancesInProject(ctx context.Context, clientOption option.Client
 					PrivateIP:  privateIp,
 					LaunchTime: launchTime,
 					Tags:       tags,
-					Props:      nil,
+					Props:      md,
 				}
 				instances = append(instances, instanceInfo)
 			}
@@ -220,4 +222,12 @@ func getNetworkInfo(nwIntfs []*computepb.NetworkInterface, tags map[string]strin
 	}
 
 	return privateIp, externalIp, vpcId
+}
+
+func getMetadata(rawMd *computepb.Metadata) map[string]string {
+	mappedMd := make(map[string]string)
+	for _, item := range rawMd.GetItems() {
+		mappedMd[item.GetKey()] = item.GetValue()
+	}
+	return mappedMd
 }

@@ -39,7 +39,7 @@ func gcpDescribeInstancesInProject(parentUsername, projectID string) ([]*lwrunne
 
 	// Filter instances by region, if provided as CLI flag value
 	if len(agentCmdState.InstallIncludeRegions) > 0 {
-		cli.Log.Debugw("filtering on regions", agentCmdState.InstallIncludeRegions)
+		cli.Log.Debugw("filtering on regions", "regions", agentCmdState.InstallIncludeRegions)
 		for _, region := range agentCmdState.InstallIncludeRegions {
 			discoveredInstances, err = instances.EnumerateInstancesInProject(context.Background(), nil, region, projectID)
 			if err != nil {
@@ -52,15 +52,16 @@ func gcpDescribeInstancesInProject(parentUsername, projectID string) ([]*lwrunne
 			return nil, err
 		}
 	}
-	cli.Log.Debugw("found instances", discoveredInstances)
+	cli.Log.Debugw("found instances", "instances", discoveredInstances)
 
 	runners := []*lwrunner.GCPRunner{}
 
 	for _, instance := range discoveredInstances {
 		// Filter instances by tag and tag key, if provided as CLI flag values
+		// NB that tags are another name for GCP "metadata"
 		if len(agentCmdState.InstallTag) == 2 {
-			cli.Log.Debugw("filtering on tag", agentCmdState.InstallTag)
-			if tagVal, ok := instance.Tags[agentCmdState.InstallTag[0]]; ok { // is tag key present?
+			cli.Log.Debugw("filtering on tag (metadata)", "tag", agentCmdState.InstallTag)
+			if tagVal, ok := instance.Props[agentCmdState.InstallTag[0]]; ok { // is tag key present?
 				if tagVal != agentCmdState.InstallTag[1] { // does tag value match?
 					continue // skip this instance if filter tag key and value are not present
 				}
@@ -69,8 +70,8 @@ func gcpDescribeInstancesInProject(parentUsername, projectID string) ([]*lwrunne
 			}
 		}
 		if agentCmdState.InstallTagKey != "" {
-			cli.Log.Debugw("filtering on tag key", agentCmdState.InstallTagKey)
-			if _, ok := instance.Tags[agentCmdState.InstallTagKey]; !ok {
+			cli.Log.Debugw("filtering on tag (metadata) key", "tag key", agentCmdState.InstallTagKey)
+			if _, ok := instance.Props[agentCmdState.InstallTagKey]; !ok {
 				continue // skip this instance if filter tag key is not present
 			}
 		}
