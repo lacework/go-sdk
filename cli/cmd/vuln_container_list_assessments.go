@@ -90,13 +90,9 @@ filter on containers with vulnerabilities that have fixes available.`,
 			}
 
 			//todo(v2): json output
-			//if cli.JSONOutput() {
-			//	var assesmentsJsonOutput []api.VulnerabilityContainer
-			//	for _, a := range assessments {
-			//		assesmentsJsonOutput = append(assesmentsJsonOutput, a)
-			//	}
-			//	return cli.OutputJSON(assesmentsJsonOutput)
-			//}
+			if cli.JSONOutput() {
+				return cli.OutputJSON(assessments)
+			}
 
 			// Build table output
 			assessmentOutput := assessmentSummaryToOutputFormat(assessments)
@@ -136,20 +132,20 @@ func applyVulnCtrFilters(assessments []vulnerabilityAssessmentSummary) (filtered
 	for _, a := range assessments {
 		switch {
 		case len(vulCmdState.Repositories) > 0:
-			if !array.ContainsStr(vulCmdState.Repositories, a.repository) {
+			if !array.ContainsStr(vulCmdState.Repositories, a.Repository) {
 				continue
 			}
 		case len(vulCmdState.Registries) > 0:
-			if !array.ContainsStr(vulCmdState.Registries, a.registry) {
+			if !array.ContainsStr(vulCmdState.Registries, a.Registry) {
 				continue
 			}
 		case vulCmdState.Fixable:
 			var vulns []vulnerabilityCtrSummary
-			for _, v := range a.cves {
-				if v.fixable != 0 {
+			for _, v := range a.Cves {
+				if v.Fixable != 0 {
 					vulns = append(vulns, v)
 				}
-				a.cves = vulns
+				a.Cves = vulns
 			}
 		}
 		filtered = append(filtered, a)
@@ -184,23 +180,22 @@ func listVulnCtrAssessments(registries []string, filter api.SearchFilter) (asses
 }
 
 type vulnerabilityAssessmentSummary struct {
-	imageID         string
-	repository      string
-	registry        string
-	digest          string
+	ImageID         string                    `json:"image_id"`
+	Repository      string                    `json:"repository"`
+	Registry        string                    `json:"registry"`
+	Digest          string                    `json:"digest"`
+	ScanTime        time.Time                 `json:"scan_time"`
+	Cves            []vulnerabilityCtrSummary `json:"cves"`
 	vulnerabilities []string
 	statusList      []string
-	severityList    []string
-	scanTime        time.Time
 	fixableCount    int
-	cves            []vulnerabilityCtrSummary
 }
 
 type vulnerabilityCtrSummary struct {
-	id       string
-	pkg      string
-	fixable  int
-	severity string
+	Id       string `json:"vuln_id"`
+	Pkg      string `json:"package_name"`
+	Fixable  int    `json:"fixable"`
+	Severity string `json:"severity"`
 }
 
 func (v vulnerabilityAssessmentSummary) Status() string {
@@ -234,8 +229,7 @@ func buildVulnCtrAssessmentSummary(assessments []api.VulnerabilityContainer) (un
 			vulnKey := fmt.Sprintf("%s-%s", a.VulnID, a.FeatureKey.Name)
 			if !array.ContainsStr(imageMap[i].vulnerabilities, vulnKey) && a.VulnID != "" {
 				summary.vulnerabilities = append(imageMap[i].vulnerabilities, vulnKey)
-				summary.severityList = append(imageMap[i].severityList, a.Severity)
-				summary.cves = append(imageMap[i].cves, vulnerabilityCtrSummary{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity})
+				summary.Cves = append(imageMap[i].Cves, vulnerabilityCtrSummary{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity})
 				if a.FixInfo.FixAvailable != 0 {
 					summary.fixableCount++
 				}
@@ -248,16 +242,16 @@ func buildVulnCtrAssessmentSummary(assessments []api.VulnerabilityContainer) (un
 		if a.FixInfo.FixAvailable != 0 {
 			fixableCount = 1
 		}
-		imageMap[i] = vulnerabilityAssessmentSummary{a.ImageID,
+		imageMap[i] = vulnerabilityAssessmentSummary{
+			a.ImageID,
 			a.EvalCtx.ImageInfo.Repo,
 			a.EvalCtx.ImageInfo.Registry,
 			a.EvalCtx.ImageInfo.Digest,
+			a.StartTime,
+			[]vulnerabilityCtrSummary{{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity}},
 			[]string{fmt.Sprintf("%s-%s", a.VulnID, a.FeatureKey.Name)},
 			[]string{a.Status},
-			[]string{a.Severity},
-			a.StartTime,
 			fixableCount,
-			[]vulnerabilityCtrSummary{{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity}},
 		}
 	}
 
@@ -279,7 +273,7 @@ func buildContainerAssessmentsError() string {
 	if len(vulCmdState.Repositories) != 0 {
 		msg = fmt.Sprintf("%s for the specified", msg)
 		if len(vulCmdState.Repositories) == 1 {
-			msg = fmt.Sprintf("%s repository", msg)
+			msg = fmt.Sprintf("%s Repository", msg)
 		} else {
 			msg = fmt.Sprintf("%s repositories", msg)
 		}
@@ -308,9 +302,9 @@ func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummar
 	for _, ctr := range assessments {
 		severities := []string{}
 		fixableCount := 0
-		for _, cve := range ctr.cves {
-			severities = append(severities, cve.severity)
-			if cve.fixable != 0 {
+		for _, cve := range ctr.Cves {
+			severities = append(severities, cve.Severity)
+			if cve.Fixable != 0 {
 				fixableCount++
 			}
 		}
@@ -318,14 +312,14 @@ func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummar
 		summaryString := severityCtrSummary(severities, ctr.fixableCount)
 
 		out = append(out, assessmentOutput{
-			imageRegistry:   ctr.registry,
-			imageRepo:       ctr.repository,
-			startTime:       ctr.scanTime.UTC().Format(time.RFC3339),
+			imageRegistry:   ctr.Registry,
+			imageRepo:       ctr.Repository,
+			startTime:       ctr.ScanTime.UTC().Format(time.RFC3339),
 			imageScanStatus: ctr.Status(),
 			//todo(v2): containers
 			ndvContainers:     "1",
 			assessmentSummary: summaryString,
-			imageDigest:       ctr.digest,
+			imageDigest:       ctr.Digest,
 		})
 	}
 	return out
@@ -419,13 +413,4 @@ type assessmentOutput struct {
 	ndvContainers     string
 	assessmentSummary string
 	imageDigest       string
-}
-
-type vulnCtrAssessment struct {
-	id             string
-	ctrs           []api.VulnerabilityContainer
-	uniqueCtrCount int
-	image          api.ImageInfo
-	startTime      time.Time
-	status         string
 }
