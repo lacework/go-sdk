@@ -70,6 +70,8 @@ func (run GCPRunner) SendAndUseIdentityFile() error {
 	}
 	run.Runner.Auth = []ssh.AuthMethod{ssh.PublicKeys(signer)}
 
+	time.Sleep(15 * time.Second)
+
 	return nil
 }
 
