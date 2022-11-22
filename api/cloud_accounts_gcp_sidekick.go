@@ -46,16 +46,16 @@ type V2GcpSidekickIntegration struct {
 }
 
 type GcpSidekickData struct {
-	Credentials   GcpSidekickCredentials `json:"credentials"`
-	IDType        string                 `json:"idType"`
+	Credentials GcpSidekickCredentials `json:"credentials"`
+	IDType      string                 `json:"idType"`
 	// Either the org id or project id
-	ID string `json:"id"`
+	ID                string `json:"id"`
 	ScanningProjectId string `json:"scanningProjectId"`
-	SharedBucket string `json:"sharedBucketName"`
-	FilterList string `json:"filterList,omitempty"`
-	QueryText string `json:"queryText,omitempty"`
+	SharedBucket      string `json:"sharedBucketName"`
+	FilterList        string `json:"filterList,omitempty"`
+	QueryText         string `json:"queryText,omitempty"`
 	//ScanFrequency in hours, 24 == 24 hours
-	ScanFrequency int `json:"scanFrequency"`
+	ScanFrequency           int  `json:"scanFrequency"`
 	ScanContainers          bool `json:"scanContainers"`
 	ScanHostVulnerabilities bool `json:"scanHostVulnerabilities"`
 }
