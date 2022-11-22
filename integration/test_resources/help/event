@@ -1,15 +1,11 @@
+Command "event" is deprecated, Please use 'lacework alert' instead.
+
 Inspect events reported by the Lacework platform
 
 Usage:
-  lacework event [command]
 
 Aliases:
   event, events
-
-Available Commands:
-  list        List all events (default last 7 days)
-  open        Open a specified event in a web browser
-  show        Show details about a specific event
 
 Flags:
   -h, --help   help for event

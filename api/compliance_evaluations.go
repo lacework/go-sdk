@@ -18,6 +18,8 @@
 
 package api
 
+import "time"
+
 type ComplianceEvaluationService struct {
 	client *Client
 }
@@ -45,8 +47,20 @@ const AwsComplianceEvaluationDataset complianceEvaluationDataset = "AwsComplianc
 //  )
 //   lacework.V2.ComplianceEvaluation.Search(&awsComplianceEvaluationSearchResponse, filters)
 //
-func (svc *ComplianceEvaluationService) Search(response interface{}, filters ComplianceEvaluationSearch) error {
+func (svc *ComplianceEvaluationService) Search(response interface{}, filters SearchableFilter) error {
 	return svc.client.RequestEncoderDecoder("POST", apiV2ComplianceEvaluationsSearch, filters, response)
+}
+
+func (c *ComplianceEvaluationSearch) GetTimeFilter() *TimeFilter {
+	return c.TimeFilter
+}
+
+func (c *ComplianceEvaluationSearch) SetStartTime(t *time.Time) {
+	c.TimeFilter.StartTime = t
+}
+
+func (c *ComplianceEvaluationSearch) SetEndTime(t *time.Time) {
+	c.TimeFilter.EndTime = t
 }
 
 type ComplianceEvaluationSearch struct {

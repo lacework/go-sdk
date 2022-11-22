@@ -31,6 +31,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/lwseverity"
 )
 
 var (
@@ -139,9 +140,9 @@ To show recommendation details and affected resources for a recommendation id:
 			}
 
 			if compCmdState.Severity != "" {
-				if !array.ContainsStr(api.ValidEventSeverities, compCmdState.Severity) {
+				if !lwseverity.IsValid(compCmdState.Severity) {
 					return errors.Errorf("the severity %s is not valid, use one of %s",
-						compCmdState.Severity, strings.Join(api.ValidEventSeverities, ", "),
+						compCmdState.Severity, lwseverity.ValidSeverities.String(),
 					)
 				}
 			}
@@ -448,7 +449,7 @@ The output from status with the --json flag can be used in the body of PATCH api
 					Csp:     api.AwsInventoryType,
 				}
 			)
-			err := cli.LwApi.V2.Inventory.Search(&awsInventorySearchResponse, filter)
+			err := api.WindowedSearchFirst(cli.LwApi.V2.Inventory.Search, api.V2ApiMaxSearchWindowDays, api.V2ApiMaxSearchHistoryDays, &awsInventorySearchResponse, &filter)
 			cli.StopProgress()
 
 			if len(awsInventorySearchResponse.Data) == 0 {
@@ -479,7 +480,8 @@ The output from status with the --json flag can be used in the body of PATCH api
 					Dataset: api.AwsComplianceEvaluationDataset,
 				}
 			)
-			err = cli.LwApi.V2.ComplianceEvaluations.Search(&awsComplianceEvaluationSearchResponse, complianceFilter)
+
+			err = api.WindowedSearchFirst(cli.LwApi.V2.ComplianceEvaluations.Search, api.V2ApiMaxSearchWindowDays, api.V2ApiMaxSearchHistoryDays, &awsComplianceEvaluationSearchResponse, &complianceFilter)
 			cli.StopProgress()
 			if err != nil {
 				return err
@@ -563,7 +565,7 @@ func init() {
 
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Severity, "severity", "",
 		fmt.Sprintf("filter report details by severity threshold (%s)",
-			strings.Join(api.ValidEventSeverities, ", ")),
+			lwseverity.ValidSeverities.String()),
 	)
 
 	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",

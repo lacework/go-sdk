@@ -18,7 +18,11 @@
 
 package api
 
-import "time"
+import (
+	"errors"
+	"math"
+	"time"
+)
 
 // SearchFilter is the representation of an advanced search payload
 // for retrieving information out of the Lacework APIv2 Server
@@ -53,4 +57,61 @@ type Filter struct {
 type TimeFilter struct {
 	StartTime *time.Time `json:"startTime,omitempty"`
 	EndTime   *time.Time `json:"endTime,omitempty"`
+}
+
+type SearchResponse interface {
+	GetDataLength() int
+}
+
+type SearchableFilter interface {
+	GetTimeFilter() *TimeFilter
+	SetStartTime(*time.Time)
+	SetEndTime(*time.Time)
+}
+
+// V2ApiMaxSearchHistoryDays defines the maximum number of days in the past api v2 allows to be searched
+const V2ApiMaxSearchHistoryDays = 92
+
+// V2ApiMaxSearchWindowDays defines the maximum number of days in a single request api v2 allows to be searched
+const V2ApiMaxSearchWindowDays = 7
+
+type search func(response interface{}, filters SearchableFilter) error
+
+// WindowedSearchFirst performs a new search of a specific time frame size,
+// until response data is found or the max searchable days is reached
+func WindowedSearchFirst(fn search, size int, max int, response SearchResponse, filter SearchableFilter) error {
+	if size > max {
+		return errors.New("window size cannot be greater than max history")
+	}
+
+	// if start and end time are the same, adjust the windows
+	timeDifference := int(math.RoundToEven(filter.GetTimeFilter().EndTime.Sub(*filter.GetTimeFilter().StartTime).Hours() / 24))
+
+	if timeDifference == 0 {
+		newStart := filter.GetTimeFilter().StartTime.AddDate(0, 0, -size)
+		filter.SetStartTime(&newStart)
+	}
+
+	for i := timeDifference; i < max; i += size {
+		err := fn(&response, filter)
+		if err != nil {
+			return err
+		}
+		if response.GetDataLength() != 0 {
+			return nil
+		}
+
+		// adjust window
+		newStart := filter.GetTimeFilter().StartTime.AddDate(0, 0, -size)
+		newEnd := filter.GetTimeFilter().EndTime.AddDate(0, 0, -size)
+
+		// ensure we do not go over the max allowed searchable days
+		rem := (max - i) % size
+		if rem > 0 {
+			newStart = filter.GetTimeFilter().StartTime.AddDate(0, 0, -rem)
+		}
+		filter.SetStartTime(&newStart)
+		filter.SetEndTime(&newEnd)
+	}
+	return nil
 }

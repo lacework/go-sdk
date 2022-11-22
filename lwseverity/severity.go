@@ -20,6 +20,7 @@
 package lwseverity
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 )
@@ -55,6 +56,23 @@ func (s severity) String() string {
 	return severities[s]
 }
 
+type validSeverities []severity
+
+// A list of valid Lacework severities (critical, high, medium, low, info)
+var ValidSeverities = validSeverities{Critical, High, Medium, Low, Info}
+
+// Return a string representation of valid severities
+// "critical, high, medium, low, info"
+func (v validSeverities) String() string {
+	s := ""
+
+	for _, severity := range v {
+		s += fmt.Sprintf("%s, ", strings.ToLower(severities[severity]))
+	}
+
+	return strings.TrimRight(s, ", ")
+}
+
 // Initialize a severity from string
 func NewSeverity(s string) severity {
 	switch strings.ToLower(s) {
@@ -88,6 +106,12 @@ type Severity interface {
 func Normalize(s string) (int, string) {
 	severity := NewSeverity(s)
 	return int(severity), severity.String()
+}
+
+// Take a string representation of Lacework severity and
+// return whether it properly maps to a valid severity (not unknown)
+func IsValid(s string) bool {
+	return NewSeverity(s) != Unknown
 }
 
 // Returns true if the first severity not as critical as the second severity

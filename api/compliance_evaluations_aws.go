@@ -25,6 +25,10 @@ type ComplianceEvaluationAwsResponse struct {
 	Paging V2Pagination              `json:"paging"`
 }
 
+func (r ComplianceEvaluationAwsResponse) GetDataLength() int {
+	return len(r.Data)
+}
+
 func (r ComplianceEvaluationAwsResponse) PageInfo() *V2Pagination {
 	return &r.Paging
 }

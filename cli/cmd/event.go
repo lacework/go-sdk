@@ -53,16 +53,18 @@ var (
 
 	// eventCmd represents the event command
 	eventCmd = &cobra.Command{
-		Use:     "event",
-		Aliases: []string{"events"},
-		Short:   "Inspect Lacework events",
-		Long:    `Inspect events reported by the Lacework platform`,
+		Deprecated: "please use 'lacework alert' instead.\n",
+		Use:        "event",
+		Aliases:    []string{"events"},
+		Short:      "Inspect Lacework events",
+		Long:       `Inspect events reported by the Lacework platform`,
 	}
 
 	// eventListCmd represents the list sub-command inside the event command
 	eventListCmd = &cobra.Command{
-		Use:   "list",
-		Short: "List all events (default last 7 days)",
+		Deprecated: "please use 'lacework alert list' instead.\n",
+		Use:        "list",
+		Short:      "List all events (default last 7 days)",
 		Long: `List all events for the last 7 days by default, or pass --start and --end to
 specify a custom time period. You can also pass --serverity to filter by a
 severity threshold.
@@ -152,10 +154,11 @@ For example, to list all events from the last day with severity medium and above
 
 	// eventShowCmd represents the show sub-command inside the event command
 	eventShowCmd = &cobra.Command{
-		Use:   "show <event_id>",
-		Short: "Show details about a specific event",
-		Long:  "Show details about a specific event.",
-		Args:  cobra.ExactArgs(1),
+		Deprecated: "please use 'lacework alert show' instead.\n",
+		Use:        "show <event_id>",
+		Short:      "Show details about a specific event",
+		Long:       "Show details about a specific event.",
+		Args:       cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			cli.Log.Infow("requesting event details", "event_id", args[0])
 			response, err := cli.LwApi.Events.Details(args[0])
@@ -193,10 +196,11 @@ For example, to list all events from the last day with severity medium and above
 
 	// eventOpenCmd represents the open sub-command inside the event command
 	eventOpenCmd = &cobra.Command{
-		Use:   "open <event_id>",
-		Short: "Open a specified event in a web browser",
-		Long:  "Open a specified event in a web browser.",
-		Args:  cobra.ExactArgs(1),
+		Deprecated: "please use 'lacework alert open' instead.\n",
+		Use:        "open <event_id>",
+		Short:      "Open a specified event in a web browser",
+		Long:       "Open a specified event in a web browser.",
+		Args:       cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			// Event IDs should be only numeric values
 			if _, err := strconv.Atoi(args[0]); err != nil {
