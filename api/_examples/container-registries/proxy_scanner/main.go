@@ -58,32 +58,6 @@ func main() {
 	fmt.Printf("Found proxy scanner guid: %s\n", proxyScannerGetResponse.Data.IntgGuid)
 	fmt.Printf("Created inline scanner server token: %s\n", proxyScannerCreateResponse.Data.ServerToken.ServerToken)
 
-	// map policies
-	proxyScannerMapPolicyResponse, errMap := lacework.V2.ContainerRegistries.MapPolicy(
-		proxyScannerCreateResponse.Data.IntgGuid,
-		api.MapPolicyRequest{
-			Evaluate:    true,
-			PolicyGuids: []string{"VULN_0595430C23E5C3BBB5EBDB59CEF17467AF592C825562090FDA9"},
-		},
-	)
-	if errMap != nil {
-		log.Fatal(errMap)
-	}
-	fmt.Printf("Inline scanner map policy guid: %s\n", proxyScannerMapPolicyResponse.Data.IntgGuid)
-
-	// unmap policies
-	proxyScannerUnMapPolicyResponse, errMap := lacework.V2.ContainerRegistries.MapPolicy(
-		proxyScannerCreateResponse.Data.IntgGuid,
-		api.MapPolicyRequest{
-			Evaluate:    false,
-			PolicyGuids: []string{},
-		},
-	)
-	if errMap != nil {
-		log.Fatal(errMap)
-	}
-	fmt.Printf("Proxy scanner unmap policy guid: %s\n", proxyScannerUnMapPolicyResponse.Data.IntgGuid)
-
 	// delete created proxy scanner
 	errDelete := lacework.V2.ContainerRegistries.Delete(
 		proxyScannerCreateResponse.Data.IntgGuid,

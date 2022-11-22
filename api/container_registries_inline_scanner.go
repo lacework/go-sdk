@@ -45,7 +45,6 @@ type InlineScannerIntegration struct {
 	v2CommonIntegrationData
 	Data        InlineScannerData `json:"data"`
 	ServerToken V2ServerToken     `json:"serverToken"`
-	Props       interface{}       `json:"props,omitempty"`
 }
 
 func (reg InlineScannerIntegration) ContainerRegistryType() containerRegistryType {
