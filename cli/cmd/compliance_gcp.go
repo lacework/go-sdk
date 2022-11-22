@@ -780,9 +780,28 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 		return cli.OutputJSON(jsonOut)
 	}
 
-	rows := [][]string{}
+	gcpData, err := cli.LwApi.V2.Configs.Gcp.List()
+	if err != nil {
+		return err
+	}
+
+	var rows [][]string
 	for _, gcp := range extractGcpProjects(response) {
-		rows = append(rows, []string{gcp.OrganizationID, gcp.ProjectID, gcp.Status})
+		var orgID = gcp.OrganizationID
+		// if orgID is missing, match org with configs response
+		if orgID == "" || orgID == "n/a" {
+			for _, g := range gcpData.Data {
+				for _, project := range g.Projects {
+					// split projectID from alias
+					projectID := strings.Split(project, " (")[0]
+					if projectID == gcp.ProjectID {
+						orgID = g.Organization
+					}
+				}
+			}
+		}
+
+		rows = append(rows, []string{orgID, gcp.ProjectID, gcp.Status})
 	}
 
 	cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID", "Status"}, rows))
