@@ -208,8 +208,10 @@ func buildDetailsTable(integration api.V2RawType) string {
 
 	// get server token for container registry type only
 	if c, ok := integration.(api.ContainerRegistryRaw); ok {
-		details = append(details, []string{"SERVER_TOKEN", c.ServerToken.ServerToken})
-		details = append(details, []string{"SERVER_TOKEN_URI", c.ServerToken.Uri})
+		if c.ServerToken != nil {
+			details = append(details, []string{"SERVER_TOKEN", c.ServerToken.ServerToken})
+			details = append(details, []string{"SERVER_TOKEN_URI", c.ServerToken.Uri})
+		}
 	}
 
 	//common
