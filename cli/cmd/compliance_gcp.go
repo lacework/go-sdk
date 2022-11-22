@@ -56,7 +56,14 @@ var (
 				return errors.Wrap(err, "unable to list gcp projects/organizations")
 			}
 
-			return cliListGcpProjectsAndOrgs(response)
+			cli.StartProgress("Fetching GCP config data...")
+			gcpData, err := cli.LwApi.V2.Configs.Gcp.List()
+			cli.StopProgress()
+			if err != nil {
+				return err
+			}
+
+			return cliListGcpProjectsAndOrgs(response, gcpData)
 		},
 	}
 
@@ -749,7 +756,7 @@ func containsDuplicateProjectID(gcpAccounts []gcpProject, projectID string) bool
 	return false
 }
 
-func cliListGcpProjectsAndOrgs(response api.CloudAccountsResponse) error {
+func cliListGcpProjectsAndOrgs(response api.CloudAccountsResponse, gcpData api.GcpConfigsResponse) error {
 	jsonOut := struct {
 		Projects []gcpProject `json:"gcp_projects"`
 	}{Projects: make([]gcpProject, 0)}
@@ -778,11 +785,6 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 	if cli.JSONOutput() {
 		jsonOut.Projects = extractGcpProjects(response)
 		return cli.OutputJSON(jsonOut)
-	}
-
-	gcpData, err := cli.LwApi.V2.Configs.Gcp.List()
-	if err != nil {
-		return err
 	}
 
 	var rows [][]string

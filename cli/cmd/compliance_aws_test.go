@@ -55,7 +55,7 @@ func TestCliListAwsAccountsWithAccountsEnabled(t *testing.T) {
 	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, cliListAwsAccounts(mockAwsIntegrationsResponse(1, 1)))
 	})
-	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
+	// NOTE (@afiune): We purposely leave trailing spaces in this table, we need them!
 	expectedTable := `
   AWS ACCOUNT    STATUS   
 ---------------+----------
@@ -69,7 +69,7 @@ func TestCliListAwsAccountsWithAccountsDisabled(t *testing.T) {
 	cliOutput := capturer.CaptureOutput(func() {
 		assert.Nil(t, cliListAwsAccounts(mockAwsIntegrationsResponse(0, 0)))
 	})
-	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
+	// NOTE (@afiune): We purposely leave trailing spaces in this table, we need them!
 	expectedTable := `
   AWS ACCOUNT     STATUS   
 ---------------+-----------
@@ -103,10 +103,10 @@ func mockAwsIntegrationsResponse(acc1Enabled, acc2Enabled int) api.CloudAccounts
             "type": "AwsCfg",
             "data": {
                 "crossAccountCredentials": {
-                    "roleArn": "arn:aws:iam::123456789:role/test",
+                    "roleArn": "arn:aws:iam::123456789012:role/test",
                     "externalId": "example"
                 },
-                "awsAccountId": "123456789"
+                "awsAccountId": "123456789012"
             }
         },
            {
@@ -129,13 +129,14 @@ func mockAwsIntegrationsResponse(acc1Enabled, acc2Enabled int) api.CloudAccounts
             "type": "AwsCfg",
             "data": {
                 "crossAccountCredentials": {
-                    "roleArn": "arn:aws:iam::212345678:role/test",
+                    "roleArn": "arn:aws:iam::098765432109:role/test",
                     "externalId": "example"
                 },
-                "awsAccountId": "212345678"
+                "awsAccountId": "098765432109"
             }
         }
-]`, acc1Enabled, acc2Enabled)
+]
+}`, acc1Enabled, acc2Enabled)
 
 	err := json.Unmarshal([]byte(jsonString), &response)
 	if err != nil {
