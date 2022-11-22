@@ -195,10 +195,6 @@ func (alert AlertChannelRaw) GetData() any {
 	return alert.Data
 }
 
-func (reg AlertChannelRaw) GetProps() any {
-	return nil
-}
-
 func (alert AlertChannelRaw) GetCommon() v2CommonIntegrationData {
 	return alert.v2CommonIntegrationData
 }

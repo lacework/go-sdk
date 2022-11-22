@@ -191,10 +191,6 @@ func (cloud CloudAccountRaw) GetData() any {
 	return cloud.Data
 }
 
-func (reg CloudAccountRaw) GetProps() any {
-	return nil
-}
-
 func (cloud CloudAccountRaw) GetCommon() v2CommonIntegrationData {
 	return cloud.v2CommonIntegrationData
 }

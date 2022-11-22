@@ -53,32 +53,6 @@ func main() {
 	fmt.Printf("Found inline scanner guid: %s\n", inlineScannerGetResponse.Data.IntgGuid)
 	fmt.Printf("Found inline scanner token: %s\n", inlineScannerGetResponse.Data.ServerToken.ServerToken)
 
-	// map policies
-	// inlineScannerMapPolicyResponse, errMap := lacework.V2.ContainerRegistries.MapPolicy(
-	// 	inlineScannerCreateResponse.Data.IntgGuid,
-	// 	api.MapPolicyRequest{
-	// 		Evaluate:    true,
-	// 		PolicyGuids: []string{"VULN_0595430C23E5C3BBB5EBDB59CEF17467AF592C825562090FDA9"},
-	// 	},
-	// )
-	// if errMap != nil {
-	// 	log.Fatal(errMap)
-	// }
-	// fmt.Printf("Inline scanner map policy guid: %s\n", inlineScannerMapPolicyResponse.Data.IntgGuid)
-
-	// unmap policies
-	inlineScannerUnMapPolicyResponse, errMap := lacework.V2.ContainerRegistries.MapPolicy(
-		inlineScannerCreateResponse.Data.IntgGuid,
-		api.MapPolicyRequest{
-			Evaluate:    false,
-			PolicyGuids: []string{},
-		},
-	)
-	if errMap != nil {
-		log.Fatal(errMap)
-	}
-	fmt.Printf("Inline scanner unmap policy guid: %s\n", inlineScannerUnMapPolicyResponse.Data.IntgGuid)
-
 	// delete created inline scanner
 	errDelete := lacework.V2.ContainerRegistries.Delete(
 		inlineScannerCreateResponse.Data.IntgGuid,
