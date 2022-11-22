@@ -122,7 +122,7 @@ func TestVulnCtrIntroducedInRegex(t *testing.T) {
 		{
 			Name:     "many tabs",
 			Input:    "This\t\t\t\tis\t\t\tan\t\tExample\tString\t\t\t",
-			Expected: "This\ntis\nan\nExample\nString\n",
+			Expected: "This\nis\nan\nExample\nString\n",
 		},
 	}
 

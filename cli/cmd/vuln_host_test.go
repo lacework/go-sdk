@@ -350,7 +350,7 @@ func TestSeveritySummary(t *testing.T) {
 		summary = severitySummary(sum.severity, sum.fixable)
 	}
 
-	expected := " 1 High 1 Medium 1 Low 4 Fixable"
+	expected := "1 High 4 Fixable"
 	assert.Equal(t, expected, summary)
 }
 
