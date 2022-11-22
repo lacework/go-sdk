@@ -18,6 +18,8 @@
 
 package api
 
+import "fmt"
+
 // v2GcpConfigService is a service that interacts with the APIv2
 // vulnerabilities endpoints for hosts
 type v2GcpConfigService struct {
@@ -34,11 +36,21 @@ func (svc *v2GcpConfigService) List() (response GcpConfigsResponse, err error) {
 	return
 }
 
+// ListProjects returns a list of Gcp projects for a given organization
+func (svc *v2AzureConfigService) ListProjects(orgID string) (response GcpConfigsResponse, err error) {
+	err = svc.client.RequestDecoder("GET", fmt.Sprintf(apiV2ConfigsGcpProjects, orgID), nil, &response)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 type GcpConfigsResponse struct {
 	Data []GcpConfigData `json:"data"`
 }
 
 type GcpConfigData struct {
-	Tenant        string   `json:"tenant"`
-	Subscriptions []string `json:"subscriptions"`
+	Organization string   `json:"organization"`
+	Projects     []string `json:"projects"`
 }

@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"sort"
@@ -49,13 +50,13 @@ var (
 		Long:    `List all GCP projects and organization IDs.`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			cli.StartProgress("Fetching list of configured GCP projects...")
-			response, err := cli.LwApi.Integrations.ListGcpCfg()
+			response, err := cli.LwApi.V2.CloudAccounts.ListByType(api.GcpCfgCloudAccount)
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to list gcp projects/organizations")
 			}
 
-			return cliListGcpProjectsAndOrgs(&response)
+			return cliListGcpProjectsAndOrgs(response)
 		},
 	}
 
@@ -694,20 +695,32 @@ type gcpProject struct {
 	Status         string `json:"status"`
 }
 
-func extractGcpProjects(response *api.GcpIntegrationsResponse) []gcpProject {
+func extractGcpProjects(response api.CloudAccountsResponse) []gcpProject {
 	var gcpAccounts []gcpProject
+	var gcpData api.GcpCfgData
 
 	for _, gcp := range response.Data {
+
+		gcpJson, err := json.Marshal(gcp.Data)
+		if err != nil {
+			continue
+		}
+
+		err = json.Unmarshal(gcpJson, &gcpData)
+		if err != nil {
+			continue
+		}
+
 		// if organization account, fetch the project ids
-		if gcp.Data.IDType == "ORGANIZATION" {
-			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcp.Data.ID, gcp.Status())...)
-		} else if containsDuplicateProjectID(gcpAccounts, gcp.Data.ID) {
-			cli.Log.Warnw("duplicate gcp project", "integration_guid", gcp.IntgGuid, "project", gcp.Data.ID)
+		if gcpData.IDType == "ORGANIZATION" {
+			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcpData.ID, gcp.Status())...)
+		} else if containsDuplicateProjectID(gcpAccounts, gcpData.ID) {
+			cli.Log.Warnw("duplicate gcp project", "integration_guid", gcp.IntgGuid, "project", gcpData.ID)
 			continue
 		} else {
 			gcpIntegration := gcpProject{
 				OrganizationID: "n/a",
-				ProjectID:      gcp.Data.ID,
+				ProjectID:      gcpData.ID,
 				Status:         gcp.Status(),
 			}
 			gcpAccounts = append(gcpAccounts, gcpIntegration)
@@ -736,12 +749,12 @@ func containsDuplicateProjectID(gcpAccounts []gcpProject, projectID string) bool
 	return false
 }
 
-func cliListGcpProjectsAndOrgs(response *api.GcpIntegrationsResponse) error {
+func cliListGcpProjectsAndOrgs(response api.CloudAccountsResponse) error {
 	jsonOut := struct {
 		Projects []gcpProject `json:"gcp_projects"`
 	}{Projects: make([]gcpProject, 0)}
 
-	if response == nil || len(response.Data) == 0 {
+	if len(response.Data) == 0 {
 		if cli.JSONOutput() {
 			return cli.OutputJSON(jsonOut)
 		}
