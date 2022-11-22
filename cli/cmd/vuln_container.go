@@ -47,7 +47,7 @@ func init() {
 	vulContainerListAssessmentsCmd.Flags().StringSliceVarP(&vulCmdState.Registries,
 		"registry", "", []string{}, "filter assessments for specific registries",
 	)
-	
+
 	setHtmlFlag(
 		vulContainerScanCmd.Flags(),
 		vulContainerShowAssessmentCmd.Flags(),

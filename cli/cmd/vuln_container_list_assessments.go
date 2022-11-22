@@ -33,7 +33,6 @@ filter on containers with vulnerabilities that have fixes available.`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				assessments      []vulnerabilityAssessmentSummary
-				err              error
 				cacheKey         = "vulnerability/container/v2"
 				filter           api.SearchFilter
 				now              = time.Now().UTC()
@@ -72,10 +71,10 @@ filter on containers with vulnerabilities that have fixes available.`,
 				assessments, err = listVulnCtrAssessments(registries, filter)
 				cli.StopProgress()
 				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), assessments)
-			}
 
-			if err != nil {
-				return err
+				if err != nil {
+					return err
+				}
 			}
 
 			if len(assessments) == 0 {
