@@ -37,7 +37,7 @@ func (svc *v2GcpConfigService) List() (response GcpConfigsResponse, err error) {
 }
 
 // ListProjects returns a list of Gcp projects for a given organization
-func (svc *v2AzureConfigService) ListProjects(orgID string) (response GcpConfigsResponse, err error) {
+func (svc *v2GcpConfigService) ListProjects(orgID string) (response GcpConfigsResponse, err error) {
 	err = svc.client.RequestDecoder("GET", fmt.Sprintf(apiV2ConfigsGcpProjects, orgID), nil, &response)
 	if err != nil {
 		return

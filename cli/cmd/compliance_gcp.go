@@ -79,7 +79,7 @@ Then, select one GUID from an integration and visualize its details using the co
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				orgID, _      = splitIDAndAlias(args[0])
-				response, err = cli.LwApi.Compliance.ListGcpProjects(orgID)
+				response, err = cli.LwApi.V2.Configs.Gcp.ListProjects(orgID)
 			)
 			if err != nil {
 				return errors.Wrap(err, "unable to list gcp projects")
@@ -612,7 +612,7 @@ func complianceGcpReportDetailsTable(report *api.GcpReport) [][]string {
 
 // ALLY-431 Workaround to split the Project ID and Project Alias
 // ultimately, we need to fix this in the API response
-func splitGcpProjectsApiResponse(gcpInfo api.CompGcpProjects) cliComplianceGcpInfo {
+func splitGcpProjectsApiResponse(gcpInfo api.GcpConfigData) cliComplianceGcpInfo {
 	var (
 		orgID, orgAlias = splitIDAndAlias(gcpInfo.Organization)
 		cliGcpInfo      = cliComplianceGcpInfo{
