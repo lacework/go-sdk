@@ -31,9 +31,9 @@ Flags:
   -h, --help                      help for osl
   -r, --include_regions strings   list of regions to filter on
   -n, --max_parallelism int       maximum number of workers executing GCP API calls, set if rate limits are lower or higher than normal (default 50)
-      --project_id string         ID of the GCP project, set if metadata server does not provide
       --metadata strings          only install agents on infra with this metadata
       --metadata_key string       only install agents on infra with this metadata key set
+      --project_id string         ID of the GCP project, set if metadata server does not provide
       --token string              agent access token
       --trust_host_key            automatically add host keys to the ~/.ssh/known_hosts file (default true)
 
