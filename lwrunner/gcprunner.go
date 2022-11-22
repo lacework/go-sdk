@@ -20,6 +20,7 @@ package lwrunner
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	oslogin "cloud.google.com/go/oslogin/apiv1"
@@ -70,9 +71,14 @@ func (run GCPRunner) SendAndUseIdentityFile() error {
 	}
 	run.Runner.Auth = []ssh.AuthMethod{ssh.PublicKeys(signer)}
 
-	time.Sleep(15 * time.Second)
-
-	return nil
+	retries := 15
+	for i := 0; i < retries; i += 1 {
+		if _, err = ssh.Dial("tcp", run.Runner.Address(), run.Runner.ClientConfig); err == nil {
+			return nil
+		}
+		time.Sleep(time.Second)
+	}
+	return fmt.Errorf("could not connect to host successfully after %d tries with err %v", retries, err)
 }
 
 // SendPublicKey is a helper function to send a public key to a GCP account
