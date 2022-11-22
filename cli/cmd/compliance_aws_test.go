@@ -20,8 +20,8 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -33,7 +33,7 @@ import (
 
 func TestCliListAwsAccountsWithNoAccounts(t *testing.T) {
 	cliOutput := capturer.CaptureOutput(func() {
-		assert.Nil(t, cliListAwsAccounts(new(api.AwsIntegrationsResponse)))
+		assert.Nil(t, cliListAwsAccounts(api.CloudAccountsResponse{}))
 	})
 	assert.Contains(t, cliOutput, "There are no AWS accounts configured in your account.")
 
@@ -41,7 +41,7 @@ func TestCliListAwsAccountsWithNoAccounts(t *testing.T) {
 		cli.EnableJSONOutput()
 		defer cli.EnableHumanOutput()
 		cliJSONOutput := capturer.CaptureOutput(func() {
-			assert.Nil(t, cliListAwsAccounts(new(api.AwsIntegrationsResponse)))
+			assert.Nil(t, cliListAwsAccounts(api.CloudAccountsResponse{}))
 		})
 		expectedJSON := `{
   "aws_accounts": []
@@ -79,51 +79,65 @@ func TestCliListAwsAccountsWithAccountsDisabled(t *testing.T) {
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
 
-func mockAwsIntegrationsResponse(acc1Enabled, acc2Enabled int) *api.AwsIntegrationsResponse {
-	response := &api.AwsIntegrationsResponse{}
-	err := json.Unmarshal([]byte(`{
+func mockAwsIntegrationsResponse(acc1Enabled, acc2Enabled int) api.CloudAccountsResponse {
+	var response api.CloudAccountsResponse
+	jsonString := fmt.Sprintf(`{
   "data": [
-    {
-      "CREATED_OR_UPDATED_BY": "salim.afiunemaya@lacework.net",
-      "CREATED_OR_UPDATED_TIME": "2021-10-25T15:18:47.945Z",
-      "DATA": {
-        "AWS_ACCOUNT_ID": "123456789012"
-      },
-      "ENABLED": `+strconv.Itoa(acc1Enabled)+`,
-      "INTG_GUID": "MOCK_1233",
-      "IS_ORG": 0,
-      "NAME": "TF config",
-      "STATE": {
-        "lastSuccessfulTime": "2022-Jan-31 16:08:54 UTC",
-        "lastUpdatedTime": "2022-Jan-31 16:08:54 UTC",
-        "ok": true
-      },
-      "TYPE": "AWS_CFG",
-      "TYPE_NAME": "AWS Config"
-    },
-    {
-      "CREATED_OR_UPDATED_BY": "vatasha.white@lacework.net",
-      "CREATED_OR_UPDATED_TIME": "2022-01-13T20:32:59.954Z",
-      "DATA": {
-        "AWS_ACCOUNT_ID": "098765432109"
-      },
-      "ENABLED": `+strconv.Itoa(acc2Enabled)+`,
-      "INTG_GUID": "MOCK_1234",
-      "IS_ORG": 0,
-      "NAME": "TF config",
-      "STATE": {
-        "lastSuccessfulTime": "2022-Jan-31 16:47:04 UTC",
-        "lastUpdatedTime": "2022-Jan-31 16:47:04 UTC",
-        "ok": true
-      },
-      "TYPE": "AWS_CFG",
-      "TYPE_NAME": "AWS Config"
-    }
-  ],
-  "message": "SUCCESS",
-  "ok": true
-}
-`), response)
+           {
+            "createdOrUpdatedBy": "darren.murray@lacework.net",
+            "createdOrUpdatedTime": "2022-10-10T12:08:54.629Z",
+            "enabled": %d,
+            "intgGuid": "TECHALLY_123ABC",
+            "isOrg": 0,
+            "name": "TF config",
+            "state": {
+                "ok": true,
+                "lastUpdatedTime": 1669136762967,
+                "lastSuccessfulTime": 1669136762967,
+                "details": {
+                    "complianceOpsDeniedAccess": [
+                        "GetBucketLogging"
+                    ]
+                }
+            },
+            "type": "AwsCfg",
+            "data": {
+                "crossAccountCredentials": {
+                    "roleArn": "arn:aws:iam::123456789:role/test",
+                    "externalId": "example"
+                },
+                "awsAccountId": "123456789"
+            }
+        },
+           {
+            "createdOrUpdatedBy": "darren.murray@lacework.net",
+            "createdOrUpdatedTime": "2022-10-10T12:08:54.629Z",
+            "enabled": %d,
+            "intgGuid": "TECHALLY_123ABC",
+            "isOrg": 0,
+            "name": "TF config",
+            "state": {
+                "ok": true,
+                "lastUpdatedTime": 1669136762967,
+                "lastSuccessfulTime": 1669136762967,
+                "details": {
+                    "complianceOpsDeniedAccess": [
+                        "GetBucketLogging"
+                    ]
+                }
+            },
+            "type": "AwsCfg",
+            "data": {
+                "crossAccountCredentials": {
+                    "roleArn": "arn:aws:iam::212345678:role/test",
+                    "externalId": "example"
+                },
+                "awsAccountId": "212345678"
+            }
+        }
+]`, acc1Enabled, acc2Enabled)
+
+	err := json.Unmarshal([]byte(jsonString), &response)
 	if err != nil {
 		log.Fatal(err)
 	}

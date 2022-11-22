@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -47,13 +48,14 @@ var (
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			cli.StartProgress("Fetching list of configured AWS accounts...")
-			awsIntegrations, err := cli.LwApi.Integrations.ListAwsCfg()
+			// todo(v2) migrate
+			awsAccounts, err := cli.LwApi.V2.CloudAccounts.ListByType(api.AwsCfgCloudAccount)
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get aws compliance integrations")
 			}
 
-			return cliListAwsAccounts(&awsIntegrations)
+			return cliListAwsAccounts(awsAccounts)
 		},
 	}
 
@@ -634,13 +636,14 @@ type awsAccount struct {
 	Status    string `json:"status"`
 }
 
-func cliListAwsAccounts(awsIntegrations *api.AwsIntegrationsResponse) error {
+func cliListAwsAccounts(awsIntegrations api.CloudAccountsResponse) error {
 	awsAccounts := make([]awsAccount, 0)
+	errCount := 0
 	jsonOut := struct {
 		Accounts []awsAccount `json:"aws_accounts"`
 	}{Accounts: awsAccounts}
 
-	if awsIntegrations == nil || len(awsIntegrations.Data) == 0 {
+	if len(awsIntegrations.Data) == 0 {
 		if cli.JSONOutput() {
 			return cli.OutputJSON(jsonOut)
 		}
@@ -662,12 +665,33 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 	}
 
 	for _, i := range awsIntegrations.Data {
-		if containsDuplicateAccountID(awsAccounts, i.Data.AwsAccountID) {
-			cli.Log.Warnw("duplicate aws account", "integration_guid", i.IntgGuid, "account", i.Data.AwsAccountID)
+		var (
+			account     string
+			accountData api.AwsCfgData
+		)
+
+		awsJson, err := json.Marshal(i.Data)
+		if err != nil {
+			continue
+		}
+		err = json.Unmarshal(awsJson, &accountData)
+		if err != nil {
+			continue
+		}
+
+		if accountData.AwsAccountID == "" {
+			errCount++
+			cli.Log.Debugf(fmt.Sprintf("unable to find account id for cloud account %s\n", i.IntgGuid))
+			continue
+		}
+		account = accountData.AwsAccountID
+
+		if containsDuplicateAccountID(awsAccounts, account) {
+			cli.Log.Warnw("duplicate aws account", "integration_guid", i.IntgGuid, "account", account)
 			continue
 		}
 		awsAccounts = append(awsAccounts, awsAccount{
-			AccountID: i.Data.AwsAccountID,
+			AccountID: account,
 			Status:    i.Status(),
 		})
 	}
@@ -683,6 +707,9 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 	}
 
 	cli.OutputHuman(renderSimpleTable([]string{"AWS Account", "Status"}, rows))
+	if errCount > 0 {
+		cli.OutputHuman(fmt.Sprintf("\n unable to find Aws Account ID's for %d integration(s)\n", errCount))
+	}
 	return nil
 }
 
