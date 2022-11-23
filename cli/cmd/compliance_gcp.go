@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"sort"
@@ -49,13 +50,20 @@ var (
 		Long:    `List all GCP projects and organization IDs.`,
 		RunE: func(_ *cobra.Command, args []string) error {
 			cli.StartProgress("Fetching list of configured GCP projects...")
-			response, err := cli.LwApi.Integrations.ListGcpCfg()
+			response, err := cli.LwApi.V2.CloudAccounts.ListByType(api.GcpCfgCloudAccount)
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to list gcp projects/organizations")
 			}
 
-			return cliListGcpProjectsAndOrgs(&response)
+			cli.StartProgress("Fetching GCP config data...")
+			gcpData, err := cli.LwApi.V2.Configs.Gcp.List()
+			cli.StopProgress()
+			if err != nil {
+				return err
+			}
+
+			return cliListGcpProjectsAndOrgs(response, gcpData)
 		},
 	}
 
@@ -78,7 +86,7 @@ Then, select one GUID from an integration and visualize its details using the co
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
 				orgID, _      = splitIDAndAlias(args[0])
-				response, err = cli.LwApi.Compliance.ListGcpProjects(orgID)
+				response, err = cli.LwApi.V2.Configs.Gcp.ListProjects(orgID)
 			)
 			if err != nil {
 				return errors.Wrap(err, "unable to list gcp projects")
@@ -573,7 +581,7 @@ func complianceGcpReportDetailsTable(report *api.GcpReport) [][]string {
 
 // ALLY-431 Workaround to split the Project ID and Project Alias
 // ultimately, we need to fix this in the API response
-func splitGcpProjectsApiResponse(gcpInfo api.CompGcpProjects) cliComplianceGcpInfo {
+func splitGcpProjectsApiResponse(gcpInfo api.GcpConfigData) cliComplianceGcpInfo {
 	var (
 		orgID, orgAlias = splitIDAndAlias(gcpInfo.Organization)
 		cliGcpInfo      = cliComplianceGcpInfo{
@@ -656,20 +664,32 @@ type gcpProject struct {
 	Status         string `json:"status"`
 }
 
-func extractGcpProjects(response *api.GcpIntegrationsResponse) []gcpProject {
+func extractGcpProjects(response api.CloudAccountsResponse) []gcpProject {
 	var gcpAccounts []gcpProject
+	var gcpData api.GcpCfgData
 
 	for _, gcp := range response.Data {
+
+		gcpJson, err := json.Marshal(gcp.Data)
+		if err != nil {
+			continue
+		}
+
+		err = json.Unmarshal(gcpJson, &gcpData)
+		if err != nil {
+			continue
+		}
+
 		// if organization account, fetch the project ids
-		if gcp.Data.IDType == "ORGANIZATION" {
-			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcp.Data.ID, gcp.Status())...)
-		} else if containsDuplicateProjectID(gcpAccounts, gcp.Data.ID) {
-			cli.Log.Warnw("duplicate gcp project", "integration_guid", gcp.IntgGuid, "project", gcp.Data.ID)
+		if gcpData.IDType == "ORGANIZATION" {
+			gcpAccounts = append(gcpAccounts, getGcpAccounts(gcpData.ID, gcp.Status())...)
+		} else if containsDuplicateProjectID(gcpAccounts, gcpData.ID) {
+			cli.Log.Warnw("duplicate gcp project", "integration_guid", gcp.IntgGuid, "project", gcpData.ID)
 			continue
 		} else {
 			gcpIntegration := gcpProject{
 				OrganizationID: "n/a",
-				ProjectID:      gcp.Data.ID,
+				ProjectID:      gcpData.ID,
 				Status:         gcp.Status(),
 			}
 			gcpAccounts = append(gcpAccounts, gcpIntegration)
@@ -698,12 +718,12 @@ func containsDuplicateProjectID(gcpAccounts []gcpProject, projectID string) bool
 	return false
 }
 
-func cliListGcpProjectsAndOrgs(response *api.GcpIntegrationsResponse) error {
+func cliListGcpProjectsAndOrgs(response api.CloudAccountsResponse, gcpData api.GcpConfigsResponse) error {
 	jsonOut := struct {
 		Projects []gcpProject `json:"gcp_projects"`
 	}{Projects: make([]gcpProject, 0)}
 
-	if response == nil || len(response.Data) == 0 {
+	if len(response.Data) == 0 {
 		if cli.JSONOutput() {
 			return cli.OutputJSON(jsonOut)
 		}
@@ -729,9 +749,23 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 		return cli.OutputJSON(jsonOut)
 	}
 
-	rows := [][]string{}
+	var rows [][]string
 	for _, gcp := range extractGcpProjects(response) {
-		rows = append(rows, []string{gcp.OrganizationID, gcp.ProjectID, gcp.Status})
+		var orgID = gcp.OrganizationID
+		// if orgID is missing, match org with configs response
+		if orgID == "" || orgID == "n/a" {
+			for _, g := range gcpData.Data {
+				for _, project := range g.Projects {
+					// split projectID from alias
+					projectID := strings.Split(project, " (")[0]
+					if projectID == gcp.ProjectID {
+						orgID = g.Organization
+					}
+				}
+			}
+		}
+
+		rows = append(rows, []string{orgID, gcp.ProjectID, gcp.Status})
 	}
 
 	cli.OutputHuman(renderSimpleTable([]string{"Organization ID", "Project ID", "Status"}, rows))
