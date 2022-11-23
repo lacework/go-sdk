@@ -30,7 +30,7 @@ func TestComplianceGoogleGetReportOrgAndProjectWithAlias(t *testing.T) {
 	)
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(),
-		"fetching valid report types...",
+		"Getting compliance report...",
 		"STDOUT changed, please check")
 	assert.Contains(t, err.String(),
 		"no data found in the report",
