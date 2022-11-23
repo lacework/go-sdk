@@ -118,11 +118,14 @@ Use the following command to list all Azure Tenants configured in your account:
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
 			}
+			// Todo: Enable dynamic report type validation. Disabled until reportDefinitions api is out of beta
+			//validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAzure)
+			//if err != nil {
+			//	return errors.Wrap(err, "unable to retrieve valid report types")
+			//}
 
-			validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAzure)
-			if err != nil {
-				return errors.Wrap(err, "unable to retrieve valid report types")
-			}
+			validTypes := []string{"AZURE_CIS_131", "AZURE_NIST_800_171_REV2", "AZURE_NIST_800_53_REV5", "AZURE_NIST_CSF",
+				"AZURE_PCI", "AZURE_SOC_Rev2", "AZURE_ISO_27001", "AZURE_SOC", "AZURE_HIPAA", "AZURE_CIS", "AZURE_PCI_Rev2"}
 			if array.ContainsStr(validTypes, compAzCmdState.Type) {
 				return nil
 			} else {

@@ -120,11 +120,16 @@ Then, select one GUID from an integration and visualize its details using the co
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
 			}
+			// Todo: Enable dynamic report type validation. Disabled until reportDefinitions api is out of beta
+			//validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeGcp)
+			//if err != nil {
+			//	return errors.Wrap(err, "unable to retrieve valid report types")
+			//}
 
-			validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeGcp)
-			if err != nil {
-				return errors.Wrap(err, "unable to retrieve valid report types")
-			}
+			validTypes := []string{"GCP_ISO_27001_2013", "GCP_NIST_800_171_REV2", "GCP_CMMC_1_02", "GCP_PCI_DSS_3_2_1", "GCP_PCI_Rev2",
+				"GCP_NIST_CSF", "GCP_CIS13", "GCP_HIPAA_2013", "GCP_CIS12", "GCP_CIS", "GCP_SOC_2", "GCP_ISO_27001", "GCP_NIST_800_53_REV4",
+				"GCP_CIS_1_3_0_NIST_800_53_rev5", "GCP_CIS_1_3_0_NIST_CSF", "GCP_HIPAA", "GCP_HIPAA_Rev2", "GCP_CIS_1_3_0_NIST_800_171_rev2",
+				"GCP_SOC", "GCP_K8S", "GCP_SOC_Rev2", "GCP_PCI"}
 			if array.ContainsStr(validTypes, compGcpCmdState.Type) {
 				return nil
 			} else {

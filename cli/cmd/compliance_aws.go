@@ -73,10 +73,17 @@ var (
 				}
 			}
 
-			validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAws)
-			if err != nil {
-				return errors.Wrap(err, "unable to retrieve valid report types")
-			}
+			// Todo: Enable dynamic report type validation. Disabled until reportDefinitions api is out of beta
+			// validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAws)
+			// if err != nil {
+			//	 return errors.Wrap(err, "unable to retrieve valid report types")
+			// }
+
+			validTypes := []string{"AWS_NIST_CSF", "AWS_NIST_800-53_rev5", "AWS_HIPAA", "NIST_800-53_Rev4", "LW_AWS_SEC_ADD_1_0",
+				"AWS_SOC_Rev2", "AWS_PCI_DSS_3.2.1", "AWS_CIS_S3", "ISO_2700", "SOC", "AWS_CSA_CCM_4_0_5", "PCI", "AWS_Cyber_Essentials_2_2",
+				"AWS_ISO_27001:2013", "AWS_CIS_14", "AWS_CMMC_1.02", "HIPAA", "AWS_SOC_2", "AWS_CIS_1_4_ISO_IEC_27002_2022", "NIST_800-171_Rev2",
+				"AWS_NIST_800-171_rev"}
+
 			if array.ContainsStr(validTypes, compAwsCmdState.Type) {
 				return nil
 			} else {
