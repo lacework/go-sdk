@@ -193,7 +193,7 @@ func buildVulnHostsDetailsTableCSV(filteredCves map[string]VulnCveSummary) ([]st
 	if vulCmdState.Packages {
 		packages, _ := hostVulnPackagesTable(filteredCves, false)
 		sort.Slice(packages, func(i, j int) bool {
-			return severityOrder(packages[i][1]) < severityOrder(packages[j][1])
+			return api.SeverityOrder(packages[i][1]) < api.SeverityOrder(packages[j][1])
 		})
 		// order by cve count
 		return []string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status"}, packages
@@ -201,7 +201,7 @@ func buildVulnHostsDetailsTableCSV(filteredCves map[string]VulnCveSummary) ([]st
 
 	rows := hostVulnCVEsTableForHostViewCSV(filteredCves)
 	sort.Slice(rows, func(i, j int) bool {
-		return severityOrder(rows[i][1]) < severityOrder(rows[j][1])
+		return api.SeverityOrder(rows[i][1]) < api.SeverityOrder(rows[j][1])
 	})
 	return []string{"CVE ID", "Severity", "Score", "Package", "Package Namespace", "Current Version",
 		"Fix Version", "Pkg Status", "First Seen", "Last Status Update", "Vuln Status"}, rows
@@ -214,7 +214,7 @@ func buildVulnHostsDetailsTable(filteredCves map[string]VulnCveSummary) string {
 		if vulCmdState.Packages {
 			packages, filtered := hostVulnPackagesTable(filteredCves, false)
 			sort.Slice(packages, func(i, j int) bool {
-				return severityOrder(packages[i][1]) < severityOrder(packages[j][1])
+				return api.SeverityOrder(packages[i][1]) < api.SeverityOrder(packages[j][1])
 			})
 			// if the user wants to show only vulnerabilities of active packages
 			// and we don't have any, show a friendly message
@@ -234,7 +234,7 @@ func buildVulnHostsDetailsTable(filteredCves map[string]VulnCveSummary) string {
 		} else {
 			rows := hostVulnCVEsTableForHostView(filteredCves)
 			sort.Slice(rows, func(i, j int) bool {
-				return severityOrder(rows[i][1]) < severityOrder(rows[j][1])
+				return api.SeverityOrder(rows[i][1]) < api.SeverityOrder(rows[j][1])
 			})
 			// if the user wants to show only vulnerabilities of active packages
 			// and we don't have any, show a friendly message
@@ -360,7 +360,7 @@ func hostVulnCVEsTableForHostViewCSV(cves map[string]VulnCveSummary) [][]string 
 
 	// order by severity
 	sort.Slice(out, func(i, j int) bool {
-		return severityOrder(out[i][1]) < severityOrder(out[j][1])
+		return api.SeverityOrder(out[i][1]) < api.SeverityOrder(out[j][1])
 	})
 
 	return out
@@ -393,7 +393,7 @@ func hostVulnCVEsTableForHostView(summary map[string]VulnCveSummary) [][]string 
 
 	// order by severity
 	sort.Slice(out, func(i, j int) bool {
-		return severityOrder(out[i][1]) < severityOrder(out[j][1])
+		return api.SeverityOrder(out[i][1]) < api.SeverityOrder(out[j][1])
 	})
 
 	return out
