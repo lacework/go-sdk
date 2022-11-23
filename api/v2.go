@@ -39,6 +39,7 @@ type V2Endpoints struct {
 	ReportRules             *ReportRulesService
 	CloudAccounts           *CloudAccountsService
 	ContainerRegistries     *ContainerRegistriesService
+	Configs                 *v2ConfigService
 	ResourceGroups          *ResourceGroupsService
 	AgentAccessTokens       *AgentAccessTokensService
 	AgentInfo               *AgentInfoService
@@ -68,6 +69,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&ReportRulesService{c},
 		&CloudAccountsService{c},
 		&ContainerRegistriesService{c},
+		NewV2ConfigService(c),
 		&ResourceGroupsService{c},
 		&AgentAccessTokensService{c},
 		&AgentInfoService{c},

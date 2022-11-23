@@ -65,17 +65,17 @@ func TestSplitIDAndAlias(t *testing.T) {
 
 func TestSplitGcpProjectsApiResponse(t *testing.T) {
 	cases := []struct {
-		subject  api.CompGcpProjects
+		subject  api.GcpConfigData
 		expected cliComplianceGcpInfo
 	}{
 		// empty projects will return empty cli info
 		{
-			api.CompGcpProjects{},
+			api.GcpConfigData{},
 			cliComplianceGcpInfo{Projects: make([]cliComplianceIDAlias, 0)},
 		},
 		// real test case with NO alias
 		{
-			api.CompGcpProjects{
+			api.GcpConfigData{
 				Organization: "1234567890123",
 				Projects:     []string{"project-id-1", "project-id-2", "project-id-3", "project-id-4"},
 			},
@@ -91,7 +91,7 @@ func TestSplitGcpProjectsApiResponse(t *testing.T) {
 		},
 		// real test case with alias
 		{
-			api.CompGcpProjects{
+			api.GcpConfigData{
 				Organization: "1234567890123 (cool.org.alias.example.com)",
 				Projects: []string{
 					"id-1 (a test project)",
@@ -136,7 +136,7 @@ func TestDuplicateGcpAccountCheck(t *testing.T) {
 
 func TestCliListGcpListProjectsAndOrgsWithoutData(t *testing.T) {
 	cliOutput := capturer.CaptureOutput(func() {
-		assert.Nil(t, cliListGcpProjectsAndOrgs(new(api.GcpIntegrationsResponse)))
+		assert.Nil(t, cliListGcpProjectsAndOrgs(api.CloudAccountsResponse{}, mockGcpConfigsResponse()))
 	})
 	assert.Contains(t, cliOutput, "There are no GCP integrations configured in your account.")
 
@@ -144,7 +144,7 @@ func TestCliListGcpListProjectsAndOrgsWithoutData(t *testing.T) {
 		cli.EnableJSONOutput()
 		defer cli.EnableHumanOutput()
 		cliJSONOutput := capturer.CaptureOutput(func() {
-			assert.Nil(t, cliListGcpProjectsAndOrgs(new(api.GcpIntegrationsResponse)))
+			assert.Nil(t, cliListGcpProjectsAndOrgs(api.CloudAccountsResponse{}, mockGcpConfigsResponse()))
 		})
 		expectedJSON := `{
   "gcp_projects": []
@@ -156,22 +156,22 @@ func TestCliListGcpListProjectsAndOrgsWithoutData(t *testing.T) {
 
 func TestCliListGcpListProjectsAndOrgsWithDataEnabled(t *testing.T) {
 	cliOutput := capturer.CaptureOutput(func() {
-		assert.Nil(t, cliListGcpProjectsAndOrgs(mockGcpIntegrationsResponse(1, 1, 1)))
+		assert.Nil(t, cliListGcpProjectsAndOrgs(mockGcpIntegrationsResponse(1, 1, 1), mockGcpConfigsResponse()))
 	})
-	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
+	// NOTE (@afiune): We purposely leave trailing spaces in this table, we need them!
 	expectedTable := `
   ORGANIZATION ID           PROJECT ID            STATUS   
 ------------------+-----------------------------+----------
   n/a               gcr-jenkins-sandbox-274317    Enabled  
   n/a               techally-hipstershop-275821   Enabled  
-  n/a               techally-test                 Enabled  
+  12345             techally-test                 Enabled  
 `
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
 
 func TestCliListGcpListProjectsAndOrgsWithDataDisabled(t *testing.T) {
 	cliOutput := capturer.CaptureOutput(func() {
-		assert.Nil(t, cliListGcpProjectsAndOrgs(mockGcpIntegrationsResponse(0, 0, 1)))
+		assert.Nil(t, cliListGcpProjectsAndOrgs(mockGcpIntegrationsResponse(0, 0, 1), mockGcpConfigsResponse()))
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
 	expectedTable := `
@@ -179,79 +179,107 @@ func TestCliListGcpListProjectsAndOrgsWithDataDisabled(t *testing.T) {
 ------------------+-----------------------------+-----------
   n/a               gcr-jenkins-sandbox-274317    Disabled  
   n/a               techally-hipstershop-275821   Disabled  
-  n/a               techally-test                 Enabled   
+  12345             techally-test                 Enabled   
 `
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
 
-func mockGcpIntegrationsResponse(proj1Enabled, proj2Enabled, proj3Enabled int) *api.GcpIntegrationsResponse {
-	response := &api.GcpIntegrationsResponse{}
-	err := json.Unmarshal([]byte(`{
-  "data": [
-    {
-      "CREATED_OR_UPDATED_BY": "salim.afiunemaya@lacework.net",
-      "CREATED_OR_UPDATED_TIME": "2021-06-01T18:03:19.031Z",
-      "DATA": {
-        "ID": "techally-hipstershop-275821",
-        "ID_TYPE": "PROJECT"
-      },
-      "ENABLED": `+strconv.Itoa(proj1Enabled)+`,
-      "INTG_GUID": "MOCK_1232",
-      "IS_ORG": 0,
-      "NAME": "TF Hipstershop",
-      "STATE": {
-        "lastSuccessfulTime": "2022-Jan-31 14:24:56 UTC",
-        "lastUpdatedTime": "2022-Jan-31 14:24:56 UTC",
-        "ok": true
-      },
-      "TYPE": "GCP_CFG",
-      "TYPE_NAME": "GCP Compliance"
-    },
-    {
-      "CREATED_OR_UPDATED_BY": "salim.afiunemaya@lacework.net",
-      "CREATED_OR_UPDATED_TIME": "2020-09-17T17:13:48.393Z",
-      "DATA": {
-        "ID": "gcr-jenkins-sandbox-274317",
-        "ID_TYPE": "PROJECT"
-      },
-      "ENABLED": `+strconv.Itoa(proj2Enabled)+`,
-      "INTG_GUID": "MOCK_1233",
-      "IS_ORG": 0,
-      "NAME": "TF Sandbox",
-      "STATE": {
-        "lastSuccessfulTime": "2022-Jan-31 14:24:56 UTC",
-        "lastUpdatedTime": "2022-Jan-31 14:24:56 UTC",
-        "ok": true
-      },
-      "TYPE": "GCP_CFG",
-      "TYPE_NAME": "GCP Compliance"
-    },
-    {
-      "CREATED_OR_UPDATED_BY": "darren.murray@lacework.net",
-      "CREATED_OR_UPDATED_TIME": "2021-11-12T11:08:34.923Z",
-      "DATA": {
-        "ID": "techally-test",
-        "ID_TYPE": "PROJECT"
-      },
-      "ENABLED": `+strconv.Itoa(proj3Enabled)+`,
-      "INTG_GUID": "MOCK_1234",
-      "IS_ORG": 0,
-      "NAME": "techally-test-cfg",
-      "STATE": {
-        "lastSuccessfulTime": "2022-Jan-31 14:24:56 UTC",
-        "lastUpdatedTime": "2022-Jan-31 14:24:56 UTC",
-        "ok": true
-      },
-      "TYPE": "GCP_CFG",
-      "TYPE_NAME": "GCP Compliance"
-    }
-  ],
-  "message": "SUCCESS",
-  "ok": true
-}
-`), response)
+func mockGcpIntegrationsResponse(proj1Enabled, proj2Enabled, proj3Enabled int) api.CloudAccountsResponse {
+	var response = api.CloudAccountsResponse{}
+	err := json.Unmarshal([]byte(`
+{
+    "data": [
+        {
+            "createdOrUpdatedBy": "test@lacework.net",
+            "createdOrUpdatedTime": "2022-05-18T15:34:29.872Z",
+            "enabled": `+strconv.Itoa(proj1Enabled)+`,
+            "intgGuid": "EXAMPLE_12345",
+            "isOrg": 0,
+            "name": "test",
+            "state": {
+                "ok": true,
+                "lastUpdatedTime": 1652888077205,
+                "lastSuccessfulTime": 1652888077205,
+                "details": {}
+            },
+            "type": "GcpPubsub",
+            "data": {
+                "issueGrouping": "Events",
+                "credentials": {
+                    "clientId": "123456",
+                    "privateKeyId": "",
+                    "clientEmail": "test@test.iam.gserviceaccount.com",
+                    "privateKey": ""
+                },
+                "idType": "PROJECT",
+                "id": "gcr-jenkins-sandbox-274317"
+            }
+        },
+        {
+            "createdOrUpdatedBy": "test@lacework.net",
+            "createdOrUpdatedTime": "2022-05-18T15:34:29.872Z",
+            "enabled": `+strconv.Itoa(proj2Enabled)+`,
+            "intgGuid": "EXAMPLE_12345",
+            "isOrg": 0,
+            "name": "test",
+            "state": {
+                "ok": true,
+                "lastUpdatedTime": 1652888077205,
+                "lastSuccessfulTime": 1652888077205,
+                "details": {}
+            },
+            "type": "GcpPubsub",
+            "data": {
+                "issueGrouping": "Events",
+                "credentials": {
+                    "clientId": "123456",
+                    "privateKeyId": "",
+                    "clientEmail": "test@test.iam.gserviceaccount.com",
+                    "privateKey": ""
+                },
+                "idType": "PROJECT",
+                "id": "techally-hipstershop-275821"
+            }
+        },
+        {
+            "createdOrUpdatedBy": "test@lacework.net",
+            "createdOrUpdatedTime": "2022-05-18T15:34:29.872Z",
+            "enabled": `+strconv.Itoa(proj3Enabled)+`,
+            "intgGuid": "EXAMPLE_12345",
+            "isOrg": 0,
+            "name": "test",
+            "state": {
+                "ok": true,
+                "lastUpdatedTime": 1652888077205,
+                "lastSuccessfulTime": 1652888077205,
+                "details": {}
+            },
+            "type": "GcpPubsub",
+            "data": {
+                "issueGrouping": "Events",
+                "credentials": {
+                    "clientId": "123456",
+                    "privateKeyId": "",
+                    "clientEmail": "test@test.iam.gserviceaccount.com",
+                    "privateKey": ""
+                },
+                "idType": "PROJECT",
+                "id": "techally-test"
+            }
+        }
+]
+}`), &response)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return response
+}
+
+func mockGcpConfigsResponse() api.GcpConfigsResponse {
+	return api.GcpConfigsResponse{
+		Data: []api.GcpConfigData{{
+			Organization: "12345",
+			Projects:     []string{"techally-test (techally-test)"},
+		}},
+	}
 }

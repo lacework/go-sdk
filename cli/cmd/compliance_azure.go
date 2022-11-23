@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -42,10 +43,10 @@ var (
 
 	// complianceAzureListSubsCmd represents the list-subscriptions sub-command inside the azure command
 	complianceAzureListSubsCmd = &cobra.Command{
-		Use:     "list-subscriptions <tenant_id>",
+		Use:     "list-subscriptions",
 		Aliases: []string{"list-subs"},
-		Short:   "List subscriptions from tenant",
-		Long: `List all Azure subscriptions from the provided Tenant ID.
+		Short:   "List subscriptions <tenant-id>",
+		Long: `List all Azure subscriptions for Tenant.
 
 Use the following command to list all Azure Tenants configured in your account:
 
@@ -53,28 +54,31 @@ Use the following command to list all Azure Tenants configured in your account:
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
-				tenantID, _   = splitIDAndAlias(args[0])
-				response, err = cli.LwApi.Compliance.ListAzureSubscriptions(tenantID)
+				response, err             = cli.LwApi.V2.Configs.Azure.ListSubscriptions(args[0])
+				cliCompAzureSubscriptions []cliComplianceAzureInfo
 			)
 			if err != nil {
 				return errors.Wrap(err, "unable to list azure subscriptions")
 			}
 
 			if len(response.Data) == 0 {
-				return errors.New("no data found for the provided tenant")
+				cli.OutputHuman("There are no azure subscriptions found for tenant %s\n", args[0])
+				return nil
 			}
 
-			// ALLY-431 Workaround to split the subscription ID and subscription Alias
-			// ultimately, we need to fix this in the API response
-			cliCompAzureSubscriptions := splitAzureSubscriptionsApiResponse(response.Data[0])
+			for _, az := range response.Data {
+				cliCompAzureSubscriptions = append(cliCompAzureSubscriptions, splitAzureSubscriptionsApiResponse(az))
+			}
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(cliCompAzureSubscriptions)
 			}
 
 			rows := [][]string{}
-			for _, subscription := range cliCompAzureSubscriptions.Subscriptions {
-				rows = append(rows, []string{subscription.ID, subscription.Alias})
+			for _, subscriptionList := range cliCompAzureSubscriptions {
+				for _, subscription := range subscriptionList.Subscriptions {
+					rows = append(rows, []string{subscription.ID, subscription.Alias})
+				}
 			}
 
 			cli.OutputHuman(renderSimpleTable(
@@ -93,13 +97,18 @@ Use the following command to list all Azure Tenants configured in your account:
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			cli.StartProgress("Fetching list of configured Azure tenants...")
-			azureIntegrations, err := cli.LwApi.Integrations.ListAzureCfg()
+			response, err := cli.LwApi.V2.CloudAccounts.ListByType(api.AzureCfgCloudAccount)
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get azure integrations")
 			}
 
-			return cliListTenantsAndSubscriptions(&azureIntegrations)
+			if len(response.Data) == 0 {
+				cli.OutputHuman("There are no azure cloud accounts configured in your account\n")
+				return nil
+			}
+
+			return cliListTenantsAndSubscriptions(response)
 		},
 	}
 
@@ -595,9 +604,7 @@ func complianceAzureReportDetailsTable(report *api.AzureReport) [][]string {
 	}
 }
 
-// ALLY-431 Workaround to split the Subscription ID and Subscription Alias
-// ultimately, we need to fix this in the API response
-func splitAzureSubscriptionsApiResponse(azInfo api.CompAzureSubscriptions) cliComplianceAzureInfo {
+func splitAzureSubscriptionsApiResponse(azInfo api.AzureConfigData) cliComplianceAzureInfo {
 	var (
 		tenantID, tenantAlias = splitIDAndAlias(azInfo.Tenant)
 		cliAzureInfo          = cliComplianceAzureInfo{
@@ -619,12 +626,12 @@ type cliComplianceAzureInfo struct {
 	Subscriptions []cliComplianceIDAlias `json:"subscriptions"`
 }
 
-func cliListTenantsAndSubscriptions(azureIntegrations *api.AzureIntegrationsResponse) error {
+func cliListTenantsAndSubscriptions(azureIntegrations api.CloudAccountsResponse) error {
 	jsonOut := struct {
 		Subscriptions []azureSubscription `json:"azure_subscriptions"`
 	}{Subscriptions: make([]azureSubscription, 0)}
 
-	if azureIntegrations == nil || len(azureIntegrations.Data) == 0 {
+	if len(azureIntegrations.Data) == 0 {
 		if cli.JSONOutput() {
 			return cli.OutputJSON(jsonOut)
 		}
@@ -665,16 +672,25 @@ type azureSubscription struct {
 	Status         string `json:"status"`
 }
 
-func extractAzureSubscriptions(response *api.AzureIntegrationsResponse) []azureSubscription {
+func extractAzureSubscriptions(response api.CloudAccountsResponse) []azureSubscription {
 	var azureSubscriptions []azureSubscription
-
-	if response == nil {
+	var azureData api.AzureCfgData
+	if len(response.Data) == 0 {
 		return azureSubscriptions
 	}
 
-	for _, gcp := range response.Data {
+	for _, az := range response.Data {
+		azJson, err := json.Marshal(az.Data)
+		if err != nil {
+			continue
+		}
+
+		err = json.Unmarshal(azJson, &azureData)
+		if err != nil {
+			continue
+		}
 		// fetch the subscription ids from tenant id
-		azureSubscriptions = append(azureSubscriptions, getAzureSubscriptions(gcp.Data.TenantID, gcp.Status())...)
+		azureSubscriptions = append(azureSubscriptions, getAzureSubscriptions(azureData.TenantID, az.Status())...)
 	}
 
 	sort.Slice(azureSubscriptions, func(i, j int) bool {
