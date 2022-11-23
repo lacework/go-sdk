@@ -28,7 +28,6 @@ Available Commands:
   get-report     Get the latest GCP compliance report
   list           List gcp projects and organizations
   list-projects  List projects from an organization
-  run-assessment Run a new GCP compliance assessment
 
 Flags:
   -h, --help   help for google

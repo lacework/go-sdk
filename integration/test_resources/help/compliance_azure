@@ -28,7 +28,6 @@ Available Commands:
   get-report         Get the latest Azure compliance report
   list               List Azure tenants and subscriptions
   list-subscriptions List subscriptions from tenant
-  run-assessment     Run a new Azure compliance assessment
 
 Flags:
   -h, --help   help for azure
