@@ -425,7 +425,7 @@ The output from status with the --json flag can be used in the body of PATCH api
 		},
 	}
 
-	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
+	// complianceAwsListAccountsCmd represents the search inside the aws command
 	complianceAwsSearchCmd = &cobra.Command{
 		Use:   "search <resource_arn>",
 		Short: "Search for all known violations of a given resource arn",
