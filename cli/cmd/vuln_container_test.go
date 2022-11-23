@@ -70,9 +70,9 @@ func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
 
 	expected := `
 Registry,Repository,Last Scan,Status,Vulnerabilities,Image Digest
-index.docker.io,techally-test/test-cli,2022-11-21T18:33:28Z,VULNERABLE,1 Medium 1 Fixable,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a
-gcr.io,techally-test-4/exservice,2022-11-21T19:21:57Z,VULNERABLE,1 High 1 Fixable,sha256:15b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
-gcr.io,techally-test-2/exservice,2022-11-21T19:21:57Z,VULNERABLE,1 Critical,sha256:12b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
+index.docker.io,techally-test/test-cli,2022-11-21T18:33:28Z,Success,1 Medium 1 Fixable,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a
+gcr.io,techally-test-4/exservice,2022-11-21T19:21:57Z,Success,1 High 1 Fixable,sha256:15b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
+gcr.io,techally-test-2/exservice,2022-11-21T19:21:57Z,Success,1 Critical,sha256:12b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
 `
 
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), csv)
