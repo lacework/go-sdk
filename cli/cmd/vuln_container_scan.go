@@ -21,7 +21,9 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -84,6 +86,14 @@ func requestOnDemandContainerVulnerabilityScan(args []string) error {
 		"A new vulnerability scan has been requested. (request_id: %s)\n\n",
 		scan.Data.RequestID,
 	)
+
+	if vulCmdState.Poll {
+		cli.Log.Infow("tracking scan progress",
+			"param", "--poll",
+			"request_id", scan.Data.RequestID,
+		)
+		return pollScanStatus(scan.Data.RequestID, args)
+	}
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(scan.Data)
@@ -154,4 +164,111 @@ To view all container registries configured in your account use the command:
 	}
 
 	return errors.Wrap(err, "unable to request on-demand vulnerability scan")
+}
+
+func pollScanStatus(requestID string, args []string) error {
+	cli.StartProgress(" Scan running...")
+	time.Sleep(time.Second * 64)
+	var (
+		retries      = 0
+		start        = time.Now()
+		durationTime = start
+		expPollTime  = time.Second
+		params       = map[string]interface{}{"request_id": requestID}
+	)
+
+	// @afiune bug: there are sometimes that the API returns the scan status as
+	// successful without any vulnerabilities, as if the assessment had none, but
+	// if you query it again, the assessment does have vulnerabilities.
+	//
+	// JIRA: RAIN-12964
+	// Workaround: Retry the polling mechanism twice on success :(
+	bugRetry := true
+	for {
+		retries++
+		params["retries"] = retries
+
+		cli.Event.DurationMs = time.Since(durationTime).Milliseconds()
+		durationTime = time.Now()
+
+		cli.Event.Feature = featPollCtrScan
+		cli.Event.FeatureData = params
+
+		err, retry := checkScanStatus(requestID)
+		if err != nil {
+			cli.Event.Error = err.Error()
+			cli.SendHoneyvent()
+			return err
+		}
+
+		if retry {
+			cli.Log.Debugw("waiting for a retry", "request_id", requestID, "sleep", expPollTime)
+			cli.SendHoneyvent()
+			time.Sleep(expPollTime)
+			expPollTime = time.Duration(retries*retries) * time.Second
+			continue
+		}
+
+		// @afiune bug: there are sometimes that the API returns the scan status as
+		// successful without any vulnerabilities, as if the assessment had none, but
+		// if you query it again, the assessment does have vulnerabilities.
+		//
+		// JIRA: RAIN-12964
+		// Workaround: Retry the polling mechanism twice on success :(
+		if bugRetry {
+			bugRetry = false
+			cli.SendHoneyvent()
+			// we do NOT use the exponential polling time here since this is just a
+			// workaround and therefore waiting for 5s or so is enough time
+			time.Sleep(time.Second * 5)
+			continue
+		}
+
+		cli.Event.DurationMs = time.Since(durationTime).Milliseconds()
+		params["total_duration_ms"] = time.Since(start).Milliseconds()
+		cli.Event.FeatureData = params
+		cli.SendHoneyvent()
+
+		// reset event fields
+		cli.Event.DurationMs = 0
+		cli.Event.FeatureData = nil
+
+		cli.StopProgress()
+
+		// scan is completed, request results
+		err = showContainerAssessmentsWithSha256("", api.SearchFilter{
+			Filters: []api.Filter{{
+				Expression: "eq",
+				Field:      "evalCtx.image_info.registry",
+				Value:      args[0],
+			},
+				{
+					Expression: "eq",
+					Field:      "evalCtx.image_info.repo",
+					Value:      args[1],
+				},
+			},
+		})
+		return err
+	}
+}
+
+func checkScanStatus(requestID string) (error, bool) {
+	cli.Log.Infow("verifying status of vulnerability scan", "request_id", requestID)
+	scan, err := cli.LwApi.V2.Vulnerabilities.Containers.ScanStatus(requestID)
+	if err != nil {
+		return errors.Wrap(err, "unable to verify status of the vulnerability scan"), false
+	}
+
+	cli.Log.Debugw("vulnerability scan", "details", scan)
+	status := scan.CheckStatus()
+	switch status {
+	case "completed":
+		return nil, false
+	case "scanning":
+		return nil, true
+	default:
+		return errors.Errorf(
+			"unable to get status: '%s' from vulnerability scan. Use '--debug' to troubleshoot.", status), false
+	}
 }

@@ -55,7 +55,7 @@ To request an on-demand vulnerability scan:
 			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
-			err := showContainerAssessmentsWithSha256(args[0])
+			err := showContainerAssessmentsWithSha256(args[0], api.SearchFilter{})
 			var e *vulnerabilityPolicyError
 			if errors.As(err, &e) {
 				c.SilenceUsage = true
@@ -66,7 +66,7 @@ To request an on-demand vulnerability scan:
 	}
 )
 
-func showContainerAssessmentsWithSha256(sha string) error {
+func showContainerAssessmentsWithSha256(sha string, filter api.SearchFilter) error {
 	var (
 		assessment     api.VulnerabilitiesContainersResponse
 		vulnerabilites []api.VulnerabilityContainer
@@ -75,6 +75,19 @@ func showContainerAssessmentsWithSha256(sha string) error {
 		searchField    string
 		err            error
 	)
+
+	if len(filter.Filters) > 0 {
+		cli.Log.Debugw("retrieve assessment with filters ", filter.Filters)
+
+		cli.StartProgress("Fetching assessment...")
+		assessment, err = cli.LwApi.V2.Vulnerabilities.Containers.Search(filter)
+		cli.StopProgress()
+
+		if len(assessment.Data) == 0 {
+			cli.OutputHuman("No active containers found.\n")
+			return nil
+		}
+	}
 
 	if vulCmdState.ImageID {
 		searchField = "evalCtx.image_info.id"
@@ -98,9 +111,11 @@ func showContainerAssessmentsWithSha256(sha string) error {
 			cli.OutputHuman("No active containers found.\n")
 			return nil
 		}
-	} else {
-		searchField = "evalCtx.image_info.digest"
 
+	}
+
+	if sha != "" && !vulCmdState.ImageID {
+		searchField = "evalCtx.image_info.digest"
 		cli.StartProgress("Fetching assessment...")
 		assessment, err = cli.LwApi.V2.Vulnerabilities.Containers.Search(api.SearchFilter{
 			TimeFilter: &api.TimeFilter{
@@ -119,13 +134,14 @@ func showContainerAssessmentsWithSha256(sha string) error {
 			cli.OutputHuman("No active containers found.\n")
 			return nil
 		}
+	}
 
-		for _, a := range assessment.Data {
-			if a.Status == "VULNERABLE" {
-				vulnerabilites = append(vulnerabilites, a)
-			}
+	for _, a := range assessment.Data {
+		if a.Status == "VULNERABLE" {
+			vulnerabilites = append(vulnerabilites, a)
 		}
 	}
+
 	assessment.Data = vulnerabilites
 
 	if err != nil {
@@ -185,6 +201,10 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 		}
 	default:
 		if len(response.Data) == 0 {
+			if vulCmdState.Severity != "" {
+				cli.OutputHuman("There ano vulnerabilties found for this severity")
+			}
+
 			cli.OutputHuman("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
 			return nil
 		}

@@ -62,13 +62,19 @@ filter on containers with vulnerabilities that have fixes available.`,
 						"start_time", start, "end_time", end,
 					)
 					filter.TimeFilter = &api.TimeFilter{
-						StartTime: &before,
-						EndTime:   &now,
+						StartTime: &start,
+						EndTime:   &end,
 					}
 					msg = fmt.Sprintf("Fetching assessments in date range %s - %s", start, end)
 				}
+
+				filter.TimeFilter = &api.TimeFilter{
+					StartTime: &before,
+					EndTime:   &now,
+				}
+
 				cli.StartProgress(msg)
-				assessments, err = listVulnCtrAssessments(registries, filter)
+				assessments, err = listVulnCtrAssessments(registries, &filter)
 				cli.StopProgress()
 				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), assessments)
 
@@ -149,7 +155,7 @@ func applyVulnCtrFilters(assessments []vulnerabilityAssessmentSummary) (filtered
 	return
 }
 
-func listVulnCtrAssessments(registries []string, filter api.SearchFilter) (assessments []vulnerabilityAssessmentSummary, err error) {
+func listVulnCtrAssessments(registries []string, filter *api.SearchFilter) (assessments []vulnerabilityAssessmentSummary, err error) {
 	var ctrMap = map[string][]api.VulnerabilityContainer{}
 	// for each ctr registry perform a search
 	for _, registry := range registries {
@@ -159,7 +165,7 @@ func listVulnCtrAssessments(registries []string, filter api.SearchFilter) (asses
 			Value:      registry,
 		}}
 
-		response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(filter)
+		response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
 		if err != nil {
 			return assessments, errors.Wrap(err, "unable to get assessments")
 		}
@@ -182,8 +188,9 @@ type vulnerabilityAssessmentSummary struct {
 	Digest          string                    `json:"digest"`
 	ScanTime        time.Time                 `json:"scan_time"`
 	Cves            []vulnerabilityCtrSummary `json:"cves"`
+	ScanStatus      string                    `json:"scan_status"`
 	vulnerabilities []string
-	StatusList      []string `json:"status_list"`
+	StatusList      []string `json:"-"`
 	fixableCount    int
 }
 
@@ -238,6 +245,7 @@ func buildVulnCtrAssessmentSummary(assessments []api.VulnerabilityContainer) (un
 			a.EvalCtx.ImageInfo.Digest,
 			a.StartTime,
 			[]vulnerabilityCtrSummary{{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity}},
+			a.EvalCtx.ImageInfo.Status,
 			[]string{fmt.Sprintf("%s-%s", a.VulnID, a.FeatureKey.Name)},
 			[]string{a.Status},
 			fixableCount,
@@ -308,7 +316,7 @@ func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummar
 			imageRegistry:   ctr.Registry,
 			imageRepo:       ctr.Repository,
 			startTime:       ctr.ScanTime.UTC().Format(time.RFC3339),
-			imageScanStatus: ctr.Status(),
+			imageScanStatus: ctr.ScanStatus,
 			//todo(v2): adding active containers blocked by RAIN-43538
 			ndvContainers:     "1",
 			assessmentSummary: summaryString,

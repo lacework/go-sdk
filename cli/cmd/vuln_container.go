@@ -21,6 +21,7 @@ package cmd
 import (
 	"github.com/lacework/go-sdk/internal/array"
 	"github.com/pkg/errors"
+	flag "github.com/spf13/pflag"
 )
 
 func init() {
@@ -46,6 +47,10 @@ func init() {
 	// add registry flag to list-assessments command
 	vulContainerListAssessmentsCmd.Flags().StringSliceVarP(&vulCmdState.Registries,
 		"registry", "", []string{}, "filter assessments for specific registries",
+	)
+
+	setPollFlag(
+		vulContainerScanCmd.Flags(),
 	)
 
 	setHtmlFlag(
@@ -93,6 +98,14 @@ func init() {
 		&vulCmdState.ImageID, "image_id", false,
 		"tread the provided sha256 hash as image id",
 	)
+}
+
+func setPollFlag(cmds ...*flag.FlagSet) {
+	for _, cmd := range cmds {
+		if cmd != nil {
+			cmd.BoolVar(&vulCmdState.Poll, "poll", false, "poll until the vulnerability scan completes")
+		}
+	}
 }
 
 func getContainerRegistries() ([]string, error) {

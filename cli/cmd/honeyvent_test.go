@@ -72,7 +72,7 @@ func TestSendHoneyventFeatureFields(t *testing.T) {
 	assert.Empty(t, cli.Event.FeatureData)
 
 	// a new feature will need to set at least the feature field
-	cli.Event.Feature = "testFeat"
+	cli.Event.Feature = featPollCtrScan
 
 	// additionally, features could define the feature.data and duration_ms
 	cli.Event.FeatureData = map[string]interface{}{"key": "value"}

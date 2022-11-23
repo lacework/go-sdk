@@ -124,12 +124,23 @@ func (svc *v2ContainerVulnerabilityService) Scan(registry, repository, tagOrHash
 	return
 }
 
-// Todo(v2): v2 migrate
 type VulnerabilitiesContainersScanStatusResponse struct {
 	Message string `json:"message"`
 	Data    struct {
 		Status string `json:"status"`
 	} `json:"data"`
+}
+
+func (res *VulnerabilitiesContainersScanStatusResponse) CheckStatus() string {
+	if res.Data.Status != "" {
+		return res.Data.Status
+	}
+
+	if res.Data.Status != "" {
+		return res.Data.Status
+	}
+
+	return "Unknown"
 }
 
 type VulnerabilitiesContainerScanResponse struct {
@@ -138,6 +149,18 @@ type VulnerabilitiesContainerScanResponse struct {
 		RequestID string `json:"requestId"`
 		Status    string `json:"status"`
 	} `json:"data"`
+}
+
+func (res *VulnerabilitiesContainerScanResponse) CheckStatus() string {
+	if res.Data.Status != "" {
+		return res.Data.Status
+	}
+
+	if res.Data.Status != "" {
+		return res.Data.Status
+	}
+
+	return "Unknown"
 }
 
 type VulnerabilitiesContainersResponse struct {
