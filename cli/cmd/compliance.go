@@ -499,6 +499,7 @@ func violationsToTable(violations []api.ComplianceViolationV2) (resourceTable []
 	return
 }
 
+// nolint
 func getReportTypes(reportSubType string) (validTypes []string, err error) {
 	cacheKey := fmt.Sprintf("reports/definitions/%s", reportSubType)
 	expired := cli.ReadCachedAsset(cacheKey, &validTypes)
