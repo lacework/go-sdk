@@ -479,7 +479,7 @@ func vulContainerImageToTable(image api.ImageInfo) [][]string {
 		{"Registry", image.Registry},
 		{"Repository", image.Repo},
 		{"Size", byteCountBinary(image.Size)},
-		{"Created At", time.UnixMilli(image.CreatedTime).Format(time.RFC3339)},
+		{"Created At", time.UnixMilli(image.CreatedTime).UTC().Format(time.RFC3339)},
 		{"Tags", strings.Join(image.Tags, ",")},
 	}
 }
