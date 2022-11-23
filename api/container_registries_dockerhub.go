@@ -52,21 +52,21 @@ func (reg DockerhubIntegration) ContainerRegistryType() containerRegistryType {
 }
 
 type DockerhubData struct {
-	Credentials           DockerhubCredentials `json:"credentials"`
-	RegistryDomain        string               `json:"registryDomain"`
-	RegistryType          string               `json:"registryType"`
-	RegistryNotifications bool                 `json:"registryNotifications"`
-	LimitByTag            []string             `json:"limitByTag,omitempty"`
-	LimitByLabel          []map[string]string  `json:"limitByLabel,omitempty"`
-	LimitByRep            []string             `json:"limitByRep,omitempty"`
-	LimitNumImg           int                  `json:"limitNumImg"`
-	NonOSPackageEval      bool                 `json:"nonOsPackageEval"`
+	Credentials      DockerhubCredentials `json:"credentials"`
+	RegistryDomain   string               `json:"registryDomain"` // always "index.docker.io"
+	RegistryType     string               `json:"registryType"`   // always "DOCKERHUB"
+	LimitByTag       []string             `json:"limitByTag,omitempty"`
+	LimitByLabel     []map[string]string  `json:"limitByLabel,omitempty"`
+	LimitByRep       []string             `json:"limitByRep,omitempty"`
+	LimitNumImg      int                  `json:"limitNumImg"`
+	NonOSPackageEval bool                 `json:"nonOsPackageEval"`
 }
 
 func verifyDockerhubContainerRegistry(data interface{}) interface{} {
-	if ecr, ok := data.(DockerhubData); ok {
-		ecr.RegistryType = DockerhubContainerRegistry.String()
-		return ecr
+	if hub, ok := data.(DockerhubData); ok {
+		hub.RegistryType = DockerhubContainerRegistry.String()
+		hub.RegistryDomain = "index.docker.io"
+		return hub
 	}
 	return data
 }
