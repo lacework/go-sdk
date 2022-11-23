@@ -99,10 +99,6 @@ To list all AWS accounts configured in your account:
 
     lacework compliance aws list-accounts
 
-To run an ad-hoc compliance assessment of an AWS account:
-
-    lacework compliance aws run-assessment <account_id>
-
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance aws get-report <account_id> [recommendation_id]
@@ -224,38 +220,6 @@ To show recommendation details and affected resources for a recommendation id:
 					filteredOutput,
 				),
 			)
-			return nil
-		},
-	}
-
-	// complianceAwsRunAssessmentCmd represents the run-assessment sub-command inside the aws command
-	complianceAwsRunAssessmentCmd = &cobra.Command{
-		Use:     "run-assessment <account_id>",
-		Aliases: []string{"run"},
-		Short:   "Run a new AWS compliance assessment",
-		Long:    `Run a compliance assessment for the provided AWS account.`,
-		Args:    cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			response, err := cli.LwApi.Compliance.RunAwsReport(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to run aws compliance assessment")
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(response)
-			}
-
-			cli.OutputHuman("A new AWS compliance assessment has been initiated.\n")
-			// @afiune not consistent with the other cloud providers
-			for key := range response {
-				cli.OutputHuman("\n")
-				cli.OutputHuman(
-					renderSimpleTable(
-						[]string{"INTEGRATION GUID", "ACCOUNT ID"},
-						[][]string{[]string{key, args[0]}},
-					),
-				)
-			}
 			return nil
 		},
 	}
@@ -534,7 +498,6 @@ func init() {
 	// add sub-commands to the aws command
 	complianceAwsCmd.AddCommand(complianceAwsGetReportCmd)
 	complianceAwsCmd.AddCommand(complianceAwsListAccountsCmd)
-	complianceAwsCmd.AddCommand(complianceAwsRunAssessmentCmd)
 	complianceAwsCmd.AddCommand(complianceAwsSearchCmd)
 
 	// Experimental Commands

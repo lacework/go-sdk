@@ -144,10 +144,6 @@ To list all GCP projects and organizations configured in your account:
 
     lacework compliance gcp list
 
-To run an ad-hoc compliance assessment use the command:
-
-    lacework compliance gcp run-assessment <project_id>
-
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance gcp get-report <organization_id> <project_id> [recommendation_id]
@@ -280,39 +276,6 @@ To show recommendation details and affected resources for a recommendation id:
 					complianceReportSummaryTable(report.Summary),
 					recommendations,
 					filteredOutput,
-				),
-			)
-			return nil
-		},
-	}
-
-	// complianceGcpRunAssessmentCmd represents the run-assessment sub-command inside the gcp command
-	complianceGcpRunAssessmentCmd = &cobra.Command{
-		Use:     "run-assessment <org_or_project_id>",
-		Aliases: []string{"run"},
-		Short:   "Run a new GCP compliance assessment",
-		Long: `Run a compliance assessment for the provided GCP organization or project.
-
-To list all GCP projects and organizations configured in your account:
-
-    lacework compliance gcp list`,
-		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			response, err := cli.LwApi.Compliance.RunGcpReport(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to run gcp compliance assessment")
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(response)
-			}
-
-			cli.OutputHuman("A new GCP compliance assessment has been initiated.\n")
-			cli.OutputHuman("\n")
-			cli.OutputHuman(
-				renderSimpleTable(
-					[]string{"INTEGRATION GUID", "ORG/PROJECT ID"},
-					[][]string{[]string{response.IntgGuid, args[0]}},
 				),
 			)
 			return nil
@@ -497,7 +460,6 @@ func init() {
 	// add sub-commands to the gcp command
 	complianceGcpCmd.AddCommand(complianceGcpListCmd)
 	complianceGcpCmd.AddCommand(complianceGcpListProjCmd)
-	complianceGcpCmd.AddCommand(complianceGcpRunAssessmentCmd)
 	complianceGcpCmd.AddCommand(complianceGcpGetReportCmd)
 
 	// Experimental Commands

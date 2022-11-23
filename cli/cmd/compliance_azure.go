@@ -140,10 +140,6 @@ To list all Azure tenants and subscriptions configured in your account:
 
     lacework compliance azure list
 
-To run an ad-hoc compliance assessment use the command:
-
-    lacework compliance azure run-assessment <tenant_id>
-
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance azure get-report <tenant_id> <subscriptions_id> [recommendation_id]
@@ -275,38 +271,6 @@ To show recommendation details and affected resources for a recommendation id:
 		},
 	}
 
-	// complianceAzureRunAssessmentCmd represents the run-assessment sub-command inside the azure command
-	complianceAzureRunAssessmentCmd = &cobra.Command{
-		Use:     "run-assessment <tenant_id>",
-		Aliases: []string{"run"},
-		Short:   "Run a new Azure compliance assessment",
-		Long: `Run a compliance assessment of the provided Azure tenant.
-
-To list all Azure tenants and subscriptions configured in your account:
-
-    lacework compliance azure list`,
-		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			response, err := cli.LwApi.Compliance.RunAzureReport(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to run azure compliance assessment")
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(response)
-			}
-
-			cli.OutputHuman("A new Azure compliance assessment has been initiated.\n")
-			cli.OutputHuman("\n")
-			cli.OutputHuman(
-				renderSimpleTable(
-					[]string{"INTEGRATION GUID", "TENANT ID"},
-					[][]string{[]string{response.IntgGuid, args[0]}},
-				),
-			)
-			return nil
-		},
-	}
 	// complianceAzureDisableReportCmd represents the disable-report sub-command inside the azure command
 	// experimental feature
 	complianceAzureDisableReportCmd = &cobra.Command{
@@ -487,7 +451,6 @@ func init() {
 	complianceAzureCmd.AddCommand(complianceAzureListSubsCmd)
 	complianceAzureCmd.AddCommand(complianceAzureListTenantsCmd)
 	complianceAzureCmd.AddCommand(complianceAzureGetReportCmd)
-	complianceAzureCmd.AddCommand(complianceAzureRunAssessmentCmd)
 
 	// Experimental Commands
 	complianceAzureCmd.AddCommand(complianceAzureReportStatusCmd)
