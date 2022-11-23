@@ -347,7 +347,7 @@ func TestSeveritySummary(t *testing.T) {
 	)
 	hostSummary := hostsSummary(hosts)
 	for _, sum := range hostSummary {
-		summary = severitySummary(sum.severity, sum.fixable)
+		summary = severityCtrSummary(sum.severity, sum.fixable)
 	}
 
 	expected := "1 High 4 Fixable"
