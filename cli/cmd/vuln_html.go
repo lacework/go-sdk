@@ -341,7 +341,7 @@ func vulContainerImageLayersToHTML(image []api.VulnerabilityContainer) []htmlVul
 			Layer:             layerCreatedBy,
 		}
 
-		// Todo(v2): CVSSv3Score does not exist in v2
+		// Todo(v2): CVSSv3Score does not exist in v2 container response
 		//if score := vul.CVSSv3Score(); score != 0 {
 		//	// CVSSv3
 		//	newHtmlVuln.V3Score = score

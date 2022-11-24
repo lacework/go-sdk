@@ -26,10 +26,10 @@ import (
 
 func init() {
 	// add sub-commands to the 'vulnerability container' command
-	vulContainerCmd.AddCommand(vulContainerScanCmd)            // Todo(v2): migrate v1 -> v2
-	vulContainerCmd.AddCommand(vulContainerListAssessmentsCmd) // Todo(v2): migrate v1 -> v2
+	vulContainerCmd.AddCommand(vulContainerScanCmd)
+	vulContainerCmd.AddCommand(vulContainerListAssessmentsCmd)
 	vulContainerCmd.AddCommand(vulContainerListRegistriesCmd)
-	vulContainerCmd.AddCommand(vulContainerShowAssessmentCmd) // Todo(v2): migrate v1 -> v2. Missing CVSSv3Score/CVSSv2Score/IntroducedInLayer.
+	vulContainerCmd.AddCommand(vulContainerShowAssessmentCmd)
 
 	// add start flag to list-assessments command
 	vulContainerListAssessmentsCmd.Flags().StringVar(&vulCmdState.Start,
