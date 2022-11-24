@@ -73,9 +73,6 @@ const (
 	apiRunReportAws         = "v1/external/runReport/aws/%s"
 	apiRunReportAzure       = "v1/external/runReport/azure/%s"
 
-	apiEventsDetails   = "v1/external/events/GetEventDetails"
-	apiEventsDateRange = "v1/external/events/GetEventsForDateRange"
-
 	apiAccountOrganizationInfo = "v1/external/account/organizationInfo"
 
 	apiRecommendations = "v1/external/recommendations/%s"

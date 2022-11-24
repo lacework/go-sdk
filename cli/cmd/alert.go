@@ -91,6 +91,13 @@ func init() {
 
 // Generates a URL similar to:
 //
+//	=> https://account.lacework.net/ui/investigate/recents/EventDossier-123
+func eventLinkBuilder(id string) string {
+	return fmt.Sprintf("https://%s.lacework.net/ui/investigation/recents/EventDossier-%s", cli.Account, id)
+}
+
+// Generates a URL similar to:
+//
 //	=> https://account.lacework.net/ui/investigation/monitor/AlertInbox/123/details?accountName=subaccount
 func alertLinkBuilder(id int) string { // nolint
 	u, err := url.Parse(
