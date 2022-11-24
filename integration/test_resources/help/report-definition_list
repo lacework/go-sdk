@@ -1,17 +1,13 @@
-Run a compliance assessment of the provided Azure tenant.
-
-To list all Azure tenants and subscriptions configured in your account:
-
-    lacework compliance azure list
+List all report definitions configured in your Lacework account.
 
 Usage:
-  lacework compliance azure run-assessment <tenant_id> [flags]
+  lacework report-definition list [flags]
 
 Aliases:
-  run-assessment, run
+  list, ls
 
 Flags:
-  -h, --help   help for run-assessment
+  -h, --help   help for list
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

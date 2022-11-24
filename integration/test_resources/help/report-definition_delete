@@ -1,13 +1,10 @@
-Run a compliance assessment for the provided AWS account.
+Delete a single report definition by it's ID.
 
 Usage:
-  lacework compliance aws run-assessment <account_id> [flags]
-
-Aliases:
-  run-assessment, run
+  lacework report-definition delete <report_definition_id> [flags]
 
 Flags:
-  -h, --help   help for run-assessment
+  -h, --help   help for delete
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

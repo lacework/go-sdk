@@ -36,10 +36,6 @@ import (
 
 var (
 	compCmdState = struct {
-		// the report type to display, supported are: CIS, SOC, or PCI
-		// default: CIS
-		Type string
-
 		// download report in PDF format
 		Pdf bool
 
@@ -63,7 +59,7 @@ var (
 
 		// output resources affected by recommendationID
 		RecommendationID string
-	}{Type: "CIS"}
+	}{}
 
 	RecommendationIDRegex = "^[A-Z]+[A-Z_]*[0-9]*"
 
@@ -210,7 +206,7 @@ func complianceReportRecommendationsTable(recommendations []api.RecommendationV2
 	}
 
 	sort.Slice(out, func(i, j int) bool {
-		return severityOrder(out[i][3]) < severityOrder(out[j][3])
+		return api.SeverityOrder(out[i][3]) < api.SeverityOrder(out[j][3])
 	})
 
 	return out
@@ -303,7 +299,7 @@ func complianceCSVReportRecommendationsTable(details *complianceCSVReportDetails
 	}
 
 	sort.Slice(out, func(i, j int) bool {
-		return severityOrder(out[i][3]) < severityOrder(out[j][3])
+		return api.SeverityOrder(out[i][3]) < api.SeverityOrder(out[j][3])
 	})
 
 	return out
@@ -501,4 +497,29 @@ func violationsToTable(violations []api.ComplianceViolationV2) (resourceTable []
 		resourceTable = append(resourceTable, []string{v.Resource, v.Region, strings.Join(v.Reasons, ",")})
 	}
 	return
+}
+
+// nolint
+func getReportTypes(reportSubType string) (validTypes []string, err error) {
+	cacheKey := fmt.Sprintf("reports/definitions/%s", reportSubType)
+	expired := cli.ReadCachedAsset(cacheKey, &validTypes)
+
+	if expired {
+		cli.StartProgress("fetching valid report types...")
+		reportDefinitions, err := cli.LwApi.V2.ReportDefinitions.List()
+		cli.StopProgress()
+
+		if err != nil {
+			return nil, err
+		}
+
+		for _, report := range reportDefinitions.Data {
+			if report.SubReportType == reportSubType {
+				validTypes = append(validTypes, report.ReportNotificationType)
+			}
+		}
+		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), validTypes)
+	}
+
+	return validTypes, err
 }

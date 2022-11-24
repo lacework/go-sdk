@@ -18,20 +18,27 @@
 
 package api
 
-import "time"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+)
 
 // v2VulnerabilitiesService is a service that interacts with the Vulnerabilities
 // endpoints from the Lacework APIv2 Server
 type v2VulnerabilitiesService struct {
-	client     *Client
-	Hosts      *v2HostVulnerabilityService
-	Containers *v2ContainerVulnerabilityService
+	client           *Client
+	Hosts            *v2HostVulnerabilityService
+	Containers       *v2ContainerVulnerabilityService
+	SoftwarePackages *v2SoftwarePackagesVulnerabilityService
 }
 
 func NewV2VulnerabilitiesService(c *Client) *v2VulnerabilitiesService {
 	return &v2VulnerabilitiesService{c,
 		&v2HostVulnerabilityService{c},
 		&v2ContainerVulnerabilityService{c},
+		&v2SoftwarePackagesVulnerabilityService{c},
 	}
 }
 
@@ -99,9 +106,122 @@ func (svc *v2ContainerVulnerabilityService) SearchAllPages(filters SearchFilter)
 	return
 }
 
+func (svc *v2ContainerVulnerabilityService) ScanStatus(id string) (response VulnerabilitiesContainersScanStatusResponse, err error) {
+	err = svc.client.RequestDecoder("GET",
+		fmt.Sprintf(apiV2VulnerabilitiesContainersScanStatus, id),
+		nil,
+		&response)
+	return
+}
+
+func (svc *v2ContainerVulnerabilityService) Scan(registry, repository, tagOrHash string) (response VulnerabilitiesContainerScanResponse,
+	err error) {
+	err = svc.client.RequestEncoderDecoder("POST",
+		apiV2VulnerabilitiesContainersScan,
+		vulnContainerScanRequest{registry, repository, tagOrHash},
+		&response,
+	)
+	return
+}
+
+type VulnerabilitiesContainersScanStatusResponse struct {
+	Message string `json:"message"`
+	Data    struct {
+		Status string `json:"status"`
+	} `json:"data"`
+}
+
+func (res *VulnerabilitiesContainersScanStatusResponse) CheckStatus() string {
+	if res.Data.Status != "" {
+		return res.Data.Status
+	}
+
+	if res.Data.Status != "" {
+		return res.Data.Status
+	}
+
+	return "Unknown"
+}
+
+type VulnerabilitiesContainerScanResponse struct {
+	Message string `json:"message"`
+	Data    struct {
+		RequestID string `json:"requestId"`
+		Status    string `json:"status"`
+	} `json:"data"`
+}
+
+func (res *VulnerabilitiesContainerScanResponse) CheckStatus() string {
+	if res.Data.Status != "" {
+		return res.Data.Status
+	}
+
+	if res.Data.Status != "" {
+		return res.Data.Status
+	}
+
+	return "Unknown"
+}
+
 type VulnerabilitiesContainersResponse struct {
 	Data   []VulnerabilityContainer `json:"data"`
 	Paging V2Pagination             `json:"paging"`
+}
+
+func (r VulnerabilitiesContainersResponse) HighestSeverity() string {
+	var (
+		sevs []int
+		max  int
+	)
+	for _, vuln := range r.Data {
+		sevs = append(sevs, SeverityOrder(vuln.Severity))
+		if len(sevs) == 1 {
+			max = SeverityOrder(vuln.Severity)
+		} else if SeverityOrder(vuln.Severity) > max {
+			max = SeverityOrder(vuln.Severity)
+		}
+	}
+
+	return SeverityInt(max)
+}
+
+func (r VulnerabilitiesContainersResponse) HighestFixableSeverity() string {
+	var (
+		sevs []int
+		max  int
+	)
+	for _, vuln := range r.Data {
+		if vuln.FixInfo.FixAvailable == 1 {
+			sevs = append(sevs, SeverityOrder(vuln.Severity))
+			if len(sevs) == 1 {
+				max = SeverityOrder(vuln.Severity)
+			} else if SeverityOrder(vuln.Severity) > max {
+				max = SeverityOrder(vuln.Severity)
+			}
+		}
+	}
+
+	return SeverityInt(max)
+}
+
+func (r VulnerabilitiesContainersResponse) VulnFixableCount(severity string) int32 {
+	count := 0
+	for _, vuln := range r.Data {
+		if vuln.FixInfo.FixAvailable == 1 && strings.EqualFold(vuln.Severity, severity) {
+			count = count + 1
+		}
+	}
+	return int32(count)
+}
+
+func (r VulnerabilitiesContainersResponse) TotalVulnerabilities() int {
+	count := 0
+	for _, vuln := range r.Data {
+		if vuln.EvalCtx.ImageInfo.Status == "VULNERABLE" {
+			count = count + 1
+		}
+	}
+	return count
 }
 
 // Fulfill Pagination interface (look at api/v2.go)
@@ -110,6 +230,89 @@ func (r VulnerabilitiesContainersResponse) PageInfo() *V2Pagination {
 }
 func (r *VulnerabilitiesContainersResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+}
+
+func (r VulnerabilitiesContainersResponse) CriticalVulnerabilities() int32 {
+	count := 0
+	for _, vuln := range r.Data {
+		if vuln.Severity == "Critical" {
+			count = count + 1
+		}
+	}
+	return int32(count)
+}
+
+func (r VulnerabilitiesContainersResponse) HighVulnerabilities() int32 {
+	count := 0
+	for _, vuln := range r.Data {
+		if vuln.Severity == "High" {
+			count = count + 1
+		}
+	}
+	return int32(count)
+}
+
+func (r VulnerabilitiesContainersResponse) MediumVulnerabilities() int32 {
+	count := 0
+	for _, vuln := range r.Data {
+		if vuln.Severity == "Medium" {
+			count = count + 1
+		}
+	}
+	return int32(count)
+}
+
+func (r VulnerabilitiesContainersResponse) LowVulnerabilities() int32 {
+	count := 0
+	for _, vuln := range r.Data {
+		if vuln.Severity == "Low" {
+			count = count + 1
+		}
+	}
+	return int32(count)
+}
+
+func (r VulnerabilitiesContainersResponse) InfoVulnerabilities() int32 {
+	count := 0
+	for _, vuln := range r.Data {
+		if vuln.Severity == "Info" {
+			count = count + 1
+		}
+	}
+	return int32(count)
+}
+
+func (r VulnerabilitiesContainersResponse) FixableVulnerabilities() int32 {
+	count := 0
+	for _, vuln := range r.Data {
+		if vuln.FixInfo.FixAvailable == 1 {
+			count = count + 1
+		}
+	}
+	return int32(count)
+}
+
+func (r VulnerabilitiesContainersResponse) TotalFixableVulnerabilities() int32 {
+	count := 0
+	for _, vuln := range r.Data {
+		if vuln.FixInfo.FixAvailable == 1 {
+			count = count + 1
+		}
+	}
+	return int32(count)
+}
+
+type ImageInfo struct {
+	CreatedTime int64    `json:"created_time"`
+	Digest      string   `json:"digest"`
+	ErrorMsg    []string `json:"error_msg"`
+	ID          string   `json:"id"`
+	Registry    string   `json:"registry"`
+	Repo        string   `json:"repo"`
+	Size        int      `json:"size"`
+	Status      string   `json:"status"`
+	Tags        []string `json:"tags"`
+	Type        string   `json:"type"`
 }
 
 type VulnerabilityContainer struct {
@@ -121,22 +324,11 @@ type VulnerabilityContainer struct {
 		ExceptionProps []struct {
 			Status string `json:"status"`
 		} `json:"exception_props"`
-		ImageInfo struct {
-			CreatedTime int64    `json:"created_time"`
-			Digest      string   `json:"digest"`
-			ErrorMsg    []string `json:"error_msg"`
-			ID          string   `json:"id"`
-			Registry    string   `json:"registry"`
-			Repo        string   `json:"repo"`
-			Size        int      `json:"size"`
-			Status      string   `json:"status"`
-			Tags        []string `json:"tags"`
-			Type        string   `json:"type"`
-		} `json:"image_info"`
-		IsDailyJob       string `json:"isDailyJob"`
-		IsReeval         bool   `json:"is_reeval"`
-		ScanBatchID      string `json:"scan_batch_id"`
-		ScanCreatedTime  string `json:"scan_created_time"`
+		ImageInfo        ImageInfo `json:"image_info"`
+		IsDailyJob       string    `json:"isDailyJob"`
+		IsReeval         bool      `json:"is_reeval"`
+		ScanBatchID      string    `json:"scan_batch_id"`
+		ScanCreatedTime  string    `json:"scan_created_time"`
 		ScanRequestProps struct {
 			DataFormatVersion string `json:"data_format_version"`
 			Environment       struct {
@@ -160,6 +352,13 @@ type VulnerabilityContainer struct {
 		Namespace string `json:"namespace"`
 		Version   string `json:"version"`
 	} `json:"featureKey"`
+	FeatureProps struct {
+		IntroducedIn  string `json:"introduced_in"`
+		Layer         string `json:"layer"`
+		Feed          string `json:"feed"`
+		Src           string `json:"src"`
+		VersionFormat string `json:"version_format"`
+	} `json:"featureProps"`
 	FixInfo struct {
 		CompareResult int    `json:"compare_result"`
 		FixAvailable  int    `json:"fix_available"`
@@ -251,9 +450,10 @@ func (r *VulnerabilitiesHostResponse) ResetPaging() {
 
 type VulnerabilityHost struct {
 	CveProps struct {
-		CveBatchID  string `json:"cve_batch_id"`
-		Description string `json:"description"`
-		Link        string `json:"link"`
+		CveBatchID  string                     `json:"cve_batch_id"`
+		Description string                     `json:"description"`
+		Link        string                     `json:"link"`
+		Metadata    *VulnerabilityHostMetadata `json:"metadata,omitempty"`
 	} `json:"cveProps"`
 	EndTime time.Time `json:"endTime"`
 	EvalCtx struct {
@@ -310,9 +510,140 @@ type VulnerabilityHost struct {
 		LwKubernetesCluster                   string `json:"lw_KubernetesCluster"`
 		Os                                    string `json:"os"`
 	} `json:"machineTags"`
-	Mid       int       `json:"mid"`
-	Severity  string    `json:"severity"`
-	StartTime time.Time `json:"startTime"`
-	Status    string    `json:"status"`
-	VulnID    string    `json:"vulnId"`
+	Props     VulnerabilityHostProps `json:"props"`
+	Mid       int                    `json:"mid"`
+	Severity  string                 `json:"severity"`
+	StartTime time.Time              `json:"startTime"`
+	Status    string                 `json:"status"`
+	VulnID    string                 `json:"vulnId"`
+}
+
+func SeverityOrder(severity string) int {
+	switch strings.ToLower(severity) {
+	case "critical":
+		return 1
+	case "high":
+		return 2
+	case "medium":
+		return 3
+	case "low":
+		return 4
+	case "info":
+		return 5
+	default:
+		return 6
+	}
+}
+
+func SeverityInt(sev int) string {
+	switch sev {
+	case 1:
+		return "Critical"
+	case 2:
+		return "High"
+	case 3:
+		return "Medium"
+	case 4:
+		return "Low"
+	case 5:
+		return "Info"
+	default:
+		return "Unknown"
+	}
+}
+
+func (v *VulnerabilityHost) PackageActive() string {
+	if v.FeatureKey.PackageActive == 0 {
+		return ""
+	}
+	return "ACTIVE"
+}
+
+func (v *VulnerabilityHost) CvssV2() string {
+	if v.CveProps.Metadata == nil {
+		return "0"
+	}
+	score := v.CveProps.Metadata.NVD.CVSSv2.Score
+	return strconv.FormatFloat(score, 'f', 1, 64)
+}
+
+func (v *VulnerabilityHost) CvssV3() string {
+	if v.CveProps.Metadata == nil {
+		return "0"
+	}
+	score := v.CveProps.Metadata.NVD.CVSSv3.Score
+	return strconv.FormatFloat(score, 'f', 1, 64)
+}
+
+type VulnerabilityHostMetadata struct {
+	NVD struct {
+		CVSSv2 struct {
+			PublishedDateTime string  `json:"PublishedDateTime"`
+			Score             float64 `json:"Score"`
+			Vectors           string  `json:"Vectors"`
+		} `json:"CVSSv2"`
+		CVSSv3 struct {
+			ExploitabilityScore float64 `json:"ExploitabilityScore"`
+			ImpactScore         float64 `json:"ImpactScore"`
+			Score               float64 `json:"Score"`
+			Vectors             string  `json:"Vectors"`
+		} `json:"CVSSv3"`
+	} `json:"NVD"`
+}
+
+type VulnerabilityHostProps struct {
+	FirstTimeSeen   *time.Time `json:"first_time_seen,omitempty"`
+	IsDailyJob      int        `json:"isDailyJob,omitempty"`
+	LastUpdatedTime *time.Time `json:"last_updated_time,omitempty"`
+}
+
+func (v *VulnerabilityHost) HasFix() bool {
+	return v.FixInfo.FixAvailable == "1"
+}
+
+func (hosts *VulnerabilitiesHostResponse) VulnerabilityCounts() HostVulnCounts {
+	var hostCounts = HostVulnCounts{}
+
+	// remove duplicates before count.
+	for _, h := range hosts.Data {
+		switch h.Severity {
+		case "Critical":
+			hostCounts.Critical++
+			hostCounts.Total++
+			if h.HasFix() {
+				hostCounts.CritFixable++
+				hostCounts.TotalFixable++
+			}
+		case "High":
+			hostCounts.High++
+			hostCounts.Total++
+			if h.HasFix() {
+				hostCounts.HighFixable++
+				hostCounts.TotalFixable++
+			}
+		case "Medium":
+			hostCounts.Medium++
+			hostCounts.Total++
+			if h.HasFix() {
+				hostCounts.MedFixable++
+				hostCounts.TotalFixable++
+			}
+		case "Low":
+			hostCounts.Low++
+			hostCounts.Total++
+			if h.HasFix() {
+				hostCounts.LowFixable++
+				hostCounts.TotalFixable++
+			}
+		default:
+			hostCounts.Info++
+			hostCounts.Total++
+			if h.HasFix() {
+				hostCounts.InfoFixable++
+				hostCounts.TotalFixable++
+			}
+		}
+	}
+
+	return hostCounts
 }

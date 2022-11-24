@@ -211,6 +211,22 @@ func (reg ContainerRegistryRaw) ContainerRegistryType() containerRegistryType {
 	return NoneContainerRegistry
 }
 
+func (reg ContainerRegistryRaw) ContainerRegistryDomain() string {
+	if casting, ok := reg.Data.(map[string]interface{}); ok {
+		if domain, exist := casting["registryDomain"]; exist {
+			return domain.(string)
+		}
+	}
+
+	if structs.IsStruct(reg.Data) {
+		m := structs.Map(reg.Data)
+		if domain, exist := m["RegistryDomain"]; exist {
+			return domain.(string)
+		}
+	}
+	return ""
+}
+
 type ContainerRegistryResponse struct {
 	Data ContainerRegistryRaw `json:"data"`
 }

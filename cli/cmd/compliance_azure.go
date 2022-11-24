@@ -19,14 +19,12 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -36,12 +34,16 @@ import (
 )
 
 var (
+	compAzCmdState = struct {
+		Type string
+	}{Type: "AZURE_CIS_131"}
+
 	// complianceAzureListSubsCmd represents the list-subscriptions sub-command inside the azure command
 	complianceAzureListSubsCmd = &cobra.Command{
-		Use:     "list-subscriptions <tenant_id>",
+		Use:     "list-subscriptions",
 		Aliases: []string{"list-subs"},
-		Short:   "List subscriptions from tenant",
-		Long: `List all Azure subscriptions from the provided Tenant ID.
+		Short:   "List subscriptions <tenant-id>",
+		Long: `List all Azure subscriptions for Tenant.
 
 Use the following command to list all Azure Tenants configured in your account:
 
@@ -49,28 +51,31 @@ Use the following command to list all Azure Tenants configured in your account:
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
-				tenantID, _   = splitIDAndAlias(args[0])
-				response, err = cli.LwApi.Compliance.ListAzureSubscriptions(tenantID)
+				response, err             = cli.LwApi.V2.Configs.Azure.ListSubscriptions(args[0])
+				cliCompAzureSubscriptions []cliComplianceAzureInfo
 			)
 			if err != nil {
 				return errors.Wrap(err, "unable to list azure subscriptions")
 			}
 
 			if len(response.Data) == 0 {
-				return errors.New("no data found for the provided tenant")
+				cli.OutputHuman("There are no azure subscriptions found for tenant %s\n", args[0])
+				return nil
 			}
 
-			// ALLY-431 Workaround to split the subscription ID and subscription Alias
-			// ultimately, we need to fix this in the API response
-			cliCompAzureSubscriptions := splitAzureSubscriptionsApiResponse(response.Data[0])
+			for _, az := range response.Data {
+				cliCompAzureSubscriptions = append(cliCompAzureSubscriptions, splitAzureSubscriptionsApiResponse(az))
+			}
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(cliCompAzureSubscriptions)
 			}
 
 			rows := [][]string{}
-			for _, subscription := range cliCompAzureSubscriptions.Subscriptions {
-				rows = append(rows, []string{subscription.ID, subscription.Alias})
+			for _, subscriptionList := range cliCompAzureSubscriptions {
+				for _, subscription := range subscriptionList.Subscriptions {
+					rows = append(rows, []string{subscription.ID, subscription.Alias})
+				}
 			}
 
 			cli.OutputHuman(renderSimpleTable(
@@ -89,13 +94,18 @@ Use the following command to list all Azure Tenants configured in your account:
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			cli.StartProgress("Fetching list of configured Azure tenants...")
-			azureIntegrations, err := cli.LwApi.Integrations.ListAzureCfg()
+			response, err := cli.LwApi.V2.CloudAccounts.ListByType(api.AzureCfgCloudAccount)
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get azure integrations")
 			}
 
-			return cliListTenantsAndSubscriptions(&azureIntegrations)
+			if len(response.Data) == 0 {
+				cli.OutputHuman("There are no azure cloud accounts configured in your account\n")
+				return nil
+			}
+
+			return cliListTenantsAndSubscriptions(response)
 		},
 	}
 
@@ -114,15 +124,18 @@ Use the following command to list all Azure Tenants configured in your account:
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
 			}
+			// Todo: Enable dynamic report type validation. Disabled until reportDefinitions api is out of beta
+			//validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAzure)
+			//if err != nil {
+			//	return errors.Wrap(err, "unable to retrieve valid report types")
+			//}
 
-			switch compCmdState.Type {
-			case "CIS", "SOC", "PCI":
-				compCmdState.Type = fmt.Sprintf("AZURE_%s", compCmdState.Type)
+			validTypes := []string{"AZURE_CIS_131", "AZURE_NIST_800_171_REV2", "AZURE_NIST_800_53_REV5", "AZURE_NIST_CSF",
+				"AZURE_PCI", "AZURE_SOC_Rev2", "AZURE_ISO_27001", "AZURE_SOC", "AZURE_HIPAA", "AZURE_CIS", "AZURE_PCI_Rev2"}
+			if array.ContainsStr(validTypes, compAzCmdState.Type) {
 				return nil
-			case "AZURE_CIS", "AZURE_SOC", "AZURE_PCI":
-				return nil
-			default:
-				return errors.New("supported report types are: CIS, SOC, or PCI")
+			} else {
+				return errors.Errorf("supported report types are: %s", strings.Join(validTypes, ", "))
 			}
 		},
 		Short: "Get the latest Azure compliance report",
@@ -133,19 +146,15 @@ To list all Azure tenants and subscriptions configured in your account:
 
     lacework compliance azure list
 
-To run an ad-hoc compliance assessment use the command:
-
-    lacework compliance azure run-assessment <tenant_id>
-
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance azure get-report <tenant_id> <subscriptions_id> [recommendation_id]
 `,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(_ *cobra.Command, args []string) error {
-			reportType, err := api.NewAzureReportType(compCmdState.Type)
+			reportType, err := api.NewAzureReportType(compAzCmdState.Type)
 			if err != nil {
-				return errors.Errorf("invalid report type %q", compCmdState.Type)
+				return errors.Errorf("invalid report type %q", compAzCmdState.Type)
 			}
 
 			var (
@@ -267,212 +276,6 @@ To show recommendation details and affected resources for a recommendation id:
 			return nil
 		},
 	}
-
-	// complianceAzureRunAssessmentCmd represents the run-assessment sub-command inside the azure command
-	complianceAzureRunAssessmentCmd = &cobra.Command{
-		Use:     "run-assessment <tenant_id>",
-		Aliases: []string{"run"},
-		Short:   "Run a new Azure compliance assessment",
-		Long: `Run a compliance assessment of the provided Azure tenant.
-
-To list all Azure tenants and subscriptions configured in your account:
-
-    lacework compliance azure list`,
-		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			response, err := cli.LwApi.Compliance.RunAzureReport(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to run azure compliance assessment")
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(response)
-			}
-
-			cli.OutputHuman("A new Azure compliance assessment has been initiated.\n")
-			cli.OutputHuman("\n")
-			cli.OutputHuman(
-				renderSimpleTable(
-					[]string{"INTEGRATION GUID", "TENANT ID"},
-					[][]string{[]string{response.IntgGuid, args[0]}},
-				),
-			)
-			return nil
-		},
-	}
-	// complianceAzureDisableReportCmd represents the disable-report sub-command inside the azure command
-	// experimental feature
-	complianceAzureDisableReportCmd = &cobra.Command{
-		Use:     "disable-report <report_type>",
-		Hidden:  true,
-		Aliases: []string{"disable"},
-		Short:   "Disable all recommendations for a given report type",
-		Long: `Disable all recommendations for a given report type.
-Supported report types are: CIS_1_0, CIS_1_3_1
-
-To show the current status of recommendations in a report run:
-	lacework compliance azure status CIS_1_3_1
-
-To disable all recommendations for CIS_1_3_1 report run:
-	lacework compliance azure disable CIS_1_3_1
-`,
-		PreRunE: func(_ *cobra.Command, args []string) error {
-			switch args[0] {
-			case "CIS", "CIS_1_0", "AZURE_CIS":
-				args[0] = "CIS_1_0"
-				return nil
-			case "CIS_1_3_1", "AZURE_CIS_131":
-				args[0] = "CIS_1_3_1"
-				return nil
-			default:
-				return errors.New("supported report types are: CIS_1_0, CIS_1_3_1")
-			}
-		},
-		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			// prompt for changes
-			proceed, err := complianceAzureDisableReportDisplayChanges(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to confirm disable")
-			}
-			if !proceed {
-				return nil
-			}
-
-			schema, err := fetchCachedAzureComplianceReportSchema(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to fetch azure compliance report schema")
-			}
-
-			// set state of all recommendations in this report to disabled
-			patchReq := api.NewRecommendationV1State(schema, false)
-			cli.StartProgress("disabling recommendations...")
-			response, err := cli.LwApi.Recommendations.Azure.Patch(patchReq)
-			cli.StopProgress()
-			if err != nil {
-				return errors.Wrap(err, "unable to patch azure recommendations")
-			}
-
-			var cacheKey = fmt.Sprintf("compliance/azure/schema/%s", args[0])
-			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
-			cli.OutputHuman("All recommendations for report %s have been disabled\n", args[0])
-			return nil
-		},
-	}
-
-	// complianceAzureEnableReportCmd represents the enable-report sub-command inside the azure command
-	// experimental feature
-	complianceAzureEnableReportCmd = &cobra.Command{
-		Use:     "enable-report <report_type>",
-		Hidden:  true,
-		Aliases: []string{"enable"},
-		Short:   "Enable all recommendations for a given report type",
-		Long: `Enable all recommendations for a given report type.
-Supported report types are: CIS_1_0, CIS_1_3_1
-
-To show the current status of recommendations in a report run:
-	lacework compliance azure status CIS_1_3_1
-
-To enable all recommendations for CIS_1_3_1 report run:
-	lacework compliance azure enable CIS_1_3_1
-`,
-		PreRunE: func(_ *cobra.Command, args []string) error {
-			switch args[0] {
-			case "CIS", "CIS_1_0", "AZURE_CIS":
-				args[0] = "CIS_1_0"
-				return nil
-			case "CIS_1_3_1", "AZURE_CIS_131":
-				args[0] = "CIS_1_3_1"
-				return nil
-			default:
-				return errors.New("supported report types are: CIS_1_0, CIS_1_3_1")
-			}
-		},
-		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-
-			schema, err := fetchCachedAzureComplianceReportSchema(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to fetch azure compliance report schema")
-			}
-
-			// set state of all recommendations in this report to enabled
-			patchReq := api.NewRecommendationV1State(schema, true)
-			cli.StartProgress("enabling recommendations...")
-			response, err := cli.LwApi.Recommendations.Azure.Patch(patchReq)
-			cli.StopProgress()
-			if err != nil {
-				return errors.Wrap(err, "unable to patch azure recommendations")
-			}
-
-			var cacheKey = fmt.Sprintf("compliance/azure/schema/%s", args[0])
-			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
-			cli.OutputHuman("All recommendations for report %s have been enabled\n", args[0])
-			return nil
-		},
-	}
-
-	// complianceAzureReportStatusCmd represents the report-status sub-command inside the azure command
-	// experimental feature
-	complianceAzureReportStatusCmd = &cobra.Command{
-		Use:     "report-status <report_type>",
-		Hidden:  true,
-		Aliases: []string{"status"},
-		Short:   "Show the status of recommendations for a given report type",
-		Long: `Show the status of recommendations for a given report type.
-Supported report types are: CIS_1_0, CIS_1_3_1
-
-To show the current status of recommendations in a report run:
-	lacework compliance azure status CIS_1_3_1
-
-The output from status with the --json flag can be used in the body of PATCH api/v1/external/recommendations/azure
-	lacework compliance azure status CIS_1_3_1 --json
-`,
-		PreRunE: func(_ *cobra.Command, args []string) error {
-			switch args[0] {
-			case "CIS", "CIS_1_0", "AZURE_CIS":
-				args[0] = "CIS_1_0"
-				return nil
-			case "CIS_1_3_1", "AZURE_CIS_131":
-				args[0] = "CIS_1_3_1"
-				return nil
-			default:
-				return errors.New("supported report types are: CIS_1_0, CIS_1_3_1")
-			}
-		},
-		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			var rows [][]string
-			report, err := fetchCachedAzureComplianceReportSchema(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to fetch azure compliance report schema")
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(api.NewRecommendationV1(report))
-			}
-
-			for _, r := range report {
-				rows = append(rows, []string{r.ID, strconv.FormatBool(r.State)})
-			}
-
-			cli.OutputHuman(renderOneLineCustomTable(args[0],
-				renderCustomTable([]string{}, rows,
-					tableFunc(func(t *tablewriter.Table) {
-						t.SetBorder(false)
-						t.SetColumnSeparator(" ")
-						t.SetAutoWrapText(false)
-						t.SetAlignment(tablewriter.ALIGN_LEFT)
-					}),
-				),
-				tableFunc(func(t *tablewriter.Table) {
-					t.SetBorder(false)
-					t.SetAutoWrapText(false)
-				}),
-			))
-			return nil
-		},
-	}
 )
 
 func init() {
@@ -480,12 +283,6 @@ func init() {
 	complianceAzureCmd.AddCommand(complianceAzureListSubsCmd)
 	complianceAzureCmd.AddCommand(complianceAzureListTenantsCmd)
 	complianceAzureCmd.AddCommand(complianceAzureGetReportCmd)
-	complianceAzureCmd.AddCommand(complianceAzureRunAssessmentCmd)
-
-	// Experimental Commands
-	complianceAzureCmd.AddCommand(complianceAzureReportStatusCmd)
-	complianceAzureCmd.AddCommand(complianceAzureDisableReportCmd)
-	complianceAzureCmd.AddCommand(complianceAzureEnableReportCmd)
 
 	complianceAzureGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
@@ -499,9 +296,10 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// Azure report types: AZURE_CIS, AZURE_SOC, or AZURE_PCI
-	complianceAzureGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, SOC, or PCI",
+	// Azure report types: AZURE_CIS_131, AZURE_NIST_800_171_REV2, AZURE_NIST_800_53_REV5, AZURE_NIST_CSF,
+	//AZURE_PCI, AZURE_SOC_Rev2, AZURE_ISO_27001, AZURE_SOC, AZURE_HIPAA, AZURE_CIS, AZURE_PCI_Rev2
+	complianceAzureGetReportCmd.Flags().StringVar(&compAzCmdState.Type, "type", "AZURE_CIS_131",
+		"report type to display, run 'lacework report-definitions list' for valid types",
 	)
 
 	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
@@ -523,58 +321,6 @@ func init() {
 	)
 }
 
-// Simple helper to prompt for approval after disable request
-func complianceAzureDisableReportCmdPrompt(arg string) (int, error) {
-	var message string
-	switch arg {
-	case "CIS", "CIS_1_0", "AZURE_CIS":
-		message = `WARNING! Disabling all recommendations for CIS_1_0 will disable the following reports and its corresponding compliance alerts:
- AZURE CIS Benchmark
- PCI Benchmark
- SOC 2 Report
-
- Would you like to proceed?
- `
-	case "CIS_1_3_1", "AZURE_CIS_131":
-		message = `WARNING! Disabling all recommendations for CIS_1_3_1 will disable the following reports and its corresponding compliance alerts:
- AZURE CIS Benchmark 1.3.1
- PCI Benchmark Rev2
- SOC 2 Report Rev2
- HIPAA Report
- ISO27001 Report (+ couple CIS 1.0 controls)
- NIST 800-171 rev2 Report
- NIST 800-53 rev5 Report
- NIST CSF rev2 Report
-
- Would you like to proceed?
- `
-	}
-
-	options := []string{
-		"Proceed with disable",
-		"Quit",
-	}
-
-	var answer int
-	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt: &survey.Select{
-			Message: message,
-			Options: options,
-		},
-		Response: &answer,
-	})
-
-	return answer, err
-}
-
-func complianceAzureDisableReportDisplayChanges(arg string) (bool, error) {
-	answer, err := complianceAzureDisableReportCmdPrompt(arg)
-	if err != nil {
-		return false, err
-	}
-	return answer == 0, nil
-}
-
 func complianceAzureReportDetailsTable(report *api.AzureReport) [][]string {
 	return [][]string{
 		[]string{"Report Type", report.ReportType},
@@ -587,9 +333,7 @@ func complianceAzureReportDetailsTable(report *api.AzureReport) [][]string {
 	}
 }
 
-// ALLY-431 Workaround to split the Subscription ID and Subscription Alias
-// ultimately, we need to fix this in the API response
-func splitAzureSubscriptionsApiResponse(azInfo api.CompAzureSubscriptions) cliComplianceAzureInfo {
+func splitAzureSubscriptionsApiResponse(azInfo api.AzureConfigData) cliComplianceAzureInfo {
 	var (
 		tenantID, tenantAlias = splitIDAndAlias(azInfo.Tenant)
 		cliAzureInfo          = cliComplianceAzureInfo{
@@ -611,12 +355,12 @@ type cliComplianceAzureInfo struct {
 	Subscriptions []cliComplianceIDAlias `json:"subscriptions"`
 }
 
-func cliListTenantsAndSubscriptions(azureIntegrations *api.AzureIntegrationsResponse) error {
+func cliListTenantsAndSubscriptions(azureIntegrations api.CloudAccountsResponse) error {
 	jsonOut := struct {
 		Subscriptions []azureSubscription `json:"azure_subscriptions"`
 	}{Subscriptions: make([]azureSubscription, 0)}
 
-	if azureIntegrations == nil || len(azureIntegrations.Data) == 0 {
+	if len(azureIntegrations.Data) == 0 {
 		if cli.JSONOutput() {
 			return cli.OutputJSON(jsonOut)
 		}
@@ -657,16 +401,25 @@ type azureSubscription struct {
 	Status         string `json:"status"`
 }
 
-func extractAzureSubscriptions(response *api.AzureIntegrationsResponse) []azureSubscription {
+func extractAzureSubscriptions(response api.CloudAccountsResponse) []azureSubscription {
 	var azureSubscriptions []azureSubscription
-
-	if response == nil {
+	var azureData api.AzureCfgData
+	if len(response.Data) == 0 {
 		return azureSubscriptions
 	}
 
-	for _, gcp := range response.Data {
+	for _, az := range response.Data {
+		azJson, err := json.Marshal(az.Data)
+		if err != nil {
+			continue
+		}
+
+		err = json.Unmarshal(azJson, &azureData)
+		if err != nil {
+			continue
+		}
 		// fetch the subscription ids from tenant id
-		azureSubscriptions = append(azureSubscriptions, getAzureSubscriptions(gcp.Data.TenantID, gcp.Status())...)
+		azureSubscriptions = append(azureSubscriptions, getAzureSubscriptions(azureData.TenantID, az.Status())...)
 	}
 
 	sort.Slice(azureSubscriptions, func(i, j int) bool {
@@ -702,25 +455,4 @@ func getAzureSubscriptions(tenantID, status string) []azureSubscription {
 		}
 	}
 	return subs
-}
-
-func fetchCachedAzureComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
-	var cacheKey = fmt.Sprintf("compliance/azure/schema/%s", reportType)
-
-	expired := cli.ReadCachedAsset(cacheKey, &response)
-	if expired {
-		cli.StartProgress("Fetching compliance report schema...")
-		response, err = cli.LwApi.Recommendations.Azure.GetReport(reportType)
-		cli.StopProgress()
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to get Azure compliance report schema")
-		}
-
-		if len(response) == 0 {
-			return nil, errors.New("no data found in the report")
-		}
-
-		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response)
-	}
-	return
 }

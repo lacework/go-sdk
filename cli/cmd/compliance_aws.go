@@ -19,22 +19,23 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
-
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/olekukonko/tablewriter"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
 	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 var (
+	compAwsCmdState = struct {
+		Type string
+	}{Type: "AWS_CIS_14"}
+
 	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
 	complianceAwsListAccountsCmd = &cobra.Command{
 		Use:     "list-accounts",
@@ -44,13 +45,13 @@ var (
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			cli.StartProgress("Fetching list of configured AWS accounts...")
-			awsIntegrations, err := cli.LwApi.Integrations.ListAwsCfg()
+			awsAccounts, err := cli.LwApi.V2.CloudAccounts.ListByType(api.AwsCfgCloudAccount)
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get aws compliance integrations")
 			}
 
-			return cliListAwsAccounts(&awsIntegrations)
+			return cliListAwsAccounts(awsAccounts)
 		},
 	}
 
@@ -69,21 +70,21 @@ var (
 				}
 			}
 
-			switch compCmdState.Type {
-			case "CIS":
-				compCmdState.Type = fmt.Sprintf("AWS_%s_S3", compCmdState.Type)
+			// Todo: Enable dynamic report type validation. Disabled until reportDefinitions api is out of beta
+			// validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAws)
+			// if err != nil {
+			//	 return errors.Wrap(err, "unable to retrieve valid report types")
+			// }
+
+			validTypes := []string{"AWS_NIST_CSF", "AWS_NIST_800-53_rev5", "AWS_HIPAA", "NIST_800-53_Rev4", "LW_AWS_SEC_ADD_1_0",
+				"AWS_SOC_Rev2", "AWS_PCI_DSS_3.2.1", "AWS_CIS_S3", "ISO_2700", "SOC", "AWS_CSA_CCM_4_0_5", "PCI", "AWS_Cyber_Essentials_2_2",
+				"AWS_ISO_27001:2013", "AWS_CIS_14", "AWS_CMMC_1.02", "HIPAA", "AWS_SOC_2", "AWS_CIS_1_4_ISO_IEC_27002_2022", "NIST_800-171_Rev2",
+				"AWS_NIST_800-171_rev"}
+
+			if array.ContainsStr(validTypes, compAwsCmdState.Type) {
 				return nil
-			case "SOC_Rev2":
-				compCmdState.Type = fmt.Sprintf("AWS_%s", compCmdState.Type)
-				return nil
-			case "AWS_CIS_S3", "NIST_800-53_Rev4", "NIST_800-171_Rev2", "ISO_2700", "HIPAA", "SOC", "AWS_SOC_Rev2",
-				"PCI", "AWS_CIS_14", "AWS_CMMC_1.02", "AWS_HIPAA", "AWS_ISO_27001:2013", "AWS_NIST_CSF", "AWS_NIST_800-171_rev2",
-				"AWS_NIST_800-53_rev5", "AWS_PCI_DSS_3.2.1", "AWS_SOC_2", "LW_AWS_SEC_ADD_1_0":
-				return nil
-			default:
-				return errors.New(`supported report types are: AWS_CIS_S3', 'NIST_800-53_Rev4', 'NIST_800-171_Rev2', 
-'ISO_2700', 'HIPAA', 'SOC', 'AWS_SOC_Rev2', 'PCI', 'AWS_CIS_14', 'AWS_CMMC_1.02', 'AWS_HIPAA', 'AWS_ISO_27001:2013', 
-'AWS_NIST_CSF', 'AWS_NIST_800-171_rev2', 'AWS_NIST_800-53_rev5', 'AWS_PCI_DSS_3.2.1', 'AWS_SOC_2', 'LW_AWS_SEC_ADD_1_0'`)
+			} else {
+				return errors.Errorf(`supported report types are: %s'`, strings.Join(validTypes, ", "))
 			}
 		},
 		Short: "Get the latest AWS compliance report",
@@ -95,19 +96,15 @@ To list all AWS accounts configured in your account:
 
     lacework compliance aws list-accounts
 
-To run an ad-hoc compliance assessment of an AWS account:
-
-    lacework compliance aws run-assessment <account_id>
-
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance aws get-report <account_id> [recommendation_id]
 `,
 		Args: cobra.RangeArgs(1, 2),
 		RunE: func(_ *cobra.Command, args []string) error {
-			reportType, err := api.NewAwsReportType(compCmdState.Type)
+			reportType, err := api.NewAwsReportType(compAwsCmdState.Type)
 			if err != nil {
-				return errors.Errorf("invalid report type %q", compCmdState.Type)
+				return errors.Errorf("invalid report type %q", compAwsCmdState.Type)
 			}
 
 			var (
@@ -224,204 +221,7 @@ To show recommendation details and affected resources for a recommendation id:
 		},
 	}
 
-	// complianceAwsRunAssessmentCmd represents the run-assessment sub-command inside the aws command
-	complianceAwsRunAssessmentCmd = &cobra.Command{
-		Use:     "run-assessment <account_id>",
-		Aliases: []string{"run"},
-		Short:   "Run a new AWS compliance assessment",
-		Long:    `Run a compliance assessment for the provided AWS account.`,
-		Args:    cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			response, err := cli.LwApi.Compliance.RunAwsReport(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to run aws compliance assessment")
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(response)
-			}
-
-			cli.OutputHuman("A new AWS compliance assessment has been initiated.\n")
-			// @afiune not consistent with the other cloud providers
-			for key := range response {
-				cli.OutputHuman("\n")
-				cli.OutputHuman(
-					renderSimpleTable(
-						[]string{"INTEGRATION GUID", "ACCOUNT ID"},
-						[][]string{[]string{key, args[0]}},
-					),
-				)
-			}
-			return nil
-		},
-	}
-
-	// complianceAwsDisableReportCmd represents the disable-report sub-command inside the aws command
-	// experimental feature
-	complianceAwsDisableReportCmd = &cobra.Command{
-		Use:     "disable-report <report_type>",
-		Hidden:  true,
-		Aliases: []string{"disable"},
-		Short:   "Disable all recommendations for a given report type",
-		Long: `Disable all recommendations for a given report type.
-Supported report types are CIS_1_1
-
-To show the current status of recommendations in a report run:
-	lacework compliance aws status CIS_1_1
-
-To disable all recommendations for CIS_1_1 report run:
-	lacework compliance aws disable CIS_1_1
-`,
-		PreRunE: func(_ *cobra.Command, args []string) error {
-			switch args[0] {
-			case "CIS", "CIS_1_1", "AWS_CIS_S3":
-				args[0] = "CIS_1_1"
-				return nil
-			default:
-				return errors.New("CIS_1_1 is the only supported report type")
-			}
-		},
-		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			// prompt for changes
-			proceed, err := complianceAwsDisableReportDisplayChanges()
-			if err != nil {
-				return errors.Wrap(err, "unable to confirm disable")
-			}
-			if !proceed {
-				return nil
-			}
-
-			schema, err := fetchCachedAwsComplianceReportSchema(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to get aws compliance report schema")
-			}
-
-			// set state of all recommendations in this report to disabled
-			patchReq := api.NewRecommendationV1State(schema, false)
-			cli.StartProgress("disabling recommendations...")
-			response, err := cli.LwApi.Recommendations.Aws.Patch(patchReq)
-			cli.StopProgress()
-			if err != nil {
-				return errors.Wrap(err, "unable to patch aws recommendations")
-			}
-
-			var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", "CIS_1_1")
-			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
-			cli.OutputHuman("All recommendations for report %s have been disabled\n", args[0])
-			return nil
-		},
-	}
-
-	// complianceAwsEnableReportCmd represents the enable-report sub-command inside the aws command
-	// experimental feature
-	complianceAwsEnableReportCmd = &cobra.Command{
-		Use:     "enable-report <report_type>",
-		Hidden:  true,
-		Aliases: []string{"enable"},
-		Short:   "Enable all recommendations for a given report type",
-		Long: `Enable all recommendations for a given report type.
-Supported report types are CIS_1_1
-
-To show the current status of recommendations in a report run:
-	lacework compliance aws status CIS_1_1
-
-To enable all recommendations for CIS_1_1 report run:
-	lacework compliance aws enable CIS_1_1
-`,
-		PreRunE: func(_ *cobra.Command, args []string) error {
-			switch args[0] {
-			case "CIS", "CIS_1_1", "AWS_CIS_S3":
-				args[0] = "CIS_1_1"
-				return nil
-			default:
-				return errors.New("CIS_1_1 is the only supported report type")
-			}
-		},
-		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-
-			schema, err := fetchCachedAwsComplianceReportSchema(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to get aws compliance report schema")
-			}
-
-			// set state of all recommendations in this report to enabled
-			patchReq := api.NewRecommendationV1State(schema, true)
-			cli.StartProgress("enabling recommendations...")
-			response, err := cli.LwApi.Recommendations.Aws.Patch(patchReq)
-			cli.StopProgress()
-			if err != nil {
-				return errors.Wrap(err, "unable to patch aws recommendations")
-			}
-
-			var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", args[0])
-			cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response.RecommendationList())
-			cli.OutputHuman("All recommendations for report %s have been enabled\n", args[0])
-			return nil
-		},
-	}
-
-	// complianceAwsReportStatusCmd represents the report-status sub-command inside the aws command
-	// experimental feature
-	complianceAwsReportStatusCmd = &cobra.Command{
-		Use:     "report-status <report_type>",
-		Hidden:  true,
-		Aliases: []string{"status"},
-		Short:   "Show the status of recommendations for a given report type",
-		Long: `Show the status of recommendations for a given report type.
-Supported report types are CIS_1_1
-
-To show the current status of recommendations in a report run:
-	lacework compliance aws status CIS_1_1
-
-The output from status with the --json flag can be used in the body of PATCH api/v1/external/recommendations/aws
-	lacework compliance aws status CIS_1_1 --json
-`,
-		PreRunE: func(_ *cobra.Command, args []string) error {
-			switch args[0] {
-			case "CIS", "CIS_1_1", "AWS_CIS_S3":
-				args[0] = "CIS_1_1"
-				return nil
-			default:
-				return errors.New("CIS_1_1 is the only supported report type")
-			}
-		},
-		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			var rows [][]string
-			report, err := fetchCachedAwsComplianceReportSchema(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unable to get Aws compliance report schema")
-			}
-
-			if cli.JSONOutput() {
-				return cli.OutputJSON(api.NewRecommendationV1(report))
-			}
-
-			for _, r := range report {
-				rows = append(rows, []string{r.ID, strconv.FormatBool(r.State)})
-			}
-
-			cli.OutputHuman(renderOneLineCustomTable(args[0],
-				renderCustomTable([]string{}, rows,
-					tableFunc(func(t *tablewriter.Table) {
-						t.SetBorder(false)
-						t.SetColumnSeparator(" ")
-						t.SetAutoWrapText(false)
-						t.SetAlignment(tablewriter.ALIGN_LEFT)
-					}),
-				),
-				tableFunc(func(t *tablewriter.Table) {
-					t.SetBorder(false)
-					t.SetAutoWrapText(false)
-				}),
-			))
-			return nil
-		},
-	}
-
-	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
+	// complianceAwsListAccountsCmd represents the search inside the aws command
 	complianceAwsSearchCmd = &cobra.Command{
 		Use:   "search <resource_arn>",
 		Short: "Search for all known violations of a given resource arn",
@@ -530,13 +330,7 @@ func init() {
 	// add sub-commands to the aws command
 	complianceAwsCmd.AddCommand(complianceAwsGetReportCmd)
 	complianceAwsCmd.AddCommand(complianceAwsListAccountsCmd)
-	complianceAwsCmd.AddCommand(complianceAwsRunAssessmentCmd)
 	complianceAwsCmd.AddCommand(complianceAwsSearchCmd)
-
-	// Experimental Commands
-	complianceAwsCmd.AddCommand(complianceAwsReportStatusCmd)
-	complianceAwsCmd.AddCommand(complianceAwsDisableReportCmd)
-	complianceAwsCmd.AddCommand(complianceAwsEnableReportCmd)
 
 	complianceAwsGetReportCmd.Flags().BoolVar(&compCmdState.Details, "details", false,
 		"increase details about the compliance report",
@@ -550,9 +344,12 @@ func init() {
 		"output report in CSV format",
 	)
 
-	// AWS report types: AWS_CIS_S3, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, AWS_SOC_Rev2, or PCI
-	complianceAwsGetReportCmd.Flags().StringVar(&compCmdState.Type, "type", "CIS",
-		"report type to display, supported types: CIS, NIST_800-53_Rev4, NIST_800-171_Rev2, ISO_2700, HIPAA, SOC, SOC_Rev2, or PCI",
+	// AWS report types: AWS_NIST_CSF, AWS_NIST_800-53_rev5, AWS_HIPAA, NIST_800-53_Rev4, LW_AWS_SEC_ADD_1_0,
+	//AWS_SOC_Rev2, AWS_PCI_DSS_3.2.1, AWS_CIS_S3, ISO_2700, SOC, AWS_CSA_CCM_4_0_5, PCI, AWS_Cyber_Essentials_2_2,
+	//AWS_ISO_27001:2013, AWS_CIS_14, AWS_CMMC_1.02, HIPAA, AWS_SOC_2, AWS_CIS_1_4_ISO_IEC_27002_2022, NIST_800-171_Rev2,
+	//AWS_NIST_800-171_rev2'
+	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.Type, "type", "AWS_CIS_14",
+		"report type to display, run 'lacework report-definitions list' for valid types",
 	)
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
@@ -574,45 +371,6 @@ func init() {
 	)
 }
 
-// Simple helper to prompt for approval after disable request
-func complianceAwsDisableReportCmdPrompt() (int, error) {
-	message := `WARNING! Disabling all recommendations for CIS_1_1 will disable the following reports and its corresponding compliance alerts:
-AWS CIS Benchmark and S3 Report
-AWS HIPAA Report
-AWS ISO 27001:2013 Report
-AWS NIST 800-171 Report
-AWS NIST 800-53 Report
-AWS PCI DSS Report
-AWS SOC 2 Report
-AWS SOC 2 Report Rev2
-
-Would you like to proceed?
-`
-	options := []string{
-		"Proceed with disable",
-		"Quit",
-	}
-
-	var answer int
-	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt: &survey.Select{
-			Message: message,
-			Options: options,
-		},
-		Response: &answer,
-	})
-
-	return answer, err
-}
-
-func complianceAwsDisableReportDisplayChanges() (bool, error) {
-	answer, err := complianceAwsDisableReportCmdPrompt()
-	if err != nil {
-		return false, err
-	}
-	return answer == 0, nil
-}
-
 func complianceAwsReportDetailsTable(report *api.AwsReport) [][]string {
 	return [][]string{
 		[]string{"Report Type", report.ReportType},
@@ -628,13 +386,14 @@ type awsAccount struct {
 	Status    string `json:"status"`
 }
 
-func cliListAwsAccounts(awsIntegrations *api.AwsIntegrationsResponse) error {
+func cliListAwsAccounts(awsIntegrations api.CloudAccountsResponse) error {
 	awsAccounts := make([]awsAccount, 0)
+	errCount := 0
 	jsonOut := struct {
 		Accounts []awsAccount `json:"aws_accounts"`
 	}{Accounts: awsAccounts}
 
-	if awsIntegrations == nil || len(awsIntegrations.Data) == 0 {
+	if len(awsIntegrations.Data) == 0 {
 		if cli.JSONOutput() {
 			return cli.OutputJSON(jsonOut)
 		}
@@ -656,12 +415,33 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 	}
 
 	for _, i := range awsIntegrations.Data {
-		if containsDuplicateAccountID(awsAccounts, i.Data.AwsAccountID) {
-			cli.Log.Warnw("duplicate aws account", "integration_guid", i.IntgGuid, "account", i.Data.AwsAccountID)
+		var (
+			account     string
+			accountData api.AwsCfgData
+		)
+
+		awsJson, err := json.Marshal(i.Data)
+		if err != nil {
+			continue
+		}
+		err = json.Unmarshal(awsJson, &accountData)
+		if err != nil {
+			continue
+		}
+
+		if accountData.AwsAccountID == "" {
+			errCount++
+			cli.Log.Debugf(fmt.Sprintf("unable to find account id for cloud account %s\n", i.IntgGuid))
+			continue
+		}
+		account = accountData.AwsAccountID
+
+		if containsDuplicateAccountID(awsAccounts, account) {
+			cli.Log.Warnw("duplicate aws account", "integration_guid", i.IntgGuid, "account", account)
 			continue
 		}
 		awsAccounts = append(awsAccounts, awsAccount{
-			AccountID: i.Data.AwsAccountID,
+			AccountID: account,
 			Status:    i.Status(),
 		})
 	}
@@ -677,6 +457,9 @@ Then navigate to Settings > Integrations > Cloud Accounts.
 	}
 
 	cli.OutputHuman(renderSimpleTable([]string{"AWS Account", "Status"}, rows))
+	if errCount > 0 {
+		cli.OutputHuman(fmt.Sprintf("\n unable to find Aws Account ID's for %d integration(s)\n", errCount))
+	}
 	return nil
 }
 
@@ -687,24 +470,4 @@ func containsDuplicateAccountID(awsAccount []awsAccount, accountID string) bool 
 		}
 	}
 	return false
-}
-
-func fetchCachedAwsComplianceReportSchema(reportType string) (response []api.RecommendationV1, err error) {
-	var cacheKey = fmt.Sprintf("compliance/aws/schema/%s", reportType)
-	expired := cli.ReadCachedAsset(cacheKey, &response)
-	if expired {
-		cli.StartProgress("Fetching compliance report schema...")
-		response, err = cli.LwApi.Recommendations.Aws.GetReport(reportType)
-		cli.StopProgress()
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to get aws compliance report schema")
-		}
-		if len(response) == 0 {
-			return nil, errors.New("no data found in the report")
-		}
-
-		// write previous state to cache, allowing for revert to previous state
-		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), response)
-	}
-	return
 }

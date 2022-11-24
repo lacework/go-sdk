@@ -81,7 +81,7 @@ const (
 	LW_AWS_SEC_ADD_1_0
 )
 
-// Get returns a raw response of the Alert Profile with the matching guid.
+// Get returns an AwsReportResponse
 func (svc *awsReportsService) Get(reportCfg AwsReportConfig) (response AwsReportResponse, err error) {
 	if reportCfg.AccountID == "" {
 		return AwsReportResponse{}, errors.New("specify an account id")
