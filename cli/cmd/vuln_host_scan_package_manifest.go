@@ -275,7 +275,7 @@ func hostScanPackagesVulnDetailsTable(vulns []api.VulnerabilitySoftwarePackage) 
 
 	// order by severity
 	sort.Slice(out, func(i, j int) bool {
-		return severityOrder(out[i][1]) < severityOrder(out[j][1])
+		return api.SeverityOrder(out[i][1]) < api.SeverityOrder(out[j][1])
 	})
 
 	return out
@@ -324,7 +324,7 @@ func hostScanPackagesVulnPackagesTable(pkgs filteredPackageTable) [][]string {
 
 	// order by severity
 	sort.Slice(out, func(i, j int) bool {
-		return severityOrder(out[i][1]) < severityOrder(out[j][1])
+		return api.SeverityOrder(out[i][1]) < api.SeverityOrder(out[j][1])
 	})
 
 	return out

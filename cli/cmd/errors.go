@@ -37,6 +37,22 @@ type vulnerabilityPolicyError struct {
 	Err                   error
 }
 
+func NewVulnerabilityPolicyErrorV2(
+	assessment api.VulnerabilitiesContainersResponse,
+	failOnSeverity string, failOnFixable bool,
+) *vulnerabilityPolicyError {
+	return &vulnerabilityPolicyError{
+		SeverityRating:        assessment.HighestSeverity(),
+		FixableSeverityRating: assessment.HighestFixableSeverity(),
+		FixableVulnCount:      assessment.TotalFixableVulnerabilities(),
+		FailOnSeverity:        failOnSeverity,
+		FailOnFixable:         failOnFixable,
+		// we use a default exit code that might change
+		// during NonCompliant() or Compliant()
+		ExitCode: 9,
+	}
+}
+
 func NewVulnerabilityPolicyError(
 	assessment api.VulnerabilityAssessment,
 	failOnSeverity string, failOnFixable bool,

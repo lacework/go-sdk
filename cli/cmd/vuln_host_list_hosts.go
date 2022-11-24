@@ -151,7 +151,7 @@ func severitySummary(severities []string, fixable int) string {
 	}
 
 	sort.Slice(keys, func(i, j int) bool {
-		return severityOrder(keys[i]) < severityOrder(keys[j])
+		return api.SeverityOrder(keys[i]) < api.SeverityOrder(keys[j])
 	})
 
 	for _, k := range keys {

@@ -150,6 +150,8 @@ const (
 	apiV2TeamMembersSearch   = "v2/TeamMembers/search"
 
 	apiV2VulnerabilitiesContainersSearch     = "v2/Vulnerabilities/Containers/search"
+	apiV2VulnerabilitiesContainersScan       = "v2/Vulnerabilities/Containers/scan"
+	apiV2VulnerabilitiesContainersScanStatus = "v2/Vulnerabilities/Containers/scan/%s"
 	apiV2VulnerabilitiesHostsSearch          = "v2/Vulnerabilities/Hosts/search"
 	apiV2VulnerabilitiesSoftwarePackagesScan = "v2/Vulnerabilities/SoftwarePackages/scan"
 
