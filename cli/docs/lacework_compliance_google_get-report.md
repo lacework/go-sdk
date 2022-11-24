@@ -17,10 +17,6 @@ To list all GCP projects and organizations configured in your account:
 
     lacework compliance gcp list
 
-To run an ad-hoc compliance assessment use the command:
-
-    lacework compliance gcp run-assessment <project_id>
-
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance gcp get-report <organization_id> <project_id> [recommendation_id]
@@ -41,7 +37,7 @@ lacework compliance google get-report <organization_id> <project_id> [flags]
       --service strings    filter report details by service (gcp:storage:bucket, gcp:kms:cryptoKey, gcp:project, ...)
       --severity string    filter report details by severity threshold (critical, high, medium, low, info)
       --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
-      --type string        report type to display, supported types: CIS, CIS12, K8S, HIPAA, SOC, or PCI (default "CIS")
+      --type string        report type to display, run 'lacework report-definitions list' for valid types (default "GCP_CIS13")
 ```
 
 ### Options inherited from parent commands

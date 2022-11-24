@@ -60,5 +60,4 @@ To run an ad-hoc compliance assessment use the command:
 * [lacework compliance google get-report](lacework_compliance_google_get-report.md)	 - Get the latest GCP compliance report
 * [lacework compliance google list](lacework_compliance_google_list.md)	 - List gcp projects and organizations
 * [lacework compliance google list-projects](lacework_compliance_google_list-projects.md)	 - List projects from an organization
-* [lacework compliance google run-assessment](lacework_compliance_google_run-assessment.md)	 - Run a new GCP compliance assessment
 

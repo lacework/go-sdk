@@ -43,6 +43,7 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework access-token](lacework_access-token.md)	 - Generate temporary API access tokens
 * [lacework account](lacework_account.md)	 - Manage accounts in an organization (org admins only)
 * [lacework agent](lacework_agent.md)	 - Manage Lacework agents
+* [lacework alert](lacework_alert.md)	 - Inspect and manage alerts
 * [lacework alert-channel](lacework_alert-channel.md)	 - Manage alert channels
 * [lacework alert-profile](lacework_alert-profile.md)	 - Manage alert profiles
 * [lacework alert-rule](lacework_alert-rule.md)	 - Manage alert rules
@@ -51,11 +52,11 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework compliance](lacework_compliance.md)	 - Manage compliance reports
 * [lacework configure](lacework_configure.md)	 - Configure the Lacework CLI
 * [lacework container-registry](lacework_container-registry.md)	 - Manage container registries
-* [lacework event](lacework_event.md)	 - Inspect Lacework events
 * [lacework generate](lacework_generate.md)	 - Generate code to onboard your account
 * [lacework policy](lacework_policy.md)	 - Manage policies
 * [lacework policy-exception](lacework_policy-exception.md)	 - Manage policy exceptions
 * [lacework query](lacework_query.md)	 - Run and manage queries
+* [lacework report-definition](lacework_report-definition.md)	 - Manage report definitions
 * [lacework report-rule](lacework_report-rule.md)	 - Manage report rules
 * [lacework resource-group](lacework_resource-group.md)	 - Manage resource groups
 * [lacework team-member](lacework_team-member.md)	 - Manage team members
