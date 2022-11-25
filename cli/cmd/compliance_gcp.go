@@ -395,7 +395,7 @@ func getGcpAccounts(orgID, status string) []gcpProject {
 	var accounts []gcpProject
 
 	cli.StartProgress(fmt.Sprintf("Fetching compliance information about %s organization...", orgID))
-	projectsResponse, err := cli.LwApi.Compliance.ListGcpProjects(orgID)
+	projectsResponse, err := cli.LwApi.V2.Configs.Gcp.ListProjects(orgID)
 	cli.StopProgress()
 	if err != nil {
 		cli.Log.Warnw("unable to list gcp projects", "org_id", orgID, "error", err.Error())

@@ -18,6 +18,26 @@
 
 package api
 
+// gcpResourceLevel determines Project or Organization level integration
+type gcpResourceLevel int
+
+const (
+	// Project level integration with GCP
+	GcpProjectIntegration gcpResourceLevel = iota
+
+	// Organization level integration with GCP
+	GcpOrganizationIntegration
+)
+
+var gcpResourceLevels = map[gcpResourceLevel]string{
+	GcpProjectIntegration:      "PROJECT",
+	GcpOrganizationIntegration: "ORGANIZATION",
+}
+
+func (g gcpResourceLevel) String() string {
+	return gcpResourceLevels[g]
+}
+
 // GetGcpCfg gets a single GcpCfg integration matching the provided integration guid
 func (svc *CloudAccountsService) GetGcpCfg(guid string) (
 	response GcpCfgIntegrationResponse,

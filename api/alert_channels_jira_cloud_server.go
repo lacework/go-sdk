@@ -50,6 +50,8 @@ func (i jiraIssueGrouping) String() string {
 
 const (
 	BidirectionalJiraConfiguration = "Bidirectional"
+	JiraCloudAlertType             = "JIRA_CLOUD"
+	JiraServerAlertType            = "JIRA_SERVER"
 )
 
 // GetJira gets a single instance of a Jira Cloud or Jira Server alert channel with the corresponding guid

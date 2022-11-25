@@ -135,7 +135,6 @@ func TestFanOutHostScans(t *testing.T) {
 	// mock the api client
 	client, err := api.NewClient("test", api.WithToken("mock"))
 	assert.Nil(t, err)
-	client.Vulnerabilities = api.NewVulnerabilityService(client)
 	cli.LwApi = client
 	defer func() {
 		cli.LwApi = nil

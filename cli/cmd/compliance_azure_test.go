@@ -118,17 +118,25 @@ func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
 		tenantID   = "abc123xy-1234-abcd-a1b2-09876zxy1234"
 	)
 	fakeServer.MockToken("TOKEN")
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/compliance/azure/ListSubscriptionsForTenant",
+		"CloudAccounts/AzureCfg",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, mockAzureSubsResponse(tenantID))
+		})
+	fakeServer.MockAPI(
+		"Configs/AzureSubscriptions",
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, mockAzureConfigsResponse())
 		})
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
 		api.WithToken("TOKEN"),
+		api.WithApiV2(),
 		api.WithURL(fakeServer.URL()),
 	)
+
 	assert.Nil(t, err)
 
 	cli.LwApi = c
@@ -222,5 +230,18 @@ func mockAzureSubsResponse(tenantID string) string {
   ],
   "message": "SUCCESS",
   "ok": true
+}`
+}
+
+func mockAzureConfigsResponse() string {
+	return `{
+    "data": [
+        {
+            "tenant": "abc123xy-1234-abcd-a1b2-09876zxy1234",
+            "subscriptions": [
+                "ABC123XX-1234-ABCD-1234-ABCD1234XYZZ (Default-account)"
+            ]
+        }
+    ]
 }`
 }

@@ -47,13 +47,7 @@ type Client struct {
 	headers    map[string]string
 	callbacks  LifecycleCallbacks
 
-	Account         *AccountService
-	Agents          *AgentsService
-	Compliance      *ComplianceService
-	Integrations    *IntegrationsService
-	Policy          *PolicyService
-	Recommendations *RecommendationsServiceV1
-	Vulnerabilities *VulnerabilitiesService
+	Policy *PolicyService
 
 	V2 *V2Endpoints
 }
@@ -108,15 +102,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		},
 		c: &http.Client{Timeout: defaultTimeout},
 	}
-	c.Account = &AccountService{c}
-	c.Agents = &AgentsService{c}
-	c.Compliance = &ComplianceService{c}
-	c.Integrations = &IntegrationsService{c}
-	c.Recommendations = &RecommendationsServiceV1{c,
-		&AwsRecommendationsV1{c},
-		&AzureRecommendationsV1{c},
-		&GcpRecommendationsV1{c}}
-	c.Vulnerabilities = NewVulnerabilityService(c)
+
 	c.V2 = NewV2Endpoints(c)
 
 	// init logger, this could change if a user calls api.WithLogLevel()

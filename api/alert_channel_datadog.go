@@ -18,6 +18,19 @@
 
 package api
 
+import "github.com/pkg/errors"
+
+const (
+	// The list of valid inputs for DatadogSite field
+	DatadogSiteEu  datadogSite = "eu"
+	DatadogSiteCom datadogSite = "com"
+
+	// The list of valid inputs for DatadogService field
+	DatadogServiceLogsDetails   datadogService = "Logs Detail"
+	DatadogServiceEventsSummary datadogService = "Events Summary"
+	DatadogServiceLogsSummary   datadogService = "Logs Summary"
+)
+
 // GetDatadog gets a single instance of a Datadog alert channel
 // with the corresponding integration guid
 func (svc *AlertChannelsService) GetDatadog(guid string) (response DatadogAlertChannelResponseV2, err error) {
@@ -30,6 +43,25 @@ func (svc *AlertChannelsService) UpdateDatadog(data AlertChannel) (response Data
 	err = svc.update(data.ID(), data, &response)
 	return
 }
+
+// DatadogSite returns the datadogSite type for the corresponding string input
+func DatadogSite(site string) (datadogSite, error) {
+	if val, ok := datadogSites[site]; ok {
+		return val, nil
+	}
+	return "", errors.Errorf("%v is not a valid Datadog Site", site)
+}
+
+// DatadogService returns the datadogService type for the corresponding string input
+func DatadogService(service string) (datadogService, error) {
+	if val, ok := datadogServices[service]; ok {
+		return val, nil
+	}
+	return "", errors.Errorf("%v is not a valid Datadog Service", service)
+}
+
+type datadogSite string
+type datadogService string
 
 type DatadogDataV2 struct {
 	ApiKey      string         `json:"apiKey"`
@@ -44,4 +76,15 @@ type DatadogAlertChannelV2 struct {
 
 type DatadogAlertChannelResponseV2 struct {
 	Data DatadogAlertChannelV2 `json:"data"`
+}
+
+var datadogSites = map[string]datadogSite{
+	string(DatadogSiteEu):  DatadogSiteEu,
+	string(DatadogSiteCom): DatadogSiteCom,
+}
+
+var datadogServices = map[string]datadogService{
+	string(DatadogServiceLogsDetails):   DatadogServiceLogsDetails,
+	string(DatadogServiceEventsSummary): DatadogServiceEventsSummary,
+	string(DatadogServiceLogsSummary):   DatadogServiceLogsSummary,
 }

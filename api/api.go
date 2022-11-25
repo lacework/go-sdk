@@ -40,43 +40,6 @@ const (
 	// ```
 	apiTokens = "access/tokens" // Auth
 
-	// API v1 Endpoints
-	//
-	// These endpoints only exist in APIv1 and therefore we prefix them with 'v1/'
-	apiIntegrations        = "v1/external/integrations"
-	apiIntegrationsByType  = "v1/external/integrations/type/%s"
-	apiIntegrationFromGUID = "v1/external/integrations/%s"
-	apiIntegrationSchema   = "v1/external/integrations/schema/%s"
-
-	apiAgentTokens      = "v1/external/tokens"
-	apiAgentTokenFromID = "v1/external/tokens/%s"
-
-	apiVulnerabilitiesContainerScan             = "v1/external/vulnerabilities/container/repository/images/scan"
-	apiVulnerabilitiesContainerScanStatus       = "v1/external/vulnerabilities/container/reqId/%s"
-	apiVulnerabilitiesAssessmentFromImageID     = "v1/external/vulnerabilities/container/imageId/%s"
-	apiVulnerabilitiesAssessmentFromImageDigest = "v1/external/vulnerabilities/container/imageDigest/%s"
-	apiVulnContainerAssessmentsForDateRange     = "v1/external/vulnerabilities/container/GetAssessmentsForDateRange"
-
-	apiVulnerabilitiesScanPkgManifest             = "v1/external/vulnerabilities/scan"
-	apiVulnerabilitiesHostListCves                = "v1/external/vulnerabilities/host"
-	apiVulnerabilitiesListHostsWithCveID          = "v1/external/vulnerabilities/host/cveId/%s"
-	apiVulnerabilitiesHostAssessmentFromMachineID = "v1/external/vulnerabilities/host/machineId/%s"
-
-	apiComplianceAwsLatestReport        = "v1/external/compliance/aws/GetLatestComplianceReport?AWS_ACCOUNT_ID=%s"
-	apiComplianceGcpLatestReport        = "v1/external/compliance/gcp/GetLatestComplianceReport?GCP_ORG_ID=%s&GCP_PROJ_ID=%s"
-	apiComplianceGcpListProjects        = "v1/external/compliance/gcp/ListProjectsForOrganization?GCP_ORG_ID=%s"
-	apiComplianceAzureLatestReport      = "v1/external/compliance/azure/GetLatestComplianceReport?AZURE_TENANT_ID=%s&AZURE_SUBS_ID=%s"
-	apiComplianceAzureListSubscriptions = "v1/external/compliance/azure/ListSubscriptionsForTenant?AZURE_TENANT_ID=%s"
-
-	apiRunReportIntegration = "v1/external/runReport/integration/%s"
-	apiRunReportGcp         = "v1/external/runReport/gcp/%s"
-	apiRunReportAws         = "v1/external/runReport/aws/%s"
-	apiRunReportAzure       = "v1/external/runReport/azure/%s"
-
-	apiAccountOrganizationInfo = "v1/external/account/organizationInfo"
-
-	apiRecommendations = "v1/external/recommendations/%s"
-
 	// API v2 Endpoints
 	//
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'

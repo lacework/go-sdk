@@ -18,6 +18,19 @@
 
 package api
 
+import "github.com/pkg/errors"
+
+const (
+	// The list of valid inputs for QRadar Communication Type field
+	QRadarCommHttps           qradarComm = "HTTPS"
+	QRadarCommHttpsSelfSigned qradarComm = "HTTPS Self Signed Cert"
+)
+
+var qradarCommTypes = map[string]qradarComm{
+	string(QRadarCommHttps):           QRadarCommHttps,
+	string(QRadarCommHttpsSelfSigned): QRadarCommHttpsSelfSigned,
+}
+
 // GetIbmQRadar gets a single IbmQRadar alert channel matching the
 // provided integration guid
 func (svc *AlertChannelsService) GetIbmQRadar(guid string) (
@@ -44,6 +57,15 @@ type IbmQRadarAlertChannelResponseV2 struct {
 type IbmQRadarAlertChannelV2 struct {
 	v2CommonIntegrationData
 	Data IbmQRadarDataV2 `json:"data"`
+}
+type qradarComm string
+
+// QRadarComm returns the qradarComm type for the corresponding string input
+func QRadarComm(site string) (qradarComm, error) {
+	if val, ok := qradarCommTypes[site]; ok {
+		return val, nil
+	}
+	return "", errors.Errorf("%v is not a valid QRadar communication type", site)
 }
 
 type IbmQRadarDataV2 struct {

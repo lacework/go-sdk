@@ -95,7 +95,7 @@ func TestAlertChannelsSlackChannelUpdate(t *testing.T) {
 
 	emailAlertChan := api.NewAlertChannel("integration_name",
 		api.SlackChannelAlertChannelType,
-		api.SlackChannelData{
+		api.SlackChannelDataV2{
 			SlackUrl: "https://hooks.slack.com/services/abc/foo/secret123",
 		},
 	)
