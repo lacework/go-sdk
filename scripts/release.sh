@@ -342,7 +342,7 @@ find_latest_version() {
   local _pattern="v[0-9]\+.[0-9]\+.[0-9]\+"
   local _versions
   _versions=$(git ls-remote --tags --quiet | grep $_pattern | tr '/' ' ' | awk '{print $NF}')
-  echo "$_versions" | tr '.' ' ' | sort -nr -k 1 -k 2 -k 3 | tr ' ' '.' | head -1
+  echo "$_versions" | tr '.' ' ' | sort -r -V | tr ' ' '.' | head -1
 }
 
 add_tag_version() {
