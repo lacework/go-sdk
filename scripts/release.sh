@@ -198,6 +198,7 @@ update_changelog() {
 
 release_contains_features() {
   latest_version=$(find_latest_version)
+  log "found latest version: $latest_version"
   git log --no-merges --pretty="%s" ${latest_version}..main | grep "feat[:(]" >/dev/null
   return $?
 }
