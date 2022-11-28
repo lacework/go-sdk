@@ -11,38 +11,31 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Moves an Elastic IP address from the EC2-Classic platform to the EC2-VPC
-// platform. The Elastic IP address must be allocated to your account for more than
-// 24 hours, and it must not be associated with an instance. After the Elastic IP
-// address is moved, it is no longer available for use in the EC2-Classic platform,
-// unless you move it back using the RestoreAddressToClassic request. You cannot
-// move an Elastic IP address that was originally allocated for use in the EC2-VPC
-// platform to the EC2-Classic platform. We are retiring EC2-Classic. We recommend
-// that you migrate from EC2-Classic to a VPC. For more information, see Migrate
-// from EC2-Classic to a VPC
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html) in the
-// Amazon Elastic Compute Cloud User Guide.
-func (c *Client) MoveAddressToVpc(ctx context.Context, params *MoveAddressToVpcInput, optFns ...func(*Options)) (*MoveAddressToVpcOutput, error) {
+// Accepts an Elastic IP address transfer. For more information, see Accept a
+// transferred Elastic IP address
+// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#using-instance-addressing-eips-transfer-accept)
+// in the Amazon Virtual Private Cloud User Guide.
+func (c *Client) AcceptAddressTransfer(ctx context.Context, params *AcceptAddressTransferInput, optFns ...func(*Options)) (*AcceptAddressTransferOutput, error) {
 	if params == nil {
-		params = &MoveAddressToVpcInput{}
+		params = &AcceptAddressTransferInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "MoveAddressToVpc", params, optFns, c.addOperationMoveAddressToVpcMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "AcceptAddressTransfer", params, optFns, c.addOperationAcceptAddressTransferMiddlewares)
 	if err != nil {
 		return nil, err
 	}
 
-	out := result.(*MoveAddressToVpcOutput)
+	out := result.(*AcceptAddressTransferOutput)
 	out.ResultMetadata = metadata
 	return out, nil
 }
 
-type MoveAddressToVpcInput struct {
+type AcceptAddressTransferInput struct {
 
-	// The Elastic IP address.
+	// The Elastic IP address you are accepting for transfer.
 	//
 	// This member is required.
-	PublicIp *string
+	Address *string
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
@@ -50,16 +43,19 @@ type MoveAddressToVpcInput struct {
 	// UnauthorizedOperation.
 	DryRun *bool
 
+	// tag: - The key/value combination of a tag assigned to the resource. Use the tag
+	// key in the filter name and the tag value as the filter value. For example, to
+	// find all resources that have a tag with the key Owner and the value TeamA,
+	// specify tag:Owner for the filter name and TeamA for the filter value.
+	TagSpecifications []types.TagSpecification
+
 	noSmithyDocumentSerde
 }
 
-type MoveAddressToVpcOutput struct {
+type AcceptAddressTransferOutput struct {
 
-	// The allocation ID for the Elastic IP address.
-	AllocationId *string
-
-	// The status of the move of the IP address.
-	Status types.Status
+	// An Elastic IP address transfer.
+	AddressTransfer *types.AddressTransfer
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
@@ -67,12 +63,12 @@ type MoveAddressToVpcOutput struct {
 	noSmithyDocumentSerde
 }
 
-func (c *Client) addOperationMoveAddressToVpcMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsEc2query_serializeOpMoveAddressToVpc{}, middleware.After)
+func (c *Client) addOperationAcceptAddressTransferMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	err = stack.Serialize.Add(&awsEc2query_serializeOpAcceptAddressTransfer{}, middleware.After)
 	if err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsEc2query_deserializeOpMoveAddressToVpc{}, middleware.After)
+	err = stack.Deserialize.Add(&awsEc2query_deserializeOpAcceptAddressTransfer{}, middleware.After)
 	if err != nil {
 		return err
 	}
@@ -112,10 +108,10 @@ func (c *Client) addOperationMoveAddressToVpcMiddlewares(stack *middleware.Stack
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addOpMoveAddressToVpcValidationMiddleware(stack); err != nil {
+	if err = addOpAcceptAddressTransferValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opMoveAddressToVpc(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opAcceptAddressTransfer(options.Region), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -130,11 +126,11 @@ func (c *Client) addOperationMoveAddressToVpcMiddlewares(stack *middleware.Stack
 	return nil
 }
 
-func newServiceMetadataMiddleware_opMoveAddressToVpc(region string) *awsmiddleware.RegisterServiceMetadata {
+func newServiceMetadataMiddleware_opAcceptAddressTransfer(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
 		SigningName:   "ec2",
-		OperationName: "MoveAddressToVpc",
+		OperationName: "AcceptAddressTransfer",
 	}
 }
