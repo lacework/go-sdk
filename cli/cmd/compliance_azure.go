@@ -438,7 +438,7 @@ func extractAzureSubscriptions(response api.CloudAccountsResponse) []azureSubscr
 func getAzureSubscriptions(tenantID, status string) []azureSubscription {
 	var subs []azureSubscription
 	cli.StartProgress(fmt.Sprintf("Fetching subscriptions from tenant (%s)...", tenantID))
-	subsResponse, err := cli.LwApi.Compliance.ListAzureSubscriptions(tenantID)
+	subsResponse, err := cli.LwApi.V2.Configs.Azure.ListSubscriptions(tenantID)
 	cli.StopProgress()
 	if err != nil {
 		cli.Log.Warnw("unable to list azure subscriptions", "tenant_id", tenantID, "error", err.Error())

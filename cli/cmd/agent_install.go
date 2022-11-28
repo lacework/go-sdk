@@ -214,7 +214,7 @@ func verifyAccessToRemoteHost(runner *lwrunner.Runner) error {
 
 func selectAgentAccessToken() (string, error) {
 	cli.StartProgress(" Searching for agent access tokens...")
-	response, err := cli.LwApi.Agents.ListTokens()
+	response, err := cli.LwApi.V2.AgentAccessTokens.List()
 	cli.StopProgress()
 	if err != nil {
 		return "", errors.Wrap(err, "unable to list agent access token")

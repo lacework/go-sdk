@@ -124,6 +124,12 @@ func (svc *v2ContainerVulnerabilityService) Scan(registry, repository, tagOrHash
 	return
 }
 
+type vulnContainerScanRequest struct {
+	Registry   string `json:"registry"`
+	Repository string `json:"repository"`
+	Tag        string `json:"tag"`
+}
+
 type VulnerabilitiesContainersScanStatusResponse struct {
 	Message string `json:"message"`
 	Data    struct {
@@ -646,4 +652,67 @@ func (hosts *VulnerabilitiesHostResponse) VulnerabilityCounts() HostVulnCounts {
 	}
 
 	return hostCounts
+}
+
+// VulnerabilityAssessment is used to provide common functions that are
+// required by host or container vulnerability assessments, this is used
+// to treat them both as equal
+type VulnerabilityAssessment interface {
+	HighestSeverity() string
+	HighestFixableSeverity() string
+	TotalFixableVulnerabilities() int32
+}
+
+type HostVulnCounts struct {
+	Critical     int32
+	CritFixable  int32
+	High         int32
+	HighFixable  int32
+	Medium       int32
+	MedFixable   int32
+	Low          int32
+	LowFixable   int32
+	Info         int32
+	InfoFixable  int32
+	Total        int32
+	TotalFixable int32
+}
+
+// HighestSeverity returns the highest severity level vulnerability
+func (h *HostVulnCounts) HighestSeverity() string {
+	if h.Critical != 0 {
+		return "critical"
+	}
+	if h.High != 0 {
+		return "high"
+	}
+	if h.Medium != 0 {
+		return "medium"
+	}
+	if h.Low != 0 {
+		return "low"
+	}
+	return "unknown"
+}
+
+// HighestFixableSeverity returns the highest fixable severity level vulnerability
+func (h *HostVulnCounts) HighestFixableSeverity() string {
+	if h.CritFixable != 0 {
+		return "critical"
+	}
+	if h.HighFixable != 0 {
+		return "high"
+	}
+	if h.MedFixable != 0 {
+		return "medium"
+	}
+	if h.LowFixable != 0 {
+		return "low"
+	}
+	return "unknown"
+}
+
+// TotalFixableVulnerabilities returns the total number of vulnerabilities that have a fix available
+func (h *HostVulnCounts) TotalFixableVulnerabilities() int32 {
+	return h.TotalFixable
 }
