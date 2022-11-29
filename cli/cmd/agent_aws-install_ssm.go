@@ -1,0 +1,105 @@
+//
+// Author:: Nicholas Schmeller (<nick.schmeller@lacework.net>)
+// Copyright:: Copyright 2022, Lacework Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+package cmd
+
+import (
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+)
+
+var (
+	agentInstallAWSSSMCmd = &cobra.Command{
+		Use:   "ssm",
+		Args:  cobra.NoArgs,
+		Short: "Use SSM to securely install on EC2 instances",
+		RunE:  installAWSSSM,
+		Long: `This command installs the agent on all EC2 instances in an AWS account using SSM.
+
+To filter by one or more regions:
+
+    lacework agent aws-install ssm --include_regions us-west-2,us-east-2
+
+To filter by instance tag:
+
+    lacework agent aws-install ssm --tag TagName,TagValue
+
+To filter by instance tag key:
+
+    lacework agent aws-install ssm --tag_key TagName
+
+To provide an agent access token of your choice, use the command 'lacework agent token list',
+select a token and pass it to the '--token' flag. This flag must be selected if the
+'--noninteractive' flag is set.
+
+    lacework agent aws-install ssm --token <token>
+
+AWS credentials are read from the following environment variables:
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- AWS_SESSION_TOKEN (optional)
+- AWS_REGION (optional)`,
+	}
+)
+
+func init() {
+	// 'agent aws-install ssm' flags
+	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallTagKey,
+		"tag_key", "", "only install agents on infra with this tag key set",
+	)
+	agentInstallAWSEC2ICCmd.Flags().StringSliceVar(&agentCmdState.InstallTag,
+		"tag", []string{}, "only install agents on infra with this tag",
+	)
+	agentInstallAWSEC2ICCmd.Flags().StringSliceVarP(&agentCmdState.InstallIncludeRegions,
+		"include_regions", "r", []string{}, "list of regions to filter on",
+	)
+	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
+		"token", "", "agent access token",
+	)
+	agentInstallAWSEC2ICCmd.Flags().IntVarP(
+		&agentCmdState.InstallMaxParallelism,
+		"max_parallelism",
+		"n",
+		50,
+		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
+	)
+}
+
+func installAWSSSM(_ *cobra.Command, _ []string) error {
+	token := agentCmdState.InstallAgentToken
+	if token == "" {
+		if cli.InteractiveMode() {
+			// user didn't provide an agent token
+			cli.Log.Debugw("agent token not provided, asking user to select one now")
+			var err error
+			token, err = selectAgentAccessToken()
+			if err != nil {
+				return err
+			}
+		} else {
+			return errors.New("user did not provide or interactively select an agent token")
+		}
+	}
+
+	_, err := awsDescribeInstances()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
