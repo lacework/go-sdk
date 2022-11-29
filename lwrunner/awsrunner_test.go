@@ -47,3 +47,9 @@ func TestSSHUsernameLookupFailsOnBadImageName(t *testing.T) {
 	assert.Error(t, err)
 	assert.Empty(t, user)
 }
+
+func TestSSHUsernameFromAmazonLinuxIsEC2User(t *testing.T) {
+	user, err := getSSHUsername("", "amzn2-ami-hvm-x86_64-gp2")
+	assert.NoError(t, err)
+	assert.Equal(t, "ec2-user", user)
+}

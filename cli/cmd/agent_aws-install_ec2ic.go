@@ -140,6 +140,7 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 				"az", threadRunner.AvailabilityZone,
 				"instance_id", threadRunner.InstanceID,
 				"hostname", threadRunner.Runner.Hostname,
+				"image name", threadRunner.ImageName,
 			)
 			err := threadRunner.SendAndUseIdentityFile()
 			if err != nil {
