@@ -38,6 +38,11 @@ var (
 The username of the GCP user or service account, in the form 'users/<username>', is a
 required argument.
 
+This command will attempt to query the GCE metadata server for the current project. If this
+command is not run on a GCE instance, pass the project ID as:
+
+    lacework agent gcp-install osl <gcp_username> --project_id my-project-id
+
 To filter by one or more regions:
 
     lacework agent gcp-install osl <gcp_username> --include_regions us-west1,europe-west2
