@@ -158,6 +158,7 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 				"az", threadRunner.AvailabilityZone,
 				"instance_id", threadRunner.InstanceID,
 				"hostname", threadRunner.Runner.Hostname,
+				"image name", threadRunner.ImageName,
 			)
 
 			err := threadRunner.Runner.UseIdentityFile(agentCmdState.InstallIdentityFile)
