@@ -150,6 +150,26 @@ func (AddressFamily) Values() []AddressFamily {
 	}
 }
 
+type AddressTransferStatus string
+
+// Enum values for AddressTransferStatus
+const (
+	AddressTransferStatusPending  AddressTransferStatus = "pending"
+	AddressTransferStatusDisabled AddressTransferStatus = "disabled"
+	AddressTransferStatusAccepted AddressTransferStatus = "accepted"
+)
+
+// Values returns all known values for AddressTransferStatus. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (AddressTransferStatus) Values() []AddressTransferStatus {
+	return []AddressTransferStatus{
+		"pending",
+		"disabled",
+		"accepted",
+	}
+}
+
 type Affinity string
 
 // Enum values for Affinity
@@ -202,6 +222,7 @@ const (
 	AllocationStrategyDiversified                  AllocationStrategy = "diversified"
 	AllocationStrategyCapacityOptimized            AllocationStrategy = "capacityOptimized"
 	AllocationStrategyCapacityOptimizedPrioritized AllocationStrategy = "capacityOptimizedPrioritized"
+	AllocationStrategyPriceCapacityOptimized       AllocationStrategy = "priceCapacityOptimized"
 )
 
 // Values returns all known values for AllocationStrategy. Note that this can be
@@ -213,6 +234,7 @@ func (AllocationStrategy) Values() []AllocationStrategy {
 		"diversified",
 		"capacityOptimized",
 		"capacityOptimizedPrioritized",
+		"priceCapacityOptimized",
 	}
 }
 
@@ -296,6 +318,7 @@ const (
 	ArchitectureTypeX8664    ArchitectureType = "x86_64"
 	ArchitectureTypeArm64    ArchitectureType = "arm64"
 	ArchitectureTypeX8664Mac ArchitectureType = "x86_64_mac"
+	ArchitectureTypeArm64Mac ArchitectureType = "arm64_mac"
 )
 
 // Values returns all known values for ArchitectureType. Note that this can be
@@ -307,6 +330,7 @@ func (ArchitectureType) Values() []ArchitectureType {
 		"x86_64",
 		"arm64",
 		"x86_64_mac",
+		"arm64_mac",
 	}
 }
 
@@ -318,6 +342,7 @@ const (
 	ArchitectureValuesX8664    ArchitectureValues = "x86_64"
 	ArchitectureValuesArm64    ArchitectureValues = "arm64"
 	ArchitectureValuesX8664Mac ArchitectureValues = "x86_64_mac"
+	ArchitectureValuesArm64Mac ArchitectureValues = "arm64_mac"
 )
 
 // Values returns all known values for ArchitectureValues. Note that this can be
@@ -329,6 +354,7 @@ func (ArchitectureValues) Values() []ArchitectureValues {
 		"x86_64",
 		"arm64",
 		"x86_64_mac",
+		"arm64_mac",
 	}
 }
 
@@ -2252,6 +2278,7 @@ const (
 	ImageAttributeNameTpmSupport         ImageAttributeName = "tpmSupport"
 	ImageAttributeNameUefiData           ImageAttributeName = "uefiData"
 	ImageAttributeNameLastLaunchedTime   ImageAttributeName = "lastLaunchedTime"
+	ImageAttributeNameImdsSupport        ImageAttributeName = "imdsSupport"
 )
 
 // Values returns all known values for ImageAttributeName. Note that this can be
@@ -2270,6 +2297,7 @@ func (ImageAttributeName) Values() []ImageAttributeName {
 		"tpmSupport",
 		"uefiData",
 		"lastLaunchedTime",
+		"imdsSupport",
 	}
 }
 
@@ -2318,6 +2346,22 @@ func (ImageTypeValues) Values() []ImageTypeValues {
 		"machine",
 		"kernel",
 		"ramdisk",
+	}
+}
+
+type ImdsSupportValues string
+
+// Enum values for ImdsSupportValues
+const (
+	ImdsSupportValuesV20 ImdsSupportValues = "v2.0"
+)
+
+// Values returns all known values for ImdsSupportValues. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (ImdsSupportValues) Values() []ImdsSupportValues {
+	return []ImdsSupportValues{
+		"v2.0",
 	}
 }
 
@@ -3208,6 +3252,11 @@ const (
 	InstanceTypeR6a48xlarge     InstanceType = "r6a.48xlarge"
 	InstanceTypeR6aMetal        InstanceType = "r6a.metal"
 	InstanceTypeP4de24xlarge    InstanceType = "p4de.24xlarge"
+	InstanceTypeU3tb156xlarge   InstanceType = "u-3tb1.56xlarge"
+	InstanceTypeU18tb1112xlarge InstanceType = "u-18tb1.112xlarge"
+	InstanceTypeU24tb1112xlarge InstanceType = "u-24tb1.112xlarge"
+	InstanceTypeTrn12xlarge     InstanceType = "trn1.2xlarge"
+	InstanceTypeTrn132xlarge    InstanceType = "trn1.32xlarge"
 )
 
 // Values returns all known values for InstanceType. Note that this can be expanded
@@ -3783,6 +3832,11 @@ func (InstanceType) Values() []InstanceType {
 		"r6a.48xlarge",
 		"r6a.metal",
 		"p4de.24xlarge",
+		"u-3tb1.56xlarge",
+		"u-18tb1.112xlarge",
+		"u-24tb1.112xlarge",
+		"trn1.2xlarge",
+		"trn1.32xlarge",
 	}
 }
 
@@ -5821,6 +5875,7 @@ const (
 	SpotAllocationStrategyDiversified                  SpotAllocationStrategy = "diversified"
 	SpotAllocationStrategyCapacityOptimized            SpotAllocationStrategy = "capacity-optimized"
 	SpotAllocationStrategyCapacityOptimizedPrioritized SpotAllocationStrategy = "capacity-optimized-prioritized"
+	SpotAllocationStrategyPriceCapacityOptimized       SpotAllocationStrategy = "price-capacity-optimized"
 )
 
 // Values returns all known values for SpotAllocationStrategy. Note that this can
@@ -5832,6 +5887,7 @@ func (SpotAllocationStrategy) Values() []SpotAllocationStrategy {
 		"diversified",
 		"capacity-optimized",
 		"capacity-optimized-prioritized",
+		"price-capacity-optimized",
 	}
 }
 
@@ -7030,8 +7086,9 @@ type VpcAttributeName string
 
 // Enum values for VpcAttributeName
 const (
-	VpcAttributeNameEnableDnsSupport   VpcAttributeName = "enableDnsSupport"
-	VpcAttributeNameEnableDnsHostnames VpcAttributeName = "enableDnsHostnames"
+	VpcAttributeNameEnableDnsSupport                 VpcAttributeName = "enableDnsSupport"
+	VpcAttributeNameEnableDnsHostnames               VpcAttributeName = "enableDnsHostnames"
+	VpcAttributeNameEnableNetworkAddressUsageMetrics VpcAttributeName = "enableNetworkAddressUsageMetrics"
 )
 
 // Values returns all known values for VpcAttributeName. Note that this can be
@@ -7041,6 +7098,7 @@ func (VpcAttributeName) Values() []VpcAttributeName {
 	return []VpcAttributeName{
 		"enableDnsSupport",
 		"enableDnsHostnames",
+		"enableNetworkAddressUsageMetrics",
 	}
 }
 

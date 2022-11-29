@@ -59,6 +59,5 @@ To run an ad-hoc compliance assessment use the command:
 * [lacework compliance](lacework_compliance.md)	 - Manage compliance reports
 * [lacework compliance azure get-report](lacework_compliance_azure_get-report.md)	 - Get the latest Azure compliance report
 * [lacework compliance azure list](lacework_compliance_azure_list.md)	 - List Azure tenants and subscriptions
-* [lacework compliance azure list-subscriptions](lacework_compliance_azure_list-subscriptions.md)	 - List subscriptions from tenant
-* [lacework compliance azure run-assessment](lacework_compliance_azure_run-assessment.md)	 - Run a new Azure compliance assessment
+* [lacework compliance azure list-subscriptions](lacework_compliance_azure_list-subscriptions.md)	 - List subscriptions <tenant-id>
 

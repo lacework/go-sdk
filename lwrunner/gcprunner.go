@@ -73,7 +73,6 @@ func (run GCPRunner) SendAndUseIdentityFile() error {
 
 	retries := 15
 	for i := 0; i < retries; i += 1 {
-		fmt.Println("retry #", i, "current time", time.Now())
 		if _, err = ssh.Dial("tcp", run.Runner.Address(), run.Runner.ClientConfig); err == nil {
 			return nil
 		}
@@ -116,10 +115,6 @@ func (run GCPRunner) SendPublicKey(pubBytes []byte) error {
 			run.Runner.User = account.Username
 		}
 	}
-
-	fmt.Println("response from OSL")
-	fmt.Println("resp", resp)
-	fmt.Println("runner info", run)
 
 	return nil
 }

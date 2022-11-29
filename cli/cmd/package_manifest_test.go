@@ -30,19 +30,19 @@ import (
 )
 
 func TestRemoveInactivePackagesFromManifest(t *testing.T) {
-	manifest := new(api.PackageManifest)
+	manifest := new(api.VulnerabilitiesPackageManifest)
 	subject := cli.removeInactivePackagesFromManifest(manifest, "rpm")
 	assert.Equal(t, manifest, subject)
 }
 
 func TestRemoveInactivePackagesFromManifestRemoveKernelRPM(t *testing.T) {
-	manifest := &api.PackageManifest{
-		OsPkgInfoList: []api.OsPkgInfo{
-			api.OsPkgInfo{
+	manifest := &api.VulnerabilitiesPackageManifest{
+		OsPkgInfoList: []api.VulnerabilitiesOsPkgInfo{
+			{
 				Os: "amzn", OsVer: "2",
 				Pkg: "kernel", PkgVer: "0:4.14.209-160.339.amzn2", // with EPOCH
 			},
-			api.OsPkgInfo{
+			{
 				Os: "amzn", OsVer: "2",
 				Pkg: "kernel", PkgVer: "4.14.203-156.331.amzn2", // without EPOCH
 			},
@@ -53,13 +53,13 @@ func TestRemoveInactivePackagesFromManifestRemoveKernelRPM(t *testing.T) {
 }
 
 func TestRemoveInactivePackagesFromManifestRemoveKernelDPKG(t *testing.T) {
-	manifest := &api.PackageManifest{
-		OsPkgInfoList: []api.OsPkgInfo{
-			api.OsPkgInfo{
+	manifest := &api.VulnerabilitiesPackageManifest{
+		OsPkgInfoList: []api.VulnerabilitiesOsPkgInfo{
+			{
 				Os: "ubuntu", OsVer: "18.04",
 				Pkg: "linux-image-5.3.0-1035-aws", PkgVer: "5.3.0-1035.37",
 			},
-			api.OsPkgInfo{
+			{
 				Os: "ubuntu", OsVer: "18.04",
 				Pkg: "sudo", PkgVer: "1.8.21p2-3ubuntu1.2", // not a kernel pkg
 			},
@@ -67,9 +67,9 @@ func TestRemoveInactivePackagesFromManifestRemoveKernelDPKG(t *testing.T) {
 	}
 	subject := cli.removeInactivePackagesFromManifest(manifest, "dpkg-query")
 	assert.NotEmpty(t, subject)
-	assert.Equal(t, &api.PackageManifest{
-		OsPkgInfoList: []api.OsPkgInfo{
-			api.OsPkgInfo{
+	assert.Equal(t, &api.VulnerabilitiesPackageManifest{
+		OsPkgInfoList: []api.VulnerabilitiesOsPkgInfo{
+			{
 				Os: "ubuntu", OsVer: "18.04",
 				Pkg: "sudo", PkgVer: "1.8.21p2-3ubuntu1.2", // this pkg should persist
 			},
@@ -78,7 +78,7 @@ func TestRemoveInactivePackagesFromManifestRemoveKernelDPKG(t *testing.T) {
 }
 
 func TestRemoveInactivePackagesFromManifestUnknownManager(t *testing.T) {
-	manifest := new(api.PackageManifest)
+	manifest := new(api.VulnerabilitiesPackageManifest)
 	subject := cli.removeInactivePackagesFromManifest(manifest, "apk")
 	assert.Equal(t, manifest, subject)
 }
@@ -122,8 +122,8 @@ func TestSplitPackageManifest(t *testing.T) {
 	}
 	for i, kase := range cases {
 		t.Run(fmt.Sprintf("test case %d", i), func(t *testing.T) {
-			manifest := &api.PackageManifest{
-				OsPkgInfoList: make([]api.OsPkgInfo, kase.size),
+			manifest := &api.VulnerabilitiesPackageManifest{
+				OsPkgInfoList: make([]api.VulnerabilitiesOsPkgInfo, kase.size),
 			}
 			subject := splitPackageManifest(manifest, kase.chunks)
 			assert.Equal(t, kase.expectedSize, len(subject))
@@ -135,7 +135,6 @@ func TestFanOutHostScans(t *testing.T) {
 	// mock the api client
 	client, err := api.NewClient("test", api.WithToken("mock"))
 	assert.Nil(t, err)
-	client.Vulnerabilities = api.NewVulnerabilityService(client)
 	cli.LwApi = client
 	defer func() {
 		cli.LwApi = nil
@@ -143,84 +142,54 @@ func TestFanOutHostScans(t *testing.T) {
 
 	subject, err := fanOutHostScans()
 	assert.Nil(t, err)
-	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+	assert.Equal(t, api.VulnerabilitySoftwarePackagesResponse{}, subject)
 
 	subject, err = fanOutHostScans(nil)
 	assert.Nil(t, err)
-	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+	assert.Equal(t, api.VulnerabilitySoftwarePackagesResponse{}, subject)
 
 	// more than 10 morkers should return an error
-	multiManifests := make([]*api.PackageManifest, 11)
+	multiManifests := make([]*api.VulnerabilitiesPackageManifest, 11)
 	subject, err = fanOutHostScans(multiManifests...)
 	if assert.NotNil(t, err) {
 		assert.Contains(t, err.Error(),
 			"limit of packages exceeded",
 		)
 	}
-	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+	assert.Equal(t, api.VulnerabilitySoftwarePackagesResponse{}, subject)
 
-	subject, err = fanOutHostScans(&api.PackageManifest{})
+	subject, err = fanOutHostScans(&api.VulnerabilitiesPackageManifest{})
 	if assert.NotNil(t, err) {
 		assert.Contains(t, err.Error(),
 			"[403] User not authorized.", // intentional error since we are mocking the api token
 		)
 	}
-	assert.Equal(t, api.HostVulnScanPkgManifestResponse{}, subject)
+	assert.Equal(t, api.VulnerabilitySoftwarePackagesResponse{}, subject)
 }
 
-func TestMergeHostVulnScanPkgManifestResponses(t *testing.T) {
+func TestMergeVulnerabilitySoftwarePackagesResponses(t *testing.T) {
 	cases := []struct {
-		expected api.HostVulnScanPkgManifestResponse
-		from     api.HostVulnScanPkgManifestResponse
-		to       api.HostVulnScanPkgManifestResponse
+		expected api.VulnerabilitySoftwarePackagesResponse
+		from     api.VulnerabilitySoftwarePackagesResponse
+		to       api.VulnerabilitySoftwarePackagesResponse
 	}{
-		// empty responses
-		{expected: api.HostVulnScanPkgManifestResponse{},
-			from: api.HostVulnScanPkgManifestResponse{},
-			to:   api.HostVulnScanPkgManifestResponse{}},
-		// responses should return an Ok status
-		{expected: api.HostVulnScanPkgManifestResponse{
-			Ok: true},
-			from: api.HostVulnScanPkgManifestResponse{
-				Ok: true},
-			to: api.HostVulnScanPkgManifestResponse{
-				Ok: false}},
-		// messages should change only if the previous one is empty or different
-		{expected: api.HostVulnScanPkgManifestResponse{
-			Message: "SUCCESS"},
-			from: api.HostVulnScanPkgManifestResponse{
-				Message: "SUCCESS"},
-			to: api.HostVulnScanPkgManifestResponse{
-				Message: ""}},
-		{expected: api.HostVulnScanPkgManifestResponse{
-			Message: "YES"},
-			from: api.HostVulnScanPkgManifestResponse{
-				Message: ""},
-			to: api.HostVulnScanPkgManifestResponse{
-				Message: "YES"}},
-		{expected: api.HostVulnScanPkgManifestResponse{
-			Message: "OLD,NEW"},
-			from: api.HostVulnScanPkgManifestResponse{
-				Message: "NEW"},
-			to: api.HostVulnScanPkgManifestResponse{
-				Message: "OLD"}},
 		// merge two responses into one single response 1 + 1 = 2
 		{
-			expected: api.HostVulnScanPkgManifestResponse{
-				Vulns: []api.HostScanPackageVulnDetails{
-					api.HostScanPackageVulnDetails{}, api.HostScanPackageVulnDetails{},
+			expected: api.VulnerabilitySoftwarePackagesResponse{
+				Data: []api.VulnerabilitySoftwarePackage{
+					api.VulnerabilitySoftwarePackage{}, api.VulnerabilitySoftwarePackage{},
 				},
 			},
-			from: api.HostVulnScanPkgManifestResponse{
-				Vulns: []api.HostScanPackageVulnDetails{api.HostScanPackageVulnDetails{}}},
-			to: api.HostVulnScanPkgManifestResponse{
-				Vulns: []api.HostScanPackageVulnDetails{api.HostScanPackageVulnDetails{}}},
+			from: api.VulnerabilitySoftwarePackagesResponse{
+				Data: []api.VulnerabilitySoftwarePackage{api.VulnerabilitySoftwarePackage{}}},
+			to: api.VulnerabilitySoftwarePackagesResponse{
+				Data: []api.VulnerabilitySoftwarePackage{api.VulnerabilitySoftwarePackage{}}},
 		},
 	}
-	for i, kase := range cases {
+	for i, c := range cases {
 		t.Run(fmt.Sprintf("test case %d", i), func(t *testing.T) {
-			mergeHostVulnScanPkgManifestResponses(&kase.to, &kase.from)
-			assert.Equal(t, kase.expected, kase.to)
+			mergeHostVulnScanPkgManifestResponses(&c.to, &c.from)
+			assert.Equal(t, c.expected, c.to)
 		})
 	}
 }

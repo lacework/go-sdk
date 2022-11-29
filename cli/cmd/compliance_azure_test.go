@@ -36,17 +36,17 @@ import (
 
 func TestSplitAzureSubscriptionsApiResponse(t *testing.T) {
 	cases := []struct {
-		subject  api.CompAzureSubscriptions
+		subject  api.AzureConfigData
 		expected cliComplianceAzureInfo
 	}{
 		// empty subscriptions will return empty cli info
 		{
-			api.CompAzureSubscriptions{},
+			api.AzureConfigData{},
 			cliComplianceAzureInfo{Subscriptions: make([]cliComplianceIDAlias, 0)},
 		},
 		// real test case with NO alias
 		{
-			api.CompAzureSubscriptions{
+			api.AzureConfigData{
 				Tenant:        "ABCCC123-abc-123-AB12-XYZ987",
 				Subscriptions: []string{"subscription-id-1", "subscription-id-2", "subscription-id-3", "subscription-id-4"},
 			},
@@ -62,7 +62,7 @@ func TestSplitAzureSubscriptionsApiResponse(t *testing.T) {
 		},
 		// real test case with alias
 		{
-			api.CompAzureSubscriptions{
+			api.AzureConfigData{
 				Tenant: "ABCCC123-abc-123-AB12-XYZ987 (cool.org.alias.example.com)",
 				Subscriptions: []string{
 					"id-1 (a test subscription)",
@@ -94,7 +94,7 @@ func TestSplitAzureSubscriptionsApiResponse(t *testing.T) {
 
 func TestCliListAzureTenantsAndSubscriptionsWithoutData(t *testing.T) {
 	cliOutput := capturer.CaptureOutput(func() {
-		assert.Nil(t, cliListTenantsAndSubscriptions(new(api.AzureIntegrationsResponse)))
+		assert.Nil(t, cliListTenantsAndSubscriptions(api.CloudAccountsResponse{}))
 	})
 	assert.Contains(t, cliOutput, "There are no Azure Tenants configured in your account.")
 
@@ -102,7 +102,7 @@ func TestCliListAzureTenantsAndSubscriptionsWithoutData(t *testing.T) {
 		cli.EnableJSONOutput()
 		defer cli.EnableHumanOutput()
 		cliJSONOutput := capturer.CaptureOutput(func() {
-			assert.Nil(t, cliListTenantsAndSubscriptions(new(api.AzureIntegrationsResponse)))
+			assert.Nil(t, cliListTenantsAndSubscriptions(api.CloudAccountsResponse{}))
 		})
 		expectedJSON := `{
   "azure_subscriptions": []
@@ -118,17 +118,25 @@ func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
 		tenantID   = "abc123xy-1234-abcd-a1b2-09876zxy1234"
 	)
 	fakeServer.MockToken("TOKEN")
+	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
-		"external/compliance/azure/ListSubscriptionsForTenant",
+		"CloudAccounts/AzureCfg",
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, mockAzureSubsResponse(tenantID))
+		})
+	fakeServer.MockAPI(
+		"Configs/AzureSubscriptions",
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, mockAzureConfigsResponse())
 		})
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
 		api.WithToken("TOKEN"),
+		api.WithApiV2(),
 		api.WithURL(fakeServer.URL()),
 	)
+
 	assert.Nil(t, err)
 
 	cli.LwApi = c
@@ -142,7 +150,7 @@ func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
 		cliOutput := capturer.CaptureOutput(func() {
 			assert.Nil(t, cliListTenantsAndSubscriptions(mockAzureIntegrationsResponse(tenantID, 1)))
 		})
-		// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
+		// NOTE (@afiune): We purposely leave trailing spaces in this table, we need them!
 		expectedTable := `
               AZURE TENANT                        AZURE SUBSCRIPTION            STATUS   
 ---------------------------------------+--------------------------------------+----------
@@ -165,33 +173,45 @@ func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
 	})
 }
 
-func mockAzureIntegrationsResponse(tenantID string, enabled int) *api.AzureIntegrationsResponse {
-	response := &api.AzureIntegrationsResponse{}
-	err := json.Unmarshal([]byte(`{
-  "data": [
-	    {
-      "CREATED_OR_UPDATED_BY": "salim.afiune-maya@lacework.net",
-      "CREATED_OR_UPDATED_TIME": "2021-08-02T17:53:24.116Z",
-      "DATA": {
-        "TENANT_ID": "`+tenantID+`"
-      },
-      "ENABLED": `+strconv.Itoa(enabled)+`,
-      "INTG_GUID": "MOCK_1234",
-      "IS_ORG": 0,
-      "NAME": "TF Config",
-      "STATE": {
-        "lastSuccessfulTime": "2021-Jun-04 09:40:39 UTC",
-        "lastUpdatedTime": "2022-Jan-31 11:49:09 UTC",
-        "ok": false
-      },
-      "TYPE": "AZURE_CFG",
-      "TYPE_NAME": "Azure Compliance"
-    }
-  ],
-  "message": "SUCCESS",
-  "ok": true
+func mockAzureIntegrationsResponse(tenantID string, enabled int) api.CloudAccountsResponse {
+	var response = api.CloudAccountsResponse{}
+	err := json.Unmarshal([]byte(`
+{
+    "data": [
+        {
+            "createdOrUpdatedBy": "test@lacework.net",
+            "createdOrUpdatedTime": "2022-04-20T16:16:01.448Z",
+            "enabled": `+strconv.Itoa(enabled)+`,
+            "intgGuid": "EXAMPLE_12345",
+            "isOrg": 0,
+            "name": "Azure config",
+            "state": {
+                "ok": true,
+                "lastUpdatedTime": 1643137889612,
+                "lastSuccessfulTime": 1643137889612,
+                "details": {
+                    "tenantErrors": {
+                        "opsDeniedAccess": []
+                    },
+                    "subscriptionErrors": {
+                        "ABC123XX-1234-ABCD-1234-ABCD1234XYZZ": {
+                            "opsDeniedAccess": []
+                        }
+                    }
+                }
+            },
+            "type": "AzureCfg",
+            "data": {
+                "credentials": {
+                    "clientId": "ABC123XX-1234-ABCD-1234-ABCD1234XYZZ",
+                    "clientSecret": ""
+                },
+                "tenantId": "`+tenantID+`"
+            }
+        }
+]
 }
-`), response)
+`), &response)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -210,5 +230,18 @@ func mockAzureSubsResponse(tenantID string) string {
   ],
   "message": "SUCCESS",
   "ok": true
+}`
+}
+
+func mockAzureConfigsResponse() string {
+	return `{
+    "data": [
+        {
+            "tenant": "abc123xy-1234-abcd-a1b2-09876zxy1234",
+            "subscriptions": [
+                "ABC123XX-1234-ABCD-1234-ABCD1234XYZZ (Default-account)"
+            ]
+        }
+    ]
 }`
 }

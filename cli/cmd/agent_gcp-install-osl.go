@@ -35,23 +35,31 @@ var (
 		RunE:  installGCPOSL,
 		Long: `This command installs the agent on all GCE instances in a GCP organization using OSLogin.
 
+The username of the GCP user or service account, in the form 'users/<username>', is a
+required argument.
+
+This command will attempt to query the GCE metadata server for the current project. If this
+command is not run on a GCE instance, pass the project ID as:
+
+    lacework agent gcp-install osl <gcp_username> --project_id my-project-id
+
 To filter by one or more regions:
 
-    lacework agent gcp-install osl --include_regions us-west1,europe-west2
+    lacework agent gcp-install osl <gcp_username> --include_regions us-west1,europe-west2
 
 To filter by instance metadata:
 
-    lacework agent gcp-install osl --metadata MetadataKey,MetadataValue
+    lacework agent gcp-install osl <gcp_username> --metadata MetadataKey,MetadataValue
 
 To filter by instance metadata key:
 
-    lacework agent gcp-install osl --metadata_key MetadataKey
+    lacework agent gcp-install osl <gcp_username> --metadata_key MetadataKey
 
 To provide an agent access token of your choice, use the command 'lacework agent token list',
 select a token and pass it to the '--token' flag. This flag must be selected if the
 '--noninteractive' flag is set.
 
-    lacework agent gcp-install osl --token <token>
+    lacework agent gcp-install osl <gcp_username> --token <token>
 
 GCP credentials are read using the following environment variables:
 - GOOGLE_APPLICATION_CREDENTIALS

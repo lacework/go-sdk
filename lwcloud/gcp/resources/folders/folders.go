@@ -76,7 +76,6 @@ func EnumerateFolders(ctx context.Context, clientOptions option.ClientOption, Pa
 			}
 
 			if helpers.SkipEntry(resp.Name, skipList, allowList) {
-				// log.WithFields(ctx, log.Fields{"Folder": resp.Name, "Ancestory": Ancestory}).Error("Skipping Folder")
 				continue
 			}
 

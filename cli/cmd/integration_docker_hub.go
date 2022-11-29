@@ -50,11 +50,6 @@ func createDockerHubIntegration() error {
 				Message: "Enable scanning for Non-OS packages: "},
 		},
 		{
-			Name: "notifications",
-			Prompt: &survey.Confirm{
-				Message: "Enable registry notifications: "},
-		},
-		{
 			Name: "limit_tag",
 			Prompt: &survey.Input{
 				Message: "Limit by Tag: ",
@@ -87,7 +82,6 @@ func createDockerHubIntegration() error {
 		Username            string
 		Password            string
 		LimitTag            string `survey:"limit_tag"`
-		Notifications       bool   `survey:"notifications"`
 		LimitLabel          string `survey:"limit_label"`
 		LimitRepos          string `survey:"limit_repos"`
 		LimitMaxImages      string `survey:"limit_max_images"`
@@ -118,8 +112,7 @@ func createDockerHubIntegration() error {
 				Username: answers.Username,
 				Password: answers.Password,
 			},
-			NonOSPackageEval:      answers.NonOSPackageSupport,
-			RegistryNotifications: answers.Notifications,
+			NonOSPackageEval: answers.NonOSPackageSupport,
 
 			LimitByTag:   strings.Split(answers.LimitTag, "\n"),
 			LimitByLabel: castStringToLimitByLabel(answers.LimitLabel),

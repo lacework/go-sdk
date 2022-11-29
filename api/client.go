@@ -47,14 +47,7 @@ type Client struct {
 	headers    map[string]string
 	callbacks  LifecycleCallbacks
 
-	Account         *AccountService
-	Agents          *AgentsService
-	Compliance      *ComplianceService
-	Events          *EventsService
-	Integrations    *IntegrationsService
-	Policy          *PolicyService
-	Recommendations *RecommendationsServiceV1
-	Vulnerabilities *VulnerabilitiesService
+	Policy *PolicyService
 
 	V2 *V2Endpoints
 }
@@ -73,10 +66,10 @@ func (fn clientFunc) apply(c *Client) error {
 //
 // Example of basic usage
 //
-//   lacework, err := api.NewClient("demo")
-//   if err == nil {
-//       lacework.Integrations.List()
-//   }
+//	lacework, err := api.NewClient("demo")
+//	if err == nil {
+//	    lacework.Integrations.List()
+//	}
 func NewClient(account string, opts ...Option) (*Client, error) {
 	if account == "" {
 		return nil, errors.New("account cannot be empty")
@@ -109,16 +102,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		},
 		c: &http.Client{Timeout: defaultTimeout},
 	}
-	c.Account = &AccountService{c}
-	c.Agents = &AgentsService{c}
-	c.Compliance = &ComplianceService{c}
-	c.Events = &EventsService{c}
-	c.Integrations = &IntegrationsService{c}
-	c.Recommendations = &RecommendationsServiceV1{c,
-		&AwsRecommendationsV1{c},
-		&AzureRecommendationsV1{c},
-		&GcpRecommendationsV1{c}}
-	c.Vulnerabilities = NewVulnerabilityService(c)
+
 	c.V2 = NewV2Endpoints(c)
 
 	// init logger, this could change if a user calls api.WithLogLevel()
@@ -143,15 +127,15 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 //
 // Example of basic usage
 //
-//   client, err := api.NewClient("demo")
-//   if err == nil {
-//       client.Integrations.List()
-//   }
+//	client, err := api.NewClient("demo")
+//	if err == nil {
+//	    client.Integrations.List()
+//	}
 //
-//   clientCopy, err := api.CopyClient(client, api.WithOrgAccess())
-//   if err == nil {
-//       clientCopy.Integrations.List()
-//   }
+//	clientCopy, err := api.CopyClient(client, api.WithOrgAccess())
+//	if err == nil {
+//	    clientCopy.Integrations.List()
+//	}
 func CopyClient(origin *Client, opts ...Option) (*Client, error) {
 	dest := new(Client)
 	*dest = *origin

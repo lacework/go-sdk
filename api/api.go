@@ -40,46 +40,6 @@ const (
 	// ```
 	apiTokens = "access/tokens" // Auth
 
-	// API v1 Endpoints
-	//
-	// These endpoints only exist in APIv1 and therefore we prefix them with 'v1/'
-	apiIntegrations        = "v1/external/integrations"
-	apiIntegrationsByType  = "v1/external/integrations/type/%s"
-	apiIntegrationFromGUID = "v1/external/integrations/%s"
-	apiIntegrationSchema   = "v1/external/integrations/schema/%s"
-
-	apiAgentTokens      = "v1/external/tokens"
-	apiAgentTokenFromID = "v1/external/tokens/%s"
-
-	apiVulnerabilitiesContainerScan             = "v1/external/vulnerabilities/container/repository/images/scan"
-	apiVulnerabilitiesContainerScanStatus       = "v1/external/vulnerabilities/container/reqId/%s"
-	apiVulnerabilitiesAssessmentFromImageID     = "v1/external/vulnerabilities/container/imageId/%s"
-	apiVulnerabilitiesAssessmentFromImageDigest = "v1/external/vulnerabilities/container/imageDigest/%s"
-	apiVulnContainerAssessmentsForDateRange     = "v1/external/vulnerabilities/container/GetAssessmentsForDateRange"
-
-	apiVulnerabilitiesScanPkgManifest             = "v1/external/vulnerabilities/scan"
-	apiVulnerabilitiesHostListCves                = "v1/external/vulnerabilities/host"
-	apiVulnerabilitiesListHostsWithCveID          = "v1/external/vulnerabilities/host/cveId/%s"
-	apiVulnerabilitiesHostAssessmentFromMachineID = "v1/external/vulnerabilities/host/machineId/%s"
-
-	apiComplianceAwsLatestReport        = "v1/external/compliance/aws/GetLatestComplianceReport?AWS_ACCOUNT_ID=%s"
-	apiComplianceGcpLatestReport        = "v1/external/compliance/gcp/GetLatestComplianceReport?GCP_ORG_ID=%s&GCP_PROJ_ID=%s"
-	apiComplianceGcpListProjects        = "v1/external/compliance/gcp/ListProjectsForOrganization?GCP_ORG_ID=%s"
-	apiComplianceAzureLatestReport      = "v1/external/compliance/azure/GetLatestComplianceReport?AZURE_TENANT_ID=%s&AZURE_SUBS_ID=%s"
-	apiComplianceAzureListSubscriptions = "v1/external/compliance/azure/ListSubscriptionsForTenant?AZURE_TENANT_ID=%s"
-
-	apiRunReportIntegration = "v1/external/runReport/integration/%s"
-	apiRunReportGcp         = "v1/external/runReport/gcp/%s"
-	apiRunReportAws         = "v1/external/runReport/aws/%s"
-	apiRunReportAzure       = "v1/external/runReport/azure/%s"
-
-	apiEventsDetails   = "v1/external/events/GetEventDetails"
-	apiEventsDateRange = "v1/external/events/GetEventsForDateRange"
-
-	apiAccountOrganizationInfo = "v1/external/account/organizationInfo"
-
-	apiRecommendations = "v1/external/recommendations/%s"
-
 	// API v2 Endpoints
 	//
 	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
@@ -117,6 +77,11 @@ const (
 
 	apiV2ComplianceEvaluationsSearch = "v2/Configs/ComplianceEvaluations/search"
 
+	apiV2ConfigsAzure              = "v2/Configs/AzureSubscriptions"
+	apiV2ConfigsAzureSubscriptions = "v2/Configs/AzureSubscriptions?tenantId=%s"
+	apiV2ConfigsGcp                = "v2/Configs/GcpProjects"
+	apiV2ConfigsGcpProjects        = "v2/Configs/GcpProjects?orgId=%s"
+
 	apiV2Policies        = "v2/Policies"
 	apiV2Queries         = "v2/Queries"
 	apiV2QueriesExecute  = "v2/Queries/execute"
@@ -124,6 +89,9 @@ const (
 
 	apiV2Reports               = "v2/Reports?primaryQueryId=%s&format=%s&reportType=%s"
 	apiV2ReportsSecondaryQuery = "v2/Reports?primaryQueryId=%s&secondaryQueryId=%s&format=%s&reportType=%s"
+
+	apiV2ReportDefinitions         = "v2/ReportDefinitions"
+	apiV2ReportDefinitionsFromGUID = "v2/ReportDefinitions/%s"
 
 	apiV2ReportRules        = "v2/ReportRules"
 	apiV2ReportRuleFromGUID = "v2/ReportRules/%s"
@@ -141,8 +109,11 @@ const (
 	apiV2TeamMembersFromGUID = "v2/TeamMembers/%s"
 	apiV2TeamMembersSearch   = "v2/TeamMembers/search"
 
-	apiV2VulnerabilitiesContainersSearch = "v2/Vulnerabilities/Containers/search"
-	apiV2VulnerabilitiesHostsSearch      = "v2/Vulnerabilities/Hosts/search"
+	apiV2VulnerabilitiesContainersSearch     = "v2/Vulnerabilities/Containers/search"
+	apiV2VulnerabilitiesContainersScan       = "v2/Vulnerabilities/Containers/scan"
+	apiV2VulnerabilitiesContainersScanStatus = "v2/Vulnerabilities/Containers/scan/%s"
+	apiV2VulnerabilitiesHostsSearch          = "v2/Vulnerabilities/Hosts/search"
+	apiV2VulnerabilitiesSoftwarePackagesScan = "v2/Vulnerabilities/SoftwarePackages/scan"
 
 	apiV2VulnerabilityExceptions        = "v2/VulnerabilityExceptions"
 	apiV2VulnerabilityExceptionFromGUID = "v2/VulnerabilityExceptions/%s"
@@ -155,6 +126,8 @@ const (
 	apiV2AlertsDetails = "v2/Alerts/%d?scope=%s"
 	apiV2AlertsComment = "v2/Alerts/%d/comment"
 	apiV2AlertsClose   = "v2/Alerts/%d/close"
+
+	apiV2OrganizationInfo = "v2/OrganizationInfo"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

@@ -93,3 +93,6 @@ func (r *RecommendationV2) SeverityString() string {
 type CloudComplianceReportV2 interface {
 	GetComplianceRecommendation(recommendationID string) RecommendationV2
 }
+
+// ValidComplianceStatus is a list of all valid compliance status
+var ValidComplianceStatus = []string{"non-compliant", "requires-manual-assessment", "suppressed", "compliant", "could-not-assess"}

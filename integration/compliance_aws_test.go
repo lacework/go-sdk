@@ -39,7 +39,7 @@ func TestComplianceAwsList(t *testing.T) {
 func TestComplianceAwsGetReportFilter(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	detailsOutput := "recommendations showing"
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--status", "compliant")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--status", "compliant", "--type", "AWS_CIS_S3")
 
 	assert.Contains(t, out.String(), detailsOutput, "Filtered detail output should contain filtered result")
 	assert.Empty(t, err.String(), "STDERR should be empty")

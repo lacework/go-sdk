@@ -44,7 +44,7 @@ prepare: install-tools go-vendor ## Initialize the go environment
 
 .PHONY: test
 test: prepare ## Run all go-sdk tests
-	gotestsum -f testname -- -v -cover -coverprofile=$(COVERAGEOUT) $(shell go list ./... | grep -v integration)
+	gotestsum -f testname -- -v -cover -run=$(regex) -coverprofile=$(COVERAGEOUT) $(shell go list ./... | grep -v integration)
 
 .PHONY: integration
 integration: build-cli-cross-platform integration-only ## Build and run integration tests
@@ -73,7 +73,6 @@ integration-only: install-tools ## Run integration tests
 		event \
 		help \
 		integration \
-		migration \
 		version \
 		generation \
 		compliance \
