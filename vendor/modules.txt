@@ -117,6 +117,11 @@ github.com/aws/aws-sdk-go-v2/service/ec2/types
 github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect
 github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect/internal/endpoints
 github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect/types
+# github.com/aws/aws-sdk-go-v2/service/iam v1.18.23
+## explicit; go 1.15
+github.com/aws/aws-sdk-go-v2/service/iam
+github.com/aws/aws-sdk-go-v2/service/iam/internal/endpoints
+github.com/aws/aws-sdk-go-v2/service/iam/types
 # github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url

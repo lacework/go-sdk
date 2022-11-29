@@ -28,9 +28,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/pulumi/pulumi-aws/sdk/v5/go/aws/iam"
-	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -39,6 +38,7 @@ type AWSRunner struct {
 	Region           string
 	AvailabilityZone string
 	InstanceID       string
+	SSMIAMRole       types.Role // only populated during SSM install
 }
 
 func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, instanceID string, callback ssh.HostKeyCallback) (*AWSRunner, error) {
@@ -66,20 +66,8 @@ func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, in
 		region,
 		availabilityZone,
 		instanceID,
+		types.Role{},
 	}, nil
-}
-
-func (run AWSRunner) SetupSSMAccess() error {
-	err := pulumi.Run(func(ctx *pulumi.Context) error {
-		role, err := iam.NewRole(ctx, "ctf-role", &iam.RoleArgs{
-			// AssumeRolePolicy: pulumi.Any(data.Aws_iam_policy_document.Instance_assume_role_policy.Json),
-
-		})
-
-		return err
-	})
-
-	return err
 }
 
 func (run AWSRunner) RunSession() error {

@@ -63,24 +63,30 @@ AWS credentials are read from the following environment variables:
 
 func init() {
 	// 'agent aws-install ssm' flags
-	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallTagKey,
+	agentInstallAWSSSMCmd.Flags().StringVar(&agentCmdState.InstallTagKey,
 		"tag_key", "", "only install agents on infra with this tag key set",
 	)
-	agentInstallAWSEC2ICCmd.Flags().StringSliceVar(&agentCmdState.InstallTag,
+	agentInstallAWSSSMCmd.Flags().StringSliceVar(&agentCmdState.InstallTag,
 		"tag", []string{}, "only install agents on infra with this tag",
 	)
-	agentInstallAWSEC2ICCmd.Flags().StringSliceVarP(&agentCmdState.InstallIncludeRegions,
+	agentInstallAWSSSMCmd.Flags().StringSliceVarP(&agentCmdState.InstallIncludeRegions,
 		"include_regions", "r", []string{}, "list of regions to filter on",
 	)
-	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
+	agentInstallAWSSSMCmd.Flags().StringVar(&agentCmdState.InstallAgentToken,
 		"token", "", "agent access token",
 	)
-	agentInstallAWSEC2ICCmd.Flags().IntVarP(
+	agentInstallAWSSSMCmd.Flags().IntVarP(
 		&agentCmdState.InstallMaxParallelism,
 		"max_parallelism",
 		"n",
 		50,
 		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
+	)
+	agentInstallAWSSSMCmd.Flags().BoolVar(
+		&agentCmdState.InstallBYORole,
+		"iam_role",
+		false,
+		"IAM role to use for SSM, if not provided then an ephemeral role will be created",
 	)
 }
 

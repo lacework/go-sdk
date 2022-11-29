@@ -53,6 +53,7 @@ require (
 )
 
 require (
+	github.com/aws/aws-sdk-go-v2/service/iam v1.18.23
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.33.1
 	google.golang.org/api v0.102.0
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c
