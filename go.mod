@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.17.1
 	github.com/aws/aws-sdk-go-v2/config v1.17.7
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.72.1
-	github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect v1.14.9
+	github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect v1.14.11
 	github.com/briandowns/spinner v1.17.0
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structs v1.1.0
