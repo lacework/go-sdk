@@ -73,7 +73,6 @@ func enumerateTopLevelProjects(ctx context.Context, clientOption option.ClientOp
 			}
 
 			if helpers.SkipEntry("projects/"+resp.ProjectId, skipList, allowList) {
-				// log.WithFields(ctx, log.Fields{"Project": resp.ProjectId, "Ancestory": Ancestory}).Error("Skipping Project")
 				continue
 			}
 

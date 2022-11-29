@@ -54,8 +54,6 @@ type ConfigProps struct {
 	ScanFrequency           int64 `json:"SCAN_FREQUENCY"`
 	ScanContainers          bool  `json:"SCAN_CONTAINERS"`
 	ScanHostVulnerabilities bool  `json:"SCAN_HOST_VULNERABILITIES"`
-	// Deprecated options:
-	// ScanImages bool  `json:"SCAN_IMAGES"`
 
 	// Cross-account role used for org access and internal access.
 	CrossAccountCredentials ConfigCredentialsProps `json:"CROSS_ACCOUNT_CREDENTIALS"`
