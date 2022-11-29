@@ -28,6 +28,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/pulumi/pulumi-aws/sdk/v5/go/aws/iam"
+	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -64,6 +67,36 @@ func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, in
 		availabilityZone,
 		instanceID,
 	}, nil
+}
+
+func (run AWSRunner) SetupSSMAccess() error {
+	err := pulumi.Run(func(ctx *pulumi.Context) error {
+		role, err := iam.NewRole(ctx, "ctf-role", &iam.RoleArgs{
+			// AssumeRolePolicy: pulumi.Any(data.Aws_iam_policy_document.Instance_assume_role_policy.Json),
+
+		})
+
+		return err
+	})
+
+	return err
+}
+
+func (run AWSRunner) RunSession() error {
+	c := ssm.New(ssm.Options{})
+
+	input := &ssm.StartSessionInput{
+		Target:       aws.String(run.InstanceID),
+		DocumentName: aws.String("SSM-SessionManagerRunShell"), // default, but some IAM roles require us to specify
+		Reason:       aws.String("Lacework CLI agent install"),
+	}
+
+	output, err := c.StartSession(context.Background(), input)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (run AWSRunner) SendAndUseIdentityFile() error {

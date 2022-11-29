@@ -120,6 +120,11 @@ github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect/types
 # github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url
+# github.com/aws/aws-sdk-go-v2/service/ssm v1.33.1
+## explicit; go 1.15
+github.com/aws/aws-sdk-go-v2/service/ssm
+github.com/aws/aws-sdk-go-v2/service/ssm/internal/endpoints
+github.com/aws/aws-sdk-go-v2/service/ssm/types
 # github.com/aws/aws-sdk-go-v2/service/sso v1.11.23
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/service/sso

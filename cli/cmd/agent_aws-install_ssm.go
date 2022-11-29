@@ -19,6 +19,10 @@
 package cmd
 
 import (
+	"fmt"
+	"sync"
+
+	"github.com/gammazero/workerpool"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -96,10 +100,65 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		}
 	}
 
-	_, err := awsDescribeInstances()
+	runners, err := awsDescribeInstances()
 	if err != nil {
 		return err
 	}
+
+	wg := new(sync.WaitGroup)
+	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
+	for _, runner := range runners {
+		wg.Add(1)
+
+		// In order to use `wp.Submit()`, the input func() must not take any arguments.
+		// Copy the runner info to dedicated variable in the goroutine to prevent race overwrite
+		runnerCopyWg := new(sync.WaitGroup)
+		runnerCopyWg.Add(1)
+
+		wp.Submit(func() {
+			defer wg.Done()
+
+			threadRunner := *runner
+			runnerCopyWg.Done()
+
+			cli.Log.Debugw("runner info: ",
+				"user", threadRunner.Runner.User,
+				"region", threadRunner.Region,
+				"az", threadRunner.AvailabilityZone,
+				"instance_id", threadRunner.InstanceID,
+				"hostname", threadRunner.Runner.Hostname,
+			)
+
+			// TODO setup SSM access for the runner
+			err := threadRunner.SetupSSMAccess()
+			if err != nil {
+				cli.Log.Debugw("setup SSM access failed", "err", err, "runner", threadRunner.InstanceID)
+				return
+			}
+
+			if err := verifyAccessToRemoteHost(&threadRunner.Runner); err != nil {
+				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
+				return
+			}
+
+			if alreadyInstalled := isAgentInstalledOnRemoteHost(&threadRunner.Runner); alreadyInstalled != nil {
+				cli.Log.Debugw("agent already installed on host, skipping", "runner", threadRunner.InstanceID)
+				return
+			}
+
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
+			if err != nil {
+				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
+			}
+			if threadRunner != *runner {
+				cli.Log.Debugw("mutated runner", "thread_runner", threadRunner, "runner", runner)
+			}
+		})
+		runnerCopyWg.Wait()
+	}
+	wg.Wait()
+	wp.StopWait()
 
 	return nil
 }
