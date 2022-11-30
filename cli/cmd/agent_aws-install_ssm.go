@@ -82,11 +82,11 @@ func init() {
 		50,
 		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
 	)
-	agentInstallAWSSSMCmd.Flags().BoolVar(
+	agentInstallAWSSSMCmd.Flags().StringVar(
 		&agentCmdState.InstallBYORole,
-		"iam_role",
-		false,
-		"IAM role to use for SSM, if not provided then an ephemeral role will be created",
+		"iam_role_name",
+		"",
+		"IAM role name (not ARN) to use for SSM, if not provided then an ephemeral role will be created",
 	)
 }
 
@@ -107,6 +107,11 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 	}
 
 	runners, err := awsDescribeInstances()
+	if err != nil {
+		return err
+	}
+
+	role, err := SetupSSMAccess(agentCmdState.InstallBYORole)
 	if err != nil {
 		return err
 	}
@@ -135,12 +140,13 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				"hostname", threadRunner.Runner.Hostname,
 			)
 
-			// TODO setup SSM access for the runner
-			err := threadRunner.SetupSSMAccess()
+			err := threadRunner.AttachRoleToRunnerInstanceProfile(role)
 			if err != nil {
-				cli.Log.Debugw("setup SSM access failed", "err", err, "runner", threadRunner.InstanceID)
+				cli.Log.Debugw("failed to attach role to runner instance profile", "role")
 				return
 			}
+
+			// TODO establish SSH access / SSM Command connection to the runner
 
 			if err := verifyAccessToRemoteHost(&threadRunner.Runner); err != nil {
 				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)

@@ -20,6 +20,7 @@ package lwrunner
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -38,7 +39,6 @@ type AWSRunner struct {
 	Region           string
 	AvailabilityZone string
 	InstanceID       string
-	SSMIAMRole       types.Role // only populated during SSM install
 }
 
 func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, instanceID string, callback ssh.HostKeyCallback) (*AWSRunner, error) {
@@ -66,12 +66,13 @@ func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, in
 		region,
 		availabilityZone,
 		instanceID,
-		types.Role{},
 	}, nil
 }
 
 func (run AWSRunner) RunSession() error {
-	c := ssm.New(ssm.Options{})
+	c := ssm.New(ssm.Options{
+		Region: run.Region,
+	})
 
 	input := &ssm.StartSessionInput{
 		Target:       aws.String(run.InstanceID),
@@ -133,6 +134,10 @@ func (run AWSRunner) SendPublicKey(pubBytes []byte) error {
 	}
 
 	return nil
+}
+
+func (run AWSRunner) AttachRoleToRunnerInstanceProfile(types.Role) error {
+	return errors.New("TODO not implemented")
 }
 
 // getAMIName takes an AMI image ID and an AWS region name as input

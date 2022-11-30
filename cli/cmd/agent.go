@@ -46,7 +46,7 @@ var (
 		InstallIncludeRegions []string
 		InstallProjectId      string
 		InstallMaxParallelism int
-		InstallBYORole        bool
+		InstallBYORole        string
 	}{}
 
 	defaultSshIdentityKey = "~/.ssh/id_rsa"
