@@ -20,13 +20,12 @@ package cmd
 
 import (
 	"context"
-	"os"
 	"sync"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/gammazero/workerpool"
 	"github.com/lacework/go-sdk/lwrunner"
 )
@@ -49,6 +48,15 @@ func awsDescribeInstances() ([]*lwrunner.AWSRunner, error) {
 	return allRunners, nil
 }
 
+func GetConfig() (aws.Config, error) {
+	cfg, err := config.LoadDefaultConfig(context.Background())
+	if err != nil {
+		return cfg, err
+	}
+
+	return cfg, nil
+}
+
 // awsDescribeRegions queries the AWS API to list all the regions that
 // are enabled for the user's AWS account. Use the "include_regions"
 // command-line flag to only get regions in this list.
@@ -66,19 +74,14 @@ func awsDescribeRegions() ([]types.Region, error) {
 	input := &ec2.DescribeRegionsInput{
 		Filters: filters,
 	}
-	cfg, err := config.LoadDefaultConfig(context.Background())
+
+	cfg, err := GetConfig()
 	if err != nil {
 		return nil, err
 	}
-
-	// Look for region string in shell environment first
-	region, ok := os.LookupEnv("AWS_REGION")
-	if !ok {
-		region = "us-west-2" // use us-west-2 for lack of a better region
-	}
 	svc := ec2.New(ec2.Options{
 		Credentials: cfg.Credentials,
-		Region:      region,
+		Region:      cfg.Region,
 	})
 
 	output, err := svc.DescribeRegions(context.Background(), input)

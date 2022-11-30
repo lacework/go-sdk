@@ -111,7 +111,8 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	role, err := SetupSSMAccess(agentCmdState.InstallBYORole)
+	cfg, err := GetConfig()
+	role, err := SetupSSMAccess(cfg, agentCmdState.InstallBYORole)
 	if err != nil {
 		return err
 	}

@@ -31,13 +31,14 @@ import (
 // SetupSSMRole sets up an IAM role for SSM and attaches it to
 // the machine's instance profile. Takes role name as argument;
 // pass the empty string to create a new role.
-func SetupSSMAccess(roleName string) (types.Role, error) {
-	role, err := setupSSMRole(roleName)
+func SetupSSMAccess(cfg aws.Config, roleName string) (types.Role, error) {
+	cli.Log.Debugw("setting up role", "passed roleName", roleName)
+	role, err := setupSSMRole(cfg, roleName)
 	if err != nil {
 		return role, err
 	}
 
-	err = attachSSMPoliciesToRole(role)
+	err = attachSSMPoliciesToRole(cfg, role)
 	if err != nil {
 		return role, err
 	}
@@ -47,8 +48,11 @@ func SetupSSMAccess(roleName string) (types.Role, error) {
 	return role, nil
 }
 
-func TeardownSSMAccess(role types.Role) error {
-	c := iam.New(iam.Options{})
+func TeardownSSMAccess(cfg aws.Config, role types.Role) error {
+	c := iam.New(iam.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
 
 	// List managed policies attached to this role (assume there are no inline policies)
 	listInput := &iam.ListAttachedRolePoliciesInput{
@@ -61,6 +65,7 @@ func TeardownSSMAccess(role types.Role) error {
 
 	// Detach managed policies
 	for _, attachedPolicy := range output.AttachedPolicies {
+		cli.Log.Debugw("detaching policy", "policy", attachedPolicy, "role", role)
 		detachInput := &iam.DetachRolePolicyInput{
 			PolicyArn: attachedPolicy.PolicyArn,
 			RoleName:  role.RoleName,
@@ -72,6 +77,7 @@ func TeardownSSMAccess(role types.Role) error {
 	}
 
 	// Delete the role
+	cli.Log.Debugw("deleting role", "role", role)
 	deleteInput := &iam.DeleteRoleInput{
 		RoleName: role.RoleName,
 	}
@@ -86,18 +92,21 @@ func TeardownSSMAccess(role types.Role) error {
 // setupSSMRole sets up an IAM role for SSM to assume.
 // If `roleName` is not the empty string, then use that role
 // instead of creating a new one.
-func setupSSMRole(roleName string) (types.Role, error) {
+func setupSSMRole(cfg aws.Config, roleName string) (types.Role, error) {
 	if roleName != "" {
-		role, err := getRoleFromName(roleName)
+		role, err := getRoleFromName(cfg, roleName)
 		return role, err
 	} else { // user did not provide a role, creating one now
-		role, err := createSSMRole()
+		role, err := createSSMRole(cfg)
 		return role, err
 	}
 }
 
-func getRoleFromName(roleName string) (types.Role, error) {
-	c := iam.New(iam.Options{})
+func getRoleFromName(cfg aws.Config, roleName string) (types.Role, error) {
+	c := iam.New(iam.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
 
 	input := &iam.GetRoleInput{
 		RoleName: aws.String(roleName),
@@ -113,10 +122,13 @@ func getRoleFromName(roleName string) (types.Role, error) {
 // createSSMRole makes a call to the AWS API to create an IAM role.
 // This role allows the current user to assume it.
 // Returns information about the newly created role and any errors.
-func createSSMRole() (types.Role, error) {
-	c := iam.New(iam.Options{})
+func createSSMRole(cfg aws.Config) (types.Role, error) {
+	c := iam.New(iam.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
 
-	currentUserARN, err := getCurrentUserARN()
+	currentUserARN, err := getCurrentUserARN(cfg)
 	if err != nil {
 		return types.Role{}, err
 	}
@@ -139,8 +151,11 @@ func createSSMRole() (types.Role, error) {
 	return *output.Role, nil
 }
 
-func getCurrentUserARN() (string, error) {
-	c := sts.New(sts.Options{})
+func getCurrentUserARN(cfg aws.Config) (string, error) {
+	c := sts.New(sts.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
 
 	output, err := c.GetCallerIdentity(context.Background(), &sts.GetCallerIdentityInput{})
 	if err != nil {
@@ -156,7 +171,7 @@ const trustPolicyDocumentTemplate = `{
 		{
 			"Effect": "Allow",
 			"Principal": { "AWS": "%s" },
-			"Action": "sts:AssumeRole",
+			"Action": "sts:AssumeRole"
 		}
 	]
 }`
@@ -164,12 +179,16 @@ const trustPolicyDocumentTemplate = `{
 // attachSSMPoliciesToRole takes a role, calls the IAM API to attach
 // policies required for SSM to the role, and returns the role along
 // with any errors.
-func attachSSMPoliciesToRole(role types.Role) error {
-	c := iam.New(iam.Options{})
+func attachSSMPoliciesToRole(cfg aws.Config, role types.Role) error {
+	c := iam.New(iam.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
 
+	cli.Log.Debug("attaching policy to role")
 	input := &iam.AttachRolePolicyInput{
 		PolicyArn: aws.String("arn:aws:iam::aws:policy/AmazonSSMFullAccess"),
-		RoleName:  aws.String("AmazonSSMFullAccess"),
+		RoleName:  role.RoleName,
 	}
 	_, err := c.AttachRolePolicy(context.Background(), input)
 

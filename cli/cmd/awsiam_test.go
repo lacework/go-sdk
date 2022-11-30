@@ -26,16 +26,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAwsInstallEC2IC(t *testing.T) {
+func TestSSMAccessSetupTeardown(t *testing.T) {
 	if _, ok := os.LookupEnv("AWS_SECRET_ACCESS_KEY"); !ok {
 		t.Skip("aws credentials not found in environment, skipping test")
 	}
-
 	cli.Log = lwlogger.New("DEBUG").Sugar()
-	agentCmdState.InstallTrustHostKey = true
-	agentCmdState.InstallTagKey = "CaptureTheFlagPlayer"
-	cli.NonInteractive()
 
-	err := installAWSEC2IC(nil, nil)
+	cfg, err := GetConfig()
+	assert.NoError(t, err)
+
+	role, err := SetupSSMAccess(cfg, "")
+	assert.NoError(t, err)
+
+	cli.Log.Debugw("got role", "role", role)
+
+	err = TeardownSSMAccess(cfg, role)
 	assert.NoError(t, err)
 }

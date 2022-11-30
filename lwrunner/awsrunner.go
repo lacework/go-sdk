@@ -80,7 +80,7 @@ func (run AWSRunner) RunSession() error {
 		Reason:       aws.String("Lacework CLI agent install"),
 	}
 
-	output, err := c.StartSession(context.Background(), input)
+	_, err := c.StartSession(context.Background(), input)
 	if err != nil {
 		return err
 	}
