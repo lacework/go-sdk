@@ -20,7 +20,6 @@ package lwrunner
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -28,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -136,8 +136,55 @@ func (run AWSRunner) SendPublicKey(pubBytes []byte) error {
 	return nil
 }
 
-func (run AWSRunner) AttachRoleToRunnerInstanceProfile(types.Role) error {
-	return errors.New("TODO not implemented")
+// AssociateInstanceProfileWithRunner associates a given instance profile with the
+// receiving runner. First checks if there are any instance profiles already associated
+// with the runner, and returns an error if so (since a runner can only have one instance
+// profile associated with it). Then associates the instance profile with the runner.
+func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instanceProfile types.InstanceProfile) error {
+	c := ec2.New(ec2.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
+
+	// Check to see if there are any instance profiles already associated with the runner
+	describeInput := &ec2.DescribeIamInstanceProfileAssociationsInput{
+		Filters: []ec2types.Filter{
+			{
+				Name: aws.String("instance-id"),
+				Values: []string{
+					run.InstanceID,
+				},
+			},
+		},
+	}
+	describeOutput, err := c.DescribeIamInstanceProfileAssociations(context.Background(), describeInput)
+	if err != nil {
+		return err
+	}
+
+	// If there is already an instance profile associated with the runner, return an error
+	if len(describeOutput.IamInstanceProfileAssociations) > 0 {
+		return fmt.Errorf(
+			"runner %v already has an instance profile (%v) attached",
+			run,
+			describeOutput.IamInstanceProfileAssociations,
+		)
+	}
+
+	// Associate our own instance profile
+	associateInput := &ec2.AssociateIamInstanceProfileInput{
+		IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
+			Arn:  instanceProfile.Arn,
+			Name: instanceProfile.InstanceProfileName,
+		},
+		InstanceId: aws.String(run.InstanceID),
+	}
+	_, err = c.AssociateIamInstanceProfile(context.Background(), associateInput)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // getAMIName takes an AMI image ID and an AWS region name as input

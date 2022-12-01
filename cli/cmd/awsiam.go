@@ -31,40 +31,72 @@ import (
 // SetupSSMRole sets up an IAM role for SSM and attaches it to
 // the machine's instance profile. Takes role name as argument;
 // pass the empty string to create a new role.
-func SetupSSMAccess(cfg aws.Config, roleName string) (types.Role, error) {
+func SetupSSMAccess(cfg aws.Config, roleName string) (types.Role, types.InstanceProfile, error) {
 	cli.Log.Debugw("setting up role", "passed roleName", roleName)
 	role, err := setupSSMRole(cfg, roleName)
 	if err != nil {
-		return role, err
+		return role, types.InstanceProfile{}, err
 	}
 
 	err = attachSSMPoliciesToRole(cfg, role)
 	if err != nil {
-		return role, err
+		return role, types.InstanceProfile{}, err
 	}
 
-	// TODO do we need to give the user permission to switch to the role?
+	// Create instance profile and add the role to it
+	instanceProfile, err := setupInstanceProfile(cfg, role)
+	if err != nil {
+		return role, instanceProfile, err
+	}
 
-	return role, nil
+	return role, instanceProfile, nil
 }
 
-func TeardownSSMAccess(cfg aws.Config, role types.Role) error {
+// TeardownSSMAccess destroys all the infra created during the execution of this program.
+// Specifically, this function:
+// - Removes the role from the instance profile
+// - Deletes the instance profile
+// - Detaches all managed policies from the role
+//   - This assumes there are no inline policies attached to the role
+// - Deletes the role
+func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile) error {
 	c := iam.New(iam.Options{
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
 	})
 
+	// Remove role from instance profile
+	cli.Log.Debugw("removing role from instance profile", "role", role, "instance profile", instanceProfile)
+	removeInput := &iam.RemoveRoleFromInstanceProfileInput{
+		InstanceProfileName: instanceProfile.InstanceProfileName,
+		RoleName:            role.RoleName,
+	}
+	_, err := c.RemoveRoleFromInstanceProfile(context.Background(), removeInput)
+	if err != nil {
+		return err
+	}
+
+	// Delete instance profile
+	cli.Log.Debugw("deleting instance profile", "instance profile", instanceProfile)
+	deleteProfileInput := &iam.DeleteInstanceProfileInput{
+		InstanceProfileName: instanceProfile.InstanceProfileName,
+	}
+	_, err = c.DeleteInstanceProfile(context.Background(), deleteProfileInput)
+	if err != nil {
+		return err
+	}
+
 	// List managed policies attached to this role (assume there are no inline policies)
 	listInput := &iam.ListAttachedRolePoliciesInput{
 		RoleName: role.RoleName,
 	}
-	output, err := c.ListAttachedRolePolicies(context.Background(), listInput)
+	listOutput, err := c.ListAttachedRolePolicies(context.Background(), listInput)
 	if err != nil {
 		return err
 	}
 
 	// Detach managed policies
-	for _, attachedPolicy := range output.AttachedPolicies {
+	for _, attachedPolicy := range listOutput.AttachedPolicies {
 		cli.Log.Debugw("detaching policy", "policy", attachedPolicy, "role", role)
 		detachInput := &iam.DetachRolePolicyInput{
 			PolicyArn: attachedPolicy.PolicyArn,
@@ -78,10 +110,10 @@ func TeardownSSMAccess(cfg aws.Config, role types.Role) error {
 
 	// Delete the role
 	cli.Log.Debugw("deleting role", "role", role)
-	deleteInput := &iam.DeleteRoleInput{
+	deleteRoleInput := &iam.DeleteRoleInput{
 		RoleName: role.RoleName,
 	}
-	_, err = c.DeleteRole(context.Background(), deleteInput)
+	_, err = c.DeleteRole(context.Background(), deleteRoleInput)
 	if err != nil {
 		return err
 	}
@@ -193,4 +225,32 @@ func attachSSMPoliciesToRole(cfg aws.Config, role types.Role) error {
 	_, err := c.AttachRolePolicy(context.Background(), input)
 
 	return err
+}
+
+func setupInstanceProfile(cfg aws.Config, role types.Role) (types.InstanceProfile, error) {
+	c := iam.New(iam.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
+
+	cli.Log.Debug("creating instance profile")
+	createInput := &iam.CreateInstanceProfileInput{
+		InstanceProfileName: aws.String("Lacework-Agent-SSM-Install-Instance-Profile"),
+	}
+	createOutput, err := c.CreateInstanceProfile(context.Background(), createInput)
+	if err != nil {
+		return types.InstanceProfile{}, err
+	}
+
+	cli.Log.Debugw("adding role to new instance profile", "role", role, "instance profile", createOutput.InstanceProfile)
+	addInput := &iam.AddRoleToInstanceProfileInput{
+		InstanceProfileName: createOutput.InstanceProfile.InstanceProfileName,
+		RoleName:            role.RoleName,
+	}
+	_, err = c.AddRoleToInstanceProfile(context.Background(), addInput)
+	if err != nil {
+		return types.InstanceProfile{}, err
+	}
+
+	return *createOutput.InstanceProfile, nil
 }

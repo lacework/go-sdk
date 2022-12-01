@@ -112,7 +112,11 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 	}
 
 	cfg, err := GetConfig()
-	role, err := SetupSSMAccess(cfg, agentCmdState.InstallBYORole)
+	if err != nil {
+		return err
+	}
+	role, instanceProfile, err := SetupSSMAccess(cfg, agentCmdState.InstallBYORole)
+	defer TeardownSSMAccess(cfg, role, instanceProfile) // clean up after ourselves
 	if err != nil {
 		return err
 	}
@@ -141,9 +145,14 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				"hostname", threadRunner.Runner.Hostname,
 			)
 
-			err := threadRunner.AttachRoleToRunnerInstanceProfile(role)
+			// Attach an instance profile with our new role to the runner
+			err := threadRunner.AssociateInstanceProfileWithRunner(cfg, instanceProfile)
 			if err != nil {
-				cli.Log.Debugw("failed to attach role to runner instance profile", "role")
+				cli.Log.Debugw("failed to attach instance profile to runner",
+					"runner", threadRunner,
+					"role", role,
+					"instance profile", instanceProfile,
+				)
 				return
 			}
 
