@@ -31,15 +31,16 @@ func TestSSMAccessSetupTeardown(t *testing.T) {
 		t.Skip("aws credentials not found in environment, skipping test")
 	}
 	cli.Log = lwlogger.New("DEBUG").Sugar()
+	const userFlagRoleName string = ""
 
 	cfg, err := GetConfig()
 	assert.NoError(t, err)
 
-	role, instanceProfile, err := SetupSSMAccess(cfg, "")
+	role, instanceProfile, err := SetupSSMAccess(cfg, userFlagRoleName)
 	assert.NoError(t, err)
 
 	cli.Log.Debugw("got infra", "role", role, "instance profile", instanceProfile)
 
-	err = TeardownSSMAccess(cfg, role, instanceProfile)
+	err = TeardownSSMAccess(cfg, role, instanceProfile, userFlagRoleName)
 	assert.NoError(t, err)
 }

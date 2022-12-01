@@ -59,7 +59,7 @@ func SetupSSMAccess(cfg aws.Config, roleName string) (types.Role, types.Instance
 // - Detaches all managed policies from the role
 //   - This assumes there are no inline policies attached to the role
 // - Deletes the role
-func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile) error {
+func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile, byoRoleName string) error {
 	c := iam.New(iam.Options{
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
@@ -84,6 +84,10 @@ func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 	_, err = c.DeleteInstanceProfile(context.Background(), deleteProfileInput)
 	if err != nil {
 		return err
+	}
+
+	if byoRoleName != "" { // user brought their own role, we should not delete it
+		return nil
 	}
 
 	// List managed policies attached to this role (assume there are no inline policies)
@@ -159,6 +163,16 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
 	})
+	const roleName string = "Lacework-Agent-SSM-Install-Role"
+
+	// Check if role already exists (in case CLI is run after interrupt or error)
+	getInput := &iam.GetRoleInput{
+		RoleName: aws.String(roleName),
+	}
+	getOutput, err := c.GetRole(context.Background(), getInput)
+	if err == nil && getOutput.Role != nil {
+		return *getOutput.Role, err // we previously created the role, use it
+	}
 
 	currentUserARN, err := getCurrentUserARN(cfg)
 	if err != nil {
@@ -169,7 +183,7 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 
 	input := &iam.CreateRoleInput{
 		AssumeRolePolicyDocument: &trustPolicyDocument,
-		RoleName:                 aws.String("Lacework-Agent-SSM-Install-Role"),
+		RoleName:                 aws.String(roleName),
 		Description: aws.String(
 			`Ephemeral role to install Lacework agents using SSM; created by the Lacework CLI.
 			Safe to delete if found`,
@@ -228,29 +242,79 @@ func attachSSMPoliciesToRole(cfg aws.Config, role types.Role) error {
 }
 
 func setupInstanceProfile(cfg aws.Config, role types.Role) (types.InstanceProfile, error) {
+	instanceProfile, err := createInstanceProfile(cfg)
+	if err != nil {
+		return instanceProfile, err
+	}
+
+	err = addRoleToInstanceProfile(cfg, role, instanceProfile)
+	if err != nil {
+		return types.InstanceProfile{}, err
+	}
+
+	return instanceProfile, nil
+}
+
+func createInstanceProfile(cfg aws.Config) (types.InstanceProfile, error) {
 	c := iam.New(iam.Options{
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
 	})
 
+	// Check if instance profile already exists (in case CLI is run after interrupt or error)
+	getInput := &iam.GetInstanceProfileInput{
+		InstanceProfileName: aws.String(instanceProfileName),
+	}
+	getOutput, err := c.GetInstanceProfile(context.Background(), getInput)
+	if err == nil && getOutput.InstanceProfile != nil {
+		return *getOutput.InstanceProfile, err // we previously created the profile, use it
+	}
+
 	cli.Log.Debug("creating instance profile")
 	createInput := &iam.CreateInstanceProfileInput{
-		InstanceProfileName: aws.String("Lacework-Agent-SSM-Install-Instance-Profile"),
+		InstanceProfileName: aws.String(instanceProfileName),
 	}
 	createOutput, err := c.CreateInstanceProfile(context.Background(), createInput)
 	if err != nil {
 		return types.InstanceProfile{}, err
 	}
 
-	cli.Log.Debugw("adding role to new instance profile", "role", role, "instance profile", createOutput.InstanceProfile)
-	addInput := &iam.AddRoleToInstanceProfileInput{
-		InstanceProfileName: createOutput.InstanceProfile.InstanceProfileName,
-		RoleName:            role.RoleName,
-	}
-	_, err = c.AddRoleToInstanceProfile(context.Background(), addInput)
-	if err != nil {
-		return types.InstanceProfile{}, err
+	return *createOutput.InstanceProfile, err
+}
+
+const instanceProfileName string = "Lacework-Agent-SSM-Install-Instance-Profile"
+
+func addRoleToInstanceProfile(cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile) error {
+	c := iam.New(iam.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
+
+	cli.Log.Debugw("checking if the role is already associated with the instance profile")
+	if len(instanceProfile.Roles) > 0 {
+		cli.Log.Debugw(
+			"found a role already associated with the instance profile",
+			"found role", instanceProfile.Roles[0],
+			"our role", role,
+		)
+		if *instanceProfile.Roles[0].Arn == *role.Arn {
+			return nil // the correct role is already attached to the instance profile
+		} else { // someone else modified this instance profile. Fail now
+			return fmt.Errorf(
+				"tried to use role %s but pre-existing instance profile %s already has role %s",
+				*role.Arn,
+				instanceProfileName,
+				*instanceProfile.Roles[0].Arn,
+			)
+		}
 	}
 
-	return *createOutput.InstanceProfile, nil
+	cli.Log.Debugw("adding role to instance profile", "role", role, "instance profile", instanceProfile)
+	addInput := &iam.AddRoleToInstanceProfileInput{
+		InstanceProfileName: instanceProfile.InstanceProfileName,
+		RoleName:            role.RoleName,
+	}
+	_, err := c.AddRoleToInstanceProfile(context.Background(), addInput)
+
+	return err
 }
