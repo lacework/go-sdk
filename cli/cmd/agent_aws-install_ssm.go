@@ -19,14 +19,9 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/gammazero/workerpool"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -152,31 +147,31 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 
 			// TODO Remove me, debug code
 			// BEGIN DEBUG CODE
-			c := ec2.New(ec2.Options{
-				Credentials: cfg.Credentials,
-				Region:      cfg.Region,
-			})
-			// test that the instance profile association fails
-			associateInput := &ec2.AssociateIamInstanceProfileInput{ // PLOT TWIST IT WORKED
-				IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
-					Arn: instanceProfile.Arn,
-					// Arn: aws.String("arn:aws:iam::561021084946:instance-profile/Lacework-Agent-SSM-Install-Instance-Profile"),
-					// Arn: aws.String("arn:aws:iam::561021084946:instance-profile/Test-Debugging-Instance-Profile-Additional-Chars-Lacework-Agent-SSM-Install-Instance-Profile"),
-				},
-				InstanceId: aws.String(threadRunner.InstanceID),
-			}
-			associateOutput, err := c.AssociateIamInstanceProfile(context.Background(), associateInput)
-			// the association might have failed because the instance profile didn't exist
-			// look it up again to see if this is true
-			getInstanceProfileInput := &iam.GetInstanceProfileInput{
-				InstanceProfileName: instanceProfile.InstanceProfileName,
-			}
-			iamClient := iam.New(iam.Options{
-				Credentials: cfg.Credentials,
-				Region:      cfg.Region,
-			})
-			instanceProfOut, _ := iamClient.GetInstanceProfile(context.Background(), getInstanceProfileInput)
-			cli.Log.Debugw("DEBUG instance profile associations", "output", associateOutput, "error", err, "instance profile", instanceProfile, "fresh lookup of instance profile", instanceProfOut)
+			// c := ec2.New(ec2.Options{
+			// 	Credentials: cfg.Credentials,
+			// 	Region:      cfg.Region,
+			// })
+			// // test that the instance profile association fails
+			// associateInput := &ec2.AssociateIamInstanceProfileInput{ // PLOT TWIST IT WORKED
+			// 	IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
+			// 		Arn: instanceProfile.Arn,
+			// 		// Arn: aws.String("arn:aws:iam::561021084946:instance-profile/Lacework-Agent-SSM-Install-Instance-Profile"),
+			// 		// Arn: aws.String("arn:aws:iam::561021084946:instance-profile/Test-Debugging-Instance-Profile-Additional-Chars-Lacework-Agent-SSM-Install-Instance-Profile"),
+			// 	},
+			// 	InstanceId: aws.String(threadRunner.InstanceID),
+			// }
+			// associateOutput, err := c.AssociateIamInstanceProfile(context.Background(), associateInput)
+			// // the association might have failed because the instance profile didn't exist
+			// // look it up again to see if this is true
+			// getInstanceProfileInput := &iam.GetInstanceProfileInput{
+			// 	InstanceProfileName: instanceProfile.InstanceProfileName,
+			// }
+			// iamClient := iam.New(iam.Options{
+			// 	Credentials: cfg.Credentials,
+			// 	Region:      cfg.Region,
+			// })
+			// instanceProfOut, _ := iamClient.GetInstanceProfile(context.Background(), getInstanceProfileInput)
+			// cli.Log.Debugw("DEBUG instance profile associations", "output", associateOutput, "error", err, "instance profile", instanceProfile, "fresh lookup of instance profile", instanceProfOut)
 			// END DEBUG CODE
 
 			// Attach an instance profile with our new role to the runner
