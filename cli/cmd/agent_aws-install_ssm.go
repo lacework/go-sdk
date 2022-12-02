@@ -116,7 +116,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		return err
 	}
 	role, instanceProfile, err := SetupSSMAccess(cfg, agentCmdState.InstallBYORole)
-	// defer TeardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
+	defer TeardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
 	if err != nil {
 		return err
 	}

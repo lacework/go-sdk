@@ -21,6 +21,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -278,6 +279,9 @@ func createInstanceProfile(cfg aws.Config) (types.InstanceProfile, error) {
 	if err != nil {
 		return types.InstanceProfile{}, err
 	}
+
+	// Sleep for 15sec to wait for the instance profile to "settle in"
+	time.Sleep(15 * time.Second)
 
 	return *createOutput.InstanceProfile, err
 }

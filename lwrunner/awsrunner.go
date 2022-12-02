@@ -162,20 +162,27 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 		return err
 	}
 
-	// If there is already an instance profile associated with the runner, return an error
+	// Logic for when there is already an instance profile associated with the runner
+	// If the CLI fails or is interrupted, this may be our instance profile
 	if len(describeOutput.IamInstanceProfileAssociations) > 0 {
-		return fmt.Errorf(
-			"runner %v already has an instance profile (%v) attached",
-			run,
-			describeOutput.IamInstanceProfileAssociations[0],
-		)
+		foundArn := *describeOutput.IamInstanceProfileAssociations[0].IamInstanceProfile.Arn
+		if foundArn == *instanceProfile.Arn { // found our instance profile associated, use it
+			// should already have the role attached if it was associated
+			return nil
+		} else {
+			return fmt.Errorf(
+				"runner %v already has an instance profile (%v) attached",
+				run,
+				describeOutput.IamInstanceProfileAssociations[0],
+			)
+		}
 	}
 
 	// Associate our own instance profile
 	associateInput := &ec2.AssociateIamInstanceProfileInput{
 		IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
-			// Arn: instanceProfile.Arn,
-			Arn: aws.String("arn:aws:iam::561021084946:instance-profile/Lacework-Agent-SSM-Install-Instance-Profile"),
+			Arn: instanceProfile.Arn,
+			// Arn: aws.String("arn:aws:iam::561021084946:instance-profile/Lacework-Agent-SSM-Install-Instance-Profile"),
 			// Name: instanceProfile.InstanceProfileName,
 		},
 		InstanceId: aws.String(run.InstanceID),
