@@ -167,15 +167,16 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 		return fmt.Errorf(
 			"runner %v already has an instance profile (%v) attached",
 			run,
-			describeOutput.IamInstanceProfileAssociations,
+			describeOutput.IamInstanceProfileAssociations[0],
 		)
 	}
 
 	// Associate our own instance profile
 	associateInput := &ec2.AssociateIamInstanceProfileInput{
 		IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
-			Arn:  instanceProfile.Arn,
-			Name: instanceProfile.InstanceProfileName,
+			// Arn: instanceProfile.Arn,
+			Arn: aws.String("arn:aws:iam::561021084946:instance-profile/Lacework-Agent-SSM-Install-Instance-Profile"),
+			// Name: instanceProfile.InstanceProfileName,
 		},
 		InstanceId: aws.String(run.InstanceID),
 	}
@@ -183,6 +184,7 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 	if err != nil {
 		return err
 	}
+	fmt.Println("successfully associated with instance ID", run.InstanceID)
 
 	return nil
 }
