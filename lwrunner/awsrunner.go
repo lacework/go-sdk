@@ -182,8 +182,6 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 	associateInput := &ec2.AssociateIamInstanceProfileInput{
 		IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
 			Arn: instanceProfile.Arn,
-			// Arn: aws.String("arn:aws:iam::561021084946:instance-profile/Lacework-Agent-SSM-Install-Instance-Profile"),
-			// Name: instanceProfile.InstanceProfileName,
 		},
 		InstanceId: aws.String(run.InstanceID),
 	}
