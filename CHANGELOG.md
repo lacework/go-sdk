@@ -1,3 +1,10 @@
+# v1.1.1
+
+## Bug Fixes
+* fix: fix vuln ctr fail_on_severity (#1048) (Darren)([dcf79d3f](https://github.com/lacework/go-sdk/commit/dcf79d3fabe9465deff1127f5730c9ae4d67b6a9))
+## Other Changes
+* ci: version bump to v1.1.1-dev (Lacework)([b1e7b28c](https://github.com/lacework/go-sdk/commit/b1e7b28ce432b053a093bb0951f538f393c5b3a4))
+---
 # v1.1.0
 
 ## Features
