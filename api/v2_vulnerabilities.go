@@ -177,9 +177,8 @@ type VulnerabilitiesContainersResponse struct {
 }
 
 func (r VulnerabilitiesContainersResponse) HighestSeverity() string {
-	var (
-		sevs []lwseverity.Severity
-	)
+	var sevs []lwseverity.Severity
+
 	for _, vuln := range r.Data {
 		sevs = append(sevs, lwseverity.NewSeverity(vuln.Severity))
 	}
