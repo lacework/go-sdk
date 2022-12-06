@@ -35,7 +35,7 @@ var (
 		RunE:  installGCPOSL,
 		Long: `This command installs the agent on all GCE instances in a GCP organization using OSLogin.
 
-The username of the GCP user or service account, in the form 'users/<username>', is a
+The username of the GCP user or service account, in the form ` + "`users/<username>`" + `, is a
 required argument.
 
 This command will attempt to query the GCE metadata server for the current project. If this

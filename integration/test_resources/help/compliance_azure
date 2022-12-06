@@ -27,7 +27,7 @@ Aliases:
 Available Commands:
   get-report         Get the latest Azure compliance report
   list               List Azure tenants and subscriptions
-  list-subscriptions List subscriptions <tenant-id>
+  list-subscriptions List subscriptions `<tenant-id>`
 
 Flags:
   -h, --help   help for azure
