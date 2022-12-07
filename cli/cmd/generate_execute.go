@@ -344,9 +344,9 @@ func provideGuidanceAfterSuccess(workingDir string, laceworkProfile string) stri
 	fmt.Fprintf(out, "Lacework integration was successful! Terraform code saved in %s\n\n", workingDir)
 	fmt.Fprintln(out, "To view integration status:")
 
-	laceworkCmd := "    lacework integration list\n\n"
+	laceworkCmd := "    lacework cloud-account list\n\n"
 	if laceworkProfile != "" {
-		laceworkCmd = fmt.Sprintf("    lacework -p %s integration list\n\n", laceworkProfile)
+		laceworkCmd = fmt.Sprintf("    lacework -p %s cloud-account list\n\n", laceworkProfile)
 	}
 	fmt.Fprint(out, laceworkCmd)
 

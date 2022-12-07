@@ -75,7 +75,7 @@ Then, when you run a command, you can specify a `--profile prod` and use the
 credentials and settings stored under that name.
 
 ```bash
-lacework integration list --profile prod
+lacework cloud-account list --profile prod
 ```
 
 If there is no `--profile` option, the CLI will default to the `default` profile.
