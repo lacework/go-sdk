@@ -27,6 +27,15 @@ func (svc *CloudAccountsService) GetGcpSidekick(guid string) (
 	return
 }
 
+// CreateGcpSidekick creates an GcpSidekick Cloud Account integration
+func (svc *CloudAccountsService) CreateGcpSidekick(data CloudAccount) (
+	response GcpSidekickIntegrationResponse,
+	err error,
+) {
+	err = svc.create(data, &response)
+	return
+}
+
 // UpdateGcpSidekick updates a single GcpSidekick integration on the Lacework Server
 func (svc *CloudAccountsService) UpdateGcpSidekick(data CloudAccount) (
 	response GcpSidekickIntegrationResponse,
@@ -40,9 +49,15 @@ type GcpSidekickIntegrationResponse struct {
 	Data V2GcpSidekickIntegration `json:"data"`
 }
 
+type GcpSidekickToken struct {
+	ServerToken string `json:"serverToken"`
+	Uri         string `json:"uri"`
+}
+
 type V2GcpSidekickIntegration struct {
 	v2CommonIntegrationData
-	Data GcpSidekickData `json:"data"`
+	GcpSidekickToken `json:"serverToken"`
+	Data             GcpSidekickData `json:"data"`
 }
 
 type GcpSidekickData struct {
