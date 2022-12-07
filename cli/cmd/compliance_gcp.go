@@ -254,7 +254,7 @@ To show recommendation details and affected resources for a recommendation id:
 						TenantID:        report.OrganizationID,
 						AccountName:     report.ProjectName,
 						AccountID:       report.ProjectID,
-						ReportType:      report.ReportType,
+						ReportType:      reportType.String(),
 						ReportTime:      report.ReportTime,
 						Recommendations: report.Recommendations,
 					},
