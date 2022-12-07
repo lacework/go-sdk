@@ -679,7 +679,10 @@ func promptAwsEksAuditAdditionalClusterRegionQuestions(
 	extraState *AwsEksAuditGenerateCommandExtraState,
 ) error {
 	// For each region, collect which clusters to integrate with
-	askAgain := true
+	askAgain := false
+	if cli.InteractiveMode() {
+		askAgain = true
+	}
 
 	if config.ParsedRegionClusterMap == nil {
 		config.ParsedRegionClusterMap = make(map[string][]string)
