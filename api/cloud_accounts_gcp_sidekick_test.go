@@ -139,6 +139,7 @@ func TestCloudAccountsGcpSidekickGet(t *testing.T) {
 	assert.Equal(t, "tokenTest", integrationData.Credentials.TokenUri)
 	assert.Equal(t, "proj1,proj2", integrationData.FilterList)
 	assert.Equal(t, "queryText", integrationData.QueryText)
+	assert.Equal(t, "token_"+integration.IntgGuid, integration.ServerToken)
 }
 
 func TestCloudAccountsGcpSidekickUpdate(t *testing.T) {
@@ -268,7 +269,10 @@ func getGcpData(id string, data api.GcpSidekickData) string {
   		"scanFrequency": ` + scanFrequency + `,
   		"scanContainers":  ` + scanContainers + `,
   		"scanHostVulnerabilities": ` + scanHostVulnerabilities + `
-  	}
+	},
+	"serverToken": {
+		"serverToken": "token_` + id + `"
+	}
   }
   `
 }
