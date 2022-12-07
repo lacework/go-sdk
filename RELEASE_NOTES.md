@@ -2,12 +2,9 @@
 Another day, another release. These are the release notes for the version `v1.1.2`.
 
 ## Bug Fixes
-* fix: generate success message (#1056) (jonathan stewart)([57c282c5](https://github.com/lacework/go-sdk/commit/57c282c5b30d2110e52bf9ec3e25865f2df8b37a))
-* fix: generate EKS non-interactive (#1055) (jonathan stewart)([7fbb78fc](https://github.com/lacework/go-sdk/commit/7fbb78fc0a9cdbb11c045d449c0d77ad0099ce50))
-## Documentation Updates
-* docs: fix documentation autogeneration (#1050) (Darren)([80106749](https://github.com/lacework/go-sdk/commit/80106749c054a05bc3a3bf4fde00131ad4897a1d))
+* fix: fix 1.1.2 release (#1059) (Darren)([07c7a7c3](https://github.com/lacework/go-sdk/commit/07c7a7c369fc7c4ac31a424b414bf8f2763bc5a5))
 ## Other Changes
-* ci: version bump to v1.1.2-dev (Lacework)([75c91670](https://github.com/lacework/go-sdk/commit/75c9167046643f17e9636a68deb14f5dcd44f343))
+* ci: version bump to v1.1.3-dev (Lacework)([5dda8bca](https://github.com/lacework/go-sdk/commit/5dda8bca17f3f83ac48245c72352a75b367a3b03))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
