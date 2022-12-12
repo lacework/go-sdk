@@ -31,12 +31,17 @@ jobs:
           make prepare
           make build-cli-cross-platform
 
+      - name: compress
+        run: |
+          tar -czf ./bin/lacework-cli-linux-amd64.tar.gz ./bin/lacework-cli-linux-amd64
+          tar -czf ./bin/lacework-cli-linux-arm64.tar.gz ./bin/lacework-cli-linux-arm64
+
       - name: upload-linux-amd64
         uses: actions/upload-artifact@v3
         with:
           name: lacework-cli-linux-amd64
           path: |
-            ./bin/lacework-cli-linux-amd64
+            ./bin/lacework-cli-linux-amd64.tar.gz
           if-no-files-found: error
 
       - name: upload-linux-arm64
@@ -44,5 +49,5 @@ jobs:
         with:
           name: lacework-cli-linux-arm64
           path: |
-            ./bin/lacework-cli-linux-arm64
+            ./bin/lacework-cli-linux-arm64.tar.gz
           if-no-files-found: error
