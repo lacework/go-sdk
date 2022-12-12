@@ -17,20 +17,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Put back the git branch into git (Earthly uses it for tagging)
+
+      - name: checkout
         run: |
           git checkout -b "$GITHUB_HEAD_REF" || true
 
       - uses: actions/setup-go@v3
-      - name: build
         with:
           go-version: '1.18.9'
+
+      - name: build
         run: |
           GOFLAGS=-mod=readonly go install github.com/mitchellh/gox@v1.0.1
           make prepare
           make build-cli-cross-platform
 
-      - uses: actions/upload-artifact@master
+      - name: upload
+        uses: actions/upload-artifact@master
         with:
           name: lacework-dev
           path: ./bin
