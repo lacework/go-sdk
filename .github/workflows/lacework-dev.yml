@@ -33,7 +33,10 @@ jobs:
           make build-cli-cross-platform
 
       - name: upload
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: lacework-dev
-          path: ./bin
+          path: |
+            ./bin/lacework-cli-linux-amd64
+            ./bin/lacework-cli-linux-arm64
+          if-no-files-found: error
