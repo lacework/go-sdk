@@ -20,13 +20,14 @@ package cmd
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 
 	"github.com/lacework/go-sdk/api"
 )
 
-func createInlineScannerIntegration() error {
+func createProxyScannerIntegration() error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -34,22 +35,32 @@ func createInlineScannerIntegration() error {
 			Validate: survey.Required,
 		},
 		{
-			Name: "identifier_tag",
-			Prompt: &survey.Multiline{
-				Message: "List of 'key:value' tags:",
+			Name: "limit_tag",
+			Prompt: &survey.Input{
+				Message: "Limit by Tag: ",
 				Default: "*",
 			},
 		},
 		{
-			Name: "limit_num_scan",
+			Name: "limit_label",
+			Prompt: &survey.Multiline{
+				Message: "List of 'key:value' labels:",
+				Default: "*",
+			},
+		},
+		{
+			Name: "limit_repos",
+			Prompt: &survey.Input{
+				Message: "Limit by Repository: ",
+				Default: "*",
+			},
+		},
+		{
+			Name: "limit_max_images",
 			Prompt: &survey.Select{
-				Message: "Limit number of scans: ",
-				Default: "60",
+				Message: "Limit Number of Images per Repo: ",
 				Options: []string{
 					"5", "10", "15",
-					"20", "25", "30",
-					"35", "40", "45",
-					"50", "55", "60",
 				},
 			},
 			Validate: survey.Required,
@@ -57,9 +68,11 @@ func createInlineScannerIntegration() error {
 	}
 
 	answers := struct {
-		Name          string
-		IdentifierTag string `survey:"identifier_tag"`
-		LimitNumScan  string `survey:"limit_num_scan"`
+		Name           string
+		LimitTag       string `survey:"limit_tag"`
+		LimitLabel     string `survey:"limit_label"`
+		LimitRepos     string `survey:"limit_repos"`
+		LimitMaxImages string `survey:"limit_max_images"`
 	}{}
 
 	if err := survey.Ask(questions, &answers,
@@ -68,26 +81,30 @@ func createInlineScannerIntegration() error {
 		return err
 	}
 
-	limitNumScan, err := strconv.Atoi(answers.LimitNumScan)
+	limitMaxImages, err := strconv.Atoi(answers.LimitMaxImages)
 	if err != nil {
-		cli.Log.Warnw("unable to convert limit_num_scan, using default",
+		cli.Log.Warnw("unable to convert limit_max_images, using default",
 			"error", err,
-			"input", answers.LimitNumScan,
-			"default", "60",
+			"input", answers.LimitMaxImages,
+			"default", "5",
 		)
-		limitNumScan = 60
+		limitMaxImages = 5
 	}
 
-	inline := api.NewContainerRegistry(answers.Name,
-		api.InlineScannerContainerRegistry,
-		api.InlineScannerData{
-			IdentifierTag: castStringToLimitByLabel(answers.IdentifierTag),
-			LimitNumScan:  strconv.Itoa(limitNumScan),
+	proxy := api.NewContainerRegistry(
+		answers.Name,
+		api.ProxyScannerContainerRegistry,
+		api.ProxyScannerData{
+			RegistryType: api.ProxyScannerContainerRegistry.String(),
+			LimitByTag:   strings.Split(answers.LimitTag, "\n"),
+			LimitByLabel: castStringToLimitByLabel(answers.LimitLabel),
+			LimitByRep:   strings.Split(answers.LimitRepos, "\n"),
+			LimitNumImg:  limitMaxImages,
 		},
 	)
 
 	cli.StartProgress("Creating integration...")
-	_, err = cli.LwApi.V2.ContainerRegistries.Create(inline)
+	_, err = cli.LwApi.V2.ContainerRegistries.Create(proxy)
 	cli.StopProgress()
 	return err
 }
