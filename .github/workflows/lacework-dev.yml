@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
-
     steps:
       - uses: actions/checkout@v3
 
@@ -32,11 +31,18 @@ jobs:
           make prepare
           make build-cli-cross-platform
 
-      - name: upload
+      - name: upload-linux-amd64
         uses: actions/upload-artifact@v3
         with:
-          name: lacework-dev
+          name: lacework-cli-linux-amd64
           path: |
             ./bin/lacework-cli-linux-amd64
+          if-no-files-found: error
+
+      - name: upload-linux-arm64
+        uses: actions/upload-artifact@v3
+        with:
+          name: lacework-cli-linux-arm64
+          path: |
             ./bin/lacework-cli-linux-arm64
           if-no-files-found: error
