@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
