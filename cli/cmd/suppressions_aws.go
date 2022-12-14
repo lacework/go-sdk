@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/fatih/color"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
@@ -211,13 +212,14 @@ func suppressionsAwsMigrate(_ *cobra.Command, _ []string) error {
 		discardedSuppressions     []map[string]api.SuppressionV2
 	)
 	answer := ""
-	manualMigration := "Output translated legacy suppressions as policy exception commands to be run manually"
-	autoMigration := "Auto migrate legacy suppressions. DISCLAIMER: " +
-		"By selecting this option, you accept responsibility for " +
-		"the migration and any compliance violations missed as a result of the added exceptions"
+	manualMigration := "Output translated legacy suppressions as policy exception commands to be" +
+		" run manually (Recommended)"
+	autoMigration := "Auto migrate legacy suppressions.\nDISCLAIMER: " +
+		"By selecting this option, you accept liability for the migration and " +
+		"any compliance violations missed as a result of the added exceptions"
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt: &survey.Select{
-			Message: "Which migration approach would you like to take?",
+			Message: "Select your legacy suppression migration approach?",
 			Options: []string{
 				manualMigration,
 				autoMigration,
@@ -244,7 +246,7 @@ func suppressionsAwsMigrate(_ *cobra.Command, _ []string) error {
 		printConvertedSuppressions(convertedPolicyExceptions)
 		confirm := false
 		err := survey.AskOne(&survey.Confirm{
-			Message: "Confirm that you have reviewed the above exceptions and wish to continue" +
+			Message: "Confirm the above exceptions have been reviewed and you wish to continue" +
 				" with the auto migration.",
 		}, &confirm)
 		if err != nil {
@@ -253,8 +255,8 @@ func suppressionsAwsMigrate(_ *cobra.Command, _ []string) error {
 		if confirm {
 			autoConvertAwsSuppressions(convertedPolicyExceptions)
 			printDiscardedSuppressions(discardedSuppressions)
-			cli.OutputHuman("To view the newly created Exceptions, " +
-				"try running `lacework policy-exceptions list <policyId>")
+			cli.OutputHuman(color.GreenString("To view the newly created Exceptions, " +
+				"try running `lacework policy-exceptions list <policyId>"))
 		} else {
 			cli.OutputHuman("Cancelled Legacy Suppression to Exception migration!")
 		}
@@ -270,10 +272,13 @@ func autoConvertAwsSuppressions(convertedPolicyExceptions []map[string]api.Polic
 			response, err := cli.LwApi.V2.Policy.Exceptions.Create(policyId, exception)
 			if err != nil {
 				cli.Log.Debug(err, "unable to create exception")
+				cli.OutputHuman(color.RedString(
+					"Error creating policy exception to create exception. %e"),
+					err)
 				continue
 			}
 			cli.OutputHuman("Exception created for PolicyId: %s - ExceptionId: %s\n\n",
-				policyId, response.Data.ExceptionID)
+				color.GreenString(policyId), color.BlueString(response.Data.ExceptionID))
 		}
 	}
 
@@ -394,9 +399,9 @@ func convertAwsSuppressions(suppressionsMap map[string]api.SuppressionV2) ([]map
 
 func printPayloadsText(payloadsText []string) {
 	if len(payloadsText) >= 1 {
-		cli.OutputHuman("#### Legacy Suppressions --> Exceptions payloads\n")
+		cli.OutputHuman(color.YellowString("#### Legacy Suppressions --> Exceptions payloads\n\n"))
 		for _, payload := range payloadsText {
-			cli.OutputHuman("%s \n\n", payload)
+			cli.OutputHuman(color.GreenString("%s \n\n", payload))
 		}
 	} else {
 		cli.OutputHuman("No legacy suppressions found that could be migrated\n")
@@ -405,30 +410,32 @@ func printPayloadsText(payloadsText []string) {
 
 func printConvertedSuppressions(convertedSuppressions []map[string]api.PolicyException) {
 	if len(convertedSuppressions) >= 1 {
-		cli.OutputHuman("#### Converted legacy suppressions in Policy Exception format\n")
+		cli.OutputHuman(color.YellowString("#### Converted legacy suppressions in Policy Exception" +
+			" format" +
+			"\n"))
 		for _, exception := range convertedSuppressions {
-			b, err := json.Marshal(exception)
+			err := cli.OutputJSON(exception)
 			if err != nil {
 				return
 			}
-			cli.OutputHuman("%s \n\n", string(b))
 		}
-		cli.OutputHuman("WARNING: Before continuing, " +
+		colorizeR := color.New(color.FgRed, color.Bold)
+		cli.OutputHuman(colorizeR.Sprintf("WARNING: Before continuing, " +
 			"please thoroughly inspect the above exceptions to ensure they are valid and" +
-			" required. Lacework is not responsible for any compliance violations missed as a " +
-			"result of the above exceptions!\n\n")
+			" required. By continuing, you accept liability for any compliance violations" +
+			" missed as a result of the above exceptions!\n\n"))
+
 	}
 }
 
 func printDiscardedSuppressions(discardedSuppressions []map[string]api.SuppressionV2) {
 	if len(discardedSuppressions) >= 1 {
-		cli.OutputHuman("#### Discarded legacy suppressions\n")
+		cli.OutputHuman(color.YellowString("#### Discarded legacy suppressions\n"))
 		for _, suppression := range discardedSuppressions {
-			b, err := json.Marshal(suppression)
+			err := cli.OutputJSON(suppression)
 			if err != nil {
 				return
 			}
-			cli.OutputHuman("%s \n\n", string(b))
 		}
 	}
 }
