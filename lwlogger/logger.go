@@ -33,7 +33,7 @@ import (
 var (
 	// LogLevelEnv represents the level that the logger is configured
 	LogLevelEnv        = "LW_LOG"
-	SupportedLogLevels = [3]string{"", "INFO", "DEBUG"}
+	SupportedLogLevels = [4]string{"", "ERROR", "INFO", "DEBUG"}
 
 	// LogFormatEnv controls the format of the logger
 	LogFormatEnv        = "LW_LOG_FORMAT"
@@ -121,6 +121,8 @@ func LogLevelFromEnvironment() string {
 		return "INFO"
 	case "debug", "DEBUG":
 		return "DEBUG"
+	case "error", "ERROR":
+		return "ERROR"
 	default:
 		return ""
 	}
