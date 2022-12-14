@@ -29,6 +29,7 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
 	"github.com/lacework/go-sdk/lwseverity"
@@ -590,6 +591,13 @@ func buildPolicyDetailsTable(policy api.Policy) string {
 		{"UPDATED BY", policy.LastUpdateUser},
 		{"EVALUATION FREQUENCY", policy.EvalFrequency},
 	}
+	// append VALID EXCEPTION CONSTRAINTS to the table when the ExceptionConfiguration is not empty
+	exceptionConstraints := strings.Join(
+		getPolicyExceptionConstraintsSlice(policy.ExceptionConfiguration), ", ")
+	if exceptionConstraints != "" {
+		entry := []string{"VALID EXCEPTION CONSTRAINTS", exceptionConstraints}
+		details = append(details, entry)
+	}
 
 	return renderOneLineCustomTable("POLICY DETAILS",
 		renderCustomTable([]string{}, details,
@@ -605,6 +613,16 @@ func buildPolicyDetailsTable(policy api.Policy) string {
 			t.SetAutoWrapText(false)
 		}),
 	)
+}
+
+func getPolicyExceptionConstraintsSlice(exceptionConfiguration map[string][]api.
+	PolicyExceptionConfigurationConstraints) []string {
+	var exceptionConstraints []string
+	constraintFields := exceptionConfiguration["constraintFields"]
+	for _, constraint := range constraintFields {
+		exceptionConstraints = append(exceptionConstraints, constraint.FieldKey)
+	}
+	return exceptionConstraints
 }
 
 func policyTagsTable(pt []string) (out [][]string) {
