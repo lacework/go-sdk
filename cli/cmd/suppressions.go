@@ -8,6 +8,7 @@ var (
 	// top-level cloud-account command
 	suppressionsCommand = &cobra.Command{
 		Use:     "suppressions",
+		Hidden:  true,
 		Aliases: []string{"suppression", "sup", "sups"},
 		Short:   "Manage legacy suppressions",
 		Long:    "Manage legacy suppressions",
@@ -29,6 +30,7 @@ var (
 )
 
 func init() {
+	rootCmd.AddCommand(suppressionsCommand)
 	suppressionsCommand.AddCommand(suppressionsListCmd)
 	suppressionsListCmd.AddCommand(suppressionsListAwsCmd)
 
