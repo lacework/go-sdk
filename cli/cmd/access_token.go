@@ -68,7 +68,7 @@ func generateAccessToken(_ *cobra.Command, args []string) error {
 		// regenerate the lacework api client
 		client, err := api.NewClient(cli.Account,
 			api.WithApiV2(),
-			api.WithLogLevel(cli.LogLevel),
+			api.WithLogLevel(cli.Log.Level().String()),
 			api.WithExpirationTime(durationSeconds),
 			api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
 		)
