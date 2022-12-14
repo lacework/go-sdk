@@ -272,12 +272,13 @@ func initConfig() {
 	viper.SetEnvPrefix("LW")    // set prefix for all env variables LW_ABC
 	viper.AutomaticEnv()        // read in environment variables that match
 
+	logLevel := ""
 	if viper.GetBool("debug") {
-		cli.LogLevel = "DEBUG"
+		logLevel = "DEBUG"
 	}
 
 	// initialize a Lacework logger
-	cli.Log = lwlogger.New(cli.LogLevel).Sugar()
+	cli.Log = lwlogger.New(logLevel).Sugar()
 
 	if viper.GetBool("nocolor") {
 		cli.Log.Info("turning off colors")

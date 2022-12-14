@@ -44,7 +44,7 @@ func (c *cliState) envs() []string {
 		fmt.Sprintf("LW_NONINTERACTIVE=%v", c.nonInteractive),
 		fmt.Sprintf("LW_NOCACHE=%v", c.noCache),
 		fmt.Sprintf("LW_NOCOLOR=%s", os.Getenv("NO_COLOR")),
-		fmt.Sprintf("LW_LOG=%s", c.LogLevel),
+		fmt.Sprintf("LW_LOG=%s", c.Log.Level().CapitalString()),
 		fmt.Sprintf("LW_JSON=%v", c.jsonOutput),
 		fmt.Sprintf("LW_CDK_TARGET=%s", c.GrpcTarget()),
 	}

@@ -54,7 +54,6 @@ type cliState struct {
 	KeyID      string
 	Secret     string
 	Token      string
-	LogLevel   string
 	OrgLevel   bool
 	CfgVersion int
 
@@ -225,7 +224,7 @@ func (c *cliState) NewClient() error {
 	}
 
 	apiOpts := []api.Option{
-		api.WithLogLevel(c.LogLevel),
+		api.WithLogLevel(c.Log.Level().CapitalString()),
 		api.WithSubaccount(c.Subaccount),
 		api.WithApiKeys(c.KeyID, c.Secret),
 		api.WithTimeout(time.Second * 125),
