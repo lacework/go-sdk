@@ -251,19 +251,19 @@ func pollScanStatus(requestID string, args []string) error {
 					Expression: "eq",
 					Field:      getTagOrDigestField(args[2]),
 					Value:      args[2],
-				},				
+				},
 			},
 		})
 		return err
 	}
 }
 
-func getTagOrDigestField(arg string) (string){
+func getTagOrDigestField(arg string) string {
 	// Check if we need to search for a digest or a tag id
-	if strings.HasPrefix(arg, "sha256:"){
+	if strings.HasPrefix(arg, "sha256:") {
 		return "evalCtx.image_info.digest"
-	}	
-    return "evalCtx.image_info.tags[0]"
+	}
+	return "evalCtx.image_info.tags[0]"
 }
 
 func checkScanStatus(requestID string) (error, bool) {
