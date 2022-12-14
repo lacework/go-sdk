@@ -29,9 +29,6 @@ var (
 )
 
 func init() {
-	// add the suppressions command
-	rootCmd.AddCommand(suppressionsCommand)
-
 	suppressionsCommand.AddCommand(suppressionsListCmd)
 	suppressionsListCmd.AddCommand(suppressionsListAwsCmd)
 

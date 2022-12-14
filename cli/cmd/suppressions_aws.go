@@ -12,15 +12,6 @@ import (
 )
 
 var (
-	// constraint types
-	// ResourceNames, in the old CIS1.1, works for EC2 instance ID,
-	// VPC ID, Group ID, ARN, ELB ID, Lambda name, IAM policy, etc)
-	allAwsConditions           = []string{"accountIds", "regionNames", "resourceNames", "resourceTags"}
-	noRegionNames              = []string{"accountIds", "resourceNames", "resourceTags"}
-	accountIdsOnly             = []string{"accountIds"}
-	accountIdsAndResourceNames = []string{"accountIds", "resourceNames"}
-	noResourceTags             = []string{"accountIds", "regionNames", "resourceNames"}
-
 	// https://docs.lacework.com/console/aws-compliance-policy-exceptions-criteria#lacework-custom-policies-for-aws-iam
 	// https://docs.lacework.com/console/cis-aws-140-benchmark-report#identity-and-access-management
 	// old ID to new ID mapping, using the old Constraints with the hope they match the new Constraints
@@ -175,149 +166,6 @@ var (
 		"LW_AWS_ELASTICSEARCH_4":    "lacework-global-161",
 	}
 
-	policyExceptionTemplatesMap = map[string][]string{
-		"lacework-global-39":  accountIdsAndResourceNames,
-		"lacework-global-41":  allAwsConditions,
-		"lacework-global-43":  accountIdsAndResourceNames,
-		"lacework-global-37":  accountIdsOnly,
-		"lacework-global-38":  accountIdsOnly,
-		"lacework-global-34":  accountIdsOnly,
-		"lacework-global-35":  accountIdsOnly,
-		"lacework-global-69":  accountIdsOnly,
-		"lacework-global-33":  accountIdsOnly,
-		"lacework-global-44":  accountIdsAndResourceNames, // no iam policies to users
-		"lacework-global-31":  accountIdsOnly,             // manual?
-		"lacework-global-32":  accountIdsOnly,             // manual?
-		"lacework-global-70":  noRegionNames,              // manual?
-		"lacework-global-46":  accountIdsOnly,
-		"lacework-global-40":  accountIdsAndResourceNames,
-		"lacework-global-45":  accountIdsAndResourceNames,
-		"lacework-global-53":  accountIdsOnly,
-		"lacework-global-75":  noResourceTags,
-		"lacework-global-54":  noRegionNames, // s3 bucket cloudtrail log
-		"lacework-global-55":  noResourceTags,
-		"lacework-global-76":  noResourceTags,
-		"lacework-global-56":  noRegionNames, // s3 bucket cloudtrail log
-		"lacework-global-77":  allAwsConditions,
-		"lacework-global-78":  allAwsConditions,
-		"lacework-global-79":  allAwsConditions,
-		"lacework-global-57":  accountIdsOnly,
-		"lacework-global-58":  accountIdsOnly,
-		"lacework-global-59":  accountIdsOnly,
-		"lacework-global-60":  accountIdsOnly,
-		"lacework-global-61":  accountIdsOnly,
-		"lacework-global-82":  accountIdsOnly,
-		"lacework-global-83":  accountIdsOnly,
-		"lacework-global-62":  accountIdsOnly,
-		"lacework-global-84":  accountIdsOnly,
-		"lacework-global-85":  accountIdsOnly,
-		"lacework-global-86":  accountIdsOnly,
-		"lacework-global-63":  accountIdsOnly,
-		"lacework-global-64":  accountIdsOnly,
-		"lacework-global-65":  accountIdsOnly,
-		"lacework-global-68":  allAwsConditions,
-		"lacework-global-87":  allAwsConditions,
-		"lacework-global-130": allAwsConditions,
-		"lacework-global-131": allAwsConditions,
-		"lacework-global-132": allAwsConditions,
-		"lacework-global-133": allAwsConditions,
-		"lacework-global-134": allAwsConditions,
-		"lacework-global-135": allAwsConditions,
-		"lacework-global-136": allAwsConditions,
-		"lacework-global-137": allAwsConditions,
-		"lacework-global-138": allAwsConditions,
-		"lacework-global-139": allAwsConditions,
-		"lacework-global-140": allAwsConditions,
-		"lacework-global-94":  allAwsConditions,
-		"lacework-global-95":  allAwsConditions,
-		"lacework-global-217": allAwsConditions,
-		"lacework-global-96":  allAwsConditions,
-		"lacework-global-97":  allAwsConditions,
-		"lacework-global-98":  allAwsConditions,
-		"lacework-global-99":  allAwsConditions,
-		"lacework-global-100": allAwsConditions,
-		"lacework-global-101": allAwsConditions,
-		"lacework-global-115": accountIdsAndResourceNames,
-		"lacework-global-116": accountIdsAndResourceNames,
-		"lacework-global-117": accountIdsAndResourceNames,
-		"lacework-global-118": accountIdsAndResourceNames,
-		"lacework-global-119": accountIdsAndResourceNames,
-		"lacework-global-120": accountIdsAndResourceNames,
-		"lacework-global-121": accountIdsAndResourceNames,
-		"lacework-global-181": accountIdsOnly, // non-root user
-		"lacework-global-142": accountIdsAndResourceNames,
-		"lacework-global-141": accountIdsAndResourceNames,
-		"lacework-global-105": accountIdsAndResourceNames,
-		"lacework-global-227": noRegionNames, // sec-group
-		"lacework-global-145": noRegionNames, // network acl
-		"lacework-global-146": noRegionNames, // network acl
-		"lacework-global-147": accountIdsAndResourceNames,
-		"lacework-global-148": allAwsConditions,
-		"lacework-global-149": allAwsConditions,
-		"lacework-global-228": allAwsConditions,
-		"lacework-global-229": allAwsConditions,
-		"lacework-global-230": allAwsConditions,
-		"lacework-global-231": allAwsConditions,
-		"lacework-global-199": allAwsConditions,
-		"lacework-global-150": allAwsConditions,
-		"lacework-global-151": allAwsConditions,
-		"lacework-global-152": allAwsConditions,
-		"lacework-global-153": allAwsConditions,
-		"lacework-global-225": allAwsConditions,
-		"lacework-global-226": allAwsConditions,
-		"lacework-global-154": allAwsConditions,
-		"lacework-global-155": allAwsConditions,
-		"lacework-global-156": allAwsConditions,
-		"lacework-global-104": allAwsConditions,
-		"lacework-global-106": allAwsConditions,
-		"lacework-global-107": allAwsConditions,
-		"lacework-global-108": allAwsConditions,
-		"lacework-global-109": allAwsConditions,
-		"lacework-global-110": allAwsConditions,
-		"lacework-global-111": allAwsConditions,
-		"lacework-global-112": allAwsConditions,
-		"lacework-global-113": allAwsConditions,
-		"lacework-global-114": allAwsConditions,
-		"lacework-global-218": allAwsConditions,
-		"lacework-global-219": allAwsConditions,
-		"lacework-global-220": allAwsConditions,
-		"lacework-global-221": allAwsConditions,
-		"lacework-global-222": allAwsConditions,
-		"lacework-global-102": allAwsConditions,
-		"lacework-global-223": allAwsConditions,
-		"lacework-global-184": allAwsConditions,
-		"lacework-global-103": allAwsConditions,
-		"lacework-global-125": noRegionNames, // cloudfront
-		"lacework-global-126": noRegionNames, // cloudfront
-		"lacework-global-127": allAwsConditions,
-		"lacework-global-482": allAwsConditions,
-		"lacework-global-157": allAwsConditions,
-		"lacework-global-128": allAwsConditions,
-		"lacework-global-159": allAwsConditions,
-		"lacework-global-129": noRegionNames, // cloudfront
-		"lacework-global-483": allAwsConditions,
-		"lacework-global-196": allAwsConditions,
-		"lacework-global-197": allAwsConditions,
-		"lacework-global-198": allAwsConditions,
-		"lacework-global-89":  noRegionNames, // ec2 tags
-		"lacework-global-90":  allAwsConditions,
-		"lacework-global-160": noRegionNames,
-		"lacework-global-171": noRegionNames,
-		"lacework-global-91":  noRegionNames,
-		"lacework-global-92":  noResourceTags,
-		"lacework-global-182": noRegionNames,
-		"lacework-global-183": noRegionNames,
-		"lacework-global-179": allAwsConditions,
-		"lacework-global-180": allAwsConditions,
-		"lacework-global-143": allAwsConditions,
-		"lacework-global-144": allAwsConditions,
-		"lacework-global-93":  allAwsConditions,
-		"lacework-global-122": noResourceTags,
-		"lacework-global-123": noResourceTags,
-		"lacework-global-124": noResourceTags,
-		"lacework-global-161": noResourceTags,
-	}
-
 	// suppressionsMigrateAwsCmd represents the aws sub-command inside the suppressions migrate command
 	suppressionsMigrateAwsCmd = &cobra.Command{
 		Use:     "aws",
@@ -439,6 +287,9 @@ func convertAwsSuppressions(suppressionsMap map[string]api.SuppressionV2) ([]map
 		payloadsText              []string
 		discardedSuppressions     []map[string]api.SuppressionV2
 	)
+	// get a list of all policies and parse the valid exception constraints and create a map of
+	// {"<policyId>": [<validPolicyConstraints>]}
+	policyExceptionsConstraintsMap := getPoliciesExceptionConstraintsMap()
 
 	for id, suppressionInfo := range suppressionsMap {
 		// verify there is a mapped policy for this recommendation
@@ -456,9 +307,14 @@ func convertAwsSuppressions(suppressionsMap map[string]api.SuppressionV2) ([]map
 			continue
 		}
 
-		// get the policy exception template for the mapped policy
-		// the exception template defines the exception fields that are supported for the policy
-		policyIdExceptionsTemplate := policyExceptionTemplatesMap[mappedPolicyId]
+		// get the supported policy exception fields for the mapped policy
+		// in order to ensure we have an up-to-date list of exception constraints we need to
+		// get the policy from the /api/v2/Policies/<policyId> api.
+		// We then parse this into a list of constraints
+		policyIdExceptionsTemplate := policyExceptionsConstraintsMap[mappedPolicyId]
+		if policyIdExceptionsTemplate == nil {
+			continue
+		}
 		if len(suppressionInfo.SuppressionConditions) >= 1 {
 			for _, suppression := range suppressionInfo.SuppressionConditions {
 				// used to store the converted legacy suppressions
@@ -619,6 +475,23 @@ func convertSupConditionTags(supCondition []map[string]string, fieldKey string,
 		}
 	}
 	return api.PolicyExceptionConstraint{}
+}
+
+func getPoliciesExceptionConstraintsMap() map[string][]string {
+	// get a list of all policies and parse the valid exception constraints and return a map of
+	// {"<policyId>": [<validPolicyConstraints>]}
+	policies, err := cli.LwApi.V2.Policy.List()
+	if err != nil {
+		return nil
+	}
+
+	policiesSupportedConstraints := make(map[string][]string)
+	for _, policy := range policies.Data {
+		exceptionConstraints := getPolicyExceptionConstraintsSlice(policy.ExceptionConfiguration)
+		policiesSupportedConstraints[policy.PolicyID] = exceptionConstraints
+	}
+
+	return policiesSupportedConstraints
 }
 
 func convertToAnySlice(slice []string) []any {
