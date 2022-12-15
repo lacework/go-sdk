@@ -1,8 +1,27 @@
+//
+// Author:: Ross Moles (<ross.moles@lacework.net>)
+// Copyright:: Copyright 2022, Lacework Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 package cmd
 
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/fatih/color"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -235,14 +254,23 @@ func suppressionsAwsMigrate(_ *cobra.Command, _ []string) error {
 		return errors.Wrap(err, "unable to get legacy aws suppressions")
 	}
 
+	// get a list of all policies and parse the valid exception constraints and create a map of
+	// {"<policyId>": [<validPolicyConstraints>]}
+	policyExceptionsConstraintsMap := getPoliciesExceptionConstraintsMap()
+
 	switch answer {
 	case manualMigration:
-		_, payloadsText, discardedSuppressions = convertAwsSuppressions(suppressionsMap)
+		_, payloadsText, discardedSuppressions = convertAwsSuppressions(
+			suppressionsMap,
+			policyExceptionsConstraintsMap,
+		)
 		printPayloadsText(payloadsText)
 		printDiscardedSuppressions(discardedSuppressions)
 	case autoMigration:
 		convertedPolicyExceptions, _, discardedSuppressions = convertAwsSuppressions(
-			suppressionsMap)
+			suppressionsMap,
+			policyExceptionsConstraintsMap,
+		)
 		printConvertedSuppressions(convertedPolicyExceptions)
 		confirm := false
 		err := survey.AskOne(&survey.Confirm{
@@ -285,16 +313,16 @@ func autoConvertAwsSuppressions(convertedPolicyExceptions []map[string]api.Polic
 	cli.StopProgress()
 }
 
-func convertAwsSuppressions(suppressionsMap map[string]api.SuppressionV2) ([]map[string]api.PolicyException,
+func convertAwsSuppressions(
+	suppressionsMap map[string]api.SuppressionV2,
+	policyExceptionsConstraintsMap map[string][]string,
+) ([]map[string]api.PolicyException,
 	[]string, []map[string]api.SuppressionV2) {
 	var (
 		convertedPolicyExceptions []map[string]api.PolicyException
 		payloadsText              []string
 		discardedSuppressions     []map[string]api.SuppressionV2
 	)
-	// get a list of all policies and parse the valid exception constraints and create a map of
-	// {"<policyId>": [<validPolicyConstraints>]}
-	policyExceptionsConstraintsMap := getPoliciesExceptionConstraintsMap()
 
 	for id, suppressionInfo := range suppressionsMap {
 		// verify there is a mapped policy for this recommendation
