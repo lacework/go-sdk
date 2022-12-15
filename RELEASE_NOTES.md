@@ -1,18 +1,16 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.1.2`.
+Another day, another release. These are the release notes for the version `v1.2.0`.
 
+## Features
+* feat: add proxy scanner token management (#1018) (Credibleforce)([06b93071](https://github.com/lacework/go-sdk/commit/06b930715167c526ce9f8301d9a0cae23c8e9bdc))
 ## Bug Fixes
-* fix: fix 1.1.2 issue (#1061) (Darren)([20d90d4e](https://github.com/lacework/go-sdk/commit/20d90d4ed5b6da6d9860e278ccb5ff23dcad998c))
-* fix: fix 1.1.2 release (#1059) (Darren)([07c7a7c3](https://github.com/lacework/go-sdk/commit/07c7a7c369fc7c4ac31a424b414bf8f2763bc5a5))
-* fix(api): Gcp sidekick integration server token (#1054) (ammarekbote)([6a16fdf0](https://github.com/lacework/go-sdk/commit/6a16fdf0dc2268981a52bffa99d6693ffb60a81a))
-* fix: generate success message (#1056) (jonathan stewart)([57c282c5](https://github.com/lacework/go-sdk/commit/57c282c5b30d2110e52bf9ec3e25865f2df8b37a))
-* fix: generate EKS non-interactive (#1055) (jonathan stewart)([7fbb78fc](https://github.com/lacework/go-sdk/commit/7fbb78fc0a9cdbb11c045d449c0d77ad0099ce50))
+* fix: vuln ctr scan to use tag/digest argument to filter (#1070) (djmctavish)([1ec57f67](https://github.com/lacework/go-sdk/commit/1ec57f6799020755679bd09d49023bf26de6f29f))
 ## Documentation Updates
-* docs: fix documentation autogeneration (#1050) (Darren)([80106749](https://github.com/lacework/go-sdk/commit/80106749c054a05bc3a3bf4fde00131ad4897a1d))
+* docs: remove obsolete 'event' generated docs (#1067) (sthetland)([391a1626](https://github.com/lacework/go-sdk/commit/391a162679feabf6ad612b878e9566ce3d15bca7))
+* docs(cli): list supported hosts for `ec2ic` (#1053) (Nick Schmeller)([c45f1dc1](https://github.com/lacework/go-sdk/commit/c45f1dc118be7de5b07554d9c15d669e263c9e9c))
 ## Other Changes
-* ci: version bump to v1.1.3-dev (Lacework)([14914582](https://github.com/lacework/go-sdk/commit/14914582905d4b0490144ec908c821e112353a7f))
-* ci: version bump to v1.1.3-dev (Lacework)([5dda8bca](https://github.com/lacework/go-sdk/commit/5dda8bca17f3f83ac48245c72352a75b367a3b03))
-* ci: version bump to v1.1.2-dev (Lacework)([75c91670](https://github.com/lacework/go-sdk/commit/75c9167046643f17e9636a68deb14f5dcd44f343))
+* build(cli): Support aarch64 architecture (#1063) (Kolbeinn)([99d2eb27](https://github.com/lacework/go-sdk/commit/99d2eb27c641c895b195072fcb2d2e959d7641ea))
+* ci: version bump to v1.1.3-dev (Lacework)([19462b11](https://github.com/lacework/go-sdk/commit/19462b116cdd9f0c88b4e49378f6d549fec6db11))
 
 ## Docker Images
 * `docker pull lacework/lacework-cli:latest`
