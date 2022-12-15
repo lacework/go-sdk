@@ -1,5 +1,5 @@
 //
-// Author:: Darren Murray (<darren.murray@lacework.net>)
+// Author:: Ross Moles (<ross.moles@lacework.net>)
 // Copyright:: Copyright 2022, Lacework Inc.
 // License:: Apache License, Version 2.0
 //

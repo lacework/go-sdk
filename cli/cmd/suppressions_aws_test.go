@@ -20,12 +20,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/lacework"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"sort"
 	"testing"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConvertAwsSuppressions(t *testing.T) {
