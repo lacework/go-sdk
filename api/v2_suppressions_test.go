@@ -70,10 +70,6 @@ func TestSuppressionsAwsList(t *testing.T) {
 }
 
 func generateSuppressions() string {
-	return ListSuppressions()
-}
-
-func ListSuppressions() string {
 	return `{
   "data": [
     {
