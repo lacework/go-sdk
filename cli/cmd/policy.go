@@ -591,13 +591,15 @@ func buildPolicyDetailsTable(policy api.Policy) string {
 		{"UPDATED BY", policy.LastUpdateUser},
 		{"EVALUATION FREQUENCY", policy.EvalFrequency},
 	}
-	// append VALID EXCEPTION CONSTRAINTS to the table when the ExceptionConfiguration is not empty
+	// Append VALID EXCEPTION CONSTRAINTS to the table
+	// Add "None" when ExceptionConfiguration is empty
 	exceptionConstraints := strings.Join(
 		getPolicyExceptionConstraintsSlice(policy.ExceptionConfiguration), ", ")
-	if exceptionConstraints != "" {
-		entry := []string{"VALID EXCEPTION CONSTRAINTS", exceptionConstraints}
-		details = append(details, entry)
+	if exceptionConstraints == "" {
+		exceptionConstraints = "None"
 	}
+	entry := []string{"VALID EXCEPTION CONSTRAINTS", exceptionConstraints}
+	details = append(details, entry)
 
 	return renderOneLineCustomTable("POLICY DETAILS",
 		renderCustomTable([]string{}, details,
