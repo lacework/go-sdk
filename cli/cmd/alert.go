@@ -33,6 +33,7 @@ var (
 	alertCmdState = struct {
 		Comment  string
 		End      string
+		Fixable  bool
 		Range    string
 		Reason   int
 		Scope    string

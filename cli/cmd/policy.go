@@ -212,7 +212,7 @@ func init() {
 	policyCmd.AddCommand(policyEnableTagCmd)
 
 	// Lacework Content Library
-	if cli.IsLCLInstalled() {
+	if cli.isLCLInstalled() {
 		policyCreateCmd.Flags().StringVarP(
 			&policyCmdState.CUFromLibrary,
 			"library", "l", "",

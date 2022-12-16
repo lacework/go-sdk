@@ -72,7 +72,7 @@ To view all policies in the library and their associated tags.
 )
 
 func init() {
-	if !cli.IsLCLInstalled() {
+	if !cli.isLCLInstalled() {
 		return
 	}
 

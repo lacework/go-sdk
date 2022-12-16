@@ -134,6 +134,15 @@ func init() {
 		"type", "",
 		"filter alerts by type",
 	)
+
+	// fixable
+	if cli.isRemediateInstalled() {
+		alertListCmd.Flags().BoolVar(
+			&alertCmdState.Fixable,
+			"fixable", false,
+			"filter alerts by fixability",
+		)
+	}
 }
 
 func alertListTable(alerts api.Alerts) (out [][]string) {
@@ -242,17 +251,29 @@ func listAlert(_ *cobra.Command, _ []string) error {
 		return errors.Wrap(err, msg)
 	}
 
-	if cli.JSONOutput() {
-		return cli.OutputJSON(listResponse.Data)
+	// filter fixable
+	alerts := listResponse.Data
+	if alertCmdState.Fixable {
+		alerts, err = filterFixableAlerts(alerts, getRemediationTemplateIDs)
+		if err != nil {
+			return errors.Wrap(err, "unable to filter by alert fixability")
+		}
 	}
 
-	if len(listResponse.Data) == 0 {
+	if cli.JSONOutput() {
+		return cli.OutputJSON(alerts)
+	}
+
+	if len(alerts) == 0 {
 		cli.OutputHuman("There are no alerts in your account in the specified time range.\n")
 		return nil
 	}
-	renderAlertListTable(listResponse.Data)
+	renderAlertListTable(alerts)
 
 	// breadcrumb
 	cli.OutputHuman("\nUse 'lacework alert show <alert_id>' to see details for a specific alert.\n")
+	if alertCmdState.Fixable {
+		cli.OutputHuman("Use 'lacework remediate alert <alert_id>' to fix a specific alert.\n")
+	}
 	return nil
 }
