@@ -144,7 +144,7 @@ func isComponent(annotations map[string]string) bool {
 	return false
 }
 
-// isComponentInstalled returns true if component is
+// IsComponentInstalled returns true if component is
 // valid and installed
 func (c *cliState) IsComponentInstalled(name string) bool {
 	var err error

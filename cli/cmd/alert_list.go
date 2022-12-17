@@ -150,11 +150,6 @@ func alertListTable(alerts api.Alerts) (out [][]string) {
 	alerts.SortBySeverity()
 
 	for _, alert := range alerts {
-		// filter severity if desired
-		if lwseverity.ShouldFilter(alert.Severity, alertCmdState.Severity) {
-			continue
-		}
-
 		out = append(out, []string{
 			strconv.Itoa(alert.ID),
 			alert.Type,
@@ -251,13 +246,23 @@ func listAlert(_ *cobra.Command, _ []string) error {
 		return errors.Wrap(err, msg)
 	}
 
+	// filter severity
+	alerts := api.Alerts{}
+	for _, alert := range listResponse.Data {
+		// filter severity if desired
+		if lwseverity.ShouldFilter(alert.Severity, alertCmdState.Severity) {
+			continue
+		}
+		alerts = append(alerts, alert)
+	}
+
 	// filter fixable
-	alerts := listResponse.Data
 	if alertCmdState.Fixable {
-		alerts, err = filterFixableAlerts(alerts, getRemediationTemplateIDs)
+		templateIDs, err := getRemediationTemplateIDs()
 		if err != nil {
 			return errors.Wrap(err, "unable to filter by alert fixability")
 		}
+		alerts = filterFixableAlerts(alerts, templateIDs)
 	}
 
 	if cli.JSONOutput() {
@@ -265,7 +270,14 @@ func listAlert(_ *cobra.Command, _ []string) error {
 	}
 
 	if len(alerts) == 0 {
-		cli.OutputHuman("There are no alerts in your account in the specified time range.\n")
+		if alertCmdState.hasFilters() {
+			cli.OutputHuman(fmt.Sprintf("%s %s\n",
+				"No alerts match the specified filters within the given time range.",
+				"Try removing filters or expanding the time range.",
+			))
+			return nil
+		}
+		cli.OutputHuman("There are no alerts in the specified time range.\n")
 		return nil
 	}
 	renderAlertListTable(alerts)

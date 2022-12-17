@@ -4,17 +4,8 @@ import (
 	"testing"
 
 	"github.com/lacework/go-sdk/api"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
-
-func testGetRemediationTemplateIDsOK() ([]string, error) {
-	return []string{"LW_foo", "lacework-global-40", "lwcustom-11"}, nil
-}
-
-func testGetRemediationTemplateIDsFail() ([]string, error) {
-	return []string{}, errors.New("ah-ah-ah you didn't say the magic workd")
-}
 
 func TestFilterFixableAlerts(t *testing.T) {
 	alertsIn := api.Alerts{
@@ -36,11 +27,10 @@ func TestFilterFixableAlerts(t *testing.T) {
 			PolicyID: "dev7-lwcustom-11",
 		},
 	}
-	alertsActual, err := filterFixableAlerts(alertsIn, testGetRemediationTemplateIDsOK)
-	assert.Nil(t, err)
+	alertsActual := filterFixableAlerts(
+		alertsIn, []string{"LW_foo", "lacework-global-40", "lwcustom-11"})
 	assert.Equal(t, alertsExpected, alertsActual)
 
-	alertsActual, err = filterFixableAlerts(alertsIn, testGetRemediationTemplateIDsFail)
-	assert.NotNil(t, err)
-	assert.Equal(t, alertsIn, alertsActual)
+	alertsActual = filterFixableAlerts(alertsIn, []string{})
+	assert.Equal(t, api.Alerts{}, alertsActual)
 }

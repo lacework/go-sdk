@@ -67,15 +67,7 @@ func getRemediationTemplateIDs() ([]string, error) {
 
 // filterFixableAlerts identifies which alerts have corresponding remediation template IDs
 // and returns those which don't
-func filterFixableAlerts(
-	alerts api.Alerts,
-	getIDsFunc func() ([]string, error),
-) (api.Alerts, error) {
-	templateIDs, err := getIDsFunc()
-	if err != nil {
-		return alerts, err
-	}
-
+func filterFixableAlerts(alerts api.Alerts, templateIDs []string) api.Alerts {
 	fixableAlerts := api.Alerts{}
 	for _, alert := range alerts {
 		if alert.PolicyID == "" {
@@ -112,5 +104,5 @@ func filterFixableAlerts(
 			}
 		}
 	}
-	return fixableAlerts, nil
+	return fixableAlerts
 }

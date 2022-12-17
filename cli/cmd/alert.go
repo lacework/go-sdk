@@ -29,19 +29,31 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type alertCmdStateType struct {
+	Comment  string
+	End      string
+	Fixable  bool
+	Range    string
+	Reason   int
+	Scope    string
+	Severity string
+	Status   string
+	Start    string
+	Type     string
+}
+
+// hasFilters returns true if certain filters are present
+// in the command state.  excludes time filters (start, end, range).
+func (s alertCmdStateType) hasFilters() bool {
+	// severity / status / type filters
+	if s.Severity != "" || s.Status != "" || s.Type != "" {
+		return true
+	}
+	return s.Fixable
+}
+
 var (
-	alertCmdState = struct {
-		Comment  string
-		End      string
-		Fixable  bool
-		Range    string
-		Reason   int
-		Scope    string
-		Severity string
-		Status   string
-		Start    string
-		Type     string
-	}{}
+	alertCmdState = alertCmdStateType{}
 
 	// alertCmd represents the alert parent command
 	alertCmd = &cobra.Command{
