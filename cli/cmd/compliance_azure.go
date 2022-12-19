@@ -244,7 +244,7 @@ To show recommendation details and affected resources for a recommendation id:
 						AccountID:       report.SubscriptionID,
 						TenantName:      report.TenantName,
 						TenantID:        report.TenantID,
-						ReportType:      report.ReportType,
+						ReportType:      reportType.String(),
 						ReportTime:      report.ReportTime,
 						Recommendations: report.Recommendations,
 					},
