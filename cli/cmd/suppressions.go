@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	// top-level cloud-account command
+	// top-level suppressions command
 	suppressionsCommand = &cobra.Command{
 		Use:     "suppressions",
 		Hidden:  true,
@@ -32,26 +32,16 @@ var (
 		Long:    "Manage legacy suppressions",
 	}
 
-	// suppressionsListCmd represents the list sub-command inside the suppressions command
-	suppressionsListCmd = &cobra.Command{
-		Use:     "list",
-		Aliases: []string{"ls"},
-		Short:   "List all legacy suppressions per CSP",
-	}
-
-	// suppressionsMigrateCmd represents the migrate sub-command inside the suppressions command
-	suppressionsMigrateCmd = &cobra.Command{
-		Use:     "migrate",
-		Aliases: []string{"mig"},
-		Short:   "Migrate legacy suppressions for selected CSP, to policy exceptions",
+	// suppressionsAwsCmd represents the aws sub-command inside the suppressions command
+	suppressionsAwsCmd = &cobra.Command{
+		Use:   "aws",
+		Short: "Manage legacy suppressions for aws",
 	}
 )
 
 func init() {
 	rootCmd.AddCommand(suppressionsCommand)
-	suppressionsCommand.AddCommand(suppressionsListCmd)
-	suppressionsListCmd.AddCommand(suppressionsListAwsCmd)
-
-	suppressionsCommand.AddCommand(suppressionsMigrateCmd)
-	suppressionsMigrateCmd.AddCommand(suppressionsMigrateAwsCmd)
+	suppressionsCommand.AddCommand(suppressionsAwsCmd)
+	suppressionsAwsCmd.AddCommand(suppressionsListAwsCmd)
+	suppressionsAwsCmd.AddCommand(suppressionsMigrateAwsCmd)
 }

@@ -21,6 +21,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/fatih/color"
 
@@ -188,16 +189,16 @@ var (
 
 	// suppressionsMigrateAwsCmd represents the aws sub-command inside the suppressions migrate command
 	suppressionsMigrateAwsCmd = &cobra.Command{
-		Use:     "aws",
-		Aliases: []string{"aws"},
+		Use:     "migrate",
+		Aliases: []string{"mig"},
 		Short:   "Migrate legacy suppressions for AWS to mapped policy exceptions",
 		RunE:    suppressionsAwsMigrate,
 	}
 
 	// suppressionsListAwsCmd represents the aws sub-command inside the suppressions list command
 	suppressionsListAwsCmd = &cobra.Command{
-		Use:     "aws",
-		Aliases: []string{"aws"},
+		Use:     "list",
+		Aliases: []string{"ls"},
 		Short:   "List legacy suppressions for AWS",
 		RunE:    suppressionsAwsList,
 	}
@@ -211,7 +212,12 @@ func suppressionsAwsList(_ *cobra.Command, _ []string) error {
 
 	suppressions, err = cli.LwApi.V2.Suppressions.Aws.List()
 	if err != nil {
-		return errors.Wrap(err, "unable to get legacy aws suppressions")
+		if strings.Contains(err.Error(), "No active AWS accounts") {
+			cli.OutputHuman("No active AWS accounts found. " +
+				"Unable to get legacy aws suppressions")
+			return nil
+		}
+		return errors.Wrap(err, "Unable to get legacy aws suppressions")
 	}
 
 	if len(suppressions) == 0 {
@@ -230,6 +236,21 @@ func suppressionsAwsMigrate(_ *cobra.Command, _ []string) error {
 		payloadsText              []string
 		discardedSuppressions     []map[string]api.SuppressionV2
 	)
+	suppressionsMap, err = cli.LwApi.V2.Suppressions.Aws.List()
+	if err != nil {
+		if strings.Contains(err.Error(), "No active AWS accounts") {
+			cli.OutputHuman("No active AWS accounts found. " +
+				"Unable to get legacy aws suppressions")
+			return nil
+		}
+		return errors.Wrap(err, "Unable to get legacy aws suppressions")
+	}
+
+	if len(suppressionsMap) == 0 {
+		cli.OutputHuman("No legacy AWS suppressions found.\n")
+		return nil
+	}
+
 	answer := ""
 	manualMigration := "Output translated legacy suppressions as policy exception commands to be" +
 		" run manually (Recommended)"
@@ -247,11 +268,6 @@ func suppressionsAwsMigrate(_ *cobra.Command, _ []string) error {
 		Response: &answer,
 	}); err != nil {
 		return err
-	}
-
-	suppressionsMap, err = cli.LwApi.V2.Suppressions.Aws.List()
-	if err != nil {
-		return errors.Wrap(err, "unable to get legacy aws suppressions")
 	}
 
 	// get a list of all policies and parse the valid exception constraints and create a map of
