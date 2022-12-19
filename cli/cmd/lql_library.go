@@ -44,7 +44,7 @@ var (
 )
 
 func init() {
-	if cli.IsLCLInstalled() {
+	if cli.isLCLInstalled() {
 		queryCmd.AddCommand(queryListLibraryCmd)
 		queryCmd.AddCommand(queryShowLibraryCmd)
 	}

@@ -61,7 +61,7 @@ func init() {
 
 	setQuerySourceFlags(queryValidateCmd)
 
-	if cli.IsLCLInstalled() {
+	if cli.isLCLInstalled() {
 		queryValidateCmd.Flags().StringVarP(
 			&queryCmdState.CURVFromLibrary,
 			"library", "l", "",

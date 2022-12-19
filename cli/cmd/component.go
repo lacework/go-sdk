@@ -144,6 +144,22 @@ func isComponent(annotations map[string]string) bool {
 	return false
 }
 
+// IsComponentInstalled returns true if component is
+// valid and installed
+func (c *cliState) IsComponentInstalled(name string) bool {
+	var err error
+	c.LwComponents, err = lwcomponent.LocalState()
+	if err != nil || c.LwComponents == nil {
+		return false
+	}
+
+	component, found := c.LwComponents.GetComponent(name)
+	if found && component.IsInstalled() {
+		return true
+	}
+	return false
+}
+
 // LoadComponents reads the local components state and loads all installed components
 // of type `CLI_COMMAND` dynamically into the root command of the CLI (`rootCmd`)
 func (c *cliState) LoadComponents() {

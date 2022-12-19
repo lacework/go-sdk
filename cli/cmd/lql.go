@@ -143,7 +143,7 @@ func init() {
 	// add sub-commands to the lql command
 	queryCmd.AddCommand(queryRunCmd)
 
-	if cli.IsLCLInstalled() {
+	if cli.isLCLInstalled() {
 		queryRunCmd.Flags().StringVarP(
 			&queryCmdState.CURVFromLibrary,
 			"library", "l", "",
