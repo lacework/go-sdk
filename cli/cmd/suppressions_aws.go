@@ -37,19 +37,19 @@ var (
 	// https://docs.lacework.com/console/cis-aws-140-benchmark-report#identity-and-access-management
 	// old ID to new ID mapping, using the old Constraints with the hope they match the new Constraints
 	awsEquivalencesMap = map[string]string{
-		"AWS_CIS_1_2":   "lacework-global-39",
-		"AWS_CIS_1_3":   "lacework-global-41",
-		"AWS_CIS_1_4":   "lacework-global-43",
-		"AWS_CIS_1_9":   "lacework-global-37",
-		"AWS_CIS_1_10":  "lacework-global-38",
-		"AWS_CIS_1_12":  "lacework-global-34",
-		"AWS_CIS_1_13":  "lacework-global-35",
-		"AWS_CIS_1_14":  "lacework-global-69",
-		"AWS_CIS_1_15":  "lacework-global-33",
-		"AWS_CIS_1_16":  "lacework-global-44", // no iam policies to users
-		"AWS_CIS_1_19":  "lacework-global-31", // manual?
-		"AWS_CIS_1_20":  "lacework-global-32", // manual?
-		"AWS_CIS_1_21":  "lacework-global-70", // manual?
+		"AWS_CIS_1_2":  "lacework-global-39",
+		"AWS_CIS_1_3":  "lacework-global-41",
+		"AWS_CIS_1_4":  "lacework-global-43",
+		"AWS_CIS_1_9":  "lacework-global-37",
+		"AWS_CIS_1_10": "lacework-global-38",
+		"AWS_CIS_1_12": "lacework-global-34",
+		"AWS_CIS_1_13": "lacework-global-35",
+		"AWS_CIS_1_14": "lacework-global-69",
+		"AWS_CIS_1_15": "lacework-global-33",
+		"AWS_CIS_1_16": "lacework-global-44", // no iam policies to users
+		//"AWS_CIS_1_19":  "lacework-global-31", manual
+		//"AWS_CIS_1_20":  "lacework-global-32", manual
+		//"AWS_CIS_1_21":  "lacework-global-70", manual
 		"AWS_CIS_1_22":  "lacework-global-46",
 		"AWS_CIS_1_23":  "lacework-global-40",
 		"AWS_CIS_1_24":  "lacework-global-45",
