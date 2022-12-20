@@ -47,6 +47,7 @@ func (c *cliState) envs() []string {
 		fmt.Sprintf("LW_LOG=%s", c.Log.Level().CapitalString()),
 		fmt.Sprintf("LW_JSON=%v", c.jsonOutput),
 		fmt.Sprintf("LW_CDK_TARGET=%s", c.GrpcTarget()),
+		fmt.Sprintf("LW_API_SERVER_URL=%s", c.LwApi.URL()),
 	}
 }
 
