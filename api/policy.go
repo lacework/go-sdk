@@ -57,7 +57,7 @@ type NewPolicy struct {
 	Limit         int      `json:"limit,omitempty" yaml:"limit,omitempty"`
 	EvalFrequency string   `json:"evalFrequency,omitempty" yaml:"evalFrequency,omitempty"`
 	AlertEnabled  bool     `json:"alertEnabled" yaml:"alertEnabled"`
-	AlertProfile  string   `json:"alertProfile,omitempty" yaml:"alertProfile"`
+	AlertProfile  string   `json:"alertProfile,omitempty" yaml:"alertProfile,omitempty"`
 	Tags          []string `json:"tags,omitempty" yaml:"tags,omitempty"`
 }
 
