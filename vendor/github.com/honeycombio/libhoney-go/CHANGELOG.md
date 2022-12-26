@@ -1,5 +1,26 @@
 # libhoney Changelog
 
+## 1.18.0 2022-10-28
+
+### Enhancements
+
+- include Go version, GOOS, & GOARCH in user-agent (#207) | @robbkidd
+
+### Maintenance
+
+- Convert stray fmt.Printf into logger.Printf (#203) | @glenjamin
+
+## 1.17.1 2022-10-19
+
+### Fixed
+
+- Pre-define field map capacities (#197) | [lizthegrey](https://github.com/lizthegrey)
+
+### Maintenance
+
+- Add release file (#199) | [@vreynolds](https://github.com/vreynolds)
+- Add new project workflow (#196) | [@vreynolds](https://github.com/vreynolds)
+
 ## 1.17.0 2022-09-23
 
 ### Enhancements
