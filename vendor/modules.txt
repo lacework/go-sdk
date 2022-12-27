@@ -271,10 +271,11 @@ github.com/hinshun/vt10x
 # github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 ## explicit
 github.com/hokaccha/go-prettyjson
-# github.com/honeycombio/libhoney-go v1.17.0
+# github.com/honeycombio/libhoney-go v1.18.0
 ## explicit; go 1.14
 github.com/honeycombio/libhoney-go
 github.com/honeycombio/libhoney-go/transmission
+github.com/honeycombio/libhoney-go/version
 # github.com/imdario/mergo v0.3.13
 ## explicit; go 1.13
 github.com/imdario/mergo

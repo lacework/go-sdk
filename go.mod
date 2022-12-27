@@ -29,7 +29,7 @@ require (
 	github.com/hashicorp/terraform-json v0.14.0
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
-	github.com/honeycombio/libhoney-go v1.17.0
+	github.com/honeycombio/libhoney-go v1.18.0
 	github.com/imdario/mergo v0.3.13
 	github.com/kyokomi/emoji/v2 v2.2.10
 	github.com/mitchellh/go-homedir v1.1.0
