@@ -230,7 +230,10 @@ func (s State) Install(name string) error {
 
 	artifact, found := component.ArtifactForRunningHost()
 	if !found {
-		return errors.New("unsupported platform")
+		return errors.Errorf(
+			"the running environment is not yet supported (%s/%s)",
+			runtime.GOOS, runtime.GOARCH,
+		)
 	}
 
 	path, err := component.Path()
