@@ -74,7 +74,7 @@ func ensureMockComponent(version, content, signature string) (string, error) {
 			mockComponent.LatestVersion = ver
 		}()
 	}
-	if err := mockComponent.WriteVersion(); err != nil {
+	if err := mockComponent.WriteVersion(mockComponent.LatestVersion.String()); err != nil {
 		return "", err
 	}
 
@@ -117,7 +117,7 @@ func TestLoadState(t *testing.T) {
 	fakeServer.MockAPI(
 		"Components",
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "{\"components\": [],\"version\": \"0.1.0\"}")
+			fmt.Fprint(w, "{\"components\": [],\"version\": \"0.3.0\"}")
 		},
 	)
 	defer fakeServer.Close()
@@ -413,7 +413,16 @@ func TestJSON(t *testing.T) {
         {
             "os": "darwin",
             "arch": "amd64",
-            "signature": "abcdef0123456789"
+            "signature": "abcdef0123456789",
+            "version": "0.1.2",
+            "updateMessage": "Feature 2 added"
+        },
+        {
+            "os": "darwin",
+            "arch": "amd64",
+            "signature": "987654321qwerty",
+            "version": "0.1.1",
+            "updateMessage": "Feature 1 added"
         }
     ],
     "breadcrumbs": {
