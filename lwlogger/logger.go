@@ -51,9 +51,8 @@ var (
 
 // New initialize a new logger with the provided level and options
 func New(level string, options ...zap.Option) *zap.Logger {
-	// give priority to the environment variable
-	if envLevel := LogLevelFromEnvironment(); envLevel != "" {
-		level = envLevel
+	if level == "" {
+		level = LogLevelFromEnvironment()
 	}
 
 	zapConfig := zap.Config{
@@ -81,9 +80,8 @@ func New(level string, options ...zap.Option) *zap.Logger {
 // NewWithWriter initialize a new logger with the provided level and options
 // but redirecting the logs to the provider io.Writer
 func NewWithWriter(level string, out io.Writer, options ...zap.Option) *zap.Logger {
-	// give priority to the environment variable
-	if envLevel := LogLevelFromEnvironment(); envLevel != "" {
-		level = envLevel
+	if level == "" {
+		level = LogLevelFromEnvironment()
 	}
 
 	var (
