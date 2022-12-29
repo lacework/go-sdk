@@ -103,6 +103,16 @@ func NewWithWriter(level string, out io.Writer, options ...zap.Option) *zap.Logg
 	return zap.New(core, options...).WithOptions(localOpts...)
 }
 
+// Merges multiple loggers into one. A call to the merged logger will be
+// forwarded to all the loggers
+func Merge(loggers ...*zap.Logger) *zap.Logger {
+	cores := make([]zapcore.Core, len(loggers))
+	for i, log := range loggers {
+		cores[i] = log.Core()
+	}
+	return zap.New(zapcore.NewTee(cores...))
+}
+
 func ValidLevel(level string) bool {
 	for _, l := range SupportedLogLevels {
 		if l == level {

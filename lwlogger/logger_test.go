@@ -19,6 +19,7 @@
 package lwlogger_test
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"syscall"
@@ -217,6 +218,24 @@ func TestLoggerNewWithOptions(t *testing.T) {
 	assert.Contains(t, logOutput, "we are debugging")
 	assert.Contains(t, logOutput, "\"my_field\"")
 	assert.Contains(t, logOutput, "\"awesome\"")
+}
+
+func TestLoggerMerge(t *testing.T) {
+	var bufOne bytes.Buffer
+	var bufTwo bytes.Buffer
+
+	logOne := lwlogger.NewWithWriter("INFO", &bufOne)
+	logTwo := lwlogger.NewWithWriter("DEBUG", &bufTwo)
+
+	mergedLog := lwlogger.Merge(logOne, logTwo)
+	mergedLog.Info("ABCD")
+	mergedLog.Debug("XYZ")
+	_ = mergedLog.Sync()
+
+	assert.Contains(t, bufOne.String(), "ABCD")
+	assert.NotContains(t, bufOne.String(), "XYZ")
+	assert.Contains(t, bufTwo.String(), "ABCD")
+	assert.Contains(t, bufTwo.String(), "XYZ")
 }
 
 func TestValidLevel(t *testing.T) {
