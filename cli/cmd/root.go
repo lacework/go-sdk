@@ -26,6 +26,7 @@ import (
 	"github.com/fatih/color"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -287,8 +288,12 @@ func initConfig() {
 		os.Setenv("NO_COLOR", "true")
 	}
 
-	if viper.GetBool("noninteractive") {
-		cli.NonInteractive()
+	if b := viper.Get("noninteractive"); b != nil {
+		if cast.ToBool(b) {
+			cli.NonInteractive()
+		} else {
+			cli.Interactive()
+		}
 	}
 
 	if viper.GetBool("nocache") {
