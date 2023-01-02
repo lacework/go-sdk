@@ -15,7 +15,7 @@ require (
 	github.com/abiosoft/colima v0.4.6
 	github.com/aws/aws-sdk-go v1.44.114
 	github.com/aws/aws-sdk-go-v2 v1.17.3
-	github.com/aws/aws-sdk-go-v2/config v1.18.6
+	github.com/aws/aws-sdk-go-v2/config v1.18.7
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.77.0
 	github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect v1.14.11
 	github.com/briandowns/spinner v1.17.0
@@ -53,6 +53,8 @@ require (
 )
 
 require (
+	github.com/mattn/go-isatty v0.0.14
+	github.com/spf13/cast v1.5.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 	google.golang.org/api v0.102.0
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c
@@ -63,13 +65,13 @@ require (
 	cloud.google.com/go/longrunning v0.1.1 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.6 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.7 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.21 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.27 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.21 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.28 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.21 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.11.27 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.11.28 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.17.7 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
@@ -95,7 +97,6 @@ require (
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
@@ -104,7 +105,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
-	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect

@@ -83,10 +83,10 @@ github.com/aws/aws-sdk-go-v2/internal/shareddefaults
 github.com/aws/aws-sdk-go-v2/internal/strings
 github.com/aws/aws-sdk-go-v2/internal/sync/singleflight
 github.com/aws/aws-sdk-go-v2/internal/timeconv
-# github.com/aws/aws-sdk-go-v2/config v1.18.6
+# github.com/aws/aws-sdk-go-v2/config v1.18.7
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/config
-# github.com/aws/aws-sdk-go-v2/credentials v1.13.6
+# github.com/aws/aws-sdk-go-v2/credentials v1.13.7
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/credentials
 github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds
@@ -121,7 +121,7 @@ github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect/types
 # github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.21
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url
-# github.com/aws/aws-sdk-go-v2/service/sso v1.11.27
+# github.com/aws/aws-sdk-go-v2/service/sso v1.11.28
 ## explicit; go 1.15
 github.com/aws/aws-sdk-go-v2/service/sso
 github.com/aws/aws-sdk-go-v2/service/sso/internal/endpoints
