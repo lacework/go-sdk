@@ -11,11 +11,11 @@ This script installs the Lacework Command Line Interface.
 
 $ErrorActionPreference = "stop"
 
-$version = '0.36.0'
+$version = $lacework_cli_version
 $packageName = 'lacework-cli'
 $toolsDir = "$( Split-Path -parent $MyInvocation.MyCommand.Definition )"
-$url = "https://github.com/lacework/go-sdk/releases/download/v0.36.0/lacework-cli-windows-386.exe.zip"
-$url64 = "https://github.com/lacework/go-sdk/releases/download/v0.36.0/lacework-cli-windows-amd64.exe.zip"
+$url = "https://github.com/lacework/go-sdk/releases/download/v$lacework_cli_version/lacework-cli-windows-386.exe.zip"
+$url64 = "https://github.com/lacework/go-sdk/releases/download/v$lacework_cli_version/lacework-cli-windows-amd64.exe.zip"
 
 $packageArgs = @{
     packageName = $packageName
@@ -26,9 +26,9 @@ $packageArgs = @{
 
     softwareName = 'Lacework*'
 
-    checksum = '2a729eee86583e433d5d69cb7928eba6e343402787553a751c1432e16d118a18'
+    checksum = $checksum
     checksumType = 'sha256'
-    checksum64 = 'facce660482f76c54d3e5084dd61defe8ce481b0f1baad93a5d421a8cdf89758'
+    checksum64 = $check64
     checksumType64 = 'sha256'
 }
 
