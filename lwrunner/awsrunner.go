@@ -194,6 +194,34 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 	return nil
 }
 
+func (run AWSRunner) IsAgentInstalledOnRemoteHostSSM(cfg aws.Config, documentName string, agentVersionCmd string) error {
+	c := ssm.New(ssm.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
+
+	input := &ssm.SendCommandInput{
+		DocumentName: aws.String(documentName),
+		Comment:      aws.String("checks if Lacework Agent is installed on host"),
+		InstanceIds: []string{
+			run.InstanceID,
+		},
+		Parameters: map[string][]string{
+			"commands": {
+				agentVersionCmd,
+			},
+		},
+	}
+
+	_, err := c.SendCommand(context.Background(), input)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
 // getAMIName takes an AMI image ID and an AWS region name as input
 // and calls the AWS API to get the name of the AMI. Returns the AMI
 // name or an error if unsuccessful.

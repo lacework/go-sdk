@@ -159,13 +159,9 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 
 			// TODO establish SSH access / SSM Command connection to the runner
 
-			if err := verifyAccessToRemoteHost(&threadRunner.Runner); err != nil {
-				cli.Log.Debugw("verifyAccessToRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
-				return
-			}
-
-			if alreadyInstalled := isAgentInstalledOnRemoteHost(&threadRunner.Runner); alreadyInstalled != nil {
-				cli.Log.Debugw("agent already installed on host, skipping", "runner", threadRunner.InstanceID)
+			if alreadyInstalled := threadRunner.IsAgentInstalledOnRemoteHostSSM(cfg, SSMDocumentName, AgentVersionCmd); alreadyInstalled != nil {
+				cli.Log.Debugw("error when checking if agent already installed on host", "error", err, "runner", threadRunner.InstanceID)
+				// cli.Log.Debugw("agent already installed on host, skipping", "runner", threadRunner.InstanceID)
 				return
 			}
 

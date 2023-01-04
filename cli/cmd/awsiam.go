@@ -31,7 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-// SetupSSMRole sets up an IAM role for SSM and attaches it to
+// SetupSSMAccess sets up an IAM role for SSM and attaches it to
 // the machine's instance profile. Takes role name as argument;
 // pass the empty string to create a new role.
 // Then creates SSM document.
@@ -67,6 +67,7 @@ func SetupSSMAccess(cfg aws.Config, roleName string, token string) (types.Role, 
 // - Deletes the instance profile
 // - Detaches all managed policies from the role
 //   - This assumes there are no inline policies attached to the role
+//
 // - Deletes the role
 func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile, byoRoleName string) error {
 	c := iam.New(iam.Options{
@@ -342,10 +343,9 @@ func createSSMDocument(cfg aws.Config, token string) error {
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
 	})
-	agentVersionCmd := "sudo sh -c \"/var/lib/lacework/datacollector -v\""
 	runInstallCmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 
-	ssmDocumentContents := fmt.Sprintf(ssmDocumentTemplate, agentVersionCmd, runInstallCmd)
+	ssmDocumentContents := fmt.Sprintf(ssmDocumentTemplate, AgentVersionCmd, runInstallCmd)
 	cli.Log.Debugw("ssmDocumentContents", "contents", ssmDocumentContents)
 
 	input := &ssm.CreateDocumentInput{
@@ -402,3 +402,4 @@ mainSteps:
     - "{{ commands }}"`
 
 const SSMDocumentName = "Lacework-Agent-SSM-Install-Document"
+const AgentVersionCmd = "sudo sh -c \"/var/lib/lacework/datacollector -v\""
