@@ -107,6 +107,8 @@ func LoadCache(path string) (*Version, error) {
 // getGitRelease uses the git API to fetch the release information of a project.
 // This function could hit request rate limits wich are roughly 60 every 30m, to
 // check your current rate limits run: curl https://api.github.com/rate_limit
+// If the GITHUB_TOKEN environment variable is set, then this function will use
+// it to authenticate the API request, which grants higher rate limits.
 func getGitRelease(project, version string) (*gitReleaseResponse, error) {
 	if project == "" {
 		return nil, errors.New("specify a valid project")
@@ -139,6 +141,11 @@ func getGitRelease(project, version string) (*gitReleaseResponse, error) {
 	// Set the user agent since it is required
 	// https://developer.github.com/v3/#user-agent-required
 	req.Header.Set("User-Agent", "lacework-updater")
+
+	token := os.Getenv("GITHUB_TOKEN")
+	if len(token) > 0 {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 
 	resp, err := c.Do(req)
 	if err != nil {
