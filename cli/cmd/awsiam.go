@@ -28,8 +28,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
-	ststypes "github.com/aws/aws-sdk-go-v2/service/sts/types"
 )
 
 // SetupSSMAccess sets up an IAM role for SSM and attaches it to
@@ -191,13 +189,16 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 		return *getOutput.Role, err // we previously created the role, use it
 	}
 
-	currentUserARN, err := getCurrentUserARN(cfg)
-	if err != nil {
-		return types.Role{}, err
-	}
-
-	trustPolicyDocument := fmt.Sprintf(trustPolicyDocumentTemplate, currentUserARN)
-
+	trustPolicyDocument := `{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Principal": { "Service": "ec2.amazonaws.com" },
+			"Action": "sts:AssumeRole"
+		}
+	]
+}`
 	input := &iam.CreateRoleInput{
 		AssumeRolePolicyDocument: &trustPolicyDocument,
 		RoleName:                 aws.String(roleName),
@@ -214,31 +215,6 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 	return *output.Role, nil
 }
 
-func getCurrentUserARN(cfg aws.Config) (string, error) {
-	c := sts.New(sts.Options{
-		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
-	})
-
-	output, err := c.GetCallerIdentity(context.Background(), &sts.GetCallerIdentityInput{})
-	if err != nil {
-		return "", err
-	}
-
-	return *output.Arn, nil
-}
-
-const trustPolicyDocumentTemplate = `{
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Principal": { "AWS": "%s" },
-			"Action": "sts:AssumeRole"
-		}
-	]
-}`
-
 // attachSSMPoliciesToRole takes a role, calls the IAM API to attach
 // policies required for SSM to the role, and returns the role along
 // with any errors.
@@ -250,7 +226,7 @@ func attachSSMPoliciesToRole(cfg aws.Config, role types.Role) error {
 
 	cli.Log.Debug("attaching policy to role")
 	input := &iam.AttachRolePolicyInput{
-		PolicyArn: aws.String("arn:aws:iam::aws:policy/AmazonSSMFullAccess"),
+		PolicyArn: aws.String("arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"),
 		RoleName:  role.RoleName,
 	}
 	_, err := c.AttachRolePolicy(context.Background(), input)
@@ -337,25 +313,6 @@ func addRoleToInstanceProfile(cfg aws.Config, role types.Role, instanceProfile t
 	_, err := c.AddRoleToInstanceProfile(context.Background(), addInput)
 
 	return err
-}
-
-func assumeRole(cfg aws.Config, role types.Role) (ststypes.Credentials, error) {
-	c := sts.New(sts.Options{
-		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
-	})
-
-	cli.Log.Debugw("assuming SSM role", "role", role)
-	input := &sts.AssumeRoleInput{
-		RoleArn:         role.Arn,
-		RoleSessionName: aws.String("Lacework-Agent-SSM-Install-Role-Session"),
-	}
-	output, err := c.AssumeRole(context.Background(), input)
-	if err != nil {
-		return ststypes.Credentials{}, err
-	}
-
-	return *output.Credentials, nil
 }
 
 func createSSMDocument(cfg aws.Config, token string) error {

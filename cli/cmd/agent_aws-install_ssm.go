@@ -121,12 +121,6 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	// assume the role and get credentials for SSM operations
-	tempCreds, err := assumeRole(cfg, role)
-	if err != nil {
-		return err
-	}
-
 	wg := new(sync.WaitGroup)
 	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
 	for _, runner := range runners {
@@ -165,7 +159,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 
 			// establish SSH access / SSM Command connection to the runner
 
-			if alreadyInstalled := threadRunner.IsAgentInstalledOnRemoteHostSSM(cfg, tempCreds, SSMDocumentName, AgentVersionCmd); alreadyInstalled != nil {
+			if alreadyInstalled := threadRunner.IsAgentInstalledOnRemoteHostSSM(cfg, SSMDocumentName, AgentVersionCmd); alreadyInstalled != nil {
 				cli.Log.Debugw("error when checking if agent already installed on host", "error", alreadyInstalled, "runner", threadRunner.InstanceID)
 				// cli.Log.Debugw("agent already installed on host, skipping", "runner", threadRunner.InstanceID)
 				return

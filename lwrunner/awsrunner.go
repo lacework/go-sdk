@@ -31,7 +31,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	ststypes "github.com/aws/aws-sdk-go-v2/service/sts/types"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -170,7 +169,7 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 		if foundArn == *instanceProfile.Arn { // found our instance profile associated, use it
 			// should already have the role attached if it was associated
 			return nil
-		} else {
+		} else { // TODO check if an existing instance profile already has the `AmazonSSMManagedInstanceCore` policy, don't fail if so
 			return fmt.Errorf(
 				"runner %v already has an instance profile (%v) attached",
 				run,
@@ -195,32 +194,11 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 	return nil
 }
 
-// SSMCredentialsProvider implements the CredentialsProvider interface.
-// The Golang SSM client requires that we pass credentials this way.
-type SSMCredentialsProvider struct {
-	Credentials aws.Credentials
-}
-
-func (prov SSMCredentialsProvider) Retrieve(ctx context.Context) (aws.Credentials, error) {
-	return prov.Credentials, nil
-}
-
-func (run AWSRunner) IsAgentInstalledOnRemoteHostSSM(cfg aws.Config, stsCreds ststypes.Credentials, documentName string, agentVersionCmd string) error {
-	awsCreds := aws.Credentials{
-		AccessKeyID:     *stsCreds.AccessKeyId,
-		SecretAccessKey: *stsCreds.SecretAccessKey,
-		SessionToken:    *stsCreds.SessionToken,
-		CanExpire:       true,
-		Expires:         *stsCreds.Expiration,
-	}
+func (run AWSRunner) IsAgentInstalledOnRemoteHostSSM(cfg aws.Config, documentName string, agentVersionCmd string) error {
 	c := ssm.New(ssm.Options{
-		Credentials: SSMCredentialsProvider{
-			Credentials: awsCreds,
-		},
-		Region: cfg.Region,
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
 	})
-
-	fmt.Println("temporary credentials", awsCreds)
 
 	input := &ssm.SendCommandInput{
 		DocumentName: aws.String(documentName),
