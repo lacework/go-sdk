@@ -31,6 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	ststypes "github.com/aws/aws-sdk-go-v2/service/sts/types"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -194,11 +195,32 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 	return nil
 }
 
-func (run AWSRunner) IsAgentInstalledOnRemoteHostSSM(cfg aws.Config, documentName string, agentVersionCmd string) error {
+// SSMCredentialsProvider implements the CredentialsProvider interface.
+// The Golang SSM client requires that we pass credentials this way.
+type SSMCredentialsProvider struct {
+	Credentials aws.Credentials
+}
+
+func (prov SSMCredentialsProvider) Retrieve(ctx context.Context) (aws.Credentials, error) {
+	return prov.Credentials, nil
+}
+
+func (run AWSRunner) IsAgentInstalledOnRemoteHostSSM(cfg aws.Config, stsCreds ststypes.Credentials, documentName string, agentVersionCmd string) error {
+	awsCreds := aws.Credentials{
+		AccessKeyID:     *stsCreds.AccessKeyId,
+		SecretAccessKey: *stsCreds.SecretAccessKey,
+		SessionToken:    *stsCreds.SessionToken,
+		CanExpire:       true,
+		Expires:         *stsCreds.Expiration,
+	}
 	c := ssm.New(ssm.Options{
-		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
+		Credentials: SSMCredentialsProvider{
+			Credentials: awsCreds,
+		},
+		Region: cfg.Region,
 	})
+
+	fmt.Println("temporary credentials", awsCreds)
 
 	input := &ssm.SendCommandInput{
 		DocumentName: aws.String(documentName),
@@ -215,7 +237,6 @@ func (run AWSRunner) IsAgentInstalledOnRemoteHostSSM(cfg aws.Config, documentNam
 
 	_, err := c.SendCommand(context.Background(), input)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 

@@ -29,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	ststypes "github.com/aws/aws-sdk-go-v2/service/sts/types"
 )
 
 // SetupSSMAccess sets up an IAM role for SSM and attaches it to
@@ -336,6 +337,25 @@ func addRoleToInstanceProfile(cfg aws.Config, role types.Role, instanceProfile t
 	_, err := c.AddRoleToInstanceProfile(context.Background(), addInput)
 
 	return err
+}
+
+func assumeRole(cfg aws.Config, role types.Role) (ststypes.Credentials, error) {
+	c := sts.New(sts.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
+
+	cli.Log.Debugw("assuming SSM role", "role", role)
+	input := &sts.AssumeRoleInput{
+		RoleArn:         role.Arn,
+		RoleSessionName: aws.String("Lacework-Agent-SSM-Install-Role-Session"),
+	}
+	output, err := c.AssumeRole(context.Background(), input)
+	if err != nil {
+		return ststypes.Credentials{}, err
+	}
+
+	return *output.Credentials, nil
 }
 
 func createSSMDocument(cfg aws.Config, token string) error {
