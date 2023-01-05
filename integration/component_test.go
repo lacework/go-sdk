@@ -85,7 +85,7 @@ func TestComponentListJSON(t *testing.T) {
 		"missing IaC component in JSON output")
 }
 
-func TestComponentDevModeGolang(t *testing.T) {
+func TestComponentDevModeGolangFromScratch(t *testing.T) {
 	cName := "go-component"
 	dir := createTOMLConfigFromCIvars()
 	defer os.RemoveAll(dir)
@@ -171,6 +171,109 @@ func TestComponentDevModeGolang(t *testing.T) {
 		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 		assert.Contains(t, err.String(), "ERROR Purposely failing...",
 			"go component changed? Or something is wrong, check!")
+	})
+
+	t.Run("global help should show component", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "help")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), cName,
+			"the test component SHOULD be shown in help message, check!")
+		assert.Contains(t, out.String(), "(dev-mode) A Go component for testing",
+			"the test component SHOULD be shown in help message, check!")
+	})
+
+	t.Run("component should be displayed in version command", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "version")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), fmt.Sprintf("> %s v0.0.0-dev", cName),
+			"the test component SHOULD be shown in version command, check!")
+	})
+}
+
+func TestComponentDevModeGolangScaffolding(t *testing.T) {
+	cName := "go-component"
+	dir := createTOMLConfigFromCIvars()
+	defer os.RemoveAll(dir)
+
+	t.Run("component not found", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "component", "list")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.NotContains(t, out.String(), cName,
+			"the test component should not be here already, check!")
+
+		out, err, exitcode = LaceworkCLIWithHome(dir, cName)
+		assert.Empty(t, out.String(), "STDOUT should be empty")
+		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+		assert.NotContains(t, out.String(), cName,
+			fmt.Sprintf("ERROR unknown command \"%s\"", cName))
+	})
+
+	t.Run("deploy new component using scaffolding", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(
+			dir, "component", "dev", cName, "--type", "CLI_COMMAND", "--nocolor",
+			"--description", "A Go component for testing", "--noninteractive",
+			"--scaffolding", "Golang",
+		)
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(),
+			fmt.Sprintf("Component '%s' in now in development mode.", cName),
+			"the test component should not be here already, check!")
+		assert.Contains(t, out.String(),
+			fmt.Sprintf("lacework/components/%s/.dev", cName),
+			"the test component should not be here already, check!")
+
+		checklistOut := []string{
+			"Deploying Golang scaffolding",
+			"cmd/cdk.go deployed",
+			"cmd/root.go deployed",
+			"Makefile deployed",
+			"VERSION deployed",
+			"cmd/placeholder.go deployed",
+			".gitignore deployed",
+			"main.go deployed",
+			"LICENSE deployed",
+			"bin/.gitkeeper deployed",
+			"go.mod deployed",
+			"Git repository initialized",
+			"Deployment completed!",
+			"Go dependencies downloaded",
+			"Dev component built",
+			fmt.Sprintf("Your new component '%s' is ready!", cName),
+			"Component verified",
+		}
+		for _, expectedOutput := range checklistOut {
+			assert.Contains(t, out.String(), expectedOutput, "missing checklist output")
+		}
+	})
+
+	t.Run("execute component", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, cName)
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Contains(t, out.String(),
+			"A placeholder command",
+			"Golang scaffolding changed? Or something is wrong, check!")
+		assert.Contains(t, out.String(),
+			fmt.Sprintf("%s is a scaffolding for Lacework CDK components. It helps developers", cName),
+			"Golang scaffolding changed? Or something is wrong, check!")
+
+		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "placeholder")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(),
+			fmt.Sprintf("Your new component '%s' is ready!", cName),
+			"Golang scaffolding changed? Or something is wrong, check!")
+
+		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "should-fail")
+		assert.Empty(t, out.String(), "STDOUT should be empty")
+		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, err.String(),
+			fmt.Sprintf("Error: unknown command \"should-fail\" for \"%s\"", cName),
+			"Golang scaffolding changed? Or something is wrong, check!")
 	})
 
 	t.Run("global help should show component", func(t *testing.T) {

@@ -147,8 +147,17 @@ func LocalState() (*State, error) {
 	if err != nil {
 		return state, err
 	}
-	err = json.Unmarshal(stateBytes, state)
-	return state, err
+	if err := json.Unmarshal(stateBytes, state); err != nil {
+		return state, err
+	}
+
+	// load local components
+	state.loadComponentsFromDisk()
+
+	// load dev components
+	state.loadDevComponents()
+
+	return state, nil
 }
 
 // GetComponent returns the pointer of a component, if the component is not
