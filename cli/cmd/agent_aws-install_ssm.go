@@ -158,6 +158,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				return
 			}
 
+			// Sleep for 5min to wait for instance profile to associate with instance
 			time.Sleep(5 * time.Minute)
 
 			// establish SSH access / SSM Command connection to the runner
