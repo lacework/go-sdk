@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/gammazero/workerpool"
 	"github.com/pkg/errors"
@@ -156,6 +157,8 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				)
 				return
 			}
+
+			time.Sleep(5 * time.Minute)
 
 			// establish SSH access / SSM Command connection to the runner
 
