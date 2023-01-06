@@ -320,6 +320,16 @@ func createSSMDocument(cfg aws.Config, token string) error {
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
 	})
+
+	// check that the document doesn't already exist
+	describeInput := &ssm.DescribeDocumentInput{
+		Name: aws.String(SSMDocumentName),
+	}
+	describeOutput, err := c.DescribeDocument(context.Background(), describeInput)
+	if err == nil && describeOutput != nil && *describeOutput.Document.Name == SSMDocumentName {
+		return nil // document already exists, return instead of creating a new one
+	}
+
 	runInstallCmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
 
 	ssmDocumentContents := fmt.Sprintf(ssmDocumentTemplate, AgentVersionCmd, runInstallCmd)
