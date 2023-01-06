@@ -492,8 +492,8 @@ func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
 	}
 
 	cli.StartProgress("Cleaning component data...")
-	// component life cycle: remove
-	stdout, stderr, errCmd := component.RunAndReturn([]string{"cdk-remove"}, nil, cli.envs()...)
+	// component life cycle: cleanup
+	stdout, stderr, errCmd := component.RunAndReturn([]string{"cdk-cleanup"}, nil, cli.envs()...)
 	if errCmd != nil {
 		cli.Log.Warnw("component life cycle",
 			"error", errCmd.Error(), "stdout", stdout, "stderr", stderr)
