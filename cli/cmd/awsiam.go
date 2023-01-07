@@ -132,7 +132,7 @@ func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 	}
 
 	// Delete the SSM document
-	err = deleteSSMDocument(cfg, SSMDocumentName)
+	err = deleteSSMDocument(cfg, ssmDocumentName)
 	if err != nil {
 		return err
 	}
@@ -323,21 +323,21 @@ func createSSMDocument(cfg aws.Config, token string) error {
 
 	// check that the document doesn't already exist
 	describeInput := &ssm.DescribeDocumentInput{
-		Name: aws.String(SSMDocumentName),
+		Name: aws.String(ssmDocumentName),
 	}
 	describeOutput, err := c.DescribeDocument(context.Background(), describeInput)
-	if err == nil && describeOutput != nil && *describeOutput.Document.Name == SSMDocumentName {
+	if err == nil && describeOutput != nil && *describeOutput.Document.Name == ssmDocumentName {
 		return nil // document already exists, return instead of creating a new one
 	}
 
-	runInstallCmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+	runInstallCmd := fmt.Sprintf(runInstallCmdTmpl, agentInstallDownloadURL, token)
 
-	ssmDocumentContents := fmt.Sprintf(ssmDocumentTemplate, AgentVersionCmd, runInstallCmd)
+	ssmDocumentContents := fmt.Sprintf(ssmDocumentTemplate, agentVersionCmd, runInstallCmd)
 	cli.Log.Debugw("ssmDocumentContents", "contents", ssmDocumentContents)
 
 	input := &ssm.CreateDocumentInput{
 		Content:        aws.String(ssmDocumentContents),
-		Name:           aws.String(SSMDocumentName),
+		Name:           aws.String(ssmDocumentName),
 		DocumentFormat: ssmtypes.DocumentFormatYaml,
 		DocumentType:   ssmtypes.DocumentTypeCommand,
 		TargetType:     aws.String("/AWS::EC2::Instance"),
@@ -361,9 +361,9 @@ func deleteSSMDocument(cfg aws.Config, documentName string) error {
 		Region:      cfg.Region,
 	})
 
-	cli.Log.Debugw("deleting SSM document", "document name", SSMDocumentName)
+	cli.Log.Debugw("deleting SSM document", "document name", ssmDocumentName)
 	input := &ssm.DeleteDocumentInput{
-		Name:  aws.String(SSMDocumentName),
+		Name:  aws.String(ssmDocumentName),
 		Force: true,
 	}
 	_, err := c.DeleteDocument(context.Background(), input)
@@ -388,5 +388,6 @@ mainSteps:
     runCommand:
     - "{{ commands }}"`
 
-const SSMDocumentName = "Lacework-Agent-SSM-Install-Document"
-const AgentVersionCmd = "sudo sh -c \"/var/lib/lacework/datacollector -v\""
+const ssmDocumentName = "Lacework-Agent-SSM-Install-Document"
+const agentVersionCmd = "sudo sh -c '/var/lib/lacework/datacollector -v'"
+const runInstallCmdTmpl = "sudo sh -c 'curl -sSL %s | sh -s -- %s'"

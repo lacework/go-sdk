@@ -23,7 +23,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/gammazero/workerpool"
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -156,26 +159,78 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 					"instance profile", instanceProfile,
 				)
 				return
+			} else {
+				cli.OutputHuman(fmt.Sprintf("successfully associated with instance ID %s\n", threadRunner.InstanceID))
 			}
 
-			// Sleep for 5min to wait for instance profile to associate with instance
-			time.Sleep(5 * time.Minute)
+			// Establish SSH access / SSM Command connection to the runner
 
-			// establish SSH access / SSM Command connection to the runner
+			// Check if agent is already installed on the host, skip if yes
+			// Sleep for up to 5min to wait for instance profile to associate with instance
+			var ssmError error
+			var commandOutput ssm.GetCommandInvocationOutput
+			for i := 0; i < 5; i++ {
+				cli.Log.Debugw("waiting for instance profile to associate with instance, sleeping 1min",
+					"iteration number (time slept in minutes)", i,
+					"instance ID", threadRunner.InstanceID,
+				)
+				time.Sleep(1 * time.Minute)
 
-			if alreadyInstalled := threadRunner.IsAgentInstalledOnRemoteHostSSM(cfg, SSMDocumentName, AgentVersionCmd); alreadyInstalled != nil {
-				cli.Log.Debugw("error when checking if agent already installed on host", "error", alreadyInstalled, "runner", threadRunner.InstanceID)
-				// cli.Log.Debugw("agent already installed on host, skipping", "runner", threadRunner.InstanceID)
+				commandOutput, ssmError = threadRunner.RunSSMCommandOnRemoteHost(cfg, ssmDocumentName, agentVersionCmd)
+				if ssmError != nil {
+					cli.Log.Debugw("error when checking if agent already installed on host, retrying",
+						"error", err,
+						"runner", threadRunner.InstanceID,
+					)
+				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusCancelled ||
+					commandOutput.Status == ssmtypes.CommandInvocationStatusTimedOut ||
+					commandOutput.Status == ssmtypes.CommandInvocationStatusFailed {
+					cli.Log.Debugw("command did not complete successfully, retrying",
+						"command output", commandOutput,
+						"runner", threadRunner.InstanceID,
+					)
+				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
+					cli.Log.Debugw("agent already installed on host, skipping",
+						"runner", threadRunner.InstanceID,
+					)
+					return
+				} else {
+					cli.Log.Debugw("no agent found on host, proceeding to install",
+						"time slept in minutes", i,
+						"runner", threadRunner.InstanceID,
+					)
+					break
+				}
+			}
+			if ssmError != nil { // SSM still erroring after 5min of sleep, skip this host
+				cli.Log.Debugw("error when checking if agent already installed on host, skipping runner",
+					"error", err,
+					"runner", threadRunner.InstanceID,
+				)
 				return
 			}
 
-			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
-			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
+			// Install the agent on the host
+			runInstallCmd := fmt.Sprintf(runInstallCmdTmpl, agentInstallDownloadURL, token)
+			commandOutput, err := threadRunner.RunSSMCommandOnRemoteHost(cfg, ssmDocumentName, runInstallCmd)
 			if err != nil {
-				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
-			}
-			if threadRunner != *runner {
-				cli.Log.Debugw("mutated runner", "thread_runner", threadRunner, "runner", runner)
+				cli.Log.Debugw("runInstallCommandOnRemoteHost failed",
+					"error", err,
+					"runner", threadRunner.InstanceID,
+				)
+			} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
+				cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", threadRunner.InstanceID)
+				cli.OutputHuman(renderOneLineCustomTable("Installation Details", *commandOutput.StandardOutputContent,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator(" ")
+						t.SetAutoWrapText(false)
+					})))
+			} else {
+				cli.Log.Debugw("Install command did not return `Success` exit status on host",
+					"runner", threadRunner.InstanceID,
+					"status", commandOutput,
+				)
 			}
 		})
 		runnerCopyWg.Wait()

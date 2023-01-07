@@ -36,7 +36,7 @@ func TestSSMAccessSetupTeardown(t *testing.T) {
 	cfg, err := GetConfig()
 	assert.NoError(t, err)
 
-	role, instanceProfile, err := SetupSSMAccess(cfg, userFlagRoleName)
+	role, instanceProfile, err := SetupSSMAccess(cfg, userFlagRoleName, "0xC0FFEEC0FFEEC0FFEEC0FFEE")
 	assert.NoError(t, err)
 
 	cli.Log.Debugw("got infra", "role", role, "instance profile", instanceProfile)

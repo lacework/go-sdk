@@ -23,14 +23,17 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -162,39 +165,101 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 		return err
 	}
 
-	// Logic for when there is already an instance profile associated with the runner
-	// If the CLI fails or is interrupted, this may be our instance profile
-	if len(describeOutput.IamInstanceProfileAssociations) > 0 {
-		foundArn := *describeOutput.IamInstanceProfileAssociations[0].IamInstanceProfile.Arn
-		if foundArn == *instanceProfile.Arn { // found our instance profile associated, use it
-			// should already have the role attached if it was associated
-			return nil
-		} else { // TODO check if an existing instance profile already has the `AmazonSSMManagedInstanceCore` policy, don't fail if so
-			return fmt.Errorf(
-				"runner %v already has an instance profile (%v) attached",
-				run,
-				describeOutput.IamInstanceProfileAssociations[0],
-			)
-		}
-	}
-
-	// Associate our own instance profile
-	associateInput := &ec2.AssociateIamInstanceProfileInput{
-		IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
-			Arn: instanceProfile.Arn,
-		},
-		InstanceId: aws.String(run.InstanceID),
-	}
-	_, err = c.AssociateIamInstanceProfile(context.Background(), associateInput)
+	alreadyAssociated, err := run.isCorrectInstanceProfileAlreadyAssociated(cfg, describeOutput.IamInstanceProfileAssociations)
 	if err != nil {
 		return err
 	}
-	fmt.Println("successfully associated with instance ID", run.InstanceID)
 
-	return nil
+	if alreadyAssociated { // use the existing, correctly configured instance profile
+		return nil
+	} else { // associate our own instance profile
+		associateInput := &ec2.AssociateIamInstanceProfileInput{
+			IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
+				Arn: instanceProfile.Arn,
+			},
+			InstanceId: aws.String(run.InstanceID),
+		}
+		_, err = c.AssociateIamInstanceProfile(context.Background(), associateInput)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
 }
 
-func (run AWSRunner) IsAgentInstalledOnRemoteHostSSM(cfg aws.Config, documentName string, agentVersionCmd string) error {
+// isCorrectInstanceProfileAlreadyAssociated takes a list of instance profile associations
+// and checks if there is an instance profile associated and if this instance
+// profile has the correct policy for SSM access. Returns `true, nil` if so. Returns
+// `false, nil` if there is no instance profile associated. Returns `false, <error>` if
+// there is an incorrect instance profile associated, or if there was an error in
+// executing this function.
+func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, associations []ec2types.IamInstanceProfileAssociation) (bool, error) {
+	if len(associations) <= 0 { // no instance profile associated
+		return false, nil
+	}
+	instanceProfileName := associations[0].IamInstanceProfile.Id
+
+	c := iam.New(iam.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
+
+	getInstanceProfileInput := &iam.GetInstanceProfileInput{
+		InstanceProfileName: instanceProfileName,
+	}
+	getInstanceProfileOutput, err := c.GetInstanceProfile(context.Background(), getInstanceProfileInput)
+	if err != nil {
+		return false, err
+	}
+
+	// Check to see if the instance profile associated with the runner has the correct policy
+
+	// if foundArn == *instanceProfile.Arn { // found our instance profile associated, use it
+	// 	// should already have the role attached if it was associated
+	// 	return nil
+
+	if len(getInstanceProfileOutput.InstanceProfile.Roles) <= 0 { // can only have max one role
+		return false, fmt.Errorf(
+			"runner %v already has an instance profile (%v) attached, does not have a role",
+			run,
+			getInstanceProfileOutput.InstanceProfile,
+		)
+	}
+
+	// Check which policies are associated with this instance profile's role
+	listAttachedRolePoliciesInput := iam.ListAttachedRolePoliciesInput{
+		RoleName: getInstanceProfileOutput.InstanceProfile.Roles[0].RoleName,
+	}
+	listAttachedRolePoliciesOutput, err := c.ListAttachedRolePolicies(context.Background(), &listAttachedRolePoliciesInput)
+	if err != nil {
+		return false, err
+	}
+
+	ssmPolicy := "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+	for _, policy := range listAttachedRolePoliciesOutput.AttachedPolicies {
+		if *policy.PolicyArn == ssmPolicy {
+			return true, nil // everything is configured correctly, we can return now
+		}
+	}
+
+	// The runner has an instance profile attached, the instance profile has a role,
+	// and the role does not have the policy we need for SSM. We can't install on
+	// this instance, return an error
+	return false, fmt.Errorf(
+		"runner %v already has an instance profile (%v) attached, does not have policy %s",
+		run,
+		getInstanceProfileOutput.InstanceProfile,
+		ssmPolicy,
+	)
+}
+
+// RunSSMCommandOnRemoteHost takes a shell command to install the agent on
+// the runner and executes it using SSM. The user must pass in a valid
+// `documentName`. `operation` must be one of the commands allowed by the SSM
+// document. This function will not return until the command is in a terminal
+// state.
+func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, documentName string, operation string) (ssm.GetCommandInvocationOutput, error) {
 	c := ssm.New(ssm.Options{
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
@@ -202,23 +267,50 @@ func (run AWSRunner) IsAgentInstalledOnRemoteHostSSM(cfg aws.Config, documentNam
 
 	input := &ssm.SendCommandInput{
 		DocumentName: aws.String(documentName),
-		Comment:      aws.String("checks if Lacework Agent is installed on host"),
+		Comment:      aws.String("this command is for installing the Lacework Agent"),
 		InstanceIds: []string{
 			run.InstanceID,
 		},
 		Parameters: map[string][]string{
 			"commands": {
-				agentVersionCmd,
+				operation,
 			},
 		},
 	}
 
-	_, err := c.SendCommand(context.Background(), input)
+	sendCommandOutput, err := c.SendCommand(context.Background(), input)
 	if err != nil {
-		return err
+		return ssm.GetCommandInvocationOutput{}, err
 	}
 
-	return nil
+	var getCommandInvocationOutput *ssm.GetCommandInvocationOutput
+	getCommandInvocationInput := &ssm.GetCommandInvocationInput{
+		CommandId:  sendCommandOutput.Command.CommandId,
+		InstanceId: aws.String(run.InstanceID),
+		PluginName: aws.String("runShellScriptDefaultParams"),
+	}
+	// Wait for up to a minute for the command to execute
+	for i := 0; i < 6; i++ {
+		time.Sleep(10 * time.Second)
+
+		getCommandInvocationOutput, err = c.GetCommandInvocation(context.Background(), getCommandInvocationInput)
+		if err != nil {
+			return ssm.GetCommandInvocationOutput{}, err
+		}
+
+		// Check if the command has reached a "terminal state"
+		if getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusSuccess ||
+			getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusCancelled ||
+			getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusTimedOut ||
+			getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusFailed {
+			return *getCommandInvocationOutput, nil
+		}
+	}
+
+	return *getCommandInvocationOutput, fmt.Errorf("command %s did not finish in 1min, final state %v",
+		*sendCommandOutput.Command.CommandId,
+		*getCommandInvocationOutput,
+	)
 }
 
 // getAMIName takes an AMI image ID and an AWS region name as input
