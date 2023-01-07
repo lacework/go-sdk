@@ -139,7 +139,7 @@ func runComponentsDevMode(_ *cobra.Command, args []string) error {
 		// Offer the creation of a component scaffolding
 		if cdkDevState.Scaffolding == "" && cli.InteractiveMode() {
 			if err := survey.AskOne(&survey.Select{
-				Message: "Would you like to initialize your component with a scaffolding? ",
+				Message: "Would you like to initialize your component with scaffolding? ",
 				Options: []string{"No. Start from scratch", "Golang", "Python"},
 			}, &cdkDevState.Scaffolding); err != nil {
 				return err
