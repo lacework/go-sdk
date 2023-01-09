@@ -169,7 +169,6 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			// Sleep for up to 5min to wait for instance profile to associate with instance
 			var ssmError error
 			var commandOutput ssm.GetCommandInvocationOutput
-			// var commandOutput ssmtypes.CommandInvocation
 			for i := 0; i < 5; i++ {
 				cli.Log.Debugw("waiting for instance profile to associate with instance, sleeping 1min",
 					"iteration number (time slept in minutes)", i,
@@ -206,6 +205,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			if ssmError != nil { // SSM still erroring after 5min of sleep, skip this host
 				cli.Log.Debugw("error when checking if agent already installed on host, skipping runner",
 					"ssmError", ssmError,
+					"command output", commandOutput,
 					"runner", threadRunner.InstanceID,
 				)
 				return

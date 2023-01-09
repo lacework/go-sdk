@@ -290,8 +290,8 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string)
 		InstanceId: aws.String(run.InstanceID),
 	}
 
-	// Wait for up to a minute for the command to execute
-	for i := 0; i < 6; i++ {
+	// Wait for up to 2min for the command to execute
+	for i := 0; i < 12; i++ {
 		time.Sleep(10 * time.Second)
 
 		getCommandInvocationOutput, err = c.GetCommandInvocation(context.Background(), getCommandInvocationInput)
