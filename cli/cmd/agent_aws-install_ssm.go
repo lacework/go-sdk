@@ -33,7 +33,7 @@ import (
 
 var (
 	agentInstallAWSSSMCmd = &cobra.Command{
-		Use:   "ssm",
+		Use:   "ec2ssm",
 		Args:  cobra.NoArgs,
 		Short: "Use SSM to securely install on EC2 instances",
 		RunE:  installAWSSSM,
@@ -41,21 +41,21 @@ var (
 
 To filter by one or more regions:
 
-    lacework agent aws-install ssm --include_regions us-west-2,us-east-2
+    lacework agent aws-install ec2ssm --include_regions us-west-2,us-east-2
 
 To filter by instance tag:
 
-    lacework agent aws-install ssm --tag TagName,TagValue
+    lacework agent aws-install ec2ssm --tag TagName,TagValue
 
 To filter by instance tag key:
 
-    lacework agent aws-install ssm --tag_key TagName
+    lacework agent aws-install ec2ssm --tag_key TagName
 
 To provide an agent access token of your choice, use the command 'lacework agent token list',
 select a token and pass it to the '--token' flag. This flag must be selected if the
 '--noninteractive' flag is set.
 
-    lacework agent aws-install ssm --token <token>
+    lacework agent aws-install ec2ssm --token <token>
 
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
@@ -66,7 +66,7 @@ AWS credentials are read from the following environment variables:
 )
 
 func init() {
-	// 'agent aws-install ssm' flags
+	// 'agent aws-install ec2ssm' flags
 	agentInstallAWSSSMCmd.Flags().StringVar(&agentCmdState.InstallTagKey,
 		"tag_key", "", "only install agents on infra with this tag key set",
 	)
