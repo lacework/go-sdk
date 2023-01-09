@@ -23,10 +23,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/gammazero/workerpool"
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -168,7 +166,8 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			// Check if agent is already installed on the host, skip if yes
 			// Sleep for up to 5min to wait for instance profile to associate with instance
 			var ssmError error
-			var commandOutput ssm.GetCommandInvocationOutput
+			// var commandOutput ssm.GetCommandInvocationOutput
+			var commandOutput ssmtypes.CommandInvocation
 			for i := 0; i < 5; i++ {
 				cli.Log.Debugw("waiting for instance profile to associate with instance, sleeping 1min",
 					"iteration number (time slept in minutes)", i,
@@ -220,12 +219,12 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				)
 			} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
 				cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", threadRunner.InstanceID)
-				cli.OutputHuman(renderOneLineCustomTable("Installation Details", *commandOutput.StandardOutputContent,
-					tableFunc(func(t *tablewriter.Table) {
-						t.SetBorder(false)
-						t.SetColumnSeparator(" ")
-						t.SetAutoWrapText(false)
-					})))
+				// cli.OutputHuman(renderOneLineCustomTable("Installation Details", *commandOutput.StandardOutputContent,
+				// 	tableFunc(func(t *tablewriter.Table) {
+				// 		t.SetBorder(false)
+				// 		t.SetColumnSeparator(" ")
+				// 		t.SetAutoWrapText(false)
+				// 	})))
 			} else {
 				cli.Log.Debugw("Install command did not return `Success` exit status on host",
 					"runner", threadRunner.InstanceID,

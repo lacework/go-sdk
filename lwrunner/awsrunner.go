@@ -198,7 +198,7 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 	if len(associations) <= 0 { // no instance profile associated
 		return false, nil
 	}
-	instanceProfileName := associations[0].IamInstanceProfile.Id
+	instanceProfileName := strings.Split(*associations[0].IamInstanceProfile.Arn, "instance-profile/")[1]
 
 	c := iam.New(iam.Options{
 		Credentials: cfg.Credentials,
@@ -206,7 +206,7 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 	})
 
 	getInstanceProfileInput := &iam.GetInstanceProfileInput{
-		InstanceProfileName: instanceProfileName,
+		InstanceProfileName: aws.String(instanceProfileName),
 	}
 	getInstanceProfileOutput, err := c.GetInstanceProfile(context.Background(), getInstanceProfileInput)
 	if err != nil {
@@ -259,14 +259,14 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 // `documentName`. `operation` must be one of the commands allowed by the SSM
 // document. This function will not return until the command is in a terminal
 // state.
-func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, documentName string, operation string) (ssm.GetCommandInvocationOutput, error) {
+func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, documentName string, operation string) (ssmtypes.CommandInvocation, error) {
 	c := ssm.New(ssm.Options{
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
 	})
 
 	input := &ssm.SendCommandInput{
-		DocumentName: aws.String(documentName),
+		DocumentName: aws.String("AWS-RunShellScript"),
 		Comment:      aws.String("this command is for installing the Lacework Agent"),
 		InstanceIds: []string{
 			run.InstanceID,
@@ -280,36 +280,48 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, documentName stri
 
 	sendCommandOutput, err := c.SendCommand(context.Background(), input)
 	if err != nil {
-		return ssm.GetCommandInvocationOutput{}, err
+		return ssmtypes.CommandInvocation{}, err
 	}
 
-	var getCommandInvocationOutput *ssm.GetCommandInvocationOutput
-	getCommandInvocationInput := &ssm.GetCommandInvocationInput{
+	// var getCommandInvocationOutput *ssm.GetCommandInvocationOutput
+	// getCommandInvocationInput := &ssm.GetCommandInvocationInput{
+	// 	CommandId:  sendCommandOutput.Command.CommandId,
+	// 	InstanceId: aws.String(run.InstanceID),
+	// 	PluginName: aws.String("runShellScriptDefaultParams"),
+	// }
+
+	var listCommandInvocationsOutput *ssm.ListCommandInvocationsOutput
+	var getCommandInvocationOutput ssmtypes.CommandInvocation
+	listCommandInvocationsInput := &ssm.ListCommandInvocationsInput{
 		CommandId:  sendCommandOutput.Command.CommandId,
 		InstanceId: aws.String(run.InstanceID),
-		PluginName: aws.String("runShellScriptDefaultParams"),
 	}
+
 	// Wait for up to a minute for the command to execute
 	for i := 0; i < 6; i++ {
 		time.Sleep(10 * time.Second)
 
-		getCommandInvocationOutput, err = c.GetCommandInvocation(context.Background(), getCommandInvocationInput)
+		// getCommandInvocationOutput, err = c.GetCommandInvocation(context.Background(), getCommandInvocationInput)
+		listCommandInvocationsOutput, err = c.ListCommandInvocations(context.Background(), listCommandInvocationsInput)
 		if err != nil {
-			return ssm.GetCommandInvocationOutput{}, err
+			return ssmtypes.CommandInvocation{}, err
 		}
+
+		getCommandInvocationOutput = listCommandInvocationsOutput.CommandInvocations[0]
+		fmt.Println("getCommandInvocationsOutput", getCommandInvocationOutput)
 
 		// Check if the command has reached a "terminal state"
 		if getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusSuccess ||
 			getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusCancelled ||
 			getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusTimedOut ||
 			getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusFailed {
-			return *getCommandInvocationOutput, nil
+			return getCommandInvocationOutput, nil
 		}
 	}
 
-	return *getCommandInvocationOutput, fmt.Errorf("command %s did not finish in 1min, final state %v",
+	return getCommandInvocationOutput, fmt.Errorf("command %s did not finish in 1min, final state %v",
 		*sendCommandOutput.Command.CommandId,
-		*getCommandInvocationOutput,
+		getCommandInvocationOutput,
 	)
 }
 
