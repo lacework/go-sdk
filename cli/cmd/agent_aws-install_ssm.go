@@ -90,7 +90,7 @@ func init() {
 		&agentCmdState.InstallBYORole,
 		"iam_role_name",
 		"",
-		"IAM role name (not ARN) to use for SSM, if not provided then an ephemeral role will be created",
+		"IAM role name (not ARN) with SSM policy, if not provided then an ephemeral role will be created",
 	)
 }
 
