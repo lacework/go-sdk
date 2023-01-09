@@ -212,6 +212,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			}
 
 			// Install the agent on the host
+			// No need to sleep because instance profile already associated
 			runInstallCmd := fmt.Sprintf(runInstallCmdTmpl, agentInstallDownloadURL, token)
 			commandOutput, err := threadRunner.RunSSMCommandOnRemoteHost(cfg, runInstallCmd)
 			if err != nil {
