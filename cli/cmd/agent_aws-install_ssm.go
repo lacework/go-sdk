@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/gammazero/workerpool"
 	"github.com/pkg/errors"
@@ -166,8 +167,8 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			// Check if agent is already installed on the host, skip if yes
 			// Sleep for up to 5min to wait for instance profile to associate with instance
 			var ssmError error
-			// var commandOutput ssm.GetCommandInvocationOutput
-			var commandOutput ssmtypes.CommandInvocation
+			var commandOutput ssm.GetCommandInvocationOutput
+			// var commandOutput ssmtypes.CommandInvocation
 			for i := 0; i < 5; i++ {
 				cli.Log.Debugw("waiting for instance profile to associate with instance, sleeping 1min",
 					"iteration number (time slept in minutes)", i,
