@@ -1,0 +1,51 @@
+This command installs the agent on all EC2 instances in an AWS account using SSM.
+
+To filter by one or more regions:
+
+    lacework agent aws-install ec2ssm --include_regions us-west-2,us-east-2
+
+To filter by instance tag:
+
+    lacework agent aws-install ec2ssm --tag TagName,TagValue
+
+To filter by instance tag key:
+
+    lacework agent aws-install ec2ssm --tag_key TagName
+
+To provide an agent access token of your choice, use the command 'lacework agent token list',
+select a token and pass it to the '--token' flag. This flag must be selected if the
+'--noninteractive' flag is set.
+
+    lacework agent aws-install ec2ssm --token <token>
+
+AWS credentials are read from the following environment variables:
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- AWS_SESSION_TOKEN (optional)
+- AWS_REGION (optional)
+
+Usage:
+  lacework agent aws-install ec2ssm [flags]
+
+Flags:
+  -h, --help                      help for ec2ssm
+      --iam_role_name string      IAM role name (not ARN) to use for SSM, if not provided then an ephemeral role will be created
+  -r, --include_regions strings   list of regions to filter on
+  -n, --max_parallelism int       maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
+      --tag strings               only install agents on infra with this tag
+      --tag_key string            only install agents on infra with this tag key set
+      --token string              agent access token
+
+Global Flags:
+  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+  -k, --api_key string      access key id
+  -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
+      --debug               turn on debug logging
+      --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
+      --nocolor             turn off colors
+      --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
+  -p, --profile string      switch between profiles configured at ~/.lacework.toml
+      --subaccount string   sub-account name inside your organization (org admins only)
