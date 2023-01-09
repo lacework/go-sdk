@@ -259,7 +259,7 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 // `documentName`. `operation` must be one of the commands allowed by the SSM
 // document. This function will not return until the command is in a terminal
 // state.
-func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, documentName string, operation string) (ssm.GetCommandInvocationOutput, error) {
+func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string) (ssm.GetCommandInvocationOutput, error) {
 	c := ssm.New(ssm.Options{
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
@@ -288,29 +288,16 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, documentName stri
 	getCommandInvocationInput := &ssm.GetCommandInvocationInput{
 		CommandId:  sendCommandOutput.Command.CommandId,
 		InstanceId: aws.String(run.InstanceID),
-		// PluginName: aws.String("runShellScriptDefaultParams"),
-
 	}
-
-	// var listCommandInvocationsOutput *ssm.ListCommandInvocationsOutput
-	// var getCommandInvocationOutput ssmtypes.CommandInvocation
-	// listCommandInvocationsInput := &ssm.ListCommandInvocationsInput{
-	// 	CommandId:  sendCommandOutput.Command.CommandId,
-	// 	InstanceId: aws.String(run.InstanceID),
-	// }
 
 	// Wait for up to a minute for the command to execute
 	for i := 0; i < 6; i++ {
 		time.Sleep(10 * time.Second)
 
 		getCommandInvocationOutput, err = c.GetCommandInvocation(context.Background(), getCommandInvocationInput)
-		// listCommandInvocationsOutput, err = c.ListCommandInvocations(context.Background(), listCommandInvocationsInput)
 		if err != nil {
 			return ssm.GetCommandInvocationOutput{}, err
 		}
-
-		// getCommandInvocationOutput = listCommandInvocationsOutput.CommandInvocations[0]
-		fmt.Println("getCommandInvocationsOutput", getCommandInvocationOutput)
 
 		// Check if the command has reached a "terminal state"
 		if getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusSuccess ||

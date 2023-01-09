@@ -26,8 +26,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 )
 
 // SetupSSMAccess sets up an IAM role for SSM and attaches it to
@@ -48,11 +46,6 @@ func SetupSSMAccess(cfg aws.Config, roleName string, token string) (types.Role, 
 
 	// Create instance profile and add the role to it
 	instanceProfile, err := setupInstanceProfile(cfg, role)
-	if err != nil {
-		return role, instanceProfile, err
-	}
-
-	err = createSSMDocument(cfg, token)
 	if err != nil {
 		return role, instanceProfile, err
 	}
@@ -127,12 +120,6 @@ func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 		RoleName: role.RoleName,
 	}
 	_, err = c.DeleteRole(context.Background(), deleteRoleInput)
-	if err != nil {
-		return err
-	}
-
-	// Delete the SSM document
-	err = deleteSSMDocument(cfg, ssmDocumentName)
 	if err != nil {
 		return err
 	}
@@ -315,79 +302,5 @@ func addRoleToInstanceProfile(cfg aws.Config, role types.Role, instanceProfile t
 	return err
 }
 
-func createSSMDocument(cfg aws.Config, token string) error {
-	c := ssm.New(ssm.Options{
-		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
-	})
-
-	// check that the document doesn't already exist
-	describeInput := &ssm.DescribeDocumentInput{
-		Name: aws.String(ssmDocumentName),
-	}
-	describeOutput, err := c.DescribeDocument(context.Background(), describeInput)
-	if err == nil && describeOutput != nil && *describeOutput.Document.Name == ssmDocumentName {
-		return nil // document already exists, return instead of creating a new one
-	}
-
-	runInstallCmd := fmt.Sprintf(runInstallCmdTmpl, agentInstallDownloadURL, token)
-
-	ssmDocumentContents := fmt.Sprintf(ssmDocumentTemplate, agentVersionCmd, runInstallCmd)
-	cli.Log.Debugw("ssmDocumentContents", "contents", ssmDocumentContents)
-
-	input := &ssm.CreateDocumentInput{
-		Content:        aws.String(ssmDocumentContents),
-		Name:           aws.String(ssmDocumentName),
-		DocumentFormat: ssmtypes.DocumentFormatYaml,
-		DocumentType:   ssmtypes.DocumentTypeCommand,
-		TargetType:     aws.String("/AWS::EC2::Instance"),
-	}
-	output, err := c.CreateDocument(context.Background(), input)
-	if err != nil {
-		return err
-	}
-
-	cli.Log.Debugw(
-		"created SSM document",
-		"document", *output.DocumentDescription,
-		"contents", ssmDocumentContents,
-	)
-	return nil
-}
-
-func deleteSSMDocument(cfg aws.Config, documentName string) error {
-	c := ssm.New(ssm.Options{
-		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
-	})
-
-	cli.Log.Debugw("deleting SSM document", "document name", ssmDocumentName)
-	input := &ssm.DeleteDocumentInput{
-		Name:  aws.String(ssmDocumentName),
-		Force: true,
-	}
-	_, err := c.DeleteDocument(context.Background(), input)
-
-	return err
-}
-
-const ssmDocumentTemplate = `---
-schemaVersion: '2.2'
-description: runShellScript with command strings stored as Parameter Store parameter
-parameters:
-  commands:
-    type: StringList
-    description: (Required) The commands to run on the instance.
-    allowedValues:
-    - %s
-    - %s
-mainSteps:
-- action: aws:runShellScript
-  name: runShellScriptDefaultParams
-  inputs:
-    runCommand:
-    - "{{ commands }}"`
-
-const ssmDocumentName = "Lacework-Agent-SSM-Install-Document"
 const agentVersionCmd = "sudo sh -c '/var/lib/lacework/datacollector -v'"
 const runInstallCmdTmpl = "sudo sh -c 'curl -sSL %s | sh -s -- %s'"

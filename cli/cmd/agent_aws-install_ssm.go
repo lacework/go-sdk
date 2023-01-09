@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/gammazero/workerpool"
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -176,7 +177,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				)
 				time.Sleep(1 * time.Minute)
 
-				commandOutput, ssmError = threadRunner.RunSSMCommandOnRemoteHost(cfg, ssmDocumentName, agentVersionCmd)
+				commandOutput, ssmError = threadRunner.RunSSMCommandOnRemoteHost(cfg, agentVersionCmd)
 				if ssmError != nil {
 					cli.Log.Debugw("error when checking if agent already installed on host, retrying",
 						"ssmError", ssmError,
@@ -212,7 +213,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 
 			// Install the agent on the host
 			runInstallCmd := fmt.Sprintf(runInstallCmdTmpl, agentInstallDownloadURL, token)
-			commandOutput, err := threadRunner.RunSSMCommandOnRemoteHost(cfg, ssmDocumentName, runInstallCmd)
+			commandOutput, err := threadRunner.RunSSMCommandOnRemoteHost(cfg, runInstallCmd)
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed",
 					"error", err,
@@ -220,12 +221,12 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				)
 			} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
 				cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", threadRunner.InstanceID)
-				// cli.OutputHuman(renderOneLineCustomTable("Installation Details", *commandOutput.StandardOutputContent,
-				// 	tableFunc(func(t *tablewriter.Table) {
-				// 		t.SetBorder(false)
-				// 		t.SetColumnSeparator(" ")
-				// 		t.SetAutoWrapText(false)
-				// 	})))
+				cli.OutputHuman(renderOneLineCustomTable("Installation Details", *commandOutput.StandardOutputContent,
+					tableFunc(func(t *tablewriter.Table) {
+						t.SetBorder(false)
+						t.SetColumnSeparator(" ")
+						t.SetAutoWrapText(false)
+					})))
 			} else {
 				cli.Log.Debugw("Install command did not return `Success` exit status on host",
 					"runner", threadRunner.InstanceID,
