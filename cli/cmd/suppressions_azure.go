@@ -47,7 +47,7 @@ func suppressionsAzureList(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		if strings.Contains(err.Error(), "No active Azure accounts") {
 			cli.OutputHuman("No active Azure accounts found. " +
-				"Unable to get legacy Azure suppressions")
+				"Unable to get legacy Azure suppressions\n")
 			return nil
 		}
 		return errors.Wrap(err, "Unable to get legacy Azure suppressions")

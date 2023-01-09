@@ -46,7 +46,7 @@ func suppressionsGcpList(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		if strings.Contains(err.Error(), "No active GCP accounts") {
 			cli.OutputHuman("No active GCP accounts found. " +
-				"Unable to get legacy GCP suppressions")
+				"Unable to get legacy GCP suppressions\n")
 			return nil
 		}
 		return errors.Wrap(err, "Unable to get legacy GCP suppressions")
