@@ -22,6 +22,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/lacework/go-sdk/lwlogger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +31,7 @@ func TestAwsInstallEC2IC(t *testing.T) {
 		t.Skip("aws credentials not found in environment, skipping test")
 	}
 
-	cli.LogLevel = "DEBUG"
+	cli.Log = lwlogger.New("DEBUG").Sugar()
 	agentCmdState.InstallTrustHostKey = true
 	agentCmdState.InstallTagKey = "CaptureTheFlagPlayer"
 	cli.NonInteractive()

@@ -46,6 +46,7 @@ var (
 		InstallIncludeRegions []string
 		InstallProjectId      string
 		InstallMaxParallelism int
+		InstallBYORole        string
 	}{}
 
 	defaultSshIdentityKey = "~/.ssh/id_rsa"
@@ -198,6 +199,7 @@ func init() {
 	// add sub-commands to the 'agent aws-install' command for different install methods
 	agentAWSInstallCmd.AddCommand(agentInstallAWSEC2ICCmd)
 	agentAWSInstallCmd.AddCommand(agentInstallAWSSSHCmd)
+	agentAWSInstallCmd.AddCommand(agentInstallAWSSSMCmd)
 
 	// add sub-commands to the 'agent gcp-install' command for different install methods
 	agentGCPInstallCmd.AddCommand(agentInstallGCPOSLCmd)
