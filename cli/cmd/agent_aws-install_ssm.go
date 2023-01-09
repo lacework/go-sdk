@@ -179,7 +179,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				commandOutput, ssmError = threadRunner.RunSSMCommandOnRemoteHost(cfg, ssmDocumentName, agentVersionCmd)
 				if ssmError != nil {
 					cli.Log.Debugw("error when checking if agent already installed on host, retrying",
-						"error", err,
+						"ssmError", ssmError,
 						"runner", threadRunner.InstanceID,
 					)
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusCancelled ||
@@ -204,7 +204,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			}
 			if ssmError != nil { // SSM still erroring after 5min of sleep, skip this host
 				cli.Log.Debugw("error when checking if agent already installed on host, skipping runner",
-					"error", err,
+					"ssmError", ssmError,
 					"runner", threadRunner.InstanceID,
 				)
 				return
