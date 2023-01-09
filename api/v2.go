@@ -91,8 +91,8 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&AlertsService{c},
 		&SuppressionsServiceV2{c,
 			&AwsSuppressionsV2{c},
-			//&AzureSuppressionsV2{c},
-			//&GcpSuppressionsV2{c},
+			&AzureSuppressionsV2{c},
+			&GcpSuppressionsV2{c},
 		},
 	}
 
