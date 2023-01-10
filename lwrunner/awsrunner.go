@@ -74,25 +74,6 @@ func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, in
 	}, nil
 }
 
-func (run AWSRunner) RunSession() error {
-	c := ssm.New(ssm.Options{
-		Region: run.Region,
-	})
-
-	input := &ssm.StartSessionInput{
-		Target:       aws.String(run.InstanceID),
-		DocumentName: aws.String("SSM-SessionManagerRunShell"), // default, but some IAM roles require us to specify
-		Reason:       aws.String("Lacework CLI agent install"),
-	}
-
-	_, err := c.StartSession(context.Background(), input)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (run AWSRunner) SendAndUseIdentityFile() error {
 	pubBytes, privBytes, err := GetKeyBytes()
 	if err != nil {
@@ -217,10 +198,6 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 
 	// Check to see if the instance profile associated with the runner has the correct policy
 
-	// if foundArn == *instanceProfile.Arn { // found our instance profile associated, use it
-	// 	// should already have the role attached if it was associated
-	// 	return nil
-
 	if len(getInstanceProfileOutput.InstanceProfile.Roles) <= 0 { // can only have max one role
 		return false, fmt.Errorf(
 			"runner %v already has an instance profile (%v) attached, does not have a role",
@@ -238,9 +215,8 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 		return false, err
 	}
 
-	ssmPolicy := "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 	for _, policy := range listAttachedRolePoliciesOutput.AttachedPolicies {
-		if *policy.PolicyArn == ssmPolicy {
+		if *policy.PolicyArn == SSMInstancePolicy {
 			return true, nil // everything is configured correctly, we can return now
 		}
 	}
@@ -252,15 +228,16 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 		"runner %v already has an instance profile (%v) attached, does not have policy %s",
 		run,
 		getInstanceProfileOutput.InstanceProfile,
-		ssmPolicy,
+		SSMInstancePolicy,
 	)
 }
 
-// RunSSMCommandOnRemoteHost takes a shell command to install the agent on
-// the runner and executes it using SSM. The user must pass in a valid
-// `documentName`. `operation` must be one of the commands allowed by the SSM
-// document. This function will not return until the command is in a terminal
-// state.
+const SSMInstancePolicy string = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+
+// RunSSMCommandOnRemoteHost takes a shell command to install the agent on the runner
+// the runner and executes it using SSM. `operation` must be one of the commands allowed
+// by the SSM document. This function will not return until the command is in a terminal
+// state, or until 2min have passed.
 func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string) (ssm.GetCommandInvocationOutput, error) {
 	c := ssm.New(ssm.Options{
 		Credentials: cfg.Credentials,
@@ -282,20 +259,19 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string)
 
 	sendCommandOutput, err := c.SendCommand(context.Background(), input)
 	if err != nil {
-		// return ssmtypes.CommandInvocation{}, err
 		return ssm.GetCommandInvocationOutput{}, err
 	}
 
 	var getCommandInvocationOutput *ssm.GetCommandInvocationOutput
-	getCommandInvocationInput := &ssm.GetCommandInvocationInput{
-		CommandId:  sendCommandOutput.Command.CommandId,
-		InstanceId: aws.String(run.InstanceID),
-	}
 
 	// Wait for up to 2min for the command to execute
 	for i := 0; i < 12; i++ {
 		time.Sleep(10 * time.Second)
 
+		getCommandInvocationInput := &ssm.GetCommandInvocationInput{
+			CommandId:  sendCommandOutput.Command.CommandId,
+			InstanceId: aws.String(run.InstanceID),
+		}
 		getCommandInvocationOutput, err = c.GetCommandInvocation(context.Background(), getCommandInvocationInput)
 		if err != nil {
 			return ssm.GetCommandInvocationOutput{}, err

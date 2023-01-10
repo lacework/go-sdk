@@ -26,7 +26,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/gammazero/workerpool"
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -124,7 +123,6 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		err := TeardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
 		cli.Log.Warnw("got an error while tearing down IAM infra", "error", err)
 	}()
-
 	if err != nil {
 		return err
 	}
@@ -167,7 +165,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				cli.OutputHuman(fmt.Sprintf("successfully associated with instance ID %s\n", threadRunner.InstanceID))
 			}
 
-			// Establish SSH access / SSM Command connection to the runner
+			// Establish SSM Command connection to the runner
 
 			// Check if agent is already installed on the host, skip if yes
 			// Sleep for up to 5min to wait for instance profile to associate with instance
@@ -180,6 +178,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				)
 				time.Sleep(1 * time.Minute)
 
+				const agentVersionCmd = "sudo sh -c '/var/lib/lacework/datacollector -v'"
 				commandOutput, ssmError = threadRunner.RunSSMCommandOnRemoteHost(cfg, agentVersionCmd)
 				if ssmError != nil {
 					cli.Log.Debugw("error when checking if agent already installed on host, retrying",
@@ -223,6 +222,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 
 			// Install the agent on the host
 			// No need to sleep because instance profile already associated
+			const runInstallCmdTmpl = "sudo sh -c 'curl -sSL %s | sh -s -- %s'"
 			runInstallCmd := fmt.Sprintf(runInstallCmdTmpl, agentInstallDownloadURL, token)
 			commandOutput, err := threadRunner.RunSSMCommandOnRemoteHost(cfg, runInstallCmd)
 			if err != nil {
@@ -232,12 +232,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				)
 			} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
 				cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", threadRunner.InstanceID)
-				cli.OutputHuman(renderOneLineCustomTable("Installation Details", *commandOutput.StandardOutputContent,
-					tableFunc(func(t *tablewriter.Table) {
-						t.SetBorder(false)
-						t.SetColumnSeparator(" ")
-						t.SetAutoWrapText(false)
-					})))
+				cli.OutputHuman(fmtSuccessfulAgentInstallString(*commandOutput.StandardOutputContent))
 			} else {
 				cli.Log.Debugw("Install command did not return `Success` exit status on host",
 					"runner", threadRunner.InstanceID,
