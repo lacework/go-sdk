@@ -25,6 +25,7 @@ Available Commands:
   configure               Configure the Lacework CLI
   container-registry      Manage container registries
   generate                Generate code to onboard your account
+  help                    Help about any command
   policy                  Manage policies
   policy-exception        Manage policy exceptions
   query                   Run and manage queries
