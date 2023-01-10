@@ -187,8 +187,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 						"runner", threadRunner.InstanceID,
 					)
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusCancelled ||
-					commandOutput.Status == ssmtypes.CommandInvocationStatusTimedOut ||
-					commandOutput.Status == ssmtypes.CommandInvocationStatusFailed {
+					commandOutput.Status == ssmtypes.CommandInvocationStatusTimedOut {
 					cli.Log.Debugw("command did not complete successfully, retrying",
 						"command output", commandOutput,
 						"runner", threadRunner.InstanceID,
@@ -198,12 +197,19 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 						"runner", threadRunner.InstanceID,
 					)
 					return
-				} else {
+				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusFailed {
 					cli.Log.Debugw("no agent found on host, proceeding to install",
+						"command output", commandOutput,
 						"time slept in minutes", i,
 						"runner", threadRunner.InstanceID,
 					)
 					break
+				} else {
+					cli.Log.Debugw("unexpected command exit, skipping this runner",
+						"command output", commandOutput,
+						"runner", threadRunner.InstanceID,
+					)
+					return
 				}
 			}
 			if ssmError != nil { // SSM still erroring after 5min of sleep, skip this host
