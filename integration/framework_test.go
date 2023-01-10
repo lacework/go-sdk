@@ -147,6 +147,9 @@ func runLaceworkCLI(workingDir string, args ...string) (stdout bytes.Buffer, std
 	cmd := NewLaceworkCLI(workingDir, nil, args...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
+	// set interactive mode by default for tests, since that's
+	// what they expect
+	cmd.Env = append(cmd.Env, "LW_NONINTERACTIVE=false")
 
 	exitcode, err := runLaceworkCLIFromCmd(cmd)
 	if exitcode == 999 {

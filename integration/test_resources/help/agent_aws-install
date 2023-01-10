@@ -6,6 +6,7 @@ Usage:
 Available Commands:
   ec2ic       Use EC2InstanceConnect to securely connect to EC2 instances
   ec2ssh      Use SSH to securely connect to EC2 instances
+  ec2ssm      Use SSM to securely install on EC2 instances
 
 Flags:
   -h, --help   help for aws-install

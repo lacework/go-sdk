@@ -19,27 +19,12 @@
 package cmd
 
 import (
-	"strconv"
-
 	"github.com/pkg/errors"
 )
 
 func promptRequiredStringLen(size int, err string) func(interface{}) error {
 	return func(input interface{}) error {
 		if str, ok := input.(string); !ok || len(str) < size {
-			return errors.New(err)
-		}
-		return nil
-	}
-}
-
-func promptRequiredInt(err string) func(interface{}) error {
-	return func(input interface{}) error {
-		i, ok := input.(string)
-		if !ok {
-			return errors.New(err)
-		}
-		if _, e := strconv.Atoi(i); e != nil {
 			return errors.New(err)
 		}
 		return nil

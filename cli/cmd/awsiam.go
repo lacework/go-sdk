@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/lacework/go-sdk/lwrunner"
 )
 
 // SetupSSMAccess sets up an IAM role for SSM and attaches it to
@@ -57,9 +58,7 @@ func SetupSSMAccess(cfg aws.Config, roleName string, token string) (types.Role, 
 // Specifically, this function:
 // - Removes the role from the instance profile
 // - Deletes the instance profile
-// - Detaches all managed policies from the role
-//   - This assumes there are no inline policies attached to the role
-//
+// - Detaches all managed policies from the role (assumes no inline policies attached)
 // - Deletes the role
 func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile, byoRoleName string) error {
 	c := iam.New(iam.Options{
@@ -67,29 +66,32 @@ func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 		Region:      cfg.Region,
 	})
 
-	// Remove role from instance profile
-	cli.Log.Debugw("removing role from instance profile", "role", role, "instance profile", instanceProfile)
-	removeInput := &iam.RemoveRoleFromInstanceProfileInput{
-		InstanceProfileName: instanceProfile.InstanceProfileName,
-		RoleName:            role.RoleName,
-	}
-	_, err := c.RemoveRoleFromInstanceProfile(context.Background(), removeInput)
-	if err != nil {
-		return err
+	// Only destroy the instance profile if it's ours
+	if *instanceProfile.InstanceProfileName == instanceProfileName {
+		// Remove role from instance profile
+		cli.Log.Debugw("removing role from instance profile", "role", role, "instance profile", instanceProfile)
+		removeInput := &iam.RemoveRoleFromInstanceProfileInput{
+			InstanceProfileName: instanceProfile.InstanceProfileName,
+			RoleName:            role.RoleName,
+		}
+		_, err := c.RemoveRoleFromInstanceProfile(context.Background(), removeInput)
+		if err != nil {
+			return err
+		}
+
+		// Delete instance profile
+		cli.Log.Debugw("deleting instance profile", "instance profile", instanceProfile)
+		deleteProfileInput := &iam.DeleteInstanceProfileInput{
+			InstanceProfileName: instanceProfile.InstanceProfileName,
+		}
+		_, err = c.DeleteInstanceProfile(context.Background(), deleteProfileInput)
+		if err != nil {
+			return err
+		}
 	}
 
-	// Delete instance profile
-	cli.Log.Debugw("deleting instance profile", "instance profile", instanceProfile)
-	deleteProfileInput := &iam.DeleteInstanceProfileInput{
-		InstanceProfileName: instanceProfile.InstanceProfileName,
-	}
-	_, err = c.DeleteInstanceProfile(context.Background(), deleteProfileInput)
-	if err != nil {
-		return err
-	}
-
-	if byoRoleName != "" { // user brought their own role, we should not delete it
-		return nil
+	if byoRoleName != "" || *role.RoleName != roleName {
+		return nil // we didn't create this role, we should not delete it
 	}
 
 	// List managed policies attached to this role (assume there are no inline policies)
@@ -132,11 +134,9 @@ func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 // instead of creating a new one.
 func setupSSMRole(cfg aws.Config, roleName string) (types.Role, error) {
 	if roleName != "" {
-		role, err := getRoleFromName(cfg, roleName)
-		return role, err
+		return getRoleFromName(cfg, roleName)
 	} else { // user did not provide a role, creating one now
-		role, err := createSSMRole(cfg)
-		return role, err
+		return createSSMRole(cfg)
 	}
 }
 
@@ -165,7 +165,6 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
 	})
-	const roleName string = "Lacework-Agent-SSM-Install-Role"
 
 	// Check if role already exists (in case CLI is run after interrupt or error)
 	getInput := &iam.GetRoleInput{
@@ -191,7 +190,7 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 		RoleName:                 aws.String(roleName),
 		Description: aws.String(
 			`Ephemeral role to install Lacework agents using SSM; created by the Lacework CLI.
-			Safe to delete if found`,
+Safe to delete if found`,
 		),
 	}
 	output, err := c.CreateRole(context.Background(), input)
@@ -201,6 +200,8 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 
 	return *output.Role, nil
 }
+
+const roleName string = "Lacework-Agent-SSM-Install-Role"
 
 // attachSSMPoliciesToRole takes a role, calls the IAM API to attach
 // policies required for SSM to the role, and returns the role along
@@ -213,7 +214,7 @@ func attachSSMPoliciesToRole(cfg aws.Config, role types.Role) error {
 
 	cli.Log.Debug("attaching policy to role")
 	input := &iam.AttachRolePolicyInput{
-		PolicyArn: aws.String("arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"),
+		PolicyArn: aws.String(lwrunner.SSMInstancePolicy),
 		RoleName:  role.RoleName,
 	}
 	_, err := c.AttachRolePolicy(context.Background(), input)
@@ -301,6 +302,3 @@ func addRoleToInstanceProfile(cfg aws.Config, role types.Role, instanceProfile t
 
 	return err
 }
-
-const agentVersionCmd = "sudo sh -c '/var/lib/lacework/datacollector -v'"
-const runInstallCmdTmpl = "sudo sh -c 'curl -sSL %s | sh -s -- %s'"

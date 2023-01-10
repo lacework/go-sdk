@@ -29,6 +29,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 
 	"aead.dev/minisign"
@@ -202,10 +203,28 @@ func Dir() (string, error) {
 	return filepath.Join(cacheDir, "components"), nil
 }
 
-func (s State) Install(name string) error {
+func (s State) Install(name string, version string) error {
 	component, found := s.GetComponent(name)
 	if !found {
 		return errors.New("component not found")
+	}
+
+	if version == "" {
+		version = component.LatestVersion.String()
+	}
+
+	// @edoardopirovano, December 2022: Temporary workaround while there are still old
+	// APIs out there. In particular, 0.2.0 is the version of the API result before
+	// https://github.com/lacework/rainbow/pull/10874 which added the capability for
+	// the API to return multiple versions. At the time of writing, that PR is merged
+	// but not fully rolled out. In the old version of the API result, we would only
+	// return the latest version, and wouldn't set the version field of its artifacts.
+	// So, if we're looking for the latest version we should set what we're looking
+	// for to the empty string. If we're looking for anything else, we can leave it
+	// set as it is: we'll fail to find it and report an error which is the right
+	// behaviour as only the latest version can be installed in this case.
+	if s.Version == "0.2.0" && version == component.LatestVersion.String() {
+		version = ""
 	}
 
 	rPath, err := component.RootPath()
@@ -228,9 +247,9 @@ func (s State) Install(name string) error {
 		return err
 	}
 
-	artifact, found := component.ArtifactForRunningHost()
+	artifact, found := component.ArtifactForRunningHost(version)
 	if !found {
-		return errors.New("unsupported platform")
+		return errors.Errorf("could not find an artifact for version %s on the current platform", version)
 	}
 
 	path, err := component.Path()
@@ -256,7 +275,7 @@ func (s State) Install(name string) error {
 		return err
 	}
 
-	if err := component.WriteVersion(); err != nil {
+	if err := component.WriteVersion(artifact.Version); err != nil {
 		return err
 	}
 
@@ -275,10 +294,12 @@ var (
 )
 
 type Artifact struct {
-	OS        string `json:"os"`
-	ARCH      string `json:"arch"`
-	URL       string `json:"url,omitempty"`
-	Signature string `json:"signature"`
+	OS            string `json:"os"`
+	ARCH          string `json:"arch"`
+	URL           string `json:"url,omitempty"`
+	Signature     string `json:"signature"`
+	Version       string `json:"version"`
+	UpdateMessage string `json:"updateMessage"`
 	//Size ?
 }
 
@@ -438,7 +459,7 @@ func (c Component) WriteSignature(signature []byte) error {
 }
 
 // WriteVersion stores the component version on disk
-func (c Component) WriteVersion() error {
+func (c Component) WriteVersion(installed string) error {
 	dir, err := c.RootPath()
 	if err != nil {
 		return err
@@ -450,7 +471,10 @@ func (c Component) WriteVersion() error {
 		return err
 	}
 
-	return ioutil.WriteFile(cvPath, []byte(c.LatestVersion.String()), 0644)
+	if installed == "" {
+		installed = c.LatestVersion.String()
+	}
+	return ioutil.WriteFile(cvPath, []byte(installed), 0644)
 }
 
 // UpdateAvailable returns true if there is a newer version of the component
@@ -482,9 +506,9 @@ func (c Component) Status() Status {
 }
 
 // ArtifactForRunningHost returns the right component artifact for the running host,
-func (c Component) ArtifactForRunningHost() (*Artifact, bool) {
+func (c Component) ArtifactForRunningHost(version string) (*Artifact, bool) {
 	for _, artifact := range c.Artifacts {
-		if artifact.OS == runtime.GOOS && artifact.ARCH == runtime.GOARCH {
+		if artifact.OS == runtime.GOOS && artifact.ARCH == runtime.GOARCH && artifact.Version == version {
 			return &artifact, true
 		}
 	}
@@ -602,4 +626,67 @@ func (c Component) EnterDevelopmentMode() error {
 	}
 
 	return nil
+}
+
+func (c Component) getVersionsAndBreadcrumbs() ([]*semver.Version, map[semver.Version]string) {
+	versionToBreadcrumb := make(map[semver.Version]string)
+	allVersions := make([]*semver.Version, 0)
+	versionToBreadcrumb[c.LatestVersion] = c.Breadcrumbs.UpdateMessage
+	allVersions = append(allVersions, &c.LatestVersion)
+	for _, artifact := range c.Artifacts {
+		parsedVersion, err := semver.NewVersion(artifact.Version)
+		if err == nil {
+			// We don't expect invalid versions from the server, but if we do get them
+			// let's just recover and ignore that version rather than crashing.
+			_, alreadySeen := versionToBreadcrumb[*parsedVersion]
+			if !alreadySeen {
+				versionToBreadcrumb[*parsedVersion] = artifact.UpdateMessage
+				allVersions = append(allVersions, parsedVersion)
+			}
+		}
+	}
+	sort.Sort(semver.Collection(allVersions))
+	return allVersions, versionToBreadcrumb
+}
+
+func (c Component) MakeUpdateMessage(from, to semver.Version) string {
+	if from.LessThan(&to) {
+		versions, breadcrumbs := c.getVersionsAndBreadcrumbs()
+		updateMessage := ""
+		for _, version := range versions {
+			if version.LessThan(&from) || version.Equal(&from) {
+				// We're before the breadcrumbs we care about, we don't include this one but keep going
+				continue
+			}
+			if version.GreaterThan(&to) {
+				// We're past the breadcrumbs we care about, we can stop iterating
+				break
+			}
+			if breadcrumbs[*version] != "" {
+				// We've found a breadcrumb in the range (from, to] which is one we care about
+				updateMessage += "\n"
+				updateMessage += breadcrumbs[*version]
+			}
+		}
+		return fmt.Sprintf("Successfully upgraded component from %s to %s%s", from.String(), to.String(), updateMessage)
+	}
+	return fmt.Sprintf("Successfully downgraded component from %s to %s", from.String(), to.String())
+}
+
+func (c Component) ListVersions(installed *semver.Version) string {
+	versions, _ := c.getVersionsAndBreadcrumbs()
+	result := "The following versions of this component are available to install:"
+	foundInstalled := false
+	for _, version := range versions {
+		result += "\n"
+		result += " - " + version.String()
+		if installed != nil && version.Equal(installed) {
+			result += " (installed)"
+			foundInstalled = true
+		}
+	}
+	if installed != nil && !foundInstalled {
+		result += fmt.Sprintf("\nThe currently installed version %s is no longer available to install.", installed.String())
+	}
+	return result
 }

@@ -1,3 +1,125 @@
+# v1.5.0
+
+## Features
+* feat(RAIN-45215): Add Hidden Azure & GCP suppressions list commands (#1100) (Ross)([796bd92c](https://github.com/lacework/go-sdk/commit/796bd92c4f870d8fb002df5f5aec9c0d8107541d))
+## Other Changes
+* ci: version bump to v1.4.2-dev (Lacework)([8ecf94b3](https://github.com/lacework/go-sdk/commit/8ecf94b30bade1e0d0670809576246283255751f))
+---
+# v1.4.1
+
+## Refactor
+* refactor: Use alpine as our base Docker image (#1097) (Salim Afiune)([d89d748a](https://github.com/lacework/go-sdk/commit/d89d748a6ace003b5f23d732a4099303954fd62e))
+## Other Changes
+* style(cdk): rename lifecycle event cdk-cleanup (#1092) (Salim Afiune)([4969c91a](https://github.com/lacework/go-sdk/commit/4969c91a08cf680ec07bcb66e49979eca885c1af))
+* ci: update chocolatey scripts (#1093) (Darren)([606fc228](https://github.com/lacework/go-sdk/commit/606fc228cf31ea8645b2c5da2b39f5aa9333e6ff))
+* ci: version bump to v1.4.1-dev (Lacework)([d7df6551](https://github.com/lacework/go-sdk/commit/d7df6551435587b4e7b529ff6627ac419b09e9a9))
+---
+# v1.4.0
+
+## Features
+* feat(GROW-1058): Improve management of component versions (#1088) (Edoardo Pirovano)([952f2c30](https://github.com/lacework/go-sdk/commit/952f2c30cac5cacbf02494eab031d81f6b95dee5))
+* feat(cdk): pass LW_CLI_VERSION env variable (#1085) (Salim Afiune)([f0382ae8](https://github.com/lacework/go-sdk/commit/f0382ae850c95d9956d902138d80465d5e7fad05))
+* feat(lwlogger): add merge logger function (#1087) (Kolbeinn)([1e569be8](https://github.com/lacework/go-sdk/commit/1e569be8c5d53335605e2540b02f0b94ec21925e))
+* feat(cli): pass LW_API_SERVER_URL env variable to components (#1077) (Kolbeinn)([c85d1541](https://github.com/lacework/go-sdk/commit/c85d154189d8ce830bf1b28bbc505fd0b48f692d))
+## Bug Fixes
+* fix(lwlogger): do not override explicit level argument (#1084) (Kolbeinn)([452dff83](https://github.com/lacework/go-sdk/commit/452dff8325497eae61a2ba76f59cd52eaf535678))
+## Other Changes
+* chore(deps): Run `make go-vendor` (#1094) (Edoardo Pirovano)([8beaf31f](https://github.com/lacework/go-sdk/commit/8beaf31fa3ba37de5d5b2dffd5bd167157580131))
+* chore(deps): bump github.com/aws/aws-sdk-go-v2/service/ec2 (#1083) (dependabot[bot])([c5a04eab](https://github.com/lacework/go-sdk/commit/c5a04eab6aafee96ab7c2bda4c66fdf986ed75e4))
+* chore(deps): bump github.com/honeycombio/libhoney-go (#1081) (dependabot[bot])([b9217256](https://github.com/lacework/go-sdk/commit/b921725609140ced50d5e0bfa9f91395129de34b))
+* chore(deps): bump github.com/aws/aws-sdk-go-v2/config (#1075) (dependabot[bot])([58711b27](https://github.com/lacework/go-sdk/commit/58711b27dd08cdd4572b79b14c2792615ca438fd))
+* chore(deps): bump github.com/hashicorp/hcl/v2 from 2.14.1 to 2.15.0 (#1044) (dependabot[bot])([44586503](https://github.com/lacework/go-sdk/commit/44586503459658e6be01f567861edec0de664fad))
+* chore(deps): bump github.com/zclconf/go-cty from 1.11.0 to 1.12.1 (#1020) (dependabot[bot])([16a79870](https://github.com/lacework/go-sdk/commit/16a798704cb9dd638118d28321efb7c999185867))
+* ci: version bump to v1.3.2-dev (Lacework)([9a254aee](https://github.com/lacework/go-sdk/commit/9a254aee3c0096f35eb498369cd1a739fe3db078))
+---
+# v1.3.1
+
+## Refactor
+* refactor: Release of docker images (#1074) (Salim Afiune)([3e198981](https://github.com/lacework/go-sdk/commit/3e1989815e31f3a403eb17afb68263df813222d4))
+## Bug Fixes
+* fix: avoid injecting empty alertProfile (#1078) (Salim Afiune)([485cc4cf](https://github.com/lacework/go-sdk/commit/485cc4cfb1b69b2f5bf958a0a5c5d1d0b8010641))
+## Other Changes
+* ci: version bump to v1.3.1-dev (Lacework)([60ff20ce](https://github.com/lacework/go-sdk/commit/60ff20ce3cf9eae4dea666ee004ac2648797a6da))
+---
+# v1.3.0
+
+## Features
+* feat(cli): add filter for fixable alerts (#1073) (hazedav)([98f7684c](https://github.com/lacework/go-sdk/commit/98f7684c9d511707015360f4a25ee55fb1fab172))
+* feat: Add support from hidden suppressions migration command (#1069) (Ross)([2441d452](https://github.com/lacework/go-sdk/commit/2441d45216f276623fad92d9dee23c89a71138e7))
+* feat: Display supported policy exception constraints (#1068) (Ross)([c6ebd686](https://github.com/lacework/go-sdk/commit/c6ebd686ee8d42d333e5e6f501fe6d57ff0122e3))
+* feat: Add support from hidden suppressions api (#1066) (Ross)([69a2247a](https://github.com/lacework/go-sdk/commit/69a2247ad596faa7fff8586c850acac885c1dc04))
+## Bug Fixes
+* fix: revert compliance csv report_type field format (#1057) (Darren)([123d46b2](https://github.com/lacework/go-sdk/commit/123d46b2b3e1fefc67d78cd333a0ea4b03395e10))
+* fix(cli): Ensure log level is correctly passed to components (#1071) (Kolbeinn)([0134e0a2](https://github.com/lacework/go-sdk/commit/0134e0a29663d97560280e9a07e83ccc13bb339a))
+## Other Changes
+* ci: version bump to v1.2.1-dev (Lacework)([24e59cb3](https://github.com/lacework/go-sdk/commit/24e59cb378b477e92c7d6ce4fd4fee500371473a))
+---
+# v1.2.0
+
+## Features
+* feat: add proxy scanner token management (#1018) (Credibleforce)([06b93071](https://github.com/lacework/go-sdk/commit/06b930715167c526ce9f8301d9a0cae23c8e9bdc))
+## Bug Fixes
+* fix: vuln ctr scan to use tag/digest argument to filter (#1070) (djmctavish)([1ec57f67](https://github.com/lacework/go-sdk/commit/1ec57f6799020755679bd09d49023bf26de6f29f))
+## Documentation Updates
+* docs: remove obsolete 'event' generated docs (#1067) (sthetland)([391a1626](https://github.com/lacework/go-sdk/commit/391a162679feabf6ad612b878e9566ce3d15bca7))
+* docs(cli): list supported hosts for `ec2ic` (#1053) (Nick Schmeller)([c45f1dc1](https://github.com/lacework/go-sdk/commit/c45f1dc118be7de5b07554d9c15d669e263c9e9c))
+## Other Changes
+* build(cli): Support aarch64 architecture (#1063) (Kolbeinn)([99d2eb27](https://github.com/lacework/go-sdk/commit/99d2eb27c641c895b195072fcb2d2e959d7641ea))
+* ci: version bump to v1.1.3-dev (Lacework)([19462b11](https://github.com/lacework/go-sdk/commit/19462b116cdd9f0c88b4e49378f6d549fec6db11))
+---
+# v1.1.2
+
+## Bug Fixes
+* fix: fix 1.1.2 issue (#1061) (Darren)([20d90d4e](https://github.com/lacework/go-sdk/commit/20d90d4ed5b6da6d9860e278ccb5ff23dcad998c))
+* fix: fix 1.1.2 release (#1059) (Darren)([07c7a7c3](https://github.com/lacework/go-sdk/commit/07c7a7c369fc7c4ac31a424b414bf8f2763bc5a5))
+* fix(api): Gcp sidekick integration server token (#1054) (ammarekbote)([6a16fdf0](https://github.com/lacework/go-sdk/commit/6a16fdf0dc2268981a52bffa99d6693ffb60a81a))
+* fix: generate success message (#1056) (jonathan stewart)([57c282c5](https://github.com/lacework/go-sdk/commit/57c282c5b30d2110e52bf9ec3e25865f2df8b37a))
+* fix: generate EKS non-interactive (#1055) (jonathan stewart)([7fbb78fc](https://github.com/lacework/go-sdk/commit/7fbb78fc0a9cdbb11c045d449c0d77ad0099ce50))
+## Documentation Updates
+* docs: fix documentation autogeneration (#1050) (Darren)([80106749](https://github.com/lacework/go-sdk/commit/80106749c054a05bc3a3bf4fde00131ad4897a1d))
+## Other Changes
+* ci: version bump to v1.1.3-dev (Lacework)([14914582](https://github.com/lacework/go-sdk/commit/14914582905d4b0490144ec908c821e112353a7f))
+* ci: version bump to v1.1.3-dev (Lacework)([5dda8bca](https://github.com/lacework/go-sdk/commit/5dda8bca17f3f83ac48245c72352a75b367a3b03))
+* ci: version bump to v1.1.2-dev (Lacework)([75c91670](https://github.com/lacework/go-sdk/commit/75c9167046643f17e9636a68deb14f5dcd44f343))
+---
+# v1.1.2
+
+## Bug Fixes
+* fix: fix 1.1.2 release (#1059) (Darren)([07c7a7c3](https://github.com/lacework/go-sdk/commit/07c7a7c369fc7c4ac31a424b414bf8f2763bc5a5))
+## Other Changes
+* ci: version bump to v1.1.3-dev (Lacework)([5dda8bca](https://github.com/lacework/go-sdk/commit/5dda8bca17f3f83ac48245c72352a75b367a3b03))
+---
+# v1.1.2
+
+## Bug Fixes
+* fix: generate success message (#1056) (jonathan stewart)([57c282c5](https://github.com/lacework/go-sdk/commit/57c282c5b30d2110e52bf9ec3e25865f2df8b37a))
+* fix: generate EKS non-interactive (#1055) (jonathan stewart)([7fbb78fc](https://github.com/lacework/go-sdk/commit/7fbb78fc0a9cdbb11c045d449c0d77ad0099ce50))
+## Documentation Updates
+* docs: fix documentation autogeneration (#1050) (Darren)([80106749](https://github.com/lacework/go-sdk/commit/80106749c054a05bc3a3bf4fde00131ad4897a1d))
+## Other Changes
+* ci: version bump to v1.1.2-dev (Lacework)([75c91670](https://github.com/lacework/go-sdk/commit/75c9167046643f17e9636a68deb14f5dcd44f343))
+---
+# v1.1.1
+
+## Bug Fixes
+* fix: fix vuln ctr fail_on_severity (#1048) (Darren)([dcf79d3f](https://github.com/lacework/go-sdk/commit/dcf79d3fabe9465deff1127f5730c9ae4d67b6a9))
+## Other Changes
+* ci: version bump to v1.1.1-dev (Lacework)([b1e7b28c](https://github.com/lacework/go-sdk/commit/b1e7b28ce432b053a093bb0951f538f393c5b3a4))
+---
+# v1.1.0
+
+## Features
+* feat(cli): find and fix GCP instances w/o agents (#1022) (Nick Schmeller)([08edf28a](https://github.com/lacework/go-sdk/commit/08edf28a69693926b5b01be54750ca61b671942a))
+## Refactor
+* refactor: remove all unused functions, types and tests (#1037) (Darren)([7170808b](https://github.com/lacework/go-sdk/commit/7170808bd3c7ced956d4a4bd836a647321cfea43))
+## Bug Fixes
+* fix(cli): set correct SSH user for Amazon Linux 2 (#1046) (Nick Schmeller)([a92b37d1](https://github.com/lacework/go-sdk/commit/a92b37d13c9a90d65817d7a8d1ab1e29e693be3f))
+## Other Changes
+* chore(deps): bump github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect (#1006) (dependabot[bot])([8cd69ed1](https://github.com/lacework/go-sdk/commit/8cd69ed190c908eff374ee39c31cf09e4dcdbea2))
+* chore(deps): bump github.com/aws/aws-sdk-go-v2/service/ec2 (#1043) (dependabot[bot])([357ce2db](https://github.com/lacework/go-sdk/commit/357ce2dbbf910da1c3bf8bf19feb31d15cc70599))
+* ci: fix release script; sort versions in find_latest_version (#1042) (Darren)([330a6a16](https://github.com/lacework/go-sdk/commit/330a6a16ad7d78718932e02f58f3bb4160f1f46a))
+* ci: add logging line to output latest version found (#1040) (Darren)([38ec6ca1](https://github.com/lacework/go-sdk/commit/38ec6ca1a73016c5bd4244bce30742bd3a9bf396))
+---
 # v1.0.0
 
 ## Features

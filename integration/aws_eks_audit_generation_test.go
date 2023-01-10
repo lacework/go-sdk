@@ -620,3 +620,29 @@ func TestGenerationEksMultiRegionCliFlag(t *testing.T) {
 	buildTf, _ := aws_eks_audit.NewTerraform(aws_eks_audit.WithParsedRegionClusterMap(regionClusterMap)).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
+
+func TestGenerationEksNonInteractive(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	tfResult := runEksAuditGenerateTest(t,
+		func(c *expect.Console) {
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"k8s",
+		"eks",
+		"--region_clusters",
+		"us-west-1=cluster1,cluster2",
+		"--noninteractive",
+	)
+
+	assertEksAuditTerraformSaved(t, final)
+
+	regionClusterMap := make(map[string][]string)
+	regionClusterMap["us-west-1"] = []string{"cluster1", "cluster2"}
+
+	buildTf, _ := aws_eks_audit.NewTerraform(aws_eks_audit.WithParsedRegionClusterMap(regionClusterMap)).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}

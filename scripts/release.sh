@@ -17,15 +17,6 @@ readonly binary_name=lacework
 readonly docker_org=lacework
 readonly git_user="Lacework Inc."
 readonly git_email="tech-ally@lacework.net"
-readonly docker_tags=(
-  latest
-  scratch
-  ubi-8
-  debian-10
-  ubuntu-1804
-  amazonlinux-2
-#  windows-nanoserver
-)
 
 VERSION=$(cat VERSION)
 TARGETS=(
@@ -268,12 +259,12 @@ generate_release_notes() {
   echo "" >> RELEASE_NOTES.md
   echo "$(cat CHANGES.md)" >> RELEASE_NOTES.md
 
-  # Add Docker Images Footer
+  # Add Docker Image Footer
   echo "" >> RELEASE_NOTES.md
-  echo "## Docker Images" >> RELEASE_NOTES.md
-  for tag in "${docker_tags[@]}"; do
-    echo "* \`docker pull ${docker_org}/${package_name}:${tag}\`" >> RELEASE_NOTES.md
-  done
+  echo "## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)" >> RELEASE_NOTES.md
+  echo '```' >> RELEASE_NOTES.md
+  echo "docker pull ${docker_org}/${package_name}" >> RELEASE_NOTES.md
+  echo '```' >> RELEASE_NOTES.md
 }
 
 push_release() {

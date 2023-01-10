@@ -188,7 +188,7 @@ To show recommendation details and affected resources for a recommendation id:
 					&complianceCSVReportDetails{
 						AccountName:     report.AccountID,
 						AccountID:       report.AccountID,
-						ReportType:      report.ReportType,
+						ReportType:      reportType.String(),
 						ReportTime:      report.ReportTime,
 						Recommendations: report.Recommendations,
 					},

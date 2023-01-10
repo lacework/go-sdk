@@ -39,7 +39,6 @@ type Client struct {
 	account    string
 	subaccount string
 	apiVersion string
-	logLevel   string
 	baseURL    *url.URL
 	auth       *authConfig
 	c          *http.Client
@@ -106,7 +105,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	c.V2 = NewV2Endpoints(c)
 
 	// init logger, this could change if a user calls api.WithLogLevel()
-	c.initLogger()
+	c.initLogger("")
 
 	for _, opt := range opts {
 		if err := opt.apply(c); err != nil {
@@ -117,7 +116,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 	c.log.Info("api client created",
 		zap.String("url", c.baseURL.String()),
 		zap.String("version", c.apiVersion),
-		zap.String("log_level", c.logLevel),
+		zap.String("log_level", c.log.Level().CapitalString()),
 		zap.Int("timeout", c.auth.expiration),
 	)
 	return c, nil

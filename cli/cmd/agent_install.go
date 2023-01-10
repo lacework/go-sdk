@@ -155,13 +155,17 @@ func runInstallCommandOnRemoteHost(runner *lwrunner.Runner, cmd string) error {
 	}
 
 	cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", runner.Hostname)
-	cli.OutputHuman(renderOneLineCustomTable("Installation Details", stdout.String(),
+	cli.OutputHuman(fmtSuccessfulAgentInstallString(stdout.String()))
+	return nil
+}
+
+func fmtSuccessfulAgentInstallString(stdout string) (string, func(t *tablewriter.Table)) {
+	return renderOneLineCustomTable("Installation Details", stdout),
 		tableFunc(func(t *tablewriter.Table) {
 			t.SetBorder(false)
 			t.SetColumnSeparator(" ")
 			t.SetAutoWrapText(false)
-		})))
-	return nil
+		})
 }
 
 func isAgentInstalledOnRemoteHost(runner *lwrunner.Runner) error {

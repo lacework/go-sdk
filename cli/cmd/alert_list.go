@@ -134,6 +134,15 @@ func init() {
 		"type", "",
 		"filter alerts by type",
 	)
+
+	// fixable
+	if cli.isRemediateInstalled() {
+		alertListCmd.Flags().BoolVar(
+			&alertCmdState.Fixable,
+			"fixable", false,
+			"filter alerts by fixability",
+		)
+	}
 }
 
 func alertListTable(alerts api.Alerts) (out [][]string) {
@@ -141,11 +150,6 @@ func alertListTable(alerts api.Alerts) (out [][]string) {
 	alerts.SortBySeverity()
 
 	for _, alert := range alerts {
-		// filter severity if desired
-		if lwseverity.ShouldFilter(alert.Severity, alertCmdState.Severity) {
-			continue
-		}
-
 		out = append(out, []string{
 			strconv.Itoa(alert.ID),
 			alert.Type,
@@ -242,17 +246,46 @@ func listAlert(_ *cobra.Command, _ []string) error {
 		return errors.Wrap(err, msg)
 	}
 
-	if cli.JSONOutput() {
-		return cli.OutputJSON(listResponse.Data)
+	// filter severity
+	alerts := api.Alerts{}
+	for _, alert := range listResponse.Data {
+		// filter severity if desired
+		if lwseverity.ShouldFilter(alert.Severity, alertCmdState.Severity) {
+			continue
+		}
+		alerts = append(alerts, alert)
 	}
 
-	if len(listResponse.Data) == 0 {
-		cli.OutputHuman("There are no alerts in your account in the specified time range.\n")
+	// filter fixable
+	if alertCmdState.Fixable {
+		templateIDs, err := getRemediationTemplateIDs()
+		if err != nil {
+			return errors.Wrap(err, "unable to filter by alert fixability")
+		}
+		alerts = filterFixableAlerts(alerts, templateIDs)
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(alerts)
+	}
+
+	if len(alerts) == 0 {
+		if alertCmdState.hasFilters() {
+			cli.OutputHuman(fmt.Sprintf("%s %s\n",
+				"No alerts match the specified filters within the given time range.",
+				"Try removing filters or expanding the time range.",
+			))
+			return nil
+		}
+		cli.OutputHuman("There are no alerts in the specified time range.\n")
 		return nil
 	}
-	renderAlertListTable(listResponse.Data)
+	renderAlertListTable(alerts)
 
 	// breadcrumb
 	cli.OutputHuman("\nUse 'lacework alert show <alert_id>' to see details for a specific alert.\n")
+	if alertCmdState.Fixable {
+		cli.OutputHuman("Use 'lacework remediate alert <alert_id>' to fix a specific alert.\n")
+	}
 	return nil
 }

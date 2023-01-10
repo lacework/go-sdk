@@ -25,6 +25,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/Masterminds/semver"
@@ -40,7 +41,47 @@ var (
 		Name:          "lacework-mock-component",
 		Description:   "This is a mock mock component",
 		LatestVersion: *mockVersion,
-		Type:          "BINARY",
+		Breadcrumbs: Breadcrumbs{
+			InstallationMessage: "Successfully installed!",
+			UpdateMessage:       "Now supports feature 3",
+		},
+		Type: "BINARY",
+		Artifacts: []Artifact{{
+			OS:            "darwin",
+			ARCH:          "arm64",
+			URL:           "https://someurl.com/",
+			Signature:     "abcdef123456789",
+			Version:       "0.0.1",
+			UpdateMessage: "Now supports feature 1",
+		}, {
+			OS:            "darwin",
+			ARCH:          "arm64",
+			URL:           "https://someurl.com/",
+			Signature:     "abcdef123456789",
+			Version:       "0.0.2",
+			UpdateMessage: "Now supports feature 2",
+		}, {
+			OS:            "windows",
+			ARCH:          "arm64",
+			URL:           "https://someurl.com/",
+			Signature:     "abcdef123456789",
+			Version:       "0.0.2",
+			UpdateMessage: "Now supports feature 2",
+		}, {
+			OS:            "darwin",
+			ARCH:          "arm64",
+			URL:           "https://someurl.com/",
+			Signature:     "abcdef123456789",
+			Version:       "0.1.0",
+			UpdateMessage: "Now supports feature 3",
+		}, {
+			OS:            "darwin",
+			ARCH:          "arm64",
+			URL:           "https://someurl.com/",
+			Signature:     "abcdef123456789",
+			Version:       "0.1.1",
+			UpdateMessage: "Now supports feature 4",
+		}},
 	}
 	//go:embed test_resources/hello-world.sh
 	helloWorld []byte
@@ -243,4 +284,43 @@ func TestRun(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMakeUpdateMessage(t *testing.T) {
+	from, _ := semver.NewVersion("0.0.1")
+	to, _ := semver.NewVersion("0.1.0")
+	message := mockComponent.MakeUpdateMessage(*from, *to)
+	assert.Contains(t, message, "from 0.0.1 to 0.1.0")
+	assert.NotContains(t, message, "Now supports feature 1")
+	assert.Contains(t, message, "Now supports feature 2")
+	assert.Contains(t, message, "Now supports feature 3")
+	assert.NotContains(t, message, "Now supports feature 4")
+}
+
+func TestListVersionsWithInstalled(t *testing.T) {
+	installed, _ := semver.NewVersion("0.1.0")
+	versions := mockComponent.ListVersions(installed)
+	assert.Equal(t, 1, strings.Count(versions, "0.0.1"))
+	assert.Equal(t, 1, strings.Count(versions, "0.0.2"))
+	assert.Equal(t, 1, strings.Count(versions, "0.1.0 (installed)"))
+	assert.Equal(t, 1, strings.Count(versions, "0.1.1"))
+}
+
+func TestListVersionsWithMissingInstalled(t *testing.T) {
+	installed, _ := semver.NewVersion("0.0.0")
+	versions := mockComponent.ListVersions(installed)
+	assert.Equal(t, 1, strings.Count(versions, "0.0.1"))
+	assert.Equal(t, 1, strings.Count(versions, "0.0.2"))
+	assert.Equal(t, 1, strings.Count(versions, "0.1.0"))
+	assert.Equal(t, 1, strings.Count(versions, "0.1.1"))
+	assert.Contains(t, versions, "currently installed version 0.0.0 is no longer available")
+}
+
+func TestListVersionsWithoutInstalled(t *testing.T) {
+	versions := mockComponent.ListVersions(nil)
+	assert.Equal(t, 1, strings.Count(versions, "0.0.1"))
+	assert.Equal(t, 1, strings.Count(versions, "0.0.2"))
+	assert.Equal(t, 1, strings.Count(versions, "0.1.0"))
+	assert.Equal(t, 1, strings.Count(versions, "0.1.1"))
+	assert.NotContains(t, versions, "installed")
 }

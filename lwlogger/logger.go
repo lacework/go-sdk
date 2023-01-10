@@ -33,7 +33,7 @@ import (
 var (
 	// LogLevelEnv represents the level that the logger is configured
 	LogLevelEnv        = "LW_LOG"
-	SupportedLogLevels = [3]string{"", "INFO", "DEBUG"}
+	SupportedLogLevels = [4]string{"", "ERROR", "INFO", "DEBUG"}
 
 	// LogFormatEnv controls the format of the logger
 	LogFormatEnv        = "LW_LOG_FORMAT"
@@ -51,9 +51,8 @@ var (
 
 // New initialize a new logger with the provided level and options
 func New(level string, options ...zap.Option) *zap.Logger {
-	// give priority to the environment variable
-	if envLevel := LogLevelFromEnvironment(); envLevel != "" {
-		level = envLevel
+	if level == "" {
+		level = LogLevelFromEnvironment()
 	}
 
 	zapConfig := zap.Config{
@@ -81,9 +80,8 @@ func New(level string, options ...zap.Option) *zap.Logger {
 // NewWithWriter initialize a new logger with the provided level and options
 // but redirecting the logs to the provider io.Writer
 func NewWithWriter(level string, out io.Writer, options ...zap.Option) *zap.Logger {
-	// give priority to the environment variable
-	if envLevel := LogLevelFromEnvironment(); envLevel != "" {
-		level = envLevel
+	if level == "" {
+		level = LogLevelFromEnvironment()
 	}
 
 	var (
@@ -105,6 +103,16 @@ func NewWithWriter(level string, out io.Writer, options ...zap.Option) *zap.Logg
 	return zap.New(core, options...).WithOptions(localOpts...)
 }
 
+// Merges multiple loggers into one. A call to the merged logger will be
+// forwarded to all the loggers
+func Merge(loggers ...*zap.Logger) *zap.Logger {
+	cores := make([]zapcore.Core, len(loggers))
+	for i, log := range loggers {
+		cores[i] = log.Core()
+	}
+	return zap.New(zapcore.NewTee(cores...))
+}
+
 func ValidLevel(level string) bool {
 	for _, l := range SupportedLogLevels {
 		if l == level {
@@ -121,6 +129,8 @@ func LogLevelFromEnvironment() string {
 		return "INFO"
 	case "debug", "DEBUG":
 		return "DEBUG"
+	case "error", "ERROR":
+		return "ERROR"
 	default:
 		return ""
 	}

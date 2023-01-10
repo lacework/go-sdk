@@ -74,18 +74,8 @@ type LaceworkContentLibrary struct {
 	PolicyTags map[string][]string  `json:"policy_tags"`
 }
 
-func (c *cliState) IsLCLInstalled() bool {
-	var err error
-	c.LwComponents, err = lwcomponent.LocalState()
-	if err != nil || c.LwComponents == nil {
-		return false
-	}
-
-	component, found := c.LwComponents.GetComponent(lclComponentName)
-	if found && component.IsInstalled() {
-		return true
-	}
-	return false
+func (c *cliState) isLCLInstalled() bool {
+	return c.IsComponentInstalled(lclComponentName)
 }
 
 func (c *cliState) LoadLCL() (*LaceworkContentLibrary, error) {

@@ -23,6 +23,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/lacework/go-sdk/lwseverity"
 )
 
 // v2VulnerabilitiesService is a service that interacts with the Vulnerabilities
@@ -175,20 +177,18 @@ type VulnerabilitiesContainersResponse struct {
 }
 
 func (r VulnerabilitiesContainersResponse) HighestSeverity() string {
-	var (
-		sevs []int
-		max  int
-	)
+	var sevs []lwseverity.Severity
+
 	for _, vuln := range r.Data {
-		sevs = append(sevs, SeverityOrder(vuln.Severity))
-		if len(sevs) == 1 {
-			max = SeverityOrder(vuln.Severity)
-		} else if SeverityOrder(vuln.Severity) > max {
-			max = SeverityOrder(vuln.Severity)
-		}
+		sevs = append(sevs, lwseverity.NewSeverity(vuln.Severity))
 	}
 
-	return SeverityInt(max)
+	if len(sevs) == 0 {
+		return lwseverity.Unknown.String()
+	}
+
+	lwseverity.SortSlice(sevs)
+	return sevs[0].GetSeverity()
 }
 
 func (r VulnerabilitiesContainersResponse) HighestFixableSeverity() string {
