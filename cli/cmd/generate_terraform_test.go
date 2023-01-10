@@ -207,7 +207,7 @@ func TestGenerationTfExecutionSuccess(t *testing.T) {
 		assert.Equal(t, `Lacework integration was successful! Terraform code saved in /tmp
 
 To view integration status:
-    lacework integration list
+    lacework cloud-account list
 
 `, out)
 	})
@@ -216,7 +216,7 @@ To view integration status:
 		assert.Equal(t, `Lacework integration was successful! Terraform code saved in /tmp
 
 To view integration status:
-    lacework -p notdefault integration list
+    lacework -p notdefault cloud-account list
 
 `, out)
 	})

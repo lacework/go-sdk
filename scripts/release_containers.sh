@@ -3,9 +3,10 @@
 
 set -eou pipefail
 
-# The repository where we are hosting the lacework-cli containers
+# The repository where we are hosting the lacework-cli container
 readonly repository="lacework/lacework-cli"
 readonly project_name=lacework-cli
+VERSION=$(cat VERSION)
 
 log() {
   echo "--> ${project_name}: $1"
@@ -20,26 +21,16 @@ fi
 # Authenticate to dockerhub
 echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-log "releasing container from SCRATCH"
-docker build -t "${repository}:scratch" --no-cache .
-docker push "${repository}:scratch"
+log "releasing docker container v${VERSION} from SCRATCH"
 
-# when updating the distributions below, please make sure to update
-# the script 'release.sh' inside the 'script/' folder
-distros=(
-  ubi-8
-  debian-10
-  ubuntu-1804
-  amazonlinux-2
-#  windows-nanoserver
-)
+docker context create cf-environment
+docker buildx create --name multiarch-builder \
+  --driver docker-container \
+  --platform linux/386,linux/amd64,linux/arm64,linux/armhf \
+  --use cf-environment
+docker buildx build . --push --no-cache \
+  -t "${repository}:v${VERSION}" \
+  -t "${repository}:latest" \
+  --platform linux/386,linux/amd64,linux/arm64,linux/armhf
 
-for dist in "${distros[@]}"; do
-  log "releasing container for ${dist}"
-  docker build -f "cli/images/${dist}/Dockerfile" --no-cache -t "${repository}:${dist}" .
-  docker push "${repository}:${dist}"
-done
-
-scripts/release_container_manifest.sh
-
-log "All docker containers have been released! (https://hub.docker.com/repository/docker/${repository})"
+log "Docker container released! (https://hub.docker.com/repository/docker/${repository})"

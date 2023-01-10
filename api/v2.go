@@ -58,6 +58,7 @@ type V2Endpoints struct {
 	VulnerabilityExceptions *VulnerabilityExceptionsService
 	Vulnerabilities         *v2VulnerabilitiesService
 	Alerts                  *AlertsService
+	Suppressions            *SuppressionsServiceV2
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
@@ -88,6 +89,11 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&VulnerabilityExceptionsService{c},
 		NewV2VulnerabilitiesService(c),
 		&AlertsService{c},
+		&SuppressionsServiceV2{c,
+			&AwsSuppressionsV2{c},
+			&AzureSuppressionsV2{c},
+			&GcpSuppressionsV2{c},
+		},
 	}
 
 	v2.Schemas.Services = map[integrationSchema]V2Service{

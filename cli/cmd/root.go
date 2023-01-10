@@ -26,6 +26,7 @@ import (
 	"github.com/fatih/color"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -272,12 +273,13 @@ func initConfig() {
 	viper.SetEnvPrefix("LW")    // set prefix for all env variables LW_ABC
 	viper.AutomaticEnv()        // read in environment variables that match
 
+	logLevel := ""
 	if viper.GetBool("debug") {
-		cli.LogLevel = "DEBUG"
+		logLevel = "DEBUG"
 	}
 
 	// initialize a Lacework logger
-	cli.Log = lwlogger.New(cli.LogLevel).Sugar()
+	cli.Log = lwlogger.New(logLevel).Sugar()
 
 	if viper.GetBool("nocolor") {
 		cli.Log.Info("turning off colors")
@@ -286,8 +288,12 @@ func initConfig() {
 		os.Setenv("NO_COLOR", "true")
 	}
 
-	if viper.GetBool("noninteractive") {
-		cli.NonInteractive()
+	if b := viper.Get("noninteractive"); b != nil {
+		if cast.ToBool(b) {
+			cli.NonInteractive()
+		} else {
+			cli.Interactive()
+		}
 	}
 
 	if viper.GetBool("nocache") {

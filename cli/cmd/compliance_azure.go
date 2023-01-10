@@ -42,7 +42,7 @@ var (
 	complianceAzureListSubsCmd = &cobra.Command{
 		Use:     "list-subscriptions",
 		Aliases: []string{"list-subs"},
-		Short:   "List subscriptions <tenant-id>",
+		Short:   "List subscriptions `<tenant-id>`",
 		Long: `List all Azure subscriptions for Tenant.
 
 Use the following command to list all Azure Tenants configured in your account:
@@ -244,7 +244,7 @@ To show recommendation details and affected resources for a recommendation id:
 						AccountID:       report.SubscriptionID,
 						TenantName:      report.TenantName,
 						TenantID:        report.TenantID,
-						ReportType:      report.ReportType,
+						ReportType:      reportType.String(),
 						ReportTime:      report.ReportTime,
 						Recommendations: report.Recommendations,
 					},

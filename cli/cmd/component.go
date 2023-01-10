@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/Masterminds/semver"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -56,6 +57,15 @@ var (
 		Short:   "List all components",
 		Long:    `List all available components and their current state`,
 		RunE:    runComponentsList,
+	}
+
+	// componentsShowCmd represents the show sub-command inside the components command
+	componentsShowCmd = &cobra.Command{
+		Use:   "show <component>",
+		Short: "Show details about a component",
+		Long:  "Show details about a component",
+		Args:  cobra.ExactArgs(1),
+		RunE:  runComponentsShow,
 	}
 
 	// componentsInstallCmd represents the install sub-command inside the components command
@@ -94,14 +104,22 @@ var (
 		Args:   cobra.ExactArgs(1),
 		RunE:   runComponentsDevMode,
 	}
+
+	versionArg string
 )
 
 func init() {
 	// add the components command
 	rootCmd.AddCommand(componentsCmd)
 
+	componentsInstallCmd.PersistentFlags().StringVar(&versionArg, "version", "",
+		"require a specific version to be installed (default is latest)")
+	componentsUpdateCmd.PersistentFlags().StringVar(&versionArg, "version", "",
+		"update to a specific version (default is latest)")
+
 	// add sub-commands to the components command
 	componentsCmd.AddCommand(componentsListCmd)
+	componentsCmd.AddCommand(componentsShowCmd)
 	componentsCmd.AddCommand(componentsInstallCmd)
 	componentsCmd.AddCommand(componentsUpdateCmd)
 	componentsCmd.AddCommand(componentsUninstallCmd)
@@ -139,6 +157,22 @@ func hasInstalledCommands() bool {
 func isComponent(annotations map[string]string) bool {
 	t, found := annotations["type"]
 	if found && t == componentTypeAnnotation {
+		return true
+	}
+	return false
+}
+
+// IsComponentInstalled returns true if component is
+// valid and installed
+func (c *cliState) IsComponentInstalled(name string) bool {
+	var err error
+	c.LwComponents, err = lwcomponent.LocalState()
+	if err != nil || c.LwComponents == nil {
+		return false
+	}
+
+	component, found := c.LwComponents.GetComponent(name)
+	if found && component.IsInstalled() {
 		return true
 	}
 	return false
@@ -250,6 +284,46 @@ func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 	return
 }
 
+func runComponentsShow(_ *cobra.Command, args []string) (err error) {
+	cli.StartProgress("Loading components state...")
+	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
+	cli.StopProgress()
+	if err != nil {
+		err = errors.Wrap(err, "unable to load state of components")
+		return
+	}
+	component, found := cli.LwComponents.GetComponent(args[0])
+	if !found {
+		return errors.New("component not found")
+	}
+	if cli.JSONOutput() {
+		return cli.OutputJSON(component)
+	}
+	cli.OutputHuman(
+		renderCustomTable(
+			[]string{"Name", "Status", "Description"},
+			[][]string{{component.Name, component.Status().String(), component.Description}},
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+			}),
+		),
+	)
+	var currentVersion *semver.Version = nil
+	if component.Status() == lwcomponent.Installed || component.Status() == lwcomponent.UpdateAvailable {
+		installed, err := component.CurrentVersion()
+		if err != nil {
+			return err
+		}
+		currentVersion = installed
+	}
+	cli.OutputHuman(component.ListVersions(currentVersion))
+	cli.OutputHuman("\n")
+	return
+}
+
 func componentsToTable() [][]string {
 	out := [][]string{}
 	for _, cdata := range cli.LwComponents.Components {
@@ -290,7 +364,7 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 	}
 
 	cli.StartProgress(fmt.Sprintf("Installing component %s...", component.Name))
-	err = cli.LwComponents.Install(args[0])
+	err = cli.LwComponents.Install(args[0], versionArg)
 	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to install component")
@@ -336,16 +410,15 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 		return
 	}
 	// @afiune end boilerplate load components
-	update, err := component.UpdateAvailable()
-	if err != nil {
-		return err
-	}
 
-	if !update {
-		cli.OutputHuman(
-			"You are running the latest version of the component %s.\n", args[0],
-		)
-		return nil
+	updateTo := component.LatestVersion
+	if versionArg != "" {
+		parsedVersion, err := semver.NewVersion(versionArg)
+		if err != nil {
+			err = errors.Wrap(err, "invalid version specified")
+			return err
+		}
+		updateTo = *parsedVersion
 	}
 
 	currentVersion, err := component.CurrentVersion()
@@ -353,8 +426,13 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	if currentVersion.Equal(&updateTo) {
+		cli.OutputHuman("You are already running version %s of this component", currentVersion.String())
+		return nil
+	}
+
 	cli.StartProgress(fmt.Sprintf("Updating component %s...", component.Name))
-	err = cli.LwComponents.Install(args[0])
+	err = cli.LwComponents.Install(args[0], updateTo.String())
 	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to update component")
@@ -362,13 +440,13 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 	}
 	cli.OutputChecklist(successIcon, "Component %s updated to %s\n",
 		color.HiYellowString(component.Name),
-		color.HiCyanString(fmt.Sprintf("v%s", component.LatestVersion.String())))
+		color.HiCyanString(fmt.Sprintf("v%s", updateTo.String())))
 	cli.OutputChecklist(successIcon, "Signature verified\n")
 
 	cli.StartProgress(fmt.Sprintf("Reconfiguring %s component...", component.Name))
 	// component life cycle: reconfigure
 	stdout, stderr, errCmd := component.RunAndReturn(
-		[]string{"cdk-reconfigure", currentVersion.String(), component.LatestVersion.String()},
+		[]string{"cdk-reconfigure", currentVersion.String(), updateTo.String()},
 		nil, cli.envs()...)
 	if errCmd != nil {
 		cli.Log.Warnw("component life cycle",
@@ -379,12 +457,9 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 	cli.StopProgress()
 
 	cli.OutputChecklist(successIcon, "Component reconfigured\n")
-	cli.OutputHuman("\nUpdate completed.\n")
-
-	if component.Breadcrumbs.UpdateMessage != "" {
-		cli.OutputHuman("\n")
-		cli.OutputHuman(component.Breadcrumbs.UpdateMessage)
-	}
+	cli.OutputHuman("\n")
+	cli.OutputHuman(component.MakeUpdateMessage(*currentVersion, updateTo))
+	cli.OutputHuman("\n")
 	return
 }
 
@@ -417,8 +492,8 @@ func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
 	}
 
 	cli.StartProgress("Cleaning component data...")
-	// component life cycle: remove
-	stdout, stderr, errCmd := component.RunAndReturn([]string{"cdk-remove"}, nil, cli.envs()...)
+	// component life cycle: cleanup
+	stdout, stderr, errCmd := component.RunAndReturn([]string{"cdk-cleanup"}, nil, cli.envs()...)
 	if errCmd != nil {
 		cli.Log.Warnw("component life cycle",
 			"error", errCmd.Error(), "stdout", stdout, "stderr", stderr)

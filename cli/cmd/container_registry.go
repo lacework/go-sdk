@@ -115,7 +115,8 @@ func containerRegistryShow(_ *cobra.Command, args []string) error {
 		containerRegistry.Data.Name,
 		containerRegistry.Data.Type,
 		containerRegistry.Data.Status(),
-		containerRegistry.Data.StateString()})
+		containerRegistry.Data.StateString(),
+	})
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(containerRegistry.Data)
@@ -124,6 +125,7 @@ func containerRegistryShow(_ *cobra.Command, args []string) error {
 	cli.OutputHuman(renderSimpleTable([]string{"Container Registry GUID", "Name", "Type", "Status", "State"}, out))
 	cli.OutputHuman("\n")
 	cli.OutputHuman(buildDetailsTable(containerRegistry.Data))
+
 	return nil
 }
 
@@ -165,6 +167,7 @@ func promptCreateContainerRegistry() error {
 				"Google Artifact Registry (GAR)",
 				"Github Container Registry (GHCR)",
 				"Inline Scanner Container Registry",
+				"Proxy Scanner Container Registry",
 			},
 		}
 		err = survey.AskOne(prompt, &containerRegistry)
@@ -184,6 +187,8 @@ func promptCreateContainerRegistry() error {
 		return createGarIntegration()
 	case "Inline Scanner Container Registry":
 		return createInlineScannerIntegration()
+	case "Proxy Scanner Container Registry":
+		return createProxyScannerIntegration()
 	case "Github Container Registry (GHCR)":
 		return createGhcrIntegration()
 	case "Google Container Registry (GCR)":

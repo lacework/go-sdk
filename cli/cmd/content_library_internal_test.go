@@ -306,7 +306,7 @@ func TestLoadLCLNotFound(t *testing.T) {
 	cli := cliState{LwComponents: new(lwcomponent.State)}
 
 	// IsLCLInstalled
-	assert.Equal(t, false, cli.IsLCLInstalled())
+	assert.Equal(t, false, cli.isLCLInstalled())
 
 	_, err := cli.LoadLCL()
 	assert.Equal(
@@ -368,7 +368,7 @@ func _TestLoadLCLOK(t *testing.T) {
 	}
 
 	// IsLCLInstalled
-	assert.Equal(t, true, cli.IsLCLInstalled())
+	assert.Equal(t, true, cli.isLCLInstalled())
 
 	lcl, err := cli.LoadLCL()
 	assert.Nil(t, err)

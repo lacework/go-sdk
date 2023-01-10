@@ -30,12 +30,12 @@ import (
 	"github.com/lacework/go-sdk/lwlogger"
 )
 
-// WithLogLevel sets the log level of the client, available: info or debug
+// WithLogLevel sets the log level of the client, available: info, debug, or error
 func WithLogLevel(level string) Option {
 	return clientFunc(func(c *Client) error {
 		// do not re initialize our logger if the log level
 		// is the same as the desired one
-		if level == c.logLevel {
+		if level == c.log.Level().CapitalString() {
 			return nil
 		}
 
@@ -44,8 +44,7 @@ func WithLogLevel(level string) Option {
 		}
 
 		c.log.Debug("setting up client", zap.String("log_level", level))
-		c.logLevel = level
-		c.initLogger()
+		c.initLogger(level)
 		return nil
 	})
 }
@@ -59,8 +58,7 @@ func WithLogLevelAndWriter(level string, w io.Writer) Option {
 		}
 
 		c.log.Debug("setting up client", zap.String("log_level", level))
-		c.logLevel = level
-		c.initLoggerWithWriter(w)
+		c.initLoggerWithWriterAndLevel(level, w)
 		return nil
 	})
 }
@@ -75,20 +73,18 @@ func WithLogWriter(w io.Writer) Option {
 
 // WithLogLevelAndFile sets the log level of the client
 // and writes the log messages to the provided file
-func WithLogLevelAndFile(level, filename string) Option {
+func WithLogLevelAndFile(level string, filename string) Option {
 	return clientFunc(func(c *Client) error {
 		if !lwlogger.ValidLevel(level) {
 			return fmt.Errorf("invalid log level '%s'", level)
 		}
-
-		c.logLevel = level
 
 		logWriter, err := os.OpenFile(filename, syscall.O_CREAT|syscall.O_RDWR|syscall.O_APPEND, 0666)
 		if err != nil {
 			return errors.Wrap(err, "unable to open file to initialize api logger ")
 		}
 
-		c.initLoggerWithWriter(logWriter)
+		c.initLoggerWithWriterAndLevel(level, logWriter)
 		return nil
 	})
 }
@@ -108,11 +104,11 @@ func WithLogFile(filename string) Option {
 }
 
 // initLogger initializes the logger with a set of default fields
-func (c *Client) initLogger() {
+func (c *Client) initLogger(level string) {
 	if c.log != nil {
 		_ = c.log.Sync()
 	}
-	c.log = lwlogger.New(c.logLevel,
+	c.log = lwlogger.New(level,
 		zap.Fields(
 			zap.Field(zap.String("id", c.id)),
 			zap.Field(zap.String("account", c.account)),
@@ -122,20 +118,23 @@ func (c *Client) initLogger() {
 	// verify if the log level has been configure through environment variable
 	if envLevel := lwlogger.LogLevelFromEnvironment(); envLevel != "" {
 		c.log.Debug("setting up client, override log level",
-			zap.String("before", c.logLevel),
+			zap.String("before", level),
 			zap.String("after", envLevel),
 		)
-		c.logLevel = envLevel
 	}
 }
 
 // initLoggerWithWriter initializes a new logger with a set
 // of default fields and configues the provided io.Writer
 func (c *Client) initLoggerWithWriter(w io.Writer) {
+	c.initLoggerWithWriterAndLevel("", w)
+}
+
+func (c *Client) initLoggerWithWriterAndLevel(level string, w io.Writer) {
 	if c.log != nil {
 		_ = c.log.Sync()
 	}
-	c.log = lwlogger.NewWithWriter(c.logLevel, w,
+	c.log = lwlogger.NewWithWriter(level, w,
 		zap.Fields(
 			zap.Field(zap.String("id", c.id)),
 			zap.Field(zap.String("account", c.account)),
@@ -145,14 +144,13 @@ func (c *Client) initLoggerWithWriter(w io.Writer) {
 	// verify if the log level has been configure through environment variable
 	if envLevel := lwlogger.LogLevelFromEnvironment(); envLevel != "" {
 		c.log.Debug("setting up client, override log level",
-			zap.String("before", c.logLevel),
+			zap.String("before", level),
 			zap.String("after", envLevel),
 		)
-		c.logLevel = envLevel
 	}
 }
 
 // debugMode returns true if the client is configured to display debug level logs
 func (c *Client) debugMode() bool {
-	return c.logLevel == "DEBUG"
+	return c.log.Level() == zap.DebugLevel
 }

@@ -43,13 +43,8 @@ type InlineScannerIntegrationResponse struct {
 
 type InlineScannerIntegration struct {
 	v2CommonIntegrationData
-	Data        InlineScannerData        `json:"data"`
-	ServerToken InlineScannerServerToken `json:"serverToken"`
-}
-
-type InlineScannerServerToken struct {
-	Token string `json:"serverToken"`
-	URI   string `json:"uri"`
+	Data        InlineScannerData `json:"data"`
+	ServerToken V2ServerToken     `json:"serverToken"`
 }
 
 func (reg InlineScannerIntegration) ContainerRegistryType() containerRegistryType {

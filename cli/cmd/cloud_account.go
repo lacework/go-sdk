@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -169,6 +170,7 @@ func cloudAccountShow(_ *cobra.Command, args []string) error {
 
 func buildDetailsTable(integration api.V2RawType) string {
 	var details [][]string
+
 	if caMap, ok := integration.GetData().(map[string]interface{}); ok {
 		for k, v := range caMap {
 			switch val := v.(type) {
@@ -182,15 +184,33 @@ func buildDetailsTable(integration api.V2RawType) string {
 				for i, j := range val {
 					if v, ok := j.(string); ok {
 						details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(i)), v})
+					} else {
+						cli.Log.Warn("unable to build table details, unknown type", "type", i, "key", k)
 					}
 				}
 			case []any:
 				var values []string
 				for _, i := range val {
-					values = append(values, i.(string))
+					if _, ok := i.(string); ok {
+						values = append(values, i.(string))
+					} else if _, ok := i.(map[string]interface{}); ok {
+						for m, n := range i.(map[string]interface{}) {
+							values = append(values, fmt.Sprintf("%s:%s", m, n))
+						}
+					} else {
+						cli.Log.Warn("unable to build table details, unknown type", "type", i, "key", k)
+					}
 				}
 				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strings.Join(values, ",")})
 			}
+		}
+	}
+
+	// get server token for container registry type only
+	if c, ok := integration.(api.ContainerRegistryRaw); ok {
+		if c.ServerToken != nil {
+			details = append(details, []string{"SERVER_TOKEN", c.ServerToken.ServerToken})
+			details = append(details, []string{"SERVER_TOKEN_URI", c.ServerToken.Uri})
 		}
 	}
 

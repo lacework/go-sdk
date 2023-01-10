@@ -6,7 +6,7 @@ hide_title: true
 
 ## lacework compliance azure list-subscriptions
 
-List subscriptions <tenant-id>
+List subscriptions `<tenant-id>`
 
 ### Synopsis
 

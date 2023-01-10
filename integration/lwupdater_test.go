@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-package lwupdater_test
+package integration_test
 
 import (
 	"io/ioutil"

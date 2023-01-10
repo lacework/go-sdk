@@ -42,6 +42,7 @@ type AWSRunner struct {
 	Region           string
 	AvailabilityZone string
 	InstanceID       string
+	ImageName        string
 }
 
 func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, instanceID string, callback ssh.HostKeyCallback) (*AWSRunner, error) {
@@ -69,6 +70,7 @@ func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, in
 		region,
 		availabilityZone,
 		instanceID,
+		imageName,
 	}, nil
 }
 
@@ -370,8 +372,8 @@ func getSSHUsernameLookupTable() []func(string) (bool, string) {
 		func(_ string) (bool, string) { return os.Getenv("LW_SSH_USER") != "", os.Getenv("LW_SSH_USER") }, // THIS ROW MUST BE FIRST IN THE TABLE
 		func(imageName string) (bool, string) { return strings.Contains(imageName, "ubuntu"), "ubuntu" },
 		func(imageName string) (bool, string) {
-			return strings.Contains(imageName, "amazon_linux"), "amazon_linux"
+			return strings.Contains(imageName, "amazon_linux"), "ec2-user"
 		},
-		func(imageName string) (bool, string) { return strings.Contains(imageName, "amzn2-ami"), "amzn2-ami" },
+		func(imageName string) (bool, string) { return strings.Contains(imageName, "amzn2-ami"), "ec2-user" },
 	}
 }
