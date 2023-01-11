@@ -38,6 +38,18 @@ var (
 		Short: "Use SSM to securely install on EC2 instances",
 		RunE:  installAWSSSM,
 		Long: `This command installs the agent on all EC2 instances in an AWS account using SSM.
+This command will create a role and instance profile with 'SSMManagedInstanceCore'
+attached and associate that instance profile with the target instances. If the target
+instances already have associated instance profiles, this command will not change
+their state. This command will teardown the IAM role and instance profile before exiting.
+
+To skip IAM role / instance profile creation and instance profile association:
+
+    lacework agent aws-install ec2ssm --skip_infra_creation
+
+To provide a preexisting IAM role with the 'SSMManagedInstanceCore' policy
+
+    lacework agent aws-install ec2ssm --iam_role_name IAMRoleName
 
 To filter by one or more regions:
 
@@ -61,7 +73,7 @@ AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - AWS_SESSION_TOKEN (optional)
-- AWS_REGION (optional)`,
+- AWS_REGION`,
 	}
 )
 
@@ -96,7 +108,7 @@ func init() {
 		&agentCmdState.InstallSkipCreatInfra,
 		"skip_infra_creation",
 		false,
-		"set this flag to skip IAM / SSM infra creation. Assumes all instances have SSM enabled",
+		"set this flag to skip creating an IAM role and instance profile and associating the instance profile. Assumes all instances are already setup for SSM",
 	)
 }
 
