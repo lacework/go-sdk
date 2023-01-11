@@ -192,6 +192,16 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 			`Ephemeral role to install Lacework agents using SSM; created by the Lacework CLI.
 Safe to delete if found`,
 		),
+		Tags: []types.Tag{
+			{
+				Key:   aws.String("Name"),
+				Value: aws.String(roleName),
+			},
+			{
+				Key:   aws.String("LaceworkAutomation"),
+				Value: aws.String("agent-ssm-install"),
+			},
+		},
 	}
 	output, err := c.CreateRole(context.Background(), input)
 	if err != nil {
@@ -254,6 +264,16 @@ func createInstanceProfile(cfg aws.Config) (types.InstanceProfile, error) {
 	cli.Log.Debug("creating instance profile")
 	createInput := &iam.CreateInstanceProfileInput{
 		InstanceProfileName: aws.String(instanceProfileName),
+		Tags: []types.Tag{
+			{
+				Key:   aws.String("Name"),
+				Value: aws.String(roleName),
+			},
+			{
+				Key:   aws.String("LaceworkAutomation"),
+				Value: aws.String("agent-ssm-install"),
+			},
+		},
 	}
 	createOutput, err := c.CreateInstanceProfile(context.Background(), createInput)
 	if err != nil {
