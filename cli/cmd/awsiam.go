@@ -158,7 +158,6 @@ func getRoleFromName(cfg aws.Config, roleName string) (types.Role, error) {
 }
 
 // createSSMRole makes a call to the AWS API to create an IAM role.
-// This role allows the current user to assume it.
 // Returns information about the newly created role and any errors.
 func createSSMRole(cfg aws.Config) (types.Role, error) {
 	c := iam.New(iam.Options{
