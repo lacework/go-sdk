@@ -143,7 +143,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			threadRunner := *runner
 			runnerCopyWg.Done()
 
-			cli.Log.Debugw("runner info: ",
+			cli.Log.Debugw("runner info",
 				"user", threadRunner.Runner.User,
 				"region", threadRunner.Region,
 				"az", threadRunner.AvailabilityZone,
@@ -156,7 +156,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			if err != nil {
 				cli.Log.Debugw("failed to attach instance profile to runner",
 					"error", err,
-					"instance ID", threadRunner.InstanceID,
+					"instance_id", threadRunner.InstanceID,
 					"role", role,
 					"instance profile", instanceProfile,
 				)
@@ -174,7 +174,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			for i := 0; i < 5; i++ {
 				cli.Log.Debugw("waiting for instance profile to associate with instance, sleeping 1min",
 					"iteration number (time slept in minutes)", i,
-					"instance ID", threadRunner.InstanceID,
+					"instance_id", threadRunner.InstanceID,
 				)
 				time.Sleep(1 * time.Minute)
 
@@ -183,30 +183,30 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				if ssmError != nil {
 					cli.Log.Debugw("error when checking if agent already installed on host, retrying",
 						"ssmError", ssmError,
-						"runner", threadRunner.InstanceID,
+						"instance_id", threadRunner.InstanceID,
 					)
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusCancelled ||
 					commandOutput.Status == ssmtypes.CommandInvocationStatusTimedOut {
 					cli.Log.Debugw("command did not complete successfully, retrying",
 						"command output", commandOutput,
-						"runner", threadRunner.InstanceID,
+						"instance_id", threadRunner.InstanceID,
 					)
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
 					cli.Log.Debugw("agent already installed on host, skipping",
-						"runner", threadRunner.InstanceID,
+						"instance_id", threadRunner.InstanceID,
 					)
 					return
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusFailed {
 					cli.Log.Debugw("no agent found on host, proceeding to install",
 						"command output", commandOutput,
 						"time slept in minutes", i,
-						"runner", threadRunner.InstanceID,
+						"instance_id", threadRunner.InstanceID,
 					)
 					break
 				} else {
 					cli.Log.Debugw("unexpected command exit, skipping this runner",
 						"command output", commandOutput,
-						"runner", threadRunner.InstanceID,
+						"instance_id", threadRunner.InstanceID,
 					)
 					return
 				}
@@ -215,7 +215,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				cli.Log.Debugw("error when checking if agent already installed on host, skipping runner",
 					"ssmError", ssmError,
 					"command output", commandOutput,
-					"runner", threadRunner.InstanceID,
+					"instance_id", threadRunner.InstanceID,
 				)
 				return
 			}
@@ -228,14 +228,14 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed",
 					"error", err,
-					"runner", threadRunner.InstanceID,
+					"instance_id", threadRunner.InstanceID,
 				)
 			} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
 				cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", threadRunner.InstanceID)
 				cli.OutputHuman(fmtSuccessfulAgentInstallString(*commandOutput.StandardOutputContent))
 			} else {
 				cli.Log.Debugw("Install command did not return `Success` exit status on host",
-					"runner", threadRunner.InstanceID,
+					"instance_id", threadRunner.InstanceID,
 					"status", commandOutput,
 				)
 			}
