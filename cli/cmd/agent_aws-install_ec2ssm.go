@@ -171,13 +171,8 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			// Sleep for up to 5min to wait for instance profile to associate with instance
 			var ssmError error
 			var commandOutput ssm.GetCommandInvocationOutput
-			for i := 0; i < 5; i++ {
-				cli.Log.Debugw("waiting for instance profile to associate with instance, sleeping 1min",
-					"iteration number (time slept in minutes)", i,
-					"instance_id", threadRunner.InstanceID,
-				)
-				time.Sleep(1 * time.Minute)
-
+			const maxSleepTime int = 6
+			for i := 0; i < maxSleepTime; i++ {
 				const agentVersionCmd = "sudo sh -c '/var/lib/lacework/datacollector -v'"
 				commandOutput, ssmError = threadRunner.RunSSMCommandOnRemoteHost(cfg, agentVersionCmd)
 				if ssmError != nil {
@@ -209,6 +204,14 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 						"instance_id", threadRunner.InstanceID,
 					)
 					return
+				}
+
+				if i < maxSleepTime-1 { // only sleep when we have a next iteration
+					cli.Log.Debugw("waiting for instance profile to associate with instance, sleeping 1min",
+						"iteration number (time slept in minutes)", i,
+						"instance_id", threadRunner.InstanceID,
+					)
+					time.Sleep(1 * time.Minute)
 				}
 			}
 			if ssmError != nil { // SSM still erroring after 5min of sleep, skip this host
