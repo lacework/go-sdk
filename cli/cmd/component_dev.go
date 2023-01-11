@@ -27,10 +27,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/abiosoft/colima/util/terminal"
 	"github.com/fatih/color"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -274,36 +277,32 @@ func cdkGolangScaffolding(component *lwcomponent.Component) error {
 }
 
 func cdkInitGitRepo(rootPath string) error {
-	var (
-		vw  = terminal.NewVerboseWriter(10)
-		cmd = exec.Command("git", "init")
-	)
-	if _, err := vw.Write([]byte("\n")); err != nil {
-		cli.Log.Debugw("unable to write to virtual terminal", "error", err)
-	}
-	cmd.Env = os.Environ()
-	cmd.Dir = rootPath
-	cmd.Stdout = vw
-	cmd.Stderr = vw
-	if err := cmd.Run(); err != nil {
-		return errors.Wrap(err, "unable to initialize Git repo")
+	eMsg := "unable to initialize Git repo"
+
+	repo, err := git.PlainInit(rootPath, false)
+	if err != nil {
+		return errors.Wrap(err, eMsg)
 	}
 
-	cmd = exec.Command("git", "add", ".")
-	cmd.Env = os.Environ()
-	cmd.Dir = rootPath
-	cmd.Stdout = vw
-	cmd.Stderr = vw
-	if err := cmd.Run(); err != nil {
-		return errors.Wrap(err, "unable to initialize Git repo")
+	w, err := repo.Worktree()
+	if err != nil {
+		return errors.Wrap(err, eMsg)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", "feat: init component")
-	cmd.Env = os.Environ()
-	cmd.Dir = rootPath
-	cmd.Stdout = vw
-	cmd.Stderr = vw
-	return cmd.Run()
+	_, err = w.Add(".")
+	if err != nil {
+		return errors.Wrap(err, eMsg)
+	}
+
+	_, err = w.Commit("example go-git commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Component Scaffolding",
+			Email: "support@lacework.net",
+			When:  time.Now(),
+		},
+	})
+
+	return err
 }
 
 func cdkGoVendor(rootPath string) error {
