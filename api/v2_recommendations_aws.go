@@ -21,6 +21,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/lacework/go-sdk/internal/databox"
 )
 

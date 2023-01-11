@@ -21,13 +21,14 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/olekukonko/tablewriter"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/olekukonko/tablewriter"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
