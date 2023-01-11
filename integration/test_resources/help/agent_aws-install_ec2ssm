@@ -32,6 +32,7 @@ Flags:
       --iam_role_name string      IAM role name (not ARN) with SSM policy, if not provided then an ephemeral role will be created
   -r, --include_regions strings   list of regions to filter on
   -n, --max_parallelism int       maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
+      --skip_infra_creation       set this flag to skip IAM / SSM infra creation. Assumes all instances have SSM enabled
       --tag strings               only install agents on infra with this tag
       --tag_key string            only install agents on infra with this tag key set
       --token string              agent access token

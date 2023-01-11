@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/gammazero/workerpool"
@@ -91,6 +92,12 @@ func init() {
 		"",
 		"IAM role name (not ARN) with SSM policy, if not provided then an ephemeral role will be created",
 	)
+	agentInstallAWSSSMCmd.Flags().BoolVar(
+		&agentCmdState.InstallSkipCreatInfra,
+		"skip_infra_creation",
+		false,
+		"set this flag to skip IAM / SSM infra creation. Assumes all instances have SSM enabled",
+	)
 }
 
 func installAWSSSM(_ *cobra.Command, _ []string) error {
@@ -118,13 +125,19 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	role, instanceProfile, err := SetupSSMAccess(cfg, agentCmdState.InstallBYORole, token)
-	defer func() {
-		err := TeardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
-		cli.Log.Warnw("got an error while tearing down IAM infra", "error", err)
-	}()
-	if err != nil {
-		return err
+
+	var role types.Role
+	var instanceProfile types.InstanceProfile
+	if !agentCmdState.InstallSkipCreatInfra {
+		var err error
+		role, instanceProfile, err = SetupSSMAccess(cfg, agentCmdState.InstallBYORole, token)
+		defer func() {
+			err := TeardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
+			cli.Log.Warnw("got an error while tearing down IAM infra", "error", err)
+		}()
+		if err != nil {
+			return err
+		}
 	}
 
 	wg := new(sync.WaitGroup)
@@ -151,18 +164,20 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				"hostname", threadRunner.Runner.Hostname,
 			)
 
-			// Attach an instance profile with our new role to the runner
-			err = threadRunner.AssociateInstanceProfileWithRunner(cfg, instanceProfile)
-			if err != nil {
-				cli.Log.Debugw("failed to attach instance profile to runner",
-					"error", err,
-					"instance_id", threadRunner.InstanceID,
-					"role", role,
-					"instance profile", instanceProfile,
-				)
-				return
-			} else {
-				cli.OutputHuman(fmt.Sprintf("successfully associated with instance ID %s\n", threadRunner.InstanceID))
+			if !agentCmdState.InstallSkipCreatInfra {
+				// Attach an instance profile with our new role to the runner
+				err = threadRunner.AssociateInstanceProfileWithRunner(cfg, instanceProfile)
+				if err != nil {
+					cli.Log.Debugw("failed to attach instance profile to runner",
+						"error", err,
+						"instance_id", threadRunner.InstanceID,
+						"role", role,
+						"instance profile", instanceProfile,
+					)
+					return
+				} else {
+					cli.OutputHuman(fmt.Sprintf("successfully associated with instance ID %s\n", threadRunner.InstanceID))
+				}
 			}
 
 			// Establish SSM Command connection to the runner
