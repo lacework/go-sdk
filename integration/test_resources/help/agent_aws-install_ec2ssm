@@ -34,7 +34,7 @@ AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - AWS_SESSION_TOKEN (optional)
-- AWS_REGION (optional)
+- AWS_REGION
 
 Usage:
   lacework agent aws-install ec2ssm [flags]
