@@ -35,7 +35,8 @@ func TestRecommendationsGcpCISGetReport(t *testing.T) {
 	)
 
 	fakeServer.MockToken("TOKEN")
-	fakeServer.MockAPI("external/recommendations/gcp",
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI("recommendations/gcp",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "GetReport() should be a GET method")
 			Recommendations := listGcpRecommendations()
@@ -66,7 +67,8 @@ func TestRecommendationsGcpCIS12GetReport(t *testing.T) {
 	)
 
 	fakeServer.MockToken("TOKEN")
-	fakeServer.MockAPI("external/recommendations/gcp",
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI("recommendations/gcp",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "GetReport() should be a GET method")
 			Recommendations := listGcpRecommendations()

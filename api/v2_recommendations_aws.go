@@ -21,7 +21,6 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/lacework/go-sdk/internal/databox"
 )
@@ -53,7 +52,6 @@ func (svc *AwsRecommendationsV2) GetReport(reportType string) ([]RecV2, error) {
 		)
 	}
 
-	fmt.Println(string(schemaBytes))
 	err := json.Unmarshal(schemaBytes, &report)
 	if err != nil {
 		return []RecV2{}, err

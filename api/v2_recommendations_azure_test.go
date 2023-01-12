@@ -35,7 +35,8 @@ func TestRecommendationsAzureCISGetReport(t *testing.T) {
 	)
 
 	fakeServer.MockToken("TOKEN")
-	fakeServer.MockAPI("external/recommendations/azure",
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI("recommendations/azure",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "GetReport() should be a GET method")
 			Recommendations := listAzureRecommendations()
@@ -66,7 +67,8 @@ func TestRecommendationsAzureCIS131GetReport(t *testing.T) {
 	)
 
 	fakeServer.MockToken("TOKEN")
-	fakeServer.MockAPI("external/recommendations/azure",
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI("recommendations/azure",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "GetReport() should be a GET method")
 			Recommendations := listAzureRecommendations()
