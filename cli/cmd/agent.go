@@ -47,6 +47,7 @@ var (
 		InstallProjectId      string
 		InstallMaxParallelism int
 		InstallBYORole        string
+		InstallSkipCreatInfra bool
 	}{}
 
 	defaultSshIdentityKey = "~/.ssh/id_rsa"

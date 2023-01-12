@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/gammazero/workerpool"
@@ -37,6 +38,18 @@ var (
 		Short: "Use SSM to securely install on EC2 instances",
 		RunE:  installAWSSSM,
 		Long: `This command installs the agent on all EC2 instances in an AWS account using SSM.
+This command will create a role and instance profile with 'SSMManagedInstanceCore'
+attached and associate that instance profile with the target instances. If the target
+instances already have associated instance profiles, this command will not change
+their state. This command will teardown the IAM role and instance profile before exiting.
+
+To skip IAM role / instance profile creation and instance profile association:
+
+    lacework agent aws-install ec2ssm --skip_infra_creation
+
+To provide a preexisting IAM role with the 'SSMManagedInstanceCore' policy
+
+    lacework agent aws-install ec2ssm --iam_role_name IAMRoleName
 
 To filter by one or more regions:
 
@@ -60,7 +73,7 @@ AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - AWS_SESSION_TOKEN (optional)
-- AWS_REGION (optional)`,
+- AWS_REGION`,
 	}
 )
 
@@ -91,6 +104,12 @@ func init() {
 		"",
 		"IAM role name (not ARN) with SSM policy, if not provided then an ephemeral role will be created",
 	)
+	agentInstallAWSSSMCmd.Flags().BoolVar(
+		&agentCmdState.InstallSkipCreatInfra,
+		"skip_infra_creation",
+		false,
+		"set this flag to skip creating an IAM role and instance profile and associating the instance profile. Assumes all instances are already setup for SSM",
+	)
 }
 
 func installAWSSSM(_ *cobra.Command, _ []string) error {
@@ -118,13 +137,19 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	role, instanceProfile, err := SetupSSMAccess(cfg, agentCmdState.InstallBYORole, token)
-	defer func() {
-		err := TeardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
-		cli.Log.Warnw("got an error while tearing down IAM infra", "error", err)
-	}()
-	if err != nil {
-		return err
+
+	var role types.Role
+	var instanceProfile types.InstanceProfile
+	if !agentCmdState.InstallSkipCreatInfra {
+		var err error
+		role, instanceProfile, err = SetupSSMAccess(cfg, agentCmdState.InstallBYORole, token)
+		defer func() {
+			err := TeardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
+			cli.Log.Warnw("got an error while tearing down IAM infra", "error", err)
+		}()
+		if err != nil {
+			return err
+		}
 	}
 
 	wg := new(sync.WaitGroup)
@@ -143,7 +168,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			threadRunner := *runner
 			runnerCopyWg.Done()
 
-			cli.Log.Debugw("runner info: ",
+			cli.Log.Debugw("runner info",
 				"user", threadRunner.Runner.User,
 				"region", threadRunner.Region,
 				"az", threadRunner.AvailabilityZone,
@@ -151,18 +176,20 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				"hostname", threadRunner.Runner.Hostname,
 			)
 
-			// Attach an instance profile with our new role to the runner
-			err = threadRunner.AssociateInstanceProfileWithRunner(cfg, instanceProfile)
-			if err != nil {
-				cli.Log.Debugw("failed to attach instance profile to runner",
-					"error", err,
-					"instance ID", threadRunner.InstanceID,
-					"role", role,
-					"instance profile", instanceProfile,
-				)
-				return
-			} else {
-				cli.OutputHuman(fmt.Sprintf("successfully associated with instance ID %s\n", threadRunner.InstanceID))
+			if !agentCmdState.InstallSkipCreatInfra {
+				// Attach an instance profile with our new role to the runner
+				err = threadRunner.AssociateInstanceProfileWithRunner(cfg, instanceProfile)
+				if err != nil {
+					cli.Log.Debugw("failed to attach instance profile to runner",
+						"error", err,
+						"instance_id", threadRunner.InstanceID,
+						"role", role,
+						"instance profile", instanceProfile,
+					)
+					return
+				} else {
+					cli.OutputHuman(fmt.Sprintf("successfully associated with instance ID %s\n", threadRunner.InstanceID))
+				}
 			}
 
 			// Establish SSM Command connection to the runner
@@ -171,51 +198,54 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			// Sleep for up to 5min to wait for instance profile to associate with instance
 			var ssmError error
 			var commandOutput ssm.GetCommandInvocationOutput
-			for i := 0; i < 5; i++ {
-				cli.Log.Debugw("waiting for instance profile to associate with instance, sleeping 1min",
-					"iteration number (time slept in minutes)", i,
-					"instance ID", threadRunner.InstanceID,
-				)
-				time.Sleep(1 * time.Minute)
-
+			const maxSleepTime int = 6
+			for i := 0; i < maxSleepTime; i++ {
 				const agentVersionCmd = "sudo sh -c '/var/lib/lacework/datacollector -v'"
 				commandOutput, ssmError = threadRunner.RunSSMCommandOnRemoteHost(cfg, agentVersionCmd)
 				if ssmError != nil {
 					cli.Log.Debugw("error when checking if agent already installed on host, retrying",
 						"ssmError", ssmError,
-						"runner", threadRunner.InstanceID,
+						"instance_id", threadRunner.InstanceID,
 					)
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusCancelled ||
 					commandOutput.Status == ssmtypes.CommandInvocationStatusTimedOut {
 					cli.Log.Debugw("command did not complete successfully, retrying",
 						"command output", commandOutput,
-						"runner", threadRunner.InstanceID,
+						"instance_id", threadRunner.InstanceID,
 					)
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
 					cli.Log.Debugw("agent already installed on host, skipping",
-						"runner", threadRunner.InstanceID,
+						"instance_id", threadRunner.InstanceID,
 					)
 					return
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusFailed {
 					cli.Log.Debugw("no agent found on host, proceeding to install",
 						"command output", commandOutput,
 						"time slept in minutes", i,
-						"runner", threadRunner.InstanceID,
+						"instance_id", threadRunner.InstanceID,
 					)
 					break
 				} else {
 					cli.Log.Debugw("unexpected command exit, skipping this runner",
 						"command output", commandOutput,
-						"runner", threadRunner.InstanceID,
+						"instance_id", threadRunner.InstanceID,
 					)
 					return
+				}
+
+				if i < maxSleepTime-1 { // only sleep when we have a next iteration
+					cli.Log.Debugw("waiting for instance profile to associate with instance, sleeping 1min",
+						"iteration number (time slept in minutes)", i,
+						"instance_id", threadRunner.InstanceID,
+					)
+					time.Sleep(1 * time.Minute)
 				}
 			}
 			if ssmError != nil { // SSM still erroring after 5min of sleep, skip this host
 				cli.Log.Debugw("error when checking if agent already installed on host, skipping runner",
 					"ssmError", ssmError,
 					"command output", commandOutput,
-					"runner", threadRunner.InstanceID,
+					"instance_id", threadRunner.InstanceID,
 				)
 				return
 			}
@@ -228,14 +258,14 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed",
 					"error", err,
-					"runner", threadRunner.InstanceID,
+					"instance_id", threadRunner.InstanceID,
 				)
 			} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
 				cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", threadRunner.InstanceID)
 				cli.OutputHuman(fmtSuccessfulAgentInstallString(*commandOutput.StandardOutputContent))
 			} else {
 				cli.Log.Debugw("Install command did not return `Success` exit status on host",
-					"runner", threadRunner.InstanceID,
+					"instance_id", threadRunner.InstanceID,
 					"status", commandOutput,
 				)
 			}
