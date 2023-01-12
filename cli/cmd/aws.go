@@ -31,6 +31,9 @@ import (
 )
 
 func awsDescribeInstances() ([]*lwrunner.AWSRunner, error) {
+	cli.StartProgress("Describing EC2 instances...")
+	defer cli.StopProgress()
+
 	regions, err := awsDescribeRegions()
 	if err != nil {
 		return nil, err

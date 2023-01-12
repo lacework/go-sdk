@@ -106,9 +106,9 @@ func WindowedSearchFirst(fn search, size int, max int, response SearchResponse, 
 		newEnd := filter.GetTimeFilter().EndTime.AddDate(0, 0, -size)
 
 		// ensure we do not go over the max allowed searchable days
-		rem := (max - i) % size
-		if rem > 0 {
-			newStart = filter.GetTimeFilter().StartTime.AddDate(0, 0, -rem)
+		searchableDays := time.Since(newStart).Hours() / 24
+		if int(searchableDays) > max {
+			newStart = time.Now().AddDate(0, 0, -max)
 		}
 		filter.SetStartTime(&newStart)
 		filter.SetEndTime(&newEnd)

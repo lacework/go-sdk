@@ -1,8 +1,13 @@
 This command installs the agent on all EC2 instances in an AWS account using SSM.
+
 This command will create a role and instance profile with 'SSMManagedInstanceCore'
 attached and associate that instance profile with the target instances. If the target
 instances already have associated instance profiles, this command will not change
 their state. This command will teardown the IAM role and instance profile before exiting.
+
+This command authenticates with AWS credentials from well-known locations on the user's
+machine. The principal associated with these credentials should have the
+'AmazonEC2FullAccess', 'IAMFullAccess' and 'AmazonSSMFullAccess' policies attached.
 
 To skip IAM role / instance profile creation and instance profile association:
 
@@ -34,12 +39,13 @@ AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - AWS_SESSION_TOKEN (optional)
-- AWS_REGION (optional)
+- AWS_REGION
 
 Usage:
   lacework agent aws-install ec2ssm [flags]
 
 Flags:
+  -d, --dry_run                   set this flag to print out the target instances and exit
   -h, --help                      help for ec2ssm
       --iam_role_name string      IAM role name (not ARN) with SSM policy, if not provided then an ephemeral role will be created
   -r, --include_regions strings   list of regions to filter on
