@@ -44,6 +44,7 @@ var (
 		InstallTagKey         string
 		InstallTag            []string
 		InstallIncludeRegions []string
+		InstallDryRun         bool
 		InstallProjectId      string
 		InstallMaxParallelism int
 		InstallBYORole        string
