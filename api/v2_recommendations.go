@@ -1,6 +1,6 @@
 //
 // Author:: Ross Moles (<ross.moles@lacework.net>)
-// Copyright:: Copyright 2022, Lacework Inc.
+// Copyright:: Copyright 2023, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +20,6 @@ package api
 
 import (
 	"fmt"
-
-	"github.com/lacework/go-sdk/internal/array"
 )
 
 // RecommendationsServiceV2 is a service that interacts with the V2 Recommendations
@@ -90,8 +88,8 @@ func (res *RecommendationResponseV2) RecommendationList() (recommendations []Rec
 }
 
 type ReportSchema struct {
-	Name              string   `json:"name"`
-	RecommendationIDs []string `json:"recommendationIDs"`
+	Name              string            `json:"name"`
+	RecommendationIDs map[string]string `json:"recommendationIDs"`
 }
 
 func NewRecommendationV2State(recommendations []RecV2, state bool) RecommendationStateV2 {
@@ -136,7 +134,8 @@ func filterRecommendations(allRecommendations []RecV2, schema ReportSchema) []Re
 	var recommendations []RecV2
 
 	for _, rec := range allRecommendations {
-		if array.ContainsStr(schema.RecommendationIDs, rec.ID) {
+		_, ok := schema.RecommendationIDs[rec.ID]
+		if ok {
 			recommendations = append(recommendations, rec)
 		}
 	}

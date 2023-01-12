@@ -1,6 +1,6 @@
 //
 // Author:: Darren Murray (<darren.murray@lacework.net>)
-// Copyright:: Copyright 2022, Lacework Inc.
+// Copyright:: Copyright 2023, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

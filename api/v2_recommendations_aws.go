@@ -1,6 +1,6 @@
 //
 // Author:: Ross Moles (<ross.moles@lacework.net>)
-// Copyright:: Copyright 2022, Lacework Inc.
+// Copyright:: Copyright 2023, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
-
+	"fmt"
 	"github.com/lacework/go-sdk/internal/databox"
 )
 
@@ -42,7 +42,7 @@ func (svc *AwsRecommendationsV2) Patch(recommendations RecommendationStateV2) (R
 // GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct. Scoped to Lacework Account/Subaccount
 func (svc *AwsRecommendationsV2) GetReport(reportType string) ([]RecV2, error) {
 	report := struct {
-		Ids []string `json:"recommendation_ids"`
+		Ids map[string]string `json:"recommendation_ids"`
 	}{}
 
 	schemaBytes, ok := databox.Get("/reports/aws/cis.json")
@@ -52,6 +52,7 @@ func (svc *AwsRecommendationsV2) GetReport(reportType string) ([]RecV2, error) {
 		)
 	}
 
+	fmt.Println(string(schemaBytes))
 	err := json.Unmarshal(schemaBytes, &report)
 	if err != nil {
 		return []RecV2{}, err

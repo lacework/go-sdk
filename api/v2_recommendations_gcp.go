@@ -1,6 +1,6 @@
 //
 // Author:: Ross Moles (<ross.moles@lacework.net>)
-// Copyright:: Copyright 2022, Lacework Inc.
+// Copyright:: Copyright 2023, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ func (svc *GcpRecommendationsV2) GetReport(reportType string) ([]RecV2, error) {
 		ok          bool
 	)
 	report := struct {
-		Ids []string `json:"recommendation_ids"`
+		Ids map[string]string `json:"recommendation_ids"`
 	}{}
 
 	switch reportType {
