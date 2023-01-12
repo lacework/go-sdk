@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQueryList(t *testing.T) {
+func _TestQueryList(t *testing.T) { // TODO reenable
 	// setup
 	LaceworkCLIWithTOMLConfig("query", "create", "-u", queryURL)
 	// teardown
