@@ -19,7 +19,10 @@
 package cmd
 
 import (
+	"github.com/fatih/color"
+	"github.com/lacework/go-sdk/api"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -63,4 +66,137 @@ func init() {
 	// gcp
 	suppressionsCommand.AddCommand(suppressionsGcpCmd)
 	suppressionsGcpCmd.AddCommand(suppressionsListGcpCmd)
+	suppressionsGcpCmd.AddCommand(suppressionsMigrateGcpCmd)
+}
+
+func autoConvertSuppressions(convertedPolicyExceptions []map[string]api.PolicyException) {
+	cli.StartProgress("Creating policy exceptions ...")
+	for _, exceptionMap := range convertedPolicyExceptions {
+		for policyId, exception := range exceptionMap {
+			response, err := cli.LwApi.V2.Policy.Exceptions.Create(policyId, exception)
+			if err != nil {
+				cli.Log.Debug(err, "unable to create exception")
+				cli.OutputHuman(color.RedString(
+					"Error creating policy exception to create exception. %e"),
+					err)
+				continue
+			}
+			cli.OutputHuman("Exception created for PolicyId: %s - ExceptionId: %s\n\n",
+				color.GreenString(policyId), color.BlueString(response.Data.ExceptionID))
+		}
+	}
+
+	cli.StopProgress()
+}
+
+func printPayloadsText(payloadsText []string) {
+	if len(payloadsText) >= 1 {
+		cli.OutputHuman(color.YellowString("#### Legacy Suppressions --> Exceptions payloads\n\n"))
+		for _, payload := range payloadsText {
+			cli.OutputHuman(color.GreenString("%s \n\n", payload))
+		}
+	} else {
+		cli.OutputHuman("No legacy suppressions found that could be migrated\n")
+	}
+}
+
+func printConvertedSuppressions(convertedSuppressions []map[string]api.PolicyException) {
+	if len(convertedSuppressions) >= 1 {
+		cli.OutputHuman(color.YellowString("#### Converted legacy suppressions in Policy Exception" +
+			" format" +
+			"\n"))
+		for _, exception := range convertedSuppressions {
+			err := cli.OutputJSON(exception)
+			if err != nil {
+				return
+			}
+		}
+		colorizeR := color.New(color.FgRed, color.Bold)
+		cli.OutputHuman(colorizeR.Sprintf("WARNING: Before continuing, " +
+			"please thoroughly inspect the above exceptions to ensure they are valid and" +
+			" required. By continuing, you accept liability for any compliance violations" +
+			" missed as a result of the above exceptions!\n\n"))
+
+	}
+}
+
+func printDiscardedSuppressions(discardedSuppressions []map[string]api.SuppressionV2) {
+	if len(discardedSuppressions) >= 1 {
+		cli.OutputHuman(color.YellowString("#### Discarded legacy suppressions\n"))
+		for _, suppression := range discardedSuppressions {
+			err := cli.OutputJSON(suppression)
+			if err != nil {
+				return
+			}
+		}
+	}
+}
+
+func convertSupCondition(supCondition []string, fieldKey string,
+	policyIdExceptionsTemplate []string) api.PolicyExceptionConstraint {
+	if len(supCondition) >= 1 && slices.Contains(
+		policyIdExceptionsTemplate, fieldKey) {
+
+		var condition []any
+		// verify if "ALL_ACCOUNTS" OR "ALL_REGIONS" is in the suppression condition slice
+		// if so we should ignore the supplied conditions and replace with a wildcard *
+		if (slices.Contains(supCondition, "ALL_ACCOUNTS") && fieldKey == "accountIds") ||
+			(slices.Contains(supCondition, "ALL_REGIONS") && fieldKey == "regionNames") {
+			condition = append(condition, "*")
+		} else {
+			condition = convertToAnySlice(supCondition)
+		}
+
+		return api.PolicyExceptionConstraint{
+			FieldKey:    fieldKey,
+			FieldValues: condition,
+		}
+	}
+	return api.PolicyExceptionConstraint{}
+}
+
+func convertSupConditionTags(supCondition []map[string]string, fieldKey string,
+	policyIdExceptionsTemplate []string) api.PolicyExceptionConstraint {
+	if len(supCondition) >= 1 && slices.Contains(
+		policyIdExceptionsTemplate, fieldKey) {
+
+		// api.PolicyExceptionConstraint expects []any for the FieldValues
+		// Therefore we need to take the supCondition []map[string]string and append each map to
+		// the new convertedTags []any var
+		var convertedTags []any
+		for _, tagMap := range supCondition {
+			convertedTags = append(convertedTags, tagMap)
+		}
+
+		return api.PolicyExceptionConstraint{
+			FieldKey:    fieldKey,
+			FieldValues: convertedTags,
+		}
+	}
+	return api.PolicyExceptionConstraint{}
+}
+
+func getPoliciesExceptionConstraintsMap() map[string][]string {
+	// get a list of all policies and parse the valid exception constraints and return a map of
+	// {"<policyId>": [<validPolicyConstraints>]}
+	policies, err := cli.LwApi.V2.Policy.List()
+	if err != nil {
+		return nil
+	}
+
+	policiesSupportedConstraints := make(map[string][]string)
+	for _, policy := range policies.Data {
+		exceptionConstraints := getPolicyExceptionConstraintsSlice(policy.ExceptionConfiguration)
+		policiesSupportedConstraints[policy.PolicyID] = exceptionConstraints
+	}
+
+	return policiesSupportedConstraints
+}
+
+func convertToAnySlice(slice []string) []any {
+	s := make([]interface{}, len(slice))
+	for i, v := range slice {
+		s[i] = v
+	}
+	return s
 }
