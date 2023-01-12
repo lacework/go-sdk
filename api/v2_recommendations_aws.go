@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/lacework/go-sdk/internal/databox"
 )
 
