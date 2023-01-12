@@ -159,13 +159,13 @@ func runInstallCommandOnRemoteHost(runner *lwrunner.Runner, cmd string) error {
 	return nil
 }
 
-func fmtSuccessfulAgentInstallString(stdout string) (string, func(t *tablewriter.Table)) {
-	return renderOneLineCustomTable("Installation Details", stdout),
+func fmtSuccessfulAgentInstallString(stdout string) string {
+	return renderOneLineCustomTable("Installation Details", stdout,
 		tableFunc(func(t *tablewriter.Table) {
 			t.SetBorder(false)
 			t.SetColumnSeparator(" ")
 			t.SetAutoWrapText(false)
-		})
+		}))
 }
 
 func isAgentInstalledOnRemoteHost(runner *lwrunner.Runner) error {

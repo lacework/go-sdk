@@ -264,8 +264,9 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string)
 
 	var getCommandInvocationOutput *ssm.GetCommandInvocationOutput
 
-	// Wait for up to 2min for the command to execute
-	for i := 0; i < 12; i++ {
+	// Sleep while waiting for the command to execute
+	const durationTensOfSeconds = 12
+	for i := 0; i < durationTensOfSeconds; i++ {
 		time.Sleep(10 * time.Second)
 
 		getCommandInvocationInput := &ssm.GetCommandInvocationInput{
@@ -286,9 +287,12 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string)
 		}
 	}
 
-	return *getCommandInvocationOutput, fmt.Errorf("command %s did not finish in 1min, final state %v",
+	return *getCommandInvocationOutput, fmt.Errorf("command %s did not finish in %dmin, final state %v, stdout %s, stderr %s",
 		*sendCommandOutput.Command.CommandId,
+		durationTensOfSeconds/6,
 		*getCommandInvocationOutput,
+		*getCommandInvocationOutput.StandardOutputContent,
+		*getCommandInvocationOutput.StandardErrorContent,
 	)
 }
 
