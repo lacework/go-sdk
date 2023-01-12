@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
@@ -152,6 +153,8 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		}
 	}
 
+	var successfulCount int32 = 0
+	totalCount := len(runners)
 	wg := new(sync.WaitGroup)
 	wp := workerpool.New(agentCmdState.InstallMaxParallelism)
 	for _, runner := range runners {
@@ -177,10 +180,10 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			)
 
 			if !agentCmdState.InstallSkipCreatInfra {
-				// Attach an instance profile with our new role to the runner
+				// Attach an instance profile with our new role to the instance
 				err = threadRunner.AssociateInstanceProfileWithRunner(cfg, instanceProfile)
 				if err != nil {
-					cli.Log.Debugw("failed to attach instance profile to runner",
+					cli.Log.Warnw("failed to attach instance profile to instance",
 						"error", err,
 						"instance_id", threadRunner.InstanceID,
 						"role", role,
@@ -214,19 +217,19 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 						"instance_id", threadRunner.InstanceID,
 					)
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
-					cli.Log.Debugw("agent already installed on host, skipping",
+					cli.Log.Infow("agent already installed on host, skipping",
 						"instance_id", threadRunner.InstanceID,
 					)
 					return
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusFailed {
-					cli.Log.Debugw("no agent found on host, proceeding to install",
+					cli.Log.Infow("no agent found on host, proceeding to install",
 						"command output", commandOutput,
 						"time slept in minutes", i,
 						"instance_id", threadRunner.InstanceID,
 					)
 					break
 				} else {
-					cli.Log.Debugw("unexpected command exit, skipping this runner",
+					cli.Log.Warnw("unexpected SSM command exit, skipping this runner",
 						"command output", commandOutput,
 						"instance_id", threadRunner.InstanceID,
 					)
@@ -234,7 +237,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				}
 
 				if i < maxSleepTime-1 { // only sleep when we have a next iteration
-					cli.Log.Debugw("waiting for instance profile to associate with instance, sleeping 1min",
+					cli.Log.Infow("waiting for instance profile to associate with instance, sleeping 1min",
 						"iteration number (time slept in minutes)", i,
 						"instance_id", threadRunner.InstanceID,
 					)
@@ -242,8 +245,8 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				}
 			}
 			if ssmError != nil { // SSM still erroring after 5min of sleep, skip this host
-				cli.Log.Debugw("error when checking if agent already installed on host, skipping runner",
-					"ssmError", ssmError,
+				cli.Log.Warnw("error when checking if agent already installed on host, skipping runner",
+					"SSM error", ssmError,
 					"command output", commandOutput,
 					"instance_id", threadRunner.InstanceID,
 				)
@@ -256,15 +259,16 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			runInstallCmd := fmt.Sprintf(runInstallCmdTmpl, agentInstallDownloadURL, token)
 			commandOutput, err := threadRunner.RunSSMCommandOnRemoteHost(cfg, runInstallCmd)
 			if err != nil {
-				cli.Log.Debugw("runInstallCommandOnRemoteHost failed",
+				cli.Log.Warnw("runInstallCommandOnRemoteHost failed for this instance",
 					"error", err,
 					"instance_id", threadRunner.InstanceID,
 				)
 			} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
 				cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", threadRunner.InstanceID)
 				cli.OutputHuman(fmtSuccessfulAgentInstallString(*commandOutput.StandardOutputContent))
+				atomic.AddInt32(&successfulCount, 1)
 			} else {
-				cli.Log.Debugw("Install command did not return `Success` exit status on host",
+				cli.Log.Warnw("Install command did not return `Success` exit status for this instance",
 					"instance_id", threadRunner.InstanceID,
 					"status", commandOutput,
 				)
@@ -274,6 +278,12 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 	}
 	wg.Wait()
 	wp.StopWait()
+
+	cli.OutputHuman(
+		"Successfully installed the Lacework Agent on %d out of %d instances",
+		successfulCount,
+		totalCount,
+	)
 
 	return nil
 }
