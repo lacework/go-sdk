@@ -52,7 +52,7 @@ machine. The principal associated with these credentials should have the
 
 To skip IAM role / instance profile creation and instance profile association:
 
-    lacework agent aws-install ec2ssm --skip_infra_creation
+    lacework agent aws-install ec2ssm --skip_iam_role_creation
 
 To provide a preexisting IAM role with the 'SSMManagedInstanceCore' policy
 
@@ -113,7 +113,7 @@ func init() {
 	)
 	agentInstallAWSSSMCmd.Flags().BoolVar(
 		&agentCmdState.InstallSkipCreatInfra,
-		"skip_infra_creation",
+		"skip_iam_role_creation",
 		false,
 		"set this flag to skip creating an IAM role and instance profile and associating the instance profile. Assumes all instances are already setup for SSM",
 	)
@@ -172,7 +172,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		defer func() {
 			cli.StopProgress()
 			err := TeardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
-			cli.Log.Warnw("got an error while tearing down IAM infra", "error", err)
+			cli.OutputHuman("got an error %v while tearing down IAM role / infra", err)
 		}()
 		if err != nil {
 			cli.StopProgress()
