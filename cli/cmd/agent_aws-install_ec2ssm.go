@@ -50,6 +50,9 @@ This command authenticates with AWS credentials from well-known locations on the
 machine. The principal associated with these credentials should have the
 'AmazonEC2FullAccess', 'IAMFullAccess' and 'AmazonSSMFullAccess' policies attached.
 
+Target instances must have the SSM agent installed and running for successful
+installation.
+
 To skip IAM role / instance profile creation and instance profile association:
 
     lacework agent aws-install ec2ssm --skip_iam_role_creation
