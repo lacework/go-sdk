@@ -110,10 +110,6 @@ To get the latest Azure compliance assessment report, use the command:
     lacework compliance azure get-report <tenant_id> <subscription_id>
 
 These reports run on a regular schedule, typically once a day.
-
-To run an ad-hoc compliance assessment use the command:
-
-    lacework compliance azure run-assessment <tenant_id>
 `,
 	}
 
@@ -137,10 +133,6 @@ To get the latest GCP compliance assessment report, use the command:
     lacework compliance gcp get-report <organization_id> <project_id>
 
 These reports run on a regular schedule, typically once a day.
-
-To run an ad-hoc compliance assessment use the command:
-
-    lacework compliance gcp run-assessment <org_or_project_id>
 `,
 	}
 
@@ -159,10 +151,6 @@ To get the latest AWS compliance assessment report:
     lacework compliance aws get-report <account_id>
 
 These reports run on a regular schedule, typically once a day.
-
-To run an ad-hoc compliance assessment:
-
-    lacework compliance aws run-assessment <account_id>
 `,
 	}
 )
