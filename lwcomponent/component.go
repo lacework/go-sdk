@@ -251,7 +251,7 @@ func (s State) Install(name string, version string) error {
 	if !found {
 		return errors.Errorf(
 			"could not find an artifact for version %s on the current platform (%s/%s)",
-      version, runtime.GOOS, runtime.GOARCH,
+			version, runtime.GOOS, runtime.GOARCH,
 		)
 	}
 
