@@ -18,9 +18,9 @@ Usage:
   lacework compliance aws [command]
 
 Available Commands:
-  get-report    Get the latest AWS compliance report
-  list-accounts List all AWS accounts configured
-  search        Search for all known violations of a given resource arn
+  get-report     Get the latest AWS compliance report
+  list-accounts  List all AWS accounts configured
+  search         Search for all known violations of a given resource arn
 
 Flags:
   -h, --help   help for aws
