@@ -59,6 +59,7 @@ type V2Endpoints struct {
 	Vulnerabilities         *v2VulnerabilitiesService
 	Alerts                  *AlertsService
 	Suppressions            *SuppressionsServiceV2
+	Recommendations         *RecommendationsServiceV2
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
@@ -91,8 +92,13 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&AlertsService{c},
 		&SuppressionsServiceV2{c,
 			&AwsSuppressionsV2{c},
-			//&AzureSuppressionsV2{c},
-			//&GcpSuppressionsV2{c},
+			&AzureSuppressionsV2{c},
+			&GcpSuppressionsV2{c},
+		},
+		&RecommendationsServiceV2{c,
+			&AwsRecommendationsV2{c},
+			&AzureRecommendationsV2{c},
+			&GcpRecommendationsV2{c},
 		},
 	}
 

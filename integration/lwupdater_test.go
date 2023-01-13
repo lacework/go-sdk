@@ -16,12 +16,13 @@
 // limitations under the License.
 //
 
-package lwupdater_test
+package integration_test
 
 import (
 	"io/ioutil"
 	"os"
 	"path"
+	"runtime"
 	"testing"
 	"time"
 
@@ -79,7 +80,11 @@ func TestVersionLoadCacheError(t *testing.T) {
 	v, err := lwupdater.LoadCache(cacheFile)
 	assert.Empty(t, v)
 	if assert.NotNil(t, err) {
-		assert.Contains(t, err.Error(), "no such file or directory")
+		if runtime.GOOS == "windows" {
+			assert.Contains(t, err.Error(), "The system cannot find the file specified")
+		} else {
+			assert.Contains(t, err.Error(), "no such file or directory")
+		}
 	}
 }
 

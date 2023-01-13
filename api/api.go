@@ -130,6 +130,8 @@ const (
 	apiV2OrganizationInfo = "v2/OrganizationInfo"
 
 	apiSuppressions = "v2/suppressions/%s/allExceptions"
+
+	apiRecommendations = "v2/recommendations/%s"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)

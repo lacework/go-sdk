@@ -1,12 +1,9 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.3.1`.
+Another day, another release. These are the release notes for the version `v1.5.2`.
 
-## Refactor
-* refactor: Release of docker images (#1074) (Salim Afiune)([3e198981](https://github.com/lacework/go-sdk/commit/3e1989815e31f3a403eb17afb68263df813222d4))
-## Bug Fixes
-* fix: avoid injecting empty alertProfile (#1078) (Salim Afiune)([485cc4cf](https://github.com/lacework/go-sdk/commit/485cc4cfb1b69b2f5bf958a0a5c5d1d0b8010641))
 ## Other Changes
-* ci: version bump to v1.3.1-dev (Lacework)([60ff20ce](https://github.com/lacework/go-sdk/commit/60ff20ce3cf9eae4dea666ee004ac2648797a6da))
+* chore: re-add compliance enable/disable commands (#1106) (Ross)([f25c72c9](https://github.com/lacework/go-sdk/commit/f25c72c9902bbdcdb22ccf98d28f9e39c57c9dc5))
+* ci: version bump to v1.5.2-dev (Lacework)([9571b913](https://github.com/lacework/go-sdk/commit/9571b91369161598dcb88e8dad22835ea723976e))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```

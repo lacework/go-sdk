@@ -32,6 +32,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	prettyjson "github.com/hokaccha/go-prettyjson"
+	"github.com/mattn/go-isatty"
 	"github.com/peterbourgon/diskv/v3"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -102,6 +103,7 @@ func NewDefaultState() *cliState {
 			Indent:      2,
 			Newline:     "\n",
 		},
+		nonInteractive: !isatty.IsTerminal(os.Stdout.Fd()),
 	}
 
 	// initialize honeycomb library and honeyvent
