@@ -25,9 +25,9 @@ Aliases:
   google, gcp
 
 Available Commands:
-  get-report    Get the latest GCP compliance report
-  list          List gcp projects and organizations
-  list-projects List projects from an organization
+  get-report     Get the latest GCP compliance report
+  list           List gcp projects and organizations
+  list-projects  List projects from an organization
 
 Flags:
   -h, --help   help for google
