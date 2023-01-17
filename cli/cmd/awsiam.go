@@ -69,34 +69,44 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 	cli.Log.Debug("only destroying instance profile if it's ours")
 	if *instanceProfile.InstanceProfileName == instanceProfileName {
 		cli.Log.Debugw("removing role from instance profile", "role", role, "instance profile", instanceProfile)
-		removeInput := &iam.RemoveRoleFromInstanceProfileInput{
-			InstanceProfileName: instanceProfile.InstanceProfileName,
-			RoleName:            role.RoleName,
-		}
-		_, err := c.RemoveRoleFromInstanceProfile(context.Background(), removeInput)
+		_, err := c.RemoveRoleFromInstanceProfile(
+			context.Background(),
+			&iam.RemoveRoleFromInstanceProfileInput{
+				InstanceProfileName: instanceProfile.InstanceProfileName,
+				RoleName:            role.RoleName,
+			},
+		)
 		if err != nil {
 			return err
 		}
 
 		cli.Log.Debugw("deleting instance profile", "instance profile", instanceProfile)
-		deleteProfileInput := &iam.DeleteInstanceProfileInput{
-			InstanceProfileName: instanceProfile.InstanceProfileName,
-		}
-		_, err = c.DeleteInstanceProfile(context.Background(), deleteProfileInput)
+		_, err = c.DeleteInstanceProfile(
+			context.Background(),
+			&iam.DeleteInstanceProfileInput{
+				InstanceProfileName: instanceProfile.InstanceProfileName,
+			},
+		)
 		if err != nil {
 			return err
 		}
 	}
 
 	if byoRoleName != "" || *role.RoleName != roleName {
-		return nil // we didn't create this role, we should not delete it
+		cli.Log.Debug("Lacework didn't create this role, will not delete it",
+			"byoRoleName", byoRoleName,
+			"role", role,
+		)
+		return nil
 	}
 
 	cli.Log.Debug("listing managed policies attached to this role (assuming no inline policies")
-	listInput := &iam.ListAttachedRolePoliciesInput{
-		RoleName: role.RoleName,
-	}
-	listOutput, err := c.ListAttachedRolePolicies(context.Background(), listInput)
+	listOutput, err := c.ListAttachedRolePolicies(
+		context.Background(),
+		&iam.ListAttachedRolePoliciesInput{
+			RoleName: role.RoleName,
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -104,22 +114,25 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 	// Detach managed policies
 	for _, attachedPolicy := range listOutput.AttachedPolicies {
 		cli.Log.Debugw("detaching policy", "policy", attachedPolicy, "role", role)
-		detachInput := &iam.DetachRolePolicyInput{
-			PolicyArn: attachedPolicy.PolicyArn,
-			RoleName:  role.RoleName,
-		}
-		_, err := c.DetachRolePolicy(context.Background(), detachInput)
+		_, err := c.DetachRolePolicy(
+			context.Background(),
+			&iam.DetachRolePolicyInput{
+				PolicyArn: attachedPolicy.PolicyArn,
+				RoleName:  role.RoleName,
+			},
+		)
 		if err != nil {
 			return err
 		}
 	}
 
-	// Delete the role
 	cli.Log.Debugw("deleting role", "role", role)
-	deleteRoleInput := &iam.DeleteRoleInput{
-		RoleName: role.RoleName,
-	}
-	_, err = c.DeleteRole(context.Background(), deleteRoleInput)
+	_, err = c.DeleteRole(
+		context.Background(),
+		&iam.DeleteRoleInput{
+			RoleName: role.RoleName,
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -145,10 +158,13 @@ func getRoleFromName(cfg aws.Config, roleName string) (types.Role, error) {
 		Region:      cfg.Region,
 	})
 
-	input := &iam.GetRoleInput{
-		RoleName: aws.String(roleName),
-	}
-	output, err := c.GetRole(context.Background(), input)
+	cli.Log.Debug("fetching info about role", roleName)
+	output, err := c.GetRole(
+		context.Background(),
+		&iam.GetRoleInput{
+			RoleName: aws.String(roleName),
+		},
+	)
 	if err != nil {
 		return types.Role{}, err
 	}
@@ -164,16 +180,18 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 		Region:      cfg.Region,
 	})
 
-	cli.Log.Debug("check if role already exists") // intended after interrupt or error
-	getInput := &iam.GetRoleInput{
-		RoleName: aws.String(roleName),
-	}
-	getOutput, err := c.GetRole(context.Background(), getInput)
+	cli.Log.Debug("check if role already exists") // intended for after interrupt or error
+	getOutput, err := c.GetRole(
+		context.Background(),
+		&iam.GetRoleInput{
+			RoleName: aws.String(roleName),
+		},
+	)
 	if err == nil && getOutput.Role != nil {
 		return *getOutput.Role, err // we previously created the role, use it
 	}
 
-	trustPolicyDocument := `{
+	const trustPolicyDocument = `{
 	"Version": "2012-10-17",
 	"Statement": [
 		{
@@ -183,25 +201,28 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 		}
 	]
 }`
-	input := &iam.CreateRoleInput{
-		AssumeRolePolicyDocument: &trustPolicyDocument,
-		RoleName:                 aws.String(roleName),
-		Description: aws.String(
-			`Ephemeral role to install Lacework agents using SSM; created by the Lacework CLI.
+
+	output, err := c.CreateRole(
+		context.Background(),
+		&iam.CreateRoleInput{
+			AssumeRolePolicyDocument: aws.String(trustPolicyDocument),
+			RoleName:                 aws.String(roleName),
+			Description: aws.String(
+				`Ephemeral role to install Lacework agents using SSM; created by the Lacework CLI.
 Safe to delete if found`,
-		),
-		Tags: []types.Tag{
-			{
-				Key:   aws.String("Name"),
-				Value: aws.String(roleName),
-			},
-			{
-				Key:   aws.String("LaceworkAutomation"),
-				Value: aws.String("agent-ssm-install"),
+			),
+			Tags: []types.Tag{
+				{
+					Key:   aws.String("Name"),
+					Value: aws.String(roleName),
+				},
+				{
+					Key:   aws.String("LaceworkAutomation"),
+					Value: aws.String("agent-ssm-install"),
+				},
 			},
 		},
-	}
-	output, err := c.CreateRole(context.Background(), input)
+	)
 	if err != nil {
 		return types.Role{}, err
 	}
@@ -221,11 +242,13 @@ func attachSSMPoliciesToRole(cfg aws.Config, role types.Role) error {
 	})
 
 	cli.Log.Debug("attaching policy to role")
-	input := &iam.AttachRolePolicyInput{
-		PolicyArn: aws.String(lwrunner.SSMInstancePolicy),
-		RoleName:  role.RoleName,
-	}
-	_, err := c.AttachRolePolicy(context.Background(), input)
+	_, err := c.AttachRolePolicy(
+		context.Background(),
+		&iam.AttachRolePolicyInput{
+			PolicyArn: aws.String(lwrunner.SSMInstancePolicy),
+			RoleName:  role.RoleName,
+		},
+	)
 
 	return err
 }
@@ -250,11 +273,13 @@ func createInstanceProfile(cfg aws.Config) (types.InstanceProfile, error) {
 		Region:      cfg.Region,
 	})
 
-	cli.Log.Debug("checking if instance profile already exists") // intended after interrupt or error
-	getInput := &iam.GetInstanceProfileInput{
-		InstanceProfileName: aws.String(instanceProfileName),
-	}
-	getOutput, err := c.GetInstanceProfile(context.Background(), getInput)
+	cli.Log.Debug("checking if instance profile already exists") // intended for after interrupt or error
+	getOutput, err := c.GetInstanceProfile(
+		context.Background(),
+		&iam.GetInstanceProfileInput{
+			InstanceProfileName: aws.String(instanceProfileName),
+		},
+	)
 	if err == nil && getOutput.InstanceProfile != nil {
 		cli.Log.Debugw("found existing instance profile",
 			"instance profile", *getOutput.InstanceProfile,
@@ -262,21 +287,23 @@ func createInstanceProfile(cfg aws.Config) (types.InstanceProfile, error) {
 		return *getOutput.InstanceProfile, err
 	}
 
-	cli.Log.Debug("creating instance profile")
-	createInput := &iam.CreateInstanceProfileInput{
-		InstanceProfileName: aws.String(instanceProfileName),
-		Tags: []types.Tag{
-			{
-				Key:   aws.String("Name"),
-				Value: aws.String(roleName),
-			},
-			{
-				Key:   aws.String("LaceworkAutomation"),
-				Value: aws.String("agent-ssm-install"),
+	cli.Log.Debug("no existing instance profile, creating one now")
+	createOutput, err := c.CreateInstanceProfile(
+		context.Background(),
+		&iam.CreateInstanceProfileInput{
+			InstanceProfileName: aws.String(instanceProfileName),
+			Tags: []types.Tag{
+				{
+					Key:   aws.String("Name"),
+					Value: aws.String(roleName),
+				},
+				{
+					Key:   aws.String("LaceworkAutomation"),
+					Value: aws.String("agent-ssm-install"),
+				},
 			},
 		},
-	}
-	createOutput, err := c.CreateInstanceProfile(context.Background(), createInput)
+	)
 	if err != nil {
 		return types.InstanceProfile{}, err
 	}
@@ -295,7 +322,7 @@ func addRoleToInstanceProfile(cfg aws.Config, role types.Role, instanceProfile t
 		Region:      cfg.Region,
 	})
 
-	cli.Log.Debugw("checking if the role is already associated with the instance profile")
+	cli.Log.Debug("checking if the role is already associated with the instance profile")
 	if len(instanceProfile.Roles) > 0 {
 		cli.Log.Debugw(
 			"found a role already associated with the instance profile",
@@ -315,11 +342,13 @@ func addRoleToInstanceProfile(cfg aws.Config, role types.Role, instanceProfile t
 	}
 
 	cli.Log.Debugw("adding role to instance profile", "role", role, "instance profile", instanceProfile)
-	addInput := &iam.AddRoleToInstanceProfileInput{
-		InstanceProfileName: instanceProfile.InstanceProfileName,
-		RoleName:            role.RoleName,
-	}
-	_, err := c.AddRoleToInstanceProfile(context.Background(), addInput)
+	_, err := c.AddRoleToInstanceProfile(
+		context.Background(),
+		&iam.AddRoleToInstanceProfileInput{
+			InstanceProfileName: instanceProfile.InstanceProfileName,
+			RoleName:            role.RoleName,
+		},
+	)
 
 	return err
 }
