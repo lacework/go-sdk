@@ -29,11 +29,11 @@ import (
 	"github.com/lacework/go-sdk/lwrunner"
 )
 
-// SetupSSMAccess sets up an IAM role for SSM and attaches it to
+// setupSSMAccess sets up an IAM role for SSM and attaches it to
 // the machine's instance profile. Takes role name as argument;
 // pass the empty string to create a new role.
 // Then creates SSM document.
-func SetupSSMAccess(cfg aws.Config, roleName string, token string) (types.Role, types.InstanceProfile, error) {
+func setupSSMAccess(cfg aws.Config, roleName string, token string) (types.Role, types.InstanceProfile, error) {
 	cli.Log.Debugw("setting up role", "passed roleName", roleName)
 	role, err := setupSSMRole(cfg, roleName)
 	if err != nil {
@@ -54,13 +54,13 @@ func SetupSSMAccess(cfg aws.Config, roleName string, token string) (types.Role, 
 	return role, instanceProfile, nil
 }
 
-// TeardownSSMAccess destroys all the infra created during the execution of this program.
+// teardownSSMAccess destroys all the infra created during the execution of this program.
 // Specifically, this function:
 // - Removes the role from the instance profile
 // - Deletes the instance profile
 // - Detaches all managed policies from the role (assumes no inline policies attached)
 // - Deletes the role
-func TeardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile, byoRoleName string) error {
+func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile, byoRoleName string) error {
 	c := iam.New(iam.Options{
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
