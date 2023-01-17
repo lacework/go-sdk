@@ -37,7 +37,7 @@ var (
 	agentInstallAWSSSMCmd = &cobra.Command{
 		Use:   "ec2ssm",
 		Args:  cobra.NoArgs,
-		Short: "Use SSM to securely install on EC2 instances",
+		Short: "Use SSM to securely install the Lacework agent on EC2 instances",
 		RunE:  installAWSSSM,
 		Long: `This command installs the agent on all EC2 instances in an AWS account using SSM.
 
