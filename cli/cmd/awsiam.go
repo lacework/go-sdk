@@ -66,7 +66,6 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 		Region:      cfg.Region,
 	})
 
-	cli.Log.Debug("only destroying instance profile if it's ours")
 	if taggedLaceworkResource(instanceProfile.Tags) {
 		cli.Log.Debugw("removing role from instance profile", "role", role, "instance profile", instanceProfile)
 		_, err := c.RemoveRoleFromInstanceProfile(
