@@ -1,4 +1,4 @@
-This command installs the agent on all EC2 instances in an AWS account using SSM.
+This command installs the Lacework agent on all EC2 instances in an AWS account using SSM.
 
 This command will create a role and instance profile with 'SSMManagedInstanceCore'
 attached and associate that instance profile with the target instances. If the target
@@ -9,9 +9,12 @@ This command authenticates with AWS credentials from well-known locations on the
 machine. The principal associated with these credentials should have the
 'AmazonEC2FullAccess', 'IAMFullAccess' and 'AmazonSSMFullAccess' policies attached.
 
+Target instances must have the SSM agent installed and running for successful
+installation.
+
 To skip IAM role / instance profile creation and instance profile association:
 
-    lacework agent aws-install ec2ssm --skip_infra_creation
+    lacework agent aws-install ec2ssm --skip_iam_role_creation
 
 To provide a preexisting IAM role with the 'SSMManagedInstanceCore' policy
 
@@ -50,7 +53,7 @@ Flags:
       --iam_role_name string      IAM role name (not ARN) with SSM policy, if not provided then an ephemeral role will be created
   -r, --include_regions strings   list of regions to filter on
   -n, --max_parallelism int       maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
-      --skip_infra_creation       set this flag to skip creating an IAM role and instance profile and associating the instance profile. Assumes all instances are already setup for SSM
+      --skip_iam_role_creation    set this flag to skip creating an IAM role and instance profile and associating the instance profile. Assumes all instances are already setup for SSM
       --tag strings               only install agents on infra with this tag
       --tag_key string            only install agents on infra with this tag key set
       --token string              agent access token

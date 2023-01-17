@@ -1,6 +1,6 @@
 //
 // Author:: Nicholas Schmeller (<nick.schmeller@lacework.net>)
-// Copyright:: Copyright 2022, Lacework Inc.
+// Copyright:: Copyright 2023, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,9 +37,9 @@ var (
 	agentInstallAWSSSMCmd = &cobra.Command{
 		Use:   "ec2ssm",
 		Args:  cobra.NoArgs,
-		Short: "Use SSM to securely install on EC2 instances",
+		Short: "Use SSM to securely install the Lacework agent on EC2 instances",
 		RunE:  installAWSSSM,
-		Long: `This command installs the agent on all EC2 instances in an AWS account using SSM.
+		Long: `This command installs the Lacework agent on all EC2 instances in an AWS account using SSM.
 
 This command will create a role and instance profile with 'SSMManagedInstanceCore'
 attached and associate that instance profile with the target instances. If the target
@@ -50,9 +50,12 @@ This command authenticates with AWS credentials from well-known locations on the
 machine. The principal associated with these credentials should have the
 'AmazonEC2FullAccess', 'IAMFullAccess' and 'AmazonSSMFullAccess' policies attached.
 
+Target instances must have the SSM agent installed and running for successful
+installation.
+
 To skip IAM role / instance profile creation and instance profile association:
 
-    lacework agent aws-install ec2ssm --skip_infra_creation
+    lacework agent aws-install ec2ssm --skip_iam_role_creation
 
 To provide a preexisting IAM role with the 'SSMManagedInstanceCore' policy
 
@@ -113,7 +116,7 @@ func init() {
 	)
 	agentInstallAWSSSMCmd.Flags().BoolVar(
 		&agentCmdState.InstallSkipCreatInfra,
-		"skip_infra_creation",
+		"skip_iam_role_creation",
 		false,
 		"set this flag to skip creating an IAM role and instance profile and associating the instance profile. Assumes all instances are already setup for SSM",
 	)
@@ -168,11 +171,11 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		cli.StartProgress("Setting up IAM role and instance profile...")
 
 		var err error
-		role, instanceProfile, err = SetupSSMAccess(cfg, agentCmdState.InstallBYORole, token)
+		role, instanceProfile, err = setupSSMAccess(cfg, agentCmdState.InstallBYORole, token)
 		defer func() {
 			cli.StopProgress()
-			err := TeardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
-			cli.Log.Warnw("got an error while tearing down IAM infra", "error", err)
+			err := teardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
+			cli.OutputHuman("got an error %v while tearing down IAM role / infra", err)
 		}()
 		if err != nil {
 			cli.StopProgress()

@@ -133,17 +133,19 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 	})
 
 	// Check to see if there are any instance profiles already associated with the runner
-	describeInput := &ec2.DescribeIamInstanceProfileAssociationsInput{
-		Filters: []ec2types.Filter{
-			{
-				Name: aws.String("instance-id"),
-				Values: []string{
-					run.InstanceID,
+	describeOutput, err := c.DescribeIamInstanceProfileAssociations(
+		context.Background(),
+		&ec2.DescribeIamInstanceProfileAssociationsInput{
+			Filters: []ec2types.Filter{
+				{
+					Name: aws.String("instance-id"),
+					Values: []string{
+						run.InstanceID,
+					},
 				},
 			},
 		},
-	}
-	describeOutput, err := c.DescribeIamInstanceProfileAssociations(context.Background(), describeInput)
+	)
 	if err != nil {
 		return err
 	}
@@ -156,13 +158,15 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 	if alreadyAssociated { // use the existing, correctly configured instance profile
 		return nil
 	} else { // associate our own instance profile
-		associateInput := &ec2.AssociateIamInstanceProfileInput{
-			IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
-				Arn: instanceProfile.Arn,
+		_, err = c.AssociateIamInstanceProfile(
+			context.Background(),
+			&ec2.AssociateIamInstanceProfileInput{
+				IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
+					Arn: instanceProfile.Arn,
+				},
+				InstanceId: aws.String(run.InstanceID),
 			},
-			InstanceId: aws.String(run.InstanceID),
-		}
-		_, err = c.AssociateIamInstanceProfile(context.Background(), associateInput)
+		)
 		if err != nil {
 			return err
 		}
@@ -188,10 +192,12 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 		Region:      cfg.Region,
 	})
 
-	getInstanceProfileInput := &iam.GetInstanceProfileInput{
-		InstanceProfileName: aws.String(instanceProfileName),
-	}
-	getInstanceProfileOutput, err := c.GetInstanceProfile(context.Background(), getInstanceProfileInput)
+	getInstanceProfileOutput, err := c.GetInstanceProfile(
+		context.Background(),
+		&iam.GetInstanceProfileInput{
+			InstanceProfileName: aws.String(instanceProfileName),
+		},
+	)
 	if err != nil {
 		return false, err
 	}
@@ -207,10 +213,12 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 	}
 
 	// Check which policies are associated with this instance profile's role
-	listAttachedRolePoliciesInput := iam.ListAttachedRolePoliciesInput{
-		RoleName: getInstanceProfileOutput.InstanceProfile.Roles[0].RoleName,
-	}
-	listAttachedRolePoliciesOutput, err := c.ListAttachedRolePolicies(context.Background(), &listAttachedRolePoliciesInput)
+	listAttachedRolePoliciesOutput, err := c.ListAttachedRolePolicies(
+		context.Background(),
+		&iam.ListAttachedRolePoliciesInput{
+			RoleName: getInstanceProfileOutput.InstanceProfile.Roles[0].RoleName,
+		},
+	)
 	if err != nil {
 		return false, err
 	}
@@ -244,20 +252,21 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string)
 		Region:      cfg.Region,
 	})
 
-	input := &ssm.SendCommandInput{
-		DocumentName: aws.String("AWS-RunShellScript"),
-		Comment:      aws.String("this command is for installing the Lacework Agent"),
-		InstanceIds: []string{
-			run.InstanceID,
-		},
-		Parameters: map[string][]string{
-			"commands": {
-				operation,
+	sendCommandOutput, err := c.SendCommand(
+		context.Background(),
+		&ssm.SendCommandInput{
+			DocumentName: aws.String("AWS-RunShellScript"),
+			Comment:      aws.String("this command is for installing the Lacework Agent"),
+			InstanceIds: []string{
+				run.InstanceID,
+			},
+			Parameters: map[string][]string{
+				"commands": {
+					operation,
+				},
 			},
 		},
-	}
-
-	sendCommandOutput, err := c.SendCommand(context.Background(), input)
+	)
 	if err != nil {
 		return ssm.GetCommandInvocationOutput{}, err
 	}
@@ -269,11 +278,13 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string)
 	for i := 0; i < durationTensOfSeconds; i++ {
 		time.Sleep(10 * time.Second)
 
-		getCommandInvocationInput := &ssm.GetCommandInvocationInput{
-			CommandId:  sendCommandOutput.Command.CommandId,
-			InstanceId: aws.String(run.InstanceID),
-		}
-		getCommandInvocationOutput, err = c.GetCommandInvocation(context.Background(), getCommandInvocationInput)
+		getCommandInvocationOutput, err = c.GetCommandInvocation(
+			context.Background(),
+			&ssm.GetCommandInvocationInput{
+				CommandId:  sendCommandOutput.Command.CommandId,
+				InstanceId: aws.String(run.InstanceID),
+			},
+		)
 		if err != nil {
 			return ssm.GetCommandInvocationOutput{}, err
 		}
