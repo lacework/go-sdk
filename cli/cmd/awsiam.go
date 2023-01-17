@@ -67,7 +67,7 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 	})
 
 	cli.Log.Debug("only destroying instance profile if it's ours")
-	if *instanceProfile.InstanceProfileName == instanceProfileName {
+	if taggedLaceworkResource(instanceProfile.Tags) {
 		cli.Log.Debugw("removing role from instance profile", "role", role, "instance profile", instanceProfile)
 		_, err := c.RemoveRoleFromInstanceProfile(
 			context.Background(),
@@ -92,7 +92,7 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 		}
 	}
 
-	if byoRoleName != "" || *role.RoleName != roleName {
+	if byoRoleName != "" || !taggedLaceworkResource(role.Tags) {
 		cli.Log.Debug("Lacework didn't create this role, will not delete it",
 			"byoRoleName", byoRoleName,
 			"role", role,
@@ -139,6 +139,23 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 
 	return nil
 }
+
+// taggedLaceworkResource is a helper function that takes the tag set of
+// a suspected Lacework resource, iterates through the tags, and determines
+// if the resource belongs to Lacework. Returns `true, nil` if the resource
+// belongs to Lacework and `false, nil` if the resource does not belong to
+// Lacework.
+func taggedLaceworkResource(tags []types.Tag) bool {
+	for _, tag := range tags {
+		if *tag.Key == laceworkAutomationTagKey {
+			return true
+		}
+	}
+
+	return false
+}
+
+const laceworkAutomationTagKey = "LaceworkAutomation"
 
 // setupSSMRole sets up an IAM role for SSM to assume.
 // If `roleName` is not the empty string, then use that role
@@ -217,7 +234,7 @@ Safe to delete if found`,
 					Value: aws.String(roleName),
 				},
 				{
-					Key:   aws.String("LaceworkAutomation"),
+					Key:   aws.String(laceworkAutomationTagKey),
 					Value: aws.String("agent-ssm-install"),
 				},
 			},
@@ -295,10 +312,10 @@ func createInstanceProfile(cfg aws.Config) (types.InstanceProfile, error) {
 			Tags: []types.Tag{
 				{
 					Key:   aws.String("Name"),
-					Value: aws.String(roleName),
+					Value: aws.String(instanceProfileName),
 				},
 				{
-					Key:   aws.String("LaceworkAutomation"),
+					Key:   aws.String(laceworkAutomationTagKey),
 					Value: aws.String("agent-ssm-install"),
 				},
 			},
