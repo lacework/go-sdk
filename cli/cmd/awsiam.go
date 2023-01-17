@@ -66,9 +66,8 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 		Region:      cfg.Region,
 	})
 
-	// Only destroy the instance profile if it's ours
+	cli.Log.Debug("only destroying instance profile if it's ours")
 	if *instanceProfile.InstanceProfileName == instanceProfileName {
-		// Remove role from instance profile
 		cli.Log.Debugw("removing role from instance profile", "role", role, "instance profile", instanceProfile)
 		removeInput := &iam.RemoveRoleFromInstanceProfileInput{
 			InstanceProfileName: instanceProfile.InstanceProfileName,
@@ -79,7 +78,6 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 			return err
 		}
 
-		// Delete instance profile
 		cli.Log.Debugw("deleting instance profile", "instance profile", instanceProfile)
 		deleteProfileInput := &iam.DeleteInstanceProfileInput{
 			InstanceProfileName: instanceProfile.InstanceProfileName,
@@ -94,7 +92,7 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 		return nil // we didn't create this role, we should not delete it
 	}
 
-	// List managed policies attached to this role (assume there are no inline policies)
+	cli.Log.Debug("listing managed policies attached to this role (assuming no inline policies")
 	listInput := &iam.ListAttachedRolePoliciesInput{
 		RoleName: role.RoleName,
 	}
@@ -135,7 +133,8 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 func setupSSMRole(cfg aws.Config, roleName string) (types.Role, error) {
 	if roleName != "" {
 		return getRoleFromName(cfg, roleName)
-	} else { // user did not provide a role, creating one now
+	} else {
+		cli.Log.Debug("user did not provide a role, creating one now")
 		return createSSMRole(cfg)
 	}
 }
@@ -165,7 +164,7 @@ func createSSMRole(cfg aws.Config) (types.Role, error) {
 		Region:      cfg.Region,
 	})
 
-	// Check if role already exists (in case CLI is run after interrupt or error)
+	cli.Log.Debug("check if role already exists") // intended after interrupt or error
 	getInput := &iam.GetRoleInput{
 		RoleName: aws.String(roleName),
 	}
@@ -251,13 +250,16 @@ func createInstanceProfile(cfg aws.Config) (types.InstanceProfile, error) {
 		Region:      cfg.Region,
 	})
 
-	// Check if instance profile already exists (in case CLI is run after interrupt or error)
+	cli.Log.Debug("checking if instance profile already exists") // intended after interrupt or error
 	getInput := &iam.GetInstanceProfileInput{
 		InstanceProfileName: aws.String(instanceProfileName),
 	}
 	getOutput, err := c.GetInstanceProfile(context.Background(), getInput)
 	if err == nil && getOutput.InstanceProfile != nil {
-		return *getOutput.InstanceProfile, err // we previously created the profile, use it
+		cli.Log.Debugw("found existing instance profile",
+			"instance profile", *getOutput.InstanceProfile,
+		)
+		return *getOutput.InstanceProfile, err
 	}
 
 	cli.Log.Debug("creating instance profile")
@@ -279,7 +281,7 @@ func createInstanceProfile(cfg aws.Config) (types.InstanceProfile, error) {
 		return types.InstanceProfile{}, err
 	}
 
-	// Sleep for 15sec to wait for the instance profile to "settle in"
+	cli.Log.Debug("sleeping for 15sec to wait for instance profile eventual consistency")
 	time.Sleep(15 * time.Second)
 
 	return *createOutput.InstanceProfile, err
