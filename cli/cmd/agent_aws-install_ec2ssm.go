@@ -39,7 +39,7 @@ var (
 		Args:  cobra.NoArgs,
 		Short: "Use SSM to securely install the Lacework agent on EC2 instances",
 		RunE:  installAWSSSM,
-		Long: `This command installs the agent on all EC2 instances in an AWS account using SSM.
+		Long: `This command installs the Lacework agent on all EC2 instances in an AWS account using SSM.
 
 This command will create a role and instance profile with 'SSMManagedInstanceCore'
 attached and associate that instance profile with the target instances. If the target
