@@ -166,18 +166,18 @@ func suppressionsGcpMigrate(_ *cobra.Command, _ []string) error {
 		payloadsText              []string
 		discardedSuppressions     []map[string]api.SuppressionV2
 	)
-	suppressionsMap, err = cli.LwApi.V2.Suppressions.Aws.List()
+	suppressionsMap, err = cli.LwApi.V2.Suppressions.Gcp.List()
 	if err != nil {
-		if strings.Contains(err.Error(), "No active AWS accounts") {
-			cli.OutputHuman("No active AWS accounts found. " +
-				"Unable to get legacy aws suppressions")
+		if strings.Contains(err.Error(), "No active GCP accounts") {
+			cli.OutputHuman("No active GCP accounts found. " +
+				"Unable to get legacy gcp suppressions")
 			return nil
 		}
-		return errors.Wrap(err, "Unable to get legacy aws suppressions")
+		return errors.Wrap(err, "Unable to get legacy gcp suppressions")
 	}
 
 	if len(suppressionsMap) == 0 {
-		cli.OutputHuman("No legacy AWS suppressions found.\n")
+		cli.OutputHuman("No legacy GCP suppressions found.\n")
 		return nil
 	}
 
@@ -254,7 +254,7 @@ func convertGcpSuppressions(
 		// verify there is a mapped policy for this recommendation
 		// if the recommendation is not a key in the map we can assume this is not mapped and
 		// continue
-		mappedPolicyId, ok := awsEquivalencesMap[id]
+		mappedPolicyId, ok := gcpEquivalencesMap[id]
 		if !ok {
 			// when we don't have a mapped policy, add the legacy suppression info
 			if suppressionInfo.SuppressionConditions != nil {
@@ -280,21 +280,21 @@ func convertGcpSuppressions(
 				var convertedConstraints []api.PolicyExceptionConstraint
 
 				organizationIdsConstraint := convertSupCondition(suppression.OrganizationIds,
-					"organizationIds",
+					"organizations",
 					policyIdExceptionsTemplate)
 				if organizationIdsConstraint.FieldKey != "" {
 					convertedConstraints = append(convertedConstraints, organizationIdsConstraint)
 				}
 
 				projectIdsConstraint := convertSupCondition(suppression.ProjectIds,
-					"projectIds",
+					"projects",
 					policyIdExceptionsTemplate)
 				if projectIdsConstraint.FieldKey != "" {
 					convertedConstraints = append(convertedConstraints, projectIdsConstraint)
 				}
 
 				resourceNamesConstraint := convertSupCondition(suppression.ResourceNames,
-					"resourceNames",
+					"resourceName",
 					policyIdExceptionsTemplate)
 				if resourceNamesConstraint.FieldKey != "" {
 					convertedConstraints = append(convertedConstraints, resourceNamesConstraint)

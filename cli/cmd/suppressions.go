@@ -138,10 +138,16 @@ func convertSupCondition(supCondition []string, fieldKey string,
 		policyIdExceptionsTemplate, fieldKey) {
 
 		var condition []any
-		// verify if "ALL_ACCOUNTS" OR "ALL_REGIONS" is in the suppression condition slice
+		// verify for aws:
+		// if "ALL_ACCOUNTS" OR "ALL_REGIONS" is in the suppression condition slice
+		// verify for gcp:
+		// if "ALL_ORGANIZATIONS" OR "ALL_PROJECTS" is in the suppression condition slice
 		// if so we should ignore the supplied conditions and replace with a wildcard *
 		if (slices.Contains(supCondition, "ALL_ACCOUNTS") && fieldKey == "accountIds") ||
 			(slices.Contains(supCondition, "ALL_REGIONS") && fieldKey == "regionNames") {
+			condition = append(condition, "*")
+		} else if (slices.Contains(supCondition, "ALL_ORGANIZATIONS") && fieldKey == "organizations") ||
+			(slices.Contains(supCondition, "ALL_PROJECTS") && fieldKey == "projects") {
 			condition = append(condition, "*")
 		} else {
 			condition = convertToAnySlice(supCondition)
