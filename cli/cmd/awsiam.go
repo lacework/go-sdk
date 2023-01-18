@@ -97,7 +97,7 @@ func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.In
 	}
 
 	if byoRoleName != "" || !taggedLaceworkResource(role.Tags) {
-		cli.Log.Debug("Lacework didn't create this role, will not delete it",
+		cli.Log.Debugw("Lacework didn't create this role, will not delete it",
 			"byoRoleName", byoRoleName,
 			"role", role,
 		)
@@ -203,7 +203,8 @@ func createSSMRole(c *iam.Client) (types.Role, error) {
 		},
 	)
 	if err == nil && getOutput.Role != nil {
-		return *getOutput.Role, err // we previously created the role, use it
+		cli.Log.Debug("we previously created the role, use it")
+		return *getOutput.Role, err
 	}
 
 	const trustPolicyDocument = `{
@@ -241,6 +242,7 @@ Safe to delete if found`,
 	if err != nil {
 		return types.Role{}, err
 	}
+	cli.Log.Debugw("freshly created role", "role", *output.Role)
 
 	return *output.Role, nil
 }

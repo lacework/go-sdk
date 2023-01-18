@@ -129,6 +129,13 @@ func init() {
 		false,
 		"set this flag to print out the target instances and exit",
 	)
+	agentInstallAWSSSMCmd.Flags().BoolVarP(
+		&agentCmdState.InstallForceReinstall,
+		"force_reinstall",
+		"f",
+		false,
+		"set this flag to force-reinstall the agent, even if already running on the target instance",
+	)
 }
 
 func installAWSSSM(_ *cobra.Command, _ []string) error {
@@ -176,7 +183,9 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		defer func() {
 			cli.StopProgress()
 			err := teardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
-			cli.OutputHuman("got an error %v while tearing down IAM role / infra", err)
+			if err != nil {
+				cli.OutputHuman("got an error %v while tearing down IAM role / infra", err)
+			}
 		}()
 		if err != nil {
 			cli.StopProgress()
@@ -237,10 +246,10 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			// Establish SSM Command connection to the runner
 
 			// Check if agent is already installed on the host, skip if yes
-			// Sleep for up to 5min to wait for instance profile to associate with instance
+			// Sleep for up to 7min to wait for instance profile to associate with instance
 			var ssmError error
 			var commandOutput ssm.GetCommandInvocationOutput
-			const maxSleepTime int = 6
+			const maxSleepTime int = 8
 			for i := 0; i < maxSleepTime; i++ {
 				const agentVersionCmd = "sudo sh -c '/var/lib/lacework/datacollector -v'"
 				commandOutput, ssmError = threadRunner.RunSSMCommandOnRemoteHost(cfg, agentVersionCmd)
@@ -256,11 +265,19 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 						"instance_id", threadRunner.InstanceID,
 					)
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
-					cli.OutputHuman(
-						"Lacework Agent already installed on instance %s, skipping\n",
-						threadRunner.InstanceID,
-					)
-					return
+					if agentCmdState.InstallForceReinstall {
+						cli.OutputHuman(
+							"Lacework Agent already installed on instance %s, forcing reinstall\n",
+							threadRunner.InstanceID,
+						)
+						break
+					} else {
+						cli.OutputHuman(
+							"Lacework Agent already installed on instance %s, skipping\n",
+							threadRunner.InstanceID,
+						)
+						return
+					}
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusFailed {
 					cli.Log.Infow("no agent found on host, proceeding to install",
 						"command output", commandOutput,
@@ -291,7 +308,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 					time.Sleep(1 * time.Minute)
 				}
 			}
-			if ssmError != nil { // SSM still erroring after 5min of sleep, skip this host
+			if ssmError != nil { // SSM still erroring after 7min of sleep, skip this host
 				cli.Log.Warnw("error when checking if agent already installed on host, skipping runner",
 					"SSM error", ssmError,
 					"command output", commandOutput,

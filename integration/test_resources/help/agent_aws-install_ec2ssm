@@ -49,6 +49,7 @@ Usage:
 
 Flags:
   -d, --dry_run                   set this flag to print out the target instances and exit
+  -f, --force_reinstall           set this flag to force-reinstall the agent, even if already running on the target instance
   -h, --help                      help for ec2ssm
       --iam_role_name string      IAM role name (not ARN) with SSM policy, if not provided then an ephemeral role will be created
   -r, --include_regions strings   list of regions to filter on
