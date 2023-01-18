@@ -214,7 +214,7 @@ func suppressionsAwsList(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		if strings.Contains(err.Error(), "No active AWS accounts") {
 			cli.OutputHuman("No active AWS accounts found. " +
-				"Unable to get legacy aws suppressions")
+				"Unable to get legacy aws suppressions\n")
 			return nil
 		}
 		return errors.Wrap(err, "Unable to get legacy aws suppressions")

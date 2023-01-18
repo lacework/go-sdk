@@ -14,10 +14,6 @@ To get the latest GCP compliance assessment report, use the command:
 
 These reports run on a regular schedule, typically once a day.
 
-To run an ad-hoc compliance assessment use the command:
-
-    lacework compliance gcp run-assessment <org_or_project_id>
-
 Usage:
   lacework compliance google [command]
 
@@ -25,9 +21,9 @@ Aliases:
   google, gcp
 
 Available Commands:
-  get-report    Get the latest GCP compliance report
-  list          List gcp projects and organizations
-  list-projects List projects from an organization
+  get-report     Get the latest GCP compliance report
+  list           List gcp projects and organizations
+  list-projects  List projects from an organization
 
 Flags:
   -h, --help   help for google

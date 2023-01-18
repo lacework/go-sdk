@@ -29,8 +29,8 @@ import (
 type SuppressionsServiceV2 struct {
 	client *Client
 	Aws    suppressionServiceV2
-	//Azure  suppressionServiceV2
-	//Gcp    suppressionServiceV2
+	Azure  suppressionServiceV2
+	Gcp    suppressionServiceV2
 }
 
 type suppressionServiceV2 interface {
@@ -40,7 +40,9 @@ type suppressionServiceV2 interface {
 type SuppressionTypeV2 string
 
 const (
-	AwsSuppression SuppressionTypeV2 = "aws"
+	AwsSuppression   SuppressionTypeV2 = "aws"
+	AzureSuppression SuppressionTypeV2 = "azure"
+	GcpSuppression   SuppressionTypeV2 = "gcp"
 )
 
 func (svc *SuppressionsServiceV2) list(cloudType SuppressionTypeV2) (map[string]SuppressionV2,

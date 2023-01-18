@@ -77,14 +77,14 @@ func showContainerAssessmentsWithSha256(sha string, filter api.SearchFilter) err
 	)
 
 	if len(filter.Filters) > 0 {
-		cli.Log.Debugw("retrieve assessment with filters ", filter.Filters)
+		cli.Log.Debugw("retrieve assessment", "filters", filter.Filters)
 
 		cli.StartProgress("Fetching assessment...")
 		assessment, err = cli.LwApi.V2.Vulnerabilities.Containers.Search(filter)
 		cli.StopProgress()
 
 		if len(assessment.Data) == 0 {
-			cli.OutputHuman("No active containers found.\n")
+			cli.OutputHuman(fmt.Sprintf("There are no vulnerabilities found! Time for %s\n", randomEmoji()))
 			return nil
 		}
 	}

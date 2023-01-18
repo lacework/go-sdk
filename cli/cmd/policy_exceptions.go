@@ -111,7 +111,6 @@ func init() {
 }
 
 func listPolicyExceptions(_ *cobra.Command, args []string) error {
-	var policyExceptions [][]string
 	if len(args) > 0 {
 		cli.StartProgress(fmt.Sprintf(
 			"Retrieving policy exceptions from policy ID '%s'...", args[0],
@@ -121,19 +120,19 @@ func listPolicyExceptions(_ *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.Wrapf(err, "unable to list policy exceptions for ID %s", args[0])
 		}
-		policyExceptions = append(policyExceptions,
-			policyExceptionTable(policyExceptionResponse.Data, args[0])...)
+
+		if cli.JSONOutput() {
+			return cli.OutputJSON(policyExceptionResponse.Data)
+		}
+
+		if len(policyExceptionResponse.Data) == 0 {
+			cli.OutputHuman("There were no policy exceptions found.\n")
+			return nil
+		}
+
+		cli.OutputHuman(renderSimpleTable(policyExceptionTableHeaders, policyExceptionTable(policyExceptionResponse.Data, args[0])))
 	}
 
-	if cli.JSONOutput() {
-		return cli.OutputJSON(policyExceptions)
-	}
-	if len(policyExceptions) == 0 {
-		cli.OutputHuman("There were no policy exceptions found.\n")
-		return nil
-	}
-
-	cli.OutputHuman(renderSimpleTable(policyExceptionTableHeaders, policyExceptions))
 	return nil
 }
 

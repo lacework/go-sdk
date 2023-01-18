@@ -37,11 +37,30 @@ var (
 		Use:   "aws",
 		Short: "Manage legacy suppressions for aws",
 	}
+
+	// suppressionsAzureCmd represents the aws sub-command inside the suppressions command
+	suppressionsAzureCmd = &cobra.Command{
+		Use:   "azure",
+		Short: "Manage legacy suppressions for azure",
+	}
+
+	// suppressionsGcpCmd represents the aws sub-command inside the suppressions command
+	suppressionsGcpCmd = &cobra.Command{
+		Use:   "gcp",
+		Short: "Manage legacy suppressions for gcp",
+	}
 )
 
 func init() {
 	rootCmd.AddCommand(suppressionsCommand)
+	// aws
 	suppressionsCommand.AddCommand(suppressionsAwsCmd)
 	suppressionsAwsCmd.AddCommand(suppressionsListAwsCmd)
 	suppressionsAwsCmd.AddCommand(suppressionsMigrateAwsCmd)
+	// azure
+	suppressionsCommand.AddCommand(suppressionsAzureCmd)
+	suppressionsAzureCmd.AddCommand(suppressionsListAzureCmd)
+	// gcp
+	suppressionsCommand.AddCommand(suppressionsGcpCmd)
+	suppressionsGcpCmd.AddCommand(suppressionsListGcpCmd)
 }
