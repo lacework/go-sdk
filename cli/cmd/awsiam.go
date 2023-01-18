@@ -173,7 +173,11 @@ func setupSSMRole(c *iam.Client, roleName string) (types.Role, error) {
 	}
 }
 
-func getRoleFromName(c *iam.Client, roleName string) (types.Role, error) {
+type IAMGetRoleAPI interface {
+	GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error)
+}
+
+func getRoleFromName(c IAMGetRoleAPI, roleName string) (types.Role, error) {
 	cli.Log.Debug("fetching info about role", roleName)
 	output, err := c.GetRole(
 		context.Background(),
