@@ -34,19 +34,24 @@ import (
 // pass the empty string to create a new role.
 // Then creates SSM document.
 func setupSSMAccess(cfg aws.Config, roleName string, token string) (types.Role, types.InstanceProfile, error) {
+	c := iam.New(iam.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
+
 	cli.Log.Debugw("setting up role", "passed roleName", roleName)
-	role, err := setupSSMRole(cfg, roleName)
+	role, err := setupSSMRole(c, roleName)
 	if err != nil {
 		return role, types.InstanceProfile{}, err
 	}
 
-	err = attachSSMPoliciesToRole(cfg, role)
+	err = attachSSMPoliciesToRole(c, role)
 	if err != nil {
 		return role, types.InstanceProfile{}, err
 	}
 
 	// Create instance profile and add the role to it
-	instanceProfile, err := setupInstanceProfile(cfg, role)
+	instanceProfile, err := setupInstanceProfile(c, role)
 	if err != nil {
 		return role, instanceProfile, err
 	}
@@ -159,21 +164,16 @@ const laceworkAutomationTagKey = "LaceworkAutomation"
 // setupSSMRole sets up an IAM role for SSM to assume.
 // If `roleName` is not the empty string, then use that role
 // instead of creating a new one.
-func setupSSMRole(cfg aws.Config, roleName string) (types.Role, error) {
+func setupSSMRole(c *iam.Client, roleName string) (types.Role, error) {
 	if roleName != "" {
-		return getRoleFromName(cfg, roleName)
+		return getRoleFromName(c, roleName)
 	} else {
 		cli.Log.Debug("user did not provide a role, creating one now")
-		return createSSMRole(cfg)
+		return createSSMRole(c)
 	}
 }
 
-func getRoleFromName(cfg aws.Config, roleName string) (types.Role, error) {
-	c := iam.New(iam.Options{
-		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
-	})
-
+func getRoleFromName(c *iam.Client, roleName string) (types.Role, error) {
 	cli.Log.Debug("fetching info about role", roleName)
 	output, err := c.GetRole(
 		context.Background(),
@@ -190,12 +190,7 @@ func getRoleFromName(cfg aws.Config, roleName string) (types.Role, error) {
 
 // createSSMRole makes a call to the AWS API to create an IAM role.
 // Returns information about the newly created role and any errors.
-func createSSMRole(cfg aws.Config) (types.Role, error) {
-	c := iam.New(iam.Options{
-		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
-	})
-
+func createSSMRole(c *iam.Client) (types.Role, error) {
 	cli.Log.Debug("check if role already exists") // intended for after interrupt or error
 	getOutput, err := c.GetRole(
 		context.Background(),
@@ -251,12 +246,7 @@ const roleName string = "Lacework-Agent-SSM-Install-Role"
 // attachSSMPoliciesToRole takes a role, calls the IAM API to attach
 // policies required for SSM to the role, and returns the role along
 // with any errors.
-func attachSSMPoliciesToRole(cfg aws.Config, role types.Role) error {
-	c := iam.New(iam.Options{
-		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
-	})
-
+func attachSSMPoliciesToRole(c *iam.Client, role types.Role) error {
 	cli.Log.Debug("attaching policy to role")
 	_, err := c.AttachRolePolicy(
 		context.Background(),
@@ -269,13 +259,13 @@ func attachSSMPoliciesToRole(cfg aws.Config, role types.Role) error {
 	return err
 }
 
-func setupInstanceProfile(cfg aws.Config, role types.Role) (types.InstanceProfile, error) {
-	instanceProfile, err := createInstanceProfile(cfg)
+func setupInstanceProfile(c *iam.Client, role types.Role) (types.InstanceProfile, error) {
+	instanceProfile, err := createInstanceProfile(c)
 	if err != nil {
 		return instanceProfile, err
 	}
 
-	err = addRoleToInstanceProfile(cfg, role, instanceProfile)
+	err = addRoleToInstanceProfile(c, role, instanceProfile)
 	if err != nil {
 		return types.InstanceProfile{}, err
 	}
@@ -283,12 +273,7 @@ func setupInstanceProfile(cfg aws.Config, role types.Role) (types.InstanceProfil
 	return instanceProfile, nil
 }
 
-func createInstanceProfile(cfg aws.Config) (types.InstanceProfile, error) {
-	c := iam.New(iam.Options{
-		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
-	})
-
+func createInstanceProfile(c *iam.Client) (types.InstanceProfile, error) {
 	cli.Log.Debug("checking if instance profile already exists") // intended for after interrupt or error
 	getOutput, err := c.GetInstanceProfile(
 		context.Background(),
@@ -332,12 +317,7 @@ func createInstanceProfile(cfg aws.Config) (types.InstanceProfile, error) {
 
 const instanceProfileName string = "Lacework-Agent-SSM-Install-Instance-Profile"
 
-func addRoleToInstanceProfile(cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile) error {
-	c := iam.New(iam.Options{
-		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
-	})
-
+func addRoleToInstanceProfile(c *iam.Client, role types.Role, instanceProfile types.InstanceProfile) error {
 	cli.Log.Debug("checking if the role is already associated with the instance profile")
 	if len(instanceProfile.Roles) > 0 {
 		cli.Log.Debugw(
