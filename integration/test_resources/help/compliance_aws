@@ -10,17 +10,13 @@ To get the latest AWS compliance assessment report:
 
 These reports run on a regular schedule, typically once a day.
 
-To run an ad-hoc compliance assessment:
-
-    lacework compliance aws run-assessment <account_id>
-
 Usage:
   lacework compliance aws [command]
 
 Available Commands:
-  get-report    Get the latest AWS compliance report
-  list-accounts List all AWS accounts configured
-  search        Search for all known violations of a given resource arn
+  get-report     Get the latest AWS compliance report
+  list-accounts  List all AWS accounts configured
+  search         Search for all known violations of a given resource arn
 
 Flags:
   -h, --help   help for aws

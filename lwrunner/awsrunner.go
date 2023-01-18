@@ -45,7 +45,7 @@ type AWSRunner struct {
 	ImageName        string
 }
 
-func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, instanceID string, callback ssh.HostKeyCallback) (*AWSRunner, error) {
+func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, instanceID string, filterSSH bool, callback ssh.HostKeyCallback) (*AWSRunner, error) {
 	// Look up the AMI name of the runner
 	imageName, err := getAMIName(amiImageId, region)
 	if err != nil {
@@ -53,9 +53,14 @@ func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, in
 	}
 
 	// Heuristically assign SSH username based on AMI name
-	detectedUsername, err := getSSHUsername(userFromCLIArg, imageName)
-	if err != nil {
-		return nil, err
+	var detectedUsername string
+	if filterSSH {
+		detectedUsername, err = getSSHUsername(userFromCLIArg, imageName)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		detectedUsername = "no_ssh_username_provided"
 	}
 
 	defaultCallback, err := DefaultKnownHosts()

@@ -30,7 +30,7 @@ import (
 	"github.com/lacework/go-sdk/lwrunner"
 )
 
-func awsDescribeInstances() ([]*lwrunner.AWSRunner, error) {
+func awsDescribeInstances(filterSSH bool) ([]*lwrunner.AWSRunner, error) {
 	cli.StartProgress("Finding target EC2 instances...")
 	defer cli.StopProgress()
 
@@ -41,7 +41,7 @@ func awsDescribeInstances() ([]*lwrunner.AWSRunner, error) {
 
 	allRunners := []*lwrunner.AWSRunner{}
 	for _, region := range regions {
-		regionRunners, err := awsRegionDescribeInstances(*region.RegionName)
+		regionRunners, err := awsRegionDescribeInstances(*region.RegionName, filterSSH)
 		if err != nil {
 			return nil, err
 		}
@@ -49,15 +49,6 @@ func awsDescribeInstances() ([]*lwrunner.AWSRunner, error) {
 	}
 
 	return allRunners, nil
-}
-
-func GetConfig() (aws.Config, error) {
-	cfg, err := config.LoadDefaultConfig(context.Background())
-	if err != nil {
-		return cfg, err
-	}
-
-	return cfg, nil
 }
 
 // awsDescribeRegions queries the AWS API to list all the regions that
@@ -78,7 +69,7 @@ func awsDescribeRegions() ([]types.Region, error) {
 		Filters: filters,
 	}
 
-	cfg, err := GetConfig()
+	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +85,7 @@ func awsDescribeRegions() ([]types.Region, error) {
 	return output.Regions, nil
 }
 
-func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
+func awsRegionDescribeInstances(region string, filterSSH bool) ([]*lwrunner.AWSRunner, error) {
 	var (
 		tagKey = agentCmdState.InstallTagKey
 		tag    = agentCmdState.InstallTag
@@ -203,6 +194,7 @@ func awsRegionDescribeInstances(region string) ([]*lwrunner.AWSRunner, error) {
 						region,
 						*threadInstance.Placement.AvailabilityZone,
 						*threadInstance.InstanceId,
+						filterSSH,
 						verifyHostCallback,
 					)
 					if err != nil {

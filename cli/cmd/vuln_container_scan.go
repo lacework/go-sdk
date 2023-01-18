@@ -168,22 +168,15 @@ To view all container registries configured in your account use the command:
 
 func pollScanStatus(requestID string, args []string) error {
 	cli.StartProgress(" Scan running...")
-	time.Sleep(time.Second * 64)
+	time.Sleep(time.Second * 40)
 	var (
 		retries      = 0
-		start        = time.Now()
+		start        = time.Now().UTC()
 		durationTime = start
 		expPollTime  = time.Second
 		params       = map[string]interface{}{"request_id": requestID}
 	)
 
-	// @afiune bug: there are sometimes that the API returns the scan status as
-	// successful without any vulnerabilities, as if the assessment had none, but
-	// if you query it again, the assessment does have vulnerabilities.
-	//
-	// JIRA: RAIN-12964
-	// Workaround: Retry the polling mechanism twice on success :(
-	bugRetry := true
 	for {
 		retries++
 		params["retries"] = retries
@@ -209,21 +202,6 @@ func pollScanStatus(requestID string, args []string) error {
 			continue
 		}
 
-		// @afiune bug: there are sometimes that the API returns the scan status as
-		// successful without any vulnerabilities, as if the assessment had none, but
-		// if you query it again, the assessment does have vulnerabilities.
-		//
-		// JIRA: RAIN-12964
-		// Workaround: Retry the polling mechanism twice on success :(
-		if bugRetry {
-			bugRetry = false
-			cli.SendHoneyvent()
-			// we do NOT use the exponential polling time here since this is just a
-			// workaround and therefore waiting for 5s or so is enough time
-			time.Sleep(time.Second * 5)
-			continue
-		}
-
 		cli.Event.DurationMs = time.Since(durationTime).Milliseconds()
 		params["total_duration_ms"] = time.Since(start).Milliseconds()
 		cli.Event.FeatureData = params
@@ -235,17 +213,35 @@ func pollScanStatus(requestID string, args []string) error {
 
 		cli.StopProgress()
 
-		// scan is completed, request results
+		// scan is completed, fetch results using the Search() API but avoid
+		// using a time range of 7 days and instead just pass the last 24 hours
+		now := time.Now().UTC()
+		before := now.AddDate(0, 0, -1) // 1 day from now
 		err = showContainerAssessmentsWithSha256("", api.SearchFilter{
-			Filters: []api.Filter{{
-				Expression: "eq",
-				Field:      "evalCtx.image_info.registry",
-				Value:      args[0],
+			TimeFilter: &api.TimeFilter{
+				StartTime: &before,
+				EndTime:   &now,
 			},
+			Filters: []api.Filter{
+				{
+					Expression: "eq",
+					Field:      "evalCtx.image_info.registry",
+					Value:      args[0],
+				},
 				{
 					Expression: "eq",
 					Field:      "evalCtx.image_info.repo",
 					Value:      args[1],
+				},
+				{
+					Expression: "eq",
+					Field:      "evalCtx.is_reeval",
+					Value:      "false",
+				},
+				{
+					Expression: "eq",
+					Field:      "evalCtx.scan_request_props.reqId",
+					Value:      requestID,
 				},
 				{
 					Expression: "eq",
