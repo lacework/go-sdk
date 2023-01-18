@@ -19,11 +19,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
@@ -160,7 +162,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		return nil
 	}
 
-	cfg, err := GetConfig()
+	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return err
 	}

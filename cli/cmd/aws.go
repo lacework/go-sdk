@@ -51,15 +51,6 @@ func awsDescribeInstances(filterSSH bool) ([]*lwrunner.AWSRunner, error) {
 	return allRunners, nil
 }
 
-func GetConfig() (aws.Config, error) {
-	cfg, err := config.LoadDefaultConfig(context.Background())
-	if err != nil {
-		return cfg, err
-	}
-
-	return cfg, nil
-}
-
 // awsDescribeRegions queries the AWS API to list all the regions that
 // are enabled for the user's AWS account. Use the "include_regions"
 // command-line flag to only get regions in this list.
@@ -78,7 +69,7 @@ func awsDescribeRegions() ([]types.Region, error) {
 		Filters: filters,
 	}
 
-	cfg, err := GetConfig()
+	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return nil, err
 	}
