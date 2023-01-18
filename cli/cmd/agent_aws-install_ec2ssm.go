@@ -145,7 +145,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		}
 	}
 
-	runners, err := awsDescribeInstances()
+	runners, err := awsDescribeInstances(false /* filter on SSH support */)
 	if err != nil {
 		return err
 	}
