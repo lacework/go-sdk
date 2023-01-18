@@ -129,6 +129,13 @@ func init() {
 		false,
 		"set this flag to print out the target instances and exit",
 	)
+	agentInstallAWSSSMCmd.Flags().BoolVarP(
+		&agentCmdState.InstallForceReinstall,
+		"force_reinstall",
+		"f",
+		false,
+		"set this flag to force-reinstall the agent, even if already running on the target instance",
+	)
 }
 
 func installAWSSSM(_ *cobra.Command, _ []string) error {
@@ -258,11 +265,19 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 						"instance_id", threadRunner.InstanceID,
 					)
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
-					cli.OutputHuman(
-						"Lacework Agent already installed on instance %s, skipping\n",
-						threadRunner.InstanceID,
-					)
-					return
+					if agentCmdState.InstallForceReinstall {
+						cli.OutputHuman(
+							"Lacework Agent already installed on instance %s, forcing reinstall\n",
+							threadRunner.InstanceID,
+						)
+						break
+					} else {
+						cli.OutputHuman(
+							"Lacework Agent already installed on instance %s, skipping\n",
+							threadRunner.InstanceID,
+						)
+						return
+					}
 				} else if commandOutput.Status == ssmtypes.CommandInvocationStatusFailed {
 					cli.Log.Infow("no agent found on host, proceeding to install",
 						"command output", commandOutput,
