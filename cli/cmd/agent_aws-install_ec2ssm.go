@@ -134,16 +134,15 @@ func init() {
 func installAWSSSM(_ *cobra.Command, _ []string) error {
 	token := agentCmdState.InstallAgentToken
 	if token == "" {
-		if cli.InteractiveMode() {
-			// user didn't provide an agent token
-			cli.Log.Debugw("agent token not provided, asking user to select one now")
-			var err error
-			token, err = selectAgentAccessToken()
-			if err != nil {
-				return err
-			}
-		} else {
-			return errors.New("user did not provide or interactively select an agent token")
+		if !cli.InteractiveMode() {
+			return errors.New("agent token not provided. Use '--token' when running in non interactive mode")
+		}
+		// user didn't provide an agent token
+		cli.Log.Debug("agent token not provided, asking user to select one now")
+		var err error
+		token, err = selectAgentAccessToken()
+		if err != nil {
+			return err
 		}
 	}
 
