@@ -150,6 +150,8 @@ func Execute() (err error) {
 	}()
 	defer cli.Wait()
 
+	setupRootHelpCommand()
+
 	// first, verify if the user provided a command to execute,
 	// if no command was provided, only print out the usage message
 	if noCommandProvided() {
@@ -164,6 +166,32 @@ func Execute() (err error) {
 	}
 
 	return
+}
+
+func setupRootHelpCommand() {
+	// We want 'lacework help iac org list' to invoke 'iac help org list'
+	// instead of just showing help for lacework. The command in question is
+	// the default help command for the root command, so we peek at the
+	// target and if it's a component then invoke the component.
+	rootCmd.InitDefaultHelpCmd()
+	helpCommand, _, _ := rootCmd.Find([]string{"help"})
+	defaultRunHelp := helpCommand.Run
+	helpCommand.Run = nil
+	helpCommand.RunE = func(cmd *cobra.Command, args []string) error {
+		target, _, _ := rootCmd.Find(args)
+		if target != nil && isComponent(target.Annotations) {
+			f, ok := cli.LwComponents.GetComponent(target.Use)
+			if ok {
+				envs := []string{
+					fmt.Sprintf("LW_COMPONENT_NAME=%s", target.Use),
+				}
+				helpArgs := append([]string{"help"}, args[1:]...)
+				return f.RunAndOutput(helpArgs, envs...)
+			}
+		}
+		defaultRunHelp(cmd, args)
+		return nil
+	}
 }
 
 func init() {
