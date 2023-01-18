@@ -176,7 +176,9 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		defer func() {
 			cli.StopProgress()
 			err := teardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
-			cli.OutputHuman("got an error %v while tearing down IAM role / infra", err)
+			if err != nil {
+				cli.OutputHuman("got an error %v while tearing down IAM role / infra", err)
+			}
 		}()
 		if err != nil {
 			cli.StopProgress()
