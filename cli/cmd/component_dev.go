@@ -26,6 +26,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -345,7 +346,7 @@ func cdkGoBuild(rootPath string) error {
 func cdkGoRunVerify(componentName string) error {
 	var (
 		vw  = terminal.NewVerboseWriter(10)
-		cmd = exec.Command("lacework", componentName, "placeholder")
+		cmd = exec.Command(laceworkCLIBinary(), componentName, "placeholder")
 	)
 	_, err := vw.Write([]byte(fmt.Sprintf("Command: %s\n", strings.Join(cmd.Args, " "))))
 	if err != nil {
@@ -355,4 +356,15 @@ func cdkGoRunVerify(componentName string) error {
 	cmd.Stdout = vw
 	cmd.Stderr = vw
 	return cmd.Run()
+}
+
+func laceworkCLIBinary() string {
+	if os.Getenv("LW_CLI_INTEGRATION_MODE") != "" {
+		return fmt.Sprintf(
+			"lacework-cli-%s-%s",
+			runtime.GOOS, runtime.GOARCH,
+		)
+	}
+
+	return "lacework"
 }
