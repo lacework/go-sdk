@@ -14,10 +14,6 @@ To get the latest Azure compliance assessment report, use the command:
 
 These reports run on a regular schedule, typically once a day.
 
-To run an ad-hoc compliance assessment use the command:
-
-    lacework compliance azure run-assessment <tenant_id>
-
 Usage:
   lacework compliance azure [command]
 

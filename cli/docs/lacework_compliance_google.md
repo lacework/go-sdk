@@ -26,10 +26,6 @@ To get the latest GCP compliance assessment report, use the command:
 
 These reports run on a regular schedule, typically once a day.
 
-To run an ad-hoc compliance assessment use the command:
-
-    lacework compliance gcp run-assessment <org_or_project_id>
-
 
 ### Options
 
