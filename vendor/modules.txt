@@ -65,7 +65,7 @@ github.com/ProtonMail/go-crypto/openpgp/internal/ecc
 github.com/ProtonMail/go-crypto/openpgp/internal/encoding
 github.com/ProtonMail/go-crypto/openpgp/packet
 github.com/ProtonMail/go-crypto/openpgp/s2k
-# github.com/abiosoft/colima v0.4.6
+# github.com/abiosoft/colima v0.5.2
 ## explicit; go 1.19
 github.com/abiosoft/colima/util/terminal
 # github.com/acomagu/bufpipe v1.0.3
