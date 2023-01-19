@@ -63,6 +63,13 @@ func TestGenerationWithLaceworkProvider(t *testing.T) {
 	assert.Equal(t, reqProviderAndRegion(laceworkProvider, moduleImportCtWithoutConfig), hcl)
 }
 
+func TestGenerationWithLaceworkAccountID(t *testing.T) {
+	hcl, err := NewTerraform("us-east-2", true, true, WithLaceworkAccountID("123456789")).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportConfigWithLaceworkAccountID, moduleImportCtWithLaceworkAccountID), hcl)
+}
+
 func TestGenerationCloudtrailForceDestroyS3(t *testing.T) {
 	data, err := createCloudtrail(&GenerateAwsTfConfigurationArgs{
 		Cloudtrail:           true,
@@ -410,5 +417,23 @@ var moduleImportCtWithoutConfig = `module "main_cloudtrail" {
 var moduleImportConfig = `module "aws_config" {
   source  = "lacework/config/aws"
   version = "~> 0.5"
+}
+`
+
+var moduleImportConfigWithLaceworkAccountID = `module "aws_config" {
+  source                  = "lacework/config/aws"
+  version                 = "~> 0.5"
+  lacework_aws_account_id = "123456789"
+}
+`
+
+var moduleImportCtWithLaceworkAccountID = `module "main_cloudtrail" {
+  source                  = "lacework/cloudtrail/aws"
+  version                 = "~> 2.0"
+  iam_role_arn            = module.aws_config.iam_role_arn
+  iam_role_external_id    = module.aws_config.external_id
+  iam_role_name           = module.aws_config.iam_role_name
+  lacework_aws_account_id = "123456789"
+  use_existing_iam_role   = true
 }
 `
