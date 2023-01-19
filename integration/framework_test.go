@@ -151,6 +151,10 @@ func runLaceworkCLI(workingDir string, args ...string) (stdout bytes.Buffer, std
 	// what they expect
 	cmd.Env = append(cmd.Env, "LW_NONINTERACTIVE=false")
 
+	// add unique environment variable to notify the CLI that
+	// it is being executed to run our integration test suite
+	cmd.Env = append(cmd.Env, "LW_CLI_INTEGRATION_MODE=true")
+
 	exitcode, err := runLaceworkCLIFromCmd(cmd)
 	if exitcode == 999 {
 		fmt.Println(stderr)
