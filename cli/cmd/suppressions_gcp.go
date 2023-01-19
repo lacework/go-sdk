@@ -258,6 +258,8 @@ func convertGcpSuppressions(
 		if !ok {
 			// when we don't have a mapped policy, add the legacy suppression info
 			if suppressionInfo.SuppressionConditions != nil {
+				suppressionInfo = updateDiscardedSupConditionsComments(suppressionInfo,
+					"Legacy suppression discarded as there is no equivalent policy")
 				discardedSuppressions = append(
 					discardedSuppressions,
 					map[string]api.SuppressionV2{id: suppressionInfo},
@@ -272,6 +274,20 @@ func convertGcpSuppressions(
 		// We then parse this into a list of constraints
 		policyIdExceptionsTemplate := policyExceptionsConstraintsMap[mappedPolicyId]
 		if policyIdExceptionsTemplate == nil {
+			// Updating the suppression conditions comments to make it clear why these were
+			// discarded
+			if len(suppressionInfo.SuppressionConditions) >= 1 {
+				suppressionInfo = updateDiscardedSupConditionsComments(suppressionInfo,
+					fmt.Sprintf("Legacy suppression discarded as the new policy: %s does not"+
+						" support exception conditions", mappedPolicyId))
+			}
+
+			// if the list of supported constraints is empty for a policy,
+			// we should let the customers know that we have discarded this suppression
+			discardedSuppressions = append(
+				discardedSuppressions,
+				map[string]api.SuppressionV2{id: suppressionInfo},
+			)
 			continue
 		}
 		if len(suppressionInfo.SuppressionConditions) >= 1 {
@@ -349,4 +365,13 @@ func convertGcpSuppressions(
 	}
 
 	return convertedPolicyExceptions, payloadsText, discardedSuppressions
+}
+
+func updateDiscardedSupConditionsComments(suppressionInfo api.SuppressionV2, comment string) api.SuppressionV2 {
+	var updatedSupInfo api.SuppressionV2
+	for _, suppression := range suppressionInfo.SuppressionConditions {
+		suppression.Comment = comment
+		updatedSupInfo.SuppressionConditions = append(updatedSupInfo.SuppressionConditions, suppression)
+	}
+	return updatedSupInfo
 }

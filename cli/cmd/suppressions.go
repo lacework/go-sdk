@@ -20,6 +20,8 @@ package cmd
 
 import (
 	"github.com/fatih/color"
+
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/lacework/go-sdk/api"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
@@ -132,9 +134,9 @@ func printDiscardedSuppressions(discardedSuppressions []map[string]api.Suppressi
 	}
 }
 
-func convertSupCondition(supCondition []string, fieldKey string,
+func convertSupCondition(supConditions []string, fieldKey string,
 	policyIdExceptionsTemplate []string) api.PolicyExceptionConstraint {
-	if len(supCondition) >= 1 && slices.Contains(
+	if len(supConditions) >= 1 && slices.Contains(
 		policyIdExceptionsTemplate, fieldKey) {
 
 		var condition []any
@@ -143,14 +145,19 @@ func convertSupCondition(supCondition []string, fieldKey string,
 		// verify for gcp:
 		// if "ALL_ORGANIZATIONS" OR "ALL_PROJECTS" is in the suppression condition slice
 		// if so we should ignore the supplied conditions and replace with a wildcard *
-		if (slices.Contains(supCondition, "ALL_ACCOUNTS") && fieldKey == "accountIds") ||
-			(slices.Contains(supCondition, "ALL_REGIONS") && fieldKey == "regionNames") {
+		if (slices.Contains(supConditions, "ALL_ACCOUNTS") && fieldKey == "accountIds") ||
+			(slices.Contains(supConditions, "ALL_REGIONS") && fieldKey == "regionNames") {
 			condition = append(condition, "*")
-		} else if (slices.Contains(supCondition, "ALL_ORGANIZATIONS") && fieldKey == "organizations") ||
-			(slices.Contains(supCondition, "ALL_PROJECTS") && fieldKey == "projects") {
+		} else if (slices.Contains(supConditions, "ALL_ORGANIZATIONS") && fieldKey == "organizations") ||
+			(slices.Contains(supConditions, "ALL_PROJECTS") && fieldKey == "projects") {
 			condition = append(condition, "*")
+		} else if fieldKey == "resourceNames" {
+			condition = convertResourceNamesSupConditions(supConditions)
+		} else if fieldKey == "resourceName" {
+			// resourceName singular is specific to GCP
+			condition = convertGcpResourceNameSupConditions(supConditions)
 		} else {
-			condition = convertToAnySlice(supCondition)
+			condition = convertToAnySlice(supConditions)
 		}
 
 		return api.PolicyExceptionConstraint{
@@ -159,6 +166,39 @@ func convertSupCondition(supCondition []string, fieldKey string,
 		}
 	}
 	return api.PolicyExceptionConstraint{}
+}
+
+func convertResourceNamesSupConditions(supConditions []string) []any {
+	var conditions []any
+	for _, condition := range supConditions {
+		ok := arn.IsARN(condition)
+		if ok {
+			parsedEntry, _ := arn.Parse(condition)
+			condition = parsedEntry.Resource
+		}
+		conditions = append(conditions, condition)
+	}
+	return conditions
+}
+
+func convertGcpResourceNameSupConditions(supConditions []string) []any {
+	var conditions []any
+	for _, condition := range supConditions {
+		// skip this logic if we already have a wildcard
+		if condition != "*" {
+			// It appears that for GCP, the resourceName field for policy exceptions is in fact expecting
+			// users to provider the full GCP resource_id.
+			// Example resourceId: //compute.googleapis.com/projects/gke-project-01-c8403ba1/zones/us-central1-a/instances/squid-proxy
+			// This was not the case for legacy suppressions and in most cases it's unlikely that the
+			// users will have provided this. Instead, we are more likely to have
+			// the resource name provided. To cover this scenario we prepend the resource name
+			// from the legacy suppression with "*/" to make it match the resource name while
+			// wildcarding the rest of the resourceId
+			condition = "*/" + condition
+		}
+		conditions = append(conditions, condition)
+	}
+	return conditions
 }
 
 func convertSupConditionTags(supCondition []map[string]string, fieldKey string,
