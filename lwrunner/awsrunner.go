@@ -134,7 +134,7 @@ func (run AWSRunner) SendPublicKey(pubBytes []byte) error {
 func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instanceProfile types.InstanceProfile) error {
 	c := ec2.New(ec2.Options{
 		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
+		Region:      run.Region,
 	})
 
 	// Check to see if there are any instance profiles already associated with the runner
