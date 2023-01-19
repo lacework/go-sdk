@@ -172,6 +172,8 @@ func convertResourceNamesSupConditions(supConditions []string) []any {
 	var conditions []any
 	for _, condition := range supConditions {
 		ok := arn.IsARN(condition)
+		// If the legacy suppression resourceNames field contains an ARN, we should parse and pull
+		// out the resource name. ARNs are not supported in policy exceptions
 		if ok {
 			parsedEntry, _ := arn.Parse(condition)
 			condition = parsedEntry.Resource
