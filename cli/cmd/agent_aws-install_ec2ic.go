@@ -117,7 +117,7 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 		}
 	}
 
-	runners, err := awsDescribeInstances()
+	runners, err := awsDescribeInstances(true /* filter on SSH support */)
 	if err != nil {
 		return err
 	}

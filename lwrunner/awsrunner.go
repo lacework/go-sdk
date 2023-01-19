@@ -23,11 +23,17 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -39,7 +45,7 @@ type AWSRunner struct {
 	ImageName        string
 }
 
-func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, instanceID string, callback ssh.HostKeyCallback) (*AWSRunner, error) {
+func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, instanceID string, filterSSH bool, callback ssh.HostKeyCallback) (*AWSRunner, error) {
 	// Look up the AMI name of the runner
 	imageName, err := getAMIName(amiImageId, region)
 	if err != nil {
@@ -47,9 +53,14 @@ func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, in
 	}
 
 	// Heuristically assign SSH username based on AMI name
-	detectedUsername, err := getSSHUsername(userFromCLIArg, imageName)
-	if err != nil {
-		return nil, err
+	var detectedUsername string
+	if filterSSH {
+		detectedUsername, err = getSSHUsername(userFromCLIArg, imageName)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		detectedUsername = "no_ssh_username_provided"
 	}
 
 	defaultCallback, err := DefaultKnownHosts()
@@ -114,6 +125,191 @@ func (run AWSRunner) SendPublicKey(pubBytes []byte) error {
 	}
 
 	return nil
+}
+
+// AssociateInstanceProfileWithRunner associates a given instance profile with the
+// receiving runner. First checks if there are any instance profiles already associated
+// with the runner, and returns an error if so (since a runner can only have one instance
+// profile associated with it). Then associates the instance profile with the runner.
+func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instanceProfile types.InstanceProfile) error {
+	c := ec2.New(ec2.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
+
+	// Check to see if there are any instance profiles already associated with the runner
+	describeOutput, err := c.DescribeIamInstanceProfileAssociations(
+		context.Background(),
+		&ec2.DescribeIamInstanceProfileAssociationsInput{
+			Filters: []ec2types.Filter{
+				{
+					Name: aws.String("instance-id"),
+					Values: []string{
+						run.InstanceID,
+					},
+				},
+			},
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	alreadyAssociated, err := run.isCorrectInstanceProfileAlreadyAssociated(cfg, describeOutput.IamInstanceProfileAssociations)
+	if err != nil {
+		return err
+	}
+
+	if alreadyAssociated { // use the existing, correctly configured instance profile
+		return nil
+	} else { // associate our own instance profile
+		_, err = c.AssociateIamInstanceProfile(
+			context.Background(),
+			&ec2.AssociateIamInstanceProfileInput{
+				IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
+					Arn: instanceProfile.Arn,
+				},
+				InstanceId: aws.String(run.InstanceID),
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+// isCorrectInstanceProfileAlreadyAssociated takes a list of instance profile associations
+// and checks if there is an instance profile associated and if this instance
+// profile has the correct policy for SSM access. Returns `true, nil` if so. Returns
+// `false, nil` if there is no instance profile associated. Returns `false, <error>` if
+// there is an incorrect instance profile associated, or if there was an error in
+// executing this function.
+func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, associations []ec2types.IamInstanceProfileAssociation) (bool, error) {
+	if len(associations) <= 0 { // no instance profile associated
+		return false, nil
+	}
+	instanceProfileName := strings.Split(*associations[0].IamInstanceProfile.Arn, "instance-profile/")[1]
+
+	c := iam.New(iam.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
+
+	getInstanceProfileOutput, err := c.GetInstanceProfile(
+		context.Background(),
+		&iam.GetInstanceProfileInput{
+			InstanceProfileName: aws.String(instanceProfileName),
+		},
+	)
+	if err != nil {
+		return false, err
+	}
+
+	// Check to see if the instance profile associated with the runner has the correct policy
+
+	if len(getInstanceProfileOutput.InstanceProfile.Roles) <= 0 { // can only have max one role
+		return false, fmt.Errorf(
+			"runner %v already has an instance profile (%v) attached, does not have a role",
+			run,
+			getInstanceProfileOutput.InstanceProfile,
+		)
+	}
+
+	// Check which policies are associated with this instance profile's role
+	listAttachedRolePoliciesOutput, err := c.ListAttachedRolePolicies(
+		context.Background(),
+		&iam.ListAttachedRolePoliciesInput{
+			RoleName: getInstanceProfileOutput.InstanceProfile.Roles[0].RoleName,
+		},
+	)
+	if err != nil {
+		return false, err
+	}
+
+	for _, policy := range listAttachedRolePoliciesOutput.AttachedPolicies {
+		if *policy.PolicyArn == SSMInstancePolicy {
+			return true, nil // everything is configured correctly, we can return now
+		}
+	}
+
+	// The runner has an instance profile attached, the instance profile has a role,
+	// and the role does not have the policy we need for SSM. We can't install on
+	// this instance, return an error
+	return false, fmt.Errorf(
+		"runner %v already has an instance profile (%v) attached, does not have policy %s",
+		run,
+		getInstanceProfileOutput.InstanceProfile,
+		SSMInstancePolicy,
+	)
+}
+
+const SSMInstancePolicy string = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+
+// RunSSMCommandOnRemoteHost takes a shell command to install the agent on the runner
+// the runner and executes it using SSM. `operation` must be one of the commands allowed
+// by the SSM document. This function will not return until the command is in a terminal
+// state, or until 2min have passed.
+func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string) (ssm.GetCommandInvocationOutput, error) {
+	c := ssm.New(ssm.Options{
+		Credentials: cfg.Credentials,
+		Region:      cfg.Region,
+	})
+
+	sendCommandOutput, err := c.SendCommand(
+		context.Background(),
+		&ssm.SendCommandInput{
+			DocumentName: aws.String("AWS-RunShellScript"),
+			Comment:      aws.String("this command is for installing the Lacework Agent"),
+			InstanceIds: []string{
+				run.InstanceID,
+			},
+			Parameters: map[string][]string{
+				"commands": {
+					operation,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return ssm.GetCommandInvocationOutput{}, err
+	}
+
+	var getCommandInvocationOutput *ssm.GetCommandInvocationOutput
+
+	// Sleep while waiting for the command to execute
+	const durationTensOfSeconds = 12
+	for i := 0; i < durationTensOfSeconds; i++ {
+		time.Sleep(10 * time.Second)
+
+		getCommandInvocationOutput, err = c.GetCommandInvocation(
+			context.Background(),
+			&ssm.GetCommandInvocationInput{
+				CommandId:  sendCommandOutput.Command.CommandId,
+				InstanceId: aws.String(run.InstanceID),
+			},
+		)
+		if err != nil {
+			return ssm.GetCommandInvocationOutput{}, err
+		}
+
+		// Check if the command has reached a "terminal state"
+		if getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusSuccess ||
+			getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusCancelled ||
+			getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusTimedOut ||
+			getCommandInvocationOutput.Status == ssmtypes.CommandInvocationStatusFailed {
+			return *getCommandInvocationOutput, nil
+		}
+	}
+
+	return *getCommandInvocationOutput, fmt.Errorf("command %s did not finish in %dmin, final state %v, stdout %s, stderr %s",
+		*sendCommandOutput.Command.CommandId,
+		durationTensOfSeconds/6,
+		*getCommandInvocationOutput,
+		*getCommandInvocationOutput.StandardOutputContent,
+		*getCommandInvocationOutput.StandardErrorContent,
+	)
 }
 
 // getAMIName takes an AMI image ID and an AWS region name as input
