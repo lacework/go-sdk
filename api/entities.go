@@ -35,6 +35,7 @@ const (
 	MachineDetailsEntityType
 	UsersEntityType
 	ImagesEntityType
+	ContainersEntityType
 )
 
 // EntityTypes is the list of available entity types
@@ -43,6 +44,7 @@ var EntityTypes = map[EntityType]string{
 	MachineDetailsEntityType: "MachineDetails",
 	UsersEntityType:          "Users",
 	ImagesEntityType:         "Images",
+	ContainersEntityType:     "Containers",
 }
 
 // Search expects the response and the search filters
@@ -74,6 +76,9 @@ func (svc *EntitiesService) Search(response interface{}, filters SearchFilter) e
 
 	case *ImagesEntityResponse:
 		apiPath = fmt.Sprintf(apiV2EntitiesSearch, EntityTypes[ImagesEntityType])
+
+	case *ContainersEntityResponse:
+		apiPath = fmt.Sprintf(apiV2EntitiesSearch, EntityTypes[ContainersEntityType])
 
 	default:
 		return errors.New("missing implementation for the provided entity response")

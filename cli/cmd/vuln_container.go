@@ -78,6 +78,10 @@ func init() {
 		vulContainerShowAssessmentCmd.Flags(),
 	)
 
+	setActiveFlag(
+		vulContainerListAssessmentsCmd.Flags(),
+	)
+
 	setFixableFlag(
 		vulContainerScanCmd.Flags(),
 		vulContainerShowAssessmentCmd.Flags(),
