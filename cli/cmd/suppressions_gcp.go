@@ -280,14 +280,14 @@ func convertGcpSuppressions(
 				suppressionInfo = updateDiscardedSupConditionsComments(suppressionInfo,
 					fmt.Sprintf("Legacy suppression discarded as the new policy: %s does not"+
 						" support exception conditions", mappedPolicyId))
-			}
 
-			// if the list of supported constraints is empty for a policy,
-			// we should let the customers know that we have discarded this suppression
-			discardedSuppressions = append(
-				discardedSuppressions,
-				map[string]api.SuppressionV2{id: suppressionInfo},
-			)
+				// if the list of supported constraints is empty for a policy,
+				// we should let the customers know that we have discarded this suppression
+				discardedSuppressions = append(
+					discardedSuppressions,
+					map[string]api.SuppressionV2{id: suppressionInfo},
+				)
+			}
 			continue
 		}
 		if len(suppressionInfo.SuppressionConditions) >= 1 {

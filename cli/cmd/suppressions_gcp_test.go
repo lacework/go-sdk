@@ -56,11 +56,9 @@ func TestConvertGcpSuppressions(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	var recsWithSuppressions []string
-	suppCondCount := 0
 	for key, sup := range response {
 		if len(sup.SuppressionConditions) >= 1 {
 			recsWithSuppressions = append(recsWithSuppressions, key)
-			suppCondCount += len(sup.SuppressionConditions)
 		}
 	}
 	assert.Equal(t, 5, len(recsWithSuppressions))
@@ -72,8 +70,8 @@ func TestConvertGcpSuppressions(t *testing.T) {
 
 	convertedPolicyExceptions, payloadsText, discardedSuppressions := convertGcpSuppressions(
 		response, genGcpPoliciesExceptionConstraintsMap())
-	assert.Equal(t, 1, len(discardedSuppressions))
-	assert.Equal(t, suppCondCount, len(payloadsText))
+	assert.Equal(t, 2, len(discardedSuppressions))
+	assert.Equal(t, 3, len(payloadsText))
 	var actualConvertedPolicyIds []string
 	expectedConvertedPolicyIds := []string{"lacework-global-290", "lacework-global-268",
 		"lacework-global-287"}
