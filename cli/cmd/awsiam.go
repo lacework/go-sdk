@@ -173,11 +173,11 @@ func setupSSMRole(c *iam.Client, roleName string) (types.Role, error) {
 	}
 }
 
-type IAMGetRoleAPI interface {
+type iamGetRoleFromNameAPI interface {
 	GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error)
 }
 
-func getRoleFromName(c IAMGetRoleAPI, roleName string) (types.Role, error) {
+func getRoleFromName(c iamGetRoleFromNameAPI, roleName string) (types.Role, error) {
 	cli.Log.Debug("fetching info about role", roleName)
 	output, err := c.GetRole(
 		context.Background(),
@@ -192,9 +192,14 @@ func getRoleFromName(c IAMGetRoleAPI, roleName string) (types.Role, error) {
 	return *output.Role, nil
 }
 
+type iamCreateSSMRoleAPI interface {
+	GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error)
+	CreateRole(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error)
+}
+
 // createSSMRole makes a call to the AWS API to create an IAM role.
 // Returns information about the newly created role and any errors.
-func createSSMRole(c *iam.Client) (types.Role, error) {
+func createSSMRole(c iamCreateSSMRoleAPI) (types.Role, error) {
 	cli.Log.Debug("check if role already exists") // intended for after interrupt or error
 	getOutput, err := c.GetRole(
 		context.Background(),
