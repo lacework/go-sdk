@@ -115,6 +115,7 @@ See help output for more details on the parameter values required for Terraform 
 			// Setup modifiers for NewTerraform constructor
 			mods := []aws_eks_audit.AwsEksAuditTerraformModifier{
 				aws_eks_audit.WithAwsProfile(GenerateAwsEksAuditCommandState.AwsProfile),
+				aws_eks_audit.WithLaceworkAccountID(GenerateAwsEksAuditCommandState.LaceworkAccountID),
 				aws_eks_audit.WithBucketLifecycleExpirationDays(GenerateAwsEksAuditCommandState.BucketLifecycleExpirationDays),
 				aws_eks_audit.WithBucketSseAlgorithm(GenerateAwsEksAuditCommandState.BucketSseAlgorithm),
 				aws_eks_audit.WithBucketSseKeyArn(GenerateAwsEksAuditCommandState.BucketSseKeyArn),
@@ -333,6 +334,8 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 	// TODO Share the help with the interactive generation
 	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsEksAuditCommandState.AwsProfile, "aws_profile", "", "specify aws profile")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.LaceworkAccountID, "lacework_aws_account_id", "", "the Lacework AWS root account id")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.BucketEnableMfaDelete,
 		"enable_mfa_delete_s3",
