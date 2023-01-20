@@ -232,7 +232,7 @@ func suppressionsGcpMigrate(_ *cobra.Command, _ []string) error {
 			cli.OutputHuman(color.GreenString("To view the newly created Exceptions, " +
 				"try running `lacework policy-exceptions list <policyId>"))
 		} else {
-			cli.OutputHuman("Cancelled Legacy Suppression to Exception migration!")
+			cli.OutputHuman("Cancelled Legacy Suppression to Exception migration!\n")
 		}
 	}
 
