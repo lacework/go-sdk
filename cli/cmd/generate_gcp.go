@@ -434,7 +434,6 @@ func initGenerateGcpTfCommandFlags() {
 		"",
 		"location to write generated content (default is ~/lacework/gcp)",
 	)
-
 }
 
 // survey.Validator for gcp region

@@ -129,6 +129,9 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 
 	// Lacework Profile to use
 	LaceworkProfile string
+
+	// The Lacework AWS Root Account ID
+	LaceworkAccountID string
 }
 
 // Ensure all combinations of inputs our valid for supported spec
@@ -182,6 +185,13 @@ func NewTerraform(mods ...AwsEksAuditTerraformModifier) *GenerateAwsEksAuditTfCo
 		m(config)
 	}
 	return config
+}
+
+// WithLaceworkAccountID Set the Lacework AWS root account ID to use
+func WithLaceworkAccountID(accountID string) AwsEksAuditTerraformModifier {
+	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
+		c.LaceworkAccountID = accountID
+	}
 }
 
 // WithAwsProfile Set the AWS Profile to utilize when integrating
@@ -476,6 +486,10 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 	moduleAttrs := map[string]interface{}{}
 	resourceAttrs := map[string]interface{}{}
 	moduleDetails := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithVersion(lwgenerate.AwsEksAuditVersion)}
+
+	if args.LaceworkAccountID != "" {
+		moduleAttrs["lacework_aws_account_id"] = args.LaceworkAccountID
+	}
 
 	if args.BucketEnableMfaDelete && args.BucketVersioning {
 		moduleAttrs["bucket_enable_mfa_delete"] = true

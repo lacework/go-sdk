@@ -32,6 +32,15 @@ func TestGenerationEksSingleRegion(t *testing.T) {
 	assert.Equal(t, reqProviderAndRegion(moduleSingleRegionBasic), hcl)
 }
 
+func TestGenerationEksSingleWithLaceworkAccountID(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap), WithLaceworkAccountID("123456789")).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleSingleRegionWithLaceworkAccountID), hcl)
+}
+
 func TestGenerationEksMultiRegion(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
@@ -405,6 +414,21 @@ module "aws_eks_audit_log" {
   cloudwatch_regions        = ["us-east-1"]
   cluster_names             = ["cluster1", "cluster2"]
   kms_key_multi_region      = false
+  no_cw_subscription_filter = false
+}
+`
+
+var moduleSingleRegionWithLaceworkAccountID = `provider "aws" {
+  region = "us-east-1"
+}
+
+module "aws_eks_audit_log" {
+  source                    = "lacework/eks-audit-log/aws"
+  version                   = "~> 0.4"
+  cloudwatch_regions        = ["us-east-1"]
+  cluster_names             = ["cluster1", "cluster2"]
+  kms_key_multi_region      = false
+  lacework_aws_account_id   = "123456789"
   no_cw_subscription_filter = false
 }
 `
