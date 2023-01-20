@@ -38,6 +38,7 @@ Flags:
       --existing_sns_topic_arn string         specify existing SNS topic arn
       --force_destroy_s3                      enable force destroy S3 bucket
   -h, --help                                  help for aws
+      --lacework_aws_account_id string        the Lacework AWS root account id
       --output string                         location to write generated content (default is ~/lacework/aws)
       --sns_topic_encryption_enabled          enable encryption on SNS topic when creating one (default true)
       --sns_topic_encryption_key_arn string   specify existing KMS encryption key arn for SNS topic
