@@ -248,3 +248,12 @@ func convertToAnySlice(slice []string) []any {
 	}
 	return s
 }
+
+func updateDiscardedSupConditionsComments(suppressionInfo api.SuppressionV2, comment string) api.SuppressionV2 {
+	var updatedSupInfo api.SuppressionV2
+	for _, suppression := range suppressionInfo.SuppressionConditions {
+		suppression.Comment = comment
+		updatedSupInfo.SuppressionConditions = append(updatedSupInfo.SuppressionConditions, suppression)
+	}
+	return updatedSupInfo
+}

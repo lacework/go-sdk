@@ -117,7 +117,7 @@ var (
 		"GCP_CIS12_7_3":    "lacework-global-314",
 	}
 
-	// suppressionsMigrateGcpCmd represents the azure sub-command inside the suppressions migrate command
+	// suppressionsMigrateGcpCmd represents the gcp sub-command inside the suppressions migrate command
 	suppressionsMigrateGcpCmd = &cobra.Command{
 		Use:     "migrate",
 		Aliases: []string{"mig"},
@@ -365,13 +365,4 @@ func convertGcpSuppressions(
 	}
 
 	return convertedPolicyExceptions, payloadsText, discardedSuppressions
-}
-
-func updateDiscardedSupConditionsComments(suppressionInfo api.SuppressionV2, comment string) api.SuppressionV2 {
-	var updatedSupInfo api.SuppressionV2
-	for _, suppression := range suppressionInfo.SuppressionConditions {
-		suppression.Comment = comment
-		updatedSupInfo.SuppressionConditions = append(updatedSupInfo.SuppressionConditions, suppression)
-	}
-	return updatedSupInfo
 }
