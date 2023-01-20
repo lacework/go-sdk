@@ -111,6 +111,17 @@ func (r *ContainersEntityResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
 }
 
+// Total returns the total number of active containers
+func (r *ContainersEntityResponse) Total() int {
+	uniqMIDs := []int{}
+	for _, container := range r.Data {
+		if !array.ContainsInt(uniqMIDs, container.Mid) {
+			uniqMIDs = append(uniqMIDs, container.Mid)
+		}
+	}
+	return len(uniqMIDs)
+}
+
 // Count returns the number of active containers with the provided image ID
 func (r *ContainersEntityResponse) Count(imageID string) int {
 	uniqMIDs := []int{}

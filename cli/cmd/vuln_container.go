@@ -33,11 +33,15 @@ func init() {
 
 	// add start flag to list-assessments command
 	vulContainerListAssessmentsCmd.Flags().StringVar(&vulCmdState.Start,
-		"start", "", "start of the time range in UTC (format: yyyy-MM-ddTHH:mm:ssZ)",
+		"start", "-24h", "start of the time range",
 	)
 	// add end flag to list-assessments command
 	vulContainerListAssessmentsCmd.Flags().StringVar(&vulCmdState.End,
-		"end", "", "end of the time range in UTC (format: yyyy-MM-ddTHH:mm:ssZ)",
+		"end", "now", "end of the time range",
+	)
+	// range time flag
+	vulContainerListAssessmentsCmd.Flags().StringVar(&vulCmdState.Range,
+		"range", "", "natural time range for query",
 	)
 	// add repository flag to list-assessments command
 	vulContainerListAssessmentsCmd.Flags().StringSliceVarP(&vulCmdState.Repositories,

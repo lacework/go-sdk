@@ -8,6 +8,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -18,10 +19,27 @@ var (
 	vulContainerListAssessmentsCmd = &cobra.Command{
 		Use:     "list-assessments",
 		Aliases: []string{"list", "ls"},
-		Short:   "List container vulnerability assessments (default last 7 days)",
-		Long: `List all container vulnerability assessments for the last 7 days by default, or
-pass --start and --end to specify a custom time range. You can pass --fixable to
-filter on containers with vulnerabilities that have fixes available.`,
+		Short:   "List container vulnerability assessments (default last 24 hours)",
+		Long: `List all container vulnerability assessments for the last 24 hours by default.
+
+To customize the time range use use '--start', '--end', or '--range'.
+
+The start and end times can be specified in one of the following formats:
+
+    A. A relative time specifier
+    B. RFC3339 date and time
+    C. Epoch time in milliseconds
+
+Or use a natural time range like.
+
+    lacework vuln container list --range yesterday
+
+The natural time range of 'yesterday' would represent a relative start time of '-1d@d'
+and a relative end time of '@d'.
+
+You can also pass '--fixable' to filter on containers with vulnerabilities that have
+fixes available, or '--active' to filter on container images actively running in your
+environment.`,
 		Args: cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if vulCmdState.Csv {
@@ -32,14 +50,11 @@ filter on containers with vulnerabilities that have fixes available.`,
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
-				assessments      []vulnerabilityAssessmentSummary
-				cacheKey         = "vulnerability/container/v2"
-				filter           api.SearchFilter
-				now              = time.Now().UTC()
-				days             = 7
-				before           = now.AddDate(0, 0, -days)
-				timeRangeMsg     = fmt.Sprintf(" from the last %d days", days)
-				partialResultMsg string
+				assessments []vulnerabilityAssessmentSummary
+				cacheKey    = "vulnerability/container/v2"
+				filter      api.SearchFilter
+				start       time.Time
+				end         time.Time
 			)
 
 			expired := cli.ReadCachedAsset(cacheKey, &assessments)
@@ -48,31 +63,39 @@ filter on containers with vulnerabilities that have fixes available.`,
 				cli.StartProgress("Fetching container registries...")
 				registries, err := getContainerRegistries()
 				cli.StopProgress()
-
 				if err != nil {
 					return err
 				}
 
-				if vulCmdState.Start != "" || vulCmdState.End != "" {
-					start, end, errT := parseStartAndEndTime(vulCmdState.Start, vulCmdState.End)
-					if errT != nil {
-						return errors.Wrap(errT, "unable to parse time range")
+				if vulCmdState.Range != "" {
+					cli.Log.Debugw("retrieving natural time range", "range", vulCmdState.Range)
+					start, end, err = lwtime.ParseNatural(vulCmdState.Range)
+					if err != nil {
+						return errors.Wrap(err, "unable to parse natural time range")
 					}
 
-					cli.Log.Infow("requesting list of assessments from custom time range",
-						"start_time", start, "end_time", end,
-					)
-					filter.TimeFilter = &api.TimeFilter{
-						StartTime: &start,
-						EndTime:   &end,
+				} else {
+					cli.Log.Debugw("parsing start time", "start", vulCmdState.Start)
+					start, err = parseQueryTime(vulCmdState.Start)
+					if err != nil {
+						return errors.Wrap(err, "unable to parse start time")
 					}
-					timeRangeMsg = fmt.Sprintf(" in date range (%s to %s)", start, end)
+
+					cli.Log.Debugw("parsing end time", "end", vulCmdState.End)
+					end, err = parseQueryTime(vulCmdState.End)
+					if err != nil {
+						return errors.Wrap(err, "unable to parse end time")
+					}
 				}
 
+				cli.Log.Infow("requesting list of assessments", "start_time", start, "end_time", end)
 				filter.TimeFilter = &api.TimeFilter{
-					StartTime: &before,
-					EndTime:   &now,
+					StartTime: &start,
+					EndTime:   &end,
 				}
+
+				timeRangeMsg := fmt.Sprintf(" in time range (%s to %s)",
+					start.Format(time.RFC3339), end.Format(time.RFC3339))
 
 				cli.StartProgress(fmt.Sprintf("Searching for active containers%s...", timeRangeMsg))
 				activeContainers, err := cli.LwApi.V2.Entities.ListAllContainersWithFilters(filter)
@@ -80,6 +103,8 @@ filter on containers with vulnerabilities that have fixes available.`,
 				if err != nil {
 					return errors.Wrap(err, "unable to search for active containers")
 				}
+
+				cli.Log.Infow("active containers info", "active_count", activeContainers.Total(), "entities_count", len(activeContainers.Data))
 
 				cli.StartProgress(fmt.Sprintf("Fetching assessments%s...", timeRangeMsg))
 				assessments, err = listVulnCtrAssessments(registries, activeContainers, &filter)
@@ -117,8 +142,6 @@ filter on containers with vulnerabilities that have fixes available.`,
 				if err := cli.OutputCSV(headers, rows); err != nil {
 					return errors.Wrap(err, "failed to create csv output")
 				}
-			case partialResultMsg != "": // @afiune what is this?
-				cli.OutputHuman(partialResultMsg)
 			default:
 				cli.OutputHuman(renderSimpleTable(headers, rows))
 				if !vulCmdState.Fixable {
