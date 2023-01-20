@@ -72,14 +72,14 @@ func init() {
 }
 
 func autoConvertSuppressions(convertedPolicyExceptions []map[string]api.PolicyException) {
-	cli.StartProgress("Creating policy exceptions ...")
+	cli.StartProgress("Creating policy exceptions...")
 	for _, exceptionMap := range convertedPolicyExceptions {
 		for policyId, exception := range exceptionMap {
 			response, err := cli.LwApi.V2.Policy.Exceptions.Create(policyId, exception)
 			if err != nil {
 				cli.Log.Debug(err, "unable to create exception")
 				cli.OutputHuman(color.RedString(
-					"Error creating policy exception to create exception. %e"),
+					"Error creating policy exception to create exception. %s"),
 					err)
 				continue
 			}
