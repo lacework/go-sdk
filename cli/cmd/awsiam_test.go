@@ -29,10 +29,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// AWS SDK mocks
+
 type mockGetRoleAPI func(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error)
 
 func (m mockGetRoleAPI) GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
 	return m(ctx, params, optFns...)
+}
+
+type mockCreateRoleAPI func(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error)
+
+func (m mockCreateRoleAPI) CreateRole(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error) {
+	return m(ctx, params, optFns...)
+}
+
+// ------------------------------------------------------------
+
+// getRoleFromName tests
+
+type mockGetRoleFromNameClient struct {
+	getRoleMethod mockGetRoleAPI
+}
+
+func (m mockGetRoleFromNameClient) GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
+	return m.getRoleMethod(ctx, params, optFns...)
 }
 
 func TestGetRoleFromName(t *testing.T) {
@@ -42,13 +62,15 @@ func TestGetRoleFromName(t *testing.T) {
 		roleName string
 	}{
 		{
-			client: mockGetRoleAPI(func(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
-				return &iam.GetRoleOutput{
-					Role: &types.Role{
-						RoleName: aws.String(testRoleName),
-					},
-				}, nil
-			}),
+			client: mockGetRoleFromNameClient{
+				getRoleMethod: mockGetRoleAPI(func(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
+					return &iam.GetRoleOutput{
+						Role: &types.Role{
+							RoleName: aws.String(testRoleName),
+						},
+					}, nil
+				}),
+			},
 			roleName: testRoleName,
 		},
 	}
@@ -62,11 +84,7 @@ func TestGetRoleFromName(t *testing.T) {
 	}
 }
 
-type mockCreateRoleAPI func(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error)
-
-func (m mockCreateRoleAPI) CreateRole(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error) {
-	return m(ctx, params, optFns...)
-}
+// createSSMRole tests
 
 type mockCreateSSMRoleClient struct {
 	getRoleMethod    mockGetRoleAPI
