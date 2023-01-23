@@ -39,7 +39,7 @@ func TestConvertAwsSuppressions(t *testing.T) {
 	fakeServer.MockAPI("suppressions/aws/allExceptions",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "AwsList() should be a GET method")
-			Suppressions := rawSuppressions()
+			Suppressions := rawAwsSuppressions()
 			fmt.Fprintf(w, Suppressions)
 		},
 	)
@@ -72,7 +72,7 @@ func TestConvertAwsSuppressions(t *testing.T) {
 	assert.Equal(t, expectedRecsWithSup, recsWithSuppressions)
 
 	convertedPolicyExceptions, payloadsText, discardedSuppressions := convertAwsSuppressions(
-		response, genPoliciesExceptionConstraintsMap())
+		response, genAwsPoliciesExceptionConstraintsMap())
 	assert.Equal(t, 1, len(discardedSuppressions))
 	assert.Equal(t, suppCondCount, len(payloadsText))
 	var actualConvertedPolicyIds []string
@@ -90,7 +90,20 @@ func TestConvertAwsSuppressions(t *testing.T) {
 	assert.Equal(t, expectedConvertedPolicyIds, actualConvertedPolicyIds)
 }
 
-func rawSuppressions() string {
+func TestConvertAwsResourceNamesSupCondition(t *testing.T) {
+	awsPoliciesExceptionConstraintsMap := genAwsPoliciesExceptionConstraintsMap()
+	resourceNamesConstraint := convertSupCondition([]string{"foobar",
+		"arn:partition:service:region:account-id:resource-id"},
+		"resourceNames",
+		awsPoliciesExceptionConstraintsMap["lacework-global-100"])
+	expectedResourceNamesConstraint := api.PolicyExceptionConstraint{
+		FieldKey:    "resourceNames",
+		FieldValues: []any{"foobar", "resource-id"},
+	}
+	assert.Equal(t, expectedResourceNamesConstraint, resourceNamesConstraint)
+}
+
+func rawAwsSuppressions() string {
 	return `{
   "data": [
     {
@@ -855,7 +868,7 @@ func rawSuppressions() string {
 }`
 }
 
-func genPoliciesExceptionConstraintsMap() map[string][]string {
+func genAwsPoliciesExceptionConstraintsMap() map[string][]string {
 	return map[string][]string{
 		"lacework-global-100": {
 			"accountIds",
