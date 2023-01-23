@@ -1,0 +1,20 @@
+# Mac users
+.DS_Store
+
+# Lacework CDK dev-mode
+.dev
+[[.Component]]
+
+# vim
+*.swp
+
+# Go test coverage
+coverage.out
+coverage.html
+
+# binaries folder
+/bin
+
+# vscode debug.test
+**/debug.test
+.vscode/*

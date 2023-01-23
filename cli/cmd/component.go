@@ -21,9 +21,7 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/Masterminds/semver"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
@@ -34,11 +32,6 @@ import (
 )
 
 const componentTypeAnnotation string = "component"
-
-var cdkDevState = struct {
-	Type        string
-	Description string
-}{}
 
 var (
 	// componentsCmd represents the components command
@@ -124,22 +117,6 @@ func init() {
 	componentsCmd.AddCommand(componentsUpdateCmd)
 	componentsCmd.AddCommand(componentsUninstallCmd)
 	componentsCmd.AddCommand(componentsDevModeCmd)
-
-	componentsDevModeCmd.Flags().StringVar(
-		&cdkDevState.Type,
-		"type", "",
-		fmt.Sprintf("component type (%s, %s, %s)",
-			lwcomponent.BinaryType,
-			lwcomponent.CommandType,
-			lwcomponent.LibraryType,
-		),
-	)
-
-	componentsDevModeCmd.Flags().StringVar(
-		&cdkDevState.Description,
-		"description", "",
-		"component description",
-	)
 
 	// load components dynamically
 	cli.LoadComponents()
@@ -526,80 +503,4 @@ func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
 	cli.OutputHuman("\nDo you want to provide feedback?\n")
 	cli.OutputHuman("Reach out to us at %s\n", color.HiCyanString("support@lacework.net"))
 	return
-}
-
-func runComponentsDevMode(_ *cobra.Command, args []string) error {
-	cli.StartProgress("Loading components state...")
-	var err error
-	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
-	cli.StopProgress()
-	if err != nil {
-		return errors.Wrap(err, "unable to load components")
-	}
-
-	component, found := cli.LwComponents.GetComponent(args[0])
-	if !found {
-		component = &lwcomponent.Component{
-			Name: args[0],
-		}
-
-		if component.UnderDevelopment() {
-			return errors.New("component already under development.")
-		}
-
-		cli.OutputHuman("Component '%s' not found. Defining a new component.\n",
-			color.HiYellowString(component.Name))
-
-		var (
-			helpMsg = fmt.Sprintf("What are these component types ?\n"+
-				"\n'%s' - A regular standalone-binary (this component type is not accessible via the CLI)"+
-				"\n'%s' - A binary accessible via the Lacework CLI (Users will run 'lacework <COMPONENT_NAME>')"+
-				"\n'%s' - A library that only provides content for the CLI or other components\n",
-				lwcomponent.BinaryType, lwcomponent.CommandType, lwcomponent.LibraryType)
-		)
-		if cdkDevState.Type == "" {
-			if err := survey.AskOne(&survey.Select{
-				Message: "Select the type of component you are developing:",
-				Help:    helpMsg,
-				Options: []string{
-					lwcomponent.BinaryType,
-					lwcomponent.CommandType,
-					lwcomponent.LibraryType,
-				},
-			}, &cdkDevState.Type); err != nil {
-				return err
-			}
-		}
-
-		component.Type = lwcomponent.Type(cdkDevState.Type)
-
-		if cdkDevState.Description == "" {
-			if err := survey.AskOne(&survey.Input{
-				Message: "What is this component about? (component description):",
-			}, &component.Description); err != nil {
-				return err
-			}
-		} else {
-			component.Description = cdkDevState.Description
-		}
-	}
-
-	if err := component.EnterDevelopmentMode(); err != nil {
-		return errors.Wrap(err, "unable to enter development mode")
-	}
-
-	rPath, err := component.RootPath()
-	if err != nil {
-		return errors.New("unable to detect RootPath")
-	}
-
-	cli.OutputHuman("Component '%s' in now in development mode.\n\n",
-		color.HiYellowString(component.Name))
-	cli.OutputHuman("Root path: %s\n", rPath)
-	cli.OutputHuman("Dev specs: %s\n", filepath.Join(rPath, ".dev"))
-	if component.Type == lwcomponent.CommandType {
-		cli.OutputHuman("\nDeploy your dev component at: %s\n",
-			color.HiYellowString(filepath.Join(rPath, component.Name)))
-	}
-	return nil
 }

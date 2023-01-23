@@ -41,6 +41,7 @@ Flags:
   -h, --help                                      help for eks
       --integration_name string                   specify the name of the eks audit integration
       --kms_key_deletion_days int                 specify the kms waiting period before deletion, in number of days
+      --lacework_aws_account_id string            the Lacework AWS root account id
       --output string                             location to write generated content
       --prefix string                             specify the prefix that will be used at the beginning of every generated resource
       --region_clusters stringToString            configure eks clusters per aws region. To configure multiple regions pass the flag multiple times. Example format:  --region_clusters <region>="cluster,list" (default [])

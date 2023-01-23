@@ -37,6 +37,21 @@ func Get(file string) ([]byte, bool) {
 	return box.Get(file)
 }
 
+// List all files inside the global box
+func ListAll() []string {
+	return box.List("/")
+}
+
+// List of files from a directory inside the global box
+//
+// Example:
+// ```go
+// databox.ListFilesFromDir("/scaffoldings/golang")
+// ```
+func ListFilesFromDir(prefix string) []string {
+	return box.List(prefix)
+}
+
 // Data box definition
 type data struct {
 	box map[string][]byte
@@ -55,4 +70,22 @@ func (d *data) Get(file string) ([]byte, bool) {
 
 	f, ok := d.box[file]
 	return f, ok
+}
+
+// List of files inside the box
+func (d *data) List(prefix string) []string {
+	if prefix == "" {
+		prefix = "/"
+	} else if !strings.HasPrefix(prefix, "/") {
+		prefix = fmt.Sprintf("/%s", prefix)
+	}
+
+	tree := []string{}
+	for f := range d.box {
+		if strings.HasPrefix(f, prefix) {
+			tree = append(tree, f)
+		}
+	}
+
+	return tree
 }

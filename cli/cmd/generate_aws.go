@@ -109,6 +109,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			mods := []aws.AwsTerraformModifier{
 				aws.WithAwsProfile(GenerateAwsCommandState.AwsProfile),
 				aws.WithLaceworkProfile(GenerateAwsCommandState.LaceworkProfile),
+				aws.WithLaceworkAccountID(GenerateAwsCommandState.LaceworkAccountID),
 				aws.ExistingCloudtrailBucketArn(GenerateAwsCommandState.ExistingCloudtrailBucketArn),
 				aws.ExistingSnsTopicArn(GenerateAwsCommandState.ExistingSnsTopicArn),
 				aws.WithSubaccounts(GenerateAwsCommandState.SubAccounts...),
@@ -442,6 +443,11 @@ func initGenerateAwsTfCommandFlags() {
 		"sqs_queue_name",
 		"",
 		"specify SQS queue name if creating new one")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.LaceworkAccountID,
+		"lacework_aws_account_id",
+		"",
+		"the Lacework AWS root account id")
 }
 
 // survey.Validator for aws ARNs

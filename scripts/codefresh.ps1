@@ -15,6 +15,7 @@ go install gotest.tools/gotestsum@v1.7.0
 
 Write-Host "Building Lacework CLI binaries."
 $env:GOFLAGS = '-mod=vendor'
+$env:CGO_ENABLED = 0
 gox -output="bin/lacework-cli-{{.OS}}-{{.Arch}}" -os="windows" -arch="amd64 386" github.com/lacework/go-sdk/cli
 
 Write-Host "Running integrations tests."

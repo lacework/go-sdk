@@ -147,6 +147,9 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// Lacework Profile to use
 	LaceworkProfile string
+
+	// The Lacework AWS Root Account ID
+	LaceworkAccountID string
 }
 
 // Ensure all combinations of inputs our valid for supported spec
@@ -205,6 +208,13 @@ func WithAwsProfile(name string) AwsTerraformModifier {
 func WithLaceworkProfile(name string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.LaceworkProfile = name
+	}
+}
+
+// WithLaceworkAccountID Set the Lacework AWS root account ID to use
+func WithLaceworkAccountID(accountID string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.LaceworkAccountID = accountID
 	}
 }
 
@@ -451,6 +461,9 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 			moduleDetails = append(moduleDetails,
 				lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
 		}
+		if args.LaceworkAccountID != "" {
+			moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithAttributes(map[string]interface{}{"lacework_aws_account_id": args.LaceworkAccountID}))
+		}
 
 		moduleBlock, err := lwgenerate.NewModule(
 			"aws_config",
@@ -489,6 +502,10 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 	if args.Cloudtrail {
 		attributes := map[string]interface{}{}
 		modDetails := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithVersion(lwgenerate.AwsCloudTrailVersion)}
+
+		if args.LaceworkAccountID != "" {
+			attributes["lacework_aws_account_id"] = args.LaceworkAccountID
+		}
 		if args.ConsolidatedCloudtrail {
 			attributes["consolidated_trail"] = true
 		}
