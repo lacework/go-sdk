@@ -29,28 +29,47 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// AWS SDK mocks
+
 type mockGetRoleAPI func(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error)
 
 func (m mockGetRoleAPI) GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
 	return m(ctx, params, optFns...)
 }
 
+type mockCreateRoleAPI func(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error)
+
+func (m mockCreateRoleAPI) CreateRole(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error) {
+	return m(ctx, params, optFns...)
+}
+
+// ------------------------------------------------------------
+
+// getRoleFromName tests
+
+type mockGetRoleFromNameClient struct {
+	getRoleMethod mockGetRoleAPI
+}
+
+func (m mockGetRoleFromNameClient) GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
+	return m.getRoleMethod(ctx, params, optFns...)
+}
+
 func TestGetRoleFromName(t *testing.T) {
 	testRoleName := "test_role_name"
 	cases := []struct {
-		client   func(t *testing.T) IAMGetRoleAPI
+		client   iamGetRoleFromNameAPI
 		roleName string
 	}{
 		{
-			client: func(t *testing.T) IAMGetRoleAPI {
-				return mockGetRoleAPI(func(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
+			client: mockGetRoleFromNameClient{
+				getRoleMethod: mockGetRoleAPI(func(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
 					return &iam.GetRoleOutput{
 						Role: &types.Role{
 							RoleName: aws.String(testRoleName),
 						},
 					}, nil
-
-				})
+				}),
 			},
 			roleName: testRoleName,
 		},
@@ -58,9 +77,60 @@ func TestGetRoleFromName(t *testing.T) {
 
 	for i, tt := range cases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			role, err := getRoleFromName(tt.client(t), tt.roleName)
+			role, err := getRoleFromName(tt.client, tt.roleName)
 			assert.NoError(t, err)
-			assert.Equal(t, *role.RoleName, testRoleName)
+			assert.Equal(t, *role.RoleName, tt.roleName)
+		})
+	}
+}
+
+// createSSMRole tests
+
+type mockCreateSSMRoleClient struct {
+	getRoleMethod    mockGetRoleAPI
+	createRoleMethod mockCreateRoleAPI
+}
+
+func (m mockCreateSSMRoleClient) GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
+	return m.getRoleMethod(ctx, params, optFns...)
+}
+
+func (m mockCreateSSMRoleClient) CreateRole(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error) {
+	return m.createRoleMethod(ctx, params, optFns...)
+}
+
+func TestCreateSSMRole(t *testing.T) {
+	testRoleName := "test_role_name"
+	cases := []struct {
+		client   iamCreateSSMRoleAPI
+		roleName string
+	}{
+		{
+			client: mockCreateSSMRoleClient{
+				getRoleMethod: mockGetRoleAPI(func(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
+					return &iam.GetRoleOutput{
+						Role: &types.Role{
+							RoleName: aws.String(testRoleName),
+						},
+					}, nil
+				}),
+				createRoleMethod: mockCreateRoleAPI(func(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error) {
+					return &iam.CreateRoleOutput{
+						Role: &types.Role{
+							RoleName: aws.String(testRoleName),
+						},
+					}, nil
+				}),
+			},
+			roleName: testRoleName,
+		},
+	}
+
+	for i, tt := range cases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			role, err := createSSMRole(tt.client)
+			assert.NoError(t, err)
+			assert.Equal(t, *role.RoleName, tt.roleName)
 		})
 	}
 }
