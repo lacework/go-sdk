@@ -120,7 +120,7 @@ func userFriendlyErrorForOnDemandCtrVulnScan(err error, registry, repo, tag stri
 
 Get started by integrating your container registry using the command:
 
-    lacework integration create
+    lacework container-registry create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
@@ -139,7 +139,7 @@ Your account has the following container registries configured:
 
 To integrate a new container registry use the command:
 
-    lacework integration create
+    lacework container-registry create
 `
 		return errors.New(fmt.Sprintf(msg, registry, strings.Join(registries, "\n    > ")))
 	}

@@ -67,6 +67,23 @@ environment.`,
 					return err
 				}
 
+				cli.Log.Infow("container registries found", "count", len(registries))
+				for _, reg := range vulCmdState.Registries {
+					if !array.ContainsStr(registries, reg) {
+						msg := `container registry '%s' not found
+
+Your account has the following container registries configured:
+
+    > %s
+
+To integrate a new container registry use the command:
+
+    lacework container-registry create
+`
+						return errors.Errorf(msg, reg, strings.Join(registries, "\n    > "))
+					}
+				}
+
 				if vulCmdState.Range != "" {
 					cli.Log.Debugw("retrieving natural time range", "range", vulCmdState.Range)
 					start, end, err = lwtime.ParseNatural(vulCmdState.Range)
@@ -104,7 +121,10 @@ environment.`,
 					return errors.Wrap(err, "unable to search for active containers")
 				}
 
-				cli.Log.Infow("active containers info", "active_count", activeContainers.Total(), "entities_count", len(activeContainers.Data))
+				cli.Log.Infow("active containers info",
+					"active_count", activeContainers.Total(),
+					"entities_count", len(activeContainers.Data),
+				)
 
 				cli.StartProgress(fmt.Sprintf("Fetching assessments%s...", timeRangeMsg))
 				assessments, err = listVulnCtrAssessments(registries, activeContainers, &filter)
@@ -134,7 +154,8 @@ environment.`,
 			// Build table output
 			assessmentOutput := assessmentSummaryToOutputFormat(assessments)
 			rows := vulAssessmentsToTable(assessmentOutput)
-			headers := []string{"Registry", "Repository", "Last Scan", "Status", "Containers", "Vulnerabilities", "Image Digest"}
+			headers := []string{"Registry", "Repository", "Last Scan",
+				"Status", "Containers", "Vulnerabilities", "Image Digest"}
 			switch {
 			case len(rows) == 0:
 				cli.OutputHuman(buildContainerAssessmentsError())
@@ -157,7 +178,10 @@ environment.`,
 )
 
 func vulnCtrListAssessmentFiltersEnabled() bool {
-	return len(vulCmdState.Repositories) > 0 || len(vulCmdState.Registries) > 0 || vulCmdState.Fixable || vulCmdState.Active
+	return len(vulCmdState.Repositories) > 0 ||
+		len(vulCmdState.Registries) > 0 ||
+		vulCmdState.Fixable ||
+		vulCmdState.Active
 }
 
 func applyVulnCtrFilters(assessments []vulnerabilityAssessmentSummary) (filtered []vulnerabilityAssessmentSummary) {
