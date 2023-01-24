@@ -1,3 +1,8 @@
+# v1.7.1
+
+## Other Changes
+* ci: version bump to v1.7.1-dev (Lacework)([c463aad0](https://github.com/lacework/go-sdk/commit/c463aad0099db1e528c835a62f1e6150e5c84f27))
+---
 # v1.7.0
 
 ## Features
