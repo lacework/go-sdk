@@ -56,6 +56,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.33.1
 	github.com/go-git/go-git/v5 v5.5.2
 	github.com/mattn/go-isatty v0.0.14
+	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/spf13/cast v1.5.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 	google.golang.org/api v0.103.0

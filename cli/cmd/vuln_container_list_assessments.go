@@ -50,8 +50,10 @@ environment.`,
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			var (
+				// the cache key changes depending on some filters that
+				// will affect the data returned from our API's
+				cacheKey    = generateContainerVulnListCacheKey()
 				assessments []vulnerabilityAssessmentSummary
-				cacheKey    = "vulnerability/container/v2"
 				filter      api.SearchFilter
 				start       time.Time
 				end         time.Time
@@ -135,6 +137,8 @@ To integrate a new container registry use the command:
 
 				// write to cache if the request was successful
 				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), assessments)
+			} else {
+				cli.Log.Infow("assessments loaded from cache", "count", len(assessments))
 			}
 
 			if len(assessments) == 0 {
@@ -470,4 +474,32 @@ type assessmentOutput struct {
 	ndvContainers     string
 	assessmentSummary string
 	imageDigest       string
+}
+
+// generateContainerVulnListCacheKey returns the cache key where the CLI will store vulnerability
+// assessments for the next few minutes so that consecutive commands run faster and we avoid sending
+// duplicate requests to our APIs.
+//
+// The criteria to generate this cache key is to use the prefix 'vulnerability/container/v2_{HASH}'
+// with a hash value at the end of the prefix. The hash is generated based of filters that, if changed
+// by the user, will change the data returned from our APIs
+func generateContainerVulnListCacheKey() string {
+	var cacheFiltersHash = cacheFiltersToBuildVulnContainerHash{
+		Start:        vulCmdState.Start,        // mapped to '--start'
+		End:          vulCmdState.End,          // mapped to '--end'
+		Range:        vulCmdState.Range,        // mapped to '--range'
+		Repositories: vulCmdState.Repositories, // mapped to '--repository' (multi-flag)
+		Registries:   vulCmdState.Registries,   // mapped to '--registry'   (multi-flag)
+	}
+	return fmt.Sprintf("vulnerability/container/v2_%d", hash(cacheFiltersHash))
+}
+
+// struct that defines the filters we care about, that is, filters that
+// when changed, will generate a different hash
+type cacheFiltersToBuildVulnContainerHash struct {
+	Start        string
+	End          string
+	Range        string
+	Repositories []string
+	Registries   []string
 }

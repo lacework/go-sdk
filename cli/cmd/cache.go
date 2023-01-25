@@ -26,6 +26,7 @@ import (
 
 	"github.com/lacework/go-sdk/internal/cache"
 	"github.com/lacework/go-sdk/internal/format"
+	"github.com/mitchellh/hashstructure/v2"
 	"github.com/peterbourgon/diskv/v3"
 )
 
@@ -289,4 +290,15 @@ func (c *cliState) ReadCachedAsset(key string, data interface{}) bool {
 	}
 
 	return true
+}
+
+// hash creates a unique hash value for arbitrary values in Go.
+//
+// Useful to generate unique cache keys of filters applied to commands.
+func hash(v interface{}) uint64 {
+	h, err := hashstructure.Hash(v, hashstructure.FormatV2, nil)
+	if err != nil {
+		cli.Log.Warnw("unable to generate Hash()", "error", err.Error())
+	}
+	return h
 }
