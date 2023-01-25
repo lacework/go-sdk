@@ -131,10 +131,11 @@ func (run AWSRunner) SendPublicKey(pubBytes []byte) error {
 // receiving runner. First checks if there are any instance profiles already associated
 // with the runner, and returns an error if so (since a runner can only have one instance
 // profile associated with it). Then associates the instance profile with the runner.
-func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instanceProfile types.InstanceProfile) error {
+// Returns the association ID or an error.
+func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instanceProfile types.InstanceProfile) (string, error) {
 	c := ec2.New(ec2.Options{
 		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
+		Region:      run.Region,
 	})
 
 	// Check to see if there are any instance profiles already associated with the runner
@@ -152,18 +153,18 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 		},
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	alreadyAssociated, err := run.isCorrectInstanceProfileAlreadyAssociated(cfg, describeOutput.IamInstanceProfileAssociations)
+	associationID, err := run.isCorrectInstanceProfileAlreadyAssociated(cfg, describeOutput.IamInstanceProfileAssociations)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	if alreadyAssociated { // use the existing, correctly configured instance profile
-		return nil
+	if associationID != "" { // use the existing, correctly configured instance profile
+		return associationID, nil
 	} else { // associate our own instance profile
-		_, err = c.AssociateIamInstanceProfile(
+		associateOutput, err := c.AssociateIamInstanceProfile(
 			context.Background(),
 			&ec2.AssociateIamInstanceProfileInput{
 				IamInstanceProfile: &ec2types.IamInstanceProfileSpecification{
@@ -173,22 +174,22 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 			},
 		)
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		return nil
+		return *associateOutput.IamInstanceProfileAssociation.AssociationId, nil
 	}
 }
 
 // isCorrectInstanceProfileAlreadyAssociated takes a list of instance profile associations
 // and checks if there is an instance profile associated and if this instance
-// profile has the correct policy for SSM access. Returns `true, nil` if so. Returns
-// `false, nil` if there is no instance profile associated. Returns `false, <error>` if
+// profile has the correct policy for SSM access. Returns `<assoc. id>, nil` if so. Returns
+// `"", nil` if there is no instance profile associated. Returns `"", <error>` if
 // there is an incorrect instance profile associated, or if there was an error in
 // executing this function.
-func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, associations []ec2types.IamInstanceProfileAssociation) (bool, error) {
+func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, associations []ec2types.IamInstanceProfileAssociation) (string, error) {
 	if len(associations) <= 0 { // no instance profile associated
-		return false, nil
+		return "", nil
 	}
 	instanceProfileName := strings.Split(*associations[0].IamInstanceProfile.Arn, "instance-profile/")[1]
 
@@ -204,13 +205,13 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 		},
 	)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
 	// Check to see if the instance profile associated with the runner has the correct policy
 
 	if len(getInstanceProfileOutput.InstanceProfile.Roles) <= 0 { // can only have max one role
-		return false, fmt.Errorf(
+		return "", fmt.Errorf(
 			"runner %v already has an instance profile (%v) attached, does not have a role",
 			run,
 			getInstanceProfileOutput.InstanceProfile,
@@ -225,24 +226,40 @@ func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, a
 		},
 	)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
 	for _, policy := range listAttachedRolePoliciesOutput.AttachedPolicies {
 		if *policy.PolicyArn == SSMInstancePolicy {
-			return true, nil // everything is configured correctly, we can return now
+			return *associations[0].AssociationId, nil // everything is configured correctly, we can return now
 		}
 	}
 
 	// The runner has an instance profile attached, the instance profile has a role,
 	// and the role does not have the policy we need for SSM. We can't install on
 	// this instance, return an error
-	return false, fmt.Errorf(
+	return "", fmt.Errorf(
 		"runner %v already has an instance profile (%v) attached, does not have policy %s",
 		run,
 		getInstanceProfileOutput.InstanceProfile,
 		SSMInstancePolicy,
 	)
+}
+
+func (run AWSRunner) DisassociateInstanceProfileFromRunner(cfg aws.Config, associationID string) error {
+	c := ec2.New(ec2.Options{
+		Credentials: cfg.Credentials,
+		Region:      run.Region,
+	})
+
+	_, err := c.DisassociateIamInstanceProfile(
+		context.Background(),
+		&ec2.DisassociateIamInstanceProfileInput{
+			AssociationId: aws.String(associationID),
+		},
+	)
+
+	return err
 }
 
 const SSMInstancePolicy string = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
