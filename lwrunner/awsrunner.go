@@ -271,7 +271,7 @@ const SSMInstancePolicy string = "arn:aws:iam::aws:policy/AmazonSSMManagedInstan
 func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string) (ssm.GetCommandInvocationOutput, error) {
 	c := ssm.New(ssm.Options{
 		Credentials: cfg.Credentials,
-		Region:      cfg.Region,
+		Region:      run.Region,
 	})
 
 	sendCommandOutput, err := c.SendCommand(
