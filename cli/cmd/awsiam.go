@@ -20,12 +20,12 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/google/uuid"
 	"github.com/lacework/go-sdk/lwrunner"
 )
 
@@ -193,24 +193,14 @@ func getRoleFromName(c iamGetRoleFromNameAPI, roleName string) (types.Role, erro
 }
 
 type iamCreateSSMRoleAPI interface {
-	GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error)
 	CreateRole(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error)
 }
 
 // createSSMRole makes a call to the AWS API to create an IAM role.
 // Returns information about the newly created role and any errors.
 func createSSMRole(c iamCreateSSMRoleAPI) (types.Role, error) {
-	cli.Log.Debug("check if role already exists") // intended for after interrupt or error
-	getOutput, err := c.GetRole(
-		context.Background(),
-		&iam.GetRoleInput{
-			RoleName: aws.String(roleName),
-		},
-	)
-	if err == nil && getOutput.Role != nil {
-		cli.Log.Debug("we previously created the role, use it")
-		return *getOutput.Role, err
-	}
+	const roleNameBase string = "Lacework-Agent-SSM-Install-Role-"
+	roleName := roleNameBase + uuid.New().String()[:5]
 
 	const trustPolicyDocument = `{
 	"Version": "2012-10-17",
@@ -252,8 +242,6 @@ Safe to delete if found`,
 	return *output.Role, nil
 }
 
-const roleName string = "Lacework-Agent-SSM-Install-Role"
-
 // attachSSMPoliciesToRole takes a role, calls the IAM API to attach
 // policies required for SSM to the role, and returns the role along
 // with any errors.
@@ -285,21 +273,9 @@ func setupInstanceProfile(c *iam.Client, role types.Role) (types.InstanceProfile
 }
 
 func createInstanceProfile(c *iam.Client) (types.InstanceProfile, error) {
-	cli.Log.Debug("checking if instance profile already exists") // intended for after interrupt or error
-	getOutput, err := c.GetInstanceProfile(
-		context.Background(),
-		&iam.GetInstanceProfileInput{
-			InstanceProfileName: aws.String(instanceProfileName),
-		},
-	)
-	if err == nil && getOutput.InstanceProfile != nil {
-		cli.Log.Debugw("found existing instance profile",
-			"instance profile", *getOutput.InstanceProfile,
-		)
-		return *getOutput.InstanceProfile, err
-	}
+	const instanceProfileNameBase string = "Lacework-Agent-SSM-Install-Instance-Profile-"
+	instanceProfileName := instanceProfileNameBase + uuid.New().String()[:5]
 
-	cli.Log.Debug("no existing instance profile, creating one now")
 	createOutput, err := c.CreateInstanceProfile(
 		context.Background(),
 		&iam.CreateInstanceProfileInput{
@@ -326,28 +302,7 @@ func createInstanceProfile(c *iam.Client) (types.InstanceProfile, error) {
 	return *createOutput.InstanceProfile, err
 }
 
-const instanceProfileName string = "Lacework-Agent-SSM-Install-Instance-Profile"
-
 func addRoleToInstanceProfile(c *iam.Client, role types.Role, instanceProfile types.InstanceProfile) error {
-	cli.Log.Debug("checking if the role is already associated with the instance profile")
-	if len(instanceProfile.Roles) > 0 {
-		cli.Log.Debugw(
-			"found a role already associated with the instance profile",
-			"found role", instanceProfile.Roles[0],
-			"our role", role,
-		)
-		if *instanceProfile.Roles[0].Arn == *role.Arn {
-			return nil // the correct role is already attached to the instance profile
-		} else { // someone else modified this instance profile. Fail now
-			return fmt.Errorf(
-				"tried to use role %s but pre-existing instance profile %s already has role %s",
-				*role.Arn,
-				instanceProfileName,
-				*instanceProfile.Roles[0].Arn,
-			)
-		}
-	}
-
 	cli.Log.Debugw("adding role to instance profile", "role", role, "instance profile", instanceProfile)
 	_, err := c.AddRoleToInstanceProfile(
 		context.Background(),

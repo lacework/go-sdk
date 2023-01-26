@@ -25,6 +25,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -184,7 +185,12 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 			cli.StopProgress()
 			err := teardownSSMAccess(cfg, role, instanceProfile, agentCmdState.InstallBYORole) // clean up after ourselves
 			if err != nil {
-				cli.OutputHuman("got an error %v while tearing down IAM role / infra", err)
+				cli.OutputHuman("got an error %v while tearing down IAM role / infra\n", err)
+				cli.Log.Debugw("IAM infra info after error",
+					"role", role,
+					"instance profile", instanceProfile,
+					"error", err,
+				)
 			}
 		}()
 		if err != nil {
@@ -231,7 +237,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 
 			if !agentCmdState.InstallSkipCreatInfra {
 				// Attach an instance profile with our new role to the instance
-				err = threadRunner.AssociateInstanceProfileWithRunner(cfg, instanceProfile)
+				associationID, err := threadRunner.AssociateInstanceProfileWithRunner(cfg, instanceProfile)
 				if err != nil {
 					cli.OutputHuman(
 						"Failed to attach instance profile %s to instance %s with error %v\n",
@@ -241,6 +247,20 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 					)
 					return
 				}
+				defer func(cfg aws.Config, associationID string) {
+					cli.Log.Debugw("disassociating instance profile from runner",
+						"association ID", associationID,
+						"instance_id", threadRunner.InstanceID,
+					)
+					err := threadRunner.DisassociateInstanceProfileFromRunner(cfg, associationID)
+					if err != nil {
+						cli.Log.Debugw("failed to disassociate instance profile from runner",
+							"association ID", associationID,
+							"instance_id", threadRunner.InstanceID,
+							"error", err,
+						)
+					}
+				}(cfg, associationID)
 			}
 
 			// Establish SSM Command connection to the runner
