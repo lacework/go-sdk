@@ -309,7 +309,7 @@ func convertGcpSuppressions(
 					convertedConstraints = append(convertedConstraints, projectIdsConstraint)
 				}
 
-				resourceNamesConstraint := convertSupCondition(suppression.ResourceNames,
+				resourceNamesConstraint := convertGcpResourceNameSupConditions(suppression.ResourceNames,
 					"resourceName",
 					policyIdExceptionsTemplate)
 				if resourceNamesConstraint.FieldKey != "" {

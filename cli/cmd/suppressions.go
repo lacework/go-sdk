@@ -65,6 +65,7 @@ func init() {
 	// azure
 	suppressionsCommand.AddCommand(suppressionsAzureCmd)
 	suppressionsAzureCmd.AddCommand(suppressionsListAzureCmd)
+	suppressionsAzureCmd.AddCommand(suppressionsMigrateAzureCmd)
 	// gcp
 	suppressionsCommand.AddCommand(suppressionsGcpCmd)
 	suppressionsGcpCmd.AddCommand(suppressionsListGcpCmd)
@@ -142,6 +143,8 @@ func convertSupCondition(supConditions []string, fieldKey string,
 		var condition []any
 		// verify for aws:
 		// if "ALL_ACCOUNTS" OR "ALL_REGIONS" is in the suppression condition slice
+		// verify for azure:
+		// if "ALL_TENANTS" OR "ALL_SUBSCRIPTIONS" is in the suppression condition slice
 		// verify for gcp:
 		// if "ALL_ORGANIZATIONS" OR "ALL_PROJECTS" is in the suppression condition slice
 		// if so we should ignore the supplied conditions and replace with a wildcard *
@@ -151,11 +154,11 @@ func convertSupCondition(supConditions []string, fieldKey string,
 		} else if (slices.Contains(supConditions, "ALL_ORGANIZATIONS") && fieldKey == "organizations") ||
 			(slices.Contains(supConditions, "ALL_PROJECTS") && fieldKey == "projects") {
 			condition = append(condition, "*")
-		} else if fieldKey == "resourceNames" {
+		} else if (slices.Contains(supConditions, "ALL_TENANTS") && fieldKey == "tenants") ||
+			(slices.Contains(supConditions, "ALL_SUBSCRIPTIONS") && fieldKey == "subscriptions") {
+			condition = append(condition, "*")
+		} else if fieldKey == "resourceNames" || fieldKey == "resourceName" {
 			condition = convertResourceNamesSupConditions(supConditions)
-		} else if fieldKey == "resourceName" {
-			// resourceName singular is specific to GCP
-			condition = convertGcpResourceNameSupConditions(supConditions)
 		} else {
 			condition = convertToAnySlice(supConditions)
 		}
@@ -183,24 +186,32 @@ func convertResourceNamesSupConditions(supConditions []string) []any {
 	return conditions
 }
 
-func convertGcpResourceNameSupConditions(supConditions []string) []any {
-	var conditions []any
-	for _, condition := range supConditions {
-		// skip this logic if we already have a wildcard
-		if condition != "*" {
-			// It appears that for GCP, the resourceName field for policy exceptions is in fact expecting
-			// users to provider the full GCP resource_id.
-			// Example resourceId: //compute.googleapis.com/projects/gke-project-01-c8403ba1/zones/us-central1-a/instances/squid-proxy
-			// This was not the case for legacy suppressions and in most cases it's unlikely that the
-			// users will have provided this. Instead, we are more likely to have
-			// the resource name provided. To cover this scenario we prepend the resource name
-			// from the legacy suppression with "*/" to make it match the resource name while
-			// wildcarding the rest of the resourceId
-			condition = "*/" + condition
+func convertGcpResourceNameSupConditions(supConditions []string, fieldKey string,
+	policyIdExceptionsTemplate []string) api.PolicyExceptionConstraint {
+	if len(supConditions) >= 1 && slices.Contains(
+		policyIdExceptionsTemplate, fieldKey) {
+		var conditions []any
+		for _, condition := range supConditions {
+			// skip this logic if we already have a wildcard
+			if condition != "*" {
+				// It appears that for GCP, the resourceName field for policy exceptions is in fact expecting
+				// users to provider the full GCP resource_id.
+				// Example resourceId: //compute.googleapis.com/projects/gke-project-01-c8403ba1/zones/us-central1-a/instances/squid-proxy
+				// This was not the case for legacy suppressions and in most cases it's unlikely that the
+				// users will have provided this. Instead, we are more likely to have
+				// the resource name provided. To cover this scenario we prepend the resource name
+				// from the legacy suppression with "*/" to make it match the resource name while
+				// wildcarding the rest of the resourceId
+				condition = "*/" + condition
+			}
+			conditions = append(conditions, condition)
 		}
-		conditions = append(conditions, condition)
+		return api.PolicyExceptionConstraint{
+			FieldKey:    fieldKey,
+			FieldValues: conditions,
+		}
 	}
-	return conditions
+	return api.PolicyExceptionConstraint{}
 }
 
 func convertSupConditionTags(supCondition []map[string]string, fieldKey string,
