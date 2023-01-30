@@ -88,7 +88,7 @@ func TestConvertGcpSuppressions(t *testing.T) {
 
 func TestConvertGcpSupCondition(t *testing.T) {
 	gcpPoliciesExceptionConstraintsMap := genGcpPoliciesExceptionConstraintsMap()
-	resourceNamesConstraint1 := convertSupCondition([]string{"foobar",
+	resourceNamesConstraint1 := convertGcpResourceNameSupConditions([]string{"foobar",
 		"buzz"},
 		"resourceName",
 		gcpPoliciesExceptionConstraintsMap["lacework-global-234"])
@@ -97,7 +97,7 @@ func TestConvertGcpSupCondition(t *testing.T) {
 		FieldValues: []any{"*/foobar", "*/buzz"},
 	}
 
-	resourceNamesConstraint2 := convertSupCondition([]string{"*"},
+	resourceNamesConstraint2 := convertGcpResourceNameSupConditions([]string{"*"},
 		"resourceName",
 		gcpPoliciesExceptionConstraintsMap["lacework-global-234"])
 	expectedResourceNamesConstraint2 := api.PolicyExceptionConstraint{
