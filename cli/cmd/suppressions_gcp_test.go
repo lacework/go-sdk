@@ -105,7 +105,7 @@ func TestConvertGcpSupCondition(t *testing.T) {
 		FieldValues: []any{"*"},
 	}
 
-	projectConstraint1 := convertGcpResourceNameSupConditions([]string{"ALL_PROJECTS"},
+	projectConstraint1 := convertSupCondition([]string{"ALL_PROJECTS"},
 		"projects",
 		gcpPoliciesExceptionConstraintsMap["lacework-global-234"])
 	expectedProjectsConstraint1 := api.PolicyExceptionConstraint{
@@ -113,7 +113,7 @@ func TestConvertGcpSupCondition(t *testing.T) {
 		FieldValues: []any{"*"},
 	}
 
-	projectConstraint2 := convertGcpResourceNameSupConditions([]string{"foobar"},
+	projectConstraint2 := convertSupCondition([]string{"foobar"},
 		"projects",
 		gcpPoliciesExceptionConstraintsMap["lacework-global-234"])
 	expectedProjectsConstraint2 := api.PolicyExceptionConstraint{
@@ -121,7 +121,7 @@ func TestConvertGcpSupCondition(t *testing.T) {
 		FieldValues: []any{"foobar"},
 	}
 
-	organizationConstraint1 := convertGcpResourceNameSupConditions([]string{"ALL_ORGANIZATIONS"},
+	organizationConstraint1 := convertSupCondition([]string{"ALL_ORGANIZATIONS"},
 		"organizations",
 		gcpPoliciesExceptionConstraintsMap["lacework-global-234"])
 	expectedOrganizationConstraint1 := api.PolicyExceptionConstraint{
@@ -129,7 +129,7 @@ func TestConvertGcpSupCondition(t *testing.T) {
 		FieldValues: []any{"*"},
 	}
 
-	organizationConstraint2 := convertGcpResourceNameSupConditions([]string{"foobar"},
+	organizationConstraint2 := convertSupCondition([]string{"foobar"},
 		"organizations",
 		gcpPoliciesExceptionConstraintsMap["lacework-global-234"])
 	expectedOrganizationConstraint2 := api.PolicyExceptionConstraint{
