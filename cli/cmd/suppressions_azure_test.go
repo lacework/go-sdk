@@ -328,13 +328,13 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"resourceNames": [
-					  "isstoragecentralus"
+					  "lwstoragecentralus"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -344,46 +344,46 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"resourceNames": [
-					  "sqlbackupstaxslayer"
+					  "lw-backup"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "supportrecordings"
+					  "lw-logging"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "tswslogs"
+					  "lw-logs"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "isstoragecentralus"
+					  "storagecentralus"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -408,87 +408,87 @@ func rawAzureSuppressions() string {
 					  "consumerandroid"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "consumerios"
+					  "foobar"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "taxestogoandroid"
+					  "androidresource"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "taxestogoios"
+					  "lw-resource"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "azurecdnlogsdevsoa"
+					  "azurecdnlogs"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "azurecdnlogsprodevsoa"
+					  "azurecdnlogsprod"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "azurecdnlogsprodsoa"
+					  "azurecdnlogs"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "azurecdnlogstsprod"
+					  "azurecdnlogs"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -498,254 +498,254 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"resourceGroupNames": [
-					  "RG-Mobile"
+					  "three"
 					],
 					"resourceNames": [
 					  "consumerandroid"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Mobile"
+					  "three"
 					],
 					"resourceNames": [
-					  "consumerios"
+					  "foobar"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Mobile"
+					  "three"
 					],
 					"resourceNames": [
-					  "taxestogoandroid"
+					  "androidresource"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Mobile"
+					  "three"
 					],
 					"resourceNames": [
-					  "taxestogoios"
+					  "lw-resource"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Consumer-Dev-Microservices"
+					  "three-Microservices"
 					],
 					"resourceNames": [
-					  "azurecdnlogsdevsoa"
+					  "azurecdnlogs"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Pro-Dev-Microservices"
+					  "Dev-Microservices"
 					],
 					"resourceNames": [
-					  "azurecdnlogsprodevsoa"
+					  "azurecdnlogs"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Consumer-Prod-Microservices"
+					  "Prod-Microservices"
 					],
 					"resourceNames": [
-					  "azurecdnlogsprodsoa"
+					  "azurecdnlogs"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-VerizonCDN"
+					  "CDN"
 					],
 					"resourceNames": [
-					  "azurecdnlogstsprod"
+					  "azurecdnlogs"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Persistent-QA"
+					  "QA"
 					],
 					"resourceNames": [
-					  "persistentqastorage"
+					  "persistentstorage"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Consumer-Dev-Microservices"
+					  "three-Microservices"
 					],
 					"resourceNames": [
 					  "stconsumerspadev2018"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Consumer-Dev-Microservices"
+					  "three-Microservices"
 					],
 					"resourceNames": [
-					  "stconsumerspadev2019"
+					  "consumers"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Consumer-Dev-Microservices"
+					  "three-Microservices"
 					],
 					"resourceNames": [
-					  "stconsumerspadev2020"
+					  "consumer"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Consumer-Dev-Microservices"
+					  "three-Microservices"
 					],
 					"resourceNames": [
-					  "stconsumerspadev2021"
+					  "consumer"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Pro-Dev-Microservices"
+					  "Dev-Microservices"
 					],
 					"resourceNames": [
-					  "stprospadev2019"
+					  "dev2019"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Pro-Dev-Microservices"
+					  "Dev-Microservices"
 					],
 					"resourceNames": [
-					  "stprospadev2020"
+					  "dev2020"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Pro-Dev-Microservices"
+					  "Dev-Microservices"
 					],
 					"resourceNames": [
 					  "stprospadev2021"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Pro-Microservices"
+					  "Microservices"
 					],
 					"resourceNames": [
-					  "stprospaprod2020"
+					  "prod2020"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Pro-Microservices"
+					  "Microservices"
 					],
 					"resourceNames": [
-					  "stprospaprod2021"
+					  "prod2021"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -759,13 +759,13 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"resourceNames": [
-					  "isstoragecentralus"
+					  "storagecentralus"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -866,10 +866,10 @@ func rawAzureSuppressions() string {
 					  "default"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -879,101 +879,101 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"resourceNames": [
-					  "Consumer-KV-Dev"
+					  "Consumer-Dev"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "Consumer-KV-PP"
+					  "Consumer-KV"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "Consumer-KV-Prod"
+					  "Consumer-KV"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "Consumer-KV-QA"
+					  "Consumer-KV"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "IS-resourcegroup-KV"
+					  "IS-resourcegroup"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "IT-KV"
+					  "FOOBAR"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "it-terraform-mgmt-kv"
+					  "it-terraform-mgmt"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "it-terraform-wireguard"
+					  "it-terraform"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "Persistent-KV-QA"
+					  "Persistent-KV"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
@@ -981,21 +981,21 @@ func rawAzureSuppressions() string {
 					  "Pro-KV-Dev"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "Pro-KV-PP"
+					  "Pro-KV"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
@@ -1003,10 +1003,10 @@ func rawAzureSuppressions() string {
 					  "Pro-KV-Prod"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
@@ -1014,32 +1014,32 @@ func rawAzureSuppressions() string {
 					  "Pro-KV-QA"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "VITA-KV-Dev"
+					  "KV-Dev"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "VITA-KV-Prod"
+					  "KV-Prod"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -1117,101 +1117,101 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"resourceNames": [
-					  "IT-AZ-WAF-*"
+					  "AZ-WAF-*"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "PR-AZ-CV-*"
+					  "AZ-CV-*"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "EX-AZ-WEB-01"
+					  "AZ-WEB"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "IT-AZ-STWAF-01"
+					  "AZ-WAF"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "IS-AZ-ES-01"
+					  "AZ-ES"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "CO-AZ-BIC-01"
+					  "AZ-BIC"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "IT-AZ-WUST-01"
+					  "AZ-"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "IT-AZ-NUST-01"
+					  "AZ-N"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "IT-AZ-EUST-01"
+					  "AZ-EUST"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -1221,24 +1221,24 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"resourceNames": [
-					  "PR-AZ-CV-*"
+					  "AZ-CV-*"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceNames": [
-					  "IT-AZ-WAF-*"
+					  "AZ-WAF-*"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -1284,128 +1284,128 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"resourceGroupNames": [
-					  "RG-TSCDN-Legacy-West"
+					  "Legacy-West"
 					],
 					"resourceNames": [
-					  "tscdnwest"
+					  "cdnwest"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-TSPro-Resources"
+					  "Pro-Resources"
 					],
 					"resourceNames": [
-					  "tspro-resources"
+					  "pro-resources"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-TSCDN-Legacy-East"
+					  "Legacy-East"
 					],
 					"resourceNames": [
-					  "tscdneast"
+					  "cdneast"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-IT-Resources"
+					  "IT-Resources"
 					],
 					"resourceNames": [
-					  "updatensg"
+					  "nsg"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Persistent-QA"
+					  "Persistent"
 					],
 					"resourceNames": [
-					  "TS-PERSISTENT-QA"
+					  "PERSISTENT"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Consumer-GTM"
+					  "Consumer"
 					],
 					"resourceNames": [
-					  "ConsumerGTM-Server"
+					  "Consumer-Server"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Consumer-GTM"
+					  "Consumer"
 					],
 					"resourceNames": [
-					  "ConsumerGTM-Preview"
+					  "ConsumerLL"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Pro-GTM"
+					  "LW-GTM"
 					],
 					"resourceNames": [
-					  "ProGTM-Server"
+					  "LW-GTM-Server"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Pro-GTM"
+					  "LW-GTM"
 					],
 					"resourceNames": [
-					  "ProGTM-Preview"
+					  "LW-GTM-Preview"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -1415,13 +1415,13 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"resourceNames": [
-					  "tspro-resources"
+					  "pro-resources"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -1447,128 +1447,128 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"resourceGroupNames": [
-					  "RG-TSCDN-Legacy-West"
+					  "Legacy-West"
 					],
 					"resourceNames": [
-					  "tscdnwest"
+					  "cdnwest"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-TSPro-Resources"
+					  "Pro-Resources"
 					],
 					"resourceNames": [
-					  "tspro-resources"
+					  "pro-resources"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-TSCDN-Legacy-East"
+					  "Legacy-East"
 					],
 					"resourceNames": [
-					  "tscdneast"
+					  "cdneast"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-IT-Resources"
+					  "IT-Resources"
 					],
 					"resourceNames": [
-					  "updatensg"
+					  "nsg"
 					],
 					"subscriptionIds": [
 					  "ALL_SUBSCRIPTIONS"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Persistent-QA"
+					  "Persistent-QA"
 					],
 					"resourceNames": [
-					  "TS-PERSISTENT-QA"
+					  "PERSISTENT-QA"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Consumer-GTM"
+					  "Consumer"
 					],
 					"resourceNames": [
 					  "ConsumerGTM-Server"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Consumer-GTM"
+					  "Consumer"
 					],
 					"resourceNames": [
 					  "ConsumerGTM-Preview"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Pro-GTM"
+					  "LW-GTM"
 					],
 					"resourceNames": [
-					  "ProGTM-Server"
+					  "LWGTM-Server"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  },
 				  {
 					"resourceGroupNames": [
-					  "RG-Pro-GTM"
+					  "LW-GTM"
 					],
 					"resourceNames": [
-					  "ProGTM-Preview"
+					  "LWGTM-Preview"
 					],
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
@@ -1606,10 +1606,10 @@ func rawAzureSuppressions() string {
 				"suppressionConditions": [
 				  {
 					"subscriptionIds": [
-					  "F0EAD1FB-F3B2-414D-8B85-A7DD546E8B17"
+					  "54F98DFD-2BCA-4053-B6D5-0472D0040FF3"
 					],
 					"tenantIds": [
-					  "2dc69930-6a3f-4ac6-85b2-ba68071fe47c"
+					  "a13e303e-f99a-4450-b99d-ecc4c9917c64"
 					]
 				  }
 				]
