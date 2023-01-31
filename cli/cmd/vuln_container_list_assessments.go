@@ -177,26 +177,24 @@ func vulnCtrListAssessmentFiltersEnabled() bool {
 
 func applyVulnCtrFilters(assessments []vulnerabilityAssessmentSummary) (filtered []vulnerabilityAssessmentSummary) {
 	for _, a := range assessments {
-		switch {
-		case len(vulCmdState.Repositories) > 0:
+		if len(vulCmdState.Repositories) > 0 {
 			if !array.ContainsStr(vulCmdState.Repositories, a.Repository) {
 				continue
 			}
-		case len(vulCmdState.Registries) > 0:
+		}
+		if len(vulCmdState.Registries) > 0 {
 			if !array.ContainsStr(vulCmdState.Registries, a.Registry) {
 				continue
 			}
-		case vulCmdState.Active:
+		}
+		if vulCmdState.Active {
 			if a.ActiveContainers == 0 {
 				continue
 			}
-		case vulCmdState.Fixable:
-			var vulns []vulnerabilityCtrSummary
-			for _, v := range a.Cves {
-				if v.Fixable != 0 {
-					vulns = append(vulns, v)
-				}
-				a.Cves = vulns
+		}
+		if vulCmdState.Fixable {
+			if !a.HasFixableVulns() {
+				continue
 			}
 		}
 
@@ -311,6 +309,7 @@ func listVulnCtrAssessments(
 		treeOfContainerVuln.ParseData(response.Data)
 	}
 
+	cli.Log.Infow("evaluation guids", "count", len(treeOfContainerVuln.ListEvalGuid()))
 	if len(treeOfContainerVuln.ListEvalGuid()) != 0 {
 		// Update the filter with the list of evaluation GUIDs and remove the "returns"
 		filter.Returns = nil
@@ -395,9 +394,9 @@ type vulnerabilityAssessmentSummary struct {
 	Cves             []vulnerabilityCtrSummary `json:"cves"`
 	ScanStatus       string                    `json:"scan_status"`
 	ActiveContainers int                       `json:"active_containers"`
+	FixableCount     int                       `json:"fixable_count"`
 	vulnerabilities  []string
 	StatusList       []string `json:"-"`
-	fixableCount     int
 }
 
 type vulnerabilityCtrSummary struct {
@@ -412,6 +411,15 @@ func (v vulnerabilityAssessmentSummary) Status() string {
 		return "VULNERABLE"
 	}
 	return "GOOD"
+}
+
+func (v vulnerabilityAssessmentSummary) HasFixableVulns() bool {
+	for _, c := range v.Cves {
+		if c.Fixable != 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func buildVulnCtrAssessmentSummary(
@@ -434,7 +442,7 @@ func buildVulnCtrAssessmentSummary(
 				summary.vulnerabilities = append(imageMap[i].vulnerabilities, vulnKey)
 				summary.Cves = append(imageMap[i].Cves, vulnerabilityCtrSummary{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity})
 				if a.FixInfo.FixAvailable != 0 {
-					summary.fixableCount++
+					summary.FixableCount++
 				}
 			}
 
@@ -459,7 +467,7 @@ func buildVulnCtrAssessmentSummary(
 			ActiveContainers: activeContainers.Count(a.ImageID),
 			vulnerabilities:  []string{fmt.Sprintf("%s-%s", a.VulnID, a.FeatureKey.Name)},
 			StatusList:       []string{a.Status},
-			fixableCount:     fixableCount,
+			FixableCount:     fixableCount,
 		}
 	}
 
@@ -481,7 +489,7 @@ func buildContainerAssessmentsError() string {
 	if len(vulCmdState.Repositories) != 0 {
 		msg = fmt.Sprintf("%s for the specified", msg)
 		if len(vulCmdState.Repositories) == 1 {
-			msg = fmt.Sprintf("%s Repository", msg)
+			msg = fmt.Sprintf("%s repository", msg)
 		} else {
 			msg = fmt.Sprintf("%s repositories", msg)
 		}
@@ -522,7 +530,7 @@ func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummar
 			}
 		}
 
-		summaryString := severityCtrSummary(severities, ctr.fixableCount)
+		summaryString := severityCtrSummary(severities, ctr.FixableCount)
 
 		out = append(out, assessmentOutput{
 			imageRegistry:     ctr.Registry,
