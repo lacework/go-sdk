@@ -57,35 +57,11 @@ environment.`,
 				filter      api.SearchFilter
 				start       time.Time
 				end         time.Time
+				err         error
 			)
 
 			expired := cli.ReadCachedAsset(cacheKey, &assessments)
 			if expired {
-				// before starting the search find all ctr reg
-				cli.StartProgress("Fetching container registries...")
-				registries, err := getContainerRegistries()
-				cli.StopProgress()
-				if err != nil {
-					return err
-				}
-
-				cli.Log.Infow("container registries found", "count", len(registries))
-				for _, reg := range vulCmdState.Registries {
-					if !array.ContainsStr(registries, reg) {
-						msg := `container registry '%s' not found
-
-Your account has the following container registries configured:
-
-    > %s
-
-To integrate a new container registry use the command:
-
-    lacework container-registry create
-`
-						return errors.Errorf(msg, reg, strings.Join(registries, "\n    > "))
-					}
-				}
-
 				if vulCmdState.Range != "" {
 					cli.Log.Debugw("retrieving natural time range", "range", vulCmdState.Range)
 					start, end, err = lwtime.ParseNatural(vulCmdState.Range)
@@ -107,7 +83,8 @@ To integrate a new container registry use the command:
 					}
 				}
 
-				cli.Log.Infow("requesting list of assessments", "start_time", start, "end_time", end)
+				// search for all active containers
+				cli.Log.Infow("using filter with", "start_time", start, "end_time", end)
 				filter.TimeFilter = &api.TimeFilter{
 					StartTime: &start,
 					EndTime:   &end,
@@ -117,19 +94,25 @@ To integrate a new container registry use the command:
 					start.Format(time.RFC3339), end.Format(time.RFC3339))
 
 				cli.StartProgress(fmt.Sprintf("Searching for active containers%s...", timeRangeMsg))
-				activeContainers, err := cli.LwApi.V2.Entities.ListAllContainersWithFilters(filter)
+				activeContainers, err := cli.LwApi.V2.Entities.ListAllContainersWithFilters(
+					api.SearchFilter{
+						TimeFilter: filter.TimeFilter,
+						Returns:    []string{"mid", "imageId", "startTime"},
+					})
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrap(err, "unable to search for active containers")
 				}
 
-				cli.Log.Infow("active containers info",
+				cli.Log.Infow("active containers found",
 					"active_count", activeContainers.Total(),
 					"entities_count", len(activeContainers.Data),
 				)
 
+				// get all container vulnerability assessments
+				cli.Log.Infow("requesting list of assessments", "start_time", start, "end_time", end)
 				cli.StartProgress(fmt.Sprintf("Fetching assessments%s...", timeRangeMsg))
-				assessments, err = listVulnCtrAssessments(registries, activeContainers, &filter)
+				assessments, err = listVulnCtrAssessments(activeContainers, &filter)
 				cli.StopProgress()
 				if err != nil {
 					return err
@@ -141,11 +124,6 @@ To integrate a new container registry use the command:
 				cli.Log.Infow("assessments loaded from cache", "count", len(assessments))
 			}
 
-			if len(assessments) == 0 {
-				cli.OutputHuman("There are no container assessments for this environment.\n")
-				return nil
-			}
-
 			// apply vuln ctr list-assessment filters (--active, --registries, --repositories, --fixable)
 			if vulnCtrListAssessmentFiltersEnabled() {
 				assessments = applyVulnCtrFilters(assessments)
@@ -153,6 +131,11 @@ To integrate a new container registry use the command:
 
 			if cli.JSONOutput() {
 				return cli.OutputJSON(assessments)
+			}
+
+			if len(assessments) == 0 {
+				cli.OutputHuman(buildContainerAssessmentsError())
+				return nil
 			}
 
 			// Build table output
@@ -169,7 +152,11 @@ To integrate a new container registry use the command:
 				}
 			default:
 				cli.OutputHuman(renderSimpleTable(headers, rows))
-				if !vulCmdState.Fixable {
+				if !vulCmdState.Active {
+					cli.OutputHuman(
+						"\nTry adding '--active' to only show assessments of active containers.\n",
+					)
+				} else if !vulCmdState.Fixable {
 					cli.OutputHuman(
 						"\nTry adding '--fixable' to only show assessments with fixable vulnerabilities.\n",
 					)
@@ -218,22 +205,185 @@ func applyVulnCtrFilters(assessments []vulnerabilityAssessmentSummary) (filtered
 	return
 }
 
+// The process to get the list of container assessments is
+//
+// 1) Check if the user provided a list of registries and repositories,
+//    if so, use those filters instead of fetching the entire data from
+//    all registries, repositories, local scanners, etc. (This is a memory
+//    utilization improvement)
+// 2) If no filter by registries and/or repos, then fetch all data from all
+//    registries and all local scanners, we purposely split them in two search
+//    requests since there could be so much data that we get to the 500,000 rows
+//    if data and we could potentially miss some information
+// 3) Either 1) or 2) will generate a tree of unique container vulnerability
+//    assessments (see the `treeCtrVuln` type), with this tree we will generate
+//    one last API request to unique evaluations per image (This is a memory
+//    utilization improvement)
+// 4) Finally, if we get information from the queried assessments, we build a
+//    summary that will ultimately get stored in the cache for subsequent commands
+//
 func listVulnCtrAssessments(
-	registries []string, activeContainers api.ContainersEntityResponse, filter *api.SearchFilter,
+	activeContainers api.ContainersEntityResponse, filter *api.SearchFilter,
 ) (assessments []vulnerabilityAssessmentSummary, err error) {
 
-	filter.Filters = []api.Filter{{
-		Expression: "in",
-		Field:      "evalCtx.image_info.registry",
-		Values:     registries,
-	}}
-	response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
-	if err != nil {
-		return assessments, errors.Wrap(err, "unable to search for container assessments")
+	// Collect only the image ID and the start time to build a tree of
+	// images, the time they were evaluated, and the evaluation GUID.
+	// This will tell us all images and their latest evaluation
+	filter.Returns = []string{"imageId", "startTime", "evalGuid"}
+	filter.Filters = []api.Filter{}
+	treeOfContainerVuln := treeCtrVuln{}
+
+	// if the user wants to only list assessments from a subset of registries,
+	// use that filter instead of fetching data from all registries
+	if len(vulCmdState.Registries) != 0 {
+		filter.Filters = append(filter.Filters,
+			api.Filter{
+				Expression: "in",
+				Field:      "evalCtx.image_info.registry",
+				Values:     vulCmdState.Registries,
+			})
 	}
 
-	assessments = buildVulnCtrAssessmentSummary(response.Data, activeContainers)
+	// if the user wants to only list assessments from a subset of repositories,
+	// use that filter instead of fetching data from all repositories
+	if len(vulCmdState.Repositories) != 0 {
+		filter.Filters = append(filter.Filters,
+			api.Filter{
+				Expression: "in",
+				Field:      "evalCtx.image_info.repo",
+				Values:     vulCmdState.Repositories,
+			})
+	}
+
+	if len(filter.Filters) == 0 {
+		// if not, then we need to fetch information from 1) all
+		// container registries and 2) local scanners in two separate
+		// searches since platform scanners might have way too much
+		// data which may cause loosing the local scanners data
+		//
+		// find all container registries
+		// cli.StartProgress("Fetching container registries...")
+		registries, err := getContainerRegistries()
+		// cli.StopProgress()
+		if err != nil {
+			return nil, err
+		}
+		cli.Log.Infow("container registries found", "count", len(registries))
+
+		if len(registries) != 0 {
+			// 1) search for all assessments from configured container registries
+			filter.Filters = []api.Filter{
+				{
+					Expression: "in",
+					Field:      "evalCtx.image_info.registry",
+					Values:     registries,
+				},
+			}
+			response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
+			if err != nil {
+				return assessments, errors.Wrap(err, "unable to search for container assessments")
+			}
+
+			treeOfContainerVuln.ParseData(response.Data)
+
+			// 2) search for assessments from local scanners, that is, non container registries
+			filter.Filters = []api.Filter{
+				{
+					Expression: "not_in",
+					Field:      "evalCtx.image_info.registry",
+					Values:     registries,
+				},
+			}
+		} else {
+			response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
+			if err != nil {
+				return assessments, errors.Wrap(err, "unable to search for container assessments")
+			}
+
+			treeOfContainerVuln.ParseData(response.Data)
+		}
+	} else {
+		response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
+		if err != nil {
+			return assessments, errors.Wrap(err, "unable to search for container assessments")
+		}
+
+		treeOfContainerVuln.ParseData(response.Data)
+	}
+
+	if len(treeOfContainerVuln.ListEvalGuid()) != 0 {
+		// Update the filter with the list of evaluation GUIDs and remove the "returns"
+		filter.Returns = nil
+		filter.Filters = []api.Filter{
+			{
+				Expression: "in",
+				Field:      "evalGuid",
+				Values:     treeOfContainerVuln.ListEvalGuid(),
+			},
+		}
+
+		response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
+		if err != nil {
+			return assessments, errors.Wrap(err, "unable to search for container assessments")
+		}
+
+		assessments = buildVulnCtrAssessmentSummary(response.Data, activeContainers)
+	}
 	return
+}
+
+// treeCtrVuln and ctrVuln are types that help us generate an tree of container
+// vulnerability assessments that are unique per image ID, that is, there will
+// never be duplicates of the same image with different evaluation guids (evalGuid)
+type treeCtrVuln []ctrVuln
+type ctrVuln struct {
+	EvalGUID  string
+	ImageID   string
+	StartTime time.Time
+}
+
+func (v treeCtrVuln) Len() int {
+	return len(v)
+}
+func (v treeCtrVuln) Get(imageID string) (*ctrVuln, bool) {
+	for _, ctr := range v {
+		if ctr.ImageID == imageID {
+			return &ctr, true
+		}
+	}
+	return nil, false
+}
+
+func (v treeCtrVuln) ListEvalGuid() (guids []string) {
+	for _, ctr := range v {
+		guids = append(guids, ctr.EvalGUID)
+	}
+	return
+}
+func (v treeCtrVuln) ListImageIDs() (ids []string) {
+	for _, ctr := range v {
+		ids = append(ids, ctr.ImageID)
+	}
+	return
+}
+
+func (v *treeCtrVuln) ParseData(data []api.VulnerabilityContainer) {
+	for _, ctr := range data {
+		latestContainer, exist := v.Get(ctr.ImageID)
+		if exist {
+			if latestContainer.EvalGUID == ctr.EvalGUID {
+				continue
+			}
+
+			if ctr.StartTime.After(latestContainer.StartTime) {
+				latestContainer.StartTime = ctr.StartTime
+				latestContainer.EvalGUID = ctr.EvalGUID
+			}
+		} else {
+			// @afiune this is NOT thread safe!! But it is also not used in parallel executions
+			*v = append(*v, ctrVuln{ctr.EvalGUID, ctr.ImageID, ctr.StartTime})
+		}
+	}
 }
 
 type vulnerabilityAssessmentSummary struct {
@@ -357,6 +507,7 @@ func buildContainerAssessmentsError() string {
 func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummary) []assessmentOutput {
 	var out []assessmentOutput
 
+	// sort by active containers
 	sort.Slice(assessments, func(i, j int) bool {
 		return assessments[i].ActiveContainers > assessments[j].ActiveContainers
 	})

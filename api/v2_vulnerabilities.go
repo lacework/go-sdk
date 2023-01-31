@@ -108,7 +108,9 @@ func (svc *v2ContainerVulnerabilityService) SearchAllPages(filters SearchFilter)
 	return
 }
 
-func (svc *v2ContainerVulnerabilityService) ScanStatus(id string) (response VulnerabilitiesContainersScanStatusResponse, err error) {
+func (svc *v2ContainerVulnerabilityService) ScanStatus(id string) (
+	response VulnerabilitiesContainersScanStatusResponse, err error,
+) {
 	err = svc.client.RequestDecoder("GET",
 		fmt.Sprintf(apiV2VulnerabilitiesContainersScanStatus, id),
 		nil,
@@ -322,7 +324,8 @@ type ImageInfo struct {
 }
 
 type VulnerabilityContainer struct {
-	EvalCtx struct {
+	EvalGUID string `json:"evalGuid"`
+	EvalCtx  struct {
 		CveBatchInfo []struct {
 			CveBatchID     string `json:"cve_batch_id"`
 			CveCreatedTime string `json:"cve_created_time"`

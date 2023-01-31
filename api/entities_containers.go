@@ -144,17 +144,3 @@ type ContainerEntity struct {
 	PropsContainer map[string]interface{} `json:"propsContainer"`
 	Tags           map[string]interface{} `json:"tags"`
 }
-
-type ContainerEntityProps struct {
-	Name             string    `json:"NAME"`
-	ContainerType    string    `json:"CONTAINER_TYPE"`
-	ImageAuthor      string    `json:"IMAGE_AUTHOR"`
-	ImageCreatedTime time.Time `json:"IMAGE_CREATED_TIME"`
-	ImageID          string    `json:"IMAGE_ID"`
-	ImageParentID    string    `json:"IMAGE_PARENT_ID"`
-	ImageRepo        string    `json:"IMAGE_REPO"`
-	ImageSize        int64     `json:"IMAGE_SIZE"`
-	ImageTag         string    `json:"IMAGE_TAG"`
-	ImageVersion     string    `json:"IMAGE_VERSION"`
-	Ipv4             string    `json:"IPV4"`
-}

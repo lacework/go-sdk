@@ -16,7 +16,9 @@ var (
 		Long:    `List all container registries configured in your account.`,
 		Args:    cobra.NoArgs,
 		RunE: func(_ *cobra.Command, args []string) error {
+			cli.StartProgress("Fetching container registries...")
 			registries, err := getContainerRegistries()
+			cli.StopProgress()
 			if err != nil {
 				return err
 			}
@@ -25,7 +27,7 @@ var (
 
 Get started by integrating your container registry using the command:
 
-    lacework integration create
+    lacework container-registry create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
