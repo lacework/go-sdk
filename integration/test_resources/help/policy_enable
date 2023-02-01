@@ -7,9 +7,9 @@ To enable a single policy by its ID:
 
 	lacework policy enable lacework-policy-id
 
-To enable a list policy by their IDs use a comma separated list:
+To enable many policies by ID provide a list of policy ids:
 
-	lacework policy enable lacework-policy-id-one,lacework-policy-id-two
+	lacework policy enable lacework-policy-id-one lacework-policy-id-two
 
 To enable all policies for AWS CIS 1.4.0:
 
