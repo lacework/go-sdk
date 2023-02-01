@@ -4,6 +4,10 @@ To disable a single policy by its ID:
 
 	lacework policy disable lacework-policy-id
 
+To disable many policies by ID provide a list of policy ids:
+
+	lacework policy disable lacework-policy-id-one lacework-policy-id-two
+
 To disable all policies for AWS CIS 1.4.0:
 
 	lacework policy disable --tag framework:cis-aws-1-4-0

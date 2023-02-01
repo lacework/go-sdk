@@ -1,8 +1,15 @@
 Enable policies by ID or all policies matching a tag.
+To enter the policy enable prompt:
+
+	lacework policy enable
 
 To enable a single policy by its ID:
 
 	lacework policy enable lacework-policy-id
+
+To enable a list policy by their IDs use a comma separated list:
+
+	lacework policy enable lacework-policy-id-one,lacework-policy-id-two
 
 To enable all policies for AWS CIS 1.4.0:
 

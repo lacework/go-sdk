@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"time"
 
 	"github.com/lacework/go-sdk/internal/array"
 	"github.com/pkg/errors"
@@ -40,6 +41,32 @@ func NewV2PolicyService(c *Client) *PolicyService {
 	return &PolicyService{c,
 		&policyExceptionsService{c},
 	}
+}
+
+type policyType int
+type policyTypes map[policyType]string
+
+const (
+	PolicyTypeCompliance policyType = iota
+	PolicyTypeManual
+	PolicyTypeViolation
+)
+
+var ValidPolicyTypes = policyTypes{
+	PolicyTypeCompliance: "Compliance",
+	PolicyTypeManual:     "Manual",
+	PolicyTypeViolation:  "Violation",
+}
+
+func (p policyType) String() string {
+	return ValidPolicyTypes[p]
+}
+
+func (pt policyTypes) String() (types []string) {
+	for _, v := range pt {
+		types = append(types, v)
+	}
+	return
 }
 
 // ValidPolicySeverities is a list of all valid policy severities
@@ -268,4 +295,67 @@ func (svc *PolicyService) Delete(policyID string) (
 		&response,
 	)
 	return
+}
+
+type BulkUpdatePolicy struct {
+	PolicyID string `json:"policyId,omitempty" yaml:"policyId,omitempty"`
+	Enabled  *bool  `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Severity string `json:"severity,omitempty" yaml:"severity,omitempty"`
+}
+
+type BulkUpdatePolicies []BulkUpdatePolicy
+
+// UpdateMany supports updating the state(enabled/disabled) and severity of more than one
+// policy using the policy bulk update api
+func (svc *PolicyService) UpdateMany(policies BulkUpdatePolicies) (
+	response BulkPolicyUpdateResponse,
+	err error,
+) {
+	if len(policies) == 0 {
+		err = errors.New("a list of policies must be provided")
+		return
+	}
+
+	err = svc.client.RequestEncoderDecoder(
+		"PATCH",
+		apiV2Policies,
+		policies,
+		&response,
+	)
+	return
+}
+
+type BulkPolicyUpdateResponse struct {
+	Data []BulkPolicyUpdateResponseData `json:"data"`
+}
+
+type BulkPolicyUpdateResponseData struct {
+	EvaluatorId            string    `json:"evaluatorId,omitempty"`
+	PolicyId               string    `json:"policyId"`
+	PolicyType             string    `json:"policyType"`
+	QueryId                string    `json:"queryId,omitempty"`
+	QueryText              string    `json:"queryText,omitempty"`
+	Title                  string    `json:"title"`
+	Enabled                bool      `json:"enabled,omitempty"`
+	Description            string    `json:"description"`
+	Remediation            string    `json:"remediation"`
+	Severity               string    `json:"severity"`
+	Limit                  int       `json:"limit,omitempty"`
+	EvalFrequency          string    `json:"evalFrequency,omitempty"`
+	AlertEnabled           bool      `json:"alertEnabled,omitempty"`
+	AlertProfile           string    `json:"alertProfile,omitempty"`
+	Owner                  string    `json:"owner"`
+	LastUpdateTime         time.Time `json:"lastUpdateTime"`
+	LastUpdateUser         string    `json:"lastUpdateUser"`
+	Tags                   []string  `json:"tags"`
+	InfoLink               string    `json:"infoLink,omitempty"`
+	ExceptionConfiguration struct {
+		ConstraintFields []struct {
+			FieldKey   string `json:"fieldKey"`
+			DataType   string `json:"dataType"`
+			MultiValue bool   `json:"multiValue"`
+		} `json:"constraintFields"`
+	} `json:"exceptionConfiguration,omitempty"`
+	References            []string `json:"references,omitempty"`
+	AdditionalInformation string   `json:"additionalInformation,omitempty"`
 }

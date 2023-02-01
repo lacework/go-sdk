@@ -29,9 +29,9 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/internal/pointer"
 	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -46,6 +46,7 @@ var (
 		File          string
 		Severity      string
 		Tag           string
+		State         *bool
 		URL           string
 		CUFromLibrary string
 		CascadeDelete bool
@@ -136,66 +137,6 @@ To view the LQL query associated with the policy, use the query ID.
 		},
 		RunE: showPolicy,
 	}
-
-	// This is an experimental command.
-	// policyDisableTagCmd represents the policy disable command
-	policyDisableTagCmd = &cobra.Command{
-		Use:   "disable [policy_id]",
-		Short: "Disable policies",
-		Long: `Disable policies by ID or all policies matching a tag.
-
-To disable a single policy by its ID:
-
-	lacework policy disable lacework-policy-id
-
-To disable all policies for AWS CIS 1.4.0:
-
-	lacework policy disable --tag framework:cis-aws-1-4-0
-
-To disable all policies for GCP CIS 1.3.0:
-
-	lacework policy disable --tag framework:cis-gcp-1-3-0
-`,
-		Args: cobra.RangeArgs(0, 1),
-		PreRunE: func(_ *cobra.Command, args []string) error {
-			if len(args) > 0 && policyCmdState.Tag != "" {
-				return errors.New("'--tag' flag may not be use in conjunction with 'policy_id' arg")
-			}
-			return nil
-		},
-		RunE: disablePolicy,
-	}
-
-	// This is an experimental command.
-	// policyEnableTagCmd represents the policy enable command
-	policyEnableTagCmd = &cobra.Command{
-		Use:   "enable [policy_id]",
-		Short: "Enable policies",
-		Long: `Enable policies by ID or all policies matching a tag.
-
-To enable a single policy by its ID:
-
-	lacework policy enable lacework-policy-id
-
-To enable all policies for AWS CIS 1.4.0:
-
-	lacework policy enable --tag framework:cis-aws-1-4-0
-
-To enable all policies for GCP CIS 1.3.0:
-
-	lacework policy enable --tag framework:cis-gcp-1-3-0
-
-`,
-		Args: cobra.RangeArgs(0, 1),
-		PreRunE: func(_ *cobra.Command, args []string) error {
-			if len(args) > 0 && policyCmdState.Tag != "" {
-				return errors.New("'--tag' flag may not be use in conjunction with 'policy_id' arg")
-			}
-			return nil
-		},
-		RunE: enablePolicy,
-	}
-
 	policyIDIntRE = regexp.MustCompile(`^(.*-)(\d+)$`)
 )
 
@@ -207,9 +148,6 @@ func init() {
 	policyCmd.AddCommand(policyListCmd)
 	policyCmd.AddCommand(policyListTagsCmd)
 	policyCmd.AddCommand(policyShowCmd)
-	// experimental commands
-	policyCmd.AddCommand(policyDisableTagCmd)
-	policyCmd.AddCommand(policyEnableTagCmd)
 
 	// Lacework Content Library
 	if cli.isLCLInstalled() {
@@ -247,16 +185,6 @@ func init() {
 	// policy show specific flags
 	policyShowCmd.Flags().Bool(
 		"yaml", false, "output query in YAML format",
-	)
-	// policy disable specific flags
-	policyDisableTagCmd.Flags().StringVar(
-		&policyCmdState.Tag,
-		"tag", "", "disable all policies with the specified tag",
-	)
-	// policy enable specific flags
-	policyEnableTagCmd.Flags().StringVar(
-		&policyCmdState.Tag,
-		"tag", "", "enable all policies with the specified tag",
 	)
 }
 
@@ -425,6 +353,39 @@ func promptSetPolicyID(policyID *string) error {
 		Message: "Select policy to update:",
 		Options: policyIds,
 	}, policyID)
+}
+
+func promptSetPolicyIDs() ([]string, error) {
+	cli.StartProgress("Retrieving policies...")
+	policiesResponse, err := cli.LwApi.V2.Policy.List()
+	cli.StopProgress()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to retrieve policies to select")
+	}
+
+	var policyIDs []string
+	for _, policy := range policiesResponse.Data {
+		// exclude manual PolicyTypes and exclude policies whose state matches the new state
+		// eg. do not show already enabled policyIDs when running 'lacework policy enable'
+		if policy.PolicyType != api.PolicyTypeManual.String() {
+			if pointer.CompareBoolPtr(policyCmdState.State, policy.Enabled) {
+				continue
+			}
+			policyIDs = append(policyIDs, policy.PolicyID)
+		}
+	}
+
+	var response []string
+	err = survey.AskOne(&survey.MultiSelect{
+		Message: "Select which policy ids to update:",
+		Options: policyIDs,
+	}, &response)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func sortPolicyTable(out [][]string, policyIDIndex int) {
@@ -661,38 +622,72 @@ func listPolicyTags(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func disablePolicy(_ *cobra.Command, args []string) error {
-	state := false
+func setPoliciesState(_ *cobra.Command, args []string) error {
+	var (
+		state = policyCmdState.State
+		msg   = "enable"
+	)
+
+	if !*state {
+		msg = "disable"
+	}
+
+	// if tag is provided enable/disable all policies matching the tag
+	if policyCmdState.Tag != "" {
+		return setPolicyStateByTag(policyCmdState.Tag, *state)
+	}
+
+	var (
+		bulkPolicies api.BulkUpdatePolicies
+		err          error
+	)
+
 	if len(args) > 0 {
-		policy := api.UpdatePolicy{PolicyID: args[0], Enabled: &state}
-		_, err := cli.LwApi.V2.Policy.Update(policy)
+		for _, policyID := range args {
+			bulkPolicies = append(bulkPolicies, api.BulkUpdatePolicy{PolicyID: policyID, Enabled: state})
+		}
+	}
+
+	// if no arguments are provided enter prompt
+	if len(args) == 0 {
+		bulkPolicies, err = promptSetPoliciesState()
 		if err != nil {
 			return err
 		}
 	}
 
-	// if tag is provided disable all policies matching
-	if policyCmdState.Tag != "" {
-		return setPolicyStateByTag(policyCmdState.Tag, state)
+	if len(bulkPolicies) == 0 {
+		cli.OutputHuman("unable to find policies to update\n")
+		return nil
 	}
+
+	resp, err := cli.LwApi.V2.Policy.UpdateMany(bulkPolicies)
+	if err != nil {
+		return err
+	}
+	cli.Log.Debugw("bulk policy updated response:", resp)
+	cli.OutputHuman("%d policies have been %sd \n", len(bulkPolicies), msg)
+
 	return nil
 }
 
-func enablePolicy(_ *cobra.Command, args []string) error {
-	state := true
-	if len(args) > 0 {
-		policy := api.UpdatePolicy{PolicyID: args[0], Enabled: &state}
-		_, err := cli.LwApi.V2.Policy.Update(policy)
-		if err != nil {
-			return err
-		}
+func promptSetPoliciesState() (api.BulkUpdatePolicies, error) {
+	var (
+		policyIDs []string
+		err       error
+	)
+
+	if policyIDs, err = promptSetPolicyIDs(); err != nil {
+		return nil, err
 	}
 
-	// if tag is provided enable all policies matching
-	if policyCmdState.Tag != "" {
-		return setPolicyStateByTag(policyCmdState.Tag, state)
+	var bulkPolicies api.BulkUpdatePolicies
+	for _, policyID := range policyIDs {
+		state := true
+		bulkPolicies = append(bulkPolicies, api.BulkUpdatePolicy{PolicyID: policyID, Enabled: &state})
 	}
-	return nil
+
+	return bulkPolicies, nil
 }
 
 func setPolicyStateByTag(tag string, policyState bool) error {
@@ -725,22 +720,24 @@ func setPolicyStateByTag(tag string, policyState bool) error {
 		return nil
 	}
 
-	for i, p := range matchingPolicies {
-		cli.StartProgress(fmt.Sprintf(" %sing policies %d/%d (%s)...", strings.TrimSuffix(msg, "e"), i+1, len(matchingPolicies), p.PolicyID))
-		policy := api.UpdatePolicy{PolicyID: p.PolicyID, Enabled: &policyState}
-		resp, err := cli.LwApi.V2.Policy.Update(policy)
-		if err != nil {
-			if len(policiesUpdated) > 0 {
-				return errors.Wrapf(err, "failed to complete bulk %s. %d policies have been %sd: %s",
-					msg, len(policiesUpdated), msg, strings.Join(policiesUpdated, ","))
-			}
-			return errors.Wrapf(err, "failed to %s any policies", msg)
-
-		}
-		policiesUpdated = append(policiesUpdated, resp.Data.PolicyID)
-		cli.StopProgress()
-
+	// perform bulk update
+	var bulkPolicies api.BulkUpdatePolicies
+	for _, p := range matchingPolicies {
+		bulkPolicies = append(bulkPolicies, api.BulkUpdatePolicy{
+			PolicyID: p.PolicyID,
+			Enabled:  &policyState,
+		})
 	}
+
+	cli.StartProgress(fmt.Sprintf("%sing %d policies...", strings.TrimSuffix(msg, "e"), len(bulkPolicies)))
+	resp, err := cli.LwApi.V2.Policy.UpdateMany(bulkPolicies)
+	cli.StopProgress()
+
+	if err != nil {
+		return errors.Wrapf(err, "failed to complete bulk %s.", msg)
+	}
+
+	cli.Log.Debugw("bulk policy updated response:", resp)
 	cli.OutputHuman("%d policies tagged with %q have been %sd\n", len(policiesUpdated), tag, msg)
 	return nil
 }
