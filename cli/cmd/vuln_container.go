@@ -104,7 +104,7 @@ func init() {
 
 	vulContainerShowAssessmentCmd.Flags().BoolVar(
 		&vulCmdState.ImageID, "image_id", false,
-		"tread the provided sha256 hash as image id",
+		"(DEPRECATED) by default we look up both, image_id and image_digest",
 	)
 }
 
