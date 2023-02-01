@@ -26,14 +26,13 @@ var (
 		Use:     "show-assessment <sha256:hash>",
 		Aliases: []string{"show"},
 		Short:   "Show results of a container vulnerability assessment",
-		Long: `Show the results from a vulnerability assessment of a specified container.
+		Long: `Show the vulnerability assessment results of the specified container.
 
 Arguments:
     <sha256:hash> a sha256 hash of a container image (format: sha256:1ee...1d3b)
 
-By default, this command expects a sha256 image digest or tag. To lookup an
-assessment by its image id, use the flag '--image_id' followed by the sha256
-image id.
+Note that the provided SHA is treated first as the image digest, but if no results
+are found, this commands tries to use the SHA as the image id.
 
 To request an on-demand vulnerability scan:
 
