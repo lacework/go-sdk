@@ -64,8 +64,8 @@ func (svc *EntitiesService) ListAllMachineDetails() (response MachineDetailsEnti
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }
 
@@ -91,14 +91,16 @@ func (svc *EntitiesService) ListAllMachineDetailsWithFilters(filters SearchFilte
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }
 
 type MachineDetailsEntityResponse struct {
 	Data   []MachineDetailEntity `json:"data"`
 	Paging V2Pagination          `json:"paging"`
+
+	v2PageMetadata `json:"-"`
 }
 
 // Fulfill Pageable interface (look at api/v2.go)
@@ -107,6 +109,7 @@ func (r MachineDetailsEntityResponse) PageInfo() *V2Pagination {
 }
 func (r *MachineDetailsEntityResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+	r.Data = nil
 }
 
 type MachineDetailEntity struct {

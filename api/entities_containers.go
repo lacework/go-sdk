@@ -59,20 +59,27 @@ func (svc *EntitiesService) ListAllContainers() (response ContainersEntityRespon
 	for {
 		all = append(all, response.Data...)
 
-		pageOk, err = svc.client.NextPage(&response)
+		newResponse := ContainersEntityResponse{
+			Paging: response.Paging,
+		}
+		pageOk, err = svc.client.NextPage(&newResponse)
 		if err == nil && pageOk {
+			response = newResponse
 			continue
 		}
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }
 
-// ListAllContainersWithFilters iterates over all pages to return all active container information at once based on a user defined filter
-func (svc *EntitiesService) ListAllContainersWithFilters(filters SearchFilter) (response ContainersEntityResponse, err error) {
+// ListAllContainersWithFilters iterates over all pages to return all active container
+// information at once based on a user defined filter
+func (svc *EntitiesService) ListAllContainersWithFilters(filters SearchFilter) (
+	response ContainersEntityResponse, err error,
+) {
 	response, err = svc.ListContainersWithFilters(filters)
 	if err != nil {
 		return
@@ -93,14 +100,16 @@ func (svc *EntitiesService) ListAllContainersWithFilters(filters SearchFilter) (
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }
 
 type ContainersEntityResponse struct {
 	Data   []ContainerEntity `json:"data"`
 	Paging V2Pagination      `json:"paging"`
+
+	v2PageMetadata `json:"-"`
 }
 
 // Fulfill Pageable interface (look at api/v2.go)
@@ -109,6 +118,7 @@ func (r ContainersEntityResponse) PageInfo() *V2Pagination {
 }
 func (r *ContainersEntityResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+	r.Data = nil
 }
 
 // Total returns the total number of active containers

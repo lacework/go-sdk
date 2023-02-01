@@ -32,6 +32,7 @@ func (r InventoryAwsResponse) PageInfo() *V2Pagination {
 }
 func (r *InventoryAwsResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+	r.Data = nil
 }
 
 type InventoryAws struct {

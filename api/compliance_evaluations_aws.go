@@ -34,6 +34,7 @@ func (r ComplianceEvaluationAwsResponse) PageInfo() *V2Pagination {
 }
 func (r *ComplianceEvaluationAwsResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+	r.Data = nil
 }
 
 type ComplianceEvaluationAws struct {

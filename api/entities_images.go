@@ -62,8 +62,8 @@ func (svc *EntitiesService) ListAllImages() (response ImagesEntityResponse, err 
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }
 
@@ -89,14 +89,16 @@ func (svc *EntitiesService) ListAllImagesWithFilters(filters SearchFilter) (resp
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }
 
 type ImagesEntityResponse struct {
 	Data   []ImageEntity `json:"data"`
 	Paging V2Pagination  `json:"paging"`
+
+	v2PageMetadata `json:"-"`
 }
 
 // Fulfill Pageable interface (look at api/v2.go)
@@ -105,6 +107,7 @@ func (r ImagesEntityResponse) PageInfo() *V2Pagination {
 }
 func (r *ImagesEntityResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+	r.Data = nil
 }
 
 type ImageEntity struct {

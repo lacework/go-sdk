@@ -35,6 +35,8 @@ func (svc *AgentInfoService) Search(response interface{}, filters SearchFilter) 
 type AgentInfoResponse struct {
 	Data   []AgentInfo  `json:"data"`
 	Paging V2Pagination `json:"paging"`
+
+	v2PageMetadata `json:"-"`
 }
 
 // Fulfill Pageable interface (look at api/v2.go)
@@ -43,6 +45,7 @@ func (r AgentInfoResponse) PageInfo() *V2Pagination {
 }
 func (r *AgentInfoResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+	r.Data = nil
 }
 
 type AgentInfo struct {
