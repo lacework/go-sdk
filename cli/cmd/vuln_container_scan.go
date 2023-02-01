@@ -187,14 +187,14 @@ func pollScanStatus(requestID string, args []string) error {
 		cli.Event.Feature = featPollCtrScan
 		cli.Event.FeatureData = params
 
-		err, retry := checkScanStatus(requestID)
+		evalGUID, err := checkScanStatus(requestID)
 		if err != nil {
 			cli.Event.Error = err.Error()
 			cli.SendHoneyvent()
 			return err
 		}
 
-		if retry {
+		if evalGUID == "" {
 			cli.Log.Debugw("waiting for a retry", "request_id", requestID, "sleep", expPollTime)
 			cli.SendHoneyvent()
 			time.Sleep(expPollTime)
@@ -204,6 +204,7 @@ func pollScanStatus(requestID string, args []string) error {
 
 		cli.Event.DurationMs = time.Since(durationTime).Milliseconds()
 		params["total_duration_ms"] = time.Since(start).Milliseconds()
+		params["eval_guid"] = evalGUID
 		cli.Event.FeatureData = params
 		cli.SendHoneyvent()
 
@@ -217,7 +218,7 @@ func pollScanStatus(requestID string, args []string) error {
 		// using a time range of 7 days and instead just pass the last 24 hours
 		now := time.Now().UTC()
 		before := now.AddDate(0, 0, -1) // 1 day from now
-		err = showContainerAssessmentsWithSha256("", api.SearchFilter{
+		filter := api.SearchFilter{
 			TimeFilter: &api.TimeFilter{
 				StartTime: &before,
 				EndTime:   &now,
@@ -227,6 +228,11 @@ func pollScanStatus(requestID string, args []string) error {
 					Expression: "eq",
 					Field:      "evalCtx.image_info.registry",
 					Value:      args[0],
+				},
+				{
+					Expression: "eq",
+					Field:      "evalGuid",
+					Value:      evalGUID,
 				},
 				{
 					Expression: "eq",
@@ -249,8 +255,24 @@ func pollScanStatus(requestID string, args []string) error {
 					Value:      args[2],
 				},
 			},
-		})
-		return err
+		}
+
+		cli.Log.Debugw("retrieve assessment", "filters", filter.Filters)
+
+		cli.StartProgress("Fetching assessment results...")
+		assessment, err := cli.LwApi.V2.Vulnerabilities.Containers.Search(filter)
+		cli.StopProgress()
+		if err != nil {
+			return errors.Wrap(err, "unable to fetch assessment results")
+		}
+
+		if len(assessment.Data) == 0 {
+			return errors.Errorf(
+				"unable to fetch assessment results from evaluation with id '%s'", evalGUID,
+			)
+		}
+
+		return outputContainerVulnerabilityAssessment(assessment)
 	}
 }
 
@@ -262,22 +284,26 @@ func getTagOrDigestField(arg string) string {
 	return "evalCtx.image_info.tags[0]"
 }
 
-func checkScanStatus(requestID string) (error, bool) {
+// checkScanStatus returns the evaluation GUID once the scan is completed,
+// if it is not completed, it returns an empty string
+func checkScanStatus(requestID string) (string, error) {
 	cli.Log.Infow("verifying status of vulnerability scan", "request_id", requestID)
 	scan, err := cli.LwApi.V2.Vulnerabilities.Containers.ScanStatus(requestID)
 	if err != nil {
-		return errors.Wrap(err, "unable to verify status of the vulnerability scan"), false
+		return "", errors.Wrap(err, "unable to verify status of the vulnerability scan")
 	}
 
 	cli.Log.Debugw("vulnerability scan", "details", scan)
 	status := scan.CheckStatus()
 	switch status {
 	case "completed":
-		return nil, false
+		cli.Log.Infow("vulnerability scan completed",
+			"request_id", requestID, "eval_guid", scan.Data.EvalGuid)
+		return scan.Data.EvalGuid, nil
 	case "scanning":
-		return nil, true
+		return "", nil
 	default:
-		return errors.Errorf(
-			"unable to get status: '%s' from vulnerability scan. Use '--debug' to troubleshoot.", status), false
+		return "", errors.Errorf(
+			"unable to get status: '%s' from vulnerability scan. Use '--debug' to troubleshoot.", status)
 	}
 }

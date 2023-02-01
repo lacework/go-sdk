@@ -133,7 +133,8 @@ type vulnContainerScanRequest struct {
 type VulnerabilitiesContainersScanStatusResponse struct {
 	Message string `json:"message"`
 	Data    struct {
-		Status string `json:"status"`
+		EvalGuid string `json:"evalGuid"`
+		Status   string `json:"status"`
 	} `json:"data"`
 }
 
