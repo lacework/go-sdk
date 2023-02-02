@@ -62,7 +62,7 @@ func (svc *AlertsService) SearchAll(filter SearchFilter) (
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }

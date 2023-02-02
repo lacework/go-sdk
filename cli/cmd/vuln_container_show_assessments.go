@@ -26,14 +26,13 @@ var (
 		Use:     "show-assessment <sha256:hash>",
 		Aliases: []string{"show"},
 		Short:   "Show results of a container vulnerability assessment",
-		Long: `Show the results from a vulnerability assessment of a specified container.
+		Long: `Show the vulnerability assessment results of the specified container.
 
 Arguments:
     <sha256:hash> a sha256 hash of a container image (format: sha256:1ee...1d3b)
 
-By default, this command expects a sha256 image digest or tag. To lookup an
-assessment by its image id, use the flag '--image_id' followed by the sha256
-image id.
+Note that the provided SHA is treated first as the image digest, but if no results
+are found, this commands tries to use the SHA as the image id.
 
 To request an on-demand vulnerability scan:
 
@@ -55,7 +54,7 @@ To request an on-demand vulnerability scan:
 			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
-			err := showContainerAssessmentsWithSha256(args[0], api.SearchFilter{})
+			err := showContainerAssessmentsWithSha256(args[0])
 			var e *vulnerabilityPolicyError
 			if errors.As(err, &e) {
 				c.SilenceUsage = true
@@ -66,76 +65,127 @@ To request an on-demand vulnerability scan:
 	}
 )
 
-func showContainerAssessmentsWithSha256(sha string, filter api.SearchFilter) error {
+func searchLastestEvaluationGuid(sha string) (string, error) {
 	var (
-		assessment     api.VulnerabilitiesContainersResponse
-		vulnerabilites []api.VulnerabilityContainer
-		now            = time.Now().UTC()
-		before         = now.AddDate(0, 0, -7) // 7 days from ago
-		searchField    string
-		err            error
+		now    = time.Now().UTC()
+		before = now.AddDate(0, 0, -7) // 7 days from ago
+		filter = api.SearchFilter{
+			TimeFilter: &api.TimeFilter{
+				StartTime: &before,
+				EndTime:   &now,
+			},
+			Returns: []string{"evalGuid", "startTime"},
+		}
 	)
 
-	if len(filter.Filters) > 0 {
-		cli.Log.Debugw("retrieve assessment", "filters", filter.Filters)
-
-		cli.StartProgress("Fetching assessment...")
-		assessment, err = cli.LwApi.V2.Vulnerabilities.Containers.Search(filter)
-		cli.StopProgress()
-
-		if len(assessment.Data) == 0 {
-			cli.OutputHuman(fmt.Sprintf("There are no vulnerabilities found! Time for %s\n", randomEmoji()))
-			return nil
-		}
+	// By default, we display the image digest in the command 'list-assessments',
+	// so we start by fetching the image using the digest
+	cli.Log.Infow("retrieve image assessment", "image_digest", sha)
+	assessment, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(api.SearchFilter{
+		Returns:    filter.Returns,
+		TimeFilter: filter.TimeFilter,
+		Filters: []api.Filter{{
+			Expression: "eq",
+			Field:      "evalCtx.image_info.digest",
+			Value:      sha,
+		}},
+	})
+	if err != nil {
+		return "", err
 	}
 
-	if vulCmdState.ImageID {
-		searchField = "evalCtx.image_info.id"
-		cli.Log.Debugw("retrieve image assessment", searchField, sha)
-
-		cli.StartProgress("Fetching assessment...")
-		assessment, err = cli.LwApi.V2.Vulnerabilities.Containers.Search(api.SearchFilter{
+	if len(assessment.Data) == 0 {
+		// provided sha was not an image digest, try using it as an image id instead
+		cli.Log.Infow("retrieve image assessment", "image_id", sha)
+		assessment, err = cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(api.SearchFilter{
 			TimeFilter: &api.TimeFilter{
 				StartTime: &before,
 				EndTime:   &now,
 			},
 			Filters: []api.Filter{{
 				Expression: "eq",
-				Field:      searchField,
+				Field:      "evalCtx.image_info.id",
 				Value:      sha,
 			}},
 		})
-		cli.StopProgress()
-
-		if len(assessment.Data) == 0 {
-			cli.OutputHuman("No active containers found.\n")
-			return nil
+		if err != nil {
+			return "", err
 		}
 
+		if len(assessment.Data) == 0 {
+			return "", errors.New("no data found")
+		}
 	}
 
-	if sha != "" && !vulCmdState.ImageID {
-		searchField = "evalCtx.image_info.digest"
+	return getUniqueEvalGUID(assessment), nil
+}
+
+func getUniqueEvalGUID(assessment api.VulnerabilitiesContainersResponse) string {
+	var (
+		guid      string
+		startTime time.Time
+	)
+	for _, ctr := range assessment.Data {
+		if ctr.EvalGUID != guid {
+			if ctr.StartTime.After(startTime) {
+				startTime = ctr.StartTime
+				guid = ctr.EvalGUID
+			}
+		}
+	}
+	return guid
+}
+
+func showContainerAssessmentsWithSha256(sha string) error {
+	var (
+		cacheKey   = fmt.Sprintf("vulnerability/container/%s", sha)
+		assessment api.VulnerabilitiesContainersResponse
+	)
+	expired := cli.ReadCachedAsset(cacheKey, &assessment)
+	if expired {
+		// search for the latest evaluation guid
+		cli.StartProgress("Searching for latest container evaluation...")
+		evalGUID, err := searchLastestEvaluationGuid(sha)
+		cli.StopProgress()
+		if err != nil {
+			return errors.Wrapf(err, "unable to find assessment information of image %s", sha)
+		}
+
+		cli.Log.Infow("latest assessment found", "eval_guid", evalGUID)
+
+		var (
+			now    = time.Now().UTC()
+			before = now.AddDate(0, 0, -7) // 7 days from ago
+		)
+
 		cli.StartProgress("Fetching assessment...")
-		assessment, err = cli.LwApi.V2.Vulnerabilities.Containers.Search(api.SearchFilter{
+		assessment, err = cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(api.SearchFilter{
 			TimeFilter: &api.TimeFilter{
 				StartTime: &before,
 				EndTime:   &now,
 			},
 			Filters: []api.Filter{{
 				Expression: "eq",
-				Field:      searchField,
-				Value:      sha,
+				Field:      "evalGuid",
+				Value:      evalGUID,
 			}},
 		})
 		cli.StopProgress()
-
-		if len(assessment.Data) == 0 {
-			cli.OutputHuman("No active containers found.\n")
-			return nil
+		if err != nil {
+			return errors.Wrap(err, "unable to fetch assessment data")
 		}
+
+		// write to cache if the request was successful
+		cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Minute*30), assessment)
+	} else {
+		cli.Log.Infow("assessment loaded from cache", "data_points", len(assessment.Data))
 	}
 
+	return outputContainerVulnerabilityAssessment(assessment)
+}
+
+func outputContainerVulnerabilityAssessment(assessment api.VulnerabilitiesContainersResponse) error {
+	var vulnerabilites []api.VulnerabilityContainer
 	for _, a := range assessment.Data {
 		if a.Status == "VULNERABLE" {
 			vulnerabilites = append(vulnerabilites, a)
@@ -144,12 +194,7 @@ func showContainerAssessmentsWithSha256(sha string, filter api.SearchFilter) err
 
 	assessment.Data = vulnerabilites
 
-	if err != nil {
-		return errors.Wrap(err, "unable to show vulnerability assessment")
-	}
-
-	cli.Log.Debugw("image assessment", "details", assessment)
-
+	cli.Log.Debugw("filtered image assessment", "details", assessment)
 	if err := buildVulnContainerAssessmentReports(assessment); err != nil {
 		return err
 	}
@@ -180,7 +225,10 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 			// if no assessments are found return empty array
 			return cli.OutputJSON([]any{})
 		}
-		cli.OutputHuman("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
+		cli.OutputHuman(
+			"Great news! This container image has no vulnerabilities... (time for %s)\n",
+			randomEmoji(),
+		)
 		return nil
 	}
 
@@ -205,7 +253,10 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 				cli.OutputHuman("There ano vulnerabilties found for this severity")
 			}
 
-			cli.OutputHuman("Great news! This container image has no vulnerabilities... (time for %s)\n", randomEmoji())
+			cli.OutputHuman(
+				"Great news! This container image has no vulnerabilities... (time for %s)\n",
+				randomEmoji(),
+			)
 			return nil
 		}
 		summaryReport := buildVulnerabilitySummaryReportTable(response)

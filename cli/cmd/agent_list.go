@@ -149,8 +149,8 @@ func listAgents(_ *cobra.Command, _ []string) error {
 			}
 			break
 		}
-		response.Data = agents
 		response.ResetPaging()
+		response.Data = agents
 	}
 
 	cli.StartProgress("Crunching agent data...")

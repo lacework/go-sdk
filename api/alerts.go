@@ -92,6 +92,8 @@ func (a Alerts) SortBySeverity() {
 type AlertsResponse struct {
 	Data   Alerts       `json:"data"`
 	Paging V2Pagination `json:"paging"`
+
+	v2PageMetadata `json:"-"`
 }
 
 // Fulfill Pageable interface (look at api/v2.go)
@@ -100,6 +102,7 @@ func (r AlertsResponse) PageInfo() *V2Pagination {
 }
 func (r *AlertsResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+	r.Data = nil
 }
 
 func (svc *AlertsService) List() (response AlertsResponse, err error) {
@@ -127,8 +130,8 @@ func (svc *AlertsService) ListAll() (response AlertsResponse, err error) {
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }
 
@@ -172,7 +175,7 @@ func (svc *AlertsService) ListAllByTime(start, end time.Time) (
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }

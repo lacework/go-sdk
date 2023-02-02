@@ -56,14 +56,16 @@ func (svc *EntitiesService) ListAllUsers() (response UsersEntityResponse, err er
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }
 
 type UsersEntityResponse struct {
 	Data   []UserEntity `json:"data"`
 	Paging V2Pagination `json:"paging"`
+
+	v2PageMetadata `json:"-"`
 }
 
 // Fulfill Pagination interface (look at api/v2.go)
@@ -72,6 +74,7 @@ func (r UsersEntityResponse) PageInfo() *V2Pagination {
 }
 func (r *UsersEntityResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+	r.Data = nil
 }
 
 type UserEntity struct {
