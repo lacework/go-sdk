@@ -102,10 +102,14 @@ func init() {
 		vulContainerListAssessmentsCmd.Flags(),
 	)
 
+	// DEPRECATED
 	vulContainerShowAssessmentCmd.Flags().BoolVar(
 		&vulCmdState.ImageID, "image_id", false,
-		"(DEPRECATED) by default we look up both, image_id and image_digest",
+		"tread the provided sha256 hash as image id",
 	)
+	errcheckWARN(vulContainerShowAssessmentCmd.Flags().MarkDeprecated(
+		"image_id", "by default we now look up both, image_id and image_digest at once.",
+	))
 }
 
 func setPollFlag(cmds ...*flag.FlagSet) {
