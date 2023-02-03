@@ -59,7 +59,7 @@ func TestCloudAccountsGcpAlPubSubProjectGet(t *testing.T) {
 	assert.True(t, response.Data.State.Ok)
 	assert.Equal(t, "test@project.iam.gserviceaccount.com", response.Data.Data.Credentials.ClientEmail)
 	assert.Equal(t, "123456789", response.Data.Data.Credentials.ClientId)
-	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKeyId/GKE/)
+	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKeyId)
 	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKey)
 	assert.Equal(t, "GcpAlPubSub", response.Data.Type)
 	assert.Equal(t, "test-project-123", response.Data.Data.ProjectId)
