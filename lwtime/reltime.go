@@ -222,7 +222,7 @@ func (rel relative) time(inTime time.Time) (outTime time.Time, err error) {
 // 	...
 // }
 func ParseRelative(s string) (time.Time, error) {
-	return parseRelativeFromTime(s, time.Now())
+	return parseRelativeFromTime(s, time.Now().UTC())
 }
 
 func parseRelativeFromTime(s string, fromTime time.Time) (time.Time, error) {
