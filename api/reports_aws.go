@@ -96,7 +96,7 @@ func (svc *awsReportsService) DownloadPDF(filepath string, config AwsReportConfi
 		return errors.New("account id is required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2Reports, config.AccountID, "pdf", "")
+	apiPath := fmt.Sprintf(apiV2Reports, config.AccountID, "pdf", config.Type)
 
 	request, err := svc.client.NewRequest("GET", apiPath, nil)
 	if err != nil {
