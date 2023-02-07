@@ -37,15 +37,15 @@ func main() {
 	gcpAlPubSubData := api.GcpAlPubSubSesData{
 		Credentials: api.GcpAlPubSubCredentials{
 			ClientEmail:  "test@project.iam.gserviceaccount.com",
-			ClientId:     "0123456789",
+			ClientID:     "0123456789",
 			PrivateKey:   "",
-			PrivateKeyId: "",
+			PrivateKeyID: "",
 		},
 		IntegrationType:  "PROJECT",
-		OrganizationId:   "TestOrgId",
-		ProjectId:        "TestProjectId",
+		OrganizationID:   "TestOrgId",
+		ProjectID:        "TestProjectId",
 		SubscriptionName: "projects/test-project/subscriptions/test-subscription",
-		TopicId:          "projects/test-project/subscriptions/test-topic",
+		TopicID:          "projects/test-project/subscriptions/test-topic",
 	}
 
 	gcpAlPubSubCloudAccount := api.NewCloudAccount(

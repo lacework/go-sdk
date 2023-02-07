@@ -58,14 +58,14 @@ func TestCloudAccountsGcpAlPubSubProjectGet(t *testing.T) {
 	assert.Equal(t, "test-gcp-project", response.Data.Name)
 	assert.True(t, response.Data.State.Ok)
 	assert.Equal(t, "test@project.iam.gserviceaccount.com", response.Data.Data.Credentials.ClientEmail)
-	assert.Equal(t, "123456789", response.Data.Data.Credentials.ClientId)
-	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKeyId)
+	assert.Equal(t, "123456789", response.Data.Data.Credentials.ClientID)
+	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKeyID)
 	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKey)
 	assert.Equal(t, "GcpAlPubSub", response.Data.Type)
-	assert.Equal(t, "test-project-123", response.Data.Data.ProjectId)
+	assert.Equal(t, "test-project-123", response.Data.Data.ProjectID)
 	assert.Equal(t, "PROJECT", response.Data.Data.IntegrationType)
 	assert.Equal(t, "projects/test-project/subscriptions/test", response.Data.Data.SubscriptionName)
-	assert.Equal(t, "projects/test-project/subscriptions/test-topic", response.Data.Data.TopicId)
+	assert.Equal(t, "projects/test-project/subscriptions/test-topic", response.Data.Data.TopicID)
 }
 
 func TestCloudAccountsGcpAlPubSubOrgGet(t *testing.T) {
@@ -97,14 +97,14 @@ func TestCloudAccountsGcpAlPubSubOrgGet(t *testing.T) {
 	assert.Equal(t, "test-gcp-org", response.Data.Name)
 	assert.True(t, response.Data.State.Ok)
 	assert.Equal(t, "test@project.iam.gserviceaccount.com", response.Data.Data.Credentials.ClientEmail)
-	assert.Equal(t, "123456789", response.Data.Data.Credentials.ClientId)
-	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKeyId)
+	assert.Equal(t, "123456789", response.Data.Data.Credentials.ClientID)
+	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKeyID)
 	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKey)
 	assert.Equal(t, "GcpAlPubSub", response.Data.Type)
-	assert.Equal(t, "test-org-123", response.Data.Data.OrganizationId)
+	assert.Equal(t, "test-org-123", response.Data.Data.OrganizationID)
 	assert.Equal(t, "ORGANIZATION", response.Data.Data.IntegrationType)
 	assert.Equal(t, "projects/test-project/subscriptions/test", response.Data.Data.SubscriptionName)
-	assert.Equal(t, "projects/test-project/subscriptions/test-topic", response.Data.Data.TopicId)
+	assert.Equal(t, "projects/test-project/subscriptions/test-topic", response.Data.Data.TopicID)
 }
 
 func singleGcpAlPubSubProjectCloudAccount(id string) string {

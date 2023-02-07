@@ -49,15 +49,15 @@ type GcpAlPubSubSesData struct {
 	Credentials     GcpAlPubSubCredentials `json:"credentials"`
 	IntegrationType string                 `json:"integrationType"`
 	// OrganizationId is optional for a project level integration, therefore we omit if empty
-	OrganizationId   string `json:"organizationId,omitempty"`
-	ProjectId        string `json:"projectId"`
+	OrganizationID   string `json:"organizationId,omitempty"`
+	ProjectID        string `json:"projectId"`
 	SubscriptionName string `json:"subscriptionName"`
-	TopicId          string `json:"topicId"`
+	TopicID          string `json:"topicId"`
 }
 
 type GcpAlPubSubCredentials struct {
-	ClientId     string `json:"clientId"`
+	ClientID     string `json:"clientId"`
 	ClientEmail  string `json:"clientEmail"`
-	PrivateKeyId string `json:"privateKeyId"`
+	PrivateKeyID string `json:"privateKeyId"`
 	PrivateKey   string `json:"privateKey,omitempty"`
 }
