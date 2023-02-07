@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -41,6 +42,33 @@ func TestUploadFiles(t *testing.T) {
 	guid, err := c.V2.ComponentData.UploadFiles("doc-set", []string{"sast"}, []string{})
 	assert.Nil(t, err)
 	assert.Equal(t, "SOME-GUID", guid)
+}
+
+func TestDoWithExponentialBackoffAlwaysFailing(t *testing.T) {
+	waited := 0
+	err := api.DoWithExponentialBackoff(func() error {
+		return errors.New("failed")
+	}, func(x int) {
+		waited += x
+	})
+	assert.NotNil(t, err)
+	assert.Equal(t, 62, waited)
+}
+
+func TestDoWithExponentialBackoffSucceedsOnThirdAttempt(t *testing.T) {
+	waited := 0
+	attempt := 1
+	err := api.DoWithExponentialBackoff(func() error {
+		if attempt == 3 {
+			return nil
+		}
+		attempt += 1
+		return errors.New("failed")
+	}, func(x int) {
+		waited += x
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, 6, waited)
 }
 
 func generateInitialResponse() string {

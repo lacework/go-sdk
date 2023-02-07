@@ -25,45 +25,45 @@ type DocumentSpec struct {
 	Size int64  `json:"size"`
 }
 
-type InitialResponseRaw struct {
-	Data *InitialResponse `json:"data,omitempty"`
+type ComponentDataInitialResponseRaw struct {
+	Data *ComponentDataInitialResponse `json:"data,omitempty"`
 }
 
-type InitialResponse struct {
-	Guid          string          `json:"guid,omitempty"`
-	UploadMethods []*UploadMethod `json:"uploadMethods,omitempty"`
+type ComponentDataInitialResponse struct {
+	Guid          string                       `json:"guid,omitempty"`
+	UploadMethods []*ComponentDataUploadMethod `json:"uploadMethods,omitempty"`
 }
 
-type UploadMethod struct {
+type ComponentDataUploadMethod struct {
 	Method string            `json:"method,omitempty"`
 	Info   map[string]string `json:"info,omitempty"`
 }
 
-type CompleteRequest struct {
+type ComponentDataCompleteRequest struct {
 	Guid string `json:"guid"`
 }
 
-type CompleteResponseRaw struct {
-	Data *CompleteResponse `json:"data,omitempty"`
+type ComponentDataCompleteResponseRaw struct {
+	Data *ComponentDataCompleteResponse `json:"data,omitempty"`
 }
 
-type CompleteResponse struct {
+type ComponentDataCompleteResponse struct {
 	Guid string `json:"guid,omitempty"`
 }
 
 func (svc *ComponentDataService) UploadFiles(name string, tags []string, paths []string) (string, error) {
-	initialRequest, err := buildInitialRequest(name, tags, paths)
+	initialRequest, err := buildComponentDataInitialRequest(name, tags, paths)
 	if err != nil {
 		return "", err
 	}
-	var initialResponse InitialResponseRaw
-	err = doWithExponentialBackoff(func() error {
-		return svc.client.RequestEncoderDecoder(http.MethodPost, "v2/ComponentData/requestUpload", initialRequest, &initialResponse)
+	var initialResponse ComponentDataInitialResponseRaw
+	err = doWithExponentialBackoffWaiting(func() error {
+		return svc.client.RequestEncoderDecoder(http.MethodPost, apiV2ComponentDataRequest, initialRequest, &initialResponse)
 	})
 	if err != nil {
 		return "", err
 	}
-	var chosenMethod *UploadMethod
+	var chosenMethod *ComponentDataUploadMethod
 	for _, method := range initialResponse.Data.UploadMethods {
 		if method.Method == "AwsS3" {
 			chosenMethod = method
@@ -73,19 +73,19 @@ func (svc *ComponentDataService) UploadFiles(name string, tags []string, paths [
 		return "", errors.New("couldn't find a supported upload method in the upload request response")
 	}
 	for _, path := range paths {
-		err = doWithExponentialBackoff(func() error {
-			return putFileToS3(svc, path, chosenMethod.Info)
+		err = doWithExponentialBackoffWaiting(func() error {
+			return svc.putFileToS3(path, chosenMethod.Info)
 		})
 		if err != nil {
 			return "", err
 		}
 	}
-	completeRequest := CompleteRequest{
+	completeRequest := ComponentDataCompleteRequest{
 		Guid: initialResponse.Data.Guid,
 	}
-	var completeResponse CompleteResponseRaw
-	err = doWithExponentialBackoff(func() error {
-		return svc.client.RequestEncoderDecoder(http.MethodPost, "v2/ComponentData/completeUpload", completeRequest, &completeResponse)
+	var completeResponse ComponentDataCompleteResponseRaw
+	err = doWithExponentialBackoffWaiting(func() error {
+		return svc.client.RequestEncoderDecoder(http.MethodPost, apiV2ComponentDataComplete, completeRequest, &completeResponse)
 	})
 	if err != nil {
 		return "", err
@@ -96,7 +96,7 @@ func (svc *ComponentDataService) UploadFiles(name string, tags []string, paths [
 	return initialResponse.Data.Guid, nil
 }
 
-func buildInitialRequest(name string, tags []string, paths []string) (*ComponentDataInitialRequest, error) {
+func buildComponentDataInitialRequest(name string, tags []string, paths []string) (*ComponentDataInitialRequest, error) {
 	documents := make([]*DocumentSpec, 0, len(paths))
 	for _, path := range paths {
 		info, err := os.Lstat(path)
@@ -116,7 +116,7 @@ func buildInitialRequest(name string, tags []string, paths []string) (*Component
 	}, nil
 }
 
-func putFileToS3(svc *ComponentDataService, path string, uploadUrls map[string]string) error {
+func (svc *ComponentDataService) putFileToS3(path string, uploadUrls map[string]string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -127,19 +127,22 @@ func putFileToS3(svc *ComponentDataService, path string, uploadUrls map[string]s
 		return err
 	}
 	_, err = svc.client.Do(req)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
-func doWithExponentialBackoff(f func() error) error {
+func doWithExponentialBackoffWaiting(f func() error) error {
+	return DoWithExponentialBackoff(f, func(x int) {
+		time.Sleep(time.Duration(x) * time.Second)
+	})
+}
+
+func DoWithExponentialBackoff(f func() error, wait func(x int)) error {
 	err := f()
 	if err == nil {
 		return nil
 	}
-	for wait := 2; wait < 60; wait *= 2 {
-		time.Sleep(time.Duration(wait) * time.Second)
+	for waitTime := 2; waitTime < 60; waitTime *= 2 {
+		wait(waitTime)
 		err := f()
 		if err == nil {
 			return nil

@@ -77,6 +77,9 @@ const (
 
 	apiV2ComplianceEvaluationsSearch = "v2/Configs/ComplianceEvaluations/search"
 
+	apiV2ComponentDataRequest  = "v2/ComponentData/requestUpload"
+	apiV2ComponentDataComplete = "v2/ComponentData/completeUpload"
+
 	apiV2ConfigsAzure              = "v2/Configs/AzureSubscriptions"
 	apiV2ConfigsAzureSubscriptions = "v2/Configs/AzureSubscriptions?tenantId=%s"
 	apiV2ConfigsGcp                = "v2/Configs/GcpProjects"
