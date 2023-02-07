@@ -32,6 +32,7 @@ func makeComment(id string) (bytes.Buffer, bytes.Buffer, int) {
 }
 
 func TestAlertCommentMissingArg(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "accepts 1 arg(s), received 0")
@@ -39,6 +40,7 @@ func TestAlertCommentMissingArg(t *testing.T) {
 }
 
 func TestAlertCommentBadID(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "comment", "me")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "alert ID must be a number")

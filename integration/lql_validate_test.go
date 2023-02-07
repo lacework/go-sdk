@@ -29,6 +29,7 @@ import (
 )
 
 func TestQueryValidateEditor(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate")
 	assert.Contains(t, out.String(), "Type a query to validate")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
@@ -37,6 +38,7 @@ func TestQueryValidateEditor(t *testing.T) {
 }
 
 func TestQueryValidateFile(t *testing.T) {
+	t.Parallel()
 	// get temp file
 	file, err := createTemporaryFile(
 		"TestQueryValidateFile",
@@ -55,6 +57,7 @@ func TestQueryValidateFile(t *testing.T) {
 }
 
 func TestQueryValidateURL(t *testing.T) {
+	t.Parallel()
 	// validate
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "validate", "-u", queryURL)
 	assert.Contains(t, out.String(), "Query validated successfully.")

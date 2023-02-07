@@ -27,6 +27,7 @@ import (
 )
 
 func TestConfigureSwitchProfileNoConfigFails(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("configure", "switch-profile", "foo")
 	assert.Empty(t,
 		out.String(),
@@ -40,6 +41,7 @@ func TestConfigureSwitchProfileNoConfigFails(t *testing.T) {
 }
 
 func TestConfigureSwitchProfileNotFound(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithDummyConfig("configure", "switch-profile", "bar")
 	assert.Empty(t,
 		out.String(),
@@ -53,6 +55,7 @@ func TestConfigureSwitchProfileNotFound(t *testing.T) {
 }
 
 func TestConfigureSwitchProfileWithConfig(t *testing.T) {
+	t.Parallel()
 	// @afiune we store the temp directory since we need to run more
 	// commands after switching a profile
 	dir := createDummyTOMLConfig()

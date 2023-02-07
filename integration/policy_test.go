@@ -77,6 +77,7 @@ func getPolicyIdFromStdout(s string) (string, error) {
 }
 
 func TestPolicyHelp(t *testing.T) {
+	t.Parallel()
 	// lacework policy
 	out, err, exitcode := LaceworkCLI("help", "policy")
 	assert.Contains(t, out.String(), "lacework policy [command]")
@@ -85,6 +86,7 @@ func TestPolicyHelp(t *testing.T) {
 }
 
 func TestPolicyBase(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("policy")
 	assert.Contains(t, out.String(), "create")
 	assert.Contains(t, out.String(), "list")
@@ -94,6 +96,7 @@ func TestPolicyBase(t *testing.T) {
 }
 
 func TestPolicyCreateHelp(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("help", "policy", "create")
 	assert.Contains(t, out.String(), "lacework policy create [flags]")
 	assert.Contains(t, out.String(), "-f, --file string")
@@ -103,6 +106,7 @@ func TestPolicyCreateHelp(t *testing.T) {
 }
 
 func TestPolicyCreateEditor(t *testing.T) {
+	t.Parallel()
 	// create
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "create")
 	assert.Contains(t, out.String(), "Use the editor to create your policy")
@@ -304,6 +308,7 @@ func TestPolicyListHelp(t *testing.T) {
 }
 
 func TestPolicyList(t *testing.T) {
+	t.Parallel()
 	// list (output human)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list")
 	assert.Contains(t, out.String(), "POLICY ID")
@@ -320,13 +325,14 @@ func TestPolicyList(t *testing.T) {
 }
 
 func TestPolicyBadSeverity(t *testing.T) {
+	t.Parallel()
 	_, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list", "--severity", "superhigh")
 	assert.Contains(t, err.String(), "the severity superhigh is not valid, use one of critical, high, medium, low, info")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
-
 }
 
 func TestPolicySeverityCritical(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list", "--severity", "critical")
 	assert.Contains(t, out.String(), "lacework-global-8")
 	assert.NotContains(t, out.String(), "high")
@@ -335,6 +341,7 @@ func TestPolicySeverityCritical(t *testing.T) {
 }
 
 func TestPolicyShowHelp(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("help", "policy", "show")
 	assert.Contains(t, out.String(), "lacework policy show <policy_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -342,6 +349,7 @@ func TestPolicyShowHelp(t *testing.T) {
 }
 
 func TestPolicyShow(t *testing.T) {
+	t.Parallel()
 	t.Run("Human Output", func(t *testing.T) {
 		out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
 		assert.Contains(t, out.String(), "POLICY ID")
@@ -368,6 +376,7 @@ func TestPolicyShow(t *testing.T) {
 }
 
 func TestPolicyUpdateHelp(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("help", "policy", "update")
 	assert.Contains(t, out.String(), "lacework policy update [policy_id] [flags]")
 	assert.Contains(t, out.String(), "-f, --file string")
@@ -377,6 +386,7 @@ func TestPolicyUpdateHelp(t *testing.T) {
 }
 
 func TestPolicyUpdateEditor(t *testing.T) {
+	t.Parallel()
 	// update
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "update", "lacework-global-39")
 
@@ -387,6 +397,7 @@ func TestPolicyUpdateEditor(t *testing.T) {
 }
 
 func TestPolicyUpdateEditorNoID(t *testing.T) {
+	t.Parallel()
 	// update
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "update")
 
@@ -407,6 +418,7 @@ func TestPolicyUpdateURL(t *testing.T) {
 }
 
 func TestPolicyDeleteHelp(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("help", "policy", "delete")
 	assert.Contains(t, out.String(), "lacework policy delete <policy_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -414,6 +426,7 @@ func TestPolicyDeleteHelp(t *testing.T) {
 }
 
 func TestPolicyDeleteNoInput(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "delete")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")

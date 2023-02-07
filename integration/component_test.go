@@ -31,6 +31,7 @@ import (
 )
 
 func TestComponentList(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("component", "list")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -54,6 +55,7 @@ func TestComponentList(t *testing.T) {
 }
 
 func TestComponentListJSON(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("component", "list", "--json")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -86,6 +88,7 @@ func TestComponentListJSON(t *testing.T) {
 }
 
 func TestComponentDevModeGolangFromScratch(t *testing.T) {
+	t.Parallel()
 	cName := "go-component"
 	dir := createTOMLConfigFromCIvars()
 	defer os.RemoveAll(dir)
@@ -193,6 +196,7 @@ func TestComponentDevModeGolangFromScratch(t *testing.T) {
 }
 
 func TestComponentDevModeGolangScaffolding(t *testing.T) {
+	t.Parallel()
 	cName := "go-component"
 	dir := createTOMLConfigFromCIvars()
 	defer os.RemoveAll(dir)

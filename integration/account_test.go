@@ -27,6 +27,7 @@ import (
 )
 
 func TestAccountCommandAliases(t *testing.T) {
+	t.Parallel()
 	// lacework account
 	out, err, exitcode := LaceworkCLI("help", "account")
 	assert.Contains(t, out.String(), "lacework account")
@@ -41,6 +42,7 @@ func TestAccountCommandAliases(t *testing.T) {
 }
 
 func TestAccountCommandList(t *testing.T) {
+	t.Parallel()
 	if os.Getenv("CI_STANDALONE_ACCOUNT") != "" {
 		t.Skip("skipping organizational account test")
 	}

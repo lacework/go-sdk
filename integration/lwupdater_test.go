@@ -32,6 +32,7 @@ import (
 )
 
 func TestCheckErrorEmptyProject(t *testing.T) {
+	t.Parallel()
 	info, err := lwupdater.Check("", "")
 	assert.Empty(t, info)
 	if assert.NotNil(t, err) {
@@ -43,6 +44,7 @@ func TestCheckErrorEmptyProject(t *testing.T) {
 // I wonder if this will cause problems in the future, if so,
 // we should disable it.
 func TestCheck(t *testing.T) {
+	t.Parallel()
 	info, err := lwupdater.Check("go-sdk", "0.1.6")
 	if assert.Nil(t, err) {
 		assert.Equal(t, "go-sdk", info.Project)
@@ -53,6 +55,7 @@ func TestCheck(t *testing.T) {
 }
 
 func TestCheckSkipDevVersions(t *testing.T) {
+	t.Parallel()
 	info, err := lwupdater.Check("go-sdk", "1.30.9-dev")
 	if assert.Nil(t, err) {
 		assert.Equal(t, "1.30.9-dev", info.CurrentVersion)
@@ -70,6 +73,7 @@ func TestCheckDisabled(t *testing.T) {
 }
 
 func TestVersionLoadCacheError(t *testing.T) {
+	t.Parallel()
 	dir, err := ioutil.TempDir("", "version_cache")
 	if err != nil {
 		panic(err)
@@ -89,6 +93,7 @@ func TestVersionLoadCacheError(t *testing.T) {
 }
 
 func TestVersionStoreLoadCache(t *testing.T) {
+	t.Parallel()
 	dir, err := ioutil.TempDir("", "version_cache")
 	if err != nil {
 		panic(err)

@@ -26,6 +26,7 @@ import (
 )
 
 func TestAlertCloseMissingArg(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "close")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "accepts 1 arg(s), received 0")
@@ -33,6 +34,7 @@ func TestAlertCloseMissingArg(t *testing.T) {
 }
 
 func TestAlertCloseBadID(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "close", "me")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "alert ID must be a number")
@@ -89,6 +91,7 @@ func TestAlertCloseInline(t *testing.T) {
 }
 
 func TestAlertCloseDoesNotExist(t *testing.T) {
+	t.Parallel()
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "close", "123456789101112")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, stderr.String(), "alert 123456789101112 does not exist")

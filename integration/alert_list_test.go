@@ -53,6 +53,7 @@ func popAlert() (string, error) {
 }
 
 func TestAlertListBadRange(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--range", "bad")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR unable to list alerts: natural time (bad) is invalid")
@@ -60,6 +61,7 @@ func TestAlertListBadRange(t *testing.T) {
 }
 
 func TestAlertListBadStart(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--start", "bad")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR unable to list alerts: unable to parse time (bad)")
@@ -67,6 +69,7 @@ func TestAlertListBadStart(t *testing.T) {
 }
 
 func TestAlertListBadEnd(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--end", "bad")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR unable to list alerts: unable to parse time (bad)")
@@ -74,6 +77,7 @@ func TestAlertListBadEnd(t *testing.T) {
 }
 
 func TestAlertListHuman(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list")
 	assert.Contains(t, out.String(), "ALERT ID")
 	// breadcrumb
@@ -83,6 +87,7 @@ func TestAlertListHuman(t *testing.T) {
 }
 
 func TestAlertListJSON(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--json")
 	assert.Contains(t, out.String(), `"alertId"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -90,6 +95,7 @@ func TestAlertListJSON(t *testing.T) {
 }
 
 func TestAlertListNone(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--start", "-1s", "--end", "now")
 	assert.Contains(t, out.String(), "There are no alerts in the specified time range.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -97,6 +103,7 @@ func TestAlertListNone(t *testing.T) {
 }
 
 func TestAlertListSeverityBad(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--severity", "foo")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR unable to list alerts: the severity (foo) is not valid, use one of (critical, high, medium, low, info)")
@@ -104,6 +111,7 @@ func TestAlertListSeverityBad(t *testing.T) {
 }
 
 func TestAlertListSeverityHighAndCritical(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--severity", "high", "--range", "last week")
 	// I found that sometimes tech-ally sub account does not have critical
 	//assert.Contains(t, out.String(), "Critical")
@@ -116,6 +124,7 @@ func TestAlertListSeverityHighAndCritical(t *testing.T) {
 }
 
 func TestAlertListStatusBad(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--status", "foo")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR unable to list alerts: the status (foo) is not valid, use one of (Open, Closed)")
@@ -123,6 +132,7 @@ func TestAlertListStatusBad(t *testing.T) {
 }
 
 func TestAlertListStatusOpen(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--status", "Open")
 	assert.Contains(t, out.String(), "Open")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -130,6 +140,7 @@ func TestAlertListStatusOpen(t *testing.T) {
 }
 
 func TestAlertListTypeBad(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--type", "foo")
 	assert.Contains(t, out.String(), "No alerts match the specified filters within the given time range. Try removing filters or expanding the time range.")
 	assert.Empty(t, err.String(), "STDERR should be empty")

@@ -26,6 +26,7 @@ import (
 )
 
 func TestQueryPreviewSourceHelp(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("help", "query", "preview-source")
 	assert.Contains(t, out.String(), "lacework query preview-source <datasource_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -33,6 +34,7 @@ func TestQueryPreviewSourceHelp(t *testing.T) {
 }
 
 func TestQueryPreviewSourceNoInput(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "preview-source")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")
@@ -40,6 +42,7 @@ func TestQueryPreviewSourceNoInput(t *testing.T) {
 }
 
 func TestQueryPreviewSource(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "preview-source", "CloudTrailRawEvents")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -47,6 +50,7 @@ func TestQueryPreviewSource(t *testing.T) {
 }
 
 func TestQueryPreviewNoSuchSource(t *testing.T) {
+	t.Parallel()
 	_, err, exitcode := LaceworkCLIWithTOMLConfig("query", "preview-source", "NoSuchSource")
 	assert.Contains(t, err.String(), "unable to retrieve datasource")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")

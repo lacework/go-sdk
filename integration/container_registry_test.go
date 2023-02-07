@@ -26,6 +26,7 @@ import (
 )
 
 func TestContainerRegistryShow(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("container-registry", "show", "TECHALLY_7891701909B297518DB6E1C7E993E706B4C1BE1641A4EE3")
 	// Summary Table
 	assert.Contains(t, out.String(), "CONTAINER REGISTRY GUID",
@@ -69,6 +70,7 @@ func TestContainerRegistryShow(t *testing.T) {
 }
 
 func TestContainerRegistryList(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("cr", "list")
 	assert.Contains(t, out.String(), "CONTAINER REGISTRY GUID",
 		"STDOUT table headers changed, please check")

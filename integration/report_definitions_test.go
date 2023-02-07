@@ -10,6 +10,7 @@ import (
 var testReportDefinitionID = ""
 
 func TestReportDefintionsList(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "list")
 	// assert response contains table headers
 	assert.Contains(t, out.String(), "GUID")
@@ -22,6 +23,7 @@ func TestReportDefintionsList(t *testing.T) {
 }
 
 func TestReportDefintionsListJson(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "list", "--json")
 	// assert response contains json fields
 	assert.Contains(t, out.String(), "\"data\"")
@@ -36,6 +38,7 @@ func TestReportDefintionsListJson(t *testing.T) {
 }
 
 func TestReportDefintionsShow(t *testing.T) {
+	t.Parallel()
 	if testReportDefinitionID == "" {
 		t.Skip("skipping test. No report definition found")
 	}
@@ -55,6 +58,7 @@ func TestReportDefintionsShow(t *testing.T) {
 }
 
 func TestReportDefintionsShowJson(t *testing.T) {
+	t.Parallel()
 	if testReportDefinitionID == "" {
 		t.Skip("skipping test. No report definition found")
 	}

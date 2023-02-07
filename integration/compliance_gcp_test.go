@@ -25,6 +25,7 @@ import (
 )
 
 func TestComplianceGoogleGetReportOrgAndProjectWithAlias(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "gcp", "get-report", "org-id (org-alias)", "proj-id (proj-alias)",
 	)
@@ -38,6 +39,7 @@ func TestComplianceGoogleGetReportOrgAndProjectWithAlias(t *testing.T) {
 }
 
 func TestComplianceGoogleList(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "gcp", "list",
 	)

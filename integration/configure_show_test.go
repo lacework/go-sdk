@@ -26,6 +26,7 @@ import (
 )
 
 func TestConfigureShowCommandWrongKey(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithDummyConfig("configure", "show", "foo")
 	assert.Empty(t,
 		out.String(),
@@ -39,6 +40,7 @@ func TestConfigureShowCommandWrongKey(t *testing.T) {
 }
 
 func TestConfigureShowCommandWithConfig(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithDummyConfig("configure", "show", "profile")
 	assert.Empty(t,
 		err.String(),
@@ -50,6 +52,7 @@ func TestConfigureShowCommandWithConfig(t *testing.T) {
 }
 
 func TestConfigureShowCommandWithoutConfig(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("configure", "show", "account")
 	assert.Empty(t,
 		err.String(),
@@ -62,6 +65,7 @@ func TestConfigureShowCommandWithoutConfig(t *testing.T) {
 }
 
 func TestConfigureShowCommandWithConfigAndProfile(t *testing.T) {
+	t.Parallel()
 	t.Run("dev.account", func(t *testing.T) {
 		out, err, exitcode := LaceworkCLIWithDummyConfig("configure", "show", "account", "-p", "dev")
 		assert.Empty(t,

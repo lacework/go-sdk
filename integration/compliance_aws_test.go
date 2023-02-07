@@ -27,6 +27,7 @@ import (
 )
 
 func TestComplianceAwsList(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "aws", "list",
 	)
@@ -38,9 +39,14 @@ func TestComplianceAwsList(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportFilter(t *testing.T) {
+	t.Parallel()
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	if account == "" {
+		t.Skip("Missing environment variable LW_INT_TEST_AWS_ACC")
+	}
 	detailsOutput := "recommendations showing"
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--status", "compliant", "--type", "AWS_CIS_S3")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "aws", "get-report", account, "--status", "compliant", "--type", "AWS_CIS_S3")
 
 	assert.Contains(t, out.String(), detailsOutput, "Filtered detail output should contain filtered result")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -68,7 +74,11 @@ func TestComplianceAwsGetReportFilter(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportDetails(t *testing.T) {
+	t.Parallel()
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	if account == "" {
+		t.Skip("Missing environment variable LW_INT_TEST_AWS_ACC")
+	}
 	detailsOutput := "recommendations showing"
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--details")
 
@@ -99,7 +109,11 @@ func TestComplianceAwsGetReportDetails(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportFiltersWithJsonOutput(t *testing.T) {
+	t.Parallel()
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	if account == "" {
+		t.Skip("Missing environment variable LW_INT_TEST_AWS_ACC")
+	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--severity", "critical", "--json")
 	severities := []string{"\"severity\": 2", "\"severity\": 3", "\"severity\": 4", "\"severity\": 5"}
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -110,6 +124,7 @@ func TestComplianceAwsGetReportFiltersWithJsonOutput(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportAccountIDWithAlias(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "aws", "get-report", "account-id (account-alias)",
 	)
@@ -123,7 +138,11 @@ func TestComplianceAwsGetReportAccountIDWithAlias(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportTypeAWS_SOC_Rev2(t *testing.T) {
+	t.Parallel()
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	if account == "" {
+		t.Skip("Missing environment variable LW_INT_TEST_AWS_ACC")
+	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", "AWS_SOC_Rev2")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -136,7 +155,11 @@ func TestComplianceAwsGetReportTypeAWS_SOC_Rev2(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
+	t.Parallel()
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	if account == "" {
+		t.Skip("Missing environment variable LW_INT_TEST_AWS_ACC")
+	}
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "AWS_CIS_2_5")
 
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -158,6 +181,7 @@ func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
 }
 
 func TestComplianceAwsSearchEmpty(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "aws", "search", "example",
 	)
@@ -166,7 +190,8 @@ func TestComplianceAwsSearchEmpty(t *testing.T) {
 	assert.Contains(t, out.String(), "Resource 'example' not found.", "STDOUT changed, please check")
 }
 
-func _TestComplianceAwsSearch(t *testing.T) {
+func TestComplianceAwsSearch(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "aws", "search", "arn:aws:s3:::tech-ally-test",
 	)

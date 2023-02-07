@@ -25,6 +25,7 @@ import (
 )
 
 func TestComplianceAzureListTenants(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "az", "list-tenants")
 	assert.Contains(t, out.String(),
 		"Fetching list of configured Azure tenants",
@@ -34,6 +35,7 @@ func TestComplianceAzureListTenants(t *testing.T) {
 }
 
 func TestComplianceAzureGetReportTenantAndSubscriptionWithAlias(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "azure", "get-report", "tenant-id (tenant-alias)", "subscription-id (subscription-alias)",
 	)

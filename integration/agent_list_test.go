@@ -26,6 +26,7 @@ import (
 )
 
 func TestAgentList(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("agent", "list")
 	assert.Empty(t,
 		err.String(),

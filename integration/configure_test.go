@@ -30,6 +30,7 @@ import (
 )
 
 func TestConfigureListHelp(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("configure", "list", "--help")
 	assert.Empty(t,
 		err.String(),
@@ -47,6 +48,7 @@ func TestConfigureListHelp(t *testing.T) {
 }
 
 func TestConfigureCommandNonInteractive(t *testing.T) {
+	t.Parallel()
 	// create a temporal directory where we will check that the
 	// configuration file is deployed (.lacework.toml)
 	home, err := ioutil.TempDir("", "lacework-cli")
@@ -85,6 +87,7 @@ func TestConfigureCommandNonInteractive(t *testing.T) {
 }
 
 func TestConfigureCommandNonInteractiveFailures(t *testing.T) {
+	t.Parallel()
 	home, err := ioutil.TempDir("", "lacework-cli")
 	if err != nil {
 		panic(err)

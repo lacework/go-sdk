@@ -58,7 +58,32 @@ func getAllCommands(in string, commands [][]string, working []string) [][]string
 	return commands
 }
 
+func testHelpCommand(t *testing.T, cmd []string) {
+	cStr := strings.Join(cmd, "_")
+
+	// run command
+	out, err, exitcode := LaceworkCLI(append([]string{"help"}, cmd...)...)
+
+	// validate proper execution
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	// validate expected output
+	if runtime.GOOS == "windows" {
+		windowsFilePath := fmt.Sprintf("test_resources/help/windows/%s", cStr)
+		canon, err := helpCanon.ReadFile(windowsFilePath)
+		if err == nil {
+			assert.Equal(t, string(canon), out.String())
+		}
+	} else {
+		filePath := fmt.Sprintf("test_resources/help/%s", cStr)
+		canon, _ := helpCanon.ReadFile(filePath)
+		assert.Equal(t, string(canon), out.String())
+	}
+}
+
 func TestHelpAll(t *testing.T) {
+	t.Parallel()
 	out, _, exitcode := LaceworkCLI("help")
 	if exitcode != 0 {
 		assert.FailNow(t, "Something went terribly wrong")
@@ -70,31 +95,14 @@ func TestHelpAll(t *testing.T) {
 		cmdStr := strings.Join(cmd, "_")
 
 		t.Run(cmdStr, func(t *testing.T) {
-			filePath := fmt.Sprintf("test_resources/help/%s", cmdStr)
-			windowsFilePath := fmt.Sprintf("test_resources/help/windows/%s", cmdStr)
-
-			// run command
-			out, err, exitcode := LaceworkCLI(append([]string{"help"}, cmd...)...)
-
-			// validate proper execution
-			assert.Empty(t, err.String(), "STDERR should be empty")
-			assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-
-			// validate expected output
-			if runtime.GOOS == "windows" {
-				canon, err := helpCanon.ReadFile(windowsFilePath)
-				if err == nil {
-					assert.Equal(t, string(canon), out.String())
-					return
-				}
-			}
-			canon, _ := helpCanon.ReadFile(filePath)
-			assert.Equal(t, string(canon), out.String())
+			t.Parallel()
+			testHelpCommand(t, cmd)
 		})
 	}
 }
 
 func TestHelpCommandDisplayHelpFromUnknownCommand(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("help", "foo")
 	// this is an unknown command, we should display the help message via STDERR
 	assert.Contains(t,
@@ -113,6 +121,7 @@ func TestHelpCommandDisplayHelpFromUnknownCommand(t *testing.T) {
 }
 
 func TestCommandDoesNotExist(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("foo")
 	assert.Empty(t,
 		out.String(),
@@ -126,6 +135,7 @@ func TestCommandDoesNotExist(t *testing.T) {
 }
 
 func TestNoCommandProvided(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI()
 	canon, _ := helpCanon.ReadFile("test_resources/help/no-command-provided")
 	assert.Equal(t,

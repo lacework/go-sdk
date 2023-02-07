@@ -26,6 +26,7 @@ import (
 )
 
 func TestQueryDeleteHelp(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("help", "query", "delete")
 	assert.Contains(t, out.String(), "lacework query delete <query_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -33,6 +34,7 @@ func TestQueryDeleteHelp(t *testing.T) {
 }
 
 func TestQueryDeleteNoInput(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "delete")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")

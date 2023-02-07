@@ -26,6 +26,7 @@ import (
 )
 
 func TestAlertChannelShow(t *testing.T) {
+	t.Parallel()
 	if !alertChannelExists() {
 		t.Skip("Alert Channel does not exist")
 	}
@@ -66,6 +67,7 @@ func TestAlertChannelShow(t *testing.T) {
 }
 
 func TestAlertChannelList(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert-channel", "list")
 	assert.Contains(t, out.String(), "ALERT CHANNEL GUID",
 		"STDOUT table headers changed, please check")

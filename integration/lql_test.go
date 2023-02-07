@@ -42,6 +42,7 @@ func cleanAndCreateQuery(id string, args ...string) (bytes.Buffer, bytes.Buffer,
 }
 
 func TestQueryBase(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("query")
 	assert.Contains(t, out.String(), "create")
 	assert.Contains(t, out.String(), "delete")
@@ -58,6 +59,7 @@ func TestQueryBase(t *testing.T) {
 }
 
 func TestQueryRunEditor(t *testing.T) {
+	t.Parallel()
 	// run
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "run")
 	assert.Contains(t, out.String(), "Type a query to run")
@@ -102,6 +104,7 @@ func TestQueryRunID(t *testing.T) {
 }
 
 func TestQueryRunFileJSONCrumb(t *testing.T) {
+	t.Parallel()
 	// get temp file
 	file, err := createTemporaryFile("TestQueryRunFile", "{")
 	if err != nil {
@@ -117,6 +120,7 @@ func TestQueryRunFileJSONCrumb(t *testing.T) {
 }
 
 func TestQueryRunFileYAMLCrumb(t *testing.T) {
+	t.Parallel()
 	// get temp file
 	file, err := createTemporaryFile("TestQueryRunFile", "tigerking")
 	if err != nil {
@@ -172,6 +176,7 @@ func TestQueryRunFile(t *testing.T) {
 }
 
 func TestQueryRunURL(t *testing.T) {
+	t.Parallel()
 	// run (natural time)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--range", "last week")
@@ -188,6 +193,7 @@ func TestQueryRunURL(t *testing.T) {
 }
 
 func TestQueryRunFailOnBadInput(t *testing.T) {
+	t.Parallel()
 	_, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--fail_on_count", "!30")
 	assert.Contains(t, err.String(), "ERROR count operation (!30) is invalid")
@@ -195,6 +201,7 @@ func TestQueryRunFailOnBadInput(t *testing.T) {
 }
 
 func TestQueryRunFailOnPos(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--fail_on_count", ">1")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
@@ -203,6 +210,7 @@ func TestQueryRunFailOnPos(t *testing.T) {
 }
 
 func TestQueryRunFailOnNeg(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "run", "-u", queryURL, "--fail_on_count", "=0")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)

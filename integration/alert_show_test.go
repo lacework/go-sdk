@@ -29,6 +29,7 @@ import (
 var alertShowID, _ = popAlert()
 
 func TestAlertShowBadID(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", "bad")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "alert ID must be a number")
@@ -36,6 +37,7 @@ func TestAlertShowBadID(t *testing.T) {
 }
 
 func TestAlertShowBadScope(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "bad")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR scope (bad) is not recognized")
@@ -43,6 +45,7 @@ func TestAlertShowBadScope(t *testing.T) {
 }
 
 func TestAlertShowDetails(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID)
 	assert.Contains(t, out.String(), "SUBJECT")
 	assert.Contains(t, out.String(), "For further investigation")
@@ -51,6 +54,7 @@ func TestAlertShowDetails(t *testing.T) {
 }
 
 func TestAlertShowDetailsJSON(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--json")
 	assert.Contains(t, out.String(), `"alertId"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -58,6 +62,7 @@ func TestAlertShowDetailsJSON(t *testing.T) {
 }
 
 func TestAlertShowInvestigation(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "Investigation")
 
 	// RAIN-38816: Alerts: Valid Scopes Return 404 When Entries Are Not Available
@@ -76,6 +81,7 @@ func TestAlertShowInvestigation(t *testing.T) {
 }
 
 func TestAlertShowEvents(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "Events")
 
 	// RAIN-38816: Alerts: Valid Scopes Return 404 When Entries Are Not Available
@@ -94,6 +100,7 @@ func TestAlertShowEvents(t *testing.T) {
 }
 
 func TestAlertShowRelatedAlerts(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "RelatedAlerts")
 
 	// RAIN-38816: Alerts: Valid Scopes Return 404 When Entries Are Not Available
@@ -112,6 +119,7 @@ func TestAlertShowRelatedAlerts(t *testing.T) {
 }
 
 func TestAlertShowIntegrations(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "Integrations")
 
 	// RAIN-38816: Alerts: Valid Scopes Return 404 When Entries Are Not Available

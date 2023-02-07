@@ -26,6 +26,7 @@ import (
 )
 
 func TestAlertOpenBadID(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "open", "123abc")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR alert ID must be a number")

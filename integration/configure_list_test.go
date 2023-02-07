@@ -26,6 +26,7 @@ import (
 )
 
 func TestConfigureListCommandWithConfig(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithDummyConfig("configure", "list")
 	assert.Empty(t,
 		err.String(),
@@ -82,6 +83,7 @@ func TestConfigureListCommandWithConfig(t *testing.T) {
 }
 
 func TestConfigureListCommandWithoutConfig(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("configure", "list")
 	assert.Contains(t, err.String(), "ERROR unable to load profiles. No configuration file found.",
 		"STDERR message changed, please check")
@@ -93,6 +95,7 @@ func TestConfigureListCommandWithoutConfig(t *testing.T) {
 }
 
 func TestConfigureListCommandWithConfigAndProfile(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithDummyConfig("configure", "list")
 	assert.Empty(t,
 		err.String(),

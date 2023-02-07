@@ -38,6 +38,7 @@ const (
 )
 
 func TestAgentTokenCommandAliases(t *testing.T) {
+	t.Parallel()
 	// lacework agent token
 	out, err, exitcode := LaceworkCLI("help", "agent", "token")
 	assert.Contains(t, out.String(), "lacework agent token [command]")
@@ -52,6 +53,7 @@ func TestAgentTokenCommandAliases(t *testing.T) {
 }
 
 func TestAgentTokenCommandList(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("agent", "token", "list")
 	assert.Contains(t, out.String(), "TOKEN",
 		"STDOUT table headers changed, please check")
@@ -67,6 +69,7 @@ func TestAgentTokenCommandList(t *testing.T) {
 }
 
 func TestAgentTokenCommandShowNotFound(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("agent", "token", "show", "unknown_token")
 	assert.Contains(t, err.String(), "ERROR unable to get agent access token",
 		"STDERR message changed, please check")

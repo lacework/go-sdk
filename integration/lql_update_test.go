@@ -28,6 +28,7 @@ import (
 )
 
 func TestQueryUpdateEditor(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "update")
 	assert.Contains(t, out.String(), "Type a query to update")
 	assert.Contains(t, out.String(), "[Enter to launch editor]")
@@ -92,6 +93,7 @@ func TestQueryUpdateURL(t *testing.T) {
 }
 
 func TestQueryUpdateFromIDNotFound(t *testing.T) {
+	t.Parallel()
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("query", "update", "ID_NOT_FOUND", "--noninteractive")
 
 	assert.Empty(t, out.String(), "STDOUT should be empty") // added --noninteractive to avoid polluting STDOUT

@@ -58,7 +58,7 @@ integration-generation-only: ## Run integration tests
 
 .PHONY: integration-only
 integration-only: install-tools ## Run integration tests
-	PATH="$(PWD)/bin:${PATH}" gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="\
+	PATH="$(PWD)/bin:${PATH}" gotestsum -f testname -- -v github.com/lacework/go-sdk/integration -timeout 30m -p 10 -tags="\
 		account \
 		agent_token \
 		alert \
@@ -85,14 +85,14 @@ integration-lql: build-cli-cross-platform integration-lql-only ## Build and run 
 
 .PHONY: integration-lql-only
 integration-lql-only: ## Run lql integration tests
-	PATH=$(PWD)/bin:${PATH} gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="query"
+	PATH=$(PWD)/bin:${PATH} gotestsum -f testname -- -v github.com/lacework/go-sdk/integration -timeout 30m -p 10 -tags="query"
 
 .PHONY: integration-policy
 integration-policy: build-cli-cross-platform integration-policy-only ## Build and run lql policy tests
 
 .PHONY: integration-policy-only
 integration-policy-only: ## Run lql policy tests
-	PATH=$(PWD)/bin:${PATH} gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="policy"
+	PATH=$(PWD)/bin:${PATH} gotestsum -f testname -- -v github.com/lacework/go-sdk/integration -timeout 30m -p 10 -tags="policy"
 
 .PHONY: coverage
 coverage: test ## Output coverage profile information for each function

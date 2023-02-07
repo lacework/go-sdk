@@ -26,6 +26,7 @@ import (
 )
 
 func TestQueryListSourcesTable(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources")
 	assert.Contains(t, out.String(), "DATASOURCE")
 	assert.Contains(t, out.String(), "CloudTrailRawEvents")
@@ -34,6 +35,7 @@ func TestQueryListSourcesTable(t *testing.T) {
 }
 
 func TestQueryListSourcesJSON(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "sources", "--json")
 	assert.Contains(t, out.String(), "[")
 	assert.Contains(t, out.String(), `"CloudTrailRawEvents"`)
@@ -44,6 +46,7 @@ func TestQueryListSourcesJSON(t *testing.T) {
 }
 
 func TestQueryShowSourceNoInput(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")
@@ -51,6 +54,7 @@ func TestQueryShowSourceNoInput(t *testing.T) {
 }
 
 func TestQueryShowSourceTable(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents")
 	assert.Contains(t, out.String(), "FIELD NAME")
 	assert.Contains(t, out.String(), "INSERT_ID")
@@ -68,6 +72,7 @@ func TestQueryShowSourceTable(t *testing.T) {
 }
 
 func TestQueryShowSourceJSON(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "describe", "CloudTrailRawEvents", "--json")
 	assert.Contains(t, out.String(), `"INSERT_ID"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")

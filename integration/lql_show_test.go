@@ -27,6 +27,7 @@ import (
 )
 
 func TestQueryShowHelp(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLI("help", "query", "show")
 	assert.Contains(t, out.String(), "lacework query show <query_id> [flags]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -34,6 +35,7 @@ func TestQueryShowHelp(t *testing.T) {
 }
 
 func TestQueryShowNoInput(t *testing.T) {
+	t.Parallel()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "show")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR accepts 1 arg(s), received 0")
@@ -41,6 +43,7 @@ func TestQueryShowNoInput(t *testing.T) {
 }
 
 func TestQueryShowYAML(t *testing.T) {
+	t.Parallel()
 	queryIdFromPlatform := "LW_Global_AWS_CTA_AccessKeyDeleted"
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
 		"query", "show", queryIdFromPlatform, "--yaml")
