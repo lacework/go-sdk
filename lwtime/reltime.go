@@ -216,13 +216,17 @@ func (rel relative) time(inTime time.Time) (outTime time.Time, err error) {
 }
 
 // Parse the string representation of a Lacework relative time
+// Time object is returned in UTC
 //
 // t, err := lwtime.ParseRelative("-1y@y")
 // if err != nil {
 // 	...
 // }
 func ParseRelative(s string) (time.Time, error) {
-	return parseRelativeFromTime(s, time.Now().UTC())
+	// time.Now() is intentional here such that snaps work properly
+	// For instance snapping to @d should snap to the start of the local day
+	localTime, err := parseRelativeFromTime(s, time.Now())
+	return localTime.UTC(), err
 }
 
 func parseRelativeFromTime(s string, fromTime time.Time) (time.Time, error) {
