@@ -196,7 +196,7 @@ func (c *cliState) LoadComponents() {
 					RunE: func(cmd *cobra.Command, args []string) error {
 						go func() {
 							// Start the gRPC server for components to communicate back
-							if err := c.Serve(c.GrpcTarget()); err != nil {
+							if err := c.Serve(); err != nil {
 								c.Log.Errorw("couldn't serve gRPC server", "error", err)
 							}
 						}()
