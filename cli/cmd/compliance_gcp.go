@@ -43,6 +43,11 @@ var (
 		Type string
 	}{Type: "GCP_CIS13"}
 
+	validGcpReportTypes = []string{"GCP_ISO_27001_2013", "GCP_NIST_800_171_REV2", "GCP_CMMC_1_02", "GCP_PCI_DSS_3_2_1", "GCP_PCI_Rev2",
+		"GCP_NIST_CSF", "GCP_CIS13", "GCP_HIPAA_2013", "GCP_CIS12", "GCP_CIS", "GCP_SOC_2", "GCP_ISO_27001", "GCP_NIST_800_53_REV4",
+		"GCP_CIS_1_3_0_NIST_800_53_rev5", "GCP_CIS_1_3_0_NIST_CSF", "GCP_HIPAA", "GCP_HIPAA_Rev2", "GCP_CIS_1_3_0_NIST_800_171_rev2",
+		"GCP_SOC", "GCP_K8S", "GCP_SOC_Rev2", "GCP_PCI"}
+
 	// complianceGcpListCmd represents the list sub-command inside the gcp command
 	complianceGcpListCmd = &cobra.Command{
 		Use:     "list",
@@ -135,14 +140,10 @@ Then, select one GUID from an integration and visualize its details using the co
 			//	return errors.Wrap(err, "unable to retrieve valid report types")
 			//}
 
-			validTypes := []string{"GCP_ISO_27001_2013", "GCP_NIST_800_171_REV2", "GCP_CMMC_1_02", "GCP_PCI_DSS_3_2_1", "GCP_PCI_Rev2",
-				"GCP_NIST_CSF", "GCP_CIS13", "GCP_HIPAA_2013", "GCP_CIS12", "GCP_CIS", "GCP_SOC_2", "GCP_ISO_27001", "GCP_NIST_800_53_REV4",
-				"GCP_CIS_1_3_0_NIST_800_53_rev5", "GCP_CIS_1_3_0_NIST_CSF", "GCP_HIPAA", "GCP_HIPAA_Rev2", "GCP_CIS_1_3_0_NIST_800_171_rev2",
-				"GCP_SOC", "GCP_K8S", "GCP_SOC_Rev2", "GCP_PCI"}
-			if array.ContainsStr(validTypes, compGcpCmdState.Type) {
+			if array.ContainsStr(validGcpReportTypes, compGcpCmdState.Type) {
 				return nil
 			} else {
-				return errors.Errorf("supported report types are: %s", strings.Join(validTypes, ", "))
+				return errors.Errorf("supported report types are: %s", strings.Join(validGcpReportTypes, ", "))
 			}
 		},
 		Short: "Get the latest GCP compliance report",
@@ -494,7 +495,8 @@ func init() {
 	//GCP_CIS_1_3_0_NIST_800_53_rev5, GCP_CIS_1_3_0_NIST_CSF, GCP_HIPAA, GCP_HIPAA_Rev2, GCP_CIS_1_3_0_NIST_800_171_rev2,
 	//GCP_SOC, GCP_K8S, GCP_SOC_Rev2, GCP_PCI
 	complianceGcpGetReportCmd.Flags().StringVar(&compGcpCmdState.Type, "type", "GCP_CIS13",
-		"report type to display, run 'lacework report-definitions list' for valid types",
+		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
+valid types:%s`, prettyPrintReportTypes(validGcpReportTypes)),
 	)
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
