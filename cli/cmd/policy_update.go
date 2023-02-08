@@ -125,6 +125,10 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 
 	// if severity flag is provided, attempt bulk update
 	if policyCmdState.Severity != "" {
+		if !lwseverity.IsValid(policyCmdState.Severity) {
+			return errors.New(fmt.Sprintf("invalid severity %q' valid severities are: %s", policyCmdState.Severity, lwseverity.ValidSeverities.String()))
+		}
+
 		err = policyBulkUpdate(args)
 		if err != nil {
 			return err
@@ -195,10 +199,6 @@ func policyBulkUpdate(args []string) error {
 		}
 	} else {
 		policyIds = args
-	}
-
-	if !lwseverity.IsValid(policyCmdState.Severity) {
-		return errors.New(fmt.Sprintf("invalid severity %q' valid severities are: %s", policyCmdState.Severity, lwseverity.ValidSeverities.String()))
 	}
 
 	var bulkPolicies api.BulkUpdatePolicies
