@@ -1,6 +1,8 @@
 package api
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -40,7 +42,7 @@ type ComponentDataUploadMethod struct {
 }
 
 type ComponentDataCompleteRequest struct {
-	Guid string `json:"guid"`
+	UploadGuid string `json:"uploadGuid"`
 }
 
 type ComponentDataCompleteResponseRaw struct {
@@ -81,7 +83,7 @@ func (svc *ComponentDataService) UploadFiles(name string, tags []string, paths [
 		}
 	}
 	completeRequest := ComponentDataCompleteRequest{
-		Guid: initialResponse.Data.Guid,
+		UploadGuid: initialResponse.Data.Guid,
 	}
 	var completeResponse ComponentDataCompleteResponseRaw
 	err = doWithExponentialBackoffWaiting(func() error {
@@ -117,17 +119,26 @@ func buildComponentDataInitialRequest(name string, tags []string, paths []string
 }
 
 func (svc *ComponentDataService) putFileToS3(path string, uploadUrls map[string]string) error {
-	file, err := os.Open(path)
+	contents, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	req, err := http.NewRequest(http.MethodPut, uploadUrls[filepath.Base(path)], file)
+	req, err := http.NewRequest(http.MethodPut, uploadUrls[filepath.Base(path)], bytes.NewReader(contents))
 	if err != nil {
 		return err
 	}
-	_, err = svc.client.Do(req)
-	return err
+	resp, err := svc.client.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err == nil {
+			return errors.Errorf("Upload to S3 failed (%s): %s", resp.Status, body)
+		}
+		return errors.Errorf("Upload to S3 failed (%s)", resp.Status)
+	}
+	return nil
 }
 
 func doWithExponentialBackoffWaiting(f func() error) error {
