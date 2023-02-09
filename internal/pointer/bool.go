@@ -1,10 +1,7 @@
 package pointer
 
-func BoolPtr(b bool) *bool {
-	boolVar := b
-	return &boolVar
-}
-
+// CompareBoolPtr compares a bool pointer to a bool primitive
+// Returns false if bool pointer is nil
 func CompareBoolPtr(ptr *bool, b bool) bool {
 	if ptr == nil {
 		return false

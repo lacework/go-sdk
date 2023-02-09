@@ -19,7 +19,7 @@
 package cmd
 
 import (
-	"github.com/lacework/go-sdk/internal/pointer"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -52,7 +52,7 @@ To disable all policies for GCP CIS 1.3.0:
 			if len(args) > 0 && policyCmdState.Tag != "" {
 				return errors.New("'--tag' flag may not be use in conjunction with 'policy_id' arg")
 			}
-			policyCmdState.State = pointer.BoolPtr(false)
+			policyCmdState.State = ptr.Bool(false)
 			return nil
 		},
 		RunE: setPoliciesState,

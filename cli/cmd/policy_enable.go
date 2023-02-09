@@ -19,7 +19,7 @@
 package cmd
 
 import (
-	"github.com/lacework/go-sdk/internal/pointer"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -30,6 +30,7 @@ var (
 		Use:   "enable [policy_id]",
 		Short: "Enable policies",
 		Long: `Enable policies by ID or all policies matching a tag.
+
 To enter the policy enable prompt:
 
 	lacework policy enable
@@ -55,7 +56,7 @@ To enable all policies for GCP CIS 1.3.0:
 			if len(args) > 0 && policyCmdState.Tag != "" {
 				return errors.New("'--tag' flag may not be use in conjunction with 'policy_id' arg")
 			}
-			policyCmdState.State = pointer.BoolPtr(true)
+			policyCmdState.State = ptr.Bool(true)
 			return nil
 		},
 		RunE: setPoliciesState,

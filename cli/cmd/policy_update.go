@@ -1,5 +1,5 @@
 //
-// Author:: Darren Murray(<darren.murray@lacework.net>)
+// Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2023, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
@@ -56,7 +56,7 @@ a policy identifer specified via payload.
 
 The severity of many policies can be updated at once by passing a list of policy identifiers:
 
-	lacework policy my-policy-1 my-policy-2 --severity critical
+	lacework policy update my-policy-1 my-policy-2 --severity critical
 
 `,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -67,6 +67,12 @@ The severity of many policies can be updated at once by passing a list of policy
 example: lacework policy update %s --severity critical
 					`, strings.Join(args, " "))
 			}
+
+			if policyCmdState.Severity != "" && !lwseverity.IsValid(policyCmdState.Severity) {
+				return errors.New(fmt.Sprintf("invalid severity %q' valid severities are: %s",
+					policyCmdState.Severity, lwseverity.ValidSeverities.String()))
+			}
+
 			return nil
 		},
 		RunE: updatePolicy,
@@ -125,10 +131,6 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 
 	// if severity flag is provided, attempt bulk update
 	if policyCmdState.Severity != "" {
-		if !lwseverity.IsValid(policyCmdState.Severity) {
-			return errors.New(fmt.Sprintf("invalid severity %q' valid severities are: %s", policyCmdState.Severity, lwseverity.ValidSeverities.String()))
-		}
-
 		err = policyBulkUpdate(args)
 		if err != nil {
 			return err
@@ -211,10 +213,10 @@ func policyBulkUpdate(args []string) error {
 
 	response, err := cli.LwApi.V2.Policy.UpdateMany(bulkPolicies)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "unable to update policies")
 	}
 
-	cli.Log.Debugw("bulk policy updated response:", response)
+	cli.Log.Debugw("bulk policy updated", "response", response)
 	cli.OutputHuman("%d policies updated with new severity %q\n", len(policyIds), policyCmdState.Severity)
 
 	return nil

@@ -20,7 +20,7 @@ a policy identifer specified via payload.
 
 The severity of many policies can be updated at once by passing a list of policy identifiers:
 
-	lacework policy my-policy-1 my-policy-2 --severity critical
+	lacework policy update my-policy-1 my-policy-2 --severity critical
 
 Usage:
   lacework policy update [policy_id] [flags]
