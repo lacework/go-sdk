@@ -100,7 +100,7 @@ func (c *cliState) Honeyvent(ctx context.Context, in *cdk.HoneyventRequest) (*cd
 // Serve will start the CDK gRPC server
 func (c *cliState) Serve() error {
 	// Start the gRPC server for components to communicate back
-	const max_attempts = 5
+	const maxAttempts = 20
 
 	if target := os.Getenv("LW_CDK_TARGET"); target != "" {
 		return c.serve(target)
