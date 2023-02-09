@@ -108,7 +108,7 @@ func (c *cliState) Serve() error {
 
 	// Try a range of port numbers in case the default one is not available
 	var err error
-	for i := 0; i < max_attempts; i++ {
+	for i := 0; i < maxAttempts; i++ {
 		err = c.serve(fmt.Sprintf("localhost:%v", defaultGrpcPort+i))
 		if err == nil {
 			c.cdkServerPort = defaultGrpcPort + i
