@@ -38,7 +38,13 @@ lacework compliance aws get-report <account_id> [recommendation_id] [flags]
       --service strings    filter report details by service (aws:s3, aws:iam, aws:cloudtrail, ...)
       --severity string    filter report details by severity threshold (critical, high, medium, low, info)
       --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
-      --type string        report type to display, run 'lacework report-definitions list' for valid types (default "AWS_CIS_14")
+      --type string        report type to display, run 'lacework report-definitions list' for more information.
+                           valid types:
+                           'AWS_NIST_CSF','AWS_NIST_800-53_rev5','AWS_HIPAA','NIST_800-53_Rev4','LW_AWS_SEC_ADD_1_0',
+                           'AWS_SOC_Rev2','AWS_PCI_DSS_3.2.1','AWS_CIS_S3','ISO_2700','SOC',
+                           'AWS_CSA_CCM_4_0_5','PCI','AWS_Cyber_Essentials_2_2','AWS_ISO_27001:2013','AWS_CIS_14',
+                           'AWS_CMMC_1.02','HIPAA','AWS_SOC_2','AWS_CIS_1_4_ISO_IEC_27002_2022','NIST_800-171_Rev2',
+                           'AWS_NIST_800-171_rev', (default "AWS_CIS_14")
 ```
 
 ### Options inherited from parent commands

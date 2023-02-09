@@ -1,10 +1,12 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.9.3`.
+Another day, another release. These are the release notes for the version `v1.10.0`.
 
-## Bug Fixes
-* fix(cli): fix gcp report query params --pdf cmd (#1143) (Darren)([0d5ad741](https://github.com/lacework/go-sdk/commit/0d5ad74170ffe9d9794714c68dc0a19ef551784b))
+## Features
+* feat(api): Add support for the `ComponentData` API end-points (#1135) (Edoardo Pirovano)([cae8eecb](https://github.com/lacework/go-sdk/commit/cae8eecbf0a7849d166a0f502173e49542db374b))
+## Documentation Updates
+* docs(cli): add valid report types to compliance get-report help text (#1145) (Darren)([0deb99c2](https://github.com/lacework/go-sdk/commit/0deb99c24ada804874d83275661ef0133b39a481))
 ## Other Changes
-* ci: version bump to v1.9.3-dev (Lacework)([0236a054](https://github.com/lacework/go-sdk/commit/0236a054b7dfe7b3167afe93905233bf2278c38c))
+* ci: version bump to v1.9.4-dev (Lacework)([8134497f](https://github.com/lacework/go-sdk/commit/8134497fc905886c06bdde6bd29f77b89987088f))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
