@@ -313,7 +313,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 					cli.OutputHuman(
 						"Unexpected SSM command exit %v, stderr %s, skipping instance %s\n",
 						commandOutput.ResponseCode,
-						*commandOutput.StandardErrorContent,
+						lwrunner.GetSSMCommandInvocationStdErr(commandOutput),
 						threadRunner.InstanceID,
 					)
 					return
@@ -352,12 +352,12 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 					"Install failed on instance %s with error %v, stdout %s, stderr %s\n",
 					threadRunner.InstanceID,
 					err,
-					*commandOutput.StandardOutputContent,
-					*commandOutput.StandardErrorContent,
+					lwrunner.GetSSMCommandInvocationStdOut(commandOutput),
+					lwrunner.GetSSMCommandInvocationStdErr(commandOutput),
 				)
 			} else if commandOutput.Status == ssmtypes.CommandInvocationStatusSuccess {
 				cli.OutputHuman("Lacework agent installed successfully on host %s\n\n", threadRunner.InstanceID)
-				cli.OutputHuman(fmtSuccessfulAgentInstallString(*commandOutput.StandardOutputContent))
+				cli.OutputHuman(fmtSuccessfulAgentInstallString(lwrunner.GetSSMCommandInvocationStdOut(commandOutput)))
 				atomic.AddInt32(&successfulCount, 1)
 			} else {
 				cli.Log.Warnw("Install command did not return `Success` exit status for this instance",
@@ -367,8 +367,8 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 				cli.OutputHuman(
 					"Install command failed with %s exit status, %s stdout, %s stderr for instance %s\n",
 					commandOutput.Status,
-					*commandOutput.StandardOutputContent,
-					*commandOutput.StandardErrorContent,
+					lwrunner.GetSSMCommandInvocationStdOut(commandOutput),
+					lwrunner.GetSSMCommandInvocationStdErr(commandOutput),
 					threadRunner.InstanceID,
 				)
 			}

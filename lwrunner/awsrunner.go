@@ -324,8 +324,8 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string)
 		*sendCommandOutput.Command.CommandId,
 		durationTensOfSeconds/6,
 		*getCommandInvocationOutput,
-		*getCommandInvocationOutput.StandardOutputContent,
-		*getCommandInvocationOutput.StandardErrorContent,
+		GetSSMCommandInvocationStdOut(*getCommandInvocationOutput),
+		GetSSMCommandInvocationStdErr(*getCommandInvocationOutput),
 	)
 }
 
@@ -388,5 +388,25 @@ func getSSHUsernameLookupTable() []func(string) (bool, string) {
 			return strings.Contains(imageName, "amazon_linux"), "ec2-user"
 		},
 		func(imageName string) (bool, string) { return strings.Contains(imageName, "amzn2-ami"), "ec2-user" },
+	}
+}
+
+// GetSSMCommandInvocationStdOut is a helper function to safely deference the
+// SSM struct we receive from the AWS API.
+func GetSSMCommandInvocationStdOut(out ssm.GetCommandInvocationOutput) string {
+	if out.StandardOutputContent != nil {
+		return *out.StandardOutputContent
+	} else {
+		return ""
+	}
+}
+
+// GetSSMCommandInvocationStdErr is a helper function to safely deference the
+// SSM struct we receive from the AWS API.
+func GetSSMCommandInvocationStdErr(out ssm.GetCommandInvocationOutput) string {
+	if out.StandardErrorContent != nil {
+		return *out.StandardErrorContent
+	} else {
+		return ""
 	}
 }
