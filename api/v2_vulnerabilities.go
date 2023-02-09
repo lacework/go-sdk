@@ -92,23 +92,21 @@ func (svc *v2ContainerVulnerabilityService) SearchAllPages(filters SearchFilter)
 	for {
 		all = append(all, response.Data...)
 
-		newResponse := VulnerabilitiesContainersResponse{
-			Paging: response.Paging,
-		}
-		pageOk, err = svc.client.NextPage(&newResponse)
+		pageOk, err = svc.client.NextPage(&response)
 		if err == nil && pageOk {
-			response = newResponse
 			continue
 		}
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }
 
-func (svc *v2ContainerVulnerabilityService) ScanStatus(id string) (response VulnerabilitiesContainersScanStatusResponse, err error) {
+func (svc *v2ContainerVulnerabilityService) ScanStatus(id string) (
+	response VulnerabilitiesContainersScanStatusResponse, err error,
+) {
 	err = svc.client.RequestDecoder("GET",
 		fmt.Sprintf(apiV2VulnerabilitiesContainersScanStatus, id),
 		nil,
@@ -135,15 +133,12 @@ type vulnContainerScanRequest struct {
 type VulnerabilitiesContainersScanStatusResponse struct {
 	Message string `json:"message"`
 	Data    struct {
-		Status string `json:"status"`
+		EvalGuid string `json:"evalGuid"`
+		Status   string `json:"status"`
 	} `json:"data"`
 }
 
 func (res *VulnerabilitiesContainersScanStatusResponse) CheckStatus() string {
-	if res.Data.Status != "" {
-		return res.Data.Status
-	}
-
 	if res.Data.Status != "" {
 		return res.Data.Status
 	}
@@ -164,16 +159,14 @@ func (res *VulnerabilitiesContainerScanResponse) CheckStatus() string {
 		return res.Data.Status
 	}
 
-	if res.Data.Status != "" {
-		return res.Data.Status
-	}
-
 	return "Unknown"
 }
 
 type VulnerabilitiesContainersResponse struct {
 	Data   []VulnerabilityContainer `json:"data"`
 	Paging V2Pagination             `json:"paging"`
+
+	v2PageMetadata `json:"-"`
 }
 
 func (r VulnerabilitiesContainersResponse) HighestSeverity() string {
@@ -236,6 +229,7 @@ func (r VulnerabilitiesContainersResponse) PageInfo() *V2Pagination {
 }
 func (r *VulnerabilitiesContainersResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+	r.Data = nil
 }
 
 func (r VulnerabilitiesContainersResponse) CriticalVulnerabilities() int32 {
@@ -322,7 +316,8 @@ type ImageInfo struct {
 }
 
 type VulnerabilityContainer struct {
-	EvalCtx struct {
+	EvalGUID string `json:"evalGuid"`
+	EvalCtx  struct {
 		CveBatchInfo []struct {
 			CveBatchID     string `json:"cve_batch_id"`
 			CveCreatedTime string `json:"cve_created_time"`
@@ -425,25 +420,23 @@ func (svc *v2HostVulnerabilityService) SearchAllPages(filters SearchFilter) (
 	for {
 		all = append(all, response.Data...)
 
-		newResponse := VulnerabilitiesHostResponse{
-			Paging: response.Paging,
-		}
-		pageOk, err = svc.client.NextPage(&newResponse)
+		pageOk, err = svc.client.NextPage(&response)
 		if err == nil && pageOk {
-			response = newResponse
 			continue
 		}
 		break
 	}
 
-	response.Data = all
 	response.ResetPaging()
+	response.Data = all
 	return
 }
 
 type VulnerabilitiesHostResponse struct {
 	Data   []VulnerabilityHost `json:"data"`
 	Paging V2Pagination        `json:"paging"`
+
+	v2PageMetadata `json:"-"`
 }
 
 // Fulfill Pagination interface (look at api/v2.go)
@@ -452,6 +445,7 @@ func (r VulnerabilitiesHostResponse) PageInfo() *V2Pagination {
 }
 func (r *VulnerabilitiesHostResponse) ResetPaging() {
 	r.Paging = V2Pagination{}
+	r.Data = nil
 }
 
 type VulnerabilityHost struct {

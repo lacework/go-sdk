@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -118,29 +117,4 @@ func stringSliceToMarkdownList(filters []string) string {
 		return ""
 	}
 	return fmt.Sprintf("    * %s", strings.Join(filters, "\n    * "))
-}
-
-// parse the start and end time provided by the user
-func parseStartAndEndTime(s, e string) (start time.Time, end time.Time, err error) {
-	if s == "" {
-		err = errors.New("when providing an end time, start time should be provided (--start)")
-		return
-	}
-	start, err = time.Parse(time.RFC3339, s)
-	if err != nil {
-		err = errors.Wrap(err, "unable to parse start time")
-		return
-	}
-
-	if e == "" {
-		end = time.Now()
-		return
-	}
-	end, err = time.Parse(time.RFC3339, e)
-	if err != nil {
-		err = errors.Wrap(err, "unable to parse end time")
-		return
-	}
-
-	return
 }

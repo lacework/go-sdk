@@ -87,12 +87,7 @@ func TestGetRoleFromName(t *testing.T) {
 // createSSMRole tests
 
 type mockCreateSSMRoleClient struct {
-	getRoleMethod    mockGetRoleAPI
 	createRoleMethod mockCreateRoleAPI
-}
-
-func (m mockCreateSSMRoleClient) GetRole(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
-	return m.getRoleMethod(ctx, params, optFns...)
 }
 
 func (m mockCreateSSMRoleClient) CreateRole(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error) {
@@ -107,13 +102,6 @@ func TestCreateSSMRole(t *testing.T) {
 	}{
 		{
 			client: mockCreateSSMRoleClient{
-				getRoleMethod: mockGetRoleAPI(func(ctx context.Context, params *iam.GetRoleInput, optFns ...func(*iam.Options)) (*iam.GetRoleOutput, error) {
-					return &iam.GetRoleOutput{
-						Role: &types.Role{
-							RoleName: aws.String(testRoleName),
-						},
-					}, nil
-				}),
 				createRoleMethod: mockCreateRoleAPI(func(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error) {
 					return &iam.CreateRoleOutput{
 						Role: &types.Role{

@@ -91,7 +91,7 @@ func (svc *gcpReportsService) DownloadPDF(filepath string, config GcpReportConfi
 		return errors.New("project id and org id are required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2Reports, config.ProjectID, "pdf", config.OrganizationID)
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, config.OrganizationID, config.ProjectID, "pdf", config.Type)
 
 	request, err := svc.client.NewRequest("GET", apiPath, nil)
 	if err != nil {

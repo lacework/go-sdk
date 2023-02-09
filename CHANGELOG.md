@@ -1,3 +1,65 @@
+# v1.9.3
+
+## Bug Fixes
+* fix(cli): fix gcp report query params --pdf cmd (#1143) (Darren)([0d5ad741](https://github.com/lacework/go-sdk/commit/0d5ad74170ffe9d9794714c68dc0a19ef551784b))
+## Other Changes
+* ci: version bump to v1.9.3-dev (Lacework)([0236a054](https://github.com/lacework/go-sdk/commit/0236a054b7dfe7b3167afe93905233bf2278c38c))
+---
+# v1.9.2
+
+## Bug Fixes
+* fix(cli): set report type in gcp compliance reports --pdf cmd (#1141) (Darren)([5885060e](https://github.com/lacework/go-sdk/commit/5885060e48dbf8751588e1015328ad9c2c1350fa))
+## Other Changes
+* ci: version bump to v1.9.2-dev (Lacework)([0d617040](https://github.com/lacework/go-sdk/commit/0d617040fa6b6199226901a2bd0daf39015d11cb))
+---
+# v1.9.1
+
+## Bug Fixes
+* fix(lwtime): natural/relative time to use UTC instead of local time (#1139) (hazedav)([46be8697](https://github.com/lacework/go-sdk/commit/46be8697cece2973e7fb8cb032235269a9dc7707))
+* fix: ParseRelative time to use UTC instead of local time (#1136) (Darren)([cd7b0e8e](https://github.com/lacework/go-sdk/commit/cd7b0e8e4a9d24c4b6fc53194bd2779e4e76fc07))
+* fix(cli): set report type in compliance reports --pdf cmd (#1137) (Darren)([5f526f9c](https://github.com/lacework/go-sdk/commit/5f526f9cbfcd0f16d76f937e875a127ddd676951))
+## Other Changes
+* ci: version bump to v1.9.1-dev (Lacework)([b0b05068](https://github.com/lacework/go-sdk/commit/b0b050689a30e9c7d17ffa66035ff2ee5b8a26bd))
+---
+# v1.9.0
+
+## Features
+* feat(api): v2PageMetadata to log page information (Salim Afiune Maya)([fd5338b6](https://github.com/lacework/go-sdk/commit/fd5338b69ac3ea22a611cc57799e4a139c545e8a))
+* feat(cli): improve caching using hash of filters (Salim Afiune Maya)([b8b5e9ea](https://github.com/lacework/go-sdk/commit/b8b5e9eaa93514a2bf7defa08159eb432b947bb4))
+## Refactor
+* refactor(cli): deprecate --image_id flag (Salim Afiune Maya)([82db2c29](https://github.com/lacework/go-sdk/commit/82db2c2990d4503616940831fe6007434aef14c9))
+* refactor(cli): use evaluation GUID to retrieve scan results (Salim Afiune Maya)([7b0fb126](https://github.com/lacework/go-sdk/commit/7b0fb126dce5886f0bced4ba9ce475242ab1b1cf))
+* refactor(cli): avoid unnecessary memory consumption (Salim Afiune Maya)([a0c0b543](https://github.com/lacework/go-sdk/commit/a0c0b54301e0159c7000659c287e54424be37311))
+## Bug Fixes
+* fix(cli): --fixable and other filters (Salim Afiune Maya)([d3cb69a4](https://github.com/lacework/go-sdk/commit/d3cb69a4e8ccdb6641977d017e47a1e67bb8af47))
+* fix(cli): --registry flag fails faster for list-assessments command (Salim Afiune Maya)([cdd71461](https://github.com/lacework/go-sdk/commit/cdd7146133186711bd29357b8dc12b6687cf2931))
+## Other Changes
+* style: use cobra deprecation feature for --image_id (Salim Afiune Maya)([53f3b114](https://github.com/lacework/go-sdk/commit/53f3b11459a13a84f73139dbc6c411a4029ea31e))
+* ci: version bump to v1.8.1-dev (Lacework)([9adc8a12](https://github.com/lacework/go-sdk/commit/9adc8a12498ca2976d4707ecdf759090070f47a0))
+---
+# v1.8.0
+
+## Features
+* feat(cli): add hidden suppressions migrate azure command (#1129) (Ross)([575683b4](https://github.com/lacework/go-sdk/commit/575683b4a318408d86f96786c8859ac9ac19b5cc))
+* feat(cli): `ec2ssm` no longer reuses IAM role (#1128) (Nick Schmeller)([476d1799](https://github.com/lacework/go-sdk/commit/476d179936d530250c296ffd62ec22dcc0fc6e50))
+## Bug Fixes
+* fix(cli): ec2ssm use runner region, not cfg region (#1122) (Nick Schmeller)([2f318088](https://github.com/lacework/go-sdk/commit/2f318088cc7a870feade5e02630992d6ed9bdd83))
+## Other Changes
+* ci: version bump to v1.7.1-dev (Lacework)([c463aad0](https://github.com/lacework/go-sdk/commit/c463aad0099db1e528c835a62f1e6150e5c84f27))
+---
+# v1.7.0
+
+## Features
+* feat(cli): add hidden suppressions migrate gcp command (#1120) (Ross)([7b5334b0](https://github.com/lacework/go-sdk/commit/7b5334b0d5807840f3ea7761a04f344ea67f9f78))
+* feat: add new flag to generate cmds set lacework aws root account (#1121) (Darren)([b742eb75](https://github.com/lacework/go-sdk/commit/b742eb7565d0208522c5a8221041574372d0b7a0))
+* feat(cdk): Deploy component scaffolding (#1098) (Salim Afiune)([929499dd](https://github.com/lacework/go-sdk/commit/929499ddf0c3cf86bc2fd038b3a7167008bee3af))
+* feat: add --active flag back to vuln ctr list-assessments (Salim Afiune Maya)([dde8838f](https://github.com/lacework/go-sdk/commit/dde8838f75fc83e7ef2a7969377eea97c3eb3e6e))
+## Refactor
+* refactor(cli): relative and natural time range for vuln list cmd (Salim Afiune Maya)([895def61](https://github.com/lacework/go-sdk/commit/895def610b1011444bfe7053a0c5d30ea0b24710))
+## Other Changes
+* ci: version bump to v1.6.1-dev (Lacework)([58cf1f8d](https://github.com/lacework/go-sdk/commit/58cf1f8dee024cfe209969869e3c328e6c63f12f))
+* test(cli): mock `awsiam.go` clients (#1124) (Nick Schmeller)([7460c80a](https://github.com/lacework/go-sdk/commit/7460c80af706ee177207988ded95a0fb29c59ba4))
+---
 # v1.6.0
 
 ## Features

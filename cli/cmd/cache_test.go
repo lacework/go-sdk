@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path"
 	"testing"
@@ -271,4 +272,53 @@ func TestWriteReadAssetToCache(t *testing.T) {
 		assert.True(t, expired)
 		assert.NotEqual(t, notExpected, value)
 	})
+}
+
+func TestHash(t *testing.T) {
+	cases := []struct {
+		v            interface{}
+		expectedHash uint64
+	}{
+		// simple values
+		{0, 12161962213042174405},
+		{9, 13322105460873482258},
+		{"hi", 590640087355304860},
+		{[]string{"bubu"}, 11856390921407271782},
+
+		// complex structs
+		//
+		// NOTE exactly the same as in vuln_container_list_assessments_test.go
+		{cacheFiltersToBuildVulnContainerHash{
+			"", "", "", []string{}, []string{}},
+			3285545029616131935},
+		{cacheFiltersToBuildVulnContainerHash{
+			"@d", "now", "", []string{}, []string{}},
+			8666301743654077811},
+		{cacheFiltersToBuildVulnContainerHash{
+			"@d", "now", "", []string{"repo1", "repo2"}, []string{"reg1"}},
+			2929007791209551587},
+		{cacheFiltersToBuildVulnContainerHash{
+			"", "now", "", []string{}, []string{"reg1"}},
+			5320155942991519168},
+		// note, this is just like the first case
+		{cacheFiltersToBuildVulnContainerHash{
+			"", "", "", []string{}, []string{}},
+			3285545029616131935},
+	}
+
+	// first time we test all the the test cases
+	for i, kase := range cases {
+		t.Run(fmt.Sprintf("first case %d", i), func(t *testing.T) {
+			assert.Equal(t, kase.expectedHash, hash(kase.v),
+				fmt.Sprintf("mismatch %d vs %d", kase.expectedHash, hash(kase.v)))
+		})
+	}
+
+	// second time should generate the same hashes
+	for i, kase := range cases {
+		t.Run(fmt.Sprintf("second case %d", i), func(t *testing.T) {
+			assert.Equal(t, kase.expectedHash, hash(kase.v),
+				fmt.Sprintf("mismatch %d vs %d", kase.expectedHash, hash(kase.v)))
+		})
+	}
 }

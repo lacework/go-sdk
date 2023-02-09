@@ -58,8 +58,23 @@ func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
 		panic(err)
 	}
 
-	headers := []string{"Registry", "Repository", "Last Scan", "Status", "Vulnerabilities", "Image Digest"}
-	assessments := buildVulnCtrAssessmentSummary(data.Data)
+	headers := []string{"Registry", "Repository", "Last Scan", "Status", "Containers", "Vulnerabilities", "Image Digest"}
+	assessments := buildVulnCtrAssessmentSummary(data.Data, api.ContainersEntityResponse{
+		Data: []api.ContainerEntity{
+			api.ContainerEntity{
+				ImageID: "sha256:7652596622b05043763f962cff30edf01f6ea1ba29374f1703dda759dc9ff3a1",
+				Mid:     1,
+			},
+			api.ContainerEntity{
+				ImageID: "sha256:7652596622b05043763f962cff30edf01f6ea1ba29374f1703dda759dc9ff3a1",
+				Mid:     2,
+			},
+			api.ContainerEntity{
+				ImageID: "sha256:1252596622b05043763f962gff30adf01f6ea1ba29374f1703dda759dc9ab3a1",
+				Mid:     3,
+			},
+		},
+	})
 	filteredAssessments := applyVulnCtrFilters(assessments)
 	assessmentOutput := assessmentSummaryToOutputFormat(filteredAssessments)
 	rows := vulAssessmentsToTable(assessmentOutput)
@@ -69,10 +84,10 @@ func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
 	}
 
 	expected := `
-Registry,Repository,Last Scan,Status,Vulnerabilities,Image Digest
-index.docker.io,techally-test/test-cli,2022-11-21T18:33:28Z,Success,1 Medium 1 Fixable,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a
-gcr.io,techally-test-4/exservice,2022-11-21T19:21:57Z,Success,1 High 1 Fixable,sha256:15b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
-gcr.io,techally-test-2/exservice,2022-11-21T19:21:57Z,Success,1 Critical,sha256:12b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
+Registry,Repository,Last Scan,Status,Containers,Vulnerabilities,Image Digest
+gcr.io,techally-test-2/exservice,2022-11-21T19:21:57Z,Success,2,1 Critical,sha256:12b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
+gcr.io,techally-test-4/exservice,2022-11-21T19:21:57Z,Success,1,1 High 1 Fixable,sha256:15b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123
+index.docker.io,techally-test/test-cli,2022-11-21T18:33:28Z,Success,0,1 Medium 1 Fixable,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a
 `
 
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), csv)

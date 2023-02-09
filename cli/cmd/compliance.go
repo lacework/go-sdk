@@ -511,3 +511,14 @@ func getReportTypes(reportSubType string) (validTypes []string, err error) {
 
 	return validTypes, err
 }
+
+func prettyPrintReportTypes(reportTypes []string) string {
+	var sb strings.Builder
+	for i, r := range reportTypes {
+		if i%5 == 0 {
+			sb.WriteString("\n")
+		}
+		sb.WriteString(fmt.Sprintf("'%s',", r))
+	}
+	return sb.String()
+}
