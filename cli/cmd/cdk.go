@@ -30,7 +30,7 @@ import (
 )
 
 // default gRPC target if not specified via LW_CDK_TARGET
-const defaultGrpcTarget string = "localhost:1123"
+const defaultGrpcPort int = 1123
 
 // envs are all the environment variables passed to CDK components
 func (c *cliState) envs() []string {
@@ -58,7 +58,7 @@ func (c *cliState) GrpcTarget() string {
 	if target := os.Getenv("LW_CDK_TARGET"); target != "" {
 		return target
 	}
-	return defaultGrpcTarget
+	return fmt.Sprintf("localhost:%v", c.cdkServerPort)
 }
 
 // Ping implements CDK.Ping
@@ -97,8 +97,28 @@ func (c *cliState) Honeyvent(ctx context.Context, in *cdk.HoneyventRequest) (*cd
 	return &cdk.Reply{}, nil
 }
 
-// Serve will start the CDK gRPC server at the provided port and log level
-func (c *cliState) Serve(target string) error {
+// Serve will start the CDK gRPC server
+func (c *cliState) Serve() error {
+	// Start the gRPC server for components to communicate back
+	const maxAttempts = 20
+
+	if target := os.Getenv("LW_CDK_TARGET"); target != "" {
+		return c.serve(target)
+	}
+
+	// Try a range of port numbers in case the default one is not available
+	var err error
+	for i := 0; i < maxAttempts; i++ {
+		err = c.serve(fmt.Sprintf("localhost:%v", defaultGrpcPort+i))
+		if err == nil {
+			c.cdkServerPort = defaultGrpcPort + i
+			return err
+		}
+	}
+	return errors.Wrap(err, fmt.Sprintf("unable to start gRPC server (attempts: %d)", maxAttempts))
+}
+
+func (c *cliState) serve(target string) error {
 	c.Stop() // make sure server is not running
 
 	lis, err := net.Listen("tcp", target)

@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -30,13 +31,13 @@ import (
 )
 
 func TestCDKServer(t *testing.T) {
-	go cli.Serve(defaultGrpcTarget)
+	go cli.Serve()
 	defer cli.Stop()
 
 	// wait for the gRPC server to come online
 	time.Sleep(time.Millisecond * 200)
 
-	conn, err := grpc.Dial(defaultGrpcTarget,
+	conn, err := grpc.Dial(fmt.Sprintf("localhost:%v", defaultGrpcPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if assert.Nil(t, err) {
 		defer conn.Close()
