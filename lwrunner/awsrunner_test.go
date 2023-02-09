@@ -19,8 +19,11 @@
 package lwrunner
 
 import (
+	"strconv"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,4 +55,70 @@ func TestSSHUsernameFromAmazonLinuxIsEC2User(t *testing.T) {
 	user, err := getSSHUsername("", "amzn2-ami-hvm-x86_64-gp2")
 	assert.NoError(t, err)
 	assert.Equal(t, "ec2-user", user)
+}
+
+func TestGetSSMCommandInvocationStdOut(t *testing.T) {
+	cases := []struct {
+		mockCommandOutput *ssm.GetCommandInvocationOutput
+		expectedResult    string
+	}{
+		{
+			mockCommandOutput: &ssm.GetCommandInvocationOutput{
+				StandardOutputContent: aws.String("foobarbaz"),
+			},
+			expectedResult: "foobarbaz",
+		},
+		{
+			mockCommandOutput: &ssm.GetCommandInvocationOutput{
+				StandardOutputContent: aws.String(""),
+			},
+			expectedResult: "",
+		},
+		{
+			mockCommandOutput: &ssm.GetCommandInvocationOutput{
+				StandardOutputContent: nil,
+			},
+			expectedResult: "",
+		},
+	}
+
+	for i, tt := range cases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			stdoutContent := GetSSMCommandInvocationStdOut(*tt.mockCommandOutput)
+			assert.Equal(t, tt.expectedResult, stdoutContent)
+		})
+	}
+}
+
+func TestGetSSMCommandInvocationStdErr(t *testing.T) {
+	cases := []struct {
+		mockCommandOutput *ssm.GetCommandInvocationOutput
+		expectedResult    string
+	}{
+		{
+			mockCommandOutput: &ssm.GetCommandInvocationOutput{
+				StandardErrorContent: aws.String("foobarbaz"),
+			},
+			expectedResult: "foobarbaz",
+		},
+		{
+			mockCommandOutput: &ssm.GetCommandInvocationOutput{
+				StandardErrorContent: aws.String(""),
+			},
+			expectedResult: "",
+		},
+		{
+			mockCommandOutput: &ssm.GetCommandInvocationOutput{
+				StandardErrorContent: nil,
+			},
+			expectedResult: "",
+		},
+	}
+
+	for i, tt := range cases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			stdoutContent := GetSSMCommandInvocationStdErr(*tt.mockCommandOutput)
+			assert.Equal(t, tt.expectedResult, stdoutContent)
+		})
+	}
 }
