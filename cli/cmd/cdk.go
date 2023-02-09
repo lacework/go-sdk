@@ -115,7 +115,7 @@ func (c *cliState) Serve() error {
 			return err
 		}
 	}
-	return err
+	return errors.Wrap(err, fmt.Sprintf("unable to start gRPC server (attempts: %d)", maxAttempts))
 }
 
 func (c *cliState) serve(target string) error {
