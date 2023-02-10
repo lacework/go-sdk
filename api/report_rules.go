@@ -251,39 +251,87 @@ type ReportRule struct {
 }
 
 type ReportRuleNotificationTypes struct {
-	AgentEvents               bool `json:"agentEvents"`
-	AwsCisS3                  bool `json:"awsCisS3"`
-	AwsCloudtrailEvents       bool `json:"awsCloudtrailEvents"`
-	AwsComplianceEvents       bool `json:"awsComplianceEvents"`
-	AwsHipaa                  bool `json:"hipaa"`
-	AwsIso2700                bool `json:"iso2700"`
-	AwsNist80053Rev4          bool `json:"nist800-53Rev4"`
-	AwsNist800171Rev2         bool `json:"nist800-171Rev2"`
-	AwsPci                    bool `json:"pci"`
-	AwsSoc                    bool `json:"soc"`
-	AwsSocRev2                bool `json:"awsSocRev2"`
-	AzureActivityLogEvents    bool `json:"azureActivityLogEvents"`
-	AzureCis                  bool `json:"azureCis"`
-	AzureCis131               bool `json:"azureCis131"`
-	AzureComplianceEvents     bool `json:"azureComplianceEvents"`
-	AzurePci                  bool `json:"azurePci"`
-	AzureSoc                  bool `json:"azureSoc"`
-	GcpAuditTrailEvents       bool `json:"gcpAuditTrailEvents"`
-	GcpCis                    bool `json:"gcpCis"`
-	GcpComplianceEvents       bool `json:"gcpComplianceEvents"`
-	GcpHipaa                  bool `json:"gcpHipaa"`
-	GcpHipaaRev2              bool `json:"gcpHipaaRev2"`
-	GcpIso27001               bool `json:"gcpIso27001"`
-	GcpCis12                  bool `json:"gcpCis12"`
-	GcpK8s                    bool `json:"gcpK8s"`
-	GcpPci                    bool `json:"gcpPci"`
-	GcpPciRev2                bool `json:"gcpPciRev2"`
-	GcpSoc                    bool `json:"gcpSoc"`
-	GcpSocRev2                bool `json:"gcpSocRev2"`
-	OpenShiftCompliance       bool `json:"openShiftCompliance"`
+	// DEPRECATED (GROW-1409) --
+	AwsCisS3         bool `json:"awsCisS3"`
+	AwsIso2700       bool `json:"iso2700"`
+	AwsNist80053Rev4 bool `json:"nist800-53Rev4"`
+	AwsPci           bool `json:"pci"`
+	AwsSoc           bool `json:"soc"`
+	AwsSocRev2       bool `json:"awsSocRev2"`
+
+	AzureCis    bool `json:"azureCis"`
+	AzureCis131 bool `json:"azureCis131"`
+	AzurePci    bool `json:"azurePci"`
+	AzureSoc    bool `json:"azureSoc"`
+
+	GcpCis       bool `json:"gcpCis"`
+	GcpHipaa     bool `json:"gcpHipaa"`
+	GcpHipaaRev2 bool `json:"gcpHipaaRev2"`
+	GcpIso27001  bool `json:"gcpIso27001"`
+	GcpCis12     bool `json:"gcpCis12"`
+	GcpK8s       bool `json:"gcpK8s"`
+	GcpPci       bool `json:"gcpPci"`
+	GcpPciRev2   bool `json:"gcpPciRev2"`
+	GcpSoc       bool `json:"gcpSoc"`
+	GcpSocRev2   bool `json:"gcpSocRev2"`
+	// -- DEPRECATED
+
+	// AWS
+	AwsSoc2                 bool `json:"awsSoc2"`
+	AwsCmmc102              bool `json:"awsCmmc1.02"`
+	AwsNistCsf              bool `json:"awsNistCsf"`
+	AwsHipaa                bool `json:"awsHipaa"`
+	AwsCsaCcm405            bool `json:"awsCsaCcm405"`
+	AwsCis14                bool `json:"awsCis14"`
+	AwsIso270012013         bool `json:"awsIso27001:2013"`
+	AwsCyberEssentials22    bool `json:"awsCyberEssentials22"`
+	AwsCis14IsoIec270022022 bool `json:"awsCis14IsoIec270022022"`
+	AwsPciDss321            bool `json:"awsPciDss3.2.1"`
+	AwsNist800171Rev2       bool `json:"awsNist800-171Rev2"`
+	LwAwsSecAdd10           bool `json:"lwAwsSecAdd10"`
+	AwsNist80053Rev5        bool `json:"awsNist800-53Rev5"`
+
+	// AZURE
+	AzureIso270012013Cis15   bool `json:"azureIso27001:2013Cis15"`
+	AzureSoc2Cis15           bool `json:"azureSoc2Cis15"`
+	AzureCis15               bool `json:"azureCis15"`
+	AzureNistCsfCis15        bool `json:"azureNistCsfCis15"`
+	AzurePciDss321Cis15      bool `json:"azurePciDss321Cis15"`
+	AzureHipaaCis15          bool `json:"azureHipaaCis15"`
+	AzureNist80053Rev5Cis15  bool `json:"azureNist800-53Rev5Cis15"`
+	AzureNist800171Rev2Cis15 bool `json:"azureNist800-171Rev2Cis15"`
+
+	// GCP
+	GcpHipaa2013            bool `json:"gcpHipaa2013"`
+	GcpSoc2                 bool `json:"gcpSoc2"`
+	GcpPciDss321            bool `json:"gcpPciDss321"`
+	GcpCis130NistCsf        bool `json:"gcpCis130NistCsf"`
+	GcpCis130Nist80053Rev5  bool `json:"gcpCis130Nist80053Rev5"`
+	GcpCmmc102              bool `json:"gcpCmmc102"`
+	GcpCis130Nist800171Rev2 bool `json:"gcpCis130Nist800171Rev2"`
+	GcpIso270012013         bool `json:"gcpIso270012013"`
+	GcpCis13                bool `json:"gcpCis13"`
+
+	// Daily
 	OpenShiftComplianceEvents bool `json:"openShiftComplianceEvents"`
+	K8SAuditLogEvents         bool `json:"k8sAuditLogEvents"`
+	GcpComplianceEvents       bool `json:"gcpComplianceEvents"`
+	AgentEvents               bool `json:"agentEvents"`
+	AwsComplianceEvents       bool `json:"awsComplianceEvents"`
+	AzureComplianceEvents     bool `json:"azureComplianceEvents"`
+	AzureActivityLogEvents    bool `json:"azureActivityLogEvents"`
+	GcpAuditTrailEvents       bool `json:"gcpAuditTrailEvents"`
 	PlatformEvents            bool `json:"platformEvents"`
-	TrendReport               bool `json:"trendReport"`
+	AwsCloudtrailEvents       bool `json:"awsCloudtrailEvents"`
+	IncidentEvents            bool `json:"incidentEvents"`
+	OpenShiftCompliance       bool `json:"openShiftCompliance"`
+
+	// Weekly
+	TrendReport bool `json:"trendReport"`
+
+	// Vulnerability
+	ContainerVulnerabilityReport bool `json:"containerVulnerabilityReport"`
+	HostVulnerabilityReport      bool `json:"hostVulnerabilityReport"`
 }
 
 type ReportRuleFilter struct {
