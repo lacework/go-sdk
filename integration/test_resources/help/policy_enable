@@ -21,7 +21,7 @@ To enable all policies for GCP CIS 1.3.0:
 	lacework policy enable --tag framework:cis-gcp-1-3-0
 
 Usage:
-  lacework policy enable [policy_id] [flags]
+  lacework policy enable [policy_id...] [flags]
 
 Flags:
   -h, --help         help for enable

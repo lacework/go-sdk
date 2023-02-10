@@ -27,7 +27,7 @@ import (
 var (
 	// policyEnableTagCmd represents the policy enable command
 	policyEnableTagCmd = &cobra.Command{
-		Use:   "enable [policy_id]",
+		Use:   "enable [policy_id...]",
 		Short: "Enable policies",
 		Long: `Enable policies by ID or all policies matching a tag.
 

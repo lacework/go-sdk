@@ -23,7 +23,7 @@ The severity of many policies can be updated at once by passing a list of policy
 	lacework policy update my-policy-1 my-policy-2 --severity critical
 
 Usage:
-  lacework policy update [policy_id] [flags]
+  lacework policy update [policy_id...] [flags]
 
 Flags:
   -f, --file string       path to a policy to update

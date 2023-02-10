@@ -32,7 +32,7 @@ import (
 var (
 	// policyUpdateCmd represents the policy update command
 	policyUpdateCmd = &cobra.Command{
-		Use:   "update [policy_id]",
+		Use:   "update [policy_id...]",
 		Short: "Update a policy",
 		Long: `Update a policy.
 
@@ -64,13 +64,15 @@ The severity of many policies can be updated at once by passing a list of policy
 			if len(args) > 1 && policyCmdState.Severity == "" {
 				return errors.Errorf(`policy bulk update is only supported with the '--severity' flag 
 
-example: lacework policy update %s --severity critical
+For example: 
+
+     lacework policy update %s --severity critical
 					`, strings.Join(args, " "))
 			}
 
 			if policyCmdState.Severity != "" && !lwseverity.IsValid(policyCmdState.Severity) {
-				return errors.New(fmt.Sprintf("invalid severity %q' valid severities are: %s",
-					policyCmdState.Severity, lwseverity.ValidSeverities.String()))
+				return errors.Errorf("invalid severity %q valid severities are: %s",
+					policyCmdState.Severity, lwseverity.ValidSeverities.String())
 			}
 
 			return nil

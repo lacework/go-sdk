@@ -28,7 +28,7 @@ var (
 	// This is an experimental command.
 	// policyDisableTagCmd represents the policy disable command
 	policyDisableTagCmd = &cobra.Command{
-		Use:   "disable [policy_id]",
+		Use:   "disable [policy_id...]",
 		Short: "Disable policies",
 		Long: `Disable policies by ID or all policies matching a tag.
 
