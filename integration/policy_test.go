@@ -369,7 +369,7 @@ func TestPolicyShow(t *testing.T) {
 
 func TestPolicyUpdateHelp(t *testing.T) {
 	out, err, exitcode := LaceworkCLI("help", "policy", "update")
-	assert.Contains(t, out.String(), "lacework policy update [policy_id] [flags]")
+	assert.Contains(t, out.String(), "lacework policy update [policy_id...] [flags]")
 	assert.Contains(t, out.String(), "-f, --file string")
 	assert.Contains(t, out.String(), "-u, --url string")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -456,4 +456,42 @@ func TestPolicyDisableEnable(t *testing.T) {
 
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
 	assert.Contains(t, out.String(), "enabled")
+}
+
+func TestPolicyBulkDisableEnable(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "disable", "lacework-global-1", "lacework-global-2")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
+	assert.Contains(t, out.String(), "disabled")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-2")
+	assert.Contains(t, out.String(), "disabled")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "enable", "lacework-global-1", "lacework-global-2")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
+	assert.Contains(t, out.String(), "enabled")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-2")
+	assert.Contains(t, out.String(), "enabled")
+}
+
+func TestPolicyBulksUpdate(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "update", "lacework-global-39", "lacework-global-42", "--severity", "critical")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-39")
+	assert.Contains(t, out.String(), "critical")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-42")
+	assert.Contains(t, out.String(), "critical")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "update", "lacework-global-39", "lacework-global-42", "--severity", "high")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

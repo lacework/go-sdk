@@ -34,7 +34,7 @@ func main() {
 
 	myPolicyException := api.PolicyException{
 		Description: "Exception created by the go-sdk",
-		Constraints: []api.PolicyExceptionConstraint{{FieldKey: "accountIds", FieldValues: []string{"*"}}},
+		Constraints: []api.PolicyExceptionConstraint{{FieldKey: "accountIds", FieldValues: []any{"*"}}},
 	}
 
 	response, err := lacework.V2.Policy.Exceptions.Create(policyID, myPolicyException)

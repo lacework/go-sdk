@@ -24,6 +24,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/aws/smithy-go/ptr"
+	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
@@ -82,9 +84,43 @@ var (
 	"policyType": "Violation"
 }`, policyID)
 
+	updateBulkPolicy = api.BulkUpdatePolicies{{
+		PolicyID: "lacework-global-1",
+		Enabled:  ptr.Bool(true),
+		Severity: lwseverity.Medium.String(),
+	}}
+
 	mockPolicyErrorResponse = `{
 	"message": "This is an error message"
 }`
+	bulkPolicyUpdateResponse = `
+{
+"data": [
+{
+"evaluatorId": "Cloudtrail",
+"policyId": "lacework-global-1",
+"policyType": "Violation",
+"queryId": "LW_Global_AWS_Example",
+"queryText": "{ source { CloudTrailRawEvents }",
+"title": "Test Example",
+"enabled": true,
+"description": "An example description",
+"remediation": "Example remediation",
+"severity": "medium",
+"limit": 1000,
+"evalFrequency": "Hourly",
+"alertEnabled": true,
+"alertProfile": "LW_CloudTrail_Alerts.Example",
+"owner": "Lacework",
+"lastUpdateTime": "2023-01-30T14:00:00.000Z",
+"lastUpdateUser": "test.user@lacework.net",
+"tags": [
+"domain:AWS",
+"subdomain:Cloudtrail"]
+}
+]
+}
+`
 )
 
 func mockPolicyDataResponse(data string) string {
@@ -305,6 +341,53 @@ func TestPolicyUpdateMethod(t *testing.T) {
 
 	_, err = c.V2.Policy.Update(updatePolicyMinimal)
 	assert.Nil(t, err)
+}
+
+func TestPolicyUpdateManyMethod(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI(
+		policyURI,
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "PATCH", r.Method, "Update should be a PATCH method")
+			fmt.Fprint(w, "{}")
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	_, err = c.V2.Policy.UpdateMany(updateBulkPolicy)
+	assert.Nil(t, err)
+}
+
+func TestPolicyUpdateManyOK(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockAPI(
+		policyURI,
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, bulkPolicyUpdateResponse)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	updateExpected := api.BulkPolicyUpdateResponse{}
+	_ = json.Unmarshal([]byte(bulkPolicyUpdateResponse), &updateExpected)
+
+	updateActual, err := c.V2.Policy.UpdateMany(updateBulkPolicy)
+	assert.Nil(t, err)
+	assert.Equal(t, updateExpected, updateActual)
 }
 
 func TestPolicyUpdateBadInput(t *testing.T) {
