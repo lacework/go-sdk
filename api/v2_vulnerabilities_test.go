@@ -19,6 +19,7 @@
 package api_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -414,6 +415,50 @@ func TestV2Vulnerabilities_Hosts_AllPages(t *testing.T) {
 	}
 }
 
+func TestV2Vulnerabilities_HostGetAwsMachineTags(t *testing.T) {
+	var mockHostResponse api.VulnerabilitiesHostResponse
+	err := json.Unmarshal([]byte(mockVulnerabilitiesHostsResponseSetTags(vulnerabilityHostAwsMachineTags)), &mockHostResponse)
+	assert.NoError(t, err)
+
+	tags, err := mockHostResponse.Data[0].GetMachineTags()
+	assert.NoError(t, err)
+	assert.Equal(t, tags.Account, "123456789038")
+	assert.Equal(t, tags.AmiID, "ami-1234567890540c038")
+	assert.Equal(t, tags.ExternalIP, "1.5.8.9")
+	assert.Equal(t, tags.Hostname, "ip-192-168-28-69.us-east-2.compute.internal")
+}
+
+func TestV2Vulnerabilities_HostGetGcpMachineTags(t *testing.T) {
+	var mockHostResponse api.VulnerabilitiesHostResponse
+	err := json.Unmarshal([]byte(mockVulnerabilitiesHostsResponseSetTags(vulnerabilityHostGcpMachineTags)), &mockHostResponse)
+	assert.NoError(t, err)
+
+	tags, err := mockHostResponse.Data[0].GetMachineTags()
+	assert.NoError(t, err)
+	assert.Equal(t, tags.ProjectId, "tech-ally-test")
+	assert.Equal(t, tags.NumericProjectId, "123456789012")
+	assert.Equal(t, tags.GCEtags, "test")
+	assert.Equal(t, tags.InstanceName, "tech-ally-test")
+	assert.Equal(t, tags.VMInstanceType, "e2-small")
+	assert.Equal(t, tags.VMProvider, "GCE")
+}
+
+func TestV2Vulnerabilities_HostGetEmptyMachineTags(t *testing.T) {
+	var mockHostResponse api.VulnerabilitiesHostResponse
+	err := json.Unmarshal([]byte(mockVulnerabilitiesHostsResponseSetTags("{}")), &mockHostResponse)
+	assert.NoError(t, err)
+
+	tags, err := mockHostResponse.Data[0].GetMachineTags()
+	assert.NoError(t, err)
+	assert.NotNil(t, tags)
+	assert.Equal(t, tags.Account, "")
+	assert.Equal(t, tags.AmiID, "")
+	assert.Equal(t, tags.ExternalIP, "")
+	assert.Equal(t, tags.Hostname, "")
+	assert.Equal(t, tags.ProjectId, "")
+	assert.Equal(t, tags.NumericProjectId, "")
+}
+
 func mockVulnerabilitiesHostsResponse() string {
 	return `
 {
@@ -553,3 +598,108 @@ func mockVulnerabilitiesHostsResponse() string {
 }
 	`
 }
+
+func mockVulnerabilitiesHostsResponseSetTags(machineTagsJson string) string {
+	return fmt.Sprintf(`
+{
+  "data": [
+	  {
+      "cveProps": {
+        "cve_batch_id": "1234567890904FC1986CD8E5387ED053",
+        "description": "Package updates are available for Amazon Linux 2 that fix the following vulnerabilities: CVE-2019-5482: Heap buffer overflow in the TFTP protocol handler in cURL 7.19.4 to 7.65.3. 99999: CVE-2019-5482 curl: heap buffer overflow in function tftp_receive_packet() CVE-2019-5481: Double-free vulnerability in the FTP-kerberos code in cURL 7.52.0 to 7.65.3. 99999: CVE-2019-5481 curl: double free due to subsequent call of realloc()",
+        "link": "https://alas.aws.amazon.com/AL2/ALAS-2019-1340.html"
+      },
+      "endTime": "2022-02-10T04:00:00.000Z",
+      "evalCtx": {
+        "exception_props": [],
+        "hostname": "ip-192-168-28-69.us-east-2.compute.internal",
+        "mc_eval_guid": "1234567890736f2a56c224175a9c06c4"
+      },
+      "featureKey": {
+        "name": "curl",
+        "namespace": "amzn:2",
+        "package_active": 0,
+        "version_installed": "0:7.61.1-12.amzn2.0.2"
+      },
+      "fixInfo": {
+        "compare_result": "-1",
+        "eval_status": "GOOD",
+        "fix_available": "0",
+        "fixed_version": "7.61.1-12.amzn2.0.1",
+        "fixed_version_comparison_infos": [
+          {
+            "curr_fix_ver": "7.61.1-12.amzn2.0.1",
+            "is_curr_fix_ver_greater_than_other_fix_ver": "0",
+            "other_fix_ver": "7.61.1-12.amzn2.0.1"
+          }
+        ],
+        "fixed_version_comparison_score": 0,
+        "version_installed": "0:7.61.1-12.amzn2.0.2"
+      },
+      "machineTags": %s,
+      "mid": 38,
+      "severity": "Medium",
+      "startTime": "2022-02-10T03:00:00.000Z",
+      "status": "FixedOnDiscovery",
+      "vulnId": "ALAS2-2019-1340"
+    }
+  ],
+  "paging": {
+    "rows": 2,
+    "totalRows": 2,
+    "urls": {
+      "nextPage": null
+    }
+  }
+}
+	`, machineTagsJson)
+}
+
+var vulnerabilityHostAwsMachineTags = `{
+        "Account": "123456789038",
+        "AmiId": "ami-1234567890540c038",
+        "Env": "k8s",
+        "ExternalIp": "1.5.8.9",
+        "Hostname": "ip-192-168-28-69.us-east-2.compute.internal",
+        "InstanceId": "i-12345678903bd1a6c",
+        "InternalIp": "192.168.28.69",
+        "LwTokenShort": "12345678904c316d1ed18fbd15f168",
+        "Name": "techally-sandbox-standard-workers-Node",
+        "SubnetId": "subnet-1234567890bba6219",
+        "VmInstanceType": "t3.small",
+        "VmProvider": "AWS",
+        "VpcId": "vpc-1234567890252f137",
+        "Zone": "us-east-2c",
+        "alpha.eksctl.io/nodegroup-name": "standard-workers",
+        "alpha.eksctl.io/nodegroup-type": "managed",
+        "arch": "amd64",
+        "aws:autoscaling:groupName": "eks-123456789019e-1234567890156a8d5dc982",
+        "aws:ec2:fleet-id": "fleet-1234567890e80-44f6-123456789068ef762",
+        "aws:ec2launchtemplate:id": "lt-1234567890c17103c",
+        "aws:ec2launchtemplate:version": "1",
+        "eks:cluster-name": "techally-sandbox",
+        "eks:nodegroup-name": "standard-workers",
+        "k8s.io/cluster-autoscaler/enabled": 1,
+        "k8s.io/cluster-autoscaler/techally-sandbox": "owned",
+        "kubernetes.io/cluster/techally-sandbox": "owned",
+        "lw_KubernetesCluster": "techally-sandbox",
+        "os": "linux"
+      }`
+
+var vulnerabilityHostGcpMachineTags = `{
+                "ExternalIp": "1.123.123.123",
+                "GCEtags": "test",
+                "Hostname": "test.c.test.internal",
+                "InstanceId": "1234567892345678901",
+                "InstanceName": "tech-ally-test",
+                "InternalIp": "10.123.1.2",
+                "LwTokenShort": "123456abcde12a1234a112345abcd1",
+                "NumericProjectId": "123456789012",
+                "ProjectId": "tech-ally-test",
+                "VmInstanceType": "e2-small",
+                "VmProvider": "GCE",
+                "Zone": "us-central1-a",
+                "arch": "amd64",
+                "lw_InternetExposure": "Unknown",
+                "os": "linux"
+      }`
