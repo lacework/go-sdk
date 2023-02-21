@@ -269,6 +269,10 @@ func buildVulnHostsDetailsTable(filteredCves map[string]VulnCveSummary) string {
 
 func hostVulnHostDetailsMainReportTable(assessment api.VulnerabilitiesHostResponse) string {
 	host := assessment.Data[0]
+	machineTags, err := host.GetMachineTags()
+	if err != nil {
+		cli.Log.Debug("failed to parse machine tags")
+	}
 	mainBldr := &strings.Builder{}
 	mainBldr.WriteString(
 		renderCustomTable([]string{"Host Details", "Vulnerabilities"},
@@ -277,14 +281,14 @@ func hostVulnHostDetailsMainReportTable(assessment api.VulnerabilitiesHostRespon
 					[][]string{
 						{"Machine ID", strconv.Itoa(host.Mid)},
 						{"Hostname", host.EvalCtx.Hostname},
-						{"External IP", host.MachineTags.ExternalIP},
-						{"Internal IP", host.MachineTags.InternalIP},
-						{"Os", host.MachineTags.Os},
-						{"Arch", host.MachineTags.Arch},
+						{"External IP", machineTags.ExternalIP},
+						{"Internal IP", machineTags.InternalIP},
+						{"Os", machineTags.Os},
+						{"Arch", machineTags.Arch},
 						{"Namespace", host.FeatureKey.Namespace},
-						{"Provider", host.MachineTags.VMProvider},
-						{"Instance ID", host.MachineTags.InstanceID},
-						{"AMI", host.MachineTags.AmiID},
+						{"Provider", machineTags.VMProvider},
+						{"Instance ID", machineTags.InstanceID},
+						{"AMI", machineTags.AmiID},
 					},
 					tableFunc(func(t *tablewriter.Table) {
 						t.SetColumnSeparator("")

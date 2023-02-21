@@ -96,14 +96,18 @@ func hostVulnHostsTable(hosts []api.VulnerabilityHost) [][]string {
 	for _, sum := range hostSummary {
 		host := sum.host
 		summary := severitySummary(sum.severity, sum.fixable)
+		machineTags, err := host.GetMachineTags()
+		if err != nil {
+			cli.Log.Debug("failed to parse machine tags")
+		}
 		out = append(out, []string{
 			strconv.Itoa(host.Mid),
 			host.EvalCtx.Hostname,
-			host.MachineTags.ExternalIP,
-			host.MachineTags.InternalIP,
-			fmt.Sprintf("%s/%s", host.MachineTags.Os, host.MachineTags.Arch),
-			host.MachineTags.VMProvider,
-			host.MachineTags.InstanceID,
+			machineTags.ExternalIP,
+			machineTags.InternalIP,
+			fmt.Sprintf("%s/%s", machineTags.Os, machineTags.Arch),
+			machineTags.VMProvider,
+			machineTags.InstanceID,
 			summary,
 			host.Status,
 		})
