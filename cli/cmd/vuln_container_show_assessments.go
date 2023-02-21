@@ -453,7 +453,8 @@ func filterVulnerabilityContainer(image []api.VulnerabilityContainer) filteredIm
 	)
 
 	for _, i := range image {
-		vulnIDs = append(vulnIDs, fmt.Sprintf("%s-%s", i.VulnID, i.FeatureKey.Name))
+		vulnKey := fmt.Sprintf("%s-%s-%s", i.VulnID, i.FeatureKey.Name, i.FeatureProps.IntroducedIn)
+		vulnIDs = append(vulnIDs, vulnKey)
 		// filter: severity
 		if vulCmdState.Severity != "" {
 			if filterSeverity(i.Severity, vulCmdState.Severity) {
@@ -469,8 +470,8 @@ func filterVulnerabilityContainer(image []api.VulnerabilityContainer) filteredIm
 		regex := regexp.MustCompile(regexAllTabs)
 		introducedIn := regex.ReplaceAllString(i.FeatureProps.IntroducedIn, "\n")
 
-		if _, ok := vulns[fmt.Sprintf("%s-%s", i.VulnID, i.FeatureKey.Name)]; !ok {
-			vulns[fmt.Sprintf("%s-%s", i.VulnID, i.FeatureKey.Name)] = vulnTable{
+		if _, ok := vulns[vulnKey]; !ok {
+			vulns[vulnKey] = vulnTable{
 				Name:           i.VulnID,
 				Severity:       i.Severity,
 				PackageName:    i.FeatureKey.Name,
