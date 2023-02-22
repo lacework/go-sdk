@@ -53,6 +53,16 @@ func NewAzureReportType(report string) (AzureReportType, error) {
 	return NONE_AZURE_REPORT, errors.Errorf("no report type found for %s", report)
 }
 
+func AzureReportTypes() []string {
+	reportTypes := make([]string, 0, len(azureReportTypes))
+
+	for _, report := range azureReportTypes {
+		reportTypes = append(reportTypes, report)
+	}
+
+	return reportTypes
+}
+
 var azureReportTypes = map[AzureReportType]string{
 	AZURE_CIS: "AZURE_CIS", AZURE_CIS_131: "AZURE_CIS_131", AZURE_SOC: "AZURE_SOC", AZURE_SOC_Rev2: "AZURE_SOC_Rev2",
 	AZURE_PCI: "AZURE_PCI", AZURE_PCI_Rev2: "AZURE_PCI_Rev2", AZURE_ISO_27001: "AZURE_ISO_27001", AZURE_NIST_CSF: "AZURE_NIST_CSF",
