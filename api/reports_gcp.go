@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/pkg/errors"
@@ -59,7 +60,7 @@ func GcpReportTypes() []string {
 	for _, report := range gcpReportTypes {
 		reportTypes = append(reportTypes, report)
 	}
-
+	sort.Strings(reportTypes)
 	return reportTypes
 }
 

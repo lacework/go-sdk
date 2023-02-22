@@ -27,11 +27,11 @@ Flags:
       --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
       --type string        report type to display, run 'lacework report-definitions list' for more information.
                            valid types:
-                           'AWS_Cyber_Essentials_2_2','PCI','AWS_ISO_27001:2013','AWS_HIPAA','AWS_NIST_800-53_rev5',
-                           'LW_AWS_SEC_ADD_1_0','AWS_CIS_1_4_ISO_IEC_27002_2022','AWS_CIS_S3','NIST_800-53_Rev4','ISO_2700',
-                           'AWS_NIST_800-171_rev2','HIPAA','SOC','AWS_SOC_Rev2','AWS_NIST_CSF',
-                           'AWS_SOC_2','AWS_CSA_CCM_4_0_5','NIST_800-171_Rev2','AWS_CIS_14','AWS_CMMC_1.02',
-                           'AWS_PCI_DSS_3.2.1', (default "AWS_CIS_14")
+                           'AWS_CIS_14','AWS_CIS_1_4_ISO_IEC_27002_2022','AWS_CIS_S3','AWS_CMMC_1.02','AWS_CSA_CCM_4_0_5',
+                           'AWS_Cyber_Essentials_2_2','AWS_HIPAA','AWS_ISO_27001:2013','AWS_NIST_800-171_rev2','AWS_NIST_800-53_rev5',
+                           'AWS_NIST_CSF','AWS_PCI_DSS_3.2.1','AWS_SOC_2','AWS_SOC_Rev2','HIPAA',
+                           'ISO_2700','LW_AWS_SEC_ADD_1_0','NIST_800-171_Rev2','NIST_800-53_Rev4','PCI',
+                           'SOC', (default "AWS_CIS_14")
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

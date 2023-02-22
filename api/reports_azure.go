@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/pkg/errors"
@@ -60,6 +61,7 @@ func AzureReportTypes() []string {
 		reportTypes = append(reportTypes, report)
 	}
 
+	sort.Strings(reportTypes)
 	return reportTypes
 }
 

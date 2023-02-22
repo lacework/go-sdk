@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/pkg/errors"
@@ -59,6 +60,7 @@ func AwsReportTypes() []string {
 		reportTypes = append(reportTypes, report)
 	}
 
+	sort.Strings(reportTypes)
 	return reportTypes
 }
 
