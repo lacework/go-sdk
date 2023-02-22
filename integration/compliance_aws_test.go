@@ -143,7 +143,7 @@ func TestComplianceAwsGetAllReportType(t *testing.T) {
 			out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", reportType)
 			assert.Empty(t, err.String(), "STDERR should be empty")
 			assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-			assert.Contains(t, out.String(), "RECOMMENDATION DETAILS",
+			assert.Contains(t, out.String(), "COMPLIANCE REPORT DETAILS",
 				"STDOUT table headers changed, please check")
 		})
 	}
