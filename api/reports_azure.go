@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/pkg/errors"
@@ -51,6 +52,17 @@ func NewAzureReportType(report string) (AzureReportType, error) {
 		}
 	}
 	return NONE_AZURE_REPORT, errors.Errorf("no report type found for %s", report)
+}
+
+func AzureReportTypes() []string {
+	reportTypes := make([]string, 0, len(azureReportTypes))
+
+	for _, report := range azureReportTypes {
+		reportTypes = append(reportTypes, report)
+	}
+
+	sort.Strings(reportTypes)
+	return reportTypes
 }
 
 var azureReportTypes = map[AzureReportType]string{

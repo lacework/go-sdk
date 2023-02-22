@@ -40,11 +40,6 @@ var (
 		Type string
 	}{Type: "AWS_CIS_14"}
 
-	validAwsReportTypes = []string{"AWS_NIST_CSF", "AWS_NIST_800-53_rev5", "AWS_HIPAA", "NIST_800-53_Rev4", "LW_AWS_SEC_ADD_1_0",
-		"AWS_SOC_Rev2", "AWS_PCI_DSS_3.2.1", "AWS_CIS_S3", "ISO_2700", "SOC", "AWS_CSA_CCM_4_0_5", "PCI", "AWS_Cyber_Essentials_2_2",
-		"AWS_ISO_27001:2013", "AWS_CIS_14", "AWS_CMMC_1.02", "HIPAA", "AWS_SOC_2", "AWS_CIS_1_4_ISO_IEC_27002_2022", "NIST_800-171_Rev2",
-		"AWS_NIST_800-171_rev"}
-
 	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
 	complianceAwsListAccountsCmd = &cobra.Command{
 		Use:     "list-accounts",
@@ -85,10 +80,10 @@ var (
 			//	 return errors.Wrap(err, "unable to retrieve valid report types")
 			// }
 
-			if array.ContainsStr(validAwsReportTypes, compAwsCmdState.Type) {
+			if array.ContainsStr(api.AwsReportTypes(), compAwsCmdState.Type) {
 				return nil
 			} else {
-				return errors.Errorf(`supported report types are: %s'`, strings.Join(validAwsReportTypes, ", "))
+				return errors.Errorf(`supported report types are: %s'`, strings.Join(api.AwsReportTypes(), ", "))
 			}
 		},
 		Short: "Get the latest AWS compliance report",
@@ -523,7 +518,7 @@ func init() {
 	//AWS_NIST_800-171_rev2'
 	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.Type, "type", "AWS_CIS_14",
 		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
-valid types:%s`, prettyPrintReportTypes(validAwsReportTypes)))
+valid types:%s`, prettyPrintReportTypes(api.AwsReportTypes())))
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (identity-and-access-management, s3, logging...)",

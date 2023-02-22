@@ -41,9 +41,6 @@ var (
 		Type string
 	}{Type: "AZURE_CIS_131"}
 
-	validAzureReportTypes = []string{"AZURE_CIS_131", "AZURE_NIST_800_171_REV2", "AZURE_NIST_800_53_REV5", "AZURE_NIST_CSF",
-		"AZURE_PCI", "AZURE_SOC_Rev2", "AZURE_ISO_27001", "AZURE_SOC", "AZURE_HIPAA", "AZURE_CIS", "AZURE_PCI_Rev2"}
-
 	// complianceAzureListSubsCmd represents the list-subscriptions sub-command inside the azure command
 	complianceAzureListSubsCmd = &cobra.Command{
 		Use:     "list-subscriptions",
@@ -136,10 +133,10 @@ Use the following command to list all Azure Tenants configured in your account:
 			//	return errors.Wrap(err, "unable to retrieve valid report types")
 			//}
 
-			if array.ContainsStr(validAzureReportTypes, compAzCmdState.Type) {
+			if array.ContainsStr(api.AzureReportTypes(), compAzCmdState.Type) {
 				return nil
 			} else {
-				return errors.Errorf("supported report types are: %s", strings.Join(validAzureReportTypes, ", "))
+				return errors.Errorf("supported report types are: %s", strings.Join(api.AzureReportTypes(), ", "))
 			}
 		},
 		Short: "Get the latest Azure compliance report",
@@ -483,7 +480,7 @@ func init() {
 	//AZURE_PCI, AZURE_SOC_Rev2, AZURE_ISO_27001, AZURE_SOC, AZURE_HIPAA, AZURE_CIS, AZURE_PCI_Rev2
 	complianceAzureGetReportCmd.Flags().StringVar(&compAzCmdState.Type, "type", "AZURE_CIS_131",
 		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
-valid types:%s`, prettyPrintReportTypes(validAzureReportTypes)),
+valid types:%s`, prettyPrintReportTypes(api.AzureReportTypes())),
 	)
 
 	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
