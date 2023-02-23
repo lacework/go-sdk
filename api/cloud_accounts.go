@@ -238,7 +238,7 @@ func (c v2CommonIntegrationData) StateString() string {
 	if c.State != nil && c.State.Ok {
 		return "Ok"
 	}
-	return "Check"
+	return "Pending"
 }
 
 type V2IntegrationState struct {

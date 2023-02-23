@@ -54,7 +54,7 @@ func (c AlertIntegrationChannel) StateString() string {
 	if c.State.Ok {
 		return "Ok"
 	}
-	return "Check"
+	return "Pending"
 }
 
 type AlertIntegrationContext struct {
