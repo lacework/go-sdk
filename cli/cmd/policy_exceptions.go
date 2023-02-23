@@ -205,7 +205,9 @@ func promptCreatePolicyException(args []string) (api.PolicyExceptionResponse, st
 			return api.PolicyExceptionResponse{}, "", errors.Wrap(err, "unable to fetch policies")
 		}
 		for _, p := range policies.Data {
-			policyList = append(policyList, p.PolicyID)
+			if p.PolicyType != "Violation" {
+				policyList = append(policyList, p.PolicyID)
+			}
 		}
 		if err = survey.AskOne(&survey.Select{
 			Message: "Policy ID:",
@@ -238,24 +240,12 @@ func promptCreatePolicyException(args []string) (api.PolicyExceptionResponse, st
 		return api.PolicyExceptionResponse{}, "", err
 	}
 
-	var constraints []api.PolicyExceptionConstraint
-	constraints = append(constraints, promptAddExceptionConstraint(policy.Data))
-	addConstraint := false
-	for {
-		if err := survey.AskOne(&survey.Confirm{
-			Message: "Add another constraint?",
-		}, &addConstraint); err != nil {
-			return api.PolicyExceptionResponse{}, "", err
-		}
-
-		if addConstraint {
-			constraints = append(constraints, promptAddExceptionConstraint(policy.Data))
-		} else {
-			break
-		}
+	constraints, err := promptAddExceptionConstraints(policy.Data)
+	if err != nil {
+		return api.PolicyExceptionResponse{}, "", err
 	}
-	exception := api.PolicyException{Description: answers.Description, Constraints: constraints}
 
+	exception := api.PolicyException{Description: answers.Description, Constraints: constraints}
 	cli.StartProgress("Creating policy exception ...")
 	response, err := cli.LwApi.V2.Policy.Exceptions.Create(policyID, exception)
 
@@ -311,98 +301,182 @@ func policyExceptionDetailsTable(policyException api.PolicyException, policyID s
 	return table.String()
 }
 
-func promptAddExceptionConstraint(policy api.Policy) api.PolicyExceptionConstraint {
-	help := "See Lacework documentation for exception criteria https://docs.lacework.com/aws-compliance-policy-exceptions-criteria"
-	msg := ""
-	switch {
-	case array.ContainsStr(policy.Tags, "domain:AWS"):
-		msg = "Valid constraint keys for AWS polices are 'accountIds', 'resourceNames', 'regionNames' and 'resourceTags'`\n"
+func promptAddExceptionConstraints(policy api.Policy) ([]api.PolicyExceptionConstraint, error) {
+	if len(policy.ExceptionConfiguration) == 0 {
+		return []api.PolicyExceptionConstraint{}, nil
 	}
+	var responses []api.PolicyExceptionConstraint
+	questions := buildPromptAddExceptionConstraintListQuestions(policy.ExceptionConfiguration["constraintFields"])
 
-	questions := []*survey.Question{
-		{
-			Name: "fieldKey",
-			Prompt: &survey.Input{
-				Message: fmt.Sprintf("%s Constraint Field Key: ", msg),
-				Help:    help,
-			},
-			Validate: survey.Required,
-		},
-	}
-
-	answers := struct {
-		FieldKey string `json:"fieldKey"`
-	}{}
-
-	err := survey.Ask(questions, &answers,
-		survey.WithIcons(promptIconsFunc),
-	)
-	if err != nil {
-		return api.PolicyExceptionConstraint{}
-	}
-
-	var values []any
-
-	if strings.Contains(strings.ToLower(answers.FieldKey), "tags") {
-		constraintMap, err := promptAddExceptionConstraintMap()
+	for _, q := range questions {
+		addConstraint, err := promptAddConstraint(q.constraint.FieldKey)
 		if err != nil {
-			return api.PolicyExceptionConstraint{}
+			return []api.PolicyExceptionConstraint{}, nil
 		}
-		values = append(values, constraintMap)
 
-		addTag := false
-		for {
-			if err := survey.AskOne(&survey.Confirm{
-				Message: "Add another tag?",
-			}, &addTag); err != nil {
-				return api.PolicyExceptionConstraint{}
-			}
-
-			if addTag {
-				constraintMap, err = promptAddExceptionConstraintMap()
-				if err != nil {
-					return api.PolicyExceptionConstraint{}
-				}
-				values = append(values, constraintMap)
-
-			} else {
-				break
-			}
+		if !addConstraint {
+			continue
 		}
-	} else if answers.FieldKey == "accountIds" {
-		values, err = promptAddExceptionConstraintAwsAccountsList()
+
+		answer, err := promptAskConstraintsQuestion(q)
+
 		if err != nil {
-			return api.PolicyExceptionConstraint{}
+			return []api.PolicyExceptionConstraint{}, nil
 		}
-	} else {
-		values, err = promptAddExceptionConstraintList()
-		if err != nil {
-			return api.PolicyExceptionConstraint{}
+
+		if answer != nil {
+			responses = append(responses, *answer)
 		}
 	}
 
-	return api.PolicyExceptionConstraint{
-		FieldKey:    answers.FieldKey,
-		FieldValues: values,
+	if len(responses) == 0 {
+		return []api.PolicyExceptionConstraint{}, errors.New("policy exceptions must have at least 1 constraint")
 	}
+
+	return responses, nil
 }
 
-func promptAddExceptionConstraintList() ([]any, error) {
+func promptAskConstraintsQuestion(constraintQuestion PolicyExceptionSurveyQuestion) (*api.PolicyExceptionConstraint, error) {
+	var (
+		answer *api.PolicyExceptionConstraint
+		err    error
+	)
+
+	switch constraintQuestion.constraint.DataType {
+	case "String":
+		if constraintQuestion.constraint.MultiValue {
+			// prompt string list question
+			answer, err = promptAddExceptionConstraintList(constraintQuestion.constraint.FieldKey, constraintQuestion.questions)
+		} else {
+			// prompt string question
+			answer, err = promptAddExceptionConstraintString(constraintQuestion.constraint.FieldKey, constraintQuestion.questions)
+		}
+	case "KVTagPair":
+		if constraintQuestion.constraint.MultiValue {
+			//prompt kv tag list
+			answer, err = promptAddExceptionConstraintMapList(constraintQuestion.constraint.FieldKey, constraintQuestion.questions)
+		} else {
+			//prompt kv tag
+			mapAnswers, err := promptAddExceptionConstraintMap(constraintQuestion.questions)
+			if err != nil {
+				return nil, err
+			}
+			return &api.PolicyExceptionConstraint{
+				FieldKey:    constraintQuestion.constraint.FieldKey,
+				FieldValues: []any{mapAnswers},
+			}, nil
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return answer, nil
+}
+
+func buildPromptAddExceptionConstraintListQuestions(constraints []api.PolicyExceptionConfigurationConstraints) []PolicyExceptionSurveyQuestion {
+	questions := []PolicyExceptionSurveyQuestion{}
+
+	for _, constraint := range constraints {
+		switch constraint.DataType {
+		case "String":
+			if constraint.MultiValue {
+				questions = append(questions, PolicyExceptionSurveyQuestion{[]*survey.Question{{
+					Name:     constraint.FieldKey,
+					Prompt:   &survey.Multiline{Message: fmt.Sprintf("%s values:", constraint.FieldKey)},
+					Validate: survey.Required,
+				}},
+					constraint,
+				})
+			} else {
+				questions = append(questions, PolicyExceptionSurveyQuestion{[]*survey.Question{{
+					Name:     constraint.FieldKey,
+					Prompt:   &survey.Input{Message: fmt.Sprintf("%s value:", constraint.FieldKey)},
+					Validate: survey.Required,
+				}},
+					constraint,
+				})
+			}
+		case "KVTagPair":
+			if constraint.MultiValue {
+				questions = append(questions, PolicyExceptionSurveyQuestion{[]*survey.Question{{
+					Name:     "key",
+					Prompt:   &survey.Input{Message: "key:"},
+					Validate: survey.Required,
+				}, {
+					Name:     "value",
+					Prompt:   &survey.Input{Message: "value:"},
+					Validate: survey.Required,
+				},
+				},
+					constraint,
+				})
+			} else {
+				questions = append(questions, PolicyExceptionSurveyQuestion{[]*survey.Question{{
+					Name:     "key",
+					Prompt:   &survey.Input{Message: "key:"},
+					Validate: survey.Required,
+				}, {
+					Name:     "value",
+					Prompt:   &survey.Input{Message: "value:"},
+					Validate: survey.Required,
+				},
+				},
+					constraint,
+				})
+			}
+		}
+	}
+
+	return questions
+}
+
+type PolicyExceptionSurveyQuestion struct {
+	questions  []*survey.Question
+	constraint api.PolicyExceptionConfigurationConstraints
+}
+
+func promptAddExceptionConstraintList(key string, questions []*survey.Question) (*api.PolicyExceptionConstraint, error) {
+	if key == "accountIds" {
+		return promptAddExceptionConstraintAwsAccountsList()
+	}
+
 	var (
 		values      []any
 		fieldValues string
 	)
-	err := survey.AskOne(&survey.Multiline{Message: "Constraint Field Values:"}, &fieldValues)
+
+	err := survey.Ask(questions, &fieldValues)
 	if err != nil {
 		return nil, err
 	}
+
 	for _, v := range strings.Split(fieldValues, "\n") {
 		values = append(values, v)
 	}
-	return values, nil
+
+	return &api.PolicyExceptionConstraint{
+		FieldKey:    key,
+		FieldValues: values,
+	}, nil
 }
 
-func promptAddExceptionConstraintAwsAccountsList() ([]any, error) {
+func promptAddExceptionConstraintString(key string, questions []*survey.Question) (*api.PolicyExceptionConstraint, error) {
+	var fieldValue string
+
+	err := survey.Ask(questions, &fieldValue)
+	if err != nil {
+		return nil, err
+	}
+
+	return &api.PolicyExceptionConstraint{
+		FieldKey:    key,
+		FieldValues: []any{fieldValue},
+	}, nil
+}
+
+func promptAddExceptionConstraintAwsAccountsList() (*api.PolicyExceptionConstraint, error) {
 	var (
 		values      []any
 		fieldValues []string
@@ -422,46 +496,89 @@ func promptAddExceptionConstraintAwsAccountsList() ([]any, error) {
 	}
 
 	for _, ca := range accounts.Data {
-		if val, ok := ca.Data.(api.AwsCfgData); ok {
-			accountIds = append(accountIds, val.AwsAccountID)
+		if caMap, ok := ca.GetData().(map[string]interface{}); ok {
+			accountIds = append(accountIds, caMap["awsAccountId"].(string))
 		}
 	}
 
-	err = survey.AskOne(&survey.MultiSelect{Message: "Select AWS Accounts:", Options: array.Unique(accountIds)}, &fieldValues)
+	question := survey.Question{Name: "awsAccounts",
+		Prompt: &survey.MultiSelect{Message: "Select AWS Accounts:",
+			Options: array.Unique(accountIds)},
+		Validate: survey.MinItems(1)}
+
+	err = survey.Ask([]*survey.Question{&question}, &fieldValues)
 	if err != nil {
 		return nil, err
 	}
+
 	for _, v := range fieldValues {
 		values = append(values, v)
 	}
-	return values, nil
+	return &api.PolicyExceptionConstraint{
+		FieldKey:    "accountIds",
+		FieldValues: values,
+	}, nil
 }
 
-func promptAddExceptionConstraintMap() (any, error) {
-	mapQuestions := []*survey.Question{
-		{
-			Name:     "key",
-			Prompt:   &survey.Input{Message: "Tag Key: "},
-			Validate: survey.Required,
-		},
-		{
-			Name:     "value",
-			Prompt:   &survey.Input{Message: "Tag Value: "},
-			Validate: survey.Required,
-		},
-	}
-
-	mapAnswers := struct {
-		Key   string `json:"key"`
-		Value string `json:"value"`
-	}{}
-
-	err := survey.Ask(mapQuestions, &mapAnswers,
+func promptAddExceptionConstraintMap(mapQuestions []*survey.Question) (constraintMapAnswer, error) {
+	var mapAnswer constraintMapAnswer
+	err := survey.Ask(mapQuestions, &mapAnswer,
 		survey.WithIcons(promptIconsFunc),
 	)
 	if err != nil {
-		return nil, err
+		return constraintMapAnswer{}, err
 	}
 
-	return mapAnswers, nil
+	return mapAnswer, nil
+}
+
+type constraintMapAnswer struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+func promptAddExceptionConstraintMapList(key string, mapQuestions []*survey.Question) (*api.PolicyExceptionConstraint, error) {
+	var mapAnswers []any
+
+	res, err := promptAddExceptionConstraintMap(mapQuestions)
+	if err != nil {
+		return nil, err
+	}
+	mapAnswers = append(mapAnswers, res)
+
+	addTag := false
+	for {
+		if err := survey.AskOne(&survey.Confirm{
+			Message: fmt.Sprintf("Add another %s constraint?", key),
+		}, &addTag); err != nil {
+			return nil, err
+		}
+
+		if addTag {
+			res, err := promptAddExceptionConstraintMap(mapQuestions)
+			if err != nil {
+				return nil, err
+			}
+			mapAnswers = append(mapAnswers, res)
+		} else {
+			break
+		}
+	}
+
+	return &api.PolicyExceptionConstraint{
+		FieldKey:    key,
+		FieldValues: mapAnswers,
+	}, nil
+}
+
+func promptAddConstraint(key string) (bool, error) {
+	addConstraint := false
+
+	if err := survey.AskOne(&survey.Confirm{
+		Message: fmt.Sprintf("Add constraint %q?", key),
+	}, &addConstraint); err != nil {
+		return false, err
+	}
+
+	return addConstraint, nil
 }
