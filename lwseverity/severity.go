@@ -153,7 +153,7 @@ func ShouldFilter(severity, threshold string) bool {
 
 // Sort a slice of Severity interfaces from critical -> info
 func SortSlice[S Severity](s []S) {
-	sort.Slice(s, func(i, j int) bool {
+	sort.SliceStable(s, func(i, j int) bool {
 		sevI, _ := Normalize(s[i].GetSeverity())
 		sevJ, _ := Normalize(s[j].GetSeverity())
 		return sevI < sevJ
@@ -162,7 +162,7 @@ func SortSlice[S Severity](s []S) {
 
 // Sort a slice of Severity interfaces from info -> critical
 func SortSliceA[S Severity](s []S) {
-	sort.Slice(s, func(i, j int) bool {
+	sort.SliceStable(s, func(i, j int) bool {
 		sevI, _ := Normalize(s[i].GetSeverity())
 		sevJ, _ := Normalize(s[j].GetSeverity())
 		return sevI > sevJ

@@ -89,6 +89,7 @@ func TestShouldFilterTest(t *testing.T) {
 }
 
 type myStruct struct {
+	alertID  int
 	severity string
 }
 
@@ -100,31 +101,28 @@ type myStructs []myStruct
 
 func TestSort(t *testing.T) {
 	m := myStructs{
-		myStruct{
-			severity: "Low",
-		},
-		myStruct{
-			severity: "High",
-		},
+		myStruct{alertID: 6, severity: "Low"},
+		myStruct{alertID: 9, severity: "High"},
+		myStruct{alertID: 1, severity: "Low"},
+		myStruct{alertID: 3, severity: "Low"},
+		myStruct{alertID: 8, severity: "Low"},
 	}
 	expected := myStructs{
-		myStruct{
-			severity: "High",
-		},
-		myStruct{
-			severity: "Low",
-		},
+		myStruct{alertID: 9, severity: "High"},
+		myStruct{alertID: 6, severity: "Low"},
+		myStruct{alertID: 1, severity: "Low"},
+		myStruct{alertID: 3, severity: "Low"},
+		myStruct{alertID: 8, severity: "Low"},
 	}
 	lwseverity.SortSlice(m)
 	assert.Equal(t, expected, m)
 
 	expected = myStructs{
-		myStruct{
-			severity: "Low",
-		},
-		myStruct{
-			severity: "High",
-		},
+		myStruct{alertID: 6, severity: "Low"},
+		myStruct{alertID: 1, severity: "Low"},
+		myStruct{alertID: 3, severity: "Low"},
+		myStruct{alertID: 8, severity: "Low"},
+		myStruct{alertID: 9, severity: "High"},
 	}
 	lwseverity.SortSliceA(m)
 	assert.Equal(t, expected, m)
