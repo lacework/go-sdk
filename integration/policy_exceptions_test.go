@@ -10,10 +10,7 @@ import (
 )
 
 func TestPolicyExceptionCreate(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-
-	dir := createDummyTOMLConfig()
+	dir := createTOMLConfigFromCIvars()
 	defer os.RemoveAll(dir)
 
 	_ = runFakeTerminalTestFromDir(t, dir,
