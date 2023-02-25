@@ -39,9 +39,9 @@ lacework compliance azure get-report <tenant_id> <subscriptions_id> [flags]
       --status string      filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
       --type string        report type to display, run 'lacework report-definitions list' for more information.
                            valid types:
-                           'AZURE_CIS_131','AZURE_NIST_800_171_REV2','AZURE_NIST_800_53_REV5','AZURE_NIST_CSF','AZURE_PCI',
-                           'AZURE_SOC_Rev2','AZURE_ISO_27001','AZURE_SOC','AZURE_HIPAA','AZURE_CIS',
-                           'AZURE_PCI_Rev2', (default "AZURE_CIS_131")
+                           'AZURE_CIS','AZURE_CIS_131','AZURE_HIPAA','AZURE_ISO_27001','AZURE_NIST_800_171_REV2',
+                           'AZURE_NIST_800_53_REV5','AZURE_NIST_CSF','AZURE_PCI','AZURE_PCI_Rev2','AZURE_SOC',
+                           'AZURE_SOC_Rev2', (default "AZURE_CIS_131")
 ```
 
 ### Options inherited from parent commands
