@@ -30,7 +30,7 @@ import (
 
 var (
 	reportDefinitionsCmdState = struct {
-		// filter report definitions by subtype. 'Aws', 'GCP' or 'Azure'
+		// filter report definitions by subtype. 'AWS', 'GCP' or 'Azure'
 		SubType string
 	}{}
 
@@ -161,7 +161,7 @@ func init() {
 
 	// add flags to report-definition commands
 	reportDefinitionsListCommand.Flags().StringVar(&reportDefinitionsCmdState.SubType,
-		"subtype", "", "filter report definitions by subtype. 'Aws', 'GCP' or 'Azure'",
+		"subtype", "", "filter report definitions by subtype. 'AWS', 'GCP' or 'Azure'",
 	)
 }
 
