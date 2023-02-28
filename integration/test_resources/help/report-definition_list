@@ -7,7 +7,8 @@ Aliases:
   list, ls
 
 Flags:
-  -h, --help   help for list
+  -h, --help             help for list
+      --subtype string   filter report definitions by subtype. 'Aws', 'GCP' or 'Azure'
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
