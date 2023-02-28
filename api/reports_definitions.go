@@ -74,6 +74,8 @@ func NewReportDefinition(cfg ReportDefinitionConfig) ReportDefinition {
 	}
 }
 
+var ReportDefinitionSubtypes = []string{"AWS", "Azure", "GCP"}
+
 type ReportDefinitionConfig struct {
 	ReportName       string                      `json:"reportName"`
 	ReportType       string                      `json:"reportType"`

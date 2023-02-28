@@ -21,6 +21,22 @@ func TestReportDefintionsList(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
+func TestReportDefintionsListWithSubtype(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "list", "--subtype", "AWS")
+	// assert response contains table headers
+	assert.Contains(t, out.String(), "GUID")
+	assert.Contains(t, out.String(), "NAME")
+	assert.Contains(t, out.String(), "TYPE")
+	assert.Contains(t, out.String(), "SUB-TYPE")
+
+	assert.Contains(t, out.String(), "AWS")
+	assert.NotContains(t, out.String(), "GCP")
+	assert.NotContains(t, out.String(), "AZURE")
+
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
 func TestReportDefintionsListJson(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "list", "--json")
 	// assert response contains json fields
@@ -30,6 +46,24 @@ func TestReportDefintionsListJson(t *testing.T) {
 	assert.Contains(t, out.String(), "\"reportDefinition\"")
 	assert.Contains(t, out.String(), "\"category\"")
 	assert.Contains(t, out.String(), "\"policies\"")
+
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestReportDefintionsListJsonWithSubtype(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("report-definitions", "list", "--json", "--subtype", "GCP")
+	// assert response contains json fields
+	assert.Contains(t, out.String(), "\"data\"")
+	assert.Contains(t, out.String(), "\"createdBy\"")
+	assert.Contains(t, out.String(), "\"displayName\"")
+	assert.Contains(t, out.String(), "\"reportDefinition\"")
+	assert.Contains(t, out.String(), "\"category\"")
+	assert.Contains(t, out.String(), "\"policies\"")
+
+	assert.Contains(t, out.String(), "\"GCP\"")
+	assert.NotContains(t, out.String(), "\"Azure\"")
+	assert.NotContains(t, out.String(), "\"AWS\"")
 
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")

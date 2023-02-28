@@ -22,12 +22,18 @@ import (
 	"strings"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 var (
+	reportDefinitionsCmdState = struct {
+		// filter report definitions by subtype. 'AWS', 'GCP' or 'Azure'
+		SubType string
+	}{}
+
 	// report-definitions command is used to manage lacework report definitions
 	reportDefinitionsCommand = &cobra.Command{
 		Use:     "report-definition",
@@ -44,6 +50,12 @@ var (
 		Short:   "List all report definitions",
 		Long:    "List all report definitions configured in your Lacework account.",
 		Args:    cobra.NoArgs,
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if reportDefinitionsCmdState.SubType != "" && !array.ContainsStr(api.ReportDefinitionSubtypes, reportDefinitionsCmdState.SubType) {
+				return errors.Errorf("'%s' is not valid. Report definitions subtype can be %s", reportDefinitionsCmdState.SubType, api.ReportDefinitionSubtypes)
+			}
+			return nil
+		},
 		RunE: func(_ *cobra.Command, _ []string) error {
 			cli.StartProgress(" Fetching report definitions...")
 			reportDefinitions, err := cli.LwApi.V2.ReportDefinitions.List()
@@ -56,6 +68,12 @@ var (
 				cli.OutputHuman("There are no report definitions configured in your account.\n")
 				return nil
 			}
+
+			// filter definitions by subtype
+			if reportDefinitionsCmdState.SubType != "" {
+				filterReportDefinitions(&reportDefinitions)
+			}
+
 			if cli.JSONOutput() {
 				return cli.OutputJSON(reportDefinitions)
 			}
@@ -122,6 +140,16 @@ var (
 	}
 )
 
+func filterReportDefinitions(reportDefinitions *api.ReportDefinitionsResponse) {
+	var filteredDefinitions []api.ReportDefinition
+	for _, rd := range reportDefinitions.Data {
+		if rd.SubReportType == reportDefinitionsCmdState.SubType {
+			filteredDefinitions = append(filteredDefinitions, rd)
+		}
+	}
+	reportDefinitions.Data = filteredDefinitions
+}
+
 func init() {
 	// add the report-definition command
 	rootCmd.AddCommand(reportDefinitionsCommand)
@@ -130,6 +158,11 @@ func init() {
 	reportDefinitionsCommand.AddCommand(reportDefinitionsListCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsShowCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsDeleteCommand)
+
+	// add flags to report-definition commands
+	reportDefinitionsListCommand.Flags().StringVar(&reportDefinitionsCmdState.SubType,
+		"subtype", "", "filter report definitions by subtype. 'AWS', 'GCP' or 'Azure'",
+	)
 }
 
 func buildReportDefinitionDetailsTable(definition api.ReportDefinition) string {
