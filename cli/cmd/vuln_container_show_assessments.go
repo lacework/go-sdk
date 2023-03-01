@@ -236,6 +236,7 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 	details.VulnerabilityDetails = filterVulnerabilityContainer(assessment)
 	response.Data = details.VulnerabilityDetails.Filtered
 	details.Packages = filterVulnContainerImagePackages(details.VulnerabilityDetails.Filtered)
+	details.Packages.totalUnfiltered = countVulnContainerImagePackages(assessment)
 
 	switch {
 	case cli.JSONOutput():
@@ -250,7 +251,7 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 	default:
 		if len(response.Data) == 0 {
 			if vulCmdState.Severity != "" {
-				cli.OutputHuman("There ano vulnerabilties found for this severity")
+				cli.OutputHuman("There are no vulnerabilties found for this severity")
 			}
 
 			cli.OutputHuman(
@@ -401,8 +402,24 @@ func filterVulnContainerImagePackages(image []api.VulnerabilityContainer) filter
 		aggregatedPackages = aggregatePackages(aggregatedPackages, pack)
 	}
 
-	totalUnfiltered := len(filteredPackages) + len(aggregatedPackages)
-	return filteredPackageTable{packages: aggregatedPackages, totalPackages: len(aggregatedPackages), totalUnfiltered: totalUnfiltered}
+	return filteredPackageTable{packages: aggregatedPackages, totalPackages: len(aggregatedPackages)}
+}
+
+func countVulnContainerImagePackages(image []api.VulnerabilityContainer) int {
+	var aggregatedPackages []packageTable
+
+	for _, i := range image {
+		pack := packageTable{
+			cveCount:       1,
+			severity:       cases.Title(language.English).String(i.Severity),
+			packageName:    i.FeatureKey.Name,
+			currentVersion: i.FeatureKey.Version,
+			fixVersion:     i.FixInfo.FixedVersion,
+		}
+		aggregatedPackages = aggregatePackages(aggregatedPackages, pack)
+	}
+
+	return len(aggregatedPackages)
 }
 
 func vulContainerImagePackagesToTable(packageTable filteredPackageTable) [][]string {
