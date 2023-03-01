@@ -35,7 +35,8 @@ type awsReportsService struct {
 
 type AwsReportConfig struct {
 	AccountID string
-	Type      AwsReportType
+	Value     string
+	Parameter reportFilter
 }
 
 type AwsReportType int
@@ -103,7 +104,8 @@ func (svc *awsReportsService) Get(reportCfg AwsReportConfig) (response AwsReport
 	if reportCfg.AccountID == "" {
 		return AwsReportResponse{}, errors.New("specify an account id")
 	}
-	apiPath := fmt.Sprintf(apiV2Reports, reportCfg.AccountID, "json", reportCfg.Type.String())
+
+	apiPath := fmt.Sprintf(apiV2Reports, reportCfg.AccountID, "json", reportCfg.Parameter.String(), reportCfg.Value)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
@@ -113,7 +115,8 @@ func (svc *awsReportsService) DownloadPDF(filepath string, config AwsReportConfi
 		return errors.New("account id is required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2Reports, config.AccountID, "pdf", config.Type)
+	// if name is set in config, fetch report by case
+	apiPath := fmt.Sprintf(apiV2Reports, config.AccountID, "pdf", config.Parameter.String(), config.Value)
 
 	request, err := svc.client.NewRequest("GET", apiPath, nil)
 	if err != nil {

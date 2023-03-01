@@ -90,8 +90,8 @@ const (
 	apiV2QueriesExecute  = "v2/Queries/execute"
 	apiV2QueriesValidate = "v2/Queries/validate"
 
-	apiV2Reports               = "v2/Reports?primaryQueryId=%s&format=%s&reportType=%s"
-	apiV2ReportsSecondaryQuery = "v2/Reports?primaryQueryId=%s&secondaryQueryId=%s&format=%s&reportType=%s"
+	apiV2Reports               = "v2/Reports?primaryQueryId=%s&format=%s&%s=%s"
+	apiV2ReportsSecondaryQuery = "v2/Reports?primaryQueryId=%s&secondaryQueryId=%s&format=%s&%s=%s"
 
 	apiV2ReportDefinitions         = "v2/ReportDefinitions"
 	apiV2ReportDefinitionsFromGUID = "v2/ReportDefinitions/%s"

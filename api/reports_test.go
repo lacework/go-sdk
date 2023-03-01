@@ -29,7 +29,7 @@ func TestV2ReportsAwsGet(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	response, err := c.V2.Reports.Aws.Get(api.AwsReportConfig{AccountID: "123456789", Type: api.AWS_CIS_14})
+	response, err := c.V2.Reports.Aws.Get(api.AwsReportConfig{AccountID: "123456789", Value: api.AWS_CIS_14.String(), Parameter: api.ReportFilterType})
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	if assert.Equal(t, 1, len(response.Data)) {
