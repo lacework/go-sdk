@@ -151,6 +151,19 @@ func TestVulnCtrIntroducedInRegex(t *testing.T) {
 	}
 }
 
+func TestVulnCtrCountPackages(t *testing.T) {
+	var (
+		response api.VulnerabilitiesContainersResponse
+		expected = 3
+	)
+	if err := json.Unmarshal([]byte(rawListAssessments), &response); err != nil {
+		panic(err)
+	}
+
+	totalPackages := countVulnContainerImagePackages(response.Data)
+	assert.Equal(t, totalPackages, expected)
+}
+
 var rawListAssessments = `
 {
     "paging": {
