@@ -59,7 +59,6 @@ var (
 		"State",
 		"Alert State",
 		"Frequency",
-		"Query ID",
 		"Tags",
 	}
 
@@ -107,7 +106,18 @@ To view the LQL query associated with the policy, use the query ID.
 		Short:   "List all policies",
 		Long:    `List all registered policies in your Lacework account.`,
 		Args:    cobra.NoArgs,
-		RunE:    listPolicies,
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if policyCmdState.Severity != "" && !array.ContainsStr(
+				api.ValidPolicySeverities, policyCmdState.Severity) {
+				return errors.Wrap(
+					errors.New(fmt.Sprintf("the severity %s is not valid, use one of %s",
+						policyCmdState.Severity, strings.Join(api.ValidPolicySeverities, ", "))),
+					"unable to list policies",
+				)
+			}
+			return nil
+		},
+		RunE: listPolicies,
 	}
 	// policyListTagsCmd represents the policy list command
 	policyListTagsCmd = &cobra.Command{
@@ -413,13 +423,13 @@ func sortPolicyTable(out [][]string, policyIDIndex int) {
 
 func policyTable(policies []api.Policy) (out [][]string) {
 	for _, policy := range policies {
-		state := "disabled"
+		state := "Disabled"
 		if policy.Enabled {
-			state = "enabled"
+			state = "Enabled"
 		}
-		alertState := "disabled"
+		alertState := "Disabled"
 		if policy.AlertEnabled {
-			alertState = "enabled"
+			alertState = "Enabled"
 		}
 		out = append(out, []string{
 			policy.PolicyID,
@@ -428,8 +438,7 @@ func policyTable(policies []api.Policy) (out [][]string) {
 			state,
 			alertState,
 			policy.EvalFrequency,
-			policy.QueryID,
-			strings.Join(policy.Tags, "\n"),
+			strings.Join(policy.Tags, ", "),
 		})
 	}
 	sortPolicyTable(out, 0)
@@ -462,35 +471,43 @@ func filterPolicies(policies []api.Policy) []api.Policy {
 	return newPolicies
 }
 
-func listPolicies(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("listing policies")
-
-	if policyCmdState.Severity != "" && !array.ContainsStr(
-		api.ValidPolicySeverities, policyCmdState.Severity) {
-		return errors.Wrap(
-			errors.New(fmt.Sprintf("the severity %s is not valid, use one of %s",
-				policyCmdState.Severity, strings.Join(api.ValidPolicySeverities, ", "))),
-			"unable to list policies",
-		)
-	}
-
+func listPolicies(_ *cobra.Command, _ []string) error {
+	cli.Log.Info("listing policies")
 	cli.StartProgress("Retrieving policies...")
 	policiesResponse, err := cli.LwApi.V2.Policy.List()
 	cli.StopProgress()
-
 	if err != nil {
 		return errors.Wrap(err, "unable to list policies")
 	}
 
+	cli.Log.Infow("total policies", "count", len(policiesResponse.Data))
 	policies := filterPolicies(policiesResponse.Data)
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policies)
 	}
+
 	if len(policies) == 0 {
 		cli.OutputHuman("There were no policies found.")
-		return nil
+	} else {
+		cli.OutputHuman(renderCustomTable(policyTableHeaders, policyTable(policies),
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetRowLine(true)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(true)
+			}),
+		))
+
+		if policyCmdState.Tag == "" {
+			cli.OutputHuman(
+				"\nTry using '--tag <string>' to only show policies with the specified tag.\n",
+			)
+		} else if policyCmdState.Severity == "" {
+			cli.OutputHuman(
+				"\nTry using '--severity <string>' to filter policies by severity threshold.\n",
+			)
+		}
 	}
-	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policies)))
 	return nil
 }
 
@@ -541,8 +558,7 @@ func showPolicy(cmd *cobra.Command, args []string) error {
 
 func buildPolicyDetailsTable(policy api.Policy) string {
 	details := [][]string{
-		{"DESCRIPTION", policy.Description},
-		{"REMEDIATION", policy.Remediation},
+		{"QUERY ID", policy.QueryID},
 		{"POLICY TYPE", policy.PolicyType},
 		{"LIMIT", fmt.Sprintf("%d", policy.Limit)},
 		{"ALERT PROFILE", policy.AlertProfile},
