@@ -1,4 +1,4 @@
-//go:build policy
+//go:build policy && !windows
 
 package integration
 
