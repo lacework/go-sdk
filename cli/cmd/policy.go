@@ -548,7 +548,9 @@ func showPolicy(_ *cobra.Command, args []string) error {
 		})
 	}
 
-	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable([]api.Policy{policyResponse.Data})))
+	cli.OutputHuman(renderSimpleTable(
+		policyTableHeaders, policyTable([]api.Policy{policyResponse.Data}),
+	))
 	cli.OutputHuman("\n")
 	cli.OutputHuman(buildPolicyDetailsTable(policyResponse.Data))
 	cli.OutputHuman("\n")
@@ -573,6 +575,35 @@ func showPolicy(_ *cobra.Command, args []string) error {
 		}),
 	))
 	cli.OutputHuman("\n")
+
+	if policyResponse.Data.QueryID != "" {
+		cli.StartProgress("Retrieving query...")
+		queryResponse, err := cli.LwApi.V2.Query.Get(policyResponse.Data.QueryID)
+		cli.StopProgress()
+		if err != nil {
+			// something went wrong trying to fetch the LQL query, since this is not
+			// the main purpose of this command, we don't error out but instead, log
+			// the error and show breadcrumbs to manually fetch the query
+			cli.Log.Warnw("unable to get query", "error", err)
+			cli.OutputHuman(
+				fmt.Sprintf(
+					"\nUse 'lacework query show %s' to see the query used by this policy.\n",
+					policyResponse.Data.QueryID,
+				),
+			)
+		}
+		// we know we are in human-readable format
+		cli.OutputHuman(renderOneLineCustomTable("QUERY TEXT",
+			queryResponse.Data.QueryText,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+				t.SetColWidth(120)
+				t.SetBorder(false)
+				t.SetAutoWrapText(false)
+			}),
+		))
+		cli.OutputHuman("\n")
+	}
 	return nil
 }
 
