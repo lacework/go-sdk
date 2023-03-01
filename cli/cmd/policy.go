@@ -30,7 +30,6 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
 	"github.com/lacework/go-sdk/internal/pointer"
 	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/olekukonko/tablewriter"
@@ -59,7 +58,6 @@ var (
 		"State",
 		"Alert State",
 		"Frequency",
-		"Query ID",
 		"Tags",
 	}
 
@@ -107,7 +105,16 @@ To view the LQL query associated with the policy, use the query ID.
 		Short:   "List all policies",
 		Long:    `List all registered policies in your Lacework account.`,
 		Args:    cobra.NoArgs,
-		RunE:    listPolicies,
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if policyCmdState.Severity != "" &&
+				!lwseverity.IsValid(policyCmdState.Severity) {
+				return errors.Errorf("the severity %s is not valid, use one of %s",
+					policyCmdState.Severity, lwseverity.ValidSeverities.String(),
+				)
+			}
+			return nil
+		},
+		RunE: listPolicies,
 	}
 	// policyListTagsCmd represents the policy list command
 	policyListTagsCmd = &cobra.Command{
@@ -413,13 +420,13 @@ func sortPolicyTable(out [][]string, policyIDIndex int) {
 
 func policyTable(policies []api.Policy) (out [][]string) {
 	for _, policy := range policies {
-		state := "disabled"
+		state := "Disabled"
 		if policy.Enabled {
-			state = "enabled"
+			state = "Enabled"
 		}
-		alertState := "disabled"
+		alertState := "Disabled"
 		if policy.AlertEnabled {
-			alertState = "enabled"
+			alertState = "Enabled"
 		}
 		out = append(out, []string{
 			policy.PolicyID,
@@ -428,8 +435,7 @@ func policyTable(policies []api.Policy) (out [][]string) {
 			state,
 			alertState,
 			policy.EvalFrequency,
-			policy.QueryID,
-			strings.Join(policy.Tags, "\n"),
+			strings.Join(policy.Tags, ", "),
 		})
 	}
 	sortPolicyTable(out, 0)
@@ -462,54 +468,61 @@ func filterPolicies(policies []api.Policy) []api.Policy {
 	return newPolicies
 }
 
-func listPolicies(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("listing policies")
-
-	if policyCmdState.Severity != "" && !array.ContainsStr(
-		api.ValidPolicySeverities, policyCmdState.Severity) {
-		return errors.Wrap(
-			errors.New(fmt.Sprintf("the severity %s is not valid, use one of %s",
-				policyCmdState.Severity, strings.Join(api.ValidPolicySeverities, ", "))),
-			"unable to list policies",
-		)
-	}
-
+func listPolicies(_ *cobra.Command, _ []string) error {
+	cli.Log.Info("listing policies")
 	cli.StartProgress("Retrieving policies...")
 	policiesResponse, err := cli.LwApi.V2.Policy.List()
 	cli.StopProgress()
-
 	if err != nil {
 		return errors.Wrap(err, "unable to list policies")
 	}
 
+	cli.Log.Infow("total policies", "count", len(policiesResponse.Data))
 	policies := filterPolicies(policiesResponse.Data)
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policies)
 	}
+
 	if len(policies) == 0 {
 		cli.OutputHuman("There were no policies found.")
-		return nil
+	} else {
+		cli.OutputHuman(renderCustomTable(policyTableHeaders, policyTable(policies),
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetRowLine(true)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(true)
+			}),
+		))
+
+		if policyCmdState.Tag == "" {
+			cli.OutputHuman(
+				"\nTry using '--tag <string>' to only show policies with the specified tag.\n",
+			)
+		} else if policyCmdState.Severity == "" {
+			cli.OutputHuman(
+				"\nTry using '--severity <string>' to filter policies by severity threshold.\n",
+			)
+		}
 	}
-	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable(policies)))
 	return nil
 }
 
-func showPolicy(cmd *cobra.Command, args []string) error {
+func showPolicy(_ *cobra.Command, args []string) error {
 	var (
 		msg            string = "unable to show policy"
 		policyResponse api.PolicyResponse
 		err            error
 	)
 
-	cli.Log.Debugw("retrieving policy", "policyID", args[0])
+	cli.Log.Infow("retrieving policy", "id", args[0])
 	cli.StartProgress("Retrieving policy...")
 	policyResponse, err = cli.LwApi.V2.Policy.Get(args[0])
 	cli.StopProgress()
-
-	// output policy
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
+
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policyResponse.Data)
 	}
@@ -532,17 +545,68 @@ func showPolicy(cmd *cobra.Command, args []string) error {
 		})
 	}
 
-	cli.OutputHuman(
-		renderSimpleTable(policyTableHeaders, policyTable([]api.Policy{policyResponse.Data})))
+	cli.OutputHuman(renderSimpleTable(
+		policyTableHeaders, policyTable([]api.Policy{policyResponse.Data}),
+	))
 	cli.OutputHuman("\n")
 	cli.OutputHuman(buildPolicyDetailsTable(policyResponse.Data))
+	cli.OutputHuman("\n")
+	cli.OutputHuman(renderOneLineCustomTable("DESCRIPTION",
+		policyResponse.Data.Description,
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetAlignment(tablewriter.ALIGN_LEFT)
+			t.SetColWidth(120)
+			t.SetBorder(false)
+			t.SetAutoWrapText(true)
+		}),
+	))
+	cli.OutputHuman("\n")
+	cli.OutputHuman(renderOneLineCustomTable("REMEDIATION",
+		policyResponse.Data.Remediation,
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetAlignment(tablewriter.ALIGN_LEFT)
+			t.SetColWidth(120)
+			t.SetBorder(false)
+			t.SetAutoWrapText(true)
+			t.SetReflowDuringAutoWrap(false)
+		}),
+	))
+	cli.OutputHuman("\n")
+
+	if policyResponse.Data.QueryID != "" {
+		cli.StartProgress("Retrieving query...")
+		queryResponse, err := cli.LwApi.V2.Query.Get(policyResponse.Data.QueryID)
+		cli.StopProgress()
+		if err != nil {
+			// something went wrong trying to fetch the LQL query, since this is not
+			// the main purpose of this command, we don't error out but instead, log
+			// the error and show breadcrumbs to manually fetch the query
+			cli.Log.Warnw("unable to get query", "error", err)
+			cli.OutputHuman(
+				fmt.Sprintf(
+					"\nUse 'lacework query show %s' to see the query used by this policy.\n",
+					policyResponse.Data.QueryID,
+				),
+			)
+		}
+		// we know we are in human-readable format
+		cli.OutputHuman(renderOneLineCustomTable("QUERY TEXT",
+			queryResponse.Data.QueryText,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+				t.SetColWidth(120)
+				t.SetBorder(false)
+				t.SetAutoWrapText(false)
+			}),
+		))
+		cli.OutputHuman("\n")
+	}
 	return nil
 }
 
 func buildPolicyDetailsTable(policy api.Policy) string {
 	details := [][]string{
-		{"DESCRIPTION", policy.Description},
-		{"REMEDIATION", policy.Remediation},
+		{"QUERY ID", policy.QueryID},
 		{"POLICY TYPE", policy.PolicyType},
 		{"LIMIT", fmt.Sprintf("%d", policy.Limit)},
 		{"ALERT PROFILE", policy.AlertProfile},

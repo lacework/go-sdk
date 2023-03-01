@@ -39,19 +39,19 @@ var querySourcesTableTests = []querySourcesTableTest{
 	querySourcesTableTest{
 		Name: "one",
 		Input: []api.Datasource{
-			api.Datasource{Name: "mySource"},
+			api.Datasource{Name: "mySource", Description: "abc"},
 		},
-		Expected: [][]string{{"mySource", ""}},
+		Expected: [][]string{{"mySource\nabc"}},
 	},
 	querySourcesTableTest{
 		Name: "sort",
 		Input: []api.Datasource{
-			api.Datasource{Name: "mySource"},
-			api.Datasource{Name: "aSource"},
+			api.Datasource{Name: "mySource", Description: "abc"},
+			api.Datasource{Name: "aSource", Description: "xyz"},
 		},
 		Expected: [][]string{
-			{"aSource", ""},
-			{"mySource", ""},
+			{"aSource\nxyz"},
+			{"mySource\nabc"},
 		},
 	},
 }

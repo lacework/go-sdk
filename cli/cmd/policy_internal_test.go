@@ -77,7 +77,7 @@ var policyTableTests = []policyTableTest{
 			api.Policy{PolicyID: "my-policy-1"},
 		},
 		Expected: [][]string{
-			[]string{"my-policy-1", "", "", "disabled", "disabled", "", "", ""},
+			[]string{"my-policy-1", "", "", "Disabled", "Disabled", "", ""},
 		},
 	},
 	policyTableTest{
@@ -87,8 +87,8 @@ var policyTableTests = []policyTableTest{
 			api.Policy{PolicyID: "my-policy-3"},
 		},
 		Expected: [][]string{
-			[]string{"my-policy-3", "", "", "disabled", "disabled", "", "", ""},
-			[]string{"my-policy-10", "", "", "disabled", "disabled", "", "", ""},
+			[]string{"my-policy-3", "", "", "Disabled", "Disabled", "", ""},
+			[]string{"my-policy-10", "", "", "Disabled", "Disabled", "", ""},
 		},
 	},
 }
