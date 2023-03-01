@@ -511,22 +511,21 @@ func listPolicies(_ *cobra.Command, _ []string) error {
 	return nil
 }
 
-func showPolicy(cmd *cobra.Command, args []string) error {
+func showPolicy(_ *cobra.Command, args []string) error {
 	var (
 		msg            string = "unable to show policy"
 		policyResponse api.PolicyResponse
 		err            error
 	)
 
-	cli.Log.Debugw("retrieving policy", "policyID", args[0])
+	cli.Log.Infow("retrieving policy", "id", args[0])
 	cli.StartProgress("Retrieving policy...")
 	policyResponse, err = cli.LwApi.V2.Policy.Get(args[0])
 	cli.StopProgress()
-
-	// output policy
 	if err != nil {
 		return errors.Wrap(err, msg)
 	}
+
 	if cli.JSONOutput() {
 		return cli.OutputJSON(policyResponse.Data)
 	}
@@ -549,10 +548,31 @@ func showPolicy(cmd *cobra.Command, args []string) error {
 		})
 	}
 
-	cli.OutputHuman(
-		renderSimpleTable(policyTableHeaders, policyTable([]api.Policy{policyResponse.Data})))
+	cli.OutputHuman(renderSimpleTable(policyTableHeaders, policyTable([]api.Policy{policyResponse.Data})))
 	cli.OutputHuman("\n")
 	cli.OutputHuman(buildPolicyDetailsTable(policyResponse.Data))
+	cli.OutputHuman("\n")
+	cli.OutputHuman(renderOneLineCustomTable("DESCRIPTION",
+		policyResponse.Data.Description,
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetAlignment(tablewriter.ALIGN_LEFT)
+			t.SetColWidth(120)
+			t.SetBorder(false)
+			t.SetAutoWrapText(true)
+		}),
+	))
+	cli.OutputHuman("\n")
+	cli.OutputHuman(renderOneLineCustomTable("REMEDIATION",
+		policyResponse.Data.Remediation,
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetAlignment(tablewriter.ALIGN_LEFT)
+			t.SetColWidth(120)
+			t.SetBorder(false)
+			t.SetAutoWrapText(true)
+			t.SetReflowDuringAutoWrap(false)
+		}),
+	))
+	cli.OutputHuman("\n")
 	return nil
 }
 
