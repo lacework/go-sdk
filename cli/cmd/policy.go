@@ -30,7 +30,6 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
 	"github.com/lacework/go-sdk/internal/pointer"
 	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/olekukonko/tablewriter"
@@ -107,12 +106,10 @@ To view the LQL query associated with the policy, use the query ID.
 		Long:    `List all registered policies in your Lacework account.`,
 		Args:    cobra.NoArgs,
 		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if policyCmdState.Severity != "" && !array.ContainsStr(
-				api.ValidPolicySeverities, policyCmdState.Severity) {
-				return errors.Wrap(
-					errors.New(fmt.Sprintf("the severity %s is not valid, use one of %s",
-						policyCmdState.Severity, strings.Join(api.ValidPolicySeverities, ", "))),
-					"unable to list policies",
+			if policyCmdState.Severity != "" &&
+				!lwseverity.IsValid(policyCmdState.Severity) {
+				return errors.Errorf("the severity %s is not valid, use one of %s",
+					policyCmdState.Severity, lwseverity.ValidSeverities.String(),
 				)
 			}
 			return nil

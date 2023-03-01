@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/olekukonko/tablewriter"
@@ -54,18 +55,23 @@ func init() {
 }
 
 func querySourcesTable(datasources []api.Datasource) (out [][]string) {
+	var preOut [][]string
 	for _, source := range datasources {
-		out = append(out, []string{
-			source.Name,
-			source.Description,
-		})
+		preOut = append(preOut, []string{source.Name, source.Description})
 	}
 
 	// order by Name
-	sort.Slice(out, func(i, j int) bool {
-		return out[i][0] < out[j][0]
+	sort.Slice(preOut, func(i, j int) bool {
+		return preOut[i][0] < preOut[j][0]
 	})
 
+	// condence output since datasources can be really long,
+	// how long? you ask, as of today, we have over 150 characters
+	for _, source := range preOut {
+		out = append(out, []string{
+			fmt.Sprintf("%s\n%s", source[0], source[1]),
+		})
+	}
 	return
 }
 
@@ -83,17 +89,24 @@ func listQuerySources(_ *cobra.Command, args []string) error {
 	if len(datasourcesResponse.Data) == 0 {
 		return yikes(lqlSourcesUnableMsg)
 	}
+
 	cli.OutputHuman(
-		renderCustomTable(
-			[]string{"Datasource", "Description"},
+		renderCustomTable([]string{"Datasource"},
 			querySourcesTable(datasourcesResponse.Data),
 			tableFunc(func(t *tablewriter.Table) {
-				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+				t.SetColWidth(120)
+				t.SetAutoWrapText(true)
+				t.SetRowLine(true)
 				t.SetBorder(false)
+				t.SetReflowDuringAutoWrap(false)
 			}),
 		),
 	)
-	cli.OutputHuman("\nUse 'lacework query show-source <datasource_id>' to show details about the datasource.\n")
+
+	cli.OutputHuman(
+		"\nUse 'lacework query show-source <datasource_id>' to show details about the datasource.\n",
+	)
 	return nil
 }
 
@@ -122,24 +135,38 @@ func getShowQuerySourceRelationshipsTable(relationships []api.DatasourceRelation
 }
 
 func showQuerySource(_ *cobra.Command, args []string) error {
-	cli.Log.Debugw("retrieving datasource", "id", args[0])
+	cli.Log.Infow("retrieving datasource", "id", args[0])
 
 	cli.StartProgress(" Retrieving datasource...")
 	datasourceResponse, err := cli.LwApi.V2.Datasources.Get(args[0])
 	cli.StopProgress()
-
 	if err != nil {
 		return errors.Wrap(err, "unable to show datasource")
 	}
+
 	if cli.JSONOutput() {
 		return cli.OutputJSON(datasourceResponse.Data)
 	}
 	cli.OutputHuman(
-		renderSimpleTable(
-			[]string{"Datasource", "Description"},
-			querySourcesTable([]api.Datasource{datasourceResponse.Data}),
+		renderOneLineCustomTable("Datasource",
+			datasourceResponse.Data.Name,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+				t.SetColWidth(120)
+				t.SetBorder(false)
+			}),
 		),
 	)
+	cli.OutputHuman("\n")
+	cli.OutputHuman(renderOneLineCustomTable("DESCRIPTION",
+		datasourceResponse.Data.Description,
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetAlignment(tablewriter.ALIGN_LEFT)
+			t.SetColWidth(120)
+			t.SetBorder(false)
+			t.SetAutoWrapText(true)
+		}),
+	))
 	cli.OutputHuman("\n")
 	cli.OutputHuman(
 		renderSimpleTable(
@@ -158,6 +185,11 @@ func showQuerySource(_ *cobra.Command, args []string) error {
 		)
 	}
 	// breadcrumb
-	cli.OutputHuman("\nUse 'lacework query preview-source <datasource_id>' to see an actual result from the datasource.\n")
+	cli.OutputHuman(
+		fmt.Sprintf(
+			"\nUse 'lacework query preview-source %s' to see an actual result from the datasource.\n",
+			datasourceResponse.Data.Name,
+		),
+	)
 	return nil
 }

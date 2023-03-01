@@ -448,14 +448,14 @@ func TestPolicyDisableEnable(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
-	assert.Contains(t, out.String(), "disabled")
+	assert.Contains(t, out.String(), "Disabled")
 
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "enable", "lacework-global-1")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
-	assert.Contains(t, out.String(), "enabled")
+	assert.Contains(t, out.String(), "Enabled")
 }
 
 func TestPolicyBulkDisableEnable(t *testing.T) {
@@ -464,20 +464,20 @@ func TestPolicyBulkDisableEnable(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
-	assert.Contains(t, out.String(), "disabled")
+	assert.Contains(t, out.String(), "Disabled")
 
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-2")
-	assert.Contains(t, out.String(), "disabled")
+	assert.Contains(t, out.String(), "Disabled")
 
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "enable", "lacework-global-1", "lacework-global-2")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-1")
-	assert.Contains(t, out.String(), "enabled")
+	assert.Contains(t, out.String(), "Enabled")
 
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("policy", "show", "lacework-global-2")
-	assert.Contains(t, out.String(), "enabled")
+	assert.Contains(t, out.String(), "Enabled")
 }
 
 func TestPolicyBulksUpdate(t *testing.T) {
