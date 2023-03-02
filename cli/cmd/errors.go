@@ -42,7 +42,7 @@ func NewVulnerabilityPolicyErrorV2(
 	failOnSeverity string, failOnFixable bool,
 ) *vulnerabilityPolicyError {
 	return &vulnerabilityPolicyError{
-		SeverityRating:        assessment.HighestSeverity(),
+		SeverityRating:        assessment.LowestSeverity(),
 		FixableSeverityRating: assessment.HighestFixableSeverity(),
 		FixableVulnCount:      assessment.TotalFixableVulnerabilities(),
 		FailOnSeverity:        failOnSeverity,
@@ -58,7 +58,7 @@ func NewVulnerabilityPolicyError(
 	failOnSeverity string, failOnFixable bool,
 ) *vulnerabilityPolicyError {
 	return &vulnerabilityPolicyError{
-		SeverityRating:        assessment.HighestSeverity(),
+		SeverityRating:        assessment.LowestSeverity(),
 		FixableSeverityRating: assessment.HighestFixableSeverity(),
 		FixableVulnCount:      assessment.TotalFixableVulnerabilities(),
 		FailOnSeverity:        failOnSeverity,
@@ -110,14 +110,14 @@ func (e *vulnerabilityPolicyError) validate() bool {
 		return false
 	}
 
-	if e.FailOnFixable && e.FixableVulnCount > 0 && threshold >= fixableSeverityRating {
+	if e.FailOnFixable && e.FixableVulnCount > 0 && threshold <= fixableSeverityRating {
 		e.Message = fmt.Sprintf(
 			"fixable vulnerabilities found with threshold '%s'",
 			e.FailOnSeverity)
 		return false
 	}
 
-	if !e.FailOnFixable && (severityRating <= threshold && severityRating != 0) {
+	if !e.FailOnFixable && threshold <= severityRating && severityRating != 0 {
 		e.Message = fmt.Sprintf(
 			"vulnerabilities found with threshold '%s'",
 			e.FailOnSeverity)

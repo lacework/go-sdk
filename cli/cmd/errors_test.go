@@ -67,16 +67,16 @@ func TestVulnerabilityPolicyErrorFailOnSeverityHigh(t *testing.T) {
 }
 
 func TestVulnerabilityPolicyErrorShouldNotFailOnSeverityCritical(t *testing.T) {
-	mockAssessment := mockVulnAssessment{"medium", "medium", 1}
-	mockPolicy := NewVulnerabilityPolicyError(&mockAssessment, "critical", false)
+	mockAssessment := mockVulnAssessment{"critical", "critical", 1}
+	mockPolicy := NewVulnerabilityPolicyError(&mockAssessment, "medium", false)
 
 	assert.False(t, mockPolicy.NonCompliant(), "policy should be compliant")
 	assert.True(t, mockPolicy.Compliant(), "policy should be compliant")
 }
 
 func TestVulnerabilityPolicyErrorShouldNotFailOnSeverityCriticalFailOnFixable(t *testing.T) {
-	mockAssessment := mockVulnAssessment{"medium", "medium", 1}
-	mockPolicy := NewVulnerabilityPolicyError(&mockAssessment, "critical", true)
+	mockAssessment := mockVulnAssessment{"critical", "critical", 1}
+	mockPolicy := NewVulnerabilityPolicyError(&mockAssessment, "medium", true)
 
 	assert.False(t, mockPolicy.NonCompliant(), "policy should be compliant")
 	assert.True(t, mockPolicy.Compliant(), "policy should be compliant")
@@ -99,13 +99,13 @@ func TestVulnerabilityPolicyErrorShouldNotFailOnFixable(t *testing.T) {
 }
 
 type mockVulnAssessment struct {
-	highestSeverity             string
+	lowestSeverity              string
 	highestFixableSeverity      string
 	totalFixableVulnerabilities int32
 }
 
-func (m *mockVulnAssessment) HighestSeverity() string {
-	return m.highestSeverity
+func (m *mockVulnAssessment) LowestSeverity() string {
+	return m.lowestSeverity
 }
 func (m *mockVulnAssessment) HighestFixableSeverity() string {
 	return m.highestFixableSeverity

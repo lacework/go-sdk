@@ -185,6 +185,21 @@ func (r VulnerabilitiesContainersResponse) HighestSeverity() string {
 	return sevs[0].GetSeverity()
 }
 
+func (r VulnerabilitiesContainersResponse) LowestSeverity() string {
+	var sevs []lwseverity.Severity
+
+	for _, vuln := range r.Data {
+		sevs = append(sevs, lwseverity.NewSeverity(vuln.Severity))
+	}
+
+	if len(sevs) == 0 {
+		return lwseverity.Unknown.String()
+	}
+
+	lwseverity.SortSliceA(sevs)
+	return sevs[0].GetSeverity()
+}
+
 func (r VulnerabilitiesContainersResponse) HighestFixableSeverity() string {
 	var (
 		sevs []int
@@ -672,7 +687,7 @@ func (hosts *VulnerabilitiesHostResponse) VulnerabilityCounts() HostVulnCounts {
 // required by host or container vulnerability assessments, this is used
 // to treat them both as equal
 type VulnerabilityAssessment interface {
-	HighestSeverity() string
+	LowestSeverity() string
 	HighestFixableSeverity() string
 	TotalFixableVulnerabilities() int32
 }
@@ -690,6 +705,22 @@ type HostVulnCounts struct {
 	InfoFixable  int32
 	Total        int32
 	TotalFixable int32
+}
+
+func (h *HostVulnCounts) LowestSeverity() string {
+	if h.Low != 0 {
+		return "low"
+	}
+	if h.Medium != 0 {
+		return "medium"
+	}
+	if h.High != 0 {
+		return "high"
+	}
+	if h.Critical != 0 {
+		return "critical"
+	}
+	return "unknown"
 }
 
 // HighestSeverity returns the highest severity level vulnerability
