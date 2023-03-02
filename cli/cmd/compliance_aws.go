@@ -103,6 +103,10 @@ To list all AWS accounts configured in your account:
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance aws get-report <account_id> [recommendation_id]
+
+To retrieve a specific report by its report name:
+
+    lacework compliance aws get-report <account_id> --report_name 'AWS CSA CCM 4.0.5'
 `,
 		Args: cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -162,7 +166,6 @@ To show recommendation details and affected resources for a recommendation id:
 				}
 			}
 
-			// TODO Hashing of cache keys
 			var (
 				report   api.AwsReport
 				cacheKey = fmt.Sprintf("compliance/aws/v2/%s/%s", config.AccountID, config.Value)
@@ -535,7 +538,7 @@ valid types:%s`, prettyPrintReportTypes(api.AwsReportTypes())))
 
 	// Run 'lacework report-definition --subtype AWS' for a full list of AWS report names
 	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.ReportName, "report_name", "",
-		fmt.Sprintf("report name to display, run 'lacework report-definitions list' for more information."))
+		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (identity-and-access-management, s3, logging...)",

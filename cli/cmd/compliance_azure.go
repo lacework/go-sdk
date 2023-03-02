@@ -38,7 +38,8 @@ import (
 
 var (
 	compAzCmdState = struct {
-		Type string
+		Type       string
+		ReportName string
 	}{Type: "AZURE_CIS_131"}
 
 	// complianceAzureListSubsCmd represents the list-subscriptions sub-command inside the azure command
@@ -52,7 +53,7 @@ Use the following command to list all Azure Tenants configured in your account:
 
     lacework compliance az list`,
 		Args: cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				response, err             = cli.LwApi.V2.Configs.Azure.ListSubscriptions(args[0])
 				cliCompAzureSubscriptions []cliComplianceAzureInfo
@@ -116,7 +117,7 @@ Use the following command to list all Azure Tenants configured in your account:
 	complianceAzureGetReportCmd = &cobra.Command{
 		Use:     "get-report <tenant_id> <subscriptions_id>",
 		Aliases: []string{"get", "show"},
-		PreRunE: func(_ *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
 			}
@@ -127,11 +128,16 @@ Use the following command to list all Azure Tenants configured in your account:
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
 			}
-			// Todo: Enable dynamic report type validation. Disabled until reportDefinitions api is out of beta
-			//validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAzure)
-			//if err != nil {
-			//	return errors.Wrap(err, "unable to retrieve valid report types")
-			//}
+
+			// ensure we cannot have both --type and --report_name flags
+			if cmd.Flags().Changed("type") && cmd.Flags().Changed("report_name") {
+				return errors.New("'--type' and '--report_name' flags cannot be used together")
+			}
+
+			// validate report_name
+			if cmd.Flags().Changed("report_name") {
+				return validReportName(api.ReportDefinitionNotificationTypeAzure, compAzCmdState.ReportName)
+			}
 
 			if array.ContainsStr(api.AzureReportTypes(), compAzCmdState.Type) {
 				return nil
@@ -150,9 +156,13 @@ To list all Azure tenants and subscriptions configured in your account:
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance azure get-report <tenant_id> <subscriptions_id> [recommendation_id]
+
+To retrieve a specific report by its report name:
+
+    lacework compliance azure get-report <tenant_id> <subscriptions_id> --report_name 'Azure CIS 1.3.1 Report'
 `,
 		Args: cobra.RangeArgs(2, 3),
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			reportType, err := api.NewAzureReportType(compAzCmdState.Type)
 			if err != nil {
 				return errors.Errorf("invalid report type %q", compAzCmdState.Type)
@@ -166,14 +176,21 @@ To show recommendation details and affected resources for a recommendation id:
 				config            = api.AzureReportConfig{
 					TenantID:       tenantID,
 					SubscriptionID: subscriptionID,
-					Type:           reportType,
+					Value:          reportType.String(),
+					Parameter:      api.ReportFilterType,
 				}
 			)
+
+			// if --report_name flag is used, set the report parameter
+			if cmd.Flags().Changed("report_name") {
+				config.Parameter = api.ReportFilterName
+				config.Value = compAzCmdState.ReportName
+			}
 
 			if compCmdState.Pdf {
 				pdfName := fmt.Sprintf(
 					"%s_Report_%s_%s_%s_%s.pdf",
-					config.Type,
+					config.Value,
 					config.TenantID,
 					config.SubscriptionID,
 					cli.Account, time.Now().Format("20060102150405"),
@@ -208,7 +225,7 @@ To show recommendation details and affected resources for a recommendation id:
 			var (
 				report   api.AzureReport
 				cacheKey = fmt.Sprintf("compliance/azure/v2/%s/%s/%s",
-					config.TenantID, config.SubscriptionID, config.Type)
+					config.TenantID, config.SubscriptionID, config.Value)
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
@@ -482,6 +499,10 @@ func init() {
 		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
 valid types:%s`, prettyPrintReportTypes(api.AzureReportTypes())),
 	)
+
+	// Run 'lacework report-definition --subtype Azure' for a full list of Azure report names
+	complianceAzureGetReportCmd.Flags().StringVar(&compAzCmdState.ReportName, "report_name", "",
+		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (networking, storage, ...)",

@@ -158,6 +158,10 @@ To list all GCP projects and organizations configured in your account:
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance gcp get-report <organization_id> <project_id> [recommendation_id]
+
+To retrieve a specific report by its report name:
+
+    lacework compliance gcp get-report <organization_id> <project_id> --report_name 'GCP Cybersecurity Maturity'
 `,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -509,7 +513,7 @@ valid types:%s`, prettyPrintReportTypes(api.GcpReportTypes())),
 
 	// Run 'lacework report-definition --subtype GCP' for a full list of GCP report names
 	complianceGcpGetReportCmd.Flags().StringVar(&compGcpCmdState.ReportName, "report_name", "",
-		fmt.Sprintf("report name to display, run 'lacework report-definitions list' for more information."))
+		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (storage, networking, identity-and-access-management, ...)",

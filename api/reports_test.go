@@ -41,6 +41,37 @@ func TestV2ReportsAwsGet(t *testing.T) {
 	}
 }
 
+func TestV2ReportsAwsGetByName(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Reports",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Get() should be a GET method")
+			fmt.Fprintf(w, mockAwsReport)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response, err := c.V2.Reports.Aws.Get(api.AwsReportConfig{AccountID: "123456789", Value: "AWS CIS Benchmark and S3", Parameter: api.ReportFilterName})
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	if assert.Equal(t, 1, len(response.Data)) {
+		assert.Equal(t, "123456789", response.Data[0].AccountID)
+		assert.Equal(t, 44, response.Data[0].Summary[0].NumCompliant)
+		assert.Equal(t, "AWS PCI DSS Report", response.Data[0].ReportTitle)
+		assert.Equal(t, "test", response.Data[0].AccountAlias)
+		assert.Equal(t, "example-region", response.Data[0].Recommendations[1].Violations[0].Region)
+	}
+}
+
 func TestV2ReportsAzureGet(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
@@ -60,7 +91,38 @@ func TestV2ReportsAzureGet(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	response, err := c.V2.Reports.Azure.Get(api.AzureReportConfig{TenantID: "example-tenant", SubscriptionID: "example-subscription", Type: api.AZURE_CIS})
+	response, err := c.V2.Reports.Azure.Get(api.AzureReportConfig{TenantID: "example-tenant", SubscriptionID: "example-subscription", Value: api.AZURE_CIS.String(), Parameter: api.ReportFilterType})
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	if assert.Equal(t, 1, len(response.Data)) {
+		assert.Equal(t, "abcdefg-1234", response.Data[0].TenantID)
+		assert.Equal(t, 13, response.Data[0].Summary[0].NumCompliant)
+		assert.Equal(t, "Azure CIS Benchmark", response.Data[0].ReportTitle)
+		assert.Equal(t, "123456-123456", response.Data[0].SubscriptionID)
+		assert.Equal(t, "my-invalid-custom-role-12345", response.Data[0].Recommendations[1].Violations[0].Resource)
+	}
+}
+
+func TestV2ReportsAzureGetByName(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Reports",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Get() should be a GET method")
+			fmt.Fprintf(w, mockAzureReport)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response, err := c.V2.Reports.Azure.Get(api.AzureReportConfig{TenantID: "example-tenant", SubscriptionID: "example-subscription", Value: "Azure CIS 1.3.1 Report", Parameter: api.ReportFilterName})
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	if assert.Equal(t, 1, len(response.Data)) {
@@ -91,7 +153,38 @@ func TestV2ReportsGcpGet(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	response, err := c.V2.Reports.Gcp.Get(api.GcpReportConfig{OrganizationID: "example-org", ProjectID: "example-project", Type: api.GCP_CIS})
+	response, err := c.V2.Reports.Gcp.Get(api.GcpReportConfig{OrganizationID: "example-org", ProjectID: "example-project", Value: api.GCP_CIS.String(), Parameter: api.ReportFilterType})
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	if assert.Equal(t, 1, len(response.Data)) {
+		assert.Equal(t, "123456789", response.Data[0].OrganizationID)
+		assert.Equal(t, 36, response.Data[0].Summary[0].NumCompliant)
+		assert.Equal(t, "GCP CIS Benchmark", response.Data[0].ReportTitle)
+		assert.Equal(t, "test", response.Data[0].ProjectID)
+		assert.Equal(t, "ServiceAccountHasAdminPrivileges", response.Data[0].Recommendations[1].Violations[0].Reasons[0])
+	}
+}
+
+func TestV2ReportsGcpGetByName(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Reports",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Get() should be a GET method")
+			fmt.Fprintf(w, mockGcpReport)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response, err := c.V2.Reports.Gcp.Get(api.GcpReportConfig{OrganizationID: "example-org", ProjectID: "example-project", Value: "GCP CIS Benchmark 1.3", Parameter: api.ReportFilterName})
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	if assert.Equal(t, 1, len(response.Data)) {
