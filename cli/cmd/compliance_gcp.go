@@ -40,7 +40,8 @@ import (
 
 var (
 	compGcpCmdState = struct {
-		Type string
+		Type       string
+		ReportName string
 	}{Type: "GCP_CIS13"}
 
 	// complianceGcpListCmd represents the list sub-command inside the gcp command
@@ -118,7 +119,7 @@ Then, select one GUID from an integration and visualize its details using the co
 	complianceGcpGetReportCmd = &cobra.Command{
 		Use:     "get-report <organization_id> <project_id>",
 		Aliases: []string{"get", "show"},
-		PreRunE: func(_ *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
 			}
@@ -129,11 +130,16 @@ Then, select one GUID from an integration and visualize its details using the co
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
 			}
-			// Todo: Enable dynamic report type validation. Disabled until reportDefinitions api is out of beta
-			//validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeGcp)
-			//if err != nil {
-			//	return errors.Wrap(err, "unable to retrieve valid report types")
-			//}
+
+			// ensure we cannot have both --type and --report_name flags
+			if cmd.Flags().Changed("type") && cmd.Flags().Changed("report_name") {
+				return errors.New("'--type' and '--report_name' flags cannot be used together")
+			}
+
+			// validate report_name
+			if cmd.Flags().Changed("report_name") {
+				return validReportName(api.ReportDefinitionNotificationTypeGcp, compGcpCmdState.ReportName)
+			}
 
 			if array.ContainsStr(api.GcpReportTypes(), compGcpCmdState.Type) {
 				return nil
@@ -154,7 +160,7 @@ To show recommendation details and affected resources for a recommendation id:
     lacework compliance gcp get-report <organization_id> <project_id> [recommendation_id]
 `,
 		Args: cobra.RangeArgs(2, 3),
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			reportType, err := api.NewGcpReportType(compGcpCmdState.Type)
 			if err != nil {
 				return errors.Errorf("invalid report type %q", compGcpCmdState.Type)
@@ -168,14 +174,21 @@ To show recommendation details and affected resources for a recommendation id:
 				config       = api.GcpReportConfig{
 					OrganizationID: orgID,
 					ProjectID:      projectID,
-					Type:           reportType,
+					Value:          reportType.String(),
+					Parameter:      api.ReportFilterType,
 				}
 			)
+
+			// if --report_name flag is used, set the report parameter
+			if cmd.Flags().Changed("report_name") {
+				config.Parameter = api.ReportFilterName
+				config.Value = compGcpCmdState.ReportName
+			}
 
 			if compCmdState.Pdf {
 				pdfName := fmt.Sprintf(
 					"%s_Report_%s_%s_%s_%s.pdf",
-					config.Type,
+					config.Value,
 					config.OrganizationID,
 					config.ProjectID,
 					cli.Account, time.Now().Format("20060102150405"),
@@ -217,7 +230,7 @@ To show recommendation details and affected resources for a recommendation id:
 			var (
 				report   api.GcpReport
 				cacheKey = fmt.Sprintf("compliance/google/v2/%s/%s/%s",
-					orgIDForCache, config.ProjectID, config.Type)
+					orgIDForCache, config.ProjectID, config.Value)
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
@@ -287,7 +300,7 @@ To show recommendation details and affected resources for a recommendation id:
 		},
 	}
 
-	// complianceGcpDisableReportCmd represents the disable-report sub-command inside the aws command
+	// complianceGcpDisableReportCmd represents the disable-report sub-command inside the gcp command
 	// experimental feature
 	complianceGcpDisableReportCmd = &cobra.Command{
 		Use:     "disable-report <report_type>",
@@ -347,7 +360,7 @@ To disable all recommendations for CIS_1_2 report run:
 		},
 	}
 
-	// complianceGcpEnableReportCmd represents the enable-report sub-command inside the aws command
+	// complianceGcpEnableReportCmd represents the enable-report sub-command inside the gcp command
 	// experimental feature
 	complianceGcpEnableReportCmd = &cobra.Command{
 		Use:     "enable-report <report_type>",
@@ -399,7 +412,7 @@ To enable all recommendations for CIS_1_2 report run:
 		},
 	}
 
-	// complianceGcpReportStatusCmd represents the report-status sub-command inside the aws command
+	// complianceGcpReportStatusCmd represents the report-status sub-command inside the gcp command
 	// experimental feature
 	complianceGcpReportStatusCmd = &cobra.Command{
 		Use:     "report-status <report_type>",
@@ -493,6 +506,10 @@ func init() {
 		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
 valid types:%s`, prettyPrintReportTypes(api.GcpReportTypes())),
 	)
+
+	// Run 'lacework report-definition --subtype GCP' for a full list of GCP report names
+	complianceGcpGetReportCmd.Flags().StringVar(&compGcpCmdState.ReportName, "report_name", "",
+		fmt.Sprintf("report name to display, run 'lacework report-definitions list' for more information."))
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (storage, networking, identity-and-access-management, ...)",
