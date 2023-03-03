@@ -480,7 +480,6 @@ func filterVulnerabilityContainer(image []api.VulnerabilityContainer) filteredIm
 				PackageName:    i.FeatureKey.Name,
 				CurrentVersion: i.FeatureKey.Version,
 				FixVersion:     i.FixInfo.FixedVersion,
-				CreatedBy:      introducedInMap[vulnKey],
 				// Todo(v2): CVSSv3Score is missing from V2
 				CVSSv3Score: 0,
 				// Todo(v2): CVSSv2Score is missing from V2
