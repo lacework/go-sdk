@@ -138,7 +138,7 @@ func TestComplianceAwsGetReportTypeAWS_SOC_Rev2(t *testing.T) {
 
 func TestComplianceAwsGetReportByName(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--report_name", "'AWS CSA CCM 4.0.5'")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--report_name", "AWS CSA CCM 4.0.5")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(), "AWS Cloud Security Alliance",
