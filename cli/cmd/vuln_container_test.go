@@ -118,6 +118,29 @@ CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,example introduced
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
 }
 
+func TestBuildVulnCtrReportWithAggregatedIntroducedInLayerCSV(t *testing.T) {
+	cli.EnableCSVOutput()
+	vulCmdState.Details = true
+	defer func() {
+		cli.csvOutput = false
+		vulCmdState.Details = false
+	}()
+
+	var response api.VulnerabilitiesContainersResponse
+	if err := json.Unmarshal([]byte(mockIntroducedInLayerResponse), &response); err != nil {
+		panic(err)
+	}
+	cliOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, buildVulnContainerAssessmentReports(response))
+	})
+
+	expected := `
+CVE ID,Severity,CVSSv2,CVSSv3,Package,Current Version,Fix Version,Introduced in Layer
+CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,"example introduced in layer 1, example introduced in layer 2"
+`
+	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
+}
+
 func TestBuildVulnCtrReportWithAggregatedIntroducedInLayer(t *testing.T) {
 	vulCmdState.Details = true
 	defer func() {
