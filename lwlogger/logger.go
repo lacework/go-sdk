@@ -51,8 +51,15 @@ var (
 
 // New initialize a new logger with the provided level and options
 func New(level string, options ...zap.Option) *zap.Logger {
+	return NewWithFormat(level, "", options...)
+}
+
+func NewWithFormat(level string, format string, options ...zap.Option) *zap.Logger {
 	if level == "" {
 		level = LogLevelFromEnvironment()
+	}
+	if format == "" {
+		format = logFormatFromEnv()
 	}
 
 	zapConfig := zap.Config{
@@ -62,7 +69,7 @@ func New(level string, options ...zap.Option) *zap.Logger {
 			Thereafter: 100,
 		},
 		Development:      inDevelopmentMode(),
-		Encoding:         logFormatFromEnv(),
+		Encoding:         format,
 		EncoderConfig:    laceworkEncoderConfig(),
 		OutputPaths:      []string{"stderr"},
 		ErrorOutputPaths: []string{"stderr"},
