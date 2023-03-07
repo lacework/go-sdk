@@ -143,6 +143,7 @@ func (p *componentArgParser) parseShortArg(flags *pflag.FlagSet, s string, args 
 		} else if flag.NoOptDefVal != "" {
 			// '-f' (arg was optional)
 			p.cliArgs = append(p.cliArgs, s)
+			return args
 		} else if len(shorthands) > 1 {
 			// '-farg'
 			p.cliArgs = append(p.cliArgs, s)

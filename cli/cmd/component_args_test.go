@@ -20,13 +20,24 @@ package cmd
 import (
 	"testing"
 
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestComponentArgs(t *testing.T) {
 	assert := assert.New(t)
-	flags := rootCmd.PersistentFlags()
+	flags := &pflag.FlagSet{}
+	rootCmd.PersistentFlags().VisitAll(func(f *pflag.Flag) {
+		flags.AddFlag(f)
+	})
+	// cobra adds a -v flag very late in the execution flow
+	flags.BoolP("version", "v", false, "version of command")
 	for _, k := range []struct{ args, expectedComponent, expectedCLI []string }{
+		{
+			[]string{"iac", "-v", "-d", "foo"},
+			[]string{"iac", "-d", "foo"},
+			[]string{"-v"},
+		},
 		{
 			[]string{"--profile", "none", "--debug"},
 			[]string{},

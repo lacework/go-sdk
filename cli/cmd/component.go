@@ -184,7 +184,7 @@ func (c *cliState) LoadComponents() {
 			c.Log.Debugw("loading dynamic cli command",
 				"component", component.Name, "version", ver,
 			)
-			rootCmd.AddCommand(
+			componentCmd :=
 				&cobra.Command{
 					Use:                   component.Name,
 					Short:                 component.Description,
@@ -194,6 +194,15 @@ func (c *cliState) LoadComponents() {
 					DisableFlagParsing:    true,
 					DisableFlagsInUseLine: true,
 					RunE: func(cmd *cobra.Command, args []string) error {
+						// cobra will automatically add a -v/--version flag to
+						// the command, but because for components we're not
+						// parsing the args at the usual point in time, we have
+						// to repeat the check for -v here
+						versionVal, _ := cmd.Flags().GetBool("version")
+						if versionVal {
+							cmd.Printf("%s version %s\n", cmd.Use, cmd.Version)
+							return nil
+						}
 						go func() {
 							// Start the gRPC server for components to communicate back
 							if err := c.Serve(); err != nil {
@@ -218,8 +227,8 @@ func (c *cliState) LoadComponents() {
 						// happens, let the user know that we would love to hear their feedback
 						return errors.New("something went pretty wrong here, contact support@lacework.net")
 					},
-				},
-			)
+				}
+			rootCmd.AddCommand(componentCmd)
 		}
 	}
 }
