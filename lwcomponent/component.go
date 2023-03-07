@@ -698,7 +698,10 @@ func (c Component) ListVersions(installed *semver.Version) string {
 		}
 	}
 	if installed != nil && !foundInstalled {
-		result += fmt.Sprintf("\nThe currently installed version %s is no longer available to install.", installed.String())
+		result += fmt.Sprintf(
+			"\n\nThe currently installed version %s is no longer available to install.",
+			installed.String(),
+		)
 	}
 	return result
 }
