@@ -276,10 +276,25 @@ func runComponentsShow(_ *cobra.Command, args []string) (err error) {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(component)
 	}
+
+	var colorize *color.Color
+	switch component.Status() {
+	case lwcomponent.NotInstalled:
+		colorize = color.New(color.FgWhite, color.Bold)
+	case lwcomponent.Installed:
+		colorize = color.New(color.FgGreen, color.Bold)
+	case lwcomponent.UpdateAvailable:
+		colorize = color.New(color.FgYellow, color.Bold)
+	}
+
 	cli.OutputHuman(
 		renderCustomTable(
 			[]string{"Name", "Status", "Description"},
-			[][]string{{component.Name, component.Status().String(), component.Description}},
+			[][]string{{
+				component.Name,
+				colorize.Sprintf(component.Status().String()),
+				component.Description,
+			}},
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetBorder(false)
 				t.SetColumnSeparator(" ")
@@ -296,6 +311,7 @@ func runComponentsShow(_ *cobra.Command, args []string) (err error) {
 		}
 		currentVersion = installed
 	}
+	cli.OutputHuman("\n")
 	cli.OutputHuman(component.ListVersions(currentVersion))
 	cli.OutputHuman("\n")
 	return
@@ -367,6 +383,7 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 	if component.Breadcrumbs.InstallationMessage != "" {
 		cli.OutputHuman("\n")
 		cli.OutputHuman(component.Breadcrumbs.InstallationMessage)
+		cli.OutputHuman("\n")
 	}
 	return
 }
