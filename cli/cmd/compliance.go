@@ -260,17 +260,20 @@ func complianceCSVReportRecommendationsTable(details *complianceCSVReportDetails
 	out := [][]string{}
 
 	for _, recommendation := range details.Recommendations {
-		for _, suppression := range recommendation.Suppressions {
-			out = append(out,
-				append(details.GetReportMetaData(),
-					recommendation.Category,
-					recommendation.RecID,
-					recommendation.Title,
-					"Suppressed",
-					recommendation.SeverityString(),
-					suppression,
-					"",
-					""))
+		// GROW-1266: Do not add if status flag filters suppressed
+		if compCmdState.Status == "" || compCmdState.Status == "suppressed" {
+			for _, suppression := range recommendation.Suppressions {
+				out = append(out,
+					append(details.GetReportMetaData(),
+						recommendation.Category,
+						recommendation.RecID,
+						recommendation.Title,
+						"Suppressed",
+						recommendation.SeverityString(),
+						suppression,
+						"",
+						""))
+			}
 		}
 		for _, violation := range recommendation.Violations {
 			out = append(out,
