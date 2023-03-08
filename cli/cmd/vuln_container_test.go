@@ -118,6 +118,46 @@ CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,example introduced
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
 }
 
+func TestBuildVulnCtrReportWithAggregatedIntroducedInLayerCSV(t *testing.T) {
+	cli.EnableCSVOutput()
+	vulCmdState.Details = true
+	defer func() {
+		cli.csvOutput = false
+		vulCmdState.Details = false
+	}()
+
+	var response api.VulnerabilitiesContainersResponse
+	if err := json.Unmarshal([]byte(mockIntroducedInLayerResponse), &response); err != nil {
+		panic(err)
+	}
+	cliOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, buildVulnContainerAssessmentReports(response))
+	})
+
+	expected := `
+CVE ID,Severity,CVSSv2,CVSSv3,Package,Current Version,Fix Version,Introduced in Layer
+CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,"example introduced in layer 1, example introduced in layer 2"
+`
+	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
+}
+
+func TestBuildVulnCtrReportWithAggregatedIntroducedInLayer(t *testing.T) {
+	vulCmdState.Details = true
+	defer func() {
+		vulCmdState.Details = false
+	}()
+
+	var response api.VulnerabilitiesContainersResponse
+	if err := json.Unmarshal([]byte(mockIntroducedInLayerResponse), &response); err != nil {
+		panic(err)
+	}
+	cliOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, buildVulnContainerAssessmentReports(response))
+	})
+
+	assert.Contains(t, cliOutput, "introduced in 2 layers...")
+}
+
 func TestVulnCtrIntroducedInRegex(t *testing.T) {
 	tabsRegexTableTest := []struct {
 		Name     string
@@ -370,5 +410,166 @@ var rawListAssessments = `
             "status": "VULNERABLE",
             "vulnId": "CVE-2020-12345"
         }
+]
+}`
+
+var mockIntroducedInLayerResponse = `
+{
+    "paging": {
+        "rows": 5000,
+        "totalRows": 6419,
+        "urls": {
+            "nextPage": "https://example.lacework.net/api/v2/Vulnerabilities/Containers/"
+        }
+    },
+"data": [
+{
+            "evalCtx": {
+                "cve_batch_info": [
+                    {
+                        "cve_created_time": "2022-11-21 00:21:41.678000000"
+                    }
+                ],
+                "exception_props": [
+                    {
+                        "exception_guid": "VULN_C44BF2CBE09F0E705565BEA1A0C1D2A5D1534857F2C7CDF8381",
+                        "exception_name": "registry index.docker.io severity Low",
+                        "exception_reason": "Accepted Risk"
+                    }
+                ],
+                "image_info": {
+                    "created_time": 1605140985874,
+                    "digest": "sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a",
+                    "id": "sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+                    "registry": "index.docker.io",
+                    "repo": "techally-test/test-cli",
+                    "scan_created_time": 1669055600,
+                    "size": 360608563,
+                    "status": "Success",
+                    "tags": [
+                        "latest"
+                    ],
+                    "type": "Docker"
+                },
+                "integration_props": {
+                    "INTG_GUID": "TECHALLY_FC5485B5ACFF3DAFE77E8C8A734C6C2FAD7CAAC9F01313C",
+                    "NAME": "Terraform-Dockerhub",
+                    "REGISTRY_TYPE": "DOCKERHUB"
+                },
+                "is_reeval": false,
+                "request_source": "PLATFORM_SCANNER",
+                "scan_batch_id": "467a274c-f847-456b-b62d-13f9d88988cc-1669055607923432004",
+                "scan_request_props": {
+                    "data_format_version": "1.0",
+                    "props": {
+                        "data_format_version": "1.0",
+                        "scanner_version": "10.0.155"
+                    },
+                    "reqId": "2ac494a9-b7be-453a-81b9-7a2f1f9e2113",
+                    "reqSource": "ondemand",
+                    "scanCompletionUtcTime": 1669055607,
+                    "scan_start_time": 1669055600,
+                    "scanner_version": "10.0.155"
+                },
+                "vuln_batch_id": "7B2EDDD2D2D140ECA6B85001FC62AE45",
+                "vuln_created_time": "2022-11-21 00:21:41.678000000"
+            },
+            "evalGuid": "781865fdff984def2587b5f05065f0db",
+            "featureKey": {
+                "name": "example-1",
+                "namespace": "debian:9",
+                "version": "1.0.0"
+            },
+            "featureProps": {
+                "feed": "lacework",
+                "introduced_in": "example introduced in layer 1",
+                "layer": "sha256:sha256:572866ab72a68759e23b071fbbdce6341137c9606936b4fff9846f74997bbaac",
+                "src": "var/lib/dpkg/status",
+                "version_format": "dpkg"
+            },
+            "fixInfo": {
+                "fix_available": 1,
+                "fixed_version": "2.2.0-11+deb9u4"
+            },
+            "imageId": "sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+            "severity": "Medium",
+            "startTime": "2022-11-21T18:33:28.076Z",
+            "status": "VULNERABLE",
+            "vulnId": "CVE-2029-21234"
+        },{
+            "evalCtx": {
+                "cve_batch_info": [
+                    {
+                        "cve_created_time": "2022-11-21 00:21:41.678000000"
+                    }
+                ],
+                "exception_props": [
+                    {
+                        "exception_guid": "VULN_C44BF2CBE09F0E705565BEA1A0C1D2A5D1534857F2C7CDF8381",
+                        "exception_name": "registry index.docker.io severity Low",
+                        "exception_reason": "Accepted Risk"
+                    }
+                ],
+                "image_info": {
+                    "created_time": 1605140985874,
+                    "digest": "sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a",
+                    "id": "sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+                    "registry": "index.docker.io",
+                    "repo": "techally-test/test-cli",
+                    "scan_created_time": 1669055600,
+                    "size": 360608563,
+                    "status": "Success",
+                    "tags": [
+                        "latest"
+                    ],
+                    "type": "Docker"
+                },
+                "integration_props": {
+                    "INTG_GUID": "TECHALLY_FC5485B5ACFF3DAFE77E8C8A734C6C2FAD7CAAC9F01313C",
+                    "NAME": "Terraform-Dockerhub",
+                    "REGISTRY_TYPE": "DOCKERHUB"
+                },
+                "is_reeval": false,
+                "request_source": "PLATFORM_SCANNER",
+                "scan_batch_id": "467a274c-f847-456b-b62d-13f9d88988cc-1669055607923432004",
+                "scan_request_props": {
+                    "data_format_version": "1.0",
+                    "props": {
+                        "data_format_version": "1.0",
+                        "scanner_version": "10.0.155"
+                    },
+                    "reqId": "2ac494a9-b7be-453a-81b9-7a2f1f9e2113",
+                    "reqSource": "ondemand",
+                    "scanCompletionUtcTime": 1669055607,
+                    "scan_start_time": 1669055600,
+                    "scanner_version": "10.0.155"
+                },
+                "vuln_batch_id": "7B2EDDD2D2D140ECA6B85001FC62AE45",
+                "vuln_created_time": "2022-11-21 00:21:41.678000000"
+            },
+            "evalGuid": "781865fdff984def2587b5f05065f0db",
+            "featureKey": {
+                "name": "example-1",
+                "namespace": "debian:9",
+                "version": "1.0.0"
+            },
+            "featureProps": {
+                "feed": "lacework",
+                "introduced_in": "example introduced in layer 2",
+                "layer": "sha256:sha256:572866ab72a68759e23b071fbbdce6341137c9606936b4fff9846f74997bbaac",
+                "src": "var/lib/dpkg/status",
+                "version_format": "dpkg"
+            },
+            "fixInfo": {
+                "fix_available": 1,
+                "fixed_version": "2.2.0-11+deb9u4"
+            },
+            "imageId": "sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+            "severity": "Medium",
+            "startTime": "2022-11-21T18:33:28.076Z",
+            "status": "VULNERABLE",
+            "vulnId": "CVE-2029-21234"
+        }
+
 ]
 }`

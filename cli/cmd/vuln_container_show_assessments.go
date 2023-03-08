@@ -251,7 +251,7 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 	default:
 		if len(response.Data) == 0 {
 			if vulCmdState.Severity != "" {
-				cli.OutputHuman("There are no vulnerabilties found for this severity")
+				cli.OutputHuman("There are no vulnerabilities found for this severity")
 			}
 
 			cli.OutputHuman(
@@ -445,15 +445,17 @@ func vulContainerImagePackagesToTable(packageTable filteredPackageTable) [][]str
 
 func filterVulnerabilityContainer(image []api.VulnerabilityContainer) filteredImageTable {
 	var (
-		vulns      = make(map[string]vulnTable)
-		vulnIDs    []string
-		vulnsCount int
-		vulnList   []vulnTable
-		filtered   []api.VulnerabilityContainer
+		vulns           = make(map[string]vulnTable)
+		introducedInMap = make(map[string][]string)
+		vulnIDs         []string
+		vulnsCount      int
+		vulnList        []vulnTable
+		filtered        []api.VulnerabilityContainer
 	)
 
 	for _, i := range image {
-		vulnIDs = append(vulnIDs, fmt.Sprintf("%s-%s", i.VulnID, i.FeatureKey.Name))
+		vulnKey := fmt.Sprintf("%s-%s", i.VulnID, i.FeatureKey.Name)
+		vulnIDs = append(vulnIDs, vulnKey)
 		// filter: severity
 		if vulCmdState.Severity != "" {
 			if filterSeverity(i.Severity, vulCmdState.Severity) {
@@ -469,14 +471,15 @@ func filterVulnerabilityContainer(image []api.VulnerabilityContainer) filteredIm
 		regex := regexp.MustCompile(regexAllTabs)
 		introducedIn := regex.ReplaceAllString(i.FeatureProps.IntroducedIn, "\n")
 
-		if _, ok := vulns[fmt.Sprintf("%s-%s", i.VulnID, i.FeatureKey.Name)]; !ok {
-			vulns[fmt.Sprintf("%s-%s", i.VulnID, i.FeatureKey.Name)] = vulnTable{
+		introducedInMap[vulnKey] = append(introducedInMap[vulnKey], introducedIn)
+
+		if _, ok := vulns[vulnKey]; !ok {
+			vulns[vulnKey] = vulnTable{
 				Name:           i.VulnID,
 				Severity:       i.Severity,
 				PackageName:    i.FeatureKey.Name,
 				CurrentVersion: i.FeatureKey.Version,
 				FixVersion:     i.FixInfo.FixedVersion,
-				CreatedBy:      introducedIn,
 				// Todo(v2): CVSSv3Score is missing from V2
 				CVSSv3Score: 0,
 				// Todo(v2): CVSSv2Score is missing from V2
@@ -485,6 +488,13 @@ func filterVulnerabilityContainer(image []api.VulnerabilityContainer) filteredIm
 			}
 			filtered = append(filtered, i)
 		}
+	}
+
+	// Set the aggregated introduced by layers for each vuln
+	for k, v := range introducedInMap {
+		vulnTable := vulns[k]
+		vulnTable.CreatedBy = v
+		vulns[k] = vulnTable
 	}
 
 	var uniqueIDs []string = array.Unique(vulnIDs)
@@ -513,7 +523,7 @@ func vulContainerImageLayersToCSV(imageTable filteredImageTable) [][]string {
 			vuln.PackageName,
 			vuln.CurrentVersion,
 			vuln.FixVersion,
-			vuln.CreatedBy,
+			strings.Join(vuln.CreatedBy, ", "),
 		})
 	}
 
@@ -526,16 +536,28 @@ func vulContainerImageLayersToCSV(imageTable filteredImageTable) [][]string {
 
 func vulContainerImageLayersToTable(imageTable filteredImageTable) [][]string {
 	var out [][]string
+	var createdByKeys = make(map[string]bool)
+
 	for _, vuln := range imageTable.Vulnerabilities {
-		out = append(out, []string{
-			vuln.Name,
-			vuln.Severity,
-			vuln.PackageName,
-			vuln.CurrentVersion,
-			vuln.FixVersion,
-			vuln.CreatedBy,
-			vuln.Status,
-		})
+		introducedBy := strings.Join(vuln.CreatedBy, ",")
+		// if the same vuln is introduced in more than 1 layer, only display the number of layers
+		if len(vuln.CreatedBy) > 1 {
+			introducedBy = fmt.Sprintf("introduced in %d layers...", len(vuln.CreatedBy))
+		}
+
+		if !createdByKeys[fmt.Sprintf("%s-%s", vuln.Name, vuln.CurrentVersion)] {
+			out = append(out, []string{
+				vuln.Name,
+				vuln.Severity,
+				vuln.PackageName,
+				vuln.CurrentVersion,
+				vuln.FixVersion,
+				introducedBy,
+				vuln.Status,
+			})
+		}
+
+		createdByKeys[fmt.Sprintf("%s-%s", vuln.Name, vuln.CurrentVersion)] = true
 	}
 
 	sort.Slice(out, func(i, j int) bool {
@@ -603,7 +625,7 @@ type vulnTable struct {
 	PackageName    string
 	CurrentVersion string
 	FixVersion     string
-	CreatedBy      string
+	CreatedBy      []string
 	CVSSv2Score    float64
 	CVSSv3Score    float64
 	Status         string
