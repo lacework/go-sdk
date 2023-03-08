@@ -110,14 +110,14 @@ func (e *vulnerabilityPolicyError) validate() bool {
 		return false
 	}
 
-	if e.FailOnFixable && e.FixableVulnCount > 0 && threshold >= fixableSeverityRating {
+	if e.FailOnFixable && e.FixableVulnCount > 0 && fixableSeverityRating <= threshold {
 		e.Message = fmt.Sprintf(
 			"fixable vulnerabilities found with threshold '%s'",
 			e.FailOnSeverity)
 		return false
 	}
 
-	if !e.FailOnFixable && (severityRating <= threshold && severityRating != 0) {
+	if e.FailOnSeverity != "" && (severityRating <= threshold && severityRating != 0) {
 		e.Message = fmt.Sprintf(
 			"vulnerabilities found with threshold '%s'",
 			e.FailOnSeverity)
