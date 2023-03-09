@@ -378,7 +378,7 @@ func initGenerateAzureTfCommandFlags() {
 		&GenerateAzureCommandState.SubscriptionID,
 		"subscription_id",
 		"",
-		"specify a subscription id")
+		"specify the Azure Subscription ID to be used to provision Lacework resources")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.CreateAdIntegration,
@@ -773,7 +773,6 @@ func promptAzureGenerate(config *azure.GenerateAzureTfConfigurationArgs, extraSt
 		return errors.New("must enable activity log or config")
 	}
 
-	//GROW-1444: Prompt for Azure SubscriptionID
 	if err := askAzureSubscriptionID(config); err != nil {
 		return err
 	}
