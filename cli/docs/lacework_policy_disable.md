@@ -1,34 +1,43 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework policy disable"
+slug: lacework_policy_disable
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework policy disable
 
-List projects from an organization
+Disable policies
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Disable policies by ID or all policies matching a tag.
 
-Use the following command to list all GCP integrations in your account:
+To disable a single policy by its ID:
 
-    lacework cloud-account list --type GcpCfg
+	lacework policy disable lacework-policy-id
 
-Then, select one GUID from an integration and visualize its details using the command:
+To disable many policies by ID provide a list of policy ids:
 
-    lacework cloud-account show <int_guid>
+	lacework policy disable lacework-policy-id-one lacework-policy-id-two
+
+To disable all policies for AWS CIS 1.4.0:
+
+	lacework policy disable --tag framework:cis-aws-1-4-0
+
+To disable all policies for GCP CIS 1.3.0:
+
+	lacework policy disable --tag framework:cis-gcp-1-3-0
 
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework policy disable [policy_id...] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help         help for disable
+      --tag string   disable all policies with the specified tag
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +59,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework policy](lacework_policy.md)	 - Manage policies
 

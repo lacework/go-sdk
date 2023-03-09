@@ -1,34 +1,48 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework policy enable"
+slug: lacework_policy_enable
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework policy enable
 
-List projects from an organization
+Enable policies
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Enable policies by ID or all policies matching a tag.
 
-Use the following command to list all GCP integrations in your account:
+To enter the policy enable prompt:
 
-    lacework cloud-account list --type GcpCfg
+	lacework policy enable
 
-Then, select one GUID from an integration and visualize its details using the command:
+To enable a single policy by its ID:
 
-    lacework cloud-account show <int_guid>
+	lacework policy enable lacework-policy-id
+
+To enable many policies by ID provide a list of policy ids:
+
+	lacework policy enable lacework-policy-id-one lacework-policy-id-two
+
+To enable all policies for AWS CIS 1.4.0:
+
+	lacework policy enable --tag framework:cis-aws-1-4-0
+
+To enable all policies for GCP CIS 1.3.0:
+
+	lacework policy enable --tag framework:cis-gcp-1-3-0
+
 
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework policy enable [policy_id...] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help         help for enable
+      --tag string   enable all policies with the specified tag
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +64,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework policy](lacework_policy.md)	 - Manage policies
 

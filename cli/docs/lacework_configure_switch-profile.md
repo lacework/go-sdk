@@ -1,34 +1,30 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework configure switch-profile"
+slug: lacework_configure_switch-profile
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework configure switch-profile
 
-List projects from an organization
+Switch between configured profiles
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Switch between profiles configured into the config file ~/.lacework.toml
 
-Use the following command to list all GCP integrations in your account:
+An alternative to temporarily switch to a different profile in your current terminal
+is to export the environment variable:
 
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+    export LW_PROFILE="my-profile"
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework configure switch-profile <profile> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for switch-profile
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +46,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework configure](lacework_configure.md)	 - Configure the Lacework CLI
 

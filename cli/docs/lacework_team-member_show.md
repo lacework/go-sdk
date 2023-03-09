@@ -1,34 +1,25 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework team-member show"
+slug: lacework_team-member_show
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework team-member show
 
-List projects from an organization
+Show a team member by id
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+Show a single team member by it's id.
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework team-member show <team_member_id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for show
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +41,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework team-member](lacework_team-member.md)	 - Manage team members
 

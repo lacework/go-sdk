@@ -1,34 +1,22 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework report-definition"
+slug: lacework_report-definition
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework report-definition
 
-List projects from an organization
+Manage report definitions
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Manage report definitions to configure the data retrieval and layout information for a report.
 
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
-
-```
-lacework compliance google list-projects <organization_id> [flags]
-```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for report-definition
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +38,8 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework report-definition delete](lacework_report-definition_delete.md)	 - Delete a report definition
+* [lacework report-definition list](lacework_report-definition_list.md)	 - List all report definitions
+* [lacework report-definition show](lacework_report-definition_show.md)	 - Show a report definition by ID
 

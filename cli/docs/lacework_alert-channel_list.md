@@ -1,34 +1,21 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework alert-channel list"
+slug: lacework_alert-channel_list
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework alert-channel list
 
-List projects from an organization
-
-### Synopsis
-
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+List all available alert channel integrations
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework alert-channel list [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for list
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +37,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework alert-channel](lacework_alert-channel.md)	 - Manage alert channels
 

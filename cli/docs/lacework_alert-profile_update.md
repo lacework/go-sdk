@@ -1,34 +1,21 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework alert-profile update"
+slug: lacework_alert-profile_update
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework alert-profile update
 
-List projects from an organization
-
-### Synopsis
-
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+Update alert templates from an existing alert profile
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework alert-profile update [alert_profile_id] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for update
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +37,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework alert-profile](lacework_alert-profile.md)	 - Manage alert profiles
 

@@ -1,34 +1,25 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework generate k8s"
+slug: lacework_generate_k8s
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework generate k8s
 
-List projects from an organization
+Generate Kubernetes integration IaC
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Generate IaC to deploy Lacework into a Kubernetes platform.
 
-Use the following command to list all GCP integrations in your account:
+This command creates Infrastructure as Code (IaC) in the form of Terraform HCL, with the option of running
+Terraform and deploying Lacework into GKE.
 
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
-
-```
-lacework compliance google list-projects <organization_id> [flags]
-```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for k8s
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +41,7 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework generate](lacework_generate.md)	 - Generate code to onboard your account
+* [lacework generate k8s eks](lacework_generate_k8s_eks.md)	 - Generate and/or execute Terraform code for EKS integration
+* [lacework generate k8s gke](lacework_generate_k8s_gke.md)	 - Generate and/or execute Terraform code for GKE integration
 

@@ -1,34 +1,25 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework query preview-source"
+slug: lacework_query_preview-source
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework query preview-source
 
-List projects from an organization
+Preview Lacework query datasource
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+Preview Lacework query datasource.
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework query preview-source <datasource_id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for preview-source
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +41,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework query](lacework_query.md)	 - Run and manage queries
 

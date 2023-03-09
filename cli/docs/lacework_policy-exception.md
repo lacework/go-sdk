@@ -1,34 +1,26 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework policy-exception"
+slug: lacework_policy-exception
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework policy-exception
 
-List projects from an organization
+Manage policy exceptions
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Manage policy exceptions in your Lacework account.
 
-Use the following command to list all GCP integrations in your account:
+To view all the policies in your Lacework account.
 
-    lacework cloud-account list --type GcpCfg
+    lacework policy list
 
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
-
-```
-lacework compliance google list-projects <organization_id> [flags]
-```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for policy-exception
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +42,9 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework policy-exception create](lacework_policy-exception_create.md)	 - Create a policy exception
+* [lacework policy-exception delete](lacework_policy-exception_delete.md)	 - Delete a policy exception
+* [lacework policy-exception list](lacework_policy-exception_list.md)	 - List all exceptions from a single policy
+* [lacework policy-exception show](lacework_policy-exception_show.md)	 - Show details about a policy exception
 

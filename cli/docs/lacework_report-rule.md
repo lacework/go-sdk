@@ -1,34 +1,29 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework report-rule"
+slug: lacework_report-rule
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework report-rule
 
-List projects from an organization
+Manage report rules
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Manage report rules to route reports to one or more email alert channels.		
 
-Use the following command to list all GCP integrations in your account:
+A report rule has four parts:
 
-    lacework cloud-account list --type GcpCfg
+  1. Email alert channel(s) that should receive the report
+  2. One or more severities to include
+  3. Resource group(s) containing the subset of your environment to consider
+  4. Notification types containing which report information to send
 
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
-
-```
-lacework compliance google list-projects <organization_id> [flags]
-```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for report-rule
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +45,9 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework report-rule create](lacework_report-rule_create.md)	 - Create a new report rule
+* [lacework report-rule delete](lacework_report-rule_delete.md)	 - Delete a report rule
+* [lacework report-rule list](lacework_report-rule_list.md)	 - List all report rules
+* [lacework report-rule show](lacework_report-rule_show.md)	 - Show a report rule by ID
 

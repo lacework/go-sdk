@@ -1,34 +1,21 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework container-registry"
+slug: lacework_container-registry
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework container-registry
 
-List projects from an organization
+Manage container registries
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
-
-```
-lacework compliance google list-projects <organization_id> [flags]
-```
+Manage container registry integrations with Lacework
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for container-registry
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +37,9 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework container-registry create](lacework_container-registry_create.md)	 - Create a new container registry integration
+* [lacework container-registry delete](lacework_container-registry_delete.md)	 - Delete a container registry integration
+* [lacework container-registry list](lacework_container-registry_list.md)	 - List all available container registry integrations
+* [lacework container-registry show](lacework_container-registry_show.md)	 - Show a single container registry integration
 
