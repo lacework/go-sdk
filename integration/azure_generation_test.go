@@ -42,6 +42,7 @@ func TestGenerationAzureErrorOnNoSelection(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgOnly{"ERROR collecting/confirming parameters: must enable activity log or config"},
 			})
 		},
@@ -68,6 +69,7 @@ func TestGenerationAzureSimple(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -108,6 +110,7 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptDone, 5},
 				MsgRsp{cmd.QuestionAzureCustomizeOutputLocation, dir},
@@ -146,6 +149,7 @@ func TestGenerationAzureConfigOnly(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -179,6 +183,7 @@ func TestGenerationAzureActivityLogOnly(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -215,6 +220,7 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptLocation, 2},
 				MsgRsp{cmd.QuestionADApplicationPass, pass},
@@ -258,6 +264,7 @@ func TestGenerationAzureNamedConfig(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 0},
@@ -300,6 +307,7 @@ func TestGenerationAzureNamedActivityLog(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 0},
@@ -340,6 +348,7 @@ func TestGenerationAzureAdvancedOptsDone(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 6},
@@ -387,6 +396,7 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptDone, 5},
 				MsgRsp{cmd.QuestionAzureCustomizeOutputLocation, dir},
@@ -425,6 +435,7 @@ func TestGenerationAzureConfigAllSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
 				MsgRsp{cmd.QuestionEnableAllSubscriptions, "y"},
@@ -465,6 +476,7 @@ func TestGenerationAzureConfigMgmntGroup(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 2},
@@ -508,6 +520,7 @@ func TestGenerationAzureConfigSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
@@ -551,6 +564,7 @@ func TestGenerationAzureActivityLogSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
@@ -595,6 +609,7 @@ func TestGenerationAzureActivityLogStorageAccount(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 3},
@@ -641,6 +656,7 @@ func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
@@ -683,6 +699,7 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 2},
@@ -728,6 +745,7 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -746,6 +764,7 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{"already exists, overwrite?", "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -781,6 +800,7 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -801,6 +821,7 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{"already exists, overwrite?", "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -830,6 +851,7 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -848,6 +870,41 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 	buildTf, _ := azure.NewTerraform(true, true, true,
 		azure.WithLaceworkProfile(azProfile),
 	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAzureWithSubscriptionID(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	mockSubscriptionID := "111aaa1a-a1a1-11aa-a111-1aaaa1a11a11"
+
+	// Run CLI
+	tfResult := runGenerateAzureTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"az",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := azure.NewTerraform(true, true, true, azure.WithSubscriptionID(mockSubscriptionID)).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
