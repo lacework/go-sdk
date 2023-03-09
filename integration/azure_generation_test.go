@@ -42,7 +42,6 @@ func TestGenerationAzureErrorOnNoSelection(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgOnly{"ERROR collecting/confirming parameters: must enable activity log or config"},
 			})
 		},
