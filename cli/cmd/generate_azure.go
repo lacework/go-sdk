@@ -14,10 +14,12 @@ import (
 
 var (
 	// Define question text here so they can be reused in testing
-	QuestionAzureEnableConfig = "Enable Azure configuration integration?"
-	QuestionAzureConfigName   = "Specify custom configuration integration name: (optional)"
-	QuestionEnableActivityLog = "Enable Azure Activity Log Integration?"
-	QuestionActivityLogName   = "Specify custom Activity Log integration name: (optional)"
+	QuestionAzureEnableConfig      = "Enable Azure configuration integration?"
+	QuestionAzureConfigName        = "Specify custom configuration integration name: (optional)"
+	QuestionEnableActivityLog      = "Enable Azure Activity Log Integration?"
+	QuestionActivityLogName        = "Specify custom Activity Log integration name: (optional)"
+	QuestionAddAzureSubscriptionID = "Set Azure Subscription ID?"
+	QuestionAzureSubscriptionID    = "Specify the Azure Subscription ID to be used to provision Lacework resources: (optional)"
 
 	QuestionAzureAnotherAdvancedOpt      = "Configure another advanced integration option"
 	QuestionAzureConfigAdvanced          = "Configure advanced integration options?"
@@ -169,6 +171,7 @@ By default, this command will function interactively, prompting for the required
 			// Setup modifiers for NewTerraform constructor
 			mods := []azure.AzureTerraformModifier{
 				azure.WithLaceworkProfile(GenerateAzureCommandState.LaceworkProfile),
+				azure.WithSubscriptionID(GenerateAzureCommandState.SubscriptionID),
 				azure.WithAllSubscriptions(GenerateAzureCommandState.AllSubscriptions),
 				azure.WithManagementGroup(GenerateAzureCommandState.ManagementGroup),
 				azure.WithExistingStorageAccount(GenerateAzureCommandState.ExistingStorageAccount),
@@ -370,6 +373,12 @@ func initGenerateAzureTfCommandFlags() {
 		"configuration_name",
 		"",
 		"specify a custom configuration integration name")
+
+	generateAzureTfCommand.PersistentFlags().StringVar(
+		&GenerateAzureCommandState.SubscriptionID,
+		"subscription_id",
+		"",
+		"specify a subscription id")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.CreateAdIntegration,
@@ -601,6 +610,32 @@ func promptCustomizeAzureLoggingRegion(config *azure.GenerateAzureTfConfiguratio
 	return nil
 }
 
+func askAzureSubscriptionID(config *azure.GenerateAzureTfConfigurationArgs) error {
+	var addSubscription bool
+
+	// if subscription has been set by --subscription_id flag do not prompt
+	if config.SubscriptionID != "" {
+		return nil
+	}
+
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt:   &survey.Confirm{Message: QuestionAddAzureSubscriptionID, Default: false},
+		Response: &addSubscription,
+	}); err != nil {
+		return err
+	}
+
+	if addSubscription {
+		if err := survey.AskOne(&survey.Input{
+			Message: QuestionAzureSubscriptionID,
+		}, &config.SubscriptionID); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, extraState *AzureGenerateCommandExtraState) error {
 	answer := ""
 
@@ -736,6 +771,11 @@ func promptAzureGenerate(config *azure.GenerateAzureTfConfigurationArgs, extraSt
 	// Validate one of config or activity log was enabled; otherwise error out
 	if !config.Config && !config.ActivityLog {
 		return errors.New("must enable activity log or config")
+	}
+
+	//GROW-1444: Prompt for Azure SubscriptionID
+	if err := askAzureSubscriptionID(config); err != nil {
+		return err
 	}
 
 	// Find out if the customer wants to specify more advanced features
