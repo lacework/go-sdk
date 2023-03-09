@@ -602,7 +602,7 @@ func cliListTenantsAndSubscriptions(azureIntegrations api.CloudAccountsResponse)
 
 Get started by integrating your Azure Tenants to analyze configuration compliance using the command:
 
-    lacework integration create
+    lacework cloud-account create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 

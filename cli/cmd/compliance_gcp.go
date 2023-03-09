@@ -77,11 +77,11 @@ var (
 
 Use the following command to list all GCP integrations in your account:
 
-    lacework integrations list --type GCP_CFG
+    lacework cloud-account list --type GcpCfg
 
 Then, select one GUID from an integration and visualize its details using the command:
 
-    lacework integration show <int_guid>
+    lacework cloud-account show <int_guid>
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -731,7 +731,7 @@ func cliListGcpProjectsAndOrgs(response api.CloudAccountsResponse, gcpData api.G
 
 Get started by integrating your GCP to analyze configuration compliance using the command:
 
-    lacework integration create
+    lacework cloud-account create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 
