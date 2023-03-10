@@ -1,13 +1,14 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.13.0`.
+Another day, another release. These are the release notes for the version `v1.13.1`.
 
-## Features
-* feat: Allow logging format to be chosen by caller (#1174) (Edoardo Pirovano)([9259953c](https://github.com/lacework/go-sdk/commit/9259953c9021770df50635f9f7938d94a93f3427))
 ## Bug Fixes
-* fix(cdk): handle -v flag for components (#1170) (Sam Shen)([acf5a3ca](https://github.com/lacework/go-sdk/commit/acf5a3cab5749a2cc67f0bdb2305ccffe05c4905))
+* fix(cli): resolve issue with 'fail_on_fixable' and 'fail_on_severity'… (#1169) (Darren)([06dde0a8](https://github.com/lacework/go-sdk/commit/06dde0a8152d350adcfc9e8be26e3277eb33059a))
+* fix: ensure compliance get-report csv output complies with --status flag (#1171) (Darren)([8f2cc30e](https://github.com/lacework/go-sdk/commit/8f2cc30e749b56efc98acc9ae266bf7d893ba878))
+* fix(cli): vuln ctr show-assessment not showing cve's with the same cv… (#1155) (Darren)([7a38996b](https://github.com/lacework/go-sdk/commit/7a38996b92199069d6dc8ac3851cf3d951201cab))
+## Documentation Updates
+* docs: remove references to decommissioned 'integrations' cmd (#1178) (Darren)([aec4fe2f](https://github.com/lacework/go-sdk/commit/aec4fe2ffd715e4053de05bf9d071ddfb0698f34))
 ## Other Changes
-* style(cli): fix 'component' commands formatting (#1173) (Salim Afiune)([a36879e0](https://github.com/lacework/go-sdk/commit/a36879e0c12a6d3990317a30676fcab6d187a5af))
-* ci: version bump to v1.12.1-dev (Lacework)([3de4a9a5](https://github.com/lacework/go-sdk/commit/3de4a9a562f44386ed4edeba1cea5475162d385b))
+* ci: version bump to v1.13.1-dev (Lacework)([4d757d83](https://github.com/lacework/go-sdk/commit/4d757d83a2dc2d850f8f736357da7fb056f042e5))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
