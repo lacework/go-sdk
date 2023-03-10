@@ -48,6 +48,7 @@ lacework generate cloud-account azure [flags]
       --output string                          location to write generated content (default is ~/lacework/azure)
       --storage_account_name string            specify storage account name
       --storage_resource_group string          specify storage resource group
+      --subscription_id string                 specify the Azure Subscription ID to be used to provision Lacework resources
       --subscription_ids strings               list of subscriptions to grant read access; format is id1,id2,id3
       --terraform-apply                        run terraform apply for the generated hcl
 ```
