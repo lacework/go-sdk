@@ -40,6 +40,9 @@ type GenerateAzureTfConfigurationArgs struct {
 	// List of subscription Ids
 	SubscriptionIds []string
 
+	// Subscription ID configured in azurerm provider block
+	SubscriptionID string
+
 	// Grant read access to ALL subscriptions
 	AllSubscriptions bool
 
@@ -197,6 +200,12 @@ func WithLaceworkProfile(name string) AzureTerraformModifier {
 	}
 }
 
+func WithSubscriptionID(subcriptionID string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.SubscriptionID = subcriptionID
+	}
+}
+
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
@@ -220,7 +229,7 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate AD provider")
 	}
 
-	azureRMProvider, err := createAzureRMProvider()
+	azureRMProvider, err := createAzureRMProvider(args.SubscriptionID)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate AM provider")
 	}
@@ -307,19 +316,25 @@ func createAzureADProvider() ([]*hclwrite.Block, error) {
 //            features = {}
 //         }
 //
-func createAzureRMProvider() ([]*hclwrite.Block, error) {
+func createAzureRMProvider(subscriptionID string) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 	attrs := map[string]interface{}{}
+	featureAttrs := map[string]interface{}{}
+
+	if subscriptionID != "" {
+		attrs["subscription_id"] = subscriptionID
+	}
 
 	provider, err := lwgenerate.NewProvider(
 		"azurerm",
+		lwgenerate.HclProviderWithAttributes(attrs),
 	).ToBlock()
 
 	if err != nil {
 		return nil, err
 	}
 	// Create the features block
-	featuresBlock, err := lwgenerate.HclCreateGenericBlock("features", []string{}, attrs)
+	featuresBlock, err := lwgenerate.HclCreateGenericBlock("features", []string{}, featureAttrs)
 	provider.Body().AppendBlock(featuresBlock)
 
 	if err != nil {
