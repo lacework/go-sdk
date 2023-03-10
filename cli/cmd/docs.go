@@ -64,8 +64,13 @@ func init() {
 }
 
 func GenerateMarkdownDocs(location string) error {
-	// if the location doesn't exist, we will create it for the user
-	if err := os.MkdirAll(location, 0755); err != nil {
+	// remove location before generating to ensure deleted commands are removed
+	err := os.RemoveAll(location)
+	if err != nil {
+		return err
+	}
+
+	if err = os.MkdirAll(location, 0755); err != nil {
 		return err
 	}
 
