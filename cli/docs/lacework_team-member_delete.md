@@ -1,34 +1,25 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework team-member delete"
+slug: lacework_team-member_delete
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework team-member delete
 
-List projects from an organization
+Delete a team member
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+Delete a single team member by it's ID.
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework team-member delete <team_member_id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for delete
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +41,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework team-member](lacework_team-member.md)	 - Manage team members
 

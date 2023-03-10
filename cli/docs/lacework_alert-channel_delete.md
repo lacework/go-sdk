@@ -1,21 +1,21 @@
 ---
-title: "lacework integration"
-slug: lacework_integration
+title: "lacework alert-channel delete"
+slug: lacework_alert-channel_delete
 hide_title: true
 ---
 
-## lacework integration
+## lacework alert-channel delete
 
-Manage external integrations
+Delete a alert channel integration
 
-### Synopsis
-
-Manage external integrations with the Lacework platform
+```
+lacework alert-channel delete [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for integration
+  -h, --help   help for delete
 ```
 
 ### Options inherited from parent commands
@@ -37,9 +37,5 @@ Manage external integrations with the Lacework platform
 
 ### SEE ALSO
 
-* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
-* [lacework integration create](lacework_integration_create.md)	 - Create an external integration
-* [lacework integration delete](lacework_integration_delete.md)	 - Delete an external integration
-* [lacework integration list](lacework_integration_list.md)	 - List all available external integrations
-* [lacework integration show](lacework_integration_show.md)	 - Show details about a specific external integration
+* [lacework alert-channel](lacework_alert-channel.md)	 - Manage alert channels
 

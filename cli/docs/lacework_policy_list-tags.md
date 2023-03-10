@@ -1,34 +1,25 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework policy list-tags"
+slug: lacework_policy_list-tags
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework policy list-tags
 
-List projects from an organization
+List policy tags
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+List all tags associated with policies in your Lacework account.
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework policy list-tags [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for list-tags
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +41,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework policy](lacework_policy.md)	 - Manage policies
 

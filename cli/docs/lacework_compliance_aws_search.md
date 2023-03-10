@@ -1,34 +1,25 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework compliance aws search"
+slug: lacework_compliance_aws_search
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework compliance aws search
 
-List projects from an organization
+Search for all known violations of a given resource arn
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+Search for all known violations of a given resource arn.
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework compliance aws search <resource_arn> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for search
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +41,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework compliance aws](lacework_compliance_aws.md)	 - Compliance for AWS
 

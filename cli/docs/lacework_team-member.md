@@ -1,25 +1,23 @@
 ---
-title: "lacework integration create"
-slug: lacework_integration_create
+title: "lacework team-member"
+slug: lacework_team-member
 hide_title: true
 ---
 
-## lacework integration create
+## lacework team-member
 
-Create an external integration
+Manage team members
 
 ### Synopsis
 
-Creates an external integration in your account through an interactive session.
+Manage Team Members to grant or restrict access to multiple Lacework Accounts. 
+			  Team members can also be granted organization-level roles.
 
-```
-lacework integration create [flags]
-```
 
 ### Options
 
 ```
-  -h, --help   help for create
+  -h, --help   help for team-member
 ```
 
 ### Options inherited from parent commands
@@ -41,5 +39,9 @@ lacework integration create [flags]
 
 ### SEE ALSO
 
-* [lacework integration](lacework_integration.md)	 - Manage external integrations
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework team-member create](lacework_team-member_create.md)	 - Create a new team member
+* [lacework team-member delete](lacework_team-member_delete.md)	 - Delete a team member
+* [lacework team-member list](lacework_team-member_list.md)	 - List all team members
+* [lacework team-member show](lacework_team-member_show.md)	 - Show a team member by id
 

@@ -609,7 +609,7 @@ func cliListAwsAccounts(awsIntegrations api.CloudAccountsResponse) error {
 
 Get started by integrating your AWS accounts to analyze configuration compliance using the command:
 
-    lacework integration create
+    lacework cloud-account aws create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 

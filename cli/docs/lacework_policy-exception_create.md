@@ -1,34 +1,33 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework policy-exception create"
+slug: lacework_policy-exception_create
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework policy-exception create
 
-List projects from an organization
+Create a policy exception
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Create a new policy exception. 
 
-Use the following command to list all GCP integrations in your account:
+To create a new policy exception, run the command:
 
-    lacework cloud-account list --type GcpCfg
+    lacework policy-exception create [policy_id]
 
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
+If you run the command without providing the policy_id, a
+list of policies is displayed in an interactive prompt.
 
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework policy-exception create [policy_id] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for create
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +49,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework policy-exception](lacework_policy-exception.md)	 - Manage policy exceptions
 

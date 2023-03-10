@@ -21,7 +21,7 @@ feat(cli): add --api_token global flag
 This new flag will replace the use of `api_key` and `api_secret` so that
 users can run the Lacework CLI only with an access token and their account:
 
-    lacework int list --api_token _secret123 -a mycompany
+    lacework cloud-account list --api_token _secret123 -a mycompany
 
 Closes https://github.com/lacework/go-sdk/issues/282
 ```

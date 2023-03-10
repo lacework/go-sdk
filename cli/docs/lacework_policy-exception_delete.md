@@ -1,34 +1,29 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework policy-exception delete"
+slug: lacework_policy-exception_delete
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework policy-exception delete
 
-List projects from an organization
+Delete a policy exception
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Delete a policy exception. 
 
-Use the following command to list all GCP integrations in your account:
+To remove a policy exception, run the delete command with policy ID and exception ID arguments:
 
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+    lacework policy-exception delete <policy_id> <exception_id>
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework policy-exception delete <policy_id> <exception_id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for delete
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +45,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework policy-exception](lacework_policy-exception.md)	 - Manage policy exceptions
 

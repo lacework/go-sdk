@@ -1,34 +1,25 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework generate cloud-account"
+slug: lacework_generate_cloud-account
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework generate cloud-account
 
-List projects from an organization
+Generate cloud integration IaC
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Generate cloud-account IaC to deploy Lacework into a cloud environment.
 
-Use the following command to list all GCP integrations in your account:
+This command creates Infrastructure as Code (IaC) in the form of Terraform HCL, with the option of running
+Terraform and deploying Lacework into AWS, Azure, or GCP.
 
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
-
-```
-lacework compliance google list-projects <organization_id> [flags]
-```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for cloud-account
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +41,8 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework generate](lacework_generate.md)	 - Generate code to onboard your account
+* [lacework generate cloud-account aws](lacework_generate_cloud-account_aws.md)	 - Generate and/or execute Terraform code for AWS integration
+* [lacework generate cloud-account azure](lacework_generate_cloud-account_azure.md)	 - Generate and/or execute Terraform code for Azure integration
+* [lacework generate cloud-account gcp](lacework_generate_cloud-account_gcp.md)	 - Generate and/or execute Terraform code for GCP integration
 

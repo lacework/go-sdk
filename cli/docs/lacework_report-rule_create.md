@@ -1,34 +1,21 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework report-rule create"
+slug: lacework_report-rule_create
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework report-rule create
 
-List projects from an organization
-
-### Synopsis
-
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+Create a new report rule
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework report-rule create [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for create
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +37,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework report-rule](lacework_report-rule.md)	 - Manage report rules
 

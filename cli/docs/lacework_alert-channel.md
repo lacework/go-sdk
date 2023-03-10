@@ -1,34 +1,21 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework alert-channel"
+slug: lacework_alert-channel
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework alert-channel
 
-List projects from an organization
+Manage alert channels
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
-
-```
-lacework compliance google list-projects <organization_id> [flags]
-```
+Manage alert channels integrations with Lacework
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for alert-channel
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +37,9 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework alert-channel create](lacework_alert-channel_create.md)	 - Create a new alert channel integration
+* [lacework alert-channel delete](lacework_alert-channel_delete.md)	 - Delete a alert channel integration
+* [lacework alert-channel list](lacework_alert-channel_list.md)	 - List all available alert channel integrations
+* [lacework alert-channel show](lacework_alert-channel_show.md)	 - Show a single alert channel integration
 

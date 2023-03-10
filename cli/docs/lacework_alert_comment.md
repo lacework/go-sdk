@@ -1,34 +1,29 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework alert comment"
+slug: lacework_alert_comment
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework alert comment
 
-List projects from an organization
+Add a comment
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Post a user comment on an alert's timeline .
 
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
+Comments may be provided inline or via editor.
 
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework alert comment <alert_id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -c, --comment string   a comment to add to the alert
+  -h, --help             help for comment
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +45,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework alert](lacework_alert.md)	 - Inspect and manage alerts
 

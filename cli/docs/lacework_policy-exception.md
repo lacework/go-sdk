@@ -1,27 +1,26 @@
 ---
-title: "lacework integration delete"
-slug: lacework_integration_delete
+title: "lacework policy-exception"
+slug: lacework_policy-exception
 hide_title: true
 ---
 
-## lacework integration delete
+## lacework policy-exception
 
-Delete an external integration
+Manage policy exceptions
 
 ### Synopsis
 
-Delete an external integration by providing an integration GUID.
+Manage policy exceptions in your Lacework account.
 
-Integration GUIDs can be found by using the 'lacework integration list' command.
+To view all the policies in your Lacework account.
 
-```
-lacework integration delete <int_guid> [flags]
-```
+    lacework policy list
+
 
 ### Options
 
 ```
-  -h, --help   help for delete
+  -h, --help   help for policy-exception
 ```
 
 ### Options inherited from parent commands
@@ -43,5 +42,9 @@ lacework integration delete <int_guid> [flags]
 
 ### SEE ALSO
 
-* [lacework integration](lacework_integration.md)	 - Manage external integrations
+* [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework policy-exception create](lacework_policy-exception_create.md)	 - Create a policy exception
+* [lacework policy-exception delete](lacework_policy-exception_delete.md)	 - Delete a policy exception
+* [lacework policy-exception list](lacework_policy-exception_list.md)	 - List all exceptions from a single policy
+* [lacework policy-exception show](lacework_policy-exception_show.md)	 - Show details about a policy exception
 

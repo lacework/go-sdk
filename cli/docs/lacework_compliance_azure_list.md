@@ -1,34 +1,25 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework compliance azure list"
+slug: lacework_compliance_azure_list
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework compliance azure list
 
-List projects from an organization
+List Azure tenants and subscriptions
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
+List all Azure tenants and subscriptions configured in your account.
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework compliance azure list [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for list
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +41,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework compliance azure](lacework_compliance_azure.md)	 - Compliance for Azure Cloud
 

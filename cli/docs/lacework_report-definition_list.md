@@ -1,21 +1,31 @@
-Manage external integrations with the Lacework platform
+---
+title: "lacework report-definition list"
+slug: lacework_report-definition_list
+hide_title: true
+---
 
-Usage:
-  lacework integration [command]
+## lacework report-definition list
 
-Aliases:
-  integration, integrations, int
+List all report definitions
 
-Available Commands:
-  create      Create an external integration
-  delete      Delete an external integration
-  list        List all available external integrations
-  show        Show details about a specific external integration
+### Synopsis
 
-Flags:
-  -h, --help   help for integration
+List all report definitions configured in your Lacework account.
 
-Global Flags:
+```
+lacework report-definition list [flags]
+```
+
+### Options
+
+```
+  -h, --help             help for list
+      --subtype string   filter report definitions by subtype. 'AWS', 'GCP' or 'Azure'
+```
+
+### Options inherited from parent commands
+
+```
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
@@ -28,5 +38,9 @@ Global Flags:
       --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
+```
 
-Use "lacework integration [command] --help" for more information about a command.
+### SEE ALSO
+
+* [lacework report-definition](lacework_report-definition.md)	 - Manage report definitions
+

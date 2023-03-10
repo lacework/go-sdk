@@ -1,22 +1,21 @@
 ---
-title: "lacework integration list"
-slug: lacework_integration_list
+title: "lacework container-registry create"
+slug: lacework_container-registry_create
 hide_title: true
 ---
 
-## lacework integration list
+## lacework container-registry create
 
-List all available external integrations
+Create a new container registry integration
 
 ```
-lacework integration list [flags]
+lacework container-registry create [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help          help for list
-  -t, --type string   list all integrations of a specific type
+  -h, --help   help for create
 ```
 
 ### Options inherited from parent commands
@@ -38,5 +37,5 @@ lacework integration list [flags]
 
 ### SEE ALSO
 
-* [lacework integration](lacework_integration.md)	 - Manage external integrations
+* [lacework container-registry](lacework_container-registry.md)	 - Manage container registries
 

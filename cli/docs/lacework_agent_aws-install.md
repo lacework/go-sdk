@@ -1,34 +1,17 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework agent aws-install"
+slug: lacework_agent_aws-install
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework agent aws-install
 
-List projects from an organization
-
-### Synopsis
-
-List all GCP projects from the provided organization ID.
-
-Use the following command to list all GCP integrations in your account:
-
-    lacework cloud-account list --type GcpCfg
-
-Then, select one GUID from an integration and visualize its details using the command:
-
-    lacework cloud-account show <int_guid>
-
-
-```
-lacework compliance google list-projects <organization_id> [flags]
-```
+Install the datacollector agent on all remote AWS hosts
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help   help for aws-install
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +33,8 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework agent](lacework_agent.md)	 - Manage Lacework agents
+* [lacework agent aws-install ec2ic](lacework_agent_aws-install_ec2ic.md)	 - Use EC2InstanceConnect to securely connect to EC2 instances
+* [lacework agent aws-install ec2ssh](lacework_agent_aws-install_ec2ssh.md)	 - Use SSH to securely connect to EC2 instances
+* [lacework agent aws-install ec2ssm](lacework_agent_aws-install_ec2ssm.md)	 - Use SSM to securely install the Lacework agent on EC2 instances
 

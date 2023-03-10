@@ -1,12 +1,30 @@
-Show details about a specific external integration
+---
+title: "lacework policy-exception show"
+slug: lacework_policy-exception_show
+hide_title: true
+---
 
-Usage:
-  lacework integration show <int_guid> [flags]
+## lacework policy-exception show
 
-Flags:
+Show details about a policy exception
+
+### Synopsis
+
+Show the details of a policy exception.
+
+```
+lacework policy-exception show <policy_id> <exception_id> [flags]
+```
+
+### Options
+
+```
   -h, --help   help for show
+```
 
-Global Flags:
+### Options inherited from parent commands
+
+```
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
   -k, --api_key string      access key id
   -s, --api_secret string   secret access key
@@ -19,3 +37,9 @@ Global Flags:
       --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
+```
+
+### SEE ALSO
+
+* [lacework policy-exception](lacework_policy-exception.md)	 - Manage policy exceptions
+

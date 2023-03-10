@@ -1,34 +1,43 @@
 ---
-title: "lacework compliance google list-projects"
-slug: lacework_compliance_google_list-projects
+title: "lacework alert show"
+slug: lacework_alert_show
 hide_title: true
 ---
 
-## lacework compliance google list-projects
+## lacework alert show
 
-List projects from an organization
+Show details about a specific alert
 
 ### Synopsis
 
-List all GCP projects from the provided organization ID.
+Show details about a specific alert.
 
-Use the following command to list all GCP integrations in your account:
+There are different types of alert details that can be shown to assist
+with alert investigation. These types are referred to as alert detail scopes.
 
-    lacework cloud-account list --type GcpCfg
+The following alert detail scopes are available:
 
-Then, select one GUID from an integration and visualize its details using the command:
+  * Details (default)
+  * Investigation
+  * Events
+  * RelatedAlerts
+  * Integrations
+  * Timeline
 
-    lacework cloud-account show <int_guid>
+View an alert's timeline details:
+
+  lacework alert show <alert_id> --scope Timeline
 
 
 ```
-lacework compliance google list-projects <organization_id> [flags]
+lacework alert show <alert_id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list-projects
+  -h, --help           help for show
+      --scope string   type of alert details to show (default "Details")
 ```
 
 ### Options inherited from parent commands
@@ -50,5 +59,5 @@ lacework compliance google list-projects <organization_id> [flags]
 
 ### SEE ALSO
 
-* [lacework compliance google](lacework_compliance_google.md)	 - Compliance for Google Cloud
+* [lacework alert](lacework_alert.md)	 - Inspect and manage alerts
 

@@ -1,15 +1,19 @@
 ---
-title: "lacework integration show"
-slug: lacework_integration_show
+title: "lacework alert-profile show"
+slug: lacework_alert-profile_show
 hide_title: true
 ---
 
-## lacework integration show
+## lacework alert-profile show
 
-Show details about a specific external integration
+Show an alert profile by ID
+
+### Synopsis
+
+Show a single alert profile by its ID.
 
 ```
-lacework integration show <int_guid> [flags]
+lacework alert-profile show <alert_profile_id> [flags]
 ```
 
 ### Options
@@ -37,5 +41,5 @@ lacework integration show <int_guid> [flags]
 
 ### SEE ALSO
 
-* [lacework integration](lacework_integration.md)	 - Manage external integrations
+* [lacework alert-profile](lacework_alert-profile.md)	 - Manage alert profiles
 
