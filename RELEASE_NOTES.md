@@ -1,10 +1,10 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.13.2`.
+Another day, another release. These are the release notes for the version `v1.13.3`.
 
-## Documentation Updates
-* docs: update docs cmd to remove directory before generating (#1180) (Darren)([61de93bc](https://github.com/lacework/go-sdk/commit/61de93bcd2827daabb98e0de0fe23ec6a30b2ec6))
+## Bug Fixes
+* fix(cli): avoid auth for completion cmds (#1183) (Salim Afiune)([92c385d5](https://github.com/lacework/go-sdk/commit/92c385d58732a09260757f29dad060bc323d0e3e))
 ## Other Changes
-* ci: version bump to v1.13.2-dev (Lacework)([9ed2b128](https://github.com/lacework/go-sdk/commit/9ed2b128deff288e1b25bca091e57c7409d34db3))
+* ci: version bump to v1.13.3-dev (Lacework)([5c2f8bc2](https://github.com/lacework/go-sdk/commit/5c2f8bc203788b006647233c4c635355615189c8))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
