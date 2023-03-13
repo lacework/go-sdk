@@ -88,9 +88,13 @@ func cliPersistentPreRun(cmd *cobra.Command, args []string) error {
 	case "help [command]", "configure", "version", "docs <directory>", "generate-pkg-manifest":
 		return nil
 	default:
-		// @afiune no need to create a client for any configure command
-		if cmd.HasParent() && cmd.Parent().Use == "configure" {
-			return nil
+		if cmd.HasParent() {
+			switch cmd.Parent().Use {
+			case "configure", "completion":
+				// @afiune no need to create a client for any configure
+				// command or any completion command
+				return nil
+			}
 		}
 		if err := cli.NewClient(); err != nil {
 			if !strings.Contains(err.Error(), "Invalid Account") {
