@@ -27,6 +27,11 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercon
 ```
 brew install lacework/tap/lacework-cli
 ```
+
+### Chocolatey:
+```
+choco install lacework-cli
+```
 ## Quick Configuration
 
 The `lacework configure` command is the fastest way to set up your Lacework
