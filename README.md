@@ -43,7 +43,7 @@ For more details, see [Lacework Homebrew Tap](https://github.com/lacework/homebr
 ```
 choco install lacework-cli
 ```
-For more details, see [Lacework CLI Chocolatey](https://community.chocolatey.org/packages/lacework-cli).
+For more details, see [Lacework CLI Chocolatey](https://community.chocolatey.org/packages/lacework-cli#install).
 
 Look at the [cli/](cli/) folder for more information.
 
