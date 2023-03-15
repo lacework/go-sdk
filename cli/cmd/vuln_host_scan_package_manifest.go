@@ -201,7 +201,6 @@ func hostScanPackagesVulnToTable(scan api.VulnerabilitySoftwarePackagesResponse)
 			"Package",
 			"Version",
 			"Fix Version",
-			"Status",
 		}
 	}
 
@@ -245,6 +244,11 @@ func filterHostScanPackagesVulnDetails(vulns []api.VulnerabilitySoftwarePackage)
 	out := make([]api.VulnerabilitySoftwarePackage, 0)
 
 	for _, vuln := range vulns {
+
+		if !vuln.IsVulnerable() {
+			continue
+		}
+
 		if vulCmdState.Fixable && !vuln.HasFix() {
 			continue
 		}
@@ -265,7 +269,6 @@ func hostScanPackagesVulnDetailsTable(vulns []api.VulnerabilitySoftwarePackage) 
 			vuln.OsPkgInfo.Pkg,
 			vuln.OsPkgInfo.PkgVer,
 			vuln.FixInfo.FixedVersion,
-			vuln.FixInfo.EvalStatus,
 		})
 	}
 
