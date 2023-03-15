@@ -244,7 +244,6 @@ func filterHostScanPackagesVulnDetails(vulns []api.VulnerabilitySoftwarePackage)
 	out := make([]api.VulnerabilitySoftwarePackage, 0)
 
 	for _, vuln := range vulns {
-
 		if !vuln.IsVulnerable() {
 			continue
 		}

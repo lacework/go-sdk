@@ -16,6 +16,9 @@ func TestFilterHostScanPackagesVulnDetails(t *testing.T) {
 
 func TestFilterHostScanPackagesVulnDetailsFixable(t *testing.T) {
 	vulCmdState.Fixable = true
+	defer func() {
+		vulCmdState.Fixable = false
+	}()
 	res := filterHostScanPackagesVulnDetails(mockVulnPackages)
 
 	assert.Equal(t, len(res), 1)
