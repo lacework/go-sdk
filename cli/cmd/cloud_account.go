@@ -299,6 +299,8 @@ func promptCreateCloudAccount() error {
 		return createGcpConfigIntegration()
 	case "GCP Audit Log":
 		return createGcpAuditLogIntegration()
+	case "GCP Pub Sub Audit Log":
+		return createGcpPubSubAuditLogIntegration()
 	case "Azure Config":
 		return createAzureConfigIntegration()
 	case "Azure Activity Log":
