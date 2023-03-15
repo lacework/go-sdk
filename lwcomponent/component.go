@@ -31,9 +31,11 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"time"
 
 	"aead.dev/minisign"
 	"github.com/Masterminds/semver"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/pkg/errors"
 
 	"github.com/lacework/go-sdk/api"
@@ -62,8 +64,11 @@ func LoadState(client *api.Client) (*State, error) {
 	if client != nil {
 		s := new(State)
 
-		// load remote components
-		err := client.RequestDecoder("GET", "v2/Components", nil, s)
+		// load remote components - this involves a network call that may fail due
+		// to network issues or rate limits, so we retry this if it fails
+		err := backoff.Retry(func() error {
+			return client.RequestDecoder("GET", "v2/Components", nil, s)
+		}, backoffStrategy())
 		if err != nil {
 			return s, err
 		}
@@ -77,6 +82,13 @@ func LoadState(client *api.Client) (*State, error) {
 		return s, s.WriteState()
 	}
 	return nil, errors.New("invalid api client")
+}
+
+func backoffStrategy() *backoff.ExponentialBackOff {
+	strategy := backoff.NewExponentialBackOff()
+	strategy.InitialInterval = 2 * time.Second
+	strategy.MaxElapsedTime = 1 * time.Minute
+	return strategy
 }
 
 // loadComponentsFromDisk will load all component from disk (local)
