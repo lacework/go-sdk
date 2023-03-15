@@ -39,6 +39,10 @@ func (v *VulnerabilitySoftwarePackage) HasFix() bool {
 	return v.FixInfo.FixAvailable == 1
 }
 
+func (v *VulnerabilitySoftwarePackage) IsVulnerable() bool {
+	return v.FixInfo.EvalStatus == "VULNERABLE"
+}
+
 func (v *VulnerabilitySoftwarePackage) ScoreString() string {
 	if v.CveProps.Metadata.Nvd.Cvssv3.Score != 0 {
 		return fmt.Sprintf("%.1f", v.CveProps.Metadata.Nvd.Cvssv3.Score)
