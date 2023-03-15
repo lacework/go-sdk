@@ -89,7 +89,7 @@ var (
 				Policies: []string{"lacework-global-22", "lacework-global-78"},
 			}},
 		},
-		Props: api.ReportDefinitionProps{
+		Props: &api.ReportDefinitionProps{
 			Engine: "lpp",
 		},
 		DistributionType: "pdf",
@@ -112,7 +112,7 @@ var (
 				Policies: []string{"lacework-global-22", "lacework-global-78"},
 			}},
 		},
-		Props: api.ReportDefinitionProps{
+		Props: &api.ReportDefinitionProps{
 			Engine: "lpp",
 		},
 		DistributionType: "pdf",
@@ -135,7 +135,7 @@ var (
 				Policies: []string{"lacework-global-22", "lacework-global-78"},
 			}},
 		},
-		Props: api.ReportDefinitionProps{
+		Props: &api.ReportDefinitionProps{
 			Engine: "lpp",
 		},
 		DistributionType: "pdf",
