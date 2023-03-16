@@ -133,6 +133,15 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			ReqProvider(projectName, moduleImportProjectLevelAuditLogExistingLogSinkName),
 		},
 		{
+			"TestGenerationProjectLevelPubSubAuditLogExistingLogSinkName",
+			gcp.NewTerraform(false, true, true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithExistingLogSinkName("foo"),
+			),
+			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogExistingLogSinkName),
+		},
+		{
 			"TestGenerationProjectLevelAuditLogEnableForceDestroyBucket",
 			gcp.NewTerraform(false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -179,6 +188,16 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			ReqProvider(projectName, moduleImportOrganizationLevelAuditLogWithoutConfiguration),
 		},
 		{
+			"TestGenerationOrganizationLevelPubSubAuditLogWithoutConfig",
+			gcp.NewTerraform(false, true, true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithOrganizationIntegration(true),
+				gcp.WithOrganizationId("123456789"),
+			),
+			ReqProvider(projectName, moduleImportOrganizationLevelPubSubAuditLogWithoutConfiguration),
+		},
+		{
 			"TestGenerationOrganizationLevelAuditLogCustomIntegrationName",
 			gcp.NewTerraform(false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -190,12 +209,31 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			ReqProvider(projectName, moduleImportOrganizationLevelAuditLogCustomIntegrationName),
 		},
 		{
+			"TestGenerationOrganizationLevelPubSubAuditLogCustomIntegrationName",
+			gcp.NewTerraform(false, true, true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithOrganizationIntegration(true),
+				gcp.WithOrganizationId("123456789"),
+				gcp.WithAuditLogIntegrationName("custom_integration_name"),
+			),
+			ReqProvider(projectName, moduleImportOrganizationLevelPubSubAuditLogCustomIntegrationName),
+		},
+		{
 			"TestGenerationProjectLevelAuditLogWithConfiguration",
 			gcp.NewTerraform(true, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 			),
 			ReqProvider(projectName, moduleImportProjectLevelConfiguration, moduleImportProjectLevelAuditLogWithConfiguration),
+		},
+		{
+			"TestGenerationProjectLevelPubSubAuditLogWithConfiguration",
+			gcp.NewTerraform(true, true, true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+			),
+			ReqProvider(projectName, moduleImportProjectLevelConfiguration, moduleImportProjectLevelPubSubAuditLogWithConfiguration),
 		},
 		{
 			"TestGenerationOrganizationLevelAuditLogWithConfig",
@@ -716,6 +754,14 @@ var moduleImportProjectLevelAuditLogWithConfiguration = `module "gcp_project_aud
   use_existing_service_account = true
 }
 `
+var moduleImportProjectLevelPubSubAuditLogWithConfiguration = `module "gcp_project_audit_log" {
+  source                       = "lacework/pub-sub-audit-log/gcp"
+  version                      = "~> 0.2"
+  service_account_name         = module.gcp_project_level_config.service_account_name
+  service_account_private_key  = module.gcp_project_level_config.service_account_private_key
+  use_existing_service_account = true
+}
+`
 
 var moduleImportProjectLevelAuditLogWithoutConfiguration = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
@@ -799,6 +845,12 @@ var moduleImportProjectLevelAuditLogExistingLogSinkName = `module "gcp_project_a
   existing_sink_name = "foo"
 }
 `
+var moduleImportProjectLevelPubSubAuditLogExistingLogSinkName = `module "gcp_project_audit_log" {
+  source             = "lacework/pub-sub-audit-log/gcp"
+  version            = "~> 0.2"
+  existing_sink_name = "foo"
+}
+`
 
 var moduleImportProjectLevelAuditLogEnableForceDestroyBucket = `module "gcp_project_audit_log" {
   source               = "lacework/audit-log/gcp"
@@ -857,9 +909,25 @@ var moduleImportOrganizationLevelAuditLogWithoutConfiguration = `module "gcp_org
   organization_id = "123456789"
 }
 `
+
+var moduleImportOrganizationLevelPubSubAuditLogWithoutConfiguration = `module "gcp_organization_level_audit_log" {
+  source          = "lacework/pub-sub-audit-log/gcp"
+  version         = "~> 0.2"
+  org_integration = true
+  organization_id = "123456789"
+}
+` 
 var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_organization_level_audit_log" {
   source                    = "lacework/audit-log/gcp"
   version                   = "~> 3.0"
+  lacework_integration_name = "custom_integration_name"
+  org_integration           = true
+  organization_id           = "123456789"
+}
+`
+var moduleImportOrganizationLevelPubSubAuditLogCustomIntegrationName = `module "gcp_organization_level_audit_log" {
+  source                    = "lacework/pub-sub-audit-log/gcp"
+  version                   = "~> 0.2"
   lacework_integration_name = "custom_integration_name"
   org_integration           = true
   organization_id           = "123456789"
