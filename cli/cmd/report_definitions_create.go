@@ -61,6 +61,9 @@ func createReportDefinition(_ *cobra.Command, args []string) error {
 		}
 
 		cfg, err := parseNewReportDefinition(fileInput)
+		if err != nil {
+			return err
+		}
 		reportDefinition = api.NewReportDefinition(cfg)
 	} else {
 		reportDefinition, err = promptCreateReportDefinition()
@@ -231,6 +234,10 @@ func promptCreateReportDefinitionFromExisting() (reportDefinition api.ReportDefi
 	resp, err := cli.LwApi.V2.ReportDefinitions.List()
 	cli.StopProgress()
 
+	if err != nil {
+		return
+	}
+
 	for _, report := range resp.Data {
 		reports[report.ReportName] = report
 		reportNames = append(reportNames, report.ReportName)
@@ -253,6 +260,9 @@ func promptCreateReportDefinitionFromExisting() (reportDefinition api.ReportDefi
 
 	// open editor with report yaml
 	report, err := inputReportDefinitionFromEditor("create", string(reportTemplateYaml))
+	if err != nil {
+		return
+	}
 	err = yaml.Unmarshal([]byte(report), &reportDefinition)
 
 	return
