@@ -30,6 +30,16 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			ReqProvider(projectName, moduleImportProjectLevelAuditLogWithoutConfiguration),
 		},
 		{
+			"TestGenerationProjectLevelPubSubAuditLogWithoutConfig",
+			gcp.NewTerraform(
+				false,
+				true,
+				true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName)),
+			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogWithoutConfiguration),
+		},
+		{
 			"TestGenerationProjectLevelAuditLogWithoutCredentialsAndProject",
 			gcp.NewTerraform(false, true, false),
 			fmt.Sprintf("%s\n%s\n%s", RequiredProviders, gcpProviderWithoutCredentialsAndProject, moduleImportProjectLevelAuditLogWithoutConfiguration),
@@ -50,6 +60,14 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 				gcp.WithProjectId(projectName),
 				gcp.WithAuditLogIntegrationName("custom_integration_name")),
 			ReqProvider(projectName, moduleImportProjectLevelAuditLogCustomIntegrationName),
+		},
+		{
+			"TestGenerationProjectLevelPubSubAuditLogCustomIntegrationName",
+			gcp.NewTerraform(false, true, true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithAuditLogIntegrationName("custom_integration_name")),
+			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogCustomIntegrationName),
 		},
 		{
 			"TestGenerationProjectLevelAuditLogLabels",
@@ -188,6 +206,16 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 				gcp.WithOrganizationId("123456789"),
 			),
 			ReqProvider(projectName, moduleImportOrganizationLevelConfiguration, moduleImportOrganizationLevelAuditLogWithConfiguration),
+		},
+		{
+			"TestGenerationOrganizationLevelPubSubAuditLogWithConfig",
+			gcp.NewTerraform(true, true, true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithOrganizationIntegration(true),
+				gcp.WithOrganizationId("123456789"),
+			),
+			ReqProvider(projectName, moduleImportOrganizationLevelConfiguration, moduleImportOrganizationLevelPubSubAuditLogWithConfiguration),
 		},
 		{
 			"TestGenerationProjectLevelAuditLogCustomBucketName",
@@ -701,6 +729,19 @@ var moduleImportProjectLevelAuditLogCustomIntegrationName = `module "gcp_project
   lacework_integration_name = "custom_integration_name"
 }
 `
+var moduleImportProjectLevelPubSubAuditLogWithoutConfiguration = `module "gcp_project_audit_log" {
+  source  = "lacework/pub-sub-audit-log/gcp"
+  version = "~> 0.2"
+}
+`
+  
+var moduleImportProjectLevelPubSubAuditLogCustomIntegrationName = `module "gcp_project_audit_log" {
+  source                    = "lacework/pub-sub-audit-log/gcp"
+  version                   = "~> 0.2"
+  lacework_integration_name = "custom_integration_name"
+}
+`
+
 
 var moduleImportProjectLevelAuditLogLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
@@ -796,6 +837,18 @@ var moduleImportOrganizationLevelAuditLogWithConfiguration = `module "gcp_organi
   use_existing_service_account = true
 }
 `
+
+var moduleImportOrganizationLevelPubSubAuditLogWithConfiguration = `module "gcp_organization_level_audit_log" {
+  source                       = "lacework/pub-sub-audit-log/gcp"
+  version                      = "~> 0.2"
+  org_integration              = true
+  organization_id              = "123456789"
+  service_account_name         = module.gcp_organization_level_config.service_account_name
+  service_account_private_key  = module.gcp_organization_level_config.service_account_private_key
+  use_existing_service_account = true
+}
+`  
+
 
 var moduleImportOrganizationLevelAuditLogWithoutConfiguration = `module "gcp_organization_level_audit_log" {
   source          = "lacework/audit-log/gcp"
