@@ -780,14 +780,13 @@ var moduleImportProjectLevelPubSubAuditLogWithoutConfiguration = `module "gcp_pr
   version = "~> 0.2"
 }
 `
-  
+
 var moduleImportProjectLevelPubSubAuditLogCustomIntegrationName = `module "gcp_project_audit_log" {
   source                    = "lacework/pub-sub-audit-log/gcp"
   version                   = "~> 0.2"
   lacework_integration_name = "custom_integration_name"
 }
 `
-
 
 var moduleImportProjectLevelAuditLogLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
@@ -899,8 +898,7 @@ var moduleImportOrganizationLevelPubSubAuditLogWithConfiguration = `module "gcp_
   service_account_private_key  = module.gcp_organization_level_config.service_account_private_key
   use_existing_service_account = true
 }
-`  
-
+`
 
 var moduleImportOrganizationLevelAuditLogWithoutConfiguration = `module "gcp_organization_level_audit_log" {
   source          = "lacework/audit-log/gcp"
@@ -916,7 +914,7 @@ var moduleImportOrganizationLevelPubSubAuditLogWithoutConfiguration = `module "g
   org_integration = true
   organization_id = "123456789"
 }
-` 
+`
 var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_organization_level_audit_log" {
   source                    = "lacework/audit-log/gcp"
   version                   = "~> 3.0"
