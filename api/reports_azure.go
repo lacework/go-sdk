@@ -36,7 +36,8 @@ type azureReportsService struct {
 type AzureReportConfig struct {
 	TenantID       string
 	SubscriptionID string
-	Type           AzureReportType
+	Value          string
+	Parameter      reportFilter
 }
 
 type AzureReportType int
@@ -91,7 +92,7 @@ func (svc *azureReportsService) Get(reportCfg AzureReportConfig) (response Azure
 		return AzureReportResponse{}, errors.New("specify an account id")
 	}
 
-	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.TenantID, reportCfg.SubscriptionID, "json", reportCfg.Type.String())
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.TenantID, reportCfg.SubscriptionID, "json", reportCfg.Parameter.String(), reportCfg.Value)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
@@ -101,7 +102,7 @@ func (svc *azureReportsService) DownloadPDF(filepath string, config AzureReportC
 		return errors.New("tenant_id and subscription_id are required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2Reports, config.TenantID, "pdf", config.SubscriptionID)
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, config.TenantID, config.SubscriptionID, "pdf", config.Parameter.String(), config.Value)
 
 	request, err := svc.client.NewRequest("GET", apiPath, nil)
 	if err != nil {

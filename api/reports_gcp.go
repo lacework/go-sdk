@@ -36,7 +36,8 @@ type gcpReportsService struct {
 type GcpReportConfig struct {
 	OrganizationID string
 	ProjectID      string
-	Type           GcpReportType
+	Value          string
+	Parameter      reportFilter
 }
 
 type GcpReportType int
@@ -103,7 +104,7 @@ func (svc *gcpReportsService) Get(reportCfg GcpReportConfig) (response GcpReport
 		return GcpReportResponse{}, errors.New("project id and org id are required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.OrganizationID, reportCfg.ProjectID, "json", reportCfg.Type.String())
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.OrganizationID, reportCfg.ProjectID, "json", reportCfg.Parameter.String(), reportCfg.Value)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
@@ -113,7 +114,7 @@ func (svc *gcpReportsService) DownloadPDF(filepath string, config GcpReportConfi
 		return errors.New("project id and org id are required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, config.OrganizationID, config.ProjectID, "pdf", config.Type)
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, config.OrganizationID, config.ProjectID, "pdf", config.Parameter.String(), config.Value)
 
 	request, err := svc.client.NewRequest("GET", apiPath, nil)
 	if err != nil {

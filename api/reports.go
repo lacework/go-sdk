@@ -35,6 +35,25 @@ func NewReportsService(c *Client) *ReportsService {
 	}
 }
 
+// The method by which a report can be retrieved from v2/Reports/ api
+// can be 'reportName' or 'reportType'
+type reportFilter int
+
+const (
+	ReportFilterType reportFilter = iota
+	ReportFilterName
+)
+
+// reportFilterTypes is the list of available report filter types
+var reportFilterTypes = map[reportFilter]string{
+	ReportFilterType: "reportType",
+	ReportFilterName: "reportName",
+}
+
+func (r reportFilter) String() string {
+	return reportFilterTypes[r]
+}
+
 type ReportSummary struct {
 	NumRecommendations        int `json:"NUM_RECOMMENDATIONS"`
 	NumSeverity2NonCompliance int `json:"NUM_SEVERITY_2_NON_COMPLIANCE"`
