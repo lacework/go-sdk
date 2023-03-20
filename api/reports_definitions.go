@@ -106,6 +106,7 @@ func (svc *ReportDefinitionsService) Create(report ReportDefinition) (response R
 func NewReportDefinition(cfg ReportDefinitionConfig) ReportDefinition {
 	return ReportDefinition{
 		ReportName:              cfg.ReportName,
+		DisplayName:             cfg.DisplayName,
 		ReportType:              cfg.ReportType,
 		SubReportType:           cfg.SubReportType,
 		ReportDefinitionDetails: ReportDefinitionDetails{Sections: cfg.Sections},
@@ -116,6 +117,7 @@ var ReportDefinitionSubtypes = []string{"AWS", "Azure", "GCP"}
 
 type ReportDefinitionConfig struct {
 	ReportName    string                    `json:"reportName" yaml:"reportName"`
+	DisplayName   string                    `json:"displayName" yaml:"displayName"`
 	ReportType    string                    `json:"reportType" yaml:"reportType"`
 	SubReportType string                    `json:"subReportType" yaml:"subReportType"`
 	Sections      []ReportDefinitionSection `json:"sections,omitempty" yaml:"sections,omitempty"`

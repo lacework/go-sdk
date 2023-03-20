@@ -1,6 +1,6 @@
 //
 // Author:: Darren Murray(<darren.murray@lacework.net>)
-// Copyright:: Copyright 2022, Lacework Inc.
+// Copyright:: Copyright 2023, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +80,7 @@ func createReportDefinition(_ *cobra.Command, args []string) error {
 	}
 
 	cli.OutputHuman("New report definition created. To view the report run:\n\n"+
-		"lacework report-definition show %s\n", resp.Data.ReportDefinitionGuid)
+		"lacework report-definition show %s \n", resp.Data.ReportDefinitionGuid)
 	return nil
 }
 
@@ -97,7 +97,7 @@ func inputReportDefinitionFromFile(filePath string) (string, error) {
 func promptCreateReportDefinition() (api.ReportDefinition, error) {
 	var useExisting bool
 
-	if err := survey.AskOne(&survey.Confirm{Message: CreateNewReportDefinitionQuestion}, &useExisting); err != nil {
+	if err := survey.AskOne(&survey.Confirm{Message: CreateReportDefinitionQuestion}, &useExisting); err != nil {
 		return api.ReportDefinition{}, err
 	}
 
@@ -112,17 +112,17 @@ func promptCreateReportDefinitionFromNew() (reportDefinition api.ReportDefinitio
 	questions := []*survey.Question{
 		{
 			Name:     "name",
-			Prompt:   &survey.Input{Message: "Report Name: "},
+			Prompt:   &survey.Input{Message: CreateReportDefinitionReportNameQuestion},
 			Validate: survey.Required,
 		},
 		{
 			Name:     "display",
-			Prompt:   &survey.Input{Message: "Display Name: "},
+			Prompt:   &survey.Input{Message: CreateReportDefinitionDisplayNameQuestion},
 			Validate: survey.Required,
 		},
 		{
 			Name:     "subType",
-			Prompt:   &survey.Select{Message: "Report SubType: ", Options: api.ReportDefinitionSubTypes()},
+			Prompt:   &survey.Select{Message: CreateReportDefinitionReportSubTypeQuestion, Options: api.ReportDefinitionSubTypes()},
 			Validate: survey.Required,
 		},
 	}
@@ -154,7 +154,7 @@ func promptCreateReportDefinitionFromNew() (reportDefinition api.ReportDefinitio
 	addSection := false
 	for {
 		if err = survey.AskOne(&survey.Confirm{
-			Message: "Add another policy section?",
+			Message: CreateReportDefinitionAddSectionQuestion,
 		}, &addSection); err != nil {
 			return
 		}
@@ -195,12 +195,12 @@ func promptAddReportDefinitionSection(sections *[]api.ReportDefinitionSection) e
 	questions := []*survey.Question{
 		{
 			Name:     "title",
-			Prompt:   &survey.Input{Message: "Section Title: "},
+			Prompt:   &survey.Input{Message: CreateReportDefinitionSectionTitleQuestion},
 			Validate: survey.Required,
 		},
 		{
 			Name:     "policies",
-			Prompt:   &survey.MultiSelect{Message: "Select Policies in this Section: ", Options: policyIDs},
+			Prompt:   &survey.MultiSelect{Message: CreateReportDefinitionPoliciesQuestion, Options: policyIDs},
 			Validate: survey.MinItems(1),
 		},
 	}
@@ -282,14 +282,13 @@ func inputReportDefinitionFromEditor(action string, reportYaml string) (report s
 }
 
 func parseNewReportDefinition(s string) (report api.ReportDefinitionConfig, err error) {
-	// valid json
-	// support passing json response from show cmd
 	var res api.ReportDefinitionResponse
 	if err = json.Unmarshal([]byte(s), &res); err == nil && res.Data.ReportName != "" {
 		report = api.ReportDefinitionConfig{
 			ReportName:    res.Data.ReportName,
 			ReportType:    res.Data.ReportType,
 			SubReportType: res.Data.SubReportType,
+			DisplayName:   res.Data.DisplayName,
 			Sections:      res.Data.ReportDefinitionDetails.Sections,
 		}
 		return report, nil
@@ -301,17 +300,23 @@ func parseNewReportDefinition(s string) (report api.ReportDefinitionConfig, err 
 			ReportName:    cfg.ReportName,
 			ReportType:    cfg.ReportType,
 			SubReportType: cfg.SubReportType,
+			DisplayName:   cfg.DisplayName,
 			Sections:      cfg.ReportDefinitionDetails.Sections,
 		}
 		return report, nil
 	}
 
-	// valid yaml
-	err = yaml.Unmarshal([]byte(s), &report)
-	if err == nil {
-		return
+	var yamlCfg api.ReportDefinition
+	if err = yaml.Unmarshal([]byte(s), &yamlCfg); err == nil && yamlCfg.ReportName != "" {
+		report = api.ReportDefinitionConfig{
+			ReportName:    yamlCfg.ReportName,
+			ReportType:    yamlCfg.ReportType,
+			SubReportType: yamlCfg.SubReportType,
+			DisplayName:   yamlCfg.DisplayName,
+			Sections:      yamlCfg.ReportDefinitionDetails.Sections,
+		}
+		return report, nil
 	}
 
-	// invalid input
 	return report, errors.New("unable to parse report definition file")
 }

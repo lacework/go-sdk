@@ -29,8 +29,15 @@ import (
 )
 
 var (
-	CreateNewReportDefinitionQuestion = "Create from an existing report definition template?"
-	SelectReportDefinitionQuestion    = "Select an existing report definition as a template?"
+	CreateReportDefinitionQuestion              = "Create from an existing report definition template?"
+	CreateReportDefinitionReportNameQuestion    = "Report Name: "
+	CreateReportDefinitionDisplayNameQuestion   = "Display Name: "
+	CreateReportDefinitionReportSubTypeQuestion = "Report SubType: "
+	CreateReportDefinitionAddSectionQuestion    = "Add another policy section?"
+	CreateReportDefinitionSectionTitleQuestion  = "Section Title: "
+	CreateReportDefinitionPoliciesQuestion      = "Select Policies in this Section: "
+
+	SelectReportDefinitionQuestion = "Select an existing report definition as a template?"
 
 	reportDefinitionsCmdState = struct {
 		// filter report definitions by subtype. 'AWS', 'GCP' or 'Azure'
