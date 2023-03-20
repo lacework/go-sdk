@@ -7,6 +7,7 @@ Aliases:
   report-definition, report-definitions, rd
 
 Available Commands:
+  create      Create a report definition
   delete      Delete a report definition
   list        List all report definitions
   show        Show a report definition by ID
