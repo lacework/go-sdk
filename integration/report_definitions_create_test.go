@@ -34,7 +34,7 @@ func TestReportDefinitionsPromptCreate(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 
-	dir := createDummyTOMLConfig()
+	dir := createTOMLConfigFromCIvars()
 	defer os.RemoveAll(dir)
 
 	runFakeTerminalTestFromDir(t, dir,
@@ -62,7 +62,7 @@ func TestReportDefinitionsPromptCreate(t *testing.T) {
 func removeReportDefinitionResponse(final string) error {
 	res := strings.Split(final, "lacework report-definition show ")
 	fmt.Println(res[1])
-	id := strings.TrimSuffix(res[1], "\r\n")
+	id := strings.TrimSuffix(res[1], " \r\n")
 
 	_, _, exitcode := LaceworkCLIWithTOMLConfig(
 		"rd", "delete", id,
