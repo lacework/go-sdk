@@ -82,7 +82,7 @@ var (
 
 			// validate report_name
 			if cmd.Flags().Changed("report_name") {
-				return validReportName(api.ReportDefinitionNotificationTypeAws, compAwsCmdState.ReportName)
+				return validReportName(api.ReportDefinitionSubTypeAws.String(), compAwsCmdState.ReportName)
 			}
 
 			if array.ContainsStr(api.AwsReportTypes(), compAwsCmdState.Type) {

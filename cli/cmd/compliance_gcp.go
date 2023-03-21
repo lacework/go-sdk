@@ -138,7 +138,7 @@ Then, select one GUID from an integration and visualize its details using the co
 
 			// validate report_name
 			if cmd.Flags().Changed("report_name") {
-				return validReportName(api.ReportDefinitionNotificationTypeGcp, compGcpCmdState.ReportName)
+				return validReportName(api.ReportDefinitionSubTypeGcp.String(), compGcpCmdState.ReportName)
 			}
 
 			if array.ContainsStr(api.GcpReportTypes(), compGcpCmdState.Type) {
