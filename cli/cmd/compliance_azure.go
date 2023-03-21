@@ -136,7 +136,7 @@ Use the following command to list all Azure Tenants configured in your account:
 
 			// validate report_name
 			if cmd.Flags().Changed("report_name") {
-				return validReportName(api.ReportDefinitionNotificationTypeAzure, compAzCmdState.ReportName)
+				return validReportName(api.ReportDefinitionSubTypeAzure.String(), compAzCmdState.ReportName)
 			}
 
 			if array.ContainsStr(api.AzureReportTypes(), compAzCmdState.Type) {
