@@ -240,8 +240,10 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 
 	switch {
 	case cli.JSONOutput():
-		filteredAssessment := assessment
-		if err := cli.OutputJSON(filteredAssessment); err != nil {
+		jsonOut := struct {
+			Vulnerabilities []api.VulnerabilityContainer `json:"vulnerabilities"`
+		}{assessment}
+		if err := cli.OutputJSON(jsonOut); err != nil {
 			return err
 		}
 	case cli.CSVOutput():
@@ -514,6 +516,7 @@ func filterVulnerabilityContainer(image []api.VulnerabilityContainer) filteredIm
 
 func vulContainerImageLayersToCSV(imageTable filteredImageTable) [][]string {
 	var out [][]string
+
 	for _, vuln := range imageTable.Vulnerabilities {
 		out = append(out, []string{
 			vuln.Name,

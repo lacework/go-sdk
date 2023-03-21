@@ -141,6 +141,23 @@ CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,"example introduce
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
 }
 
+func TestBuildVulnCtrReportJSONOutput(t *testing.T) {
+	cli.EnableJSONOutput()
+	defer func() {
+		cli.EnableHumanOutput()
+	}()
+
+	var response api.VulnerabilitiesContainersResponse
+	if err := json.Unmarshal([]byte(mockIntroducedInLayerResponse), &response); err != nil {
+		panic(err)
+	}
+	cliJSONOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, buildVulnContainerAssessmentReports(response))
+	})
+
+	assert.Equal(t, cliJSONOutput, mockJSONOutputFromShowAssessmentCmd)
+}
+
 func TestBuildVulnCtrReportWithAggregatedIntroducedInLayer(t *testing.T) {
 	vulCmdState.Details = true
 	defer func() {
@@ -413,6 +430,157 @@ var rawListAssessments = `
 ]
 }`
 
+var mockJSONOutputFromShowAssessmentCmd = `{
+  "vulnerabilities": [
+    {
+      "evalCtx": {
+        "cve_batch_info": [
+          {
+            "cve_batch_id": "",
+            "cve_created_time": "2022-11-21 00:21:41.678000000"
+          }
+        ],
+        "exception_props": [
+          {
+            "status": ""
+          }
+        ],
+        "image_info": {
+          "created_time": 1605140985874,
+          "digest": "sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a",
+          "error_msg": null,
+          "id": "sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+          "registry": "index.docker.io",
+          "repo": "techally-test/test-cli",
+          "size": 360608563,
+          "status": "Success",
+          "tags": [
+            "latest"
+          ],
+          "type": "Docker"
+        },
+        "isDailyJob": "",
+        "is_reeval": false,
+        "scan_batch_id": "467a274c-f847-456b-b62d-13f9d88988cc-1669055607923432004",
+        "scan_created_time": "",
+        "scan_request_props": {
+          "data_format_version": "1.0",
+          "environment": {
+            "docker_version": {
+              "error_message": ""
+            }
+          },
+          "props": {
+            "data_format_version": "1.0",
+            "scanner_version": "10.0.155"
+          },
+          "scanCompletionUtcTime": 1669055607,
+          "scan_start_time": 1669055600,
+          "scanner_version": "10.0.155"
+        },
+        "vuln_batch_id": "7B2EDDD2D2D140ECA6B85001FC62AE45",
+        "vuln_created_time": "2022-11-21 00:21:41.678000000"
+      },
+      "evalGuid": "781865fdff984def2587b5f05065f0db",
+      "featureKey": {
+        "name": "example-1",
+        "namespace": "debian:9",
+        "version": "1.0.0"
+      },
+      "featureProps": {
+        "feed": "lacework",
+        "introduced_in": "example introduced in layer 1",
+        "layer": "sha256:sha256:572866ab72a68759e23b071fbbdce6341137c9606936b4fff9846f74997bbaac",
+        "src": "var/lib/dpkg/status",
+        "version_format": "dpkg"
+      },
+      "fixInfo": {
+        "compare_result": 0,
+        "fix_available": 1,
+        "fixed_version": "2.2.0-11+deb9u4"
+      },
+      "imageId": "sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+      "severity": "Medium",
+      "startTime": "2022-11-21T18:33:28.076Z",
+      "status": "VULNERABLE",
+      "vulnId": "CVE-2029-21234"
+    },
+    {
+      "evalCtx": {
+        "cve_batch_info": [
+          {
+            "cve_batch_id": "",
+            "cve_created_time": "2022-11-21 00:21:41.678000000"
+          }
+        ],
+        "exception_props": [
+          {
+            "status": ""
+          }
+        ],
+        "image_info": {
+          "created_time": 1605140985874,
+          "digest": "sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a",
+          "error_msg": null,
+          "id": "sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+          "registry": "index.docker.io",
+          "repo": "techally-test/test-cli",
+          "size": 360608563,
+          "status": "Success",
+          "tags": [
+            "latest"
+          ],
+          "type": "Docker"
+        },
+        "isDailyJob": "",
+        "is_reeval": false,
+        "scan_batch_id": "467a274c-f847-456b-b62d-13f9d88988cc-1669055607923432004",
+        "scan_created_time": "",
+        "scan_request_props": {
+          "data_format_version": "1.0",
+          "environment": {
+            "docker_version": {
+              "error_message": ""
+            }
+          },
+          "props": {
+            "data_format_version": "1.0",
+            "scanner_version": "10.0.155"
+          },
+          "scanCompletionUtcTime": 1669055607,
+          "scan_start_time": 1669055600,
+          "scanner_version": "10.0.155"
+        },
+        "vuln_batch_id": "7B2EDDD2D2D140ECA6B85001FC62AE45",
+        "vuln_created_time": "2022-11-21 00:21:41.678000000"
+      },
+      "evalGuid": "781865fdff984def2587b5f05065f0db",
+      "featureKey": {
+        "name": "example-1",
+        "namespace": "debian:9",
+        "version": "1.0.0"
+      },
+      "featureProps": {
+        "feed": "lacework",
+        "introduced_in": "example introduced in layer 2",
+        "layer": "sha256:sha256:572866ab72a68759e23b071fbbdce6341137c9606936b4fff9846f74997bbaac",
+        "src": "var/lib/dpkg/status",
+        "version_format": "dpkg"
+      },
+      "fixInfo": {
+        "compare_result": 0,
+        "fix_available": 1,
+        "fixed_version": "2.2.0-11+deb9u4"
+      },
+      "imageId": "sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+      "severity": "Medium",
+      "startTime": "2022-11-21T18:33:28.076Z",
+      "status": "VULNERABLE",
+      "vulnId": "CVE-2029-21234"
+    }
+  ]
+}
+`
 var mockIntroducedInLayerResponse = `
 {
     "paging": {
