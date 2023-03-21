@@ -95,6 +95,8 @@ const (
 
 	apiV2ReportDefinitions         = "v2/ReportDefinitions"
 	apiV2ReportDefinitionsFromGUID = "v2/ReportDefinitions/%s"
+	// To be re-added in GROW-1487
+	// apiV2ReportDefinitionsRevert   = "v2/ReportDefinitions/%s/RevertTo/%d"
 
 	apiV2ReportRules        = "v2/ReportRules"
 	apiV2ReportRuleFromGUID = "v2/ReportRules/%s"

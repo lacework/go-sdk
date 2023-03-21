@@ -22,11 +22,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 )
 
@@ -146,8 +148,29 @@ func promptCreateReportDefinitionFromNew() (reportDefinition api.ReportDefinitio
 
 	var sections []api.ReportDefinitionSection
 
+	cli.StartProgress("Fetching list of policy ids...")
+	resp, err := cli.LwApi.V2.Policy.List()
+	cli.StopProgress()
+
+	//filter the policies not in current report's domain
+	var policies []api.Policy
+	for _, p := range resp.Data {
+		domain := strings.ToUpper(answers.SubType)
+		if slices.Contains(p.Tags, fmt.Sprintf("domain:%s", domain)) {
+			policies = append(policies, p)
+		}
+	}
+
+	if err != nil {
+		return api.ReportDefinition{}, err
+	}
+
+	if len(policies) == 0 {
+		return api.ReportDefinition{}, errors.New("unable to find policies")
+	}
+
 	// add sections
-	if err = promptAddReportDefinitionSection(&sections); err != nil {
+	if err = promptAddReportDefinitionSection(&sections, policies); err != nil {
 		return
 	}
 
@@ -160,7 +183,7 @@ func promptCreateReportDefinitionFromNew() (reportDefinition api.ReportDefinitio
 		}
 
 		if addSection {
-			if err = promptAddReportDefinitionSection(&sections); err != nil {
+			if err = promptAddReportDefinitionSection(&sections, policies); err != nil {
 				return
 			}
 		} else {
@@ -173,22 +196,10 @@ func promptCreateReportDefinitionFromNew() (reportDefinition api.ReportDefinitio
 	return
 }
 
-func promptAddReportDefinitionSection(sections *[]api.ReportDefinitionSection) error {
+func promptAddReportDefinitionSection(sections *[]api.ReportDefinitionSection, policies []api.Policy) error {
 	var policyIDs []string
 
-	cli.StartProgress("Fetching list of policy ids...")
-	resp, err := cli.LwApi.V2.Policy.List()
-	cli.StopProgress()
-
-	if err != nil {
-		return err
-	}
-
-	if len(resp.Data) == 0 {
-		return errors.New("unable to find policies")
-	}
-
-	for _, policy := range resp.Data {
+	for _, policy := range policies {
 		policyIDs = append(policyIDs, policy.PolicyID)
 	}
 
@@ -210,7 +221,7 @@ func promptAddReportDefinitionSection(sections *[]api.ReportDefinitionSection) e
 		Policies []string `survey:"policies"`
 	}{}
 
-	if err = survey.Ask(questions, &answers, survey.WithIcons(promptIconsFunc)); err != nil {
+	if err := survey.Ask(questions, &answers, survey.WithIcons(promptIconsFunc)); err != nil {
 		return err
 	}
 
@@ -225,9 +236,10 @@ func promptAddReportDefinitionSection(sections *[]api.ReportDefinitionSection) e
 
 func promptCreateReportDefinitionFromExisting() (reportDefinition api.ReportDefinition, err error) {
 	var (
-		reports        = make(map[string]api.ReportDefinition)
-		reportNames    []string
-		selectedReport string
+		reports                = make(map[string]api.ReportDefinition)
+		reportNames            []string
+		selectedReport         string
+		reportDefinitionConfig api.ReportDefinitionConfig
 	)
 
 	cli.StartProgress("Fetching existing report definitions...")
@@ -263,14 +275,15 @@ func promptCreateReportDefinitionFromExisting() (reportDefinition api.ReportDefi
 	if err != nil {
 		return
 	}
-	err = yaml.Unmarshal([]byte(report), &reportDefinition)
+	err = yaml.Unmarshal([]byte(report), &reportDefinitionConfig)
 
+	reportDefinition = api.NewReportDefinition(reportDefinitionConfig)
 	return
 }
 
 func inputReportDefinitionFromEditor(action string, reportYaml string) (report string, err error) {
 	prompt := &survey.Editor{
-		Message:       fmt.Sprintf("Use the editor to %s your policy", action),
+		Message:       fmt.Sprintf("Use the editor to %s your report definition", action),
 		FileName:      "report-definition*.yaml",
 		HideDefault:   true,
 		AppendDefault: true,

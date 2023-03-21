@@ -153,6 +153,7 @@ var (
     RELEASE LABEL                                    
     UPDATED BY      SYSTEM                           
     LAST UPDATED    2022-09-09 10:35:16 +0000 UTC    
+    VERSION         2                                
                                                      
                         POLICIES                        
 --------------------------------------------------------
