@@ -29,9 +29,21 @@ import (
 )
 
 var (
+	CreateReportDefinitionQuestion              = "Create from an existing report definition template?"
+	CreateReportDefinitionReportNameQuestion    = "Report Name: "
+	CreateReportDefinitionDisplayNameQuestion   = "Display Name: "
+	CreateReportDefinitionReportSubTypeQuestion = "Report SubType: "
+	CreateReportDefinitionAddSectionQuestion    = "Add another policy section?"
+	CreateReportDefinitionSectionTitleQuestion  = "Section Title: "
+	CreateReportDefinitionPoliciesQuestion      = "Select Policies in this Section: "
+
+	SelectReportDefinitionQuestion = "Select an existing report definition as a template?"
+
 	reportDefinitionsCmdState = struct {
 		// filter report definitions by subtype. 'AWS', 'GCP' or 'Azure'
 		SubType string
+		// create report definitions from a file input
+		File string
 	}{}
 
 	// report-definitions command is used to manage lacework report definitions
@@ -128,7 +140,7 @@ var (
 		Long:  "Delete a single report definition by it's ID.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			cli.StartProgress(" Deleting report definition...")
+			cli.StartProgress("Deleting report definition...")
 			err := cli.LwApi.V2.ReportDefinitions.Delete(args[0])
 			cli.StopProgress()
 			if err != nil {
@@ -155,6 +167,7 @@ func init() {
 	rootCmd.AddCommand(reportDefinitionsCommand)
 
 	// add sub-commands to the report-definition command
+	reportDefinitionsCommand.AddCommand(reportDefinitionsCreateCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsListCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsShowCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsDeleteCommand)
@@ -163,16 +176,26 @@ func init() {
 	reportDefinitionsListCommand.Flags().StringVar(&reportDefinitionsCmdState.SubType,
 		"subtype", "", "filter report definitions by subtype. 'AWS', 'GCP' or 'Azure'",
 	)
+	reportDefinitionsCreateCommand.Flags().StringVar(&reportDefinitionsCmdState.File,
+		"file", "", "create a report definition from an existing definition file",
+	)
 }
 
 func buildReportDefinitionDetailsTable(definition api.ReportDefinition) string {
 	var (
-		details [][]string
+		details      [][]string
+		engine       = ""
+		releaseLabel = ""
 	)
 
 	details = append(details, []string{"FREQUENCY", definition.Frequency})
-	details = append(details, []string{"ENGINE", definition.Props.Engine})
-	details = append(details, []string{"RELEASE LABEL", definition.Props.ReleaseLabel})
+	if definition.Props != nil {
+		engine = definition.Props.Engine
+		releaseLabel = definition.Props.ReleaseLabel
+	}
+
+	details = append(details, []string{"ENGINE", engine})
+	details = append(details, []string{"RELEASE LABEL", releaseLabel})
 	details = append(details, []string{"UPDATED BY", definition.CreatedBy})
 	details = append(details, []string{"LAST UPDATED", definition.CreatedTime.String()})
 

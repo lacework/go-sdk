@@ -429,6 +429,17 @@ func (m MsgRsp) handle(t *testing.T, c *expect.Console) {
 	c.SendLine(m.response)
 }
 
+type Select struct {
+	message string
+}
+
+func (m Select) handle(t *testing.T, c *expect.Console) {
+	expectString(t, c, m.message)
+
+	c.SendLine("\x20")
+	c.Send("\x1B[B")
+}
+
 func expectsCliOutput(t *testing.T, c *expect.Console, m []MsgRspHandler) {
 	for _, elm := range m {
 		elm.handle(t, c)
