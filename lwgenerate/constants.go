@@ -23,10 +23,12 @@ const (
 	HashAzureRMProviderSource  = "hashicorp/azurerm"
 	HashAzureRMProviderVersion = "~> 2.91.0"
 
-	GcpConfigSource       = "lacework/config/gcp"
-	GcpConfigVersion      = "~> 2.3"
-	GcpAuditLogSource     = "lacework/audit-log/gcp"
-	GcpAuditLogVersion    = "~> 3.0"
-	GcpGKEAuditLogSource  = "lacework/gke-audit-log/gcp"
-	GcpGKEAuditLogVersion = "~> 0.3"
+	GcpConfigSource          = "lacework/config/gcp"
+	GcpConfigVersion         = "~> 2.3"
+	GcpAuditLogSource        = "lacework/audit-log/gcp"
+	GcpAuditLogVersion       = "~> 3.0"
+	GcpGKEAuditLogSource     = "lacework/gke-audit-log/gcp"
+	GcpGKEAuditLogVersion    = "~> 0.3"
+	GcpPubSubAuditLog        = "lacework/pub-sub-audit-log/gcp"
+	GcpPubSubAuditLogVersion = "~> 0.2"
 )

@@ -54,7 +54,7 @@ integration-generation: build-cli-cross-platform integration-generation-only ## 
 
 .PHONY: integration-generation-only
 integration-generation-only: ## Run integration tests
-	PATH=$(PWD)/bin:${PATH} go test -v github.com/lacework/go-sdk/integration -timeout 30m -run "^TestGeneration" -tags="generation"
+	PATH="$(PWD)/bin:${PATH}" go test -v github.com/lacework/go-sdk/integration -timeout 30m -run "^TestGeneration" -tags="generation"
 
 .PHONY: integration-only
 integration-only: install-tools ## Run integration tests
