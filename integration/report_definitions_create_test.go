@@ -1,5 +1,6 @@
 //go:build report_definitions && !windows
 
+//
 // Author:: Darren Murray (<dmurray-lacework@lacework.net>)
 // Copyright:: Copyright 2023, Lacework Inc.
 // License:: Apache License, Version 2.0
