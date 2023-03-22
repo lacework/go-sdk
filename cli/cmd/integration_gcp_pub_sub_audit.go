@@ -68,13 +68,13 @@ func createGcpPubSubAuditLogIntegration() error {
 			Validate: survey.Required,
 		},
 		{
-			Name:     "subscription_name",
-			Prompt:   &survey.Input{Message: "Subscription Name:"},
+			Name:     "subscription_id",
+			Prompt:   &survey.Input{Message: "Subscription ID:"},
 			Validate: survey.Required,
 		},
 		{
 			Name:     "topic_id",
-			Prompt:   &survey.Input{Message: "Topic Id:"},
+			Prompt:   &survey.Input{Message: "Topic ID:"},
 			Validate: survey.Required,
 		},
 	}
@@ -87,7 +87,7 @@ func createGcpPubSubAuditLogIntegration() error {
 		PrivateKey       string `survey:"private_key"`
 		IntegrationLevel string `survey:"integration_level"`
 		OrgProjectID     string `survey:"org_project_id"`
-		SubscriptionName string `survey:"subscription_name"`
+		SubscriptionName string `survey:"subscription_id"`
 		TopicID          string `survey:"topic_id"`
 	}{}
 
