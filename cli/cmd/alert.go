@@ -118,6 +118,7 @@ func alertLinkBuilder(id int) string {
 	}
 
 	q := u.Query()
+	q.Set("accountName", cli.Account)
 	if cli.Subaccount != "" {
 		q.Set("accountName", cli.Subaccount)
 	}
