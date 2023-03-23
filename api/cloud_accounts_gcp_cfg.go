@@ -75,6 +75,6 @@ type GcpCfgData struct {
 type GcpCfgCredentials struct {
 	ClientID     string `json:"clientId"`
 	ClientEmail  string `json:"clientEmail"`
-	PrivateKeyID string `json:"privateKeyId"`
+	PrivateKeyID string `json:"privateKeyId,omitempty"`
 	PrivateKey   string `json:"privateKey,omitempty"`
 }
