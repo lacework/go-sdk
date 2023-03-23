@@ -136,7 +136,6 @@ func openAlert(_ *cobra.Command, args []string) error {
 		return errors.New("alert ID must be a number")
 	}
 
-	// ALLY-1233: Need to switch to alertLinkBuilder when new Alerting UI becomes generally available
 	url := alertLinkBuilder(id)
 
 	switch runtime.GOOS {
