@@ -20,6 +20,8 @@
 package integration
 
 import (
+	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -46,6 +48,21 @@ func TestAlertShowDetails(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID)
 	assert.Contains(t, out.String(), "SUBJECT")
 	assert.Contains(t, out.String(), "For further investigation")
+
+	accountName := os.Getenv("CI_ACCOUNT")
+	if os.Getenv("CI_SUBACCOUNT") != "" {
+		accountName = os.Getenv("CI_SUBACCOUNT")
+	}
+	assert.Contains(
+		t,
+		out.String(),
+		fmt.Sprintf(
+			"https://%s.lacework.net/ui/investigation/monitor/AlertInbox/%s/details?accountName=%s",
+			os.Getenv("CI_ACCOUNT"),
+			alertShowID,
+			accountName,
+		),
+	)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

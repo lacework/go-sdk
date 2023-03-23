@@ -105,11 +105,15 @@ func init() {
 // Generates a URL similar to:
 //
 //	=> https://account.lacework.net/ui/investigation/monitor/AlertInbox/123/details?accountName=subaccount
-func alertLinkBuilder(id int) string {
+func alertLinkBuilder(id int) string { // nolint
+	return alertLinkBuilderWithCLI(cli, id)
+}
+
+func alertLinkBuilderWithCLI(c *cliState, id int) string {
 	u, err := url.Parse(
 		fmt.Sprintf(
 			"https://%s.lacework.net/ui/investigation/monitor/AlertInbox/%d/details",
-			cli.Account,
+			c.Account,
 			id,
 		),
 	)
@@ -118,9 +122,9 @@ func alertLinkBuilder(id int) string {
 	}
 
 	q := u.Query()
-	q.Set("accountName", cli.Account)
-	if cli.Subaccount != "" {
-		q.Set("accountName", cli.Subaccount)
+	q.Set("accountName", c.Account)
+	if c.Subaccount != "" {
+		q.Set("accountName", c.Subaccount)
 	}
 	if r := q.Encode(); r != "" {
 		u.RawQuery = r
