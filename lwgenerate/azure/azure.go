@@ -270,16 +270,6 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 			lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
 			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.LaceworkProviderVersion),
 		),
-		lwgenerate.NewRequiredProvider(
-			"azuread",
-			lwgenerate.HclRequiredProviderWithSource(lwgenerate.HashAzureADProviderSource),
-			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.HashAzureADProviderVersion),
-		),
-		lwgenerate.NewRequiredProvider(
-			"azurerm",
-			lwgenerate.HclRequiredProviderWithSource(lwgenerate.HashAzureRMProviderSource),
-			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.HashAzureRMProviderVersion),
-		),
 	)
 }
 
