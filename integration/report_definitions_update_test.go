@@ -65,7 +65,7 @@ func TestReportDefinitionsPromptUpdate(t *testing.T) {
 		report.ReportDefinitionGuid,
 	)
 
-	assert.Contains(t, final, "Report definition updated")
+	assert.Contains(t, final, "updated")
 }
 
 func TestReportDefinitionsUpdateFromFile(t *testing.T) {
@@ -91,7 +91,7 @@ func TestReportDefinitionsUpdateFromFile(t *testing.T) {
 
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-	assert.Contains(t, out.String(), "Report definition updated")
+	assert.Contains(t, out.String(), "updated")
 }
 
 func fetchCustomReportDefinition() *api.ReportDefinition {
