@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/lacework/go-sdk/api"
@@ -36,8 +37,15 @@ var (
 	CreateReportDefinitionAddSectionQuestion    = "Add another policy section?"
 	CreateReportDefinitionSectionTitleQuestion  = "Section Title: "
 	CreateReportDefinitionPoliciesQuestion      = "Select Policies in this Section: "
+	SelectReportDefinitionQuestion              = "Select an existing report definition as a template?"
 
-	SelectReportDefinitionQuestion = "Select an existing report definition as a template?"
+	UpdateReportDefinitionQuestion                   = "Update report definition in editor?"
+	UpdateReportDefinitionReportNameQuestion         = "Report Name: "
+	UpdateReportDefinitionDisplayNameQuestion        = "Display Name: "
+	UpdateReportDefinitionEditSectionQuestion        = "Update an existing policy section?"
+	UpdateReportDefinitionEditAnotherSectionQuestion = "Update another existing policy section?"
+	UpdateReportDefinitionAddSectionQuestion         = "Add a new policy section?"
+	UpdateReportDefinitionSelectSectionQuestion      = "Select a section to edit"
 
 	reportDefinitionsCmdState = struct {
 		// filter report definitions by subtype. 'AWS', 'GCP' or 'Azure'
@@ -171,6 +179,7 @@ func init() {
 	reportDefinitionsCommand.AddCommand(reportDefinitionsListCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsShowCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsDeleteCommand)
+	reportDefinitionsCommand.AddCommand(reportDefinitionsUpdateCommand)
 
 	// add flags to report-definition commands
 	reportDefinitionsListCommand.Flags().StringVar(&reportDefinitionsCmdState.SubType,
@@ -178,6 +187,9 @@ func init() {
 	)
 	reportDefinitionsCreateCommand.Flags().StringVar(&reportDefinitionsCmdState.File,
 		"file", "", "create a report definition from an existing definition file",
+	)
+	reportDefinitionsUpdateCommand.Flags().StringVar(&reportDefinitionsCmdState.File,
+		"file", "", "update a report definition from an existing definition file",
 	)
 }
 
@@ -198,6 +210,7 @@ func buildReportDefinitionDetailsTable(definition api.ReportDefinition) string {
 	details = append(details, []string{"RELEASE LABEL", releaseLabel})
 	details = append(details, []string{"UPDATED BY", definition.CreatedBy})
 	details = append(details, []string{"LAST UPDATED", definition.CreatedTime.String()})
+	details = append(details, []string{"VERSION", strconv.Itoa(definition.Version)})
 
 	detailsTable := &strings.Builder{}
 	detailsTable.WriteString(renderOneLineCustomTable("REPORT DEFINITION DETAILS",
