@@ -217,7 +217,7 @@ func (r VulnerabilitiesContainersResponse) VulnFixableCount(severity string) int
 func (r VulnerabilitiesContainersResponse) TotalVulnerabilities() int {
 	count := 0
 	for _, vuln := range r.Data {
-		if vuln.EvalCtx.ImageInfo.Status == "VULNERABLE" {
+		if vuln.Status == "VULNERABLE" {
 			count = count + 1
 		}
 	}
