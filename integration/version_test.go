@@ -49,9 +49,9 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 	defer os.RemoveAll(home)
 
 	out, errB, exitcode := LaceworkCLIWithHome(home, "configure", "list")
-	assert.Empty(t, errB.String())
+	assert.Contains(t, out.String(), "To switch profiles use 'lacework configure switch-profile <profile>'")
 	assert.Equal(t, 0, exitcode)
-	assert.Contains(t, out.String(),
+	assert.Contains(t, errB.String(),
 		"A newer version of the Lacework CLI is available! The latest version is v",
 		"version check message changed?",
 	)
@@ -72,9 +72,9 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 
 	// re-running the same command should not check and display the version update
 	out, errB, exitcode = LaceworkCLIWithHome(home, "configure", "list")
-	assert.Empty(t, errB.String())
+	assert.Contains(t, out.String(), "To switch profiles use 'lacework configure switch-profile <profile>'")
 	assert.Equal(t, 0, exitcode)
-	assert.NotContains(t, out.String(),
+	assert.NotContains(t, errB.String(),
 		"A newer version of the Lacework CLI is available! The latest version is v",
 		"version update message should not be displayed",
 	)
@@ -100,9 +100,9 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 	assert.Nil(t, err)
 
 	out, errB, exitcode = LaceworkCLIWithHome(home, "configure", "list")
-	assert.Empty(t, errB.String())
+	assert.Contains(t, out.String(), "To switch profiles use 'lacework configure switch-profile <profile>'")
 	assert.Equal(t, 0, exitcode)
-	assert.Contains(t, out.String(),
+	assert.Contains(t, errB.String(),
 		"A newer version of the Lacework CLI is available! The latest version is v",
 		"version check message should be there",
 	)
