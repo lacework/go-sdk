@@ -88,6 +88,16 @@ func (svc *ReportDefinitionsService) Get(reportDefinitionGuid string) (response 
 	return
 }
 
+// GetVersions returns a list of all versions of a reportDefinition
+func (svc *ReportDefinitionsService) GetVersions(reportDefinitionGuid string) (response ReportDefinitionsResponse, err error) {
+	if reportDefinitionGuid == "" {
+		return ReportDefinitionsResponse{}, errors.New("specify a report definition guid")
+	}
+	apiPath := fmt.Sprintf(apiV2ReportDefinitionsVersions, reportDefinitionGuid)
+	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
+	return
+}
+
 // Delete a ReportDefinition
 func (svc *ReportDefinitionsService) Delete(guid string) error {
 	if guid == "" {
@@ -111,15 +121,14 @@ func (svc *ReportDefinitionsService) Update(guid string, report ReportDefinition
 	return
 }
 
-// To be re-added in GROW-1487
-//func (svc *ReportDefinitionsService) Revert(guid string, version int) (response ReportDefinitionResponse, err error) {
-//	if guid == "" {
-//		return response, errors.New("specify a report definition guid")
-//	}
-//
-//	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiV2ReportDefinitionsRevert, guid, version), "", &response)
-//	return
-//}
+func (svc *ReportDefinitionsService) Revert(guid string, version int) (response ReportDefinitionResponse, err error) {
+	if guid == "" {
+		return response, errors.New("specify a report definition guid")
+	}
+
+	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiV2ReportDefinitionsRevert, guid, version), "", &response)
+	return
+}
 
 // NewReportDefinition creates a new report definition for Create function
 func NewReportDefinition(cfg ReportDefinitionConfig) ReportDefinition {
