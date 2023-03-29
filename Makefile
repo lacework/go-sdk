@@ -145,9 +145,7 @@ imports-check: ## Lists imports issues
 .PHONY: build-cli-cross-platform
 build-cli-cross-platform: ## Compiles the Lacework CLI for all supported platforms
 	gox -output="bin/$(PACKAGENAME)-{{.OS}}-{{.Arch}}" \
-            -os="linux windows" \
-            -arch="amd64 386" \
-            -osarch="darwin/amd64 darwin/arm64 linux/arm linux/arm64" \
+            -osarch="darwin/amd64 darwin/arm64" \
             -ldflags=$(GO_LDFLAGS) \
             github.com/lacework/go-sdk/cli
 

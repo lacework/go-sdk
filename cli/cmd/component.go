@@ -20,6 +20,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/lacework/go-sdk/lwcomponent"
+	"github.com/lacework/go-sdk/wasm"
 	"os"
 
 	"github.com/Masterminds/semver"
@@ -28,7 +30,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/lacework/go-sdk/lwcomponent"
+	"github.com/bytecodealliance/wasmtime-go"
 )
 
 const componentTypeAnnotation string = "component"
@@ -37,7 +39,7 @@ var (
 	// componentsCmd represents the components command
 	componentsCmd = &cobra.Command{
 		Use:     "component",
-		Hidden:  true,
+		Hidden:  false,
 		Aliases: []string{"components"},
 		Short:   "Manage components",
 		Long:    `Manage components to extend your experience with the Lacework platform`,
@@ -98,7 +100,17 @@ var (
 		RunE:   runComponentsDevMode,
 	}
 
+	componentsWasmCmd = &cobra.Command{
+		Use:    "wasm <file>",
+		Hidden: true,
+		Short:  "POC Wasm",
+		Args:   cobra.ExactArgs(1),
+		RunE:   runComponentsWasm,
+	}
+
 	versionArg string
+	memory     *wasmtime.Memory
+	store      *wasmtime.Store
 )
 
 func init() {
@@ -117,9 +129,11 @@ func init() {
 	componentsCmd.AddCommand(componentsUpdateCmd)
 	componentsCmd.AddCommand(componentsUninstallCmd)
 	componentsCmd.AddCommand(componentsDevModeCmd)
+	componentsCmd.AddCommand(componentsWasmCmd)
 
 	// load components dynamically
 	cli.LoadComponents()
+	cli.LoadWasmComponents()
 }
 
 // hasInstalledCommands is used inside the cobra template for generating the usage
@@ -529,4 +543,49 @@ func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
 	cli.OutputHuman("\nDo you want to provide feedback?\n")
 	cli.OutputHuman("Reach out to us at %s\n", color.HiCyanString("support@lacework.net"))
 	return
+}
+
+func (c *cliState) LoadWasmComponents() {
+	state, err := lwcomponent.LocalState()
+	if err != nil || state == nil {
+		c.Log.Debugw("unable to load Wasm components", "error", err)
+		return
+	}
+
+	c.LwComponents = state
+
+	cmds := wasm.NewEngine().Commands("/Users/j0n/Workspace/Lacework/hackathon-wasm/assemblyscript/build/debug.wasm")
+
+	componentCmd :=
+		&cobra.Command{
+			Use:                   "hackathon",
+			Short:                 "hack",
+			SilenceUsage:          true,
+			DisableFlagParsing:    true,
+			DisableFlagsInUseLine: true,
+		}
+	rootCmd.AddCommand(componentCmd)
+
+	for _, cmd := range cmds {
+		componentCmd.AddCommand(&cobra.Command{
+			Use:  cmd,
+			Args: cobra.ArbitraryArgs,
+			RunE: runComponentsWasm})
+	}
+}
+
+func runComponentsWasm(cmd *cobra.Command, args []string) (err error) {
+	cli.OutputHuman("WASM\n")
+
+	engine := wasm.NewEngine()
+
+	engine.Run("/Users/j0n/Workspace/Lacework/hackathon-wasm/assemblyscript/build/debug.wasm", cmd.Use, args)
+
+	return
+}
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
 }
