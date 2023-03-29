@@ -121,10 +121,10 @@ func versionCheck() (*lwupdater.Version, error) {
 	}
 
 	if sdk.Outdated {
-		cli.OutputHuman(fmt.Sprintf(
+		cli.OutputHumanErr(
 			"\nA newer version of the Lacework CLI is available! The latest version is %s,\n"+
 				"to update execute the following command:\n%s\n",
-			sdk.LatestVersion, cli.UpdateCommand()))
+			sdk.LatestVersion, cli.UpdateCommand())
 	}
 
 	return sdk, nil
