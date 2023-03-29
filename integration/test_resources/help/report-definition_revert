@@ -1,18 +1,21 @@
-Show a single report definition by it's ID.
-To show specific report definition version:
+Update an existing custom report definition.
 
-    lacework report-definition show <report_definition_id> --version <version>
+To revert a report definition:
 
-To show all versions of a report definition:
+    lacework report-definition revert <report_definition_id> <version>
 
-    lacework report-definition show <report_definition_id> --version all
+To compare 2 report definition versions before a revert:
+
+    lacework report-definition diff <report_definition_id> <current_version> <new_version>
 
 Usage:
-  lacework report-definition show <report_definition_id> [flags]
+  lacework report-definition revert <report_definition_id> <version> [flags]
+
+Aliases:
+  revert, restore
 
 Flags:
-  -h, --help             help for show
-      --version string   show a version of a report definition
+  -h, --help   help for revert
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

@@ -265,7 +265,7 @@ func TestReportDefinitionUpdate(t *testing.T) {
 func TestReportDefinitionRevert(t *testing.T) {
 	var (
 		intgGUID   = intgguid.New()
-		apiPath    = fmt.Sprintf("ReportDefinitions/%s/RevertTo/%d", intgGUID, 1)
+		apiPath    = fmt.Sprintf("ReportDefinitions/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
 	fakeServer.UseApiV2()
@@ -273,7 +273,7 @@ func TestReportDefinitionRevert(t *testing.T) {
 	defer fakeServer.Close()
 
 	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method, "RevertTo() should be a PATCH method")
+		assert.Equal(t, "PATCH", r.Method, "Revert() should be a PATCH method")
 
 		if assert.NotNil(t, r.Body) {
 			body := httpBodySniffer(r)

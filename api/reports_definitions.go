@@ -126,7 +126,8 @@ func (svc *ReportDefinitionsService) Revert(guid string, version int) (response 
 		return response, errors.New("specify a report definition guid")
 	}
 
-	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiV2ReportDefinitionsRevert, guid, version), "", &response)
+	apiPath := fmt.Sprintf(apiV2ReportDefinitionsRevert, guid, version)
+	err = svc.client.RequestEncoderDecoder("PATCH", apiPath, "", &response)
 	return
 }
 
@@ -227,7 +228,7 @@ type ReportDefinitionSection struct {
 
 type ReportDefinitionProps struct {
 	Engine         string   `json:"engine,omitempty" yaml:"engine,omitempty"`
-	ReleaseLabel   string   `json:"releaseLabel,omitempty" yaml:"engine,omitempty"`
-	ResourceGroups []string `json:"resourceGroups,omitempty" yaml:"engine,omitempty"`
-	Integrations   []string `json:"integrations,omitempty" yaml:"engine,omitempty"`
+	ReleaseLabel   string   `json:"releaseLabel,omitempty" yaml:"releaseLabel,omitempty"`
+	ResourceGroups []string `json:"resourceGroups,omitempty" yaml:"resourceGroups,omitempty"`
+	Integrations   []string `json:"integrations,omitempty" yaml:"integrations,omitempty"`
 }

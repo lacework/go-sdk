@@ -27,13 +27,18 @@ import (
 
 // revert command is used to rollback lacework report definition to a previous version
 var reportDefinitionsRevertCommand = &cobra.Command{
-	Use:   "revert <report_definition_id> <version>",
-	Short: "Update a report definition",
+	Use:     "revert <report_definition_id> <version>",
+	Aliases: []string{"restore"},
+	Short:   "Update a report definition",
 	Long: `Update an existing custom report definition.
 
 To revert a report definition:
 
     lacework report-definition revert <report_definition_id> <version>
+
+To compare 2 report definition versions before a revert:
+
+    lacework report-definition diff <report_definition_id> <current_version> <new_version>
 `,
 	Args: cobra.ExactArgs(2),
 	RunE: revertReportDefinition,

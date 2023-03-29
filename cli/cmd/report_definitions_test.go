@@ -70,7 +70,48 @@ func TestFilterReportDefinitionsWithSubType(t *testing.T) {
 			assert.Equal(t, rdtt.Input.Data, rdtt.Expected)
 		})
 	}
+}
 
+func TestReportDiff(t *testing.T) {
+	reportDiffTableTest := []struct {
+		Name     string
+		InputOne diffCfg
+		InputTwo diffCfg
+		Expected string
+	}{
+		{
+			Name:     "diff valid report definitions",
+			InputOne: diffCfg{name: "mock-1", object: mockReportDefinition},
+			InputTwo: diffCfg{name: "mock-2", object: mockReportDefinitionGCP},
+			Expected: mockReportDefinitionDiff,
+		},
+		{
+			Name:     "diff empty report definitions",
+			InputOne: diffCfg{name: "mock-1", object: ""},
+			InputTwo: diffCfg{name: "mock-2", object: ""},
+			Expected: "",
+		},
+		{
+			Name:     "diff single word",
+			InputOne: diffCfg{name: "mock-1", object: "testOne"},
+			InputTwo: diffCfg{name: "mock-2", object: "testTwo"},
+			Expected: mockDiffSingleWord,
+		},
+		{
+			Name:     "diff no change",
+			InputOne: diffCfg{name: "mock-1", object: mockReportDefinition},
+			InputTwo: diffCfg{name: "mock-1", object: mockReportDefinition},
+			Expected: "",
+		},
+	}
+
+	for _, test := range reportDiffTableTest {
+		t.Run(test.Name, func(t *testing.T) {
+			diff, err := diffAsYamlString(test.InputOne, test.InputTwo)
+			assert.NoError(t, err)
+			assert.Equal(t, diff, test.Expected)
+		})
+	}
 }
 
 var created, _ = time.Parse(time.RFC3339, "2022-09-09T10:35:16Z")
@@ -163,5 +204,27 @@ var (
                       lacework-global-78                
                                                         
                                                         
+`
+	mockReportDefinitionDiff = `--- mock-1
++++ mock-2
+@@ -2,7 +2,7 @@
+ reportName: My Custom Report
+ displayName: My Custom Report Display
+ reportType: Compliance
+-subReportType: AWS
++subReportType: GCP
+ reportDefinition:
+     sections:
+         - category: 1.0.0
+
+`
+
+	mockDiffSingleWord = `--- mock-1
++++ mock-2
+@@ -1,2 +1,2 @@
+-testOne
++testTwo
+ 
+
 `
 )

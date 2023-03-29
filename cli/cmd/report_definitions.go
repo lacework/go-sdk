@@ -246,6 +246,7 @@ func init() {
 	reportDefinitionsCommand.AddCommand(reportDefinitionsDeleteCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsUpdateCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsRevertCommand)
+	reportDefinitionsCommand.AddCommand(reportDefinitionsDiffCommand)
 
 	// add flags to report-definition commands
 	reportDefinitionsShowCommand.Flags().StringVar(&reportDefinitionsCmdState.Version,
