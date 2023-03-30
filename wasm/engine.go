@@ -56,7 +56,7 @@ func (e *Engine) Run(wasmFile string, function string, args []string) {
 	extern := []wasmtime.AsExtern{
 		wasmtime.WrapFunc(e.store, abort),
 		wasmtime.WrapFunc(e.store, e.decorate(logging)),
-		wasmtime.WrapFunc(e.store, e.decorate(cliOutput)),
+		//wasmtime.WrapFunc(e.store, e.decorate(cliOutput)),
 		wasmtime.WrapFunc(e.store, e.decorate(httpRequest)),
 	}
 
