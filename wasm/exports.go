@@ -1,12 +1,20 @@
 package wasm
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/bytecodealliance/wasmtime-go"
+	"io/ioutil"
+	"net/http"
+	"strings"
 )
 
 func abort(a int32, b int32, c int32, d int32) {
 	fmt.Println()
+}
+
+func readMemory(buf []byte, ptr int64, len int64) string {
+	return string(buf[ptr : ptr+len])
 }
 
 func logging(store *wasmtime.Store, memory *wasmtime.Memory, ptr int64, length int64) {
@@ -25,12 +33,53 @@ func cliOutput(store *wasmtime.Store, memory *wasmtime.Memory, ptr int64, length
 	fmt.Println(msg)
 }
 
+type HTTPResponse struct {
+	ptr int64 `json:"ptr"`
+}
+
+type HTTPRequest struct {
+	Verb     string                 `json:"verb"`
+	URL      string                 `json:"url"`
+	Headers  map[string]string      `json:"headers"`
+	Body     map[string]interface{} `json:"body"`
+	Response int64                  `json:"response"`
+}
+
 func httpRequest(store *wasmtime.Store, memory *wasmtime.Memory, ptr int64, length int64) {
 	buf := memory.UnsafeData(store)
 
-	url := string(buf[ptr : ptr+length])
+	var r HTTPRequest
+	err := json.Unmarshal(buf[ptr:ptr+length], &r)
+	check(err)
 
-	fmt.Println(url)
+	var req *http.Request
+
+	switch r.Verb {
+	case "GET":
+		break
+	case "POST":
+		body, err := json.Marshal(r.Body)
+		check(err)
+
+		req, err = http.NewRequest(r.Verb, r.URL, strings.NewReader(string(body)))
+		check(err)
+
+		for k, v := range r.Headers {
+			req.Header.Set(k, v)
+		}
+		break
+	}
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	check(err)
+
+	for i := 0; i < len(body); i++ {
+		buf[r.Response+int64(i)] = body[i]
+	}
 }
 
 //func laceworkAPI(ptr int64, length int64) {
