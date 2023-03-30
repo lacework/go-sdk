@@ -56,8 +56,10 @@ func (e *Engine) Run(wasmFile string, function string, args []string) {
 	extern := []wasmtime.AsExtern{
 		wasmtime.WrapFunc(e.store, abort),
 		wasmtime.WrapFunc(e.store, e.decorate(logging)),
-		//wasmtime.WrapFunc(e.store, e.decorate(cliOutput)),
 		wasmtime.WrapFunc(e.store, e.decorate(httpRequest)),
+		wasmtime.WrapFunc(e.store, func(ptr int64, length int64, contentPtr int64, contentLen int64) {
+			writeFile(e.store, e.memory, ptr, length, contentPtr, contentLen)
+		}),
 	}
 
 	instance, err := wasmtime.NewInstance(e.store, module, extern)
