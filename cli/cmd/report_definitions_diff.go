@@ -33,10 +33,10 @@ import (
 // reportDefinitionsDiffCommand command is used to compare 2 lacework report definition versions
 var reportDefinitionsDiffCommand = &cobra.Command{
 	Use:   "diff <report_definition_id> <version> <version>",
-	Short: "Compare 2 versions of a report definition",
-	Long: `Compare 2 versions of a report definition.
+	Short: "Compare two versions of a report definition",
+	Long: `Compare two versions of a report definition.
 
-To see a diff of 2 report definition versions:
+To see a diff of two report definition versions:
 
     lacework report-definition diff <report_definition_id> <current_version> <new_version>
 `,
