@@ -36,7 +36,7 @@ To revert a report definition:
 
     lacework report-definition revert <report_definition_id> <version>
 
-To compare 2 report definition versions before a revert:
+To compare two report definition versions before a revert:
 
     lacework report-definition diff <report_definition_id> <current_version> <new_version>
 `,

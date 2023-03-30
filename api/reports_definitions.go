@@ -79,21 +79,21 @@ func (svc *ReportDefinitionsService) List() (response ReportDefinitionsResponse,
 }
 
 // Get returns a ReportDefinitionResponse
-func (svc *ReportDefinitionsService) Get(reportDefinitionGuid string) (response ReportDefinitionResponse, err error) {
-	if reportDefinitionGuid == "" {
+func (svc *ReportDefinitionsService) Get(guid string) (response ReportDefinitionResponse, err error) {
+	if guid == "" {
 		return ReportDefinitionResponse{}, errors.New("specify a report definition guid")
 	}
-	apiPath := fmt.Sprintf(apiV2ReportDefinitionsFromGUID, reportDefinitionGuid)
+	apiPath := fmt.Sprintf(apiV2ReportDefinitionsFromGUID, guid)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
 
 // GetVersions returns a list of all versions of a reportDefinition
-func (svc *ReportDefinitionsService) GetVersions(reportDefinitionGuid string) (response ReportDefinitionsResponse, err error) {
-	if reportDefinitionGuid == "" {
+func (svc *ReportDefinitionsService) GetVersions(guid string) (response ReportDefinitionsResponse, err error) {
+	if guid == "" {
 		return ReportDefinitionsResponse{}, errors.New("specify a report definition guid")
 	}
-	apiPath := fmt.Sprintf(apiV2ReportDefinitionsVersions, reportDefinitionGuid)
+	apiPath := fmt.Sprintf(apiV2ReportDefinitionsVersions, guid)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }

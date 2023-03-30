@@ -1,6 +1,6 @@
-Compare 2 versions of a report definition.
+Compare two versions of a report definition.
 
-To see a diff of 2 report definition versions:
+To see a diff of two report definition versions:
 
     lacework report-definition diff <report_definition_id> <current_version> <new_version>
 

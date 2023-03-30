@@ -142,7 +142,7 @@ To show all versions of a report definition:
 			if cli.JSONOutput() {
 				return cli.OutputJSON(response)
 			}
-			buildReportDefinitionTable(response.Data)
+			outputReportDefinitionTable(response.Data)
 
 			return nil
 		},
@@ -167,7 +167,7 @@ To show all versions of a report definition:
 	}
 )
 
-func buildReportDefinitionTable(reportDefinition api.ReportDefinition) {
+func outputReportDefinitionTable(reportDefinition api.ReportDefinition) {
 	headers := [][]string{
 		{reportDefinition.ReportDefinitionGuid, reportDefinition.ReportName, reportDefinition.ReportType,
 			reportDefinition.SubReportType},
@@ -178,11 +178,35 @@ func buildReportDefinitionTable(reportDefinition api.ReportDefinition) {
 	cli.OutputHuman(buildReportDefinitionDetailsTable(reportDefinition))
 }
 
+func outputReportVersionsList(guid string, versions []string) {
+	details := [][]string{{"VERSIONS", strings.Join(versions, ", ")}}
+
+	detailsTable := &strings.Builder{}
+	detailsTable.WriteString(renderOneLineCustomTable(guid,
+		renderCustomTable([]string{}, details,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+			}),
+		),
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetAutoWrapText(false)
+		}),
+	),
+	)
+
+	cli.OutputHuman(detailsTable.String())
+}
+
 func fetchReportDefinitionVersion(id string) error {
 	var (
 		err              error
 		version          int
 		reportDefinition api.ReportDefinition
+		versions         []string
 	)
 
 	// if no version is supplied return all previous versions
@@ -195,7 +219,16 @@ func fetchReportDefinitionVersion(id string) error {
 			return err
 		}
 
-		return cli.OutputJSON(response)
+		if cli.JSONOutput() {
+			cli.OutputJSON(response)
+		}
+
+		for _, reportVersion := range response.Data {
+			versions = append(versions, strconv.Itoa(reportVersion.Version))
+		}
+
+		outputReportVersionsList(response.Data[0].ReportDefinitionGuid, versions)
+		return nil
 	}
 
 	if version, err = strconv.Atoi(reportDefinitionsCmdState.Version); err != nil {
@@ -220,7 +253,7 @@ func fetchReportDefinitionVersion(id string) error {
 		return cli.OutputJSON(reportDefinition)
 	}
 
-	buildReportDefinitionTable(reportDefinition)
+	outputReportDefinitionTable(reportDefinition)
 
 	return nil
 }
