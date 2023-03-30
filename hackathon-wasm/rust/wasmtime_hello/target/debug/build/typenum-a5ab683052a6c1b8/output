@@ -1,0 +1,3 @@
+cargo:rerun-if-changed=build/main.rs
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/Users/afiune/github/go-sdk/hackathon-wasm/rust/wasmtime_hello/target/debug/build/typenum-a5ab683052a6c1b8/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=/Users/afiune/github/go-sdk/hackathon-wasm/rust/wasmtime_hello/target/debug/build/typenum-a5ab683052a6c1b8/out/op.rs

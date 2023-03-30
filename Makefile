@@ -28,7 +28,7 @@ GO_LDFLAGS="-X github.com/lacework/go-sdk/cli/cmd.Version=$(shell cat VERSION) \
             -X github.com/lacework/go-sdk/cli/cmd.HoneyDataset=$(HONEYDATASET) \
             -X github.com/lacework/go-sdk/cli/cmd.BuildTime=$(shell date +%Y%m%d%H%M%S)"
 GOFLAGS=-mod=vendor
-CGO_ENABLED?=0
+# CGO_ENABLED?=0
 export GOFLAGS GO_LDFLAGS CGO_ENABLED
 
 .PHONY: help
@@ -141,6 +141,10 @@ fmt-check: ## Lists formatting issues
 .PHONY: imports-check
 imports-check: ## Lists imports issues
 	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./...) | grep -v proto)
+
+.PHONY: build
+build:
+	go build -o lacework -ldflags=$(GO_LDFLAGS) cli/main.go
 
 .PHONY: build-cli-cross-platform
 build-cli-cross-platform: ## Compiles the Lacework CLI for all supported platforms
