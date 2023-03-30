@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -52,6 +53,8 @@ var (
 		SubType string
 		// create report definitions from a file input
 		File string
+		// retrieve report definition by version
+		Version string
 	}{}
 
 	// report-definitions command is used to manage lacework report definitions
@@ -112,9 +115,22 @@ var (
 	reportDefinitionsShowCommand = &cobra.Command{
 		Use:   "show <report_definition_id>",
 		Short: "Show a report definition by ID",
-		Long:  "Show a single report definition by it's ID.",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
+		Long: `Show a single report definition by it's ID.
+To show specific report definition version:
+
+    lacework report-definition show <report_definition_id> --version <version>
+
+To show all versions of a report definition:
+
+    lacework report-definition show <report_definition_id> --version all
+
+`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if reportDefinitionsCmdState.Version != "" {
+				return fetchReportDefinitionVersion(args[0])
+			}
+
 			cli.StartProgress(" Fetching report definition...")
 			response, err := cli.LwApi.V2.ReportDefinitions.Get(args[0])
 			cli.StopProgress()
@@ -126,16 +142,7 @@ var (
 			if cli.JSONOutput() {
 				return cli.OutputJSON(response)
 			}
-
-			reportDefinition := response.Data
-			headers := [][]string{
-				{reportDefinition.ReportDefinitionGuid, reportDefinition.ReportName, reportDefinition.ReportType,
-					reportDefinition.SubReportType},
-			}
-
-			cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "TYPE", "SUB-TYPE"}, headers))
-			cli.OutputHuman("\n")
-			cli.OutputHuman(buildReportDefinitionDetailsTable(reportDefinition))
+			outputReportDefinitionTable(response.Data)
 
 			return nil
 		},
@@ -160,6 +167,100 @@ var (
 	}
 )
 
+func outputReportDefinitionTable(reportDefinition api.ReportDefinition) {
+	headers := [][]string{
+		{reportDefinition.ReportDefinitionGuid, reportDefinition.ReportName, reportDefinition.ReportType,
+			reportDefinition.SubReportType},
+	}
+
+	cli.OutputHuman(renderSimpleTable([]string{"GUID", "NAME", "TYPE", "SUB-TYPE"}, headers))
+	cli.OutputHuman("\n")
+	cli.OutputHuman(buildReportDefinitionDetailsTable(reportDefinition))
+}
+
+func outputReportVersionsList(guid string, versions []string) {
+	details := [][]string{{"VERSIONS", strings.Join(versions, ", ")}}
+
+	detailsTable := &strings.Builder{}
+	detailsTable.WriteString(renderOneLineCustomTable(guid,
+		renderCustomTable([]string{}, details,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+			}),
+		),
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetAutoWrapText(false)
+		}),
+	),
+	)
+
+	cli.OutputHuman(detailsTable.String())
+}
+
+func fetchReportDefinitionVersion(id string) error {
+	var (
+		err              error
+		version          int
+		reportDefinition api.ReportDefinition
+		versions         []string
+	)
+
+	// if no version is supplied return all previous versions
+	if reportDefinitionsCmdState.Version == "all" {
+		cli.StartProgress("Fetching all report definition versions...")
+		response, err := cli.LwApi.V2.ReportDefinitions.GetVersions(id)
+		cli.StopProgress()
+
+		if err != nil {
+			return err
+		}
+
+		if cli.JSONOutput() {
+			err := cli.OutputJSON(response)
+			if err != nil {
+				return err
+			}
+		}
+
+		for _, reportVersion := range response.Data {
+			versions = append(versions, strconv.Itoa(reportVersion.Version))
+		}
+
+		outputReportVersionsList(response.Data[0].ReportDefinitionGuid, versions)
+		return nil
+	}
+
+	if version, err = strconv.Atoi(reportDefinitionsCmdState.Version); err != nil {
+		return errors.Wrap(err, "unable to parse version")
+	}
+
+	cli.StartProgress(fmt.Sprintf("Fetching report definition version %d...", version))
+	response, err := cli.LwApi.V2.ReportDefinitions.GetVersions(id)
+	cli.StopProgress()
+
+	if err != nil {
+		return err
+	}
+
+	for _, r := range response.Data {
+		if r.Version == version {
+			reportDefinition = r
+		}
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(reportDefinition)
+	}
+
+	outputReportDefinitionTable(reportDefinition)
+
+	return nil
+}
+
 func filterReportDefinitions(reportDefinitions *api.ReportDefinitionsResponse) {
 	var filteredDefinitions []api.ReportDefinition
 	for _, rd := range reportDefinitions.Data {
@@ -180,8 +281,13 @@ func init() {
 	reportDefinitionsCommand.AddCommand(reportDefinitionsShowCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsDeleteCommand)
 	reportDefinitionsCommand.AddCommand(reportDefinitionsUpdateCommand)
+	reportDefinitionsCommand.AddCommand(reportDefinitionsRevertCommand)
+	reportDefinitionsCommand.AddCommand(reportDefinitionsDiffCommand)
 
 	// add flags to report-definition commands
+	reportDefinitionsShowCommand.Flags().StringVar(&reportDefinitionsCmdState.Version,
+		"version", "", "show a version of a report definition",
+	)
 	reportDefinitionsListCommand.Flags().StringVar(&reportDefinitionsCmdState.SubType,
 		"subtype", "", "filter report definitions by subtype. 'AWS', 'GCP' or 'Azure'",
 	)

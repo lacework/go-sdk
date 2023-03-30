@@ -262,6 +262,46 @@ func TestReportDefinitionUpdate(t *testing.T) {
 	}
 }
 
+func TestReportDefinitionRevert(t *testing.T) {
+	var (
+		intgGUID   = intgguid.New()
+		apiPath    = fmt.Sprintf("ReportDefinitions/%s", intgGUID)
+		fakeServer = lacework.MockServer()
+	)
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "PATCH", r.Method, "Revert() should be a PATCH method")
+
+		if assert.NotNil(t, r.Body) {
+			body := httpBodySniffer(r)
+			assert.Contains(t, body, "", "report definition revert should contain no message body")
+		}
+		fmt.Fprintf(w, generateReportDefinitionResponse(singleMockReportDefinition(intgGUID)))
+	})
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	response, err := c.V2.ReportDefinitions.Revert(intgGUID, 1)
+	if assert.NoError(t, err) {
+		assert.NotNil(t, response)
+		assert.Equal(t, intgGUID, response.Data.ReportDefinitionGuid)
+		assert.Equal(t, "mockReportDefinition", response.Data.ReportName)
+		assert.Equal(t, "mockReportDefinition Display", response.Data.DisplayName)
+		assert.Equal(t, "COMPLIANCE", response.Data.ReportType)
+		assert.Equal(t, "AWS", response.Data.SubReportType)
+		assert.Equal(t, "Test Section", response.Data.ReportDefinitionDetails.Sections[0].Title)
+		assert.Equal(t, []string{"lacework-global-1"}, response.Data.ReportDefinitionDetails.Sections[0].Policies)
+	}
+}
+
 func generateReportDefinitions(guids []string) string {
 	reportDefinitions := make([]string, len(guids))
 	for i, guid := range guids {

@@ -9,7 +9,9 @@ Aliases:
 Available Commands:
   create      Create a report definition
   delete      Delete a report definition
+  diff        Compare two versions of a report definition
   list        List all report definitions
+  revert      Update a report definition
   show        Show a report definition by ID
   update      Update a report definition
 

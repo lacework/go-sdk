@@ -1,18 +1,14 @@
-Show a single report definition by it's ID.
-To show specific report definition version:
+Compare two versions of a report definition.
 
-    lacework report-definition show <report_definition_id> --version <version>
+To see a diff of two report definition versions:
 
-To show all versions of a report definition:
-
-    lacework report-definition show <report_definition_id> --version all
+    lacework report-definition diff <report_definition_id> <current_version> <new_version>
 
 Usage:
-  lacework report-definition show <report_definition_id> [flags]
+  lacework report-definition diff <report_definition_id> <version> <version> [flags]
 
 Flags:
-  -h, --help             help for show
-      --version string   show a version of a report definition
+  -h, --help   help for diff
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
