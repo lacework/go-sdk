@@ -220,7 +220,10 @@ func fetchReportDefinitionVersion(id string) error {
 		}
 
 		if cli.JSONOutput() {
-			cli.OutputJSON(response)
+			err := cli.OutputJSON(response)
+			if err != nil {
+				return err
+			}
 		}
 
 		for _, reportVersion := range response.Data {
