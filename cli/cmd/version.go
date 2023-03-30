@@ -141,6 +141,15 @@ func dailyVersionCheck() error {
 		return nil
 	}
 
+	if cli.noCache {
+		_, err := versionCheck()
+		if err != nil {
+			cli.Event.Error = err.Error()
+			return err
+		}
+		return nil
+	}
+
 	cacheDir, err := cache.CacheDir()
 	if err != nil {
 		return err

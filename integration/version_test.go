@@ -49,9 +49,9 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 	defer os.RemoveAll(home)
 
 	out, errB, exitcode := LaceworkCLIWithHome(home, "configure", "list")
-	assert.Contains(t, out.String(), "To switch profiles use 'lacework configure switch-profile <profile>'")
+	assert.Empty(t, errB.String())
 	assert.Equal(t, 0, exitcode)
-	assert.Contains(t, errB.String(),
+	assert.Contains(t, out.String(),
 		"A newer version of the Lacework CLI is available! The latest version is v",
 		"version check message changed?",
 	)
@@ -72,9 +72,9 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 
 	// re-running the same command should not check and display the version update
 	out, errB, exitcode = LaceworkCLIWithHome(home, "configure", "list")
-	assert.Contains(t, out.String(), "To switch profiles use 'lacework configure switch-profile <profile>'")
+	assert.Empty(t, errB.String())
 	assert.Equal(t, 0, exitcode)
-	assert.NotContains(t, errB.String(),
+	assert.NotContains(t, out.String(),
 		"A newer version of the Lacework CLI is available! The latest version is v",
 		"version update message should not be displayed",
 	)
@@ -100,9 +100,9 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 	assert.Nil(t, err)
 
 	out, errB, exitcode = LaceworkCLIWithHome(home, "configure", "list")
-	assert.Contains(t, out.String(), "To switch profiles use 'lacework configure switch-profile <profile>'")
+	assert.Empty(t, errB.String())
 	assert.Equal(t, 0, exitcode)
-	assert.Contains(t, errB.String(),
+	assert.Contains(t, out.String(),
 		"A newer version of the Lacework CLI is available! The latest version is v",
 		"version check message should be there",
 	)
@@ -124,10 +124,10 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 func TestVersionCommand(t *testing.T) {
 	enableTestingUpdaterEnv()
 	defer disableTestingUpdaterEnv()
-
-	out, errB, exitcode := LaceworkCLIWithTOMLConfig("version")
-	assert.Empty(t, errB.String())
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("version", "--nocache")
 	assert.Equal(t, 0, exitcode)
+
+	assert.NotEmpty(t, err, "update suggestion should be enabled")
 	assert.Contains(t, out.String(), "lacework v")
 	assert.Contains(t, out.String(), "(sha:")
 	assert.Contains(t, out.String(), "(time:")
