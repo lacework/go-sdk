@@ -19,11 +19,9 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/lwcomponent"
-	"io/ioutil"
+	"github.com/lacework/go-sdk/wasm"
 	"os"
 
 	"github.com/Masterminds/semver"
@@ -41,7 +39,7 @@ var (
 	// componentsCmd represents the components command
 	componentsCmd = &cobra.Command{
 		Use:     "component",
-		Hidden:  true,
+		Hidden:  false,
 		Aliases: []string{"components"},
 		Short:   "Manage components",
 		Long:    `Manage components to extend your experience with the Lacework platform`,
@@ -135,6 +133,7 @@ func init() {
 
 	// load components dynamically
 	cli.LoadComponents()
+	cli.LoadWasmComponents()
 }
 
 // hasInstalledCommands is used inside the cobra template for generating the usage
@@ -546,83 +545,41 @@ func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
 	return
 }
 
-func runComponentsWasm(_ *cobra.Command, args []string) (err error) {
-	cli.OutputHuman("WASM\n")
-
-	// Almost all operations in wasmtime require a contextual `store`
-	// argument to share, so create that first
-	store = wasmtime.NewStore(wasmtime.NewEngine())
-
-	wasm, err := ioutil.ReadFile("/Users/j0n/Workspace/Lacework/hackathon-wasm/assemblyscript/build/debug.wasm")
-	check(err)
-
-	// Once we have our binary `wasm` we can compile that into a `*Module`
-	// which represents compiled JIT code.
-	module, err := wasmtime.NewModule(store.Engine, wasm)
-	check(err)
-
-	item := wasmtime.WrapFunc(store, func() {
-		fmt.Println("Hello from Go!")
-	})
-
-	abort := wasmtime.WrapFunc(store, func(a int32, b int32, c int32, d int32) {
-		fmt.Println()
-	})
-
-	httpRequest := wasmtime.WrapFunc(store, func(urlPtr int64, urlLen int64) {
-		buf := memory.UnsafeData(store)
-
-		url := string(buf[urlPtr : urlPtr+urlLen])
-
-		fmt.Println(url)
-	})
-
-	laceworkAPI := wasmtime.WrapFunc(store, func(jsonPtr int64, jsonLen int64) {
-		buf := memory.UnsafeData(store)
-
-		type LaceworkAPIRequest struct {
-			Function  string `json:"function"`
-			Arg1      string `json:"arg1"`
-			ResultPtr int64  `json:"result_ptr"`
-			ResultLen int64  `json:"result_len"`
-		}
-
-		var r LaceworkAPIRequest
-
-		err = json.Unmarshal(buf[jsonPtr:jsonPtr+jsonLen], &r)
-		check(err)
-
-		if err == nil {
-			cli.OutputJSON(&r)
-
-			var response api.TeamMemberResponse
-			err := cli.LwApi.V2.TeamMembers.Get("TECHALLY_DE894980E27BC66EEE46F65A585C4C588310B9CCDC531A9", &response)
-			check(err)
-
-			out, _ := json.Marshal(response.Data)
-
-			for i := 0; i < len(out); i++ {
-				buf[r.ResultPtr+int64(i)] = out[i]
-			}
-		}
-	})
-
-	// Next up we instantiate a module which is where we link in all our
-	// imports. We've got one import so we pass that in here.
-	instance, err := wasmtime.NewInstance(store, module, []wasmtime.AsExtern{item, abort, httpRequest, laceworkAPI})
-	check(err)
-
-	// After we've instantiated we can lookup our `run` function and call
-	// it.
-	run := instance.GetFunc(store, "run")
-	if run == nil {
-		panic("not a function")
+func (c *cliState) LoadWasmComponents() {
+	state, err := lwcomponent.LocalState()
+	if err != nil || state == nil {
+		c.Log.Debugw("unable to load Wasm components", "error", err)
+		return
 	}
 
-	memory = instance.GetExport(store, "memory").Memory()
+	c.LwComponents = state
 
-	_, err = run.Call(store)
-	check(err)
+	cmds := wasm.NewEngine().Commands("/Users/j0n/Workspace/Lacework/hackathon-wasm/assemblyscript/build/debug.wasm")
+
+	componentCmd :=
+		&cobra.Command{
+			Use:                   "hackathon",
+			Short:                 "hack",
+			SilenceUsage:          true,
+			DisableFlagParsing:    true,
+			DisableFlagsInUseLine: true,
+		}
+	rootCmd.AddCommand(componentCmd)
+
+	for _, cmd := range cmds {
+		componentCmd.AddCommand(&cobra.Command{
+			Use:  cmd,
+			Args: cobra.ArbitraryArgs,
+			RunE: runComponentsWasm})
+	}
+}
+
+func runComponentsWasm(cmd *cobra.Command, args []string) (err error) {
+	cli.OutputHuman("WASM\n")
+
+	engine := wasm.NewEngine()
+
+	engine.Run("/Users/j0n/Workspace/Lacework/hackathon-wasm/assemblyscript/build/debug.wasm", cmd.Use, args)
 
 	return
 }
