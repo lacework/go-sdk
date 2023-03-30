@@ -3,6 +3,7 @@ package wasm
 import (
 	"bytes"
 	"github.com/bytecodealliance/wasmtime-go"
+	"github.com/lacework/go-sdk/cli/cmd"
 	"io/ioutil"
 	"runtime"
 	"strings"
@@ -46,7 +47,7 @@ func (e *Engine) Commands(wasmFile string) []string {
 	return cmds
 }
 
-func (e *Engine) Run(wasmFile string, function string, args []string) {
+func (e *Engine) Run(wasmFile string, spec cmd.Spec, function string, args []string) {
 	wasm, err := ioutil.ReadFile(wasmFile)
 	check(err)
 
@@ -58,7 +59,7 @@ func (e *Engine) Run(wasmFile string, function string, args []string) {
 		wasmtime.WrapFunc(e.store, e.decorate(logging)),
 		wasmtime.WrapFunc(e.store, e.decorate(httpRequest)),
 		wasmtime.WrapFunc(e.store, func(ptr int64, length int64, contentPtr int64, contentLen int64) {
-			writeFile(e.store, e.memory, ptr, length, contentPtr, contentLen)
+			writeFile(e.store, e.memory, spec, ptr, length, contentPtr, contentLen)
 		}),
 	}
 

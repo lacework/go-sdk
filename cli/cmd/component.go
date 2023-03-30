@@ -19,14 +19,19 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
+	"io/ioutil"
 	"os"
+	"os/exec"
+	"path"
+	"strings"
 
 	"github.com/lacework/go-sdk/lwcomponent"
 	"github.com/lacework/go-sdk/wasm"
 
 	"github.com/Masterminds/semver"
-	"github.com/bytecodealliance/wasmtime-go/v7"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -101,16 +106,13 @@ var (
 	}
 
 	componentsWasmCmd = &cobra.Command{
-		Use:    "wasm <file>",
-		Hidden: true,
-		Short:  "POC Wasm",
-		Args:   cobra.ExactArgs(1),
-		RunE:   runComponentsWasm,
+		Use:   "wasm <url>",
+		Short: "POC Wasm",
+		Args:  cobra.ExactArgs(1),
+		RunE:  installComponentsWasm,
 	}
 
 	versionArg string
-	memory     *wasmtime.Memory
-	store      *wasmtime.Store
 )
 
 func init() {
@@ -554,32 +556,109 @@ func (c *cliState) LoadWasmComponents() {
 
 	c.LwComponents = state
 
-	cmds := wasm.NewEngine().Commands("/Users/j0n/Workspace/Lacework/hackathon-wasm/assemblyscript/build/debug.wasm")
+	entries, _ := os.ReadDir("/tmp/hackathon/")
+	for _, e := range entries {
+		name := e.Name()
 
-	componentCmd :=
-		&cobra.Command{
-			Use:                   "hackathon",
-			Short:                 "hack",
-			SilenceUsage:          true,
-			DisableFlagParsing:    true,
-			DisableFlagsInUseLine: true,
+		if strings.Contains(name, ".wasm") {
+			cmds := wasm.NewEngine().Commands(path.Join("/tmp/hackathon", name))
+
+			componentCmd :=
+				&cobra.Command{
+					Use:                   "hackathon",
+					Short:                 "hack",
+					SilenceUsage:          true,
+					DisableFlagParsing:    true,
+					DisableFlagsInUseLine: true,
+				}
+			rootCmd.AddCommand(componentCmd)
+
+			for _, cmd := range cmds {
+				componentCmd.AddCommand(&cobra.Command{
+					Use:  cmd,
+					Args: cobra.ArbitraryArgs,
+					RunE: runComponentsWasm})
+			}
 		}
-	rootCmd.AddCommand(componentCmd)
-
-	for _, cmd := range cmds {
-		componentCmd.AddCommand(&cobra.Command{
-			Use:  cmd,
-			Args: cobra.ArbitraryArgs,
-			RunE: runComponentsWasm})
 	}
 }
 
-func runComponentsWasm(cmd *cobra.Command, args []string) (err error) {
-	cli.OutputHuman("WASM\n")
+type Spec struct {
+	Name    string   `json:"name"`
+	Exports []string `json:"exports"`
+	Net     struct {
+		Hosts []string `json:"hosts"`
+	} `json:"net"`
+	Fs struct {
+		Paths []string `json:"paths"`
+	} `json:"fs"`
+}
 
+func installComponentsWasm(_ *cobra.Command, args []string) (err error) {
+	// TODO download from net
+	cmd := exec.Command("zsh", "-c", "unzip -d /tmp/dump hackathon-wasm/assemblyscript/hackathon.zip")
+	cmd.Run()
+
+	content, err := ioutil.ReadFile("/tmp/dump/spec.json")
+	check(err)
+
+	var spec Spec
+
+	err = json.Unmarshal(content, &spec)
+	check(err)
+
+	answers := struct {
+		Net bool
+		Fs  bool
+	}{}
+
+	questions := []*survey.Question{
+		{
+			Name:     "net",
+			Prompt:   &survey.Confirm{Message: fmt.Sprintf("Whitelist hostnames: %v", spec.Net.Hosts)},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "fs",
+			Prompt:   &survey.Confirm{Message: fmt.Sprintf("Whitelist filesystem access: %v", spec.Fs.Paths)},
+			Validate: survey.Required,
+		},
+	}
+
+	err = survey.Ask(questions, &answers,
+		survey.WithIcons(promptIconsFunc),
+	)
+	if err != nil {
+		return err
+	}
+
+	if !answers.Net || !answers.Fs {
+		cli.OutputHuman("Rejecting Wasm component")
+		return
+	}
+
+	cmd = exec.Command("zsh", "-c", "unzip -d /tmp/hackathon hackathon-wasm/assemblyscript/hackathon.zip")
+	cmd.Run()
+
+	cli.OutputHuman("Installed Wasm component")
+
+	return
+}
+
+func runComponentsWasm(cmd *cobra.Command, args []string) (err error) {
 	engine := wasm.NewEngine()
 
-	engine.Run("/Users/j0n/Workspace/Lacework/hackathon-wasm/assemblyscript/build/debug.wasm", cmd.Use, args)
+	name := strings.Split(cmd.CommandPath(), " ")[1]
+
+	content, err := ioutil.ReadFile(path.Join("/tmp/", name, "spec.json"))
+	check(err)
+
+	var spec Spec
+
+	err = json.Unmarshal(content, &spec)
+	check(err)
+
+	engine.Run(path.Join("/tmp/", name, fmt.Sprintf("%s.wasm", name)), spec, cmd.Use, args)
 
 	return
 }

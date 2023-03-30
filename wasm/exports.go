@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bytecodealliance/wasmtime-go"
+	"github.com/fatih/color"
+	"github.com/lacework/go-sdk/cli/cmd"
 	"io/fs"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -14,8 +17,8 @@ func abort(a int32, b int32, c int32, d int32) {
 	fmt.Println()
 }
 
-func readMemory(buf []byte, ptr int64, len int64) string {
-	return string(buf[ptr : ptr+len])
+func readMemory(buf []byte, ptr int64, len int64) []byte {
+	return buf[ptr : ptr+len]
 }
 
 func logging(store *wasmtime.Store, memory *wasmtime.Memory, ptr int64, length int64) {
@@ -38,7 +41,7 @@ type HTTPRequest struct {
 	Response int64                  `json:"response,omitempty"`
 }
 
-func httpRequest(store *wasmtime.Store, memory *wasmtime.Memory, ptr int64, length int64) {
+func httpRequest(store *wasmtime.Store, memory *wasmtime.Memory, spec cmd.Spec, ptr int64, length int64) {
 	buf := memory.UnsafeData(store)
 
 	var r HTTPRequest
@@ -50,6 +53,23 @@ func httpRequest(store *wasmtime.Store, memory *wasmtime.Memory, ptr int64, leng
 	body, err := json.Marshal(r.Body)
 	check(err)
 
+	url, err := url.Parse(r.URL)
+	check(err)
+
+	doHTTP := false
+
+	for _, h := range spec.Net.Hosts {
+		if h == url.Host {
+			doHTTP = true
+			break
+		}
+	}
+
+	if !doHTTP {
+		fmt.Println(fmt.Sprintf("[%s] %s was prevented from HTTP %s -> %s", color.HiRedString("✖"), spec.Name, r.Verb, r.URL))
+		return
+	}
+
 	req, err = http.NewRequest(r.Verb, r.URL, strings.NewReader(string(body)))
 	check(err)
 
@@ -60,6 +80,8 @@ func httpRequest(store *wasmtime.Store, memory *wasmtime.Memory, ptr int64, leng
 	client := &http.Client{}
 	res, err := client.Do(req)
 
+	fmt.Println(fmt.Sprintf("[%s] %s HTTP %s -> %s", color.HiGreenString("✓"), spec.Name, r.Verb, r.URL))
+
 	rBody, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	check(err)
@@ -69,15 +91,21 @@ func httpRequest(store *wasmtime.Store, memory *wasmtime.Memory, ptr int64, leng
 	}
 }
 
-func writeFile(store *wasmtime.Store, memory *wasmtime.Memory, ptr int64, length int64, contentPtr int64, contentLen int64) {
+func writeFile(store *wasmtime.Store, memory *wasmtime.Memory, spec cmd.Spec, ptr int64, length int64, contentPtr int64, contentLen int64) {
 	buf := memory.UnsafeData(store)
 
 	path := string(buf[ptr : ptr+length])
-	content := buf[contentPtr : contentPtr+contentLen]
+	content := readMemory(buf, contentPtr, contentLen)
 
-	ioutil.WriteFile(path, content, fs.ModePerm)
+	for _, p := range spec.Fs.Paths {
+		if p == path {
+			ioutil.WriteFile(path, content, fs.ModePerm)
+			fmt.Println(fmt.Sprintf("[%s] %s wrote file to %s", color.HiGreenString("✓"), spec.Name, path))
+			return
+		}
+	}
 
-	fmt.Println(path)
+	fmt.Println(fmt.Sprintf("[%s] %s was prevented from writing to %s", color.HiRedString("✖"), spec.Name, path))
 }
 
 //func laceworkAPI(ptr int64, length int64) {
