@@ -1,6 +1,6 @@
 
-export declare function hello(): void;
+export declare function logging(ptr: u64, length: u64): void;
 
-export declare function httpRequest(urlPtr: u64, urlLen: u64): void;
+export declare function httpRequest(ptr: u64, length: u64): void;
 
-export declare function laceworkAPI(jsonPtr: u64, jsonLen: u64): void;
+export declare function writeFile(ptr: u64, length: u64, contentPtr: u64, contentLen: u64): void;
