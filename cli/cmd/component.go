@@ -20,17 +20,17 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lacework/go-sdk/lwcomponent"
-	"github.com/lacework/go-sdk/wasm"
 	"os"
 
+	"github.com/lacework/go-sdk/lwcomponent"
+	"github.com/lacework/go-sdk/wasm"
+
 	"github.com/Masterminds/semver"
+	"github.com/bytecodealliance/wasmtime-go/v7"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/bytecodealliance/wasmtime-go"
 )
 
 const componentTypeAnnotation string = "component"
