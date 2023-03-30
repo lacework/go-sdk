@@ -1,0 +1,49 @@
+OPT_LEVEL = Some("0")
+TARGET = Some("x86_64-apple-darwin")
+HOST = Some("x86_64-apple-darwin")
+cargo:rerun-if-env-changed=CC_x86_64-apple-darwin
+CC_x86_64-apple-darwin = None
+cargo:rerun-if-env-changed=CC_x86_64_apple_darwin
+CC_x86_64_apple_darwin = None
+cargo:rerun-if-env-changed=HOST_CC
+HOST_CC = None
+cargo:rerun-if-env-changed=CC
+CC = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64-apple-darwin
+CFLAGS_x86_64-apple-darwin = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64_apple_darwin
+CFLAGS_x86_64_apple_darwin = None
+cargo:rerun-if-env-changed=HOST_CFLAGS
+HOST_CFLAGS = None
+cargo:rerun-if-env-changed=CFLAGS
+CFLAGS = None
+cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+CRATE_CC_NO_DEFAULTS = None
+DEBUG = Some("true")
+CARGO_CFG_TARGET_FEATURE = Some("fxsr,sse,sse2,sse3,ssse3")
+cargo:rustc-cfg=asm
+cargo:rustc-cfg=switchable_stack
+running: "cc" "-O0" "-ffunction-sections" "-fdata-sections" "-fPIC" "-gdwarf-2" "-fno-omit-frame-pointer" "-m64" "-arch" "x86_64" "-Wall" "-Wextra" "-xassembler-with-cpp" "-DCFG_TARGET_OS_macos" "-DCFG_TARGET_ARCH_x86_64" "-DCFG_TARGET_ENV_" "-o" "/Users/afiune/github/go-sdk/hackathon-wasm/rust/wasmtime_hello/target/debug/build/psm-ecaf26ea04f024f0/out/src/arch/x86_64.o" "-c" "src/arch/x86_64.s"
+exit status: 0
+cargo:rerun-if-env-changed=AR_x86_64-apple-darwin
+AR_x86_64-apple-darwin = None
+cargo:rerun-if-env-changed=AR_x86_64_apple_darwin
+AR_x86_64_apple_darwin = None
+cargo:rerun-if-env-changed=HOST_AR
+HOST_AR = None
+cargo:rerun-if-env-changed=AR
+AR = None
+cargo:rerun-if-env-changed=ARFLAGS_x86_64-apple-darwin
+ARFLAGS_x86_64-apple-darwin = None
+cargo:rerun-if-env-changed=ARFLAGS_x86_64_apple_darwin
+ARFLAGS_x86_64_apple_darwin = None
+cargo:rerun-if-env-changed=HOST_ARFLAGS
+HOST_ARFLAGS = None
+cargo:rerun-if-env-changed=ARFLAGS
+ARFLAGS = None
+running: ZERO_AR_DATE="1" "ar" "cq" "/Users/afiune/github/go-sdk/hackathon-wasm/rust/wasmtime_hello/target/debug/build/psm-ecaf26ea04f024f0/out/libpsm_s.a" "/Users/afiune/github/go-sdk/hackathon-wasm/rust/wasmtime_hello/target/debug/build/psm-ecaf26ea04f024f0/out/src/arch/x86_64.o"
+exit status: 0
+running: "ar" "s" "/Users/afiune/github/go-sdk/hackathon-wasm/rust/wasmtime_hello/target/debug/build/psm-ecaf26ea04f024f0/out/libpsm_s.a"
+exit status: 0
+cargo:rustc-link-lib=static=psm_s
+cargo:rustc-link-search=native=/Users/afiune/github/go-sdk/hackathon-wasm/rust/wasmtime_hello/target/debug/build/psm-ecaf26ea04f024f0/out

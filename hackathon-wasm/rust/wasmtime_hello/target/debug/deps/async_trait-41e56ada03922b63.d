@@ -1,0 +1,12 @@
+/Users/afiune/github/go-sdk/hackathon-wasm/rust/wasmtime_hello/target/debug/deps/libasync_trait-41e56ada03922b63.dylib: /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/lib.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/args.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/bound.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/expand.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/lifetime.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/parse.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/receiver.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/verbatim.rs
+
+/Users/afiune/github/go-sdk/hackathon-wasm/rust/wasmtime_hello/target/debug/deps/async_trait-41e56ada03922b63.d: /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/lib.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/args.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/bound.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/expand.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/lifetime.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/parse.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/receiver.rs /Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/verbatim.rs
+
+/Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/lib.rs:
+/Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/args.rs:
+/Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/bound.rs:
+/Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/expand.rs:
+/Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/lifetime.rs:
+/Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/parse.rs:
+/Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/receiver.rs:
+/Users/afiune/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.68/src/verbatim.rs:

@@ -21,18 +21,18 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwcomponent"
 	"io/ioutil"
 	"os"
 
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/lwcomponent"
+
 	"github.com/Masterminds/semver"
+	"github.com/bytecodealliance/wasmtime-go/v7"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/bytecodealliance/wasmtime-go"
 )
 
 const componentTypeAnnotation string = "component"
@@ -553,7 +553,8 @@ func runComponentsWasm(_ *cobra.Command, args []string) (err error) {
 	// argument to share, so create that first
 	store = wasmtime.NewStore(wasmtime.NewEngine())
 
-	wasm, err := ioutil.ReadFile("/Users/j0n/Workspace/Lacework/hackathon-wasm/assemblyscript/build/debug.wasm")
+	wasm, err := ioutil.ReadFile(args[0])
+	// "/Users/j0n/Workspace/Lacework/hackathon-wasm/assemblyscript/build/debug.wasm"
 	check(err)
 
 	// Once we have our binary `wasm` we can compile that into a `*Module`
@@ -609,7 +610,10 @@ func runComponentsWasm(_ *cobra.Command, args []string) (err error) {
 
 	// Next up we instantiate a module which is where we link in all our
 	// imports. We've got one import so we pass that in here.
-	instance, err := wasmtime.NewInstance(store, module, []wasmtime.AsExtern{item, abort, httpRequest, laceworkAPI})
+	instance, err := wasmtime.NewInstance(store, module,
+		// []wasmtime.AsExtern{item, abort},
+		[]wasmtime.AsExtern{item, abort, httpRequest, laceworkAPI},
+	)
 	check(err)
 
 	// After we've instantiated we can lookup our `run` function and call
