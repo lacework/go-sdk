@@ -106,7 +106,7 @@ var (
 	}
 
 	componentsWasmCmd = &cobra.Command{
-		Use:   "wasm <url>",
+		Use:   "wasm <path>",
 		Short: "POC Wasm",
 		Args:  cobra.ExactArgs(1),
 		RunE:  installComponentsWasm,
@@ -596,7 +596,8 @@ type Spec struct {
 
 func installComponentsWasm(_ *cobra.Command, args []string) (err error) {
 	// TODO download from net
-	cmd := exec.Command("zsh", "-c", "unzip -d /tmp/dump hackathon-wasm/assemblyscript/hackathon.zip")
+	filepath := args[0]
+	cmd := exec.Command("zsh", "-c", fmt.Sprintf("unzip -o -d /tmp/dump %s", filepath))
 	cmd.Run()
 
 	content, err := ioutil.ReadFile("/tmp/dump/spec.json")
@@ -637,7 +638,7 @@ func installComponentsWasm(_ *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	cmd = exec.Command("zsh", "-c", "unzip -d /tmp/hackathon hackathon-wasm/assemblyscript/hackathon.zip")
+	cmd = exec.Command("zsh", "-c", fmt.Sprintf("unzip -o -d /tmp/hackathon %s", filepath))
 	cmd.Run()
 
 	cli.OutputHuman("Installed Wasm component")
@@ -653,12 +654,7 @@ func runComponentsWasm(cmd *cobra.Command, args []string) (err error) {
 	content, err := ioutil.ReadFile(path.Join("/tmp/", name, "spec.json"))
 	check(err)
 
-	var spec Spec
-
-	err = json.Unmarshal(content, &spec)
-	check(err)
-
-	engine.Run(path.Join("/tmp/", name, fmt.Sprintf("%s.wasm", name)), spec, cmd.Use, args)
+	engine.Run(path.Join("/tmp/", name, fmt.Sprintf("%s.wasm", name)), content, cmd.Use, args)
 
 	return
 }

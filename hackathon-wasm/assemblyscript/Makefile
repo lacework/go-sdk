@@ -7,7 +7,7 @@ install:
 build:
 	npm run asbuild
 
-
 .PHONY: package
 package: build
-	zip -j hackathon.zip build/release.wasm spec.json
+	cp build/release.wasm build/hackathon.wasm
+	zip -j hackathon.zip build/hackathon.wasm spec.json
