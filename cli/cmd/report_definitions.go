@@ -246,14 +246,20 @@ func fetchReportDefinitionVersion(id string) error {
 		return err
 	}
 
-	for _, r := range response.Data {
-		if r.Version == version {
-			reportDefinition = r
+	for _, reportVersion := range response.Data {
+		versions = append(versions, strconv.Itoa(reportVersion.Version))
+		if reportVersion.Version == version {
+			reportDefinition = reportVersion
 		}
 	}
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(reportDefinition)
+	}
+
+	if reportDefinition.ReportDefinitionGuid == "" {
+		cli.OutputHuman("version %d not found\nvalid versions are: %s\n", version, strings.Join(versions, ", "))
+		return nil
 	}
 
 	outputReportDefinitionTable(reportDefinition)
