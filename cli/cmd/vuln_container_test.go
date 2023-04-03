@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"strings"
 	"testing"
@@ -202,6 +203,22 @@ func TestVulnCtrCountPackages(t *testing.T) {
 
 	totalPackages := countVulnContainerImagePackages(response.Data)
 	assert.Equal(t, totalPackages, expected)
+}
+
+func TestVulnCtrShowFilterJsonOutput(t *testing.T) {
+	var data api.VulnerabilitiesContainersResponse
+
+	if err := json.Unmarshal([]byte(mockIntroducedInLayerResponse), &data); err != nil {
+		panic(err)
+	}
+
+	expectedIntroducedIn := fmt.Sprintf("%s,%s",
+		data.Data[0].FeatureProps.IntroducedIn, data.Data[1].FeatureProps.IntroducedIn)
+
+	res := filterVulnerabilityAssessment(data.Data)
+
+	assert.Len(t, res, 1)
+	assert.Equal(t, res[0].FeatureProps.IntroducedIn, expectedIntroducedIn)
 }
 
 var rawListAssessments = `

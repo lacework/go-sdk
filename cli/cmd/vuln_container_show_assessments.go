@@ -240,7 +240,8 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 
 	switch {
 	case cli.JSONOutput():
-		if err := outputVulnerabilityDetailsReportJson(assessment); err != nil {
+		output := filterVulnerabilityAssessment(assessment)
+		if err := cli.OutputJSON(output); err != nil {
 			return err
 		}
 	case cli.CSVOutput():
@@ -272,7 +273,7 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 	return nil
 }
 
-func outputVulnerabilityDetailsReportJson(vulnerabilities []api.VulnerabilityContainer) error {
+func filterVulnerabilityAssessment(vulnerabilities []api.VulnerabilityContainer) []api.VulnerabilityContainer {
 	var vulnMap = make(map[string]api.VulnerabilityContainer)
 	var vulns []api.VulnerabilityContainer
 
@@ -302,7 +303,7 @@ func outputVulnerabilityDetailsReportJson(vulnerabilities []api.VulnerabilityCon
 		vulns = append(vulns, v)
 	}
 
-	return cli.OutputJSON(vulns)
+	return vulns
 }
 
 func buildVulnerabilityDetailsReportCSV(details vulnerabilityDetailsReport) ([]string, [][]string) {
