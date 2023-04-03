@@ -240,8 +240,7 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 
 	switch {
 	case cli.JSONOutput():
-		filteredAssessment := assessment
-		if err := cli.OutputJSON(filteredAssessment); err != nil {
+		if err := outputVulnerabilityDetailsReportJson(assessment); err != nil {
 			return err
 		}
 	case cli.CSVOutput():
@@ -271,6 +270,39 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 	}
 
 	return nil
+}
+
+func outputVulnerabilityDetailsReportJson(vulnerabilities []api.VulnerabilityContainer) error {
+	var vulnMap = make(map[string]api.VulnerabilityContainer)
+	var vulns []api.VulnerabilityContainer
+
+	for _, vuln := range vulnerabilities {
+		key := fmt.Sprintf("%s-%s", vuln.VulnID, vuln.FeatureKey.Name)
+
+		if vulCmdState.Severity != "" {
+			if filterSeverity(vuln.Severity, vulCmdState.Severity) {
+				continue
+			}
+		}
+		// filter: fixable
+		if vulCmdState.Fixable && vuln.FixInfo.FixedVersion == "" {
+			continue
+		}
+
+		if _, ok := vulnMap[key]; !ok {
+			vulnMap[key] = vuln
+			continue
+		}
+
+		vuln.FeatureProps.IntroducedIn = fmt.Sprintf("%s,%s", vulnMap[key].FeatureProps.IntroducedIn, vuln.FeatureProps.IntroducedIn)
+		vulnMap[key] = vuln
+	}
+
+	for _, v := range vulnMap {
+		vulns = append(vulns, v)
+	}
+
+	return cli.OutputJSON(vulns)
 }
 
 func buildVulnerabilityDetailsReportCSV(details vulnerabilityDetailsReport) ([]string, [][]string) {
