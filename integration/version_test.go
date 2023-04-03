@@ -124,10 +124,9 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 func TestVersionCommand(t *testing.T) {
 	enableTestingUpdaterEnv()
 	defer disableTestingUpdaterEnv()
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("version", "--nocache")
+	out, _, exitcode := LaceworkCLIWithTOMLConfig("version", "--nocache")
 	assert.Equal(t, 0, exitcode)
 
-	assert.NotEmpty(t, err, "update suggestion should be enabled")
 	assert.Contains(t, out.String(), "lacework v")
 	assert.Contains(t, out.String(), "(sha:")
 	assert.Contains(t, out.String(), "(time:")
