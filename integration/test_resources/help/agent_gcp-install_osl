@@ -26,6 +26,10 @@ select a token and pass it to the '--token' flag. This flag must be selected if 
 
     lacework agent gcp-install osl <gcp_username> --token <token>
 
+To explicitly specify the server URL that the agent will connect to:
+
+    lacework agent gcp-install osl --server_url https://api.fra.lacework.net
+
 GCP credentials are read using the following environment variables:
 - GOOGLE_APPLICATION_CREDENTIALS
 
@@ -42,6 +46,7 @@ Flags:
       --metadata strings          only install agents on infra with this metadata
       --metadata_key string       only install agents on infra with this metadata key set
       --project_id string         ID of the GCP project, set if metadata server does not provide
+      --server_url https://       server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
       --token string              agent access token
       --trust_host_key            automatically add host keys to the ~/.ssh/known_hosts file (default true)
 

@@ -57,6 +57,10 @@ select a token and pass it to the '--token' flag. This flag must be selected if 
 
     lacework agent aws-install ec2ic --token <token>
 
+To explicitly specify the server URL that the agent will connect to:
+
+    lacework agent aws-install ec2ic --server_url https://api.fra.lacework.net
+
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
@@ -98,6 +102,9 @@ func init() {
 		"n",
 		50,
 		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
+	)
+	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
+		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
 	)
 }
 
@@ -162,7 +169,7 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 				return
 			}
 
-			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"", agentInstallDownloadURL, token, agentCmdState.InstallServerURL)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)
