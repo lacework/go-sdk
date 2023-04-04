@@ -137,6 +137,9 @@ func init() {
 		false,
 		"set this flag to force-reinstall the agent, even if already running on the target instance",
 	)
+	agentInstallAWSSSMCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
+		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
+	)
 }
 
 func installAWSSSM(_ *cobra.Command, _ []string) error {
@@ -344,8 +347,8 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 
 			// Install the agent on the host
 			// No need to sleep because instance profile already associated
-			const runInstallCmdTmpl = "sudo sh -c 'curl -sSL %s | sh -s -- %s'"
-			runInstallCmd := fmt.Sprintf(runInstallCmdTmpl, agentInstallDownloadURL, token)
+			const runInstallCmdTmpl = "sudo sh -c 'curl -sSL %s | sh -s -- %s -U %s'"
+			runInstallCmd := fmt.Sprintf(runInstallCmdTmpl, agentInstallDownloadURL, token, agentCmdState.InstallServerURL)
 			commandOutput, err := threadRunner.RunSSMCommandOnRemoteHost(cfg, runInstallCmd)
 			if err != nil {
 				cli.OutputHuman(

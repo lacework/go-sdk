@@ -50,6 +50,7 @@ var (
 		InstallBYORole        string
 		InstallSkipCreatInfra bool
 		InstallForceReinstall bool
+		InstallServerURL      string
 	}{}
 
 	defaultSshIdentityKey = "~/.ssh/id_rsa"
