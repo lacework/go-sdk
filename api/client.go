@@ -80,7 +80,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		if err != nil {
 			return nil, err
 		}
-		account = domain.Account
+		account = domain.String()
 	}
 
 	baseURL, err := url.Parse(fmt.Sprintf("https://%s.lacework.net", account))

@@ -184,7 +184,7 @@ func (c *cliState) LoadComponents() {
 			c.Log.Debugw("loading dynamic cli command",
 				"component", component.Name, "version", ver,
 			)
-			rootCmd.AddCommand(
+			componentCmd :=
 				&cobra.Command{
 					Use:                   component.Name,
 					Short:                 component.Description,
@@ -194,9 +194,18 @@ func (c *cliState) LoadComponents() {
 					DisableFlagParsing:    true,
 					DisableFlagsInUseLine: true,
 					RunE: func(cmd *cobra.Command, args []string) error {
+						// cobra will automatically add a -v/--version flag to
+						// the command, but because for components we're not
+						// parsing the args at the usual point in time, we have
+						// to repeat the check for -v here
+						versionVal, _ := cmd.Flags().GetBool("version")
+						if versionVal {
+							cmd.Printf("%s version %s\n", cmd.Use, cmd.Version)
+							return nil
+						}
 						go func() {
 							// Start the gRPC server for components to communicate back
-							if err := c.Serve(c.GrpcTarget()); err != nil {
+							if err := c.Serve(); err != nil {
 								c.Log.Errorw("couldn't serve gRPC server", "error", err)
 							}
 						}()
@@ -218,8 +227,8 @@ func (c *cliState) LoadComponents() {
 						// happens, let the user know that we would love to hear their feedback
 						return errors.New("something went pretty wrong here, contact support@lacework.net")
 					},
-				},
-			)
+				}
+			rootCmd.AddCommand(componentCmd)
 		}
 	}
 }
@@ -276,10 +285,25 @@ func runComponentsShow(_ *cobra.Command, args []string) (err error) {
 	if cli.JSONOutput() {
 		return cli.OutputJSON(component)
 	}
+
+	var colorize *color.Color
+	switch component.Status() {
+	case lwcomponent.NotInstalled:
+		colorize = color.New(color.FgWhite, color.Bold)
+	case lwcomponent.Installed:
+		colorize = color.New(color.FgGreen, color.Bold)
+	case lwcomponent.UpdateAvailable:
+		colorize = color.New(color.FgYellow, color.Bold)
+	}
+
 	cli.OutputHuman(
 		renderCustomTable(
 			[]string{"Name", "Status", "Description"},
-			[][]string{{component.Name, component.Status().String(), component.Description}},
+			[][]string{{
+				component.Name,
+				colorize.Sprintf(component.Status().String()),
+				component.Description,
+			}},
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetBorder(false)
 				t.SetColumnSeparator(" ")
@@ -296,6 +320,7 @@ func runComponentsShow(_ *cobra.Command, args []string) (err error) {
 		}
 		currentVersion = installed
 	}
+	cli.OutputHuman("\n")
 	cli.OutputHuman(component.ListVersions(currentVersion))
 	cli.OutputHuman("\n")
 	return
@@ -367,6 +392,7 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 	if component.Breadcrumbs.InstallationMessage != "" {
 		cli.OutputHuman("\n")
 		cli.OutputHuman(component.Breadcrumbs.InstallationMessage)
+		cli.OutputHuman("\n")
 	}
 	return
 }

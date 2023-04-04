@@ -31,9 +31,46 @@ type ReportDefinitionsService struct {
 	client *Client
 }
 
-const ReportDefinitionNotificationTypeAws = "AWS"
-const ReportDefinitionNotificationTypeGcp = "GCP"
-const ReportDefinitionNotificationTypeAzure = "Azure"
+// The report definition type. At present "COMPLIANCE" is the only supported type for custom report definitions
+type reportDefinitionType int
+
+const (
+	ReportDefinitionTypeCompliance reportDefinitionType = iota
+)
+
+func (reportType reportDefinitionType) String() string {
+	return reportDefinitionTypes[reportType]
+}
+
+var reportDefinitionTypes = map[reportDefinitionType]string{
+	ReportDefinitionTypeCompliance: "COMPLIANCE",
+}
+
+// The report definition subtype. Supported values are "AWS", "Azure", "GCP"
+type reportDefinitionSubType int
+
+const (
+	ReportDefinitionSubTypeAws reportDefinitionSubType = iota
+	ReportDefinitionSubTypeGcp
+	ReportDefinitionSubTypeAzure
+)
+
+func (subType reportDefinitionSubType) String() string {
+	return reportDefinitionSubTypes[subType]
+}
+
+func ReportDefinitionSubTypes() (values []string) {
+	for _, v := range reportDefinitionSubTypes {
+		values = append(values, v)
+	}
+	return
+}
+
+var reportDefinitionSubTypes = map[reportDefinitionSubType]string{
+	ReportDefinitionSubTypeAws:   "AWS",
+	ReportDefinitionSubTypeGcp:   "GCP",
+	ReportDefinitionSubTypeAzure: "Azure",
+}
 
 // List returns a ReportDefinitionResponse
 func (svc *ReportDefinitionsService) List() (response ReportDefinitionsResponse, err error) {
@@ -42,11 +79,21 @@ func (svc *ReportDefinitionsService) List() (response ReportDefinitionsResponse,
 }
 
 // Get returns a ReportDefinitionResponse
-func (svc *ReportDefinitionsService) Get(reportDefinitionGuid string) (response ReportDefinitionResponse, err error) {
-	if reportDefinitionGuid == "" {
+func (svc *ReportDefinitionsService) Get(guid string) (response ReportDefinitionResponse, err error) {
+	if guid == "" {
 		return ReportDefinitionResponse{}, errors.New("specify a report definition guid")
 	}
-	apiPath := fmt.Sprintf(apiV2ReportDefinitionsFromGUID, reportDefinitionGuid)
+	apiPath := fmt.Sprintf(apiV2ReportDefinitionsFromGUID, guid)
+	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
+	return
+}
+
+// GetVersions returns a list of all versions of a reportDefinition
+func (svc *ReportDefinitionsService) GetVersions(guid string) (response ReportDefinitionsResponse, err error) {
+	if guid == "" {
+		return ReportDefinitionsResponse{}, errors.New("specify a report definition guid")
+	}
+	apiPath := fmt.Sprintf(apiV2ReportDefinitionsVersions, guid)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
@@ -60,31 +107,65 @@ func (svc *ReportDefinitionsService) Delete(guid string) error {
 	return svc.client.RequestDecoder("DELETE", fmt.Sprintf(apiV2ReportDefinitionsFromGUID, guid), nil, nil)
 }
 
+func (svc *ReportDefinitionsService) Create(report ReportDefinition) (response ReportDefinitionResponse, err error) {
+	err = svc.client.RequestEncoderDecoder("POST", apiV2ReportDefinitions, report, &response)
+	return
+}
+
+func (svc *ReportDefinitionsService) Update(guid string, report ReportDefinitionUpdate) (response ReportDefinitionResponse, err error) {
+	if guid == "" {
+		return response, errors.New("specify a report definition guid")
+	}
+
+	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiV2ReportDefinitionsFromGUID, guid), report, &response)
+	return
+}
+
+func (svc *ReportDefinitionsService) Revert(guid string, version int) (response ReportDefinitionResponse, err error) {
+	if guid == "" {
+		return response, errors.New("specify a report definition guid")
+	}
+
+	apiPath := fmt.Sprintf(apiV2ReportDefinitionsRevert, guid, version)
+	err = svc.client.RequestEncoderDecoder("PATCH", apiPath, "", &response)
+	return
+}
+
 // NewReportDefinition creates a new report definition for Create function
 func NewReportDefinition(cfg ReportDefinitionConfig) ReportDefinition {
 	return ReportDefinition{
 		ReportName:              cfg.ReportName,
+		DisplayName:             cfg.DisplayName,
 		ReportType:              cfg.ReportType,
 		SubReportType:           cfg.SubReportType,
-		ReportDefinitionDetails: ReportDefinitionDetails{cfg.Sections, cfg.Overrides},
-		Props:                   cfg.Props,
-		DistributionType:        cfg.DistributionType,
-		AlertChannels:           cfg.AlertChannels,
-		Frequency:               cfg.Frequency,
+		ReportDefinitionDetails: ReportDefinitionDetails{Sections: cfg.Sections},
 	}
 }
 
+// NewReportDefinitionUpdate creates a new report definition for Update function
+func NewReportDefinitionUpdate(cfg ReportDefinitionConfig) ReportDefinitionUpdate {
+	return ReportDefinitionUpdate{
+		ReportName:              cfg.ReportName,
+		DisplayName:             cfg.DisplayName,
+		ReportDefinitionDetails: &ReportDefinitionDetails{Sections: cfg.Sections},
+	}
+}
+
+var ReportDefinitionSubtypes = []string{"AWS", "Azure", "GCP"}
+
 type ReportDefinitionConfig struct {
-	ReportName       string                      `json:"reportName"`
-	ReportType       string                      `json:"reportType"`
-	SubReportType    string                      `json:"subReportType"`
-	Sections         []ReportDefinitionSection   `json:"sections"`
-	Overrides        []ReportDefinitionOverrides `json:"overrides"`
-	Props            ReportDefinitionProps       `json:"props"`
-	AlertChannels    []string                    `json:"alertChannels"`
-	DistributionType string                      `json:"distributionType"`
-	Frequency        string                      `json:"frequency"`
-	UpdateType       string                      `json:"updateType,omitempty"`
+	ReportName    string                    `json:"reportName" yaml:"reportName"`
+	DisplayName   string                    `json:"displayName" yaml:"displayName"`
+	ReportType    string                    `json:"reportType" yaml:"reportType"`
+	SubReportType string                    `json:"subReportType" yaml:"subReportType"`
+	Sections      []ReportDefinitionSection `json:"sections,omitempty" yaml:"sections,omitempty"`
+}
+
+// ReportDefinitionUpdate represents fields allowed for update request
+type ReportDefinitionUpdate struct {
+	ReportName              string                   `json:"reportName,omitempty" yaml:"reportName,omitempty"`
+	DisplayName             string                   `json:"displayName,omitempty" yaml:"displayName,omitempty"`
+	ReportDefinitionDetails *ReportDefinitionDetails `json:"reportDefinition,omitempty" yaml:"reportDefinition,omitempty"`
 }
 
 type ReportDefinitionsResponse struct {
@@ -96,43 +177,58 @@ type ReportDefinitionResponse struct {
 }
 
 type ReportDefinition struct {
-	ReportDefinitionGuid    string                  `json:"reportDefinitionGuid,omitempty"`
-	ReportName              string                  `json:"reportName"`
-	DisplayName             string                  `json:"displayName,omitempty"`
-	ReportType              string                  `json:"reportType"`
-	ReportNotificationType  string                  `json:"reportNotificationType,omitempty"`
-	SubReportType           string                  `json:"subReportType"`
-	ReportDefinitionDetails ReportDefinitionDetails `json:"reportDefinition"`
-	Props                   ReportDefinitionProps   `json:"props"`
-	DistributionType        string                  `json:"distributionType"`
-	AlertChannels           []string                `json:"alertChannels,omitempty"`
-	Frequency               string                  `json:"frequency,omitempty"`
-	Version                 int                     `json:"version,omitempty"`
-	UpdateType              string                  `json:"updateType,omitempty"`
-	CreatedBy               string                  `json:"createdBy,omitempty"`
-	CreatedTime             *time.Time              `json:"createdTime,omitempty"`
-	Enabled                 int                     `json:"enabled,omitempty"`
+	ReportDefinitionGuid    string                  `json:"reportDefinitionGuid,omitempty" yaml:"reportDefinitionGuid,omitempty"`
+	ReportName              string                  `json:"reportName" yaml:"reportName"`
+	DisplayName             string                  `json:"displayName,omitempty" yaml:"displayName,omitempty"`
+	ReportType              string                  `json:"reportType" yaml:"reportType"`
+	ReportNotificationType  string                  `json:"reportNotificationType,omitempty" yaml:"reportNotificationType,omitempty"`
+	SubReportType           string                  `json:"subReportType" yaml:"subReportType"`
+	ReportDefinitionDetails ReportDefinitionDetails `json:"reportDefinition" yaml:"reportDefinition"`
+	Props                   *ReportDefinitionProps  `json:"props,omitempty" yaml:"props,omitempty"`
+	DistributionType        string                  `json:"distributionType,omitempty" yaml:"distributionType,omitempty"`
+	AlertChannels           []string                `json:"alertChannels,omitempty" yaml:"alertChannels,omitempty"`
+	Frequency               string                  `json:"frequency,omitempty" yaml:"frequency,omitempty"`
+	Version                 int                     `json:"version,omitempty" yaml:"version,omitempty"`
+	UpdateType              string                  `json:"updateType,omitempty" yaml:"updateType,omitempty"`
+	CreatedBy               string                  `json:"createdBy,omitempty" yaml:"createdBy,omitempty"`
+	CreatedTime             *time.Time              `json:"createdTime,omitempty" yaml:"createdTime,omitempty"`
+	Enabled                 int                     `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+}
+
+// IsCustom returns true if report definition is user created, not created by SYSTEM
+func (report ReportDefinition) IsCustom() bool {
+	return report.CreatedBy != "SYSTEM"
+}
+
+func (report ReportDefinition) Config() ReportDefinitionConfig {
+	return ReportDefinitionConfig{
+		ReportName:    report.ReportName,
+		ReportType:    report.ReportType,
+		DisplayName:   report.DisplayName,
+		SubReportType: report.SubReportType,
+		Sections:      report.ReportDefinitionDetails.Sections,
+	}
 }
 
 type ReportDefinitionDetails struct {
 	Sections  []ReportDefinitionSection   `json:"sections"`
-	Overrides []ReportDefinitionOverrides `json:"overrides,omitempty"`
+	Overrides []ReportDefinitionOverrides `json:"overrides,omitempty" yaml:"overrides,omitempty"`
 }
 
 type ReportDefinitionOverrides struct {
-	Policy string `json:"policy"`
-	Title  string `json:"title"`
+	Policy string `json:"policy" yaml:"policy"`
+	Title  string `json:"title" yaml:"title"`
 }
 
 type ReportDefinitionSection struct {
-	Category string   `json:"category"`
-	Title    string   `json:"title"`
-	Policies []string `json:"policies"`
+	Category string   `json:"category" yaml:"category"`
+	Title    string   `json:"title" yaml:"title"`
+	Policies []string `json:"policies" yaml:"policies"`
 }
 
 type ReportDefinitionProps struct {
-	Engine         string   `json:"engine,omitempty"`
-	ReleaseLabel   string   `json:"releaseLabel,omitempty"`
-	ResourceGroups []string `json:"resourceGroups,omitempty"`
-	Integrations   []string `json:"integrations,omitempty"`
+	Engine         string   `json:"engine,omitempty" yaml:"engine,omitempty"`
+	ReleaseLabel   string   `json:"releaseLabel,omitempty" yaml:"releaseLabel,omitempty"`
+	ResourceGroups []string `json:"resourceGroups,omitempty" yaml:"resourceGroups,omitempty"`
+	Integrations   []string `json:"integrations,omitempty" yaml:"integrations,omitempty"`
 }

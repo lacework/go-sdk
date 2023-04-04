@@ -252,7 +252,7 @@ func parseFlags(args []string) (flags []string) {
 			continue
 		}
 
-		flags = append(flags, arg)
+		flags = append(flags, strings.Split(arg, "=")[0])
 	}
 	return
 }

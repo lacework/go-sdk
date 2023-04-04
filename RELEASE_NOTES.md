@@ -1,10 +1,10 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.9.3`.
+Another day, another release. These are the release notes for the version `v1.15.1`.
 
 ## Bug Fixes
-* fix(cli): fix gcp report query params --pdf cmd (#1143) (Darren)([0d5ad741](https://github.com/lacework/go-sdk/commit/0d5ad74170ffe9d9794714c68dc0a19ef551784b))
+* fix(cli): HTML generation of vuln assessment (#1204) (Salim Afiune)([83147b8e](https://github.com/lacework/go-sdk/commit/83147b8e79f67ac93c8987ac2a2149ae9435abb3))
 ## Other Changes
-* ci: version bump to v1.9.3-dev (Lacework)([0236a054](https://github.com/lacework/go-sdk/commit/0236a054b7dfe7b3167afe93905233bf2278c38c))
+* ci: version bump to v1.15.1-dev (Lacework)([cc90a5bf](https://github.com/lacework/go-sdk/commit/cc90a5bf38ceb9f8c3ee0374c2aba9c17049fd02))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```

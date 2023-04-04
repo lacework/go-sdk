@@ -23,6 +23,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/lacework/go-sdk/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -133,6 +134,32 @@ func TestComplianceAwsGetReportTypeAWS_SOC_Rev2(t *testing.T) {
 		"STDOUT table headers changed, please check")
 	assert.Contains(t, out.String(), account,
 		"Account ID in compliance report is not correct")
+}
+
+func TestComplianceAwsGetReportByName(t *testing.T) {
+	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--report_name", "AWS CSA CCM 4.0.5")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "AWS Cloud Security Alliance",
+		"STDOUT report type missing or something else is going on, please check")
+	assert.Contains(t, out.String(), "Report Title",
+		"STDOUT table headers changed, please check")
+	assert.Contains(t, out.String(), account,
+		"Account ID in compliance report is not correct")
+}
+
+func TestComplianceAwsGetAllReportType(t *testing.T) {
+	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	for _, reportType := range api.AwsReportTypes() {
+		t.Run(reportType, func(t *testing.T) {
+			out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", reportType)
+			assert.Empty(t, err.String(), "STDERR should be empty")
+			assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+			assert.Contains(t, out.String(), "COMPLIANCE REPORT DETAILS",
+				"STDOUT table headers changed, please check")
+		})
+	}
 }
 
 func TestComplianceAwsGetReportRecommendationID(t *testing.T) {

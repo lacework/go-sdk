@@ -23,6 +23,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
@@ -47,11 +48,21 @@ To list the CVEs found in the hosts of your environment run:
 
     lacework vulnerability host list-cves`,
 		RunE: func(_ *cobra.Command, args []string) error {
-			filter := api.SearchFilter{Filters: []api.Filter{{
-				Expression: "eq",
-				Field:      "vulnId",
-				Value:      args[0],
-			}}}
+			now := time.Now()
+			start := now.AddDate(0, 0, -1)
+			filter := api.SearchFilter{
+				TimeFilter: &api.TimeFilter{
+					StartTime: &start,
+					EndTime:   &now,
+				},
+				Filters: []api.Filter{
+					{Expression: "eq",
+						Field: "vulnId",
+						Value: args[0]},
+					{Expression: "ne",
+						Field: "status",
+						Value: "Fixed"},
+				}}
 
 			cli.StartProgress("Fetching Hosts...")
 			response, err := cli.LwApi.V2.Vulnerabilities.Hosts.SearchAllPages(filter)
@@ -96,14 +107,18 @@ func hostVulnHostsTable(hosts []api.VulnerabilityHost) [][]string {
 	for _, sum := range hostSummary {
 		host := sum.host
 		summary := severitySummary(sum.severity, sum.fixable)
+		machineTags, err := host.GetMachineTags()
+		if err != nil {
+			cli.Log.Debug("failed to parse machine tags")
+		}
 		out = append(out, []string{
 			strconv.Itoa(host.Mid),
 			host.EvalCtx.Hostname,
-			host.MachineTags.ExternalIP,
-			host.MachineTags.InternalIP,
-			fmt.Sprintf("%s/%s", host.MachineTags.Os, host.MachineTags.Arch),
-			host.MachineTags.VMProvider,
-			host.MachineTags.InstanceID,
+			machineTags.ExternalIP,
+			machineTags.InternalIP,
+			fmt.Sprintf("%s/%s", machineTags.Os, machineTags.Arch),
+			machineTags.VMProvider,
+			machineTags.InstanceID,
 			summary,
 			host.Status,
 		})

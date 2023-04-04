@@ -231,3 +231,13 @@ func TestGenerationWithLaceworkProvider(t *testing.T) {
 	assert.NotNil(t, hcl)
 	assert.Equal(t, laceworkProfile, hcl)
 }
+
+func TestGenerationAzureRmProviderWithSubscriptionID(t *testing.T) {
+	configWithSubscription, fileErr := getFileContent("test-data/config-with-azurerm-subscription.tf")
+	assert.Nil(t, fileErr)
+
+	hcl, err := azure.NewTerraform(true, false, true, azure.WithSubscriptionID("test-subscription")).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, configWithSubscription, hcl)
+}

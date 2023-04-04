@@ -96,9 +96,8 @@ func showAlert(_ *cobra.Command, args []string) error {
 	}
 
 	// breadcrumb
-	// ALLY-1233: Need to switch to alertLinkBuilder when new Alerting UI becomes generally available
 	if !cli.JSONOutput() {
-		url := eventLinkBuilder(args[0])
+		url := alertLinkBuilder(id)
 		cli.OutputHuman(
 			fmt.Sprintf(
 				"\nFor further investigation of this alert navigate to %s\n",

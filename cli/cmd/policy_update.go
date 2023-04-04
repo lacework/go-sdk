@@ -1,6 +1,6 @@
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2020, Lacework Inc.
+// Copyright:: Copyright 2023, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,9 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -30,7 +32,7 @@ import (
 var (
 	// policyUpdateCmd represents the policy update command
 	policyUpdateCmd = &cobra.Command{
-		Use:   "update [policy_id]",
+		Use:   "update [policy_id...]",
 		Short: "Update a policy",
 		Long: `Update a policy.
 
@@ -50,8 +52,31 @@ A policy identifier can be specified via:
     }
 
 A policy identifier specified via command argument always takes precedence over
-a policy identifer specified via payload.`,
-		Args: cobra.MaximumNArgs(1),
+a policy identifer specified via payload.
+
+The severity of many policies can be updated at once by passing a list of policy identifiers:
+
+	lacework policy update my-policy-1 my-policy-2 --severity critical
+
+`,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			// return error if multiple policy-ids are supplied without severity flag
+			if len(args) > 1 && policyCmdState.Severity == "" {
+				return errors.Errorf(`policy bulk update is only supported with the '--severity' flag 
+
+For example: 
+
+     lacework policy update %s --severity critical
+					`, strings.Join(args, " "))
+			}
+
+			if policyCmdState.Severity != "" && !lwseverity.IsValid(policyCmdState.Severity) {
+				return errors.Errorf("invalid severity %q valid severities are: %s",
+					policyCmdState.Severity, lwseverity.ValidSeverities.String())
+			}
+
+			return nil
+		},
 		RunE: updatePolicy,
 	}
 )
@@ -62,6 +87,11 @@ func init() {
 
 	// policy source specific flags
 	setPolicySourceFlags(policyUpdateCmd)
+
+	// add severity flag
+	policyUpdateCmd.Flags().StringVar(&policyCmdState.Severity, "severity", "",
+		"update the policy severity",
+	)
 }
 
 func updateQueryFromLibrary(id string) error {
@@ -95,11 +125,20 @@ func updateQueryFromLibrary(id string) error {
 
 func updatePolicy(cmd *cobra.Command, args []string) error {
 	var (
-		msg          string = "unable to update policy"
+		msg          = "unable to update policy"
 		err          error
 		queryUpdated bool
 		policyID     string
 	)
+
+	// if severity flag is provided, attempt bulk update
+	if policyCmdState.Severity != "" {
+		err = policyBulkUpdate(args)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 
 	if len(args) != 0 && len(args[0]) != 0 {
 		policyID = args[0]
@@ -148,5 +187,39 @@ func updatePolicy(cmd *cobra.Command, args []string) error {
 		cli.OutputHuman(fmt.Sprintf("The query %s was updated.\n", updatePolicy.QueryID))
 	}
 	cli.OutputHuman("The policy %s was updated.\n", updateResponse.Data.PolicyID)
+	return nil
+}
+
+func policyBulkUpdate(args []string) error {
+	var (
+		policyIds []string
+		err       error
+	)
+	// if no policy ids are provided; prompt a list of policy ids
+	if len(args) == 0 {
+		policyIds, err = promptSetPolicyIDs()
+		if err != nil {
+			return err
+		}
+	} else {
+		policyIds = args
+	}
+
+	var bulkPolicies api.BulkUpdatePolicies
+	for _, p := range policyIds {
+		bulkPolicies = append(bulkPolicies, api.BulkUpdatePolicy{
+			PolicyID: p,
+			Severity: policyCmdState.Severity,
+		})
+	}
+
+	response, err := cli.LwApi.V2.Policy.UpdateMany(bulkPolicies)
+	if err != nil {
+		return errors.Wrap(err, "unable to update policies")
+	}
+
+	cli.Log.Debugw("bulk policy updated", "response", response)
+	cli.OutputHuman("%d policies updated with new severity %q\n", len(policyIds), policyCmdState.Severity)
+
 	return nil
 }

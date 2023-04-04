@@ -48,6 +48,9 @@ type GenerateGcpTfConfigurationArgs struct {
 	// Should we configure AuditLog integration in LW?
 	AuditLog bool
 
+	// Should we use the Pub Sub Audit Log or use the Bucket based one
+	UsePubSubAudit bool
+
 	// Should we configure CSPM integration in LW?
 	Configuration bool
 
@@ -166,9 +169,10 @@ type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 //
 //	hcl, err := gcp.NewTerraform(true, true,
 //	  gcp.WithGcpServiceAccountCredentials("/path/to/sa/credentials.json")).Generate()
-func NewTerraform(enableConfig bool, enableAuditLog bool, mods ...GcpTerraformModifier) *GenerateGcpTfConfigurationArgs {
+func NewTerraform(enableConfig bool, enableAuditLog bool, enablePubSubAudit bool, mods ...GcpTerraformModifier) *GenerateGcpTfConfigurationArgs {
 	config := &GenerateGcpTfConfigurationArgs{
 		AuditLog:              enableAuditLog,
+		UsePubSubAudit:        enablePubSubAudit,
 		Configuration:         enableConfig,
 		IncludeRootProjects:   true,
 		EnableUBLA:            true,
@@ -181,6 +185,13 @@ func NewTerraform(enableConfig bool, enableAuditLog bool, mods ...GcpTerraformMo
 		m(config)
 	}
 	return config
+}
+
+// WithUsePubSubAudit Set wether we use pub sub with the audit log rather than bucket based
+func WithUsePubSubAudit(usePubSub bool) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.UsePubSubAudit = usePubSub
+	}
 }
 
 // WithGcpServiceAccountCredentials Set the path for the GCP Service Account to be utilized by the GCP provider
@@ -577,7 +588,7 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 		// default to using the project level module
 		auditLogModuleName := "gcp_project_audit_log"
-		// default to using the project level module
+
 		configurationModuleName := "gcp_project_level_config"
 		if args.OrganizationIntegration {
 			// if organization integration is true, override configModuleName to use the organization level module
@@ -652,10 +663,24 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 		return lwgenerate.NewModule(
 			auditLogModuleName,
-			lwgenerate.GcpAuditLogSource,
-			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.GcpAuditLogVersion))...,
+			getAuditLogModule(args.UsePubSubAudit),
+			append(moduleDetails, lwgenerate.HclModuleWithVersion(getAuditLogVersion(args.UsePubSubAudit)))...,
 		).ToBlock()
 	}
 
 	return nil, nil
+}
+
+func getAuditLogModule(isPubSub bool) string {
+	if isPubSub {
+		return lwgenerate.GcpPubSubAuditLog
+	}
+	return lwgenerate.GcpAuditLogSource
+}
+
+func getAuditLogVersion(isPubSub bool) string {
+	if isPubSub {
+		return lwgenerate.GcpPubSubAuditLogVersion
+	}
+	return lwgenerate.GcpAuditLogVersion
 }

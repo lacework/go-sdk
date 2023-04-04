@@ -17,6 +17,7 @@ var (
 	// Define question text here to be reused in testing
 	QuestionGcpEnableConfiguration     = "Enable configuration integration?"
 	QuestionGcpEnableAuditLog          = "Enable Audit Log integration?"
+	QuestionUsePubSubAudit             = "Use Pub Sub Audit Log?"
 	QuestionGcpOrganizationIntegration = "Organization integration?"
 	QuestionGcpOrganizationID          = "Specify the GCP organization ID:"
 	QuestionGcpProjectID               = "Specify the project ID to be used to provision Lacework resources:"
@@ -134,6 +135,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			data := gcp.NewTerraform(
 				GenerateGcpCommandState.Configuration,
 				GenerateGcpCommandState.AuditLog,
+				GenerateGcpCommandState.UsePubSubAudit,
 				mods...)
 
 			// Generate
@@ -434,6 +436,11 @@ func initGenerateGcpTfCommandFlags() {
 		"",
 		"location to write generated content (default is ~/lacework/gcp)",
 	)
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.UsePubSubAudit,
+		"use_pub_sub",
+		false,
+		"use pub/sub for the audit log data rather than bucket")
 }
 
 // survey.Validator for gcp region
@@ -462,60 +469,20 @@ func validateGcpRegion(val interface{}) error {
 
 func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
 	// Only ask these questions if configure audit log is true
-	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingBucket, Default: extraState.UseExistingBucket},
+			Prompt:   &survey.Confirm{Message: QuestionUsePubSubAudit, Default: config.UsePubSubAudit},
 			Checks:   []*bool{&config.AuditLog},
-			Response: &extraState.UseExistingBucket,
+			Response: &config.UsePubSubAudit,
 		},
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpExistingBucketName, Default: config.ExistingLogBucketName},
-			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingBucket},
-			Required: true,
-			Response: &config.ExistingLogBucketName,
-		},
-	}, config.AuditLog)
-
-	if err != nil {
+	}, config.AuditLog); err != nil {
 		return err
 	}
-
-	newBucket := !extraState.UseExistingBucket
-	err = SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpConfigureNewBucket, Default: extraState.ConfigureNewBucketSettings},
-			Checks:   []*bool{&config.AuditLog, &newBucket},
-			Required: true,
-			Response: &extraState.ConfigureNewBucketSettings,
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketRegion, Default: config.BucketRegion},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Opts:     []survey.AskOpt{survey.WithValidator(validateGcpRegion)},
-			Response: &config.BucketRegion,
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpCustomBucketName, Default: config.CustomBucketName},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Response: &config.CustomBucketName,
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketLifecycle, Default: "-1"},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Response: &config.LogBucketLifecycleRuleAge,
-		},
-		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpEnableUBLA, Default: config.EnableUBLA},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings},
-			Required: true,
-			Response: &config.EnableUBLA,
-		},
-		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpEnableBucketForceDestroy, Default: config.EnableForceDestroyBucket},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.UseExistingBucket},
-			Required: true,
-			Response: &config.EnableForceDestroyBucket,
-		},
+	// Present the user with Bucket Configuration options, if required
+	if err := promptGcpBucketConfiguration(config, extraState); err != nil {
+		return err
+	}
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingSink, Default: extraState.UseExistingSink},
 			Checks:   []*bool{&config.AuditLog},
@@ -538,6 +505,69 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 	return err
 }
 
+func promptGcpBucketConfiguration(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
+	// Prompt to configure bucket information (not required when using the Pub Sub Audit Log)
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingBucket, Default: extraState.UseExistingBucket},
+			Checks:   []*bool{&config.AuditLog, usePubSubActivityDisabled(config)},
+			Response: &extraState.UseExistingBucket,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpExistingBucketName, Default: config.ExistingLogBucketName},
+			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingBucket, usePubSubActivityDisabled(config)},
+			Required: true,
+			Response: &config.ExistingLogBucketName,
+		},
+	}, config.AuditLog); err != nil {
+		return err
+	}
+
+	newBucket := !extraState.UseExistingBucket
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Confirm{Message: QuestionGcpConfigureNewBucket, Default: extraState.ConfigureNewBucketSettings},
+			Checks:   []*bool{&config.AuditLog, &newBucket, usePubSubActivityDisabled(config)},
+			Required: true,
+			Response: &extraState.ConfigureNewBucketSettings,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpBucketRegion, Default: config.BucketRegion},
+			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings, usePubSubActivityDisabled(config)},
+			Opts:     []survey.AskOpt{survey.WithValidator(validateGcpRegion)},
+			Response: &config.BucketRegion,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpCustomBucketName, Default: config.CustomBucketName},
+			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings, usePubSubActivityDisabled(config)},
+			Response: &config.CustomBucketName,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpBucketLifecycle, Default: "-1"},
+			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings, usePubSubActivityDisabled(config)},
+			Response: &config.LogBucketLifecycleRuleAge,
+		},
+		{
+			Prompt:   &survey.Confirm{Message: QuestionGcpEnableUBLA, Default: config.EnableUBLA},
+			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings, usePubSubActivityDisabled(config)},
+			Required: true,
+			Response: &config.EnableUBLA,
+		},
+		{
+			Prompt:   &survey.Confirm{Message: QuestionGcpEnableBucketForceDestroy, Default: config.EnableForceDestroyBucket},
+			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.UseExistingBucket, usePubSubActivityDisabled(config)},
+			Required: true,
+			Response: &config.EnableForceDestroyBucket,
+		},
+	}, config.AuditLog)
+
+	return err
+}
+
+func usePubSubActivityDisabled(config *gcp.GenerateGcpTfConfigurationArgs) *bool {
+	usePubSubActivityDisabled := !config.UsePubSubAudit
+	return &usePubSubActivityDisabled
+}
 func promptGcpExistingServiceAccountQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
 	// ensure struct is initialized
 	if config.ExistingServiceAccount == nil {

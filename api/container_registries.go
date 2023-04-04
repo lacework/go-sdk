@@ -190,6 +190,16 @@ type ContainerRegistryRaw struct {
 	Data        interface{}    `json:"data,omitempty"`
 	ServerToken *V2ServerToken `json:"serverToken,omitempty"`
 }
+
+func (reg ContainerRegistryRaw) StateString() string {
+	switch reg.ContainerRegistryType() {
+	case InlineScannerContainerRegistry, ProxyScannerContainerRegistry:
+		return "Ok"
+	default:
+		return reg.v2CommonIntegrationData.StateString()
+	}
+}
+
 type V2ServerToken struct {
 	ServerToken string `json:"serverToken"`
 	Uri         string `json:"uri"`

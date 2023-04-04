@@ -77,6 +77,9 @@ const (
 
 	apiV2ComplianceEvaluationsSearch = "v2/Configs/ComplianceEvaluations/search"
 
+	apiV2ComponentDataRequest  = "v2/ComponentData/requestUpload"
+	apiV2ComponentDataComplete = "v2/ComponentData/completeUpload"
+
 	apiV2ConfigsAzure              = "v2/Configs/AzureSubscriptions"
 	apiV2ConfigsAzureSubscriptions = "v2/Configs/AzureSubscriptions?tenantId=%s"
 	apiV2ConfigsGcp                = "v2/Configs/GcpProjects"
@@ -87,11 +90,13 @@ const (
 	apiV2QueriesExecute  = "v2/Queries/execute"
 	apiV2QueriesValidate = "v2/Queries/validate"
 
-	apiV2Reports               = "v2/Reports?primaryQueryId=%s&format=%s&reportType=%s"
-	apiV2ReportsSecondaryQuery = "v2/Reports?primaryQueryId=%s&secondaryQueryId=%s&format=%s&reportType=%s"
+	apiV2Reports               = "v2/Reports?primaryQueryId=%s&format=%s&%s=%s"
+	apiV2ReportsSecondaryQuery = "v2/Reports?primaryQueryId=%s&secondaryQueryId=%s&format=%s&%s=%s"
 
 	apiV2ReportDefinitions         = "v2/ReportDefinitions"
 	apiV2ReportDefinitionsFromGUID = "v2/ReportDefinitions/%s"
+	apiV2ReportDefinitionsRevert   = "v2/ReportDefinitions/%s?revertTo=%d"
+	apiV2ReportDefinitionsVersions = "v2/ReportDefinitions/%s?allVersions=true"
 
 	apiV2ReportRules        = "v2/ReportRules"
 	apiV2ReportRuleFromGUID = "v2/ReportRules/%s"

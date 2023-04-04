@@ -40,13 +40,9 @@ import (
 
 var (
 	compGcpCmdState = struct {
-		Type string
+		Type       string
+		ReportName string
 	}{Type: "GCP_CIS13"}
-
-	validGcpReportTypes = []string{"GCP_ISO_27001_2013", "GCP_NIST_800_171_REV2", "GCP_CMMC_1_02", "GCP_PCI_DSS_3_2_1", "GCP_PCI_Rev2",
-		"GCP_NIST_CSF", "GCP_CIS13", "GCP_HIPAA_2013", "GCP_CIS12", "GCP_CIS", "GCP_SOC_2", "GCP_ISO_27001", "GCP_NIST_800_53_REV4",
-		"GCP_CIS_1_3_0_NIST_800_53_rev5", "GCP_CIS_1_3_0_NIST_CSF", "GCP_HIPAA", "GCP_HIPAA_Rev2", "GCP_CIS_1_3_0_NIST_800_171_rev2",
-		"GCP_SOC", "GCP_K8S", "GCP_SOC_Rev2", "GCP_PCI"}
 
 	// complianceGcpListCmd represents the list sub-command inside the gcp command
 	complianceGcpListCmd = &cobra.Command{
@@ -82,11 +78,11 @@ var (
 
 Use the following command to list all GCP integrations in your account:
 
-    lacework integrations list --type GCP_CFG
+    lacework cloud-account list --type GcpCfg
 
 Then, select one GUID from an integration and visualize its details using the command:
 
-    lacework integration show <int_guid>
+    lacework cloud-account show <int_guid>
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -123,7 +119,7 @@ Then, select one GUID from an integration and visualize its details using the co
 	complianceGcpGetReportCmd = &cobra.Command{
 		Use:     "get-report <organization_id> <project_id>",
 		Aliases: []string{"get", "show"},
-		PreRunE: func(_ *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
 			}
@@ -134,16 +130,21 @@ Then, select one GUID from an integration and visualize its details using the co
 					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
 				}
 			}
-			// Todo: Enable dynamic report type validation. Disabled until reportDefinitions api is out of beta
-			//validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeGcp)
-			//if err != nil {
-			//	return errors.Wrap(err, "unable to retrieve valid report types")
-			//}
 
-			if array.ContainsStr(validGcpReportTypes, compGcpCmdState.Type) {
+			// ensure we cannot have both --type and --report_name flags
+			if cmd.Flags().Changed("type") && cmd.Flags().Changed("report_name") {
+				return errors.New("'--type' and '--report_name' flags cannot be used together")
+			}
+
+			// validate report_name
+			if cmd.Flags().Changed("report_name") {
+				return validReportName(api.ReportDefinitionSubTypeGcp.String(), compGcpCmdState.ReportName)
+			}
+
+			if array.ContainsStr(api.GcpReportTypes(), compGcpCmdState.Type) {
 				return nil
 			} else {
-				return errors.Errorf("supported report types are: %s", strings.Join(validGcpReportTypes, ", "))
+				return errors.Errorf("supported report types are: %s", strings.Join(api.GcpReportTypes(), ", "))
 			}
 		},
 		Short: "Get the latest GCP compliance report",
@@ -157,9 +158,13 @@ To list all GCP projects and organizations configured in your account:
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance gcp get-report <organization_id> <project_id> [recommendation_id]
+
+To retrieve a specific report by its report name:
+
+    lacework compliance gcp get-report <organization_id> <project_id> --report_name 'GCP Cybersecurity Maturity'
 `,
 		Args: cobra.RangeArgs(2, 3),
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			reportType, err := api.NewGcpReportType(compGcpCmdState.Type)
 			if err != nil {
 				return errors.Errorf("invalid report type %q", compGcpCmdState.Type)
@@ -173,14 +178,21 @@ To show recommendation details and affected resources for a recommendation id:
 				config       = api.GcpReportConfig{
 					OrganizationID: orgID,
 					ProjectID:      projectID,
-					Type:           reportType,
+					Value:          reportType.String(),
+					Parameter:      api.ReportFilterType,
 				}
 			)
+
+			// if --report_name flag is used, set the report parameter
+			if cmd.Flags().Changed("report_name") {
+				config.Parameter = api.ReportFilterName
+				config.Value = compGcpCmdState.ReportName
+			}
 
 			if compCmdState.Pdf {
 				pdfName := fmt.Sprintf(
 					"%s_Report_%s_%s_%s_%s.pdf",
-					config.Type,
+					config.Value,
 					config.OrganizationID,
 					config.ProjectID,
 					cli.Account, time.Now().Format("20060102150405"),
@@ -222,7 +234,7 @@ To show recommendation details and affected resources for a recommendation id:
 			var (
 				report   api.GcpReport
 				cacheKey = fmt.Sprintf("compliance/google/v2/%s/%s/%s",
-					orgIDForCache, config.ProjectID, config.Type)
+					orgIDForCache, config.ProjectID, config.Value)
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
@@ -292,7 +304,7 @@ To show recommendation details and affected resources for a recommendation id:
 		},
 	}
 
-	// complianceGcpDisableReportCmd represents the disable-report sub-command inside the aws command
+	// complianceGcpDisableReportCmd represents the disable-report sub-command inside the gcp command
 	// experimental feature
 	complianceGcpDisableReportCmd = &cobra.Command{
 		Use:     "disable-report <report_type>",
@@ -352,7 +364,7 @@ To disable all recommendations for CIS_1_2 report run:
 		},
 	}
 
-	// complianceGcpEnableReportCmd represents the enable-report sub-command inside the aws command
+	// complianceGcpEnableReportCmd represents the enable-report sub-command inside the gcp command
 	// experimental feature
 	complianceGcpEnableReportCmd = &cobra.Command{
 		Use:     "enable-report <report_type>",
@@ -404,7 +416,7 @@ To enable all recommendations for CIS_1_2 report run:
 		},
 	}
 
-	// complianceGcpReportStatusCmd represents the report-status sub-command inside the aws command
+	// complianceGcpReportStatusCmd represents the report-status sub-command inside the gcp command
 	// experimental feature
 	complianceGcpReportStatusCmd = &cobra.Command{
 		Use:     "report-status <report_type>",
@@ -496,8 +508,12 @@ func init() {
 	//GCP_SOC, GCP_K8S, GCP_SOC_Rev2, GCP_PCI
 	complianceGcpGetReportCmd.Flags().StringVar(&compGcpCmdState.Type, "type", "GCP_CIS13",
 		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
-valid types:%s`, prettyPrintReportTypes(validGcpReportTypes)),
+valid types:%s`, prettyPrintReportTypes(api.GcpReportTypes())),
 	)
+
+	// Run 'lacework report-definition --subtype GCP' for a full list of GCP report names
+	complianceGcpGetReportCmd.Flags().StringVar(&compGcpCmdState.ReportName, "report_name", "",
+		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (storage, networking, identity-and-access-management, ...)",
@@ -736,7 +752,7 @@ func cliListGcpProjectsAndOrgs(response api.CloudAccountsResponse, gcpData api.G
 
 Get started by integrating your GCP to analyze configuration compliance using the command:
 
-    lacework integration create
+    lacework cloud-account create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 

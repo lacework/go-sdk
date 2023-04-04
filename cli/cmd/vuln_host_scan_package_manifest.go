@@ -244,6 +244,10 @@ func filterHostScanPackagesVulnDetails(vulns []api.VulnerabilitySoftwarePackage)
 	out := make([]api.VulnerabilitySoftwarePackage, 0)
 
 	for _, vuln := range vulns {
+		if !vuln.IsVulnerable() {
+			continue
+		}
+
 		if vulCmdState.Fixable && !vuln.HasFix() {
 			continue
 		}
@@ -257,19 +261,13 @@ func filterHostScanPackagesVulnDetails(vulns []api.VulnerabilitySoftwarePackage)
 func hostScanPackagesVulnDetailsTable(vulns []api.VulnerabilitySoftwarePackage) [][]string {
 	var out [][]string
 	for _, vuln := range vulns {
-
-		fixedVersion := ""
-		if vuln.HasFix() {
-			fixedVersion = vuln.FixInfo.FixedVersion
-		}
-
 		out = append(out, []string{
 			vuln.VulnID,
 			vuln.Severity,
 			vuln.ScoreString(),
 			vuln.OsPkgInfo.Pkg,
 			vuln.OsPkgInfo.PkgVer,
-			fixedVersion,
+			vuln.FixInfo.FixedVersion,
 		})
 	}
 

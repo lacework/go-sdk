@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/pkg/errors"
@@ -34,7 +35,8 @@ type awsReportsService struct {
 
 type AwsReportConfig struct {
 	AccountID string
-	Type      AwsReportType
+	Value     string
+	Parameter reportFilter
 }
 
 type AwsReportType int
@@ -52,12 +54,25 @@ func NewAwsReportType(report string) (AwsReportType, error) {
 	return NONE_AWS_REPORT, errors.Errorf("no report type found for %s", report)
 }
 
+func AwsReportTypes() []string {
+	reportTypes := make([]string, 0, len(awsReportTypes))
+
+	for _, report := range awsReportTypes {
+		reportTypes = append(reportTypes, report)
+	}
+
+	sort.Strings(reportTypes)
+	return reportTypes
+}
+
 var awsReportTypes = map[AwsReportType]string{AWS_CIS_S3: "AWS_CIS_S3", NIST_800_53_Rev4: "NIST_800-53_Rev4",
 	NIST_800_171_Rev2: "NIST_800-171_Rev2", ISO_2700: "ISO_2700", HIPAA: "HIPAA", SOC: "SOC",
 	AWS_SOC_Rev2: "AWS_SOC_Rev2", PCI: "PCI", AWS_CIS_14: "AWS_CIS_14", AWS_CMMC_1_02: "AWS_CMMC_1.02",
 	AWS_ISO_27001_2013: "AWS_ISO_27001:2013", AWS_NIST_CSF: "AWS_NIST_CSF", AWS_HIPAA: "AWS_HIPAA",
 	AWS_NIST_800_53_rev5: "AWS_NIST_800-53_rev5", AWS_NIST_800_171_rev2: "AWS_NIST_800-171_rev2",
-	AWS_PCI_DSS_3_2_1: "AWS_PCI_DSS_3.2.1", AWS_SOC_2: "AWS_SOC_2", LW_AWS_SEC_ADD_1_0: "LW_AWS_SEC_ADD_1_0"}
+	AWS_PCI_DSS_3_2_1: "AWS_PCI_DSS_3.2.1", AWS_SOC_2: "AWS_SOC_2", LW_AWS_SEC_ADD_1_0: "LW_AWS_SEC_ADD_1_0",
+	AWS_CIS_1_4_ISO_IEC_27002_2022: "AWS_CIS_1_4_ISO_IEC_27002_2022", AWS_CYBER_ESSENTIALS_2_2: "AWS_Cyber_Essentials_2_2",
+	AWS_CSA_CCM_4_0_5: "AWS_CSA_CCM_4_0_5"}
 
 const (
 	NONE_AWS_REPORT AwsReportType = iota
@@ -79,6 +94,9 @@ const (
 	AWS_PCI_DSS_3_2_1
 	AWS_SOC_2
 	LW_AWS_SEC_ADD_1_0
+	AWS_CIS_1_4_ISO_IEC_27002_2022
+	AWS_CYBER_ESSENTIALS_2_2
+	AWS_CSA_CCM_4_0_5
 )
 
 // Get returns an AwsReportResponse
@@ -86,7 +104,8 @@ func (svc *awsReportsService) Get(reportCfg AwsReportConfig) (response AwsReport
 	if reportCfg.AccountID == "" {
 		return AwsReportResponse{}, errors.New("specify an account id")
 	}
-	apiPath := fmt.Sprintf(apiV2Reports, reportCfg.AccountID, "json", reportCfg.Type.String())
+
+	apiPath := fmt.Sprintf(apiV2Reports, reportCfg.AccountID, "json", reportCfg.Parameter.String(), reportCfg.Value)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
@@ -96,7 +115,8 @@ func (svc *awsReportsService) DownloadPDF(filepath string, config AwsReportConfi
 		return errors.New("account id is required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2Reports, config.AccountID, "pdf", config.Type)
+	// if name is set in config, fetch report by case
+	apiPath := fmt.Sprintf(apiV2Reports, config.AccountID, "pdf", config.Parameter.String(), config.Value)
 
 	request, err := svc.client.NewRequest("GET", apiPath, nil)
 	if err != nil {

@@ -112,14 +112,26 @@ func TestGetComponent(t *testing.T) {
 }
 
 func TestLoadState(t *testing.T) {
+	testLoadStateWithResponse(t, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "{\"components\": [],\"version\": \"0.3.0\"}")
+	})
+}
+
+func TestLoadStateWithTwoFailures(t *testing.T) {
+	failed := 0
+	testLoadStateWithResponse(t, func(w http.ResponseWriter, r *http.Request) {
+		if failed < 2 {
+			failed += 1
+			return
+		}
+		fmt.Fprint(w, "{\"components\": [],\"version\": \"0.3.0\"}")
+	})
+}
+
+func testLoadStateWithResponse(t *testing.T, response func(http.ResponseWriter, *http.Request)) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
-	fakeServer.MockAPI(
-		"Components",
-		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "{\"components\": [],\"version\": \"0.3.0\"}")
-		},
-	)
+	fakeServer.MockAPI("Components", response)
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",

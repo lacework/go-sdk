@@ -30,16 +30,23 @@ A policy identifier can be specified via:
 A policy identifier specified via command argument always takes precedence over
 a policy identifer specified via payload.
 
+The severity of many policies can be updated at once by passing a list of policy identifiers:
+
+	lacework policy update my-policy-1 my-policy-2 --severity critical
+
+
+
 ```
-lacework policy update [policy_id] [flags]
+lacework policy update [policy_id...] [flags]
 ```
 
 ### Options
 
 ```
-  -f, --file string   path to a policy to update
-  -h, --help          help for update
-  -u, --url string    url to a policy to update
+  -f, --file string       path to a policy to update
+  -h, --help              help for update
+      --severity string   update the policy severity
+  -u, --url string        url to a policy to update
 ```
 
 ### Options inherited from parent commands

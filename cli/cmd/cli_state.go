@@ -83,7 +83,8 @@ type cliState struct {
 	cdk.UnimplementedCoreServer
 
 	// Allows only one gRPC Server
-	cdkServer *grpc.Server
+	cdkServer     *grpc.Server
+	cdkServerPort int
 }
 
 // NewDefaultState creates a new cliState with some defaults
@@ -104,6 +105,7 @@ func NewDefaultState() *cliState {
 			Newline:     "\n",
 		},
 		nonInteractive: !isatty.IsTerminal(os.Stdout.Fd()),
+		cdkServerPort:  defaultGrpcPort,
 	}
 
 	// initialize honeycomb library and honeyvent

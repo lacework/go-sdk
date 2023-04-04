@@ -328,13 +328,12 @@ func vulContainerImageLayersToHTML(image []api.VulnerabilityContainer) []htmlVul
 	var vulns = []htmlVuln{}
 	for _, i := range image {
 		space := regexp.MustCompile(`\s+`)
-		// Todo(v2): CreatedBy does not exist in v2
-		layerCreatedBy := space.ReplaceAllString("", " ")
+		layerCreatedBy := space.ReplaceAllString(i.FeatureProps.IntroducedIn, " ")
 
 		newHtmlVuln := htmlVuln{
 			CVE:               i.VulnID,
 			Severity:          cases.Title(language.English).String(i.Severity),
-			SeverityHTMLClass: i.Severity,
+			SeverityHTMLClass: strings.ToLower(i.Severity),
 			PkgName:           i.FeatureKey.Name,
 			PkgVersion:        i.FeatureKey.Version,
 			PkgFixed:          i.FixInfo.FixedVersion,
@@ -342,18 +341,18 @@ func vulContainerImageLayersToHTML(image []api.VulnerabilityContainer) []htmlVul
 		}
 
 		// Todo(v2): CVSSv3Score does not exist in v2 container response
-		//if score := vul.CVSSv3Score(); score != 0 {
-		//	// CVSSv3
-		//	newHtmlVuln.V3Score = score
-		//	newHtmlVuln.UseV3Score = true
-		//} else if score = vul.CVSSv2Score(); score != 0 {
-		//	// CVSSv2
-		//	newHtmlVuln.V2Score = score
-		//	newHtmlVuln.UseV2Score = true
-		//} else {
-		//	// N/A
-		//	newHtmlVuln.UseNoScore = true
-		//}
+		// if score := vul.CVSSv3Score(); score != 0 {
+		// // CVSSv3
+		// newHtmlVuln.V3Score = score
+		// newHtmlVuln.UseV3Score = true
+		// } else if score = vul.CVSSv2Score(); score != 0 {
+		// // CVSSv2
+		// newHtmlVuln.V2Score = score
+		// newHtmlVuln.UseV2Score = true
+		// } else {
+		// // N/A
+		newHtmlVuln.UseNoScore = true
+		// }
 
 		vulns = append(vulns, newHtmlVuln)
 	}

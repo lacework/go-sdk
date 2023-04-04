@@ -154,6 +154,9 @@ func TestParseFlags(t *testing.T) {
 		// lots of things
 		{args: []string{"command", "--flag", "subcmd", "--debug", "arg1", "--json", "arg2", "--noninteractive"},
 			expectedFlags: []string{"--flag", "--debug", "--json", "--noninteractive"}},
+		// flag values
+		{args: []string{"command", "--flag=value", "--subaccount=random-account"},
+			expectedFlags: []string{"--flag", "--subaccount"}},
 
 		// invalid flag
 		{args: []string{"-"},

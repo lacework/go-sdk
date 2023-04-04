@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/pkg/errors"
@@ -35,7 +36,8 @@ type gcpReportsService struct {
 type GcpReportConfig struct {
 	OrganizationID string
 	ProjectID      string
-	Type           GcpReportType
+	Value          string
+	Parameter      reportFilter
 }
 
 type GcpReportType int
@@ -53,9 +55,22 @@ func NewGcpReportType(report string) (GcpReportType, error) {
 	return NONE_GCP_REPORT, errors.Errorf("no report type found for %s", report)
 }
 
+func GcpReportTypes() []string {
+	reportTypes := make([]string, 0, len(gcpReportTypes))
+
+	for _, report := range gcpReportTypes {
+		reportTypes = append(reportTypes, report)
+	}
+	sort.Strings(reportTypes)
+	return reportTypes
+}
+
 var gcpReportTypes = map[GcpReportType]string{GCP_HIPAA: "GCP_HIPAA", GCP_CIS: "GCP_CIS", GCP_SOC: "GCP_SOC", GCP_CIS12: "GCP_CIS12",
 	GCP_K8S: "GCP_K8S", GCP_PCI_Rev2: "GCP_PCI_Rev2", GCP_SOC_Rev2: "GCP_SOC_Rev2", GCP_HIPAA_Rev2: "GCP_HIPAA_Rev2", GCP_ISO_27001: "GCP_ISO_27001",
-	GCP_NIST_CSF: "GCP_NIST_CSF", GCP_NIST_800_53_REV4: "GCP_NIST_800_53_REV4", GCP_NIST_800_171_REV2: "GCP_NIST_800_171_REV2", GCP_PCI: "GCP_PCI", GCP_CIS13: "GCP_CIS13"}
+	GCP_NIST_CSF: "GCP_NIST_CSF", GCP_NIST_800_53_REV4: "GCP_NIST_800_53_REV4", GCP_NIST_800_171_REV2: "GCP_NIST_800_171_REV2", GCP_PCI: "GCP_PCI", GCP_CIS13: "GCP_CIS13",
+	GCP_CIS_1_3_0_NIST_800_171_rev2: "GCP_CIS_1_3_0_NIST_800_171_rev2", GCP_CIS_1_3_0_NIST_800_53_rev5: "GCP_CIS_1_3_0_NIST_800_53_rev5",
+	GCP_CIS_1_3_0_NIST_CSF: "GCP_CIS_1_3_0_NIST_CSF", GCP_PCI_DSS_3_2_1: "GCP_PCI_DSS_3_2_1", GCP_HIPAA_2013: "GCP_HIPAA_2013", GCP_ISO_27001_2013: "GCP_ISO_27001_2013",
+	GCP_CMMC_1_02: "GCP_CMMC_1_02", GCP_SOC_2: "GCP_SOC_2"}
 
 const (
 	NONE_GCP_REPORT GcpReportType = iota
@@ -73,6 +88,14 @@ const (
 	GCP_NIST_800_171_REV2
 	GCP_PCI
 	GCP_CIS13
+	GCP_CIS_1_3_0_NIST_800_171_rev2
+	GCP_CIS_1_3_0_NIST_800_53_rev5
+	GCP_CIS_1_3_0_NIST_CSF
+	GCP_PCI_DSS_3_2_1
+	GCP_HIPAA_2013
+	GCP_ISO_27001_2013
+	GCP_CMMC_1_02
+	GCP_SOC_2
 )
 
 // Get returns a GcpReportResponse
@@ -81,7 +104,7 @@ func (svc *gcpReportsService) Get(reportCfg GcpReportConfig) (response GcpReport
 		return GcpReportResponse{}, errors.New("project id and org id are required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.OrganizationID, reportCfg.ProjectID, "json", reportCfg.Type.String())
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.OrganizationID, reportCfg.ProjectID, "json", reportCfg.Parameter.String(), reportCfg.Value)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
@@ -91,7 +114,7 @@ func (svc *gcpReportsService) DownloadPDF(filepath string, config GcpReportConfi
 		return errors.New("project id and org id are required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, config.OrganizationID, config.ProjectID, "pdf", config.Type)
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, config.OrganizationID, config.ProjectID, "pdf", config.Parameter.String(), config.Value)
 
 	request, err := svc.client.NewRequest("GET", apiPath, nil)
 	if err != nil {

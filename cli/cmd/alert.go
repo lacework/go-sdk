@@ -104,19 +104,16 @@ func init() {
 
 // Generates a URL similar to:
 //
-//	=> https://account.lacework.net/ui/investigate/recents/EventDossier-123
-func eventLinkBuilder(id string) string {
-	return fmt.Sprintf("https://%s.lacework.net/ui/investigation/recents/EventDossier-%s", cli.Account, id)
-}
-
-// Generates a URL similar to:
-//
 //	=> https://account.lacework.net/ui/investigation/monitor/AlertInbox/123/details?accountName=subaccount
 func alertLinkBuilder(id int) string { // nolint
+	return alertLinkBuilderWithCLI(cli, id)
+}
+
+func alertLinkBuilderWithCLI(c *cliState, id int) string {
 	u, err := url.Parse(
 		fmt.Sprintf(
 			"https://%s.lacework.net/ui/investigation/monitor/AlertInbox/%d/details",
-			cli.Account,
+			c.Account,
 			id,
 		),
 	)
@@ -125,8 +122,9 @@ func alertLinkBuilder(id int) string { // nolint
 	}
 
 	q := u.Query()
-	if cli.Subaccount != "" {
-		q.Set("accountName", cli.Subaccount)
+	q.Set("accountName", c.Account)
+	if c.Subaccount != "" {
+		q.Set("accountName", c.Subaccount)
 	}
 	if r := q.Encode(); r != "" {
 		u.RawQuery = r
@@ -137,14 +135,12 @@ func alertLinkBuilder(id int) string { // nolint
 func openAlert(_ *cobra.Command, args []string) error {
 	cli.Log.Debugw("opening alert", "alert", args[0])
 
-	_, err := strconv.Atoi(args[0])
+	id, err := strconv.Atoi(args[0])
 	if err != nil {
 		return errors.New("alert ID must be a number")
 	}
 
-	// ALLY-1233: Need to switch to alertLinkBuilder when new Alerting UI becomes generally available
-	//url := alertLinkBuilder(id)
-	url := eventLinkBuilder(args[0])
+	url := alertLinkBuilder(id)
 
 	switch runtime.GOOS {
 	case "linux":

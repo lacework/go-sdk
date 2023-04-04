@@ -19,6 +19,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -216,7 +217,7 @@ func (r VulnerabilitiesContainersResponse) VulnFixableCount(severity string) int
 func (r VulnerabilitiesContainersResponse) TotalVulnerabilities() int {
 	count := 0
 	for _, vuln := range r.Data {
-		if vuln.EvalCtx.ImageInfo.Status == "VULNERABLE" {
+		if vuln.Status == "VULNERABLE" {
 			count = count + 1
 		}
 	}
@@ -480,42 +481,61 @@ type VulnerabilityHost struct {
 		FixedVersionComparisonScore int    `json:"fixed_version_comparison_score"`
 		VersionInstalled            string `json:"version_installed"`
 	} `json:"fixInfo"`
-	MachineTags struct {
-		Account                               string `json:"Account"`
-		AmiID                                 string `json:"AmiId"`
-		Env                                   string `json:"Env"`
-		ExternalIP                            string `json:"ExternalIp"`
-		Hostname                              string `json:"Hostname"`
-		InstanceID                            string `json:"InstanceId"`
-		InternalIP                            string `json:"InternalIp"`
-		LwTokenShort                          string `json:"LwTokenShort"`
-		Name                                  string `json:"Name"`
-		SubnetID                              string `json:"SubnetId"`
-		VMInstanceType                        string `json:"VmInstanceType"`
-		VMProvider                            string `json:"VmProvider"`
-		VpcID                                 string `json:"VpcId"`
-		Zone                                  string `json:"Zone"`
-		AlphaEksctlIoNodegroupName            string `json:"alpha.eksctl.io/nodegroup-name"`
-		AlphaEksctlIoNodegroupType            string `json:"alpha.eksctl.io/nodegroup-type"`
-		Arch                                  string `json:"arch"`
-		AwsAutoscalingGroupName               string `json:"aws:autoscaling:groupName"`
-		AwsEc2FleetID                         string `json:"aws:ec2:fleet-id"`
-		AwsEc2LaunchtemplateID                string `json:"aws:ec2launchtemplate:id"`
-		AwsEc2LaunchtemplateVersion           string `json:"aws:ec2launchtemplate:version"`
-		EksClusterName                        string `json:"eks:cluster-name"`
-		EksNodegroupName                      string `json:"eks:nodegroup-name"`
-		K8SIoClusterAutoscalerEnabled         int    `json:"k8s.io/cluster-autoscaler/enabled"`
-		K8SIoClusterAutoscalerTechallySandbox string `json:"k8s.io/cluster-autoscaler/techally-sandbox"`
-		KubernetesIoClusterTechallySandbox    string `json:"kubernetes.io/cluster/techally-sandbox"`
-		LwKubernetesCluster                   string `json:"lw_KubernetesCluster"`
-		Os                                    string `json:"os"`
-	} `json:"machineTags"`
-	Props     VulnerabilityHostProps `json:"props"`
-	Mid       int                    `json:"mid"`
-	Severity  string                 `json:"severity"`
-	StartTime time.Time              `json:"startTime"`
-	Status    string                 `json:"status"`
-	VulnID    string                 `json:"vulnId"`
+	MachineTags any                    `json:"machineTags"`
+	Props       VulnerabilityHostProps `json:"props"`
+	Mid         int                    `json:"mid"`
+	Severity    string                 `json:"severity"`
+	StartTime   time.Time              `json:"startTime"`
+	Status      string                 `json:"status"`
+	VulnID      string                 `json:"vulnId"`
+}
+
+func (v *VulnerabilityHost) GetMachineTags() (machineTags VulnerabilityHostMachineTags, err error) {
+	jsonTags, err := json.Marshal(v.MachineTags)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(jsonTags, &machineTags)
+	return
+}
+
+type VulnerabilityHostMachineTags struct {
+	Account                               string `json:"Account"`
+	AmiID                                 string `json:"AmiId"`
+	Env                                   string `json:"Env"`
+	ExternalIP                            string `json:"ExternalIp"`
+	Hostname                              string `json:"Hostname"`
+	InstanceID                            string `json:"InstanceId"`
+	InternalIP                            string `json:"InternalIp"`
+	LwTokenShort                          string `json:"LwTokenShort"`
+	Name                                  string `json:"Name"`
+	SubnetID                              string `json:"SubnetId"`
+	VMInstanceType                        string `json:"VmInstanceType"`
+	VMProvider                            string `json:"VmProvider"`
+	VpcID                                 string `json:"VpcId"`
+	Zone                                  string `json:"Zone"`
+	AlphaEksctlIoNodegroupName            string `json:"alpha.eksctl.io/nodegroup-name"`
+	AlphaEksctlIoNodegroupType            string `json:"alpha.eksctl.io/nodegroup-type"`
+	Arch                                  string `json:"arch"`
+	AwsAutoscalingGroupName               string `json:"aws:autoscaling:groupName"`
+	AwsEc2FleetID                         string `json:"aws:ec2:fleet-id"`
+	AwsEc2LaunchtemplateID                string `json:"aws:ec2launchtemplate:id"`
+	AwsEc2LaunchtemplateVersion           string `json:"aws:ec2launchtemplate:version"`
+	EksClusterName                        string `json:"eks:cluster-name"`
+	EksNodegroupName                      string `json:"eks:nodegroup-name"`
+	K8SIoClusterAutoscalerEnabled         int    `json:"k8s.io/cluster-autoscaler/enabled"`
+	K8SIoClusterAutoscalerTechallySandbox string `json:"k8s.io/cluster-autoscaler/techally-sandbox"`
+	KubernetesIoClusterTechallySandbox    string `json:"kubernetes.io/cluster/techally-sandbox"`
+	LwKubernetesCluster                   string `json:"lw_KubernetesCluster"`
+	Os                                    string `json:"os"`
+	LwInternetExposure                    string `json:"lw_InternetExposure"`
+
+	//gcp
+	GCEtags          any    `json:"GCEtags"`
+	InstanceName     string `json:"InstanceName"`
+	NumericProjectId string `json:"NumericProjectId"`
+	ProjectId        string `json:"ProjectId"`
 }
 
 func SeverityOrder(severity string) int {

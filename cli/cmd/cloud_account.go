@@ -275,6 +275,7 @@ func promptCreateCloudAccount() error {
 				"AWS CloudTrail (US GovCloud)",
 				"GCP Config",
 				"GCP Audit Log",
+				"GCP Pub Sub Audit Log",
 				"Azure Config",
 				"Azure Activity Log",
 			},
@@ -298,6 +299,8 @@ func promptCreateCloudAccount() error {
 		return createGcpConfigIntegration()
 	case "GCP Audit Log":
 		return createGcpAuditLogIntegration()
+	case "GCP Pub Sub Audit Log":
+		return createGcpPubSubAuditLogIntegration()
 	case "Azure Config":
 		return createAzureConfigIntegration()
 	case "Azure Activity Log":

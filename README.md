@@ -1,3 +1,4 @@
+
 <img src="https://techally-content.s3-us-west-1.amazonaws.com/public-content/lacework_logo_full.png" width="600">
 
 # Lacework Go SDK
@@ -38,7 +39,14 @@ brew install lacework/tap/lacework-cli
 ```
 For more details, see [Lacework Homebrew Tap](https://github.com/lacework/homebrew-tap).
 
+#### Chocolatey:
+```
+choco install lacework-cli
+```
+For more details, see [Lacework CLI Chocolatey](https://community.chocolatey.org/packages/lacework-cli#install).
+
 Look at the [cli/](cli/) folder for more information.
+
 
 ## Lacework API Client ([`api`](api/))
 

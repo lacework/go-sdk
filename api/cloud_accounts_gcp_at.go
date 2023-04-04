@@ -56,6 +56,6 @@ type GcpAtSesData struct {
 type GcpAtSesCredentials struct {
 	ClientID     string `json:"clientId"`
 	ClientEmail  string `json:"clientEmail"`
-	PrivateKeyID string `json:"privateKeyId"`
+	PrivateKeyID string `json:"privateKeyId,omitempty"`
 	PrivateKey   string `json:"privateKey,omitempty"`
 }

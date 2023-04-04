@@ -99,6 +99,9 @@ func init() {
 		50,
 		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
 	)
+	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
+		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
+	)
 }
 
 func installAWSEC2IC(_ *cobra.Command, _ []string) error {
@@ -162,7 +165,7 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 				return
 			}
 
-			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"", agentInstallDownloadURL, token, agentCmdState.InstallServerURL)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)

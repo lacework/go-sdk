@@ -64,6 +64,70 @@ func TestCloudAccountsGcpCfgGet(t *testing.T) {
 	assert.Equal(t, "GcpCfg", response.Data.Type)
 }
 
+func TestCloudAccountsGcpCfgUpdateEmptyPrivateKeyAndPrivateKeyID(t *testing.T) {
+	var (
+		intgGUID   = intgguid.New()
+		apiPath    = fmt.Sprintf("CloudAccounts/%s", intgGUID)
+		fakeServer = lacework.MockServer()
+	)
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "PATCH", r.Method, "UpdateGcpCfg() should be a PATCH method")
+
+		if assert.NotNil(t, r.Body) {
+			body := httpBodySniffer(r)
+			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
+			assert.Contains(t, body, "integration_name", "cloud account name is missing")
+			assert.Contains(t, body, "GcpCfg", "wrong cloud account type")
+			assert.Contains(t, body, "test@project.iam.gserviceaccount.com", "wrong client email")
+			assert.Contains(t, body, "0123456789", "wrong client ID")
+			assert.Contains(t, body, "enabled\":1", "cloud account is not enabled")
+			assert.NotContains(t, body, "privateKey", "field whould not be displayed if empty")
+			assert.NotContains(t, body, "privateKeyId", "field whould not be displayed if empty")
+		}
+
+		fmt.Fprintf(w, generateCloudAccountResponse(singleGcpCfgCloudAccount(intgGUID)))
+	})
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	cloudAccount := api.NewCloudAccount("integration_name",
+		api.GcpCfgCloudAccount,
+		api.GcpCfgData{
+			Credentials: api.GcpCfgCredentials{
+				ClientID:     "0123456789",
+				ClientEmail:  "test@project.iam.gserviceaccount.com",
+				PrivateKeyID: "", // testing empty fields for both,
+				PrivateKey:   "", // private key and private key id
+			},
+		},
+	)
+	assert.Equal(t, "integration_name", cloudAccount.Name, "GcpCfg cloud account name mismatch")
+	assert.Equal(t, "GcpCfg", cloudAccount.Type, "a new GcpCfg cloud account should match its type")
+	assert.Equal(t, 1, cloudAccount.Enabled, "a new GcpCfg cloud account should be enabled")
+	cloudAccount.IntgGuid = intgGUID
+
+	response, err := c.V2.CloudAccounts.UpdateGcpCfg(cloudAccount)
+	assert.Nil(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, intgGUID, response.Data.IntgGuid)
+	assert.Equal(t, "test-gcp", response.Data.Name)
+	assert.True(t, response.Data.State.Ok)
+	assert.Equal(t, "test@project.iam.gserviceaccount.com", response.Data.Data.Credentials.ClientEmail)
+	assert.Equal(t, "0123456789", response.Data.Data.Credentials.ClientID)
+	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKeyID)
+	assert.Equal(t, "", response.Data.Data.Credentials.PrivateKey)
+	assert.Equal(t, "GcpCfg", response.Data.Type)
+}
+
 func singleGcpCfgCloudAccount(id string) string {
 	return fmt.Sprintf(`{
         "createdOrUpdatedBy": "test@lacework.net",

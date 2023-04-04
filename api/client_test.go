@@ -45,6 +45,27 @@ func TestNewClientFullDomainURL(t *testing.T) {
 	}
 }
 
+func TestNewClientUrlInternal(t *testing.T) {
+	c, err := api.NewClient("account.corp.lacework.net")
+	if assert.Nil(t, err) {
+		assert.Equal(t, "https://account.corp.lacework.net", c.URL(), "domain should be detected and correctly configured")
+	}
+}
+
+func TestNewClientUrlWithSubaccount(t *testing.T) {
+	c, err := api.NewClient("subaccount.account.lacework.net")
+	if assert.Nil(t, err) {
+		assert.Equal(t, "https://subaccount.account.lacework.net", c.URL(), "domain should be detected and correctly configured")
+	}
+}
+
+func TestNewClientUrlInternalWithSubaccount(t *testing.T) {
+	c, err := api.NewClient("subaccount.account.corp.lacework.net")
+	if assert.Nil(t, err) {
+		assert.Equal(t, "https://subaccount.account.corp.lacework.net", c.URL(), "domain should be detected and correctly configured")
+	}
+}
+
 func TestNewClientAccountEmptyError(t *testing.T) {
 	c, err := api.NewClient("")
 	assert.Nil(t, c)

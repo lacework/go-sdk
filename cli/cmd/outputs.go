@@ -58,6 +58,17 @@ func (c *cliState) OutputHuman(format string, a ...interface{}) {
 	}
 }
 
+// OutputHumanErr will print the msg if human output is enabled to stderr
+func (c *cliState) OutputHumanErr(format string, a ...interface{}) {
+	if c.HumanOutput() {
+		if len(a) == 0 {
+			fmt.Fprint(color.Error, format)
+		} else {
+			fmt.Fprintf(color.Error, format, a...)
+		}
+	}
+}
+
 // OutputJSONString is just like OutputJSON but from a JSON string
 func (c *cliState) OutputJSONString(s string) error {
 	pretty, err := c.FormatJSONString(s)

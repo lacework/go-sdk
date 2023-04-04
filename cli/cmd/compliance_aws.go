@@ -37,13 +37,9 @@ import (
 
 var (
 	compAwsCmdState = struct {
-		Type string
+		Type       string
+		ReportName string
 	}{Type: "AWS_CIS_14"}
-
-	validAwsReportTypes = []string{"AWS_NIST_CSF", "AWS_NIST_800-53_rev5", "AWS_HIPAA", "NIST_800-53_Rev4", "LW_AWS_SEC_ADD_1_0",
-		"AWS_SOC_Rev2", "AWS_PCI_DSS_3.2.1", "AWS_CIS_S3", "ISO_2700", "SOC", "AWS_CSA_CCM_4_0_5", "PCI", "AWS_Cyber_Essentials_2_2",
-		"AWS_ISO_27001:2013", "AWS_CIS_14", "AWS_CMMC_1.02", "HIPAA", "AWS_SOC_2", "AWS_CIS_1_4_ISO_IEC_27002_2022", "NIST_800-171_Rev2",
-		"AWS_NIST_800-171_rev"}
 
 	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
 	complianceAwsListAccountsCmd = &cobra.Command{
@@ -68,7 +64,7 @@ var (
 	complianceAwsGetReportCmd = &cobra.Command{
 		Use:     "get-report <account_id> [recommendation_id]",
 		Aliases: []string{"get", "show"},
-		PreRunE: func(_ *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if compCmdState.Csv {
 				cli.EnableCSVOutput()
 			}
@@ -79,16 +75,20 @@ var (
 				}
 			}
 
-			// Todo: Enable dynamic report type validation. Disabled until reportDefinitions api is out of beta
-			// validTypes, err := getReportTypes(api.ReportDefinitionNotificationTypeAws)
-			// if err != nil {
-			//	 return errors.Wrap(err, "unable to retrieve valid report types")
-			// }
+			// ensure we cannot have both --type and --report_name flags
+			if cmd.Flags().Changed("type") && cmd.Flags().Changed("report_name") {
+				return errors.New("'--type' and '--report_name' flags cannot be used together")
+			}
 
-			if array.ContainsStr(validAwsReportTypes, compAwsCmdState.Type) {
+			// validate report_name
+			if cmd.Flags().Changed("report_name") {
+				return validReportName(api.ReportDefinitionSubTypeAws.String(), compAwsCmdState.ReportName)
+			}
+
+			if array.ContainsStr(api.AwsReportTypes(), compAwsCmdState.Type) {
 				return nil
 			} else {
-				return errors.Errorf(`supported report types are: %s'`, strings.Join(validAwsReportTypes, ", "))
+				return errors.Errorf(`supported report types are: %s'`, strings.Join(api.AwsReportTypes(), ", "))
 			}
 		},
 		Short: "Get the latest AWS compliance report",
@@ -103,9 +103,13 @@ To list all AWS accounts configured in your account:
 To show recommendation details and affected resources for a recommendation id:
 
     lacework compliance aws get-report <account_id> [recommendation_id]
+
+To retrieve a specific report by its report name:
+
+    lacework compliance aws get-report <account_id> --report_name 'AWS CSA CCM 4.0.5'
 `,
 		Args: cobra.RangeArgs(1, 2),
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			reportType, err := api.NewAwsReportType(compAwsCmdState.Type)
 			if err != nil {
 				return errors.Errorf("invalid report type %q", compAwsCmdState.Type)
@@ -117,14 +121,21 @@ To show recommendation details and affected resources for a recommendation id:
 				awsAccountID, _ = splitIDAndAlias(args[0])
 				config          = api.AwsReportConfig{
 					AccountID: awsAccountID,
-					Type:      reportType,
+					Parameter: api.ReportFilterType,
+					Value:     compAwsCmdState.Type,
 				}
 			)
+
+			// if --report_name flag is used, set the report_para
+			if cmd.Flags().Changed("report_name") {
+				config.Parameter = api.ReportFilterName
+				config.Value = compAwsCmdState.ReportName
+			}
 
 			if compCmdState.Pdf {
 				pdfName := fmt.Sprintf(
 					"%s_Report_%s_%s_%s.pdf",
-					config.Type,
+					config.Value,
 					config.AccountID,
 					cli.Account, time.Now().Format("20060102150405"),
 				)
@@ -157,7 +168,7 @@ To show recommendation details and affected resources for a recommendation id:
 
 			var (
 				report   api.AwsReport
-				cacheKey = fmt.Sprintf("compliance/aws/v2/%s/%s", config.AccountID, config.Type)
+				cacheKey = fmt.Sprintf("compliance/aws/v2/%s/%s", config.AccountID, config.Value)
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
@@ -523,7 +534,11 @@ func init() {
 	//AWS_NIST_800-171_rev2'
 	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.Type, "type", "AWS_CIS_14",
 		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
-valid types:%s`, prettyPrintReportTypes(validAwsReportTypes)))
+valid types:%s`, prettyPrintReportTypes(api.AwsReportTypes())))
+
+	// Run 'lacework report-definition --subtype AWS' for a full list of AWS report names
+	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.ReportName, "report_name", "",
+		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (identity-and-access-management, s3, logging...)",
@@ -614,7 +629,7 @@ func cliListAwsAccounts(awsIntegrations api.CloudAccountsResponse) error {
 
 Get started by integrating your AWS accounts to analyze configuration compliance using the command:
 
-    lacework integration create
+    lacework cloud-account aws create
 
 If you prefer to configure the integration via the WebUI, log in to your account at:
 

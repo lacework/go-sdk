@@ -114,6 +114,9 @@ func init() {
 		50,
 		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
 	)
+	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
+		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
+	)
 }
 
 func installAWSSSH(_ *cobra.Command, args []string) error {
@@ -177,7 +180,7 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 				return
 			}
 
-			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"", agentInstallDownloadURL, token, agentCmdState.InstallServerURL)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "thread_runner", threadRunner.InstanceID)
