@@ -295,7 +295,7 @@ func inputQueryFromEditor(action string) (query string, err error) {
 		FileName: "query*.yaml",
 	}
 
-	if action == "create" {
+	if action == "create" || action == "run" {
 		prompt.Default = `queryId: YourQueryID
 queryText: |-
   {
