@@ -240,12 +240,23 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 
 	switch {
 	case cli.JSONOutput():
-		filteredAssessment := assessment
-		if err := cli.OutputJSON(filteredAssessment); err != nil {
+		if err := cli.OutputJSON(assessment); err != nil {
 			return err
 		}
 	case cli.CSVOutput():
-		if err := cli.OutputCSV(buildVulnerabilityDetailsReportCSV(details)); err != nil {
+		if !(vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled()) {
+			return nil
+		}
+
+		if vulCmdState.Packages {
+			if err := cli.OutputCSV([]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version"},
+				vulContainerImagePackagesToTable(details.Packages)); err != nil {
+				return err
+			}
+		}
+
+		if err := cli.OutputCSV([]string{"CVE ID", "Severity", "CVSSv2", "CVSSv3", "Package", "Current Version",
+			"Fix Version", "Introduced in Layer"}, vulContainerImageLayersToCSV(assessment)); err != nil {
 			return err
 		}
 	default:
@@ -271,20 +282,6 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 	}
 
 	return nil
-}
-
-func buildVulnerabilityDetailsReportCSV(details vulnerabilityDetailsReport) ([]string, [][]string) {
-	if !(vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled()) {
-		return nil, nil
-	}
-
-	if vulCmdState.Packages {
-		return []string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version"},
-			vulContainerImagePackagesToTable(details.Packages)
-	}
-
-	return []string{"CVE ID", "Severity", "CVSSv2", "CVSSv3", "Package", "Current Version",
-		"Fix Version", "Introduced in Layer"}, vulContainerImageLayersToCSV(details.VulnerabilityDetails)
 }
 
 func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) string {
@@ -512,18 +509,18 @@ func filterVulnerabilityContainer(image []api.VulnerabilityContainer) filteredIm
 	}
 }
 
-func vulContainerImageLayersToCSV(imageTable filteredImageTable) [][]string {
+func vulContainerImageLayersToCSV(assessment []api.VulnerabilityContainer) [][]string {
 	var out [][]string
-	for _, vuln := range imageTable.Vulnerabilities {
+	for _, vuln := range assessment {
 		out = append(out, []string{
-			vuln.Name,
+			vuln.VulnID,
 			vuln.Severity,
-			strconv.FormatFloat(vuln.CVSSv2Score, 'f', 1, 64),
-			strconv.FormatFloat(vuln.CVSSv3Score, 'f', 1, 64),
-			vuln.PackageName,
-			vuln.CurrentVersion,
-			vuln.FixVersion,
-			strings.Join(vuln.CreatedBy, ", "),
+			strconv.Itoa(0),
+			strconv.Itoa(0),
+			vuln.FeatureKey.Namespace,
+			vuln.FeatureKey.Version,
+			vuln.FixInfo.FixedVersion,
+			vuln.FeatureProps.IntroducedIn,
 		})
 	}
 
