@@ -17,7 +17,11 @@ To provide an existing access token, use the '--token' flag. This flag is requir
 when running non-interactively ('--noninteractive' flag). The interactive command
 'lacework agent token list' can be used to query existing tokens.
 
-    lacework agent aws-install ec2ic --token <token>
+    lacework agent aws-install ec2ssh --token <token>
+
+To explicitly specify the server URL that the agent will connect to:
+
+    lacework agent aws-install ec2ssh --server_url https://api.fra.lacework.net
 
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select. Instances must
@@ -48,6 +52,7 @@ Flags:
   -i, --identity_file string      identity (private key) for public key authentication (default "~/.ssh/id_rsa")
   -r, --include_regions strings   list of regions to filter on
   -n, --max_parallelism int       maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
+      --server_url https://       server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
       --ssh_password string       password for authentication
       --ssh_port int              port to connect to on the remote host (default 22)
       --ssh_username string       username to login with

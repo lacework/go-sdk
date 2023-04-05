@@ -61,6 +61,10 @@ select a token and pass it to the '--token' flag. This flag must be selected if 
 
     lacework agent gcp-install osl <gcp_username> --token <token>
 
+To explicitly specify the server URL that the agent will connect to:
+
+    lacework agent gcp-install osl --server_url https://api.fra.lacework.net
+
 GCP credentials are read using the following environment variables:
 - GOOGLE_APPLICATION_CREDENTIALS
 
@@ -114,6 +118,12 @@ func init() {
 		"token",
 		"",
 		"agent access token",
+	)
+	agentInstallGCPOSLCmd.Flags().StringVar(
+		&agentCmdState.InstallServerURL,
+		"server_url",
+		"https://api.lacework.net",
+		"server URL that agents will talk to, prefixed with `https://`",
 	)
 }
 
@@ -185,7 +195,7 @@ func installGCPOSL(_ *cobra.Command, args []string) error {
 				return
 			}
 
-			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"", agentInstallDownloadURL, token, agentCmdState.InstallServerURL)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)

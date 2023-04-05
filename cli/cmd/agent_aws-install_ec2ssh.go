@@ -51,7 +51,11 @@ To provide an existing access token, use the '--token' flag. This flag is requir
 when running non-interactively ('--noninteractive' flag). The interactive command
 'lacework agent token list' can be used to query existing tokens.
 
-    lacework agent aws-install ec2ic --token <token>
+    lacework agent aws-install ec2ssh --token <token>
+
+To explicitly specify the server URL that the agent will connect to:
+
+    lacework agent aws-install ec2ssh --server_url https://api.fra.lacework.net
 
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select. Instances must
@@ -113,6 +117,9 @@ func init() {
 		"n",
 		50,
 		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
+	)
+	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
+		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
 	)
 }
 
@@ -177,7 +184,7 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 				return
 			}
 
-			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s\"", agentInstallDownloadURL, token)
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"", agentInstallDownloadURL, token, agentCmdState.InstallServerURL)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "thread_runner", threadRunner.InstanceID)
