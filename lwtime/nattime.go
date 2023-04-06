@@ -188,7 +188,7 @@ func ParseNatural(n string) (time.Time, time.Time, error) {
 	// time.Now() is intentional here such that snaps work properly
 	// For instance snapping to @d should snap to the start of the local day
 	startLocal, endLocal, err := parseNaturalFromTime(n, time.Now())
-	return startLocal.UTC(), endLocal.UTC(), err
+	return startLocal.UTC(), endLocal.UTC().Add(-time.Minute), err
 }
 
 func parseNaturalFromTime(n string, fromTime time.Time) (time.Time, time.Time, error) {
