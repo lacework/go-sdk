@@ -60,6 +60,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mitchellh/hashstructure/v2 v2.0.2
+	github.com/pmezard/go-difflib v1.0.0
 	github.com/spf13/cast v1.5.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 	google.golang.org/api v0.103.0
@@ -117,7 +118,6 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/pjbgf/sha1cd v0.2.3 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
