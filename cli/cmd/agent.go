@@ -161,6 +161,10 @@ pass it directly via the argument.
 
     lacework agent install <user@host:port>
 
+To explicitly specify the server URL that the agent will connect to:
+
+    lacework agent install --server_url https://api.fra.lacework.net
+
 To list all active agents in your environment. 
 
     lacework agent list
@@ -244,6 +248,9 @@ func init() {
 	)
 	agentInstallCmd.Flags().BoolVar(&agentCmdState.InstallTrustHostKey,
 		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
+	)
+	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
+		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
 	)
 }
 
