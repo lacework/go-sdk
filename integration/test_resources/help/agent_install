@@ -38,6 +38,7 @@ Flags:
       --force                  override any pre-installed agent
   -h, --help                   help for install
   -i, --identity_file string   identity (private key) for public key authentication (default "~/.ssh/id_rsa")
+      --server_url https://    server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
       --ssh_password string    password for authentication
       --ssh_port int           port to connect to on the remote host (default 22)
       --ssh_username string    username to login with
