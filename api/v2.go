@@ -41,6 +41,7 @@ type V2Endpoints struct {
 	ComponentData           *ComponentDataService
 	ContainerRegistries     *ContainerRegistriesService
 	Configs                 *v2ConfigService
+	FeatureFlags            *FeatureFlagsService
 	ResourceGroups          *ResourceGroupsService
 	AgentAccessTokens       *AgentAccessTokensService
 	AgentInfo               *AgentInfoService
@@ -74,6 +75,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&ComponentDataService{c},
 		&ContainerRegistriesService{c},
 		NewV2ConfigService(c),
+		&FeatureFlagsService{c},
 		&ResourceGroupsService{c},
 		&AgentAccessTokensService{c},
 		&AgentInfoService{c},
@@ -188,25 +190,28 @@ type Pageable interface {
 //
 // ```go
 // var (
-// 		response = api.MachineDetailEntityResponse{}
-// 		err      = client.V2.Entities.Search(&response, api.SearchFilter{})
+//
+//	response = api.MachineDetailEntityResponse{}
+//	err      = client.V2.Entities.Search(&response, api.SearchFilter{})
+//
 // )
 //
-// for {
-// 		// Use information from response.Data
-// 		fmt.Printf("Data from page: %d\n", len(response.Data))
+//	for {
+//			// Use information from response.Data
+//			fmt.Printf("Data from page: %d\n", len(response.Data))
 //
-// 		pageOk, err := client.NextPage(&response)
-// 		if err != nil {
-// 			fmt.Printf("Unable to access next page, error '%s'", err.Error())
-// 			break
-// 		}
+//			pageOk, err := client.NextPage(&response)
+//			if err != nil {
+//				fmt.Printf("Unable to access next page, error '%s'", err.Error())
+//				break
+//			}
 //
-// 		if pageOk {
-// 			continue
-// 		}
-// 		break
-// }
+//			if pageOk {
+//				continue
+//			}
+//			break
+//	}
+//
 // ```
 func (c *Client) NextPage(p Pageable) (bool, error) {
 	if p == nil {
