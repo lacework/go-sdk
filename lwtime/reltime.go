@@ -221,9 +221,9 @@ func (rel relative) time(inTime time.Time) (outTime time.Time, err error) {
 //
 // t, err := lwtime.ParseRelative("-1y@y")
 //
-//	if err != nil {
-//		...
-//	}
+// if err != nil {
+//	...
+// }
 func ParseRelative(s string) (time.Time, error) {
 	// time.Now() is intentional here such that snaps work properly
 	// For instance snapping to @d should snap to the start of the local day
