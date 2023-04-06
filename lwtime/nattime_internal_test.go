@@ -294,7 +294,7 @@ var NaturalFromTimeTests = []NaturalFromTimeTest{
 		"2021-01-01T00:00:01Z",
 		time.RFC3339,
 		"today",
-		1,
+		-29,
 		nil,
 	},
 	NaturalFromTimeTest{
@@ -310,7 +310,7 @@ var NaturalFromTimeTests = []NaturalFromTimeTest{
 		"2021-01-01T23:59:59Z",
 		time.RFC3339,
 		"this day",
-		86399,
+		86369,
 		nil,
 	},
 	NaturalFromTimeTest{
@@ -318,7 +318,7 @@ var NaturalFromTimeTests = []NaturalFromTimeTest{
 		"2021-01-01T23:59:59Z",
 		time.RFC3339,
 		"current month",
-		86399,
+		86369,
 		nil,
 	},
 	NaturalFromTimeTest{

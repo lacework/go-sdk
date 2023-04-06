@@ -181,14 +181,15 @@ func (nt natural) getRelativeRange() (relStart string, relEnd string, err error)
 // Start and End time objects are returned in UTC
 //
 // start, end, err := lwtime.ParseNatural("this year")
-// if err != nil {
-// 	...
-// }
+//
+//	if err != nil {
+//		...
+//	}
 func ParseNatural(n string) (time.Time, time.Time, error) {
 	// time.Now() is intentional here such that snaps work properly
 	// For instance snapping to @d should snap to the start of the local day
 	startLocal, endLocal, err := parseNaturalFromTime(n, time.Now())
-	return startLocal.UTC(), endLocal.UTC().Add(-time.Minute), err
+	return startLocal.UTC(), endLocal.UTC(), err
 }
 
 func parseNaturalFromTime(n string, fromTime time.Time) (time.Time, time.Time, error) {
