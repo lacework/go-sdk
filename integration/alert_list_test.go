@@ -90,7 +90,7 @@ func TestAlertListJSON(t *testing.T) {
 }
 
 func TestAlertListNone(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--start", "-1s", "--end", "now")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--start", "-10s", "--end", "now")
 	assert.Contains(t, out.String(), "There are no alerts in the specified time range.")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")

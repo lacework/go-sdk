@@ -19,6 +19,7 @@
 package lwtime_test
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -37,4 +38,15 @@ func TestParseRelativeOK(t *testing.T) {
 func TestParseRelativeErr(t *testing.T) {
 	_, err := lwtime.ParseRelative("jackie weaver")
 	assert.NotNil(t, err)
+}
+
+func TestParseRelativeCustomClockOffset(t *testing.T) {
+	os.Setenv("LW_CLOCK_OFFSET", "+5s")
+	defer os.Setenv("LW_CLOCK_OFFSET", "")
+
+	rt, err := lwtime.ParseRelative("now")
+	assert.Nil(t, err)
+
+	dur := rt.Unix() - time.Now().Unix()
+	assert.LessOrEqual(t, dur, int64(6))
 }
