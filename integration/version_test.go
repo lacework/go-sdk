@@ -49,9 +49,15 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 	defer os.RemoveAll(home)
 
 	out, errB, exitcode := LaceworkCLIWithHome(home, "configure", "list")
-	assert.Empty(t, errB.String())
 	assert.Equal(t, 0, exitcode)
 	assert.Contains(t, out.String(),
+		"To switch profiles use 'lacework configure switch-profile",
+	)
+
+	assert.NotContains(t, out.String(),
+		"A newer version of the Lacework CLI is available! The latest version is v",
+	)
+	assert.Contains(t, errB.String(),
 		"A newer version of the Lacework CLI is available! The latest version is v",
 		"version check message changed?",
 	)
@@ -100,11 +106,18 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 	assert.Nil(t, err)
 
 	out, errB, exitcode = LaceworkCLIWithHome(home, "configure", "list")
-	assert.Empty(t, errB.String())
 	assert.Equal(t, 0, exitcode)
+
 	assert.Contains(t, out.String(),
+		"To switch profiles use 'lacework configure switch-profile",
+	)
+
+	assert.NotContains(t, out.String(),
 		"A newer version of the Lacework CLI is available! The latest version is v",
-		"version check message should be there",
+	)
+	assert.Contains(t, errB.String(),
+		"A newer version of the Lacework CLI is available! The latest version is v",
+		"version check message changed?",
 	)
 
 	assert.FileExists(t, versionCacheFile, "the version_cache file is missing")
