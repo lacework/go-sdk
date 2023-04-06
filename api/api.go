@@ -85,6 +85,8 @@ const (
 	apiV2ConfigsGcp                = "v2/Configs/GcpProjects"
 	apiV2ConfigsGcpProjects        = "v2/Configs/GcpProjects?orgId=%s"
 
+	apiV2FeatureFlags = "v2/FeatureFlags"
+
 	apiV2Policies        = "v2/Policies"
 	apiV2Queries         = "v2/Queries"
 	apiV2QueriesExecute  = "v2/Queries/execute"
