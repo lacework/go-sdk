@@ -32,7 +32,9 @@ import (
 func popAlert() (string, error) {
 	var alerts api.Alerts
 
-	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--status", "Open", "--json")
+	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
+		"alert", "list", "--status", "Open", "--json", "--range", "last 7 days",
+	)
 	if stderr.String() != "" {
 		return "-1", errors.New(stderr.String())
 	}
@@ -123,7 +125,7 @@ func TestAlertListStatusBad(t *testing.T) {
 }
 
 func TestAlertListStatusOpen(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--status", "Open")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--status", "Open", "--range", "last 7 days")
 	assert.Contains(t, out.String(), "Open")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
