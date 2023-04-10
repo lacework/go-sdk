@@ -21,7 +21,7 @@ when running non-interactively ('--noninteractive' flag). The interactive comman
 
 To explicitly specify the server URL that the agent will connect to:
 
-    lacework agent aws-install ec2ssh --server_url https://api.fra.lacework.net
+    lacework agent aws-install ec2ssh --server_url https://your.server.url.lacework.net
 
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select. Instances must

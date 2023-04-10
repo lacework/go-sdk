@@ -28,7 +28,7 @@ select a token and pass it to the '--token' flag. This flag must be selected if 
 
 To explicitly specify the server URL that the agent will connect to:
 
-    lacework agent gcp-install osl --server_url https://api.fra.lacework.net
+    lacework agent gcp-install osl --server_url https://your.server.url.lacework.net
 
 GCP credentials are read using the following environment variables:
 - GOOGLE_APPLICATION_CREDENTIALS
