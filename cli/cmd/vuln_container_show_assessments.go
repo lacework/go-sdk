@@ -515,9 +515,9 @@ func vulContainerImageLayersToCSV(assessment []api.VulnerabilityContainer) [][]s
 		out = append(out, []string{
 			vuln.VulnID,
 			vuln.Severity,
-			strconv.Itoa(0),
-			strconv.Itoa(0),
-			vuln.FeatureKey.Namespace,
+			strconv.FormatFloat(0.0, 'f', 1, 64),
+			strconv.FormatFloat(0.0, 'f', 1, 64),
+			vuln.FeatureKey.Name,
 			vuln.FeatureKey.Version,
 			vuln.FixInfo.FixedVersion,
 			vuln.FeatureProps.IntroducedIn,

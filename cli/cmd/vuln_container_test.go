@@ -118,7 +118,7 @@ CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,example introduced
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
 }
 
-func TestBuildVulnCtrReportWithAggregatedIntroducedInLayerCSV(t *testing.T) {
+func TestBuildVulnCtrReportWithIntroducedInLayerCSV(t *testing.T) {
 	cli.EnableCSVOutput()
 	vulCmdState.Details = true
 	defer func() {
@@ -136,7 +136,8 @@ func TestBuildVulnCtrReportWithAggregatedIntroducedInLayerCSV(t *testing.T) {
 
 	expected := `
 CVE ID,Severity,CVSSv2,CVSSv3,Package,Current Version,Fix Version,Introduced in Layer
-CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,"example introduced in layer 1, example introduced in layer 2"
+CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,example introduced in layer 1
+CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,example introduced in layer 2
 `
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
 }
@@ -156,6 +157,37 @@ func TestBuildVulnCtrReportWithAggregatedIntroducedInLayer(t *testing.T) {
 	})
 
 	assert.Contains(t, cliOutput, "introduced in 2 layers...")
+}
+
+func TestBuildVulnCtrReportAndJsonCount(t *testing.T) {
+	cli.EnableCSVOutput()
+	vulCmdState.Details = true
+	defer func() {
+		vulCmdState.Details = false
+		cli.jsonOutput = false
+		cli.csvOutput = false
+	}()
+
+	var response api.VulnerabilitiesContainersResponse
+	if err := json.Unmarshal([]byte(mockIntroducedInLayerResponse), &response); err != nil {
+		panic(err)
+	}
+
+	cliCSVOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, buildVulnContainerAssessmentReports(response))
+	})
+
+	cli.csvOutput = false
+	cli.EnableJSONOutput()
+
+	cliJsonOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, buildVulnContainerAssessmentReports(response))
+	})
+
+	jsonCount := len(strings.Split(cliJsonOutput, "CVE-"))
+	csvCount := len(strings.Split(cliCSVOutput, "CVE-"))
+
+	assert.Equal(t, csvCount, jsonCount)
 }
 
 func TestVulnCtrIntroducedInRegex(t *testing.T) {
