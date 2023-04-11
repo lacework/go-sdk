@@ -65,6 +65,7 @@ func TestCloudAccountsAwsEksAuditGet(t *testing.T) {
 		"arn:aws:sns:us-west-2:0123456789:foo-lacework-eks:00777777-ab77-1234-a123-a12ab1d12c1d",
 		response.Data.Data.SnsArn,
 	)
+	assert.Equal(t, "arn:aws:s3:::example-bucket-name", response.Data.Data.S3BucketArn)
 }
 
 func TestCloudAccountsAwsEksAuditUpdate(t *testing.T) {
@@ -92,6 +93,8 @@ func TestCloudAccountsAwsEksAuditUpdate(t *testing.T) {
 				body,
 				"arn:aws:sns:us-west-2:0123456789:foo-lacework-eks:00777777-ab77-1234-a123-a12ab1d12c1d",
 				"wrong sns arn")
+
+			assert.Contains(t, body, "arn:aws:s3:::example-bucket-name", "wrong s3 bucket arn")
 			assert.Contains(t, body, "enabled\":1", "cloud account is not enabled")
 		}
 
@@ -108,7 +111,8 @@ func TestCloudAccountsAwsEksAuditUpdate(t *testing.T) {
 	cloudAccount := api.NewCloudAccount("integration_name",
 		api.AwsEksAuditCloudAccount,
 		api.AwsEksAuditData{
-			SnsArn: "arn:aws:sns:us-west-2:0123456789:foo-lacework-eks:00777777-ab77-1234-a123-a12ab1d12c1d",
+			SnsArn:      "arn:aws:sns:us-west-2:0123456789:foo-lacework-eks:00777777-ab77-1234-a123-a12ab1d12c1d",
+			S3BucketArn: "arn:aws:s3:::example-bucket-name",
 			Credentials: api.AwsEksAuditCredentials{
 				RoleArn:    "arn:bubu:lubu",
 				ExternalID: "abc123",
@@ -127,6 +131,7 @@ func TestCloudAccountsAwsEksAuditUpdate(t *testing.T) {
 	assert.Equal(t,
 		"arn:aws:sns:us-west-2:0123456789:foo-lacework-eks:00777777-ab77-1234-a123-a12ab1d12c1d",
 		response.Data.Data.SnsArn)
+	assert.Equal(t, "arn:aws:s3:::example-bucket-name", response.Data.Data.S3BucketArn)
 }
 
 func singleAwsEksAuditCloudAccount(id string) string {
@@ -152,6 +157,7 @@ func singleAwsEksAuditCloudAccount(id string) string {
 	"type": "AwsEksAudit",
     "data": {
       "snsArn": "arn:aws:sns:us-west-2:0123456789:foo-lacework-eks:00777777-ab77-1234-a123-a12ab1d12c1d",
+	  "s3BucketArn": "arn:aws:s3:::example-bucket-name",
       "crossAccountCredentials": {
         "externalId": "0123456789",
         "roleArn": "arn:foo:bar"
