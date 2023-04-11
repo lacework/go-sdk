@@ -136,7 +136,11 @@ fmt: ## Runs and applies go formatting changes
 
 .PHONY: fmt-check
 fmt-check: ## Lists formatting issues
-	@test -z $(shell gofmt -l $(shell go list -f {{.Dir}} ./...) | grep -v proto)
+	$(eval PACKAGES := $(shell go list -f {{.Dir}} ./... | grep -v proto | grep -v databox))
+	@echo "Verifying formatting from Go packages: "$(PACKAGES)
+	$(eval ISSUES := $(shell gofmt -l $(PACKAGES)))
+	@echo "Issues found:\n"$(ISSUES)
+	@test -z $(ISSUES)
 
 .PHONY: imports-check
 imports-check: ## Lists imports issues
