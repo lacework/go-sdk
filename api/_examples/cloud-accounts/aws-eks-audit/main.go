@@ -42,6 +42,7 @@ func main() {
 			ExternalID: "abc123",
 		},
 		SnsArn: "arn:aws:sns:us-west-2:0123456789:foo-lacework-eks:00777777-ab77-1234-a123-a12ab1d12c1d",
+		S3BucketArn: "arn:aws:s3:::example-bucket-name",
 	}
 
 	awsEksAuditCloudAccount := api.NewCloudAccount(
