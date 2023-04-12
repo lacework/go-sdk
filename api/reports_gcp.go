@@ -144,13 +144,13 @@ func (svc *gcpReportsService) DownloadPDF(filepath string, config GcpReportConfi
 	return err
 }
 
-func (gcp GcpReport) GetComplianceRecommendation(recommendationID string) RecommendationV2 {
+func (gcp GcpReport) GetComplianceRecommendation(recommendationID string) (*RecommendationV2, bool) {
 	for _, r := range gcp.Recommendations {
 		if r.RecID == recommendationID {
-			return r
+			return &r, true
 		}
 	}
-	return RecommendationV2{}
+	return nil, false
 }
 
 type GcpReportResponse struct {
