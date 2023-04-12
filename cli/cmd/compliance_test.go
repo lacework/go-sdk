@@ -178,17 +178,25 @@ func TestFiltersEnabled(t *testing.T) {
 }
 
 func TestComplianceRecommendationsRecommendationID(t *testing.T) {
-	result := mockComplianceReport.GetComplianceRecommendation("LW_S3_1")
+	result, found := mockComplianceReport.GetComplianceRecommendation("LW_S3_1")
 
-	assert.NotNil(t, result)
-	assert.Equal(t, result.Status, "NonCompliant")
-	assert.Equal(t, result.AssessedResourceCount, 1)
-	assert.Equal(t, result.ResourceCount, 1)
-	assert.Equal(t, result.Category, "S3")
-	assert.Equal(t, len(result.Violations), 1)
-	assert.Equal(t, result.Violations[0].Resource, "arn:aws:s3:::resource-name")
-	assert.Equal(t, result.Violations[0].Region, "us-east-1")
-	assert.Equal(t, result.Violations[0].Reasons[0], "violation reason")
+	if assert.True(t, found) {
+		assert.NotNil(t, result)
+		assert.Equal(t, result.Status, "NonCompliant")
+		assert.Equal(t, result.AssessedResourceCount, 1)
+		assert.Equal(t, result.ResourceCount, 1)
+		assert.Equal(t, result.Category, "S3")
+		assert.Equal(t, len(result.Violations), 1)
+		assert.Equal(t, result.Violations[0].Resource, "arn:aws:s3:::resource-name")
+		assert.Equal(t, result.Violations[0].Region, "us-east-1")
+		assert.Equal(t, result.Violations[0].Reasons[0], "violation reason")
+	}
+}
+
+func TestComplianceRecommendationsRecommendationIDNotFound(t *testing.T) {
+	result, found := mockComplianceReport.GetComplianceRecommendation("1.2.3.4.5")
+	assert.False(t, found)
+	assert.Nil(t, result)
 }
 
 func clearFilters() {

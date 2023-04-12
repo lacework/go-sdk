@@ -20,7 +20,6 @@ package cmd
 
 import (
 	"fmt"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -432,13 +431,11 @@ func statusToProperTypes(status string) string {
 	}
 }
 
-func validRecommendationID(s string) bool {
-	match, _ := regexp.MatchString(RecommendationIDRegex, s)
-	return match
-}
-
 func outputResourcesByRecommendationID(report api.CloudComplianceReportV2) error {
-	recommendation := report.GetComplianceRecommendation(compCmdState.RecommendationID)
+	recommendation, found := report.GetComplianceRecommendation(compCmdState.RecommendationID)
+	if !found || recommendation == nil {
+		return errors.Errorf("recommendation id '%s' not found.", compCmdState.RecommendationID)
+	}
 	violations := recommendation.Violations
 	affectedResources := len(recommendation.Violations)
 
