@@ -61,8 +61,6 @@ var (
 		RecommendationID string
 	}{}
 
-	RecommendationIDRegex = "^[A-Z]+[A-Z_]*[0-9]*"
-
 	// complianceCmd represents the compliance command
 	complianceCmd = &cobra.Command{
 		Use:     "compliance",
