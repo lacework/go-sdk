@@ -70,9 +70,6 @@ var (
 			}
 			if len(args) > 1 {
 				compCmdState.RecommendationID = args[1]
-				if !validRecommendationID(compCmdState.RecommendationID) {
-					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
-				}
 			}
 
 			// ensure we cannot have both --type and --report_name flags

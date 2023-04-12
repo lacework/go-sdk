@@ -146,13 +146,13 @@ func (svc *awsReportsService) DownloadPDF(filepath string, config AwsReportConfi
 	return err
 }
 
-func (aws AwsReport) GetComplianceRecommendation(recommendationID string) RecommendationV2 {
+func (aws AwsReport) GetComplianceRecommendation(recommendationID string) (*RecommendationV2, bool) {
 	for _, r := range aws.Recommendations {
 		if r.RecID == recommendationID {
-			return r
+			return &r, true
 		}
 	}
-	return RecommendationV2{}
+	return nil, false
 }
 
 type AwsReportResponse struct {

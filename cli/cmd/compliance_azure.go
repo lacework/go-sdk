@@ -124,9 +124,6 @@ Use the following command to list all Azure Tenants configured in your account:
 
 			if len(args) > 2 {
 				compCmdState.RecommendationID = args[2]
-				if !validRecommendationID(compCmdState.RecommendationID) {
-					return errors.Errorf("\n'%s' is not a valid recommendation id\n", compCmdState.RecommendationID)
-				}
 			}
 
 			// ensure we cannot have both --type and --report_name flags

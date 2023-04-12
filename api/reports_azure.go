@@ -132,13 +132,13 @@ func (svc *azureReportsService) DownloadPDF(filepath string, config AzureReportC
 	return err
 }
 
-func (azure AzureReport) GetComplianceRecommendation(recommendationID string) RecommendationV2 {
+func (azure AzureReport) GetComplianceRecommendation(recommendationID string) (*RecommendationV2, bool) {
 	for _, r := range azure.Recommendations {
 		if r.RecID == recommendationID {
-			return r
+			return &r, true
 		}
 	}
-	return RecommendationV2{}
+	return nil, false
 }
 
 type AzureReportResponse struct {
