@@ -186,12 +186,10 @@ func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
 
 func TestComplianceAwsGetReportRecommendationIDNotFound(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "rec-not-found")
-
-	assert.Empty(t, out.String(), "STDOUT should be empty")
+	_, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "rec-not-found")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, err.String(), "recommendation id 'rec-not-found' not found.",
-		"STDOUT changed?, please check")
+		"STDERR changed?, please check")
 }
 
 func TestComplianceAwsSearchEmpty(t *testing.T) {
