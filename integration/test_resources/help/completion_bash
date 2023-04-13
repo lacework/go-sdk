@@ -15,7 +15,7 @@ To load completions for every new session, execute once:
 
 #### macOS:
 
-	lacework completion bash > /usr/local/etc/bash_completion.d/lacework
+	lacework completion bash > $(brew --prefix)/etc/bash_completion.d/lacework
 
 You will need to start a new shell for this setup to take effect.
 
