@@ -80,6 +80,18 @@ func TestV2Vulnerabilities_Hosts_SearchAllPages_EmptyData(t *testing.T) {
 	assert.Equal(t, 0, len(response.Data))
 }
 
+func TestV2VulnerabilitiesFilterSingleVulnID(t *testing.T) {
+	var (
+		response api.VulnerabilitiesContainersResponse
+		vulnID   = "CVE-2017-12670"
+	)
+
+	json.Unmarshal([]byte(mockVulnerabilitiesContainersResponse()), &response)
+	response.FilterSingleVulnIDData(vulnID)
+
+	assert.Equal(t, len(response.Data), 1)
+	assert.Equal(t, response.Data[0].VulnID, vulnID)
+}
 func TestV2Vulnerabilities_Containers_Search(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()

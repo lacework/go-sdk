@@ -308,7 +308,9 @@ func buildVulnHostsDetailsTable(filteredCves map[string]VulnCveSummary) string {
 		}
 	}
 
-	if !vulCmdState.Details && !vulCmdState.Active && !vulCmdState.Fixable && !vulCmdState.Packages && vulCmdState.Severity == "" {
+	if !vulCmdState.Details && !vulCmdState.Active && !vulCmdState.Fixable && !vulCmdState.Packages &&
+		vulCmdState.Severity == "" &&
+		vulCmdState.Cve == "" {
 		mainBldr.WriteString(
 			"\nTry adding '--details' to increase details shown about the vulnerability assessment.\n",
 		)

@@ -58,6 +58,8 @@ func clearVulnFilters() {
 	vulCmdState.Severity = ""
 	vulCmdState.Packages = false
 	vulCmdState.Active = false
+	vulCmdState.Cve = ""
+	cli.EnableHumanOutput()
 }
 
 var mockCveOne = VulnCveSummary{

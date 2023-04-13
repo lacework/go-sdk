@@ -171,6 +171,16 @@ type VulnerabilitiesContainersResponse struct {
 	v2PageMetadata `json:"-"`
 }
 
+func (r *VulnerabilitiesContainersResponse) FilterSingleVulnIDData(vulnID string) {
+	var singleVulnData []VulnerabilityContainer
+	for _, vuln := range r.Data {
+		if vuln.VulnID == vulnID {
+			singleVulnData = append(singleVulnData, vuln)
+		}
+	}
+	r.Data = singleVulnData
+}
+
 func (r VulnerabilitiesContainersResponse) HighestSeverity() string {
 	var sevs []lwseverity.Severity
 
