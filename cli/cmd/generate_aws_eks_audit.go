@@ -73,7 +73,7 @@ var (
 	EksAuditAdvancedOptDone            = "Done"
 
 	// AwsEksAuditRegionRegex regex used for validating region input; note intentionally does not match gov cloud
-	AwsEksAuditRegionRegex = `(us|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d`
+	AwsEksAuditRegionRegex = `(us|ap|ca|eu|sa)-(central|(north|south)?(east|west)?)-\d`
 
 	GenerateAwsEksAuditCommandState      = &aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs{}
 	GenerateAwsEksAuditCommandExtraState = &AwsEksAuditGenerateCommandExtraState{}
