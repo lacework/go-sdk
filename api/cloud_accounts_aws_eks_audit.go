@@ -48,7 +48,7 @@ type AwsEksAuditIntegration struct {
 type AwsEksAuditData struct {
 	Credentials AwsEksAuditCredentials `json:"crossAccountCredentials"`
 	SnsArn      string                 `json:"snsArn"`
-	S3BucketArn string                 `json:"s3BucketArn"`
+	S3BucketArn string                 `json:"s3BucketArn,omitempty"`
 }
 
 type AwsEksAuditCredentials struct {
