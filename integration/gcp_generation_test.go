@@ -1323,6 +1323,48 @@ func TestGenerationGcpLaceworkProfile(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+func TestGenerationGcpMultipleProject(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	gcpProjects := []string{"project1", "project2", "project3"}
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"gcp",
+		"--projects",
+		"project1",
+		"--projects",
+		"project2",
+		"--projects",
+		"project3",
+		"--projects",
+		"project1",
+	)
+
+	assertTerraformSaved(t, final)
+
+	buildTf, _ := gcp.NewTerraform(true, true, false,
+		gcp.WithProjectId(projectId),
+		gcp.WithMultipleProject(gcpProjects),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 func runGcpGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
 	os.Setenv("HOME", tfPath)
 

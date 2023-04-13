@@ -117,6 +117,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithPrefix(GenerateGcpCommandState.Prefix),
 				gcp.WithWaitTime(GenerateGcpCommandState.WaitTime),
 				gcp.WithEnableUBLA(GenerateGcpCommandState.EnableUBLA),
+				gcp.WithMultipleProject(GenerateGcpCommandState.Projects),
 			}
 
 			if GenerateGcpCommandState.OrganizationIntegration {
@@ -441,6 +442,11 @@ func initGenerateGcpTfCommandFlags() {
 		"use_pub_sub",
 		false,
 		"use pub/sub for the audit log data rather than bucket")
+	generateGcpTfCommand.PersistentFlags().StringArrayVar(
+		&GenerateGcpCommandState.Projects,
+		"projects",
+		[]string{},
+		"list of Project ID, provision Lacework resources for multiple projects")
 }
 
 // survey.Validator for gcp region

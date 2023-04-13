@@ -80,6 +80,11 @@ func HclProviderWithAttributes(attrs map[string]interface{}) HclProviderModifier
 	}
 }
 
+type ForEach struct {
+	key   string
+	value map[string]string
+}
+
 type HclModule struct {
 	// Required, module name
 	name string
@@ -92,6 +97,8 @@ type HclModule struct {
 
 	// Optional. Extra properties for this module.  Can supply string, bool, int, or map[string]interface{} as values
 	attributes map[string]interface{}
+
+	forEach *ForEach
 
 	// Optional.  Provider details to override defaults.  These values must be supplied as strings, and raw values will be
 	// accepted.  Unfortunately map[string]hcl.Traversal is not a format that is supported by hclwrite.SetAttributeValue
@@ -135,6 +142,12 @@ func HclModuleWithProviderDetails(providerDetails map[string]string) HclModuleMo
 	}
 }
 
+func HclModuleWithForEach(key string, value map[string]string) HclModuleModifier {
+	return func(p *HclModule) {
+		p.forEach = &ForEach{key, value}
+	}
+}
+
 // ToBlock Create hclwrite.Block for module
 func (m *HclModule) ToBlock() (*hclwrite.Block, error) {
 	if m.attributes == nil {
@@ -154,6 +167,18 @@ func (m *HclModule) ToBlock() (*hclwrite.Block, error) {
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	if m.forEach != nil {
+		block.Body().AppendNewline()
+
+		value, err := convertTypeToCty(m.forEach.value)
+		if err != nil {
+			return nil, err
+		}
+		block.Body().SetAttributeValue("for_each", value)
+
+		block.Body().SetAttributeRaw(m.forEach.key, createForEachKey())
 	}
 
 	if m.providerDetails != nil {
@@ -387,6 +412,12 @@ func createMapTraversalTokens(input map[string]string) hclwrite.Tokens {
 	}...)
 
 	return tokens
+}
+
+func createForEachKey() hclwrite.Tokens {
+	return hclwrite.Tokens{
+		{Type: hclsyntax.TokenStringLit, Bytes: []byte(" each.key"), SpacesBefore: 1},
+	}
 }
 
 // CreateHclStringOutput Convert blocks to a string

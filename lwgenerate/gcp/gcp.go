@@ -126,6 +126,8 @@ type GenerateGcpTfConfigurationArgs struct {
 	Prefix string
 
 	WaitTime string
+
+	Projects []string
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -376,6 +378,12 @@ func WithWaitTime(waitTime string) GcpTerraformModifier {
 	}
 }
 
+func WithMultipleProject(projects []string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.Projects = projects
+	}
+}
+
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
@@ -513,6 +521,14 @@ func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Bloc
 
 		if args.WaitTime != "" {
 			attributes["wait_time"] = args.WaitTime
+		}
+
+		if len(args.Projects) > 0 {
+			value := make(map[string]string)
+			for _, p := range args.Projects {
+				value[p] = p
+			}
+			moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithForEach("project_id", value))
 		}
 
 		moduleDetails = append(moduleDetails,
@@ -655,6 +671,14 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 		if args.WaitTime != "" {
 			attributes["wait_time"] = args.WaitTime
+		}
+
+		if len(args.Projects) > 0 {
+			value := make(map[string]string)
+			for _, p := range args.Projects {
+				value[p] = p
+			}
+			moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithForEach("project_id", value))
 		}
 
 		moduleDetails = append(moduleDetails,
