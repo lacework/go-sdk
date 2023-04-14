@@ -446,7 +446,7 @@ func initGenerateGcpTfCommandFlags() {
 		&GenerateGcpCommandState.Projects,
 		"projects",
 		[]string{},
-		"list of Project ID, provision Lacework resources for multiple projects")
+		"list of project IDs to integrate with (project-level integrations)")
 }
 
 // survey.Validator for gcp region
