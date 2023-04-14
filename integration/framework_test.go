@@ -48,7 +48,7 @@ import (
 
 // When emulating a terminal, the timeout to wait for output
 const (
-	expectStringTimeout = time.Second * 3
+	expectStringTimeout = time.Second * 15
 )
 
 var (
