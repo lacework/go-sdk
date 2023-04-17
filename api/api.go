@@ -74,6 +74,7 @@ const (
 	apiV2PolicyExceptionsFromExceptionID = "v2/Exceptions/%s?policyId=%s"
 
 	apiV2InventorySearch = "v2/Inventory/search"
+	apiV2InventoryScan   = "v2/Inventory/scan?csp=%s"
 
 	apiV2ComplianceEvaluationsSearch = "v2/Configs/ComplianceEvaluations/search"
 

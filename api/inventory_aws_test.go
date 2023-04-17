@@ -57,6 +57,32 @@ func TestInventoryAwsSearch(t *testing.T) {
 	}
 }
 
+func TestInventoryAwsScan(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.UseApiV2()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Inventory/scan",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method, "Scan() should be a POST method")
+			fmt.Fprintf(w, mockInventoryScanResponse())
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.NoError(t, err)
+
+	response, err := c.V2.Inventory.Scan(api.AwsInventoryType)
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, "Scan has been requested", response.Data.Details)
+	assert.Equal(t, "scanning", response.Data.Status)
+}
+
 func mockInventoryAwsResponse() string {
 	return `
 {
@@ -99,6 +125,17 @@ func mockInventoryAwsResponse() string {
       "nextPage": null
     }
   }
+}
+	`
+}
+
+func mockInventoryScanResponse() string {
+	return `
+{
+  "data": {
+	"status": "scanning",
+	"details": "Scan has been requested"
+	}
 }
 	`
 }

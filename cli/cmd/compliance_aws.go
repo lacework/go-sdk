@@ -398,7 +398,7 @@ The output from status with the --json flag can be used in the body of PATCH api
 		},
 	}
 
-	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
+	// complianceAwsSearchCmd represents the search inside the aws command
 	complianceAwsSearchCmd = &cobra.Command{
 		Use:   "search <resource_arn>",
 		Short: "Search for all known violations of a given resource arn",
@@ -501,6 +501,34 @@ The output from status with the --json flag can be used in the body of PATCH api
 			return nil
 		},
 	}
+
+	// complianceAwsScanCmd represents the inventory scan inside the aws command
+	complianceAwsScanCmd = &cobra.Command{
+		Use:   "scan",
+		Short: "Scan triggers a new resource inventory scan",
+		Long:  `Scan triggers a new resource inventory scan.`,
+		Args:  cobra.NoArgs,
+		RunE: func(_ *cobra.Command, args []string) error {
+			cli.StartProgress("Triggering Aws inventory scan")
+			response, err := cli.LwApi.V2.Inventory.Scan(api.AwsInventoryType)
+			cli.StopProgress()
+
+			if err != nil {
+				return err
+			}
+
+			if cli.JSONOutput() {
+				cli.OutputJSON(response)
+				return nil
+			}
+
+			cli.OutputHuman(renderSimpleTable([]string{}, [][]string{
+				{"STATUS", response.Data.Status},
+				{"DETAILS", response.Data.Details},
+			}))
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -508,6 +536,7 @@ func init() {
 	complianceAwsCmd.AddCommand(complianceAwsGetReportCmd)
 	complianceAwsCmd.AddCommand(complianceAwsListAccountsCmd)
 	complianceAwsCmd.AddCommand(complianceAwsSearchCmd)
+	complianceAwsCmd.AddCommand(complianceAwsScanCmd)
 
 	// Experimental Commands
 	complianceAwsCmd.AddCommand(complianceAwsReportStatusCmd)

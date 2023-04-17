@@ -201,6 +201,17 @@ func TestComplianceAwsSearchEmpty(t *testing.T) {
 	assert.Contains(t, out.String(), "Resource 'example' not found.", "STDOUT changed, please check")
 }
 
+func TestComplianceAwsSearchScan(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "aws", "scan",
+	)
+
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "STATUS    scanning")
+	assert.Contains(t, out.String(), "DETAILS   Scan has been requested")
+}
+
 func _TestComplianceAwsSearch(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "aws", "search", "arn:aws:s3:::tech-ally-test",
