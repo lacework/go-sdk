@@ -49,7 +49,7 @@ func TestComplianceGoogleList(t *testing.T) {
 	assert.Contains(t, out.String(), "STATUS", "STDOUT changed, please check")
 }
 
-func TestComplianceGcpSearchScan(t *testing.T) {
+func TestComplianceGcpScan(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "gcp", "scan",
 	)

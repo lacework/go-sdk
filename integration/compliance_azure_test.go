@@ -46,7 +46,7 @@ func TestComplianceAzureGetReportTenantAndSubscriptionWithAlias(t *testing.T) {
 		"STDERR changed, please check")
 }
 
-func TestComplianceAzureSearchScan(t *testing.T) {
+func TestComplianceAzureScan(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "azure", "scan",
 	)
