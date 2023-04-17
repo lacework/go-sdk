@@ -281,6 +281,13 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 			)
 			return nil
 		}
+
+		// write single cve-id output
+		if vulCmdState.Cve != "" {
+			cli.OutputHuman(buildVulnerabilitySingleCveReportTable(details))
+			return nil
+		}
+
 		summaryReport := buildVulnerabilitySummaryReportTable(response)
 		detailsReport := buildVulnerabilityDetailsReportTable(details)
 		cli.OutputHuman(buildVulnContainerAssessmentReportTable(summaryReport, detailsReport))
@@ -292,6 +299,70 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 	}
 
 	return nil
+}
+
+func buildVulnerabilitySingleCveReportTable(details vulnerabilityDetailsReport) string {
+	var singleCveTable = strings.Builder{}
+	CveData := details.VulnerabilityDetails.Vulnerabilities[0]
+	cveSummaryTable := renderOneLineCustomTable("CVE DETAILS",
+		renderCustomTable([]string{},
+			[][]string{
+				{"CVE ID", CveData.Name},
+				{"SEVERITY", CveData.Severity},
+				{"PACKAGE", CveData.PackageName},
+				{"CURRENT VERSION", CveData.CurrentVersion},
+				{"FIX VERSION", CveData.FixVersion},
+				{"STATUS", CveData.Status},
+			},
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+				t.SetColWidth(150)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+			}),
+		), tableFunc(func(t *tablewriter.Table) {
+			t.SetBorder(false)
+			t.SetAutoWrapText(false)
+		}),
+	)
+
+	layerTable := renderCustomTable([]string{"INTRODUCED IN LAYERS"},
+		introducedInLayerToTable(CveData),
+		tableFunc(func(t *tablewriter.Table) {
+			t.SetRowLine(true)
+			t.SetBorder(false)
+			t.SetAutoWrapText(true)
+			t.SetAlignment(tablewriter.ALIGN_LEFT)
+			t.SetColumnSeparator(" ")
+
+		}),
+	)
+
+	singleCveTable.WriteString(cveSummaryTable)
+	singleCveTable.WriteString(layerTable)
+	return singleCveTable.String()
+}
+
+func introducedInLayerToTable(vuln vulnTable) (resourceTable [][]string) {
+	for _, layer := range vuln.CreatedBy {
+		resourceTable = append(resourceTable, []string{layer})
+	}
+	return
+}
+
+func buildVulnerabilityDetailsReportCSV(details vulnerabilityDetailsReport) ([]string, [][]string) {
+	if !(vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled()) {
+		return nil, nil
+	}
+
+	if vulCmdState.Packages {
+		return []string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version"},
+			vulContainerImagePackagesToTable(details.Packages)
+	}
+
+	return []string{"CVE ID", "Severity", "CVSSv2", "CVSSv3", "Package", "Current Version",
+		"Fix Version", "Introduced in Layer"}, vulContainerImageLayersToCSV(details.VulnerabilityDetails)
 }
 
 func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) string {
@@ -556,41 +627,25 @@ func vulContainerImageLayersToTable(imageTable filteredImageTable) [][]string {
 	var createdByKeys = make(map[string]bool)
 
 	for _, vuln := range imageTable.Vulnerabilities {
-		if vulCmdState.Cve != "" {
-			if vuln.Name == vulCmdState.Cve {
-				for _, v := range vuln.expandIntroducedInLayers() {
-					out = append(out, []string{
-						v.Name,
-						v.Severity,
-						v.PackageName,
-						v.CurrentVersion,
-						v.FixVersion,
-						strings.Join(v.CreatedBy, ""),
-						v.Status,
-					})
-				}
-			}
-		} else {
-			introducedBy := strings.Join(vuln.CreatedBy, ",")
-			// if the same vuln is introduced in more than 1 layer, only display the number of layers
-			if len(vuln.CreatedBy) > 1 {
-				introducedBy = fmt.Sprintf("introduced in %d layers...", len(vuln.CreatedBy))
-			}
-
-			if !createdByKeys[fmt.Sprintf("%s-%s", vuln.Name, vuln.CurrentVersion)] {
-				out = append(out, []string{
-					vuln.Name,
-					vuln.Severity,
-					vuln.PackageName,
-					vuln.CurrentVersion,
-					vuln.FixVersion,
-					introducedBy,
-					vuln.Status,
-				})
-			}
-
-			createdByKeys[fmt.Sprintf("%s-%s", vuln.Name, vuln.CurrentVersion)] = true
+		introducedBy := strings.Join(vuln.CreatedBy, ",")
+		// if the same vuln is introduced in more than 1 layer, only display the number of layers
+		if len(vuln.CreatedBy) > 1 {
+			introducedBy = fmt.Sprintf("introduced in %d layers...", len(vuln.CreatedBy))
 		}
+
+		if !createdByKeys[fmt.Sprintf("%s-%s", vuln.Name, vuln.CurrentVersion)] {
+			out = append(out, []string{
+				vuln.Name,
+				vuln.Severity,
+				vuln.PackageName,
+				vuln.CurrentVersion,
+				vuln.FixVersion,
+				introducedBy,
+				vuln.Status,
+			})
+		}
+
+		createdByKeys[fmt.Sprintf("%s-%s", vuln.Name, vuln.CurrentVersion)] = true
 	}
 
 	sort.Slice(out, func(i, j int) bool {
