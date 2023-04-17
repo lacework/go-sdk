@@ -491,8 +491,7 @@ The output from status with the --json flag can be used in the body of PATCH api
 			}
 
 			if cli.JSONOutput() {
-				cli.OutputJSON(response)
-				return nil
+				return cli.OutputJSON(response)
 			}
 
 			cli.OutputHuman(renderSimpleTable([]string{}, [][]string{
