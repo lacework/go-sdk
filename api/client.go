@@ -172,6 +172,17 @@ func WithTimeout(timeout time.Duration) Option {
 	})
 }
 
+// WithTransport changes the default transport to increase TLSHandshakeTimeout
+func WithTransport() Option {
+	transport := &http.Transport{
+		TLSHandshakeTimeout: 60 * time.Second,
+	}
+	return clientFunc(func(c *Client) error {
+		c.c.Transport = transport
+		return nil
+	})
+}
+
 // WithURL sets the base URL, this options is only available for test purposes
 func WithURL(baseURL string) Option {
 	return clientFunc(func(c *Client) error {

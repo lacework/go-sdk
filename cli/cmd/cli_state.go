@@ -235,6 +235,10 @@ func (c *cliState) NewClient() error {
 		api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
 	}
 
+	if os.Getenv("LW_TRANSPORT_OVERRIDE") != "" {
+		apiOpts = append(apiOpts, api.WithTransport())
+	}
+
 	if c.CfgVersion == 2 {
 		apiOpts = append(apiOpts, api.WithApiV2())
 	}
