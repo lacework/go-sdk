@@ -474,6 +474,34 @@ The output from status with the --json flag can be used in the body of PATCH api
 			return nil
 		},
 	}
+
+	// complianceGcpScanCmd represents the inventory scan inside the gcp command
+	complianceGcpScanCmd = &cobra.Command{
+		Use:   "scan",
+		Short: "Scan triggers a new resource inventory scan",
+		Long:  `Scan triggers a new resource inventory scan.`,
+		Args:  cobra.NoArgs,
+		RunE: func(_ *cobra.Command, args []string) error {
+			cli.StartProgress("Triggering Gcp inventory scan")
+			response, err := cli.LwApi.V2.Inventory.Scan(api.GcpInventoryType)
+			cli.StopProgress()
+
+			if err != nil {
+				return err
+			}
+
+			if cli.JSONOutput() {
+				cli.OutputJSON(response)
+				return nil
+			}
+
+			cli.OutputHuman(renderSimpleTable([]string{}, [][]string{
+				{"STATUS", response.Data.Status},
+				{"DETAILS", response.Data.Details},
+			}))
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -481,6 +509,7 @@ func init() {
 	complianceGcpCmd.AddCommand(complianceGcpListCmd)
 	complianceGcpCmd.AddCommand(complianceGcpListProjCmd)
 	complianceGcpCmd.AddCommand(complianceGcpGetReportCmd)
+	complianceGcpCmd.AddCommand(complianceGcpScanCmd)
 
 	// Experimental Commands
 	complianceGcpCmd.AddCommand(complianceGcpReportStatusCmd)

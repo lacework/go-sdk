@@ -24,6 +24,7 @@ Available Commands:
   get-report     Get the latest GCP compliance report
   list           List gcp projects and organizations
   list-projects  List projects from an organization
+  scan           Scan triggers a new resource inventory scan
 
 Flags:
   -h, --help   help for google
