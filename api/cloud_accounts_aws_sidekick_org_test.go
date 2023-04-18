@@ -167,21 +167,7 @@ func singleAwsSidekickOrgCloudAccount(id string) string {
 	  "scanHostVulnerabilities": true,
 	  "managementAccount": "000123456789",
 	  "monitoredAccounts": "r-1234, ou-0987",
-	  "scanningAccount": "123456789000",
-	  "org_account_mappings": [{
-		"default_lacework_account" = "agentless"
-		"mapping" = [
-		  {
-			"lacework_account" = "sub1"
-			"aws_accounts"     = ["259832199722"]
-		  },
-		  {
-			"lacework_account" = "sub2"
-			"aws_accounts"     = ["943778217130"]
-		  }
-		]
-	  }]
-    },
+	  "scanningAccount": "123456789000"
     "enabled": 1,
     "intgGuid": "` + id + `",
     "isOrg": 0,
