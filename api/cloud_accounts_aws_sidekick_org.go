@@ -18,6 +18,12 @@
 
 package api
 
+import (
+	"encoding/base64"
+	"fmt"
+	"strings"
+)
+
 // GetAwsSidekickOrg gets a single AwsSidekickOrg integration matching the provided integration guid
 func (svc *CloudAccountsService) GetAwsSidekickOrg(guid string) (
 	response AwsSidekickOrgResponse,
@@ -73,4 +79,32 @@ type AwsSidekickOrgData struct {
 	AccountID         string                             `json:"awsAccountId,omitempty"`
 	BucketArn         string                             `json:"bucketArn,omitempty"`
 	CrossAccountCreds AwsSidekickCrossAccountCredentials `json:"crossAccountCredentials"`
+
+	// This field must be a base64 encode with the following format:
+	//
+	// "data:application/json;name=i.json;base64,[ENCODING]"
+	//
+	// [ENCODING] is the the base64 encode, use EncodeAccountMappingFile() to encode a JSON mapping file
+	AccountMappingFile string `json:"accountMappingFile,omitempty"`
+}
+
+func (aws *AwsSidekickOrgData) EncodeAccountMappingFile(mapping []byte) {
+	encodedMappings := base64.StdEncoding.EncodeToString(mapping)
+	aws.AccountMappingFile = fmt.Sprintf("data:application/json;name=i.json;base64,%s", encodedMappings)
+}
+
+func (aws *AwsSidekickOrgData) DecodeAccountMappingFile() ([]byte, error) {
+	if len(aws.AccountMappingFile) == 0 {
+		return []byte{}, nil
+	}
+
+	var (
+		b64      = strings.Split(aws.AccountMappingFile, ",")
+		raw, err = base64.StdEncoding.DecodeString(b64[1])
+	)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return raw, nil
 }
