@@ -227,7 +227,6 @@ func (c *cliState) NewClient() error {
 		return err
 	}
 
-
 	apiOpts := []api.Option{
 		api.WithLogLevel(c.Log.Level().CapitalString()),
 		api.WithSubaccount(c.Subaccount),
