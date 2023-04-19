@@ -256,7 +256,9 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 		}
 
 		if err := cli.OutputCSV([]string{"CVE ID", "Severity", "CVSSv2", "CVSSv3", "Package", "Current Version",
-			"Fix Version", "Introduced in Layer"}, vulContainerImageLayersToCSV(assessment)); err != nil {
+			"Fix Version", "Version Format", "Feed", "Src", "Start Time", "Status", "Namespace", "Image Digest",
+			"Image ID", "Image Repo", "Image Registry", "Image Size", "Introduced in Layer"},
+			vulContainerImageLayersToCSV(assessment)); err != nil {
 			return err
 		}
 	default:
@@ -520,6 +522,16 @@ func vulContainerImageLayersToCSV(assessment []api.VulnerabilityContainer) [][]s
 			vuln.FeatureKey.Name,
 			vuln.FeatureKey.Version,
 			vuln.FixInfo.FixedVersion,
+			vuln.FeatureProps.VersionFormat,
+			vuln.FeatureProps.Feed,
+			vuln.FeatureProps.Src,
+			vuln.StartTime.Format(time.RFC3339),
+			vuln.FeatureKey.Namespace,
+			vuln.EvalCtx.ImageInfo.ID,
+			vuln.EvalCtx.ImageInfo.Digest,
+			vuln.EvalCtx.ImageInfo.Repo,
+			vuln.EvalCtx.ImageInfo.Registry,
+			strconv.Itoa(vuln.EvalCtx.ImageInfo.Size),
 			vuln.FeatureProps.IntroducedIn,
 		})
 	}
