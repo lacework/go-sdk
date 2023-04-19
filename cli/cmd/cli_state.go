@@ -231,7 +231,6 @@ func (c *cliState) NewClient() error {
 		api.WithLogLevel(c.Log.Level().CapitalString()),
 		api.WithSubaccount(c.Subaccount),
 		api.WithApiKeys(c.KeyID, c.Secret),
-		api.WithTransport(&http.Transport{TLSHandshakeTimeout: time.Second * 63}),
 		api.WithTimeout(time.Second * 125),
 		api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
 	}

@@ -62,7 +62,7 @@ func MockUnstartedServer() *Mock {
 	return &Mock{
 		Mux:        mux,
 		Server:     httptest.NewUnstartedServer(mux),
-		ApiVersion: "v1",
+		ApiVersion: "v2",
 	}
 }
 

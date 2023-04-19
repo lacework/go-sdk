@@ -32,7 +32,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const defaultTimeout = 60 * time.Second
+const (
+	defaultTimeout    = 60 * time.Second
+	defaultTLSTimeout = 63 * time.Second
+)
 
 type Client struct {
 	id         string
@@ -99,7 +102,8 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		auth: &authConfig{
 			expiration: DefaultTokenExpiryTime,
 		},
-		c: &http.Client{Timeout: defaultTimeout},
+		c: &http.Client{Timeout: defaultTimeout,
+			Transport: &http.Transport{TLSHandshakeTimeout: defaultTLSTimeout}},
 	}
 
 	c.V2 = NewV2Endpoints(c)
