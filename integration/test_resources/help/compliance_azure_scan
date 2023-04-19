@@ -1,26 +1,10 @@
-Manage compliance reports for Amazon Web Services (AWS).
-
-To list all AWS accounts configured in your account:
-
-    lacework compliance aws list-accounts
-
-To get the latest AWS compliance assessment report:
-
-    lacework compliance aws get-report <account_id>
-
-These reports run on a regular schedule, typically once a day.
+Scan triggers a new resource inventory scan.
 
 Usage:
-  lacework compliance aws [command]
-
-Available Commands:
-  get-report     Get the latest AWS compliance report
-  list-accounts  List all AWS accounts configured
-  scan           Scan triggers a new resource inventory scan
-  search         Search for all known violations of a given resource arn
+  lacework compliance azure scan [flags]
 
 Flags:
-  -h, --help   help for aws
+  -h, --help   help for scan
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
@@ -35,5 +19,3 @@ Global Flags:
       --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
-
-Use "lacework compliance aws [command] --help" for more information about a command.

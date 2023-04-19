@@ -55,7 +55,7 @@ func TestInventorySearch(t *testing.T) {
 	assert.Equal(t, 0, len(response.Data))
 }
 
-func TestInventorySearchInvvalid(t *testing.T) {
+func TestInventorySearchInvalid(t *testing.T) {
 	c, err := api.NewClient("test",
 		api.WithApiV2(),
 		api.WithToken("TOKEN"),

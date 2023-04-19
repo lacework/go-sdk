@@ -48,3 +48,14 @@ func TestComplianceGoogleList(t *testing.T) {
 	assert.Contains(t, out.String(), "ORGANIZATION ID", "STDOUT changed, please check")
 	assert.Contains(t, out.String(), "STATUS", "STDOUT changed, please check")
 }
+
+func TestComplianceGcpScan(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "gcp", "scan",
+	)
+
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "STATUS    scanning")
+	assert.Contains(t, out.String(), "DETAILS   Scan has been requested")
+}

@@ -465,6 +465,32 @@ The output from status with the --json flag can be used in the body of PATCH api
 			return nil
 		},
 	}
+	// complianceAzureScanCmd represents the inventory scan inside the azure command
+	complianceAzureScanCmd = &cobra.Command{
+		Use:   "scan",
+		Short: "Scan triggers a new resource inventory scan",
+		Long:  `Scan triggers a new resource inventory scan.`,
+		Args:  cobra.NoArgs,
+		RunE: func(_ *cobra.Command, args []string) error {
+			cli.StartProgress("Triggering Azure inventory scan")
+			response, err := cli.LwApi.V2.Inventory.Scan(api.AzureInventoryType)
+			cli.StopProgress()
+
+			if err != nil {
+				return err
+			}
+
+			if cli.JSONOutput() {
+				return cli.OutputJSON(response)
+			}
+
+			cli.OutputHuman(renderSimpleTable([]string{}, [][]string{
+				{"STATUS", response.Data.Status},
+				{"DETAILS", response.Data.Details},
+			}))
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -472,6 +498,7 @@ func init() {
 	complianceAzureCmd.AddCommand(complianceAzureListSubsCmd)
 	complianceAzureCmd.AddCommand(complianceAzureListTenantsCmd)
 	complianceAzureCmd.AddCommand(complianceAzureGetReportCmd)
+	complianceAzureCmd.AddCommand(complianceAzureScanCmd)
 
 	// Experimental Commands
 	complianceAzureCmd.AddCommand(complianceAzureReportStatusCmd)

@@ -45,3 +45,14 @@ func TestComplianceAzureGetReportTenantAndSubscriptionWithAlias(t *testing.T) {
 		"no data found in the report",
 		"STDERR changed, please check")
 }
+
+func TestComplianceAzureScan(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"compliance", "azure", "scan",
+	)
+
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "STATUS    scanning")
+	assert.Contains(t, out.String(), "DETAILS   Scan has been requested")
+}

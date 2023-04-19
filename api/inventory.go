@@ -18,7 +18,10 @@
 
 package api
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type InventoryService struct {
 	client *Client
@@ -28,6 +31,8 @@ type inventoryType string
 type inventoryDataset string
 
 const AwsInventoryType inventoryType = "AWS"
+const AzureInventoryType inventoryType = "Azure"
+const GcpInventoryType inventoryType = "GCP"
 const AwsInventoryDataset inventoryDataset = "AwsCompliance"
 
 // Search expects the response and the search filters
@@ -53,6 +58,13 @@ func (svc *InventoryService) Search(response interface{}, filters SearchableFilt
 	return svc.client.RequestEncoderDecoder("POST", apiV2InventorySearch, filters, response)
 }
 
+// Scan triggers a resource inventory scan
+func (svc *InventoryService) Scan(cloud inventoryType) (response InventoryScanResponse, err error) {
+	url := fmt.Sprintf(apiV2InventoryScanCsp, cloud)
+	err = svc.client.RequestEncoderDecoder("POST", url, nil, &response)
+	return
+}
+
 type InventorySearch struct {
 	SearchFilter
 	Csp     inventoryType    `json:"csp"`
@@ -69,4 +81,11 @@ func (i InventorySearch) SetStartTime(time *time.Time) {
 
 func (i InventorySearch) SetEndTime(time *time.Time) {
 	i.TimeFilter.EndTime = time
+}
+
+type InventoryScanResponse struct {
+	Data struct {
+		Status  string `json:"status"`
+		Details string `json:"details"`
+	} `json:"data"`
 }

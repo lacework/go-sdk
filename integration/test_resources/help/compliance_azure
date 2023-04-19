@@ -24,6 +24,7 @@ Available Commands:
   get-report         Get the latest Azure compliance report
   list               List Azure tenants and subscriptions
   list-subscriptions List subscriptions `<tenant-id>`
+  scan               Scan triggers a new resource inventory scan
 
 Flags:
   -h, --help   help for azure
