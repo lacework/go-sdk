@@ -60,7 +60,7 @@ func (svc *InventoryService) Search(response interface{}, filters SearchableFilt
 
 // Scan triggers a resource inventory scan
 func (svc *InventoryService) Scan(cloud inventoryType) (response InventoryScanResponse, err error) {
-	url := fmt.Sprintf(apiV2InventoryScan, cloud)
+	url := fmt.Sprintf(apiV2InventoryScanCsp, cloud)
 	err = svc.client.RequestEncoderDecoder("POST", url, nil, &response)
 	return
 }
