@@ -227,16 +227,14 @@ func (c *cliState) NewClient() error {
 		return err
 	}
 
+
 	apiOpts := []api.Option{
 		api.WithLogLevel(c.Log.Level().CapitalString()),
 		api.WithSubaccount(c.Subaccount),
 		api.WithApiKeys(c.KeyID, c.Secret),
+		api.WithTransport(&http.Transport{TLSHandshakeTimeout: time.Second * 63}),
 		api.WithTimeout(time.Second * 125),
 		api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
-	}
-
-	if os.Getenv("LW_TRANSPORT_OVERRIDE") != "" {
-		apiOpts = append(apiOpts, api.WithTransport())
 	}
 
 	if c.CfgVersion == 2 {

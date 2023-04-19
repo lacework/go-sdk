@@ -19,6 +19,7 @@
 package api_test
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"testing"
@@ -189,4 +190,45 @@ func TestNewClientWithoutOrgAccess(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, false, c.OrgAccess(), "org access should be set to false")
 
+}
+
+func TestTLSHandshakeTimeout(t *testing.T) {
+	fakeServer := lacework.MockUnstartedServer()
+	fakeServer.Server.TLS = &tls.Config{InsecureSkipVerify: true}
+	fakeServer.UseApiV2()
+	apiPath := "AlertChannels"
+	fakeServer.MockToken("TOKEN")
+	fakeServer.Server.StartTLS()
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(time.Second * 1)
+		fmt.Fprintf(w, "{}")
+	})
+
+	shortTimeout := &http.Transport{TLSHandshakeTimeout: time.Millisecond * 1,
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+
+	client, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+		api.WithTransport(shortTimeout),
+	)
+
+	_, err = client.V2.AlertChannels.List()
+	assert.ErrorContains(t, err, "TLS handshake timeout", "Expected TLS timeout error")
+
+	longTimeout := &http.Transport{TLSHandshakeTimeout: time.Second * 2,
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+
+	clientWithTimeout, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+		api.WithTransport(longTimeout),
+	)
+
+	_, err = clientWithTimeout.V2.AlertChannels.List()
+	assert.NoError(t, err)
 }
