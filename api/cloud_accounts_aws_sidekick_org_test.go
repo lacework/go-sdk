@@ -30,12 +30,30 @@ import (
 )
 
 func TestCloudAccountsNewAwsSidekickOrgWithCustomTemplateFile(t *testing.T) {
+	accountMappingJSON := []byte(`{
+		"defaultLaceworkAccountAws": "lw_account_1",
+		"integration_mappings": {
+		  "lw_account_2": {
+			"aws_accounts": [
+			  "234556677",
+			  "774564564"
+			]
+		  },
+		  "lw_account_3": {
+			"aws_accounts": [
+			  "553453453",
+			  "934534535"
+			]
+		  }
+		}
+	  }`)
 	awsSidekickOrgData := api.AwsSidekickOrgData{
 		CrossAccountCreds: api.AwsSidekickCrossAccountCredentials{
 			RoleArn:    "arn:foo:bar",
 			ExternalID: "0123456789",
 		},
 	}
+	awsSidekickOrgData.EncodeAccountMappingFile(accountMappingJSON)
 
 	subject := api.NewCloudAccount("integration_name", api.AwsSidekickOrgCloudAccount, awsSidekickOrgData)
 	assert.Equal(t, api.AwsSidekickOrgCloudAccount.String(), subject.Type)
@@ -45,6 +63,21 @@ func TestCloudAccountsNewAwsSidekickOrgWithCustomTemplateFile(t *testing.T) {
 
 	assert.Equal(t, subjectData.CrossAccountCreds.RoleArn, "arn:foo:bar")
 	assert.Equal(t, subjectData.CrossAccountCreds.ExternalID, "0123456789")
+	assert.Contains(t,
+		subjectData.AccountMappingFile,
+		"data:application/json;name=i.json;base64,",
+		"check the custom_template_file encoder",
+	)
+	accountMapping, err := subjectData.DecodeAccountMappingFile()
+	assert.Nil(t, err)
+	assert.Equal(t, accountMappingJSON, accountMapping)
+
+	// When there is no custom account mapping file, this function should
+	// return an empty string to match the pattern
+	subjectData.AccountMappingFile = ""
+	accountMapping, err = subjectData.DecodeAccountMappingFile()
+	assert.Nil(t, err)
+	assert.Empty(t, accountMapping)
 }
 
 func TestCloudAccountsAwsSidekickOrgGet(t *testing.T) {
