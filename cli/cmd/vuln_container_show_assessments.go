@@ -191,8 +191,7 @@ func showContainerAssessmentsWithSha256(sha string) error {
 	}
 
 	if vulCmdState.Cve != "" {
-		outputContainerVulnerabilityAssessmentCve(assessment)
-		return nil
+		return outputContainerVulnerabilityAssessmentCve(assessment)
 	}
 
 	return outputContainerVulnerabilityAssessment(assessment)
@@ -365,8 +364,7 @@ func buildVulnerabilitySingleCveReportTable(details vulnerabilityDetailsReport) 
 		singleCveTableContent.WriteString(layerTable)
 	}
 
-	cveSummaryTable := renderOneLineCustomTable(fmt.Sprintf("%s",
-		details.VulnerabilityDetails.Vulnerabilities[0].Name),
+	cveSummaryTable := renderOneLineCustomTable(details.VulnerabilityDetails.Vulnerabilities[0].Name,
 		singleCveTableContent.String(),
 		tableFunc(func(t *tablewriter.Table) {
 			t.SetBorder(false)
