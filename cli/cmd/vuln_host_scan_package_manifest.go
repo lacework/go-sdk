@@ -134,7 +134,7 @@ To generate a package-manifest from the local host and scan it automatically:
 				return errors.Wrap(err, "unable to request an on-demand host vulnerability scan")
 			}
 
-			if err := buildVulnHostScanPkgManifestReports(response); err != nil {
+			if err := buildVulnHostScanPkgManifestReports(&response); err != nil {
 				return err
 			}
 
@@ -160,7 +160,7 @@ To generate a package-manifest from the local host and scan it automatically:
 )
 
 // Build the cli output for vuln host scan-package-manifest
-func buildVulnHostScanPkgManifestReports(response api.VulnerabilitySoftwarePackagesResponse) error {
+func buildVulnHostScanPkgManifestReports(response *api.VulnerabilitySoftwarePackagesResponse) error {
 	response.Data = filterHostScanPackagesVulnDetails(response.Data)
 
 	if cli.JSONOutput() {
@@ -176,7 +176,7 @@ func buildVulnHostScanPkgManifestReports(response api.VulnerabilitySoftwarePacka
 	return nil
 }
 
-func hostScanPackagesVulnToTable(scan api.VulnerabilitySoftwarePackagesResponse) string {
+func hostScanPackagesVulnToTable(scan *api.VulnerabilitySoftwarePackagesResponse) string {
 	var (
 		mainBldr = &strings.Builder{}
 		rows     [][]string
