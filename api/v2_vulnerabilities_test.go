@@ -92,6 +92,20 @@ func TestV2VulnerabilitiesFilterSingleVulnID(t *testing.T) {
 	assert.Equal(t, len(response.Data), 1)
 	assert.Equal(t, response.Data[0].VulnID, vulnID)
 }
+
+func TestV2VulnerabilitiesFilterSingleVulnIDMultipleResults(t *testing.T) {
+	var (
+		response api.VulnerabilitiesContainersResponse
+		vulnID   = "CVE-2017-12670"
+	)
+
+	json.Unmarshal([]byte(mockVulnerabilitiesContainersSameCveResponse()), &response)
+	response.FilterSingleVulnIDData(vulnID)
+
+	assert.Equal(t, len(response.Data), 2)
+	assert.Equal(t, response.Data[0].VulnID, vulnID)
+	assert.Equal(t, response.Data[1].VulnID, vulnID)
+}
 func TestV2Vulnerabilities_Containers_Search(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	fakeServer.UseApiV2()
@@ -715,3 +729,155 @@ var vulnerabilityHostGcpMachineTags = `{
                 "lw_InternetExposure": "Unknown",
                 "os": "linux"
       }`
+
+func mockVulnerabilitiesContainersSameCveResponse() string {
+	return `
+{
+  "data": [
+	    {
+      "evalCtx": {
+        "cve_batch_info": [
+          {
+            "cve_batch_id": "12341234FA904FC1986CD8E5387ED053",
+            "cve_created_time": "2022-02-10 00:06:46.292000000"
+          }
+        ],
+        "exception_props": [
+          {
+            "exception_guid": "VULN_1234F2CBE09F0E705565BEA1A0C1D2A5D1534857F2C7CDF8381",
+            "exception_name": "registry index.docker.io severity Low",
+            "exception_reason": "Accepted Risk"
+          }
+        ],
+        "image_info": {
+          "created_time": 1605140985874,
+          "digest": "sha256:1234d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a",
+          "error_msg": [],
+          "id": "sha256:123472164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+          "registry": "index.docker.io",
+          "repo": "techallylw/test-cli-dirty",
+          "scan_created_time": "2020-11-12T00:29:45.874+00:00",
+          "size": 360608563,
+          "status": "Success",
+          "tags": [
+            "latest"
+          ],
+          "type": "Docker"
+        },
+        "integration_props": {
+          "INTG_GUID": "TECHALLY_12341E30911A91A63494EC993FD4791F506D6561C55D98F",
+          "NAME": "TF tech-ally docker",
+          "REGISTRY_TYPE": "DOCKERHUB"
+        },
+        "is_reeval": false,
+        "request_source": "PLATFORM_SCANNER",
+        "scan_batch_id": "1234a960-992e-44b6-9d0b-42c91ec66fbc-1644487510402549454",
+        "scan_request_props": {
+          "data_format_version": "1.0",
+          "props": {
+            "data_format_version": "1.0",
+            "scanner_version": "0.2.8"
+          },
+          "reqId": "1234367f-707b-44a5-abf9-a20cbf8d8369",
+          "scanCompletionUtcTime": 1644487510,
+          "scan_start_time": 1644487502,
+          "scanner_version": "0.2.8"
+        },
+        "vuln_batch_id": "1234D974FA904FC1986CD8E5387ED053",
+        "vuln_created_time": "2022-02-10 00:06:46.292000000"
+      },
+      "featureKey": {
+        "name": "imagemagick",
+        "namespace": "debian:9",
+        "version": "8:6.9.7.4+dfsg-11+deb9u10"
+      },
+      "fixInfo": {
+        "compare_result": 1,
+        "fix_available": 0,
+        "fixed_version": ""
+      },
+      "imageId": "sha256:123472164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+      "severity": "Low",
+      "startTime": "2022-02-10T10:05:11.418Z",
+      "status": "EXCEPTION",
+      "vulnId": "CVE-2017-12670"
+    },
+    {
+      "evalCtx": {
+        "cve_batch_info": [
+          {
+            "cve_batch_id": "1234D974FA904FC1986CD8E5387ED053",
+            "cve_created_time": "2022-02-10 00:06:46.292000000"
+          }
+        ],
+        "exception_props": [
+          {
+            "exception_guid": "VULN_1234F2CBE09F0E705565BEA1A0C1D2A5D1534857F2C7CDF8381",
+            "exception_name": "registry index.docker.io severity Low",
+            "exception_reason": "Accepted Risk"
+          }
+        ],
+        "image_info": {
+          "created_time": 1605140985874,
+          "digest": "sha256:1234d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a",
+          "error_msg": [],
+          "id": "sha256:123472164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+          "registry": "index.docker.io",
+          "repo": "techallylw/test-cli-dirty",
+          "scan_created_time": "2020-11-12T00:29:45.874+00:00",
+          "size": 360608563,
+          "status": "Success",
+          "tags": [
+            "latest"
+          ],
+          "type": "Docker"
+        },
+        "integration_props": {
+          "INTG_GUID": "TECHALLY_12341E30911A91A63494EC993FD4791F506D6561C55D98F",
+          "NAME": "TF tech-ally docker",
+          "REGISTRY_TYPE": "DOCKERHUB"
+        },
+        "is_reeval": false,
+        "request_source": "PLATFORM_SCANNER",
+        "scan_batch_id": "1234a960-992e-44b6-9d0b-42c91ec66fbc-1644487510402549454",
+        "scan_request_props": {
+          "data_format_version": "1.0",
+          "props": {
+            "data_format_version": "1.0",
+            "scanner_version": "0.2.8"
+          },
+          "reqId": "1234367f-707b-44a5-abf9-a20cbf8d8369",
+          "scanCompletionUtcTime": 1644487510,
+          "scan_start_time": 1644487502,
+          "scanner_version": "0.2.8"
+        },
+        "vuln_batch_id": "1234D974FA904FC1986CD8E5387ED053",
+        "vuln_created_time": "2022-02-10 00:06:46.292000000"
+      },
+      "featureKey": {
+        "name": "imagemagick",
+        "namespace": "debian:9",
+        "version": "8:6.9.7.4+dfsg-11+deb9u10"
+      },
+      "fixInfo": {
+        "compare_result": 1,
+        "fix_available": 0,
+        "fixed_version": ""
+      },
+      "imageId": "sha256:123472164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+      "severity": "Info",
+      "startTime": "2022-02-10T10:05:11.418Z",
+      "status": "VULNERABLE",
+      "vulnId": "CVE-2017-12670"
+    }
+  ],
+  "paging": {
+    "rows": 2,
+    "totalRows": 2,
+    "urls": {
+      "nextPage": null
+    }
+  }
+}
+	`
+}

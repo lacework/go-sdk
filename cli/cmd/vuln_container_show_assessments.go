@@ -198,18 +198,23 @@ func showContainerAssessmentsWithSha256(sha string) error {
 	return outputContainerVulnerabilityAssessment(assessment)
 }
 
-func outputContainerVulnerabilityAssessmentCve(assessment api.VulnerabilitiesContainersResponse) {
+func outputContainerVulnerabilityAssessmentCve(assessment api.VulnerabilitiesContainersResponse) error {
 	filterContainerAssessmentByVulnerable(&assessment)
 	if len(assessment.Data) == 0 {
 		cli.OutputHuman("unable to find results for cve '%s'\n", vulCmdState.Cve)
-		return
+		return nil
+	}
+	assessment.FilterSingleVulnIDData(vulCmdState.Cve)
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(assessment.Data)
 	}
 
-	assessment.FilterSingleVulnIDData(vulCmdState.Cve)
 	var details vulnerabilityDetailsReport
 	details.VulnerabilityDetails = filterVulnerabilityContainer(assessment.Data)
 
 	cli.OutputHuman(buildVulnerabilitySingleCveReportTable(details))
+	return nil
 }
 
 func filterContainerAssessmentByVulnerable(assessment *api.VulnerabilitiesContainersResponse) {
