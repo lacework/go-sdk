@@ -18,6 +18,12 @@
 
 package api
 
+import (
+	"encoding/base64"
+	"fmt"
+	"strings"
+)
+
 // GetGcpSidekick gets a single GcpSidekick integration matching the provided integration guid
 func (svc *CloudAccountsService) GetGcpSidekick(guid string) (
 	response GcpSidekickIntegrationResponse,
@@ -70,9 +76,10 @@ type GcpSidekickData struct {
 	FilterList        string `json:"filterList,omitempty"`
 	QueryText         string `json:"queryText,omitempty"`
 	//ScanFrequency in hours, 24 == 24 hours
-	ScanFrequency           int  `json:"scanFrequency"`
-	ScanContainers          bool `json:"scanContainers"`
-	ScanHostVulnerabilities bool `json:"scanHostVulnerabilities"`
+	ScanFrequency           int    `json:"scanFrequency"`
+	ScanContainers          bool   `json:"scanContainers"`
+	ScanHostVulnerabilities bool   `json:"scanHostVulnerabilities"`
+	AccountMappingFile      string `json:"accountMappingFile,omitempty"`
 }
 
 type GcpSidekickCredentials struct {
@@ -81,4 +88,25 @@ type GcpSidekickCredentials struct {
 	PrivateKeyID string `json:"privateKeyId"`
 	PrivateKey   string `json:"privateKey,omitempty"`
 	TokenUri     string `json:"tokenUri,omitempty"`
+}
+
+func (gcp *GcpSidekickData) EncodeAccountMappingFile(mapping []byte) {
+	encodedMappings := base64.StdEncoding.EncodeToString(mapping)
+	gcp.AccountMappingFile = fmt.Sprintf("data:application/json;name=i.json;base64,%s", encodedMappings)
+}
+
+func (gcp *GcpSidekickData) DecodeAccountMappingFile() ([]byte, error) {
+	if len(gcp.AccountMappingFile) == 0 {
+		return []byte{}, nil
+	}
+
+	var (
+		b64      = strings.Split(gcp.AccountMappingFile, ",")
+		raw, err = base64.StdEncoding.DecodeString(b64[1])
+	)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return raw, nil
 }
