@@ -36,7 +36,12 @@ are found, this commands tries to use the SHA as the image id.
 
 To request an on-demand vulnerability scan:
 
-    lacework vulnerability container scan <registry> <repository> <tag|digest>`,
+    lacework vulnerability container scan <registry> <repository> <tag|digest>
+
+To see details for a single cve result in an assessment:
+
+    lacework vulnerability show-assessment <sha256:hash> [cve_id]
+`,
 		Args: cobra.RangeArgs(1, 2),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if vulCmdState.Csv {
@@ -48,7 +53,7 @@ To request an on-demand vulnerability scan:
 				}
 			}
 
-			if len(args) > 1 && args[1] != "" {
+			if len(args) > 1 {
 				vulCmdState.Cve = args[1]
 			}
 
@@ -185,26 +190,40 @@ func showContainerAssessmentsWithSha256(sha string) error {
 		cli.Log.Infow("assessment loaded from cache", "data_points", len(assessment.Data))
 	}
 
+	if vulCmdState.Cve != "" {
+		outputContainerVulnerabilityAssessmentCve(assessment)
+		return nil
+	}
+
 	return outputContainerVulnerabilityAssessment(assessment)
 }
 
-func outputContainerVulnerabilityAssessment(assessment api.VulnerabilitiesContainersResponse) error {
-	if vulCmdState.Cve != "" {
-		assessment.FilterSingleVulnIDData(vulCmdState.Cve)
-		if len(assessment.Data) == 0 {
-			cli.OutputHuman("unable to find results for cve '%s'\n", vulCmdState.Cve)
-			return nil
-		}
+func outputContainerVulnerabilityAssessmentCve(assessment api.VulnerabilitiesContainersResponse) {
+	filterContainerAssessmentByVulnerable(&assessment)
+	if len(assessment.Data) == 0 {
+		cli.OutputHuman("unable to find results for cve '%s'\n", vulCmdState.Cve)
+		return
 	}
 
-	var vulnerabilites []api.VulnerabilityContainer
+	assessment.FilterSingleVulnIDData(vulCmdState.Cve)
+	var details vulnerabilityDetailsReport
+	details.VulnerabilityDetails = filterVulnerabilityContainer(assessment.Data)
+
+	cli.OutputHuman(buildVulnerabilitySingleCveReportTable(details))
+}
+
+func filterContainerAssessmentByVulnerable(assessment *api.VulnerabilitiesContainersResponse) {
+	var vulnerabilities []api.VulnerabilityContainer
 	for _, a := range assessment.Data {
 		if a.Status == "VULNERABLE" {
-			vulnerabilites = append(vulnerabilites, a)
+			vulnerabilities = append(vulnerabilities, a)
 		}
 	}
+	assessment.Data = vulnerabilities
+}
 
-	assessment.Data = vulnerabilites
+func outputContainerVulnerabilityAssessment(assessment api.VulnerabilitiesContainersResponse) error {
+	filterContainerAssessmentByVulnerable(&assessment)
 
 	cli.Log.Debugw("filtered image assessment", "details", assessment)
 	if err := buildVulnContainerAssessmentReports(assessment); err != nil {
@@ -286,12 +305,6 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 			return nil
 		}
 
-		// write single cve-id output
-		if vulCmdState.Cve != "" {
-			cli.OutputHuman(buildVulnerabilitySingleCveReportTable(details))
-			return nil
-		}
-
 		summaryReport := buildVulnerabilitySummaryReportTable(response)
 		detailsReport := buildVulnerabilityDetailsReportTable(details)
 		cli.OutputHuman(buildVulnContainerAssessmentReportTable(summaryReport, detailsReport))
@@ -307,21 +320,21 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 
 func buildVulnerabilitySingleCveReportTable(details vulnerabilityDetailsReport) string {
 	var singleCveTable = strings.Builder{}
-	CveData := details.VulnerabilityDetails.Vulnerabilities[0]
-	cveSummaryTable := renderOneLineCustomTable("CVE DETAILS",
-		renderCustomTable([]string{},
+	var singleCveTableContent = strings.Builder{}
+
+	for _, cveData := range details.VulnerabilityDetails.Vulnerabilities {
+		detailsTable := renderCustomTable([]string{},
 			[][]string{
-				{"CVE ID", CveData.Name},
-				{"SEVERITY", CveData.Severity},
-				{"PACKAGE", CveData.PackageName},
-				{"NAMESPACE", CveData.Namespace},
-				{"FEED", CveData.Feed},
-				{"SRC", CveData.Src},
-				{"START TIME", CveData.StartTime},
-				{"VERSION FORMAT", CveData.VersionFormat},
-				{"CURRENT VERSION", CveData.CurrentVersion},
-				{"FIX VERSION", CveData.FixVersion},
-				{"STATUS", CveData.Status},
+				{"PACKAGE", cveData.PackageName},
+				{"CURRENT VERSION", cveData.CurrentVersion},
+				{"NAMESPACE", cveData.Namespace},
+				{"SEVERITY", cveData.Severity},
+				{"FEED", cveData.Feed},
+				{"SRC", cveData.Src},
+				{"START TIME", cveData.StartTime},
+				{"VERSION FORMAT", cveData.VersionFormat},
+				{"FIX VERSION", cveData.FixVersion},
+				{"STATUS", cveData.Status},
 			},
 			tableFunc(func(t *tablewriter.Table) {
 				t.SetBorder(false)
@@ -330,26 +343,33 @@ func buildVulnerabilitySingleCveReportTable(details vulnerabilityDetailsReport) 
 				t.SetColWidth(150)
 				t.SetAlignment(tablewriter.ALIGN_LEFT)
 			}),
-		), tableFunc(func(t *tablewriter.Table) {
+		)
+
+		layerTable := renderCustomTable([]string{"INTRODUCED IN LAYERS"},
+			introducedInLayerToTable(cveData),
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetRowLine(true)
+				t.SetBorder(false)
+				t.SetAutoWrapText(true)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+				t.SetColumnSeparator(" ")
+			}),
+		)
+
+		singleCveTableContent.WriteString(fmt.Sprintf("%s\n", detailsTable))
+		singleCveTableContent.WriteString(layerTable)
+	}
+
+	cveSummaryTable := renderOneLineCustomTable(fmt.Sprintf("%s",
+		details.VulnerabilityDetails.Vulnerabilities[0].Name),
+		singleCveTableContent.String(),
+		tableFunc(func(t *tablewriter.Table) {
 			t.SetBorder(false)
 			t.SetAutoWrapText(false)
 		}),
 	)
 
-	layerTable := renderCustomTable([]string{"INTRODUCED IN LAYERS"},
-		introducedInLayerToTable(CveData),
-		tableFunc(func(t *tablewriter.Table) {
-			t.SetRowLine(true)
-			t.SetBorder(false)
-			t.SetAutoWrapText(true)
-			t.SetAlignment(tablewriter.ALIGN_LEFT)
-			t.SetColumnSeparator(" ")
-
-		}),
-	)
-
 	singleCveTable.WriteString(cveSummaryTable)
-	singleCveTable.WriteString(layerTable)
 	return singleCveTable.String()
 }
 
