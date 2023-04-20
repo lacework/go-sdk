@@ -40,7 +40,7 @@ select a token and pass it to the '--token' flag. This flag must be selected if 
 
 To explicitly specify the server URL that the agent will connect to:
 
-    lacework agent aws-install ec2ssm --server_url https://your.server.url.lacework.net
+    lacework agent aws-install ec2ssm --server_url https://api.fra.lacework.net
 
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID

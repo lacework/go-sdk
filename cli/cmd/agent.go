@@ -163,7 +163,7 @@ pass it directly via the argument.
 
 To explicitly specify the server URL that the agent will connect to:
 
-    lacework agent install --server_url https://your.server.url.lacework.net
+    lacework agent install --server_url https://api.fra.lacework.net
 
 To list all active agents in your environment. 
 
