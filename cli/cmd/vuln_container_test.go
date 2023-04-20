@@ -109,16 +109,15 @@ func TestBuildCSVVulnCtrReportWithVulnerabilities(t *testing.T) {
 		assert.Nil(t, buildVulnContainerAssessmentReports(response))
 	})
 
-	expected := `
-CVE ID,Severity,CVSSv2,CVSSv3,Package,Current Version,Fix Version,Introduced in Layer
-CVE-2020-12345,Critical,0.0,0.0,example-2,1.2.0,,apk add --no-cache ca-certificates
-CVE-2020-12345,High,0.0,0.0,example-4,1.0.0,1.31.1-r11,apk add --no-cache ca-certificates
-CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,example introduced in layer
+	expected := `CVE ID,Severity,CVSSv2,CVSSv3,Package,Current Version,Fix Version,Version Format,Feed,Src,Start Time,Status,Namespace,Image Digest,Image ID,Image Repo,Image Registry,Image Size,Introduced in Layer
+CVE-2020-12345,Critical,0.0,0.0,example-2,1.2.0,,apk,n/a,,2022-11-21T19:21:57Z,alpine:v3.11,sha256:7652596622b05043763f962cff30edf01f6ea1ba29374f1703dda759dc9ff3a1,sha256:12b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123,techally-test-2/exservice,gcr.io,14933503,apk add --no-cache ca-certificates
+CVE-2020-12345,High,0.0,0.0,example-4,1.0.0,1.31.1-r11,apk,lacework,,2022-11-21T19:21:57Z,alpine:v3.11,sha256:1252596622b05043763f962gff30adf01f6ea1ba29374f1703dda759dc9ab3a1,sha256:15b072fd2ce1732e4c2f0f601c2c12ea2ea657c9572d9ba477b1174d9159e123,techally-test-4/exservice,gcr.io,14933503,apk add --no-cache ca-certificates
+CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,dpkg,lacework,var/lib/dpkg/status,2022-11-21T18:33:28Z,debian:9,sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a,techally-test/test-cli,index.docker.io,360608563,example introduced in layer
 `
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
 }
 
-func TestBuildVulnCtrReportWithAggregatedIntroducedInLayerCSV(t *testing.T) {
+func TestBuildVulnCtrReportWithIntroducedInLayerCSV(t *testing.T) {
 	cli.EnableCSVOutput()
 	vulCmdState.Details = true
 	defer func() {
@@ -134,9 +133,9 @@ func TestBuildVulnCtrReportWithAggregatedIntroducedInLayerCSV(t *testing.T) {
 		assert.Nil(t, buildVulnContainerAssessmentReports(response))
 	})
 
-	expected := `
-CVE ID,Severity,CVSSv2,CVSSv3,Package,Current Version,Fix Version,Introduced in Layer
-CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,"example introduced in layer 1, example introduced in layer 2"
+	expected := `CVE ID,Severity,CVSSv2,CVSSv3,Package,Current Version,Fix Version,Version Format,Feed,Src,Start Time,Status,Namespace,Image Digest,Image ID,Image Repo,Image Registry,Image Size,Introduced in Layer
+CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,dpkg,lacework,var/lib/dpkg/status,2022-11-21T18:33:28Z,debian:9,sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a,techally-test/test-cli,index.docker.io,360608563,example introduced in layer 1
+CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,dpkg,lacework,var/lib/dpkg/status,2022-11-21T18:33:28Z,debian:9,sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a,techally-test/test-cli,index.docker.io,360608563,example introduced in layer 2
 `
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
 }
@@ -156,6 +155,37 @@ func TestBuildVulnCtrReportWithAggregatedIntroducedInLayer(t *testing.T) {
 	})
 
 	assert.Contains(t, cliOutput, "introduced in 2 layers...")
+}
+
+func TestBuildVulnCtrReportAndJsonCount(t *testing.T) {
+	cli.EnableCSVOutput()
+	vulCmdState.Details = true
+	defer func() {
+		vulCmdState.Details = false
+		cli.jsonOutput = false
+		cli.csvOutput = false
+	}()
+
+	var response api.VulnerabilitiesContainersResponse
+	if err := json.Unmarshal([]byte(mockIntroducedInLayerResponse), &response); err != nil {
+		panic(err)
+	}
+
+	cliCSVOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, buildVulnContainerAssessmentReports(response))
+	})
+
+	cli.csvOutput = false
+	cli.EnableJSONOutput()
+
+	cliJsonOutput := capturer.CaptureOutput(func() {
+		assert.Nil(t, buildVulnContainerAssessmentReports(response))
+	})
+
+	jsonCount := len(strings.Split(cliJsonOutput, "CVE-"))
+	csvCount := len(strings.Split(cliCSVOutput, "CVE-"))
+
+	assert.Equal(t, csvCount, jsonCount)
 }
 
 func TestVulnCtrIntroducedInRegex(t *testing.T) {
