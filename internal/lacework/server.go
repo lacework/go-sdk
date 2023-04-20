@@ -57,6 +57,15 @@ func MockServer() *Mock {
 	}
 }
 
+func MockUnstartedServer() *Mock {
+	mux := http.NewServeMux()
+	return &Mock{
+		Mux:        mux,
+		Server:     httptest.NewUnstartedServer(mux),
+		ApiVersion: "v2",
+	}
+}
+
 func (m *Mock) UseApiV2() {
 	m.ApiVersion = "v2"
 }
