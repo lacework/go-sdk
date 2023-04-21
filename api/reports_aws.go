@@ -148,7 +148,7 @@ func (svc *awsReportsService) DownloadPDF(filepath string, config AwsReportConfi
 
 func (aws AwsReport) GetComplianceRecommendation(recommendationID string) (*RecommendationV2, bool) {
 	for _, r := range aws.Recommendations {
-		if r.RecID == recommendationID {
+		if r.RecID == recommendationID || r.PolicyID() == recommendationID {
 			return &r, true
 		}
 	}
