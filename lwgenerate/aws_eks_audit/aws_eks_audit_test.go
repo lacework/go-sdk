@@ -394,6 +394,19 @@ func TestGenerationEksEnableKmsKeyRotationFalse(t *testing.T) {
 	assert.Contains(t, strippedHcl, "kms_key_rotation=false")
 }
 
+func TestGenerationEksUseExistingBucketKey(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
+		EnableUseExistingBucket(),
+		WithExistingBucketArn("arn:aws:s3:::test-bucket"),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	strippedHcl := strings.ReplaceAll(hcl, " ", "")
+	assert.Contains(t, strippedHcl, "use_existing_bucket=true")
+	assert.Contains(t, strippedHcl, "bucket_arn=\"arn:aws:s3:::test-bucket\"")
+}
 var requiredProviders = `terraform {
   required_providers {
     lacework = {

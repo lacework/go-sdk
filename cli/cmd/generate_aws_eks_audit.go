@@ -28,6 +28,8 @@ var (
 	QuestionEksAuditConfigureAdvanced = "Configure advanced integration options?"
 
 	// S3 Bucket Questions
+	QuestionUseExistingBucket            = "Use existing bucket?"
+	QuestionExistingBucketArn            = "Specify an existing bucket ARN used for EKS audit log:"
 	EksAuditConfigureBucket              = "Configure bucket settings"
 	QuestionEksAuditBucketVersioning     = "Enable access versioning on the new bucket?"
 	QuestionEksAuditMfaDeleteS3Bucket    = "Should MFA object deletion be required for the new bucket?"
@@ -117,6 +119,7 @@ See help output for more details on the parameter values required for Terraform 
 				aws_eks_audit.WithAwsProfile(GenerateAwsEksAuditCommandState.AwsProfile),
 				aws_eks_audit.WithLaceworkAccountID(GenerateAwsEksAuditCommandState.LaceworkAccountID),
 				aws_eks_audit.WithBucketLifecycleExpirationDays(GenerateAwsEksAuditCommandState.BucketLifecycleExpirationDays),
+				aws_eks_audit.WithExistingBucketArn(GenerateAwsEksAuditCommandState.ExistinglBucketArn),
 				aws_eks_audit.WithBucketSseAlgorithm(GenerateAwsEksAuditCommandState.BucketSseAlgorithm),
 				aws_eks_audit.WithBucketSseKeyArn(GenerateAwsEksAuditCommandState.BucketSseKeyArn),
 				aws_eks_audit.WithEksAuditIntegrationName(GenerateAwsEksAuditCommandState.EksAuditIntegrationName),
@@ -136,6 +139,10 @@ See help output for more details on the parameter values required for Terraform 
 				aws_eks_audit.EnableSnsTopicEncryption(GenerateAwsEksAuditCommandState.SnsTopicEncryptionEnabled),
 				aws_eks_audit.EnableBucketVersioning(GenerateAwsEksAuditCommandState.BucketVersioning),
 				aws_eks_audit.EnableKmsKeyRotation(GenerateAwsEksAuditCommandState.KmsKeyRotation),
+			}
+
+			if GenerateAwsEksAuditCommandState.UseExistinglBucket{
+				mods = append(mods, aws_eks_audit.EnableUseExistingBucket())
 			}
 
 			if GenerateAwsEksAuditCommandState.BucketEnableMfaDelete {
@@ -366,6 +373,16 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		"bucket_sse_key_arn",
 		"",
 		"specify the kms key arn to be used for s3. (required when bucket_sse_algorithm is aws:kms & using an existing kms key)")
+	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsEksAuditCommandState.ExistinglBucketArn,
+		"existing_bucket_arn",
+		"",
+		"specify existing s3 bucket arn for the audit log")
+	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsEksAuditCommandState.UseExistinglBucket,
+		"use_existing_bucket",
+		false,
+		"use existing supplied s3 bucket (default false)")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.BucketVersioning,
 		"enable_bucket_versioning",
@@ -473,6 +490,26 @@ func validateResponseTypeInt(val interface{}) error {
 
 func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs) error {
 	// Only ask these questions if configure bucket is true
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Confirm{Message: QuestionUseExistingBucket, Default: config.UseExistinglBucket},
+			Response: &config.UseExistinglBucket,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionExistingBucketArn, Default: config.ExistinglBucketArn},
+			Checks:   []*bool{&config.UseExistinglBucket},
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
+			Response: &config.ExistinglBucketArn,
+		},
+	}); err != nil {
+		return err
+	}
+
+	// Only ask the next questions if the user did not indicate they wanted to use and existing bucket
+	if config.UseExistinglBucket {
+		return nil
+	}
+
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Prompt:   &survey.Confirm{Message: QuestionEksAuditBucketVersioning, Default: config.BucketVersioning},

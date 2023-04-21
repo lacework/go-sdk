@@ -132,6 +132,12 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 
 	// The Lacework AWS Root Account ID
 	LaceworkAccountID string
+
+	// Should we use an existing customer supplied bucket? Defaults to false
+	UseExistinglBucket bool
+	
+	// Existing S3 Bucket ARN (Required when using existing bucket)
+	ExistinglBucketArn string
 }
 
 // Ensure all combinations of inputs our valid for supported spec
@@ -360,6 +366,20 @@ func WithLaceworkProfile(name string) AwsEksAuditTerraformModifier {
 	}
 }
 
+// WithExistingBucketArn Set the Lacework Profile to utilize when integrating
+func WithExistingBucketArn(name string) AwsEksAuditTerraformModifier {
+	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
+		c.ExistinglBucketArn = name
+	}
+}
+
+// EnableUseExistingBucket Set the S3 ForceDestroy parameter to true for newly created buckets
+func EnableUseExistingBucket() AwsEksAuditTerraformModifier {
+	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
+		c.UseExistinglBucket = true
+	}
+}
+
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateAwsEksAuditTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
@@ -489,6 +509,11 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 
 	if args.LaceworkAccountID != "" {
 		moduleAttrs["lacework_aws_account_id"] = args.LaceworkAccountID
+	}
+
+	if args.UseExistinglBucket {
+		moduleAttrs["use_existing_bucket"] = true	
+		moduleAttrs["bucket_arn"] = args.ExistinglBucketArn		
 	}
 
 	if args.BucketEnableMfaDelete && args.BucketVersioning {
