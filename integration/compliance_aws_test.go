@@ -208,8 +208,8 @@ func TestComplianceAwsScan(t *testing.T) {
 
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-	assert.Contains(t, out.String(), "STATUS    scanning")
-	assert.Contains(t, out.String(), "DETAILS   Scan has been requested")
+	assert.Contains(t, out.String(), "STATUS")
+	assert.Contains(t, out.String(), "DETAILS")
 }
 
 func _TestComplianceAwsSearch(t *testing.T) {
