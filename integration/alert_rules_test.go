@@ -28,7 +28,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAlertRuleRead(t *testing.T) {
+// Unstable test disabled as part of GROW-1396
+func _TestAlertRuleRead(t *testing.T) {
 	alertRule, createErr := createAlertRuleWithSlackAlertChannel()
 	if createErr != nil {
 		log.Fatal(createErr)

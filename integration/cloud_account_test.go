@@ -1,4 +1,4 @@
-//go:build cloudAccount
+//go:build cloud_account
 
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.

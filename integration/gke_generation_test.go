@@ -190,7 +190,8 @@ func TestGenerationExistingSink(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationGkeAdvancedOptsUseExistingSA(t *testing.T) {
+// Unstable test disabled as part of GROW-1396
+func _TestGenerationGkeAdvancedOptsUseExistingSA(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string

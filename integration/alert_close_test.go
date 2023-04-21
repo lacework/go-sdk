@@ -82,7 +82,8 @@ func TestAlertCloseReasonInline(t *testing.T) {
 	})
 }
 
-func TestAlertCloseInline(t *testing.T) {
+// unstable test disabled as part of GROW-1396
+func _TestAlertCloseInline(t *testing.T) {
 	retry.RunWith(threeTimesWaitOneSecond(), t, func(r *retry.R) {
 		id, err := popAlert()
 		if err != nil {

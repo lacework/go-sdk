@@ -52,6 +52,10 @@ integration: build-cli-cross-platform integration-only ## Build and run integrat
 .PHONY: integration-generation
 integration-generation: build-cli-cross-platform integration-generation-only ## Build and run integration tests
 
+.PHONY: integration-context-tests
+integration-context-tests: install-tools ## Run integration tests with build tags from changed files
+	scripts/integration_test_ctx.sh
+
 .PHONY: integration-generation-only
 integration-generation-only: ## Run integration tests
 	PATH="$(PWD)/bin:${PATH}" go test -v github.com/lacework/go-sdk/integration -timeout 30m -run "^TestGeneration" -tags="generation"
@@ -70,9 +74,7 @@ integration-only: install-tools ## Run integration tests
 		container_registry \
 		query \
 		policy \
-		event \
 		help \
-		integration \
 		version \
 		generation \
 		compliance \

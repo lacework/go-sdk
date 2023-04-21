@@ -1,3 +1,5 @@
+//go:build report_definitions && !windows
+
 package integration
 
 import (
