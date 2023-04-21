@@ -180,15 +180,9 @@ func complianceReportSummaryTable(summaries []api.ReportSummary) [][]string {
 func complianceReportRecommendationsTable(recommendations []api.RecommendationV2) [][]string {
 	out := [][]string{}
 	for _, recommend := range recommendations {
-		policyID := ""
-		linkString := strings.Split(recommend.InfoLink, "policies/")
-		if len(linkString) > 1 {
-			policyID = linkString[1]
-		}
-
 		out = append(out, []string{
 			recommend.RecID,
-			policyID,
+			recommend.PolicyID(),
 			recommend.Title,
 			recommend.Status,
 			recommend.SeverityString(),
@@ -453,6 +447,7 @@ func outputResourcesByRecommendationID(report api.CloudComplianceReportV2) error
 			renderCustomTable([]string{},
 				[][]string{
 					{"ID", compCmdState.RecommendationID},
+					{"POLICY", recommendation.PolicyID()},
 					{"SEVERITY", recommendation.SeverityString()},
 					{"SERVICE", recommendation.Service},
 					{"CATEGORY", recommendation.Category},
