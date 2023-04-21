@@ -442,7 +442,7 @@ func initGenerateGcpTfCommandFlags() {
 		"use_pub_sub",
 		false,
 		"use pub/sub for the audit log data rather than bucket")
-	generateGcpTfCommand.PersistentFlags().StringArrayVar(
+	generateGcpTfCommand.PersistentFlags().StringSliceVar(
 		&GenerateGcpCommandState.Projects,
 		"projects",
 		[]string{},
