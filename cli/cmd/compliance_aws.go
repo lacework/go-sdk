@@ -219,7 +219,7 @@ To retrieve a specific report by its report name:
 				return outputResourcesByRecommendationID(report)
 			}
 
-			recommendations := complianceReportRecommendationsTable(report.Recommendations)
+			recommendations :=  complianceReportRecommendationsTable(report.Recommendations)
 			cli.OutputHuman("\n")
 			cli.OutputHuman(
 				buildComplianceReportTable(
