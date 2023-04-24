@@ -184,8 +184,8 @@ github.com/aws/smithy-go/time
 github.com/aws/smithy-go/transport/http
 github.com/aws/smithy-go/transport/http/internal/io
 github.com/aws/smithy-go/waiter
-# github.com/briandowns/spinner v1.17.0
-## explicit; go 1.14
+# github.com/briandowns/spinner v1.23.0
+## explicit; go 1.17
 github.com/briandowns/spinner
 # github.com/cenkalti/backoff/v4 v4.2.0
 ## explicit; go 1.18
