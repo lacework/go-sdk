@@ -817,7 +817,7 @@ func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
 				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 4},
+				MsgMenu{cmd.GcpAdvancedOptAuditLog, 5},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -849,7 +849,7 @@ func TestGenerationAdvancedOptsDoneGcpConfiguration(t *testing.T) {
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
 				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptExistingServiceAccount, 3},
+				MsgMenu{cmd.GcpAdvancedOptDone, 4},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -1323,7 +1323,7 @@ func TestGenerationGcpLaceworkProfile(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationGcpMultipleProject(t *testing.T) {
+func TestGenerationGcpMultipleProjects(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -1354,6 +1354,43 @@ func TestGenerationGcpMultipleProject(t *testing.T) {
 		"project3",
 		"--projects",
 		"project1",
+	)
+
+	assertTerraformSaved(t, final)
+
+	buildTf, _ := gcp.NewTerraform(true, true, false,
+		gcp.WithProjectId(projectId),
+		gcp.WithMultipleProject(gcpProjects),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationGcpMultipleProjectsInteractive(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	gcpProjects := []string{"project1", "project2", "project3"}
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgMenu{cmd.GcpAdvancedOptProjects, 4},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, "project1, project2  ,project3"},
+				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"gcp",
 	)
 
 	assertTerraformSaved(t, final)

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/imdario/mergo"
@@ -46,7 +47,9 @@ var (
 
 	QuestionGcpAnotherAdvancedOpt      = "Configure another advanced integration option"
 	GcpAdvancedOptLocation             = "Customize output location"
+	GcpAdvancedOptProjects             = "Configure multiple projects"
 	QuestionGcpCustomizeOutputLocation = "Provide the location for the output to be written:"
+	QuestionGcpCustomizeProjects       = "Provide comma separated list of project ID"
 	QuestionGcpCustomFilter            = "Specify a custom Audit Log filter which supersedes all other filter options"
 	GcpAdvancedOptDone                 = "Done"
 
@@ -622,6 +625,42 @@ func promptCustomizeGcpOutputLocation(extraState *GcpGenerateCommandExtraState) 
 	return err
 }
 
+func promptCustomizeGcpProjects(config *gcp.GenerateGcpTfConfigurationArgs) error {
+
+	validation := func(val interface{}) error {
+		switch value := val.(type) {
+		case string:
+			for _, id := range strings.Split(value, ",") {
+				err := validateGcpProjectId(strings.TrimSpace(id))
+				if err != nil {
+					return err
+				}
+			}
+		default:
+			return errors.New("value must be a string")
+		}
+
+		return nil
+	}
+
+	var projects string
+
+	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt:   &survey.Input{Message: QuestionGcpCustomizeProjects},
+		Response: &projects,
+		Opts:     []survey.AskOpt{survey.WithValidator(validation)},
+		Required: true,
+	})
+
+	if err == nil {
+		for _, id := range strings.Split(projects, ",") {
+			config.Projects = append(config.Projects, strings.TrimSpace(id))
+		}
+	}
+
+	return err
+}
+
 func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
 	answer := ""
 
@@ -637,7 +676,7 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 			options = append(options, GcpAdvancedOptAuditLog)
 		}
 
-		options = append(options, GcpAdvancedOptExistingServiceAccount, GcpAdvancedOptIntegrationName, GcpAdvancedOptLocation, GcpAdvancedOptDone)
+		options = append(options, GcpAdvancedOptExistingServiceAccount, GcpAdvancedOptIntegrationName, GcpAdvancedOptLocation, GcpAdvancedOptProjects, GcpAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
 				Message: "Which options would you like to configure?",
@@ -664,6 +703,10 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 			}
 		case GcpAdvancedOptLocation:
 			if err := promptCustomizeGcpOutputLocation(extraState); err != nil {
+				return err
+			}
+		case GcpAdvancedOptProjects:
+			if err := promptCustomizeGcpProjects(config); err != nil {
 				return err
 			}
 		}

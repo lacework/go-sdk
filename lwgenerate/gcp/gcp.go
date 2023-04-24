@@ -1,6 +1,7 @@
 package gcp
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -633,11 +634,18 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 		if args.ExistingServiceAccount == nil && args.Configuration {
 			attributes["use_existing_service_account"] = true
+
+			cfgModuleName := configurationModuleName
+
+			if len(args.Projects) > 0 {
+				cfgModuleName = fmt.Sprintf("%s[each.key]", cfgModuleName)
+			}
+
 			attributes["service_account_name"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", configurationModuleName, "service_account_name"},
+				[]string{"module", cfgModuleName, "service_account_name"},
 			)
 			attributes["service_account_private_key"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", configurationModuleName, "service_account_private_key"},
+				[]string{"module", cfgModuleName, "service_account_private_key"},
 			)
 		}
 
