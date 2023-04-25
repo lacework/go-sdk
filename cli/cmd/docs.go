@@ -1,4 +1,4 @@
-//go:generate go run ../docs/main.go
+//go:generate go run ../../scripts/docs/doc_gen.go
 //
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
