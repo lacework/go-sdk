@@ -407,6 +407,7 @@ func TestGenerationEksUseExistingBucketKey(t *testing.T) {
 	assert.Contains(t, strippedHcl, "use_existing_bucket=true")
 	assert.Contains(t, strippedHcl, "bucket_arn=\"arn:aws:s3:::test-bucket\"")
 }
+
 var requiredProviders = `terraform {
   required_providers {
     lacework = {

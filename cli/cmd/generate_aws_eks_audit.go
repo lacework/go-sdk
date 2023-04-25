@@ -141,7 +141,7 @@ See help output for more details on the parameter values required for Terraform 
 				aws_eks_audit.EnableKmsKeyRotation(GenerateAwsEksAuditCommandState.KmsKeyRotation),
 			}
 
-			if GenerateAwsEksAuditCommandState.UseExistinglBucket{
+			if GenerateAwsEksAuditCommandState.UseExistinglBucket {
 				mods = append(mods, aws_eks_audit.EnableUseExistingBucket())
 			}
 

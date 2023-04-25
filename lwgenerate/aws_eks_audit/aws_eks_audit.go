@@ -135,7 +135,7 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 
 	// Should we use an existing customer supplied bucket? Defaults to false
 	UseExistinglBucket bool
-	
+
 	// Existing S3 Bucket ARN (Required when using existing bucket)
 	ExistinglBucketArn string
 }
@@ -512,8 +512,8 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 	}
 
 	if args.UseExistinglBucket {
-		moduleAttrs["use_existing_bucket"] = true	
-		moduleAttrs["bucket_arn"] = args.ExistinglBucketArn		
+		moduleAttrs["use_existing_bucket"] = true
+		moduleAttrs["bucket_arn"] = args.ExistinglBucketArn
 	}
 
 	if args.BucketEnableMfaDelete && args.BucketVersioning {

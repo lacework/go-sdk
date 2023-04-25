@@ -481,7 +481,7 @@ func TestGenerateEksPrefix(t *testing.T) {
 		prefix,
 	)
 
-	assertGkeTerraformSaved(t, final)
+	assertEksAuditTerraformSaved(t, final)
 
 	regionClusterMap := make(map[string][]string)
 	regionClusterMap["us-west-1"] = []string{"cluster1", "cluster2"}
@@ -644,5 +644,43 @@ func TestGenerationEksNonInteractive(t *testing.T) {
 	regionClusterMap["us-west-1"] = []string{"cluster1", "cluster2"}
 
 	buildTf, _ := aws_eks_audit.NewTerraform(aws_eks_audit.WithParsedRegionClusterMap(regionClusterMap)).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationSuppliedBucketArn(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	tfResult := runEksAuditGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEksAuditMultiRegion, "n"},
+				MsgRsp{cmd.QuestionEksAuditRegion, "us-west-1"},
+				MsgRsp{cmd.QuestionEksAuditRegionClusters, "cluster1,cluster2"},
+				MsgRsp{cmd.QuestionEksAuditConfigureAdvanced, "y"},
+				MsgMenu{cmd.EksAuditConfigureBucket, 0},
+				MsgRsp{cmd.QuestionUseExistingBucket, "y"},
+				MsgRsp{cmd.QuestionExistingBucketArn, "arn:aws:s3:::bucket-name"},
+				MsgRsp{cmd.QuestionEksAuditAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"k8s",
+		"eks",
+	)
+
+	assertEksAuditTerraformSaved(t, final)
+
+	regionClusterMap := make(map[string][]string)
+	regionClusterMap["us-west-1"] = []string{"cluster1", "cluster2"}
+	buildTf, _ := aws_eks_audit.NewTerraform(
+		aws_eks_audit.WithParsedRegionClusterMap(regionClusterMap),
+		aws_eks_audit.EnableUseExistingBucket(),
+		aws_eks_audit.WithExistingBucketArn("arn:aws:s3:::bucket-name"),
+	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
