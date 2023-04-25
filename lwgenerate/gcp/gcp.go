@@ -1,6 +1,7 @@
 package gcp
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -126,6 +127,8 @@ type GenerateGcpTfConfigurationArgs struct {
 	Prefix string
 
 	WaitTime string
+
+	Projects []string
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -376,6 +379,12 @@ func WithWaitTime(waitTime string) GcpTerraformModifier {
 	}
 }
 
+func WithMultipleProject(projects []string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.Projects = projects
+	}
+}
+
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
@@ -515,6 +524,14 @@ func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Bloc
 			attributes["wait_time"] = args.WaitTime
 		}
 
+		if len(args.Projects) > 0 {
+			value := make(map[string]string, len(args.Projects))
+			for _, p := range args.Projects {
+				value[p] = p
+			}
+			moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithForEach("project_id", value))
+		}
+
 		moduleDetails = append(moduleDetails,
 			lwgenerate.HclModuleWithAttributes(attributes),
 		)
@@ -617,11 +634,18 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 		if args.ExistingServiceAccount == nil && args.Configuration {
 			attributes["use_existing_service_account"] = true
+
+			cfgModuleName := configurationModuleName
+
+			if len(args.Projects) > 0 {
+				cfgModuleName = fmt.Sprintf("%s[each.key]", cfgModuleName)
+			}
+
 			attributes["service_account_name"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", configurationModuleName, "service_account_name"},
+				[]string{"module", cfgModuleName, "service_account_name"},
 			)
 			attributes["service_account_private_key"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", configurationModuleName, "service_account_private_key"},
+				[]string{"module", cfgModuleName, "service_account_private_key"},
 			)
 		}
 
@@ -655,6 +679,14 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 		if args.WaitTime != "" {
 			attributes["wait_time"] = args.WaitTime
+		}
+
+		if len(args.Projects) > 0 {
+			value := make(map[string]string)
+			for _, p := range args.Projects {
+				value[p] = p
+			}
+			moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithForEach("project_id", value))
 		}
 
 		moduleDetails = append(moduleDetails,

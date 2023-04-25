@@ -457,6 +457,26 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 }
 `),
 		},
+		{
+			"TestGenerationMultipleProject",
+			gcp.NewTerraform(false, true, false,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithMultipleProject([]string{"project1", "project2", "project3"}),
+			),
+			ReqProvider(projectName, `module "gcp_project_audit_log" {
+  source  = "lacework/audit-log/gcp"
+  version = "~> 3.0"
+
+  for_each = {
+    project1 = "project1"
+    project2 = "project2"
+    project3 = "project3"
+  }
+  project_id = each.key
+}
+`),
+		},
 	}
 
 	for _, tc := range tests {
@@ -655,6 +675,26 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
   source    = "lacework/config/gcp"
   version   = "~> 2.3"
   wait_time = "30s"
+}
+`),
+		},
+		{
+			"TestGenerationMultipleProject",
+			gcp.NewTerraform(true, false, false,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithMultipleProject([]string{"project1", "project2", "project3"}),
+			),
+			ReqProvider(projectName, `module "gcp_project_level_config" {
+  source  = "lacework/config/gcp"
+  version = "~> 2.3"
+
+  for_each = {
+    project1 = "project1"
+    project2 = "project2"
+    project3 = "project3"
+  }
+  project_id = each.key
 }
 `),
 		},
