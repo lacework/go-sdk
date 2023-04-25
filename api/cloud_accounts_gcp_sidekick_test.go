@@ -71,11 +71,29 @@ var (
 )
 
 func TestCloudAccountsGcpSidekickCreate(t *testing.T) {
+	accountMappingJSON := []byte(`{
+		"defaultLaceworkAccountAws": "lw_account_1",
+		"integration_mappings": {
+		  "lw_account_2": {
+			"aws_accounts": [
+			  "234556677",
+			  "774564564"
+			]
+		  },
+		  "lw_account_3": {
+			"aws_accounts": [
+			  "553453453",
+			  "934534535"
+			]
+		  }
+		}
+	  }`)
 	integration := api.NewCloudAccount("integration_name", api.GcpSidekickCloudAccount, gcpSidekickData)
 	assert.Equal(t, api.GcpSidekickCloudAccount.String(), integration.Type)
 
 	// casting the data interface{} to type GcpSidekickData
 	integrationData := integration.Data.(api.GcpSidekickData)
+	integrationData.EncodeAccountMappingFile(accountMappingJSON)
 
 	assert.Equal(t, integrationData.IDType, "PROJECT")
 	assert.Equal(t, integrationData.ID, "12345")
@@ -90,6 +108,21 @@ func TestCloudAccountsGcpSidekickCreate(t *testing.T) {
 	assert.Equal(t, integrationData.Credentials.PrivateKeyID, "privateKeyID")
 	assert.Equal(t, integrationData.Credentials.PrivateKey, "privateKey")
 	assert.Equal(t, integrationData.Credentials.TokenUri, "tokenTest")
+	assert.Contains(t,
+		integrationData.AccountMappingFile,
+		"data:application/json;name=i.json;base64,",
+		"check the custom_template_file encoder",
+	)
+	accountMapping, err := integrationData.DecodeAccountMappingFile()
+	assert.Nil(t, err)
+	assert.Equal(t, accountMappingJSON, accountMapping)
+
+	// When there is no custom account mapping file, this function should
+	// return an empty string to match the pattern
+	integrationData.AccountMappingFile = ""
+	accountMapping, err = integrationData.DecodeAccountMappingFile()
+	assert.Nil(t, err)
+	assert.Empty(t, accountMapping)
 }
 
 func TestCloudAccountsGcpSidekickGet(t *testing.T) {
