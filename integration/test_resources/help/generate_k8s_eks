@@ -33,6 +33,7 @@ Flags:
       --enable_kms_key_rotation                   enable automatic kms key rotation (default true)
       --enable_mfa_delete_s3                      enable mfa delete on s3 bucket. Requires bucket versioning.
       --enable_sns_topic_encryption               enable encryption on the sns topic (default true)
+      --existing_bucket_arn string                specify existing s3 bucket arn for the audit log
       --existing_ca_iam_role_arn string           specify existing cross account iam role arn to use
       --existing_ca_iam_role_external_id string   specify existing cross account iam role external_id to use
       --existing_cw_iam_role_arn string           specify existing cloudwatch iam role arn to use
@@ -46,6 +47,7 @@ Flags:
       --prefix string                             specify the prefix that will be used at the beginning of every generated resource
       --region_clusters stringToString            configure eks clusters per aws region. To configure multiple regions pass the flag multiple times. Example format:  --region_clusters <region>="cluster,list" (default [])
       --sns_topic_encryption_key_arn string       specify the kms key arn to be used with the sns topic
+      --use_existing_bucket                       use existing supplied s3 bucket (default false)
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
