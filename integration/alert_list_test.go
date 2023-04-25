@@ -33,7 +33,7 @@ func popAlert() (string, error) {
 	var alerts api.Alerts
 
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
-		"alert", "list", "--status", "Open", "--json", "--range", "last 7 days",
+		"alert", "list", "--status", "Open", "--json", "--range", "last 7 days", "--nocache"
 	)
 	if stderr.String() != "" {
 		return "-1", errors.New(stderr.String())
