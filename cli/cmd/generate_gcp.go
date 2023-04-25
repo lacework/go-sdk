@@ -652,13 +652,15 @@ func promptCustomizeGcpProjects(config *gcp.GenerateGcpTfConfigurationArgs) erro
 		Required: true,
 	})
 
-	if err == nil {
-		for _, id := range strings.Split(projects, ",") {
-			config.Projects = append(config.Projects, strings.TrimSpace(id))
-		}
+	if err != nil {
+		return err
 	}
 
-	return err
+	for _, id := range strings.Split(projects, ",") {
+		config.Projects = append(config.Projects, strings.TrimSpace(id))
+	}
+
+	return nil
 }
 
 func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {

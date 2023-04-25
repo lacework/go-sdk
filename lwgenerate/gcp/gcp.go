@@ -525,7 +525,7 @@ func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Bloc
 		}
 
 		if len(args.Projects) > 0 {
-			value := make(map[string]string)
+			value := make(map[string]string, len(args.Projects))
 			for _, p := range args.Projects {
 				value[p] = p
 			}

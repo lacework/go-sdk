@@ -98,6 +98,8 @@ type HclModule struct {
 	// Optional. Extra properties for this module.  Can supply string, bool, int, or map[string]interface{} as values
 	attributes map[string]interface{}
 
+	// Optional.  Provide a map of strings.  Creates an instance of the module block for each item in the map, with the
+	// map keys assigned to the key field.
 	forEach *ForEach
 
 	// Optional.  Provider details to override defaults.  These values must be supplied as strings, and raw values will be
@@ -414,6 +416,7 @@ func createMapTraversalTokens(input map[string]string) hclwrite.Tokens {
 	return tokens
 }
 
+// Create tokens for the for_each meta-argument
 func createForEachKey() hclwrite.Tokens {
 	return hclwrite.Tokens{
 		{Type: hclsyntax.TokenStringLit, Bytes: []byte(" each.key"), SpacesBefore: 1},
