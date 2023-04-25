@@ -51,5 +51,6 @@ These reports run on a regular schedule, typically once a day.
 * [lacework compliance](lacework_compliance.md)	 - Manage compliance reports
 * [lacework compliance aws get-report](lacework_compliance_aws_get-report.md)	 - Get the latest AWS compliance report
 * [lacework compliance aws list-accounts](lacework_compliance_aws_list-accounts.md)	 - List all AWS accounts configured
+* [lacework compliance aws scan](lacework_compliance_aws_scan.md)	 - Scan triggers a new resource inventory scan
 * [lacework compliance aws search](lacework_compliance_aws_search.md)	 - Search for all known violations of a given resource arn
 

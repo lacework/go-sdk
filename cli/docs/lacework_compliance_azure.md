@@ -56,4 +56,5 @@ These reports run on a regular schedule, typically once a day.
 * [lacework compliance azure get-report](lacework_compliance_azure_get-report.md)	 - Get the latest Azure compliance report
 * [lacework compliance azure list](lacework_compliance_azure_list.md)	 - List Azure tenants and subscriptions
 * [lacework compliance azure list-subscriptions](lacework_compliance_azure_list-subscriptions.md)	 - List subscriptions `<tenant-id>`
+* [lacework compliance azure scan](lacework_compliance_azure_scan.md)	 - Scan triggers a new resource inventory scan
 

@@ -61,7 +61,9 @@ lacework generate cloud-account gcp [flags]
       --output string                                 location to write generated content (default is ~/lacework/gcp)
       --prefix string                                 prefix that will be used at the beginning of every generated resource
       --project_id string                             specify the project id to be used to provision lacework resources (required)
+      --projects strings                              list of project IDs to integrate with (project-level integrations)
       --service_account_credentials string            specify service account credentials JSON file path (leave blank to make use of google credential ENV vars)
+      --use_pub_sub                                   use pub/sub for the audit log data rather than bucket
       --wait_time string                              amount of time to wait before the next resource is provisioned
 ```
 

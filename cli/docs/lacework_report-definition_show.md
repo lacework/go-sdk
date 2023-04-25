@@ -11,6 +11,15 @@ Show a report definition by ID
 ### Synopsis
 
 Show a single report definition by it's ID.
+To show specific report definition version:
+
+    lacework report-definition show <report_definition_id> --version <version>
+
+To show all versions of a report definition:
+
+    lacework report-definition show <report_definition_id> --version all
+
+
 
 ```
 lacework report-definition show <report_definition_id> [flags]
@@ -19,7 +28,8 @@ lacework report-definition show <report_definition_id> [flags]
 ### Options
 
 ```
-  -h, --help   help for show
+  -h, --help             help for show
+      --version string   show a version of a report definition
 ```
 
 ### Options inherited from parent commands
