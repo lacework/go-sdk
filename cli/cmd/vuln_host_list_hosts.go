@@ -48,7 +48,7 @@ To list the CVEs found in the hosts of your environment run:
 
     lacework vulnerability host list-cves`,
 		RunE: func(_ *cobra.Command, args []string) error {
-			now := time.Now()
+			now := time.Now().UTC()
 			start := now.AddDate(0, 0, -1)
 			filter := api.SearchFilter{
 				TimeFilter: &api.TimeFilter{
