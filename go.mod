@@ -58,6 +58,7 @@ require (
 	github.com/aws/smithy-go v1.13.5
 	github.com/go-git/go-git/v5 v5.5.2
 	github.com/google/uuid v1.3.0
+	github.com/hashicorp/consul/sdk v0.13.1
 	github.com/mattn/go-isatty v0.0.18
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/pmezard/go-difflib v1.0.0
