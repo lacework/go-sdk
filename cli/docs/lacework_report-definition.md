@@ -39,7 +39,11 @@ Manage report definitions to configure the data retrieval and layout information
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework report-definition create](lacework_report-definition_create.md)	 - Create a report definition
 * [lacework report-definition delete](lacework_report-definition_delete.md)	 - Delete a report definition
+* [lacework report-definition diff](lacework_report-definition_diff.md)	 - Compare two versions of a report definition
 * [lacework report-definition list](lacework_report-definition_list.md)	 - List all report definitions
+* [lacework report-definition revert](lacework_report-definition_revert.md)	 - Update a report definition
 * [lacework report-definition show](lacework_report-definition_show.md)	 - Show a report definition by ID
+* [lacework report-definition update](lacework_report-definition_update.md)	 - Update a report definition
 

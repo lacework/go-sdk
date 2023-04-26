@@ -33,6 +33,10 @@ pass it directly via the argument.
 
     lacework agent install <user@host:port>
 
+To explicitly specify the server URL that the agent will connect to:
+
+    lacework agent install --server_url https://your.server.url.lacework.net
+
 To list all active agents in your environment. 
 
     lacework agent list
@@ -49,6 +53,7 @@ lacework agent install <[user@]host[:port]> [flags]
       --force                  override any pre-installed agent
   -h, --help                   help for install
   -i, --identity_file string   identity (private key) for public key authentication (default "~/.ssh/id_rsa")
+      --server_url https://    server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
       --ssh_password string    password for authentication
       --ssh_port int           port to connect to on the remote host (default 22)
       --ssh_username string    username to login with
