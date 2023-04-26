@@ -35,7 +35,7 @@ func threeTimesWaitOneSecond() *retry.Counter {
 
 func alreadyClosedRetry(r *retry.R, s string) {
 	if strings.Contains(s, "The action on this alert is not allowed") {
-		r.Fatal("f: ", "popAlert returned a closed alert")
+		r.Error("popAlert returned a closed alert")
 	}
 }
 
