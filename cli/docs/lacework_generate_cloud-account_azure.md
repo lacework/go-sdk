@@ -38,6 +38,7 @@ lacework generate cloud-account azure [flags]
       --ad_pass string                         existing active directory application password
       --ad_pid string                          existing active directory application service principle id
       --all_subscriptions subscription ids     grant read access to ALL subscriptions within Tenant (overrides subscription ids)
+      --apply                                  run terraform apply for the generated hcl
       --configuration                          enable configuration integration
       --configuration_name string              specify a custom configuration integration name
       --existing_storage                       use existing storage account
@@ -50,7 +51,6 @@ lacework generate cloud-account azure [flags]
       --storage_resource_group string          specify storage resource group
       --subscription_id string                 specify the Azure Subscription ID to be used to provision Lacework resources
       --subscription_ids strings               list of subscriptions to grant read access; format is id1,id2,id3
-      --terraform-apply                        run terraform apply for the generated hcl
 ```
 
 ### Options inherited from parent commands
