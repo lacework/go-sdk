@@ -257,7 +257,7 @@ func listVulnCtrAssessments(
 		// if not, then we need to fetch information from 1) all
 		// container registries and 2) local scanners in two separate
 		// searches since platform scanners might have way too much
-		// data which may cause loosing the local scanners data
+		// data which may cause losing the local scanners data
 		//
 		// find all container registries
 		// cli.StartProgress("Fetching container registries...")
@@ -309,15 +309,17 @@ func listVulnCtrAssessments(
 		treeOfContainerVuln.ParseData(response.Data)
 	}
 
-	cli.Log.Infow("evaluation guids", "count", len(treeOfContainerVuln.ListEvalGuid()))
-	if len(treeOfContainerVuln.ListEvalGuid()) != 0 {
+	evalGuids := treeOfContainerVuln.ListEvalGuid()
+
+	cli.Log.Infow("evaluation guids", "count", len(evalGuids))
+	if len(evalGuids) != 0 {
 		// Update the filter with the list of evaluation GUIDs and remove the "returns"
 		filter.Returns = nil
 		filter.Filters = []api.Filter{
 			{
 				Expression: "in",
 				Field:      "evalGuid",
-				Values:     treeOfContainerVuln.ListEvalGuid(),
+				Values:     evalGuids,
 			},
 		}
 
@@ -373,14 +375,26 @@ func (v *treeCtrVuln) ParseData(data []api.VulnerabilityContainer) {
 			if latestContainer.EvalGUID == ctr.EvalGUID {
 				continue
 			}
-
 			if ctr.StartTime.After(latestContainer.StartTime) {
-				latestContainer.StartTime = ctr.StartTime
-				latestContainer.EvalGUID = ctr.EvalGUID
+				v.Replace(*latestContainer, ctrVuln{
+					EvalGUID:  ctr.EvalGUID,
+					ImageID:   ctr.ImageID,
+					StartTime: ctr.StartTime,
+				})
 			}
 		} else {
 			// @afiune this is NOT thread safe!! But it is also not used in parallel executions
 			*v = append(*v, ctrVuln{ctr.EvalGUID, ctr.ImageID, ctr.StartTime})
+		}
+	}
+}
+
+// Replace updates an existing ctrVuln in the treeCtrVuln slice with a new ctrVuln
+func (v treeCtrVuln) Replace(old ctrVuln, new ctrVuln) {
+	for i, ctrVuln := range v {
+		if ctrVuln.EvalGUID == old.EvalGUID {
+			v[i] = new
+			break
 		}
 	}
 }

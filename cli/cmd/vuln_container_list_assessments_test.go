@@ -21,7 +21,9 @@ package cmd
 import (
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/lacework/go-sdk/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -72,5 +74,55 @@ func TestGenerateContainerVulnListCacheKey(t *testing.T) {
 
 			assert.Equal(t, kase.expectedCacheKey, generateContainerVulnListCacheKey())
 		})
+	}
+}
+
+func TestTreeCtrVulnParseData(t *testing.T) {
+	oldTime := time.Now().Add(-time.Hour * 24)
+	newTime := time.Now().Add(-time.Hour * 1)
+	mockData := mockVulnCtrData(oldTime, newTime)
+
+	v := treeCtrVuln{}
+	v.ParseData(mockData)
+
+	assert.Equal(t, len(v.ListEvalGuid()), 3)
+	// ensure Parse Data returns latest
+	res, exists := v.Get("1")
+	assert.True(t, exists)
+	assert.Equal(t, res.StartTime, newTime)
+}
+
+func mockVulnCtrData(old time.Time, latest time.Time) []api.VulnerabilityContainer {
+	return []api.VulnerabilityContainer{
+		{
+			EvalGUID:  "1",
+			ImageID:   "1",
+			StartTime: old,
+		},
+		{
+			EvalGUID:  "2",
+			ImageID:   "1",
+			StartTime: latest,
+		},
+		{
+			EvalGUID:  "3",
+			ImageID:   "2",
+			StartTime: latest,
+		},
+		{
+			EvalGUID:  "4",
+			ImageID:   "2",
+			StartTime: old,
+		},
+		{
+			EvalGUID:  "5",
+			ImageID:   "2",
+			StartTime: old,
+		},
+		{
+			EvalGUID:  "6",
+			ImageID:   "3",
+			StartTime: latest,
+		},
 	}
 }
