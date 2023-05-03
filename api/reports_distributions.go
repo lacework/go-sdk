@@ -129,32 +129,30 @@ type ReportDistributionResponse struct {
 }
 
 type ReportDistribution struct {
-	ReportDistributionGuid string   `json:"guid,omitempty" yaml:"guid,omitempty"`
-	ReportDefinitionGuid   string   `json:"reportDefinitionGuid"`
-	ResourceGroups         []string `json:"resourceGroups"`
+	ReportDistributionGuid string                 `json:"reportDistributionGuid,omitempty" yaml:"reportDistributionGuid,omitempty"`
+	ReportDefinitionGuid   string                 `json:"reportDefinitionGuid"`
+	DistributionName       string                 `json:"distributionName"`
+	Data                   ReportDistributionData `json:"data"`
+
+	AlertChannels []string `json:"alertChannels"`
+	Frequency     string   `json:"frequency"`
+}
+
+type ReportDistributionData struct {
+	Severities     []string `json:"severities"`
+	Violations     []string `json:"violations"`
+	ResourceGroups []string `json:"resourceGroups"`
 	Integrations           []struct {
 		AccountId string `json:"accountId"`
 	} `json:"integrations"`
-	AlertChannels []string `json:"alertChannels"`
-	Frequency     string   `json:"frequency"`
-	Severities    []string `json:"severities"`
-	Violations    []string `json:"violations"`
 }
 
 type ReportDistributionConfig struct {
-	ResourceGroups       []string                    `json:"resourceGroups"`
-	Integrations         ReportDefinitionIntegration `json:"integrations"`
-	AlertChannels        []string                    `json:"alertChannels"`
-	Frequency            string                      `json:"frequency"`
-	Severities           []string                    `json:"severities"`
-	Violations           []string                    `json:"violations"`
-	ReportDefinitionGuid string                      `json:"reportDefinitionGuid"`
-}
-
-type ReportDefinitionIntegration struct {
-	AccountId      string `json:"accountId"`
-	OrganizationId string `json:"organizationId"`
-	ProjectId      string `json:"projectId"`
-	TenantId       string `json:"tenantId"`
-	SubscriptionId string `json:"subscriptionId"`
+	ResourceGroups         []string `json:"resourceGroups"`
+	AlertChannels          []string `json:"alertChannels"`
+	Frequency              string   `json:"frequency"`
+	Severities             []string `json:"severities"`
+	Violations             []string `json:"violations"`
+	ReportDistributionGuid string   `json:"reportDistributionGuid"`
+	DistributionName       string   `json:"distributionName"`
 }
