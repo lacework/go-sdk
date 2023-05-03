@@ -458,6 +458,14 @@ func initGenerateAzureTfCommandFlags() {
 		false,
 		"run terraform apply for the generated hcl")
 
+	generateAzureTfCommand.PersistentFlags().MarkHidden("terraform-apply")
+
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandExtraState.TerraformApply,
+		"apply",
+		false,
+		"run terraform apply for the generated hcl")
+
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandExtraState.Output,
 		"output",
