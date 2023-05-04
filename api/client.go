@@ -19,8 +19,10 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -91,6 +93,19 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		return nil, err
 	}
 
+	defaultTransport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: defaultTransportDialContext(&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}),
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   defaultTLSTimeout,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
 	c := &Client{
 		id:         newID(),
 		account:    account,
@@ -103,7 +118,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 			expiration: DefaultTokenExpiryTime,
 		},
 		c: &http.Client{Timeout: defaultTimeout,
-			Transport: &http.Transport{TLSHandshakeTimeout: defaultTLSTimeout}},
+			Transport: defaultTransport},
 	}
 
 	c.V2 = NewV2Endpoints(c)
@@ -240,4 +255,8 @@ func newID() string {
 	now := time.Now().UTC().UnixNano()
 	seed := rand.New(rand.NewSource(now))
 	return strconv.FormatInt(seed.Int63(), 16)
+}
+
+func defaultTransportDialContext(dialer *net.Dialer) func(context.Context, string, string) (net.Conn, error) {
+	return dialer.DialContext
 }
