@@ -611,7 +611,12 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			// if organization integration is true, override configModuleName to use the organization level module
 			configurationModuleName = "gcp_organization_level_config"
 			auditLogModuleName = "gcp_organization_level_audit_log"
-			attributes["org_integration"] = args.OrganizationIntegration
+			// Determine if this is the a pub-sub audit log
+			if args.UsePubSubAudit {
+				attributes["integration_type"] = "ORGANIZATION"
+			} else {
+				attributes["org_integration"] = args.OrganizationIntegration
+			}
 			attributes["organization_id"] = args.GcpOrganizationId
 
 			if len(args.FoldersToInclude) > 0 {

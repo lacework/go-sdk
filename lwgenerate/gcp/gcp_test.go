@@ -932,7 +932,7 @@ var moduleImportOrganizationLevelAuditLogWithConfiguration = `module "gcp_organi
 var moduleImportOrganizationLevelPubSubAuditLogWithConfiguration = `module "gcp_organization_level_audit_log" {
   source                       = "lacework/pub-sub-audit-log/gcp"
   version                      = "~> 0.2"
-  org_integration              = true
+  integration_type             = "ORGANIZATION"
   organization_id              = "123456789"
   service_account_name         = module.gcp_organization_level_config.service_account_name
   service_account_private_key  = module.gcp_organization_level_config.service_account_private_key
@@ -949,10 +949,10 @@ var moduleImportOrganizationLevelAuditLogWithoutConfiguration = `module "gcp_org
 `
 
 var moduleImportOrganizationLevelPubSubAuditLogWithoutConfiguration = `module "gcp_organization_level_audit_log" {
-  source          = "lacework/pub-sub-audit-log/gcp"
-  version         = "~> 0.2"
-  org_integration = true
-  organization_id = "123456789"
+  source           = "lacework/pub-sub-audit-log/gcp"
+  version          = "~> 0.2"
+  integration_type = "ORGANIZATION"
+  organization_id  = "123456789"
 }
 `
 var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_organization_level_audit_log" {
@@ -966,8 +966,8 @@ var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_or
 var moduleImportOrganizationLevelPubSubAuditLogCustomIntegrationName = `module "gcp_organization_level_audit_log" {
   source                    = "lacework/pub-sub-audit-log/gcp"
   version                   = "~> 0.2"
+  integration_type          = "ORGANIZATION"
   lacework_integration_name = "custom_integration_name"
-  org_integration           = true
   organization_id           = "123456789"
 }
 `

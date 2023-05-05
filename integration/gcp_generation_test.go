@@ -182,6 +182,45 @@ func TestGenerationPubSubAuditlogOnlyGcp(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+func TestGenerationPubSubAuditlogOrgGcp(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
+				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
+				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"gcp",
+	)
+
+	assertTerraformSaved(t, final)
+
+	buildTf, _ := gcp.NewTerraform(false, true, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId(organizationId),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
 func TestGenerationAuditlogEnableUBLA(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
