@@ -314,6 +314,17 @@ func TestGenerationPartialExistingIamValues(t *testing.T) {
 	})
 }
 
+func TestGenerationCloudTrailS3BucketNotification(t *testing.T) {
+	hcl, err := NewTerraform("us-east-2", false, true, WithS3BucketNotification(true)).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(
+		t,
+		reqProviderAndRegion(moduleImportCtWithS3BucketNotification),
+		hcl,
+	)
+}
+
 var requiredProviders = `terraform {
   required_providers {
     lacework = {
@@ -435,5 +446,12 @@ var moduleImportCtWithLaceworkAccountID = `module "main_cloudtrail" {
   iam_role_name           = module.aws_config.iam_role_name
   lacework_aws_account_id = "123456789"
   use_existing_iam_role   = true
+}
+`
+
+var moduleImportCtWithS3BucketNotification = `module "main_cloudtrail" {
+  source         			 = "lacework/cloudtrail/aws"
+  version                    = "~> 2.0"
+  use_s3_bucket_notification = true
 }
 `

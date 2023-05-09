@@ -823,6 +823,42 @@ func TestGenerationAwsLaceworkProfile(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+func TestGenerationAwsLaceworkProfile(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	region := "us-west-2"
+
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+		"--use-s3-bucket-notification",
+		awsProfile,
+	)
+
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := aws.NewTerraform(region, false, true,
+		aws.WithLaceworkProfile(awsProfile),
+		aws.WithS3BucketNotification(true),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
 	os.Setenv("HOME", tfPath)
 
