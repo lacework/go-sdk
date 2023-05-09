@@ -157,12 +157,9 @@ func runComponentsDevMode(_ *cobra.Command, args []string) error {
 			}
 
 		case "Python":
-			// TBA
-			cli.OutputHuman("\n (:sadpanda:) We are still working on a Python Scaffolding.")
-			cli.OutputHuman("\n\nIn the meantime use our Python SDK: %s\n",
-				color.HiMagentaString("https://github.com/lacework/python-sdk"))
-			cli.OutputHuman("And deploy your component at: %s\n",
-				color.HiYellowString(filepath.Join(rPath, component.Name)))
+			if err := cdkPythonScaffolding(component); err != nil {
+				return err
+			}
 
 		default:
 			cli.OutputHuman("\nDeploy your dev component at: %s\n",
@@ -275,6 +272,143 @@ func cdkGolangScaffolding(component *lwcomponent.Component) error {
 
 	cli.OutputHuman("\nDeployment completed! Time for %s\n", randomEmoji())
 	return nil
+}
+
+func cdkPythonScaffolding(component *lwcomponent.Component) error {
+	cli.OutputHuman("\nDeploying %s scaffolding:\n", color.HiMagentaString("Python"))
+	rootPath, err := component.RootPath()
+	if err != nil {
+		return errors.Wrap(err, "unable to access component's root path")
+	}
+
+	for _, file := range databox.ListFilesFromDir("/scaffoldings/python") {
+		content, found := databox.Get(file)
+		if found {
+			// Create directory, if needed
+			subDir := filepath.Dir(file)
+			subDir = strings.TrimPrefix(subDir, "/scaffoldings/python")
+			fileDir := filepath.Join(rootPath, subDir)
+			if subDir != "" {
+				if err := os.MkdirAll(fileDir, 0755); err != nil {
+					return errors.Wrap(err, "unable to create subdirectory from scaffolding")
+				}
+			}
+
+			var (
+				fileName = filepath.Base(file)
+				filePath = filepath.Join(fileDir, fileName)
+			)
+			if err := ioutil.WriteFile(filePath, content, os.ModePerm); err != nil {
+				cli.OutputChecklist(failureIcon, "Unable to write file %s\n", color.HiRedString(filePath))
+				cli.Log.Debugw("unable to write file", "error", err)
+			} else {
+				cli.OutputChecklist(successIcon, "File %s deployed\n", color.HiYellowString(filePath))
+			}
+		}
+	}
+
+	cli.StartProgress("Initializing Git repository...")
+	err = cdkInitGitRepo(rootPath)
+	cli.StopProgress()
+	if err != nil {
+		cli.OutputChecklist(failureIcon, "Unable to initialize Git repository\n")
+		cli.Log.Debugw("unable to initialize Git repository", "error", err)
+	} else {
+		cli.OutputChecklist(successIcon, "Git repository initialized\n")
+	}
+
+	// Poetry repository structure `project-name/src/project-name/__init__.py`
+	err = os.Rename(filepath.Join(rootPath, "src/package"), filepath.Join(rootPath, "src", component.Name))
+	if err != nil {
+		cli.OutputChecklist(failureIcon, "Unable to rename package directory\n")
+		cli.Log.Debugw("unable to rename package directory", "error", err)
+		return err
+	}
+
+	cli.StartProgress("Poetry init...")
+	err = cdkExec(rootPath,
+		"poetry",
+		"init",
+		"--no-interaction",
+		"--python=^3.11,<3.12",
+		"--dev-dependency=pyinstaller",
+		"--dev-dependency=poethepoet")
+	cli.StopProgress()
+	if err != nil {
+		cli.OutputChecklist(failureIcon, "Unable to initialize Poetry\n")
+		cli.Log.Debugw("unable to initialize Poetry", "error", err)
+		return err
+	} else {
+		cli.OutputChecklist(successIcon, "Poetry init\n")
+	}
+
+	f, err := os.OpenFile(filepath.Join(rootPath, "pyproject.toml"), os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString("[tool.poe.tasks]\n")
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString(fmt.Sprintf("build = \"poetry run pyinstaller src/%s/__main__.py --collect-submodules application -F --name %s --distpath .\"\n", component.Name, component.Name))
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString(fmt.Sprintf("clean = \"rm -r build/ %s %s.spec\"\n", component.Name, component.Name))
+	if err != nil {
+		return err
+	}
+	err = f.Close()
+	if err != nil {
+		return err
+	}
+
+	cli.StartProgress("Poetry install...")
+	err = cdkExec(rootPath, "poetry", "install")
+	cli.StopProgress()
+	if err != nil {
+		cli.OutputChecklist(failureIcon, "Unable to Poetry install\n")
+		cli.Log.Debugw("unable to Poetry install", "error", err)
+		return err
+	} else {
+		cli.OutputChecklist(successIcon, "Poetry install\n")
+	}
+
+	cli.StartProgress("Building your component...")
+	err = cdkExec(rootPath, "poetry", "run", "poe", "build")
+	cli.StopProgress()
+	if err != nil {
+		cli.OutputChecklist(failureIcon, "Unable to build your Python component\n")
+		cli.Log.Debugw("unable to build your Python component", "error", err)
+	} else {
+		cli.OutputChecklist(successIcon, "Dev component built at %s\n",
+			color.HiYellowString(filepath.Join(rootPath, component.Name)))
+	}
+
+	cli.OutputHuman("\nDeployment completed! Time for %s\n", randomEmoji())
+	return nil
+}
+
+func cdkExec(rootPath string, name string, args ...string) error {
+	var (
+		vw  = terminal.NewVerboseWriter(10)
+		cmd = exec.Command(name, args...)
+	)
+	if _, err := vw.Write([]byte(fmt.Sprintf("Command: %s %v\n", name, args))); err != nil {
+		cli.Log.Debugw("unable to write to virtual terminal", "error", err)
+	}
+	cmd.Env = os.Environ()
+	cmd.Dir = rootPath
+	cmd.Stdout = vw
+	cmd.Stderr = vw
+
+	defer func() {
+		if _, err := vw.Write([]byte("\n")); err != nil {
+			cli.Log.Debugw("unable to write to virtual terminal", "error", err)
+		}
+	}()
+
+	return cmd.Run()
 }
 
 func cdkInitGitRepo(rootPath string) error {
