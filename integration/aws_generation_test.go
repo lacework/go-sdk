@@ -221,6 +221,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 				MsgRsp{cmd.QuestionBucketName, ""},
 				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
 				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
+				MsgRsp{cmd.QuestionS3BucketNotification, ""},
 				// SNS Topic Questions
 				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
 				MsgRsp{cmd.QuestionSnsTopicName, ""},
@@ -329,6 +330,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 				MsgRsp{cmd.QuestionBucketName, ""},
 				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
 				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
+				MsgRsp{cmd.QuestionS3BucketNotification, ""},
 				// SNS Topic Questions
 				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
 				MsgRsp{cmd.QuestionSnsTopicName, ""},
@@ -594,6 +596,7 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 				MsgRsp{cmd.QuestionBucketName, bucketName},
 				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
 				MsgRsp{cmd.QuestionBucketSseKeyArn, kmsArn},
+				MsgRsp{cmd.QuestionS3BucketNotification, ""},
 				// SNS Topic Questions
 				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
 				MsgRsp{cmd.QuestionSnsTopicName, topicName},
@@ -823,7 +826,7 @@ func TestGenerationAwsLaceworkProfile(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationAwsLaceworkProfile(t *testing.T) {
+func TestGenerationAwsS3BucketNotification(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -845,15 +848,69 @@ func TestGenerationAwsLaceworkProfile(t *testing.T) {
 		"generate",
 		"cloud-account",
 		"aws",
-		"--use-s3-bucket-notification",
-		awsProfile,
+		"--use_s3_bucket_notification",
 	)
 
 	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
 	buildTf, _ := aws.NewTerraform(region, false, true,
-		aws.WithLaceworkProfile(awsProfile),
+		aws.WithS3BucketNotification(true),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAwsS3BucketNotificationInteractive(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	region := "us-west-2"
+
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 0},
+
+				MsgRsp{cmd.QuestionConsolidatedCloudtrail, ""},
+				MsgRsp{cmd.QuestionUseExistingCloudtrail, ""},
+				MsgRsp{cmd.QuestionCloudtrailName, ""},
+				// S3 Questions
+				MsgRsp{cmd.QuestionForceDestroyS3Bucket, ""},
+				MsgRsp{cmd.QuestionBucketName, ""},
+				MsgRsp{cmd.QuestionBucketEnableEncryption, ""},
+				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
+				MsgRsp{cmd.QuestionS3BucketNotification, "y"},
+				// SNS Topic Questions
+				MsgRsp{cmd.QuestionsUseExistingSNSTopic, ""},
+				MsgRsp{cmd.QuestionSnsTopicName, ""},
+				MsgRsp{cmd.QuestionSnsEnableEncryption, ""},
+				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
+				// SQS Questions
+				MsgRsp{cmd.QuestionSqsQueueName, ""},
+				MsgRsp{cmd.QuestionSqsEnableEncryption, ""},
+				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
+
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := aws.NewTerraform(region, false, true,
 		aws.WithS3BucketNotification(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)

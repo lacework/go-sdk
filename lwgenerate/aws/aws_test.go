@@ -450,7 +450,7 @@ var moduleImportCtWithLaceworkAccountID = `module "main_cloudtrail" {
 `
 
 var moduleImportCtWithS3BucketNotification = `module "main_cloudtrail" {
-  source         			 = "lacework/cloudtrail/aws"
+  source                     = "lacework/cloudtrail/aws"
   version                    = "~> 2.0"
   use_s3_bucket_notification = true
 }

@@ -42,6 +42,7 @@ var (
 	QuestionBucketEnableEncryption = "Enable S3 bucket encryption when creating bucket"
 	QuestionBucketSseKeyArn        = "Specify existing KMS encryption key arn for S3 bucket (optional)"
 	QuestionBucketName             = "Specify name when creating S3 bucket (optional)"
+	QuestionS3BucketNotification   = "Enable S3 bucket notifications"
 
 	// SNS Topic Questions
 	QuestionsUseExistingSNSTopic = "Use an existing SNS topic?"
@@ -125,6 +126,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithSqsQueueName(GenerateAwsCommandState.SqsQueueName),
 				aws.WithSqsEncryptionEnabled(GenerateAwsCommandState.SqsEncryptionEnabled),
 				aws.WithSqsEncryptionKeyArn(GenerateAwsCommandState.SqsEncryptionKeyArn),
+				aws.WithS3BucketNotification(GenerateAwsCommandState.S3BucketNotification),
 			}
 
 			if GenerateAwsCommandState.ForceDestroyS3Bucket {
@@ -448,6 +450,11 @@ func initGenerateAwsTfCommandFlags() {
 		"lacework_aws_account_id",
 		"",
 		"the Lacework AWS root account id")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.S3BucketNotification,
+		"use_s3_bucket_notification",
+		false,
+		"enable S3 bucket notifications")
 }
 
 // survey.Validator for aws ARNs
@@ -532,6 +539,12 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState
 			Response: &config.BucketSseKeyArn,
 			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
 			Checks:   []*bool{&config.Cloudtrail, &newBucket, &config.BucketEncryptionEnabled},
+		},
+		// Allow the user to enable S3 bucket notifications
+		{
+			Prompt:   &survey.Confirm{Message: QuestionS3BucketNotification, Default: config.S3BucketNotification},
+			Response: &config.S3BucketNotification,
+			Checks:   []*bool{&config.Cloudtrail, &newBucket},
 		},
 	}, config.Cloudtrail); err != nil {
 		return err

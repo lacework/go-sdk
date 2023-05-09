@@ -62,6 +62,7 @@ lacework generate cloud-account aws [flags]
       --sqs_encryption_enabled                enable encryption on SQS queue when creating (default true)
       --sqs_encryption_key_arn string         specify existing KMS encryption key arn for SQS queue
       --sqs_queue_name string                 specify SQS queue name if creating new one
+      --use_s3_bucket_notification            enable S3 bucket notifications
 ```
 
 ### Options inherited from parent commands
