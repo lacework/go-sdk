@@ -86,6 +86,10 @@ func init() {
 		vulHostShowAssessmentCmd.Flags(),
 	)
 
+	setTimeRangeFlags(
+		vulHostListHostsCmd.Flags(),
+	)
+
 	// the package manifest file
 	vulHostScanPkgManifestCmd.Flags().StringVarP(&pkgManifestFile,
 		"file", "f", "",
