@@ -150,6 +150,8 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// The Lacework AWS Root Account ID
 	LaceworkAccountID string
+
+	S3BucketNotification bool
 }
 
 // Ensure all combinations of inputs our valid for supported spec
@@ -337,6 +339,12 @@ func WithSqsEncryptionEnabled(sqsEncryptionEnabled bool) AwsTerraformModifier {
 func WithSqsEncryptionKeyArn(ssqEncryptionKeyArn string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.SqsEncryptionKeyArn = ssqEncryptionKeyArn
+	}
+}
+
+func WithS3BucketNotification(s3BucketNotifiaction bool) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.S3BucketNotification = s3BucketNotifiaction
 	}
 }
 
@@ -576,6 +584,10 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 			attributes["iam_role_name"] = args.ExistingIamRole.Name
 			attributes["iam_role_arn"] = args.ExistingIamRole.Arn
 			attributes["iam_role_external_id"] = args.ExistingIamRole.ExternalId
+		}
+
+		if args.S3BucketNotification {
+			attributes["use_s3_bucket_notification"] = true
 		}
 
 		if len(args.SubAccounts) > 0 {
