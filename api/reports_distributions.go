@@ -51,6 +51,13 @@ var reportDistributionTypes = map[reportDistributionFrequency]string{
 	ReportDistributionFrequencyMonthly:  "monthly",
 }
 
+func ReportDistributionFrequencies() (frequencies []string) {
+	for _, v := range reportDistributionTypes {
+		frequencies = append(frequencies, v)
+	}
+	return
+}
+
 // The report distribution violation type
 type reportDistributionViolation int
 
@@ -79,6 +86,30 @@ var reportDistributionSubTypes = map[reportDistributionViolation]string{
 	ReportDistributionViolationSuppressed:     "Suppressed",
 	ReportDistributionViolationCouldNotAssess: "CouldNotAssess",
 	ReportDistributionViolationManual:         "Manual",
+}
+
+// The report distribution scope type
+type reportDistributionScope int
+
+const (
+	ReportDistributionScopeResourceGroup reportDistributionScope = iota
+	ReportDistributionScopeCloudIntegration
+)
+
+func (scope reportDistributionScope) String() string {
+	return reportDistributionScopeTypes[scope]
+}
+
+func ReportDistributionScopes() (values []string) {
+	for _, v := range reportDistributionScopeTypes {
+		values = append(values, v)
+	}
+	return
+}
+
+var reportDistributionScopeTypes = map[reportDistributionScope]string{
+	ReportDistributionScopeResourceGroup:    "Resource Group",
+	ReportDistributionScopeCloudIntegration: "Cloud Account Integration",
 }
 
 // List returns a ReportDistributionResponse
@@ -111,7 +142,7 @@ func (svc *ReportDistributionsService) Create(report ReportDistribution) (respon
 	return
 }
 
-func (svc *ReportDistributionsService) Update(guid string, report ReportDistributionConfig) (response ReportDistributionResponse, err error) {
+func (svc *ReportDistributionsService) Update(guid string, report ReportDistributionUpdate) (response ReportDistributionResponse, err error) {
 	if guid == "" {
 		return response, errors.New("specify a report distribution guid")
 	}
@@ -129,30 +160,32 @@ type ReportDistributionResponse struct {
 }
 
 type ReportDistribution struct {
-	ReportDistributionGuid string                 `json:"reportDistributionGuid,omitempty" yaml:"reportDistributionGuid,omitempty"`
+	ReportDistributionGuid string                 `json:"reportDistributionGuid,omitempty"`
 	ReportDefinitionGuid   string                 `json:"reportDefinitionGuid"`
 	DistributionName       string                 `json:"distributionName"`
 	Data                   ReportDistributionData `json:"data"`
-
-	AlertChannels []string `json:"alertChannels"`
-	Frequency     string   `json:"frequency"`
+	AlertChannels          []string               `json:"alertChannels"`
+	Frequency              string                 `json:"frequency"`
 }
 
 type ReportDistributionData struct {
-	Severities     []string `json:"severities"`
-	Violations     []string `json:"violations"`
-	ResourceGroups []string `json:"resourceGroups"`
-	Integrations           []struct {
-		AccountId string `json:"accountId"`
-	} `json:"integrations"`
+	Severities     []string                        `json:"severities"`
+	Violations     []string                        `json:"violations"`
+	ResourceGroups []string                        `json:"resourceGroups"`
+	Integrations   []ReportDistributionIntegration `json:"integrations"`
 }
 
-type ReportDistributionConfig struct {
-	ResourceGroups         []string `json:"resourceGroups"`
-	AlertChannels          []string `json:"alertChannels"`
-	Frequency              string   `json:"frequency"`
-	Severities             []string `json:"severities"`
-	Violations             []string `json:"violations"`
-	ReportDistributionGuid string   `json:"reportDistributionGuid"`
-	DistributionName       string   `json:"distributionName"`
+type ReportDistributionIntegration struct {
+	TenantID       string `json:"tenantId,omitempty"`
+	SubscriptionID string `json:"subscriptionId,omitempty"`
+	AccountID      string `json:"accountId,omitempty"`
+	OrganizationID string `json:"organizationId,omitempty"`
+	ProjectID      string `json:"projectId,omitempty"`
+}
+
+type ReportDistributionUpdate struct {
+	DistributionName string                 `json:"distributionName,omitempty"`
+	Data             ReportDistributionData `json:"data,omitempty"`
+	AlertChannels    []string               `json:"alertChannels,omitempty"`
+	Frequency        string                 `json:"frequency,omitempty"`
 }

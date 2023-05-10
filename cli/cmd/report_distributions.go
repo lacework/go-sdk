@@ -19,8 +19,10 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/fatih/structs"
 	"github.com/lacework/go-sdk/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -28,10 +30,27 @@ import (
 )
 
 var (
+	CreateReportDistributionReportNameQuestion     = "Report Distribution Name: "
+	CreateReportDistributionFrequencyQuestion      = "Select Frequency: "
+	CreateReportDistributionDefinitionQuestion     = "Select Report Definition: "
+	CreateReportDistributionAlertChannelsQuestion  = "Select Alert Channels: "
+	CreateReportDistributionResourceGroupsQuestion = "Select Resource Groups: "
+	CreateReportDistributionIntegrationAwsQuestion = "Select Aws Accounts: "
+	CreateReportDistributionAddSeveritiesQuestion  = "Add Severities? "
+	CreateReportDistributionSeveritiesQuestion     = "Select Severities: "
+	CreateReportDistributionAddViolationsQuestion  = "Add Violations? "
+	CreateReportDistributionScopeQuestion          = "Select Distribution Scope:"
+	CreateReportDistributionViolationsQuestion     = "Select Violations: "
+	UpdateReportDistributionReportNameQuestion     = "Update Report Distribution Name? "
+	UpdateReportDistributionFrequencyQuestion      = "Update Frequency?"
+	UpdateReportDistributionAlertChannelsQuestion  = "Update Alert Channels? "
+	UpdateReportDistributionAddSeveritiesQuestion  = "Update Severities? "
+	UpdateReportDistributionAddViolationsQuestion  = "Update Violations? "
+
 	// report-distributions command is used to manage lacework report distributions
 	reportDistributionsCommand = &cobra.Command{
 		Use:     "report-distribution",
-		Aliases: []string{"report-distributions", "rd"},
+		Aliases: []string{"report-distributions"},
 		Short:   "Manage report distributions",
 		Long: `Manage report distributions to configure the data retrieval and layout information for a report.
 `,
@@ -138,8 +157,8 @@ func init() {
 	reportDistributionsCommand.AddCommand(reportDistributionsListCommand)
 	reportDistributionsCommand.AddCommand(reportDistributionsShowCommand)
 	reportDistributionsCommand.AddCommand(reportDistributionsDeleteCommand)
-	//reportDistributionsCommand.AddCommand(reportDistributionsCreateCommand)
-	//reportDistributionsCommand.AddCommand(reportDistributionsUpdateCommand)
+	reportDistributionsCommand.AddCommand(reportDistributionsCreateCommand)
+	reportDistributionsCommand.AddCommand(reportDistributionsUpdateCommand)
 }
 
 func buildReportDistributionDetailsTable(distribution api.ReportDistribution) string {
@@ -150,7 +169,15 @@ func buildReportDistributionDetailsTable(distribution api.ReportDistribution) st
 
 	if distribution.Data.Integrations != nil {
 		for _, integration := range distribution.Data.Integrations {
-			integrations = append(integrations, integration.AccountId)
+			var integrationKV strings.Builder
+			integrationMap := structs.Map(integration)
+			for k, v := range integrationMap {
+				if v == "" {
+					continue
+				}
+				integrationKV.WriteString(fmt.Sprintf("%s: %s ", k, v))
+			}
+			integrations = append(integrations, integrationKV.String())
 		}
 	}
 
