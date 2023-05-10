@@ -151,6 +151,15 @@ func (svc *ReportDistributionsService) Update(guid string, report ReportDistribu
 	return
 }
 
+func (distribution *ReportDistribution) UpdateConfig() ReportDistributionUpdate {
+	return ReportDistributionUpdate{
+		DistributionName: distribution.DistributionName,
+		Data:             distribution.Data,
+		AlertChannels:    distribution.AlertChannels,
+		Frequency:        distribution.Frequency,
+	}
+}
+
 type ReportDistributionsResponse struct {
 	Data []ReportDistribution `json:"data"`
 }

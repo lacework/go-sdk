@@ -65,9 +65,6 @@ type validSeverities []severity
 // A list of valid Lacework severities (critical, high, medium, low, info)
 var ValidSeverities = validSeverities{Critical, High, Medium, Low, Info}
 
-// A list of valid Lacework severities as strings
-var ValidSeveritiesStrings = []string{Critical.String(), High.String(), Medium.String(), Low.String(), Info.String()}
-
 // Return a string representation of valid severities
 // "critical, high, medium, low, info"
 func (v validSeverities) String() string {

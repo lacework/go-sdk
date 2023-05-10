@@ -19,6 +19,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/lwseverity"
@@ -85,9 +87,11 @@ func promptCreateReportDistributionFromNew() (reportDistribution api.ReportDistr
 	channelMap := make(map[string]string, len(alertChannels.Data))
 	var channelOptions []string
 
-	for _, definition := range alertChannels.Data {
-		channelMap[definition.Name] = definition.IntgGuid
-		channelOptions = append(channelOptions, definition.Name)
+	for _, channel := range alertChannels.Data {
+		if channel.Type == api.EmailUserAlertChannelType.String() {
+			channelMap[channel.Name] = channel.IntgGuid
+			channelOptions = append(channelOptions, channel.Name)
+		}
 	}
 
 	questions := []*survey.Question{
@@ -145,14 +149,15 @@ func promptCreateReportDistributionFromNew() (reportDistribution api.ReportDistr
 	}
 
 	// prompt optional fields
-	var violations []string
-	if err = promptAddReportDistributionViolations(violations); err != nil {
+	violations, err := promptAddReportDistributionViolations()
+	if err != nil {
 		return api.ReportDistribution{}, err
 	}
 	reportDistribution.Data.Violations = violations
 
-	var severities []string
-	if err = promptAddReportDistributionSeverities(severities); err != nil {
+	severities, err := promptAddReportDistributionSeverities()
+
+	if err != nil {
 		return api.ReportDistribution{}, err
 	}
 	reportDistribution.Data.Severities = severities
@@ -385,12 +390,12 @@ func promptReportDistributionIntegrationsAzureData(integrations *[]api.ReportDis
 	return nil
 }
 
-func promptAddReportDistributionViolations(integrations []string) error {
+func promptAddReportDistributionViolations() (violations []string, err error) {
 	addViolations := false
 	if err := survey.AskOne(&survey.Confirm{
 		Message: CreateReportDistributionAddViolationsQuestion,
 	}, &addViolations); err != nil {
-		return err
+		return
 	}
 
 	if addViolations {
@@ -398,31 +403,30 @@ func promptAddReportDistributionViolations(integrations []string) error {
 			Renderer: survey.Renderer{},
 			Message:  CreateReportDistributionViolationsQuestion,
 			Options:  api.ReportDistributionViolations(),
-		}, &integrations); err != nil {
-			return err
+		}, &violations); err != nil {
+			return
 		}
 	}
 
-	return nil
+	return
 }
 
-func promptAddReportDistributionSeverities(integrations []string) error {
+func promptAddReportDistributionSeverities() (sevs []string, err error) {
 	addSevs := false
-	if err := survey.AskOne(&survey.Confirm{
+	if err = survey.AskOne(&survey.Confirm{
 		Message: CreateReportDistributionAddSeveritiesQuestion,
 	}, &addSevs); err != nil {
-		return err
+		return
 	}
 
 	if addSevs {
 		if err := survey.AskOne(&survey.MultiSelect{
-			Renderer: survey.Renderer{},
-			Message:  CreateReportDistributionSeveritiesQuestion,
-			Options:  lwseverity.ValidSeveritiesStrings,
-		}, &integrations); err != nil {
-			return err
+			Message: CreateReportDistributionSeveritiesQuestion,
+			Options: strings.Split(lwseverity.ValidSeverities.String(), ","),
+		}, &sevs); err != nil {
+			return
 		}
 	}
 
-	return nil
+	return
 }

@@ -50,6 +50,7 @@ var (
 	// report-distributions command is used to manage lacework report distributions
 	reportDistributionsCommand = &cobra.Command{
 		Use:     "report-distribution",
+		Hidden:  true,
 		Aliases: []string{"report-distributions"},
 		Short:   "Manage report distributions",
 		Long: `Manage report distributions to configure the data retrieval and layout information for a report.
@@ -212,7 +213,7 @@ func buildReportDistributionDetailsTable(distribution api.ReportDistribution) st
 	),
 	)
 
-	detailsTable.WriteString(renderOneLineCustomTable("REPORT DEFINITION DETAILS",
+	detailsTable.WriteString(renderOneLineCustomTable("REPORT DISTRIBUTION DETAILS",
 		dataTable.String(),
 		tableFunc(func(t *tablewriter.Table) {
 			t.SetBorder(false)
