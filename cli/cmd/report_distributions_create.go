@@ -84,6 +84,9 @@ func promptCreateReportDistributionFromNew() (reportDistribution api.ReportDistr
 	cli.StartProgress("Fetching list of alert channels...")
 	alertChannels, err := cli.LwApi.V2.AlertChannels.List()
 	cli.StopProgress()
+	if err != nil {
+		return api.ReportDistribution{}, err
+	}
 	channelMap := make(map[string]string, len(alertChannels.Data))
 	var channelOptions []string
 
@@ -191,6 +194,9 @@ func promptReportDistributionResourceGroup(distribution *api.ReportDistribution)
 	cli.StartProgress("Fetching list of resource groups...")
 	resourceGroups, err := cli.LwApi.V2.ResourceGroups.List()
 	cli.StopProgress()
+	if err != nil {
+		return err
+	}
 	groupMap := make(map[string]string, len(resourceGroups.Data))
 
 	var (
@@ -392,14 +398,14 @@ func promptReportDistributionIntegrationsAzureData(integrations *[]api.ReportDis
 
 func promptAddReportDistributionViolations() (violations []string, err error) {
 	addViolations := false
-	if err := survey.AskOne(&survey.Confirm{
+	if err = survey.AskOne(&survey.Confirm{
 		Message: CreateReportDistributionAddViolationsQuestion,
 	}, &addViolations); err != nil {
 		return
 	}
 
 	if addViolations {
-		if err := survey.AskOne(&survey.MultiSelect{
+		if err = survey.AskOne(&survey.MultiSelect{
 			Renderer: survey.Renderer{},
 			Message:  CreateReportDistributionViolationsQuestion,
 			Options:  api.ReportDistributionViolations(),
@@ -420,7 +426,7 @@ func promptAddReportDistributionSeverities() (sevs []string, err error) {
 	}
 
 	if addSevs {
-		if err := survey.AskOne(&survey.MultiSelect{
+		if err = survey.AskOne(&survey.MultiSelect{
 			Message: CreateReportDistributionSeveritiesQuestion,
 			Options: strings.Split(lwseverity.ValidSeverities.String(), ","),
 		}, &sevs); err != nil {
