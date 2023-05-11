@@ -25,6 +25,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lacework/go-sdk/lwtime"
+
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -48,21 +50,47 @@ To list the CVEs found in the hosts of your environment run:
 
     lacework vulnerability host list-cves`,
 		RunE: func(_ *cobra.Command, args []string) error {
-			now := time.Now().UTC()
-			start := now.AddDate(0, 0, -1)
-			filter := api.SearchFilter{
-				TimeFilter: &api.TimeFilter{
-					StartTime: &start,
-					EndTime:   &now,
-				},
-				Filters: []api.Filter{
-					{Expression: "eq",
-						Field: "vulnId",
-						Value: args[0]},
-					{Expression: "ne",
-						Field: "status",
-						Value: "Fixed"},
-				}}
+			var (
+				filter api.SearchFilter
+				start  time.Time
+				end    time.Time
+				err    error
+			)
+
+			if vulCmdState.Range != "" {
+				cli.Log.Debugw("retrieving natural time range", "range", vulCmdState.Range)
+				start, end, err = lwtime.ParseNatural(vulCmdState.Range)
+				if err != nil {
+					return errors.Wrap(err, "unable to parse natural time range")
+				}
+
+			} else {
+				cli.Log.Debugw("parsing start time", "start", vulCmdState.Start)
+				start, err = parseQueryTime(vulCmdState.Start)
+				if err != nil {
+					return errors.Wrap(err, "unable to parse start time")
+				}
+
+				cli.Log.Debugw("parsing end time", "end", vulCmdState.End)
+				end, err = parseQueryTime(vulCmdState.End)
+				if err != nil {
+					return errors.Wrap(err, "unable to parse end time")
+				}
+			}
+
+			filter.TimeFilter = &api.TimeFilter{
+				StartTime: &start,
+				EndTime:   &end,
+			}
+
+			filter.Filters = []api.Filter{
+				{Expression: "eq",
+					Field: "vulnId",
+					Value: args[0]},
+				{Expression: "ne",
+					Field: "status",
+					Value: "Fixed"},
+			}
 
 			cli.StartProgress("Fetching Hosts...")
 			response, err := cli.LwApi.V2.Vulnerabilities.Hosts.SearchAllPages(filter)
