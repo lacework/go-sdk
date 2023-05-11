@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2instanceconnect"
@@ -45,9 +44,9 @@ type AWSRunner struct {
 	ImageName        string
 }
 
-func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, instanceID string, filterSSH bool, callback ssh.HostKeyCallback) (*AWSRunner, error) {
+func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, instanceID string, filterSSH bool, callback ssh.HostKeyCallback, cfg aws.Config) (*AWSRunner, error) {
 	// Look up the AMI name of the runner
-	imageName, err := getAMIName(amiImageId, region)
+	imageName, err := getAMIName(amiImageId, region, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +78,13 @@ func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, in
 	}, nil
 }
 
-func (run AWSRunner) SendAndUseIdentityFile() error {
+func (run AWSRunner) SendAndUseIdentityFile(cfg aws.Config) error {
 	pubBytes, privBytes, err := GetKeyBytes()
 	if err != nil {
 		return err
 	}
 
-	err = run.SendPublicKey(pubBytes)
+	err = run.SendPublicKey(pubBytes, cfg)
 	if err != nil {
 		return err
 	}
@@ -103,12 +102,8 @@ func (run AWSRunner) SendAndUseIdentityFile() error {
 // EC2InstanceConnect. The AWS account used to run the tests must
 // have EC2InstanceConnect permissions attached to its IAM role.
 // First checks to make sure the instance is still running.
-func (run AWSRunner) SendPublicKey(pubBytes []byte) error {
+func (run AWSRunner) SendPublicKey(pubBytes []byte, cfg aws.Config) error {
 	// Send public key
-	cfg, err := config.LoadDefaultConfig(context.Background())
-	if err != nil {
-		return err
-	}
 	cfg.Region = run.Region
 	svc := ec2instanceconnect.NewFromConfig(cfg)
 
@@ -119,7 +114,7 @@ func (run AWSRunner) SendPublicKey(pubBytes []byte) error {
 		SSHPublicKey:     aws.String(string(pubBytes)),
 	}
 
-	_, err = svc.SendSSHPublicKey(context.Background(), input)
+	_, err := svc.SendSSHPublicKey(context.Background(), input)
 	if err != nil {
 		return err
 	}
@@ -329,14 +324,10 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string)
 	)
 }
 
-// getAMIName takes an AMI image ID and an AWS region name as input
-// and calls the AWS API to get the name of the AMI. Returns the AMI
-// name or an error if unsuccessful.
-func getAMIName(amiImageId, region string) (string, error) {
-	cfg, err := config.LoadDefaultConfig(context.Background())
-	if err != nil {
-		return "", err
-	}
+// getAMIName takes an AMI image ID, an AWS region name, and an AWS
+// credential config as input and calls the AWS API to get the name
+// of the AMI. Returns the AMI name or an error if unsuccessful.
+func getAMIName(amiImageId, region string, cfg aws.Config) (string, error) {
 	cfg.Region = region
 	svc := ec2.NewFromConfig(cfg)
 	input := ec2.DescribeImagesInput{

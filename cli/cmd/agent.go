@@ -51,6 +51,7 @@ var (
 		InstallSkipCreatInfra bool
 		InstallForceReinstall bool
 		InstallServerURL      string
+		InstallAWSProfile     string
 	}{}
 
 	defaultSshIdentityKey = "~/.ssh/id_rsa"

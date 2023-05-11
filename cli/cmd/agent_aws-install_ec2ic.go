@@ -19,9 +19,11 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/gammazero/workerpool"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -60,6 +62,10 @@ select a token and pass it to the '--token' flag. This flag must be selected if 
 To explicitly specify the server URL that the agent will connect to:
 
     lacework agent aws-install ec2ic --server_url https://your.server.url.lacework.net
+
+To specify an AWS credential profile other than 'default':
+
+    lacework agent aws-install ec2ic --credential_profile aws-profile-name
 
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
@@ -106,6 +112,9 @@ func init() {
 	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
 		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
 	)
+	agentInstallAWSEC2ICCmd.Flags().StringVar(&agentCmdState.InstallAWSProfile,
+		"credential_profile", "default", "AWS credential profile to use, defaults to `default` profile",
+	)
 }
 
 func installAWSEC2IC(_ *cobra.Command, _ []string) error {
@@ -125,6 +134,11 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 	}
 
 	runners, err := awsDescribeInstances(true /* filter on SSH support */)
+	if err != nil {
+		return err
+	}
+
+	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile))
 	if err != nil {
 		return err
 	}
@@ -153,7 +167,7 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 				"hostname", threadRunner.Runner.Hostname,
 				"image name", threadRunner.ImageName,
 			)
-			err := threadRunner.SendAndUseIdentityFile()
+			err := threadRunner.SendAndUseIdentityFile(cfg)
 			if err != nil {
 				cli.Log.Debugw("ec2ic key send failed", "err", err, "runner", threadRunner.InstanceID)
 				return

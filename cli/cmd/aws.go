@@ -69,7 +69,7 @@ func awsDescribeRegions() ([]types.Region, error) {
 		Filters: filters,
 	}
 
-	cfg, err := config.LoadDefaultConfig(context.Background())
+	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile))
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func awsRegionDescribeInstances(region string, filterSSH bool) ([]*lwrunner.AWSR
 		tagKey = agentCmdState.InstallTagKey
 		tag    = agentCmdState.InstallTag
 	)
-	cfg, err := config.LoadDefaultConfig(context.Background())
+	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile))
 	if err != nil {
 		return nil, err
 	}
@@ -196,6 +196,7 @@ func awsRegionDescribeInstances(region string, filterSSH bool) ([]*lwrunner.AWSR
 						*threadInstance.InstanceId,
 						filterSSH,
 						verifyHostCallback,
+						cfg,
 					)
 					if err != nil {
 						cli.Log.Debugw("error identifying runner", "error", err, "instance_id", *threadInstance.InstanceId)
