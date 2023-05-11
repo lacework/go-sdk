@@ -20,11 +20,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lacework/go-sdk/lwtime"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/lacework/go-sdk/lwtime"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
