@@ -56,7 +56,7 @@ Usage:
   lacework agent aws-install ec2ssm [flags]
 
 Flags:
-      --credential_profile default   AWS credential profile to use, defaults to default profile (default "default")
+      --credential_profile default   AWS credential profile to use (default "default")
   -d, --dry_run                      set this flag to print out the target instances and exit
   -f, --force_reinstall              set this flag to force-reinstall the agent, even if already running on the target instance
   -h, --help                         help for ec2ssm

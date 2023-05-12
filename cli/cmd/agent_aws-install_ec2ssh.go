@@ -126,7 +126,7 @@ func init() {
 		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
 	)
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallAWSProfile,
-		"credential_profile", "default", "AWS credential profile, defaults to `default` profile",
+		"credential_profile", "default", "AWS credential profile to use",
 	)
 }
 

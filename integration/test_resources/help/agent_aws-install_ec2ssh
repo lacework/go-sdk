@@ -52,7 +52,7 @@ Usage:
   lacework agent aws-install ec2ssh [flags]
 
 Flags:
-      --credential_profile default   AWS credential profile to use, defaults to default profile (default "default")
+      --credential_profile default   AWS credential profile to use (default "default")
   -h, --help                         help for ec2ssh
   -i, --identity_file string         identity (private key) for public key authentication (default "~/.ssh/id_rsa")
   -r, --include_regions strings      list of regions to filter on
