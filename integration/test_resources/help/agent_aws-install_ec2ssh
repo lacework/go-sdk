@@ -25,7 +25,7 @@ To explicitly specify the server URL that the agent will connect to:
 
 To specify an AWS credential profile other than 'default':
 
-    lacework agent aws-install ec2ic --credential_profile aws-profile-name
+    lacework agent aws-install ec2ssh --credential_profile aws-profile-name
 
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select. Instances must

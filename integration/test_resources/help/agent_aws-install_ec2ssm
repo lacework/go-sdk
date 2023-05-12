@@ -44,7 +44,7 @@ To explicitly specify the server URL that the agent will connect to:
 
 To specify an AWS credential profile other than 'default':
 
-    lacework agent aws-install ec2ic --credential_profile aws-profile-name
+    lacework agent aws-install ec2ssm --credential_profile aws-profile-name
 
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
