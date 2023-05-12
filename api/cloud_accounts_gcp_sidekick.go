@@ -79,6 +79,7 @@ type GcpSidekickData struct {
 	ScanFrequency           int    `json:"scanFrequency"`
 	ScanContainers          bool   `json:"scanContainers"`
 	ScanHostVulnerabilities bool   `json:"scanHostVulnerabilities"`
+	ScanMultiVolume         bool   `json:"scanMultiVolume"`
 	AccountMappingFile      string `json:"accountMappingFile,omitempty"`
 }
 

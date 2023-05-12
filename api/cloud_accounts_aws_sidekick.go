@@ -69,6 +69,7 @@ type AwsSidekickData struct {
 
 	ScanContainers          bool `json:"scanContainers"`
 	ScanHostVulnerabilities bool `json:"scanHostVulnerabilities"`
+	ScanMultiVolume         bool `json:"scanMultiVolume"`
 
 	AccountID         string                             `json:"awsAccountId,omitempty"`
 	BucketArn         string                             `json:"bucketArn,omitempty"`
