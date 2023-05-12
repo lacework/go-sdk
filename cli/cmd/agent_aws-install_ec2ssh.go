@@ -71,7 +71,7 @@ To authenticate using an identity file:
 
 To specify an AWS credential profile other than 'default':
 
-    lacework agent aws-install ec2ic --credential_profile aws-profile-name
+    lacework agent aws-install ec2ssh --credential_profile aws-profile-name
 
 The environment should contain AWS credentials in the following variables:
 - AWS_ACCESS_KEY_ID
