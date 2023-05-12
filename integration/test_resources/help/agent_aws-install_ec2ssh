@@ -23,10 +23,6 @@ To explicitly specify the server URL that the agent will connect to:
 
     lacework agent aws-install ec2ssh --server_url https://your.server.url.lacework.net
 
-To specify an AWS credential profile other than 'default':
-
-    lacework agent aws-install ec2ssh --credential_profile aws-profile-name
-
 You will need to provide an SSH authentication method. This authentication method
 should work for all instances that your tag or region filters select. Instances must
 be routable from your local host.
@@ -38,6 +34,10 @@ To authenticate using username and password:
 To authenticate using an identity file:
 
     lacework agent aws-install ec2ssh -i /path/to/your/key
+
+To specify an AWS credential profile other than 'default':
+
+    lacework agent aws-install ec2ssh --credential_profile aws-profile-name
 
 The environment should contain AWS credentials in the following variables:
 - AWS_ACCESS_KEY_ID
