@@ -86,6 +86,10 @@ To explicitly specify the server URL that the agent will connect to:
 
     lacework agent aws-install ec2ssm --server_url https://your.server.url.lacework.net
 
+To specify an AWS credential profile other than 'default':
+
+    lacework agent aws-install ec2ssm --credential_profile aws-profile-name
+
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
@@ -144,6 +148,9 @@ func init() {
 	agentInstallAWSSSMCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
 		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
 	)
+	agentInstallAWSSSMCmd.Flags().StringVar(&agentCmdState.InstallAWSProfile,
+		"credential_profile", "default", "AWS credential profile to use",
+	)
 }
 
 func installAWSSSM(_ *cobra.Command, _ []string) error {
@@ -176,7 +183,7 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		return nil
 	}
 
-	cfg, err := config.LoadDefaultConfig(context.Background())
+	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile))
 	if err != nil {
 		return err
 	}

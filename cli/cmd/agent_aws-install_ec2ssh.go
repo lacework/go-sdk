@@ -69,6 +69,10 @@ To authenticate using an identity file:
 
     lacework agent aws-install ec2ssh -i /path/to/your/key
 
+To specify an AWS credential profile other than 'default':
+
+    lacework agent aws-install ec2ssh --credential_profile aws-profile-name
+
 The environment should contain AWS credentials in the following variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
@@ -120,6 +124,9 @@ func init() {
 	)
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
 		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
+	)
+	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallAWSProfile,
+		"credential_profile", "default", "AWS credential profile to use",
 	)
 }
 
