@@ -36,7 +36,7 @@
     dirs = []
 
 [alert_rule]
-    files = ["Makefile", "alert_rules.go"]
+    files = ["alert_rules.go"]
     dirs = []
 
 [alert_channel]
