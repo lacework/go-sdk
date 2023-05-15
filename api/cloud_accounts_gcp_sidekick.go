@@ -76,10 +76,13 @@ type GcpSidekickData struct {
 	FilterList        string `json:"filterList,omitempty"`
 	QueryText         string `json:"queryText,omitempty"`
 	//ScanFrequency in hours, 24 == 24 hours
-	ScanFrequency           int    `json:"scanFrequency"`
-	ScanContainers          bool   `json:"scanContainers"`
-	ScanHostVulnerabilities bool   `json:"scanHostVulnerabilities"`
-	AccountMappingFile      string `json:"accountMappingFile,omitempty"`
+	ScanFrequency           int  `json:"scanFrequency"`
+	ScanContainers          bool `json:"scanContainers"`
+	ScanHostVulnerabilities bool `json:"scanHostVulnerabilities"`
+	ScanMultiVolume         bool `json:"scanMultiVolume"`
+	ScanStoppedInstances    bool `json:"scanStoppedInstances"`
+
+	AccountMappingFile string `json:"accountMappingFile,omitempty"`
 }
 
 type GcpSidekickCredentials struct {
