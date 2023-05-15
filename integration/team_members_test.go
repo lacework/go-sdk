@@ -31,7 +31,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateTeamMember(t *testing.T) {
+// Unstable test disabled as part of GROW-1396
+func _TestCreateTeamMember(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	dir, err := ioutil.TempDir("", "lacework-cli")

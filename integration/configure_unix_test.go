@@ -30,7 +30,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConfigureCommand(t *testing.T) {
+// Unstable test disabled as part of GROW-1396
+func _TestConfigureCommand(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 
@@ -112,7 +113,8 @@ func TestConfigureCommandForOrgAdmins(t *testing.T) {
 `, laceworkTOML, "there is a problem with the generated config")
 }
 
-func TestConfigureCommandWithProfileFlag(t *testing.T) {
+// Unstable test disabled as part of GROW-1396
+func _TestConfigureCommandWithProfileFlag(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 

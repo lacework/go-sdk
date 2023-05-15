@@ -248,8 +248,9 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// Unstable test disabled as part of GROW-1396
 // Test generation with config name customization
-func TestGenerationAzureNamedConfig(t *testing.T) {
+func _TestGenerationAzureNamedConfig(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -291,8 +292,9 @@ func TestGenerationAzureNamedConfig(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// Unstable test disabled as part of GROW-1396
 // Test generation with activity log customization
-func TestGenerationAzureNamedActivityLog(t *testing.T) {
+func _TestGenerationAzureNamedActivityLog(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string

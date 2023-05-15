@@ -1,0 +1,201 @@
+# Integration Test Context Mapping for CLI commands
+[account]
+    files = ["account.go"]
+    dirs = []
+
+[agent]
+    files = [
+        "agent.go",
+        "agent_aws-install_ec2ic.go",
+        "agent_aws-install_ec2ssh.go",
+        "agent_aws-install_ec2ssm.go",
+        "agent_gcp-install-osl.go",
+        "agent_install.go",
+        "agent_list.go",
+        "awsiam.go",
+        "flags.go",
+    ]
+    dirs = ["lwcloud/"]
+
+[alert]
+    files = [
+        "alert.go",
+        "alert_close.go",
+        "alert_comment.go",
+        "alert_list.go",
+        "alert_list_fixable.go",
+        "alert_rules.go",
+        "alert_show.go",
+        "alert_show_details.go",
+        "alert_show_events.go",
+        "alert_show_integrations.go",
+        "alert_show_investigation.go",
+        "alert_show_related.go",
+        "alert_show_timeline.go",
+    ]
+    dirs = []
+
+[alert_rule]
+    files = ["alert_rules.go"]
+    dirs = []
+
+[alert_channel]
+    files = [
+        "alert_channel.go",
+        "integration_aws_cloudwatch.go,",
+        "integration_aws_s3_channel.go",
+        "integration_cisco_webex.go",
+        "integration_datadog.go",
+        "integration_qradar_channel.go",
+        "integration_service_now_channel.go",
+        "integration_slack_channel.go",
+        "integration_splunk.go",
+        "integration_victorops.go",
+        "integration_webhook.go",
+        "integration_pagerduty.go",
+        "integration_jira.go",
+        "integration_microsoft_teams.go",
+        "integration_new_relic_channel.go",
+        "integration_gcp_pub_sub_channel.go",
+        "integration_email.go",
+    ]
+    dirs = []
+
+[alert_profile]
+    files = ["alert_profiles.go"]
+    dirs = []
+
+[cloud_account]
+    files = [
+        "cloud_account.go",
+        "integration_gcp.go",
+        "integration_gcp_pub_sub_audit.go",
+        "integration_azure.go",
+        "integration_aws.go",
+        "integration_aws_govcloud.go"
+    ]
+    dirs = []
+
+[component]
+    files = [
+        "cdk.go",
+        "component.go",
+        "component_args.go",
+        "component_dev.go"
+    ]
+    dirs = ["cdk/", "lwcomponent/"]
+
+[compliance]
+    files = [
+        "compliance.go",
+        "compliance_aws.go",
+        "compliance_azure.go",
+        "compliance_gcp.go",
+    ]
+    dirs = []
+
+[container_registry]
+    files = [
+        "container_registry.go",
+        "integration_ctr_reg_limits.go",
+        "integration_ecr.go",
+        "integration_gar.go",
+        "integration_gcr.go",
+        "integration_ghcr.go",
+        "integration_inline_scanner.go",
+        "integration_proxy_scanner.go",
+    ]
+    dirs = []
+
+[query]
+    files = [
+        "lql.go",
+        "lql_create.go",
+        "lql_delete.go",
+        "lql_library.go",
+        "lql_list.go",
+        "lql_preview.go",
+        "lql_show.go",
+        "lql_sources.go",
+        "lql_update.go",
+        "lql_validate.go",
+        "errors_lql.go"
+    ]
+    dirs = []
+
+[policy]
+    files = ["content_library.go",
+        "policy.go",
+        "policy_create.go",
+        "policy_delete.go",
+        "policy_disable.go",
+        "policy_enable.go",
+        "policy_exceptions.go",
+        "policy_library.go",
+        "policy_update.go",
+    ]
+    dirs = []
+
+[generation]
+    files = [
+        "generate.go",
+        "generate_aws.go",
+        "generate_aws_eks_audit.go",
+        "generate_aws_test.go",
+        "generate_azure.go",
+        "generate_cloud_account.go",
+        "generate_execute.go",
+        "generate_gcp.go",
+        "generate_gke.go",
+        "generate_k8s.go"
+    ]
+dirs = ["lwgenerate/"]
+
+[help]
+    files = ["doc.go"]
+    dirs = ["integration/test_resources/help/"]
+
+[report_definitions]
+    files = [
+        "report_definitions.go",
+        "report_definitions_create.go",
+        "report_definitions_diff.go",
+        "report_definitions_revert.go",
+        "report_definitions_update.go"
+    ]
+    dirs = []
+
+[team_member]
+    files = ["team_members.go"]
+    dirs = []
+
+[version]
+    files = ["version.go"]
+    dirs = []
+
+[vulnerability]
+    files = [
+        "vuln_container.go",
+        "vuln_container_list_assessments.go",
+        "vuln_container_list_registries.go",
+        "vuln_container_scan.go",
+        "vuln_container_show_assessments.go",
+        "vuln_host.go",
+        "vuln_host_gen_package_manifest.go",
+        "vuln_host_list_cves.go",
+        "vuln_host_list_hosts.go",
+        "vuln_host_scan_package_manifest.go",
+        "vuln_host_show_assessment.go",
+        "vuln_html.go",
+        "vulnerability.go",
+        "vulnerability_exception_container.go",
+        "vulnerability_exception_host.go",
+        "vulnerabilty_exceptions.go",
+        "package_manifest.go"
+    ]
+    dirs = []
+
+# If these files change run all tests
+[all]
+    files = ["cache.go", "cli_state.go", "root.go", "table_render.go", "honeyvent.go", "errors.go", "outputs.go"]
+    dirs = ["lwtime/", "lwdomain/", "lwconfig/"]

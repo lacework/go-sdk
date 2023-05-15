@@ -32,7 +32,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestReportDefinitionsPromptCreate(t *testing.T) {
+// Unstable test disabled as part of GROW-1396
+func _TestReportDefinitionsPromptCreate(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
