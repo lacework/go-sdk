@@ -71,6 +71,7 @@ type AwsSidekickOrgData struct {
 	ScanContainers          bool `json:"scanContainers"`
 	ScanHostVulnerabilities bool `json:"scanHostVulnerabilities"`
 	ScanMultiVolume         bool `json:"scanMultiVolume"`
+	ScanStoppedInstances    bool `json:"scanStoppedInstances"`
 
 	//Properties specific to the AWS organization integration type
 	ScanningAccount   string `json:"scanningAccount"`
