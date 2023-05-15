@@ -54,6 +54,10 @@ To explicitly specify the server URL that the agent will connect to:
 
     lacework agent aws-install ec2ssm --server_url https://your.server.url.lacework.net
 
+To specify an AWS credential profile other than 'default':
+
+    lacework agent aws-install ec2ssm --credential_profile aws-profile-name
+
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
@@ -67,17 +71,18 @@ lacework agent aws-install ec2ssm [flags]
 ### Options
 
 ```
-  -d, --dry_run                   set this flag to print out the target instances and exit
-  -f, --force_reinstall           set this flag to force-reinstall the agent, even if already running on the target instance
-  -h, --help                      help for ec2ssm
-      --iam_role_name string      IAM role name (not ARN) with SSM policy, if not provided then an ephemeral role will be created
-  -r, --include_regions strings   list of regions to filter on
-  -n, --max_parallelism int       maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
-      --server_url https://       server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
-      --skip_iam_role_creation    set this flag to skip creating an IAM role and instance profile and associating the instance profile. Assumes all instances are already setup for SSM
-      --tag strings               only install agents on infra with this tag
-      --tag_key string            only install agents on infra with this tag key set
-      --token string              agent access token
+      --credential_profile string   AWS credential profile to use (default "default")
+  -d, --dry_run                     set this flag to print out the target instances and exit
+  -f, --force_reinstall             set this flag to force-reinstall the agent, even if already running on the target instance
+  -h, --help                        help for ec2ssm
+      --iam_role_name string        IAM role name (not ARN) with SSM policy, if not provided then an ephemeral role will be created
+  -r, --include_regions strings     list of regions to filter on
+  -n, --max_parallelism int         maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
+      --server_url https://         server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
+      --skip_iam_role_creation      set this flag to skip creating an IAM role and instance profile and associating the instance profile. Assumes all instances are already setup for SSM
+      --tag strings                 only install agents on infra with this tag
+      --tag_key string              only install agents on infra with this tag key set
+      --token string                agent access token
 ```
 
 ### Options inherited from parent commands

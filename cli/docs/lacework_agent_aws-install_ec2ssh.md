@@ -47,6 +47,10 @@ To authenticate using an identity file:
 
     lacework agent aws-install ec2ssh -i /path/to/your/key
 
+To specify an AWS credential profile other than 'default':
+
+    lacework agent aws-install ec2ssh --credential_profile aws-profile-name
+
 The environment should contain AWS credentials in the following variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
@@ -63,18 +67,19 @@ lacework agent aws-install ec2ssh [flags]
 ### Options
 
 ```
-  -h, --help                      help for ec2ssh
-  -i, --identity_file string      identity (private key) for public key authentication (default "~/.ssh/id_rsa")
-  -r, --include_regions strings   list of regions to filter on
-  -n, --max_parallelism int       maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
-      --server_url https://       server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
-      --ssh_password string       password for authentication
-      --ssh_port int              port to connect to on the remote host (default 22)
-      --ssh_username string       username to login with
-      --tag strings               only select instances with this tag
-      --tag_key string            only install agents on infra with this tag key
-      --token string              agent access token
-      --trust_host_key            automatically add host keys to the ~/.ssh/known_hosts file (default true)
+      --credential_profile string   AWS credential profile to use (default "default")
+  -h, --help                        help for ec2ssh
+  -i, --identity_file string        identity (private key) for public key authentication (default "~/.ssh/id_rsa")
+  -r, --include_regions strings     list of regions to filter on
+  -n, --max_parallelism int         maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
+      --server_url https://         server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
+      --ssh_password string         password for authentication
+      --ssh_port int                port to connect to on the remote host (default 22)
+      --ssh_username string         username to login with
+      --tag strings                 only select instances with this tag
+      --tag_key string              only install agents on infra with this tag key
+      --token string                agent access token
+      --trust_host_key              automatically add host keys to the ~/.ssh/known_hosts file (default true)
 ```
 
 ### Options inherited from parent commands

@@ -38,6 +38,10 @@ To explicitly specify the server URL that the agent will connect to:
 
     lacework agent aws-install ec2ic --server_url https://your.server.url.lacework.net
 
+To specify an AWS credential profile other than 'default':
+
+    lacework agent aws-install ec2ic --credential_profile aws-profile-name
+
 AWS credentials are read from the following environment variables:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
@@ -58,15 +62,16 @@ lacework agent aws-install ec2ic [flags]
 ### Options
 
 ```
-  -h, --help                      help for ec2ic
-  -r, --include_regions strings   list of regions to filter on
-  -n, --max_parallelism int       maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
-      --server_url https://       server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
-      --ssh_username string       username to login with
-      --tag strings               only install agents on infra with this tag
-      --tag_key string            only install agents on infra with this tag key set
-      --token string              agent access token
-      --trust_host_key            automatically add host keys to the ~/.ssh/known_hosts file (default true)
+      --credential_profile string   AWS credential profile to use (default "default")
+  -h, --help                        help for ec2ic
+  -r, --include_regions strings     list of regions to filter on
+  -n, --max_parallelism int         maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal (default 50)
+      --server_url https://         server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
+      --ssh_username string         username to login with
+      --tag strings                 only install agents on infra with this tag
+      --tag_key string              only install agents on infra with this tag key set
+      --token string                agent access token
+      --trust_host_key              automatically add host keys to the ~/.ssh/known_hosts file (default true)
 ```
 
 ### Options inherited from parent commands
