@@ -101,6 +101,9 @@ const (
 	apiV2ReportDefinitionsRevert   = "v2/ReportDefinitions/%s?revertTo=%d"
 	apiV2ReportDefinitionsVersions = "v2/ReportDefinitions/%s?allVersions=true"
 
+	apiV2ReportDistributions         = "v2/ReportDistributions"
+	apiV2ReportDistributionsFromGUID = "v2/ReportDistributions/%s"
+
 	apiV2ReportRules        = "v2/ReportRules"
 	apiV2ReportRuleFromGUID = "v2/ReportRules/%s"
 
