@@ -383,20 +383,6 @@ func introducedInLayerToTable(vuln vulnTable) (resourceTable [][]string) {
 	return
 }
 
-func buildVulnerabilityDetailsReportCSV(details vulnerabilityDetailsReport) ([]string, [][]string) {
-	if !(vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled()) {
-		return nil, nil
-	}
-
-	if vulCmdState.Packages {
-		return []string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version"},
-			vulContainerImagePackagesToTable(details.Packages)
-	}
-
-	return []string{"CVE ID", "Severity", "CVSSv2", "CVSSv3", "Package", "Current Version",
-		"Fix Version", "Introduced in Layer"}, vulContainerImageLayersToCSV(details.VulnerabilityDetails)
-}
-
 func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) string {
 	report := &strings.Builder{}
 
