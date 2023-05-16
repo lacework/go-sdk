@@ -746,11 +746,3 @@ type vulnTable struct {
 	StartTime      string
 	VersionFormat  string
 }
-
-func (t vulnTable) expandIntroducedInLayers() (singleVulnDetails []vulnTable) {
-	for _, introducedInLayer := range t.CreatedBy {
-		t.CreatedBy = []string{introducedInLayer}
-		singleVulnDetails = append(singleVulnDetails, t)
-	}
-	return
-}
