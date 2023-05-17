@@ -631,7 +631,7 @@ func (hosts *VulnerabilitiesHostResponse) VulnerabilityCounts() HostVulnCounts {
 
 	for _, h := range hosts.Data {
 		// avoid counting duplicates
-		if h.VulnID != "" && array.ContainsStr(cves, h.VulnID) {
+		if h.VulnID == "" || array.ContainsStr(cves, h.VulnID) {
 			continue
 		}
 		cves = append(cves, h.VulnID)
