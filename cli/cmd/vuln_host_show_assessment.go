@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -81,7 +80,7 @@ Grab a CVE id and feed it to the command:
 					Value:      args[0],
 				}}}
 
-				cli.StartProgress(fmt.Sprintf("Searching for machine with id %s...", args[0]))
+				cli.StartProgress(fmt.Sprintf("Searching for machine with id '%s'...", args[0]))
 				err := cli.LwApi.V2.Entities.Search(&machineDetailsResponse, filter)
 				cli.StopProgress()
 
@@ -90,19 +89,46 @@ Grab a CVE id and feed it to the command:
 				}
 
 				if len(machineDetailsResponse.Data) == 0 {
-					cli.OutputHuman("no hosts found with id %s\n", args[0])
-					return nil
+					return errors.Errorf("no hosts found with id %s\n", args[0])
 				}
 
-				cli.StartProgress("Fetching host vulnerabilities...")
-				response, err := cli.LwApi.V2.Vulnerabilities.Hosts.Search(filter)
+				machineDetails := machineDetailsResponse.Data[0]
+
+				cli.StartProgress(
+					fmt.Sprintf("Searching for latest host evaluation for machine %s (%d)...",
+						machineDetails.Hostname, machineDetails.Mid,
+					))
+				evalGUID, err := searchLastestHostEvaluationGuid(args[0])
+				cli.StopProgress()
+				if err != nil {
+					return errors.Wrapf(err, "unable to find information of host '%s'", args[0])
+				}
+
+				cli.Log.Infow("latest assessment found", "eval_guid", evalGUID)
+
+				var (
+					now    = time.Now().UTC()
+					before = now.AddDate(0, 0, -7) // 7 days from ago
+				)
+
+				filter.TimeFilter = &api.TimeFilter{
+					StartTime: &before,
+					EndTime:   &now,
+				}
+				filter.Filters = append(filter.Filters, api.Filter{
+					Expression: "eq",
+					Field:      "evalGuid",
+					Value:      "c147082bf2b571841a0a24c4d7efff92",
+				})
+
+				cli.StartProgress(
+					fmt.Sprintf("Fetching vulnerabilities from host evaluation '%s'...", evalGUID),
+				)
+				assessment, err = cli.LwApi.V2.Vulnerabilities.Hosts.SearchAllPages(filter)
 				if err != nil {
 					return errors.Wrapf(err, "unable to get host assessment with id %s", args[0])
 				}
 				cli.StopProgress()
-
-				assessment = response
-				assessment.Data = filterUniqueCves(response.Data)
 
 				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Hour*1), assessment)
 			}
@@ -170,19 +196,51 @@ func buildVulnHostReports(response api.VulnerabilitiesHostResponse) error {
 	}
 }
 
-func filterUniqueCves(hosts []api.VulnerabilityHost) []api.VulnerabilityHost {
-	var uniqueCves []api.VulnerabilityHost
-	var cves []string
-
-	for _, host := range hosts {
-		if host.VulnID == "" || array.ContainsStr(cves, host.VulnID) {
-			continue
+func searchLastestHostEvaluationGuid(mid string) (string, error) {
+	var (
+		now    = time.Now().UTC()
+		before = now.AddDate(0, 0, -7) // 7 days from ago
+		filter = api.SearchFilter{
+			TimeFilter: &api.TimeFilter{
+				StartTime: &before,
+				EndTime:   &now,
+			},
+			Filters: []api.Filter{{
+				Expression: "eq",
+				Field:      "mid",
+				Value:      mid,
+			}},
+			Returns: []string{"evalGuid", "startTime"},
 		}
-		uniqueCves = append(uniqueCves, host)
-		cves = append(cves, host.VulnID)
+	)
 
+	cli.Log.Infow("retrieve host evaluation information", "mid", mid)
+	response, err := cli.LwApi.V2.Vulnerabilities.Hosts.SearchAllPages(filter)
+	if err != nil {
+		return "", err
 	}
-	return uniqueCves
+
+	if len(response.Data) == 0 {
+		return "", errors.New("no data found")
+	}
+
+	return getUniqueHostEvalGUID(response), nil
+}
+
+func getUniqueHostEvalGUID(host api.VulnerabilitiesHostResponse) string {
+	var (
+		guid      string
+		startTime time.Time
+	)
+	for _, ctr := range host.Data {
+		if ctr.EvalGUID != guid {
+			if ctr.StartTime.After(startTime) {
+				startTime = ctr.StartTime
+				guid = ctr.EvalGUID
+			}
+		}
+	}
+	return guid
 }
 
 func buildVulnHostsDetailsTableCSV(filteredCves map[string]VulnCveSummary) ([]string, [][]string) {
