@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"github.com/lacework/go-sdk/api"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/lacework/go-sdk/api"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetUniqueHostEvalGUID(t *testing.T) {
