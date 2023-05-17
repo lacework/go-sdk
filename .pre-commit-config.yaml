@@ -4,10 +4,19 @@ repos:
   -   repo: https://github.com/jorisroovers/gitlint
       rev: v0.19.1
       hooks:
-        -   id: gitlint
-            name: gitlint
-            language: python
-            additional_dependencies: [ "./gitlint-core[trusted-deps]" ]
-            entry: gitlint
-            args: [--debug, --staged, --msg-filename]
-            stages: [commit-msg]
+        - id: gitlint
+          name: gitlint
+          language: python
+          additional_dependencies: [ "./gitlint-core[trusted-deps]" ]
+          entry: gitlint
+          args: [--debug, --staged, --msg-filename]
+          stages: [commit-msg]
+        - id: gitlint-ci
+          name: gitlint
+          language: python
+          additional_dependencies: [ "./gitlint-core[trusted-deps]" ]
+          entry: gitlint
+          always_run: true
+          pass_filenames: false
+          args: [ --debug ]
+          stages: [ manual ]
