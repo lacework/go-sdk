@@ -10,7 +10,7 @@ validate_commit_message(){
             exit 1
         fi
             log "Commit message is valid"
-} 
+}
 
 invalid_message(){
     log "Invalid commit message"
