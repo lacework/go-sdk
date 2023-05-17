@@ -387,7 +387,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
     },
     "data": [
         {
-						"vulnId": "CVE-1",
             "cveProps": {
                 "metadata": {}
             },
@@ -428,7 +427,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "startTime": "2022-09-23T03:00:00.000Z"
         },
         {
-						"vulnId": "CVE-2",
             "cveProps": {
                 "metadata": {}
             },
@@ -469,7 +467,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "startTime": "2022-09-23T03:00:00.000Z"
         },
         {
-						"vulnId": "CVE-3",
             "cveProps": {
                 "metadata": {}
             },
@@ -510,7 +507,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "startTime": "2022-09-23T03:00:00.000Z"
         },
         {
-						"vulnId": "CVE-4",
             "cveProps": {
                 "metadata": {}
             },
@@ -813,7 +809,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "vulnId": "CVE-2022-0351"
         },
         {
-						"vulnId": "CVE-5",
             "cveProps": {
                 "metadata": {}
             },
@@ -854,7 +849,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "startTime": "2022-09-23T03:00:00.000Z"
         },
         {
-						"vulnId": "CVE-6",
             "cveProps": {
                 "metadata": {}
             },
@@ -895,7 +889,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "startTime": "2022-09-23T03:00:00.000Z"
         },
         {
-						"vulnId": "CVE-7",
             "cveProps": {
                 "metadata": {}
             },
@@ -1001,7 +994,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "vulnId": "CVE-2022-2129"
         },
         {
-						"vulnId": "CVE-8",
             "cveProps": {
                 "metadata": {}
             },
@@ -1042,7 +1034,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "startTime": "2022-09-23T03:00:00.000Z"
         },
         {
-						"vulnId": "CVE-9",
             "cveProps": {
                 "metadata": {}
             },
@@ -1083,7 +1074,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "startTime": "2022-09-23T03:00:00.000Z"
         },
         {
-						"vulnId": "CVE-10",
             "cveProps": {
                 "metadata": {}
             },
@@ -1124,7 +1114,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "startTime": "2022-09-23T03:00:00.000Z"
         },
         {
-						"vulnId": "CVE-11",
             "cveProps": {
                 "metadata": {}
             },
@@ -1296,7 +1285,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "vulnId": "CVE-2020-13988"
         },
         {
-						"vulnId": "CVE-12",
             "cveProps": {
                 "metadata": {}
             },
@@ -1337,7 +1325,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "startTime": "2022-09-23T03:00:00.000Z"
         },
         {
-						"vulnId": "CVE-13",
             "cveProps": {
                 "metadata": {}
             },
@@ -1378,7 +1365,6 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "startTime": "2022-09-23T03:00:00.000Z"
         },
         {
-						"vulnId": "CVE-14",
             "cveProps": {
                 "metadata": {}
             },

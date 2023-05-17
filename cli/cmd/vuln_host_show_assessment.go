@@ -118,7 +118,7 @@ Grab a CVE id and feed it to the command:
 				filter.Filters = append(filter.Filters, api.Filter{
 					Expression: "eq",
 					Field:      "evalGuid",
-					Value:      "c147082bf2b571841a0a24c4d7efff92",
+					Value:      evalGUID,
 				})
 
 				cli.StartProgress(
