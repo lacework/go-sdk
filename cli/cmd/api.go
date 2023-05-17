@@ -39,21 +39,20 @@ var (
 	apiCmd = &cobra.Command{
 		Use:   "api <method> <path>",
 		Short: "Helper to call Lacework's API",
-		Long: `Use this command as a helper to call any available Lacework API v1 & v2 endpoint.
+		Long: `Use this command as a helper to call any available Lacework API v2 endpoint.
 
 
-### APIv2
+### API v2
 
 To list all available Lacework schema type:
 
     lacework api get /v2/schemas
 
-Example usage,
-	To recieve a json response of all machines within the given time window
-	lacework api post /api/v2/Entities/Machines/search -d "{\"timeFilter\":{\"startTime\":\"2023-05-10T00:00:00Z\",\"endTime\":\"2023-05-14T00:00:00Z\"}}"   
+To receive a json response of all machines within the given time window
+	lacework api post /api/v2/Entities/Machines/search -d "{}"   
 	
-	To recieve a json response of all agents within the given time window
-	lacework api post /api/v2/AgentInfo/search -d "{\"timeFilter\":{\"startTime\":\"2023-05-10T00:00:00Z\",\"endTime\":\"2023-05-14T00:00:00Z\"}}"  
+To receive a json response of all agents within the given time window
+	lacework api post /api/v2/AgentInfo/search -d "{}"  
 
 For a complete list of available API v2 endpoints visit:
 
