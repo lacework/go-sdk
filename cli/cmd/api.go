@@ -48,10 +48,12 @@ To list all available Lacework schema type:
 
     lacework api get /v2/schemas
 
-To receive a json response of all machines within the given time window
+To receive a json response of all machines within the given time window:
+
 	lacework api post /api/v2/Entities/Machines/search -d "{}"   
 	
-To receive a json response of all agents within the given time window
+To receive a json response of all agents within the given time window:
+
 	lacework api post /api/v2/AgentInfo/search -d "{}"  
 
 For a complete list of available API v2 endpoints visit:
