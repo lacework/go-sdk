@@ -25,6 +25,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/lacework/go-sdk/lwseverity"
 )
 
@@ -456,7 +457,6 @@ type VulnerabilityHost struct {
 		Link        string                     `json:"link"`
 		Metadata    *VulnerabilityHostMetadata `json:"metadata,omitempty"`
 	} `json:"cveProps"`
-	EndTime time.Time `json:"endTime"`
 	EvalCtx struct {
 		ExceptionProps []interface{} `json:"exception_props"`
 		Hostname       string        `json:"hostname"`
@@ -486,6 +486,8 @@ type VulnerabilityHost struct {
 	Mid         int                    `json:"mid"`
 	Severity    string                 `json:"severity"`
 	StartTime   time.Time              `json:"startTime"`
+	EndTime     time.Time              `json:"endTime"`
+	EvalGUID    string                 `json:"evalGuid"`
 	Status      string                 `json:"status"`
 	VulnID      string                 `json:"vulnId"`
 }
@@ -622,10 +624,18 @@ func (v *VulnerabilityHost) HasFix() bool {
 }
 
 func (hosts *VulnerabilitiesHostResponse) VulnerabilityCounts() HostVulnCounts {
-	var hostCounts = HostVulnCounts{}
+	var (
+		hostCounts = HostVulnCounts{}
+		cves       []string
+	)
 
-	// remove duplicates before count.
 	for _, h := range hosts.Data {
+		// avoid counting duplicates
+		if h.VulnID != "" && array.ContainsStr(cves, h.VulnID) {
+			continue
+		}
+		cves = append(cves, h.VulnID)
+
 		switch h.Severity {
 		case "Critical":
 			hostCounts.Critical++
