@@ -40,7 +40,7 @@ help:
 	@echo "-------------------------------------------------------------------"
 
 .PHONY: prepare
-prepare: install-tools go-vendor ## Initialize the go environment
+prepare: git-env install-tools go-vendor ## Initialize the go environment
 
 .PHONY: test
 test: prepare ## Run all go-sdk tests

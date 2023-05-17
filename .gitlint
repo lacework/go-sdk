@@ -15,8 +15,3 @@ regex="feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)|test(
 [ignore-by-title]
 regex=Release(.*)
 ignore=all
-
-# Ignore Dependabot commits
-[ignore-by-author-name]
-regex=dependabot
-ignore=all

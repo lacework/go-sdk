@@ -2,7 +2,6 @@
 readonly project_name=go-sdk
 readonly commit_tags="feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)|test(:|\(.*\):)|docs(:|\(.*\):)|chore(:|\(.*\):)|build(:|\(.*\):)|ci(:|\(.*\):)|perf(:|\(.*\):)|metric(:|\(.*\):)|misc(:|\(.*\):)|release:"
 readonly commit_message=`cat $1`
-readonly blah="Please enter the commit message for your changes"
 
 validate_commit_message(){
         if ! [[ $commit_message =~ $commit_tags ]]; then
