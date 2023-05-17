@@ -44,7 +44,7 @@ var (
 
 ### API v2
 
-To list all available Lacework schema type:
+To list all available Lacework schema types:
 
     lacework api get /v2/schemas
 
