@@ -5,4 +5,9 @@ repos:
       rev: v0.19.1
       hooks:
         -   id: gitlint
-            args: [--debug]
+            name: gitlint
+            language: python
+            additional_dependencies: [ "./gitlint-core[trusted-deps]" ]
+            entry: gitlint
+            args: [--debug, --staged, --msg-filename]
+            stages: [commit-msg]
