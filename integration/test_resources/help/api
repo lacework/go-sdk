@@ -1,20 +1,18 @@
-Use this command as a helper to call any available Lacework API v1 & v2 endpoint.
+Use this command as a helper to call any available Lacework API v2 endpoint.
 
-### For APIv1
-
-To list all integrations configured in your account:
-
-    lacework api get /v1/external/integrations
-
-For a complete list of available API v1 endpoints visit:
-
-    https://<ACCOUNT>.lacework.net/api/v1/external/docs
-
-### For APIv2
+### API v2
 
 To list all available Lacework schema types:
 
     lacework api get /v2/schemas
+
+To receive a json response of all machines within the given time window:
+
+    lacework api post /api/v2/Entities/Machines/search -d "{}"
+
+To receive a json response of all agents within the given time window:
+
+    lacework api post /api/v2/AgentInfo/search -d "{}"
 
 For a complete list of available API v2 endpoints visit:
 
