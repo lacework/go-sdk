@@ -1,0 +1,17 @@
+# Commit msg lint config
+
+## https://jorisroovers.com/gitlint/latest/ignoring_commits/
+## https://jorisroovers.com/gitlint/latest/rules/builtin_rules/
+
+[general]
+regex-style-search=true
+ignore=B1,B6
+
+# Ensure every title starts with a user-story identifier like US123
+[title-match-regex]
+regex="feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)|test(:|\(.*\):)|docs(:|\(.*\):)|chore(:|\(.*\):)|build(:|\(.*\):)|ci(:|\(.*\):)|perf(:|\(.*\):)|metric(:|\(.*\):)|misc(:|\(.*\):)|release:"gi
+
+# Ignore Release commits
+[ignore-by-title]
+regex=Release(.*)
+ignore=all
