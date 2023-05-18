@@ -3,23 +3,42 @@ readonly project_name=go-sdk
 readonly commit_tags="feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)|test(:|\(.*\):)|docs(:|\(.*\):)|chore(:|\(.*\):)|build(:|\(.*\):)|ci(:|\(.*\):)|perf(:|\(.*\):)|metric(:|\(.*\):)|misc(:|\(.*\):)|release:"
 readonly commit_message=`cat $1`
 
+validate(){
+  validate_branch
+  validate_commit_message
+}
+
 validate_commit_message(){
         if ! [[ $commit_message =~ $commit_tags ]]; then
-            invalid_message
+            invalid_commit_message
             exit 1
         fi
             log "Commit message is valid"
 }
 
-invalid_message(){
+invalid_commit_message(){
     log "Invalid commit message"
     log "Message must contain one of feat: | fix: | style: | refactor: | test: | docs: | chore: | build: | ci: | perf: | metric: | misc:
       Or with scope in parenthesis eg. feat(cli): Add new feature"
 }
 
+invalid_branch_message(){
+    log "Invalid branch"
+    log "Cannot push directly to default branch"
+}
+
+validate_branch(){
+  default=$(git remote show origin | grep 'HEAD' | cut -d':' -f2 | sed -e 's/^ *//g' -e 's/ *$//g')
+  current=$(git branch --show-current)
+        if [[ $current == $default ]]; then
+            invalid_branch_message
+            exit 1
+        fi
+}
+
+
 log() {
   echo "--> ${project_name}: $1"
 }
 
-validate_commit_message
-
+validate
