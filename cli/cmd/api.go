@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-//test 2
+//test 3
 package cmd
 
 import (
