@@ -7,7 +7,7 @@
 regex-style-search=true
 ignore=B1,B6
 
-# Ensure every title starts with a user-story identifier like US123
+# Match title prefix
 [title-match-regex]
 regex=^feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)|test(:|\(.*\):)|docs(:|\(.*\):)|chore(:|\(.*\):)|build(:|\(.*\):)|ci(:|\(.*\):)|perf(:|\(.*\):)|metric(:|\(.*\):)|misc(:|\(.*\):)|release:*
 
