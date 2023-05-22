@@ -9,7 +9,7 @@ ignore=B1,B6
 
 # Match title prefix
 [title-match-regex]
-regex=^feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)|test(:|\(.*\):)|docs(:|\(.*\):)|chore(:|\(.*\):)|build(:|\(.*\):)|ci(:|\(.*\):)|perf(:|\(.*\):)|metric(:|\(.*\):)|misc(:|\(.*\):)|release:*
+regex=^feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)|test(:|\(.*\):)|docs(:|\(.*\):)|chore(:|\(.*\):)|build(:|\(.*\):)|ci(:|\(.*\):)|perf(:|\(.*\):)|metric(:|\(.*\):)|misc(:|\(.*\):)|release:
 
 # Ignore Release commits
 [ignore-by-title]
