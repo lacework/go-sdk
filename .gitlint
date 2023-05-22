@@ -9,7 +9,7 @@ ignore=B1,B6
 
 # Ensure every title starts with a user-story identifier like US123
 [title-match-regex]
-regex="feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)|test(:|\(.*\):)|docs(:|\(.*\):)|chore(:|\(.*\):)|build(:|\(.*\):)|ci(:|\(.*\):)|perf(:|\(.*\):)|metric(:|\(.*\):)|misc(:|\(.*\):)|release:"gi
+regex=^feat(:|\(.*\):)|fix(:|\(.*\):)|style(:|\(.*\):)|refactor(:|\(.*\):)|test(:|\(.*\):)|docs(:|\(.*\):)|chore(:|\(.*\):)|build(:|\(.*\):)|ci(:|\(.*\):)|perf(:|\(.*\):)|metric(:|\(.*\):)|misc(:|\(.*\):)|release:*
 
 # Ignore Release commits
 [ignore-by-title]
