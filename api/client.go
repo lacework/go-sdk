@@ -29,6 +29,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/lacework/go-sdk/lwdomain"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -50,6 +51,7 @@ type Client struct {
 	log        *zap.Logger
 	headers    map[string]string
 	callbacks  LifecycleCallbacks
+	retries    *backoff.ExponentialBackOff
 
 	Policy *PolicyService
 
@@ -191,6 +193,15 @@ func WithTimeout(timeout time.Duration) Option {
 	})
 }
 
+// WithRetries sets the retrying policy for API requests
+func WithRetries(retries *backoff.ExponentialBackOff) Option {
+	return clientFunc(func(c *Client) error {
+		c.log.Debug("setting up retrying policy", zap.Reflect("retries", retries))
+		c.retries = retries
+		return nil
+	})
+}
+
 // WithTransport changes the default transport to increase TLSHandshakeTimeout
 func WithTransport(transport *http.Transport) Option {
 	return clientFunc(func(c *Client) error {
@@ -236,6 +247,11 @@ func WithOrgAccess() Option {
 // URL returns the base url configured
 func (c *Client) URL() string {
 	return c.baseURL.String()
+}
+
+// Retries returns the retrying policy configured
+func (c *Client) Retries() *backoff.ExponentialBackOff {
+	return c.retries
 }
 
 // ValidAuth verifies that the client has valid authentication

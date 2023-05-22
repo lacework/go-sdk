@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/cenkalti/backoff/v4"
 	"go.uber.org/zap"
 )
 
@@ -143,7 +144,15 @@ func (c *Client) RequestDecoder(method, path string, body io.Reader, v interface
 		return err
 	}
 
-	res, err := c.DoDecoder(request, v)
+	var res *http.Response
+	if c.retries != nil {
+		err = backoff.Retry(func() error {
+			res, err = c.DoDecoder(request, v)
+			return err
+		}, c.retries)
+	} else {
+		res, err = c.DoDecoder(request, v)
+	}
 	if err != nil {
 		return err
 	}
