@@ -25,6 +25,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
@@ -87,6 +88,7 @@ func TestNewClientWithOptions(t *testing.T) {
 		api.WithExpirationTime(1800),
 		api.WithApiV2(),
 		api.WithTimeout(time.Minute*5),
+		api.WithRetries(backoff.NewExponentialBackOff()),
 		api.WithLogLevel("DEBUG"),
 		api.WithHeader("User-Agent", "test-agent"),
 		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
@@ -121,6 +123,7 @@ func TestCopyClientWithOptions(t *testing.T) {
 		api.WithURL(fakeServer.URL()),
 		api.WithExpirationTime(1800),
 		api.WithTimeout(time.Minute*5),
+		api.WithRetries(backoff.NewExponentialBackOff()),
 		api.WithLogLevel("DEBUG"),
 		api.WithHeader("User-Agent", "test-agent"),
 		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
@@ -138,6 +141,7 @@ func TestCopyClientWithOptions(t *testing.T) {
 	if assert.Nil(t, err) {
 		assert.Equal(t, c.ApiVersion(), newExactClient.ApiVersion(), "copy client mismatch")
 		assert.Equal(t, c.URL(), newExactClient.URL(), "copy client mismatch")
+		assert.Equal(t, c.Retries(), newExactClient.Retries(), "copy retrying mistmatch")
 		assert.True(t, newExactClient.ValidAuth())
 	}
 
@@ -151,12 +155,14 @@ func TestCopyClientWithOptions(t *testing.T) {
 		api.WithExpirationTime(3600),
 		api.WithApiV2(),
 		api.WithTimeout(time.Minute*60), // LOL!
+		api.WithRetries(nil),
 		api.WithLogLevel("INFO"),
 		api.WithOrgAccess(),
 	)
 	if assert.Nil(t, err) {
 		assert.NotEqual(t, c.ApiVersion(), newModifiedClient.ApiVersion(), "copy modified client mismatch")
 		assert.NotEqual(t, c.URL(), newModifiedClient.URL(), "copy modified client mismatch")
+		assert.NotEqual(t, c.Retries(), newModifiedClient.Retries(), "copy modified retrying policy")
 		assert.Equal(t, "v2", newModifiedClient.ApiVersion(), "copy modified API version should be v2")
 		assert.Equal(t, "https://new.lacework.net/", newModifiedClient.URL(), "copy modified client mismatch")
 		assert.True(t, newExactClient.ValidAuth())
@@ -230,5 +236,47 @@ func TestTLSHandshakeTimeout(t *testing.T) {
 	)
 
 	_, err = clientWithTimeout.V2.AlertChannels.List()
+	assert.NoError(t, err)
+}
+
+func TestClientWithRetries(t *testing.T) {
+	fakeServer := lacework.MockUnstartedServer()
+	fakeServer.UseApiV2()
+	apiPath := "AlertChannels"
+	fakeServer.MockToken("TOKEN")
+	fakeServer.Server.StartTLS()
+	defer fakeServer.Close()
+
+	requestNumber := 0
+	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
+		requestNumber += 1
+		if requestNumber == 3 {
+			w.WriteHeader(200)
+			fmt.Fprintf(w, "{}")
+		} else {
+			w.WriteHeader(500)
+		}
+	})
+
+	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+		api.WithTransport(transport),
+	)
+
+	_, err = client.V2.AlertChannels.List()
+	assert.Error(t, err)
+
+	clientWithRetries, err := api.NewClient("test",
+		api.WithApiV2(),
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+		api.WithTransport(transport),
+		api.WithRetries(backoff.NewExponentialBackOff()),
+	)
+
+	_, err = clientWithRetries.V2.AlertChannels.List()
 	assert.NoError(t, err)
 }
