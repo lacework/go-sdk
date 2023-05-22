@@ -1,16 +1,11 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.21.0`.
+Another day, another release. These are the release notes for the version `v1.22.0`.
 
 ## Features
-* feat(cli): New Report Distributions command (#1215) (Darren)([abb31945](https://github.com/lacework/go-sdk/commit/abb31945f7937778658d6b6bb7fe5e67f16d9e1e))
-* feat: Python CDK components (#1253) (jonathan stewart)([04115007](https://github.com/lacework/go-sdk/commit/04115007ce5d02adcbbf2ac17078f9d2e7cf79b0))
-## Bug Fixes
-* fix: vuln host info counts (jon-stewart)([6740c1be](https://github.com/lacework/go-sdk/commit/6740c1be1e81068855c10aac39423759a1087b14))
-* fix(cli): Inconsistent results from host vuln show (#1279) (Salim Afiune)([dd252935](https://github.com/lacework/go-sdk/commit/dd2529354994c1addbeb63c18fd5f938161289ba))
-## Documentation Updates
-* docs(cli): remove API v1 refs and add examples (#1278) (John)([201afa07](https://github.com/lacework/go-sdk/commit/201afa07d871e5660d0e25313689e1640dcabcaf))
+* feat(api): Allow API client to be configured with a retrying policy (#1284) (Edoardo Pirovano)([8e30188e](https://github.com/lacework/go-sdk/commit/8e30188e2a4c89be03d45e2201129ece86394103))
 ## Other Changes
-* ci: version bump to v1.20.1-dev (Lacework)([0a736c62](https://github.com/lacework/go-sdk/commit/0a736c62d0ea605745e988c8dc2ab03728534f26))
+* ci: create commit-lint.yml (#1280) (Darren)([0eda5580](https://github.com/lacework/go-sdk/commit/0eda558099175ed38ecebbef0b1a0df82f84185d))
+* ci: version bump to v1.21.1-dev (Lacework)([ec77ce00](https://github.com/lacework/go-sdk/commit/ec77ce00c7eb8c66f643884a7cb1482507a93e73))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
