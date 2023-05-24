@@ -460,14 +460,12 @@ var rawListAssessments = `
 var mockIntroducedInLayerResponse = `
 {
     "paging": {
-        "rows": 5000,
-        "totalRows": 6419,
-        "urls": {
-            "nextPage": "https://example.lacework.net/api/v2/Vulnerabilities/Containers/"
-        }
+        "rows": 2,
+        "totalRows": 2,
+        "urls": { }
     },
-"data": [
-{
+    "data": [
+        {
             "evalCtx": {
                 "cve_batch_info": [
                     {
@@ -540,7 +538,8 @@ var mockIntroducedInLayerResponse = `
             "startTime": "2022-11-21T18:33:28.076Z",
             "status": "VULNERABLE",
             "vulnId": "CVE-2029-21234"
-        },{
+        },
+				{
             "evalCtx": {
                 "cve_batch_info": [
                     {
@@ -600,7 +599,7 @@ var mockIntroducedInLayerResponse = `
             "featureProps": {
                 "feed": "lacework",
                 "introduced_in": "example introduced in layer 2",
-                "layer": "sha256:sha256:572866ab72a68759e23b071fbbdce6341137c9606936b4fff9846f74997bbaac",
+                "layer": "sha256:sha256:572866ab72a68759e23b071fbbdce6341137c9606936b4fff9846f74997bbaaa",
                 "src": "var/lib/dpkg/status",
                 "version_format": "dpkg"
             },

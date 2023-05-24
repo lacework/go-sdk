@@ -167,7 +167,9 @@ func showContainerAssessmentsWithSha256(sha string) error {
 			before = now.AddDate(0, 0, -7) // 7 days from ago
 		)
 
-		cli.StartProgress("Fetching assessment...")
+		cli.StartProgress(
+			fmt.Sprintf("Fetching assessment from container evaluation '%s'...", evalGUID),
+		)
 		assessment, err = cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(api.SearchFilter{
 			TimeFilter: &api.TimeFilter{
 				StartTime: &before,
@@ -190,6 +192,9 @@ func showContainerAssessmentsWithSha256(sha string) error {
 		cli.Log.Infow("assessment loaded from cache", "data_points", len(assessment.Data))
 	}
 
+	filterContainerAssessmentByVulnerable(&assessment)
+	cli.Log.Infow("filtered assessment (status = vulnerable)", "data_points", len(assessment.Data))
+
 	if vulCmdState.Cve != "" {
 		return outputContainerVulnerabilityAssessmentCve(assessment)
 	}
@@ -198,7 +203,6 @@ func showContainerAssessmentsWithSha256(sha string) error {
 }
 
 func outputContainerVulnerabilityAssessmentCve(assessment api.VulnerabilitiesContainersResponse) error {
-	filterContainerAssessmentByVulnerable(&assessment)
 	if len(assessment.Data) == 0 {
 		cli.OutputHuman("unable to find results for cve '%s'\n", vulCmdState.Cve)
 		return nil
@@ -227,9 +231,6 @@ func filterContainerAssessmentByVulnerable(assessment *api.VulnerabilitiesContai
 }
 
 func outputContainerVulnerabilityAssessment(assessment api.VulnerabilitiesContainersResponse) error {
-	filterContainerAssessmentByVulnerable(&assessment)
-
-	cli.Log.Debugw("filtered image assessment", "details", assessment)
 	if err := buildVulnContainerAssessmentReports(assessment); err != nil {
 		return err
 	}
@@ -267,6 +268,8 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 		return nil
 	}
 
+	summaryReport := buildVulnerabilitySummaryReportTable(response)
+
 	var details vulnerabilityDetailsReport
 	details.VulnerabilityDetails = filterVulnerabilityContainer(assessment)
 	response.Data = details.VulnerabilityDetails.Filtered
@@ -275,31 +278,29 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 
 	switch {
 	case cli.JSONOutput():
-		if err := cli.OutputJSON(assessment); err != nil {
-			return err
-		}
+		return cli.OutputJSON(response.Data)
 	case cli.CSVOutput():
 		if !(vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled()) {
 			return nil
 		}
 
 		if vulCmdState.Packages {
-			if err := cli.OutputCSV([]string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version"},
-				vulContainerImagePackagesToTable(details.Packages)); err != nil {
-				return err
-			}
+			return cli.OutputCSV([]string{
+				"CVE Count", "Severity", "Package", "Current Version", "Fix Version"},
+				vulContainerImagePackagesToTable(details.Packages))
 		}
 
-		if err := cli.OutputCSV([]string{"CVE ID", "Severity", "CVSSv2", "CVSSv3", "Package", "Current Version",
-			"Fix Version", "Version Format", "Feed", "Src", "Start Time", "Status", "Namespace", "Image Digest",
-			"Image ID", "Image Repo", "Image Registry", "Image Size", "Introduced in Layer"},
-			vulContainerImageLayersToCSV(assessment)); err != nil {
-			return err
-		}
+		return cli.OutputCSV([]string{
+			"CVE ID", "Severity", "CVSSv2", "CVSSv3", "Package", "Current Version",
+			"Fix Version", "Version Format", "Feed", "Src", "Start Time", "Status",
+			"Namespace", "Image Digest", "Image ID", "Image Repo", "Image Registry",
+			"Image Size", "Introduced in Layer"},
+			vulContainerImageLayersToCSV(response.Data))
 	default:
 		if len(response.Data) == 0 {
 			if vulCmdState.Severity != "" {
-				cli.OutputHuman("There are no vulnerabilities found for this severity")
+				cli.OutputHuman("There are no vulnerabilities found for this severity\n")
+				return nil
 			}
 
 			cli.OutputHuman(
@@ -309,7 +310,6 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 			return nil
 		}
 
-		summaryReport := buildVulnerabilitySummaryReportTable(response)
 		detailsReport := buildVulnerabilityDetailsReportTable(details)
 		cli.OutputHuman(buildVulnContainerAssessmentReportTable(summaryReport, detailsReport))
 		if vulCmdState.Html {
@@ -398,7 +398,8 @@ func buildVulnerabilityDetailsReportTable(details vulnerabilityDetailsReport) st
 			)
 
 			if vulFiltersEnabled() {
-				filteredOutput := fmt.Sprintf("%v of %v packages showing \n", details.Packages.totalPackages, details.Packages.totalUnfiltered)
+				filteredOutput := fmt.Sprintf("%v of %v packages showing \n",
+					details.Packages.totalPackages, details.Packages.totalUnfiltered)
 				report.WriteString(filteredOutput)
 			}
 		} else {
@@ -472,8 +473,17 @@ func buildVulnerabilitySummaryReportTable(response api.VulnerabilitiesContainers
 func filterVulnContainerImagePackages(image []api.VulnerabilityContainer) filteredPackageTable {
 	var filteredPackages []packageTable
 	var aggregatedPackages []packageTable
+	var (
+		vulnKey  string
+		vulnKeys = []string{}
+	)
 
 	for _, i := range image {
+		vulnKey = fmt.Sprintf("%s-%s-%s", i.VulnID, i.FeatureKey.Name, i.FeatureKey.Version)
+		if array.ContainsStr(vulnKeys, vulnKey) {
+			continue
+		}
+		vulnKeys = append(vulnKeys, vulnKey)
 		pack := packageTable{
 			cveCount:       1,
 			severity:       cases.Title(language.English).String(i.Severity),
@@ -488,7 +498,7 @@ func filterVulnContainerImagePackages(image []api.VulnerabilityContainer) filter
 			continue
 		}
 
-		//filter severity
+		// filter severity
 		if vulCmdState.Severity != "" {
 			if filterSeverity(i.Severity, vulCmdState.Severity) {
 				filteredPackages = aggregatePackages(filteredPackages, pack)
@@ -531,8 +541,11 @@ func vulContainerImagePackagesToTable(packageTable filteredPackageTable) [][]str
 		})
 	}
 
-	// order by severity
+	// order by severity and package name
 	sort.Slice(out, func(i, j int) bool {
+		if api.SeverityOrder(out[i][1]) == api.SeverityOrder(out[j][1]) {
+			return out[i][2] < out[j][2]
+		}
 		return api.SeverityOrder(out[i][1]) < api.SeverityOrder(out[j][1])
 	})
 
@@ -550,7 +563,7 @@ func filterVulnerabilityContainer(image []api.VulnerabilityContainer) filteredIm
 	)
 
 	for _, i := range image {
-		vulnKey := fmt.Sprintf("%s-%s", i.VulnID, i.FeatureKey.Name)
+		vulnKey := fmt.Sprintf("%s-%s-%s", i.VulnID, i.FeatureKey.Name, i.FeatureKey.Version)
 		vulnIDs = append(vulnIDs, vulnKey)
 		// filter: severity
 		if vulCmdState.Severity != "" {
@@ -587,8 +600,9 @@ func filterVulnerabilityContainer(image []api.VulnerabilityContainer) filteredIm
 				CVSSv2Score: 0,
 				Status:      i.Status,
 			}
-			filtered = append(filtered, i)
 		}
+
+		filtered = append(filtered, i)
 	}
 
 	// Set the aggregated introduced by layers for each vuln
@@ -639,6 +653,9 @@ func vulContainerImageLayersToCSV(assessment []api.VulnerabilityContainer) [][]s
 	}
 
 	sort.Slice(out, func(i, j int) bool {
+		if api.SeverityOrder(out[i][1]) == api.SeverityOrder(out[j][1]) {
+			return out[i][4] < out[j][4]
+		}
 		return api.SeverityOrder(out[i][1]) < api.SeverityOrder(out[j][1])
 	})
 
@@ -672,6 +689,9 @@ func vulContainerImageLayersToTable(imageTable filteredImageTable) [][]string {
 	}
 
 	sort.Slice(out, func(i, j int) bool {
+		if api.SeverityOrder(out[i][1]) == api.SeverityOrder(out[j][1]) {
+			return out[i][2] < out[j][2]
+		}
 		return api.SeverityOrder(out[i][1]) < api.SeverityOrder(out[j][1])
 	})
 

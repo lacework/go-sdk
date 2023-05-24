@@ -250,17 +250,10 @@ func buildVulnHostsDetailsTableCSV(filteredCves map[string]VulnCveSummary) ([]st
 
 	if vulCmdState.Packages {
 		packages, _ := hostVulnPackagesTable(filteredCves, false)
-		sort.Slice(packages, func(i, j int) bool {
-			return api.SeverityOrder(packages[i][1]) < api.SeverityOrder(packages[j][1])
-		})
-		// order by cve count
 		return []string{"CVE Count", "Severity", "Package", "Current Version", "Fix Version", "Pkg Status"}, packages
 	}
 
 	rows := hostVulnCVEsTableForHostViewCSV(filteredCves)
-	sort.Slice(rows, func(i, j int) bool {
-		return api.SeverityOrder(rows[i][1]) < api.SeverityOrder(rows[j][1])
-	})
 	return []string{"CVE ID", "Severity", "Score", "Package", "Package Namespace", "Current Version",
 		"Fix Version", "Pkg Status", "First Seen", "Last Status Update", "Vuln Status"}, rows
 }
@@ -271,9 +264,6 @@ func buildVulnHostsDetailsTable(filteredCves map[string]VulnCveSummary) string {
 	if showPackages() {
 		if vulCmdState.Packages {
 			packages, filtered := hostVulnPackagesTable(filteredCves, false)
-			sort.Slice(packages, func(i, j int) bool {
-				return api.SeverityOrder(packages[i][1]) < api.SeverityOrder(packages[j][1])
-			})
 			// if the user wants to show only vulnerabilities of active packages
 			// and we don't have any, show a friendly message
 			if len(packages) == 0 {
@@ -291,9 +281,6 @@ func buildVulnHostsDetailsTable(filteredCves map[string]VulnCveSummary) string {
 			}
 		} else {
 			rows := hostVulnCVEsTableForHostView(filteredCves)
-			sort.Slice(rows, func(i, j int) bool {
-				return api.SeverityOrder(rows[i][1]) < api.SeverityOrder(rows[j][1])
-			})
 			// if the user wants to show only vulnerabilities of active packages
 			// and we don't have any, show a friendly message
 			if len(rows) == 0 {
@@ -422,8 +409,11 @@ func hostVulnCVEsTableForHostViewCSV(cves map[string]VulnCveSummary) [][]string 
 		})
 	}
 
-	// order by severity
+	// order by severity and package name
 	sort.Slice(out, func(i, j int) bool {
+		if api.SeverityOrder(out[i][1]) == api.SeverityOrder(out[j][1]) {
+			return out[i][4] < out[j][4]
+		}
 		return api.SeverityOrder(out[i][1]) < api.SeverityOrder(out[j][1])
 	})
 
@@ -455,8 +445,11 @@ func hostVulnCVEsTableForHostView(summary map[string]VulnCveSummary) [][]string 
 		})
 	}
 
-	// order by severity
+	// order by severity and by package name
 	sort.Slice(out, func(i, j int) bool {
+		if api.SeverityOrder(out[i][1]) == api.SeverityOrder(out[j][1]) {
+			return api.SeverityOrder(out[i][4]) < api.SeverityOrder(out[j][4])
+		}
 		return api.SeverityOrder(out[i][1]) < api.SeverityOrder(out[j][1])
 	})
 
@@ -533,8 +526,19 @@ func hostVulnPackagesTable(cves map[string]VulnCveSummary, withHosts bool) ([][]
 		out = append(out, output)
 	}
 
+	// order by severity and by package name
+	sort.Slice(out, func(i, j int) bool {
+		if api.SeverityOrder(out[i][1]) == api.SeverityOrder(out[j][1]) {
+			return out[i][2] < out[j][2]
+		}
+		return api.SeverityOrder(out[i][1]) < api.SeverityOrder(out[j][1])
+	})
+
 	if len(filteredPackages) > 0 {
-		filteredOutput := fmt.Sprintf("%d of %d package(s) showing\n", len(out), len(aggregatedPackages)+len(filteredPackages))
+		filteredOutput := fmt.Sprintf(
+			"%d of %d package(s) showing\n",
+			len(out), len(aggregatedPackages)+len(filteredPackages),
+		)
 		return out, filteredOutput
 	}
 
