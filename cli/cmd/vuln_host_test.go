@@ -158,9 +158,9 @@ func TestBuildVulnHostReportsWithVulnerabilitiesPackagesViewAndNoFilters(t *test
   1           Low        python3.6                          1:2017.3.23-2ubuntu0.18.04.2   3.6.9-1~18.04ubuntu1.8                     
   1           Low        open-iscsi                         1:2017.3.23-2ubuntu0.18.04.2                                              
   1           Low        bash                               1:2017.3.23-2ubuntu0.18.04.2   4.4.18-2ubuntu1.3              ACTIVE      
-  1           Info       libfribidi0                        1:2017.3.23-2ubuntu0.18.04.2                                              
-  1           Info       dirmngr                            1:2017.3.23-2ubuntu0.18.04.2                                              
   1           Info       linux-aws-5.4-headers-5.4.0-1049   1:2017.3.23-2ubuntu0.18.04.2                                              
+  1           Info       dirmngr                            1:2017.3.23-2ubuntu0.18.04.2                                              
+  1           Info       libfribidi0                        1:2017.3.23-2ubuntu0.18.04.2                                              
   1           Info       lsb-release                        1:2017.3.23-2ubuntu0.18.04.2                                              
   1           Info       libnuma1                           1:2017.3.23-2ubuntu0.18.04.2                                              
   1           Info       libpython3.6-minimal               1:2017.3.23-2ubuntu0.18.04.2                                              
@@ -383,9 +383,9 @@ CVE Count,Severity,Package,Current Version,Fix Version,Pkg Status
 1,Low,python3.6,1:2017.3.23-2ubuntu0.18.04.2,3.6.9-1~18.04ubuntu1.8,
 1,Low,open-iscsi,1:2017.3.23-2ubuntu0.18.04.2,,
 1,Low,bash,1:2017.3.23-2ubuntu0.18.04.2,4.4.18-2ubuntu1.3,ACTIVE
-1,Info,libfribidi0,1:2017.3.23-2ubuntu0.18.04.2,,
-1,Info,dirmngr,1:2017.3.23-2ubuntu0.18.04.2,,
 1,Info,linux-aws-5.4-headers-5.4.0-1049,1:2017.3.23-2ubuntu0.18.04.2,,
+1,Info,dirmngr,1:2017.3.23-2ubuntu0.18.04.2,,
+1,Info,libfribidi0,1:2017.3.23-2ubuntu0.18.04.2,,
 1,Info,lsb-release,1:2017.3.23-2ubuntu0.18.04.2,,
 1,Info,libnuma1,1:2017.3.23-2ubuntu0.18.04.2,,
 1,Info,libpython3.6-minimal,1:2017.3.23-2ubuntu0.18.04.2,,
@@ -1591,14 +1591,14 @@ CVE-2019-18276,Low,7.2,7.8,bash,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,4.4.18
 CVE-2022-2129,Low,6.8,7.8,vim,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2022-07-20 03:00:00 +0000 UTC,2022-07-21 03:00:00 +0000 UTC,
 CVE-2020-13988,Low,5.0,7.5,open-iscsi,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2021-01-23 03:00:00 +0000 UTC,2021-01-24 03:00:00 +0000 UTC,
 CVE-2015-20107,Low,10.0,9.8,python3.6,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,3.6.9-1~18.04ubuntu1.8,,2022-04-16 03:00:00 +0000 UTC,2022-04-17 03:00:00 +0000 UTC,
-CVE-13,Info,0.0,0.0,lsb-release,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
-CVE-2,Info,0.0,0.0,dirmngr,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
 CVE-14,Info,0.0,0.0,linux-aws-5.4-headers-5.4.0-1049,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
+CVE-3,Info,0.0,0.0,libpsl5,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
 CVE-1,Info,0.0,0.0,libfribidi0,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
+CVE-13,Info,0.0,0.0,lsb-release,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
 CVE-12,Info,0.0,0.0,libnuma1,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
 CVE-11,Info,0.0,0.0,libpython3.6-minimal,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
 CVE-10,Info,0.0,0.0,linux-aws-5.4-headers-5.4.0-1039,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
-CVE-3,Info,0.0,0.0,libpsl5,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
+CVE-2,Info,0.0,0.0,dirmngr,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
 CVE-4,Info,0.0,0.0,publicsuffix,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
 CVE-5,Info,0.0,0.0,vim,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
 CVE-6,Info,0.0,0.0,libpython3.6,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,,,
