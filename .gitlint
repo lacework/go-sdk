@@ -5,7 +5,7 @@
 
 [general]
 regex-style-search=true
-ignore=B1,B6
+ignore=B1,B6,B3
 
 # Match title prefix
 [title-match-regex]

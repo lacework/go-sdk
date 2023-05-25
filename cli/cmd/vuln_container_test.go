@@ -119,10 +119,12 @@ CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,dpkg,lacework,var/
 
 func TestBuildVulnCtrReportWithIntroducedInLayerCSV(t *testing.T) {
 	cli.EnableCSVOutput()
+	// enable first details view
 	vulCmdState.Details = true
 	defer func() {
 		cli.csvOutput = false
 		vulCmdState.Details = false
+		vulCmdState.Packages = false
 	}()
 
 	var response api.VulnerabilitiesContainersResponse
@@ -136,6 +138,18 @@ func TestBuildVulnCtrReportWithIntroducedInLayerCSV(t *testing.T) {
 	expected := `CVE ID,Severity,CVSSv2,CVSSv3,Package,Current Version,Fix Version,Version Format,Feed,Src,Start Time,Status,Namespace,Image Digest,Image ID,Image Repo,Image Registry,Image Size,Introduced in Layer
 CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,dpkg,lacework,var/lib/dpkg/status,2022-11-21T18:33:28Z,debian:9,sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a,techally-test/test-cli,index.docker.io,360608563,example introduced in layer 1
 CVE-2029-21234,Medium,0.0,0.0,example-1,1.0.0,2.2.0-11+deb9u4,dpkg,lacework,var/lib/dpkg/status,2022-11-21T18:33:28Z,debian:9,sha256:a65572164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48,sha256:77b2d2246518044ef95e3dbd029e51dd477788e5bf8e278e418685aabc3fe28a,techally-test/test-cli,index.docker.io,360608563,example introduced in layer 2
+`
+	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
+
+	// enable then packages view
+	vulCmdState.Packages = true
+
+	cliOutput = capturer.CaptureOutput(func() {
+		assert.Nil(t, buildVulnContainerAssessmentReports(response))
+	})
+
+	expected = `CVE Count,Severity,Package,Current Version,Fix Version
+1,Medium,example-1,1.0.0,2.2.0-11+deb9u4
 `
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), cliOutput)
 }
@@ -446,14 +460,12 @@ var rawListAssessments = `
 var mockIntroducedInLayerResponse = `
 {
     "paging": {
-        "rows": 5000,
-        "totalRows": 6419,
-        "urls": {
-            "nextPage": "https://example.lacework.net/api/v2/Vulnerabilities/Containers/"
-        }
+        "rows": 2,
+        "totalRows": 2,
+        "urls": { }
     },
-"data": [
-{
+    "data": [
+        {
             "evalCtx": {
                 "cve_batch_info": [
                     {
@@ -526,7 +538,8 @@ var mockIntroducedInLayerResponse = `
             "startTime": "2022-11-21T18:33:28.076Z",
             "status": "VULNERABLE",
             "vulnId": "CVE-2029-21234"
-        },{
+        },
+				{
             "evalCtx": {
                 "cve_batch_info": [
                     {
@@ -586,7 +599,7 @@ var mockIntroducedInLayerResponse = `
             "featureProps": {
                 "feed": "lacework",
                 "introduced_in": "example introduced in layer 2",
-                "layer": "sha256:sha256:572866ab72a68759e23b071fbbdce6341137c9606936b4fff9846f74997bbaac",
+                "layer": "sha256:sha256:572866ab72a68759e23b071fbbdce6341137c9606936b4fff9846f74997bbaaa",
                 "src": "var/lib/dpkg/status",
                 "version_format": "dpkg"
             },
