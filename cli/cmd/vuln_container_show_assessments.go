@@ -195,43 +195,7 @@ func showContainerAssessmentsWithSha256(sha string) error {
 	filterContainerAssessmentByVulnerable(&assessment)
 	cli.Log.Infow("filtered assessment (status = vulnerable)", "data_points", len(assessment.Data))
 
-	if vulCmdState.Cve != "" {
-		return outputContainerVulnerabilityAssessmentCve(assessment)
-	}
-
-	return outputContainerVulnerabilityAssessment(assessment)
-}
-
-func outputContainerVulnerabilityAssessmentCve(assessment api.VulnerabilitiesContainersResponse) error {
-	if len(assessment.Data) == 0 {
-		cli.OutputHuman("unable to find results for cve '%s'\n", vulCmdState.Cve)
-		return nil
-	}
-	assessment.FilterSingleVulnIDData(vulCmdState.Cve)
-
-	if cli.JSONOutput() {
-		return cli.OutputJSON(assessment.Data)
-	}
-
-	var details vulnerabilityDetailsReport
-	details.VulnerabilityDetails = filterVulnerabilityContainer(assessment.Data)
-
-	cli.OutputHuman(buildVulnerabilitySingleCveReportTable(details))
-	return nil
-}
-
-func filterContainerAssessmentByVulnerable(assessment *api.VulnerabilitiesContainersResponse) {
-	var vulnerabilities []api.VulnerabilityContainer
-	for _, a := range assessment.Data {
-		if a.Status == "VULNERABLE" {
-			vulnerabilities = append(vulnerabilities, a)
-		}
-	}
-	assessment.Data = vulnerabilities
-}
-
-func outputContainerVulnerabilityAssessment(assessment api.VulnerabilitiesContainersResponse) error {
-	if err := buildVulnContainerAssessmentReports(assessment); err != nil {
+	if err := outputContainerVulnerabilityAssessment(assessment); err != nil {
 		return err
 	}
 
@@ -253,10 +217,37 @@ func outputContainerVulnerabilityAssessment(assessment api.VulnerabilitiesContai
 	return nil
 }
 
-// Build the cli output for vuln ctr 'show-assessment' command
-func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersResponse) error {
-	assessment := response.Data
-	if len(assessment) == 0 {
+func buildVulnContainerAssessmentCve(assessment api.VulnerabilitiesContainersResponse) error {
+	assessment.FilterSingleVulnIDData(vulCmdState.Cve)
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(assessment.Data)
+	}
+
+	if len(assessment.Data) == 0 {
+		cli.OutputHuman("Unable to find results for '%s'\n", vulCmdState.Cve)
+		return nil
+	}
+
+	var details vulnerabilityDetailsReport
+	details.VulnerabilityDetails = filterVulnerabilityContainer(assessment.Data)
+
+	cli.OutputHuman(buildVulnerabilitySingleCveReportTable(details))
+	return nil
+}
+
+func filterContainerAssessmentByVulnerable(assessment *api.VulnerabilitiesContainersResponse) {
+	var vulnerabilities []api.VulnerabilityContainer
+	for _, a := range assessment.Data {
+		if a.Status == "VULNERABLE" {
+			vulnerabilities = append(vulnerabilities, a)
+		}
+	}
+	assessment.Data = vulnerabilities
+}
+
+func outputContainerVulnerabilityAssessment(assessment api.VulnerabilitiesContainersResponse) error {
+	if len(assessment.Data) == 0 {
 		if cli.JSONOutput() {
 			// if no assessments are found return empty array
 			return cli.OutputJSON([]any{})
@@ -268,17 +259,35 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 		return nil
 	}
 
-	summaryReport := buildVulnerabilitySummaryReportTable(response)
+	if vulCmdState.Cve != "" {
+		if err := buildVulnContainerAssessmentCve(assessment); err != nil {
+			return err
+		}
+	} else {
+		if err := buildVulnContainerAssessmentReports(assessment); err != nil {
+			return err
+		}
+	}
 
-	var details vulnerabilityDetailsReport
-	details.VulnerabilityDetails = filterVulnerabilityContainer(assessment)
-	response.Data = details.VulnerabilityDetails.Filtered
+	return nil
+}
+
+// Build the cli output for vuln ctr 'show-assessment' command
+func buildVulnContainerAssessmentReports(assessment api.VulnerabilitiesContainersResponse) error {
+	var (
+		filteredAssessment = assessment
+		summaryReport      = buildVulnerabilitySummaryReportTable(assessment)
+		details            vulnerabilityDetailsReport
+	)
+
+	details.VulnerabilityDetails = filterVulnerabilityContainer(assessment.Data)
+	filteredAssessment.Data = details.VulnerabilityDetails.Filtered
 	details.Packages = filterVulnContainerImagePackages(details.VulnerabilityDetails.Filtered)
-	details.Packages.totalUnfiltered = countVulnContainerImagePackages(assessment)
+	details.Packages.totalUnfiltered = countVulnContainerImagePackages(assessment.Data)
 
 	switch {
 	case cli.JSONOutput():
-		return cli.OutputJSON(response.Data)
+		return cli.OutputJSON(filteredAssessment.Data)
 	case cli.CSVOutput():
 		if !(vulCmdState.Details || vulCmdState.Packages || vulFiltersEnabled()) {
 			return nil
@@ -295,9 +304,9 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 			"Fix Version", "Version Format", "Feed", "Src", "Start Time", "Status",
 			"Namespace", "Image Digest", "Image ID", "Image Repo", "Image Registry",
 			"Image Size", "Introduced in Layer"},
-			vulContainerImageLayersToCSV(response.Data))
+			vulContainerImageLayersToCSV(filteredAssessment.Data))
 	default:
-		if len(response.Data) == 0 {
+		if len(filteredAssessment.Data) == 0 {
 			if vulCmdState.Severity != "" {
 				cli.OutputHuman("There are no vulnerabilities found for this severity\n")
 				return nil
@@ -313,7 +322,7 @@ func buildVulnContainerAssessmentReports(response api.VulnerabilitiesContainersR
 		detailsReport := buildVulnerabilityDetailsReportTable(details)
 		cli.OutputHuman(buildVulnContainerAssessmentReportTable(summaryReport, detailsReport))
 		if vulCmdState.Html {
-			if err := generateVulnAssessmentHTML(response); err != nil {
+			if err := generateVulnAssessmentHTML(filteredAssessment); err != nil {
 				return err
 			}
 		}

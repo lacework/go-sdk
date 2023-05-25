@@ -172,7 +172,7 @@ type VulnerabilitiesContainersResponse struct {
 }
 
 func (r *VulnerabilitiesContainersResponse) FilterSingleVulnIDData(vulnID string) {
-	var singleVulnData []VulnerabilityContainer
+	var singleVulnData = make([]VulnerabilityContainer, 0)
 	for _, vuln := range r.Data {
 		if vuln.VulnID == vulnID {
 			singleVulnData = append(singleVulnData, vuln)

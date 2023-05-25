@@ -80,6 +80,18 @@ func TestV2Vulnerabilities_Hosts_SearchAllPages_EmptyData(t *testing.T) {
 	assert.Equal(t, 0, len(response.Data))
 }
 
+func TestV2VulnerabilitiesFilterSingleVulnIDNotFound(t *testing.T) {
+	var (
+		response api.VulnerabilitiesContainersResponse
+		vulnID   = "CVE-Not-Found"
+	)
+
+	json.Unmarshal([]byte(mockVulnerabilitiesContainersResponse()), &response)
+	response.FilterSingleVulnIDData(vulnID)
+
+	assert.Empty(t, response.Data)
+}
+
 func TestV2VulnerabilitiesFilterSingleVulnID(t *testing.T) {
 	var (
 		response api.VulnerabilitiesContainersResponse
