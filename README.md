@@ -176,7 +176,7 @@ import (
 )
 
 func main() {
-	domain, err := lwdomain.New("https://account.fra.lacework.net")
+	domain, err := lwdomain.New("https://account.lacework.net")
 	if err != nil {
 		fmt.Printf("Error %s\n", err)
 		os.Exit(1)

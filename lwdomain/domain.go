@@ -39,7 +39,7 @@ type domain struct {
 //
 // For instance, the following URL:
 // ```
-// d, err := lwdomain.New("https://account.fra.lacework.net")
+// d, err := lwdomain.New("https://account.lacework.net")
 // ```
 // Would be disseminated into:
 // * `account` as the account name

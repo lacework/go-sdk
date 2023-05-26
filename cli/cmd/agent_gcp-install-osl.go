@@ -122,7 +122,7 @@ func init() {
 	agentInstallGCPOSLCmd.Flags().StringVar(
 		&agentCmdState.InstallServerURL,
 		"server_url",
-		"https://api.lacework.net",
+		"https://agent.lacework.net",
 		"server URL that agents will talk to, prefixed with `https://`",
 	)
 }

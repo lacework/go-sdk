@@ -146,7 +146,7 @@ func init() {
 		"set this flag to force-reinstall the agent, even if already running on the target instance",
 	)
 	agentInstallAWSSSMCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
-		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
+		"server_url", "https://agent.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
 	)
 	agentInstallAWSSSMCmd.Flags().StringVar(&agentCmdState.InstallAWSProfile,
 		"credential_profile", "default", "AWS credential profile to use",

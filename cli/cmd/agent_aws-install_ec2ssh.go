@@ -123,7 +123,7 @@ func init() {
 		"maximum number of workers executing AWS API calls, set if rate limits are lower or higher than normal",
 	)
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
-		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
+		"server_url", "https://agent.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
 	)
 	agentInstallAWSSSHCmd.Flags().StringVar(&agentCmdState.InstallAWSProfile,
 		"credential_profile", "default", "AWS credential profile to use",

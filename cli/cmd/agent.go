@@ -251,7 +251,7 @@ func init() {
 		"trust_host_key", false, "automatically add host keys to the ~/.ssh/known_hosts file",
 	)
 	agentInstallCmd.Flags().StringVar(&agentCmdState.InstallServerURL,
-		"server_url", "https://api.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
+		"server_url", "https://agent.lacework.net", "server URL that agents will talk to, prefixed with `https://`",
 	)
 }
 
