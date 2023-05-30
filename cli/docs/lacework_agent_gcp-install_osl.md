@@ -61,7 +61,7 @@ lacework agent gcp-install osl [flags]
       --metadata strings          only install agents on infra with this metadata
       --metadata_key string       only install agents on infra with this metadata key set
       --project_id string         ID of the GCP project, set if metadata server does not provide
-      --server_url https://       server URL that agents will talk to, prefixed with https:// (default "https://api.lacework.net")
+      --server_url https://       server URL that agents will talk to, prefixed with https:// (default "https://agent.lacework.net")
       --token string              agent access token
       --trust_host_key            automatically add host keys to the ~/.ssh/known_hosts file (default true)
 ```

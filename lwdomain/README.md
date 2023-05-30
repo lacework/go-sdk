@@ -17,9 +17,8 @@ import "github.com/lacework/go-sdk/lwdomain"
 
 ## Examples
 
-The following URL `https://account.fra.lacework.net` would be disseminated into:
+The following URL `https://account.lacework.net` would be disseminated into:
 * `account` as the account name
-* `fra` as the cluster name
 
 ```go
 package main
@@ -32,7 +31,7 @@ import (
 )
 
 func main() {
-	domain, err := lwdomain.New("https://account.fra.lacework.net")
+	domain, err := lwdomain.New("https://account.lacework.net")
 	if err != nil {
 		fmt.Printf("Error %s\n", err)
 		os.Exit(1)

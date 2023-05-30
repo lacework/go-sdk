@@ -64,8 +64,8 @@ func TestConfigureCommandForFrankfurtDatacenter(t *testing.T) {
 		func(c *expect.Console) {
 			expectString(t, c, "Account:")
 			// if the full URL was provided we transform it and inform the user
-			c.SendLine("my-account-in.fra.lacework.net")
-			expectString(t, c, "Passing full 'lacework.net' domain not required. Using 'my-account-in.fra'")
+			c.SendLine("my-account-in.lacework.net")
+			expectString(t, c, "Passing full 'lacework.net' domain not required. Using 'my-account-in'")
 			expectString(t, c, "Access Key ID:")
 			c.SendLine("FRANK_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC0011")
 			expectString(t, c, "Secret Access Key:")
@@ -75,7 +75,7 @@ func TestConfigureCommandForFrankfurtDatacenter(t *testing.T) {
 		"configure",
 	)
 	assert.Equal(t, `[default]
-  account = "my-account-in.fra"
+  account = "my-account-in"
   api_key = "FRANK_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC0011"
   api_secret = "_00000000000000000000000000000000"
   version = 2
