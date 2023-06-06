@@ -38,7 +38,7 @@ type relativeDate struct {
 
 // The potential difference between the clocks on the client
 // and the Lacework API server
-const clockOffset = "-2s"
+const clockOffset = "+0s"
 
 // Returns 'now' with the default or the provided clock offset
 func nowClockOffset() string {

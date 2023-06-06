@@ -162,8 +162,8 @@ var newRelativeTests = []newRelativeTest{
 		"now",
 		"now",
 		relative{
-			"-2",
-			-2,
+			"0",
+			0,
 			relativeUnit("s"),
 			relativeUnit(""),
 		},
@@ -302,7 +302,7 @@ var RelativeTimeTests = []RelativeTimeTest{
 		"2006-02-02T15:04:05-07:00",
 		time.RFC3339,
 		"now",
-		"2006-02-02T15:04:03-07:00",
+		"2006-02-02T15:04:05-07:00",
 		nil,
 	},
 	RelativeTimeTest{
