@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -34,6 +36,12 @@ var (
 		Long: `Post a user comment on an alert's timeline .
 
 Comments may be provided inline or via editor.
+
+The following comment formats are allowed:
+  * plaintext
+  * markdown
+
+Note: only markdown comments will be rendered using markdown.
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: commentAlert,
@@ -49,6 +57,28 @@ func init() {
 		"comment", "c", "",
 		"a comment to add to the alert",
 	)
+
+	// format flag
+	alertCommentCmd.Flags().StringVarP(
+		&alertCmdState.Format,
+		"format", "f", "",
+		"the format of the comment (default plaintext)",
+	)
+}
+
+func inputFormat() (format string, err error) {
+	if alertCmdState.Format != "" {
+		format = alertCmdState.Format
+		return
+	}
+
+	prompt := &survey.Select{
+		Message: "Format:",
+		Options: api.AlertCommentFormats.GetOrderedFormatStrings(),
+	}
+	err = survey.AskOne(prompt, &format)
+
+	return
 }
 
 func commentAlert(_ *cobra.Command, args []string) error {
@@ -74,8 +104,14 @@ func commentAlert(_ *cobra.Command, args []string) error {
 		return errors.Wrap(err, "unable to process alert comment")
 	}
 
+	format, err := inputFormat()
+	if err != nil {
+		return errors.Wrap(err, "unable to process alert comment format")
+	}
+
 	cli.StartProgress(" Adding alert comment...")
-	commentResponse, err := cli.LwApi.V2.Alerts.Comment(id, comment)
+	commentResponse, err := cli.LwApi.V2.Alerts.CommentFromRequest(id,
+		api.AlertsCommentRequest{Comment: comment, Format: format})
 	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to add alert comment")

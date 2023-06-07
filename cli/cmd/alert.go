@@ -40,6 +40,7 @@ type alertCmdStateType struct {
 	Status   string
 	Start    string
 	Type     string
+	Format   string
 }
 
 // hasFilters returns true if certain filters are present
