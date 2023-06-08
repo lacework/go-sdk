@@ -51,7 +51,7 @@ func renderAlertTimelineBox(b box.Box, timeline api.AlertTimeline) {
 }
 
 func renderAlertTimelineBoxes(timelines []api.AlertTimeline) {
-	timelineBox := box.New(box.Config{Px: 2, Py: 5, Type: "Single", Color: "Cyan", TitlePos: "Top"})
+	timelineBox := box.New(box.Config{Px: 2, Py: 2, Type: "Single", Color: "Cyan", TitlePos: "Top"})
 
 	for _, t := range timelines {
 		renderAlertTimelineBox(timelineBox, t)
