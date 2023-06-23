@@ -278,6 +278,7 @@ func promptCreateCloudAccount() error {
 				"GCP Audit Log PubSub",
 				"Azure Config",
 				"Azure Activity Log",
+				"OCI Config",
 			},
 		}
 		err = survey.AskOne(prompt, &cloudAccount)
@@ -305,6 +306,8 @@ func promptCreateCloudAccount() error {
 		return createAzureConfigIntegration()
 	case "Azure Activity Log":
 		return createAzureActivityLogIntegration()
+	case "OCI Config":
+		return createOciConfigIntegration()
 	default:
 		return errors.New("unknown cloud account type")
 	}
