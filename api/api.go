@@ -129,6 +129,17 @@ const (
 	apiRecommendations = "v2/recommendations/%s"
 )
 
+// WithApiV2 configures the client to use the API version 2 (/api/v2)
+// for common API endpoints
+//
+// (no-op) DEPRECATED
+func WithApiV2() Option {
+	return clientFunc(func(c *Client) error {
+		c.log.Warn("WithApiV2() has been deprecated, all clients now default to APIv2")
+		return nil
+	})
+}
+
 // ApiVersion returns the API client version
 func (c *Client) ApiVersion() string {
 	return c.apiVersion
