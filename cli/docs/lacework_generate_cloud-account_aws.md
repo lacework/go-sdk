@@ -52,7 +52,6 @@ lacework generate cloud-account aws [flags]
       --existing_iam_role_externalid string   specify existing iam role external_id to use
       --existing_iam_role_name string         specify existing iam role name to use
       --existing_sns_topic_arn string         specify existing SNS topic arn
-      --force_destroy_s3                      enable force destroy S3 bucket
   -h, --help                                  help for aws
       --lacework_aws_account_id string        the Lacework AWS root account id
       --output string                         location to write generated content (default is ~/lacework/aws)
