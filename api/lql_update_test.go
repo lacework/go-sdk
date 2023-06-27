@@ -42,7 +42,6 @@ var (
 
 func TestQueryUpdateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +63,6 @@ func TestQueryUpdateMethod(t *testing.T) {
 
 func TestQueryUpdateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +85,6 @@ func TestQueryUpdateOK(t *testing.T) {
 	mockResponse := mockQueryDataResponse(updateQueryJSON)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +111,6 @@ func TestQueryUpdateOK(t *testing.T) {
 
 func TestQueryUpdateNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {

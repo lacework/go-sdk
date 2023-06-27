@@ -40,7 +40,6 @@ func TestTeamMembers_List(t *testing.T) {
 		fakeServer      = lacework.MockServer()
 	)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("TeamMembers",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +57,6 @@ func TestTeamMembers_List(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -81,7 +79,6 @@ func TestTeamMembers_List_WithTimeFieldsAsInts(t *testing.T) {
 		fakeServer      = lacework.MockServer()
 	)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("TeamMembers",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +96,6 @@ func TestTeamMembers_List_WithTimeFieldsAsInts(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -121,7 +117,6 @@ func TestTeamMembers_Get(t *testing.T) {
 		teamMember = singleMockTeamMember(intgGUID, "vatasha.white@lacework.net")
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -134,7 +129,6 @@ func TestTeamMembers_Get(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -169,7 +163,6 @@ func TestTeamMembers_Get_WithTimeFieldsAsInts(t *testing.T) {
 		teamMember = singleMockTeamMemberWithTimeFieldsAsInts(intgGUID, "vatasha.white@lacework.net")
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -182,7 +175,6 @@ func TestTeamMembers_Get_WithTimeFieldsAsInts(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -216,7 +208,6 @@ func TestTeamMembers_Create(t *testing.T) {
 		teamMember = singleMockTeamMember(intgGUID, "vatasha.white@lacework.net")
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -229,7 +220,6 @@ func TestTeamMembers_Create(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -266,7 +256,6 @@ func TestTeamMembers_Create_WithTimeFieldsAsInts(t *testing.T) {
 		teamMember = singleMockTeamMemberWithTimeFieldsAsInts(intgGUID, "vatasha.white@lacework.net")
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -279,7 +268,6 @@ func TestTeamMembers_Create_WithTimeFieldsAsInts(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -313,7 +301,6 @@ func TestTeamMembers_Create_WithTimeFieldsAsInts(t *testing.T) {
 func TestTeamMembers_CreateOrg(t *testing.T) {
 	var fakeServer = lacework.MockServer()
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -326,7 +313,6 @@ func TestTeamMembers_CreateOrg(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 		api.WithOrgAccess(),
@@ -356,7 +342,6 @@ func TestTeamMember_Update(t *testing.T) {
 		fakeServer = lacework.MockServer()
 		apiPath    = fmt.Sprintf("TeamMembers/%s", intgGUID)
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -376,7 +361,6 @@ func TestTeamMember_Update(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -413,7 +397,6 @@ func TestTeamMember_Update_WithTimeFieldsAsInts(t *testing.T) {
 		fakeServer = lacework.MockServer()
 		apiPath    = fmt.Sprintf("TeamMembers/%s", intgGUID)
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -433,7 +416,6 @@ func TestTeamMember_Update_WithTimeFieldsAsInts(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -473,7 +455,6 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 		username   = fmt.Sprintf("vatasha.white+%s@lacework.net", teamMemberGuids[0])
 		teamMember = singleMockTeamMemberOrgUpdateResponse(teamMemberGuids[0], teamMemberGuids[1], username)
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -514,7 +495,6 @@ func TestTeamMember_UpdateOrg(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 		api.WithOrgAccess(),
@@ -545,7 +525,6 @@ func TestTeamMember_Delete(t *testing.T) {
 		apiPath         = fmt.Sprintf("TeamMembers/%s", intgGUID)
 		responseFromGet = generateTeamMemberResponse(teamMember)
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -565,7 +544,6 @@ func TestTeamMember_Delete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -604,7 +582,6 @@ func TestTeamMember_Delete_WithTimeFieldsAsInts(t *testing.T) {
 		apiPath         = fmt.Sprintf("TeamMembers/%s", intgGUID)
 		responseFromGet = generateTeamMemberResponse(teamMember)
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -624,7 +601,6 @@ func TestTeamMember_Delete_WithTimeFieldsAsInts(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -663,7 +639,6 @@ func TestTeamMember_DeleteOrg(t *testing.T) {
 		apiPath         = fmt.Sprintf("TeamMembers/%s", intgGUID)
 		responseFromGet = generateTeamMemberResponse(teamMember)
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -683,7 +658,6 @@ func TestTeamMember_DeleteOrg(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 		api.WithOrgAccess(),
@@ -722,7 +696,6 @@ func TestTeamMembers_SearchUsername(t *testing.T) {
 		fakeServer      = lacework.MockServer()
 		username        = fmt.Sprintf("vatasha.white+%s@lacework.net", teamMemberGuids[0])
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -751,7 +724,6 @@ func TestTeamMembers_SearchUsername(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

@@ -98,7 +98,6 @@ func fetchCustomReportDefinition() *api.ReportDefinition {
 	lacework, err := api.NewClient(os.Getenv("CI_ACCOUNT"),
 		api.WithSubaccount(os.Getenv("CI_SUBACCOUNT")),
 		api.WithApiKeys(os.Getenv("CI_API_KEY"), os.Getenv("CI_API_SECRET")),
-		api.WithApiV2(),
 	)
 	if err != nil {
 		log.Fatal(err)

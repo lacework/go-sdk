@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"), api.WithApiV2(),
+	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"),
 		api.WithApiKeys(os.Getenv("LW_API_KEY"), os.Getenv("LW_API_SECRET")))
 	if err != nil {
 		log.Fatal(err)

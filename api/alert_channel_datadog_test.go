@@ -39,7 +39,6 @@ func TestAlertChannelsService_GetDatadog(t *testing.T) {
 		DatadogSite = api.DatadogSiteCom
 		DatadogType = api.DatadogServiceLogsDetails
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -49,7 +48,6 @@ func TestAlertChannelsService_GetDatadog(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -76,7 +74,6 @@ func TestAlertChannelsService_UpdateDatadog(t *testing.T) {
 		DatadogSite = api.DatadogSiteCom
 		DatadogType = api.DatadogServiceLogsDetails
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -98,7 +95,6 @@ func TestAlertChannelsService_UpdateDatadog(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

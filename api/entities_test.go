@@ -31,7 +31,6 @@ import (
 
 func TestEntities_Search(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/MachineDetails/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +41,6 @@ func TestEntities_Search(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -57,7 +55,6 @@ func TestEntities_Search(t *testing.T) {
 
 func TestEntities_SearchUnknownEntity(t *testing.T) {
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 	)
 	assert.NoError(t, err)

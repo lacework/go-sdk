@@ -80,7 +80,6 @@ func TestContainerRegistriesGet(t *testing.T) {
 		vanillaInt  = singleVanillaContainerRegistry(intgGUID, vanillaType, "")
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -101,7 +100,6 @@ func TestContainerRegistriesGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -138,7 +136,6 @@ func TestContainerRegistriesDelete(t *testing.T) {
 		getResponse = generateContainerRegistryResponse(vanillaInt)
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -168,7 +165,6 @@ func TestContainerRegistriesDelete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -210,7 +206,6 @@ func TestContainerRegistriesList(t *testing.T) {
 		expectedLen = len(allGUIDs)
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("ContainerRegistries",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -231,7 +226,6 @@ func TestContainerRegistriesList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

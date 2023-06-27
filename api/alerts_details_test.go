@@ -70,7 +70,6 @@ var alertDetailsJSON = `{
 
 func TestAlertsGetDetailsMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +93,6 @@ func TestAlertsGetDetailsOK(t *testing.T) {
 	mockResponse := alertDetailsJSON
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -120,7 +118,6 @@ func TestAlertsGetDetailsOK(t *testing.T) {
 
 func TestAlertsGetDetailsError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d", alertID),
 		func(w http.ResponseWriter, r *http.Request) {

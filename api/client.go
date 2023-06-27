@@ -112,7 +112,7 @@ func NewClient(account string, opts ...Option) (*Client, error) {
 		id:         newID(),
 		account:    account,
 		baseURL:    baseURL,
-		apiVersion: "v1",
+		apiVersion: "v2",
 		headers: map[string]string{
 			"User-Agent": fmt.Sprintf("Go Client/%s", Version),
 		},

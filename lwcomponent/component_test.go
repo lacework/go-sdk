@@ -130,7 +130,6 @@ func TestLoadStateWithTwoFailures(t *testing.T) {
 
 func testLoadStateWithResponse(t *testing.T, response func(http.ResponseWriter, *http.Request)) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI("Components", response)
 	defer fakeServer.Close()
 

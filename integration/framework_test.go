@@ -311,7 +311,6 @@ func laceworkIntegrationTestClient() (*api.Client, error) {
 	lacework, err := api.NewClient(account,
 		api.WithApiKeys(key, secret),
 		api.WithSubaccount(subaccount),
-		api.WithApiV2(),
 	)
 	if err != nil {
 		fmt.Println(err)

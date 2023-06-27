@@ -37,7 +37,6 @@ func TestAlertProfilesGet(t *testing.T) {
 		alertProfile = singleMockAlertProfile(guid)
 		fakeServer   = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -58,7 +57,6 @@ func TestAlertProfilesGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -96,7 +94,6 @@ func TestAlertProfilesDelete(t *testing.T) {
 		getResponse  = generateAlertProfileResponse(alertProfile)
 		fakeServer   = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -126,7 +123,6 @@ func TestAlertProfilesDelete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -167,7 +163,6 @@ func TestAlertProfilesList(t *testing.T) {
 		fakeServer    = lacework.MockServer()
 	)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("AlertProfiles",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -185,7 +180,6 @@ func TestAlertProfilesList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -206,7 +200,6 @@ func TestAlertProfileUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertProfiles/%s", guid)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -222,7 +215,6 @@ func TestAlertProfileUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

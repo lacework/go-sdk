@@ -36,7 +36,6 @@ func TestResourceGroupGcpGet(t *testing.T) {
 		apiPath      = fmt.Sprintf("ResourceGroups/%s", resourceGUID)
 		fakeServer   = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -46,7 +45,6 @@ func TestResourceGroupGcpGet(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -68,7 +66,6 @@ func TestResourceGroupsGcpUpdate(t *testing.T) {
 		apiPath      = fmt.Sprintf("ResourceGroups/%s", resourceGUID)
 		fakeServer   = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -87,7 +84,6 @@ func TestResourceGroupsGcpUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

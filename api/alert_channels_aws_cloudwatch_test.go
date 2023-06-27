@@ -37,7 +37,6 @@ func TestAlertChannelsService_GetCloudwatchEb(t *testing.T) {
 		fakeServer  = lacework.MockServer()
 		eventBusArn = "arn:aws:events:YourRegion:YourAccountID:event-bus/default"
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -47,7 +46,6 @@ func TestAlertChannelsService_GetCloudwatchEb(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -70,7 +68,6 @@ func TestAlertChannelsService_UpdateCloudwatchEb(t *testing.T) {
 		fakeServer  = lacework.MockServer()
 		eventBusArn = "arn:aws:events:YourRegion:YourAccountID:event-bus/default"
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -90,7 +87,6 @@ func TestAlertChannelsService_UpdateCloudwatchEb(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

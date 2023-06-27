@@ -30,7 +30,6 @@ import (
 
 func TestCallbacks(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI(
 		"foo",
@@ -41,7 +40,6 @@ func TestCallbacks(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, _ := api.NewClient("foo",
-		api.WithApiV2(),
 		api.WithURL(fakeServer.URL()),
 		api.WithToken("TOKEN"),
 		api.WithLifecycleCallbacks(api.LifecycleCallbacks{
@@ -59,7 +57,6 @@ func TestCallbacks(t *testing.T) {
 
 func TestCallbacksOnRequestError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI(
 		"foo",
@@ -70,7 +67,6 @@ func TestCallbacksOnRequestError(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, _ := api.NewClient("foo",
-		api.WithApiV2(),
 		api.WithURL(fakeServer.URL()),
 		api.WithTimeout(time.Duration(1)),
 		api.WithToken("TOKEN"),

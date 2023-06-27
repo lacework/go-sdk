@@ -68,7 +68,6 @@ func TestContainerRegistriesDockerhubGet(t *testing.T) {
 		apiPath    = fmt.Sprintf("ContainerRegistries/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -78,7 +77,6 @@ func TestContainerRegistriesDockerhubGet(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -101,7 +99,6 @@ func TestContainerRegistriesDockerhubUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("ContainerRegistries/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -124,7 +121,6 @@ func TestContainerRegistriesDockerhubUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

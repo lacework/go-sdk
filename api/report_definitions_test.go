@@ -38,7 +38,6 @@ func TestReportDefinitionsGet(t *testing.T) {
 		reportDefinition = singleMockReportDefinition(intgGUID)
 		fakeServer       = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -59,7 +58,6 @@ func TestReportDefinitionsGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -99,7 +97,6 @@ func TestReportDefinitionsDelete(t *testing.T) {
 		getResponse      = generateReportDefinitionResponse(reportDefinition)
 		fakeServer       = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -129,7 +126,6 @@ func TestReportDefinitionsDelete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -172,7 +168,6 @@ func TestReportDefinitionsList(t *testing.T) {
 		fakeServer        = lacework.MockServer()
 	)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("ReportDefinitions",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -190,7 +185,6 @@ func TestReportDefinitionsList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -211,7 +205,6 @@ func TestReportDefinitionUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("ReportDefinitions/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -229,7 +222,6 @@ func TestReportDefinitionUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -268,7 +260,6 @@ func TestReportDefinitionRevert(t *testing.T) {
 		apiPath    = fmt.Sprintf("ReportDefinitions/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -283,7 +274,6 @@ func TestReportDefinitionRevert(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

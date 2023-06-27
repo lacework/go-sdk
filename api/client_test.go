@@ -35,7 +35,7 @@ import (
 func TestNewClient(t *testing.T) {
 	c, err := api.NewClient("test")
 	if assert.Nil(t, err) {
-		assert.Equal(t, "v1", c.ApiVersion(), "default API version should be v1")
+		assert.Equal(t, "v2", c.ApiVersion(), "default API version should be v2")
 		assert.Equal(t, "https://test.lacework.net", c.URL(), "domain does not match")
 	}
 }
@@ -79,14 +79,12 @@ func TestNewClientAccountEmptyError(t *testing.T) {
 
 func TestNewClientWithOptions(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
 		api.WithURL(fakeServer.URL()),
 		api.WithExpirationTime(1800),
-		api.WithApiV2(),
 		api.WithTimeout(time.Minute*5),
 		api.WithRetries(backoff.NewExponentialBackOff()),
 		api.WithLogLevel("DEBUG"),
@@ -129,7 +127,7 @@ func TestCopyClientWithOptions(t *testing.T) {
 		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
 	)
 	if assert.Nil(t, err) {
-		assert.Equal(t, "v1", c.ApiVersion(), "default API version should be v1")
+		assert.Equal(t, "v2", c.ApiVersion(), "default API version should be v2")
 		assert.Contains(t, c.URL(), "http://127.0.0.1:", "wrong URL")
 		assert.True(t, c.ValidAuth())
 	}
@@ -153,14 +151,12 @@ func TestCopyClientWithOptions(t *testing.T) {
 	newModifiedClient, err := api.CopyClient(c,
 		api.WithURL("https://new.lacework.net/"),
 		api.WithExpirationTime(3600),
-		api.WithApiV2(),
 		api.WithTimeout(time.Minute*60), // LOL!
 		api.WithRetries(nil),
 		api.WithLogLevel("INFO"),
 		api.WithOrgAccess(),
 	)
 	if assert.Nil(t, err) {
-		assert.NotEqual(t, c.ApiVersion(), newModifiedClient.ApiVersion(), "copy modified client mismatch")
 		assert.NotEqual(t, c.URL(), newModifiedClient.URL(), "copy modified client mismatch")
 		assert.NotEqual(t, c.Retries(), newModifiedClient.Retries(), "copy modified retrying policy")
 		assert.Equal(t, "v2", newModifiedClient.ApiVersion(), "copy modified API version should be v2")
@@ -174,7 +170,6 @@ func TestCopyClientWithOptions(t *testing.T) {
 
 func TestNewClientWithOrgAccess(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -188,7 +183,6 @@ func TestNewClientWithOrgAccess(t *testing.T) {
 
 func TestNewClientWithoutOrgAccess(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -201,7 +195,6 @@ func TestNewClientWithoutOrgAccess(t *testing.T) {
 func TestTLSHandshakeTimeout(t *testing.T) {
 	fakeServer := lacework.MockUnstartedServer()
 	fakeServer.Server.TLS = &tls.Config{InsecureSkipVerify: true}
-	fakeServer.UseApiV2()
 	apiPath := "AlertChannels"
 	fakeServer.MockToken("TOKEN")
 	fakeServer.Server.StartTLS()
@@ -216,7 +209,6 @@ func TestTLSHandshakeTimeout(t *testing.T) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 
 	client, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 		api.WithTransport(shortTimeout),
@@ -229,7 +221,6 @@ func TestTLSHandshakeTimeout(t *testing.T) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 
 	clientWithTimeout, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 		api.WithTransport(longTimeout),
@@ -241,7 +232,6 @@ func TestTLSHandshakeTimeout(t *testing.T) {
 
 func TestClientWithRetries(t *testing.T) {
 	fakeServer := lacework.MockUnstartedServer()
-	fakeServer.UseApiV2()
 	apiPath := "AlertChannels"
 	fakeServer.MockToken("TOKEN")
 	fakeServer.Server.StartTLS()
@@ -260,7 +250,6 @@ func TestClientWithRetries(t *testing.T) {
 
 	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 		api.WithTransport(transport),
@@ -270,7 +259,6 @@ func TestClientWithRetries(t *testing.T) {
 	assert.Error(t, err)
 
 	clientWithRetries, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 		api.WithTransport(transport),

@@ -21,28 +21,12 @@ package api
 import (
 	"fmt"
 	"strings"
-
-	"go.uber.org/zap"
 )
 
 const (
-	// Common endpoints
-	//
-	// There will be times where we will have common endpoints between
-	// different versions of our APIs, by default such endpoints will
-	// be driven by the global client.apiVersion setting, when we are
-	// ready to switch over/upgrade we can do so with the option
-	// WithApiV2() at the time that the caller initializes the Go Client
-	//
-	// Example:
-	// ```go
-	//   api.NewClient("my-account", api.WithApiV2())
-	// ```
-	apiTokens = "access/tokens" // Auth
-
 	// API v2 Endpoints
-	//
-	// These endpoints only exist in APIv2 and therefore we prefix them with 'v2/'
+	apiTokens = "v2/access/tokens" // Auth
+
 	apiV2UserProfile = "v2/UserProfile"
 
 	apiV2ContainerRegistries       = "v2/ContainerRegistries"
@@ -144,16 +128,6 @@ const (
 
 	apiRecommendations = "v2/recommendations/%s"
 )
-
-// WithApiV2 configures the client to use the API version 2 (/api/v2)
-// for common API endpoints
-func WithApiV2() Option {
-	return clientFunc(func(c *Client) error {
-		c.log.Debug("setting up client", zap.String("api_version", "v2"))
-		c.apiVersion = "v2"
-		return nil
-	})
-}
 
 // ApiVersion returns the API client version
 func (c *Client) ApiVersion() string {
