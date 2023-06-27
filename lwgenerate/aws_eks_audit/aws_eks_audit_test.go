@@ -66,18 +66,6 @@ func TestGenerationEksFailureSingleRegionNoClusters(t *testing.T) {
 	assert.Equal(t, "invalid inputs: At least one cluster must be supplied per region", err.Error())
 }
 
-func TestGenerationEksEnableBucketForceDestroy(t *testing.T) {
-	clusterMap := make(map[string][]string)
-	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
-	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		EnableBucketForceDestroy(),
-	).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	strippedHcl := strings.ReplaceAll(hcl, " ", "")
-	assert.Contains(t, strippedHcl, "bucket_force_destroy=true")
-}
-
 func TestGenerationEksWithValidBucketLifecycleExpirationDays(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}

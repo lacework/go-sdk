@@ -141,15 +141,6 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogExistingLogSinkName),
 		},
-		{
-			"TestGenerationProjectLevelAuditLogEnableForceDestroyBucket",
-			gcp.NewTerraform(false, true, false,
-				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
-				gcp.WithProjectId(projectName),
-				gcp.WithEnableForceDestroyBucket(),
-			),
-			ReqProvider(projectName, moduleImportProjectLevelAuditLogEnableForceDestroyBucket),
-		},
 		{"TestGenerationProjectLevelAuditLogEnableUBLA",
 			gcp.NewTerraform(false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -888,13 +879,6 @@ var moduleImportProjectLevelPubSubAuditLogExistingLogSinkName = `module "gcp_pro
   source             = "lacework/pub-sub-audit-log/gcp"
   version            = "~> 0.2"
   existing_sink_name = "foo"
-}
-`
-
-var moduleImportProjectLevelAuditLogEnableForceDestroyBucket = `module "gcp_project_audit_log" {
-  source               = "lacework/audit-log/gcp"
-  version              = "~> 3.0"
-  bucket_force_destroy = true
 }
 `
 

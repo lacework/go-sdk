@@ -97,6 +97,7 @@ type GenerateGcpTfConfigurationArgs struct {
 	ExistingLogSinkName string
 
 	// Should we force destroy the bucket if it has stuff in it? (only relevant on new Audit Log creation)
+	// DEPRECATED
 	EnableForceDestroyBucket bool
 
 	// Boolean for enabling Uniform Bucket Level Access on the audit log bucket. Defaults to False
@@ -299,13 +300,6 @@ func WithExistingLogBucketName(name string) GcpTerraformModifier {
 func WithExistingLogSinkName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ExistingLogSinkName = name
-	}
-}
-
-// WithEnableForceDestroyBucket Enable force destroy of the bucket if it has stuff in it
-func WithEnableForceDestroyBucket() GcpTerraformModifier {
-	return func(c *GenerateGcpTfConfigurationArgs) {
-		c.EnableForceDestroyBucket = true
 	}
 }
 
@@ -579,10 +573,6 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 			if args.BucketLabels != nil {
 				attributes["bucket_labels"] = args.BucketLabels
-			}
-
-			if args.EnableForceDestroyBucket {
-				attributes["bucket_force_destroy"] = true
 			}
 
 			// Default true in gcp-audit-log TF module

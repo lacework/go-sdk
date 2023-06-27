@@ -24,7 +24,6 @@ var (
 	QuestionConsolidatedCloudtrail      = "Use consolidated CloudTrail?"
 	QuestionUseExistingCloudtrail       = "Use an existing CloudTrail?"
 	QuestionCloudtrailExistingBucketArn = "Specify an existing bucket ARN used for CloudTrail logs:"
-	QuestionForceDestroyS3Bucket        = "Should the new S3 bucket have force destroy enabled?"
 	QuestionExistingIamRoleName         = "Specify an existing IAM role name for CloudTrail access:"
 	QuestionExistingIamRoleArn          = "Specify an existing IAM role ARN for CloudTrail access:"
 	QuestionExistingIamRoleExtID        = "Specify the external ID to be used with the existing IAM role:"
@@ -127,10 +126,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithSqsEncryptionEnabled(GenerateAwsCommandState.SqsEncryptionEnabled),
 				aws.WithSqsEncryptionKeyArn(GenerateAwsCommandState.SqsEncryptionKeyArn),
 				aws.WithS3BucketNotification(GenerateAwsCommandState.S3BucketNotification),
-			}
-
-			if GenerateAwsCommandState.ForceDestroyS3Bucket {
-				mods = append(mods, aws.EnableForceDestroyS3Bucket())
 			}
 
 			if GenerateAwsCommandState.ConsolidatedCloudtrail {
@@ -393,11 +388,18 @@ func initGenerateAwsTfCommandFlags() {
 		"consolidated_cloudtrail",
 		false,
 		"use consolidated trail")
+
+	// DEPRECATED
 	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.ForceDestroyS3Bucket,
 		"force_destroy_s3",
-		false,
+		true,
 		"enable force destroy S3 bucket")
+	errcheckWARN(generateAwsTfCommand.PersistentFlags().MarkDeprecated(
+		"force_destroy_s3", "by default, force destroy is enabled.",
+	))
+	// ---
+
 	generateAwsTfCommand.PersistentFlags().StringSliceVar(
 		&GenerateAwsCommandExtraState.AwsSubAccounts,
 		"aws_subaccount",
@@ -513,14 +515,8 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState
 		return err
 	}
 
-	// If a new bucket is to be created; should the force destroy bit be set?
 	newBucket := config.ExistingCloudtrailBucketArn == ""
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt:   &survey.Confirm{Message: QuestionForceDestroyS3Bucket, Default: config.ForceDestroyS3Bucket},
-			Response: &config.ForceDestroyS3Bucket,
-			Checks:   []*bool{&config.Cloudtrail, &newBucket},
-		},
 		// If new bucket created, allow user to optionally name the bucket
 		{
 			Prompt:   &survey.Input{Message: QuestionBucketName, Default: config.BucketName},
@@ -857,7 +853,6 @@ func awsConfigIsEmpty(g *aws.GenerateAwsTfConfigurationArgs) bool {
 		g.ExistingIamRole == nil &&
 		g.ExistingSnsTopicArn == "" &&
 		g.LaceworkProfile == "" &&
-		!g.ForceDestroyS3Bucket &&
 		g.SubAccounts == nil
 }
 

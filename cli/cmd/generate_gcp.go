@@ -29,17 +29,16 @@ var (
 	QuestionExistingServiceAccountName       = "Specify an existing service account name:"
 	QuestionExistingServiceAccountPrivateKey = "Specify an existing service account private key (base64 encoded):"
 
-	GcpAdvancedOptAuditLog              = "Configure additional Audit Log options"
-	QuestionGcpUseExistingBucket        = "Use an existing bucket?"
-	QuestionGcpExistingBucketName       = "Specify an existing bucket name:"
-	QuestionGcpConfigureNewBucket       = "Configure settings for new bucket?"
-	QuestionGcpBucketRegion             = "Specify the bucket region: (optional)"
-	QuestionGcpCustomBucketName         = "Specify a custom bucket name: (optional)"
-	QuestionGcpBucketLifecycle          = "Specify the bucket lifecycle rule age: (optional)"
-	QuestionGcpEnableUBLA               = "Enable uniform bucket level access(UBLA)?"
-	QuestionGcpEnableBucketForceDestroy = "Enable bucket force destroy?"
-	QuestionGcpUseExistingSink          = "Use an existing sink?"
-	QuestionGcpExistingSinkName         = "Specify the existing sink name"
+	GcpAdvancedOptAuditLog        = "Configure additional Audit Log options"
+	QuestionGcpUseExistingBucket  = "Use an existing bucket?"
+	QuestionGcpExistingBucketName = "Specify an existing bucket name:"
+	QuestionGcpConfigureNewBucket = "Configure settings for new bucket?"
+	QuestionGcpBucketRegion       = "Specify the bucket region: (optional)"
+	QuestionGcpCustomBucketName   = "Specify a custom bucket name: (optional)"
+	QuestionGcpBucketLifecycle    = "Specify the bucket lifecycle rule age: (optional)"
+	QuestionGcpEnableUBLA         = "Enable uniform bucket level access(UBLA)?"
+	QuestionGcpUseExistingSink    = "Use an existing sink?"
+	QuestionGcpExistingSinkName   = "Specify the existing sink name"
 
 	GcpAdvancedOptIntegrationName           = "Customize integration name(s)"
 	QuestionGcpConfigurationIntegrationName = "Specify a custom configuration integration name: (optional)"
@@ -125,10 +124,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 
 			if GenerateGcpCommandState.OrganizationIntegration {
 				mods = append(mods, gcp.WithOrganizationIntegration(GenerateGcpCommandState.OrganizationIntegration))
-			}
-
-			if GenerateGcpCommandState.EnableForceDestroyBucket {
-				mods = append(mods, gcp.WithEnableForceDestroyBucket())
 			}
 
 			if len(GenerateGcpCommandState.FoldersToExclude) > 0 {
@@ -366,11 +361,18 @@ func initGenerateGcpTfCommandFlags() {
 		"existing_sink_name",
 		"",
 		"specify existing sink name")
+
+	// DEPRECATED
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandState.EnableForceDestroyBucket,
 		"enable_force_destroy_bucket",
-		false,
+		true,
 		"enable force bucket destroy")
+	errcheckWARN(generateGcpTfCommand.PersistentFlags().MarkDeprecated(
+		"enable_force_destroy_bucket", "by default, force destroy is enabled.",
+	))
+	// ---
+
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandState.EnableUBLA,
 		"enable_ubla",
@@ -561,12 +563,6 @@ func promptGcpBucketConfiguration(config *gcp.GenerateGcpTfConfigurationArgs, ex
 			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings, usePubSubActivityDisabled(config)},
 			Required: true,
 			Response: &config.EnableUBLA,
-		},
-		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpEnableBucketForceDestroy, Default: config.EnableForceDestroyBucket},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.UseExistingBucket, usePubSubActivityDisabled(config)},
-			Required: true,
-			Response: &config.EnableForceDestroyBucket,
 		},
 	}, config.AuditLog)
 

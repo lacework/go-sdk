@@ -70,17 +70,6 @@ func TestGenerationWithLaceworkAccountID(t *testing.T) {
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfigWithLaceworkAccountID, moduleImportCtWithLaceworkAccountID), hcl)
 }
 
-func TestGenerationCloudtrailForceDestroyS3(t *testing.T) {
-	data, err := createCloudtrail(&GenerateAwsTfConfigurationArgs{
-		Cloudtrail:           true,
-		ForceDestroyS3Bucket: true,
-	})
-	assert.Nil(t, err)
-	assert.Equal(t,
-		"bucket_force_destroy=true\n",
-		string(data.Body().GetAttribute("bucket_force_destroy").BuildTokens(nil).Bytes()))
-}
-
 func TestGenerationCloudtrailConsolidatedTrail(t *testing.T) {
 	data, err := createCloudtrail(&GenerateAwsTfConfigurationArgs{
 		Cloudtrail:             true,

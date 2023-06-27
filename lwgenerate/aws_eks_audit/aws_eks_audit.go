@@ -58,6 +58,7 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	BucketEnableEncryption bool
 
 	// Should we force destroy the bucket if it has stuff in it?
+	// DEPRECATED
 	BucketForceDestroy bool
 
 	// The lifetime, in days, of the bucket objects. The value must be a non-zero positive integer
@@ -218,13 +219,6 @@ func EnableBucketMfaDelete() AwsEksAuditTerraformModifier {
 func EnableBucketEncryption(enable bool) AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
 		c.BucketEnableEncryption = enable
-	}
-}
-
-// EnableBucketForceDestroy Set the S3 ForceDestroy parameter to true for newly created buckets
-func EnableBucketForceDestroy() AwsEksAuditTerraformModifier {
-	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
-		c.BucketForceDestroy = true
 	}
 }
 
@@ -522,10 +516,6 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 
 	if !args.BucketEnableEncryption {
 		moduleAttrs["bucket_encryption_enabled"] = args.BucketEnableEncryption
-	}
-
-	if args.BucketForceDestroy {
-		moduleAttrs["bucket_force_destroy"] = true
 	}
 
 	if args.BucketLifecycleExpirationDays > 0 {

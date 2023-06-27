@@ -28,19 +28,18 @@ var (
 	QuestionEksAuditConfigureAdvanced = "Configure advanced integration options?"
 
 	// S3 Bucket Questions
-	QuestionUseExistingBucket            = "Use existing bucket?"
-	QuestionExistingBucketArn            = "Specify an existing bucket ARN used for EKS audit log:"
-	EksAuditConfigureBucket              = "Configure bucket settings"
-	QuestionEksAuditBucketVersioning     = "Enable access versioning on the new bucket?"
-	QuestionEksAuditMfaDeleteS3Bucket    = "Should MFA object deletion be required for the new bucket?"
-	QuestionEksAuditForceDestroyS3Bucket = "Should force destroy be enabled for the new bucket?"
-	QuestionEksAuditBucketLifecycle      = "Specify the bucket lifecycle expiration days: (optional)"
-	QuestionEksAuditBucketEncryption     = "Enable encryption for the new bucket?"
-	QuestionEksAuditBucketSseAlgorithm   = "Specify the bucket SSE Algorithm: (optional)"
-	QuestionEksAuditBucketExistingKey    = "Use existing KMS key?"
-	QuestionEksAuditBucketKeyArn         = "Specify the bucket existing SSE KMS key ARN:"
-	QuestionEksAuditKmsKeyRotation       = "Should the KMS key have rotation enabled?"
-	QuestionEksAuditKmsKeyDeletionDays   = "Specify the KMS key deletion days: (optional)"
+	QuestionUseExistingBucket          = "Use existing bucket?"
+	QuestionExistingBucketArn          = "Specify an existing bucket ARN used for EKS audit log:"
+	EksAuditConfigureBucket            = "Configure bucket settings"
+	QuestionEksAuditBucketVersioning   = "Enable access versioning on the new bucket?"
+	QuestionEksAuditMfaDeleteS3Bucket  = "Should MFA object deletion be required for the new bucket?"
+	QuestionEksAuditBucketLifecycle    = "Specify the bucket lifecycle expiration days: (optional)"
+	QuestionEksAuditBucketEncryption   = "Enable encryption for the new bucket?"
+	QuestionEksAuditBucketSseAlgorithm = "Specify the bucket SSE Algorithm: (optional)"
+	QuestionEksAuditBucketExistingKey  = "Use existing KMS key?"
+	QuestionEksAuditBucketKeyArn       = "Specify the bucket existing SSE KMS key ARN:"
+	QuestionEksAuditKmsKeyRotation     = "Should the KMS key have rotation enabled?"
+	QuestionEksAuditKmsKeyDeletionDays = "Specify the KMS key deletion days: (optional)"
 
 	// SNS Topic Questions
 	EksAuditConfigureSns                = "Configure SNS settings"
@@ -147,10 +146,6 @@ See help output for more details on the parameter values required for Terraform 
 
 			if GenerateAwsEksAuditCommandState.BucketEnableMfaDelete {
 				mods = append(mods, aws_eks_audit.EnableBucketMfaDelete())
-			}
-
-			if GenerateAwsEksAuditCommandState.BucketForceDestroy {
-				mods = append(mods, aws_eks_audit.EnableBucketForceDestroy())
 			}
 
 			// Create new struct
@@ -353,11 +348,18 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		"enable_encryption_s3",
 		true,
 		"enable encryption on s3 bucket")
+
+	// DEPRECATED
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.BucketForceDestroy,
 		"enable_force_destroy",
-		false,
+		true,
 		"enable force destroy s3 bucket")
+	errcheckWARN(generateAwsEksAuditTfCommand.PersistentFlags().MarkDeprecated(
+		"enable_force_destroy", "by default, force destroy is enabled.",
+	))
+	// ---
+
 	generateAwsEksAuditTfCommand.PersistentFlags().IntVar(
 		&GenerateAwsEksAuditCommandState.BucketLifecycleExpirationDays,
 		"bucket_lifecycle_exp_days",
@@ -518,10 +520,6 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 		{
 			Prompt:   &survey.Confirm{Message: QuestionEksAuditMfaDeleteS3Bucket, Default: config.BucketEnableMfaDelete},
 			Response: &config.BucketEnableMfaDelete,
-		},
-		{
-			Prompt:   &survey.Confirm{Message: QuestionEksAuditForceDestroyS3Bucket, Default: config.BucketForceDestroy},
-			Response: &config.BucketForceDestroy,
 		},
 		{
 			Prompt: &survey.Confirm{Message: QuestionEksAuditBucketEncryption,
