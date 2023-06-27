@@ -97,6 +97,7 @@ type GenerateAwsTfConfigurationArgs struct {
 	ConsolidatedCloudtrail bool
 
 	// Should we force destroy the bucket if it has stuff in it? (only relevant on new Cloudtrail creation)
+	// DEPRECATED
 	ForceDestroyS3Bucket bool
 
 	// Enable encryption of bucket if it is created
@@ -238,13 +239,6 @@ func ExistingSnsTopicArn(arn string) AwsTerraformModifier {
 func UseConsolidatedCloudtrail() AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ConsolidatedCloudtrail = true
-	}
-}
-
-// EnableForceDestroyS3Bucket Set the S3 ForceDestroy parameter to true for newly created buckets
-func EnableForceDestroyS3Bucket() AwsTerraformModifier {
-	return func(c *GenerateAwsTfConfigurationArgs) {
-		c.ForceDestroyS3Bucket = true
 	}
 }
 
@@ -525,9 +519,6 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 			attributes["use_existing_cloudtrail"] = true
 			attributes["bucket_arn"] = args.ExistingCloudtrailBucketArn
 		} else {
-			if args.ForceDestroyS3Bucket {
-				attributes["bucket_force_destroy"] = true
-			}
 			if args.BucketName != "" {
 				attributes["bucket_name"] = args.BucketName
 			}

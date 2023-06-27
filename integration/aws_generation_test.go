@@ -197,8 +197,8 @@ func TestGenerationAwsAdvancedOptsDone(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test enabling consolidated trail and force destroy s3
-func TestGenerationAwsAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
+// Test enabling consolidated trail
+func TestGenerationAwsAdvancedOptsConsolidated(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -217,7 +217,6 @@ func TestGenerationAwsAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailName, ""},
 				// S3 Bucket Questions
-				MsgRsp{cmd.QuestionForceDestroyS3Bucket, "y"},
 				MsgRsp{cmd.QuestionBucketName, ""},
 				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
 				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
@@ -247,7 +246,6 @@ func TestGenerationAwsAdvancedOptsConsolidatedAndForceDestroy(t *testing.T) {
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
 		aws.UseConsolidatedCloudtrail(),
-		aws.EnableForceDestroyS3Bucket(),
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
@@ -326,7 +324,6 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "y"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailName, ""},
-				MsgRsp{cmd.QuestionForceDestroyS3Bucket, "n"},
 				MsgRsp{cmd.QuestionBucketName, ""},
 				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
 				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
@@ -592,7 +589,6 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailName, trailName},
 				// S3 Questions
-				MsgRsp{cmd.QuestionForceDestroyS3Bucket, "y"},
 				MsgRsp{cmd.QuestionBucketName, bucketName},
 				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
 				MsgRsp{cmd.QuestionBucketSseKeyArn, kmsArn},
@@ -622,7 +618,6 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
 		aws.WithCloudtrailName(trailName),
-		aws.EnableForceDestroyS3Bucket(),
 		aws.WithBucketName(bucketName),
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithBucketSSEKeyArn(kmsArn),
@@ -881,7 +876,6 @@ func TestGenerationAwsS3BucketNotificationInteractive(t *testing.T) {
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, ""},
 				MsgRsp{cmd.QuestionCloudtrailName, ""},
 				// S3 Questions
-				MsgRsp{cmd.QuestionForceDestroyS3Bucket, ""},
 				MsgRsp{cmd.QuestionBucketName, ""},
 				MsgRsp{cmd.QuestionBucketEnableEncryption, ""},
 				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
