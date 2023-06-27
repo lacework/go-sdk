@@ -36,7 +36,6 @@ func TestAlertChannelsGetEmailUser(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -46,7 +45,6 @@ func TestAlertChannelsGetEmailUser(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -68,7 +66,6 @@ func TestAlertChannelsEmailUserUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -89,7 +86,6 @@ func TestAlertChannelsEmailUserUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -168,7 +164,6 @@ func TestAlertChannelsGetEmailUserBug(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -178,7 +173,6 @@ func TestAlertChannelsGetEmailUserBug(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

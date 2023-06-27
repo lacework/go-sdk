@@ -31,7 +31,6 @@ import (
 
 func TestAgentInfoSearch(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("AgentInfo/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +41,6 @@ func TestAgentInfoSearch(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

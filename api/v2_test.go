@@ -31,7 +31,6 @@ import (
 
 func TestPagination(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/MachineDetails/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +47,6 @@ func TestPagination(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -104,7 +102,6 @@ func TestPagination(t *testing.T) {
 
 func TestPaginationWithoutInfo(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/MachineDetails/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +112,6 @@ func TestPaginationWithoutInfo(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -144,7 +140,6 @@ func TestPaginationQuery(t *testing.T) {
 }`
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/MachineDetails/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +150,6 @@ func TestPaginationQuery(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

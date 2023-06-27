@@ -38,7 +38,6 @@ func TestReportRulesGet(t *testing.T) {
 		reportRule = singleMockReportRule(intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -59,7 +58,6 @@ func TestReportRulesGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -95,7 +93,6 @@ func TestReportRulesDelete(t *testing.T) {
 		getResponse = generateReportRuleResponse(reportRule)
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -125,7 +122,6 @@ func TestReportRulesDelete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -164,7 +160,6 @@ func TestReportRulesList(t *testing.T) {
 		fakeServer  = lacework.MockServer()
 	)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("ReportRules",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -182,7 +177,6 @@ func TestReportRulesList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -203,7 +197,6 @@ func TestReportRuleUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("ReportRules/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -222,7 +215,6 @@ func TestReportRuleUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

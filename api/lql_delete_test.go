@@ -31,7 +31,6 @@ import (
 
 func TestQueryDeleteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +53,6 @@ func TestQueryDeleteMethod(t *testing.T) {
 
 func TestQueryDeleteBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +74,6 @@ func TestQueryDeleteBadInput(t *testing.T) {
 func TestQueryDeleteOK(t *testing.T) {
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +101,6 @@ func TestQueryDeleteOK(t *testing.T) {
 
 func TestQueryDeleteNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/my_lql",
 		func(w http.ResponseWriter, r *http.Request) {

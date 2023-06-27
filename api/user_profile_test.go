@@ -31,7 +31,6 @@ import (
 
 func TestV2UserProfile(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI("UserProfile",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "UserProfile should be a GET method")

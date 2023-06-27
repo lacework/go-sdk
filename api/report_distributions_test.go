@@ -38,7 +38,6 @@ func TestReportDistributionsGet(t *testing.T) {
 		reportDistribution = singleMockReportDistribution(intgGUID)
 		fakeServer         = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -59,7 +58,6 @@ func TestReportDistributionsGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -96,7 +94,6 @@ func TestReportDistributionDelete(t *testing.T) {
 		getResponse        = generateReportDistributionResponse(reportDistribution)
 		fakeServer         = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -126,7 +123,6 @@ func TestReportDistributionDelete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -165,7 +161,6 @@ func TestReportDistributionList(t *testing.T) {
 		fakeServer          = lacework.MockServer()
 	)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("ReportDistributions",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +178,6 @@ func TestReportDistributionList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -204,7 +198,6 @@ func TestReportDistributionUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("ReportDistributions/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -222,7 +215,6 @@ func TestReportDistributionUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

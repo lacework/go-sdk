@@ -32,7 +32,6 @@ import (
 
 func TestV2Vulnerabilities_Containers_SearchAllPages_EmptyData(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Vulnerabilities/Containers/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +42,6 @@ func TestV2Vulnerabilities_Containers_SearchAllPages_EmptyData(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -57,7 +55,6 @@ func TestV2Vulnerabilities_Containers_SearchAllPages_EmptyData(t *testing.T) {
 
 func TestV2Vulnerabilities_Hosts_SearchAllPages_EmptyData(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Vulnerabilities/Hosts/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +65,6 @@ func TestV2Vulnerabilities_Hosts_SearchAllPages_EmptyData(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -120,7 +116,6 @@ func TestV2VulnerabilitiesFilterSingleVulnIDMultipleResults(t *testing.T) {
 }
 func TestV2Vulnerabilities_Containers_Search(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Vulnerabilities/Containers/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -131,7 +126,6 @@ func TestV2Vulnerabilities_Containers_Search(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -148,7 +142,6 @@ func TestV2Vulnerabilities_Containers_Search(t *testing.T) {
 
 func TestV2Vulnerabilities_Containers_SearchLastWeek(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Vulnerabilities/Containers/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -159,7 +152,6 @@ func TestV2Vulnerabilities_Containers_SearchLastWeek(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -178,7 +170,6 @@ func TestV2Vulnerabilities_Containers_SearchLastWeek(t *testing.T) {
 
 func TestV2Vulnerabilities_Containers_AllPages(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Vulnerabilities/Containers/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -189,7 +180,6 @@ func TestV2Vulnerabilities_Containers_AllPages(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -371,7 +361,6 @@ func mockVulnerabilitiesContainersResponse() string {
 
 func TestV2Vulnerabilities_Hosts_Search(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Vulnerabilities/Hosts/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -382,7 +371,6 @@ func TestV2Vulnerabilities_Hosts_Search(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -398,7 +386,6 @@ func TestV2Vulnerabilities_Hosts_Search(t *testing.T) {
 
 func TestV2Vulnerabilities_Hosts_SearchLastWeek(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Vulnerabilities/Hosts/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -409,7 +396,6 @@ func TestV2Vulnerabilities_Hosts_SearchLastWeek(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -427,7 +413,6 @@ func TestV2Vulnerabilities_Hosts_SearchLastWeek(t *testing.T) {
 
 func TestV2Vulnerabilities_Hosts_AllPages(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Vulnerabilities/Hosts/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -438,7 +423,6 @@ func TestV2Vulnerabilities_Hosts_AllPages(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

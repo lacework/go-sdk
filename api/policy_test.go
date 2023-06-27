@@ -137,7 +137,6 @@ func TestPolicyHasTags(t *testing.T) {
 
 func TestPolicyCreateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
@@ -161,7 +160,6 @@ func TestPolicyCreateOK(t *testing.T) {
 	mockResponse := mockPolicyDataResponse(policyCreateData)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
@@ -186,7 +184,6 @@ func TestPolicyCreateOK(t *testing.T) {
 
 func TestPolicyCreateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
@@ -207,7 +204,6 @@ func TestPolicyCreateError(t *testing.T) {
 
 func TestPolicyGetMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -231,7 +227,6 @@ func TestPolicyGetOK(t *testing.T) {
 	mockResponse := mockPolicyDataResponse(policyCreateData)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -258,7 +253,6 @@ func TestPolicyGetOK(t *testing.T) {
 
 func TestPolicyGetNotFound(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -279,7 +273,6 @@ func TestPolicyGetNotFound(t *testing.T) {
 
 func TestPolicyListMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Policies",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -301,7 +294,6 @@ func TestPolicyListMethod(t *testing.T) {
 
 func TestPolicyListTagsMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Policies/Tags",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -323,7 +315,6 @@ func TestPolicyListTagsMethod(t *testing.T) {
 
 func TestPolicyUpdateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -345,7 +336,6 @@ func TestPolicyUpdateMethod(t *testing.T) {
 
 func TestPolicyUpdateManyMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
@@ -367,7 +357,6 @@ func TestPolicyUpdateManyMethod(t *testing.T) {
 
 func TestPolicyUpdateManyOK(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		policyURI,
 		func(w http.ResponseWriter, r *http.Request) {
@@ -392,7 +381,6 @@ func TestPolicyUpdateManyOK(t *testing.T) {
 
 func TestPolicyUpdateBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -416,7 +404,6 @@ func TestPolicyUpdateOK(t *testing.T) {
 	mockResponse := mockPolicyDataResponse(policyUpdateData)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -441,7 +428,6 @@ func TestPolicyUpdateOK(t *testing.T) {
 
 func TestPolicyUpdateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -462,7 +448,6 @@ func TestPolicyUpdateError(t *testing.T) {
 
 func TestPolicyDeleteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -484,7 +469,6 @@ func TestPolicyDeleteMethod(t *testing.T) {
 
 func TestPolicyDeleteBadInput(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -505,7 +489,6 @@ func TestPolicyDeleteBadInput(t *testing.T) {
 
 func TestPolicyDeleteOK(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -527,7 +510,6 @@ func TestPolicyDeleteOK(t *testing.T) {
 
 func TestPolicyDeleteError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {

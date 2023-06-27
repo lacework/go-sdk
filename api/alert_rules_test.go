@@ -38,7 +38,6 @@ func TestAlertRulesGet(t *testing.T) {
 		alertRule  = singleMockAlertRule(intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -59,7 +58,6 @@ func TestAlertRulesGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -95,7 +93,6 @@ func TestAlertRulesDelete(t *testing.T) {
 		getResponse = generateAlertRuleResponse(alertRule)
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -125,7 +122,6 @@ func TestAlertRulesDelete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -164,7 +160,6 @@ func TestAlertRulesList(t *testing.T) {
 		fakeServer  = lacework.MockServer()
 	)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("AlertRules",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -182,7 +177,6 @@ func TestAlertRulesList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -203,7 +197,6 @@ func TestAlertRuleUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertRules/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -222,7 +215,6 @@ func TestAlertRuleUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

@@ -39,7 +39,6 @@ func TestPolicyExceptionsGet(t *testing.T) {
 		policyException = singleMockPolicyException(exceptionID)
 		fakeServer      = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -60,7 +59,6 @@ func TestPolicyExceptionsGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -100,7 +98,6 @@ func TestPolicyExceptionsDelete(t *testing.T) {
 		getResponse     = generatePolicyExceptionResponse(policyException)
 		fakeServer      = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -130,7 +127,6 @@ func TestPolicyExceptionsDelete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -172,7 +168,6 @@ func TestPolicyExceptionsList(t *testing.T) {
 		fakeServer       = lacework.MockServer()
 	)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Exceptions",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -190,7 +185,6 @@ func TestPolicyExceptionsList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -211,7 +205,6 @@ func TestPolicyExceptionUpdate(t *testing.T) {
 		apiPath     = fmt.Sprintf("Exceptions/%s", exceptionID)
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -229,7 +222,6 @@ func TestPolicyExceptionUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

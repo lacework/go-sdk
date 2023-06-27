@@ -36,7 +36,6 @@ func TestAlertChannelsService_GetGcpPubSub(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -46,7 +45,6 @@ func TestAlertChannelsService_GetGcpPubSub(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -73,7 +71,6 @@ func TestAlertChannelsService_UpdateGcpPubSub(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -98,7 +95,6 @@ func TestAlertChannelsService_UpdateGcpPubSub(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

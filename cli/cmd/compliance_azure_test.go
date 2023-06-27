@@ -118,7 +118,6 @@ func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
 		tenantID   = "abc123xy-1234-abcd-a1b2-09876zxy1234"
 	)
 	fakeServer.MockToken("TOKEN")
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"CloudAccounts/AzureCfg",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -133,7 +132,6 @@ func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
 
 	c, err := api.NewClient("test",
 		api.WithToken("TOKEN"),
-		api.WithApiV2(),
 		api.WithURL(fakeServer.URL()),
 	)
 

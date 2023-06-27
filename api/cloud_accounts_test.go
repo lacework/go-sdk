@@ -61,7 +61,6 @@ func TestCloudAccountsGet(t *testing.T) {
 		vanillaInt  = singleVanillaCloudAccount(intgGUID, vanillaType, "")
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -82,7 +81,6 @@ func TestCloudAccountsGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -119,7 +117,6 @@ func TestCloudAccountsDelete(t *testing.T) {
 		getResponse = generateCloudAccountResponse(vanillaInt)
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -149,7 +146,6 @@ func TestCloudAccountsDelete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -193,7 +189,6 @@ func TestCloudAccountsList(t *testing.T) {
 		expectedLen = len(allGUIDs)
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("CloudAccounts",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -216,7 +211,6 @@ func TestCloudAccountsList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -237,7 +231,6 @@ func TestCloudAccountsListByType(t *testing.T) {
 		expectedLen  = len(awsIntgGUIDs)
 		fakeServer   = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("CloudAccounts/AwsCtSqs",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -255,7 +248,6 @@ func TestCloudAccountsListByType(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

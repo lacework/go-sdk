@@ -35,7 +35,6 @@ func TestCloudAccountsGcpAlPubSubProjectGet(t *testing.T) {
 		apiPath    = fmt.Sprintf("CloudAccounts/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -45,7 +44,6 @@ func TestCloudAccountsGcpAlPubSubProjectGet(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -74,7 +72,6 @@ func TestCloudAccountsGcpAlPubSubOrgGet(t *testing.T) {
 		apiPath    = fmt.Sprintf("CloudAccounts/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -84,7 +81,6 @@ func TestCloudAccountsGcpAlPubSubOrgGet(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

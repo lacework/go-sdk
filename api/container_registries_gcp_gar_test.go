@@ -61,7 +61,6 @@ func TestContainerRegistriesGcpGarGet(t *testing.T) {
 		apiPath    = fmt.Sprintf("ContainerRegistries/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -71,7 +70,6 @@ func TestContainerRegistriesGcpGarGet(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -95,7 +93,6 @@ func TestContainerRegistriesGcpGarUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("ContainerRegistries/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -123,7 +120,6 @@ func TestContainerRegistriesGcpGarUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

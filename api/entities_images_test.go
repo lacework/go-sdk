@@ -32,7 +32,6 @@ import (
 
 func TestEntities_Images_Search(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/Images/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +42,6 @@ func TestEntities_Images_Search(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -60,7 +58,6 @@ func TestEntities_Images_Search(t *testing.T) {
 
 func TestEntities_Images_List(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/Images/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +68,6 @@ func TestEntities_Images_List(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -92,7 +88,6 @@ func TestEntities_Images_List(t *testing.T) {
 
 func TestEntities_Images_List_WithFilters(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/Images/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +98,6 @@ func TestEntities_Images_List_WithFilters(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -136,7 +130,6 @@ func TestEntities_Images_List_WithFilters(t *testing.T) {
 
 func TestEntities_Images_List_All(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/Images/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -147,7 +140,6 @@ func TestEntities_Images_List_All(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -171,7 +163,6 @@ func TestEntities_Images_List_All(t *testing.T) {
 
 func TestEntities_Images_List_All_WithFilters(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/Images/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -182,7 +173,6 @@ func TestEntities_Images_List_All_WithFilters(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -218,7 +208,6 @@ func TestEntities_Images_List_All_WithFilters(t *testing.T) {
 
 func TestEntities_Images_ListAll_EmptyData(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/Images/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -229,7 +218,6 @@ func TestEntities_Images_ListAll_EmptyData(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -243,7 +231,6 @@ func TestEntities_Images_ListAll_EmptyData(t *testing.T) {
 
 func TestEntities_Images_ListAll_WithFilters_EmptyData(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Entities/Images/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -254,7 +241,6 @@ func TestEntities_Images_ListAll_WithFilters_EmptyData(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

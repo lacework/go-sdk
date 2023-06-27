@@ -39,7 +39,6 @@ var (
 
 func TestAlertsCloseMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d/close", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +60,6 @@ func TestAlertsCloseMethod(t *testing.T) {
 
 func TestAlertsCloseOK(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d/close", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +80,6 @@ func TestAlertsCloseOK(t *testing.T) {
 
 func TestAlertsCloseError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d/close", alertID),
 		func(w http.ResponseWriter, r *http.Request) {

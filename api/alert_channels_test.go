@@ -173,7 +173,6 @@ func TestAlertChannelsGet(t *testing.T) {
 		vanillaInt  = singleVanillaAlertChannel(intgGUID, vanillaType, "")
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -194,7 +193,6 @@ func TestAlertChannelsGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -231,7 +229,6 @@ func TestAlertChannelsDelete(t *testing.T) {
 		getResponse = generateAlertChannelResponse(vanillaInt)
 		fakeServer  = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -261,7 +258,6 @@ func TestAlertChannelsDelete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -315,7 +311,6 @@ func TestAlertChannelsList(t *testing.T) {
 		fakeServer                 = lacework.MockServer()
 	)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("AlertChannels",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -348,7 +343,6 @@ func TestAlertChannelsList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -421,7 +415,6 @@ func TestAlertChannelsTest(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s/test", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -434,7 +427,6 @@ func TestAlertChannelsTest(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

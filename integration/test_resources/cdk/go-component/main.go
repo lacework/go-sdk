@@ -58,7 +58,6 @@ func app() error {
 		api.WithSubaccount(os.Getenv("LW_SUBACCOUNT")),
 		api.WithApiKeys(os.Getenv("LW_API_KEY"), os.Getenv("LW_API_SECRET")),
 		api.WithToken(os.Getenv("LW_API_TOKEN")),
-		api.WithApiV2(),
 	)
 	if err != nil {
 		return errors.Wrap(err, "One or more missing configuration")

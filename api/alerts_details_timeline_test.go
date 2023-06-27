@@ -51,7 +51,6 @@ var alertTimelineJSON = `{
 
 func TestAlertsGetTimelineMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +74,6 @@ func TestAlertsGetTimelineOK(t *testing.T) {
 	mockResponse := alertInvestigationJSON
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +99,6 @@ func TestAlertsGetTimelineOK(t *testing.T) {
 
 func TestAlertsGetTimelineError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d", alertID),
 		func(w http.ResponseWriter, r *http.Request) {

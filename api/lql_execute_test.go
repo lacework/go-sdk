@@ -87,7 +87,6 @@ var (
 
 func TestQueryExecuteMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/execute",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -111,7 +110,6 @@ func TestQueryExecuteOK(t *testing.T) {
 	mockResponse := mockQueryDataResponse(executeQueryData)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/execute",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -143,7 +141,6 @@ func TestQueryExecuteBad(t *testing.T) {
 	mockResponse := mockQueryDataResponse(executeQueryData)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/execute",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -167,7 +164,6 @@ func TestQueryExecuteBad(t *testing.T) {
 
 func TestQueryExecuteError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/execute",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -188,7 +184,6 @@ func TestQueryExecuteError(t *testing.T) {
 
 func TestQueryExecuteByIDMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Queries/%s/execute", queryID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -212,7 +207,6 @@ func TestQueryExecuteByIDOK(t *testing.T) {
 	mockResponse := mockQueryDataResponse(executeQueryData)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Queries/%s/execute", queryID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -241,7 +235,6 @@ func TestQueryExecuteByIDBad(t *testing.T) {
 	mockResponse := mockQueryDataResponse(executeQueryData)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/execute",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -265,7 +258,6 @@ func TestQueryExecuteByIDBad(t *testing.T) {
 
 func TestQueryExecuteByIDError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Queries/%s/execute", queryID),
 		func(w http.ResponseWriter, r *http.Request) {
