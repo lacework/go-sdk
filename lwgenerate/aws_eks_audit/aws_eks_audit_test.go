@@ -412,7 +412,7 @@ var moduleSingleRegionBasic = `provider "aws" {
 
 module "aws_eks_audit_log" {
   source                    = "lacework/eks-audit-log/aws"
-  version                   = "~> 0.4"
+  version                   = "~> 1.0"
   cloudwatch_regions        = ["us-east-1"]
   cluster_names             = ["cluster1", "cluster2"]
   kms_key_multi_region      = false
@@ -426,7 +426,7 @@ var moduleSingleRegionWithLaceworkAccountID = `provider "aws" {
 
 module "aws_eks_audit_log" {
   source                    = "lacework/eks-audit-log/aws"
-  version                   = "~> 0.4"
+  version                   = "~> 1.0"
   cloudwatch_regions        = ["us-east-1"]
   cluster_names             = ["cluster1", "cluster2"]
   kms_key_multi_region      = false
@@ -471,7 +471,7 @@ resource "aws_cloudwatch_log_subscription_filter" "lw_cw_subscription_filter_us-
 
 module "aws_eks_audit_log" {
   source                    = "lacework/eks-audit-log/aws"
-  version                   = "~> 0.4"
+  version                   = "~> 1.0"
   cloudwatch_regions        = ["us-east-1", "us-east-2"]
   no_cw_subscription_filter = true
 }

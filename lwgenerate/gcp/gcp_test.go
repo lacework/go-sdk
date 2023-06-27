@@ -255,7 +255,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_audit_log" {
   source             = "lacework/audit-log/gcp"
-  version            = "~> 3.0"
+  version            = "~> 3.4"
   custom_bucket_name = "bucket"
 }
 `),
@@ -269,7 +269,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_audit_log" {
   source        = "lacework/audit-log/gcp"
-  version       = "~> 3.0"
+  version       = "~> 3.4"
   custom_filter = "custom-filter"
 }
 `),
@@ -283,7 +283,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
+  version = "~> 3.4"
 }
 `),
 		},
@@ -296,7 +296,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_audit_log" {
   source                  = "lacework/audit-log/gcp"
-  version                 = "~> 3.0"
+  version                 = "~> 3.4"
   google_workspace_filter = false
 }
 `),
@@ -310,7 +310,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
+  version = "~> 3.4"
 }
 `),
 		},
@@ -323,7 +323,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_audit_log" {
   source     = "lacework/audit-log/gcp"
-  version    = "~> 3.0"
+  version    = "~> 3.4"
   k8s_filter = false
 }
 `),
@@ -339,7 +339,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_audit_log" {
   source             = "lacework/audit-log/gcp"
-  version            = "~> 3.0"
+  version            = "~> 3.4"
   folders_to_include = ["abc", "def"]
   org_integration    = true
   organization_id    = "123456789"
@@ -357,7 +357,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_audit_log" {
   source             = "lacework/audit-log/gcp"
-  version            = "~> 3.0"
+  version            = "~> 3.4"
   folders_to_exclude = ["abc", "def"]
   org_integration    = true
   organization_id    = "123456789"
@@ -375,7 +375,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_audit_log" {
   source          = "lacework/audit-log/gcp"
-  version         = "~> 3.0"
+  version         = "~> 3.4"
   org_integration = true
   organization_id = "123456789"
 }
@@ -393,7 +393,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_audit_log" {
   source                = "lacework/audit-log/gcp"
-  version               = "~> 3.0"
+  version               = "~> 3.4"
   folders_to_exclude    = ["abc"]
   include_root_projects = false
   org_integration       = true
@@ -413,7 +413,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_audit_log" {
   source             = "lacework/audit-log/gcp"
-  version            = "~> 3.0"
+  version            = "~> 3.4"
   folders_to_exclude = ["abc"]
   org_integration    = true
   organization_id    = "123456789"
@@ -429,7 +429,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
+  version = "~> 3.4"
   prefix  = "rar"
 }
 `),
@@ -443,7 +443,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_audit_log" {
   source    = "lacework/audit-log/gcp"
-  version   = "~> 3.0"
+  version   = "~> 3.4"
   wait_time = "30s"
 }
 `),
@@ -457,7 +457,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
+  version = "~> 3.4"
 
   for_each = {
     project1 = "project1"
@@ -779,7 +779,7 @@ var laceworkProvider = `provider "lacework" {
 
 var moduleImportProjectLevelAuditLogWithConfiguration = `module "gcp_project_audit_log" {
   source                       = "lacework/audit-log/gcp"
-  version                      = "~> 3.0"
+  version                      = "~> 3.4"
   service_account_name         = module.gcp_project_level_config.service_account_name
   service_account_private_key  = module.gcp_project_level_config.service_account_private_key
   use_existing_service_account = true
@@ -796,13 +796,13 @@ var moduleImportProjectLevelPubSubAuditLogWithConfiguration = `module "gcp_proje
 
 var moduleImportProjectLevelAuditLogWithoutConfiguration = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
+  version = "~> 3.4"
 }
 `
 
 var moduleImportProjectLevelAuditLogCustomIntegrationName = `module "gcp_project_audit_log" {
   source                    = "lacework/audit-log/gcp"
-  version                   = "~> 3.0"
+  version                   = "~> 3.4"
   lacework_integration_name = "custom_integration_name"
 }
 `
@@ -821,7 +821,7 @@ var moduleImportProjectLevelPubSubAuditLogCustomIntegrationName = `module "gcp_p
 
 var moduleImportProjectLevelAuditLogLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
+  version = "~> 3.4"
   labels = {
     key = "value"
   }
@@ -830,7 +830,7 @@ var moduleImportProjectLevelAuditLogLabels = `module "gcp_project_audit_log" {
 
 var moduleImportProjectLevelAuditLogBucketLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
+  version = "~> 3.4"
   bucket_labels = {
     key = "value"
   }
@@ -839,7 +839,7 @@ var moduleImportProjectLevelAuditLogBucketLabels = `module "gcp_project_audit_lo
 
 var moduleImportProjectLevelAuditLogPubSubSubscriptionLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
+  version = "~> 3.4"
   pubsub_subscription_labels = {
     key = "value"
   }
@@ -848,7 +848,7 @@ var moduleImportProjectLevelAuditLogPubSubSubscriptionLabels = `module "gcp_proj
 
 var moduleImportProjectLevelAuditLogPubSubTopicLabels = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
+  version = "~> 3.4"
   pubsub_topic_labels = {
     key = "value"
   }
@@ -857,21 +857,21 @@ var moduleImportProjectLevelAuditLogPubSubTopicLabels = `module "gcp_project_aud
 
 var moduleImportProjectLevelAuditLogBucketRegion = `module "gcp_project_audit_log" {
   source        = "lacework/audit-log/gcp"
-  version       = "~> 3.0"
+  version       = "~> 3.4"
   bucket_region = "us-west"
 }
 `
 
 var moduleImportProjectLevelAuditLogExistingBucketName = `module "gcp_project_audit_log" {
   source               = "lacework/audit-log/gcp"
-  version              = "~> 3.0"
+  version              = "~> 3.4"
   existing_bucket_name = "foo"
 }
 `
 
 var moduleImportProjectLevelAuditLogExistingLogSinkName = `module "gcp_project_audit_log" {
   source             = "lacework/audit-log/gcp"
-  version            = "~> 3.0"
+  version            = "~> 3.4"
   existing_sink_name = "foo"
 }
 `
@@ -884,27 +884,27 @@ var moduleImportProjectLevelPubSubAuditLogExistingLogSinkName = `module "gcp_pro
 
 var moduleImportProjectLevelAuditLogEnableUBLA = `module "gcp_project_audit_log" {
   source  = "lacework/audit-log/gcp"
-  version = "~> 3.0"
+  version = "~> 3.4"
 }
 `
 
 var moduleImportProjectLevelAuditLogDisableUBLA = `module "gcp_project_audit_log" {
   source      = "lacework/audit-log/gcp"
-  version     = "~> 3.0"
+  version     = "~> 3.4"
   enable_ubla = false
 }
 `
 
 var moduleImportProjectLevelAuditLogBucketLifecycleRuleAge = `module "gcp_project_audit_log" {
   source             = "lacework/audit-log/gcp"
-  version            = "~> 3.0"
+  version            = "~> 3.4"
   lifecycle_rule_age = 420
 }
 `
 
 var moduleImportOrganizationLevelAuditLogWithConfiguration = `module "gcp_organization_level_audit_log" {
   source                       = "lacework/audit-log/gcp"
-  version                      = "~> 3.0"
+  version                      = "~> 3.4"
   org_integration              = true
   organization_id              = "123456789"
   service_account_name         = module.gcp_organization_level_config.service_account_name
@@ -926,7 +926,7 @@ var moduleImportOrganizationLevelPubSubAuditLogWithConfiguration = `module "gcp_
 
 var moduleImportOrganizationLevelAuditLogWithoutConfiguration = `module "gcp_organization_level_audit_log" {
   source          = "lacework/audit-log/gcp"
-  version         = "~> 3.0"
+  version         = "~> 3.4"
   org_integration = true
   organization_id = "123456789"
 }
@@ -941,7 +941,7 @@ var moduleImportOrganizationLevelPubSubAuditLogWithoutConfiguration = `module "g
 `
 var moduleImportOrganizationLevelAuditLogCustomIntegrationName = `module "gcp_organization_level_audit_log" {
   source                    = "lacework/audit-log/gcp"
-  version                   = "~> 3.0"
+  version                   = "~> 3.4"
   lacework_integration_name = "custom_integration_name"
   org_integration           = true
   organization_id           = "123456789"

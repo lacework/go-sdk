@@ -22,7 +22,7 @@ module "az_ad_application" {
 
 module "az_config" {
   source                      = "lacework/config/azure"
-  version                     = "~> 2.0"
+  version                     = "~> 2.7"
   application_id              = module.az_ad_application.application_id
   application_password        = module.az_ad_application.application_password
   lacework_integration_name   = "Test Config Rename"

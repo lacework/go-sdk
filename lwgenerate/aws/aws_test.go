@@ -342,7 +342,7 @@ var laceworkProvider = `provider "lacework" {
 
 var moduleImportCtWithConfig = `module "main_cloudtrail" {
   source                = "lacework/cloudtrail/aws"
-  version               = "~> 2.0"
+  version               = "~> 2.7"
   iam_role_arn          = module.aws_config.iam_role_arn
   iam_role_external_id  = module.aws_config.external_id
   iam_role_name         = module.aws_config.iam_role_name
@@ -352,7 +352,7 @@ var moduleImportCtWithConfig = `module "main_cloudtrail" {
 
 var moduleImportCtWithSnsWithoutConfig = `module "main_cloudtrail" {
   source                       = "lacework/cloudtrail/aws"
-  version                      = "~> 2.0"
+  version                      = "~> 2.7"
   sns_topic_encryption_key_arn = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
   sns_topic_name               = "sns-topic-name"
 }
@@ -360,21 +360,21 @@ var moduleImportCtWithSnsWithoutConfig = `module "main_cloudtrail" {
 
 var moduleImportCtWithSnsNoConfigNoEncryption = `module "main_cloudtrail" {
   source                        = "lacework/cloudtrail/aws"
-  version                       = "~> 2.0"
+  version                       = "~> 2.7"
   sns_topic_encryption_enabled  = false
   sns_topic_name                = "sns-topic-name"
 }
 `
 var moduleImportCtWithSnsNoConfigEncryptionNotSet = `module "main_cloudtrail" {
   source         = "lacework/cloudtrail/aws"
-  version        = "~> 2.0"
+  version        = "~> 2.7"
   sns_topic_name = "sns-topic-name"
 }
 `
 
 var moduleImportCtWithSqsWithoutConfig = `module "main_cloudtrail" {
   source                 = "lacework/cloudtrail/aws"
-  version                = "~> 2.0"
+  version                = "~> 2.7"
   sqs_encryption_key_arn = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
   sqs_queue_name         = "sqs-queue-name"
 }
@@ -382,7 +382,7 @@ var moduleImportCtWithSqsWithoutConfig = `module "main_cloudtrail" {
 
 var moduleImportCtWithSqsNoConfigNoEncryption = `module "main_cloudtrail" {
   source                  = "lacework/cloudtrail/aws"
-  version                 = "~> 2.0"
+  version                 = "~> 2.7"
   sqs_encryption_enabled  = false
   sqs_queue_name          = "sqs-queue-name"
 }
@@ -390,14 +390,14 @@ var moduleImportCtWithSqsNoConfigNoEncryption = `module "main_cloudtrail" {
 
 var moduleImportCtWithSqsNoConfigEncryptionNotSet = `module "main_cloudtrail" {
   source         = "lacework/cloudtrail/aws"
-  version        = "~> 2.0"
+  version        = "~> 2.7"
   sqs_queue_name = "sqs-queue-name"
 }
 `
 
 var moduleImportCtWithAllEncryptionSet = `module "main_cloudtrail" {
   source                       = "lacework/cloudtrail/aws"
-  version                      = "~> 2.0"
+  version                      = "~> 2.7"
   bucket_name                  = "s3-bucket-name"
   bucket_sse_key_arn           = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
   cloudtrail_name              = "cloudtrail-name"
@@ -410,7 +410,7 @@ var moduleImportCtWithAllEncryptionSet = `module "main_cloudtrail" {
 
 var moduleImportCtWithoutConfig = `module "main_cloudtrail" {
   source  = "lacework/cloudtrail/aws"
-  version = "~> 2.0"
+  version = "~> 2.7"
 }
 `
 
@@ -429,7 +429,7 @@ var moduleImportConfigWithLaceworkAccountID = `module "aws_config" {
 
 var moduleImportCtWithLaceworkAccountID = `module "main_cloudtrail" {
   source                  = "lacework/cloudtrail/aws"
-  version                 = "~> 2.0"
+  version                 = "~> 2.7"
   iam_role_arn            = module.aws_config.iam_role_arn
   iam_role_external_id    = module.aws_config.external_id
   iam_role_name           = module.aws_config.iam_role_name
@@ -440,7 +440,7 @@ var moduleImportCtWithLaceworkAccountID = `module "main_cloudtrail" {
 
 var moduleImportCtWithS3BucketNotification = `module "main_cloudtrail" {
   source                     = "lacework/cloudtrail/aws"
-  version                    = "~> 2.0"
+  version                    = "~> 2.7"
   use_s3_bucket_notification = true
 }
 `
