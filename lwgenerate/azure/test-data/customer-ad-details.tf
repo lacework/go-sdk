@@ -27,7 +27,7 @@ module "az_config" {
 
 module "az_activity_log" {
   source                      = "lacework/activity-log/azure"
-  version                     = "~> 2.7"
+  version                     = "~> 2.0"
   application_id              = "AD-Test-Application-ID"
   application_password        = "AD-Test-Password"
   lacework_integration_name   = "Test Activity Log Rename"
