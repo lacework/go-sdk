@@ -147,7 +147,8 @@
         "generate_execute.go",
         "generate_gcp.go",
         "generate_gke.go",
-        "generate_k8s.go"
+        "generate_k8s.go",
+        "constants.go"
     ]
 dirs = ["lwgenerate/"]
 
