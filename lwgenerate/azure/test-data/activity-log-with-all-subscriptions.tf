@@ -22,7 +22,7 @@ module "az_ad_application" {
 
 module "az_activity_log" {
   source                      = "lacework/activity-log/azure"
-  version                     = "~> 2.7"
+  version                     = "~> 2.0"
   all_subscriptions           = true
   application_id              = module.az_ad_application.application_id
   application_password        = module.az_ad_application.application_password

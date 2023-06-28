@@ -13,9 +13,9 @@ const (
 	AwsEksAuditVersion   = "~> 1.0"
 
 	LWAzureConfigSource       = "lacework/config/azure"
-	LWAzureConfigVersion      = "~> 2.7"
+	LWAzureConfigVersion      = "~> 2.0"
 	LWAzureActivityLogSource  = "lacework/activity-log/azure"
-	LWAzureActivityLogVersion = "~> 2.7"
+	LWAzureActivityLogVersion = "~> 2.0"
 	LWAzureADSource           = "lacework/ad-application/azure"
 	LWAzureADVersion          = "~> 1.0"
 
