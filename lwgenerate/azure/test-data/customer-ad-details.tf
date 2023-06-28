@@ -17,7 +17,7 @@ provider "azurerm" {
 
 module "az_config" {
   source                      = "lacework/config/azure"
-  version                     = "~> 2.7"
+  version                     = "~> 2.0"
   application_id              = "AD-Test-Application-ID"
   application_password        = "AD-Test-Password"
   lacework_integration_name   = "Test Config Rename"
