@@ -19,8 +19,11 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
+	"github.com/pkg/errors"
 )
 
 func createOciConfigIntegration() error {
@@ -56,25 +59,30 @@ func createOciConfigIntegration() error {
 			Validate: survey.Required,
 		},
 		{
-			Name:     "private_key",
-			Prompt:   &survey.Input{Message: "Private Key:"},
+			Name:     "private_key_file",
+			Prompt:   &survey.Input{Message: "Path to private key file:"},
 			Validate: survey.Required,
 		},
 	}
 
 	answers := struct {
-		Name        string
-		TenantID    string `survey:"tenant_id"`
-		TenantName  string `survey:"tenant_name"`
-		HomeRegion  string `survey:"home_region"`
-		UserOCID    string `survey:"user_ocid"`
-		Fingerprint string `survey:"fingerprint"`
-		PrivateKey  string `survey:"private_key"`
+		Name           string
+		TenantID       string `survey:"tenant_id"`
+		TenantName     string `survey:"tenant_name"`
+		HomeRegion     string `survey:"home_region"`
+		UserOCID       string `survey:"user_ocid"`
+		Fingerprint    string `survey:"fingerprint"`
+		PrivateKeyFile string `survey:"private_key_file"`
 	}{}
 
 	err := survey.Ask(questions, &answers, survey.WithIcons(promptIconsFunc))
 	if err != nil {
 		return err
+	}
+
+	privateKeyBytes, err := os.ReadFile(answers.PrivateKeyFile)
+	if err != nil {
+		return errors.Wrap(err, "error reading private key file")
 	}
 
 	oci := api.NewCloudAccount(
@@ -87,7 +95,7 @@ func createOciConfigIntegration() error {
 			UserOCID:   answers.UserOCID,
 			Credentials: api.OciCfgCredentials{
 				Fingerprint: answers.Fingerprint,
-				PrivateKey:  answers.PrivateKey,
+				PrivateKey:  string(privateKeyBytes),
 			},
 		},
 	)
