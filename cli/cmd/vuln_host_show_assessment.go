@@ -49,7 +49,7 @@ To find the machine id from hosts in your environment, use the command:
 Grab a CVE id and feed it to the command:
 
     lacework vulnerability host list-hosts my_cve_id`,
-		PreRunE: func(_ *cobra.Command, _ []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if vulCmdState.Csv {
 				cli.EnableCSVOutput()
 
@@ -58,6 +58,22 @@ Grab a CVE id and feed it to the command:
 					vulCmdState.Details = true
 				}
 			}
+
+			// validate collector_type flag
+			if vulCmdState.CollectorType != vulnHostCollectorTypeAgentless && vulCmdState.CollectorType != vulnHostCollectorTypeAgent {
+				return errors.Errorf("collector_type must be either %s or %s", vulnHostCollectorTypeAgent, vulnHostCollectorTypeAgentless)
+			}
+
+			if vulCmdState.CollectorType == vulnHostCollectorTypeAgentless {
+				if !checkAgentlessCloudAccount() {
+					if cmd.Flags().Changed("collector_type") {
+						return errors.New("No agentless integrations configured.\n" +
+							"See https://docs.lacework.net/onboarding/category/aws-agentless-workload-scanning-integrations")
+					}
+					vulCmdState.CollectorType = vulnHostCollectorTypeAgent
+				}
+			}
+
 			return nil
 		},
 		RunE: func(c *cobra.Command, args []string) error {
@@ -98,7 +114,7 @@ Grab a CVE id and feed it to the command:
 					fmt.Sprintf("Searching for latest host evaluation for machine %s (%d)...",
 						machineDetails.Hostname, machineDetails.Mid,
 					))
-				evalGUID, err := searchLastestHostEvaluationGuid(args[0])
+				evalGUID, err := searchLatestHostEvaluationGuid(args[0])
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrapf(err, "unable to find information of host '%s'", args[0])
@@ -119,6 +135,13 @@ Grab a CVE id and feed it to the command:
 					Expression: "eq",
 					Field:      "evalGuid",
 					Value:      evalGUID,
+				})
+
+				// filter by collector_type
+				filter.Filters = append(filter.Filters, api.Filter{
+					Expression: "eq",
+					Field:      "evalCtx.collector_type",
+					Value:      vulCmdState.CollectorType,
 				})
 
 				cli.StartProgress(
@@ -196,7 +219,7 @@ func buildVulnHostReports(response api.VulnerabilitiesHostResponse) error {
 	}
 }
 
-func searchLastestHostEvaluationGuid(mid string) (string, error) {
+func searchLatestHostEvaluationGuid(mid string) (string, error) {
 	var (
 		now    = time.Now().UTC()
 		before = now.AddDate(0, 0, -7) // 7 days from ago
@@ -209,7 +232,13 @@ func searchLastestHostEvaluationGuid(mid string) (string, error) {
 				Expression: "eq",
 				Field:      "mid",
 				Value:      mid,
-			}},
+			},
+				{
+					Expression: "eq",
+					Field:      "evalCtx.collector_type",
+					Value:      vulCmdState.CollectorType,
+				},
+			},
 			Returns: []string{"evalGuid", "startTime"},
 		}
 	)
@@ -221,7 +250,13 @@ func searchLastestHostEvaluationGuid(mid string) (string, error) {
 	}
 
 	if len(response.Data) == 0 {
-		return "", errors.New("no data found")
+		cli.Log.Infow("no data found", "collector_type", vulCmdState.CollectorType)
+		if vulCmdState.CollectorType == vulnHostCollectorTypeAgentless {
+			vulCmdState.CollectorType = vulnHostCollectorTypeAgent
+			return searchLatestHostEvaluationGuid(mid)
+		}
+
+		return "", errors.Errorf("no data found with %s collector\n", vulCmdState.CollectorType)
 	}
 
 	return getUniqueHostEvalGUID(response), nil
@@ -336,6 +371,7 @@ func hostVulnHostDetailsMainReportTable(assessment api.VulnerabilitiesHostRespon
 						{"Provider", machineTags.VMProvider},
 						{"Instance ID", machineTags.InstanceID},
 						{"AMI", machineTags.AmiID},
+						{"Collector Type", host.EvalCtx.CollectorType},
 					},
 					tableFunc(func(t *tablewriter.Table) {
 						t.SetColumnSeparator("")
@@ -558,4 +594,17 @@ func sortVulnHosts(slice []api.VulnerabilityHost) {
 			}
 		})
 	}
+}
+
+func checkAgentlessCloudAccount() bool {
+	resp, err := cli.LwApi.V2.CloudAccounts.List()
+	if err != nil {
+		return false
+	}
+	for _, ca := range resp.Data {
+		if strings.Contains(ca.Type, "Sidekick") {
+			return true
+		}
+	}
+	return false
 }
