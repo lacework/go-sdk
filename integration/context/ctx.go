@@ -53,11 +53,6 @@ func main() {
 		return
 	}
 
-	// always run help tests
-	if !array.ContainsStr(tags, "help") {
-		tags = append(tags, "help")
-	}
-
 	log.Printf("determined test context tags: %s", strings.Join(tags, ","))
 	fmt.Print(strings.Join(tags, " "))
 }
@@ -77,6 +72,12 @@ func integrationCtx(args []string) (buildTags []string) {
 			}
 		}
 	}
+
+	// always run help tests
+	if !array.ContainsStr(buildTags, "help") {
+		buildTags = append(buildTags, "help")
+	}
+
 	return
 }
 
