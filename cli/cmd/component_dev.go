@@ -53,9 +53,8 @@ var cdkGolangScaffoldingRequirements = map[string]string{
 }
 
 var cdkPythonScaffoldingRequirements = map[string]string{
-	"python3": "https://www.python.org/downloads/",
-	"poetry":  "https://python-poetry.org/docs/",
-	"shiv":    "https://github.com/linkedin/shiv/",
+	"python": "https://www.python.org/downloads/",
+	"poetry": "https://python-poetry.org/docs/",
 }
 
 func init() {
