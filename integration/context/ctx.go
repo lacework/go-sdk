@@ -53,6 +53,11 @@ func main() {
 		return
 	}
 
+	// always run help tests
+	if !array.ContainsStr(tags, "help") {
+		tags = append(tags, "help")
+	}
+
 	log.Printf("determined test context tags: %s", strings.Join(tags, ","))
 	fmt.Print(strings.Join(tags, " "))
 }
