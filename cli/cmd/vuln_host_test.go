@@ -244,7 +244,6 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersSeverity(t *testing.T
 Try adding '--active' to only show vulnerabilities of packages actively running.
 
 1 of 22 cve(s) showing
-
 `
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
