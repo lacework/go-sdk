@@ -108,19 +108,20 @@ func TestBuildVulnHostReportsWithVulnerabilitiesSummaryOnlyAndNoFilters(t *testi
 	})
 	// NOTE (@afiune): We purposely leave trailing spaces in this table, we need them!
 	expectedTable := `
-          HOST DETAILS                   VULNERABILITIES          
---------------------------------+---------------------------------
-    Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     host-mock        -----------+-------+----------  
-    External IP  mock               Critical       0         0    
-    Internal IP  mock               High           1         0    
-    Os           linux              Medium         3         2    
-    Arch         arm64              Low            4         2    
-    Namespace    ubuntu:18.04       Info          14         0    
-    Provider     AWS                                              
-    Instance ID  i-mock                                           
-    AMI          ami-mock                                         
-                                                                  
+            HOST DETAILS                    VULNERABILITIES          
+-----------------------------------+---------------------------------
+    Machine ID      51                 SEVERITY   COUNT   FIXABLE    
+    Hostname        host-mock        -----------+-------+----------  
+    External IP     mock               Critical       0         0    
+    Internal IP     mock               High           1         0    
+    Os              linux              Medium         3         2    
+    Arch            arm64              Low            4         2    
+    Namespace       ubuntu:18.04       Info          14         0    
+    Provider        AWS                                              
+    Instance ID     i-mock                                           
+    AMI             ami-mock                                         
+    Collector Type  Agent                                            
+                                                                     
 
 Try adding '--details' to increase details shown about the vulnerability assessment.
 `
@@ -136,19 +137,20 @@ func TestBuildVulnHostReportsWithVulnerabilitiesPackagesViewAndNoFilters(t *test
 	})
 	// NOTE (@afiune): We purposely leave trailing spaces in this table, we need them!
 	expectedTable := `
-          HOST DETAILS                   VULNERABILITIES          
---------------------------------+---------------------------------
-    Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     host-mock        -----------+-------+----------  
-    External IP  mock               Critical       0         0    
-    Internal IP  mock               High           1         0    
-    Os           linux              Medium         3         2    
-    Arch         arm64              Low            4         2    
-    Namespace    ubuntu:18.04       Info          14         0    
-    Provider     AWS                                              
-    Instance ID  i-mock                                           
-    AMI          ami-mock                                         
-                                                                  
+            HOST DETAILS                    VULNERABILITIES          
+-----------------------------------+---------------------------------
+    Machine ID      51                 SEVERITY   COUNT   FIXABLE    
+    Hostname        host-mock        -----------+-------+----------  
+    External IP     mock               Critical       0         0    
+    Internal IP     mock               High           1         0    
+    Os              linux              Medium         3         2    
+    Arch            arm64              Low            4         2    
+    Namespace       ubuntu:18.04       Info          14         0    
+    Provider        AWS                                              
+    Instance ID     i-mock                                           
+    AMI             ami-mock                                         
+    Collector Type  Agent                                            
+                                                                     
   CVE COUNT   SEVERITY               PACKAGE                      CURRENT VERSION                  FIX VERSION            PKG STATUS  
 ------------+----------+----------------------------------+------------------------------+------------------------------+-------------
   1           High       linux-aws                          1:2017.3.23-2ubuntu0.18.04.2                                              
@@ -187,19 +189,20 @@ func TestBuildVulnHostReportsWithVulnerabilitiesPackagesViewWithFilters(t *testi
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
 	expectedTable := `
-          HOST DETAILS                   VULNERABILITIES          
---------------------------------+---------------------------------
-    Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     host-mock        -----------+-------+----------  
-    External IP  mock               Critical       0         0    
-    Internal IP  mock               High           1         0    
-    Os           linux              Medium         3         2    
-    Arch         arm64              Low            4         2    
-    Namespace    ubuntu:18.04       Info          14         0    
-    Provider     AWS                                              
-    Instance ID  i-mock                                           
-    AMI          ami-mock                                         
-                                                                  
+            HOST DETAILS                    VULNERABILITIES          
+-----------------------------------+---------------------------------
+    Machine ID      51                 SEVERITY   COUNT   FIXABLE    
+    Hostname        host-mock        -----------+-------+----------  
+    External IP     mock               Critical       0         0    
+    Internal IP     mock               High           1         0    
+    Os              linux              Medium         3         2    
+    Arch            arm64              Low            4         2    
+    Namespace       ubuntu:18.04       Info          14         0    
+    Provider        AWS                                              
+    Instance ID     i-mock                                           
+    AMI             ami-mock                                         
+    Collector Type  Agent                                            
+                                                                     
   CVE COUNT   SEVERITY    PACKAGE          CURRENT VERSION          FIX VERSION   PKG STATUS  
 ------------+----------+-----------+------------------------------+-------------+-------------
   1           High       linux-aws   1:2017.3.23-2ubuntu0.18.04.2                             
@@ -220,19 +223,20 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersSeverity(t *testing.T
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
 	expectedTable := `
-          HOST DETAILS                   VULNERABILITIES          
---------------------------------+---------------------------------
-    Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     host-mock        -----------+-------+----------  
-    External IP  mock               Critical       0         0    
-    Internal IP  mock               High           1         0    
-    Os           linux              Medium         3         2    
-    Arch         arm64              Low            4         2    
-    Namespace    ubuntu:18.04       Info          14         0    
-    Provider     AWS                                              
-    Instance ID  i-mock                                           
-    AMI          ami-mock                                         
-                                                                  
+            HOST DETAILS                    VULNERABILITIES          
+-----------------------------------+---------------------------------
+    Machine ID      51                 SEVERITY   COUNT   FIXABLE    
+    Hostname        host-mock        -----------+-------+----------  
+    External IP     mock               Critical       0         0    
+    Internal IP     mock               High           1         0    
+    Os              linux              Medium         3         2    
+    Arch            arm64              Low            4         2    
+    Namespace       ubuntu:18.04       Info          14         0    
+    Provider        AWS                                              
+    Instance ID     i-mock                                           
+    AMI             ami-mock                                         
+    Collector Type  Agent                                            
+                                                                     
       CVE ID       SEVERITY   CVSSV2   CVSSV3    PACKAGE          CURRENT VERSION          FIX VERSION   PKG STATUS   VULN STATUS  
 -----------------+----------+--------+--------+-----------+------------------------------+-------------+------------+--------------
   CVE-2022-33741   High       3.6      7.1      linux-aws   1:2017.3.23-2ubuntu0.18.04.2                              Reopened     
@@ -240,6 +244,7 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersSeverity(t *testing.T
 Try adding '--active' to only show vulnerabilities of packages actively running.
 
 1 of 22 cve(s) showing
+
 `
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
@@ -253,19 +258,20 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersActive(t *testing.T) 
 	})
 	// NOTE (@afiune): We purposely leave trailing spaces in this table, we need them!
 	expectedTable := `
-          HOST DETAILS                   VULNERABILITIES          
---------------------------------+---------------------------------
-    Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     host-mock        -----------+-------+----------  
-    External IP  mock               Critical       0         0    
-    Internal IP  mock               High           1         0    
-    Os           linux              Medium         3         2    
-    Arch         arm64              Low            4         2    
-    Namespace    ubuntu:18.04       Info          14         0    
-    Provider     AWS                                              
-    Instance ID  i-mock                                           
-    AMI          ami-mock                                         
-                                                                  
+            HOST DETAILS                    VULNERABILITIES          
+-----------------------------------+---------------------------------
+    Machine ID      51                 SEVERITY   COUNT   FIXABLE    
+    Hostname        host-mock        -----------+-------+----------  
+    External IP     mock               Critical       0         0    
+    Internal IP     mock               High           1         0    
+    Os              linux              Medium         3         2    
+    Arch            arm64              Low            4         2    
+    Namespace       ubuntu:18.04       Info          14         0    
+    Provider        AWS                                              
+    Instance ID     i-mock                                           
+    AMI             ami-mock                                         
+    Collector Type  Agent                                            
+                                                                     
       CVE ID       SEVERITY   CVSSV2   CVSSV3   PACKAGE         CURRENT VERSION             FIX VERSION      PKG STATUS   VULN STATUS  
 -----------------+----------+--------+--------+---------+------------------------------+-------------------+------------+--------------
   CVE-2019-18276   Low        7.2      7.8      bash      1:2017.3.23-2ubuntu0.18.04.2   4.4.18-2ubuntu1.3   ACTIVE       Active       
@@ -302,19 +308,20 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFiltersSeverityAndActiveRetu
 	})
 	// NOTE (@afiune): We purposely leave trailing spaces in this table, we need them!
 	expectedTable := `
-          HOST DETAILS                   VULNERABILITIES          
---------------------------------+---------------------------------
-    Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     host-mock        -----------+-------+----------  
-    External IP  mock               Critical       0         0    
-    Internal IP  mock               High           1         0    
-    Os           linux              Medium         3         2    
-    Arch         arm64              Low            4         2    
-    Namespace    ubuntu:18.04       Info          14         0    
-    Provider     AWS                                              
-    Instance ID  i-mock                                           
-    AMI          ami-mock                                         
-                                                                  
+            HOST DETAILS                    VULNERABILITIES          
+-----------------------------------+---------------------------------
+    Machine ID      51                 SEVERITY   COUNT   FIXABLE    
+    Hostname        host-mock        -----------+-------+----------  
+    External IP     mock               Critical       0         0    
+    Internal IP     mock               High           1         0    
+    Os              linux              Medium         3         2    
+    Arch            arm64              Low            4         2    
+    Namespace       ubuntu:18.04       Info          14         0    
+    Provider        AWS                                              
+    Instance ID     i-mock                                           
+    AMI             ami-mock                                         
+    Collector Type  Agent                                            
+                                                                     
 There are no high vulnerabilities of packages actively running in your environment.
 
 Try adding '--fixable' to only show fixable vulnerabilities.
@@ -333,19 +340,20 @@ func TestBuildVulnHostReportsWithVulnerabilitiesWithFilterReturnsNoVulns(t *test
 	})
 	// NOTE (@afiune): We purposly leave trailing spaces in this table, we need them!
 	expectedTable := `
-          HOST DETAILS                   VULNERABILITIES          
---------------------------------+---------------------------------
-    Machine ID   51                 SEVERITY   COUNT   FIXABLE    
-    Hostname     host-mock        -----------+-------+----------  
-    External IP  mock               Critical       0         0    
-    Internal IP  mock               High           1         0    
-    Os           linux              Medium         3         2    
-    Arch         arm64              Low            4         2    
-    Namespace    ubuntu:18.04       Info          14         0    
-    Provider     AWS                                              
-    Instance ID  i-mock                                           
-    AMI          ami-mock                                         
-                                                                  
+            HOST DETAILS                    VULNERABILITIES          
+-----------------------------------+---------------------------------
+    Machine ID      51                 SEVERITY   COUNT   FIXABLE    
+    Hostname        host-mock        -----------+-------+----------  
+    External IP     mock               Critical       0         0    
+    Internal IP     mock               High           1         0    
+    Os              linux              Medium         3         2    
+    Arch            arm64              Low            4         2    
+    Namespace       ubuntu:18.04       Info          14         0    
+    Provider        AWS                                              
+    Instance ID     i-mock                                           
+    AMI             ami-mock                                         
+    Collector Type  Agent                                            
+                                                                     
 There are no critical vulnerabilities in your environment.
 
 Try adding '--active' to only show vulnerabilities of packages actively running.
@@ -421,7 +429,8 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
             "evalCtx": {
                 "exception_props": [],
                 "Hostname": "host-mock",
-                "mc_eval_guid": "mock"
+                "mc_eval_guid": "mock",
+				"collector_type": "Agent"
             },
             "featureKey": {
                 "name": "linux-aws-5.4-headers-5.4.0-1049",
