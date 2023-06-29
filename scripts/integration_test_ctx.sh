@@ -11,7 +11,7 @@ run_integration_tests(){
   CHANGES=$(git --no-pager diff --name-only $BRANCH $(git merge-base $BRANCH main))
 
   # Fetch relevant build tags
-  TAGS=$(go run integration/context/ctx.go $CHANGES)
+  TAGS=$(go run integration/context/ctx_cfg.go $CHANGES)
 
   # if no tags then exit
   if [ "$TAGS" = "" ]; then

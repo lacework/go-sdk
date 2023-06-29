@@ -72,6 +72,12 @@ func integrationCtx(args []string) (buildTags []string) {
 			}
 		}
 	}
+
+	// always run help tests
+	if !array.ContainsStr(buildTags, "help") {
+		buildTags = append(buildTags, "help")
+	}
+
 	return
 }
 
