@@ -412,7 +412,7 @@ func cdkScaffoldingPreflightCheck(scaffolding string, requirements map[string]st
 		if _, err := exec.LookPath(file); err != nil {
 			errMessage += fmt.Sprintf(`
 %s is required to create the %s scaffolding. Please install it before proceeding:
-	%s: %s`, file, scaffolding, file, site)
+  %s: %s`, file, scaffolding, file, site)
 		}
 	}
 	if errMessage != "" {
