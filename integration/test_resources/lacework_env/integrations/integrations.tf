@@ -50,3 +50,9 @@ module "gcp_organization_level_config" {
 module "az_config" {
   source = "lacework/config/azure"
 }
+
+# required for go-sdk/integration/vulnerability_test.go
+module "agentless-scanning" {
+  source  = "lacework/agentless-scanning/aws"
+  version = "~> 0.11"
+}
