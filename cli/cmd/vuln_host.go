@@ -105,7 +105,7 @@ func init() {
 	// the collector_type of the assessment
 	vulHostShowAssessmentCmd.Flags().StringVar(&vulCmdState.CollectorType,
 		"collector_type", vulnHostCollectorTypeAgentless,
-		"filter assessments by collector type(Agent/Agentless)",
+		"filter assessments by collector type (Agent or Agentless)",
 	)
 }
 

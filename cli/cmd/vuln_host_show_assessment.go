@@ -65,11 +65,14 @@ Grab a CVE id and feed it to the command:
 			}
 
 			if vulCmdState.CollectorType == vulnHostCollectorTypeAgentless {
+				// check for agentless cloud integrations
 				if !checkAgentlessCloudAccount() {
+					// if the user has set the flag '--collector_type Agentless'
 					if cmd.Flags().Changed("collector_type") {
 						return errors.New("No agentless integrations configured.\n" +
 							"See https://docs.lacework.net/onboarding/category/aws-agentless-workload-scanning-integrations")
 					}
+					// if the flag was not set by the user and no agentless integrations exist
 					vulCmdState.CollectorType = vulnHostCollectorTypeAgent
 				}
 			}
@@ -120,7 +123,7 @@ Grab a CVE id and feed it to the command:
 					return errors.Wrapf(err, "unable to find information of host '%s'", args[0])
 				}
 
-				cli.Log.Infow("latest assessment found", "eval_guid", evalGUID)
+				cli.Log.Infow("latest assessment found", "eval_guid", evalGUID, "collector_type", vulCmdState.CollectorType)
 
 				var (
 					now    = time.Now().UTC()
@@ -145,7 +148,7 @@ Grab a CVE id and feed it to the command:
 				})
 
 				cli.StartProgress(
-					fmt.Sprintf("Fetching vulnerabilities from host evaluation '%s'...", evalGUID),
+					fmt.Sprintf("Fetching vulnerabilities from host evaluation '%s' (collector_type: %s) ...", evalGUID),
 				)
 				assessment, err = cli.LwApi.V2.Vulnerabilities.Hosts.SearchAllPages(filter)
 				if err != nil {
@@ -602,7 +605,9 @@ func checkAgentlessCloudAccount() bool {
 		return false
 	}
 	for _, ca := range resp.Data {
-		if strings.Contains(ca.Type, "Sidekick") {
+		switch ca.Type {
+		case api.AwsSidekickCloudAccount.String(), api.AwsSidekickOrgCloudAccount.String(),
+			api.GcpSidekickCloudAccount.String():
 			return true
 		}
 	}
