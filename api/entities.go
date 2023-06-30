@@ -43,7 +43,7 @@ const (
 var EntityTypes = map[EntityType]string{
 	NoneEntityType:           "None",
 	MachineDetailsEntityType: "MachineDetails",
-	MachineEntityType: "Machines",
+	MachineEntityType:        "Machines",
 	UsersEntityType:          "Users",
 	ImagesEntityType:         "Images",
 	ContainersEntityType:     "Containers",
