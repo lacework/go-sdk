@@ -92,7 +92,7 @@ Grab a CVE id and feed it to the command:
 			expired := cli.ReadCachedAsset(cacheKey, &assessment)
 			if expired {
 				// check machine exists
-				var machineDetailsResponse api.MachineDetailsEntityResponse
+				var machinesResponse api.MachinesEntityResponse
 				filter := api.SearchFilter{Filters: []api.Filter{{
 					Expression: "eq",
 					Field:      "mid",
@@ -100,18 +100,18 @@ Grab a CVE id and feed it to the command:
 				}}}
 
 				cli.StartProgress(fmt.Sprintf("Searching for machine with id '%s'...", args[0]))
-				err := cli.LwApi.V2.Entities.Search(&machineDetailsResponse, filter)
+				err := cli.LwApi.V2.Entities.Search(&machinesResponse, filter)
 				cli.StopProgress()
 
 				if err != nil {
 					return errors.Wrapf(err, "unable to get machine details id %s", args[0])
 				}
 
-				if len(machineDetailsResponse.Data) == 0 {
+				if len(machinesResponse.Data) == 0 {
 					return errors.Errorf("no hosts found with id %s\n", args[0])
 				}
 
-				machineDetails := machineDetailsResponse.Data[0]
+				machineDetails := machinesResponse.Data[0]
 
 				cli.StartProgress(
 					fmt.Sprintf("Searching for latest host evaluation for machine %s (%d)...",
