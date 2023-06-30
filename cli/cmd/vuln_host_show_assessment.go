@@ -148,7 +148,7 @@ Grab a CVE id and feed it to the command:
 				})
 
 				cli.StartProgress(
-					fmt.Sprintf("Fetching vulnerabilities from host evaluation '%s' (collector_type: %s) ...", evalGUID),
+					fmt.Sprintf("Fetching vulnerabilities from host evaluation '%s' (collector_type: %s) ...", evalGUID, vulCmdState.CollectorType),
 				)
 				assessment, err = cli.LwApi.V2.Vulnerabilities.Hosts.SearchAllPages(filter)
 				if err != nil {
