@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-// ListMachines returns a list of MachineDetailEntity from the last 7 days
+// ListMachines returns a list of MachineEntity from the last 7 days
 func (svc *EntitiesService) ListMachines() (response MachinesEntityResponse, err error) {
 	now := time.Now().UTC()
 	before := now.AddDate(0, 0, -7) // 7 days from ago
@@ -51,7 +51,7 @@ func (svc *EntitiesService) ListAllMachines() (response MachinesEntityResponse, 
 	}
 
 	var (
-		all    []MachineDetailEntity
+		all    []MachineEntity
 		pageOk bool
 	)
 	for {
@@ -77,7 +77,7 @@ func (svc *EntitiesService) ListAllMachinesWithFilters(filters SearchFilter) (re
 	}
 
 	var (
-		all    []MachineDetailEntity
+		all    []MachineEntity
 		pageOk bool
 	)
 
@@ -97,8 +97,8 @@ func (svc *EntitiesService) ListAllMachinesWithFilters(filters SearchFilter) (re
 }
 
 type MachinesEntityResponse struct {
-	Data   []MachineDetailEntity `json:"data"`
-	Paging V2Pagination          `json:"paging"`
+	Data   []MachineEntity `json:"data"`
+	Paging V2Pagination    `json:"paging"`
 
 	v2PageMetadata `json:"-"`
 }

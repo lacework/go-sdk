@@ -429,7 +429,7 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
                 "exception_props": [],
                 "Hostname": "host-mock",
                 "mc_eval_guid": "mock",
-				"collector_type": "Agent"
+                "collector_type": "Agent"
             },
             "featureKey": {
                 "name": "linux-aws-5.4-headers-5.4.0-1049",

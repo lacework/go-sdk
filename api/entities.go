@@ -53,19 +53,18 @@ var EntityTypes = map[EntityType]string{
 //
 // e.g.
 //
-//   var (
-//       response = &api.MachineDetailsEntityResponse{}
-//       now      = time.Now().UTC()
-//       before   = now.AddDate(0, 0, -7) // 7 days from ago
-//       filters  = api.SearchFilter{
-//           TimeFilter: &api.TimeFilter{
-//               StartTime: &before,
-//               EndTime:   &now,
-//           },
-//       }
-//   )
-//   lacework.V2.Entities.Search(response, filters)
-//
+//	var (
+//	    response = &api.MachineDetailsEntityResponse{}
+//	    now      = time.Now().UTC()
+//	    before   = now.AddDate(0, 0, -7) // 7 days from ago
+//	    filters  = api.SearchFilter{
+//	        TimeFilter: &api.TimeFilter{
+//	            StartTime: &before,
+//	            EndTime:   &now,
+//	        },
+//	    }
+//	)
+//	lacework.V2.Entities.Search(response, filters)
 func (svc *EntitiesService) Search(response interface{}, filters SearchFilter) error {
 	var apiPath string
 
