@@ -1,11 +1,13 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.24.2`.
+Another day, another release. These are the release notes for the version `v1.25.0`.
 
-## Bug Fixes
-* fix(cli): supply OCI integration private key as file to avoid mangling (#1304) (Kolbeinn)([669225e2](https://github.com/lacework/go-sdk/commit/669225e22ec7fdb5aa83cc551cd34d5eca7587a0))
-* fix: azure module versions (#1303) (Darren)([9e1a167c](https://github.com/lacework/go-sdk/commit/9e1a167c752a6e4d40ab01a5abf9258a94d0364d))
+## Features
+* feat: vuln host show-assessment filter by collector type (#1302) (Darren)([ea0229c4](https://github.com/lacework/go-sdk/commit/ea0229c4c1808ea732ae8f3865bba1f3fb6d052e))
 ## Other Changes
-* ci: version bump to v1.24.2-dev (Lacework)([de6aa0b7](https://github.com/lacework/go-sdk/commit/de6aa0b7d05bc1078cee3816684116f6a83cf4c9))
+* chore(GROW-1600): lacework component dev preflight check (#1307) (Pengyuan Zhao)([65a27a0c](https://github.com/lacework/go-sdk/commit/65a27a0cc07141fb5cd08279c68f785970f637a5))
+* ci: version bump to v1.24.3-dev (Lacework)([ad75f64a](https://github.com/lacework/go-sdk/commit/ad75f64a1c6c50ef14b529dd9893b5df4ac9a38f))
+* test: fix failing help tests (#1308) (Darren)([e10404d0](https://github.com/lacework/go-sdk/commit/e10404d04e836fa54645ea801ca638e669ac2e92))
+* test: always run help integration tests (#1306) (Darren)([cf08e3d7](https://github.com/lacework/go-sdk/commit/cf08e3d770fa54cd53d6608725a660756dc43d28))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
