@@ -62,7 +62,7 @@ func integrationCtx(args []string) (buildTags []string) {
 	for _, file := range args {
 		for tagKey, tag := range ctx {
 			// handle matching files
-			if file != "" && array.ContainsStr(tag.Files, file) || array.ContainsStr(tag.Dirs, file) {
+			if file != "" && array.ContainsPartialStr(tag.Files, file) || array.ContainsStr(tag.Dirs, file) {
 				log.Println(file)
 				if !array.ContainsStr(buildTags, tagKey) {
 					buildTags = append(buildTags, tagKey)
