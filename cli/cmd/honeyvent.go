@@ -115,9 +115,10 @@ type Honeyvent struct {
 
 	// tracing data for multiple events, this is useful for specific features
 	// within the Lacework CLI such as daily version check, polling mechanism, etc.
-	TraceID  string `json:"trace.trace_id,omitempty"`
-	SpanID   string `json:"trace.span_id,omitempty"`
-	ParentID string `json:"trace.parent_id,omitempty"`
+	TraceID   string `json:"trace.trace_id,omitempty"`
+	SpanID    string `json:"trace.span_id,omitempty"`
+	ParentID  string `json:"trace.parent_id,omitempty"`
+	ContextID string `json:"trace.context_id,omitempty"`
 }
 
 // InitHoneyvent initialize honeycomb library and main Honeyvent, such event
@@ -177,6 +178,10 @@ func (c *cliState) SendHoneyvent() {
 		c.Event.SpanID = newID()
 	}
 
+	if c.Event.ContextID == "" {
+		c.Event.ContextID = os.Getenv("LACEWORK_CONTEXT_ID")
+	}
+
 	// Lacework accounts are NOT case-sensitive but some users configure them
 	// in uppercase and others in lowercase, therefore we will normalize all
 	// account to be lowercase so that we don't see different accounts in
@@ -195,6 +200,7 @@ func (c *cliState) SendHoneyvent() {
 		"trace_id", c.Event.TraceID,
 		"span_id", c.Event.SpanID,
 		"parent_id", c.Event.ParentID,
+		"context_id", c.Event.ContextID,
 	)
 	honeyvent := libhoney.NewEvent()
 	_ = honeyvent.Add(c.Event)
