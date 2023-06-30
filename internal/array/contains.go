@@ -40,7 +40,7 @@ func ContainsStrCaseInsensitive(array []string, expected string) bool {
 
 func ContainsPartialStr(array []string, expected string) bool {
 	for _, value := range array {
-		if strings.Contains(value, expected) {
+		if strings.Contains(expected, value) {
 			return true
 		}
 	}

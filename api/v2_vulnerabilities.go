@@ -471,6 +471,7 @@ type VulnerabilityHost struct {
 		ExceptionProps []interface{} `json:"exception_props"`
 		Hostname       string        `json:"hostname"`
 		McEvalGUID     string        `json:"mc_eval_guid"`
+		CollectorType  string        `json:"collector_type"`
 	} `json:"evalCtx"`
 	FeatureKey struct {
 		Name             string `json:"name"`
