@@ -60,8 +60,13 @@ Grab a CVE id and feed it to the command:
 			}
 
 			// validate collector_type flag
-			if vulCmdState.CollectorType != vulnHostCollectorTypeAgentless && vulCmdState.CollectorType != vulnHostCollectorTypeAgent {
-				return errors.Errorf("collector_type must be either %s or %s", vulnHostCollectorTypeAgent, vulnHostCollectorTypeAgentless)
+			switch vulCmdState.CollectorType {
+			case vulnHostCollectorTypeAgentless, vulnHostCollectorTypeAgent:
+			default:
+				return errors.Errorf(
+					"collector_type must be either %s or %s",
+					vulnHostCollectorTypeAgent, vulnHostCollectorTypeAgentless,
+				)
 			}
 
 			if vulCmdState.CollectorType == vulnHostCollectorTypeAgentless {

@@ -69,8 +69,11 @@ func (svc *EntitiesService) ListAllMachines() (response MachinesEntityResponse, 
 	return
 }
 
-// ListAllMachinesWithFilters iterates over all pages to return all machine details at once based on a user defined filter
-func (svc *EntitiesService) ListAllMachinesWithFilters(filters SearchFilter) (response MachinesEntityResponse, err error) {
+// ListAllMachinesWithFilters iterates over all pages to return all machine details
+// at once based on a user defined filter
+func (svc *EntitiesService) ListAllMachinesWithFilters(filters SearchFilter) (
+	response MachinesEntityResponse, err error,
+) {
 	response, err = svc.ListMachinesWithFilters(filters)
 	if err != nil {
 		return
