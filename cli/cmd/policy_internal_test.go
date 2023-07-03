@@ -32,16 +32,16 @@ type policyTagsTableTest struct {
 }
 
 var policyTagsTableTests = []policyTagsTableTest{
-	policyTagsTableTest{
+	{
 		Name:  "empty",
 		Input: []string{},
 	},
-	policyTagsTableTest{
+	{
 		Name:     "one",
 		Input:    []string{"myTag"},
 		Expected: [][]string{{"myTag"}},
 	},
-	policyTagsTableTest{
+	{
 		Name:  "sort",
 		Input: []string{"myTag", "aTag"},
 		Expected: [][]string{
@@ -67,28 +67,28 @@ type policyTableTest struct {
 }
 
 var policyTableTests = []policyTableTest{
-	policyTableTest{
+	{
 		Name:  "empty",
 		Input: []api.Policy{},
 	},
-	policyTableTest{
+	{
 		Name: "one",
 		Input: []api.Policy{
-			api.Policy{PolicyID: "my-policy-1"},
+			{PolicyID: "my-policy-1"},
 		},
 		Expected: [][]string{
-			[]string{"my-policy-1", "", "", "Disabled", "Disabled", "", ""},
+			{"my-policy-1", "", "", "Disabled", "Disabled", "", ""},
 		},
 	},
-	policyTableTest{
+	{
 		Name: "sort",
 		Input: []api.Policy{
-			api.Policy{PolicyID: "my-policy-10"},
-			api.Policy{PolicyID: "my-policy-3"},
+			{PolicyID: "my-policy-10"},
+			{PolicyID: "my-policy-3"},
 		},
 		Expected: [][]string{
-			[]string{"my-policy-3", "", "", "Disabled", "Disabled", "", ""},
-			[]string{"my-policy-10", "", "", "Disabled", "Disabled", "", ""},
+			{"my-policy-3", "", "", "Disabled", "Disabled", "", ""},
+			{"my-policy-10", "", "", "Disabled", "Disabled", "", ""},
 		},
 	},
 }

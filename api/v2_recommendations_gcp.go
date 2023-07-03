@@ -40,7 +40,8 @@ func (svc *GcpRecommendationsV2) Patch(recommendations RecommendationStateV2) (R
 	return svc.client.V2.Recommendations.patch(GcpRecommendation, recommendations)
 }
 
-// GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct. Scoped to Lacework Account/Subaccount
+// GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct.
+// Scoped to Lacework Account/Subaccount
 func (svc *GcpRecommendationsV2) GetReport(reportType string) ([]RecV2, error) {
 	var (
 		schemaBytes []byte

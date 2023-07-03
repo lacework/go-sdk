@@ -119,7 +119,7 @@ func (svc *AgentAccessTokensService) SearchAlias(alias string) (
 		apiV2AgentAccessTokensSearch,
 		SearchFilter{
 			Filters: []Filter{
-				Filter{
+				{
 					Field:      "tokenAlias",
 					Expression: "eq",
 					Value:      alias,

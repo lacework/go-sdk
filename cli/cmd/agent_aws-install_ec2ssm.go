@@ -129,7 +129,8 @@ func init() {
 		&agentCmdState.InstallSkipCreatInfra,
 		"skip_iam_role_creation",
 		false,
-		"set this flag to skip creating an IAM role and instance profile and associating the instance profile. Assumes all instances are already setup for SSM",
+		"set this flag to skip creating an IAM role and instance profile and associating the instance profile."+
+			" Assumes all instances are already setup for SSM",
 	)
 	agentInstallAWSSSMCmd.Flags().BoolVarP(
 		&agentCmdState.InstallDryRun,
@@ -183,7 +184,9 @@ func installAWSSSM(_ *cobra.Command, _ []string) error {
 		return nil
 	}
 
-	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile))
+	cfg, err := config.LoadDefaultConfig(
+		context.Background(), config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile),
+	)
 	if err != nil {
 		return err
 	}

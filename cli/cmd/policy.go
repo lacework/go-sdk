@@ -20,7 +20,7 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -241,7 +241,7 @@ func inputPolicy(cmd *cobra.Command, args ...string) (string, error) {
 	if err != nil {
 		cli.Log.Debugw("error retrieving stdin mode", "error", err.Error())
 	} else if (stat.Mode() & os.ModeCharDevice) == 0 {
-		bytes, err := ioutil.ReadAll(os.Stdin)
+		bytes, err := io.ReadAll(os.Stdin)
 		return string(bytes), err
 	}
 	// if running via editor
@@ -297,7 +297,7 @@ func inputPolicyFromLibrary(id string) (string, error) {
 }
 
 func inputPolicyFromFile(filePath string) (string, error) {
-	fileData, err := ioutil.ReadFile(filePath)
+	fileData, err := os.ReadFile(filePath)
 
 	if err != nil {
 		return "", errors.Wrap(err, "unable to read file")
@@ -321,7 +321,7 @@ func inputPolicyFromURL(url string) (policy string, err error) {
 		return
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		err = errors.Wrap(err, msg)
 		return

@@ -3,7 +3,7 @@ package gcp
 import (
 	"encoding/base64"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/lacework/go-sdk/internal/file"
@@ -46,7 +46,7 @@ func ValidateServiceAccountCredentialsFile(credFile string) error {
 		}
 		defer jsonFile.Close()
 
-		byteValue, err := ioutil.ReadAll(jsonFile)
+		byteValue, err := io.ReadAll(jsonFile)
 		if err != nil {
 			return errors.Wrap(err, "unable to parse credentials file")
 		}

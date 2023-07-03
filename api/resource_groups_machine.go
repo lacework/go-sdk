@@ -75,7 +75,9 @@ func (svc *ResourceGroupsService) CreateMachine(data ResourceGroup) (
 	return
 }
 
-func setMachineAccountResponse(response resourceGroupWorkaroundResponse) (machine MachineResourceGroupResponse, err error) {
+func setMachineAccountResponse(response resourceGroupWorkaroundResponse) (
+	machine MachineResourceGroupResponse, err error,
+) {
 	var props MachineResourceGroupJsonStringProps
 
 	isDefault, err := strconv.Atoi(response.Data.IsDefault)

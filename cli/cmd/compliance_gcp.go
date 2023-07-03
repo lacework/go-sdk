@@ -565,7 +565,8 @@ func complianceGcpDisableReportCmdPrompt(arg string) (int, error) {
 
 	switch arg {
 	case "CIS", "CIS_1_0", "GCP_CIS":
-		message = `WARNING! Disabling all recommendations for CIS_1_0 will disable the following reports and its corresponding compliance alerts:
+		message = `WARNING!
+Disabling all recommendations for CIS_1_0 will disable the following reports and its corresponding compliance alerts:
   GCP CIS Benchmark
   PCI Benchmark
   SOC 2 Report
@@ -573,7 +574,8 @@ func complianceGcpDisableReportCmdPrompt(arg string) (int, error) {
   Would you like to proceed?
   `
 	case "CIS_1_2", "GCP_CIS12":
-		message = `WARNING! Disabling all recommendations for CIS_1_2 will disable the following reports and its corresponding compliance alerts:
+		message = `WARNING!
+Disabling all recommendations for CIS_1_2 will disable the following reports and its corresponding compliance alerts:
   GCP CIS Benchmark 1.2
   HIPAA Report Rev2
   PCI Benchmark Rev2
@@ -614,13 +616,13 @@ func complianceGcpDisableReportDisplayChanges(arg string) (bool, error) {
 
 func complianceGcpReportDetailsTable(report *api.GcpReport) [][]string {
 	return [][]string{
-		[]string{"Report Type", report.ReportType},
-		[]string{"Report Title", report.ReportTitle},
-		[]string{"Organization ID", report.OrganizationID},
-		[]string{"Organization Name", report.OrganizationName},
-		[]string{"Project ID", report.ProjectID},
-		[]string{"Project Name", report.ProjectName},
-		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
+		{"Report Type", report.ReportType},
+		{"Report Title", report.ReportTitle},
+		{"Organization ID", report.OrganizationID},
+		{"Organization Name", report.OrganizationName},
+		{"Project ID", report.ProjectID},
+		{"Project Name", report.ProjectName},
+		{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
 }
 

@@ -74,7 +74,9 @@ func (svc *policyExceptionsService) Create(policyID string, policy PolicyExcepti
 }
 
 // Update updates a single Policy Exception
-func (svc policyExceptionsService) Update(policyID string, exception PolicyException) (response PolicyExceptionResponse, err error) {
+func (svc policyExceptionsService) Update(policyID string, exception PolicyException) (
+	response PolicyExceptionResponse, err error,
+) {
 	if exception.ExceptionID == "" || policyID == "" {
 		return response, errors.New("specify exception and policy IDs")
 	}

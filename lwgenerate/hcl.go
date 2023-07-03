@@ -486,7 +486,8 @@ func CreateSimpleTraversal(input []string) hcl.Traversal {
 	return traverser
 }
 
-// CombineHclBlocks Simple helper to combine multiple blocks (or slices of blocks) into a single slice to be rendered to string
+// CombineHclBlocks Simple helper to combine multiple blocks (or slices of blocks) into a
+// single slice to be rendered to string
 func CombineHclBlocks(results ...interface{}) []*hclwrite.Block {
 	blocks := []*hclwrite.Block{}
 	// Combine all blocks into single flat slice

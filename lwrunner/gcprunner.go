@@ -37,7 +37,9 @@ type GCPRunner struct {
 	InstanceID       string
 }
 
-func NewGCPRunner(host, parentUsername, projectID, availabilityZone, instanceID string, callback ssh.HostKeyCallback) (*GCPRunner, error) {
+func NewGCPRunner(
+	host, parentUsername, projectID, availabilityZone, instanceID string, callback ssh.HostKeyCallback,
+) (*GCPRunner, error) {
 	defaultCallback, err := DefaultKnownHosts()
 	if err == nil && callback == nil {
 		callback = defaultCallback

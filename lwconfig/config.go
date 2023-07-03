@@ -22,7 +22,6 @@ package lwconfig
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -181,5 +180,5 @@ func StoreAt(configPath string, profiles Profiles) error {
 		return err
 	}
 
-	return ioutil.WriteFile(configPath, buf.Bytes(), 0600)
+	return os.WriteFile(configPath, buf.Bytes(), 0600)
 }

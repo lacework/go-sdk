@@ -44,7 +44,16 @@ type AWSRunner struct {
 	ImageName        string
 }
 
-func NewAWSRunner(amiImageId, userFromCLIArg, host, region, availabilityZone, instanceID string, filterSSH bool, callback ssh.HostKeyCallback, cfg aws.Config) (*AWSRunner, error) {
+func NewAWSRunner(
+	amiImageId,
+	userFromCLIArg,
+	host,
+	region,
+	availabilityZone,
+	instanceID string,
+	filterSSH bool,
+	callback ssh.HostKeyCallback,
+	cfg aws.Config) (*AWSRunner, error) {
 	// Look up the AMI name of the runner
 	imageName, err := getAMIName(amiImageId, region, cfg)
 	if err != nil {
@@ -127,7 +136,9 @@ func (run AWSRunner) SendPublicKey(pubBytes []byte, cfg aws.Config) error {
 // with the runner, and returns an error if so (since a runner can only have one instance
 // profile associated with it). Then associates the instance profile with the runner.
 // Returns the association ID or an error.
-func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instanceProfile types.InstanceProfile) (string, error) {
+func (run AWSRunner) AssociateInstanceProfileWithRunner(
+	cfg aws.Config, instanceProfile types.InstanceProfile,
+) (string, error) {
 	c := ec2.New(ec2.Options{
 		Credentials: cfg.Credentials,
 		Region:      run.Region,
@@ -151,7 +162,9 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 		return "", err
 	}
 
-	associationID, err := run.isCorrectInstanceProfileAlreadyAssociated(cfg, describeOutput.IamInstanceProfileAssociations)
+	associationID, err := run.isCorrectInstanceProfileAlreadyAssociated(
+		cfg, describeOutput.IamInstanceProfileAssociations,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -182,7 +195,9 @@ func (run AWSRunner) AssociateInstanceProfileWithRunner(cfg aws.Config, instance
 // `"", nil` if there is no instance profile associated. Returns `"", <error>` if
 // there is an incorrect instance profile associated, or if there was an error in
 // executing this function.
-func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(cfg aws.Config, associations []ec2types.IamInstanceProfileAssociation) (string, error) {
+func (run AWSRunner) isCorrectInstanceProfileAlreadyAssociated(
+	cfg aws.Config, associations []ec2types.IamInstanceProfileAssociation,
+) (string, error) {
 	if len(associations) <= 0 { // no instance profile associated
 		return "", nil
 	}
@@ -263,7 +278,9 @@ const SSMInstancePolicy string = "arn:aws:iam::aws:policy/AmazonSSMManagedInstan
 // the runner and executes it using SSM. `operation` must be one of the commands allowed
 // by the SSM document. This function will not return until the command is in a terminal
 // state, or until 2min have passed.
-func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string) (ssm.GetCommandInvocationOutput, error) {
+func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string) (
+	ssm.GetCommandInvocationOutput, error,
+) {
 	c := ssm.New(ssm.Options{
 		Credentials: cfg.Credentials,
 		Region:      run.Region,
@@ -315,7 +332,8 @@ func (run AWSRunner) RunSSMCommandOnRemoteHost(cfg aws.Config, operation string)
 		}
 	}
 
-	return *getCommandInvocationOutput, fmt.Errorf("command %s did not finish in %dmin, final state %v, stdout %s, stderr %s",
+	return *getCommandInvocationOutput, fmt.Errorf(
+		"command %s did not finish in %dmin, final state %v, stdout %s, stderr %s",
 		*sendCommandOutput.Command.CommandId,
 		durationTensOfSeconds/6,
 		*getCommandInvocationOutput,
@@ -373,7 +391,8 @@ func getSSHUsername(userFromCLIArg, imageName string) (string, error) {
 // `LW_SSH_USER` in the shell environment.
 func getSSHUsernameLookupTable() []func(string) (bool, string) {
 	return []func(string) (bool, string){
-		func(_ string) (bool, string) { return os.Getenv("LW_SSH_USER") != "", os.Getenv("LW_SSH_USER") }, // THIS ROW MUST BE FIRST IN THE TABLE
+		// THIS ROW MUST BE FIRST IN THE TABLE
+		func(_ string) (bool, string) { return os.Getenv("LW_SSH_USER") != "", os.Getenv("LW_SSH_USER") },
 		func(imageName string) (bool, string) { return strings.Contains(imageName, "ubuntu"), "ubuntu" },
 		func(imageName string) (bool, string) {
 			return strings.Contains(imageName, "amazon_linux"), "ec2-user"

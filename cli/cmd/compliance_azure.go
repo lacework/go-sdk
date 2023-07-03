@@ -68,7 +68,10 @@ Use the following command to list all Azure Tenants configured in your account:
 			}
 
 			for _, az := range response.Data {
-				cliCompAzureSubscriptions = append(cliCompAzureSubscriptions, splitAzureSubscriptionsApiResponse(az))
+				cliCompAzureSubscriptions = append(
+					cliCompAzureSubscriptions,
+					splitAzureSubscriptionsApiResponse(az),
+				)
 			}
 
 			if cli.JSONOutput() {
@@ -552,7 +555,8 @@ func complianceAzureDisableReportCmdPrompt(arg string) (int, error) {
 	var message string
 	switch arg {
 	case "CIS", "CIS_1_0", "AZURE_CIS":
-		message = `WARNING! Disabling all recommendations for CIS_1_0 will disable the following reports and its corresponding compliance alerts:
+		message = `WARNING!
+Disabling all recommendations for CIS_1_0 will disable the following reports and its corresponding compliance alerts:
  AZURE CIS Benchmark
  PCI Benchmark
  SOC 2 Report
@@ -560,7 +564,8 @@ func complianceAzureDisableReportCmdPrompt(arg string) (int, error) {
  Would you like to proceed?
  `
 	case "CIS_1_3_1", "AZURE_CIS_131":
-		message = `WARNING! Disabling all recommendations for CIS_1_3_1 will disable the following reports and its corresponding compliance alerts:
+		message = `WARNING!
+Disabling all recommendations for CIS_1_3_1 will disable the following reports and its corresponding compliance alerts:
  AZURE CIS Benchmark 1.3.1
  PCI Benchmark Rev2
  SOC 2 Report Rev2
@@ -601,13 +606,13 @@ func complianceAzureDisableReportDisplayChanges(arg string) (bool, error) {
 
 func complianceAzureReportDetailsTable(report *api.AzureReport) [][]string {
 	return [][]string{
-		[]string{"Report Type", report.ReportType},
-		[]string{"Report Title", report.ReportTitle},
-		[]string{"Tenant ID", report.TenantID},
-		[]string{"Tenant Name", report.TenantName},
-		[]string{"Subscription ID", report.SubscriptionID},
-		[]string{"Subscription Name", report.SubscriptionName},
-		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
+		{"Report Type", report.ReportType},
+		{"Report Title", report.ReportTitle},
+		{"Tenant ID", report.TenantID},
+		{"Tenant Name", report.TenantName},
+		{"Subscription ID", report.SubscriptionID},
+		{"Subscription Name", report.SubscriptionName},
+		{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
 }
 

@@ -160,7 +160,15 @@ func vulnListCvesPackagesOutput(packages [][]string, filteredPackagesMsg string)
 
 	cli.OutputHuman(
 		renderSimpleTable(
-			[]string{"CVE Count", "Highest Severity", "Package", "Current Version", "Fix Version", "Pkg Status", "Hosts Impacted"},
+			[]string{
+				"CVE Count",
+				"Highest Severity",
+				"Package",
+				"Current Version",
+				"Fix Version",
+				"Pkg Status",
+				"Hosts Impacted",
+			},
 			packages,
 		),
 	)

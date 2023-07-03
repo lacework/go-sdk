@@ -39,7 +39,8 @@ func (svc *AwsRecommendationsV2) Patch(recommendations RecommendationStateV2) (R
 	return svc.client.V2.Recommendations.patch(AwsRecommendation, recommendations)
 }
 
-// GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct. Scoped to Lacework Account/Subaccount
+// GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct.
+// Scoped to Lacework Account/Subaccount
 func (svc *AwsRecommendationsV2) GetReport(reportType string) ([]RecV2, error) {
 	report := struct {
 		Ids map[string]string `json:"recommendation_ids"`

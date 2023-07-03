@@ -20,13 +20,14 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
+	"net/http"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/lacework"
 )
 
 func TestRemoveInactivePackagesFromManifest(t *testing.T) {
@@ -133,7 +134,20 @@ func TestSplitPackageManifest(t *testing.T) {
 
 func TestFanOutHostScans(t *testing.T) {
 	// mock the api client
-	client, err := api.NewClient("test", api.WithToken("mock"))
+	fakeServer := lacework.MockServer()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI("Vulnerabilities/SoftwarePackages/scan",
+		func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(403)
+			fmt.Fprintf(w, "User not authorized.")
+		},
+	)
+
+	client, err := api.NewClient("test",
+		api.WithURL(fakeServer.URL()),
+		api.WithToken("TOKEN"))
 	assert.Nil(t, err)
 	cli.LwApi = client
 	defer func() {
@@ -199,7 +213,7 @@ func TestIsEsmEnabledWhenIsNotEnabled(t *testing.T) {
 }
 
 func TestIsEsmEnabledWhenIsActuallyEnabled(t *testing.T) {
-	file, err := ioutil.TempFile("", "ubuntu-advantage-status-json")
+	file, err := os.CreateTemp("", "ubuntu-advantage-status-json")
 	assert.Nil(t, err)
 	_, err = file.WriteString(mockUbuntuUAStatusFile)
 	assert.Nil(t, err)
@@ -216,7 +230,7 @@ func TestIsEsmEnabledWhenIsActuallyEnabled(t *testing.T) {
 }
 
 func TestParseOsRelease(t *testing.T) {
-	file, err := ioutil.TempFile("", "os-release")
+	file, err := os.CreateTemp("", "os-release")
 	assert.Nil(t, err)
 	_, err = file.WriteString(mockUbuntuOSReleaseFile)
 	assert.Nil(t, err)
@@ -230,7 +244,7 @@ func TestParseOsRelease(t *testing.T) {
 }
 
 func TestParseSysRelease(t *testing.T) {
-	file, err := ioutil.TempFile("", "system-release")
+	file, err := os.CreateTemp("", "system-release")
 	assert.Nil(t, err)
 	_, err = file.WriteString(mockCentosSystemFile)
 	assert.Nil(t, err)

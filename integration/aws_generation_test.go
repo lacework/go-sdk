@@ -4,7 +4,6 @@ package integration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -83,7 +82,7 @@ func TestGenerationAwsCustomizedOutputLocation(t *testing.T) {
 	region := "us-east-2"
 
 	// Tempdir for test
-	dir, err := ioutil.TempDir("", "lacework-cli")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}
@@ -113,7 +112,7 @@ func TestGenerationAwsCustomizedOutputLocation(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Get result
-	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
+	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := aws.NewTerraform(region, true, true,
@@ -638,7 +637,7 @@ func TestGenerationAwsWithExistingTerraform(t *testing.T) {
 	region := "us-east-2"
 
 	// Tempdir for test
-	dir, err := ioutil.TempDir("", "lacework-cli")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}
@@ -916,7 +915,7 @@ func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...str
 	hcl_path := filepath.Join(tfPath, awsPath, "main.tf")
 
 	runFakeTerminalTestFromDir(t, tfPath, conditions, args...)
-	out, err := ioutil.ReadFile(hcl_path)
+	out, err := os.ReadFile(hcl_path)
 	if err != nil {
 		return fmt.Sprintf("main.tf not found: %s", err)
 	}

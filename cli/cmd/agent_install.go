@@ -135,7 +135,8 @@ func installRemoteAgent(_ *cobra.Command, args []string) error {
 			return err
 		}
 	}
-	cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"", agentInstallDownloadURL, token, agentCmdState.InstallServerURL)
+	cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"",
+		agentInstallDownloadURL, token, agentCmdState.InstallServerURL)
 	return runInstallCommandOnRemoteHost(runner, cmd)
 }
 

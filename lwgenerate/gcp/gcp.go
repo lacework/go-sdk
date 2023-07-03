@@ -153,7 +153,8 @@ func (args *GenerateGcpTfConfigurationArgs) validate() error {
 	if args.ExistingServiceAccount != nil {
 		if args.ExistingServiceAccount.Name == "" ||
 			args.ExistingServiceAccount.PrivateKey == "" {
-			return errors.New("when using an existing Service Account, existing name, and base64 encoded JSON Private Key fields all must be set")
+			return errors.New("when using an existing Service Account, existing name, and base64 " +
+				"encoded JSON Private Key fields all must be set")
 		}
 	}
 
@@ -173,7 +174,9 @@ type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 //
 //	hcl, err := gcp.NewTerraform(true, true,
 //	  gcp.WithGcpServiceAccountCredentials("/path/to/sa/credentials.json")).Generate()
-func NewTerraform(enableConfig bool, enableAuditLog bool, enablePubSubAudit bool, mods ...GcpTerraformModifier) *GenerateGcpTfConfigurationArgs {
+func NewTerraform(
+	enableConfig bool, enableAuditLog bool, enablePubSubAudit bool, mods ...GcpTerraformModifier,
+) *GenerateGcpTfConfigurationArgs {
 	config := &GenerateGcpTfConfigurationArgs{
 		AuditLog:              enableAuditLog,
 		UsePubSubAudit:        enablePubSubAudit,

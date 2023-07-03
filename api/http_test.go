@@ -20,7 +20,7 @@ package api_test
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -83,11 +83,11 @@ func TestNewRequestWithExpiredToken(t *testing.T) {
 // httpBodySniffer is like a request sniffer, it reads the body
 // from the provided request without closing it
 func httpBodySniffer(r *http.Request) string {
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		return ""
 	}
 
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	return string(bodyBytes)
 }

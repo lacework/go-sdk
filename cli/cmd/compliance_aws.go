@@ -426,7 +426,10 @@ The output from status with the --json flag can be used in the body of PATCH api
 					Csp:     api.AwsInventoryType,
 				}
 			)
-			err := api.WindowedSearchFirst(cli.LwApi.V2.Inventory.Search, api.V2ApiMaxSearchWindowDays, api.V2ApiMaxSearchHistoryDays, &awsInventorySearchResponse, &filter)
+			err := api.WindowedSearchFirst(
+				cli.LwApi.V2.Inventory.Search, api.V2ApiMaxSearchWindowDays,
+				api.V2ApiMaxSearchHistoryDays, &awsInventorySearchResponse, &filter,
+			)
 			cli.StopProgress()
 
 			if len(awsInventorySearchResponse.Data) == 0 {
@@ -458,7 +461,10 @@ The output from status with the --json flag can be used in the body of PATCH api
 				}
 			)
 
-			err = api.WindowedSearchFirst(cli.LwApi.V2.ComplianceEvaluations.Search, api.V2ApiMaxSearchWindowDays, api.V2ApiMaxSearchHistoryDays, &awsComplianceEvaluationSearchResponse, &complianceFilter)
+			err = api.WindowedSearchFirst(
+				cli.LwApi.V2.ComplianceEvaluations.Search, api.V2ApiMaxSearchWindowDays,
+				api.V2ApiMaxSearchHistoryDays, &awsComplianceEvaluationSearchResponse, &complianceFilter,
+			)
 			cli.StopProgress()
 			if err != nil {
 				return err
@@ -586,7 +592,8 @@ valid types:%s`, prettyPrintReportTypes(api.AwsReportTypes())))
 
 // Simple helper to prompt for approval after disable request
 func complianceAwsDisableReportCmdPrompt() (int, error) {
-	message := `WARNING! Disabling all recommendations for CIS_1_1 will disable the following reports and its corresponding compliance alerts:
+	message := `WARNING!
+Disabling all recommendations for CIS_1_1 will disable the following reports and its corresponding compliance alerts:
 AWS CIS Benchmark and S3 Report
 AWS HIPAA Report
 AWS ISO 27001:2013 Report
@@ -625,11 +632,11 @@ func complianceAwsDisableReportDisplayChanges() (bool, error) {
 
 func complianceAwsReportDetailsTable(report *api.AwsReport) [][]string {
 	return [][]string{
-		[]string{"Report Type", report.ReportType},
-		[]string{"Report Title", report.ReportTitle},
-		[]string{"Account ID", report.AccountID},
-		[]string{"Account Alias", report.AccountAlias},
-		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
+		{"Report Type", report.ReportType},
+		{"Report Title", report.ReportTitle},
+		{"Account ID", report.AccountID},
+		{"Account Alias", report.AccountAlias},
+		{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
 }
 

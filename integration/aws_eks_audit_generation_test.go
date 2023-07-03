@@ -4,7 +4,6 @@ package integration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,7 +29,7 @@ func runEksAuditGenerateTest(t *testing.T, conditions func(*expect.Console), arg
 	hcl_path := filepath.Join(tfPath, eksPath, "main.tf")
 
 	runFakeTerminalTestFromDir(t, tfPath, conditions, args...)
-	out, err := ioutil.ReadFile(hcl_path)
+	out, err := os.ReadFile(hcl_path)
 	if err != nil {
 		return fmt.Sprintf("main.tf not found: %s", err)
 	}
@@ -375,7 +374,7 @@ func TestGenerationEksSingleRegionAdvancedCustomOutputLocation(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 
-	dir, err := ioutil.TempDir("", "lacework-cli")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}
@@ -403,7 +402,7 @@ func TestGenerationEksSingleRegionAdvancedCustomOutputLocation(t *testing.T) {
 
 	assertEksAuditTerraformSaved(t, final)
 
-	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
+	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	regionClusterMap := make(map[string][]string)
 	regionClusterMap["us-west-1"] = []string{"cluster1", "cluster2"}
@@ -417,7 +416,7 @@ func TestGenerationEksSingleRegionExistingTerraform(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 
-	dir, err := ioutil.TempDir("", "lacework-cli")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}

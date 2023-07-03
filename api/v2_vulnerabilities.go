@@ -116,8 +116,10 @@ func (svc *v2ContainerVulnerabilityService) ScanStatus(id string) (
 	return
 }
 
-func (svc *v2ContainerVulnerabilityService) Scan(registry, repository, tagOrHash string) (response VulnerabilitiesContainerScanResponse,
-	err error) {
+func (svc *v2ContainerVulnerabilityService) Scan(registry, repository, tagOrHash string) (
+	response VulnerabilitiesContainerScanResponse,
+	err error,
+) {
 	err = svc.client.RequestEncoderDecoder("POST",
 		apiV2VulnerabilitiesContainersScan,
 		vulnContainerScanRequest{registry, repository, tagOrHash},

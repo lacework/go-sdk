@@ -21,7 +21,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -80,7 +80,7 @@ To generate a package-manifest from the local host and scan it automatically:
 				pkgManifestBytes = []byte(args[0])
 				cli.Log.Debugw("package manifest loaded from arguments", "raw", args[0])
 			} else if pkgManifestFile != "" {
-				pkgManifestBytes, err = ioutil.ReadFile(pkgManifestFile)
+				pkgManifestBytes, err = os.ReadFile(pkgManifestFile)
 				if err != nil {
 					return errors.Wrap(err, "unable to read file")
 				}

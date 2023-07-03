@@ -104,8 +104,11 @@ func promptCreateReportDistributionFromNew() (reportDistribution api.ReportDistr
 			Validate: survey.Required,
 		},
 		{
-			Name:     "frequency",
-			Prompt:   &survey.Select{Message: CreateReportDistributionFrequencyQuestion, Options: api.ReportDistributionFrequencies()},
+			Name: "frequency",
+			Prompt: &survey.Select{
+				Message: CreateReportDistributionFrequencyQuestion,
+				Options: api.ReportDistributionFrequencies(),
+			},
 			Validate: survey.Required,
 		},
 		{

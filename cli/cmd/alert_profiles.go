@@ -224,7 +224,8 @@ func buildAlertProfileDetailsTable(profile api.AlertProfile) string {
 				}
 			}),
 		))
-		detailsTable.WriteString("\nUse a field inside an alert template subject or description by enclosing it in double brackets. For example: '{{FIELD_NAME}}'\n")
+		detailsTable.WriteString("\nUse a field inside an alert template subject or description by enclosing " +
+			"it in double brackets. For example: '{{FIELD_NAME}}'\n")
 	}
 
 	return detailsTable.String()

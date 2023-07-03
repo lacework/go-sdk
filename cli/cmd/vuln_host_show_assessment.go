@@ -323,7 +323,7 @@ func hostVulnHostDetailsMainReportTable(assessment api.VulnerabilitiesHostRespon
 	mainBldr := &strings.Builder{}
 	mainBldr.WriteString(
 		renderCustomTable([]string{"Host Details", "Vulnerabilities"},
-			[][]string{[]string{
+			[][]string{{
 				renderCustomTable([]string{},
 					[][]string{
 						{"Machine ID", strconv.Itoa(host.Mid)},
@@ -365,7 +365,11 @@ func hostVulnHostDetailsMainReportTable(assessment api.VulnerabilitiesHostRespon
 }
 
 func showPackages() bool {
-	return vulCmdState.Details || vulCmdState.Fixable || vulCmdState.Packages || vulCmdState.Active || vulCmdState.Severity != ""
+	return vulCmdState.Details ||
+		vulCmdState.Fixable ||
+		vulCmdState.Packages ||
+		vulCmdState.Active ||
+		vulCmdState.Severity != ""
 }
 
 func hostVulnCVEsTableForHostViewCSV(cves map[string]VulnCveSummary) [][]string {

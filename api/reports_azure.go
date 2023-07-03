@@ -67,9 +67,18 @@ func AzureReportTypes() []string {
 }
 
 var azureReportTypes = map[AzureReportType]string{
-	AZURE_CIS: "AZURE_CIS", AZURE_CIS_131: "AZURE_CIS_131", AZURE_SOC: "AZURE_SOC", AZURE_SOC_Rev2: "AZURE_SOC_Rev2",
-	AZURE_PCI: "AZURE_PCI", AZURE_PCI_Rev2: "AZURE_PCI_Rev2", AZURE_ISO_27001: "AZURE_ISO_27001", AZURE_NIST_CSF: "AZURE_NIST_CSF",
-	AZURE_NIST_800_53_REV5: "AZURE_NIST_800_53_REV5", AZURE_NIST_800_171_REV2: "AZURE_NIST_800_171_REV2", AZURE_HIPAA: "AZURE_HIPAA"}
+	AZURE_CIS:               "AZURE_CIS",
+	AZURE_CIS_131:           "AZURE_CIS_131",
+	AZURE_SOC:               "AZURE_SOC",
+	AZURE_SOC_Rev2:          "AZURE_SOC_Rev2",
+	AZURE_PCI:               "AZURE_PCI",
+	AZURE_PCI_Rev2:          "AZURE_PCI_Rev2",
+	AZURE_ISO_27001:         "AZURE_ISO_27001",
+	AZURE_NIST_CSF:          "AZURE_NIST_CSF",
+	AZURE_NIST_800_53_REV5:  "AZURE_NIST_800_53_REV5",
+	AZURE_NIST_800_171_REV2: "AZURE_NIST_800_171_REV2",
+	AZURE_HIPAA:             "AZURE_HIPAA",
+}
 
 const (
 	NONE_AZURE_REPORT AzureReportType = iota
@@ -92,7 +101,13 @@ func (svc *azureReportsService) Get(reportCfg AzureReportConfig) (response Azure
 		return AzureReportResponse{}, errors.New("specify an account id")
 	}
 
-	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, reportCfg.TenantID, reportCfg.SubscriptionID, "json", reportCfg.Parameter.String(), reportCfg.Value)
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery,
+		reportCfg.TenantID,
+		reportCfg.SubscriptionID,
+		"json",
+		reportCfg.Parameter.String(),
+		reportCfg.Value,
+	)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
@@ -102,7 +117,13 @@ func (svc *azureReportsService) DownloadPDF(filepath string, config AzureReportC
 		return errors.New("tenant_id and subscription_id are required")
 	}
 
-	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery, config.TenantID, config.SubscriptionID, "pdf", config.Parameter.String(), config.Value)
+	apiPath := fmt.Sprintf(apiV2ReportsSecondaryQuery,
+		config.TenantID,
+		config.SubscriptionID,
+		"pdf",
+		config.Parameter.String(),
+		config.Value,
+	)
 
 	request, err := svc.client.NewRequest("GET", apiPath, nil)
 	if err != nil {
