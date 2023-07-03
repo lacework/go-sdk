@@ -123,8 +123,11 @@ func promptCreateReportDefinitionFromNew() (reportDefinition api.ReportDefinitio
 			Validate: survey.Required,
 		},
 		{
-			Name:     "subType",
-			Prompt:   &survey.Select{Message: CreateReportDefinitionReportSubTypeQuestion, Options: api.ReportDefinitionSubTypes()},
+			Name: "subType",
+			Prompt: &survey.Select{
+				Message: CreateReportDefinitionReportSubTypeQuestion,
+				Options: api.ReportDefinitionSubTypes(),
+			},
 			Validate: survey.Required,
 		},
 	}
@@ -257,11 +260,16 @@ func promptCreateReportDefinitionFromExisting() (reportDefinition api.ReportDefi
 
 	// Add option for blank template
 	reports["BLANK TEMPLATE"] = api.ReportDefinition{ReportName: "TEMPLATE",
-		ReportType:              api.ReportDefinitionTypeCompliance.String(),
-		ReportDefinitionDetails: api.ReportDefinitionDetails{Sections: []api.ReportDefinitionSection{{Title: "CUSTOM SECTION TITLE", Policies: []string{"example-policy-1"}}}}}
+		ReportType: api.ReportDefinitionTypeCompliance.String(),
+		ReportDefinitionDetails: api.ReportDefinitionDetails{
+			Sections: []api.ReportDefinitionSection{
+				{Title: "CUSTOM SECTION TITLE", Policies: []string{"example-policy-1"}}}}}
 	reportNames = append([]string{"BLANK TEMPLATE"}, reportNames...)
 
-	if err = survey.AskOne(&survey.Select{Message: SelectReportDefinitionQuestion, Options: reportNames}, &selectedReport); err != nil {
+	if err = survey.AskOne(&survey.Select{
+		Message: SelectReportDefinitionQuestion,
+		Options: reportNames,
+	}, &selectedReport); err != nil {
 		return
 	}
 

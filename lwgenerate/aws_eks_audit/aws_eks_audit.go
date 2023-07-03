@@ -160,7 +160,9 @@ func (args *GenerateAwsEksAuditTfConfigurationArgs) validate() error {
 	if args.ExistingCrossAccountIamRole != nil {
 		if args.ExistingCrossAccountIamRole.Arn == "" ||
 			args.ExistingCrossAccountIamRole.ExternalId == "" {
-			return errors.New("when using an existing cross account IAM role, existing role ARN and external ID all must be set")
+			return errors.New(
+				"when using an existing cross account IAM role, existing role ARN and external ID all must be set",
+			)
 		}
 	}
 
@@ -173,9 +175,8 @@ type AwsEksAuditTerraformModifier func(c *GenerateAwsEksAuditTfConfigurationArgs
 //
 // Note: Additional configuration details may be set using modifiers of the AwsEksAuditTerraformModifier type
 //
-// Basic usage: Initialize a new AwsEksAuditTerraformModifier struct, with a non-default AWS profile set. Then use generate to
-//
-//	           create a string output of the required HCL.
+// Basic usage: Initialize a new AwsEksAuditTerraformModifier struct, with a non-default AWS profile set. Then
+// use generate to create a string output of the required HCL.
 //
 //	hcl, err := aws.NewTerraform({"us-east-1": ["cluster1", "cluster2"], "us-east-2": ["cluster3"]}
 //	  aws.WithAwsProfile("mycorp-profile")).Generate()
@@ -618,9 +619,12 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 				{Type: hclsyntax.TokenCQuote, Bytes: []byte(`"`)},
 			}
 
-			resourceAttrs["role_arn"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_eks_audit_log", "cloudwatch_iam_role_arn"})
-			resourceAttrs["filter_pattern"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_eks_audit_log", "filter_pattern"})
-			resourceAttrs["destination_arn"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_eks_audit_log", "firehose_arn"})
+			resourceAttrs["role_arn"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "aws_eks_audit_log", "cloudwatch_iam_role_arn"})
+			resourceAttrs["filter_pattern"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "aws_eks_audit_log", "filter_pattern"})
+			resourceAttrs["destination_arn"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "aws_eks_audit_log", "firehose_arn"})
 
 			// the depends_on input must be in the following format [""]
 			// In order to achieve this we can use TokensForTuple to build the tuple `[]`

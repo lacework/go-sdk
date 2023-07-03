@@ -131,7 +131,9 @@ Then navigate to Settings > Resource Groups.
 			}
 
 			var groupCommon [][]string
-			groupCommon = append(groupCommon, []string{group.Id, group.ResType, group.Name, group.status, IsDefault(group.IsDefault)})
+			groupCommon = append(groupCommon,
+				[]string{group.Id, group.ResType, group.Name, group.status, IsDefault(group.IsDefault)},
+			)
 
 			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE ID", "TYPE", "NAME", "STATE", "DEFAULT"}, groupCommon))
 			cli.OutputHuman("\n")

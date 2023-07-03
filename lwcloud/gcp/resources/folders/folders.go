@@ -37,7 +37,9 @@ type FolderInfo struct {
 	Ancestory   string
 }
 
-func EnumerateFolders(ctx context.Context, clientOptions option.ClientOption, ParentId string, Ancestory string, skipList, allowList map[string]bool) ([]FolderInfo, error) {
+func EnumerateFolders(ctx context.Context,
+	clientOptions option.ClientOption, ParentId string, Ancestory string,
+	skipList, allowList map[string]bool) ([]FolderInfo, error) {
 
 	var (
 		client *resourcemanager.FoldersClient
@@ -88,7 +90,9 @@ func EnumerateFolders(ctx context.Context, clientOptions option.ClientOption, Pa
 			folders = append(folders, fi)
 
 			// search for folders recursively; ignore errors
-			subFolders, _ := EnumerateFolders(ctx, clientOptions, resp.Name, Ancestory+" -> "+resp.DisplayName+" ("+resp.Name+")", skipList, allowList)
+			subFolders, _ := EnumerateFolders(
+				ctx, clientOptions, resp.Name, Ancestory+" -> "+resp.DisplayName+" ("+resp.Name+")", skipList, allowList,
+			)
 			if len(subFolders) != 0 {
 				folders = append(folders, subFolders...)
 			}

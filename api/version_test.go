@@ -19,7 +19,7 @@
 package api_test
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -29,7 +29,7 @@ import (
 )
 
 func TestVersionMatchVERSIONfile(t *testing.T) {
-	expectedVersion, err := ioutil.ReadFile("../VERSION")
+	expectedVersion, err := os.ReadFile("../VERSION")
 	assert.Nil(t, err)
 	assert.Equalf(t, strings.TrimSuffix(string(expectedVersion), "\n"), subject.Version,
 		"api/version.go doesn't match with VERSION file; run scripts/version_updater.sh")

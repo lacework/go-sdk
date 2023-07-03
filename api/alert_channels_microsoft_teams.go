@@ -20,13 +20,17 @@ package api
 
 // GetMicrosoftTeams gets a single instance of a MicrosoftTeams alert channel
 // with the corresponding integration guid
-func (svc *AlertChannelsService) GetMicrosoftTeams(guid string) (response MicrosoftTeamsAlertChannelResponseV2, err error) {
+func (svc *AlertChannelsService) GetMicrosoftTeams(guid string) (
+	response MicrosoftTeamsAlertChannelResponseV2, err error,
+) {
 	err = svc.get(guid, &response)
 	return
 }
 
 // UpdateMicrosoftTeams updates a single instance of a MicrosoftTeams integration on the Lacework server
-func (svc *AlertChannelsService) UpdateMicrosoftTeams(data AlertChannel) (response MicrosoftTeamsAlertChannelResponseV2, err error) {
+func (svc *AlertChannelsService) UpdateMicrosoftTeams(data AlertChannel) (
+	response MicrosoftTeamsAlertChannelResponseV2, err error,
+) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }

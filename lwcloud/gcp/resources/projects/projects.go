@@ -38,7 +38,11 @@ type ProjectInfo struct {
 	ProjectId   string
 }
 
-func enumerateTopLevelProjects(ctx context.Context, clientOption option.ClientOption, ParentId string, Ancestory string, skipList, allowList map[string]bool) ([]ProjectInfo, error) {
+func enumerateTopLevelProjects(
+	ctx context.Context, clientOption option.ClientOption, ParentId string,
+	Ancestory string, skipList, allowList map[string]bool,
+) ([]ProjectInfo, error) {
+
 	var (
 		client *resourcemanager.ProjectsClient
 		err    error
@@ -93,7 +97,10 @@ func enumerateTopLevelProjects(ctx context.Context, clientOption option.ClientOp
 	return projects, nil
 }
 
-func EnumerateProjects(ctx context.Context, clientOptions option.ClientOption, ParentId string, Ancestory string, skipList, allowList map[string]bool) ([]ProjectInfo, error) {
+func EnumerateProjects(
+	ctx context.Context, clientOptions option.ClientOption, ParentId string,
+	Ancestory string, skipList, allowList map[string]bool,
+) ([]ProjectInfo, error) {
 
 	// find top level projects under Parent first
 	projects, err := enumerateTopLevelProjects(ctx, clientOptions, ParentId, Ancestory, skipList, allowList)
@@ -110,7 +117,8 @@ func EnumerateProjects(ctx context.Context, clientOptions option.ClientOption, P
 	// list all projects in the nested folders
 	var retError error
 	for _, folder := range subFolders {
-		nested_projects, err := enumerateTopLevelProjects(ctx, clientOptions, folder.Name, folder.Ancestory+" -> "+folder.DisplayName+" ("+folder.Name+")", skipList, allowList)
+		nested_projects, err := enumerateTopLevelProjects(ctx, clientOptions, folder.Name,
+			folder.Ancestory+" -> "+folder.DisplayName+" ("+folder.Name+")", skipList, allowList)
 		if err != nil {
 			// combine errors
 			retError = helpers.CombineErrors(retError, err)

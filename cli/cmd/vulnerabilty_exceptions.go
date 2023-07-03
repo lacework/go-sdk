@@ -241,7 +241,8 @@ func setProps(vuln api.VulnerabilityException) [][]string {
 		}
 	}
 
-	details = append(details, []string{"FIXABLE", vulnerabilityExceptionFixableEnabled(vuln.VulnerabilityCriteria.Fixable)})
+	details = append(details, []string{"FIXABLE",
+		vulnerabilityExceptionFixableEnabled(vuln.VulnerabilityCriteria.Fixable)})
 	details = append(details, []string{"CVES", strings.Join(vuln.VulnerabilityCriteria.Cve, ", ")})
 	details = append(details, []string{"SEVERITIES", strings.Join(vuln.VulnerabilityCriteria.Severity, ", ")})
 
@@ -340,7 +341,9 @@ func transformVulnerabilityExceptionPackages(packages string) []api.Vulnerabilit
 	packageList := strings.Split(packages, "\n")
 	for _, pack := range packageList {
 		vulnPackage := strings.Split(pack, ":")
-		vulnPackages = append(vulnPackages, api.VulnerabilityExceptionPackage{Name: vulnPackage[0], Version: vulnPackage[1]})
+		vulnPackages = append(vulnPackages,
+			api.VulnerabilityExceptionPackage{Name: vulnPackage[0], Version: vulnPackage[1]},
+		)
 	}
 	return vulnPackages
 }
@@ -371,7 +374,9 @@ func validateSeverities() survey.Validator {
 			for _, i := range list {
 				match := strings.Contains(lwseverity.ValidSeverities.String(), strings.ToLower(i.Value))
 				if !match {
-					return fmt.Errorf("severity '%s' is invalid. Must be one of 'Critical', 'High', 'Medium', 'Low', 'Info'", i.Value)
+					return fmt.Errorf(
+						"severity '%s' is invalid. Must be one of 'Critical', 'High', 'Medium', 'Low', 'Info'", i.Value,
+					)
 				}
 			}
 		} else {

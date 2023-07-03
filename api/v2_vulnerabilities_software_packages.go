@@ -27,7 +27,9 @@ type v2SoftwarePackagesVulnerabilityService struct {
 }
 
 // Scan on-demand vulnerability assessment of your software packages
-func (svc *v2SoftwarePackagesVulnerabilityService) Scan(manifest VulnerabilitiesPackageManifest) (response VulnerabilitySoftwarePackagesResponse, err error) {
+func (svc *v2SoftwarePackagesVulnerabilityService) Scan(manifest VulnerabilitiesPackageManifest) (
+	response VulnerabilitySoftwarePackagesResponse, err error,
+) {
 	err = svc.client.RequestEncoderDecoder(
 		"POST", apiV2VulnerabilitiesSoftwarePackagesScan,
 		manifest, &response,

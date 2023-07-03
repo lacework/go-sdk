@@ -21,7 +21,6 @@ package integration
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -66,7 +65,7 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 	assert.FileExists(t, versionCacheFile, "the version_cache file is missing")
 
 	var actualCache lwupdater.Version
-	cacheJSON, err := ioutil.ReadFile(versionCacheFile)
+	cacheJSON, err := os.ReadFile(versionCacheFile)
 	if assert.Nil(t, err) {
 		err := json.Unmarshal(cacheJSON, &actualCache)
 		if assert.Nil(t, err) {
@@ -89,7 +88,7 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 	assert.FileExists(t, versionCacheFile, "the version_cache file is missing")
 
 	var nextCache lwupdater.Version
-	cacheJSON, err = ioutil.ReadFile(versionCacheFile)
+	cacheJSON, err = os.ReadFile(versionCacheFile)
 	if assert.Nil(t, err) {
 		err := json.Unmarshal(cacheJSON, &nextCache)
 		if assert.Nil(t, err) {
@@ -123,7 +122,7 @@ func TestDailyVersionCheckEndToEnd(t *testing.T) {
 	assert.FileExists(t, versionCacheFile, "the version_cache file is missing")
 
 	var lastCache lwupdater.Version
-	cacheJSON, err = ioutil.ReadFile(versionCacheFile)
+	cacheJSON, err = os.ReadFile(versionCacheFile)
 	if assert.Nil(t, err) {
 		err := json.Unmarshal(cacheJSON, &lastCache)
 		if assert.Nil(t, err) {

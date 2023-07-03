@@ -19,7 +19,6 @@
 package api_test
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"syscall"
@@ -76,7 +75,7 @@ func TestClientWithLogLevelAndWriter(t *testing.T) {
 	_, err = c.NewRequest("GET", "foo", nil)
 	assert.Nil(t, err)
 
-	logContentB, err := ioutil.ReadFile(tmpfile)
+	logContentB, err := os.ReadFile(tmpfile)
 	assert.Nil(t, err)
 	logContent := string(logContentB)
 
@@ -121,7 +120,7 @@ func TestClientWithLogLevelAndFile(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	defer fakeServer.Close()
 
-	tmpfile, err := ioutil.TempFile("", "logger")
+	tmpfile, err := os.CreateTemp("", "logger")
 	assert.Nil(t, err)
 	defer os.Remove(tmpfile.Name())
 
@@ -133,7 +132,7 @@ func TestClientWithLogLevelAndFile(t *testing.T) {
 		assert.Equal(t, "v2", c.ApiVersion(), "API version should be v2")
 	}
 
-	logContentB, err := ioutil.ReadFile(tmpfile.Name())
+	logContentB, err := os.ReadFile(tmpfile.Name())
 	assert.Nil(t, err)
 	logContent := string(logContentB)
 
@@ -177,7 +176,7 @@ func testNewClientLogOutput(t *testing.T, out string) {
 }
 
 func configureNativeGoLoggerAsConsumers(t *testing.T) string {
-	tmpfile, err := ioutil.TempFile("", "logger")
+	tmpfile, err := os.CreateTemp("", "logger")
 	assert.Nil(t, err)
 	logOutput, err := os.OpenFile(tmpfile.Name(), syscall.O_CREAT|syscall.O_RDWR|syscall.O_APPEND, 0666)
 	assert.Nil(t, err)

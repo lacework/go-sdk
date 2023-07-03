@@ -19,7 +19,6 @@
 package file
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -47,10 +46,10 @@ func Copy(src, dst string) error {
 		return err
 	}
 
-	input, err := ioutil.ReadFile(srcAbs) // guardrails-disable-line
+	input, err := os.ReadFile(srcAbs)
 	if err != nil {
 		return err
 	}
 
-	return ioutil.WriteFile(dstAbs, input, 0755)
+	return os.WriteFile(dstAbs, input, 0755)
 }

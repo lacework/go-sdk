@@ -138,7 +138,9 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile))
+	cfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile),
+	)
 	if err != nil {
 		return err
 	}
@@ -183,7 +185,9 @@ func installAWSEC2IC(_ *cobra.Command, _ []string) error {
 				return
 			}
 
-			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"", agentInstallDownloadURL, token, agentCmdState.InstallServerURL)
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"",
+				agentInstallDownloadURL, token, agentCmdState.InstallServerURL,
+			)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "err", err, "runner", threadRunner.InstanceID)

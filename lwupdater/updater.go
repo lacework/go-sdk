@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -59,7 +58,7 @@ func (cache *Version) StoreCache(path string) error {
 		return err
 	}
 
-	err := ioutil.WriteFile(path, buf.Bytes(), 0644)
+	err := os.WriteFile(path, buf.Bytes(), 0644)
 	if err != nil {
 		return err
 	}
@@ -94,7 +93,7 @@ func Check(project, current string) (*Version, error) {
 
 // LoadCache loads a version cache file from the provided path
 func LoadCache(path string) (*Version, error) {
-	cacheJSON, err := ioutil.ReadFile(path)
+	cacheJSON, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

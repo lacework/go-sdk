@@ -73,7 +73,10 @@ func (args *GenerateGkeTfConfigurationArgs) validate() error {
 	if args.ExistingServiceAccount != nil {
 		if args.ExistingServiceAccount.Name == "" ||
 			args.ExistingServiceAccount.PrivateKey == "" {
-			return errors.New("when using an existing Service Account, existing name, and base64 encoded JSON Private Key fields all must be set")
+			return errors.New(
+				"when using an existing Service Account, existing name, and base64 encoded " +
+					"JSON Private Key fields all must be set",
+			)
 		}
 	}
 

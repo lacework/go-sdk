@@ -19,7 +19,6 @@
 package integration_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"runtime"
@@ -70,7 +69,7 @@ func TestCheckDisabled(t *testing.T) {
 }
 
 func TestVersionLoadCacheError(t *testing.T) {
-	dir, err := ioutil.TempDir("", "version_cache")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}
@@ -89,7 +88,7 @@ func TestVersionLoadCacheError(t *testing.T) {
 }
 
 func TestVersionStoreLoadCache(t *testing.T) {
-	dir, err := ioutil.TempDir("", "version_cache")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}

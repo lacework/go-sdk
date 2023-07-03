@@ -31,39 +31,39 @@ type policySyncOpsSummaryTest struct {
 }
 
 var policySyncOpsSummaryTests = []policySyncOpsSummaryTest{
-	policySyncOpsSummaryTest{
+	{
 		Name:     "empty",
 		Expected: "Policy sync-library will create 0 policies, update 0 policies, create 0 queries, update 0 queries.",
 	},
-	policySyncOpsSummaryTest{
+	{
 		Name: "full",
 		Psos: []PolicySyncOperation{
-			PolicySyncOperation{
+			{
 				ID:          "larry",
 				ContentType: "policy",
 				Operation:   "create",
 			},
-			PolicySyncOperation{
+			{
 				ID:          "curly",
 				ContentType: "policy",
 				Operation:   "update",
 			},
-			PolicySyncOperation{
+			{
 				ID:          "moe",
 				ContentType: "query",
 				Operation:   "create",
 			},
-			PolicySyncOperation{
+			{
 				ID:          "shremp",
 				ContentType: "query",
 				Operation:   "update",
 			},
-			PolicySyncOperation{
+			{
 				ID:          "invalidcontenttype",
 				ContentType: "invalid",
 				Operation:   "create",
 			},
-			PolicySyncOperation{
+			{
 				ID:          "invalidoperationtype",
 				ContentType: "policy",
 				Operation:   "invalid",
@@ -89,39 +89,39 @@ type policySyncOpsDetailsTest struct {
 }
 
 var policySyncOpsDetailsTests = []policySyncOpsDetailsTest{
-	policySyncOpsDetailsTest{
+	{
 		Name:     "empty",
 		Expected: "Operation details:\n\n",
 	},
-	policySyncOpsDetailsTest{
+	{
 		Name: "full",
 		Psos: []PolicySyncOperation{
-			PolicySyncOperation{
+			{
 				ID:          "larry",
 				ContentType: "policy",
 				Operation:   "create",
 			},
-			PolicySyncOperation{
+			{
 				ID:          "curly",
 				ContentType: "policy",
 				Operation:   "update",
 			},
-			PolicySyncOperation{
+			{
 				ID:          "moe",
 				ContentType: "query",
 				Operation:   "create",
 			},
-			PolicySyncOperation{
+			{
 				ID:          "shremp",
 				ContentType: "query",
 				Operation:   "update",
 			},
-			PolicySyncOperation{
+			{
 				ID:          "invalidcontenttype",
 				ContentType: "invalid",
 				Operation:   "create",
 			},
-			PolicySyncOperation{
+			{
 				ID:          "invalidoperationtype",
 				ContentType: "policy",
 				Operation:   "invalid",

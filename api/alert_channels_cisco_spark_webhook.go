@@ -20,13 +20,17 @@ package api
 
 // GetCiscoSparkWebhook gets a single instance of a Cisco Spark webhook alert channel
 // with the corresponding integration guid
-func (svc *AlertChannelsService) GetCiscoSparkWebhook(guid string) (response CiscoSparkWebhookAlertChannelResponseV2, err error) {
+func (svc *AlertChannelsService) GetCiscoSparkWebhook(guid string) (
+	response CiscoSparkWebhookAlertChannelResponseV2, err error,
+) {
 	err = svc.get(guid, &response)
 	return
 }
 
 // UpdateCiscoSparkWebhook updates a single instance of Cisco Spark webhook integration on the Lacework server
-func (svc *AlertChannelsService) UpdateCiscoSparkWebhook(data AlertChannel) (response CiscoSparkWebhookAlertChannelResponseV2, err error) {
+func (svc *AlertChannelsService) UpdateCiscoSparkWebhook(data AlertChannel) (
+	response CiscoSparkWebhookAlertChannelResponseV2, err error,
+) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }

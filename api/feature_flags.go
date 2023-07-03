@@ -18,7 +18,9 @@ type FeatureFlagsResponse struct {
 	Data FeatureFlags `json:"data"`
 }
 
-func (svc *FeatureFlagsService) GetFeatureFlagsMatchingPrefix(prefix string) (response FeatureFlagsResponse, err error) {
+func (svc *FeatureFlagsService) GetFeatureFlagsMatchingPrefix(prefix string) (
+	response FeatureFlagsResponse, err error,
+) {
 	apiPath := fmt.Sprintf("%s/%s", apiV2FeatureFlags, prefix)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return

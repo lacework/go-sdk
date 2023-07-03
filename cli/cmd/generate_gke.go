@@ -49,7 +49,8 @@ var (
 
 	GkeAdvancedOptExistingServiceAccount        = "Configure & use existing service account"
 	QuestionGkeExistingServiceAccountName       = "Specify an existing service account name:"
-	QuestionGkeExistingServiceAccountPrivateKey = "Specify an existing service account private key (base64 encoded):" // guardrails-disable-line
+	QuestionGkeExistingServiceAccountPrivateKey = "Specify an existing service account private key" +
+		" (base64 encoded):" // guardrails-disable-line
 
 	GkeAdvancedOptLocation             = "Customize output location"
 	QuestionGkeCustomizeOutputLocation = "Provide the location for the output to be written:"
@@ -74,9 +75,11 @@ In interactive mode, this command will:
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
   * If Terraform is already installed, the version is verified as compatible for use
-	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
+	* If Terraform is not installed, or the version installed is not compatible, a new
+    version will be installed into a temporary location
 	* Once Terraform is detected or installed, Terraform plan will be executed
-	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
+	* The command will prompt with the outcome of the plan and allow to view more details
+    or continue with Terraform apply
 	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
 This command can also be run in noninteractive mode.
@@ -311,7 +314,11 @@ func writeGkeGenerationArgsCache(a *gcp.GenerateGkeTfConfigurationArgs) {
 	}
 }
 
-func promptGkeGenerate(config *gcp.GenerateGkeTfConfigurationArgs, existingServiceAccount *gcp.ServiceAccount, extraState *GkeGenerateCommandExtraState) error {
+func promptGkeGenerate(
+	config *gcp.GenerateGkeTfConfigurationArgs,
+	existingServiceAccount *gcp.ServiceAccount,
+	extraState *GkeGenerateCommandExtraState,
+) error {
 	if cli.InteractiveMode() {
 		defer writeGkeGenerationArgsCache(config)
 		defer extraState.writeCache()
@@ -365,7 +372,9 @@ func promptGkeGenerate(config *gcp.GenerateGkeTfConfigurationArgs, existingServi
 	return nil
 }
 
-func promptGkeAdvancedOptions(config *gcp.GenerateGkeTfConfigurationArgs, extraState *GkeGenerateCommandExtraState) error {
+func promptGkeAdvancedOptions(
+	config *gcp.GenerateGkeTfConfigurationArgs, extraState *GkeGenerateCommandExtraState,
+) error {
 	answer := ""
 	options := []string{
 		GkeAdvancedOpt,
@@ -451,14 +460,23 @@ func promptGkeExistingServiceAccountQuestions(config *gcp.GenerateGkeTfConfigura
 
 	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Input{Message: QuestionGkeExistingServiceAccountName, Default: config.ExistingServiceAccount.Name},
+			Prompt: &survey.Input{
+				Message: QuestionGkeExistingServiceAccountName,
+				Default: config.ExistingServiceAccount.Name,
+			},
 			Response: &config.ExistingServiceAccount.Name,
 			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGkeExistingServiceAccountPrivateKey, Default: config.ExistingServiceAccount.PrivateKey},
+			Prompt: &survey.Input{
+				Message: QuestionGkeExistingServiceAccountPrivateKey,
+				Default: config.ExistingServiceAccount.PrivateKey,
+			},
 			Response: &config.ExistingServiceAccount.PrivateKey,
-			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(gcp.ValidateStringIsBase64)},
+			Opts: []survey.AskOpt{
+				survey.WithValidator(survey.Required),
+				survey.WithValidator(gcp.ValidateStringIsBase64),
+			},
 		}})
 
 	return err

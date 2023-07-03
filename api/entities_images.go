@@ -67,8 +67,11 @@ func (svc *EntitiesService) ListAllImages() (response ImagesEntityResponse, err 
 	return
 }
 
-// ListAllImagesWithFilters iterates over all pages to return all images information at once based on a user defined filter
-func (svc *EntitiesService) ListAllImagesWithFilters(filters SearchFilter) (response ImagesEntityResponse, err error) {
+// ListAllImagesWithFilters iterates over all pages to return all images information
+// at once based on a user defined filter
+func (svc *EntitiesService) ListAllImagesWithFilters(filters SearchFilter) (
+	response ImagesEntityResponse, err error,
+) {
 	response, err = svc.ListImagesWithFilters(filters)
 	if err != nil {
 		return

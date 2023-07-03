@@ -40,7 +40,8 @@ func (svc *AzureRecommendationsV2) Patch(recommendations RecommendationStateV2) 
 	return svc.client.V2.Recommendations.patch(AzureRecommendation, recommendations)
 }
 
-// GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct. Scoped to Lacework Account/Subaccount
+// GetReport This is an experimental feature. Returned RecommendationID's are not guaranteed to be correct.
+// Scoped to Lacework Account/Subaccount
 func (svc *AzureRecommendationsV2) GetReport(reportType string) ([]RecV2, error) {
 	var (
 		schemaBytes []byte

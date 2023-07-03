@@ -192,7 +192,9 @@ type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 //
 //	hcl, err := aws.NewTerraform("us-east-1", true, true,
 //	  aws.WithAwsProfile("mycorp-profile")).Generate()
-func NewTerraform(region string, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier) *GenerateAwsTfConfigurationArgs {
+func NewTerraform(
+	region string, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier,
+) *GenerateAwsTfConfigurationArgs {
 	config := &GenerateAwsTfConfigurationArgs{AwsRegion: region, Cloudtrail: enableCloudtrail, Config: enableConfig}
 	for _, m := range mods {
 		m(config)
@@ -464,7 +466,8 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 				lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
 		}
 		if args.LaceworkAccountID != "" {
-			moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithAttributes(map[string]interface{}{"lacework_aws_account_id": args.LaceworkAccountID}))
+			moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithAttributes(
+				map[string]interface{}{"lacework_aws_account_id": args.LaceworkAccountID}))
 		}
 
 		moduleBlock, err := lwgenerate.NewModule(
@@ -565,9 +568,12 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 		}
 		if args.ExistingIamRole == nil && args.Config {
 			attributes["use_existing_iam_role"] = true
-			attributes["iam_role_name"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_config", "iam_role_name"})
-			attributes["iam_role_arn"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_config", "iam_role_arn"})
-			attributes["iam_role_external_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_config", "external_id"})
+			attributes["iam_role_name"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "aws_config", "iam_role_name"})
+			attributes["iam_role_arn"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "aws_config", "iam_role_arn"})
+			attributes["iam_role_external_id"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "aws_config", "external_id"})
 		}
 
 		if args.ExistingIamRole != nil {

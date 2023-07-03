@@ -61,7 +61,9 @@ var (
 	CachedGcpAssetIacParams                  = "iac-gcp-generate-params"
 	CachedAssetGcpExtraState                 = "iac-gcp-extra-state"
 
-	InvalidProjectIDMessage = "invalid GCP project ID.  It must be 6 to 30 lowercase ASCII letters, digits, or hyphens. It must start with a letter. Trailing hyphens are prohibited. Example: tokyo-rain-123"
+	InvalidProjectIDMessage = "invalid GCP project ID. " +
+		"It must be 6 to 30 lowercase ASCII letters, digits, or hyphens. " +
+		"It must start with a letter. Trailing hyphens are prohibited. Example: tokyo-rain-123"
 
 	// gcp command is used to generate TF code for gcp
 	generateGcpTfCommand = &cobra.Command{
@@ -76,10 +78,12 @@ In interactive mode, this command will:
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
   * If Terraform is already installed, the version is verified as compatible for use
-	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
-	* Once Terraform is detected or installed, Terraform plan will be executed
-	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
-	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
+  * If Terraform is not installed, or the version installed is not compatible, a new version will be
+    installed into a temporary location
+  * Once Terraform is detected or installed, Terraform plan will be executed
+  * The command will prompt with the outcome of the plan and allow to view more details or continue with
+    Terraform apply
+  * If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
 This command can also be run in noninteractive mode.
 See help output for more details on the parameter value(s) required for Terraform code generation.
@@ -256,8 +260,11 @@ See help output for more details on the parameter value(s) required for Terrafor
 			}
 
 			// Collect and/or confirm parameters
-			err = promptGcpGenerate(GenerateGcpCommandState, GenerateGcpExistingServiceAccountDetails, GenerateGcpCommandExtraState)
-			if err != nil {
+			if err := promptGcpGenerate(
+				GenerateGcpCommandState,
+				GenerateGcpExistingServiceAccountDetails,
+				GenerateGcpCommandExtraState,
+			); err != nil {
 				return errors.Wrap(err, "collecting/confirming parameters")
 			}
 
@@ -478,7 +485,11 @@ func validateGcpRegion(val interface{}) error {
 	return nil
 }
 
-func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
+func promptGcpAuditLogQuestions(
+	config *gcp.GenerateGcpTfConfigurationArgs,
+	extraState *GcpGenerateCommandExtraState,
+) error {
+
 	// Only ask these questions if configure audit log is true
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
@@ -516,7 +527,9 @@ func promptGcpAuditLogQuestions(config *gcp.GenerateGcpTfConfigurationArgs, extr
 	return err
 }
 
-func promptGcpBucketConfiguration(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
+func promptGcpBucketConfiguration(
+	config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState,
+) error {
 	// Prompt to configure bucket information (not required when using the Pub Sub Audit Log)
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
@@ -543,24 +556,36 @@ func promptGcpBucketConfiguration(config *gcp.GenerateGcpTfConfigurationArgs, ex
 			Response: &extraState.ConfigureNewBucketSettings,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketRegion, Default: config.BucketRegion},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings, usePubSubActivityDisabled(config)},
+			Prompt: &survey.Input{Message: QuestionGcpBucketRegion, Default: config.BucketRegion},
+			Checks: []*bool{&config.AuditLog,
+				&newBucket,
+				&extraState.ConfigureNewBucketSettings,
+				usePubSubActivityDisabled(config)},
 			Opts:     []survey.AskOpt{survey.WithValidator(validateGcpRegion)},
 			Response: &config.BucketRegion,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpCustomBucketName, Default: config.CustomBucketName},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings, usePubSubActivityDisabled(config)},
+			Prompt: &survey.Input{Message: QuestionGcpCustomBucketName, Default: config.CustomBucketName},
+			Checks: []*bool{&config.AuditLog,
+				&newBucket,
+				&extraState.ConfigureNewBucketSettings,
+				usePubSubActivityDisabled(config)},
 			Response: &config.CustomBucketName,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpBucketLifecycle, Default: "-1"},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings, usePubSubActivityDisabled(config)},
+			Prompt: &survey.Input{Message: QuestionGcpBucketLifecycle, Default: "-1"},
+			Checks: []*bool{&config.AuditLog,
+				&newBucket,
+				&extraState.ConfigureNewBucketSettings,
+				usePubSubActivityDisabled(config)},
 			Response: &config.LogBucketLifecycleRuleAge,
 		},
 		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpEnableUBLA, Default: config.EnableUBLA},
-			Checks:   []*bool{&config.AuditLog, &newBucket, &extraState.ConfigureNewBucketSettings, usePubSubActivityDisabled(config)},
+			Prompt: &survey.Confirm{Message: QuestionGcpEnableUBLA, Default: config.EnableUBLA},
+			Checks: []*bool{&config.AuditLog,
+				&newBucket,
+				&extraState.ConfigureNewBucketSettings,
+				usePubSubActivityDisabled(config)},
 			Required: true,
 			Response: &config.EnableUBLA,
 		},
@@ -586,9 +611,15 @@ func promptGcpExistingServiceAccountQuestions(config *gcp.GenerateGcpTfConfigura
 			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionExistingServiceAccountPrivateKey, Default: config.ExistingServiceAccount.PrivateKey},
+			Prompt: &survey.Input{
+				Message: QuestionExistingServiceAccountPrivateKey,
+				Default: config.ExistingServiceAccount.PrivateKey,
+			},
 			Response: &config.ExistingServiceAccount.PrivateKey,
-			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(gcp.ValidateStringIsBase64)},
+			Opts: []survey.AskOpt{
+				survey.WithValidator(survey.Required),
+				survey.WithValidator(gcp.ValidateStringIsBase64),
+			},
 		}})
 
 	return err
@@ -597,7 +628,10 @@ func promptGcpExistingServiceAccountQuestions(config *gcp.GenerateGcpTfConfigura
 func promptGcpIntegrationNameQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
 	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpConfigurationIntegrationName, Default: config.ConfigurationIntegrationName},
+			Prompt: &survey.Input{
+				Message: QuestionGcpConfigurationIntegrationName,
+				Default: config.ConfigurationIntegrationName,
+			},
 			Checks:   []*bool{&config.Configuration},
 			Response: &config.ConfigurationIntegrationName,
 		},
@@ -664,9 +698,9 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 
 	// Prompt for options
 	for answer != GcpAdvancedOptDone {
-		// Construction of this slice is a bit strange at first look, but the reason for that is because we have to do string
-		// validation to know which option was selected due to how survey works; and doing it by index (also supported) is
-		// difficult when the options are dynamic (which they are)
+		// Construction of this slice is a bit strange at first look, but the reason for that is because we have to do
+		// string validation to know which option was selected due to how survey works; and doing it by index (also
+		// supported) is difficult when the options are dynamic (which they are)
 		var options []string
 
 		// Only show Advanced AuditLog options if AuditLog integration is set to true
@@ -674,7 +708,12 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 			options = append(options, GcpAdvancedOptAuditLog)
 		}
 
-		options = append(options, GcpAdvancedOptExistingServiceAccount, GcpAdvancedOptIntegrationName, GcpAdvancedOptLocation, GcpAdvancedOptProjects, GcpAdvancedOptDone)
+		options = append(options,
+			GcpAdvancedOptExistingServiceAccount,
+			GcpAdvancedOptIntegrationName,
+			GcpAdvancedOptLocation,
+			GcpAdvancedOptProjects,
+			GcpAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
 				Message: "Which options would you like to configure?",

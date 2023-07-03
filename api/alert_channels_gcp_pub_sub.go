@@ -25,7 +25,9 @@ func (svc *AlertChannelsService) GetGcpPubSub(guid string) (response GcpPubSubAl
 }
 
 // UpdateGcpPubSub updates a single instance of GCP Pub Sub integration on the Lacework server
-func (svc *AlertChannelsService) UpdateGcpPubSub(data AlertChannel) (response GcpPubSubAlertChannelResponseV2, err error) {
+func (svc *AlertChannelsService) UpdateGcpPubSub(data AlertChannel) (
+	response GcpPubSubAlertChannelResponseV2, err error,
+) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }

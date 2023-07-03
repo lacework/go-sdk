@@ -19,7 +19,8 @@ var (
 	QuestionEnableActivityLog      = "Enable Azure Activity Log Integration?"
 	QuestionActivityLogName        = "Specify custom Activity Log integration name: (optional)"
 	QuestionAddAzureSubscriptionID = "Set Azure Subscription ID?"
-	QuestionAzureSubscriptionID    = "Specify the Azure Subscription ID to be used to provision Lacework resources: (optional)"
+	QuestionAzureSubscriptionID    = "Specify the Azure Subscription ID to be used to provision " +
+		"Lacework resources: (optional)"
 
 	QuestionAzureAnotherAdvancedOpt      = "Configure another advanced integration option"
 	QuestionAzureConfigAdvanced          = "Configure advanced integration options?"
@@ -149,16 +150,19 @@ var (
 		Short:   "Generate and/or execute Terraform code for Azure integration",
 		Long: `Use this command to generate Terraform code for deploying Lacework into new Azure environment.
 
-By default, this command will function interactively, prompting for the required information to setup the new cloud account. In interactive mode, this command will:
+By default, this command will function interactively, prompting for the required information to setup
+the new cloud account. In interactive mode, this command will:
 		
 * Prompt for the required information to setup the integration
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
   * If Terraform is already installed, the version will be confirmed suitable for use
-	* If Terraform is not installed, or the version installed is not suitable, a new version will be installed into a temporary location
-	* Once Terraform is detected or installed, Terraform plan will be executed
-	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
-	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
+  * If Terraform is not installed, or the version installed is not suitable, a new version will be
+    installed into a temporary location
+  * Once Terraform is detected or installed, Terraform plan will be executed
+  * The command will prompt with the outcome of the plan and allow to view more details or continue
+    with Terraform apply
+  * If confirmed, Terraform apply will be run, completing the setup of the cloud account
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Generate TF Code
@@ -202,7 +206,8 @@ By default, this command will function interactively, prompting for the required
 
 			// Check storage account
 			if GenerateAzureCommandState.ExistingStorageAccount {
-				mods = append(mods, azure.WithStorageAccountResourceGroup(GenerateAzureCommandState.StorageAccountResourceGroup))
+				mods = append(mods,
+					azure.WithStorageAccountResourceGroup(GenerateAzureCommandState.StorageAccountResourceGroup))
 			}
 
 			// Create new struct
@@ -506,7 +511,10 @@ func promptAzureStorageAccountQuestions(config *azure.GenerateAzureTfConfigurati
 			Response: &config.StorageAccountName,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionStorageAccountResourceGroup, Default: config.StorageAccountResourceGroup},
+			Prompt: &survey.Input{
+				Message: QuestionStorageAccountResourceGroup,
+				Default: config.StorageAccountResourceGroup,
+			},
 			Checks:   []*bool{&config.ExistingStorageAccount},
 			Required: true,
 			Response: &config.StorageAccountResourceGroup,
@@ -644,7 +652,9 @@ func askAzureSubscriptionID(config *azure.GenerateAzureTfConfigurationArgs) erro
 	return nil
 }
 
-func askAdvancedAzureOptions(config *azure.GenerateAzureTfConfigurationArgs, extraState *AzureGenerateCommandExtraState) error {
+func askAdvancedAzureOptions(
+	config *azure.GenerateAzureTfConfigurationArgs, extraState *AzureGenerateCommandExtraState,
+) error {
 	answer := ""
 
 	// Prompt for options
@@ -750,7 +760,9 @@ func writeAzureGenerationArgsCache(config *azure.GenerateAzureTfConfigurationArg
 }
 
 // entry point for launching a survey to build out the required Azure generation parameters
-func promptAzureGenerate(config *azure.GenerateAzureTfConfigurationArgs, extraState *AzureGenerateCommandExtraState) error {
+func promptAzureGenerate(
+	config *azure.GenerateAzureTfConfigurationArgs, extraState *AzureGenerateCommandExtraState,
+) error {
 
 	// Cache for later use if generation is abandoned and in interactive mode
 	if cli.InteractiveMode() {

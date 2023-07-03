@@ -27,8 +27,8 @@ var (
 	QuestionExistingIamRoleName         = "Specify an existing IAM role name for CloudTrail access:"
 	QuestionExistingIamRoleArn          = "Specify an existing IAM role ARN for CloudTrail access:"
 	QuestionExistingIamRoleExtID        = "Specify the external ID to be used with the existing IAM role:"
-	QuestionPrimaryAwsAccountProfile    = "Before adding sub-accounts, your primary AWS account profile name must be set;" +
-		" which profile should the main account use?"
+	QuestionPrimaryAwsAccountProfile    = "Before adding sub-accounts, your primary AWS account profile name " +
+		"must be set; which profile should the main account use?"
 	QuestionSubAccountProfileName      = "Supply the profile name for this additional AWS account:"
 	QuestionSubAccountRegion           = "What region should be used for this account?"
 	QuestionSubAccountAddMore          = "Add another AWS account?"
@@ -63,7 +63,7 @@ var (
 	AwsAdvancedOptLocation = "Customize output location"
 
 	// AwsArnRegex original source: https://regex101.com/r/pOfxYN/1
-	AwsArnRegex = `^arn:(?P<Partition>[^:\n]*):(?P<Service>[^:\n]*):(?P<Region>[^:\n]*):(?P<AccountID>[^:\n]*):(?P<Ignore>(?P<ResourceType>[^:\/\n]*)[:\/])?(?P<Resource>.*)$`
+	AwsArnRegex = `^arn:(?P<Partition>[^:\n]*):(?P<Service>[^:\n]*):(?P<Region>[^:\n]*):(?P<AccountID>[^:\n]*):(?P<Ignore>(?P<ResourceType>[^:\/\n]*)[:\/])?(?P<Resource>.*)$` //nolint
 	// AwsRegionRegex regex used for validating region input; note intentionally does not match gov cloud
 	AwsRegionRegex  = `(us|ap|ca|eu|sa)-(central|(north|south)?(east|west)?)-\d`
 	AwsProfileRegex = `([A-Za-z_0-9-]+)`
@@ -88,9 +88,11 @@ In interactive mode, this command will:
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
   * If Terraform is already installed, the version is verified as compatible for use
-	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
+	* If Terraform is not installed, or the version installed is not compatible, a new
+    version will be installed into a temporary location
 	* Once Terraform is detected or installed, Terraform plan will be executed
-	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
+	* The command will prompt with the outcome of the plan and allow to view more details
+    or continue with Terraform apply
 	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
 This command can also be run in noninteractive mode.
@@ -505,7 +507,10 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState
 			Response: &config.CloudtrailName,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionCloudtrailExistingBucketArn, Default: config.ExistingCloudtrailBucketArn},
+			Prompt: &survey.Input{
+				Message: QuestionCloudtrailExistingBucketArn,
+				Default: config.ExistingCloudtrailBucketArn,
+			},
 			Checks:   []*bool{&extraState.UseExistingCloudtrail},
 			Required: true,
 			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
@@ -756,9 +761,9 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 
 	// Prompt for options
 	for answer != AwsAdvancedOptDone {
-		// Construction of this slice is a bit strange at first look, but the reason for that is because we have to do string
-		// validation to know which option was selected due to how survey works; and doing it by index (also supported) is
-		// difficult when the options are dynamic (which they are)
+		// Construction of this slice is a bit strange at first look, but the reason for that is because
+		// we have to do string validation to know which option was selected due to how survey works; and
+		// doing it by index (also supported) is difficult when the options are dynamic (which they are)
 		//
 		// Only ask about more accounts if consolidated cloudtrail is setup (matching scenarios doc)
 		// Scenario document suggests that this is no longer the case and that

@@ -61,15 +61,15 @@ func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
 	headers := []string{"Registry", "Repository", "Last Scan", "Status", "Containers", "Vulnerabilities", "Image Digest"}
 	assessments := buildVulnCtrAssessmentSummary(data.Data, api.ContainersEntityResponse{
 		Data: []api.ContainerEntity{
-			api.ContainerEntity{
+			{
 				ImageID: "sha256:7652596622b05043763f962cff30edf01f6ea1ba29374f1703dda759dc9ff3a1",
 				Mid:     1,
 			},
-			api.ContainerEntity{
+			{
 				ImageID: "sha256:7652596622b05043763f962cff30edf01f6ea1ba29374f1703dda759dc9ff3a1",
 				Mid:     2,
 			},
-			api.ContainerEntity{
+			{
 				ImageID: "sha256:1252596622b05043763f962gff30adf01f6ea1ba29374f1703dda759dc9ab3a1",
 				Mid:     3,
 			},

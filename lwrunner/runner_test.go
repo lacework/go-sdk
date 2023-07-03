@@ -21,7 +21,6 @@ package lwrunner_test
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"io/ioutil"
 	"net"
 	"os"
 	"path"
@@ -114,7 +113,7 @@ func TestDefaultIdentityFilePathEnvVariable(t *testing.T) {
 }
 
 func TestLwRunnerAddKnownHostNoSSHDir(t *testing.T) {
-	mockHome, err := ioutil.TempDir("", "lwrunner")
+	mockHome, err := os.MkdirTemp("", "h")
 	if err != nil {
 		panic(err)
 	}
@@ -134,7 +133,7 @@ func TestLwRunnerAddKnownHostNoSSHDir(t *testing.T) {
 	assert.NoError(t, subject)
 
 	// Check the known host file
-	content, err := ioutil.ReadFile(knownFile)
+	content, err := os.ReadFile(knownFile)
 	assert.NoError(t, err)
 	assert.Contains(t, string(content), "mock-test")
 
@@ -144,13 +143,13 @@ func TestLwRunnerAddKnownHostNoSSHDir(t *testing.T) {
 	assert.NoError(t, subject)
 
 	// Check the known host file
-	content, err = ioutil.ReadFile(knownFile)
+	content, err = os.ReadFile(knownFile)
 	assert.NoError(t, err)
 	assert.Contains(t, string(content), "second-time")
 }
 
 func TestLwRunnerAddKnownWithSSHDir(t *testing.T) {
-	mockHome, err := ioutil.TempDir("", "lwrunner")
+	mockHome, err := os.MkdirTemp("", "h")
 	if err != nil {
 		panic(err)
 	}
@@ -176,7 +175,7 @@ func TestLwRunnerAddKnownWithSSHDir(t *testing.T) {
 	assert.NoError(t, subject)
 
 	// Check the known host file
-	content, err := ioutil.ReadFile(knownFile)
+	content, err := os.ReadFile(knownFile)
 	assert.NoError(t, err)
 	assert.Contains(t, string(content), "mock-test")
 }
@@ -191,7 +190,7 @@ func (m mockNetAddr) String() string {
 }
 
 func TestLwRunnerDefaultKnownHosts(t *testing.T) {
-	mockHome, err := ioutil.TempDir("", "lwrunner")
+	mockHome, err := os.MkdirTemp("", "h")
 	if err != nil {
 		panic(err)
 	}
@@ -202,7 +201,7 @@ func TestLwRunnerDefaultKnownHosts(t *testing.T) {
 		panic(err)
 	}
 
-	err = ioutil.WriteFile(path.Join(mockHome, ".ssh", "known_hosts"), []byte(""), 0600)
+	err = os.WriteFile(path.Join(mockHome, ".ssh", "known_hosts"), []byte(""), 0600)
 	if err != nil {
 		panic(err)
 	}

@@ -65,7 +65,9 @@ func setupSSMAccess(cfg aws.Config, roleName string, token string) (types.Role, 
 // - Deletes the instance profile
 // - Detaches all managed policies from the role (assumes no inline policies attached)
 // - Deletes the role
-func teardownSSMAccess(cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile, byoRoleName string) error {
+func teardownSSMAccess(
+	cfg aws.Config, role types.Role, instanceProfile types.InstanceProfile, byoRoleName string,
+) error {
 	c := iam.New(iam.Options{
 		Credentials: cfg.Credentials,
 		Region:      cfg.Region,
@@ -193,7 +195,9 @@ func getRoleFromName(c iamGetRoleFromNameAPI, roleName string) (types.Role, erro
 }
 
 type iamCreateSSMRoleAPI interface {
-	CreateRole(ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options)) (*iam.CreateRoleOutput, error)
+	CreateRole(
+		ctx context.Context, params *iam.CreateRoleInput, optFns ...func(*iam.Options),
+	) (*iam.CreateRoleOutput, error)
 }
 
 // createSSMRole makes a call to the AWS API to create an IAM role.

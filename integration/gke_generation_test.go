@@ -4,7 +4,6 @@ package integration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,7 +31,7 @@ func runGkeGenerateTest(t *testing.T, conditions func(*expect.Console), args ...
 	hcl_path := filepath.Join(tfPath, gkePath, "main.tf")
 
 	runFakeTerminalTestFromDir(t, tfPath, conditions, args...)
-	out, err := ioutil.ReadFile(hcl_path)
+	out, err := os.ReadFile(hcl_path)
 	if err != nil {
 		return fmt.Sprintf("main.tf not found: %s", err)
 	}
@@ -118,7 +117,7 @@ func TestGenerationSACredsGke(t *testing.T) {
 			"client_email": "test_email@lacework.iam.gserviceaccount.com"
 	}`)
 
-	dir, err := ioutil.TempDir("", "lacework-cli")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}
@@ -269,7 +268,7 @@ func TestGenerationCustomizedOutputLocationGke(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 
-	dir, err := ioutil.TempDir("", "lacework-cli")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}
@@ -296,7 +295,7 @@ func TestGenerationCustomizedOutputLocationGke(t *testing.T) {
 
 	assertGkeTerraformSaved(t, final)
 
-	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
+	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	buildTf, _ := gcp.NewGkeTerraform(
 		gcp.WithGkeProjectId(gkeProjId),
@@ -338,7 +337,7 @@ func TestGenerationWithGkeExistingTerraformGke(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 
-	dir, err := ioutil.TempDir("", "lacework-cli")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}

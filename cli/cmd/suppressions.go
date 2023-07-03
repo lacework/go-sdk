@@ -196,7 +196,8 @@ func convertGcpResourceNameSupConditions(supConditions []string, fieldKey string
 			if condition != "*" {
 				// It appears that for GCP, the resourceName field for policy exceptions is in fact expecting
 				// users to provider the full GCP resource_id.
-				// Example resourceId: //compute.googleapis.com/projects/gke-project-01-c8403ba1/zones/us-central1-a/instances/squid-proxy
+				// Example resourceId:
+				//  => //compute.googleapis.com/projects/gke-project-01-c8403ba1/zones/us-central1-a/instances/squid-proxy
 				// This was not the case for legacy suppressions and in most cases it's unlikely that the
 				// users will have provided this. Instead, we are more likely to have
 				// the resource name provided. To cover this scenario we prepend the resource name

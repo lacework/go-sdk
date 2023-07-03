@@ -40,7 +40,9 @@ func (svc *EntitiesService) ListContainers() (response ContainersEntityResponse,
 }
 
 // ListContainersWithFilters returns a list of Active Containers based on a user defined filter
-func (svc *EntitiesService) ListContainersWithFilters(filters SearchFilter) (response ContainersEntityResponse, err error) {
+func (svc *EntitiesService) ListContainersWithFilters(filters SearchFilter) (
+	response ContainersEntityResponse, err error,
+) {
 	err = svc.Search(&response, filters)
 	return
 }

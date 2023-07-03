@@ -20,13 +20,18 @@ package api
 
 // GetCloudwatchEb gets a single instance of an AWS Cloudwatch alert channel
 // with the corresponding integration guid
-func (svc *AlertChannelsService) GetCloudwatchEb(guid string) (response CloudwatchEbAlertChannelResponseV2, err error) {
+func (svc *AlertChannelsService) GetCloudwatchEb(guid string) (
+	response CloudwatchEbAlertChannelResponseV2, err error,
+) {
 	err = svc.get(guid, &response)
 	return
 }
 
-// UpdateCloudwatchEb Update AWSCloudWatch updates a single instance of an AWS cloudwatch integration on the Lacework server
-func (svc *AlertChannelsService) UpdateCloudwatchEb(data AlertChannel) (response CloudwatchEbAlertChannelResponseV2, err error) {
+// UpdateCloudwatchEb Update AWSCloudWatch updates a single instance of an AWS
+// cloudwatch integration on the Lacework server
+func (svc *AlertChannelsService) UpdateCloudwatchEb(data AlertChannel) (
+	response CloudwatchEbAlertChannelResponseV2, err error,
+) {
 	err = svc.update(data.ID(), data, &response)
 	return
 }
