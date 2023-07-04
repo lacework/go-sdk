@@ -154,7 +154,7 @@ func TestComplianceAwsGetAllReportType(t *testing.T) {
 	for _, reportType := range api.AwsReportTypes() {
 		t.Run(reportType, func(t *testing.T) {
 			out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", reportType)
-			assert.Empty(t, err.String(), "STDERR should be empty")
+			assert.Contains(t, err.String(), "--type has been deprecated")
 			assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 			assert.Contains(t, out.String(), "COMPLIANCE REPORT DETAILS",
 				"STDOUT table headers changed, please check")
@@ -164,9 +164,9 @@ func TestComplianceAwsGetAllReportType(t *testing.T) {
 
 func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "2.1.2")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", "AWS_CIS_S3", "2.1.2")
 
-	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Contains(t, err.String(), "--type has been deprecated,")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(), "RECOMMENDATION DETAILS",
 		"STDOUT table headers changed, please check")
@@ -186,7 +186,7 @@ func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
 
 func TestComplianceAwsGetReportRecommendationIDNotFound(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
-	_, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "rec-not-found")
+	_, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", "AWS_CIS_S3", "rec-not-found")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, err.String(), "recommendation id 'rec-not-found' not found.",
 		"STDERR changed?, please check")

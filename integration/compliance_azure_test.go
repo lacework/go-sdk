@@ -35,7 +35,7 @@ func TestComplianceAzureListTenants(t *testing.T) {
 
 func TestComplianceAzureGetReportTenantAndSubscriptionWithAlias(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
-		"compliance", "azure", "get-report", "tenant-id (tenant-alias)", "subscription-id (subscription-alias)",
+		"compliance", "azure", "get-report", "tenant-id (tenant-alias)", "subscription-id (subscription-alias)", "--type", "AZURE_CIS_131",
 	)
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(),

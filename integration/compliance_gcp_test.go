@@ -26,7 +26,7 @@ import (
 
 func TestComplianceGoogleGetReportOrgAndProjectWithAlias(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
-		"compliance", "gcp", "get-report", "org-id (org-alias)", "proj-id (proj-alias)",
+		"compliance", "gcp", "get-report", "org-id (org-alias)", "proj-id (proj-alias)", "--type", "GCP_CIS13",
 	)
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(),

@@ -21,6 +21,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -39,7 +40,7 @@ var (
 	compAwsCmdState = struct {
 		Type       string
 		ReportName string
-	}{Type: "AWS_CIS_14"}
+	}{ReportName: "CIS Amazon Web Services Foundations Benchmark v1.4.0"}
 
 	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
 	complianceAwsListAccountsCmd = &cobra.Command{
@@ -82,11 +83,15 @@ var (
 				return validReportName(api.ReportDefinitionSubTypeAws.String(), compAwsCmdState.ReportName)
 			}
 
-			if array.ContainsStr(api.AwsReportTypes(), compAwsCmdState.Type) {
-				return nil
-			} else {
-				return errors.Errorf(`supported report types are: %s'`, strings.Join(api.AwsReportTypes(), ", "))
+			if cmd.Flags().Changed("type") {
+				if array.ContainsStr(api.AwsReportTypes(), compAwsCmdState.Type) {
+					return nil
+				} else {
+					return errors.Errorf(`supported report types are: %s'`, strings.Join(api.AwsReportTypes(), ", "))
+				}
 			}
+
+			return nil
 		},
 		Short: "Get the latest AWS compliance report",
 		Long: `Get the latest compliance assessment report from the provided AWS account, these
@@ -107,26 +112,27 @@ To retrieve a specific report by its report name:
 `,
 		Args: cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			reportType, err := api.NewAwsReportType(compAwsCmdState.Type)
-			if err != nil {
-				return errors.Errorf("invalid report type %q", compAwsCmdState.Type)
-			}
-
 			var (
 				// clean the AWS account ID if it was provided
 				// with an Alias in between parentheses
 				awsAccountID, _ = splitIDAndAlias(args[0])
 				config          = api.AwsReportConfig{
 					AccountID: awsAccountID,
-					Parameter: api.ReportFilterType,
-					Value:     compAwsCmdState.Type,
+					// Default config is report_name
+					Parameter: api.ReportFilterName,
+					Value:     compAwsCmdState.ReportName,
 				}
 			)
 
-			// if --report_name flag is used, set the report_para
-			if cmd.Flags().Changed("report_name") {
-				config.Parameter = api.ReportFilterName
-				config.Value = compAwsCmdState.ReportName
+			// if --type flag is used, set the report config to type
+			if cmd.Flags().Changed("type") {
+				reportType, err := api.NewAwsReportType(compAwsCmdState.Type)
+				if err != nil {
+					return errors.Errorf("invalid report type %q", compAwsCmdState.Type)
+				}
+
+				config.Parameter = api.ReportFilterType
+				config.Value = reportType.String()
 			}
 
 			if compCmdState.Pdf {
@@ -200,7 +206,7 @@ To retrieve a specific report by its report name:
 					&complianceCSVReportDetails{
 						AccountName:     report.AccountID,
 						AccountID:       report.AccountID,
-						ReportType:      reportType.String(),
+						ReportType:      report.ReportType,
 						ReportTime:      report.ReportTime,
 						Recommendations: report.Recommendations,
 					},
@@ -562,13 +568,20 @@ func init() {
 	// AWS report types: AWS_NIST_CSF, AWS_NIST_800-53_rev5, AWS_HIPAA, NIST_800-53_Rev4, LW_AWS_SEC_ADD_1_0,
 	//AWS_SOC_Rev2, AWS_PCI_DSS_3.2.1, AWS_CIS_S3, ISO_2700, SOC, AWS_CSA_CCM_4_0_5, PCI, AWS_Cyber_Essentials_2_2,
 	//AWS_ISO_27001:2013, AWS_CIS_14, AWS_CMMC_1.02, HIPAA, AWS_SOC_2, AWS_CIS_1_4_ISO_IEC_27002_2022, NIST_800-171_Rev2,
-	//AWS_NIST_800-171_rev2'
+	//AWS_NIST_800-171_rev2
 	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.Type, "type", "AWS_CIS_14",
 		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
 valid types:%s`, prettyPrintReportTypes(api.AwsReportTypes())))
 
+	// mark report type flag as deprecated
+	err := complianceAwsGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead")
+	if err != nil {
+		log.Fatal("unable to deprecate flag '--type'")
+	}
+
 	// Run 'lacework report-definition --subtype AWS' for a full list of AWS report names
-	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.ReportName, "report_name", "",
+	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.ReportName, "report_name",
+		"CIS Amazon Web Services",
 		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},

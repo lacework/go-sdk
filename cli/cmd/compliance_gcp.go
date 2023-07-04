@@ -21,6 +21,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"regexp"
 	"sort"
 	"strconv"
@@ -42,7 +43,7 @@ var (
 	compGcpCmdState = struct {
 		Type       string
 		ReportName string
-	}{Type: "GCP_CIS13"}
+	}{ReportName: "GCP CIS Benchmark 1.3"}
 
 	// complianceGcpListCmd represents the list sub-command inside the gcp command
 	complianceGcpListCmd = &cobra.Command{
@@ -138,11 +139,14 @@ Then, select one GUID from an integration and visualize its details using the co
 				return validReportName(api.ReportDefinitionSubTypeGcp.String(), compGcpCmdState.ReportName)
 			}
 
-			if array.ContainsStr(api.GcpReportTypes(), compGcpCmdState.Type) {
-				return nil
-			} else {
-				return errors.Errorf("supported report types are: %s", strings.Join(api.GcpReportTypes(), ", "))
+			if cmd.Flags().Changed("type") {
+				if array.ContainsStr(api.GcpReportTypes(), compGcpCmdState.Type) {
+					return nil
+				} else {
+					return errors.Errorf("supported report types are: %s", strings.Join(api.GcpReportTypes(), ", "))
+				}
 			}
+			return nil
 		},
 		Short: "Get the latest GCP compliance report",
 		Long: `Get the latest compliance assessment report, these reports run on a regular schedule,
@@ -162,11 +166,6 @@ To retrieve a specific report by its report name:
 `,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			reportType, err := api.NewGcpReportType(compGcpCmdState.Type)
-			if err != nil {
-				return errors.Errorf("invalid report type %q", compGcpCmdState.Type)
-			}
-
 			var (
 				// clean projectID and orgID if they were provided
 				// with an Alias in between parentheses
@@ -175,15 +174,20 @@ To retrieve a specific report by its report name:
 				config       = api.GcpReportConfig{
 					OrganizationID: orgID,
 					ProjectID:      projectID,
-					Value:          reportType.String(),
-					Parameter:      api.ReportFilterType,
+					// Default config is report_name
+					Value:     compGcpCmdState.ReportName,
+					Parameter: api.ReportFilterName,
 				}
 			)
 
-			// if --report_name flag is used, set the report parameter
-			if cmd.Flags().Changed("report_name") {
-				config.Parameter = api.ReportFilterName
-				config.Value = compGcpCmdState.ReportName
+			// if --type flag is used, set the report config to type
+			if cmd.Flags().Changed("type") {
+				reportType, err := api.NewGcpReportType(compGcpCmdState.Type)
+				if err != nil {
+					return errors.Errorf("invalid report type %q", compGcpCmdState.Type)
+				}
+				config.Parameter = api.ReportFilterType
+				config.Value = reportType.String()
 			}
 
 			if compCmdState.Pdf {
@@ -268,7 +272,7 @@ To retrieve a specific report by its report name:
 						TenantID:        report.OrganizationID,
 						AccountName:     report.ProjectName,
 						AccountID:       report.ProjectID,
-						ReportType:      reportType.String(),
+						ReportType:      report.ReportType,
 						ReportTime:      report.ReportTime,
 						Recommendations: report.Recommendations,
 					},
@@ -536,8 +540,15 @@ func init() {
 valid types:%s`, prettyPrintReportTypes(api.GcpReportTypes())),
 	)
 
+	// mark report type flag as deprecated
+	err := complianceGcpGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead")
+	if err != nil {
+		log.Fatal("unable to deprecate flag '--type'")
+	}
+
 	// Run 'lacework report-definition --subtype GCP' for a full list of GCP report names
-	complianceGcpGetReportCmd.Flags().StringVar(&compGcpCmdState.ReportName, "report_name", "",
+	complianceGcpGetReportCmd.Flags().StringVar(&compGcpCmdState.ReportName, "report_name",
+		"GCP CIS Benchmark 1.3",
 		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
