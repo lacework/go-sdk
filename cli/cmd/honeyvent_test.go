@@ -45,6 +45,7 @@ func TestSendHoneyventTracingFields(t *testing.T) {
 	// by default, the span_id must be empty
 	assert.Empty(t, cli.Event.SpanID)
 	assert.Empty(t, cli.Event.ParentID)
+	assert.Empty(t, cli.Event.ContextID)
 
 	// mocking sending first honeyvent
 	cli.SendHoneyvent()
@@ -53,15 +54,19 @@ func TestSendHoneyventTracingFields(t *testing.T) {
 	// but the parent_id must continue to be empty
 	assert.Equal(t, cli.id, cli.Event.SpanID)
 	assert.Empty(t, cli.Event.ParentID)
+	assert.Empty(t, cli.Event.ContextID)
 
-	// mocking sending second honeyvent
+	// mocking sending second honeyvent after setting a context ID
+	os.Setenv("LACEWORK_CONTEXT_ID", "test-id")
 	cli.SendHoneyvent()
 
 	// any further event should set the parent_id as the cli id
 	// and generate a new id for the span_id
+	// the context ID should also be read from the environment variable
 	assert.NotEmpty(t, cli.Event.SpanID)
 	assert.NotEqual(t, cli.id, cli.Event.SpanID)
 	assert.Equal(t, cli.id, cli.Event.ParentID)
+	assert.Equal(t, "test-id", cli.Event.ContextID)
 }
 
 func TestSendHoneyventFeatureFields(t *testing.T) {
