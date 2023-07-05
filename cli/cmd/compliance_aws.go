@@ -581,7 +581,7 @@ valid types:%s`, prettyPrintReportTypes(api.AwsReportTypes())))
 
 	// Run 'lacework report-definition --subtype AWS' for a full list of AWS report names
 	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.ReportName, "report_name",
-		"CIS Amazon Web Services",
+		"CIS Amazon Web Services Foundations Benchmark v1.4.0",
 		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
