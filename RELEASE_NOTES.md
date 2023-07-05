@@ -1,13 +1,12 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.25.0`.
+Another day, another release. These are the release notes for the version `v1.26.0`.
 
 ## Features
-* feat: vuln host show-assessment filter by collector type (#1302) (Darren)([ea0229c4](https://github.com/lacework/go-sdk/commit/ea0229c4c1808ea732ae8f3865bba1f3fb6d052e))
+* feat(COD-1255): Enhancements to how telemetry can be used (#1309) (Edoardo Pirovano)([754aa0ab](https://github.com/lacework/go-sdk/commit/754aa0ab1d7017486d8c42af292d293bb2c5ef45))
 ## Other Changes
-* chore(GROW-1600): lacework component dev preflight check (#1307) (Pengyuan Zhao)([65a27a0c](https://github.com/lacework/go-sdk/commit/65a27a0cc07141fb5cd08279c68f785970f637a5))
-* ci: version bump to v1.24.3-dev (Lacework)([ad75f64a](https://github.com/lacework/go-sdk/commit/ad75f64a1c6c50ef14b529dd9893b5df4ac9a38f))
-* test: fix failing help tests (#1308) (Darren)([e10404d0](https://github.com/lacework/go-sdk/commit/e10404d04e836fa54645ea801ca638e669ac2e92))
-* test: always run help integration tests (#1306) (Darren)([cf08e3d7](https://github.com/lacework/go-sdk/commit/cf08e3d770fa54cd53d6608725a660756dc43d28))
+* style(lint): fix line length check (#1311) (Salim Afiune)([6ef185a3](https://github.com/lacework/go-sdk/commit/6ef185a34f2e9251f18be33cab05bca3260d8832))
+* style(lint): enable line length check (#1123) (Salim Afiune)([f73932ff](https://github.com/lacework/go-sdk/commit/f73932ffcd72c2beb70a5957b8ac7bb75b7e7c50))
+* ci: version bump to v1.25.1-dev (Lacework)([ec2a7d34](https://github.com/lacework/go-sdk/commit/ec2a7d34daadcb2b971120d982ad1098110f7c8c))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```

@@ -19,9 +19,11 @@ In interactive mode, this command will:
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
   * If Terraform is already installed, the version is verified as compatible for use
-	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
+	* If Terraform is not installed, or the version installed is not compatible, a new
+    version will be installed into a temporary location
 	* Once Terraform is detected or installed, Terraform plan will be executed
-	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
+	* The command will prompt with the outcome of the plan and allow to view more details
+    or continue with Terraform apply
 	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
 This command can also be run in noninteractive mode.
