@@ -203,7 +203,7 @@ func WithRetries(retries *backoff.ExponentialBackOff) Option {
 }
 
 // WithTransport changes the default transport to increase TLSHandshakeTimeout
-func WithTransport(transport *http.Transport) Option {
+func WithTransport(transport http.RoundTripper) Option {
 	return clientFunc(func(c *Client) error {
 		c.c.Transport = transport
 		return nil
