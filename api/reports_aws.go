@@ -33,6 +33,8 @@ type awsReportsService struct {
 	client *Client
 }
 
+const ComplianceReportDefaultAws = "CIS Amazon Web Services Foundations Benchmark v1.4.0"
+
 type AwsReportConfig struct {
 	AccountID string
 	Value     string
