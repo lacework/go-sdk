@@ -87,7 +87,7 @@ var (
 				if array.ContainsStr(api.AwsReportTypes(), compAwsCmdState.Type) {
 					return nil
 				} else {
-					return errors.Errorf(`supported report types are: %s'`, strings.Join(api.AwsReportTypes(), ", "))
+					return errors.Errorf("supported report types are: %s", strings.Join(api.AwsReportTypes(), ", "))
 				}
 			}
 
