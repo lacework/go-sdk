@@ -33,6 +33,8 @@ type azureReportsService struct {
 	client *Client
 }
 
+const ComplianceReportDefaultAzure = "CIS Microsoft Azure Foundations Benchmark v1.5.0"
+
 type AzureReportConfig struct {
 	TenantID       string
 	SubscriptionID string

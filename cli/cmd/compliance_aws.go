@@ -21,7 +21,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -40,7 +39,7 @@ var (
 	compAwsCmdState = struct {
 		Type       string
 		ReportName string
-	}{ReportName: "CIS Amazon Web Services Foundations Benchmark v1.4.0"}
+	}{ReportName: api.ComplianceReportDefaultAws}
 
 	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
 	complianceAwsListAccountsCmd = &cobra.Command{
@@ -574,14 +573,11 @@ func init() {
 valid types:%s`, prettyPrintReportTypes(api.AwsReportTypes())))
 
 	// mark report type flag as deprecated
-	err := complianceAwsGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead")
-	if err != nil {
-		log.Fatal("unable to deprecate flag '--type'")
-	}
+	errcheckWARN(complianceAwsGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead"))
 
 	// Run 'lacework report-definition --subtype AWS' for a full list of AWS report names
 	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.ReportName, "report_name",
-		"CIS Amazon Web Services Foundations Benchmark v1.4.0",
+		api.ComplianceReportDefaultAws,
 		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},

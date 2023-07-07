@@ -21,7 +21,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"regexp"
 	"sort"
 	"strconv"
@@ -43,7 +42,7 @@ var (
 	compGcpCmdState = struct {
 		Type       string
 		ReportName string
-	}{ReportName: "GCP CIS Benchmark 1.3"}
+	}{ReportName: api.ComplianceReportDefaultGcp}
 
 	// complianceGcpListCmd represents the list sub-command inside the gcp command
 	complianceGcpListCmd = &cobra.Command{
@@ -541,14 +540,11 @@ valid types:%s`, prettyPrintReportTypes(api.GcpReportTypes())),
 	)
 
 	// mark report type flag as deprecated
-	err := complianceGcpGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead")
-	if err != nil {
-		log.Fatal("unable to deprecate flag '--type'")
-	}
+	errcheckWARN(complianceGcpGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead"))
 
 	// Run 'lacework report-definition --subtype GCP' for a full list of GCP report names
 	complianceGcpGetReportCmd.Flags().StringVar(&compGcpCmdState.ReportName, "report_name",
-		"GCP CIS Benchmark 1.3",
+		api.ComplianceReportDefaultGcp,
 		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},

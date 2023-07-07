@@ -21,7 +21,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -41,7 +40,7 @@ var (
 	compAzCmdState = struct {
 		Type       string
 		ReportName string
-	}{ReportName: "CIS Microsoft Azure Foundations Benchmark v1.5.0"}
+	}{ReportName: api.ComplianceReportDefaultAzure}
 
 	// complianceAzureListSubsCmd represents the list-subscriptions sub-command inside the azure command
 	complianceAzureListSubsCmd = &cobra.Command{
@@ -532,14 +531,11 @@ valid types:%s`, prettyPrintReportTypes(api.AzureReportTypes())),
 	)
 
 	// mark report type flag as deprecated
-	err := complianceAzureGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead")
-	if err != nil {
-		log.Fatal("unable to deprecate flag '--type'")
-	}
+	errcheckWARN(complianceAzureGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead"))
 
 	// Run 'lacework report-definition --subtype Azure' for a full list of Azure report names
 	complianceAzureGetReportCmd.Flags().StringVar(&compAzCmdState.ReportName, "report_name",
-		"CIS Microsoft Azure Foundations Benchmark v1.5.0",
+		api.ComplianceReportDefaultAzure,
 		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
