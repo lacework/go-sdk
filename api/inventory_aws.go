@@ -21,6 +21,8 @@ package api
 type InventoryAwsResponse struct {
 	Data   []InventoryAws `json:"data"`
 	Paging V2Pagination   `json:"paging"`
+
+	v2PageMetadata `json:"-"`
 }
 
 func (r InventoryAwsResponse) GetDataLength() int {
@@ -40,15 +42,16 @@ type InventoryAws struct {
 	Csp            string `json:"csp"`
 	EndTime        string `json:"endTime"`
 	StartTime      string `json:"startTime"`
-	ResourceId     string `json:"resourceId"`
+	ResourceID     string `json:"resourceId"`
 	ResourceRegion string `json:"resourceRegion"`
 	ResourceTags   any    `json:"resourceTags"`
 	ResourceType   string `json:"resourceType"`
 	Service        string `json:"service"`
 	Urn            string `json:"urn"`
 	CloudDetails   struct {
-		AccountAlias string `json:"accountAlias"`
-		AccountID    string `json:"accountID"`
+		AccountAlias   string `json:"accountAlias"`
+		AccountID      string `json:"accountID"`
+		OrganizationID string `json:"organizationId"`
 	} `json:"cloudDetails"`
 	Status struct {
 		FormatVersion int    `json:"formatVersion"`
