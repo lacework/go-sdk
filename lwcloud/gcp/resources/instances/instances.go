@@ -32,9 +32,9 @@ import (
 	models "github.com/lacework/go-sdk/lwcloud/gcp/resources/models"
 
 	compute "cloud.google.com/go/compute/apiv1"
+	"cloud.google.com/go/compute/apiv1/computepb"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-	computepb "google.golang.org/genproto/googleapis/cloud/compute/v1"
 )
 
 func EnumerateInstancesInProject(
