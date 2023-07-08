@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	aead.dev/minisign v0.2.0
-	cloud.google.com/go/compute v1.12.1
-	cloud.google.com/go/compute/metadata v0.2.1
+	cloud.google.com/go/compute v1.14.0
+	cloud.google.com/go/compute/metadata v0.2.3
 	cloud.google.com/go/oslogin v1.9.0
 	cloud.google.com/go/resourcemanager v1.4.0
 	github.com/AlecAivazis/survey/v2 v2.3.2
@@ -65,7 +65,7 @@ require (
 	github.com/spf13/cast v1.5.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 	google.golang.org/api v0.103.0
-	google.golang.org/genproto v0.0.0-20221201164419-0e50fba7f41c
+	google.golang.org/genproto v0.0.0-20221202195650-67e5cbc046fd
 )
 
 require (
