@@ -38,17 +38,10 @@ lacework compliance google get-report <organization_id> <project_id> [flags]
       --details              increase details about the compliance report
   -h, --help                 help for get-report
       --pdf                  download report in PDF format
-      --report_name string   report name to display, run 'lacework report-definitions list' for more information.
+      --report_name string   report name to display, run 'lacework report-definitions list' for more information. (default "GCP CIS Benchmark 1.3")
       --service strings      filter report details by service (gcp:storage:bucket, gcp:kms:cryptoKey, gcp:project, ...)
       --severity string      filter report details by severity threshold (critical, high, medium, low, info)
       --status string        filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
-      --type string          report type to display, run 'lacework report-definitions list' for more information.
-                             valid types:
-                             'GCP_CIS','GCP_CIS12','GCP_CIS13','GCP_CIS_1_3_0_NIST_800_171_rev2','GCP_CIS_1_3_0_NIST_800_53_rev5',
-                             'GCP_CIS_1_3_0_NIST_CSF','GCP_CMMC_1_02','GCP_HIPAA','GCP_HIPAA_2013','GCP_HIPAA_Rev2',
-                             'GCP_ISO_27001','GCP_ISO_27001_2013','GCP_K8S','GCP_NIST_800_171_REV2','GCP_NIST_800_53_REV4',
-                             'GCP_NIST_CSF','GCP_PCI','GCP_PCI_DSS_3_2_1','GCP_PCI_Rev2','GCP_SOC',
-                             'GCP_SOC_2','GCP_SOC_Rev2', (default "GCP_CIS13")
 ```
 
 ### Options inherited from parent commands
