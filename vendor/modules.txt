@@ -702,7 +702,6 @@ google.golang.org/appengine/urlfetch
 ## explicit; go 1.19
 google.golang.org/genproto/googleapis/api
 google.golang.org/genproto/googleapis/api/annotations
-google.golang.org/genproto/googleapis/cloud/compute/v1
 google.golang.org/genproto/googleapis/cloud/extendedops
 google.golang.org/genproto/googleapis/cloud/oslogin/common
 google.golang.org/genproto/googleapis/iam/v1
