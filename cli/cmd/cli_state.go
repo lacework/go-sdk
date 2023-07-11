@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/fatih/color"
 	prettyjson "github.com/hokaccha/go-prettyjson"
 	"github.com/mattn/go-isatty"
@@ -227,11 +228,23 @@ func (c *cliState) NewClient() error {
 		return err
 	}
 
+	expBackoff := &backoff.ExponentialBackOff{
+		InitialInterval:     5 * time.Second,
+		RandomizationFactor: 0.5,
+		Multiplier:          1.5,
+		MaxInterval:         30 * time.Second,
+		MaxElapsedTime:      10 * time.Minute,
+		Stop:                backoff.Stop,
+		Clock:               backoff.SystemClock,
+	}
+	expBackoff.Reset()
+
 	apiOpts := []api.Option{
 		api.WithLogLevel(c.Log.Level().CapitalString()),
 		api.WithSubaccount(c.Subaccount),
 		api.WithApiKeys(c.KeyID, c.Secret),
 		api.WithTimeout(time.Second * 125),
+		api.WithRetries(expBackoff),
 		api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
 	}
 
