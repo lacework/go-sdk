@@ -16,6 +16,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+
 package integration
 
 import (
@@ -99,6 +100,41 @@ func TestComplianceAwsGetReportDetails(t *testing.T) {
 		"STDOUT table headers changed, please check")
 }
 
+func TestComplianceAwsGetReportCsvOutput(t *testing.T) {
+	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	// re-use the directory to take advantage of our caching mechanism
+	dir := createTOMLConfigFromCIvars()
+	defer os.RemoveAll(dir)
+
+	t.Run("no filters", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), account)
+	})
+	t.Run("status = non-compliant", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
+			"--status", "non-compliant")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), account)
+	})
+	t.Run("status = compliant", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
+			"--status", "compliant")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), account)
+	})
+	t.Run("status = requires-manual-assessment", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
+			"--status", "requires-manual-assessment")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), account)
+	})
+}
+
 func TestComplianceAwsGetReportFiltersWithJsonOutput(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--severity", "critical", "--json")
@@ -106,7 +142,7 @@ func TestComplianceAwsGetReportFiltersWithJsonOutput(t *testing.T) {
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	// When critical severity filter is set, other severities should not be returned in json result
-	assert.NotContains(t, severities, out.String(),
+	assert.NotContains(t, out.String(), severities,
 		"Json output does not adhere to severity filter")
 }
 
