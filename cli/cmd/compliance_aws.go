@@ -82,12 +82,8 @@ var (
 				return validReportName(api.ReportDefinitionSubTypeAws.String(), compAwsCmdState.ReportName)
 			}
 
-			if cmd.Flags().Changed("type") {
-				if array.ContainsStr(api.AwsReportTypes(), compAwsCmdState.Type) {
-					return nil
-				} else {
-					return errors.Errorf("supported report types are: %s", strings.Join(api.AwsReportTypes(), ", "))
-				}
+			if cmd.Flags().Changed("type") && !array.ContainsStr(api.AwsReportTypes(), compAwsCmdState.Type) {
+				return errors.Errorf("supported report types are: %s", strings.Join(api.AwsReportTypes(), ", "))
 			}
 
 			return nil
@@ -194,6 +190,10 @@ To retrieve a specific report by its report name:
 
 			if complianceFiltersEnabled() {
 				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
+				cli.Log.Infow("recommendations",
+					"count", len(report.Recommendations),
+					"filtered", len(filteredOutput),
+				)
 			}
 
 			if cli.JSONOutput() && compCmdState.RecommendationID == "" {
@@ -210,7 +210,7 @@ To retrieve a specific report by its report name:
 						Recommendations: report.Recommendations,
 					},
 				)
-
+				cli.Log.Infow("csv recommendations", "count", len(recommendations))
 				return cli.OutputCSV(
 					[]string{"Report_Type", "Report_Time", "Account",
 						"Section", "ID", "Recommendation", "Status",

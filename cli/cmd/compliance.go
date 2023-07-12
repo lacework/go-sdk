@@ -273,6 +273,26 @@ func complianceCSVReportRecommendationsTable(details *complianceCSVReportDetails
 						""))
 			}
 		}
+
+		// @afiune The platform today only returns a list of resources that are in violation, that
+		// means, "non-compliant" resources. We currently do not return the list of resources that
+		// are "compliant", "requires-manual-assessment" or "could-not-assess" - For those cases
+		// our CSV output will only show the number of resources. (GROW-2316)
+		if len(recommendation.Violations) == 0 {
+			out = append(out,
+				append(details.GetReportMetaData(),
+					recommendation.Category,
+					recommendation.RecID,
+					recommendation.Title,
+					recommendation.Status,
+					recommendation.SeverityString(),
+					fmt.Sprintf("%d", recommendation.ResourceCount),
+					"",
+					""))
+			continue
+		}
+
+		// @afiune
 		for _, violation := range recommendation.Violations {
 			out = append(out,
 				append(details.GetReportMetaData(),

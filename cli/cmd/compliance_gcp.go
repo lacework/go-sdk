@@ -138,13 +138,10 @@ Then, select one GUID from an integration and visualize its details using the co
 				return validReportName(api.ReportDefinitionSubTypeGcp.String(), compGcpCmdState.ReportName)
 			}
 
-			if cmd.Flags().Changed("type") {
-				if array.ContainsStr(api.GcpReportTypes(), compGcpCmdState.Type) {
-					return nil
-				} else {
-					return errors.Errorf("supported report types are: %s", strings.Join(api.GcpReportTypes(), ", "))
-				}
+			if cmd.Flags().Changed("type") && !array.ContainsStr(api.GcpReportTypes(), compGcpCmdState.Type) {
+				return errors.Errorf("supported report types are: %s", strings.Join(api.GcpReportTypes(), ", "))
 			}
+
 			return nil
 		},
 		Short: "Get the latest GCP compliance report",
