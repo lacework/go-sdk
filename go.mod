@@ -31,7 +31,7 @@ require (
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/honeycombio/libhoney-go v1.18.0
 	github.com/imdario/mergo v0.3.13
-	github.com/kyokomi/emoji/v2 v2.2.10
+	github.com/kyokomi/emoji/v2 v2.2.12
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/olekukonko/tablewriter v0.0.5
