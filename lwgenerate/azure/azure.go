@@ -401,12 +401,6 @@ func createConfig(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, er
 			attributes["management_group_id"] = args.ManagementGroupId
 		}
 
-		// Set storage info if existing storage flag is set
-		if args.ExistingStorageAccount {
-			attributes["storage_account_name"] = args.StorageAccountName
-			attributes["storage_account_resource_group"] = args.StorageAccountResourceGroup
-		}
-
 		moduleDetails = append(moduleDetails,
 			lwgenerate.HclModuleWithAttributes(attributes),
 		)
@@ -460,17 +454,6 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 		} else {
 			// Set Subscription information
 			attributes["all_subscriptions"] = args.AllSubscriptions
-		}
-
-		// Set storage account name, if set
-		if args.StorageAccountName != "" {
-			attributes["storage_account_name"] = args.StorageAccountName
-		}
-
-		// Set storage info if existing storage flag is set
-		if args.ExistingStorageAccount {
-			attributes["use_existing_storage_account"] = args.ExistingStorageAccount
-			attributes["storage_account_resource_group"] = args.StorageAccountResourceGroup
 		}
 
 		// Set the location if needed
