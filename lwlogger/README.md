@@ -1,6 +1,6 @@
 # Lacework Logger
 
-A Logger wrapper for Lacework based of [zap](https://github.com/uber-go/zap) logger Go package.
+A wrapper Logger Go package for Lacework projects based of [zap](https://github.com/uber-go/zap).
 
 ## Usage
 
@@ -37,11 +37,11 @@ import "github.com/lacework/go-sdk/lwlogger"
 func main() {
 	lwL := lwlogger.New("INFO")
 
-	// Output: {"level":"info","ts":"[timestamp]","caller":"main.go:9","msg":"interesting info"}
-	lwL.Info("interesting info")
-
-	// This message wont be displayed
 	lwL.Debug("this is a debug message, too long and only needed when debugging this app")
+	// This message wont be displayed
+
+	lwL.Info("interesting info")
+	// Output: {"level":"info","ts":"[timestamp]","caller":"main.go:9","msg":"interesting info"}
 }
 ```
 

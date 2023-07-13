@@ -1,6 +1,6 @@
 # Lacework Config
 
-A Go library to help you manage the Lacework configuration file (`$HOME/.lacework.toml`)
+A Go library to manage the Lacework configuration file (`$HOME/.lacework.toml`)
 
 ## Usage
 

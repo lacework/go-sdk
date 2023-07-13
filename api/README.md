@@ -1,6 +1,6 @@
-# Go API Client
+# API Client
 
-A Golang API client for interacting with the [Lacework API](https://support.lacework.com/hc/en-us/categories/360002496114-Lacework-API-).
+A Golang API client for interacting with [Lacework APIs](https://docs.lacework.net/api/about-the-lacework-api).
 
 ## Usage
 
@@ -24,8 +24,8 @@ To interact with Lacework's API you need to have:
 ## Examples
 
 Create a new Lacework client that will automatically generate a new access token
-from the provided set of API keys, then hit the `/external/integrations` endpoint
-to list all available integrations from your account:
+from the provided set of API keys, then hit the `/api/v2/AlertChannels` endpoint
+to list all available alert channels in your account:
 ```go
 package main
 
@@ -44,16 +44,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	integrations, err := lacework.Integrations.List()
+	alertChannels, err := lacework.V2.AlertChannels.List()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	for _, channel := range alertChannels.Data {
+		fmt.Printf("Alert channel: %s\n", channel.Name)
+	}
 	// Output:
-	// CUSTOMER_123456B DATADOG
-	// CUSTOMER_123456A CONT_VULN_CFG
-	// CUSTOMER_123456C PAGER_DUTY_API
-	fmt.Println(integrations.String())
+	//
+	// Alert channel: DEFAULT EMAIL
 }
 ```
 

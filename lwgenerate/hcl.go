@@ -1,3 +1,4 @@
+// A package that generates Lacework deployment code for multiple cloud providers.
 package lwgenerate
 
 import (

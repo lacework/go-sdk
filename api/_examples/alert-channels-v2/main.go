@@ -15,11 +15,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	alertChannel, err := lacework.V2.AlertChannels.GetEmailUser("CUSTOMER_8EB5E8092016A0B8CBD8CB591362344E3A87761B997ABA0")
+	alertChannels, err := lacework.V2.AlertChannels.List()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Output: Alert channel: THE-INTEGRATION-GUID
-	fmt.Printf("Alert channel: %s", alertChannel.Data.Data.ChannelProps.Recipients[0])
+	for _, channel := range alertChannels.Data {
+		fmt.Printf("Alert channel: %s\n", channel.Name)
+	}
+	// Output:
+	//
+	// Alert channel: DEFAULT EMAIL
 }

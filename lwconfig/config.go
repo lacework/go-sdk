@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-// Helps you manage the Lacework configuration file ($HOME/.lacework.toml)
+// A package to manage the Lacework configuration file ($HOME/.lacework.toml)
 package lwconfig
 
 import (
@@ -34,22 +34,22 @@ import (
 //
 // Example:
 //
-// [default]
-// account = "example"
-// api_key = "EXAMPLE_0123456789"
-// api_secret = "_0123456789"
+//	[default]
+//	account = "example"
+//	api_key = "EXAMPLE_0123456789"
+//	api_secret = "_0123456789"
 //
-// [dev]
-// account = "dev"
-// api_key = "DEV_0123456789"
-// api_secret = "_0123456789"
+//	[dev]
+//	account = "dev"
+//	api_key = "DEV_0123456789"
+//	api_secret = "_0123456789"
 //
-// [prod]
-// account = "coolcorp"
-// subaccount = "prod-business"
-// api_key = "PROD_0123456789"
-// api_secret = "_0123456789"
-// version = 2
+//	[prod]
+//	account = "coolcorp"
+//	subaccount = "prod-business"
+//	api_key = "PROD_0123456789"
+//	api_secret = "_0123456789"
+//	version = 2
 type Profiles map[string]Profile
 
 // Profile represents a single profile within a configuration file

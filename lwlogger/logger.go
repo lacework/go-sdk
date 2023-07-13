@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-// A Logger wrapper for Lacework based of zap logger Go package.
+// A wrapper Logger package for Lacework projects based of zap logger.
 package lwlogger
 
 import (
