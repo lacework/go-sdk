@@ -401,12 +401,6 @@ func createConfig(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, er
 			attributes["management_group_id"] = args.ManagementGroupId
 		}
 
-		// Set storage info if existing storage flag is set
-		if args.ExistingStorageAccount {
-			attributes["storage_account_name"] = args.StorageAccountName
-			attributes["storage_account_resource_group"] = args.StorageAccountResourceGroup
-		}
-
 		moduleDetails = append(moduleDetails,
 			lwgenerate.HclModuleWithAttributes(attributes),
 		)
