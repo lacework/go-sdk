@@ -26,7 +26,5 @@ module "az_config" {
   application_id                 = module.az_ad_application.application_id
   application_password           = module.az_ad_application.application_password
   service_principal_id           = module.az_ad_application.service_principal_id
-  storage_account_name           = "test-storage-account-name"
-  storage_account_resource_group = "test-storage-account-resource-group"
   use_existing_ad_application    = true
 }
