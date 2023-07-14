@@ -47,6 +47,9 @@ func init() {
 	iacGenerateTfCommand.AddCommand(generateAwsTfCommand)
 	iacGenerateTfCommand.AddCommand(generateGcpTfCommand)
 	iacGenerateTfCommand.AddCommand(generateAzureTfCommand)
+
+	// aws subcommands
+	generateAwsTfCommand.AddCommand(generateAwsControlTowerTfCommand)
 }
 
 type SurveyQuestionWithValidationArgs struct {

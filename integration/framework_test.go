@@ -425,6 +425,22 @@ func (m MsgRsp) handle(t *testing.T, c *expect.Console) {
 	c.SendLine(m.response)
 }
 
+type MsgMulitlineRsp struct {
+	message   string
+	responses []string
+}
+
+func (m MsgMulitlineRsp) handle(t *testing.T, c *expect.Console) {
+	expectString(t, c, m.message)
+
+	for _, rsp := range m.responses {
+		c.SendLine(rsp)
+	}
+
+	// Send 2 Empty lines to proceed
+	c.SendLine("\n\n")
+}
+
 type Select struct {
 	message string
 }
