@@ -1,10 +1,34 @@
 # libhoney Changelog
 
+## 1.20.0 2023-06-29
+
+### Enhancements
+
+- perf: allow pre-sizing the data map (#228) | @lizthegrey
+
+### Maintenance
+
+- maint(deps): bump github.com/klauspost/compress from 1.16.5 to 1.16.6 (#229) | @dependabot
+
+## 1.19.0 2023-06-05
+
+### ⚠️ Breaking Changes ⚠️
+
+Minimum Go version required is 1.17
+
+### Maintenance
+
+- Drop go 14, 15, 16 (#225) | @vreynolds
+- Bump github.com/stretchr/testify from 1.8.0 to 1.8.2 (#218) | @dependabot
+- Bump github.com/stretchr/testify from 1.8.2 to 1.8.4 (#224) | @dependabot
+- Bump github.com/klauspost/compress from 1.15.9 to 1.16.5 (#223) | @dependabot
+- Bump github.com/DataDog/zstd from 1.5.2 to 1.5.5 (#222) | @dependabot
+
 ## 1.18.0 2022-10-28
 
 ### Enhancements
 
-- include Go version, GOOS, & GOARCH in user-agent (#207) | @robbkidd
+- Include Go version, GOOS, & GOARCH in user-agent (#207) | @robbkidd
 
 ### Maintenance
 
