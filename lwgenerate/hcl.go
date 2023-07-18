@@ -268,6 +268,30 @@ func convertTypeToCty(value interface{}) (cty.Value, error) {
 			valueMap[key] = cty.StringVal(val)
 		}
 		return cty.MapVal(valueMap), nil
+	case map[string]interface{}:
+		valueMap := map[string]cty.Value{}
+		for key, val := range v {
+			convertedValue, err := convertTypeToCty(val)
+			if err != nil {
+				return cty.NilVal, err
+			}
+			valueMap[key] = convertedValue
+		}
+		return cty.MapVal(valueMap), nil
+	case []map[string]interface{}:
+		values := []cty.Value{}
+		for _, item := range v {
+			valueMap := map[string]cty.Value{}
+			for key, val := range item {
+				convertedValue, err := convertTypeToCty(val)
+				if err != nil {
+					return cty.NilVal, err
+				}
+				valueMap[key] = convertedValue
+			}
+			values = append(values, cty.ObjectVal(valueMap))
+		}
+		return cty.ListVal(values), nil
 	case []string:
 		valueSlice := []cty.Value{}
 		for _, s := range v {
@@ -295,26 +319,34 @@ func convertTypeToCty(value interface{}) (cty.Value, error) {
 // determines what type of value is being used and builds the block accordingly
 func setBlockAttributeValue(block *hclwrite.Block, key string, val interface{}) error {
 	switch v := val.(type) {
-	case string, int, bool:
-		value, err := convertTypeToCty(v)
-		if err != nil {
-			return err
-		}
-		block.Body().SetAttributeValue(key, value)
 	case hcl.Traversal:
 		block.Body().SetAttributeTraversal(key, v)
-	case []string:
+	case string, int, bool, []string, []interface{}:
 		value, err := convertTypeToCty(v)
 		if err != nil {
 			return err
 		}
 		block.Body().SetAttributeValue(key, value)
-	case []interface{}:
-		value, err := convertTypeToCty(v)
-		if err != nil {
-			return err
+	case []map[string]interface{}:
+		values := []cty.Value{}
+		for _, item := range v {
+			valueMap := map[string]cty.Value{}
+			for key, val := range item {
+				convertedValue, err := convertTypeToCty(val)
+				if err != nil {
+					return err
+				}
+				valueMap[key] = convertedValue
+			}
+			values = append(values, cty.ObjectVal(valueMap))
 		}
-		block.Body().SetAttributeValue(key, value)
+
+		if !cty.CanListVal(values) {
+			return errors.New(
+				"setBlockAttributeValue: Values can not be coalesced into a single List due to inconsistent element types",
+			)
+		}
+		block.Body().SetAttributeValue(key, cty.ListVal(values))
 	case map[string]interface{}:
 		data := map[string]cty.Value{}
 		for attrKey, attrVal := range v {
