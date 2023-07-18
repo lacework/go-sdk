@@ -22,7 +22,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/lacework/go-sdk/lwupdater"
 )
@@ -35,14 +34,13 @@ func main() {
 
 	if err != nil {
 		fmt.Println("Unable to check for updates: %s", err)
-		os.Exit(1)
+	} else {
+		// Output: The latest release of the go-sdk project is v0.1.7
+		fmt.Printf("The latest release of the %s project is %s\n",
+			project, sdk.LatestVersion,
+		)
 	}
-
-	// Output: The latest release of the go-sdk project is v0.1.7
-	fmt.Printf("The latest release of the %s project is %s\n",
-		project, sdk.LatestVersion,
-	)
 }
 ```
 
-Look at the [examples/](examples/) folder for more examples.
+Look at the [_examples/](_examples/) folder for more examples.

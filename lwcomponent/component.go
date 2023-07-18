@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-// The Lacework component package facilitates loading and executing components
+// A development kit for the cloud based of modular components.
 package lwcomponent
 
 import (
@@ -46,13 +46,12 @@ import (
 //
 // You can load the state from the Lacework API server by passing an `api.Client`.
 //
-// client, err := api.NewClient(account, opts...)
-// cState, err := lwcomponent.LoadState(client)
+//	client, err := api.NewClient(account, opts...)
+//	cState, err := lwcomponent.LoadState(client)
 //
 // Or, you can load the state from the local storage.
 //
-// cState, err := lwcomponent.LocalState()
-//
+//	cState, err := lwcomponent.LocalState()
 type State struct {
 	Version    string      `json:"version"`
 	Components []Component `json:"components"`
@@ -175,12 +174,12 @@ func LocalState() (*State, error) {
 // found, this function will return a `nil` pointer and `false`
 //
 // Usage:
-// ```go
-// component, found := s.GetComponent(name)
-// if !found {
-//   fmt.Println("Component %s not found", name)
-// }
-// ```
+//
+//	component, found := state.GetComponent(name)
+//
+//	if !found {
+//		fmt.Println("Component %s not found", name)
+//	}
 func (s State) GetComponent(name string) (*Component, bool) {
 	for i := range s.Components {
 		if s.Components[i].Name == name {
@@ -333,6 +332,8 @@ type Breadcrumbs struct {
 	UpdateMessage       string `json:"updateMessage,omitempty"`
 }
 
+// Component can be a command-line tool, a new command that extends the Lacework CLI, or a library that
+// contains files used by another Lacework component.
 type Component struct {
 	Name          string         `json:"name"`
 	Description   string         `json:"description"`

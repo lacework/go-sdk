@@ -148,6 +148,14 @@ fmt-check: ## Lists formatting issues
 imports-check: ## Lists imports issues
 	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./...) | grep -v proto)
 
+.PHONY: run-api-example
+run-api-example: ## Run an API example like 'make run-api-example example=api/_examples/active-containers/main.go'
+	LW_API_KEY=$(shell lacework configure show api_key) \
+		LW_API_SECRET=$(shell lacework configure show api_secret) \
+		LW_ACCOUNT=$(shell lacework configure show account) \
+		LW_SUBACCOUNT=$(shell lacework configure show subaccount) \
+		go run $(example)
+
 .PHONY: build-cli-cross-platform
 build-cli-cross-platform: ## Compiles the Lacework CLI for all supported platforms
 	gox -output="bin/$(PACKAGENAME)-{{.OS}}-{{.Arch}}" \

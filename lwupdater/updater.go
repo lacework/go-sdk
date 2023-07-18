@@ -16,6 +16,7 @@
 // limitations under the License.
 //
 
+// A library to check for available updates of Lacework projects.
 package lwupdater
 
 import (
@@ -42,7 +43,7 @@ const (
 )
 
 // Version is used to check project versions and store it into a cache file
-// normally at the directory ~/.config/lacework, to execute regular version checks
+// normally at the directory `~/.config/lacework`, to execute regular version checks
 type Version struct {
 	Project        string    `json:"project"`
 	CurrentVersion string    `json:"current_version"`

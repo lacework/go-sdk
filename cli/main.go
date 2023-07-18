@@ -16,6 +16,11 @@
 // limitations under the License.
 //
 
+// The Lacework command-line interface (CLI)
+//
+// Lacework as a platform provides a set of robust APIs for configuring accounts within the platform,
+// as well as accessing data from accounts. The Lacework CLI provides an interface to those APIs with
+// the goal of providing fast, accurate, and actionable insights into the platform.
 package main
 
 import (

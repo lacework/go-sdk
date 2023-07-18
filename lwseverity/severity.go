@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-// A package for Lacework severities
+// A helper package for Lacework severities
 package lwseverity
 
 import (
@@ -99,14 +99,16 @@ type Severity interface {
 	GetSeverity() string
 }
 
-// Take a string representation of Lacework severity and
-// return it's normalized integer and string values
-// Critical Severity      => 1, "Critical"
-// High Severity          => 2, "High"
-// Medium Severity        => 3, "Medium"
-// Low Severity           => 4, "Low"
-// Informational Severity => 5, "Info"
-// Unknown Severity       => 0, "Unknown"
+// Normalize takes a string representation of Lacework severity and returns it's normalized
+// integer and string values.
+//
+// Relation:
+//   - Critical Severity      => 1, "Critical"
+//   - High Severity          => 2, "High"
+//   - Medium Severity        => 3, "Medium"
+//   - Low Severity           => 4, "Low"
+//   - Informational Severity => 5, "Info"
+//   - Unknown Severity       => 0, "Unknown"
 func Normalize(s string) (int, string) {
 	severity := NewSeverity(s)
 	return int(severity), severity.String()
@@ -122,11 +124,11 @@ func IsValid(s string) bool {
 //
 // For instance:
 //
-// "info" is not as crtical as "low" (true)
-// "medium" is as critical as "medium" (false)
-// "high" is more critical than "medium" (false)
-// "unknown" is more critical than "medium" (false)
-// "medium" is not as critical as "unknown" (true)
+//   - "info" is not as crtical as "low" (true)
+//   - "medium" is as critical as "medium" (false)
+//   - "high" is more critical than "medium" (false)
+//   - "unknown" is more critical than "medium" (false)
+//   - "medium" is not as critical as "unknown" (true)
 func NotAsCritical(first, second string) bool {
 	sevFirst, _ := Normalize(first)
 	sevSecond, _ := Normalize(second)
@@ -138,11 +140,11 @@ func NotAsCritical(first, second string) bool {
 //
 // For instance:
 //
-// "medium" severity should be filtered for "high" threshold
-// "critical" severity should NOT be filtered for "high" threshold
-// "info" severity should NOT be filtered for "info" threshold
-// invalid (unknown) severity should NOT be filtered for * threshold
-// all severities should NOT be filtered for an invalid (unknown) threshold
+//   - "medium" severity should be filtered for "high" threshold
+//   - "critical" severity should NOT be filtered for "high" threshold
+//   - "info" severity should NOT be filtered for "info" threshold
+//   - invalid (unknown) severity should NOT be filtered for * threshold
+//   - all severities should NOT be filtered for an invalid (unknown) threshold
 func ShouldFilter(severity, threshold string) bool {
 	sevThreshold, _ := Normalize(threshold)
 	if sevThreshold == 0 {

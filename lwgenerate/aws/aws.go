@@ -1,3 +1,4 @@
+// A package that generates Lacework deployment code for Amazon Web Services.
 package aws
 
 import (

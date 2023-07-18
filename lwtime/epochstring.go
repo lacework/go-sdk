@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// EpochString time type to parse the returned 13 digit time in milliseconds
-// Used instead of Epoch type when unmarshalling a json response where epoch time is a string
+// EpochString time type to parse the returned 13 digit time in milliseconds.
+// Used instead of Epoch type when unmarshalling a json response where epoch time is a string.
 type EpochString time.Time
 
 func (epoch *EpochString) UnmarshalJSON(b []byte) error {

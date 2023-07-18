@@ -16,7 +16,6 @@
 // limitations under the License.
 //
 
-// A simple relative and natural time package
 package lwtime
 
 import (
@@ -229,11 +228,10 @@ func (rel relative) time(inTime time.Time) (outTime time.Time, err error) {
 	return
 }
 
-// Parse the string representation of a Lacework relative time
-// Time object is returned in UTC
+// ParseRelative parses the string representation of a Lacework relative time.
+// Time object is returned in UTC.
 //
-// t, err := lwtime.ParseRelative("-1y@y")
-//
+//	t, err := lwtime.ParseRelative("-1y@y")
 //	if err != nil {
 //		...
 //	}

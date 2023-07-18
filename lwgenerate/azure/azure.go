@@ -1,3 +1,4 @@
+// A package that generates Lacework deployment code for Azure cloud.
 package azure
 
 import (
