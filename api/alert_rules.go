@@ -31,6 +31,28 @@ type AlertRulesService struct {
 	client *Client
 }
 
+// Valid inputs for AlertRule Source property
+var AlertRuleSources = []string{"Agent", "Aws", "Azure", "Gcp", "K8s"}
+
+// Valid inputs for AlertRule Categories property
+var AlertRuleCategories = []string{"Anomaly", "Policy", "Composite"}
+
+// Valid inputs for AlertRule SubCategories property
+var AlertRuleSubCategories = []string{
+	"Compliance",
+	"App",
+	"Cloud",
+	"File",
+	"Machine",
+	"User",
+	"Platform",
+	"K8sActivity",
+	"Registry",
+	"SystemCall",
+	"HostVulnerability",
+	"ContainerVulnerability",
+}
+
 type alertRuleSeverity int
 
 type AlertRuleSeverities []alertRuleSeverity
@@ -165,6 +187,8 @@ func NewAlertRule(name string, rule AlertRuleConfig) AlertRule {
 			Severity:        rule.Severities.toInt(),
 			ResourceGroups:  rule.ResourceGroups,
 			EventCategories: rule.EventCategories,
+			AlertCategories: rule.AlertCategories,
+			Sources:         rule.Sources,
 		},
 	}
 }
@@ -234,6 +258,8 @@ type AlertRuleConfig struct {
 	Severities      AlertRuleSeverities
 	ResourceGroups  []string
 	EventCategories []string
+	Sources         []string
+	AlertCategories []string
 }
 
 type AlertRule struct {
@@ -250,6 +276,8 @@ type AlertRuleFilter struct {
 	Severity             []int    `json:"severity"`
 	ResourceGroups       []string `json:"resourceGroups,omitempty"`
 	EventCategories      []string `json:"eventCategory,omitempty"`
+	Sources              []string `json:"sources,omitempty"`
+	AlertCategories      []string `json:"category,omitempty"`
 	CreatedOrUpdatedTime string   `json:"createdOrUpdatedTime,omitempty"`
 	CreatedOrUpdatedBy   string   `json:"createdOrUpdatedBy,omitempty"`
 }
