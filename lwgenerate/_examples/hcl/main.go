@@ -21,6 +21,35 @@ func exampleModule() {
 	fmt.Print(lwgenerate.CreateHclStringOutput(lwgenerate.CombineHclBlocks(data)))
 }
 
+func exampleModuleNestedData() {
+	data, err := lwgenerate.NewModule("foo",
+		"mycorp/mycloud",
+		lwgenerate.HclModuleWithVersion("~> 0.1"),
+		lwgenerate.HclModuleWithAttributes(map[string]interface{}{
+			"org_account_mappings": []map[string]interface{}{
+				{
+					"default_lacework_account": "main-account",
+					"mapping": []map[string]interface{}{
+						{
+							"lacework_account": "sub-account-1",
+							"aws_accounts":     []string{"123456789011"},
+						},
+						{
+							"lacework_account": "sub-account-2",
+							"aws_accounts":     []string{"123455564235"},
+						},
+					},
+				},
+			},
+		}),
+	).ToBlock()
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
+	}
+	fmt.Print(lwgenerate.CreateHclStringOutput(lwgenerate.CombineHclBlocks(data)))
+}
+
 func exampleProvider() {
 	attrs := map[string]interface{}{"region": "us-east-2"}
 	data, err := lwgenerate.NewProvider("aws", lwgenerate.HclProviderWithAttributes(attrs)).ToBlock()
@@ -91,4 +120,5 @@ func main() {
 	exampleModule()
 	exampleSimpleTraversal()
 	exampleGenericHclBlock()
+	exampleModuleNestedData()
 }
