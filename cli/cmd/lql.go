@@ -298,17 +298,17 @@ func inputQueryFromEditor(action string) (query string, err error) {
 	if action == "create" || action == "run" {
 		prompt.Default = `queryId: YourQueryID
 queryText: |-
-  {
-      source {
-          --- Select a datasource. To list all available datasources, use 'lacework query sources'.
-      }
-      filter {
-          --- Add query filter(s), if any. If not, remove this block.
-      }
-      return {
-          --- List fields to return from the selected source. Use 'lacework query describe <datasource>'.
-      }
-  }`
+    {
+        source {
+            --- Select a datasource. To list all available datasources, use 'lacework query sources'.
+        }
+        filter {
+            --- Add query filter(s), if any. If not, remove this block.
+        }
+        return {
+            --- List fields to return from the selected source. Use 'lacework query describe <datasource>'.
+        }
+    }`
 		prompt.HideDefault = true
 		prompt.AppendDefault = true
 	}
