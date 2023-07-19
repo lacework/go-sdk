@@ -40,7 +40,7 @@ func main() {
 		ResourceGroups:  []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
 		EventCategories: []string{"Compliance"},
 		AlertCategories: []string{"Policy"},
-		Sources: 		 []string{"Aws"},
+		Sources:         []string{"Aws"},
 	}
 
 	myAlertRule := api.NewAlertRule("MyTestAlertRule",
