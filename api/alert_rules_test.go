@@ -310,11 +310,11 @@ func singleMockAlertRule(id string) string {
             "eventCategory": [
                 "Compliance",
                 "SystemCall"
-			]
+			],
             "category": [
                 "Policy",
                 "Anomaly"
-            ]
+            ],
             "sources": [
                 "Aws",
                 "Agent",
