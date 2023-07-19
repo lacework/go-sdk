@@ -226,7 +226,9 @@ func TestAlertRuleUpdate(t *testing.T) {
 			Description:     "This is a test alert rule",
 			Severities:      api.AlertRuleSeverities{api.AlertRuleSeverityHigh},
 			ResourceGroups:  []string{"TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB"},
-			EventCategories: []string{"Compliance"},
+			EventCategories: []string{"Compliance", "SystemCall"},
+			Sources:         []string{"Aws", "Agent", "K8s"},
+			AlertCategories: []string{"Policy", "Anomaly"},
 		},
 	)
 	assert.Equal(t, "rule_name", alertRule.Filter.Name, "alert rule name mismatch")
@@ -238,7 +240,9 @@ func TestAlertRuleUpdate(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.Guid)
-		assert.Contains(t, response.Data.Filter.EventCategories, "Compliance")
+		assert.Contains(t, response.Data.Filter.EventCategories, "Compliance", "SystemCall")
+		assert.Contains(t, response.Data.Filter.Sources, "Aws", "Agent", "K8s")
+		assert.Contains(t, response.Data.Filter.AlertCategories, "Policy", "Anomaly")
 		assert.Contains(t, response.Data.Filter.ResourceGroups, "TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB")
 		assert.Contains(t, response.Data.Channels, "TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA")
 	}
@@ -304,7 +308,17 @@ func singleMockAlertRule(id string) string {
                 2
             ],
             "eventCategory": [
-                "Compliance"
+                "Compliance",
+                "SystemCall"
+			],
+            "category": [
+                "Policy",
+                "Anomaly"
+            ],
+            "sources": [
+                "Aws",
+                "Agent",
+                "K8s"
             ]
 	  },
       "mcGuid": %q,
