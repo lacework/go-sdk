@@ -49,8 +49,6 @@ var AlertRuleSubCategories = []string{
 	"K8sActivity",
 	"Registry",
 	"SystemCall",
-	"HostVulnerability",
-	"ContainerVulnerability",
 }
 
 type alertRuleSeverity int
