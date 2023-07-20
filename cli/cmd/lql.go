@@ -46,6 +46,7 @@ var (
 		URL          string
 		ValidateOnly bool
 		FailOnCount  string
+        EmptyTemplate   bool
 		// create, update validate from library
 		CURVFromLibrary string
 	}{}
@@ -191,6 +192,12 @@ func init() {
 		"fail_on_count", "",
 		"fail if the results from a query match the provided expression (e.g. '>0')",
 	)
+    // empty template flag
+    queryRunCmd.Flags().BoolVar(
+        &queryCmdState.EmptyTemplate,
+        "empty", false,
+        "start $EDITOR with empty file",
+    )
 }
 
 func setQuerySourceFlags(cmds ...*cobra.Command) {
@@ -295,7 +302,7 @@ func inputQueryFromEditor(action string) (query string, err error) {
 		FileName: "query*.yaml",
 	}
 
-	if action == "create" || action == "run" {
+	if (action == "create" || action == "run") && queryCmdState.EmptyTemplate == false {
 		prompt.Default = `queryId: YourQueryID
 queryText: |-
     {
@@ -311,7 +318,11 @@ queryText: |-
     }`
 		prompt.HideDefault = true
 		prompt.AppendDefault = true
-	}
+    } else if (action == "create" || action == "run") && queryCmdState.EmptyTemplate == true {
+		prompt.Default = ``
+		prompt.HideDefault = true
+		prompt.AppendDefault = true
+    }
 
 	err = survey.AskOne(prompt, &query)
 	return
@@ -402,6 +413,9 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		if queryCmdState.ValidateOnly {
 			naFlag = "validate_only"
 		}
+        if queryCmdState.EmptyTemplate {
+            naFlag = "empty"
+        }
 		if naFlag != "" {
 			return errors.New(
 				fmt.Sprintf(
