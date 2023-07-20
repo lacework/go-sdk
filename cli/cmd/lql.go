@@ -302,7 +302,7 @@ func inputQueryFromEditor(action string) (query string, err error) {
 		FileName: "query*.yaml",
 	}
 
-	if (action == "create" || action == "run") && queryCmdState.EmptyTemplate == false {
+	if (action == "create" || action == "run") && !queryCmdState.EmptyTemplate {
 		prompt.Default = `queryId: YourQueryID
 queryText: |-
     {
@@ -318,7 +318,7 @@ queryText: |-
     }`
 		prompt.HideDefault = true
 		prompt.AppendDefault = true
-    } else if (action == "create" || action == "run") && queryCmdState.EmptyTemplate == true {
+    } else if (action == "create" || action == "run") && queryCmdState.EmptyTemplate {
 		prompt.Default = ``
 		prompt.HideDefault = true
 		prompt.AppendDefault = true
