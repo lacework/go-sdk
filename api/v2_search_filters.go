@@ -43,6 +43,7 @@ import (
 //	}
 type SearchFilter struct {
 	*TimeFilter `json:"timeFilter,omitempty"`
+	*ResourceGroupFilter `json:"resourceGroupFilter,omitempty"`
 	Filters     []Filter `json:"filters,omitempty"`
 	Returns     []string `json:"returns,omitempty"`
 }
@@ -57,6 +58,10 @@ type Filter struct {
 type TimeFilter struct {
 	StartTime *time.Time `json:"startTime,omitempty"`
 	EndTime   *time.Time `json:"endTime,omitempty"`
+}
+
+type ResourceGroupFilter struct {
+	Guids	   []string `json:"guids,omitempty"`
 }
 
 type SearchResponse interface {
