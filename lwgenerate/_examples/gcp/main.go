@@ -55,6 +55,24 @@ func existingGcpBucketAndSink() {
 	fmt.Printf("\n-----\n%s", hcl)
 }
 
+func existingTopicAndSubscription() {
+	hcl, err := gcp.NewTerraform(
+		true,
+		true,
+		gcp.WithProjectId("example_project"),
+		gcp.WithGcpServiceAccountCredentials("path/to/service/account/creds.json"),
+		gcp.WithExistingPubSubTopicId("existing_pub_sub_topic_id"),
+		gcp.WithExistingPubSubSubscriptionName("existing_pub_sub_subscription_name"),
+	).Generate()
+
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	fmt.Printf("\n-----\n%s", hcl)
+}
+
 func gcpWithLaceworkProfile() {
 	hcl, err := gcp.NewTerraform(
 		true,
@@ -126,6 +144,7 @@ func main() {
 	basic()
 	existingGcpServiceAccount()
 	existingGcpBucketAndSink()
+	existingTopicAndSubscription()
 	gcpWithLaceworkProfile()
 	configOnly()
 	auditLogOnly()

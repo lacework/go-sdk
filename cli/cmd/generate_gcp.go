@@ -29,16 +29,20 @@ var (
 	QuestionExistingServiceAccountName       = "Specify an existing service account name:"
 	QuestionExistingServiceAccountPrivateKey = "Specify an existing service account private key (base64 encoded):"
 
-	GcpAdvancedOptAuditLog        = "Configure additional Audit Log options"
-	QuestionGcpUseExistingBucket  = "Use an existing bucket?"
-	QuestionGcpExistingBucketName = "Specify an existing bucket name:"
-	QuestionGcpConfigureNewBucket = "Configure settings for new bucket?"
-	QuestionGcpBucketRegion       = "Specify the bucket region: (optional)"
-	QuestionGcpCustomBucketName   = "Specify a custom bucket name: (optional)"
-	QuestionGcpBucketLifecycle    = "Specify the bucket lifecycle rule age: (optional)"
-	QuestionGcpEnableUBLA         = "Enable uniform bucket level access(UBLA)?"
-	QuestionGcpUseExistingSink    = "Use an existing sink?"
-	QuestionGcpExistingSinkName   = "Specify the existing sink name"
+	GcpAdvancedOptAuditLog                    = "Configure additional Audit Log options"
+	QuestionGcpUseExistingBucket              = "Use an existing bucket?"
+	QuestionGcpExistingBucketName             = "Specify an existing bucket name:"
+	QuestionGcpConfigureNewBucket             = "Configure settings for new bucket?"
+	QuestionGcpBucketRegion                   = "Specify the bucket region: (optional)"
+	QuestionGcpCustomBucketName               = "Specify a custom bucket name: (optional)"
+	QuestionGcpBucketLifecycle                = "Specify the bucket lifecycle rule age: (optional)"
+	QuestionGcpEnableUBLA                     = "Enable uniform bucket level access(UBLA)?"
+	QuestionGcpUseExistingSink                = "Use an existing sink?"
+	QuestionGcpExistingSinkName               = "Specify the existing sink name:"
+	QuestionGcpUseExistingPubSubTopic         = "Use an existing Pub/Sub topic?"
+	QuestionGcpExistingPubSubTopicId          = "Specify the existing Pub/Sub topic ID:"
+	QuestionGcpUseExistingPubSubSubscription  = "Use an existing Pub/Sub subscription?"
+	QuestionGcpExistingPubSubSubscriptionName = "Specify the existing Pub/Sub subscription name:"
 
 	GcpAdvancedOptIntegrationName           = "Customize integration name(s)"
 	QuestionGcpConfigurationIntegrationName = "Specify a custom configuration integration name: (optional)"
@@ -112,6 +116,8 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithBucketRegion(GenerateGcpCommandState.BucketRegion),
 				gcp.WithExistingLogBucketName(GenerateGcpCommandState.ExistingLogBucketName),
 				gcp.WithExistingLogSinkName(GenerateGcpCommandState.ExistingLogSinkName),
+				gcp.WithExistingPubSubTopicId(GenerateGcpCommandState.ExistingPubSubTopicId),
+				gcp.WithExistingPubSubSubscriptionName(GenerateGcpCommandState.ExistingPubSubSubscriptionName),
 				gcp.WithAuditLogIntegrationName(GenerateGcpCommandState.AuditLogIntegrationName),
 				gcp.WithLaceworkProfile(GenerateGcpCommandState.LaceworkProfile),
 				gcp.WithLogBucketLifecycleRuleAge(GenerateGcpCommandState.LogBucketLifecycleRuleAge),
@@ -274,13 +280,15 @@ See help output for more details on the parameter value(s) required for Terrafor
 )
 
 type GcpGenerateCommandExtraState struct {
-	AskAdvanced                bool
-	Output                     string
-	ConfigureNewBucketSettings bool
-	UseExistingServiceAccount  bool
-	UseExistingBucket          bool
-	UseExistingSink            bool
-	TerraformApply             bool
+	AskAdvanced                   bool
+	Output                        string
+	ConfigureNewBucketSettings    bool
+	UseExistingServiceAccount     bool
+	UseExistingBucket             bool
+	UseExistingSink               bool
+	UseExistingPubSubTopic        bool
+	UseExistingPubSubSubscription bool
+	TerraformApply                bool
 }
 
 func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
@@ -289,6 +297,8 @@ func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
 		!gcp.UseExistingServiceAccount &&
 		!gcp.UseExistingBucket &&
 		!gcp.UseExistingSink &&
+		!gcp.UseExistingPubSubTopic &&
+		!gcp.UseExistingPubSubSubscription &&
 		!gcp.TerraformApply
 }
 
@@ -368,6 +378,16 @@ func initGenerateGcpTfCommandFlags() {
 		"existing_sink_name",
 		"",
 		"specify existing sink name")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.ExistingPubSubTopicId,
+		"existing_pub_sub_topic_id",
+		"",
+		"specify existing pub/sub topic id")
+	generateGcpTfCommand.PersistentFlags().StringVar(
+		&GenerateGcpCommandState.ExistingPubSubSubscriptionName,
+		"existing_pub_sub_subscription_name",
+		"",
+		"specify existing pub/sub subscription name")
 
 	// DEPRECATED
 	generateGcpTfCommand.PersistentFlags().BoolVar(
@@ -516,6 +536,30 @@ func promptGcpAuditLogQuestions(
 			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingSink},
 			Required: true,
 			Response: &config.ExistingLogSinkName,
+		},
+		{
+			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingPubSubTopic, Default: extraState.UseExistingPubSubTopic},
+			Checks:   []*bool{&config.AuditLog},
+			Required: true,
+			Response: &extraState.UseExistingPubSubTopic,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpExistingPubSubTopicId, Default: config.ExistingPubSubTopicId},
+			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingPubSubTopic},
+			Required: true,
+			Response: &config.ExistingPubSubTopicId,
+		},
+		{
+			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingPubSubSubscription, Default: extraState.UseExistingPubSubSubscription},
+			Checks:   []*bool{&config.AuditLog},
+			Required: true,
+			Response: &extraState.UseExistingPubSubSubscription,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpExistingPubSubSubscriptionName, Default: config.ExistingPubSubSubscriptionName},
+			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingPubSubSubscription},
+			Required: true,
+			Response: &config.ExistingPubSubSubscriptionName,
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpCustomFilter, Default: config.CustomFilter},
