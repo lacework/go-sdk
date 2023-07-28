@@ -141,6 +141,35 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogExistingLogSinkName),
 		},
+		{
+			"TestGenerationProjectLevelPubSubAuditLogExistingPubSubTopicId",
+			gcp.NewTerraform(false, true, true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithExistingPubSubTopicId("topicMcTopicFace"),
+			),
+			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogExistingPubSubTopicId),
+		},
+		{
+			"TestGenerationProjectLevelPubSubAuditLogExistingPubSubSubscriptionName",
+			gcp.NewTerraform(false, true, true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithExistingPubSubSubscriptionName("subscriptionMcSubscriptionFace"),
+			),
+			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogExistingPubSubSubscriptionName),
+		},
+		{
+			"TestGenerationProjectLevelPubSubAuditLogExistingSinkAndExistingPubSubResources",
+			gcp.NewTerraform(false, true, true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithExistingPubSubSubscriptionName("subscriptionMcSubscriptionFace"),
+				gcp.WithExistingPubSubTopicId("topicMcTopicFace"),
+				gcp.WithExistingLogSinkName("fooSink"),
+			),
+			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogExistingSinkAndExistingPubSubResources),
+		},
 		{"TestGenerationProjectLevelAuditLogEnableUBLA",
 			gcp.NewTerraform(false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -879,6 +908,29 @@ var moduleImportProjectLevelPubSubAuditLogExistingLogSinkName = `module "gcp_pro
   source             = "lacework/pub-sub-audit-log/gcp"
   version            = "~> 0.2"
   existing_sink_name = "foo"
+}
+`
+
+var moduleImportProjectLevelPubSubAuditLogExistingPubSubTopicId = `module "gcp_project_audit_log" {
+  source                    = "lacework/pub-sub-audit-log/gcp"
+  version                   = "~> 0.2"
+  existing_pub_sub_topic_id = "topicMcTopicFace"
+}
+`
+
+var moduleImportProjectLevelPubSubAuditLogExistingPubSubSubscriptionName = `module "gcp_project_audit_log" {
+  source                             = "lacework/pub-sub-audit-log/gcp"
+  version                            = "~> 0.2"
+  existing_pub_sub_subscription_name = "subscriptionMcSubscriptionFace"
+}
+`
+
+var moduleImportProjectLevelPubSubAuditLogExistingSinkAndExistingPubSubResources = `module "gcp_project_audit_log" {
+  source                             = "lacework/pub-sub-audit-log/gcp"
+  version                            = "~> 0.2"
+  existing_pub_sub_subscription_name = "subscriptionMcSubscriptionFace"
+  existing_pub_sub_topic_id          = "topicMcTopicFace"
+  existing_sink_name                 = "fooSink"
 }
 `
 

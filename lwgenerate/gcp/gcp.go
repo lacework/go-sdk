@@ -97,6 +97,12 @@ type GenerateGcpTfConfigurationArgs struct {
 	// Existing Sink Name
 	ExistingLogSinkName string
 
+	// Existing Topic Name
+	ExistingPubSubTopicId string
+
+	// Existing Subscription Name
+	ExistingPubSubSubscriptionName string
+
 	// Should we force destroy the bucket if it has stuff in it? (only relevant on new Audit Log creation)
 	// DEPRECATED
 	EnableForceDestroyBucket bool
@@ -304,6 +310,20 @@ func WithExistingLogBucketName(name string) GcpTerraformModifier {
 func WithExistingLogSinkName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ExistingLogSinkName = name
+	}
+}
+
+// WithExistingPubSubTopicId Set the Topic ID of an existing Audit Log Topic Setup
+func WithExistingPubSubTopicId(name string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.ExistingPubSubTopicId = name
+	}
+}
+
+// WithExistingPubSubSubscriptionName Set the Topic Subscription Name of an existing Audit Log Subscription Setup
+func WithExistingPubSubSubscriptionName(name string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.ExistingPubSubSubscriptionName = name
 	}
 }
 
@@ -597,6 +617,14 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			attributes["existing_sink_name"] = args.ExistingLogSinkName
 		}
 
+		if args.ExistingPubSubTopicId != "" {
+			attributes["existing_pub_sub_topic_id"] = args.ExistingPubSubTopicId
+		}
+
+		if args.ExistingPubSubSubscriptionName != "" {
+			attributes["existing_pub_sub_subscription_name"] = args.ExistingPubSubSubscriptionName
+		}
+
 		// default to using the project level module
 		auditLogModuleName := "gcp_project_audit_log"
 
@@ -605,7 +633,7 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			// if organization integration is true, override configModuleName to use the organization level module
 			configurationModuleName = "gcp_organization_level_config"
 			auditLogModuleName = "gcp_organization_level_audit_log"
-			// Determine if this is the a pub-sub audit log
+			// Determine if this is a pub-sub audit log
 			if args.UsePubSubAudit {
 				attributes["integration_type"] = "ORGANIZATION"
 			} else {
