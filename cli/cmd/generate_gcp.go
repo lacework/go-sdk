@@ -538,7 +538,8 @@ func promptGcpAuditLogQuestions(
 			Response: &config.ExistingLogSinkName,
 		},
 		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingPubSubTopic, Default: extraState.UseExistingPubSubTopic},
+			Prompt: &survey.Confirm{Message: QuestionGcpUseExistingPubSubTopic,
+				Default: extraState.UseExistingPubSubTopic},
 			Checks:   []*bool{&config.AuditLog},
 			Required: true,
 			Response: &extraState.UseExistingPubSubTopic,
@@ -550,13 +551,15 @@ func promptGcpAuditLogQuestions(
 			Response: &config.ExistingPubSubTopicId,
 		},
 		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingPubSubSubscription, Default: extraState.UseExistingPubSubSubscription},
+			Prompt: &survey.Confirm{Message: QuestionGcpUseExistingPubSubSubscription,
+				Default: extraState.UseExistingPubSubSubscription},
 			Checks:   []*bool{&config.AuditLog},
 			Required: true,
 			Response: &extraState.UseExistingPubSubSubscription,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpExistingPubSubSubscriptionName, Default: config.ExistingPubSubSubscriptionName},
+			Prompt: &survey.Input{Message: QuestionGcpExistingPubSubSubscriptionName,
+				Default: config.ExistingPubSubSubscriptionName},
 			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingPubSubSubscription},
 			Required: true,
 			Response: &config.ExistingPubSubSubscriptionName,
