@@ -161,6 +161,8 @@ func TestGenerationPubSubAuditlogOnlyGcp(t *testing.T) {
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
 				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingPubSubTopic, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingPubSubSubscription, "n"},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -177,6 +179,52 @@ func TestGenerationPubSubAuditlogOnlyGcp(t *testing.T) {
 
 	buildTf, _ := gcp.NewTerraform(false, true, true,
 		gcp.WithProjectId(projectId),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test pub-sub audit log with existing topic and subscription
+func TestGenerationPubSubAuditlogExistingTopicAndSubscriptionGcp(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
+				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "y"},
+				MsgRsp{cmd.QuestionGcpExistingSinkName, "sink"},
+				MsgRsp{cmd.QuestionGcpUseExistingPubSubTopic, "y"},
+				MsgRsp{cmd.QuestionGcpExistingPubSubTopicId, "topicMcTopicFace"},
+				MsgRsp{cmd.QuestionGcpUseExistingPubSubSubscription, "y"},
+				MsgRsp{cmd.QuestionGcpExistingPubSubSubscriptionName, "subscriptionMcSubscriptionFace"},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"gcp",
+	)
+
+	assertTerraformSaved(t, final)
+
+	buildTf, _ := gcp.NewTerraform(false, true, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithExistingLogSinkName("sink"),
+		gcp.WithExistingPubSubTopicId("topicMcTopicFace"),
+		gcp.WithExistingPubSubSubscriptionName("subscriptionMcSubscriptionFace"),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
@@ -199,6 +247,8 @@ func TestGenerationPubSubAuditlogOrgGcp(t *testing.T) {
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
 				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingPubSubTopic, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingPubSubSubscription, "n"},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -692,6 +742,8 @@ func TestGenerationPubSubUseExistingSA(t *testing.T) {
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
 				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingPubSubTopic, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingPubSubSubscription, "n"},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "y"},
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 1},
