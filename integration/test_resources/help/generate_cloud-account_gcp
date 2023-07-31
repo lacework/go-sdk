@@ -32,6 +32,8 @@ Flags:
       --custom_filter string                          Audit Log filter which supersedes all other filter options when defined
       --enable_ubla                                   enable universal bucket level access(ubla) (default true)
       --existing_bucket_name string                   specify existing bucket name
+      --existing_pub_sub_subscription_name string     specify existing pub/sub subscription name
+      --existing_pub_sub_topic_id string              specify existing pub/sub topic id
       --existing_service_account_name string          specify existing service account name
       --existing_service_account_private_key string   specify existing service account private key (base64 encoded)
       --existing_sink_name string                     specify existing sink name
