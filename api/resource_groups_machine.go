@@ -33,7 +33,7 @@ var (
 
 // GetMachine gets a single Machine ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetMachine(guid string) (
+func (svc *ResourceGroupsVersionService) GetMachine(guid string) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {
@@ -47,7 +47,7 @@ func (svc *ResourceGroupsService) GetMachine(guid string) (
 }
 
 // UpdateMachine updates a single Machine ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateMachine(data ResourceGroup) (
+func (svc *ResourceGroupsVersionService) UpdateMachine(data ResourceGroup) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {
@@ -67,7 +67,7 @@ func (svc *ResourceGroupsService) UpdateMachine(data ResourceGroup) (
 }
 
 // CreateMachine creates a single Machine ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) CreateMachine(data ResourceGroup) (
+func (svc *ResourceGroupsVersionService) CreateMachine(data ResourceGroup) (
 	response MachineResourceGroupResponse,
 	err error,
 ) {

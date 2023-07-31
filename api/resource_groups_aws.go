@@ -33,7 +33,7 @@ var (
 
 // GetAws gets a single Aws ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetAws(guid string) (
+func (svc *ResourceGroupsVersionService) GetAws(guid string) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
@@ -47,8 +47,9 @@ func (svc *ResourceGroupsService) GetAws(guid string) (
 }
 
 // UpdateAws updates a single Aws ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateAws(data ResourceGroup) (
+func (svc *ResourceGroupsVersionService) UpdateAws(data ResourceGroup) (
 	response AwsResourceGroupResponse, err error) {
+
 	if data == nil {
 		err = errors.New("resource group must not be empty")
 		return
@@ -65,7 +66,7 @@ func (svc *ResourceGroupsService) UpdateAws(data ResourceGroup) (
 }
 
 // CreateAws creates a single Aws ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) CreateAws(data ResourceGroup) (
+func (svc *ResourceGroupsVersionService) CreateAws(data ResourceGroup) (
 	response AwsResourceGroupResponse,
 	err error,
 ) {
@@ -118,6 +119,17 @@ type AwsResourceGroupData struct {
 	Type         string                `json:"resourceType"`
 	Enabled      int                   `json:"enabled,omitempty"`
 	Props        AwsResourceGroupProps `json:"props"`
+
+	NameV2            string        `json:"name"`
+	Query             *RGQuery      `json:"query"`
+	Description       string        `json:"description,omitempty"`
+	ResourceGroupGuid string        `json:"resourceGroupGuid,omitempty"`
+	CreatedTime       *lwtime.Epoch `json:"lastUpdated,omitempty"`
+	CreatedBy         string        `json:"createdBy,omitempty"`
+	UpdatedTime       *lwtime.Epoch `json:"updatedTime,omitempty"`
+	UpdatedBy         string        `json:"updatedBy,omitempty"`
+	IsDefaultBoolean  *bool         `json:"isDefaultBoolean,omitempty"`
+	IsOrg             *bool         `json:"isOrg,omitempty"`
 }
 
 type AwsResourceGroupProps struct {
