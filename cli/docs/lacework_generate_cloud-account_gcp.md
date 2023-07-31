@@ -48,11 +48,11 @@ lacework generate cloud-account gcp [flags]
       --custom_filter string                          Audit Log filter which supersedes all other filter options when defined
       --enable_ubla                                   enable universal bucket level access(ubla) (default true)
       --existing_bucket_name string                   specify existing bucket name
+      --existing_pub_sub_subscription_name string     specify existing pub/sub subscription name
+      --existing_pub_sub_topic_id string              specify existing pub/sub topic id
       --existing_service_account_name string          specify existing service account name
       --existing_service_account_private_key string   specify existing service account private key (base64 encoded)
       --existing_sink_name string                     specify existing sink name
-      --existing_pub_sub_topic_id string              specify existing pub/sub topic id
-      --existing_pub_sub_subscription_name string     specify existing pub/sub subscription name
   -e, --folders_to_exclude stringArray                List of root folders to exclude for an organization-level integration
   -i, --folders_to_include stringArray                list of root folders to include for an organization-level integration
       --google_workspace_filter                       filter out Google Workspace login logs from GCP Audit Log sinks (default true)
