@@ -55,14 +55,21 @@ type AwsSubAccount struct {
 
 	// The AwsRegion this profile should use if any resources are created
 	AwsRegion string
+
+	// The Alias of the provider block
+	Alias string
 }
 
 // Create a new AWS sub account
 //
 // A subaccount consists of the profile name (which needs to match the executing machines aws configuration) and a
 // region for any new resources to be created in
-func NewAwsSubAccount(profile string, region string) AwsSubAccount {
-	return AwsSubAccount{AwsProfile: profile, AwsRegion: region}
+func NewAwsSubAccount(profile string, region string, alias ...string) AwsSubAccount {
+	subaccount := AwsSubAccount{AwsProfile: profile, AwsRegion: region}
+	if len(alias) > 0 {
+		subaccount.Alias = alias[0]
+	}
+	return subaccount
 }
 
 type GenerateAwsTfConfigurationArgs struct {
