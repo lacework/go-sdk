@@ -89,6 +89,12 @@ See help output for more details on the parameter values required for Terraform 
 				aws_controltower.WithPrefix(GenerateAwsControlTowerCommandState.Prefix),
 				aws_controltower.WithCrossAccountPolicyName(GenerateAwsControlTowerCommandState.CrossAccountPolicyName),
 				aws_controltower.WithSubaccounts(GenerateAwsControlTowerCommandState.SubAccounts...),
+				aws_controltower.WithLaceworkProfile(GenerateAwsControlTowerCommandState.LaceworkProfile),
+				aws_controltower.WithExternalIdLength(GenerateAwsControlTowerCommandState.ExternalIdLength),
+				aws_controltower.WithWaitTime(GenerateAwsControlTowerCommandState.WaitTime),
+				aws_controltower.WithTags(GenerateAwsControlTowerCommandState.Tags),
+				aws_controltower.WithKmsKeyArn(GenerateAwsControlTowerCommandState.KmsKeyArn),
+				aws_controltower.WithLaceworkIntegrationName(GenerateAwsControlTowerCommandState.LaceworkIntegrationName),
 			}
 
 			if useExistingIamRole(GenerateAwsControlTowerCommandState) {
@@ -101,6 +107,10 @@ See help output for more details on the parameter values required for Terraform 
 
 			if !GenerateAwsControlTowerCommandState.OrgAccountMappings.IsEmpty() {
 				mods = append(mods, aws_controltower.WithOrgAccountMappings(GenerateAwsControlTowerCommandState.OrgAccountMappings))
+			}
+
+			if GenerateAwsControlTowerCommandState.EnableLogFileValidation {
+				mods = append(mods, aws_controltower.WithEnableLogFileValidation())
 			}
 
 			data := aws_controltower.NewTerraform(

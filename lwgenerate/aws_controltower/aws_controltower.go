@@ -172,6 +172,28 @@ func NewAwsSubAccount(profile string, region string, alias ...string) AwsSubAcco
 }
 
 func (args GenerateAwsControlTowerTfConfigurationArgs) validate() error {
+	// Validate s3 bucket arn has been set
+	if args.S3BucketArn == "" {
+		return errors.New("s3 bucket arn must be set")
+	}
+	// Validate sns topic arn has been set
+	if args.SNSTopicArn == "" {
+		return errors.New("sns topic arn must be set")
+	}
+	// Validate log and audit accounts archive
+	if len(args.SubAccounts) == 0 {
+		return errors.New("log archive and audit accounts must be set")
+	}
+
+	// Validate existing role IAM values, if set
+	if args.UseExistingIamRole {
+		if args.IamRoleArn == "" ||
+			args.IamRoleName == "" ||
+			args.IamRoleExternalID == "" {
+			return errors.New("when using an existing IAM role, existing role ARN, name, and external ID all must be set")
+		}
+	}
+
 	return nil
 }
 
@@ -321,7 +343,7 @@ func createCloudTrailControlTower(args *GenerateAwsControlTowerTfConfigurationAr
 	if args.WaitTime != 0 {
 		attributes["wait_time"] = args.WaitTime
 	}
-	if args.Tags != nil {
+	if len(args.Tags) != 0 {
 		attributes["tags"] = args.Tags
 	}
 	if args.SqsQueueName != "" {
@@ -394,7 +416,7 @@ func createLaceworkProvider(args *GenerateAwsControlTowerTfConfigurationArgs) (*
 }
 
 func createAwsProvider(args *GenerateAwsControlTowerTfConfigurationArgs) ([]*hclwrite.Block, error) {
-	blocks := []*hclwrite.Block{}
+	var blocks []*hclwrite.Block
 	if len(args.SubAccounts) > 0 {
 		for _, subaccount := range args.SubAccounts {
 			alias := subaccount.AwsProfile
@@ -427,7 +449,7 @@ func (orgMap *OrgAccountMapping) IsEmpty() bool {
 }
 
 func (orgMap *OrgAccountMapping) ToMap() (map[string]any, error) {
-	mappings := []map[string]any{}
+	var mappings []map[string]any
 	mappingsJsonString, err := json.Marshal(orgMap.Mapping)
 	if err != nil {
 		return nil, err

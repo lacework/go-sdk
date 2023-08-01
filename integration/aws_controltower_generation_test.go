@@ -99,7 +99,7 @@ func TestGenerationControlTowerPromptOrgAccountMappings(t *testing.T) {
 				MsgMenu{cmd.ControlTowerAdvancedOptMappings, 5},
 				MsgRsp{cmd.QuestionControlTowerOrgAccountMappingsLWDefaultAccount, "main"},
 				MsgRsp{cmd.QuestionControlTowerOrgAccountMappingsLWAccount, "sub-account-1"},
-				MsgMulitlineRsp{cmd.QuestionControlTowerOrgAccountMappingsAwsAccounts, []string{"123456789011"}},
+				MsgMultilineRsp{cmd.QuestionControlTowerOrgAccountMappingsAwsAccounts, []string{"123456789011"}},
 				MsgRsp{cmd.QuestionControlTowerOrgAccountMappingAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionControlTowerAnotherAdvancedOpt, "n"},
 
@@ -203,7 +203,7 @@ func TestGenerationControlTowerPromptOptionalAttributes(t *testing.T) {
 				MsgMenu{cmd.ControlTowerAdvancedOptMappings, 5},
 				MsgRsp{cmd.QuestionControlTowerOrgAccountMappingsLWDefaultAccount, "main"},
 				MsgRsp{cmd.QuestionControlTowerOrgAccountMappingsLWAccount, "sub-account-1"},
-				MsgMulitlineRsp{cmd.QuestionControlTowerOrgAccountMappingsAwsAccounts, []string{"123456789011"}},
+				MsgMultilineRsp{cmd.QuestionControlTowerOrgAccountMappingsAwsAccounts, []string{"123456789011"}},
 				MsgRsp{cmd.QuestionControlTowerOrgAccountMappingAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionControlTowerAnotherAdvancedOpt, "y"},
 				MsgMenu{cmd.ControlTowerConfigureExistingIamRoleOpt, 0},

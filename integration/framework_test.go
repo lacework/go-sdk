@@ -425,12 +425,12 @@ func (m MsgRsp) handle(t *testing.T, c *expect.Console) {
 	c.SendLine(m.response)
 }
 
-type MsgMulitlineRsp struct {
+type MsgMultilineRsp struct {
 	message   string
 	responses []string
 }
 
-func (m MsgMulitlineRsp) handle(t *testing.T, c *expect.Console) {
+func (m MsgMultilineRsp) handle(t *testing.T, c *expect.Console) {
 	expectString(t, c, m.message)
 
 	for _, rsp := range m.responses {
