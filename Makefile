@@ -3,7 +3,7 @@ default: ci
 ci: lint test fmt-check imports-check integration
 
 # Tooling versions
-GOLANGCILINTVERSION?=1.50.0
+GOLANGCILINTVERSION?=1.54.1
 GOIMPORTSVERSION?=v0.1.12
 GOXVERSION?=v1.0.1
 GOTESTSUMVERSION?=v1.8.2
@@ -158,6 +158,8 @@ run-api-example: ## Run an API example like 'make run-api-example example=api/_e
 
 .PHONY: build-cli-cross-platform
 build-cli-cross-platform: ## Compiles the Lacework CLI for all supported platforms
+
+
 	gox -output="bin/$(PACKAGENAME)-{{.OS}}-{{.Arch}}" \
             -os="linux windows" \
             -arch="amd64 386" \
