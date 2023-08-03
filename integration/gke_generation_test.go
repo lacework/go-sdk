@@ -169,7 +169,7 @@ func TestGenerationExistingSink(t *testing.T) {
 				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
 				MsgMenu{cmd.GkeAdvancedOpt, 0},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "y"},
-				MsgRsp{cmd.QuestionGcpExistingSinkName, "sink"},
+				MsgRsp{cmd.QuestionGkeExistingSinkName, "sink"},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
