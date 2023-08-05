@@ -237,7 +237,7 @@ func (svc *AlertRulesService) Update(data AlertRule) (
 		return
 	}
 	apiPath := fmt.Sprintf(apiV2AlertRuleFromGUID, data.Guid)
-	err = svc.client.RequestEncoderDecoder("PATCH", apiPath, data, &response)
+	err = svc.client.RequestEncoderDecoder("PATCH", apiPath, data.UpdateConfig(), &response)
 	return
 }
 
@@ -265,6 +265,39 @@ type AlertRule struct {
 	Type     string          `json:"type"`
 	Channels []string        `json:"intgGuidList"`
 	Filter   AlertRuleFilter `json:"filters"`
+}
+
+func (rule AlertRule) UpdateConfig() AlertRuleUpdate {
+	return AlertRuleUpdate{
+		Channels: rule.Channels,
+		Type:     AlertRuleEventType,
+		Filter: AlertRuleFilterUpdateFilter{
+			Name:            rule.Filter.Name,
+			Enabled:         1,
+			Description:     rule.Filter.Description,
+			Severity:        rule.Filter.Severity,
+			ResourceGroups:  rule.Filter.ResourceGroups,
+			EventCategories: rule.Filter.EventCategories,
+			AlertCategories: rule.Filter.AlertCategories,
+		},
+	}
+}
+
+type AlertRuleUpdate struct {
+	Guid     string                      `json:"mcGuid,omitempty"`
+	Type     string                      `json:"type"`
+	Channels []string                    `json:"intgGuidList"`
+	Filter   AlertRuleFilterUpdateFilter `json:"filters"`
+}
+
+type AlertRuleFilterUpdateFilter struct {
+	Name            string   `json:"name"`
+	Enabled         int      `json:"enabled"`
+	Description     string   `json:"description"`
+	Severity        []int    `json:"severity"`
+	ResourceGroups  []string `json:"resourceGroups"`
+	EventCategories []string `json:"eventCategory"`
+	AlertCategories []string `json:"category"`
 }
 
 type AlertRuleFilter struct {
