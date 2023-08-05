@@ -272,10 +272,10 @@ type AlertRuleFilter struct {
 	Enabled              int      `json:"enabled"`
 	Description          string   `json:"description,omitempty"`
 	Severity             []int    `json:"severity"`
-	ResourceGroups       []string `json:"resourceGroups,omitempty"`
-	EventCategories      []string `json:"eventCategory,omitempty"`
+	ResourceGroups       []string `json:"resourceGroups"`
+	EventCategories      []string `json:"eventCategory"`
 	Sources              []string `json:"sources,omitempty"`
-	AlertCategories      []string `json:"category,omitempty"`
+	AlertCategories      []string `json:"category"`
 	CreatedOrUpdatedTime string   `json:"createdOrUpdatedTime,omitempty"`
 	CreatedOrUpdatedBy   string   `json:"createdOrUpdatedBy,omitempty"`
 }
