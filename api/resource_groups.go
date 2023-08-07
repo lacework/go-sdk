@@ -87,26 +87,26 @@ func (i ResourceGroupType) String() string {
 // NOTE: This function must be used by any ResourceGroup type.
 //
 // Basic usage: Initialize a new ContainerResourceGroup struct, then
-//              use the new instance to do CRUD operations
 //
-//   client, err := api.NewClient("account")
-//   if err != nil {
-//     return err
-//   }
+//	             use the new instance to do CRUD operations
 //
-//   group := api.NewResourceGroup("container resource group",
-//     api.ContainerResourceGroup,
-//     api.ContainerResourceGroupData{
-//       Props: api.ContainerResourceGroupProps{
-//			Description:     "all containers,
-//			ContainerLabels: ContainerResourceGroupAllLabels,
-//			ContainerTags:   ContainerResourceGroupAllTags,
-//		},
-//     },
-//   )
+//	  client, err := api.NewClient("account")
+//	  if err != nil {
+//	    return err
+//	  }
 //
-//   client.V2.ResourceGroups.Create(group)
+//	  group := api.NewResourceGroup("container resource group",
+//	    api.ContainerResourceGroup,
+//	    api.ContainerResourceGroupData{
+//	      Props: api.ContainerResourceGroupProps{
+//				Description:     "all containers,
+//				ContainerLabels: ContainerResourceGroupAllLabels,
+//				ContainerTags:   ContainerResourceGroupAllTags,
+//			},
+//	    },
+//	  )
 //
+//	  client.V2.ResourceGroups.Create(group)
 func NewResourceGroup(name string, iType ResourceGroupType, props interface{}) ResourceGroupData {
 	return ResourceGroupData{
 		Name:    name,
@@ -250,9 +250,9 @@ func (svc *ResourceGroupsService) Delete(guid string) error {
 // To return a more specific Go struct of a Resource Group, use the proper
 // method such as GetContainerResourceGroup() where the function name is composed by:
 //
-//  Get<Type>(guid)
+//	Get<Type>(guid)
 //
-//    Where <Type> is the Resource Group type.
+//	  Where <Type> is the Resource Group type.
 func (svc *ResourceGroupsService) Get(guid string, response interface{}) error {
 	var rawResponse resourceGroupWorkaroundResponse
 	err := svc.get(guid, &rawResponse)

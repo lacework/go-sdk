@@ -46,24 +46,24 @@ type alertProfilesService struct {
 // NewAlertProfile returns an instance of the AlertProfileConfig struct
 //
 // Basic usage: Initialize a new AlertProfileConfig struct, then
-//              use the new instance to do CRUD operations
 //
-//   client, err := api.NewClient("account")
-//   if err != nil {
-//     return err
-//   }
+//	             use the new instance to do CRUD operations
 //
-//   alertProfile := api.NewAlertProfile(
-//		"CUSTOM_PROFILE_NAME",
-// 		"LW_HE_FILES_DEFAULT_PROFILE"
-//		[]api.AlertTemplate{{
-//		...
-//		}
-//     },
-//   )
+//	  client, err := api.NewClient("account")
+//	  if err != nil {
+//	    return err
+//	  }
 //
-//   client.V2.Alert.Profiles.Create(AlertProfile)
+//	  alertProfile := api.NewAlertProfile(
+//			"CUSTOM_PROFILE_NAME",
+//			"LW_HE_FILES_DEFAULT_PROFILE"
+//			[]api.AlertTemplate{{
+//			...
+//			}
+//	    },
+//	  )
 //
+//	  client.V2.Alert.Profiles.Create(AlertProfile)
 func NewAlertProfile(id string, extends string, alerts []AlertTemplate) AlertProfileConfig {
 	profile := AlertProfileConfig{
 		Guid:    id,

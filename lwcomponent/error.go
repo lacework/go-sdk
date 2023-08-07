@@ -13,7 +13,6 @@ var (
 // IsNotFound returns a boolean indicating whether the error is known to
 // have determined the component is not found. It is satisfied by
 // ErrNotApplyComment
-//
 func IsNotFound(err error) bool {
 	return errors.Is(err, ErrComponentNotFound)
 }

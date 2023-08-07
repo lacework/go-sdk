@@ -154,26 +154,26 @@ const (
 // NewAlertRule returns an instance of the AlertRule struct
 //
 // Basic usage: Initialize a new AlertRule struct, then
-//              use the new instance to do CRUD operations
 //
-//   client, err := api.NewClient("account")
-//   if err != nil {
-//     return err
-//   }
+//	             use the new instance to do CRUD operations
 //
-//   alertRule := api.NewAlertRule(
-//		"Foo",
-//		api.AlertRuleConfig{
-//		Description: "My Alert Rule"
-//		Severities: api.AlertRuleSeverities{api.AlertRuleSeverityHigh,
-//		Channels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
-//		ResourceGroups: []string{"TECHALLY_111111111111AAAAAAAAAAAAAAAAAAAA"}
-//       },
-//     },
-//   )
+//	  client, err := api.NewClient("account")
+//	  if err != nil {
+//	    return err
+//	  }
 //
-//   client.V2.AlertRules.Create(alertRule)
+//	  alertRule := api.NewAlertRule(
+//			"Foo",
+//			api.AlertRuleConfig{
+//			Description: "My Alert Rule"
+//			Severities: api.AlertRuleSeverities{api.AlertRuleSeverityHigh,
+//			Channels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
+//			ResourceGroups: []string{"TECHALLY_111111111111AAAAAAAAAAAAAAAAAAAA"}
+//	      },
+//	    },
+//	  )
 //
+//	  client.V2.AlertRules.Create(alertRule)
 func NewAlertRule(name string, rule AlertRuleConfig) AlertRule {
 	return AlertRule{
 		Channels: rule.Channels,
