@@ -97,6 +97,9 @@ type GenerateGcpTfConfigurationArgs struct {
 	// Existing Sink Name
 	ExistingLogSinkName string
 
+	// Skip creating Lacework integration (needed for GCPv2 migration)
+	SkipCreateLaceworkIntegration bool
+
 	// Should we force destroy the bucket if it has stuff in it? (only relevant on new Audit Log creation)
 	// DEPRECATED
 	EnableForceDestroyBucket bool
@@ -304,6 +307,13 @@ func WithExistingLogBucketName(name string) GcpTerraformModifier {
 func WithExistingLogSinkName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ExistingLogSinkName = name
+	}
+}
+
+// WithSkipCreateLaceworkIntegration Skip creating Lacework integration when set to true
+func WithSkipCreateLaceworkIntegration(skip bool) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.SkipCreateLaceworkIntegration = skip
 	}
 }
 
@@ -597,6 +607,10 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			attributes["existing_sink_name"] = args.ExistingLogSinkName
 		}
 
+		if args.SkipCreateLaceworkIntegration {
+			attributes["skip_create_lacework_integration"] = args.SkipCreateLaceworkIntegration
+		}
+
 		// default to using the project level module
 		auditLogModuleName := "gcp_project_audit_log"
 
@@ -605,7 +619,7 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 			// if organization integration is true, override configModuleName to use the organization level module
 			configurationModuleName = "gcp_organization_level_config"
 			auditLogModuleName = "gcp_organization_level_audit_log"
-			// Determine if this is the a pub-sub audit log
+			// Determine if this is a pub-sub audit log
 			if args.UsePubSubAudit {
 				attributes["integration_type"] = "ORGANIZATION"
 			} else {

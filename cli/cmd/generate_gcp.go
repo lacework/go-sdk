@@ -29,20 +29,20 @@ var (
 	QuestionExistingServiceAccountName       = "Specify an existing service account name:"
 	QuestionExistingServiceAccountPrivateKey = "Specify an existing service account private key (base64 encoded):"
 
-	GcpAdvancedOptAuditLog        = "Configure additional Audit Log options"
-	QuestionGcpUseExistingBucket  = "Use an existing bucket?"
-	QuestionGcpExistingBucketName = "Specify an existing bucket name:"
-	QuestionGcpConfigureNewBucket = "Configure settings for new bucket?"
-	QuestionGcpBucketRegion       = "Specify the bucket region: (optional)"
-	QuestionGcpCustomBucketName   = "Specify a custom bucket name: (optional)"
-	QuestionGcpBucketLifecycle    = "Specify the bucket lifecycle rule age: (optional)"
-	QuestionGcpEnableUBLA         = "Enable uniform bucket level access(UBLA)?"
-	QuestionGcpUseExistingSink    = "Use an existing sink?"
-	QuestionGcpExistingSinkName   = "Specify the existing sink name"
-
-	GcpAdvancedOptIntegrationName           = "Customize integration name(s)"
-	QuestionGcpConfigurationIntegrationName = "Specify a custom configuration integration name: (optional)"
-	QuestionGcpAuditLogIntegrationName      = "Specify a custom Audit Log integration name: (optional)"
+	GcpAdvancedOptAuditLog                   = "Configure additional Audit Log options"
+	QuestionGcpUseExistingBucket             = "Use an existing bucket?"
+	QuestionGcpExistingBucketName            = "Specify an existing bucket name:"
+	QuestionGcpConfigureNewBucket            = "Configure settings for new bucket?"
+	QuestionGcpBucketRegion                  = "Specify the bucket region: (optional)"
+	QuestionGcpCustomBucketName              = "Specify a custom bucket name: (optional)"
+	QuestionGcpBucketLifecycle               = "Specify the bucket lifecycle rule age: (optional)"
+	QuestionGcpEnableUBLA                    = "Enable uniform bucket level access(UBLA)?"
+	QuestionGcpUseExistingSink               = "Use an existing sink?"
+	QuestionGcpExistingSinkName              = "Specify the existing sink name"
+	QuestionGcpSkipCreateLaceworkIntegration = "Skip creating Lacework integration? (For GCPv1 to GCPv2 migration only)"
+	GcpAdvancedOptIntegrationName            = "Customize integration name(s)"
+	QuestionGcpConfigurationIntegrationName  = "Specify a custom configuration integration name: (optional)"
+	QuestionGcpAuditLogIntegrationName       = "Specify a custom Audit Log integration name: (optional)"
 
 	QuestionGcpAnotherAdvancedOpt      = "Configure another advanced integration option"
 	GcpAdvancedOptLocation             = "Customize output location"
@@ -112,6 +112,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithBucketRegion(GenerateGcpCommandState.BucketRegion),
 				gcp.WithExistingLogBucketName(GenerateGcpCommandState.ExistingLogBucketName),
 				gcp.WithExistingLogSinkName(GenerateGcpCommandState.ExistingLogSinkName),
+				gcp.WithSkipCreateLaceworkIntegration(GenerateGcpCommandState.SkipCreateLaceworkIntegration),
 				gcp.WithAuditLogIntegrationName(GenerateGcpCommandState.AuditLogIntegrationName),
 				gcp.WithLaceworkProfile(GenerateGcpCommandState.LaceworkProfile),
 				gcp.WithLogBucketLifecycleRuleAge(GenerateGcpCommandState.LogBucketLifecycleRuleAge),
@@ -274,13 +275,14 @@ See help output for more details on the parameter value(s) required for Terrafor
 )
 
 type GcpGenerateCommandExtraState struct {
-	AskAdvanced                bool
-	Output                     string
-	ConfigureNewBucketSettings bool
-	UseExistingServiceAccount  bool
-	UseExistingBucket          bool
-	UseExistingSink            bool
-	TerraformApply             bool
+	AskAdvanced                   bool
+	Output                        string
+	ConfigureNewBucketSettings    bool
+	UseExistingServiceAccount     bool
+	UseExistingBucket             bool
+	UseExistingSink               bool
+	SkipCreateLaceworkIntegration bool
+	TerraformApply                bool
 }
 
 func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
@@ -289,6 +291,7 @@ func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
 		!gcp.UseExistingServiceAccount &&
 		!gcp.UseExistingBucket &&
 		!gcp.UseExistingSink &&
+		!gcp.SkipCreateLaceworkIntegration &&
 		!gcp.TerraformApply
 }
 
@@ -368,6 +371,11 @@ func initGenerateGcpTfCommandFlags() {
 		"existing_sink_name",
 		"",
 		"specify existing sink name")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.SkipCreateLaceworkIntegration,
+		"skip_create_lacework_integration",
+		false,
+		"skip creating Lacework integration when set to true")
 
 	// DEPRECATED
 	generateGcpTfCommand.PersistentFlags().BoolVar(
@@ -516,6 +524,12 @@ func promptGcpAuditLogQuestions(
 			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingSink},
 			Required: true,
 			Response: &config.ExistingLogSinkName,
+		},
+		{
+			Prompt:   &survey.Confirm{Message: QuestionGcpSkipCreateLaceworkIntegration, Default: extraState.SkipCreateLaceworkIntegration},
+			Checks:   []*bool{&config.AuditLog, &config.UsePubSubAudit},
+			Required: true,
+			Response: &config.SkipCreateLaceworkIntegration,
 		},
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpCustomFilter, Default: config.CustomFilter},

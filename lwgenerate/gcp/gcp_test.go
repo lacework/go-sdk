@@ -141,6 +141,15 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			),
 			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogExistingLogSinkName),
 		},
+		{
+			"TestGenerationProjectLevelPubSubAuditLogSkipCreateLaceworkIntegration",
+			gcp.NewTerraform(false, true, true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithSkipCreateLaceworkIntegration(true),
+			),
+			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogSkipCreateLaceworkIntegration),
+		},
 		{"TestGenerationProjectLevelAuditLogEnableUBLA",
 			gcp.NewTerraform(false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -879,6 +888,12 @@ var moduleImportProjectLevelPubSubAuditLogExistingLogSinkName = `module "gcp_pro
   source             = "lacework/pub-sub-audit-log/gcp"
   version            = "~> 0.2"
   existing_sink_name = "foo"
+}
+`
+var moduleImportProjectLevelPubSubAuditLogSkipCreateLaceworkIntegration = `module "gcp_project_audit_log" {
+  source                           = "lacework/pub-sub-audit-log/gcp"
+  version                          = "~> 0.2"
+  skip_create_lacework_integration = true
 }
 `
 

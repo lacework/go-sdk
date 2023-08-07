@@ -55,6 +55,23 @@ func existingGcpBucketAndSink() {
 	fmt.Printf("\n-----\n%s", hcl)
 }
 
+func skipCreateLaceworkIntegration() {
+	hcl, err := gcp.NewTerraform(
+		true,
+		true,
+		gcp.WithProjectId("example_project"),
+		gcp.WithGcpServiceAccountCredentials("path/to/service/account/creds.json"),
+		gcp.WithSkipCreateLaceworkIntegration(true),
+	).Generate()
+
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	fmt.Printf("\n-----\n%s", hcl)
+}
+
 func gcpWithLaceworkProfile() {
 	hcl, err := gcp.NewTerraform(
 		true,

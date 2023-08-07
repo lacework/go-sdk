@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Netflix/go-expect"
 	"github.com/lacework/go-sdk/cli/cmd"
 	"github.com/lacework/go-sdk/lwgenerate/gcp"
 	"github.com/stretchr/testify/assert"
@@ -161,6 +160,7 @@ func TestGenerationPubSubAuditlogOnlyGcp(t *testing.T) {
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
 				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpSkipCreateLaceworkIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -177,6 +177,46 @@ func TestGenerationPubSubAuditlogOnlyGcp(t *testing.T) {
 
 	buildTf, _ := gcp.NewTerraform(false, true, true,
 		gcp.WithProjectId(projectId),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test pub sub audit log with skip_enable_lacework_integration flag enabled
+func TestGenerationPubSubAuditLogSkipCreateLaceworkIntegration(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
+				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpSkipCreateLaceworkIntegration, "y"},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"gcp",
+	)
+
+	assertTerraformSaved(t, final)
+
+	buildTf, _ := gcp.NewTerraform(false, true, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithSkipCreateLaceworkIntegration(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
@@ -199,6 +239,7 @@ func TestGenerationPubSubAuditlogOrgGcp(t *testing.T) {
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
 				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpSkipCreateLaceworkIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -692,6 +733,7 @@ func TestGenerationPubSubUseExistingSA(t *testing.T) {
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
 				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpSkipCreateLaceworkIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "y"},
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 1},
