@@ -199,7 +199,6 @@ locally you need to setup the following environment variables and use the direct
 `make integration`, an example of the command you can use is:
 ```
 CI_ACCOUNT="<YOUR_ACCOUNT>" \
-  CI_V1_ACCOUNT="<YOUR_V1_CONFIG_ACCOUNT>" \
   CI_SUBACCOUNT="<YOUR_SUBACCOUNT_IF_ANY>" \
   CI_API_KEY="<YOUR_API_KEY>" \
   CI_API_SECRET="<YOUR_API_SECRET>" \
