@@ -526,7 +526,8 @@ func promptGcpAuditLogQuestions(
 			Response: &config.ExistingLogSinkName,
 		},
 		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpSkipCreateLaceworkIntegration, Default: extraState.SkipCreateLaceworkIntegration},
+			Prompt: &survey.Confirm{Message: QuestionGcpSkipCreateLaceworkIntegration,
+				Default: extraState.SkipCreateLaceworkIntegration},
 			Checks:   []*bool{&config.AuditLog, &config.UsePubSubAudit},
 			Required: true,
 			Response: &config.SkipCreateLaceworkIntegration,
