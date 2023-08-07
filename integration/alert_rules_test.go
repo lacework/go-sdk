@@ -1,5 +1,3 @@
-//go:build alert_rule
-
 // Author:: Darren Murray (<darren.murray@lacework.net>)
 // Copyright:: Copyright 2021, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -114,6 +112,8 @@ func createAlertRuleWithSlackAlertChannel() (alertRule api.AlertRuleResponse, er
 		Description:     "This is a test Alert Rule",
 		Severities:      api.NewAlertRuleSeverities([]string{"Critical", "High"}),
 		EventCategories: []string{"Compliance"},
+		AlertCategories: []string{},
+		ResourceGroups:  []string{},
 	})
 
 	return lacework.V2.AlertRules.Create(rule)

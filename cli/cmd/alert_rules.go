@@ -288,10 +288,12 @@ func promptCreateAlertRule() (api.AlertRuleResponse, error) {
 	}
 
 	resourceGroups, resourceGroupMap := promptAddResourceGroupsToAlertRule()
-	var groups []string
+	groups := make([]string, 0)
 	for _, group := range resourceGroups {
 		groups = append(groups, resourceGroupMap[group])
 	}
+
+	alertCategories := make([]string, 0)
 
 	alertRule := api.NewAlertRule(
 		answers.Name,
@@ -300,6 +302,7 @@ func promptCreateAlertRule() (api.AlertRuleResponse, error) {
 			Channels:        channels,
 			Severities:      api.NewAlertRuleSeverities(answers.Severities),
 			EventCategories: answers.EventCategories,
+			AlertCategories: alertCategories,
 			ResourceGroups:  groups,
 		})
 
