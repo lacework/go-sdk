@@ -29,6 +29,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/pkg/errors"
 )
 
@@ -147,22 +148,34 @@ func getGitRelease(project, version string) (*gitReleaseResponse, error) {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
 
-	resp, err := c.Do(req)
+	var resp *http.Response
+	err = backoff.Retry(func() error {
+		resp, err = c.Do(req)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode < 200 || resp.StatusCode > 299 {
+			return errors.New(resp.Status)
+		}
+		return nil
+	}, backoffStrategy())
 	if err != nil {
 		return nil, err
 	}
 
-	if c := resp.StatusCode; c >= 200 && c <= 299 {
-		var gitRelRes gitReleaseResponse
-		if err := json.NewDecoder(resp.Body).Decode(&gitRelRes); err != nil {
-			return nil, err
-		}
-
-		return &gitRelRes, nil
+	var gitRelRes gitReleaseResponse
+	if err := json.NewDecoder(resp.Body).Decode(&gitRelRes); err != nil {
+		return nil, err
 	}
 
-	// not a successful response, throw an error
-	return nil, errors.New(resp.Status)
+	return &gitRelRes, nil
+}
+
+func backoffStrategy() *backoff.ExponentialBackOff {
+	strategy := backoff.NewExponentialBackOff()
+	strategy.InitialInterval = 2 * time.Second
+	strategy.MaxElapsedTime = 1 * time.Minute
+	return strategy
 }
 
 type gitReleaseResponse struct {
