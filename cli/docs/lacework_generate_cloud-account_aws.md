@@ -86,4 +86,5 @@ lacework generate cloud-account aws [flags]
 ### SEE ALSO
 
 * [lacework generate cloud-account](lacework_generate_cloud-account.md)	 - Generate cloud integration IaC
+* [lacework generate cloud-account aws controltower](lacework_generate_cloud-account_aws_controltower.md)	 - Generate and/or execute Terraform code for ControlTower integration
 

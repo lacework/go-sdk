@@ -118,7 +118,9 @@ func ParseNewPolicy(s string) (NewPolicy, error) {
 	return policy, errors.New("policy must be valid JSON or YAML")
 }
 
-/* In order to properly PATCH we need to omit items that aren't specified.
+/*
+	In order to properly PATCH we need to omit items that aren't specified.
+
 For booleans and integers Golang will omit zero values false and 0 respectively.
 This would prevent someone from toggling something to disabled or 0 respectively.
 As such we are using pointers instead of primitives for booleans and integers in this struct

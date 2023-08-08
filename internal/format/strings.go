@@ -35,7 +35,8 @@ func SpaceUpperCase(s string) string {
 // Truncate reduce a string to specified char limit. Append ellipsis.
 //
 // res := format.Truncate("myExampleString", 10)
-//  -> myExampleS...
+//
+//	-> myExampleS...
 func Truncate(s string, max int) string {
 	if max > len(s) {
 		return s

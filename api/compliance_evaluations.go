@@ -32,21 +32,20 @@ const AwsComplianceEvaluationDataset complianceEvaluationDataset = "AwsComplianc
 //
 // e.g.
 //
-//  var (
-//	  awsComplianceEvaluationSearchResponse api.ComplianceEvaluationAwsResponse
-//	  filter = api.ComplianceEvaluationSearch{
-//		  SearchFilter: api.SearchFilter{
-//			  Filters: []api.Filter{{
-//				  Expression: "eq",
-//				  Field:      "resource",
-//				  Value:      arn:aws:s3:::my-bucket,
-//			  }},
-//		  },
-//		  Dataset: api.AwsComplianceEvaluationDataset,
-//	  }
-//  )
-//   lacework.V2.ComplianceEvaluation.Search(&awsComplianceEvaluationSearchResponse, filters)
-//
+//	 var (
+//		  awsComplianceEvaluationSearchResponse api.ComplianceEvaluationAwsResponse
+//		  filter = api.ComplianceEvaluationSearch{
+//			  SearchFilter: api.SearchFilter{
+//				  Filters: []api.Filter{{
+//					  Expression: "eq",
+//					  Field:      "resource",
+//					  Value:      arn:aws:s3:::my-bucket,
+//				  }},
+//			  },
+//			  Dataset: api.AwsComplianceEvaluationDataset,
+//		  }
+//	 )
+//	  lacework.V2.ComplianceEvaluation.Search(&awsComplianceEvaluationSearchResponse, filters)
 func (svc *ComplianceEvaluationService) Search(response interface{}, filters SearchableFilter) error {
 	return svc.client.RequestEncoderDecoder("POST", apiV2ComplianceEvaluationsSearch, filters, response)
 }

@@ -146,7 +146,7 @@ fmt-check: ## Lists formatting issues
 
 .PHONY: imports-check
 imports-check: ## Lists imports issues
-	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./...) | grep -v proto)
+	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./... | grep -v proto))
 
 .PHONY: run-api-example
 run-api-example: ## Run an API example like 'make run-api-example example=api/_examples/active-containers/main.go'

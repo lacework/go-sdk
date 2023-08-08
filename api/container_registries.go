@@ -37,26 +37,26 @@ type ContainerRegistriesService struct {
 // NOTE: This function must be used by any Container Registry type.
 //
 // Basic usage: Initialize a new GhcrContainerRegistry integration struct, then
-//              use the new instance to do CRUD operations
 //
-//   client, err := api.NewClient("account")
-//   if err != nil {
-//     return err
-//   }
+//	           use the new instance to do CRUD operations
 //
-//   ghcr := api.NewContainerRegistry("foo",
-//     api.GhcrContainerRegistry,
-//     api.GhcrData{
-//       Credentials: api.GhcrCredentials {
-//         Username: "bubu",
-//         Password: "supers3cret",
-//         Ssl: true,
-//       },
-//     },
-//   )
+//	client, err := api.NewClient("account")
+//	if err != nil {
+//	  return err
+//	}
 //
-//   client.V2.ContainerRegistries.Create(ghcr)
+//	ghcr := api.NewContainerRegistry("foo",
+//	  api.GhcrContainerRegistry,
+//	  api.GhcrData{
+//	    Credentials: api.GhcrCredentials {
+//	      Username: "bubu",
+//	      Password: "supers3cret",
+//	      Ssl: true,
+//	    },
+//	  },
+//	)
 //
+//	client.V2.ContainerRegistries.Create(ghcr)
 func NewContainerRegistry(name string, regType containerRegistryType, data interface{}) ContainerRegistryRaw {
 	reg := ContainerRegistryRaw{
 		v2CommonIntegrationData: v2CommonIntegrationData{
@@ -178,9 +178,9 @@ func (svc *ContainerRegistriesService) Delete(guid string) error {
 // To return a more specific Go struct of a Container Registry integration, use the proper
 // method such as GetGhcr() where the function name is composed by:
 //
-//  Get<Type>(guid)
+//	Get<Type>(guid)
 //
-//    Where <Type> is the Container Registry integration type.
+//	  Where <Type> is the Container Registry integration type.
 func (svc *ContainerRegistriesService) Get(guid string, response interface{}) error {
 	return svc.get(guid, &response)
 }

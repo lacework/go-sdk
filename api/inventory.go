@@ -39,21 +39,20 @@ const AwsInventoryDataset inventoryDataset = "AwsCompliance"
 //
 // e.g.
 //
-//  var (
-//	  awsInventorySearchResponse api.InventoryAwsResponse
-//	  filter = api.InventorySearch{
-//		  SearchFilter: api.SearchFilter{
-//			  Filters: []api.Filter{{
-//				  Expression: "eq",
-//				  Field:      "urn",
-//				  Value:      arn:aws:s3:::my-bucket,
-//			  }},
-//		  },
-//		  Dataset: api.AwsComplianceEvaluationDataset,
-//	  }
-//  )
-//   lacework.V2.Inventory.Search(&awsInventorySearchResponse, filters)
-//
+//	 var (
+//		  awsInventorySearchResponse api.InventoryAwsResponse
+//		  filter = api.InventorySearch{
+//			  SearchFilter: api.SearchFilter{
+//				  Filters: []api.Filter{{
+//					  Expression: "eq",
+//					  Field:      "urn",
+//					  Value:      arn:aws:s3:::my-bucket,
+//				  }},
+//			  },
+//			  Dataset: api.AwsComplianceEvaluationDataset,
+//		  }
+//	 )
+//	  lacework.V2.Inventory.Search(&awsInventorySearchResponse, filters)
 func (svc *InventoryService) Search(response interface{}, filters SearchableFilter) error {
 	return svc.client.RequestEncoderDecoder("POST", apiV2InventorySearch, filters, response)
 }

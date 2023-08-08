@@ -31,20 +31,24 @@ import (
 // E.g. get available filters for a cobra.Command.Long
 //
 // ```go
-// dummyCmdState = struct {
-//     // The available filters
-//     AvailableFilters CmdFilters
 //
-//     // List of filters to apply
-//     Filters []string
-//	}{}
+//	dummyCmdState = struct {
+//	    // The available filters
+//	    AvailableFilters CmdFilters
 //
-// dummyCmdState := &cobra.Command{
-//     Long: `The available keys for this command are:
-//` + stringSliceToMarkdownList(
-//     dummyCmdState.AvailableFilters.GetFiltersFrom(
-//         api.MachineDetailEntity{},
-//      ),
+//	    // List of filters to apply
+//	    Filters []string
+//		}{}
+//
+//	dummyCmdState := &cobra.Command{
+//	    Long: `The available keys for this command are:
+//
+// ` + stringSliceToMarkdownList(
+//
+//	dummyCmdState.AvailableFilters.GetFiltersFrom(
+//	    api.MachineDetailEntity{},
+//	 ),
+//
 // )}
 // ```
 type CmdFilters struct {
@@ -109,9 +113,9 @@ func validateKeyValuePairs(filters []string) error {
 // stringSliceToMarkdownList display a list of filters in Markdown format.
 //
 // E.g. The list []string{"a","b","c"} will return
-//     * a
-//     * b
-//     * c
+//   - a
+//   - b
+//   - c
 func stringSliceToMarkdownList(filters []string) string {
 	if len(filters) == 0 {
 		return ""
