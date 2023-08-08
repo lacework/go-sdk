@@ -36,24 +36,24 @@ type AlertChannelsService struct {
 // NOTE: This function must be used by any Alert Channel type.
 //
 // Basic usage: Initialize a new EmailUserAlertChannel struct, then
-//              use the new instance to do CRUD operations
 //
-//   client, err := api.NewClient("account")
-//   if err != nil {
-//     return err
-//   }
+//	           use the new instance to do CRUD operations
 //
-//   emailAlertChan := api.NewAlertChannel("foo",
-//     api.EmailUserAlertChannelType,
-//     api.EmailUserData{
-//       ChannelProps: api.EmailUserChannelProps{
-//         Recipients: []string{"name@example.com"},
-//       },
-//     },
-//   )
+//	client, err := api.NewClient("account")
+//	if err != nil {
+//	  return err
+//	}
 //
-//   client.V2.AlertChannels.Create(emailAlertChan)
+//	emailAlertChan := api.NewAlertChannel("foo",
+//	  api.EmailUserAlertChannelType,
+//	  api.EmailUserData{
+//	    ChannelProps: api.EmailUserChannelProps{
+//	      Recipients: []string{"name@example.com"},
+//	    },
+//	  },
+//	)
 //
+//	client.V2.AlertChannels.Create(emailAlertChan)
 func NewAlertChannel(name string, iType alertChannelType, data interface{}) AlertChannelRaw {
 	return AlertChannelRaw{
 		v2CommonIntegrationData: v2CommonIntegrationData{
@@ -179,9 +179,9 @@ func (svc *AlertChannelsService) Test(guid string) error {
 // To return a more specific Go struct of a Alert Channel integration, use the proper
 // method such as GetEmailUser() where the function name is composed by:
 //
-//  Get<Type>(guid)
+//	Get<Type>(guid)
 //
-//    Where <Type> is the Alert Channel integration type.
+//	  Where <Type> is the Alert Channel integration type.
 func (svc *AlertChannelsService) Get(guid string, response interface{}) error {
 	return svc.get(guid, &response)
 }
