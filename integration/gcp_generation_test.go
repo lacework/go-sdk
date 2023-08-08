@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/Netflix/go-expect"
 	"github.com/lacework/go-sdk/cli/cmd"
 	"github.com/lacework/go-sdk/lwgenerate/gcp"
 	"github.com/stretchr/testify/assert"
