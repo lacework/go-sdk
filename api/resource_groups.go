@@ -269,15 +269,7 @@ func (group ResourceGroupData) Status() string {
 }
 
 func (group ResourceGroupData) IsV2Group() bool {
-	if group.Props != nil {
-		return false
-	}
-
-	if group.Query != nil {
-		return true
-	}
-
-	return false
+	return group.Query != nil 
 }
 
 type ResourceGroupResponse struct {
