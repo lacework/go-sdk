@@ -20,8 +20,8 @@ package api
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
 )
 
@@ -141,18 +141,18 @@ type RGQuery struct {
 	Expression *RGExpression        `json:"expression"`
 }
 type ResourceGroupDataWithQuery struct {
-	Name              string        `json:"name"`
-	Type              string        `json:"resourceType"`
-	Query             *RGQuery      `json:"query"`
-	Description       string        `json:"description,omitempty"`
-	ResourceGroupGuid string        `json:"resourceGroupGuid,omitempty"`
-	CreatedTime       *lwtime.Epoch `json:"lastUpdated,omitempty"`
-	CreatedBy         string        `json:"createdBy,omitempty"`
-	UpdatedTime       *lwtime.Epoch `json:"updatedTime,omitempty"`
-	UpdatedBy         string        `json:"updatedBy,omitempty"`
-	Enabled           int           `json:"enabled,omitempty"`
-	IsDefaultBoolean  *bool         `json:"isDefaultBoolean,omitempty"`
-	IsOrg             *bool         `json:"isOrg,omitempty"`
+	Name              string     `json:"name"`
+	Type              string     `json:"resourceType"`
+	Query             *RGQuery   `json:"query"`
+	Description       string     `json:"description,omitempty"`
+	ResourceGroupGuid string     `json:"resourceGroupGuid,omitempty"`
+	CreatedTime       *time.Time `json:"lastUpdated,omitempty"`
+	CreatedBy         string     `json:"createdBy,omitempty"`
+	UpdatedTime       *time.Time `json:"updatedTime,omitempty"`
+	UpdatedBy         string     `json:"updatedBy,omitempty"`
+	Enabled           int        `json:"enabled,omitempty"`
+	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
+	IsOrg             *bool      `json:"isOrg,omitempty"`
 }
 
 func (group ResourceGroupDataWithQuery) GetProps() interface{} {

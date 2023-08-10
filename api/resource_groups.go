@@ -22,10 +22,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-
-	"github.com/pkg/errors"
+	"time"
 
 	"github.com/lacework/go-sdk/lwtime"
+	"github.com/pkg/errors"
 )
 
 // ResourceGroupsService is the service that interacts with
@@ -291,16 +291,16 @@ type ResourceGroupData struct {
 	Props        interface{} `json:"props,omitempty"`
 
 	// RG v2 Fields. `Enabled` and `Type` fields are the same in RGv1 nd RGv2
-	NameV2            string        `json:"name,omitempty"`
-	Query             *RGQuery      `json:"query,omitempty"`
-	Description       string        `json:"description,omitempty"`
-	ResourceGroupGuid string        `json:"resourceGroupGuid,omitempty"`
-	CreatedTime       *lwtime.Epoch `json:"lastUpdated,omitempty"`
-	CreatedBy         string        `json:"createdBy,omitempty"`
-	UpdatedTime       *lwtime.Epoch `json:"updatedTime,omitempty"`
-	UpdatedBy         string        `json:"updatedBy,omitempty"`
-	IsDefaultBoolean  *bool         `json:"isDefaultBoolean,omitempty"`
-	IsOrg             *bool         `json:"isOrg,omitempty"`
+	NameV2            string     `json:"name,omitempty"`
+	Query             *RGQuery   `json:"query,omitempty"`
+	Description       string     `json:"description,omitempty"`
+	ResourceGroupGuid string     `json:"resourceGroupGuid,omitempty"`
+	CreatedTime       *time.Time `json:"lastUpdated,omitempty"`
+	CreatedBy         string     `json:"createdBy,omitempty"`
+	UpdatedTime       *time.Time `json:"updatedTime,omitempty"`
+	UpdatedBy         string     `json:"updatedBy,omitempty"`
+	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
+	IsOrg             *bool      `json:"isOrg,omitempty"`
 }
 
 // RAIN-21510 workaround
@@ -321,14 +321,14 @@ type resourceGroupWorkaroundData struct {
 	Enabled      int         `json:"enabled,omitempty"`
 	Props        interface{} `json:"props"`
 
-	NameV2            string        `json:"name,omitempty"`
-	Query             *RGQuery      `json:"query,omitempty"`
-	Description       string        `json:"description,omitempty"`
-	ResourceGroupGuid string        `json:"resourceGroupGuid,omitempty"`
-	CreatedTime       *lwtime.Epoch `json:"lastUpdated,omitempty"`
-	CreatedBy         string        `json:"createdBy,omitempty"`
-	UpdatedTime       *lwtime.Epoch `json:"updatedTime,omitempty"`
-	UpdatedBy         string        `json:"updatedBy,omitempty"`
-	IsDefaultBoolean  *bool         `json:"isDefaultBoolean,omitempty"`
-	IsOrg             *bool         `json:"isOrg,omitempty"`
+	NameV2            string     `json:"name,omitempty"`
+	Query             *RGQuery   `json:"query,omitempty"`
+	Description       string     `json:"description,omitempty"`
+	ResourceGroupGuid string     `json:"resourceGroupGuid,omitempty"`
+	CreatedTime       *time.Time `json:"lastUpdated,omitempty"`
+	CreatedBy         string     `json:"createdBy,omitempty"`
+	UpdatedTime       *time.Time `json:"updatedTime,omitempty"`
+	UpdatedBy         string     `json:"updatedBy,omitempty"`
+	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
+	IsOrg             *bool      `json:"isOrg,omitempty"`
 }

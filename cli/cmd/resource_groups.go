@@ -21,10 +21,10 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwtime"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -407,7 +407,7 @@ type resourceGroup struct {
 	IsDefault   int                    `json:"isDefault"`
 	Query       *api.RGQuery           `json:"query"`
 	Description string                 `json:"description,omitempty"`
-	UpdatedTime *lwtime.Epoch          `json:"updatedTime,omitempty"`
+	UpdatedTime *time.Time             `json:"updatedTime,omitempty"`
 	UpdatedBy   string                 `json:"updatedBy,omitempty"`
 	status      string
 }
