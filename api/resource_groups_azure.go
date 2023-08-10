@@ -33,7 +33,7 @@ var (
 
 // GetAzure gets a single Azure ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetAzure(guid string) (
+func (svc *ResourceGroupsVersionService) GetAzure(guid string) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
@@ -47,7 +47,7 @@ func (svc *ResourceGroupsService) GetAzure(guid string) (
 }
 
 // UpdateAzure updates a single Azure ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateAzure(data ResourceGroup) (
+func (svc *ResourceGroupsVersionService) UpdateAzure(data ResourceGroup) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {
@@ -67,7 +67,7 @@ func (svc *ResourceGroupsService) UpdateAzure(data ResourceGroup) (
 }
 
 // CreateAzure creates a single Azure ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) CreateAzure(data ResourceGroup) (
+func (svc *ResourceGroupsVersionService) CreateAzure(data ResourceGroup) (
 	response AzureResourceGroupResponse,
 	err error,
 ) {

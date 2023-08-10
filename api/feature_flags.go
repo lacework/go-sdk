@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+const ApiV2CliFeatureFlag = "PUBLIC.rgv2.cli"
+
 type FeatureFlagsService struct {
 	client *Client
 }

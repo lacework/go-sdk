@@ -22,10 +22,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-
-	"github.com/pkg/errors"
+	"time"
 
 	"github.com/lacework/go-sdk/lwtime"
+	"github.com/pkg/errors"
 )
 
 // ResourceGroupsService is the service that interacts with
@@ -48,6 +48,8 @@ type ResourceGroup interface {
 	ID() string
 	ResourceGroupType() ResourceGroupType
 	ResetResourceGUID()
+	ResetRGV2Fields()
+	IsV2Group() bool
 }
 
 type ResourceGroupType int
@@ -79,41 +81,6 @@ var ResourceGroupTypes = map[ResourceGroupType]string{
 // String returns the string representation of a Resource Group type
 func (i ResourceGroupType) String() string {
 	return ResourceGroupTypes[i]
-}
-
-// NewResourceGroup returns an instance of the ResourceGroupData struct with the
-// provided ResourceGroup type, name and the props field as an interface{}.
-//
-// NOTE: This function must be used by any ResourceGroup type.
-//
-// Basic usage: Initialize a new ContainerResourceGroup struct, then
-//
-//	             use the new instance to do CRUD operations
-//
-//	  client, err := api.NewClient("account")
-//	  if err != nil {
-//	    return err
-//	  }
-//
-//	  group := api.NewResourceGroup("container resource group",
-//	    api.ContainerResourceGroup,
-//	    api.ContainerResourceGroupData{
-//	      Props: api.ContainerResourceGroupProps{
-//				Description:     "all containers,
-//				ContainerLabels: ContainerResourceGroupAllLabels,
-//				ContainerTags:   ContainerResourceGroupAllTags,
-//			},
-//	    },
-//	  )
-//
-//	  client.V2.ResourceGroups.Create(group)
-func NewResourceGroup(name string, iType ResourceGroupType, props interface{}) ResourceGroupData {
-	return ResourceGroupData{
-		Name:    name,
-		Type:    iType.String(),
-		Enabled: 1,
-		Props:   props,
-	}
 }
 
 // FindResourceGroupType looks up inside the list of available resource group types
@@ -200,24 +167,6 @@ func castResourceGroupResponse(data resourceGroupWorkaroundData, response interf
 	return nil
 }
 
-func setResourceGroupResponse(response resourceGroupWorkaroundData) (ResourceGroupResponse, error) {
-	isDefault, err := strconv.Atoi(response.IsDefault)
-	if err != nil {
-		return ResourceGroupResponse{}, err
-	}
-	return ResourceGroupResponse{
-		Data: ResourceGroupData{
-			Guid:         response.Guid,
-			IsDefault:    isDefault,
-			ResourceGuid: response.ResourceGuid,
-			Name:         response.Name,
-			Type:         response.Type,
-			Enabled:      response.Enabled,
-			Props:        response.Props,
-		},
-	}, nil
-}
-
 func setResourceGroupsResponse(workaround resourceGroupsWorkaroundResponse) (ResourceGroupsResponse, error) {
 	var data []ResourceGroupData
 	for _, r := range workaround.Data {
@@ -250,9 +199,9 @@ func (svc *ResourceGroupsService) Delete(guid string) error {
 // To return a more specific Go struct of a Resource Group, use the proper
 // method such as GetContainerResourceGroup() where the function name is composed by:
 //
-//	Get<Type>(guid)
+//  Get<Type>(guid)
 //
-//	  Where <Type> is the Resource Group type.
+//    Where <Type> is the Resource Group type.
 func (svc *ResourceGroupsService) Get(guid string, response interface{}) error {
 	var rawResponse resourceGroupWorkaroundResponse
 	err := svc.get(guid, &rawResponse)
@@ -290,11 +239,26 @@ func (group ResourceGroupData) ResourceGroupType() ResourceGroupType {
 }
 
 func (group ResourceGroupData) ID() string {
-	return group.ResourceGuid
+	if !group.IsV2Group() {
+		return group.ResourceGuid
+	} else {
+		return group.ResourceGroupGuid
+	}
+}
+
+func (group *ResourceGroupData) ResetRGV2Fields() {
+	group.UpdatedBy = ""
+	group.UpdatedTime = nil
+	group.CreatedBy = ""
+	group.CreatedTime = nil
+	group.IsDefaultBoolean = nil
+	group.IsOrg = nil
 }
 
 func (group *ResourceGroupData) ResetResourceGUID() {
 	group.ResourceGuid = ""
+	group.ResourceGroupGuid = ""
+	group.ResetRGV2Fields()
 }
 
 func (group ResourceGroupData) Status() string {
@@ -302,6 +266,10 @@ func (group ResourceGroupData) Status() string {
 		return "Enabled"
 	}
 	return "Disabled"
+}
+
+func (group ResourceGroupData) IsV2Group() bool {
+	return group.Query != nil
 }
 
 type ResourceGroupResponse struct {
@@ -313,13 +281,26 @@ type ResourceGroupsResponse struct {
 }
 
 type ResourceGroupData struct {
+	// RGv1 Fields
 	Guid         string      `json:"guid,omitempty"`
 	IsDefault    int         `json:"isDefault,omitempty"`
 	ResourceGuid string      `json:"resourceGuid,omitempty"`
-	Name         string      `json:"resourceName"`
+	Name         string      `json:"resourceName,omitempty"`
 	Type         string      `json:"resourceType"`
-	Enabled      int         `json:"enabled,omitempty"`
-	Props        interface{} `json:"props"`
+	Enabled      int         `json:"enabled"`
+	Props        interface{} `json:"props,omitempty"`
+
+	// RG v2 Fields. `Enabled` and `Type` fields are the same in RGv1 nd RGv2
+	NameV2            string     `json:"name,omitempty"`
+	Query             *RGQuery   `json:"query,omitempty"`
+	Description       string     `json:"description,omitempty"`
+	ResourceGroupGuid string     `json:"resourceGroupGuid,omitempty"`
+	CreatedTime       *time.Time `json:"lastUpdated,omitempty"`
+	CreatedBy         string     `json:"createdBy,omitempty"`
+	UpdatedTime       *time.Time `json:"updatedTime,omitempty"`
+	UpdatedBy         string     `json:"updatedBy,omitempty"`
+	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
+	IsOrg             *bool      `json:"isOrg,omitempty"`
 }
 
 // RAIN-21510 workaround
@@ -339,4 +320,15 @@ type resourceGroupWorkaroundData struct {
 	Type         string      `json:"resourceType"`
 	Enabled      int         `json:"enabled,omitempty"`
 	Props        interface{} `json:"props"`
+
+	NameV2            string     `json:"name,omitempty"`
+	Query             *RGQuery   `json:"query,omitempty"`
+	Description       string     `json:"description,omitempty"`
+	ResourceGroupGuid string     `json:"resourceGroupGuid,omitempty"`
+	CreatedTime       *time.Time `json:"lastUpdated,omitempty"`
+	CreatedBy         string     `json:"createdBy,omitempty"`
+	UpdatedTime       *time.Time `json:"updatedTime,omitempty"`
+	UpdatedBy         string     `json:"updatedBy,omitempty"`
+	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
+	IsOrg             *bool      `json:"isOrg,omitempty"`
 }
