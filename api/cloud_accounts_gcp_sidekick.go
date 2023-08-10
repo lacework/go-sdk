@@ -88,7 +88,7 @@ type GcpSidekickData struct {
 type GcpSidekickCredentials struct {
 	ClientID     string `json:"clientId"`
 	ClientEmail  string `json:"clientEmail"`
-	PrivateKeyID string `json:"privateKeyId"`
+	PrivateKeyID string `json:"privateKeyId,omitempty"`
 	PrivateKey   string `json:"privateKey,omitempty"`
 	TokenUri     string `json:"tokenUri,omitempty"`
 }
