@@ -103,7 +103,7 @@ func NewResourceGroupWithQuery(name string, iType ResourceGroupType,
 }
 
 func isRGV2FlagEnabled(featureFlagService *FeatureFlagsService) bool {
-	response, err := featureFlagService.GetFeatureFlagsMatchingPrefix("PUBLIC.rgv2.cli")
+	response, err := featureFlagService.GetFeatureFlagsMatchingPrefix(ApiV2CliFeatureFlag)
 
 	if err != nil {
 		return false

@@ -270,7 +270,7 @@ func promptCreateResourceGroup() error {
 	}
 
 	isRGv2Enabled := false
-	ffResponse, _ := cli.LwApi.V2.FeatureFlags.GetFeatureFlagsMatchingPrefix("PUBLIC.rgv2.cli")
+	ffResponse, _ := cli.LwApi.V2.FeatureFlags.GetFeatureFlagsMatchingPrefix(api.ApiV2CliFeatureFlag)
 	if len(ffResponse.Data.Flags) >= 1 {
 		isRGv2Enabled = true
 	}
