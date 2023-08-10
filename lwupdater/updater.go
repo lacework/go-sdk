@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
+	"github.com/lacework/go-sdk/lwlogger"
 	"github.com/pkg/errors"
 )
 
@@ -42,6 +43,8 @@ const (
 	// this environment variable is set, we do not check for updates
 	DisableEnv = "LW_UPDATES_DISABLE"
 )
+
+var log = lwlogger.New("")
 
 // Version is used to check project versions and store it into a cache file
 // normally at the directory `~/.config/lacework`, to execute regular version checks
@@ -155,6 +158,7 @@ func getGitRelease(project, version string) (*gitReleaseResponse, error) {
 			return err
 		}
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
+			logHeaders(resp)
 			return errors.New(resp.Status)
 		}
 		return nil
@@ -176,6 +180,14 @@ func backoffStrategy() *backoff.ExponentialBackOff {
 	strategy.InitialInterval = 2 * time.Second
 	strategy.MaxElapsedTime = 1 * time.Minute
 	return strategy
+}
+
+func logHeaders(resp *http.Response) {
+	var headers strings.Builder
+	for key, values := range resp.Header {
+		headers.WriteString(fmt.Sprintf("%s: %s\n", key, strings.Join(values, ",")))
+	}
+	log.Debug(headers.String())
 }
 
 type gitReleaseResponse struct {
