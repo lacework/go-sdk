@@ -21,8 +21,9 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 type ResourceGroupsVersionService struct {

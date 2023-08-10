@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
 )
