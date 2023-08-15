@@ -158,8 +158,6 @@ run-api-example: ## Run an API example like 'make run-api-example example=api/_e
 
 .PHONY: build-cli-cross-platform
 build-cli-cross-platform: ## Compiles the Lacework CLI for all supported platforms
-
-
 	gox -output="bin/$(PACKAGENAME)-{{.OS}}-{{.Arch}}" \
             -os="linux windows" \
             -arch="amd64 386" \
