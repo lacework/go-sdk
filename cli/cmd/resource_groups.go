@@ -262,11 +262,6 @@ func promptCreateResourceGroup() error {
 		"GCP",
 		"LW_ACCOUNT",
 		"MACHINE",
-		"AWS(v2)",
-		"AZURE(v2)",
-		"GCP(v2)",
-		"CONTAINER(v2)",
-		"MACHINE(v2)",
 	}
 
 	isRGv2Enabled := false
