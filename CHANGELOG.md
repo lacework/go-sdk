@@ -1,3 +1,116 @@
+# v1.29.0
+
+## Features
+* feat(CAD-360): Support Resource Group v2 in CLI (#1340) (Zeki Sherif)([4d988729](https://github.com/lacework/go-sdk/commit/4d98872948afcd7fd7f8c3501aab31d42fca24f8))
+## Bug Fixes
+* fix: omit private key id if empty (#1352) (ammarekbote)([edfa2139](https://github.com/lacework/go-sdk/commit/edfa2139c9f6657696e32c1cdce597eee8dc369c))
+## Other Changes
+* ci: version bump to v1.28.1-dev (Lacework)([a8e1e213](https://github.com/lacework/go-sdk/commit/a8e1e21397a655ced2450d87640c55cc794d5b6b))
+---
+# v1.28.0
+
+## Features
+* feat: lwgenerate for aws controltower module (#1327) (Darren)([4c1c21c1](https://github.com/lacework/go-sdk/commit/4c1c21c1be37f1ebb2966f48e2318b2332602dad))
+* feat(api): support new fields in alert_rules api (#1331) (Darren)([c23859c7](https://github.com/lacework/go-sdk/commit/c23859c77317fc2d8941dffde11bf9be20fb3e15))
+* feat(lwgenerate): support complex/nested module attribute values (#1332) (Matt Cadorette)([7cbbb849](https://github.com/lacework/go-sdk/commit/7cbbb84946049bf9ad6c21ad2240d1db6cc6684e))
+## Bug Fixes
+* fix(COD-1559): Add some retrying in `updater.go` (#1350) (Edoardo Pirovano)([72d720cd](https://github.com/lacework/go-sdk/commit/72d720cd722efb9b4c6ea9a1ec99e0ced78184b0))
+* fix: alert rules empty arrays (#1347) (jonathan stewart)([2910edf2](https://github.com/lacework/go-sdk/commit/2910edf2568642cddde8ffbcd19f9757e75c8a90))
+* fix: remove HostVulnerability & ContainerVulnerability values (#1334) (Darren)([26c627dc](https://github.com/lacework/go-sdk/commit/26c627dccad19e15d1dd8821ba6eb8dc8dfbf54c))
+## Documentation Updates
+* docs: https://pkg.go.dev/github.com/lacework/go-sdk (#1323) (Salim Afiune)([4f753a68](https://github.com/lacework/go-sdk/commit/4f753a680e825749451e950677a00b68cd938147))
+## Other Changes
+* style(fmt): fixed imports-check directive (#1349) (Salim Afiune)([b16e7ef5](https://github.com/lacework/go-sdk/commit/b16e7ef5009bab1174a2f1d9b1ae176fa5083b62))
+* style(lql.go): update default LQL query to match policy eng requirements (#1333) (Daniel Thorpe)([77001409](https://github.com/lacework/go-sdk/commit/770014098d11c7bbc63c08b7e42351186b62bbe4))
+* ci: version bump to v1.27.3-dev (Lacework)([2557e79e](https://github.com/lacework/go-sdk/commit/2557e79e91672c5523773cc9db1c0117d6fb9116))
+* test: fix VulnerabilityAssessment test (#1343) (Darren)([182e9ad7](https://github.com/lacework/go-sdk/commit/182e9ad750300772ec4279e18b08d5fc3c73a6c7))
+---
+# v1.27.2
+
+## Bug Fixes
+* fix(cli): remove storage info attributes for Azure (#1324) (Pengyuan Zhao)([c25e83ac](https://github.com/lacework/go-sdk/commit/c25e83ac972c4f0c9f17cccd169ba27254f50c48))
+## Other Changes
+* chore(GROW-2289): Update AWS region regex (#1325) (jonathan stewart)([0269d026](https://github.com/lacework/go-sdk/commit/0269d02614dcd9f4194b950fa2377e764f86f463))
+* ci: version bump to v1.27.2-dev (Lacework)([45a0fe15](https://github.com/lacework/go-sdk/commit/45a0fe15c17f304edb41b8bf8729196851b87715))
+---
+# v1.27.1
+
+## Bug Fixes
+* fix(cli): compliance get-report blank CSV output (#1321) (Salim Afiune)([62a57dca](https://github.com/lacework/go-sdk/commit/62a57dcae041c736d5f164a3d4a80bdfb8b63a40))
+## Other Changes
+* chore(deps): bump github.com/kyokomi/emoji/v2 from 2.2.10 to 2.2.12 (#1320) (dependabot[bot])([f950786d](https://github.com/lacework/go-sdk/commit/f950786d8dd079090753ebda3d1ba71c7e071726))
+* chore(deps): bump golang.org/x/text from 0.7.0 to 0.11.0 (#1318) (dependabot[bot])([e7463c35](https://github.com/lacework/go-sdk/commit/e7463c35b9b87cee7c15de985cf9dc31fb929487))
+* ci: version bump to v1.27.1-dev (Lacework)([62242415](https://github.com/lacework/go-sdk/commit/6224241512abb3f49d7e93ee381b798042e0398a))
+---
+# v1.27.0
+
+## Features
+* feat: default compliance report to use report_name (#1312) (Darren)([4ae2b898](https://github.com/lacework/go-sdk/commit/4ae2b898e2899ecff24bce741e0f53b9af174688))
+## Bug Fixes
+* fix(api): fix overly narrow type in withTransport argument (#1314) (Kolbeinn)([46711246](https://github.com/lacework/go-sdk/commit/46711246b7da02c1181e433a0f613448c66cda1e))
+## Other Changes
+* chore: update deps (#1316) (Darren)([ec423aff](https://github.com/lacework/go-sdk/commit/ec423affb57face3296d1ebefdd6c93a89dc8251))
+* chore(deps): bump cloud.google.com/go/compute/metadata from 0.2.1 to 0.2.3 (#1082) (dependabot[bot])([c9956334](https://github.com/lacework/go-sdk/commit/c99563346620da3b003af553b03cbf7c91f32242))
+* chore(deps): bump github.com/spf13/cobra from 1.4.0 to 1.7.0 (#1227) (dependabot[bot])([744ee876](https://github.com/lacework/go-sdk/commit/744ee8764def18646094ed29c42ffd563966b083))
+* ci: version bump to v1.26.1-dev (Lacework)([694e7333](https://github.com/lacework/go-sdk/commit/694e73338809219940cea55ed8086a43cc86da4d))
+---
+# v1.26.0
+
+## Features
+* feat(COD-1255): Enhancements to how telemetry can be used (#1309) (Edoardo Pirovano)([754aa0ab](https://github.com/lacework/go-sdk/commit/754aa0ab1d7017486d8c42af292d293bb2c5ef45))
+## Other Changes
+* style(lint): fix line length check (#1311) (Salim Afiune)([6ef185a3](https://github.com/lacework/go-sdk/commit/6ef185a34f2e9251f18be33cab05bca3260d8832))
+* style(lint): enable line length check (#1123) (Salim Afiune)([f73932ff](https://github.com/lacework/go-sdk/commit/f73932ffcd72c2beb70a5957b8ac7bb75b7e7c50))
+* ci: version bump to v1.25.1-dev (Lacework)([ec2a7d34](https://github.com/lacework/go-sdk/commit/ec2a7d34daadcb2b971120d982ad1098110f7c8c))
+---
+# v1.25.0
+
+## Features
+* feat: vuln host show-assessment filter by collector type (#1302) (Darren)([ea0229c4](https://github.com/lacework/go-sdk/commit/ea0229c4c1808ea732ae8f3865bba1f3fb6d052e))
+## Other Changes
+* chore(GROW-1600): lacework component dev preflight check (#1307) (Pengyuan Zhao)([65a27a0c](https://github.com/lacework/go-sdk/commit/65a27a0cc07141fb5cd08279c68f785970f637a5))
+* ci: version bump to v1.24.3-dev (Lacework)([ad75f64a](https://github.com/lacework/go-sdk/commit/ad75f64a1c6c50ef14b529dd9893b5df4ac9a38f))
+* test: fix failing help tests (#1308) (Darren)([e10404d0](https://github.com/lacework/go-sdk/commit/e10404d04e836fa54645ea801ca638e669ac2e92))
+* test: always run help integration tests (#1306) (Darren)([cf08e3d7](https://github.com/lacework/go-sdk/commit/cf08e3d770fa54cd53d6608725a660756dc43d28))
+---
+# v1.24.2
+
+## Bug Fixes
+* fix(cli): supply OCI integration private key as file to avoid mangling (#1304) (Kolbeinn)([669225e2](https://github.com/lacework/go-sdk/commit/669225e22ec7fdb5aa83cc551cd34d5eca7587a0))
+* fix: azure module versions (#1303) (Darren)([9e1a167c](https://github.com/lacework/go-sdk/commit/9e1a167c752a6e4d40ab01a5abf9258a94d0364d))
+## Other Changes
+* ci: version bump to v1.24.2-dev (Lacework)([de6aa0b7](https://github.com/lacework/go-sdk/commit/de6aa0b7d05bc1078cee3816684116f6a83cf4c9))
+---
+# v1.24.1
+
+## Refactor
+* refactor(api): remove access to API v1 + default to v2 (Salim Afiune Maya)([0b1c4dc3](https://github.com/lacework/go-sdk/commit/0b1c4dc335611013208ba8ca4113b4edf9cc4624))
+## Other Changes
+* chore(api): no-op WithApiV2() to avoid breaking changes (Salim Afiune Maya)([3d3aff47](https://github.com/lacework/go-sdk/commit/3d3aff4759666b70a8e8d1828c1737f361e0e6e7))
+* chore(lwgenerate): pin TF modules with force_destroy enabled (Salim Afiune Maya)([aafcf3a3](https://github.com/lacework/go-sdk/commit/aafcf3a33e3368adbb4da34ed445a80756e73953))
+* chore(lwgenerate): deprecate force_destroy flags (Salim Afiune Maya)([cb776330](https://github.com/lacework/go-sdk/commit/cb776330e746033639074c4dea07d4ef66b02478))
+* ci: version bump to v1.24.1-dev (Lacework)([3a7c0d41](https://github.com/lacework/go-sdk/commit/3a7c0d41b0804bae95598e2a3584637ade19e883))
+---
+# v1.24.0
+
+## Features
+* feat(cli): cloud-account: oci integration (#1296) (Kolbeinn)([7713de1d](https://github.com/lacework/go-sdk/commit/7713de1dd7c92476b153085fb0f9b4e7f8fa4d96))
+* feat(api): Support OCI cloud accounts (#1295) (Kolbeinn)([670811cd](https://github.com/lacework/go-sdk/commit/670811cdac84f989fdf1427e238d0e533a2243f2))
+## Other Changes
+* ci: version bump to v1.21.1-dev (#1294) (Darren)([a17d90a5](https://github.com/lacework/go-sdk/commit/a17d90a534023f481a97ffc99c3d7fee81750a2f))
+* ci: version bump to v1.21.1-dev (#1293) (Darren)([a047887f](https://github.com/lacework/go-sdk/commit/a047887f3ed86c8506728b81bf785de8ea1263f1))
+---
+# v1.23.0
+
+## Features
+* feat(cli): New CVE-ID parameter to 'lacework vuln ctr show cmd' (#1232) (Darren)([edff32ae](https://github.com/lacework/go-sdk/commit/edff32aed124f5b8f92d67a1a4675317fe7465e2))
+## Bug Fixes
+* fix: RAIN-60352 update references to old dns names (#1288) (Atul Singh)([49a0fe0c](https://github.com/lacework/go-sdk/commit/49a0fe0cc1c0274ba18885975297d39b063bd474))
+## Other Changes
+* chore(lwtime): set LW_CLOCK_OFFSET = +0s (#1289) (Salim Afiune)([1ae5a908](https://github.com/lacework/go-sdk/commit/1ae5a9080fb77a72a8604aa4fa2dbfebf365307c))
+* ci: fix git lint (#1287) (Darren)([b716beb9](https://github.com/lacework/go-sdk/commit/b716beb9f07f9d7ed51c8fb4fe41b27c7fdc90d0))
+* ci: version bump to v1.22.1-dev (Lacework)([571302e9](https://github.com/lacework/go-sdk/commit/571302e9a31184347c370ad8f897881a8d74cdce))
+---
 # v1.22.0
 
 ## Features

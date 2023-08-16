@@ -77,7 +77,6 @@ var alertIntegrationsJSON = `{
 
 func TestAlertsGetIntegrationsMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +100,6 @@ func TestAlertsGetIntegrationsOK(t *testing.T) {
 	mockResponse := alertIntegrationsJSON
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -127,7 +125,6 @@ func TestAlertsGetIntegrationsOK(t *testing.T) {
 
 func TestAlertsGetIntegrationsError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d", alertID),
 		func(w http.ResponseWriter, r *http.Request) {

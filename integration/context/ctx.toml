@@ -141,13 +141,15 @@
         "generate.go",
         "generate_aws.go",
         "generate_aws_eks_audit.go",
+        "generate_aws_controltower.go",
         "generate_aws_test.go",
         "generate_azure.go",
         "generate_cloud_account.go",
         "generate_execute.go",
         "generate_gcp.go",
         "generate_gke.go",
-        "generate_k8s.go"
+        "generate_k8s.go",
+        "constants.go"
     ]
 dirs = ["lwgenerate/"]
 

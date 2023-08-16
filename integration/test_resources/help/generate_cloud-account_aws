@@ -7,9 +7,11 @@ In interactive mode, this command will:
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
   * If Terraform is already installed, the version is verified as compatible for use
-	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
+	* If Terraform is not installed, or the version installed is not compatible, a new
+    version will be installed into a temporary location
 	* Once Terraform is detected or installed, Terraform plan will be executed
-	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
+	* The command will prompt with the outcome of the plan and allow to view more details
+    or continue with Terraform apply
 	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
 This command can also be run in noninteractive mode.
@@ -17,6 +19,10 @@ See help output for more details on the parameter value(s) required for Terrafor
 
 Usage:
   lacework generate cloud-account aws [flags]
+  lacework generate cloud-account aws [command]
+
+Available Commands:
+  controltower Generate and/or execute Terraform code for ControlTower integration
 
 Flags:
       --apply                                 run terraform apply without executing plan or prompting
@@ -36,7 +42,6 @@ Flags:
       --existing_iam_role_externalid string   specify existing iam role external_id to use
       --existing_iam_role_name string         specify existing iam role name to use
       --existing_sns_topic_arn string         specify existing SNS topic arn
-      --force_destroy_s3                      enable force destroy S3 bucket
   -h, --help                                  help for aws
       --lacework_aws_account_id string        the Lacework AWS root account id
       --output string                         location to write generated content (default is ~/lacework/aws)
@@ -61,3 +66,5 @@ Global Flags:
       --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
+
+Use "lacework generate cloud-account aws [command] --help" for more information about a command.

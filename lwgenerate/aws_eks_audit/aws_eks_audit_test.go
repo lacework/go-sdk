@@ -66,18 +66,6 @@ func TestGenerationEksFailureSingleRegionNoClusters(t *testing.T) {
 	assert.Equal(t, "invalid inputs: At least one cluster must be supplied per region", err.Error())
 }
 
-func TestGenerationEksEnableBucketForceDestroy(t *testing.T) {
-	clusterMap := make(map[string][]string)
-	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
-	hcl, err := NewTerraform(WithParsedRegionClusterMap(clusterMap),
-		EnableBucketForceDestroy(),
-	).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	strippedHcl := strings.ReplaceAll(hcl, " ", "")
-	assert.Contains(t, strippedHcl, "bucket_force_destroy=true")
-}
-
 func TestGenerationEksWithValidBucketLifecycleExpirationDays(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
@@ -424,7 +412,7 @@ var moduleSingleRegionBasic = `provider "aws" {
 
 module "aws_eks_audit_log" {
   source                    = "lacework/eks-audit-log/aws"
-  version                   = "~> 0.4"
+  version                   = "~> 1.0"
   cloudwatch_regions        = ["us-east-1"]
   cluster_names             = ["cluster1", "cluster2"]
   kms_key_multi_region      = false
@@ -438,7 +426,7 @@ var moduleSingleRegionWithLaceworkAccountID = `provider "aws" {
 
 module "aws_eks_audit_log" {
   source                    = "lacework/eks-audit-log/aws"
-  version                   = "~> 0.4"
+  version                   = "~> 1.0"
   cloudwatch_regions        = ["us-east-1"]
   cluster_names             = ["cluster1", "cluster2"]
   kms_key_multi_region      = false
@@ -483,7 +471,7 @@ resource "aws_cloudwatch_log_subscription_filter" "lw_cw_subscription_filter_us-
 
 module "aws_eks_audit_log" {
   source                    = "lacework/eks-audit-log/aws"
-  version                   = "~> 0.4"
+  version                   = "~> 1.0"
   cloudwatch_regions        = ["us-east-1", "us-east-2"]
   no_cw_subscription_filter = true
 }

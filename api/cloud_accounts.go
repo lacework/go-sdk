@@ -37,27 +37,26 @@ type CloudAccountsService struct {
 //
 // NOTE: This function must be used by any Cloud Account type.
 //
-// Basic usage: Initialize a new AwsIntegration struct, then
-//              use the new instance to do CRUD operations
+// Basic usage: Initialize a new AwsIntegration struct, then use the new
+// instance to do CRUD operations
 //
-//   client, err := api.NewClient("account")
-//   if err != nil {
-//     return err
-//   }
+//	client, err := api.NewClient("account")
+//	if err != nil {
+//	  return err
+//	}
 //
-//   awsCtSqs := api.NewCloudAccount("foo",
-//     api.AwsCtSqsCloudAccount,
-//     api.AwsCtSqsData{
-//       QueueUrl: "https://sqs.us-west-2.amazonaws.com/123456789000/lw",
-//       Credentials: &api.AwsCtSqsCredentials {
-//         RoleArn: "arn:aws:XYZ",
-//         ExternalID: "1",
-//       },
-//     },
-//   )
+//	awsCtSqs := api.NewCloudAccount("foo",
+//	  api.AwsCtSqsCloudAccount,
+//	  api.AwsCtSqsData{
+//	    QueueUrl: "https://sqs.us-west-2.amazonaws.com/123456789000/lw",
+//	    Credentials: &api.AwsCtSqsCredentials {
+//	      RoleArn: "arn:aws:XYZ",
+//	      ExternalID: "1",
+//	    },
+//	  },
+//	)
 //
-//   client.V2.CloudAccount.Create(awsCtSqs)
-//
+//	client.V2.CloudAccount.Create(awsCtSqs)
 func NewCloudAccount(name string, iType cloudAccountType, data interface{}) CloudAccountRaw {
 	return CloudAccountRaw{
 		v2CommonIntegrationData: v2CommonIntegrationData{
@@ -98,6 +97,7 @@ const (
 	GcpGkeAuditCloudAccount
 	GcpSidekickCloudAccount
 	GcpAlPubSubCloudAccount
+	OciCfgCloudAccount
 )
 
 // CloudAccountTypes is the list of available Cloud Account integration types
@@ -117,6 +117,7 @@ var CloudAccountTypes = map[cloudAccountType]string{
 	GcpGkeAuditCloudAccount:    "GcpGkeAudit",
 	GcpSidekickCloudAccount:    "GcpSidekick",
 	GcpAlPubSubCloudAccount:    "GcpAlPubSub",
+	OciCfgCloudAccount:         "OciCfg",
 }
 
 // String returns the string representation of a Cloud Account integration type
@@ -176,9 +177,9 @@ func (svc *CloudAccountsService) Delete(guid string) error {
 // To return a more specific Go struct of a Cloud Account integration, use the proper
 // method such as GetAwsCtSqs() where the function name is composed by:
 //
-//  Get<Type>(guid)
+//	Get<Type>(guid)
 //
-//    Where <Type> is the Cloud Account integration type.
+//	  Where <Type> is the Cloud Account integration type.
 func (svc *CloudAccountsService) Get(guid string, response interface{}) error {
 	if guid == "" {
 		return errors.New("specify an intgGuid")

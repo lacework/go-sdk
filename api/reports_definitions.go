@@ -112,7 +112,9 @@ func (svc *ReportDefinitionsService) Create(report ReportDefinition) (response R
 	return
 }
 
-func (svc *ReportDefinitionsService) Update(guid string, report ReportDefinitionUpdate) (response ReportDefinitionResponse, err error) {
+func (svc *ReportDefinitionsService) Update(guid string, report ReportDefinitionUpdate) (
+	response ReportDefinitionResponse, err error,
+) {
 	if guid == "" {
 		return response, errors.New("specify a report definition guid")
 	}
@@ -177,12 +179,13 @@ type ReportDefinitionResponse struct {
 }
 
 type ReportDefinition struct {
-	ReportDefinitionGuid    string                  `json:"reportDefinitionGuid,omitempty" yaml:"reportDefinitionGuid,omitempty"`
-	ReportName              string                  `json:"reportName" yaml:"reportName"`
-	DisplayName             string                  `json:"displayName,omitempty" yaml:"displayName,omitempty"`
-	ReportType              string                  `json:"reportType" yaml:"reportType"`
-	ReportNotificationType  string                  `json:"reportNotificationType,omitempty" yaml:"reportNotificationType,omitempty"`
-	SubReportType           string                  `json:"subReportType" yaml:"subReportType"`
+	ReportDefinitionGuid   string `json:"reportDefinitionGuid,omitempty" yaml:"reportDefinitionGuid,omitempty"`
+	ReportName             string `json:"reportName" yaml:"reportName"`
+	DisplayName            string `json:"displayName,omitempty" yaml:"displayName,omitempty"`
+	ReportType             string `json:"reportType" yaml:"reportType"`
+	ReportNotificationType string `json:"reportNotificationType,omitempty" yaml:"reportNotificationType,omitempty"`
+	SubReportType          string `json:"subReportType" yaml:"subReportType"`
+
 	ReportDefinitionDetails ReportDefinitionDetails `json:"reportDefinition" yaml:"reportDefinition"`
 	Props                   *ReportDefinitionProps  `json:"props,omitempty" yaml:"props,omitempty"`
 	DistributionType        string                  `json:"distributionType,omitempty" yaml:"distributionType,omitempty"`

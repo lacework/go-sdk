@@ -36,7 +36,6 @@ func TestCloudAccountsGcpGkeAuditProjectLevelGet(t *testing.T) {
 		apiPath    = fmt.Sprintf("CloudAccounts/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -46,7 +45,6 @@ func TestCloudAccountsGcpGkeAuditProjectLevelGet(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -77,7 +75,6 @@ func TestCloudAccountsGcpGkeAuditOrganizationLevelGet(t *testing.T) {
 		apiPath    = fmt.Sprintf("CloudAccounts/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -87,7 +84,6 @@ func TestCloudAccountsGcpGkeAuditOrganizationLevelGet(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -119,7 +115,6 @@ func TestCloudAccountsGcpGkeAuditProjectLevelUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("CloudAccounts/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -147,7 +142,6 @@ func TestCloudAccountsGcpGkeAuditProjectLevelUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

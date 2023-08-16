@@ -19,10 +19,12 @@ In interactive mode, this command will:
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
   * If Terraform is already installed, the version is verified as compatible for use
-	* If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
-	* Once Terraform is detected or installed, Terraform plan will be executed
-	* The command will prompt with the outcome of the plan and allow to view more details or continue with Terraform apply
-	* If confirmed, Terraform apply will be run, completing the setup of the cloud account
+  * If Terraform is not installed, or the version installed is not compatible, a new version will be
+    installed into a temporary location
+  * Once Terraform is detected or installed, Terraform plan will be executed
+  * The command will prompt with the outcome of the plan and allow to view more details or continue with
+    Terraform apply
+  * If confirmed, Terraform apply will be run, completing the setup of the cloud account
 
 This command can also be run in noninteractive mode.
 See help output for more details on the parameter value(s) required for Terraform code generation.
@@ -44,7 +46,6 @@ lacework generate cloud-account gcp [flags]
       --configuration_integration_name string         specify a custom configuration integration name
       --custom_bucket_name string                     override prefix based storage bucket name generation with a custom name
       --custom_filter string                          Audit Log filter which supersedes all other filter options when defined
-      --enable_force_destroy_bucket                   enable force bucket destroy
       --enable_ubla                                   enable universal bucket level access(ubla) (default true)
       --existing_bucket_name string                   specify existing bucket name
       --existing_service_account_name string          specify existing service account name

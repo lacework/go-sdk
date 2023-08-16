@@ -17,6 +17,7 @@
 // limitations under the License.
 //
 
+// The commands behind the Lacework command-line interface (CLI)
 package cmd
 
 import (

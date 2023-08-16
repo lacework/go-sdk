@@ -273,6 +273,26 @@ func complianceCSVReportRecommendationsTable(details *complianceCSVReportDetails
 						""))
 			}
 		}
+
+		// @afiune The platform today only returns a list of resources that are in violation, that
+		// means, "non-compliant" resources. We currently do not return the list of resources that
+		// are "compliant", "requires-manual-assessment" or "could-not-assess" - For those cases
+		// our CSV output will only show the number of resources. (GROW-2316)
+		if len(recommendation.Violations) == 0 {
+			out = append(out,
+				append(details.GetReportMetaData(),
+					recommendation.Category,
+					recommendation.RecID,
+					recommendation.Title,
+					recommendation.Status,
+					recommendation.SeverityString(),
+					fmt.Sprintf("%d", recommendation.ResourceCount),
+					"",
+					""))
+			continue
+		}
+
+		// @afiune
 		for _, violation := range recommendation.Violations {
 			out = append(out,
 				append(details.GetReportMetaData(),
@@ -294,7 +314,9 @@ func complianceCSVReportRecommendationsTable(details *complianceCSVReportDetails
 	return out
 }
 
-func buildComplianceReportTable(detailsTable, summaryTable, recommendationsTable [][]string, filteredOutput string) string {
+func buildComplianceReportTable(
+	detailsTable, summaryTable, recommendationsTable [][]string, filteredOutput string,
+) string {
 	mainReport := &strings.Builder{}
 	mainReport.WriteString(
 		renderCustomTable(
@@ -409,7 +431,10 @@ func matchRecommendationsFilters(r api.RecommendationV2) bool {
 }
 
 func complianceFiltersEnabled() bool {
-	return len(compCmdState.Category) > 0 || compCmdState.Status != "" || compCmdState.Severity != "" || len(compCmdState.Service) > 0
+	return len(compCmdState.Category) > 0 ||
+		compCmdState.Status != "" ||
+		compCmdState.Severity != "" ||
+		len(compCmdState.Service) > 0
 }
 
 func statusToProperTypes(status string) string {
@@ -537,7 +562,11 @@ func validReportName(cloud string, name string) error {
 
 	if array.ContainsStr(validReportNames, name) {
 		return nil
-	} else {
-		return errors.Errorf("'%s' is not a valid report name.\nRun 'lacework report-definition list --subtype %s' for a list of valid report names", name, cloud)
 	}
+
+	return errors.Errorf(
+		"'%s' is not a valid report name.\n"+
+			"Run 'lacework report-definition list --subtype %s' for a list of valid report names",
+		name, cloud,
+	)
 }

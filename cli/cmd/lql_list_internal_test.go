@@ -32,22 +32,22 @@ type queryTableTest struct {
 }
 
 var queryTableTests = []queryTableTest{
-	queryTableTest{
+	{
 		Name:  "empty",
 		Input: []api.Query{},
 	},
-	queryTableTest{
+	{
 		Name: "one",
 		Input: []api.Query{
-			api.Query{QueryID: "myQuery"},
+			{QueryID: "myQuery"},
 		},
 		Expected: [][]string{{"myQuery", "", "", ""}},
 	},
-	queryTableTest{
+	{
 		Name: "sort",
 		Input: []api.Query{
-			api.Query{QueryID: "myQuery"},
-			api.Query{QueryID: "aQuery"},
+			{QueryID: "myQuery"},
+			{QueryID: "aQuery"},
 		},
 		Expected: [][]string{
 			{"aQuery", "", "", ""},

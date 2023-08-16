@@ -37,6 +37,7 @@ import (
 	capturer "github.com/lacework/go-sdk/internal/capturer"
 	"github.com/lacework/go-sdk/internal/lacework"
 	"github.com/lacework/go-sdk/lwcomponent"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 var (
@@ -112,12 +113,36 @@ func TestGetComponent(t *testing.T) {
 }
 
 func TestLoadState(t *testing.T) {
+	fakeHome, err := os.MkdirTemp("", "h")
+	if err != nil {
+		panic(err)
+	}
+	h := os.Getenv("HOME")
+	os.Setenv("HOME", fakeHome)
+	homedir.DisableCache = true
+	defer func() {
+		os.Setenv("HOME", h)
+		homedir.DisableCache = false
+	}()
+
 	testLoadStateWithResponse(t, func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "{\"components\": [],\"version\": \"0.3.0\"}")
 	})
 }
 
 func TestLoadStateWithTwoFailures(t *testing.T) {
+	fakeHome, err := os.MkdirTemp("", "h")
+	if err != nil {
+		panic(err)
+	}
+	h := os.Getenv("HOME")
+	os.Setenv("HOME", fakeHome)
+	homedir.DisableCache = true
+	defer func() {
+		os.Setenv("HOME", h)
+		homedir.DisableCache = false
+	}()
+
 	failed := 0
 	testLoadStateWithResponse(t, func(w http.ResponseWriter, r *http.Request) {
 		if failed < 2 {
@@ -130,7 +155,6 @@ func TestLoadStateWithTwoFailures(t *testing.T) {
 
 func testLoadStateWithResponse(t *testing.T, response func(http.ResponseWriter, *http.Request)) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI("Components", response)
 	defer fakeServer.Close()
 
@@ -138,6 +162,7 @@ func testLoadStateWithResponse(t *testing.T, response func(http.ResponseWriter, 
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
+	assert.Nil(t, err)
 	state, err := lwcomponent.LoadState(c)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(state.Components))
@@ -152,18 +177,18 @@ type currentVersionTest struct {
 }
 
 var currentVersionTests = []currentVersionTest{
-	currentVersionTest{
+	{
 		Name:      "notfound",
 		Component: mockComponent2,
 		Error:     errors.New("component version file does not exist"),
 	},
-	// currentVersionTest{
+	// {
 	// Name:      "bad",
 	// Component: mockComponent2,
 	// Version:   "not a semver",
 	// Error:     errors.New("unable to parse component version"),
 	// },
-	currentVersionTest{
+	{
 		Name:      "ok",
 		Component: mockComponent,
 		Version:   "1.0.0",
@@ -201,19 +226,19 @@ type currentSignatureTest struct {
 }
 
 var currentSignatureTests = []currentSignatureTest{
-	currentSignatureTest{
+	{
 		Name:      "notfound",
 		Component: mockComponent2,
 		Error:     errors.New("component signature file does not exist"),
 	},
-	currentSignatureTest{
+	{
 		Name:      "bad",
 		Component: mockComponent,
 		Signature: "-",
 		Expected:  []byte{},
 		Error:     errors.New("unable to decode component signature"),
 	},
-	currentSignatureTest{
+	{
 		Name:      "ok",
 		Component: mockComponent,
 		Signature: base64.StdEncoding.EncodeToString([]byte("mysig")),
@@ -250,17 +275,17 @@ type updateAvailableTest struct {
 }
 
 var updateAvailableTests = []updateAvailableTest{
-	updateAvailableTest{
+	{
 		Name:      "error",
 		Component: mockComponent,
 	},
-	updateAvailableTest{
+	{
 		Name:      "yes",
 		Component: mockComponent,
 		Version:   "0.9.0",
 		Expected:  true,
 	},
-	updateAvailableTest{
+	{
 		Name:      "no",
 		Component: mockComponent,
 		Version:   "1.0.5",
@@ -309,7 +334,7 @@ type RunAndReturnTest struct {
 }
 
 var RunAndReturnTests = []RunAndReturnTest{
-	RunAndReturnTest{
+	{
 		Name:           "OK",
 		Component:      mockComponent,
 		Version:        "1.0.0",
@@ -321,7 +346,7 @@ var RunAndReturnTests = []RunAndReturnTest{
 		ExpectedStderr: "Hello Error!\n",
 		Error:          nil,
 	},
-	RunAndReturnTest{
+	{
 		Name:           "env-vars",
 		Component:      mockComponent,
 		Version:        "1.0.0",
@@ -369,7 +394,7 @@ type RunAndOutputTest struct {
 }
 
 var RunAndOutputTests = []RunAndOutputTest{
-	RunAndOutputTest{
+	{
 		Name:      "OK",
 		Component: mockComponent,
 		Version:   "1.0.0",
@@ -380,7 +405,7 @@ var RunAndOutputTests = []RunAndOutputTest{
 		Expected:  "Hello World!\nHello !\n",
 		Error:     nil,
 	},
-	RunAndOutputTest{
+	{
 		Name:      "env-vars",
 		Component: mockComponent,
 		Version:   "1.0.0",

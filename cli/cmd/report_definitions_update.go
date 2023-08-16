@@ -109,7 +109,9 @@ func promptUpdateReportDefinition(existingReport api.ReportDefinition) (api.Repo
 	return promptUpdateReportDefinitionQuestions(existingReport)
 }
 
-func promptUpdateReportDefinitionQuestions(existingReport api.ReportDefinition) (reportDefinition api.ReportDefinitionUpdate, err error) {
+func promptUpdateReportDefinitionQuestions(existingReport api.ReportDefinition) (
+	reportDefinition api.ReportDefinitionUpdate, err error,
+) {
 	questions := []*survey.Question{
 		{
 			Name:     "name",
@@ -243,7 +245,9 @@ func promptUpdateReportDefinitionSections(report api.ReportDefinition) ([]api.Re
 
 }
 
-func promptUpdateReportDefinitionFromEditor(existingReport api.ReportDefinition) (reportDefinition api.ReportDefinitionUpdate, err error) {
+func promptUpdateReportDefinitionFromEditor(existingReport api.ReportDefinition) (
+	reportDefinition api.ReportDefinitionUpdate, err error,
+) {
 	var reportDefinitionConfig api.ReportDefinitionConfig
 
 	if err != nil {
@@ -268,7 +272,9 @@ func promptUpdateReportDefinitionFromEditor(existingReport api.ReportDefinition)
 	return
 }
 
-func promptUpdateReportDefinitionSection(currentSections *[]api.ReportDefinitionSection, policies []api.Policy) ([]api.ReportDefinitionSection, error) {
+func promptUpdateReportDefinitionSection(currentSections *[]api.ReportDefinitionSection, policies []api.Policy) (
+	[]api.ReportDefinitionSection, error,
+) {
 	type sectionMapping struct {
 		section  api.ReportDefinitionSection
 		position int
@@ -302,13 +308,20 @@ func promptUpdateReportDefinitionSection(currentSections *[]api.ReportDefinition
 
 	questions := []*survey.Question{
 		{
-			Name:     "title",
-			Prompt:   &survey.Input{Message: CreateReportDefinitionSectionTitleQuestion, Default: selectedSection.section.Title},
+			Name: "title",
+			Prompt: &survey.Input{
+				Message: CreateReportDefinitionSectionTitleQuestion,
+				Default: selectedSection.section.Title,
+			},
 			Validate: survey.Required,
 		},
 		{
-			Name:     "policies",
-			Prompt:   &survey.MultiSelect{Message: CreateReportDefinitionPoliciesQuestion, Options: policyIDs, Default: selectedSection.section.Policies},
+			Name: "policies",
+			Prompt: &survey.MultiSelect{
+				Message: CreateReportDefinitionPoliciesQuestion,
+				Options: policyIDs,
+				Default: selectedSection.section.Policies,
+			},
 			Validate: survey.MinItems(1),
 		},
 	}

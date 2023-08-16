@@ -16,6 +16,7 @@
 // limitations under the License.
 //
 
+// A package to disseminate a domain URL into account, cluster and whether or not is internal.
 package lwdomain
 
 import (
@@ -26,9 +27,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Use this package to disseminate a domain URL into
-// account, cluster and whether or not it is internal
-
 type domain struct {
 	Account  string
 	Cluster  string
@@ -38,12 +36,12 @@ type domain struct {
 // New returns domain information from the provided URL
 //
 // For instance, the following URL:
-// ```
-// d, err := lwdomain.New("https://account.lacework.net")
-// ```
+//
+//	d, err := lwdomain.New("https://account.lacework.net")
+//
 // Would be disseminated into:
-// * `account` as the account name
-// * `fra` as the cluster name
+//   - `account` as the account name
+//   - `fra` as the cluster name
 func New(url string) (domain, error) {
 	// for the full url https://ACCOUNT.lacework.net
 	// remove the prefixes https:// or http://

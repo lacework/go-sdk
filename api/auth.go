@@ -124,25 +124,11 @@ func (c *Client) GenerateToken() (*TokenData, error) {
 	}
 
 	var tokenData TokenData
-	switch c.ApiVersion() {
-	case "v2":
-		res, err := c.DoDecoder(request, &tokenData)
-		if err != nil {
-			return nil, err
-		}
-		defer res.Body.Close()
-	default:
-		// we default to v1
-		var tokenV1 TokenV1Response
-		res, err := c.DoDecoder(request, &tokenV1)
-		if err != nil {
-			return nil, err
-		}
-		defer res.Body.Close()
-
-		tokenData.Token = tokenV1.Token()
-		tokenData.ExpiresAt = tokenV1.ExpiresAt()
+	res, err := c.DoDecoder(request, &tokenData)
+	if err != nil {
+		return nil, err
 	}
+	defer res.Body.Close()
 
 	c.log.Debug("storing token",
 		zap.String("token", format.Secret(4, tokenData.Token)),
@@ -176,37 +162,4 @@ type tokenRequest struct {
 type TokenData struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 	Token     string    `json:"token"`
-}
-
-// APIv1
-type TokenV1Data struct {
-	ExpiresAt string `json:"expiresAt"`
-	Token     string `json:"token"`
-}
-
-type TokenV1Response struct {
-	Data    []TokenV1Data `json:"data"`
-	Ok      bool          `json:"ok"`
-	Message string        `json:"message"`
-}
-
-// Soon-To-Be-Deprecated
-func (v1 TokenV1Response) Token() string {
-	if len(v1.Data) > 0 {
-		return v1.Data[0].Token
-	}
-
-	return ""
-}
-
-// Soon-To-Be-Deprecated
-func (v1 TokenV1Response) ExpiresAt() time.Time {
-	if len(v1.Data) > 0 {
-		expiresAtTime, err := time.Parse("Jan 02 2006 15:04", v1.Data[0].ExpiresAt)
-		if err == nil {
-			return expiresAtTime
-		}
-	}
-
-	return time.Now().UTC()
 }

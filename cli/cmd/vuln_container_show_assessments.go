@@ -10,6 +10,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -334,6 +335,13 @@ func buildVulnContainerAssessmentReports(assessment api.VulnerabilitiesContainer
 func buildVulnerabilitySingleCveReportTable(details vulnerabilityDetailsReport) string {
 	var singleCveTable = strings.Builder{}
 	var singleCveTableContent = strings.Builder{}
+
+	// sort by highest severity
+	sort.Slice(details.VulnerabilityDetails.Vulnerabilities, func(i, j int) bool {
+		sev1 := lwseverity.NewSeverity(details.VulnerabilityDetails.Vulnerabilities[i].Severity)
+		sev2 := lwseverity.NewSeverity(details.VulnerabilityDetails.Vulnerabilities[j].Severity)
+		return sev1 < sev2
+	})
 
 	for _, cveData := range details.VulnerabilityDetails.Vulnerabilities {
 		detailsTable := renderCustomTable([]string{},

@@ -235,10 +235,6 @@ func (c *cliState) NewClient() error {
 		api.WithHeader("User-Agent", fmt.Sprintf("Command-Line/%s", Version)),
 	}
 
-	if c.CfgVersion == 2 {
-		apiOpts = append(apiOpts, api.WithApiV2())
-	}
-
 	if c.OrgLevel {
 		c.Log.Debug("accessing organization level data sets")
 		apiOpts = append(apiOpts, api.WithOrgAccess())

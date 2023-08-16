@@ -33,7 +33,6 @@ var alertsSearchRequest api.SearchFilter
 
 func TestAlertsSearchMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Alerts/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +56,6 @@ func TestAlertsSearchOK(t *testing.T) {
 	mockResponse := alertsJSON
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Alerts/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +81,6 @@ func TestAlertsSearchOK(t *testing.T) {
 
 func TestAlertsSearchAllOK(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 
 	nextPage := fmt.Sprintf(
 		"%s/api/v2/Alerts/search/nextPage",
@@ -120,7 +117,6 @@ func TestAlertsSearchAllOK(t *testing.T) {
 
 func TestAlertsSearchError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Alerts/search",
 		func(w http.ResponseWriter, r *http.Request) {

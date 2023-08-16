@@ -53,10 +53,10 @@ func TestSplitAzureSubscriptionsApiResponse(t *testing.T) {
 			cliComplianceAzureInfo{
 				Tenant: cliComplianceIDAlias{"ABCCC123-abc-123-AB12-XYZ987", ""},
 				Subscriptions: []cliComplianceIDAlias{
-					cliComplianceIDAlias{"subscription-id-1", ""},
-					cliComplianceIDAlias{"subscription-id-2", ""},
-					cliComplianceIDAlias{"subscription-id-3", ""},
-					cliComplianceIDAlias{"subscription-id-4", ""},
+					{"subscription-id-1", ""},
+					{"subscription-id-2", ""},
+					{"subscription-id-3", ""},
+					{"subscription-id-4", ""},
 				},
 			},
 		},
@@ -74,10 +74,10 @@ func TestSplitAzureSubscriptionsApiResponse(t *testing.T) {
 			cliComplianceAzureInfo{
 				Tenant: cliComplianceIDAlias{"ABCCC123-abc-123-AB12-XYZ987", "cool.org.alias.example.com"},
 				Subscriptions: []cliComplianceIDAlias{
-					cliComplianceIDAlias{"id-1", "a test subscription"},
-					cliComplianceIDAlias{"xmen-subscription", "serious alias"},
-					cliComplianceIDAlias{"disney-movies", "Maybe Production"},
-					cliComplianceIDAlias{"foo", "bar"},
+					{"id-1", "a test subscription"},
+					{"xmen-subscription", "serious alias"},
+					{"disney-movies", "Maybe Production"},
+					{"foo", "bar"},
 				},
 			},
 		},
@@ -118,7 +118,6 @@ func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
 		tenantID   = "abc123xy-1234-abcd-a1b2-09876zxy1234"
 	)
 	fakeServer.MockToken("TOKEN")
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"CloudAccounts/AzureCfg",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -133,7 +132,6 @@ func TestCliListAzureTenantsAndSubscriptionsWithData(t *testing.T) {
 
 	c, err := api.NewClient("test",
 		api.WithToken("TOKEN"),
-		api.WithApiV2(),
 		api.WithURL(fakeServer.URL()),
 	)
 

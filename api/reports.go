@@ -114,4 +114,10 @@ type CloudComplianceReportV2 interface {
 }
 
 // ValidComplianceStatus is a list of all valid compliance status
-var ValidComplianceStatus = []string{"non-compliant", "requires-manual-assessment", "suppressed", "compliant", "could-not-assess"}
+var ValidComplianceStatus = []string{
+	"non-compliant",
+	"requires-manual-assessment",
+	"suppressed",
+	"compliant",
+	"could-not-assess",
+}

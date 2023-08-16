@@ -21,7 +21,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -78,7 +78,7 @@ func checkErrorInResponse(r *http.Response) error {
 
 	var (
 		errRes    = &errorResponse{Response: r}
-		data, err = ioutil.ReadAll(r.Body)
+		data, err = io.ReadAll(r.Body)
 	)
 	if err == nil && len(data) > 0 {
 		// try to unmarshal the api error response

@@ -134,7 +134,6 @@ var alertsPage2JSON = `{
 
 func TestAlertsListMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Alerts",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -158,7 +157,6 @@ func TestAlertsListOK(t *testing.T) {
 	mockResponse := alertsJSON
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Alerts",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -184,7 +182,6 @@ func TestAlertsListOK(t *testing.T) {
 
 func TestAlertsListAllOK(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 
 	nextPage := fmt.Sprintf(
 		"%s/api/v2/Alerts/nextPage",
@@ -220,7 +217,6 @@ func TestAlertsListAllOK(t *testing.T) {
 
 func TestAlertsListError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Alerts",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -241,7 +237,6 @@ func TestAlertsListError(t *testing.T) {
 
 func TestAlertsListByTimeMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Alerts",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -265,7 +260,6 @@ func TestAlertsListByTimeOK(t *testing.T) {
 	mockResponse := alertsJSON
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Alerts",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -291,7 +285,6 @@ func TestAlertsListByTimeOK(t *testing.T) {
 
 func TestAlertsListAllByTimeOK(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 
 	nextPage := fmt.Sprintf(
 		"%s/api/v2/Alerts/nextPage",
@@ -327,7 +320,6 @@ func TestAlertsListAllByTimeOK(t *testing.T) {
 
 func TestAlertsListByTimeError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Alerts",
 		func(w http.ResponseWriter, r *http.Request) {

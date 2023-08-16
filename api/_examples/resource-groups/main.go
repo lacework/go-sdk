@@ -12,7 +12,6 @@ func main() {
 	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"),
 		api.WithSubaccount(os.Getenv("LW_SUBACCOUNT")),
 		api.WithApiKeys(os.Getenv("LW_API_KEY"), os.Getenv("LW_API_SECRET")),
-		api.WithApiV2(),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -24,8 +23,17 @@ func main() {
 	}
 
 	for _, account := range res.Data {
+		var resourceGuid string
+		resourceType := account.Type
+
+		if account.Props != nil {
+			resourceGuid = account.ResourceGuid
+		} else {
+			resourceGuid = account.ResourceGroupGuid
+		}
+
 		support := "Unsupported"
-		switch account.Type {
+		switch resourceType {
 		case api.AwsResourceGroup.String():
 			support = "Supported"
 		case api.AzureResourceGroup.String():
@@ -41,8 +49,63 @@ func main() {
 		}
 
 		// Output: RESOURCE_GUID:RESOURCE_TYPE:[Supported|Unsupported]
-		fmt.Printf("%s:%s:%s\n", account.ResourceGuid, account.Type, support)
+		fmt.Printf("%s:%s:%s\n", resourceGuid, resourceType, support)
 	}
+
+	rgExpression := api.RGExpression{
+		Operator: "AND",
+		Children: []*api.RGChild{
+			{
+				FilterName: "filter1",
+			},
+		},
+	}
+
+	rgFilter := api.RGFilter{
+		Field:     "Region",
+		Operation: "STARTS_WITH",
+		Values:    []string{"us-"},
+	}
+
+	rgQuery := api.RGQuery{
+		Expression: &rgExpression,
+		Filters: map[string]*api.RGFilter{
+			"filter1": &rgFilter,
+		},
+	}
+
+	myResourceGroupWithQuery := api.NewResourceGroupWithQuery(
+		"resource-group-with-query-from-golang",
+		api.AwsResourceGroup,
+		"Resource groups in `us` regions",
+		&rgQuery,
+	)
+
+	println("Creating a resource group v2")
+	rgV2Resp, err := lacework.V2.ResourceGroups.Create(myResourceGroupWithQuery)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Succesfully created resource group \n %+v\n", rgV2Resp)
+
+	println("Updating v2 resource group name")
+	rgV2Resp.Data.NameV2 = "resource-group-with-query-from-golang-updated"
+
+	updatedResponse, err := lacework.V2.ResourceGroups.UpdateAws(&rgV2Resp.Data)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Succesfully updated resource group \n %+v\n", updatedResponse)
+
+	fmt.Printf("Deleting resource group %s\n", updatedResponse.Data.ResourceGroupGuid)
+	err = lacework.V2.ResourceGroups.Delete(updatedResponse.Data.ResourceGroupGuid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	println("Successfully deleted resource group")
 
 	props := api.LwAccountResourceGroupProps{
 		Description: "All Lacework accounts",

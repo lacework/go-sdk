@@ -82,10 +82,10 @@ func TestSplitGcpProjectsApiResponse(t *testing.T) {
 			cliComplianceGcpInfo{
 				Organization: cliComplianceIDAlias{"1234567890123", ""},
 				Projects: []cliComplianceIDAlias{
-					cliComplianceIDAlias{"project-id-1", ""},
-					cliComplianceIDAlias{"project-id-2", ""},
-					cliComplianceIDAlias{"project-id-3", ""},
-					cliComplianceIDAlias{"project-id-4", ""},
+					{"project-id-1", ""},
+					{"project-id-2", ""},
+					{"project-id-3", ""},
+					{"project-id-4", ""},
 				},
 			},
 		},
@@ -103,10 +103,10 @@ func TestSplitGcpProjectsApiResponse(t *testing.T) {
 			cliComplianceGcpInfo{
 				Organization: cliComplianceIDAlias{"1234567890123", "cool.org.alias.example.com"},
 				Projects: []cliComplianceIDAlias{
-					cliComplianceIDAlias{"id-1", "a test project"},
-					cliComplianceIDAlias{"xmen-project", "serious alias"},
-					cliComplianceIDAlias{"disney-movies", "Maybe Production"},
-					cliComplianceIDAlias{"foo", "bar"},
+					{"id-1", "a test project"},
+					{"xmen-project", "serious alias"},
+					{"disney-movies", "Maybe Production"},
+					{"foo", "bar"},
 				},
 			},
 		},

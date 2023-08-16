@@ -191,7 +191,9 @@ func installAWSSSH(_ *cobra.Command, args []string) error {
 				return
 			}
 
-			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"", agentInstallDownloadURL, token, agentCmdState.InstallServerURL)
+			cmd := fmt.Sprintf("sudo sh -c \"curl -sSL %s | sh -s -- %s -U %s\"",
+				agentInstallDownloadURL, token, agentCmdState.InstallServerURL,
+			)
 			err = runInstallCommandOnRemoteHost(&threadRunner.Runner, cmd)
 			if err != nil {
 				cli.Log.Debugw("runInstallCommandOnRemoteHost failed", "thread_runner", threadRunner.InstanceID)

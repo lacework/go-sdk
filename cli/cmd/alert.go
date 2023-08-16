@@ -64,9 +64,12 @@ var (
 		Long: `Inspect and manage alerts.
 
 Lacework provides real-time alerts that are interactive and manageable.
-Each alert contains various metadata information, such as severity level, type, status, alert category, and associated tags.
 
-You can also post a comment to an alert's timeline; or change an alert status from Open to Closed.
+Each alert contains various metadata information, such as severity level, type,
+status, alert category, and associated tags.
+
+You can also post a comment to an alert's timeline; or change an alert status
+from Open to Closed.
 
 For more information about alerts, visit:
 

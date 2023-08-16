@@ -21,7 +21,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -293,7 +293,10 @@ func promptConfigureSetup(newProfile *lwconfig.Profile) error {
 				if len(str) == 0 && len(cli.Secret) != 0 {
 					return nil
 				}
-				return errors.New(fmt.Sprintf("The API secret access key must have more than %d characters.", lwconfig.ApiSecretMinLength))
+				return errors.New(fmt.Sprintf(
+					"The API secret access key must have more than %d characters.",
+					lwconfig.ApiSecretMinLength,
+				))
 			}
 			return nil
 		},
@@ -367,7 +370,7 @@ type apiKeyDetails struct {
 
 func loadUIJsonFile(file string) error {
 	cli.Log.Debugw("loading API key JSON file", "path", file)
-	jsonData, err := ioutil.ReadFile(file)
+	jsonData, err := os.ReadFile(file)
 	if err != nil {
 		return err
 	}

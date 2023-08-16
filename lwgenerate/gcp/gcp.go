@@ -1,3 +1,4 @@
+// A package that generates Lacework deployment code for Google cloud.
 package gcp
 
 import (
@@ -97,6 +98,7 @@ type GenerateGcpTfConfigurationArgs struct {
 	ExistingLogSinkName string
 
 	// Should we force destroy the bucket if it has stuff in it? (only relevant on new Audit Log creation)
+	// DEPRECATED
 	EnableForceDestroyBucket bool
 
 	// Boolean for enabling Uniform Bucket Level Access on the audit log bucket. Defaults to False
@@ -152,7 +154,8 @@ func (args *GenerateGcpTfConfigurationArgs) validate() error {
 	if args.ExistingServiceAccount != nil {
 		if args.ExistingServiceAccount.Name == "" ||
 			args.ExistingServiceAccount.PrivateKey == "" {
-			return errors.New("when using an existing Service Account, existing name, and base64 encoded JSON Private Key fields all must be set")
+			return errors.New("when using an existing Service Account, existing name, and base64 " +
+				"encoded JSON Private Key fields all must be set")
 		}
 	}
 
@@ -172,7 +175,9 @@ type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 //
 //	hcl, err := gcp.NewTerraform(true, true,
 //	  gcp.WithGcpServiceAccountCredentials("/path/to/sa/credentials.json")).Generate()
-func NewTerraform(enableConfig bool, enableAuditLog bool, enablePubSubAudit bool, mods ...GcpTerraformModifier) *GenerateGcpTfConfigurationArgs {
+func NewTerraform(
+	enableConfig bool, enableAuditLog bool, enablePubSubAudit bool, mods ...GcpTerraformModifier,
+) *GenerateGcpTfConfigurationArgs {
 	config := &GenerateGcpTfConfigurationArgs{
 		AuditLog:              enableAuditLog,
 		UsePubSubAudit:        enablePubSubAudit,
@@ -299,13 +304,6 @@ func WithExistingLogBucketName(name string) GcpTerraformModifier {
 func WithExistingLogSinkName(name string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ExistingLogSinkName = name
-	}
-}
-
-// WithEnableForceDestroyBucket Enable force destroy of the bucket if it has stuff in it
-func WithEnableForceDestroyBucket() GcpTerraformModifier {
-	return func(c *GenerateGcpTfConfigurationArgs) {
-		c.EnableForceDestroyBucket = true
 	}
 }
 
@@ -579,10 +577,6 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 
 			if args.BucketLabels != nil {
 				attributes["bucket_labels"] = args.BucketLabels
-			}
-
-			if args.EnableForceDestroyBucket {
-				attributes["bucket_force_destroy"] = true
 			}
 
 			// Default true in gcp-audit-log TF module

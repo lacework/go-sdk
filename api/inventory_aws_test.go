@@ -31,7 +31,6 @@ import (
 
 func TestInventoryAwsSearch(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Inventory/search",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +41,6 @@ func TestInventoryAwsSearch(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -59,7 +57,6 @@ func TestInventoryAwsSearch(t *testing.T) {
 
 func TestInventoryAwsScan(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Inventory/scan",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +67,6 @@ func TestInventoryAwsScan(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

@@ -4,7 +4,6 @@ package integration
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,7 +29,7 @@ func runEksAuditGenerateTest(t *testing.T, conditions func(*expect.Console), arg
 	hcl_path := filepath.Join(tfPath, eksPath, "main.tf")
 
 	runFakeTerminalTestFromDir(t, tfPath, conditions, args...)
-	out, err := ioutil.ReadFile(hcl_path)
+	out, err := os.ReadFile(hcl_path)
 	if err != nil {
 		return fmt.Sprintf("main.tf not found: %s", err)
 	}
@@ -92,7 +91,6 @@ func TestGenerationEksSingleRegionAdvancedBucket(t *testing.T) {
 				MsgRsp{cmd.QuestionUseExistingBucket, "n"},
 				MsgRsp{cmd.QuestionEksAuditBucketVersioning, "y"},
 				MsgRsp{cmd.QuestionEksAuditMfaDeleteS3Bucket, "y"},
-				MsgRsp{cmd.QuestionEksAuditForceDestroyS3Bucket, "y"},
 				MsgRsp{cmd.QuestionEksAuditBucketEncryption, "y"},
 				MsgRsp{cmd.QuestionEksAuditBucketExistingKey, "n"},
 				MsgRsp{cmd.QuestionEksAuditBucketSseAlgorithm, ""},
@@ -118,7 +116,6 @@ func TestGenerationEksSingleRegionAdvancedBucket(t *testing.T) {
 		aws_eks_audit.WithParsedRegionClusterMap(regionClusterMap),
 		aws_eks_audit.EnableBucketVersioning(true),
 		aws_eks_audit.EnableBucketMfaDelete(),
-		aws_eks_audit.EnableBucketForceDestroy(),
 		aws_eks_audit.EnableBucketEncryption(true),
 		aws_eks_audit.EnableKmsKeyRotation(true),
 		aws_eks_audit.WithKmsKeyDeletionDays(30),
@@ -143,7 +140,6 @@ func TestGenerationEksSingleRegionAdvancedBucketExistingKey(t *testing.T) {
 				MsgRsp{cmd.QuestionUseExistingBucket, "n"},
 				MsgRsp{cmd.QuestionEksAuditBucketVersioning, "y"},
 				MsgRsp{cmd.QuestionEksAuditMfaDeleteS3Bucket, "y"},
-				MsgRsp{cmd.QuestionEksAuditForceDestroyS3Bucket, "y"},
 				MsgRsp{cmd.QuestionEksAuditBucketEncryption, "y"},
 				MsgRsp{cmd.QuestionEksAuditBucketExistingKey, "y"},
 				MsgRsp{cmd.QuestionEksAuditBucketSseAlgorithm, ""},
@@ -168,7 +164,6 @@ func TestGenerationEksSingleRegionAdvancedBucketExistingKey(t *testing.T) {
 		aws_eks_audit.WithParsedRegionClusterMap(regionClusterMap),
 		aws_eks_audit.EnableBucketVersioning(true),
 		aws_eks_audit.EnableBucketMfaDelete(),
-		aws_eks_audit.EnableBucketForceDestroy(),
 		aws_eks_audit.EnableBucketEncryption(true),
 		aws_eks_audit.WithBucketSseKeyArn("arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"),
 		aws_eks_audit.WithBucketLifecycleExpirationDays(30),
@@ -379,7 +374,7 @@ func TestGenerationEksSingleRegionAdvancedCustomOutputLocation(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 
-	dir, err := ioutil.TempDir("", "lacework-cli")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}
@@ -407,7 +402,7 @@ func TestGenerationEksSingleRegionAdvancedCustomOutputLocation(t *testing.T) {
 
 	assertEksAuditTerraformSaved(t, final)
 
-	result, _ := ioutil.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
+	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	regionClusterMap := make(map[string][]string)
 	regionClusterMap["us-west-1"] = []string{"cluster1", "cluster2"}
@@ -421,7 +416,7 @@ func TestGenerationEksSingleRegionExistingTerraform(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 
-	dir, err := ioutil.TempDir("", "lacework-cli")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}

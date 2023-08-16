@@ -28,19 +28,18 @@ var (
 	QuestionEksAuditConfigureAdvanced = "Configure advanced integration options?"
 
 	// S3 Bucket Questions
-	QuestionUseExistingBucket            = "Use existing bucket?"
-	QuestionExistingBucketArn            = "Specify an existing bucket ARN used for EKS audit log:"
-	EksAuditConfigureBucket              = "Configure bucket settings"
-	QuestionEksAuditBucketVersioning     = "Enable access versioning on the new bucket?"
-	QuestionEksAuditMfaDeleteS3Bucket    = "Should MFA object deletion be required for the new bucket?"
-	QuestionEksAuditForceDestroyS3Bucket = "Should force destroy be enabled for the new bucket?"
-	QuestionEksAuditBucketLifecycle      = "Specify the bucket lifecycle expiration days: (optional)"
-	QuestionEksAuditBucketEncryption     = "Enable encryption for the new bucket?"
-	QuestionEksAuditBucketSseAlgorithm   = "Specify the bucket SSE Algorithm: (optional)"
-	QuestionEksAuditBucketExistingKey    = "Use existing KMS key?"
-	QuestionEksAuditBucketKeyArn         = "Specify the bucket existing SSE KMS key ARN:"
-	QuestionEksAuditKmsKeyRotation       = "Should the KMS key have rotation enabled?"
-	QuestionEksAuditKmsKeyDeletionDays   = "Specify the KMS key deletion days: (optional)"
+	QuestionUseExistingBucket          = "Use existing bucket?"
+	QuestionExistingBucketArn          = "Specify an existing bucket ARN used for EKS audit log:"
+	EksAuditConfigureBucket            = "Configure bucket settings"
+	QuestionEksAuditBucketVersioning   = "Enable access versioning on the new bucket?"
+	QuestionEksAuditMfaDeleteS3Bucket  = "Should MFA object deletion be required for the new bucket?"
+	QuestionEksAuditBucketLifecycle    = "Specify the bucket lifecycle expiration days: (optional)"
+	QuestionEksAuditBucketEncryption   = "Enable encryption for the new bucket?"
+	QuestionEksAuditBucketSseAlgorithm = "Specify the bucket SSE Algorithm: (optional)"
+	QuestionEksAuditBucketExistingKey  = "Use existing KMS key?"
+	QuestionEksAuditBucketKeyArn       = "Specify the bucket existing SSE KMS key ARN:"
+	QuestionEksAuditKmsKeyRotation     = "Should the KMS key have rotation enabled?"
+	QuestionEksAuditKmsKeyDeletionDays = "Specify the KMS key deletion days: (optional)"
 
 	// SNS Topic Questions
 	EksAuditConfigureSns                = "Configure SNS settings"
@@ -75,7 +74,7 @@ var (
 	EksAuditAdvancedOptDone            = "Done"
 
 	// AwsEksAuditRegionRegex regex used for validating region input; note intentionally does not match gov cloud
-	AwsEksAuditRegionRegex = `(us|ap|ca|eu|sa)-(central|(north|south)?(east|west)?)-\d`
+	AwsEksAuditRegionRegex = `(af|ap|ca|eu|me|sa|us)-(central|(north|south)?(east|west)?)-\d`
 
 	GenerateAwsEksAuditCommandState      = &aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs{}
 	GenerateAwsEksAuditCommandExtraState = &AwsEksAuditGenerateCommandExtraState{}
@@ -97,9 +96,11 @@ In interactive mode, this command will:
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
   * If Terraform is already installed, the version is verified as compatible for use
-  * If Terraform is not installed, or the version installed is not compatible, a new version will be installed into a temporary location
+  * If Terraform is not installed, or the version installed is not compatible, a new
+    version will be installed into a temporary location
   * Once Terraform is detected or installed, the Terraform plan is executed
-  * The command prompts you with the outcome of the plan and allows you to view more details or continue with Terraform apply
+  * The command prompts you with the outcome of the plan and allows you to view more
+    details or continue with Terraform apply
   * If confirmed, Terraform apply runs, completing the setup of the cloud account
 
 This command can also be run in noninteractive mode.
@@ -149,10 +150,6 @@ See help output for more details on the parameter values required for Terraform 
 				mods = append(mods, aws_eks_audit.EnableBucketMfaDelete())
 			}
 
-			if GenerateAwsEksAuditCommandState.BucketForceDestroy {
-				mods = append(mods, aws_eks_audit.EnableBucketForceDestroy())
-			}
-
 			// Create new struct
 			data := aws_eks_audit.NewTerraform(mods...)
 
@@ -172,7 +169,10 @@ See help output for more details on the parameter values required for Terraform 
 
 			// Prompt to execute
 			err = SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-				Prompt:   &survey.Confirm{Default: GenerateAwsEksAuditCommandExtraState.TerraformApply, Message: QuestionRunTfPlan},
+				Prompt: &survey.Confirm{
+					Default: GenerateAwsEksAuditCommandExtraState.TerraformApply,
+					Message: QuestionRunTfPlan,
+				},
 				Response: &GenerateAwsEksAuditCommandExtraState.TerraformApply,
 			})
 
@@ -342,7 +342,8 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsEksAuditCommandState.AwsProfile, "aws_profile", "", "specify aws profile")
 	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsEksAuditCommandState.LaceworkAccountID, "lacework_aws_account_id", "", "the Lacework AWS root account id")
+		&GenerateAwsEksAuditCommandState.LaceworkAccountID,
+		"lacework_aws_account_id", "", "the Lacework AWS root account id")
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.BucketEnableMfaDelete,
 		"enable_mfa_delete_s3",
@@ -353,11 +354,18 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		"enable_encryption_s3",
 		true,
 		"enable encryption on s3 bucket")
+
+	// DEPRECATED
 	generateAwsEksAuditTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsEksAuditCommandState.BucketForceDestroy,
 		"enable_force_destroy",
-		false,
+		true,
 		"enable force destroy s3 bucket")
+	errcheckWARN(generateAwsEksAuditTfCommand.PersistentFlags().MarkDeprecated(
+		"enable_force_destroy", "by default, force destroy is enabled.",
+	))
+	// ---
+
 	generateAwsEksAuditTfCommand.PersistentFlags().IntVar(
 		&GenerateAwsEksAuditCommandState.BucketLifecycleExpirationDays,
 		"bucket_lifecycle_exp_days",
@@ -372,7 +380,8 @@ func initGenerateAwsEksAuditTfCommandFlags() {
 		&GenerateAwsEksAuditCommandState.BucketSseKeyArn,
 		"bucket_sse_key_arn",
 		"",
-		"specify the kms key arn to be used for s3. (required when bucket_sse_algorithm is aws:kms & using an existing kms key)")
+		"specify the kms key arn to be used for s3. "+
+			"(required when bucket_sse_algorithm is aws:kms & using an existing kms key)")
 	generateAwsEksAuditTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsEksAuditCommandState.ExistinglBucketArn,
 		"existing_bucket_arn",
@@ -520,10 +529,6 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 			Response: &config.BucketEnableMfaDelete,
 		},
 		{
-			Prompt:   &survey.Confirm{Message: QuestionEksAuditForceDestroyS3Bucket, Default: config.BucketForceDestroy},
-			Response: &config.BucketForceDestroy,
-		},
-		{
 			Prompt: &survey.Confirm{Message: QuestionEksAuditBucketEncryption,
 				Default: config.BucketEnableEncryption},
 			Response: &config.BucketEnableEncryption,
@@ -569,13 +574,19 @@ func promptAwsEksAuditBucketQuestions(config *aws_eks_audit.GenerateAwsEksAuditT
 			Response: &config.KmsKeyRotation,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionEksAuditKmsKeyDeletionDays, Default: strconv.Itoa(config.KmsKeyDeletionDays)},
+			Prompt: &survey.Input{
+				Message: QuestionEksAuditKmsKeyDeletionDays,
+				Default: strconv.Itoa(config.KmsKeyDeletionDays),
+			},
 			Checks:   []*bool{&config.BucketEnableEncryption, &newKmsKey},
 			Opts:     []survey.AskOpt{survey.WithValidator(validateResponseTypeInt)},
 			Response: &config.KmsKeyDeletionDays,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionEksAuditBucketLifecycle, Default: strconv.Itoa(config.BucketLifecycleExpirationDays)},
+			Prompt: &survey.Input{
+				Message: QuestionEksAuditBucketLifecycle,
+				Default: strconv.Itoa(config.BucketLifecycleExpirationDays),
+			},
 			Opts:     []survey.AskOpt{survey.WithValidator(validateResponseTypeInt)},
 			Response: &config.BucketLifecycleExpirationDays,
 		},
@@ -595,12 +606,18 @@ func promptAwsEksAuditExistingCrossAccountIamQuestions(input *aws_eks_audit.
 
 	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Input{Message: QuestionEksAuditExistingCaIamArn, Default: input.ExistingCrossAccountIamRole.Arn},
+			Prompt: &survey.Input{
+				Message: QuestionEksAuditExistingCaIamArn,
+				Default: input.ExistingCrossAccountIamRole.Arn,
+			},
 			Response: &input.ExistingCrossAccountIamRole.Arn,
 			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validateAwsArnFormat)},
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionEksAuditExistingCaIamExtID, Default: input.ExistingCrossAccountIamRole.ExternalId},
+			Prompt: &survey.Input{
+				Message: QuestionEksAuditExistingCaIamExtID,
+				Default: input.ExistingCrossAccountIamRole.ExternalId,
+			},
 			Response: &input.ExistingCrossAccountIamRole.ExternalId,
 			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
 		}})
@@ -789,7 +806,8 @@ func promptAwsEksAuditAdditionalClusterRegionQuestions(
 		}
 
 		// append region clusters in case the user has input a region more than once
-		config.ParsedRegionClusterMap[awsEksAuditRegion] = append(config.ParsedRegionClusterMap[awsEksAuditRegion], strings.Split(awsEksAuditRegionClusters, ",")...)
+		config.ParsedRegionClusterMap[awsEksAuditRegion] = append(
+			config.ParsedRegionClusterMap[awsEksAuditRegion], strings.Split(awsEksAuditRegionClusters, ",")...)
 
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt:   &survey.Confirm{Message: QuestionEksAuditAdditionalRegion},
@@ -824,9 +842,9 @@ func askAdvancedEksAuditOptions(config *aws_eks_audit.GenerateAwsEksAuditTfConfi
 
 	// Prompt for options
 	for answer != AwsAdvancedOptDone {
-		// Construction of this slice is a bit strange at first look, but the reason for that is because we have to do string
-		// validation to know which option was selected due to how survey works; and doing it by index (also supported) is
-		// difficult when the options are dynamic (which they are)
+		// Construction of this slice is a bit strange at first look, but the reason for that is because we have
+		// to do string validation to know which option was selected due to how survey works; and doing it by index
+		// (also supported) is difficult when the options are dynamic (which they are)
 		//
 		// Only ask about more accounts if consolidated cloudtrail is set up (matching scenario's doc)
 		var options []string
@@ -922,7 +940,12 @@ func writeAwsEksAuditGenerationArgsCache(a *aws_eks_audit.GenerateAwsEksAuditTfC
 }
 
 // entry point for launching a survey to build out the required generation parameters
-func promptAwsEksAuditGenerate(config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs, existingIam *aws_eks_audit.ExistingCrossAccountIamRoleDetails, extraState *AwsEksAuditGenerateCommandExtraState) error {
+func promptAwsEksAuditGenerate(
+	config *aws_eks_audit.GenerateAwsEksAuditTfConfigurationArgs,
+	existingIam *aws_eks_audit.ExistingCrossAccountIamRoleDetails,
+	extraState *AwsEksAuditGenerateCommandExtraState,
+) error {
+
 	// Cache for later use if generation is abandoned and in interactive mode
 	if cli.InteractiveMode() {
 		defer writeAwsEksAuditGenerationArgsCache(config)

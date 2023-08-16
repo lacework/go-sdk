@@ -34,7 +34,6 @@ func TestConvertAzureSuppressions(t *testing.T) {
 		fakeServer = lacework.MockServer()
 	)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("suppressions/azure/allExceptions",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +45,6 @@ func TestConvertAzureSuppressions(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

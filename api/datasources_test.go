@@ -45,7 +45,6 @@ const (
 
 func TestDatasourcesListMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Datasources",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +68,6 @@ func TestDatasourcesListOK(t *testing.T) {
 	mockResponse := fmt.Sprintf(`{"data": [ %s ] }`, lqlDatasourceStr)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Datasources",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +93,6 @@ func TestDatasourcesListOK(t *testing.T) {
 
 func TestDatasourcesListError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Datasources",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -118,7 +115,6 @@ func TestDatasourcesListError(t *testing.T) {
 
 func TestDatasourcesGetMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Datasources/CloudTrailRawEvents",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -142,7 +138,6 @@ func TestDatasourcesGetOK(t *testing.T) {
 	mockResponse := fmt.Sprintf(`{"data": %s }`, lqlDatasourceStr)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Datasources/CloudTrailRawEvents",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -170,7 +165,6 @@ func TestDatasourcesGetBadInput(t *testing.T) {
 	mockResponse := fmt.Sprintf(`{"data": %s }`, lqlDatasourceStr)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Datasources/CloudTrailRawEvents",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -193,7 +187,6 @@ func TestDatasourcesGetBadInput(t *testing.T) {
 
 func TestDatasourcesGetError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Datasources/CloudTrailRawEvents",
 		func(w http.ResponseWriter, r *http.Request) {

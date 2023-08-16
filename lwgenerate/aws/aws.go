@@ -1,3 +1,4 @@
+// A package that generates Lacework deployment code for Amazon Web Services.
 package aws
 
 import (
@@ -54,14 +55,21 @@ type AwsSubAccount struct {
 
 	// The AwsRegion this profile should use if any resources are created
 	AwsRegion string
+
+	// The Alias of the provider block
+	Alias string
 }
 
 // Create a new AWS sub account
 //
 // A subaccount consists of the profile name (which needs to match the executing machines aws configuration) and a
 // region for any new resources to be created in
-func NewAwsSubAccount(profile string, region string) AwsSubAccount {
-	return AwsSubAccount{AwsProfile: profile, AwsRegion: region}
+func NewAwsSubAccount(profile string, region string, alias ...string) AwsSubAccount {
+	subaccount := AwsSubAccount{AwsProfile: profile, AwsRegion: region}
+	if len(alias) > 0 {
+		subaccount.Alias = alias[0]
+	}
+	return subaccount
 }
 
 type GenerateAwsTfConfigurationArgs struct {
@@ -97,6 +105,7 @@ type GenerateAwsTfConfigurationArgs struct {
 	ConsolidatedCloudtrail bool
 
 	// Should we force destroy the bucket if it has stuff in it? (only relevant on new Cloudtrail creation)
+	// DEPRECATED
 	ForceDestroyS3Bucket bool
 
 	// Enable encryption of bucket if it is created
@@ -191,7 +200,9 @@ type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 //
 //	hcl, err := aws.NewTerraform("us-east-1", true, true,
 //	  aws.WithAwsProfile("mycorp-profile")).Generate()
-func NewTerraform(region string, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier) *GenerateAwsTfConfigurationArgs {
+func NewTerraform(
+	region string, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier,
+) *GenerateAwsTfConfigurationArgs {
 	config := &GenerateAwsTfConfigurationArgs{AwsRegion: region, Cloudtrail: enableCloudtrail, Config: enableConfig}
 	for _, m := range mods {
 		m(config)
@@ -238,13 +249,6 @@ func ExistingSnsTopicArn(arn string) AwsTerraformModifier {
 func UseConsolidatedCloudtrail() AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ConsolidatedCloudtrail = true
-	}
-}
-
-// EnableForceDestroyS3Bucket Set the S3 ForceDestroy parameter to true for newly created buckets
-func EnableForceDestroyS3Bucket() AwsTerraformModifier {
-	return func(c *GenerateAwsTfConfigurationArgs) {
-		c.ForceDestroyS3Bucket = true
 	}
 }
 
@@ -470,7 +474,8 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 				lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
 		}
 		if args.LaceworkAccountID != "" {
-			moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithAttributes(map[string]interface{}{"lacework_aws_account_id": args.LaceworkAccountID}))
+			moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithAttributes(
+				map[string]interface{}{"lacework_aws_account_id": args.LaceworkAccountID}))
 		}
 
 		moduleBlock, err := lwgenerate.NewModule(
@@ -525,9 +530,6 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 			attributes["use_existing_cloudtrail"] = true
 			attributes["bucket_arn"] = args.ExistingCloudtrailBucketArn
 		} else {
-			if args.ForceDestroyS3Bucket {
-				attributes["bucket_force_destroy"] = true
-			}
 			if args.BucketName != "" {
 				attributes["bucket_name"] = args.BucketName
 			}
@@ -574,9 +576,12 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 		}
 		if args.ExistingIamRole == nil && args.Config {
 			attributes["use_existing_iam_role"] = true
-			attributes["iam_role_name"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_config", "iam_role_name"})
-			attributes["iam_role_arn"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_config", "iam_role_arn"})
-			attributes["iam_role_external_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "aws_config", "external_id"})
+			attributes["iam_role_name"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "aws_config", "iam_role_name"})
+			attributes["iam_role_arn"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "aws_config", "iam_role_arn"})
+			attributes["iam_role_external_id"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "aws_config", "external_id"})
 		}
 
 		if args.ExistingIamRole != nil {

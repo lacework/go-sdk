@@ -221,7 +221,9 @@ func buildReportRuleDetailsTable(rule api.ReportRule) string {
 	sort.Strings(keys)
 
 	for _, key := range keys {
-		notifications = append(notifications, []string{key, cases.Title(language.English).String(strconv.FormatBool(notifcationsMap[key]))})
+		notifications = append(notifications,
+			[]string{key, cases.Title(language.English).String(strconv.FormatBool(notifcationsMap[key]))},
+		)
 	}
 
 	detailsTable.WriteString(renderCustomTable([]string{"NOTIFICATION TYPES", "ENABLED"}, notifications,

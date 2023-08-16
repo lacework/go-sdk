@@ -39,7 +39,6 @@ func TestAlertChannelsGetSplunk(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -49,7 +48,6 @@ func TestAlertChannelsGetSplunk(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -77,7 +75,6 @@ func TestAlertChannelSplunkUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -102,7 +99,6 @@ func TestAlertChannelSplunkUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

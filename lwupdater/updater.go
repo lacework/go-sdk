@@ -16,19 +16,21 @@
 // limitations under the License.
 //
 
+// A library to check for available updates of Lacework projects.
 package lwupdater
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
+	"github.com/lacework/go-sdk/lwlogger"
 	"github.com/pkg/errors"
 )
 
@@ -42,8 +44,10 @@ const (
 	DisableEnv = "LW_UPDATES_DISABLE"
 )
 
+var log = lwlogger.New("")
+
 // Version is used to check project versions and store it into a cache file
-// normally at the directory ~/.config/lacework, to execute regular version checks
+// normally at the directory `~/.config/lacework`, to execute regular version checks
 type Version struct {
 	Project        string    `json:"project"`
 	CurrentVersion string    `json:"current_version"`
@@ -59,7 +63,7 @@ func (cache *Version) StoreCache(path string) error {
 		return err
 	}
 
-	err := ioutil.WriteFile(path, buf.Bytes(), 0644)
+	err := os.WriteFile(path, buf.Bytes(), 0644)
 	if err != nil {
 		return err
 	}
@@ -94,7 +98,7 @@ func Check(project, current string) (*Version, error) {
 
 // LoadCache loads a version cache file from the provided path
 func LoadCache(path string) (*Version, error) {
-	cacheJSON, err := ioutil.ReadFile(path)
+	cacheJSON, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -147,22 +151,43 @@ func getGitRelease(project, version string) (*gitReleaseResponse, error) {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
 
-	resp, err := c.Do(req)
+	var resp *http.Response
+	err = backoff.Retry(func() error {
+		resp, err = c.Do(req)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode < 200 || resp.StatusCode > 299 {
+			logHeaders(resp)
+			return errors.New(resp.Status)
+		}
+		return nil
+	}, backoffStrategy())
 	if err != nil {
 		return nil, err
 	}
 
-	if c := resp.StatusCode; c >= 200 && c <= 299 {
-		var gitRelRes gitReleaseResponse
-		if err := json.NewDecoder(resp.Body).Decode(&gitRelRes); err != nil {
-			return nil, err
-		}
-
-		return &gitRelRes, nil
+	var gitRelRes gitReleaseResponse
+	if err := json.NewDecoder(resp.Body).Decode(&gitRelRes); err != nil {
+		return nil, err
 	}
 
-	// not a successful response, throw an error
-	return nil, errors.New(resp.Status)
+	return &gitRelRes, nil
+}
+
+func backoffStrategy() *backoff.ExponentialBackOff {
+	strategy := backoff.NewExponentialBackOff()
+	strategy.InitialInterval = 2 * time.Second
+	strategy.MaxElapsedTime = 1 * time.Minute
+	return strategy
+}
+
+func logHeaders(resp *http.Response) {
+	var headers strings.Builder
+	for key, values := range resp.Header {
+		headers.WriteString(fmt.Sprintf("%s: %s\n", key, strings.Join(values, ",")))
+	}
+	log.Debug(headers.String())
 }
 
 type gitReleaseResponse struct {

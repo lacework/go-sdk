@@ -23,7 +23,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"os"
 	"path"
@@ -218,7 +218,7 @@ func newSignerFromFile(keyname string) (ssh.Signer, error) {
 	}
 	defer fp.Close()
 
-	buf, err := ioutil.ReadAll(fp)
+	buf, err := io.ReadAll(fp)
 	if err != nil {
 		return nil, err
 	}

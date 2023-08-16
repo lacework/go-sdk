@@ -62,7 +62,6 @@ func TestAgentAccessTokenGet(t *testing.T) {
 		mockedAccessToken  = singleAgentAccessToken(expectedTokenID, expectedTokenAlias, "")
 		fakeServer         = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -83,7 +82,6 @@ func TestAgentAccessTokenGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -115,7 +113,6 @@ func TestAgentAccessTokenList(t *testing.T) {
 		expectedLen            = len(expectedAgentAccTokens)
 		fakeServer             = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("AgentAccessTokens",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -130,7 +127,6 @@ func TestAgentAccessTokenList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

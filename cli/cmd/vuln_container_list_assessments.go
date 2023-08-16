@@ -205,21 +205,20 @@ func applyVulnCtrFilters(assessments []vulnerabilityAssessmentSummary) (filtered
 
 // The process to get the list of container assessments is
 //
-// 1) Check if the user provided a list of registries and repositories,
-//    if so, use those filters instead of fetching the entire data from
-//    all registries, repositories, local scanners, etc. (This is a memory
-//    utilization improvement)
-// 2) If no filter by registries and/or repos, then fetch all data from all
-//    registries and all local scanners, we purposely split them in two search
-//    requests since there could be so much data that we get to the 500,000 rows
-//    if data and we could potentially miss some information
-// 3) Either 1) or 2) will generate a tree of unique container vulnerability
-//    assessments (see the `treeCtrVuln` type), with this tree we will generate
-//    one last API request to unique evaluations per image (This is a memory
-//    utilization improvement)
-// 4) Finally, if we get information from the queried assessments, we build a
-//    summary that will ultimately get stored in the cache for subsequent commands
-//
+//  1. Check if the user provided a list of registries and repositories,
+//     if so, use those filters instead of fetching the entire data from
+//     all registries, repositories, local scanners, etc. (This is a memory
+//     utilization improvement)
+//  2. If no filter by registries and/or repos, then fetch all data from all
+//     registries and all local scanners, we purposely split them in two search
+//     requests since there could be so much data that we get to the 500,000 rows
+//     if data and we could potentially miss some information
+//  3. Either 1) or 2) will generate a tree of unique container vulnerability
+//     assessments (see the `treeCtrVuln` type), with this tree we will generate
+//     one last API request to unique evaluations per image (This is a memory
+//     utilization improvement)
+//  4. Finally, if we get information from the queried assessments, we build a
+//     summary that will ultimately get stored in the cache for subsequent commands
 func listVulnCtrAssessments(
 	activeContainers api.ContainersEntityResponse, filter *api.SearchFilter,
 ) (assessments []vulnerabilityAssessmentSummary, err error) {
@@ -454,7 +453,9 @@ func buildVulnCtrAssessmentSummary(
 			vulnKey := fmt.Sprintf("%s-%s", a.VulnID, a.FeatureKey.Name)
 			if !array.ContainsStr(imageMap[i].vulnerabilities, vulnKey) && a.VulnID != "" {
 				summary.vulnerabilities = append(imageMap[i].vulnerabilities, vulnKey)
-				summary.Cves = append(imageMap[i].Cves, vulnerabilityCtrSummary{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity})
+				summary.Cves = append(imageMap[i].Cves,
+					vulnerabilityCtrSummary{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity},
+				)
 				if a.FixInfo.FixAvailable != 0 {
 					summary.FixableCount++
 				}

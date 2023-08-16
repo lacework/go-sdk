@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -73,7 +72,7 @@ func main() {
 			// only box files
 			log.Println(path, "is a file, boxing it...")
 
-			b, err := ioutil.ReadFile(path)
+			b, err := os.ReadFile(path)
 			if err != nil {
 				log.Printf("Error reading %s: %s", path, err)
 				return err
@@ -106,7 +105,7 @@ func main() {
 		log.Fatal("Error formatting generated code", err)
 	}
 
-	if err = ioutil.WriteFile(blobGo, data, os.ModePerm); err != nil {
+	if err = os.WriteFile(blobGo, data, os.ModePerm); err != nil {
 		log.Fatal("Error writing blob file", err)
 	}
 }

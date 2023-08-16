@@ -40,8 +40,8 @@ func newTf(workingDir string, execPath string) (*tfexec.Terraform, error) {
 	return tf, nil
 }
 
-// LocateOrInstallTerraform Determine if terraform is installed, if that version is new enough, and if not install a new ephemeral binary of the
-// correct version into tmp location
+// LocateOrInstallTerraform Determine if terraform is installed, if that version is new enough,
+// and if not install a new ephemeral binary of the correct version into tmp location
 //
 // forceInstall: if set always install ephemeral binary
 func LocateOrInstallTerraform(forceInstall bool, workingDir string) (*tfexec.Terraform, error) {
@@ -73,7 +73,8 @@ func LocateOrInstallTerraform(forceInstall bool, workingDir string) (*tfexec.Ter
 		if err != nil {
 			// If this version does not support checking version via  --version --json, report and install new
 			cli.OutputHuman(
-				"Existing Terraform version cannot be used, version doesn't meet requirement %s, installing short lived version\n",
+				"Existing Terraform version cannot be used, version doesn't meet requirement %s, "+
+					"installing short lived version\n",
 				requiredVersion)
 			unsupportedVersionCheck = true
 		}
@@ -93,7 +94,8 @@ func LocateOrInstallTerraform(forceInstall bool, workingDir string) (*tfexec.Ter
 			existingVersionOk, _ = constraint.Validate(tfVersion)
 			if !existingVersionOk {
 				cli.OutputHuman(
-					"Existing Terraform version cannot be used, version %s doesn't meet requirement %s, installing short lived version\n",
+					"Existing Terraform version cannot be used, version %s doesn't meet requirement %s, "+
+						"installing short lived version\n",
 					data.Version,
 					requiredVersion)
 			}
@@ -182,7 +184,10 @@ func buildHumanReadablePlannedActions(workingDir string, execPath string, data [
 		)
 	}
 	outputString.WriteString("\n")
-	outputString.WriteString(fmt.Sprintf("More details can be viewed by running:\n\n  cd %s\n  %s show tfplan.json\n", workingDir, execPath))
+	outputString.WriteString(fmt.Sprintf(
+		"More details can be viewed by running:\n\n  cd %s\n  %s show tfplan.json\n",
+		workingDir, execPath,
+	))
 	outputString.WriteString("\n")
 	return outputString.String()
 }

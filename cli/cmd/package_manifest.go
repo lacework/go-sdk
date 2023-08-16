@@ -22,7 +22,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
@@ -185,7 +184,9 @@ func (c *cliState) GeneratePackageManifest() (*api.VulnerabilitiesPackageManifes
 	return c.removeInactivePackagesFromManifest(manifest, manager), nil
 }
 
-func (c *cliState) removeInactivePackagesFromManifest(manifest *api.VulnerabilitiesPackageManifest, manager string) *api.VulnerabilitiesPackageManifest {
+func (c *cliState) removeInactivePackagesFromManifest(
+	manifest *api.VulnerabilitiesPackageManifest, manager string,
+) *api.VulnerabilitiesPackageManifest {
 	// Detect Active Kernel
 	//
 	// The default behavior of most linux distros is to keep the last N kernel packages
@@ -253,7 +254,10 @@ func (c *cliState) removeInactivePackagesFromManifest(manifest *api.Vulnerabilit
 
 func (c *cliState) detectActiveKernel() (string, bool) {
 	kernel, err := exec.Command("uname", "-r").Output()
+	fmt.Println(kernel)
 	if err != nil {
+		fmt.Println("nooooooope")
+		fmt.Println(err)
 		c.Log.Warnw("unable to detect active kernel",
 			"cmd", "uname -r",
 			"error", err,
@@ -275,7 +279,7 @@ func (c *cliState) IsEsmEnabled() bool {
 
 	if file.FileExists(procUAStatusFile) {
 		c.Log.Debugw("detecting ubuntu ESM support", "file", procUAStatusFile)
-		uaStatusBytes, err := ioutil.ReadFile(procUAStatusFile)
+		uaStatusBytes, err := os.ReadFile(procUAStatusFile)
 		if err != nil {
 			c.Log.Warnw("unable to read UA status file", "error", err)
 			return false
@@ -445,7 +449,9 @@ func removeEpochFromPkgVersion(pkgVer string) string {
 // split the provided package_manifest into chucks, if the manifest
 // is smaller than the provided chunk size, it will return the manifest
 // as an array without modifications
-func splitPackageManifest(manifest *api.VulnerabilitiesPackageManifest, chunks int) []*api.VulnerabilitiesPackageManifest {
+func splitPackageManifest(
+	manifest *api.VulnerabilitiesPackageManifest, chunks int,
+) []*api.VulnerabilitiesPackageManifest {
 	if len(manifest.OsPkgInfoList) <= chunks {
 		return []*api.VulnerabilitiesPackageManifest{manifest}
 	}
@@ -467,7 +473,9 @@ func min(a, b int) int {
 }
 
 // fan-out a number of package manifests into multiple requests all at once
-func fanOutHostScans(manifests ...*api.VulnerabilitiesPackageManifest) (api.VulnerabilitySoftwarePackagesResponse, error) {
+func fanOutHostScans(manifests ...*api.VulnerabilitiesPackageManifest) (
+	api.VulnerabilitySoftwarePackagesResponse, error,
+) {
 	var (
 		resCh    = make(chan api.VulnerabilitySoftwarePackagesResponse)
 		errCh    = make(chan error)

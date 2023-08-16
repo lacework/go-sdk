@@ -19,7 +19,6 @@
 package api_test
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"syscall"
@@ -42,7 +41,7 @@ func TestNewClientWithLogLevel(t *testing.T) {
 			api.WithLogLevel("INFO"),
 		)
 		if assert.Nil(t, err) {
-			assert.Equal(t, "v1", c.ApiVersion(), "API version should be v1")
+			assert.Equal(t, "v2", c.ApiVersion(), "API version should be v2")
 		}
 	})
 
@@ -69,14 +68,14 @@ func TestClientWithLogLevelAndWriter(t *testing.T) {
 		api.WithLogLevelAndWriter("DEBUG", log.Writer()),
 	)
 	if assert.Nil(t, err) {
-		assert.Equal(t, "v1", c.ApiVersion(), "API version should be v1")
+		assert.Equal(t, "v2", c.ApiVersion(), "API version should be v2")
 	}
 
 	// generating a DEBUG log by creating a new request
 	_, err = c.NewRequest("GET", "foo", nil)
 	assert.Nil(t, err)
 
-	logContentB, err := ioutil.ReadFile(tmpfile)
+	logContentB, err := os.ReadFile(tmpfile)
 	assert.Nil(t, err)
 	logContent := string(logContentB)
 
@@ -93,7 +92,7 @@ func TestClientWithLogLevelAndWriter(t *testing.T) {
 	//   "account":"test",
 	//   "method":"GET",
 	//   "url":"http://127.0.0.1:58753",
-	//   "endpoint":"/api/v1/foo",
+	//   "endpoint":"/api/v2/foo",
 	//   "headers":{
 	//     "Accept":"application/json",
 	//     "Authorization":"TOKEN",
@@ -106,7 +105,7 @@ func TestClientWithLogLevelAndWriter(t *testing.T) {
 	assert.Contains(t, logContent, "api/client.go")
 	assert.Contains(t, logContent, "\"request\"")
 	assert.Contains(t, logContent, "\"endpoint\"")
-	assert.Contains(t, logContent, "/api/v1/foo")
+	assert.Contains(t, logContent, "/api/v2/foo")
 	assert.Contains(t, logContent, "\"method\"")
 	assert.Contains(t, logContent, "GET")
 	assert.Contains(t, logContent, "\"id\"")
@@ -121,7 +120,7 @@ func TestClientWithLogLevelAndFile(t *testing.T) {
 	fakeServer := lacework.MockServer()
 	defer fakeServer.Close()
 
-	tmpfile, err := ioutil.TempFile("", "logger")
+	tmpfile, err := os.CreateTemp("", "logger")
 	assert.Nil(t, err)
 	defer os.Remove(tmpfile.Name())
 
@@ -130,10 +129,10 @@ func TestClientWithLogLevelAndFile(t *testing.T) {
 		api.WithLogLevelAndFile("INFO", tmpfile.Name()),
 	)
 	if assert.Nil(t, err) {
-		assert.Equal(t, "v1", c.ApiVersion(), "API version should be v1")
+		assert.Equal(t, "v2", c.ApiVersion(), "API version should be v2")
 	}
 
-	logContentB, err := ioutil.ReadFile(tmpfile.Name())
+	logContentB, err := os.ReadFile(tmpfile.Name())
 	assert.Nil(t, err)
 	logContent := string(logContentB)
 
@@ -153,7 +152,7 @@ func testNewClientLogOutput(t *testing.T, out string) {
 	//   "id":        "12ba597e8b7b2379",
 	//   "account":   "test",
 	//   "url":       "http://127.0.0.1:52544",
-	//   "version":   "v1",
+	//   "version":   "v2",
 	//   "log_level": "INFO",
 	//   "timeout":   3600
 	// }
@@ -170,14 +169,14 @@ func testNewClientLogOutput(t *testing.T, out string) {
 	assert.Contains(t, out, "\"account\"")
 	assert.Contains(t, out, "test")
 	assert.Contains(t, out, "\"version\"")
-	assert.Contains(t, out, "v1")
+	assert.Contains(t, out, "v2")
 	assert.Contains(t, out, "\"log_level\"")
 	assert.Contains(t, out, "\"id\"")
 	assert.Contains(t, out, "\"ts\"")
 }
 
 func configureNativeGoLoggerAsConsumers(t *testing.T) string {
-	tmpfile, err := ioutil.TempFile("", "logger")
+	tmpfile, err := os.CreateTemp("", "logger")
 	assert.Nil(t, err)
 	logOutput, err := os.OpenFile(tmpfile.Name(), syscall.O_CREAT|syscall.O_RDWR|syscall.O_APPEND, 0666)
 	assert.Nil(t, err)

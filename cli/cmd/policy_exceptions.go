@@ -130,7 +130,9 @@ func listPolicyExceptions(_ *cobra.Command, args []string) error {
 			return nil
 		}
 
-		cli.OutputHuman(renderSimpleTable(policyExceptionTableHeaders, policyExceptionTable(policyExceptionResponse.Data, args[0])))
+		cli.OutputHuman(renderSimpleTable(policyExceptionTableHeaders,
+			policyExceptionTable(policyExceptionResponse.Data, args[0])),
+		)
 	}
 
 	return nil
@@ -336,7 +338,9 @@ func promptAddExceptionConstraints(policy api.Policy) ([]api.PolicyExceptionCons
 	return responses, nil
 }
 
-func promptAskConstraintsQuestion(constraintQuestion PolicyExceptionSurveyQuestion) (*api.PolicyExceptionConstraint, error) {
+func promptAskConstraintsQuestion(constraintQuestion PolicyExceptionSurveyQuestion) (
+	*api.PolicyExceptionConstraint, error,
+) {
 	var (
 		answer *api.PolicyExceptionConstraint
 		err    error
@@ -346,15 +350,21 @@ func promptAskConstraintsQuestion(constraintQuestion PolicyExceptionSurveyQuesti
 	case "String":
 		if constraintQuestion.constraint.MultiValue {
 			// prompt string list question
-			answer, err = promptAddExceptionConstraintList(constraintQuestion.constraint.FieldKey, constraintQuestion.questions)
+			answer, err = promptAddExceptionConstraintList(
+				constraintQuestion.constraint.FieldKey, constraintQuestion.questions,
+			)
 		} else {
 			// prompt string question
-			answer, err = promptAddExceptionConstraintString(constraintQuestion.constraint.FieldKey, constraintQuestion.questions)
+			answer, err = promptAddExceptionConstraintString(
+				constraintQuestion.constraint.FieldKey, constraintQuestion.questions,
+			)
 		}
 	case "KVTagPair":
 		if constraintQuestion.constraint.MultiValue {
 			//prompt kv tag list
-			answer, err = promptAddExceptionConstraintMapList(constraintQuestion.constraint.FieldKey, constraintQuestion.questions)
+			answer, err = promptAddExceptionConstraintMapList(
+				constraintQuestion.constraint.FieldKey, constraintQuestion.questions,
+			)
 		} else {
 			//prompt kv tag
 			mapAnswers, err := promptAddExceptionConstraintMap(constraintQuestion.questions)
@@ -375,7 +385,9 @@ func promptAskConstraintsQuestion(constraintQuestion PolicyExceptionSurveyQuesti
 	return answer, nil
 }
 
-func buildPromptAddExceptionConstraintListQuestions(constraints []api.PolicyExceptionConfigurationConstraints) []PolicyExceptionSurveyQuestion {
+func buildPromptAddExceptionConstraintListQuestions(
+	constraints []api.PolicyExceptionConfigurationConstraints,
+) []PolicyExceptionSurveyQuestion {
 	questions := []PolicyExceptionSurveyQuestion{}
 
 	for _, constraint := range constraints {
@@ -437,7 +449,9 @@ type PolicyExceptionSurveyQuestion struct {
 	constraint api.PolicyExceptionConfigurationConstraints
 }
 
-func promptAddExceptionConstraintList(key string, questions []*survey.Question) (*api.PolicyExceptionConstraint, error) {
+func promptAddExceptionConstraintList(
+	key string, questions []*survey.Question,
+) (*api.PolicyExceptionConstraint, error) {
 	if key == "accountIds" {
 		return promptAddExceptionConstraintAwsAccountsList()
 	}
@@ -462,7 +476,9 @@ func promptAddExceptionConstraintList(key string, questions []*survey.Question) 
 	}, nil
 }
 
-func promptAddExceptionConstraintString(key string, questions []*survey.Question) (*api.PolicyExceptionConstraint, error) {
+func promptAddExceptionConstraintString(
+	key string, questions []*survey.Question,
+) (*api.PolicyExceptionConstraint, error) {
 	var fieldValue string
 
 	err := survey.Ask(questions, &fieldValue)
@@ -537,7 +553,9 @@ type constraintMapAnswer struct {
 	Value string `json:"value"`
 }
 
-func promptAddExceptionConstraintMapList(key string, mapQuestions []*survey.Question) (*api.PolicyExceptionConstraint, error) {
+func promptAddExceptionConstraintMapList(
+	key string, mapQuestions []*survey.Question,
+) (*api.PolicyExceptionConstraint, error) {
 	var mapAnswers []any
 
 	res, err := promptAddExceptionConstraintMap(mapQuestions)

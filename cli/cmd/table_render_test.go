@@ -39,9 +39,9 @@ func TestRenderSimpleTable(t *testing.T) {
 		renderSimpleTable(
 			[]string{"KEY", "VALUE"},
 			[][]string{
-				[]string{"key1", "value1"},
-				[]string{"key2", "value2"},
-				[]string{"key3", "value3"},
+				{"key1", "value1"},
+				{"key2", "value2"},
+				{"key3", "value3"},
 			}),
 		expectedTable,
 		"tables are not being formatted correctly")
@@ -61,8 +61,8 @@ func TestRenderSimpleTableLongDescriptions(t *testing.T) {
 		renderSimpleTable(
 			[]string{"ID", "Description"},
 			[][]string{
-				[]string{"1", "This is a long long very long description that will be splitted into multiple lines"},
-				[]string{"2", "No a very long description"},
+				{"1", "This is a long long very long description that will be splitted into multiple lines"},
+				{"2", "No a very long description"},
 			}),
 		expectedTable,
 		"tables are not being formatted correctly")
@@ -70,14 +70,14 @@ func TestRenderSimpleTableLongDescriptions(t *testing.T) {
 
 func TestRenderCustomTable(t *testing.T) {
 	detailsTable := [][]string{
-		[]string{"KEY1", "VALUE1"},
-		[]string{"KEY2", "VALUE2"},
-		[]string{"KEY3", "VALUE3"},
+		{"KEY1", "VALUE1"},
+		{"KEY2", "VALUE2"},
+		{"KEY3", "VALUE3"},
 	}
 	summaryTable := [][]string{
-		[]string{"Severity1", "1"},
-		[]string{"Secerity2", "2"},
-		[]string{"Secerity3", "0"},
+		{"Severity1", "1"},
+		{"Secerity2", "2"},
+		{"Secerity3", "0"},
 	}
 	expectedTable := strings.TrimPrefix(`
    REPORT DETAILS       RECOMMENDATIONS     

@@ -38,7 +38,6 @@ func TestAlertChannelsService_GetJira(t *testing.T) {
 		apiPathServer  = fmt.Sprintf("AlertChannels/%s", intgGUIDServer)
 		fakeServer     = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -75,7 +74,6 @@ func TestAlertChannelsService_GetJira(t *testing.T) {
 			})
 
 			c, err := api.NewClient("test",
-				api.WithApiV2(),
 				api.WithToken("TOKEN"),
 				api.WithURL(fakeServer.URL()),
 			)
@@ -113,7 +111,6 @@ func TestAlertChannelsService_UpdateJira(t *testing.T) {
 		apiPathServer  = fmt.Sprintf("AlertChannels/%s", intgGUIDServer)
 		fakeServer     = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -193,7 +190,6 @@ func TestAlertChannelsService_UpdateJira(t *testing.T) {
 			})
 
 			c, err := api.NewClient("test",
-				api.WithApiV2(),
 				api.WithToken("TOKEN"),
 				api.WithURL(fakeServer.URL()),
 			)

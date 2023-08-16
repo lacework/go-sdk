@@ -9,7 +9,6 @@ import (
 // Epoch time type to parse the returned 13 digit time in milliseconds
 type Epoch time.Time
 
-// implement Marshal and Unmarshal interfaces
 func (epoch *Epoch) UnmarshalJSON(b []byte) error {
 	ms, _ := strconv.Atoi(string(b))
 	t := time.Unix(0, int64(ms)*int64(time.Millisecond))
@@ -22,7 +21,6 @@ func (epoch Epoch) MarshalJSON() ([]byte, error) {
 	return []byte(epochJson), nil
 }
 
-// A few format functions for printing and manipulating the custom date
 func (epoch Epoch) ToTime() time.Time {
 	return time.Time(epoch)
 }

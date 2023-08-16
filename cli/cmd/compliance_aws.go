@@ -39,7 +39,7 @@ var (
 	compAwsCmdState = struct {
 		Type       string
 		ReportName string
-	}{Type: "AWS_CIS_14"}
+	}{ReportName: api.ComplianceReportDefaultAws}
 
 	// complianceAwsListAccountsCmd represents the list-accounts inside the aws command
 	complianceAwsListAccountsCmd = &cobra.Command{
@@ -82,11 +82,11 @@ var (
 				return validReportName(api.ReportDefinitionSubTypeAws.String(), compAwsCmdState.ReportName)
 			}
 
-			if array.ContainsStr(api.AwsReportTypes(), compAwsCmdState.Type) {
-				return nil
-			} else {
-				return errors.Errorf(`supported report types are: %s'`, strings.Join(api.AwsReportTypes(), ", "))
+			if cmd.Flags().Changed("type") && !array.ContainsStr(api.AwsReportTypes(), compAwsCmdState.Type) {
+				return errors.Errorf("supported report types are: %s", strings.Join(api.AwsReportTypes(), ", "))
 			}
+
+			return nil
 		},
 		Short: "Get the latest AWS compliance report",
 		Long: `Get the latest compliance assessment report from the provided AWS account, these
@@ -107,26 +107,27 @@ To retrieve a specific report by its report name:
 `,
 		Args: cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			reportType, err := api.NewAwsReportType(compAwsCmdState.Type)
-			if err != nil {
-				return errors.Errorf("invalid report type %q", compAwsCmdState.Type)
-			}
-
 			var (
 				// clean the AWS account ID if it was provided
 				// with an Alias in between parentheses
 				awsAccountID, _ = splitIDAndAlias(args[0])
 				config          = api.AwsReportConfig{
 					AccountID: awsAccountID,
-					Parameter: api.ReportFilterType,
-					Value:     compAwsCmdState.Type,
+					// Default config is report_name
+					Parameter: api.ReportFilterName,
+					Value:     compAwsCmdState.ReportName,
 				}
 			)
 
-			// if --report_name flag is used, set the report_para
-			if cmd.Flags().Changed("report_name") {
-				config.Parameter = api.ReportFilterName
-				config.Value = compAwsCmdState.ReportName
+			// if --type flag is used, set the report config to type
+			if cmd.Flags().Changed("type") {
+				reportType, err := api.NewAwsReportType(compAwsCmdState.Type)
+				if err != nil {
+					return errors.Errorf("invalid report type %q", compAwsCmdState.Type)
+				}
+
+				config.Parameter = api.ReportFilterType
+				config.Value = reportType.String()
 			}
 
 			if compCmdState.Pdf {
@@ -189,6 +190,10 @@ To retrieve a specific report by its report name:
 
 			if complianceFiltersEnabled() {
 				report.Recommendations, filteredOutput = filterRecommendations(report.Recommendations)
+				cli.Log.Infow("recommendations",
+					"count", len(report.Recommendations),
+					"filtered", len(filteredOutput),
+				)
 			}
 
 			if cli.JSONOutput() && compCmdState.RecommendationID == "" {
@@ -200,12 +205,12 @@ To retrieve a specific report by its report name:
 					&complianceCSVReportDetails{
 						AccountName:     report.AccountID,
 						AccountID:       report.AccountID,
-						ReportType:      reportType.String(),
+						ReportType:      report.ReportType,
 						ReportTime:      report.ReportTime,
 						Recommendations: report.Recommendations,
 					},
 				)
-
+				cli.Log.Infow("csv recommendations", "count", len(recommendations))
 				return cli.OutputCSV(
 					[]string{"Report_Type", "Report_Time", "Account",
 						"Section", "ID", "Recommendation", "Status",
@@ -426,7 +431,10 @@ The output from status with the --json flag can be used in the body of PATCH api
 					Csp:     api.AwsInventoryType,
 				}
 			)
-			err := api.WindowedSearchFirst(cli.LwApi.V2.Inventory.Search, api.V2ApiMaxSearchWindowDays, api.V2ApiMaxSearchHistoryDays, &awsInventorySearchResponse, &filter)
+			err := api.WindowedSearchFirst(
+				cli.LwApi.V2.Inventory.Search, api.V2ApiMaxSearchWindowDays,
+				api.V2ApiMaxSearchHistoryDays, &awsInventorySearchResponse, &filter,
+			)
 			cli.StopProgress()
 
 			if len(awsInventorySearchResponse.Data) == 0 {
@@ -458,7 +466,10 @@ The output from status with the --json flag can be used in the body of PATCH api
 				}
 			)
 
-			err = api.WindowedSearchFirst(cli.LwApi.V2.ComplianceEvaluations.Search, api.V2ApiMaxSearchWindowDays, api.V2ApiMaxSearchHistoryDays, &awsComplianceEvaluationSearchResponse, &complianceFilter)
+			err = api.WindowedSearchFirst(
+				cli.LwApi.V2.ComplianceEvaluations.Search, api.V2ApiMaxSearchWindowDays,
+				api.V2ApiMaxSearchHistoryDays, &awsComplianceEvaluationSearchResponse, &complianceFilter,
+			)
 			cli.StopProgress()
 			if err != nil {
 				return err
@@ -556,13 +567,17 @@ func init() {
 	// AWS report types: AWS_NIST_CSF, AWS_NIST_800-53_rev5, AWS_HIPAA, NIST_800-53_Rev4, LW_AWS_SEC_ADD_1_0,
 	//AWS_SOC_Rev2, AWS_PCI_DSS_3.2.1, AWS_CIS_S3, ISO_2700, SOC, AWS_CSA_CCM_4_0_5, PCI, AWS_Cyber_Essentials_2_2,
 	//AWS_ISO_27001:2013, AWS_CIS_14, AWS_CMMC_1.02, HIPAA, AWS_SOC_2, AWS_CIS_1_4_ISO_IEC_27002_2022, NIST_800-171_Rev2,
-	//AWS_NIST_800-171_rev2'
+	//AWS_NIST_800-171_rev2
 	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.Type, "type", "AWS_CIS_14",
 		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
 valid types:%s`, prettyPrintReportTypes(api.AwsReportTypes())))
 
+	// mark report type flag as deprecated
+	errcheckWARN(complianceAwsGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead"))
+
 	// Run 'lacework report-definition --subtype AWS' for a full list of AWS report names
-	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.ReportName, "report_name", "",
+	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.ReportName, "report_name",
+		api.ComplianceReportDefaultAws,
 		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
@@ -586,7 +601,8 @@ valid types:%s`, prettyPrintReportTypes(api.AwsReportTypes())))
 
 // Simple helper to prompt for approval after disable request
 func complianceAwsDisableReportCmdPrompt() (int, error) {
-	message := `WARNING! Disabling all recommendations for CIS_1_1 will disable the following reports and its corresponding compliance alerts:
+	message := `WARNING!
+Disabling all recommendations for CIS_1_1 will disable the following reports and its corresponding compliance alerts:
 AWS CIS Benchmark and S3 Report
 AWS HIPAA Report
 AWS ISO 27001:2013 Report
@@ -625,11 +641,11 @@ func complianceAwsDisableReportDisplayChanges() (bool, error) {
 
 func complianceAwsReportDetailsTable(report *api.AwsReport) [][]string {
 	return [][]string{
-		[]string{"Report Type", report.ReportType},
-		[]string{"Report Title", report.ReportTitle},
-		[]string{"Account ID", report.AccountID},
-		[]string{"Account Alias", report.AccountAlias},
-		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
+		{"Report Type", report.ReportType},
+		{"Report Title", report.ReportTitle},
+		{"Account ID", report.AccountID},
+		{"Account Alias", report.AccountAlias},
+		{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
 }
 

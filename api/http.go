@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -244,7 +243,7 @@ func (c *Client) httpResponseBodySniffer(r *http.Response) string {
 
 // a very simple body sniffer (use only for debugging purposes)
 func sniffBody(body io.ReadCloser) (io.ReadCloser, string) {
-	bodyBytes, err := ioutil.ReadAll(body)
+	bodyBytes, err := io.ReadAll(body)
 	if err != nil {
 		return nil, ""
 	}
@@ -253,5 +252,5 @@ func sniffBody(body io.ReadCloser) (io.ReadCloser, string) {
 		return nil, ""
 	}
 
-	return ioutil.NopCloser(bytes.NewBuffer(bodyBytes)), string(bodyBytes)
+	return io.NopCloser(bytes.NewBuffer(bodyBytes)), string(bodyBytes)
 }

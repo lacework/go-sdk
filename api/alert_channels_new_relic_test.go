@@ -36,7 +36,6 @@ func TestAlertChannelsGetNewRelic(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -46,7 +45,6 @@ func TestAlertChannelsGetNewRelic(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -69,7 +67,6 @@ func TestAlertChannelNewRelicUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -89,7 +86,6 @@ func TestAlertChannelNewRelicUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

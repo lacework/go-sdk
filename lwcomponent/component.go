@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 
-// The Lacework component package facilitates loading and executing components
+// A development kit for the cloud based of modular components.
 package lwcomponent
 
 import (
@@ -25,7 +25,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -47,13 +46,12 @@ import (
 //
 // You can load the state from the Lacework API server by passing an `api.Client`.
 //
-// client, err := api.NewClient(account, opts...)
-// cState, err := lwcomponent.LoadState(client)
+//	client, err := api.NewClient(account, opts...)
+//	cState, err := lwcomponent.LoadState(client)
 //
 // Or, you can load the state from the local storage.
 //
-// cState, err := lwcomponent.LocalState()
-//
+//	cState, err := lwcomponent.LocalState()
 type State struct {
 	Version    string      `json:"version"`
 	Components []Component `json:"components"`
@@ -155,7 +153,7 @@ func LocalState() (*State, error) {
 
 	stateFile := filepath.Join(componentsFile, "state")
 
-	stateBytes, err := ioutil.ReadFile(stateFile)
+	stateBytes, err := os.ReadFile(stateFile)
 	if err != nil {
 		return state, err
 	}
@@ -176,12 +174,12 @@ func LocalState() (*State, error) {
 // found, this function will return a `nil` pointer and `false`
 //
 // Usage:
-// ```go
-// component, found := s.GetComponent(name)
-// if !found {
-//   fmt.Println("Component %s not found", name)
-// }
-// ```
+//
+//	component, found := state.GetComponent(name)
+//
+//	if !found {
+//		fmt.Println("Component %s not found", name)
+//	}
 func (s State) GetComponent(name string) (*Component, bool) {
 	for i := range s.Components {
 		if s.Components[i].Name == name {
@@ -208,7 +206,7 @@ func (s State) WriteState() error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(stateFile, buf.Bytes(), 0644); err != nil {
+	if err := os.WriteFile(stateFile, buf.Bytes(), 0644); err != nil {
 		return err
 	}
 
@@ -334,6 +332,8 @@ type Breadcrumbs struct {
 	UpdateMessage       string `json:"updateMessage,omitempty"`
 }
 
+// Component can be a command-line tool, a new command that extends the Lacework CLI, or a library that
+// contains files used by another Lacework component.
 type Component struct {
 	Name          string         `json:"name"`
 	Description   string         `json:"description"`
@@ -479,7 +479,7 @@ func (c Component) WriteSignature(signature []byte) error {
 		return err
 	}
 
-	return ioutil.WriteFile(cvPath, signature, 0644)
+	return os.WriteFile(cvPath, signature, 0644)
 }
 
 // WriteVersion stores the component version on disk
@@ -498,7 +498,7 @@ func (c Component) WriteVersion(installed string) error {
 	if installed == "" {
 		installed = c.LatestVersion.String()
 	}
-	return ioutil.WriteFile(cvPath, []byte(installed), 0644)
+	return os.WriteFile(cvPath, []byte(installed), 0644)
 }
 
 // UpdateAvailable returns true if there is a newer version of the component
@@ -549,7 +549,7 @@ func (c *Component) loadDevSpecs() error {
 
 	devSpecs := filepath.Join(dir, ".dev")
 	if file.FileExists(devSpecs) {
-		devSpecsBytes, err := ioutil.ReadFile(devSpecs)
+		devSpecsBytes, err := os.ReadFile(devSpecs)
 		if err != nil {
 			return errors.Errorf("unable to read %s file", devSpecs)
 		}
@@ -646,7 +646,7 @@ func (c Component) EnterDevelopmentMode() error {
 			return err
 		}
 
-		return ioutil.WriteFile(devSpecs, buf.Bytes(), 0644)
+		return os.WriteFile(devSpecs, buf.Bytes(), 0644)
 	}
 
 	return nil

@@ -394,7 +394,9 @@ func sliceToUpper(list []string) (upper []string) {
 
 func validateEmail() survey.Validator {
 	return func(val interface{}) error {
-		emailRegex, _ := regexp.Compile("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
+		emailRegex, _ := regexp.Compile(
+			"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", //nolint
+		)
 		if !emailRegex.MatchString(val.(string)) {
 			return fmt.Errorf("not a valid email %s", val.(string))
 		}

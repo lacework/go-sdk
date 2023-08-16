@@ -262,6 +262,7 @@ func init() {
 }
 
 func usageTemplate() string {
+	// nolint:lll
 	return `Usage:{{if .Runnable}}
   {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
   {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}

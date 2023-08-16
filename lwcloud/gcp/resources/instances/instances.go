@@ -32,12 +32,14 @@ import (
 	models "github.com/lacework/go-sdk/lwcloud/gcp/resources/models"
 
 	compute "cloud.google.com/go/compute/apiv1"
+	"cloud.google.com/go/compute/apiv1/computepb"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-	computepb "google.golang.org/genproto/googleapis/cloud/compute/v1"
 )
 
-func EnumerateInstancesInProject(ctx context.Context, clientOption option.ClientOption, region string, ProjectId string) ([]models.InstanceDetails, error) {
+func EnumerateInstancesInProject(
+	ctx context.Context, clientOption option.ClientOption, region string, ProjectId string,
+) ([]models.InstanceDetails, error) {
 
 	var (
 		client *compute.InstancesClient
@@ -131,7 +133,10 @@ func EnumerateInstancesInProject(ctx context.Context, clientOption option.Client
 	return instances, nil
 }
 
-func EnumerateInstancesInOrg(ctx context.Context, clientOption option.ClientOption, region string, OrgId string, skipList map[string]bool, allowList map[string]bool) (map[string][]models.InstanceDetails, error) {
+func EnumerateInstancesInOrg(
+	ctx context.Context, clientOption option.ClientOption, region string,
+	OrgId string, skipList map[string]bool, allowList map[string]bool,
+) (map[string][]models.InstanceDetails, error) {
 
 	projects, err := projects.EnumerateProjects(ctx, clientOption, OrgId, OrgId, skipList, allowList)
 	if err != nil {

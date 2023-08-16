@@ -164,29 +164,6 @@ func TestGenerationConfigWithManagementGroupError(t *testing.T) {
 	assert.Empty(t, hcl)
 }
 
-func TestGenerationConfigWithStorageAccount(t *testing.T) {
-	ConfigWithStorage, fileErr := getFileContent("test-data/config-with-storage-account.tf")
-	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(true, false, true,
-		azure.WithExistingStorageAccount(true),
-		azure.WithStorageAccountName("test-storage-account-name"),
-		azure.WithStorageAccountResourceGroup("test-storage-account-resource-group"),
-	).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	assert.Equal(t, ConfigWithStorage, hcl)
-}
-
-func TestGenerationConfigWithStorageAccountError(t *testing.T) {
-	hcl, err := azure.NewTerraform(true, false, true,
-		azure.WithExistingStorageAccount(true),
-		azure.WithStorageAccountName("test-storage-account-name"),
-	).Generate()
-	assert.NotNil(t, err)
-	assert.True(t, strings.Contains(errors.Unwrap(err).Error(), "invalid inputs"))
-	assert.Empty(t, hcl)
-}
-
 func TestGenerationActivityLogWithSubscriptionsList(t *testing.T) {
 	ActivityLogWithSubscriptions, fileErr := getFileContent("test-data/activity-log-with-list-subscriptions.tf")
 	assert.Nil(t, fileErr)

@@ -33,7 +33,7 @@ var (
 
 // GetContainer gets a single LwAccount ResourceGroup matching the
 // provided resource guid
-func (svc *ResourceGroupsService) GetLwAccount(guid string) (
+func (svc *ResourceGroupsVersionService) GetLwAccount(guid string) (
 	response LwAccountResourceGroupResponse,
 	err error,
 ) {
@@ -47,7 +47,7 @@ func (svc *ResourceGroupsService) GetLwAccount(guid string) (
 }
 
 // UpdateLwAccount updates a single LwAccount ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) UpdateLwAccount(data ResourceGroup) (
+func (svc *ResourceGroupsVersionService) UpdateLwAccount(data ResourceGroup) (
 	response LwAccountResourceGroupResponse,
 	err error,
 ) {
@@ -67,7 +67,7 @@ func (svc *ResourceGroupsService) UpdateLwAccount(data ResourceGroup) (
 }
 
 // CreateLwAccount creates a single LwAccount ResourceGroup on the Lacework Server
-func (svc *ResourceGroupsService) CreateLwAccount(data ResourceGroup) (
+func (svc *ResourceGroupsVersionService) CreateLwAccount(data ResourceGroup) (
 	response LwAccountResourceGroupResponse,
 	err error,
 ) {

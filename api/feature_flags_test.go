@@ -12,7 +12,6 @@ import (
 
 func TestGetFeatureFlagsMatchingPrefix(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 	fakeServer.MockAPI("FeatureFlags/PUBLIC.sca", func(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +20,6 @@ func TestGetFeatureFlagsMatchingPrefix(t *testing.T) {
 		assert.Nil(t, err)
 	})
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

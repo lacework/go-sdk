@@ -1,15 +1,18 @@
 package lwgenerate
 
+// TODO update
 const (
 	LaceworkProviderSource  = "lacework/lacework"
 	LaceworkProviderVersion = "~> 1.0"
 
-	AwsConfigSource      = "lacework/config/aws"
-	AwsConfigVersion     = "~> 0.5"
-	AwsCloudTrailSource  = "lacework/cloudtrail/aws"
-	AwsCloudTrailVersion = "~> 2.0"
-	AwsEksAuditSource    = "lacework/eks-audit-log/aws"
-	AwsEksAuditVersion   = "~> 0.4"
+	AwsConfigSource                  = "lacework/config/aws"
+	AwsConfigVersion                 = "~> 0.5"
+	AwsCloudTrailSource              = "lacework/cloudtrail/aws"
+	AwsCloudTrailVersion             = "~> 2.7"
+	AwsCloudTrailControlTowerSource  = "lacework/cloudtrail-controltower/aws"
+	AwsCloudTrailControlTowerVersion = "~> 0.3"
+	AwsEksAuditSource                = "lacework/eks-audit-log/aws"
+	AwsEksAuditVersion               = "~> 1.0"
 
 	LWAzureConfigSource       = "lacework/config/azure"
 	LWAzureConfigVersion      = "~> 2.0"
@@ -21,7 +24,7 @@ const (
 	GcpConfigSource          = "lacework/config/gcp"
 	GcpConfigVersion         = "~> 2.3"
 	GcpAuditLogSource        = "lacework/audit-log/gcp"
-	GcpAuditLogVersion       = "~> 3.0"
+	GcpAuditLogVersion       = "~> 3.4"
 	GcpGKEAuditLogSource     = "lacework/gke-audit-log/gcp"
 	GcpGKEAuditLogVersion    = "~> 0.3"
 	GcpPubSubAuditLog        = "lacework/pub-sub-audit-log/gcp"

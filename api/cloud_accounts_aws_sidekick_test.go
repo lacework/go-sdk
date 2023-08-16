@@ -53,7 +53,6 @@ func TestCloudAccountsAwsSidekickGet(t *testing.T) {
 		apiPath    = fmt.Sprintf("CloudAccounts/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -63,7 +62,6 @@ func TestCloudAccountsAwsSidekickGet(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -88,7 +86,6 @@ func TestCloudAccountsAwsSidekickUpdate(t *testing.T) {
 		apiPath    = fmt.Sprintf("CloudAccounts/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -109,7 +106,6 @@ func TestCloudAccountsAwsSidekickUpdate(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

@@ -37,7 +37,6 @@ func TestAlertChannelsService_GetCiscoSparkWebhook(t *testing.T) {
 		fakeServer = lacework.MockServer()
 		webhook    = "https://api.ciscospark.com/v1/webhooks/incoming/api-token"
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -47,7 +46,6 @@ func TestAlertChannelsService_GetCiscoSparkWebhook(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -69,7 +67,6 @@ func TestAlertChannelsService_UpdateCiscoSparkWebhook(t *testing.T) {
 		fakeServer = lacework.MockServer()
 		webhook    = "https://api.ciscospark.com/v1/webhooks/incoming/api-token"
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -89,7 +86,6 @@ func TestAlertChannelsService_UpdateCiscoSparkWebhook(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

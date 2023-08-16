@@ -134,27 +134,27 @@ const (
 // NewReportRule returns an instance of the ReportRule struct
 //
 // Basic usage: Initialize a new ReportRule struct, then
-//              use the new instance to do CRUD operations
 //
-//   client, err := api.NewClient("account")
-//   if err != nil {
-//     return err
-//   }
+//	             use the new instance to do CRUD operations
 //
-//   reportRule := api.NewReportRule(
-//		"Foo",
-//		api.ReportRuleConfig{
-//		Description: "My Report Rule"
-//		Severities: api.ReportRuleSeverities{api.ReportRuleSeverityHigh,
-//		EmailAlertChannels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
-//		ResourceGroups: []string{"TECHALLY_111111111111AAAAAAAAAAAAAAAAAAAA"}
-//		ReportNotificationTypes: api.WeeklyEventsReportRuleNotifications{TrendReport: true},
-//       },
-//     },
-//   )
+//	  client, err := api.NewClient("account")
+//	  if err != nil {
+//	    return err
+//	  }
 //
-//   client.V2.ReportRules.Create(reportRule)
+//	  reportRule := api.NewReportRule(
+//			"Foo",
+//			api.ReportRuleConfig{
+//			Description: "My Report Rule"
+//			Severities: api.ReportRuleSeverities{api.ReportRuleSeverityHigh,
+//			EmailAlertChannels: []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
+//			ResourceGroups: []string{"TECHALLY_111111111111AAAAAAAAAAAAAAAAAAAA"}
+//			ReportNotificationTypes: api.WeeklyEventsReportRuleNotifications{TrendReport: true},
+//	      },
+//	    },
+//	  )
 //
+//	  client.V2.ReportRules.Create(reportRule)
 func NewReportRule(name string, rule ReportRuleConfig) (ReportRule, error) {
 	notifications, err := NewReportRuleNotificationTypes(rule.NotificationTypes)
 	if err != nil {

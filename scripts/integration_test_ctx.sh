@@ -10,8 +10,10 @@ run_integration_tests(){
   BRANCH=$(git branch --show-current)
   CHANGES=$(git --no-pager diff --name-only $BRANCH $(git merge-base $BRANCH main))
 
+  log "Changes -> ${CHANGES}"
+
   # Fetch relevant build tags
-  TAGS=$(go run integration/context/ctx.go $CHANGES)
+  TAGS=$(go run integration/context/ctx_cfg.go -- $CHANGES)
 
   # if no tags then exit
   if [ "$TAGS" = "" ]; then

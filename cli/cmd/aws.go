@@ -69,7 +69,9 @@ func awsDescribeRegions() ([]types.Region, error) {
 		Filters: filters,
 	}
 
-	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile))
+	cfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +92,9 @@ func awsRegionDescribeInstances(region string, filterSSH bool) ([]*lwrunner.AWSR
 		tagKey = agentCmdState.InstallTagKey
 		tag    = agentCmdState.InstallTag
 	)
-	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile))
+	cfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithSharedConfigProfile(agentCmdState.InstallAWSProfile),
+	)
 	if err != nil {
 		return nil, err
 	}

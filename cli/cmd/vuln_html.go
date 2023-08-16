@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"sort"
@@ -316,7 +315,7 @@ func generateVulnAssessmentHTML(response api.VulnerabilitiesContainersResponse) 
 		return errors.Wrap(err, "unable to execute template")
 	}
 
-	if err := ioutil.WriteFile(outputHTML, buff.Bytes(), os.ModePerm); err != nil {
+	if err := os.WriteFile(outputHTML, buff.Bytes(), os.ModePerm); err != nil {
 		return errors.Wrap(err, "unable to write html file")
 	}
 

@@ -36,7 +36,6 @@ func TestAlertChannelsGetAwsS3(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -46,7 +45,6 @@ func TestAlertChannelsGetAwsS3(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -69,7 +67,6 @@ func TestAlertChannelsAwsS3Update(t *testing.T) {
 		apiPath    = fmt.Sprintf("AlertChannels/%s", intgGUID)
 		fakeServer = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -91,7 +88,6 @@ func TestAlertChannelsAwsS3Update(t *testing.T) {
 	})
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

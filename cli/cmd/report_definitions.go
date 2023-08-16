@@ -74,8 +74,11 @@ var (
 		Long:    "List all report definitions configured in your Lacework account.",
 		Args:    cobra.NoArgs,
 		PreRunE: func(_ *cobra.Command, _ []string) error {
-			if reportDefinitionsCmdState.SubType != "" && !array.ContainsStr(api.ReportDefinitionSubtypes, reportDefinitionsCmdState.SubType) {
-				return errors.Errorf("'%s' is not valid. Report definitions subtype can be %s", reportDefinitionsCmdState.SubType, api.ReportDefinitionSubtypes)
+			if reportDefinitionsCmdState.SubType != "" &&
+				!array.ContainsStr(api.ReportDefinitionSubtypes, reportDefinitionsCmdState.SubType) {
+				return errors.Errorf("'%s' is not valid. Report definitions subtype can be %s",
+					reportDefinitionsCmdState.SubType, api.ReportDefinitionSubtypes,
+				)
 			}
 			return nil
 		},
@@ -358,11 +361,13 @@ func buildReportDefinitionDetailsTable(definition api.ReportDefinition) string {
 		}
 		policiesTable.WriteString("\n")
 
-		detailsTable.WriteString(renderOneLineCustomTable("POLICIES", policiesTable.String(), tableFunc(func(t *tablewriter.Table) {
-			t.SetBorder(false)
-			t.SetColumnSeparator(" ")
-			t.SetAutoWrapText(false)
-		})))
+		detailsTable.WriteString(renderOneLineCustomTable(
+			"POLICIES", policiesTable.String(), tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+			}),
+		))
 	}
 
 	return detailsTable.String()

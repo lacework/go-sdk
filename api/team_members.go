@@ -32,23 +32,23 @@ type TeamMembersService struct {
 //
 // Basic usage: Initialize a new TeamMember struct and then use the new instance to perform CRUD operations.
 //
-//   client, err := api.NewClient("account")
-//   if err != nil {
-//     return err
-//   }
+//	  client, err := api.NewClient("account")
+//	  if err != nil {
+//	    return err
+//	  }
 //
-//   teamMember := api.NewTeamMember(
-//		"FooBar",
-//		api.TeamMemberProps{
-//		Company: "ACME Inc",
-//		FirstName: "Foo",
-//		LastName: "Bar"
-//      },
-//   },
+//	  teamMember := api.NewTeamMember(
+//			"FooBar",
+//			api.TeamMemberProps{
+//			Company: "ACME Inc",
+//			FirstName: "Foo",
+//			LastName: "Bar"
+//	     },
+//	  },
+//
 // )
 //
 // client.V2.TeamMembers.Create(teamMember)
-//
 func NewTeamMember(username string, props TeamMemberProps) TeamMember {
 	return TeamMember{
 		Props:       props,
@@ -61,23 +61,23 @@ func NewTeamMember(username string, props TeamMemberProps) TeamMember {
 //
 // Basic usage: Initialize a new TeamMemberOrg struct and then use the new instance to perform CRUD operations.
 //
-//   client, err := api.NewClient("account")
-//   if err != nil {
-//     return err
-//   }
+//	  client, err := api.NewClient("account")
+//	  if err != nil {
+//	    return err
+//	  }
 //
-//   teamMember := api.NewTeamMemberOrg(
-//		"FooBar",
-//		api.TeamMemberProps{
-//		Company: "ACME Inc",
-//		FirstName: "Foo",
-//		LastName: "Bar"
-//      },
-//   },
+//	  teamMember := api.NewTeamMemberOrg(
+//			"FooBar",
+//			api.TeamMemberProps{
+//			Company: "ACME Inc",
+//			FirstName: "Foo",
+//			LastName: "Bar"
+//	     },
+//	  },
+//
 // )
 //
 // client.V2.TeamMembers.CreateOrg(teamMember)
-//
 func NewTeamMemberOrg(username string, props TeamMemberProps) TeamMemberOrg {
 	return TeamMemberOrg{
 		Props:             props,
@@ -106,7 +106,7 @@ func (svc *TeamMembersService) Create(tm TeamMember) (res TeamMemberResponse, er
 }
 
 // CreateOrg creates a single team member at the org level
-//TODO Move all ORG stuff into a different file
+// TODO Move all ORG stuff into a different file
 func (svc *TeamMembersService) CreateOrg(tm TeamMemberOrg) (res TeamMemberOrgResponse, err error) {
 	if !svc.client.OrgAccess() {
 		return res, errors.New("client configured to manage account-level datasets, use Create()")

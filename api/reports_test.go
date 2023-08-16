@@ -12,7 +12,6 @@ import (
 
 func TestV2ReportsAwsGet(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Reports",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +22,6 @@ func TestV2ReportsAwsGet(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -43,7 +41,6 @@ func TestV2ReportsAwsGet(t *testing.T) {
 
 func TestV2ReportsAwsGetByName(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Reports",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +51,6 @@ func TestV2ReportsAwsGetByName(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -74,7 +70,6 @@ func TestV2ReportsAwsGetByName(t *testing.T) {
 
 func TestV2ReportsAzureGet(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Reports",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +80,6 @@ func TestV2ReportsAzureGet(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -105,7 +99,6 @@ func TestV2ReportsAzureGet(t *testing.T) {
 
 func TestV2ReportsAzureGetByName(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Reports",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +109,6 @@ func TestV2ReportsAzureGetByName(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -136,7 +128,6 @@ func TestV2ReportsAzureGetByName(t *testing.T) {
 
 func TestV2ReportsGcpGet(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Reports",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -147,7 +138,6 @@ func TestV2ReportsGcpGet(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -167,7 +157,6 @@ func TestV2ReportsGcpGet(t *testing.T) {
 
 func TestV2ReportsGcpGetByName(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("Reports",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -178,7 +167,6 @@ func TestV2ReportsGcpGetByName(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

@@ -40,7 +40,7 @@ var (
 	compAzCmdState = struct {
 		Type       string
 		ReportName string
-	}{Type: "AZURE_CIS_131"}
+	}{ReportName: api.ComplianceReportDefaultAzure}
 
 	// complianceAzureListSubsCmd represents the list-subscriptions sub-command inside the azure command
 	complianceAzureListSubsCmd = &cobra.Command{
@@ -68,7 +68,10 @@ Use the following command to list all Azure Tenants configured in your account:
 			}
 
 			for _, az := range response.Data {
-				cliCompAzureSubscriptions = append(cliCompAzureSubscriptions, splitAzureSubscriptionsApiResponse(az))
+				cliCompAzureSubscriptions = append(
+					cliCompAzureSubscriptions,
+					splitAzureSubscriptionsApiResponse(az),
+				)
 			}
 
 			if cli.JSONOutput() {
@@ -136,11 +139,10 @@ Use the following command to list all Azure Tenants configured in your account:
 				return validReportName(api.ReportDefinitionSubTypeAzure.String(), compAzCmdState.ReportName)
 			}
 
-			if array.ContainsStr(api.AzureReportTypes(), compAzCmdState.Type) {
-				return nil
-			} else {
+			if cmd.Flags().Changed("type") && !array.ContainsStr(api.AzureReportTypes(), compAzCmdState.Type) {
 				return errors.Errorf("supported report types are: %s", strings.Join(api.AzureReportTypes(), ", "))
 			}
+			return nil
 		},
 		Short: "Get the latest Azure compliance report",
 		Long: `Get the latest Azure compliance assessment report, these reports run on a regular schedule,
@@ -160,11 +162,6 @@ To retrieve a specific report by its report name:
 `,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			reportType, err := api.NewAzureReportType(compAzCmdState.Type)
-			if err != nil {
-				return errors.Errorf("invalid report type %q", compAzCmdState.Type)
-			}
-
 			var (
 				// clean tenantID and subscriptionID if they were provided
 				// with an Alias in between parentheses
@@ -173,15 +170,20 @@ To retrieve a specific report by its report name:
 				config            = api.AzureReportConfig{
 					TenantID:       tenantID,
 					SubscriptionID: subscriptionID,
-					Value:          reportType.String(),
-					Parameter:      api.ReportFilterType,
+					// Default config is report_name
+					Value:     compAzCmdState.ReportName,
+					Parameter: api.ReportFilterName,
 				}
 			)
 
-			// if --report_name flag is used, set the report parameter
-			if cmd.Flags().Changed("report_name") {
-				config.Parameter = api.ReportFilterName
-				config.Value = compAzCmdState.ReportName
+			// if --type flag is used, set the report config to type
+			if cmd.Flags().Changed("type") {
+				reportType, err := api.NewAzureReportType(compAzCmdState.Type)
+				if err != nil {
+					return errors.Errorf("invalid report type %q", compAzCmdState.Type)
+				}
+				config.Parameter = api.ReportFilterType
+				config.Value = reportType.String()
 			}
 
 			if compCmdState.Pdf {
@@ -259,7 +261,7 @@ To retrieve a specific report by its report name:
 						AccountID:       report.SubscriptionID,
 						TenantName:      report.TenantName,
 						TenantID:        report.TenantID,
-						ReportType:      reportType.String(),
+						ReportType:      report.ReportType,
 						ReportTime:      report.ReportTime,
 						Recommendations: report.Recommendations,
 					},
@@ -524,8 +526,12 @@ func init() {
 valid types:%s`, prettyPrintReportTypes(api.AzureReportTypes())),
 	)
 
+	// mark report type flag as deprecated
+	errcheckWARN(complianceAzureGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead"))
+
 	// Run 'lacework report-definition --subtype Azure' for a full list of Azure report names
-	complianceAzureGetReportCmd.Flags().StringVar(&compAzCmdState.ReportName, "report_name", "",
+	complianceAzureGetReportCmd.Flags().StringVar(&compAzCmdState.ReportName, "report_name",
+		api.ComplianceReportDefaultAzure,
 		"report name to display, run 'lacework report-definitions list' for more information.")
 
 	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
@@ -552,7 +558,8 @@ func complianceAzureDisableReportCmdPrompt(arg string) (int, error) {
 	var message string
 	switch arg {
 	case "CIS", "CIS_1_0", "AZURE_CIS":
-		message = `WARNING! Disabling all recommendations for CIS_1_0 will disable the following reports and its corresponding compliance alerts:
+		message = `WARNING!
+Disabling all recommendations for CIS_1_0 will disable the following reports and its corresponding compliance alerts:
  AZURE CIS Benchmark
  PCI Benchmark
  SOC 2 Report
@@ -560,7 +567,8 @@ func complianceAzureDisableReportCmdPrompt(arg string) (int, error) {
  Would you like to proceed?
  `
 	case "CIS_1_3_1", "AZURE_CIS_131":
-		message = `WARNING! Disabling all recommendations for CIS_1_3_1 will disable the following reports and its corresponding compliance alerts:
+		message = `WARNING!
+Disabling all recommendations for CIS_1_3_1 will disable the following reports and its corresponding compliance alerts:
  AZURE CIS Benchmark 1.3.1
  PCI Benchmark Rev2
  SOC 2 Report Rev2
@@ -601,13 +609,13 @@ func complianceAzureDisableReportDisplayChanges(arg string) (bool, error) {
 
 func complianceAzureReportDetailsTable(report *api.AzureReport) [][]string {
 	return [][]string{
-		[]string{"Report Type", report.ReportType},
-		[]string{"Report Title", report.ReportTitle},
-		[]string{"Tenant ID", report.TenantID},
-		[]string{"Tenant Name", report.TenantName},
-		[]string{"Subscription ID", report.SubscriptionID},
-		[]string{"Subscription Name", report.SubscriptionName},
-		[]string{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
+		{"Report Type", report.ReportType},
+		{"Report Title", report.ReportTitle},
+		{"Tenant ID", report.TenantID},
+		{"Tenant Name", report.TenantName},
+		{"Subscription ID", report.SubscriptionID},
+		{"Subscription Name", report.SubscriptionName},
+		{"Report Time", report.ReportTime.UTC().Format(time.RFC3339)},
 	}
 }
 

@@ -1,3 +1,4 @@
+// A package that generates Lacework deployment code for Azure cloud.
 package azure
 
 import (
@@ -69,7 +70,8 @@ func (args *GenerateAzureTfConfigurationArgs) validate() error {
 	}
 
 	// Validate that active directory settings are correct
-	if !args.CreateAdIntegration && (args.AdApplicationId == "" || args.AdServicePrincipalId == "" || args.AdApplicationPassword == "") {
+	if !args.CreateAdIntegration && (args.AdApplicationId == "" ||
+		args.AdServicePrincipalId == "" || args.AdApplicationPassword == "") {
 		return errors.New("Active directory details must be set")
 	}
 
@@ -92,9 +94,14 @@ type AzureTerraformModifier func(c *GenerateAzureTfConfigurationArgs)
 // settings (config/activity log).
 //
 // Note: Additional configuration details may be set using modifiers of the AzureTerraformModifier type
-//
-func NewTerraform(enableConfig bool, enableActivityLog bool, createAdIntegration bool, mods ...AzureTerraformModifier) *GenerateAzureTfConfigurationArgs {
-	config := &GenerateAzureTfConfigurationArgs{ActivityLog: enableActivityLog, Config: enableConfig, CreateAdIntegration: createAdIntegration}
+func NewTerraform(
+	enableConfig bool, enableActivityLog bool, createAdIntegration bool, mods ...AzureTerraformModifier,
+) *GenerateAzureTfConfigurationArgs {
+	config := &GenerateAzureTfConfigurationArgs{
+		ActivityLog:         enableActivityLog,
+		Config:              enableConfig,
+		CreateAdIntegration: createAdIntegration,
+	}
 	for _, m := range mods {
 		m(config)
 	}
@@ -302,10 +309,9 @@ func createAzureADProvider() ([]*hclwrite.Block, error) {
 // configuration but with nothing set,  this is as per the
 // Azure examples and is of the format
 //
-//         provider "azurerm" {
-//            features = {}
-//         }
-//
+//	provider "azurerm" {
+//	   features = {}
+//	}
 func createAzureRMProvider(subscriptionID string) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 	attrs := map[string]interface{}{}
@@ -367,9 +373,12 @@ func createConfig(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, er
 		// Check if we have created an Active Directory app
 		if args.CreateAdIntegration {
 			attributes["use_existing_ad_application"] = true
-			attributes["application_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_id"})
-			attributes["application_password"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_password"})
-			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "service_principal_id"})
+			attributes["application_id"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "application_id"})
+			attributes["application_password"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "application_password"})
+			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "service_principal_id"})
 		} else {
 			attributes["use_existing_ad_application"] = true
 			attributes["application_id"] = args.AdApplicationId
@@ -391,12 +400,6 @@ func createConfig(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, er
 		if args.ManagementGroup {
 			attributes["use_management_group"] = args.ManagementGroup
 			attributes["management_group_id"] = args.ManagementGroupId
-		}
-
-		// Set storage info if existing storage flag is set
-		if args.ExistingStorageAccount {
-			attributes["storage_account_name"] = args.StorageAccountName
-			attributes["storage_account_resource_group"] = args.StorageAccountResourceGroup
 		}
 
 		moduleDetails = append(moduleDetails,
@@ -431,9 +434,12 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 		// Check if we have created an Active Directory integration
 		if args.CreateAdIntegration {
 			attributes["use_existing_ad_application"] = true
-			attributes["application_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_id"})
-			attributes["application_password"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "application_password"})
-			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal([]string{"module", "az_ad_application", "service_principal_id"})
+			attributes["application_id"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "application_id"})
+			attributes["application_password"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "application_password"})
+			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "service_principal_id"})
 		} else {
 			attributes["use_existing_ad_application"] = true
 			attributes["application_id"] = args.AdApplicationId

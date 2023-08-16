@@ -116,8 +116,10 @@ func (svc *v2ContainerVulnerabilityService) ScanStatus(id string) (
 	return
 }
 
-func (svc *v2ContainerVulnerabilityService) Scan(registry, repository, tagOrHash string) (response VulnerabilitiesContainerScanResponse,
-	err error) {
+func (svc *v2ContainerVulnerabilityService) Scan(registry, repository, tagOrHash string) (
+	response VulnerabilitiesContainerScanResponse,
+	err error,
+) {
 	err = svc.client.RequestEncoderDecoder("POST",
 		apiV2VulnerabilitiesContainersScan,
 		vulnContainerScanRequest{registry, repository, tagOrHash},
@@ -471,6 +473,7 @@ type VulnerabilityHost struct {
 		ExceptionProps []interface{} `json:"exception_props"`
 		Hostname       string        `json:"hostname"`
 		McEvalGUID     string        `json:"mc_eval_guid"`
+		CollectorType  string        `json:"collector_type"`
 	} `json:"evalCtx"`
 	FeatureKey struct {
 		Name             string `json:"name"`

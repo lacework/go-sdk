@@ -16,6 +16,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+
 package integration
 
 import (
@@ -41,10 +42,10 @@ func TestComplianceAwsList(t *testing.T) {
 func TestComplianceAwsGetReportFilter(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	detailsOutput := "recommendations showing"
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--status", "compliant", "--type", "AWS_CIS_S3")
-
-	assert.Contains(t, out.String(), detailsOutput, "Filtered detail output should contain filtered result")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--status", "compliant",
+		"--report_name", "AWS NIST 800-171 rev2")
 	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Contains(t, out.String(), detailsOutput, "Filtered detail output should contain filtered result")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(), "COMPLIANCE REPORT DETAILS",
 		"STDOUT table headers changed, please check")
@@ -99,6 +100,41 @@ func TestComplianceAwsGetReportDetails(t *testing.T) {
 		"STDOUT table headers changed, please check")
 }
 
+func TestComplianceAwsGetReportCsvOutput(t *testing.T) {
+	account := os.Getenv("LW_INT_TEST_AWS_ACC")
+	// re-use the directory to take advantage of our caching mechanism
+	dir := createTOMLConfigFromCIvars()
+	defer os.RemoveAll(dir)
+
+	t.Run("no filters", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), account)
+	})
+	t.Run("status = non-compliant", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
+			"--status", "non-compliant")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), account)
+	})
+	t.Run("status = compliant", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
+			"--status", "compliant")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), account)
+	})
+	t.Run("status = requires-manual-assessment", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
+			"--status", "requires-manual-assessment")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), account)
+	})
+}
+
 func TestComplianceAwsGetReportFiltersWithJsonOutput(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--severity", "critical", "--json")
@@ -106,7 +142,7 @@ func TestComplianceAwsGetReportFiltersWithJsonOutput(t *testing.T) {
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	// When critical severity filter is set, other severities should not be returned in json result
-	assert.NotContains(t, severities, out.String(),
+	assert.NotContains(t, out.String(), severities,
 		"Json output does not adhere to severity filter")
 }
 
@@ -123,12 +159,12 @@ func TestComplianceAwsGetReportAccountIDWithAlias(t *testing.T) {
 		"STDERR changed, please check")
 }
 
-func TestComplianceAwsGetReportTypeAWS_SOC_Rev2(t *testing.T) {
+func TestComplianceAwsGetReportTypeAWS_SOC_2(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", "AWS_SOC_Rev2")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--report_name", "AWS SOC 2")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-	assert.Contains(t, out.String(), "AWS SOC 2 Report Rev2",
+	assert.Contains(t, out.String(), "AWS SOC 2",
 		"STDOUT report type missing or something else is going on, please check")
 	assert.Contains(t, out.String(), "Report Type",
 		"STDOUT table headers changed, please check")
@@ -149,24 +185,28 @@ func TestComplianceAwsGetReportByName(t *testing.T) {
 		"Account ID in compliance report is not correct")
 }
 
-func TestComplianceAwsGetAllReportType(t *testing.T) {
+// @afiune Had to disable since it is failing pretty consistent for a number of report types with the error:
+//
+//	ERROR no data found in the report
+//
+// => https://lacework.atlassian.net/browse/GROW-2316
+func _TestComplianceAwsGetAllReportType(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	for _, reportType := range api.AwsReportTypes() {
 		t.Run(reportType, func(t *testing.T) {
 			out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", reportType)
-			assert.Empty(t, err.String(), "STDERR should be empty")
+			assert.Contains(t, err.String(), "--type has been deprecated")
 			assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 			assert.Contains(t, out.String(), "COMPLIANCE REPORT DETAILS",
 				"STDOUT table headers changed, please check")
 		})
 	}
 }
-
 func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "2.1.2")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", "AWS_CIS_14", "2.1.2")
 
-	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Contains(t, err.String(), "--type has been deprecated,")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(), "RECOMMENDATION DETAILS",
 		"STDOUT table headers changed, please check")

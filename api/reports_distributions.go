@@ -137,17 +137,22 @@ func (svc *ReportDistributionsService) Delete(guid string) error {
 	return svc.client.RequestDecoder("DELETE", fmt.Sprintf(apiV2ReportDistributionsFromGUID, guid), nil, nil)
 }
 
-func (svc *ReportDistributionsService) Create(report ReportDistribution) (response ReportDistributionResponse, err error) {
+func (svc *ReportDistributionsService) Create(report ReportDistribution) (
+	response ReportDistributionResponse, err error,
+) {
 	err = svc.client.RequestEncoderDecoder("POST", apiV2ReportDistributions, report, &response)
 	return
 }
 
-func (svc *ReportDistributionsService) Update(guid string, report ReportDistributionUpdate) (response ReportDistributionResponse, err error) {
+func (svc *ReportDistributionsService) Update(guid string, report ReportDistributionUpdate) (
+	response ReportDistributionResponse, err error,
+) {
 	if guid == "" {
 		return response, errors.New("specify a report distribution guid")
 	}
 
-	err = svc.client.RequestEncoderDecoder("PATCH", fmt.Sprintf(apiV2ReportDistributionsFromGUID, guid), report, &response)
+	err = svc.client.RequestEncoderDecoder("PATCH",
+		fmt.Sprintf(apiV2ReportDistributionsFromGUID, guid), report, &response)
 	return
 }
 

@@ -20,7 +20,6 @@ package lwlogger_test
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"syscall"
 	"testing"
@@ -191,7 +190,7 @@ func TestLoggerNewLogFormatEnv(t *testing.T) {
 
 func TestLoggerNewWithWriter(t *testing.T) {
 	// create a temporal file to write the logs
-	tmpfile, err := ioutil.TempFile("", "logger")
+	tmpfile, err := os.CreateTemp("", "logger")
 	assert.Nil(t, err)
 	defer os.Remove(tmpfile.Name())
 	logOutput, err := os.OpenFile(tmpfile.Name(), syscall.O_CREAT|syscall.O_RDWR|syscall.O_APPEND, 0666)
@@ -201,7 +200,7 @@ func TestLoggerNewWithWriter(t *testing.T) {
 	lwlogger.NewWithWriter("DEBUG", logOutput).Debug("we are debugging")
 
 	// after writing the log message, read the file and assert its content
-	logContentB, err := ioutil.ReadFile(tmpfile.Name())
+	logContentB, err := os.ReadFile(tmpfile.Name())
 	assert.Nil(t, err)
 	logContent := string(logContentB)
 	assert.Contains(t, logContent, "we are debugging")

@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	aead.dev/minisign v0.2.0
-	cloud.google.com/go/compute v1.12.1
-	cloud.google.com/go/compute/metadata v0.2.1
+	cloud.google.com/go/compute v1.14.0
+	cloud.google.com/go/compute/metadata v0.2.3
 	cloud.google.com/go/oslogin v1.9.0
 	cloud.google.com/go/resourcemanager v1.4.0
 	github.com/AlecAivazis/survey/v2 v2.3.2
@@ -31,13 +31,13 @@ require (
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/honeycombio/libhoney-go v1.18.0
 	github.com/imdario/mergo v0.3.13
-	github.com/kyokomi/emoji/v2 v2.2.10
+	github.com/kyokomi/emoji/v2 v2.2.12
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/peterbourgon/diskv/v3 v3.0.1
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.13.0
 	github.com/stretchr/testify v1.8.1
@@ -45,7 +45,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.4.0
 	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/text v0.7.0
+	golang.org/x/text v0.11.0
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0
@@ -67,7 +67,7 @@ require (
 	github.com/spf13/cast v1.5.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 	google.golang.org/api v0.103.0
-	google.golang.org/genproto v0.0.0-20221201164419-0e50fba7f41c
+	google.golang.org/genproto v0.0.0-20221202195650-67e5cbc046fd
 )
 
 require (
@@ -147,11 +147,11 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/image v0.0.0-20191206065243-da761ea9ff43 // indirect
-	golang.org/x/mod v0.7.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/tools v0.4.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

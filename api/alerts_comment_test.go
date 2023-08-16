@@ -49,7 +49,6 @@ var alertCommentJSON = `{
 
 func TestAlertsCommentMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d/comment", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +72,6 @@ func TestAlertsCommentOK(t *testing.T) {
 	mockResponse := alertCommentJSON
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d/comment", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -100,7 +98,6 @@ func TestAlertsCommentOK(t *testing.T) {
 
 func TestAlertsCommentBad(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d/comment", alertID),
 		func(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +121,6 @@ func TestAlertsCommentBad(t *testing.T) {
 
 func TestAlertsCommentError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		fmt.Sprintf("Alerts/%d/comment", alertID),
 		func(w http.ResponseWriter, r *http.Request) {

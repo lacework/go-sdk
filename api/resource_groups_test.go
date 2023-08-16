@@ -80,7 +80,6 @@ func TestResourceGroupGet(t *testing.T) {
 		vanillaGroup = singleVanillaResourceGroup(resourceGUID, vanillaType, "")
 		fakeServer   = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -101,7 +100,6 @@ func TestResourceGroupGet(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -138,7 +136,6 @@ func TestResourceGroupsDelete(t *testing.T) {
 		getResponse  = generateResourceGroupResponse(vanillaInt)
 		fakeServer   = lacework.MockServer()
 	)
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
 
@@ -166,7 +163,6 @@ func TestResourceGroupsDelete(t *testing.T) {
 	)
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)
@@ -214,7 +210,6 @@ func TestResourceGroupsList(t *testing.T) {
 	}
 	expectedLen := len(allGuids)
 
-	fakeServer.UseApiV2()
 	fakeServer.MockToken("TOKEN")
 	fakeServer.MockAPI("ResourceGroups",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -236,7 +231,6 @@ func TestResourceGroupsList(t *testing.T) {
 	defer fakeServer.Close()
 
 	c, err := api.NewClient("test",
-		api.WithApiV2(),
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
 	)

@@ -37,7 +37,6 @@ var (
 
 func TestQueryValidateMethod(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/validate",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +60,6 @@ func TestQueryValidateOK(t *testing.T) {
 	mockResponse := mockQueryDataResponse(newQueryJSON)
 
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/validate",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +85,6 @@ func TestQueryValidateOK(t *testing.T) {
 
 func TestQueryValidateError(t *testing.T) {
 	fakeServer := lacework.MockServer()
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI(
 		"Queries/validate",
 		func(w http.ResponseWriter, r *http.Request) {

@@ -37,7 +37,6 @@ func TestRecommendationsAwsList(t *testing.T) {
 	)
 
 	fakeServer.MockToken("TOKEN")
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI("recommendations/aws",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "List() should be a GET method")
@@ -68,7 +67,6 @@ func TestRecommendationsAwsPatch(t *testing.T) {
 	)
 
 	fakeServer.MockToken("TOKEN")
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI("recommendations/aws",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "PATCH", r.Method, "AwsPatch() should be a PATCH method")

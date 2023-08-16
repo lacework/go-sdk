@@ -70,7 +70,9 @@ func updateReportDistribution(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func promptUpdateReportDistribution(existing api.ReportDistribution) (reportDistribution api.ReportDistributionUpdate, err error) {
+func promptUpdateReportDistribution(existing api.ReportDistribution) (
+	reportDistribution api.ReportDistributionUpdate, err error,
+) {
 	cli.StartProgress("Fetching list of alert channels...")
 	definition, err := cli.LwApi.V2.ReportDefinitions.Get(existing.ReportDefinitionGuid)
 	cli.StopProgress()
@@ -109,13 +111,21 @@ func promptUpdateReportDistribution(existing api.ReportDistribution) (reportDist
 			Validate: survey.Required,
 		},
 		{
-			Name:     "frequency",
-			Prompt:   &survey.Select{Message: UpdateReportDistributionFrequencyQuestion, Options: api.ReportDistributionFrequencies(), Default: existing.Frequency},
+			Name: "frequency",
+			Prompt: &survey.Select{
+				Message: UpdateReportDistributionFrequencyQuestion,
+				Options: api.ReportDistributionFrequencies(),
+				Default: existing.Frequency,
+			},
 			Validate: survey.Required,
 		},
 		{
-			Name:     "channels",
-			Prompt:   &survey.MultiSelect{Message: UpdateReportDistributionAlertChannelsQuestion, Options: channelOptions, Default: channelDefaults},
+			Name: "channels",
+			Prompt: &survey.MultiSelect{
+				Message: UpdateReportDistributionAlertChannelsQuestion,
+				Options: channelOptions,
+				Default: channelDefaults,
+			},
 			Validate: survey.Required,
 		},
 	}
@@ -166,7 +176,9 @@ func promptUpdateReportDistribution(existing api.ReportDistribution) (reportDist
 	return
 }
 
-func promptUpdateReportDistributionScope(distribution *api.ReportDistributionUpdate, subReportType string, existing api.ReportDistribution) error {
+func promptUpdateReportDistributionScope(
+	distribution *api.ReportDistributionUpdate, subReportType string, existing api.ReportDistribution,
+) error {
 	distributionScope := ""
 	if err := survey.AskOne(&survey.Select{
 		Message: CreateReportDistributionScopeQuestion,
@@ -192,7 +204,9 @@ func promptUpdateReportDistributionScope(distribution *api.ReportDistributionUpd
 	}
 }
 
-func promptUpdateReportDistributionResourceGroup(distribution *api.ReportDistributionUpdate, existing api.ReportDistribution) error {
+func promptUpdateReportDistributionResourceGroup(
+	distribution *api.ReportDistributionUpdate, existing api.ReportDistribution,
+) error {
 	cli.StartProgress("Fetching list of resource groups...")
 	resourceGroups, err := cli.LwApi.V2.ResourceGroups.List()
 	cli.StopProgress()
@@ -235,7 +249,9 @@ func promptUpdateReportDistributionResourceGroup(distribution *api.ReportDistrib
 	return nil
 }
 
-func promptUpdateReportDistributionIntegration(distribution *api.ReportDistributionUpdate, reportType string, existing api.ReportDistribution) error {
+func promptUpdateReportDistributionIntegration(
+	distribution *api.ReportDistributionUpdate, reportType string, existing api.ReportDistribution,
+) error {
 	var integrations []api.ReportDistributionIntegration
 
 	switch reportType {
@@ -302,7 +318,9 @@ func promptUpdateReportDistributionSeverities(existing api.ReportDistribution) (
 	return sevs, nil
 }
 
-func promptUpdateReportDistributionIntegrationsAws(integrations *[]api.ReportDistributionIntegration, existing api.ReportDistribution) error {
+func promptUpdateReportDistributionIntegrationsAws(
+	integrations *[]api.ReportDistributionIntegration, existing api.ReportDistribution,
+) error {
 	cli.StartProgress("Fetching Aws Account IDs...")
 	accounts, err := cli.LwApi.V2.CloudAccounts.ListByType(api.AwsCfgCloudAccount)
 	cli.StopProgress()

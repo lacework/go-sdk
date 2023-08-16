@@ -101,6 +101,12 @@ func init() {
 		"local", "l", false,
 		"automatically generate the package manifest from the local host",
 	)
+
+	// the collector_type of the assessment
+	vulHostShowAssessmentCmd.Flags().StringVar(&vulCmdState.CollectorType,
+		"collector_type", vulnHostCollectorTypeAgentless,
+		"filter assessments by collector type (Agent or Agentless)",
+	)
 }
 
 func cvesSummary(hosts []api.VulnerabilityHost) map[string]VulnCveSummary {

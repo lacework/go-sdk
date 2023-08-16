@@ -177,7 +177,8 @@ func buildDetailsTable(integration api.V2RawType) string {
 			case int:
 				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.Itoa(val)})
 			case float64:
-				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.FormatFloat(val, 'f', -1, 64)})
+				details = append(details,
+					[]string{strings.ToUpper(format.SpaceUpperCase(k)), strconv.FormatFloat(val, 'f', -1, 64)})
 			case string:
 				details = append(details, []string{strings.ToUpper(format.SpaceUpperCase(k)), val})
 			case map[string]any:
@@ -218,8 +219,10 @@ func buildDetailsTable(integration api.V2RawType) string {
 	details = append(details, []string{"UPDATED AT", integration.GetCommon().CreatedOrUpdatedTime})
 	details = append(details, []string{"UPDATED BY", integration.GetCommon().CreatedOrUpdatedBy})
 	if integration.GetCommon().State != nil {
-		details = append(details, []string{"STATE UPDATED AT", integration.GetCommon().State.LastUpdatedTime.Format(time.RFC3339)})
-		details = append(details, []string{"LAST SUCCESSFUL STATE", integration.GetCommon().State.LastSuccessfulTime.Format(time.RFC3339)})
+		details = append(details, []string{
+			"STATE UPDATED AT", integration.GetCommon().State.LastUpdatedTime.Format(time.RFC3339)})
+		details = append(details, []string{
+			"LAST SUCCESSFUL STATE", integration.GetCommon().State.LastSuccessfulTime.Format(time.RFC3339)})
 
 		//output state details as a json string
 		jsonState, err := json.Marshal(integration.GetCommon().State.Details)
@@ -278,6 +281,7 @@ func promptCreateCloudAccount() error {
 				"GCP Audit Log PubSub",
 				"Azure Config",
 				"Azure Activity Log",
+				"OCI Config",
 			},
 		}
 		err = survey.AskOne(prompt, &cloudAccount)
@@ -305,6 +309,8 @@ func promptCreateCloudAccount() error {
 		return createAzureConfigIntegration()
 	case "Azure Activity Log":
 		return createAzureActivityLogIntegration()
+	case "OCI Config":
+		return createOciConfigIntegration()
 	default:
 		return errors.New("unknown cloud account type")
 	}

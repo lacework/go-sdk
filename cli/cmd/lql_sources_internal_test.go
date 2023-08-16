@@ -32,22 +32,22 @@ type querySourcesTableTest struct {
 }
 
 var querySourcesTableTests = []querySourcesTableTest{
-	querySourcesTableTest{
+	{
 		Name:  "empty",
 		Input: []api.Datasource{},
 	},
-	querySourcesTableTest{
+	{
 		Name: "one",
 		Input: []api.Datasource{
-			api.Datasource{Name: "mySource", Description: "abc"},
+			{Name: "mySource", Description: "abc"},
 		},
 		Expected: [][]string{{"mySource\nabc"}},
 	},
-	querySourcesTableTest{
+	{
 		Name: "sort",
 		Input: []api.Datasource{
-			api.Datasource{Name: "mySource", Description: "abc"},
-			api.Datasource{Name: "aSource", Description: "xyz"},
+			{Name: "mySource", Description: "abc"},
+			{Name: "aSource", Description: "xyz"},
 		},
 		Expected: [][]string{
 			{"aSource\nxyz"},

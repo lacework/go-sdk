@@ -48,6 +48,15 @@ var cdkDevState = struct {
 	Description string
 }{}
 
+var cdkGolangScaffoldingRequirements = map[string]string{
+	"go": "https://go.dev/dl/",
+}
+
+var cdkPythonScaffoldingRequirements = map[string]string{
+	"python3": "https://www.python.org/downloads/",
+	"poetry":  "https://python-poetry.org/docs/",
+}
+
 func init() {
 	componentsDevModeCmd.Flags().StringVar(
 		&cdkDevState.Type,
@@ -173,6 +182,10 @@ func runComponentsDevMode(_ *cobra.Command, args []string) error {
 }
 
 func cdkGolangScaffolding(component *lwcomponent.Component) error {
+	if err := cdkScaffoldingPreflightCheck("Golang", cdkGolangScaffoldingRequirements); err != nil {
+		return err
+	}
+
 	cli.OutputHuman("\nDeploying %s scaffolding:\n", color.HiMagentaString("Golang"))
 	rootPath, err := component.RootPath()
 	if err != nil {
@@ -275,6 +288,10 @@ func cdkGolangScaffolding(component *lwcomponent.Component) error {
 }
 
 func cdkPythonScaffolding(component *lwcomponent.Component) error {
+	if err := cdkScaffoldingPreflightCheck("Python", cdkPythonScaffoldingRequirements); err != nil {
+		return err
+	}
+
 	cli.OutputHuman("\nDeploying %s scaffolding:\n", color.HiMagentaString("Python"))
 	rootPath, err := component.RootPath()
 	if err != nil {
@@ -350,11 +367,22 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(fmt.Sprintf("build = \"poetry run pyinstaller src/%s/__main__.py --collect-submodules application -F --name %s --distpath .\"\n", component.Name, component.Name))
+
+	_, err = f.WriteString("build = \"poetry run pyinstaller src/")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(fmt.Sprintf("clean = \"rm -r build/ %s %s.spec\"\n", component.Name, component.Name))
+	_, err = f.WriteString(fmt.Sprintf(
+		"%s/__main__.py --collect-submodules application -F --name %s --distpath .\"\n",
+		component.Name, component.Name,
+	))
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString(fmt.Sprintf(
+		"clean = \"rm -r build/ %s %s.spec\"\n",
+		component.Name, component.Name,
+	))
 	if err != nil {
 		return err
 	}
@@ -386,6 +414,21 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 	}
 
 	cli.OutputHuman("\nDeployment completed! Time for %s\n", randomEmoji())
+	return nil
+}
+
+func cdkScaffoldingPreflightCheck(scaffolding string, requirements map[string]string) error {
+	errMessage := ""
+	for file, site := range requirements {
+		if _, err := exec.LookPath(file); err != nil {
+			errMessage += fmt.Sprintf(`
+%s is required to create the %s scaffolding. Please install it before proceeding:
+  %s: %s`, file, scaffolding, file, site)
+		}
+	}
+	if errMessage != "" {
+		return errors.New(errMessage)
+	}
 	return nil
 }
 

@@ -20,7 +20,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	config, ok := profiles["default"]
+	_, ok := profiles["default"]
 	if !ok {
 		fmt.Println("You have a default profile configured!")
 	} else {

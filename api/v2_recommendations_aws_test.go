@@ -35,7 +35,6 @@ func TestRecommendationsAwsGetReport(t *testing.T) {
 	)
 
 	fakeServer.MockToken("TOKEN")
-	fakeServer.UseApiV2()
 	fakeServer.MockAPI("recommendations/aws",
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "GetReport() should be a GET method")

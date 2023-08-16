@@ -31,16 +31,16 @@ import (
 // Access Token that matches the provider token alias and return
 // only the token found:
 //
-//		SearchFilter{
-//			Filters: []Filter{
-//				Filter{
-//					Field:      "tokenAlias",
-//					Expression: "eq",
-//					Value:      "k8s-deployment,
-//				},
+//	SearchFilter{
+//		Filters: []Filter{
+//			Filter{
+//				Field:      "tokenAlias",
+//				Expression: "eq",
+//				Value:      "k8s-deployment,
 //			},
-//			Returns: []string{"accessToken"},
-//		}
+//		},
+//		Returns: []string{"accessToken"},
+//	}
 type SearchFilter struct {
 	*TimeFilter `json:"timeFilter,omitempty"`
 	Filters     []Filter `json:"filters,omitempty"`
@@ -85,7 +85,9 @@ func WindowedSearchFirst(fn search, size int, max int, response SearchResponse, 
 	}
 
 	// if start and end time are the same, adjust the windows
-	timeDifference := int(math.RoundToEven(filter.GetTimeFilter().EndTime.Sub(*filter.GetTimeFilter().StartTime).Hours() / 24))
+	timeDifference := int(math.RoundToEven(
+		filter.GetTimeFilter().EndTime.Sub(*filter.GetTimeFilter().StartTime).Hours() / 24),
+	)
 
 	if timeDifference == 0 {
 		newStart := filter.GetTimeFilter().StartTime.AddDate(0, 0, -size)

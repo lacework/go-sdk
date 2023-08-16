@@ -25,17 +25,10 @@ import (
 )
 
 func TestApiPath(t *testing.T) {
-	c1 := &Client{apiVersion: "v1"}
-	assert.Equal(t, "/api/v1/foo", c1.apiPath("foo"), "api path mismatch")
-	assert.Equal(t,
-		"/api/v1/access/tokens",
-		c1.apiPath(apiTokens),
-		"token api path mismatch")
-
-	c2 := &Client{apiVersion: "v2"}
-	assert.Equal(t, "/api/v2/bar", c2.apiPath("bar"), "api path mismatch")
+	c := &Client{apiVersion: "v2"}
+	assert.Equal(t, "/api/v2/bar", c.apiPath("bar"), "api path mismatch")
 	assert.Equal(t,
 		"/api/v2/UserProfile",
-		c2.apiPath(apiV2UserProfile),
+		c.apiPath(apiV2UserProfile),
 		"integrations api path mismatch")
 }

@@ -20,7 +20,7 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"testing"
 	"time"
@@ -30,7 +30,7 @@ import (
 
 func TestCacheGlobal(t *testing.T) {
 	// create a temporal directory for our global cache
-	dir, err := ioutil.TempDir("", "lacework-cli-cache")
+	dir, err := os.MkdirTemp("", "example")
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +55,7 @@ func TestCacheGlobal(t *testing.T) {
 
 func TestCacheGlobalWithLongPath(t *testing.T) {
 	// create a temporal directory for our global cache
-	dir, err := ioutil.TempDir("", "lacework-cli-cache")
+	dir, err := os.MkdirTemp("", "example")
 	if err != nil {
 		panic(err)
 	}
@@ -80,7 +80,7 @@ func TestCacheGlobalWithLongPath(t *testing.T) {
 
 func TestCacheScopedStandalone(t *testing.T) {
 	// create a temporal directory for our global cache
-	dir, err := ioutil.TempDir("", "lacework-cli-cache")
+	dir, err := os.MkdirTemp("", "example")
 	if err != nil {
 		panic(err)
 	}
@@ -113,7 +113,7 @@ func TestCacheScopedStandalone(t *testing.T) {
 
 func TestCacheScopedOrgAccounts(t *testing.T) {
 	// create a temporal directory for our global cache
-	dir, err := ioutil.TempDir("", "lacework-cli-cache")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}
@@ -144,7 +144,7 @@ func TestCacheScopedOrgAccounts(t *testing.T) {
 
 func TestCacheEndToEnd(t *testing.T) {
 	// create a temporal directory for our global cache
-	dir, err := ioutil.TempDir("", "lacework-cli-cache")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}
@@ -184,7 +184,7 @@ func TestCacheEndToEnd(t *testing.T) {
 
 func TestWriteReadAssetToCache(t *testing.T) {
 	// create a temporal directory for our global cache
-	dir, err := ioutil.TempDir("", "lacework-cli-cache")
+	dir, err := os.MkdirTemp("", "t")
 	if err != nil {
 		panic(err)
 	}

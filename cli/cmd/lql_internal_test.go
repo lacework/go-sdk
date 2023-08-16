@@ -46,37 +46,37 @@ type parseQueryTimeTest struct {
 var (
 	atDay, _            = lwtime.ParseRelative("@d")
 	parseQueryTimeTests = []parseQueryTimeTest{
-		parseQueryTimeTest{
+		{
 			Name:       "valid-rfc-utc",
 			Input:      "2021-03-31T00:00:00Z",
 			ReturnTime: "2021-03-31T00:00:00Z",
 			ReturnErr:  nil,
 		},
-		parseQueryTimeTest{
+		{
 			Name:       "valid-rfc-central",
 			Input:      "2021-03-31T00:00:00-05:00",
 			ReturnTime: "2021-03-31T05:00:00Z",
 			ReturnErr:  nil,
 		},
-		parseQueryTimeTest{
+		{
 			Name:       "valid-milli",
 			Input:      "1617230464000",
 			ReturnTime: "2021-03-31T22:41:04Z",
 			ReturnErr:  nil,
 		},
-		parseQueryTimeTest{
+		{
 			Name:       "valid-relative",
 			Input:      "@d",
 			ReturnTime: atDay.UTC().Format(time.RFC3339),
 			ReturnErr:  nil,
 		},
-		parseQueryTimeTest{
+		{
 			Name:       "empty",
 			Input:      "",
 			ReturnTime: "0001-01-01T00:00:00Z",
 			ReturnErr:  errors.New("unable to parse time ()"),
 		},
-		parseQueryTimeTest{
+		{
 			Name:       "invalid",
 			Input:      "jweaver",
 			ReturnTime: "0001-01-01T00:00:00Z",

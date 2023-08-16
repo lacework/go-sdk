@@ -60,7 +60,11 @@ func (svc *ComponentDataService) UploadFiles(name string, tags []string, paths [
 	}
 	var initialResponse ComponentDataInitialResponseRaw
 	err = doWithExponentialBackoffWaiting(func() error {
-		return svc.client.RequestEncoderDecoder(http.MethodPost, apiV2ComponentDataRequest, initialRequest, &initialResponse)
+		return svc.client.RequestEncoderDecoder(http.MethodPost,
+			apiV2ComponentDataRequest,
+			initialRequest,
+			&initialResponse,
+		)
 	})
 	if err != nil {
 		return "", err
@@ -87,7 +91,11 @@ func (svc *ComponentDataService) UploadFiles(name string, tags []string, paths [
 	}
 	var completeResponse ComponentDataCompleteResponseRaw
 	err = doWithExponentialBackoffWaiting(func() error {
-		return svc.client.RequestEncoderDecoder(http.MethodPost, apiV2ComponentDataComplete, completeRequest, &completeResponse)
+		return svc.client.RequestEncoderDecoder(http.MethodPost,
+			apiV2ComponentDataComplete,
+			completeRequest,
+			&completeResponse,
+		)
 	})
 	if err != nil {
 		return "", err
@@ -98,7 +106,9 @@ func (svc *ComponentDataService) UploadFiles(name string, tags []string, paths [
 	return initialResponse.Data.Guid, nil
 }
 
-func buildComponentDataInitialRequest(name string, tags []string, paths []string) (*ComponentDataInitialRequest, error) {
+func buildComponentDataInitialRequest(
+	name string, tags []string, paths []string,
+) (*ComponentDataInitialRequest, error) {
 	documents := make([]*DocumentSpec, 0, len(paths))
 	for _, path := range paths {
 		info, err := os.Lstat(path)

@@ -27,31 +27,24 @@ import (
 	"github.com/lacework/go-sdk/internal/lacework"
 )
 
-func TestWithApiV2(t *testing.T) {
-	c, err := api.NewClient("test", api.WithApiV2())
-	if assert.Nil(t, err) {
-		assert.Equal(t, "v2", c.ApiVersion(), "API version should be v2")
-	}
-}
-
 func TestWithToken(t *testing.T) {
 	c, err := api.NewClient("test", api.WithToken("TOKEN"))
 	if assert.Nil(t, err) {
-		assert.Equal(t, "v1", c.ApiVersion(), "API version should be v1")
+		assert.Equal(t, "v2", c.ApiVersion(), "API version should be v2")
 	}
 }
 
 func TestApiVersion(t *testing.T) {
 	c, err := api.NewClient("foo")
 	if assert.Nil(t, err) {
-		assert.Equal(t, "v1", c.ApiVersion(), "wrong default API version")
+		assert.Equal(t, "v2", c.ApiVersion(), "wrong default API version")
 	}
 }
 
 func TestWithApiKeys(t *testing.T) {
 	c, err := api.NewClient("foo", api.WithApiKeys("KEY", "SECRET"))
 	if assert.Nil(t, err) {
-		assert.Equal(t, "v1", c.ApiVersion(), "wrong default API version")
+		assert.Equal(t, "v2", c.ApiVersion(), "wrong default API version")
 	}
 }
 
@@ -65,24 +58,7 @@ func TestWithTokenFromKeys(t *testing.T) {
 		api.WithTokenFromKeys("KEY", "SECRET"), // this option has to be the last one
 	)
 	if assert.Nil(t, err) {
-		assert.Equal(t, "v1", c.ApiVersion(), "wrong default API version")
-	}
-}
-
-func TestGenerateTokenV2(t *testing.T) {
-	fakeServer := lacework.MockServer()
-	fakeServer.MockTokenV2("TOKEN")
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("foo",
-		api.WithApiV2(),
-		api.WithURL(fakeServer.URL()),
-		api.WithApiKeys("KEY", "SECRET"),
-	)
-	if assert.Nil(t, err) {
-		response, err := c.GenerateToken()
-		assert.Nil(t, err)
-		assert.Equal(t, "TOKEN", response.Token, "token mismatch")
+		assert.Equal(t, "v2", c.ApiVersion(), "wrong default API version")
 	}
 }
 
@@ -127,23 +103,5 @@ func TestGenerateTokenErrorKeysMissing(t *testing.T) {
 				"error message mismatch",
 			)
 		}
-	}
-}
-
-func TestGenerateTokenV1(t *testing.T) {
-	fakeServer := lacework.MockServer()
-	fakeServer.MockToken("EXPECTED_TOKEN")
-	defer fakeServer.Close()
-
-	c, err := api.NewClient("t",
-		api.WithURL(fakeServer.URL()),
-		api.WithApiKeys("KEY", "SECRET"),
-	)
-
-	assert.Nil(t, err)
-
-	tokenData, err := c.GenerateToken()
-	if assert.Nil(t, err) {
-		assert.Equal(t, "EXPECTED_TOKEN", tokenData.Token)
 	}
 }

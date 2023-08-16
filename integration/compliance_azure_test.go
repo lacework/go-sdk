@@ -8,14 +8,13 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 package integration
 
 import (
@@ -35,7 +34,7 @@ func TestComplianceAzureListTenants(t *testing.T) {
 
 func TestComplianceAzureGetReportTenantAndSubscriptionWithAlias(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
-		"compliance", "azure", "get-report", "tenant-id (tenant-alias)", "subscription-id (subscription-alias)",
+		"compliance", "azure", "get-report", "tenant-id (tenant-alias)", "subscription-id (subscription-alias)", "--type", "AZURE_CIS_131",
 	)
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(),
