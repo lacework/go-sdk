@@ -10,35 +10,6 @@ import (
 	markdown "github.com/MichaelMure/go-term-markdown"
 )
 
-/*
-func alertTimelineTable(timelines []api.AlertTimeline) (out [][]string) {
-	for _, t := range timelines {
-		out = append(out, []string{
-			strconv.Itoa(t.ID),
-			t.EntryType,
-			t.Message.Value,
-			t.EntryAuthorType,
-			t.User.Name,
-		})
-	}
-	return
-}
-
-func renderAlertTimelineTable(timelines []api.AlertTimeline) {
-	cli.OutputHuman(
-		renderCustomTable(
-			[]string{"Timeline ID", "Entry Type", "Message", "Author Type", "Author"},
-			alertTimelineTable(timelines),
-			tableFunc(func(t *tablewriter.Table) {
-				t.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-				t.SetAutoWrapText(false)
-				t.SetBorder(false)
-			}),
-		),
-	)
-}
-*/
-
 func renderAlertTimelineBox(b box.Box, timeline api.AlertTimeline) {
 	if timeline.Message.Value == "" {
 		return
