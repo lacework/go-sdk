@@ -22,13 +22,13 @@ func TestAlertComment(t *testing.T) {
 			name:        "Valid Comment with Markdown Format",
 			args:        []string{"12345"},
 			commentFlag: "This is a **markdown** comment.",
-			formatFlag:  "Markdown",
+			formatFlag:  "markdown",
 		},
 		{
 			name:        "Valid Comment with Plain Text Format",
 			args:        []string{"12344"},
 			commentFlag: "This is a plain text comment.",
-			formatFlag:  "Plaintext",
+			formatFlag:  "plaintext",
 		},
 	}
 

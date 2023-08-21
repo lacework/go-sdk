@@ -28,7 +28,7 @@ import (
 
 func makeComment(id string) (bytes.Buffer, bytes.Buffer, int) {
 	return LaceworkCLIWithTOMLConfig(
-		"alert", "comment", id, "-c", "everything is awesome...cause go-sdk is here")
+		"alert", "comment", id, "-c", "everything is awesome...cause go-sdk is here", "-f", "plaintext")
 }
 
 func TestAlertCommentMissingArg(t *testing.T) {
