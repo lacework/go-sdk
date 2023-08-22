@@ -15,8 +15,8 @@ Post a user comment on an alert's timeline .
 Comments may be provided inline or via editor.
 
 The following comment formats are allowed:
-  \* plaintext
-  \* markdown
+  * Plaintext
+  * Markdown
 
 Note: only markdown comments will be rendered using markdown.
 
@@ -28,7 +28,7 @@ lacework alert comment <alert_id> [flags]
 
 ```
   -c, --comment string   a comment to add to the alert
-  -f, --format string    the format of the comment (default plaintext)
+  -f, --format string    the format of the comment (default Plaintext)
   -h, --help             help for comment
 ```
 

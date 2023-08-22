@@ -38,8 +38,8 @@ var (
 Comments may be provided inline or via editor.
 
 The following comment formats are allowed:
-  * plaintext
-  * markdown
+  * Plaintext
+  * Markdown
 
 Note: only markdown comments will be rendered using markdown.
 `,
@@ -62,7 +62,7 @@ func init() {
 	alertCommentCmd.Flags().StringVarP(
 		&alertCmdState.Format,
 		"format", "f", "",
-		"the format of the comment (default plaintext)",
+		"the format of the comment (default Plaintext)",
 	)
 }
 

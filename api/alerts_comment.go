@@ -40,8 +40,8 @@ type alertCommentFormats map[alertCommentFormat]string
 
 // AlertCommentFormats is the list of available Alert comment formats
 var AlertCommentFormats = alertCommentFormats{
-	AlertCommentFormatPlaintext: "plaintext",
-	AlertCommentFormatMarkdown:  "markdown",
+	AlertCommentFormatPlaintext: "Plaintext",
+	AlertCommentFormatMarkdown:  "Markdown",
 }
 
 func (acf alertCommentFormats) GetOrderedFormatStrings() []string {
