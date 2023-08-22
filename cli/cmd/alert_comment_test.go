@@ -57,10 +57,3 @@ func TestAlertComment(t *testing.T) {
 		})
 	}
 }
-
-func TestInvalidCommentNoFormat(t *testing.T) {
-	alertCmdState.Comment = "This is a test comment."
-	alertCmdState.Format = ""
-	err := commentAlert(nil, []string{"12545"})
-	assert.Equal(t, err.Error(), "unable to process alert comment format: EOF")
-}

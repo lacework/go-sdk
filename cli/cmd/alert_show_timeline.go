@@ -18,7 +18,19 @@ func renderAlertTimelineBox(b box.Box, timeline api.AlertTimeline) {
 	if strings.HasPrefix(timeline.Message.Format, api.AlertCommentFormatMarkdown.String()) {
 		value = markdown.Render(timeline.Message.Value, 80, 0)
 	}
-	b.Println(timeline.User.Name, string(value))
+	title := timeline.User.Name
+	// we need to avoid a box panic when the comment is shorter than the title; specifically
+	// panic: Title must be shorter than the Top & Bottom Bars
+	// to do this, we will set horizontal padding to 1 instead of 2...and
+	// add our own space-based padding as a prefix
+	customPadding := []byte(strings.Repeat(" ", len(title)) + "\n")
+	value = append(customPadding, value...)
+	// we will also make sure that the value trails with a newline...
+	// such that we have consistent horizontal bottom padding
+	if !strings.HasSuffix(string(value), "\n") {
+		value = append(value, []byte("\n")...)
+	}
+	b.Println(title, string(value))
 }
 
 func renderAlertTimelineBoxes(timelines []api.AlertTimeline) {
