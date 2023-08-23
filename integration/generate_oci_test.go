@@ -12,20 +12,52 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// run a test for lacework generate cloud-account oci
+func runOciGenerateTest(t *testing.T, conditions func(*expect.Console), location string) string {
+	// Validate args
+	var outputLocation string
+	if location == "" {
+		outputLocation = filepath.Join(tfPath, "lacework/oci")
+	} else {
+		outputLocation, err := os.Stat(location)
+		assert.Nil(t, err, "invalid output location")
+		assert.Equal(t, true, outputLocation.IsDir(), "output location must be a directory")
+
+	}
+
+	os.Setenv("HOME", tfPath)
+	runFakeTerminalTestFromDir(t, tfPath, conditions, "generate", "cloud-account", "oci")
+	out, err := os.ReadFile(filepath.Join(outputLocation, "main.tf"))
+	if err != nil {
+		return fmt.Sprintf("main.tf not found: %s", err)
+	}
+
+	t.Cleanup(func() {
+		os.Remove(filepath.Join(outputLocation, "main.tf"))
+	})
+
+	result := terraformValidate(outputLocation)
+
+	assert.True(t, result.Valid)
+
+	return string(out)
+}
+
 // Test failing due to no selection
 func TestGenerateOciErrorOnNoSelection(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 
 	// Run CLI
-	runGenerateTest(t,
+	runOciGenerateTest(
+		t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionOciEnableConfig, "n"},
 				MsgOnly{"ERROR collecting/confirming parameters: must enable config to continue"},
 			})
 		},
-		withCloud("oci"),
+		"",
 	)
 }
 
@@ -38,7 +70,8 @@ func TestGenerateOciBasic(t *testing.T) {
 	userEmail := "test@example.com"
 
 	// Run CLI
-	actual := runGenerateTest(t,
+	actual := runOciGenerateTest(
+		t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionOciEnableConfig, "y"},
@@ -49,7 +82,7 @@ func TestGenerateOciBasic(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		withCloud("oci"),
+		"",
 	)
 
 	assert.Contains(t, final, "Terraform code saved in")
@@ -72,7 +105,8 @@ func TestGenerateOciCustomConfigName(t *testing.T) {
 	userEmail := "test@example.com"
 	configName := "test_integration_oci"
 
-	actual := runGenerateTest(t,
+	actual := runOciGenerateTest(
+		t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionOciEnableConfig, "y"},
@@ -86,7 +120,7 @@ func TestGenerateOciCustomConfigName(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		withCloud("oci"),
+		"",
 	)
 
 	assert.Contains(t, final, "Terraform code saved in")
@@ -112,7 +146,7 @@ func TestGenerateOciCustomLocation(t *testing.T) {
 		os.RemoveAll(outputLocation)
 	})
 
-	_ = runGenerateTest(t,
+	_ = runOciGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionOciEnableConfig, "y"},
@@ -126,8 +160,7 @@ func TestGenerateOciCustomLocation(t *testing.T) {
 			})
 			final, _ = c.ExpectEOF()
 		},
-		withCloud("oci"),
-		withLocation(outputLocation),
+		outputLocation,
 	)
 
 	assert.Contains(t, final, fmt.Sprintf("Terraform code saved in %s", outputLocation))

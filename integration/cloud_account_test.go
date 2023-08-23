@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 
-package cloudAccount
+package integration
 
 import (
 	"testing"
