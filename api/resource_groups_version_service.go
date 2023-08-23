@@ -169,13 +169,13 @@ func (svc *ResourceGroupsVersionService) Update(group ResourceGroupsInterfaceDat
 	isV2FlagEnabled := isRGV2FlagEnabled(svc.featureFlagService)
 
 	if isV2FlagEnabled {
-		createResponse, createErr := svc.v2ResourceGroupService.Update(group.(ResourceGroup))
-		if createErr != nil {
-			err = createErr
+		updateResponse, updateErr := svc.v2ResourceGroupService.Update(group.(ResourceGroup))
+		if updateErr != nil {
+			err = updateErr
 			return
 		}
 
-		err = castResourceGroupV2Response(createResponse, &response)
+		err = castResourceGroupV2Response(updateResponse, &response)
 		return
 	}
 
