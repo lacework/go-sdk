@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"strings"
 
 	"github.com/lacework/go-sdk/api"
@@ -16,6 +17,10 @@ func renderAlertTimelineBox(b box.Box, timeline api.AlertTimeline) {
 	}
 	value := []byte(timeline.Message.Value)
 	if strings.HasPrefix(timeline.Message.Format, api.AlertCommentFormatMarkdown.String()) {
+		// replace CR LF \r\n (windows) with LF \n (unix)
+		value = bytes.Replace(value, []byte{13, 10}, []byte{10}, -1)
+		// replace CF \r (mac) with LF \n (unix)
+		value = bytes.Replace(value, []byte{13}, []byte{10}, -1)
 		value = markdown.Render(timeline.Message.Value, 80, 0)
 	}
 	title := timeline.User.Name
