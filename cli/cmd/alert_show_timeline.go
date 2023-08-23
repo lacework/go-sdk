@@ -17,9 +17,12 @@ func renderAlertTimelineBox(b box.Box, timeline api.AlertTimeline) {
 	}
 	value := []byte(timeline.Message.Value)
 	if strings.HasPrefix(timeline.Message.Format, api.AlertCommentFormatMarkdown.String()) {
-		// replace CR LF \r\n (windows) with LF \n (unix)
+		// Replace CR LF \r\n (Windows) with LF \n (Unix)
 		value = bytes.Replace(value, []byte{13, 10}, []byte{10}, -1)
-		value = markdown.Render(timeline.Message.Value, 80, 0)
+		// Replace CF \r (Mac) with LF \n (Unix)
+		value = bytes.Replace(value, []byte{13}, []byte{10}, -1)
+		renderedValue := markdown.Render(string(value), 80, 0)
+		value = []byte(renderedValue)
 	}
 	title := timeline.User.Name
 	// we need to avoid a box panic when the comment is shorter than the title; specifically
