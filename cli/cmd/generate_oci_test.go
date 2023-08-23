@@ -3,21 +3,8 @@ package cmd
 import (
 	"testing"
 
-	"github.com/lacework/go-sdk/lwgenerate/oci"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestGenerateMostBasicOciArgs(t *testing.T) {
-	t.Skip() // no-commit
-	toggleNonInteractive()
-	defer toggleNonInteractive()
-
-	data := oci.GenerateOciTfConfigurationArgs{}
-	data.Config = true
-	err := promptOciGenerate(&data, &OciGenerateCommandExtraState{Output: "/tmp"})
-
-	assert.Nil(t, err)
-}
 
 func TestValidateOciTenantOcid(t *testing.T) {
 	tests := []struct {

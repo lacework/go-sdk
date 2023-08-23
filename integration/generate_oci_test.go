@@ -106,8 +106,11 @@ func TestGenerateOciCustomLocation(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	location, err := os.MkdirTemp("", "t")
+	outputLocation, err := os.MkdirTemp("", "t")
 	assert.Nil(t, err, "failed to create temporary directory")
+	t.Cleanup(func() {
+		os.RemoveAll(outputLocation)
+	})
 
 	_ = runGenerateTest(t,
 		func(c *expect.Console) {
@@ -117,17 +120,17 @@ func TestGenerateOciCustomLocation(t *testing.T) {
 				MsgRsp{cmd.QuestionOciUserEmail, "test@example.com"},
 				MsgRsp{cmd.QuestionOciConfigAdvanced, "y"},
 				MsgMenu{cmd.OciAdvancedOptLocation, 1},
-				MsgRsp{cmd.QuestionOciCustomizeOutputLocation, location},
+				MsgRsp{cmd.QuestionOciCustomizeOutputLocation, outputLocation},
 				MsgRsp{cmd.QuestionOciAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
 		},
 		withCloud("oci"),
-		withLocation(location),
+		withLocation(outputLocation),
 	)
 
-	assert.Contains(t, final, fmt.Sprintf("Terraform code saved in %s", location))
+	assert.Contains(t, final, fmt.Sprintf("Terraform code saved in %s", outputLocation))
 }
 
 // Test noninteractive with insufficient flags
