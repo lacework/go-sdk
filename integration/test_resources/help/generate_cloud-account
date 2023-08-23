@@ -13,6 +13,7 @@ Available Commands:
   aws         Generate and/or execute Terraform code for AWS integration
   azure       Generate and/or execute Terraform code for Azure integration
   gcp         Generate and/or execute Terraform code for GCP integration
+  oci         Generate and/or execute Terraform code for OCI integration
 
 Flags:
   -h, --help   help for cloud-account
