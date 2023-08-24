@@ -261,7 +261,7 @@ func validateEmailAddress(val interface{}) error {
 		// This validates the email format against RFC 5322
 		_, err := mail.ParseAddress(value)
 		if err != nil {
-			return errors.Wrap(err, "failed to validate email address")
+			return errors.Wrap(err, "supplied email address is not a valid email address format")
 		}
 	default:
 		return errors.New("value must be a string")
