@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -217,7 +216,7 @@ func cdkGolangScaffolding(component *lwcomponent.Component) error {
 			if err := tmpl.Execute(buff, cData); err != nil {
 				return errors.Wrap(err, "unable to generate files from go scaffolding")
 			}
-			if err := ioutil.WriteFile(filePath, buff.Bytes(), os.ModePerm); err != nil {
+			if err := os.WriteFile(filePath, buff.Bytes(), os.ModePerm); err != nil {
 				cli.OutputChecklist(failureIcon, "Unable to write file %s\n", color.HiRedString(filePath))
 				cli.Log.Debugw("unable to write file", "error", err)
 			} else {
@@ -315,7 +314,7 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 				fileName = filepath.Base(file)
 				filePath = filepath.Join(fileDir, fileName)
 			)
-			if err := ioutil.WriteFile(filePath, content, os.ModePerm); err != nil {
+			if err := os.WriteFile(filePath, content, os.ModePerm); err != nil {
 				cli.OutputChecklist(failureIcon, "Unable to write file %s\n", color.HiRedString(filePath))
 				cli.Log.Debugw("unable to write file", "error", err)
 			} else {

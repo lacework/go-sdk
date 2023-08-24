@@ -61,26 +61,26 @@ func NewResourceGroupsVersionService(c *Client) *ResourceGroupsVersionService {
 // NOTE: This function must be used by any ResourceGroup type.
 //
 // Basic usage: Initialize a new ContainerResourceGroup struct, then
-//              use the new instance to do CRUD operations
 //
-//   client, err := api.NewClient("account")
-//   if err != nil {
-//     return err
-//   }
+//	             use the new instance to do CRUD operations
 //
-//   group := api.NewResourceGroup("container resource group",
-//     api.ContainerResourceGroup,
-//     api.ContainerResourceGroupData{
-//       Props: api.ContainerResourceGroupProps{
-//			Description:     "all containers,
-//			ContainerLabels: ContainerResourceGroupAllLabels,
-//			ContainerTags:   ContainerResourceGroupAllTags,
-//		},
-//     },
-//   )
+//	  client, err := api.NewClient("account")
+//	  if err != nil {
+//	    return err
+//	  }
 //
-//   client.V2.ResourceGroups.Create(group)
+//	  group := api.NewResourceGroup("container resource group",
+//	    api.ContainerResourceGroup,
+//	    api.ContainerResourceGroupData{
+//	      Props: api.ContainerResourceGroupProps{
+//				Description:     "all containers,
+//				ContainerLabels: ContainerResourceGroupAllLabels,
+//				ContainerTags:   ContainerResourceGroupAllTags,
+//			},
+//	    },
+//	  )
 //
+//	  client.V2.ResourceGroups.Create(group)
 func NewResourceGroup(name string, iType ResourceGroupType, props interface{}) ResourceGroupData {
 	return ResourceGroupData{
 		Name:    name,
@@ -169,13 +169,13 @@ func (svc *ResourceGroupsVersionService) Update(group ResourceGroupsInterfaceDat
 	isV2FlagEnabled := isRGV2FlagEnabled(svc.featureFlagService)
 
 	if isV2FlagEnabled {
-		createResponse, createErr := svc.v2ResourceGroupService.Update(group.(ResourceGroup))
-		if createErr != nil {
-			err = createErr
+		updateResponse, updateErr := svc.v2ResourceGroupService.Update(group.(ResourceGroup))
+		if updateErr != nil {
+			err = updateErr
 			return
 		}
 
-		err = castResourceGroupV2Response(createResponse, &response)
+		err = castResourceGroupV2Response(updateResponse, &response)
 		return
 	}
 

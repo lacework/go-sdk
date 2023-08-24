@@ -199,9 +199,9 @@ func (svc *ResourceGroupsService) Delete(guid string) error {
 // To return a more specific Go struct of a Resource Group, use the proper
 // method such as GetContainerResourceGroup() where the function name is composed by:
 //
-//  Get<Type>(guid)
+//	Get<Type>(guid)
 //
-//    Where <Type> is the Resource Group type.
+//	  Where <Type> is the Resource Group type.
 func (svc *ResourceGroupsService) Get(guid string, response interface{}) error {
 	var rawResponse resourceGroupWorkaroundResponse
 	err := svc.get(guid, &rawResponse)
