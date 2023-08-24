@@ -89,7 +89,6 @@ func runGenerateOci(cmd *cobra.Command, args []string) error {
 	// Create new struct
 	data := oci.NewTerraform(
 		GenerateOciCommandState.Config,
-		GenerateOciCommandState.AuditLog,
 		mods...)
 
 	// Generate
@@ -363,7 +362,6 @@ func (a *OciGenerateCommandExtraState) writeCache() {
 
 func ociConfigIsEmpty(g *oci.GenerateOciTfConfigurationArgs) bool {
 	return !g.Config &&
-		!g.AuditLog &&
 		g.ConfigName == "" &&
 		g.LaceworkProfile == "" &&
 		g.TenantOcid == "" &&
