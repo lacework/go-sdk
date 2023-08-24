@@ -22,7 +22,7 @@ func init() {
 	//	initGenerateAwsTfCommandFlags()
 	//	initGenerateGcpTfCommandFlags()
 	//	initGenerateAzureTfCommandFlags()
-	//  initGenerateOciTfCommandFlags()
+	//	initGenerateOciTfCommandFlags()
 
 	generateCloudAccountCommand.AddCommand(generateAwsTfCommand)
 	generateCloudAccountCommand.AddCommand(generateGcpTfCommand)

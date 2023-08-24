@@ -21,7 +21,7 @@ var (
 	// questions
 	QuestionOciEnableConfig            = "Enable configuration integration?"
 	QuestionOciTenantOcid              = "Specify the OCID of the tenant to be integrated"
-	QuestionOciUserEmail               = "Specify the email for the OCI user created for integration"
+	QuestionOciUserEmail               = "Specify the email address to associate with the integration OCI user"
 	QuestionOciConfigAdvanced          = "Configure advanced integration options?"
 	QuestionCustomizeOciConfigName     = "Customize Config integration name?"
 	QuestionOciConfigName              = "Specify name of config integration (optional)"
@@ -249,6 +249,7 @@ func initGenerateOciTfCommandFlags() {
 func validateOciTenantOcid(val interface{}) error {
 	return validateStringWithRegex(
 		val,
+		// https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm
 		`ocid1\.tenancy\.[^\.\s]*\.[^\.\s]*(\.[^\.\s]+)?\.[^\.\s]+`,
 		"invalid tenant OCID supplied",
 	)
@@ -289,13 +290,6 @@ func askAdvancedOciOptions(config *oci.GenerateOciTfConfigurationArgs, extraStat
 
 	// Prompt for options
 	for answer != OciAdvancedOptDone {
-		// Construction of this slice is a bit strange at first look, but the reason for that is because
-		// we have to do string validation to know which option was selected due to how survey works; and
-		// doing it by index (also supported) is difficult when the options are dynamic (which they are)
-		//
-		// Only ask about more accounts if consolidated cloudtrail is setup (matching scenarios doc)
-		// Scenario document suggests that this is no longer the case and that
-		// we can have other accounts even if we only have Config integration (Scenario 7)
 		var options []string
 
 		// Determine if user specified name for Config is potentially required
