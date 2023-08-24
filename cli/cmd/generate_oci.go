@@ -23,8 +23,7 @@ var (
 	QuestionOciTenantOcid              = "Specify the OCID of the tenant to be integrated"
 	QuestionOciUserEmail               = "Specify the email address to associate with the integration OCI user"
 	QuestionOciConfigAdvanced          = "Configure advanced integration options?"
-	QuestionCustomizeOciConfigName     = "Customize Config integration name?"
-	QuestionOciConfigName              = "Specify name of config integration (optional)"
+	QuestionOciConfigName              = "Specify name of configuration integration (optional)"
 	QuestionOciCustomizeOutputLocation = "Provide the location for the output to be written:"
 	QuestionOciAnotherAdvancedOpt      = "Configure another advanced integration option"
 
@@ -214,12 +213,12 @@ func initGenerateOciTfCommandFlags() {
 		&GenerateOciCommandState.Config,
 		"config",
 		false,
-		"enable config integration")
+		"enable configuration integration")
 	generateOciTfCommand.PersistentFlags().StringVar(
 		&GenerateOciCommandState.ConfigName,
 		"config_name",
 		"",
-		"specify name of config integration")
+		"specify name of configuration integration")
 	generateOciTfCommand.PersistentFlags().StringVar(
 		&GenerateOciCommandState.TenantOcid,
 		"tenant_ocid",
@@ -229,7 +228,7 @@ func initGenerateOciTfCommandFlags() {
 		&GenerateOciCommandState.OciUserEmail,
 		"oci_user_email",
 		"",
-		"specify the email of the OCI user created for integration")
+		"specify the email address to associate with the integration OCI user")
 	generateOciTfCommand.PersistentFlags().BoolVar(
 		&GenerateOciCommandExtraState.TerraformApply,
 		"apply",
@@ -416,7 +415,7 @@ func promptOciGenerate(
 
 	// Validate that config was enabled. Otherwise throw error.
 	if !config.Config {
-		return errors.New("must enable config to continue")
+		return errors.New("must enable configuration integration to continue")
 	}
 
 	// Find out if the customer wants to specify more advanced features
