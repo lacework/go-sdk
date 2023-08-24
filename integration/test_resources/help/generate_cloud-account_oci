@@ -22,10 +22,10 @@ Usage:
 
 Flags:
       --apply                   run terraform apply without executing plan or prompting
-      --config                  enable config integration
-      --config_name string      specify name of config integration
+      --config                  enable configuration integration
+      --config_name string      specify name of configuration integration
   -h, --help                    help for oci
-      --oci_user_email string   specify the email of the OCI user created for integration
+      --oci_user_email string   specify the email address to associate with the integration OCI user
       --output string           location to write generated content (default is ~/lacework/oci)
       --tenant_ocid string      specify the OCID of the tenant to integrate
 

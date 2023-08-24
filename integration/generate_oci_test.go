@@ -54,7 +54,7 @@ func TestGenerateOciErrorOnNoSelection(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionOciEnableConfig, "n"},
-				MsgOnly{"ERROR collecting/confirming parameters: must enable config to continue"},
+				MsgOnly{"ERROR collecting/confirming parameters: must enable configuration integration to continue"},
 			})
 		},
 		"",
@@ -167,7 +167,7 @@ func TestGenerateOciCustomLocation(t *testing.T) {
 // Test noninteractive with insufficient flags
 func TestGenerateOciNoninteractiveNoFlags(t *testing.T) {
 	_, err, exitcode := LaceworkCLIWithTOMLConfig("generate", "cloud-account", "oci", "--noninteractive")
-	assert.Contains(t, err.String(), "ERROR collecting/confirming parameters: must enable config to continue")
+	assert.Contains(t, err.String(), "ERROR collecting/confirming parameters: must enable configuration integration to continue")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
@@ -181,7 +181,7 @@ func TestGenerateOciNoninteractiveOnlyTenancyOcidFlag(t *testing.T) {
 		"--tenant_ocid",
 		"ocid1.tenancy...a",
 	)
-	assert.Contains(t, err.String(), "ERROR collecting/confirming parameters: must enable config to continue")
+	assert.Contains(t, err.String(), "ERROR collecting/confirming parameters: must enable configuration integration to continue")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
@@ -195,7 +195,7 @@ func TestGenerateOciNoninteractiveOnlyUserEmail(t *testing.T) {
 		"--oci_user_email",
 		"a@b.c",
 	)
-	assert.Contains(t, err.String(), "ERROR collecting/confirming parameters: must enable config to continue")
+	assert.Contains(t, err.String(), "ERROR collecting/confirming parameters: must enable configuration integration to continue")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
