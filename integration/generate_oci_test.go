@@ -89,7 +89,6 @@ func TestGenerateOciBasic(t *testing.T) {
 
 	expected, _ := oci.NewTerraform(
 		true,
-		false,
 		oci.WithTenantOcid(tenantOcid),
 		oci.WithUserEmail(userEmail),
 	).Generate()
@@ -127,7 +126,6 @@ func TestGenerateOciCustomConfigName(t *testing.T) {
 
 	expected, _ := oci.NewTerraform(
 		true,
-		false,
 		oci.WithTenantOcid(tenantOcid),
 		oci.WithUserEmail(userEmail),
 		oci.WithConfigName(configName),
@@ -237,7 +235,6 @@ func TestGenerateOciNoninteractiveBasic(t *testing.T) {
 	assert.Nil(t, err, "error reading Terraform output")
 	expected, _ := oci.NewTerraform(
 		true,
-		false,
 		oci.WithTenantOcid(tenantOcid),
 		oci.WithUserEmail(userEmail),
 	).Generate()
@@ -283,7 +280,6 @@ func TestGenerateOciNoninteractiveCustomConfigName(t *testing.T) {
 	assert.Nil(t, err, "error reading Terraform output")
 	expected, _ := oci.NewTerraform(
 		true,
-		false,
 		oci.WithTenantOcid(tenantOcid),
 		oci.WithUserEmail(userEmail),
 		oci.WithConfigName(configName),
