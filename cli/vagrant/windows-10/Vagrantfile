@@ -1,12 +1,50 @@
+# powershell does not accept empty string arguments with any sort of grace
+#
+# for instance:
+# powershell -ExecutionPolicy Bypass -OutputFormat Text -file "C:\tmp\vagrant-shell.ps1" "dev7.dev7.corp" "" "" "_1234"
+#
+# results in CI_API_TOKEN being interpreted as CI_API_KEY since the middle empty strings are ignored
+# we will use `@@empty@@` as a placeholder which will be respected by provision.ps1 when setting environment variables
+lw_account = ENV['CI_ACCOUNT']
+if lw_account == nil
+  lw_account = "@@empty@@"
+end
+
+lw_api_key = ENV['CI_API_KEY']
+if lw_api_key == nil
+  lw_api_key = "@@empty@@"
+end
+
+lw_api_secret = ENV['CI_API_SECRET']
+if lw_api_secret == nil
+  lw_api_secret = "@@empty@@"
+end
+
+lw_api_token = ENV['CI_API_TOKEN']
+if lw_api_token == nil
+  lw_api_token = "@@empty@@"
+end
+
+# 2.3.7 was giving all sorts of grief communicating via WinRM; specifically
+# Message: Digest initialization failed: initialization error
+Vagrant.require_version "<= 2.3.6"
+
 Vagrant.configure("2") do |config|
+  config.vm.communicator = "winrm"
+
   config.vm.box = "senglin/win-10-enterprise-vs2015community"
   config.vm.box_version = "1.0.0"
+
   config.vm.synced_folder "../../../bin", "/devcli"
-  config.vm.provision "shell",
-    inline: "New-Item -ItemType SymbolicLink -Target \"C:/devcli/lacework-cli-windows-amd64.exe\" -Path \"C:/Users/vagrant/lacework.exe\""
 
   config.vm.provider "virtualbox" do |v|
     v.gui = true
+    v.cpus = 2
+    v.memory = 1024
+    # Enables or disables the use of hardware virtualization extensions in the processor of the host system.
+    v.customize ["modifyvm", :id, "--hwvirtex", "on"]
+    # Specifies the amount of RAM to allocate to the virtual graphics card.
+    v.customize ["modifyvm", :id, "--vram", "256"]
   end
+  config.vm.provision "shell", path: "provision.ps1", args: [lw_account, lw_api_key, lw_api_secret, lw_api_token]
 end
-
