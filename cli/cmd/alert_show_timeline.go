@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"bytes"
-	"github.com/olekukonko/tablewriter"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/olekukonko/tablewriter"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
