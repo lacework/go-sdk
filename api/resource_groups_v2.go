@@ -162,3 +162,24 @@ func (group ResourceGroupDataWithQuery) GetProps() interface{} {
 func (group ResourceGroupDataWithQuery) GetQuery() *RGQuery {
 	return group.Query
 }
+
+func (group ResourceGroupDataWithQuery) ResourceGroupType() ResourceGroupType {
+	t, _ := FindResourceGroupType(group.Type)
+	return t
+}
+
+func (group ResourceGroupDataWithQuery) ID() string {
+	return group.ResourceGroupGuid
+}
+
+func (group *ResourceGroupDataWithQuery) ResetRGV2Fields() {
+	// no-op
+}
+
+func (group *ResourceGroupDataWithQuery) ResetResourceGUID() {
+	group.ResourceGroupGuid = ""
+}
+
+func (group ResourceGroupDataWithQuery) IsV2Group() bool {
+	return true
+}

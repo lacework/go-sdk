@@ -21,7 +21,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -87,7 +87,7 @@ func createReportDefinition(_ *cobra.Command, args []string) error {
 }
 
 func inputReportDefinitionFromFile(filePath string) (string, error) {
-	fileData, err := ioutil.ReadFile(filePath)
+	fileData, err := os.ReadFile(filePath)
 
 	if err != nil {
 		return "", errors.Wrap(err, "unable to read file")

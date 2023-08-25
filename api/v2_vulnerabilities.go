@@ -187,7 +187,9 @@ func (r VulnerabilitiesContainersResponse) HighestSeverity() string {
 	var sevs []lwseverity.Severity
 
 	for _, vuln := range r.Data {
-		sevs = append(sevs, lwseverity.NewSeverity(vuln.Severity))
+		if lwseverity.NewSeverity(vuln.Severity) != lwseverity.Unknown {
+			sevs = append(sevs, lwseverity.NewSeverity(vuln.Severity))
+		}
 	}
 
 	if len(sevs) == 0 {

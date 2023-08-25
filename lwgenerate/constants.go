@@ -29,4 +29,7 @@ const (
 	GcpGKEAuditLogVersion    = "~> 0.3"
 	GcpPubSubAuditLog        = "lacework/pub-sub-audit-log/gcp"
 	GcpPubSubAuditLogVersion = "~> 0.2"
+
+	OciConfigSource  = "lacework/config/oci"
+	OciConfigVersion = "~> 0.2"
 )
