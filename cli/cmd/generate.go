@@ -45,6 +45,7 @@ func init() {
 	initGenerateAwsTfCommandFlags()
 	initGenerateGcpTfCommandFlags()
 	initGenerateAzureTfCommandFlags()
+	initGenerateOciTfCommandFlags()
 	iacGenerateTfCommand.AddCommand(generateAwsTfCommand)
 	iacGenerateTfCommand.AddCommand(generateGcpTfCommand)
 	iacGenerateTfCommand.AddCommand(generateAzureTfCommand)

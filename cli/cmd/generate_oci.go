@@ -66,7 +66,7 @@ func runGenerateOci(cmd *cobra.Command, args []string) error {
 
 	// generate tf code
 	hcl, err := oci.NewTerraform(
-		GenerateOciCommandState.Config,
+		true,
 		oci.WithLaceworkProfile(GenerateOciCommandState.LaceworkProfile),
 		oci.WithTenantOcid(GenerateOciCommandState.TenantOcid),
 		oci.WithUserEmail(GenerateOciCommandState.OciUserEmail),
@@ -112,6 +112,15 @@ func runGenerateOci(cmd *cobra.Command, args []string) error {
 }
 
 func preRunGenerateOci(cmd *cobra.Command, _ []string) error {
+	// Validate output location is OK if supplied
+	dirname, err := cmd.Flags().GetString("output")
+	if err != nil {
+		return errors.Wrap(err, "failed to load command flags")
+	}
+	if err := validateOutputLocation(dirname); err != nil {
+		return err
+	}
+
 	// Load any cached inputs if interactive
 	if cli.InteractiveMode() {
 		cachedOptions := &oci.GenerateOciTfConfigurationArgs{}
@@ -152,12 +161,22 @@ func preRunGenerateOci(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Collect and/or confirm parameters
-	err := promptOciGenerate(GenerateOciCommandState, GenerateOciCommandExtraState)
+	err = promptOciGenerate(GenerateOciCommandState, GenerateOciCommandExtraState)
 	if err != nil {
 		return errors.Wrap(err, "collecting/confirming parameters")
 	}
 
 	return nil
+}
+
+func initGenerateOciTfCommandFlags() {
+	// add flags to sub commands
+	generateOciTfCommand.PersistentFlags().StringVar(
+		&GenerateOciCommandExtraState.Output,
+		"output",
+		"",
+		"location to write generated content (default is ~/lacework/oci)",
+	)
 }
 
 // basic validation of Tenant OCID format
