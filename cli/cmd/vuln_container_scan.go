@@ -272,6 +272,10 @@ func pollScanStatus(requestID string, args []string) error {
 			)
 		}
 
+		cli.Log.Infow("raw assessment", "data_points", len(assessment.Data))
+		filterContainerAssessmentByVulnerable(&assessment)
+		cli.Log.Infow("filtered assessment (status = vulnerable)", "data_points", len(assessment.Data))
+
 		if err := outputContainerVulnerabilityAssessment(assessment); err != nil {
 			return err
 		}
