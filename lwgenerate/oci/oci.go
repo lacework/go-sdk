@@ -10,9 +10,6 @@ type GenerateOciTfConfigurationArgs struct {
 	// Should we configure CSPM integration in LW?
 	Config bool
 
-	// Should we configure Audit Log integration in LW?
-	AuditLog bool // Not yet supported
-
 	// Optional name for config
 	ConfigName string
 
@@ -68,11 +65,14 @@ func WithUserEmail(email string) OciTerraformModifier {
 // Initialize a new OciTerraformModifier struct then use generate to
 // create a string output of the required HCL.
 //
-//	hcl, err := aws.NewTerraform("us-east-1", true, true,
-//	  aws.WithAwsProfile("mycorp-profile")).Generate()
-func NewTerraform(enableConfig bool, enableAuditLog bool, mods ...OciTerraformModifier,
+//	hcl, err := aws.NewTerraform(
+//		true,
+//	  	oci.WithTenancyOcid("ocid1.tenancy...abc"),
+//		oci.WithUserEmail("a@b.c"),
+//	).Generate()
+func NewTerraform(enableConfig bool, mods ...OciTerraformModifier,
 ) *GenerateOciTfConfigurationArgs {
-	config := &GenerateOciTfConfigurationArgs{AuditLog: enableAuditLog, Config: enableConfig}
+	config := &GenerateOciTfConfigurationArgs{Config: enableConfig}
 	for _, m := range mods {
 		m(config)
 	}
@@ -116,11 +116,6 @@ func (args *GenerateOciTfConfigurationArgs) Generate() (string, error) {
 
 // Ensure all combinations of inputs our valid for supported spec
 func (args *GenerateOciTfConfigurationArgs) validate() error {
-	// Audit Log integration currently not supported
-	if args.AuditLog {
-		return errors.New("audit log integration not yet supported")
-	}
-
 	if !args.Config {
 		return errors.New("config integration must be enabled to continue")
 	}
