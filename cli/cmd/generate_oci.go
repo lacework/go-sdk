@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/lacework/go-sdk/internal/validate"
 	"github.com/lacework/go-sdk/lwgenerate/oci"
 	"github.com/pkg/errors"
 )
@@ -255,7 +256,7 @@ func validateOciTenantOcid(val interface{}) error {
 
 // basic validation of email
 func validateOciUserEmail(val interface{}) error {
-	return validateEmailAddress(val)
+	return validate.EmailAddress(val)
 }
 
 func promptCustomizeOciOutputLocation(extraState *OciGenerateCommandExtraState) error {

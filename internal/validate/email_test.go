@@ -1,8 +1,9 @@
-package cmd
+package validate_test
 
 import (
 	"testing"
 
+	"github.com/lacework/go-sdk/internal/validate"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +30,7 @@ func TestValidateEmailAddress(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			err := validateEmailAddress(test.Data)
+			err := validate.EmailAddress(test.Data)
 			assert.Equal(t, err == nil, test.Expected)
 		})
 	}

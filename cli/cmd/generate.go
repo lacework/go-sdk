@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"net/mail"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -45,11 +44,9 @@ func init() {
 	initGenerateAwsTfCommandFlags()
 	initGenerateGcpTfCommandFlags()
 	initGenerateAzureTfCommandFlags()
-	initGenerateOciTfCommandFlags()
 	iacGenerateTfCommand.AddCommand(generateAwsTfCommand)
 	iacGenerateTfCommand.AddCommand(generateGcpTfCommand)
 	iacGenerateTfCommand.AddCommand(generateAzureTfCommand)
-	iacGenerateTfCommand.AddCommand(generateOciTfCommand)
 
 	// aws subcommands
 	generateAwsTfCommand.AddCommand(generateAwsControlTowerTfCommand)
@@ -252,20 +249,6 @@ func validateStringWithRegex(val interface{}, regex string, errorString string) 
 		return errors.New("value must be a string")
 	}
 
-	return nil
-}
-
-func validateEmailAddress(val interface{}) error {
-	switch value := val.(type) {
-	case string:
-		// This validates the email format against RFC 5322
-		_, err := mail.ParseAddress(value)
-		if err != nil {
-			return errors.Wrap(err, "supplied email address is not a valid email address format")
-		}
-	default:
-		return errors.New("value must be a string")
-	}
 	return nil
 }
 
