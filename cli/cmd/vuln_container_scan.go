@@ -151,8 +151,8 @@ To integrate a new container registry use the command:
 
 		msg := `container image '%s@%s' not found in registry '%s'.
 
-This error is likely due to a problem with the container registry integration 
-configured in your account. Verify that the integration was configured with 
+This error is likely due to a problem with the container registry integration
+configured in your account. Verify that the integration was configured with
 Lacework using the correct permissions, and that the repository belongs
 to the provided registry.
 
@@ -272,7 +272,30 @@ func pollScanStatus(requestID string, args []string) error {
 			)
 		}
 
-		return outputContainerVulnerabilityAssessment(assessment)
+		cli.Log.Infow("raw assessment", "data_points", len(assessment.Data))
+		filterContainerAssessmentByVulnerable(&assessment)
+		cli.Log.Infow("filtered assessment (status = vulnerable)", "data_points", len(assessment.Data))
+
+		if err := outputContainerVulnerabilityAssessment(assessment); err != nil {
+			return err
+		}
+
+		if vulFailureFlagsEnabled() {
+			cli.Log.Infow("failure flags enabled",
+				"fail_on_severity", vulCmdState.FailOnSeverity,
+				"fail_on_fixable", vulCmdState.FailOnFixable,
+			)
+			vulnPolicy := NewVulnerabilityPolicyErrorV2(
+				assessment,
+				vulCmdState.FailOnSeverity,
+				vulCmdState.FailOnFixable,
+			)
+			if vulnPolicy.NonCompliant() {
+				return vulnPolicy
+			}
+		}
+
+		return nil
 	}
 }
 
