@@ -263,6 +263,56 @@ func TestCloudAccountsListByType(t *testing.T) {
 	}
 }
 
+func TestCloudAccountMigrate(t *testing.T) {
+	var (
+		intgGUID   = intgguid.New()
+		apiPath    = "migrateGcpAtSes"
+		fakeServer = lacework.MockServer()
+	)
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "PATCH", r.Method, "cloudAccountMigrate() should be a PATCH method")
+
+		if assert.NotNil(t, r.Body) {
+			body := httpBodySniffer(r)
+			assert.Contains(t, body, intgGUID, "INTG_GUID missing")
+			assert.Contains(t, body, "props", "migration props are missing")
+			assert.Contains(t, body, "migrate\":true",
+				"migrate field is missing or it is set to false")
+			assert.Contains(t, body, "migrationTimestamp", "migration timestamp is missing")
+		}
+		fmt.Fprintf(w, generateCloudAccountResponse(singleGcpAtCloudAccount(intgGUID)))
+	})
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	cloudAccount := api.NewCloudAccount("integration_name",
+		api.GcpAtSesCloudAccount,
+		api.GcpAtSesData{
+			Credentials: api.GcpAtSesCredentials{
+				ClientID:     "123456789",
+				ClientEmail:  "test@project.iam.gserviceaccount.com",
+				PrivateKeyID: "",
+				PrivateKey:   "",
+			},
+		},
+	)
+	assert.Equal(t, "integration_name", cloudAccount.Name, "GcpAtSes cloud account name mismatch")
+	assert.Equal(t, "GcpAtSes", cloudAccount.Type,
+		"a new GcpAtSes cloud account should match its type")
+	assert.Equal(t, 1, cloudAccount.Enabled, "a new GcpAtSes cloud account should be enabled")
+	cloudAccount.IntgGuid = intgGUID
+
+	err = c.V2.CloudAccounts.Migrate(intgGUID)
+	assert.Nil(t, err)
+}
+
 func generateCloudAccounts(guids []string, iType string) string {
 	cloudAccounts := make([]string, len(guids))
 	for i, guid := range guids {

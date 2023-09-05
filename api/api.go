@@ -127,6 +127,8 @@ const (
 	apiSuppressions = "v2/suppressions/%s/allExceptions"
 
 	apiRecommendations = "v2/recommendations/%s"
+
+	apiV2MigrateGcpAtSes = "v2/migrateGcpAtSes"
 )
 
 // WithApiV2 configures the client to use the API version 2 (/api/v2)
