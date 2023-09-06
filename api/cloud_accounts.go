@@ -20,6 +20,7 @@ package api
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -168,6 +169,30 @@ func (svc *CloudAccountsService) Delete(guid string) error {
 		"DELETE",
 		fmt.Sprintf(apiV2CloudAccountsWithParam, guid),
 		nil,
+		nil,
+	)
+}
+
+// Migrate marks a Cloud Account integration that matches the provided guid for migration
+func (svc *CloudAccountsService) Migrate(guid string) error {
+	if guid == "" {
+		return errors.New("specify an intgGuid")
+	}
+
+	data := MigrateRequestData{
+		MigrateData{
+			IntgGuid: guid,
+			Props: Props{
+				Migrate:            true,
+				MigrationTimestamp: time.Now(),
+			},
+		},
+	}
+
+	return svc.client.RequestEncoderDecoder(
+		"PATCH",
+		apiV2MigrateGcpAtSes,
+		data,
 		nil,
 	)
 }
