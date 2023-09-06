@@ -227,7 +227,7 @@ func TestAlertRuleUpdate(t *testing.T) {
 			Severities:      api.AlertRuleSeverities{api.AlertRuleSeverityHigh},
 			ResourceGroups:  []string{"TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB"},
 			EventCategories: []string{"Compliance", "SystemCall"},
-			Sources:         []string{"Aws", "Agent", "K8s"},
+			AlertSources:    []string{"Aws", "Agent", "K8s"},
 			AlertCategories: []string{"Policy", "Anomaly"},
 		},
 	)
@@ -241,8 +241,8 @@ func TestAlertRuleUpdate(t *testing.T) {
 		assert.NotNil(t, response)
 		assert.Equal(t, intgGUID, response.Data.Guid)
 		assert.Contains(t, response.Data.Filter.EventCategories, "Compliance", "SystemCall")
-		assert.Contains(t, response.Data.Filter.Sources, "Aws", "Agent", "K8s")
 		assert.Contains(t, response.Data.Filter.AlertCategories, "Policy", "Anomaly")
+		assert.Contains(t, response.Data.Filter.AlertSources, "Aws", "Agent", "K8s")
 		assert.Contains(t, response.Data.Filter.ResourceGroups, "TECHALLY_100000000000AAAAAAAAAAAAAAAAAAAB")
 		assert.Contains(t, response.Data.Channels, "TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA")
 	}
@@ -315,7 +315,7 @@ func singleMockAlertRule(id string) string {
                 "Policy",
                 "Anomaly"
             ],
-            "sources": [
+            "source": [
                 "Aws",
                 "Agent",
                 "K8s"
