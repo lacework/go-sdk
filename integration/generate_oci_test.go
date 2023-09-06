@@ -1,3 +1,5 @@
+//go:build !windows && generation
+
 package integration
 
 import (
