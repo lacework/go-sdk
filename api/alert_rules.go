@@ -186,7 +186,7 @@ func NewAlertRule(name string, rule AlertRuleConfig) AlertRule {
 			ResourceGroups:  rule.ResourceGroups,
 			EventCategories: rule.EventCategories,
 			AlertCategories: rule.AlertCategories,
-			Sources:         rule.Sources,
+			AlertSources:    rule.AlertSources,
 		},
 	}
 }
@@ -256,8 +256,8 @@ type AlertRuleConfig struct {
 	Severities      AlertRuleSeverities
 	ResourceGroups  []string
 	EventCategories []string
-	Sources         []string
 	AlertCategories []string
+	AlertSources    []string
 }
 
 type AlertRule struct {
@@ -274,8 +274,8 @@ type AlertRuleFilter struct {
 	Severity             []int    `json:"severity"`
 	ResourceGroups       []string `json:"resourceGroups"`
 	EventCategories      []string `json:"eventCategory"`
-	Sources              []string `json:"sources,omitempty"`
 	AlertCategories      []string `json:"category"`
+	AlertSources         []string `json:"source,omitempty"`
 	CreatedOrUpdatedTime string   `json:"createdOrUpdatedTime,omitempty"`
 	CreatedOrUpdatedBy   string   `json:"createdOrUpdatedBy,omitempty"`
 }
