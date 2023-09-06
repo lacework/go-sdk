@@ -45,4 +45,5 @@ Terraform and deploying Lacework into AWS, Azure, or GCP.
 * [lacework generate cloud-account aws](lacework_generate_cloud-account_aws.md)	 - Generate and/or execute Terraform code for AWS integration
 * [lacework generate cloud-account azure](lacework_generate_cloud-account_azure.md)	 - Generate and/or execute Terraform code for Azure integration
 * [lacework generate cloud-account gcp](lacework_generate_cloud-account_gcp.md)	 - Generate and/or execute Terraform code for GCP integration
+* [lacework generate cloud-account oci](lacework_generate_cloud-account_oci.md)	 - Generate and/or execute Terraform code for OCI integration
 
