@@ -1,13 +1,10 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.31.0`.
+Another day, another release. These are the release notes for the version `v1.32.0`.
 
 ## Features
-* feat(cli): add lacework generate cloud-account oci subcommand (#1359) (Kolbeinn)([33722fdc](https://github.com/lacework/go-sdk/commit/33722fdc163f3f14fe6eeafa8f67c7cb142f0b80))
-## Bug Fixes
-* fix(api): fix alert rules source field (#1370) (Pengyuan Zhao)([c54d98d1](https://github.com/lacework/go-sdk/commit/c54d98d162c1b477d1e373e893e9c6226af45604))
+* feat(cli): add CLI command to support migration (#1369) (Manan Bhatia)([8d3ed7f2](https://github.com/lacework/go-sdk/commit/8d3ed7f2023a94958ea458d6dccbf6dc5573ee7b))
 ## Other Changes
-* chore: OCI test build tag (#1371) (jonathan stewart)([5f499c38](https://github.com/lacework/go-sdk/commit/5f499c38803e55178d2c33b2037a485e679ef6e3))
-* ci: version bump to v1.30.3-dev (Lacework)([d957bdbc](https://github.com/lacework/go-sdk/commit/d957bdbc153b37d038f2aeff2daaebd00cd1db6a))
+* ci: version bump to v1.31.1-dev (Lacework)([b480a52b](https://github.com/lacework/go-sdk/commit/b480a52bb59bd4720554a33215a1c63d857508d6))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
