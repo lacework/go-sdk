@@ -61,13 +61,13 @@ versions available for update.
 Set the environment variable 'LW_UPDATES_DISABLE=1' to avoid checking for updates.`,
 		Args: cobra.NoArgs,
 		Run: func(_ *cobra.Command, _ []string) {
-			componentVerionsOutput := &strings.Builder{}
+			componentVersionsOutput := &strings.Builder{}
 			if cli.LwComponents != nil {
 				for _, component := range cli.LwComponents.Components {
 					if component.IsInstalled() {
 						v, err := component.CurrentVersion()
 						if err == nil {
-							componentVerionsOutput.WriteString(
+							componentVersionsOutput.WriteString(
 								fmt.Sprintf(" > %s v%s\n", component.Name, v.String()),
 							)
 							continue
@@ -86,7 +86,7 @@ Set the environment variable 'LW_UPDATES_DISABLE=1' to avoid checking for update
 					BuildTime: BuildTime,
 				}
 
-				if componentVerionsOutput.String() != "" {
+				if componentVersionsOutput.String() != "" {
 					vJSON.CDK = cli.LwComponents
 				}
 
@@ -95,13 +95,14 @@ Set the environment variable 'LW_UPDATES_DISABLE=1' to avoid checking for update
 			}
 
 			cli.OutputHuman("lacework v%s (sha:%s) (time:%s)\n", Version, GitSHA, BuildTime)
-			if componentVerionsOutput.String() != "" {
-				cli.OutputHuman("\nComponents:\n\n%s", componentVerionsOutput.String())
+			if componentVersionsOutput.String() != "" {
+				cli.OutputHuman("\nComponents:\n\n%s", componentVersionsOutput.String())
 			}
 
 			// check the latest version of the cli
 			if _, err := versionCheck(); err != nil {
-				exitwithCode(err, 4)
+				cli.Log.Errorw("unable to perform lacework cli version check",
+					"error", err.Error())
 			}
 		},
 	}
