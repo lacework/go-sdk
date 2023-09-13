@@ -32,7 +32,7 @@ type AlertRulesService struct {
 }
 
 // Valid inputs for AlertRule Source property
-var AlertRuleSources = []string{"Agent", "AWS", "Azure", "Gcp", "K8s"}
+var AlertRuleSources = []string{"Agent", "AWS", "Azure", "GCP", "K8s"}
 
 // Valid inputs for AlertRule Categories property
 var AlertRuleCategories = []string{"Anomaly", "Policy", "Composite"}
