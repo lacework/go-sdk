@@ -71,6 +71,7 @@ integration-only: install-tools ## Run integration tests
 		alert_profile \
 		agent \
 		configure \
+		cloud_account \
 		container_registry \
 		query \
 		policy \
