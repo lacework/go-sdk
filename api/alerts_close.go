@@ -47,7 +47,7 @@ var AlertCloseReasons = alertCloseReasons{
 	AlertCloseReasonNotEnoughInfo:    "Not enough information",
 	AlertCloseReasonMalicious:        "Malicious and have resolution in place",
 	AlertCloseReasonExpected:         "Expected because of routine testing",
-	AlertCloseReasonExpectedBehavior: "Expected Behaviour",
+	AlertCloseReasonExpectedBehavior: "Expected Behavior",
 }
 
 func (acr alertCloseReasons) GetOrderedReasonStrings() []string {
