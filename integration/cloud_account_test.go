@@ -26,7 +26,6 @@ import (
 )
 
 func TestCloudAccountCommandAliases(t *testing.T) {
-	t.Skip()
 	// lacework cloud-account
 	out, err, exitcode := LaceworkCLI("help", "cloud-account")
 	assert.Contains(t, out.String(), "lacework cloud-account [command]")
@@ -35,25 +34,24 @@ func TestCloudAccountCommandAliases(t *testing.T) {
 
 	// lacework cloud-accounts
 	out, err, exitcode = LaceworkCLI("help", "cloud-accounts")
-	assert.Contains(t, out.String(), "lacework cloud-accounts [command]")
+	assert.Contains(t, out.String(), "lacework cloud-account [command]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// lacework cloud
 	out, err, exitcode = LaceworkCLI("help", "cloud")
-	assert.Contains(t, out.String(), "lacework cloud [command]")
+	assert.Contains(t, out.String(), "lacework cloud-account [command]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
 	// lacework ca
 	out, err, exitcode = LaceworkCLI("help", "ca")
-	assert.Contains(t, out.String(), "lacework ca [command]")
+	assert.Contains(t, out.String(), "lacework cloud-account [command]")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
 func _TestCloudAccountCommandList(t *testing.T) {
-	t.Skip()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("cloud-account", "list")
 	assert.Contains(t, out.String(), "CLOUD ACCOUNT GUID",
 		"STDOUT table headers changed, please check")
@@ -73,7 +71,6 @@ func _TestCloudAccountCommandList(t *testing.T) {
 }
 
 func _TestCloudAccountCommandListWithTypeFlag(t *testing.T) {
-	t.Skip()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("cloud-account", "list", "--type", "AWS_CFG")
 	assert.Contains(t, out.String(), "CLOUD ACCOUNT GUID",
 		"STDOUT table headers changed, please check")
@@ -95,7 +92,6 @@ func _TestCloudAccountCommandListWithTypeFlag(t *testing.T) {
 }
 
 func _TestCloudAccountCommandListWithTypeFlagErrorUnknownType(t *testing.T) {
-	t.Skip()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("cloud-account", "list", "--type", "FOO_BAR")
 	assert.Emptyf(t, out.String(),
 		"STDOUT should be empty")
@@ -107,8 +103,7 @@ func _TestCloudAccountCommandListWithTypeFlagErrorUnknownType(t *testing.T) {
 }
 
 func TestCloudAccountShow(t *testing.T) {
-	t.Skip()
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("cloud-account", "show", "TECHALLY_948AB76C4F809D5CBE4C92BB38F6EBFD9F413694FD85C75")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("cloud-account", "show", "TECHALLY_BA7DC3D27F930097DDD414B8FFF2F655FCB39075625F5E9")
 	// Summary Table
 	assert.Contains(t, out.String(), "CLOUD ACCOUNT GUID",
 		"STDOUT table headers changed, please check")
@@ -149,7 +144,6 @@ func TestCloudAccountShow(t *testing.T) {
 }
 
 func TestCloudAccountList(t *testing.T) {
-	t.Skip()
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("ca", "list")
 	assert.Contains(t, out.String(), "CLOUD ACCOUNT GUID",
 		"STDOUT table headers changed, please check")
