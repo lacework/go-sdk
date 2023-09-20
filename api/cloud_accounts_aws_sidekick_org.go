@@ -72,6 +72,7 @@ type AwsSidekickOrgData struct {
 	ScanHostVulnerabilities bool `json:"scanHostVulnerabilities"`
 	ScanMultiVolume         bool `json:"scanMultiVolume"`
 	ScanStoppedInstances    bool `json:"scanStoppedInstances"`
+	ScanShortLivedInstances bool `json:"scanShortLivedInstances"`
 
 	//Properties specific to the AWS organization integration type
 	ScanningAccount   string `json:"scanningAccount"`
