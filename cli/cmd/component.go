@@ -352,13 +352,15 @@ func componentsToTable() [][]string {
 
 func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
 	var (
-		component_name string
-		version        string
-		params         map[string]interface{}
-		start          time.Time
+		componentName string                 = args[0]
+		version       string                 = versionArg
+		params        map[string]interface{} = make(map[string]interface{})
+		start         time.Time
 	)
 
-	params = make(map[string]interface{})
+	cli.Event.Component = componentName
+	cli.Event.Feature = "install_component"
+	defer cli.SendHoneyvent()
 
 	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired
@@ -369,20 +371,16 @@ func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	component_name = args[0]
-
-	component, found := cli.LwComponents.GetComponent(component_name)
+	component, found := cli.LwComponents.GetComponent(componentName)
 	if !found {
-		err = errors.New(fmt.Sprintf("component %s not found. Try running 'lacework component list'", component_name))
+		err = errors.New(fmt.Sprintf("component %s not found. Try running 'lacework component list'", componentName))
 		return
 	}
 
-	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component_name))
+	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", componentName))
 
-	if versionArg == "" {
+	if version == "" {
 		version = component.LatestVersion.String()
-	} else {
-		version = versionArg
 	}
 
 	start = time.Now()
@@ -429,10 +427,7 @@ func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
 
 	params["configure_duration_ms"] = time.Since(start).Milliseconds()
 
-	cli.Event.Component = component_name
-	cli.Event.Feature = "install_component"
 	cli.Event.FeatureData = params
-	defer cli.SendHoneyvent()
 
 	if component.Breadcrumbs.InstallationMessage != "" {
 		cli.OutputHuman("\n")

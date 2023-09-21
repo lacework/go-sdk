@@ -223,20 +223,6 @@ func Dir() (string, error) {
 }
 
 func (s State) Install(component *Component, version string) error {
-	// @edoardopirovano, December 2022: Temporary workaround while there are still old
-	// APIs out there. In particular, 0.2.0 is the version of the API result before
-	// https://github.com/lacework/rainbow/pull/10874 which added the capability for
-	// the API to return multiple versions. At the time of writing, that PR is merged
-	// but not fully rolled out. In the old version of the API result, we would only
-	// return the latest version, and wouldn't set the version field of its artifacts.
-	// So, if we're looking for the latest version we should set what we're looking
-	// for to the empty string. If we're looking for anything else, we can leave it
-	// set as it is: we'll fail to find it and report an error which is the right
-	// behaviour as only the latest version can be installed in this case.
-	if s.Version == "0.2.0" && version == component.LatestVersion.String() {
-		version = ""
-	}
-
 	rPath, err := component.RootPath()
 	if err != nil {
 		return err
@@ -292,20 +278,6 @@ func (s State) Install(component *Component, version string) error {
 }
 
 func (s State) Verify(component *Component, version string) error {
-	// @edoardopirovano, December 2022: Temporary workaround while there are still old
-	// APIs out there. In particular, 0.2.0 is the version of the API result before
-	// https://github.com/lacework/rainbow/pull/10874 which added the capability for
-	// the API to return multiple versions. At the time of writing, that PR is merged
-	// but not fully rolled out. In the old version of the API result, we would only
-	// return the latest version, and wouldn't set the version field of its artifacts.
-	// So, if we're looking for the latest version we should set what we're looking
-	// for to the empty string. If we're looking for anything else, we can leave it
-	// set as it is: we'll fail to find it and report an error which is the right
-	// behaviour as only the latest version can be installed in this case.
-	if s.Version == "0.2.0" && version == component.LatestVersion.String() {
-		version = ""
-	}
-
 	artifact, found := component.ArtifactForRunningHost(version)
 	if !found {
 		return errors.Errorf(
