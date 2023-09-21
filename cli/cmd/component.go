@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/Masterminds/semver"
 	"github.com/fatih/color"
@@ -349,7 +350,16 @@ func componentsToTable() [][]string {
 	return out
 }
 
-func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
+func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
+	var (
+		component_name string
+		version        string
+		params         map[string]interface{}
+		start          time.Time
+	)
+
+	params = make(map[string]interface{})
+
 	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
@@ -359,21 +369,47 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	component, found := cli.LwComponents.GetComponent(args[0])
+	component_name = args[0]
+
+	component, found := cli.LwComponents.GetComponent(component_name)
 	if !found {
-		err = errors.New("component not found. Try running 'lacework component list'")
+		err = errors.New(fmt.Sprintf("component %s not found. Try running 'lacework component list'", component_name))
 		return
 	}
 
+	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component_name))
+
+	if versionArg == "" {
+		version = component.LatestVersion.String()
+	} else {
+		version = versionArg
+	}
+
+	start = time.Now()
+
 	cli.StartProgress(fmt.Sprintf("Installing component %s...", component.Name))
-	err = cli.LwComponents.Install(args[0], versionArg)
+	err = cli.LwComponents.Install(component, version)
 	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to install component")
 		return
 	}
 	cli.OutputChecklist(successIcon, "Component %s installed\n", color.HiYellowString(component.Name))
-	cli.OutputChecklist(successIcon, "Signature verified\n")
+
+	params["install_duration_ms"] = time.Since(start).Milliseconds()
+
+	start = time.Now()
+
+	cli.StartProgress("Verifing component signature...")
+	err = cli.LwComponents.Verify(component, version)
+	cli.StopProgress()
+	if err != nil {
+		err = errors.Wrap(err, "verification of component signature failed")
+		return
+	}
+	cli.OutputChecklist(successIcon, "Component signature verified\n")
+
+	params["verify_duration_ms"] = time.Since(start).Milliseconds()
 
 	cli.StartProgress(fmt.Sprintf("Configuring component %s...", component.Name))
 	// component life cycle: initialize
@@ -388,6 +424,13 @@ func runComponentsInstall(_ *cobra.Command, args []string) (err error) {
 
 	cli.OutputChecklist(successIcon, "Component configured\n")
 	cli.OutputHuman("\nInstallation completed.\n")
+
+	params["configure_duration_ms"] = time.Since(start).Milliseconds()
+
+	cli.Event.Component = component_name
+	cli.Event.Feature = "install_component"
+	cli.Event.FeatureData = params
+	defer cli.SendHoneyvent()
 
 	if component.Breadcrumbs.InstallationMessage != "" {
 		cli.OutputHuman("\n")
@@ -407,12 +450,16 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 		return
 	}
 
+	component_name := args[0]
+
 	component, found := cli.LwComponents.GetComponent(args[0])
 	if !found {
-		err = errors.New("component not found. Try running 'lacework component list'")
+		err = errors.New(fmt.Sprintf("component %s not found. Try running 'lacework component list'", component_name))
 		return
 	}
 	// @afiune end boilerplate load components
+
+	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component_name))
 
 	updateTo := component.LatestVersion
 	if versionArg != "" {
@@ -434,8 +481,8 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 		return nil
 	}
 
-	cli.StartProgress(fmt.Sprintf("Updating component %s...", component.Name))
-	err = cli.LwComponents.Install(args[0], updateTo.String())
+	cli.StartProgress(fmt.Sprintf("Updating component %s to version %s...", component.Name, &updateTo))
+	err = cli.LwComponents.Install(component, updateTo.String())
 	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to update component")
@@ -444,7 +491,15 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 	cli.OutputChecklist(successIcon, "Component %s updated to %s\n",
 		color.HiYellowString(component.Name),
 		color.HiCyanString(fmt.Sprintf("v%s", updateTo.String())))
-	cli.OutputChecklist(successIcon, "Signature verified\n")
+
+	cli.StartProgress("Verifing component signature...")
+	err = cli.LwComponents.Verify(component, updateTo.String())
+	cli.StopProgress()
+	if err != nil {
+		err = errors.Wrap(err, "verification of component signature failed")
+		return
+	}
+	cli.OutputChecklist(successIcon, "Component signature verified\n")
 
 	cli.StartProgress(fmt.Sprintf("Reconfiguring %s component...", component.Name))
 	// component life cycle: reconfigure
