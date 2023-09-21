@@ -411,6 +411,8 @@ func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
 
 	params["verify_duration_ms"] = time.Since(start).Milliseconds()
 
+	start = time.Now()
+
 	cli.StartProgress(fmt.Sprintf("Configuring component %s...", component.Name))
 	// component life cycle: initialize
 	stdout, stderr, errCmd := component.RunAndReturn([]string{"cdk-init"}, nil, cli.envs()...)
