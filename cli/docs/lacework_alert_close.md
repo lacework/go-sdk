@@ -19,7 +19,6 @@ The reason for closing the alert must be provided from the following options:
   * 2 - Not enough information
   * 3 - Malicious and have resolution in place
   * 4 - Expected because of routine testing.
-  * 5 - Expected Behavior.
 
 Reasons may be provided inline or via prompt.
 
