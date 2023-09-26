@@ -1,12 +1,10 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.33.0`.
+Another day, another release. These are the release notes for the version `v1.33.1`.
 
-## Features
-* feat: CDK component install telemetry (#1384) (jonathan stewart)([1a787e0b](https://github.com/lacework/go-sdk/commit/1a787e0bf0984896b5e0c5c8bc956dd87f86cd9a))
-* feat(cli): add 'Expected Behavior' alert close reason  (#1380) (Darren)([336c1b93](https://github.com/lacework/go-sdk/commit/336c1b93aa360ae16cf4dea32bdf791c03f01064))
+## Bug Fixes
+* fix(api): avoid round numbers in responses (#1387) (Salim Afiune)([ae54f5f3](https://github.com/lacework/go-sdk/commit/ae54f5f3d26d4093351c41eb61f023265d0835ce))
 ## Other Changes
-* ci: version bump to v1.32.3-dev (Lacework)([fa0484ab](https://github.com/lacework/go-sdk/commit/fa0484ab9b5c93eba1e5d85ed4bb23a076d03ea9))
-* test: enable 'cloud_account' test for 'make integration-only' (#1381) (Darren)([bd278a08](https://github.com/lacework/go-sdk/commit/bd278a0818dac7e581debdb14a2a110c4b6337df))
+* ci: version bump to v1.33.1-dev (Lacework)([d9fbb5bb](https://github.com/lacework/go-sdk/commit/d9fbb5bb15b237f583a129faec0fbaa637ee836e))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
