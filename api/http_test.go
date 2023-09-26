@@ -20,6 +20,7 @@ package api_test
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -34,8 +35,30 @@ func TestNewRequest(t *testing.T) {
 	// TODO @afiune to-be-implemented!
 }
 
-func TestDoDecoder(t *testing.T) {
-	// TODO @afiune to-be-implemented!
+func TestDoDecoderLooongNumbers(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		"endpoint",
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, `{"mid": 5016581821971911018}`)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("foo",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+	request, _ := c.NewRequest("GET", "endpoint", nil)
+
+	var v interface{}
+	res, err := c.DoDecoder(request, &v)
+	defer res.Body.Close()
+	assert.Nil(t, err)
+
+	m := v.(map[string]interface{})
+	assert.Equal(t, "5016581821971911018", fmt.Sprint(m["mid"]))
 }
 
 func TestDoDecoder204(t *testing.T) {
@@ -49,7 +72,11 @@ func TestDoDecoder204(t *testing.T) {
 	)
 	defer fakeServer.Close()
 
-	c, _ := api.NewClient("foo", api.WithURL(fakeServer.URL()), api.WithTokenFromKeys("KEY", "SECRET"), api.WithExpirationTime(-60))
+	c, _ := api.NewClient("foo",
+		api.WithURL(fakeServer.URL()),
+		api.WithTokenFromKeys("KEY", "SECRET"),
+		api.WithExpirationTime(-60),
+	)
 	request, _ := c.NewRequest("GET", "foo", nil)
 
 	var v interface{}

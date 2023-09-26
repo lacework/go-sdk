@@ -55,8 +55,7 @@ var alertIntegrationsJSON = `{
                 },
                 "IS_ORG": 0,
                 "DATA": {
-                    "WEBHOOK_URL": "https://lars.run/alerts",
-                    "MIN_ALERT_SEVERITY": 3
+                    "WEBHOOK_URL": "https://lars.run/alerts"
                 }
             },
             "alertIntegrationId": "d7b76b0a-a9d6-e953-3asdf-53595515953f",

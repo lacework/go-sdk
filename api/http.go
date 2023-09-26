@@ -129,7 +129,9 @@ func (c *Client) DoDecoder(req *http.Request, v interface{}) (*http.Response, er
 			_, err = io.Copy(w, resTee)
 			return res, err
 		}
-		err = json.NewDecoder(resTee).Decode(v)
+		dcoder := json.NewDecoder(resTee)
+		dcoder.UseNumber()
+		err = dcoder.Decode(v)
 	}
 
 	return res, err
