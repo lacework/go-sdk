@@ -22,13 +22,31 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
+)
+
+const (
+	defaultTimeout  = 30 * time.Second
+	defaultMaxRetry = 2
 )
 
 // downloadFile is an internal helper that downloads a file to the provided file path
 func downloadFile(filepath string, url string) error {
-	resp, err := http.Get(url)
+	var (
+		resp *http.Response
+		err  error
+	)
+
+	client := &http.Client{Timeout: defaultTimeout}
+
+	resp, err = client.Get(url)
 	if err != nil {
-		return err
+		for retry := 0; retry < defaultMaxRetry && os.IsTimeout(err); retry++ {
+			resp, err = client.Get(url)
+		}
+		if err != nil {
+			return err
+		}
 	}
 	defer resp.Body.Close()
 
