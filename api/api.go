@@ -62,6 +62,10 @@ const (
 
 	apiV2ComplianceEvaluationsSearch = "v2/Configs/ComplianceEvaluations/search"
 
+	apiV2Components         = "v2/Components?os=%s&arch=%s"
+	apiV2ComponentsVersions = "v2/Components/%s?os=%s&arch=%s"
+	apiV2ComponentsFetch    = "v2/Components/Artifact/%s?os=%s&arch=%s&version=%s"
+
 	apiV2ComponentDataRequest  = "v2/ComponentData/requestUpload"
 	apiV2ComponentDataComplete = "v2/ComponentData/completeUpload"
 
