@@ -31,13 +31,18 @@ const (
 )
 
 // downloadFile is an internal helper that downloads a file to the provided file path
-func downloadFile(filepath string, url string) error {
+func DownloadFile(filepath string, url string, timeout time.Duration) error {
 	var (
-		resp *http.Response
-		err  error
+		resp     *http.Response
+		err      error
+		_timeout time.Duration = timeout
 	)
 
-	client := &http.Client{Timeout: defaultTimeout}
+	if _timeout == 0 {
+		_timeout = defaultTimeout
+	}
+
+	client := &http.Client{Timeout: _timeout}
 
 	resp, err = client.Get(url)
 	if err != nil {

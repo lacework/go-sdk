@@ -35,11 +35,11 @@ type verifySignatureTest struct {
 }
 
 var verifySignatureTests = []verifySignatureTest{
-	verifySignatureTest{
+	{
 		Name:  "UnableToParseSignature",
 		Error: errors.New("unable to parse signature"),
 	},
-	verifySignatureTest{
+	{
 		Name: "InvalidTrustedComment",
 		Signature: []byte(`untrusted comment: 
 RWQnyHnTKz1RiRl+vm7dNpp7Jrt+qLANsu9m+TaHSgVyJO9Ldeo5ZPw/GQJu1fJZBuCrsMVW5KbuB6dEPzQvi8ct1zJfMkgVsgs=
@@ -47,7 +47,7 @@ trusted comment: RWQnyHnTKz1RidqMl45Ou5XbJCroV7zohE1jpbigTUGXyQY94AF5uo4v.1.dW50
 cJwh7XDctGR8dpc1NEJnPGU5IXNvMNXa6hdMA0BBZvvnsKQHeVVEkMc7zo72iFsHEKRxe+AmXkryNgVi7Gg0DQ==`),
 		Error: errors.New("invalid signature trusted comment"),
 	},
-	verifySignatureTest{
+	{
 		Name: "UnableToParseRootSignature",
 		Signature: []byte(`untrusted comment: 
 RWQnyHnTKz1RiRl+vm7dNpp7Jrt+qLANsu9m+TaHSgVyJO9Ldeo5ZPw/GQJu1fJZBuCrsMVW5KbuB6dEPzQvi8ct1zJfMkgVsgs=
@@ -55,7 +55,7 @@ trusted comment: 1.RWQnyHnTz1RidqMl45Ou5XbJCroV7zohE1jpbigTUGXyQY94AF5uo4v.1.W50
 cJwh7XDctGR8dpc1NEJnPGU5IXNvMNXa6hdMA0BBZvvnsKQHeVVEkMc7zo72iFsHEKRxe+AmXkryNgVi7Gg0DQ==`),
 		Error: errors.New("unable to parse root signature from trusted comment: illegal base64 data at input byte 303"),
 	},
-	verifySignatureTest{
+	{
 		Name: "InvalidRootSignatureOverSigningKey",
 		Signature: []byte(`untrusted comment: 
 RWQnyHnTKz1RiRl+vm7dNpp7Jrt+qLANsu9m+TaHSgVyJO9Ldeo5ZPw/GQJu1fJZBuCrsMVW5KbuB6dEPzQvi8ct1zJfMkgVsgs=
@@ -63,7 +63,7 @@ trusted comment: 1.RWQnyHnTz1RidqMl45Ou5XbJCroV7zohE1jpbigTUGXyQY94AF5uo4v.1.dW5
 cJwh7XDctGR8dpc1NEJnPGU5IXNvMNXa6hdMA0BBZvvnsKQHeVVEkMc7zo72iFsHEKRxe+AmXkryNgVi7Gg0DQ==`),
 		Error: errors.New("invalid root signature over signing key"),
 	},
-	verifySignatureTest{
+	{
 		Name: "InvalidSignatureOverComponent",
 		Signature: []byte(`untrusted comment: 
 RWQnyHnTKz1RiRl+vm7dNpp7Jrt+qLANsu9m+TaHSgVyJO9Ldeo5ZPw/GQJu1fJZBuCrsMVW5KbuB6dEPzQvi8ct1zJfMkgVsgs=
@@ -71,7 +71,7 @@ trusted comment: 1.RWQnyHnTKz1RidqMl45Ou5XbJCroV7zohE1jpbigTUGXyQY94AF5uo4v.1.dW
 cJwh7XDctGR8dpc1NEJnPGU5IXNvMNXa6hdMA0BBZvvnsKQHeVVEkMc7zo72iFsHEKRxe+AmXkryNgVi7Gg0DQ==`),
 		Error: errors.New("invalid signature over component"),
 	},
-	verifySignatureTest{
+	{
 		Name:      "OK",
 		Message:   helloWorld,
 		Signature: helloWorldSigDecoded,
