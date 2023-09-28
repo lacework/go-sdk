@@ -257,7 +257,7 @@ func (s State) Install(component *Component, version string) error {
 		return err
 	}
 
-	err = downloadFile(path, artifact.URL)
+	err = DownloadFile(path, artifact.URL, 0)
 	if err != nil {
 		return errors.Wrap(err, "unable to download component artifact")
 	}
