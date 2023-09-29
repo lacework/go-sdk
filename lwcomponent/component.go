@@ -257,7 +257,14 @@ func (s State) Install(component *Component, version string) error {
 		return err
 	}
 
-	err = DownloadFile(path, artifact.URL, 5*time.Minute)
+	// Slow S3 downloads
+	downloadTimeout := 0 * time.Minute
+	switch component.Name {
+	case "sast":
+		downloadTimeout = 5 * time.Minute
+	}
+
+	err = DownloadFile(path, artifact.URL, time.Duration(downloadTimeout))
 	if err != nil {
 		return errors.Wrap(err, "unable to download component artifact")
 	}
