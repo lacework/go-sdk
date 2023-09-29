@@ -46,7 +46,10 @@ func DownloadFile(filepath string, url string, timeout time.Duration) (err error
 	err = downloadFile(client, url, file)
 
 	for retry := 0; retry < defaultMaxRetry && os.IsTimeout(err); retry++ {
-		file.Seek(0, io.SeekStart)
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			return err
+		}
 
 		err = downloadFile(client, url, file)
 	}
