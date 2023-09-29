@@ -43,9 +43,22 @@ func TestDownloadFile(t *testing.T) {
 	})
 
 	t.Run("timeout error", func(t *testing.T) {
-		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, urlPath), 1*time.Microsecond)
+		var (
+			count int = 0
+		)
+
+		mux.HandleFunc("/slow", func(w http.ResponseWriter, r *http.Request) {
+			if assert.Equal(t, "GET", r.Method, "Get() should be a GET method") {
+				count += 1
+				time.Sleep(10 * time.Millisecond)
+				fmt.Fprint(w, content)
+			}
+		})
+
+		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, "/slow"), 2*time.Millisecond)
 		assert.NotNil(t, err)
 		assert.True(t, os.IsTimeout(err))
+		assert.Equal(t, 3, count)
 	})
 
 	t.Run("non-timeout error", func(t *testing.T) {
