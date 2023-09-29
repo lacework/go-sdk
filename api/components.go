@@ -42,7 +42,9 @@ type ComponentVersions struct {
 	Versions       []string `json:"versions"`
 }
 
-func (svc *ComponentsService) ListComponentVersions(component string, os string, arch string) (response ListComponentVersionsResponse, err error) {
+func (svc *ComponentsService) ListComponentVersions(component string, os string, arch string) (
+	response ListComponentVersionsResponse,
+	err error) {
 	apiPath := fmt.Sprintf(apiV2ComponentsVersions, component, os, arch)
 
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
@@ -63,7 +65,9 @@ type Artifact struct {
 	ArtifactUrl    string `json:"artifact_url"`
 }
 
-func (svc *ComponentsService) FetchComponentArtifact(component string, os string, arch string, version string) (response FetchComponentResponse, err error) {
+func (svc *ComponentsService) FetchComponentArtifact(component string, os string, arch string, version string) (
+	response FetchComponentResponse,
+	err error) {
 	apiPath := fmt.Sprintf(apiV2ComponentsFetch, component, os, arch, version)
 
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
