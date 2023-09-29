@@ -1,3 +1,66 @@
+# v1.33.3
+
+## Bug Fixes
+* fix: component download (#1394) (jonathan stewart)([19e46b51](https://github.com/lacework/go-sdk/commit/19e46b514a0fcf57b329433f9969864e62c2e403))
+* fix: increase component download timeout to 5m (#1392) (jonathan stewart)([fa31ff24](https://github.com/lacework/go-sdk/commit/fa31ff24937dafba56cd8ab55d2958e01785bd48))
+## Other Changes
+* ci: version bump to v1.33.3-dev (Lacework)([4c7adc66](https://github.com/lacework/go-sdk/commit/4c7adc661360566d08da33d815f866911b4c6bf2))
+---
+# v1.33.2
+
+## Bug Fixes
+* fix: component download timeout retry (#1389) (jonathan stewart)([850cddcf](https://github.com/lacework/go-sdk/commit/850cddcfe80d5a438c7cf35dad32fc0cdf326ab7))
+## Other Changes
+* ci: version bump to v1.33.2-dev (Lacework)([39add0ed](https://github.com/lacework/go-sdk/commit/39add0ed4f1826da7eb7593c06a7c477719630a9))
+---
+# v1.33.1
+
+## Bug Fixes
+* fix(api): avoid round numbers in responses (#1387) (Salim Afiune)([ae54f5f3](https://github.com/lacework/go-sdk/commit/ae54f5f3d26d4093351c41eb61f023265d0835ce))
+## Other Changes
+* ci: version bump to v1.33.1-dev (Lacework)([d9fbb5bb](https://github.com/lacework/go-sdk/commit/d9fbb5bb15b237f583a129faec0fbaa637ee836e))
+---
+# v1.33.0
+
+## Features
+* feat: CDK component install telemetry (#1384) (jonathan stewart)([1a787e0b](https://github.com/lacework/go-sdk/commit/1a787e0bf0984896b5e0c5c8bc956dd87f86cd9a))
+* feat(cli): add 'Expected Behavior' alert close reason  (#1380) (Darren)([336c1b93](https://github.com/lacework/go-sdk/commit/336c1b93aa360ae16cf4dea32bdf791c03f01064))
+## Other Changes
+* ci: version bump to v1.32.3-dev (Lacework)([fa0484ab](https://github.com/lacework/go-sdk/commit/fa0484ab9b5c93eba1e5d85ed4bb23a076d03ea9))
+* test: enable 'cloud_account' test for 'make integration-only' (#1381) (Darren)([bd278a08](https://github.com/lacework/go-sdk/commit/bd278a0818dac7e581debdb14a2a110c4b6337df))
+---
+# v1.32.2
+
+## Bug Fixes
+* fix(GROW-2435): change alert source Gcp to GCP (#1378) (Pengyuan Zhao)([f657bad4](https://github.com/lacework/go-sdk/commit/f657bad476bab5453d4bd579e2c8f76ce405d462))
+## Other Changes
+* ci: version bump to v1.32.2-dev (Lacework)([8f1041c6](https://github.com/lacework/go-sdk/commit/8f1041c698d8b7036b1bd575605f6b1890d30ee1))
+---
+# v1.32.1
+
+## Bug Fixes
+* fix(api): change alert_source Aws to AWS (#1376) (Pengyuan Zhao)([cb80cb15](https://github.com/lacework/go-sdk/commit/cb80cb1507a4279074f99a3bc4f4a11573b3fc9c))
+* fix(COD-1559): Failures in Lacework CLI update checking (#1375) (Linpeng Zhang)([29dc321c](https://github.com/lacework/go-sdk/commit/29dc321c54eed15bcc86629a45fbfbe20a4488af))
+## Other Changes
+* ci: version bump to v1.32.1-dev (Lacework)([e65e720d](https://github.com/lacework/go-sdk/commit/e65e720d06317453be49100fdc8c4d635396d543))
+---
+# v1.32.0
+
+## Features
+* feat(cli): add CLI command to support migration (#1369) (Manan Bhatia)([8d3ed7f2](https://github.com/lacework/go-sdk/commit/8d3ed7f2023a94958ea458d6dccbf6dc5573ee7b))
+## Other Changes
+* ci: version bump to v1.31.1-dev (Lacework)([b480a52b](https://github.com/lacework/go-sdk/commit/b480a52bb59bd4720554a33215a1c63d857508d6))
+---
+# v1.31.0
+
+## Features
+* feat(cli): add lacework generate cloud-account oci subcommand (#1359) (Kolbeinn)([33722fdc](https://github.com/lacework/go-sdk/commit/33722fdc163f3f14fe6eeafa8f67c7cb142f0b80))
+## Bug Fixes
+* fix(api): fix alert rules source field (#1370) (Pengyuan Zhao)([c54d98d1](https://github.com/lacework/go-sdk/commit/c54d98d162c1b477d1e373e893e9c6226af45604))
+## Other Changes
+* chore: OCI test build tag (#1371) (jonathan stewart)([5f499c38](https://github.com/lacework/go-sdk/commit/5f499c38803e55178d2c33b2037a485e679ef6e3))
+* ci: version bump to v1.30.3-dev (Lacework)([d957bdbc](https://github.com/lacework/go-sdk/commit/d957bdbc153b37d038f2aeff2daaebd00cd1db6a))
+---
 # v1.30.2
 
 ## Bug Fixes

@@ -125,7 +125,7 @@ type pathTest struct {
 }
 
 var pathTests = []pathTest{
-	pathTest{
+	{
 		"NotExists",
 		Component{
 			Name: "no-such-component",
@@ -133,7 +133,7 @@ var pathTests = []pathTest{
 		},
 		errors.New("component not found on disk"),
 	},
-	pathTest{
+	{
 		"Exists",
 		mockComponent,
 		nil,
@@ -176,7 +176,7 @@ type isVerifiedTest struct {
 }
 
 var isVerifiedTests = []isVerifiedTest{
-	isVerifiedTest{
+	{
 		Name: "NoSignature",
 		Component: Component{
 			Name: "lacework-mock-component",
@@ -184,7 +184,7 @@ var isVerifiedTests = []isVerifiedTest{
 		Version: "0.1.0",
 		Error:   errors.New("component signature file does not exist"),
 	},
-	isVerifiedTest{
+	{
 		Name: "Mismatch",
 		Component: Component{
 			Name: "lacework-mock-component",
@@ -193,7 +193,7 @@ var isVerifiedTests = []isVerifiedTest{
 		Signature: base64.StdEncoding.EncodeToString([]byte("blah blah blah")),
 		Error:     errors.New("unable to parse signature"),
 	},
-	isVerifiedTest{
+	{
 		Name:      "Verified",
 		Component: mockComponent,
 		Version:   "0.1.0\n",
@@ -231,26 +231,26 @@ type runTest struct {
 }
 
 var runTests = []runTest{
-	runTest{
+	{
 		Name:      "IsNotBinary",
 		Component: Component{Name: "IsNotBinary"},
 		Version:   "0.1.0",
 		Error:     errors.New("unable to run component: component IsNotBinary is not a binary"),
 	},
-	runTest{
+	{
 		Name:      "IsNotVerified",
 		Component: Component{Name: "IsNotVerified", Type: "BINARY"},
 		Version:   "0.1.0",
 		Error:     errors.New("unable to run component: component signature file does not exist"),
 	},
-	runTest{
+	{
 		Name:      "OK",
 		Component: mockComponent,
 		Version:   "0.1.0",
 		Signature: helloWorldSig,
 		Error:     nil,
 	},
-	runTest{
+	{
 		Name:      "Error",
 		Component: mockComponent,
 		Version:   "0.1.0",

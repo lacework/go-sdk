@@ -41,5 +41,6 @@ Manage cloud account integrations with Lacework
 * [lacework cloud-account create](lacework_cloud-account_create.md)	 - Create a new cloud account integration
 * [lacework cloud-account delete](lacework_cloud-account_delete.md)	 - Delete a cloud account integration
 * [lacework cloud-account list](lacework_cloud-account_list.md)	 - List all available cloud account integrations
+* [lacework cloud-account migrate](lacework_cloud-account_migrate.md)	 - Mark a cloud account integration for migration
 * [lacework cloud-account show](lacework_cloud-account_show.md)	 - Show a single cloud account integration
 

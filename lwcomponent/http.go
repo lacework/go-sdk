@@ -22,22 +22,55 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 )
 
-// downloadFile is an internal helper that downloads a file to the provided file path
-func downloadFile(filepath string, url string) error {
-	resp, err := http.Get(url)
+const (
+	defaultTimeout  = 30 * time.Second
+	defaultMaxRetry = 2
+)
+
+func DownloadFile(filepath string, url string, timeout time.Duration) (err error) {
+	if timeout == 0 {
+		timeout = defaultTimeout
+	}
+
+	client := &http.Client{Timeout: timeout}
+
+	file, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	err = downloadFile(client, url, file)
+
+	for retry := 0; retry < defaultMaxRetry && os.IsTimeout(err); retry++ {
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			return err
+		}
+
+		err = downloadFile(client, url, file)
+	}
+
+	return
+}
+
+// client.Get returns on receiving HTTP headers and we stream the HTTP data to the output file.
+// A timeout will interrupt io.Copy.
+func downloadFile(client *http.Client, url string, file *os.File) (err error) {
+	var (
+		resp *http.Response
+	)
+
+	resp, err = client.Get(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
+	_, err = io.Copy(file, resp.Body)
 
-	_, err = io.Copy(out, resp.Body)
-	return err
+	return
 }

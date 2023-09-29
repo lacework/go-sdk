@@ -18,6 +18,8 @@
 
 package api
 
+import "time"
+
 // GetGcpAtSes gets a single GcpAtSes integration matching the provided integration guid
 func (svc *CloudAccountsService) GetGcpAtSes(guid string) (
 	response GcpAtSesIntegrationResponse,
@@ -58,4 +60,18 @@ type GcpAtSesCredentials struct {
 	ClientEmail  string `json:"clientEmail"`
 	PrivateKeyID string `json:"privateKeyId,omitempty"`
 	PrivateKey   string `json:"privateKey,omitempty"`
+}
+
+type Props struct {
+	Migrate            bool      `json:"migrate"`
+	MigrationTimestamp time.Time `json:"migrationTimestamp"`
+}
+
+type MigrateData struct {
+	IntgGuid string `json:"intgGuid"`
+	Props    Props  `json:"props"`
+}
+
+type MigrateRequestData struct {
+	Data MigrateData `json:"data"`
 }

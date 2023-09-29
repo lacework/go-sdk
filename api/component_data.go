@@ -15,11 +15,17 @@ type ComponentDataService struct {
 	client *Client
 }
 
+const URL_TYPE_DEFAULT = "Default"
+const URL_TYPE_SAST_TABLES = "SastTables"
+
+var URL_TYPES = []string{URL_TYPE_DEFAULT, URL_TYPE_SAST_TABLES}
+
 type ComponentDataInitialRequest struct {
 	Name             string          `json:"name"`
 	Tags             []string        `json:"tags"`
 	SupportedMethods []string        `json:"supportedMethods"`
 	Documents        []*DocumentSpec `json:"documents"`
+	UrlType          string          `json:"urlType"`
 }
 
 type DocumentSpec struct {
@@ -43,6 +49,7 @@ type ComponentDataUploadMethod struct {
 
 type ComponentDataCompleteRequest struct {
 	UploadGuid string `json:"uploadGuid"`
+	UrlType    string `json:"urlType"`
 }
 
 type ComponentDataCompleteResponseRaw struct {
@@ -53,8 +60,29 @@ type ComponentDataCompleteResponse struct {
 	Guid string `json:"guid,omitempty"`
 }
 
-func (svc *ComponentDataService) UploadFiles(name string, tags []string, paths []string) (string, error) {
-	initialRequest, err := buildComponentDataInitialRequest(name, tags, paths)
+func (svc *ComponentDataService) UploadFiles(
+	name string, tags []string, paths []string) (string, error) {
+	return svc.doUploadFiles(name, tags, paths, URL_TYPE_DEFAULT)
+}
+
+func (svc *ComponentDataService) UploadSastTables(
+	name string, paths []string) (string, error) {
+	return svc.doUploadFiles(name, []string{"sast"}, paths, URL_TYPE_SAST_TABLES)
+}
+
+func (svc *ComponentDataService) doUploadFiles(
+	name string, tags []string, paths []string, urlType string) (string, error) {
+	var hasValidType = false
+	for _, validType := range URL_TYPES {
+		if urlType == validType {
+			hasValidType = true
+			break
+		}
+	}
+	if !hasValidType {
+		return "", errors.Errorf("Invalid URL type: (%s)", urlType)
+	}
+	initialRequest, err := buildComponentDataInitialRequest(name, tags, paths, urlType)
 	if err != nil {
 		return "", err
 	}
@@ -88,6 +116,7 @@ func (svc *ComponentDataService) UploadFiles(name string, tags []string, paths [
 	}
 	completeRequest := ComponentDataCompleteRequest{
 		UploadGuid: initialResponse.Data.Guid,
+		UrlType:    urlType,
 	}
 	var completeResponse ComponentDataCompleteResponseRaw
 	err = doWithExponentialBackoffWaiting(func() error {
@@ -107,7 +136,7 @@ func (svc *ComponentDataService) UploadFiles(name string, tags []string, paths [
 }
 
 func buildComponentDataInitialRequest(
-	name string, tags []string, paths []string,
+	name string, tags []string, paths []string, urlType string,
 ) (*ComponentDataInitialRequest, error) {
 	documents := make([]*DocumentSpec, 0, len(paths))
 	for _, path := range paths {
@@ -125,6 +154,7 @@ func buildComponentDataInitialRequest(
 		Tags:             tags,
 		SupportedMethods: []string{"AwsS3"},
 		Documents:        documents,
+		UrlType:          urlType,
 	}, nil
 }
 

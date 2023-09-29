@@ -10,6 +10,7 @@ Available Commands:
   create       Create a new cloud account integration
   delete       Delete a cloud account integration
   list         List all available cloud account integrations
+  migrate      Mark a cloud account integration for migration
   show         Show a single cloud account integration
 
 Flags:

@@ -222,30 +222,7 @@ func Dir() (string, error) {
 	return filepath.Join(cacheDir, "components"), nil
 }
 
-func (s State) Install(name string, version string) error {
-	component, found := s.GetComponent(name)
-	if !found {
-		return errors.New("component not found")
-	}
-
-	if version == "" {
-		version = component.LatestVersion.String()
-	}
-
-	// @edoardopirovano, December 2022: Temporary workaround while there are still old
-	// APIs out there. In particular, 0.2.0 is the version of the API result before
-	// https://github.com/lacework/rainbow/pull/10874 which added the capability for
-	// the API to return multiple versions. At the time of writing, that PR is merged
-	// but not fully rolled out. In the old version of the API result, we would only
-	// return the latest version, and wouldn't set the version field of its artifacts.
-	// So, if we're looking for the latest version we should set what we're looking
-	// for to the empty string. If we're looking for anything else, we can leave it
-	// set as it is: we'll fail to find it and report an error which is the right
-	// behaviour as only the latest version can be installed in this case.
-	if s.Version == "0.2.0" && version == component.LatestVersion.String() {
-		version = ""
-	}
-
+func (s State) Install(component *Component, version string) error {
 	rPath, err := component.RootPath()
 	if err != nil {
 		return err
@@ -280,9 +257,20 @@ func (s State) Install(name string, version string) error {
 		return err
 	}
 
-	err = downloadFile(path, artifact.URL)
+	// Slow S3 downloads
+	downloadTimeout := 0 * time.Minute
+	switch component.Name {
+	case "sast":
+		downloadTimeout = 5 * time.Minute
+	}
+
+	err = DownloadFile(path, artifact.URL, time.Duration(downloadTimeout))
 	if err != nil {
 		return errors.Wrap(err, "unable to download component artifact")
+	}
+
+	if err := component.WriteVersion(artifact.Version); err != nil {
+		return err
 	}
 
 	// @afiune check 1) cross-platform and 2) correct permissions
@@ -293,11 +281,24 @@ func (s State) Install(name string, version string) error {
 		}
 	}
 
+	return nil
+}
+
+func (s State) Verify(component *Component, version string) error {
+	artifact, found := component.ArtifactForRunningHost(version)
+	if !found {
+		return errors.Errorf(
+			"could not find an artifact for version %s on the current platform (%s/%s)",
+			version, runtime.GOOS, runtime.GOARCH,
+		)
+	}
+
 	if err := component.WriteSignature([]byte(artifact.Signature)); err != nil {
 		return err
 	}
 
-	if err := component.WriteVersion(artifact.Version); err != nil {
+	rPath, err := component.RootPath()
+	if err != nil {
 		return err
 	}
 

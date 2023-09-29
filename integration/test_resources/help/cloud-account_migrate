@@ -1,22 +1,10 @@
-Generate cloud-account IaC to deploy Lacework into a cloud environment.
-
-This command creates Infrastructure as Code (IaC) in the form of Terraform HCL, with the option of running
-Terraform and deploying Lacework into AWS, Azure, or GCP.
+Mark a cloud account integration for migration
 
 Usage:
-  lacework generate cloud-account [command]
-
-Aliases:
-  cloud-account, cloud, ca
-
-Available Commands:
-  aws         Generate and/or execute Terraform code for AWS integration
-  azure       Generate and/or execute Terraform code for Azure integration
-  gcp         Generate and/or execute Terraform code for GCP integration
-  oci         Generate and/or execute Terraform code for OCI integration
+  lacework cloud-account migrate [flags]
 
 Flags:
-  -h, --help   help for cloud-account
+  -h, --help   help for migrate
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
@@ -31,5 +19,3 @@ Global Flags:
       --organization        access organization level data sets (org admins only)
   -p, --profile string      switch between profiles configured at ~/.lacework.toml
       --subaccount string   sub-account name inside your organization (org admins only)
-
-Use "lacework generate cloud-account [command] --help" for more information about a command.

@@ -30,6 +30,7 @@ const (
 	AlertCloseReasonNotEnoughInfo
 	AlertCloseReasonMalicious
 	AlertCloseReasonExpected
+	AlertCloseReasonExpectedBehavior
 )
 
 // String returns the string representation of an Alert closure reason
@@ -41,11 +42,12 @@ type alertCloseReasons map[alertCloseReason]string
 
 // AlertCloseReasons is the list of available Alert closure reasons
 var AlertCloseReasons = alertCloseReasons{
-	AlertCloseReasonOther:         "Other",
-	AlertCloseReasonFalsePositive: "False positive",
-	AlertCloseReasonNotEnoughInfo: "Not enough information",
-	AlertCloseReasonMalicious:     "Malicious and have resolution in place",
-	AlertCloseReasonExpected:      "Expected because of routine testing",
+	AlertCloseReasonOther:            "Other",
+	AlertCloseReasonFalsePositive:    "False positive",
+	AlertCloseReasonNotEnoughInfo:    "Not enough information",
+	AlertCloseReasonMalicious:        "Malicious and have resolution in place",
+	AlertCloseReasonExpected:         "Expected because of routine testing",
+	AlertCloseReasonExpectedBehavior: "Expected Behavior",
 }
 
 func (acr alertCloseReasons) GetOrderedReasonStrings() []string {

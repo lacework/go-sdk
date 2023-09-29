@@ -62,6 +62,14 @@ var (
 		Args:    cobra.ExactArgs(1),
 		RunE:    cloudAccountDelete,
 	}
+
+	// cloudAccountMigrateCmd represents the migrate sub-command inside the cloud accounts command
+	cloudAccountMigrateCmd = &cobra.Command{
+		Use:   "migrate",
+		Short: "Mark a cloud account integration for migration",
+		Args:  cobra.ExactArgs(1),
+		RunE:  cloudAccountMigrate,
+	}
 )
 
 func init() {
@@ -71,6 +79,7 @@ func init() {
 	cloudAccountCommand.AddCommand(cloudAccountShowCmd)
 	cloudAccountCommand.AddCommand(cloudAccountDeleteCmd)
 	cloudAccountCommand.AddCommand(cloudAccountCreateCmd)
+	cloudAccountCommand.AddCommand(cloudAccountMigrateCmd)
 
 	// add type flag to cloud accounts list command
 	cloudAccountListCmd.Flags().StringVarP(&cloudAccountType,
@@ -137,6 +146,17 @@ func cloudAccountDelete(_ *cobra.Command, args []string) error {
 		return errors.Wrap(err, "unable to delete cloud account")
 	}
 	cli.OutputHuman("The cloud account %s was deleted.\n", args[0])
+	return nil
+}
+
+func cloudAccountMigrate(_ *cobra.Command, args []string) error {
+	cli.StartProgress(" Initiating migration for cloud account...")
+	err := cli.LwApi.V2.CloudAccounts.Migrate(args[0])
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to initiate migration for cloud-account.")
+	}
+	cli.OutputHuman("The cloud account %s was marked for migration.\n", args[0])
 	return nil
 }
 
