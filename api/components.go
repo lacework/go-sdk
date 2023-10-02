@@ -16,6 +16,7 @@ type LatestComponent struct {
 }
 
 type LatestComponentVersion struct {
+	Id             int32  `json:"id"`
 	Name           string `json:"name"`
 	Description    string `json:"description"`
 	Version        string `json:"version"`
@@ -36,16 +37,17 @@ type ListComponentVersionsResponse struct {
 }
 
 type ComponentVersions struct {
+	Id             int32    `json:"id"`
 	Name           string   `json:"name"`
 	Description    string   `json:"description"`
 	Component_type string   `json:"type"`
 	Versions       []string `json:"versions"`
 }
 
-func (svc *ComponentsService) ListComponentVersions(component string, os string, arch string) (
+func (svc *ComponentsService) ListComponentVersions(id int32, os string, arch string) (
 	response ListComponentVersionsResponse,
 	err error) {
-	apiPath := fmt.Sprintf(apiV2ComponentsVersions, component, os, arch)
+	apiPath := fmt.Sprintf(apiV2ComponentsVersions, id, os, arch)
 
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 
@@ -57,6 +59,7 @@ type FetchComponentResponse struct {
 }
 
 type Artifact struct {
+	Id             int32  `json:"id"`
 	Name           string `json:"name"`
 	Version        string `json:"version"`
 	Size           int64  `json:"size"`
@@ -65,10 +68,10 @@ type Artifact struct {
 	ArtifactUrl    string `json:"artifact_url"`
 }
 
-func (svc *ComponentsService) FetchComponentArtifact(component string, os string, arch string, version string) (
+func (svc *ComponentsService) FetchComponentArtifact(id int32, os string, arch string, version string) (
 	response FetchComponentResponse,
 	err error) {
-	apiPath := fmt.Sprintf(apiV2ComponentsFetch, component, os, arch, version)
+	apiPath := fmt.Sprintf(apiV2ComponentsFetch, id, os, arch, version)
 
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 

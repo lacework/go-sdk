@@ -70,6 +70,7 @@ func generateComponentsResponse() string {
 				{
 					"components": [
 						{
+							"id": 1,
 							"name": "component-example",
 							"description": "component description",
 							"version": "2.1.0",
@@ -77,6 +78,7 @@ func generateComponentsResponse() string {
 							"type": "CLI_COMMAND"
 						},
 						{
+							"id": 2,
 							"name": "iac",
 							"description": "IAC component",
 							"version": "5.0.0",
@@ -94,11 +96,11 @@ func generateComponentsResponse() string {
 
 func TestListComponentVersions(t *testing.T) {
 	var (
-		component  = "component-example"
-		os         = "linux"
-		arch       = "amd64"
-		apiPath    = fmt.Sprintf("Components/%s", component)
-		fakeServer = lacework.MockServer()
+		id         int32 = 1
+		os               = "linux"
+		arch             = "amd64"
+		apiPath          = fmt.Sprintf("Components/%d", id)
+		fakeServer       = lacework.MockServer()
 	)
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
@@ -120,7 +122,7 @@ func TestListComponentVersions(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.Components.ListComponentVersions(component, os, arch)
+	response, err := c.V2.Components.ListComponentVersions(id, os, arch)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Len(t, response.Data, 1)
@@ -131,6 +133,7 @@ func generateComponentVersionsResponse() string {
 		{
 			"data": [
 				{
+					"id": 1,
 					"name":"component-example",
 					"description":"CDK example component",
 					"type":"CLI_COMMAND",
@@ -150,12 +153,12 @@ func generateComponentVersionsResponse() string {
 
 func TestFetchComponentArtifact(t *testing.T) {
 	var (
-		component  = "component-example"
-		os         = "linux"
-		arch       = "amd64"
-		version    = "0.7.30"
-		apiPath    = fmt.Sprintf("Components/Artifact/%s", component)
-		fakeServer = lacework.MockServer()
+		id         int32 = 1
+		os               = "linux"
+		arch             = "amd64"
+		version          = "0.7.30"
+		apiPath          = fmt.Sprintf("Components/Artifact/%d", id)
+		fakeServer       = lacework.MockServer()
 	)
 	fakeServer.MockToken("TOKEN")
 	defer fakeServer.Close()
@@ -178,7 +181,7 @@ func TestFetchComponentArtifact(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	response, err := c.V2.Components.FetchComponentArtifact(component, os, arch, version)
+	response, err := c.V2.Components.FetchComponentArtifact(id, os, arch, version)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Len(t, response.Data, 1)
@@ -189,6 +192,7 @@ func generateFetchComponentResponse() string {
 		{
 			"data": [
 				{
+					"id": 1,
 					"name": "component-example",
 					"version":"0.7.30",
 					"size":472,
