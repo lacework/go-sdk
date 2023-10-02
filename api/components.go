@@ -16,12 +16,12 @@ type LatestComponent struct {
 }
 
 type LatestComponentVersion struct {
-	Id             int32  `json:"id"`
-	Name           string `json:"name"`
-	Description    string `json:"description"`
-	Version        string `json:"version"`
-	Size           int64  `json:"size"`
-	Component_type string `json:"type"`
+	Id            int32  `json:"id"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	Version       string `json:"version"`
+	Size          int64  `json:"size"`
+	ComponentType string `json:"type"`
 }
 
 func (svc *ComponentsService) ListComponents(os string, arch string) (response ListComponentsResponse, err error) {
