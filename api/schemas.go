@@ -35,7 +35,6 @@ const (
 	CloudAccounts
 	ResourceGroups
 	ReportRules
-	TeamMembers
 	VulnerabilityExceptions
 )
 

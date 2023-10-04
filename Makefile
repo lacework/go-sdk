@@ -79,7 +79,6 @@ integration-only: install-tools ## Run integration tests
 		version \
 		generation \
 		compliance \
-		team_member \
 		vulnerability \
 		report_definitions \
 		component" -run=$(regex)

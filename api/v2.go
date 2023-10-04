@@ -58,7 +58,6 @@ type V2Endpoints struct {
 	Schemas                 *SchemasService
 	Datasources             *DatasourcesService
 	DataExportRules         *DataExportRulesService
-	TeamMembers             *TeamMembersService
 	VulnerabilityExceptions *VulnerabilityExceptionsService
 	Vulnerabilities         *v2VulnerabilitiesService
 	Alerts                  *AlertsService
@@ -94,7 +93,6 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&SchemasService{c, map[integrationSchema]V2Service{}},
 		&DatasourcesService{c},
 		&DataExportRulesService{c},
-		&TeamMembersService{c},
 		&VulnerabilityExceptionsService{c},
 		NewV2VulnerabilitiesService(c),
 		&AlertsService{c},
@@ -116,7 +114,6 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		CloudAccounts:           &CloudAccountsService{c},
 		ContainerRegistries:     &ContainerRegistriesService{c},
 		ResourceGroups:          &ResourceGroupsService{c},
-		TeamMembers:             &TeamMembersService{c},
 		ReportRules:             &ReportRulesService{c},
 		VulnerabilityExceptions: &VulnerabilityExceptionsService{c},
 	}

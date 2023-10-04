@@ -104,10 +104,6 @@ const (
 	apiV2DataExportRulesFromGUID = "v2/DataExportRules/%s"
 	apiV2DataExportRulesSearch   = "v2/DataExportRules/search"
 
-	apiV2TeamMembers         = "v2/TeamMembers"
-	apiV2TeamMembersFromGUID = "v2/TeamMembers/%s"
-	apiV2TeamMembersSearch   = "v2/TeamMembers/search"
-
 	apiV2VulnerabilitiesContainersSearch     = "v2/Vulnerabilities/Containers/search"
 	apiV2VulnerabilitiesContainersScan       = "v2/Vulnerabilities/Containers/scan"
 	apiV2VulnerabilitiesContainersScanStatus = "v2/Vulnerabilities/Containers/scan/%s"
