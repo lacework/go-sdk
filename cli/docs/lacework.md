@@ -59,7 +59,6 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework report-definition](lacework_report-definition.md)	 - Manage report definitions
 * [lacework report-rule](lacework_report-rule.md)	 - Manage report rules
 * [lacework resource-group](lacework_resource-group.md)	 - Manage resource groups
-* [lacework team-member](lacework_team-member.md)	 - Manage team members
 * [lacework version](lacework_version.md)	 - Print the Lacework CLI version
 * [lacework vulnerability](lacework_vulnerability.md)	 - Container and host vulnerability assessments
 * [lacework vulnerability-exception](lacework_vulnerability-exception.md)	 - Manage vulnerability exceptions
