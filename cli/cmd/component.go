@@ -216,6 +216,10 @@ func (c *cliState) LoadComponents() {
 							"cli_flags", c.componentParser.cliArgs)
 						f, ok := c.LwComponents.GetComponent(cmd.Use)
 						if ok {
+							if f.Status() == lwcomponent.UpdateAvailable {
+								format := "%s v%s available: to update, run `lacework component update %s`\n"
+								cli.OutputHuman(fmt.Sprintf(format, cmd.Use, f.LatestVersion.String(), cmd.Use))
+							}
 							envs := []string{
 								fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use),
 							}
