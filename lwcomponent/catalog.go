@@ -128,7 +128,11 @@ func (c *Catalog) Stage(component *CDKComponent, version string) (stageClose fun
 		}
 	}
 
-	response, err := c.client.V2.Components.FetchComponentArtifact(component.apiInfo.Id(), operatingSystem, architecture, semv.String())
+	response, err := c.client.V2.Components.FetchComponentArtifact(
+		component.apiInfo.Id(),
+		operatingSystem,
+		architecture,
+		semv.String())
 	if err != nil {
 		return
 	}
