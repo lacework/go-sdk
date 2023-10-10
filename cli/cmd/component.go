@@ -332,6 +332,8 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 
+	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
+
 	cli.StartProgress(fmt.Sprintf("Staging component %s...", componentName))
 
 	start = time.Now()
@@ -457,7 +459,107 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 		return prototypeRunComponentsUpdate(args)
 	}
 
-	return nil
+	return updateComponent(args)
+}
+
+func updateComponent(args []string) (err error) {
+	var (
+		componentName string                 = args[0]
+		params        map[string]interface{} = make(map[string]interface{})
+		start         time.Time
+		targetVersion *semver.Version
+	)
+
+	cli.StartProgress("Loading components Catalog...")
+
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	defer catalog.Cache()
+
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to load component Catalog")
+	}
+
+	component, err := catalog.GetComponent(componentName)
+	if err != nil {
+		return err
+	}
+
+	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
+
+	installedVersion := component.InstalledVersion()
+	if installedVersion == nil {
+		cli.OutputHuman("component %s not installed", component.Name)
+		return nil
+	}
+
+	latestVersion := component.LatestVersion()
+	if latestVersion == nil {
+		cli.OutputHuman("component %s not available in API", component.Name)
+		return nil
+	}
+
+	if versionArg == "" {
+		targetVersion = latestVersion
+	} else {
+		targetVersion, err = semver.NewVersion(versionArg)
+		if err != nil {
+			return errors.Errorf("invalid semantic version %s", versionArg)
+		}
+	}
+
+	if installedVersion.Equal(targetVersion) {
+		cli.OutputHuman("You are already running version %s of this component", installedVersion.String())
+		return nil
+	}
+
+	cli.StartProgress(fmt.Sprintf("Staging component %s...", color.HiYellowString(componentName)))
+
+	start = time.Now()
+
+	stageClose, err := catalog.Stage(component, versionArg)
+	if err != nil {
+		return
+	}
+	defer stageClose()
+
+	params["stage_duration_ms"] = time.Since(start).Milliseconds()
+	cli.Event.FeatureData = params
+
+	cli.StopProgress()
+	if err != nil {
+		return
+	}
+	cli.OutputChecklist(successIcon, "Component %s staged\n", color.HiYellowString(componentName))
+
+	cli.StartProgress("Verifing component signature...")
+
+	err = catalog.Verify(component)
+
+	cli.StopProgress()
+	if err != nil {
+		err = errors.Wrap(err, "verification of component signature failed")
+		return
+	}
+	cli.OutputChecklist(successIcon, "Component signature verified\n")
+
+	cli.StartProgress(fmt.Sprintf("Updating component %s to version %s...", component.Name, targetVersion.String()))
+
+	err = catalog.Install(component)
+
+	cli.StopProgress()
+	if err != nil {
+		err = errors.Wrap(err, "Update of component failed")
+		return
+	}
+
+	cli.OutputChecklist(successIcon, "Component %s updated to %s\n", color.HiYellowString(component.Name), color.HiCyanString(targetVersion.String()))
+
+	// @jon-stewart: TODO: component lifecycle event
+
+	// @jon-stewart: TODO: component update message
+
+	return
 }
 
 func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
@@ -487,6 +589,8 @@ func deleteComponent(args []string) (err error) {
 	if err != nil {
 		return err
 	}
+
+	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 
 	// @jon-stewart: TODO: component life cycle: cleanup
 

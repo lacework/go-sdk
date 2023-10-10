@@ -68,6 +68,14 @@ func (c *CDKComponent) InstalledVersion() (version *semver.Version) {
 	return
 }
 
+func (c *CDKComponent) LatestVersion() (version *semver.Version) {
+	if c.apiInfo != nil {
+		version = c.apiInfo.LatestVersion()
+	}
+
+	return
+}
+
 func (c *CDKComponent) PrintSummary() []string {
 	var (
 		colorize *color.Color
