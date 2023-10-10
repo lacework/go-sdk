@@ -551,7 +551,9 @@ func updateComponent(args []string) (err error) {
 		return
 	}
 
-	cli.OutputChecklist(successIcon, "Component %s updated to %s\n", color.HiYellowString(component.Name), color.HiCyanString(targetVersion.String()))
+	cli.OutputChecklist(successIcon, "Component %s updated to %s\n",
+		color.HiYellowString(component.Name),
+		color.HiCyanString(targetVersion.String()))
 
 	// @jon-stewart: TODO: component lifecycle event
 
