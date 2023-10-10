@@ -101,9 +101,7 @@ var (
 		RunE:   runComponentsDevMode,
 	}
 
-	versionArg    string
-	deleteMessage string = fmt.Sprintf("\n- We will do better next time.\n\nDo you want to provide feedback?\nReach out to us at %s\n",
-		color.HiCyanString("support@lacework.net"))
+	versionArg string
 )
 
 func init() {
@@ -504,7 +502,10 @@ func deleteComponent(args []string) (err error) {
 
 	cli.OutputChecklist(successIcon, "Component %s deleted\n", color.HiYellowString(component.Name))
 
-	cli.OutputHuman(deleteMessage)
+	msg := fmt.Sprintf(`\n- We will do better next time.\n\nDo you want to provide feedback?\nReach out to us at %s\n`,
+		color.HiCyanString("support@lacework.net"))
+
+	cli.OutputHuman(msg)
 
 	return
 }
