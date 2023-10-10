@@ -489,14 +489,12 @@ func updateComponent(args []string) (err error) {
 
 	installedVersion := component.InstalledVersion()
 	if installedVersion == nil {
-		cli.OutputHuman("component %s not installed", component.Name)
-		return nil
+		return errors.Errorf("component %s not installed", color.HiYellowString(componentName))
 	}
 
 	latestVersion := component.LatestVersion()
 	if latestVersion == nil {
-		cli.OutputHuman("component %s not available in API", component.Name)
-		return nil
+		return errors.Errorf("component %s not available in API", color.HiYellowString(componentName))
 	}
 
 	if versionArg == "" {
@@ -509,8 +507,8 @@ func updateComponent(args []string) (err error) {
 	}
 
 	if installedVersion.Equal(targetVersion) {
-		cli.OutputHuman("You are already running version %s of this component", installedVersion.String())
-		return nil
+		return errors.Errorf("You are already running version %s of this component",
+			color.HiYellowString(installedVersion.String()))
 	}
 
 	cli.StartProgress(fmt.Sprintf("Staging component %s...", color.HiYellowString(componentName)))
