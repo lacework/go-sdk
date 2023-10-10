@@ -610,6 +610,127 @@ func TestCatalogInstall(t *testing.T) {
 	})
 }
 
+func TestCatalogDelete(t *testing.T) {
+	var (
+		apiComponentCount int    = 4
+		prefix            string = "staging"
+		version           string = "1.0.0"
+	)
+
+	fakeServer := lacework.MockServer()
+	defer fakeServer.Close()
+
+	_, home := FakeHome()
+	defer ResetHome(home)
+
+	fakeServer.MockAPI("Components", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+		fmt.Fprint(w, generateComponentsResponse(prefix, apiComponentCount))
+	})
+
+	client, _ := api.NewClient("catalog_test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()))
+
+	t.Run("delete-installed", func(t *testing.T) {
+		name := fmt.Sprintf("%s-1", prefix)
+
+		CreateLocalComponent(name, version, false)
+
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		assert.NotNil(t, catalog)
+		assert.Nil(t, err)
+
+		component, err := catalog.GetComponent(name)
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+
+		err = catalog.Delete(component)
+		assert.Nil(t, err)
+
+		dir, _ := lwcomponent.CatalogCacheDir()
+		dir = filepath.Join(dir, name)
+
+		_, err = os.Stat(dir)
+		assert.NotNil(t, err)
+		assert.True(t, os.IsNotExist(err))
+	})
+
+	t.Run("delete-development", func(t *testing.T) {
+		name := "delete-dev"
+
+		CreateLocalComponent(name, version, true)
+
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		assert.NotNil(t, catalog)
+		assert.Nil(t, err)
+
+		component, err := catalog.GetComponent(name)
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+
+		err = catalog.Delete(component)
+		assert.Nil(t, err)
+
+		dir, _ := lwcomponent.CatalogCacheDir()
+		dir = filepath.Join(dir, name)
+
+		_, err = os.Stat(dir)
+		assert.NotNil(t, err)
+		assert.True(t, os.IsNotExist(err))
+	})
+
+	t.Run("delete-not-installed", func(t *testing.T) {
+		name := fmt.Sprintf("%s-1", prefix)
+
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		assert.NotNil(t, catalog)
+		assert.Nil(t, err)
+
+		component, err := catalog.GetComponent(name)
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+
+		err = catalog.Delete(component)
+		assert.Nil(t, err)
+
+		dir, _ := lwcomponent.CatalogCacheDir()
+		dir = filepath.Join(dir, name)
+
+		_, err = os.Stat(dir)
+		assert.NotNil(t, err)
+		assert.True(t, os.IsNotExist(err))
+	})
+
+	t.Run("delete-twice", func(t *testing.T) {
+		name := fmt.Sprintf("%s-2", prefix)
+
+		CreateLocalComponent(name, version, false)
+
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		assert.NotNil(t, catalog)
+		assert.Nil(t, err)
+
+		component, err := catalog.GetComponent(name)
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+
+		err = catalog.Delete(component)
+		assert.Nil(t, err)
+
+		err = catalog.Delete(component)
+		assert.Nil(t, err)
+
+		dir, _ := lwcomponent.CatalogCacheDir()
+		dir = filepath.Join(dir, name)
+
+		_, err = os.Stat(dir)
+		assert.NotNil(t, err)
+		assert.True(t, os.IsNotExist(err))
+	})
+
+}
+
 func generateComponentsResponse(prefix string, count int) string {
 	var (
 		components = []api.LatestComponentVersion{}
