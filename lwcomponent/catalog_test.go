@@ -692,14 +692,7 @@ func TestCatalogDelete(t *testing.T) {
 		assert.Nil(t, err)
 
 		err = catalog.Delete(component)
-		assert.Nil(t, err)
-
-		dir, _ := lwcomponent.CatalogCacheDir()
-		dir = filepath.Join(dir, name)
-
-		_, err = os.Stat(dir)
 		assert.NotNil(t, err)
-		assert.True(t, os.IsNotExist(err))
 	})
 
 	t.Run("delete-twice", func(t *testing.T) {
@@ -719,14 +712,7 @@ func TestCatalogDelete(t *testing.T) {
 		assert.Nil(t, err)
 
 		err = catalog.Delete(component)
-		assert.Nil(t, err)
-
-		dir, _ := lwcomponent.CatalogCacheDir()
-		dir = filepath.Join(dir, name)
-
-		_, err = os.Stat(dir)
 		assert.NotNil(t, err)
-		assert.True(t, os.IsNotExist(err))
 	})
 
 }

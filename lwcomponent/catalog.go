@@ -210,6 +210,11 @@ func (c *Catalog) Delete(component *CDKComponent) (err error) {
 		return
 	}
 
+	_, err = os.Stat(componentDir)
+	if err != nil {
+		return errors.Errorf("component not installed. Try running 'lacework component install %s'", component.Name)
+	}
+
 	os.RemoveAll(componentDir)
 
 	return

@@ -32,7 +32,9 @@ import (
 	"github.com/lacework/go-sdk/lwcomponent"
 )
 
-const componentTypeAnnotation string = "component"
+const (
+	componentTypeAnnotation string = "component"
+)
 
 var (
 	// componentsCmd represents the components command
@@ -99,7 +101,8 @@ var (
 		RunE:   runComponentsDevMode,
 	}
 
-	versionArg string
+	versionArg    string
+	deleteMessage string = fmt.Sprintf("\n- We will do better next time.\n\nDo you want to provide feedback?\nReach out to us at %s\n", color.HiCyanString("support@lacework.net"))
 )
 
 func init() {
@@ -499,9 +502,8 @@ func deleteComponent(args []string) (err error) {
 	cli.StopProgress()
 
 	cli.OutputChecklist(successIcon, "Component %s deleted\n", color.HiYellowString(component.Name))
-	cli.OutputHuman("\n- We will do better next time.\n")
-	cli.OutputHuman("\nDo you want to provide feedback?\n")
-	cli.OutputHuman("Reach out to us at %s\n", color.HiCyanString("support@lacework.net"))
+
+	cli.OutputHuman(deleteMessage)
 
 	return
 }
