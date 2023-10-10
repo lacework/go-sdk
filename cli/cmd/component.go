@@ -102,7 +102,8 @@ var (
 	}
 
 	versionArg    string
-	deleteMessage string = fmt.Sprintf("\n- We will do better next time.\n\nDo you want to provide feedback?\nReach out to us at %s\n", color.HiCyanString("support@lacework.net"))
+	deleteMessage string = fmt.Sprintf("\n- We will do better next time.\n\nDo you want to provide feedback?\nReach out to us at %s\n",
+		color.HiCyanString("support@lacework.net"))
 )
 
 func init() {
