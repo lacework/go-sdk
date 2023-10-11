@@ -200,6 +200,26 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 	return component.stage.Commit(componentDir)
 }
 
+// Delete a CDKComponent
+//
+// Remove the Component install directory and all sub-directory.  This function will not return an
+// error if the Component is not installed.
+func (c *Catalog) Delete(component *CDKComponent) (err error) {
+	componentDir, err := componentDirectory(component.Name)
+	if err != nil {
+		return
+	}
+
+	_, err = os.Stat(componentDir)
+	if err != nil {
+		return errors.Errorf("component not installed. Try running 'lacework component install %s'", component.Name)
+	}
+
+	os.RemoveAll(componentDir)
+
+	return
+}
+
 func NewCatalog(client *api.Client, stageConstructor StageConstructor) (*Catalog, error) {
 	if stageConstructor == nil {
 		return nil, errors.New("nil Catalog StageConstructor")

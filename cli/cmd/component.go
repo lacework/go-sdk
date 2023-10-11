@@ -32,7 +32,9 @@ import (
 	"github.com/lacework/go-sdk/lwcomponent"
 )
 
-const componentTypeAnnotation string = "component"
+const (
+	componentTypeAnnotation string = "component"
+)
 
 var (
 	// componentsCmd represents the components command
@@ -467,6 +469,44 @@ func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
 }
 
 func deleteComponent(args []string) (err error) {
+	var (
+		componentName string = args[0]
+	)
+
+	cli.StartProgress("Loading components Catalog...")
+
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	defer catalog.Cache()
+
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to load component Catalog")
+	}
+
+	component, err := catalog.GetComponent(componentName)
+	if err != nil {
+		return err
+	}
+
+	// @jon-stewart: TODO: component life cycle: cleanup
+
+	cli.StartProgress("Deleting component...")
+	defer cli.StopProgress()
+
+	err = catalog.Delete(component)
+	if err != nil {
+		return
+	}
+
+	cli.StopProgress()
+
+	cli.OutputChecklist(successIcon, "Component %s deleted\n", color.HiYellowString(component.Name))
+
+	msg := fmt.Sprintf(`\n- We will do better next time.\n\nDo you want to provide feedback?\nReach out to us at %s\n`,
+		color.HiCyanString("support@lacework.net"))
+
+	cli.OutputHuman(msg)
+
 	return
 }
 
