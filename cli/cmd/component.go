@@ -239,6 +239,238 @@ func (c *cliState) LoadComponents() {
 }
 
 func runComponentsList(_ *cobra.Command, _ []string) (err error) {
+	if !lwcomponent.CatalogV1Enabled(cli.LwApi) {
+		return prototypeRunComponentsList()
+	}
+
+	return listComponents()
+}
+
+func listComponents() error {
+	cli.StartProgress("Loading component Catalog...")
+
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	defer catalog.Cache()
+
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to load component Catalog")
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(catalog)
+	}
+
+	if catalog.ComponentCount() == 0 {
+		msg := "There are no components available, " +
+			"come back later or contact support. (version: %s)\n"
+		cli.OutputHuman(fmt.Sprintf(msg, cli.LwComponents.Version))
+
+		return nil
+	}
+
+	printComponents(catalog.PrintComponents())
+
+	cli.OutputHuman("\nComponents version: %s\n", cli.LwComponents.Version)
+
+	return nil
+}
+
+func printComponent(data []string) {
+	printComponents([][]string{data})
+}
+
+func printComponents(data [][]string) {
+	cli.OutputHuman(
+		renderCustomTable(
+			[]string{"Status", "Name", "Version", "Description"},
+			data,
+			tableFunc(func(t *tablewriter.Table) {
+				t.SetBorder(false)
+				t.SetColumnSeparator(" ")
+				t.SetAutoWrapText(false)
+				t.SetAlignment(tablewriter.ALIGN_LEFT)
+			}),
+		),
+	)
+}
+
+func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
+	if !lwcomponent.CatalogV1Enabled(cli.LwApi) {
+		return prototypeRunComponentsInstall(cmd, args)
+	}
+
+	return installComponent(cmd, args)
+}
+
+func installComponent(cmd *cobra.Command, args []string) (err error) {
+	var (
+		componentName string                 = args[0]
+		params        map[string]interface{} = make(map[string]interface{})
+		start         time.Time
+	)
+
+	cli.Event.Component = componentName
+	cli.Event.Feature = "install_component"
+	defer cli.SendHoneyvent()
+
+	cli.StartProgress("Loading component Catalog...")
+
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	defer catalog.Cache()
+
+	cli.StopProgress()
+	if err != nil {
+		err = errors.Wrap(err, "unable to load component Catalog")
+		return
+	}
+
+	component, err := catalog.GetComponent(componentName)
+	if err != nil {
+		return
+	}
+
+	cli.StartProgress(fmt.Sprintf("Staging component %s...", componentName))
+
+	start = time.Now()
+
+	stageClose, err := catalog.Stage(component, versionArg)
+	if err != nil {
+		return
+	}
+	defer stageClose()
+
+	params["stage_duration_ms"] = time.Since(start).Milliseconds()
+	cli.Event.FeatureData = params
+
+	cli.StopProgress()
+	if err != nil {
+		return
+	}
+	cli.OutputChecklist(successIcon, "Component %s staged\n", color.HiYellowString(componentName))
+
+	cli.StartProgress("Verifing component signature...")
+
+	err = catalog.Verify(component)
+
+	cli.StopProgress()
+	if err != nil {
+		err = errors.Wrap(err, "verification of component signature failed")
+		return
+	}
+	cli.OutputChecklist(successIcon, "Component signature verified\n")
+
+	cli.StartProgress("Installing component...")
+
+	err = catalog.Install(component)
+
+	cli.StopProgress()
+	if err != nil {
+		err = errors.Wrap(err, "Install of component failed")
+		return
+	}
+	cli.OutputChecklist(successIcon, "Component installed\n")
+
+	// @jon-stewart: TODO: Component lifecycle `cdk-init` command
+
+	// @jon-stewart: TODO: print install message
+
+	return
+}
+
+func runComponentsShow(_ *cobra.Command, args []string) (err error) {
+	if !lwcomponent.CatalogV1Enabled(cli.LwApi) {
+		return prototypeRunComponentsShow(args)
+	}
+
+	return showComponent(args)
+}
+
+func showComponent(args []string) error {
+	var (
+		componentName string = args[0]
+	)
+
+	cli.StartProgress("Loading components Catalog...")
+
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	defer catalog.Cache()
+
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to load component Catalog")
+	}
+
+	component, err := catalog.GetComponent(componentName)
+	if err != nil {
+		return err
+	}
+
+	if cli.JSONOutput() {
+		return cli.OutputJSON(component)
+	}
+
+	printComponent(component.PrintSummary())
+
+	version := component.InstalledVersion()
+
+	availableVersions, err := catalog.ListComponentVersions(component)
+	if err != nil {
+		return err
+	}
+
+	printAvailableVersions(version, availableVersions)
+
+	return nil
+}
+
+func printAvailableVersions(installedVersion *semver.Version, availableVersions []*semver.Version) {
+	cli.OutputHuman("\n")
+
+	result := "The following versions of this component are available to install:"
+	foundInstalled := false
+
+	for _, version := range availableVersions {
+		result += "\n"
+		result += " - " + version.String()
+		if installedVersion != nil && version.Equal(installedVersion) {
+			result += " (installed)"
+			foundInstalled = true
+		}
+	}
+
+	if installedVersion != nil && !foundInstalled {
+		result += fmt.Sprintf(
+			"\n\nThe currently installed version %s is no longer available to install.",
+			installedVersion.String(),
+		)
+	}
+
+	cli.OutputHuman(result)
+	cli.OutputHuman("\n")
+}
+
+func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
+	if !lwcomponent.CatalogV1Enabled(cli.LwApi) {
+		return prototypeRunComponentsUpdate(args)
+	}
+
+	return nil
+}
+
+func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
+	if !lwcomponent.CatalogV1Enabled(cli.LwApi) {
+		return prototypeRunComponentsDelete(args)
+	}
+
+	return deleteComponent(args)
+}
+
+func deleteComponent(args []string) (err error) {
+	return
+}
+
+func prototypeRunComponentsList() (err error) {
 	cli.StartProgress("Loading components state...")
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
 	cli.StopProgress()
@@ -275,7 +507,7 @@ func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 	return
 }
 
-func runComponentsShow(_ *cobra.Command, args []string) (err error) {
+func prototypeRunComponentsShow(args []string) (err error) {
 	cli.StartProgress("Loading components state...")
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
 	cli.StopProgress()
@@ -354,7 +586,7 @@ func componentsToTable() [][]string {
 	return out
 }
 
-func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
+func prototypeRunComponentsInstall(cmd *cobra.Command, args []string) (err error) {
 	var (
 		componentName string                 = args[0]
 		version       string                 = versionArg
@@ -441,7 +673,7 @@ func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
 	return
 }
 
-func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
+func prototypeRunComponentsUpdate(args []string) (err error) {
 	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
@@ -522,7 +754,7 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 	return
 }
 
-func runComponentsDelete(_ *cobra.Command, args []string) (err error) {
+func prototypeRunComponentsDelete(args []string) (err error) {
 	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired
 	// @afiune DO WE NEED THIS? It should already be loaded
