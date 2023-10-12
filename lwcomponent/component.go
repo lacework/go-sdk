@@ -40,6 +40,7 @@ import (
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/cache"
 	"github.com/lacework/go-sdk/internal/file"
+	"github.com/lacework/go-sdk/internal/archive"
 )
 
 // State holds the components specification
@@ -237,12 +238,6 @@ func (s State) Install(component *Component, version string) error {
 	}
 
 	// @afiune verify if component is in latest
-
-	// @afiune install
-	if err := os.MkdirAll(rPath, os.ModePerm); err != nil {
-		return err
-	}
-
 	artifact, found := component.ArtifactForRunningHost(version)
 	if !found {
 		return errors.Errorf(
@@ -257,6 +252,24 @@ func (s State) Install(component *Component, version string) error {
 		return err
 	}
 
+	// download to temp dir, this must be different from staging dir
+	// because the archive may have the same name as the extracted folder
+	downloadDir, err := os.MkdirTemp("", "cdk-component-stage-download")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(downloadDir)
+	downloadPath := filepath.Join(downloadDir, component.Name)
+
+	// Stage to temp dir before installing
+	stagingDir, err := os.MkdirTemp("", "cdk-component-stage-extract")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(stagingDir)
+	
+	stagingPath := filepath.Join(stagingDir, component.Name)
+
 	// Slow S3 downloads
 	downloadTimeout := 0 * time.Minute
 	switch component.Name {
@@ -264,11 +277,46 @@ func (s State) Install(component *Component, version string) error {
 		downloadTimeout = 5 * time.Minute
 	}
 
-	err = DownloadFile(path, artifact.URL, time.Duration(downloadTimeout))
+	err = DownloadFile(downloadPath, artifact.URL, time.Duration(downloadTimeout))
 	if err != nil {
 		return errors.Wrap(err, "unable to download component artifact")
 	}
 
+	
+	// if the component is a tgz archive unpack it, otherwise leave it alone
+	if err = archive.DetectTGZAndUnpack(downloadPath, stagingDir); err != nil {
+		return err
+	}
+
+	//if the component was not an archive then nothing was created in the staging dir
+	//we must move it over
+	if _, err := os.Stat(stagingPath); errors.Is(err, os.ErrNotExist) {
+		err = os.Rename(downloadPath, stagingPath)
+		if err != nil {
+			return err
+		}
+	}
+	
+	// if the component is not an archive make a dir for it to live in
+	f, err := os.Stat(stagingPath)
+	if err != nil {
+		return err
+	}
+	if !f.IsDir() {
+		if err := os.MkdirAll(rPath, os.ModePerm); err != nil {
+			return err
+		}
+		//move the component from the staging dir to it's path
+		if err = os.Rename(stagingPath, path); err != nil {
+			return err
+		}
+	}	else {
+			//move the component from the staging dir to it's root path
+			if err = os.Rename(stagingPath, rPath); err != nil {
+				return err
+			}
+	}
+	
 	if err := component.WriteVersion(artifact.Version); err != nil {
 		return err
 	}
@@ -503,7 +551,7 @@ func (c Component) WriteVersion(installed string) error {
 }
 
 // UpdateAvailable returns true if there is a newer version of the component
-func (c Component) UpdateAvailable() (bool, error) {
+func (c Component)  UpdateAvailable() (bool, error) {
 	cv, err := c.CurrentVersion()
 	if err != nil {
 		return false, err
