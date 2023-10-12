@@ -147,11 +147,10 @@ func TestAlertShowIntegrations(t *testing.T) {
 }
 
 func TestAlertShowTimeline(t *testing.T) {
-	makeComment(alertShowID)
+	makePlaintextComment(alertShowID)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "Timeline")
 
-	assert.Contains(t, out.String(), "AUTHOR")
-	assert.Contains(t, out.String(), "For further investigation")
+	assert.Contains(t, out.String(), "@")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 

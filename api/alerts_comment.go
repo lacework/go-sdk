@@ -24,8 +24,37 @@ import (
 	"github.com/pkg/errors"
 )
 
+type alertCommentFormat int
+
+const (
+	AlertCommentFormatPlaintext alertCommentFormat = iota
+	AlertCommentFormatMarkdown
+)
+
+// String returns the string representation of an Alert comment format
+func (i alertCommentFormat) String() string {
+	return AlertCommentFormats[i]
+}
+
+type alertCommentFormats map[alertCommentFormat]string
+
+// AlertCommentFormats is the list of available Alert comment formats
+var AlertCommentFormats = alertCommentFormats{
+	AlertCommentFormatPlaintext: "Plaintext",
+	AlertCommentFormatMarkdown:  "Markdown",
+}
+
+func (acf alertCommentFormats) GetOrderedFormatStrings() []string {
+	formats := []string{}
+	for i := 0; i < len(acf); i++ {
+		formats = append(formats, acf[alertCommentFormat(i)])
+	}
+	return formats
+}
+
 type AlertsCommentRequest struct {
 	Comment string `json:"comment"`
+	Format  string `json:"format"`
 }
 
 type AlertsCommentResponse struct {
@@ -44,6 +73,23 @@ func (svc *AlertsService) Comment(id int, comment string) (
 		"POST",
 		fmt.Sprintf(apiV2AlertsComment, id),
 		AlertsCommentRequest{Comment: comment},
+		&response,
+	)
+	return
+}
+
+func (svc *AlertsService) CommentFromRequest(id int, request AlertsCommentRequest) (
+	response AlertsCommentResponse,
+	err error,
+) {
+	if request.Comment == "" {
+		err = errors.New("alert comment must be provided")
+		return
+	}
+	err = svc.client.RequestEncoderDecoder(
+		"POST",
+		fmt.Sprintf(apiV2AlertsComment, id),
+		request,
 		&response,
 	)
 	return

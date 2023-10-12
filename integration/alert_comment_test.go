@@ -26,9 +26,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func makeComment(id string) (bytes.Buffer, bytes.Buffer, int) {
+func makePlaintextComment(id string) (bytes.Buffer, bytes.Buffer, int) {
 	return LaceworkCLIWithTOMLConfig(
-		"alert", "comment", id, "-c", "everything is awesome...cause go-sdk is here")
+		"alert", "comment", id, "-c", "everything is awesome...cause go-sdk is here", "-f", "Plaintext")
+}
+
+func makeShortPlaintextComment(id string) (bytes.Buffer, bytes.Buffer, int) {
+	return LaceworkCLIWithTOMLConfig(
+		"alert", "comment", id, "-c", "a", "-f", "Plaintext")
+}
+
+func makeMarkdownComment(id string) (bytes.Buffer, bytes.Buffer, int) {
+	return LaceworkCLIWithTOMLConfig(
+		"alert", "comment", id, "-c", "# Heading", "-f", "Markdown")
 }
 
 func TestAlertCommentMissingArg(t *testing.T) {
@@ -63,7 +73,31 @@ func TestAlertCommentInline(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	out, stderr, exitcode := makeComment(id)
+	out, stderr, exitcode := makePlaintextComment(id)
+	assert.Contains(t, out.String(), "Comment added successfully")
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestAlertShortCommentInline(t *testing.T) {
+	id, err := popAlert()
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	out, stderr, exitcode := makeShortPlaintextComment(id)
+	assert.Contains(t, out.String(), "Comment added successfully")
+	assert.Empty(t, stderr.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}
+
+func TestAlertMarkdownCommentInline(t *testing.T) {
+	id, err := popAlert()
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	out, stderr, exitcode := makeMarkdownComment(id)
 	assert.Contains(t, out.String(), "Comment added successfully")
 	assert.Empty(t, stderr.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
