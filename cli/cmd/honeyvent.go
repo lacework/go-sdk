@@ -83,6 +83,9 @@ const (
 	// Daily version check feature
 	featDailyVerCheck = "daily_check"
 
+	// Daily Component version check feature
+	featDailyCompVerCheck = "daily_comp_check"
+
 	// Generate package manifest feature
 	featGenPkgManifest = "gen_pkg_manifest"
 
