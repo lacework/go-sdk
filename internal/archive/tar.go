@@ -1,9 +1,9 @@
 package archive
 
 import (
+	"archive/tar"
 	"io"
 	"os"
-	"archive/tar"
 	"path/filepath"
 )
 
@@ -55,7 +55,7 @@ func UnTar(tarball string, dir string) (err error) {
 			}
 		case tar.TypeXGlobalHeader, tar.TypeXHeader:
 			continue
-		
+
 		}
 
 	}

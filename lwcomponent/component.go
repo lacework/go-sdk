@@ -38,9 +38,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/archive"
 	"github.com/lacework/go-sdk/internal/cache"
 	"github.com/lacework/go-sdk/internal/file"
-	"github.com/lacework/go-sdk/internal/archive"
 )
 
 // State holds the components specification
@@ -267,7 +267,7 @@ func (s State) Install(component *Component, version string) error {
 		return err
 	}
 	defer os.RemoveAll(stagingDir)
-	
+
 	stagingPath := filepath.Join(stagingDir, component.Name)
 
 	// Slow S3 downloads
@@ -282,7 +282,6 @@ func (s State) Install(component *Component, version string) error {
 		return errors.Wrap(err, "unable to download component artifact")
 	}
 
-	
 	// if the component is a tgz archive unpack it, otherwise leave it alone
 	if err = archive.DetectTGZAndUnpack(downloadPath, stagingDir); err != nil {
 		return err
@@ -296,7 +295,7 @@ func (s State) Install(component *Component, version string) error {
 			return err
 		}
 	}
-	
+
 	// if the component is not an archive make a dir for it to live in
 	f, err := os.Stat(stagingPath)
 	if err != nil {
@@ -310,13 +309,13 @@ func (s State) Install(component *Component, version string) error {
 		if err = os.Rename(stagingPath, path); err != nil {
 			return err
 		}
-	}	else {
-			//move the component from the staging dir to it's root path
-			if err = os.Rename(stagingPath, rPath); err != nil {
-				return err
-			}
+	} else {
+		//move the component from the staging dir to it's root path
+		if err = os.Rename(stagingPath, rPath); err != nil {
+			return err
+		}
 	}
-	
+
 	if err := component.WriteVersion(artifact.Version); err != nil {
 		return err
 	}
@@ -551,7 +550,7 @@ func (c Component) WriteVersion(installed string) error {
 }
 
 // UpdateAvailable returns true if there is a newer version of the component
-func (c Component)  UpdateAvailable() (bool, error) {
+func (c Component) UpdateAvailable() (bool, error) {
 	cv, err := c.CurrentVersion()
 	if err != nil {
 		return false, err

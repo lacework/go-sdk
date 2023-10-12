@@ -2,9 +2,10 @@ package archive
 
 import (
 	"os"
-	"github.com/gabriel-vasile/mimetype"
 	"path/filepath"
 	"strings"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 func detectFileType(file string) (mimeType string, err error) {
@@ -57,7 +58,7 @@ func DetectTGZAndUnpack(filePath string, targetDir string) (err error) {
 	}
 	defer os.RemoveAll(unpackDir)
 
-	tarFile := filepath.Join(unpackDir, baseFileName + ".tar")
+	tarFile := filepath.Join(unpackDir, baseFileName+".tar")
 	isGZ, err := FileIsGZ(filePath)
 	if err != nil {
 		return
@@ -71,12 +72,12 @@ func DetectTGZAndUnpack(filePath string, targetDir string) (err error) {
 
 		return
 	}
-	
+
 	isTar, err := FileIsTar(tarFile)
 	if err != nil {
 		return
-	} 
-	
+	}
+
 	if isTar {
 		if err = UnTar(tarFile, targetDir); err != nil {
 			return

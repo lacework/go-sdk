@@ -1,9 +1,9 @@
 package archive
 
 import (
-	"os"
 	"compress/gzip"
 	"io"
+	"os"
 )
 
 // Inflate GZip file.
