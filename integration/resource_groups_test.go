@@ -82,9 +82,6 @@ func popResourceGroup() (string, error) {
 	return "", errors.New("no resource groups found")
 }
 
-// This might be difficult to test given our current implementation which heavily
-// relies on CLI survey selections and editors
-// Perhaps we should use "lacework api" to create a raw resource group
 func TestResourceGroupCreateEditor(t *testing.T) {
 	// create
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("resource-group", "create")
