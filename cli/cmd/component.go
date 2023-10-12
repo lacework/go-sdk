@@ -373,7 +373,7 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 		err = errors.Wrap(err, "Install of component failed")
 		return
 	}
-	cli.OutputChecklist(successIcon, "Component installed\n")
+	cli.OutputChecklist(successIcon, "Component version %s installed\n", component.InstalledVersion())
 
 	// @jon-stewart: TODO: Component lifecycle `cdk-init` command
 
