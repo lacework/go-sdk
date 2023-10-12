@@ -65,6 +65,8 @@ const (
 
 	// requires Org Access account client.WithOrgAccess()
 	LwAccountResourceGroup
+
+	OciResourceGroup
 )
 
 // ResourceGroupTypes is the list of available Resource Group types
@@ -76,6 +78,7 @@ var ResourceGroupTypes = map[ResourceGroupType]string{
 	GcpResourceGroup:       "GCP",
 	LwAccountResourceGroup: "LW_ACCOUNT",
 	MachineResourceGroup:   "MACHINE",
+	OciResourceGroup:       "OCI",
 }
 
 // String returns the string representation of a Resource Group type
