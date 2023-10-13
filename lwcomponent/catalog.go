@@ -259,13 +259,23 @@ func NewCatalog(client *api.Client, stageConstructor StageConstructor) (*Catalog
 
 	cdkComponents := make(map[string]CDKComponent, len(rawComponents)+len(localComponents))
 
+	allVersions := []semver.Version{}
+
+	for _, c := range rawComponents {
+		ver, err := semver.NewVersion(c.Version)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("component '%s' version '%s'", c.Name, c.Version))
+		}
+		allVersions = append(allVersions, *ver)
+	}
+
 	for _, c := range rawComponents {
 		ver, err := semver.NewVersion(c.Version)
 		if err != nil {
 			return nil, errors.Wrap(err, fmt.Sprintf("component '%s' version '%s'", c.Name, c.Version))
 		}
 
-		api := NewAPIInfo(c.Id, c.Name, ver, c.Description, c.Size)
+		api := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size)
 
 		host, found := localComponents[c.Name]
 		if found {

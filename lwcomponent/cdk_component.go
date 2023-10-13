@@ -119,6 +119,10 @@ func status(apiInfo ApiInfo, hostInfo HostInfo) Status {
 				return UnknownStatus
 			}
 
+			if isTainted(apiInfo, installedVer) {
+				return Tainted
+			}
+
 			latestVer := apiInfo.LatestVersion()
 			if latestVer.GreaterThan(installedVer) {
 				return UpdateAvailable
@@ -139,4 +143,13 @@ func status(apiInfo ApiInfo, hostInfo HostInfo) Status {
 	}
 
 	return status
+}
+
+func isTainted(apiInfo ApiInfo, installedVer *semver.Version) bool {
+	for _, ver := range apiInfo.AllVersions() {
+		if ver.Equal(installedVer) {
+			return false
+		}
+	}
+	return true
 }

@@ -29,6 +29,7 @@ const (
 	Installed
 	UpdateAvailable
 	Deprecated
+	Tainted
 )
 
 func (s Status) Color() *color.Color {
@@ -41,7 +42,7 @@ func (s Status) Color() *color.Color {
 		return color.New(color.FgGreen, color.Bold)
 	case UpdateAvailable:
 		return color.New(color.FgYellow, color.Bold)
-	case Deprecated:
+	case Deprecated, Tainted:
 		return color.New(color.FgRed, color.Bold)
 	default:
 		return color.New(color.FgRed, color.Bold)
@@ -60,6 +61,8 @@ func (s Status) String() string {
 		return "Update Available"
 	case Deprecated:
 		return "Deprecated"
+	case Tainted:
+		return "Tainted(Please update)"
 	default:
 		return "Unknown"
 	}
