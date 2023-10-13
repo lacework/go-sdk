@@ -8,13 +8,27 @@
         <authors>Lacework</authors>
         <owners>Salim Afiune Maya, Darren Murray</owners>
         <summary>A tool to manage the Lacework cloud security platform.</summary>
-        <description>The Lacework CLI is an [open source project](https://github.com/lacework/go-sdk/tree/main/cli) written in Golang and released as separate binaries for Linux, macOS, and, yes, even Windows! Additionally, all releases of the CLI are published as [Docker containers to Docker Hub](https://hub.docker.com/r/lacework/lacework-cli) for various platforms with the intended purpose of integrating with CI/CD automation pipelines.
+        <description>The Lacework CLI is an [open source project](https://github.com/lacework/go-sdk/tree/main/cli) written
+in Golang and released as separate binaries for Linux, macOS, and, yes, even Windows! Additionally, all releases of the
+CLI are published as [Docker containers to Docker Hub](https://hub.docker.com/r/lacework/lacework-cli) for various
+platforms with the intended purpose of integrating with CI/CD automation pipelines.
 
 Lacework as a platform provides a set of robust APIs for configuring accounts within the platform, as well as accessing
 data from accounts. The Lacework CLI provides an interface to those APIs with the goal of providing fast, accurate, and
 actionable insights into the platform.
 
 For more details, go to https://docs.lacework.com/cli
+
+---
+
+## Important Notice
+
+Since the release of the Lacework CLI version `1.30.0` we noticed that the virus scan reports positive findings. We
+have analyzed the generated binaries and we have not found any virus.
+
+This is a **common false-positive** in the Golang community for Windows binaries. For details, go to https://golang.org/doc/faq#virus
+
+---
         </description>
         <projectUrl>https://github.com/lacework/go-sdk</projectUrl>
         <tags>lacework cli cloud security</tags>

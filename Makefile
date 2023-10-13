@@ -82,7 +82,8 @@ integration-only: install-tools ## Run integration tests
 		team_member \
 		vulnerability \
 		report_definitions \
-		component" -run=$(regex)
+		component \
+		resource_groups" -run=$(regex)
 
 .PHONY: integration-lql
 integration-lql: build-cli-cross-platform integration-lql-only ## Build and run lql integration tests

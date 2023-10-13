@@ -12,9 +12,11 @@ For tracing support and automatic instrumentation of Gorilla, `httprouter`, `sql
 
 ## Dependencies
 
-Golang 1.14+
+Golang 1.17+
 
 ## Contributions
+
+See [DEVELOPMENT.md](./DEVELOPMENT.md)
 
 Features, bug fixes and other changes to libhoney are gladly accepted. Please
 open issues or a pull request with your change. Remember to add your name to the

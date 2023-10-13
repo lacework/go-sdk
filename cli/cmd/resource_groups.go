@@ -114,7 +114,7 @@ Then navigate to Settings > Resource Groups.
 				rows = append(rows, []string{g.Id, g.ResType, g.Name, g.status, IsDefault(g.IsDefault)})
 			}
 
-			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GUID", "TYPE", "NAME", "STATUS", "DEFAULT"}, rows))
+			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP ID", "TYPE", "NAME", "STATUS", "DEFAULT"}, rows))
 			return nil
 		},
 	}
@@ -178,7 +178,7 @@ Then navigate to Settings > Resource Groups.
 				groupCommon = append(groupCommon,
 					[]string{group.Id, group.ResType, group.Name, group.status, IsDefault(group.IsDefault)},
 				)
-				cli.OutputHuman(renderSimpleTable([]string{"RESOURCE ID", "TYPE", "NAME", "STATE", "DEFAULT"}, groupCommon))
+				cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP ID", "TYPE", "NAME", "STATE", "DEFAULT"}, groupCommon))
 				cli.OutputHuman("\n")
 				cli.OutputHuman(buildResourceGroupPropsTable(group))
 			} else {
@@ -186,7 +186,7 @@ Then navigate to Settings > Resource Groups.
 					[]string{group.Id, group.ResType, group.Name, group.Description, group.status,
 						IsDefault(group.IsDefault), group.UpdatedBy, group.UpdatedTime.UTC().String()},
 				)
-				cli.OutputHuman(renderSimpleTable([]string{"RESOURCE ID", "TYPE", "NAME", "DESCRIPTION", "STATE",
+				cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP ID", "TYPE", "NAME", "DESCRIPTION", "STATE",
 					"DEFAULT", "UPDATED BY", "UPDATED_TIME"}, groupCommon))
 			}
 
@@ -277,6 +277,7 @@ func promptCreateResourceGroup() error {
 			"GCP(v2)",
 			"CONTAINER(v2)",
 			"MACHINE(v2)",
+			"OCI(v2)",
 		)
 	}
 
@@ -315,6 +316,8 @@ func promptCreateResourceGroup() error {
 		return createResourceGroupV2("CONTAINER")
 	case "MACHINE(v2)":
 		return createResourceGroupV2("MACHINE")
+	case "OCI(v2)":
+		return createResourceGroupV2("OCI")
 	default:
 		return errors.New("unknown resource group type")
 	}

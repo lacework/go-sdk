@@ -49,11 +49,12 @@ var log = lwlogger.New("")
 // Version is used to check project versions and store it into a cache file
 // normally at the directory `~/.config/lacework`, to execute regular version checks
 type Version struct {
-	Project        string    `json:"project"`
-	CurrentVersion string    `json:"current_version"`
-	LatestVersion  string    `json:"latest_version"`
-	LastCheckTime  time.Time `json:"last_check_time"`
-	Outdated       bool      `json:"outdated"`
+	Project             string               `json:"project"`
+	CurrentVersion      string               `json:"current_version"`
+	LatestVersion       string               `json:"latest_version"`
+	LastCheckTime       time.Time            `json:"last_check_time"`
+	Outdated            bool                 `json:"outdated"`
+	ComponentsLastCheck map[string]time.Time `json:"components_last_check,omitempty"`
 }
 
 // StoreCache stores version information into the provided path
@@ -69,6 +70,18 @@ func (cache *Version) StoreCache(path string) error {
 	}
 
 	return nil
+}
+
+// StoreCache stores version information into the provided path
+func (cache *Version) CheckComponentBefore(component string, checkTime time.Time) bool {
+	if cache.ComponentsLastCheck == nil {
+		cache.ComponentsLastCheck = make(map[string]time.Time)
+	}
+
+	if lastCheck, ok := cache.ComponentsLastCheck[component]; !ok || lastCheck.Before(checkTime) {
+		return true
+	}
+	return false
 }
 
 // Check verifies if the a project is outdated based of the current version
