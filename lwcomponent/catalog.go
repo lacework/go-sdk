@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"aead.dev/minisign"
 	"github.com/Masterminds/semver"
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/cache"
@@ -164,22 +165,22 @@ func (c *Catalog) Stage(component *CDKComponent, version string) (stageClose fun
 }
 
 func (c *Catalog) Verify(component *CDKComponent) (err error) {
-	_, err = component.stage.Signature()
+	data, err := os.ReadFile(filepath.Join(component.stage.Directory(), component.Name))
 	if err != nil {
 		return
 	}
 
-	// var publicKey string
+	sig, err := component.stage.Signature()
+	if err != nil {
+		return
+	}
 
-	// @jon-stewart: TODO: signature failures
-	// rootPublicKey := minisign.PublicKey{}
-	// if err := rootPublicKey.UnmarshalText([]byte(publicKey)); err != nil {
-	// 	return errors.Wrap(err, "unable to load root public key")
-	// }
+	rootPublicKey := minisign.PublicKey{}
+	if err := rootPublicKey.UnmarshalText([]byte(publicKey)); err != nil {
+		return errors.Wrap(err, "unable to load root public key")
+	}
 
-	// @jon-stewart: TODO: signature failures
-	// return verifySignature(rootPublicKey, data, sig)
-	return
+	return verifySignature(rootPublicKey, data, sig)
 }
 
 func (c *Catalog) Install(component *CDKComponent) (err error) {
@@ -197,7 +198,14 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		return
 	}
 
-	return component.stage.Commit(componentDir)
+	err = component.stage.Commit(componentDir)
+	if err != nil {
+		return
+	}
+
+	component.hostInfo = NewHostInfo(componentDir)
+
+	return
 }
 
 // Delete a CDKComponent
