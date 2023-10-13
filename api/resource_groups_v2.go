@@ -163,7 +163,7 @@ func (group ResourceGroupDataWithQuery) GetQuery() *RGQuery {
 	return group.Query
 }
 
-func (group ResourceGroupDataWithQuery) ResourceGroupType() ResourceGroupType {
+func (group ResourceGroupDataWithQuery) ResourceGroupType() resourceGroupType {
 	t, _ := FindResourceGroupType(group.Type)
 	return t
 }

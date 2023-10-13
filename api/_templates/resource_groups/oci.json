@@ -1,0 +1,50 @@
+{
+    "filters": {
+      "filter0": {
+        "field": "Compartment ID",
+        "operation": "EQUALS",
+        "values": [
+          "ocid1.tenancy.oc1..abaaaabaqp6mzxi6z3xouvhawvsekntanafelw5vmwdjw5vqmgvlegcs2s6q"
+        ]
+      },
+      "filter1": {
+        "field": "Compartment Name",
+        "operation": "INCLUDES",
+        "values": [
+          "prod"
+        ]
+      },
+      "filter2": {
+        "field": "Region",
+        "operation": "STARTS_WITH",
+        "values": [
+          "us-"
+        ]
+      },
+      "filter3": {
+        "field": "Resource Tag",
+        "operation": "EQUALS",
+        "key": "\"definedTags\".\"Oracle-Tags\".\"CreatedBy\"",
+        "values": [
+          "default/my.email@somecompany.net"
+        ]
+      }
+    },
+    "expression": {
+      "operator": "AND",
+      "children": [
+        {
+          "filterName": "filter0"
+        },
+        {
+          "filterName": "filter1"
+        },
+        {
+          "filterName": "filter2"
+        },
+        {
+          "filterName": "filter3"
+        }
+      ]
+    }
+  }

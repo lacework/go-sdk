@@ -19,6 +19,7 @@
 package api
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -46,17 +47,17 @@ type ResourceGroupPropsBase struct {
 
 type ResourceGroup interface {
 	ID() string
-	ResourceGroupType() ResourceGroupType
+	ResourceGroupType() resourceGroupType
 	ResetResourceGUID()
 	ResetRGV2Fields()
 	IsV2Group() bool
 }
 
-type ResourceGroupType int
+type resourceGroupType int
 
 const (
 	// type that defines a non-existing Resource Group
-	NoneResourceGroup ResourceGroupType = iota
+	NoneResourceGroup resourceGroupType = iota
 	AwsResourceGroup
 	AzureResourceGroup
 	ContainerResourceGroup
@@ -69,29 +70,57 @@ const (
 	OciResourceGroup
 )
 
+// query templates
+var (
+	NoneResourceGroupQueryTemplate string = ""
+	//go:embed _templates/resource_groups/aws.json
+	AwsResourceGroupQueryTemplate string
+	//go:embed _templates/resource_groups/azure.json
+	AzureResourceGroupQueryTemplate string
+	//go:embed _templates/resource_groups/container.json
+	ContainerResourceGroupQueryTemplate string
+	//go:embed _templates/resource_groups/gcp.json
+	GcpResourceGroupQueryTemplate string
+	//go:embed _templates/resource_groups/machine.json
+	MachineResourceGroupQueryTemplate   string
+	LwAccountResourceGroupQueryTemplate string = ""
+	//go:embed _templates/resource_groups/oci.json
+	OciResourceGroupQueryTemplate string
+)
+
+type resourceGroupContext struct {
+	typ           string
+	queryTemplate string
+}
+
 // ResourceGroupTypes is the list of available Resource Group types
-var ResourceGroupTypes = map[ResourceGroupType]string{
-	NoneResourceGroup:      "None",
-	AwsResourceGroup:       "AWS",
-	AzureResourceGroup:     "AZURE",
-	ContainerResourceGroup: "CONTAINER",
-	GcpResourceGroup:       "GCP",
-	LwAccountResourceGroup: "LW_ACCOUNT",
-	MachineResourceGroup:   "MACHINE",
-	OciResourceGroup:       "OCI",
+var ResourceGroupTypes = map[resourceGroupType]resourceGroupContext{
+	NoneResourceGroup:      {typ: "None", queryTemplate: NoneResourceGroupQueryTemplate},
+	AwsResourceGroup:       {typ: "AWS", queryTemplate: AwsResourceGroupQueryTemplate},
+	AzureResourceGroup:     {typ: "AZURE", queryTemplate: AzureResourceGroupQueryTemplate},
+	ContainerResourceGroup: {typ: "CONTAINER", queryTemplate: ContainerResourceGroupQueryTemplate},
+	GcpResourceGroup:       {typ: "GCP", queryTemplate: GcpResourceGroupQueryTemplate},
+	LwAccountResourceGroup: {typ: "LW_ACCOUNT", queryTemplate: LwAccountResourceGroupQueryTemplate},
+	MachineResourceGroup:   {typ: "MACHINE", queryTemplate: MachineResourceGroupQueryTemplate},
+	OciResourceGroup:       {typ: "OCI", queryTemplate: OciResourceGroupQueryTemplate},
 }
 
 // String returns the string representation of a Resource Group type
-func (i ResourceGroupType) String() string {
-	return ResourceGroupTypes[i]
+func (i resourceGroupType) String() string {
+	return ResourceGroupTypes[i].typ
+}
+
+// QueryTemplate returns the resource group type's query template
+func (i resourceGroupType) QueryTemplate() string {
+	return ResourceGroupTypes[i].queryTemplate
 }
 
 // FindResourceGroupType looks up inside the list of available resource group types
 // the matching type from the provided string, if none, returns NoneResourceGroup
-func FindResourceGroupType(resourceGroup string) (ResourceGroupType, bool) {
-	for resType, resStr := range ResourceGroupTypes {
-		if resStr == resourceGroup {
-			return resType, true
+func FindResourceGroupType(typ string) (resourceGroupType, bool) {
+	for i, ctx := range ResourceGroupTypes {
+		if typ == ctx.typ {
+			return i, true
 		}
 	}
 	return NoneResourceGroup, false
@@ -236,7 +265,7 @@ func (svc *ResourceGroupsService) update(guid string, data interface{}, response
 	return svc.client.RequestEncoderDecoder("PATCH", apiPath, data, response)
 }
 
-func (group ResourceGroupData) ResourceGroupType() ResourceGroupType {
+func (group ResourceGroupData) ResourceGroupType() resourceGroupType {
 	t, _ := FindResourceGroupType(group.Type)
 	return t
 }
