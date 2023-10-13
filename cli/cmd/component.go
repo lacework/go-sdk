@@ -218,7 +218,12 @@ func (c *cliState) LoadComponents() {
 							"cli_flags", c.componentParser.cliArgs)
 						f, ok := c.LwComponents.GetComponent(cmd.Use)
 						if ok {
-							if f.Status() == lwcomponent.UpdateAvailable {
+							shouldPrint, compVerErr := dailyComponentUpdateAvailable(f)
+							if compVerErr != nil {
+								// Log an error but do not fail
+								cli.Log.Debugw("unable to run daily component version check", "error", err)
+							}
+							if shouldPrint {
 								format := "%s v%s available: to update, run `lacework component update %s`\n"
 								cli.OutputHuman(fmt.Sprintf(format, cmd.Use, f.LatestVersion.String(), cmd.Use))
 							}

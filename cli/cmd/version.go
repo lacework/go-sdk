@@ -131,17 +131,75 @@ func versionCheck() (*lwupdater.Version, error) {
 	return sdk, nil
 }
 
-// dailyVersionCheck will execute a version check on a daily basis, the function uses
-// the file ~/.config/lacework/version_cache to track the last check time
-func dailyVersionCheck() error {
+func isCheckEnabled() bool {
 	if disabled := os.Getenv(lwupdater.DisableEnv); disabled != "" {
-		return nil
+		return false
 	}
 
 	if !cli.InteractiveMode() {
-		return nil
+		return false
+	}
+	return true
+}
+
+// dailyComponentUpdateAvailable returns true if the cli should print that a new version of a component is available.
+// It uses the file ~/.config/lacework/version_cache to track the last check time
+func dailyComponentUpdateAvailable(component *lwcomponent.Component) (bool, error) {
+	if cli.JSONOutput() || !isCheckEnabled() {
+		return false, nil
+	}
+	cacheDir, err := cache.CacheDir()
+	if err != nil {
+		return false, err
 	}
 
+	cacheFile := path.Join(cacheDir, VersionCacheFile)
+	if !file.FileExists(cacheFile) {
+		// The file should have already been created by dailyVersionCheck
+		return false, err
+	}
+
+	cli.Log.Debugw("verifying cached version", "cache_file", cacheFile)
+	versionCache, err := lwupdater.LoadCache(cacheFile)
+	if err != nil {
+		return false, err
+	}
+
+	cli.Log.Debugw("component version cache", "content", versionCache.ComponentsLastCheck)
+
+	// since our check is daily, substract one day from now and compare it
+	var (
+		nowTime   = time.Now()
+		checkTime = nowTime.AddDate(0, 0, -1)
+	)
+
+	if versionCache.CheckComponentBefore(component.Name, checkTime) {
+		cli.Event.Feature = featDailyCompVerCheck
+		defer cli.SendHoneyvent()
+
+		versionCache.ComponentsLastCheck[component.Name] = nowTime
+		cli.Log.Debugw("storing new version cache", "content", versionCache)
+		err := versionCache.StoreCache(cacheFile)
+
+		if err != nil {
+			cli.Event.Error = err.Error()
+			return false, err
+		}
+
+		cli.Event.DurationMs = time.Since(nowTime).Milliseconds()
+		cli.Event.FeatureData = versionCache
+		return component.Status() == lwcomponent.UpdateAvailable, nil
+	} else {
+		return false, nil
+	}
+}
+
+// dailyVersionCheck will execute a version check on a daily basis, the function uses
+// the file ~/.config/lacework/version_cache to track the last check time
+func dailyVersionCheck() error {
+	if cli.JSONOutput() || !isCheckEnabled() {
+		return nil
+	}
 	cacheDir, err := cache.CacheDir()
 	if err != nil {
 		return err
@@ -163,7 +221,6 @@ func dailyVersionCheck() error {
 		if err := currentVersion.StoreCache(cacheFile); err != nil {
 			return err
 		}
-
 	}
 
 	cli.Log.Debugw("verifying cached version", "cache_file", cacheFile)
@@ -179,6 +236,7 @@ func dailyVersionCheck() error {
 		nowTime   = time.Now()
 		checkTime = nowTime.AddDate(0, 0, -1)
 	)
+
 	if versionCache.LastCheckTime.Before(checkTime) {
 		cli.Event.Feature = featDailyVerCheck
 		defer cli.SendHoneyvent()
