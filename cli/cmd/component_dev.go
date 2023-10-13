@@ -346,6 +346,8 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 		"poetry",
 		"init",
 		"--no-interaction",
+		// Because of https://github.com/python-poetry/poetry/issues/5975
+		fmt.Sprintf("--name=%s", strings.ReplaceAll(component.Name, "-", "")),
 		"--python=^3.11,<3.12",
 		"--dev-dependency=pyinstaller",
 		"--dev-dependency=poethepoet")
