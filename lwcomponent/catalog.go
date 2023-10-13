@@ -77,24 +77,7 @@ func (c *Catalog) ListComponentVersions(component *CDKComponent) (versions []*se
 		return
 	}
 
-	response, err := c.client.V2.Components.ListComponentVersions(component.apiInfo.Id(), operatingSystem, architecture)
-	if err != nil {
-		return nil, err
-	}
-
-	rawVersions := response.Data[0].Versions
-
-	versions = make([]*semver.Version, len(rawVersions))
-	for idx, v := range rawVersions {
-		ver, err := semver.NewVersion(v)
-		if err != nil {
-			return nil, err
-		}
-
-		versions[idx] = ver
-	}
-
-	return versions, nil
+	return listComponentVersions(c.client, component.apiInfo.Id())
 }
 
 func (c *Catalog) PrintComponents() [][]string {
@@ -259,20 +242,15 @@ func NewCatalog(client *api.Client, stageConstructor StageConstructor) (*Catalog
 
 	cdkComponents := make(map[string]CDKComponent, len(rawComponents)+len(localComponents))
 
-	allVersions := []semver.Version{}
-
 	for _, c := range rawComponents {
 		ver, err := semver.NewVersion(c.Version)
 		if err != nil {
 			return nil, errors.Wrap(err, fmt.Sprintf("component '%s' version '%s'", c.Name, c.Version))
 		}
-		allVersions = append(allVersions, *ver)
-	}
 
-	for _, c := range rawComponents {
-		ver, err := semver.NewVersion(c.Version)
+		allVersions, err := listComponentVersions(client, c.Id)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("component '%s' version '%s'", c.Name, c.Version))
+			return nil, errors.Wrap(err, fmt.Sprintf("unable to fetch component '%s' versions", c.Name))
 		}
 
 		api := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size)
@@ -317,6 +295,27 @@ func loadLocalComponents() (local map[string]HostInfo, err error) {
 	}
 
 	return
+}
+
+func listComponentVersions(client *api.Client, componentId int32) (versions []*semver.Version, err error) {
+	response, err := client.V2.Components.ListComponentVersions(componentId, operatingSystem, architecture)
+	if err != nil {
+		return nil, err
+	}
+
+	rawVersions := response.Data[0].Versions
+
+	versions = make([]*semver.Version, len(rawVersions))
+	for idx, v := range rawVersions {
+		ver, err := semver.NewVersion(v)
+		if err != nil {
+			return nil, err
+		}
+
+		versions[idx] = ver
+	}
+
+	return versions, nil
 }
 
 // func isDevelopmentComponent(path string, name string) bool {

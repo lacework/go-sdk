@@ -84,7 +84,7 @@ func (c *CDKComponent) PrintSummary() []string {
 	)
 
 	switch c.Status {
-	case Installed, Deprecated, Development, UpdateAvailable:
+	case Installed, Deprecated, Development, UpdateAvailable, Tainted:
 		version, err = c.hostInfo.Version()
 		if err != nil {
 			panic(err)
