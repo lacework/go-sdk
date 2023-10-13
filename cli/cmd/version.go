@@ -197,7 +197,7 @@ func dailyComponentUpdateAvailable(component *lwcomponent.Component) (bool, erro
 // dailyVersionCheck will execute a version check on a daily basis, the function uses
 // the file ~/.config/lacework/version_cache to track the last check time
 func dailyVersionCheck() error {
-	if !isCheckEnabled() {
+	if cli.JSONOutput() || !isCheckEnabled() {
 		return nil
 	}
 	cacheDir, err := cache.CacheDir()
