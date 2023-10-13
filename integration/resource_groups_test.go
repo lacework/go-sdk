@@ -33,6 +33,9 @@ func createResourceGroup(typ string) (string, error) {
 
 	var testQuery api.RGQuery
 	err := json.Unmarshal([]byte(iType.QueryTemplate()), &testQuery)
+	if err != nil {
+		return "", errors.Wrap(err, "error serializing query template")
+	}
 
 	var testResourceGroup api.ResourceGroupDataWithQuery = api.ResourceGroupDataWithQuery{
 		Name:        fmt.Sprintf("CLI_TestCreateResourceGroup_%s", iType.String()),
@@ -43,6 +46,9 @@ func createResourceGroup(typ string) (string, error) {
 	}
 
 	testResourceGroupBytes, err := json.Marshal(testResourceGroup)
+	if err != nil {
+		return "", errors.Wrap(err, "error marshaling test resource group")
+	}
 
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
 		"api", "post", "v2/ResourceGroups", "-d", string(testResourceGroupBytes), "--json",
