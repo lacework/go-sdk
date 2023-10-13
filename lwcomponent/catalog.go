@@ -36,7 +36,15 @@ func CatalogCacheDir() (string, error) {
 		return "", errors.Wrap(err, "unable to locate components directory")
 	}
 
-	return filepath.Join(cacheDir, componentCacheDir), nil
+	path := filepath.Join(cacheDir, componentCacheDir)
+
+	if _, err = os.Stat(path); err != nil {
+		if err = os.MkdirAll(path, os.ModePerm); err != nil {
+			return "", err
+		}
+	}
+
+	return path, nil
 }
 
 type Catalog struct {
@@ -243,7 +251,11 @@ func NewCatalog(client *api.Client, stageConstructor StageConstructor) (*Catalog
 		return nil, err
 	}
 
-	rawComponents := response.Data[0].Components
+	var rawComponents []api.LatestComponentVersion
+
+	if len(response.Data) > 0 {
+		rawComponents = response.Data[0].Components
+	}
 
 	cdkComponents := make(map[string]CDKComponent, len(rawComponents)+len(localComponents))
 
