@@ -167,6 +167,15 @@ dirs = ["lwgenerate/"]
     ]
     dirs = []
 
+[resource_groups]
+    files = [
+        "resource_group_v2.go",
+        "resource_groups.go",
+        "resource_groups_v2.go",
+        "resource_groups_version_service.go"
+    ]
+    dirs = []
+
 [team_member]
     files = ["team_members.go"]
     dirs = []
