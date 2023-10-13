@@ -374,7 +374,7 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 		return err
 	}
 	_, err = f.WriteString(fmt.Sprintf(
-		"%s/__main__.py --collect-submodules application -F --name %s --distpath .\"\n",
+		"%s/__main__.py --collect-submodules application -D --name %s --distpath .\"\n",
 		component.Name, component.Name,
 	))
 	if err != nil {

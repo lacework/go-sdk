@@ -56,6 +56,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.23
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.33.1
 	github.com/aws/smithy-go v1.13.5
+	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-git/go-git/v5 v5.5.2
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/consul/sdk v0.13.1
