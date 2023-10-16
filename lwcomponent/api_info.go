@@ -21,7 +21,14 @@ type apiInfo struct {
 	sizeKB      int64
 }
 
-func NewAPIInfo(id int32, name string, version *semver.Version, allVersions []*semver.Version, desc string, size int64) ApiInfo {
+func NewAPIInfo(
+	id int32,
+	name string,
+	version *semver.Version,
+	allVersions []*semver.Version,
+	desc string,
+	size int64,
+) ApiInfo {
 	return &apiInfo{
 		id:          id,
 		name:        name,
