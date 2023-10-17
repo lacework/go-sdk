@@ -72,12 +72,14 @@ func (c *Catalog) GetComponent(name string) (*CDKComponent, error) {
 	return &component, nil
 }
 
-func (c *Catalog) ListComponentVersions(component *CDKComponent) (versions []*semver.Version, err error) {
+func (c *Catalog) ListComponentVersions(component *CDKComponent) (versions []*semver.Version) {
 	if component.apiInfo == nil {
 		return
 	}
 
-	return listComponentVersions(c.client, component.apiInfo.Id())
+	versions = component.apiInfo.AllVersions()
+
+	return
 }
 
 func (c *Catalog) PrintComponents() [][]string {
@@ -253,7 +255,7 @@ func NewCatalog(client *api.Client, stageConstructor StageConstructor) (*Catalog
 			return nil, errors.Wrap(err, fmt.Sprintf("unable to fetch component '%s' versions", c.Name))
 		}
 
-		api := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size)
+		api := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size, c.Deprecated)
 
 		host, found := localComponents[c.Name]
 		if found {
@@ -271,6 +273,20 @@ func NewCatalog(client *api.Client, stageConstructor StageConstructor) (*Catalog
 	}
 
 	return &Catalog{client, cdkComponents, stageConstructor}, nil
+}
+
+func LocalComponents() (components []CDKComponent, err error) {
+
+	localHostInfo, err := loadLocalComponents()
+	if err != nil {
+		return
+	}
+
+	for _, l := range localHostInfo {
+		components = append(components, NewCDKComponent(l.Name(), BinaryType, nil, l))
+	}
+
+	return
 }
 
 func loadLocalComponents() (local map[string]HostInfo, err error) {
@@ -303,9 +319,14 @@ func listComponentVersions(client *api.Client, componentId int32) (versions []*s
 		return nil, err
 	}
 
-	rawVersions := response.Data[0].Versions
+	var rawVersions []string
+
+	if len(response.Data) > 0 {
+		rawVersions = response.Data[0].Versions
+	}
 
 	versions = make([]*semver.Version, len(rawVersions))
+
 	for idx, v := range rawVersions {
 		ver, err := semver.NewVersion(v)
 		if err != nil {
@@ -317,10 +338,6 @@ func listComponentVersions(client *api.Client, componentId int32) (versions []*s
 
 	return versions, nil
 }
-
-// func isDevelopmentComponent(path string, name string) bool {
-// 	return file.FileExists(filepath.Join(path, name, DevelopmentFile))
-// }
 
 // Returns the directory that the component executable and configuration is stored in.
 func componentDirectory(componentName string) (string, error) {

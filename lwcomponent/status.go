@@ -26,9 +26,10 @@ const (
 	UnknownStatus Status = iota
 	Development
 	NotInstalled
+	NotInstalledDeprecated
 	Installed
+	InstalledDeprecated
 	UpdateAvailable
-	Deprecated
 	Tainted
 )
 
@@ -42,7 +43,7 @@ func (s Status) Color() *color.Color {
 		return color.New(color.FgGreen, color.Bold)
 	case UpdateAvailable:
 		return color.New(color.FgYellow, color.Bold)
-	case Deprecated, Tainted:
+	case InstalledDeprecated, NotInstalledDeprecated, Tainted:
 		return color.New(color.FgRed, color.Bold)
 	default:
 		return color.New(color.FgRed, color.Bold)
@@ -53,16 +54,18 @@ func (s Status) String() string {
 	switch s {
 	case Development:
 		return "Development"
-	case NotInstalled:
-		return "Not Installed"
 	case Installed:
 		return "Installed"
+	case InstalledDeprecated:
+		return "Installed (Deprecated)"
+	case NotInstalled:
+		return "Not Installed"
+	case NotInstalledDeprecated:
+		return "Not Installed (Deprecated)"
+	case Tainted:
+		return "Tainted (Please update)"
 	case UpdateAvailable:
 		return "Update Available"
-	case Deprecated:
-		return "Deprecated"
-	case Tainted:
-		return "Tainted(Please update)"
 	default:
 		return "Unknown"
 	}

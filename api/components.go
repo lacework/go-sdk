@@ -22,6 +22,7 @@ type LatestComponentVersion struct {
 	Version       string `json:"version"`
 	Size          int64  `json:"size"`
 	ComponentType string `json:"type"`
+	Deprecated    bool   `json:"deprecated"`
 }
 
 func (svc *ComponentsService) ListComponents(os string, arch string) (response ListComponentsResponse, err error) {
@@ -41,6 +42,7 @@ type ComponentVersions struct {
 	Name           string   `json:"name"`
 	Description    string   `json:"description"`
 	Component_type string   `json:"type"`
+	Deprecated     bool     `json:"deprecated"`
 	Versions       []string `json:"versions"`
 }
 

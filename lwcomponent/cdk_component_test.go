@@ -25,7 +25,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion("1.1.1")
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
 
 		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, apiInfo, nil)
 
@@ -41,7 +41,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(ver)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
 
 		CreateLocalComponent(name, ver, false)
 
@@ -65,7 +65,7 @@ func TestNewCDKComponent(t *testing.T) {
 		installedVersion, _ := semver.NewVersion(installVer)
 		allVersions := []*semver.Version{version, installedVersion}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
 
 		CreateLocalComponent(name, installVer, false)
 
@@ -78,9 +78,9 @@ func TestNewCDKComponent(t *testing.T) {
 		assert.Equal(t, lwcomponent.UpdateAvailable, component.Status)
 	})
 
-	t.Run("Deprecated", func(t *testing.T) {
+	t.Run("Installed Deprecated No API", func(t *testing.T) {
 		var (
-			name string = "deprecated"
+			name string = "installed-deprecated-no-api"
 			ver  string = "1.1.1"
 		)
 
@@ -92,7 +92,43 @@ func TestNewCDKComponent(t *testing.T) {
 
 		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, nil, hostInfo)
 
-		assert.Equal(t, lwcomponent.Deprecated, component.Status)
+		assert.Equal(t, lwcomponent.InstalledDeprecated, component.Status)
+	})
+
+	t.Run("Installed Deprecated API", func(t *testing.T) {
+		var (
+			name string = "installed-deprecated-api"
+			ver  string = "1.1.1"
+		)
+
+		version, _ := semver.NewVersion(ver)
+		allVersions := []*semver.Version{version}
+
+		CreateLocalComponent(name, ver, false)
+
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, true)
+
+		dir, _ := lwcomponent.CatalogCacheDir()
+		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+
+		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, apiInfo, hostInfo)
+
+		assert.Equal(t, lwcomponent.InstalledDeprecated, component.Status)
+	})
+
+	t.Run("Not Installed Deprecated", func(t *testing.T) {
+		var (
+			name string = "not-installed-deprecated"
+		)
+
+		version, _ := semver.NewVersion("1.1.1")
+		allVersions := []*semver.Version{version}
+
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, true)
+
+		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, apiInfo, nil)
+
+		assert.Equal(t, lwcomponent.NotInstalledDeprecated, component.Status)
 	})
 
 	t.Run("Tainted", func(t *testing.T) {
@@ -105,7 +141,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(apiVer)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
 
 		CreateLocalComponent(name, installVer, false)
 
@@ -144,7 +180,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(ver)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
 
 		CreateLocalComponent(name, ver, false)
 
@@ -167,7 +203,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(ver)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
 
 		CreateLocalComponent(name, ver, false)
 
@@ -190,7 +226,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(ver)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
 
 		CreateLocalComponent(name, ver, false)
 
@@ -213,7 +249,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(ver)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
 
 		CreateLocalComponent(name, ver, false)
 

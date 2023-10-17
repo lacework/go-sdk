@@ -16,7 +16,11 @@ var (
 )
 
 type Executer interface {
+	Executable() bool
+
 	Execute(args []string, envs ...string) (stdout string, stderr string, err error)
+
+	ExecuteInline(args []string, envs ...string) (err error)
 }
 
 type executable struct {
@@ -32,8 +36,16 @@ func NewExecuable(name string, dir string) Executer {
 	return &executable{path: path}
 }
 
+func (e *executable) Executable() bool {
+	return true
+}
+
 func (e *executable) Execute(args []string, envs ...string) (stdout string, stderr string, err error) {
 	return execute(e.path, args, envs...)
+}
+
+func (e *executable) ExecuteInline(args []string, envs ...string) (err error) {
+	return executeInline(e.path, args, envs...)
 }
 
 func execute(path string, args []string, envs ...string) (stdout string, stderr string, err error) {
@@ -41,8 +53,7 @@ func execute(path string, args []string, envs ...string) (stdout string, stderr 
 
 	cmd := exec.Command(path, args...)
 
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, envs...)
+	cmd.Env = append(os.Environ(), envs...)
 
 	cmd.Stdin = nil
 	cmd.Stdout = &outBuf
@@ -51,7 +62,20 @@ func execute(path string, args []string, envs ...string) (stdout string, stderr 
 	err = run(cmd)
 
 	stdout, stderr = outBuf.String(), errBuf.String()
+
 	return
+}
+
+func executeInline(path string, args []string, envs ...string) error {
+	cmd := exec.Command(path, args...)
+
+	cmd.Env = append(os.Environ(), envs...)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return run(cmd)
 }
 
 func run(cmd *exec.Cmd) error {
@@ -72,6 +96,14 @@ func run(cmd *exec.Cmd) error {
 type nonExecutable struct {
 }
 
+func (e *nonExecutable) Executable() bool {
+	return false
+}
+
 func (e *nonExecutable) Execute(args []string, envs ...string) (stdout string, stderr string, err error) {
 	return "", "", ErrNonExecutable
+}
+
+func (e *nonExecutable) ExecuteInline(args []string, envs ...string) (err error) {
+	return ErrNonExecutable
 }

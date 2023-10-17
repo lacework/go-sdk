@@ -31,7 +31,7 @@ func NewCDKComponent(name string, componentType Type, apiInfo ApiInfo, hostInfo 
 	status := status(apiInfo, hostInfo)
 
 	switch status {
-	case Installed, UpdateAvailable, Deprecated, Development:
+	case Installed, UpdateAvailable, InstalledDeprecated, Development:
 		{
 			dir := hostInfo.Dir()
 
@@ -84,7 +84,7 @@ func (c *CDKComponent) PrintSummary() []string {
 	)
 
 	switch c.Status {
-	case Installed, Deprecated, Development, UpdateAvailable, Tainted:
+	case Installed, InstalledDeprecated, NotInstalledDeprecated, Development, UpdateAvailable, Tainted:
 		version, err = c.hostInfo.Version()
 		if err != nil {
 			panic(err)
@@ -123,6 +123,10 @@ func status(apiInfo ApiInfo, hostInfo HostInfo) Status {
 				return Tainted
 			}
 
+			if apiInfo.Deprecated() {
+				return InstalledDeprecated
+			}
+
 			latestVer := apiInfo.LatestVersion()
 			if latestVer.GreaterThan(installedVer) {
 				return UpdateAvailable
@@ -133,12 +137,16 @@ func status(apiInfo ApiInfo, hostInfo HostInfo) Status {
 			if hostInfo.Development() {
 				return Development
 			} else {
-				return Deprecated
+				return InstalledDeprecated
 			}
 		}
 	}
 
 	if apiInfo != nil && hostInfo == nil {
+		if apiInfo.Deprecated() {
+			return NotInstalledDeprecated
+		}
+
 		return NotInstalled
 	}
 
