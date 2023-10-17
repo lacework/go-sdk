@@ -33,6 +33,17 @@ func TestCatalogNewCatalog(t *testing.T) {
 			fmt.Fprint(w, generateComponentsResponse(prefix, apiComponentCount))
 		})
 
+		for i := 0; i < apiComponentCount; i++ {
+			name := fmt.Sprintf("%s-%d", prefix, i)
+			path := fmt.Sprintf("Components/%d", i)
+			versions := []string{"1.0.0", "1.1.1", "3.0.1", "5.4.3"}
+
+			fakeServer.MockAPI(path, func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+				fmt.Fprint(w, generateComponentVersionsResponse(name, versions))
+			})
+		}
+
 		client, _ := api.NewClient("catalog_test",
 			api.WithToken("TOKEN"),
 			api.WithURL(fakeServer.URL()),
@@ -54,6 +65,17 @@ func TestCatalogNewCatalog(t *testing.T) {
 			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
 			fmt.Fprint(w, generateComponentsResponse(prefix, apiComponentCount))
 		})
+
+		for i := 0; i < apiComponentCount; i++ {
+			name := fmt.Sprintf("%s-%d", prefix, i)
+			path := fmt.Sprintf("Components/%d", i)
+			versions := []string{"1.0.0", "1.1.1", "3.0.1", "5.4.3"}
+
+			fakeServer.MockAPI(path, func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+				fmt.Fprint(w, generateComponentVersionsResponse(name, versions))
+			})
+		}
 
 		client, _ := api.NewClient("catalog_test",
 			api.WithToken("TOKEN"),
@@ -109,12 +131,18 @@ func TestCatalogNewCatalog(t *testing.T) {
 			fmt.Fprint(w, generateComponentsResponse(prefix, 1))
 		})
 
+		name := fmt.Sprintf("%s-%d", prefix, 1)
+		versions := []string{"1.0.0", "1.1.1", "3.0.1", "5.4.3"}
+
+		fakeServer.MockAPI("Components/0", func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+			fmt.Fprint(w, generateComponentVersionsResponse(name, versions))
+		})
+
 		client, _ := api.NewClient("catalog_test",
 			api.WithToken("TOKEN"),
 			api.WithURL(fakeServer.URL()),
 		)
-
-		name := fmt.Sprintf("%s-%d", prefix, 1)
 
 		CreateLocalComponent(name, "invalid-version", false)
 
@@ -147,6 +175,17 @@ func TestCatalogComponentCount(t *testing.T) {
 		assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
 		fmt.Fprint(w, generateComponentsResponse(prefix, apiCount))
 	})
+
+	for i := 0; i < apiCount; i++ {
+		name := fmt.Sprintf("%s-%d", prefix, i)
+		path := fmt.Sprintf("Components/%d", i)
+		versions := []string{"1.0.0", "1.1.1", "3.0.1", "5.4.3"}
+
+		fakeServer.MockAPI(path, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+			fmt.Fprint(w, generateComponentVersionsResponse(name, versions))
+		})
+	}
 
 	client, _ := api.NewClient("catalog_test",
 		api.WithToken("TOKEN"),
@@ -238,6 +277,17 @@ func TestCatalogGetComponent(t *testing.T) {
 		fmt.Fprint(w, generateComponentsResponse(prefix, count))
 	})
 
+	for i := 0; i < count; i++ {
+		name := fmt.Sprintf("%s-%d", prefix, i)
+		path := fmt.Sprintf("Components/%d", i)
+		versions := []string{"1.0.0", "1.1.1", "3.0.1", "5.4.3"}
+
+		fakeServer.MockAPI(path, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+			fmt.Fprint(w, generateComponentVersionsResponse(name, versions))
+		})
+	}
+
 	client, _ := api.NewClient("catalog_test",
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()),
@@ -323,35 +373,32 @@ func TestCatalogGetComponent(t *testing.T) {
 }
 
 func TestCatalogListComponentVersions(t *testing.T) {
-	var (
-		prefix = "testCatalogListComponentVersions"
-		count  = 4
-	)
+	prefix := "testCatalogListComponentVersions"
 
 	_, home := FakeHome()
 	defer ResetHome(home)
 
-	fakeServer := lacework.MockServer()
-	defer fakeServer.Close()
-
-	fakeServer.MockAPI("Components", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
-		fmt.Fprint(w, generateComponentsResponse(prefix, count))
-	})
-
-	client, _ := api.NewClient("catalog_test",
-		api.WithToken("TOKEN"),
-		api.WithURL(fakeServer.URL()),
-	)
-
 	t.Run("ok", func(t *testing.T) {
-		name := fmt.Sprintf("%s-%d", prefix, 1)
+		fakeServer := lacework.MockServer()
+		defer fakeServer.Close()
+
+		fakeServer.MockAPI("Components", func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+			fmt.Fprint(w, generateComponentsResponse(prefix, 1))
+		})
+
+		name := fmt.Sprintf("%s-%d", prefix, 0)
 		versions := []string{"0.1.0", "1.1.1", "3.0.1", "5.4.3"}
 
-		fakeServer.MockAPI("Components/1", func(w http.ResponseWriter, r *http.Request) {
+		fakeServer.MockAPI("Components/0", func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
 			fmt.Fprint(w, generateComponentVersionsResponse(name, versions))
 		})
+
+		client, _ := api.NewClient("catalog_test",
+			api.WithToken("TOKEN"),
+			api.WithURL(fakeServer.URL()),
+		)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
 		assert.NotNil(t, catalog)
@@ -370,24 +417,29 @@ func TestCatalogListComponentVersions(t *testing.T) {
 	})
 
 	t.Run("invalid semantic version", func(t *testing.T) {
-		name := fmt.Sprintf("%s-%d", prefix, 2)
+		fakeServer := lacework.MockServer()
+		defer fakeServer.Close()
+
+		fakeServer.MockAPI("Components", func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+			fmt.Fprint(w, generateComponentsResponse(prefix, 1))
+		})
+
+		name := fmt.Sprintf("%s-%d", prefix, 0)
 		versions := []string{"0.1.0", "1.invalid.1", "3.0.1", "5.4.3"}
 
-		fakeServer.MockAPI("Components/2", func(w http.ResponseWriter, r *http.Request) {
+		fakeServer.MockAPI("Components/0", func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
 			fmt.Fprint(w, generateComponentVersionsResponse(name, versions))
 		})
 
+		client, _ := api.NewClient("catalog_test",
+			api.WithToken("TOKEN"),
+			api.WithURL(fakeServer.URL()),
+		)
+
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
-		assert.NotNil(t, catalog)
-		assert.Nil(t, err)
-
-		component, err := catalog.GetComponent(name)
-		assert.NotNil(t, component)
-		assert.Nil(t, err)
-
-		vers, err := catalog.ListComponentVersions(component)
-		assert.Nil(t, vers)
+		assert.Nil(t, catalog)
 		assert.NotNil(t, err)
 	})
 }
@@ -420,6 +472,17 @@ func TestCatalogStage(t *testing.T) {
 			fmt.Fprint(w, generateFetchResponse(1, name, version, ""))
 		}
 	})
+
+	for i := 0; i < apiComponentCount; i++ {
+		name := fmt.Sprintf("%s-%d", prefix, i)
+		path := fmt.Sprintf("Components/%d", i)
+		versions := []string{"1.0.0", "1.1.1", "3.0.1", "5.4.3"}
+
+		fakeServer.MockAPI(path, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+			fmt.Fprint(w, generateComponentVersionsResponse(name, versions))
+		})
+	}
 
 	client, _ := api.NewClient("catalog_test",
 		api.WithToken("TOKEN"),
@@ -569,6 +632,17 @@ func TestCatalogInstall(t *testing.T) {
 		fmt.Fprint(w, generateComponentsResponse(prefix, apiComponentCount))
 	})
 
+	for i := 0; i < apiComponentCount; i++ {
+		name := fmt.Sprintf("%s-%d", prefix, i)
+		path := fmt.Sprintf("Components/%d", i)
+		versions := []string{"1.0.0", "1.1.1", "3.0.1", "5.4.3"}
+
+		fakeServer.MockAPI(path, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+			fmt.Fprint(w, generateComponentVersionsResponse(name, versions))
+		})
+	}
+
 	client, _ := api.NewClient("catalog_test",
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()))
@@ -627,6 +701,17 @@ func TestCatalogDelete(t *testing.T) {
 		assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
 		fmt.Fprint(w, generateComponentsResponse(prefix, apiComponentCount))
 	})
+
+	for i := 0; i < apiComponentCount; i++ {
+		name := fmt.Sprintf("%s-%d", prefix, i)
+		path := fmt.Sprintf("Components/%d", i)
+		versions := []string{"1.0.0", "1.1.1", "3.0.1", "5.4.3"}
+
+		fakeServer.MockAPI(path, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
+			fmt.Fprint(w, generateComponentVersionsResponse(name, versions))
+		})
+	}
 
 	client, _ := api.NewClient("catalog_test",
 		api.WithToken("TOKEN"),

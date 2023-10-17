@@ -8,23 +8,34 @@ type ApiInfo interface {
 	Id() int32
 
 	LatestVersion() *semver.Version
+
+	AllVersions() []*semver.Version
 }
 
 type apiInfo struct {
-	id      int32
-	name    string
-	version semver.Version
-	desc    string
-	sizeKB  int64
+	id          int32
+	name        string
+	version     semver.Version
+	allVersions []*semver.Version
+	desc        string
+	sizeKB      int64
 }
 
-func NewAPIInfo(id int32, name string, version *semver.Version, desc string, size int64) ApiInfo {
+func NewAPIInfo(
+	id int32,
+	name string,
+	version *semver.Version,
+	allVersions []*semver.Version,
+	desc string,
+	size int64,
+) ApiInfo {
 	return &apiInfo{
-		id:      id,
-		name:    name,
-		version: *version,
-		desc:    desc,
-		sizeKB:  size,
+		id:          id,
+		name:        name,
+		version:     *version,
+		allVersions: allVersions,
+		desc:        desc,
+		sizeKB:      size,
 	}
 }
 
@@ -34,4 +45,8 @@ func (a *apiInfo) Id() int32 {
 
 func (a *apiInfo) LatestVersion() *semver.Version {
 	return &a.version
+}
+
+func (a *apiInfo) AllVersions() []*semver.Version {
+	return a.allVersions
 }
