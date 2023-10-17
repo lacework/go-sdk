@@ -1,0 +1,70 @@
+{
+    "filters": {
+      "filter0": {
+        "field": "Project ID",
+        "operation": "EQUALS",
+        "values": [
+          "abc-demo-project-123"
+        ]
+      },
+      "filter1": {
+        "field": "Organization ID",
+        "operation": "EQUALS",
+        "values": [
+          "123456789012"
+        ]
+      },
+      "filter2": {
+        "field": "Organization Name",
+        "operation": "STARTS_WITH",
+        "values": [
+          "somecompany"
+        ]
+      },
+      "filter3": {
+        "field": "Folder",
+        "operation": "EQUALS",
+        "values": [
+          "1234567890123"
+        ]
+      },
+      "filter4": {
+        "field": "Resource Label",
+        "operation": "EQUALS",
+        "key": "Env",
+        "values": [
+          "dev"
+        ]
+      },
+      "filter5": {
+        "field": "Region",
+        "operation": "EQUALS",
+        "values": [
+          "australia-southeast2"
+        ]
+      }
+    },
+    "expression": {
+      "operator": "AND",
+      "children": [
+        {
+          "filterName": "filter0"
+        },
+        {
+          "filterName": "filter1"
+        },
+        {
+          "filterName": "filter2"
+        },
+        {
+          "filterName": "filter3"
+        },
+        {
+          "filterName": "filter4"
+        },
+        {
+          "filterName": "filter5"
+        }
+      ]
+    }
+  }

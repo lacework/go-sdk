@@ -81,7 +81,7 @@ func NewResourceGroupsVersionService(c *Client) *ResourceGroupsVersionService {
 //	  )
 //
 //	  client.V2.ResourceGroups.Create(group)
-func NewResourceGroup(name string, iType ResourceGroupType, props interface{}) ResourceGroupData {
+func NewResourceGroup(name string, iType resourceGroupType, props interface{}) ResourceGroupData {
 	return ResourceGroupData{
 		Name:    name,
 		Type:    iType.String(),
@@ -91,7 +91,7 @@ func NewResourceGroup(name string, iType ResourceGroupType, props interface{}) R
 }
 
 // NewResourceGroupWithQuery Only available with RGv2 beta
-func NewResourceGroupWithQuery(name string, iType ResourceGroupType,
+func NewResourceGroupWithQuery(name string, iType resourceGroupType,
 	description string, query *RGQuery) ResourceGroupDataWithQuery {
 	return ResourceGroupDataWithQuery{
 		Name:        name,

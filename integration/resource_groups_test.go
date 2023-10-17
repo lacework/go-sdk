@@ -1,5 +1,3 @@
-//go:build resource_groups
-
 // Author:: Salim Afiune Maya (<afiune@lacework.net>)
 // Copyright:: Copyright 2020, Lacework Inc.
 // License:: Apache License, Version 2.0
@@ -21,6 +19,7 @@ package integration
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -29,13 +28,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var testResourceGroup string = `{"name":"CLI_TestCreateResourceGroup","resourceType":"AWS","query":{"filters":{"filter0":{"field":"Resource Tag","operation":"INCLUDES","values":["*"],"key":"HOST"},"filter1":{"field":"Region","operation":"STARTS_WITH","values":["ap-south"]}},"expression":{"operator":"AND","children":[{"filterName":"filter0"},{"filterName":"filter1"}]}},"description":"Resource Group Created By CLI Integration Testing","enabled":1}`
+func createResourceGroup(typ string) (string, error) {
+	iType, _ := api.FindResourceGroupType(typ)
 
-func createResourceGroup() (string, error) {
-	var resourceGroupV2Response api.ResourceGroupV2Response
+	var testQuery api.RGQuery
+	err := json.Unmarshal([]byte(iType.QueryTemplate()), &testQuery)
+	if err != nil {
+		return "", errors.Wrap(err, "error serializing query template")
+	}
+
+	var testResourceGroup api.ResourceGroupDataWithQuery = api.ResourceGroupDataWithQuery{
+		Name:        fmt.Sprintf("CLI_TestCreateResourceGroup_%s", iType.String()),
+		Type:        iType.String(),
+		Query:       &testQuery,
+		Description: "Resource Group Created By CLI Integration Testing",
+		Enabled:     1,
+	}
+
+	testResourceGroupBytes, err := json.Marshal(testResourceGroup)
+	if err != nil {
+		return "", errors.Wrap(err, "error marshaling test resource group")
+	}
 
 	out, stderr, exitcode := LaceworkCLIWithTOMLConfig(
-		"api", "post", "v2/ResourceGroups", "-d", testResourceGroup, "--json",
+		"api", "post", "v2/ResourceGroups", "-d", string(testResourceGroupBytes), "--json",
 	)
 	if stderr.String() != "" {
 		return "", errors.New(stderr.String())
@@ -44,7 +60,8 @@ func createResourceGroup() (string, error) {
 		return "", errors.New("non-zero exit code")
 	}
 
-	err := json.Unmarshal(out.Bytes(), &resourceGroupV2Response)
+	var resourceGroupV2Response api.ResourceGroupV2Response
+	err = json.Unmarshal(out.Bytes(), &resourceGroupV2Response)
 	if err != nil {
 		return "", err
 	}
@@ -145,15 +162,29 @@ func TestResourceGroupDeleteNoInput(t *testing.T) {
 }
 
 func TestResourceGroupDelete(t *testing.T) {
-	// setup resource group
-	resourceGroupID, err := createResourceGroup()
-	if err != nil && !strings.Contains(err.Error(), "already exists in the account") {
-		assert.FailNow(t, err.Error())
+
+	// test each RGv2 type against its default template
+	for i := range api.ResourceGroupTypes {
+		switch i {
+		case api.NoneResourceGroup, api.LwAccountResourceGroup:
+			// these resource groups are not applicable
+			continue
+		default:
+			// skip lw_account
+			t.Run(i.String(), func(t *testing.T) {
+				// setup resource group
+				resourceGroupID, err := createResourceGroup(i.String())
+				if err != nil && !strings.Contains(err.Error(), "already exists in the account") {
+					assert.FailNow(t, err.Error())
+				}
+
+				// delete resource group
+				out, stderr, exitcode := LaceworkCLIWithTOMLConfig("resource-group", "delete", resourceGroupID)
+				assert.Contains(t, out.String(), "The resource group was deleted.")
+				assert.Empty(t, stderr.String(), "STDERR should be empty")
+				assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+			})
+		}
 	}
 
-	// delete resource group
-	out, stderr, exitcode := LaceworkCLIWithTOMLConfig("resource-group", "delete", resourceGroupID)
-	assert.Contains(t, out.String(), "The resource group was deleted.")
-	assert.Empty(t, stderr.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }

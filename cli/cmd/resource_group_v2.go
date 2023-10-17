@@ -80,42 +80,14 @@ func createResourceGroupV2(resourceType string) error {
 }
 
 func inputRGQueryFromEditor(resourceType string) *survey.Editor {
+	iType, _ := api.FindResourceGroupType(resourceType)
+
 	prompt := &survey.Editor{
 		Message:  fmt.Sprintf("Type a query for the new %s Resource Group", resourceType),
 		FileName: "resourceGroupQuery*.json",
 		Help:     "Refer to https://lwdocs-rg2.netlify.app/api/api-resource-group/ for examples of a query",
 	}
-
-	prompt.Default = `{
-  "filters": {
-	"filter0": {
-	  "field": "Resource Tag",
-	  "operation": "INCLUDES",
-	  "values": [
-		"*"
-	  ],
-	  "key": "HOST"
-	},
-	"filter1": {
-	  "field": "Region",
-	  "operation": "STARTS_WITH",
-	  "values": [
-		"ap-south"
-	  ]
-	}
-  },
-  "expression": {
-	"operator": "AND",
-	"children": [
-	  {
-		"filterName": "filter0"
-	  },
-	  {
-		"filterName": "filter1"
-	  }
-	]
-  }
-}`
+	prompt.Default = iType.QueryTemplate()
 	prompt.HideDefault = true
 	prompt.AppendDefault = true
 
