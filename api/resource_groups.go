@@ -89,25 +89,25 @@ var (
 )
 
 type resourceGroupContext struct {
-	typ           string
-	queryTemplate string
+	resourceGroupType string
+	queryTemplate     string
 }
 
 // ResourceGroupTypes is the list of available Resource Group types
 var ResourceGroupTypes = map[resourceGroupType]resourceGroupContext{
-	NoneResourceGroup:      {typ: "None", queryTemplate: NoneResourceGroupQueryTemplate},
-	AwsResourceGroup:       {typ: "AWS", queryTemplate: AwsResourceGroupQueryTemplate},
-	AzureResourceGroup:     {typ: "AZURE", queryTemplate: AzureResourceGroupQueryTemplate},
-	ContainerResourceGroup: {typ: "CONTAINER", queryTemplate: ContainerResourceGroupQueryTemplate},
-	GcpResourceGroup:       {typ: "GCP", queryTemplate: GcpResourceGroupQueryTemplate},
-	LwAccountResourceGroup: {typ: "LW_ACCOUNT", queryTemplate: LwAccountResourceGroupQueryTemplate},
-	MachineResourceGroup:   {typ: "MACHINE", queryTemplate: MachineResourceGroupQueryTemplate},
-	OciResourceGroup:       {typ: "OCI", queryTemplate: OciResourceGroupQueryTemplate},
+	NoneResourceGroup:      {resourceGroupType: "None", queryTemplate: NoneResourceGroupQueryTemplate},
+	AwsResourceGroup:       {resourceGroupType: "AWS", queryTemplate: AwsResourceGroupQueryTemplate},
+	AzureResourceGroup:     {resourceGroupType: "AZURE", queryTemplate: AzureResourceGroupQueryTemplate},
+	ContainerResourceGroup: {resourceGroupType: "CONTAINER", queryTemplate: ContainerResourceGroupQueryTemplate},
+	GcpResourceGroup:       {resourceGroupType: "GCP", queryTemplate: GcpResourceGroupQueryTemplate},
+	LwAccountResourceGroup: {resourceGroupType: "LW_ACCOUNT", queryTemplate: LwAccountResourceGroupQueryTemplate},
+	MachineResourceGroup:   {resourceGroupType: "MACHINE", queryTemplate: MachineResourceGroupQueryTemplate},
+	OciResourceGroup:       {resourceGroupType: "OCI", queryTemplate: OciResourceGroupQueryTemplate},
 }
 
 // String returns the string representation of a Resource Group type
 func (i resourceGroupType) String() string {
-	return ResourceGroupTypes[i].typ
+	return ResourceGroupTypes[i].resourceGroupType
 }
 
 // QueryTemplate returns the resource group type's query template
@@ -119,7 +119,7 @@ func (i resourceGroupType) QueryTemplate() string {
 // the matching type from the provided string, if none, returns NoneResourceGroup
 func FindResourceGroupType(typ string) (resourceGroupType, bool) {
 	for i, ctx := range ResourceGroupTypes {
-		if typ == ctx.typ {
+		if typ == ctx.resourceGroupType {
 			return i, true
 		}
 	}
