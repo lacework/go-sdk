@@ -367,13 +367,20 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 		return err
 	}
 
-	_, err = f.WriteString("build = \"poetry run pyinstaller src/")
+	_, err = f.WriteString("build.shell = \"poetry run pyinstaller src/")
 	if err != nil {
 		return err
 	}
 	_, err = f.WriteString(fmt.Sprintf(
-		"%s/__main__.py --collect-submodules application -D --name %s --distpath .\"\n",
+		"%s/__main__.py --collect-submodules application -D --name %s --distpath dist;",
 		component.Name, component.Name,
+	))
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString(fmt.Sprintf(
+		" mv dist/%s/* .\"\n",
+		component.Name,
 	))
 	if err != nil {
 		return err
