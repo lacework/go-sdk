@@ -43,6 +43,7 @@ lacework query run [query_id] [flags]
 ### Options
 
 ```
+      --empty                  start $EDITOR with empty file
       --end string             end time for query (default "now")
       --fail_on_count string   fail if the results from a query match the provided expression (e.g. '>0')
   -f, --file string            path to a query to run
