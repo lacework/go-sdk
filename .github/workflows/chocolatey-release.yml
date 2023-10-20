@@ -1,5 +1,3 @@
-name: Publish the Lacework CLI to Chocolatey
-
 on: workflow_dispatch
 
 jobs:
@@ -13,7 +11,7 @@ jobs:
           fetch-depth: 0
 
       - name: Running integration tests
-        container: lacework/win-golang:1.18-20h2
+        image: lacework/win-golang:1.18-20h2
         shell: pwsh
         run: |
           # install chocolatey
