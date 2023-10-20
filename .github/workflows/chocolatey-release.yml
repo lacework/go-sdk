@@ -1,0 +1,25 @@
+name: Publish the Lacework CLI to Chocolatey
+
+on: workflow_dispatch
+
+jobs:
+  publish-chocolatey:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Running integration tests
+        container: lacework/win-golang:1.18-20h2
+        shell: pwsh
+        run: |
+          # install chocolatey
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          # publish chocolatey package
+          ./scripts/chocolatey/package.ps1
+          exit $LastExitCode

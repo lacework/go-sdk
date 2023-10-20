@@ -1,0 +1,29 @@
+name: Run integration tests for the Lacework CLI on Windows 
+
+on:
+  push:
+    branches:
+      - main
+      - release
+
+jobs:
+  windows-integration-tests:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '^1.21'
+      - run: go version
+
+      - name: Running integration tests
+        shell: pwsh
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          ./scripts/codefresh.ps1
+          exit $LastExitCode
