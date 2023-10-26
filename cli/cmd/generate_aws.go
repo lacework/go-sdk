@@ -15,6 +15,8 @@ import (
 
 var (
 	// Define question text here so they can be reused in testing
+	QuestionEnableAgentless             = "Enable agentless integration?"
+	QuestionAgentlessName               = "Specify name of agentless integration (optional)"
 	QuestionAwsEnableConfig             = "Enable configuration integration?"
 	QuestionCustomizeConfigName         = "Customize Config integration name?"
 	QuestionConfigName                  = "Specify name of config integration (optional)"
@@ -57,6 +59,7 @@ var (
 
 	// select options
 	AwsAdvancedOptDone     = "Done"
+	AdvancedOptAgentless   = "Additional Agentless options"
 	AdvancedOptCloudTrail  = "Additional CloudTrail options"
 	AdvancedOptIamRole     = "Configure Lacework integration with an existing IAM role"
 	AdvancedOptAwsAccounts = "Add additional AWS Accounts to Lacework"
@@ -112,6 +115,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithAwsProfile(GenerateAwsCommandState.AwsProfile),
 				aws.WithLaceworkProfile(GenerateAwsCommandState.LaceworkProfile),
 				aws.WithLaceworkAccountID(GenerateAwsCommandState.LaceworkAccountID),
+				aws.WithAgentlessName(GenerateAwsCommandState.AgentlessName),
 				aws.ExistingCloudtrailBucketArn(GenerateAwsCommandState.ExistingCloudtrailBucketArn),
 				aws.ExistingSnsTopicArn(GenerateAwsCommandState.ExistingSnsTopicArn),
 				aws.WithSubaccounts(GenerateAwsCommandState.SubAccounts...),
@@ -137,6 +141,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			// Create new struct
 			data := aws.NewTerraform(
 				GenerateAwsCommandState.AwsRegion,
+				GenerateAwsCommandState.Agentless,
 				GenerateAwsCommandState.Config,
 				GenerateAwsCommandState.Cloudtrail,
 				mods...)
@@ -316,6 +321,11 @@ func initGenerateAwsTfCommandFlags() {
 	// add flags to sub commands
 	// TODO Share the help with the interactive generation
 	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.Agentless,
+		"agentless",
+		false,
+		"enable agentless integration")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.Cloudtrail,
 		"cloudtrail",
 		false,
@@ -484,6 +494,18 @@ func validateAwsRegion(val interface{}) error {
 // survey.Validator for aws profile
 func validateAwsProfile(val interface{}) error {
 	return validateStringWithRegex(val, fmt.Sprintf(`^%s$`, AwsProfileRegex), "invalid profile name supplied")
+}
+
+func promptAgentlessQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt:   &survey.Input{Message: QuestionAgentlessName, Default: config.AgentlessName},
+		Checks:   []*bool{&config.Agentless},
+		Response: &config.AgentlessName,
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
@@ -770,6 +792,11 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 		// we can have other accounts even if we only have Config integration (Scenario 7)
 		var options []string
 
+		// Only show Advanced CloudTrail options if CloudTrail integration is set to true
+		if config.Agentless {
+			options = append(options, AdvancedOptAgentless)
+		}
+
 		// Determine if user specified name for Config is potentially required
 		if config.Config {
 			options = append(options, QuestionCustomizeConfigName)
@@ -799,6 +826,10 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 
 		// Based on response, prompt for actions
 		switch answer {
+		case AdvancedOptAgentless:
+			if err := promptAgentlessQuestions(config); err != nil {
+				return err
+			}
 		case AdvancedOptCloudTrail:
 			if err := promptAwsCtQuestions(config, extraState); err != nil {
 				return err
@@ -841,11 +872,6 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 	}
 
 	return nil
-}
-
-func configOrCloudtrailEnabled(config *aws.GenerateAwsTfConfigurationArgs) *bool {
-	cloudtrailOrConfigEnabled := config.Cloudtrail || config.Config
-	return &cloudtrailOrConfigEnabled
 }
 
 func awsConfigIsEmpty(g *aws.GenerateAwsTfConfigurationArgs) bool {
@@ -894,6 +920,10 @@ func promptAwsGenerate(
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
+				Prompt:   &survey.Confirm{Message: QuestionEnableAgentless, Default: config.Agentless},
+				Response: &config.Agentless,
+			},
+			{
 				Prompt:   &survey.Confirm{Message: QuestionAwsEnableConfig, Default: config.Config},
 				Response: &config.Config,
 			},
@@ -905,18 +935,17 @@ func promptAwsGenerate(
 		return err
 	}
 
+	// Validate one of agentless, config or cloudtrail was enabled; otherwise error out
+	if !config.Agentless && !config.Config && !config.Cloudtrail {
+		return errors.New("must enable agentless, cloudtrail or config")
+	}
+
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Prompt:   &survey.Input{Message: QuestionAwsRegion, Default: config.AwsRegion},
 		Response: &config.AwsRegion,
 		Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validateAwsRegion)},
-		Checks:   []*bool{configOrCloudtrailEnabled(config)},
 	}); err != nil {
 		return err
-	}
-
-	// Validate one of config or cloudtrail was enabled; otherwise error out
-	if !config.Config && !config.Cloudtrail {
-		return errors.New("must enable cloudtrail or config")
 	}
 
 	// Find out if the customer wants to specify more advanced features
