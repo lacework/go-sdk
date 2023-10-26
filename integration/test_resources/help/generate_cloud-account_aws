@@ -25,6 +25,7 @@ Available Commands:
   controltower Generate and/or execute Terraform code for ControlTower integration
 
 Flags:
+      --agentless                             enable agentless integration
       --apply                                 run terraform apply without executing plan or prompting
       --aws_profile string                    specify aws profile
       --aws_region string                     specify aws region
