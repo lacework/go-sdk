@@ -193,6 +193,9 @@ func singleAwsSidekickOrgCloudAccount(id string) string {
 	  "scanFrequency": 24,
 	  "scanContainers": true,
 	  "scanHostVulnerabilities": true,
+	  "scanShortLivedInstances": false,
+	  "scanStoppedInstances": true,
+	  "scanMultiVolume": false,
 	  "managementAccount": "000123456789",
 	  "monitoredAccounts": "r-1234, ou-0987",
 	  "scanningAccount": "123456789000"
