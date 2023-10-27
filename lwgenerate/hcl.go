@@ -208,7 +208,7 @@ func (m *HclModule) ToBlock() (*hclwrite.Block, error) {
 
 	if m.providerDetails != nil {
 		block.Body().AppendNewline()
-		block.Body().SetAttributeRaw("providers", createMapTraversalTokens(m.providerDetails))
+		block.Body().SetAttributeRaw("providers", CreateMapTraversalTokens(m.providerDetails))
 	}
 
 	return block, nil
@@ -441,7 +441,7 @@ func HclCreateGenericBlock(hcltype string, labels []string, attr map[string]inte
 
 // Create tokens for map of traversals.  Used as a workaround for writing complex types where the built-in
 // SetAttributeValue won't work
-func createMapTraversalTokens(input map[string]string) hclwrite.Tokens {
+func CreateMapTraversalTokens(input map[string]string) hclwrite.Tokens {
 	// Sort input
 	var keys []string
 	for k := range input {

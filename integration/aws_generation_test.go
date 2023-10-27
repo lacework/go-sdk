@@ -930,6 +930,60 @@ func TestGenerationAwsS3BucketNotificationInteractive(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// Test using agentless with monitored accounts
+func TestGenerationAgentlessWithMonitoredAccounts(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	region := "us-east-2"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
+				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 0},
+				MsgRsp{cmd.QuestionAgentlessName, "custom_agentless_name"},
+				MsgRsp{cmd.QuestionEnableAgentlessMultiAccount, "y"},
+				MsgRsp{cmd.QuestionAgentlessManagementAccountID, "123456789000"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountID, "123456789001"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountProfile, "monitored-account-1"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountRegion, "us-east-1"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountAddMore, "y"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountID, "123456789002"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountProfile, "monitored-account-2"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountAddMore, "n"},
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
+		aws.UseConsolidatedCloudtrail(),
+		aws.WithAwsProfile("default"),
+		aws.WithAgentlessName("custom_agentless_name"),
+		aws.WithAgentlessMonitoredAccounts(
+			aws.AwsSubAccount{AwsProfile: "monitored-account-1", AwsRegion: "us-east-1", AccountID: "123456789001"},
+			aws.AwsSubAccount{AwsProfile: "monitored-account-2", AwsRegion: "us-east-2", AccountID: "123456789002"},
+		),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
 	os.Setenv("HOME", tfPath)
 
