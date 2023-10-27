@@ -58,7 +58,7 @@ var (
 
 	// select options
 	AwsAdvancedOptDone     = "Done"
-	AdvancedOptAgentless   = "Additional Agentless options"
+	AdvancedOptAgentless   = "Additional Agentless options (placeholder)"
 	AdvancedOptCloudTrail  = "Additional CloudTrail options"
 	AdvancedOptIamRole     = "Configure Lacework integration with an existing IAM role"
 	AdvancedOptAwsAccounts = "Add additional AWS Accounts to Lacework"
@@ -803,7 +803,7 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 		// we can have other accounts even if we only have Config integration (Scenario 7)
 		var options []string
 
-		// Only show Advanced CloudTrail options if CloudTrail integration is set to true
+		// Only show Advanced Agentless options if Agentless integration is set to true
 		if config.Agentless {
 			options = append(options, AdvancedOptAgentless)
 		}
