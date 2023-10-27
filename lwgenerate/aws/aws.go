@@ -634,18 +634,12 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 
 	blocks := []*hclwrite.Block{}
 
-	globalModuleAttributes := map[string]interface{}{"global": true}
-
-	if len(args.SubAccounts) == 0 {
-		globalModuleAttributes["regional"] = true
-	}
-
 	// Add global module
 	globalModule, err := lwgenerate.NewModule(
 		"lacework_aws_agentless_scanning_global",
 		lwgenerate.AwsAgentlessSource,
 		lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-		lwgenerate.HclModuleWithAttributes(globalModuleAttributes),
+		lwgenerate.HclModuleWithAttributes(map[string]interface{}{"global": true, "regional": true}),
 	).ToBlock()
 
 	if err != nil {
