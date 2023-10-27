@@ -76,9 +76,6 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Should we configure Agentless integration in LW?
 	Agentless bool
 
-	// Optional name for Agentless
-	AgentlessName string
-
 	// Should we configure Cloudtrail integration in LW?
 	Cloudtrail bool
 
@@ -239,13 +236,6 @@ func WithLaceworkProfile(name string) AwsTerraformModifier {
 func WithLaceworkAccountID(accountID string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.LaceworkAccountID = accountID
-	}
-}
-
-// WithAgentlessName add optional name for Agentless integration
-func WithAgentlessName(agentlessName string) AwsTerraformModifier {
-	return func(c *GenerateAwsTfConfigurationArgs) {
-		c.AgentlessName = agentlessName
 	}
 }
 
@@ -644,19 +634,18 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 
 	blocks := []*hclwrite.Block{}
 
-	integrationName := "agentless_from_terraform"
+	globalModuleAttributes := map[string]interface{}{"global": true}
 
-	if args.AgentlessName != "" {
-		integrationName = args.AgentlessName
+	if len(args.SubAccounts) == 0 {
+		globalModuleAttributes["regional"] = true
 	}
+
 	// Add global module
 	globalModule, err := lwgenerate.NewModule(
 		"lacework_aws_agentless_scanning_global",
 		lwgenerate.AwsAgentlessSource,
 		lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-		lwgenerate.HclModuleWithAttributes(
-			map[string]interface{}{"global": true, "lacework_integration_name": integrationName},
-		),
+		lwgenerate.HclModuleWithAttributes(globalModuleAttributes),
 	).ToBlock()
 
 	if err != nil {

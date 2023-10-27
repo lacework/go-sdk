@@ -15,8 +15,7 @@ import (
 
 var (
 	// Define question text here so they can be reused in testing
-	QuestionEnableAgentless             = "Enable agentless integration?"
-	QuestionAgentlessName               = "Specify name of agentless integration (optional)"
+	QuestionEnableAgentless             = "Enable Agentless integration?"
 	QuestionAwsEnableConfig             = "Enable configuration integration?"
 	QuestionCustomizeConfigName         = "Customize Config integration name?"
 	QuestionConfigName                  = "Specify name of config integration (optional)"
@@ -59,7 +58,7 @@ var (
 
 	// select options
 	AwsAdvancedOptDone     = "Done"
-	AdvancedOptAgentless   = "Additional Agentless options"
+	AdvancedOptAgentless   = "Additional Agentless options (placeholder)"
 	AdvancedOptCloudTrail  = "Additional CloudTrail options"
 	AdvancedOptIamRole     = "Configure Lacework integration with an existing IAM role"
 	AdvancedOptAwsAccounts = "Add additional AWS Accounts to Lacework"
@@ -115,7 +114,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithAwsProfile(GenerateAwsCommandState.AwsProfile),
 				aws.WithLaceworkProfile(GenerateAwsCommandState.LaceworkProfile),
 				aws.WithLaceworkAccountID(GenerateAwsCommandState.LaceworkAccountID),
-				aws.WithAgentlessName(GenerateAwsCommandState.AgentlessName),
 				aws.ExistingCloudtrailBucketArn(GenerateAwsCommandState.ExistingCloudtrailBucketArn),
 				aws.ExistingSnsTopicArn(GenerateAwsCommandState.ExistingSnsTopicArn),
 				aws.WithSubaccounts(GenerateAwsCommandState.SubAccounts...),
@@ -497,14 +495,6 @@ func validateAwsProfile(val interface{}) error {
 }
 
 func promptAgentlessQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
-	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Input{Message: QuestionAgentlessName, Default: config.AgentlessName},
-		Checks:   []*bool{&config.Agentless},
-		Response: &config.AgentlessName,
-	}); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -792,7 +782,7 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 		// we can have other accounts even if we only have Config integration (Scenario 7)
 		var options []string
 
-		// Only show Advanced CloudTrail options if CloudTrail integration is set to true
+		// Only show Advanced Agentless options if Agentless integration is set to true
 		if config.Agentless {
 			options = append(options, AdvancedOptAgentless)
 		}
