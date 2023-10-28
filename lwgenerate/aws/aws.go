@@ -59,9 +59,6 @@ type AwsSubAccount struct {
 
 	// The Alias of the provider block
 	Alias string
-
-	// The AWS account ID
-	AccountID string
 }
 
 // Create a new AWS sub account
@@ -80,8 +77,11 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Should we configure Agentless integration in LW?
 	Agentless bool
 
-	// Management AWS account ID for multi-account agentless integration
+	// Agentless Management AWS account ID
 	AgentlessManagementAccountID string
+
+	// Agentless Monitored AWS account IDs, OUs, or the organization root.
+	AgentlessMonitoredAccountIDs []string
 
 	// Monitored AWS accounts for multi-account agentless integration
 	AgentlessMonitoredAccounts []AwsSubAccount
@@ -259,14 +259,21 @@ func WithLaceworkAccountID(accountID string) AwsTerraformModifier {
 	}
 }
 
-// WithAgentlessManagementAccountID Set the management account ID for Agentless integration
+// WithAgentlessManagementAccountID Set Agentless management account ID
 func WithAgentlessManagementAccountID(accountID string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.AgentlessManagementAccountID = accountID
 	}
 }
 
-// WithAgentlessMonitoredAccounts Set the monitored accounts for Agentless integration
+// WithAgentlessMonitoredAccountIDs Set Agentless monitored account IDs
+func WithAgentlessMonitoredAccountIDs(accountIDs []string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.AgentlessMonitoredAccountIDs = accountIDs
+	}
+}
+
+// WithAgentlessMonitoredAccounts Set Agentless monitored accounts
 func WithAgentlessMonitoredAccounts(accounts ...AwsSubAccount) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.AgentlessMonitoredAccounts = accounts
@@ -691,8 +698,8 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 
 	if enableMultiAccount {
 		ids := []string{}
-		for _, account := range args.AgentlessMonitoredAccounts {
-			ids = append(ids, fmt.Sprintf("\"%s\"", account.AccountID))
+		for _, accountID := range args.AgentlessMonitoredAccountIDs {
+			ids = append(ids, fmt.Sprintf("\"%s\"", accountID))
 		}
 		globalModuleAttributes["organization"] = lwgenerate.CreateMapTraversalTokens(map[string]string{
 			"management_account": fmt.Sprintf("\"%s\"", args.AgentlessManagementAccountID),
