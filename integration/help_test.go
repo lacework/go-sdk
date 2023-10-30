@@ -84,7 +84,7 @@ func TestHelpAll(t *testing.T) {
 			if runtime.GOOS == "windows" {
 				canon, err := helpCanon.ReadFile(windowsFilePath)
 				if err == nil {
-					assert.Equal(t, string(canon), out.String())
+					assert.Equal(t, strings.ReplaceAll(string(canon), "\r", ""), out.String())
 					return
 				}
 			}
@@ -129,7 +129,7 @@ func TestNoCommandProvided(t *testing.T) {
 	out, err, exitcode := LaceworkCLI()
 	canon, _ := helpCanon.ReadFile("test_resources/help/no-command-provided")
 	assert.Equal(t,
-		string(canon),
+		strings.ReplaceAll(string(canon), "\r", ""),
 		out.String(),
 		"the main help message changed, please update")
 	assert.Empty(t,
