@@ -89,7 +89,7 @@ func TestHelpAll(t *testing.T) {
 				}
 			}
 			canon, _ := helpCanon.ReadFile(filePath)
-			assert.Equal(t, string(canon), out.String())
+			assert.Equal(t, strings.ReplaceAll(string(canon), "\r", ""), out.String())
 		})
 	}
 }
