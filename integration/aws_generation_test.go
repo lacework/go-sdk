@@ -27,9 +27,10 @@ func TestGenerationAwsErrorOnNoSelection(t *testing.T) {
 	runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
-				MsgOnly{"ERROR collecting/confirming parameters: must enable cloudtrail or config"},
+				MsgOnly{"ERROR collecting/confirming parameters: must enable agentless, cloudtrail or config"},
 			})
 		},
 		"generate",
@@ -49,6 +50,7 @@ func TestGenerationAwsSimple(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
@@ -66,7 +68,7 @@ func TestGenerationAwsSimple(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
@@ -92,11 +94,12 @@ func TestGenerationAwsCustomizedOutputLocation(t *testing.T) {
 	runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 4},
+				MsgMenu{cmd.AwsAdvancedOptDone, 5},
 				MsgRsp{cmd.QuestionAwsCustomizeOutputLocation, dir},
 				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -115,7 +118,7 @@ func TestGenerationAwsCustomizedOutputLocation(t *testing.T) {
 	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
@@ -134,6 +137,7 @@ func TestGenerationAwsConfigOnly(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
@@ -151,7 +155,7 @@ func TestGenerationAwsConfigOnly(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, false,
+	buildTf, _ := aws.NewTerraform(region, false, true, false,
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
@@ -170,11 +174,12 @@ func TestGenerationAwsAdvancedOptsDone(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 5},
+				MsgMenu{cmd.AwsAdvancedOptDone, 6},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -188,7 +193,7 @@ func TestGenerationAwsAdvancedOptsDone(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSqsEncryptionEnabled(true),
@@ -207,11 +212,12 @@ func TestGenerationAwsAdvancedOptsConsolidated(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgMenu{cmd.AwsAdvancedOptDone, 2},
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "y"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailName, ""},
@@ -243,7 +249,7 @@ func TestGenerationAwsAdvancedOptsConsolidated(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.UseConsolidatedCloudtrail(),
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithSnsTopicEncryptionEnabled(true),
@@ -263,11 +269,12 @@ func TestGenerationAwsAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgMenu{cmd.AwsAdvancedOptDone, 2},
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "y"},
 				MsgRsp{cmd.QuestionCloudtrailExistingBucketArn, "notright"},
@@ -295,7 +302,7 @@ func TestGenerationAwsAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.ExistingCloudtrailBucketArn("arn:aws:s3:::bucket_name"),
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithSnsTopicEncryptionEnabled(true),
@@ -315,11 +322,12 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgMenu{cmd.AwsAdvancedOptDone, 2},
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "y"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailName, ""},
@@ -337,7 +345,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
 				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
 				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 2},
+				MsgMenu{cmd.AwsAdvancedOptDone, 3},
 				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "default"},
 				MsgRsp{cmd.QuestionSubAccountProfileName, "account1"},
 				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-1"},
@@ -359,7 +367,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.UseConsolidatedCloudtrail(),
 		aws.WithAwsProfile("default"),
 		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
@@ -381,6 +389,7 @@ func TestGenerationAwsAdvancedOptsConfigWithSubAccounts(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
@@ -407,7 +416,7 @@ func TestGenerationAwsAdvancedOptsConfigWithSubAccounts(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, false,
+	buildTf, _ := aws.NewTerraform(region, false, true, false,
 		aws.WithAwsProfile("default"),
 		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
 	).Generate()
@@ -425,11 +434,12 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *tes
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 2},
+				MsgMenu{cmd.AwsAdvancedOptDone, 3},
 				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "default"},
 				MsgRsp{fmt.Sprintf(cmd.QuestionSubAccountReplace, "testaccount:us-east-1, testaccount1:us-east-2"), "y"},
 				MsgRsp{cmd.QuestionSubAccountProfileName, "account1"},
@@ -457,7 +467,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *tes
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.UseConsolidatedCloudtrail(),
 		aws.WithAwsProfile("default"),
 		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
@@ -482,11 +492,12 @@ func TestGenerationAwsAdvancedOptsUseExistingIAM(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 3},
+				MsgMenu{cmd.AwsAdvancedOptDone, 4},
 				MsgRsp{cmd.QuestionExistingIamRoleName, roleName},
 				MsgRsp{cmd.QuestionExistingIamRoleArn, roleArn},
 				MsgRsp{cmd.QuestionExistingIamRoleExtID, roleExtId},
@@ -504,7 +515,7 @@ func TestGenerationAwsAdvancedOptsUseExistingIAM(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.UseExistingIamRole(aws.NewExistingIamRoleDetails(roleName, roleArn, roleExtId)),
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithSnsTopicEncryptionEnabled(true),
@@ -527,11 +538,12 @@ func TestGenerationAwsAdvancedOptsUseExistingElements(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgMenu{cmd.AwsAdvancedOptDone, 2},
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "y"},
 				MsgRsp{cmd.QuestionCloudtrailExistingBucketArn, bucketArn},
@@ -554,7 +566,7 @@ func TestGenerationAwsAdvancedOptsUseExistingElements(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.ExistingCloudtrailBucketArn(bucketArn),
 		aws.ExistingSnsTopicArn(topicArn),
 		aws.WithSqsEncryptionEnabled(true),
@@ -579,11 +591,12 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 1},
+				MsgMenu{cmd.AwsAdvancedOptDone, 2},
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailName, trailName},
@@ -615,7 +628,7 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.WithCloudtrailName(trailName),
 		aws.WithBucketName(bucketName),
 		aws.WithBucketEncryptionEnabled(true),
@@ -652,11 +665,12 @@ func TestGenerationAwsWithExistingTerraform(t *testing.T) {
 	runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 4},
+				MsgMenu{cmd.AwsAdvancedOptDone, 5},
 				MsgRsp{cmd.QuestionAwsCustomizeOutputLocation, dir},
 				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
 				MsgRsp{fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), "n"},
@@ -691,6 +705,7 @@ func TestGenerationAwsOverwrite(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
@@ -709,6 +724,7 @@ func TestGenerationAwsOverwrite(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
@@ -745,6 +761,7 @@ func TestGenerationAwsOverwriteOutput(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
@@ -765,6 +782,7 @@ func TestGenerationAwsOverwriteOutput(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
@@ -795,6 +813,7 @@ func TestGenerationAwsLaceworkProfile(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
@@ -814,7 +833,7 @@ func TestGenerationAwsLaceworkProfile(t *testing.T) {
 	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
-	buildTf, _ := aws.NewTerraform(region, true, true,
+	buildTf, _ := aws.NewTerraform(region, true, true, true,
 		aws.WithLaceworkProfile(awsProfile),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -830,6 +849,7 @@ func TestGenerationAwsS3BucketNotification(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
@@ -848,7 +868,7 @@ func TestGenerationAwsS3BucketNotification(t *testing.T) {
 	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
-	buildTf, _ := aws.NewTerraform(region, false, true,
+	buildTf, _ := aws.NewTerraform(region, false, false, true,
 		aws.WithS3BucketNotification(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -864,6 +884,7 @@ func TestGenerationAwsS3BucketNotificationInteractive(t *testing.T) {
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionAwsRegion, region},
@@ -903,7 +924,7 @@ func TestGenerationAwsS3BucketNotificationInteractive(t *testing.T) {
 	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
-	buildTf, _ := aws.NewTerraform(region, false, true,
+	buildTf, _ := aws.NewTerraform(region, false, false, true,
 		aws.WithS3BucketNotification(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)

@@ -37,6 +37,7 @@ lacework generate cloud-account aws [flags]
 ### Options
 
 ```
+      --agentless                             enable agentless integration
       --apply                                 run terraform apply without executing plan or prompting
       --aws_profile string                    specify aws profile
       --aws_region string                     specify aws region

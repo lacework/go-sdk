@@ -39,6 +39,7 @@ Flags:
 
 Global Flags:
   -a, --account string                        account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+      --agentless                             enable agentless integration
   -k, --api_key string                        access key id
   -s, --api_secret string                     secret access key
       --api_token string                      access token (replaces the use of api_key and api_secret)

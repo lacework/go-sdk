@@ -36,7 +36,7 @@ func TestMissingValidEntityToConfigure(t *testing.T) {
 	data := aws.GenerateAwsTfConfigurationArgs{}
 	err := promptAwsGenerate(&data, &aws.ExistingIamRoleDetails{}, &AwsGenerateCommandExtraState{Output: "/tmp"})
 	assert.Error(t, err)
-	assert.Equal(t, "must enable cloudtrail or config", err.Error())
+	assert.Equal(t, "must enable agentless, cloudtrail or config", err.Error())
 }
 
 func TestArnRegex(t *testing.T) {

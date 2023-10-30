@@ -5,6 +5,8 @@ const (
 	LaceworkProviderSource  = "lacework/lacework"
 	LaceworkProviderVersion = "~> 1.0"
 
+	AwsAgentlessSource               = "lacework/agentless-scanning/aws"
+	AwsAgentlessVersion              = "~> 0.6"
 	AwsConfigSource                  = "lacework/config/aws"
 	AwsConfigVersion                 = "~> 0.5"
 	AwsCloudTrailSource              = "lacework/cloudtrail/aws"
