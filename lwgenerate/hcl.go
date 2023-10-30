@@ -234,6 +234,13 @@ func (m *HclResource) ToResourceBlock() (*hclwrite.Block, error) {
 		block.Body().SetAttributeTraversal("provider", CreateSimpleTraversal(m.providerDetails))
 	}
 
+	if m.blocks != nil {
+		for _, b := range m.blocks {
+			block.Body().AppendNewline()
+			block.Body().AppendBlock(b)
+		}
+	}
+
 	return block, nil
 }
 
@@ -251,6 +258,9 @@ type HclResource struct {
 	// accepted.  Unfortunately map[string]hcl.Traversal is not a format that is supported by hclwrite.SetAttributeValue
 	// today so we must work around it (https://github.com/hashicorp/hcl/issues/347).
 	providerDetails []string
+
+	// optional. Generic blocks
+	blocks []*hclwrite.Block
 }
 
 type HclResourceModifier func(p *HclResource)
@@ -270,6 +280,13 @@ func HclResourceWithAttributesAndProviderDetails(attrs map[string]interface{},
 	return func(p *HclResource) {
 		p.attributes = attrs
 		p.providerDetails = providerDetails
+	}
+}
+
+// HclResourceWithGenericBlocks sets the generic blocks within the resource
+func HclResourceWithGenericBlocks(blocks ...*hclwrite.Block) HclResourceModifier {
+	return func(p *HclResource) {
+		p.blocks = blocks
 	}
 }
 

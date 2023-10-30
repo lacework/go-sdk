@@ -22,11 +22,6 @@ var (
 		"(e.g. 123456789000,ou-abcd-12345678,r-abcd):"
 	QuestionAgentlessMonitoredAccountIDsHelp = "Please provide a comma seprated list that may " +
 		" contain account IDs, OUs, or the organization root."
-	QuestionAgentlessMonitoredAccountProfile = "Specify the AWS account profile name to be used for " +
-		"the monitored account:"
-	QuestionAgentlessMonitoredAccountRegion   = "Specify the AWS region to be used for the monitored account:"
-	QuestionAgentlessMonitoredAccountAddMore  = "Add another monitored AWS account?"
-	QuestionAgentlessMonitoredAccountsReplace = "Currently configured Agentless monitored accounts: %s, replace?"
 
 	QuestionAwsEnableConfig             = "Enable configuration integration?"
 	QuestionCustomizeConfigName         = "Customize Config integration name?"
@@ -40,15 +35,14 @@ var (
 	QuestionExistingIamRoleName         = "Specify an existing IAM role name for CloudTrail access:"
 	QuestionExistingIamRoleArn          = "Specify an existing IAM role ARN for CloudTrail access:"
 	QuestionExistingIamRoleExtID        = "Specify the external ID to be used with the existing IAM role:"
-	QuestionPrimaryAwsAccountProfile    = "Before adding sub-accounts, your primary AWS account profile name " +
-		"must be set; which profile should the main account use?"
-	QuestionSubAccountProfileName      = "Supply the profile name for this additional AWS account:"
-	QuestionSubAccountRegion           = "What region should be used for this account?"
-	QuestionSubAccountAddMore          = "Add another AWS account?"
-	QuestionSubAccountReplace          = "Currently configured AWS sub-accounts: %s, replace?"
-	QuestionAwsConfigAdvanced          = "Configure advanced integration options?"
-	QuestionAwsAnotherAdvancedOpt      = "Configure another advanced integration option"
-	QuestionAwsCustomizeOutputLocation = "Provide the location for the output to be written:"
+	QuestionPrimaryAwsAccountProfile    = "Specify the primary AWS account profile name:"
+	QuestionSubAccountProfileName       = "Supply the profile name for this additional AWS account:"
+	QuestionSubAccountRegion            = "What region should be used for this account?"
+	QuestionSubAccountAddMore           = "Add another AWS account?"
+	QuestionSubAccountReplace           = "Currently configured AWS sub-accounts: %s, replace?"
+	QuestionAwsConfigAdvanced           = "Configure advanced integration options?"
+	QuestionAwsAnotherAdvancedOpt       = "Configure another advanced integration option"
+	QuestionAwsCustomizeOutputLocation  = "Provide the location for the output to be written:"
 
 	// S3 Bucket Questions
 	QuestionBucketEnableEncryption = "Enable S3 bucket encryption when creating bucket"
@@ -133,7 +127,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithLaceworkAccountID(GenerateAwsCommandState.LaceworkAccountID),
 				aws.WithAgentlessManagementAccountID(GenerateAwsCommandState.AgentlessManagementAccountID),
 				aws.WithAgentlessMonitoredAccountIDs(GenerateAwsCommandState.AgentlessMonitoredAccountIDs),
-				aws.WithAgentlessMonitoredAccounts(GenerateAwsCommandState.AgentlessMonitoredAccounts...),
 				aws.ExistingCloudtrailBucketArn(GenerateAwsCommandState.ExistingCloudtrailBucketArn),
 				aws.ExistingSnsTopicArn(GenerateAwsCommandState.ExistingSnsTopicArn),
 				aws.WithSubaccounts(GenerateAwsCommandState.SubAccounts...),
@@ -532,7 +525,7 @@ func validateAgentlessMonitoredAccountIDs(val interface{}) error {
 			if err := validateStringWithRegex(
 				id,
 				regex,
-				fmt.Sprintf("invalid account ID, OU ID or root ID supplied: $s", id),
+				fmt.Sprintf("invalid account ID, OU ID or root ID supplied: %s", id),
 			); err != nil {
 				return err
 			}
@@ -563,10 +556,6 @@ func promptAgentlessQuestions(
 	config *aws.GenerateAwsTfConfigurationArgs,
 	extraState *AwsGenerateCommandExtraState,
 ) error {
-	askAgain := true
-	monitoredAccountIDsInput := ""
-	monitoredAccounts := []aws.AwsSubAccount{}
-
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Prompt: &survey.Confirm{
@@ -579,7 +568,18 @@ func promptAgentlessQuestions(
 		return err
 	}
 
+	monitoredAccountIDsInput := ""
+
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt: &survey.Input{
+				Message: QuestionPrimaryAwsAccountProfile,
+				Default: config.AwsProfile,
+			},
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
+			Response: &config.AwsProfile,
+			Required: true,
+		},
 		{
 			Prompt: &survey.Input{
 				Message: QuestionAgentlessManagementAccountID,
@@ -607,67 +607,6 @@ func promptAgentlessQuestions(
 
 	if monitoredAccountIDsInput != "" {
 		config.AgentlessMonitoredAccountIDs = strings.Split(monitoredAccountIDsInput, ",")
-	}
-
-	// If there are existing monitored accounts configured (i.e., from the CLI),
-	// display them and ask if they want to add more
-	if len(config.AgentlessMonitoredAccounts) > 0 {
-		accountListing := []string{}
-		for _, account := range config.AgentlessMonitoredAccounts {
-			accountListing = append(
-				accountListing,
-				fmt.Sprintf("%s:%s", account.AwsProfile, account.AwsRegion),
-			)
-		}
-
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Prompt: &survey.Confirm{
-				Message: fmt.Sprintf(
-					QuestionAgentlessMonitoredAccountsReplace,
-					strings.Trim(strings.Join(strings.Fields(fmt.Sprint(accountListing)), ", "), "[]"),
-				),
-			},
-			Response: &askAgain}); err != nil {
-			return err
-		}
-	}
-
-	for askAgain && extraState.EnableAgentlessOrganization {
-		var accountProfileName string
-		var accountProfileRegion string
-
-		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-			{
-				Prompt:   &survey.Input{Message: QuestionAgentlessMonitoredAccountProfile},
-				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
-				Required: true,
-				Response: &accountProfileName,
-			},
-			{
-				Prompt:   &survey.Input{Message: QuestionAgentlessMonitoredAccountRegion},
-				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
-				Required: true,
-				Response: &accountProfileRegion,
-			},
-		}); err != nil {
-			return err
-		}
-
-		monitoredAccounts = append(
-			monitoredAccounts,
-			aws.AwsSubAccount{AwsProfile: accountProfileName, AwsRegion: accountProfileRegion})
-
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Prompt:   &survey.Confirm{Message: QuestionAgentlessMonitoredAccountAddMore},
-			Response: &askAgain,
-		}); err != nil {
-			return err
-		}
-	}
-
-	// If we created new accounts, re-write config
-	if len(monitoredAccounts) > 0 {
-		config.AgentlessMonitoredAccounts = monitoredAccounts
 	}
 
 	return nil

@@ -341,6 +341,7 @@ var awsProvider = `provider "aws" {
 `
 
 var awsProviderWithProfile = `provider "aws" {
+  alias   = "main"
   profile = "myprofile"
   region  = "us-east-2"
 }
