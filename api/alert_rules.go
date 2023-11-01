@@ -58,19 +58,6 @@ var AlertRuleSubCategories = []string{
 	"K8sActivity",
 }
 
-// var AlertRuleEventCategories = []string{
-// 	"Compliance",
-// 	"App",
-// 	"Cloud",
-// 	"File",
-// 	"Machine",
-// 	"User",
-// 	"Platform",
-// 	"K8sActivity",
-// 	"Registry",
-// 	"SystemCall",
-// }
-
 type alertRuleSeverity int
 
 type AlertRuleSeverities []alertRuleSeverity

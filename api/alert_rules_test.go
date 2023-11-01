@@ -307,10 +307,10 @@ func singleMockAlertRule(id string) string {
             "severity": [
                 2
             ],
-            "eventCategory": [
+            "subCategory": [
                 "Compliance",
                 "SystemCall"
-			],
+            ],
             "category": [
                 "Policy",
                 "Anomaly"
@@ -320,7 +320,7 @@ func singleMockAlertRule(id string) string {
                 "Agent",
                 "K8s"
             ]
-	  },
+    },
       "mcGuid": %q,
         "intgGuidList": [
             "TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"
