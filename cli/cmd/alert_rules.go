@@ -38,7 +38,7 @@ var (
 		Use:     "alert-rule",
 		Aliases: []string{"alert-rules", "ar"},
 		Short:   "Manage alert rules",
-		Long: `Manage alert rules to route events to the appropriate people or tools.		
+		Long: `Manage alert rules to route events to the appropriate people or tools.
 
 An alert rule has three parts:
 
@@ -176,7 +176,7 @@ func buildAlertRuleDetailsTable(rule api.AlertRule) string {
 		updatedTime = time.Unix(nano/1000, 0).Format(time.RFC3339)
 	}
 	details = append(details, []string{"SEVERITIES", strings.Join(severities, ", ")})
-	details = append(details, []string{"EVENT CATEGORIES", strings.Join(rule.Filter.EventCategories, ", ")})
+	details = append(details, []string{"EVENT CATEGORIES", strings.Join(rule.Filter.AlertSubCategories, ", ")})
 	details = append(details, []string{"DESCRIPTION", rule.Filter.Description})
 	details = append(details, []string{"UPDATED BY", rule.Filter.CreatedOrUpdatedBy})
 	details = append(details, []string{"LAST UPDATED", updatedTime})
@@ -298,12 +298,12 @@ func promptCreateAlertRule() (api.AlertRuleResponse, error) {
 	alertRule := api.NewAlertRule(
 		answers.Name,
 		api.AlertRuleConfig{
-			Description:     answers.Description,
-			Channels:        channels,
-			Severities:      api.NewAlertRuleSeverities(answers.Severities),
-			EventCategories: answers.EventCategories,
-			AlertCategories: alertCategories,
-			ResourceGroups:  groups,
+			Description:        answers.Description,
+			Channels:           channels,
+			Severities:         api.NewAlertRuleSeverities(answers.Severities),
+			AlertSubCategories: answers.EventCategories,
+			AlertCategories:    alertCategories,
+			ResourceGroups:     groups,
 		})
 
 	cli.StartProgress(" Creating alert rule...")
