@@ -122,6 +122,9 @@ func init() {
 	componentsCmd.AddCommand(componentsDevModeCmd)
 
 	// load components dynamically
+	cli.PrototypeLoadComponents()
+
+	// v1 components
 	cli.LoadComponents()
 }
 
@@ -158,9 +161,96 @@ func (c *cliState) IsComponentInstalled(name string) bool {
 	return false
 }
 
+// Load v1 components
+func (c *cliState) LoadComponents() {
+	components, err := lwcomponent.LocalComponents()
+	if err != nil {
+		c.Log.Debugw("unable to load components", "error", err)
+		return
+	}
+
+	// @jon-stewart: TODO: load from cached API info
+
+	for _, component := range components {
+		exists := false
+
+		for _, cmd := range rootCmd.Commands() {
+			if cmd.Use == component.Name {
+				exists = true
+				break
+			}
+		}
+
+		// Skip components that were added by the prototype code
+		if exists {
+			continue
+		}
+
+		version := component.InstalledVersion()
+		if version != nil && component.Exec.Executable() {
+			componentCmd := &cobra.Command{
+				Use:                   component.Name,
+				Short:                 component.Description,
+				Annotations:           map[string]string{"type": componentTypeAnnotation},
+				Version:               version.String(),
+				SilenceUsage:          true,
+				DisableFlagParsing:    true,
+				DisableFlagsInUseLine: true,
+				RunE: func(cmd *cobra.Command, args []string) error {
+					return v1ComponentCommand(c, cmd, args)
+				},
+			}
+
+			rootCmd.AddCommand(componentCmd)
+		}
+	}
+}
+
+// Grpc server used for components to communicate back to the CLI
+func startGrpcServer(c *cliState) {
+	if err := c.Serve(); err != nil {
+		c.Log.Errorw("couldn't serve gRPC server", "error", err)
+	}
+}
+
+func v1ComponentCommand(c *cliState, cmd *cobra.Command, args []string) error {
+	// Parse component -v/--version flag
+	versionVal, _ := cmd.Flags().GetBool("version")
+	if versionVal {
+		cmd.Printf("%s version %s\n", cmd.Use, cmd.Version)
+		return nil
+	}
+
+	go startGrpcServer(c)
+
+	c.Log.Debugw("running component", "component", cmd.Use,
+		"args", c.componentParser.componentArgs,
+		"cli_flags", c.componentParser.cliArgs)
+
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	if err != nil {
+		return errors.Wrap(err, "unable to load component Catalog")
+	}
+
+	component, err := catalog.GetComponent(cmd.Use)
+	if err != nil {
+		return err
+	}
+
+	// @jon-stewart: TODO: v1 dailyComponentUpdateAvailable
+
+	envs := []string{
+		fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use),
+	}
+
+	envs = append(envs, c.envs()...)
+
+	return component.Exec.ExecuteInline(c.componentParser.componentArgs, envs...)
+}
+
 // LoadComponents reads the local components state and loads all installed components
 // of type `CLI_COMMAND` dynamically into the root command of the CLI (`rootCmd`)
-func (c *cliState) LoadComponents() {
+func (c *cliState) PrototypeLoadComponents() {
 	c.Log.Debugw("loading local components")
 	state, err := lwcomponent.LocalState()
 	if err != nil || state == nil {
@@ -421,14 +511,7 @@ func showComponent(args []string) error {
 
 	printComponent(component.PrintSummary())
 
-	version := component.InstalledVersion()
-
-	availableVersions, err := catalog.ListComponentVersions(component)
-	if err != nil {
-		return err
-	}
-
-	printAvailableVersions(version, availableVersions)
+	printAvailableVersions(component.InstalledVersion(), catalog.ListComponentVersions(component))
 
 	return nil
 }

@@ -10,6 +10,8 @@ type ApiInfo interface {
 	LatestVersion() *semver.Version
 
 	AllVersions() []*semver.Version
+
+	Deprecated() bool
 }
 
 type apiInfo struct {
@@ -19,6 +21,7 @@ type apiInfo struct {
 	allVersions []*semver.Version
 	desc        string
 	sizeKB      int64
+	deprecated  bool
 }
 
 func NewAPIInfo(
@@ -28,6 +31,7 @@ func NewAPIInfo(
 	allVersions []*semver.Version,
 	desc string,
 	size int64,
+	deprecated bool,
 ) ApiInfo {
 	return &apiInfo{
 		id:          id,
@@ -36,6 +40,7 @@ func NewAPIInfo(
 		allVersions: allVersions,
 		desc:        desc,
 		sizeKB:      size,
+		deprecated:  deprecated,
 	}
 }
 
@@ -43,10 +48,17 @@ func (a *apiInfo) Id() int32 {
 	return a.id
 }
 
+// AllVersions implements ApiInfo.
+func (a *apiInfo) AllVersions() []*semver.Version {
+	return a.allVersions
+}
+
+// LatestVersion implements ApiInfo.
 func (a *apiInfo) LatestVersion() *semver.Version {
 	return &a.version
 }
 
-func (a *apiInfo) AllVersions() []*semver.Version {
-	return a.allVersions
+// Deprecated implements ApiInfo.
+func (a *apiInfo) Deprecated() bool {
+	return a.deprecated
 }

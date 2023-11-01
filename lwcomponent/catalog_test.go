@@ -348,9 +348,9 @@ func TestCatalogGetComponent(t *testing.T) {
 		assert.Equal(t, version, ver.String())
 	})
 
-	t.Run("deprecated", func(t *testing.T) {
+	t.Run("installed deprecated", func(t *testing.T) {
 		var (
-			name    = "deprecated"
+			name    = "installed deprecated"
 			version = "1.1.0"
 		)
 
@@ -365,7 +365,7 @@ func TestCatalogGetComponent(t *testing.T) {
 		component, err := catalog.GetComponent(name)
 		assert.NotNil(t, component)
 		assert.Nil(t, err)
-		assert.Equal(t, lwcomponent.Deprecated, component.Status)
+		assert.Equal(t, lwcomponent.InstalledDeprecated, component.Status)
 
 		ver := component.InstalledVersion()
 		assert.Equal(t, version, ver.String())
@@ -408,8 +408,7 @@ func TestCatalogListComponentVersions(t *testing.T) {
 		assert.NotNil(t, component)
 		assert.Nil(t, err)
 
-		vers, err := catalog.ListComponentVersions(component)
-		assert.Nil(t, err)
+		vers := catalog.ListComponentVersions(component)
 
 		for idx, v := range versions {
 			assert.Equal(t, v, vers[idx].String())
@@ -810,10 +809,11 @@ func generateComponentsResponse(prefix string, count int) string {
 
 	for idx = 0; idx < int32(count); idx++ {
 		component := api.LatestComponentVersion{
-			Id:      idx,
-			Name:    fmt.Sprintf("%s-%d", prefix, idx),
-			Version: fmt.Sprintf("%d.0.0", idx),
-			Size:    512,
+			Id:         idx,
+			Name:       fmt.Sprintf("%s-%d", prefix, idx),
+			Version:    fmt.Sprintf("%d.0.0", idx),
+			Size:       512,
+			Deprecated: false,
 		}
 
 		components = append(components, component)
@@ -847,9 +847,10 @@ func generateInvalidComponentsResponse() string {
 func generateComponentVersionsResponse(name string, versions []string) string {
 	response := api.ListComponentVersionsResponse{
 		Data: []api.ComponentVersions{{
-			Id:       1,
-			Name:     name,
-			Versions: versions,
+			Id:         1,
+			Name:       name,
+			Deprecated: false,
+			Versions:   versions,
 		}},
 	}
 
