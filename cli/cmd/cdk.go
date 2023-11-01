@@ -35,6 +35,7 @@ const defaultGrpcPort int = 1123
 // envs are all the environment variables passed to CDK components
 func (c *cliState) envs() []string {
 	return []string{
+		fmt.Sprintf("LW_PROFILE=%s", c.Profile),
 		fmt.Sprintf("LW_ACCOUNT=%s", c.Account),
 		fmt.Sprintf("LW_SUBACCOUNT=%s", c.Subaccount),
 		fmt.Sprintf("LW_API_KEY=%s", c.KeyID),
