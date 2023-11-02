@@ -34,13 +34,13 @@ func main() {
 	}
 
 	rule := api.AlertRuleConfig{
-		Channels:        []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
-		Description:     "This is a test alert rule",
-		Severities:      api.AlertRuleSeverities{api.AlertRuleSeverityHigh},
-		ResourceGroups:  []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
-		EventCategories: []string{"Compliance"},
-		AlertCategories: []string{"Policy"},
-		AlertSources:    []string{"AWS"},
+		Channels:           []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
+		Description:        "This is a test alert rule",
+		Severities:         api.AlertRuleSeverities{api.AlertRuleSeverityHigh},
+		ResourceGroups:     []string{"TECHALLY_000000000000AAAAAAAAAAAAAAAAAAAA"},
+		AlertSubCategories: []string{"Compliance"},
+		AlertCategories:    []string{"Policy"},
+		AlertSources:       []string{"AWS"},
 	}
 
 	myAlertRule := api.NewAlertRule("MyTestAlertRule",
