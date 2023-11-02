@@ -10,7 +10,7 @@ Manage alert rules
 
 ### Synopsis
 
-Manage alert rules to route events to the appropriate people or tools.		
+Manage alert rules to route events to the appropriate people or tools.
 
 An alert rule has three parts:
 
