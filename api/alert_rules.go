@@ -40,15 +40,22 @@ var AlertRuleCategories = []string{"Anomaly", "Policy", "Composite"}
 // Valid inputs for AlertRule SubCategories property
 var AlertRuleSubCategories = []string{
 	"Compliance",
-	"App",
-	"Cloud",
+	"Application",
+	"Cloud Activity",
 	"File",
 	"Machine",
 	"User",
 	"Platform",
-	"K8sActivity",
+	"Kubernetes Activity",
 	"Registry",
 	"SystemCall",
+	"Host Vulnerability",
+	"Container Vulnerability",
+	"Threat Intel",
+	// Deprecated eventCategory values
+	"App",
+	"Cloud",
+	"K8sActivity",
 }
 
 type alertRuleSeverity int
@@ -142,6 +149,24 @@ func convertSeverityInt(sev int) alertRuleSeverity {
 	}
 }
 
+// Convert deprecated eventCatory values to subCategory values
+func convertEventCategories(categories []string) []string {
+	var res []string
+	for _, c := range categories {
+		switch c {
+		case "App":
+			res = append(res, "Application")
+		case "Cloud":
+			res = append(res, "Cloud Activity")
+		case "K8sActivity":
+			res = append(res, "Kubernetes Activity")
+		default:
+			res = append(res, c)
+		}
+	}
+	return res
+}
+
 const (
 	AlertRuleSeverityCritical alertRuleSeverity = 1
 	AlertRuleSeverityHigh     alertRuleSeverity = 2
@@ -179,14 +204,14 @@ func NewAlertRule(name string, rule AlertRuleConfig) AlertRule {
 		Channels: rule.Channels,
 		Type:     AlertRuleEventType,
 		Filter: AlertRuleFilter{
-			Name:            name,
-			Enabled:         1,
-			Description:     rule.Description,
-			Severity:        rule.Severities.toInt(),
-			ResourceGroups:  rule.ResourceGroups,
-			EventCategories: rule.EventCategories,
-			AlertCategories: rule.AlertCategories,
-			AlertSources:    rule.AlertSources,
+			Name:               name,
+			Enabled:            1,
+			Description:        rule.Description,
+			Severity:           rule.Severities.toInt(),
+			ResourceGroups:     rule.ResourceGroups,
+			AlertSubCategories: convertEventCategories(rule.AlertSubCategories),
+			AlertCategories:    rule.AlertCategories,
+			AlertSources:       rule.AlertSources,
 		},
 	}
 }
@@ -251,13 +276,13 @@ func (svc *AlertRulesService) Get(guid string, response interface{}) error {
 }
 
 type AlertRuleConfig struct {
-	Channels        []string
-	Description     string
-	Severities      AlertRuleSeverities
-	ResourceGroups  []string
-	EventCategories []string
-	AlertCategories []string
-	AlertSources    []string
+	Channels           []string
+	Description        string
+	Severities         AlertRuleSeverities
+	ResourceGroups     []string
+	AlertSubCategories []string
+	AlertCategories    []string
+	AlertSources       []string
 }
 
 type AlertRule struct {
@@ -273,7 +298,7 @@ type AlertRuleFilter struct {
 	Description          string   `json:"description,omitempty"`
 	Severity             []int    `json:"severity"`
 	ResourceGroups       []string `json:"resourceGroups"`
-	EventCategories      []string `json:"eventCategory"`
+	AlertSubCategories   []string `json:"subCategory"`
 	AlertCategories      []string `json:"category"`
 	AlertSources         []string `json:"source,omitempty"`
 	CreatedOrUpdatedTime string   `json:"createdOrUpdatedTime,omitempty"`

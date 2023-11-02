@@ -108,12 +108,12 @@ func createAlertRuleWithSlackAlertChannel() (alertRule api.AlertRuleResponse, er
 	}
 
 	rule := api.NewAlertRule("Alert Rule Test", api.AlertRuleConfig{
-		Channels:        []string{slackChannel},
-		Description:     "This is a test Alert Rule",
-		Severities:      api.NewAlertRuleSeverities([]string{"Critical", "High"}),
-		EventCategories: []string{"Compliance"},
-		AlertCategories: []string{},
-		ResourceGroups:  []string{},
+		Channels:           []string{slackChannel},
+		Description:        "This is a test Alert Rule",
+		Severities:         api.NewAlertRuleSeverities([]string{"Critical", "High"}),
+		AlertSubCategories: []string{"Compliance"},
+		AlertCategories:    []string{},
+		ResourceGroups:     []string{},
 	})
 
 	return lacework.V2.AlertRules.Create(rule)
