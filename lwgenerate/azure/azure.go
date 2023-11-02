@@ -468,6 +468,12 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 			attributes["storage_account_resource_group"] = args.StorageAccountResourceGroup
 		}
 
+		// if a new storage account is being created (i.e., ExistingStorageAccount is false), enable infrastructure
+		// encryption
+		if !args.ExistingStorageAccount {
+			attributes["infrastructure_encryption_enabled"] = true
+		}
+
 		// Set the location if needed
 		if args.StorageLocation != "" {
 			attributes["location"] = args.StorageLocation

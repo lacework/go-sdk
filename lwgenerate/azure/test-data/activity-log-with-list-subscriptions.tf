@@ -21,11 +21,12 @@ module "az_ad_application" {
 }
 
 module "az_activity_log" {
-  source                      = "lacework/activity-log/azure"
-  version                     = "~> 2.0"
-  application_id              = module.az_ad_application.application_id
-  application_password        = module.az_ad_application.application_password
-  service_principal_id        = module.az_ad_application.service_principal_id
-  subscription_ids            = ["test-id-1", "test-id-2", "test-id-3"]
-  use_existing_ad_application = true
+  source                            = "lacework/activity-log/azure"
+  version                           = "~> 2.0"
+  application_id                    = module.az_ad_application.application_id
+  application_password              = module.az_ad_application.application_password
+  infrastructure_encryption_enabled = true
+  service_principal_id              = module.az_ad_application.service_principal_id
+  subscription_ids                  = ["test-id-1", "test-id-2", "test-id-3"]
+  use_existing_ad_application       = true
 }
