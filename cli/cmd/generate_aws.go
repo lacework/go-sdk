@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -48,6 +49,14 @@ var (
 	QuestionAwsAnotherAdvancedOpt       = "Configure another advanced integration option"
 	QuestionAwsCustomizeOutputLocation  = "Provide the location for the output to be written:"
 
+	// Cloudtrail Org Questions
+	QuestionEnableCloudtrailOrganization                  = "Enable CloudTrail organizational integration?"
+	QuestionConfigureCloudtrailOrganizationMappings       = "Configure CloudTrail organization account mappings?"
+	QuestionCloudtrailAccountMappingsLWDefaultAccount     = "Specify org account mappings default Lacework account:"
+	QuestionCloudtrailOrgAccountMappingAnotherAdvancedOpt = "Configure another org account mapping?"
+	QuestionCloudtrailOrgAccountMappingsLWAccount         = "Specify lacework account: "
+	QuestionCloudtrailOrgAccountMappingsAwsAccounts       = "Specify aws accounts:"
+
 	// S3 Bucket Questions
 	QuestionBucketEnableEncryption = "Enable S3 bucket encryption when creating bucket"
 	QuestionBucketSseKeyArn        = "Specify existing KMS encryption key arn for S3 bucket (optional)"
@@ -68,7 +77,7 @@ var (
 
 	// select options
 	AwsAdvancedOptDone     = "Done"
-	AdvancedOptAgentless   = "Additional Agentless options (placeholder)"
+	AdvancedOptAgentless   = "Additional Agentless options"
 	AdvancedOptCloudTrail  = "Additional CloudTrail options"
 	AdvancedOptIamRole     = "Configure Lacework integration with an existing IAM role"
 	AdvancedOptAwsAccounts = "Add additional AWS Accounts to Lacework"
@@ -123,6 +132,13 @@ See help output for more details on the parameter value(s) required for Terrafor
 				GenerateAwsCommandState.LaceworkProfile = cli.Profile
 			}
 
+			// Parse org_account_mapping json, if passed
+			if cmd.Flags().Changed("cloudtrail_org_account_mapping") {
+				if err := parseCloudtrailOrgAccountMappingsFlag(GenerateAwsCommandState); err != nil {
+					return err
+				}
+			}
+
 			// Setup modifiers for NewTerraform constructor
 			mods := []aws.AwsTerraformModifier{
 				aws.WithAwsProfile(GenerateAwsCommandState.AwsProfile),
@@ -138,6 +154,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.UseExistingIamRole(GenerateAwsCommandState.ExistingIamRole),
 				aws.WithConfigName(GenerateAwsCommandState.ConfigName),
 				aws.WithCloudtrailName(GenerateAwsCommandState.CloudtrailName),
+				aws.WithOrgAccountMappings(GenerateAwsCommandState.OrgAccountMappings),
 				aws.WithBucketName(GenerateAwsCommandState.BucketName),
 				aws.WithBucketEncryptionEnabled(GenerateAwsCommandState.BucketEncryptionEnabled),
 				aws.WithBucketSSEKeyArn(GenerateAwsCommandState.BucketSseKeyArn),
@@ -446,6 +463,11 @@ func initGenerateAwsTfCommandFlags() {
 		"consolidated_cloudtrail",
 		false,
 		"use consolidated trail")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.OrgAccountMappingsJson,
+		"cloudtrail_org_account_mapping", "", "Org account mapping json string. Example: "+
+			"'{\"default_lacework_account\":\"main\", \"mapping\": [{ \"aws_accounts\": [\"123456789011\"], "+
+			"\"lacework_account\": \"sub-account-1\"}]}'")
 
 	// DEPRECATED
 	generateAwsTfCommand.PersistentFlags().BoolVar(
@@ -708,6 +730,13 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState
 	}
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
+			Prompt: &survey.Confirm{
+				Message: QuestionEnableCloudtrailOrganization,
+				Default: config.AwsOrganization,
+			},
+			Response: &config.AwsOrganization,
+		},
+		{
 			Prompt:   &survey.Input{Message: QuestionCloudtrailName, Default: config.CloudtrailName},
 			Checks:   []*bool{existingCloudTrailDisabled(extraState)},
 			Response: &config.CloudtrailName,
@@ -724,6 +753,25 @@ func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState
 		},
 	}, config.Cloudtrail); err != nil {
 		return err
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{Prompt: &survey.Confirm{
+			Message: QuestionConfigureCloudtrailOrganizationMappings,
+			Default: config.AwsOrganizationMappings,
+		},
+			Response: &config.AwsOrganizationMappings,
+			Checks:   []*bool{&config.AwsOrganization},
+		},
+	}, config.Cloudtrail); err != nil {
+		return err
+	}
+
+	if config.Cloudtrail && config.AwsOrganizationMappings {
+		err := promptCloudtrailOrgAccountMappings(config)
+		if err != nil {
+			return err
+		}
 	}
 
 	newBucket := config.ExistingCloudtrailBucketArn == ""
@@ -1124,7 +1172,7 @@ func promptAwsGenerate(
 		return errors.New("must enable agentless, cloudtrail or config")
 	}
 
-	if !cli.InteractiveMode() && config.AwsOrganization {
+	if !cli.InteractiveMode() && config.AwsOrganization && config.Agentless {
 		if config.AgentlessManagementAccountID == "" {
 			return errors.New("must specify a management account ID for Agentless organization integration")
 		}
@@ -1154,6 +1202,70 @@ func promptAwsGenerate(
 		if err := askAdvancedAwsOptions(config, extraState); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func promptCloudtrailAddOrgAccountMappings(input *aws.GenerateAwsTfConfigurationArgs) error {
+	mapping := aws.OrgAccountMap{}
+	var accountsAnswer string
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Input{Message: QuestionCloudtrailOrgAccountMappingsLWAccount},
+			Response: &mapping.LaceworkAccount,
+		},
+		{
+			Prompt:   &survey.Multiline{Message: QuestionCloudtrailOrgAccountMappingsAwsAccounts},
+			Response: &accountsAnswer,
+		},
+	}); err != nil {
+		return err
+	}
+	mapping.AwsAccounts = strings.Split(accountsAnswer, "\n")
+	input.OrgAccountMappings.Mapping = append(input.OrgAccountMappings.Mapping, mapping)
+	return nil
+}
+
+func promptCloudtrailOrgAccountMappings(input *aws.GenerateAwsTfConfigurationArgs) error {
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt: &survey.Input{
+				Message: QuestionCloudtrailAccountMappingsLWDefaultAccount,
+				Default: input.OrgAccountMappings.DefaultLaceworkAccount},
+			Response: &input.OrgAccountMappings.DefaultLaceworkAccount,
+		},
+	}); err != nil {
+		return err
+	}
+
+	if err := promptCloudtrailAddOrgAccountMappings(input); err != nil {
+		return err
+	}
+
+	var askAgain bool
+	for {
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Prompt:   &survey.Confirm{Message: QuestionControlTowerOrgAccountMappingAnotherAdvancedOpt},
+			Response: &askAgain}); err != nil {
+			return err
+		}
+
+		if !askAgain {
+			break
+		}
+
+		if err := promptCloudtrailAddOrgAccountMappings(input); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func parseCloudtrailOrgAccountMappingsFlag(args *aws.GenerateAwsTfConfigurationArgs) error {
+	if err := json.Unmarshal([]byte(args.OrgAccountMappingsJson), &args.OrgAccountMappings); err != nil {
+		return errors.Wrap(err, "failed to parse 'cloudtrail_org_account_mapping'")
 	}
 
 	return nil
