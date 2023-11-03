@@ -25,28 +25,28 @@ func reqProviderAndRegion(extraInputs ...string) string {
 }
 
 func TestGenerationAgentless(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", true, false, false).Generate()
+	hcl, err := NewTerraform("us-east-2", false, true, false, false).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportAgentless), hcl)
 }
 
 func TestGenerationCloudTrail(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, false, true).Generate()
+	hcl, err := NewTerraform("us-east-2", false, false, false, true).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportCtWithoutConfig), hcl)
 }
 
 func TestGenerationConfig(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, true, false).Generate()
+	hcl, err := NewTerraform("us-east-2", false, false, true, false).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfig), hcl)
 }
 
 func TestGenerationWithCustomAwsProfile(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, false, true, WithAwsProfile("myprofile")).Generate()
+	hcl, err := NewTerraform("us-east-2", false, false, false, true, WithAwsProfile("myprofile")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(
@@ -57,21 +57,21 @@ func TestGenerationWithCustomAwsProfile(t *testing.T) {
 }
 
 func TestGenerationAgentlessAndConfigAndCloudtrail(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", true, true, true).Generate()
+	hcl, err := NewTerraform("us-east-2", false, true, true, true).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfig, moduleImportCtWithConfig, moduleImportAgentless), hcl)
 }
 
 func TestGenerationWithLaceworkProvider(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, false, true, WithLaceworkProfile("test-profile")).Generate()
+	hcl, err := NewTerraform("us-east-2", false, false, false, true, WithLaceworkProfile("test-profile")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(laceworkProvider, moduleImportCtWithoutConfig), hcl)
 }
 
 func TestGenerationWithLaceworkAccountID(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", true, true, true, WithLaceworkAccountID("123456789")).Generate()
+	hcl, err := NewTerraform("us-east-2", false, true, true, true, WithLaceworkAccountID("123456789")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfigWithLaceworkAccountID, moduleImportCtWithLaceworkAccountID, moduleImportAgentless), hcl)
@@ -107,7 +107,7 @@ func TestGenerationCloudtrailExistingSns(t *testing.T) {
 func TestGenerationCloudtrailSnsWithEncryption(t *testing.T) {
 	snsTopicName := "sns-topic-name"
 	snsEncryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
-	hcl, err := NewTerraform("us-east-2", false, false, true,
+	hcl, err := NewTerraform("us-east-2", false, false, false, true,
 		WithSnsTopicName(snsTopicName),
 		WithSnsTopicEncryptionEnabled(true),
 		WithSnsTopicEncryptionKeyArn(snsEncryptionArn),
@@ -119,7 +119,7 @@ func TestGenerationCloudtrailSnsWithEncryption(t *testing.T) {
 
 func TestGenerationCloudtrailSnsWithNoEncryption(t *testing.T) {
 	snsTopicName := "sns-topic-name"
-	hcl, err := NewTerraform("us-east-2", false, false, true,
+	hcl, err := NewTerraform("us-east-2", false, false, false, true,
 		WithSnsTopicName(snsTopicName),
 		WithSnsTopicEncryptionEnabled(false),
 	).Generate()
@@ -130,7 +130,7 @@ func TestGenerationCloudtrailSnsWithNoEncryption(t *testing.T) {
 
 func TestGenerationCloudtrailSnsWithEncrytptionNotSet(t *testing.T) {
 	snsTopicName := "sns-topic-name"
-	hcl, err := NewTerraform("us-east-2", false, false, true,
+	hcl, err := NewTerraform("us-east-2", false, false, false, true,
 		WithSnsTopicName(snsTopicName),
 	).Generate()
 	assert.Nil(t, err)
@@ -141,7 +141,7 @@ func TestGenerationCloudtrailSnsWithEncrytptionNotSet(t *testing.T) {
 func TestGenerationCloudtrailSqsWithEncryption(t *testing.T) {
 	ssqQueueName := "sqs-queue-name"
 	sqsEncryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
-	hcl, err := NewTerraform("us-east-2", false, false, true,
+	hcl, err := NewTerraform("us-east-2", false, false, false, true,
 		WithSqsQueueName(ssqQueueName),
 		WithSqsEncryptionEnabled(true),
 		WithSqsEncryptionKeyArn(sqsEncryptionArn),
@@ -153,7 +153,7 @@ func TestGenerationCloudtrailSqsWithEncryption(t *testing.T) {
 
 func TestGenerationCloudtrailSqsWithNoEncryption(t *testing.T) {
 	ssqQueueName := "sqs-queue-name"
-	hcl, err := NewTerraform("us-east-2", false, false, true,
+	hcl, err := NewTerraform("us-east-2", false, false, false, true,
 		WithSqsQueueName(ssqQueueName),
 		WithSqsEncryptionEnabled(false),
 	).Generate()
@@ -164,7 +164,7 @@ func TestGenerationCloudtrailSqsWithNoEncryption(t *testing.T) {
 
 func TestGenerationCloudtrailSqsWithWithEncryptionNotSet(t *testing.T) {
 	ssqQueueName := "sqs-queue-name"
-	hcl, err := NewTerraform("us-east-2", false, false, true,
+	hcl, err := NewTerraform("us-east-2", false, false, false, true,
 		WithSqsQueueName(ssqQueueName),
 	).Generate()
 	assert.Nil(t, err)
@@ -178,7 +178,7 @@ func TestGenerationCloudtrailAllEncryptionElementsSet(t *testing.T) {
 	snsTopicName := "sns-topic-name"
 	ssqQueueName := "sqs-queue-name"
 	encryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
-	hcl, err := NewTerraform("us-east-2", false, false, true,
+	hcl, err := NewTerraform("us-east-2", false, false, false, true,
 		WithCloudtrailName(cloudTrailName),
 		WithBucketName(s3BucketName),
 		WithBucketEncryptionEnabled(true),
@@ -237,6 +237,7 @@ func TestGenerationCloudtrailExistingRole(t *testing.T) {
 
 func TestConsolidatedCtWithMultipleAccounts(t *testing.T) {
 	data, err := NewTerraform("us-east-2",
+		false,
 		true,
 		true,
 		true,
@@ -279,17 +280,17 @@ func TestGenerationFailureWithNoRegionSet(t *testing.T) {
 var iamErrorString = "invalid inputs: when using an existing IAM role, existing role ARN, name, and external ID all must be set"
 
 func TestGenerationFailureWithIncompleteExistingIam(t *testing.T) {
-	_, err := NewTerraform("us-east-2", false, false, true,
+	_, err := NewTerraform("us-east-2", false, false, false, true,
 		UseExistingIamRole(&ExistingIamRoleDetails{Arn: "foo"})).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
 
-	_, err = NewTerraform("us-east-2", false, false, true,
+	_, err = NewTerraform("us-east-2", false, false, false, true,
 		UseExistingIamRole(&ExistingIamRoleDetails{Name: "foo"})).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
 
-	_, err = NewTerraform("us-east-2", false, false, true,
+	_, err = NewTerraform("us-east-2", false, false, false, true,
 		UseExistingIamRole(&ExistingIamRoleDetails{ExternalId: "foo"})).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
@@ -315,7 +316,7 @@ func TestGenerationPartialExistingIamValues(t *testing.T) {
 }
 
 func TestGenerationCloudTrailS3BucketNotification(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, false, true, WithS3BucketNotification(true)).Generate()
+	hcl, err := NewTerraform("us-east-2", false, false, false, true, WithS3BucketNotification(true)).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(
