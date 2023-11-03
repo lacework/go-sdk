@@ -74,6 +74,9 @@ func NewAwsSubAccount(profile string, region string, alias ...string) AwsSubAcco
 }
 
 type GenerateAwsTfConfigurationArgs struct {
+	// Should we enable AWS organization integration?
+	AwsOrganization bool
+
 	// Should we configure Agentless integration in LW?
 	Agentless bool
 
@@ -214,13 +217,19 @@ type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 //	hcl, err := aws.NewTerraform("us-east-1", true, true,
 //	  aws.WithAwsProfile("mycorp-profile")).Generate()
 func NewTerraform(
-	region string, enableAgentless bool, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier,
+	region string,
+	enableAwsOrganization bool,
+	enableAgentless bool,
+	enableConfig bool,
+	enableCloudtrail bool,
+	mods ...AwsTerraformModifier,
 ) *GenerateAwsTfConfigurationArgs {
 	config := &GenerateAwsTfConfigurationArgs{
-		AwsRegion:  region,
-		Agentless:  enableAgentless,
-		Cloudtrail: enableCloudtrail,
-		Config:     enableConfig,
+		AwsRegion:       region,
+		AwsOrganization: enableAwsOrganization,
+		Agentless:       enableAgentless,
+		Cloudtrail:      enableCloudtrail,
+		Config:          enableConfig,
 	}
 	for _, m := range mods {
 		m(config)
@@ -675,14 +684,12 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 
 	blocks := []*hclwrite.Block{}
 
-	enableMultiAccount := args.AgentlessManagementAccountID != "" && len(args.AgentlessMonitoredAccountIDs) > 0
-
 	globalModuleAttributes := map[string]interface{}{
 		"global":   true,
 		"regional": true,
 	}
 
-	if enableMultiAccount {
+	if args.AwsOrganization {
 		ids := []string{}
 		for _, accountID := range args.AgentlessMonitoredAccountIDs {
 			ids = append(ids, fmt.Sprintf("\"%s\"", accountID))
@@ -742,7 +749,7 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 		blocks = append(blocks, regionModule)
 	}
 
-	if enableMultiAccount {
+	if args.AwsOrganization {
 		attributes := map[string]interface{}{
 			"snapshot_role": true,
 			"global_module_reference": lwgenerate.CreateSimpleTraversal(

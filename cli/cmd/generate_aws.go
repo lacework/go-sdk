@@ -152,6 +152,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			// Create new struct
 			data := aws.NewTerraform(
 				GenerateAwsCommandState.AwsRegion,
+				GenerateAwsCommandState.AwsOrganization,
 				GenerateAwsCommandState.Agentless,
 				GenerateAwsCommandState.Config,
 				GenerateAwsCommandState.Cloudtrail,
@@ -318,13 +319,12 @@ See help output for more details on the parameter value(s) required for Terrafor
 )
 
 type AwsGenerateCommandExtraState struct {
-	AskAdvanced                 bool
-	EnableAgentlessOrganization bool
-	Output                      string
-	UseExistingCloudtrail       bool
-	UseExistingSNSTopic         bool
-	AwsSubAccounts              []string
-	TerraformApply              bool
+	AskAdvanced           bool
+	Output                string
+	UseExistingCloudtrail bool
+	UseExistingSNSTopic   bool
+	AwsSubAccounts        []string
+	TerraformApply        bool
 }
 
 func (a *AwsGenerateCommandExtraState) isEmpty() bool {
@@ -341,6 +341,21 @@ func (a *AwsGenerateCommandExtraState) writeCache() {
 func initGenerateAwsTfCommandFlags() {
 	// add flags to sub commands
 	// TODO Share the help with the interactive generation
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.AwsOrganization,
+		"aws_organization",
+		false,
+		"enable organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.AgentlessManagementAccountID,
+		"agentless_management_account_id",
+		"",
+		"AWS management account ID for Agentless integration")
+	generateAwsTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAwsCommandState.AgentlessMonitoredAccountIDs,
+		"agentless_monitored_account_ids",
+		[]string{},
+		"AWS monitored account IDs for Agentless integrations")
 	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.Agentless,
 		"agentless",
@@ -560,9 +575,9 @@ func promptAgentlessQuestions(
 		{
 			Prompt: &survey.Confirm{
 				Message: QuestionEnableAgentlessOrganization,
-				Default: extraState.EnableAgentlessOrganization,
+				Default: config.AwsOrganization,
 			},
-			Response: &extraState.EnableAgentlessOrganization,
+			Response: &config.AwsOrganization,
 		},
 	}, config.Agentless); err != nil {
 		return err
@@ -585,7 +600,7 @@ func promptAgentlessQuestions(
 				Message: QuestionAgentlessManagementAccountID,
 				Default: config.AgentlessManagementAccountID,
 			},
-			Checks:   []*bool{&extraState.EnableAgentlessOrganization},
+			Checks:   []*bool{&config.AwsOrganization},
 			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsAccountID)},
 			Response: &config.AgentlessManagementAccountID,
 			Required: true,
@@ -596,12 +611,12 @@ func promptAgentlessQuestions(
 				Default: strings.Join(config.AgentlessMonitoredAccountIDs, ","),
 				Help:    QuestionAgentlessMonitoredAccountIDsHelp,
 			},
-			Checks:   []*bool{&extraState.EnableAgentlessOrganization},
+			Checks:   []*bool{&config.AwsOrganization},
 			Opts:     []survey.AskOpt{survey.WithValidator(validateAgentlessMonitoredAccountIDs)},
 			Response: &monitoredAccountIDsInput,
 			Required: true,
 		},
-	}, extraState.EnableAgentlessOrganization); err != nil {
+	}, config.AwsOrganization); err != nil {
 		return err
 	}
 
@@ -1042,6 +1057,15 @@ func promptAwsGenerate(
 	// Validate one of agentless, config or cloudtrail was enabled; otherwise error out
 	if !config.Agentless && !config.Config && !config.Cloudtrail {
 		return errors.New("must enable agentless, cloudtrail or config")
+	}
+
+	if !cli.InteractiveMode() && config.AwsOrganization {
+		if config.AgentlessManagementAccountID == "" {
+			return errors.New("must specify a management account ID for Agentless organization integration")
+		}
+		if len(config.AgentlessMonitoredAccountIDs) == 0 {
+			return errors.New("must specify monitored account IDs for Agentless organization integration")
+		}
 	}
 
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
