@@ -95,6 +95,9 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Supply an AWS Profile name for the main account, only asked if configuring multiple
 	AwsProfile string
 
+	// Supply an AWS Assume Role for the main account
+	AwsAssumeRole string
+
 	// Existing S3 Bucket ARN (Required when using existing cloudtrail)
 	ExistingCloudtrailBucketArn string
 
@@ -222,6 +225,13 @@ func NewTerraform(
 func WithAwsProfile(name string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.AwsProfile = name
+	}
+}
+
+// WithAwsAssumeRole Set the AWS Assume Role to utilize for the main AWS provider
+func WithAwsAssumeRole(assumeRole string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.AwsAssumeRole = assumeRole
 	}
 }
 
@@ -434,10 +444,23 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 			attrs["alias"] = "main"
 		}
 
-		provider, err := lwgenerate.NewProvider(
-			"aws",
+		modifiers := []lwgenerate.HclProviderModifier{
 			lwgenerate.HclProviderWithAttributes(attrs),
-		).ToBlock()
+		}
+
+		if args.AwsAssumeRole != "" {
+			assumeRoleBlock, err := lwgenerate.HclCreateGenericBlock(
+				"assume_role",
+				nil,
+				map[string]interface{}{"role_arn": args.AwsAssumeRole},
+			)
+			if err != nil {
+				return nil, err
+			}
+			modifiers = append(modifiers, lwgenerate.HclProviderWithGenericBlocks(assumeRoleBlock))
+		}
+
+		provider, err := lwgenerate.NewProvider("aws", modifiers...).ToBlock()
 		if err != nil {
 			return nil, err
 		}
