@@ -58,10 +58,25 @@ type HclProvider struct {
 
 	// Optional. Extra properties for this module.  Can supply string, bool, int, or map[string]interface{} as values
 	attributes map[string]interface{}
+
+	// optional. Generic blocks
+	blocks []*hclwrite.Block
 }
 
 func (p *HclProvider) ToBlock() (*hclwrite.Block, error) {
-	return HclCreateGenericBlock("provider", []string{p.name}, p.attributes)
+	block, err := HclCreateGenericBlock("provider", []string{p.name}, p.attributes)
+	if err != nil {
+		return nil, err
+	}
+
+	if p.blocks != nil {
+		for _, b := range p.blocks {
+			block.Body().AppendNewline()
+			block.Body().AppendBlock(b)
+		}
+	}
+
+	return block, nil
 }
 
 type HclProviderModifier func(p *HclProvider)
@@ -78,6 +93,13 @@ func NewProvider(name string, mods ...HclProviderModifier) *HclProvider {
 func HclProviderWithAttributes(attrs map[string]interface{}) HclProviderModifier {
 	return func(p *HclProvider) {
 		p.attributes = attrs
+	}
+}
+
+// HclProviderWithGenericBlocks sets the generic blocks within the provider
+func HclProviderWithGenericBlocks(blocks ...*hclwrite.Block) HclProviderModifier {
+	return func(p *HclProvider) {
+		p.blocks = blocks
 	}
 }
 

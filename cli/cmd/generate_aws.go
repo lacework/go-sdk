@@ -67,8 +67,9 @@ var (
 	// AwsArnRegex original source: https://regex101.com/r/pOfxYN/1
 	AwsArnRegex = `^arn:(?P<Partition>[^:\n]*):(?P<Service>[^:\n]*):(?P<Region>[^:\n]*):(?P<AccountID>[^:\n]*):(?P<Ignore>(?P<ResourceType>[^:\/\n]*)[:\/])?(?P<Resource>.*)$` //nolint
 	// AwsRegionRegex regex used for validating region input; note intentionally does not match gov cloud
-	AwsRegionRegex  = `(af|ap|ca|eu|me|sa|us)-(central|(north|south)?(east|west)?)-\d`
-	AwsProfileRegex = `([A-Za-z_0-9-]+)`
+	AwsRegionRegex     = `(af|ap|ca|eu|me|sa|us)-(central|(north|south)?(east|west)?)-\d`
+	AwsProfileRegex    = `([A-Za-z_0-9-]+)`
+	AwsAssumeRoleRegex = `^arn:aws:iam::\d{12}:role\/.*$`
 
 	GenerateAwsCommandState      = &aws.GenerateAwsTfConfigurationArgs{}
 	GenerateAwsExistingRoleState = &aws.ExistingIamRoleDetails{}
@@ -112,6 +113,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 			// Setup modifiers for NewTerraform constructor
 			mods := []aws.AwsTerraformModifier{
 				aws.WithAwsProfile(GenerateAwsCommandState.AwsProfile),
+				aws.WithAwsAssumeRole(GenerateAwsCommandState.AwsAssumeRole),
 				aws.WithLaceworkProfile(GenerateAwsCommandState.LaceworkProfile),
 				aws.WithLaceworkAccountID(GenerateAwsCommandState.LaceworkAccountID),
 				aws.ExistingCloudtrailBucketArn(GenerateAwsCommandState.ExistingCloudtrailBucketArn),
@@ -191,6 +193,15 @@ See help output for more details on the parameter value(s) required for Terrafor
 				return errors.Wrap(err, "failed to load command flags")
 			}
 			if err := validateOutputLocation(dirname); err != nil {
+				return err
+			}
+
+			// Validate aws assume role, if passed
+			assumeRole, err := cmd.Flags().GetString("aws_assume_role")
+			if err != nil {
+				return errors.Wrap(err, "failed to load command flags")
+			}
+			if err := validateAwsAssumeRole(assumeRole); assumeRole != "" && err != nil {
 				return err
 			}
 
@@ -353,6 +364,11 @@ func initGenerateAwsTfCommandFlags() {
 		"aws_profile",
 		"",
 		"specify aws profile")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.AwsAssumeRole,
+		"aws_assume_role",
+		"",
+		"specify aws assume role")
 	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.BucketEncryptionEnabled,
 		"bucket_encryption_enabled",
@@ -492,6 +508,11 @@ func validateAwsRegion(val interface{}) error {
 // survey.Validator for aws profile
 func validateAwsProfile(val interface{}) error {
 	return validateStringWithRegex(val, fmt.Sprintf(`^%s$`, AwsProfileRegex), "invalid profile name supplied")
+}
+
+// survey.Validator for aws profile
+func validateAwsAssumeRole(val interface{}) error {
+	return validateStringWithRegex(val, AwsAssumeRoleRegex, "invalid assume name supplied")
 }
 
 func promptAgentlessQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
