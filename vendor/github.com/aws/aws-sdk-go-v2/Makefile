@@ -1,13 +1,16 @@
 # Lint rules to ignore
 LINTIGNORESINGLEFIGHT='internal/sync/singleflight/singleflight.go:.+error should be the last type'
 LINT_IGNORE_S3MANAGER_INPUT='feature/s3/manager/upload.go:.+struct field SSEKMSKeyId should be SSEKMSKeyID'
+# Names of these are tied to endpoint rules and they're internal so ignore them
+LINT_IGNORE_AWSRULESFN_ARN='internal/endpoints/awsrulesfn/arn.go'
+LINT_IGNORE_AWSRULESFN_PARTITION='internal/endpoints/awsrulesfn/partition.go'
 
 UNIT_TEST_TAGS=
 BUILD_TAGS=-tags "example,codegen,integration,ec2env,perftest"
 
 SMITHY_GO_SRC ?= $(shell pwd)/../smithy-go
 
-SDK_MIN_GO_VERSION ?= 1.15
+SDK_MIN_GO_VERSION ?= 1.19
 
 EACHMODULE_FAILFAST ?= true
 EACHMODULE_FAILFAST_FLAG=-fail-fast=${EACHMODULE_FAILFAST}
@@ -80,6 +83,13 @@ update-module-metadata download-modules-%
 generate: smithy-generate update-requires gen-repo-mod-replace update-module-metadata smithy-annotate-stable \
 gen-config-asserts gen-internal-codegen copy-attributevalue-feature gen-mod-dropreplace-smithy-. min-go-version-. \
 tidy-modules-. add-module-license-files gen-aws-ptrs format
+
+generate-tmpreplace-smithy: smithy-generate update-requires gen-repo-mod-replace update-module-metadata smithy-annotate-stable \
+gen-config-asserts gen-internal-codegen copy-attributevalue-feature gen-mod-replace-smithy-. min-go-version-. \
+tidy-modules-. add-module-license-files gen-aws-ptrs format gen-mod-dropreplace-smithy-. reset-sum
+
+reset-sum:
+	find . -name go.sum -exec git checkout -- {} \;
 
 smithy-generate:
 	cd codegen && ./gradlew clean build -Plog-tests && ./gradlew clean
@@ -246,7 +256,6 @@ unit-race-modules-%:
 		"go test ${BUILD_TAGS} ${RUN_NONE} ./..." \
 		"go test -timeout=1m ${UNIT_TEST_TAGS} -race -cpu=4 ./..."
 
-
 unit-modules-%:
 	@# unit command that uses the pattern to define the root path that the
 	@# module testing will start from. Strips off the "unit-modules-" and
@@ -408,7 +417,6 @@ bench-modules-%:
 		&& go run . -p $(subst _,/,$(subst bench-modules-,,$@)) ${EACHMODULE_FLAGS} \
 		"go test -timeout=10m -bench . --benchmem ${BUILD_TAGS} ${RUN_NONE} ./..."
 
-
 #####################
 #  Release Process  #
 #####################
@@ -462,7 +470,9 @@ lint:
 	@lint=`golint ./...`; \
 	dolint=`echo "$$lint" | grep -E -v \
 	-e ${LINT_IGNORE_S3MANAGER_INPUT} \
-	-e ${LINTIGNORESINGLEFIGHT}`; \
+	-e ${LINTIGNORESINGLEFIGHT} \
+	-e ${LINT_IGNORE_AWSRULESFN_ARN} \
+	-e ${LINT_IGNORE_AWSRULESFN_PARTITION}`; \
 	echo "$$dolint"; \
 	if [ "$$dolint" != "" ]; then exit 1; fi
 
@@ -499,14 +509,22 @@ list-deps-%:
 ###################
 .PHONY: sandbox-tests sandbox-build-% sandbox-run-% sandbox-test-% update-aws-golang-tip
 
-sandbox-tests: sandbox-test-go1.15 sandbox-test-go1.16 sandbox-test-go1.17 sandbox-test-gotip
+sandbox-tests: sandbox-test-go1.15 sandbox-test-go1.16 sandbox-test-go1.17 sandbox-test-go1.18 sandbox-test-go1.19 sandbox-test-go1.20 sandbox-test-gotip
 
 sandbox-build-%:
 	@# sandbox-build-go1.17
 	@# sandbox-build-gotip
-	docker build \
-		-f ./internal/awstesting/sandbox/Dockerfile.test.$(subst sandbox-build-,,$@) \
-		-t "aws-sdk-go-$(subst sandbox-build-,,$@)" .
+	@if [ $@ == sandbox-build-gotip ]; then\
+		docker build \
+			-f ./internal/awstesting/sandbox/Dockerfile.test.gotip \
+			-t "aws-sdk-go-$(subst sandbox-build-,,$@)" . ;\
+	else\
+		docker build \
+			--build-arg GO_VERSION=$(subst sandbox-build-go,,$@) \
+			-f ./internal/awstesting/sandbox/Dockerfile.test.goversion \
+			-t "aws-sdk-go-$(subst sandbox-build-,,$@)" . ;\
+	fi
+
 sandbox-run-%: sandbox-build-%
 	@# sandbox-run-go1.17
 	@# sandbox-run-gotip

@@ -1,3 +1,148 @@
+# v1.42.0 (2023-11-01)
+
+* **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.0 (2023-10-31)
+
+* **Feature**: **BREAKING CHANGE**: Bump minimum go version to 1.19 per the revised [go version support policy](https://aws.amazon.com/blogs/developer/aws-sdk-for-go-aligns-with-go-release-policy-on-supported-runtimes/).
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.40.0 (2023-10-24)
+
+* **Feature**: **BREAKFIX**: Correct nullability and default value representation of various input fields across a large number of services. Calling code that references one or more of the affected fields will need to update usage accordingly. See [2162](https://github.com/aws/aws-sdk-go-v2/issues/2162).
+
+# v1.39.0 (2023-10-20)
+
+* **Feature**: This release introduces a new API: DeleteOpsItem. This allows deletion of an OpsItem.
+
+# v1.38.2 (2023-10-12)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.38.1 (2023-10-06)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.38.0 (2023-09-25)
+
+* **Feature**: This release updates the enum values for ResourceType in SSM DescribeInstanceInformation input and ConnectionStatus in GetConnectionStatus output.
+
+# v1.37.5 (2023-08-21)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.37.4 (2023-08-18)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.37.3 (2023-08-17)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.37.2 (2023-08-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.37.1 (2023-08-01)
+
+* No change notes available for this release.
+
+# v1.37.0 (2023-07-31)
+
+* **Feature**: Adds support for smithy-modeled endpoint resolution. A new rules-based endpoint resolution will be added to the SDK which will supercede and deprecate existing endpoint resolution. Specifically, EndpointResolver will be deprecated while BaseEndpoint and EndpointResolverV2 will take its place. For more information, please see the Endpoints section in our Developer Guide.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.9 (2023-07-28)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.8 (2023-07-13)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.7 (2023-06-27)
+
+* **Documentation**: Systems Manager doc-only update for June 2023.
+
+# v1.36.6 (2023-06-15)
+
+* No change notes available for this release.
+
+# v1.36.5 (2023-06-13)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.4 (2023-05-04)
+
+* No change notes available for this release.
+
+# v1.36.3 (2023-04-24)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.2 (2023-04-10)
+
+* No change notes available for this release.
+
+# v1.36.1 (2023-04-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.0 (2023-03-22)
+
+* **Feature**: This Patch Manager release supports creating, updating, and deleting Patch Baselines for AmazonLinux2023, AlmaLinux.
+
+# v1.35.7 (2023-03-21)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.6 (2023-03-10)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.5 (2023-02-22)
+
+* **Bug Fix**: Prevent nil pointer dereference when retrieving error codes.
+* **Documentation**: Document only update for Feb 2023
+
+# v1.35.4 (2023-02-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.3 (2023-02-15)
+
+* **Announcement**: When receiving an error response in restJson-based services, an incorrect error type may have been returned based on the content of the response. This has been fixed via PR #2012 tracked in issue #1910.
+* **Bug Fix**: Correct error type parsing for restJson services.
+
+# v1.35.2 (2023-02-03)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.1 (2023-01-23)
+
+* No change notes available for this release.
+
+# v1.35.0 (2023-01-05)
+
+* **Feature**: Add `ErrorCodeOverride` field to all error structs (aws/smithy-go#401).
+
+# v1.34.0 (2023-01-04)
+
+* **Feature**: Adding support for QuickSetup Document Type in Systems Manager
+
+# v1.33.4 (2022-12-21)
+
+* **Documentation**: Doc-only updates for December 2022.
+
+# v1.33.3 (2022-12-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.33.2 (2022-12-02)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.33.1 (2022-11-22)
 
 * No change notes available for this release.
