@@ -682,6 +682,10 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 		return nil, nil
 	}
 
+	if len(args.SubAccounts) == 0 {
+		return nil, errors.New("must specify subaccounts as the scanninng accounts")
+	}
+
 	blocks := []*hclwrite.Block{}
 
 	globalModuleAttributes := map[string]interface{}{
@@ -700,21 +704,15 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 		})
 	}
 
-	globalModuleModifiers := []lwgenerate.HclModuleModifier{
-		lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-		lwgenerate.HclModuleWithAttributes(globalModuleAttributes),
-	}
-
-	if args.AwsProfile != "" {
-		globalModuleModifiers = append(globalModuleModifiers,
-			lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
-	}
-
 	// Add global module
 	globalModule, err := lwgenerate.NewModule(
 		"lacework_aws_agentless_scanning_global",
 		lwgenerate.AwsAgentlessSource,
-		globalModuleModifiers...,
+		lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
+		lwgenerate.HclModuleWithAttributes(globalModuleAttributes),
+		lwgenerate.HclModuleWithProviderDetails(
+			map[string]string{"aws": fmt.Sprintf("aws.%s", args.SubAccounts[0].AwsProfile)},
+		),
 	).ToBlock()
 
 	if err != nil {
@@ -724,7 +722,7 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 	blocks = append(blocks, globalModule)
 
 	// Add region modules
-	for _, subaccount := range args.SubAccounts {
+	for _, subaccount := range args.SubAccounts[1:] {
 		regionModule, err := lwgenerate.NewModule(
 			fmt.Sprintf("lacework_aws_agentless_scanning_region_%s", subaccount.AwsProfile),
 			lwgenerate.AwsAgentlessSource,
@@ -782,6 +780,18 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			return nil, err
 		}
 
+		lifecycleBlock, err := lwgenerate.HclCreateGenericBlock(
+			"lifecycle",
+			nil,
+			map[string]interface{}{
+				"ignore_changes": lwgenerate.CreateSimpleTraversal([]string{"[administration_role_arn]"}),
+			},
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
 		stacksetResource, err := lwgenerate.NewResource(
 			"aws_cloudformation_stack_set",
 			"snapshot_role",
@@ -802,7 +812,7 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 				},
 				[]string{"aws.main"},
 			),
-			lwgenerate.HclResourceWithGenericBlocks(autoDeploymentBlock),
+			lwgenerate.HclResourceWithGenericBlocks(autoDeploymentBlock, lifecycleBlock),
 		).ToResourceBlock()
 
 		if err != nil {
@@ -837,7 +847,7 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			lwgenerate.HclResourceWithAttributesAndProviderDetails(
 				map[string]interface{}{
 					"stack_set_name": lwgenerate.CreateSimpleTraversal(
-						[]string{"aws_cloudformation_stack_set", "snapshot_role"},
+						[]string{"aws_cloudformation_stack_set", "snapshot_role", "name"},
 					),
 				},
 				[]string{"aws.main"},
