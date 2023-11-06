@@ -808,10 +808,19 @@ func componentsToTable() [][]string {
 			colorize = color.New(color.FgYellow, color.Bold)
 		}
 
+		// by default, we display the latest version
+		version := cdata.LatestVersion.String()
+
+		// but if the component is installed,
+		// we display the current version instead
+		if currentVersion, err := cdata.CurrentVersion(); err == nil {
+			version = currentVersion.String()
+		}
+
 		out = append(out, []string{
 			colorize.Sprintf(cdata.Status().String()),
 			cdata.Name,
-			cdata.LatestVersion.String(),
+			version,
 			cdata.Description,
 		})
 	}
