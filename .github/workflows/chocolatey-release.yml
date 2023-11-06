@@ -3,7 +3,6 @@ on: workflow_dispatch
 jobs:
   publish-chocolatey:
     runs-on: windows-latest
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -11,8 +10,9 @@ jobs:
           fetch-depth: 0
 
       - name: Running integration tests
-        image: lacework/win-golang:1.18-20h2
         shell: pwsh
+        env:
+          API_KEY: ${{ secrets.CHOCO_KEY }}
         run: |
           # install chocolatey
           Set-ExecutionPolicy Bypass -Scope Process -Force
