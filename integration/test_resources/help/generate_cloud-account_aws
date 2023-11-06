@@ -29,8 +29,8 @@ Flags:
       --agentless_management_account_id string    AWS management account ID for Agentless integration
       --agentless_monitored_account_ids strings   AWS monitored account IDs for Agentless integrations
       --apply                                     run terraform apply without executing plan or prompting
-      --aws_organization                          enable organization integration
       --aws_assume_role string                    specify aws assume role
+      --aws_organization                          enable organization integration
       --aws_profile string                        specify aws profile
       --aws_region string                         specify aws region
       --aws_subaccount strings                    configure an additional aws account; value format must be <aws profile>:<region>

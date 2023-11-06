@@ -45,8 +45,8 @@ Global Flags:
   -k, --api_key string                            access key id
   -s, --api_secret string                         secret access key
       --api_token string                          access token (replaces the use of api_key and api_secret)
-      --aws_organization                          enable organization integration
       --aws_assume_role string                    specify aws assume role
+      --aws_organization                          enable organization integration
       --aws_profile string                        specify aws profile
       --aws_region string                         specify aws region
       --aws_subaccount strings                    configure an additional aws account; value format must be <aws profile>:<region>
