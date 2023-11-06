@@ -874,6 +874,21 @@ func TestGenerationAwsS3BucketNotification(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+func TestGenerationAwsWithEnvironmentVariable(t *testing.T) {
+	// setting this silly region is on purpose so that we run the CLI
+	// in non-interactive mode and we catch the error that the region
+	// is invalid, we are just testing the environment variables
+	os.Setenv("AWS_REGION", "something-silly") // this is on purpose
+	defer os.Setenv("AWS_REGION", "")          // so if fails and we check
+
+	out, err, exitcode := LaceworkCLIWithTOMLConfig(
+		"generate", "cloud-account", "aws", "--config", "--noninteractive")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+	assert.Empty(t, out.String(), "STDOUT should be empty")
+	assert.Contains(t, err.String(), "invalid region name supplied",
+		"STDERR changed, please check")
+}
+
 func TestGenerationAwsS3BucketNotificationInteractive(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")

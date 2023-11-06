@@ -7,6 +7,7 @@ import (
 
 	"github.com/imdario/mergo"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/lwgenerate/aws"
@@ -102,12 +103,15 @@ This command can also be run in noninteractive mode.
 See help output for more details on the parameter value(s) required for Terraform code generation.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cli.Log.Debugw("run cmd", "state", GenerateAwsCommandState)
+
 			// Generate TF Code
 			cli.StartProgress("Generating Terraform Code...")
 
 			// Explicitly set Lacework profile if it was passed in main args
 			if cli.Profile != "default" {
 				GenerateAwsCommandState.LaceworkProfile = cli.Profile
+				cli.Log.Debugw("command state changed", "lacework_profile", cli.Profile)
 			}
 
 			// Setup modifiers for NewTerraform constructor
@@ -206,22 +210,18 @@ See help output for more details on the parameter value(s) required for Terrafor
 			}
 
 			// Validate aws profile, if passed
-			profile, err := cmd.Flags().GetString("aws_profile")
-			if err != nil {
-				return errors.Wrap(err, "failed to load command flags")
-			}
+			profile := viper.GetString("aws_profile")
 			if err := validateAwsProfile(profile); profile != "" && err != nil {
 				return err
 			}
+			GenerateAwsCommandState.AwsProfile = profile
 
 			// Validate aws region, if passed
-			region, err := cmd.Flags().GetString("aws_region")
-			if err != nil {
-				return errors.Wrap(err, "failed to load command flags")
-			}
+			region := viper.GetString("aws_region")
 			if err := validateAwsRegion(region); region != "" && err != nil {
 				return err
 			}
+			GenerateAwsCommandState.AwsRegion = region
 
 			// Validate cloudtrail bucket arn, if passed
 			arn, err := cmd.Flags().GetString("existing_bucket_arn")
@@ -359,11 +359,23 @@ func initGenerateAwsTfCommandFlags() {
 		"aws_region",
 		"",
 		"specify aws region")
+
+	// Bind the environment variable AWS_REGION
+	errcheckWARN(viper.BindPFlag("aws_region",
+		generateAwsTfCommand.PersistentFlags().Lookup("aws_region")))
+	errcheckWARN(viper.BindEnv("aws_region", "AWS_REGION"))
+
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.AwsProfile,
 		"aws_profile",
 		"",
 		"specify aws profile")
+
+	// Bind the environment variable AWS_PROFILE
+	errcheckWARN(viper.BindPFlag("aws_profile",
+		generateAwsTfCommand.PersistentFlags().Lookup("aws_profile")))
+	errcheckWARN(viper.BindEnv("aws_profile", "AWS_PROFILE"))
+
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.AwsAssumeRole,
 		"aws_assume_role",
