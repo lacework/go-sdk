@@ -69,7 +69,7 @@ var (
 	// AwsRegionRegex regex used for validating region input; note intentionally does not match gov cloud
 	AwsRegionRegex     = `(af|ap|ca|eu|me|sa|us)-(central|(north|south)?(east|west)?)-\d`
 	AwsProfileRegex    = `([A-Za-z_0-9-]+)`
-	AwsAssumeRoleRegex = `^arn:(aws|aws-us-gov|aws-cn):iam::\d{12}:role\/.*$`
+	AwsAssumeRoleRegex = `^arn:aws:iam::\d{12}:role\/.*$`
 
 	GenerateAwsCommandState      = &aws.GenerateAwsTfConfigurationArgs{}
 	GenerateAwsExistingRoleState = &aws.ExistingIamRoleDetails{}
@@ -512,7 +512,7 @@ func validateAwsProfile(val interface{}) error {
 
 // survey.Validator for aws profile
 func validateAwsAssumeRole(val interface{}) error {
-	return validateStringWithRegex(val, fmt.Sprintf(`^%s$`, AwsAssumeRoleRegex), "invalid assume name supplied")
+	return validateStringWithRegex(val, AwsAssumeRoleRegex, "invalid assume name supplied")
 }
 
 func promptAgentlessQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
