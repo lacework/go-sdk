@@ -50,7 +50,7 @@ func ParseNewQuery(s string) (NewQuery, error) {
 		return query, nil
 	}
 	// invalid query
-	return query, errors.New("unable to parse query ")
+	return query, errors.New("unable to parse the query")
 }
 
 type UpdateQuery struct {
