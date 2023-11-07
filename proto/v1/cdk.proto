@@ -18,6 +18,8 @@
 
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 // defines the go package that will be generated with protoc
 option go_package = "lacework/go-sdk/cli/cdk/proto/v1;cdk";
 
@@ -31,6 +33,12 @@ service Core {
 
   // Sends a Honeyvent
   rpc Honeyvent(HoneyventRequest) returns (Reply) {}
+
+  // Read from CLI cache
+  rpc ReadCache(ReadCacheRequest) returns (ReadCacheResponse) {}
+
+  // Write to CLI cache
+  rpc WriteCache(WriteCacheRequest) returns (WriteCacheResult) {}
 }
 
 message PingRequest {
@@ -52,3 +60,22 @@ message HoneyventRequest {
   int64 duration_ms = 4;
 }
 
+message WriteCacheRequest {
+  string key = 1;
+  bytes data = 2;
+  google.protobuf.Timestamp expires = 3;
+}
+
+message ReadCacheRequest {
+  string key = 1;
+}
+
+message ReadCacheResponse {
+  bool miss = 1;
+  optional bytes data = 2; // body is empty if cache miss
+}
+
+message WriteCacheResult {
+  bool success = 1;
+  optional string msg = 2; // error message is empty if success true
+}

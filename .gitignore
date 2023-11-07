@@ -33,3 +33,5 @@ override.tf.json
 *_override.tf.json
 *.terraform.lock.hcl
 
+# test component bin
+integration/test_resources/cdk/go-component/bin/*

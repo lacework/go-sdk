@@ -62,6 +62,33 @@ func (c *cliState) GrpcTarget() string {
 	return fmt.Sprintf("localhost:%v", c.cdkServerPort)
 }
 
+func (c *cliState) ReadCache(ctx context.Context, in *cdk.ReadCacheRequest) (*cdk.ReadCacheResponse, error) {
+	if in.Key == "" {
+		return nil, errors.New("cache key must be supplied")
+	}
+
+	var data []byte
+	if !c.ReadCachedAsset(in.Key, &data) { // not expired
+		return &cdk.ReadCacheResponse{Miss: false, Data: data}, nil
+	}
+	return &cdk.ReadCacheResponse{
+		Miss: true,
+	}, nil
+}
+
+func (c *cliState) WriteCache(ctx context.Context, in *cdk.WriteCacheRequest) (*cdk.WriteCacheResult, error) {
+	if in.Key == "" {
+		return nil, errors.New("cache key must be supplied")
+	}
+
+	err := c.writeAssetToCache(in.Key, in.Expires.AsTime(), in.Data)
+	if err != nil {
+		msg := err.Error()
+		return &cdk.WriteCacheResult{Success: false, Msg: &msg}, nil
+	}
+	return &cdk.WriteCacheResult{Success: true}, nil
+}
+
 // Ping implements CDK.Ping
 func (c *cliState) Ping(ctx context.Context, in *cdk.PingRequest) (*cdk.PongReply, error) {
 	c.Log.Debugw("message", "from", "CDK/Ping", "component_name", in.GetComponentName())

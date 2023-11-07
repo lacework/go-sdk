@@ -28,6 +28,7 @@ import (
 	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
 	"github.com/lacework/go-sdk/lwlogger"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var log = lwlogger.New("").Sugar()
@@ -104,6 +105,27 @@ func app() error {
 
 	case "fail":
 		return errors.New("Purposely failing...")
+
+	case "writecache":
+		r, err := cdkClient.WriteCache(context.Background(), &cdk.WriteCacheRequest{
+			Key:     "test_this_cache",
+			Data:    []byte("data data data"),
+			Expires: timestamppb.New(time.Now().Add(time.Hour * 1)),
+		})
+		if err != nil {
+			return err
+		}
+		if !r.Success {
+			return fmt.Errorf("failed to write to cache: %s", *r.Msg)
+		}
+		return nil
+
+	case "readcache":
+		r, _ := cdkClient.ReadCache(context.Background(), &cdk.ReadCacheRequest{
+			Key: "test_this_cache",
+		})
+		fmt.Println(string(r.Data))
+		return nil
 
 	default:
 		return help()
