@@ -30,7 +30,6 @@ import (
 
 type NewQuery struct {
 	QueryID       string `json:"queryId" yaml:"queryId"`
-//	QueryLanguage string `json:"queryLanguage" yaml:"queryLanguage"`
 	QueryText     string `json:"queryText" yaml:"queryText"`
 }
 
@@ -51,7 +50,7 @@ func ParseNewQuery(s string) (NewQuery, error) {
 		return query, nil
 	}
 	// invalid query
-	return query, errors.New("unable to parse query")
+	return query, errors.New("unable to parse query ")
 }
 
 type UpdateQuery struct {
