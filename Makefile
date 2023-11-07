@@ -158,6 +158,10 @@ run-api-example: ## Run an API example like 'make run-api-example example=api/_e
 		LW_SUBACCOUNT=$(shell lacework configure show subaccount) \
 		go run $(example)
 
+.PHONY: build
+build: ## Compiles binary for the running workstation
+	go build -o bin/lacework -ldflags=$(GO_LDFLAGS) github.com/lacework/go-sdk/cli
+
 .PHONY: build-cli-cross-platform
 build-cli-cross-platform: ## Compiles the Lacework CLI for all supported platforms
 	gox -output="bin/$(PACKAGENAME)-{{.OS}}-{{.Arch}}" \
