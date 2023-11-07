@@ -193,7 +193,7 @@ func TestCloudAccountsGcpSidekickUpdate(t *testing.T) {
 			assert.Contains(t, body, "GcpSidekick", "wrong cloud account type")
 			assert.Contains(t, body, gcpSidekickData.Credentials.ClientID, "wrong client ID")
 			assert.Contains(t, body, gcpSidekickData.Credentials.ClientEmail, "wrong client email")
-			assert.Contains(t, body, gcpSidekickData.SharedBucket, "wrong client email")
+			assert.Contains(t, body, gcpSidekickData.SharedBucket, "wrong shared bucket name")
 			assert.Contains(t, body, "enabled\":1", "cloud account is not enabled")
 		}
 

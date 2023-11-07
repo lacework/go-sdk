@@ -82,6 +82,6 @@ type AzureSidekickData struct {
 
 type AzureSidekickCredentials struct {
 	ClientID       string `json:"clientId"`
-	CredentialType string `json:"credentialType"`
-	ClientSecret   string `json:"clientSecret,omitempty"` // SharedCredentials or SharedAccess
+	ClientSecret   string `json:"clientSecret,omitempty"` 
+	CredentialType string `json:"credentialType"` // SharedCredentials or SharedAccess
 }
