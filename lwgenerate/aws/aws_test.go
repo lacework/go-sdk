@@ -25,10 +25,40 @@ func reqProviderAndRegion(extraInputs ...string) string {
 }
 
 func TestGenerationAgentless(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, true, false, false).Generate()
+	hcl, err := NewTerraform(
+		"us-east-2",
+		false,
+		true,
+		false,
+		false,
+		WithSubaccounts(
+			NewAwsSubAccount("subaccount1", "us-east-1"),
+			NewAwsSubAccount("subaccount2", "us-east-2"),
+		),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportAgentless), hcl)
+}
+
+func TestGenerationAgentlessOrganization(t *testing.T) {
+	hcl, err := NewTerraform(
+		"us-east-2",
+		true,
+		true,
+		false,
+		false,
+		WithAwsProfile("main"),
+		WithAgentlessManagementAccountID("123456789000"),
+		WithAgentlessMonitoredAccountIDs([]string{"123456789001", "ou-abcd-12345678"}),
+		WithSubaccounts(
+			NewAwsSubAccount("subaccount1", "us-east-1"),
+			NewAwsSubAccount("subaccount2", "us-east-2"),
+		),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, moduleImportAgentlessOrganization, hcl)
 }
 
 func TestGenerationCloudTrail(t *testing.T) {
@@ -56,11 +86,11 @@ func TestGenerationWithCustomAwsProfile(t *testing.T) {
 	)
 }
 
-func TestGenerationAgentlessAndConfigAndCloudtrail(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, true, true, true).Generate()
+func TestGenerationConfigAndCloudtrail(t *testing.T) {
+	hcl, err := NewTerraform("us-east-2", false, false, true, true).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProviderAndRegion(moduleImportConfig, moduleImportCtWithConfig, moduleImportAgentless), hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportConfig, moduleImportCtWithConfig), hcl)
 }
 
 func TestGenerationWithLaceworkProvider(t *testing.T) {
@@ -71,10 +101,17 @@ func TestGenerationWithLaceworkProvider(t *testing.T) {
 }
 
 func TestGenerationWithLaceworkAccountID(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, true, true, true, WithLaceworkAccountID("123456789")).Generate()
+	hcl, err := NewTerraform(
+		"us-east-2",
+		false,
+		false,
+		true,
+		true,
+		WithLaceworkAccountID("123456789"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProviderAndRegion(moduleImportConfigWithLaceworkAccountID, moduleImportCtWithLaceworkAccountID, moduleImportAgentless), hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportConfigWithLaceworkAccountID, moduleImportCtWithLaceworkAccountID), hcl)
 }
 
 func TestGenerationCloudtrailConsolidatedTrail(t *testing.T) {
@@ -259,7 +296,6 @@ func TestConsolidatedCtWithMultipleAccounts(t *testing.T) {
 	assert.Contains(t, strippedData, "providers={aws=aws.subaccount2}")
 	assert.Contains(t, strippedData, "provider\"aws\"{alias=\"subaccount2\"profile=\"subaccount2\"region=\"us-east-2\"}")
 	assert.Contains(t, strippedData, "module\"lacework_aws_agentless_scanning_global\"")
-	assert.Contains(t, strippedData, "module\"lacework_aws_agentless_scanning_region_subaccount1\"")
 	assert.Contains(t, strippedData, "module\"lacework_aws_agentless_scanning_region_subaccount2\"")
 }
 
@@ -421,11 +457,145 @@ var moduleImportCtWithAllEncryptionSet = `module "main_cloudtrail" {
 }
 `
 
-var moduleImportAgentless = `module "lacework_aws_agentless_scanning_global" {
+var moduleImportAgentless = `provider "aws" {
+  alias   = "subaccount1"
+  profile = "subaccount1"
+  region  = "us-east-1"
+}
+
+provider "aws" {
+  alias   = "subaccount2"
+  profile = "subaccount2"
+  region  = "us-east-2"
+}
+
+module "lacework_aws_agentless_scanning_global" {
   source   = "lacework/agentless-scanning/aws"
   version  = "~> 0.6"
   global   = true
   regional = true
+}
+
+module "lacework_aws_agentless_scanning_region_subaccount1" {
+  source                  = "lacework/agentless-scanning/aws"
+  version                 = "~> 0.6"
+  global_module_reference = module.lacework_aws_agentless_scanning_global
+  regional                = true
+
+  providers = {
+    aws = aws.subaccount1
+  }
+}
+
+module "lacework_aws_agentless_scanning_region_subaccount2" {
+  source                  = "lacework/agentless-scanning/aws"
+  version                 = "~> 0.6"
+  global_module_reference = module.lacework_aws_agentless_scanning_global
+  regional                = true
+
+  providers = {
+    aws = aws.subaccount2
+  }
+}
+`
+
+var moduleImportAgentlessOrganization = `terraform {
+  required_providers {
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 1.0"
+    }
+  }
+}
+
+provider "aws" {
+  alias   = "main"
+  profile = "main"
+  region  = "us-east-2"
+}
+
+provider "aws" {
+  alias   = "subaccount1"
+  profile = "subaccount1"
+  region  = "us-east-1"
+}
+
+provider "aws" {
+  alias   = "subaccount2"
+  profile = "subaccount2"
+  region  = "us-east-2"
+}
+
+module "lacework_aws_agentless_scanning_global" {
+  source  = "lacework/agentless-scanning/aws"
+  version = "~> 0.6"
+  global  = true
+  organization = {
+    management_account = "123456789000"
+    monitored_accounts = ["123456789001", "ou-abcd-12345678"]
+  }
+  regional = true
+
+  providers = {
+    aws = aws.subaccount1
+  }
+}
+
+module "lacework_aws_agentless_scanning_region_subaccount2" {
+  source                  = "lacework/agentless-scanning/aws"
+  version                 = "~> 0.6"
+  global_module_reference = module.lacework_aws_agentless_scanning_global
+  regional                = true
+
+  providers = {
+    aws = aws.subaccount2
+  }
+}
+
+module "lacework_aws_agentless_management_scanning_role" {
+  source                  = "lacework/agentless-scanning/aws"
+  version                 = "~> 0.6"
+  global_module_reference = module.lacework_aws_agentless_scanning_global
+  snapshot_role           = true
+
+  providers = {
+    aws = aws.main
+  }
+}
+
+resource "aws_cloudformation_stack_set" "snapshot_role" {
+  capabilities = ["CAPABILITY_NAMED_IAM"]
+  description  = "Lacework AWS Agentless Workload Scanning Organization Roles"
+  name         = "lacework-agentless-scanning-stackset"
+  parameters = {
+    ECSTaskRoleArn     = module.lacework_aws_agentless_scanning_global.agentless_scan_ecs_task_role_arn
+    ExternalId         = module.lacework_aws_agentless_scanning_global.external_id
+    ResourceNamePrefix = module.lacework_aws_agentless_scanning_global.prefix
+    ResourceNameSuffix = module.lacework_aws_agentless_scanning_global.suffix
+  }
+  permission_model = "SERVICE_MANAGED"
+  template_url     = "https://agentless-workload-scanner.s3.amazonaws.com/cloudformation-lacework/latest/snapshot-role.json"
+
+  provider = aws.main
+
+  auto_deployment {
+    enabled                          = true
+    retain_stacks_on_account_removal = false
+  }
+
+  lifecycle {
+    ignore_changes = [administration_role_arn]
+  }
+}
+
+resource "aws_cloudformation_stack_set_instance" "snapshot_role" {
+  stack_set_name = aws_cloudformation_stack_set.snapshot_role.name
+
+  provider = aws.main
+
+  deployment_targets {
+    organizational_unit_ids = ["ou-abcd-12345678"]
+  }
 }
 `
 
