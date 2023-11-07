@@ -29,8 +29,8 @@ import (
 )
 
 type NewQuery struct {
-	QueryID       string `json:"queryId" yaml:"queryId"`
-	QueryText     string `json:"queryText" yaml:"queryText"`
+	QueryID   string `json:"queryId" yaml:"queryId"`
+	QueryText string `json:"queryText" yaml:"queryText"`
 }
 
 func ParseNewQuery(s string) (NewQuery, error) {
