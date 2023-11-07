@@ -30,7 +30,7 @@ import (
 
 type NewQuery struct {
 	QueryID       string `json:"queryId" yaml:"queryId"`
-#	QueryLanguage string `json:"queryLanguage" yaml:"queryLanguage"`
+//	QueryLanguage string `json:"queryLanguage" yaml:"queryLanguage"`
 	QueryText     string `json:"queryText" yaml:"queryText"`
 }
 
