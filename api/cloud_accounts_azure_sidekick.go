@@ -18,11 +18,6 @@
 
 package api
 
-import (
-	"fmt"
-	"strings"
-)
-
 // GetAzureSidekick gets a single AzureSidekick integration matching the provided integration guid
 func (svc *CloudAccountsService) GetAzureSidekick(guid string) (
 	response AzureSidekickIntegrationResponse,
@@ -82,6 +77,6 @@ type AzureSidekickData struct {
 
 type AzureSidekickCredentials struct {
 	ClientID       string `json:"clientId"`
-	ClientSecret   string `json:"clientSecret,omitempty"` 
+	ClientSecret   string `json:"clientSecret,omitempty"`
 	CredentialType string `json:"credentialType"` // SharedCredentials or SharedAccess
 }

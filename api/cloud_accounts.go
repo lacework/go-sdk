@@ -97,6 +97,7 @@ const (
 	GcpCfgCloudAccount
 	GcpGkeAuditCloudAccount
 	GcpSidekickCloudAccount
+	AzureSidekickCloudAccount
 	GcpAlPubSubCloudAccount
 	OciCfgCloudAccount
 )
@@ -117,6 +118,7 @@ var CloudAccountTypes = map[cloudAccountType]string{
 	GcpCfgCloudAccount:         "GcpCfg",
 	GcpGkeAuditCloudAccount:    "GcpGkeAudit",
 	GcpSidekickCloudAccount:    "GcpSidekick",
+	AzureSidekickCloudAccount:  "AzureSidekick",
 	GcpAlPubSubCloudAccount:    "GcpAlPubSub",
 	OciCfgCloudAccount:         "OciCfg",
 }
