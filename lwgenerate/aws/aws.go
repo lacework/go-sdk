@@ -3,6 +3,7 @@ package aws
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/pkg/errors"
@@ -73,8 +74,20 @@ func NewAwsSubAccount(profile string, region string, alias ...string) AwsSubAcco
 }
 
 type GenerateAwsTfConfigurationArgs struct {
+	// Should we enable AWS organization integration?
+	AwsOrganization bool
+
 	// Should we configure Agentless integration in LW?
 	Agentless bool
+
+	// Agentless Management AWS account ID
+	AgentlessManagementAccountID string
+
+	// Agentless Monitored AWS account IDs, OUs, or the organization root.
+	AgentlessMonitoredAccountIDs []string
+
+	// Monitored AWS accounts
+	AgentlessMonitoredAccounts []AwsSubAccount
 
 	// Should we configure Cloudtrail integration in LW?
 	Cloudtrail bool
@@ -207,13 +220,19 @@ type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 //	hcl, err := aws.NewTerraform("us-east-1", true, true,
 //	  aws.WithAwsProfile("mycorp-profile")).Generate()
 func NewTerraform(
-	region string, enableAgentless bool, enableConfig bool, enableCloudtrail bool, mods ...AwsTerraformModifier,
+	region string,
+	enableAwsOrganization bool,
+	enableAgentless bool,
+	enableConfig bool,
+	enableCloudtrail bool,
+	mods ...AwsTerraformModifier,
 ) *GenerateAwsTfConfigurationArgs {
 	config := &GenerateAwsTfConfigurationArgs{
-		AwsRegion:  region,
-		Agentless:  enableAgentless,
-		Cloudtrail: enableCloudtrail,
-		Config:     enableConfig,
+		AwsRegion:       region,
+		AwsOrganization: enableAwsOrganization,
+		Agentless:       enableAgentless,
+		Cloudtrail:      enableCloudtrail,
+		Config:          enableConfig,
 	}
 	for _, m := range mods {
 		m(config)
@@ -246,6 +265,27 @@ func WithLaceworkProfile(name string) AwsTerraformModifier {
 func WithLaceworkAccountID(accountID string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.LaceworkAccountID = accountID
+	}
+}
+
+// WithAgentlessManagementAccountID Set Agentless management account ID
+func WithAgentlessManagementAccountID(accountID string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.AgentlessManagementAccountID = accountID
+	}
+}
+
+// WithAgentlessMonitoredAccountIDs Set Agentless monitored account IDs
+func WithAgentlessMonitoredAccountIDs(accountIDs []string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.AgentlessMonitoredAccountIDs = accountIDs
+	}
+}
+
+// WithAgentlessMonitoredAccounts Set Agentless monitored accounts
+func WithAgentlessMonitoredAccounts(accounts ...AwsSubAccount) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.AgentlessMonitoredAccounts = accounts
 	}
 }
 
@@ -437,11 +477,8 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 		}
 
 		if args.AwsProfile != "" {
-			attrs["profile"] = args.AwsProfile
-		}
-
-		if len(args.SubAccounts) > 0 {
 			attrs["alias"] = "main"
+			attrs["profile"] = args.AwsProfile
 		}
 
 		modifiers := []lwgenerate.HclProviderModifier{
@@ -468,8 +505,10 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 		blocks = append(blocks, provider)
 	}
 
-	if len(args.SubAccounts) > 0 {
-		for _, subaccount := range args.SubAccounts {
+	subaccounts := append(args.SubAccounts, args.AgentlessMonitoredAccounts...)
+
+	if len(subaccounts) > 0 {
+		for _, subaccount := range subaccounts {
 			attrs := map[string]interface{}{
 				"alias":   subaccount.AwsProfile,
 				"profile": subaccount.AwsProfile,
@@ -657,36 +696,52 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 
 	blocks := []*hclwrite.Block{}
 
-	// Add global module
-	globalModule, err := lwgenerate.NewModule(
-		"lacework_aws_agentless_scanning_global",
-		lwgenerate.AwsAgentlessSource,
-		lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-		lwgenerate.HclModuleWithAttributes(map[string]interface{}{"global": true, "regional": true}),
-	).ToBlock()
+	if args.AwsOrganization {
+		// Create Agenetless integration for organization
+		if len(args.SubAccounts) == 0 {
+			return nil, errors.New("must specify subaccounts as the scanninng accounts for Agentless organization integration")
+		}
 
-	if err != nil {
-		return nil, err
-	}
-
-	blocks = append(blocks, globalModule)
-
-	// Add region modules
-	for _, subaccount := range args.SubAccounts {
-		regionModule, err := lwgenerate.NewModule(
-			fmt.Sprintf("lacework_aws_agentless_scanning_region_%s", subaccount.AwsProfile),
+		// Add management module
+		managementModule, err := lwgenerate.NewModule(
+			"lacework_aws_agentless_management_scanning_role",
 			lwgenerate.AwsAgentlessSource,
 			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-			lwgenerate.HclModuleWithProviderDetails(map[string]string{
-				"aws": fmt.Sprintf("aws.%s", subaccount.AwsProfile),
+			lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
+			lwgenerate.HclModuleWithAttributes(map[string]interface{}{
+				"snapshot_role": true,
+				"global_module_reference": lwgenerate.CreateSimpleTraversal(
+					[]string{"module", "lacework_aws_agentless_scanning_global"},
+				),
 			}),
-			lwgenerate.HclModuleWithAttributes(
-				map[string]interface{}{
-					"regional": true,
-					"global_module_reference": lwgenerate.CreateSimpleTraversal(
-						[]string{"module", "lacework_aws_agentless_scanning_global"},
-					),
-				},
+		).ToBlock()
+
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, managementModule)
+
+		monitoredAccountIDs := []string{}
+		for _, accountID := range args.AgentlessMonitoredAccountIDs {
+			monitoredAccountIDs = append(monitoredAccountIDs, fmt.Sprintf("\"%s\"", accountID))
+		}
+
+		// Add global scanning module
+		globalModule, err := lwgenerate.NewModule(
+			"lacework_aws_agentless_scanning_global",
+			lwgenerate.AwsAgentlessSource,
+			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
+			lwgenerate.HclModuleWithAttributes(map[string]interface{}{
+				"global":   true,
+				"regional": true,
+				"organization": lwgenerate.CreateMapTraversalTokens(map[string]string{
+					"management_account": fmt.Sprintf("\"%s\"", args.AgentlessManagementAccountID),
+					"monitored_accounts": fmt.Sprintf("[%s]", strings.Join(monitoredAccountIDs, ", ")),
+				}),
+			}),
+			lwgenerate.HclModuleWithProviderDetails(
+				map[string]string{"aws": fmt.Sprintf("aws.%s", args.SubAccounts[0].AwsProfile)},
 			),
 		).ToBlock()
 
@@ -694,7 +749,189 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			return nil, err
 		}
 
-		blocks = append(blocks, regionModule)
+		blocks = append(blocks, globalModule)
+
+		// Add regional scanning modules
+		for _, subaccount := range args.SubAccounts[1:] {
+			regionModule, err := lwgenerate.NewModule(
+				fmt.Sprintf("lacework_aws_agentless_scanning_region_%s", subaccount.AwsProfile),
+				lwgenerate.AwsAgentlessSource,
+				lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
+				lwgenerate.HclModuleWithProviderDetails(map[string]string{
+					"aws": fmt.Sprintf("aws.%s", subaccount.AwsProfile),
+				}),
+				lwgenerate.HclModuleWithAttributes(
+					map[string]interface{}{
+						"regional": true,
+						"global_module_reference": lwgenerate.CreateSimpleTraversal(
+							[]string{"module", "lacework_aws_agentless_scanning_global"},
+						),
+					},
+				),
+			).ToBlock()
+
+			if err != nil {
+				return nil, err
+			}
+
+			blocks = append(blocks, regionModule)
+		}
+
+		// Add monitored modules
+		for _, monitoredAccount := range args.AgentlessMonitoredAccounts {
+			monitoredModule, err := lwgenerate.NewModule(
+				fmt.Sprintf("lacework_aws_agentless_monitored_scanning_role_%s", monitoredAccount.AwsProfile),
+				lwgenerate.AwsAgentlessSource,
+				lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
+				lwgenerate.HclModuleWithProviderDetails(map[string]string{
+					"aws": fmt.Sprintf("aws.%s", monitoredAccount.AwsProfile),
+				}),
+				lwgenerate.HclModuleWithAttributes(
+					map[string]interface{}{
+						"snapshot_role": true,
+						"global_module_reference": lwgenerate.CreateSimpleTraversal(
+							[]string{"module", "lacework_aws_agentless_scanning_global"},
+						),
+					},
+				),
+			).ToBlock()
+
+			if err != nil {
+				return nil, err
+			}
+
+			blocks = append(blocks, monitoredModule)
+		}
+
+		autoDeploymentBlock, err := lwgenerate.HclCreateGenericBlock(
+			"auto_deployment",
+			nil,
+			map[string]interface{}{"enabled": true, "retain_stacks_on_account_removal": false},
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		lifecycleBlock, err := lwgenerate.HclCreateGenericBlock(
+			"lifecycle",
+			nil,
+			map[string]interface{}{
+				"ignore_changes": lwgenerate.CreateSimpleTraversal([]string{"[administration_role_arn]"}),
+			},
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		stacksetResource, err := lwgenerate.NewResource(
+			"aws_cloudformation_stack_set",
+			"snapshot_role",
+			lwgenerate.HclResourceWithAttributesAndProviderDetails(
+				map[string]interface{}{
+					"capabilities":     lwgenerate.CreateSimpleTraversal([]string{"[\"CAPABILITY_NAMED_IAM\"]"}),
+					"description":      "Lacework AWS Agentless Workload Scanning Organization Roles",
+					"name":             "lacework-agentless-scanning-stackset",
+					"permission_model": "SERVICE_MANAGED",
+					"template_url": "https://agentless-workload-scanner.s3.amazonaws.com" +
+						"/cloudformation-lacework/latest/snapshot-role.json",
+					"parameters": lwgenerate.CreateMapTraversalTokens(map[string]string{
+						"ExternalId":         "module.lacework_aws_agentless_scanning_global.external_id",
+						"ECSTaskRoleArn":     "module.lacework_aws_agentless_scanning_global.agentless_scan_ecs_task_role_arn",
+						"ResourceNamePrefix": "module.lacework_aws_agentless_scanning_global.prefix",
+						"ResourceNameSuffix": "module.lacework_aws_agentless_scanning_global.suffix",
+					}),
+				},
+				[]string{"aws.main"},
+			),
+			lwgenerate.HclResourceWithGenericBlocks(autoDeploymentBlock, lifecycleBlock),
+		).ToResourceBlock()
+
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, stacksetResource)
+
+		// Get OU IDs for the organizational_unit_ids attribute
+		OUIDs := []string{}
+		for _, accountID := range args.AgentlessMonitoredAccountIDs {
+			if strings.HasPrefix(accountID, "ou-") {
+				OUIDs = append(OUIDs, fmt.Sprintf("\"%s\"", accountID))
+			}
+		}
+
+		deploymentTargetsBlock, err := lwgenerate.HclCreateGenericBlock(
+			"deployment_targets",
+			nil,
+			map[string]interface{}{"organizational_unit_ids": lwgenerate.CreateSimpleTraversal(
+				[]string{fmt.Sprintf("[%s]", strings.Join(OUIDs, ","))},
+			)},
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		stacksetInstanceResource, err := lwgenerate.NewResource(
+			"aws_cloudformation_stack_set_instance",
+			"snapshot_role",
+			lwgenerate.HclResourceWithAttributesAndProviderDetails(
+				map[string]interface{}{
+					"stack_set_name": lwgenerate.CreateSimpleTraversal(
+						[]string{"aws_cloudformation_stack_set", "snapshot_role", "name"},
+					),
+				},
+				[]string{"aws.main"},
+			),
+			lwgenerate.HclResourceWithGenericBlocks(deploymentTargetsBlock),
+		).ToResourceBlock()
+
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, stacksetInstanceResource)
+	} else {
+		// Create Agenetless integration for single account
+		globalModule, err := lwgenerate.NewModule(
+			"lacework_aws_agentless_scanning_global",
+			lwgenerate.AwsAgentlessSource,
+			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
+			lwgenerate.HclModuleWithAttributes(map[string]interface{}{"global": true, "regional": true}),
+		).ToBlock()
+
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, globalModule)
+
+		for _, subaccount := range args.SubAccounts {
+			regionModule, err := lwgenerate.NewModule(
+				fmt.Sprintf("lacework_aws_agentless_scanning_region_%s", subaccount.AwsProfile),
+				lwgenerate.AwsAgentlessSource,
+				lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
+				lwgenerate.HclModuleWithProviderDetails(map[string]string{
+					"aws": fmt.Sprintf("aws.%s", subaccount.AwsProfile),
+				}),
+				lwgenerate.HclModuleWithAttributes(
+					map[string]interface{}{
+						"regional": true,
+						"global_module_reference": lwgenerate.CreateSimpleTraversal(
+							[]string{"module", "lacework_aws_agentless_scanning_global"},
+						),
+					},
+				),
+			).ToBlock()
+
+			if err != nil {
+				return nil, err
+			}
+
+			blocks = append(blocks, regionModule)
+		}
 	}
 
 	return blocks, nil

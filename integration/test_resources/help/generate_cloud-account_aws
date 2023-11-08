@@ -25,35 +25,38 @@ Available Commands:
   controltower Generate and/or execute Terraform code for ControlTower integration
 
 Flags:
-      --agentless                             enable agentless integration
-      --apply                                 run terraform apply without executing plan or prompting
-      --aws_assume_role string                specify aws assume role
-      --aws_profile string                    specify aws profile
-      --aws_region string                     specify aws region
-      --aws_subaccount strings                configure an additional aws account; value format must be <aws profile>:<region>
-      --bucket_encryption_enabled             enable S3 bucket encryption when creating bucket (default true)
-      --bucket_name string                    specify bucket name when creating bucket
-      --bucket_sse_key_arn string             specify existing KMS encryption key arn for bucket
-      --cloudtrail                            enable cloudtrail integration
-      --cloudtrail_name string                specify name of cloudtrail integration
-      --config                                enable config integration
-      --config_name string                    specify name of config integration
-      --consolidated_cloudtrail               use consolidated trail
-      --existing_bucket_arn string            specify existing cloudtrail S3 bucket ARN
-      --existing_iam_role_arn string          specify existing iam role arn to use
-      --existing_iam_role_externalid string   specify existing iam role external_id to use
-      --existing_iam_role_name string         specify existing iam role name to use
-      --existing_sns_topic_arn string         specify existing SNS topic arn
-  -h, --help                                  help for aws
-      --lacework_aws_account_id string        the Lacework AWS root account id
-      --output string                         location to write generated content (default is ~/lacework/aws)
-      --sns_topic_encryption_enabled          enable encryption on SNS topic when creating one (default true)
-      --sns_topic_encryption_key_arn string   specify existing KMS encryption key arn for SNS topic
-      --sns_topic_name string                 specify SNS topic name if creating new one
-      --sqs_encryption_enabled                enable encryption on SQS queue when creating (default true)
-      --sqs_encryption_key_arn string         specify existing KMS encryption key arn for SQS queue
-      --sqs_queue_name string                 specify SQS queue name if creating new one
-      --use_s3_bucket_notification            enable S3 bucket notifications
+      --agentless                                 enable agentless integration
+      --agentless_management_account_id string    AWS management account ID for Agentless integration
+      --agentless_monitored_account_ids strings   AWS monitored account IDs for Agentless integrations
+      --apply                                     run terraform apply without executing plan or prompting
+      --aws_assume_role string                    specify aws assume role
+      --aws_organization                          enable organization integration
+      --aws_profile string                        specify aws profile
+      --aws_region string                         specify aws region
+      --aws_subaccount strings                    configure an additional aws account; value format must be <aws profile>:<region>
+      --bucket_encryption_enabled                 enable S3 bucket encryption when creating bucket (default true)
+      --bucket_name string                        specify bucket name when creating bucket
+      --bucket_sse_key_arn string                 specify existing KMS encryption key arn for bucket
+      --cloudtrail                                enable cloudtrail integration
+      --cloudtrail_name string                    specify name of cloudtrail integration
+      --config                                    enable config integration
+      --config_name string                        specify name of config integration
+      --consolidated_cloudtrail                   use consolidated trail
+      --existing_bucket_arn string                specify existing cloudtrail S3 bucket ARN
+      --existing_iam_role_arn string              specify existing iam role arn to use
+      --existing_iam_role_externalid string       specify existing iam role external_id to use
+      --existing_iam_role_name string             specify existing iam role name to use
+      --existing_sns_topic_arn string             specify existing SNS topic arn
+  -h, --help                                      help for aws
+      --lacework_aws_account_id string            the Lacework AWS root account id
+      --output string                             location to write generated content (default is ~/lacework/aws)
+      --sns_topic_encryption_enabled              enable encryption on SNS topic when creating one (default true)
+      --sns_topic_encryption_key_arn string       specify existing KMS encryption key arn for SNS topic
+      --sns_topic_name string                     specify SNS topic name if creating new one
+      --sqs_encryption_enabled                    enable encryption on SQS queue when creating (default true)
+      --sqs_encryption_key_arn string             specify existing KMS encryption key arn for SQS queue
+      --sqs_queue_name string                     specify SQS queue name if creating new one
+      --use_s3_bucket_notification                enable S3 bucket notifications
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
