@@ -702,12 +702,32 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			return nil, errors.New("must specify subaccounts as the scanninng accounts for Agentless organization integration")
 		}
 
+		// Add management module
+		managementModule, err := lwgenerate.NewModule(
+			"lacework_aws_agentless_management_scanning_role",
+			lwgenerate.AwsAgentlessSource,
+			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
+			lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
+			lwgenerate.HclModuleWithAttributes(map[string]interface{}{
+				"snapshot_role": true,
+				"global_module_reference": lwgenerate.CreateSimpleTraversal(
+					[]string{"module", "lacework_aws_agentless_scanning_global"},
+				),
+			}),
+		).ToBlock()
+
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, managementModule)
+
 		monitoredAccountIDs := []string{}
 		for _, accountID := range args.AgentlessMonitoredAccountIDs {
 			monitoredAccountIDs = append(monitoredAccountIDs, fmt.Sprintf("\"%s\"", accountID))
 		}
 
-		// Add global module
+		// Add global scanning module
 		globalModule, err := lwgenerate.NewModule(
 			"lacework_aws_agentless_scanning_global",
 			lwgenerate.AwsAgentlessSource,
@@ -731,7 +751,7 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 
 		blocks = append(blocks, globalModule)
 
-		// Add region modules
+		// Add regional scanning modules
 		for _, subaccount := range args.SubAccounts[1:] {
 			regionModule, err := lwgenerate.NewModule(
 				fmt.Sprintf("lacework_aws_agentless_scanning_region_%s", subaccount.AwsProfile),
@@ -768,7 +788,7 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 				}),
 				lwgenerate.HclModuleWithAttributes(
 					map[string]interface{}{
-						"regional": true,
+						"snapshot_role": true,
 						"global_module_reference": lwgenerate.CreateSimpleTraversal(
 							[]string{"module", "lacework_aws_agentless_scanning_global"},
 						),
@@ -782,26 +802,6 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 
 			blocks = append(blocks, monitoredModule)
 		}
-
-		// Add management module
-		managementModule, err := lwgenerate.NewModule(
-			"lacework_aws_agentless_management_scanning_role",
-			lwgenerate.AwsAgentlessSource,
-			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-			lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
-			lwgenerate.HclModuleWithAttributes(map[string]interface{}{
-				"snapshot_role": true,
-				"global_module_reference": lwgenerate.CreateSimpleTraversal(
-					[]string{"module", "lacework_aws_agentless_scanning_global"},
-				),
-			}),
-		).ToBlock()
-
-		if err != nil {
-			return nil, err
-		}
-
-		blocks = append(blocks, managementModule)
 
 		autoDeploymentBlock, err := lwgenerate.HclCreateGenericBlock(
 			"auto_deployment",
