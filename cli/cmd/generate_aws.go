@@ -22,6 +22,10 @@ var (
 		"(e.g. 123456789000,ou-abcd-12345678,r-abcd):"
 	QuestionAgentlessMonitoredAccountIDsHelp = "Please provide a comma seprated list that may " +
 		" contain account IDs, OUs, or the organization root."
+	QuestionAgentlessMonitoredAccountProfile  = "Specify monitored AWS account profile name:"
+	QuestionAgentlessMonitoredAccountRegion   = "Specify monitored AWS account region:"
+	QuestionAgentlessMonitoredAccountAddMore  = "Add another monitored AWS account?"
+	QuestionAgentlessMonitoredAccountsReplace = "Currently configured Agentless monitored accounts: %s, replace?"
 
 	QuestionAwsEnableConfig             = "Enable configuration integration?"
 	QuestionCustomizeConfigName         = "Customize Config integration name?"
@@ -127,6 +131,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithLaceworkAccountID(GenerateAwsCommandState.LaceworkAccountID),
 				aws.WithAgentlessManagementAccountID(GenerateAwsCommandState.AgentlessManagementAccountID),
 				aws.WithAgentlessMonitoredAccountIDs(GenerateAwsCommandState.AgentlessMonitoredAccountIDs),
+				aws.WithAgentlessMonitoredAccounts(GenerateAwsCommandState.AgentlessMonitoredAccounts...),
 				aws.ExistingCloudtrailBucketArn(GenerateAwsCommandState.ExistingCloudtrailBucketArn),
 				aws.ExistingSnsTopicArn(GenerateAwsCommandState.ExistingSnsTopicArn),
 				aws.WithSubaccounts(GenerateAwsCommandState.SubAccounts...),
@@ -567,10 +572,7 @@ func validateAwsAssumeRole(val interface{}) error {
 	return validateStringWithRegex(val, AwsAssumeRoleRegex, "invalid assume name supplied")
 }
 
-func promptAgentlessQuestions(
-	config *aws.GenerateAwsTfConfigurationArgs,
-	extraState *AwsGenerateCommandExtraState,
-) error {
+func promptAgentlessQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Prompt: &survey.Confirm{
@@ -583,6 +585,8 @@ func promptAgentlessQuestions(
 		return err
 	}
 
+	askAgain := true
+	monitoredAccounts := []aws.AwsSubAccount{}
 	monitoredAccountIDsInput := ""
 
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
@@ -622,6 +626,67 @@ func promptAgentlessQuestions(
 
 	if monitoredAccountIDsInput != "" {
 		config.AgentlessMonitoredAccountIDs = strings.Split(monitoredAccountIDsInput, ",")
+	}
+
+	// If there are existing monitored accounts configured (i.e., from the CLI),
+	// display them and ask if they want to add more
+	if len(config.AgentlessMonitoredAccounts) > 0 {
+		accountListing := []string{}
+		for _, account := range config.AgentlessMonitoredAccounts {
+			accountListing = append(
+				accountListing,
+				fmt.Sprintf("%s:%s", account.AwsProfile, account.AwsRegion),
+			)
+		}
+
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Prompt: &survey.Confirm{
+				Message: fmt.Sprintf(
+					QuestionAgentlessMonitoredAccountsReplace,
+					strings.Trim(strings.Join(strings.Fields(fmt.Sprint(accountListing)), ", "), "[]"),
+				),
+			},
+			Response: &askAgain}); err != nil {
+			return err
+		}
+	}
+
+	for askAgain && config.AwsOrganization {
+		var profile string
+		var region string
+
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Prompt:   &survey.Input{Message: QuestionAgentlessMonitoredAccountProfile},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
+				Required: true,
+				Response: &profile,
+			},
+			{
+				Prompt:   &survey.Input{Message: QuestionAgentlessMonitoredAccountRegion},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
+				Required: true,
+				Response: &region,
+			},
+		}); err != nil {
+			return err
+		}
+
+		monitoredAccounts = append(
+			monitoredAccounts,
+			aws.AwsSubAccount{AwsProfile: profile, AwsRegion: region})
+
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Prompt:   &survey.Confirm{Message: QuestionAgentlessMonitoredAccountAddMore},
+			Response: &askAgain,
+		}); err != nil {
+			return err
+		}
+	}
+
+	// If we created new accounts, re-write config
+	if len(monitoredAccounts) > 0 {
+		config.AgentlessMonitoredAccounts = monitoredAccounts
 	}
 
 	return nil
@@ -946,7 +1011,7 @@ func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraStat
 		// Based on response, prompt for actions
 		switch answer {
 		case AdvancedOptAgentless:
-			if err := promptAgentlessQuestions(config, extraState); err != nil {
+			if err := promptAgentlessQuestions(config); err != nil {
 				return err
 			}
 		case AdvancedOptCloudTrail:

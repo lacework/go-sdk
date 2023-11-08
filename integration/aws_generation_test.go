@@ -951,6 +951,12 @@ func TestGenerationAgentlessOrganization(t *testing.T) {
 				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "main"},
 				MsgRsp{cmd.QuestionAgentlessManagementAccountID, "123456789000"},
 				MsgRsp{cmd.QuestionAgentlessMonitoredAccountIDs, "123456789000,ou-abcd-12345678,r-abcd"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountProfile, "monitored-account-1"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountRegion, "us-west-2"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountAddMore, "y"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountProfile, "monitored-account-2"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountRegion, "us-east-1"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountAddMore, "n"},
 				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "y"},
 				MsgMenu{cmd.AwsAdvancedOptDone, 1},
 				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "main"},
@@ -979,7 +985,14 @@ func TestGenerationAgentlessOrganization(t *testing.T) {
 		aws.WithAwsProfile("main"),
 		aws.WithAgentlessManagementAccountID("123456789000"),
 		aws.WithAgentlessMonitoredAccountIDs([]string{"123456789000", "ou-abcd-12345678", "r-abcd"}),
-		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
+		aws.WithAgentlessMonitoredAccounts(
+			aws.NewAwsSubAccount("monitored-account-1", "us-west-2"),
+			aws.NewAwsSubAccount("monitored-account-2", "us-east-1"),
+		),
+		aws.WithSubaccounts(
+			aws.NewAwsSubAccount("account1", "us-east-1"),
+			aws.NewAwsSubAccount("account2", "us-east-2"),
+		),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }

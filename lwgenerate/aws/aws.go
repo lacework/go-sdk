@@ -86,6 +86,9 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Agentless Monitored AWS account IDs, OUs, or the organization root.
 	AgentlessMonitoredAccountIDs []string
 
+	// Monitored AWS accounts
+	AgentlessMonitoredAccounts []AwsSubAccount
+
 	// Should we configure Cloudtrail integration in LW?
 	Cloudtrail bool
 
@@ -276,6 +279,13 @@ func WithAgentlessManagementAccountID(accountID string) AwsTerraformModifier {
 func WithAgentlessMonitoredAccountIDs(accountIDs []string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.AgentlessMonitoredAccountIDs = accountIDs
+	}
+}
+
+// WithAgentlessMonitoredAccounts Set Agentless monitored accounts
+func WithAgentlessMonitoredAccounts(accounts ...AwsSubAccount) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.AgentlessMonitoredAccounts = accounts
 	}
 }
 
@@ -495,8 +505,10 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 		blocks = append(blocks, provider)
 	}
 
-	if len(args.SubAccounts) > 0 {
-		for _, subaccount := range args.SubAccounts {
+	subaccounts := append(args.SubAccounts, args.AgentlessMonitoredAccounts...)
+
+	if len(subaccounts) > 0 {
+		for _, subaccount := range subaccounts {
 			attrs := map[string]interface{}{
 				"alias":   subaccount.AwsProfile,
 				"profile": subaccount.AwsProfile,
@@ -743,6 +755,32 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			}
 
 			blocks = append(blocks, regionModule)
+		}
+
+		// Add monitored modules
+		for _, monitoredAccount := range args.AgentlessMonitoredAccounts {
+			monitoredModule, err := lwgenerate.NewModule(
+				fmt.Sprintf("lacework_aws_agentless_monitored_scanning_role_%s", monitoredAccount.AwsProfile),
+				lwgenerate.AwsAgentlessSource,
+				lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
+				lwgenerate.HclModuleWithProviderDetails(map[string]string{
+					"aws": fmt.Sprintf("aws.%s", monitoredAccount.AwsProfile),
+				}),
+				lwgenerate.HclModuleWithAttributes(
+					map[string]interface{}{
+						"regional": true,
+						"global_module_reference": lwgenerate.CreateSimpleTraversal(
+							[]string{"module", "lacework_aws_agentless_scanning_global"},
+						),
+					},
+				),
+			).ToBlock()
+
+			if err != nil {
+				return nil, err
+			}
+
+			blocks = append(blocks, monitoredModule)
 		}
 
 		// Add management module
