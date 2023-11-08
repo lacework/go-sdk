@@ -51,6 +51,9 @@ func TestGenerationAgentlessOrganization(t *testing.T) {
 		WithAwsProfile("main"),
 		WithAgentlessManagementAccountID("123456789000"),
 		WithAgentlessMonitoredAccountIDs([]string{"123456789001", "ou-abcd-12345678"}),
+		WithAgentlessMonitoredAccounts(
+			NewAwsSubAccount("monitored-account-1", "us-west-2"),
+		),
 		WithSubaccounts(
 			NewAwsSubAccount("subaccount1", "us-east-1"),
 			NewAwsSubAccount("subaccount2", "us-east-2"),
@@ -526,6 +529,23 @@ provider "aws" {
   region  = "us-east-2"
 }
 
+provider "aws" {
+  alias   = "monitored-account-1"
+  profile = "monitored-account-1"
+  region  = "us-west-2"
+}
+
+module "lacework_aws_agentless_management_scanning_role" {
+  source                  = "lacework/agentless-scanning/aws"
+  version                 = "~> 0.6"
+  global_module_reference = module.lacework_aws_agentless_scanning_global
+  snapshot_role           = true
+
+  providers = {
+    aws = aws.main
+  }
+}
+
 module "lacework_aws_agentless_scanning_global" {
   source  = "lacework/agentless-scanning/aws"
   version = "~> 0.6"
@@ -552,14 +572,14 @@ module "lacework_aws_agentless_scanning_region_subaccount2" {
   }
 }
 
-module "lacework_aws_agentless_management_scanning_role" {
+module "lacework_aws_agentless_monitored_scanning_role_monitored-account-1" {
   source                  = "lacework/agentless-scanning/aws"
   version                 = "~> 0.6"
   global_module_reference = module.lacework_aws_agentless_scanning_global
   snapshot_role           = true
 
   providers = {
-    aws = aws.main
+    aws = aws.monitored-account-1
   }
 }
 
