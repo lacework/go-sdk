@@ -32,34 +32,32 @@ import (
 // These two objects are used to test Create, Get and Update operations.
 var (
 	azureSidekickData = api.AzureSidekickData{
-		IntegrationType:         "SUBSCRIPTION",
-		SubscriptionId:          "54321",
+		IntegrationLevel:        "SUBSCRIPTION",
+		ScanningSubscriptionId:  "54321",
 		TenantId:                "98765",
 		BlobContainerName:       "blobContainer",
 		ScanFrequency:           24,
 		ScanContainers:          true,
 		ScanHostVulnerabilities: true,
 		Credentials: api.AzureSidekickCredentials{
-			ClientID:       "Client123",
-			CredentialType: "SharedCredentials",
-			ClientSecret:   "Secret",
+			ClientID:     "Client123",
+			ClientSecret: "Secret",
 		},
 		SubscriptionList: "sub1,sub2",
 		QueryText:        "queryText",
 	}
 
 	azureUpdatedSidekickData = api.AzureSidekickData{
-		IntegrationType:         "SUBSCRIPTION",
-		SubscriptionId:          "updated-54321",
+		IntegrationLevel:        "SUBSCRIPTION",
+		ScanningSubscriptionId:  "updated-54321",
 		TenantId:                "updated-98765",
 		BlobContainerName:       "updated-blobContainer",
 		ScanFrequency:           12,
 		ScanContainers:          false,
 		ScanHostVulnerabilities: true,
 		Credentials: api.AzureSidekickCredentials{
-			ClientID:       "updated-Client123",
-			CredentialType: "SharedAccess",
-			ClientSecret:   "updated-Secret",
+			ClientID:     "updated-Client123",
+			ClientSecret: "updated-Secret",
 		},
 		SubscriptionList: "updated-sub1,sub2",
 		QueryText:        "updated-queryText",
@@ -73,8 +71,8 @@ func TestCloudAccountsAzureSidekickCreate(t *testing.T) {
 	// casting the data interface{} to type AzureSidekickData
 	integrationData := integration.Data.(api.AzureSidekickData)
 
-	assert.Equal(t, integrationData.IntegrationType, "SUBSCRIPTION")
-	assert.Equal(t, integrationData.SubscriptionId, "54321")
+	assert.Equal(t, integrationData.IntegrationLevel, "SUBSCRIPTION")
+	assert.Equal(t, integrationData.ScanningSubscriptionId, "54321")
 	assert.Equal(t, integrationData.TenantId, "98765")
 	assert.Equal(t, integrationData.BlobContainerName, "blobContainer")
 	assert.Equal(t, integrationData.ScanFrequency, 24)
@@ -83,7 +81,6 @@ func TestCloudAccountsAzureSidekickCreate(t *testing.T) {
 
 	assert.Equal(t, integrationData.Credentials.ClientID, "Client123")
 	assert.Equal(t, integrationData.Credentials.ClientSecret, "Secret")
-	assert.Equal(t, integrationData.Credentials.CredentialType, "SharedCredentials")
 }
 
 func TestCloudAccountsAzureSidekickGet(t *testing.T) {
@@ -116,8 +113,8 @@ func TestCloudAccountsAzureSidekickGet(t *testing.T) {
 	assert.True(t, integration.State.Ok)
 
 	integrationData := integration.Data
-	assert.Equal(t, "SUBSCRIPTION", integrationData.IntegrationType)
-	assert.Equal(t, "54321", integrationData.SubscriptionId)
+	assert.Equal(t, "SUBSCRIPTION", integrationData.IntegrationLevel)
+	assert.Equal(t, "54321", integrationData.ScanningSubscriptionId)
 	assert.Equal(t, "98765", integrationData.TenantId)
 	assert.Equal(t, "blobContainer", integrationData.BlobContainerName)
 	assert.Equal(t, 24, integrationData.ScanFrequency)
@@ -125,7 +122,6 @@ func TestCloudAccountsAzureSidekickGet(t *testing.T) {
 	assert.Equal(t, true, integrationData.ScanHostVulnerabilities)
 	assert.Equal(t, "Client123", integrationData.Credentials.ClientID)
 	assert.Equal(t, "Secret", integrationData.Credentials.ClientSecret)
-	assert.Equal(t, "SharedCredentials", integrationData.Credentials.CredentialType)
 	assert.Equal(t, "sub1,sub2", integrationData.SubscriptionList)
 	assert.Equal(t, "queryText", integrationData.QueryText)
 	assert.Equal(t, "token_"+integration.IntgGuid, integration.ServerToken)
@@ -173,8 +169,8 @@ func TestCloudAccountsAzureSidekickUpdate(t *testing.T) {
 	assert.Equal(t, "integration_test", cloudAccount.Name)
 	assert.Equal(t, "AzureSidekick", cloudAccount.Type)
 	assert.Equal(t, 1, cloudAccount.Enabled)
-	assert.Equal(t, "SUBSCRIPTION", integrationData.IntegrationType)
-	assert.Equal(t, "54321", integrationData.SubscriptionId)
+	assert.Equal(t, "SUBSCRIPTION", integrationData.IntegrationLevel)
+	assert.Equal(t, "54321", integrationData.ScanningSubscriptionId)
 	assert.Equal(t, "98765", integrationData.TenantId)
 	assert.Equal(t, "blobContainer", integrationData.BlobContainerName)
 	assert.Equal(t, 24, integrationData.ScanFrequency)
@@ -182,7 +178,6 @@ func TestCloudAccountsAzureSidekickUpdate(t *testing.T) {
 	assert.Equal(t, true, integrationData.ScanHostVulnerabilities)
 	assert.Equal(t, "Client123", integrationData.Credentials.ClientID)
 	assert.Equal(t, "Secret", integrationData.Credentials.ClientSecret)
-	assert.Equal(t, "SharedCredentials", integrationData.Credentials.CredentialType)
 	assert.Equal(t, "sub1,sub2", integrationData.SubscriptionList)
 	assert.Equal(t, "queryText", integrationData.QueryText)
 
@@ -198,8 +193,8 @@ func TestCloudAccountsAzureSidekickUpdate(t *testing.T) {
 	assert.Equal(t, "integration_test", cloudAccount.Name)
 	assert.Equal(t, "AzureSidekick", cloudAccount.Type)
 	assert.Equal(t, 1, cloudAccount.Enabled)
-	assert.Equal(t, "SUBSCRIPTION", integrationData.IntegrationType)
-	assert.Equal(t, "updated-54321", integrationData.SubscriptionId)
+	assert.Equal(t, "SUBSCRIPTION", integrationData.IntegrationLevel)
+	assert.Equal(t, "updated-54321", integrationData.ScanningSubscriptionId)
 	assert.Equal(t, "updated-98765", integrationData.TenantId)
 	assert.Equal(t, "updated-blobContainer", integrationData.BlobContainerName)
 	assert.Equal(t, 12, integrationData.ScanFrequency)
@@ -207,7 +202,6 @@ func TestCloudAccountsAzureSidekickUpdate(t *testing.T) {
 	assert.Equal(t, true, integrationData.ScanHostVulnerabilities)
 	assert.Equal(t, "updated-Client123", integrationData.Credentials.ClientID)
 	assert.Equal(t, "updated-Secret", integrationData.Credentials.ClientSecret)
-	assert.Equal(t, "SharedAccess", integrationData.Credentials.CredentialType)
 	assert.Equal(t, "updated-sub1,sub2", integrationData.SubscriptionList)
 	assert.Equal(t, "updated-queryText", integrationData.QueryText)
 }
@@ -237,11 +231,10 @@ func getAzureData(id string, data api.AzureSidekickData) string {
   	"data": {
   		"credentials": {
   			"clientId": "` + data.Credentials.ClientID + `",
-  			"clientSecret": "` + data.Credentials.ClientSecret + `",
-  			"credentialType": "` + data.Credentials.CredentialType + `"
+  			"clientSecret": "` + data.Credentials.ClientSecret + `"
   		},
-  		"integrationType": "` + data.IntegrationType + `",
-  		"subscriptionId": "` + data.SubscriptionId + `",
+  		"integrationLevel": "` + data.IntegrationLevel + `",
+  		"scanningSubscriptionId": "` + data.ScanningSubscriptionId + `",
   		"tenantId":  "` + data.TenantId + `",
   		"blobContainerName": "` + data.BlobContainerName + `",
   		"subscriptionList": "` + data.SubscriptionList + `",

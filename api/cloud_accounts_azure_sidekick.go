@@ -4,7 +4,7 @@
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
+// you may not use this file except in compliance with the License.n
 // You may obtain a copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
@@ -62,8 +62,8 @@ type V2AzureSidekickIntegration struct {
 
 type AzureSidekickData struct {
 	Credentials             AzureSidekickCredentials `json:"credentials"`
-	IntegrationType         string                   `json:"integrationType"` // SUBSCRIPTION or TENANT
-	SubscriptionId          string                   `json:"subscriptionId"`
+	IntegrationLevel        string                   `json:"integrationLevel"` // SUBSCRIPTION or TENANT
+	ScanningSubscriptionId  string                   `json:"scanningSubscriptionId"`
 	TenantId                string                   `json:"tenantId"`
 	BlobContainerName       string                   `json:"blobContainerName"`
 	SubscriptionList        string                   `json:"subscriptionList,omitempty"`
@@ -76,7 +76,6 @@ type AzureSidekickData struct {
 }
 
 type AzureSidekickCredentials struct {
-	ClientID       string `json:"clientId"`
-	ClientSecret   string `json:"clientSecret,omitempty"`
-	CredentialType string `json:"credentialType"` // SharedCredentials or SharedAccess
+	ClientID     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret,omitempty"`
 }
