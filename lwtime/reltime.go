@@ -70,19 +70,15 @@ func mondays(year int) (mondays []relativeDate) {
 type relativeUnit string
 
 const (
-	relativeRE              = `^([+-])?(?:(\d+)(\w+))?(?:@(\w+))?$`
-	Year       relativeUnit = "y"
-	Month      relativeUnit = "mon"
-	Week       relativeUnit = "w"
-	Day        relativeUnit = "d"
-	Hour       relativeUnit = "h"
-	Minute     relativeUnit = "m"
-	Second     relativeUnit = "s"
-)
-
-const (
-	HoursInAYear = 8760
-	HoursInADay  = 24
+	relativeRE               = `^([+-])?(?:(\d+)(\w+))?(?:@(\w+))?$`
+	Year        relativeUnit = "y"
+	Month       relativeUnit = "mon"
+	Week        relativeUnit = "w"
+	Day         relativeUnit = "d"
+	Hour        relativeUnit = "h"
+	Minute      relativeUnit = "m"
+	Second      relativeUnit = "s"
+	HoursInADay              = 24
 )
 
 func (ru relativeUnit) isValid() bool {
@@ -182,10 +178,6 @@ func newRelative(s string) (relative, error) {
 	switch rel.unit {
 	case relativeUnit(""):
 		rel.unit = Second
-	case Year:
-		rel.iNum = rel.iNum * HoursInAYear
-		rel.num = strconv.Itoa(rel.iNum)
-		rel.unit = Hour
 	case Week:
 		rel.iNum = rel.iNum * 7 * HoursInADay
 		rel.num = strconv.Itoa(rel.iNum)
