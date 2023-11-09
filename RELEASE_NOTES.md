@@ -1,16 +1,17 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.37.0`.
+Another day, another release. These are the release notes for the version `v1.38.0`.
 
 ## Features
-* feat(cdk): expose LW_PROFILE to components (#1430) (Salim Afiune)([23d67a6e](https://github.com/lacework/go-sdk/commit/23d67a6e80cb3d73d0bf2fd72394a55d6fa71ea9))
-* feat(GROW-2487): v1 component commands (#1428) (jonathan stewart)([f44bf6fd](https://github.com/lacework/go-sdk/commit/f44bf6fd16c395f01a6bbd28ea263679774ee271))
+* feat(PSP-1220): add new cloud account type for Azure Agentless integration (#1443) (AoZhang)([1bea0128](https://github.com/lacework/go-sdk/commit/1bea012813e775ae22c76fa2dc0f8f42a0da16a6))
+* feat: support Agentless origanization integration with auto snapshot (#1424) (Pengyuan Zhao)([6084c103](https://github.com/lacework/go-sdk/commit/6084c103c6c92d75b2a725c8e1a3961d5b01e51e))
+* feat(Makefile): build CLI simpler & faster (Salim Afiune Maya)([d5969abb](https://github.com/lacework/go-sdk/commit/d5969abbff31168e7efb646bd1e58d86add46bf0))
 ## Bug Fixes
-* fix(GROW-2556): enable azure storage account infra encryption (#1431) (Matt Cadorette)([fa93e65f](https://github.com/lacework/go-sdk/commit/fa93e65f231165f5002501d93697e7e70f358cf7))
-* fix(ci): windows integration tests (#1427) (Salim Afiune)([32ce177f](https://github.com/lacework/go-sdk/commit/32ce177f0860af5c7d45f5df5e4ae288faa9f815))
+* fix(lwtime): fix issues related to daylight savings (#1444) (hazedav)([755a47af](https://github.com/lacework/go-sdk/commit/755a47afcaed1b50106a4ac46805ab9d3fbb5ed8))
+* fix(component): List installed version instead of latest (Salim Afiune Maya)([d92b2af6](https://github.com/lacework/go-sdk/commit/d92b2af66009b6692f9bd3ddcb2f6f069d788eb6))
 ## Other Changes
-* chore: use AlertRule subCategory in stead of eventCategory (#1429) (Pengyuan Zhao)([9df44a20](https://github.com/lacework/go-sdk/commit/9df44a200215d86841cd4c720f007ed11b9a8c99))
-* chore(deps): bump github.com/cloudflare/circl from 1.1.0 to 1.3.3 (#1273) (dependabot[bot])([d6d09fcf](https://github.com/lacework/go-sdk/commit/d6d09fcface0a73e15f8ff0a30ac859600e5021a))
-* ci: version bump to v1.36.1-dev (Lacework)([e8d0df90](https://github.com/lacework/go-sdk/commit/e8d0df901a05bfb6873d133658c4d278bbcdee16))
+* chore: Implement --aws_assume_role flag for CLI aws integration (#1434) (Pengyuan Zhao)([a6bcd7f9](https://github.com/lacework/go-sdk/commit/a6bcd7f98776725cc4a06af3a4933cb958801522))
+* build(release): fix chocolately release action (#1440) (Timothy MacDonald)([554f9742](https://github.com/lacework/go-sdk/commit/554f97421b5c720317aae068628fa28f9e5d2613))
+* ci: version bump to v1.37.1-dev (Lacework)([ad406eaf](https://github.com/lacework/go-sdk/commit/ad406eaf329eda76bec39da65adb97d6ceceec78))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
