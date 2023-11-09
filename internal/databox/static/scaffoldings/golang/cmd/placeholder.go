@@ -20,6 +20,7 @@ package cmd
 import (
 	"fmt"
 
+	"[[.Component]]/internal/cdk"
 	"github.com/spf13/cobra"
 )
 
@@ -37,5 +38,5 @@ var (
 
 func init() {
 	// add the placeholder command
-	rootCmd.AddCommand(placeholderCmd)
+	cdk.RootCmd.AddCommand(placeholderCmd)
 }
