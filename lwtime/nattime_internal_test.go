@@ -19,7 +19,6 @@
 package lwtime
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -386,14 +385,10 @@ func TestDaylightSavings(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	startTime, endTime, err := parseNaturalFromTime("Last 7 days", refTime)
+	startTime, _, err := parseNaturalFromTime("Last 7 days", refTime)
 	if err != nil {
 		assert.FailNow(t, err.Error())
 	}
-	fmt.Println(endTime.UTC())
-
-	diff := endTime.Sub(startTime)
-	fmt.Println(diff.Hours())
 
 	assert.Equal(t, "2023-10-31 22:17:43 +0000 UTC", startTime.UTC().String())
 }
