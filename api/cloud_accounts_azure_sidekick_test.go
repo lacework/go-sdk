@@ -32,15 +32,15 @@ import (
 // These two objects are used to test Create, Get and Update operations.
 var (
 	azureSidekickData = api.AzureSidekickData{
-		IntegrationLevel:        "SUBSCRIPTION",
-		ScanningSubscriptionId:  "54321",
-		TenantId:                "98765",
-		BlobContainerName:       "blobContainer",
-		ScanningResourceGroupId: "xxxx-xxxx",
-		StorageAccountUrl:       "https://abc.blob.core.windows.net",
-		ScanFrequency:           24,
-		ScanContainers:          true,
-		ScanHostVulnerabilities: true,
+		IntegrationLevel:          "SUBSCRIPTION",
+		ScanningSubscriptionId:    "54321",
+		TenantId:                  "98765",
+		BlobContainerName:         "blobContainer",
+		ScanningResourceGroupName: "xxxx-xxxx",
+		StorageAccountUrl:         "https://abc.blob.core.windows.net",
+		ScanFrequency:             24,
+		ScanContainers:            true,
+		ScanHostVulnerabilities:   true,
 		Credentials: api.AzureSidekickCredentials{
 			ClientId:     "Client123",
 			ClientSecret: "Secret",
@@ -50,15 +50,15 @@ var (
 	}
 
 	azureUpdatedSidekickData = api.AzureSidekickData{
-		IntegrationLevel:        "SUBSCRIPTION",
-		ScanningSubscriptionId:  "updated-54321",
-		TenantId:                "updated-98765",
-		BlobContainerName:       "updated-blobContainer",
-		ScanningResourceGroupId: "updated-xxxx-xxxx",
-		StorageAccountUrl:       "https://updated-abc.blob.core.windows.net",
-		ScanFrequency:           12,
-		ScanContainers:          false,
-		ScanHostVulnerabilities: true,
+		IntegrationLevel:          "SUBSCRIPTION",
+		ScanningSubscriptionId:    "updated-54321",
+		TenantId:                  "updated-98765",
+		BlobContainerName:         "updated-blobContainer",
+		ScanningResourceGroupName: "updated-xxxx-xxxx",
+		StorageAccountUrl:         "https://updated-abc.blob.core.windows.net",
+		ScanFrequency:             12,
+		ScanContainers:            false,
+		ScanHostVulnerabilities:   true,
 		Credentials: api.AzureSidekickCredentials{
 			ClientId:     "updated-Client123",
 			ClientSecret: "updated-Secret",
@@ -79,7 +79,7 @@ func TestCloudAccountsAzureSidekickCreate(t *testing.T) {
 	assert.Equal(t, integrationData.ScanningSubscriptionId, "54321")
 	assert.Equal(t, integrationData.TenantId, "98765")
 	assert.Equal(t, integrationData.BlobContainerName, "blobContainer")
-	assert.Equal(t, integrationData.ScanningResourceGroupId, "xxxx-xxxx")
+	assert.Equal(t, integrationData.ScanningResourceGroupName, "xxxx-xxxx")
 	assert.Equal(t, integrationData.StorageAccountUrl, "https://abc.blob.core.windows.net")
 	assert.Equal(t, integrationData.ScanFrequency, 24)
 	assert.Equal(t, integrationData.ScanContainers, true)
@@ -123,7 +123,7 @@ func TestCloudAccountsAzureSidekickGet(t *testing.T) {
 	assert.Equal(t, "54321", integrationData.ScanningSubscriptionId)
 	assert.Equal(t, "98765", integrationData.TenantId)
 	assert.Equal(t, "blobContainer", integrationData.BlobContainerName)
-	assert.Equal(t, integrationData.ScanningResourceGroupId, "xxxx-xxxx")
+	assert.Equal(t, integrationData.ScanningResourceGroupName, "xxxx-xxxx")
 	assert.Equal(t, integrationData.StorageAccountUrl, "https://abc.blob.core.windows.net")
 	assert.Equal(t, 24, integrationData.ScanFrequency)
 	assert.Equal(t, true, integrationData.ScanContainers)
@@ -155,7 +155,7 @@ func TestCloudAccountsAzureSidekickUpdate(t *testing.T) {
 			assert.Contains(t, body, "AzureSidekick", "wrong cloud account type")
 			assert.Contains(t, body, azureSidekickData.Credentials.ClientId, "wrong client ID")
 			assert.Contains(t, body, azureSidekickData.BlobContainerName, "wrong blob container name")
-			assert.Contains(t, body, azureSidekickData.ScanningResourceGroupId, "wrong scanning resource group id")
+			assert.Contains(t, body, azureSidekickData.ScanningResourceGroupName, "wrong scanning resource group name")
 			assert.Contains(t, body, azureSidekickData.StorageAccountUrl, "wrong storage account url")
 			assert.Contains(t, body, "enabled\":1", "cloud account is not enabled")
 		}
@@ -183,7 +183,7 @@ func TestCloudAccountsAzureSidekickUpdate(t *testing.T) {
 	assert.Equal(t, "54321", integrationData.ScanningSubscriptionId)
 	assert.Equal(t, "98765", integrationData.TenantId)
 	assert.Equal(t, "blobContainer", integrationData.BlobContainerName)
-	assert.Equal(t, integrationData.ScanningResourceGroupId, "xxxx-xxxx")
+	assert.Equal(t, integrationData.ScanningResourceGroupName, "xxxx-xxxx")
 	assert.Equal(t, integrationData.StorageAccountUrl, "https://abc.blob.core.windows.net")
 	assert.Equal(t, 24, integrationData.ScanFrequency)
 	assert.Equal(t, true, integrationData.ScanContainers)
@@ -209,7 +209,7 @@ func TestCloudAccountsAzureSidekickUpdate(t *testing.T) {
 	assert.Equal(t, "updated-54321", integrationData.ScanningSubscriptionId)
 	assert.Equal(t, "updated-98765", integrationData.TenantId)
 	assert.Equal(t, "updated-blobContainer", integrationData.BlobContainerName)
-	assert.Equal(t, integrationData.ScanningResourceGroupId, "updated-xxxx-xxxx")
+	assert.Equal(t, integrationData.ScanningResourceGroupName, "updated-xxxx-xxxx")
 	assert.Equal(t, integrationData.StorageAccountUrl, "https://updated-abc.blob.core.windows.net")
 	assert.Equal(t, 12, integrationData.ScanFrequency)
 	assert.Equal(t, false, integrationData.ScanContainers)
@@ -251,7 +251,7 @@ func getAzureData(id string, data api.AzureSidekickData) string {
   		"scanningSubscriptionId": "` + data.ScanningSubscriptionId + `",
   		"tenantId":  "` + data.TenantId + `",
   		"blobContainerName": "` + data.BlobContainerName + `",
-  		"scanningResourceGroupId": "` + data.ScanningResourceGroupId + `",
+  		"scanningResourceGroupName": "` + data.ScanningResourceGroupName + `",
   		"storageAccountUrl": "` + data.StorageAccountUrl + `",
   		"subscriptionList": "` + data.SubscriptionList + `",
   		"queryText": "` + data.QueryText + `",

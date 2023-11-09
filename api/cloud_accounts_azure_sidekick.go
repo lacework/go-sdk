@@ -66,20 +66,20 @@ type V2AzureSidekickIntegration struct {
 }
 
 type AzureSidekickData struct {
-	Credentials             AzureSidekickCredentials `json:"credentials"`
-	IntegrationLevel        string                   `json:"integrationLevel"` // SUBSCRIPTION or TENANT
-	ScanningSubscriptionId  string                   `json:"scanningSubscriptionId"`
-	TenantId                string                   `json:"tenantId"`
-	BlobContainerName       string                   `json:"blobContainerName"`
-	ScanningResourceGroupId string                   `json:"scanningResourceGroupId"`
-	StorageAccountUrl       string                   `json:"storageAccountUrl"`
-	SubscriptionList        string                   `json:"subscriptionList,omitempty"`
-	QueryText               string                   `json:"queryText,omitempty"`
-	ScanFrequency           int                      `json:"scanFrequency"` // in hours
-	ScanContainers          bool                     `json:"scanContainers"`
-	ScanHostVulnerabilities bool                     `json:"scanHostVulnerabilities"`
-	ScanMultiVolume         bool                     `json:"scanMultiVolume"`
-	ScanStoppedInstances    bool                     `json:"scanStoppedInstances"`
+	Credentials               AzureSidekickCredentials `json:"credentials"`
+	IntegrationLevel          string                   `json:"integrationLevel"` // SUBSCRIPTION or TENANT
+	ScanningSubscriptionId    string                   `json:"scanningSubscriptionId"`
+	TenantId                  string                   `json:"tenantId"`
+	BlobContainerName         string                   `json:"blobContainerName"`
+	ScanningResourceGroupName string                   `json:"scanningResourceGroupName"`
+	StorageAccountUrl         string                   `json:"storageAccountUrl"`
+	SubscriptionList          string                   `json:"subscriptionList,omitempty"`
+	QueryText                 string                   `json:"queryText,omitempty"`
+	ScanFrequency             int                      `json:"scanFrequency"` // in hours
+	ScanContainers            bool                     `json:"scanContainers"`
+	ScanHostVulnerabilities   bool                     `json:"scanHostVulnerabilities"`
+	ScanMultiVolume           bool                     `json:"scanMultiVolume"`
+	ScanStoppedInstances      bool                     `json:"scanStoppedInstances"`
 }
 
 type AzureSidekickCredentials struct {
