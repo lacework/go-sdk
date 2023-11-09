@@ -367,3 +367,28 @@ func TestNaturalFromTime(t *testing.T) {
 		})
 	}
 }
+
+func TestDaylightSavings(t *testing.T) {
+	// override local timezone for this test
+	currentTimeLocal := time.Local
+
+	loc, err := time.LoadLocation("America/Chicago")
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+	time.Local = loc // -> this is setting the global timezone
+	defer func() { time.Local = currentTimeLocal }()
+
+	// this time hits a DST event (when looking back 7 days)
+	refTime, err := time.Parse(time.RFC3339, "2023-11-07T16:17:43-06:00")
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	startTime, _, err := parseNaturalFromTime("Last 7 days", refTime)
+	if err != nil {
+		assert.FailNow(t, err.Error())
+	}
+
+	assert.Equal(t, "2023-10-31 22:17:43 +0000 UTC", startTime.UTC().String())
+}

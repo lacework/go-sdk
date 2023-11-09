@@ -70,14 +70,15 @@ func mondays(year int) (mondays []relativeDate) {
 type relativeUnit string
 
 const (
-	relativeRE              = `^([+-])?(?:(\d+)(\w+))?(?:@(\w+))?$`
-	Year       relativeUnit = "y"
-	Month      relativeUnit = "mon"
-	Week       relativeUnit = "w"
-	Day        relativeUnit = "d"
-	Hour       relativeUnit = "h"
-	Minute     relativeUnit = "m"
-	Second     relativeUnit = "s"
+	relativeRE               = `^([+-])?(?:(\d+)(\w+))?(?:@(\w+))?$`
+	Year        relativeUnit = "y"
+	Month       relativeUnit = "mon"
+	Week        relativeUnit = "w"
+	Day         relativeUnit = "d"
+	Hour        relativeUnit = "h"
+	Minute      relativeUnit = "m"
+	Second      relativeUnit = "s"
+	HoursInADay              = 24
 )
 
 func (ru relativeUnit) isValid() bool {
@@ -146,7 +147,7 @@ func newRelative(s string) (relative, error) {
 	var rel relative
 	var rel_parts []string
 
-	// now is equivelant to LW_CLOCK_OFFSET (defaults to -2s)
+	// now is equivelant to LW_CLOCK_OFFSET (defaults to const clockOffset(+0s))
 	// prevent corner conditions with Lacework's API server
 	if s == "now" {
 		s = nowClockOffset()
@@ -173,14 +174,18 @@ func newRelative(s string) (relative, error) {
 	if !rel.unit.isValid() {
 		return rel, errors.New(fmt.Sprintf("invalid unit for relative time specifier (%s)", s))
 	}
-	if rel.unit == relativeUnit("") {
+	// normalize years, weeks, and days in to hours
+	switch rel.unit {
+	case relativeUnit(""):
 		rel.unit = Second
-	}
-	// Weeeeeeek
-	if rel.unit == Week {
-		rel.iNum = rel.iNum * 7
+	case Week:
+		rel.iNum = rel.iNum * 7 * HoursInADay
 		rel.num = strconv.Itoa(rel.iNum)
-		rel.unit = Day
+		rel.unit = Hour
+	case Day:
+		rel.iNum = rel.iNum * HoursInADay
+		rel.num = strconv.Itoa(rel.iNum)
+		rel.unit = Hour
 	}
 	// Snap
 	rel.snap = relativeUnit(strings.ToLower(string(rel_parts[4])))
