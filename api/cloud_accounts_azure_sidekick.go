@@ -20,9 +20,8 @@ package api
 
 const (
 	AzureSubscriptionIntegration string = "SUBSCRIPTION"
-	AzureTenantIntegration string = "TENANT"
+	AzureTenantIntegration       string = "TENANT"
 )
-
 
 // GetAzureSidekick gets a single AzureSidekick integration matching the provided integration guid
 func (svc *CloudAccountsService) GetAzureSidekick(guid string) (
@@ -72,6 +71,8 @@ type AzureSidekickData struct {
 	ScanningSubscriptionId  string                   `json:"scanningSubscriptionId"`
 	TenantId                string                   `json:"tenantId"`
 	BlobContainerName       string                   `json:"blobContainerName"`
+	ScanningResourceGroupId string                   `json:"scanningResourceGroupId"`
+	StorageAccountUrl       string                   `json:"storageAccountUrl"`
 	SubscriptionList        string                   `json:"subscriptionList,omitempty"`
 	QueryText               string                   `json:"queryText,omitempty"`
 	ScanFrequency           int                      `json:"scanFrequency"` // in hours
