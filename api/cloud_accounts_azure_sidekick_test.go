@@ -45,8 +45,8 @@ var (
 			ClientId:     "Client123",
 			ClientSecret: "Secret",
 		},
-		SubscriptionList: "sub1,sub2",
-		QueryText:        "queryText",
+		SubscriptionsList: "sub1,sub2",
+		QueryText:         "queryText",
 	}
 
 	azureUpdatedSidekickData = api.AzureSidekickData{
@@ -63,8 +63,8 @@ var (
 			ClientId:     "updated-Client123",
 			ClientSecret: "updated-Secret",
 		},
-		SubscriptionList: "updated-sub1,sub2",
-		QueryText:        "updated-queryText",
+		SubscriptionsList: "updated-sub1,sub2",
+		QueryText:         "updated-queryText",
 	}
 )
 
@@ -130,7 +130,7 @@ func TestCloudAccountsAzureSidekickGet(t *testing.T) {
 	assert.Equal(t, true, integrationData.ScanHostVulnerabilities)
 	assert.Equal(t, "Client123", integrationData.Credentials.ClientId)
 	assert.Equal(t, "Secret", integrationData.Credentials.ClientSecret)
-	assert.Equal(t, "sub1,sub2", integrationData.SubscriptionList)
+	assert.Equal(t, "sub1,sub2", integrationData.SubscriptionsList)
 	assert.Equal(t, "queryText", integrationData.QueryText)
 	assert.Equal(t, "token_"+integration.IntgGuid, integration.ServerToken)
 }
@@ -190,7 +190,7 @@ func TestCloudAccountsAzureSidekickUpdate(t *testing.T) {
 	assert.Equal(t, true, integrationData.ScanHostVulnerabilities)
 	assert.Equal(t, "Client123", integrationData.Credentials.ClientId)
 	assert.Equal(t, "Secret", integrationData.Credentials.ClientSecret)
-	assert.Equal(t, "sub1,sub2", integrationData.SubscriptionList)
+	assert.Equal(t, "sub1,sub2", integrationData.SubscriptionsList)
 	assert.Equal(t, "queryText", integrationData.QueryText)
 
 	// Step 3 - Get Updated data from Fake server
@@ -216,7 +216,7 @@ func TestCloudAccountsAzureSidekickUpdate(t *testing.T) {
 	assert.Equal(t, true, integrationData.ScanHostVulnerabilities)
 	assert.Equal(t, "updated-Client123", integrationData.Credentials.ClientId)
 	assert.Equal(t, "updated-Secret", integrationData.Credentials.ClientSecret)
-	assert.Equal(t, "updated-sub1,sub2", integrationData.SubscriptionList)
+	assert.Equal(t, "updated-sub1,sub2", integrationData.SubscriptionsList)
 	assert.Equal(t, "updated-queryText", integrationData.QueryText)
 }
 
@@ -233,7 +233,6 @@ func getAzureData(id string, data api.AzureSidekickData) string {
   	"createdOrUpdatedTime": "2021-06-01T19:28:00.092Z",
   	"enabled": 1,
   	"intgGuid": "` + id + `",
-  	"isOrg": 0,
   	"name": "integration_test",
   	"state": {
   		"details": {},
@@ -253,7 +252,7 @@ func getAzureData(id string, data api.AzureSidekickData) string {
   		"blobContainerName": "` + data.BlobContainerName + `",
   		"scanningResourceGroupName": "` + data.ScanningResourceGroupName + `",
   		"storageAccountUrl": "` + data.StorageAccountUrl + `",
-  		"subscriptionList": "` + data.SubscriptionList + `",
+  		"SubscriptionsList": "` + data.SubscriptionsList + `",
   		"queryText": "` + data.QueryText + `",
   		"scanFrequency": ` + scanFrequency + `,
   		"scanContainers":  ` + scanContainers + `,

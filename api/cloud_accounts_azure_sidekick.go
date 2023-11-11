@@ -73,7 +73,7 @@ type AzureSidekickData struct {
 	BlobContainerName         string                   `json:"blobContainerName"`
 	ScanningResourceGroupName string                   `json:"scanningResourceGroupName"`
 	StorageAccountUrl         string                   `json:"storageAccountUrl"`
-	SubscriptionList          string                   `json:"subscriptionList,omitempty"`
+	SubscriptionsList         string                   `json:"subscriptionsList,omitempty"`
 	QueryText                 string                   `json:"queryText,omitempty"`
 	ScanFrequency             int                      `json:"scanFrequency"` // in hours
 	ScanContainers            bool                     `json:"scanContainers"`
