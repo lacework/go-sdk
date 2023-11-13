@@ -40,6 +40,8 @@ lacework generate cloud-account aws [flags]
       --agentless                                 enable agentless integration
       --agentless_management_account_id string    AWS management account ID for Agentless integration
       --agentless_monitored_account_ids strings   AWS monitored account IDs for Agentless integrations
+      --agentless_monitored_accounts strings      AWS monitored accounts for Agentless integrations; value format must be <aws profile>:<region>
+      --agentless_scanning_accounts strings       AWS scanning accounts for Agentless integrations; value format must be <aws profile>:<region>
       --apply                                     run terraform apply without executing plan or prompting
       --aws_assume_role string                    specify aws assume role
       --aws_organization                          enable organization integration
@@ -52,7 +54,6 @@ lacework generate cloud-account aws [flags]
       --cloudtrail                                enable cloudtrail integration
       --cloudtrail_name string                    specify name of cloudtrail integration
       --config                                    enable config integration
-      --config_name string                        specify name of config integration
       --consolidated_cloudtrail                   use consolidated trail
       --existing_bucket_arn string                specify existing cloudtrail S3 bucket ARN
       --existing_iam_role_arn string              specify existing iam role arn to use

@@ -42,6 +42,8 @@ Global Flags:
       --agentless                                 enable agentless integration
       --agentless_management_account_id string    AWS management account ID for Agentless integration
       --agentless_monitored_account_ids strings   AWS monitored account IDs for Agentless integrations
+      --agentless_monitored_accounts strings      AWS monitored accounts for Agentless integrations; value format must be <aws profile>:<region>
+      --agentless_scanning_accounts strings       AWS scanning accounts for Agentless integrations; value format must be <aws profile>:<region>
   -k, --api_key string                            access key id
   -s, --api_secret string                         secret access key
       --api_token string                          access token (replaces the use of api_key and api_secret)
@@ -57,7 +59,6 @@ Global Flags:
       --cloudtrail_name string                    specify name of cloudtrail integration
       --cloudtrail_org_account_mapping string     Org account mapping json string. Example: '{"default_lacework_account":"main", "mapping": [{ "aws_accounts": ["123456789011"], "lacework_account": "sub-account-1"}]}'
       --config                                    enable config integration
-      --config_name string                        specify name of config integration
       --consolidated_cloudtrail                   use consolidated trail
       --debug                                     turn on debug logging
       --existing_bucket_arn string                specify existing cloudtrail S3 bucket ARN

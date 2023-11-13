@@ -59,6 +59,7 @@ type SurveyQuestionWithValidationArgs struct {
 	Response interface{}
 	Opts     []survey.AskOpt
 	Required bool
+	Icon     string
 }
 
 // SurveyQuestionInteractiveOnly Prompt use for question, only if the CLI is in interactive mode
@@ -82,7 +83,11 @@ func SurveyQuestionInteractiveOnly(question SurveyQuestionWithValidationArgs) er
 	}
 
 	// Add custom icon
-	question.Opts = append(question.Opts, survey.WithIcons(promptIconsFunc))
+	if question.Icon != "" {
+		question.Opts = append(question.Opts, survey.WithIcons(customPromptIconsFunc(question.Icon)))
+	} else {
+		question.Opts = append(question.Opts, survey.WithIcons(promptIconsFunc))
+	}
 
 	// If noninteractive is not set, ask the question
 	if !cli.nonInteractive {
@@ -211,20 +216,6 @@ func validateOutputLocation(dirname string) error {
 
 		if !outputLocation.IsDir() {
 			return errors.New("output location must be a directory")
-		}
-	}
-
-	return nil
-}
-
-func validateAwsSubAccounts(subaccounts []string) error {
-	// validate the format of supplied values is correct
-	for _, account := range subaccounts {
-		if ok, err := regexp.MatchString(ValidateSubAccountFlagRegex, account); !ok {
-			if err != nil {
-				return errors.Wrap(err, "failed to validate supplied subaccount format")
-			}
-			return errors.New("supplied aws subaccount in invalid format")
 		}
 	}
 

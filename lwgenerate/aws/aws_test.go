@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,37 +25,37 @@ func reqProviderAndRegion(extraInputs ...string) string {
 
 func TestGenerationAgentless(t *testing.T) {
 	hcl, err := NewTerraform(
-		"us-east-2",
 		false,
 		true,
 		false,
 		false,
-		WithSubaccounts(
-			NewAwsSubAccount("subaccount1", "us-east-1"),
-			NewAwsSubAccount("subaccount2", "us-east-2"),
+		WithAwsProfile("main"),
+		WithAwsRegion("us-east-2"),
+		WithAgentlessScanningAccounts(
+			NewAwsSubAccount("scanning-1", "us-east-1", "scanning-1-us-east-1"),
 		),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProviderAndRegion(moduleImportAgentless), hcl)
+	assert.Equal(t, moduleImportAgentless, hcl)
 }
 
 func TestGenerationAgentlessOrganization(t *testing.T) {
 	hcl, err := NewTerraform(
-		"us-east-2",
 		true,
 		true,
 		false,
 		false,
 		WithAwsProfile("main"),
+		WithAwsRegion("us-east-2"),
 		WithAgentlessManagementAccountID("123456789000"),
 		WithAgentlessMonitoredAccountIDs([]string{"123456789001", "ou-abcd-12345678"}),
 		WithAgentlessMonitoredAccounts(
-			NewAwsSubAccount("monitored-account-1", "us-west-2"),
+			NewAwsSubAccount("monitored-account-1", "us-west-2", "monitored-account-1-us-west-2"),
 		),
-		WithSubaccounts(
-			NewAwsSubAccount("subaccount1", "us-east-1"),
-			NewAwsSubAccount("subaccount2", "us-east-2"),
+		WithAgentlessScanningAccounts(
+			NewAwsSubAccount("scanning-1", "us-east-1", "scanning-1-us-east-1"),
+			NewAwsSubAccount("scanning-2", "us-east-2", "scanning-2-us-east-2"),
 		),
 	).Generate()
 	assert.Nil(t, err)
@@ -65,51 +64,64 @@ func TestGenerationAgentlessOrganization(t *testing.T) {
 }
 
 func TestGenerationCloudTrail(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, false, false, true).Generate()
+	hcl, err := NewTerraform(false, false, false, true, WithAwsRegion("us-east-2")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProviderAndRegion(moduleImportCtWithoutConfig), hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportCloudtrail), hcl)
 }
 
 func TestGenerationConfig(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, false, true, false).Generate()
+	hcl, err := NewTerraform(false, false, true, false, WithAwsRegion("us-east-2")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfig), hcl)
 }
 
-func TestGenerationWithCustomAwsProfile(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, false, false, true, WithAwsProfile("myprofile")).Generate()
+func TestGenerationConfigWithMultipleAccounts(t *testing.T) {
+	hcl, err := NewTerraform(false, false, true, false,
+		WithAwsProfile("main"),
+		WithAwsRegion("us-east-2"),
+		WithConfigAdditionalAccounts(
+			NewAwsSubAccount("subaccount1", "us-east-1", "subaccount1-us-east-1"),
+			NewAwsSubAccount("subaccount2", "us-east-2", "subaccount2-us-east-2"),
+		),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, moduleImportConfigWithMultipleAccounts, hcl)
+}
+
+func TestGenerationWithAwsProfile(t *testing.T) {
+	hcl, err := NewTerraform(false, false, false, true,
+		WithAwsProfile("myprofile"),
+		WithAwsRegion("us-east-2"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(
 		t,
-		fmt.Sprintf("%s\n%s\n%s", requiredProviders, awsProviderWithProfile, moduleImportCtWithoutConfig),
+		fmt.Sprintf("%s\n%s\n%s", requiredProviders, awsProviderWithProfile, moduleImportCloudtrail),
 		hcl,
 	)
 }
 
-func TestGenerationConfigAndCloudtrail(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, false, true, true).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProviderAndRegion(moduleImportConfig, moduleImportCtWithConfig), hcl)
-}
-
 func TestGenerationWithLaceworkProvider(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, false, false, true, WithLaceworkProfile("test-profile")).Generate()
+	hcl, err := NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
+		WithLaceworkProfile("test-profile"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
-	assert.Equal(t, reqProviderAndRegion(laceworkProvider, moduleImportCtWithoutConfig), hcl)
+	assert.Equal(t, reqProviderAndRegion(laceworkProvider, moduleImportCloudtrail), hcl)
 }
 
 func TestGenerationWithLaceworkAccountID(t *testing.T) {
 	hcl, err := NewTerraform(
-		"us-east-2",
 		false,
 		false,
 		true,
 		true,
+		WithAwsRegion("us-east-2"),
 		WithLaceworkAccountID("123456789"),
 	).Generate()
 	assert.Nil(t, err)
@@ -117,7 +129,7 @@ func TestGenerationWithLaceworkAccountID(t *testing.T) {
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfigWithLaceworkAccountID, moduleImportCtWithLaceworkAccountID), hcl)
 }
 
-func TestGenerationCloudtrailConsolidatedTrail(t *testing.T) {
+func TestGenerationCloudtrailConsolidated(t *testing.T) {
 	data, err := createCloudtrail(&GenerateAwsTfConfigurationArgs{
 		Cloudtrail:             true,
 		ConsolidatedCloudtrail: true,
@@ -131,8 +143,9 @@ func TestGenerationCloudtrailConsolidatedTrail(t *testing.T) {
 func TestGenerationCloudtrailExistingSns(t *testing.T) {
 	existingSnsTopicArn := "arn:aws:sns:::foo"
 	data, err := createCloudtrail(&GenerateAwsTfConfigurationArgs{
-		Cloudtrail:          true,
-		ExistingSnsTopicArn: existingSnsTopicArn,
+		Cloudtrail:                    true,
+		CloudtrailUseExistingSNSTopic: true,
+		ExistingSnsTopicArn:           existingSnsTopicArn,
 	},
 	)
 	assert.Nil(t, err)
@@ -147,7 +160,8 @@ func TestGenerationCloudtrailExistingSns(t *testing.T) {
 func TestGenerationCloudtrailSnsWithEncryption(t *testing.T) {
 	snsTopicName := "sns-topic-name"
 	snsEncryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
-	hcl, err := NewTerraform("us-east-2", false, false, false, true,
+	hcl, err := NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
 		WithSnsTopicName(snsTopicName),
 		WithSnsTopicEncryptionEnabled(true),
 		WithSnsTopicEncryptionKeyArn(snsEncryptionArn),
@@ -159,7 +173,8 @@ func TestGenerationCloudtrailSnsWithEncryption(t *testing.T) {
 
 func TestGenerationCloudtrailSnsWithNoEncryption(t *testing.T) {
 	snsTopicName := "sns-topic-name"
-	hcl, err := NewTerraform("us-east-2", false, false, false, true,
+	hcl, err := NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
 		WithSnsTopicName(snsTopicName),
 		WithSnsTopicEncryptionEnabled(false),
 	).Generate()
@@ -170,7 +185,8 @@ func TestGenerationCloudtrailSnsWithNoEncryption(t *testing.T) {
 
 func TestGenerationCloudtrailSnsWithEncrytptionNotSet(t *testing.T) {
 	snsTopicName := "sns-topic-name"
-	hcl, err := NewTerraform("us-east-2", false, false, false, true,
+	hcl, err := NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
 		WithSnsTopicName(snsTopicName),
 	).Generate()
 	assert.Nil(t, err)
@@ -181,7 +197,8 @@ func TestGenerationCloudtrailSnsWithEncrytptionNotSet(t *testing.T) {
 func TestGenerationCloudtrailSqsWithEncryption(t *testing.T) {
 	ssqQueueName := "sqs-queue-name"
 	sqsEncryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
-	hcl, err := NewTerraform("us-east-2", false, false, false, true,
+	hcl, err := NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
 		WithSqsQueueName(ssqQueueName),
 		WithSqsEncryptionEnabled(true),
 		WithSqsEncryptionKeyArn(sqsEncryptionArn),
@@ -193,7 +210,8 @@ func TestGenerationCloudtrailSqsWithEncryption(t *testing.T) {
 
 func TestGenerationCloudtrailSqsWithNoEncryption(t *testing.T) {
 	ssqQueueName := "sqs-queue-name"
-	hcl, err := NewTerraform("us-east-2", false, false, false, true,
+	hcl, err := NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
 		WithSqsQueueName(ssqQueueName),
 		WithSqsEncryptionEnabled(false),
 	).Generate()
@@ -204,7 +222,8 @@ func TestGenerationCloudtrailSqsWithNoEncryption(t *testing.T) {
 
 func TestGenerationCloudtrailSqsWithWithEncryptionNotSet(t *testing.T) {
 	ssqQueueName := "sqs-queue-name"
-	hcl, err := NewTerraform("us-east-2", false, false, false, true,
+	hcl, err := NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
 		WithSqsQueueName(ssqQueueName),
 	).Generate()
 	assert.Nil(t, err)
@@ -213,13 +232,12 @@ func TestGenerationCloudtrailSqsWithWithEncryptionNotSet(t *testing.T) {
 }
 
 func TestGenerationCloudtrailAllEncryptionElementsSet(t *testing.T) {
-	cloudTrailName := "cloudtrail-name"
 	s3BucketName := "s3-bucket-name"
 	snsTopicName := "sns-topic-name"
 	ssqQueueName := "sqs-queue-name"
 	encryptionArn := "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
-	hcl, err := NewTerraform("us-east-2", false, false, false, true,
-		WithCloudtrailName(cloudTrailName),
+	hcl, err := NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
 		WithBucketName(s3BucketName),
 		WithBucketEncryptionEnabled(true),
 		WithBucketSSEKeyArn(encryptionArn),
@@ -239,6 +257,7 @@ func TestGenerationCloudtrailExistingBucket(t *testing.T) {
 	existingBucketArn := "arn:aws:s3:::test-bucket-12345"
 	data, err := createCloudtrail(&GenerateAwsTfConfigurationArgs{
 		Cloudtrail:                  true,
+		CloudtrailUseExistingS3:     true,
 		ExistingCloudtrailBucketArn: existingBucketArn,
 	})
 	assert.Nil(t, err)
@@ -275,62 +294,41 @@ func TestGenerationCloudtrailExistingRole(t *testing.T) {
 		string(data.Body().GetAttribute("iam_role_external_id").BuildTokens(nil).Bytes()))
 }
 
-func TestConsolidatedCtWithMultipleAccounts(t *testing.T) {
-	data, err := NewTerraform("us-east-2",
-		false,
-		true,
-		true,
-		true,
-		WithAwsProfile("main"),
-		WithSubaccounts(
-			NewAwsSubAccount("subaccount1", "us-east-1"),
-			NewAwsSubAccount("subaccount2", "us-east-2"),
-		),
-	).Generate()
-
-	strippedData := strings.ReplaceAll(strings.ReplaceAll(data, "\n", ""), " ", "")
-	assert.Nil(t, err)
-	assert.Contains(t, strippedData, "provider\"aws\"{alias=\"main\"profile=\"main\"region=\"us-east-2\"}")
-	assert.Contains(t, strippedData, "providers={aws=aws.main}")
-	assert.Contains(t, strippedData, "module\"aws_config_subaccount1\"")
-	assert.Contains(t, strippedData, "providers={aws=aws.subaccount1}")
-	assert.Contains(t, strippedData, "provider\"aws\"{alias=\"subaccount1\"profile=\"subaccount1\"region=\"us-east-1\"}")
-	assert.Contains(t, strippedData, "module\"aws_config_subaccount2\"")
-	assert.Contains(t, strippedData, "providers={aws=aws.subaccount2}")
-	assert.Contains(t, strippedData, "provider\"aws\"{alias=\"subaccount2\"profile=\"subaccount2\"region=\"us-east-2\"}")
-	assert.Contains(t, strippedData, "module\"lacework_aws_agentless_scanning_global\"")
-	assert.Contains(t, strippedData, "module\"lacework_aws_agentless_scanning_region_subaccount2\"")
-}
-
 func TestGenerationFailureWithNoOptionsSet(t *testing.T) {
 	data := &GenerateAwsTfConfigurationArgs{}
 	_, err := data.Generate()
 	assert.Error(t, err)
-	assert.Equal(t, "invalid inputs: agentless, cloudtrail or config integration must be enabled", err.Error())
+	assert.Equal(t, "invalid inputs: Agentless, CloudTrail or Config integration must be enabled", err.Error())
 }
 
 func TestGenerationFailureWithNoRegionSet(t *testing.T) {
 	data := &GenerateAwsTfConfigurationArgs{Cloudtrail: true}
 	_, err := data.Generate()
 	assert.Error(t, err)
-	assert.Equal(t, "invalid inputs: AWS region must be set", err.Error())
+	assert.Equal(t, "invalid inputs: Main AWS account region must be set", err.Error())
 }
 
-var iamErrorString = "invalid inputs: when using an existing IAM role, existing role ARN, name, and external ID all must be set"
-
 func TestGenerationFailureWithIncompleteExistingIam(t *testing.T) {
-	_, err := NewTerraform("us-east-2", false, false, false, true,
-		UseExistingIamRole(&ExistingIamRoleDetails{Arn: "foo"})).Generate()
+	iamErrorString := "invalid inputs: when using an existing IAM role, existing role ARN, name, and external ID all must be set"
+
+	_, err := NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
+		WithExistingIamRole(&ExistingIamRoleDetails{Arn: "foo"}),
+	).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
 
-	_, err = NewTerraform("us-east-2", false, false, false, true,
-		UseExistingIamRole(&ExistingIamRoleDetails{Name: "foo"})).Generate()
+	_, err = NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
+		WithExistingIamRole(&ExistingIamRoleDetails{Name: "foo"}),
+	).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
 
-	_, err = NewTerraform("us-east-2", false, false, false, true,
-		UseExistingIamRole(&ExistingIamRoleDetails{ExternalId: "foo"})).Generate()
+	_, err = NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
+		WithExistingIamRole(&ExistingIamRoleDetails{ExternalId: "foo"}),
+	).Generate()
 	assert.Error(t, err)
 	assert.Equal(t, iamErrorString, err.Error())
 }
@@ -355,7 +353,10 @@ func TestGenerationPartialExistingIamValues(t *testing.T) {
 }
 
 func TestGenerationCloudTrailS3BucketNotification(t *testing.T) {
-	hcl, err := NewTerraform("us-east-2", false, false, false, true, WithS3BucketNotification(true)).Generate()
+	hcl, err := NewTerraform(false, false, false, true,
+		WithAwsRegion("us-east-2"),
+		WithS3BucketNotification(true),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(
@@ -399,6 +400,10 @@ var moduleImportCtWithConfig = `module "main_cloudtrail" {
   iam_role_external_id  = module.aws_config.external_id
   iam_role_name         = module.aws_config.iam_role_name
   use_existing_iam_role = true
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 
@@ -407,6 +412,10 @@ var moduleImportCtWithSnsWithoutConfig = `module "main_cloudtrail" {
   version                      = "~> 2.7"
   sns_topic_encryption_key_arn = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
   sns_topic_name               = "sns-topic-name"
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 
@@ -415,12 +424,20 @@ var moduleImportCtWithSnsNoConfigNoEncryption = `module "main_cloudtrail" {
   version                       = "~> 2.7"
   sns_topic_encryption_enabled  = false
   sns_topic_name                = "sns-topic-name"
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 var moduleImportCtWithSnsNoConfigEncryptionNotSet = `module "main_cloudtrail" {
   source         = "lacework/cloudtrail/aws"
   version        = "~> 2.7"
   sns_topic_name = "sns-topic-name"
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 
@@ -429,6 +446,10 @@ var moduleImportCtWithSqsWithoutConfig = `module "main_cloudtrail" {
   version                = "~> 2.7"
   sqs_encryption_key_arn = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
   sqs_queue_name         = "sqs-queue-name"
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 
@@ -437,6 +458,10 @@ var moduleImportCtWithSqsNoConfigNoEncryption = `module "main_cloudtrail" {
   version                 = "~> 2.7"
   sqs_encryption_enabled  = false
   sqs_queue_name          = "sqs-queue-name"
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 
@@ -444,6 +469,10 @@ var moduleImportCtWithSqsNoConfigEncryptionNotSet = `module "main_cloudtrail" {
   source         = "lacework/cloudtrail/aws"
   version        = "~> 2.7"
   sqs_queue_name = "sqs-queue-name"
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 
@@ -452,24 +481,36 @@ var moduleImportCtWithAllEncryptionSet = `module "main_cloudtrail" {
   version                      = "~> 2.7"
   bucket_name                  = "s3-bucket-name"
   bucket_sse_key_arn           = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
-  cloudtrail_name              = "cloudtrail-name"
   sns_topic_encryption_key_arn = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
   sns_topic_name               = "sns-topic-name"
   sqs_encryption_key_arn       = "arn:aws:kms:us-west-2:249446771485:key/2537e820-be82-4ded-8dca-504e199b0903"
   sqs_queue_name               = "sqs-queue-name"
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 
-var moduleImportAgentless = `provider "aws" {
-  alias   = "subaccount1"
-  profile = "subaccount1"
-  region  = "us-east-1"
+var moduleImportAgentless = `terraform {
+  required_providers {
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 1.0"
+    }
+  }
 }
 
 provider "aws" {
-  alias   = "subaccount2"
-  profile = "subaccount2"
+  alias   = "main"
+  profile = "main"
   region  = "us-east-2"
+}
+
+provider "aws" {
+  alias   = "scanning-1-us-east-1"
+  profile = "scanning-1"
+  region  = "us-east-1"
 }
 
 module "lacework_aws_agentless_scanning_global" {
@@ -477,27 +518,20 @@ module "lacework_aws_agentless_scanning_global" {
   version  = "~> 0.6"
   global   = true
   regional = true
-}
-
-module "lacework_aws_agentless_scanning_region_subaccount1" {
-  source                  = "lacework/agentless-scanning/aws"
-  version                 = "~> 0.6"
-  global_module_reference = module.lacework_aws_agentless_scanning_global
-  regional                = true
 
   providers = {
-    aws = aws.subaccount1
+    aws = aws.main
   }
 }
 
-module "lacework_aws_agentless_scanning_region_subaccount2" {
+module "lacework_aws_agentless_scanning_region_scanning-1-us-east-1" {
   source                  = "lacework/agentless-scanning/aws"
   version                 = "~> 0.6"
   global_module_reference = module.lacework_aws_agentless_scanning_global
   regional                = true
 
   providers = {
-    aws = aws.subaccount2
+    aws = aws.scanning-1-us-east-1
   }
 }
 `
@@ -518,21 +552,21 @@ provider "aws" {
 }
 
 provider "aws" {
-  alias   = "subaccount1"
-  profile = "subaccount1"
+  alias   = "monitored-account-1-us-west-2"
+  profile = "monitored-account-1"
+  region  = "us-west-2"
+}
+
+provider "aws" {
+  alias   = "scanning-1-us-east-1"
+  profile = "scanning-1"
   region  = "us-east-1"
 }
 
 provider "aws" {
-  alias   = "subaccount2"
-  profile = "subaccount2"
+  alias   = "scanning-2-us-east-2"
+  profile = "scanning-2"
   region  = "us-east-2"
-}
-
-provider "aws" {
-  alias   = "monitored-account-1"
-  profile = "monitored-account-1"
-  region  = "us-west-2"
 }
 
 module "lacework_aws_agentless_management_scanning_role" {
@@ -557,29 +591,29 @@ module "lacework_aws_agentless_scanning_global" {
   regional = true
 
   providers = {
-    aws = aws.subaccount1
+    aws = aws.scanning-1-us-east-1
   }
 }
 
-module "lacework_aws_agentless_scanning_region_subaccount2" {
+module "lacework_aws_agentless_scanning_region_scanning-2-us-east-2" {
   source                  = "lacework/agentless-scanning/aws"
   version                 = "~> 0.6"
   global_module_reference = module.lacework_aws_agentless_scanning_global
   regional                = true
 
   providers = {
-    aws = aws.subaccount2
+    aws = aws.scanning-2-us-east-2
   }
 }
 
-module "lacework_aws_agentless_monitored_scanning_role_monitored-account-1" {
+module "lacework_aws_agentless_monitored_scanning_role_monitored-account-1-us-west-2" {
   source                  = "lacework/agentless-scanning/aws"
   version                 = "~> 0.6"
   global_module_reference = module.lacework_aws_agentless_scanning_global
   snapshot_role           = true
 
   providers = {
-    aws = aws.monitored-account-1
+    aws = aws.monitored-account-1-us-west-2
   }
 }
 
@@ -619,15 +653,78 @@ resource "aws_cloudformation_stack_set_instance" "snapshot_role" {
 }
 `
 
-var moduleImportCtWithoutConfig = `module "main_cloudtrail" {
+var moduleImportCloudtrail = `module "main_cloudtrail" {
   source  = "lacework/cloudtrail/aws"
   version = "~> 2.7"
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 
 var moduleImportConfig = `module "aws_config" {
   source  = "lacework/config/aws"
   version = "~> 0.5"
+
+  providers = {
+    aws = aws.main
+  }
+}
+`
+
+var moduleImportConfigWithMultipleAccounts = `terraform {
+  required_providers {
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 1.0"
+    }
+  }
+}
+
+provider "aws" {
+  alias   = "main"
+  profile = "main"
+  region  = "us-east-2"
+}
+
+provider "aws" {
+  alias   = "subaccount1-us-east-1"
+  profile = "subaccount1"
+  region  = "us-east-1"
+}
+
+provider "aws" {
+  alias   = "subaccount2-us-east-2"
+  profile = "subaccount2"
+  region  = "us-east-2"
+}
+
+module "aws_config" {
+  source  = "lacework/config/aws"
+  version = "~> 0.5"
+
+  providers = {
+    aws = aws.main
+  }
+}
+
+module "aws_config_subaccount1-us-east-1" {
+  source  = "lacework/config/aws"
+  version = "~> 0.5"
+
+  providers = {
+    aws = aws.subaccount1-us-east-1
+  }
+}
+
+module "aws_config_subaccount2-us-east-2" {
+  source  = "lacework/config/aws"
+  version = "~> 0.5"
+
+  providers = {
+    aws = aws.subaccount2-us-east-2
+  }
 }
 `
 
@@ -635,6 +732,10 @@ var moduleImportConfigWithLaceworkAccountID = `module "aws_config" {
   source                  = "lacework/config/aws"
   version                 = "~> 0.5"
   lacework_aws_account_id = "123456789"
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 
@@ -646,6 +747,10 @@ var moduleImportCtWithLaceworkAccountID = `module "main_cloudtrail" {
   iam_role_name           = module.aws_config.iam_role_name
   lacework_aws_account_id = "123456789"
   use_existing_iam_role   = true
+
+  providers = {
+    aws = aws.main
+  }
 }
 `
 
@@ -653,5 +758,9 @@ var moduleImportCtWithS3BucketNotification = `module "main_cloudtrail" {
   source                     = "lacework/cloudtrail/aws"
   version                    = "~> 2.7"
   use_s3_bucket_notification = true
+
+  providers = {
+    aws = aws.main
+  }
 }
 `

@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,89 +17,114 @@ import (
 
 var (
 	// Define question text here so they can be reused in testing
-	QuestionEnableAgentless              = "Enable Agentless integration?"
-	QuestionEnableAgentlessOrganization  = "Enable Agentless organizational integration?"
-	QuestionAgentlessManagementAccountID = "Specify the AWS management account ID:"
-	QuestionAgentlessMonitoredAccountIDs = "Specify the AWS monitored account ID list" +
-		"(e.g. 123456789000,ou-abcd-12345678,r-abcd):"
+	// Core questions
+	QuestionEnableAwsOrganization = "Enable integrations for AWS organization?"
+	QuestionMainAwsProfile        = "Main AWS account profile:"
+	QuestionMainAwsRegion         = "Main AWS account region:"
+
+	// Agentless questions
+	QuestionEnableAgentless                  = "Enable Agentless integration?"
+	QuestionAgentlessManagementAccountID     = "AWS management account ID:"
+	QuestionAgentlessManagementAccountRegion = "AWS management account region:"
+
+	QuestionAgentlessScanningAccountProfile = "Scanning AWS account profile:"
+	QuestionAgentlessScanningAccountRegion  = "Scanning AWS account region:"
+	QuestionAgentlessScanningAccountAddMore = "Add another scanning AWS account?"
+
+	QuestionAgentlessScanningAccountsReplace = "Currently configured scanning accounts: %s, replace?"
+	QuestionAgentlessMonitoredAccountIDs     = "Monitored AWS account ID list:"
 	QuestionAgentlessMonitoredAccountIDsHelp = "Please provide a comma seprated list that may " +
-		" contain account IDs, OUs, or the organization root."
-	QuestionAgentlessMonitoredAccountProfile  = "Specify monitored AWS account profile name:"
-	QuestionAgentlessMonitoredAccountRegion   = "Specify monitored AWS account region:"
+		"contain account IDs, OUs, or the organization root (e.g. 123456789000,ou-abcd-12345678,r-abcd)."
+
+	QuestionAgentlessMonitoredAccountProfile  = "Monitored AWS account profile:"
+	QuestionAgentlessMonitoredAccountRegion   = "Monitored AWS account region:"
 	QuestionAgentlessMonitoredAccountAddMore  = "Add another monitored AWS account?"
-	QuestionAgentlessMonitoredAccountsReplace = "Currently configured Agentless monitored accounts: %s, replace?"
+	QuestionAgentlessMonitoredAccountsReplace = "Currently configured monitored accounts: %s, replace?"
 
-	QuestionAwsEnableConfig             = "Enable configuration integration?"
-	QuestionCustomizeConfigName         = "Customize Config integration name?"
-	QuestionConfigName                  = "Specify name of config integration (optional)"
-	QuestionEnableCloudtrail            = "Enable CloudTrail integration?"
-	QuestionCloudtrailName              = "Specify name of cloudtrail integration (optional)"
-	QuestionAwsRegion                   = "Specify the AWS region to be used by CloudTrail, SNS, and S3:"
-	QuestionConsolidatedCloudtrail      = "Use consolidated CloudTrail?"
-	QuestionUseExistingCloudtrail       = "Use an existing CloudTrail?"
-	QuestionCloudtrailExistingBucketArn = "Specify an existing bucket ARN used for CloudTrail logs:"
-	QuestionExistingIamRoleName         = "Specify an existing IAM role name for CloudTrail access:"
-	QuestionExistingIamRoleArn          = "Specify an existing IAM role ARN for CloudTrail access:"
-	QuestionExistingIamRoleExtID        = "Specify the external ID to be used with the existing IAM role:"
-	QuestionPrimaryAwsAccountProfile    = "Specify the primary AWS account profile name:"
-	QuestionSubAccountProfileName       = "Supply the profile name for this additional AWS account:"
-	QuestionSubAccountRegion            = "What region should be used for this account?"
-	QuestionSubAccountAddMore           = "Add another AWS account?"
-	QuestionSubAccountReplace           = "Currently configured AWS sub-accounts: %s, replace?"
-	QuestionAwsConfigAdvanced           = "Configure advanced integration options?"
-	QuestionAwsAnotherAdvancedOpt       = "Configure another advanced integration option"
-	QuestionAwsCustomizeOutputLocation  = "Provide the location for the output to be written:"
+	// Config questions
+	QuestionEnableConfig                    = "Enable configuration integration?"
+	QuestionConfigAdditionalAccountProfile  = "Addtional AWS account profile:"
+	QuestionConfigAdditionalAccountRegion   = "Addtional AWS account region:"
+	QuestionConfigAdditionalAccountsReplace = "Currently configured additional accounts: %s, replace?"
+	QuestionConfigAdditionalAccountAddMore  = "Add another AWS account?"
 
-	// Cloudtrail Org Questions
-	QuestionEnableCloudtrailOrganization                  = "Enable CloudTrail organizational integration?"
-	QuestionConfigureCloudtrailOrganizationMappings       = "Configure CloudTrail organization account mappings?"
-	QuestionCloudtrailAccountMappingsLWDefaultAccount     = "Specify org account mappings default Lacework account:"
-	QuestionCloudtrailOrgAccountMappingAnotherAdvancedOpt = "Configure another org account mapping?"
-	QuestionCloudtrailOrgAccountMappingsLWAccount         = "Specify lacework account: "
-	QuestionCloudtrailOrgAccountMappingsAwsAccounts       = "Specify aws accounts:"
+	// CloudTrail questions
+	QuestionEnableCloudtrail   = "Enable CloudTrail integration?"
+	QuestionCloudtrailName     = "Name of cloudtrail integration (optional):"
+	QuestionCloudtrailAdvanced = "Configure advanced options?"
 
-	// S3 Bucket Questions
-	QuestionBucketEnableEncryption = "Enable S3 bucket encryption when creating bucket"
-	QuestionBucketSseKeyArn        = "Specify existing KMS encryption key arn for S3 bucket (optional)"
-	QuestionBucketName             = "Specify name when creating S3 bucket (optional)"
-	QuestionS3BucketNotification   = "Enable S3 bucket notifications"
+	// CloudTrail advanced options
+	OptCloudtrailMessage = "Which options would you like to configure?"
 
-	// SNS Topic Questions
-	QuestionsUseExistingSNSTopic = "Use an existing SNS topic?"
-	QuestionSnsTopicArn          = "Specify existing SNS topic arn"
-	QuestionSnsEnableEncryption  = "Enable encryption on SNS topic when creating?"
-	QuestionSnsEncryptionKeyArn  = "Specify existing KMS encryption key arn for SNS topic (optional)"
-	QuestionSnsTopicName         = "Specify SNS topic name if creating new one (optional)"
+	OptCloudtrailOrg  = "Configure org account mappings"
+	OptCloudtrailS3   = "Configure S3 bucket"
+	OptCloudtrailSNS  = "Configure SNS topic"
+	OptCloudtrailSQS  = "Configure SQS queue"
+	OptCloudtrailIAM  = "Configure an existing IAM role"
+	OptCloudtrailDone = "Done"
 
-	// SQS Queue Questions
-	QuestionSqsEnableEncryption = "Enable encryption on SQS queue when creating"
-	QuestionSqsEncryptionKeyArn = "Specify existing KMS encryption key arn for SQS queue (optional)"
-	QuestionSqsQueueName        = "Specify SQS queue name when creating (optional)"
+	// CloudTrail Org questions
+	QuestionCloudtrailOrgAccountMappingsDefaultLWAccount = "Org account mappings default Lacework account:"
+	QuestionCloudtrailOrgAccountMappingsAnotherAddMore   = "Add another org account mapping?"
+	QuestionCloudtrailOrgAccountMappingsLWAccount        = "Lacework account:"
+	QuestionCloudtrailOrgAccountMappingsAwsAccounts      = "AWS accounts:"
 
-	// select options
-	AwsAdvancedOptDone     = "Done"
-	AdvancedOptAgentless   = "Additional Agentless options"
-	AdvancedOptCloudTrail  = "Additional CloudTrail options"
-	AdvancedOptIamRole     = "Configure Lacework integration with an existing IAM role"
-	AdvancedOptAwsAccounts = "Add additional AWS Accounts to Lacework"
-	AwsAdvancedOptLocation = "Customize output location"
+	// CloudTrail S3 Bucket Questions
+	QuestionCloudtrailUseConsolidated          = "Use consolidated CloudTrail?"
+	QuestionCloudtrailUseExistingS3            = "Use an existing CloudTrail?"
+	QuestionCloudtrailS3ExistingBucketArn      = "Existing S3 bucket ARN used for CloudTrail logs:"
+	QuestionCloudtrailS3BucketEnableEncryption = "Enable S3 bucket encryption"
+
+	QuestionCloudtrailS3BucketSseKeyArn    = "Existing KMS encryption key arn for S3 bucket (optional):"
+	QuestionCloudtrailS3BucketName         = "New S3 bucket name (optional):"
+	QuestionCloudtrailS3BucketNotification = "Enable S3 bucket notifications"
+
+	// CloudTrail SNS Topic Questions
+	QuestionCloudtrailUseExistingSNSTopic = "Use an existing SNS topic?"
+	QuestionCloudtrailSnsExistingTopicArn = "Existing SNS topic arn:"
+	QuestionCloudtrailSnsEnableEncryption = "Enable encryption on SNS topic?"
+	QuestionCloudtrailSnsEncryptionKeyArn = "Existing KMS encryption key arn for SNS topic (optional):"
+	QuestionCloudtrailSnsTopicName        = "New SNS topic name (optional):"
+
+	// CloudTrail SQS Queue Questions
+	QuestionCloudtrailSqsEnableEncryption = "Enable encryption on SQS queue:"
+	QuestionCloudtrailSqsEncryptionKeyArn = "Existing KMS encryption key arn for SQS queue (optional):"
+	QuestionCloudtrailSqsQueueName        = "New SQS queue name (optional):"
+
+	// CloudTrail IAM Role Questions
+	QuestionCloudtrailExistingIamRoleName  = "Existing IAM role name for CloudTrail access:"
+	QuestionCloudtrailExistingIamRoleArn   = "Existing IAM role ARN for CloudTrail access:"
+	QuestionCloudtrailExistingIamRoleExtID = "External ID for the existing IAM role:"
+
+	// Custom location Question
+	QuestionAwsOutputLocation = "Custom output location (optional):"
+
+	// Other options
+	AwsAdvancedOptDone = "Done" // Used in aws controltower and eks_audit
+
+	// Question labels
+	IconAgentless  = "[Agentless]"
+	IconConfig     = "[Configuration]"
+	IconCloudTrail = "[CloudTrail]"
 
 	// AwsArnRegex original source: https://regex101.com/r/pOfxYN/1
 	AwsArnRegex = `^arn:(?P<Partition>[^:\n]*):(?P<Service>[^:\n]*):(?P<Region>[^:\n]*):(?P<AccountID>[^:\n]*):(?P<Ignore>(?P<ResourceType>[^:\/\n]*)[:\/])?(?P<Resource>.*)$` //nolint
 	// AwsRegionRegex regex used for validating region input; note intentionally does not match gov cloud
-	AwsRegionRegex     = `(af|ap|ca|eu|me|sa|us)-(central|(north|south)?(east|west)?)-\d`
-	AwsProfileRegex    = `([A-Za-z_0-9-]+)`
-	AwsAccountIDRegex  = `^\d{12}$`
-	AwsOUIDRegex       = `^ou-[0-9a-z]{4,32}-[a-z0-9]{8,32}$`
-	AWSRootIDRegex     = `^r-[0-9a-z]{4,32}$`
-	AwsAssumeRoleRegex = `^arn:aws:iam::\d{12}:role\/.*$`
+	AwsRegionRegex              = `(af|ap|ca|eu|me|sa|us)-(central|(north|south)?(east|west)?)-\d`
+	AwsProfileRegex             = `([A-Za-z_0-9-]+)`
+	AwsAccountIDRegex           = `^\d{12}$`
+	AwsOUIDRegex                = `^ou-[0-9a-z]{4,32}-[a-z0-9]{8,32}$`
+	AWSRootIDRegex              = `^r-[0-9a-z]{4,32}$`
+	AwsAssumeRoleRegex          = `^arn:aws:iam::\d{12}:role\/.*$`
+	ValidateSubAccountFlagRegex = fmt.Sprintf(`%s:%s`, AwsProfileRegex, AwsRegionRegex)
 
-	GenerateAwsCommandState      = &aws.GenerateAwsTfConfigurationArgs{}
-	GenerateAwsExistingRoleState = &aws.ExistingIamRoleDetails{}
-	GenerateAwsCommandExtraState = &AwsGenerateCommandExtraState{}
-	ValidateSubAccountFlagRegex  = fmt.Sprintf(`%s:%s`, AwsProfileRegex, AwsRegionRegex)
-	CachedAwsAssetIacParams      = "iac-aws-generate-params"
-	CachedAssetAwsExtraState     = "iac-aws-extra-state"
+	GenerateAwsCommandState = &aws.GenerateAwsTfConfigurationArgs{
+		ExistingIamRole: &aws.ExistingIamRoleDetails{},
+	}
+	GenerateAwsCommandExtraState = &aws.AwsGenerateCommandExtraState{}
+
+	CachedAwsArgsKey       = "iac-aws-generate-args"
+	CachedAwsExtraStateKey = "iac-aws-extra-state"
 
 	// aws command is used to generate TF code for aws
 	generateAwsTfCommand = &cobra.Command{
@@ -132,27 +158,25 @@ See help output for more details on the parameter value(s) required for Terrafor
 				GenerateAwsCommandState.LaceworkProfile = cli.Profile
 			}
 
-			// Parse org_account_mapping json, if passed
-			if cmd.Flags().Changed("cloudtrail_org_account_mapping") {
-				if err := parseCloudtrailOrgAccountMappingsFlag(GenerateAwsCommandState); err != nil {
-					return err
-				}
-			}
-
 			// Setup modifiers for NewTerraform constructor
 			mods := []aws.AwsTerraformModifier{
 				aws.WithAwsProfile(GenerateAwsCommandState.AwsProfile),
+				aws.WithAwsRegion(GenerateAwsCommandState.AwsRegion),
 				aws.WithAwsAssumeRole(GenerateAwsCommandState.AwsAssumeRole),
 				aws.WithLaceworkProfile(GenerateAwsCommandState.LaceworkProfile),
 				aws.WithLaceworkAccountID(GenerateAwsCommandState.LaceworkAccountID),
 				aws.WithAgentlessManagementAccountID(GenerateAwsCommandState.AgentlessManagementAccountID),
 				aws.WithAgentlessMonitoredAccountIDs(GenerateAwsCommandState.AgentlessMonitoredAccountIDs),
 				aws.WithAgentlessMonitoredAccounts(GenerateAwsCommandState.AgentlessMonitoredAccounts...),
-				aws.ExistingCloudtrailBucketArn(GenerateAwsCommandState.ExistingCloudtrailBucketArn),
-				aws.ExistingSnsTopicArn(GenerateAwsCommandState.ExistingSnsTopicArn),
+				aws.WithAgentlessScanningAccounts(GenerateAwsCommandState.AgentlessScanningAccounts...),
+				aws.WithConfigAdditionalAccounts(GenerateAwsCommandState.ConfigAdditionalAccounts...),
+				aws.WithConsolidatedCloudtrail(GenerateAwsCommandState.ConsolidatedCloudtrail),
+				aws.WithCloudtrailUseExistingS3(GenerateAwsCommandState.CloudtrailUseExistingS3),
+				aws.WithCloudtrailUseExistingSNSTopic(GenerateAwsCommandState.CloudtrailUseExistingSNSTopic),
+				aws.WithExistingCloudtrailBucketArn(GenerateAwsCommandState.ExistingCloudtrailBucketArn),
+				aws.WithExistingSnsTopicArn(GenerateAwsCommandState.ExistingSnsTopicArn),
 				aws.WithSubaccounts(GenerateAwsCommandState.SubAccounts...),
-				aws.UseExistingIamRole(GenerateAwsCommandState.ExistingIamRole),
-				aws.WithConfigName(GenerateAwsCommandState.ConfigName),
+				aws.WithExistingIamRole(GenerateAwsCommandState.ExistingIamRole),
 				aws.WithCloudtrailName(GenerateAwsCommandState.CloudtrailName),
 				aws.WithOrgAccountMappings(GenerateAwsCommandState.OrgAccountMappings),
 				aws.WithBucketName(GenerateAwsCommandState.BucketName),
@@ -167,18 +191,14 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithS3BucketNotification(GenerateAwsCommandState.S3BucketNotification),
 			}
 
-			if GenerateAwsCommandState.ConsolidatedCloudtrail {
-				mods = append(mods, aws.UseConsolidatedCloudtrail())
-			}
-
 			// Create new struct
 			data := aws.NewTerraform(
-				GenerateAwsCommandState.AwsRegion,
 				GenerateAwsCommandState.AwsOrganization,
 				GenerateAwsCommandState.Agentless,
 				GenerateAwsCommandState.Config,
 				GenerateAwsCommandState.Cloudtrail,
-				mods...)
+				mods...,
+			)
 
 			// Generate
 			hcl, err := data.Generate()
@@ -257,6 +277,13 @@ See help output for more details on the parameter value(s) required for Terrafor
 				return err
 			}
 
+			// Parse cloudtrail org_account_mapping json, if passed
+			if cmd.Flags().Changed("cloudtrail_org_account_mapping") {
+				if err := parseCloudtrailOrgAccountMappingsFlag(GenerateAwsCommandState); err != nil {
+					return err
+				}
+			}
+
 			// Validate cloudtrail bucket arn, if passed
 			arn, err := cmd.Flags().GetString("existing_bucket_arn")
 			if err != nil {
@@ -264,6 +291,9 @@ See help output for more details on the parameter value(s) required for Terrafor
 			}
 			if err := validateAwsArnFormat(arn); arn != "" && err != nil {
 				return err
+			}
+			if arn != "" {
+				GenerateAwsCommandState.CloudtrailUseExistingS3 = true
 			}
 
 			// Validate SNS Topic Arn if passed
@@ -274,24 +304,27 @@ See help output for more details on the parameter value(s) required for Terrafor
 			if err := validateAwsArnFormat(arn); arn != "" && err != nil {
 				return err
 			}
+			if arn != "" {
+				GenerateAwsCommandState.CloudtrailUseExistingSNSTopic = true
+			}
 
 			// Load any cached inputs if interactive
 			if cli.InteractiveMode() {
 				cachedOptions := &aws.GenerateAwsTfConfigurationArgs{}
-				iacParamsExpired := cli.ReadCachedAsset(CachedAwsAssetIacParams, &cachedOptions)
-				if iacParamsExpired {
+				awsArgsExpired := cli.ReadCachedAsset(CachedAwsArgsKey, &cachedOptions)
+				if awsArgsExpired {
 					cli.Log.Debug("loaded previously set values for AWS iac generation")
 				}
 
-				extraState := &AwsGenerateCommandExtraState{}
-				extraStateParamsExpired := cli.ReadCachedAsset(CachedAssetAwsExtraState, &extraState)
-				if extraStateParamsExpired {
+				extraState := &aws.AwsGenerateCommandExtraState{}
+				extraStateExpired := cli.ReadCachedAsset(CachedAwsExtraStateKey, &extraState)
+				if extraStateExpired {
 					cli.Log.Debug("loaded previously set values for AWS iac generation (extra state)")
 				}
 
 				// Determine if previously cached options exists; prompt user if they'd like to continue
 				answer := false
-				if !iacParamsExpired || !extraStateParamsExpired {
+				if !awsArgsExpired || !extraStateExpired {
 					if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 						Prompt:   &survey.Confirm{Message: QuestionUsePreviousCache, Default: false},
 						Response: &answer,
@@ -312,27 +345,40 @@ See help output for more details on the parameter value(s) required for Terrafor
 						return errors.Wrap(err, "failed to load saved options")
 					}
 				}
+
+				// Collect and/or confirm parameters
+				err = promptAwsGenerate(GenerateAwsCommandState, GenerateAwsCommandExtraState)
+				if err != nil {
+					return errors.Wrap(err, "collecting/confirming parameters")
+				}
 			}
 
-			// Parse passed in subaccounts (if any)
+			// Parse passed in AWS accounts
 			if len(GenerateAwsCommandExtraState.AwsSubAccounts) > 0 {
-				// Validate the format of supplied values is correct
-				if err := validateAwsSubAccounts(GenerateAwsCommandExtraState.AwsSubAccounts); err != nil {
+				accounts, err := parseAwsAccountsFromCommandFlag(GenerateAwsCommandExtraState.AwsSubAccounts)
+				if err != nil {
 					return err
 				}
-
-				awsSubAccounts := []aws.AwsSubAccount{}
-				for _, account := range GenerateAwsCommandExtraState.AwsSubAccounts {
-					accountDetails := strings.Split(account, ":")
-					awsSubAccounts = append(awsSubAccounts, aws.NewAwsSubAccount(accountDetails[0], accountDetails[1]))
-				}
-				GenerateAwsCommandState.SubAccounts = awsSubAccounts
+				GenerateAwsCommandState.SubAccounts = accounts
+				GenerateAwsCommandState.ConfigAdditionalAccounts = accounts
 			}
 
-			// Collect and/or confirm parameters
-			err = promptAwsGenerate(GenerateAwsCommandState, GenerateAwsExistingRoleState, GenerateAwsCommandExtraState)
-			if err != nil {
-				return errors.Wrap(err, "collecting/confirming parameters")
+			// Parse passed in Agentless monirtoed AWS accounts
+			if len(GenerateAwsCommandExtraState.AgentlessMonitoredAccounts) > 0 {
+				accounts, err := parseAwsAccountsFromCommandFlag(GenerateAwsCommandExtraState.AgentlessMonitoredAccounts)
+				if err != nil {
+					return err
+				}
+				GenerateAwsCommandState.AgentlessMonitoredAccounts = accounts
+			}
+
+			// Parse passed in Agentless scanning AWS accounts
+			if len(GenerateAwsCommandExtraState.AgentlessScanningAccounts) > 0 {
+				accounts, err := parseAwsAccountsFromCommandFlag(GenerateAwsCommandExtraState.AgentlessScanningAccounts)
+				if err != nil {
+					return err
+				}
+				GenerateAwsCommandState.AgentlessScanningAccounts = accounts
 			}
 
 			return nil
@@ -340,24 +386,27 @@ See help output for more details on the parameter value(s) required for Terrafor
 	}
 )
 
-type AwsGenerateCommandExtraState struct {
-	AskAdvanced           bool
-	Output                string
-	UseExistingCloudtrail bool
-	UseExistingSNSTopic   bool
-	AwsSubAccounts        []string
-	TerraformApply        bool
-}
-
-func (a *AwsGenerateCommandExtraState) isEmpty() bool {
-	return a.Output == "" && !a.UseExistingCloudtrail && len(a.AwsSubAccounts) == 0 && !a.TerraformApply && !a.AskAdvanced
-}
-
-// Flush current state of the struct to disk, provided it's not empty
-func (a *AwsGenerateCommandExtraState) writeCache() {
-	if !a.isEmpty() {
-		cli.WriteAssetToCache(CachedAssetAwsExtraState, time.Now().Add(time.Hour*1), a)
+func parseAwsAccountsFromCommandFlag(accountsInput []string) ([]aws.AwsSubAccount, error) {
+	// Validate the format of supplied values is correct
+	if err := validateAwsSubAccounts(accountsInput); err != nil {
+		return nil, err
 	}
+	accounts := []aws.AwsSubAccount{}
+	for _, account := range accountsInput {
+		accountDetails := strings.Split(account, ":")
+		profile := accountDetails[0]
+		region := accountDetails[1]
+		alias := fmt.Sprintf("%s-%s", profile, region)
+		accounts = append(accounts, aws.NewAwsSubAccount(profile, region, alias))
+	}
+	return accounts, nil
+}
+
+func parseCloudtrailOrgAccountMappingsFlag(args *aws.GenerateAwsTfConfigurationArgs) error {
+	if err := json.Unmarshal([]byte(args.OrgAccountMappingsJson), &args.OrgAccountMappings); err != nil {
+		return errors.Wrap(err, "failed to parse 'cloudtrail_org_account_mapping'")
+	}
+	return nil
 }
 
 func initGenerateAwsTfCommandFlags() {
@@ -368,6 +417,11 @@ func initGenerateAwsTfCommandFlags() {
 		"aws_organization",
 		false,
 		"enable organization integration")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.Agentless,
+		"agentless",
+		false,
+		"enable agentless integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.AgentlessManagementAccountID,
 		"agentless_management_account_id",
@@ -378,11 +432,16 @@ func initGenerateAwsTfCommandFlags() {
 		"agentless_monitored_account_ids",
 		[]string{},
 		"AWS monitored account IDs for Agentless integrations")
-	generateAwsTfCommand.PersistentFlags().BoolVar(
-		&GenerateAwsCommandState.Agentless,
-		"agentless",
-		false,
-		"enable agentless integration")
+	generateAwsTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAwsCommandExtraState.AgentlessMonitoredAccounts,
+		"agentless_monitored_accounts",
+		[]string{},
+		"AWS monitored accounts for Agentless integrations; value format must be <aws profile>:<region>")
+	generateAwsTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAwsCommandExtraState.AgentlessScanningAccounts,
+		"agentless_scanning_accounts",
+		[]string{},
+		"AWS scanning accounts for Agentless integrations; value format must be <aws profile>:<region>")
 	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.Cloudtrail,
 		"cloudtrail",
@@ -398,11 +457,6 @@ func initGenerateAwsTfCommandFlags() {
 		"config",
 		false,
 		"enable config integration")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.ConfigName,
-		"config_name",
-		"",
-		"specify name of config integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.AwsRegion,
 		"aws_region",
@@ -439,17 +493,17 @@ func initGenerateAwsTfCommandFlags() {
 		"",
 		"specify existing cloudtrail S3 bucket ARN")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsExistingRoleState.Arn,
+		&GenerateAwsCommandState.ExistingIamRole.Arn,
 		"existing_iam_role_arn",
 		"",
 		"specify existing iam role arn to use")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsExistingRoleState.Name,
+		&GenerateAwsCommandState.ExistingIamRole.Name,
 		"existing_iam_role_name",
 		"",
 		"specify existing iam role name to use")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsExistingRoleState.ExternalId,
+		&GenerateAwsCommandState.ExistingIamRole.ExternalId,
 		"existing_iam_role_externalid",
 		"",
 		"specify existing iam role external_id to use")
@@ -477,6 +531,14 @@ func initGenerateAwsTfCommandFlags() {
 		"enable force destroy S3 bucket")
 	errcheckWARN(generateAwsTfCommand.PersistentFlags().MarkDeprecated(
 		"force_destroy_s3", "by default, force destroy is enabled.",
+	))
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigName,
+		"config_name",
+		"",
+		"specify name of config integration")
+	errcheckWARN(generateAwsTfCommand.PersistentFlags().MarkDeprecated(
+		"config_name", "default config is used.",
 	))
 	// ---
 
@@ -558,7 +620,21 @@ func validateAwsAccountID(val interface{}) error {
 	return validateStringWithRegex(val, AwsAccountIDRegex, "invalid account ID supplied")
 }
 
-func validateAgentlessMonitoredAccountIDs(val interface{}) error {
+func validateAwsSubAccounts(subaccounts []string) error {
+	// validate the format of supplied values is correct
+	for _, account := range subaccounts {
+		if ok, err := regexp.MatchString(ValidateSubAccountFlagRegex, account); !ok {
+			if err != nil {
+				return errors.Wrap(err, "failed to validate supplied subaccount format")
+			}
+			return errors.New("supplied aws subaccount in invalid format")
+		}
+	}
+
+	return nil
+}
+
+func validateAgentlessMonitoredAccountIDList(val interface{}) error {
 	switch value := val.(type) {
 	case string:
 		regex := fmt.Sprintf(`%s|%s|%s`, AwsAccountIDRegex, AwsOUIDRegex, AWSRootIDRegex)
@@ -581,7 +657,7 @@ func validateAgentlessMonitoredAccountIDs(val interface{}) error {
 
 // survey.Validator for aws region
 func validateAwsRegion(val interface{}) error {
-	return validateStringWithRegex(val, AwsRegionRegex, "invalid region name supplied")
+	return validateStringWithRegex(val, AwsRegionRegex, "invalid region supplied")
 }
 
 // survey.Validator for aws profile
@@ -595,627 +671,211 @@ func validateAwsAssumeRole(val interface{}) error {
 }
 
 func promptAgentlessQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt: &survey.Confirm{
-				Message: QuestionEnableAgentlessOrganization,
-				Default: config.AwsOrganization,
-			},
-			Response: &config.AwsOrganization,
-		},
-	}, config.Agentless); err != nil {
-		return err
-	}
-
-	askAgain := true
-	monitoredAccounts := []aws.AwsSubAccount{}
-	monitoredAccountIDsInput := ""
-
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt: &survey.Input{
-				Message: QuestionPrimaryAwsAccountProfile,
-				Default: config.AwsProfile,
-			},
-			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
-			Response: &config.AwsProfile,
-			Required: true,
-		},
-		{
-			Prompt: &survey.Input{
-				Message: QuestionAgentlessManagementAccountID,
-				Default: config.AgentlessManagementAccountID,
-			},
-			Checks:   []*bool{&config.AwsOrganization},
-			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsAccountID)},
-			Response: &config.AgentlessManagementAccountID,
-			Required: true,
-		},
-		{
-			Prompt: &survey.Input{
-				Message: QuestionAgentlessMonitoredAccountIDs,
-				Default: strings.Join(config.AgentlessMonitoredAccountIDs, ","),
-				Help:    QuestionAgentlessMonitoredAccountIDsHelp,
-			},
-			Checks:   []*bool{&config.AwsOrganization},
-			Opts:     []survey.AskOpt{survey.WithValidator(validateAgentlessMonitoredAccountIDs)},
-			Response: &monitoredAccountIDsInput,
-			Required: true,
-		},
-	}, config.AwsOrganization); err != nil {
-		return err
-	}
-
-	if monitoredAccountIDsInput != "" {
-		config.AgentlessMonitoredAccountIDs = strings.Split(monitoredAccountIDsInput, ",")
-	}
-
-	// If there are existing monitored accounts configured (i.e., from the CLI),
-	// display them and ask if they want to add more
-	if len(config.AgentlessMonitoredAccounts) > 0 {
-		accountListing := []string{}
-		for _, account := range config.AgentlessMonitoredAccounts {
-			accountListing = append(
-				accountListing,
-				fmt.Sprintf("%s:%s", account.AwsProfile, account.AwsRegion),
-			)
-		}
-
+	if !config.Agentless {
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Prompt: &survey.Confirm{
-				Message: fmt.Sprintf(
-					QuestionAgentlessMonitoredAccountsReplace,
-					strings.Trim(strings.Join(strings.Fields(fmt.Sprint(accountListing)), ", "), "[]"),
-				),
-			},
-			Response: &askAgain}); err != nil {
-			return err
-		}
-	}
-
-	for askAgain && config.AwsOrganization {
-		var profile string
-		var region string
-
-		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-			{
-				Prompt:   &survey.Input{Message: QuestionAgentlessMonitoredAccountProfile},
-				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
-				Required: true,
-				Response: &profile,
-			},
-			{
-				Prompt:   &survey.Input{Message: QuestionAgentlessMonitoredAccountRegion},
-				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
-				Required: true,
-				Response: &region,
-			},
-		}); err != nil {
-			return err
-		}
-
-		monitoredAccounts = append(
-			monitoredAccounts,
-			aws.AwsSubAccount{AwsProfile: profile, AwsRegion: region})
-
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Prompt:   &survey.Confirm{Message: QuestionAgentlessMonitoredAccountAddMore},
-			Response: &askAgain,
+			Icon:     IconAgentless,
+			Prompt:   &survey.Confirm{Message: QuestionEnableAgentless, Default: config.Agentless},
+			Response: &config.Agentless,
 		}); err != nil {
 			return err
 		}
 	}
 
-	// If we created new accounts, re-write config
-	if len(monitoredAccounts) > 0 {
-		config.AgentlessMonitoredAccounts = monitoredAccounts
-	}
-
-	return nil
-}
-
-func promptAwsCtQuestions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
-	// Only ask these questions if configure cloudtrail is true
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt:   &survey.Confirm{Message: QuestionConsolidatedCloudtrail, Default: config.ConsolidatedCloudtrail},
-			Response: &config.ConsolidatedCloudtrail,
-		},
-		{
-			Prompt:   &survey.Confirm{Message: QuestionUseExistingCloudtrail, Default: extraState.UseExistingCloudtrail},
-			Response: &extraState.UseExistingCloudtrail,
-		},
-	}, config.Cloudtrail); err != nil {
-		return err
-	}
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt: &survey.Confirm{
-				Message: QuestionEnableCloudtrailOrganization,
-				Default: config.AwsOrganization,
-			},
-			Response: &config.AwsOrganization,
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionCloudtrailName, Default: config.CloudtrailName},
-			Checks:   []*bool{existingCloudTrailDisabled(extraState)},
-			Response: &config.CloudtrailName,
-		},
-		{
-			Prompt: &survey.Input{
-				Message: QuestionCloudtrailExistingBucketArn,
-				Default: config.ExistingCloudtrailBucketArn,
-			},
-			Checks:   []*bool{&extraState.UseExistingCloudtrail},
-			Required: true,
-			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
-			Response: &config.ExistingCloudtrailBucketArn,
-		},
-	}, config.Cloudtrail); err != nil {
-		return err
-	}
-
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{Prompt: &survey.Confirm{
-			Message: QuestionConfigureCloudtrailOrganizationMappings,
-			Default: config.AwsOrganizationMappings,
-		},
-			Response: &config.AwsOrganizationMappings,
-			Checks:   []*bool{&config.AwsOrganization},
-		},
-	}, config.Cloudtrail); err != nil {
-		return err
-	}
-
-	if config.Cloudtrail && config.AwsOrganizationMappings {
-		err := promptCloudtrailOrgAccountMappings(config)
-		if err != nil {
-			return err
-		}
-	}
-
-	newBucket := config.ExistingCloudtrailBucketArn == ""
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		// If new bucket created, allow user to optionally name the bucket
-		{
-			Prompt:   &survey.Input{Message: QuestionBucketName, Default: config.BucketName},
-			Response: &config.BucketName,
-			Checks:   []*bool{&config.Cloudtrail, &newBucket},
-		},
-		// If new bucket created, should this have encryption enabled
-		{
-			Prompt:   &survey.Confirm{Message: QuestionBucketEnableEncryption, Default: config.BucketEncryptionEnabled},
-			Response: &config.BucketEncryptionEnabled,
-			Checks:   []*bool{&config.Cloudtrail, &newBucket},
-		},
-		// Allow the user to set the SSE Key ARN if required
-		{
-			Prompt:   &survey.Input{Message: QuestionBucketSseKeyArn, Default: config.BucketSseKeyArn},
-			Response: &config.BucketSseKeyArn,
-			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
-			Checks:   []*bool{&config.Cloudtrail, &newBucket, &config.BucketEncryptionEnabled},
-		},
-		// Allow the user to enable S3 bucket notifications
-		{
-			Prompt:   &survey.Confirm{Message: QuestionS3BucketNotification, Default: config.S3BucketNotification},
-			Response: &config.S3BucketNotification,
-			Checks:   []*bool{&config.Cloudtrail, &newBucket},
-		},
-	}, config.Cloudtrail); err != nil {
-		return err
-	}
-	// SNS Options
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt:   &survey.Confirm{Message: QuestionsUseExistingSNSTopic, Default: extraState.UseExistingSNSTopic},
-			Response: &extraState.UseExistingSNSTopic,
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionSnsTopicArn, Default: config.ExistingSnsTopicArn},
-			Checks:   []*bool{&extraState.UseExistingSNSTopic},
-			Required: true,
-			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
-			Response: &config.ExistingSnsTopicArn,
-		},
-	}, config.Cloudtrail); err != nil {
-		return err
-	}
-	// If a new SNS Topic is to be created
-	newTopic := config.ExistingSnsTopicArn == ""
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		// If new topic created, allow user to optionally name the topic
-		{
-			Prompt:   &survey.Input{Message: QuestionSnsTopicName, Default: config.SnsTopicName},
-			Response: &config.SnsTopicName,
-			Checks:   []*bool{&config.Cloudtrail, &newTopic},
-		},
-		// If new bucket created, should this have encryption enabled
-		{
-			Prompt:   &survey.Confirm{Message: QuestionSnsEnableEncryption, Default: config.SnsTopicEncryptionEnabled},
-			Response: &config.SnsTopicEncryptionEnabled,
-			Checks:   []*bool{&config.Cloudtrail, &newTopic},
-		},
-		// Allow the user to set the SSE Key ARN if required
-		{
-			Prompt:   &survey.Input{Message: QuestionSnsEncryptionKeyArn, Default: config.SnsTopicEncryptionKeyArn},
-			Response: &config.SnsTopicEncryptionKeyArn,
-			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
-			Checks:   []*bool{&config.Cloudtrail, &newTopic, &config.SnsTopicEncryptionEnabled},
-		},
-	}, config.Cloudtrail); err != nil {
-		return err
-	}
-	// SQS Options
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		// New queue created, allow user to optionally name the queue
-		{
-			Prompt:   &survey.Input{Message: QuestionSqsQueueName, Default: config.SqsQueueName},
-			Response: &config.SqsQueueName,
-			Checks:   []*bool{&config.Cloudtrail},
-		},
-		// New queue created, should this have encryption enabled
-		{
-			Prompt:   &survey.Confirm{Message: QuestionSqsEnableEncryption, Default: config.SqsEncryptionEnabled},
-			Response: &config.SqsEncryptionEnabled,
-			Checks:   []*bool{&config.Cloudtrail},
-		},
-		// Allow the user to set the SSE Key ARN if required
-		{
-			Prompt:   &survey.Input{Message: QuestionSqsEncryptionKeyArn, Default: config.SqsEncryptionKeyArn},
-			Response: &config.SqsEncryptionKeyArn,
-			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
-			Checks:   []*bool{&config.Cloudtrail, &config.SqsEncryptionEnabled},
-		},
-	}, config.Cloudtrail); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func existingCloudTrailDisabled(extraState *AwsGenerateCommandExtraState) *bool {
-	existingCloudTrailDisabled := !extraState.UseExistingCloudtrail
-	return &existingCloudTrailDisabled
-}
-
-func promptAwsExistingIamQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
-	// ensure struct is initialized
-	if config.ExistingIamRole == nil {
-		config.ExistingIamRole = &aws.ExistingIamRoleDetails{}
-	}
-
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt:   &survey.Input{Message: QuestionExistingIamRoleName, Default: config.ExistingIamRole.Name},
-			Response: &config.ExistingIamRole.Name,
-			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionExistingIamRoleArn, Default: config.ExistingIamRole.Arn},
-			Response: &config.ExistingIamRole.Arn,
-			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validateAwsArnFormat)},
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionExistingIamRoleExtID, Default: config.ExistingIamRole.ExternalId},
-			Response: &config.ExistingIamRole.ExternalId,
-			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
-		}}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func promptAwsAdditionalAccountQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
-	// For each added account, collect it's profile name and the region that should be used
-	accountDetails := []aws.AwsSubAccount{}
-	askAgain := true
-
-	// Determine the profile for the main account
-	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt: &survey.Input{
-			Message: QuestionPrimaryAwsAccountProfile,
-			Default: config.AwsProfile,
-		},
-		Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
-		Response: &config.AwsProfile,
-		Required: true,
-	}); err != nil {
+	if !config.Agentless {
 		return nil
 	}
 
-	// If there are existing sub accounts configured (i.e., from the CLI) display them and ask if they want to add more
-	if len(config.SubAccounts) > 0 {
-		subAccountListing := []string{}
-		for _, account := range config.SubAccounts {
-			subAccountListing = append(subAccountListing, fmt.Sprintf("%s:%s", account.AwsProfile, account.AwsRegion))
-		}
+	if config.AwsOrganization {
+		monitoredAccountIDListInput := ""
 
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Prompt: &survey.Confirm{
-				Message: fmt.Sprintf(
-					QuestionSubAccountReplace,
-					strings.Trim(strings.Join(strings.Fields(fmt.Sprint(subAccountListing)), ", "), "[]"),
-				),
-			},
-			Response: &askAgain}); err != nil {
-			return err
-		}
-	}
-
-	// For each account to add, collect the aws profile and region to use
-	for askAgain {
-		var accountProfileName string
-		var accountProfileRegion string
-		accountQuestions := []SurveyQuestionWithValidationArgs{
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 			{
-				Prompt:   &survey.Input{Message: QuestionSubAccountProfileName},
-				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
+				Icon: IconAgentless,
+				Prompt: &survey.Input{
+					Message: QuestionAgentlessManagementAccountID,
+					Default: config.AgentlessManagementAccountID,
+				},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsAccountID)},
+				Response: &config.AgentlessManagementAccountID,
 				Required: true,
-				Response: &accountProfileName,
 			},
 			{
-				Prompt:   &survey.Input{Message: QuestionSubAccountRegion},
-				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
+				Icon: IconAgentless,
+				Prompt: &survey.Input{
+					Message: QuestionAgentlessMonitoredAccountIDs,
+					Default: strings.Join(config.AgentlessMonitoredAccountIDs, ","),
+					Help:    QuestionAgentlessMonitoredAccountIDsHelp,
+				},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAgentlessMonitoredAccountIDList)},
+				Response: &monitoredAccountIDListInput,
 				Required: true,
-				Response: &accountProfileRegion,
 			},
-		}
-
-		if err := SurveyMultipleQuestionWithValidation(accountQuestions); err != nil {
+		}, config.AwsOrganization); err != nil {
 			return err
 		}
 
-		accountDetails = append(
-			accountDetails,
-			aws.AwsSubAccount{AwsProfile: accountProfileName, AwsRegion: accountProfileRegion})
+		config.AgentlessMonitoredAccountIDs = strings.Split(monitoredAccountIDListInput, ",")
 
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Prompt:   &survey.Confirm{Message: QuestionSubAccountAddMore},
-			Response: &askAgain}); err != nil {
+		if err := promptAwsAccountsQuestions(
+			&config.AgentlessMonitoredAccounts,
+			IconAgentless,
+			QuestionAgentlessMonitoredAccountProfile,
+			QuestionAgentlessMonitoredAccountRegion,
+			QuestionAgentlessMonitoredAccountAddMore,
+			QuestionAgentlessMonitoredAccountsReplace,
+			false,
+		); err != nil {
 			return err
 		}
 	}
 
-	// If we created new accounts, re-write config
-	if len(accountDetails) > 0 {
-		config.SubAccounts = accountDetails
-	}
-
-	return nil
-}
-
-func promptCustomizeAwsOutputLocation(extraState *AwsGenerateCommandExtraState) error {
-	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Input{Message: QuestionAwsCustomizeOutputLocation, Default: extraState.Output},
-		Response: &extraState.Output,
-		Opts:     []survey.AskOpt{survey.WithValidator(validPathExists)},
-		Required: true,
-	}); err != nil {
+	if err := promptAwsAccountsQuestions(
+		&config.AgentlessScanningAccounts,
+		IconAgentless,
+		QuestionAgentlessScanningAccountProfile,
+		QuestionAgentlessScanningAccountRegion,
+		QuestionAgentlessScanningAccountAddMore,
+		QuestionAgentlessScanningAccountsReplace,
+		!config.AwsOrganization,
+	); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func promptCustomizeConfigOptions(config *aws.GenerateAwsTfConfigurationArgs) error {
-	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Input{Message: QuestionConfigName, Default: config.ConfigName},
-		Checks:   []*bool{&config.Config},
-		Response: &config.ConfigName,
-	}); err != nil {
+func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
+	if !config.Config {
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Icon:     IconConfig,
+			Prompt:   &survey.Confirm{Message: QuestionEnableConfig, Default: config.Config},
+			Response: &config.Config,
+		}); err != nil {
+			return err
+		}
+	}
+
+	if !config.Config {
+		return nil
+	}
+
+	if config.AwsOrganization {
+		return nil
+	}
+
+	if err := promptAwsAccountsQuestions(
+		&config.ConfigAdditionalAccounts,
+		IconConfig,
+		QuestionConfigAdditionalAccountProfile,
+		QuestionConfigAdditionalAccountRegion,
+		QuestionConfigAdditionalAccountAddMore,
+		QuestionConfigAdditionalAccountsReplace,
+		true,
+	); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func askAdvancedAwsOptions(config *aws.GenerateAwsTfConfigurationArgs, extraState *AwsGenerateCommandExtraState) error {
-	answer := ""
-
-	// Prompt for options
-	for answer != AwsAdvancedOptDone {
-		// Construction of this slice is a bit strange at first look, but the reason for that is because
-		// we have to do string validation to know which option was selected due to how survey works; and
-		// doing it by index (also supported) is difficult when the options are dynamic (which they are)
-		//
-		// Only ask about more accounts if consolidated cloudtrail is setup (matching scenarios doc)
-		// Scenario document suggests that this is no longer the case and that
-		// we can have other accounts even if we only have Config integration (Scenario 7)
-		var options []string
-
-		// Only show Advanced Agentless options if Agentless integration is set to true
-		if config.Agentless {
-			options = append(options, AdvancedOptAgentless)
-		}
-
-		// Determine if user specified name for Config is potentially required
-		if config.Config {
-			options = append(options, QuestionCustomizeConfigName)
-		}
-
-		// Only show Advanced CloudTrail options if CloudTrail integration is set to true
-		if config.Cloudtrail {
-			options = append(options, AdvancedOptCloudTrail)
-		}
-
-		// Scenario document suggests that this is no longer the case and that
-		// we can have other accounts even if we only have Config integration (Scenario 7)
-		//if config.ConsolidatedCloudtrail {
-		options = append(options, AdvancedOptAwsAccounts)
-		//}
-
-		options = append(options, AdvancedOptIamRole, AwsAdvancedOptLocation, AwsAdvancedOptDone)
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Prompt: &survey.Select{
-				Message: "Which options would you like to configure?",
-				Options: options,
-			},
-			Response: &answer,
-		}); err != nil {
-			return err
-		}
-
-		// Based on response, prompt for actions
-		switch answer {
-		case AdvancedOptAgentless:
-			if err := promptAgentlessQuestions(config); err != nil {
-				return err
-			}
-		case AdvancedOptCloudTrail:
-			if err := promptAwsCtQuestions(config, extraState); err != nil {
-				return err
-			}
-		case AdvancedOptIamRole:
-			if err := promptAwsExistingIamQuestions(config); err != nil {
-				return err
-			}
-		case AdvancedOptAwsAccounts:
-			if err := promptAwsAdditionalAccountQuestions(config); err != nil {
-				return err
-			}
-		case AwsAdvancedOptLocation:
-			if err := promptCustomizeAwsOutputLocation(extraState); err != nil {
-				return err
-			}
-		case QuestionCustomizeConfigName:
-			if err := promptCustomizeConfigOptions(config); err != nil {
-				return err
-			}
-		}
-
-		// Re-prompt if not done
-		innerAskAgain := true
-		if answer == AwsAdvancedOptDone {
-			innerAskAgain = false
-		}
-
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Checks:   []*bool{&innerAskAgain},
-			Prompt:   &survey.Confirm{Message: QuestionAwsAnotherAdvancedOpt, Default: false},
-			Response: &innerAskAgain,
-		}); err != nil {
-			return err
-		}
-
-		if !innerAskAgain {
-			answer = AwsAdvancedOptDone
-		}
-	}
-
-	return nil
-}
-
-func awsConfigIsEmpty(g *aws.GenerateAwsTfConfigurationArgs) bool {
-	return !g.Cloudtrail &&
-		!g.Config &&
-		!g.ConsolidatedCloudtrail &&
-		g.AwsProfile == "" &&
-		g.AwsRegion == "" &&
-		g.ExistingCloudtrailBucketArn == "" &&
-		g.ExistingIamRole == nil &&
-		g.ExistingSnsTopicArn == "" &&
-		g.LaceworkProfile == "" &&
-		g.SubAccounts == nil
-}
-
-func writeAwsGenerationArgsCache(a *aws.GenerateAwsTfConfigurationArgs) {
-	if !awsConfigIsEmpty(a) {
-		// If ExistingIamRole is partially set, don't write this to cache; the values won't work when loaded
-		if a.ExistingIamRole.IsPartial() {
-			a.ExistingIamRole = nil
-		}
-		cli.WriteAssetToCache(CachedAwsAssetIacParams, time.Now().Add(time.Hour*1), a)
-	}
-}
-
-// entry point for launching a survey to build out the required generation parameters
-func promptAwsGenerate(
+func promptCloudtrailQuestions(
 	config *aws.GenerateAwsTfConfigurationArgs,
-	existingIam *aws.ExistingIamRoleDetails,
-	extraState *AwsGenerateCommandExtraState,
+	extraState *aws.AwsGenerateCommandExtraState,
 ) error {
-	// Cache for later use if generation is abandon and in interactive mode
-	if cli.InteractiveMode() {
-		defer writeAwsGenerationArgsCache(config)
-		defer extraState.writeCache()
-	}
-
-	// Set ExistingIamRole details, if provided as cli flags; otherwise don't initialize
-	if existingIam.Arn != "" ||
-		existingIam.Name != "" ||
-		existingIam.ExternalId != "" {
-		config.ExistingIamRole = existingIam
-	}
-
-	// These are the core questions that should be asked.  Region required for provider block
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Prompt:   &survey.Confirm{Message: QuestionEnableAgentless, Default: config.Agentless},
-				Response: &config.Agentless,
-			},
-			{
-				Prompt:   &survey.Confirm{Message: QuestionAwsEnableConfig, Default: config.Config},
-				Response: &config.Config,
-			},
-			{
-				Prompt:   &survey.Confirm{Message: QuestionEnableCloudtrail, Default: config.Cloudtrail},
-				Response: &config.Cloudtrail,
-			},
+	if !config.Cloudtrail {
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Confirm{Message: QuestionEnableCloudtrail, Default: config.Cloudtrail},
+			Response: &config.Cloudtrail,
 		}); err != nil {
-		return err
+			return err
+		}
 	}
 
-	// Validate one of agentless, config or cloudtrail was enabled; otherwise error out
-	if !config.Agentless && !config.Config && !config.Cloudtrail {
-		return errors.New("must enable agentless, cloudtrail or config")
-	}
-
-	if !cli.InteractiveMode() && config.AwsOrganization && config.Agentless {
-		if config.AgentlessManagementAccountID == "" {
-			return errors.New("must specify a management account ID for Agentless organization integration")
-		}
-		if len(config.AgentlessMonitoredAccountIDs) == 0 {
-			return errors.New("must specify monitored account IDs for Agentless organization integration")
-		}
+	if !config.Cloudtrail {
+		return nil
 	}
 
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Input{Message: QuestionAwsRegion, Default: config.AwsRegion},
-		Response: &config.AwsRegion,
-		Opts:     []survey.AskOpt{survey.WithValidator(survey.Required), survey.WithValidator(validateAwsRegion)},
+		Icon:     IconCloudTrail,
+		Prompt:   &survey.Confirm{Message: QuestionCloudtrailUseConsolidated, Default: config.ConsolidatedCloudtrail},
+		Response: &config.ConsolidatedCloudtrail,
 	}); err != nil {
 		return err
 	}
 
 	// Find out if the customer wants to specify more advanced features
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Confirm{Message: QuestionAwsConfigAdvanced, Default: extraState.AskAdvanced},
-		Response: &extraState.AskAdvanced,
+		Icon:     IconCloudTrail,
+		Prompt:   &survey.Confirm{Message: QuestionCloudtrailAdvanced, Default: extraState.CloudtrailAdvanced},
+		Response: &extraState.CloudtrailAdvanced,
 	}); err != nil {
 		return err
 	}
 
 	// Keep prompting for advanced options until the say done
-	if extraState.AskAdvanced {
-		if err := askAdvancedAwsOptions(config, extraState); err != nil {
-			return err
+	if extraState.CloudtrailAdvanced {
+		answer := ""
+		options := []string{
+			OptCloudtrailS3,
+			OptCloudtrailSNS,
+			OptCloudtrailSQS,
+			OptCloudtrailIAM,
+			OptCloudtrailDone,
+		}
+		if config.AwsOrganization {
+			options = append([]string{OptCloudtrailOrg}, options...)
+		}
+		for answer != OptCloudtrailDone {
+			if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+				Icon: IconCloudTrail,
+				Prompt: &survey.Select{
+					Message: OptCloudtrailMessage,
+					Options: options,
+				},
+				Response: &answer,
+			}); err != nil {
+				return err
+			}
+			switch answer {
+			case OptCloudtrailOrg:
+				if err := promptCloudtrailOrgQuestions(config); err != nil {
+					return err
+				}
+			case OptCloudtrailS3:
+				if err := promptCloudtrailS3Questions(config); err != nil {
+					return err
+				}
+			case OptCloudtrailSNS:
+				if err := promptCloudtrailSNSQuestions(config); err != nil {
+					return err
+				}
+			case OptCloudtrailSQS:
+				if err := promptCloudtrailSQSQuestions(config); err != nil {
+					return err
+				}
+			case OptCloudtrailIAM:
+				if err := promptCloudtrailIAMQuestions(config); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
 	return nil
 }
 
-func promptCloudtrailAddOrgAccountMappings(input *aws.GenerateAwsTfConfigurationArgs) error {
+func promptCloudtrailOrgAccountMappingQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 	mapping := aws.OrgAccountMap{}
 	var accountsAnswer string
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
+			Icon:     IconCloudTrail,
 			Prompt:   &survey.Input{Message: QuestionCloudtrailOrgAccountMappingsLWAccount},
 			Response: &mapping.LaceworkAccount,
 		},
 		{
+			Icon:     IconCloudTrail,
 			Prompt:   &survey.Multiline{Message: QuestionCloudtrailOrgAccountMappingsAwsAccounts},
 			Response: &accountsAnswer,
 		},
@@ -1223,39 +883,32 @@ func promptCloudtrailAddOrgAccountMappings(input *aws.GenerateAwsTfConfiguration
 		return err
 	}
 	mapping.AwsAccounts = strings.Split(accountsAnswer, "\n")
-	input.OrgAccountMappings.Mapping = append(input.OrgAccountMappings.Mapping, mapping)
+	config.OrgAccountMappings.Mapping = append(config.OrgAccountMappings.Mapping, mapping)
 	return nil
 }
 
-func promptCloudtrailOrgAccountMappings(input *aws.GenerateAwsTfConfigurationArgs) error {
+func promptCloudtrailOrgQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
+			Icon: IconCloudTrail,
 			Prompt: &survey.Input{
-				Message: QuestionCloudtrailAccountMappingsLWDefaultAccount,
-				Default: input.OrgAccountMappings.DefaultLaceworkAccount},
-			Response: &input.OrgAccountMappings.DefaultLaceworkAccount,
+				Message: QuestionCloudtrailOrgAccountMappingsDefaultLWAccount,
+				Default: config.OrgAccountMappings.DefaultLaceworkAccount},
+			Response: &config.OrgAccountMappings.DefaultLaceworkAccount,
 		},
 	}); err != nil {
 		return err
 	}
 
-	if err := promptCloudtrailAddOrgAccountMappings(input); err != nil {
-		return err
-	}
-
-	var askAgain bool
-	for {
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Prompt:   &survey.Confirm{Message: QuestionControlTowerOrgAccountMappingAnotherAdvancedOpt},
-			Response: &askAgain}); err != nil {
+	askAgain := true
+	for askAgain {
+		if err := promptCloudtrailOrgAccountMappingQuestions(config); err != nil {
 			return err
 		}
-
-		if !askAgain {
-			break
-		}
-
-		if err := promptCloudtrailAddOrgAccountMappings(input); err != nil {
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Confirm{Message: QuestionCloudtrailOrgAccountMappingsAnotherAddMore},
+			Response: &askAgain}); err != nil {
 			return err
 		}
 	}
@@ -1263,9 +916,335 @@ func promptCloudtrailOrgAccountMappings(input *aws.GenerateAwsTfConfigurationArg
 	return nil
 }
 
-func parseCloudtrailOrgAccountMappingsFlag(args *aws.GenerateAwsTfConfigurationArgs) error {
-	if err := json.Unmarshal([]byte(args.OrgAccountMappingsJson), &args.OrgAccountMappings); err != nil {
-		return errors.Wrap(err, "failed to parse 'cloudtrail_org_account_mapping'")
+func promptCloudtrailS3Questions(config *aws.GenerateAwsTfConfigurationArgs) error {
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Confirm{Message: QuestionCloudtrailUseExistingS3, Default: config.CloudtrailUseExistingS3},
+			Response: &config.CloudtrailUseExistingS3,
+		},
+	}); err != nil {
+		return err
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailName, Default: config.CloudtrailName},
+			Response: &config.CloudtrailName,
+		},
+		{
+			Icon: IconCloudTrail,
+			Prompt: &survey.Input{
+				Message: QuestionCloudtrailS3ExistingBucketArn,
+				Default: config.ExistingCloudtrailBucketArn,
+			},
+			Required: true,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
+			Response: &config.ExistingCloudtrailBucketArn,
+		},
+	}, config.CloudtrailUseExistingS3); err != nil {
+		return err
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailS3BucketName, Default: config.BucketName},
+			Response: &config.BucketName,
+		},
+		{
+			Icon: IconCloudTrail,
+			Prompt: &survey.Confirm{
+				Message: QuestionCloudtrailS3BucketEnableEncryption,
+				Default: config.BucketEncryptionEnabled,
+			},
+			Response: &config.BucketEncryptionEnabled,
+		},
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailS3BucketSseKeyArn, Default: config.BucketSseKeyArn},
+			Response: &config.BucketSseKeyArn,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
+			Checks:   []*bool{&config.BucketEncryptionEnabled},
+		},
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Confirm{Message: QuestionCloudtrailS3BucketNotification, Default: config.S3BucketNotification},
+			Response: &config.S3BucketNotification,
+		},
+	}, !config.CloudtrailUseExistingS3); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func promptCloudtrailSNSQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon: IconCloudTrail,
+			Prompt: &survey.Confirm{
+				Message: QuestionCloudtrailUseExistingSNSTopic,
+				Default: config.CloudtrailUseExistingSNSTopic,
+			},
+			Response: &config.CloudtrailUseExistingSNSTopic,
+		},
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailSnsExistingTopicArn, Default: config.ExistingSnsTopicArn},
+			Checks:   []*bool{&config.CloudtrailUseExistingSNSTopic},
+			Required: true,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
+			Response: &config.ExistingSnsTopicArn,
+		},
+	}); err != nil {
+		return err
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailSnsTopicName, Default: config.SnsTopicName},
+			Response: &config.SnsTopicName,
+		},
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Confirm{Message: QuestionCloudtrailSnsEnableEncryption, Default: config.SnsTopicEncryptionEnabled},
+			Response: &config.SnsTopicEncryptionEnabled,
+		},
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailSnsEncryptionKeyArn, Default: config.SnsTopicEncryptionKeyArn},
+			Response: &config.SnsTopicEncryptionKeyArn,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
+			Checks:   []*bool{&config.SnsTopicEncryptionEnabled},
+		},
+	}, !config.CloudtrailUseExistingSNSTopic); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func promptCloudtrailSQSQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailSqsQueueName, Default: config.SqsQueueName},
+			Response: &config.SqsQueueName,
+		},
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Confirm{Message: QuestionCloudtrailSqsEnableEncryption, Default: config.SqsEncryptionEnabled},
+			Response: &config.SqsEncryptionEnabled,
+		},
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailSqsEncryptionKeyArn, Default: config.SqsEncryptionKeyArn},
+			Response: &config.SqsEncryptionKeyArn,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateOptionalAwsArnFormat)},
+			Checks:   []*bool{&config.SqsEncryptionEnabled},
+		},
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func promptCloudtrailIAMQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
+	// ensure struct is initialized
+	if config.ExistingIamRole == nil {
+		config.ExistingIamRole = &aws.ExistingIamRoleDetails{}
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailExistingIamRoleName, Default: config.ExistingIamRole.Name},
+			Response: &config.ExistingIamRole.Name,
+			// Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
+			Required: true,
+		},
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailExistingIamRoleArn, Default: config.ExistingIamRole.Arn},
+			Response: &config.ExistingIamRole.Arn,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
+			Required: true,
+		},
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailExistingIamRoleExtID, Default: config.ExistingIamRole.ExternalId},
+			Response: &config.ExistingIamRole.ExternalId,
+			// Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
+			Required: true,
+		}}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func promptAwsAccountsQuestions(
+	accounts *[]aws.AwsSubAccount,
+	questionIcon string,
+	questionProfile string,
+	questionRegion string,
+	questionAddMore string,
+	questionReplace string,
+	askFirst bool,
+) error {
+	if !cli.InteractiveMode() {
+		return nil
+	}
+
+	askAgain := true
+	newAccounts := []aws.AwsSubAccount{}
+
+	// Ask if replacing existing accounts
+	if len(*accounts) > 0 {
+		accountListing := []string{}
+		for _, account := range *accounts {
+			accountListing = append(
+				accountListing,
+				fmt.Sprintf("%s:%s", account.AwsProfile, account.AwsRegion),
+			)
+		}
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Icon: questionIcon,
+			Prompt: &survey.Confirm{
+				Message: fmt.Sprintf(
+					questionReplace,
+					strings.Trim(strings.Join(strings.Fields(fmt.Sprint(accountListing)), ", "), "[]"),
+				),
+			},
+			Response: &askAgain,
+		}); err != nil {
+			return err
+		}
+	}
+
+	if askFirst {
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Icon:     questionIcon,
+			Prompt:   &survey.Confirm{Message: questionAddMore},
+			Response: &askAgain,
+		}); err != nil {
+			return err
+		}
+	}
+
+	for askAgain {
+		var profile, region string
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon:     questionIcon,
+				Prompt:   &survey.Input{Message: questionProfile},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
+				Required: true,
+				Response: &profile,
+			},
+			{
+				Icon:     questionIcon,
+				Prompt:   &survey.Input{Message: questionRegion},
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
+				Required: true,
+				Response: &region,
+			},
+		}); err != nil {
+			return err
+		}
+		alias := fmt.Sprintf("%s-%s", profile, region)
+		newAccounts = append(
+			newAccounts,
+			aws.AwsSubAccount{AwsProfile: profile, AwsRegion: region, Alias: alias},
+		)
+		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+			Icon:     questionIcon,
+			Prompt:   &survey.Confirm{Message: questionAddMore},
+			Response: &askAgain,
+		}); err != nil {
+			return err
+		}
+	}
+
+	if len(newAccounts) > 0 {
+		*accounts = newAccounts
+	}
+
+	return nil
+}
+
+func writeArgsCache(a *aws.GenerateAwsTfConfigurationArgs) {
+	if !a.IsEmpty() {
+		// If ExistingIamRole is partially set, don't write this to cache; the values won't work when loaded
+		if a.ExistingIamRole.IsPartial() {
+			a.ExistingIamRole = nil
+		}
+		cli.WriteAssetToCache(CachedAwsArgsKey, time.Now().Add(time.Hour*1), a)
+	}
+}
+
+func writeExtraStateCache(a *aws.AwsGenerateCommandExtraState) {
+	if !a.IsEmpty() {
+		cli.WriteAssetToCache(CachedAwsExtraStateKey, time.Now().Add(time.Hour*1), a)
+	}
+}
+
+// Entry point for launching a survey to build out the required generation parameters
+func promptAwsGenerate(
+	config *aws.GenerateAwsTfConfigurationArgs,
+	extraState *aws.AwsGenerateCommandExtraState,
+) error {
+	// Cache for later use if generation is abandon and in interactive mode
+	if cli.InteractiveMode() {
+		defer writeArgsCache(config)
+		defer writeExtraStateCache(extraState)
+	}
+
+	// Core questions
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt: &survey.Confirm{
+				Message: QuestionEnableAwsOrganization,
+				Default: config.AwsOrganization,
+			},
+			Response: &config.AwsOrganization,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionMainAwsProfile, Default: config.AwsProfile},
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
+			Response: &config.AwsProfile,
+			Required: true,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionMainAwsRegion, Default: config.AwsRegion},
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
+			Response: &config.AwsRegion,
+			Required: true,
+		},
+	}); err != nil {
+		return err
+	}
+
+	if err := promptAgentlessQuestions(config); err != nil {
+		return err
+	}
+	if err := promptConfigQuestions(config); err != nil {
+		return err
+	}
+	if err := promptCloudtrailQuestions(config, extraState); err != nil {
+		return err
+	}
+
+	// Custom ouput location
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Prompt:   &survey.Input{Message: QuestionAwsOutputLocation, Default: extraState.Output},
+		Response: &extraState.Output,
+		Opts:     []survey.AskOpt{survey.WithValidator(validPathExists)},
+	}); err != nil {
+		return err
 	}
 
 	return nil

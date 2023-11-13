@@ -4,6 +4,7 @@ package aws
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -21,6 +22,13 @@ type ExistingIamRoleDetails struct {
 
 	// Existing IAM Role External Id
 	ExternalId string
+}
+
+func (e *ExistingIamRoleDetails) IsEmpty() bool {
+	if e == nil {
+		return true
+	}
+	return e.Arn == "" && e.Name == "" && e.ExternalId == ""
 }
 
 func (e *ExistingIamRoleDetails) IsPartial() bool {
@@ -123,14 +131,17 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Should we configure Agentless integration in LW?
 	Agentless bool
 
-	// Agentless Management AWS account ID
+	// Agentless management AWS account ID
 	AgentlessManagementAccountID string
 
-	// Agentless Monitored AWS account IDs, OUs, or the organization root.
+	// Agentless monitored AWS account IDs, OUs, or the organization root.
 	AgentlessMonitoredAccountIDs []string
 
-	// Monitored AWS accounts
+	// Agentless monitored AWS accounts
 	AgentlessMonitoredAccounts []AwsSubAccount
+
+	// Agentless scanning AWS accounts
+	AgentlessScanningAccounts []AwsSubAccount
 
 	// Should we configure Cloudtrail integration in LW?
 	Cloudtrail bool
@@ -147,11 +158,20 @@ type GenerateAwsTfConfigurationArgs struct {
 	// OrgAccountMapping json used for flag input
 	OrgAccountMappingsJson string
 
+	// Use exisiting CloudTrail S3 bucket
+	CloudtrailUseExistingS3 bool
+
+	// Use exisiting CloudTrail SNS topic
+	CloudtrailUseExistingSNSTopic bool
+
 	// Should we configure CSPM integration in LW?
 	Config bool
 
 	// Optional name for config
 	ConfigName string
+
+	// Config addtional AWS accounts
+	ConfigAdditionalAccounts []AwsSubAccount
 
 	// Supply an AWS region for where to find the cloudtrail resources
 	// TODO @ipcrm future: support split regions for resources (s3 one place, sns another, etc)
@@ -193,6 +213,9 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Arn of the KMS encryption key for S3, required when bucket encryption in enabled
 	BucketSseKeyArn string
 
+	// Enable S3 bucket notification
+	S3BucketNotification bool
+
 	// SNS Topic name if creating one and not using an existing one
 	SnsTopicName string
 
@@ -233,28 +256,43 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// Lacework Organization
 	LaceworkOrganizationLevel bool
+}
 
-	S3BucketNotification bool
+func (args *GenerateAwsTfConfigurationArgs) IsEmpty() bool {
+	if args.AwsProfile == "" && args.AwsRegion == "" && !args.Agentless && !args.Config && !args.Cloudtrail {
+		return true
+	}
+	return false
 }
 
 // Ensure all combinations of inputs our valid for supported spec
-func (args *GenerateAwsTfConfigurationArgs) validate() error {
-	// Validate one of config or cloudtrail was enabled; otherwise error out
+func (args *GenerateAwsTfConfigurationArgs) Validate() error {
 	if !args.Agentless && !args.Cloudtrail && !args.Config {
-		return errors.New("agentless, cloudtrail or config integration must be enabled")
+		return errors.New("Agentless, CloudTrail or Config integration must be enabled")
 	}
 
-	// Validate that at least region was set
 	if args.AwsRegion == "" {
-		return errors.New("AWS region must be set")
+		return errors.New("Main AWS account region must be set")
 	}
 
-	// Validate existing role IAM values, if set
-	if args.ExistingIamRole != nil {
-		if args.ExistingIamRole.Arn == "" ||
-			args.ExistingIamRole.Name == "" ||
-			args.ExistingIamRole.ExternalId == "" {
-			return errors.New("when using an existing IAM role, existing role ARN, name, and external ID all must be set")
+	if args.ExistingIamRole.IsPartial() {
+		return errors.New("when using an existing IAM role, existing role ARN, name, and external ID all must be set")
+	}
+
+	if args.AwsOrganization {
+		if args.Agentless {
+			if args.AgentlessManagementAccountID == "" {
+				return errors.New("must specify a management account ID for Agentless organization integration")
+			}
+			if len(args.AgentlessMonitoredAccountIDs) == 0 {
+				return errors.New("must specify monitored account ID list for Agentless organization integration")
+			}
+			if len(args.AgentlessMonitoredAccounts) == 0 {
+				return errors.New("must specify monitored accounts for Agentless organization integration")
+			}
+			if len(args.AgentlessScanningAccounts) == 0 {
+				return errors.New("must specify scanning accounts for Agentless organization integration")
+			}
 		}
 	}
 
@@ -262,6 +300,19 @@ func (args *GenerateAwsTfConfigurationArgs) validate() error {
 }
 
 type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
+
+type AwsGenerateCommandExtraState struct {
+	CloudtrailAdvanced         bool
+	Output                     string
+	AwsSubAccounts             []string
+	AgentlessMonitoredAccounts []string
+	AgentlessScanningAccounts  []string
+	TerraformApply             bool
+}
+
+func (a *AwsGenerateCommandExtraState) IsEmpty() bool {
+	return a.Output == "" && len(a.AwsSubAccounts) == 0 && !a.TerraformApply
+}
 
 // NewTerraform returns an instance of the GenerateAwsTfConfigurationArgs struct with the provided region and enabled
 // settings (config/cloudtrail).
@@ -275,7 +326,6 @@ type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 //	hcl, err := aws.NewTerraform("us-east-1", true, true,
 //	  aws.WithAwsProfile("mycorp-profile")).Generate()
 func NewTerraform(
-	region string,
 	enableAwsOrganization bool,
 	enableAgentless bool,
 	enableConfig bool,
@@ -283,7 +333,6 @@ func NewTerraform(
 	mods ...AwsTerraformModifier,
 ) *GenerateAwsTfConfigurationArgs {
 	config := &GenerateAwsTfConfigurationArgs{
-		AwsRegion:       region,
 		AwsOrganization: enableAwsOrganization,
 		Agentless:       enableAgentless,
 		Cloudtrail:      enableCloudtrail,
@@ -299,6 +348,13 @@ func NewTerraform(
 func WithAwsProfile(name string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.AwsProfile = name
+	}
+}
+
+// WithAwsRegion Set the AWS region to utilize for the main AWS provider
+func WithAwsRegion(region string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.AwsRegion = region
 	}
 }
 
@@ -344,29 +400,57 @@ func WithAgentlessMonitoredAccounts(accounts ...AwsSubAccount) AwsTerraformModif
 	}
 }
 
-// ExistingCloudtrailBucketArn Set the bucket ARN of an existing Cloudtrail setup
-func ExistingCloudtrailBucketArn(arn string) AwsTerraformModifier {
+// WithAgentlessScanningAccounts Set Agentless scanning accounts
+func WithAgentlessScanningAccounts(accounts ...AwsSubAccount) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.AgentlessScanningAccounts = accounts
+	}
+}
+
+// WithConfigAdditionalAccounts Set Config additional accounts
+func WithConfigAdditionalAccounts(accounts ...AwsSubAccount) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ConfigAdditionalAccounts = accounts
+	}
+}
+
+// WithCloudtrailUseExistingS3 Use the existing Cloudtrail S3 bucket
+func WithCloudtrailUseExistingS3(useExistingS3 bool) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.CloudtrailUseExistingS3 = useExistingS3
+	}
+}
+
+// WithCloudtrailUseExistingSNSTopic Use the existing Cloudtrail SNS topic
+func WithCloudtrailUseExistingSNSTopic(useExistingSNSTopic bool) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.CloudtrailUseExistingSNSTopic = useExistingSNSTopic
+	}
+}
+
+// WithExistingCloudtrailBucketArn Set the bucket ARN of an existing Cloudtrail setup
+func WithExistingCloudtrailBucketArn(arn string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingCloudtrailBucketArn = arn
 	}
 }
 
-// ExistingSnsTopicArn Set the SNS Topic ARN of an existing Cloudtrail setup
-func ExistingSnsTopicArn(arn string) AwsTerraformModifier {
+// WithExistingSnsTopicArn Set the SNS Topic ARN of an existing Cloudtrail setup
+func WithExistingSnsTopicArn(arn string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingSnsTopicArn = arn
 	}
 }
 
-// UseConsolidatedCloudtrail Enable Consolidated Cloudtrail use
-func UseConsolidatedCloudtrail() AwsTerraformModifier {
+// WithConsolidatedCloudtrail Enable Consolidated Cloudtrail use
+func WithConsolidatedCloudtrail(consolidatedCloudtrail bool) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
-		c.ConsolidatedCloudtrail = true
+		c.ConsolidatedCloudtrail = consolidatedCloudtrail
 	}
 }
 
-// UseExistingIamRole Set an existing IAM role configuration to use with the created Terraform code
-func UseExistingIamRole(iamDetails *ExistingIamRoleDetails) AwsTerraformModifier {
+// WithExistingIamRole Set an existing IAM role configuration to use with the created Terraform code
+func WithExistingIamRole(iamDetails *ExistingIamRoleDetails) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExistingIamRole = iamDetails
 	}
@@ -394,13 +478,6 @@ func WithOrgAccountMappings(mapping OrgAccountMapping) AwsTerraformModifier {
 		if !mapping.IsEmpty() {
 			c.LaceworkOrganizationLevel = true
 		}
-	}
-}
-
-// WithConfigName add optional name for Config integration
-func WithConfigName(configName string) AwsTerraformModifier {
-	return func(c *GenerateAwsTfConfigurationArgs) {
-		c.ConfigName = configName
 	}
 }
 
@@ -479,7 +556,7 @@ func WithS3BucketNotification(s3BucketNotifiaction bool) AwsTerraformModifier {
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
-	if err := args.validate(); err != nil {
+	if err := args.Validate(); err != nil {
 		return "", errors.Wrap(err, "invalid inputs")
 	}
 
@@ -536,61 +613,68 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 
 func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
-	if args.AwsRegion != "" || args.AwsProfile != "" || len(args.SubAccounts) > 0 {
-		attrs := map[string]interface{}{}
-		if args.AwsRegion != "" {
-			attrs["region"] = args.AwsRegion
-		}
 
-		if args.AwsProfile != "" {
-			attrs["alias"] = "main"
-			attrs["profile"] = args.AwsProfile
-		}
+	attributes := map[string]interface{}{
+		"region": args.AwsRegion,
+	}
 
-		modifiers := []lwgenerate.HclProviderModifier{
-			lwgenerate.HclProviderWithAttributes(attrs),
-		}
+	if args.AwsProfile != "" {
+		attributes["alias"] = "main"
+		attributes["profile"] = args.AwsProfile
+	}
 
-		if args.AwsAssumeRole != "" {
-			assumeRoleBlock, err := lwgenerate.HclCreateGenericBlock(
-				"assume_role",
-				nil,
-				map[string]interface{}{"role_arn": args.AwsAssumeRole},
-			)
-			if err != nil {
-				return nil, err
-			}
-			modifiers = append(modifiers, lwgenerate.HclProviderWithGenericBlocks(assumeRoleBlock))
-		}
+	modifiers := []lwgenerate.HclProviderModifier{
+		lwgenerate.HclProviderWithAttributes(attributes),
+	}
 
-		provider, err := lwgenerate.NewProvider("aws", modifiers...).ToBlock()
+	if args.AwsAssumeRole != "" {
+		assumeRoleBlock, err := lwgenerate.HclCreateGenericBlock(
+			"assume_role",
+			nil,
+			map[string]interface{}{"role_arn": args.AwsAssumeRole},
+		)
+		if err != nil {
+			return nil, err
+		}
+		modifiers = append(modifiers, lwgenerate.HclProviderWithGenericBlocks(assumeRoleBlock))
+	}
+
+	provider, err := lwgenerate.NewProvider("aws", modifiers...).ToBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	blocks = append(blocks, provider)
+
+	accounts := []AwsSubAccount{}
+	accounts = append(accounts, args.AgentlessMonitoredAccounts...)
+	accounts = append(accounts, args.AgentlessScanningAccounts...)
+	accounts = append(accounts, args.ConfigAdditionalAccounts...)
+	seenAccounts := []string{}
+
+	for _, account := range accounts {
+		alias := fmt.Sprintf("%s-%s", account.AwsProfile, account.AwsRegion)
+		if account.Alias != "" {
+			alias = account.Alias
+		}
+		// Skip duplicate account
+		if slices.Contains(seenAccounts, alias) {
+			continue
+		}
+		seenAccounts = append(seenAccounts, alias)
+		providerBlock, err := lwgenerate.NewProvider(
+			"aws",
+			lwgenerate.HclProviderWithAttributes(map[string]interface{}{
+				"alias":   alias,
+				"profile": account.AwsProfile,
+				"region":  account.AwsRegion,
+			}),
+		).ToBlock()
 		if err != nil {
 			return nil, err
 		}
 
-		blocks = append(blocks, provider)
-	}
-
-	subaccounts := append(args.SubAccounts, args.AgentlessMonitoredAccounts...)
-
-	if len(subaccounts) > 0 {
-		for _, subaccount := range subaccounts {
-			attrs := map[string]interface{}{
-				"alias":   subaccount.AwsProfile,
-				"profile": subaccount.AwsProfile,
-				"region":  subaccount.AwsRegion,
-			}
-			providerBlock, err := lwgenerate.NewProvider(
-				"aws",
-				lwgenerate.HclProviderWithAttributes(attrs),
-			).ToBlock()
-
-			if err != nil {
-				return nil, err
-			}
-
-			blocks = append(blocks, providerBlock)
-		}
+		blocks = append(blocks, providerBlock)
 	}
 
 	return blocks, nil
@@ -609,171 +693,174 @@ func createLaceworkProvider(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Blo
 
 	if len(lwProviderAttributes) > 0 {
 		return lwgenerate.NewProvider(
-			"lacework", lwgenerate.HclProviderWithAttributes(lwProviderAttributes)).ToBlock()
+			"lacework", lwgenerate.HclProviderWithAttributes(lwProviderAttributes),
+		).ToBlock()
 	}
 	return nil, nil
 }
 
 func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {
+	if !args.Config {
+		return nil, nil
+	}
+
 	blocks := []*hclwrite.Block{}
-	if args.Config {
-		// Add main account
-		moduleDetails := []lwgenerate.HclModuleModifier{}
-		if len(args.SubAccounts) > 0 {
-			moduleDetails = append(moduleDetails,
-				lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
-		}
-		if args.LaceworkAccountID != "" {
-			moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithAttributes(
-				map[string]interface{}{"lacework_aws_account_id": args.LaceworkAccountID}))
-		}
 
-		moduleBlock, err := lwgenerate.NewModule(
-			"aws_config",
+	moduleDetails := []lwgenerate.HclModuleModifier{
+		lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigVersion),
+		lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
+	}
+	if args.LaceworkAccountID != "" {
+		moduleDetails = append(
+			moduleDetails,
+			lwgenerate.HclModuleWithAttributes(
+				map[string]interface{}{"lacework_aws_account_id": args.LaceworkAccountID},
+			),
+		)
+	}
+
+	moduleBlock, err := lwgenerate.NewModule(
+		"aws_config",
+		lwgenerate.AwsConfigSource,
+		moduleDetails...,
+	).ToBlock()
+	if err != nil {
+		return nil, err
+	}
+	blocks = append(blocks, moduleBlock)
+
+	for _, account := range args.ConfigAdditionalAccounts {
+		configModule, err := lwgenerate.NewModule(
+			fmt.Sprintf("aws_config_%s", account.Alias),
 			lwgenerate.AwsConfigSource,
-			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigVersion))...,
+			lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigVersion),
+			lwgenerate.HclModuleWithProviderDetails(map[string]string{
+				"aws": fmt.Sprintf("aws.%s", account.Alias),
+			}),
 		).ToBlock()
-
 		if err != nil {
 			return nil, err
 		}
-		blocks = append(blocks, moduleBlock)
-
-		// Add sub accounts
-		for _, subaccount := range args.SubAccounts {
-			configModule, err := lwgenerate.NewModule(fmt.Sprintf(
-				"aws_config_%s",
-				subaccount.AwsProfile),
-				lwgenerate.AwsConfigSource,
-				lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigVersion),
-				lwgenerate.HclModuleWithProviderDetails(map[string]string{
-					"aws": fmt.Sprintf("aws.%s", subaccount.AwsProfile),
-				})).ToBlock()
-
-			if err != nil {
-				return nil, err
-			}
-
-			blocks = append(blocks, configModule)
-		}
+		blocks = append(blocks, configModule)
 	}
 
 	return blocks, nil
 }
 
 func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, error) {
-	if args.Cloudtrail {
-		attributes := map[string]interface{}{}
-		modDetails := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithVersion(lwgenerate.AwsCloudTrailVersion)}
+	if !args.Cloudtrail {
+		return nil, nil
+	}
 
-		if args.LaceworkAccountID != "" {
-			attributes["lacework_aws_account_id"] = args.LaceworkAccountID
-		}
-		if args.ConsolidatedCloudtrail {
-			attributes["consolidated_trail"] = true
-		}
+	attributes := map[string]interface{}{}
+	modDetails := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithVersion(lwgenerate.AwsCloudTrailVersion)}
+
+	if args.LaceworkAccountID != "" {
+		attributes["lacework_aws_account_id"] = args.LaceworkAccountID
+	}
+	if args.ConsolidatedCloudtrail {
+		attributes["consolidated_trail"] = true
+	}
+	// S3 Bucket attributes
+	if args.CloudtrailUseExistingS3 {
+		attributes["use_existing_cloudtrail"] = true
 		if args.CloudtrailName != "" {
 			attributes["cloudtrail_name"] = args.CloudtrailName
 		}
-		// S3 Bucket attributes
 		if args.ExistingCloudtrailBucketArn != "" {
-			attributes["use_existing_cloudtrail"] = true
 			attributes["bucket_arn"] = args.ExistingCloudtrailBucketArn
-		} else {
-			if args.BucketName != "" {
-				attributes["bucket_name"] = args.BucketName
-			}
-			if args.BucketEncryptionEnabledSet {
-				if args.BucketEncryptionEnabled {
-					if args.BucketSseKeyArn != "" {
-						attributes["bucket_sse_key_arn"] = args.BucketSseKeyArn
-					}
-				} else {
-					attributes["bucket_encryption_enabled"] = false
-				}
-			}
 		}
-		// SNS Attributes
-		if args.ExistingSnsTopicArn != "" {
-			attributes["use_existing_sns_topic"] = true
-			attributes["sns_topic_arn"] = args.ExistingSnsTopicArn
-		} else {
-			if args.SnsTopicName != "" {
-				attributes["sns_topic_name"] = args.SnsTopicName
-			}
-			if args.SnsEncryptionEnabledSet {
-				if args.SnsTopicEncryptionEnabled {
-					if args.SnsTopicEncryptionKeyArn != "" {
-						attributes["sns_topic_encryption_key_arn"] = args.SnsTopicEncryptionKeyArn
-					}
-				} else {
-					attributes["sns_topic_encryption_enabled "] = false
-				}
-			}
+	} else {
+		if args.BucketName != "" {
+			attributes["bucket_name"] = args.BucketName
 		}
-		// SQS Attributes
-		if args.SqsQueueName != "" {
-			attributes["sqs_queue_name"] = args.SqsQueueName
-		}
-		if args.SqsEncryptionEnabledSet {
-			if args.SqsEncryptionEnabled {
-				if args.SqsEncryptionKeyArn != "" {
-					attributes["sqs_encryption_key_arn"] = args.SqsEncryptionKeyArn
+		if args.BucketEncryptionEnabledSet {
+			if args.BucketEncryptionEnabled {
+				if args.BucketSseKeyArn != "" {
+					attributes["bucket_sse_key_arn"] = args.BucketSseKeyArn
 				}
 			} else {
-				attributes["sqs_encryption_enabled "] = false
+				attributes["bucket_encryption_enabled"] = false
 			}
 		}
-		if args.ExistingIamRole == nil && args.Config {
-			attributes["use_existing_iam_role"] = true
-			attributes["iam_role_name"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", "aws_config", "iam_role_name"})
-			attributes["iam_role_arn"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", "aws_config", "iam_role_arn"})
-			attributes["iam_role_external_id"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", "aws_config", "external_id"})
-		}
-
-		if args.ExistingIamRole != nil {
-			attributes["use_existing_iam_role"] = true
-			attributes["iam_role_name"] = args.ExistingIamRole.Name
-			attributes["iam_role_arn"] = args.ExistingIamRole.Arn
-			attributes["iam_role_external_id"] = args.ExistingIamRole.ExternalId
-		}
-
-		if args.S3BucketNotification {
-			attributes["use_s3_bucket_notification"] = true
-		}
-
-		// Aws Organization CloudTrail
-		if args.AwsOrganization {
-			attributes["is_organization_trail"] = true
-
-			if !args.OrgAccountMappings.IsEmpty() {
-				orgAccountMappings, err := args.OrgAccountMappings.ToMap()
-				if err != nil {
-					return nil, errors.Wrap(err, "unable to parse 'org_account_mappings'")
-				}
-				attributes["org_account_mappings"] = []map[string]any{orgAccountMappings}
-			}
-		}
-
-		if len(args.SubAccounts) > 0 {
-			modDetails = append(modDetails, lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
-		}
-
-		modDetails = append(modDetails,
-			lwgenerate.HclModuleWithAttributes(attributes),
-		)
-
-		return lwgenerate.NewModule(
-			"main_cloudtrail",
-			lwgenerate.AwsCloudTrailSource,
-			modDetails...,
-		).ToBlock()
+	}
+	if args.S3BucketNotification {
+		attributes["use_s3_bucket_notification"] = true
 	}
 
-	return nil, nil
+	// Aws Organization CloudTrail
+	if args.AwsOrganization {
+		attributes["is_organization_trail"] = true
+
+		if !args.OrgAccountMappings.IsEmpty() {
+			orgAccountMappings, err := args.OrgAccountMappings.ToMap()
+			if err != nil {
+				return nil, errors.Wrap(err, "unable to parse 'org_account_mappings'")
+			}
+			attributes["org_account_mappings"] = []map[string]any{orgAccountMappings}
+		}
+	}
+
+	// SNS Attributes
+	if args.CloudtrailUseExistingSNSTopic {
+		attributes["use_existing_sns_topic"] = true
+		if args.ExistingSnsTopicArn != "" {
+			attributes["sns_topic_arn"] = args.ExistingSnsTopicArn
+		}
+	} else {
+		if args.SnsTopicName != "" {
+			attributes["sns_topic_name"] = args.SnsTopicName
+		}
+		if args.SnsEncryptionEnabledSet {
+			if args.SnsTopicEncryptionEnabled {
+				if args.SnsTopicEncryptionKeyArn != "" {
+					attributes["sns_topic_encryption_key_arn"] = args.SnsTopicEncryptionKeyArn
+				}
+			} else {
+				attributes["sns_topic_encryption_enabled "] = false
+			}
+		}
+	}
+	// SQS Attributes
+	if args.SqsQueueName != "" {
+		attributes["sqs_queue_name"] = args.SqsQueueName
+	}
+	if args.SqsEncryptionEnabledSet {
+		if args.SqsEncryptionEnabled {
+			if args.SqsEncryptionKeyArn != "" {
+				attributes["sqs_encryption_key_arn"] = args.SqsEncryptionKeyArn
+			}
+		} else {
+			attributes["sqs_encryption_enabled "] = false
+		}
+	}
+	if args.ExistingIamRole.IsEmpty() && args.Config {
+		attributes["use_existing_iam_role"] = true
+		attributes["iam_role_name"] = lwgenerate.CreateSimpleTraversal(
+			[]string{"module", "aws_config", "iam_role_name"})
+		attributes["iam_role_arn"] = lwgenerate.CreateSimpleTraversal(
+			[]string{"module", "aws_config", "iam_role_arn"})
+		attributes["iam_role_external_id"] = lwgenerate.CreateSimpleTraversal(
+			[]string{"module", "aws_config", "external_id"})
+	}
+
+	if !args.ExistingIamRole.IsEmpty() {
+		attributes["use_existing_iam_role"] = true
+		attributes["iam_role_name"] = args.ExistingIamRole.Name
+		attributes["iam_role_arn"] = args.ExistingIamRole.Arn
+		attributes["iam_role_external_id"] = args.ExistingIamRole.ExternalId
+	}
+
+	modDetails = append(modDetails, lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
+	modDetails = append(modDetails,
+		lwgenerate.HclModuleWithAttributes(attributes),
+	)
+
+	return lwgenerate.NewModule(
+		"main_cloudtrail",
+		lwgenerate.AwsCloudTrailSource,
+		modDetails...,
+	).ToBlock()
 }
 
 func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {
@@ -785,16 +872,15 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 
 	if args.AwsOrganization {
 		// Create Agenetless integration for organization
-		if len(args.SubAccounts) == 0 {
-			return nil, errors.New("must specify subaccounts as the scanninng accounts for Agentless organization integration")
-		}
 
 		// Add management module
 		managementModule, err := lwgenerate.NewModule(
 			"lacework_aws_agentless_management_scanning_role",
 			lwgenerate.AwsAgentlessSource,
 			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-			lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
+			lwgenerate.HclModuleWithProviderDetails(map[string]string{
+				"aws": "aws.main",
+			}),
 			lwgenerate.HclModuleWithAttributes(map[string]interface{}{
 				"snapshot_role": true,
 				"global_module_reference": lwgenerate.CreateSimpleTraversal(
@@ -802,19 +888,16 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 				),
 			}),
 		).ToBlock()
-
 		if err != nil {
 			return nil, err
 		}
-
 		blocks = append(blocks, managementModule)
 
+		// Add global scanning module
 		monitoredAccountIDs := []string{}
 		for _, accountID := range args.AgentlessMonitoredAccountIDs {
 			monitoredAccountIDs = append(monitoredAccountIDs, fmt.Sprintf("\"%s\"", accountID))
 		}
-
-		// Add global scanning module
 		globalModule, err := lwgenerate.NewModule(
 			"lacework_aws_agentless_scanning_global",
 			lwgenerate.AwsAgentlessSource,
@@ -828,24 +911,22 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 				}),
 			}),
 			lwgenerate.HclModuleWithProviderDetails(
-				map[string]string{"aws": fmt.Sprintf("aws.%s", args.SubAccounts[0].AwsProfile)},
+				map[string]string{"aws": fmt.Sprintf("aws.%s", args.AgentlessScanningAccounts[0].Alias)},
 			),
 		).ToBlock()
-
 		if err != nil {
 			return nil, err
 		}
-
 		blocks = append(blocks, globalModule)
 
 		// Add regional scanning modules
-		for _, subaccount := range args.SubAccounts[1:] {
+		for _, account := range args.AgentlessScanningAccounts[1:] {
 			regionModule, err := lwgenerate.NewModule(
-				fmt.Sprintf("lacework_aws_agentless_scanning_region_%s", subaccount.AwsProfile),
+				fmt.Sprintf("lacework_aws_agentless_scanning_region_%s", account.Alias),
 				lwgenerate.AwsAgentlessSource,
 				lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
 				lwgenerate.HclModuleWithProviderDetails(map[string]string{
-					"aws": fmt.Sprintf("aws.%s", subaccount.AwsProfile),
+					"aws": fmt.Sprintf("aws.%s", account.Alias),
 				}),
 				lwgenerate.HclModuleWithAttributes(
 					map[string]interface{}{
@@ -856,22 +937,20 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 					},
 				),
 			).ToBlock()
-
 			if err != nil {
 				return nil, err
 			}
-
 			blocks = append(blocks, regionModule)
 		}
 
 		// Add monitored modules
 		for _, monitoredAccount := range args.AgentlessMonitoredAccounts {
 			monitoredModule, err := lwgenerate.NewModule(
-				fmt.Sprintf("lacework_aws_agentless_monitored_scanning_role_%s", monitoredAccount.AwsProfile),
+				fmt.Sprintf("lacework_aws_agentless_monitored_scanning_role_%s", monitoredAccount.Alias),
 				lwgenerate.AwsAgentlessSource,
 				lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
 				lwgenerate.HclModuleWithProviderDetails(map[string]string{
-					"aws": fmt.Sprintf("aws.%s", monitoredAccount.AwsProfile),
+					"aws": fmt.Sprintf("aws.%s", monitoredAccount.Alias),
 				}),
 				lwgenerate.HclModuleWithAttributes(
 					map[string]interface{}{
@@ -882,11 +961,9 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 					},
 				),
 			).ToBlock()
-
 			if err != nil {
 				return nil, err
 			}
-
 			blocks = append(blocks, monitoredModule)
 		}
 
@@ -895,11 +972,9 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			nil,
 			map[string]interface{}{"enabled": true, "retain_stacks_on_account_removal": false},
 		)
-
 		if err != nil {
 			return nil, err
 		}
-
 		lifecycleBlock, err := lwgenerate.HclCreateGenericBlock(
 			"lifecycle",
 			nil,
@@ -907,7 +982,6 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 				"ignore_changes": lwgenerate.CreateSimpleTraversal([]string{"[administration_role_arn]"}),
 			},
 		)
-
 		if err != nil {
 			return nil, err
 		}
@@ -934,11 +1008,9 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			),
 			lwgenerate.HclResourceWithGenericBlocks(autoDeploymentBlock, lifecycleBlock),
 		).ToResourceBlock()
-
 		if err != nil {
 			return nil, err
 		}
-
 		blocks = append(blocks, stacksetResource)
 
 		// Get OU IDs for the organizational_unit_ids attribute
@@ -956,11 +1028,9 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 				[]string{fmt.Sprintf("[%s]", strings.Join(OUIDs, ","))},
 			)},
 		)
-
 		if err != nil {
 			return nil, err
 		}
-
 		stacksetInstanceResource, err := lwgenerate.NewResource(
 			"aws_cloudformation_stack_set_instance",
 			"snapshot_role",
@@ -987,21 +1057,22 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			lwgenerate.AwsAgentlessSource,
 			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
 			lwgenerate.HclModuleWithAttributes(map[string]interface{}{"global": true, "regional": true}),
+			lwgenerate.HclModuleWithProviderDetails(
+				map[string]string{"aws": "aws.main"},
+			),
 		).ToBlock()
-
 		if err != nil {
 			return nil, err
 		}
-
 		blocks = append(blocks, globalModule)
 
-		for _, subaccount := range args.SubAccounts {
+		for _, account := range args.AgentlessScanningAccounts {
 			regionModule, err := lwgenerate.NewModule(
-				fmt.Sprintf("lacework_aws_agentless_scanning_region_%s", subaccount.AwsProfile),
+				fmt.Sprintf("lacework_aws_agentless_scanning_region_%s", account.Alias),
 				lwgenerate.AwsAgentlessSource,
 				lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
 				lwgenerate.HclModuleWithProviderDetails(map[string]string{
-					"aws": fmt.Sprintf("aws.%s", subaccount.AwsProfile),
+					"aws": fmt.Sprintf("aws.%s", account.Alias),
 				}),
 				lwgenerate.HclModuleWithAttributes(
 					map[string]interface{}{
@@ -1012,11 +1083,9 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 					},
 				),
 			).ToBlock()
-
 			if err != nil {
 				return nil, err
 			}
-
 			blocks = append(blocks, regionModule)
 		}
 	}

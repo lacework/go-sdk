@@ -18,641 +18,694 @@ const (
 	awsPath = "/lacework/aws/"
 )
 
-// Test failing due to no selection
-func TestGenerationAwsErrorOnNoSelection(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-
-	// Run CLI
-	runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
-				MsgOnly{"ERROR collecting/confirming parameters: must enable agentless, cloudtrail or config"},
-			})
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-}
-
-// Test barebones generation with no customization
-// func TestGenerationAwsSimple(t *testing.T) {
-// 	os.Setenv("LW_NOCACHE", "true")
-// 	defer os.Setenv("LW_NOCACHE", "")
-// 	var final string
-// 	region := "us-east-2"
-
-// 	// Run CLI
-// 	tfResult := runGenerateTest(t,
-// 		func(c *expect.Console) {
-// 			expectsCliOutput(t, c, []MsgRspHandler{
-// 				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-// 				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-// 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-// 				MsgRsp{cmd.QuestionAwsRegion, region},
-// 				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
-// 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-// 			})
-// 			final, _ = c.ExpectEOF()
-// 		},
-// 		"generate",
-// 		"cloud-account",
-// 		"aws",
-// 	)
-
-// 	// Ensure CLI ran correctly
-// 	assert.Contains(t, final, "Terraform code saved in")
-
-// 	// Create the TF directly with lwgenerate and validate same result via CLI
-// 	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-// 		aws.WithBucketEncryptionEnabled(true),
-// 		aws.WithSnsTopicEncryptionEnabled(true),
-// 		aws.WithSqsEncryptionEnabled(true),
-// 	).Generate()
-// 	assert.Equal(t, buildTf, tfResult)
-// }
-
-// Test customized output location
-func TestGenerationAwsCustomizedOutputLocation(t *testing.T) {
+// Test all intergrations in non-interactive mode
+func TestGenerationAwsNoninteractive(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	region := "us-east-2"
 
-	// Tempdir for test
-	dir, err := os.MkdirTemp("", "t")
-	if err != nil {
-		panic(err)
-	}
-	defer os.RemoveAll(dir)
-
-	// Run CLI
-	runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 5},
-				MsgRsp{cmd.QuestionAwsCustomizeOutputLocation, dir},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Get result
-	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsTopicEncryptionEnabled(true),
-		aws.WithSqsEncryptionEnabled(true),
-	).Generate()
-	assert.Equal(t, buildTf, string(result))
-}
-
-// Test config only generation
-func TestGenerationAwsConfigOnly(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
-
-	// Run CLI
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, false, true, false,
-		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsTopicEncryptionEnabled(true),
-		aws.WithSqsEncryptionEnabled(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test Bailing out of Advanced Options
-func TestGenerationAwsAdvancedOptsDone(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
-
-	// Run CLI
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 6},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsTopicEncryptionEnabled(true),
-		aws.WithSqsEncryptionEnabled(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test enabling consolidated trail
-func TestGenerationAwsAdvancedOptsConsolidated(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
-
-	// Run CLI
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 2},
-				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "y"},
-				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
-				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
-				MsgRsp{cmd.QuestionCloudtrailName, ""},
-				// S3 Bucket Questions
-				MsgRsp{cmd.QuestionBucketName, ""},
-				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
-				MsgRsp{cmd.QuestionS3BucketNotification, ""},
-				// SNS Topic Questions
-				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
-				MsgRsp{cmd.QuestionSnsTopicName, ""},
-				MsgRsp{cmd.QuestionSnsEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
-				// SQS Questions
-				MsgRsp{cmd.QuestionSqsQueueName, ""},
-				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-		aws.UseConsolidatedCloudtrail(),
-		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsTopicEncryptionEnabled(true),
-		aws.WithSqsEncryptionEnabled(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test use existing cloudtrail
-func TestGenerationAwsAdvancedOptsUseExistingCloudtrail(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
-
-	// Run CLI
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 2},
-				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
-				MsgRsp{cmd.QuestionUseExistingCloudtrail, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
-				MsgRsp{cmd.QuestionCloudtrailExistingBucketArn, "notright"},
-				MsgRsp{"invalid arn supplied", "arn:aws:s3:::bucket_name"},
-				// SNS Topic Questions
-				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
-				MsgRsp{cmd.QuestionSnsTopicName, ""},
-				MsgRsp{cmd.QuestionSnsEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
-				// SQS Questions
-				MsgRsp{cmd.QuestionSqsQueueName, ""},
-				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-		aws.ExistingCloudtrailBucketArn("arn:aws:s3:::bucket_name"),
-		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsTopicEncryptionEnabled(true),
-		aws.WithSqsEncryptionEnabled(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test using consolidated cloudtrail with subaccounts
-func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
-
-	// Run CLI
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 2},
-				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "y"},
-				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
-				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
-				MsgRsp{cmd.QuestionCloudtrailName, ""},
-				MsgRsp{cmd.QuestionBucketName, ""},
-				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
-				MsgRsp{cmd.QuestionS3BucketNotification, ""},
-				// SNS Topic Questions
-				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
-				MsgRsp{cmd.QuestionSnsTopicName, ""},
-				MsgRsp{cmd.QuestionSnsEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
-				// SQS Questions
-				MsgRsp{cmd.QuestionSqsQueueName, ""},
-				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 3},
-				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "default"},
-				MsgRsp{cmd.QuestionSubAccountProfileName, "account1"},
-				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-1"},
-				MsgRsp{cmd.QuestionSubAccountAddMore, "y"},
-				MsgRsp{cmd.QuestionSubAccountProfileName, "account2"},
-				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-2"},
-				MsgRsp{cmd.QuestionSubAccountAddMore, "n"},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-		aws.UseConsolidatedCloudtrail(),
-		aws.WithAwsProfile("default"),
-		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
-		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsTopicEncryptionEnabled(true),
-		aws.WithSqsEncryptionEnabled(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test using Config with subaccounts
-func TestGenerationAwsAdvancedOptsConfigWithSubAccounts(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
-
-	// Run CLI
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 1},
-				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "default"},
-				MsgRsp{cmd.QuestionSubAccountProfileName, "account1"},
-				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-1"},
-				MsgRsp{cmd.QuestionSubAccountAddMore, "y"},
-				MsgRsp{cmd.QuestionSubAccountProfileName, "account2"},
-				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-2"},
-				MsgRsp{cmd.QuestionSubAccountAddMore, "n"},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, false, true, false,
-		aws.WithAwsProfile("default"),
-		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// for testing the interaction of the CLI prompts when accounts have been supplied
-func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccountsPassedByFlag(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
-
-	// Run CLI
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 3},
-				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "default"},
-				MsgRsp{fmt.Sprintf(cmd.QuestionSubAccountReplace, "testaccount:us-east-1, testaccount1:us-east-2"), "y"},
-				MsgRsp{cmd.QuestionSubAccountProfileName, "account1"},
-				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-1"},
-				MsgRsp{cmd.QuestionSubAccountAddMore, "y"},
-				MsgRsp{cmd.QuestionSubAccountProfileName, "account2"},
-				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-2"},
-				MsgRsp{cmd.QuestionSubAccountAddMore, "n"},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-		"--consolidated_cloudtrail",
-		"--aws_subaccount",
-		"testaccount:us-east-1",
-		"--aws_subaccount",
-		"testaccount1:us-east-2",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-		aws.UseConsolidatedCloudtrail(),
-		aws.WithAwsProfile("default"),
-		aws.WithSubaccounts(aws.NewAwsSubAccount("account1", "us-east-1"), aws.NewAwsSubAccount("account2", "us-east-2")),
-		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsTopicEncryptionEnabled(true),
-		aws.WithSqsEncryptionEnabled(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test use existing IAM role
-func TestGenerationAwsAdvancedOptsUseExistingIAM(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
-	roleName := "test-iamrole"
-	roleArn := "arn:aws:iam::123456789012:role/application_abc/component_xyz/abc_role"
-	roleExtId := "foo"
-
-	// Run CLI
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 4},
-				MsgRsp{cmd.QuestionExistingIamRoleName, roleName},
-				MsgRsp{cmd.QuestionExistingIamRoleArn, roleArn},
-				MsgRsp{cmd.QuestionExistingIamRoleExtID, roleExtId},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-		aws.UseExistingIamRole(aws.NewExistingIamRoleDetails(roleName, roleArn, roleExtId)),
-		aws.WithBucketEncryptionEnabled(true),
-		aws.WithSnsTopicEncryptionEnabled(true),
-		aws.WithSqsEncryptionEnabled(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test use of existing Cloudtrail S3 Bucket, SNS topic and SQS Queue
-func TestGenerationAwsAdvancedOptsUseExistingElements(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
-	bucketArn := "arn:aws:s3:::bucket-name"
-	topicArn := "arn:aws:sns:us-east-2:249446771485:topic-name"
-	queueName := "sqs-queue-name"
-
-	// Run CLI
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 2},
-				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
-				MsgRsp{cmd.QuestionUseExistingCloudtrail, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
-				MsgRsp{cmd.QuestionCloudtrailExistingBucketArn, bucketArn},
-				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "y"},
-				MsgRsp{cmd.QuestionSnsTopicArn, topicArn},
-				MsgRsp{cmd.QuestionSqsQueueName, queueName},
-				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-		aws.ExistingCloudtrailBucketArn(bucketArn),
-		aws.ExistingSnsTopicArn(topicArn),
-		aws.WithSqsEncryptionEnabled(true),
-		aws.WithSqsQueueName(queueName),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test use of creating S3 Bucket, SNS topic and SQS Queue
-func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
+	assumeRole := "arn:aws:iam::123456789012:role/S3Access"
+	cloudtrailName := "cloudtrail-integration-name"
+	s3BucketArn := "arn:aws:s3:::bucket-name"
+	snsTopicArn := "arn:aws:sns:us-east-2:249446771485:topic-name"
+	sqsQueueName := "sqs-queue-name"
 	kmsArn := "arn:aws:kms:us-west-2:249446771485:key/203a7566-41eb-42dc-8cc3-51800a87defe"
-	trailName := "cloudtrail-integration-name"
-	bucketName := "s3-bucket-name"
-	topicName := "sns-topic-name"
-	queueName := "sqs-queue-name"
+	iamRoleName := "test-iamrole"
+	iamRoleArn := "arn:aws:iam::123456789012:role/application_abc/component_xyz/abc_role"
+	iamRoleExtId := "123456"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 2},
-				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
-				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
-				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
-				MsgRsp{cmd.QuestionCloudtrailName, trailName},
-				// S3 Questions
-				MsgRsp{cmd.QuestionBucketName, bucketName},
-				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionBucketSseKeyArn, kmsArn},
-				MsgRsp{cmd.QuestionS3BucketNotification, ""},
-				// SNS Topic Questions
-				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "n"},
-				MsgRsp{cmd.QuestionSnsTopicName, topicName},
-				MsgRsp{cmd.QuestionSnsEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, kmsArn},
-				// SQS Questions
-				MsgRsp{cmd.QuestionSqsQueueName, queueName},
-				MsgRsp{cmd.QuestionSqsEnableEncryption, "y"},
-				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, kmsArn},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
 			final, _ = c.ExpectEOF()
 		},
 		"generate",
 		"cloud-account",
 		"aws",
+		"--noninteractive",
+		"--aws_organization",
+		"--agentless",
+		"--config",
+		"--cloudtrail",
+		"--aws_profile",
+		"main",
+		"--aws_region",
+		"us-east-2",
+		"--aws_assume_role",
+		assumeRole,
+		"--aws_subaccount",
+		"subaccount-1:us-west-1,subaccount-2:us-west-2",
+		"--lacework_aws_account_id",
+		"123456789",
+		"--agentless_management_account_id",
+		"123456789000",
+		"--agentless_monitored_account_ids",
+		"123456789000,ou-abcd-12345678,r-abcd",
+		"--agentless_monitored_accounts",
+		"monitored-1:us-west-1,monitored-2:us-west-2",
+		"--agentless_scanning_accounts",
+		"scanning-1:us-east-1,scanning-2:us-east-2",
+		"--consolidated_cloudtrail",
+		"--cloudtrail_org_account_mapping",
+		"{\"default_lacework_account\":\"main\", \"mapping\": [{ \"aws_accounts\": [\"123456789011\"], \"lacework_account\": \"subaccount-1\"}]}",
+		"--cloudtrail_name",
+		cloudtrailName,
+		"--existing_bucket_arn",
+		s3BucketArn,
+		"--bucket_encryption_enabled",
+		"--bucket_sse_key_arn",
+		kmsArn,
+		"--existing_sns_topic_arn",
+		snsTopicArn,
+		"--sns_topic_encryption_enabled",
+		"--sns_topic_encryption_key_arn",
+		kmsArn,
+		"--sqs_queue_name",
+		sqsQueueName,
+		"--sqs_encryption_enabled",
+		"--sqs_encryption_key_arn",
+		kmsArn,
+		"--existing_iam_role_name",
+		iamRoleName,
+		"--existing_iam_role_arn",
+		iamRoleArn,
+		"--existing_iam_role_externalid",
+		iamRoleExtId,
 	)
 
 	// Ensure CLI ran correctly
 	assert.Contains(t, final, "Terraform code saved in")
 
+	orgAccountMappings := aws.OrgAccountMapping{
+		DefaultLaceworkAccount: "main",
+		Mapping: []aws.OrgAccountMap{
+			{
+				LaceworkAccount: "subaccount-1",
+				AwsAccounts:     []string{"123456789011"},
+			},
+		},
+	}
+
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-		aws.WithCloudtrailName(trailName),
-		aws.WithBucketName(bucketName),
-		aws.WithBucketEncryptionEnabled(true),
-		aws.WithBucketSSEKeyArn(kmsArn),
-		aws.WithSnsTopicName(topicName),
+	buildTf, _ := aws.NewTerraform(true, true, true, true,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithAwsAssumeRole(assumeRole),
+		aws.WithLaceworkAccountID("123456789"),
+		aws.WithAgentlessManagementAccountID("123456789000"),
+		aws.WithAgentlessMonitoredAccountIDs([]string{"123456789000", "ou-abcd-12345678", "r-abcd"}),
+		aws.WithAgentlessMonitoredAccounts(
+			aws.NewAwsSubAccount("monitored-1", "us-west-1", "monitored-1-us-west-1"),
+			aws.NewAwsSubAccount("monitored-2", "us-west-2", "monitored-2-us-west-2"),
+		),
+		aws.WithAgentlessScanningAccounts(
+			aws.NewAwsSubAccount("scanning-1", "us-east-1", "scanning-1-us-east-1"),
+			aws.NewAwsSubAccount("scanning-2", "us-east-2", "scanning-2-us-east-2"),
+		),
+		aws.WithConfigAdditionalAccounts(
+			aws.NewAwsSubAccount("subaccount-1", "us-west-1", "subaccount-1-us-west-1"),
+			aws.NewAwsSubAccount("subaccount-2", "us-west-2", "subaccount-2-us-west-2"),
+		),
+		aws.WithConsolidatedCloudtrail(true),
+		aws.WithOrgAccountMappings(orgAccountMappings),
+		aws.WithCloudtrailUseExistingS3(true),
+		aws.WithCloudtrailName(cloudtrailName),
+		aws.WithExistingCloudtrailBucketArn(s3BucketArn),
+		aws.WithCloudtrailUseExistingSNSTopic(true),
+		aws.WithExistingSnsTopicArn(snsTopicArn),
 		aws.WithSnsTopicEncryptionEnabled(true),
 		aws.WithSnsTopicEncryptionKeyArn(kmsArn),
-		aws.WithSqsQueueName(queueName),
+		aws.WithSqsQueueName(sqsQueueName),
 		aws.WithSqsEncryptionEnabled(true),
 		aws.WithSqsEncryptionKeyArn(kmsArn),
+		aws.WithExistingIamRole(
+			aws.NewExistingIamRoleDetails(iamRoleName, iamRoleArn, iamRoleExtId),
+		),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test existing main.tf prompt
+// Test Agentless single account integration
+func TestGenerationAwsAgentless(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
+				MsgRsp{cmd.QuestionAgentlessScanningAccountAddMore, "y"},
+				MsgRsp{cmd.QuestionAgentlessScanningAccountProfile, "scanning-1"},
+				MsgRsp{cmd.QuestionAgentlessScanningAccountRegion, "us-east-1"},
+				MsgRsp{cmd.QuestionAgentlessScanningAccountAddMore, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(false, true, false, false,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithAgentlessScanningAccounts(
+			aws.NewAwsSubAccount("scanning-1", "us-east-1", "scanning-1-us-east-1"),
+		),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test Agentless organization integration
+func TestGenerationAwsAgentlessOrganization(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "y"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "y"},
+				MsgRsp{cmd.QuestionAgentlessManagementAccountID, "123456789000"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountIDs, "123456789000,ou-abcd-12345678,r-abcd"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountProfile, "monitored-1"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountRegion, "us-west-1"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountAddMore, "y"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountProfile, "monitored-2"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountRegion, "us-west-2"},
+				MsgRsp{cmd.QuestionAgentlessMonitoredAccountAddMore, "n"},
+				MsgRsp{cmd.QuestionAgentlessScanningAccountProfile, "scanning-1"},
+				MsgRsp{cmd.QuestionAgentlessScanningAccountRegion, "us-east-1"},
+				MsgRsp{cmd.QuestionAgentlessScanningAccountAddMore, "y"},
+				MsgRsp{cmd.QuestionAgentlessScanningAccountProfile, "scanning-2"},
+				MsgRsp{cmd.QuestionAgentlessScanningAccountRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionAgentlessScanningAccountAddMore, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(true, true, false, false,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithAgentlessManagementAccountID("123456789000"),
+		aws.WithAgentlessMonitoredAccountIDs([]string{"123456789000", "ou-abcd-12345678", "r-abcd"}),
+		aws.WithAgentlessMonitoredAccounts(
+			aws.NewAwsSubAccount("monitored-1", "us-west-1", "monitored-1-us-west-1"),
+			aws.NewAwsSubAccount("monitored-2", "us-west-2", "monitored-2-us-west-2"),
+		),
+		aws.WithAgentlessScanningAccounts(
+			aws.NewAwsSubAccount("scanning-1", "us-east-1", "scanning-1-us-east-1"),
+			aws.NewAwsSubAccount("scanning-2", "us-east-2", "scanning-2-us-east-2"),
+		),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test Config integration
+func TestGenerationAwsConfig(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "y"},
+				MsgRsp{cmd.QuestionConfigAdditionalAccountAddMore, "y"},
+				MsgRsp{cmd.QuestionConfigAdditionalAccountProfile, "subaccount-1"},
+				MsgRsp{cmd.QuestionConfigAdditionalAccountRegion, "us-west-1"},
+				MsgRsp{cmd.QuestionConfigAdditionalAccountAddMore, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(false, false, true, false,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithConfigAdditionalAccounts(
+			aws.NewAwsSubAccount("subaccount-1", "us-west-1", "subaccount-1-us-west-1"),
+		),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test CloudTrail single account integration
+func TestGenerationAwsCloudtrail(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "y"},
+				MsgRsp{cmd.QuestionCloudtrailAdvanced, "n"},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(false, false, false, true,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithConsolidatedCloudtrail(true),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test CloudTrail organization integration
+func TestGenerationAwsCloudtrailOrganization(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "y"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "y"},
+				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
+				MsgMenu{cmd.OptCloudtrailOrg, 0},
+				MsgRsp{cmd.QuestionCloudtrailOrgAccountMappingsDefaultLWAccount, "main"},
+				MsgRsp{cmd.QuestionCloudtrailOrgAccountMappingsLWAccount, "subaccount-1"},
+				MsgMultilineRsp{cmd.QuestionCloudtrailOrgAccountMappingsAwsAccounts, []string{"123456789001"}},
+				MsgRsp{cmd.QuestionCloudtrailOrgAccountMappingsAnotherAddMore, "y"},
+				MsgRsp{cmd.QuestionCloudtrailOrgAccountMappingsLWAccount, "subaccount-2"},
+				MsgMultilineRsp{cmd.QuestionCloudtrailOrgAccountMappingsAwsAccounts, []string{"123456789002"}},
+				MsgRsp{cmd.QuestionCloudtrailOrgAccountMappingsAnotherAddMore, "n"},
+				MsgMenu{cmd.OptCloudtrailDone, 5},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	orgAccountMappings := aws.OrgAccountMapping{
+		DefaultLaceworkAccount: "main",
+		Mapping: []aws.OrgAccountMap{
+			{
+				LaceworkAccount: "subaccount-1",
+				AwsAccounts:     []string{"123456789001"},
+			},
+			{
+				LaceworkAccount: "subaccount-2",
+				AwsAccounts:     []string{"123456789002"},
+			},
+		},
+	}
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(true, false, false, true,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithConsolidatedCloudtrail(true),
+		aws.WithOrgAccountMappings(orgAccountMappings),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test CloutTrail integration with existing S3 bucket
+func TestGenerationAwsCloudtrailWithExistingS3Bucket(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	cloudtrailName := "cloudtrail-integration-name"
+	s3BucketArn := "arn:aws:s3:::bucket-name"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
+				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
+				MsgMenu{cmd.OptCloudtrailS3, 0},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingS3, "y"},
+				MsgRsp{cmd.QuestionCloudtrailName, cloudtrailName},
+				MsgRsp{cmd.QuestionCloudtrailS3ExistingBucketArn, s3BucketArn},
+				MsgMenu{cmd.OptCloudtrailDone, 4},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(false, false, false, true,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithCloudtrailUseExistingS3(true),
+		aws.WithCloudtrailName(cloudtrailName),
+		aws.WithExistingCloudtrailBucketArn(s3BucketArn),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test CloutTrail integration with new S3 bucket
+func TestGenerationAwsCloudtrailWithNewS3Bucket(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	kmsArn := "arn:aws:kms:us-west-2:249446771485:key/203a7566-41eb-42dc-8cc3-51800a87defe"
+	s3BucketName := "s3-bucket-name"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
+				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
+				MsgMenu{cmd.OptCloudtrailS3, 0},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingS3, "n"},
+				MsgRsp{cmd.QuestionCloudtrailS3BucketName, s3BucketName},
+				MsgRsp{cmd.QuestionCloudtrailS3BucketEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionCloudtrailS3BucketSseKeyArn, kmsArn},
+				MsgRsp{cmd.QuestionCloudtrailS3BucketNotification, "y"},
+				MsgMenu{cmd.OptCloudtrailDone, 4},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(false, false, false, true,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithCloudtrailUseExistingS3(false),
+		aws.WithBucketName(s3BucketName),
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithBucketSSEKeyArn(kmsArn),
+		aws.WithS3BucketNotification(true),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test CloutTrail integration with existing SNS topic
+func TestGenerationAwsCloudtrailWithExistingSnsTopic(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	snsTopicArn := "arn:aws:sns:us-east-2:249446771485:topic-name"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
+				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
+				MsgMenu{cmd.OptCloudtrailSNS, 1},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingSNSTopic, "y"},
+				MsgRsp{cmd.QuestionCloudtrailSnsExistingTopicArn, snsTopicArn},
+				MsgMenu{cmd.OptCloudtrailDone, 4},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(false, false, false, true,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithCloudtrailUseExistingSNSTopic(true),
+		aws.WithExistingSnsTopicArn(snsTopicArn),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test CloutTrail integration with new SNS topic
+func TestGenerationAwsCloudtrailWithNewSNSTopic(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	kmsArn := "arn:aws:kms:us-west-2:249446771485:key/203a7566-41eb-42dc-8cc3-51800a87defe"
+	snsTopicName := "sns-topic-name"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
+				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
+				MsgMenu{cmd.OptCloudtrailSNS, 1},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingSNSTopic, "n"},
+				MsgRsp{cmd.QuestionCloudtrailSnsTopicName, snsTopicName},
+				MsgRsp{cmd.QuestionCloudtrailSnsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionCloudtrailSnsEncryptionKeyArn, kmsArn},
+				MsgMenu{cmd.OptCloudtrailDone, 4},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(false, false, false, true,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithCloudtrailUseExistingSNSTopic(false),
+		aws.WithSnsTopicName(snsTopicName),
+		aws.WithSnsTopicEncryptionEnabled(true),
+		aws.WithSnsTopicEncryptionKeyArn(kmsArn),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test CloutTrail integration with new SQS queue
+func TestGenerationAwsCloudtrailWithNewSQSQueue(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	sqsQueueName := "sqs-queue-name"
+	kmsArn := "arn:aws:kms:us-west-2:249446771485:key/203a7566-41eb-42dc-8cc3-51800a87defe"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
+				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
+				MsgMenu{cmd.OptCloudtrailSQS, 2},
+				MsgRsp{cmd.QuestionCloudtrailSqsQueueName, sqsQueueName},
+				MsgRsp{cmd.QuestionCloudtrailSqsEnableEncryption, "y"},
+				MsgRsp{cmd.QuestionCloudtrailSqsEncryptionKeyArn, kmsArn},
+				MsgMenu{cmd.OptCloudtrailDone, 4},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(false, false, false, true,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithSqsQueueName(sqsQueueName),
+		aws.WithSqsEncryptionKeyArn(kmsArn),
+		aws.WithSqsEncryptionEnabled(true),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test CloutTrail integration with existing IAM role
+func TestGenerationAwsCloudtrailWithExistingIamRole(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	roleName := "test-iamrole"
+	roleArn := "arn:aws:iam::123456789012:role/application_abc/component_xyz/abc_role"
+	roleExtId := "123456"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
+				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
+				MsgMenu{cmd.OptCloudtrailIAM, 3},
+				MsgRsp{cmd.QuestionCloudtrailExistingIamRoleName, roleName},
+				MsgRsp{cmd.QuestionCloudtrailExistingIamRoleArn, roleArn},
+				MsgRsp{cmd.QuestionCloudtrailExistingIamRoleExtID, roleExtId},
+				MsgMenu{cmd.OptCloudtrailDone, 4},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(false, false, false, true,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithExistingIamRole(
+			aws.NewExistingIamRoleDetails(roleName, roleArn, roleExtId),
+		),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test overwriting existing main.tf
 func TestGenerationAwsWithExistingTerraform(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
-	region := "us-east-2"
 
 	// Tempdir for test
 	dir, err := os.MkdirTemp("", "t")
@@ -670,15 +723,15 @@ func TestGenerationAwsWithExistingTerraform(t *testing.T) {
 	runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 5},
-				MsgRsp{cmd.QuestionAwsCustomizeOutputLocation, dir},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), "n"},
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "y"},
+				MsgRsp{cmd.QuestionConfigAdditionalAccountAddMore, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
+				MsgRsp{cmd.QuestionAwsOutputLocation, dir},
+				MsgRsp{fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), "y"},
 			})
 		},
 		"generate",
@@ -695,454 +748,31 @@ func TestGenerationAwsWithExistingTerraform(t *testing.T) {
 	assert.Empty(t, data)
 }
 
-func TestGenerationAwsOverwrite(t *testing.T) {
+// Test custom output location
+func TestGenerationAwsOutputLocation(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
-	region := "us-east-2"
 
-	dir := createDummyTOMLConfig()
-	homeCache := os.Getenv("HOME")
-	os.Setenv("HOME", dir)
-	defer os.Setenv("HOME", homeCache)
-	defer os.RemoveAll(dir)
-
-	runFakeTerminalTestFromDir(t, dir,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	assert.Contains(t, final, fmt.Sprintf("cd %s/lacework/aws", dir))
-
-	runFakeTerminalTestFromDir(t, dir,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
-				MsgRsp{"already exists, overwrite?", "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	assert.Contains(t, final, fmt.Sprintf("cd %s/lacework/aws", dir))
-}
-
-func TestGenerationAwsOverwriteOutput(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
-
-	dir := createDummyTOMLConfig()
-	defer os.RemoveAll(dir)
-
-	homeCache := os.Getenv("HOME")
-	os.Setenv("HOME", dir)
-	defer os.Setenv("HOME", homeCache)
-
-	output_dir := createDummyTOMLConfig()
-	defer os.RemoveAll(output_dir)
-
-	runFakeTerminalTestFromDir(t, dir,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-		"--output",
-		output_dir,
-	)
-
-	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
-
-	runFakeTerminalTestFromDir(t, dir,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
-				MsgRsp{"already exists, overwrite?", "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-		"--output",
-		output_dir,
-	)
-
-	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
-}
-
-func TestGenerationAwsLaceworkProfile(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	var runError error
-	region := "us-west-2"
-	awsProfile := "v2"
-
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-		"--profile",
-		awsProfile,
-	)
-
-	assert.Nil(t, runError)
-	assert.Contains(t, final, "Terraform code saved in")
-
-	buildTf, _ := aws.NewTerraform(region, false, true, true, true,
-		aws.WithLaceworkProfile(awsProfile),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-func TestGenerationAwsS3BucketNotification(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	var runError error
-	region := "us-west-2"
-
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-		"--use_s3_bucket_notification",
-	)
-
-	assert.Nil(t, runError)
-	assert.Contains(t, final, "Terraform code saved in")
-
-	buildTf, _ := aws.NewTerraform(region, false, false, false, true,
-		aws.WithS3BucketNotification(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-func TestGenerationAwsS3BucketNotificationInteractive(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	var runError error
-	region := "us-west-2"
-
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 0},
-
-				MsgRsp{cmd.QuestionConsolidatedCloudtrail, ""},
-				MsgRsp{cmd.QuestionUseExistingCloudtrail, ""},
-				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
-				MsgRsp{cmd.QuestionCloudtrailName, ""},
-				// S3 Questions
-				MsgRsp{cmd.QuestionBucketName, ""},
-				MsgRsp{cmd.QuestionBucketEnableEncryption, ""},
-				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
-				MsgRsp{cmd.QuestionS3BucketNotification, "y"},
-				// SNS Topic Questions
-				MsgRsp{cmd.QuestionsUseExistingSNSTopic, ""},
-				MsgRsp{cmd.QuestionSnsTopicName, ""},
-				MsgRsp{cmd.QuestionSnsEnableEncryption, ""},
-				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
-				// SQS Questions
-				MsgRsp{cmd.QuestionSqsQueueName, ""},
-				MsgRsp{cmd.QuestionSqsEnableEncryption, ""},
-				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
-
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	assert.Nil(t, runError)
-	assert.Contains(t, final, "Terraform code saved in")
-
-	buildTf, _ := aws.NewTerraform(region, false, false, false, true,
-		aws.WithS3BucketNotification(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-func TestGenerationAwsCloudtrailOrganization(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	var runError error
-	region := "us-west-2"
-
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 0},
-
-				MsgRsp{cmd.QuestionConsolidatedCloudtrail, ""},
-				MsgRsp{cmd.QuestionUseExistingCloudtrail, ""},
-				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "y"},
-				MsgRsp{cmd.QuestionCloudtrailName, ""},
-				MsgRsp{cmd.QuestionConfigureCloudtrailOrganizationMappings, "n"},
-				// S3 Questions
-				MsgRsp{cmd.QuestionBucketName, ""},
-				MsgRsp{cmd.QuestionBucketEnableEncryption, ""},
-				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
-				MsgRsp{cmd.QuestionS3BucketNotification, "n"},
-				// SNS Topic Questions
-				MsgRsp{cmd.QuestionsUseExistingSNSTopic, ""},
-				MsgRsp{cmd.QuestionSnsTopicName, ""},
-				MsgRsp{cmd.QuestionSnsEnableEncryption, ""},
-				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
-				// SQS Questions
-				MsgRsp{cmd.QuestionSqsQueueName, ""},
-				MsgRsp{cmd.QuestionSqsEnableEncryption, ""},
-				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
-
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	assert.Nil(t, runError)
-	assert.Contains(t, final, "Terraform code saved in")
-
-	buildTf, _ := aws.NewTerraform(region, true, false, false,
-		true).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-func TestGenerationAwsCloudtrailOrganizationAccountMappings(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	var runError error
-	region := "us-west-2"
-
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 0},
-
-				MsgRsp{cmd.QuestionConsolidatedCloudtrail, ""},
-				MsgRsp{cmd.QuestionUseExistingCloudtrail, ""},
-				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "y"},
-				MsgRsp{cmd.QuestionCloudtrailName, ""},
-				MsgRsp{cmd.QuestionConfigureCloudtrailOrganizationMappings, "y"},
-				MsgRsp{cmd.QuestionCloudtrailAccountMappingsLWDefaultAccount, "main"},
-				MsgRsp{cmd.QuestionCloudtrailOrgAccountMappingsLWAccount, "sub-account-1"},
-				MsgMultilineRsp{cmd.QuestionCloudtrailOrgAccountMappingsAwsAccounts, []string{"123456789011"}},
-				MsgRsp{cmd.QuestionCloudtrailOrgAccountMappingAnotherAdvancedOpt, "n"},
-				// S3 Questions
-				MsgRsp{cmd.QuestionBucketName, ""},
-				MsgRsp{cmd.QuestionBucketEnableEncryption, ""},
-				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
-				MsgRsp{cmd.QuestionS3BucketNotification, "n"},
-				// SNS Topic Questions
-				MsgRsp{cmd.QuestionsUseExistingSNSTopic, ""},
-				MsgRsp{cmd.QuestionSnsTopicName, ""},
-				MsgRsp{cmd.QuestionSnsEnableEncryption, ""},
-				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
-				// SQS Questions
-				MsgRsp{cmd.QuestionSqsQueueName, ""},
-				MsgRsp{cmd.QuestionSqsEnableEncryption, ""},
-				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
-
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	assert.Nil(t, runError)
-	assert.Contains(t, final, "Terraform code saved in")
-
-	orgAccountMappings := aws.OrgAccountMapping{
-		DefaultLaceworkAccount: "main",
-		Mapping: []aws.OrgAccountMap{
-			{
-				LaceworkAccount: "sub-account-1",
-				AwsAccounts:     []string{"123456789011"},
-			},
-		},
+	// Tempdir for test
+	dir, err := os.MkdirTemp("", "t")
+	if err != nil {
+		panic(err)
 	}
-
-	buildTf, _ := aws.NewTerraform(region, true, false, false,
-		true, aws.WithOrgAccountMappings(orgAccountMappings)).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-func TestGenerationCloudtrailOrgMappingsNonInteractive(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	var runError error
-	region := "us-east-2"
-
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"ca",
-		"aws",
-		"--cloudtrail",
-		"--aws_region",
-		"us-east-2",
-		"--aws_organization",
-		"--cloudtrail_org_account_mapping",
-		"{\"default_lacework_account\":\"main\", \"mapping\": [{ \"aws_accounts\": [\"123456789011\"], \"lacework_account\": \"sub-account-1\"}]}",
-		"--noninteractive",
-	)
-
-	assert.Nil(t, runError)
-	assert.Contains(t, final, "Terraform code saved in")
-
-	orgAccountMappings := aws.OrgAccountMapping{
-		DefaultLaceworkAccount: "main",
-		Mapping: []aws.OrgAccountMap{
-			{
-				LaceworkAccount: "sub-account-1",
-				AwsAccounts:     []string{"123456789011"},
-			},
-		},
-	}
-
-	buildTf, _ := aws.NewTerraform(region, true, false, false,
-		true, aws.WithOrgAccountMappings(orgAccountMappings)).Generate()
-
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test Agentless organization integration
-func TestGenerationAgentlessOrganization(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	region := "us-east-2"
+	defer os.RemoveAll(dir)
 
 	// Run CLI
-	tfResult := runGenerateTest(t,
+	runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "y"},
+				MsgRsp{cmd.QuestionConfigAdditionalAccountAddMore, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
-				MsgRsp{cmd.QuestionAwsRegion, region},
-				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 0},
-				MsgRsp{cmd.QuestionEnableAgentlessOrganization, "y"},
-				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "main"},
-				MsgRsp{cmd.QuestionAgentlessManagementAccountID, "123456789000"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountIDs, "123456789000,ou-abcd-12345678,r-abcd"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountProfile, "monitored-account-1"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountRegion, "us-west-2"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountAddMore, "y"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountProfile, "monitored-account-2"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountRegion, "us-east-1"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountAddMore, "n"},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "y"},
-				MsgMenu{cmd.AwsAdvancedOptDone, 1},
-				MsgRsp{cmd.QuestionPrimaryAwsAccountProfile, "main"},
-				MsgRsp{cmd.QuestionSubAccountProfileName, "account1"},
-				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-1"},
-				MsgRsp{cmd.QuestionSubAccountAddMore, "y"},
-				MsgRsp{cmd.QuestionSubAccountProfileName, "account2"},
-				MsgRsp{cmd.QuestionSubAccountRegion, "us-east-2"},
-				MsgRsp{cmd.QuestionSubAccountAddMore, "n"},
-				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionAwsOutputLocation, dir},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -1155,22 +785,40 @@ func TestGenerationAgentlessOrganization(t *testing.T) {
 	// Ensure CLI ran correctly
 	assert.Contains(t, final, "Terraform code saved in")
 
+	// Get result
+	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
+
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(region, true, true, false, false,
-		aws.UseConsolidatedCloudtrail(),
+	buildTf, _ := aws.NewTerraform(false, false, true, false,
 		aws.WithAwsProfile("main"),
-		aws.WithAgentlessManagementAccountID("123456789000"),
-		aws.WithAgentlessMonitoredAccountIDs([]string{"123456789000", "ou-abcd-12345678", "r-abcd"}),
-		aws.WithAgentlessMonitoredAccounts(
-			aws.NewAwsSubAccount("monitored-account-1", "us-west-2"),
-			aws.NewAwsSubAccount("monitored-account-2", "us-east-1"),
-		),
-		aws.WithSubaccounts(
-			aws.NewAwsSubAccount("account1", "us-east-1"),
-			aws.NewAwsSubAccount("account2", "us-east-2"),
-		),
+		aws.WithAwsRegion("us-east-2"),
 	).Generate()
-	assert.Equal(t, buildTf, tfResult)
+	assert.Equal(t, buildTf, string(result))
+}
+
+// Test error on no integration selected
+func TestGenerationAwsErrorOnNoSelection(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+
+	// Run CLI
+	runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgOnly{"ERROR failed to generate terraform code: invalid inputs: Agentless, CloudTrail or Config integration must be enabled"},
+			})
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
 }
 
 func runGenerateTest(t *testing.T, conditions func(*expect.Console), args ...string) string {
