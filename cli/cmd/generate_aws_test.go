@@ -134,7 +134,7 @@ func TestGenerationCache(t *testing.T) {
 		defer os.RemoveAll(dir)
 		cli.InitCache(dir)
 
-		args := aws.GenerateAwsTfConfigurationArgs{AwsRegion: "us-east-2"}
+		args := aws.GenerateAwsTfConfigurationArgs{AwsRegion: "us-east-2", Agentless: true}
 		writeArgsCache(&args)
 		assert.FileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsArgsKey)))
 	})
