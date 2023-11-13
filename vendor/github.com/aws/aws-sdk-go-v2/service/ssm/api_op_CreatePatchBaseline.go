@@ -4,16 +4,20 @@ package ssm
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Creates a patch baseline. For information about valid key-value pairs in
-// PatchFilters for each supported operating system type, see PatchFilter.
+// PatchFilters for each supported operating system type, see PatchFilter .
 func (c *Client) CreatePatchBaseline(ctx context.Context, params *CreatePatchBaselineInput, optFns ...func(*Options)) (*CreatePatchBaselineOutput, error) {
 	if params == nil {
 		params = &CreatePatchBaselineInput{}
@@ -41,19 +45,18 @@ type CreatePatchBaselineInput struct {
 
 	// A list of explicitly approved patches for the baseline. For information about
 	// accepted formats for lists of approved patches and rejected patches, see About
-	// package name formats for approved and rejected patch lists
-	// (https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager-approved-rejected-package-name-formats.html)
+	// package name formats for approved and rejected patch lists (https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager-approved-rejected-package-name-formats.html)
 	// in the Amazon Web Services Systems Manager User Guide.
 	ApprovedPatches []string
 
 	// Defines the compliance level for approved patches. When an approved patch is
 	// reported as missing, this value describes the severity of the compliance
-	// violation. The default value is UNSPECIFIED.
+	// violation. The default value is UNSPECIFIED .
 	ApprovedPatchesComplianceLevel types.PatchComplianceLevel
 
 	// Indicates whether the list of approved patches includes non-security updates
-	// that should be applied to the managed nodes. The default value is false. Applies
-	// to Linux managed nodes only.
+	// that should be applied to the managed nodes. The default value is false .
+	// Applies to Linux managed nodes only.
 	ApprovedPatchesEnableNonSecurity *bool
 
 	// User-provided idempotency token.
@@ -65,30 +68,27 @@ type CreatePatchBaselineInput struct {
 	// A set of global filters used to include patches in the baseline.
 	GlobalFilters *types.PatchFilterGroup
 
-	// Defines the operating system the patch baseline applies to. The default value is
-	// WINDOWS.
+	// Defines the operating system the patch baseline applies to. The default value
+	// is WINDOWS .
 	OperatingSystem types.OperatingSystem
 
 	// A list of explicitly rejected patches for the baseline. For information about
 	// accepted formats for lists of approved patches and rejected patches, see About
-	// package name formats for approved and rejected patch lists
-	// (https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager-approved-rejected-package-name-formats.html)
+	// package name formats for approved and rejected patch lists (https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager-approved-rejected-package-name-formats.html)
 	// in the Amazon Web Services Systems Manager User Guide.
 	RejectedPatches []string
 
 	// The action for Patch Manager to take on patches included in the RejectedPackages
 	// list.
-	//
-	// * ALLOW_AS_DEPENDENCY : A package in the Rejected patches list is
-	// installed only if it is a dependency of another package. It is considered
-	// compliant with the patch baseline, and its status is reported as InstalledOther.
-	// This is the default action if no option is specified.
-	//
-	// * BLOCK : Packages in the
-	// RejectedPatches list, and packages that include them as dependencies, aren't
-	// installed under any circumstances. If a package was installed before it was
-	// added to the Rejected patches list, it is considered non-compliant with the
-	// patch baseline, and its status is reported as InstalledRejected.
+	//   - ALLOW_AS_DEPENDENCY : A package in the Rejected patches list is installed
+	//   only if it is a dependency of another package. It is considered compliant with
+	//   the patch baseline, and its status is reported as InstalledOther . This is the
+	//   default action if no option is specified.
+	//   - BLOCK : Packages in the RejectedPatches list, and packages that include them
+	//   as dependencies, aren't installed under any circumstances. If a package was
+	//   installed before it was added to the Rejected patches list, it is considered
+	//   non-compliant with the patch baseline, and its status is reported as
+	//   InstalledRejected .
 	RejectedPatchesAction types.PatchAction
 
 	// Information about the patches to use to update the managed nodes, including
@@ -96,19 +96,14 @@ type CreatePatchBaselineInput struct {
 	// only.
 	Sources []types.PatchSource
 
-	// Optional metadata that you assign to a resource. Tags enable you to categorize a
-	// resource in different ways, such as by purpose, owner, or environment. For
+	// Optional metadata that you assign to a resource. Tags enable you to categorize
+	// a resource in different ways, such as by purpose, owner, or environment. For
 	// example, you might want to tag a patch baseline to identify the severity level
 	// of patches it specifies and the operating system family it applies to. In this
 	// case, you could specify the following key-value pairs:
-	//
-	// *
-	// Key=PatchSeverity,Value=Critical
-	//
-	// * Key=OS,Value=Windows
-	//
-	// To add tags to an
-	// existing patch baseline, use the AddTagsToResource operation.
+	//   - Key=PatchSeverity,Value=Critical
+	//   - Key=OS,Value=Windows
+	// To add tags to an existing patch baseline, use the AddTagsToResource operation.
 	Tags []types.Tag
 
 	noSmithyDocumentSerde
@@ -132,6 +127,9 @@ func (c *Client) addOperationCreatePatchBaselineMiddlewares(stack *middleware.St
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpCreatePatchBaseline{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -161,13 +159,16 @@ func (c *Client) addOperationCreatePatchBaselineMiddlewares(stack *middleware.St
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addCreatePatchBaselineResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opCreatePatchBaselineMiddleware(stack, options); err != nil {
@@ -179,6 +180,9 @@ func (c *Client) addOperationCreatePatchBaselineMiddlewares(stack *middleware.St
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCreatePatchBaseline(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -186,6 +190,9 @@ func (c *Client) addOperationCreatePatchBaselineMiddlewares(stack *middleware.St
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -231,4 +238,127 @@ func newServiceMetadataMiddleware_opCreatePatchBaseline(region string) *awsmiddl
 		SigningName:   "ssm",
 		OperationName: "CreatePatchBaseline",
 	}
+}
+
+type opCreatePatchBaselineResolveEndpointMiddleware struct {
+	EndpointResolver EndpointResolverV2
+	BuiltInResolver  builtInParameterResolver
+}
+
+func (*opCreatePatchBaselineResolveEndpointMiddleware) ID() string {
+	return "ResolveEndpointV2"
+}
+
+func (m *opCreatePatchBaselineResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
+		return next.HandleSerialize(ctx, in)
+	}
+
+	req, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
+	}
+
+	if m.EndpointResolver == nil {
+		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
+	}
+
+	params := EndpointParameters{}
+
+	m.BuiltInResolver.ResolveBuiltIns(&params)
+
+	var resolvedEndpoint smithyendpoints.Endpoint
+	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
+	if err != nil {
+		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
+	}
+
+	req.URL = &resolvedEndpoint.URI
+
+	for k := range resolvedEndpoint.Headers {
+		req.Header.Set(
+			k,
+			resolvedEndpoint.Headers.Get(k),
+		)
+	}
+
+	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
+	if err != nil {
+		var nfe *internalauth.NoAuthenticationSchemesFoundError
+		if errors.As(err, &nfe) {
+			// if no auth scheme is found, default to sigv4
+			signingName := "ssm"
+			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
+			ctx = awsmiddleware.SetSigningName(ctx, signingName)
+			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
+
+		}
+		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
+		if errors.As(err, &ue) {
+			return out, metadata, fmt.Errorf(
+				"This operation requests signer version(s) %v but the client only supports %v",
+				ue.UnsupportedSchemes,
+				internalauth.SupportedSchemes,
+			)
+		}
+	}
+
+	for _, authScheme := range authSchemes {
+		switch authScheme.(type) {
+		case *internalauth.AuthenticationSchemeV4:
+			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
+			var signingName, signingRegion string
+			if v4Scheme.SigningName == nil {
+				signingName = "ssm"
+			} else {
+				signingName = *v4Scheme.SigningName
+			}
+			if v4Scheme.SigningRegion == nil {
+				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
+			} else {
+				signingRegion = *v4Scheme.SigningRegion
+			}
+			if v4Scheme.DisableDoubleEncoding != nil {
+				// The signer sets an equivalent value at client initialization time.
+				// Setting this context value will cause the signer to extract it
+				// and override the value set at client initialization time.
+				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
+			}
+			ctx = awsmiddleware.SetSigningName(ctx, signingName)
+			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
+			break
+		case *internalauth.AuthenticationSchemeV4A:
+			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
+			if v4aScheme.SigningName == nil {
+				v4aScheme.SigningName = aws.String("ssm")
+			}
+			if v4aScheme.DisableDoubleEncoding != nil {
+				// The signer sets an equivalent value at client initialization time.
+				// Setting this context value will cause the signer to extract it
+				// and override the value set at client initialization time.
+				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
+			}
+			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
+			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
+			break
+		case *internalauth.AuthenticationSchemeNone:
+			break
+		}
+	}
+
+	return next.HandleSerialize(ctx, in)
+}
+
+func addCreatePatchBaselineResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
+	return stack.Serialize.Insert(&opCreatePatchBaselineResolveEndpointMiddleware{
+		EndpointResolver: options.EndpointResolverV2,
+		BuiltInResolver: &builtInResolver{
+			Region:       options.Region,
+			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
+			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
+			Endpoint:     options.BaseEndpoint,
+		},
+	}, "ResolveEndpoint", middleware.After)
 }

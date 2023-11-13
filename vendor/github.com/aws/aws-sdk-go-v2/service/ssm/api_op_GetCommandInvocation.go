@@ -6,9 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithytime "github.com/aws/smithy-go/time"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -20,8 +23,8 @@ import (
 // Returns detailed information about command execution for an invocation or
 // plugin. GetCommandInvocation only gives the execution status of a plugin in a
 // document. To get the command execution status on a specific managed node, use
-// ListCommandInvocations. To get the command execution status across managed
-// nodes, use ListCommands.
+// ListCommandInvocations . To get the command execution status across managed
+// nodes, use ListCommands .
 func (c *Client) GetCommandInvocation(ctx context.Context, params *GetCommandInvocationInput, optFns ...func(*Options)) (*GetCommandInvocationOutput, error) {
 	if params == nil {
 		params = &GetCommandInvocationInput{}
@@ -56,7 +59,7 @@ type GetCommandInvocationInput struct {
 	// contains only one step, you can omit the name and details for that step. If the
 	// document contains more than one step, you must specify the name of the step for
 	// which you want to view details. Be sure to specify the name of the step, not the
-	// name of a plugin like aws:RunShellScript. To find the PluginName, check the
+	// name of a plugin like aws:RunShellScript . To find the PluginName , check the
 	// document content and find the name of the step you want details for.
 	// Alternatively, use ListCommandInvocations with the CommandId and Details
 	// parameters. The PluginName is the Name attribute of the CommandPlugin object in
@@ -78,13 +81,13 @@ type GetCommandInvocationOutput struct {
 	// The comment text for the command.
 	Comment *string
 
-	// The name of the document that was run. For example, AWS-RunShellScript.
+	// The name of the document that was run. For example, AWS-RunShellScript .
 	DocumentName *string
 
 	// The Systems Manager document (SSM document) version used in the request.
 	DocumentVersion *string
 
-	// Duration since ExecutionStartDateTime.
+	// Duration since ExecutionStartDateTime .
 	ExecutionElapsedTime *string
 
 	// The date and time the plugin finished running. Date and time are written in ISO
@@ -111,20 +114,20 @@ type GetCommandInvocationOutput struct {
 	// example, aws:RunShellScript is a plugin.
 	PluginName *string
 
-	// The error level response code for the plugin script. If the response code is -1,
-	// then the command hasn't started running on the managed node, or it wasn't
+	// The error level response code for the plugin script. If the response code is -1
+	// , then the command hasn't started running on the managed node, or it wasn't
 	// received by the node.
 	ResponseCode int32
 
-	// The first 8,000 characters written by the plugin to stderr. If the command
+	// The first 8,000 characters written by the plugin to stderr . If the command
 	// hasn't finished running, then this string is empty.
 	StandardErrorContent *string
 
-	// The URL for the complete text written by the plugin to stderr. If the command
+	// The URL for the complete text written by the plugin to stderr . If the command
 	// hasn't finished running, then this string is empty.
 	StandardErrorUrl *string
 
-	// The first 24,000 characters written by the plugin to stdout. If the command
+	// The first 24,000 characters written by the plugin to stdout . If the command
 	// hasn't finished running, if ExecutionStatus is neither Succeeded nor Failed,
 	// then this string is empty.
 	StandardOutputContent *string
@@ -135,62 +138,46 @@ type GetCommandInvocationOutput struct {
 	StandardOutputUrl *string
 
 	// The status of this invocation plugin. This status can be different than
-	// StatusDetails.
+	// StatusDetails .
 	Status types.CommandInvocationStatus
 
 	// A detailed status of the command execution for an invocation. StatusDetails
 	// includes more information than Status because it includes states resulting from
 	// error and concurrency control parameters. StatusDetails can show different
-	// results than Status. For more information about these statuses, see
-	// Understanding command statuses
-	// (https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html)
+	// results than Status . For more information about these statuses, see
+	// Understanding command statuses (https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html)
 	// in the Amazon Web Services Systems Manager User Guide. StatusDetails can be one
 	// of the following values:
-	//
-	// * Pending: The command hasn't been sent to the managed
-	// node.
-	//
-	// * In Progress: The command has been sent to the managed node but hasn't
-	// reached a terminal state.
-	//
-	// * Delayed: The system attempted to send the command
-	// to the target, but the target wasn't available. The managed node might not be
-	// available because of network issues, because the node was stopped, or for
-	// similar reasons. The system will try to send the command again.
-	//
-	// * Success: The
-	// command or plugin ran successfully. This is a terminal state.
-	//
-	// * Delivery Timed
-	// Out: The command wasn't delivered to the managed node before the delivery
-	// timeout expired. Delivery timeouts don't count against the parent command's
-	// MaxErrors limit, but they do contribute to whether the parent command status is
-	// Success or Incomplete. This is a terminal state.
-	//
-	// * Execution Timed Out: The
-	// command started to run on the managed node, but the execution wasn't complete
-	// before the timeout expired. Execution timeouts count against the MaxErrors limit
-	// of the parent command. This is a terminal state.
-	//
-	// * Failed: The command wasn't
-	// run successfully on the managed node. For a plugin, this indicates that the
-	// result code wasn't zero. For a command invocation, this indicates that the
-	// result code for one or more plugins wasn't zero. Invocation failures count
-	// against the MaxErrors limit of the parent command. This is a terminal state.
-	//
-	// *
-	// Cancelled: The command was terminated before it was completed. This is a
-	// terminal state.
-	//
-	// * Undeliverable: The command can't be delivered to the managed
-	// node. The node might not exist or might not be responding. Undeliverable
-	// invocations don't count against the parent command's MaxErrors limit and don't
-	// contribute to whether the parent command status is Success or Incomplete. This
-	// is a terminal state.
-	//
-	// * Terminated: The parent command exceeded its MaxErrors
-	// limit and subsequent command invocations were canceled by the system. This is a
-	// terminal state.
+	//   - Pending: The command hasn't been sent to the managed node.
+	//   - In Progress: The command has been sent to the managed node but hasn't
+	//   reached a terminal state.
+	//   - Delayed: The system attempted to send the command to the target, but the
+	//   target wasn't available. The managed node might not be available because of
+	//   network issues, because the node was stopped, or for similar reasons. The system
+	//   will try to send the command again.
+	//   - Success: The command or plugin ran successfully. This is a terminal state.
+	//   - Delivery Timed Out: The command wasn't delivered to the managed node before
+	//   the delivery timeout expired. Delivery timeouts don't count against the parent
+	//   command's MaxErrors limit, but they do contribute to whether the parent
+	//   command status is Success or Incomplete. This is a terminal state.
+	//   - Execution Timed Out: The command started to run on the managed node, but
+	//   the execution wasn't complete before the timeout expired. Execution timeouts
+	//   count against the MaxErrors limit of the parent command. This is a terminal
+	//   state.
+	//   - Failed: The command wasn't run successfully on the managed node. For a
+	//   plugin, this indicates that the result code wasn't zero. For a command
+	//   invocation, this indicates that the result code for one or more plugins wasn't
+	//   zero. Invocation failures count against the MaxErrors limit of the parent
+	//   command. This is a terminal state.
+	//   - Cancelled: The command was terminated before it was completed. This is a
+	//   terminal state.
+	//   - Undeliverable: The command can't be delivered to the managed node. The node
+	//   might not exist or might not be responding. Undeliverable invocations don't
+	//   count against the parent command's MaxErrors limit and don't contribute to
+	//   whether the parent command status is Success or Incomplete. This is a terminal
+	//   state.
+	//   - Terminated: The parent command exceeded its MaxErrors limit and subsequent
+	//   command invocations were canceled by the system. This is a terminal state.
 	StatusDetails *string
 
 	// Metadata pertaining to the operation's result.
@@ -206,6 +193,9 @@ func (c *Client) addOperationGetCommandInvocationMiddlewares(stack *middleware.S
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetCommandInvocation{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -235,7 +225,7 @@ func (c *Client) addOperationGetCommandInvocationMiddlewares(stack *middleware.S
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -244,10 +234,16 @@ func (c *Client) addOperationGetCommandInvocationMiddlewares(stack *middleware.S
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addGetCommandInvocationResolveEndpointMiddleware(stack, options); err != nil {
+		return err
+	}
 	if err = addOpGetCommandInvocationValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetCommandInvocation(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -257,6 +253,9 @@ func (c *Client) addOperationGetCommandInvocationMiddlewares(stack *middleware.S
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -283,9 +282,9 @@ type CommandExecutedWaiterOptions struct {
 	// MinDelay must resolve to a value lesser than or equal to the MaxDelay.
 	MinDelay time.Duration
 
-	// MaxDelay is the maximum amount of time to delay between retries. If unset or set
-	// to zero, CommandExecutedWaiter will use default max delay of 120 seconds. Note
-	// that MaxDelay must resolve to value greater than or equal to the MinDelay.
+	// MaxDelay is the maximum amount of time to delay between retries. If unset or
+	// set to zero, CommandExecutedWaiter will use default max delay of 120 seconds.
+	// Note that MaxDelay must resolve to value greater than or equal to the MinDelay.
 	MaxDelay time.Duration
 
 	// LogWaitAttempts is used to enable logging for waiter retry attempts
@@ -325,9 +324,9 @@ func NewCommandExecutedWaiter(client GetCommandInvocationAPIClient, optFns ...fu
 	}
 }
 
-// Wait calls the waiter function for CommandExecuted waiter. The maxWaitDur is the
-// maximum wait duration the waiter will wait. The maxWaitDur is required and must
-// be greater than zero.
+// Wait calls the waiter function for CommandExecuted waiter. The maxWaitDur is
+// the maximum wait duration the waiter will wait. The maxWaitDur is required and
+// must be greater than zero.
 func (w *CommandExecutedWaiter) Wait(ctx context.Context, params *GetCommandInvocationInput, maxWaitDur time.Duration, optFns ...func(*CommandExecutedWaiterOptions)) error {
 	_, err := w.WaitForOutput(ctx, params, maxWaitDur, optFns...)
 	return err
@@ -563,4 +562,127 @@ func newServiceMetadataMiddleware_opGetCommandInvocation(region string) *awsmidd
 		SigningName:   "ssm",
 		OperationName: "GetCommandInvocation",
 	}
+}
+
+type opGetCommandInvocationResolveEndpointMiddleware struct {
+	EndpointResolver EndpointResolverV2
+	BuiltInResolver  builtInParameterResolver
+}
+
+func (*opGetCommandInvocationResolveEndpointMiddleware) ID() string {
+	return "ResolveEndpointV2"
+}
+
+func (m *opGetCommandInvocationResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
+		return next.HandleSerialize(ctx, in)
+	}
+
+	req, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
+	}
+
+	if m.EndpointResolver == nil {
+		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
+	}
+
+	params := EndpointParameters{}
+
+	m.BuiltInResolver.ResolveBuiltIns(&params)
+
+	var resolvedEndpoint smithyendpoints.Endpoint
+	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
+	if err != nil {
+		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
+	}
+
+	req.URL = &resolvedEndpoint.URI
+
+	for k := range resolvedEndpoint.Headers {
+		req.Header.Set(
+			k,
+			resolvedEndpoint.Headers.Get(k),
+		)
+	}
+
+	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
+	if err != nil {
+		var nfe *internalauth.NoAuthenticationSchemesFoundError
+		if errors.As(err, &nfe) {
+			// if no auth scheme is found, default to sigv4
+			signingName := "ssm"
+			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
+			ctx = awsmiddleware.SetSigningName(ctx, signingName)
+			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
+
+		}
+		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
+		if errors.As(err, &ue) {
+			return out, metadata, fmt.Errorf(
+				"This operation requests signer version(s) %v but the client only supports %v",
+				ue.UnsupportedSchemes,
+				internalauth.SupportedSchemes,
+			)
+		}
+	}
+
+	for _, authScheme := range authSchemes {
+		switch authScheme.(type) {
+		case *internalauth.AuthenticationSchemeV4:
+			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
+			var signingName, signingRegion string
+			if v4Scheme.SigningName == nil {
+				signingName = "ssm"
+			} else {
+				signingName = *v4Scheme.SigningName
+			}
+			if v4Scheme.SigningRegion == nil {
+				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
+			} else {
+				signingRegion = *v4Scheme.SigningRegion
+			}
+			if v4Scheme.DisableDoubleEncoding != nil {
+				// The signer sets an equivalent value at client initialization time.
+				// Setting this context value will cause the signer to extract it
+				// and override the value set at client initialization time.
+				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
+			}
+			ctx = awsmiddleware.SetSigningName(ctx, signingName)
+			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
+			break
+		case *internalauth.AuthenticationSchemeV4A:
+			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
+			if v4aScheme.SigningName == nil {
+				v4aScheme.SigningName = aws.String("ssm")
+			}
+			if v4aScheme.DisableDoubleEncoding != nil {
+				// The signer sets an equivalent value at client initialization time.
+				// Setting this context value will cause the signer to extract it
+				// and override the value set at client initialization time.
+				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
+			}
+			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
+			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
+			break
+		case *internalauth.AuthenticationSchemeNone:
+			break
+		}
+	}
+
+	return next.HandleSerialize(ctx, in)
+}
+
+func addGetCommandInvocationResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
+	return stack.Serialize.Insert(&opGetCommandInvocationResolveEndpointMiddleware{
+		EndpointResolver: options.EndpointResolverV2,
+		BuiltInResolver: &builtInResolver{
+			Region:       options.Region,
+			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
+			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
+			Endpoint:     options.BaseEndpoint,
+		},
+	}, "ResolveEndpoint", middleware.After)
 }
