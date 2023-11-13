@@ -220,6 +220,7 @@ func TestGenerationAwsAdvancedOptsConsolidated(t *testing.T) {
 				MsgMenu{cmd.AwsAdvancedOptDone, 2},
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "y"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
 				MsgRsp{cmd.QuestionCloudtrailName, ""},
 				// S3 Bucket Questions
 				MsgRsp{cmd.QuestionBucketName, ""},
@@ -277,6 +278,7 @@ func TestGenerationAwsAdvancedOptsUseExistingCloudtrail(t *testing.T) {
 				MsgMenu{cmd.AwsAdvancedOptDone, 2},
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
 				MsgRsp{cmd.QuestionCloudtrailExistingBucketArn, "notright"},
 				MsgRsp{"invalid arn supplied", "arn:aws:s3:::bucket_name"},
 				// SNS Topic Questions
@@ -330,6 +332,7 @@ func TestGenerationAwsAdvancedOptsConsolidatedWithSubAccounts(t *testing.T) {
 				MsgMenu{cmd.AwsAdvancedOptDone, 2},
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "y"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
 				MsgRsp{cmd.QuestionCloudtrailName, ""},
 				MsgRsp{cmd.QuestionBucketName, ""},
 				MsgRsp{cmd.QuestionBucketEnableEncryption, "y"},
@@ -546,6 +549,7 @@ func TestGenerationAwsAdvancedOptsUseExistingElements(t *testing.T) {
 				MsgMenu{cmd.AwsAdvancedOptDone, 2},
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "y"},
+				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
 				MsgRsp{cmd.QuestionCloudtrailExistingBucketArn, bucketArn},
 				MsgRsp{cmd.QuestionsUseExistingSNSTopic, "y"},
 				MsgRsp{cmd.QuestionSnsTopicArn, topicArn},
@@ -599,6 +603,7 @@ func TestGenerationAwsAdvancedOptsCreateNewElements(t *testing.T) {
 				MsgMenu{cmd.AwsAdvancedOptDone, 2},
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, "n"},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
 				MsgRsp{cmd.QuestionCloudtrailName, trailName},
 				// S3 Questions
 				MsgRsp{cmd.QuestionBucketName, bucketName},
@@ -894,6 +899,7 @@ func TestGenerationAwsS3BucketNotificationInteractive(t *testing.T) {
 
 				MsgRsp{cmd.QuestionConsolidatedCloudtrail, ""},
 				MsgRsp{cmd.QuestionUseExistingCloudtrail, ""},
+				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "n"},
 				MsgRsp{cmd.QuestionCloudtrailName, ""},
 				// S3 Questions
 				MsgRsp{cmd.QuestionBucketName, ""},
@@ -927,6 +933,176 @@ func TestGenerationAwsS3BucketNotificationInteractive(t *testing.T) {
 	buildTf, _ := aws.NewTerraform(region, false, false, false, true,
 		aws.WithS3BucketNotification(true),
 	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAwsCloudtrailOrganization(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	region := "us-west-2"
+
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 0},
+
+				MsgRsp{cmd.QuestionConsolidatedCloudtrail, ""},
+				MsgRsp{cmd.QuestionUseExistingCloudtrail, ""},
+				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "y"},
+				MsgRsp{cmd.QuestionCloudtrailName, ""},
+				MsgRsp{cmd.QuestionConfigureCloudtrailOrganizationMappings, "n"},
+				// S3 Questions
+				MsgRsp{cmd.QuestionBucketName, ""},
+				MsgRsp{cmd.QuestionBucketEnableEncryption, ""},
+				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
+				MsgRsp{cmd.QuestionS3BucketNotification, "n"},
+				// SNS Topic Questions
+				MsgRsp{cmd.QuestionsUseExistingSNSTopic, ""},
+				MsgRsp{cmd.QuestionSnsTopicName, ""},
+				MsgRsp{cmd.QuestionSnsEnableEncryption, ""},
+				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
+				// SQS Questions
+				MsgRsp{cmd.QuestionSqsQueueName, ""},
+				MsgRsp{cmd.QuestionSqsEnableEncryption, ""},
+				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
+
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	buildTf, _ := aws.NewTerraform(region, true, false, false,
+		true).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAwsCloudtrailOrganizationAccountMappings(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	region := "us-west-2"
+
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionAwsEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
+				MsgRsp{cmd.QuestionAwsRegion, region},
+
+				MsgRsp{cmd.QuestionAwsConfigAdvanced, "y"},
+				MsgMenu{cmd.AwsAdvancedOptDone, 0},
+
+				MsgRsp{cmd.QuestionConsolidatedCloudtrail, ""},
+				MsgRsp{cmd.QuestionUseExistingCloudtrail, ""},
+				MsgRsp{cmd.QuestionEnableCloudtrailOrganization, "y"},
+				MsgRsp{cmd.QuestionCloudtrailName, ""},
+				MsgRsp{cmd.QuestionConfigureCloudtrailOrganizationMappings, "y"},
+				MsgRsp{cmd.QuestionCloudtrailAccountMappingsLWDefaultAccount, "main"},
+				MsgRsp{cmd.QuestionCloudtrailOrgAccountMappingsLWAccount, "sub-account-1"},
+				MsgMultilineRsp{cmd.QuestionCloudtrailOrgAccountMappingsAwsAccounts, []string{"123456789011"}},
+				MsgRsp{cmd.QuestionCloudtrailOrgAccountMappingAnotherAdvancedOpt, "n"},
+				// S3 Questions
+				MsgRsp{cmd.QuestionBucketName, ""},
+				MsgRsp{cmd.QuestionBucketEnableEncryption, ""},
+				MsgRsp{cmd.QuestionBucketSseKeyArn, ""},
+				MsgRsp{cmd.QuestionS3BucketNotification, "n"},
+				// SNS Topic Questions
+				MsgRsp{cmd.QuestionsUseExistingSNSTopic, ""},
+				MsgRsp{cmd.QuestionSnsTopicName, ""},
+				MsgRsp{cmd.QuestionSnsEnableEncryption, ""},
+				MsgRsp{cmd.QuestionSnsEncryptionKeyArn, ""},
+				// SQS Questions
+				MsgRsp{cmd.QuestionSqsQueueName, ""},
+				MsgRsp{cmd.QuestionSqsEnableEncryption, ""},
+				MsgRsp{cmd.QuestionSqsEncryptionKeyArn, ""},
+
+				MsgRsp{cmd.QuestionAwsAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	orgAccountMappings := aws.OrgAccountMapping{
+		DefaultLaceworkAccount: "main",
+		Mapping: []aws.OrgAccountMap{
+			{
+				LaceworkAccount: "sub-account-1",
+				AwsAccounts:     []string{"123456789011"},
+			},
+		},
+	}
+
+	buildTf, _ := aws.NewTerraform(region, true, false, false,
+		true, aws.WithOrgAccountMappings(orgAccountMappings)).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationCloudtrailOrgMappingsNonInteractive(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	region := "us-east-2"
+
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"ca",
+		"aws",
+		"--cloudtrail",
+		"--aws_region",
+		"us-east-2",
+		"--aws_organization",
+		"--cloudtrail_org_account_mapping",
+		"{\"default_lacework_account\":\"main\", \"mapping\": [{ \"aws_accounts\": [\"123456789011\"], \"lacework_account\": \"sub-account-1\"}]}",
+		"--noninteractive",
+	)
+
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	orgAccountMappings := aws.OrgAccountMapping{
+		DefaultLaceworkAccount: "main",
+		Mapping: []aws.OrgAccountMap{
+			{
+				LaceworkAccount: "sub-account-1",
+				AwsAccounts:     []string{"123456789011"},
+			},
+		},
+	}
+
+	buildTf, _ := aws.NewTerraform(region, true, false, false,
+		true, aws.WithOrgAccountMappings(orgAccountMappings)).Generate()
+
 	assert.Equal(t, buildTf, tfResult)
 }
 

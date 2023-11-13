@@ -2,6 +2,7 @@
 package aws
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -50,6 +51,48 @@ func NewExistingIamRoleDetails(name string, arn string, externalId string) *Exis
 	}
 }
 
+type OrgAccountMapping struct {
+	DefaultLaceworkAccount string          `json:"default_lacework_account"`
+	Mapping                []OrgAccountMap `json:"mapping"`
+}
+
+func (orgMap *OrgAccountMapping) IsEmpty() bool {
+	return len(orgMap.Mapping) == 0 && orgMap.DefaultLaceworkAccount == ""
+}
+
+func (orgMap *OrgAccountMapping) ToMap() (map[string]any, error) {
+	var mappings []map[string]any
+	mappingsJsonString, err := json.Marshal(orgMap.Mapping)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(mappingsJsonString, &mappings)
+	if err != nil {
+		return nil, err
+	}
+
+	orgMap.Mapping = []OrgAccountMap{}
+
+	result := make(map[string]any)
+	jsonString, err := json.Marshal(orgMap)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(jsonString, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	result["mapping"] = mappings
+	return result, nil
+}
+
+type OrgAccountMap struct {
+	LaceworkAccount string   `json:"lacework_account"`
+	AwsAccounts     []string `json:"aws_accounts"`
+}
+
 type AwsSubAccount struct {
 	// The name of the AwsProfile to use (in AWS configuration)
 	AwsProfile string
@@ -94,6 +137,15 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// Optional name for CloudTrail
 	CloudtrailName string
+
+	// Should we configure AWS organization mappings?
+	AwsOrganizationMappings bool
+
+	// Cloudtrail organization account mappings
+	OrgAccountMappings OrgAccountMapping
+
+	// OrgAccountMapping json used for flag input
+	OrgAccountMappingsJson string
 
 	// Should we configure CSPM integration in LW?
 	Config bool
@@ -178,6 +230,9 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// The Lacework AWS Root Account ID
 	LaceworkAccountID string
+
+	// Lacework Organization
+	LaceworkOrganizationLevel bool
 
 	S3BucketNotification bool
 }
@@ -328,6 +383,17 @@ func WithSubaccounts(subaccounts ...AwsSubAccount) AwsTerraformModifier {
 func WithCloudtrailName(cloudtrailName string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.CloudtrailName = cloudtrailName
+	}
+}
+
+// WithOrgAccountMappings add optional name for Organization account mappings
+// Sets lacework org level to true
+func WithOrgAccountMappings(mapping OrgAccountMapping) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.OrgAccountMappings = mapping
+		if !mapping.IsEmpty() {
+			c.LaceworkOrganizationLevel = true
+		}
 	}
 }
 
@@ -531,11 +597,19 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 }
 
 func createLaceworkProvider(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, error) {
+	lwProviderAttributes := map[string]any{}
+
 	if args.LaceworkProfile != "" {
+		lwProviderAttributes["profile"] = args.LaceworkProfile
+	}
+
+	if args.LaceworkOrganizationLevel {
+		lwProviderAttributes["organization"] = true
+	}
+
+	if len(lwProviderAttributes) > 0 {
 		return lwgenerate.NewProvider(
-			"lacework",
-			lwgenerate.HclProviderWithAttributes(map[string]interface{}{"profile": args.LaceworkProfile}),
-		).ToBlock()
+			"lacework", lwgenerate.HclProviderWithAttributes(lwProviderAttributes)).ToBlock()
 	}
 	return nil, nil
 }
@@ -669,6 +743,19 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 
 		if args.S3BucketNotification {
 			attributes["use_s3_bucket_notification"] = true
+		}
+
+		// Aws Organization CloudTrail
+		if args.AwsOrganization {
+			attributes["is_organization_trail"] = true
+
+			if !args.OrgAccountMappings.IsEmpty() {
+				orgAccountMappings, err := args.OrgAccountMappings.ToMap()
+				if err != nil {
+					return nil, errors.Wrap(err, "unable to parse 'org_account_mappings'")
+				}
+				attributes["org_account_mappings"] = []map[string]any{orgAccountMappings}
+			}
 		}
 
 		if len(args.SubAccounts) > 0 {
