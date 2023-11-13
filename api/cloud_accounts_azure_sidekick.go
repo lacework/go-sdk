@@ -18,6 +18,11 @@
 
 package api
 
+const (
+	AzureSubscriptionIntegration string = "SUBSCRIPTION"
+	AzureTenantIntegration       string = "TENANT"
+)
+
 // GetAzureSidekick gets a single AzureSidekick integration matching the provided integration guid
 func (svc *CloudAccountsService) GetAzureSidekick(guid string) (
 	response AzureSidekickIntegrationResponse,
@@ -61,21 +66,23 @@ type V2AzureSidekickIntegration struct {
 }
 
 type AzureSidekickData struct {
-	Credentials             AzureSidekickCredentials `json:"credentials"`
-	IntegrationLevel        string                   `json:"integrationLevel"` // SUBSCRIPTION or TENANT
-	ScanningSubscriptionId  string                   `json:"scanningSubscriptionId"`
-	TenantId                string                   `json:"tenantId"`
-	BlobContainerName       string                   `json:"blobContainerName"`
-	SubscriptionList        string                   `json:"subscriptionList,omitempty"`
-	QueryText               string                   `json:"queryText,omitempty"`
-	ScanFrequency           int                      `json:"scanFrequency"` // in hours
-	ScanContainers          bool                     `json:"scanContainers"`
-	ScanHostVulnerabilities bool                     `json:"scanHostVulnerabilities"`
-	ScanMultiVolume         bool                     `json:"scanMultiVolume"`
-	ScanStoppedInstances    bool                     `json:"scanStoppedInstances"`
+	Credentials               AzureSidekickCredentials `json:"credentials"`
+	IntegrationLevel          string                   `json:"integrationLevel"` // SUBSCRIPTION or TENANT
+	ScanningSubscriptionId    string                   `json:"scanningSubscriptionId"`
+	TenantId                  string                   `json:"tenantId"`
+	BlobContainerName         string                   `json:"blobContainerName"`
+	ScanningResourceGroupName string                   `json:"scanningResourceGroupName"`
+	StorageAccountUrl         string                   `json:"storageAccountUrl"`
+	SubscriptionsList         string                   `json:"subscriptionsList,omitempty"`
+	QueryText                 string                   `json:"queryText,omitempty"`
+	ScanFrequency             int                      `json:"scanFrequency"` // in hours
+	ScanContainers            bool                     `json:"scanContainers"`
+	ScanHostVulnerabilities   bool                     `json:"scanHostVulnerabilities"`
+	ScanMultiVolume           bool                     `json:"scanMultiVolume"`
+	ScanStoppedInstances      bool                     `json:"scanStoppedInstances"`
 }
 
 type AzureSidekickCredentials struct {
-	ClientID     string `json:"clientId"`
+	ClientId     string `json:"clientId"`
 	ClientSecret string `json:"clientSecret,omitempty"`
 }
