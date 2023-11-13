@@ -231,6 +231,9 @@ type GenerateAwsTfConfigurationArgs struct {
 	// The Lacework AWS Root Account ID
 	LaceworkAccountID string
 
+	// Lacework Organization
+	LaceworkOrganizationLevel bool
+
 	S3BucketNotification bool
 }
 
@@ -384,9 +387,13 @@ func WithCloudtrailName(cloudtrailName string) AwsTerraformModifier {
 }
 
 // WithOrgAccountMappings add optional name for Organization account mappings
+// Sets lacework org level to true
 func WithOrgAccountMappings(mapping OrgAccountMapping) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.OrgAccountMappings = mapping
+		if !mapping.IsEmpty() {
+			c.LaceworkOrganizationLevel = true
+		}
 	}
 }
 
@@ -590,11 +597,19 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 }
 
 func createLaceworkProvider(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, error) {
+	lwProviderAttributes := map[string]any{}
+
 	if args.LaceworkProfile != "" {
+		lwProviderAttributes["profile"] = args.LaceworkProfile
+	}
+
+	if args.LaceworkOrganizationLevel {
+		lwProviderAttributes["organization"] = true
+	}
+
+	if len(lwProviderAttributes) > 0 {
 		return lwgenerate.NewProvider(
-			"lacework",
-			lwgenerate.HclProviderWithAttributes(map[string]interface{}{"profile": args.LaceworkProfile}),
-		).ToBlock()
+			"lacework", lwgenerate.HclProviderWithAttributes(lwProviderAttributes)).ToBlock()
 	}
 	return nil, nil
 }
