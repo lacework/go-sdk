@@ -51,6 +51,7 @@ lacework generate cloud-account aws [flags]
       --bucket_sse_key_arn string                 specify existing KMS encryption key arn for bucket
       --cloudtrail                                enable cloudtrail integration
       --cloudtrail_name string                    specify name of cloudtrail integration
+      --cloudtrail_org_account_mapping string     Org account mapping json string. Example: '{"default_lacework_account":"main", "mapping": [{ "aws_accounts": ["123456789011"], "lacework_account": "sub-account-1"}]}'
       --config                                    enable config integration
       --config_name string                        specify name of config integration
       --consolidated_cloudtrail                   use consolidated trail
