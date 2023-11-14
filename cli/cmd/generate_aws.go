@@ -50,7 +50,7 @@ var (
 
 	// Config Org questions
 	QuestionConfigOrgLWAccount        = "Lacework account:"
-	QuestionConfigOrgLWSubaccount     = "Lacework sub-account (optional):"
+	QuestionConfigOrgLWSubaccount     = "Lacework subaccount (optional):"
 	QuestionConfigOrgLWAccessKeyId    = "Lacework access key ID:"
 	QuestionConfigOrgLWSecretKey      = "Lacework secret key:"
 	QuestionConfigOrgId               = "AWS organization ID:"
@@ -822,7 +822,6 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 				Icon:     IconConfig,
 				Prompt:   &survey.Input{Message: QuestionConfigOrgLWSubaccount, Default: config.ConfigOrgLWSubaccount},
 				Response: &config.ConfigOrgLWSubaccount,
-				Required: true,
 			},
 			{
 				Icon:     IconConfig,
