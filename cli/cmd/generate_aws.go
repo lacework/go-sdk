@@ -48,6 +48,15 @@ var (
 	QuestionConfigAdditionalAccountsReplace = "Currently configured additional accounts: %s, replace?"
 	QuestionConfigAdditionalAccountAddMore  = "Add another AWS account?"
 
+	// Config Org questions
+	QuestionConfigOrgLWAccount      = "Lacework account:"
+	QuestionConfigOrgLWSubaccount   = "Lacework sub-account (optional):"
+	QuestionConfigOrgLWAccessKeyId  = "Lacework access key ID:"
+	QuestionConfigOrgLWSecretKey    = "Lacework secret key:"
+	QuestionConfigOrgId             = "AWS organization ID:"
+	QuestionConfigOrgUnit           = "AWS organization unit:"
+	QuestionConfigOrgResourcePrefix = "Resource prefix:"
+
 	// CloudTrail questions
 	QuestionEnableCloudtrail   = "Enable CloudTrail integration?"
 	QuestionCloudtrailName     = "Name of cloudtrail integration (optional):"
@@ -170,6 +179,13 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithAgentlessMonitoredAccounts(GenerateAwsCommandState.AgentlessMonitoredAccounts...),
 				aws.WithAgentlessScanningAccounts(GenerateAwsCommandState.AgentlessScanningAccounts...),
 				aws.WithConfigAdditionalAccounts(GenerateAwsCommandState.ConfigAdditionalAccounts...),
+				aws.WithConfigOrgLWAccount(GenerateAwsCommandState.ConfigOrgLWAccount),
+				aws.WithConfigOrgLWSubaccount(GenerateAwsCommandState.ConfigOrgLWSubaccount),
+				aws.WithConfigOrgLWAccessKeyId(GenerateAwsCommandState.ConfigOrgLWAccessKeyId),
+				aws.WithConfigOrgLWSecretKey(GenerateAwsCommandState.ConfigOrgLWSecretKey),
+				aws.WithConfigOrgId(GenerateAwsCommandState.ConfigOrgId),
+				aws.WithConfigOrgUnit(GenerateAwsCommandState.ConfigOrgUnit),
+				aws.WithConfigOrgResourcePrefix(GenerateAwsCommandState.ConfigOrgResourcePrefix),
 				aws.WithConsolidatedCloudtrail(GenerateAwsCommandState.ConsolidatedCloudtrail),
 				aws.WithCloudtrailUseExistingS3(GenerateAwsCommandState.CloudtrailUseExistingS3),
 				aws.WithCloudtrailUseExistingSNSTopic(GenerateAwsCommandState.CloudtrailUseExistingSNSTopic),
@@ -457,6 +473,41 @@ func initGenerateAwsTfCommandFlags() {
 		"config",
 		false,
 		"enable config integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgLWAccount,
+		"config_lacework_account",
+		"",
+		"specify lacework account for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgLWSubaccount,
+		"config_lacework_sub_account",
+		"",
+		"specify lacework sub-account for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgLWAccessKeyId,
+		"config_lacework_access_key_id",
+		"",
+		"specify AWS access key ID for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgLWSecretKey,
+		"config_lacework_secret_key",
+		"",
+		"specify AWS secret key for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgId,
+		"config_organization_id",
+		"",
+		"specify AWS organization ID for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgUnit,
+		"config_organization_unit",
+		"",
+		"specify AWS organization unit for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgResourcePrefix,
+		"config_resource_prefix",
+		"",
+		"specify resource prefix for Config organization integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.AwsRegion,
 		"aws_region",
@@ -760,6 +811,53 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 	}
 
 	if config.AwsOrganization {
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgLWAccount, Default: config.ConfigOrgLWAccount},
+				Response: &config.ConfigOrgLWAccount,
+				Required: true,
+			},
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgLWSubaccount, Default: config.ConfigOrgLWSubaccount},
+				Response: &config.ConfigOrgLWSubaccount,
+				Required: true,
+			},
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgLWAccessKeyId, Default: config.ConfigOrgLWAccessKeyId},
+				Response: &config.ConfigOrgLWAccessKeyId,
+				Required: true,
+			},
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgLWSecretKey, Default: config.ConfigOrgLWSecretKey},
+				Response: &config.ConfigOrgLWSecretKey,
+				Required: true,
+			},
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgId, Default: config.ConfigOrgId},
+				Response: &config.ConfigOrgId,
+				Required: true,
+			},
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgUnit, Default: config.ConfigOrgUnit},
+				Response: &config.ConfigOrgUnit,
+				Required: true,
+			},
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgResourcePrefix, Default: config.ConfigOrgResourcePrefix},
+				Response: &config.ConfigOrgResourcePrefix,
+				Required: true,
+			},
+		}); err != nil {
+			return err
+		}
+
 		return nil
 	}
 

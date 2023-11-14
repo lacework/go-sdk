@@ -173,6 +173,27 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Config addtional AWS accounts
 	ConfigAdditionalAccounts []AwsSubAccount
 
+	// Config Lacework account
+	ConfigOrgLWAccount string
+
+	// Config Lacework sub-account
+	ConfigOrgLWSubaccount string
+
+	// Config Lacework access key ID
+	ConfigOrgLWAccessKeyId string
+
+	// Config Lacework secret key
+	ConfigOrgLWSecretKey string
+
+	// Config organization ID
+	ConfigOrgId string
+
+	// Config organization unit
+	ConfigOrgUnit string
+
+	// Config resource prefix
+	ConfigOrgResourcePrefix string
+
 	// Supply an AWS region for where to find the cloudtrail resources
 	// TODO @ipcrm future: support split regions for resources (s3 one place, sns another, etc)
 	AwsRegion string
@@ -411,6 +432,55 @@ func WithAgentlessScanningAccounts(accounts ...AwsSubAccount) AwsTerraformModifi
 func WithConfigAdditionalAccounts(accounts ...AwsSubAccount) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ConfigAdditionalAccounts = accounts
+	}
+}
+
+// WithConfigOrgLWAccount Set Config org LW account
+func WithConfigOrgLWAccount(account string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ConfigOrgLWAccount = account
+	}
+}
+
+// WithConfigOrgLWSubaccount Set Config org LW sub-account
+func WithConfigOrgLWSubaccount(subaccount string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ConfigOrgLWSubaccount = subaccount
+	}
+}
+
+// WithConfigOrgLWAccessKeyId Set Config org LW access key ID
+func WithConfigOrgLWAccessKeyId(accessKeyId string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ConfigOrgLWAccessKeyId = accessKeyId
+	}
+}
+
+// WithConfigOrgLWSecretKey Set Config org LW secret key
+func WithConfigOrgLWSecretKey(secretKey string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ConfigOrgLWSecretKey = secretKey
+	}
+}
+
+// WithConfigOrgId Set Config org ID
+func WithConfigOrgId(orgId string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ConfigOrgId = orgId
+	}
+}
+
+// WithConfigOrgUnit Set Config org unit
+func WithConfigOrgUnit(orgUnit string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ConfigOrgUnit = orgUnit
+	}
+}
+
+// WithConfigOrgResourcePrefix Set Config org resource prefix
+func WithConfigOrgResourcePrefix(resourcePrefix string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ConfigOrgResourcePrefix = resourcePrefix
 	}
 }
 
@@ -705,6 +775,31 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 	}
 
 	blocks := []*hclwrite.Block{}
+
+	if args.AwsOrganization {
+		block, err := lwgenerate.NewModule(
+			"aws_config",
+			lwgenerate.AwsConfigOrgSource,
+			lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigOrgVersion),
+			lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
+			lwgenerate.HclModuleWithAttributes(
+				map[string]interface{}{
+					"lacework_account":       args.ConfigOrgLWAccount,
+					"lacework_sub_account":   args.ConfigOrgLWSubaccount,
+					"lacework_access_key_id": args.ConfigOrgLWAccessKeyId,
+					"lacework_secret_key":    args.ConfigOrgLWSecretKey,
+					"organization_id":        args.ConfigOrgId,
+					"organization_unit":      args.ConfigOrgUnit,
+					"resource_prefix":        args.ConfigOrgResourcePrefix,
+				},
+			),
+		).ToBlock()
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, block)
+		return blocks, nil
+	}
 
 	moduleDetails := []lwgenerate.HclModuleModifier{
 		lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigVersion),
