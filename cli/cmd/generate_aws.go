@@ -49,13 +49,13 @@ var (
 	QuestionConfigAdditionalAccountAddMore  = "Add another AWS account?"
 
 	// Config Org questions
-	QuestionConfigOrgLWAccount      = "Lacework account:"
-	QuestionConfigOrgLWSubaccount   = "Lacework sub-account (optional):"
-	QuestionConfigOrgLWAccessKeyId  = "Lacework access key ID:"
-	QuestionConfigOrgLWSecretKey    = "Lacework secret key:"
-	QuestionConfigOrgId             = "AWS organization ID:"
-	QuestionConfigOrgUnit           = "AWS organization unit:"
-	QuestionConfigOrgResourcePrefix = "Resource prefix:"
+	QuestionConfigOrgLWAccount        = "Lacework account:"
+	QuestionConfigOrgLWSubaccount     = "Lacework sub-account (optional):"
+	QuestionConfigOrgLWAccessKeyId    = "Lacework access key ID:"
+	QuestionConfigOrgLWSecretKey      = "Lacework secret key:"
+	QuestionConfigOrgId               = "AWS organization ID:"
+	QuestionConfigOrgUnit             = "AWS organization unit:"
+	QuestionConfigOrgCfResourcePrefix = "Cloudformation resource prefix:"
 
 	// CloudTrail questions
 	QuestionEnableCloudtrail   = "Enable CloudTrail integration?"
@@ -185,7 +185,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithConfigOrgLWSecretKey(GenerateAwsCommandState.ConfigOrgLWSecretKey),
 				aws.WithConfigOrgId(GenerateAwsCommandState.ConfigOrgId),
 				aws.WithConfigOrgUnit(GenerateAwsCommandState.ConfigOrgUnit),
-				aws.WithConfigOrgResourcePrefix(GenerateAwsCommandState.ConfigOrgResourcePrefix),
+				aws.WithConfigOrgCfResourcePrefix(GenerateAwsCommandState.ConfigOrgCfResourcePrefix),
 				aws.WithConsolidatedCloudtrail(GenerateAwsCommandState.ConsolidatedCloudtrail),
 				aws.WithCloudtrailUseExistingS3(GenerateAwsCommandState.CloudtrailUseExistingS3),
 				aws.WithCloudtrailUseExistingSNSTopic(GenerateAwsCommandState.CloudtrailUseExistingSNSTopic),
@@ -504,10 +504,10 @@ func initGenerateAwsTfCommandFlags() {
 		"",
 		"specify AWS organization unit for Config organization integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.ConfigOrgResourcePrefix,
-		"config_resource_prefix",
+		&GenerateAwsCommandState.ConfigOrgCfResourcePrefix,
+		"config_cf_resource_prefix",
 		"",
-		"specify resource prefix for Config organization integration")
+		"specify Cloudformation resource prefix for Config organization integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.AwsRegion,
 		"aws_region",
@@ -850,8 +850,8 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 			},
 			{
 				Icon:     IconConfig,
-				Prompt:   &survey.Input{Message: QuestionConfigOrgResourcePrefix, Default: config.ConfigOrgResourcePrefix},
-				Response: &config.ConfigOrgResourcePrefix,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgCfResourcePrefix, Default: config.ConfigOrgCfResourcePrefix},
+				Response: &config.ConfigOrgCfResourcePrefix,
 				Required: true,
 			},
 		}); err != nil {

@@ -54,6 +54,13 @@ lacework generate cloud-account aws [flags]
       --cloudtrail                                enable cloudtrail integration
       --cloudtrail_name string                    specify name of cloudtrail integration
       --config                                    enable config integration
+      --config_cf_resource_prefix string          specify Cloudformation resource prefix for Config organization integration
+      --config_lacework_access_key_id string      specify AWS access key ID for Config organization integration
+      --config_lacework_account string            specify lacework account for Config organization integration
+      --config_lacework_secret_key string         specify AWS secret key for Config organization integration
+      --config_lacework_sub_account string        specify lacework sub-account for Config organization integration
+      --config_organization_id string             specify AWS organization ID for Config organization integration
+      --config_organization_unit string           specify AWS organization unit for Config organization integration
       --consolidated_cloudtrail                   use consolidated trail
       --existing_bucket_arn string                specify existing cloudtrail S3 bucket ARN
       --existing_iam_role_arn string              specify existing iam role arn to use

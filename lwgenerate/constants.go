@@ -9,7 +9,7 @@ const (
 	AwsAgentlessVersion              = "~> 0.6"
 	AwsConfigSource                  = "lacework/config/aws"
 	AwsConfigVersion                 = "~> 0.5"
-	AwsConfigOrgSource               = "lacework/config-org/aws"
+	AwsConfigOrgSource               = "lacework/org-configuration/aws"
 	AwsConfigOrgVersion              = "~> 0.1"
 	AwsCloudTrailSource              = "lacework/cloudtrail/aws"
 	AwsCloudTrailVersion             = "~> 2.7"

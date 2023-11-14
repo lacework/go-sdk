@@ -34,6 +34,14 @@ func TestGenerationAwsNoninteractive(t *testing.T) {
 	iamRoleArn := "arn:aws:iam::123456789012:role/application_abc/component_xyz/abc_role"
 	iamRoleExtId := "123456"
 
+	laceworkAccount := "lw-account"
+	laceworkSubaccount := "lw-subaccount"
+	laceworkAccessKeyId := "lw-access-key-id"
+	laceworkSecretKey := "lw-secret-key"
+	organizationId := "aws-org-id"
+	organizationUnit := "aws-org-unit"
+	cfResourcePrefix := "cd-resource-prefix"
+
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
@@ -65,6 +73,20 @@ func TestGenerationAwsNoninteractive(t *testing.T) {
 		"monitored-1:us-west-1,monitored-2:us-west-2",
 		"--agentless_scanning_accounts",
 		"scanning-1:us-east-1,scanning-2:us-east-2",
+		"--config_lacework_account",
+		laceworkAccount,
+		"--config_lacework_sub_account",
+		laceworkSubaccount,
+		"--config_lacework_access_key_id",
+		laceworkAccessKeyId,
+		"--config_lacework_secret_key",
+		laceworkSecretKey,
+		"--config_organization_id",
+		organizationId,
+		"--config_organization_unit",
+		organizationUnit,
+		"--config_cf_resource_prefix",
+		cfResourcePrefix,
 		"--consolidated_cloudtrail",
 		"--cloudtrail_org_account_mapping",
 		"{\"default_lacework_account\":\"main\", \"mapping\": [{ \"aws_accounts\": [\"123456789011\"], \"lacework_account\": \"subaccount-1\"}]}",
@@ -126,6 +148,13 @@ func TestGenerationAwsNoninteractive(t *testing.T) {
 			aws.NewAwsSubAccount("subaccount-1", "us-west-1", "subaccount-1-us-west-1"),
 			aws.NewAwsSubAccount("subaccount-2", "us-west-2", "subaccount-2-us-west-2"),
 		),
+		aws.WithConfigOrgLWAccount(laceworkAccount),
+		aws.WithConfigOrgLWSubaccount(laceworkSubaccount),
+		aws.WithConfigOrgLWAccessKeyId(laceworkAccessKeyId),
+		aws.WithConfigOrgLWSecretKey(laceworkSecretKey),
+		aws.WithConfigOrgId(organizationId),
+		aws.WithConfigOrgUnit(organizationUnit),
+		aws.WithConfigOrgCfResourcePrefix(cfResourcePrefix),
 		aws.WithConsolidatedCloudtrail(true),
 		aws.WithOrgAccountMappings(orgAccountMappings),
 		aws.WithCloudtrailUseExistingS3(true),
@@ -290,6 +319,65 @@ func TestGenerationAwsConfig(t *testing.T) {
 		aws.WithConfigAdditionalAccounts(
 			aws.NewAwsSubAccount("subaccount-1", "us-west-1", "subaccount-1-us-west-1"),
 		),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test Config organization integration
+func TestGenerationAwsConfigOrganization(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	laceworkAccount := "lw-account"
+	laceworkSubaccount := "lw-subaccount"
+	laceworkAccessKeyId := "lw-access-key-id"
+	laceworkSecretKey := "lw-secret-key"
+	organizationId := "aws-org-id"
+	organizationUnit := "aws-org-unit"
+	cfResourcePrefix := "cd-resource-prefix"
+
+	// Run CLI
+	tfResult := runGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionEnableAwsOrganization, "y"},
+				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
+				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
+				MsgRsp{cmd.QuestionEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableConfig, "y"},
+				MsgRsp{cmd.QuestionConfigOrgLWAccount, laceworkAccount},
+				MsgRsp{cmd.QuestionConfigOrgLWSubaccount, laceworkSubaccount},
+				MsgRsp{cmd.QuestionConfigOrgLWAccessKeyId, laceworkAccessKeyId},
+				MsgRsp{cmd.QuestionConfigOrgLWSecretKey, laceworkSecretKey},
+				MsgRsp{cmd.QuestionConfigOrgId, organizationId},
+				MsgRsp{cmd.QuestionConfigOrgUnit, organizationUnit},
+				MsgRsp{cmd.QuestionConfigOrgCfResourcePrefix, cfResourcePrefix},
+				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
+				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"aws",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := aws.NewTerraform(true, false, true, false,
+		aws.WithAwsProfile("main"),
+		aws.WithAwsRegion("us-east-2"),
+		aws.WithConfigOrgLWAccount(laceworkAccount),
+		aws.WithConfigOrgLWSubaccount(laceworkSubaccount),
+		aws.WithConfigOrgLWAccessKeyId(laceworkAccessKeyId),
+		aws.WithConfigOrgLWSecretKey(laceworkSecretKey),
+		aws.WithConfigOrgId(organizationId),
+		aws.WithConfigOrgUnit(organizationUnit),
+		aws.WithConfigOrgCfResourcePrefix(cfResourcePrefix),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }

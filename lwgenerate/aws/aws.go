@@ -192,7 +192,7 @@ type GenerateAwsTfConfigurationArgs struct {
 	ConfigOrgUnit string
 
 	// Config resource prefix
-	ConfigOrgResourcePrefix string
+	ConfigOrgCfResourcePrefix string
 
 	// Supply an AWS region for where to find the cloudtrail resources
 	// TODO @ipcrm future: support split regions for resources (s3 one place, sns another, etc)
@@ -477,10 +477,10 @@ func WithConfigOrgUnit(orgUnit string) AwsTerraformModifier {
 	}
 }
 
-// WithConfigOrgResourcePrefix Set Config org resource prefix
-func WithConfigOrgResourcePrefix(resourcePrefix string) AwsTerraformModifier {
+// WithConfigOrgCfResourcePrefix Set Config org resource prefix
+func WithConfigOrgCfResourcePrefix(resourcePrefix string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
-		c.ConfigOrgResourcePrefix = resourcePrefix
+		c.ConfigOrgCfResourcePrefix = resourcePrefix
 	}
 }
 
@@ -778,19 +778,19 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 
 	if args.AwsOrganization {
 		block, err := lwgenerate.NewModule(
-			"aws_config",
+			"aws_org_configuration",
 			lwgenerate.AwsConfigOrgSource,
 			lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigOrgVersion),
 			lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
 			lwgenerate.HclModuleWithAttributes(
 				map[string]interface{}{
-					"lacework_account":       args.ConfigOrgLWAccount,
-					"lacework_sub_account":   args.ConfigOrgLWSubaccount,
-					"lacework_access_key_id": args.ConfigOrgLWAccessKeyId,
-					"lacework_secret_key":    args.ConfigOrgLWSecretKey,
-					"organization_id":        args.ConfigOrgId,
-					"organization_unit":      args.ConfigOrgUnit,
-					"resource_prefix":        args.ConfigOrgResourcePrefix,
+					"lacework_account":           args.ConfigOrgLWAccount,
+					"lacework_subaccount":        args.ConfigOrgLWSubaccount,
+					"lacework_access_key_id":     args.ConfigOrgLWAccessKeyId,
+					"lacework_access_secret_key": args.ConfigOrgLWSecretKey,
+					"organization_id":            args.ConfigOrgId,
+					"organization_unit":          args.ConfigOrgUnit,
+					"cf_resource_prefix":         args.ConfigOrgCfResourcePrefix,
 				},
 			),
 		).ToBlock()
