@@ -398,7 +398,7 @@ func TestGenerationAwsCloudtrailOrganization(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test CloutTrail integration with existing S3 bucket
+// Test CloudTrail integration with existing S3 bucket
 func TestGenerationAwsCloudtrailWithExistingS3Bucket(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -448,7 +448,7 @@ func TestGenerationAwsCloudtrailWithExistingS3Bucket(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test CloutTrail integration with new S3 bucket
+// Test CloudTrail integration with new S3 bucket
 func TestGenerationAwsCloudtrailWithNewS3Bucket(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -502,7 +502,7 @@ func TestGenerationAwsCloudtrailWithNewS3Bucket(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test CloutTrail integration with existing SNS topic
+// Test CloudTrail integration with existing SNS topic
 func TestGenerationAwsCloudtrailWithExistingSnsTopic(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -549,7 +549,7 @@ func TestGenerationAwsCloudtrailWithExistingSnsTopic(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test CloutTrail integration with new SNS topic
+// Test CloudTrail integration with new SNS topic
 func TestGenerationAwsCloudtrailWithNewSNSTopic(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -601,7 +601,7 @@ func TestGenerationAwsCloudtrailWithNewSNSTopic(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test CloutTrail integration with new SQS queue
+// Test CloudTrail integration with new SQS queue
 func TestGenerationAwsCloudtrailWithNewSQSQueue(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -651,7 +651,7 @@ func TestGenerationAwsCloudtrailWithNewSQSQueue(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test CloutTrail integration with existing IAM role
+// Test CloudTrail integration with existing IAM role
 func TestGenerationAwsCloudtrailWithExistingIamRole(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")

@@ -15,6 +15,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Question labels
+const (
+	IconAgentless  = "[Agentless]"
+	IconConfig     = "[Configuration]"
+	IconCloudTrail = "[CloudTrail]"
+)
+
 var (
 	// Define question text here so they can be reused in testing
 	// Core questions
@@ -101,11 +108,6 @@ var (
 
 	// Other options
 	AwsAdvancedOptDone = "Done" // Used in aws controltower and eks_audit
-
-	// Question labels
-	IconAgentless  = "[Agentless]"
-	IconConfig     = "[Configuration]"
-	IconCloudTrail = "[CloudTrail]"
 
 	// AwsArnRegex original source: https://regex101.com/r/pOfxYN/1
 	AwsArnRegex = `^arn:(?P<Partition>[^:\n]*):(?P<Service>[^:\n]*):(?P<Region>[^:\n]*):(?P<AccountID>[^:\n]*):(?P<Ignore>(?P<ResourceType>[^:\/\n]*)[:\/])?(?P<Resource>.*)$` //nolint
@@ -1063,7 +1065,6 @@ func promptCloudtrailIAMQuestions(config *aws.GenerateAwsTfConfigurationArgs) er
 			Icon:     IconCloudTrail,
 			Prompt:   &survey.Input{Message: QuestionCloudtrailExistingIamRoleName, Default: config.ExistingIamRole.Name},
 			Response: &config.ExistingIamRole.Name,
-			// Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
 			Required: true,
 		},
 		{
@@ -1077,7 +1078,6 @@ func promptCloudtrailIAMQuestions(config *aws.GenerateAwsTfConfigurationArgs) er
 			Icon:     IconCloudTrail,
 			Prompt:   &survey.Input{Message: QuestionCloudtrailExistingIamRoleExtID, Default: config.ExistingIamRole.ExternalId},
 			Response: &config.ExistingIamRole.ExternalId,
-			// Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
 			Required: true,
 		}}); err != nil {
 		return err
