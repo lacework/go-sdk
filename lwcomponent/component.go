@@ -290,7 +290,7 @@ func (s State) Install(component *Component, version string) error {
 	//if the component was not an archive then nothing was created in the staging dir
 	//we must move it over
 	if _, err := os.Stat(stagingPath); errors.Is(err, os.ErrNotExist) {
-		err = os.Rename(downloadPath, stagingPath)
+		err = file.Copy(downloadPath, stagingPath)
 		if err != nil {
 			return err
 		}
