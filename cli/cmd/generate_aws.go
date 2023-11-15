@@ -54,7 +54,7 @@ var (
 	QuestionConfigOrgLWAccessKeyId    = "Lacework access key ID:"
 	QuestionConfigOrgLWSecretKey      = "Lacework secret key:"
 	QuestionConfigOrgId               = "AWS organization ID:"
-	QuestionConfigOrgUnit             = "AWS organization unit (multiple can be supplied comma separated):"
+	QuestionConfigOrgUnits            = "AWS organization units (multiple can be supplied comma separated):"
 	QuestionConfigOrgCfResourcePrefix = "Cloudformation resource prefix:"
 
 	// CloudTrail questions
@@ -184,7 +184,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithConfigOrgLWAccessKeyId(GenerateAwsCommandState.ConfigOrgLWAccessKeyId),
 				aws.WithConfigOrgLWSecretKey(GenerateAwsCommandState.ConfigOrgLWSecretKey),
 				aws.WithConfigOrgId(GenerateAwsCommandState.ConfigOrgId),
-				aws.WithConfigOrgUnit(GenerateAwsCommandState.ConfigOrgUnit),
+				aws.WithConfigOrgUnits(GenerateAwsCommandState.ConfigOrgUnits),
 				aws.WithConfigOrgCfResourcePrefix(GenerateAwsCommandState.ConfigOrgCfResourcePrefix),
 				aws.WithConsolidatedCloudtrail(GenerateAwsCommandState.ConsolidatedCloudtrail),
 				aws.WithCloudtrailUseExistingS3(GenerateAwsCommandState.CloudtrailUseExistingS3),
@@ -499,8 +499,8 @@ func initGenerateAwsTfCommandFlags() {
 		"",
 		"specify AWS organization ID for Config organization integration")
 	generateAwsTfCommand.PersistentFlags().StringSliceVar(
-		&GenerateAwsCommandState.ConfigOrgUnit,
-		"config_organization_unit",
+		&GenerateAwsCommandState.ConfigOrgUnits,
+		"config_organization_units",
 		nil,
 		"specify AWS organization unit for Config organization integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
@@ -845,14 +845,14 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 			return err
 		}
 
-		var orgUnit string
+		var orgUnitsInput string
 		if err := survey.AskOne(
-			&survey.Input{Message: QuestionConfigOrgUnit, Default: strings.Join(config.ConfigOrgUnit, ",")}, &orgUnit,
+			&survey.Input{Message: QuestionConfigOrgUnits, Default: strings.Join(config.ConfigOrgUnits, ",")}, &orgUnitsInput,
 			survey.WithValidator(survey.Required), survey.WithIcons(customPromptIconsFunc(IconConfig)),
 		); err != nil {
 			return err
 		}
-		config.ConfigOrgUnit = strings.Split(orgUnit, ",")
+		config.ConfigOrgUnits = strings.Split(orgUnitsInput, ",")
 
 		if err := survey.AskOne(
 			&survey.Input{
