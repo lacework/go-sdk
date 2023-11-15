@@ -18,10 +18,9 @@
 package main
 
 import (
-	_ "[[.Component]]/cmd"
-	"[[.Component]]/internal/cdk"
+	"[[.Component]]/cmd"
 )
 
 func main() {
-	cdk.Execute()
+	cmd.Execute()
 }

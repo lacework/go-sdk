@@ -15,7 +15,7 @@
 // limitations under the License.
 //
 
-package cdk
+package cmd
 
 import "github.com/spf13/cobra"
 
@@ -88,7 +88,7 @@ var (
 
 func init() {
 	// add the commands for the CDK lifecycle events
-	RootCmd.AddCommand(cdkInitCmd)
-	RootCmd.AddCommand(cdkReconfigureCmd)
-	RootCmd.AddCommand(cdkCleanupCmd)
+	rootCmd.AddCommand(cdkInitCmd)
+	rootCmd.AddCommand(cdkReconfigureCmd)
+	rootCmd.AddCommand(cdkCleanupCmd)
 }
