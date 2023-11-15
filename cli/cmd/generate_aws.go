@@ -54,7 +54,7 @@ var (
 	QuestionConfigOrgLWAccessKeyId    = "Lacework access key ID:"
 	QuestionConfigOrgLWSecretKey      = "Lacework secret key:"
 	QuestionConfigOrgId               = "AWS organization ID:"
-	QuestionConfigOrgUnit             = "AWS organization unit:"
+	QuestionConfigOrgUnits            = "AWS organization units (multiple can be supplied comma separated):"
 	QuestionConfigOrgCfResourcePrefix = "Cloudformation resource prefix:"
 
 	// CloudTrail questions
@@ -184,7 +184,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithConfigOrgLWAccessKeyId(GenerateAwsCommandState.ConfigOrgLWAccessKeyId),
 				aws.WithConfigOrgLWSecretKey(GenerateAwsCommandState.ConfigOrgLWSecretKey),
 				aws.WithConfigOrgId(GenerateAwsCommandState.ConfigOrgId),
-				aws.WithConfigOrgUnit(GenerateAwsCommandState.ConfigOrgUnit),
+				aws.WithConfigOrgUnits(GenerateAwsCommandState.ConfigOrgUnits),
 				aws.WithConfigOrgCfResourcePrefix(GenerateAwsCommandState.ConfigOrgCfResourcePrefix),
 				aws.WithConsolidatedCloudtrail(GenerateAwsCommandState.ConsolidatedCloudtrail),
 				aws.WithCloudtrailUseExistingS3(GenerateAwsCommandState.CloudtrailUseExistingS3),
@@ -498,10 +498,10 @@ func initGenerateAwsTfCommandFlags() {
 		"config_organization_id",
 		"",
 		"specify AWS organization ID for Config organization integration")
-	generateAwsTfCommand.PersistentFlags().StringVar(
-		&GenerateAwsCommandState.ConfigOrgUnit,
-		"config_organization_unit",
-		"",
+	generateAwsTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAwsCommandState.ConfigOrgUnits,
+		"config_organization_units",
+		nil,
 		"specify AWS organization unit for Config organization integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.ConfigOrgCfResourcePrefix,
@@ -841,19 +841,25 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 				Response: &config.ConfigOrgId,
 				Required: true,
 			},
-			{
-				Icon:     IconConfig,
-				Prompt:   &survey.Input{Message: QuestionConfigOrgUnit, Default: config.ConfigOrgUnit},
-				Response: &config.ConfigOrgUnit,
-				Required: true,
-			},
-			{
-				Icon:     IconConfig,
-				Prompt:   &survey.Input{Message: QuestionConfigOrgCfResourcePrefix, Default: config.ConfigOrgCfResourcePrefix},
-				Response: &config.ConfigOrgCfResourcePrefix,
-				Required: true,
-			},
 		}); err != nil {
+			return err
+		}
+
+		var orgUnitsInput string
+		if err := survey.AskOne(
+			&survey.Input{Message: QuestionConfigOrgUnits, Default: strings.Join(config.ConfigOrgUnits, ",")}, &orgUnitsInput,
+			survey.WithValidator(survey.Required), survey.WithIcons(customPromptIconsFunc(IconConfig)),
+		); err != nil {
+			return err
+		}
+		config.ConfigOrgUnits = strings.Split(orgUnitsInput, ",")
+
+		if err := survey.AskOne(
+			&survey.Input{
+				Message: QuestionConfigOrgCfResourcePrefix, Default: config.ConfigOrgCfResourcePrefix,
+			}, &config.ConfigOrgCfResourcePrefix,
+			survey.WithValidator(survey.Required), survey.WithIcons(customPromptIconsFunc(IconConfig)),
+		); err != nil {
 			return err
 		}
 
