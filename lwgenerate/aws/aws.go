@@ -189,7 +189,7 @@ type GenerateAwsTfConfigurationArgs struct {
 	ConfigOrgId string
 
 	// Config organization unit
-	ConfigOrgUnit string
+	ConfigOrgUnit []string
 
 	// Config resource prefix
 	ConfigOrgCfResourcePrefix string
@@ -471,7 +471,7 @@ func WithConfigOrgId(orgId string) AwsTerraformModifier {
 }
 
 // WithConfigOrgUnit Set Config org unit
-func WithConfigOrgUnit(orgUnit string) AwsTerraformModifier {
+func WithConfigOrgUnit(orgUnit []string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ConfigOrgUnit = orgUnit
 	}
@@ -784,13 +784,13 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 			lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
 			lwgenerate.HclModuleWithAttributes(
 				map[string]interface{}{
-					"lacework_account":           args.ConfigOrgLWAccount,
-					"lacework_subaccount":        args.ConfigOrgLWSubaccount,
-					"lacework_access_key_id":     args.ConfigOrgLWAccessKeyId,
-					"lacework_access_secret_key": args.ConfigOrgLWSecretKey,
-					"organization_id":            args.ConfigOrgId,
-					"organization_unit":          args.ConfigOrgUnit,
-					"cf_resource_prefix":         args.ConfigOrgCfResourcePrefix,
+					"lacework_account":       args.ConfigOrgLWAccount,
+					"lacework_subaccount":    args.ConfigOrgLWSubaccount,
+					"lacework_access_key_id": args.ConfigOrgLWAccessKeyId,
+					"lacework_secret_key":    args.ConfigOrgLWSecretKey,
+					"organization_id":        args.ConfigOrgId,
+					"organization_unit":      args.ConfigOrgUnit,
+					"cf_resource_prefix":     args.ConfigOrgCfResourcePrefix,
 				},
 			),
 		).ToBlock()

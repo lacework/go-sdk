@@ -54,7 +54,7 @@ var (
 	QuestionConfigOrgLWAccessKeyId    = "Lacework access key ID:"
 	QuestionConfigOrgLWSecretKey      = "Lacework secret key:"
 	QuestionConfigOrgId               = "AWS organization ID:"
-	QuestionConfigOrgUnit             = "AWS organization unit:"
+	QuestionConfigOrgUnit             = "AWS organization unit (multiple can be supplied comma separated):"
 	QuestionConfigOrgCfResourcePrefix = "Cloudformation resource prefix:"
 
 	// CloudTrail questions
@@ -498,10 +498,10 @@ func initGenerateAwsTfCommandFlags() {
 		"config_organization_id",
 		"",
 		"specify AWS organization ID for Config organization integration")
-	generateAwsTfCommand.PersistentFlags().StringVar(
+	generateAwsTfCommand.PersistentFlags().StringSliceVar(
 		&GenerateAwsCommandState.ConfigOrgUnit,
 		"config_organization_unit",
-		"",
+		nil,
 		"specify AWS organization unit for Config organization integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.ConfigOrgCfResourcePrefix,
@@ -841,19 +841,25 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 				Response: &config.ConfigOrgId,
 				Required: true,
 			},
-			{
-				Icon:     IconConfig,
-				Prompt:   &survey.Input{Message: QuestionConfigOrgUnit, Default: config.ConfigOrgUnit},
-				Response: &config.ConfigOrgUnit,
-				Required: true,
-			},
-			{
-				Icon:     IconConfig,
-				Prompt:   &survey.Input{Message: QuestionConfigOrgCfResourcePrefix, Default: config.ConfigOrgCfResourcePrefix},
-				Response: &config.ConfigOrgCfResourcePrefix,
-				Required: true,
-			},
 		}); err != nil {
+			return err
+		}
+
+		var orgUnit string
+		if err := survey.AskOne(
+			&survey.Input{Message: QuestionConfigOrgUnit, Default: strings.Join(config.ConfigOrgUnit, ",")}, &orgUnit,
+			survey.WithValidator(survey.Required), survey.WithIcons(customPromptIconsFunc(IconConfig)),
+		); err != nil {
+			return err
+		}
+		config.ConfigOrgUnit = strings.Split(orgUnit, ",")
+
+		if err := survey.AskOne(
+			&survey.Input{
+				Message: QuestionConfigOrgCfResourcePrefix, Default: config.ConfigOrgCfResourcePrefix,
+			}, &config.ConfigOrgCfResourcePrefix,
+			survey.WithValidator(survey.Required), survey.WithIcons(customPromptIconsFunc(IconConfig)),
+		); err != nil {
 			return err
 		}
 
