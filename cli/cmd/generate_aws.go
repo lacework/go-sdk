@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/lacework/go-sdk/internal/format"
 	"github.com/lacework/go-sdk/lwgenerate/aws"
 	"github.com/pkg/errors"
 )
@@ -126,6 +127,7 @@ var (
 	AWSRootIDRegex              = `^r-[0-9a-z]{4,32}$`
 	AwsAssumeRoleRegex          = `^arn:aws:iam::\d{12}:role\/.*$`
 	ValidateSubAccountFlagRegex = fmt.Sprintf(`%s:%s`, AwsProfileRegex, AwsRegionRegex)
+	AwsCfResourcePrefixRegex    = `^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$`
 
 	GenerateAwsCommandState = &aws.GenerateAwsTfConfigurationArgs{
 		ExistingIamRole: &aws.ExistingIamRoleDetails{},
@@ -716,9 +718,14 @@ func validateAwsProfile(val interface{}) error {
 	return validateStringWithRegex(val, fmt.Sprintf(`^%s$`, AwsProfileRegex), "invalid profile name supplied")
 }
 
-// survey.Validator for aws profile
+// survey.Validator for aws assume role
 func validateAwsAssumeRole(val interface{}) error {
 	return validateStringWithRegex(val, AwsAssumeRoleRegex, "invalid assume name supplied")
+}
+
+// survey.Validator for CloudFormation resource prefix
+func validateAwsCfResourcePrefix(val interface{}) error {
+	return validateStringWithRegex(val, AwsCfResourcePrefixRegex, "invalid CloudFormation resource name prefix supplied")
 }
 
 func promptAgentlessQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
@@ -810,6 +817,16 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 		return nil
 	}
 
+	tempLwSecretKey := ""
+	lwSecretKeyMessage := QuestionConfigOrgLWSecretKey
+	if len(config.ConfigOrgLWSecretKey) > 0 {
+		lwSecretKeyMessage = fmt.Sprintf(
+			"%s: (%s)",
+			QuestionConfigOrgLWSecretKey,
+			format.Secret(4, config.ConfigOrgLWSecretKey),
+		)
+	}
+
 	if config.AwsOrganization {
 		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 			{
@@ -831,9 +848,9 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 			},
 			{
 				Icon:     IconConfig,
-				Prompt:   &survey.Input{Message: QuestionConfigOrgLWSecretKey, Default: config.ConfigOrgLWSecretKey},
-				Response: &config.ConfigOrgLWSecretKey,
-				Required: true,
+				Prompt:   &survey.Password{Message: lwSecretKeyMessage},
+				Response: &tempLwSecretKey,
+				Required: config.ConfigOrgLWSecretKey == "",
 			},
 			{
 				Icon:     IconConfig,
@@ -843,6 +860,11 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 			},
 		}); err != nil {
 			return err
+		}
+
+		// Use newly entered secret key, otherwise use the cached value
+		if tempLwSecretKey != "" {
+			config.ConfigOrgLWSecretKey = tempLwSecretKey
 		}
 
 		var orgUnitsInput string
@@ -858,7 +880,9 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 			&survey.Input{
 				Message: QuestionConfigOrgCfResourcePrefix, Default: config.ConfigOrgCfResourcePrefix,
 			}, &config.ConfigOrgCfResourcePrefix,
-			survey.WithValidator(survey.Required), survey.WithIcons(customPromptIconsFunc(IconConfig)),
+			survey.WithValidator(survey.Required),
+			survey.WithValidator(validateAwsCfResourcePrefix),
+			survey.WithIcons(customPromptIconsFunc(IconConfig)),
 		); err != nil {
 			return err
 		}
