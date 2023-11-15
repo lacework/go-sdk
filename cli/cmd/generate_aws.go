@@ -50,8 +50,8 @@ var (
 
 	// Config questions
 	QuestionEnableConfig                    = "Enable configuration integration?"
-	QuestionConfigAdditionalAccountProfile  = "Addtional AWS account profile:"
-	QuestionConfigAdditionalAccountRegion   = "Addtional AWS account region:"
+	QuestionConfigAdditionalAccountProfile  = "Additional AWS account profile:"
+	QuestionConfigAdditionalAccountRegion   = "Additional AWS account region:"
 	QuestionConfigAdditionalAccountsReplace = "Currently configured additional accounts: %s, replace?"
 	QuestionConfigAdditionalAccountAddMore  = "Add another AWS account?"
 

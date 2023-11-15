@@ -170,7 +170,7 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Optional name for config
 	ConfigName string
 
-	// Config addtional AWS accounts
+	// Config additional AWS accounts
 	ConfigAdditionalAccounts []AwsSubAccount
 
 	// Supply an AWS region for where to find the cloudtrail resources
