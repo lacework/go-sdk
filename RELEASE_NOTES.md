@@ -1,11 +1,12 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.39.0`.
+Another day, another release. These are the release notes for the version `v1.40.0`.
 
 ## Features
-* feat(PSP-1220): misc fixes in Azure Agentless cloud provider (#1447) (AoZhang)([fd1b026c](https://github.com/lacework/go-sdk/commit/fd1b026c3cb896e9df1e026d4246112b61d8f49d))
-* feat: add org-cloudtrail to lw_generate (#1433) (Darren)([29935df4](https://github.com/lacework/go-sdk/commit/29935df410960aca3dde4b9458ecfe980cb98000))
+* feat: refactor UX for lacework generate cloud-account aws (#1448) (Pengyuan Zhao)([222660bc](https://github.com/lacework/go-sdk/commit/222660bc861b4788d1d2c7ac05510ea68dc461af))
+## Bug Fixes
+* fix(cdk): component install fails (Timothy MacDonald)([6ca53412](https://github.com/lacework/go-sdk/commit/6ca53412d744d70ad6a76ac6e6117a34c302cebc))
 ## Other Changes
-* ci: version bump to v1.38.1-dev (Lacework)([4185b657](https://github.com/lacework/go-sdk/commit/4185b65720477979c0b3a8c1c0c0abff9bd8ded6))
+* ci: version bump to v1.39.1-dev (Lacework)([0b65cd90](https://github.com/lacework/go-sdk/commit/0b65cd907fcaf349b3f946a1028101da03bf630a))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
