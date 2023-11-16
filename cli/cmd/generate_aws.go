@@ -449,7 +449,8 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandState.AgentlessMonitoredAccountIDs,
 		"agentless_monitored_account_ids",
 		[]string{},
-		"AWS monitored account IDs for Agentless integrations")
+		"AWS monitored account IDs for Agentless integrations; may "+
+			"contain account IDs, OUs, or the organization root (e.g. 123456789000,ou-abcd-12345678,r-abcd)")
 	generateAwsTfCommand.PersistentFlags().StringSliceVar(
 		&GenerateAwsCommandExtraState.AgentlessMonitoredAccounts,
 		"agentless_monitored_accounts",
@@ -504,7 +505,7 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandState.ConfigOrgUnits,
 		"config_organization_units",
 		nil,
-		"specify AWS organization unit for Config organization integration")
+		"specify AWS organization units for Config organization integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.ConfigOrgCfResourcePrefix,
 		"config_cf_resource_prefix",

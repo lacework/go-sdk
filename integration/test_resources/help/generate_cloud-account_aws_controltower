@@ -41,7 +41,7 @@ Global Flags:
   -a, --account string                            account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
       --agentless                                 enable agentless integration
       --agentless_management_account_id string    AWS management account ID for Agentless integration
-      --agentless_monitored_account_ids strings   AWS monitored account IDs for Agentless integrations
+      --agentless_monitored_account_ids strings   AWS monitored account IDs for Agentless integrations; may contain account IDs, OUs, or the organization root (e.g. 123456789000,ou-abcd-12345678,r-abcd)
       --agentless_monitored_accounts strings      AWS monitored accounts for Agentless integrations; value format must be <aws profile>:<region>
       --agentless_scanning_accounts strings       AWS scanning accounts for Agentless integrations; value format must be <aws profile>:<region>
   -k, --api_key string                            access key id
@@ -65,7 +65,7 @@ Global Flags:
       --config_lacework_secret_key string         specify AWS secret key for Config organization integration
       --config_lacework_sub_account string        specify lacework sub-account for Config organization integration
       --config_organization_id string             specify AWS organization ID for Config organization integration
-      --config_organization_units string          specify AWS organization units for Config organization integration
+      --config_organization_units strings         specify AWS organization units for Config organization integration
       --consolidated_cloudtrail                   use consolidated trail
       --debug                                     turn on debug logging
       --existing_bucket_arn string                specify existing cloudtrail S3 bucket ARN

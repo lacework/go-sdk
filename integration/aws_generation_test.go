@@ -37,10 +37,10 @@ func TestGenerationAwsNoninteractive(t *testing.T) {
 	laceworkAccount := "lw-account"
 	laceworkSubaccount := "lw-subaccount"
 	laceworkAccessKeyId := "lw-access-key-id"
-	laceworkSecretKey := "lw-secret-key"
-	organizationId := "aws-org-id"
-	organizationUnit := "aws-org-unit"
-	cfResourcePrefix := "cd-resource-prefix"
+	laceworkSecretKey := "lw_secret_key"
+	organizationId := "o-1234567890"
+	organizationUnit := "ou-abcd-12345678"
+	cfResourcePrefix := "cf-resource-prefix"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
@@ -153,7 +153,7 @@ func TestGenerationAwsNoninteractive(t *testing.T) {
 		aws.WithConfigOrgLWAccessKeyId(laceworkAccessKeyId),
 		aws.WithConfigOrgLWSecretKey(laceworkSecretKey),
 		aws.WithConfigOrgId(organizationId),
-		aws.WithConfigOrgUnits(organizationUnit),
+		aws.WithConfigOrgUnits([]string{organizationUnit}),
 		aws.WithConfigOrgCfResourcePrefix(cfResourcePrefix),
 		aws.WithConsolidatedCloudtrail(true),
 		aws.WithOrgAccountMappings(orgAccountMappings),
@@ -332,10 +332,11 @@ func TestGenerationAwsConfigOrganization(t *testing.T) {
 	laceworkAccount := "lw-account"
 	laceworkSubaccount := "lw-subaccount"
 	laceworkAccessKeyId := "lw-access-key-id"
-	laceworkSecretKey := "lw-secret-key"
-	organizationId := "aws-org-id"
-	organizationUnit := "aws-org-unit"
-	cfResourcePrefix := "cd-resource-prefix"
+	laceworkSecretKey := "lw_secret_key"
+	organizationId := "o-1234567890"
+	organizationUnitsInput := "ou-abcd-12345678,ou-abcd-12345679"
+	organizationUnits := []string{"ou-abcd-12345678", "ou-abcd-12345679"}
+	cfResourcePrefix := "cf-resource-prefix"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
@@ -351,7 +352,7 @@ func TestGenerationAwsConfigOrganization(t *testing.T) {
 				MsgRsp{cmd.QuestionConfigOrgLWAccessKeyId, laceworkAccessKeyId},
 				MsgRsp{cmd.QuestionConfigOrgLWSecretKey, laceworkSecretKey},
 				MsgRsp{cmd.QuestionConfigOrgId, organizationId},
-				MsgRsp{cmd.QuestionConfigOrgUnits, organizationUnit},
+				MsgRsp{cmd.QuestionConfigOrgUnits, organizationUnitsInput},
 				MsgRsp{cmd.QuestionConfigOrgCfResourcePrefix, cfResourcePrefix},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
 				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
@@ -376,7 +377,7 @@ func TestGenerationAwsConfigOrganization(t *testing.T) {
 		aws.WithConfigOrgLWAccessKeyId(laceworkAccessKeyId),
 		aws.WithConfigOrgLWSecretKey(laceworkSecretKey),
 		aws.WithConfigOrgId(organizationId),
-		aws.WithConfigOrgUnits(organizationUnit),
+		aws.WithConfigOrgUnits(organizationUnits),
 		aws.WithConfigOrgCfResourcePrefix(cfResourcePrefix),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
