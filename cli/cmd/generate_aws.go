@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/lacework/go-sdk/internal/format"
 	"github.com/lacework/go-sdk/lwgenerate/aws"
 	"github.com/pkg/errors"
 )
@@ -54,6 +55,15 @@ var (
 	QuestionConfigAdditionalAccountRegion   = "Additional AWS account region:"
 	QuestionConfigAdditionalAccountsReplace = "Currently configured additional accounts: %s, replace?"
 	QuestionConfigAdditionalAccountAddMore  = "Add another AWS account?"
+
+	// Config Org questions
+	QuestionConfigOrgLWAccount        = "Lacework account:"
+	QuestionConfigOrgLWSubaccount     = "Lacework subaccount (optional):"
+	QuestionConfigOrgLWAccessKeyId    = "Lacework access key ID:"
+	QuestionConfigOrgLWSecretKey      = "Lacework secret key:"
+	QuestionConfigOrgId               = "AWS organization ID:"
+	QuestionConfigOrgUnits            = "AWS organization units (multiple can be supplied comma separated):"
+	QuestionConfigOrgCfResourcePrefix = "Cloudformation resource prefix:"
 
 	// CloudTrail questions
 	QuestionEnableCloudtrail   = "Enable CloudTrail integration?"
@@ -119,6 +129,7 @@ var (
 	AWSRootIDRegex              = `^r-[0-9a-z]{4,32}$`
 	AwsAssumeRoleRegex          = `^arn:aws:iam::\d{12}:role\/.*$`
 	ValidateSubAccountFlagRegex = fmt.Sprintf(`%s:%s`, AwsProfileRegex, AwsRegionRegex)
+	AwsCfResourcePrefixRegex    = `^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$`
 
 	GenerateAwsCommandState = &aws.GenerateAwsTfConfigurationArgs{
 		ExistingIamRole: &aws.ExistingIamRoleDetails{},
@@ -172,6 +183,13 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithAgentlessMonitoredAccounts(GenerateAwsCommandState.AgentlessMonitoredAccounts...),
 				aws.WithAgentlessScanningAccounts(GenerateAwsCommandState.AgentlessScanningAccounts...),
 				aws.WithConfigAdditionalAccounts(GenerateAwsCommandState.ConfigAdditionalAccounts...),
+				aws.WithConfigOrgLWAccount(GenerateAwsCommandState.ConfigOrgLWAccount),
+				aws.WithConfigOrgLWSubaccount(GenerateAwsCommandState.ConfigOrgLWSubaccount),
+				aws.WithConfigOrgLWAccessKeyId(GenerateAwsCommandState.ConfigOrgLWAccessKeyId),
+				aws.WithConfigOrgLWSecretKey(GenerateAwsCommandState.ConfigOrgLWSecretKey),
+				aws.WithConfigOrgId(GenerateAwsCommandState.ConfigOrgId),
+				aws.WithConfigOrgUnits(GenerateAwsCommandState.ConfigOrgUnits),
+				aws.WithConfigOrgCfResourcePrefix(GenerateAwsCommandState.ConfigOrgCfResourcePrefix),
 				aws.WithConsolidatedCloudtrail(GenerateAwsCommandState.ConsolidatedCloudtrail),
 				aws.WithCloudtrailUseExistingS3(GenerateAwsCommandState.CloudtrailUseExistingS3),
 				aws.WithCloudtrailUseExistingSNSTopic(GenerateAwsCommandState.CloudtrailUseExistingSNSTopic),
@@ -433,7 +451,8 @@ func initGenerateAwsTfCommandFlags() {
 		&GenerateAwsCommandState.AgentlessMonitoredAccountIDs,
 		"agentless_monitored_account_ids",
 		[]string{},
-		"AWS monitored account IDs for Agentless integrations")
+		"AWS monitored account IDs for Agentless integrations; may "+
+			"contain account IDs, OUs, or the organization root (e.g. 123456789000,ou-abcd-12345678,r-abcd)")
 	generateAwsTfCommand.PersistentFlags().StringSliceVar(
 		&GenerateAwsCommandExtraState.AgentlessMonitoredAccounts,
 		"agentless_monitored_accounts",
@@ -459,6 +478,41 @@ func initGenerateAwsTfCommandFlags() {
 		"config",
 		false,
 		"enable config integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgLWAccount,
+		"config_lacework_account",
+		"",
+		"specify lacework account for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgLWSubaccount,
+		"config_lacework_sub_account",
+		"",
+		"specify lacework sub-account for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgLWAccessKeyId,
+		"config_lacework_access_key_id",
+		"",
+		"specify AWS access key ID for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgLWSecretKey,
+		"config_lacework_secret_key",
+		"",
+		"specify AWS secret key for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgId,
+		"config_organization_id",
+		"",
+		"specify AWS organization ID for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAwsCommandState.ConfigOrgUnits,
+		"config_organization_units",
+		nil,
+		"specify AWS organization units for Config organization integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ConfigOrgCfResourcePrefix,
+		"config_cf_resource_prefix",
+		"",
+		"specify Cloudformation resource prefix for Config organization integration")
 	generateAwsTfCommand.PersistentFlags().StringVar(
 		&GenerateAwsCommandState.AwsRegion,
 		"aws_region",
@@ -667,9 +721,14 @@ func validateAwsProfile(val interface{}) error {
 	return validateStringWithRegex(val, fmt.Sprintf(`^%s$`, AwsProfileRegex), "invalid profile name supplied")
 }
 
-// survey.Validator for aws profile
+// survey.Validator for aws assume role
 func validateAwsAssumeRole(val interface{}) error {
 	return validateStringWithRegex(val, AwsAssumeRoleRegex, "invalid assume name supplied")
+}
+
+// survey.Validator for CloudFormation resource prefix
+func validateAwsCfResourcePrefix(val interface{}) error {
+	return validateStringWithRegex(val, AwsCfResourcePrefixRegex, "invalid CloudFormation resource name prefix supplied")
 }
 
 func promptAgentlessQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
@@ -761,7 +820,76 @@ func promptConfigQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
 		return nil
 	}
 
+	tempLwSecretKey := ""
+	lwSecretKeyMessage := QuestionConfigOrgLWSecretKey
+	if len(config.ConfigOrgLWSecretKey) > 0 {
+		lwSecretKeyMessage = fmt.Sprintf(
+			"%s: (%s)",
+			QuestionConfigOrgLWSecretKey,
+			format.Secret(4, config.ConfigOrgLWSecretKey),
+		)
+	}
+
 	if config.AwsOrganization {
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgLWAccount, Default: config.ConfigOrgLWAccount},
+				Response: &config.ConfigOrgLWAccount,
+				Required: true,
+			},
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgLWSubaccount, Default: config.ConfigOrgLWSubaccount},
+				Response: &config.ConfigOrgLWSubaccount,
+			},
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgLWAccessKeyId, Default: config.ConfigOrgLWAccessKeyId},
+				Response: &config.ConfigOrgLWAccessKeyId,
+				Required: true,
+			},
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Password{Message: lwSecretKeyMessage},
+				Response: &tempLwSecretKey,
+				Required: config.ConfigOrgLWSecretKey == "",
+			},
+			{
+				Icon:     IconConfig,
+				Prompt:   &survey.Input{Message: QuestionConfigOrgId, Default: config.ConfigOrgId},
+				Response: &config.ConfigOrgId,
+				Required: true,
+			},
+		}); err != nil {
+			return err
+		}
+
+		// Use newly entered secret key, otherwise use the cached value
+		if tempLwSecretKey != "" {
+			config.ConfigOrgLWSecretKey = tempLwSecretKey
+		}
+
+		var orgUnitsInput string
+		if err := survey.AskOne(
+			&survey.Input{Message: QuestionConfigOrgUnits, Default: strings.Join(config.ConfigOrgUnits, ",")}, &orgUnitsInput,
+			survey.WithValidator(survey.Required), survey.WithIcons(customPromptIconsFunc(IconConfig)),
+		); err != nil {
+			return err
+		}
+		config.ConfigOrgUnits = strings.Split(orgUnitsInput, ",")
+
+		if err := survey.AskOne(
+			&survey.Input{
+				Message: QuestionConfigOrgCfResourcePrefix, Default: config.ConfigOrgCfResourcePrefix,
+			}, &config.ConfigOrgCfResourcePrefix,
+			survey.WithValidator(survey.Required),
+			survey.WithValidator(validateAwsCfResourcePrefix),
+			survey.WithIcons(customPromptIconsFunc(IconConfig)),
+		); err != nil {
+			return err
+		}
+
 		return nil
 	}
 
