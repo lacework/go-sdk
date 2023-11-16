@@ -39,7 +39,9 @@ lacework generate cloud-account aws [flags]
 ```
       --agentless                                 enable agentless integration
       --agentless_management_account_id string    AWS management account ID for Agentless integration
-      --agentless_monitored_account_ids strings   AWS monitored account IDs for Agentless integrations
+      --agentless_monitored_account_ids strings   AWS monitored account IDs for Agentless integrations; may contain account IDs, OUs, or the organization root (e.g. 123456789000,ou-abcd-12345678,r-abcd)
+      --agentless_monitored_accounts strings      AWS monitored accounts for Agentless integrations; value format must be <aws profile>:<region>
+      --agentless_scanning_accounts strings       AWS scanning accounts for Agentless integrations; value format must be <aws profile>:<region>
       --apply                                     run terraform apply without executing plan or prompting
       --aws_assume_role string                    specify aws assume role
       --aws_organization                          enable organization integration
@@ -53,7 +55,13 @@ lacework generate cloud-account aws [flags]
       --cloudtrail_name string                    specify name of cloudtrail integration
       --cloudtrail_org_account_mapping string     Org account mapping json string. Example: '{"default_lacework_account":"main", "mapping": [{ "aws_accounts": ["123456789011"], "lacework_account": "sub-account-1"}]}'
       --config                                    enable config integration
-      --config_name string                        specify name of config integration
+      --config_cf_resource_prefix string          specify Cloudformation resource prefix for Config organization integration
+      --config_lacework_access_key_id string      specify AWS access key ID for Config organization integration
+      --config_lacework_account string            specify lacework account for Config organization integration
+      --config_lacework_secret_key string         specify AWS secret key for Config organization integration
+      --config_lacework_sub_account string        specify lacework sub-account for Config organization integration
+      --config_organization_id string             specify AWS organization ID for Config organization integration
+      --config_organization_units strings         specify AWS organization units for Config organization integration
       --consolidated_cloudtrail                   use consolidated trail
       --existing_bucket_arn string                specify existing cloudtrail S3 bucket ARN
       --existing_iam_role_arn string              specify existing iam role arn to use

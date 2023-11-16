@@ -19,6 +19,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -31,6 +32,13 @@ var configureListCmdSetProfileEnv = `$env:LW_PROFILE = 'my-profile'`
 // promptIconsFuncs configures the prompt icons for Windows systems
 var promptIconsFunc = func(icons *survey.IconSet) {
 	icons.Question.Text = ">"
+}
+
+// customPromptIconsFunc configures the prompt icons with custom string for Windows systems
+var customPromptIconsFunc = func(s string) func(icons *survey.IconSet) {
+	return func(icons *survey.IconSet) {
+		icons.Question.Text = fmt.Sprintf("> %s", s)
+	}
 }
 
 // A variety of colorized icons used throughout the code

@@ -24,7 +24,7 @@ func TestGenerateMostBasicArgs(t *testing.T) {
 	data.Cloudtrail = true
 	data.Config = true
 	data.AwsRegion = "us-east-2"
-	err := promptAwsGenerate(&data, &aws.ExistingIamRoleDetails{}, &AwsGenerateCommandExtraState{Output: "/tmp"})
+	err := promptAwsGenerate(&data, &aws.AwsGenerateCommandExtraState{Output: "/tmp"})
 
 	assert.Nil(t, err)
 }
@@ -34,9 +34,11 @@ func TestMissingValidEntityToConfigure(t *testing.T) {
 	defer toggleNonInteractive()
 
 	data := aws.GenerateAwsTfConfigurationArgs{}
-	err := promptAwsGenerate(&data, &aws.ExistingIamRoleDetails{}, &AwsGenerateCommandExtraState{Output: "/tmp"})
+	err := promptAwsGenerate(&data, &aws.AwsGenerateCommandExtraState{Output: "/tmp"})
+	assert.Nil(t, err)
+	err = data.Validate()
 	assert.Error(t, err)
-	assert.Equal(t, "must enable agentless, cloudtrail or config", err.Error())
+	assert.Equal(t, "Agentless, CloudTrail or Config integration must be enabled", err.Error())
 }
 
 func TestArnRegex(t *testing.T) {
@@ -96,9 +98,9 @@ func TestGenerationCache(t *testing.T) {
 		defer os.RemoveAll(dir)
 		cli.InitCache(dir)
 
-		extraState := &AwsGenerateCommandExtraState{}
-		extraState.writeCache()
-		assert.NoFileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAssetAwsExtraState)))
+		extraState := &aws.AwsGenerateCommandExtraState{}
+		writeExtraStateCache(extraState)
+		assert.NoFileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsExtraStateKey)))
 	})
 	t.Run("extra state should be written if not empty", func(t *testing.T) {
 		dir, err := os.MkdirTemp("", "lacework-cli-cache")
@@ -108,9 +110,9 @@ func TestGenerationCache(t *testing.T) {
 		defer os.RemoveAll(dir)
 		cli.InitCache(dir)
 
-		extraState := AwsGenerateCommandExtraState{Output: "/tmp"}
-		extraState.writeCache()
-		assert.FileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAssetAwsExtraState)))
+		extraState := &aws.AwsGenerateCommandExtraState{Output: "/tmp"}
+		writeExtraStateCache(extraState)
+		assert.FileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsExtraStateKey)))
 	})
 	t.Run("iac params should not be cached when empty", func(t *testing.T) {
 		dir, err := os.MkdirTemp("", "lacework-cli-cache")
@@ -121,8 +123,8 @@ func TestGenerationCache(t *testing.T) {
 		cli.InitCache(dir)
 
 		args := aws.GenerateAwsTfConfigurationArgs{}
-		writeAwsGenerationArgsCache(&args)
-		assert.NoFileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsAssetIacParams)))
+		writeArgsCache(&args)
+		assert.NoFileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsArgsKey)))
 	})
 	t.Run("iac params should be cached when not empty", func(t *testing.T) {
 		dir, err := os.MkdirTemp("", "lacework-cli-cache")
@@ -132,8 +134,8 @@ func TestGenerationCache(t *testing.T) {
 		defer os.RemoveAll(dir)
 		cli.InitCache(dir)
 
-		args := aws.GenerateAwsTfConfigurationArgs{AwsRegion: "us-east-2"}
-		writeAwsGenerationArgsCache(&args)
-		assert.FileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsAssetIacParams)))
+		args := aws.GenerateAwsTfConfigurationArgs{AwsRegion: "us-east-2", Agentless: true}
+		writeArgsCache(&args)
+		assert.FileExists(t, filepath.FromSlash(fmt.Sprintf("%s/cache/standalone/%s", dir, CachedAwsArgsKey)))
 	})
 }
