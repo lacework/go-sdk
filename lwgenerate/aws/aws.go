@@ -310,13 +310,10 @@ func (args *GenerateAwsTfConfigurationArgs) Validate() error {
 				return errors.New("must specify monitored account ID list for Agentless organization integration")
 			}
 			if len(args.AgentlessMonitoredAccounts) == 0 {
-				// profile/region is required for single account IDs
+				// profile/region is required for single accounts
 				for _, accountID := range args.AgentlessMonitoredAccountIDs {
-					ok, err := regexp.MatchString(`^\d{12}$`, accountID)
-					if err != nil {
-						return errors.Wrap(err, "failed to validate input")
-					}
-					if ok {
+					regex, _ := regexp.Compile(`^\d{12}$`)
+					if regex.MatchString(accountID) {
 						return errors.New("must specify profile/region for single monitored accounts" +
 							" for Agentless organization integration")
 					}

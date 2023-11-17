@@ -778,48 +778,46 @@ func promptAgentlessQuestions(config *aws.GenerateAwsTfConfigurationArgs) error 
 		config.AgentlessMonitoredAccountIDs = strings.Split(monitoredAccountIDListInput, ",")
 		config.AgentlessMonitoredAccounts = []aws.AwsSubAccount{}
 
-		// Get single account IDs
+		// Prompt user to enter profile/region for single accounts
 		for _, accountID := range config.AgentlessMonitoredAccountIDs {
-			ok, err := regexp.MatchString(AwsAccountIDRegex, accountID)
+			err := validateAwsAccountID(accountID)
 			if err != nil {
-				return errors.Wrap(err, "failed to validate input")
+				continue
 			}
-			if ok {
-				var profile, region string
-				profileMessage := fmt.Sprintf(
-					"%s for account %s:",
-					QuestionAgentlessMonitoredAccountProfile[:len(QuestionAgentlessMonitoredAccountProfile)-1],
-					accountID,
-				)
-				regionMessage := fmt.Sprintf(
-					"%s for account %s:",
-					QuestionAgentlessMonitoredAccountRegion[:len(QuestionAgentlessMonitoredAccountRegion)-1],
-					accountID,
-				)
-				if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-					{
-						Icon:     IconAgentless,
-						Prompt:   &survey.Input{Message: profileMessage},
-						Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
-						Required: true,
-						Response: &profile,
-					},
-					{
-						Icon:     IconAgentless,
-						Prompt:   &survey.Input{Message: regionMessage},
-						Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
-						Required: true,
-						Response: &region,
-					},
-				}); err != nil {
-					return err
-				}
-				alias := fmt.Sprintf("%s-%s", profile, region)
-				config.AgentlessMonitoredAccounts = append(
-					config.AgentlessMonitoredAccounts,
-					aws.AwsSubAccount{AwsProfile: profile, AwsRegion: region, Alias: alias},
-				)
+			var profile, region string
+			profileMessage := fmt.Sprintf(
+				"%s for account %s:",
+				QuestionAgentlessMonitoredAccountProfile[:len(QuestionAgentlessMonitoredAccountProfile)-1],
+				accountID,
+			)
+			regionMessage := fmt.Sprintf(
+				"%s for account %s:",
+				QuestionAgentlessMonitoredAccountRegion[:len(QuestionAgentlessMonitoredAccountRegion)-1],
+				accountID,
+			)
+			if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconAgentless,
+					Prompt:   &survey.Input{Message: profileMessage},
+					Opts:     []survey.AskOpt{survey.WithValidator(validateAwsProfile)},
+					Required: true,
+					Response: &profile,
+				},
+				{
+					Icon:     IconAgentless,
+					Prompt:   &survey.Input{Message: regionMessage},
+					Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
+					Required: true,
+					Response: &region,
+				},
+			}); err != nil {
+				return err
 			}
+			alias := fmt.Sprintf("%s-%s", profile, region)
+			config.AgentlessMonitoredAccounts = append(
+				config.AgentlessMonitoredAccounts,
+				aws.AwsSubAccount{AwsProfile: profile, AwsRegion: region, Alias: alias},
+			)
 		}
 	}
 
