@@ -929,7 +929,7 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 			attributes["sqs_encryption_enabled "] = false
 		}
 	}
-	if args.ExistingIamRole.IsEmpty() && args.Config {
+	if args.ExistingIamRole.IsEmpty() && args.Config && !args.AwsOrganization {
 		attributes["use_existing_iam_role"] = true
 		attributes["iam_role_name"] = lwgenerate.CreateSimpleTraversal(
 			[]string{"module", "aws_config", "iam_role_name"})
