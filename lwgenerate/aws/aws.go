@@ -4,6 +4,7 @@ package aws
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -309,7 +310,14 @@ func (args *GenerateAwsTfConfigurationArgs) Validate() error {
 				return errors.New("must specify monitored account ID list for Agentless organization integration")
 			}
 			if len(args.AgentlessMonitoredAccounts) == 0 {
-				return errors.New("must specify monitored accounts for Agentless organization integration")
+				// profile/region is required for single accounts
+				for _, accountID := range args.AgentlessMonitoredAccountIDs {
+					regex, _ := regexp.Compile(`^\d{12}$`)
+					if regex.MatchString(accountID) {
+						return errors.New("must specify profile/region for single monitored accounts" +
+							" for Agentless organization integration")
+					}
+				}
 			}
 			if len(args.AgentlessScanningAccounts) == 0 {
 				return errors.New("must specify scanning accounts for Agentless organization integration")
@@ -1111,7 +1119,7 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 		// Get OU IDs for the organizational_unit_ids attribute
 		OUIDs := []string{}
 		for _, accountID := range args.AgentlessMonitoredAccountIDs {
-			if strings.HasPrefix(accountID, "ou-") {
+			if strings.HasPrefix(accountID, "ou-") || strings.HasPrefix(accountID, "r-") {
 				OUIDs = append(OUIDs, fmt.Sprintf("\"%s\"", accountID))
 			}
 		}
