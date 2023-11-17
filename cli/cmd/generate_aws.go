@@ -44,10 +44,8 @@ var (
 	QuestionAgentlessMonitoredAccountIDsHelp = "Please provide a comma seprated list that may " +
 		"contain account IDs, OUs, or the organization root (e.g. 123456789000,ou-abcd-12345678,r-abcd)."
 
-	QuestionAgentlessMonitoredAccountProfile  = "Monitored AWS account profile:"
-	QuestionAgentlessMonitoredAccountRegion   = "Monitored AWS account region:"
-	QuestionAgentlessMonitoredAccountAddMore  = "Add another monitored AWS account?"
-	QuestionAgentlessMonitoredAccountsReplace = "Currently configured monitored accounts: %s, replace?"
+	QuestionAgentlessMonitoredAccountProfile = "Monitored AWS account profile:"
+	QuestionAgentlessMonitoredAccountRegion  = "Monitored AWS account region:"
 
 	// Config questions
 	QuestionEnableConfig                    = "Enable configuration integration?"

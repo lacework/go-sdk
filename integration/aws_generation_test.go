@@ -70,7 +70,7 @@ func TestGenerationAwsNoninteractive(t *testing.T) {
 		"--agentless_monitored_account_ids",
 		"123456789000,ou-abcd-12345678,r-abcd",
 		"--agentless_monitored_accounts",
-		"monitored-1:us-west-1,monitored-2:us-west-2",
+		"monitored-1:us-west-1",
 		"--agentless_scanning_accounts",
 		"scanning-1:us-east-1,scanning-2:us-east-2",
 		"--config_lacework_account",
@@ -138,7 +138,6 @@ func TestGenerationAwsNoninteractive(t *testing.T) {
 		aws.WithAgentlessMonitoredAccountIDs([]string{"123456789000", "ou-abcd-12345678", "r-abcd"}),
 		aws.WithAgentlessMonitoredAccounts(
 			aws.NewAwsSubAccount("monitored-1", "us-west-1", "monitored-1-us-west-1"),
-			aws.NewAwsSubAccount("monitored-2", "us-west-2", "monitored-2-us-west-2"),
 		),
 		aws.WithAgentlessScanningAccounts(
 			aws.NewAwsSubAccount("scanning-1", "us-east-1", "scanning-1-us-east-1"),
@@ -224,6 +223,9 @@ func TestGenerationAwsAgentlessOrganization(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 
+	monitoredProfileQuestion := "Monitored AWS account profile for account 123456789000"
+	monitoredRegionQuestion := "Monitored AWS account region for account 123456789000"
+
 	// Run CLI
 	tfResult := runGenerateTest(t,
 		func(c *expect.Console) {
@@ -234,12 +236,8 @@ func TestGenerationAwsAgentlessOrganization(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionAgentlessManagementAccountID, "123456789000"},
 				MsgRsp{cmd.QuestionAgentlessMonitoredAccountIDs, "123456789000,ou-abcd-12345678,r-abcd"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountProfile, "monitored-1"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountRegion, "us-west-1"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountAddMore, "y"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountProfile, "monitored-2"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountRegion, "us-west-2"},
-				MsgRsp{cmd.QuestionAgentlessMonitoredAccountAddMore, "n"},
+				MsgRsp{monitoredProfileQuestion, "monitored-1"},
+				MsgRsp{monitoredRegionQuestion, "us-west-1"},
 				MsgRsp{cmd.QuestionAgentlessScanningAccountProfile, "scanning-1"},
 				MsgRsp{cmd.QuestionAgentlessScanningAccountRegion, "us-east-1"},
 				MsgRsp{cmd.QuestionAgentlessScanningAccountAddMore, "y"},
@@ -269,7 +267,6 @@ func TestGenerationAwsAgentlessOrganization(t *testing.T) {
 		aws.WithAgentlessMonitoredAccountIDs([]string{"123456789000", "ou-abcd-12345678", "r-abcd"}),
 		aws.WithAgentlessMonitoredAccounts(
 			aws.NewAwsSubAccount("monitored-1", "us-west-1", "monitored-1-us-west-1"),
-			aws.NewAwsSubAccount("monitored-2", "us-west-2", "monitored-2-us-west-2"),
 		),
 		aws.WithAgentlessScanningAccounts(
 			aws.NewAwsSubAccount("scanning-1", "us-east-1", "scanning-1-us-east-1"),
