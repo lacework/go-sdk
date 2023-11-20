@@ -13,10 +13,10 @@ import (
 )
 
 // Lists the tasks in a maintenance window. For maintenance window tasks without a
-// specified target, you can't supply values for --max-errors and
-// --max-concurrency. Instead, the system inserts a placeholder value of 1, which
-// may be reported in the response to this command. These values don't affect the
-// running of your task and can be ignored.
+// specified target, you can't supply values for --max-errors and --max-concurrency
+// . Instead, the system inserts a placeholder value of 1 , which may be reported
+// in the response to this command. These values don't affect the running of your
+// task and can be ignored.
 func (c *Client) DescribeMaintenanceWindowTasks(ctx context.Context, params *DescribeMaintenanceWindowTasksInput, optFns ...func(*Options)) (*DescribeMaintenanceWindowTasksOutput, error) {
 	if params == nil {
 		params = &DescribeMaintenanceWindowTasksInput{}
@@ -40,7 +40,7 @@ type DescribeMaintenanceWindowTasksInput struct {
 	WindowId *string
 
 	// Optional filters used to narrow down the scope of the returned tasks. The
-	// supported filter keys are WindowTaskId, TaskArn, Priority, and TaskType.
+	// supported filter keys are WindowTaskId , TaskArn , Priority , and TaskType .
 	Filters []types.MaintenanceWindowFilter
 
 	// The maximum number of items to return for this call. The call also returns a
@@ -70,12 +70,22 @@ type DescribeMaintenanceWindowTasksOutput struct {
 }
 
 func (c *Client) addOperationDescribeMaintenanceWindowTasksMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeMaintenanceWindowTasks{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribeMaintenanceWindowTasks{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeMaintenanceWindowTasks"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -96,16 +106,13 @@ func (c *Client) addOperationDescribeMaintenanceWindowTasksMiddlewares(stack *mi
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -114,10 +121,16 @@ func (c *Client) addOperationDescribeMaintenanceWindowTasksMiddlewares(stack *mi
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpDescribeMaintenanceWindowTasksValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeMaintenanceWindowTasks(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -127,6 +140,9 @@ func (c *Client) addOperationDescribeMaintenanceWindowTasksMiddlewares(stack *mi
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -230,7 +246,6 @@ func newServiceMetadataMiddleware_opDescribeMaintenanceWindowTasks(region string
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "DescribeMaintenanceWindowTasks",
 	}
 }

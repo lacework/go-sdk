@@ -4,6 +4,7 @@ package ssm
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
@@ -19,8 +20,7 @@ import (
 // activation code and ID when installing SSM Agent on machines in your hybrid
 // environment. For more information about requirements for managing on-premises
 // machines using Systems Manager, see Setting up Amazon Web Services Systems
-// Manager for hybrid environments
-// (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-managedinstances.html)
+// Manager for hybrid environments (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-managedinstances.html)
 // in the Amazon Web Services Systems Manager User Guide. Amazon Elastic Compute
 // Cloud (Amazon EC2) instances, edge devices, and on-premises servers and VMs that
 // are configured for Systems Manager are all called managed nodes.
@@ -43,9 +43,8 @@ type CreateActivationInput struct {
 
 	// The name of the Identity and Access Management (IAM) role that you want to
 	// assign to the managed node. This IAM role must provide AssumeRole permissions
-	// for the Amazon Web Services Systems Manager service principal ssm.amazonaws.com.
-	// For more information, see Create an IAM service role for a hybrid environment
-	// (https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-service-role.html)
+	// for the Amazon Web Services Systems Manager service principal ssm.amazonaws.com
+	// . For more information, see Create an IAM service role for a hybrid environment (https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-service-role.html)
 	// in the Amazon Web Services Systems Manager User Guide. You can't specify an IAM
 	// service-linked role for this parameter. You must create a unique role.
 	//
@@ -69,34 +68,29 @@ type CreateActivationInput struct {
 	ExpirationDate *time.Time
 
 	// Specify the maximum number of managed nodes you want to register. The default
-	// value is 1.
+	// value is 1 .
 	RegistrationLimit *int32
 
 	// Reserved for internal use.
 	RegistrationMetadata []types.RegistrationMetadataItem
 
-	// Optional metadata that you assign to a resource. Tags enable you to categorize a
-	// resource in different ways, such as by purpose, owner, or environment. For
+	// Optional metadata that you assign to a resource. Tags enable you to categorize
+	// a resource in different ways, such as by purpose, owner, or environment. For
 	// example, you might want to tag an activation to identify which servers or
 	// virtual machines (VMs) in your on-premises environment you intend to activate.
 	// In this case, you could specify the following key-value pairs:
-	//
-	// *
-	// Key=OS,Value=Windows
-	//
-	// * Key=Environment,Value=Production
-	//
-	// When you install SSM
-	// Agent on your on-premises servers and VMs, you specify an activation ID and
-	// code. When you specify the activation ID and code, tags assigned to the
-	// activation are automatically applied to the on-premises servers or VMs. You
-	// can't add tags to or delete tags from an existing activation. You can tag your
-	// on-premises servers, edge devices, and VMs after they connect to Systems Manager
-	// for the first time and are assigned a managed node ID. This means they are
-	// listed in the Amazon Web Services Systems Manager console with an ID that is
-	// prefixed with "mi-". For information about how to add tags to your managed
-	// nodes, see AddTagsToResource. For information about how to remove tags from your
-	// managed nodes, see RemoveTagsFromResource.
+	//   - Key=OS,Value=Windows
+	//   - Key=Environment,Value=Production
+	// When you install SSM Agent on your on-premises servers and VMs, you specify an
+	// activation ID and code. When you specify the activation ID and code, tags
+	// assigned to the activation are automatically applied to the on-premises servers
+	// or VMs. You can't add tags to or delete tags from an existing activation. You
+	// can tag your on-premises servers, edge devices, and VMs after they connect to
+	// Systems Manager for the first time and are assigned a managed node ID. This
+	// means they are listed in the Amazon Web Services Systems Manager console with an
+	// ID that is prefixed with "mi-". For information about how to add tags to your
+	// managed nodes, see AddTagsToResource . For information about how to remove tags
+	// from your managed nodes, see RemoveTagsFromResource .
 	Tags []types.Tag
 
 	noSmithyDocumentSerde
@@ -119,12 +113,22 @@ type CreateActivationOutput struct {
 }
 
 func (c *Client) addOperationCreateActivationMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpCreateActivation{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpCreateActivation{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateActivation"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -145,16 +149,13 @@ func (c *Client) addOperationCreateActivationMiddlewares(stack *middleware.Stack
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -163,10 +164,16 @@ func (c *Client) addOperationCreateActivationMiddlewares(stack *middleware.Stack
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpCreateActivationValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCreateActivation(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -178,6 +185,9 @@ func (c *Client) addOperationCreateActivationMiddlewares(stack *middleware.Stack
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -185,7 +195,6 @@ func newServiceMetadataMiddleware_opCreateActivation(region string) *awsmiddlewa
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "CreateActivation",
 	}
 }
