@@ -62,6 +62,7 @@ require (
 	github.com/hashicorp/consul/sdk v0.13.1
 	github.com/mattn/go-isatty v0.0.18
 	github.com/mitchellh/hashstructure/v2 v2.0.2
+	github.com/otiai10/copy v1.14.0
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/spf13/cast v1.5.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
@@ -134,6 +135,7 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
+	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect

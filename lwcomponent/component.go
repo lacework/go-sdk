@@ -35,6 +35,7 @@ import (
 	"aead.dev/minisign"
 	"github.com/Masterminds/semver"
 	"github.com/cenkalti/backoff/v4"
+	dircopy "github.com/otiai10/copy"
 	"github.com/pkg/errors"
 
 	"github.com/lacework/go-sdk/api"
@@ -306,12 +307,12 @@ func (s State) Install(component *Component, version string) error {
 			return err
 		}
 		//move the component from the staging dir to it's path
-		if err = os.Rename(stagingPath, path); err != nil {
+		if err = file.Copy(stagingPath, path); err != nil {
 			return err
 		}
 	} else {
 		//move the component from the staging dir to it's root path
-		if err = os.Rename(stagingPath, rPath); err != nil {
+		if err = dircopy.Copy(stagingPath, rPath); err != nil {
 			return err
 		}
 	}
