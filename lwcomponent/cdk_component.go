@@ -10,11 +10,13 @@ const (
 )
 
 type CDKComponent struct {
-	Name        string
-	Description string
-	SizeKB      int64
-	Type        Type
-	Status      Status
+	Name           string
+	Description    string
+	SizeKB         int64
+	Type           Type
+	Status         Status
+	InstallMessage string
+	UpdateMessage  string
 
 	Exec Executer
 

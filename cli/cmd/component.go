@@ -347,7 +347,7 @@ func listComponents() error {
 	cli.StartProgress("Loading component Catalog...")
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
-	defer catalog.Cache()
+	defer catalog.Persist()
 
 	cli.StopProgress()
 	if err != nil {
@@ -414,7 +414,7 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 	cli.StartProgress("Loading component Catalog...")
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
-	defer catalog.Cache()
+	defer catalog.Persist()
 
 	cli.StopProgress()
 	if err != nil {
@@ -470,9 +470,25 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 	}
 	cli.OutputChecklist(successIcon, "Component version %s installed\n", component.InstalledVersion())
 
-	// @jon-stewart: TODO: Component lifecycle `cdk-init` command
+	cli.StartProgress("Configuring component...")
 
-	// @jon-stewart: TODO: print install message
+	stdout, stderr, errCmd := component.Exec.Execute([]string{"cdk-init"}, cli.envs()...)
+	if errCmd != nil {
+		if errCmd != lwcomponent.ErrNonExecutable {
+			cli.Log.Warnw("component life cycle",
+				"error", errCmd.Error(), "stdout", stdout, "stderr", stderr)
+		}
+	} else {
+		cli.Log.Infow("component life cycle", "stdout", stdout, "stderr", stderr)
+	}
+	cli.StopProgress()
+
+	cli.OutputChecklist(successIcon, "Component configured\n")
+	cli.OutputHuman("\nInstallation completed.\n")
+
+	if component.InstallMessage != "" {
+		cli.OutputHuman(fmt.Sprintf("\n%s\n", component.InstallMessage))
+	}
 
 	return
 }
@@ -493,7 +509,7 @@ func showComponent(args []string) error {
 	cli.StartProgress("Loading components Catalog...")
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
-	defer catalog.Cache()
+	defer catalog.Persist()
 
 	cli.StopProgress()
 	if err != nil {
@@ -561,7 +577,7 @@ func updateComponent(args []string) (err error) {
 	cli.StartProgress("Loading components Catalog...")
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
-	defer catalog.Cache()
+	defer catalog.Persist()
 
 	cli.StopProgress()
 	if err != nil {
@@ -643,9 +659,24 @@ func updateComponent(args []string) (err error) {
 		color.HiYellowString(component.Name),
 		color.HiCyanString(targetVersion.String()))
 
-	// @jon-stewart: TODO: component lifecycle event
+	cli.StartProgress("Configuring component...")
 
-	// @jon-stewart: TODO: component update message
+	stdout, stderr, errCmd := component.Exec.Execute([]string{"cdk-reconfigure"}, cli.envs()...)
+	if errCmd != nil {
+		if errCmd != lwcomponent.ErrNonExecutable {
+			cli.Log.Warnw("component life cycle",
+				"error", errCmd.Error(), "stdout", stdout, "stderr", stderr)
+		}
+	} else {
+		cli.Log.Infow("component life cycle", "stdout", stdout, "stderr", stderr)
+	}
+	cli.StopProgress()
+
+	cli.OutputChecklist(successIcon, "Component reconfigured\n")
+
+	if component.UpdateMessage != "" {
+		cli.OutputHuman(fmt.Sprintf("\n%s\n", component.UpdateMessage))
+	}
 
 	return
 }
@@ -666,7 +697,7 @@ func deleteComponent(args []string) (err error) {
 	cli.StartProgress("Loading components Catalog...")
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
-	defer catalog.Cache()
+	defer catalog.Persist()
 
 	cli.StopProgress()
 	if err != nil {
@@ -680,7 +711,20 @@ func deleteComponent(args []string) (err error) {
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 
-	// @jon-stewart: TODO: component life cycle: cleanup
+	cli.StartProgress("Cleaning component data...")
+
+	stdout, stderr, errCmd := component.Exec.Execute([]string{"cdk-cleanup"}, cli.envs()...)
+	if errCmd != nil {
+		if errCmd != lwcomponent.ErrNonExecutable {
+			cli.Log.Warnw("component life cycle",
+				"error", errCmd.Error(), "stdout", stdout, "stderr", stderr)
+		}
+	} else {
+		cli.Log.Infow("component life cycle", "stdout", stdout, "stderr", stderr)
+	}
+	cli.StopProgress()
+
+	cli.OutputChecklist(successIcon, "Component data removed\n")
 
 	cli.StartProgress("Deleting component...")
 	defer cli.StopProgress()

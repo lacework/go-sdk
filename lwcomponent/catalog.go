@@ -58,8 +58,8 @@ func (c *Catalog) ComponentCount() int {
 	return len(c.Components)
 }
 
-func (c *Catalog) Cache() {
-	// @jon-stewart: TODO: cache catalog
+func (c *Catalog) Persist() {
+	// @jon-stewart: TODO: store catalog on disk
 }
 
 // Return a CDKComponent that is present on the host.
@@ -131,7 +131,17 @@ func (c *Catalog) Stage(component *CDKComponent, version string) (stageClose fun
 		return
 	}
 
-	stage, err := c.stageConstructor(component.Name, response.Data[0].ArtifactUrl)
+	if len(response.Data) == 0 {
+		err = errors.New("Invalid API response")
+		return
+	}
+
+	data := response.Data[0]
+
+	component.InstallMessage = data.InstallMessage
+	component.UpdateMessage = data.UpdateMessage
+
+	stage, err := c.stageConstructor(component.Name, data.ArtifactUrl)
 	if err != nil {
 		return
 	}
