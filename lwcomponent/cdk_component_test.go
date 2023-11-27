@@ -14,7 +14,7 @@ func TestNewCDKComponent(t *testing.T) {
 	defer ResetHome(home)
 
 	t.Run("UnknownStatus", func(t *testing.T) {
-		component := lwcomponent.NewCDKComponent("unknown", lwcomponent.BinaryType, nil, nil)
+		component := lwcomponent.NewCDKComponent("unknown", "", lwcomponent.BinaryType, nil, nil)
 
 		assert.Equal(t, lwcomponent.UnknownStatus, component.Status)
 	})
@@ -25,9 +25,9 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion("1.1.1")
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false, lwcomponent.BinaryType)
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, apiInfo, nil)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, nil)
 
 		assert.Equal(t, lwcomponent.NotInstalled, component.Status)
 	})
@@ -41,7 +41,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(ver)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false, lwcomponent.BinaryType)
 
 		CreateLocalComponent(name, ver, false)
 
@@ -49,7 +49,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, apiInfo, hostInfo)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, hostInfo)
 
 		assert.Equal(t, lwcomponent.Installed, component.Status)
 	})
@@ -65,7 +65,7 @@ func TestNewCDKComponent(t *testing.T) {
 		installedVersion, _ := semver.NewVersion(installVer)
 		allVersions := []*semver.Version{version, installedVersion}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false, lwcomponent.BinaryType)
 
 		CreateLocalComponent(name, installVer, false)
 
@@ -73,7 +73,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, apiInfo, hostInfo)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, hostInfo)
 
 		assert.Equal(t, lwcomponent.UpdateAvailable, component.Status)
 	})
@@ -90,7 +90,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, nil, hostInfo)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, nil, hostInfo)
 
 		assert.Equal(t, lwcomponent.InstalledDeprecated, component.Status)
 	})
@@ -106,12 +106,12 @@ func TestNewCDKComponent(t *testing.T) {
 
 		CreateLocalComponent(name, ver, false)
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, true)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, true, lwcomponent.BinaryType)
 
 		dir, _ := lwcomponent.CatalogCacheDir()
 		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, apiInfo, hostInfo)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, hostInfo)
 
 		assert.Equal(t, lwcomponent.InstalledDeprecated, component.Status)
 	})
@@ -124,9 +124,9 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion("1.1.1")
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, true)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, true, lwcomponent.BinaryType)
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, apiInfo, nil)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, nil)
 
 		assert.Equal(t, lwcomponent.NotInstalledDeprecated, component.Status)
 	})
@@ -141,7 +141,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(apiVer)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false, lwcomponent.BinaryType)
 
 		CreateLocalComponent(name, installVer, false)
 
@@ -149,7 +149,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, apiInfo, hostInfo)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, hostInfo)
 
 		assert.Equal(t, lwcomponent.Tainted, component.Status)
 	})
@@ -166,7 +166,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, nil, hostInfo)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, nil, hostInfo)
 
 		assert.Equal(t, lwcomponent.Development, component.Status)
 	})
@@ -180,7 +180,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(ver)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false, lwcomponent.BinaryType)
 
 		CreateLocalComponent(name, ver, false)
 
@@ -188,7 +188,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.BinaryType, apiInfo, hostInfo)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, hostInfo)
 
 		_, _, err := component.Exec.Execute([]string{}, "")
 		assert.Nil(t, err)
@@ -203,7 +203,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(ver)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false, lwcomponent.BinaryType)
 
 		CreateLocalComponent(name, ver, false)
 
@@ -211,7 +211,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.CommandType, apiInfo, hostInfo)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.CommandType, apiInfo, hostInfo)
 
 		_, _, err := component.Exec.Execute([]string{}, "")
 		assert.Nil(t, err)
@@ -226,7 +226,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(ver)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false, lwcomponent.BinaryType)
 
 		CreateLocalComponent(name, ver, false)
 
@@ -234,7 +234,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.LibraryType, apiInfo, hostInfo)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.LibraryType, apiInfo, hostInfo)
 
 		_, _, err := component.Exec.Execute([]string{}, "")
 		assert.Equal(t, lwcomponent.ErrNonExecutable, err)
@@ -249,7 +249,7 @@ func TestNewCDKComponent(t *testing.T) {
 		version, _ := semver.NewVersion(ver)
 		allVersions := []*semver.Version{version}
 
-		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false)
+		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, false, lwcomponent.BinaryType)
 
 		CreateLocalComponent(name, ver, false)
 
@@ -257,7 +257,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
-		component := lwcomponent.NewCDKComponent(name, lwcomponent.StandaloneType, apiInfo, hostInfo)
+		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.StandaloneType, apiInfo, hostInfo)
 
 		_, _, err := component.Exec.Execute([]string{}, "")
 		assert.Equal(t, lwcomponent.ErrNonExecutable, err)

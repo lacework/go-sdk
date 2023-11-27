@@ -25,7 +25,7 @@ type CDKComponent struct {
 	stage    Stager
 }
 
-func NewCDKComponent(name string, componentType Type, apiInfo ApiInfo, hostInfo HostInfo) CDKComponent {
+func NewCDKComponent(name string, desc string, componentType Type, apiInfo ApiInfo, hostInfo HostInfo) CDKComponent {
 	var (
 		exec Executer = &nonExecutable{}
 	)
@@ -48,12 +48,13 @@ func NewCDKComponent(name string, componentType Type, apiInfo ApiInfo, hostInfo 
 	}
 
 	return CDKComponent{
-		Name:     name,
-		Type:     componentType,
-		Status:   status,
-		Exec:     exec,
-		apiInfo:  apiInfo,
-		hostInfo: hostInfo,
+		Name:        name,
+		Description: desc,
+		Type:        componentType,
+		Status:      status,
+		Exec:        exec,
+		apiInfo:     apiInfo,
+		hostInfo:    hostInfo,
 	}
 }
 

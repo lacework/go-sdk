@@ -17,7 +17,7 @@ func TestApiInfoId(t *testing.T) {
 
 	var id int32 = 23
 
-	info := lwcomponent.NewAPIInfo(id, "test", version, allVersions, "", 0, false)
+	info := lwcomponent.NewAPIInfo(id, "test", version, allVersions, "", 0, false, lwcomponent.BinaryType)
 
 	result := info.Id()
 	assert.Equal(t, id, result)
@@ -32,7 +32,7 @@ func TestApiInfoLatestVersion(t *testing.T) {
 		panic(err)
 	}
 
-	info := lwcomponent.NewAPIInfo(1, "test", version, allVersions, "", 0, false)
+	info := lwcomponent.NewAPIInfo(1, "test", version, allVersions, "", 0, false, lwcomponent.BinaryType)
 
 	result := info.LatestVersion()
 	assert.Equal(t, expectedVer, result.String())
