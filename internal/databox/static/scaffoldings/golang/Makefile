@@ -7,9 +7,9 @@ COVERAGEHTML?=coverage.html
 GOJUNITOUT?=go-junit.xml
 PACKAGENAME?=[[.Component]]
 CLINAME?=lacework
-GO_LDFLAGS="-X github.com/lacework/go-sdk/cli/cmd.Version=$(shell cat VERSION) \
-            -X github.com/lacework/go-sdk/cli/cmd.GitSHA=$(shell git rev-parse HEAD) \
-            -X github.com/lacework/go-sdk/cli/cmd.BuildTime=$(shell date +%Y%m%d%H%M%S)"
+GO_LDFLAGS="-X [[.Component]]/internal/version.Version=$(shell cat VERSION) \
+            -X [[.Component]]/internal/version.GitSHA=$(shell git rev-parse HEAD) \
+            -X [[.Component]]/internal/version..BuildTime=$(shell date +%Y%m%d%H%M%S)"
 GOFLAGS=-mod=vendor
 CGO_ENABLED?=0
 export GOFLAGS GO_LDFLAGS CGO_ENABLED

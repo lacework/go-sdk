@@ -15,12 +15,20 @@
 // limitations under the License.
 //
 
-package main
+package logger
 
 import (
-	"[[.Component]]/cmd"
+	"os"
+
+	"github.com/lacework/go-sdk/lwlogger"
 )
 
-func main() {
-	cmd.Execute()
-}
+// Log allows this component to leverage our Go-SDK lwlogger
+//
+// Example:
+//
+//	import "[[.Component]]/internal/logger"
+//	logger.Log.Info("an informational message")
+//	logger.Log.Debug("a debug message")
+//	logger.Log.Infow("info message with variables", "foo", "bar")
+var Log = lwlogger.New(os.Getenv("LW_LOG")).Sugar()
