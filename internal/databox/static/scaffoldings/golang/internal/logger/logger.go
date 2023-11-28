@@ -27,7 +27,7 @@ import (
 //
 // Example:
 //
-//	import "preflight/internal/logger"
+//	import "[[.Component]]/internal/logger"
 //	logger.Log.Info("an informational message")
 //	logger.Log.Debug("a debug message")
 //	logger.Log.Infow("info message with variables", "foo", "bar")

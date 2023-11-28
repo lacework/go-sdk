@@ -36,7 +36,7 @@ func SendMetricData(feature string, data map[string]string) {
 		return
 	}
 
-	// add preflight version
+	// add version
 	data["version"] = version.Version
 
 	go func() {
