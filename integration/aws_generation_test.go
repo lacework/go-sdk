@@ -494,8 +494,15 @@ func TestGenerationAwsCloudtrailControlTower(t *testing.T) {
 	s3BucketArn := "arn:aws:s3:::bucket-name"
 	snsTopicArn := "arn:aws:sns:us-east-2:249446771485:topic-name"
 
+	// Tempdir for test
+	dir, err := os.MkdirTemp("", "t")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(dir)
+
 	// Run CLI
-	tfResult := runGenerateTest(t,
+	runGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionEnableAwsOrganization, "y"},
@@ -512,7 +519,7 @@ func TestGenerationAwsCloudtrailControlTower(t *testing.T) {
 				MsgRsp{cmd.QuestionControlTowerLogArchiveAccountProfile, "log-archive"},
 				MsgRsp{cmd.QuestionControlTowerLogArchiveAccountRegion, "us-west-2"},
 				MsgRsp{cmd.QuestionCloudtrailAdvanced, "n"},
-				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
+				MsgRsp{cmd.QuestionAwsOutputLocation, dir},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -521,6 +528,9 @@ func TestGenerationAwsCloudtrailControlTower(t *testing.T) {
 		"cloud-account",
 		"aws",
 	)
+
+	// Get result
+	tfResult, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	auditAccount := aws.NewAwsSubAccount("audit", "us-west-1", "audit-us-west-1")
 	logArchiveAccount := aws.NewAwsSubAccount("log-archive", "us-west-2", "log-archive-us-west-2")
@@ -538,7 +548,7 @@ func TestGenerationAwsCloudtrailControlTower(t *testing.T) {
 		aws.WithExistingCloudtrailBucketArn(s3BucketArn),
 		aws.WithExistingSnsTopicArn(snsTopicArn),
 	).Generate()
-	assert.Equal(t, buildTf, tfResult)
+	assert.Equal(t, buildTf, string(tfResult))
 }
 
 // Test CloudTrail integration with existing S3 bucket
