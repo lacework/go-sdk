@@ -68,15 +68,26 @@ var (
 	QuestionCloudtrailName     = "Name of cloudtrail integration (optional):"
 	QuestionCloudtrailAdvanced = "Configure advanced options?"
 
+	// CloudTrail Control Tower questions
+	QuestionControlTower                         = "Is your AWS organzation using Control Tower?"
+	QuestionControlTowerS3BucketArn              = "AWS Control Tower S3 bucket ARN:"
+	QuestionControlTowerSnsTopicArn              = "AWS Control Tower SNS topic ARN:"
+	QuestionControlTowerAuditAccountProfile      = "AWS Control Tower audit account profile:"
+	QuestionControlTowerAuditAccountRegion       = "AWS Control Tower audit account region:"
+	QuestionControlTowerLogArchiveAccountProfile = "AWS Control Tower log archive account profile:"
+	QuestionControlTowerLogArchiveAccountRegion  = "AWS Control Tower log archive account region:"
+	QuestionControlTowerKmsKeyArn                = "AWS Control Tower custom KMS Key ARN (optional):"
+
 	// CloudTrail advanced options
 	OptCloudtrailMessage = "Which options would you like to configure?"
 
-	OptCloudtrailOrg  = "Configure org account mappings"
-	OptCloudtrailS3   = "Configure S3 bucket"
-	OptCloudtrailSNS  = "Configure SNS topic"
-	OptCloudtrailSQS  = "Configure SQS queue"
-	OptCloudtrailIAM  = "Configure an existing IAM role"
-	OptCloudtrailDone = "Done"
+	OptCloudtrailOrg       = "Configure org account mappings"
+	OptCloudtrailKmsKeyArn = "Configure custom KMS key"
+	OptCloudtrailS3        = "Configure S3 bucket"
+	OptCloudtrailSNS       = "Configure SNS topic"
+	OptCloudtrailSQS       = "Configure SQS queue"
+	OptCloudtrailIAM       = "Configure an existing IAM role"
+	OptCloudtrailDone      = "Done"
 
 	// CloudTrail Org questions
 	QuestionCloudtrailOrgAccountMappingsDefaultLWAccount = "Org account mappings default Lacework account:"
@@ -188,6 +199,10 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithConfigOrgId(GenerateAwsCommandState.ConfigOrgId),
 				aws.WithConfigOrgUnits(GenerateAwsCommandState.ConfigOrgUnits),
 				aws.WithConfigOrgCfResourcePrefix(GenerateAwsCommandState.ConfigOrgCfResourcePrefix),
+				aws.WithControlTower(GenerateAwsCommandState.ControlTower),
+				aws.WithControlTowerAuditAccount(GenerateAwsCommandState.ControlTowerAuditAccount),
+				aws.WithControlTowerLogArchiveAccount(GenerateAwsCommandState.ControlTowerLogArchiveAccount),
+				aws.WithControlTowerKmsKeyArn(GenerateAwsCommandState.ControlTowerKmsKeyArn),
 				aws.WithConsolidatedCloudtrail(GenerateAwsCommandState.ConsolidatedCloudtrail),
 				aws.WithCloudtrailUseExistingS3(GenerateAwsCommandState.CloudtrailUseExistingS3),
 				aws.WithCloudtrailUseExistingSNSTopic(GenerateAwsCommandState.CloudtrailUseExistingSNSTopic),
@@ -399,6 +414,28 @@ See help output for more details on the parameter value(s) required for Terrafor
 				GenerateAwsCommandState.AgentlessScanningAccounts = accounts
 			}
 
+			// Parse passed in Control Tower Audit account
+			if GenerateAwsCommandExtraState.ControlTowerAuditAccount != "" {
+				accounts, err := parseAwsAccountsFromCommandFlag(
+					[]string{GenerateAwsCommandExtraState.ControlTowerAuditAccount},
+				)
+				if err != nil {
+					return err
+				}
+				GenerateAwsCommandState.ControlTowerAuditAccount = &accounts[0]
+			}
+
+			// Parse passed in Control Tower Log Archive account
+			if GenerateAwsCommandExtraState.ControlTowerLogArchiveAccount != "" {
+				accounts, err := parseAwsAccountsFromCommandFlag(
+					[]string{GenerateAwsCommandExtraState.ControlTowerLogArchiveAccount},
+				)
+				if err != nil {
+					return err
+				}
+				GenerateAwsCommandState.ControlTowerLogArchiveAccount = &accounts[0]
+			}
+
 			return nil
 		},
 	}
@@ -461,6 +498,26 @@ func initGenerateAwsTfCommandFlags() {
 		"agentless_scanning_accounts",
 		[]string{},
 		"AWS scanning accounts for Agentless integrations; value format must be <aws profile>:<region>")
+	generateAwsTfCommand.PersistentFlags().BoolVar(
+		&GenerateAwsCommandState.ControlTower,
+		"controltower",
+		false,
+		"enable Control Tower integration")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandExtraState.ControlTowerAuditAccount,
+		"controltower_audit_account",
+		"",
+		"specify AWS Control Tower Audit account; value format must be <aws profile>:<region>")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandExtraState.ControlTowerLogArchiveAccount,
+		"controltower_log_archive_account",
+		"",
+		"specify AWS Control Tower Log Archive account; value format must be <aws profile>:<region>")
+	generateAwsTfCommand.PersistentFlags().StringVar(
+		&GenerateAwsCommandState.ControlTowerKmsKeyArn,
+		"controltower_kms_key_arn",
+		"",
+		"specify AWS Control Tower custom kMS key ARN")
 	generateAwsTfCommand.PersistentFlags().BoolVar(
 		&GenerateAwsCommandState.Cloudtrail,
 		"cloudtrail",
@@ -955,10 +1012,15 @@ func promptCloudtrailQuestions(
 		return nil
 	}
 
+	promptCloudtrailControlTowerQuestions(config)
+
+	noControlTower := !config.ControlTower
+
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Icon:     IconCloudTrail,
 		Prompt:   &survey.Confirm{Message: QuestionCloudtrailUseConsolidated, Default: config.ConsolidatedCloudtrail},
 		Response: &config.ConsolidatedCloudtrail,
+		Checks:   []*bool{&noControlTower},
 	}); err != nil {
 		return err
 	}
@@ -983,6 +1045,13 @@ func promptCloudtrailQuestions(
 			OptCloudtrailDone,
 		}
 		if config.AwsOrganization {
+			if config.ControlTower {
+				options = []string{
+					OptCloudtrailKmsKeyArn,
+					OptCloudtrailIAM,
+					OptCloudtrailDone,
+				}
+			}
 			options = append([]string{OptCloudtrailOrg}, options...)
 		}
 		for answer != OptCloudtrailDone {
@@ -999,6 +1068,10 @@ func promptCloudtrailQuestions(
 			switch answer {
 			case OptCloudtrailOrg:
 				if err := promptCloudtrailOrgQuestions(config); err != nil {
+					return err
+				}
+			case OptCloudtrailKmsKeyArn:
+				if err := promptCloudtrailKmsKeyQuestions(config); err != nil {
 					return err
 				}
 			case OptCloudtrailS3:
@@ -1019,6 +1092,128 @@ func promptCloudtrailQuestions(
 				}
 			}
 		}
+	}
+
+	return nil
+}
+
+func promptCloudtrailControlTowerQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Icon:     IconCloudTrail,
+		Prompt:   &survey.Confirm{Message: QuestionControlTower, Default: config.ControlTower},
+		Response: &config.ControlTower,
+		Checks:   []*bool{&config.AwsOrganization},
+	}); err != nil {
+		return err
+	}
+
+	if !config.ControlTower {
+		return nil
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon: IconCloudTrail,
+			Prompt: &survey.Input{
+				Message: QuestionControlTowerS3BucketArn,
+				Default: config.ExistingCloudtrailBucketArn,
+			},
+			Required: true,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
+			Response: &config.ExistingCloudtrailBucketArn,
+		},
+		{
+			Icon: IconCloudTrail,
+			Prompt: &survey.Input{
+				Message: QuestionControlTowerSnsTopicArn,
+				Default: config.ExistingSnsTopicArn,
+			},
+			Required: true,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
+			Response: &config.ExistingSnsTopicArn,
+		},
+	}); err != nil {
+		return err
+	}
+
+	profile := ""
+	region := ""
+	defaultProfile := ""
+	defaultRegion := ""
+	if config.ControlTowerAuditAccount != nil {
+		defaultProfile = config.ControlTowerAuditAccount.AwsProfile
+	}
+	if config.ControlTowerAuditAccount != nil {
+		defaultRegion = config.ControlTowerAuditAccount.AwsRegion
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon: IconCloudTrail,
+			Prompt: &survey.Input{
+				Message: QuestionControlTowerAuditAccountProfile,
+				Default: defaultProfile,
+			},
+			Required: true,
+			Response: &profile,
+		},
+		{
+			Icon: IconCloudTrail,
+			Prompt: &survey.Input{
+				Message: QuestionControlTowerAuditAccountRegion,
+				Default: defaultRegion,
+			},
+			Required: true,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
+			Response: &region,
+		},
+	}); err != nil {
+		return err
+	}
+
+	config.ControlTowerAuditAccount = &aws.AwsSubAccount{
+		AwsProfile: profile,
+		AwsRegion:  region,
+		Alias:      fmt.Sprintf("%s-%s", profile, region),
+	}
+
+	defaultProfile = ""
+	defaultRegion = ""
+	if config.ControlTowerLogArchiveAccount != nil {
+		defaultProfile = config.ControlTowerLogArchiveAccount.AwsProfile
+	}
+	if config.ControlTowerLogArchiveAccount != nil {
+		defaultRegion = config.ControlTowerLogArchiveAccount.AwsRegion
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon: IconCloudTrail,
+			Prompt: &survey.Input{
+				Message: QuestionControlTowerLogArchiveAccountProfile,
+				Default: defaultProfile,
+			},
+			Required: true,
+			Response: &profile,
+		},
+		{
+			Icon: IconCloudTrail,
+			Prompt: &survey.Input{
+				Message: QuestionControlTowerLogArchiveAccountRegion,
+				Default: defaultRegion,
+			},
+			Required: true,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsRegion)},
+			Response: &region,
+		},
+	}); err != nil {
+		return err
+	}
+
+	config.ControlTowerLogArchiveAccount = &aws.AwsSubAccount{
+		AwsProfile: profile,
+		AwsRegion:  region,
+		Alias:      fmt.Sprintf("%s-%s", profile, region),
 	}
 
 	return nil
@@ -1070,6 +1265,22 @@ func promptCloudtrailOrgQuestions(config *aws.GenerateAwsTfConfigurationArgs) er
 			Response: &askAgain}); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func promptCloudtrailKmsKeyQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
+	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
+		Icon: IconCloudTrail,
+		Prompt: &survey.Input{
+			Message: QuestionControlTowerKmsKeyArn,
+			Default: config.ControlTowerKmsKeyArn,
+		},
+		Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
+		Response: &config.ControlTowerKmsKeyArn,
+	}); err != nil {
+		return err
 	}
 
 	return nil

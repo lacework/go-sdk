@@ -58,7 +58,7 @@ integration-context-tests: install-tools ## Run integration tests with build tag
 
 .PHONY: integration-generation-only
 integration-generation-only: ## Run integration tests
-	PATH="$(PWD)/bin:${PATH}" go test -v github.com/lacework/go-sdk/integration -timeout 30m -run "^TestGeneration" -tags="generation"
+	PATH="$(PWD)/bin:${PATH}" go test -v github.com/lacework/go-sdk/integration -timeout 30m -run "^TestGenerationAws" -tags="generation"
 
 .PHONY: integration-only
 integration-only: install-tools ## Run integration tests
