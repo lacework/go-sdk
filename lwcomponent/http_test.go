@@ -34,12 +34,29 @@ func TestDownloadFile(t *testing.T) {
 	})
 
 	t.Run("happy path", func(t *testing.T) {
-		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, urlPath), 0)
+		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, urlPath), 0, 0)
 		assert.Nil(t, err)
 
 		buf, err := os.ReadFile(file.Name())
 		assert.Nil(t, err)
 		assert.Equal(t, content, string(buf))
+	})
+
+	t.Run("retry on error", func(t *testing.T) {
+		var (
+			count int = 0
+		)
+
+		mux.HandleFunc("/err", func(w http.ResponseWriter, r *http.Request) {
+			if assert.Equal(t, "GET", r.Method, "Get() should be a GET method") {
+				count += 1
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+		})
+
+		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, "/err"), 0, 0)
+		assert.NotNil(t, err)
+		assert.Equal(t, lwcomponent.DefaultMaxRetry+1, count)
 	})
 
 	t.Run("timeout error", func(t *testing.T) {
@@ -55,14 +72,14 @@ func TestDownloadFile(t *testing.T) {
 			}
 		})
 
-		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, "/slow"), 2*time.Millisecond)
+		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, "/slow"), 0, time.Millisecond*2)
 		assert.NotNil(t, err)
 		assert.True(t, os.IsTimeout(err))
-		assert.Equal(t, 3, count)
+		assert.Equal(t, lwcomponent.DefaultMaxRetry+1, count)
 	})
 
 	t.Run("non-timeout error", func(t *testing.T) {
-		err = lwcomponent.DownloadFile(file.Name(), "", 0)
+		err = lwcomponent.DownloadFile(file.Name(), "", 0, 0)
 		assert.NotNil(t, err)
 		assert.False(t, os.IsTimeout(err))
 	})

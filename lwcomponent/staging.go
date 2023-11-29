@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type StageConstructor func(name, artifactUrl string) (stage Stager, err error)
+type StageConstructor func(name, artifactUrl string, size int64) (stage Stager, err error)
 
 type Stager interface {
 	Close()
@@ -36,9 +36,10 @@ type stageTarGz struct {
 	artifactUrl *url.URL
 	dir         string
 	name        string
+	size        int64
 }
 
-func NewStageTarGz(name, artifactUrl string) (stage Stager, err error) {
+func NewStageTarGz(name, artifactUrl string, size int64) (stage Stager, err error) {
 	dir, err := os.MkdirTemp("", "cdk-component-stage-tar-gz-")
 	if err != nil {
 		return
@@ -50,7 +51,7 @@ func NewStageTarGz(name, artifactUrl string) (stage Stager, err error) {
 		return
 	}
 
-	stage = &stageTarGz{artifactUrl: _url, dir: dir, name: name}
+	stage = &stageTarGz{artifactUrl: _url, dir: dir, name: name, size: size}
 
 	return
 }
@@ -99,7 +100,7 @@ func (s *stageTarGz) Download() (err error) {
 
 	path := filepath.Join(s.dir, fileName)
 
-	err = DownloadFile(path, s.artifactUrl.String(), 0)
+	err = DownloadFile(path, s.artifactUrl.String(), s.size, 0)
 	if err != nil {
 		return
 	}

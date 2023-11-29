@@ -590,7 +590,7 @@ func (*testStage) Validate() error {
 	return nil
 }
 
-func newTestStage(name, artifactUrl string) (stage lwcomponent.Stager, err error) {
+func newTestStage(name, artifactUrl string, size int64) (stage lwcomponent.Stager, err error) {
 	stage = &testStage{}
 
 	return

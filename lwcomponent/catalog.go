@@ -141,7 +141,7 @@ func (c *Catalog) Stage(component *CDKComponent, version string) (stageClose fun
 	component.InstallMessage = data.InstallMessage
 	component.UpdateMessage = data.UpdateMessage
 
-	stage, err := c.stageConstructor(component.Name, data.ArtifactUrl)
+	stage, err := c.stageConstructor(component.Name, data.ArtifactUrl, data.Size*1024)
 	if err != nil {
 		return
 	}

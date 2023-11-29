@@ -271,14 +271,9 @@ func (s State) Install(component *Component, version string) error {
 
 	stagingPath := filepath.Join(stagingDir, component.Name)
 
-	// Slow S3 downloads
-	downloadTimeout := 0 * time.Minute
-	switch component.Name {
-	case "sast":
-		downloadTimeout = 5 * time.Minute
-	}
-
-	err = DownloadFile(downloadPath, artifact.URL, time.Duration(downloadTimeout))
+	// There is no artifact.Size so we pass 0
+	// There is no artifact.Size so there is no way of linking timeout to download size
+	err = DownloadFile(downloadPath, artifact.URL, 0, 0)
 	if err != nil {
 		return errors.Wrap(err, "unable to download component artifact")
 	}
