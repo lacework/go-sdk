@@ -1012,7 +1012,9 @@ func promptCloudtrailQuestions(
 		return nil
 	}
 
-	promptCloudtrailControlTowerQuestions(config)
+	if err := promptCloudtrailControlTowerQuestions(config); err != nil {
+		return err
+	}
 
 	noControlTower := !config.ControlTower
 
