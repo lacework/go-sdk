@@ -67,6 +67,10 @@ Global Flags:
       --config_organization_id string             specify AWS organization ID for Config organization integration
       --config_organization_units strings         specify AWS organization units for Config organization integration
       --consolidated_cloudtrail                   use consolidated trail
+      --controltower                              enable Control Tower integration
+      --controltower_audit_account string         specify AWS Control Tower Audit account; value format must be <aws profile>:<region>
+      --controltower_kms_key_arn string           specify AWS Control Tower custom kMS key ARN
+      --controltower_log_archive_account string   specify AWS Control Tower Log Archive account; value format must be <aws profile>:<region>
       --debug                                     turn on debug logging
       --existing_bucket_arn string                specify existing cloudtrail S3 bucket ARN
       --existing_iam_role_arn string              specify existing iam role arn to use

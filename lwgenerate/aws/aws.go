@@ -144,6 +144,18 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Agentless scanning AWS accounts
 	AgentlessScanningAccounts []AwsSubAccount
 
+	// Is the AWS organization using Control Tower?
+	ControlTower bool
+
+	// AWS Control Tower Audit account
+	ControlTowerAuditAccount *AwsSubAccount
+
+	// AWS Control Tower Log Archive account
+	ControlTowerLogArchiveAccount *AwsSubAccount
+
+	// AWS Control Tower custom KMS key ARN
+	ControlTowerKmsKeyArn string
+
 	// Should we configure Cloudtrail integration in LW?
 	Cloudtrail bool
 
@@ -323,6 +335,21 @@ func (args *GenerateAwsTfConfigurationArgs) Validate() error {
 				return errors.New("must specify scanning accounts for Agentless organization integration")
 			}
 		}
+
+		if args.ControlTower && args.Cloudtrail {
+			if args.ControlTowerAuditAccount == nil {
+				return errors.New("must specify audit account for CloudTrail Control Tower integration")
+			}
+			if args.ControlTowerLogArchiveAccount == nil {
+				return errors.New("must specify log archive account for CloudTrail Control Tower integration")
+			}
+			if args.ExistingCloudtrailBucketArn == "" {
+				return errors.New("must specify S3 bucket ARN for CloudTrail Control Tower integration")
+			}
+			if args.ExistingSnsTopicArn == "" {
+				return errors.New("must specify SNS topic ARN for CloudTrail Control Tower integration")
+			}
+		}
 	}
 
 	return nil
@@ -331,12 +358,14 @@ func (args *GenerateAwsTfConfigurationArgs) Validate() error {
 type AwsTerraformModifier func(c *GenerateAwsTfConfigurationArgs)
 
 type AwsGenerateCommandExtraState struct {
-	CloudtrailAdvanced         bool
-	Output                     string
-	AwsSubAccounts             []string
-	AgentlessMonitoredAccounts []string
-	AgentlessScanningAccounts  []string
-	TerraformApply             bool
+	CloudtrailAdvanced            bool
+	Output                        string
+	AwsSubAccounts                []string
+	AgentlessMonitoredAccounts    []string
+	AgentlessScanningAccounts     []string
+	ControlTowerAuditAccount      string
+	ControlTowerLogArchiveAccount string
+	TerraformApply                bool
 }
 
 func (a *AwsGenerateCommandExtraState) IsEmpty() bool {
@@ -489,6 +518,34 @@ func WithConfigOrgUnits(orgUnits []string) AwsTerraformModifier {
 func WithConfigOrgCfResourcePrefix(resourcePrefix string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ConfigOrgCfResourcePrefix = resourcePrefix
+	}
+}
+
+// WithControlTower Set ControlTower
+func WithControlTower(controlTower bool) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ControlTower = controlTower
+	}
+}
+
+// WithControlTowerAuditAccount Set ControlTower audit account
+func WithControlTowerAuditAccount(auditAccount *AwsSubAccount) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ControlTowerAuditAccount = auditAccount
+	}
+}
+
+// WithControlTowerLogArchiveAccount Set ControlTower log archive account
+func WithControlTowerLogArchiveAccount(LogArchiveAccount *AwsSubAccount) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ControlTowerLogArchiveAccount = LogArchiveAccount
+	}
+}
+
+// WithControlTowerKmsKeyArn Set ControlTower custom KMS key ARN
+func WithControlTowerKmsKeyArn(kmsKeyArn string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ControlTowerKmsKeyArn = kmsKeyArn
 	}
 }
 
@@ -728,6 +785,10 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 	accounts = append(accounts, args.AgentlessMonitoredAccounts...)
 	accounts = append(accounts, args.AgentlessScanningAccounts...)
 	accounts = append(accounts, args.ConfigAdditionalAccounts...)
+	if args.ControlTower {
+		accounts = append(accounts, *args.ControlTowerAuditAccount)
+		accounts = append(accounts, *args.ControlTowerLogArchiveAccount)
+	}
 	seenAccounts := []string{}
 
 	for _, account := range accounts {
@@ -855,46 +916,99 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 		return nil, nil
 	}
 
+	source := lwgenerate.AwsCloudTrailSource
+	version := lwgenerate.AwsCloudTrailVersion
+	if args.ControlTower {
+		source = lwgenerate.AwsCloudTrailControlTowerSource
+		version = lwgenerate.AwsCloudTrailControlTowerVersion
+	}
 	attributes := map[string]interface{}{}
-	modDetails := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithVersion(lwgenerate.AwsCloudTrailVersion)}
+	providerDetails := map[string]string{"aws": "aws.main"}
 
 	if args.LaceworkAccountID != "" {
 		attributes["lacework_aws_account_id"] = args.LaceworkAccountID
 	}
-	if args.ConsolidatedCloudtrail {
-		attributes["consolidated_trail"] = true
-	}
-	// S3 Bucket attributes
-	if args.CloudtrailUseExistingS3 {
-		attributes["use_existing_cloudtrail"] = true
-		if args.CloudtrailName != "" {
-			attributes["cloudtrail_name"] = args.CloudtrailName
+
+	if args.AwsOrganization && args.ControlTower {
+		attributes["s3_bucket_arn"] = args.ExistingCloudtrailBucketArn
+		attributes["sns_topic_arn"] = args.ExistingSnsTopicArn
+		if args.ControlTowerKmsKeyArn != "" {
+			attributes["kms_key_arn"] = args.ControlTowerKmsKeyArn
 		}
-		if args.ExistingCloudtrailBucketArn != "" {
-			attributes["bucket_arn"] = args.ExistingCloudtrailBucketArn
+		providerDetails = map[string]string{
+			"aws.audit":       fmt.Sprintf("aws.%s", args.ControlTowerAuditAccount.Alias),
+			"aws.log_archive": fmt.Sprintf("aws.%s", args.ControlTowerLogArchiveAccount.Alias),
 		}
 	} else {
-		if args.BucketName != "" {
-			attributes["bucket_name"] = args.BucketName
+		if args.ConsolidatedCloudtrail {
+			attributes["consolidated_trail"] = true
 		}
-		if args.BucketEncryptionEnabledSet {
-			if args.BucketEncryptionEnabled {
-				if args.BucketSseKeyArn != "" {
-					attributes["bucket_sse_key_arn"] = args.BucketSseKeyArn
+		// S3 Bucket attributes
+		if args.CloudtrailUseExistingS3 {
+			attributes["use_existing_cloudtrail"] = true
+			if args.CloudtrailName != "" {
+				attributes["cloudtrail_name"] = args.CloudtrailName
+			}
+			if args.ExistingCloudtrailBucketArn != "" {
+				attributes["bucket_arn"] = args.ExistingCloudtrailBucketArn
+			}
+		} else {
+			if args.BucketName != "" {
+				attributes["bucket_name"] = args.BucketName
+			}
+			if args.BucketEncryptionEnabledSet {
+				if args.BucketEncryptionEnabled {
+					if args.BucketSseKeyArn != "" {
+						attributes["bucket_sse_key_arn"] = args.BucketSseKeyArn
+					}
+				} else {
+					attributes["bucket_encryption_enabled"] = false
 				}
-			} else {
-				attributes["bucket_encryption_enabled"] = false
 			}
 		}
-	}
-	if args.S3BucketNotification {
-		attributes["use_s3_bucket_notification"] = true
+		if args.S3BucketNotification {
+			attributes["use_s3_bucket_notification"] = true
+		}
+		// SNS Attributes
+		if args.CloudtrailUseExistingSNSTopic {
+			attributes["use_existing_sns_topic"] = true
+			if args.ExistingSnsTopicArn != "" {
+				attributes["sns_topic_arn"] = args.ExistingSnsTopicArn
+			}
+		} else {
+			if args.SnsTopicName != "" {
+				attributes["sns_topic_name"] = args.SnsTopicName
+			}
+			if args.SnsEncryptionEnabledSet {
+				if args.SnsTopicEncryptionEnabled {
+					if args.SnsTopicEncryptionKeyArn != "" {
+						attributes["sns_topic_encryption_key_arn"] = args.SnsTopicEncryptionKeyArn
+					}
+				} else {
+					attributes["sns_topic_encryption_enabled "] = false
+				}
+			}
+		}
+		// SQS Attributes
+		if args.SqsQueueName != "" {
+			attributes["sqs_queue_name"] = args.SqsQueueName
+		}
+		if args.SqsEncryptionEnabledSet {
+			if args.SqsEncryptionEnabled {
+				if args.SqsEncryptionKeyArn != "" {
+					attributes["sqs_encryption_key_arn"] = args.SqsEncryptionKeyArn
+				}
+			} else {
+				attributes["sqs_encryption_enabled "] = false
+			}
+		}
 	}
 
 	// Aws Organization CloudTrail
 	if args.AwsOrganization {
-		attributes["is_organization_trail"] = true
-
+		if !args.ControlTower {
+			attributes["is_organization_trail"] = true
+		}
 		if !args.OrgAccountMappings.IsEmpty() {
 			orgAccountMappings, err := args.OrgAccountMappings.ToMap()
 			if err != nil {
@@ -904,39 +1018,6 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 		}
 	}
 
-	// SNS Attributes
-	if args.CloudtrailUseExistingSNSTopic {
-		attributes["use_existing_sns_topic"] = true
-		if args.ExistingSnsTopicArn != "" {
-			attributes["sns_topic_arn"] = args.ExistingSnsTopicArn
-		}
-	} else {
-		if args.SnsTopicName != "" {
-			attributes["sns_topic_name"] = args.SnsTopicName
-		}
-		if args.SnsEncryptionEnabledSet {
-			if args.SnsTopicEncryptionEnabled {
-				if args.SnsTopicEncryptionKeyArn != "" {
-					attributes["sns_topic_encryption_key_arn"] = args.SnsTopicEncryptionKeyArn
-				}
-			} else {
-				attributes["sns_topic_encryption_enabled "] = false
-			}
-		}
-	}
-	// SQS Attributes
-	if args.SqsQueueName != "" {
-		attributes["sqs_queue_name"] = args.SqsQueueName
-	}
-	if args.SqsEncryptionEnabledSet {
-		if args.SqsEncryptionEnabled {
-			if args.SqsEncryptionKeyArn != "" {
-				attributes["sqs_encryption_key_arn"] = args.SqsEncryptionKeyArn
-			}
-		} else {
-			attributes["sqs_encryption_enabled "] = false
-		}
-	}
 	if args.ExistingIamRole.IsEmpty() && args.Config && !args.AwsOrganization {
 		attributes["use_existing_iam_role"] = true
 		attributes["iam_role_name"] = lwgenerate.CreateSimpleTraversal(
@@ -954,15 +1035,12 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 		attributes["iam_role_external_id"] = args.ExistingIamRole.ExternalId
 	}
 
-	modDetails = append(modDetails, lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}))
-	modDetails = append(modDetails,
-		lwgenerate.HclModuleWithAttributes(attributes),
-	)
-
 	return lwgenerate.NewModule(
 		"main_cloudtrail",
-		lwgenerate.AwsCloudTrailSource,
-		modDetails...,
+		source,
+		lwgenerate.HclModuleWithVersion(version),
+		lwgenerate.HclModuleWithProviderDetails(providerDetails),
+		lwgenerate.HclModuleWithAttributes(attributes),
 	).ToBlock()
 }
 
