@@ -21,10 +21,11 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
-	"gopkg.in/yaml.v3"
 	"net/url"
 	"reflect"
+
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v3"
 )
 
 type NewQuery struct {
