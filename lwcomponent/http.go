@@ -115,7 +115,7 @@ func downloadProgress(done chan int64, filepath string, totalSize int64) {
 
 				if percent > previous {
 					_, _ = vterm.Write([]byte(fmt.Sprintf("Downloaded: %.0f", percent)))
-					_, _ = vterm.Write([]byte("%"))
+					_, _ = vterm.Write([]byte("%\n"))
 
 					previous = percent
 				}
