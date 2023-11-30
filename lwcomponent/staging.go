@@ -100,7 +100,7 @@ func (s *stageTarGz) Download() (err error) {
 
 	path := filepath.Join(s.dir, fileName)
 
-	err = DownloadFile(path, s.artifactUrl.String(), s.size, 0)
+	err = DownloadFile(path, s.artifactUrl.String(), s.size)
 	if err != nil {
 		return
 	}

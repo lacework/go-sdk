@@ -22,28 +22,32 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
+	"github.com/abiosoft/colima/util/terminal"
 	"github.com/go-resty/resty/v2"
 )
 
 const (
 	DefaultMaxRetry = 3
-	defaultTimeout  = 5 * time.Minute
 )
 
-// Default timeout is 5 minutes
 // Retry 3 times (4 requests total)
 // Resty default RetryWaitTime is 100ms
 // Exponential backoff to a maximum of RetryWaitTime of 2s
-func DownloadFile(filepath string, url string, size int64, timeout time.Duration) (err error) {
+func DownloadFile(filepath string, url string, size int64) (err error) {
 	client := resty.New()
 
-	if timeout == 0 {
-		timeout = defaultTimeout
+	download_timeout := os.Getenv("CDK_DOWNLOAD_TIMEOUT_MINUTES")
+	if download_timeout != "" {
+		val, err := strconv.Atoi(download_timeout)
+
+		if err == nil {
+			client.SetTimeout(time.Duration(val) * time.Minute)
+		}
 	}
 
-	client.SetTimeout(timeout)
 	client.SetRetryCount(DefaultMaxRetry)
 
 	client.OnError(func(req *resty.Request, err error) {
@@ -73,10 +77,15 @@ func downloadProgress(done chan int64, filepath string, totalSize int64) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	defer file.Close()
 
-	var stop bool = false
+	vterm := terminal.NewVerboseWriter(10)
+	defer vterm.Close()
+
+	var (
+		previous float64 = 0
+		stop     bool    = false
+	)
 
 	for !stop {
 		select {
@@ -94,11 +103,22 @@ func downloadProgress(done chan int64, filepath string, totalSize int64) {
 			}
 
 			if totalSize == 0 {
-				fmt.Printf("Downloaded: %.0fkb\n", float64(size)/(1<<10))
+				mb := float64(size) / (1 << 20)
+
+				if mb > previous {
+					vterm.Write([]byte(fmt.Sprintf("Downloaded: %.0fmb\n", mb)))
+
+					previous = mb
+				}
 			} else {
-				var percent float64 = float64(size) / float64(totalSize) * 100
-				fmt.Printf("Downloaded: %.0f", percent)
-				fmt.Println("%")
+				percent := float64(size) / float64(totalSize) * 100
+
+				if percent > previous {
+					vterm.Write([]byte(fmt.Sprintf("Downloaded: %.0f", percent)))
+					vterm.Write([]byte("%"))
+
+					previous = percent
+				}
 			}
 		}
 

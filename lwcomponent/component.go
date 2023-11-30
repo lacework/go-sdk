@@ -272,8 +272,7 @@ func (s State) Install(component *Component, version string) error {
 	stagingPath := filepath.Join(stagingDir, component.Name)
 
 	// There is no artifact.Size so we pass 0
-	// There is no artifact.Size so there is no way of linking timeout to download size
-	err = DownloadFile(downloadPath, artifact.URL, 0, 0)
+	err = DownloadFile(downloadPath, artifact.URL, 0)
 	if err != nil {
 		return errors.Wrap(err, "unable to download component artifact")
 	}
