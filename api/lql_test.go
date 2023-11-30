@@ -49,10 +49,9 @@ queryText: %s`, newQuery.QueryID, newQuery.QueryText)
 	lqlErrorReponse = `{ "message": "This is an error message" }`
 
 	regoQueryID      = "my_rego"
-	newRegoQueryText = "package lacework.policies.lacework_global_134\n" +
+	newRegoQueryText = "package clitest\n" +
 		"import future.keywords\n" +
 		"import data.lacework\n" +
-		"import data.lacework.assessment\n" +
 		"source := lacework.aws.cfg.list(\"s3\", \"list-buckets\")\n" +
 		"assess := assessment.violation(input, \"just because\")"
 	newRegoQuery = api.NewQuery{
@@ -177,9 +176,9 @@ func createQueryOKTestHelper(t *testing.T, expectedResponseData string, testQuer
 	assert.Equal(t, createExpected, createActual)
 
 	if strings.Contains(expectedResponseData, "queryLanguage") {
-		assert.NotNil(t, createActual.Data.QueryLanguage)
+		assert.Equal(t, "Rego", *createActual.Data.QueryLanguage)
 	} else {
-		assert.Equal(t, "", createActual.Data.QueryLanguage)
+		assert.Nil(t, createActual.Data.QueryLanguage)
 	}
 }
 
@@ -263,9 +262,9 @@ func getQueryByIDTestHelper(t *testing.T, expectedResponseData string, queryId s
 	assert.Equal(t, getExpected, getActual)
 
 	if strings.Contains(expectedResponseData, "queryLanguage") {
-		assert.NotNil(t, getActual.Data.QueryLanguage)
+		assert.Equal(t, "Rego", *getActual.Data.QueryLanguage)
 	} else {
-		assert.Equal(t, "", getActual.Data.QueryLanguage)
+		assert.Nil(t, getActual.Data.QueryLanguage)
 	}
 }
 

@@ -61,7 +61,7 @@ type UpdateQuery struct {
 
 type Query struct {
 	QueryID        string                   `json:"queryId" yaml:"queryId"`
-	QueryLanguage  string                   `json:"queryLanguage,omitempty" yaml:"queryLanguage,omitempty"`
+	QueryLanguage  *string                  `json:"queryLanguage,omitempty" yaml:"queryLanguage,omitempty"`
 	QueryText      string                   `json:"queryText" yaml:"queryText"`
 	Owner          string                   `json:"owner"`
 	LastUpdateTime string                   `json:"lastUpdateTime"`
