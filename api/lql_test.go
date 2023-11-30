@@ -21,7 +21,6 @@ package api_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/lacework/go-sdk/internal/pointer"
 	"net/http"
 	"strings"
 	"testing"
@@ -31,6 +30,7 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/lacework/go-sdk/internal/pointer"
 )
 
 var (
