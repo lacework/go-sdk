@@ -21,6 +21,7 @@ package api_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/lacework/go-sdk/internal/pointer"
 	"net/http"
 	"strings"
 	"testing"
@@ -56,7 +57,7 @@ queryText: %s`, newQuery.QueryID, newQuery.QueryText)
 		"assess := assessment.violation(input, \"just because\")"
 	newRegoQuery = api.NewQuery{
 		QueryID:       regoQueryID,
-		QueryLanguage: "Rego",
+		QueryLanguage: pointer.Of("Rego"),
 		QueryText:     newRegoQueryText,
 	}
 	newRegoQueryJSON = fmt.Sprintf(`{
@@ -64,7 +65,6 @@ queryText: %s`, newQuery.QueryID, newQuery.QueryText)
 	"queryLanguage": "Rego",
 	"queryText": %#v
 }`, queryID, newRegoQueryText)
-	regoErrorReponse = `{ "message": "Error: Unable to translate Rego query" }`
 )
 
 func mockQueryDataResponse(data string) string {

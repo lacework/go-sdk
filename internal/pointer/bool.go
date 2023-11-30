@@ -8,3 +8,8 @@ func CompareBoolPtr(ptr *bool, b bool) bool {
 	}
 	return *ptr == b
 }
+
+// Of is a helper to allow taking the address of a string literal
+func Of[E any](e E) *E {
+	return &e
+}
