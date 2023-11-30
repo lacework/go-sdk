@@ -265,35 +265,57 @@ func NewCatalog(client *api.Client, stageConstructor StageConstructor) (*Catalog
 			return nil, errors.Wrap(err, fmt.Sprintf("unable to fetch component '%s' versions", c.Name))
 		}
 
-		api := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size, c.Deprecated)
+		api := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size, c.Deprecated, Type(c.ComponentType))
 
 		host, found := localComponents[c.Name]
 		if found {
 			delete(localComponents, c.Name)
 		}
 
-		component := NewCDKComponent(c.Name, Type(c.ComponentType), api, host)
+		component := NewCDKComponent(c.Name, c.Description, Type(c.ComponentType), api, host)
 
 		cdkComponents[c.Name] = component
 	}
 
 	for _, localHost := range localComponents {
-		// @jon-stewart: TODO: local specification
-		cdkComponents[localHost.Name()] = NewCDKComponent(localHost.Name(), BinaryType, nil, localHost)
+		if localHost.Development() {
+			devInfo, err := NewDevInfo(localHost.Dir())
+			if err != nil {
+				return nil, err
+			}
+
+			cdkComponents[localHost.Name()] = NewCDKComponent(
+				localHost.Name(),
+				devInfo.Desc,
+				devInfo.ComponentType,
+				nil,
+				localHost)
+		} else {
+			// @jon-stewart: persisted API info
+			cdkComponents[localHost.Name()] = NewCDKComponent(localHost.Name(), "", BinaryType, nil, localHost)
+		}
 	}
 
 	return &Catalog{client, cdkComponents, stageConstructor}, nil
 }
 
 func LocalComponents() (components []CDKComponent, err error) {
+	var localHost map[string]HostInfo
 
-	localHostInfo, err := loadLocalComponents()
-	if err != nil {
-		return
-	}
+	localHost, err = loadLocalComponents()
 
-	for _, l := range localHostInfo {
-		components = append(components, NewCDKComponent(l.Name(), BinaryType, nil, l))
+	for _, l := range localHost {
+		if l.Development() {
+			devInfo, err := NewDevInfo(l.Dir())
+			if err != nil {
+				return nil, err
+			}
+
+			components = append(components, NewCDKComponent(l.Name(), devInfo.Desc, devInfo.ComponentType, nil, l))
+		} else {
+			// @jon-stewart: persisted API info
+			components = append(components, NewCDKComponent(l.Name(), "", BinaryType, nil, l))
+		}
 	}
 
 	return

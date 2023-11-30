@@ -15,13 +15,14 @@ type ApiInfo interface {
 }
 
 type apiInfo struct {
-	id          int32
-	name        string
-	version     semver.Version
-	allVersions []*semver.Version
-	desc        string
-	sizeKB      int64
-	deprecated  bool
+	id            int32
+	name          string
+	version       semver.Version
+	allVersions   []*semver.Version
+	desc          string
+	sizeKB        int64
+	deprecated    bool
+	componentType Type
 }
 
 func NewAPIInfo(
@@ -32,15 +33,17 @@ func NewAPIInfo(
 	desc string,
 	size int64,
 	deprecated bool,
+	componentType Type,
 ) ApiInfo {
 	return &apiInfo{
-		id:          id,
-		name:        name,
-		version:     *version,
-		allVersions: allVersions,
-		desc:        desc,
-		sizeKB:      size,
-		deprecated:  deprecated,
+		id:            id,
+		name:          name,
+		version:       *version,
+		allVersions:   allVersions,
+		desc:          desc,
+		sizeKB:        size,
+		deprecated:    deprecated,
+		componentType: componentType,
 	}
 }
 

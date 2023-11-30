@@ -896,7 +896,14 @@ func CreateLocalComponent(componentName string, version string, development bool
 	}
 
 	if development {
-		if _, err := os.Create(filepath.Join(path, lwcomponent.DevelopmentFile)); err != nil {
+		data, err := json.Marshal(lwcomponent.DevInfo{Name: componentName, Version: version, Desc: "", ComponentType: lwcomponent.BinaryType})
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(filepath.Join(path, lwcomponent.DevelopmentFile))
+
+		if err := os.WriteFile(filepath.Join(path, lwcomponent.DevelopmentFile), data, os.ModePerm); err != nil {
 			panic(err)
 		}
 	}

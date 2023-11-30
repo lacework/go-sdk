@@ -212,16 +212,8 @@ protoc-python: install-tools
 		--grpc_python_out=./cli/cdk/python proto/v1/*.proto
 
 .PHONY: install-cli
-install-cli: build-cli-cross-platform ## Build and install the Lacework CLI binary at /usr/local/bin/lacework
-ifeq (x86_64, $(shell uname -m))
-	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-amd64 /usr/local/bin/$(CLINAME)
-else ifeq (arm64, $(shell uname -m))
-	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-arm64 /usr/local/bin/$(CLINAME)
-else ifeq (aarch64, $(shell uname -m))
-	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-arm64 /usr/local/bin/$(CLINAME)
-else
-	mv bin/$(PACKAGENAME)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-386 /usr/local/bin/$(CLINAME)
-endif
+install-cli: build ## Build and install the Lacework CLI binary at /usr/local/bin/lacework
+	mv bin/lacework /usr/local/bin/$(CLINAME)
 	@echo "\nThe lacework cli has been installed at /usr/local/bin"
 
 .PHONY: release
