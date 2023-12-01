@@ -20,18 +20,20 @@ package lwcomponent
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/abiosoft/colima/util/terminal"
 	"github.com/go-resty/resty/v2"
+	"github.com/lacework/go-sdk/lwlogger"
 )
 
 const (
 	DefaultMaxRetry = 3
 )
+
+var log = lwlogger.New("INFO")
 
 // Retry 3 times (4 requests total)
 // Resty default RetryWaitTime is 100ms
@@ -52,8 +54,10 @@ func DownloadFile(filepath string, url string, size int64) (err error) {
 
 	client.OnError(func(req *resty.Request, err error) {
 		if v, ok := err.(*resty.ResponseError); ok {
-			fmt.Println(v.Response.Body())
+			log.Warn(fmt.Sprintf("Failed to download component: %s: %s", v.Response.Body(), v.Err))
 		}
+
+		log.Warn(fmt.Sprintf("Failed to download component: %s", err.Error()))
 	})
 
 	_, err = os.Create(filepath)
@@ -75,7 +79,8 @@ func DownloadFile(filepath string, url string, size int64) (err error) {
 func downloadProgress(done chan int64, filepath string, totalSize int64) {
 	file, err := os.Open(filepath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(fmt.Sprintf("Failed to open component file: %s", err.Error()))
+		return
 	}
 	defer file.Close()
 
@@ -94,7 +99,8 @@ func downloadProgress(done chan int64, filepath string, totalSize int64) {
 		default:
 			info, err := file.Stat()
 			if err != nil {
-				log.Fatal(err)
+				log.Error(fmt.Sprintf("Failed to stat component file: %s", err.Error()))
+				return
 			}
 
 			size := info.Size()
