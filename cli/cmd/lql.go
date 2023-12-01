@@ -212,11 +212,14 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 				"file", "f", "",
 				fmt.Sprintf("path to a query to %s", action),
 			)
-			cmd.Flags().StringVarP(
-				&queryCmdState.Language,
-				"language", "l", "",
-				fmt.Sprintf("language of the query to %s, can be LQL or Rego, required in EDITOR mode", action),
-			)
+			// enable --language option for query create
+			if action == "create" {
+				cmd.Flags().StringVarP(
+					&queryCmdState.Language,
+					"language", "l", "LQL",
+					fmt.Sprintf("language of the query to %s, can be LQL or Rego", action),
+				)
+			}
 			// url flag to specify a query from url
 			cmd.Flags().StringVarP(
 				&queryCmdState.URL,
