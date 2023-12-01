@@ -254,7 +254,12 @@ func inputQuery(cmd *cobra.Command) (string, error) {
 	if !queryCmdState.ValidateOnly {
 		action = strings.Split(cmd.Use, " ")[0]
 	}
-	return inputQueryFromEditor(action, queryCmdState.Language)
+	// --language option is only enabled for create
+	language := "LQL"
+	if action == "create" {
+		language = queryCmdState.Language
+	}
+	return inputQueryFromEditor(action, language)
 }
 
 func inputQueryFromLibrary(id string) (string, error) {
@@ -303,18 +308,10 @@ func inputQueryFromURL(url string) (query string, err error) {
 }
 
 func inputQueryFromEditor(action string, language string) (query string, err error) {
-	if language != "Rego" && language != "LQL" {
-		err = errors.New("Invalid query language: " + language)
-		return
-	}
-	prompt := &survey.Editor{
-		Message:  fmt.Sprintf("Type a query to %s", action),
-		FileName: "query*.yaml",
-	}
-
-	if (action == "create" || action == "run") && !queryCmdState.EmptyTemplate {
-		if language == "LQL" {
-			prompt.Default = `queryId: YourQueryID
+	var queryTextTemplate string
+	switch language {
+	case "LQL":
+		queryTextTemplate = `queryId: YourQueryID
 queryText: |-
     {
         source {
@@ -327,8 +324,8 @@ queryText: |-
             --- List fields to return from the selected source. Use 'lacework query describe <datasource>'.
         }
     }`
-		} else if language == "Rego" {
-			prompt.Default = `queryId: YourQueryID
+	case "Rego":
+		queryTextTemplate = `queryId: YourQueryID
 queryLanguage: Rego
 queryText: |-
   package your.package
@@ -336,7 +333,18 @@ queryText: |-
   import data.lacework
   source := lacework.your.data.source.provider.function("servce", "apiKey")
   assess := your.assess.rule`
-		}
+	default:
+		err = errors.New("Invalid query language: " + language)
+		return
+	}
+
+	prompt := &survey.Editor{
+		Message:  fmt.Sprintf("Type a query to %s", action),
+		FileName: "query*.yaml",
+	}
+
+	if (action == "create" || action == "run") && !queryCmdState.EmptyTemplate {
+		prompt.Default = queryTextTemplate
 		prompt.HideDefault = true
 		prompt.AppendDefault = true
 	} else if (action == "create" || action == "run") && queryCmdState.EmptyTemplate {
