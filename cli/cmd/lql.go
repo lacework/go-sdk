@@ -44,6 +44,7 @@ var (
 		Range         string
 		Start         string
 		URL           string
+		Language      string
 		ValidateOnly  bool
 		FailOnCount   string
 		EmptyTemplate bool
@@ -211,6 +212,11 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 				"file", "f", "",
 				fmt.Sprintf("path to a query to %s", action),
 			)
+			cmd.Flags().StringVarP(
+				&queryCmdState.Language,
+				"language", "l", "",
+				fmt.Sprintf("language of the query to %s, can be LQL or Rego, required in EDITOR mode", action),
+			)
 			// url flag to specify a query from url
 			cmd.Flags().StringVarP(
 				&queryCmdState.URL,
@@ -248,7 +254,7 @@ func inputQuery(cmd *cobra.Command) (string, error) {
 	if !queryCmdState.ValidateOnly {
 		action = strings.Split(cmd.Use, " ")[0]
 	}
-	return inputQueryFromEditor(action)
+	return inputQueryFromEditor(action, queryCmdState.Language)
 }
 
 func inputQueryFromLibrary(id string) (string, error) {
@@ -296,14 +302,19 @@ func inputQueryFromURL(url string) (query string, err error) {
 	return
 }
 
-func inputQueryFromEditor(action string) (query string, err error) {
+func inputQueryFromEditor(action string, language string) (query string, err error) {
+	if language != "Rego" && language != "LQL" {
+		err = errors.New("Invalid query language: " + language)
+		return
+	}
 	prompt := &survey.Editor{
 		Message:  fmt.Sprintf("Type a query to %s", action),
 		FileName: "query*.yaml",
 	}
 
 	if (action == "create" || action == "run") && !queryCmdState.EmptyTemplate {
-		prompt.Default = `queryId: YourQueryID
+		if language == "LQL" {
+			prompt.Default = `queryId: YourQueryID
 queryText: |-
     {
         source {
@@ -316,6 +327,16 @@ queryText: |-
             --- List fields to return from the selected source. Use 'lacework query describe <datasource>'.
         }
     }`
+		} else if language == "Rego" {
+			prompt.Default = `queryId: YourQueryID
+queryLanguage: Rego
+queryText: |-
+  package your.package
+  import your.dependency
+  import data.lacework
+  source := lacework.your.data.source.provider.function("servce", "apiKey")
+  assess := your.assess.rule`
+		}
 		prompt.HideDefault = true
 		prompt.AppendDefault = true
 	} else if (action == "create" || action == "run") && queryCmdState.EmptyTemplate {
