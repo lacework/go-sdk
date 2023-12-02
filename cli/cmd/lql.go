@@ -297,7 +297,6 @@ func inputQueryFromURL(url string) (query string, err error) {
 }
 
 func inputQueryFromEditor(action string) (query string, err error) {
-	var queryTextTemplate string
 	language := "LQL"
 	if action == "create" {
 		languageSelect := &survey.Select{
@@ -312,6 +311,8 @@ func inputQueryFromEditor(action string) (query string, err error) {
 			return
 		}
 	}
+
+	var queryTextTemplate string
 	switch language {
 	case "LQL":
 		queryTextTemplate = `queryId: YourQueryID
