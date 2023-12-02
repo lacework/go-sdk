@@ -38,17 +38,11 @@ func TestQueryCreateHelp(t *testing.T) {
 
 func TestQueryCreateEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "create")
-	assert.Contains(t, out.String(), "Type a query to create")
-	assert.Contains(t, out.String(), "[Enter to launch editor]")
+	assert.Contains(t, out.String(), "Choose query language to create")
+	assert.Contains(t, out.String(), "[Use arrows to move, type to filter]")
+	assert.Contains(t, out.String(), "LQL")
+	assert.Contains(t, out.String(), "Rego")
 	assert.Contains(t, err.String(), "ERROR unable to create query:")
-	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
-}
-
-func TestQueryCreateEditorWithInvalidLanguage(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "create", "--language", "unknown")
-	assert.NotContains(t, out.String(), "Type a query to create")
-	assert.NotContains(t, out.String(), "[Enter to launch editor]")
-	assert.Contains(t, err.String(), "ERROR unable to create query: Invalid query language:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 

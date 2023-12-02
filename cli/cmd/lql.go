@@ -44,7 +44,6 @@ var (
 		Range         string
 		Start         string
 		URL           string
-		Language      string
 		ValidateOnly  bool
 		FailOnCount   string
 		EmptyTemplate bool
@@ -212,14 +211,6 @@ func setQuerySourceFlags(cmds ...*cobra.Command) {
 				"file", "f", "",
 				fmt.Sprintf("path to a query to %s", action),
 			)
-			// enable --language option for query create
-			if action == "create" {
-				cmd.Flags().StringVarP(
-					&queryCmdState.Language,
-					"language", "l", "LQL",
-					fmt.Sprintf("language of the query to %s, can be LQL or Rego", action),
-				)
-			}
 			// url flag to specify a query from url
 			cmd.Flags().StringVarP(
 				&queryCmdState.URL,
@@ -257,12 +248,7 @@ func inputQuery(cmd *cobra.Command) (string, error) {
 	if !queryCmdState.ValidateOnly {
 		action = strings.Split(cmd.Use, " ")[0]
 	}
-	// --language option is only enabled for create
-	language := "LQL"
-	if action == "create" {
-		language = queryCmdState.Language
-	}
-	return inputQueryFromEditor(action, language)
+	return inputQueryFromEditor(action)
 }
 
 func inputQueryFromLibrary(id string) (string, error) {
@@ -310,8 +296,22 @@ func inputQueryFromURL(url string) (query string, err error) {
 	return
 }
 
-func inputQueryFromEditor(action string, language string) (query string, err error) {
+func inputQueryFromEditor(action string) (query string, err error) {
 	var queryTextTemplate string
+	language := "LQL"
+	if action == "create" {
+		languageSelect := &survey.Select{
+			Message: "Choose query language to create: ",
+			Options: []string{
+				"LQL",
+				"Rego",
+			},
+		}
+		err = survey.AskOne(languageSelect, &language)
+		if err != nil {
+			return
+		}
+	}
 	switch language {
 	case "LQL":
 		queryTextTemplate = `queryId: YourQueryID

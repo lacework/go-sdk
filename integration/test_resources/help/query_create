@@ -75,10 +75,9 @@ Usage:
   lacework query create [flags]
 
 Flags:
-  -f, --file string       path to a query to create
-  -h, --help              help for create
-  -l, --language string   language of the query to create, can be LQL or Rego (default "LQL")
-  -u, --url string        url to a query to create
+  -f, --file string   path to a query to create
+  -h, --help          help for create
+  -u, --url string    url to a query to create
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
