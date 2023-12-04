@@ -60,6 +60,7 @@ var (
 	// report-definitions command is used to manage lacework report definitions
 	reportDefinitionsCommand = &cobra.Command{
 		Use:     "report-definition",
+		Hidden:  true,
 		Aliases: []string{"report-definitions", "rd"},
 		Short:   "Manage report definitions",
 		Long: `Manage report definitions to configure the data retrieval and layout information for a report.
