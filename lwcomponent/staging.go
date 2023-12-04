@@ -14,7 +14,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-type StageConstructor func(name, artifactUrl string, size int64, progressClosure func(filepath string, size int64)) (stage Stager, err error)
+type StageConstructor func(
+	name,
+	artifactUrl string,
+	size int64,
+	progressClosure func(filepath string, sizeB int64)) (stage Stager, err error)
 
 type Stager interface {
 	Close()
@@ -40,7 +44,11 @@ type stageTarGz struct {
 	progressClosure func(path string, sizeB int64)
 }
 
-func NewStageTarGz(name, artifactUrl string, size int64, progressClosure func(path string, sizeB int64)) (stage Stager, err error) {
+func NewStageTarGz(
+	name,
+	artifactUrl string,
+	size int64,
+	progressClosure func(path string, sizeB int64)) (stage Stager, err error) {
 	dir, err := os.MkdirTemp("", "cdk-component-stage-tar-gz-")
 	if err != nil {
 		return

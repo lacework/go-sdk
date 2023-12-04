@@ -92,7 +92,10 @@ func (c *Catalog) PrintComponents() [][]string {
 	return result
 }
 
-func (c *Catalog) Stage(component *CDKComponent, version string, progressClosure func(path string, sizeB int64)) (stageClose func(), err error) {
+func (c *Catalog) Stage(
+	component *CDKComponent,
+	version string,
+	progressClosure func(path string, sizeB int64)) (stageClose func(), err error) {
 	var (
 		semv *semver.Version
 	)
