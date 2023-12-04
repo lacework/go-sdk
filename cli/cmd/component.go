@@ -1178,7 +1178,7 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 				percent := float64(size) / float64(sizeB) * 100
 
 				if percent > previous {
-					cli.spinner.Suffix = fmt.Sprintf("%s Downloaded: %.0f", spinnerSuffix, percent)
+					cli.spinner.Suffix = fmt.Sprintf("%s Downloaded: %.0f%s", spinnerSuffix, percent, "%")
 
 					previous = percent
 				}
