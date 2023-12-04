@@ -562,7 +562,7 @@ func (t *testStage) Directory() string {
 }
 
 // Download implements lwcomponent.Stager.
-func (*testStage) Download() error {
+func (*testStage) Download(func(string, int64)) error {
 	return nil
 }
 
@@ -592,7 +592,7 @@ func (*testStage) Validate() error {
 	return nil
 }
 
-func newTestStage(name, artifactUrl string, size int64, progressClosure func(string, int64)) (stage lwcomponent.Stager, err error) {
+func newTestStage(name, artifactUrl string, size int64) (stage lwcomponent.Stager, err error) {
 	stage = &testStage{}
 
 	return
