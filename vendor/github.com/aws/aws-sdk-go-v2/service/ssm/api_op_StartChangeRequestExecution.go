@@ -4,6 +4,7 @@ package ssm
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
@@ -46,12 +47,12 @@ type StartChangeRequestExecutionInput struct {
 
 	// Indicates whether the change request can be approved automatically without the
 	// need for manual approvals. If AutoApprovable is enabled in a change template,
-	// then setting AutoApprove to true in StartChangeRequestExecution creates a change
-	// request that bypasses approver review. Change Calendar restrictions are not
-	// bypassed in this scenario. If the state of an associated calendar is CLOSED,
-	// change freeze approvers must still grant permission for this change request to
+	// then setting AutoApprove to true in StartChangeRequestExecution creates a
+	// change request that bypasses approver review. Change Calendar restrictions are
+	// not bypassed in this scenario. If the state of an associated calendar is CLOSED
+	// , change freeze approvers must still grant permission for this change request to
 	// run. If they don't, the change won't be processed until the calendar state is
-	// again OPEN.
+	// again OPEN .
 	AutoApprove bool
 
 	// User-provided details about the change. If no details are provided, content
@@ -89,10 +90,8 @@ type StartChangeRequestExecutionInput struct {
 	// might want to tag a change request to identify an environment or target Amazon
 	// Web Services Region. In this case, you could specify the following key-value
 	// pairs:
-	//
-	// * Key=Environment,Value=Production
-	//
-	// * Key=Region,Value=us-east-2
+	//   - Key=Environment,Value=Production
+	//   - Key=Region,Value=us-east-2
 	Tags []types.Tag
 
 	noSmithyDocumentSerde
@@ -111,12 +110,22 @@ type StartChangeRequestExecutionOutput struct {
 }
 
 func (c *Client) addOperationStartChangeRequestExecutionMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpStartChangeRequestExecution{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpStartChangeRequestExecution{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "StartChangeRequestExecution"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -137,16 +146,13 @@ func (c *Client) addOperationStartChangeRequestExecutionMiddlewares(stack *middl
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -155,10 +161,16 @@ func (c *Client) addOperationStartChangeRequestExecutionMiddlewares(stack *middl
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpStartChangeRequestExecutionValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opStartChangeRequestExecution(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -170,6 +182,9 @@ func (c *Client) addOperationStartChangeRequestExecutionMiddlewares(stack *middl
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -177,7 +192,6 @@ func newServiceMetadataMiddleware_opStartChangeRequestExecution(region string) *
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "StartChangeRequestExecution",
 	}
 }

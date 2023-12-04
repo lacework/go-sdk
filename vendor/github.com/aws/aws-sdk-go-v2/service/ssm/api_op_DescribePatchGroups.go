@@ -32,12 +32,8 @@ type DescribePatchGroupsInput struct {
 
 	// Each element in the array is a structure containing a key-value pair. Supported
 	// keys for DescribePatchGroups include the following:
-	//
-	// * NAME_PREFIX Sample
-	// values: AWS- | My-.
-	//
-	// * OPERATING_SYSTEM Sample values: AMAZON_LINUX | SUSE |
-	// WINDOWS
+	//   - NAME_PREFIX Sample values: AWS- | My- .
+	//   - OPERATING_SYSTEM Sample values: AMAZON_LINUX | SUSE | WINDOWS
 	Filters []types.PatchOrchestratorFilter
 
 	// The maximum number of patch groups to return (per page).
@@ -53,12 +49,9 @@ type DescribePatchGroupsInput struct {
 type DescribePatchGroupsOutput struct {
 
 	// Each entry in the array contains:
-	//
-	// * PatchGroup: string (between 1 and 256
-	// characters. Regex: ^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$)
-	//
-	// * PatchBaselineIdentity: A
-	// PatchBaselineIdentity element.
+	//   - PatchGroup : string (between 1 and 256 characters. Regex:
+	//   ^([\p{L}\p{Z}\p{N}_.:/=+\-@]*)$)
+	//   - PatchBaselineIdentity : A PatchBaselineIdentity element.
 	Mappings []types.PatchGroupPatchBaselineMapping
 
 	// The token to use when requesting the next set of items. If there are no
@@ -72,12 +65,22 @@ type DescribePatchGroupsOutput struct {
 }
 
 func (c *Client) addOperationDescribePatchGroupsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribePatchGroups{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribePatchGroups{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribePatchGroups"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -98,16 +101,13 @@ func (c *Client) addOperationDescribePatchGroupsMiddlewares(stack *middleware.St
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -116,7 +116,13 @@ func (c *Client) addOperationDescribePatchGroupsMiddlewares(stack *middleware.St
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribePatchGroups(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -128,11 +134,14 @@ func (c *Client) addOperationDescribePatchGroupsMiddlewares(stack *middleware.St
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
-// DescribePatchGroupsAPIClient is a client that implements the DescribePatchGroups
-// operation.
+// DescribePatchGroupsAPIClient is a client that implements the
+// DescribePatchGroups operation.
 type DescribePatchGroupsAPIClient interface {
 	DescribePatchGroups(context.Context, *DescribePatchGroupsInput, ...func(*Options)) (*DescribePatchGroupsOutput, error)
 }
@@ -226,7 +235,6 @@ func newServiceMetadataMiddleware_opDescribePatchGroups(region string) *awsmiddl
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "DescribePatchGroups",
 	}
 }

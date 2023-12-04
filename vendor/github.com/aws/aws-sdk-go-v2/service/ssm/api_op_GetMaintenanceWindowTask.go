@@ -4,6 +4,7 @@ package ssm
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
@@ -11,9 +12,9 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Retrieves the details of a maintenance window task. For maintenance window tasks
-// without a specified target, you can't supply values for --max-errors and
-// --max-concurrency. Instead, the system inserts a placeholder value of 1, which
+// Retrieves the details of a maintenance window task. For maintenance window
+// tasks without a specified target, you can't supply values for --max-errors and
+// --max-concurrency . Instead, the system inserts a placeholder value of 1 , which
 // may be reported in the response to this command. These values don't affect the
 // running of your task and can be ignored. To retrieve a list of tasks in a
 // maintenance window, instead use the DescribeMaintenanceWindowTasks command.
@@ -64,26 +65,26 @@ type GetMaintenanceWindowTaskOutput struct {
 	// The retrieved task description.
 	Description *string
 
-	// The location in Amazon Simple Storage Service (Amazon S3) where the task results
-	// are logged. LoggingInfo has been deprecated. To specify an Amazon Simple Storage
-	// Service (Amazon S3) bucket to contain logs, instead use the OutputS3BucketName
-	// and OutputS3KeyPrefix options in the TaskInvocationParameters structure. For
-	// information about how Amazon Web Services Systems Manager handles these options
-	// for the supported maintenance window task types, see
-	// MaintenanceWindowTaskInvocationParameters.
+	// The location in Amazon Simple Storage Service (Amazon S3) where the task
+	// results are logged. LoggingInfo has been deprecated. To specify an Amazon
+	// Simple Storage Service (Amazon S3) bucket to contain logs, instead use the
+	// OutputS3BucketName and OutputS3KeyPrefix options in the TaskInvocationParameters
+	// structure. For information about how Amazon Web Services Systems Manager handles
+	// these options for the supported maintenance window task types, see
+	// MaintenanceWindowTaskInvocationParameters .
 	LoggingInfo *types.LoggingInfo
 
 	// The maximum number of targets allowed to run this task in parallel. For
 	// maintenance window tasks without a target specified, you can't supply a value
-	// for this option. Instead, the system inserts a placeholder value of 1, which may
-	// be reported in the response to this command. This value doesn't affect the
+	// for this option. Instead, the system inserts a placeholder value of 1 , which
+	// may be reported in the response to this command. This value doesn't affect the
 	// running of your task and can be ignored.
 	MaxConcurrency *string
 
 	// The maximum number of errors allowed before the task stops being scheduled. For
 	// maintenance window tasks without a target specified, you can't supply a value
-	// for this option. Instead, the system inserts a placeholder value of 1, which may
-	// be reported in the response to this command. This value doesn't affect the
+	// for this option. Instead, the system inserts a placeholder value of 1 , which
+	// may be reported in the response to this command. This value doesn't affect the
 	// running of your task and can be ignored.
 	MaxErrors *string
 
@@ -103,9 +104,9 @@ type GetMaintenanceWindowTaskOutput struct {
 	Targets []types.Target
 
 	// The resource that the task used during execution. For RUN_COMMAND and AUTOMATION
-	// task types, the value of TaskArn is the SSM document name/ARN. For LAMBDA tasks,
-	// the value is the function name/ARN. For STEP_FUNCTIONS tasks, the value is the
-	// state machine ARN.
+	// task types, the value of TaskArn is the SSM document name/ARN. For LAMBDA
+	// tasks, the value is the function name/ARN. For STEP_FUNCTIONS tasks, the value
+	// is the state machine ARN.
 	TaskArn *string
 
 	// The parameters to pass to the task when it runs.
@@ -113,9 +114,9 @@ type GetMaintenanceWindowTaskOutput struct {
 
 	// The parameters to pass to the task when it runs. TaskParameters has been
 	// deprecated. To specify parameters to pass to a task when it runs, instead use
-	// the Parameters option in the TaskInvocationParameters structure. For information
-	// about how Systems Manager handles these options for the supported maintenance
-	// window task types, see MaintenanceWindowTaskInvocationParameters.
+	// the Parameters option in the TaskInvocationParameters structure. For
+	// information about how Systems Manager handles these options for the supported
+	// maintenance window task types, see MaintenanceWindowTaskInvocationParameters .
 	TaskParameters map[string]types.MaintenanceWindowTaskParameterValueExpression
 
 	// The type of task to run.
@@ -134,12 +135,22 @@ type GetMaintenanceWindowTaskOutput struct {
 }
 
 func (c *Client) addOperationGetMaintenanceWindowTaskMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetMaintenanceWindowTask{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetMaintenanceWindowTask{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetMaintenanceWindowTask"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -160,16 +171,13 @@ func (c *Client) addOperationGetMaintenanceWindowTaskMiddlewares(stack *middlewa
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -178,10 +186,16 @@ func (c *Client) addOperationGetMaintenanceWindowTaskMiddlewares(stack *middlewa
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpGetMaintenanceWindowTaskValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetMaintenanceWindowTask(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -193,6 +207,9 @@ func (c *Client) addOperationGetMaintenanceWindowTaskMiddlewares(stack *middlewa
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -200,7 +217,6 @@ func newServiceMetadataMiddleware_opGetMaintenanceWindowTask(region string) *aws
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "GetMaintenanceWindowTask",
 	}
 }

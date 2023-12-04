@@ -4,6 +4,7 @@ package ssm
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
@@ -13,21 +14,13 @@ import (
 
 // Modifies the target of an existing maintenance window. You can change the
 // following:
-//
-// * Name
-//
-// * Description
-//
-// * Owner
-//
-// * IDs for an ID target
-//
-// * Tags for a
-// Tag target
-//
-// * From any supported tag type to another. The three supported tag
-// types are ID target, Tag target, and resource group. For more information, see
-// Target.
+//   - Name
+//   - Description
+//   - Owner
+//   - IDs for an ID target
+//   - Tags for a Tag target
+//   - From any supported tag type to another. The three supported tag types are
+//     ID target, Tag target, and resource group. For more information, see Target .
 //
 // If a parameter is null, then the corresponding field isn't modified.
 func (c *Client) UpdateMaintenanceWindowTarget(ctx context.Context, params *UpdateMaintenanceWindowTargetInput, optFns ...func(*Options)) (*UpdateMaintenanceWindowTargetOutput, error) {
@@ -63,11 +56,11 @@ type UpdateMaintenanceWindowTargetInput struct {
 	// A name for the update.
 	Name *string
 
-	// User-provided value that will be included in any Amazon CloudWatch Events events
-	// raised while running tasks for these targets in this maintenance window.
+	// User-provided value that will be included in any Amazon CloudWatch Events
+	// events raised while running tasks for these targets in this maintenance window.
 	OwnerInformation *string
 
-	// If True, then all fields that are required by the
+	// If True , then all fields that are required by the
 	// RegisterTargetWithMaintenanceWindow operation are also required for this API
 	// request. Optional fields that aren't specified are set to null.
 	Replace *bool
@@ -105,12 +98,22 @@ type UpdateMaintenanceWindowTargetOutput struct {
 }
 
 func (c *Client) addOperationUpdateMaintenanceWindowTargetMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpUpdateMaintenanceWindowTarget{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpUpdateMaintenanceWindowTarget{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "UpdateMaintenanceWindowTarget"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -131,16 +134,13 @@ func (c *Client) addOperationUpdateMaintenanceWindowTargetMiddlewares(stack *mid
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -149,10 +149,16 @@ func (c *Client) addOperationUpdateMaintenanceWindowTargetMiddlewares(stack *mid
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpUpdateMaintenanceWindowTargetValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opUpdateMaintenanceWindowTarget(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -164,6 +170,9 @@ func (c *Client) addOperationUpdateMaintenanceWindowTargetMiddlewares(stack *mid
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -171,7 +180,6 @@ func newServiceMetadataMiddleware_opUpdateMaintenanceWindowTarget(region string)
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "UpdateMaintenanceWindowTarget",
 	}
 }

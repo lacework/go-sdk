@@ -4,6 +4,7 @@ package ssm
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/smithy-go/middleware"
@@ -45,16 +46,15 @@ type ResumeSessionOutput struct {
 	// The ID of the session.
 	SessionId *string
 
-	// A URL back to SSM Agent on the managed node that the Session Manager client uses
-	// to send commands and receive output from the managed node. Format:
-	// wss://ssmmessages.region.amazonaws.com/v1/data-channel/session-id?stream=(input|output).
-	// region represents the Region identifier for an Amazon Web Services Region
+	// A URL back to SSM Agent on the managed node that the Session Manager client
+	// uses to send commands and receive output from the managed node. Format:
+	// wss://ssmmessages.region.amazonaws.com/v1/data-channel/session-id?stream=(input|output)
+	// . region represents the Region identifier for an Amazon Web Services Region
 	// supported by Amazon Web Services Systems Manager, such as us-east-2 for the US
 	// East (Ohio) Region. For a list of supported region values, see the Region column
-	// in Systems Manager service endpoints
-	// (https://docs.aws.amazon.com/general/latest/gr/ssm.html#ssm_region) in the
-	// Amazon Web Services General Reference. session-id represents the ID of a Session
-	// Manager session, such as 1a2b3c4dEXAMPLE.
+	// in Systems Manager service endpoints (https://docs.aws.amazon.com/general/latest/gr/ssm.html#ssm_region)
+	// in the Amazon Web Services General Reference. session-id represents the ID of a
+	// Session Manager session, such as 1a2b3c4dEXAMPLE .
 	StreamUrl *string
 
 	// An encrypted token value containing session and caller information. Used to
@@ -68,12 +68,22 @@ type ResumeSessionOutput struct {
 }
 
 func (c *Client) addOperationResumeSessionMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpResumeSession{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpResumeSession{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ResumeSession"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -94,16 +104,13 @@ func (c *Client) addOperationResumeSessionMiddlewares(stack *middleware.Stack, o
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -112,10 +119,16 @@ func (c *Client) addOperationResumeSessionMiddlewares(stack *middleware.Stack, o
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpResumeSessionValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opResumeSession(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -127,6 +140,9 @@ func (c *Client) addOperationResumeSessionMiddlewares(stack *middleware.Stack, o
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -134,7 +150,6 @@ func newServiceMetadataMiddleware_opResumeSession(region string) *awsmiddleware.
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "ResumeSession",
 	}
 }

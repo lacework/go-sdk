@@ -16,9 +16,9 @@ import (
 // Request results are returned on a best-effort basis. If you specify MaxResults
 // in the request, the response includes information up to the limit specified. The
 // number of items returned, however, can be between zero and the value of
-// MaxResults. If the service reaches an internal limit while processing the
+// MaxResults . If the service reaches an internal limit while processing the
 // results, it stops the operation and returns the matching values up to that point
-// and a NextToken. You can specify the NextToken in a subsequent call to get the
+// and a NextToken . You can specify the NextToken in a subsequent call to get the
 // next set of results.
 func (c *Client) GetParametersByPath(ctx context.Context, params *GetParametersByPathInput, optFns ...func(*Options)) (*GetParametersByPathOutput, error) {
 	if params == nil {
@@ -37,11 +37,11 @@ func (c *Client) GetParametersByPath(ctx context.Context, params *GetParametersB
 
 type GetParametersByPathInput struct {
 
-	// The hierarchy for the parameter. Hierarchies start with a forward slash (/). The
-	// hierarchy is the parameter name except the last part of the parameter. For the
-	// API call to succeed, the last part of the parameter name can't be in the path. A
-	// parameter name hierarchy can have a maximum of 15 levels. Here is an example of
-	// a hierarchy: /Finance/Prod/IAD/WinServ2016/license33
+	// The hierarchy for the parameter. Hierarchies start with a forward slash (/).
+	// The hierarchy is the parameter name except the last part of the parameter. For
+	// the API call to succeed, the last part of the parameter name can't be in the
+	// path. A parameter name hierarchy can have a maximum of 15 levels. Here is an
+	// example of a hierarchy: /Finance/Prod/IAD/WinServ2016/license33
 	//
 	// This member is required.
 	Path *string
@@ -53,16 +53,18 @@ type GetParametersByPathInput struct {
 	// A token to start the list. Use this token to get the next set of results.
 	NextToken *string
 
-	// Filters to limit the request results. The following Key values are supported for
-	// GetParametersByPath: Type, KeyId, and Label. The following Key values aren't
-	// supported for GetParametersByPath: tag, DataType, Name, Path, and Tier.
+	// Filters to limit the request results. The following Key values are supported
+	// for GetParametersByPath : Type , KeyId , and Label . The following Key values
+	// aren't supported for GetParametersByPath : tag , DataType , Name , Path , and
+	// Tier .
 	ParameterFilters []types.ParameterStringFilter
 
-	// Retrieve all parameters within a hierarchy. If a user has access to a path, then
-	// the user can access all levels of that path. For example, if a user has
-	// permission to access path /a, then the user can also access /a/b. Even if a user
-	// has explicitly been denied access in IAM for parameter /a/b, they can still call
-	// the GetParametersByPath API operation recursively for /a and view /a/b.
+	// Retrieve all parameters within a hierarchy. If a user has access to a path,
+	// then the user can access all levels of that path. For example, if a user has
+	// permission to access path /a , then the user can also access /a/b . Even if a
+	// user has explicitly been denied access in IAM for parameter /a/b , they can
+	// still call the GetParametersByPath API operation recursively for /a and view
+	// /a/b .
 	Recursive *bool
 
 	// Retrieve all parameters in a hierarchy with their value decrypted.
@@ -87,12 +89,22 @@ type GetParametersByPathOutput struct {
 }
 
 func (c *Client) addOperationGetParametersByPathMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetParametersByPath{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetParametersByPath{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetParametersByPath"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -113,16 +125,13 @@ func (c *Client) addOperationGetParametersByPathMiddlewares(stack *middleware.St
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -131,10 +140,16 @@ func (c *Client) addOperationGetParametersByPathMiddlewares(stack *middleware.St
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpGetParametersByPathValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetParametersByPath(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -146,11 +161,14 @@ func (c *Client) addOperationGetParametersByPathMiddlewares(stack *middleware.St
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
-// GetParametersByPathAPIClient is a client that implements the GetParametersByPath
-// operation.
+// GetParametersByPathAPIClient is a client that implements the
+// GetParametersByPath operation.
 type GetParametersByPathAPIClient interface {
 	GetParametersByPath(context.Context, *GetParametersByPathInput, ...func(*Options)) (*GetParametersByPathOutput, error)
 }
@@ -245,7 +263,6 @@ func newServiceMetadataMiddleware_opGetParametersByPath(region string) *awsmiddl
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "GetParametersByPath",
 	}
 }
