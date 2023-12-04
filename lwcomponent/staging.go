@@ -14,11 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type StageConstructor func(
-	name,
-	artifactUrl string,
-	size int64,
-	progressClosure func(filepath string, sizeB int64)) (stage Stager, err error)
+type StageConstructor func(name, artifactUrl string, size int64) (stage Stager, err error)
 
 type Stager interface {
 	Close()
@@ -27,7 +23,7 @@ type Stager interface {
 
 	Directory() string
 
-	Download() error
+	Download(progressClosure func(filepath string, sizeB int64)) error
 
 	Signature() (sig []byte, err error)
 
@@ -37,18 +33,13 @@ type Stager interface {
 }
 
 type stageTarGz struct {
-	artifactUrl     *url.URL
-	dir             string
-	name            string
-	size            int64
-	progressClosure func(path string, sizeB int64)
+	artifactUrl *url.URL
+	dir         string
+	name        string
+	size        int64
 }
 
-func NewStageTarGz(
-	name,
-	artifactUrl string,
-	size int64,
-	progressClosure func(path string, sizeB int64)) (stage Stager, err error) {
+func NewStageTarGz(name, artifactUrl string, size int64) (stage Stager, err error) {
 	dir, err := os.MkdirTemp("", "cdk-component-stage-tar-gz-")
 	if err != nil {
 		return
@@ -60,7 +51,7 @@ func NewStageTarGz(
 		return
 	}
 
-	stage = &stageTarGz{artifactUrl: _url, dir: dir, name: name, size: size, progressClosure: progressClosure}
+	stage = &stageTarGz{artifactUrl: _url, dir: dir, name: name, size: size}
 
 	return
 }
@@ -104,7 +95,7 @@ func (s *stageTarGz) Directory() string {
 	return s.dir
 }
 
-func (s *stageTarGz) Download() (err error) {
+func (s *stageTarGz) Download(progressClosure func(filepath string, sizeB int64)) (err error) {
 	fileName := filepath.Base(s.artifactUrl.Path)
 
 	path := filepath.Join(s.dir, fileName)
@@ -114,7 +105,7 @@ func (s *stageTarGz) Download() (err error) {
 		return
 	}
 
-	go s.progressClosure(path, s.size*1024)
+	go progressClosure(path, s.size*1024)
 
 	err = DownloadFile(path, s.artifactUrl.String())
 	if err != nil {

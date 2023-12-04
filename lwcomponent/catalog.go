@@ -95,7 +95,7 @@ func (c *Catalog) PrintComponents() [][]string {
 func (c *Catalog) Stage(
 	component *CDKComponent,
 	version string,
-	progressClosure func(path string, sizeB int64)) (stageClose func(), err error) {
+	progressClosure func(filepath string, sizeB int64)) (stageClose func(), err error) {
 	var (
 		semv *semver.Version
 	)
@@ -144,12 +144,12 @@ func (c *Catalog) Stage(
 	component.InstallMessage = data.InstallMessage
 	component.UpdateMessage = data.UpdateMessage
 
-	stage, err := c.stageConstructor(component.Name, data.ArtifactUrl, data.Size, progressClosure)
+	stage, err := c.stageConstructor(component.Name, data.ArtifactUrl, data.Size)
 	if err != nil {
 		return
 	}
 
-	if err = stage.Download(); err != nil {
+	if err = stage.Download(progressClosure); err != nil {
 		stage.Close()
 		return
 	}
