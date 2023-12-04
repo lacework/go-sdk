@@ -24,7 +24,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/abiosoft/colima/util/terminal"
 	"github.com/go-resty/resty/v2"
 	"github.com/lacework/go-sdk/lwlogger"
 )
@@ -38,7 +37,7 @@ var log = lwlogger.New("INFO")
 // Retry 3 times (4 requests total)
 // Resty default RetryWaitTime is 100ms
 // Exponential backoff to a maximum of RetryWaitTime of 2s
-func DownloadFile(filepath string, url string, size int64) (err error) {
+func DownloadFile(path string, url string) (err error) {
 	client := resty.New()
 
 	download_timeout := os.Getenv("CDK_DOWNLOAD_TIMEOUT_MINUTES")
@@ -60,74 +59,7 @@ func DownloadFile(filepath string, url string, size int64) (err error) {
 		log.Warn(fmt.Sprintf("Failed to download component: %s", err.Error()))
 	})
 
-	_, err = os.Create(filepath)
-	if err != nil {
-		return
-	}
-
-	done := make(chan int64)
-
-	go downloadProgress(done, filepath, size)
-
-	response, err := client.R().SetOutput(filepath).Get(url)
-
-	done <- response.Size()
+	_, err = client.R().SetOutput(path).Get(url)
 
 	return
-}
-
-func downloadProgress(done chan int64, filepath string, totalSize int64) {
-	file, err := os.Open(filepath)
-	if err != nil {
-		log.Error(fmt.Sprintf("Failed to open component file: %s", err.Error()))
-		return
-	}
-	defer file.Close()
-
-	vterm := terminal.NewVerboseWriter(10)
-	defer vterm.Close()
-
-	var (
-		previous float64 = 0
-		stop     bool    = false
-	)
-
-	for !stop {
-		select {
-		case <-done:
-			stop = true
-		default:
-			info, err := file.Stat()
-			if err != nil {
-				log.Error(fmt.Sprintf("Failed to stat component file: %s", err.Error()))
-				return
-			}
-
-			size := info.Size()
-			if size == 0 {
-				size = 1
-			}
-
-			if totalSize == 0 {
-				mb := float64(size) / (1 << 20)
-
-				if mb > previous {
-					_, _ = vterm.Write([]byte(fmt.Sprintf("Downloaded: %.0fmb\n", mb)))
-
-					previous = mb
-				}
-			} else {
-				percent := float64(size) / float64(totalSize) * 100
-
-				if percent > previous {
-					_, _ = vterm.Write([]byte(fmt.Sprintf("Downloaded: %.0f", percent)))
-					_, _ = vterm.Write([]byte("%\n"))
-
-					previous = percent
-				}
-			}
-		}
-
-		time.Sleep(time.Second)
-	}
 }

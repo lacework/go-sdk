@@ -20,7 +20,7 @@ func TestStageTarGzCommit(t *testing.T) {
 	)
 
 	t.Run("ok", func(t *testing.T) {
-		stage, err := lwcomponent.NewStageTarGz(name, "", 0)
+		stage, err := lwcomponent.NewStageTarGz(name, "", 0, ProgressClosure)
 		assert.Nil(t, err)
 		defer stage.Close()
 
@@ -52,7 +52,7 @@ func TestStageTarGzCommit(t *testing.T) {
 	})
 
 	t.Run("target doesn't exist", func(t *testing.T) {
-		stage, err := lwcomponent.NewStageTarGz(name, "", 0)
+		stage, err := lwcomponent.NewStageTarGz(name, "", 0, ProgressClosure)
 		assert.Nil(t, err)
 		defer stage.Close()
 
@@ -68,7 +68,7 @@ func TestStagingTarGzSignature(t *testing.T) {
 	)
 
 	t.Run("ok", func(t *testing.T) {
-		stage, err := lwcomponent.NewStageTarGz(name, "", 0)
+		stage, err := lwcomponent.NewStageTarGz(name, "", 0, ProgressClosure)
 		assert.Nil(t, err)
 		defer stage.Close()
 
@@ -82,7 +82,7 @@ func TestStagingTarGzSignature(t *testing.T) {
 	})
 
 	t.Run("no signature file", func(t *testing.T) {
-		stage, err := lwcomponent.NewStageTarGz(name, "", 0)
+		stage, err := lwcomponent.NewStageTarGz(name, "", 0, ProgressClosure)
 		assert.Nil(t, err)
 		defer stage.Close()
 
@@ -98,7 +98,7 @@ func TestStagingTarGzUnpack(t *testing.T) {
 		sigData       = "signature data"
 	)
 
-	stage, err := lwcomponent.NewStageTarGz(name, fmt.Sprintf("https://127.0.0.1/%s.tar.gz", name), 0)
+	stage, err := lwcomponent.NewStageTarGz(name, fmt.Sprintf("https://127.0.0.1/%s.tar.gz", name), 0, ProgressClosure)
 	assert.Nil(t, err)
 	assert.NotNil(t, stage)
 	defer stage.Close()

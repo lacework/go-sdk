@@ -73,11 +73,11 @@ func (c *Catalog) GetComponent(name string) (*CDKComponent, error) {
 }
 
 func (c *Catalog) ListComponentVersions(component *CDKComponent) (versions []*semver.Version) {
-	if component.apiInfo == nil {
+	if component.ApiInfo == nil {
 		return
 	}
 
-	versions = component.apiInfo.AllVersions()
+	versions = component.ApiInfo.AllVersions()
 
 	return
 }
@@ -92,7 +92,7 @@ func (c *Catalog) PrintComponents() [][]string {
 	return result
 }
 
-func (c *Catalog) Stage(component *CDKComponent, version string) (stageClose func(), err error) {
+func (c *Catalog) Stage(component *CDKComponent, version string, progressClosure func(path string, sizeB int64)) (stageClose func(), err error) {
 	var (
 		semv *semver.Version
 	)
@@ -100,7 +100,7 @@ func (c *Catalog) Stage(component *CDKComponent, version string) (stageClose fun
 	stageClose = func() {}
 
 	if version == "" {
-		semv = component.apiInfo.LatestVersion()
+		semv = component.ApiInfo.LatestVersion()
 	} else {
 		semv, err = semver.NewVersion(version)
 		if err != nil {
@@ -108,10 +108,10 @@ func (c *Catalog) Stage(component *CDKComponent, version string) (stageClose fun
 		}
 	}
 
-	if component.hostInfo != nil {
+	if component.HostInfo != nil {
 		var installedVersion *semver.Version
 
-		installedVersion, err = component.hostInfo.Version()
+		installedVersion, err = component.HostInfo.Version()
 		if err != nil {
 			return
 		}
@@ -123,7 +123,7 @@ func (c *Catalog) Stage(component *CDKComponent, version string) (stageClose fun
 	}
 
 	response, err := c.client.V2.Components.FetchComponentArtifact(
-		component.apiInfo.Id(),
+		component.ApiInfo.Id(),
 		operatingSystem,
 		architecture,
 		semv.String())
@@ -141,7 +141,7 @@ func (c *Catalog) Stage(component *CDKComponent, version string) (stageClose fun
 	component.InstallMessage = data.InstallMessage
 	component.UpdateMessage = data.UpdateMessage
 
-	stage, err := c.stageConstructor(component.Name, data.ArtifactUrl, data.Size*1024)
+	stage, err := c.stageConstructor(component.Name, data.ArtifactUrl, data.Size, progressClosure)
 	if err != nil {
 		return
 	}
@@ -206,7 +206,7 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		return
 	}
 
-	component.hostInfo = NewHostInfo(componentDir)
+	component.HostInfo = NewHostInfo(componentDir)
 
 	return
 }

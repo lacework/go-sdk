@@ -402,9 +402,10 @@ func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
 
 func installComponent(cmd *cobra.Command, args []string) (err error) {
 	var (
-		componentName string                 = args[0]
-		params        map[string]interface{} = make(map[string]interface{})
-		start         time.Time
+		componentName    string                 = args[0]
+		downloadComplete                        = make(chan int8)
+		params           map[string]interface{} = make(map[string]interface{})
+		start            time.Time
 	)
 
 	cli.Event.Component = componentName
@@ -433,11 +434,17 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 
 	start = time.Now()
 
-	stageClose, err := catalog.Stage(component, versionArg)
+	progressClosure := func(path string, sizeB int64) {
+		downloadProgress(downloadComplete, path, sizeB)
+	}
+
+	stageClose, err := catalog.Stage(component, versionArg, progressClosure)
 	if err != nil {
 		return
 	}
 	defer stageClose()
+
+	downloadComplete <- 0
 
 	params["stage_duration_ms"] = time.Since(start).Milliseconds()
 	cli.Event.FeatureData = params
@@ -568,10 +575,11 @@ func runComponentsUpdate(_ *cobra.Command, args []string) (err error) {
 
 func updateComponent(args []string) (err error) {
 	var (
-		componentName string                 = args[0]
-		params        map[string]interface{} = make(map[string]interface{})
-		start         time.Time
-		targetVersion *semver.Version
+		componentName    string                 = args[0]
+		downloadComplete                        = make(chan int8)
+		params           map[string]interface{} = make(map[string]interface{})
+		start            time.Time
+		targetVersion    *semver.Version
 	)
 
 	cli.StartProgress("Loading components Catalog...")
@@ -619,11 +627,17 @@ func updateComponent(args []string) (err error) {
 
 	start = time.Now()
 
-	stageClose, err := catalog.Stage(component, versionArg)
+	progressClosure := func(path string, sizeB int64) {
+		downloadProgress(downloadComplete, path, sizeB)
+	}
+
+	stageClose, err := catalog.Stage(component, versionArg, progressClosure)
 	if err != nil {
 		return
 	}
 	defer stageClose()
+
+	downloadComplete <- 0
 
 	params["stage_duration_ms"] = time.Since(start).Milliseconds()
 	cli.Event.FeatureData = params
@@ -873,10 +887,11 @@ func componentsToTable() [][]string {
 
 func prototypeRunComponentsInstall(cmd *cobra.Command, args []string) (err error) {
 	var (
-		componentName string                 = args[0]
-		version       string                 = versionArg
-		params        map[string]interface{} = make(map[string]interface{})
-		start         time.Time
+		componentName    string                 = args[0]
+		downloadComplete                        = make(chan int8)
+		version          string                 = versionArg
+		params           map[string]interface{} = make(map[string]interface{})
+		start            time.Time
 	)
 
 	cli.Event.Component = componentName
@@ -906,13 +921,20 @@ func prototypeRunComponentsInstall(cmd *cobra.Command, args []string) (err error
 
 	start = time.Now()
 
+	progressClosure := func(path string, sizeB int64) {
+		downloadProgress(downloadComplete, path, sizeB)
+	}
+
 	cli.StartProgress(fmt.Sprintf("Installing component %s...", component.Name))
-	err = cli.LwComponents.Install(component, version)
+	err = cli.LwComponents.Install(component, version, progressClosure)
 	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to install component")
 		return
 	}
+
+	downloadComplete <- 0
+
 	cli.OutputChecklist(successIcon, "Component %s installed\n", color.HiYellowString(component.Name))
 
 	params["install_duration_ms"] = time.Since(start).Milliseconds()
@@ -999,13 +1021,22 @@ func prototypeRunComponentsUpdate(args []string) (err error) {
 		return nil
 	}
 
+	downloadComplete := make(chan int8)
+
+	progressClosure := func(path string, sizeB int64) {
+		downloadProgress(downloadComplete, path, sizeB)
+	}
+
 	cli.StartProgress(fmt.Sprintf("Updating component %s to version %s...", component.Name, &updateTo))
-	err = cli.LwComponents.Install(component, updateTo.String())
+	err = cli.LwComponents.Install(component, updateTo.String(), progressClosure)
 	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to update component")
 		return
 	}
+
+	downloadComplete <- 0
+
 	cli.OutputChecklist(successIcon, "Component %s updated to %s\n",
 		color.HiYellowString(component.Name),
 		color.HiCyanString(fmt.Sprintf("v%s", updateTo.String())))
@@ -1102,4 +1133,58 @@ func prototypeRunComponentsDelete(args []string) (err error) {
 	cli.OutputHuman("\nDo you want to provide feedback?\n")
 	cli.OutputHuman("Reach out to us at %s\n", color.HiCyanString("support@lacework.net"))
 	return
+}
+
+func downloadProgress(complete chan int8, path string, sizeB int64) {
+	file, err := os.Open(path)
+	if err != nil {
+		cli.Log.Errorf("Failed to open component file: %s", err.Error())
+		return
+	}
+	defer file.Close()
+
+	var (
+		previous float64 = 0
+		stop     bool    = false
+	)
+
+	spinnerSuffix := cli.spinner.Suffix
+
+	for !stop {
+		select {
+		case <-complete:
+			stop = true
+		default:
+			info, err := file.Stat()
+			if err != nil {
+				cli.Log.Errorf("Failed to stat component file: %s", err.Error())
+				return
+			}
+
+			size := info.Size()
+			if size == 0 {
+				size = 1
+			}
+
+			if sizeB == 0 {
+				mb := float64(size) / (1 << 20)
+
+				if mb > previous {
+					cli.spinner.Suffix = fmt.Sprintf("%s Downloaded: %.0fmb", spinnerSuffix, mb)
+
+					previous = mb
+				}
+			} else {
+				percent := float64(size) / float64(sizeB) * 100
+
+				if percent > previous {
+					cli.spinner.Suffix = fmt.Sprintf("%s Downloaded: %.0f", spinnerSuffix, percent)
+
+					previous = percent
+				}
+			}
+		}
+
+		time.Sleep(time.Second)
+	}
 }

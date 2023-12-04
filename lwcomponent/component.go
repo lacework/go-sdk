@@ -224,7 +224,7 @@ func Dir() (string, error) {
 	return filepath.Join(cacheDir, "components"), nil
 }
 
-func (s State) Install(component *Component, version string) error {
+func (s State) Install(component *Component, version string, progressClosure func(path string, sizeB int64)) error {
 	rPath, err := component.RootPath()
 	if err != nil {
 		return err
@@ -271,8 +271,14 @@ func (s State) Install(component *Component, version string) error {
 
 	stagingPath := filepath.Join(stagingDir, component.Name)
 
+	if _, err = os.Create(downloadPath); err != nil {
+		return err
+	}
+
 	// There is no artifact.Size so we pass 0
-	err = DownloadFile(downloadPath, artifact.URL, 0)
+	go progressClosure(downloadPath, 0)
+
+	err = DownloadFile(downloadPath, artifact.URL)
 	if err != nil {
 		return errors.Wrap(err, "unable to download component artifact")
 	}

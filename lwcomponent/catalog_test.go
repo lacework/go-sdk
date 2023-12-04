@@ -18,6 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func ProgressClosure(filepath string, size int64) {}
+
 func TestCatalogNewCatalog(t *testing.T) {
 	var (
 		prefix            = "testNewCatalog"
@@ -497,7 +499,7 @@ func TestCatalogStage(t *testing.T) {
 		assert.NotNil(t, component)
 		assert.Nil(t, err)
 
-		stageClose, err := catalog.Stage(component, version)
+		stageClose, err := catalog.Stage(component, version, ProgressClosure)
 		assert.Nil(t, err)
 		defer stageClose()
 	})
@@ -513,7 +515,7 @@ func TestCatalogStage(t *testing.T) {
 		assert.NotNil(t, component)
 		assert.Nil(t, err)
 
-		stageClose, err := catalog.Stage(component, version)
+		stageClose, err := catalog.Stage(component, version, ProgressClosure)
 		assert.NotNil(t, err)
 		defer stageClose()
 	})
@@ -523,7 +525,7 @@ func TestCatalogStage(t *testing.T) {
 		assert.NotNil(t, component)
 		assert.Nil(t, err)
 
-		stageClose, err := catalog.Stage(component, "invalid-version")
+		stageClose, err := catalog.Stage(component, "invalid-version", ProgressClosure)
 		assert.NotNil(t, err)
 		defer stageClose()
 	})
@@ -533,7 +535,7 @@ func TestCatalogStage(t *testing.T) {
 		assert.NotNil(t, component)
 		assert.Nil(t, err)
 
-		stageClose, err := catalog.Stage(component, "99.99.99")
+		stageClose, err := catalog.Stage(component, "99.99.99", ProgressClosure)
 		assert.NotNil(t, err)
 		defer stageClose()
 	})
@@ -590,7 +592,7 @@ func (*testStage) Validate() error {
 	return nil
 }
 
-func newTestStage(name, artifactUrl string, size int64) (stage lwcomponent.Stager, err error) {
+func newTestStage(name, artifactUrl string, size int64, progressClosure func(string, int64)) (stage lwcomponent.Stager, err error) {
 	stage = &testStage{}
 
 	return
@@ -657,7 +659,7 @@ func TestCatalogInstall(t *testing.T) {
 		assert.NotNil(t, component)
 		assert.Nil(t, err)
 
-		stageClose, err := catalog.Stage(component, version)
+		stageClose, err := catalog.Stage(component, version, ProgressClosure)
 		assert.Nil(t, err)
 		defer stageClose()
 

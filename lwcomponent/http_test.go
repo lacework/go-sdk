@@ -33,7 +33,7 @@ func TestDownloadFile(t *testing.T) {
 	})
 
 	t.Run("happy path", func(t *testing.T) {
-		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, urlPath), 0)
+		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, urlPath))
 		assert.Nil(t, err)
 
 		buf, err := os.ReadFile(file.Name())
@@ -53,13 +53,13 @@ func TestDownloadFile(t *testing.T) {
 			}
 		})
 
-		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, "/err"), 0)
+		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, "/err"))
 		assert.NotNil(t, err)
 		assert.Equal(t, lwcomponent.DefaultMaxRetry+1, count)
 	})
 
 	t.Run("url error", func(t *testing.T) {
-		err = lwcomponent.DownloadFile(file.Name(), "", 0)
+		err = lwcomponent.DownloadFile(file.Name(), "")
 		assert.NotNil(t, err)
 		assert.False(t, os.IsTimeout(err))
 	})
