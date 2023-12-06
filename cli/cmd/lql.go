@@ -298,7 +298,7 @@ func inputQueryFromURL(url string) (query string, err error) {
 
 func inputQueryFromEditor(action string) (query string, err error) {
 	language := "LQL"
-	if action == "create" {
+	if action == "create" && cli.LwApi.V2.Query.RegoQueryEnabled() {
 		languageSelect := &survey.Select{
 			Message: "Choose query language to create: ",
 			Options: []string{

@@ -134,3 +134,12 @@ func (svc *QueryService) Get(id string) (
 	)
 	return
 }
+
+func (svc *QueryService) RegoQueryEnabled() bool {
+	response, err := svc.client.V2.FeatureFlags.GetFeatureFlagsMatchingPrefix("PUBLIC.lpp_rego_enabled")
+	if err != nil {
+		return false
+	}
+
+	return len(response.Data.Flags) >= 1
+}
