@@ -179,8 +179,14 @@ func writeHclOutput(hcl string, location string, cloud string) (string, error) {
 		return "", err
 	}
 
+	// check if output location exists and if it's a file
+	outputDirLocation, err := os.Stat(dirname)
+	if !os.IsNotExist(err) && !outputDirLocation.IsDir() {
+		return "", fmt.Errorf("output location %s already exists and is a file", dirname)
+	}
+
 	// Create directory, if needed
-	if location == "" {
+	if os.IsNotExist(err) {
 		directory := filepath.FromSlash(dirname)
 		if _, err := os.Stat(directory); os.IsNotExist(err) {
 			err = os.MkdirAll(directory, 0700)
@@ -210,12 +216,12 @@ func validateOutputLocation(dirname string) error {
 	// If output location was supplied, validate it exists
 	if dirname != "" {
 		outputLocation, err := os.Stat(dirname)
-		if err != nil {
+		if err != nil && !os.IsNotExist(err) {
 			return errors.Wrap(err, "could not access specified output location")
 		}
 
-		if !outputLocation.IsDir() {
-			return errors.New("output location must be a directory")
+		if err == nil && !outputLocation.IsDir() {
+			return errors.New("output location already exists and is a file")
 		}
 	}
 
