@@ -19,58 +19,47 @@
 package lwcomponent
 
 import (
-	"io"
-	"net/http"
+	"fmt"
 	"os"
+	"strconv"
 	"time"
+
+	"github.com/go-resty/resty/v2"
+	"github.com/lacework/go-sdk/lwlogger"
 )
 
 const (
-	defaultTimeout  = 30 * time.Second
-	defaultMaxRetry = 2
+	DefaultMaxRetry = 3
 )
 
-func DownloadFile(filepath string, url string, timeout time.Duration) (err error) {
-	if timeout == 0 {
-		timeout = defaultTimeout
+var log = lwlogger.New("INFO")
+
+// Retry 3 times (4 requests total)
+// Resty default RetryWaitTime is 100ms
+// Exponential backoff to a maximum of RetryWaitTime of 2s
+func DownloadFile(path string, url string) (err error) {
+	client := resty.New()
+
+	download_timeout := os.Getenv("CDK_DOWNLOAD_TIMEOUT_MINUTES")
+	if download_timeout != "" {
+		val, err := strconv.Atoi(download_timeout)
+
+		if err == nil {
+			client.SetTimeout(time.Duration(val) * time.Minute)
+		}
 	}
 
-	client := &http.Client{Timeout: timeout}
+	client.SetRetryCount(DefaultMaxRetry)
 
-	file, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	err = downloadFile(client, url, file)
-
-	for retry := 0; retry < defaultMaxRetry && os.IsTimeout(err); retry++ {
-		_, err = file.Seek(0, io.SeekStart)
-		if err != nil {
-			return err
+	client.OnError(func(req *resty.Request, err error) {
+		if v, ok := err.(*resty.ResponseError); ok {
+			log.Warn(fmt.Sprintf("Failed to download component: %s: %s", v.Response.Body(), v.Err))
 		}
 
-		err = downloadFile(client, url, file)
-	}
+		log.Warn(fmt.Sprintf("Failed to download component: %s", err.Error()))
+	})
 
-	return
-}
-
-// client.Get returns on receiving HTTP headers and we stream the HTTP data to the output file.
-// A timeout will interrupt io.Copy.
-func downloadFile(client *http.Client, url string, file *os.File) (err error) {
-	var (
-		resp *http.Response
-	)
-
-	resp, err = client.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	_, err = io.Copy(file, resp.Body)
+	_, err = client.R().SetOutput(path).Get(url)
 
 	return
 }
