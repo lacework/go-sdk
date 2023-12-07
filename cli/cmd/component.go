@@ -1149,7 +1149,7 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 		spinnerSuffix string  = ""
 	)
 
-	if cli.HumanOutput() {
+	if !cli.nonInteractive {
 		spinnerSuffix = cli.spinner.Suffix
 	}
 
@@ -1173,10 +1173,10 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 				mb := float64(size) / (1 << 20)
 
 				if mb > previous {
-					if cli.HumanOutput() {
+					if !cli.nonInteractive {
 						cli.spinner.Suffix = fmt.Sprintf("%s Downloaded: %.0fmb", spinnerSuffix, mb)
 					} else {
-						cli.OutputHuman("..Downloaded: %.0fmb", mb)
+						cli.OutputHuman("..Downloaded: %.0fmb\n", mb)
 					}
 
 					previous = mb
@@ -1185,10 +1185,10 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 				percent := float64(size) / float64(sizeB) * 100
 
 				if percent > previous {
-					if cli.HumanOutput() {
+					if !cli.nonInteractive {
 						cli.spinner.Suffix = fmt.Sprintf("%s Downloaded: %.0f%s", spinnerSuffix, percent, "%")
 					} else {
-						cli.OutputHuman("..Downloaded: %.0f%s", percent, "%")
+						cli.OutputHuman("..Downloaded: %.0f%s\n", percent, "%")
 					}
 
 					previous = percent
