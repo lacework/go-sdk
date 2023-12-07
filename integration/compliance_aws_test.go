@@ -204,7 +204,7 @@ func _TestComplianceAwsGetAllReportType(t *testing.T) {
 }
 func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", "AWS_CIS_14", "2.1.2")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", "AWS_CIS_14", "2.1.1")
 
 	assert.Contains(t, err.String(), "--type has been deprecated,")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
