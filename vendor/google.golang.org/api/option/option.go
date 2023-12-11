@@ -96,7 +96,9 @@ func (w withScopes) Apply(o *internal.DialSettings) {
 	copy(o.Scopes, w)
 }
 
-// WithUserAgent returns a ClientOption that sets the User-Agent.
+// WithUserAgent returns a ClientOption that sets the User-Agent. This option
+// is incompatible with the [WithHTTPClient] option. If you wish to provide a
+// custom client you will need to add this header via RoundTripper middleware.
 func WithUserAgent(ua string) ClientOption {
 	return withUA(ua)
 }
@@ -340,4 +342,17 @@ func (w *withCreds) Apply(o *internal.DialSettings) {
 // WithCredentials returns a ClientOption that authenticates API calls.
 func WithCredentials(creds *google.Credentials) ClientOption {
 	return (*withCreds)(creds)
+}
+
+// WithUniverseDomain returns a ClientOption that sets the universe domain.
+//
+// This is an EXPERIMENTAL API and may be changed or removed in the future.
+func WithUniverseDomain(ud string) ClientOption {
+	return withUniverseDomain(ud)
+}
+
+type withUniverseDomain string
+
+func (w withUniverseDomain) Apply(o *internal.DialSettings) {
+	o.UniverseDomain = string(w)
 }
