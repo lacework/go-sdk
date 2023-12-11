@@ -15,7 +15,7 @@ import (
 // Creates a new maintenance window. The value you specify for Duration determines
 // the specific end time for the maintenance window based on the time it begins. No
 // maintenance window tasks are permitted to start after the resulting endtime
-// minus the number of hours you specify for Cutoff. For example, if the
+// minus the number of hours you specify for Cutoff . For example, if the
 // maintenance window starts at 3 PM, the duration is three hours, and the value
 // you specify for Cutoff is one hour, no maintenance window tasks can start after
 // 5 PM.
@@ -55,7 +55,7 @@ type CreateMaintenanceWindowInput struct {
 	// The duration of the maintenance window in hours.
 	//
 	// This member is required.
-	Duration int32
+	Duration *int32
 
 	// The name of the maintenance window.
 	//
@@ -75,14 +75,14 @@ type CreateMaintenanceWindowInput struct {
 	Description *string
 
 	// The date and time, in ISO-8601 Extended format, for when you want the
-	// maintenance window to become inactive. EndDate allows you to set a date and time
-	// in the future when the maintenance window will no longer run.
+	// maintenance window to become inactive. EndDate allows you to set a date and
+	// time in the future when the maintenance window will no longer run.
 	EndDate *string
 
 	// The number of days to wait after the date and time specified by a cron
 	// expression before running the maintenance window. For example, the following
 	// cron expression schedules a maintenance window to run on the third Tuesday of
-	// every month at 11:30 PM. cron(30 23 ? * TUE#3 *) If the schedule offset is 2,
+	// every month at 11:30 PM. cron(30 23 ? * TUE#3 *) If the schedule offset is 2 ,
 	// the maintenance window won't run until two days later.
 	ScheduleOffset *int32
 
@@ -93,26 +93,20 @@ type CreateMaintenanceWindowInput struct {
 	ScheduleTimezone *string
 
 	// The date and time, in ISO-8601 Extended format, for when you want the
-	// maintenance window to become active. StartDate allows you to delay activation of
-	// the maintenance window until the specified future date.
+	// maintenance window to become active. StartDate allows you to delay activation
+	// of the maintenance window until the specified future date.
 	StartDate *string
 
-	// Optional metadata that you assign to a resource. Tags enable you to categorize a
-	// resource in different ways, such as by purpose, owner, or environment. For
+	// Optional metadata that you assign to a resource. Tags enable you to categorize
+	// a resource in different ways, such as by purpose, owner, or environment. For
 	// example, you might want to tag a maintenance window to identify the type of
 	// tasks it will run, the types of targets, and the environment it will run in. In
 	// this case, you could specify the following key-value pairs:
-	//
-	// *
-	// Key=TaskType,Value=AgentUpdate
-	//
-	// * Key=OS,Value=Windows
-	//
-	// *
-	// Key=Environment,Value=Production
-	//
-	// To add tags to an existing maintenance window,
-	// use the AddTagsToResource operation.
+	//   - Key=TaskType,Value=AgentUpdate
+	//   - Key=OS,Value=Windows
+	//   - Key=Environment,Value=Production
+	// To add tags to an existing maintenance window, use the AddTagsToResource
+	// operation.
 	Tags []types.Tag
 
 	noSmithyDocumentSerde
@@ -130,12 +124,22 @@ type CreateMaintenanceWindowOutput struct {
 }
 
 func (c *Client) addOperationCreateMaintenanceWindowMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpCreateMaintenanceWindow{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpCreateMaintenanceWindow{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateMaintenanceWindow"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -156,22 +160,22 @@ func (c *Client) addOperationCreateMaintenanceWindowMiddlewares(stack *middlewar
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opCreateMaintenanceWindowMiddleware(stack, options); err != nil {
@@ -183,6 +187,9 @@ func (c *Client) addOperationCreateMaintenanceWindowMiddlewares(stack *middlewar
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCreateMaintenanceWindow(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -190,6 +197,9 @@ func (c *Client) addOperationCreateMaintenanceWindowMiddlewares(stack *middlewar
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -232,7 +242,6 @@ func newServiceMetadataMiddleware_opCreateMaintenanceWindow(region string) *awsm
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "CreateMaintenanceWindow",
 	}
 }

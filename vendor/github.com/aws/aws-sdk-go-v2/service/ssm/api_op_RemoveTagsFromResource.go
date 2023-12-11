@@ -4,6 +4,7 @@ package ssm
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
@@ -30,14 +31,14 @@ func (c *Client) RemoveTagsFromResource(ctx context.Context, params *RemoveTagsF
 type RemoveTagsFromResourceInput struct {
 
 	// The ID of the resource from which you want to remove tags. For example:
-	// ManagedInstance: mi-012345abcde MaintenanceWindow: mw-012345abcde Automation:
+	// ManagedInstance: mi-012345abcde MaintenanceWindow: mw-012345abcde Automation :
 	// example-c160-4567-8519-012345abcde PatchBaseline: pb-012345abcde OpsMetadata
 	// object: ResourceID for tagging is created from the Amazon Resource Name (ARN)
 	// for the object. Specifically, ResourceID is created from the strings that come
 	// after the word opsmetadata in the ARN. For example, an OpsMetadata object with
 	// an ARN of
 	// arn:aws:ssm:us-east-2:1234567890:opsmetadata/aws/ssm/MyGroup/appmanager has a
-	// ResourceID of either aws/ssm/MyGroup/appmanager or /aws/ssm/MyGroup/appmanager.
+	// ResourceID of either aws/ssm/MyGroup/appmanager or /aws/ssm/MyGroup/appmanager .
 	// For the Document and Parameter values, use the name of the resource. The
 	// ManagedInstance type for this API operation is only for on-premises managed
 	// nodes. Specify the name of the managed node in the following format:
@@ -49,7 +50,7 @@ type RemoveTagsFromResourceInput struct {
 	// The type of resource from which you want to remove a tag. The ManagedInstance
 	// type for this API operation is only for on-premises managed nodes. Specify the
 	// name of the managed node in the following format: mi-ID_number . For example,
-	// mi-1a2b3c4d5e6f.
+	// mi-1a2b3c4d5e6f .
 	//
 	// This member is required.
 	ResourceType types.ResourceTypeForTagging
@@ -70,12 +71,22 @@ type RemoveTagsFromResourceOutput struct {
 }
 
 func (c *Client) addOperationRemoveTagsFromResourceMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpRemoveTagsFromResource{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpRemoveTagsFromResource{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "RemoveTagsFromResource"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -96,16 +107,13 @@ func (c *Client) addOperationRemoveTagsFromResourceMiddlewares(stack *middleware
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -114,10 +122,16 @@ func (c *Client) addOperationRemoveTagsFromResourceMiddlewares(stack *middleware
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpRemoveTagsFromResourceValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opRemoveTagsFromResource(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -129,6 +143,9 @@ func (c *Client) addOperationRemoveTagsFromResourceMiddlewares(stack *middleware
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -136,7 +153,6 @@ func newServiceMetadataMiddleware_opRemoveTagsFromResource(region string) *awsmi
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "RemoveTagsFromResource",
 	}
 }

@@ -4,6 +4,7 @@ package ssm
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
@@ -63,8 +64,8 @@ type GetDocumentOutput struct {
 	// The date the SSM document was created.
 	CreatedDate *time.Time
 
-	// The friendly name of the SSM document. This value can differ for each version of
-	// the document. If you want to update this value, see UpdateDocument.
+	// The friendly name of the SSM document. This value can differ for each version
+	// of the document. If you want to update this value, see UpdateDocument .
 	DisplayName *string
 
 	// The document format, either JSON or YAML.
@@ -92,8 +93,8 @@ type GetDocumentOutput struct {
 	// in review, or PENDING, at a time.
 	ReviewStatus types.ReviewStatus
 
-	// The status of the SSM document, such as Creating, Active, Updating, Failed, and
-	// Deleting.
+	// The status of the SSM document, such as Creating , Active , Updating , Failed ,
+	// and Deleting .
 	Status types.DocumentStatus
 
 	// A message returned by Amazon Web Services Systems Manager that explains the
@@ -114,12 +115,22 @@ type GetDocumentOutput struct {
 }
 
 func (c *Client) addOperationGetDocumentMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetDocument{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetDocument{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetDocument"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -140,16 +151,13 @@ func (c *Client) addOperationGetDocumentMiddlewares(stack *middleware.Stack, opt
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -158,10 +166,16 @@ func (c *Client) addOperationGetDocumentMiddlewares(stack *middleware.Stack, opt
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpGetDocumentValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetDocument(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -173,6 +187,9 @@ func (c *Client) addOperationGetDocumentMiddlewares(stack *middleware.Stack, opt
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -180,7 +197,6 @@ func newServiceMetadataMiddleware_opGetDocument(region string) *awsmiddleware.Re
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "GetDocument",
 	}
 }

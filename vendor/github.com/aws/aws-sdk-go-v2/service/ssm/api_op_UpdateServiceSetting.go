@@ -4,6 +4,7 @@ package ssm
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/smithy-go/middleware"
@@ -17,8 +18,8 @@ import (
 // team might create a default setting of "false". This means the user can't use
 // this feature unless they change the setting to "true" and intentionally opt in
 // for a paid feature. Services map a SettingId object to a setting value. Amazon
-// Web Services services teams define the default value for a SettingId. You can't
-// create a new SettingId, but you can overwrite the default value if you have the
+// Web Services services teams define the default value for a SettingId . You can't
+// create a new SettingId , but you can overwrite the default value if you have the
 // ssm:UpdateServiceSetting permission for the setting. Use the GetServiceSetting
 // API operation to view the current value. Or, use the ResetServiceSetting to
 // change the value back to the original value defined by the Amazon Web Services
@@ -41,57 +42,39 @@ func (c *Client) UpdateServiceSetting(ctx context.Context, params *UpdateService
 // The request body of the UpdateServiceSetting API operation.
 type UpdateServiceSettingInput struct {
 
-	// The Amazon Resource Name (ARN) of the service setting to reset. For example,
-	// arn:aws:ssm:us-east-1:111122223333:servicesetting/ssm/parameter-store/high-throughput-enabled.
-	// The setting ID can be one of the following.
-	//
-	// *
-	// /ssm/automation/customer-script-log-destination
-	//
-	// *
-	// /ssm/automation/customer-script-log-group-name
-	//
-	// *
-	// /ssm/documents/console/public-sharing-permission
-	//
-	// *
-	// /ssm/managed-instance/activation-tier
-	//
-	// * /ssm/opsinsights/opscenter
-	//
-	// *
-	// /ssm/parameter-store/default-parameter-tier
-	//
-	// *
-	// /ssm/parameter-store/high-throughput-enabled
+	// The Amazon Resource Name (ARN) of the service setting to update. For example,
+	// arn:aws:ssm:us-east-1:111122223333:servicesetting/ssm/parameter-store/high-throughput-enabled
+	// . The setting ID can be one of the following.
+	//   - /ssm/managed-instance/default-ec2-instance-management-role
+	//   - /ssm/automation/customer-script-log-destination
+	//   - /ssm/automation/customer-script-log-group-name
+	//   - /ssm/documents/console/public-sharing-permission
+	//   - /ssm/managed-instance/activation-tier
+	//   - /ssm/opsinsights/opscenter
+	//   - /ssm/parameter-store/default-parameter-tier
+	//   - /ssm/parameter-store/high-throughput-enabled
+	// Permissions to update the
+	// /ssm/managed-instance/default-ec2-instance-management-role setting should only
+	// be provided to administrators. Implement least privilege access when allowing
+	// individuals to configure or modify the Default Host Management Configuration.
 	//
 	// This member is required.
 	SettingId *string
 
 	// The new value to specify for the service setting. The following list specifies
 	// the available values for each setting.
-	//
-	// *
-	// /ssm/automation/customer-script-log-destination: CloudWatch
-	//
-	// *
-	// /ssm/automation/customer-script-log-group-name: the name of an Amazon CloudWatch
-	// Logs log group
-	//
-	// * /ssm/documents/console/public-sharing-permission: Enable or
-	// Disable
-	//
-	// * /ssm/managed-instance/activation-tier: standard or advanced
-	//
-	// *
-	// /ssm/opsinsights/opscenter: Enabled or Disabled
-	//
-	// *
-	// /ssm/parameter-store/default-parameter-tier: Standard, Advanced,
-	// Intelligent-Tiering
-	//
-	// * /ssm/parameter-store/high-throughput-enabled: true or
-	// false
+	//   - For /ssm/managed-instance/default-ec2-instance-management-role , enter the
+	//   name of an IAM role.
+	//   - For /ssm/automation/customer-script-log-destination , enter CloudWatch .
+	//   - For /ssm/automation/customer-script-log-group-name , enter the name of an
+	//   Amazon CloudWatch Logs log group.
+	//   - For /ssm/documents/console/public-sharing-permission , enter Enable or
+	//   Disable .
+	//   - For /ssm/managed-instance/activation-tier , enter standard or advanced .
+	//   - For /ssm/opsinsights/opscenter , enter Enabled or Disabled .
+	//   - For /ssm/parameter-store/default-parameter-tier , enter Standard , Advanced
+	//   , or Intelligent-Tiering
+	//   - For /ssm/parameter-store/high-throughput-enabled , enter true or false .
 	//
 	// This member is required.
 	SettingValue *string
@@ -108,12 +91,22 @@ type UpdateServiceSettingOutput struct {
 }
 
 func (c *Client) addOperationUpdateServiceSettingMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpUpdateServiceSetting{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpUpdateServiceSetting{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "UpdateServiceSetting"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -134,16 +127,13 @@ func (c *Client) addOperationUpdateServiceSettingMiddlewares(stack *middleware.S
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -152,10 +142,16 @@ func (c *Client) addOperationUpdateServiceSettingMiddlewares(stack *middleware.S
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = addOpUpdateServiceSettingValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opUpdateServiceSetting(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -167,6 +163,9 @@ func (c *Client) addOperationUpdateServiceSettingMiddlewares(stack *middleware.S
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -174,7 +173,6 @@ func newServiceMetadataMiddleware_opUpdateServiceSetting(region string) *awsmidd
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "UpdateServiceSetting",
 	}
 }

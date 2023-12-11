@@ -15,7 +15,7 @@ import (
 // Lists your resource data sync configurations. Includes information about the
 // last time a sync attempted to start, the last sync status, and the last time a
 // sync successfully completed. The number of sync configurations might be too
-// large to return using a single call to ListResourceDataSync. You can limit the
+// large to return using a single call to ListResourceDataSync . You can limit the
 // number of sync configurations returned by using the MaxResults parameter. To
 // determine whether there are more sync configurations to list, check the value of
 // NextToken in the output. If there are more sync configurations to list, you can
@@ -47,8 +47,8 @@ type ListResourceDataSyncInput struct {
 
 	// View a list of resource data syncs according to the sync type. Specify
 	// SyncToDestination to view resource data syncs that synchronize data to an Amazon
-	// S3 bucket. Specify SyncFromSource to view resource data syncs from Organizations
-	// or from multiple Amazon Web Services Regions.
+	// S3 bucket. Specify SyncFromSource to view resource data syncs from
+	// Organizations or from multiple Amazon Web Services Regions.
 	SyncType *string
 
 	noSmithyDocumentSerde
@@ -70,12 +70,22 @@ type ListResourceDataSyncOutput struct {
 }
 
 func (c *Client) addOperationListResourceDataSyncMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpListResourceDataSync{}, middleware.After)
 	if err != nil {
 		return err
 	}
 	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpListResourceDataSync{}, middleware.After)
 	if err != nil {
+		return err
+	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ListResourceDataSync"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
@@ -96,16 +106,13 @@ func (c *Client) addOperationListResourceDataSyncMiddlewares(stack *middleware.S
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
 	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -114,7 +121,13 @@ func (c *Client) addOperationListResourceDataSyncMiddlewares(stack *middleware.S
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListResourceDataSync(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -124,6 +137,9 @@ func (c *Client) addOperationListResourceDataSyncMiddlewares(stack *middleware.S
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -225,7 +241,6 @@ func newServiceMetadataMiddleware_opListResourceDataSync(region string) *awsmidd
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "ListResourceDataSync",
 	}
 }
