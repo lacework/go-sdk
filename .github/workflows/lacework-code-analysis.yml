@@ -1,4 +1,4 @@
-name: code-analysis-sca
+name: Lacework Code Analysis
 
 on:
   pull_request:
@@ -32,7 +32,6 @@ jobs:
         uses: lacework/code-security-action@v1
         with:
           target: ${{ matrix.target }}
-          tools: sca
   display-results:
     runs-on: ubuntu-latest
     name: Display results
@@ -43,5 +42,4 @@ jobs:
         id: code-analysis
         uses: lacework/code-security-action@v1
         with:
-          tools: sca
           token: ${{ secrets.GITHUB_TOKEN }}
