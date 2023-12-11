@@ -18,6 +18,8 @@
 
 package api
 
+import "strings"
+
 // ReportsService is a service that interacts with the Reports
 // endpoints from the Lacework APIv2 Server
 type ReportsService struct {
@@ -107,6 +109,15 @@ func (r *RecommendationV2) SeverityString() string {
 	default:
 		return "Unknown"
 	}
+}
+
+func (r *RecommendationV2) PolicyID() string {
+	var policy string
+	linkString := strings.Split(r.InfoLink, "policies/")
+	if len(linkString) > 1 {
+		policy = linkString[1]
+	}
+	return policy
 }
 
 type CloudComplianceReportV2 interface {

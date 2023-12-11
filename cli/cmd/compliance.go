@@ -182,6 +182,7 @@ func complianceReportRecommendationsTable(recommendations []api.RecommendationV2
 	for _, recommend := range recommendations {
 		out = append(out, []string{
 			recommend.RecID,
+			recommend.PolicyID(),
 			recommend.Title,
 			recommend.Status,
 			recommend.SeverityString(),
@@ -192,7 +193,7 @@ func complianceReportRecommendationsTable(recommendations []api.RecommendationV2
 	}
 
 	sort.Slice(out, func(i, j int) bool {
-		return api.SeverityOrder(out[i][3]) < api.SeverityOrder(out[j][3])
+		return api.SeverityOrder(out[i][4]) < api.SeverityOrder(out[j][4])
 	})
 
 	return out
@@ -350,7 +351,7 @@ func buildComplianceReportTable(
 	if compCmdState.Details || complianceFiltersEnabled() {
 		mainReport.WriteString(
 			renderCustomTable(
-				[]string{"ID", "Recommendation", "Status", "Severity",
+				[]string{"ID", "Policy", "Recommendation", "Status", "Severity",
 					"Service", "Affected", "Assessed"},
 				recommendationsTable,
 				tableFunc(func(t *tablewriter.Table) {
@@ -471,6 +472,7 @@ func outputResourcesByRecommendationID(report api.CloudComplianceReportV2) error
 			renderCustomTable([]string{},
 				[][]string{
 					{"ID", compCmdState.RecommendationID},
+					{"POLICY", recommendation.PolicyID()},
 					{"SEVERITY", recommendation.SeverityString()},
 					{"SERVICE", recommendation.Service},
 					{"CATEGORY", recommendation.Category},
