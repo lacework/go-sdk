@@ -27,7 +27,6 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/internal/pointer"
 	"github.com/lacework/go-sdk/lwseverity"
 
 	"github.com/lacework/go-sdk/api"
@@ -129,7 +128,6 @@ var (
 		PolicyID:      regoPolicyId,
 		PolicyType:    "Violation",
 		QueryID:       "MyRegoQuery",
-		QueryLanguage: pointer.Of("Rego"),
 		Title:         "My Rego Policy Title",
 		Enabled:       false,
 		Description:   "My Policy Description",
@@ -144,7 +142,6 @@ var (
 	"policyId": "%s",
 	"policyType": "%s",
 	"queryId": "%s",
-	"queryLanguage": "%s",
 	"title": "%s",
 	"enabled": %v,
 	"description": "%s",
@@ -154,7 +151,7 @@ var (
 	"limit": %d,
 	"alertEnabled": %v,
 	"alertProfile": "%s"
-}`, regoPolicy.PolicyID, regoPolicy.PolicyType, regoPolicy.QueryID, *regoPolicy.QueryLanguage, regoPolicy.Title,
+}`, regoPolicy.PolicyID, regoPolicy.PolicyType, regoPolicy.QueryID, regoPolicy.Title,
 		regoPolicy.Enabled, regoPolicy.Description, regoPolicy.Remediation, regoPolicy.Severity,
 		regoPolicy.EvalFrequency, regoPolicy.Limit, regoPolicy.AlertEnabled, regoPolicy.AlertProfile)
 )
@@ -192,8 +189,8 @@ func TestPolicyCreateMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func testPolicyCreateOKHelper(t *testing.T, expectedPolicyData string, testPolicy api.NewPolicy) {
-	mockResponse := mockPolicyDataResponse(expectedPolicyData)
+func TestLqlPolicyCreateOK(t *testing.T) {
+	mockResponse := mockPolicyDataResponse(policyCreateData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -213,17 +210,9 @@ func testPolicyCreateOKHelper(t *testing.T, expectedPolicyData string, testPolic
 	createExpected := api.PolicyResponse{}
 	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
 
-	createActual, err := c.V2.Policy.Create(testPolicy)
+	createActual, err := c.V2.Policy.Create(newPolicy)
 	assert.Nil(t, err)
 	assert.Equal(t, createExpected, createActual)
-}
-
-func TestLqlPolicyCreateOK(t *testing.T) {
-	testPolicyCreateOKHelper(t, policyCreateData, newPolicy)
-}
-
-func TestRegoPolicyCreateOK(t *testing.T) {
-	testPolicyCreateOKHelper(t, regoPolicyCreateData, regoPolicy)
 }
 
 func TestPolicyCreateError(t *testing.T) {

@@ -529,7 +529,7 @@ func showPolicy(_ *cobra.Command, args []string) error {
 	}
 
 	if cli.YAMLOutput() {
-		return cli.OutputYAML(&api.NewPolicy{
+		return cli.OutputYAML(&api.Policy{
 			PolicyID:      policyResponse.Data.PolicyID,
 			PolicyType:    policyResponse.Data.PolicyType,
 			QueryID:       policyResponse.Data.QueryID,
