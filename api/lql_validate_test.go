@@ -24,9 +24,11 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
-	"github.com/stretchr/testify/assert"
+	"github.com/lacework/go-sdk/internal/pointer"
 )
 
 var (
@@ -56,8 +58,8 @@ func TestQueryValidateMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestQueryValidateOK(t *testing.T) {
-	mockResponse := mockQueryDataResponse(newQueryJSON)
+func testQueryValidateOKHelper(t *testing.T, expectedResponseData string, testQuery api.ValidateQuery) {
+	mockResponse := mockQueryDataResponse(expectedResponseData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -78,9 +80,21 @@ func TestQueryValidateOK(t *testing.T) {
 	_ = json.Unmarshal([]byte(mockResponse), &validateExpected)
 
 	var validateActual api.QueryResponse
-	validateActual, err = c.V2.Query.Validate(validateQuery)
+	validateActual, err = c.V2.Query.Validate(testQuery)
 	assert.Nil(t, err)
 	assert.Equal(t, validateExpected, validateActual)
+}
+
+func TestLQLQueryValidateOK(t *testing.T) {
+	testQueryValidateOKHelper(t, newQueryJSON, validateQuery)
+}
+
+func TestRegoQueryValidateOK(t *testing.T) {
+	validateRegoQuery := api.ValidateQuery{
+		QueryText:     newRegoQueryText,
+		QueryLanguage: pointer.Of("Rego"),
+	}
+	testQueryValidateOKHelper(t, newRegoQueryJSON, validateRegoQuery)
 }
 
 func TestQueryValidateError(t *testing.T) {
