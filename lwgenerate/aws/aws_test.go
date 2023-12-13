@@ -377,6 +377,7 @@ var requiredProviders = `terraform {
 `
 
 var awsProvider = `provider "aws" {
+  alias  = "main"
   region = "us-east-2"
 }
 `
