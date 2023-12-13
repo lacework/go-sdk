@@ -25,6 +25,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 2
+      # TODO: remove once Semgrep is packaged in SAST
+      - run: python3 -m pip install semgrep==1.50.0
       - name: Checkout old
         if: ${{ matrix.target == 'old' }}
         run: git checkout HEAD^1
