@@ -22,10 +22,12 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/array"
 	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/lacework/go-sdk/lwtime"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
@@ -54,9 +56,41 @@ with fixes:
 			if err := validateSeverityFlags(); err != nil {
 				return err
 			}
+			var (
+				filter api.SearchFilter
+				start  time.Time
+				end    time.Time
+				err    error
+			)
+
+			if vulCmdState.Range != "" {
+				cli.Log.Debugw("retrieving natural time range", "range", vulCmdState.Range)
+				start, end, err = lwtime.ParseNatural(vulCmdState.Range)
+				if err != nil {
+					return errors.Wrap(err, "unable to parse natural time range")
+				}
+
+			} else {
+				cli.Log.Debugw("parsing start time", "start", vulCmdState.Start)
+				start, err = parseQueryTime(vulCmdState.Start)
+				if err != nil {
+					return errors.Wrap(err, "unable to parse start time")
+				}
+
+				cli.Log.Debugw("parsing end time", "end", vulCmdState.End)
+				end, err = parseQueryTime(vulCmdState.End)
+				if err != nil {
+					return errors.Wrap(err, "unable to parse end time")
+				}
+			}
+
+			filter.TimeFilter = &api.TimeFilter{
+				StartTime: &start,
+				EndTime:   &end,
+			}
 
 			cli.StartProgress("Fetching CVEs in your environment...")
-			response, err := cli.LwApi.V2.Vulnerabilities.Hosts.SearchAllPages(api.SearchFilter{})
+			response, err := cli.LwApi.V2.Vulnerabilities.Hosts.SearchAllPages(filter)
 			cli.StopProgress()
 			if err != nil {
 				return errors.Wrap(err, "unable to get CVEs from hosts")

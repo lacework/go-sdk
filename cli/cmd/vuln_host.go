@@ -87,6 +87,7 @@ func init() {
 	)
 
 	setTimeRangeFlags(
+		vulHostListCvesCmd.Flags(),
 		vulHostListHostsCmd.Flags(),
 	)
 
