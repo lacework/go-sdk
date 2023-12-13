@@ -25,9 +25,10 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/lacework/go-sdk/internal/array"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
+
+	"github.com/lacework/go-sdk/internal/array"
 )
 
 // PolicyService is a service that interacts with the Custom Policies
@@ -171,24 +172,26 @@ func ParseUpdatePolicy(s string) (UpdatePolicy, error) {
 	return policy, errors.New("policy must be valid JSON or YAML")
 }
 
+type ExceptionConfigMap map[string][]PolicyExceptionConfigurationConstraints
 type Policy struct {
-	PolicyID               string                                               `json:"policyId" yaml:"policyId"`
-	PolicyType             string                                               `json:"policyType" yaml:"-"`
-	QueryID                string                                               `json:"queryId" yaml:"queryId"`
-	Title                  string                                               `json:"title" yaml:"title"`
-	Enabled                bool                                                 `json:"enabled" yaml:"enabled"`
-	Description            string                                               `json:"description" yaml:"description"`
-	Remediation            string                                               `json:"remediation" yaml:"remediation"`
-	Severity               string                                               `json:"severity" yaml:"severity"`
-	Limit                  int                                                  `json:"limit" yaml:"limit"`
-	EvalFrequency          string                                               `json:"evalFrequency" yaml:"evalFrequency"`
-	AlertEnabled           bool                                                 `json:"alertEnabled" yaml:"alertEnabled"`
-	AlertProfile           string                                               `json:"alertProfile" yaml:"alertProfile"`
-	Tags                   []string                                             `json:"tags" yaml:"tags"`
-	Owner                  string                                               `json:"owner" yaml:"-"`
-	LastUpdateTime         string                                               `json:"lastUpdateTime" yaml:"-"`
-	LastUpdateUser         string                                               `json:"lastUpdateUser" yaml:"-"`
-	ExceptionConfiguration map[string][]PolicyExceptionConfigurationConstraints `json:"exceptionConfiguration" yaml:"-"`
+	PolicyID               string             `json:"policyId" yaml:"policyId"`
+	PolicyType             string             `json:"policyType" yaml:"-"`
+	QueryID                string             `json:"queryId" yaml:"queryId"`
+	QueryLanguage          *string            `json:"queryLanguage,omitempty" yaml:"queryLanguage,omitempty"`
+	Title                  string             `json:"title" yaml:"title"`
+	Enabled                bool               `json:"enabled" yaml:"enabled"`
+	Description            string             `json:"description" yaml:"description"`
+	Remediation            string             `json:"remediation" yaml:"remediation"`
+	Severity               string             `json:"severity" yaml:"severity"`
+	Limit                  int                `json:"limit" yaml:"limit"`
+	EvalFrequency          string             `json:"evalFrequency" yaml:"evalFrequency"`
+	AlertEnabled           bool               `json:"alertEnabled" yaml:"alertEnabled"`
+	AlertProfile           string             `json:"alertProfile" yaml:"alertProfile"`
+	Tags                   []string           `json:"tags" yaml:"tags"`
+	Owner                  string             `json:"owner" yaml:"-"`
+	LastUpdateTime         string             `json:"lastUpdateTime" yaml:"-"`
+	LastUpdateUser         string             `json:"lastUpdateUser" yaml:"-"`
+	ExceptionConfiguration ExceptionConfigMap `json:"exceptionConfiguration" yaml:"-"`
 }
 
 type PolicyExceptionConfigurationConstraints struct {
