@@ -750,11 +750,11 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 	blocks := []*hclwrite.Block{}
 
 	attributes := map[string]interface{}{
+		"alias":  "main",
 		"region": args.AwsRegion,
 	}
 
 	if args.AwsProfile != "" {
-		attributes["alias"] = "main"
 		attributes["profile"] = args.AwsProfile
 	}
 

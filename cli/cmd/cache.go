@@ -28,6 +28,7 @@ import (
 	"github.com/lacework/go-sdk/internal/format"
 	"github.com/mitchellh/hashstructure/v2"
 	"github.com/peterbourgon/diskv/v3"
+	"github.com/pkg/errors"
 )
 
 const MaxCacheSize = 1024 * 1024 * 1024
@@ -163,7 +164,7 @@ func (c *cliState) WriteCachedToken() error {
 	if c.Token == "" || c.cachedTokenExpiryEminent() {
 		response, err := c.LwApi.GenerateToken()
 		if err != nil {
-			return err
+			return errors.New("Failed to generate token. Validate your credentials are properly configured and not expired.")
 		}
 
 		c.Log.Debugw("saving token",
