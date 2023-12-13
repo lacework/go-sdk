@@ -108,10 +108,8 @@ func searchLastestEvaluationGuid(sha string) (string, error) {
 		// provided sha was not an image digest, try using it as an image id instead
 		cli.Log.Infow("retrieve image assessment", "image_id", sha)
 		assessment, err = cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(api.SearchFilter{
-			TimeFilter: &api.TimeFilter{
-				StartTime: &before,
-				EndTime:   &now,
-			},
+			Returns:    filter.Returns,
+			TimeFilter: filter.TimeFilter,
 			Filters: []api.Filter{{
 				Expression: "eq",
 				Field:      "evalCtx.image_info.id",
