@@ -204,20 +204,27 @@ type cliAsset struct {
 	ExpiresAt time.Time   `json:"expires_at"`
 }
 
-// WriteAssetToCache stores an asset with an expiration time
+// writeAssetToCache stores an asset with an expiration time and returns errors
 //
 // Simple Example: Having a struct named vulnReport
 //
 // ```go
 // cli.WriteAssetToCache("my-report", time.Now().Add(time.Hour * 1), vulnReport{Foo: "bar"})
 // ```
-func (c *cliState) WriteAssetToCache(key string, expiresAt time.Time, data interface{}) {
+// writeAssetToCache stores an asset with an expiration time
+//
+// Simple Example: Having a struct named vulnReport
+//
+// ```go
+// cli.WriteAssetToCache("my-report", time.Now().Add(time.Hour * 1), vulnReport{Foo: "bar"})
+// ```
+func (c *cliState) writeAssetToCache(key string, expiresAt time.Time, data interface{}) error {
 	if c.noCache {
-		return
+		return nil
 	}
 
 	if expiresAt.Before(time.Now()) {
-		return // avoid writing assets that are already expired
+		return nil // avoid writing assets that are already expired
 	}
 
 	c.Log.Debugw("saving asset",
@@ -226,7 +233,12 @@ func (c *cliState) WriteAssetToCache(key string, expiresAt time.Time, data inter
 		"data", data,
 		"expires_at", expiresAt,
 	)
-	err := c.Cache.Write(key, structToString(cliAsset{data, expiresAt}))
+	return c.Cache.Write(key, structToString(cliAsset{data, expiresAt}))
+}
+
+// WriteAssetToCache wraps WriteAssetToCacheErroring and squashes errors
+func (c *cliState) WriteAssetToCache(key string, expiresAt time.Time, data interface{}) {
+	err := c.writeAssetToCache(key, expiresAt, data)
 	if err != nil {
 		c.Log.Warnw("unable to write asset in cache",
 			"feature", "cache",

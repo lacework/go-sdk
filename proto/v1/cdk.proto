@@ -18,6 +18,8 @@
 
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 // defines the go package that will be generated with protoc
 option go_package = "lacework/go-sdk/cli/cdk/proto/v1;cdk";
 
@@ -31,6 +33,12 @@ service Core {
 
   // Sends a Honeyvent
   rpc Honeyvent(HoneyventRequest) returns (Reply) {}
+
+  // Read from CLI cache
+  rpc ReadCache(ReadCacheRequest) returns (ReadCacheResponse) {}
+
+  // Write to CLI cache
+  rpc WriteCache(WriteCacheRequest) returns (WriteCacheResult) {}
 }
 
 message PingRequest {
@@ -52,3 +60,31 @@ message HoneyventRequest {
   int64 duration_ms = 4;
 }
 
+// WriteCacheRequest is used to submit data that should be written to cache, included its expiry
+message WriteCacheRequest {
+  // name of the cache key to write
+  string key = 1;
+  bytes data = 2;
+  google.protobuf.Timestamp expires = 3;
+}
+
+// ReadCacheRequest is used to fetch data from the cache
+message ReadCacheRequest {
+  // name of the cache key to read
+  string key = 1;
+}
+
+// ReadCacheResponse is the response type after a ReadCacheRequest is made
+message ReadCacheResponse {
+  // hit is true when data was found, false otherwise
+  bool hit = 1;
+  // empty if cache miss (hit == false)
+  bytes data = 2; 
+}
+
+// WriteCacheResult is the response type after a WriteCacheRequest is made
+message WriteCacheResult {
+  bool error = 1;
+  // message stores the error body if error == true, otherwise empty
+  string message = 2;
+}

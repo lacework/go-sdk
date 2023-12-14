@@ -189,6 +189,17 @@ func TestComponentDevModeGolangFromScratch(t *testing.T) {
 		assert.Contains(t, out.String(), fmt.Sprintf("> %s v0.0.0-dev", cName),
 			"the test component SHOULD be shown in version command, check!")
 	})
+
+	t.Run("execute component to test cache", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, cName, "writecache")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+
+		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "readcache")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Contains(t, out.String(), "data data data")
+	})
 }
 
 func TestComponentDevModeGolangScaffolding(t *testing.T) {

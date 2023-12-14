@@ -148,7 +148,7 @@ fmt-check: ## Lists formatting issues
 
 .PHONY: imports-check
 imports-check: ## Lists imports issues
-	@test -z $(shell goimports -l $(shell go list -f {{.Dir}} ./... | grep -v proto))
+	@test -z $(shell goimports -l $(shell find . -type f -name '*.go' -not -path './vendor/*' -not -path './cli/cdk/go/proto/*'))
 
 .PHONY: run-api-example
 run-api-example: ## Run an API example like 'make run-api-example example=api/_examples/active-containers/main.go'
@@ -185,6 +185,20 @@ test-resources: ## *CI ONLY* Prepares CI test containers
 
 go-component-from := integration/test_resources/cdk/go-component/bin/go-component
 go-component-to := ~/.config/lacework/components/go-component/go-component
+
+.PHONY: cdk-go-component-ci
+cdk-go-component-ci: ## Creates a go-component for development
+	scripts/prepare_test_resources.sh go_component
+	mkdir -p $(shell dirname $(go-component-to))
+	echo '{"name":"go-component","description":"(dev-mode) A go-component for development","type":"CLI_COMMAND","artifacts":[],"breadcrumbs":{},"version":"0.0.0-dev"}' \
+		> $(shell dirname $(go-component-to))/.dev
+ifeq (x86_64, $(shell uname -m))
+	cp $(go-component-from)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-amd64 $(go-component-to)
+else ifeq (arm64, $(shell uname -m))
+	cp $(go-component-from)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-arm64 $(go-component-to)
+else
+	cp $(go-component-from)-$(shell uname -s | tr '[:upper:]' '[:lower:]')-386 $(go-component-to)
+endif
 
 .PHONY: cdk-go-component
 cdk-go-component: install-cli ## Creates a go-component for development
