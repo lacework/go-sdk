@@ -115,8 +115,8 @@ func app() error {
 		if err != nil {
 			return err
 		}
-		if !r.Success {
-			return fmt.Errorf("failed to write to cache: %s", *r.Msg)
+		if r.Error {
+			return fmt.Errorf("failed to write to cache: %s", r.Message)
 		}
 		return nil
 

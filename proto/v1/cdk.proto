@@ -60,22 +60,31 @@ message HoneyventRequest {
   int64 duration_ms = 4;
 }
 
+// WriteCacheRequest is used to submit data that should be written to cache, included its expiry
 message WriteCacheRequest {
+  // name of the cache key to write
   string key = 1;
   bytes data = 2;
   google.protobuf.Timestamp expires = 3;
 }
 
+// ReadCacheRequest is used to fetch data from the cache
 message ReadCacheRequest {
+  // name of the cache key to read
   string key = 1;
 }
 
+// ReadCacheResponse is the response type after a ReadCacheRequest is made
 message ReadCacheResponse {
-  bool miss = 1;
-  optional bytes data = 2; // body is empty if cache miss
+  // hit is true when data was found, false otherwise
+  bool hit = 1;
+  // empty if cache miss (hit == false)
+  bytes data = 2; 
 }
 
+// WriteCacheResult is the response type after a WriteCacheRequest is made
 message WriteCacheResult {
-  bool success = 1;
-  optional string msg = 2; // error message is empty if success true
+  bool error = 1;
+  // message stores the error body if error == true, otherwise empty
+  string message = 2;
 }

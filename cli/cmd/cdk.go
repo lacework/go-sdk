@@ -69,10 +69,11 @@ func (c *cliState) ReadCache(ctx context.Context, in *cdk.ReadCacheRequest) (*cd
 
 	var data []byte
 	if !c.ReadCachedAsset(in.Key, &data) { // not expired
-		return &cdk.ReadCacheResponse{Miss: false, Data: data}, nil
+		return &cdk.ReadCacheResponse{Hit: true, Data: data}, nil
 	}
 	return &cdk.ReadCacheResponse{
-		Miss: true,
+		Hit:  false,
+		Data: nil,
 	}, nil
 }
 
@@ -84,9 +85,9 @@ func (c *cliState) WriteCache(ctx context.Context, in *cdk.WriteCacheRequest) (*
 	err := c.writeAssetToCache(in.Key, in.Expires.AsTime(), in.Data)
 	if err != nil {
 		msg := err.Error()
-		return &cdk.WriteCacheResult{Success: false, Msg: &msg}, nil
+		return &cdk.WriteCacheResult{Error: true, Message: msg}, nil
 	}
-	return &cdk.WriteCacheResult{Success: true}, nil
+	return &cdk.WriteCacheResult{Error: false, Message: ""}, nil
 }
 
 // Ping implements CDK.Ping
