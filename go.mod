@@ -59,6 +59,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-git/go-git/v5 v5.5.2
 	github.com/go-resty/resty/v2 v2.10.0
+	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/consul/sdk v0.13.1
 	github.com/mattn/go-isatty v0.0.18
@@ -101,7 +102,6 @@ require (
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.4.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
