@@ -13,13 +13,15 @@ Generate code to onboard your account
 Generate code to onboard your account and deploy Lacework into various cloud environments.
 
 This command creates Infrastructure as Code (IaC) in the form of Terraform HCL, with the option of running
-Terraform and deploying Lacework into AWS, Azure, or GCP.
+Terraform and deploying Lacework into AWS, Azure, GCP or OCI.
 
 
 ### Options
 
 ```
-  -h, --help   help for generate
+      --apply           run terraform apply without executing plan or prompting
+  -h, --help            help for generate
+      --output string   location to write generated content
 ```
 
 ### Options inherited from parent commands

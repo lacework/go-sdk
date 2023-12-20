@@ -31,7 +31,7 @@ var (
 		Long: `Generate code to onboard your account and deploy Lacework into various cloud environments.
 
 This command creates Infrastructure as Code (IaC) in the form of Terraform HCL, with the option of running
-Terraform and deploying Lacework into AWS, Azure, or GCP.
+Terraform and deploying Lacework into AWS, Azure, GCP or OCI.
 `,
 	}
 )
@@ -50,6 +50,18 @@ func init() {
 
 	// aws subcommands
 	generateAwsTfCommand.AddCommand(generateAwsControlTowerTfCommand)
+
+	// Common flags
+	generateTfCommand.PersistentFlags().Bool(
+		"apply",
+		false,
+		"run terraform apply without executing plan or prompting",
+	)
+	generateTfCommand.PersistentFlags().String(
+		"output",
+		"",
+		"location to write generated content",
+	)
 }
 
 type SurveyQuestionWithValidationArgs struct {
