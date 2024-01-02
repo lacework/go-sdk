@@ -48,6 +48,13 @@ func NewExistingCrossAccountIamRoleDetails(arn string, externalId string) *Exist
 
 type GenerateAwsEksAuditTfConfigurationArgs struct {
 
+	// Use Existing Required Providers
+	// disable writing required_providers block
+	UseExistingRequiredProviders bool
+
+	// Add prefix to provider alias names
+	ProviderAliasPrefix string
+
 	// Supply an AWS Profile name
 	AwsProfile string
 
@@ -331,6 +338,20 @@ func WithPrefix(prefix string) AwsEksAuditTerraformModifier {
 	}
 }
 
+// WithExistingRequiredProviders disables writing required_providers in output
+func WithExistingRequiredProviders() AwsEksAuditTerraformModifier {
+	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
+		c.UseExistingRequiredProviders = true
+	}
+}
+
+// WithProviderAliasPrefix set the prefix to prepend to provider alias names
+func WithProviderAliasPrefix(prefix string) AwsEksAuditTerraformModifier {
+	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
+		c.ProviderAliasPrefix = prefix
+	}
+}
+
 // WithParsedRegionClusterMap Set the region cluster map.
 // This is a list of clusters per AWS region
 func WithParsedRegionClusterMap(regionClusterMap map[string][]string) AwsEksAuditTerraformModifier {
@@ -383,7 +404,7 @@ func (args *GenerateAwsEksAuditTfConfigurationArgs) Generate() (string, error) {
 	}
 
 	// Create blocks
-	requiredProviders, err := createRequiredProviders()
+	requiredProviders, err := createRequiredProviders(args)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
@@ -416,7 +437,10 @@ func (args *GenerateAwsEksAuditTfConfigurationArgs) Generate() (string, error) {
 	return hclBlocks, nil
 }
 
-func createRequiredProviders() (*hclwrite.Block, error) {
+func createRequiredProviders(args *GenerateAwsEksAuditTfConfigurationArgs) (*hclwrite.Block, error) {
+	if args.UseExistingRequiredProviders {
+		return nil, nil
+	}
 	return lwgenerate.CreateRequiredProviders(
 		lwgenerate.NewRequiredProvider("lacework",
 			lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
@@ -433,56 +457,45 @@ func populateParsedRegionsList(args *GenerateAwsEksAuditTfConfigurationArgs) {
 		sort.Strings(args.ParsedRegionsList)
 	}
 }
+func createProviderAlias(args *GenerateAwsEksAuditTfConfigurationArgs, baseName string) string {
+	aliasName := baseName
+	if args.ProviderAliasPrefix != "" {
+		aliasName = fmt.Sprintf("%s-%s", args.ProviderAliasPrefix, baseName)
+	}
+
+	return aliasName
+}
 
 func createAwsProvider(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	var blocks []*hclwrite.Block
-	// if more than 1 region has been supplied we need to add an aws provider with
-	// an alias for each region
-	if len(args.ParsedRegionsList) > 1 {
-		for i := range args.ParsedRegionsList {
-			region := args.ParsedRegionsList[i]
+	for i := range args.ParsedRegionsList {
+		region := args.ParsedRegionsList[i]
 
-			attrs := map[string]interface{}{
-				"alias":  region,
-				"region": region,
-			}
-			providerBlock, err := lwgenerate.NewProvider(
-				"aws",
-				lwgenerate.HclProviderWithAttributes(attrs),
-			).ToBlock()
-
-			if err != nil {
-				return nil, err
-			}
-
-			blocks = append(blocks, providerBlock)
+		attrs := map[string]interface{}{
+			"alias":  createProviderAlias(args, region),
+			"region": region,
 		}
 
+		if args.AwsProfile != "" {
+			attrs["profile"] = args.AwsProfile
+		}
+
+		providerBlock, err := lwgenerate.NewProvider(
+			"aws",
+			lwgenerate.HclProviderWithAttributes(attrs),
+		).ToBlock()
+
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, providerBlock)
 	}
 
-	// if only 1 region has been supplied we only need to create a single aws provider
-	// this provider shouldn't have an alias
+	// set kms key multi region to false if only 1 region is supplied
 	if len(args.ParsedRegionsList) == 1 {
-		// set kms key multi region to false if only 1 region is supplied
 		args.KmsKeyMultiRegion = false
-		for i := range args.ParsedRegionsList {
-			region := args.ParsedRegionsList[i]
-			attrs := map[string]interface{}{
-				"region": region,
-			}
-			providerBlock, err := lwgenerate.NewProvider(
-				"aws",
-				lwgenerate.HclProviderWithAttributes(attrs),
-			).ToBlock()
-
-			if err != nil {
-				return nil, err
-			}
-
-			blocks = append(blocks, providerBlock)
-		}
 	}
-
 	return blocks, nil
 }
 
@@ -641,7 +654,7 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 					region),
 				lwgenerate.HclResourceWithAttributesAndProviderDetails(
 					resourceAttrs,
-					[]string{fmt.Sprintf("aws.%s", region)},
+					[]string{fmt.Sprintf("aws.%s", createProviderAlias(args, region))},
 				),
 			).ToResourceBlock()
 
@@ -664,6 +677,8 @@ func createEksAudit(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrite.B
 	moduleAttrs["cloudwatch_regions"] = args.ParsedRegionsList
 
 	moduleDetails = append(moduleDetails,
+		lwgenerate.HclModuleWithProviderDetails(
+			map[string]string{"aws": fmt.Sprintf("aws.%s", createProviderAlias(args, args.ParsedRegionsList[0]))}),
 		lwgenerate.HclModuleWithAttributes(moduleAttrs),
 	)
 
