@@ -358,6 +358,22 @@ func provideGuidanceAfterSuccess(workingDir string, laceworkProfile string) stri
 	return out.String()
 }
 
+func provideGuidanceAfterFailure(err error, workingDir string, binaryLocation string) string {
+	out := new(strings.Builder)
+	fmt.Fprintf(out, "\n\n%s\n\n", err.Error())
+	fmt.Fprintln(out, strings.Repeat("-", 80))
+	fmt.Fprint(out, "Terraform encountered an error (see above)\n\n")
+	fmt.Fprintf(out, "The Terraform code, state, and plan output have been saved in %s.\n\n", workingDir)
+	fmt.Fprintln(out, "Once the issues have been resolved, the integration can be continued using the following commands:")
+	fmt.Fprintf(out, "  cd %s\n", workingDir)
+	fmt.Fprintf(out, "  %s apply\n\n", binaryLocation)
+	fmt.Fprintln(out, "Should you simply want to clean up the failed deployment, use the following commands:")
+	fmt.Fprintf(out, "  cd %s\n", workingDir)
+	fmt.Fprintf(out, "  %s destroy\n\n", binaryLocation)
+
+	return out.String()
+}
+
 // this helper function is called when the entire generation/apply flow is not completed; it provides
 // guidance on how to proceed from the last point of execution
 func provideGuidanceAfterExit(initRun bool, planRun bool, workingDir string, binaryLocation string) string {
@@ -423,7 +439,7 @@ func TerraformPlanAndExecute(workingDir string) error {
 
 	// Apply plan
 	if err := TerraformExecApply(tf); err != nil {
-		return err
+		return errors.New(provideGuidanceAfterFailure(err, tf.WorkingDir(), tf.ExecPath()))
 	}
 	vw.Close()
 
