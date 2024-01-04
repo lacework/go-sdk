@@ -32,6 +32,39 @@ func TestGenerationEksSingleRegion(t *testing.T) {
 	assert.Equal(t, reqProviderAndRegion(moduleSingleRegionBasic), hcl)
 }
 
+func TestGenerationEksSingleRegionWithAWSProfileName(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(
+		WithAwsProfile("testprofile"),
+		WithParsedRegionClusterMap(clusterMap)).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Contains(t, hcl, "profile = \"testprofile\"")
+}
+
+func TestGenerationEksSingleRegionExistingProvider(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(
+		WithExistingRequiredProviders(),
+		WithParsedRegionClusterMap(clusterMap)).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, moduleSingleRegionBasic, hcl)
+}
+
+func TestGenerationEksSingleRegionWithProviderAliasPrefix(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	hcl, err := NewTerraform(
+		WithProviderAliasPrefix("ekstest"),
+		WithParsedRegionClusterMap(clusterMap)).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleSingleRegionBasicWithAlias), hcl)
+}
+
 func TestGenerationEksSingleWithLaceworkAccountID(t *testing.T) {
 	clusterMap := make(map[string][]string)
 	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
@@ -49,6 +82,18 @@ func TestGenerationEksMultiRegion(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(multiRegionBasic), hcl)
+}
+
+func TestGenerationEksMultiRegionWithPrefix(t *testing.T) {
+	clusterMap := make(map[string][]string)
+	clusterMap["us-east-1"] = []string{"cluster1", "cluster2"}
+	clusterMap["us-east-2"] = []string{"cluster3"}
+	hcl, err := NewTerraform(
+		WithProviderAliasPrefix("ekstest"),
+		WithParsedRegionClusterMap(clusterMap)).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(multiRegionBasicWithPrefix), hcl)
 }
 
 func TestGenerationEksFailureWithNoOptionsSet(t *testing.T) {
@@ -406,7 +451,8 @@ var requiredProviders = `terraform {
 }
 `
 
-var moduleSingleRegionBasic = `provider "aws" {
+var moduleSingleRegionBasicWithAlias = `provider "aws" {
+  alias  = "ekstest-us-east-1"
   region = "us-east-1"
 }
 
@@ -417,10 +463,34 @@ module "aws_eks_audit_log" {
   cluster_names             = ["cluster1", "cluster2"]
   kms_key_multi_region      = false
   no_cw_subscription_filter = false
+
+  providers = {
+    aws = aws.ekstest-us-east-1
+  }
+}
+`
+
+var moduleSingleRegionBasic = `provider "aws" {
+  alias  = "us-east-1"
+  region = "us-east-1"
+}
+
+module "aws_eks_audit_log" {
+  source                    = "lacework/eks-audit-log/aws"
+  version                   = "~> 1.0"
+  cloudwatch_regions        = ["us-east-1"]
+  cluster_names             = ["cluster1", "cluster2"]
+  kms_key_multi_region      = false
+  no_cw_subscription_filter = false
+
+  providers = {
+    aws = aws.us-east-1
+  }
 }
 `
 
 var moduleSingleRegionWithLaceworkAccountID = `provider "aws" {
+  alias  = "us-east-1"
   region = "us-east-1"
 }
 
@@ -432,6 +502,10 @@ module "aws_eks_audit_log" {
   kms_key_multi_region      = false
   lacework_aws_account_id   = "123456789"
   no_cw_subscription_filter = false
+
+  providers = {
+    aws = aws.us-east-1
+  }
 }
 `
 
@@ -474,5 +548,55 @@ module "aws_eks_audit_log" {
   version                   = "~> 1.0"
   cloudwatch_regions        = ["us-east-1", "us-east-2"]
   no_cw_subscription_filter = true
+
+  providers = {
+    aws = aws.us-east-1
+  }
+}
+`
+
+var multiRegionBasicWithPrefix = `provider "aws" {
+  alias  = "ekstest-us-east-1"
+  region = "us-east-1"
+}
+
+provider "aws" {
+  alias  = "ekstest-us-east-2"
+  region = "us-east-2"
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "lw_cw_subscription_filter_us-east-1" {
+  depends_on      = [module.aws_eks_audit_log]
+  destination_arn = module.aws_eks_audit_log.firehose_arn
+  filter_pattern  = module.aws_eks_audit_log.filter_pattern
+  for_each        = toset(["cluster1", "cluster2"])
+  log_group_name  = "/aws/eks/${each.value}/cluster"
+  name            = "${module.aws_eks_audit_log.filter_prefix}-${each.value}"
+  role_arn        = module.aws_eks_audit_log.cloudwatch_iam_role_arn
+
+  provider = aws.ekstest-us-east-1
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "lw_cw_subscription_filter_us-east-2" {
+  depends_on      = [module.aws_eks_audit_log]
+  destination_arn = module.aws_eks_audit_log.firehose_arn
+  filter_pattern  = module.aws_eks_audit_log.filter_pattern
+  for_each        = toset(["cluster3"])
+  log_group_name  = "/aws/eks/${each.value}/cluster"
+  name            = "${module.aws_eks_audit_log.filter_prefix}-${each.value}"
+  role_arn        = module.aws_eks_audit_log.cloudwatch_iam_role_arn
+
+  provider = aws.ekstest-us-east-2
+}
+
+module "aws_eks_audit_log" {
+  source                    = "lacework/eks-audit-log/aws"
+  version                   = "~> 1.0"
+  cloudwatch_regions        = ["us-east-1", "us-east-2"]
+  no_cw_subscription_filter = true
+
+  providers = {
+    aws = aws.ekstest-us-east-1
+  }
 }
 `
