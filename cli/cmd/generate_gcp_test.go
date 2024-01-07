@@ -36,7 +36,7 @@ func TestMissingValidGcpEntityToConfigure(t *testing.T) {
 	data := gcp.GenerateGcpTfConfigurationArgs{}
 	err := promptGcpGenerate(&data, &gcp.ExistingServiceAccountDetails{}, &GcpGenerateCommandExtraState{Output: "/tmp"})
 	assert.Error(t, err)
-	assert.Equal(t, "must enable audit log or configuration", err.Error())
+	assert.Equal(t, "must enable agentless, audit log or configuration", err.Error())
 }
 
 func TestGcpBucketRegionRegex(t *testing.T) {

@@ -16,7 +16,8 @@ import (
 
 var (
 	// Define question text here to be reused in testing
-	QuestionGcpEnableConfiguration     = "Enable configuration integration?"
+	QuestionGcpEnableAgentless         = "Enable Agentless integration?"
+	QuestionGcpEnableConfiguration     = "Enable Configuration integration?"
 	QuestionGcpEnableAuditLog          = "Enable Audit Log integration?"
 	QuestionUsePubSubAudit             = "Use Pub Sub Audit Log?"
 	QuestionGcpOrganizationIntegration = "Organization integration?"
@@ -28,6 +29,11 @@ var (
 	GcpAdvancedOptExistingServiceAccount     = "Configure & use existing service account"
 	QuestionExistingServiceAccountName       = "Specify an existing service account name:"
 	QuestionExistingServiceAccountPrivateKey = "Specify an existing service account private key (base64 encoded):"
+
+	GcpAdvancedOptAgentless      = "Configure additional Agentless options"
+	QuestionGcpProjectFilterList = "Specify a comma seprated list of Google Cloud projects that " +
+		"you want to monitor: (optional)"
+	QuestionGcpRegions = "Specify a comma seprated list of regions to deploy:"
 
 	GcpAdvancedOptAuditLog        = "Configure additional Audit Log options"
 	QuestionGcpUseExistingBucket  = "Use an existing bucket?"
@@ -124,6 +130,8 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithWaitTime(GenerateGcpCommandState.WaitTime),
 				gcp.WithEnableUBLA(GenerateGcpCommandState.EnableUBLA),
 				gcp.WithMultipleProject(GenerateGcpCommandState.Projects),
+				gcp.WithProjectFilterList(GenerateGcpCommandState.ProjectFilterList),
+				gcp.WithRegions(GenerateGcpCommandState.Regions),
 			}
 
 			if GenerateGcpCommandState.OrganizationIntegration {
@@ -136,6 +144,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 
 			// Create new struct
 			data := gcp.NewTerraform(
+				GenerateGcpCommandState.Agentless,
 				GenerateGcpCommandState.Configuration,
 				GenerateGcpCommandState.AuditLog,
 				GenerateGcpCommandState.UsePubSubAudit,
@@ -303,7 +312,12 @@ func initGenerateGcpTfCommandFlags() {
 	// add flags to sub commands
 	// TODO Share the help with the interactive generation
 	generateGcpTfCommand.PersistentFlags().BoolVar(
-		&GenerateGcpCommandState.AuditLog,
+		&GenerateGcpCommandState.Agentless,
+		"agentless",
+		false,
+		"enable agentless integration")
+	generateGcpTfCommand.PersistentFlags().BoolVar(
+		&GenerateGcpCommandState.Agentless,
 		"audit_log",
 		false,
 		"enable audit log integration")
@@ -368,6 +382,16 @@ func initGenerateGcpTfCommandFlags() {
 		"existing_sink_name",
 		"",
 		"specify existing sink name")
+	generateGcpTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateGcpCommandState.ProjectFilterList,
+		"project_filter_list",
+		[]string{},
+		"List of GCP project IDs to monitor for Agentless integration")
+	generateGcpTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateGcpCommandState.Regions,
+		"regions",
+		[]string{},
+		"List of GCP regions to deploy for Agentless integration")
 
 	// DEPRECATED
 	generateGcpTfCommand.PersistentFlags().BoolVar(
@@ -483,6 +507,34 @@ func validateGcpRegion(val interface{}) error {
 	}
 
 	return nil
+}
+
+func promptGcpAgentlessQuestions(
+	config *gcp.GenerateGcpTfConfigurationArgs,
+	extraState *GcpGenerateCommandExtraState,
+) error {
+	projectFilterListInput := ""
+	regionsInput := ""
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpRegions, Default: strings.Join(config.Regions, ",")},
+			Response: &regionsInput,
+			Required: true,
+		},
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpProjectFilterList, Default: strings.Join(config.ProjectFilterList, ",")},
+			Response: &projectFilterListInput,
+		},
+	}, config.Agentless)
+
+	if projectFilterListInput != "" {
+		config.ProjectFilterList = strings.Split(projectFilterListInput, ",")
+	}
+	if regionsInput != "" {
+		config.Regions = strings.Split(regionsInput, ",")
+	}
+
+	return err
 }
 
 func promptGcpAuditLogQuestions(
@@ -703,6 +755,11 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 		// supported) is difficult when the options are dynamic (which they are)
 		var options []string
 
+		// Only show Advanced Agentless options if Agentless integration is set to true
+		if config.Agentless {
+			options = append(options, GcpAdvancedOptAgentless)
+		}
+
 		// Only show Advanced AuditLog options if AuditLog integration is set to true
 		if config.AuditLog {
 			options = append(options, GcpAdvancedOptAuditLog)
@@ -726,6 +783,10 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 
 		// Based on response, prompt for actions
 		switch answer {
+		case GcpAdvancedOptAgentless:
+			if err := promptGcpAgentlessQuestions(config, extraState); err != nil {
+				return err
+			}
 		case GcpAdvancedOptAuditLog:
 			if err := promptGcpAuditLogQuestions(config, extraState); err != nil {
 				return err
@@ -770,13 +831,9 @@ func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *
 	return nil
 }
 
-func configurationOrAuditLogEnabled(config *gcp.GenerateGcpTfConfigurationArgs) *bool {
-	auditLogOrConfigurationEnabled := config.AuditLog || config.Configuration
-	return &auditLogOrConfigurationEnabled
-}
-
 func gcpConfigIsEmpty(g *gcp.GenerateGcpTfConfigurationArgs) bool {
-	return !g.AuditLog &&
+	return !g.Agentless &&
+		!g.AuditLog &&
 		!g.Configuration &&
 		g.ServiceAccountCredentials == "" &&
 		g.GcpOrganizationId == "" &&
@@ -815,6 +872,10 @@ func promptGcpGenerate(
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
+				Prompt:   &survey.Confirm{Message: QuestionGcpEnableAgentless, Default: config.Agentless},
+				Response: &config.Agentless,
+			},
+			{
 				Prompt:   &survey.Confirm{Message: QuestionGcpEnableConfiguration, Default: config.Configuration},
 				Response: &config.Configuration,
 			},
@@ -826,39 +887,39 @@ func promptGcpGenerate(
 		return err
 	}
 
+	// Validate one of configuration or audit log was enabled; otherwise error out
+	if !config.Agentless && !config.Configuration && !config.AuditLog {
+		return errors.New("must enable agentless, audit log or configuration")
+	}
+
+	configOrAuditLogEnabled := config.Configuration || config.AuditLog
+
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpProjectID, Default: config.GcpProjectId},
-				Checks:   []*bool{configurationOrAuditLogEnabled(config)},
 				Opts:     []survey.AskOpt{survey.WithValidator(validateGcpProjectId)},
 				Required: true,
 				Response: &config.GcpProjectId,
 			},
 			{
 				Prompt:   &survey.Confirm{Message: QuestionGcpOrganizationIntegration, Default: config.OrganizationIntegration},
-				Checks:   []*bool{configurationOrAuditLogEnabled(config)},
 				Response: &config.OrganizationIntegration,
 			},
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpOrganizationID, Default: config.GcpOrganizationId},
-				Checks:   []*bool{&config.OrganizationIntegration, configurationOrAuditLogEnabled(config)},
+				Checks:   []*bool{&config.OrganizationIntegration},
 				Required: true,
 				Response: &config.GcpOrganizationId,
 			},
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpServiceAccountCredsPath, Default: config.ServiceAccountCredentials},
-				Checks:   []*bool{configurationOrAuditLogEnabled(config)},
 				Opts:     []survey.AskOpt{survey.WithValidator(gcp.ValidateServiceAccountCredentials)},
+				Checks:   []*bool{&configOrAuditLogEnabled},
 				Response: &config.ServiceAccountCredentials,
 			},
 		}); err != nil {
 		return err
-	}
-
-	// Validate one of configuration or audit log was enabled; otherwise error out
-	if !config.Configuration && !config.AuditLog {
-		return errors.New("must enable audit log or configuration")
 	}
 
 	// Find out if the customer wants to specify more advanced features

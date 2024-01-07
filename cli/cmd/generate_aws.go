@@ -48,7 +48,7 @@ var (
 	QuestionAgentlessMonitoredAccountRegion  = "Monitored AWS account region:"
 
 	// Config questions
-	QuestionEnableConfig                    = "Enable configuration integration?"
+	QuestionEnableConfig                    = "Enable Configuration integration?"
 	QuestionConfigAdditionalAccountProfile  = "Additional AWS account profile:"
 	QuestionConfigAdditionalAccountRegion   = "Additional AWS account region:"
 	QuestionConfigAdditionalAccountsReplace = "Currently configured additional accounts: %s, replace?"
