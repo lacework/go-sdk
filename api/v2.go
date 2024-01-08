@@ -53,7 +53,7 @@ type V2Endpoints struct {
 	Policy                  *PolicyService
 	Reports                 *ReportsService
 	ReportDefinitions       *ReportDefinitionsService
-	Metrics       *MetricsService
+	Metrics                 *MetricsService
 	ReportDistributions     *ReportDistributionsService
 	Entities                *EntitiesService
 	Schemas                 *SchemasService

@@ -58,8 +58,8 @@ type Honeyvent struct {
 
 type HoneyEventResponse struct {
 	Data    []Honeyvent `json:"data"`
-	Ok      bool         `json:"ok"`
-	Message string       `json:"message"`
+	Ok      bool        `json:"ok"`
+	Message string      `json:"message"`
 }
 
 func (e *Honeyvent) AddFeatureField(key string, value interface{}) {
