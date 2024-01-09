@@ -21,6 +21,8 @@ func TestPolicyExceptionCreate(t *testing.T) {
 			c.SendLine("TEST CLI")
 			expectString(t, c, "Add constraint \"accountIds\"")
 			c.SendLine("n")
+			expectString(t, c, "Add constraint \"arns\"")
+			c.SendLine("n")
 			expectString(t, c, "Add constraint \"regionNames\"")
 			c.SendLine("n")
 			expectString(t, c, "Add constraint \"resourceNames\"")
