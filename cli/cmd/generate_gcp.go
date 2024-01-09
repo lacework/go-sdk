@@ -33,7 +33,7 @@ var (
 	GcpAdvancedOptAgentless      = "Configure additional Agentless options"
 	QuestionGcpProjectFilterList = "Specify a comma seprated list of Google Cloud projects that " +
 		"you want to monitor: (optional)"
-	QuestionGcpRegions = "Specify a comma seprated list of regions to deploy:"
+	QuestionGcpRegions = "Specify a comma seprated list of regions to deploy Agentless:"
 
 	GcpAdvancedOptAuditLog        = "Configure additional Audit Log options"
 	QuestionGcpUseExistingBucket  = "Use an existing bucket?"
@@ -514,13 +514,8 @@ func promptGcpAgentlessQuestions(
 	extraState *GcpGenerateCommandExtraState,
 ) error {
 	projectFilterListInput := ""
-	regionsInput := ""
+
 	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpRegions, Default: strings.Join(config.Regions, ",")},
-			Response: &regionsInput,
-			Required: true,
-		},
 		{
 			Prompt:   &survey.Input{Message: QuestionGcpProjectFilterList, Default: strings.Join(config.ProjectFilterList, ",")},
 			Response: &projectFilterListInput,
@@ -529,9 +524,6 @@ func promptGcpAgentlessQuestions(
 
 	if projectFilterListInput != "" {
 		config.ProjectFilterList = strings.Split(projectFilterListInput, ",")
-	}
-	if regionsInput != "" {
-		config.Regions = strings.Split(regionsInput, ",")
 	}
 
 	return err
@@ -893,6 +885,7 @@ func promptGcpGenerate(
 	}
 
 	configOrAuditLogEnabled := config.Configuration || config.AuditLog
+	regionsInput := ""
 
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
@@ -901,6 +894,12 @@ func promptGcpGenerate(
 				Opts:     []survey.AskOpt{survey.WithValidator(validateGcpProjectId)},
 				Required: true,
 				Response: &config.GcpProjectId,
+			},
+			{
+				Prompt:   &survey.Input{Message: QuestionGcpRegions, Default: strings.Join(config.Regions, ",")},
+				Checks:   []*bool{&config.Agentless},
+				Response: &regionsInput,
+				Required: true,
 			},
 			{
 				Prompt:   &survey.Confirm{Message: QuestionGcpOrganizationIntegration, Default: config.OrganizationIntegration},
@@ -920,6 +919,10 @@ func promptGcpGenerate(
 			},
 		}); err != nil {
 		return err
+	}
+
+	if regionsInput != "" {
+		config.Regions = strings.Split(regionsInput, ",")
 	}
 
 	// Find out if the customer wants to specify more advanced features

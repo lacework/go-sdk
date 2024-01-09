@@ -4,7 +4,6 @@ package gcp
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/lacework/go-sdk/internal/unique"
@@ -527,17 +526,11 @@ func createGcpProvider(
 func createAgentless(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	if !args.Agentless {
 		return nil, nil
-
 	}
 
 	blocks := []*hclwrite.Block{}
 
-	regions := append([]string{}, args.Regions...)
-	if len(regions) == 0 {
-		regions = append(regions, "")
-	}
-
-	for i, region := range regions {
+	for i, region := range args.Regions {
 		moduleName := "lacework_gcp_agentless_scanning_global"
 		moduleDetails := []lwgenerate.HclModuleModifier{
 			lwgenerate.HclModuleWithVersion(lwgenerate.GcpAgentlessVersion),
@@ -547,13 +540,7 @@ func createAgentless(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, e
 		if i == 0 {
 			attributes["global"] = true
 			if len(args.ProjectFilterList) > 0 {
-				projectIDs := []string{}
-				for _, id := range args.ProjectFilterList {
-					projectIDs = append(projectIDs, fmt.Sprintf("\"%s\"", id))
-				}
-				attributes["project_filter_list"] = lwgenerate.CreateSimpleTraversal([]string{
-					fmt.Sprintf("[%s]", strings.Join(projectIDs, ", ")),
-				})
+				attributes["project_filter_list"] = args.ProjectFilterList
 			}
 			if args.OrganizationIntegration {
 				attributes["integration_type"] = "ORGANIZATION"
@@ -567,14 +554,12 @@ func createAgentless(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, e
 			)
 		}
 
-		if region != "" {
-			moduleDetails = append(
-				moduleDetails,
-				lwgenerate.HclModuleWithProviderDetails(
-					map[string]string{"google": fmt.Sprintf("google.%s", region)},
-				),
-			)
-		}
+		moduleDetails = append(
+			moduleDetails,
+			lwgenerate.HclModuleWithProviderDetails(
+				map[string]string{"google": fmt.Sprintf("google.%s", region)},
+			),
+		)
 
 		moduleDetails = append(
 			moduleDetails,
@@ -659,8 +644,8 @@ func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Bloc
 		)
 
 		// Regions is required when Agentless integration is enabled
-		// Use the first region for Google provider if multiple regions are provided
-		if len(args.Regions) > 0 {
+		// Use the first region name as the alias for Google provider if multiple regions are provided
+		if args.Agentless && len(args.Regions) > 0 {
 			moduleDetails = append(
 				moduleDetails,
 				lwgenerate.HclModuleWithProviderDetails(
@@ -828,8 +813,8 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 		)
 
 		// Regions is required when Agentless integration is enabled
-		// Use the first region for Google provider if multiple regions are provided
-		if len(args.Regions) > 0 {
+		// Use the first region name as the alias for Google provider if multiple regions are provided
+		if args.Agentless && len(args.Regions) > 0 {
 			moduleDetails = append(
 				moduleDetails,
 				lwgenerate.HclModuleWithProviderDetails(
