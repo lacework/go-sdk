@@ -47,6 +47,7 @@ type Honeyvent struct {
 	Error         string      `json:"error,omitempty"`
 	InstallMethod string      `json:"install_method,omitempty"`
 	Component     string      `json:"component,omitempty"`
+	Dataset       string      `json:"dataset,omitempty"`
 
 	// tracing data for multiple events, this is useful for specific features
 	// within the Lacework CLI such as daily version check, polling mechanism, etc.

@@ -179,8 +179,9 @@ func (c *cliState) SendHoneyvent() {
 		"context_id", c.Event.ContextID,
 	)
 	honeyvent := libhoney.NewEvent()
-	honeycombEvent := *c.Event
 	_ = honeyvent.Add(c.Event)
+	honeycombEvent := *c.Event
+	honeycombEvent.Dataset = c.Event.Dataset
 
 	c.workers.Add(1)
 	go func(wg *sync.WaitGroup, event *libhoney.Event, honeycombEvent api.Honeyvent) {
@@ -189,8 +190,7 @@ func (c *cliState) SendHoneyvent() {
 		c.Log.Debugw("sending honeyvent", "dataset", HoneyDataset)
 
 		// migrate only dev events to new metrics endpoint
-		if event.Dataset == "lacework-cli-dev" {
-			event.AddField("dataset", event.Dataset)
+		if honeycombEvent.Dataset == "lacework-cli-dev" {
 			_, err := c.LwApi.V2.Metrics.Send(honeycombEvent)
 			if err != nil {
 				c.Log.Debugw("unable to send honeyvent", "error", err)
