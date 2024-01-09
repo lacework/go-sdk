@@ -190,7 +190,7 @@ func (c *cliState) SendHoneyvent() {
 		// migrate only dev events to new metrics endpoint
 		if event.Dataset == "lacework-cli-dev" {
 			event.AddField("dataset", event.Dataset)
-			_, err := c.LwApi.V2.Metrics.Send(*c.Event)
+			_, err := c.LwApi.V2.Metrics.Send(c.Event)
 			if err != nil {
 				c.Log.Debugw("unable to send honeyvent", "error", err)
 			}
