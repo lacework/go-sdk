@@ -179,10 +179,11 @@ func (c *cliState) SendHoneyvent() {
 		"context_id", c.Event.ContextID,
 	)
 	honeyvent := libhoney.NewEvent()
+	honeycombEvent := *c.Event
 	_ = honeyvent.Add(c.Event)
 
 	c.workers.Add(1)
-	go func(wg *sync.WaitGroup, event *libhoney.Event) {
+	go func(wg *sync.WaitGroup, event *libhoney.Event, honeycombEvent api.Honeyvent) {
 		defer wg.Done()
 
 		c.Log.Debugw("sending honeyvent", "dataset", HoneyDataset)
@@ -190,7 +191,7 @@ func (c *cliState) SendHoneyvent() {
 		// migrate only dev events to new metrics endpoint
 		if event.Dataset == "lacework-cli-dev" {
 			event.AddField("dataset", event.Dataset)
-			_, err := c.LwApi.V2.Metrics.Send(c.Event)
+			_, err := c.LwApi.V2.Metrics.Send(honeycombEvent)
 			if err != nil {
 				c.Log.Debugw("unable to send honeyvent", "error", err)
 			}
@@ -201,7 +202,7 @@ func (c *cliState) SendHoneyvent() {
 			}
 		}
 
-	}(&c.workers, honeyvent)
+	}(&c.workers, honeyvent, honeycombEvent)
 
 	// after adding a worker to submit a honeyvent, we remove
 	// all temporal fields such as feature, feature.data, error

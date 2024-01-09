@@ -18,18 +18,12 @@
 
 package api
 
-import "errors"
-
 // MetricsService is a service that sends events to Lacework APIv2 Server metrics endpoint
 type MetricsService struct {
 	client *Client
 }
 
-func (svc *MetricsService) Send(event *Honeyvent) (response HoneyEventResponse, err error) {
-	if event == nil {
-		return HoneyEventResponse{}, errors.New("honeycomb event is nil")
-	}
-
+func (svc *MetricsService) Send(event Honeyvent) (response HoneyEventResponse, err error) {
 	err = svc.client.RequestEncoderDecoder("POST", apiV2HoneyMetrics, event, &response)
 	return
 }
