@@ -37,6 +37,7 @@ lacework generate cloud-account gcp [flags]
 ### Options
 
 ```
+      --agentless                                     enable agentless integration
       --apply                                         run terraform apply without executing plan or prompting
       --audit_log                                     enable audit log integration
       --audit_log_integration_name string             specify a custom audit log integration name
@@ -61,8 +62,10 @@ lacework generate cloud-account gcp [flags]
       --organization_integration                      enable organization integration
       --output string                                 location to write generated content (default is ~/lacework/gcp)
       --prefix string                                 prefix that will be used at the beginning of every generated resource
+      --project_filter_list strings                   List of GCP project IDs to monitor for Agentless integration
       --project_id string                             specify the project id to be used to provision lacework resources (required)
       --projects strings                              list of project IDs to integrate with (project-level integrations)
+      --regions strings                               List of GCP regions to deploy for Agentless integration
       --service_account_credentials string            specify service account credentials JSON file path (leave blank to make use of google credential ENV vars)
       --use_pub_sub                                   use pub/sub for the audit log data rather than bucket
       --wait_time string                              amount of time to wait before the next resource is provisioned
