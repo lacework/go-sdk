@@ -24,6 +24,8 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/lacework"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,6 +48,14 @@ func TestSendHoneyventTracingFields(t *testing.T) {
 	assert.Empty(t, cli.Event.SpanID)
 	assert.Empty(t, cli.Event.ParentID)
 	assert.Empty(t, cli.Event.ContextID)
+
+	fakeServer := lacework.MockServer()
+	client, _ := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+
+	cli.LwApi = client
 
 	// mocking sending first honeyvent
 	cli.SendHoneyvent()
@@ -76,6 +86,13 @@ func TestSendHoneyventFeatureFields(t *testing.T) {
 	assert.Empty(t, cli.Event.Feature)
 	assert.Empty(t, cli.Event.FeatureData)
 
+	fakeServer := lacework.MockServer()
+	client, _ := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	cli.LwApi = client
+
 	// a new feature will need to set at least the feature field
 	cli.Event.Feature = featPollCtrScan
 
@@ -101,6 +118,13 @@ func TestSendHoneyventDisableTelemetry(t *testing.T) {
 	os.Setenv(DisableTelemetry, "1")
 	defer os.Setenv(DisableTelemetry, "")
 
+	fakeServer := lacework.MockServer()
+	client, _ := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	cli.LwApi = client
+
 	// setting up a test feature
 	cli.Event.Feature = "test_feature"
 
@@ -119,6 +143,13 @@ func TestSendHoneyventHomebrewInstall(t *testing.T) {
 	os.Setenv(HomebrewInstall, "1")
 	defer os.Setenv(HomebrewInstall, "")
 
+	fakeServer := lacework.MockServer()
+	client, _ := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	cli.LwApi = client
+
 	// init honeyvent as InstallMethod is set on init
 	cli.InitHoneyvent()
 
@@ -131,6 +162,13 @@ func TestSendHoneyventHomebrewInstall(t *testing.T) {
 
 func TestSendHoneyventAccountToLower(t *testing.T) {
 	cli.Event.Account = "all-lower-OR-ALL-UPPER"
+
+	fakeServer := lacework.MockServer()
+	client, _ := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	cli.LwApi = client
 
 	// mocking sending honeyvent
 	cli.SendHoneyvent()

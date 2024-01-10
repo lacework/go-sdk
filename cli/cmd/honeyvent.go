@@ -26,6 +26,7 @@ import (
 	"sync"
 
 	"github.com/honeycombio/libhoney-go"
+	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/lwdomain"
 )
 
@@ -96,34 +97,6 @@ const (
 	featMigrateConfigV2 = "migrate_config_v2"
 )
 
-// Honeyvent defines what a Honeycomb event looks like for the Lacework CLI
-type Honeyvent struct {
-	Version       string      `json:"version"`
-	CfgVersion    int         `json:"config_version"`
-	Os            string      `json:"os"`
-	Arch          string      `json:"arch"`
-	Command       string      `json:"command,omitempty"`
-	Args          []string    `json:"args,omitempty"`
-	Flags         []string    `json:"flags,omitempty"`
-	Account       string      `json:"account,omitempty"`
-	Subaccount    string      `json:"subaccount,omitempty"`
-	Profile       string      `json:"profile,omitempty"`
-	ApiKey        string      `json:"api_key,omitempty"`
-	Feature       string      `json:"feature,omitempty"`
-	FeatureData   interface{} `json:"feature.data,omitempty"`
-	DurationMs    int64       `json:"duration_ms,omitempty"`
-	Error         string      `json:"error,omitempty"`
-	InstallMethod string      `json:"install_method,omitempty"`
-	Component     string      `json:"component,omitempty"`
-
-	// tracing data for multiple events, this is useful for specific features
-	// within the Lacework CLI such as daily version check, polling mechanism, etc.
-	TraceID   string `json:"trace.trace_id,omitempty"`
-	SpanID    string `json:"trace.span_id,omitempty"`
-	ParentID  string `json:"trace.parent_id,omitempty"`
-	ContextID string `json:"trace.context_id,omitempty"`
-}
-
 // InitHoneyvent initialize honeycomb library and main Honeyvent, such event
 // could be modified during a command execution to add extra parameters such
 // as error message, feature data, etc.
@@ -134,7 +107,7 @@ func (c *cliState) InitHoneyvent() {
 	}
 	_ = libhoney.Init(hc)
 
-	c.Event = &Honeyvent{
+	c.Event = &api.Honeyvent{
 		Os:            runtime.GOOS,
 		Arch:          runtime.GOARCH,
 		Version:       Version,
@@ -207,18 +180,29 @@ func (c *cliState) SendHoneyvent() {
 	)
 	honeyvent := libhoney.NewEvent()
 	_ = honeyvent.Add(c.Event)
+	honeycombEvent := *c.Event
+	honeycombEvent.Dataset = c.Event.Dataset
 
 	c.workers.Add(1)
-	go func(wg *sync.WaitGroup, event *libhoney.Event) {
+	go func(wg *sync.WaitGroup, event *libhoney.Event, honeycombEvent api.Honeyvent) {
 		defer wg.Done()
 
 		c.Log.Debugw("sending honeyvent", "dataset", HoneyDataset)
-		err := event.Send()
-		if err != nil {
-			c.Log.Debugw("unable to send honeyvent", "error", err)
+
+		// migrate only dev events to new metrics endpoint
+		if honeycombEvent.Dataset == "lacework-cli-dev" {
+			_, err := c.LwApi.V2.Metrics.Send(honeycombEvent)
+			if err != nil {
+				c.Log.Debugw("unable to send honeyvent", "error", err)
+			}
+		} else {
+			err := event.Send()
+			if err != nil {
+				c.Log.Debugw("unable to send honeyvent", "error", err)
+			}
 		}
 
-	}(&c.workers, honeyvent)
+	}(&c.workers, honeyvent, honeycombEvent)
 
 	// after adding a worker to submit a honeyvent, we remove
 	// all temporal fields such as feature, feature.data, error
@@ -226,18 +210,6 @@ func (c *cliState) SendHoneyvent() {
 	c.Event.Error = ""
 	c.Event.Feature = ""
 	c.Event.FeatureData = nil
-}
-
-func (e *Honeyvent) AddFeatureField(key string, value interface{}) {
-	if e.FeatureData == nil {
-		e.FeatureData = map[string]interface{}{key: value}
-		return
-	}
-
-	if v, ok := e.FeatureData.(map[string]interface{}); ok {
-		v[key] = value
-		e.FeatureData = v
-	}
 }
 
 func installMethod() string {

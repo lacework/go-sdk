@@ -27,6 +27,8 @@ const (
 	// API v2 Endpoints
 	apiTokens = "v2/access/tokens" // Auth
 
+	apiV2HoneyMetrics = "v2/metrics/honeycomb"
+
 	apiV2UserProfile = "v2/UserProfile"
 
 	apiV2ContainerRegistries       = "v2/ContainerRegistries"

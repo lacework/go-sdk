@@ -61,7 +61,7 @@ type cliState struct {
 	LwApi        *api.Client
 	JsonF        *prettyjson.Formatter
 	Log          *zap.SugaredLogger
-	Event        *Honeyvent
+	Event        *api.Honeyvent
 	Cache        *diskv.Diskv
 	LwComponents *lwcomponent.State
 
