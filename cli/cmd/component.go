@@ -224,8 +224,7 @@ func v1ComponentCommand(c *cliState, cmd *cobra.Command, args []string) error {
 	go startGrpcServer(c)
 
 	c.Log.Debugw("running component", "component", cmd.Use,
-		"args", c.componentParser.componentArgs,
-		"cli_flags", c.componentParser.cliArgs)
+		"args", cmd.Args)
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
 	if err != nil {
@@ -245,7 +244,7 @@ func v1ComponentCommand(c *cliState, cmd *cobra.Command, args []string) error {
 
 	envs = append(envs, c.envs()...)
 
-	return component.Exec.ExecuteInline(c.componentParser.componentArgs, envs...)
+	return component.Exec.ExecuteInline(args, envs...)
 }
 
 // LoadComponents reads the local components state and loads all installed components
@@ -284,7 +283,6 @@ func (c *cliState) PrototypeLoadComponents() {
 					Annotations:           map[string]string{"type": componentTypeAnnotation},
 					Version:               ver.String(),
 					SilenceUsage:          true,
-					DisableFlagParsing:    true,
 					DisableFlagsInUseLine: true,
 					RunE: func(cmd *cobra.Command, args []string) error {
 						// cobra will automatically add a -v/--version flag to
@@ -303,9 +301,7 @@ func (c *cliState) PrototypeLoadComponents() {
 							}
 						}()
 
-						c.Log.Debugw("running component", "component", cmd.Use,
-							"args", c.componentParser.componentArgs,
-							"cli_flags", c.componentParser.cliArgs)
+						c.Log.Debugw("running component", "component", cmd.Use, "args", args)
 						f, ok := c.LwComponents.GetComponent(cmd.Use)
 						if ok {
 							shouldPrint, compVerErr := dailyComponentUpdateAvailable(f)
@@ -321,7 +317,8 @@ func (c *cliState) PrototypeLoadComponents() {
 								fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use),
 							}
 							envs = append(envs, c.envs()...)
-							return f.RunAndOutput(c.componentParser.componentArgs, envs...)
+
+							return f.RunAndOutput(args, envs...)
 						}
 
 						// We will land here only if we couldn't run the component, which is not

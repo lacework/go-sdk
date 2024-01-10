@@ -54,9 +54,6 @@ Start by configuring the Lacework CLI with the command:
 
 This will prompt you for your Lacework account and a set of API access keys.`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			if isComponent(cmd.Annotations) {
-				return componentPersistentPreRun(cmd, args)
-			}
 			return cliPersistentPreRun(cmd, args)
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
@@ -107,33 +104,6 @@ func cliPersistentPreRun(cmd *cobra.Command, args []string) error {
 		}
 	}
 	return nil
-}
-
-func componentPersistentPreRun(cmd *cobra.Command, args []string) error {
-	cli.Event.Command = cmd.CommandPath()
-	cli.Event.Component = cmd.Use
-	cli.Event.Flags = parseFlags(os.Args[1:])
-	defer cli.SendHoneyvent()
-
-	// For components, we disable flag parsing, therefore we
-	// split args into those handled by the CLI and those
-	// we pass to the component manually
-	cli.componentParser.parseArgs(cmd.Flags(), args)
-	cli.Event.Args = cli.componentParser.componentArgs
-	err := cmd.Flags().Parse(cli.componentParser.cliArgs)
-
-	// We call initConfig() again after global flags have been parsed.
-	initConfig()
-
-	if err != nil {
-		cli.Event.Error = err.Error()
-		cli.Log.Debugw("unable to parse global flags", "error", err,
-			"provided_flags", cli.componentParser.cliArgs)
-	}
-
-	cli.Log.Debugw("honeyvent updated", "dataset", HoneyDataset)
-
-	return cli.NewClient()
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

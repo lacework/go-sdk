@@ -65,19 +65,18 @@ type cliState struct {
 	Cache        *diskv.Diskv
 	LwComponents *lwcomponent.State
 
-	id              string
-	workers         sync.WaitGroup
-	spinner         *spinner.Spinner
-	jsonOutput      bool
-	yamlOutput      bool
-	csvOutput       bool
-	nonInteractive  bool
-	noCache         bool
-	lqlOperator     string
-	profileDetails  map[string]interface{}
-	tokenCache      api.TokenData
-	installedCmd    bool
-	componentParser componentArgParser
+	id             string
+	workers        sync.WaitGroup
+	spinner        *spinner.Spinner
+	jsonOutput     bool
+	yamlOutput     bool
+	csvOutput      bool
+	nonInteractive bool
+	noCache        bool
+	lqlOperator    string
+	profileDetails map[string]interface{}
+	tokenCache     api.TokenData
+	installedCmd   bool
 
 	// Implements core proto service
 	cdk.UnimplementedCoreServer
