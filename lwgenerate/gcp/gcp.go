@@ -47,6 +47,9 @@ func (e *ExistingServiceAccountDetails) IsPartial() bool {
 }
 
 type GenerateGcpTfConfigurationArgs struct {
+	// Should we configure Agentless integration in LW?
+	Agentless bool
+
 	// Should we configure AuditLog integration in LW?
 	AuditLog bool
 
@@ -55,6 +58,12 @@ type GenerateGcpTfConfigurationArgs struct {
 
 	// Should we configure CSPM integration in LW?
 	Configuration bool
+
+	// A list of GCP project IDs to monitor for Agentless integration
+	ProjectFilterList []string
+
+	// A list of regions to deploy for Agentless integration
+	Regions []string
 
 	// Path to service account credentials to be used by Terraform
 	ServiceAccountCredentials string
@@ -135,9 +144,13 @@ type GenerateGcpTfConfigurationArgs struct {
 
 // Ensure all combinations of inputs are valid for supported spec
 func (args *GenerateGcpTfConfigurationArgs) validate() error {
-	// Validate one of config or audit log was enabled; otherwise error out
-	if !args.AuditLog && !args.Configuration {
-		return errors.New("audit log or configuration integration must be enabled")
+	// Validate one of agentless, config or audit log was enabled; otherwise error out
+	if !args.Agentless && !args.AuditLog && !args.Configuration {
+		return errors.New("agentless, audit log or configuration integration must be enabled")
+	}
+
+	if args.Agentless && len(args.Regions) == 0 {
+		return errors.New("regions must be provided for Agentless Integration")
 	}
 
 	// Validate if this is an organization integration, verify that the organization id has been provided
@@ -173,12 +186,13 @@ type GcpTerraformModifier func(c *GenerateGcpTfConfigurationArgs)
 //
 //	           create a string output of the required HCL.
 //
-//	hcl, err := gcp.NewTerraform(true, true,
+//	hcl, err := gcp.NewTerraform(true, true, true, true,
 //	  gcp.WithGcpServiceAccountCredentials("/path/to/sa/credentials.json")).Generate()
 func NewTerraform(
-	enableConfig bool, enableAuditLog bool, enablePubSubAudit bool, mods ...GcpTerraformModifier,
+	enableAgentless, enableConfig bool, enableAuditLog bool, enablePubSubAudit bool, mods ...GcpTerraformModifier,
 ) *GenerateGcpTfConfigurationArgs {
 	config := &GenerateGcpTfConfigurationArgs{
+		Agentless:             enableAgentless,
 		AuditLog:              enableAuditLog,
 		UsePubSubAudit:        enablePubSubAudit,
 		Configuration:         enableConfig,
@@ -383,6 +397,18 @@ func WithMultipleProject(projects []string) GcpTerraformModifier {
 	}
 }
 
+func WithProjectFilterList(projectFilterList []string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.ProjectFilterList = projectFilterList
+	}
+}
+
+func WithRegions(regions []string) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.Regions = regions
+	}
+}
+
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
@@ -396,7 +422,7 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
 
-	gcpProvider, err := createGcpProvider(args.ServiceAccountCredentials, args.GcpProjectId)
+	gcpProvider, err := createGcpProvider(args.ServiceAccountCredentials, args.GcpProjectId, args.Regions)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate gcp provider")
 	}
@@ -404,6 +430,11 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 	laceworkProvider, err := createLaceworkProvider(args.LaceworkProfile)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate lacework provider")
+	}
+
+	agentlessModule, err := createAgentless(args)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to generate gcp agentless module")
 	}
 
 	configurationModule, err := createConfiguration(args)
@@ -422,8 +453,10 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 			requiredProviders,
 			gcpProvider,
 			laceworkProvider,
+			agentlessModule,
 			configurationModule,
-			auditLogModule),
+			auditLogModule,
+		),
 	)
 	return hclBlocks, nil
 }
@@ -448,26 +481,102 @@ func createLaceworkProvider(laceworkProfile string) (*hclwrite.Block, error) {
 	return nil, nil
 }
 
-func createGcpProvider(serviceAccountCredentials string, projectId string) ([]*hclwrite.Block, error) {
-	attrs := map[string]interface{}{}
+func createGcpProvider(
+	serviceAccountCredentials string,
+	projectId string,
+	regionsArg []string,
+) ([]*hclwrite.Block, error) {
+	blocks := []*hclwrite.Block{}
 
-	if serviceAccountCredentials != "" {
-		attrs["credentials"] = serviceAccountCredentials
+	regions := append([]string{}, regionsArg...)
+	if len(regions) == 0 {
+		regions = append(regions, "")
 	}
 
-	if projectId != "" {
-		attrs["project"] = projectId
+	for _, region := range regions {
+		attrs := map[string]interface{}{}
+
+		if serviceAccountCredentials != "" {
+			attrs["credentials"] = serviceAccountCredentials
+		}
+
+		if projectId != "" {
+			attrs["project"] = projectId
+		}
+
+		if region != "" {
+			attrs["alias"] = region
+			attrs["region"] = region
+		}
+
+		provider, err := lwgenerate.NewProvider(
+			"google",
+			lwgenerate.HclProviderWithAttributes(attrs),
+		).ToBlock()
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, provider)
 	}
 
-	provider, err := lwgenerate.NewProvider(
-		"google",
-		lwgenerate.HclProviderWithAttributes(attrs),
-	).ToBlock()
-	if err != nil {
-		return nil, err
+	return blocks, nil
+}
+
+func createAgentless(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, error) {
+	if !args.Agentless {
+		return nil, nil
 	}
 
-	blocks := []*hclwrite.Block{provider}
+	blocks := []*hclwrite.Block{}
+
+	for i, region := range args.Regions {
+		moduleName := "lacework_gcp_agentless_scanning_global"
+		moduleDetails := []lwgenerate.HclModuleModifier{
+			lwgenerate.HclModuleWithVersion(lwgenerate.GcpAgentlessVersion),
+		}
+
+		attributes := map[string]interface{}{"regional": true}
+		if i == 0 {
+			attributes["global"] = true
+			if len(args.ProjectFilterList) > 0 {
+				attributes["project_filter_list"] = args.ProjectFilterList
+			}
+			if args.OrganizationIntegration {
+				attributes["integration_type"] = "ORGANIZATION"
+				attributes["organization_id"] = args.GcpOrganizationId
+			}
+		}
+		if i > 0 {
+			moduleName = "lacework_gcp_agentless_scanning_region_" + region
+			attributes["global_module_reference"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "lacework_gcp_agentless_scanning_global"},
+			)
+		}
+
+		moduleDetails = append(
+			moduleDetails,
+			lwgenerate.HclModuleWithProviderDetails(
+				map[string]string{"google": fmt.Sprintf("google.%s", region)},
+			),
+		)
+
+		moduleDetails = append(
+			moduleDetails,
+			lwgenerate.HclModuleWithAttributes(attributes),
+		)
+
+		module, err := lwgenerate.NewModule(
+			moduleName,
+			lwgenerate.GcpAgentlessSource,
+			moduleDetails...,
+		).ToBlock()
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, module)
+	}
 
 	return blocks, nil
 }
@@ -533,6 +642,17 @@ func createConfiguration(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Bloc
 		moduleDetails = append(moduleDetails,
 			lwgenerate.HclModuleWithAttributes(attributes),
 		)
+
+		// Regions is required when Agentless integration is enabled
+		// Use the first region name as the alias for Google provider if multiple regions are provided
+		if args.Agentless && len(args.Regions) > 0 {
+			moduleDetails = append(
+				moduleDetails,
+				lwgenerate.HclModuleWithProviderDetails(
+					map[string]string{"google": fmt.Sprintf("google.%s", args.Regions[0])},
+				),
+			)
+		}
 
 		moduleBlock, err := lwgenerate.NewModule(
 			configurationModuleName,
@@ -691,6 +811,17 @@ func createAuditLog(args *GenerateGcpTfConfigurationArgs) (*hclwrite.Block, erro
 		moduleDetails = append(moduleDetails,
 			lwgenerate.HclModuleWithAttributes(attributes),
 		)
+
+		// Regions is required when Agentless integration is enabled
+		// Use the first region name as the alias for Google provider if multiple regions are provided
+		if args.Agentless && len(args.Regions) > 0 {
+			moduleDetails = append(
+				moduleDetails,
+				lwgenerate.HclModuleWithProviderDetails(
+					map[string]string{"google": fmt.Sprintf("google.%s", args.Regions[0])},
+				),
+			)
+		}
 
 		return lwgenerate.NewModule(
 			auditLogModuleName,

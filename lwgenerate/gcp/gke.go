@@ -36,7 +36,7 @@ func (args *GenerateGkeTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
 
-	gcpProvider, err := createGcpProvider(args.ServiceAccountCredentials, args.ProjectId)
+	gcpProvider, err := createGcpProvider(args.ServiceAccountCredentials, args.ProjectId, []string{})
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate gcp provider")
 	}

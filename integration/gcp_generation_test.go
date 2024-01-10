@@ -25,7 +25,7 @@ func assertTerraformSaved(t *testing.T, message string) {
 }
 
 // Test failing due to no selection
-func TestGenerationErrorOnNoSelectionGcp(t *testing.T) {
+func TestGenerationGcpErrorOnNoSelectionGcp(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 
@@ -33,9 +33,10 @@ func TestGenerationErrorOnNoSelectionGcp(t *testing.T) {
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
-				MsgOnly{"ERROR collecting/confirming parameters: must enable audit log or configuration"},
+				MsgOnly{"ERROR collecting/confirming parameters: must enable agentless, audit log or configuration"},
 			})
 		},
 		"generate",
@@ -45,7 +46,7 @@ func TestGenerationErrorOnNoSelectionGcp(t *testing.T) {
 }
 
 // Test bare-bones generation with no customization
-func TestGenerationSimpleGcp(t *testing.T) {
+func TestGenerationGcpSimple(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -53,6 +54,7 @@ func TestGenerationSimpleGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -71,14 +73,14 @@ func TestGenerationSimpleGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test configuration only generation
-func TestGenerationConfigOnlyGcp(t *testing.T) {
+// Test Agentless only generation
+func TestGenerationGcpAgentless(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -86,6 +88,49 @@ func TestGenerationConfigOnlyGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "y"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpRegions, "us-east1"},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
+				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
+				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgMenu{cmd.GcpAdvancedOptAgentless, 0},
+				MsgRsp{cmd.QuestionGcpProjectFilterList, "p1,p2"},
+				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"gcp",
+	)
+
+	assertTerraformSaved(t, final)
+
+	buildTf, _ := gcp.NewTerraform(true, false, false, false,
+		gcp.WithProjectId(projectId),
+		gcp.WithOrganizationIntegration(true),
+		gcp.WithOrganizationId(organizationId),
+		gcp.WithRegions([]string{"us-east1"}),
+		gcp.WithProjectFilterList([]string{"p1", "p2"}),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+// Test configuration only generation
+func TestGenerationGcpConfig(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -104,14 +149,14 @@ func TestGenerationConfigOnlyGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, false, false,
+	buildTf, _ := gcp.NewTerraform(false, true, false, false,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test auditlog only generation
-func TestGenerationAuditlogOnlyGcp(t *testing.T) {
+// Test Audit Log only generation
+func TestGenerationGcpAuditLog(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -119,6 +164,7 @@ func TestGenerationAuditlogOnlyGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -137,14 +183,14 @@ func TestGenerationAuditlogOnlyGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, false,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test pub sub auditlog only generation
-func TestGenerationPubSubAuditlogOnlyGcp(t *testing.T) {
+// Test Audit Log pub-sub generation
+func TestGenerationGcpAuditLogPubSub(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -152,6 +198,7 @@ func TestGenerationPubSubAuditlogOnlyGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -175,13 +222,13 @@ func TestGenerationPubSubAuditlogOnlyGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true,
+	buildTf, _ := gcp.NewTerraform(false, false, true, true,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationPubSubAuditlogOrgGcp(t *testing.T) {
+func TestGenerationGcpAuditLogPubSubOrg(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -189,6 +236,7 @@ func TestGenerationPubSubAuditlogOrgGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -213,14 +261,14 @@ func TestGenerationPubSubAuditlogOrgGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true,
+	buildTf, _ := gcp.NewTerraform(false, false, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
-func TestGenerationAuditlogEnableUBLA(t *testing.T) {
+func TestGenerationGcpAuditLogEnableUBLA(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -229,6 +277,7 @@ func TestGenerationAuditlogEnableUBLA(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -247,14 +296,14 @@ func TestGenerationAuditlogEnableUBLA(t *testing.T) {
 
 	assert.Contains(t, final, "Terraform code saved in")
 
-	buildTf, _ := gcp.NewTerraform(false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, false,
 		gcp.WithProjectId("project-1"),
 		gcp.WithEnableUBLA(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationAuditlogDisableUBLA(t *testing.T) {
+func TestGenerationGcpAuditLogDisableUBLA(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -263,6 +312,7 @@ func TestGenerationAuditlogDisableUBLA(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -281,15 +331,15 @@ func TestGenerationAuditlogDisableUBLA(t *testing.T) {
 
 	assert.Contains(t, final, "Terraform code saved in")
 
-	buildTf, _ := gcp.NewTerraform(false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, false,
 		gcp.WithProjectId("project-1"),
 		gcp.WithEnableUBLA(false),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test organization integration. configuration & audit log
-func TestOrganizationIntegrationAllIntegrationGcp(t *testing.T) {
+// Test organization integration for Agentless, Configuration and Audit Log
+func TestGenerationGcpAllIntegrationsOrg(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -297,13 +347,18 @@ func TestOrganizationIntegrationAllIntegrationGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "y"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpRegions, "us-east1"},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
 				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgMenu{cmd.GcpAdvancedOptAgentless, 0},
+				MsgRsp{cmd.QuestionGcpProjectFilterList, ""},
+				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -316,15 +371,16 @@ func TestOrganizationIntegrationAllIntegrationGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(true, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
+		gcp.WithRegions([]string{"us-east1"}),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGeneratePrefixAndWait(t *testing.T) {
+func TestGenerationGcpPrefixAndWait(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -334,6 +390,7 @@ func TestGeneratePrefixAndWait(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -356,7 +413,7 @@ func TestGeneratePrefixAndWait(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithPrefix(prefix),
 		gcp.WithWaitTime(waitTime),
@@ -365,7 +422,7 @@ func TestGeneratePrefixAndWait(t *testing.T) {
 }
 
 // Test generation with Service Account JSON file path
-func TestGenerationSACredsGcp(t *testing.T) {
+func TestGenerationGcpSACreds(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -389,6 +446,7 @@ func TestGenerationSACredsGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -407,15 +465,15 @@ func TestGenerationSACredsGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithGcpServiceAccountCredentials(serviceAccountFilePath),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test configuring advanced audit log options. Use existing Bucket.
-func TestGenerationAdvancedAuditLogOptsExistingBucketGcp(t *testing.T) {
+// Test Audit Log with existing Bucket
+func TestGenerationGcpAuditLogExistingBucket(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -423,6 +481,7 @@ func TestGenerationAdvancedAuditLogOptsExistingBucketGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -449,15 +508,15 @@ func TestGenerationAdvancedAuditLogOptsExistingBucketGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithExistingLogBucketName("bucketMcBucketFace"),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test configuring advanced audit log options. Create & don't configure new Bucket.
-func TestGenerationAdvancedAuditLogOptsNewBucketNotConfiguredGcp(t *testing.T) {
+// Test Audit Log with new Bucket
+func TestGenerationGcpAuditLogNewBucket(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -465,6 +524,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketNotConfiguredGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -490,14 +550,14 @@ func TestGenerationAdvancedAuditLogOptsNewBucketNotConfiguredGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test configuring advanced audit log options. Create & configure new Bucket.
-func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
+// Test Audit Log with custom new Bucket
+func TestGenerationGcpAuditLogCustomNewBucket(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -506,6 +566,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -534,7 +595,7 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithBucketRegion("us-west1"),
 		gcp.WithCustomBucketName(bucketName),
@@ -544,8 +605,8 @@ func TestGenerationAdvancedAuditLogOptsNewBucketConfiguredGcp(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test configuring advanced audit log options. Use existing sink.
-func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
+// Test Audit Log with existing sink.
+func TestGenerationGcpAuditLogWithExistingSink(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -553,6 +614,7 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -582,7 +644,7 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithBucketRegion("us-west1"),
 		gcp.WithLogBucketLifecycleRuleAge(420),
@@ -592,7 +654,8 @@ func TestGenerationAdvancedAuditLogOptsExistingSinkGcp(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationAdvancedAuditLogOpts(t *testing.T) {
+// Test Audit Log with existing bucket
+func TestGenerationGcpAuditLogWithExistingBucket(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -601,6 +664,7 @@ func TestGenerationAdvancedAuditLogOpts(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -625,7 +689,7 @@ func TestGenerationAdvancedAuditLogOpts(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithExistingLogBucketName("bucketMcBucketFace"),
 		gcp.WithCustomFilter(filter),
@@ -633,8 +697,8 @@ func TestGenerationAdvancedAuditLogOpts(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test advanced options. Use existing Service Account details.
-func TestGenerationAdvancedOptsUseExistingSA(t *testing.T) {
+// Test integrations with existing Service Account details
+func TestGenerationGcpExistingSA(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -642,6 +706,7 @@ func TestGenerationAdvancedOptsUseExistingSA(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -667,15 +732,15 @@ func TestGenerationAdvancedOptsUseExistingSA(t *testing.T) {
 	serviceAccountDetails.Name = "SA_1"
 	serviceAccountDetails.PrivateKey = "cGFzc3dvcmRNY1Bhc3N3b3JkRmFjZQ=="
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithExistingServiceAccount(serviceAccountDetails),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test advanced options. Use existing Service Account details for pub sub audit.
-func TestGenerationPubSubUseExistingSA(t *testing.T) {
+// Test Audit Log pub-sub with existing Service Account details
+func TestGenerationGcpPubSubUseExistingSA(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -683,6 +748,7 @@ func TestGenerationPubSubUseExistingSA(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -713,15 +779,15 @@ func TestGenerationPubSubUseExistingSA(t *testing.T) {
 	serviceAccountDetails.Name = "SA_1"
 	serviceAccountDetails.PrivateKey = "cGFzc3dvcmRNY1Bhc3N3b3JkRmFjZQ=="
 
-	buildTf, _ := gcp.NewTerraform(true, true, true,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithExistingServiceAccount(serviceAccountDetails),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test custom configuration integration name
-func TestGenerationCustomizedConfigurationIntegrationNameGcp(t *testing.T) {
+// Test Configuration with custom integration name
+func TestGenerationGcpConfigurationWithCustomIntegrationName(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -729,6 +795,7 @@ func TestGenerationCustomizedConfigurationIntegrationNameGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -752,15 +819,15 @@ func TestGenerationCustomizedConfigurationIntegrationNameGcp(t *testing.T) {
 	assertTerraformSaved(t, final)
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithConfigurationIntegrationName("customConfigurationIntegrationName"),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test custom audit log integration name
-func TestGenerationCustomizedAuditlogIntegrationNameGcp(t *testing.T) {
+// Test Audit Log with custom integration name
+func TestGenerationGcpAuditLogWithCustomIntegrationName(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -769,6 +836,7 @@ func TestGenerationCustomizedAuditlogIntegrationNameGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -777,7 +845,7 @@ func TestGenerationCustomizedAuditlogIntegrationNameGcp(t *testing.T) {
 				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 2},
 				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
-				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, "customAuditlogIntegrationName"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, "customAuditLogIntegrationName"},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -790,15 +858,15 @@ func TestGenerationCustomizedAuditlogIntegrationNameGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
-		gcp.WithAuditLogIntegrationName("customAuditlogIntegrationName"),
+		gcp.WithAuditLogIntegrationName("customAuditLogIntegrationName"),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
 // Test customized output location
-func TestGenerationCustomizedOutputLocationGcp(t *testing.T) {
+func TestGenerationGcpCustomizedOutputLocation(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -812,6 +880,7 @@ func TestGenerationCustomizedOutputLocationGcp(t *testing.T) {
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -834,14 +903,14 @@ func TestGenerationCustomizedOutputLocationGcp(t *testing.T) {
 
 	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, string(result))
 }
 
 // Test Bailing out of Advanced Options
-func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
+func TestGenerationGcpAdvancedOptsDone(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -849,6 +918,7 @@ func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -867,13 +937,14 @@ func TestGenerationAdvancedOptsDoneGcp(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationAdvancedOptsDoneGcpConfiguration(t *testing.T) {
+// Test Bailing out of Advanced Options with Configuration enabled only
+func TestGenerationGcpAdvancedOptsDoneConfigurationOnly(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -881,6 +952,7 @@ func TestGenerationAdvancedOptsDoneGcpConfiguration(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -899,14 +971,14 @@ func TestGenerationAdvancedOptsDoneGcpConfiguration(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, false, false,
+	buildTf, _ := gcp.NewTerraform(false, true, false, false,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
 // Test existing main.tf prompt
-func TestGenerationWithExistingTerraformGcp(t *testing.T) {
+func TestGenerationGcpWithExistingTerraform(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 
@@ -925,6 +997,7 @@ func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -951,7 +1024,8 @@ func TestGenerationWithExistingTerraformGcp(t *testing.T) {
 	assert.Empty(t, data)
 }
 
-func TestGenerationFolders(t *testing.T) {
+// Test integrations with folders to include/exclude
+func TestGenerationGcpFolders(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -959,6 +1033,7 @@ func TestGenerationFolders(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -982,7 +1057,7 @@ func TestGenerationFolders(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
@@ -992,7 +1067,8 @@ func TestGenerationFolders(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationFoldersShorthand(t *testing.T) {
+// Test integrations with shorthand flags to include/exclude folders
+func TestGenerationGcpFoldersShorthand(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -1000,6 +1076,7 @@ func TestGenerationFoldersShorthand(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1023,7 +1100,7 @@ func TestGenerationFoldersShorthand(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
@@ -1033,7 +1110,8 @@ func TestGenerationFoldersShorthand(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationIncludeRootProjects(t *testing.T) {
+// Test integrations with --include_root_projects
+func TestGenerationGcpIncludeRootProjects(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -1041,6 +1119,7 @@ func TestGenerationIncludeRootProjects(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1062,7 +1141,7 @@ func TestGenerationIncludeRootProjects(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
@@ -1072,7 +1151,8 @@ func TestGenerationIncludeRootProjects(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationIncludeRootProjectsFalse(t *testing.T) {
+// Test integrations with --include_root_projects=false
+func TestGenerationGcpIncludeRootProjectsFalse(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -1080,6 +1160,7 @@ func TestGenerationIncludeRootProjectsFalse(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1101,7 +1182,7 @@ func TestGenerationIncludeRootProjectsFalse(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
@@ -1111,7 +1192,8 @@ func TestGenerationIncludeRootProjectsFalse(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationAuditLogFiltersTrue(t *testing.T) {
+// Test Audit Log with --google_workspace_filter and --k8s_filter
+func TestGenerationGcpAuditLogFiltersTrue(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -1119,6 +1201,7 @@ func TestGenerationAuditLogFiltersTrue(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1138,7 +1221,7 @@ func TestGenerationAuditLogFiltersTrue(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithGoogleWorkspaceFilter(true),
 		gcp.WithK8sFilter(true),
@@ -1146,7 +1229,8 @@ func TestGenerationAuditLogFiltersTrue(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-func TestGenerationAuditlogFiltersFalse(t *testing.T) {
+// Test Audit Log with --google_workspace_filter=false and --k8s_filter=false
+func TestGenerationGcpAuditLogFiltersFalse(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
@@ -1154,6 +1238,7 @@ func TestGenerationAuditlogFiltersFalse(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1173,7 +1258,7 @@ func TestGenerationAuditlogFiltersFalse(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithGoogleWorkspaceFilter(false),
 		gcp.WithK8sFilter(false),
@@ -1181,6 +1266,7 @@ func TestGenerationAuditlogFiltersFalse(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// Test invalid project ID
 func TestGenerationGcpInvalidProjectId(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -1189,6 +1275,7 @@ func TestGenerationGcpInvalidProjectId(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, "1"},
@@ -1208,12 +1295,13 @@ func TestGenerationGcpInvalidProjectId(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, false,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// Test overwrite
 func TestGenerationGcpOverwrite(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -1227,6 +1315,7 @@ func TestGenerationGcpOverwrite(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1247,6 +1336,7 @@ func TestGenerationGcpOverwrite(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1266,6 +1356,7 @@ func TestGenerationGcpOverwrite(t *testing.T) {
 	assert.Contains(t, final, fmt.Sprintf("cd %s/lacework/gcp", dir))
 }
 
+// Test custom output directory
 func TestGenerationGcpOverwriteOutput(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -1282,6 +1373,7 @@ func TestGenerationGcpOverwriteOutput(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1304,6 +1396,7 @@ func TestGenerationGcpOverwriteOutput(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1325,6 +1418,7 @@ func TestGenerationGcpOverwriteOutput(t *testing.T) {
 	assert.Contains(t, final, fmt.Sprintf("cd %s", output_dir))
 }
 
+// Test Lacework profile
 func TestGenerationGcpLaceworkProfile(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -1334,6 +1428,7 @@ func TestGenerationGcpLaceworkProfile(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1354,13 +1449,14 @@ func TestGenerationGcpLaceworkProfile(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithLaceworkProfile(gcpProfile),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// Test Configuration and Audit Log with multiple projects
 func TestGenerationGcpMultipleProjects(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -1370,6 +1466,7 @@ func TestGenerationGcpMultipleProjects(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1396,13 +1493,14 @@ func TestGenerationGcpMultipleProjects(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithMultipleProject(gcpProjects),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// Test Configuration and Audit Log with multiple projects in interactive mode
 func TestGenerationGcpMultipleProjectsInteractive(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
@@ -1412,6 +1510,7 @@ func TestGenerationGcpMultipleProjectsInteractive(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
@@ -1433,7 +1532,7 @@ func TestGenerationGcpMultipleProjectsInteractive(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
 		gcp.WithMultipleProject(gcpProjects),
 	).Generate()

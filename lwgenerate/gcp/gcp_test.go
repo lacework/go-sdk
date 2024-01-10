@@ -23,6 +23,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			"TestGenerationProjectLevelAuditLogWithoutConfig",
 			gcp.NewTerraform(
 				false,
+				false,
 				true,
 				false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -33,6 +34,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			"TestGenerationProjectLevelPubSubAuditLogWithoutConfig",
 			gcp.NewTerraform(
 				false,
+				false,
 				true,
 				true,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -41,12 +43,12 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogWithoutCredentialsAndProject",
-			gcp.NewTerraform(false, true, false),
+			gcp.NewTerraform(false, false, true, false),
 			fmt.Sprintf("%s\n%s\n%s", RequiredProviders, gcpProviderWithoutCredentialsAndProject, moduleImportProjectLevelAuditLogWithoutConfiguration),
 		},
 		{
 			"TestGenerationProjectLevelAuditLogWithLaceworkProfile",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithLaceworkProfile("test-profile"),
@@ -55,7 +57,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogCustomIntegrationName",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithAuditLogIntegrationName("custom_integration_name")),
@@ -63,7 +65,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelPubSubAuditLogCustomIntegrationName",
-			gcp.NewTerraform(false, true, true,
+			gcp.NewTerraform(false, false, true, true,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithAuditLogIntegrationName("custom_integration_name")),
@@ -71,7 +73,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogLabels",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithAuditLogLabels(map[string]string{"key": "value"}),
@@ -80,7 +82,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogBucketLabels",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithBucketLabels(map[string]string{"key": "value"}),
@@ -89,7 +91,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogPubSubSubscriptionLabels",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithPubSubSubscriptionLabels(map[string]string{"key": "value"}),
@@ -98,7 +100,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogPubSubTopicLabels",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithPubSubTopicLabels(map[string]string{"key": "value"}),
@@ -107,7 +109,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogBucketRegion",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithBucketRegion("us-west"),
@@ -116,7 +118,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogExistingBucketName",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithExistingLogBucketName("foo"),
@@ -125,7 +127,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogExistingLogSinkName",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithExistingLogSinkName("foo"),
@@ -134,7 +136,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelPubSubAuditLogExistingLogSinkName",
-			gcp.NewTerraform(false, true, true,
+			gcp.NewTerraform(false, false, true, true,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithExistingLogSinkName("foo"),
@@ -142,7 +144,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogExistingLogSinkName),
 		},
 		{"TestGenerationProjectLevelAuditLogEnableUBLA",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithEnableUBLA(true),
@@ -151,7 +153,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogDisableUBLA",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithEnableUBLA(false),
@@ -161,7 +163,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		{
 
 			"TestGenerationProjectLevelAuditLogBucketLifecycleRuleAge",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithLogBucketLifecycleRuleAge(420),
@@ -170,7 +172,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelAuditLogWithoutConfig",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -180,7 +182,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelPubSubAuditLogWithoutConfig",
-			gcp.NewTerraform(false, true, true,
+			gcp.NewTerraform(false, false, true, true,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -190,7 +192,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelAuditLogCustomIntegrationName",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -201,7 +203,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelPubSubAuditLogCustomIntegrationName",
-			gcp.NewTerraform(false, true, true,
+			gcp.NewTerraform(false, false, true, true,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -212,7 +214,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogWithConfiguration",
-			gcp.NewTerraform(true, true, false,
+			gcp.NewTerraform(false, true, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 			),
@@ -220,7 +222,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelPubSubAuditLogWithConfiguration",
-			gcp.NewTerraform(true, true, true,
+			gcp.NewTerraform(false, true, true, true,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 			),
@@ -228,7 +230,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelAuditLogWithConfig",
-			gcp.NewTerraform(true, true, false,
+			gcp.NewTerraform(false, true, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -238,7 +240,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelPubSubAuditLogWithConfig",
-			gcp.NewTerraform(true, true, true,
+			gcp.NewTerraform(false, true, true, true,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -248,7 +250,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogCustomBucketName",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithCustomBucketName("bucket"),
@@ -262,7 +264,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogCustomFilter",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithCustomFilter("custom-filter"),
@@ -276,7 +278,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogGoogleWorkspaceFilter",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithGoogleWorkspaceFilter(true),
@@ -289,7 +291,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogGoogleWorkspaceFilterFalse",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithGoogleWorkspaceFilter(false),
@@ -303,7 +305,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogK8sFilter",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithK8sFilter(true),
@@ -316,7 +318,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogK8sFilterFalse",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithK8sFilter(false),
@@ -330,7 +332,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelAuditLogFoldersToInclude",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -348,7 +350,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelAuditLogFoldersToExclude",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -366,7 +368,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelAuditLogIncludeRootProjectsSolo",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -383,7 +385,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelAuditLogIncludeRootProjectsFalse",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -403,7 +405,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelAuditLogIncludeRootProjectsTrue",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -422,7 +424,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogPrefix",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithPrefix("rar"),
@@ -436,7 +438,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelAuditLogWaitTime",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithWaitTime("30s"),
@@ -450,7 +452,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 		},
 		{
 			"TestGenerationMultipleProject",
-			gcp.NewTerraform(false, true, false,
+			gcp.NewTerraform(false, false, true, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithMultipleProject([]string{"project1", "project2", "project3"}),
@@ -493,7 +495,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 	}{
 		{
 			"TestGenerationProjectLevelConfiguration",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 			),
@@ -501,7 +503,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelConfigurationExistingSA",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithExistingServiceAccount(gcp.NewExistingServiceAccountDetails("foo", "123456789")),
@@ -510,7 +512,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelConfigurationCustomIntegrationName",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithConfigurationIntegrationName("custom_integration_name"),
@@ -519,7 +521,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelConfiguration",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -529,7 +531,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelConfigurationExistingSA",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -540,7 +542,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelConfigurationCustomIntegrationName",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -551,7 +553,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelConfigurationFoldersToInclude",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -569,7 +571,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelConfigurationFoldersToExclude",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -587,7 +589,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelConfigurationIncludeRootProjectsSolo",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -604,7 +606,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelConfigurationIncludeRootProjectsFalse",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -624,7 +626,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationOrganizationLevelConfigurationIncludeRootProjectsTrue",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithOrganizationIntegration(true),
@@ -643,7 +645,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectLevelConfigurationPrefix",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithPrefix("rar"),
@@ -657,7 +659,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationProjectConfigurationLogWaitTime",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithWaitTime("30s"),
@@ -671,7 +673,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 		},
 		{
 			"TestGenerationMultipleProject",
-			gcp.NewTerraform(true, false, false,
+			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 				gcp.WithProjectId(projectName),
 				gcp.WithMultipleProject([]string{"project1", "project2", "project3"}),
@@ -705,8 +707,57 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 	}
 }
 
+func TestGenerateGcpTfConfigurationArgs_Generate_Agentless(t *testing.T) {
+	tests := []struct {
+		description string
+		gcp         *gcp.GenerateGcpTfConfigurationArgs
+		expects     string
+	}{
+		{
+			"TestGenerationProjectLevelAgentless",
+			gcp.NewTerraform(true, false, false, false,
+				gcp.WithProjectId(projectName),
+				gcp.WithRegions([]string{"us-east1"}),
+			),
+			fmt.Sprintf("%s\n%s", RequiredProviders, moduleImportProjectLevelAgentless),
+		},
+		{
+			"TestGenerationProjectLevelAgentlessWithProjectFilterList",
+			gcp.NewTerraform(true, false, false, false,
+				gcp.WithProjectId(projectName),
+				gcp.WithRegions([]string{"us-east1"}),
+				gcp.WithProjectFilterList([]string{"p1", "p2"}),
+			),
+			fmt.Sprintf("%s\n%s", RequiredProviders, moduleImportProjectLevelAgentlessWithProjectFilterList),
+		},
+		{
+			"TestGenerationOrgLevelAgentless",
+			gcp.NewTerraform(true, false, false, false,
+				gcp.WithProjectId(projectName),
+				gcp.WithOrganizationIntegration(true),
+				gcp.WithOrganizationId("123456789"),
+				gcp.WithRegions([]string{"us-east1"}),
+			),
+			fmt.Sprintf("%s\n%s", RequiredProviders, moduleImportOrgLevelAgentless),
+		},
+	}
+
+	for _, tc := range tests {
+		hcl, err := tc.gcp.Generate()
+
+		if err != nil {
+			t.Errorf("Test case `%s` error: %s", tc.description, err)
+		}
+
+		if tc.expects != hcl {
+			t.Errorf("Test case `%s` HCL error", tc.description)
+		}
+		assert.Equal(t, tc.expects, hcl)
+	}
+}
+
 func TestGenerationOrganizationLevelAuditLogNoOrgId(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, true, false,
+	hcl, err := gcp.NewTerraform(false, false, true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId(projectName),
 		gcp.WithOrganizationIntegration(true),
@@ -716,7 +767,7 @@ func TestGenerationOrganizationLevelAuditLogNoOrgId(t *testing.T) {
 }
 
 func TestGenerationOrganizationLevelAuditLogNoOrgIntegrationFlag(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, true, false,
+	hcl, err := gcp.NewTerraform(false, false, true, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId(projectName),
 		gcp.WithOrganizationId("123456789"),
@@ -726,12 +777,12 @@ func TestGenerationOrganizationLevelAuditLogNoOrgIntegrationFlag(t *testing.T) {
 }
 
 func TestGenerationNoIntegration(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, false, false,
+	hcl, err := gcp.NewTerraform(false, false, false, false,
 		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
 		gcp.WithProjectId(projectName),
 	).Generate()
 	assert.Empty(t, hcl)
-	assert.EqualError(t, err, "invalid inputs: audit log or configuration integration must be enabled")
+	assert.EqualError(t, err, "invalid inputs: agentless, audit log or configuration integration must be enabled")
 }
 
 var RequiredProviders = `terraform {
@@ -1003,5 +1054,62 @@ var moduleImportOrganizationLevelConfigurationCustomIntegrationName = `module "g
   lacework_integration_name = "custom_integration_name"
   org_integration           = true
   organization_id           = "123456789"
+}
+`
+
+var moduleImportProjectLevelAgentless = `provider "google" {
+  alias   = "us-east1"
+  project = "project1"
+  region  = "us-east1"
+}
+
+module "lacework_gcp_agentless_scanning_global" {
+  source   = "lacework/agentless-scanning/gcp"
+  version  = "~> 0.1"
+  global   = true
+  regional = true
+
+  providers = {
+    google = google.us-east1
+  }
+}
+`
+
+var moduleImportProjectLevelAgentlessWithProjectFilterList = `provider "google" {
+  alias   = "us-east1"
+  project = "project1"
+  region  = "us-east1"
+}
+
+module "lacework_gcp_agentless_scanning_global" {
+  source              = "lacework/agentless-scanning/gcp"
+  version             = "~> 0.1"
+  global              = true
+  project_filter_list = ["p1", "p2"]
+  regional            = true
+
+  providers = {
+    google = google.us-east1
+  }
+}
+`
+
+var moduleImportOrgLevelAgentless = `provider "google" {
+  alias   = "us-east1"
+  project = "project1"
+  region  = "us-east1"
+}
+
+module "lacework_gcp_agentless_scanning_global" {
+  source           = "lacework/agentless-scanning/gcp"
+  version          = "~> 0.1"
+  global           = true
+  integration_type = "ORGANIZATION"
+  organization_id  = "123456789"
+  regional         = true
+
+  providers = {
+    google = google.us-east1
+  }
 }
 `
