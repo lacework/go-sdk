@@ -31,9 +31,9 @@ var (
 	QuestionExistingServiceAccountPrivateKey = "Specify an existing service account private key (base64 encoded):"
 
 	GcpAdvancedOptAgentless      = "Configure additional Agentless options"
-	QuestionGcpProjectFilterList = "Specify a comma seprated list of Google Cloud projects that " +
+	QuestionGcpProjectFilterList = "Specify a comma separated list of Google Cloud projects that " +
 		"you want to monitor: (optional)"
-	QuestionGcpRegions = "Specify a comma seprated list of regions to deploy Agentless:"
+	QuestionGcpRegions = "Specify a comma separated list of regions to deploy Agentless:"
 
 	GcpAdvancedOptAuditLog        = "Configure additional Audit Log options"
 	QuestionGcpUseExistingBucket  = "Use an existing bucket?"
