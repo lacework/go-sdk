@@ -317,7 +317,7 @@ func initGenerateGcpTfCommandFlags() {
 		false,
 		"enable agentless integration")
 	generateGcpTfCommand.PersistentFlags().BoolVar(
-		&GenerateGcpCommandState.Agentless,
+		&GenerateGcpCommandState.AuditLog,
 		"audit_log",
 		false,
 		"enable audit log integration")
