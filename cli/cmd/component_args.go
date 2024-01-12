@@ -83,8 +83,8 @@ func (p *componentArgParser) parseLongArg(flags *pflag.FlagSet, s string, args [
 		// We're actually a bit stuck here as we don't know if this flag
 		// takes an argument or not, so we don't know whether or not to consume
 		// the next arg.  What we'll do is peek ahead, and if the next arg does
-		// not start with - then we'll take it.
-		if len(args) > 0 && len(args[0]) > 0 && args[0][0] == '-' {
+		// not start with '--' then we'll take it.
+		if len(args) > 0 && len(args[0]) > 0 && (args[0][0] == '-' && args[0][1] == '-') {
 			// This component flag does not take an arg
 			return args
 		}
