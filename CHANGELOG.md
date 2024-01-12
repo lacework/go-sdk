@@ -1,5 +1,9 @@
 # v1.44.1
 
+
+---
+# v1.44.1
+
 ## Bug Fixes
 * fix: correct gcp generate audit-log flag (#1510) (Matt Cadorette)([6323370c](https://github.com/lacework/go-sdk/commit/6323370c45e7667d3e77e0ffd83770b6ac61bee1))
 ## Other Changes
