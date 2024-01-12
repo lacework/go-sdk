@@ -83,8 +83,8 @@ func (p *componentArgParser) parseLongArg(flags *pflag.FlagSet, s string, args [
 		// We're actually a bit stuck here as we don't know if this flag
 		// takes an argument or not, so we don't know whether or not to consume
 		// the next arg.  What we'll do is peek ahead, and if the next arg does
-		// not start with - then we'll take it.
-		if len(args) > 0 && len(args[0]) > 0 && args[0][0] == '-' {
+		// not start with '--' then we'll take it.
+		if len(args) > 0 && len(args[0]) > 0 && (args[0][0] == '-' && args[0][1] == '-') {
 			// This component flag does not take an arg
 			return args
 		}
@@ -126,14 +126,31 @@ func (p *componentArgParser) parseShortArg(flags *pflag.FlagSet, s string, args 
 		if flag == nil {
 			// Not our flag, pass to the component.  Like the long form above we
 			// don't know whether to consume an extra arg, so we'll do the same
-			// thing: if the next arg does not start with - then pass it along
-			p.componentArgs = append(p.componentArgs, fmt.Sprintf("-%s", shorthand))
-			if len(shorthands) == 1 && (len(args) > 0 && len(args[0]) > 0 && args[0][0] == '-') {
+			// thing: if the next arg does not start with `--`` then pass it along
+
+			// handles case
+			//   -n
+			if len(shorthands) == 1 {
+				p.componentArgs = append(p.componentArgs, fmt.Sprintf("-%s", shorthand))
+				return args
+			}
+
+			// handles cases
+			//   -n=1234
+			//   -n1234
+			if len(shorthands) > 2 {
+				p.componentArgs = append(p.componentArgs, fmt.Sprintf("-%s", shorthands))
+				return args
+			}
+
+			// handles cases
+			//   -n 24h
+			//   -n -24h
+			if len(shorthands) == 1 && len(args) > 0 && len(args[0]) > 0 && args[0][0] == '-' && args[0][1] != '-' {
+				p.componentArgs = append(p.componentArgs, fmt.Sprintf("-%s", shorthand))
 				p.componentArgs = append(p.componentArgs, args[0])
 				return args[2:]
 			}
-			shorthands = shorthands[1:]
-			continue
 		}
 
 		if len(shorthands) > 2 && shorthands[1] == '=' {

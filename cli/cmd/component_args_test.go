@@ -75,6 +75,65 @@ func TestComponentArgs(t *testing.T) {
 				"--debug",
 			},
 		},
+		{
+			[]string{
+				"iac", "negative-values", "--time", "-24h",
+			},
+			[]string{
+				"iac", "negative-values", "--time", "-24h",
+			},
+			[]string{},
+		},
+		{
+			// We do not have access to the component flag configuration and therefore cannot
+			// support the shorthand expansion of `-xyz` -> `-x -y -z`.  We have to treat it as
+			// `x=yz` and pass through to the component.
+			[]string{
+				"iac", "shorthands", "-xyz",
+			},
+			[]string{
+				"iac", "shorthands", "-xyz",
+			},
+			[]string{},
+		},
+		{
+			[]string{
+				"iac", "long-assign", "--xyz=value",
+			},
+			[]string{
+				"iac", "long-assign", "--xyz=value",
+			},
+			[]string{},
+		},
+		{
+			[]string{
+				"iac", "short-assign", "-x=value", "-y=true", "-t -24h", "-n=1234", "-n1234",
+			},
+			[]string{
+				"iac", "short-assign", "-x=value", "-y=true", "-t -24h", "-n=1234", "-n1234",
+			},
+			[]string{},
+		},
+		{
+			// -x=true -y=true -z="hello"
+			[]string{
+				"iac", "bool-str-assign", "-xyz", "hello", "-x",
+			},
+			[]string{
+				"iac", "bool-str-assign", "-xyz", "hello", "-x",
+			},
+			[]string{},
+		},
+		{
+			// -x=true -y=true -z="hello"
+			[]string{
+				"iac", "bool-str-assign", "-xyz=hello",
+			},
+			[]string{
+				"iac", "bool-str-assign", "-xyz=hello",
+			},
+			[]string{},
+		},
 	} {
 		p := componentArgParser{}
 		p.parseArgs(flags, k.args)
