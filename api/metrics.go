@@ -18,14 +18,41 @@
 
 package api
 
+import (
+	"runtime"
+)
+
 // MetricsService is a service that sends events to Lacework APIv2 Server metrics endpoint
 type MetricsService struct {
 	client *Client
 }
 
 func (svc *MetricsService) Send(event Honeyvent) (response HoneyEventResponse, err error) {
+	event.setAccountDetails(*svc.client)
 	err = svc.client.RequestEncoderDecoder("POST", apiV2HoneyMetrics, event, &response)
 	return
+}
+
+func NewHoneyvent(version, feature, dataset string) Honeyvent {
+	event := Honeyvent{
+		Os:      runtime.GOOS,
+		Arch:    runtime.GOARCH,
+		TraceID: newID(),
+		Version: version,
+		Dataset: dataset,
+		Feature: feature,
+	}
+
+	return event
+}
+
+func (h *Honeyvent) setAccountDetails(client Client) {
+	if h.Account == "" {
+		h.Account = client.account
+	}
+	if h.Subaccount == "" {
+		h.Subaccount = client.subaccount
+	}
 }
 
 // Honeyvent defines what a Honeycomb event looks like for the Lacework CLI
