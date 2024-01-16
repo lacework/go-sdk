@@ -109,6 +109,29 @@ func TestGenerateGKETfConfigurationArgs_Generate(t *testing.T) {
 }
 `),
 		},
+		{
+			"TestGeneration GKE Audit Log using alias and existing required providers ",
+			gcp.NewGkeTerraform(
+				gcp.WithGkeGcpProviderAlias("gke"),
+				gcp.WithGkeExistingRequiredProviders(),
+				gcp.WithGkeProjectId("project1"),
+			),
+			`provider "google" {
+  alias   = "gke"
+  project = "project1"
+}
+
+module "gcp_project_level_gke_audit_log" {
+  source           = "lacework/gke-audit-log/gcp"
+  version          = "~> 0.3"
+  integration_type = "PROJECT"
+
+  providers = {
+    google = google.gke
+  }
+}
+`,
+		},
 	}
 
 	for _, tc := range tests {

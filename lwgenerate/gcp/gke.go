@@ -9,19 +9,21 @@ import (
 )
 
 type GenerateGkeTfConfigurationArgs struct {
-	ExistingServiceAccount    *ServiceAccount
-	ExistingSinkName          string
-	IntegrationName           string
-	Labels                    map[string]string
-	LaceworkProfile           string
-	OrganizationId            string
-	OrganizationIntegration   bool
-	Prefix                    string
-	ProjectId                 string
-	PubSubSubscriptionLabels  map[string]string
-	PubSubTopicLabels         map[string]string
-	ServiceAccountCredentials string
-	WaitTime                  string
+	UseExistingRequiredProviders bool
+	GcpProviderAlias             string
+	ExistingServiceAccount       *ServiceAccount
+	ExistingSinkName             string
+	IntegrationName              string
+	Labels                       map[string]string
+	LaceworkProfile              string
+	OrganizationId               string
+	OrganizationIntegration      bool
+	Prefix                       string
+	ProjectId                    string
+	PubSubSubscriptionLabels     map[string]string
+	PubSubTopicLabels            map[string]string
+	ServiceAccountCredentials    string
+	WaitTime                     string
 }
 
 type Modifier func(c *GenerateGkeTfConfigurationArgs)
@@ -31,12 +33,17 @@ func (args *GenerateGkeTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "invalid inputs")
 	}
 
-	requiredProviders, err := createRequiredProviders()
+	requiredProviders, err := createRequiredProviders(args.UseExistingRequiredProviders)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
 
-	gcpProvider, err := createGcpProvider(args.ServiceAccountCredentials, args.ProjectId, []string{})
+	gcpProvider, err := createGcpProvider(
+		args.ServiceAccountCredentials,
+		args.ProjectId,
+		[]string{},
+		args.GcpProviderAlias,
+	)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate gcp provider")
 	}
@@ -91,6 +98,18 @@ func NewGkeTerraform(mods ...Modifier) *GenerateGkeTfConfigurationArgs {
 	}
 
 	return config
+}
+
+func WithGkeExistingRequiredProviders() Modifier {
+	return func(c *GenerateGkeTfConfigurationArgs) {
+		c.UseExistingRequiredProviders = true
+	}
+}
+
+func WithGkeGcpProviderAlias(alias string) Modifier {
+	return func(c *GenerateGkeTfConfigurationArgs) {
+		c.GcpProviderAlias = alias
+	}
 }
 
 func WithGkeExistingServiceAccount(serviceAccount *ServiceAccount) Modifier {
@@ -207,10 +226,23 @@ func createGKEAuditLog(args *GenerateGkeTfConfigurationArgs) (*hclwrite.Block, e
 		attributes["wait_time"] = args.WaitTime
 	}
 
+	moduleDetails := []lwgenerate.HclModuleModifier{
+		lwgenerate.HclModuleWithAttributes(attributes),
+		lwgenerate.HclModuleWithVersion(lwgenerate.GcpGKEAuditLogVersion),
+	}
+
+	if args.GcpProviderAlias != "" {
+		moduleDetails = append(
+			moduleDetails,
+			lwgenerate.HclModuleWithProviderDetails(
+				map[string]string{"google": fmt.Sprintf("google.%s", args.GcpProviderAlias)},
+			),
+		)
+	}
+
 	return lwgenerate.NewModule(
 		fmt.Sprintf("gcp_%s_level_gke_audit_log", level),
 		lwgenerate.GcpGKEAuditLogSource,
-		lwgenerate.HclModuleWithAttributes(attributes),
-		lwgenerate.HclModuleWithVersion(lwgenerate.GcpGKEAuditLogVersion),
+		moduleDetails...,
 	).ToBlock()
 }
