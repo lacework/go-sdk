@@ -115,6 +115,23 @@ func TestComponentArgs(t *testing.T) {
 			[]string{},
 		},
 		{
+			[]string{
+				"sca", "scan", "--key=projectId=${CI_PROJECT_ID}",
+				"--link", "https://github.com/lacework-dev/project-abc/blob/foo/$FILENAME#L$LINENUMBER",
+				"--tool-paths=checkov=/app/checkov,opal=/app/lacework-opal-releases/latest/opal",
+				"--fail", "High=2",
+				"--foo=",
+			},
+			[]string{
+				"sca", "scan", "--key=projectId=${CI_PROJECT_ID}",
+				"--link", "https://github.com/lacework-dev/project-abc/blob/foo/$FILENAME#L$LINENUMBER",
+				"--tool-paths=checkov=/app/checkov,opal=/app/lacework-opal-releases/latest/opal",
+				"--fail", "High=2",
+				"--foo=",
+			},
+			[]string{},
+		},
+		{
 			// -x=true -y=true -z="hello"
 			[]string{
 				"iac", "bool-str-assign", "-xyz", "hello", "-x",
