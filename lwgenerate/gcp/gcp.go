@@ -417,12 +417,12 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 	}
 
 	// Create blocks
-	requiredProviders, err := createRequiredProviders()
+	requiredProviders, err := createRequiredProviders(false)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
 
-	gcpProvider, err := createGcpProvider(args.ServiceAccountCredentials, args.GcpProjectId, args.Regions)
+	gcpProvider, err := createGcpProvider(args.ServiceAccountCredentials, args.GcpProjectId, args.Regions, "")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate gcp provider")
 	}
@@ -461,7 +461,10 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 	return hclBlocks, nil
 }
 
-func createRequiredProviders() (*hclwrite.Block, error) {
+func createRequiredProviders(useExistingRequiredProviders bool) (*hclwrite.Block, error) {
+	if useExistingRequiredProviders {
+		return nil, nil
+	}
 	return lwgenerate.CreateRequiredProviders(
 		lwgenerate.NewRequiredProvider(
 			"lacework",
@@ -485,6 +488,7 @@ func createGcpProvider(
 	serviceAccountCredentials string,
 	projectId string,
 	regionsArg []string,
+	alias string,
 ) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 
@@ -502,6 +506,10 @@ func createGcpProvider(
 
 		if projectId != "" {
 			attrs["project"] = projectId
+		}
+
+		if alias != "" {
+			attrs["alias"] = alias
 		}
 
 		if region != "" {
