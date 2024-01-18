@@ -18,7 +18,12 @@
 
 package api
 
-import "runtime"
+import (
+	"os"
+	"runtime"
+)
+
+const DisableTelemetry = "LW_TELEMETRY_DISABLE"
 
 // MetricsService is a service that sends events to Lacework APIv2 Server metrics endpoint
 type MetricsService struct {
@@ -26,6 +31,10 @@ type MetricsService struct {
 }
 
 func (svc *MetricsService) Send(event Honeyvent) (response HoneyEventResponse, err error) {
+	if disabled := os.Getenv(DisableTelemetry); disabled != "" {
+		return
+	}
+
 	event.setAccountDetails(*svc.client)
 	err = svc.client.RequestEncoderDecoder("POST", apiV2HoneyMetrics, event, &response)
 	return
