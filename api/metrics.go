@@ -32,7 +32,7 @@ type MetricsService struct {
 
 func (svc *MetricsService) Send(event Honeyvent) (response HoneyEventResponse, err error) {
 	if disabled := os.Getenv(DisableTelemetry); disabled != "" {
-		return
+		return HoneyEventResponse{Data: []Honeyvent{{TraceID: "Telemetry Disabled"}}}, nil
 	}
 
 	event.setAccountDetails(*svc.client)
