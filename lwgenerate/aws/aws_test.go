@@ -257,7 +257,7 @@ func TestGenerationCloudtrailExistingBucket(t *testing.T) {
 	existingBucketArn := "arn:aws:s3:::test-bucket-12345"
 	data, err := createCloudtrail(&GenerateAwsTfConfigurationArgs{
 		Cloudtrail:                  true,
-		CloudtrailUseExistingS3:     true,
+		CloudtrailUseExistingTrail:  true,
 		ExistingCloudtrailBucketArn: existingBucketArn,
 	})
 	assert.Nil(t, err)
