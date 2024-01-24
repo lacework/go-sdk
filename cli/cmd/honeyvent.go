@@ -146,8 +146,10 @@ func (c *cliState) SendHoneyvent() {
 	}
 
 	if c.LwApi == nil {
-		c.Log.Debug("unable to send honeyvent", "error")
-		return
+		if err := c.NewClient(); err != nil {
+			c.Log.Debug("unable to send honeyvent", "error", err)
+			return
+		}
 	}
 
 	if c.Event.SpanID == "" {
