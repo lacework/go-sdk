@@ -145,6 +145,11 @@ func (c *cliState) SendHoneyvent() {
 		return
 	}
 
+	if c.LwApi == nil {
+		c.Log.Debug("unable to send honeyvent", "error")
+		return
+	}
+
 	if c.Event.SpanID == "" {
 		// root span of a trace which is defined by having its parent_id omitted
 		c.Event.SpanID = c.id
@@ -189,17 +194,9 @@ func (c *cliState) SendHoneyvent() {
 
 		c.Log.Debugw("sending honeyvent", "dataset", HoneyDataset)
 
-		// migrate only dev events to new metrics endpoint
-		if honeycombEvent.Dataset == "lacework-cli-dev" {
-			_, err := c.LwApi.V2.Metrics.Send(honeycombEvent)
-			if err != nil {
-				c.Log.Debugw("unable to send honeyvent", "error", err)
-			}
-		} else {
-			err := event.Send()
-			if err != nil {
-				c.Log.Debugw("unable to send honeyvent", "error", err)
-			}
+		_, err := c.LwApi.V2.Metrics.Send(honeycombEvent)
+		if err != nil {
+			c.Log.Debugw("unable to send honeyvent", "error", err)
 		}
 
 	}(&c.workers, honeyvent, honeycombEvent)
