@@ -96,7 +96,7 @@ const (
 // as error message, feature data, etc.
 func (c *cliState) InitHoneyvent() {
 	hc := libhoney.Config{
-		Dataset:  HoneyDataset,
+		Dataset: HoneyDataset,
 	}
 	_ = libhoney.Init(hc)
 
