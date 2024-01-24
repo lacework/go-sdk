@@ -242,9 +242,7 @@ avoid rebuilding the CLI binary.
 ### Telemetry via Honeycomb
 
 We use [Honeycomb](https://www.honeycomb.io/) for observability, to enable sending
-tracing data to our development dataset, you must configure the environment variable
-`HONEYAPIKEY`. This variable as well as the above CI environment variables can be
-configured inside your bash profile (or any other shell profile you prefer).
+tracing data to our development dataset.
 
 ## License and Copyright
 Copyright 2020, Lacework Inc.

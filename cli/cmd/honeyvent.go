@@ -31,12 +31,6 @@ import (
 )
 
 var (
-	// HoneyApiKey is a variable that is injected at build time via
-	// the cross-platform directive inside the Makefile, this key is
-	// used to send events to Honeycomb so that we can understand how
-	// our customers use the Lacework CLI
-	HoneyApiKey = "unknown"
-
 	// HoneyDataset is the dataset in Honeycomb that we send tracing
 	// data this variable will be set depending on the environment we
 	// are running on. During development, we send all events and
@@ -102,7 +96,6 @@ const (
 // as error message, feature data, etc.
 func (c *cliState) InitHoneyvent() {
 	hc := libhoney.Config{
-		WriteKey: HoneyApiKey,
 		Dataset:  HoneyDataset,
 	}
 	_ = libhoney.Init(hc)
