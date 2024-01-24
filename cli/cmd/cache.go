@@ -132,7 +132,7 @@ func (c *cliState) EraseCachedToken() error {
 }
 
 func (c *cliState) ReadCachedToken() {
-	if c.noCache {
+	if c.noCache || c.Cache == nil {
 		return
 	}
 
