@@ -31,12 +31,6 @@ import (
 )
 
 var (
-	// HoneyApiKey is a variable that is injected at build time via
-	// the cross-platform directive inside the Makefile, this key is
-	// used to send events to Honeycomb so that we can understand how
-	// our customers use the Lacework CLI
-	HoneyApiKey = "unknown"
-
 	// HoneyDataset is the dataset in Honeycomb that we send tracing
 	// data this variable will be set depending on the environment we
 	// are running on. During development, we send all events and
@@ -102,8 +96,7 @@ const (
 // as error message, feature data, etc.
 func (c *cliState) InitHoneyvent() {
 	hc := libhoney.Config{
-		WriteKey: HoneyApiKey,
-		Dataset:  HoneyDataset,
+		Dataset: HoneyDataset,
 	}
 	_ = libhoney.Init(hc)
 
@@ -142,6 +135,11 @@ func (c *cliState) Wait() {
 // NOTE: the CLI will send at least one event per command execution
 func (c *cliState) SendHoneyvent() {
 	if disabled := os.Getenv(DisableTelemetry); disabled != "" {
+		return
+	}
+
+	if c.LwApi == nil {
+		c.Log.Debug("unable to send honeyvent", "error")
 		return
 	}
 
@@ -189,17 +187,9 @@ func (c *cliState) SendHoneyvent() {
 
 		c.Log.Debugw("sending honeyvent", "dataset", HoneyDataset)
 
-		// migrate only dev events to new metrics endpoint
-		if honeycombEvent.Dataset == "lacework-cli-dev" {
-			_, err := c.LwApi.V2.Metrics.Send(honeycombEvent)
-			if err != nil {
-				c.Log.Debugw("unable to send honeyvent", "error", err)
-			}
-		} else {
-			err := event.Send()
-			if err != nil {
-				c.Log.Debugw("unable to send honeyvent", "error", err)
-			}
+		_, err := c.LwApi.V2.Metrics.Send(honeycombEvent)
+		if err != nil {
+			c.Log.Debugw("unable to send honeyvent", "error", err)
 		}
 
 	}(&c.workers, honeyvent, honeycombEvent)
