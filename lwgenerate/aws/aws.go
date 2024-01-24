@@ -171,8 +171,8 @@ type GenerateAwsTfConfigurationArgs struct {
 	// OrgAccountMapping json used for flag input
 	OrgAccountMappingsJson string
 
-	// Use exisiting CloudTrail S3 bucket
-	CloudtrailUseExistingS3 bool
+	// Use exisiting CloudTrail
+	CloudtrailUseExistingTrail bool
 
 	// Use exisiting CloudTrail SNS topic
 	CloudtrailUseExistingSNSTopic bool
@@ -348,6 +348,30 @@ func (args *GenerateAwsTfConfigurationArgs) Validate() error {
 			}
 			if args.ExistingSnsTopicArn == "" {
 				return errors.New("must specify SNS topic ARN for CloudTrail Control Tower integration")
+			}
+		}
+	}
+
+	if args.Cloudtrail {
+		if args.CloudtrailUseExistingTrail {
+			if args.CloudtrailName == "" {
+				return errors.New("must specify the existing trail name when integrating with existing CloudTrail")
+			}
+			if args.ExistingCloudtrailBucketArn == "" {
+				return errors.New(
+					fmt.Sprintf(
+						"must specify the S3 bucket ARN associated with the trail %s "+
+							" when integrating with existing CloudTrail", args.CloudtrailName,
+					),
+				)
+			}
+			if args.ExistingSnsTopicArn == "" && !args.S3BucketNotification {
+				return errors.New(
+					fmt.Sprintf(
+						"must either specify the SNS topic ARN associated with the trail %s "+
+							"or enable S3 notification when integrating with existing CloudTrail", args.CloudtrailName,
+					),
+				)
 			}
 		}
 	}
@@ -549,10 +573,10 @@ func WithControlTowerKmsKeyArn(kmsKeyArn string) AwsTerraformModifier {
 	}
 }
 
-// WithCloudtrailUseExistingS3 Use the existing Cloudtrail S3 bucket
-func WithCloudtrailUseExistingS3(useExistingS3 bool) AwsTerraformModifier {
+// WithCloudtrailUseExistingTrail Use the existing Cloudtrail S3 bucket
+func WithCloudtrailUseExistingTrail(useExistingS3 bool) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
-		c.CloudtrailUseExistingS3 = useExistingS3
+		c.CloudtrailUseExistingTrail = useExistingS3
 	}
 }
 
@@ -944,14 +968,10 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 			attributes["consolidated_trail"] = true
 		}
 		// S3 Bucket attributes
-		if args.CloudtrailUseExistingS3 {
+		if args.CloudtrailUseExistingTrail {
 			attributes["use_existing_cloudtrail"] = true
-			if args.CloudtrailName != "" {
-				attributes["cloudtrail_name"] = args.CloudtrailName
-			}
-			if args.ExistingCloudtrailBucketArn != "" {
-				attributes["bucket_arn"] = args.ExistingCloudtrailBucketArn
-			}
+			attributes["cloudtrail_name"] = args.CloudtrailName
+			attributes["bucket_arn"] = args.ExistingCloudtrailBucketArn
 		} else {
 			if args.BucketName != "" {
 				attributes["bucket_name"] = args.BucketName

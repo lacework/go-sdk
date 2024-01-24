@@ -65,7 +65,7 @@ var (
 
 	// CloudTrail questions
 	QuestionEnableCloudtrail   = "Enable CloudTrail integration?"
-	QuestionCloudtrailName     = "Name of cloudtrail integration (optional):"
+	QuestionCloudtrailName     = "Existing trail name:"
 	QuestionCloudtrailAdvanced = "Configure advanced options?"
 
 	// CloudTrail Control Tower questions
@@ -97,7 +97,7 @@ var (
 
 	// CloudTrail S3 Bucket Questions
 	QuestionCloudtrailUseConsolidated          = "Use consolidated CloudTrail?"
-	QuestionCloudtrailUseExistingS3            = "Use an existing CloudTrail?"
+	QuestionCloudtrailUseExistingTrail         = "Use an existing CloudTrail?"
 	QuestionCloudtrailS3ExistingBucketArn      = "Existing S3 bucket ARN used for CloudTrail logs:"
 	QuestionCloudtrailS3BucketEnableEncryption = "Enable S3 bucket encryption"
 
@@ -106,7 +106,7 @@ var (
 	QuestionCloudtrailS3BucketNotification = "Enable S3 bucket notifications"
 
 	// CloudTrail SNS Topic Questions
-	QuestionCloudtrailUseExistingSNSTopic = "Use an existing SNS topic?"
+	QuestionCloudtrailUseExistingSNSTopic = "Use an existing SNS topic? (If not, S3 notification will be used)"
 	QuestionCloudtrailSnsExistingTopicArn = "Existing SNS topic arn:"
 	QuestionCloudtrailSnsEnableEncryption = "Enable encryption on SNS topic?"
 	QuestionCloudtrailSnsEncryptionKeyArn = "Existing KMS encryption key arn for SNS topic (optional):"
@@ -204,7 +204,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				aws.WithControlTowerLogArchiveAccount(GenerateAwsCommandState.ControlTowerLogArchiveAccount),
 				aws.WithControlTowerKmsKeyArn(GenerateAwsCommandState.ControlTowerKmsKeyArn),
 				aws.WithConsolidatedCloudtrail(GenerateAwsCommandState.ConsolidatedCloudtrail),
-				aws.WithCloudtrailUseExistingS3(GenerateAwsCommandState.CloudtrailUseExistingS3),
+				aws.WithCloudtrailUseExistingTrail(GenerateAwsCommandState.CloudtrailUseExistingTrail),
 				aws.WithCloudtrailUseExistingSNSTopic(GenerateAwsCommandState.CloudtrailUseExistingSNSTopic),
 				aws.WithExistingCloudtrailBucketArn(GenerateAwsCommandState.ExistingCloudtrailBucketArn),
 				aws.WithExistingSnsTopicArn(GenerateAwsCommandState.ExistingSnsTopicArn),
@@ -326,7 +326,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				return err
 			}
 			if arn != "" {
-				GenerateAwsCommandState.CloudtrailUseExistingS3 = true
+				GenerateAwsCommandState.CloudtrailUseExistingTrail = true
 			}
 
 			// Validate SNS Topic Arn if passed
@@ -1027,6 +1027,10 @@ func promptCloudtrailQuestions(
 		return err
 	}
 
+	if err := promptCloudtrailExistingTrailQuestions(config); err != nil {
+		return err
+	}
+
 	// Find out if the customer wants to specify more advanced features
 	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 		Icon:     IconCloudTrail,
@@ -1045,6 +1049,13 @@ func promptCloudtrailQuestions(
 			OptCloudtrailSQS,
 			OptCloudtrailIAM,
 			OptCloudtrailDone,
+		}
+		if config.CloudtrailUseExistingTrail {
+			options = []string{
+				OptCloudtrailSQS,
+				OptCloudtrailIAM,
+				OptCloudtrailDone,
+			}
 		}
 		if config.AwsOrganization {
 			if config.ControlTower {
@@ -1288,15 +1299,23 @@ func promptCloudtrailKmsKeyQuestions(config *aws.GenerateAwsTfConfigurationArgs)
 	return nil
 }
 
-func promptCloudtrailS3Questions(config *aws.GenerateAwsTfConfigurationArgs) error {
+func promptCloudtrailExistingTrailQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
+	if config.ControlTower {
+		return nil
+	}
+
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Icon:     IconCloudTrail,
-			Prompt:   &survey.Confirm{Message: QuestionCloudtrailUseExistingS3, Default: config.CloudtrailUseExistingS3},
-			Response: &config.CloudtrailUseExistingS3,
+			Prompt:   &survey.Confirm{Message: QuestionCloudtrailUseExistingTrail, Default: config.CloudtrailUseExistingTrail},
+			Response: &config.CloudtrailUseExistingTrail,
 		},
 	}); err != nil {
 		return err
+	}
+
+	if !config.CloudtrailUseExistingTrail {
+		return nil
 	}
 
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
@@ -1304,6 +1323,7 @@ func promptCloudtrailS3Questions(config *aws.GenerateAwsTfConfigurationArgs) err
 			Icon:     IconCloudTrail,
 			Prompt:   &survey.Input{Message: QuestionCloudtrailName, Default: config.CloudtrailName},
 			Response: &config.CloudtrailName,
+			Required: true,
 		},
 		{
 			Icon: IconCloudTrail,
@@ -1315,10 +1335,35 @@ func promptCloudtrailS3Questions(config *aws.GenerateAwsTfConfigurationArgs) err
 			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
 			Response: &config.ExistingCloudtrailBucketArn,
 		},
-	}, config.CloudtrailUseExistingS3); err != nil {
+		{
+			Icon: IconCloudTrail,
+			Prompt: &survey.Confirm{
+				Message: QuestionCloudtrailUseExistingSNSTopic,
+				Default: config.CloudtrailUseExistingSNSTopic,
+			},
+			Response: &config.CloudtrailUseExistingSNSTopic,
+		},
+		{
+			Icon:     IconCloudTrail,
+			Prompt:   &survey.Input{Message: QuestionCloudtrailSnsExistingTopicArn, Default: config.ExistingSnsTopicArn},
+			Checks:   []*bool{&config.CloudtrailUseExistingSNSTopic},
+			Required: true,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
+			Response: &config.ExistingSnsTopicArn,
+		},
+	}); err != nil {
 		return err
 	}
 
+	// If no SNS topic is provided for the existing trail, fallback to use S3 notification
+	if !config.CloudtrailUseExistingSNSTopic {
+		config.S3BucketNotification = true
+	}
+
+	return nil
+}
+
+func promptCloudtrailS3Questions(config *aws.GenerateAwsTfConfigurationArgs) error {
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Icon:     IconCloudTrail,
@@ -1345,7 +1390,7 @@ func promptCloudtrailS3Questions(config *aws.GenerateAwsTfConfigurationArgs) err
 			Prompt:   &survey.Confirm{Message: QuestionCloudtrailS3BucketNotification, Default: config.S3BucketNotification},
 			Response: &config.S3BucketNotification,
 		},
-	}, !config.CloudtrailUseExistingS3); err != nil {
+	}, !config.CloudtrailUseExistingTrail); err != nil {
 		return err
 	}
 
@@ -1353,27 +1398,6 @@ func promptCloudtrailS3Questions(config *aws.GenerateAwsTfConfigurationArgs) err
 }
 
 func promptCloudtrailSNSQuestions(config *aws.GenerateAwsTfConfigurationArgs) error {
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Icon: IconCloudTrail,
-			Prompt: &survey.Confirm{
-				Message: QuestionCloudtrailUseExistingSNSTopic,
-				Default: config.CloudtrailUseExistingSNSTopic,
-			},
-			Response: &config.CloudtrailUseExistingSNSTopic,
-		},
-		{
-			Icon:     IconCloudTrail,
-			Prompt:   &survey.Input{Message: QuestionCloudtrailSnsExistingTopicArn, Default: config.ExistingSnsTopicArn},
-			Checks:   []*bool{&config.CloudtrailUseExistingSNSTopic},
-			Required: true,
-			Opts:     []survey.AskOpt{survey.WithValidator(validateAwsArnFormat)},
-			Response: &config.ExistingSnsTopicArn,
-		},
-	}); err != nil {
-		return err
-	}
-
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Icon:     IconCloudTrail,

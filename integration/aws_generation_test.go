@@ -156,7 +156,7 @@ func TestGenerationAwsNoninteractive(t *testing.T) {
 		aws.WithConfigOrgCfResourcePrefix(cfResourcePrefix),
 		aws.WithConsolidatedCloudtrail(true),
 		aws.WithOrgAccountMappings(orgAccountMappings),
-		aws.WithCloudtrailUseExistingS3(true),
+		aws.WithCloudtrailUseExistingTrail(true),
 		aws.WithCloudtrailName(cloudtrailName),
 		aws.WithExistingCloudtrailBucketArn(s3BucketArn),
 		aws.WithCloudtrailUseExistingSNSTopic(true),
@@ -397,6 +397,7 @@ func TestGenerationAwsCloudtrail(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingTrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailAdvanced, "n"},
 				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -438,6 +439,7 @@ func TestGenerationAwsCloudtrailOrganization(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionControlTower, "n"},
 				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingTrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
 				MsgMenu{cmd.OptCloudtrailOrg, 0},
 				MsgRsp{cmd.QuestionCloudtrailOrgAccountMappingsDefaultLWAccount, "main"},
@@ -551,14 +553,15 @@ func TestGenerationAwsCloudtrailControlTower(t *testing.T) {
 	assert.Equal(t, buildTf, string(tfResult))
 }
 
-// Test CloudTrail integration with existing S3 bucket
-func TestGenerationAwsCloudtrailWithExistingS3Bucket(t *testing.T) {
+// Test CloudTrail integration with existing trail
+func TestGenerationAwsCloudtrailWithExistingTrail(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 
 	cloudtrailName := "cloudtrail-integration-name"
 	s3BucketArn := "arn:aws:s3:::bucket-name"
+	snsTopicArn := "arn:aws:sns:us-east-2:249446771485:topic-name"
 
 	// Run CLI
 	tfResult := runGenerateTest(t,
@@ -571,12 +574,12 @@ func TestGenerationAwsCloudtrailWithExistingS3Bucket(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
-				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
-				MsgMenu{cmd.OptCloudtrailS3, 0},
-				MsgRsp{cmd.QuestionCloudtrailUseExistingS3, "y"},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingTrail, "y"},
 				MsgRsp{cmd.QuestionCloudtrailName, cloudtrailName},
 				MsgRsp{cmd.QuestionCloudtrailS3ExistingBucketArn, s3BucketArn},
-				MsgMenu{cmd.OptCloudtrailDone, 4},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingSNSTopic, "y"},
+				MsgRsp{cmd.QuestionCloudtrailSnsExistingTopicArn, snsTopicArn},
+				MsgRsp{cmd.QuestionCloudtrailAdvanced, "n"},
 				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -594,9 +597,11 @@ func TestGenerationAwsCloudtrailWithExistingS3Bucket(t *testing.T) {
 	buildTf, _ := aws.NewTerraform(false, false, false, true,
 		aws.WithAwsProfile("main"),
 		aws.WithAwsRegion("us-east-2"),
-		aws.WithCloudtrailUseExistingS3(true),
+		aws.WithCloudtrailUseExistingTrail(true),
 		aws.WithCloudtrailName(cloudtrailName),
 		aws.WithExistingCloudtrailBucketArn(s3BucketArn),
+		aws.WithCloudtrailUseExistingSNSTopic(true),
+		aws.WithExistingSnsTopicArn(snsTopicArn),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
@@ -621,9 +626,9 @@ func TestGenerationAwsCloudtrailWithNewS3Bucket(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingTrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
 				MsgMenu{cmd.OptCloudtrailS3, 0},
-				MsgRsp{cmd.QuestionCloudtrailUseExistingS3, "n"},
 				MsgRsp{cmd.QuestionCloudtrailS3BucketName, s3BucketName},
 				MsgRsp{cmd.QuestionCloudtrailS3BucketEnableEncryption, "y"},
 				MsgRsp{cmd.QuestionCloudtrailS3BucketSseKeyArn, kmsArn},
@@ -646,58 +651,11 @@ func TestGenerationAwsCloudtrailWithNewS3Bucket(t *testing.T) {
 	buildTf, _ := aws.NewTerraform(false, false, false, true,
 		aws.WithAwsProfile("main"),
 		aws.WithAwsRegion("us-east-2"),
-		aws.WithCloudtrailUseExistingS3(false),
+		aws.WithCloudtrailUseExistingTrail(false),
 		aws.WithBucketName(s3BucketName),
 		aws.WithBucketEncryptionEnabled(true),
 		aws.WithBucketSSEKeyArn(kmsArn),
 		aws.WithS3BucketNotification(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test CloudTrail integration with existing SNS topic
-func TestGenerationAwsCloudtrailWithExistingSnsTopic(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-
-	snsTopicArn := "arn:aws:sns:us-east-2:249446771485:topic-name"
-
-	// Run CLI
-	tfResult := runGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionEnableAwsOrganization, "n"},
-				MsgRsp{cmd.QuestionMainAwsProfile, "main"},
-				MsgRsp{cmd.QuestionMainAwsRegion, "us-east-2"},
-				MsgRsp{cmd.QuestionEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionEnableConfig, "n"},
-				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
-				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
-				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
-				MsgMenu{cmd.OptCloudtrailSNS, 1},
-				MsgRsp{cmd.QuestionCloudtrailUseExistingSNSTopic, "y"},
-				MsgRsp{cmd.QuestionCloudtrailSnsExistingTopicArn, snsTopicArn},
-				MsgMenu{cmd.OptCloudtrailDone, 4},
-				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"aws",
-	)
-
-	// Ensure CLI ran correctly
-	assert.Contains(t, final, "Terraform code saved in")
-
-	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := aws.NewTerraform(false, false, false, true,
-		aws.WithAwsProfile("main"),
-		aws.WithAwsRegion("us-east-2"),
-		aws.WithCloudtrailUseExistingSNSTopic(true),
-		aws.WithExistingSnsTopicArn(snsTopicArn),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
@@ -722,9 +680,9 @@ func TestGenerationAwsCloudtrailWithNewSNSTopic(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingTrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
 				MsgMenu{cmd.OptCloudtrailSNS, 1},
-				MsgRsp{cmd.QuestionCloudtrailUseExistingSNSTopic, "n"},
 				MsgRsp{cmd.QuestionCloudtrailSnsTopicName, snsTopicName},
 				MsgRsp{cmd.QuestionCloudtrailSnsEnableEncryption, "y"},
 				MsgRsp{cmd.QuestionCloudtrailSnsEncryptionKeyArn, kmsArn},
@@ -774,6 +732,7 @@ func TestGenerationAwsCloudtrailWithNewSQSQueue(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingTrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
 				MsgMenu{cmd.OptCloudtrailSQS, 2},
 				MsgRsp{cmd.QuestionCloudtrailSqsQueueName, sqsQueueName},
@@ -825,6 +784,7 @@ func TestGenerationAwsCloudtrailWithExistingIamRole(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "y"},
 				MsgRsp{cmd.QuestionCloudtrailUseConsolidated, "n"},
+				MsgRsp{cmd.QuestionCloudtrailUseExistingTrail, "n"},
 				MsgRsp{cmd.QuestionCloudtrailAdvanced, "y"},
 				MsgMenu{cmd.OptCloudtrailIAM, 3},
 				MsgRsp{cmd.QuestionCloudtrailExistingIamRoleName, roleName},
