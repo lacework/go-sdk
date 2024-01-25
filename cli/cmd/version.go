@@ -25,13 +25,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-
 	"github.com/lacework/go-sdk/internal/cache"
 	"github.com/lacework/go-sdk/internal/file"
 	"github.com/lacework/go-sdk/lwcomponent"
 	"github.com/lacework/go-sdk/lwupdater"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -101,7 +100,7 @@ Set the environment variable 'LW_UPDATES_DISABLE=1' to avoid checking for update
 
 			// check the latest version of the cli
 			if _, err := versionCheck(); err != nil {
-				cli.Log.Errorw("unable to perform lacework cli version check",
+				cli.Log.Debugw("unable to perform lacework cli version check",
 					"error", err.Error())
 			}
 		},
