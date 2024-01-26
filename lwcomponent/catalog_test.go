@@ -304,7 +304,7 @@ func TestCatalogGetComponent(t *testing.T) {
 		_, home := FakeHome()
 		defer ResetHome(home)
 
-		CreateLocalComponent(name, version, true)
+		CreateLocalComponent(name, version, false)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage, true)
 		assert.Nil(t, err)
