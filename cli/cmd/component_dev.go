@@ -80,6 +80,114 @@ func init() {
 }
 
 func runComponentsDevMode(_ *cobra.Command, args []string) error {
+	if !lwcomponent.CatalogV1Enabled(cli.LwApi) {
+		return prototypeRunComponentsDevMode(args)
+	}
+
+	return devModeComponent(args)
+}
+
+func devModeComponent(args []string) error {
+	var componentName string = args[0]
+
+	cli.StartProgress("Loading components Catalog...")
+
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	defer catalog.Persist()
+
+	cli.StopProgress()
+	if err != nil {
+		return errors.Wrap(err, "unable to load component Catalog")
+	}
+
+	component, _ := catalog.GetComponent(componentName)
+	if component == nil {
+		newComponent := lwcomponent.NewCDKComponent(componentName, "", lwcomponent.EmptyType, nil, nil)
+		component = &newComponent
+
+		cli.OutputHuman("Component '%s' not found. Defining a new component.\n",
+			color.HiYellowString(component.Name))
+
+		var (
+			helpMsg = fmt.Sprintf("What are these component types ?\n"+
+				"\n'%s' - A binary accessible via the Lacework CLI (Users will run 'lacework <COMPONENT_NAME>')"+
+				"\n'%s' - A regular standalone-binary (this component type is not accessible via the CLI)"+
+				"\n'%s' - A library that only provides content for the Lacework CLI or other components\n",
+				lwcomponent.CommandType, lwcomponent.BinaryType, lwcomponent.LibraryType)
+		)
+		if cdkDevState.Type == "" {
+			if err := survey.AskOne(&survey.Select{
+				Message: "Select the type of component you are developing:",
+				Help:    helpMsg,
+				Options: []string{
+					lwcomponent.CommandType,
+					lwcomponent.BinaryType,
+					lwcomponent.LibraryType,
+				},
+			}, &cdkDevState.Type); err != nil {
+				return err
+			}
+		}
+
+		component.Type = lwcomponent.Type(cdkDevState.Type)
+
+		if cdkDevState.Description == "" {
+			if err := survey.AskOne(&survey.Input{
+				Message: "What is this component about? (component description):",
+			}, &component.Description); err != nil {
+				return err
+			}
+		} else {
+			component.Description = cdkDevState.Description
+		}
+	}
+
+	if err := component.EnterDevMode(); err != nil {
+		return errors.Wrap(err, "unable to enter development mode")
+	}
+
+	componentDir, err := component.Dir()
+	if err != nil {
+		return errors.New("unable to detect RootPath")
+	}
+
+	cli.OutputHuman("Component '%s' in now in development mode.\n",
+		color.HiYellowString(component.Name))
+
+	if component.Type == lwcomponent.CommandType {
+		// Offer the creation of a component scaffolding
+		if cdkDevState.Scaffolding == "" && cli.InteractiveMode() {
+			if err := survey.AskOne(&survey.Select{
+				Message: "Would you like to initialize your component with scaffolding? ",
+				Options: []string{"No. Start from scratch", "Golang", "Python"},
+			}, &cdkDevState.Scaffolding); err != nil {
+				return err
+			}
+		}
+
+		switch cdkDevState.Scaffolding {
+		case "Golang":
+			if err := cdkGolangScaffolding(component.Name, componentDir); err != nil {
+				return err
+			}
+
+		case "Python":
+			if err := cdkPythonScaffolding(component.Name, componentDir); err != nil {
+				return err
+			}
+
+		default:
+			cli.OutputHuman("\nDeploy your dev component at: %s\n",
+				color.HiYellowString(filepath.Join(componentDir, component.Name)))
+		}
+	}
+
+	cli.OutputHuman("\nComponent directory: %s\n", color.HiCyanString(componentDir))
+	cli.OutputHuman("Dev specs: %s\n", color.HiCyanString(filepath.Join(componentDir, ".dev")))
+	return nil
+}
+
+func prototypeRunComponentsDevMode(args []string) error {
 	cli.StartProgress("Loading components state...")
 	var err error
 	cli.LwComponents, err = lwcomponent.LoadState(cli.LwApi)
@@ -160,12 +268,12 @@ func runComponentsDevMode(_ *cobra.Command, args []string) error {
 
 		switch cdkDevState.Scaffolding {
 		case "Golang":
-			if err := cdkGolangScaffolding(component); err != nil {
+			if err := cdkGolangScaffolding(component.Name, rPath); err != nil {
 				return err
 			}
 
 		case "Python":
-			if err := cdkPythonScaffolding(component); err != nil {
+			if err := cdkPythonScaffolding(component.Name, rPath); err != nil {
 				return err
 			}
 
@@ -180,16 +288,12 @@ func runComponentsDevMode(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func cdkGolangScaffolding(component *lwcomponent.Component) error {
+func cdkGolangScaffolding(componentName string, componentDir string) error {
 	if err := cdkScaffoldingPreflightCheck("Golang", cdkGolangScaffoldingRequirements); err != nil {
 		return err
 	}
 
 	cli.OutputHuman("\nDeploying %s scaffolding:\n", color.HiMagentaString("Golang"))
-	rootPath, err := component.RootPath()
-	if err != nil {
-		return errors.Wrap(err, "unable to access component's root path")
-	}
 
 	for _, file := range databox.ListFilesFromDir("/scaffoldings/golang") {
 		content, found := databox.Get(file)
@@ -197,7 +301,7 @@ func cdkGolangScaffolding(component *lwcomponent.Component) error {
 			// Create directory, if needed
 			subDir := filepath.Dir(file)
 			subDir = strings.TrimPrefix(subDir, "/scaffoldings/golang")
-			fileDir := filepath.Join(rootPath, subDir)
+			fileDir := filepath.Join(componentDir, subDir)
 			if subDir != "" {
 				if err := os.MkdirAll(fileDir, 0755); err != nil {
 					return errors.Wrap(err, "unable to create subdirectory from scaffolding")
@@ -210,7 +314,7 @@ func cdkGolangScaffolding(component *lwcomponent.Component) error {
 				filePath = filepath.Join(fileDir, fileName)
 				tmpl     = template.Must(template.New(fileName).Delims("[[", "]]").Parse(string(content)))
 				cData    = struct{ Component string }{
-					Component: component.Name,
+					Component: componentName,
 				}
 			)
 			if err := tmpl.Execute(buff, cData); err != nil {
@@ -241,7 +345,7 @@ func cdkGolangScaffolding(component *lwcomponent.Component) error {
 	//    > Command: 'lacework <component_name> placeholder'
 	//
 	cli.StartProgress("Initializing Git repository...")
-	err = cdkInitGitRepo(rootPath)
+	err := cdkInitGitRepo(componentDir)
 	cli.StopProgress()
 	if err != nil {
 		cli.OutputChecklist(failureIcon, "Unable to initialize Git repository\n")
@@ -251,7 +355,7 @@ func cdkGolangScaffolding(component *lwcomponent.Component) error {
 	}
 
 	cli.StartProgress("Downloading Go dependencies...")
-	err = cdkGoVendor(rootPath)
+	err = cdkGoVendor(componentDir)
 	cli.StopProgress()
 	if err != nil {
 		cli.OutputChecklist(failureIcon, "Unable to download Go dependencies\n")
@@ -261,18 +365,18 @@ func cdkGolangScaffolding(component *lwcomponent.Component) error {
 	}
 
 	cli.StartProgress("Building your component...")
-	err = cdkGoBuild(rootPath)
+	err = cdkGoBuild(componentDir)
 	cli.StopProgress()
 	if err != nil {
 		cli.OutputChecklist(failureIcon, "Unable to build your Go component\n")
 		cli.Log.Debugw("unable to build your Go component", "error", err)
 	} else {
 		cli.OutputChecklist(successIcon, "Dev component built at %s\n",
-			color.HiYellowString(filepath.Join(rootPath, component.Name)))
+			color.HiYellowString(filepath.Join(componentDir, componentName)))
 	}
 
 	cli.StartProgress("Verifying component...")
-	err = cdkGoRunVerify(component.Name)
+	err = cdkGoRunVerify(componentName)
 	cli.StopProgress()
 	if err != nil {
 		// this is not on the developer, it's on this codebase, notify to fix it
@@ -286,16 +390,12 @@ func cdkGolangScaffolding(component *lwcomponent.Component) error {
 	return nil
 }
 
-func cdkPythonScaffolding(component *lwcomponent.Component) error {
+func cdkPythonScaffolding(componentName string, componentDir string) error {
 	if err := cdkScaffoldingPreflightCheck("Python", cdkPythonScaffoldingRequirements); err != nil {
 		return err
 	}
 
 	cli.OutputHuman("\nDeploying %s scaffolding:\n", color.HiMagentaString("Python"))
-	rootPath, err := component.RootPath()
-	if err != nil {
-		return errors.Wrap(err, "unable to access component's root path")
-	}
 
 	for _, file := range databox.ListFilesFromDir("/scaffoldings/python") {
 		content, found := databox.Get(file)
@@ -303,7 +403,7 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 			// Create directory, if needed
 			subDir := filepath.Dir(file)
 			subDir = strings.TrimPrefix(subDir, "/scaffoldings/python")
-			fileDir := filepath.Join(rootPath, subDir)
+			fileDir := filepath.Join(componentDir, subDir)
 			if subDir != "" {
 				if err := os.MkdirAll(fileDir, 0755); err != nil {
 					return errors.Wrap(err, "unable to create subdirectory from scaffolding")
@@ -324,7 +424,7 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 	}
 
 	cli.StartProgress("Initializing Git repository...")
-	err = cdkInitGitRepo(rootPath)
+	err := cdkInitGitRepo(componentDir)
 	cli.StopProgress()
 	if err != nil {
 		cli.OutputChecklist(failureIcon, "Unable to initialize Git repository\n")
@@ -334,7 +434,7 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 	}
 
 	// Poetry repository structure `project-name/src/project-name/__init__.py`
-	err = os.Rename(filepath.Join(rootPath, "src/package"), filepath.Join(rootPath, "src", component.Name))
+	err = os.Rename(filepath.Join(componentDir, "src/package"), filepath.Join(componentDir, "src", componentName))
 	if err != nil {
 		cli.OutputChecklist(failureIcon, "Unable to rename package directory\n")
 		cli.Log.Debugw("unable to rename package directory", "error", err)
@@ -342,12 +442,12 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 	}
 
 	cli.StartProgress("Poetry init...")
-	err = cdkExec(rootPath,
+	err = cdkExec(componentDir,
 		"poetry",
 		"init",
 		"--no-interaction",
 		// Because of https://github.com/python-poetry/poetry/issues/5975
-		fmt.Sprintf("--name=%s", strings.ReplaceAll(component.Name, "-", "")),
+		fmt.Sprintf("--name=%s", strings.ReplaceAll(componentName, "-", "")),
 		"--python=^3.11,<3.12",
 		"--dev-dependency=pyinstaller",
 		"--dev-dependency=poethepoet")
@@ -360,7 +460,7 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 		cli.OutputChecklist(successIcon, "Poetry init\n")
 	}
 
-	f, err := os.OpenFile(filepath.Join(rootPath, "pyproject.toml"), os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(filepath.Join(componentDir, "pyproject.toml"), os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -375,21 +475,21 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 	}
 	_, err = f.WriteString(fmt.Sprintf(
 		"%s/__main__.py --collect-submodules application -D --name %s --distpath dist;",
-		component.Name, component.Name,
+		componentName, componentName,
 	))
 	if err != nil {
 		return err
 	}
 	_, err = f.WriteString(fmt.Sprintf(
 		" mv dist/%s/* .\"\n",
-		component.Name,
+		componentName,
 	))
 	if err != nil {
 		return err
 	}
 	_, err = f.WriteString(fmt.Sprintf(
 		"clean = \"rm -r build/ %s %s.spec\"\n",
-		component.Name, component.Name,
+		componentName, componentName,
 	))
 	if err != nil {
 		return err
@@ -400,7 +500,7 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 	}
 
 	cli.StartProgress("Poetry install...")
-	err = cdkExec(rootPath, "poetry", "install")
+	err = cdkExec(componentDir, "poetry", "install")
 	cli.StopProgress()
 	if err != nil {
 		cli.OutputChecklist(failureIcon, "Unable to Poetry install\n")
@@ -411,14 +511,14 @@ func cdkPythonScaffolding(component *lwcomponent.Component) error {
 	}
 
 	cli.StartProgress("Building your component...")
-	err = cdkExec(rootPath, "poetry", "run", "poe", "build")
+	err = cdkExec(componentDir, "poetry", "run", "poe", "build")
 	cli.StopProgress()
 	if err != nil {
 		cli.OutputChecklist(failureIcon, "Unable to build your Python component\n")
 		cli.Log.Debugw("unable to build your Python component", "error", err)
 	} else {
 		cli.OutputChecklist(successIcon, "Dev component built at %s\n",
-			color.HiYellowString(filepath.Join(rootPath, component.Name)))
+			color.HiYellowString(filepath.Join(componentDir, componentName)))
 	}
 
 	cli.OutputHuman("\nDeployment completed! Time for %s\n", randomEmoji())
