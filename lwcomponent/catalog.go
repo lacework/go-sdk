@@ -72,14 +72,18 @@ func (c *Catalog) GetComponent(name string) (*CDKComponent, error) {
 	return &component, nil
 }
 
-func (c *Catalog) ListComponentVersions(component *CDKComponent) (versions []*semver.Version) {
+func (c *Catalog) ListComponentVersions(component *CDKComponent) (versions []*semver.Version, err error) {
 	if component.ApiInfo == nil {
+		err = errors.Errorf("component '%s' api info  already installed", component.Name)
 		return
 	}
 
 	versions = component.ApiInfo.AllVersions()
+	if versions != nil {
+		return versions, nil
+	}
 
-	return
+	return listComponentVersions(c.client, component.ApiInfo.Id())
 }
 
 func (c *Catalog) PrintComponents() [][]string {
@@ -234,7 +238,11 @@ func (c *Catalog) Delete(component *CDKComponent) (err error) {
 	return
 }
 
-func NewCatalog(client *api.Client, stageConstructor StageConstructor) (*Catalog, error) {
+func NewCatalog(
+	client *api.Client,
+	stageConstructor StageConstructor,
+	includeComponentVersions bool,
+) (*Catalog, error) {
 	if stageConstructor == nil {
 		return nil, errors.New("nil Catalog StageConstructor")
 	}
@@ -263,9 +271,12 @@ func NewCatalog(client *api.Client, stageConstructor StageConstructor) (*Catalog
 			return nil, errors.Wrap(err, fmt.Sprintf("component '%s' version '%s'", c.Name, c.Version))
 		}
 
-		allVersions, err := listComponentVersions(client, c.Id)
-		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("unable to fetch component '%s' versions", c.Name))
+		var allVersions []*semver.Version
+		if includeComponentVersions {
+			allVersions, err = listComponentVersions(client, c.Id)
+			if err != nil {
+				return nil, errors.Wrap(err, fmt.Sprintf("unable to fetch component '%s' versions", c.Name))
+			}
 		}
 
 		api := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size, c.Deprecated, Type(c.ComponentType))

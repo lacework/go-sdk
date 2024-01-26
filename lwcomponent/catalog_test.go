@@ -51,7 +51,7 @@ func TestCatalogNewCatalog(t *testing.T) {
 			api.WithURL(fakeServer.URL()),
 		)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 	})
@@ -89,7 +89,7 @@ func TestCatalogNewCatalog(t *testing.T) {
 
 		CreateLocalComponent(name, version, false)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, true)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 
@@ -116,7 +116,7 @@ func TestCatalogNewCatalog(t *testing.T) {
 			api.WithURL(fakeServer.URL()),
 		)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.Nil(t, catalog)
 		assert.NotNil(t, err)
 	})
@@ -148,7 +148,7 @@ func TestCatalogNewCatalog(t *testing.T) {
 
 		CreateLocalComponent(name, "invalid-version", false)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 
@@ -198,7 +198,7 @@ func TestCatalogComponentCount(t *testing.T) {
 		_, home := FakeHome()
 		defer ResetHome(home)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 		assert.Equal(t, apiCount, catalog.ComponentCount())
@@ -212,7 +212,7 @@ func TestCatalogComponentCount(t *testing.T) {
 			CreateLocalComponent(fmt.Sprintf("%s-%d", prefix, i), fmt.Sprintf("%d.0.0", i), false)
 		}
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 		assert.Equal(t, apiCount, catalog.ComponentCount())
@@ -226,7 +226,7 @@ func TestCatalogComponentCount(t *testing.T) {
 			CreateLocalComponent(fmt.Sprintf("deprecated-%d", i), fmt.Sprintf("%d.0.0", i), false)
 		}
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 		assert.Equal(t, apiCount+deprecatedCount, catalog.ComponentCount())
@@ -240,7 +240,7 @@ func TestCatalogComponentCount(t *testing.T) {
 			CreateLocalComponent(fmt.Sprintf("dev-%d", i), fmt.Sprintf("%d.0.0", i), true)
 		}
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 		assert.Equal(t, apiCount+developmentCount, catalog.ComponentCount())
@@ -258,7 +258,7 @@ func TestCatalogComponentCount(t *testing.T) {
 			CreateLocalComponent(fmt.Sprintf("all-dev-%d", i), fmt.Sprintf("%d.0.0", i), true)
 		}
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 		assert.Equal(t, apiCount+deprecatedCount+developmentCount, catalog.ComponentCount())
@@ -306,7 +306,7 @@ func TestCatalogGetComponent(t *testing.T) {
 
 		CreateLocalComponent(name, version, true)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, true)
 		assert.Nil(t, err)
 
 		component, err := catalog.GetComponent(name)
@@ -319,7 +319,7 @@ func TestCatalogGetComponent(t *testing.T) {
 		_, home := FakeHome()
 		defer ResetHome(home)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.Nil(t, err)
 
 		component, err := catalog.GetComponent("component-example")
@@ -338,7 +338,7 @@ func TestCatalogGetComponent(t *testing.T) {
 
 		CreateLocalComponent(name, version, true)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.Nil(t, err)
 
 		component, err := catalog.GetComponent(name)
@@ -361,7 +361,7 @@ func TestCatalogGetComponent(t *testing.T) {
 
 		CreateLocalComponent(name, version, false)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.Nil(t, err)
 
 		component, err := catalog.GetComponent(name)
@@ -402,7 +402,7 @@ func TestCatalogListComponentVersions(t *testing.T) {
 			api.WithURL(fakeServer.URL()),
 		)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 
@@ -410,7 +410,8 @@ func TestCatalogListComponentVersions(t *testing.T) {
 		assert.NotNil(t, component)
 		assert.Nil(t, err)
 
-		vers := catalog.ListComponentVersions(component)
+		vers, err := catalog.ListComponentVersions(component)
+		assert.Nil(t, err)
 
 		for idx, v := range versions {
 			assert.Equal(t, v, vers[idx].String())
@@ -439,8 +440,16 @@ func TestCatalogListComponentVersions(t *testing.T) {
 			api.WithURL(fakeServer.URL()),
 		)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
-		assert.Nil(t, catalog)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
+		assert.NotNil(t, catalog)
+		assert.Nil(t, err)
+
+		component, err := catalog.GetComponent(name)
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+
+		vers, err := catalog.ListComponentVersions(component)
+		assert.Nil(t, vers)
 		assert.NotNil(t, err)
 	})
 }
@@ -490,7 +499,7 @@ func TestCatalogStage(t *testing.T) {
 		api.WithURL(fakeServer.URL()),
 	)
 
-	catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+	catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 	assert.NotNil(t, catalog)
 	assert.Nil(t, err)
 
@@ -507,7 +516,7 @@ func TestCatalogStage(t *testing.T) {
 	t.Run("already installed", func(t *testing.T) {
 		CreateLocalComponent(name, version, false)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 
@@ -648,7 +657,7 @@ func TestCatalogInstall(t *testing.T) {
 		api.WithToken("TOKEN"),
 		api.WithURL(fakeServer.URL()))
 
-	catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+	catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 	assert.NotNil(t, catalog)
 	assert.Nil(t, err)
 
@@ -723,7 +732,7 @@ func TestCatalogDelete(t *testing.T) {
 
 		CreateLocalComponent(name, version, false)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 
@@ -747,7 +756,7 @@ func TestCatalogDelete(t *testing.T) {
 
 		CreateLocalComponent(name, version, true)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 
@@ -769,7 +778,7 @@ func TestCatalogDelete(t *testing.T) {
 	t.Run("delete-not-installed", func(t *testing.T) {
 		name := fmt.Sprintf("%s-1", prefix)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 
@@ -786,7 +795,7 @@ func TestCatalogDelete(t *testing.T) {
 
 		CreateLocalComponent(name, version, false)
 
-		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+		catalog, err := lwcomponent.NewCatalog(client, newTestStage, false)
 		assert.NotNil(t, catalog)
 		assert.Nil(t, err)
 
