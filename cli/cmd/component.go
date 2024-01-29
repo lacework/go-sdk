@@ -187,6 +187,17 @@ func (c *cliState) LoadComponents() {
 		}
 
 		version := component.InstalledVersion()
+		componentDir, err := component.Dir()
+		if err != nil {
+			c.Log.Debugw("unable to find component directory", "error", err)
+			return
+		}
+		if devInfo, _ := lwcomponent.NewDevInfo(componentDir); devInfo != nil {
+			if devVersion, _ := semver.NewVersion(devInfo.Version); devVersion != nil {
+				version = devVersion
+			}
+		}
+
 		if version != nil && component.Exec.Executable() {
 			componentCmd := &cobra.Command{
 				Use:                   component.Name,

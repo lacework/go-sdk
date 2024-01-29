@@ -1,8 +1,16 @@
 package lwcomponent
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/Masterminds/semver"
 	"github.com/fatih/color"
+	"github.com/lacework/go-sdk/internal/file"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -57,6 +65,49 @@ func NewCDKComponent(name string, desc string, componentType Type, apiInfo ApiIn
 	}
 }
 
+func (c *CDKComponent) Dir() (string, error) {
+	dir, err := CatalogCacheDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(dir, c.Name), nil
+}
+
+func (c *CDKComponent) EnterDevMode() error {
+	if c.HostInfo != nil && c.HostInfo.Development() {
+		return errors.New("component already under development.")
+	}
+
+	dir, err := c.Dir()
+	if err != nil {
+		return errors.New("unable to detect RootPath")
+	}
+
+	devFile := filepath.Join(dir, DevelopmentFile)
+	if !file.FileExists(devFile) {
+		devInfo := &DevInfo{
+			ComponentType: c.Type,
+			Desc:          fmt.Sprintf("(dev-mode) %s", c.Description),
+			Name:          c.Name,
+			Version:       "0.0.0-dev",
+		}
+
+		buf := new(bytes.Buffer)
+		if err := json.NewEncoder(buf).Encode(devInfo); err != nil {
+			return err
+		}
+
+		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			return err
+		}
+
+		return os.WriteFile(devFile, buf.Bytes(), 0644)
+	}
+
+	return nil
+}
+
 func (c *CDKComponent) InstalledVersion() (version *semver.Version) {
 	var err error
 
@@ -86,13 +137,22 @@ func (c *CDKComponent) PrintSummary() []string {
 	)
 
 	switch c.Status {
-	case Installed, InstalledDeprecated, NotInstalledDeprecated, Development, UpdateAvailable, Tainted:
+	case Installed, InstalledDeprecated, NotInstalledDeprecated, UpdateAvailable, Tainted:
 		version, err = c.HostInfo.Version()
 		if err != nil {
 			panic(err)
 		}
 	case NotInstalled:
 		version = c.ApiInfo.LatestVersion()
+	case Development:
+		devInfo, err := NewDevInfo(c.HostInfo.Dir())
+		if err != nil {
+			panic(err)
+		}
+		version, err = semver.NewVersion(devInfo.Version)
+		if err != nil {
+			panic(err)
+		}
 	default:
 		version = &semver.Version{}
 	}
@@ -111,6 +171,10 @@ func status(apiInfo ApiInfo, hostInfo HostInfo) Status {
 	status := UnknownStatus
 
 	if hostInfo != nil {
+		if hostInfo.Development() {
+			return Development
+		}
+
 		if err := hostInfo.Validate(); err != nil {
 			return UnknownStatus
 		}
@@ -136,11 +200,7 @@ func status(apiInfo ApiInfo, hostInfo HostInfo) Status {
 				return Installed
 			}
 		} else {
-			if hostInfo.Development() {
-				return Development
-			} else {
-				return InstalledDeprecated
-			}
+			return InstalledDeprecated
 		}
 	}
 
