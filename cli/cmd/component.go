@@ -227,7 +227,7 @@ func v1ComponentCommand(c *cliState, cmd *cobra.Command, args []string) error {
 		"args", c.componentParser.componentArgs,
 		"cli_flags", c.componentParser.cliArgs)
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -346,7 +346,7 @@ func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 func listComponents() error {
 	cli.StartProgress("Loading component Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, true)
 	defer catalog.Persist()
 
 	cli.StopProgress()
@@ -414,7 +414,7 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 
 	cli.StartProgress("Loading component Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
 	defer catalog.Persist()
 
 	cli.StopProgress()
@@ -515,7 +515,7 @@ func showComponent(args []string) error {
 
 	cli.StartProgress("Loading components Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
 	defer catalog.Persist()
 
 	cli.StopProgress()
@@ -534,7 +534,12 @@ func showComponent(args []string) error {
 
 	printComponent(component.PrintSummary())
 
-	printAvailableVersions(component.InstalledVersion(), catalog.ListComponentVersions(component))
+	allVersions, err := catalog.ListComponentVersions(component)
+	if err != nil {
+		return err
+	}
+
+	printAvailableVersions(component.InstalledVersion(), allVersions)
 
 	return nil
 }
@@ -584,7 +589,7 @@ func updateComponent(args []string) (err error) {
 
 	cli.StartProgress("Loading components Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
 	defer catalog.Persist()
 
 	cli.StopProgress()
@@ -710,7 +715,7 @@ func deleteComponent(args []string) (err error) {
 
 	cli.StartProgress("Loading components Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
 	defer catalog.Persist()
 
 	cli.StopProgress()
