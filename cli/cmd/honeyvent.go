@@ -95,11 +95,6 @@ const (
 // could be modified during a command execution to add extra parameters such
 // as error message, feature data, etc.
 func (c *cliState) InitHoneyvent() {
-	hc := libhoney.Config{
-		Dataset: HoneyDataset,
-	}
-	_ = libhoney.Init(hc)
-
 	c.Event = &api.Honeyvent{
 		Os:            runtime.GOOS,
 		Arch:          runtime.GOARCH,
@@ -111,6 +106,7 @@ func (c *cliState) InitHoneyvent() {
 		CfgVersion:    c.CfgVersion,
 		TraceID:       newID(),
 		InstallMethod: installMethod(),
+		Dataset:       HoneyDataset,
 	}
 }
 

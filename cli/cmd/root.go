@@ -82,7 +82,6 @@ func cliPersistentPreRun(cmd *cobra.Command, args []string) error {
 	cli.Event.Command = cmd.CommandPath()
 	cli.Event.Args = args
 	cli.Event.Flags = parseFlags(os.Args[1:])
-	cli.SendHoneyvent()
 
 	switch cmd.Use {
 	case "help [command]", "configure", "version", "docs <directory>", "generate-pkg-manifest":
@@ -106,6 +105,7 @@ func cliPersistentPreRun(cmd *cobra.Command, args []string) error {
 			}
 		}
 	}
+	cli.SendHoneyvent()
 	return nil
 }
 
