@@ -1,6 +1,8 @@
 package lwcomponent
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,12 +17,14 @@ import (
 
 const (
 	componentCacheDir string = "components"
+	cdkCacheName      string = "cdk_cache"
 	featureFlag       string = "PUBLIC.cdk.v1"
 	operatingSystem   string = runtime.GOOS
 	architecture      string = runtime.GOARCH
 )
 
 func CatalogV1Enabled(client *api.Client) bool {
+	return true
 	response, err := client.V2.FeatureFlags.GetFeatureFlagsMatchingPrefix(featureFlag)
 	if err != nil {
 		return false
@@ -58,8 +62,56 @@ func (c *Catalog) ComponentCount() int {
 	return len(c.Components)
 }
 
-func (c *Catalog) Persist() {
-	// @jon-stewart: TODO: store catalog on disk
+func (c *Catalog) Persist() error {
+	cacheDir, err := CatalogCacheDir()
+	if err != nil {
+		return err
+	}
+
+	cdkCacheFile := filepath.Join(cacheDir, cdkCacheName)
+	buf := new(bytes.Buffer)
+
+	if err := json.NewEncoder(buf).Encode(c.Components); err != nil {
+		return err
+	}
+	if err := os.WriteFile(cdkCacheFile, buf.Bytes(), 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Catalog) PersistComponent(component *CDKComponent) error {
+	cdkCache, err := loadCdkCache()
+	if err != nil {
+		return err
+	}
+
+	cacheDir, err := CatalogCacheDir()
+	if err != nil {
+		return err
+	}
+
+	if component.ApiInfo != nil && len(component.ApiInfo.AllVersions) == 0 {
+		allVersions, err := listComponentVersions(c.client, component.ApiInfo.Id)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to fetch component '%s' versions", component.Name))
+		}
+		component.ApiInfo.AllVersions = allVersions
+	}
+	cdkCache[component.Name] = *component
+
+	cdkCacheFile := filepath.Join(cacheDir, cdkCacheName)
+	buf := new(bytes.Buffer)
+
+	if err := json.NewEncoder(buf).Encode(cdkCache); err != nil {
+		return err
+	}
+	if err := os.WriteFile(cdkCacheFile, buf.Bytes(), 0644); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Return a CDKComponent that is present on the host.
@@ -78,12 +130,12 @@ func (c *Catalog) ListComponentVersions(component *CDKComponent) (versions []*se
 		return
 	}
 
-	versions = component.ApiInfo.AllVersions()
+	versions = component.ApiInfo.AllVersions
 	if versions != nil {
-		return versions, nil
+		return
 	}
 
-	return listComponentVersions(c.client, component.ApiInfo.Id())
+	return listComponentVersions(c.client, component.ApiInfo.Id)
 }
 
 func (c *Catalog) PrintComponents() [][]string {
@@ -107,7 +159,7 @@ func (c *Catalog) Stage(
 	stageClose = func() {}
 
 	if version == "" {
-		semv = component.ApiInfo.LatestVersion()
+		semv = &component.ApiInfo.Version
 	} else {
 		semv, err = semver.NewVersion(version)
 		if err != nil {
@@ -130,7 +182,7 @@ func (c *Catalog) Stage(
 	}
 
 	response, err := c.client.V2.Components.FetchComponentArtifact(
-		component.ApiInfo.Id(),
+		component.ApiInfo.Id,
 		operatingSystem,
 		architecture,
 		semv.String())
@@ -213,6 +265,13 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		return
 	}
 
+	if component.ApiInfo != nil &&
+		(component.ApiInfo.ComponentType == BinaryType || component.ApiInfo.ComponentType == CommandType) {
+		if err := os.Chmod(filepath.Join(componentDir, component.Name), 0744); err != nil {
+			return errors.Wrap(err, "unable to make component executable")
+		}
+	}
+
 	component.HostInfo = NewHostInfo(componentDir)
 
 	return
@@ -279,21 +338,21 @@ func NewCatalog(
 			}
 		}
 
-		api := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size, c.Deprecated, Type(c.ComponentType))
+		apiInfo := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size, c.Deprecated, Type(c.ComponentType))
 
-		host, found := localComponents[c.Name]
+		hostInfo, found := localComponents[c.Name]
 		if found {
 			delete(localComponents, c.Name)
 		}
 
-		component := NewCDKComponent(c.Name, c.Description, Type(c.ComponentType), api, host)
+		component := NewCDKComponent(c.Name, c.Description, Type(c.ComponentType), apiInfo, hostInfo)
 
 		cdkComponents[c.Name] = component
 	}
 
 	for _, localHost := range localComponents {
 		if localHost.Development() {
-			devInfo, err := NewDevInfo(localHost.Dir())
+			devInfo, err := NewDevInfo(localHost.Dir)
 			if err != nil {
 				return nil, err
 			}
@@ -305,8 +364,8 @@ func NewCatalog(
 				nil,
 				localHost)
 		} else {
-			// @jon-stewart: persisted API info
-			cdkComponents[localHost.Name()] = NewCDKComponent(localHost.Name(), "", BinaryType, nil, localHost)
+			// Unknown components
+			cdkComponents[localHost.Name()] = NewCDKComponent(localHost.Name(), "", EmptyType, nil, localHost)
 		}
 	}
 
@@ -314,28 +373,62 @@ func NewCatalog(
 }
 
 func LocalComponents() (components []CDKComponent, err error) {
-	var localHost map[string]HostInfo
+	cdkCache, err := loadCdkCache()
+	if err != nil {
+		return
+	}
 
-	localHost, err = loadLocalComponents()
+	localComponents, err := loadLocalComponents()
+	if err != nil {
+		return
+	}
 
-	for _, l := range localHost {
-		if l.Development() {
-			devInfo, err := NewDevInfo(l.Dir())
+	// Load components stored in cdk_cache
+	for _, c := range cdkCache {
+		hostInfo, ok := localComponents[c.Name]
+		if ok {
+			delete(localComponents, c.Name)
+		}
+		components = append(components, NewCDKComponent(c.Name, c.Description, c.Type, c.ApiInfo, hostInfo))
+	}
+
+	// Load components in the components folder but not stored in cdk_cache
+	for _, hostInfo := range localComponents {
+		if hostInfo.Development() {
+			devInfo, err := NewDevInfo(hostInfo.Dir)
 			if err != nil {
 				return nil, err
 			}
-
-			components = append(components, NewCDKComponent(l.Name(), devInfo.Desc, devInfo.ComponentType, nil, l))
+			components = append(components, NewCDKComponent(hostInfo.Name(), devInfo.Desc, devInfo.ComponentType, nil, hostInfo))
 		} else {
-			// @jon-stewart: persisted API info
-			components = append(components, NewCDKComponent(l.Name(), "", BinaryType, nil, l))
+			// Unknown components
+			components = append(components, NewCDKComponent(hostInfo.Name(), "", EmptyType, nil, hostInfo))
 		}
 	}
 
 	return
 }
 
-func loadLocalComponents() (local map[string]HostInfo, err error) {
+func loadCdkCache() (map[string]CDKComponent, error) {
+	var cdkCache map[string]CDKComponent
+
+	cacheDir, err := CatalogCacheDir()
+	if err != nil {
+		return nil, err
+	}
+
+	cacheBytes, err := os.ReadFile(filepath.Join(cacheDir, cdkCacheName))
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(cacheBytes, &cdkCache); err != nil {
+		return nil, err
+	}
+
+	return cdkCache, nil
+}
+
+func loadLocalComponents() (local map[string]*HostInfo, err error) {
 	cacheDir, err := CatalogCacheDir()
 	if err != nil {
 		return
@@ -346,7 +439,7 @@ func loadLocalComponents() (local map[string]HostInfo, err error) {
 		return
 	}
 
-	local = make(map[string]HostInfo, len(subDir))
+	local = make(map[string]*HostInfo, len(subDir))
 
 	for _, file := range subDir {
 		if !file.IsDir() {

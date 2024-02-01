@@ -169,9 +169,9 @@ func (c *cliState) LoadComponents() {
 		return
 	}
 
-	// @jon-stewart: TODO: load from cached API info
-
 	for _, component := range components {
+		// Create local variable for current loop
+		component := component
 		exists := false
 
 		for _, cmd := range rootCmd.Commands() {
@@ -187,16 +187,6 @@ func (c *cliState) LoadComponents() {
 		}
 
 		version := component.InstalledVersion()
-		componentDir, err := component.Dir()
-		if err != nil {
-			c.Log.Debugw("unable to find component directory", "error", err)
-			return
-		}
-		if devInfo, _ := lwcomponent.NewDevInfo(componentDir); devInfo != nil {
-			if devVersion, _ := semver.NewVersion(devInfo.Version); devVersion != nil {
-				version = devVersion
-			}
-		}
 
 		if version != nil && component.Exec.Executable() {
 			componentCmd := &cobra.Command{
@@ -208,7 +198,7 @@ func (c *cliState) LoadComponents() {
 				DisableFlagParsing:    true,
 				DisableFlagsInUseLine: true,
 				RunE: func(cmd *cobra.Command, args []string) error {
-					return v1ComponentCommand(c, cmd, args)
+					return v1ComponentCommand(c, cmd, component)
 				},
 			}
 
@@ -224,7 +214,7 @@ func startGrpcServer(c *cliState) {
 	}
 }
 
-func v1ComponentCommand(c *cliState, cmd *cobra.Command, args []string) error {
+func v1ComponentCommand(c *cliState, cmd *cobra.Command, component lwcomponent.CDKComponent) error {
 	// Parse component -v/--version flag
 	versionVal, _ := cmd.Flags().GetBool("version")
 	if versionVal {
@@ -237,16 +227,6 @@ func v1ComponentCommand(c *cliState, cmd *cobra.Command, args []string) error {
 	c.Log.Debugw("running component", "component", cmd.Use,
 		"args", c.componentParser.componentArgs,
 		"cli_flags", c.componentParser.cliArgs)
-
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
-	if err != nil {
-		return errors.Wrap(err, "unable to load component Catalog")
-	}
-
-	component, err := catalog.GetComponent(cmd.Use)
-	if err != nil {
-		return err
-	}
 
 	// @jon-stewart: TODO: v1 dailyComponentUpdateAvailable
 
@@ -358,12 +338,12 @@ func listComponents() error {
 	cli.StartProgress("Loading component Catalog...")
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, true)
-	defer catalog.Persist()
 
 	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
+	defer catalog.Persist()
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(catalog)
@@ -378,8 +358,6 @@ func listComponents() error {
 	}
 
 	printComponents(catalog.PrintComponents())
-
-	cli.OutputHuman("\nComponents version: %s\n", cli.LwComponents.Version)
 
 	return nil
 }
@@ -426,7 +404,6 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 	cli.StartProgress("Loading component Catalog...")
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
-	defer catalog.Persist()
 
 	cli.StopProgress()
 	if err != nil {
@@ -438,6 +415,7 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return
 	}
+	defer catalog.PersistComponent(component)
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 
@@ -527,7 +505,6 @@ func showComponent(args []string) error {
 	cli.StartProgress("Loading components Catalog...")
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
-	defer catalog.Persist()
 
 	cli.StopProgress()
 	if err != nil {
@@ -538,6 +515,7 @@ func showComponent(args []string) error {
 	if err != nil {
 		return err
 	}
+	defer catalog.PersistComponent(component)
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(component)
@@ -601,7 +579,6 @@ func updateComponent(args []string) (err error) {
 	cli.StartProgress("Loading components Catalog...")
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
-	defer catalog.Persist()
 
 	cli.StopProgress()
 	if err != nil {
@@ -612,6 +589,7 @@ func updateComponent(args []string) (err error) {
 	if err != nil {
 		return err
 	}
+	defer catalog.PersistComponent(component)
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 
@@ -727,7 +705,6 @@ func deleteComponent(args []string) (err error) {
 	cli.StartProgress("Loading components Catalog...")
 
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
-	defer catalog.Persist()
 
 	cli.StopProgress()
 	if err != nil {
@@ -738,6 +715,7 @@ func deleteComponent(args []string) (err error) {
 	if err != nil {
 		return err
 	}
+	defer catalog.PersistComponent(component)
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 

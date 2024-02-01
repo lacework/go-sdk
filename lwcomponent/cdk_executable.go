@@ -21,6 +21,8 @@ type Executer interface {
 	Execute(args []string, envs ...string) (stdout string, stderr string, err error)
 
 	ExecuteInline(args []string, envs ...string) (err error)
+
+	Path() string
 }
 
 type executable struct {
@@ -34,6 +36,10 @@ func NewExecuable(name string, dir string) Executer {
 	}
 
 	return &executable{path: path}
+}
+
+func (e *executable) Path() string {
+	return e.path
 }
 
 func (e *executable) Executable() bool {
@@ -106,4 +112,8 @@ func (e *nonExecutable) Execute(args []string, envs ...string) (stdout string, s
 
 func (e *nonExecutable) ExecuteInline(args []string, envs ...string) (err error) {
 	return ErrNonExecutable
+}
+
+func (e *nonExecutable) Path() string {
+	return ""
 }
