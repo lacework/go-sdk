@@ -343,7 +343,12 @@ func listComponents() error {
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
-	defer catalog.Persist()
+	defer func() {
+		err := catalog.Persist()
+		if err != nil {
+			cli.Log.Errorf("unable to save component catalog into cdk_cache: %s", err.Error())
+		}
+	}()
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(catalog)
@@ -415,7 +420,12 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return
 	}
-	defer catalog.PersistComponent(component)
+	defer func() {
+		err := catalog.PersistComponent(component)
+		if err != nil {
+			cli.Log.Errorf("unable to save component %s into cdk_cache: %s", component.Name, err.Error())
+		}
+	}()
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 
@@ -515,7 +525,12 @@ func showComponent(args []string) error {
 	if err != nil {
 		return err
 	}
-	defer catalog.PersistComponent(component)
+	defer func() {
+		err := catalog.PersistComponent(component)
+		if err != nil {
+			cli.Log.Errorf("unable to save component %s into cdk_cache: %s", component.Name, err.Error())
+		}
+	}()
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(component)
@@ -589,7 +604,12 @@ func updateComponent(args []string) (err error) {
 	if err != nil {
 		return err
 	}
-	defer catalog.PersistComponent(component)
+	defer func() {
+		err := catalog.PersistComponent(component)
+		if err != nil {
+			cli.Log.Errorf("unable to save component %s into cdk_cache: %s", component.Name, err.Error())
+		}
+	}()
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 
@@ -715,7 +735,12 @@ func deleteComponent(args []string) (err error) {
 	if err != nil {
 		return err
 	}
-	defer catalog.PersistComponent(component)
+	defer func() {
+		err := catalog.PersistComponent(component)
+		if err != nil {
+			cli.Log.Errorf("unable to save component %s into cdk_cache: %s", component.Name, err.Error())
+		}
+	}()
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 

@@ -24,7 +24,6 @@ const (
 )
 
 func CatalogV1Enabled(client *api.Client) bool {
-	return true
 	response, err := client.V2.FeatureFlags.GetFeatureFlagsMatchingPrefix(featureFlag)
 	if err != nil {
 		return false
@@ -126,7 +125,7 @@ func (c *Catalog) GetComponent(name string) (*CDKComponent, error) {
 
 func (c *Catalog) ListComponentVersions(component *CDKComponent) (versions []*semver.Version, err error) {
 	if component.ApiInfo == nil {
-		err = errors.Errorf("component '%s' api info  already installed", component.Name)
+		err = errors.Errorf("component '%s' api info not available", component.Name)
 		return
 	}
 
