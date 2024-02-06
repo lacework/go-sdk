@@ -241,7 +241,10 @@ func v1ComponentCommand(c *cliState, cmd *cobra.Command) error {
 		"args", c.componentParser.componentArgs,
 		"cli_flags", c.componentParser.cliArgs)
 
-	// @jon-stewart: TODO: v1 dailyComponentUpdateAvailable
+	if component.ApiInfo != nil && component.InstalledVersion().LessThan(component.ApiInfo.Version) {
+		format := "%s v%s available: to update, run `lacework component update %s`\n\n"
+		cli.OutputHuman(fmt.Sprintf(format, cmd.Use, component.ApiInfo.Version, cmd.Use))
+	}
 
 	envs := []string{
 		fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use),
