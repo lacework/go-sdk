@@ -67,7 +67,7 @@ func (h *HostInfo) Version() (version *semver.Version, err error) {
 
 	path := filepath.Join(h.Dir, VersionFile)
 	if !file.FileExists(path) {
-		return nil, errors.New("missing .verion file")
+		return nil, errors.New("missing .version file")
 	}
 
 	data, err := os.ReadFile(path)

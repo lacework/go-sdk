@@ -22,8 +22,8 @@ type CDKComponent struct {
 	Description    string `json:"description"`
 	Type           Type   `json:"type"`
 	Status         Status `json:"-"`
-	InstallMessage string `json:"installMessage,omitempty"`
-	UpdateMessage  string `json:"updateMessage,omitempty"`
+	InstallMessage string `json:"-"`
+	UpdateMessage  string `json:"-"`
 
 	Exec Executer `json:"-"`
 

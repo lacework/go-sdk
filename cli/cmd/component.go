@@ -34,6 +34,7 @@ import (
 
 const (
 	componentTypeAnnotation string = "component"
+	componentsCacheKey      string = "components"
 )
 
 var (
@@ -121,6 +122,15 @@ func init() {
 	componentsCmd.AddCommand(componentsUninstallCmd)
 	componentsCmd.AddCommand(componentsDevModeCmd)
 
+	// componentsCmd init runs before rootCmd init
+	// Call InitConfig and cli.NewClient here to initialize cli.Cache, so components cache can be loadded correctly
+	// TODO find a better a way to init cli.Cache and cli.lwApi
+	InitConfig()
+	err := cli.NewClient()
+	if err != nil {
+		cli.Log.Debugw("unable to create new api client", "error", err)
+	}
+
 	// load components dynamically
 	cli.PrototypeLoadComponents()
 
@@ -163,13 +173,13 @@ func (c *cliState) IsComponentInstalled(name string) bool {
 
 // Load v1 components
 func (c *cliState) LoadComponents() {
-	components, err := lwcomponent.LocalComponents()
+	catalog, err := LoadCatalog()
 	if err != nil {
 		c.Log.Debugw("unable to load components", "error", err)
 		return
 	}
 
-	for _, component := range components {
+	for _, component := range catalog.Components {
 		// Create local variable for current loop
 		component := component
 		exists := false
@@ -337,18 +347,12 @@ func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 func listComponents() error {
 	cli.StartProgress("Loading component Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, true)
+	catalog, err := LoadCatalog()
 
 	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
-	defer func() {
-		err := catalog.Persist()
-		if err != nil {
-			cli.Log.Errorf("unable to save component catalog into cdk_cache: %s", err.Error())
-		}
-	}()
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(catalog)
@@ -408,7 +412,7 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 
 	cli.StartProgress("Loading component Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
+	catalog, err := LoadCatalog()
 
 	cli.StopProgress()
 	if err != nil {
@@ -420,12 +424,6 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		err := catalog.PersistComponent(component)
-		if err != nil {
-			cli.Log.Errorf("unable to save component %s into cdk_cache: %s", component.Name, err.Error())
-		}
-	}()
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 
@@ -514,7 +512,7 @@ func showComponent(args []string) error {
 
 	cli.StartProgress("Loading components Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
+	catalog, err := LoadCatalog()
 
 	cli.StopProgress()
 	if err != nil {
@@ -525,12 +523,6 @@ func showComponent(args []string) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err := catalog.PersistComponent(component)
-		if err != nil {
-			cli.Log.Errorf("unable to save component %s into cdk_cache: %s", component.Name, err.Error())
-		}
-	}()
 
 	if cli.JSONOutput() {
 		return cli.OutputJSON(component)
@@ -593,7 +585,7 @@ func updateComponent(args []string) (err error) {
 
 	cli.StartProgress("Loading components Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
+	catalog, err := LoadCatalog()
 
 	cli.StopProgress()
 	if err != nil {
@@ -604,12 +596,6 @@ func updateComponent(args []string) (err error) {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err := catalog.PersistComponent(component)
-		if err != nil {
-			cli.Log.Errorf("unable to save component %s into cdk_cache: %s", component.Name, err.Error())
-		}
-	}()
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 
@@ -724,7 +710,7 @@ func deleteComponent(args []string) (err error) {
 
 	cli.StartProgress("Loading components Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
+	catalog, err := LoadCatalog()
 
 	cli.StopProgress()
 	if err != nil {
@@ -735,12 +721,6 @@ func deleteComponent(args []string) (err error) {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err := catalog.PersistComponent(component)
-		if err != nil {
-			cli.Log.Errorf("unable to save component %s into cdk_cache: %s", component.Name, err.Error())
-		}
-	}()
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 
@@ -1217,4 +1197,35 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 
 		time.Sleep(time.Second)
 	}
+}
+
+func LoadCatalog() (*lwcomponent.Catalog, error) {
+	cli.StartProgress("Loading component Catalog...")
+
+	var components map[string]lwcomponent.CDKComponent
+
+	// try to load components Catalog from cache
+	if !cli.noCache {
+		expired := cli.ReadCachedAsset(componentsCacheKey, &components)
+		if !expired {
+			cli.StopProgress()
+			cli.Log.Infow("loaded components from cache", "components", components)
+			catalog, err := lwcomponent.NewCachedCatalog(cli.LwApi, lwcomponent.NewStageTarGz, components)
+			if err != nil {
+				return nil, errors.Wrap(err, "unable to load component Catalog from cache")
+			}
+			return catalog, nil
+		}
+	}
+
+	// load components Catalog from API
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, true)
+	cli.StopProgress()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load component Catalog")
+	}
+
+	cli.WriteAssetToCache(componentsCacheKey, time.Now().Add(time.Hour*12), catalog.Components)
+
+	return catalog, nil
 }
