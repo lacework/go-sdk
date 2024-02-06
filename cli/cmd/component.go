@@ -122,15 +122,6 @@ func init() {
 	componentsCmd.AddCommand(componentsUninstallCmd)
 	componentsCmd.AddCommand(componentsDevModeCmd)
 
-	// componentsCmd init runs before rootCmd init
-	// Call InitConfig and cli.NewClient here to initialize cli.Cache, so components cache can be loadded correctly
-	// TODO find a better a way to init cli.Cache and cli.lwApi
-	InitConfig()
-	err := cli.NewClient()
-	if err != nil {
-		cli.Log.Debugw("unable to create new api client", "error", err)
-	}
-
 	// load components dynamically
 	cli.PrototypeLoadComponents()
 
@@ -173,15 +164,13 @@ func (c *cliState) IsComponentInstalled(name string) bool {
 
 // Load v1 components
 func (c *cliState) LoadComponents() {
-	catalog, err := LoadCatalog()
+	components, err := lwcomponent.LoadLocalComponents()
 	if err != nil {
 		c.Log.Debugw("unable to load components", "error", err)
 		return
 	}
 
-	for _, component := range catalog.Components {
-		// Create local variable for current loop
-		component := component
+	for _, component := range components {
 		exists := false
 
 		for _, cmd := range rootCmd.Commands() {
@@ -198,7 +187,7 @@ func (c *cliState) LoadComponents() {
 
 		version := component.InstalledVersion()
 
-		if version != nil && component.Exec.Executable() {
+		if version != nil {
 			componentCmd := &cobra.Command{
 				Use:                   component.Name,
 				Short:                 component.Description,
@@ -208,7 +197,7 @@ func (c *cliState) LoadComponents() {
 				DisableFlagParsing:    true,
 				DisableFlagsInUseLine: true,
 				RunE: func(cmd *cobra.Command, args []string) error {
-					return v1ComponentCommand(c, cmd, component)
+					return v1ComponentCommand(c, cmd)
 				},
 			}
 
@@ -224,7 +213,7 @@ func startGrpcServer(c *cliState) {
 	}
 }
 
-func v1ComponentCommand(c *cliState, cmd *cobra.Command, component lwcomponent.CDKComponent) error {
+func v1ComponentCommand(c *cliState, cmd *cobra.Command) error {
 	// Parse component -v/--version flag
 	versionVal, _ := cmd.Flags().GetBool("version")
 	if versionVal {
@@ -233,6 +222,20 @@ func v1ComponentCommand(c *cliState, cmd *cobra.Command, component lwcomponent.C
 	}
 
 	go startGrpcServer(c)
+
+	catalog, err := LoadCatalog()
+	if err != nil {
+		return errors.Wrap(err, "unable to load component Catalog")
+	}
+
+	component, err := catalog.GetComponent(cmd.Use)
+	if err != nil {
+		return err
+	}
+
+	if !component.Exec.Executable() {
+		return errors.New("component is not executable")
+	}
 
 	c.Log.Debugw("running component", "component", cmd.Use,
 		"args", c.componentParser.componentArgs,

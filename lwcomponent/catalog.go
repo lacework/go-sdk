@@ -316,7 +316,7 @@ func NewCachedCatalog(
 
 // LoadComponents combines the passed in components with the local components
 func LoadComponents(components map[string]CDKComponent) (allComponents map[string]CDKComponent, err error) {
-	localComponents, err := loadLocalComponents()
+	localComponents, err := LoadLocalComponents()
 	if err != nil {
 		return
 	}
@@ -340,7 +340,7 @@ func LoadComponents(components map[string]CDKComponent) (allComponents map[strin
 	return
 }
 
-func loadLocalComponents() (components map[string]CDKComponent, err error) {
+func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 	cacheDir, err := CatalogCacheDir()
 	if err != nil {
 		return
