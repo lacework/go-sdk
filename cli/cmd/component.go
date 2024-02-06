@@ -348,11 +348,7 @@ func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 }
 
 func listComponents() error {
-	cli.StartProgress("Loading component Catalog...")
-
 	catalog, err := LoadCatalog()
-
-	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -413,11 +409,7 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 	cli.Event.Feature = "install_component"
 	defer cli.SendHoneyvent()
 
-	cli.StartProgress("Loading component Catalog...")
-
 	catalog, err := LoadCatalog()
-
-	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to load component Catalog")
 		return
@@ -513,11 +505,7 @@ func showComponent(args []string) error {
 		componentName string = args[0]
 	)
 
-	cli.StartProgress("Loading components Catalog...")
-
 	catalog, err := LoadCatalog()
-
-	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -586,11 +574,7 @@ func updateComponent(args []string) (err error) {
 		targetVersion    *semver.Version
 	)
 
-	cli.StartProgress("Loading components Catalog...")
-
 	catalog, err := LoadCatalog()
-
-	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -711,11 +695,7 @@ func deleteComponent(args []string) (err error) {
 		componentName string = args[0]
 	)
 
-	cli.StartProgress("Loading components Catalog...")
-
 	catalog, err := LoadCatalog()
-
-	cli.StopProgress()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -1204,6 +1184,7 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 
 func LoadCatalog() (*lwcomponent.Catalog, error) {
 	cli.StartProgress("Loading component Catalog...")
+	defer cli.StopProgress()
 
 	var componentsApiInfo map[string]lwcomponent.ApiInfo
 
@@ -1211,11 +1192,10 @@ func LoadCatalog() (*lwcomponent.Catalog, error) {
 	if !cli.noCache {
 		expired := cli.ReadCachedAsset(componentsCacheKey, &componentsApiInfo)
 		if !expired {
-			cli.StopProgress()
 			cli.Log.Infow("loaded components from cache", "components", componentsApiInfo)
 			catalog, err := lwcomponent.NewCachedCatalog(cli.LwApi, lwcomponent.NewStageTarGz, componentsApiInfo)
 			if err != nil {
-				return nil, errors.Wrap(err, "unable to load component Catalog from cache")
+				return nil, err
 			}
 			return catalog, nil
 		}
@@ -1223,9 +1203,8 @@ func LoadCatalog() (*lwcomponent.Catalog, error) {
 
 	// load components Catalog from API
 	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, true)
-	cli.StopProgress()
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to load component Catalog")
+		return nil, err
 	}
 
 	componentsApiInfo = make(map[string]lwcomponent.ApiInfo, len(catalog.Components))
