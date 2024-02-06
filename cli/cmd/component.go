@@ -1202,15 +1202,15 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 func LoadCatalog() (*lwcomponent.Catalog, error) {
 	cli.StartProgress("Loading component Catalog...")
 
-	var components map[string]lwcomponent.CDKComponent
+	var componentsApiInfo map[string]lwcomponent.ApiInfo
 
 	// try to load components Catalog from cache
 	if !cli.noCache {
-		expired := cli.ReadCachedAsset(componentsCacheKey, &components)
+		expired := cli.ReadCachedAsset(componentsCacheKey, &componentsApiInfo)
 		if !expired {
 			cli.StopProgress()
-			cli.Log.Infow("loaded components from cache", "components", components)
-			catalog, err := lwcomponent.NewCachedCatalog(cli.LwApi, lwcomponent.NewStageTarGz, components)
+			cli.Log.Infow("loaded components from cache", "components", componentsApiInfo)
+			catalog, err := lwcomponent.NewCachedCatalog(cli.LwApi, lwcomponent.NewStageTarGz, componentsApiInfo)
 			if err != nil {
 				return nil, errors.Wrap(err, "unable to load component Catalog from cache")
 			}
@@ -1225,7 +1225,15 @@ func LoadCatalog() (*lwcomponent.Catalog, error) {
 		return nil, errors.Wrap(err, "unable to load component Catalog")
 	}
 
-	cli.WriteAssetToCache(componentsCacheKey, time.Now().Add(time.Hour*12), catalog.Components)
+	componentsApiInfo = make(map[string]lwcomponent.ApiInfo, len(catalog.Components))
+
+	for _, c := range catalog.Components {
+		if c.ApiInfo != nil {
+			componentsApiInfo[c.Name] = *c.ApiInfo
+		}
+	}
+
+	cli.WriteAssetToCache(componentsCacheKey, time.Now().Add(time.Hour*12), componentsApiInfo)
 
 	return catalog, nil
 }

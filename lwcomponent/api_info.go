@@ -7,7 +7,7 @@ import (
 type ApiInfo struct {
 	Id            int32             `json:"id"`
 	Name          string            `json:"name"`
-	Version       semver.Version    `json:"version"`
+	Version       *semver.Version   `json:"version"`
 	AllVersions   []*semver.Version `json:"allVersions"`
 	Desc          string            `json:"desc"`
 	SizeKB        int64             `json:"sizeKB"`
@@ -28,7 +28,7 @@ func NewAPIInfo(
 	return &ApiInfo{
 		Id:            id,
 		Name:          name,
-		Version:       *version,
+		Version:       version,
 		AllVersions:   allVersions,
 		Desc:          desc,
 		SizeKB:        size,

@@ -104,7 +104,7 @@ func (c *Catalog) Stage(
 	stageClose = func() {}
 
 	if version == "" {
-		semv = &component.ApiInfo.Version
+		semv = component.ApiInfo.Version
 	} else {
 		semv, err = semver.NewVersion(version)
 		if err != nil {
@@ -293,10 +293,17 @@ func NewCatalog(
 func NewCachedCatalog(
 	client *api.Client,
 	stageConstructor StageConstructor,
-	cachedComponents map[string]CDKComponent,
+	cachedComponentsApiInfo map[string]ApiInfo,
 ) (*Catalog, error) {
 	if stageConstructor == nil {
 		return nil, errors.New("nil Catalog StageConstructor")
+	}
+
+	cachedComponents := make(map[string]CDKComponent, len(cachedComponentsApiInfo))
+
+	for _, a := range cachedComponentsApiInfo {
+		a := a
+		cachedComponents[a.Name] = NewCDKComponent(a.Name, a.Desc, a.ComponentType, &a, nil)
 	}
 
 	components, err := LoadComponents(cachedComponents)

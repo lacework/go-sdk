@@ -132,7 +132,7 @@ func (c *CDKComponent) InstalledVersion() (version *semver.Version) {
 
 func (c *CDKComponent) LatestVersion() (version *semver.Version) {
 	if c.ApiInfo != nil {
-		version = &c.ApiInfo.Version
+		version = c.ApiInfo.Version
 	}
 
 	return
@@ -148,7 +148,7 @@ func (c *CDKComponent) PrintSummary() []string {
 	case Installed, InstalledDeprecated, UpdateAvailable, Development, Tainted:
 		version = c.InstalledVersion()
 	case NotInstalled, NotInstalledDeprecated:
-		version = &c.ApiInfo.Version
+		version = c.ApiInfo.Version
 	default:
 		version = &semver.Version{}
 	}
