@@ -143,7 +143,7 @@ func isCheckEnabled() bool {
 
 // dailyComponentUpdateAvailable returns true if the cli should print that a new version of a component is available.
 // It uses the file ~/.config/lacework/version_cache to track the last check time
-func dailyComponentUpdateAvailable(component *lwcomponent.Component) (bool, error) {
+func dailyComponentUpdateAvailable(componentName string) (bool, error) {
 	if cli.JSONOutput() || !isCheckEnabled() {
 		return false, nil
 	}
@@ -172,11 +172,11 @@ func dailyComponentUpdateAvailable(component *lwcomponent.Component) (bool, erro
 		checkTime = nowTime.AddDate(0, 0, -1)
 	)
 
-	if versionCache.CheckComponentBefore(component.Name, checkTime) {
+	if versionCache.CheckComponentBefore(componentName, checkTime) {
 		cli.Event.Feature = featDailyCompVerCheck
 		defer cli.SendHoneyvent()
 
-		versionCache.ComponentsLastCheck[component.Name] = nowTime
+		versionCache.ComponentsLastCheck[componentName] = nowTime
 		cli.Log.Debugw("storing new version cache", "content", versionCache)
 		err := versionCache.StoreCache(cacheFile)
 
@@ -187,7 +187,7 @@ func dailyComponentUpdateAvailable(component *lwcomponent.Component) (bool, erro
 
 		cli.Event.DurationMs = time.Since(nowTime).Milliseconds()
 		cli.Event.FeatureData = versionCache
-		return component.Status() == lwcomponent.UpdateAvailable, nil
+		return true, nil
 	} else {
 		return false, nil
 	}
