@@ -1183,7 +1183,7 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 }
 
 func LoadCatalog() (*lwcomponent.Catalog, error) {
-	cli.StartProgress("Loading component Catalog...")
+	cli.StartProgress("Loading component catalog...")
 	defer cli.StopProgress()
 
 	var componentsApiInfo map[string]lwcomponent.ApiInfo
@@ -1193,11 +1193,7 @@ func LoadCatalog() (*lwcomponent.Catalog, error) {
 		expired := cli.ReadCachedAsset(componentsCacheKey, &componentsApiInfo)
 		if !expired {
 			cli.Log.Infow("loaded components from cache", "components", componentsApiInfo)
-			catalog, err := lwcomponent.NewCachedCatalog(cli.LwApi, lwcomponent.NewStageTarGz, componentsApiInfo)
-			if err != nil {
-				return nil, err
-			}
-			return catalog, nil
+			return lwcomponent.NewCachedCatalog(cli.LwApi, lwcomponent.NewStageTarGz, componentsApiInfo)
 		}
 	}
 

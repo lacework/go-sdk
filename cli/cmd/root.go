@@ -122,8 +122,8 @@ func componentPersistentPreRun(cmd *cobra.Command, args []string) error {
 	cli.Event.Args = cli.componentParser.componentArgs
 	err := cmd.Flags().Parse(cli.componentParser.cliArgs)
 
-	// We call InitConfig() again after global flags have been parsed.
-	InitConfig()
+	// We call initConfig() again after global flags have been parsed.
+	initConfig()
 
 	if err != nil {
 		cli.Event.Error = err.Error()
@@ -200,7 +200,7 @@ func setupRootHelpCommand() {
 
 func init() {
 	// initialize cobra
-	cobra.OnInitialize(InitConfig)
+	cobra.OnInitialize(initConfig)
 
 	// Note - do not add new global flags without considering the consequences
 	// on components.  These global flags will be consumed by the CLI and
@@ -292,8 +292,8 @@ Use "{{.CommandPath}} [command] --help" for more information about a command.{{e
 `
 }
 
-// InitConfig reads in config file and ENV variables if set
-func InitConfig() {
+// initConfig reads in config file and ENV variables if set
+func initConfig() {
 	// Find home directory
 	home, err := homedir.Dir()
 	errcheckEXIT(err)
