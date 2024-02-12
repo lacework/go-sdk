@@ -50,7 +50,7 @@ jobs:
               ]
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_DOC_PULL_REQUESTS }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
   deploy-cli-docs:
     runs-on: ubuntu-latest
