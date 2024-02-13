@@ -17,7 +17,7 @@ type DevInfo struct {
 	Version       string
 }
 
-func NewDevInfo(dir string) (*DevInfo, error) {
+func newDevInfo(dir string) (*DevInfo, error) {
 	path := filepath.Join(dir, DevelopmentFile)
 
 	data, err := os.ReadFile(path)

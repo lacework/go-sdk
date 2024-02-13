@@ -1186,7 +1186,7 @@ func LoadCatalog() (*lwcomponent.Catalog, error) {
 	cli.StartProgress("Loading component catalog...")
 	defer cli.StopProgress()
 
-	var componentsApiInfo map[string]lwcomponent.ApiInfo
+	var componentsApiInfo map[string]*lwcomponent.ApiInfo
 
 	// try to load components Catalog from cache
 	if !cli.noCache {
@@ -1203,11 +1203,11 @@ func LoadCatalog() (*lwcomponent.Catalog, error) {
 		return nil, err
 	}
 
-	componentsApiInfo = make(map[string]lwcomponent.ApiInfo, len(catalog.Components))
+	componentsApiInfo = make(map[string]*lwcomponent.ApiInfo, len(catalog.Components))
 
 	for _, c := range catalog.Components {
 		if c.ApiInfo != nil {
-			componentsApiInfo[c.Name] = *c.ApiInfo
+			componentsApiInfo[c.Name] = c.ApiInfo
 		}
 	}
 
