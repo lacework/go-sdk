@@ -5,14 +5,8 @@ on:
   pull_request:
 
 jobs:
-  update-cli-docs:
+  run-tests:
     runs-on: ubuntu-latest
-    container:
-      image: techallylw/ally-releases:1.21.0
-    strategy:
-      matrix:
-        go-version: ['1.21.x']
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,15 +14,14 @@ jobs:
           ref: ${{ github.ref }}
           fetch-depth: 1
 
-      - name: Setup Go ${{ matrix.go-version }}
+      - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: 1.21.x
 
       - name: Run linting tests
         id: update
         run: |
-          git config --global --add safe.directory "${{ github.workspace }}"
           make prepare
           make lint
           make fmt-check
@@ -48,6 +41,11 @@ jobs:
           sudo apt-get install -y vim
           make integration-only
 
+  trigger-release:
+    runs-on: ubuntu-latest
+    container:
+      image: techallylw/ally-releases:1.21.0
+    steps:
       - name: Trigger release
         if: github.ref == 'refs/heads/main'
         env:
@@ -57,9 +55,12 @@ jobs:
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
           scripts/release.sh trigger
 
+  notify-on-failure:
+    runs-on: ubuntu-latest
+    steps:
       - name: Notify Slack on Failure
         uses: slackapi/slack-github-action@v1.25.0
-        if: failure() && github.ref == 'refs/heads/main'
+        if: failure()
         with:
           payload: |
             {
