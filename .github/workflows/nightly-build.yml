@@ -1,4 +1,4 @@
-name: Nighyly Build
+name: Nightly Build
 
 on:
   workflow_dispatch:
