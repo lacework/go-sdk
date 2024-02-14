@@ -22,7 +22,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::249446771485:role/tf-codefresh-go-sdk-role
+          role-to-assume: arn:aws:iam::249446771485:role/tf-role-arc-generic
           aws-region: us-west-2
 
       - name: Setup Go
