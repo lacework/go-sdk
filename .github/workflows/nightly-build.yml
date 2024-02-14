@@ -43,6 +43,7 @@ jobs:
           CI_API_KEY: ${{ secrets.CI_API_KEY }}
           CI_API_SECRET: ${{ secrets.CI_API_SECRET }}
           LW_INT_TEST_AWS_ACC: ${{ secrets.LW_INT_TEST_AWS_ACC }}
+        # need vim for integrations test of inline editing LQL queries
         run: |
           sudo apt-get update
           sudo apt-get install -y vim
