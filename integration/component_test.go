@@ -198,7 +198,7 @@ func TestComponentDevModeGolangFromScratch(t *testing.T) {
 		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "readcache")
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Contains(t, out.String(), "data data data")
+		assert.Contains(t, out.String(), "[\"data\",\"data\",\"data\"]")
 	})
 }
 
