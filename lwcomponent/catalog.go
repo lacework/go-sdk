@@ -248,7 +248,7 @@ func NewCatalog(
 	includeComponentVersions bool,
 ) (*Catalog, error) {
 	if stageConstructor == nil {
-		return nil, errors.New("nil Catalog StageConstructor")
+		return nil, errors.New("StageConstructor is not specified to create new catalog")
 	}
 
 	response, err := client.V2.Components.ListComponents(operatingSystem, architecture)
@@ -282,7 +282,7 @@ func NewCatalog(
 		cdkComponents[c.Name] = NewCDKComponent(c.Name, c.Description, Type(c.ComponentType), apiInfo, nil)
 	}
 
-	components, err := LoadComponents(cdkComponents)
+	components, err := mergeComponents(cdkComponents)
 	if err != nil {
 		return nil, err
 	}
@@ -293,20 +293,19 @@ func NewCatalog(
 func NewCachedCatalog(
 	client *api.Client,
 	stageConstructor StageConstructor,
-	cachedComponentsApiInfo map[string]ApiInfo,
+	cachedComponentsApiInfo map[string]*ApiInfo,
 ) (*Catalog, error) {
 	if stageConstructor == nil {
-		return nil, errors.New("nil Catalog StageConstructor")
+		return nil, errors.New("StageConstructor is not specified to create new catalog")
 	}
 
 	cachedComponents := make(map[string]CDKComponent, len(cachedComponentsApiInfo))
 
 	for _, a := range cachedComponentsApiInfo {
-		a := a
-		cachedComponents[a.Name] = NewCDKComponent(a.Name, a.Desc, a.ComponentType, &a, nil)
+		cachedComponents[a.Name] = NewCDKComponent(a.Name, a.Desc, a.ComponentType, a, nil)
 	}
 
-	components, err := LoadComponents(cachedComponents)
+	components, err := mergeComponents(cachedComponents)
 	if err != nil {
 		return nil, err
 	}
@@ -314,8 +313,8 @@ func NewCachedCatalog(
 	return &Catalog{client, components, stageConstructor}, nil
 }
 
-// LoadComponents combines the passed in components with the local components
-func LoadComponents(components map[string]CDKComponent) (allComponents map[string]CDKComponent, err error) {
+// mergeComponents combines the passed in components with the local components
+func mergeComponents(components map[string]CDKComponent) (allComponents map[string]CDKComponent, err error) {
 	localComponents, err := LoadLocalComponents()
 	if err != nil {
 		return
@@ -361,7 +360,7 @@ func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 		hostInfo := NewHostInfo(filepath.Join(cacheDir, file.Name()))
 
 		if hostInfo.Development() {
-			devInfo, err := NewDevInfo(hostInfo.Dir)
+			devInfo, err := newDevInfo(hostInfo.Dir)
 			if err != nil {
 				return nil, err
 			}

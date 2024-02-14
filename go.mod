@@ -9,7 +9,7 @@ require (
 	cloud.google.com/go/oslogin v1.9.0
 	cloud.google.com/go/resourcemanager v1.7.0
 	github.com/AlecAivazis/survey/v2 v2.3.2
-	github.com/BurntSushi/toml v1.2.0
+	github.com/BurntSushi/toml v1.3.2
 	github.com/Masterminds/semver v1.5.0
 	github.com/Netflix/go-expect v0.0.0-20200312175327-da48e75238e2
 	github.com/abiosoft/colima v0.5.4
@@ -43,7 +43,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/zclconf/go-cty v1.12.1
 	go.uber.org/zap v1.24.0
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/text v0.14.0
 	google.golang.org/grpc v1.56.3

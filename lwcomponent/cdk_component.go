@@ -118,7 +118,7 @@ func (c *CDKComponent) InstalledVersion() (version *semver.Version) {
 		}
 
 		if componentDir, err := c.Dir(); err == nil {
-			if devInfo, err := NewDevInfo(componentDir); err == nil {
+			if devInfo, err := newDevInfo(componentDir); err == nil {
 				version, err = semver.NewVersion(devInfo.Version)
 				if err == nil {
 					return
